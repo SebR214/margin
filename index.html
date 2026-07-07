@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SGD→PHP: does the stablecoin actually win?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{--bg:#fff;--ink:#12141a;--muted:#6b7280;--line:#ececef;--fill:#f6f6f8;--hi:#e9f0fd;
+        --blue:#1f6fff;--green:#0a7d55;--greenbg:#e7f4ec;--red:#d5342d;--amber:#b45309}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:780px;margin:0 auto;padding:40px 20px 72px}
+  h1{font-size:38px;line-height:1.06;font-weight:800;letter-spacing:-.035em;text-align:center;margin:0 0 12px}
+  .sub{text-align:center;color:var(--muted);font-size:16px;margin:0 auto 22px;max-width:560px}
+  .verdict{font-size:18px;line-height:1.5;font-weight:600;letter-spacing:-.01em;background:var(--fill);
+    border:1px solid var(--line);border-left:3px solid var(--ink);border-radius:14px;padding:18px 20px;margin:0 0 20px}
+  .verdict b{color:var(--green)} .verdict .bad{color:var(--red)}
+  .sizes{display:flex;gap:6px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+  .sz{background:var(--fill);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;cursor:pointer;color:var(--muted)}
+  .sz.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px}
+  .kpi .n{font-size:22px;font-weight:800;letter-spacing:-.02em} .kpi .l{color:var(--muted);font-size:11.5px;margin-top:4px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:8px;margin-bottom:18px}
+  .chead{display:flex;justify-content:space-between;padding:14px 16px 8px;color:var(--muted);font-size:12.5px;font-weight:600}
+  .row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:13px}
+  .row.best{background:var(--hi)}
+  .dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex:0 0 30px}
+  .who{flex:1}.who .nm{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}.who .sb{color:var(--muted);font-size:12px}
+  .badge{background:var(--greenbg);color:var(--green);font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px}
+  .tot{text-align:right}.tot .amt{font-weight:700;font-size:15px}.tot .d{font-size:12px;font-weight:600;margin-top:1px}
+  .d.up{color:var(--green)}.d.dn{color:var(--red)}
+  .chart{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px 18px 8px;margin-bottom:16px}
+  .chart h2{font-size:16px;margin:0 0 2px;font-weight:700}.chart p{color:var(--muted);font-size:12.5px;margin:0 0 12px}
+  canvas{max-height:300px}
+  footer{color:var(--muted);font-size:11.5px;margin-top:22px;text-align:center;line-height:1.7}
+  .prov{background:#eef6f0;border:1px solid #d3e8da;color:#0a7d55;border-radius:10px;padding:8px 12px;font-size:12px;text-align:center;margin-bottom:20px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Does the stablecoin<br>actually win?</h1>
+  <p class="sub">SGD→PHP, measured all the way to pesos landed. Real order books, real remittance quotes — no marketing math.</p>
+
+  <div class="prov" id="prov">● LIVE SNAPSHOT · pulled 7 Jul 2026 · Coins.ph Pro + Independent Reserve books · Wise comparison API</div>
+  <div class="verdict" id="verdict">…</div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="n" style="color:var(--blue)" id="k-wise">—</div><div class="l">Wise, all-in cost</div></div>
+    <div class="kpi"><div class="n" style="color:var(--red)" id="k-mkt">—</div><div class="l">Crypto, market order</div></div>
+    <div class="kpi"><div class="n" style="color:var(--green)" id="k-lim">—</div><div class="l">Crypto, limit order</div></div>
+  </div>
+
+  <div class="sizes" id="sizes"></div>
+
+  <div class="card" id="providers"></div>
+
+  <div class="chart">
+    <h2>All-in cost by send size</h2>
+    <p>bps over mid-market. The crypto route only beats Wise on the <b>limit-order</b> line — market-order it and you're above Wise at every size.</p>
+    <canvas id="hero"></canvas>
+  </div>
+
+  <footer>
+    Real: order-book prices/depth (Coins.ph Pro, Independent Reserve), FX mid, Wise comparison quotes.
+    Assumed: crypto trading fees (IR 0.5% / Coins 0.25% taker; limit = 0), 1 USDT network. GCash/InstaPay payout hits every rail equally, so it's excluded from the comparison.
+  </footer>
+</div>
+
+<script>
+const DATA={"mid":47.588,"amounts":[{"send":250,"mid_recv":11896.99,"rails":{"Wise":11805.67,"Instarem":11806.78,"HSBC":11720.97,"Remitly":11460.04,"PayPal":11085.21,"OCBC":10164.95,"Crypto (market order)":11755.62,"Crypto (limit order)":11844.61}},{"send":1000,"mid_recv":47587.97,"rails":{"Wise":47319.55,"Instarem":47250.89,"HSBC":46883.86,"Remitly":46397.77,"OFX":45053.36,"PayPal":45220.64,"OCBC":44818.2,"Crypto (market order)":47206.34,"Crypto (limit order)":47562.78}},{"send":5000,"mid_recv":237939.86,"rails":{"Wise":236697.04,"Instarem":236610.96,"HSBC":234419.3,"OCBC":229635.53,"OFX":228011.16,"PayPal":227276.31,"Remitly":232732.3,"Crypto (market order)":236276.86,"Crypto (limit order)":238059.64}},{"send":25000,"mid_recv":1189699.28,"rails":{"Wise":1187744.99,"Instarem":1187290.79,"HSBC":1174911.18,"OCBC":1174462.57,"Remitly":1168759.85,"OFX":1158671.58,"Crypto (market order)":1180597.61,"Crypto (limit order)":1189504.33}},{"send":100000,"mid_recv":4758797.1,"rails":{"Wise":4755073.05,"Instarem":4749163.18,"HSBC":4699644.71,"OFX":4634686.32,"Crypto (market order)":4719616.04,"Crypto (limit order)":4755221.07}}]};
+const SIZES=DATA.amounts.map(a=>a.send);
+const META={ "Wise":["#1f6fff","money transfer"], "Instarem":["#6d28d9","money transfer"],
+  "HSBC":["#db0011","bank"], "OCBC":["#e11b22","bank"], "Remitly":["#1f3a8a","money transfer"],
+  "PayPal":["#003087","money transfer"], "OFX":["#0aa06e","money transfer"],
+  "Crypto (market order)":["#d5342d","USDT · Coins.ph"], "Crypto (limit order)":["#0a7d55","USDT · Coins.ph"] };
+let sel=1000;
+const A=s=>DATA.amounts.find(a=>a.send===s);
+const bps=(s,rail)=>{const a=A(s);const r=a.rails[rail];return r==null?null:(a.mid_recv-r)/a.mid_recv*1e4;};
+const peso=n=>'₱'+n.toLocaleString(undefined,{maximumFractionDigits:0});
+
+function renderVerdict(){
+  const w=bps(sel,"Wise"),m=bps(sel,"Crypto (market order)"),l=bps(sel,"Crypto (limit order)");
+  document.getElementById('verdict').innerHTML=
+    `Send <b style="color:var(--ink)">S$${sel.toLocaleString()}</b>: Wise costs <b style="color:var(--blue)">${w.toFixed(0)} bps</b>. `+
+    `The stablecoin route is <span class="bad">${m.toFixed(0)} bps if you market-order it</span> — worse than Wise — `+
+    `or <b>${l.toFixed(0)} bps with limit orders</b>. It's <u>how you trade, not how much you send.</u>`;
+  document.getElementById('k-wise').textContent=w.toFixed(0)+' bps';
+  document.getElementById('k-mkt').textContent=m.toFixed(0)+' bps';
+  document.getElementById('k-lim').textContent=l.toFixed(0)+' bps';
+}
+function renderProviders(){
+  const a=A(sel);
+  const list=Object.entries(a.rails).map(([nm,recv])=>({nm,recv})).sort((x,y)=>y.recv-x.recv);
+  const best=list[0].recv;
+  let h=`<div class="chead"><span>Provider · send S$${sel.toLocaleString()}</span><span>Recipient gets</span></div>`;
+  list.forEach(p=>{
+    const [c,sb]=META[p.nm]||["#888",""]; const isB=p.recv===best; const d=best-p.recv;
+    h+=`<div class="row ${isB?'best':''}">
+      <div class="dot" style="background:${c}">${p.nm[0]}</div>
+      <div class="who"><div class="nm">${p.nm}${isB?'<span class="badge">✓ Cheapest</span>':''}</div><div class="sb">${sb}</div></div>
+      <div class="tot"><div class="amt">${peso(p.recv)}</div><div class="d ${isB?'up':'dn'}">${isB?'best':'▾ '+peso(d)}</div></div></div>`;
+  });
+  document.getElementById('providers').innerHTML=h;
+}
+function render(){renderVerdict();renderProviders();}
+
+const sizesEl=document.getElementById('sizes');
+SIZES.forEach(s=>{const b=document.createElement('div');b.className='sz'+(s===sel?' on':'');
+  b.textContent='S$'+s.toLocaleString();b.onclick=()=>{sel=s;[...sizesEl.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');render();};sizesEl.appendChild(b);});
+render();
+
+const grid={color:'#ececef'},tick={color:'#6b7280'};
+const lines=["Wise","Instarem","Crypto (market order)","Crypto (limit order)"];
+new Chart(document.getElementById('hero'),{type:'line',
+  data:{datasets:lines.map(nm=>({label:nm,data:SIZES.map(s=>({x:s,y:bps(s,nm)})),
+    borderColor:META[nm][0],backgroundColor:META[nm][0],tension:.3,pointRadius:3,
+    borderDash:nm==="Crypto (limit order)"?[6,3]:[]}))},
+  options:{plugins:{legend:{labels:{color:'#12141a',boxWidth:12,font:{size:11}}}},
+    scales:{x:{type:'logarithmic',grid,ticks:{...tick,callback:v=>'S$'+Number(v).toLocaleString()},title:{display:true,text:'send size',color:'#6b7280'}},
+            y:{grid,ticks:tick,title:{display:true,text:'all-in cost (bps vs mid)',color:'#6b7280'}}}}});
+</script>
+</body>
+</html>
