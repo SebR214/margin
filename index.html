@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Stablecoins vs Wise — SGD corridors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#0b0b0c; --muted:#9499a2; --line:#eeeef0; --bg:#fff; --fill:#f7f7f9;
+    --accent:#12855a; --tint:#f1f7f3;
+    --r:18px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Inter",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1}
+  .wrap{max-width:600px;margin:0 auto;padding:52px 22px 80px}
+  h1{font-size:31px;line-height:1.12;font-weight:800;letter-spacing:-.035em;margin:0 0 14px;text-align:center}
+  .sub{text-align:center;color:var(--muted);font-size:15px;line-height:1.5;margin:0 auto 10px;max-width:460px;font-weight:450}
+  .live{text-align:center;color:var(--muted);font-size:12px;margin-bottom:22px;font-weight:500}
+  .live i{font-style:normal;color:var(--accent)}
+  .seg{display:flex;gap:4px;justify-content:center;background:var(--fill);border-radius:999px;padding:4px;width:max-content;margin:0 auto 30px}
+  .seg button{border:0;background:none;font:inherit;font-weight:600;font-size:13.5px;color:var(--muted);padding:8px 16px;border-radius:999px;cursor:pointer}
+  .seg button.on{background:var(--ink);color:#fff}
+  .cur{display:flex;align-items:center;gap:12px;margin-bottom:30px}
+  .curbox{flex:1;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 15px;font-size:14.5px;min-width:0}
+  .curbox .fl{font-size:18px;line-height:1}
+  .curbox b{font-weight:700}
+  .curbox .cn{color:var(--muted);font-weight:450;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .swap{color:var(--muted);font-size:15px;flex:0 0 auto}
+  .selwrap{position:relative;padding-right:32px;cursor:pointer}
+  .selwrap .disp{display:flex;align-items:center;gap:9px;min-width:0}
+  .selwrap .chev{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none}
+  .selwrap select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font:inherit;border:0}
+  .gridhead{text-align:center;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:30px}
+  .cell{border:1px solid var(--line);border-radius:14px;padding:13px 14px;cursor:pointer}
+  .cell:hover{border-color:var(--ink)}
+  .cell.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+  .cell.off{opacity:.55;cursor:default;background:var(--fill)}
+  .cell.off:hover{border-color:var(--line)}
+  .cell .cc{font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px}
+  .cell .cc .fl{font-size:15px}
+  .cell .big{font-size:21px;font-weight:800;letter-spacing:-.02em;margin:9px 0 2px}
+  .cell .sub{color:var(--muted);font-size:10.5px;line-height:1.3}
+  .big.pos{color:var(--accent)}.big.neg{color:#d5342d}.big.neu{color:var(--ink)}
+  @media(max-width:520px){.grid{grid-template-columns:repeat(2,1fr)}}
+  .io{display:flex;align-items:stretch;gap:10px;margin-bottom:14px}
+  .box{flex:1;background:var(--fill);border-radius:14px;padding:12px 16px}
+  .box .l{color:var(--muted);font-size:11.5px;font-weight:500;margin-bottom:4px}
+  .box .v,.box input{font-family:inherit;font-size:19px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+  .box input{width:100%;border:0;background:none;outline:none;padding:0}
+  .box input::-webkit-outer-spin-button,.box input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .arr{align-self:center;color:var(--faint,#cfd2d8);font-size:16px}
+  input[type=range]{width:100%;accent-color:var(--ink);height:20px}
+  #amtr{margin:2px 0 30px}
+  .card{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .chead{display:flex;justify-content:space-between;padding:16px 18px 10px;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.01em}
+  .row{display:flex;align-items:center;gap:13px;padding:13px 18px}
+  .row+.row{border-top:1px solid var(--line)}
+  .row.best{background:var(--tint)}
+  .logo{width:32px;height:32px;border-radius:50%;flex:0 0 32px;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;font-weight:700;font-size:13px;color:#fff}
+  .logo b{line-height:1}
+  .logo img{width:19px;height:19px;display:none}
+  .who{flex:1;min-width:0}
+  .who .nm{font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:8px}
+  .who .sb{color:var(--muted);font-size:12px;font-weight:450;margin-top:1px}
+  .badge{background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.02em}
+  .rt{text-align:right;white-space:nowrap}
+  .rt .a{font-weight:700;font-size:14.5px}
+  .rt .d{font-size:12px;font-weight:500;margin-top:1px;color:var(--muted)}
+  .rt .d.best{color:var(--accent);font-weight:600}
+  section{margin-top:30px}
+  .h{font-size:13px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+  .panel{background:var(--fill);border-radius:var(--r);padding:20px}
+  .p{color:var(--muted);font-size:13px;line-height:1.55;font-weight:450;margin:0 0 18px}
+  .wins{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-bottom:18px;font-weight:700;font-size:14.5px}
+  .wins .who-w{color:var(--ink)} .wins .amt-w{color:var(--muted);font-weight:600}
+  .wins.crypto .who-w{color:var(--accent)}
+  .sl{margin-bottom:14px}
+  .sl .top{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink);font-weight:500;margin-bottom:4px}
+  .sl .top b{font-weight:700}
+  .foot-note{font-size:12.5px;color:var(--muted);line-height:1.55;border-top:1px solid var(--line);padding-top:14px;margin-top:4px}
+  .foot-note b{color:var(--ink);font-weight:600}
+  .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
+  .stat{background:#fff;padding:14px 15px}
+  .stat .n{font-size:19px;font-weight:700;letter-spacing:-.01em}
+  .stat .l{color:var(--muted);font-size:11px;font-weight:450;margin-top:3px;line-height:1.35}
+  .chartwrap{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 14px 8px;position:relative}
+  canvas{max-height:150px}
+  .why{font-size:15px;line-height:1.55;text-align:center;color:var(--muted);margin:2px 4px 24px;font-weight:450}
+  .why b{color:var(--ink);font-weight:700}
+  details{margin-top:14px}
+  summary{cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);list-style:none;display:flex;align-items:center;gap:8px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";margin-left:auto;font-size:16px}
+  details[open] summary::after{content:"–"}
+  .src{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.5}
+  .src:last-child{border-bottom:0}
+  .tag{flex:0 0 auto;font-size:9.5px;font-weight:700;letter-spacing:.04em;padding:3px 7px;border-radius:5px;height:max-content;margin-top:1px}
+  .tag.live{background:var(--ink);color:#fff}
+  .tag.assm{background:#fff;color:var(--muted);border:1px solid var(--line)}
+  .src .t b{font-weight:700}.src .t span{color:var(--muted);font-weight:450}
+  code{font-family:ui-monospace,monospace;font-size:11.5px;color:var(--muted);background:var(--fill);padding:1px 5px;border-radius:4px}
+  footer{color:var(--muted);font-size:11.5px;text-align:center;line-height:1.6;margin-top:34px;font-weight:450}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>What does it really cost<br>to send money out of Singapore?</h1>
+  <p class="sub">Every rail — banks, remittance apps, and the stablecoin round-trip — priced all the way to the local currency that lands in the recipient's account. Live order books and real quotes.</p>
+  <div class="live" id="live"></div>
+
+  <div class="gridhead">Where stablecoins actually work in SEA — the stablecoin route vs the best rail, at S$5,000</div>
+  <div class="grid" id="grid"></div>
+
+  <div class="cur">
+    <div class="curbox"><span class="fl">🇸🇬</span><b>SGD</b><span class="cn">Singapore dollar</span></div>
+    <span class="swap">→</span>
+    <div class="curbox selwrap"><span class="disp" id="curdisp"></span><span class="chev">▾</span><select id="corr"></select></div>
+  </div>
+
+  <div class="io">
+    <div class="box"><div class="l">You send</div><input id="amt" type="number" min="1" max="100000" step="10" value="5000" inputmode="numeric"></div>
+    <div class="arr">→</div>
+    <div class="box"><div class="l" id="recvlab">Recipient gets</div><div class="v" id="recv">—</div></div>
+  </div>
+  <input type="range" id="amtr" min="1" max="100000" step="10" value="5000">
+
+  <p class="why" id="why"></p>
+
+  <div class="card" id="table"></div>
+
+  <section>
+    <div class="h">What decides it</div>
+    <div class="panel">
+      <p class="p">The order books are real. The two costs doing most of the damage — the crypto trading fees — are assumed. Drag them; the winner flips.</p>
+      <div class="wins" id="wins"></div>
+      <div class="sl"><div class="top"><span>On-ramp fee · Singapore exchange</span><b id="onv"></b></div><input type="range" id="on" min="0" max="1.5" step="0.05" value="0.5"></div>
+      <div class="sl"><div class="top"><span id="offlab">Off-ramp fee</span><b id="offv"></b></div><input type="range" id="off" min="0" max="1.5" step="0.05" value="0.25"></div>
+      <p class="foot-note" id="bestcase"></p>
+    </div>
+  </section>
+
+  <section>
+    <div class="h">Today's reading · history starts here</div>
+    <div class="stats">
+      <div class="stat"><div class="n" id="s-prem">—</div><div class="l" id="premlab">USDT vs USD mid</div></div>
+      <div class="stat"><div class="n" id="s-gap">—</div><div class="l">Stablecoin − Wise</div></div>
+      <div class="stat"><div class="n" id="s-cheap">—</div><div class="l">Cheapest today</div></div>
+    </div>
+    <div class="chartwrap"><canvas id="hist"></canvas></div>
+  </section>
+
+  <section>
+    <details>
+      <summary>Assumptions &amp; data sources</summary>
+      <div style="margin-top:12px" id="sources"></div>
+      <p class="foot-note" style="border:0;padding-top:16px">Every rail is one number: send S$X, how much local currency lands. Crypto is walked live from the books for the exact amount; fiat is interpolated between real Wise quotes. <b>Costs that hit every rail identically — local cash-out (e.g. GCash 2%) and bank receiving fees — are excluded: they change how much lands, not who wins.</b> Enterprise payout pricing (Nium, Thunes, Circle) is negotiated and out of scope.</p>
+    </details>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const FX={USD_SGD:1.292448,USD_PHP:61.504978,USD_THB:33.302941};
+const IR_ASKS=[[1.2901,5000],[1.29162,23188.2149],[1.29243,74445.71863],[1.29246,24215.99],[1.2927,5000],[1.29323,30784.56]];
+const CORR={
+ PHP:{cur:"₱",flag:"🇵🇭",name:"Philippines",exch:"Coins.ph",usd:FX.USD_PHP,
+   off:[[61.44,154784.71],[61.43,105470.24],[61.42,53190.87],[61.41,71260.07],[61.40,93005.13]],
+   fiat:{Wise:[[250,11805.67],[1000,47319.55],[5000,236697.04],[25000,1187744.99],[100000,4755073.05]],
+     Instarem:[[250,11806.78],[1000,47250.89],[5000,236610.96],[25000,1187290.79],[100000,4749163.18]],
+     HSBC:[[250,11720.97],[1000,46883.86],[5000,234419.3],[25000,1174911.18],[100000,4699644.71]],
+     Remitly:[[250,11460.04],[1000,46397.77],[5000,232732.3],[25000,1168759.85]],
+     OFX:[[1000,45053.36],[5000,228011.16],[25000,1158671.58],[100000,4634686.32]],
+     PayPal:[[250,11085.21],[1000,45220.64],[5000,227276.31]],
+     OCBC:[[250,10164.95],[1000,44818.2],[5000,229635.53],[25000,1174462.57]]}},
+ THB:{cur:"฿",flag:"🇹🇭",name:"Thailand",exch:"Bitkub",usd:FX.USD_THB,
+   off:[[31.62,144168.88],[31.61,15199.98],[31.6,53425.11],[31.59,2078.81],[31.55,40266.28],[31.52,12690.39],[31.5,9881.54],[31.49,203.73],[31.48,805.33],[31.47,317.75],[31.46,1589.3],[31.45,15654.84],[31.44,405.69],[31.43,1590.83],[31.42,134369.01],[31.41,1575.61],[31.4,89331.61],[31.38,988.39],[31.36,0.5],[31.35,3142.24]],
+   fiat:{Wise:[[1000,25563.75],[5000,128058.55],[25000,635676.98]],
+     Instarem:[[1000,25520.12],[5000,127609.46],[25000,633098.63]],
+     HSBC:[[1000,24895.34],[5000,127030.09],[25000,632487.01]],
+     Remitly:[[1000,25077.42],[5000,125788.92],[25000,624610.04]],
+     OFX:[[1000,24823.94],[5000,125631.8],[25000,629985.18]],
+     OCBC:[[1000,24319.14],[5000,124604.26],[25000,627175.53]],
+     PayPal:[[1000,24360.04],[5000,122432.14]]}}};
+const DOM={Wise:"wise.com",Instarem:"instarem.com",HSBC:"hsbc.com",OCBC:"ocbc.com",Remitly:"remitly.com",PayPal:"paypal.com",OFX:"ofx.com"};
+const BRAND={Wise:"#1a4d2e",Instarem:"#4b32c3",HSBC:"#c8102e",OCBC:"#d0021b",Remitly:"#2b2e9e",PayPal:"#003087",OFX:"#0a8f68",Stablecoin:"#0b0b0c"};
+const SB={Wise:"Money transfer",Instarem:"Money transfer",HSBC:"Bank",OCBC:"Bank",Remitly:"Money transfer",PayPal:"Money transfer",OFX:"Money transfer"};
+let corr="PHP", amt=5000, onF=0.005, offF=0.0025;
+const C=()=>CORR[corr];
+const buy=(a,b)=>{let base=0,s=0;for(const[p,q]of a){const c=p*q;if(s+c<=b){base+=q;s+=c}else return base+(b-s)/p}return base;};
+const sell=(bd,u)=>{let q=0,so=0;for(const[p,x]of bd){if(so+x<=u){q+=p*x;so+=x}else return q+p*(u-so)}return q;};
+const crypto=(c,X,ot,of)=>{const u=buy(IR_ASKS,X)*(1-ot)-1;return u<=0?0:sell(c.off,u)*(1-of);};
+const rateAt=(pts,a)=>{const P=pts.map(([x,r])=>[x,r/x]).sort((u,v)=>u[0]-v[0]);
+  if(a<=P[0][0])return P[0][1];if(a>=P[P.length-1][0])return P[P.length-1][1];
+  for(let i=0;i<P.length-1;i++)if(a>=P[i][0]&&a<=P[i+1][0]){const t=(a-P[i][0])/(P[i+1][0]-P[i][0]);return P[i][1]+t*(P[i+1][1]-P[i][1]);}};
+const fiat=(c,p,a)=>rateAt(c.fiat[p],a)*a;
+const mid=c=>amt*(c.usd/FX.USD_SGD);
+const money=(c,n)=>c.cur+Math.round(n).toLocaleString();
+const logoEl=(name,dom,bg)=>`<span class="logo" style="background:${bg}"><b>${name[0]}</b><img src="https://icons.duckduckgo.com/ip3/${dom}.ico" alt="" onload="this.style.display='block';var p=this.parentNode;p.querySelector('b').style.display='none';p.style.background='#fff';p.style.border='1px solid var(--line)'"></span>`;
+
+function render(){
+  const c=C();
+  const mkt=crypto(c,amt,onF,offF),lim=crypto(c,amt,0,0),wise=fiat(c,"Wise",amt);
+  const rows=[...Object.keys(c.fiat).map(p=>({n:p,l:fiat(c,p,amt),c:false})),{n:"Stablecoin",l:mkt,c:true}]
+    .filter(r=>isFinite(r.l)).sort((a,b)=>b.l-a.l);
+  const best=rows[0].l;
+  document.getElementById('recvlab').textContent='Recipient gets '+c.flag;
+  document.getElementById('recv').textContent=money(c,best);
+  document.getElementById('table').innerHTML=
+    `<div class="chead"><span>Send S$${amt.toLocaleString()}</span><span>Recipient gets</span></div>`+
+    rows.map(r=>{const isB=r===rows[0];const d=best-r.l;const unv=r.c&&r.l<=0;
+      return `<div class="row ${isB?'best':''}">${r.c?logoEl("Stablecoin","coins.ph",BRAND.Stablecoin):logoEl(r.n,DOM[r.n],BRAND[r.n])}
+        <div class="who"><div class="nm">${r.c?"Stablecoin route":r.n}${isB?'<span class="badge">CHEAPEST</span>':''}</div>
+          <div class="sb">${r.c?"USDT · market order":SB[r.n]}</div></div>
+        <div class="rt">${unv?`<div class="a" style="color:var(--muted)">—</div><div class="d">network fee &gt; send</div>`:`<div class="a">${money(c,r.l)}</div><div class="d ${isB?'best':''}">${isB?'best rate':'−'+money(c,d)}</div>`}</div></div>`;}).join('');
+  const diff=mkt-wise,w=document.getElementById('wins');
+  w.className="wins"+(diff>=0?" crypto":"");
+  w.innerHTML=`<span class="who-w">${diff>=0?'Stablecoin wins':'Wise wins'}</span><span class="amt-w">+${money(c,Math.abs(diff))}</span>`;
+  document.getElementById('onv').textContent=(onF*100).toFixed(2)+'%';
+  document.getElementById('offv').textContent=(offF*100).toFixed(2)+'%';
+  document.getElementById('offlab').textContent=`Off-ramp fee · ${c.exch} (${corr})`;
+  const lb=(mid(c)-lim)/mid(c)*1e4;
+  document.getElementById('bestcase').innerHTML=`A trader on <b>limit orders</b> pays ~0 fees and lands <b>${money(c,lim)}</b> (${lb.toFixed(0)} bps vs mid). ${lim<wise?`Still below Wise here — the ${c.name} off-ramp discount swamps the fee saving.`:`That would top the list — but it's a desk move, not what a normal sender does.`}`;
+  const prem=(c.off[0][0]-c.usd)/c.usd*1e4;
+  const sp=document.getElementById('s-prem');sp.textContent=(prem>=0?'+':'')+prem.toFixed(0)+' bps';sp.style.color=prem>=0?'var(--accent)':'#d5342d';
+  document.getElementById('premlab').textContent=`USDT/${corr} vs USD mid`;
+  document.getElementById('s-gap').textContent=(diff>=0?'+':'−')+money(c,Math.abs(diff));
+  document.getElementById('s-cheap').textContent=rows[0].c?"Stablecoin":rows[0].n;
+  const wm=(mid(c)-mkt)/mid(c)*1e4,ww=(mid(c)-wise)/mid(c)*1e4;
+  document.getElementById('why').innerHTML= diff>=0
+    ? `The stablecoin route wins here — but only because the assumed trading fees are set low. Nudge them up and Wise takes it: <b>the winner rests on a number no one publishes.</b>`
+    : lim<wise
+      ? `<b>Wise wins big here.</b> On the ${corr} corridor, USDT off-ramps ~${Math.abs(prem/100).toFixed(1)}% below the USD mid — that discount alone dwarfs Wise's entire margin.`
+      : `<b>Wise wins here.</b> The stablecoin round-trip's ${((onF+offF)*100).toFixed(2)}% in on- and off-ramp trading fees costs more than Wise's all-in margin — even though moving the money itself is nearly free.`;
+  document.getElementById('live').innerHTML=`<i>●</i> live order books &amp; quotes · SGD → ${corr} corridor · updated hourly · 7 Jul 2026`;
+  document.getElementById('foot').textContent="Order books walked live (Independent Reserve, Coins.ph Pro, Bitkub). Fiat from Wise comparison API. Fees are assumptions.";
+}
+
+// bind + first render FIRST
+const A=document.getElementById('amt'),R=document.getElementById('amtr');
+const setA=v=>{amt=Math.max(1,Math.min(100000,+v||1));A.value=amt;R.value=amt;render();};
+A.oninput=e=>setA(e.target.value);R.oninput=e=>setA(e.target.value);
+document.getElementById('on').oninput=e=>{onF=+e.target.value/100;render();};
+document.getElementById('off').oninput=e=>{offF=+e.target.value/100;render();};
+const CNAME={PHP:"Philippine peso",THB:"Thai baht"};
+const SOON={IDR:["🇮🇩","Indonesian rupiah"],MYR:["🇲🇾","Malaysian ringgit"],VND:["🇻🇳","Vietnamese dong"],INR:["🇮🇳","Indian rupee"]};
+const sel=document.getElementById('corr'),curdisp=document.getElementById('curdisp');
+const setDisp=()=>{curdisp.innerHTML=`<span class="fl">${CORR[corr].flag}</span><b>${corr}</b><span class="cn">${CNAME[corr]}</span>`;};
+Object.keys(CORR).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=`${CORR[k].flag}  ${k} · ${CNAME[k]}`;o.selected=k===corr;sel.appendChild(o);});
+function markGrid(){[...document.querySelectorAll('#grid .cell')].forEach(c=>c.classList.toggle('sel',c.dataset.k===corr));}
+function selectCorr(k){corr=k;sel.value=k;setDisp();markGrid();render();}
+function buildGrid(){const g=document.getElementById('grid');let h='';
+  Object.keys(CORR).forEach(k=>{const c=CORR[k];const mkt=crypto(c,5000,0.005,0.0025);
+    const bf=Math.max(...Object.keys(c.fiat).map(p=>fiat(c,p,5000)));const gap=(mkt-bf)/bf*100,prem=(c.off[0][0]-c.usd)/c.usd*100;
+    const cls=gap>=0?'pos':(gap>=-0.5?'neu':'neg');
+    h+=`<div class="cell" data-k="${k}" onclick="selectCorr('${k}')"><div class="cc"><span class="fl">${c.flag}</span>${k}</div><div class="big ${cls}">${gap>=0?'+':''}${gap.toFixed(1)}%</div><div class="sub">vs best rail · USDT ${prem>=0?'+':''}${prem.toFixed(1)}% vs USD</div></div>`;});
+  Object.entries(SOON).forEach(([k,v])=>{h+=`<div class="cell off"><div class="cc"><span class="fl">${v[0]}</span>${k}</div><div class="big" style="color:var(--muted)">—</div><div class="sub">no public book yet</div></div>`;});
+  g.innerHTML=h;markGrid();}
+sel.onchange=e=>selectCorr(e.target.value);
+setDisp();buildGrid();render();
+// extras, isolated
+try{
+document.getElementById('sources').innerHTML=[
+  ["live","On-ramp SGD→USDT","Independent Reserve order book · <code>api.independentreserve.com</code>"],
+  ["live","Off-ramp USDT→local","Coins.ph Pro (PH) · Bitkub (TH), full depth · <code>api.pro.coins.ph</code> / <code>api.bitkub.com</code>"],
+  ["live","Fiat rails","Wise comparison API · <code>api.wise.com/v3</code> · Wise, Instarem, HSBC, OCBC, Remitly, PayPal, OFX"],
+  ["live","FX mid-market","<code>open.er-api.com</code>"],
+  ["assm","Crypto trading fees","IR 0.50% / off-ramp 0.25% taker; limit = 0. The number that decides the ranking."],
+  ["assm","Network + payout","1 USDT withdrawal; local instant-payment + cash-out fees applied to all rails equally."],
+].map(([t,h,b])=>`<div class="src"><span class="tag ${t}">${t==='live'?'LIVE':'ASSUMED'}</span><div class="t"><b>${h}</b><br><span>${b}</span></div></div>`).join('');
+}catch(e){}
+try{ if(window.Chart) new Chart(document.getElementById('hist'),{type:'line',
+  data:{labels:["","","","","","","today"],datasets:[{data:[null,null,null,null,null,null,(C().off[0][0]-C().usd)/C().usd*1e4],
+    borderColor:"#12855a",backgroundColor:"#12855a",pointRadius:4}]},
+  options:{plugins:{legend:{display:false}},scales:{y:{grid:{color:"#f2f2f4"},ticks:{color:"#c9ccd2",font:{size:10}},title:{display:true,text:"USDT premium (bps)",color:"#c9ccd2",font:{size:10}}},x:{grid:{display:false},ticks:{color:"#c9ccd2",font:{size:10}}}}}});
+}catch(e){}
+</script>
+</body>
+</html>
