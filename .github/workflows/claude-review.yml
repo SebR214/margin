@@ -1,0 +1,24 @@
+name: Claude Review
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY_GITHUB }}
+          prompt: |
+            Review this PR. Post one comment covering:
+            1. What changed
+            2. Bugs or edge cases
+            3. Anything that will break in CI
+            Be concise. No praise. Only real issues.
