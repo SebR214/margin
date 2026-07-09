@@ -55,7 +55,7 @@ OFFRAMP_SNAPSHOT_FILE = os.path.join(
 OFFRAMP_FIELDS = [
     "ts", "corridor", "leg", "venue", "stable", "notional_src", "notional_src_ccy",
     "notional_stable", "top_of_book_rate", "achievable_rate", "slippage_bps_vs_top",
-    "depth_to_1pct_slippage", "book_levels_used", "filled_fully", "source_ok",
+    "depth_to_1pct_slippage", "book_levels_used", "filled_fully", "source_ok", "error",
 ]
 
 # ------------------------------------------------------------------ mid-market
@@ -342,7 +342,7 @@ def depth_within_pct(bids, pct=0.01):
 
 
 def build_offramp_row(ts, src, dst, venue, stable, notional_src, notional_stable,
-                      bids, source_ok):
+                      bids, source_ok, error=""):
     m = depth_metrics(bids, notional_stable) if (notional_stable and bids) else None
     return {
         "ts": ts,
@@ -360,6 +360,7 @@ def build_offramp_row(ts, src, dst, venue, stable, notional_src, notional_stable
         "book_levels_used": m["levels_used"] if m else 0,
         "filled_fully": m["filled_fully"] if m else False,
         "source_ok": source_ok,
+        "error": error,
     }
 
 
@@ -389,15 +390,16 @@ def run_offramp_snapshot(args):
     for venue, fetch in OFFRAMP_VENUES.items():
         try:
             book = fetch(stable, dst)
-            ok = True
+            ok, err = True, ""
         except Exception as e:
-            print(f"  [warn] {venue} book failed: {e}", file=sys.stderr)
+            err = f"{type(e).__name__}: {e}"
+            print(f"  [warn] {venue} book failed: {err}", file=sys.stderr)
             book, ok = {"asks": [], "bids": []}, False
         for notional_src in ladder:
             notional_stable = notional_src * usd_per_sgd if usd_per_sgd else None
             rows.append(build_offramp_row(ts, src, dst, venue, stable,
                                           notional_src, notional_stable,
-                                          book.get("bids", []), ok))
+                                          book.get("bids", []), ok, err))
 
     if args.json:
         print(json.dumps(rows, indent=2))
