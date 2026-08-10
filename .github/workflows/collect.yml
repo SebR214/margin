@@ -41,6 +41,7 @@ jobs:
             echo "no new data -- failing so this never rots silently"
             exit 1
           fi
-          git pull --rebase origin ${GITHUB_REF_NAME}
+          # commit BEFORE rebasing: git refuses `pull --rebase` with a staged index.
           git commit -m "sample $(date -u +%Y-%m-%dT%H:%MZ)"
+          git pull --rebase origin ${GITHUB_REF_NAME}
           git push origin ${GITHUB_REF_NAME}
