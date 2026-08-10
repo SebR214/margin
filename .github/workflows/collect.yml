@@ -26,17 +26,26 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Collect sample
-        # collector exits non-zero on an incomplete sample -> job fails loudly.
-        # The row is still written, so commit it either way (see always()).
+      # Two collectors, two layers, INDEPENDENT pass/fail. The basis step runs
+      # even if the corridor step failed (always()), so one layer breaking never
+      # hides the other -- but either one going red fails the whole job.
+      - name: Collect corridor sample
+        # Exits non-zero on an incomplete corridor sample. The row is still
+        # written, so the commit step (always()) captures it either way.
         run: python3 collector.py
 
-      - name: Commit sample
+      - name: Collect basis sample
+        if: always()
+        # Wide layer: exits non-zero ONLY on a total blackout (all venues down).
+        # A partial pull is a success with source_ok=False holes.
+        run: python3 collector_basis.py
+
+      - name: Commit samples
         if: always()
         run: |
           git config user.name "margin-collector"
           git config user.email "actions@github.com"
-          git add data/samples.csv
+          git add data/samples.csv data/basis.csv
           if git diff --cached --quiet; then
             echo "no new data -- failing so this never rots silently"
             exit 1
