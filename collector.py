@@ -16,10 +16,12 @@ What accumulates (and cannot be backfilled):
   - fee config      : snapshotted per row, so history stays interpretable
                       when fee schedules change
 
-Two execution regimes are recorded every sample, because the answer flips:
+Two execution regimes are recorded every sample:
   TAKER -- crosses the spread, pays published taker fees. What retail does.
-  MAKER -- posts and waits, zero trading fee. What size does.
-           Upper bound: assumes fill at posted top-of-book, ignores fill risk.
+  MAKER -- posts and waits, pays published MAKER fees. NOT zero: Independent
+           Reserve has no maker discount (flat 0.50%), Coins.ph maker is 0.10%.
+           Upper bound on the *benefit*: assumes a fill at posted top-of-book
+           and ignores fill risk -- but it no longer assumes free trading.
 
 Design constraints (deliberate):
   - flat CSV, stdlib + requests, no services to babysit
@@ -62,18 +64,20 @@ CORRIDORS = {
         "onramp": {
             "venue": "IndependentReserve",
             # 0.50% default tier (30-day volume < AUD 50k), flat brokerage fee.
-            # IR publishes NO maker discount -- the maker=0 regime is optimistic
-            # on this leg. Source: independentreserve.com/fees
+            # IR publishes NO maker/taker distinction: a posted (maker) order
+            # pays the same 0.50%. Source: independentreserve.com/fees
             "taker_bps": 50.0,
+            "maker_bps": 50.0,
             "verified": "2026-08-10",
         },
         "offramp": {
             "venue": "Coins.ph",
             "symbol": "USDTPHP",
-            # VIP0 taker 0.15% effective 2025-08-08 (25 bps was assumed; wrong).
-            # VIP0 maker is 0.10%, not zero. Source: support.coins.ph
-            # article 11620285112217 (VIP fee table).
+            # VIP0 schedule effective 2025-08-08: taker 0.15%, maker 0.10%.
+            # (Both were previously wrong: 0.25% taker assumed, maker assumed 0.)
+            # Source: support.coins.ph VIP fee table.
             "taker_bps": 15.0,
+            "maker_bps": 10.0,
             "verified": "2026-08-10",
         },
         "network_fee_stable": 1.0,     # TRC20 USDT withdrawal, flat
@@ -93,7 +97,9 @@ FIELDS = [
     "offramp_filled", "offramp_basis_bps",
     "offramp_depth_top_level", "offramp_depth_1pct",
     # fee regime in force for THIS row
-    "fee_on_taker_bps", "fee_off_taker_bps", "network_fee_stable", "fees_verified",
+    "fee_on_taker_bps", "fee_on_maker_bps",
+    "fee_off_taker_bps", "fee_off_maker_bps",
+    "network_fee_stable", "fees_verified",
     # outcomes
     "landed_taker", "cost_bps_taker", "landed_maker", "cost_bps_maker",
     "baseline_provider", "baseline_landed", "baseline_cost_bps",
@@ -189,6 +195,8 @@ def decompose(notional, on_book, off_book, mids, cfg):
 
     on_fee = cfg["onramp"]["taker_bps"] / 1e4
     off_fee = cfg["offramp"]["taker_bps"] / 1e4
+    on_fee_mk = cfg["onramp"]["maker_bps"] / 1e4
+    off_fee_mk = cfg["offramp"]["maker_bps"] / 1e4
     netfee = cfg["network_fee_stable"]
 
     asks, bids = on_book.get("asks", []), off_book.get("bids", [])
@@ -211,7 +219,8 @@ def decompose(notional, on_book, off_book, mids, cfg):
     out["onramp_slip_bps"] = (bps((on_vwap - top_ask) / top_ask)
                               if (on_vwap and top_ask) else None)
 
-    for regime, fee_on, fee_off in (("taker", on_fee, off_fee), ("maker", 0.0, 0.0)):
+    for regime, fee_on, fee_off in (("taker", on_fee, off_fee),
+                                    ("maker", on_fee_mk, off_fee_mk)):
         stable = gross * (1 - fee_on) - netfee
         if stable <= 0:
             out[f"landed_{regime}"] = 0.0
@@ -341,7 +350,9 @@ def collect(corridor_key, cfg):
             "mid_src_per_usd": mids["src_per_usd"], "mid_dst_per_usd": mids["dst_per_usd"],
             "onramp_venue": cfg["onramp"]["venue"], "offramp_venue": cfg["offramp"]["venue"],
             "fee_on_taker_bps": cfg["onramp"]["taker_bps"],
+            "fee_on_maker_bps": cfg["onramp"]["maker_bps"],
             "fee_off_taker_bps": cfg["offramp"]["taker_bps"],
+            "fee_off_maker_bps": cfg["offramp"]["maker_bps"],
             "network_fee_stable": cfg["network_fee_stable"],
             "fees_verified": fees_verified,
             "baseline_provider": bname, "baseline_landed": blanded,
@@ -397,7 +408,8 @@ def print_waterfall(rows):
         print(f"  {r['notional_src']:>8,}{fmt(t):>12}{fmt(m):>12}{fmt(b):>12}"
               f"{win:>14}{filled:>10}")
     print("  " + "-" * 74)
-    print("  cost = bps below mid-market. maker = zero trading fee, assumes fill.\n")
+    print("  cost = bps below mid-market. maker = posts at top-of-book, pays "
+          "maker fee, assumes fill.\n")
 
 
 # -------------------------------------------------------------- selftest
@@ -432,12 +444,18 @@ def selftest():
     print(f"  [ok] basis: on-ramp {d['onramp_basis_bps']:+} bps (stable cheap in SG), "
           f"off-ramp {d['offramp_basis_bps']:+} bps (stable cheap in PH)")
 
-    # 84.6 with verified fees (IR 50 + Coins 15); was 94.8 under the assumed
-    # 25 bps Coins taker fee before verification on 2026-08-10.
+    # Verified fees (2026-08-10): IR flat 50 (no maker discount), Coins taker 15 /
+    # maker 10. Taker ~84.6; maker ~79.3 -- NOT the old ~19.8 that assumed free
+    # maker trading. At base-tier fees the regimes sit only ~5 bps apart (the
+    # Coins taker/maker spread; IR is flat), and BOTH lose to the ~66 bps fiat
+    # baseline. The route wins only once volume-tier fees kick in.
     assert abs(d["cost_bps_taker"] - 84.6) < 1.0, d["cost_bps_taker"]
-    assert abs(d["cost_bps_maker"] - 19.8) < 1.0, d["cost_bps_maker"]
-    print(f"  [ok] regimes diverge: taker {d['cost_bps_taker']:.1f} bps vs "
-          f"maker {d['cost_bps_maker']:.1f} bps -- same book, same second")
+    assert abs(d["cost_bps_maker"] - 79.3) < 1.0, d["cost_bps_maker"]
+    gap = d["cost_bps_taker"] - d["cost_bps_maker"]
+    assert 4.0 < gap < 6.5, gap  # the only base-tier edge is Coins 15->10 bps
+    print(f"  [ok] base-tier fees: taker {d['cost_bps_taker']:.1f} vs maker "
+          f"{d['cost_bps_maker']:.1f} bps -- {gap:.1f} bps apart (Coins "
+          f"maker/taker spread); both lose to ~66 bps Wise")
 
     # the decomposition must reconcile to the taker total
     parts = (d["onramp_basis_bps"] + cfg["onramp"]["taker_bps"]

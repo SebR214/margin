@@ -23,12 +23,16 @@ off-ramp taker fee                    +15.0
 (Fees verified against both venues' published schedules 2026-08-10 — IR 0.50%
 default tier, Coins.ph Pro 0.15% VIP0.)
 
-The rail costs 2.6 bps. The doors cost 82. And the answer flips on execution:
-the same books, the same second, priced as a maker instead of a taker, come to
-**19.8 bps** — three times better than the incumbent (an upper bound: it
-assumes zero maker fees, which neither venue's published schedule actually
-offers — see METHODOLOGY.md). That gap is why large flow uses stablecoins and
-retail does not benefit, and it has nothing to do with the blockchain.
+The rail costs 2.6 bps. The doors cost 82. Execution barely helps at the base
+tier: priced as a maker instead of a taker — same books, same second — the cost
+falls only to **~79.6 bps**, because a posted order still pays Independent
+Reserve's flat 0.50% and Coins.ph's 0.10% maker fee. Maker is not free
+execution, and the ~5 bps it saves does not close the gap: **at published
+base-tier fees the stablecoin route loses to Wise in _both_ regimes**, across
+every size on the ladder. It turns favourable only once volume-tier fee
+discounts kick in — a crossover this repo is built to *measure* from history,
+not assume. (An earlier draft claimed maker was ~19.8 bps and beat Wise 3×; that
+was an artefact of modelling maker trading as free. See METHODOLOGY.md.)
 
 This repo collects the data behind that argument, hourly. See
 [METHODOLOGY.md](METHODOLOGY.md) for what is measured, what is assumed, and what

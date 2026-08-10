@@ -14,7 +14,7 @@ For each corridor, hourly, at a set of notional sizes:
 | Off-ramp book (USDT→PHP) | Coins.ph Pro public depth, 200 levels requested | measured |
 | USD mid rates | `open.er-api.com` | measured |
 | Incumbent fiat baseline | Wise comparison API (Wise, Instarem, HSBC, OFX, PayPal…) | measured |
-| Exchange taker fees | venue published schedules | published, verified 2026-08-10 |
+| Exchange taker & maker fees | venue published schedules | published, verified 2026-08-10 |
 | Network withdrawal fee | 1 USDT, TRC20, flat | assumed |
 
 Both books are *walked* for the actual notional, so a size that would move the
@@ -29,16 +29,25 @@ execute, and the two answers sit on opposite sides of the incumbent:
 
 - **Taker** — crosses the spread, pays published taker fees on both legs. This is
   what a retail user does when they press "buy".
-- **Maker** — posts a resting order and waits, modelled at zero trading fee.
+- **Maker** — posts a resting order and waits, and pays published **maker** fees:
+  Coins.ph Pro VIP0 maker is 0.10%, and Independent Reserve has **no maker
+  discount at all** — a posted order there still pays the flat 0.50%. Maker is
+  *not* free execution.
 
-The maker figure is an **upper bound on the benefit**. It assumes a fill at
+The maker figure is an **upper bound on the benefit**: it assumes a fill at
 posted top-of-book and ignores fill risk, queue position, and the time the money
-spends unhedged. It is also optimistic on fees: Coins.ph Pro's published VIP0
-maker fee is 0.10% (not zero), and Independent Reserve publishes a flat
-brokerage fee with **no maker discount at all** — a posted order there still
-pays 0.50% at the default tier. Treat the maker line as "what execution is
-worth if you get it", not as an achievable price. Everything between the two
-lines is execution quality.
+spends unhedged. But it is no longer optimistic on fees — the maker schedule is
+applied on both legs. Because Independent Reserve is flat, the only thing that
+separates the two regimes at the base tier is the Coins.ph taker/maker spread
+(0.15% vs 0.10%): maker sits ~5 bps below taker and no further.
+
+**At base-tier fees the stablecoin route loses to the fiat baseline in _both_
+regimes**, across the whole size ladder — taker ~78–139 bps and maker ~73–134 bps
+against Wise/Instarem at ~59–89 bps (live, 2026-08-10). The route only turns
+favourable once volume-tier fees kick in (both venues discount on 30-day
+volume); that crossover is a finding to be *measured* from history, not assumed.
+The earlier "maker beats Wise ~3×" result was an artefact of modelling maker
+trading as free — it does not survive fee verification.
 
 ## The decomposition
 
@@ -47,13 +56,17 @@ rail. That is arithmetic, and it reconciles:
 
 ```
 on-ramp basis    stable vs USD mid at the source venue   (can be negative — a gain)
-on-ramp fee      published taker fee
+on-ramp fee      published fee (taker or maker per regime)
 network fee      flat, so it scales inversely with size
 off-ramp basis   stable vs USD mid at the destination venue
-off-ramp fee     published taker fee
+off-ramp fee     published fee (taker or maker per regime)
 ─────────────────────────────────────────────────────────
 = all-in cost in bps below mid-market
 ```
+
+The taker and maker rows use the taker and maker schedules respectively; the
+network fee and both basis terms are identical between them. So the taker/maker
+gap is exactly the difference between the two fee schedules — nothing more.
 
 "Basis" is peg deviation expressed as a cost. It is a **market price, not a
 fee** — it moves hourly, and its sign depends on which way money wants to flow
@@ -80,15 +93,23 @@ the most important thing to get right and the easiest thing to get wrong. Each
 row in `data/samples.csv` carries the fee configuration that was in force when
 it was written, so history stays interpretable if a venue changes its schedule.
 
-| Venue | Taker used | Verified against published schedule |
-|---|---|---|
-| Independent Reserve | 0.50% (default tier, 30-day volume < AUD 50k) | 2026-08-10 |
-| Coins.ph Pro | 0.15% (VIP0, schedule effective 2025-08-08) | 2026-08-10 |
+| Venue | Taker | Maker | Verified against published schedule |
+|---|---|---|---|
+| Independent Reserve | 0.50% | 0.50% (no maker discount) | 2026-08-10 |
+| Coins.ph Pro | 0.15% | 0.10% (VIP0, effective 2025-08-08) | 2026-08-10 |
 
-Rows written before 2026-08-10 used an assumed 0.25% Coins.ph taker fee — the
-`fee_off_taker_bps` column on each row records what was in force. The verified
-schedule is 10 bps cheaper, which moved the reference taker figure from ~94.8
-to ~84.6 bps at S$5,000 (still losing to the fiat baseline at ~66 bps).
+Both are default/base tier (Independent Reserve 30-day volume < AUD 50k;
+Coins.ph VIP0). Each row records the full fee regime in force —
+`fee_on_taker_bps`, `fee_on_maker_bps`, `fee_off_taker_bps`, `fee_off_maker_bps`.
+Two corrections landed on 2026-08-10:
+
+- **Coins.ph taker** was an assumed 0.25%; the published VIP0 schedule is 0.15%.
+  That moved the reference taker figure from ~94.8 to ~84.6 bps at S$5,000.
+- **Maker was modelled as free** on both legs; it is not. Applying the real maker
+  schedule (IR 0.50% flat + Coins 0.10%) moves the S$5,000 maker figure from
+  ~19.8 to ~79.6 bps. The previous "maker beats Wise ~3×" result does not
+  survive: at base-tier fees the route loses to the ~66 bps fiat baseline in
+  **both** regimes, and wins only at volume tiers.
 
 ## Data integrity
 
