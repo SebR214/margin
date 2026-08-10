@@ -97,6 +97,37 @@ def parse_coins_pro(d):
     return (_f(d.get("bidPrice")), _f(d.get("askPrice")), None)
 
 
+def parse_btcturk(d):
+    # v2/ticker: {"data":[{"bid","ask","last",...}], "success":bool}. Numeric.
+    row = (d.get("data") or [{}])[0]
+    return (_f(row.get("bid")), _f(row.get("ask")), _f(row.get("last")))
+
+
+def parse_upbit(d):
+    # v1/ticker: [{"market":"KRW-USDT","trade_price":...}]. No bid/ask -> last only.
+    # KRW is the QUOTE currency, so trade_price is already won per USDT.
+    row = d[0] if isinstance(d, list) and d else {}
+    return (None, None, _f(row.get("trade_price")))
+
+
+def parse_indodax(d):
+    # api/{pair}/ticker: {"ticker":{"buy","sell","last",...}}. String-priced.
+    t = d.get("ticker") or {}
+    return (_f(t.get("buy")), _f(t.get("sell")), _f(t.get("last")))
+
+
+def parse_bitkub(d):
+    # market/ticker: all pairs keyed by "THB_USDT" -> {"highestBid","lowestAsk","last"}.
+    t = d.get("THB_USDT") or {}
+    return (_f(t.get("highestBid")), _f(t.get("lowestAsk")), _f(t.get("last")))
+
+
+def parse_bitso(d):
+    # v3/ticker: {"success":bool,"payload":{"bid","ask","last",...}}. String-priced.
+    p = d.get("payload") or {}
+    return (_f(p.get("bid")), _f(p.get("ask")), _f(p.get("last")))
+
+
 # ------------------------------------------------------------- registry
 # name       : row label, must be stable (it keys history)
 # fiat_ccy   : ISO code, indexes the shared FX snapshot
@@ -121,6 +152,50 @@ VENUES = [
         "ticker_url": ("https://api.pro.coins.ph/openapi/quote/v1/ticker/bookTicker"
                        "?symbol=USDTPHP"),
         "parse_fn": parse_coins_pro,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    # --- item 3: five new venues (endpoints verified live 2026-08-10). Each is
+    # non-Binance on purpose: Binance 451s the US GitHub runners. Any venue that
+    # still blocks the runner gets enabled=False + a note here -- never proxied.
+    {
+        "name": "BTCTurk",
+        "fiat_ccy": "TRY",
+        "ticker_url": "https://api.btcturk.com/api/v2/ticker?pairSymbol=USDTTRY",
+        "parse_fn": parse_btcturk,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "Upbit",
+        "fiat_ccy": "KRW",
+        "ticker_url": "https://api.upbit.com/v1/ticker?markets=KRW-USDT",
+        "parse_fn": parse_upbit,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "Indodax",
+        "fiat_ccy": "IDR",
+        "ticker_url": "https://indodax.com/api/usdt_idr/ticker",
+        "parse_fn": parse_indodax,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "Bitkub",
+        "fiat_ccy": "THB",
+        "ticker_url": "https://api.bitkub.com/api/market/ticker",
+        "parse_fn": parse_bitkub,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "Bitso",
+        "fiat_ccy": "MXN",
+        # production host (api.bitso.com, not stage); 60 req/min public limit.
+        "ticker_url": "https://api.bitso.com/api/v3/ticker?book=usdt_mxn",
+        "parse_fn": parse_bitso,
         "candles_fn": None,
         "enabled": True,
     },
@@ -235,8 +310,8 @@ def print_table(rows):
 
 
 # -------------------------------------------------------------- selftest
-# Fixtures are the REAL payload shapes captured 2026-08-10 (see the curl in the
-# commit). FX values are chosen to make the basis assertions exact.
+# Fixtures are the REAL payload shapes captured live 2026-08-10 (one curl per
+# venue). FX values are chosen so the basis assertions are exact.
 IR_FIXTURE = {
     "CurrentHighestBidPrice": 1.2805, "CurrentLowestOfferPrice": 1.2815,
     "LastPrice": 1.281, "PrimaryCurrencyCode": "Usdt", "SecondaryCurrencyCode": "Sgd",
@@ -245,63 +320,129 @@ COINS_FIXTURE = {
     "symbol": "USDTPHP", "bidPrice": "60.58", "bidQty": "255207.28",
     "askPrice": "60.62", "askQty": "360998.21",
 }
-FX_FIXTURE = {"SGD": 1.2796, "PHP": 60.86}
+BTCTURK_FIXTURE = {"data": [{"pair": "USDTTRY", "bid": 47.61, "ask": 47.611,
+                             "last": 47.61, "denominatorSymbol": "TRY"}],
+                   "success": True, "code": 0}
+UPBIT_FIXTURE = [{"market": "KRW-USDT", "trade_price": 1408.0,
+                  "opening_price": 1405.0, "timestamp": 1786368748276}]
+INDODAX_FIXTURE = {"ticker": {"buy": "17649", "sell": "17650", "last": "17649",
+                              "high": "17709", "low": "17600"}}
+BITKUB_FIXTURE = {"THB_USDT": {"id": 8, "last": 33.02, "highestBid": 33.02,
+                               "lowestAsk": 33.03, "baseVolume": 15532950.29}}
+BITSO_FIXTURE = {"success": True, "payload": {"book": "usdt_mxn", "bid": "17.132",
+                 "ask": "17.133", "last": "17.132", "high": "17.18"}}
+
+# One malformed payload per venue: right envelope, no usable price.
+MALFORMED = {
+    "IndependentReserve": {},
+    "Coins.ph": {"symbol": "USDTPHP"},
+    "BTCTurk": {"data": [], "success": False},
+    "Upbit": [],
+    "Indodax": {"ticker": {}},
+    "Bitkub": {"THB_USDT": {}},
+    "Bitso": {"success": False, "payload": {}},
+}
+
+# er-api-style snapshot covering every registered venue's currency.
+FX_FIXTURE = {"SGD": 1.2796, "PHP": 60.86, "TRY": 47.706, "KRW": 1409.64,
+              "IDR": 17862.19, "THB": 33.024, "MXN": 17.141}
 TS_FIXTURE = "2026-08-10T00:00:00+00:00"
+
+# route a fake fetch by URL substring; override a venue with a payload or an
+# Exception instance (raised) to simulate malformed data or an outage.
+_ROUTES = {
+    "independentreserve": IR_FIXTURE, "coins": COINS_FIXTURE,
+    "btcturk": BTCTURK_FIXTURE, "upbit": UPBIT_FIXTURE, "indodax": INDODAX_FIXTURE,
+    "bitkub": BITKUB_FIXTURE, "bitso": BITSO_FIXTURE,
+}
+
+
+def _make_fetch(overrides=None):
+    overrides = overrides or {}
+
+    def fetch(url):
+        u = url.lower()
+        for key, payload in _ROUTES.items():
+            if key in u:
+                val = overrides.get(key, payload)
+                if isinstance(val, Exception):
+                    raise val
+                return val
+        raise KeyError(url)
+    return fetch
 
 
 def selftest():
-    # 1. parsers handle the real shapes (dict, string-priced)
+    # 1. every parser extracts (bid, ask, last) from its real payload shape
     assert parse_independent_reserve(IR_FIXTURE) == (1.2805, 1.2815, 1.281)
     assert parse_coins_pro(COINS_FIXTURE) == (60.58, 60.62, None)
-    print("  [ok] parsers extract (bid, ask, last) from both real payload shapes")
+    assert parse_btcturk(BTCTURK_FIXTURE) == (47.61, 47.611, 47.61)
+    assert parse_upbit(UPBIT_FIXTURE) == (None, None, 1408.0)      # KRW quote = last
+    assert parse_indodax(INDODAX_FIXTURE) == (17649.0, 17650.0, 17649.0)
+    assert parse_bitkub(BITKUB_FIXTURE) == (33.02, 33.03, 33.02)
+    assert parse_bitso(BITSO_FIXTURE) == (17.132, 17.133, 17.132)
+    print("  [ok] all 7 parsers extract (bid, ask, last) from real payload shapes")
 
-    # 2. basis math, both signs
+    # 2. every parser degrades a malformed payload to all-None, never raises
+    _parsers = {
+        "IndependentReserve": parse_independent_reserve, "Coins.ph": parse_coins_pro,
+        "BTCTurk": parse_btcturk, "Upbit": parse_upbit, "Indodax": parse_indodax,
+        "Bitkub": parse_bitkub, "Bitso": parse_bitso,
+    }
+    for name, pf in _parsers.items():
+        assert pf(MALFORMED[name]) == (None, None, None), (name, pf(MALFORMED[name]))
+    print("  [ok] all 7 parsers turn a malformed payload into (None, None, None)")
+
+    # 3. basis math, both signs; mid fallback ladder
     assert abs(basis_bps(1.2810, 1.2796) - 10.94) < 0.1     # SG: barely rich
     assert abs(basis_bps(60.60, 60.86) - (-42.72)) < 0.1    # PH: USDT trades cheap
     assert basis_bps(None, 1.0) is None and basis_bps(1.0, None) is None
-    print("  [ok] basis: +10.9 bps (SGD anchor) / -42.7 bps (PHP); None-safe")
+    assert mid_of(1.0, 2.0, 9.0) == 1.5 and mid_of(None, None, 9.0) == 9.0
+    assert mid_of(None, 2.0, None) == 2.0 and mid_of(None, None, None) is None
+    print("  [ok] basis sign +rich/-cheap, None-safe; mid falls back to last/side")
 
-    # 3. mid fallback ladder
-    assert mid_of(1.0, 2.0, 9.0) == 1.5     # prefer bid/ask midpoint
-    assert mid_of(None, None, 9.0) == 9.0   # fall back to last
-    assert mid_of(None, 2.0, None) == 2.0   # then a single side
-    assert mid_of(None, None, None) is None
-    print("  [ok] mid falls back bid/ask -> last -> one side -> None")
+    # 4. FX snapshot must carry every registered venue's currency
+    ccys = {v["fiat_ccy"] for v in VENUES}
+    assert ccys <= set(FX_FIXTURE), ccys - set(FX_FIXTURE)
+    assert {"TRY", "KRW", "IDR", "THB", "MXN"} <= ccys, "the 5 new currencies"
+    print(f"  [ok] FX snapshot covers all {len(ccys)} venue currencies "
+          f"({', '.join(sorted(ccys))})")
 
-    # 4. per-venue failure isolation: one venue 503s, the run continues
-    def fetch_one_down(url):
-        if "independentreserve" in url:
-            return IR_FIXTURE
-        if "coins" in url:
-            raise RuntimeError("simulated 503 from Coins.ph")
-        raise KeyError(url)
+    # 5. full happy path: all 7 venues price, all source_ok
+    rows, n_ok = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=_make_fetch())
+    assert len(rows) == 7 and n_ok == 7, (len(rows), n_ok)
+    by = {r["venue"]: r for r in rows}
+    assert abs(by["IndependentReserve"]["basis_bps"] - 10.94) < 0.2
+    assert abs(by["Bitso"]["basis_bps"] - (-4.96)) < 0.2          # MXN near zero
+    # inversion guard: a flipped TRY parse would read +thousands; real is ~-20.
+    assert -200 < by["BTCTurk"]["basis_bps"] < 50, by["BTCTurk"]["basis_bps"]
+    print("  [ok] 7/7 venues price; MXN~0, TRY in-band (parse not inverted)")
 
-    rows, n_ok = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=fetch_one_down)
-    assert len(rows) == 2, rows
-    assert n_ok == 1, n_ok
-    ir = next(r for r in rows if r["venue"] == "IndependentReserve")
-    co = next(r for r in rows if r["venue"] == "Coins.ph")
-    assert ir["source_ok"] is True and abs(ir["basis_bps"] - 10.94) < 0.2, ir
-    assert co["source_ok"] is False and co["basis_bps"] is None, co
-    assert "simulated 503" in co["error"], co["error"]
-    assert run_exit_code(n_ok) == 0  # one good venue -> the run SUCCEEDS
-    print("  [ok] one venue down -> its row is source_ok=False, run still exits 0")
+    # 6. per-venue isolation: one outage + one malformed payload, run continues
+    fetch = _make_fetch({"coins": RuntimeError("simulated 503 from Coins.ph"),
+                         "bitkub": MALFORMED["Bitkub"]})
+    rows_m, n_ok_m = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=fetch)
+    co = next(r for r in rows_m if r["venue"] == "Coins.ph")
+    bk = next(r for r in rows_m if r["venue"] == "Bitkub")
+    assert n_ok_m == 5, n_ok_m
+    assert co["source_ok"] is False and "simulated 503" in co["error"]
+    assert bk["source_ok"] is False and bk["basis_bps"] is None
+    assert run_exit_code(n_ok_m) == 0  # 5 good venues -> the run SUCCEEDS
+    print("  [ok] outage + malformed venue -> source_ok=False rows, run exits 0")
 
-    # 5. total blackout is the only non-zero exit
-    def fetch_all_down(url):
-        raise RuntimeError("everything is on fire")
+    # 7. missing FX for one ccy degrades only that venue
+    fx_no_thb = {k: v for k, v in FX_FIXTURE.items() if k != "THB"}
+    rows_f, _ = build_rows(TS_FIXTURE, VENUES, fx_no_thb, fetch=_make_fetch())
+    bk_f = next(r for r in rows_f if r["venue"] == "Bitkub")
+    assert bk_f["source_ok"] is False and "no FX mid for THB" in bk_f["error"]
+    print("  [ok] missing FX mid degrades only its venue")
 
-    rows_b, n_ok_b = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=fetch_all_down)
+    # 8. total blackout is the only non-zero exit
+    fetch_dead = _make_fetch({k: RuntimeError("down") for k in _ROUTES})
+    rows_b, n_ok_b = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=fetch_dead)
     assert n_ok_b == 0 and all(not r["source_ok"] for r in rows_b)
-    assert run_exit_code(n_ok_b) == 1  # every venue failed -> exit non-zero
+    assert run_exit_code(n_ok_b) == 1
     print("  [ok] total blackout (all venues fail) -> run exits non-zero")
-
-    # 6. missing FX for a ccy fails only that venue, cleanly
-    rows_f, n_ok_f = build_rows(TS_FIXTURE, VENUES, {"SGD": 1.2796},
-                                fetch=fetch_one_down)
-    co_f = next(r for r in rows_f if r["venue"] == "Coins.ph")
-    assert "no FX mid for PHP" in co_f["error"] or "simulated" in co_f["error"]
-    print("  [ok] missing FX mid degrades one venue, not the run")
 
     assert set(FIELDS) >= set(_base_row(TS_FIXTURE, VENUES[0]))
     print("  [ok] schema covers every row field\n")

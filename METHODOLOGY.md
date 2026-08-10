@@ -73,6 +73,49 @@ fee** — it moves hourly, and its sign depends on which way money wants to flow
 through that venue. This is the term nobody publishes and the reason this site
 collects rather than calculates on demand.
 
+## Basis and its sign
+
+There is one canonical sign convention across this site:
+
+**Positive basis = USDT is _rich_ to the dollar** — one USDT buys more local
+currency than one dollar does at the official mid. That is capital paying a
+premium to hold dollars offshore (Argentina, Venezuela; historically Turkey).
+Negative = USDT trades _cheap_ to the official mid.
+
+```
+basis_bps = (usdt_mid_local / fx_mid_local_per_usd − 1) × 10 000
+```
+
+The **basis layer** (`data/basis.csv`, which colours the map) reports exactly
+this signed number — one row per venue per hour, across Singapore, Philippines,
+Turkey, Korea, Indonesia, Thailand and Mexico.
+
+The **decomposition layer** (`data/samples.csv`, the corridor page) expresses
+the *same* peg deviation as a **cost on each leg**, because it feeds a cost
+waterfall that must sum to the all-in figure — and a cost has the opposite sign
+to richness on the leg where you *sell*:
+
+- **on-ramp** (you buy USDT with SGD): cost = **+**richness at the source venue
+  — rich USDT is expensive to buy.
+- **off-ramp** (you sell USDT for PHP): cost = **−**richness at the destination
+  — cheap USDT is bad to sell.
+
+So the two files never disagree; they are the same measurement in two
+representations. Worked example, Philippines, 2026-08-10: the basis layer
+records Coins.ph at ≈ **−18 bps** (USDT cheap to the dollar in Manila), and the
+corridor's off-ramp basis records ≈ **+18 bps of cost** (selling that cheap
+USDT costs you ~18 bps). Equal magnitude, sign flipped by the buy/sell
+direction, by design.
+
+**Caveat — which "official" rate.** `open.er-api.com` tracks the floating
+*market* USD rate, not a central-bank official or pegged rate. For freely
+floating currencies (TRY, THB, MXN) the market already equals the FX mid, so
+their basis reads small — a near-zero Turkey number means "er-api already
+prices the float", not a broken feed. The large premia appear only where an
+official peg diverges from the street price, which needs a pegged reference
+(ARS, VES — arriving with the aggregator source). Stated here so the map is
+read correctly.
+
 ## What is not visible
 
 - **Enterprise payout pricing.** What Nium, Thunes, or a Circle partner quotes a
