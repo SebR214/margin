@@ -116,6 +116,63 @@ official peg diverges from the street price, which needs a pegged reference
 (ARS, VES — arriving with the aggregator source). Stated here so the map is
 read correctly.
 
+**Reading the map: it is a divergence detector, not a thermometer.** A flat,
+near-zero basis is not "nothing happening" — it is the signal that the local FX
+market is open and USDT clears at the dollar mid. Colour appears only where USDT
+*diverges* from the official mid: a capital control, an import backlog, a weekend
+when banks are shut but crypto is not. The interesting states are the coloured
+ones, and a calm Singapore or Thailand is the control group that makes a hot
+Argentina legible. The map's legend is built around zero and diverges in both
+directions for exactly this reason.
+
+### A worked reading: Indodax −119 bps (2026-08-10)
+
+On the first live pull Indodax showed USDT/IDR ≈ 119 bps below the er-api USD
+mid — large enough to check before trusting. The book was fresh (venue timestamp
+2 s old) with a 0.6 bps bid/ask spread, so it is neither a stale quote nor a
+spread artifact. Against three independent references — fawazahmed0 and Wise both
+put USD/IDR ≈ 17,800, and CoinGecko's aggregate USDT/IDR ≈ 17,775 — the number
+decomposes: ≈ 30 bps is er-api's IDR sitting above consensus spot (an
+FX-reference wrinkle, the same family as the TRY note above), and the remaining
+≈ 85 bps is a *genuine* Indodax USDT discount, corroborated by the independent
+aggregate also trading below spot. Verdict: **real discount, not an artifact.**
+It stays in the data unadjusted; this note is the audit trail.
+
+## Historical basis (the map's history line)
+
+`data/basis_history.csv` is a one-time backfill (`tools/backfill_basis.py`, not
+part of the hourly collector) so the map shows years on day one. One row per
+venue per day: `date, venue, ccy, usdt_close, fx_mid, basis_bps, source`, same
+sign convention as live.
+
+- **USDT close** is each venue's own daily candle: BTCTurk `v2/ohlc`, Upbit
+  `candles/days`, Indodax `history_v2`, Bitkub `tradingview/history`, Bitso
+  `v3/ohlc`. Candle depth varies — Indodax and Bitkub reach 2018, BTCTurk 2019
+  — but Upbit only listed KRW-USDT in 2024-06 and Bitso's public OHLC window is
+  shallow (from 2024-08).
+- **FX mid** is [fawazahmed0/currency-api](https://github.com/fawazahmed0/exchange-api):
+  free, keyless, dated daily files, with a mirror host for resilience. Its
+  history begins **2024-03**, so coverage is the *shorter* of candle depth and
+  FX depth — history effectively starts 2024-03 even where candles run to 2018.
+  Its limits are the same family as er-api's: a community aggregate that tracks
+  the floating market rate, not a central-bank official or pegged rate; daily
+  granularity only. Of 892 days, 1 had no FX file and its rows were dropped, not
+  guessed.
+
+Result: **~4,200 rows across five venues, 2024-03-02 → present.** The history is
+the argument against reading a single snapshot: BTCTurk, near zero today, ran to
+**+650 bps** in this window, and Upbit to **+840** — the premium regimes the map
+is built to catch, even when the current reading is flat.
+
+**The history/live seam.** History is priced with fawazahmed0; the hourly live
+layer is priced with er-api. The two FX feeds differ by tens of bps for some
+currencies (e.g. IDR ≈ 18 bps on 2026-08-10, so the same day reads ~−101 bps in
+history and ~−119 bps live). This is recorded, not smoothed: the `source` column
+marks every historical row's provenance, and aligning the live collector onto
+fawazahmed0 to remove the seam is noted as a future upgrade. Also note history
+is one daily *close* per venue while live is hourly — the history line is a daily
+series, the live point is the latest hour.
+
 ## What is not visible
 
 - **Enterprise payout pricing.** What Nium, Thunes, or a Circle partner quotes a
