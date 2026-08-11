@@ -3,284 +3,382 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Stablecoins vs Wise — SGD corridors</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<title>margin.wiki — the live stablecoin basis map</title>
+<meta name="description" content="Where USDT trades versus the official dollar, across ~10 countries, hourly. A divergence detector for capital-flow pressure."/>
 <style>
   :root{
-    --ink:#0b0b0c; --muted:#9499a2; --line:#eeeef0; --bg:#fff; --fill:#f7f7f9;
-    --accent:#12855a; --tint:#f1f7f3;
-    --r:18px;
+    --ink:#0d1117; --sub:#5b6472; --faint:#8b93a1; --line:#e7e9ee;
+    --bg:#fbfbfc; --card:#ffffff; --ocean:#f2f4f7; --land:#e2e5ea; --landln:#fbfbfc;
+    --pos:#b3241b; --neg:#2f7dae; --accent:#0d1117;
+    --shadow:0 1px 2px rgba(16,22,34,.04),0 8px 30px rgba(16,22,34,.06);
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ink:#e9ecf2; --sub:#9aa3b2; --faint:#6b7480; --line:#22262e;
+      --bg:#0b0d10; --card:#12151a; --ocean:#0f1216; --land:#1b1f26; --landln:#0b0d10;
+      --pos:#f0574d; --neg:#4aa3d6; --accent:#e9ecf2;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 34px rgba(0,0,0,.5);
+    }
   }
   *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
-  body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:"Inter",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1}
-  .wrap{max-width:600px;margin:0 auto;padding:52px 22px 80px}
-  h1{font-size:31px;line-height:1.12;font-weight:800;letter-spacing:-.035em;margin:0 0 14px;text-align:center}
-  .sub{text-align:center;color:var(--muted);font-size:15px;line-height:1.5;margin:0 auto 10px;max-width:460px;font-weight:450}
-  .live{text-align:center;color:var(--muted);font-size:12px;margin-bottom:22px;font-weight:500}
-  .live i{font-style:normal;color:var(--accent)}
-  .seg{display:flex;gap:4px;justify-content:center;background:var(--fill);border-radius:999px;padding:4px;width:max-content;margin:0 auto 30px}
-  .seg button{border:0;background:none;font:inherit;font-weight:600;font-size:13.5px;color:var(--muted);padding:8px 16px;border-radius:999px;cursor:pointer}
-  .seg button.on{background:var(--ink);color:#fff}
-  .cur{display:flex;align-items:center;gap:12px;margin-bottom:30px}
-  .curbox{flex:1;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 15px;font-size:14.5px;min-width:0}
-  .curbox .fl{font-size:18px;line-height:1}
-  .curbox b{font-weight:700}
-  .curbox .cn{color:var(--muted);font-weight:450;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .swap{color:var(--muted);font-size:15px;flex:0 0 auto}
-  .selwrap{position:relative;padding-right:32px;cursor:pointer}
-  .selwrap .disp{display:flex;align-items:center;gap:9px;min-width:0}
-  .selwrap .chev{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none}
-  .selwrap select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font:inherit;border:0}
-  .gridhead{text-align:center;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 14px}
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:30px}
-  .cell{border:1px solid var(--line);border-radius:14px;padding:13px 14px;cursor:pointer}
-  .cell:hover{border-color:var(--ink)}
-  .cell.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
-  .cell.off{opacity:.55;cursor:default;background:var(--fill)}
-  .cell.off:hover{border-color:var(--line)}
-  .cell .cc{font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px}
-  .cell .cc .fl{font-size:15px}
-  .cell .big{font-size:21px;font-weight:800;letter-spacing:-.02em;margin:9px 0 2px}
-  .cell .sub{color:var(--muted);font-size:10.5px;line-height:1.3}
-  .big.pos{color:var(--accent)}.big.neg{color:#d5342d}.big.neu{color:var(--ink)}
-  @media(max-width:520px){.grid{grid-template-columns:repeat(2,1fr)}}
-  .io{display:flex;align-items:stretch;gap:10px;margin-bottom:14px}
-  .box{flex:1;background:var(--fill);border-radius:14px;padding:12px 16px}
-  .box .l{color:var(--muted);font-size:11.5px;font-weight:500;margin-bottom:4px}
-  .box .v,.box input{font-family:inherit;font-size:19px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
-  .box input{width:100%;border:0;background:none;outline:none;padding:0}
-  .box input::-webkit-outer-spin-button,.box input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-  .arr{align-self:center;color:var(--faint,#cfd2d8);font-size:16px}
-  input[type=range]{width:100%;accent-color:var(--ink);height:20px}
-  #amtr{margin:2px 0 30px}
-  .card{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-  .chead{display:flex;justify-content:space-between;padding:16px 18px 10px;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.01em}
-  .row{display:flex;align-items:center;gap:13px;padding:13px 18px}
-  .row+.row{border-top:1px solid var(--line)}
-  .row.best{background:var(--tint)}
-  .logo{width:32px;height:32px;border-radius:50%;flex:0 0 32px;display:flex;align-items:center;justify-content:center;
-    overflow:hidden;font-weight:700;font-size:13px;color:#fff}
-  .logo b{line-height:1}
-  .logo img{width:19px;height:19px;display:none}
-  .who{flex:1;min-width:0}
-  .who .nm{font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:8px}
-  .who .sb{color:var(--muted);font-size:12px;font-weight:450;margin-top:1px}
-  .badge{background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.02em}
-  .rt{text-align:right;white-space:nowrap}
-  .rt .a{font-weight:700;font-size:14.5px}
-  .rt .d{font-size:12px;font-weight:500;margin-top:1px;color:var(--muted)}
-  .rt .d.best{color:var(--accent);font-weight:600}
-  section{margin-top:30px}
-  .h{font-size:13px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
-  .panel{background:var(--fill);border-radius:var(--r);padding:20px}
-  .p{color:var(--muted);font-size:13px;line-height:1.55;font-weight:450;margin:0 0 18px}
-  .wins{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-bottom:18px;font-weight:700;font-size:14.5px}
-  .wins .who-w{color:var(--ink)} .wins .amt-w{color:var(--muted);font-weight:600}
-  .wins.crypto .who-w{color:var(--accent)}
-  .sl{margin-bottom:14px}
-  .sl .top{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink);font-weight:500;margin-bottom:4px}
-  .sl .top b{font-weight:700}
-  .foot-note{font-size:12.5px;color:var(--muted);line-height:1.55;border-top:1px solid var(--line);padding-top:14px;margin-top:4px}
-  .foot-note b{color:var(--ink);font-weight:600}
-  .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
-  .stat{background:#fff;padding:14px 15px}
-  .stat .n{font-size:19px;font-weight:700;letter-spacing:-.01em}
-  .stat .l{color:var(--muted);font-size:11px;font-weight:450;margin-top:3px;line-height:1.35}
-  .chartwrap{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 14px 8px;position:relative}
-  canvas{max-height:150px}
-  .why{font-size:15px;line-height:1.55;text-align:center;color:var(--muted);margin:2px 4px 24px;font-weight:450}
-  .why b{color:var(--ink);font-weight:700}
-  details{margin-top:14px}
-  summary{cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);list-style:none;display:flex;align-items:center;gap:8px}
-  summary::-webkit-details-marker{display:none}
-  summary::after{content:"+";margin-left:auto;font-size:16px}
-  details[open] summary::after{content:"–"}
-  .src{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.5}
-  .src:last-child{border-bottom:0}
-  .tag{flex:0 0 auto;font-size:9.5px;font-weight:700;letter-spacing:.04em;padding:3px 7px;border-radius:5px;height:max-content;margin-top:1px}
-  .tag.live{background:var(--ink);color:#fff}
-  .tag.assm{background:#fff;color:var(--muted);border:1px solid var(--line)}
-  .src .t b{font-weight:700}.src .t span{color:var(--muted);font-weight:450}
-  code{font-family:ui-monospace,monospace;font-size:11.5px;color:var(--muted);background:var(--fill);padding:1px 5px;border-radius:4px}
-  footer{color:var(--muted);font-size:11.5px;text-align:center;line-height:1.6;margin-top:34px;font-weight:450}
+  html,body{margin:0; overflow-x:hidden; max-width:100%}
+  body{
+    background:var(--bg); color:var(--ink); font-family:var(--sans);
+    line-height:1.45; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  a{color:inherit}
+  .wrap{max-width:1180px; margin:0 auto; padding:22px 20px 60px}
+
+  /* ---- header / headline strip ---- */
+  header{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:14px}
+  .brand{font-weight:800; letter-spacing:-.02em; font-size:19px}
+  .brand span{color:var(--faint); font-weight:600}
+  .tag{color:var(--sub); font-size:13.5px; max-width:min(52ch,100%); margin-top:3px}
+  .stamp{font-family:var(--mono); font-size:11.5px; color:var(--faint); text-align:right; white-space:nowrap}
+  .stamp b{color:var(--sub); font-weight:600}
+
+  .callouts{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:18px 0 6px}
+  .call{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:12px 15px; box-shadow:var(--shadow); min-width:0; cursor:pointer;
+    transition:transform .12s ease, border-color .12s ease;
+  }
+  .call:hover{transform:translateY(-1px); border-color:#cfd3db}
+  .call .c-country{font-size:12.5px; color:var(--sub); font-weight:600; display:flex; gap:6px; align-items:center}
+  .call .c-val{font-family:var(--mono); font-size:26px; font-weight:600; letter-spacing:-.01em; margin-top:2px}
+  .call .c-note{font-size:11.5px; color:var(--faint); margin-top:1px}
+  .frame-note{
+    display:flex; gap:9px; align-items:flex-start; margin:12px 2px 6px; color:var(--sub);
+    font-size:13px;
+  }
+  .frame-note svg{flex:none; margin-top:2px}
+
+  /* ---- map + panel layout ---- */
+  .stage{display:grid; grid-template-columns:1fr 340px; gap:18px; margin-top:14px; align-items:start}
+  .mapcard{background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); overflow:hidden}
+  .map-svg{display:block; width:100%; height:auto; background:var(--ocean)}
+  .country{fill:var(--land); stroke:var(--landln); stroke-width:.4; vector-effect:non-scaling-stroke}
+  .country.hot{stroke:rgba(255,255,255,.55)}
+  .mk{cursor:pointer}
+  .mk circle.dot{stroke:rgba(20,25,35,.35); stroke-width:1; vector-effect:non-scaling-stroke}
+  @media (prefers-color-scheme:dark){ .mk circle.dot{stroke:rgba(255,255,255,.4)} }
+  .mk circle.ring{fill:none; opacity:.0}
+  .mk.on circle.ring{opacity:.9}
+  .mk:focus{outline:none}
+
+  /* legend */
+  .legend{padding:12px 16px 15px; border-top:1px solid var(--line)}
+  .leg-bar{height:11px; border-radius:6px; margin:8px 0 6px}
+  .leg-scale{position:relative; height:16px; font-family:var(--mono); font-size:10.5px; color:var(--faint)}
+  .leg-scale span{position:absolute; transform:translateX(-50%); white-space:nowrap}
+  .leg-bands{display:flex; justify-content:space-between; font-size:11px; color:var(--sub); margin-top:2px}
+  .leg-bands b{font-weight:600; color:var(--ink)}
+
+  /* ---- panel ---- */
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); padding:0; overflow:hidden; position:sticky; top:16px}
+  .p-empty{padding:26px 20px; color:var(--faint); font-size:13.5px; text-align:center}
+  .p-head{padding:16px 18px 12px; border-bottom:1px solid var(--line)}
+  .p-flagrow{display:flex; align-items:center; gap:9px}
+  .p-flag{font-size:22px; line-height:1}
+  .p-country{font-weight:700; font-size:17px; letter-spacing:-.01em}
+  .p-venue{color:var(--sub); font-size:12.5px; margin-top:1px}
+  .p-basis{font-family:var(--mono); font-size:34px; font-weight:600; letter-spacing:-.02em; margin-top:10px; line-height:1}
+  .p-basis small{font-size:14px; color:var(--sub); font-weight:400; margin-left:4px}
+  .p-desc{font-size:12.5px; color:var(--sub); margin-top:7px}
+  .p-body{padding:14px 18px 18px}
+  .kv{display:flex; justify-content:space-between; gap:10px; font-size:12.5px; padding:5px 0; border-bottom:1px dashed var(--line)}
+  .kv:last-child{border-bottom:0}
+  .kv .k{color:var(--faint)}
+  .kv .v{font-family:var(--mono); color:var(--ink)}
+  .badges{display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 4px}
+  .badge{font-size:11px; font-weight:600; padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:var(--sub); display:inline-flex; gap:5px; align-items:center}
+  .badge.hist{color:#166534; border-color:#bbe3c7; background:#f0faf3}
+  .badge.snap{color:#9a5b00; border-color:#f0d9a8; background:#fdf6e8}
+  @media (prefers-color-scheme:dark){
+    .badge.hist{color:#7ee0a0; border-color:#1f4b30; background:#0f1c14}
+    .badge.snap{color:#f0c469; border-color:#4a3a1a; background:#1d160a}
+  }
+  .spark-wrap{margin-top:14px}
+  .spark-h{display:flex; justify-content:space-between; align-items:baseline; font-size:11.5px; color:var(--faint); margin-bottom:5px}
+  .spark-h b{color:var(--sub); font-weight:600; font-family:var(--mono)}
+  .spark{display:block; width:100%; height:56px}
+  .p-cta{display:block; margin-top:14px; text-align:center; text-decoration:none; font-weight:600; font-size:13px; padding:10px; border-radius:11px; background:var(--accent); color:var(--bg)}
+  .p-note{font-size:11.5px; color:var(--faint); margin-top:10px; line-height:1.4}
+
+  footer{display:flex; flex-wrap:wrap; gap:6px 16px; justify-content:space-between; align-items:center; margin-top:22px; padding-top:14px; border-top:1px solid var(--line); color:var(--faint); font-size:12px}
+  footer a{color:var(--sub); text-decoration:none; border-bottom:1px solid var(--line)}
+  footer a:hover{color:var(--ink)}
+
+  @media (max-width:820px){
+    .stage{grid-template-columns:1fr}
+    .panel{position:static}
+    .stamp{text-align:left}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>What does it really cost<br>to send money out of Singapore?</h1>
-  <p class="sub">Every rail — banks, remittance apps, and the stablecoin round-trip — priced all the way to the local currency that lands in the recipient's account. Live order books and real quotes.</p>
-  <div class="live" id="live"></div>
+  <header>
+    <div>
+      <div class="brand">margin.wiki <span>· stablecoin basis</span></div>
+      <div class="tag">Where USDT actually trades versus the official dollar — hourly, across ten countries. A live detector for where capital is trying to leave.</div>
+    </div>
+    <div class="stamp" id="stamp">loading…</div>
+  </header>
 
-  <div class="gridhead">Where stablecoins actually work in SEA — the stablecoin route vs the best rail, at S$5,000</div>
-  <div class="grid" id="grid"></div>
+  <div class="callouts" id="callouts"></div>
 
-  <div class="cur">
-    <div class="curbox"><span class="fl">🇸🇬</span><b>SGD</b><span class="cn">Singapore dollar</span></div>
-    <span class="swap">→</span>
-    <div class="curbox selwrap"><span class="disp" id="curdisp"></span><span class="chev">▾</span><select id="corr"></select></div>
+  <div class="frame-note">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.6v4.2M8 11.2h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    <div><b style="color:var(--ink)">Flat is a reading too.</b> The map measures <b style="color:var(--ink)">divergence from official rates</b>, not volume — a country near zero has an open FX market, not a quiet one.</div>
   </div>
 
-  <div class="io">
-    <div class="box"><div class="l">You send</div><input id="amt" type="number" min="1" max="100000" step="10" value="5000" inputmode="numeric"></div>
-    <div class="arr">→</div>
-    <div class="box"><div class="l" id="recvlab">Recipient gets</div><div class="v" id="recv">—</div></div>
+  <div class="stage">
+    <div class="mapcard">
+      <svg class="map-svg" id="map" viewBox="0 0 1000 372" preserveAspectRatio="xMidYMid meet" role="img" aria-label="World map of stablecoin basis"></svg>
+      <div class="legend">
+        <div class="leg-bar" id="legbar"></div>
+        <div class="leg-scale" id="legscale"></div>
+        <div class="leg-bands">
+          <span>USDT <b>cheap</b></span>
+          <span><b>open</b> regime (~0)</span>
+          <span>frictional</span>
+          <span><b>parallel-rate</b></span>
+        </div>
+      </div>
+    </div>
+
+    <aside class="panel" id="panel">
+      <div class="p-empty">Tap a country to see its venue, live basis, and history.</div>
+    </aside>
   </div>
-  <input type="range" id="amtr" min="1" max="100000" step="10" value="5000">
 
-  <p class="why" id="why"></p>
-
-  <div class="card" id="table"></div>
-
-  <section>
-    <div class="h">What decides it</div>
-    <div class="panel">
-      <p class="p">The order books are real. The two costs doing most of the damage — the crypto trading fees — are assumed. Drag them; the winner flips.</p>
-      <div class="wins" id="wins"></div>
-      <div class="sl"><div class="top"><span>On-ramp fee · Singapore exchange</span><b id="onv"></b></div><input type="range" id="on" min="0" max="1.5" step="0.05" value="0.5"></div>
-      <div class="sl"><div class="top"><span id="offlab">Off-ramp fee</span><b id="offv"></b></div><input type="range" id="off" min="0" max="1.5" step="0.05" value="0.25"></div>
-      <p class="foot-note" id="bestcase"></p>
-    </div>
-  </section>
-
-  <section>
-    <div class="h">Today's reading · history starts here</div>
-    <div class="stats">
-      <div class="stat"><div class="n" id="s-prem">—</div><div class="l" id="premlab">USDT vs USD mid</div></div>
-      <div class="stat"><div class="n" id="s-gap">—</div><div class="l">Stablecoin − Wise</div></div>
-      <div class="stat"><div class="n" id="s-cheap">—</div><div class="l">Cheapest today</div></div>
-    </div>
-    <div class="chartwrap"><canvas id="hist"></canvas></div>
-  </section>
-
-  <section>
-    <details>
-      <summary>Assumptions &amp; data sources</summary>
-      <div style="margin-top:12px" id="sources"></div>
-      <p class="foot-note" style="border:0;padding-top:16px">Every rail is one number: send S$X, how much local currency lands. Crypto is walked live from the books for the exact amount; fiat is interpolated between real Wise quotes. <b>Costs that hit every rail identically — local cash-out (e.g. GCash 2%) and bank receiving fees — are excluded: they change how much lands, not who wins.</b> Enterprise payout pricing (Nium, Thunes, Circle) is negotiated and out of scope.</p>
-    </details>
-  </section>
-
-  <footer id="foot"></footer>
+  <footer>
+    <div>Basis = (USDT mid ÷ official USD mid − 1). Positive = USDT rich to the dollar.</div>
+    <div><a href="./METHODOLOGY.md">Methodology &amp; data honesty →</a> · CriptoYa for AR/VE/BR</div>
+  </footer>
 </div>
 
 <script>
-const FX={USD_SGD:1.292448,USD_PHP:61.504978,USD_THB:33.302941};
-const IR_ASKS=[[1.2901,5000],[1.29162,23188.2149],[1.29243,74445.71863],[1.29246,24215.99],[1.2927,5000],[1.29323,30784.56]];
-const CORR={
- PHP:{cur:"₱",flag:"🇵🇭",name:"Philippines",exch:"Coins.ph",usd:FX.USD_PHP,
-   off:[[61.44,154784.71],[61.43,105470.24],[61.42,53190.87],[61.41,71260.07],[61.40,93005.13]],
-   fiat:{Wise:[[250,11805.67],[1000,47319.55],[5000,236697.04],[25000,1187744.99],[100000,4755073.05]],
-     Instarem:[[250,11806.78],[1000,47250.89],[5000,236610.96],[25000,1187290.79],[100000,4749163.18]],
-     HSBC:[[250,11720.97],[1000,46883.86],[5000,234419.3],[25000,1174911.18],[100000,4699644.71]],
-     Remitly:[[250,11460.04],[1000,46397.77],[5000,232732.3],[25000,1168759.85]],
-     OFX:[[1000,45053.36],[5000,228011.16],[25000,1158671.58],[100000,4634686.32]],
-     PayPal:[[250,11085.21],[1000,45220.64],[5000,227276.31]],
-     OCBC:[[250,10164.95],[1000,44818.2],[5000,229635.53],[25000,1174462.57]]}},
- THB:{cur:"฿",flag:"🇹🇭",name:"Thailand",exch:"Bitkub",usd:FX.USD_THB,
-   off:[[31.62,144168.88],[31.61,15199.98],[31.6,53425.11],[31.59,2078.81],[31.55,40266.28],[31.52,12690.39],[31.5,9881.54],[31.49,203.73],[31.48,805.33],[31.47,317.75],[31.46,1589.3],[31.45,15654.84],[31.44,405.69],[31.43,1590.83],[31.42,134369.01],[31.41,1575.61],[31.4,89331.61],[31.38,988.39],[31.36,0.5],[31.35,3142.24]],
-   fiat:{Wise:[[1000,25563.75],[5000,128058.55],[25000,635676.98]],
-     Instarem:[[1000,25520.12],[5000,127609.46],[25000,633098.63]],
-     HSBC:[[1000,24895.34],[5000,127030.09],[25000,632487.01]],
-     Remitly:[[1000,25077.42],[5000,125788.92],[25000,624610.04]],
-     OFX:[[1000,24823.94],[5000,125631.8],[25000,629985.18]],
-     OCBC:[[1000,24319.14],[5000,124604.26],[25000,627175.53]],
-     PayPal:[[1000,24360.04],[5000,122432.14]]}}};
-const DOM={Wise:"wise.com",Instarem:"instarem.com",HSBC:"hsbc.com",OCBC:"ocbc.com",Remitly:"remitly.com",PayPal:"paypal.com",OFX:"ofx.com"};
-const BRAND={Wise:"#1a4d2e",Instarem:"#4b32c3",HSBC:"#c8102e",OCBC:"#d0021b",Remitly:"#2b2e9e",PayPal:"#003087",OFX:"#0a8f68",Stablecoin:"#0b0b0c"};
-const SB={Wise:"Money transfer",Instarem:"Money transfer",HSBC:"Bank",OCBC:"Bank",Remitly:"Money transfer",PayPal:"Money transfer",OFX:"Money transfer"};
-let corr="PHP", amt=5000, onF=0.005, offF=0.0025;
-const C=()=>CORR[corr];
-const buy=(a,b)=>{let base=0,s=0;for(const[p,q]of a){const c=p*q;if(s+c<=b){base+=q;s+=c}else return base+(b-s)/p}return base;};
-const sell=(bd,u)=>{let q=0,so=0;for(const[p,x]of bd){if(so+x<=u){q+=p*x;so+=x}else return q+p*(u-so)}return q;};
-const crypto=(c,X,ot,of)=>{const u=buy(IR_ASKS,X)*(1-ot)-1;return u<=0?0:sell(c.off,u)*(1-of);};
-const rateAt=(pts,a)=>{const P=pts.map(([x,r])=>[x,r/x]).sort((u,v)=>u[0]-v[0]);
-  if(a<=P[0][0])return P[0][1];if(a>=P[P.length-1][0])return P[P.length-1][1];
-  for(let i=0;i<P.length-1;i++)if(a>=P[i][0]&&a<=P[i+1][0]){const t=(a-P[i][0])/(P[i+1][0]-P[i][0]);return P[i][1]+t*(P[i+1][1]-P[i][1]);}};
-const fiat=(c,p,a)=>rateAt(c.fiat[p],a)*a;
-const mid=c=>amt*(c.usd/FX.USD_SGD);
-const money=(c,n)=>c.cur+Math.round(n).toLocaleString();
-const logoEl=(name,dom,bg)=>`<span class="logo" style="background:${bg}"><b>${name[0]}</b><img src="https://icons.duckduckgo.com/ip3/${dom}.ico" alt="" onload="this.style.display='block';var p=this.parentNode;p.querySelector('b').style.display='none';p.style.background='#fff';p.style.border='1px solid var(--line)'"></span>`;
+"use strict";
+/* ---------- country metadata (ccy -> country/venue) ---------- */
+const COUNTRIES = {
+  SGD:{name:"Singapore",  iso:"SGP", flag:"🇸🇬", lon:103.8, lat:1.35,  note:"the calibration anchor — an open, near-zero market"},
+  PHP:{name:"Philippines",iso:"PHL", flag:"🇵🇭", lon:122.0, lat:12.0,  note:"the deep-dive corridor (SGD→PHP)", corridor:true},
+  TRY:{name:"Turkey",     iso:"TUR", flag:"🇹🇷", lon:35.0,  lat:39.0,  note:"floats freely today — but see the history"},
+  KRW:{name:"South Korea",iso:"KOR", flag:"🇰🇷", lon:127.8, lat:36.5,  note:"the ‘kimchi premium’, measured via USDT"},
+  IDR:{name:"Indonesia",  iso:"IDN", flag:"🇮🇩", lon:113.0, lat:-2.0,  note:"a persistent local USDT discount"},
+  THB:{name:"Thailand",   iso:"THA", flag:"🇹🇭", lon:101.0, lat:15.0,  note:"open regime — near the anchor"},
+  MXN:{name:"Mexico",     iso:"MEX", flag:"🇲🇽", lon:-102.0,lat:23.0,  note:"institutional LatAm venue, tight to the dollar"},
+  ARS:{name:"Argentina",  iso:"ARG", flag:"🇦🇷", lon:-64.0, lat:-38.0, note:"the blue-dollar premium, live"},
+  VES:{name:"Venezuela",  iso:"VEN", flag:"🇻🇪", lon:-66.0, lat:7.0,   note:"the sharpest parallel-rate gap on the map"},
+  BRL:{name:"Brazil",     iso:"BRA", flag:"🇧🇷", lon:-51.0, lat:-10.0, note:"a modest, real premium (IOF / FX friction)"},
+};
+const ISO2CCY = Object.fromEntries(Object.entries(COUNTRIES).map(([c,v])=>[v.iso,c]));
 
-function render(){
-  const c=C();
-  const mkt=crypto(c,amt,onF,offF),lim=crypto(c,amt,0,0),wise=fiat(c,"Wise",amt);
-  const rows=[...Object.keys(c.fiat).map(p=>({n:p,l:fiat(c,p,amt),c:false})),{n:"Stablecoin",l:mkt,c:true}]
-    .filter(r=>isFinite(r.l)).sort((a,b)=>b.l-a.l);
-  const best=rows[0].l;
-  document.getElementById('recvlab').textContent='Recipient gets '+c.flag;
-  document.getElementById('recv').textContent=money(c,best);
-  document.getElementById('table').innerHTML=
-    `<div class="chead"><span>Send S$${amt.toLocaleString()}</span><span>Recipient gets</span></div>`+
-    rows.map(r=>{const isB=r===rows[0];const d=best-r.l;const unv=r.c&&r.l<=0;
-      return `<div class="row ${isB?'best':''}">${r.c?logoEl("Stablecoin","coins.ph",BRAND.Stablecoin):logoEl(r.n,DOM[r.n],BRAND[r.n])}
-        <div class="who"><div class="nm">${r.c?"Stablecoin route":r.n}${isB?'<span class="badge">CHEAPEST</span>':''}</div>
-          <div class="sb">${r.c?"USDT · market order":SB[r.n]}</div></div>
-        <div class="rt">${unv?`<div class="a" style="color:var(--muted)">—</div><div class="d">network fee &gt; send</div>`:`<div class="a">${money(c,r.l)}</div><div class="d ${isB?'best':''}">${isB?'best rate':'−'+money(c,d)}</div>`}</div></div>`;}).join('');
-  const diff=mkt-wise,w=document.getElementById('wins');
-  w.className="wins"+(diff>=0?" crypto":"");
-  w.innerHTML=`<span class="who-w">${diff>=0?'Stablecoin wins':'Wise wins'}</span><span class="amt-w">+${money(c,Math.abs(diff))}</span>`;
-  document.getElementById('onv').textContent=(onF*100).toFixed(2)+'%';
-  document.getElementById('offv').textContent=(offF*100).toFixed(2)+'%';
-  document.getElementById('offlab').textContent=`Off-ramp fee · ${c.exch} (${corr})`;
-  const lb=(mid(c)-lim)/mid(c)*1e4;
-  document.getElementById('bestcase').innerHTML=`A trader on <b>limit orders</b> pays ~0 fees and lands <b>${money(c,lim)}</b> (${lb.toFixed(0)} bps vs mid). ${lim<wise?`Still below Wise here — the ${c.name} off-ramp discount swamps the fee saving.`:`That would top the list — but it's a desk move, not what a normal sender does.`}`;
-  const prem=(c.off[0][0]-c.usd)/c.usd*1e4;
-  const sp=document.getElementById('s-prem');sp.textContent=(prem>=0?'+':'')+prem.toFixed(0)+' bps';sp.style.color=prem>=0?'var(--accent)':'#d5342d';
-  document.getElementById('premlab').textContent=`USDT/${corr} vs USD mid`;
-  document.getElementById('s-gap').textContent=(diff>=0?'+':'−')+money(c,Math.abs(diff));
-  document.getElementById('s-cheap').textContent=rows[0].c?"Stablecoin":rows[0].n;
-  const wm=(mid(c)-mkt)/mid(c)*1e4,ww=(mid(c)-wise)/mid(c)*1e4;
-  document.getElementById('why').innerHTML= diff>=0
-    ? `The stablecoin route wins here — but only because the assumed trading fees are set low. Nudge them up and Wise takes it: <b>the winner rests on a number no one publishes.</b>`
-    : lim<wise
-      ? `<b>Wise wins big here.</b> On the ${corr} corridor, USDT off-ramps ~${Math.abs(prem/100).toFixed(1)}% below the USD mid — that discount alone dwarfs Wise's entire margin.`
-      : `<b>Wise wins here.</b> The stablecoin round-trip's ${((onF+offF)*100).toFixed(2)}% in on- and off-ramp trading fees costs more than Wise's all-in margin — even though moving the money itself is nearly free.`;
-  document.getElementById('live').innerHTML=`<i>●</i> live order books &amp; quotes · SGD → ${corr} corridor · updated hourly · 7 Jul 2026`;
-  document.getElementById('foot').textContent="Order books walked live (Independent Reserve, Coins.ph Pro, Bitkub). Fiat from Wise comparison API. Fees are assumptions.";
+/* ---------- projection (equirectangular, cropped) ---------- */
+const W=1000, H=372, LAT_TOP=78, LAT_BOT=-56;
+const proj = (lon,lat)=>[ (lon+180)*(W/360), (LAT_TOP-lat)*(H/(LAT_TOP-LAT_BOT)) ];
+
+/* ---------- diverging colour scale around zero ---------- */
+// compress magnitude (sqrt) so a +1300 VES and a −50 THB are both legible,
+// normalised to the parallel-rate reference (~1400 bps). Zero = neutral.
+const REF = Math.sqrt(1400);
+function tOf(b){ const s=Math.sign(b); return Math.max(-1,Math.min(1, s*Math.sqrt(Math.abs(b))/REF)); }
+const STOPS_POS=[[0,[238,240,238]],[.20,[244,208,120]],[.55,[224,120,58]],[1,[150,20,18]]];
+const STOPS_NEG=[[0,[238,240,238]],[1,[47,125,174]]];
+function lerp(a,b,u){return a+(b-a)*u;}
+function ramp(stops,u){
+  for(let i=1;i<stops.length;i++){ if(u<=stops[i][0]){
+    const [p0,c0]=stops[i-1],[p1,c1]=stops[i], k=(u-p0)/(p1-p0||1);
+    return c0.map((c,j)=>Math.round(lerp(c,c1[j],k)));
+  }}
+  return stops[stops.length-1][1];
+}
+function colorFor(b){
+  if(b==null||isNaN(b)) return "var(--land)";
+  const t=tOf(b), c = t>=0 ? ramp(STOPS_POS,t) : ramp(STOPS_NEG,-t);
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
 
-// bind + first render FIRST
-const A=document.getElementById('amt'),R=document.getElementById('amtr');
-const setA=v=>{amt=Math.max(1,Math.min(100000,+v||1));A.value=amt;R.value=amt;render();};
-A.oninput=e=>setA(e.target.value);R.oninput=e=>setA(e.target.value);
-document.getElementById('on').oninput=e=>{onF=+e.target.value/100;render();};
-document.getElementById('off').oninput=e=>{offF=+e.target.value/100;render();};
-const CNAME={PHP:"Philippine peso",THB:"Thai baht"};
-const SOON={IDR:["🇮🇩","Indonesian rupiah"],MYR:["🇲🇾","Malaysian ringgit"],VND:["🇻🇳","Vietnamese dong"],INR:["🇮🇳","Indian rupee"]};
-const sel=document.getElementById('corr'),curdisp=document.getElementById('curdisp');
-const setDisp=()=>{curdisp.innerHTML=`<span class="fl">${CORR[corr].flag}</span><b>${corr}</b><span class="cn">${CNAME[corr]}</span>`;};
-Object.keys(CORR).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=`${CORR[k].flag}  ${k} · ${CNAME[k]}`;o.selected=k===corr;sel.appendChild(o);});
-function markGrid(){[...document.querySelectorAll('#grid .cell')].forEach(c=>c.classList.toggle('sel',c.dataset.k===corr));}
-function selectCorr(k){corr=k;sel.value=k;setDisp();markGrid();render();}
-function buildGrid(){const g=document.getElementById('grid');let h='';
-  Object.keys(CORR).forEach(k=>{const c=CORR[k];const mkt=crypto(c,5000,0.005,0.0025);
-    const bf=Math.max(...Object.keys(c.fiat).map(p=>fiat(c,p,5000)));const gap=(mkt-bf)/bf*100,prem=(c.off[0][0]-c.usd)/c.usd*100;
-    const cls=gap>=0?'pos':(gap>=-0.5?'neu':'neg');
-    h+=`<div class="cell" data-k="${k}" onclick="selectCorr('${k}')"><div class="cc"><span class="fl">${c.flag}</span>${k}</div><div class="big ${cls}">${gap>=0?'+':''}${gap.toFixed(1)}%</div><div class="sub">vs best rail · USDT ${prem>=0?'+':''}${prem.toFixed(1)}% vs USD</div></div>`;});
-  Object.entries(SOON).forEach(([k,v])=>{h+=`<div class="cell off"><div class="cc"><span class="fl">${v[0]}</span>${k}</div><div class="big" style="color:var(--muted)">—</div><div class="sub">no public book yet</div></div>`;});
-  g.innerHTML=h;markGrid();}
-sel.onchange=e=>selectCorr(e.target.value);
-setDisp();buildGrid();render();
-// extras, isolated
-try{
-document.getElementById('sources').innerHTML=[
-  ["live","On-ramp SGD→USDT","Independent Reserve order book · <code>api.independentreserve.com</code>"],
-  ["live","Off-ramp USDT→local","Coins.ph Pro (PH) · Bitkub (TH), full depth · <code>api.pro.coins.ph</code> / <code>api.bitkub.com</code>"],
-  ["live","Fiat rails","Wise comparison API · <code>api.wise.com/v3</code> · Wise, Instarem, HSBC, OCBC, Remitly, PayPal, OFX"],
-  ["live","FX mid-market","<code>open.er-api.com</code>"],
-  ["assm","Crypto trading fees","IR 0.50% / off-ramp 0.25% taker; limit = 0. The number that decides the ranking."],
-  ["assm","Network + payout","1 USDT withdrawal; local instant-payment + cash-out fees applied to all rails equally."],
-].map(([t,h,b])=>`<div class="src"><span class="tag ${t}">${t==='live'?'LIVE':'ASSUMED'}</span><div class="t"><b>${h}</b><br><span>${b}</span></div></div>`).join('');
-}catch(e){}
-try{ if(window.Chart) new Chart(document.getElementById('hist'),{type:'line',
-  data:{labels:["","","","","","","today"],datasets:[{data:[null,null,null,null,null,null,(C().off[0][0]-C().usd)/C().usd*1e4],
-    borderColor:"#12855a",backgroundColor:"#12855a",pointRadius:4}]},
-  options:{plugins:{legend:{display:false}},scales:{y:{grid:{color:"#f2f2f4"},ticks:{color:"#c9ccd2",font:{size:10}},title:{display:true,text:"USDT premium (bps)",color:"#c9ccd2",font:{size:10}}},x:{grid:{display:false},ticks:{color:"#c9ccd2",font:{size:10}}}}}});
-}catch(e){}
+/* ---------- tiny CSV parser (handles quoted fields) ---------- */
+function parseCSV(text){
+  const rows=[]; let i=0, field="", row=[], q=false, t=text.trim();
+  const push=()=>{row.push(field);field="";}; const eol=()=>{push();rows.push(row);row=[];};
+  while(i<t.length){ const ch=t[i];
+    if(q){ if(ch==='"'){ if(t[i+1]==='"'){field+='"';i++;} else q=false; } else field+=ch; }
+    else if(ch==='"') q=true;
+    else if(ch===',') push();
+    else if(ch==='\n') eol();
+    else if(ch==='\r'){}
+    else field+=ch;
+    i++;
+  }
+  if(field.length||row.length) eol();
+  const head=rows.shift();
+  return rows.map(r=>Object.fromEntries(head.map((h,j)=>[h,r[j]])));
+}
+const fmtBps=b=> (b>=0?"+":"")+Math.round(b)+" bps";
+
+/* ---------- state ---------- */
+let latest={}, history={}, histVenues=new Set(), selected=null;
+
+async function boot(){
+  const [bT,hT,geo] = await Promise.all([
+    fetch("./data/basis.csv").then(r=>r.text()),
+    fetch("./data/basis_history.csv").then(r=>r.text()).catch(()=>""),
+    fetch("./data/world.geo.json").then(r=>r.json()),
+  ]);
+
+  // latest source_ok row per currency
+  let newest="";
+  for(const r of parseCSV(bT)){
+    if(r.source_ok!=="True") continue;
+    if(r.ts_utc>newest) newest=r.ts_utc;
+    const c=r.ccy; if(!COUNTRIES[c]) continue;
+    if(!latest[c] || r.ts_utc>latest[c].ts_utc) latest[c]=r;
+  }
+  // history per venue
+  if(hT){ for(const r of parseCSV(hT)){ (history[r.venue] ||= []).push(r); histVenues.add(r.venue); } }
+  for(const v in history) history[v].sort((a,b)=>a.date<b.date?-1:1);
+
+  stampEl(newest);
+  renderCallouts();
+  renderMap(geo);
+  renderLegend();
+  // open with a populated panel: deep-link (#TUR-style ccy) or Argentina default
+  const h=location.hash.slice(1).toUpperCase();
+  select(COUNTRIES[h]&&latest[h] ? h : (latest.ARS ? "ARS" : Object.keys(latest)[0]));
+  addEventListener("hashchange",()=>{const x=location.hash.slice(1).toUpperCase(); if(COUNTRIES[x]&&latest[x]) select(x);});
+}
+
+function stampEl(ts){
+  const el=document.getElementById("stamp");
+  if(!ts){ el.textContent="no live data"; return; }
+  const d=new Date(ts.replace(" ","T")), ago=Math.round((Date.now()-d)/6e4);
+  const t=d.toISOString().slice(0,16).replace("T"," ");
+  el.innerHTML=`<b>updated</b> ${t}Z · ${ago<90?ago+" min ago":Math.round(ago/60)+" h ago"}`;
+}
+
+function renderCallouts(){
+  const box=document.getElementById("callouts");
+  const picks=["ARS","VES","BRL","KRW"].filter(c=>latest[c]);
+  box.innerHTML=picks.map(c=>{
+    const r=latest[c], b=+r.basis_bps, C=COUNTRIES[c];
+    return `<div class="call" data-ccy="${c}">
+      <div class="c-country">${C.flag} ${C.name}</div>
+      <div class="c-val" style="color:${colorFor(b)}">${fmtBps(b)}</div>
+      <div class="c-note">${C.note}</div></div>`;
+  }).join("");
+  box.querySelectorAll(".call").forEach(el=>el.onclick=()=>select(el.dataset.ccy));
+}
+
+function pathFor(geom){
+  const polys = geom.type==="Polygon"?[geom.coordinates]:geom.coordinates;
+  let d="";
+  for(const poly of polys) for(const ring of poly){
+    d+="M"; d+=ring.map(([lo,la])=>{const [x,y]=proj(lo,la);return x.toFixed(1)+","+y.toFixed(1);}).join("L"); d+="Z";
+  }
+  return d;
+}
+
+function renderMap(geo){
+  const svg=document.getElementById("map");
+  const NS="http://www.w3.org/2000/svg";
+  const gLand=document.createElementNS(NS,"g"), gMk=document.createElementNS(NS,"g");
+  for(const f of geo.features){
+    const ccy=ISO2CCY[f.id];
+    const p=document.createElementNS(NS,"path");
+    p.setAttribute("d",pathFor(f.geometry));
+    p.setAttribute("class","country"+(ccy?" hot":""));
+    if(ccy && latest[ccy]){ p.setAttribute("fill",colorFor(+latest[ccy].basis_bps)); p.style.cursor="pointer";
+      p.onclick=()=>select(ccy); }
+    gLand.appendChild(p);
+  }
+  // markers (clickable, and the only way to hit tiny Singapore)
+  for(const c in COUNTRIES){
+    if(!latest[c]) continue;
+    const C=COUNTRIES[c], b=+latest[c].basis_bps, [x,y]=proj(C.lon,C.lat);
+    const rad=6.5+Math.abs(tOf(b))*10;
+    const g=document.createElementNS(NS,"g"); g.setAttribute("class","mk"); g.setAttribute("tabindex","0");
+    g.setAttribute("data-ccy",c); g.setAttribute("transform",`translate(${x.toFixed(1)},${y.toFixed(1)})`);
+    g.innerHTML=`<circle class="ring" r="${(rad+5).toFixed(1)}" stroke="${colorFor(b)}" stroke-width="1.5"></circle>`+
+                `<circle class="dot" r="${rad.toFixed(1)}" fill="${colorFor(b)}"></circle>`;
+    const act=()=>select(c); g.onclick=act; g.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();act();}};
+    gMk.appendChild(g);
+  }
+  svg.appendChild(gLand); svg.appendChild(gMk);
+}
+
+function renderLegend(){
+  const N=60, stops=[];
+  for(let i=0;i<=N;i++){ const u=i/N; // map bar position -> basis via inverse-ish sqrt on ±
+    const t=(u*2-1); const b=Math.sign(t)*(t*REF)**2; stops.push(colorFor(b)); }
+  document.getElementById("legbar").style.background=`linear-gradient(90deg,${stops.join(",")})`;
+  // ticks at meaningful bps
+  const ticks=[-50,0,150,500,1300], sc=document.getElementById("legscale");
+  sc.innerHTML=ticks.map(v=>{ const u=(tOf(v)+1)/2*100; return `<span style="left:${u.toFixed(1)}%">${v>0?"+":""}${v}</span>`; }).join("");
+}
+
+function sparkline(rows){
+  const W=300,H=56,pad=4, xs=rows.map(r=>+r.basis_bps);
+  const min=Math.min(0,...xs), max=Math.max(0,...xs), rng=(max-min)||1;
+  const X=i=>pad+i*(W-2*pad)/(rows.length-1||1), Y=v=>H-pad-(v-min)/rng*(H-2*pad);
+  const line=rows.map((r,i)=>`${X(i).toFixed(1)},${Y(+r.basis_bps).toFixed(1)}`).join(" ");
+  const y0=Y(0).toFixed(1), last=rows[rows.length-1];
+  const area=`M${X(0).toFixed(1)},${y0} L`+line.replace(/ /g," L")+` L${X(rows.length-1).toFixed(1)},${y0} Z`;
+  const col=colorFor(+last.basis_bps);
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <line x1="0" x2="${W}" y1="${y0}" y2="${y0}" stroke="var(--line)" stroke-width="1"/>
+    <polygon points="${line}" fill="${col}" opacity=".10" style="clip-path:none"/>
+    <polyline points="${line}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+    <circle cx="${X(rows.length-1).toFixed(1)}" cy="${Y(+last.basis_bps).toFixed(1)}" r="2.4" fill="${col}"/>
+  </svg>`;
+}
+
+function select(ccy){
+  selected=ccy;
+  try{window.history.replaceState(null,"","#"+ccy);}catch(e){}
+  document.querySelectorAll(".mk").forEach(m=>m.classList.toggle("on",m.dataset.ccy===ccy));
+  const C=COUNTRIES[ccy], r=latest[ccy];
+  const p=document.getElementById("panel");
+  if(!r){ p.innerHTML=`<div class="p-empty">No live quote for ${C.name} in the latest snapshot.</div>`; return; }
+  const b=+r.basis_bps, backed=histVenues.has(r.venue), hist=history[r.venue]||[];
+  const bid=r.usdt_bid&&r.usdt_bid!=="", ask=r.usdt_ask&&r.usdt_ask!=="";
+  const badge = backed
+    ? `<span class="badge hist">● history since ${hist[0]?hist[0].date:"2024"}</span>`
+    : (r.source==="criptoya"
+        ? `<span class="badge snap">◐ snapshot-only since 2026-08</span>`
+        : `<span class="badge snap">◐ live · history pending</span>`);
+  let spark="";
+  if(backed && hist.length>1){
+    const hv=hist.map(h=>+h.basis_bps), lo=Math.min(...hv), hi=Math.max(...hv);
+    spark=`<div class="spark-wrap">
+      <div class="spark-h"><span>basis history · daily</span><span>range <b>${fmtBps(lo)}</b> … <b>${fmtBps(hi)}</b></span></div>
+      ${sparkline(hist)}</div>`;
+  }
+  p.innerHTML=`
+    <div class="p-head">
+      <div class="p-flagrow"><span class="p-flag">${C.flag}</span>
+        <div><div class="p-country">${C.name}</div><div class="p-venue">${r.venue} · ${r.ccy}</div></div></div>
+      <div class="p-basis" style="color:${colorFor(b)}">${fmtBps(b)}<small>vs official mid</small></div>
+      <div class="p-desc">${C.note}</div>
+    </div>
+    <div class="p-body">
+      <div class="kv"><span class="k">USDT mid (local)</span><span class="v">${(+r.usdt_mid).toLocaleString(undefined,{maximumFractionDigits:4})}</span></div>
+      <div class="kv"><span class="k">official mid</span><span class="v">${(+r.fx_mid_per_usd).toLocaleString(undefined,{maximumFractionDigits:4})}</span></div>
+      ${bid?`<div class="kv"><span class="k">bid / ask</span><span class="v">${(+r.usdt_bid).toLocaleString(undefined,{maximumFractionDigits:4})}${ask?" / "+(+r.usdt_ask).toLocaleString(undefined,{maximumFractionDigits:4}):""}</span></div>`:""}
+      <div class="kv"><span class="k">source</span><span class="v">${r.source}</span></div>
+      <div class="badges">${badge}</div>
+      ${spark}
+      ${C.corridor?`<a class="p-cta" href="./corridor.html">Open the full SGD→PHP decomposition →</a>`:""}
+      ${r.source==="criptoya"?`<div class="p-note">Aggregated across the exchanges CriptoYa lists; quote = median bid (the clean side — broker asks carry retail markup). For AR/VE the comparator is the <b>official</b> rate, so this basis is the parallel-dollar premium.</div>`:""}
+    </div>`;
+}
+
+boot().catch(e=>{ document.getElementById("stamp").textContent="failed to load data"; console.error(e); });
 </script>
 </body>
 </html>
