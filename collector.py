@@ -52,6 +52,17 @@ HTTP_TIMEOUT = 20
 UA = {"User-Agent": "margin.wiki collector/1.0 (+https://margin.wiki)"}
 HERE = os.path.dirname(os.path.abspath(__file__))
 SAMPLES = os.path.join(HERE, "data", "samples.csv")
+PROVIDERS = os.path.join(HERE, "data", "providers.csv")
+
+# The full incumbent panel: every provider the Wise comparison API returns, per
+# size, per hourly run -- not just the winner kept in samples.csv. Panel history
+# cannot be back-filled, so we start persisting it now. cost_bps uses the same
+# convention as the corridor (bps below mid), so it is directly comparable to
+# cost_bps_taker / cost_bps_maker.
+PROVIDER_FIELDS = [
+    "ts_utc", "notional_src", "provider", "landed_dst", "cost_bps",
+    "rank", "source_ok", "error",
+]
 
 # ---------------------------------------------------------------- config
 # Fee schedules are the LARGEST single term in the decomposition. They are
@@ -265,6 +276,38 @@ def parse_wise(payload):
     return out
 
 
+def provider_rows(ts, notional, quotes, mid):
+    """
+    The full incumbent panel for one size: one row per provider, ranked cheapest
+    first (rank 1 = highest landed = lowest cost). Best quote kept per provider.
+    Never raises -- an empty/unavailable panel becomes a single source_ok=False
+    row, so a Wise outage is recorded in providers.csv but does NOT fail the
+    corridor step (samples.csv keeps landing with baseline=None).
+    """
+    try:
+        if not quotes:
+            raise ValueError("empty panel")
+        best = {}
+        for name, landed in quotes:
+            if landed and (name not in best or landed > best[name]):
+                best[name] = landed
+        if not best:
+            raise ValueError("no priced providers")
+        ranked = sorted(best.items(), key=lambda kv: kv[1], reverse=True)
+        return [{
+            "ts_utc": ts, "notional_src": notional, "provider": name,
+            "landed_dst": round(landed, 2),
+            "cost_bps": bps(1 - landed / (notional * mid)) if (mid and notional) else None,
+            "rank": i, "source_ok": True, "error": "",
+        } for i, (name, landed) in enumerate(ranked, 1)]
+    except Exception as e:
+        return [{
+            "ts_utc": ts, "notional_src": notional, "provider": None,
+            "landed_dst": None, "cost_bps": None, "rank": None,
+            "source_ok": False, "error": f"{type(e).__name__}:{e}"[:200],
+        }]
+
+
 # ------------------------------------------------------------------ I/O
 def get_json(url):
     r = requests.get(url, timeout=HTTP_TIMEOUT, headers=UA)
@@ -330,18 +373,27 @@ def collect(corridor_key, cfg):
     fees_verified = "|".join(
         f"{k}:{cfg[k].get('verified') or 'UNVERIFIED'}" for k in ("onramp", "offramp"))
 
-    rows = []
+    rows, prows = [], []
     for notional in cfg["ladder"]:
         d = decompose(notional, on_book, off_book, mids, cfg)
+        mid = d["mid_src_dst"]
 
+        # The Wise comparison panel is SUPPLEMENTARY: a panel failure records a
+        # source_ok=False row in providers.csv but must NOT fail the corridor
+        # sample (baseline just goes missing, exactly as before). So it does not
+        # touch `ok`, and its errors live in providers.csv, not the corridor row.
         try:
             quotes = fetch_baseline(src, dst, notional)
             bname, blanded = pick_baseline(quotes)
+            prows.extend(provider_rows(ts, notional, quotes, mid))
         except Exception as e:
-            errors.append(f"baseline@{notional}:{type(e).__name__}:{e}")
-            bname, blanded, ok = None, None, False
+            bname, blanded = None, None
+            prows.append({
+                "ts_utc": ts, "notional_src": notional, "provider": None,
+                "landed_dst": None, "cost_bps": None, "rank": None,
+                "source_ok": False, "error": f"baseline:{type(e).__name__}:{e}"[:200],
+            })
 
-        mid = d["mid_src_dst"]
         bcost = bps(1 - blanded / (notional * mid)) if (blanded and mid) else None
 
         rows.append({
@@ -364,7 +416,7 @@ def collect(corridor_key, cfg):
             "source_ok": ok, "errors": "; ".join(errors)[:500],
             **d,
         })
-    return rows
+    return rows, prows
 
 
 def append(rows):
@@ -376,6 +428,33 @@ def append(rows):
             w.writeheader()
         w.writerows(rows)
     return SAMPLES
+
+
+def append_providers(prows):
+    os.makedirs(os.path.dirname(PROVIDERS), exist_ok=True)
+    new = not os.path.exists(PROVIDERS)
+    with open(PROVIDERS, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=PROVIDER_FIELDS, extrasaction="ignore")
+        if new:
+            w.writeheader()
+        w.writerows(prows)
+    return PROVIDERS
+
+
+def print_panel(prows):
+    """Print the incumbent panel grouped by size (for --verify)."""
+    if not prows:
+        return
+    print("\n  Incumbent panel -- Wise comparison (cost = bps below mid-market):")
+    for s in sorted({r["notional_src"] for r in prows}):
+        ok = sorted((r for r in prows if r["notional_src"] == s and r["source_ok"]),
+                    key=lambda r: r["rank"])
+        print(f"  S${s:,}  ({len(ok)} providers)")
+        for r in ok:
+            print(f"    {r['rank']:>2}. {r['provider']:<20} {r['cost_bps']:>8.1f} bps")
+        for r in (r for r in prows if r["notional_src"] == s and not r["source_ok"]):
+            print(f"    !! panel unavailable: {r['error']}")
+    print()
 
 
 def print_waterfall(rows):
@@ -490,7 +569,34 @@ def selftest():
     print("  [ok] dead sources degrade to a recorded row, not an exception")
 
     assert set(FIELDS) >= set(dead) | {"ts", "corridor", "source_ok", "errors"}
-    print("  [ok] schema covers every derived field\n")
+    print("  [ok] schema covers every derived field")
+
+    # --- incumbent panel (data/providers.csv) ---
+    WISE_FIXTURE = {"providers": [
+        {"name": "Wise", "quotes": [{"receivedAmount": 238000.0}]},
+        {"name": "Instarem", "quotes": [{"receivedAmount": 238500.0}]},
+        {"name": "Remitly", "quotes": [{"receivedAmount": 237000.0}]},
+        # computed from rate/fee, and a second cheaper Wise quote to prove dedup
+        {"alias": "WesternUnion", "quotes": [{"sourceAmount": 5000, "fee": 30, "rate": 47.5}]},
+        {"name": "Wise", "quotes": [{"receivedAmount": 237500.0}]},
+    ]}
+    ts, mid = "2026-08-11T00:00:00Z", 47.5587
+    q = parse_wise(WISE_FIXTURE)
+    pr = provider_rows(ts, 5000, q, mid)
+    assert len(pr) == 4, [r["provider"] for r in pr]        # 4 providers, Wise deduped
+    assert [r["rank"] for r in pr] == [1, 2, 3, 4]
+    assert pr[0]["provider"] == "Instarem" and pr[0]["landed_dst"] == 238500.0
+    assert all(r["source_ok"] for r in pr)
+    costs = [r["cost_bps"] for r in pr]
+    assert costs == sorted(costs), costs                     # rank order == cost order
+    assert set(PROVIDER_FIELDS) == set(pr[0])                # schema matches
+    print(f"  [ok] panel: {len(pr)} providers ranked cheapest-first, ranks track cost")
+
+    # empty / malformed / unavailable panel -> ONE source_ok=False row, no raise
+    for bad in (parse_wise({}), parse_wise({"providers": [{"quotes": [{}]}]}), None, []):
+        fr = provider_rows(ts, 200, bad, mid)
+        assert len(fr) == 1 and fr[0]["source_ok"] is False and fr[0]["provider"] is None
+    print("  [ok] empty/malformed panel -> single source_ok=False row, run continues\n")
     print("  ALL SELFTESTS PASSED\n")
 
 
@@ -510,20 +616,28 @@ def main():
     if requests is None:
         sys.exit("pip install requests")
 
-    rows = collect(a.corridor, CORRIDORS[a.corridor])
+    rows, prows = collect(a.corridor, CORRIDORS[a.corridor])
 
     if a.json:
-        print(json.dumps(rows, indent=2, default=str))
+        print(json.dumps({"corridor": rows, "panel": prows}, indent=2, default=str))
     else:
         print_waterfall(rows)
+        print_panel(prows)
 
     if not rows[0]["source_ok"]:
         print(f"  [warn] incomplete sample: {rows[0]['errors']}", file=sys.stderr)
 
     if not a.verify:
-        print(f"  appended -> {append(rows)}\n")
-        # exit non-zero on a dead sample so the scheduler surfaces it loudly
-        # instead of quietly accumulating empty rows for a month
+        print(f"  appended -> {append(rows)}")
+        # The panel is supplementary: a write failure is logged, never fatal, so
+        # it can't sink the corridor step.
+        try:
+            append_providers(prows)
+            print(f"  panel   -> {PROVIDERS} ({len(prows)} rows)\n")
+        except Exception as e:
+            print(f"  [warn] panel write failed (non-fatal): {e}\n", file=sys.stderr)
+        # exit non-zero on a dead CORRIDOR sample so the scheduler surfaces it
+        # loudly -- panel state deliberately does not affect this.
         if not rows[0]["source_ok"]:
             sys.exit(1)
 

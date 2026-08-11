@@ -14,6 +14,7 @@ For each corridor, hourly, at a set of notional sizes:
 | Off-ramp book (USDT→PHP) | Coins.ph Pro public depth, 200 levels requested | measured |
 | USD mid rates | `open.er-api.com` | measured |
 | Incumbent fiat baseline | Wise comparison API (Wise, Instarem, HSBC, OFX, PayPal…) | measured |
+| Incumbent panel (every provider) | Wise comparison API → `data/providers.csv` | measured |
 | Exchange taker & maker fees | venue published schedules | published, verified 2026-08-10 |
 | Network withdrawal fee | 1 USDT, TRC20, flat | assumed |
 
@@ -213,6 +214,32 @@ marks every historical row's provenance, and aligning the live collector onto
 fawazahmed0 to remove the seam is noted as a future upgrade. Also note history
 is one daily *close* per venue while live is hourly — the history line is a daily
 series, the live point is the latest hour.
+
+## The incumbent panel
+
+`data/samples.csv` keeps only the *winning* incumbent (the cheapest provider) for
+each size. But the Wise comparison API returns the whole board — Wise, Instarem,
+HSBC, OFX, PayPal, Western Union, banks — and that panel is worth its own record.
+Since **2026-08-11**, every provider's quote is persisted to
+`data/providers.csv`, one row per provider per size per hourly run:
+`ts_utc, notional_src, provider, landed_dst, cost_bps, rank, source_ok, error`.
+
+`cost_bps` uses the **same convention as the corridor** (bps below the USD
+mid-market), so a provider's number is directly comparable to `cost_bps_taker`
+and `cost_bps_maker` — you can line the stablecoin route up against the entire
+fiat field, not just its cheapest member. `rank` is 1 for the cheapest.
+
+**Caveat — advertised, not executed.** These are the retail prices each provider
+*advertised* at quote time, as surfaced by Wise's comparison endpoint. They are
+not confirmed fills: real transfers can carry promotional rates, KYC-gated
+tiers, corridor limits, or slippage on the delivery side. Treat the panel as the
+published shop window, comparable across providers and over time, not as
+guaranteed execution. Panel history cannot be back-filled, which is why
+collection starts now rather than when the display for it ships.
+
+A Wise-API outage is isolated: `providers.csv` gets a `source_ok=false` row for
+that run and the corridor sample still lands (with `baseline_provider` empty) —
+a panel failure never fails the corridor collector.
 
 ## What is not visible
 
