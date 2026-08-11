@@ -143,18 +143,35 @@ It stays in the data unadjusted; this note is the audit trail.
 Argentina and Venezuela are the reason the map exists, and they are measured
 differently. There is no single clean exchange book for USDT/ARS or USDT/VES, so
 these come from the [CriptoYa](https://criptoya.com) aggregator (attributed on
-the site) via its general endpoint. The quote taken is the **median bid and
-median ask across every exchange CriptoYa lists** for the pair — robust to a
-single stale or outlier venue.
+the site) via its general endpoint.
+
+**Aggregation rule: the median _bid_ across every exchange CriptoYa lists** (raw
+`bid`, not the fee-inclusive `totalBid`). Not the bid/ask midpoint — and this
+correction matters. CriptoYa aggregates brokers and fintechs, not order books,
+and their **ask carries ~100 bps of retail markup** (listed spreads run 70–150
+bps, versus a few bps on a real book). A naive midpoint inherits half that
+markup. The check that settled it: for Mexico we have both feeds — our Bitso
+*order book* read −9 bps, and CriptoYa-MXN's median **bid** read −12 bps (a match)
+while its **midpoint** read a spurious **+23**. So the bid is the clean side; the
+ask is contaminated. Switching midpoint → median-bid moved the live readings:
+
+| Pair | midpoint (before) | median-bid (after) |
+|---|---|---|
+| ARS | +532 bps | **+454 bps** |
+| VES | +1,363 bps | **+1,311 bps** |
+| BRL | +99 bps | **+55 bps** |
 
 Here the FX comparator does the *opposite* job from the floating-currency caveat
 above. For ARS and VES, `open.er-api.com` quotes the **official** rate, and that
 is exactly what we want: the basis becomes the **parallel-dollar premium**, the
-gap between the street price of a dollar and the government's. On 2026-08-11 it
-reads ARS **+521 bps** and VES **+1,368 bps** — capital paying 5% and 14% over
-the official mid to hold dollars as USDT. Brazil (BRL, a floating currency) sits
-at **+95 bps**, the small genuine crypto premium, and is the control that shows
-the ARS/VES numbers are a regime, not a method artifact.
+gap between the street price of a dollar and the government's — ARS ≈ **+450 bps**
+and VES ≈ **+1,300 bps**, capital paying 4.5% and 13% over the official mid to
+hold dollars as USDT. Brazil (BRL, a floating currency) keeps a **~+55 bps**
+premium even after the correction: not the near-zero of Mexico/Thailand, but a
+real, modest one consistent with Brazil's FX frictions (IOF tax, capital-account
+controls) — smaller than the +99 the midpoint claimed, and not an artifact. The
+median-bid number is a mild *under*statement of the true premium (the fair mid
+sits a little above the bid), which is the safe direction to err.
 
 These venues are **snapshot-only**: CriptoYa exposes no candle history, so they
 are absent from `data/basis_history.csv` and carry `source = criptoya` in

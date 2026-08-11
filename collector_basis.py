@@ -136,9 +136,12 @@ def parse_bitso(d):
 
 def parse_criptoya(d):
     # General endpoint: {exchange: {"ask","bid","totalAsk","totalBid","time"}}.
-    # Representative quote = the MEDIAN bid and MEDIAN ask across every listed
-    # exchange -- robust to a single stale or outlier venue. One integration
-    # covers the whole LatAm parallel-dollar map. See METHODOLOGY.
+    # Returns the MEDIAN raw bid and MEDIAN raw ask across every listed exchange
+    # (robust to one stale/outlier venue). Raw, NOT totalBid/totalAsk -- those
+    # bake in fees; we want the market price. The registry sets mid_rule="bid"
+    # for these venues, so build_rows() takes the median bid as the
+    # representative price: CriptoYa aggregates brokers whose ASK carries ~100
+    # bps of retail markup, which inflates a naive midpoint. See METHODOLOGY.
     if not isinstance(d, dict):
         return (None, None, None)
     bids = [b for b in (_f(v.get("bid")) for v in d.values()
@@ -230,19 +233,19 @@ VENUES = [
         "name": "CriptoYa (ARS)", "fiat_ccy": "ARS",
         "ticker_url": "https://criptoya.com/api/USDT/ARS/1",
         "parse_fn": parse_criptoya, "candles_fn": None, "enabled": True,
-        "source": "criptoya",
+        "source": "criptoya", "mid_rule": "bid",
     },
     {
         "name": "CriptoYa (VES)", "fiat_ccy": "VES",
         "ticker_url": "https://criptoya.com/api/USDT/VES/1",
         "parse_fn": parse_criptoya, "candles_fn": None, "enabled": True,
-        "source": "criptoya",
+        "source": "criptoya", "mid_rule": "bid",
     },
     {
         "name": "CriptoYa (BRL)", "fiat_ccy": "BRL",
         "ticker_url": "https://criptoya.com/api/USDT/BRL/1",
         "parse_fn": parse_criptoya, "candles_fn": None, "enabled": True,
-        "source": "criptoya",
+        "source": "criptoya", "mid_rule": "bid",
     },
 ]
 
@@ -288,7 +291,13 @@ def build_rows(ts, venues, fx, fetch=get_json):
         try:
             payload = fetch(v["ticker_url"])
             bid, ask, last = v["parse_fn"](payload)
-            mid = mid_of(bid, ask, last)
+            # Representative price. Order books have tight spreads, so the
+            # bid/ask midpoint is the market. CriptoYa aggregates BROKERS whose
+            # ask carries ~100 bps of retail markup (spreads of 70-150 bps),
+            # so its midpoint is inflated -- mid_rule="bid" takes the clean side.
+            # Validated vs our Bitso order book: CriptoYa-MXN median bid matched
+            # Bitso mid within a few bps while the midpoint overstated by ~35.
+            mid = bid if v.get("mid_rule") == "bid" else mid_of(bid, ask, last)
             fx_mid = fx.get(v["fiat_ccy"])
             if mid is None:
                 raise ValueError("no usable venue price")
@@ -489,11 +498,15 @@ def selftest():
     assert abs(by["Bitso"]["basis_bps"] - (-4.96)) < 0.2          # MXN near zero
     # inversion guard: a flipped TRY parse would read +thousands; real is ~-20.
     assert -200 < by["BTCTurk"]["basis_bps"] < 50, by["BTCTurk"]["basis_bps"]
-    # CriptoYa ARS: mid 1575 vs official 1500 = +500 bps parallel premium
-    assert abs(by["CriptoYa (ARS)"]["basis_bps"] - 500.0) < 1.0, by["CriptoYa (ARS)"]
+    # CriptoYa uses mid_rule="bid": representative price = median bid (1565),
+    # NOT the inflated bid/ask midpoint (1575). basis = 1565/1500-1 = +433 bps.
+    ars = by["CriptoYa (ARS)"]
+    assert ars["usdt_mid"] == ars["usdt_bid"] == 1565.0, ars   # bid rule applied
+    assert ars["usdt_ask"] == 1585.0                           # ask still shown
+    assert abs(ars["basis_bps"] - 433.33) < 1.0, ars           # bid, not midpoint
     assert by["CriptoYa (VES)"]["basis_bps"] > 1000, by["CriptoYa (VES)"]  # strong
-    assert by["CriptoYa (ARS)"]["source"] == "criptoya"          # snapshot-only tag
-    print("  [ok] 10/10 venues price; ARS +500 / VES strongly + (parallel premium)")
+    assert ars["source"] == "criptoya"                         # snapshot-only tag
+    print("  [ok] 10/10 venues price; CriptoYa on bid rule (ARS +433, not +500 midpoint)")
 
     # 6. per-venue isolation: one outage + one malformed payload, run continues
     fetch = _make_fetch({"coins": RuntimeError("simulated 503 from Coins.ph"),
