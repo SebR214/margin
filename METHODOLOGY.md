@@ -113,7 +113,7 @@ floating currencies (TRY, THB, MXN) the market already equals the FX mid, so
 their basis reads small — a near-zero Turkey number means "er-api already
 prices the float", not a broken feed. The large premia appear only where an
 official peg diverges from the street price, which needs a pegged reference
-(ARS, VES — arriving with the aggregator source). Stated here so the map is
+(ARS, VES — see the parallel-dollar markets below). Stated here so the map is
 read correctly.
 
 **Reading the map: it is a divergence detector, not a thermometer.** A flat,
@@ -137,6 +137,30 @@ FX-reference wrinkle, the same family as the TRY note above), and the remaining
 ≈ 85 bps is a *genuine* Indodax USDT discount, corroborated by the independent
 aggregate also trading below spot. Verdict: **real discount, not an artifact.**
 It stays in the data unadjusted; this note is the audit trail.
+
+### The parallel-dollar markets (CriptoYa, snapshot-only)
+
+Argentina and Venezuela are the reason the map exists, and they are measured
+differently. There is no single clean exchange book for USDT/ARS or USDT/VES, so
+these come from the [CriptoYa](https://criptoya.com) aggregator (attributed on
+the site) via its general endpoint. The quote taken is the **median bid and
+median ask across every exchange CriptoYa lists** for the pair — robust to a
+single stale or outlier venue.
+
+Here the FX comparator does the *opposite* job from the floating-currency caveat
+above. For ARS and VES, `open.er-api.com` quotes the **official** rate, and that
+is exactly what we want: the basis becomes the **parallel-dollar premium**, the
+gap between the street price of a dollar and the government's. On 2026-08-11 it
+reads ARS **+521 bps** and VES **+1,368 bps** — capital paying 5% and 14% over
+the official mid to hold dollars as USDT. Brazil (BRL, a floating currency) sits
+at **+95 bps**, the small genuine crypto premium, and is the control that shows
+the ARS/VES numbers are a regime, not a method artifact.
+
+These venues are **snapshot-only**: CriptoYa exposes no candle history, so they
+are absent from `data/basis_history.csv` and carry `source = criptoya` in
+`data/basis.csv`. This is how the map tells history-backed from snapshot-only
+venues — a venue has a trailing history line iff it appears in basis_history.csv;
+ARS/VES/BRL render as a live point with no series, and the legend says so.
 
 ## Historical basis (the map's history line)
 

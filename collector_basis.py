@@ -35,6 +35,7 @@ import csv
 import datetime as dt
 import json
 import os
+import statistics
 import sys
 
 try:
@@ -52,6 +53,11 @@ FIELDS = [
     "ts_utc", "venue", "ccy",
     "usdt_bid", "usdt_ask", "usdt_mid",
     "fx_mid_per_usd", "basis_bps",
+    # source: which feed the quote came from. "criptoya" marks the aggregated,
+    # snapshot-only (no-backfill) venues so the map can flag them; the direct
+    # venues carry their own slug. History-backed = also present in
+    # data/basis_history.csv.
+    "source",
     "source_ok", "error",
 ]
 
@@ -128,6 +134,21 @@ def parse_bitso(d):
     return (_f(p.get("bid")), _f(p.get("ask")), _f(p.get("last")))
 
 
+def parse_criptoya(d):
+    # General endpoint: {exchange: {"ask","bid","totalAsk","totalBid","time"}}.
+    # Representative quote = the MEDIAN bid and MEDIAN ask across every listed
+    # exchange -- robust to a single stale or outlier venue. One integration
+    # covers the whole LatAm parallel-dollar map. See METHODOLOGY.
+    if not isinstance(d, dict):
+        return (None, None, None)
+    bids = [b for b in (_f(v.get("bid")) for v in d.values()
+                        if isinstance(v, dict)) if b]
+    asks = [a for a in (_f(v.get("ask")) for v in d.values()
+                        if isinstance(v, dict)) if a]
+    return (statistics.median(bids) if bids else None,
+            statistics.median(asks) if asks else None, None)
+
+
 # ------------------------------------------------------------- registry
 # name       : row label, must be stable (it keys history)
 # fiat_ccy   : ISO code, indexes the shared FX snapshot
@@ -199,6 +220,30 @@ VENUES = [
         "candles_fn": None,
         "enabled": True,
     },
+    # --- item 5: CriptoYa aggregator. ONE integration = the LatAm
+    # parallel-dollar map. Snapshot-only (no candle history), so source is
+    # "criptoya" and the map marks these venues as no-history. General endpoint;
+    # the quote taken is the median across listed exchanges (see parse_criptoya).
+    # For ARS/VES the er-api comparator is the OFFICIAL rate, so basis here IS
+    # the parallel-dollar premium -- the whole point. Attribute CriptoYa on site.
+    {
+        "name": "CriptoYa (ARS)", "fiat_ccy": "ARS",
+        "ticker_url": "https://criptoya.com/api/USDT/ARS/1",
+        "parse_fn": parse_criptoya, "candles_fn": None, "enabled": True,
+        "source": "criptoya",
+    },
+    {
+        "name": "CriptoYa (VES)", "fiat_ccy": "VES",
+        "ticker_url": "https://criptoya.com/api/USDT/VES/1",
+        "parse_fn": parse_criptoya, "candles_fn": None, "enabled": True,
+        "source": "criptoya",
+    },
+    {
+        "name": "CriptoYa (BRL)", "fiat_ccy": "BRL",
+        "ticker_url": "https://criptoya.com/api/USDT/BRL/1",
+        "parse_fn": parse_criptoya, "candles_fn": None, "enabled": True,
+        "source": "criptoya",
+    },
 ]
 
 
@@ -224,6 +269,7 @@ def _base_row(ts, v):
         "ts_utc": ts, "venue": v["name"], "ccy": v["fiat_ccy"],
         "usdt_bid": None, "usdt_ask": None, "usdt_mid": None,
         "fx_mid_per_usd": None, "basis_bps": None,
+        "source": v.get("source") or v["name"].lower(),
         "source_ok": False, "error": "",
     }
 
@@ -331,11 +377,28 @@ BITKUB_FIXTURE = {"THB_USDT": {"id": 8, "last": 33.02, "highestBid": 33.02,
                                "lowestAsk": 33.03, "baseVolume": 15532950.29}}
 BITSO_FIXTURE = {"success": True, "payload": {"book": "usdt_mxn", "bid": "17.132",
                  "ask": "17.133", "last": "17.132", "high": "17.18"}}
+# CriptoYa general endpoint: many exchanges. Odd counts -> exact medians.
+CRIPTOYA_ARS_FIXTURE = {  # median bid 1565, median ask 1585 -> mid 1575
+    "belo": {"ask": 1585.0, "bid": 1565.0, "time": 1},
+    "buenbit": {"ask": 1580.0, "bid": 1560.0, "time": 1},
+    "lemoncash": {"ask": 1620.0, "bid": 1590.0, "time": 1},
+}
+CRIPTOYA_VES_FIXTURE = {  # median bid 864, median ask 870
+    "binancep2p": {"ask": 868.0, "bid": 862.0, "time": 1},
+    "eldorado": {"ask": 870.0, "bid": 864.0, "time": 1},
+    "syklo": {"ask": 876.0, "bid": 869.0, "time": 1},
+}
+CRIPTOYA_BRL_FIXTURE = {  # median bid 5.12, median ask 5.15
+    "ripio": {"ask": 5.15, "bid": 5.12, "time": 1},
+    "foxbit": {"ask": 5.14, "bid": 5.10, "time": 1},
+    "mercado": {"ask": 5.33, "bid": 5.13, "time": 1},
+}
 
 # One malformed payload per venue: right envelope, no usable price.
 MALFORMED = {
     "IndependentReserve": {},
     "Coins.ph": {"symbol": "USDTPHP"},
+    "CriptoYa": {"buenbit": {"time": 1}},  # exchanges listed, no bid/ask
     "BTCTurk": {"data": [], "success": False},
     "Upbit": [],
     "Indodax": {"ticker": {}},
@@ -343,17 +406,22 @@ MALFORMED = {
     "Bitso": {"success": False, "payload": {}},
 }
 
-# er-api-style snapshot covering every registered venue's currency.
+# er-api-style snapshot covering every registered venue's currency. For ARS/VES
+# er-api quotes the OFFICIAL rate, so basis is the parallel premium (see #5/#8).
 FX_FIXTURE = {"SGD": 1.2796, "PHP": 60.86, "TRY": 47.706, "KRW": 1409.64,
-              "IDR": 17862.19, "THB": 33.024, "MXN": 17.141}
+              "IDR": 17862.19, "THB": 33.024, "MXN": 17.141,
+              "ARS": 1500.0, "VES": 760.0, "BRL": 5.09}
 TS_FIXTURE = "2026-08-10T00:00:00+00:00"
 
 # route a fake fetch by URL substring; override a venue with a payload or an
-# Exception instance (raised) to simulate malformed data or an outage.
+# Exception instance (raised) to simulate malformed data or an outage. CriptoYa
+# keys on the fiat in the path (usdt/ars...) so the three pairs stay distinct.
 _ROUTES = {
     "independentreserve": IR_FIXTURE, "coins": COINS_FIXTURE,
     "btcturk": BTCTURK_FIXTURE, "upbit": UPBIT_FIXTURE, "indodax": INDODAX_FIXTURE,
     "bitkub": BITKUB_FIXTURE, "bitso": BITSO_FIXTURE,
+    "usdt/ars": CRIPTOYA_ARS_FIXTURE, "usdt/ves": CRIPTOYA_VES_FIXTURE,
+    "usdt/brl": CRIPTOYA_BRL_FIXTURE,
 }
 
 
@@ -381,17 +449,21 @@ def selftest():
     assert parse_indodax(INDODAX_FIXTURE) == (17649.0, 17650.0, 17649.0)
     assert parse_bitkub(BITKUB_FIXTURE) == (33.02, 33.03, 33.02)
     assert parse_bitso(BITSO_FIXTURE) == (17.132, 17.133, 17.132)
-    print("  [ok] all 7 parsers extract (bid, ask, last) from real payload shapes")
+    # CriptoYa: median bid/ask across the listed exchanges
+    assert parse_criptoya(CRIPTOYA_ARS_FIXTURE) == (1565.0, 1585.0, None)
+    print("  [ok] all 8 parsers extract quotes from real payload shapes "
+          "(CriptoYa = median across exchanges)")
 
     # 2. every parser degrades a malformed payload to all-None, never raises
     _parsers = {
         "IndependentReserve": parse_independent_reserve, "Coins.ph": parse_coins_pro,
         "BTCTurk": parse_btcturk, "Upbit": parse_upbit, "Indodax": parse_indodax,
-        "Bitkub": parse_bitkub, "Bitso": parse_bitso,
+        "Bitkub": parse_bitkub, "Bitso": parse_bitso, "CriptoYa": parse_criptoya,
     }
     for name, pf in _parsers.items():
         assert pf(MALFORMED[name]) == (None, None, None), (name, pf(MALFORMED[name]))
-    print("  [ok] all 7 parsers turn a malformed payload into (None, None, None)")
+    assert parse_criptoya([]) == (None, None, None)  # non-dict envelope
+    print("  [ok] all 8 parsers turn a malformed payload into (None, None, None)")
 
     # 3. basis math, both signs; mid fallback ladder
     assert abs(basis_bps(1.2810, 1.2796) - 10.94) < 0.1     # SG: barely rich
@@ -405,18 +477,23 @@ def selftest():
     ccys = {v["fiat_ccy"] for v in VENUES}
     assert ccys <= set(FX_FIXTURE), ccys - set(FX_FIXTURE)
     assert {"TRY", "KRW", "IDR", "THB", "MXN"} <= ccys, "the 5 new currencies"
+    assert {"ARS", "VES", "BRL"} <= ccys, "the CriptoYa currencies"
     print(f"  [ok] FX snapshot covers all {len(ccys)} venue currencies "
           f"({', '.join(sorted(ccys))})")
 
-    # 5. full happy path: all 7 venues price, all source_ok
+    # 5. full happy path: all 10 venues price, all source_ok
     rows, n_ok = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=_make_fetch())
-    assert len(rows) == 7 and n_ok == 7, (len(rows), n_ok)
+    assert len(rows) == 10 and n_ok == 10, (len(rows), n_ok)
     by = {r["venue"]: r for r in rows}
     assert abs(by["IndependentReserve"]["basis_bps"] - 10.94) < 0.2
     assert abs(by["Bitso"]["basis_bps"] - (-4.96)) < 0.2          # MXN near zero
     # inversion guard: a flipped TRY parse would read +thousands; real is ~-20.
     assert -200 < by["BTCTurk"]["basis_bps"] < 50, by["BTCTurk"]["basis_bps"]
-    print("  [ok] 7/7 venues price; MXN~0, TRY in-band (parse not inverted)")
+    # CriptoYa ARS: mid 1575 vs official 1500 = +500 bps parallel premium
+    assert abs(by["CriptoYa (ARS)"]["basis_bps"] - 500.0) < 1.0, by["CriptoYa (ARS)"]
+    assert by["CriptoYa (VES)"]["basis_bps"] > 1000, by["CriptoYa (VES)"]  # strong
+    assert by["CriptoYa (ARS)"]["source"] == "criptoya"          # snapshot-only tag
+    print("  [ok] 10/10 venues price; ARS +500 / VES strongly + (parallel premium)")
 
     # 6. per-venue isolation: one outage + one malformed payload, run continues
     fetch = _make_fetch({"coins": RuntimeError("simulated 503 from Coins.ph"),
@@ -424,7 +501,7 @@ def selftest():
     rows_m, n_ok_m = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=fetch)
     co = next(r for r in rows_m if r["venue"] == "Coins.ph")
     bk = next(r for r in rows_m if r["venue"] == "Bitkub")
-    assert n_ok_m == 5, n_ok_m
+    assert n_ok_m == 8, n_ok_m  # 10 - coins(outage) - bitkub(malformed)
     assert co["source_ok"] is False and "simulated 503" in co["error"]
     assert bk["source_ok"] is False and bk["basis_bps"] is None
     assert run_exit_code(n_ok_m) == 0  # 5 good venues -> the run SUCCEEDS
