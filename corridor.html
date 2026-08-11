@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — SGD→PHP corridor, decomposed</title>
+<meta name="description" content="Every basis point of a SGD→PHP stablecoin transfer, hourly: on-ramp and off-ramp basis, fees, the network rail, versus the incumbent fiat rail."/>
+<style>
+  :root{
+    --ink:#0d1117; --sub:#5b6472; --faint:#8b93a1; --line:#e7e9ee;
+    --bg:#fbfbfc; --card:#ffffff; --fill:#f4f5f8;
+    --pos:#b3241b; --neg:#2f7dae; --rail:#d98a2b; --win:#166534; --accent:#0d1117;
+    --shadow:0 1px 2px rgba(16,22,34,.04),0 8px 30px rgba(16,22,34,.06);
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ink:#e9ecf2; --sub:#9aa3b2; --faint:#6b7480; --line:#22262e;
+      --bg:#0b0d10; --card:#12151a; --fill:#171b21;
+      --pos:#f0574d; --neg:#4aa3d6; --rail:#e6a24e; --win:#7ee0a0; --accent:#e9ecf2;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 34px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0; overflow-x:hidden; max-width:100%}
+  body{background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.45; -webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .wrap{max-width:960px; margin:0 auto; padding:22px 20px 60px}
+
+  header{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:12px}
+  .brand{font-weight:800; letter-spacing:-.02em; font-size:19px}
+  .brand span{color:var(--faint); font-weight:600}
+  .sub{color:var(--sub); font-size:13.5px; margin-top:3px; max-width:60ch}
+  .back{font-size:12.5px; color:var(--sub); text-decoration:none; border:1px solid var(--line); border-radius:9px; padding:6px 11px; white-space:nowrap}
+  .back:hover{border-color:#cfd3db}
+  .stamp{font-family:var(--mono); font-size:11.5px; color:var(--faint); margin-top:10px}
+  .stamp b{color:var(--sub); font-weight:600}
+
+  .sizebar{display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin:18px 0 6px}
+  .sizebar .lbl{font-size:12px; color:var(--faint); margin-right:2px}
+  .sz{font-family:var(--mono); font-size:12.5px; padding:6px 11px; border:1px solid var(--line); border-radius:9px; background:var(--card); cursor:pointer; color:var(--sub)}
+  .sz.on{background:var(--accent); color:var(--bg); border-color:var(--accent); font-weight:600}
+
+  .nums{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:8px 0 6px}
+  .num{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow)}
+  .num .n-l{font-size:12px; color:var(--sub); font-weight:600; display:flex; gap:6px; align-items:center}
+  .num .n-v{font-family:var(--mono); font-size:30px; font-weight:600; letter-spacing:-.01em; margin-top:3px; line-height:1}
+  .num .n-s{font-size:11.5px; color:var(--faint); margin-top:3px}
+  .pill{font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px; text-transform:uppercase; letter-spacing:.03em}
+  .pill.win{background:#eaf7ee; color:var(--win)}
+  .pill.lose{background:#fdeceb; color:var(--pos)}
+  @media (prefers-color-scheme:dark){ .pill.win{background:#0f1c14} .pill.lose{background:#1e0f0e} }
+
+  .verdict{background:var(--fill); border:1px solid var(--line); border-radius:14px; padding:13px 16px; margin:12px 0; font-size:14px}
+  .verdict b{font-weight:700}
+  .verdict .split{display:flex; gap:20px; flex-wrap:wrap; margin-top:8px; font-family:var(--mono); font-size:12.5px; color:var(--sub)}
+  .verdict .split b{color:var(--ink)}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); padding:16px 18px; margin-top:16px}
+  .card h2{font-size:14px; margin:0 0 3px; letter-spacing:-.01em}
+  .card .cap{font-size:12px; color:var(--faint); margin:0 0 12px}
+  .wf{display:block; width:100%; height:auto}
+
+  table{width:100%; border-collapse:collapse; font-size:13px; margin-top:4px}
+  th,td{text-align:right; padding:8px 6px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; font-family:var(--mono)}
+  th{color:var(--faint); font-weight:600; font-family:var(--sans); font-size:11.5px; text-transform:uppercase; letter-spacing:.03em}
+  th:first-child,td:first-child{text-align:left}
+  tr.hl td{background:var(--fill)}
+  tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--rail)}
+  td .tag{font-family:var(--sans); font-size:11px; color:var(--faint)}
+  .winner{font-family:var(--sans); font-size:11.5px; font-weight:600}
+  .winner.c{color:var(--win)} .winner.f{color:var(--sub)}
+
+  .legend-row{display:flex; flex-wrap:wrap; gap:14px; font-size:11.5px; color:var(--sub); margin-top:10px}
+  .legend-row i{width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:5px; vertical-align:-1px}
+
+  footer{margin-top:22px; padding-top:14px; border-top:1px solid var(--line); color:var(--faint); font-size:12px; line-height:1.6}
+  footer a{color:var(--sub)}
+  @media (max-width:640px){ .nums{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="brand">margin.wiki <span>· SGD → PHP corridor</span></div>
+      <div class="sub">Every basis point of a Singapore→Philippines transfer over USDT, sampled hourly. The blockchain is nearly free; the cost lives at the two <b>doors</b> — the on-ramp and off-ramp — plus the fees. Here is the whole stack, versus what the incumbent fiat rail charges the same second.</div>
+    </div>
+    <a class="back" href="./index.html">← the map</a>
+  </header>
+  <div class="stamp" id="stamp">loading…</div>
+
+  <div class="sizebar" id="sizebar"><span class="lbl">send amount</span></div>
+  <div class="nums" id="nums"></div>
+  <div class="verdict" id="verdict"></div>
+
+  <div class="card">
+    <h2>The decomposition — where the cost sits <span id="wf-size" style="color:var(--faint);font-weight:400"></span></h2>
+    <p class="cap">Taker execution, in bps below mid-market. Bars left of zero are gains (a favourable basis); right of zero are costs. The <b style="color:var(--rail)">network fee is the rail</b> — everything else is the doors.</p>
+    <svg class="wf" id="wf" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="legend-row">
+      <span><i style="background:var(--neg)"></i>gain (basis)</span>
+      <span><i style="background:var(--pos)"></i>cost (fee / basis)</span>
+      <span><i style="background:var(--rail)"></i>the rail (network)</span>
+      <span><i style="background:var(--ink)"></i>all-in</span>
+      <span><i style="background:transparent;border:1px dashed var(--neg)"></i>incumbent (Wise/Instarem)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>The size ladder — worst at remittance sizes</h2>
+    <p class="cap">The flat 1-USDT network fee is a rounding error at scale but dominates a small transfer. S$200 is highlighted.</p>
+    <div style="overflow-x:auto"><table id="ladder"></table></div>
+  </div>
+
+  <div class="card">
+    <h2>History <span id="hist-size" style="color:var(--faint);font-weight:400"></span></h2>
+    <p class="cap">All-in cost over time — the moat is this record. Taker, maker, and the incumbent, hourly since collection began. History cannot be back-filled.</p>
+    <svg class="wf" id="hist" viewBox="0 0 640 220" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="legend-row">
+      <span><i style="background:var(--pos)"></i>taker</span>
+      <span><i style="background:var(--sub)"></i>maker</span>
+      <span><i style="background:var(--neg)"></i>incumbent</span>
+    </div>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+"use strict";
+const SIZES=[200,1000,5000,25000,50000];
+const fmtBps=b=>(b>=0?"+":"−")+Math.abs(b).toFixed(b>=100?0:1)+" bps";
+const money=n=>"S$"+(+n).toLocaleString();
+
+function parseCSV(text){
+  const rows=[]; let i=0,field="",row=[],q=false,t=text.trim();
+  const push=()=>{row.push(field);field="";}, eol=()=>{push();rows.push(row);row=[];};
+  while(i<t.length){const ch=t[i];
+    if(q){if(ch==='"'){if(t[i+1]==='"'){field+='"';i++;}else q=false;}else field+=ch;}
+    else if(ch==='"')q=true; else if(ch===',')push();
+    else if(ch==='\n')eol(); else if(ch==='\r'){} else field+=ch; i++;}
+  if(field.length||row.length)eol();
+  const head=rows.shift();
+  return rows.map(r=>Object.fromEntries(head.map((h,j)=>[h,r[j]])));
+}
+
+let bySize={}, histBySize={}, size=5000, newest="";
+
+async function boot(){
+  const rows=parseCSV(await fetch("./data/samples.csv").then(r=>r.text())).filter(r=>r.source_ok==="True");
+  for(const r of rows){ if(r.ts>newest) newest=r.ts; }
+  for(const s of SIZES){
+    const rs=rows.filter(r=>+r.notional_src===s).sort((a,b)=>a.ts<b.ts?-1:1);
+    histBySize[s]=rs; bySize[s]=rs[rs.length-1];
+  }
+  const d=new Date(newest.replace(" ","T")), ago=Math.round((Date.now()-d)/6e4);
+  const r5=bySize[5000];
+  document.getElementById("stamp").innerHTML=
+    `<b>updated</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?ago+" min ago":Math.round(ago/60)+" h ago"} · `+
+    `${r5.onramp_venue} → ${r5.offramp_venue} · fees verified ${(r5.fees_verified||"").split("|")[0].split(":")[1]||"—"}`;
+  renderSizes(); render();
+  document.getElementById("foot").innerHTML=
+    `On-ramp: ${r5.onramp_venue} (SGD→USDT). Off-ramp: ${r5.offramp_venue} (USDT→PHP, api.pro.coins.ph). `+
+    `Incumbent baseline: Wise comparison API. USD mids: open.er-api.com. Maker assumes a fill at top-of-book. `+
+    `Enterprise payout pricing is invisible by nature and never estimated. `+
+    `<a href="./METHODOLOGY.md">Methodology &amp; data honesty →</a> · <a href="./index.html">the basis map →</a>`;
+}
+
+function renderSizes(){
+  const bar=document.getElementById("sizebar");
+  bar.querySelectorAll(".sz").forEach(e=>e.remove());
+  for(const s of SIZES){
+    const b=document.createElement("button");
+    b.className="sz"+(s===size?" on":""); b.textContent=money(s); b.onclick=()=>{size=s;renderSizes();render();};
+    bar.appendChild(b);
+  }
+}
+
+function netBps(r){ return (+r.network_fee_stable)/((+r.notional_src)/(+r.onramp_vwap))*1e4; }
+
+function render(){
+  const r=bySize[size], t=+r.cost_bps_taker, m=+r.cost_bps_maker, base=+r.baseline_cost_bps;
+  const cw=t<base, mw=m<base;
+  document.getElementById("nums").innerHTML=`
+    ${numCard("Taker","what retail pays",t,cw)}
+    ${numCard("Maker","posts &amp; waits",m,mw)}
+    ${numCard(r.baseline_provider||"Incumbent","best fiat rail, same second",base,null)}`;
+  const rail=netBps(r), doors=t-rail;
+  document.getElementById("verdict").innerHTML=
+    `<b>${cw?"The stablecoin route wins.":"The incumbent wins at this size."}</b> `+
+    `At ${money(size)}, taker is ${fmtBps(t)} vs ${r.baseline_provider} at ${fmtBps(base)} — `+
+    `${cw?"crypto is cheaper":"crypto loses by "+Math.abs(t-base).toFixed(0)+" bps"}. Maker (${fmtBps(m)}) ${mw?"beats it":"still doesn't close the gap"}.`+
+    `<div class="split"><span>rail (network fee): <b>${fmtBps(rail)}</b></span><span>doors (execution + peg): <b>${fmtBps(doors)}</b></span></div>`;
+  document.getElementById("wf-size").textContent="· "+money(size);
+  document.getElementById("hist-size").textContent="· "+money(size);
+  drawWaterfall(r); drawLadder(); drawHistory();
+}
+
+function numCard(label,sub,val,win){
+  const pill = win===null?"":`<span class="pill ${win?"win":"lose"}">${win?"wins":"loses"}</span>`;
+  return `<div class="num"><div class="n-l">${label} ${pill}</div>
+    <div class="n-v">${fmtBps(val)}</div><div class="n-s">${sub}</div></div>`;
+}
+
+function drawWaterfall(r){
+  const comps=[
+    {l:"On-ramp basis", v:+r.onramp_basis_bps, k:"neg"},
+    {l:"On-ramp fee (taker)", v:+r.fee_on_taker_bps, k:"fee"},
+    {l:"Network fee — the rail", v:netBps(r), k:"rail"},
+    {l:"Off-ramp basis", v:+r.offramp_basis_bps, k:"neg"},
+    {l:"Off-ramp fee (taker)", v:+r.fee_off_taker_bps, k:"fee"},
+  ];
+  const total=+r.cost_bps_taker, base=+r.baseline_cost_bps;
+  let run=0; const cum=[0]; comps.forEach(c=>{run+=c.v; cum.push(run);});
+  const all=[0,total,base,...cum], dMin=Math.min(...all), dMax=Math.max(...all);
+  const pad=(dMax-dMin)*.12||10, lo=dMin-pad, hi=dMax+pad;
+  const L=168, R=624, X=v=>L+(v-lo)/(hi-lo)*(R-L);
+  const rowH=30, top=6, W=640;
+  const rows=comps.length+1, H=top+rows*rowH+30;
+  const svg=document.getElementById("wf"); svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  const col={fee:"var(--pos)",neg:"var(--neg)",rail:"var(--rail)"};
+  let s=`<line x1="${X(0)}" y1="${top}" x2="${X(0)}" y2="${top+rows*rowH}" stroke="var(--line)" stroke-width="1"/>`;
+  // baseline (incumbent) marker
+  s+=`<line x1="${X(base).toFixed(1)}" y1="${top-2}" x2="${X(base).toFixed(1)}" y2="${top+rows*rowH+4}" stroke="var(--neg)" stroke-width="1.3" stroke-dasharray="3 3"/>`+
+     `<text x="${X(base).toFixed(1)}" y="${top+rows*rowH+18}" fill="var(--neg)" font-size="10.5" font-family="var(--mono)" text-anchor="middle">${r.baseline_provider} ${fmtBps(base)}</text>`;
+  comps.forEach((c,i)=>{
+    const y=top+i*rowH, a=X(cum[i]), b=X(cum[i+1]), x0=Math.min(a,b), w=Math.max(2,Math.abs(b-a));
+    const fill = c.k==="neg" ? (c.v<0?col.neg:col.fee) : col[c.k];
+    s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--ink)" font-size="12" font-family="var(--sans)">${c.l}</text>`+
+       `<rect x="${x0.toFixed(1)}" y="${y+6}" width="${w.toFixed(1)}" height="${rowH-12}" rx="2.5" fill="${fill}"/>`+
+       `<text x="${(b+(b>=a?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--sub)" font-size="11" font-family="var(--mono)" text-anchor="${b>=a?"start":"end"}">${fmtBps(c.v)}</text>`;
+  });
+  const y=top+comps.length*rowH, xt=X(total);
+  s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--ink)" font-size="12.5" font-family="var(--sans)" font-weight="700">All-in (taker)</text>`+
+     `<rect x="${Math.min(X(0),xt).toFixed(1)}" y="${y+5}" width="${Math.max(2,Math.abs(xt-X(0))).toFixed(1)}" height="${rowH-10}" rx="2.5" fill="var(--ink)"/>`+
+     `<text x="${(xt+(total>=0?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--ink)" font-size="12" font-family="var(--mono)" font-weight="700" text-anchor="${total>=0?"start":"end"}">${fmtBps(total)}</text>`;
+  svg.innerHTML=s;
+}
+
+function drawLadder(){
+  const rows=SIZES.map(s=>bySize[s]);
+  let h=`<tr><th>Send</th><th>Taker</th><th>Maker</th><th>Incumbent</th><th>Winner</th></tr>`;
+  for(const r of rows){
+    const s=+r.notional_src, t=+r.cost_bps_taker, m=+r.cost_bps_maker, b=+r.baseline_cost_bps, cw=t<b;
+    h+=`<tr class="${s===size?"hl":""}${s===200?" hl":""}">
+      <td>${money(s)}${s===200?' <span class="tag">worst</span>':""}</td>
+      <td>${fmtBps(t)}</td><td>${fmtBps(m)}</td>
+      <td>${r.baseline_provider}<br><span class="tag">${fmtBps(b)}</span></td>
+      <td class="winner ${cw?"c":"f"}">${cw?"crypto":r.baseline_provider}</td></tr>`;
+  }
+  document.getElementById("ladder").innerHTML=h;
+}
+
+function drawHistory(){
+  const rows=histBySize[size]; const svg=document.getElementById("hist");
+  const W=640,H=200,padL=44,padR=12,padT=12,padB=22;
+  if(rows.length<2){ svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="var(--faint)" font-size="12" font-family="var(--sans)">history builds hourly — ${rows.length} sample${rows.length===1?"":"s"} so far</text>`; return; }
+  const series=[["cost_bps_taker","var(--pos)"],["cost_bps_maker","var(--sub)"],["baseline_cost_bps","var(--neg)"]];
+  const vals=rows.flatMap(r=>series.map(([k])=>+r[k]));
+  let lo=Math.min(0,...vals), hi=Math.max(0,...vals); const pv=(hi-lo)*.1||5; lo-=pv; hi+=pv;
+  const X=i=>padL+i*(W-padL-padR)/(rows.length-1), Y=v=>padT+(hi-v)/(hi-lo)*(H-padT-padB);
+  let s=`<line x1="${padL}" y1="${Y(0).toFixed(1)}" x2="${W-padR}" y2="${Y(0).toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`+
+        `<text x="${padL-6}" y="${Y(0).toFixed(1)+4}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="var(--mono)">0</text>`+
+        `<text x="${padL-6}" y="${(Y(hi)+8).toFixed(1)}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="var(--mono)">${Math.round(hi)}</text>`+
+        `<text x="${padL-6}" y="${(Y(lo)+0).toFixed(1)}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="var(--mono)">${Math.round(lo)}</text>`;
+  for(const [k,c] of series){
+    const pts=rows.map((r,i)=>`${X(i).toFixed(1)},${Y(+r[k]).toFixed(1)}`).join(" ");
+    s+=`<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.7" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`;
+    const last=rows[rows.length-1];
+    s+=`<circle cx="${X(rows.length-1).toFixed(1)}" cy="${Y(+last[k]).toFixed(1)}" r="2.4" fill="${c}"/>`;
+  }
+  svg.innerHTML=s;
+}
+
+boot().catch(e=>{document.getElementById("stamp").textContent="failed to load data"; console.error(e);});
+</script>
+</body>
+</html>
