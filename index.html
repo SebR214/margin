@@ -1,384 +1,872 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — the live stablecoin basis map</title>
-<meta name="description" content="Where USDT trades versus the official dollar, across ~10 countries, hourly. A divergence detector for capital-flow pressure."/>
-<style>
-  :root{
-    --ink:#0d1117; --sub:#5b6472; --faint:#8b93a1; --line:#e7e9ee;
-    --bg:#fbfbfc; --card:#ffffff; --ocean:#f2f4f7; --land:#e2e5ea; --landln:#fbfbfc;
-    --pos:#b3241b; --neg:#2f7dae; --accent:#0d1117;
-    --shadow:0 1px 2px rgba(16,22,34,.04),0 8px 30px rgba(16,22,34,.06);
-    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
-    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --ink:#e9ecf2; --sub:#9aa3b2; --faint:#6b7480; --line:#22262e;
-      --bg:#0b0d10; --card:#12151a; --ocean:#0f1216; --land:#1b1f26; --landln:#0b0d10;
-      --pos:#f0574d; --neg:#4aa3d6; --accent:#e9ecf2;
-      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 34px rgba(0,0,0,.5);
-    }
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0; overflow-x:hidden; max-width:100%}
-  body{
-    background:var(--bg); color:var(--ink); font-family:var(--sans);
-    line-height:1.45; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
-  }
-  a{color:inherit}
-  .wrap{max-width:1180px; margin:0 auto; padding:22px 20px 60px}
-
-  /* ---- header / headline strip ---- */
-  header{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:14px}
-  .brand{font-weight:800; letter-spacing:-.02em; font-size:19px}
-  .brand span{color:var(--faint); font-weight:600}
-  .tag{color:var(--sub); font-size:13.5px; max-width:min(52ch,100%); margin-top:3px}
-  .stamp{font-family:var(--mono); font-size:11.5px; color:var(--faint); text-align:right; white-space:nowrap}
-  .stamp b{color:var(--sub); font-weight:600}
-
-  .callouts{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:18px 0 6px}
-  .call{
-    background:var(--card); border:1px solid var(--line); border-radius:14px;
-    padding:12px 15px; box-shadow:var(--shadow); min-width:0; cursor:pointer;
-    transition:transform .12s ease, border-color .12s ease;
-  }
-  .call:hover{transform:translateY(-1px); border-color:#cfd3db}
-  .call .c-country{font-size:12.5px; color:var(--sub); font-weight:600; display:flex; gap:6px; align-items:center}
-  .call .c-val{font-family:var(--mono); font-size:26px; font-weight:600; letter-spacing:-.01em; margin-top:2px}
-  .call .c-note{font-size:11.5px; color:var(--faint); margin-top:1px}
-  .frame-note{
-    display:flex; gap:9px; align-items:flex-start; margin:12px 2px 6px; color:var(--sub);
-    font-size:13px;
-  }
-  .frame-note svg{flex:none; margin-top:2px}
-
-  /* ---- map + panel layout ---- */
-  .stage{display:grid; grid-template-columns:1fr 340px; gap:18px; margin-top:14px; align-items:start}
-  .mapcard{background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); overflow:hidden}
-  .map-svg{display:block; width:100%; height:auto; background:var(--ocean)}
-  .country{fill:var(--land); stroke:var(--landln); stroke-width:.4; vector-effect:non-scaling-stroke}
-  .country.hot{stroke:rgba(255,255,255,.55)}
-  .mk{cursor:pointer}
-  .mk circle.dot{stroke:rgba(20,25,35,.35); stroke-width:1; vector-effect:non-scaling-stroke}
-  @media (prefers-color-scheme:dark){ .mk circle.dot{stroke:rgba(255,255,255,.4)} }
-  .mk circle.ring{fill:none; opacity:.0}
-  .mk.on circle.ring{opacity:.9}
-  .mk:focus{outline:none}
-
-  /* legend */
-  .legend{padding:12px 16px 15px; border-top:1px solid var(--line)}
-  .leg-bar{height:11px; border-radius:6px; margin:8px 0 6px}
-  .leg-scale{position:relative; height:16px; font-family:var(--mono); font-size:10.5px; color:var(--faint)}
-  .leg-scale span{position:absolute; transform:translateX(-50%); white-space:nowrap}
-  .leg-bands{display:flex; justify-content:space-between; font-size:11px; color:var(--sub); margin-top:2px}
-  .leg-bands b{font-weight:600; color:var(--ink)}
-
-  /* ---- panel ---- */
-  .panel{background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); padding:0; overflow:hidden; position:sticky; top:16px}
-  .p-empty{padding:26px 20px; color:var(--faint); font-size:13.5px; text-align:center}
-  .p-head{padding:16px 18px 12px; border-bottom:1px solid var(--line)}
-  .p-flagrow{display:flex; align-items:center; gap:9px}
-  .p-flag{font-size:22px; line-height:1}
-  .p-country{font-weight:700; font-size:17px; letter-spacing:-.01em}
-  .p-venue{color:var(--sub); font-size:12.5px; margin-top:1px}
-  .p-basis{font-family:var(--mono); font-size:34px; font-weight:600; letter-spacing:-.02em; margin-top:10px; line-height:1}
-  .p-basis small{font-size:14px; color:var(--sub); font-weight:400; margin-left:4px}
-  .p-desc{font-size:12.5px; color:var(--sub); margin-top:7px}
-  .p-body{padding:14px 18px 18px}
-  .kv{display:flex; justify-content:space-between; gap:10px; font-size:12.5px; padding:5px 0; border-bottom:1px dashed var(--line)}
-  .kv:last-child{border-bottom:0}
-  .kv .k{color:var(--faint)}
-  .kv .v{font-family:var(--mono); color:var(--ink)}
-  .badges{display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 4px}
-  .badge{font-size:11px; font-weight:600; padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:var(--sub); display:inline-flex; gap:5px; align-items:center}
-  .badge.hist{color:#166534; border-color:#bbe3c7; background:#f0faf3}
-  .badge.snap{color:#9a5b00; border-color:#f0d9a8; background:#fdf6e8}
-  @media (prefers-color-scheme:dark){
-    .badge.hist{color:#7ee0a0; border-color:#1f4b30; background:#0f1c14}
-    .badge.snap{color:#f0c469; border-color:#4a3a1a; background:#1d160a}
-  }
-  .spark-wrap{margin-top:14px}
-  .spark-h{display:flex; justify-content:space-between; align-items:baseline; font-size:11.5px; color:var(--faint); margin-bottom:5px}
-  .spark-h b{color:var(--sub); font-weight:600; font-family:var(--mono)}
-  .spark{display:block; width:100%; height:56px}
-  .p-cta{display:block; margin-top:14px; text-align:center; text-decoration:none; font-weight:600; font-size:13px; padding:10px; border-radius:11px; background:var(--accent); color:var(--bg)}
-  .p-note{font-size:11.5px; color:var(--faint); margin-top:10px; line-height:1.4}
-
-  footer{display:flex; flex-wrap:wrap; gap:6px 16px; justify-content:space-between; align-items:center; margin-top:22px; padding-top:14px; border-top:1px solid var(--line); color:var(--faint); font-size:12px}
-  footer a{color:var(--sub); text-decoration:none; border-bottom:1px solid var(--line)}
-  footer a:hover{color:var(--ink)}
-
-  @media (max-width:820px){
-    .stage{grid-template-columns:1fr}
-    .panel{position:static}
-    .stamp{text-align:left}
-  }
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div>
-      <div class="brand">margin.wiki <span>· stablecoin basis</span></div>
-      <div class="tag">Where USDT actually trades versus the official dollar — hourly, across ten countries. A live detector for where capital is trying to leave.</div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<style>
+  body { margin: 0; background: #ffffff; }
+  a { color: oklch(0.55 0.17 275); text-decoration: none; }
+  a:hover { color: oklch(0.45 0.17 275); }
+  @media (max-width: 980px) {
+    [data-grid="split"] { grid-template-columns: minmax(0, 1fr) !important; gap: 22px !important; }
+    [data-grid="label-row"] { grid-template-columns: minmax(0, 1fr) !important; gap: 4px !important; }
+    [data-pad] { padding: 20px 16px 44px !important; }
+  }
+  @media (max-width: 700px) {
+    [data-bar-val] { display: none !important; }
+  }
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #ffffff; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, sans-serif; color: #12131a; padding: 28px 32px 56px; box-sizing: border-box;" data-pad="1">
+  <div style="max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;">
+
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #8b8d99;">USDT ↔ local currency · hourly capture</div>
+        <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.02em;">margin.wiki — basis &amp; corridor monitor</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #e6e6eb; background: #fff; border-radius: 999px; padding: 7px 14px;">
+          <span style="width: 7px; height: 7px; border-radius: 50%; background: {{ statusDot }};"></span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">{{ statusLabel }}</span>
+        </div>
+        <a href="./corridor.html" style="font-size: 12.5px; color: #4d4f5c; border: 1px solid #e6e6eb; background: #fff; border-radius: 9px; padding: 7px 12px;">corridor detail →</a>
+        <a href="./methodology.html" style="font-size: 12.5px; color: #4d4f5c; border: 1px solid #e6e6eb; background: #fff; border-radius: 9px; padding: 7px 12px;">methodology →</a>
+      </div>
     </div>
-    <div class="stamp" id="stamp">loading…</div>
-  </header>
 
-  <div class="callouts" id="callouts"></div>
+    <div data-grid="split" style="display: grid; grid-template-columns: minmax(0, 1fr) 328px; gap: 40px; align-items: start; padding: 10px 0 22px; border-bottom: 1px solid #ebebf0;">
+      <div style="max-width: 660px; display: flex; flex-direction: column; gap: 22px;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Why I built this</div>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">I've spent most of my career in cross-border payments, and for the last few years the loudest claim in the industry has been that stablecoins made moving money cheap. I couldn't find anyone who had actually priced that claim off live order books — not a quote, not a blog benchmark, the actual execution cost, decomposed. So I built a collector that does.</p>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">Along the way it turned into two instruments: the corridor I originally wanted the receipt for, and a wider board that fell out of the method — if you're already comparing USDT prices to official dollar rates in one country, you can do it in ten.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">What it measures</div>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;"><strong style="font-weight: 600; color: #12131a;">The basis board.</strong> Every hour, the price of USDT in local currency on each country's main exchange, against the official USD rate at the same moment. The gap, in basis points. Positive — people pay a premium over the official rate for a dollar; negative — USDT trades below it.</p>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #a2a3ad; margin-bottom: 4px;">Basis now — largest divergence right now</div>
+        <sc-for list="{{ featured }}" as="f" hint-placeholder-count="5">
+          <button onClick="{{ f.onClick }}" style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; cursor: pointer; font-family: inherit; text-align: left; background: {{ f.bg }}; color: {{ f.color }}; border: 1px solid {{ f.border }}; border-radius: 10px; padding: 9px 12px;">
+            <span style="display: flex; align-items: baseline; gap: 8px; font-size: 13.5px; font-weight: 500; white-space: nowrap;"><span style="font-size: 15px;">{{ f.flag }}</span>{{ f.country }}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: {{ f.sub }}; white-space: nowrap;">{{ f.bps }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
 
-  <div class="frame-note">
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.3"/><path d="M8 4.6v4.2M8 11.2h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-    <div><b style="color:var(--ink)">Flat is a reading too.</b> The map measures <b style="color:var(--ink)">divergence from official rates</b>, not volume — a country near zero has an open FX market, not a quiet one.</div>
-  </div>
+    <div data-grid="split" style="display: grid; grid-template-columns: minmax(0, 1fr) 328px; gap: 18px; align-items: start;">
 
-  <div class="stage">
-    <div class="mapcard">
-      <svg class="map-svg" id="map" viewBox="0 0 1000 372" preserveAspectRatio="xMidYMid meet" role="img" aria-label="World map of stablecoin basis"></svg>
-      <div class="legend">
-        <div class="leg-bar" id="legbar"></div>
-        <div class="leg-scale" id="legscale"></div>
-        <div class="leg-bands">
-          <span>USDT <b>cheap</b></span>
-          <span><b>open</b> regime (~0)</span>
-          <span>frictional</span>
-          <span><b>parallel-rate</b></span>
+      <div style="display: flex; flex-direction: column; gap: 18px; min-width: 0;">
+
+        <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 24px 24px 16px;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <div style="display: flex; align-items: baseline; gap: 10px; font-size: 27px; font-weight: 700; letter-spacing: -0.025em; white-space: nowrap;"><span>{{ heroFlag }}</span><span>1 USDT = {{ rateLabel }} {{ ccy }}</span></div>
+              <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; white-space: nowrap;">
+                <span style="font-family: 'IBM Plex Mono', monospace; color: {{ deltaColor }}; font-weight: 500;">{{ deltaAbs }} · {{ deltaPct }}</span>
+                <span style="color: #b6b7c0;">|</span>
+                <span style="color: #8b8d99;">{{ rangeLabel }}</span>
+              </div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #8b8d99; margin-top: 2px;">{{ venueLabel }}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+              <div style="display: flex; align-items: baseline; gap: 8px; background: {{ premBg }}; border-radius: 10px; padding: 8px 12px; white-space: nowrap;">
+                <span style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6c6e7a;">Basis vs official</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 500; color: {{ premColor }};">{{ premLabel }}</span>
+              </div>
+              <div style="display: flex; gap: 14px; font-size: 12px; color: #8b8d99; white-space: nowrap;">
+                <span>Official FX <span style="font-family: 'IBM Plex Mono', monospace; color: #4d4f5c;">{{ officialLabel }}</span></span>
+                <span>Last tick <span style="font-family: 'IBM Plex Mono', monospace; color: #4d4f5c;">{{ lastTick }}</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div ref="{{ chartRef }}" onMouseMove="{{ onMove }}" onMouseLeave="{{ onLeave }}" style="position: relative; margin-top: 18px; height: 268px; cursor: crosshair;">
+            <svg viewBox="0 0 1000 268" preserveAspectRatio="none" style="width: 100%; height: 268px; display: block; overflow: visible;">
+              <defs>
+                <linearGradient id="scfill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="{{ accent }}" stop-opacity="0.22" />
+                  <stop offset="100%" stop-color="{{ accent }}" stop-opacity="0.01" />
+                </linearGradient>
+              </defs>
+              <sc-for list="{{ yTicks }}" as="g" hint-placeholder-count="5">
+                <line x1="0" x2="1000" y1="{{ g.y }}" y2="{{ g.y }}" stroke="#f0f0f4" stroke-width="1" />
+              </sc-for>
+              <path d="{{ areaPath }}" fill="url(#scfill)" />
+              <sc-if value="{{ showOfficial }}" hint-placeholder-val="{{ true }}">
+                <path d="{{ officialPath }}" fill="none" stroke="#c3c4cf" stroke-width="1.4" stroke-dasharray="4 4" />
+              </sc-if>
+              <path d="{{ linePath }}" fill="none" stroke="{{ accent }}" stroke-width="1.9" stroke-linejoin="round" />
+              <sc-if value="{{ hovering }}" hint-placeholder-val="{{ false }}">
+                <line x1="{{ hoverX }}" x2="{{ hoverX }}" y1="0" y2="240" stroke="{{ accent }}" stroke-width="1" stroke-opacity="0.35" />
+              </sc-if>
+            </svg>
+            <sc-if value="{{ hovering }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; top: {{ hoverDotTop }}; left: {{ hoverDotLeft }}; width: 9px; height: 9px; margin: -5px 0 0 -5px; border-radius: 50%; background: {{ accent }}; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.06);"></div>
+            </sc-if>
+            <sc-if value="{{ hovering }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; top: 0; left: {{ tipLeft }}; transform: translateX(-50%); background: #12131a; color: #fff; border-radius: 10px; padding: 9px 12px; display: flex; flex-direction: column; gap: 3px; pointer-events: none; white-space: nowrap;">
+                <span style="font-size: 11px; color: rgba(255,255,255,0.6);">{{ tipTime }}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500;">{{ tipRate }} {{ ccy }}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.65);">official {{ tipOfficial }} · basis {{ tipPrem }}</span>
+              </div>
+            </sc-if>
+            <div style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; font-size: 11px; color: #a2a3ad; font-family: 'IBM Plex Mono', monospace;">
+              <sc-for list="{{ xTicks }}" as="x" hint-placeholder-count="4">
+                <span style="white-space: nowrap;">{{ x.label }}</span>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: center; margin-top: 6px;">
+            <div style="display: flex; gap: 2px; flex-wrap: wrap; justify-content: center;">
+              <sc-for list="{{ rangeTabs }}" as="r" hint-placeholder-count="7">
+                <button onClick="{{ r.onClick }}" style="border: none; cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 7px 14px; border-radius: 999px; background: {{ r.bg }}; color: {{ r.color }};">{{ r.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 22px 24px;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+            <div>
+              <div style="font-size: 15px; font-weight: 600;">Basis — USDT/{{ ccy }} vs official mid, bps</div>
+              <div style="font-size: 12.5px; color: #8b8d99; margin-top: 3px;">Positive = local buyers pay above the official rate for dollars.</div>
+            </div>
+            <div style="display: flex; gap: 18px; text-align: right;">
+              <div>
+                <div style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad;">Mean</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; margin-top: 2px; white-space: nowrap;">{{ premMean }}</div>
+              </div>
+              <div>
+                <div style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad;">Peak</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; margin-top: 2px; white-space: nowrap;">{{ premPeak }}</div>
+              </div>
+              <div>
+                <div style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad;">σ</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; margin-top: 2px; white-space: nowrap;">{{ premSigma }}</div>
+              </div>
+            </div>
+          </div>
+          <svg viewBox="0 0 1000 120" preserveAspectRatio="none" style="width: 100%; height: 120px; display: block; margin-top: 14px;">
+            <line x1="0" x2="1000" y1="{{ zeroY }}" y2="{{ zeroY }}" stroke="#e2e2e9" stroke-width="1" />
+            <path d="{{ premArea }}" fill="{{ accent }}" fill-opacity="0.14" />
+            <path d="{{ premPath }}" fill="none" stroke="{{ accent }}" stroke-width="1.5" />
+          </svg>
+        </div>
+
+        <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 22px 24px;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+            <div>
+              <div style="font-size: 15px; font-weight: 600;">{{ coverTitle }}</div>
+              <div style="font-size: 12.5px; color: #8b8d99; margin-top: 3px;">One cell per hour of the live layer, shaded by |basis|. {{ coverageLabel }}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: #8b8d99; white-space: nowrap; flex-wrap: wrap;">
+              <span>low</span>
+              <div style="display: flex; gap: 2px;">
+                <sc-for list="{{ legend }}" as="l" hint-placeholder-count="5">
+                  <div style="width: 14px; height: 10px; border-radius: 2px; background: {{ l.bg }};"></div>
+                </sc-for>
+              </div>
+              <span>high</span>
+              <div style="width: 14px; height: 10px; border-radius: 2px; background: #f2f2f5; margin-left: 8px;"></div>
+              <span>no tick</span>
+              <div style="width: 14px; height: 10px; border-radius: 2px; background: #ffffff; border: 1px dashed #e0e0e7; margin-left: 8px;"></div>
+              <span>not yet collecting</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <sc-if value="{{ hourAxis }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: #a2a3ad; padding: 1px 0;">
+                <span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span>
+              </div>
+            </sc-if>
+            <div style="flex: 1; min-width: 0; display: grid; grid-template-columns: repeat({{ covDays }}, 1fr); grid-auto-rows: {{ cellHeight }}; gap: 3px;">
+              <sc-for list="{{ cells }}" as="c" hint-placeholder-count="168">
+                <div title="{{ c.title }}" style="border-radius: 2px; background: {{ c.bg }}; box-shadow: {{ c.ring }};"></div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #a2a3ad; margin-top: 8px; padding-left: 0;">
+            <sc-for list="{{ coverTicks }}" as="t" hint-placeholder-count="4">
+              <span style="white-space: nowrap;">{{ t.label }}</span>
+            </sc-for>
+          </div>
+          <div style="font-size: 12px; color: #a2a3ad; margin-top: 10px;">Backfill before August 2026 is daily, not hourly — it appears in the chart above as history, never as hourly coverage.</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+        <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 18px 18px 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <div style="font-size: 13px; font-weight: 600;">Markets</div>
+            <div style="font-size: 11px; color: #a2a3ad; font-family: 'IBM Plex Mono', monospace;">basis · bps</div>
+          </div>
+          <div style="display: flex; flex-direction: column;">
+            <sc-for list="{{ marketRows }}" as="m" hint-placeholder-count="10">
+              <button onClick="{{ m.onClick }}" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; border: none; cursor: pointer; font-family: inherit; text-align: left; background: {{ m.bg }}; border-radius: 10px; padding: 9px 10px;">
+                <span style="display: flex; align-items: center; gap: 9px; min-width: 0;">
+                  <span style="font-size: 15px;">{{ m.flag }}</span>
+                  <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0;">
+                    <span style="font-size: 13px; font-weight: 500; color: #12131a;">{{ m.code }}</span>
+                    <span style="font-size: 11px; color: #8b8d99; white-space: nowrap;">{{ m.venue }}</span>
+                  </span>
+                </span>
+                <span style="display: flex; flex-direction: column; gap: 1px; text-align: right; font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">
+                  <span style="font-size: 12.5px; color: #4d4f5c;">{{ m.rate }}</span>
+                  <span style="font-size: 11px; color: {{ m.premColor }};">{{ m.prem }}</span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 18px;">
+          <div style="font-size: 13px; font-weight: 600; margin-bottom: 12px;">Window statistics</div>
+          <div style="display: flex; flex-direction: column; gap: 9px;">
+            <sc-for list="{{ stats }}" as="s" hint-placeholder-count="6">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid #f4f4f7; padding-bottom: 8px;">
+                <span style="font-size: 12.5px; color: #8b8d99;">{{ s.k }}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #12131a; white-space: nowrap;">{{ s.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background: #f5f5f8; border-radius: 18px; padding: 18px;">
+          <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Collection</div>
+          <div style="font-size: 12.5px; color: #5c5e6a; line-height: 1.55;">{{ collectionNote }}</div>
         </div>
       </div>
     </div>
 
-    <aside class="panel" id="panel">
-      <div class="p-empty">Tap a country to see its venue, live basis, and history.</div>
-    </aside>
-  </div>
+    <div style="border-top: 1px solid #ebebf0; padding-top: 26px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 6px; max-width: 660px;">
+          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">The corridor — {{ corrName }}</div>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">All-in cost of the transfer, sampled hourly: the USDT route walked at real size on live books against the cheapest fiat rail quoting the same amount. Everything in basis points of the amount sent.</p>
+        </div>
+        <div style="display: flex; gap: 2px; background: #f1f1f4; border-radius: 999px; padding: 3px;">
+          <sc-for list="{{ sizeTabs }}" as="s" hint-placeholder-count="5">
+            <button onClick="{{ s.onClick }}" style="border: none; cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 7px 15px; border-radius: 999px; background: {{ s.bg }}; color: {{ s.color }}; box-shadow: {{ s.shadow }}; white-space: nowrap;">{{ s.label }}</button>
+          </sc-for>
+        </div>
+      </div>
 
-  <footer>
-    <div>Basis = (USDT mid ÷ official USD mid − 1). Positive = USDT rich to the dollar.</div>
-    <div><a href="./methodology.html">Methodology &amp; data honesty →</a> · CriptoYa for AR/VE/BR</div>
-  </footer>
-</div>
+      <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 24px 24px 18px;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 28px; flex-wrap: wrap;">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <div style="display: flex; align-items: center; gap: 7px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6c6e7a;">
+                <span style="width: 14px; height: 2px; background: {{ accent }}; border-radius: 2px;"></span>USDT route, all-in
+              </div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 500; letter-spacing: -0.01em; white-space: nowrap;">{{ corrUsdt }}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <div style="display: flex; align-items: center; gap: 7px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6c6e7a;">
+                <span style="width: 14px; height: 0; border-top: 2px dashed #b6b7c0;"></span>Best fiat rail — {{ corrRail }}
+              </div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 500; letter-spacing: -0.01em; color: #4d4f5c; white-space: nowrap;">{{ corrFiat }}</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 8px; background: {{ corrGapBg }}; border-radius: 10px; padding: 8px 12px; white-space: nowrap;">
+            <span style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6c6e7a;">USDT vs rail</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 500; color: {{ corrGapColor }};">{{ corrGap }}</span>
+          </div>
+        </div>
 
-<script>
-"use strict";
-/* ---------- country metadata (ccy -> country/venue) ---------- */
-const COUNTRIES = {
-  SGD:{name:"Singapore",  iso:"SGP", flag:"🇸🇬", lon:103.8, lat:1.35,  note:"the calibration anchor — an open, near-zero market"},
-  PHP:{name:"Philippines",iso:"PHL", flag:"🇵🇭", lon:122.0, lat:12.0,  note:"the deep-dive corridor (SGD→PHP)", corridor:true},
-  TRY:{name:"Turkey",     iso:"TUR", flag:"🇹🇷", lon:35.0,  lat:39.0,  note:"floats freely today — but see the history"},
-  KRW:{name:"South Korea",iso:"KOR", flag:"🇰🇷", lon:127.8, lat:36.5,  note:"the ‘kimchi premium’, measured via USDT"},
-  IDR:{name:"Indonesia",  iso:"IDN", flag:"🇮🇩", lon:113.0, lat:-2.0,  note:"a persistent local USDT discount"},
-  THB:{name:"Thailand",   iso:"THA", flag:"🇹🇭", lon:101.0, lat:15.0,  note:"open regime — near the anchor"},
-  MXN:{name:"Mexico",     iso:"MEX", flag:"🇲🇽", lon:-102.0,lat:23.0,  note:"institutional LatAm venue, tight to the dollar"},
-  ARS:{name:"Argentina",  iso:"ARG", flag:"🇦🇷", lon:-64.0, lat:-38.0, note:"the blue-dollar premium, live"},
-  VES:{name:"Venezuela",  iso:"VEN", flag:"🇻🇪", lon:-66.0, lat:7.0,   note:"the sharpest parallel-rate gap on the map"},
-  BRL:{name:"Brazil",     iso:"BRA", flag:"🇧🇷", lon:-51.0, lat:-10.0, note:"a modest, real premium (IOF / FX friction)"},
-};
-const ISO2CCY = Object.fromEntries(Object.entries(COUNTRIES).map(([c,v])=>[v.iso,c]));
+        <div ref="{{ corrRef }}" onMouseMove="{{ onCorrMove }}" onMouseLeave="{{ onCorrLeave }}" style="position: relative; margin-top: 18px; height: 248px; cursor: crosshair;">
+          <svg viewBox="0 0 1000 248" preserveAspectRatio="none" style="width: 100%; height: 248px; display: block; overflow: visible;">
+            <defs>
+              <linearGradient id="corrfill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="{{ accent }}" stop-opacity="0.18" />
+                <stop offset="100%" stop-color="{{ accent }}" stop-opacity="0.01" />
+              </linearGradient>
+            </defs>
+            <sc-for list="{{ corrGrid }}" as="g" hint-placeholder-count="4">
+              <line x1="0" x2="1000" y1="{{ g.y }}" y2="{{ g.y }}" stroke="#f0f0f4" stroke-width="1" />
+            </sc-for>
+            <path d="{{ corrArea }}" fill="url(#corrfill)" />
+            <path d="{{ corrFiatPath }}" fill="none" stroke="#b6b7c0" stroke-width="1.6" stroke-dasharray="5 4" />
+            <path d="{{ corrUsdtPath }}" fill="none" stroke="{{ accent }}" stroke-width="1.9" stroke-linejoin="round" />
+            <sc-if value="{{ corrHovering }}" hint-placeholder-val="{{ false }}">
+              <line x1="{{ corrHoverX }}" x2="{{ corrHoverX }}" y1="0" y2="220" stroke="{{ accent }}" stroke-width="1" stroke-opacity="0.35" />
+            </sc-if>
+          </svg>
+          <div style="position: absolute; top: 0; right: 0; height: 220px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; pointer-events: none;">
+            <sc-for list="{{ corrGrid }}" as="g" hint-placeholder-count="4">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #a2a3ad; background: #fff; padding-left: 6px; white-space: nowrap;">{{ g.label }}</span>
+            </sc-for>
+          </div>
+          <sc-if value="{{ corrHovering }}" hint-placeholder-val="{{ false }}">
+            <div style="position: absolute; top: 0; left: {{ corrTipLeft }}; transform: translateX(-50%); background: #12131a; color: #fff; border-radius: 10px; padding: 9px 12px; display: flex; flex-direction: column; gap: 3px; pointer-events: none; white-space: nowrap;">
+              <span style="font-size: 11px; color: rgba(255,255,255,0.6);">{{ corrTipTime }}</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500;">USDT {{ corrTipUsdt }}</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.65);">rail {{ corrTipFiat }} · gap {{ corrTipGap }}</span>
+            </div>
+          </sc-if>
+          <div style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; font-size: 11px; color: #a2a3ad; font-family: 'IBM Plex Mono', monospace;">
+            <sc-for list="{{ corrXTicks }}" as="x" hint-placeholder-count="4">
+              <span style="white-space: nowrap;">{{ x.label }}</span>
+            </sc-for>
+          </div>
+        </div>
 
-/* ---------- projection (equirectangular, cropped) ---------- */
-const W=1000, H=372, LAT_TOP=78, LAT_BOT=-56;
-const proj = (lon,lat)=>[ (lon+180)*(W/360), (LAT_TOP-lat)*(H/(LAT_TOP-LAT_BOT)) ];
-
-/* ---------- diverging colour scale around zero ---------- */
-// compress magnitude (sqrt) so a +1300 VES and a −50 THB are both legible,
-// normalised to the parallel-rate reference (~1400 bps). Zero = neutral.
-const REF = Math.sqrt(1400);
-function tOf(b){ const s=Math.sign(b); return Math.max(-1,Math.min(1, s*Math.sqrt(Math.abs(b))/REF)); }
-const STOPS_POS=[[0,[238,240,238]],[.20,[244,208,120]],[.55,[224,120,58]],[1,[150,20,18]]];
-const STOPS_NEG=[[0,[238,240,238]],[1,[47,125,174]]];
-function lerp(a,b,u){return a+(b-a)*u;}
-function ramp(stops,u){
-  for(let i=1;i<stops.length;i++){ if(u<=stops[i][0]){
-    const [p0,c0]=stops[i-1],[p1,c1]=stops[i], k=(u-p0)/(p1-p0||1);
-    return c0.map((c,j)=>Math.round(lerp(c,c1[j],k)));
-  }}
-  return stops[stops.length-1][1];
-}
-function colorFor(b){
-  if(b==null||isNaN(b)) return "var(--land)";
-  const t=tOf(b), c = t>=0 ? ramp(STOPS_POS,t) : ramp(STOPS_NEG,-t);
-  return `rgb(${c[0]},${c[1]},${c[2]})`;
-}
-
-/* ---------- tiny CSV parser (handles quoted fields) ---------- */
-function parseCSV(text){
-  const rows=[]; let i=0, field="", row=[], q=false, t=text.trim();
-  const push=()=>{row.push(field);field="";}; const eol=()=>{push();rows.push(row);row=[];};
-  while(i<t.length){ const ch=t[i];
-    if(q){ if(ch==='"'){ if(t[i+1]==='"'){field+='"';i++;} else q=false; } else field+=ch; }
-    else if(ch==='"') q=true;
-    else if(ch===',') push();
-    else if(ch==='\n') eol();
-    else if(ch==='\r'){}
-    else field+=ch;
-    i++;
-  }
-  if(field.length||row.length) eol();
-  const head=rows.shift();
-  return rows.map(r=>Object.fromEntries(head.map((h,j)=>[h,r[j]])));
-}
-const fmtBps=b=> (b>=0?"+":"")+Math.round(b)+" bps";
-
-/* ---------- state ---------- */
-let latest={}, history={}, histVenues=new Set(), selected=null;
-
-async function boot(){
-  const [bT,hT,geo] = await Promise.all([
-    fetch("./data/basis.csv").then(r=>r.text()),
-    fetch("./data/basis_history.csv").then(r=>r.text()).catch(()=>""),
-    fetch("./data/world.geo.json").then(r=>r.json()),
-  ]);
-
-  // latest source_ok row per currency
-  let newest="";
-  for(const r of parseCSV(bT)){
-    if(r.source_ok!=="True") continue;
-    if(r.ts_utc>newest) newest=r.ts_utc;
-    const c=r.ccy; if(!COUNTRIES[c]) continue;
-    if(!latest[c] || r.ts_utc>latest[c].ts_utc) latest[c]=r;
-  }
-  // history per venue
-  if(hT){ for(const r of parseCSV(hT)){ (history[r.venue] ||= []).push(r); histVenues.add(r.venue); } }
-  for(const v in history) history[v].sort((a,b)=>a.date<b.date?-1:1);
-
-  stampEl(newest);
-  renderCallouts();
-  renderMap(geo);
-  renderLegend();
-  // open with a populated panel: deep-link (#TUR-style ccy) or Argentina default
-  const h=location.hash.slice(1).toUpperCase();
-  select(COUNTRIES[h]&&latest[h] ? h : (latest.ARS ? "ARS" : Object.keys(latest)[0]));
-  addEventListener("hashchange",()=>{const x=location.hash.slice(1).toUpperCase(); if(COUNTRIES[x]&&latest[x]) select(x);});
-}
-
-function stampEl(ts){
-  const el=document.getElementById("stamp");
-  if(!ts){ el.textContent="no live data"; return; }
-  const d=new Date(ts.replace(" ","T")), ago=Math.round((Date.now()-d)/6e4);
-  const t=d.toISOString().slice(0,16).replace("T"," ");
-  el.innerHTML=`<b>updated</b> ${t}Z · ${ago<90?ago+" min ago":Math.round(ago/60)+" h ago"}`;
-}
-
-function renderCallouts(){
-  const box=document.getElementById("callouts");
-  const picks=["ARS","VES","BRL","KRW"].filter(c=>latest[c]);
-  box.innerHTML=picks.map(c=>{
-    const r=latest[c], b=+r.basis_bps, C=COUNTRIES[c];
-    return `<div class="call" data-ccy="${c}">
-      <div class="c-country">${C.flag} ${C.name}</div>
-      <div class="c-val" style="color:${colorFor(b)}">${fmtBps(b)}</div>
-      <div class="c-note">${C.note}</div></div>`;
-  }).join("");
-  box.querySelectorAll(".call").forEach(el=>el.onclick=()=>select(el.dataset.ccy));
-}
-
-function pathFor(geom){
-  const polys = geom.type==="Polygon"?[geom.coordinates]:geom.coordinates;
-  let d="";
-  for(const poly of polys) for(const ring of poly){
-    d+="M"; d+=ring.map(([lo,la])=>{const [x,y]=proj(lo,la);return x.toFixed(1)+","+y.toFixed(1);}).join("L"); d+="Z";
-  }
-  return d;
-}
-
-function renderMap(geo){
-  const svg=document.getElementById("map");
-  const NS="http://www.w3.org/2000/svg";
-  const gLand=document.createElementNS(NS,"g"), gMk=document.createElementNS(NS,"g");
-  for(const f of geo.features){
-    const ccy=ISO2CCY[f.id];
-    const p=document.createElementNS(NS,"path");
-    p.setAttribute("d",pathFor(f.geometry));
-    p.setAttribute("class","country"+(ccy?" hot":""));
-    if(ccy && latest[ccy]){ p.setAttribute("fill",colorFor(+latest[ccy].basis_bps)); p.style.cursor="pointer";
-      p.onclick=()=>select(ccy); }
-    gLand.appendChild(p);
-  }
-  // markers (clickable, and the only way to hit tiny Singapore)
-  for(const c in COUNTRIES){
-    if(!latest[c]) continue;
-    const C=COUNTRIES[c], b=+latest[c].basis_bps, [x,y]=proj(C.lon,C.lat);
-    const rad=6.5+Math.abs(tOf(b))*10;
-    const g=document.createElementNS(NS,"g"); g.setAttribute("class","mk"); g.setAttribute("tabindex","0");
-    g.setAttribute("data-ccy",c); g.setAttribute("transform",`translate(${x.toFixed(1)},${y.toFixed(1)})`);
-    g.innerHTML=`<circle class="ring" r="${(rad+5).toFixed(1)}" stroke="${colorFor(b)}" stroke-width="1.5"></circle>`+
-                `<circle class="dot" r="${rad.toFixed(1)}" fill="${colorFor(b)}"></circle>`;
-    const act=()=>select(c); g.onclick=act; g.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();act();}};
-    gMk.appendChild(g);
-  }
-  svg.appendChild(gLand); svg.appendChild(gMk);
-}
-
-function renderLegend(){
-  const N=60, stops=[];
-  for(let i=0;i<=N;i++){ const u=i/N; // map bar position -> basis via inverse-ish sqrt on ±
-    const t=(u*2-1); const b=Math.sign(t)*(t*REF)**2; stops.push(colorFor(b)); }
-  document.getElementById("legbar").style.background=`linear-gradient(90deg,${stops.join(",")})`;
-  // ticks at meaningful bps
-  const ticks=[-50,0,150,500,1300], sc=document.getElementById("legscale");
-  sc.innerHTML=ticks.map(v=>{ const u=(tOf(v)+1)/2*100; return `<span style="left:${u.toFixed(1)}%">${v>0?"+":""}${v}</span>`; }).join("");
-}
-
-function sparkline(rows){
-  const W=300,H=56,pad=4, xs=rows.map(r=>+r.basis_bps);
-  const min=Math.min(0,...xs), max=Math.max(0,...xs), rng=(max-min)||1;
-  const X=i=>pad+i*(W-2*pad)/(rows.length-1||1), Y=v=>H-pad-(v-min)/rng*(H-2*pad);
-  const line=rows.map((r,i)=>`${X(i).toFixed(1)},${Y(+r.basis_bps).toFixed(1)}`).join(" ");
-  const y0=Y(0).toFixed(1), last=rows[rows.length-1];
-  const area=`M${X(0).toFixed(1)},${y0} L`+line.replace(/ /g," L")+` L${X(rows.length-1).toFixed(1)},${y0} Z`;
-  const col=colorFor(+last.basis_bps);
-  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-    <line x1="0" x2="${W}" y1="${y0}" y2="${y0}" stroke="var(--line)" stroke-width="1"/>
-    <polygon points="${line}" fill="${col}" opacity=".10" style="clip-path:none"/>
-    <polyline points="${line}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
-    <circle cx="${X(rows.length-1).toFixed(1)}" cy="${Y(+last.basis_bps).toFixed(1)}" r="2.4" fill="${col}"/>
-  </svg>`;
-}
-
-function select(ccy){
-  selected=ccy;
-  try{window.history.replaceState(null,"","#"+ccy);}catch(e){}
-  document.querySelectorAll(".mk").forEach(m=>m.classList.toggle("on",m.dataset.ccy===ccy));
-  const C=COUNTRIES[ccy], r=latest[ccy];
-  const p=document.getElementById("panel");
-  if(!r){ p.innerHTML=`<div class="p-empty">No live quote for ${C.name} in the latest snapshot.</div>`; return; }
-  const b=+r.basis_bps, backed=histVenues.has(r.venue), hist=history[r.venue]||[];
-  const bid=r.usdt_bid&&r.usdt_bid!=="", ask=r.usdt_ask&&r.usdt_ask!=="";
-  const badge = backed
-    ? `<span class="badge hist">● history since ${hist[0]?hist[0].date:"2024"}</span>`
-    : (r.source==="criptoya"
-        ? `<span class="badge snap">◐ snapshot-only since 2026-08</span>`
-        : `<span class="badge snap">◐ live · history pending</span>`);
-  let spark="";
-  if(backed && hist.length>1){
-    const hv=hist.map(h=>+h.basis_bps), lo=Math.min(...hv), hi=Math.max(...hv);
-    spark=`<div class="spark-wrap">
-      <div class="spark-h"><span>basis history · daily</span><span>range <b>${fmtBps(lo)}</b> … <b>${fmtBps(hi)}</b></span></div>
-      ${sparkline(hist)}</div>`;
-  }
-  p.innerHTML=`
-    <div class="p-head">
-      <div class="p-flagrow"><span class="p-flag">${C.flag}</span>
-        <div><div class="p-country">${C.name}</div><div class="p-venue">${r.venue} · ${r.ccy}</div></div></div>
-      <div class="p-basis" style="color:${colorFor(b)}">${fmtBps(b)}<small>vs official mid</small></div>
-      <div class="p-desc">${C.note}</div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+          <sc-for list="{{ corrLegs }}" as="l" hint-placeholder-count="6">
+            <div style="display: flex; align-items: baseline; gap: 8px; background: {{ l.bg }}; border-radius: 8px; padding: 7px 11px;">
+              <span style="font-size: 11.5px; color: #6c6e7a;">{{ l.k }}</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #12131a; white-space: nowrap;">{{ l.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-size: 12px; color: #a2a3ad; margin-top: 10px;">{{ corrNote }}</div>
+      </div>
     </div>
-    <div class="p-body">
-      <div class="kv"><span class="k">USDT mid (local)</span><span class="v">${(+r.usdt_mid).toLocaleString(undefined,{maximumFractionDigits:4})}</span></div>
-      <div class="kv"><span class="k">official mid</span><span class="v">${(+r.fx_mid_per_usd).toLocaleString(undefined,{maximumFractionDigits:4})}</span></div>
-      ${bid?`<div class="kv"><span class="k">bid / ask</span><span class="v">${(+r.usdt_bid).toLocaleString(undefined,{maximumFractionDigits:4})}${ask?" / "+(+r.usdt_ask).toLocaleString(undefined,{maximumFractionDigits:4}):""}</span></div>`:""}
-      <div class="kv"><span class="k">source</span><span class="v">${r.source}</span></div>
-      <div class="badges">${badge}</div>
-      ${spark}
-      ${C.corridor?`<a class="p-cta" href="./corridor.html">Open the full SGD→PHP decomposition →</a>`:""}
-      ${r.source==="criptoya"?`<div class="p-note">Aggregated across the exchanges CriptoYa lists; quote = median bid (the clean side — broker asks carry retail markup). For AR/VE the comparator is the <b>official</b> rate, so this basis is the parallel-dollar premium.</div>`:""}
-    </div>`;
-}
 
-boot().catch(e=>{ document.getElementById("stamp").textContent="failed to load data"; console.error(e); });
+    <div style="border-top: 1px solid #ebebf0; padding-top: 26px; display: grid; grid-template-columns: minmax(0, 1fr) 328px; gap: 40px; align-items: start;">
+      <div style="max-width: 700px; display: flex; flex-direction: column; gap: 26px;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">What it's shown so far</div>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">The collector is days old. These are observations with dates on them, not conclusions — the point of collecting hourly is to find out which of them hold.</p>
+          <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 6px;">
+            <sc-for list="{{ findings }}" as="f" hint-placeholder-count="4">
+              <div data-grid="label-row" style="display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 16px; align-items: start;">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8b8d99; padding-top: 3px;">{{ f.k }}</span>
+                <span style="font-size: 14.5px; line-height: 1.6; color: #464854; text-wrap: pretty;">{{ f.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Findings</div>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">Occasional write-ups, dated. One question per entry, the chart it turns on, and what the data does and doesn't settle.</p>
+          <div style="border: 1px solid #ebebf0; border-radius: 18px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #a2a3ad;">2026-08</div>
+              <div style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Does the gap widen when banks are closed?</div>
+              <div style="font-size: 12.5px; color: #8b8d99;">{{ findingSub }}</div>
+            </div>
+            <div style="display: flex; gap: 10px; position: relative;">
+              <div style="position: absolute; left: 0; right: 0; top: 78px; border-top: 1px solid #e2e2e9;"></div>
+              <sc-for list="{{ dowBars }}" as="b" hint-placeholder-count="7">
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                  <div style="width: 100%; height: 78px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px;">
+                    <sc-if value="{{ b.up }}" hint-placeholder-val="{{ true }}">
+                      <span data-bar-val="1" style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8b8d99; white-space: nowrap;">{{ b.v }}</span>
+                    </sc-if>
+                    <sc-if value="{{ b.up }}" hint-placeholder-val="{{ true }}">
+                      <div style="width: 100%; height: {{ b.h }}; background: {{ b.bg }}; border-radius: 3px 3px 0 0;"></div>
+                    </sc-if>
+                  </div>
+                  <div style="width: 100%; height: 78px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 5px;">
+                    <sc-if value="{{ b.down }}" hint-placeholder-val="{{ false }}">
+                      <div style="width: 100%; height: {{ b.h }}; background: {{ b.bg }}; border-radius: 0 0 3px 3px;"></div>
+                    </sc-if>
+                    <sc-if value="{{ b.down }}" hint-placeholder-val="{{ false }}">
+                      <span data-bar-val="1" style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8b8d99; white-space: nowrap;">{{ b.v }}</span>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <sc-for list="{{ dowBars }}" as="b" hint-placeholder-count="7">
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;">
+                  <span style="font-size: 11.5px; color: #4d4f5c;">{{ b.label }}</span>
+                  <span data-bar-val="1" style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #b6b7c0;">n={{ b.n }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 11px; margin-top: 2px;">
+              <sc-for list="{{ findingParas }}" as="p" hint-placeholder-count="3">
+                <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">{{ p }}</p>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">How it's measured — and what isn't</div>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854;">Every number is one of three things:</p>
+          <div style="display: flex; flex-direction: column; border: 1px solid #ebebf0; border-radius: 14px; overflow: hidden; background: #fff;">
+            <div data-grid="label-row" style="display: grid; grid-template-columns: 122px minmax(0, 1fr); gap: 16px; padding: 13px 16px; border-bottom: 1px solid #f2f2f5; align-items: start;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #12131a;">measured</span>
+              <span style="font-size: 14px; line-height: 1.55; color: #464854;">Live order books walked at real sizes, official mids, incumbent quotes — timestamped, kept raw.</span>
+            </div>
+            <div data-grid="label-row" style="display: grid; grid-template-columns: 122px minmax(0, 1fr); gap: 16px; padding: 13px 16px; border-bottom: 1px solid #f2f2f5; align-items: start;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #12131a;">assumed</span>
+              <span style="font-size: 14px; line-height: 1.55; color: #464854;">{{ assumedNote }}</span>
+            </div>
+            <div data-grid="label-row" style="display: grid; grid-template-columns: 122px minmax(0, 1fr); gap: 16px; padding: 13px 16px; align-items: start;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #12131a;">not visible</span>
+              <span style="font-size: 14px; line-height: 1.55; color: #464854;">Enterprise pricing (Nium, Thunes, Circle partners), OTC execution — stated, never estimated.</span>
+            </div>
+          </div>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">One correction is part of the record: my first version had the patient-execution route beating the incumbent 3×. Verifying the venues' published fee schedules killed it — there is no zero-fee maker tier. The correction stays documented, because the site only works if the numbers survive someone checking.</p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="background: #12131a; color: #fff; border-radius: 18px; padding: 18px;">
+          <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Built to fail loudly</div>
+          <div style="font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.72); text-wrap: pretty;">Failed pulls are written as failures, gaps show as gaps, and the scheduler goes red when a sample is incomplete — an earlier version of this project died silently for 34 days, and that's the failure mode everything here is designed against.</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 10px;">{{ failNote }}</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13.5px;">
+          <a href="./methodology.html">Full methodology →</a>
+          <a href="https://github.com/SebR214/margin" target="_blank" rel="noopener">Raw data in the repo →</a>
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid #ebebf0; margin-top: 8px; padding-top: 22px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 28px;">
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <div style="font-size: 13px; font-weight: 600;">Sebastian Roervig</div>
+        <div style="font-size: 12.5px; color: #8b8d99; line-height: 1.55;">Cross-border payments. Building margin.wiki in the open.</div>
+        <div style="display: flex; gap: 12px; font-size: 12.5px; margin-top: 2px;">
+          <a href="https://www.linkedin.com/in/sebastianroervig/" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="https://github.com/SebR214/margin" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #a2a3ad;">Price sources</div>
+        <div style="font-size: 12.5px; color: #5c5e6a; line-height: 1.6;">{{ sourcesLabel }}</div>
+        <div style="font-size: 12.5px; color: #5c5e6a; line-height: 1.6;">ARS, VES and BRL quotes via <a href="https://criptoya.com" target="_blank" rel="noopener">CriptoYa</a> — median-bid rule, used with attribution.</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #a2a3ad;">Reference rates</div>
+        <div style="font-size: 12.5px; color: #5c5e6a; line-height: 1.6;">Official USD mids from open.er-api.com, with the fawazahmed0 currency dataset for the daily backfill. Every basis figure is quote vs the mid carried in the same row.</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #a2a3ad;">Read further</div>
+        <div style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px;">
+          <a href="./methodology.html">Methodology &amp; data honesty</a>
+          <a href="./corridor.html">SGD → PHP corridor detail</a>
+          <a href="https://github.com/SebR214/margin" target="_blank" rel="noopener">Repository &amp; raw CSVs</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;oklch(0.55 0.17 275)&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;oklch(0.55 0.17 275)&quot;,&quot;oklch(0.55 0.14 152)&quot;,&quot;oklch(0.58 0.16 30)&quot;,&quot;oklch(0.5 0.05 260)&quot;],&quot;section&quot;:&quot;Style&quot;},&quot;showOfficial&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Chart&quot;}}">
+const META = {
+  ARS: { country: 'Argentina', flag: '🇦🇷' }, VES: { country: 'Venezuela', flag: '🇻🇪' },
+  BRL: { country: 'Brazil', flag: '🇧🇷' }, KRW: { country: 'Korea', flag: '🇰🇷' },
+  TRY: { country: 'Türkiye', flag: '🇹🇷' }, IDR: { country: 'Indonesia', flag: '🇮🇩' },
+  THB: { country: 'Thailand', flag: '🇹🇭' }, MXN: { country: 'Mexico', flag: '🇲🇽' },
+  PHP: { country: 'Philippines', flag: '🇵🇭' }, SGD: { country: 'Singapore', flag: '🇸🇬' },
+};
+const ORDER = ['ARS', 'VES', 'BRL', 'KRW', 'TRY', 'IDR', 'THB', 'MXN', 'PHP', 'SGD'];
+const RANGES = [
+  { key: '1d', label: '1d', h: 24 }, { key: '1w', label: '1w', h: 168 },
+  { key: '1m', label: '1m', h: 720 }, { key: '3m', label: '3m', h: 2160 },
+  { key: '6m', label: '6m', h: 4344 }, { key: '1y', label: '1y', h: 8760 },
+  { key: 'all', label: 'All', h: Infinity },
+];
+const HOUR = 3600000, DAY = 86400000;
+const GREEN = 'oklch(0.55 0.14 152)', RED = 'oklch(0.56 0.19 25)';
+const COV_DAYS = 7;
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const head = lines[0].split(',');
+  const out = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const parts = lines[i].split(',');
+    const row = {};
+    for (let j = 0; j < head.length; j++) row[head[j]] = parts[j];
+    out.push(row);
+  }
+  return out;
+}
+const num = v => { const n = parseFloat(v); return isFinite(n) ? n : null; };
+const bpsFmt = (v, d) => v == null ? '—' : (v >= 0 ? '+' : '−') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }) + ' bps';
+
+class Component extends DCLogic {
+  state = { ccy: 'ARS', range: '1w', size: null, hover: null, chover: null, data: null, err: null };
+
+  componentDidMount() {
+    const get = p => fetch(p).then(r => { if (!r.ok) throw new Error(p + ' ' + r.status); return r.text(); });
+    Promise.all([get('./data/basis.csv'), get('./data/basis_history.csv'), get('./data/samples.csv')])
+      .then(([b, h, s]) => this.setState({ data: this.build(parseCSV(b), parseCSV(h), parseCSV(s)) }))
+      .catch(e => this.setState({ err: String(e.message || e) }));
+  }
+
+  build(basis, hist, samples) {
+    const live = {}, fails = {}, venues = {}, daily = {}, histVenues = {};
+    basis.forEach(r => {
+      const c = r.ccy; if (!c || !META[c]) return;
+      const t = Date.parse(r.ts_utc);
+      const ok = (r.source_ok || '').trim() === 'True';
+      if (!ok) { (fails[c] = fails[c] || []).push({ t, err: r.error || 'failed pull' }); return; }
+      const mid = num(r.usdt_mid), fx = num(r.fx_mid_per_usd), bp = num(r.basis_bps);
+      if (mid == null || bp == null) return;
+      (live[c] = live[c] || []).push({ t, v: mid, o: fx, p: bp, venue: r.venue, source: r.source });
+      venues[c] = r.venue;
+    });
+    hist.forEach(r => {
+      const c = r.ccy; if (!c || !META[c]) return;
+      const t = Date.parse(r.date + 'T00:00:00Z');
+      const mid = num(r.usdt_close), fx = num(r.fx_mid), bp = num(r.basis_bps);
+      if (mid == null || bp == null) return;
+      (daily[c] = daily[c] || []).push({ t, v: mid, o: fx, p: bp, daily: true });
+      histVenues[c] = r.venue;
+    });
+    Object.keys(live).forEach(c => live[c].sort((a, b) => a.t - b.t));
+    Object.keys(daily).forEach(c => daily[c].sort((a, b) => a.t - b.t));
+
+    const corr = {}, sizes = [];
+    let corrName = '', railName = '';
+    samples.forEach(r => {
+      if ((r.source_ok || '').trim() !== 'True') return;
+      const n = num(r.notional_src); if (n == null) return;
+      corrName = r.corridor || corrName;
+      const row = {
+        t: Date.parse(r.ts), n,
+        usdt: num(r.cost_bps_taker), fiat: num(r.baseline_cost_bps), rail: r.baseline_provider,
+        onBasis: num(r.onramp_basis_bps), onFee: num(r.fee_on_taker_bps),
+        offBasis: num(r.offramp_basis_bps), offFee: num(r.fee_off_taker_bps),
+        netFee: num(r.network_fee_stable), midSrc: num(r.mid_src_per_usd),
+        onVenue: r.onramp_venue, offVenue: r.offramp_venue, verified: r.fees_verified,
+        onSlip: num(r.onramp_slip_bps), offSlip: num(r.offramp_slip_bps),
+      };
+      if (row.usdt == null) return;
+      (corr[n] = corr[n] || []).push(row);
+      if (sizes.indexOf(n) < 0) sizes.push(n);
+      railName = row.rail || railName;
+    });
+    sizes.sort((a, b) => a - b);
+    Object.keys(corr).forEach(k => corr[k].sort((a, b) => a.t - b.t));
+
+    const lastTs = Math.max.apply(null, ORDER.filter(c => live[c]).map(c => live[c][live[c].length - 1].t));
+    const histCodes = Object.keys(daily);
+    const histStartT = histCodes.length ? Math.min.apply(null, histCodes.map(c => daily[c][0].t)) : null;
+    return { live, fails, venues, daily, histVenues, corr, sizes, corrName, railName, lastTs, histStartT, histCodes, rowsLive: basis.length, rowsHist: hist.length };
+  }
+
+  fmtRate(v) {
+    if (v == null) return '—';
+    const a = Math.abs(v);
+    const d = a >= 1000 ? 2 : a >= 100 ? 3 : a >= 10 ? 4 : 5;
+    return v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: d });
+  }
+  fmtDate(t, withHour) {
+    const d = new Date(t);
+    const s = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit', timeZone: 'UTC' });
+    return withHour ? s + ' · ' + String(d.getUTCHours()).padStart(2, '0') + ':00 UTC' : s;
+  }
+
+  renderVals() {
+    const accent = this.props.accentColor ?? 'oklch(0.55 0.17 275)';
+    const showOfficial = this.props.showOfficial ?? true;
+    const st = this.state, D = st.data;
+    const empty = {
+      accent, showOfficial, ccy: st.ccy, heroFlag: (META[st.ccy] || {}).flag || '',
+      statusDot: st.err ? RED : '#c9cad2', statusLabel: st.err ? 'data unavailable — ' + st.err : 'loading data…',
+      rateLabel: '—', officialLabel: '—', lastTick: '—', venueLabel: 'reading data/basis.csv',
+      deltaAbs: '—', deltaPct: '', deltaColor: '#8b8d99', rangeLabel: '',
+      premLabel: '—', premColor: '#12131a', premBg: '#f5f5f8',
+      linePath: '', officialPath: '', areaPath: '', premPath: '', premArea: '', zeroY: 108,
+      premMean: '—', premPeak: '—', premSigma: '—',
+      yTicks: [0, 0.25, 0.5, 0.75, 1].map(f => ({ y: (f * 240).toFixed(0) })), xTicks: [],
+      featured: [], marketRows: [], stats: [], rangeTabs: [], cells: [], legend: [], coverTicks: [],
+      covDays: COV_DAYS, coverTitle: 'Hourly capture coverage', coverageLabel: '',
+      collectionNote: 'Loading the collector output…', hovering: false, corrHovering: false,
+      sizeTabs: [], corrLegs: [], corrUsdt: '—', corrFiat: '—', corrRail: '—', corrGap: '—',
+      corrGapColor: '#12131a', corrGapBg: '#f5f5f8', corrUsdtPath: '', corrFiatPath: '', corrArea: '',
+      corrGrid: [], corrXTicks: [], corrName: 'SGD → PHP', corrNote: '', findings: [],
+      assumedNote: 'Exchange fees at published base tiers, verified against the schedules.',
+      findingSub: 'mean basis by weekday, bps', dowBars: [], findingParas: [], dowAxis: '',
+      failNote: '', sourcesLabel: 'Loading venue list…',
+      chartRef: () => {}, onMove: () => {}, onLeave: () => {}, corrRef: () => {}, onCorrMove: () => {}, onCorrLeave: () => {},
+    };
+    if (!D) return empty;
+
+    const codes = ORDER.filter(c => D.live[c] || D.daily[c]);
+    const ccy = codes.indexOf(st.ccy) >= 0 ? st.ccy : codes[0];
+    const meta = META[ccy];
+    const liveArr = D.live[ccy] || [], dayArr = D.daily[ccy] || [];
+    const all = dayArr.concat(liveArr);
+    const nowT = D.lastTs;
+    const R = RANGES.find(x => x.key === st.range) || RANGES[1];
+    const oldest = all.length ? all[0].t : nowT;
+    const spanH = (nowT - oldest) / HOUR;
+    const winH = Math.min(R.h, spanH + 1);
+    const cutoff = nowT - winH * HOUR;
+    let pts = all.filter(p => p.t >= cutoff);
+    if (pts.length < 2) pts = all.slice(-2);
+    if (!pts.length) pts = [{ t: nowT, v: 0, o: 0, p: 0 }];
+
+    const last = pts[pts.length - 1], first = pts[0];
+    const vals = pts.map(p => p.v).concat(showOfficial ? pts.map(p => p.o).filter(v => v != null) : []);
+    let lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    const pad = (hi - lo) * 0.18 || Math.abs(hi) * 0.001 || 1; lo -= pad; hi += pad;
+    const H = 240;
+    const X = i => pts.length < 2 ? 500 : (i / (pts.length - 1)) * 1000;
+    const Y = v => H - ((v - lo) / (hi - lo)) * H;
+    const line = pts.map((p, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p.v).toFixed(1)).join(' ');
+    const offPath = pts.map((p, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p.o == null ? p.v : p.o).toFixed(1)).join(' ');
+
+    const ps = pts.map(p => p.p);
+    let plo = Math.min.apply(null, ps), phi = Math.max.apply(null, ps);
+    plo = Math.min(0, plo); phi = Math.max(0, phi);
+    const pspan = (phi - plo) || 1;
+    plo -= pspan * 0.12; phi += pspan * 0.12;
+    const PY = v => 108 - ((v - plo) / (phi - plo)) * 100;
+    const premPath = pts.map((p, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + PY(p.p).toFixed(1)).join(' ');
+    const mean = ps.reduce((a, b) => a + b, 0) / ps.length;
+    const sd = Math.sqrt(ps.reduce((a, b) => a + (b - mean) * (b - mean), 0) / Math.max(1, ps.length - 1));
+    const peak = ps.reduce((a, b) => Math.abs(b) > Math.abs(a) ? b : a, ps[0]);
+
+    let hv = null;
+    if (st.hover != null && pts.length > 1) { const i = Math.max(0, Math.min(pts.length - 1, Math.round(st.hover * (pts.length - 1)))); hv = { i, p: pts[i] }; }
+    const delta = last.v - first.v, dpct = first.v ? (delta / first.v) * 100 : 0, up = delta >= 0;
+
+    // coverage — hourly live layer only
+    const covEnd = Math.floor(nowT / HOUR) * HOUR;
+    const firstLiveT = liveArr.length ? Math.floor(liveArr[0].t / HOUR) * HOUR : covEnd;
+    const liveHours = Math.round((covEnd - firstLiveT) / HOUR) + 1;
+    // strip mode while the live layer is younger than three days; matrix once there are enough days
+    const stripMode = liveHours <= 72;
+    const covCols = stripMode ? Math.max(12, Math.min(72, liveHours)) : COV_DAYS;
+    const covStart = stripMode ? covEnd - (covCols - 1) * HOUR : covEnd - (COV_DAYS * 24 - 1) * HOUR;
+    const byHour = {};
+    liveArr.forEach(p => { byHour[Math.floor(p.t / HOUR)] = p; });
+    const failHour = {};
+    (D.fails[ccy] || []).forEach(f => { failHour[Math.floor(f.t / HOUR)] = f; });
+    const firstLive = liveArr.length ? liveArr[0].t : Infinity;
+    const absAll = liveArr.map(p => Math.abs(p.p)).sort((a, b) => a - b);
+    const q = f => absAll.length ? absAll[Math.floor(f * (absAll.length - 1))] : 0;
+    const cut = [q(0.2), q(0.4), q(0.6), q(0.8)];
+    const alphas = [0.14, 0.3, 0.48, 0.7, 0.94];
+    const cells = [];
+    let captured = 0, failed = 0, expected = 0;
+    const rowsN = stripMode ? 1 : 24, colsN = covCols;
+    for (let h = 0; h < rowsN; h++) {
+      for (let d = 0; d < colsN; d++) {
+        const t = stripMode ? covStart + d * HOUR : covStart + d * DAY + h * HOUR;
+        const key = Math.floor(t / HOUR);
+        if (t < firstLive) { cells.push({ bg: '#ffffff', ring: 'inset 0 0 0 1px #f0f0f4', title: this.fmtDate(t, true) + ' — not yet collecting' }); continue; }
+        if (t > nowT + HOUR) { cells.push({ bg: '#ffffff', ring: 'inset 0 0 0 1px #f0f0f4', title: 'future' }); continue; }
+        expected++;
+        const hit = byHour[key];
+        if (hit) {
+          captured++;
+          const a = Math.abs(hit.p);
+          let k = 0; while (k < 4 && a > cut[k]) k++;
+          cells.push({ bg: 'color-mix(in oklab, ' + accent + ' ' + Math.round(alphas[k] * 100) + '%, white)', ring: 'none', title: this.fmtDate(t, true) + ' — ' + bpsFmt(hit.p, 1) });
+        } else {
+          failed++;
+          cells.push({ bg: '#f2f2f5', ring: 'none', title: this.fmtDate(t, true) + ' — ' + (failHour[key] ? 'failed pull' : 'no tick') });
+        }
+      }
+    }
+
+    // corridor
+    const sizes = D.sizes;
+    const size = sizes.indexOf(st.size) >= 0 ? st.size : sizes[0];
+    const crows = D.corr[size] || [];
+    const cLast = crows[crows.length - 1] || {};
+    const cAll = crows.map(r => r.usdt).concat(crows.map(r => r.fiat).filter(v => v != null));
+    let clo = cAll.length ? Math.min.apply(null, cAll) : 0, chi = cAll.length ? Math.max.apply(null, cAll) : 1;
+    const cpad = (chi - clo) * 0.22 || 8; clo = Math.max(0, clo - cpad); chi += cpad;
+    const CH = 220;
+    const CX = i => crows.length < 2 ? 500 : (i / (crows.length - 1)) * 1000;
+    const CY = v => CH - ((v - clo) / (chi - clo)) * CH;
+    const uPath = crows.map((r, i) => (i ? 'L' : 'M') + CX(i).toFixed(1) + ' ' + CY(r.usdt).toFixed(1)).join(' ');
+    const fPath = crows.map((r, i) => (i ? 'L' : 'M') + CX(i).toFixed(1) + ' ' + CY(r.fiat == null ? r.usdt : r.fiat).toFixed(1)).join(' ');
+    let chv = null;
+    if (st.chover != null && crows.length > 1) { const i = Math.max(0, Math.min(crows.length - 1, Math.round(st.chover * (crows.length - 1)))); chv = { i, r: crows[i] }; }
+    const cGap = (cLast.usdt || 0) - (cLast.fiat || 0);
+    const netBps = cLast.netFee != null && cLast.midSrc ? (cLast.netFee / (size / cLast.midSrc)) * 10000 : null;
+    const sgdCur = (D.live.SGD || []).slice(-1)[0], phpCur = (D.live.PHP || []).slice(-1)[0];
+    const one = v => v == null ? '—' : (v < 0 ? '−' : '') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' bps';
+
+    const latest = {};
+    codes.forEach(c => { const a = D.live[c] || D.daily[c]; latest[c] = a[a.length - 1]; });
+    const ranked = codes.slice().sort((a, b) => Math.abs(latest[b].p) - Math.abs(latest[a].p)).slice(0, 5);
+    const venueList = codes.map(c => D.venues[c]).filter((v, i, a) => v && a.indexOf(v) === i);
+
+    const idr = latest.IDR, sinceDays = Math.max(1, Math.round((nowT - (liveArr.length ? D.live[codes[0]][0].t : nowT)) / DAY));
+    const histStart = D.histStartT ? this.fmtDate(D.histStartT, false) : null;
+    const sizeLabel = size >= 1000 ? 'S$' + (size / 1000) + 'k' : 'S$' + size;
+    const findings = [
+      { k: this.fmtDate(cLast.t || nowT, false), v: 'At ' + (D.corrName || 'SGD->PHP').replace('->', '→') + ', ' + sizeLabel + ': the USDT route lands at ' + Math.round(cLast.usdt) + ' bps against ' + (cLast.rail || 'the fiat rail') + ' at ' + Math.round(cLast.fiat) + ' bps — ' + (cGap > 0 ? 'the rail still wins by ' + Math.round(cGap) + ' bps.' : 'the crypto route wins by ' + Math.round(-cGap) + ' bps.') },
+      { k: this.fmtDate(nowT, false), v: ranked.slice(0, 2).map(c => META[c].country + ' ' + bpsFmt(latest[c].p, 0)).join(' and ') + ' against their official mids — the parallel-dollar premium, off broker quotes.' },
+      { k: 'Under investigation', v: idr ? 'Indonesia prints ' + bpsFmt(idr.p, 0) + ' on Indodax at the latest pull, and has spent most of the live window below its official mid. Fresh book, tight spread. I don\'t have an explanation I\'d defend yet.' : 'Indonesia\'s discount on Indodax — awaiting more hourly samples.' },
+      { k: 'Daily backfill', v: histStart ? D.histCodes.length + ' venues carry a daily series from ' + histStart + ' — ' + D.rowsHist.toLocaleString('en-US') + ' rows. Markets flat today were not always: use the 1y and All ranges to see what each one has done since.' : 'Daily backfill pending.' },
+    ];
+
+    // ── Findings: weekday seasonality, computed from the deepest daily series
+    const dowCode = D.histCodes.slice().sort((a, b) => D.daily[b].length - D.daily[a].length)[0];
+    const dowSrc = dowCode ? D.daily[dowCode] : [];
+    const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const sums = [0, 0, 0, 0, 0, 0, 0], counts = [0, 0, 0, 0, 0, 0, 0];
+    dowSrc.forEach(p => { const i = (new Date(p.t).getUTCDay() + 6) % 7; sums[i] += p.p; counts[i]++; });
+    const means = sums.map((s, i) => counts[i] ? s / counts[i] : 0);
+    const mAbsMax = Math.max.apply(null, means.map(Math.abs)) || 1;
+    const weekdayMean = means.slice(0, 5).reduce((a, b) => a + b, 0) / 5;
+    const weekendMean = (means[5] + means[6]) / 2;
+    const dowSpread = weekendMean - weekdayMean;
+    const dowSd = Math.sqrt(dowSrc.reduce((a, p) => a + Math.pow(p.p - (dowSrc.reduce((x, y) => x + y.p, 0) / dowSrc.length), 2), 0) / Math.max(1, dowSrc.length - 1));
+    const dowBars = means.map((v, i) => ({
+      label: DOW[i],
+      up: v >= 0,
+      down: v < 0,
+      h: Math.max(2, Math.round((Math.abs(v) / mAbsMax) * 56)) + 'px',
+      v: (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1),
+      n: counts[i].toLocaleString('en-US'),
+      bg: i > 4 ? accent : 'color-mix(in oklab, ' + accent + ' 42%, white)',
+    }));
+    const dowMeta = dowCode ? META[dowCode] : null;
+
+    return {
+      accent, showOfficial, ccy,
+      findingSub: dowMeta ? dowMeta.flag + ' ' + dowMeta.country + ' · ' + (D.histVenues[dowCode] || '') + ' · mean basis by weekday, bps · ' + dowSrc.length.toLocaleString('en-US') + ' daily observations from ' + this.fmtDate(dowSrc[0].t, false) : '',
+      dowBars,
+      dowAxis: bpsFmt(mAbsMax, 0) + ' scale',
+      findingParas: dowCode ? [
+        'Official mids are set on banking days; the venues quote through the weekend. If the basis were mostly a settlement effect — dollars hard to get when the banks are shut — the weekend bars should stand off the weekday ones. On ' + dowMeta.country + '\u2019s daily series the weekday mean is ' + bpsFmt(weekdayMean, 1) + ' against a weekend mean of ' + bpsFmt(weekendMean, 1) + ', a spread of ' + bpsFmt(dowSpread, 1) + '.',
+        'Day-to-day variation in the same series is ' + dowSd.toFixed(1) + ' bps (σ), so the weekday–weekend gap is ' + (Math.abs(dowSpread) > dowSd ? 'wider than the ordinary daily noise — enough to be worth chasing, not enough to call a cause' : 'inside the ordinary daily noise, which is a reason to hold off on reading anything into it') + '. It is also confounded: the reference mid carries the last banking day\u2019s value forward, so a weekend reading compares a live quote to a stale official rate. The chart cannot separate those two things, and I am not going to pretend it can.',
+        'The hourly layer is the test that matters here — it can put the intraday shape of a Saturday next to a Tuesday at the same hour. That layer is days old. This entry exists to be revisited when it has months in it, and to be wrong in public if it turns out the other way.',
+      ] : [],
+      heroFlag: meta.flag,
+      statusDot: GREEN, statusLabel: 'collector live · last pull ' + this.fmtDate(nowT, true),
+      rateLabel: this.fmtRate(last.v), officialLabel: this.fmtRate(last.o),
+      lastTick: this.fmtDate(last.t, true).split('· ')[1] || this.fmtDate(last.t, false),
+      venueLabel: (D.venues[ccy] || D.histVenues[ccy] || 'venue') + ' · ' + (dayArr.length ? 'daily backfill from ' + this.fmtDate(dayArr[0].t, false) : 'hourly since ' + this.fmtDate(liveArr.length ? liveArr[0].t : nowT, false)),
+      deltaAbs: (up ? '+' : '−') + this.fmtRate(Math.abs(delta)),
+      deltaPct: (up ? '+' : '−') + Math.abs(dpct).toFixed(2) + ' %',
+      deltaColor: up ? GREEN : RED,
+      rangeLabel: winH < R.h ? 'full history · ' + (winH >= 48 ? Math.round(winH / 24) + ' d' : Math.round(winH) + ' h') : 'past ' + R.label,
+      premLabel: bpsFmt(last.p, 1),
+      premColor: Math.abs(last.p) >= 100 ? RED : '#12131a',
+      premBg: Math.abs(last.p) >= 100 ? 'color-mix(in oklab, ' + RED + ' 8%, white)' : '#f5f5f8',
+      linePath: line, officialPath: offPath, areaPath: line + ' L1000 ' + H + ' L0 ' + H + ' Z',
+      premPath, premArea: premPath + ' L1000 ' + PY(plo).toFixed(1) + ' L0 ' + PY(plo).toFixed(1) + ' Z',
+      zeroY: PY(0).toFixed(1),
+      premMean: bpsFmt(mean, 1), premPeak: bpsFmt(peak, 1), premSigma: sd.toFixed(1) + ' bps',
+      yTicks: [0, 0.25, 0.5, 0.75, 1].map(f => ({ y: (f * H).toFixed(0) })),
+      xTicks: [0, 0.33, 0.66, 1].map((f, i) => {
+        const t = pts[Math.round(f * (pts.length - 1))].t;
+        const hourly = winH <= 168;
+        if (!hourly) return { label: this.fmtDate(t, false) };
+        const hh = String(new Date(t).getUTCHours()).padStart(2, '0') + ':00';
+        return { label: i === 0 ? this.fmtDate(t, false) + ' · ' + hh : hh + (i === 3 ? ' UTC' : '') };
+      }),
+      rangeTabs: RANGES.map(r => {
+        const short = r.h > spanH + 1 && r.key !== 'all';
+        return {
+          label: r.label, onClick: () => this.setState({ range: r.key, hover: null }),
+          bg: r.key === st.range ? '#f1f1f4' : 'transparent',
+          color: r.key === st.range ? '#12131a' : short ? '#cbccd4' : '#8b8d99',
+        };
+      }),
+      featured: ranked.map(c => ({
+        country: META[c].country, flag: META[c].flag, bps: bpsFmt(latest[c].p, 0),
+        bg: c === ccy ? '#12131a' : '#fff', color: c === ccy ? '#fff' : '#12131a',
+        sub: c === ccy ? 'rgba(255,255,255,0.62)' : (latest[c].p >= 100 ? RED : latest[c].p <= -50 ? GREEN : '#8b8d99'),
+        border: c === ccy ? '#12131a' : '#e6e6eb',
+        onClick: () => this.setState({ ccy: c, hover: null }),
+      })),
+      marketRows: codes.map(c => ({
+        code: c, flag: META[c].flag, venue: D.venues[c] || D.histVenues[c] || '—',
+        rate: this.fmtRate(latest[c].v), prem: bpsFmt(latest[c].p, 0),
+        premColor: latest[c].p >= 100 ? RED : latest[c].p <= -50 ? GREEN : '#7c7e8a',
+        bg: c === ccy ? '#f1f1f4' : 'transparent',
+        onClick: () => this.setState({ ccy: c, hover: null }),
+      })),
+      stats: [
+        { k: 'High', v: this.fmtRate(Math.max.apply(null, pts.map(p => p.v))) },
+        { k: 'Low', v: this.fmtRate(Math.min.apply(null, pts.map(p => p.v))) },
+        { k: 'Average', v: this.fmtRate(pts.reduce((a, p) => a + p.v, 0) / pts.length) },
+        { k: 'Observations in window', v: pts.length.toLocaleString('en-US') },
+        { k: 'Resolution', v: pts.some(p => p.daily) ? (pts.some(p => !p.daily) ? 'daily + hourly' : 'daily') : 'hourly' },
+        { k: 'History depth', v: this.fmtDate(all[0].t, false) + ' →' },
+      ],
+      covDays: covCols,
+      hourAxis: !stripMode,
+      cellHeight: stripMode ? '22px' : '9px',
+      coverTitle: stripMode ? 'Hourly capture coverage — every hour of the live layer' : 'Hourly capture coverage — last ' + COV_DAYS + ' days',
+      coverageLabel: expected ? captured.toLocaleString('en-US') + ' of ' + expected.toLocaleString('en-US') + ' hours captured since ' + this.fmtDate(firstLive, true) + ' · ' + ((captured / expected) * 100).toFixed(1) + '% of hours have a tick' : 'No hourly rows yet for this market.',
+      legend: alphas.map(a => ({ bg: 'color-mix(in oklab, ' + accent + ' ' + Math.round(a * 100) + '%, white)' })),
+      coverTicks: [0, 0.34, 0.67, 1].map((f, i) => {
+        if (!stripMode) return { label: this.fmtDate(covStart + Math.round(f * (COV_DAYS - 1)) * DAY, false) };
+        const t = covStart + Math.round(f * (covCols - 1)) * HOUR;
+        const hh = String(new Date(t).getUTCHours()).padStart(2, '0') + ':00';
+        return { label: i === 0 ? this.fmtDate(t, false) + ' · ' + hh : hh + (i === 3 ? ' UTC' : '') };
+      }),
+      cells,
+      collectionNote: 'Hourly quotes from ' + venueList.length + ' venues (' + venueList.slice(0, 3).join(', ') + '…), each aligned to the official USD mid carried in the same row. ' + D.rowsLive.toLocaleString('en-US') + ' live rows since ' + this.fmtDate(firstLive, false) + '; ' + D.rowsHist.toLocaleString('en-US') + ' daily backfill rows from ' + (histStart || '—') + '. Failed pulls are written as failures and read as gaps.',
+      chartRef: el => { this.el = el; },
+      onMove: e => { const r = this.el.getBoundingClientRect(); this.setState({ hover: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) }); },
+      onLeave: () => this.setState({ hover: null }),
+      hovering: !!hv,
+      hoverX: hv ? X(hv.i).toFixed(1) : 0,
+      hoverDotLeft: hv ? (X(hv.i) / 10).toFixed(2) + '%' : '0%',
+      hoverDotTop: hv ? ((Y(hv.p.v) / 268) * 100).toFixed(2) + '%' : '0%',
+      tipLeft: hv ? Math.max(9, Math.min(91, X(hv.i) / 10)).toFixed(2) + '%' : '0%',
+      tipTime: hv ? this.fmtDate(hv.p.t, !hv.p.daily) + (hv.p.daily ? ' · daily close' : '') : '',
+      tipRate: hv ? this.fmtRate(hv.p.v) : '',
+      tipOfficial: hv ? this.fmtRate(hv.p.o) : '',
+      tipPrem: hv ? bpsFmt(hv.p.p, 1) : '',
+
+      corrName: (D.corrName || 'SGD->PHP').replace('->', ' → '),
+      sizeTabs: sizes.map(sz => ({
+        label: (sz >= 1000 ? 'S$' + (sz / 1000) + 'k' : 'S$' + sz),
+        onClick: () => this.setState({ size: sz, chover: null }),
+        bg: sz === size ? '#fff' : 'transparent', color: sz === size ? '#12131a' : '#7c7e8a',
+        shadow: sz === size ? '0 1px 2px rgba(18,19,26,0.10)' : 'none',
+      })),
+      corrUsdt: cLast.usdt == null ? '—' : Math.round(cLast.usdt).toLocaleString('en-US') + ' bps',
+      corrFiat: cLast.fiat == null ? '—' : Math.round(cLast.fiat).toLocaleString('en-US') + ' bps',
+      corrRail: cLast.rail || '—',
+      corrGap: (cGap >= 0 ? '+' : '−') + Math.abs(Math.round(cGap)).toLocaleString('en-US') + ' bps',
+      corrGapColor: cGap > 0 ? RED : GREEN,
+      corrGapBg: cGap > 0 ? 'color-mix(in oklab, ' + RED + ' 8%, white)' : 'color-mix(in oklab, ' + GREEN + ' 8%, white)',
+      corrUsdtPath: uPath, corrFiatPath: fPath, corrArea: uPath + ' L1000 ' + CH + ' L0 ' + CH + ' Z',
+      corrGrid: [1, 0.667, 0.333, 0].map(f => ({ y: (CH - f * CH).toFixed(0), label: Math.round(clo + f * (chi - clo)).toLocaleString('en-US') })),
+      corrXTicks: crows.length ? [0, 0.33, 0.66, 1].map(f => ({ label: this.fmtDate(crows[Math.round(f * (crows.length - 1))].t, true) })) : [],
+      corrRef: el => { this.cel = el; },
+      onCorrMove: e => { const r = this.cel.getBoundingClientRect(); this.setState({ chover: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) }); },
+      onCorrLeave: () => this.setState({ chover: null }),
+      corrHovering: !!chv,
+      corrHoverX: chv ? CX(chv.i).toFixed(1) : 0,
+      corrTipLeft: chv ? Math.max(9, Math.min(91, CX(chv.i) / 10)).toFixed(2) + '%' : '0%',
+      corrTipTime: chv ? this.fmtDate(chv.r.t, true) : '',
+      corrTipUsdt: chv ? Math.round(chv.r.usdt) + ' bps' : '',
+      corrTipFiat: chv ? Math.round(chv.r.fiat) + ' bps' : '',
+      corrTipGap: chv ? ((chv.r.usdt - chv.r.fiat) >= 0 ? '+' : '−') + Math.abs(Math.round(chv.r.usdt - chv.r.fiat)) + ' bps' : '',
+      corrLegs: [
+        { k: 'On-ramp basis (' + (cLast.onVenue || '—') + ')', v: one(cLast.onBasis), bg: '#f7f7f9' },
+        { k: 'On-ramp fee, taker', v: one(cLast.onFee), bg: '#f7f7f9' },
+        { k: 'Network fee (' + (cLast.netFee != null ? cLast.netFee + ' USDT' : '—') + ')', v: one(netBps), bg: '#f7f7f9' },
+        { k: 'Off-ramp basis (' + (cLast.offVenue || '—') + ')', v: one(cLast.offBasis), bg: '#f7f7f9' },
+        { k: 'Off-ramp fee, taker', v: one(cLast.offFee), bg: '#f7f7f9' },
+        { k: 'All-in, taker', v: one(cLast.usdt), bg: '#f1f1f4' },
+      ],
+      corrNote: 'Sizes walked against live depth: slippage ' + one(cLast.onSlip) + ' on-ramp, ' + one(cLast.offSlip) + ' off-ramp at this size. Fee tiers ' + (cLast.verified ? 'verified ' + String(cLast.verified).replace(/\|/g, ' · ') : 'as published') + '. Basis legs are signed: a negative on-ramp basis is USDT cheap in ' + (crows.length ? 'SGD' : 'the source currency') + ', which helps the route.',
+      findings,
+      assumedNote: 'A flat ' + (cLast.netFee != null ? cLast.netFee : 1) + '-USDT network fee; exchange fees at published base tiers (' + one(cLast.onFee) + ' on-ramp, ' + one(cLast.offFee) + ' off-ramp), verified against the schedules.',
+      failNote: failed ? failed.toLocaleString('en-US') + ' hours without a tick in the last ' + COV_DAYS + ' days on ' + ccy + ' — visible as gaps in the grid above.' : 'No missing hours on ' + ccy + ' in the last ' + COV_DAYS + ' days.',
+      sourcesLabel: venueList.join(', ') + '.',
+    };
+  }
+}
 </script>
 </body>
 </html>
