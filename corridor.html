@@ -149,8 +149,38 @@ function parseCSV(text){
 
 let bySize={}, histBySize={}, size=5000, newest="";
 
+// Fee verification stamp from data/fee_checks.csv (tools/check_fees.py). Three
+// states and no fourth: verified, UNVERIFIED, or nothing at all. An absent or
+// empty file renders nothing -- no placeholder, no guessed date. Age computes
+// here, at render time, so the stamp cannot go stale in a cached page.
+function feeStamp(rows){
+  if(!rows||!rows.length) return "";
+  const runs={};
+  for(const r of rows){ if(r&&r.ts_utc) (runs[r.ts_utc]=runs[r.ts_utc]||[]).push(r); }
+  const stamps=Object.keys(runs).sort();
+  if(!stamps.length) return "";
+  const latest=stamps[stamps.length-1];
+  const clean=stamps.filter(t=>runs[t].every(r=>(r.status||"").trim()==="ok"));
+  const lastClean=clean.length?clean[clean.length-1]:null;
+  if(runs[latest].some(r=>(r.status||"").trim()!=="ok"))
+    return "fees UNVERIFIED — last clean check "+(lastClean?lastClean.slice(0,10):"none on record");
+  const days=Math.max(0,Math.floor((Date.now()-Date.parse(lastClean))/864e5));
+  return "fees verified "+(days===0?"today":days===1?"1 day ago":days+" days ago");
+}
+
+async function loadFeeChecks(){
+  // Optional by design: a 404 is "no stamp", not a broken page.
+  try{
+    const r=await fetch("./data/fee_checks.csv");
+    if(!r.ok) return [];
+    const t=await r.text();
+    return t.trim()?parseCSV(t):[];
+  }catch(e){ return []; }
+}
+
 async function boot(){
   const rows=parseCSV(await fetch("./data/samples.csv").then(r=>r.text())).filter(r=>r.source_ok==="True");
+  const stamp=feeStamp(await loadFeeChecks());
   for(const r of rows){ if(r.ts>newest) newest=r.ts; }
   for(const s of SIZES){
     const rs=rows.filter(r=>+r.notional_src===s).sort((a,b)=>a.ts<b.ts?-1:1);
@@ -160,7 +190,8 @@ async function boot(){
   const r5=bySize[5000];
   document.getElementById("stamp").innerHTML=
     `<b>updated</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?ago+" min ago":Math.round(ago/60)+" h ago"} · `+
-    `${r5.onramp_venue} → ${r5.offramp_venue} · fees verified ${(r5.fees_verified||"").split("|")[0].split(":")[1]||"—"}`;
+    `${r5.onramp_venue} → ${r5.offramp_venue} · fees verified ${(r5.fees_verified||"").split("|")[0].split(":")[1]||"—"}`+
+    (stamp?` · ${stamp}`:"");
   renderSizes(); render();
   document.getElementById("foot").innerHTML=
     `On-ramp: ${r5.onramp_venue} (SGD→USDT). Off-ramp: ${r5.offramp_venue} (USDT→PHP, api.pro.coins.ph). `+

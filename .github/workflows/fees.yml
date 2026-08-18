@@ -1,0 +1,53 @@
+name: fees
+
+on:
+  schedule:
+    # Monthly, on the 1st. Minute 23 on purpose: GitHub drops top-of-hour
+    # scheduled jobs under load, and this one only fires twelve times a year --
+    # a dropped fire is a whole month without a fee check.
+    - cron: "23 3 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fees
+  cancel-in-progress: false
+
+jobs:
+  fees:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check published fee schedules
+        # Exits non-zero on any drift or unreadable page. The rows are written
+        # before it exits, so the commit step below captures them either way.
+        run: python3 tools/check_fees.py
+
+      - name: Commit fee checks
+        # always(): a mismatch is exactly the run whose evidence must survive.
+        # The job still reports the failure -- this step preserves the row, it
+        # does not rescue the result.
+        if: always()
+        run: |
+          git config user.name "margin-collector"
+          git config user.email "actions@github.com"
+          git add data/fee_checks.csv
+          if git diff --cached --quiet; then
+            echo "nothing staged -- fee check wrote no new rows"
+            exit 0
+          fi
+          # commit BEFORE rebasing: git refuses `pull --rebase` with a staged index.
+          git commit -m "fee check $(date -u +%Y-%m-%dT%H:%MZ)"
+          git pull --rebase origin ${GITHUB_REF_NAME}
+          git push origin ${GITHUB_REF_NAME}

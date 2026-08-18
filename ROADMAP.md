@@ -85,13 +85,18 @@ removed.
    still drops *both* fires in an hour often enough to matter, escalate to an
    external trigger (`repository_dispatch` from a cheap always-on cron) rather
    than accepting the loss — a missing hour is gone permanently.
-2. **Put fee verification on a clock.** Fees are the largest single term in the
-   taker decomposition and the easiest thing to get silently wrong. They were
-   verified once, on 2026-08-10, and nothing re-checks them. Needs a monthly job
-   that diffs the published schedules against the collector config, exits
-   non-zero on mismatch, and stamps a date the site can render as "fees verified
-   N days ago" — so a stale fee schedule is visible the way a stale sample
-   already is. **Specced in issue #4; not built.**
+2. ~~**Put fee verification on a clock.**~~ **Shipped 2026-08-18.**
+   `tools/check_fees.py` re-reads both published schedules, diffs the base tier
+   against the `CORRIDORS` constants it imports from `collector.py`, and appends
+   one row per checked value to `data/fee_checks.csv`. Any drift or unreadable
+   page is a row *and* a non-zero exit — it never edits the constant, because a
+   silently corrected fee is the failure mode the check exists to catch.
+   `.github/workflows/fees.yml` runs it monthly (`23 3 1 * *`) and commits the
+   evidence even when the run goes red. Both pages render the stamp from the
+   CSV: "fees verified N days ago", or "fees UNVERIFIED — last clean check
+   YYYY-MM-DD" when the latest run has any bad row, or nothing at all when the
+   file is absent. First clean run 2026-08-18: IR 0.50% flat and Coins.ph VIP0
+   0.15/0.10 both still match the 2026-08-10 hand verification. Issue #4.
 
 ### P1 — the demo
 

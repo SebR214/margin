@@ -481,7 +481,7 @@
             </div>
             <div data-grid="label-row" style="display: grid; grid-template-columns: 122px minmax(0, 1fr); gap: 16px; padding: 13px 16px; border-bottom: 1px solid #f2f2f5; align-items: start;">
               <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #12131a;">assumed</span>
-              <span style="font-size: 14px; line-height: 1.55; color: #464854;">{{ assumedNote }}</span>
+              <span style="font-size: 14px; line-height: 1.55; color: #464854;">{{ assumedNote }}<span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #8b8d99; margin-left: 6px; white-space: nowrap;">{{ feeStamp }}</span></span>
             </div>
             <div data-grid="label-row" style="display: grid; grid-template-columns: 122px minmax(0, 1fr); gap: 16px; padding: 13px 16px; align-items: start;">
               <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #12131a;">not visible</span>
@@ -568,6 +568,26 @@ function parseCSV(text) {
   return out;
 }
 const num = v => { const n = parseFloat(v); return isFinite(n) ? n : null; };
+
+// Fee verification stamp, read from data/fee_checks.csv (tools/check_fees.py).
+// Three states and no fourth: verified, UNVERIFIED, or nothing at all. An
+// absent or empty file renders nothing -- no placeholder, no guessed date. The
+// age is computed here, at render time, so the stamp cannot go stale in cache.
+function feeStamp(rows) {
+  if (!rows || !rows.length) return '';
+  const runs = {};
+  rows.forEach(r => { if (r && r.ts_utc) (runs[r.ts_utc] = runs[r.ts_utc] || []).push(r); });
+  const stamps = Object.keys(runs).sort();
+  if (!stamps.length) return '';
+  const latest = stamps[stamps.length - 1];
+  const clean = stamps.filter(t => runs[t].every(r => (r.status || '').trim() === 'ok'));
+  const lastClean = clean.length ? clean[clean.length - 1] : null;
+  if (runs[latest].some(r => (r.status || '').trim() !== 'ok')) {
+    return 'fees UNVERIFIED — last clean check ' + (lastClean ? lastClean.slice(0, 10) : 'none on record');
+  }
+  const days = Math.max(0, Math.floor((Date.now() - Date.parse(lastClean)) / DAY));
+  return 'fees verified ' + (days === 0 ? 'today' : days === 1 ? '1 day ago' : days + ' days ago');
+}
 const bpsFmt = (v, d) => v == null ? '—' : (v >= 0 ? '+' : '−') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }) + ' bps';
 
 class Component extends DCLogic {
@@ -575,12 +595,15 @@ class Component extends DCLogic {
 
   componentDidMount() {
     const get = p => fetch(p).then(r => { if (!r.ok) throw new Error(p + ' ' + r.status); return r.text(); });
-    Promise.all([get('./data/basis.csv'), get('./data/basis_history.csv'), get('./data/samples.csv'), get('./data/providers.csv')])
-      .then(([b, h, s, p]) => this.setState({ data: this.build(parseCSV(b), parseCSV(h), parseCSV(s), parseCSV(p)) }))
+    // fee_checks.csv is optional by design: absent file -> no stamp, not an
+    // error page. Every other layer stays required.
+    const opt = p => get(p).catch(() => '');
+    Promise.all([get('./data/basis.csv'), get('./data/basis_history.csv'), get('./data/samples.csv'), get('./data/providers.csv'), opt('./data/fee_checks.csv')])
+      .then(([b, h, s, p, f]) => this.setState({ data: this.build(parseCSV(b), parseCSV(h), parseCSV(s), parseCSV(p), f.trim() ? parseCSV(f) : []) }))
       .catch(e => this.setState({ err: String(e.message || e) }));
   }
 
-  build(basis, hist, samples, providers) {
+  build(basis, hist, samples, providers, feeChecks) {
     const live = {}, fails = {}, venues = {}, daily = {}, histVenues = {};
     basis.forEach(r => {
       const c = r.ccy; if (!c || !META[c]) return;
@@ -648,7 +671,7 @@ class Component extends DCLogic {
     const lastTs = Math.max.apply(null, ORDER.filter(c => live[c]).map(c => live[c][live[c].length - 1].t));
     const histCodes = Object.keys(daily);
     const histStartT = histCodes.length ? Math.min.apply(null, histCodes.map(c => daily[c][0].t)) : null;
-    return { live, fails, venues, daily, histVenues, corr, sizes, corrName, railName, lastTs, histStartT, histCodes, panel, panelT, rowsLive: basis.length, rowsHist: hist.length, rowsPanel: providers.length };
+    return { live, fails, venues, daily, histVenues, corr, sizes, corrName, railName, lastTs, histStartT, histCodes, panel, panelT, feeStamp: feeStamp(feeChecks), rowsLive: basis.length, rowsHist: hist.length, rowsPanel: providers.length };
   }
 
   fmtRate(v) {
@@ -685,6 +708,7 @@ class Component extends DCLogic {
       tiles: [], smNote: '', leaderRows: [], boardHeadline: '', boardCaveat: '', landedLabel: 'Landed',
       findingsIntro: 'Loading the collector output…',
       assumedNote: 'Exchange fees at published base tiers, verified against the schedules.',
+      feeStamp: '',
       findingSub: 'mean basis by weekday, bps', dowBars: [], findingParas: [], dowAxis: '',
       failNote: '', sourcesLabel: 'Loading venue list…',
       chartRef: () => {}, onMove: () => {}, onLeave: () => {}, corrRef: () => {}, onCorrMove: () => {}, onCorrLeave: () => {},
@@ -1112,6 +1136,7 @@ class Component extends DCLogic {
       corrNote: 'Sizes walked against live depth: slippage ' + one(cLast.onSlip) + ' on-ramp, ' + one(cLast.offSlip) + ' off-ramp at this size. Fee tiers ' + (cLast.verified ? 'verified ' + String(cLast.verified).replace(/\|/g, ' · ') : 'as published') + '. Basis legs are signed: a negative on-ramp basis is USDT cheap in ' + (crows.length ? 'SGD' : 'the source currency') + ', which helps the route.',
       findings,
       assumedNote: 'A flat ' + (cLast.netFee != null ? cLast.netFee : 1) + '-USDT network fee; exchange fees at published base tiers (' + one(cLast.onFee) + ' on-ramp, ' + one(cLast.offFee) + ' off-ramp), verified against the schedules.',
+      feeStamp: D.feeStamp || '',
       failNote: failed ? failed.toLocaleString('en-US') + ' hours without a tick in the last ' + COV_DAYS + ' days on ' + ccy + ' — visible as gaps in the grid above.' : 'No missing hours on ' + ccy + ' in the last ' + COV_DAYS + ' days.',
       sourcesLabel: venueList.join(', ') + '.',
     };
