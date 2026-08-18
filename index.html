@@ -18,8 +18,16 @@
     [data-grid="label-row"] { grid-template-columns: minmax(0, 1fr) !important; gap: 4px !important; }
     [data-pad] { padding: 20px 16px 44px !important; }
   }
+  @media (max-width: 980px) {
+    [data-grid="tiles"] { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  }
   @media (max-width: 700px) {
     [data-bar-val] { display: none !important; }
+    [data-grid="tiles"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+    [data-grid="board"] { grid-template-columns: 24px minmax(0, 1fr) 78px 70px !important; gap: 8px !important; }
+    [data-board-landed] { display: none !important; }
+    /* Four nowrap "18 Aug 26 · 07:00 UTC" labels cannot fit 375px; keep the ends. */
+    [data-xticks] > span:nth-child(2), [data-xticks] > span:nth-child(3) { display: none !important; }
   }
 </style>
 </helmet>
@@ -62,6 +70,33 @@
           </button>
         </sc-for>
       </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px; padding-bottom: 4px;">
+      <div style="display: flex; flex-direction: column; gap: 6px; max-width: 720px;">
+        <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Ten markets at a glance</div>
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">USDT against the official USD mid in each market, ordered by how far from it they sit right now.</p>
+      </div>
+      <div data-grid="tiles" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px;">
+        <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="10">
+          <button onClick="{{ t.onClick }}" title="{{ t.title }}" style="display: flex; flex-direction: column; gap: 7px; width: 100%; text-align: left; cursor: pointer; font-family: inherit; background: {{ t.bg }}; border: 1px solid {{ t.border }}; border-radius: 14px; padding: 12px 12px 9px;">
+            <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; width: 100%;">
+              <span style="display: flex; align-items: center; gap: 7px; min-width: 0;">
+                <span style="font-size: 15px;">{{ t.flag }}</span>
+                <span style="font-size: 13px; font-weight: 600; color: #12131a;">{{ t.code }}</span>
+              </span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: {{ t.color }}; white-space: nowrap;">{{ t.bps }}</span>
+            </span>
+            <svg viewBox="0 0 200 46" preserveAspectRatio="none" style="width: 100%; height: 46px; display: block;">
+              <line x1="0" x2="200" y1="{{ t.zeroY }}" y2="{{ t.zeroY }}" stroke="#e2e2e9" stroke-width="1" />
+              <path d="{{ t.area }}" fill="{{ t.color }}" fill-opacity="0.13" />
+              <path d="{{ t.path }}" fill="none" stroke="{{ t.color }}" stroke-width="1.5" stroke-linejoin="round" />
+            </svg>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: #a2a3ad; white-space: nowrap;">{{ t.span }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="font-size: 12px; color: #a2a3ad; line-height: 1.55; text-wrap: pretty;">{{ smNote }}</div>
     </div>
 
     <div data-grid="split" style="display: grid; grid-template-columns: minmax(0, 1fr) 328px; gap: 18px; align-items: start;">
@@ -315,7 +350,7 @@
               <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.65);">rail {{ corrTipFiat }} · gap {{ corrTipGap }}</span>
             </div>
           </sc-if>
-          <div style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; font-size: 11px; color: #a2a3ad; font-family: 'IBM Plex Mono', monospace;">
+          <div data-xticks="1" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; font-size: 11px; color: #a2a3ad; font-family: 'IBM Plex Mono', monospace;">
             <sc-for list="{{ corrXTicks }}" as="x" hint-placeholder-count="4">
               <span style="white-space: nowrap;">{{ x.label }}</span>
             </sc-for>
@@ -334,11 +369,50 @@
       </div>
     </div>
 
-    <div style="border-top: 1px solid #ebebf0; padding-top: 26px; display: grid; grid-template-columns: minmax(0, 1fr) 328px; gap: 40px; align-items: start;">
+    <div style="border-top: 1px solid #ebebf0; padding-top: 26px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 6px; max-width: 720px;">
+          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Every rail, priced live — {{ corrName }}</div>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">{{ boardHeadline }}</p>
+        </div>
+        <div style="display: flex; gap: 2px; background: #f1f1f4; border-radius: 999px; padding: 3px;">
+          <sc-for list="{{ sizeTabs }}" as="s" hint-placeholder-count="5">
+            <button onClick="{{ s.onClick }}" style="border: none; cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 7px 15px; border-radius: 999px; background: {{ s.bg }}; color: {{ s.color }}; box-shadow: {{ s.shadow }}; white-space: nowrap;">{{ s.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 16px 18px 18px;">
+        <div data-grid="board" style="display: grid; grid-template-columns: 30px minmax(0, 1fr) 148px 104px 104px; gap: 12px; align-items: baseline; padding: 0 9px 9px; border-bottom: 1px solid #f2f2f5;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #a2a3ad;">#</span>
+          <span style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad;">Provider</span>
+          <span data-board-landed="1" style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad; text-align: right;">{{ landedLabel }}</span>
+          <span style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad; text-align: right;">Cost</span>
+          <span style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad; text-align: right;">vs best</span>
+        </div>
+        <sc-for list="{{ leaderRows }}" as="r" hint-placeholder-count="6">
+          <div data-grid="board" style="display: grid; grid-template-columns: 30px minmax(0, 1fr) 148px 104px 104px; gap: 12px; align-items: center; padding: 11px 9px; margin-top: 3px; border-radius: 10px; background: {{ r.bg }}; box-shadow: {{ r.ring }};">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #a2a3ad;">{{ r.pos }}</span>
+            <span style="display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap;">
+              <span style="font-size: 13.5px; font-weight: {{ r.weight }}; color: {{ r.nameColor }};">{{ r.provider }}</span>
+              <sc-if value="{{ r.showTag }}" hint-placeholder-val="{{ false }}">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: {{ r.nameColor }}; border: 1px solid currentColor; border-radius: 999px; padding: 2px 7px; white-space: nowrap;">{{ r.tag }}</span>
+              </sc-if>
+            </span>
+            <span data-board-landed="1" style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4d4f5c; text-align: right; white-space: nowrap;">{{ r.landed }}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #12131a; text-align: right; white-space: nowrap;">{{ r.bps }}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: {{ r.deltaColor }}; text-align: right; white-space: nowrap;">{{ r.delta }}</span>
+          </div>
+        </sc-for>
+        <div style="font-size: 12px; color: #a2a3ad; line-height: 1.55; margin-top: 14px; text-wrap: pretty;">{{ boardCaveat }}</div>
+      </div>
+    </div>
+
+    <div data-grid="split" style="border-top: 1px solid #ebebf0; padding-top: 26px; display: grid; grid-template-columns: minmax(0, 1fr) 328px; gap: 40px; align-items: start;">
       <div style="max-width: 700px; display: flex; flex-direction: column; gap: 26px;">
         <div style="display: flex; flex-direction: column; gap: 10px;">
           <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">What it's shown so far</div>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">The collector is days old. These are observations with dates on them, not conclusions — the point of collecting hourly is to find out which of them hold.</p>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">{{ findingsIntro }}</p>
           <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 6px;">
             <sc-for list="{{ findings }}" as="f" hint-placeholder-count="4">
               <div data-grid="label-row" style="display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 16px; align-items: start;">
@@ -501,12 +575,12 @@ class Component extends DCLogic {
 
   componentDidMount() {
     const get = p => fetch(p).then(r => { if (!r.ok) throw new Error(p + ' ' + r.status); return r.text(); });
-    Promise.all([get('./data/basis.csv'), get('./data/basis_history.csv'), get('./data/samples.csv')])
-      .then(([b, h, s]) => this.setState({ data: this.build(parseCSV(b), parseCSV(h), parseCSV(s)) }))
+    Promise.all([get('./data/basis.csv'), get('./data/basis_history.csv'), get('./data/samples.csv'), get('./data/providers.csv')])
+      .then(([b, h, s, p]) => this.setState({ data: this.build(parseCSV(b), parseCSV(h), parseCSV(s), parseCSV(p)) }))
       .catch(e => this.setState({ err: String(e.message || e) }));
   }
 
-  build(basis, hist, samples) {
+  build(basis, hist, samples, providers) {
     const live = {}, fails = {}, venues = {}, daily = {}, histVenues = {};
     basis.forEach(r => {
       const c = r.ccy; if (!c || !META[c]) return;
@@ -543,6 +617,7 @@ class Component extends DCLogic {
         netFee: num(r.network_fee_stable), midSrc: num(r.mid_src_per_usd),
         onVenue: r.onramp_venue, offVenue: r.offramp_venue, verified: r.fees_verified,
         onSlip: num(r.onramp_slip_bps), offSlip: num(r.offramp_slip_bps),
+        landedTaker: num(r.landed_taker),
       };
       if (row.usdt == null) return;
       (corr[n] = corr[n] || []).push(row);
@@ -552,10 +627,28 @@ class Component extends DCLogic {
     sizes.sort((a, b) => a - b);
     Object.keys(corr).forEach(k => corr[k].sort((a, b) => a.t - b.t));
 
+    // Incumbent panel (data/providers.csv) — every rail the Wise comparison API
+    // returned, per size, per run. Only the latest snapshot per size is shown,
+    // so keep the newest timestamp and drop everything older.
+    const panelAll = {};
+    let panelT = 0;
+    providers.forEach(r => {
+      if ((r.source_ok || '').trim() !== 'True') return;
+      const n = num(r.notional_src), bps = num(r.cost_bps), t = Date.parse(r.ts_utc);
+      if (n == null || bps == null || !isFinite(t) || !r.provider) return;
+      (panelAll[n] = panelAll[n] || []).push({ t, provider: r.provider, landed: num(r.landed_dst), bps });
+      if (t > panelT) panelT = t;
+    });
+    const panel = {};
+    Object.keys(panelAll).forEach(n => {
+      const newest = Math.max.apply(null, panelAll[n].map(r => r.t));
+      panel[n] = panelAll[n].filter(r => r.t === newest).sort((a, b) => a.bps - b.bps);
+    });
+
     const lastTs = Math.max.apply(null, ORDER.filter(c => live[c]).map(c => live[c][live[c].length - 1].t));
     const histCodes = Object.keys(daily);
     const histStartT = histCodes.length ? Math.min.apply(null, histCodes.map(c => daily[c][0].t)) : null;
-    return { live, fails, venues, daily, histVenues, corr, sizes, corrName, railName, lastTs, histStartT, histCodes, rowsLive: basis.length, rowsHist: hist.length };
+    return { live, fails, venues, daily, histVenues, corr, sizes, corrName, railName, lastTs, histStartT, histCodes, panel, panelT, rowsLive: basis.length, rowsHist: hist.length, rowsPanel: providers.length };
   }
 
   fmtRate(v) {
@@ -589,6 +682,8 @@ class Component extends DCLogic {
       sizeTabs: [], corrLegs: [], corrUsdt: '—', corrFiat: '—', corrRail: '—', corrGap: '—',
       corrGapColor: '#12131a', corrGapBg: '#f5f5f8', corrUsdtPath: '', corrFiatPath: '', corrArea: '',
       corrGrid: [], corrXTicks: [], corrName: 'SGD → PHP', corrNote: '', findings: [],
+      tiles: [], smNote: '', leaderRows: [], boardHeadline: '', boardCaveat: '', landedLabel: 'Landed',
+      findingsIntro: 'Loading the collector output…',
       assumedNote: 'Exchange fees at published base tiers, verified against the schedules.',
       findingSub: 'mean basis by weekday, bps', dowBars: [], findingParas: [], dowAxis: '',
       failNote: '', sourcesLabel: 'Loading venue list…',
@@ -704,12 +799,160 @@ class Component extends DCLogic {
     const idr = latest.IDR, sinceDays = Math.max(1, Math.round((nowT - (liveArr.length ? D.live[codes[0]][0].t : nowT)) / DAY));
     const histStart = D.histStartT ? this.fmtDate(D.histStartT, false) : null;
     const sizeLabel = size >= 1000 ? 'S$' + (size / 1000) + 'k' : 'S$' + size;
-    const findings = [
-      { k: this.fmtDate(cLast.t || nowT, false), v: 'At ' + (D.corrName || 'SGD->PHP').replace('->', '→') + ', ' + sizeLabel + ': the USDT route lands at ' + Math.round(cLast.usdt) + ' bps against ' + (cLast.rail || 'the fiat rail') + ' at ' + Math.round(cLast.fiat) + ' bps — ' + (cGap > 0 ? 'the rail still wins by ' + Math.round(cGap) + ' bps.' : 'the crypto route wins by ' + Math.round(-cGap) + ' bps.') },
-      { k: this.fmtDate(nowT, false), v: ranked.slice(0, 2).map(c => META[c].country + ' ' + bpsFmt(latest[c].p, 0)).join(' and ') + ' against their official mids — the parallel-dollar premium, off broker quotes.' },
-      { k: 'Under investigation', v: idr ? 'Indonesia prints ' + bpsFmt(idr.p, 0) + ' on Indodax at the latest pull, and has spent most of the live window below its official mid. Fresh book, tight spread. I don\'t have an explanation I\'d defend yet.' : 'Indonesia\'s discount on Indodax — awaiting more hourly samples.' },
-      { k: 'Daily backfill', v: histStart ? D.histCodes.length + ' venues carry a daily series from ' + histStart + ' — ' + D.rowsHist.toLocaleString('en-US') + ' rows. Markets flat today were not always: use the 1y and All ranges to see what each one has done since.' : 'Daily backfill pending.' },
-    ];
+
+    // ── B. Small multiples — 90 days per market, daily backfill stitched to live.
+    // Scale decision: each tile is scaled to its OWN range. A shared y-axis is
+    // impossible here — Argentina runs four orders of magnitude wider than
+    // Singapore, so one band either flattens SGD to a dead line or pushes ARS
+    // off the tile. Every tile does draw the same zero line, so sign, crossings
+    // and shape stay comparable; magnitude is carried by the printed number.
+    const SM_DAYS = 90, SM_W = 200, SM_H = 46;
+    const tint = p => p >= 100 ? RED : p <= -50 ? GREEN : accent;
+    const smCut = nowT - SM_DAYS * DAY;
+    const tiles = codes.map(c => {
+      const full = (D.daily[c] || []).concat(D.live[c] || []);
+      let win = full.filter(p => p.t >= smCut);
+      if (win.length < 2) win = full.slice(-2);
+      const cur = latest[c], col = tint(cur.p);
+      const ps2 = win.map(p => p.p);
+      let lo2 = Math.min(0, Math.min.apply(null, ps2)), hi2 = Math.max(0, Math.max.apply(null, ps2));
+      const sp2 = (hi2 - lo2) || 1;
+      lo2 -= sp2 * 0.14; hi2 += sp2 * 0.14;
+      const TX = i => win.length < 2 ? SM_W / 2 : (i / (win.length - 1)) * SM_W;
+      const TY = v => SM_H - ((v - lo2) / (hi2 - lo2)) * SM_H;
+      const tline = win.map((p, i) => (i ? 'L' : 'M') + TX(i).toFixed(1) + ' ' + TY(p.p).toFixed(1)).join(' ');
+      const z = TY(0).toFixed(1);
+      const hasDaily = (D.daily[c] || []).length > 0;
+      const spanD = Math.max(1, Math.round((win[win.length - 1].t - win[0].t) / DAY));
+      return {
+        code: c, flag: META[c].flag, country: META[c].country,
+        bps: bpsFmt(cur.p, 0), color: col, path: tline, zeroY: z,
+        area: tline + ' L' + TX(win.length - 1).toFixed(1) + ' ' + z + ' L' + TX(0).toFixed(1) + ' ' + z + ' Z',
+        span: hasDaily ? spanD + 'd' : 'live only · ' + spanD + 'd',
+        title: META[c].country + ' — ' + spanD + ' days, ' + (hasDaily ? 'daily backfill + hourly live' : 'hourly live only') + '. Tile range ' + bpsFmt(Math.min.apply(null, ps2), 0) + ' to ' + bpsFmt(Math.max.apply(null, ps2), 0) + '.',
+        bg: c === ccy ? '#f5f5f8' : '#fff',
+        border: c === ccy ? '#c9cad2' : '#ebebf0',
+        onClick: () => this.setState({ ccy: c, hover: null }),
+      };
+    }).sort((a, b) => Math.abs(latest[b.code].p) - Math.abs(latest[a.code].p));
+    const smWithDaily = codes.filter(c => (D.daily[c] || []).length).length;
+
+    // ── A. Provider leaderboard — the whole fiat field at this size, with the
+    // USDT route dropped into the same ranking. cost_bps shares a convention
+    // across both files (see METHODOLOGY), so they are directly comparable.
+    const DEST = { PHP: 'Manila' };
+    const dstCcy = (D.corrName || 'SGD->PHP').split('->')[1] || 'PHP';
+    const destName = DEST[dstCcy] || dstCcy;
+    const fiatBoard = (D.panel[size] || []).map(r => ({ ...r, isUsdt: false }));
+    const usdtEntry = cLast.usdt == null ? null :
+      { provider: 'USDT route — ' + (cLast.onVenue || 'on-ramp') + ' → ' + (cLast.offVenue || 'off-ramp'), bps: cLast.usdt, landed: cLast.landedTaker, isUsdt: true };
+    const boardRows = fiatBoard.concat(usdtEntry ? [usdtEntry] : []).sort((a, b) => a.bps - b.bps);
+    const bestBps = boardRows.length ? boardRows[0].bps : null;
+    const usdtIdx = boardRows.findIndex(r => r.isUsdt);
+    const money = v => v == null ? '—' : Math.round(v).toLocaleString('en-US');
+    const leaderRows = boardRows.map((r, i) => ({
+      pos: String(i + 1),
+      provider: r.provider,
+      landed: money(r.landed),
+      bps: r.bps.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+      delta: i === 0 ? 'best' : '+' + (r.bps - bestBps).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+      deltaColor: i === 0 ? GREEN : '#8b8d99',
+      bg: r.isUsdt ? 'color-mix(in oklab, ' + accent + ' 7%, white)' : '#fff',
+      ring: r.isUsdt ? 'inset 0 0 0 1px color-mix(in oklab, ' + accent + ' 35%, white)' : 'none',
+      nameColor: r.isUsdt ? accent : '#12131a',
+      weight: r.isUsdt ? '600' : '500',
+      tag: r.isUsdt ? 'taker, all-in' : '',
+      showTag: r.isUsdt,
+    }));
+    const fiatSorted = boardRows.filter(r => !r.isUsdt);
+    const boardHeadline = boardRows.length >= 2 && fiatSorted.length >= 2 ?
+      'Right now the cheapest way to send ' + sizeLabel + ' to ' + destName + ' is ' + boardRows[0].provider.replace(/ —.*$/, '') +
+      ' at ' + Math.round(boardRows[0].bps) + ' bps; the most expensive quoted rail is ' + fiatSorted[fiatSorted.length - 1].provider +
+      ' at ' + Math.round(fiatSorted[fiatSorted.length - 1].bps) + ' bps — a ' +
+      Math.round(fiatSorted[fiatSorted.length - 1].bps - fiatSorted[0].bps) + ' bps spread inside fiat.' +
+      (usdtIdx >= 0 ? ' The USDT route ranks #' + (usdtIdx + 1) + ' of ' + boardRows.length + '.' : '') : '';
+
+    // ── C. Auto-conclusions. Every sentence is computed from the CSVs at render
+    // time and only appears while its condition holds, so nothing here can go
+    // stale against the data underneath it.
+    const seriesOf = c => (D.daily[c] || []).concat(D.live[c] || []);
+    const auto = [];
+
+    const WEEK = 7 * DAY;
+    let mv = null;
+    codes.forEach(c => {
+      const arr = seriesOf(c);
+      if (arr.length < 2) return;
+      const cur = arr[arr.length - 1], target = cur.t - WEEK;
+      let ref = null;
+      arr.forEach(p => { if (p.t < cur.t && (ref === null || Math.abs(p.t - target) < Math.abs(ref.t - target))) ref = p; });
+      if (!ref || Math.abs(ref.t - target) > 1.5 * DAY) return;
+      const d = Math.abs(cur.p) - Math.abs(ref.p);
+      if (mv === null || Math.abs(d) > Math.abs(mv.d)) mv = { c, d, ref, cur };
+    });
+    if (mv && Math.abs(mv.d) >= 1) auto.push({
+      k: this.fmtDate(mv.cur.t, false),
+      v: META[mv.c].country + '’s basis ' + (mv.d > 0 ? 'widened ' : 'narrowed ') + Math.abs(Math.round(mv.d)) +
+         ' bps over the past week — ' + bpsFmt(mv.ref.p, 0) + ' on ' + this.fmtDate(mv.ref.t, false) + ', ' + bpsFmt(mv.cur.p, 0) +
+         ' now. That is the largest seven-day move on the board.',
+    });
+
+    let rec = null;
+    codes.forEach(c => {
+      const arr = seriesOf(c);
+      if (arr.length < 30) return;
+      const cur = arr[arr.length - 1], a = Math.abs(cur.p);
+      const prior = arr.slice(0, -1).map(p => Math.abs(p.p));
+      const mx = Math.max.apply(null, prior), mn = Math.min.apply(null, prior);
+      let cand = null;
+      if (a > mx) cand = { c, kind: 'widest', cur, prev: mx, prevAt: arr.slice(0, -1)[prior.indexOf(mx)], n: arr.length };
+      else if (a < mn) cand = { c, kind: 'narrowest', cur, prev: mn, prevAt: arr.slice(0, -1)[prior.indexOf(mn)], n: arr.length };
+      if (cand && (rec === null || cand.n > rec.n)) rec = cand;
+    });
+    if (rec) auto.push({
+      k: this.fmtDate(rec.cur.t, false),
+      v: META[rec.c].country + ' just printed its ' + rec.kind + ' reading since collection began: ' + bpsFmt(rec.cur.p, 0) +
+         ', against a previous ' + (rec.kind === 'widest' ? 'high' : 'low') + ' of ' + Math.round(rec.prev) + ' bps' +
+         (rec.prevAt ? ' on ' + this.fmtDate(rec.prevAt.t, false) : '') + ' across ' + rec.n.toLocaleString('en-US') + ' observations.',
+    });
+
+    if (crows.length >= 2 && crows[0].fiat != null && cLast.fiat != null) {
+      const g0 = crows[0].usdt - crows[0].fiat;
+      const gN = cLast.usdt - cLast.fiat;
+      const moved = gN - g0;
+      auto.push({
+        k: this.fmtDate(cLast.t, false),
+        v: 'At ' + sizeLabel + ' the USDT-vs-rail gap is ' + one(gN) + ', against ' + one(g0) + ' when this size was first sampled on ' +
+           this.fmtDate(crows[0].t, false) + ' — ' + (Math.abs(moved) < 0.5 ? 'essentially unchanged.' :
+           (moved > 0 ? 'the rail has pulled ' + Math.abs(Math.round(moved)) + ' bps further ahead.' : 'the crypto route has closed ' + Math.abs(Math.round(moved)) + ' bps of it.')),
+      });
+    }
+
+    const idrLive = D.live.IDR || [];
+    const idrBelow = idrLive.filter(p => p.p < 0).length;
+    const liveStartAll = Math.min.apply(null, codes.filter(c => D.live[c]).map(c => D.live[c][0].t));
+    const liveDays = Math.max(1, Math.round((nowT - liveStartAll) / DAY));
+
+    const findings = [];
+    if (cLast.usdt != null && cLast.fiat != null) findings.push({
+      k: this.fmtDate(cLast.t || nowT, false),
+      v: 'At ' + (D.corrName || 'SGD->PHP').replace('->', '→') + ', ' + sizeLabel + ': the USDT route lands at ' + Math.round(cLast.usdt) + ' bps against ' + (cLast.rail || 'the fiat rail') + ' at ' + Math.round(cLast.fiat) + ' bps — ' + (cGap > 0 ? 'the rail still wins by ' + Math.round(cGap) + ' bps.' : 'the crypto route wins by ' + Math.round(-cGap) + ' bps.'),
+    });
+    if (ranked.length >= 2) findings.push({
+      k: this.fmtDate(nowT, false),
+      v: ranked.slice(0, 2).map(c => META[c].country + ' ' + bpsFmt(latest[c].p, 0)).join(' and ') + ' against their official mids — the parallel-dollar premium, off broker quotes.',
+    });
+    auto.forEach(f => findings.push(f));
+    if (idr && idr.p < 0 && idrLive.length >= 24 && idrBelow / idrLive.length > 0.5) findings.push({
+      k: 'Under investigation',
+      v: 'Indonesia prints ' + bpsFmt(idr.p, 0) + ' on Indodax at the latest pull, and has sat below its official mid in ' +
+         Math.round(100 * idrBelow / idrLive.length) + '% of its ' + idrLive.length.toLocaleString('en-US') +
+         ' hourly samples. Fresh book, tight spread. I don’t have an explanation I’d defend yet.',
+    });
+    if (histStart) findings.push({
+      k: 'Daily backfill',
+      v: D.histCodes.length + ' venues carry a daily series from ' + histStart + ' — ' + D.rowsHist.toLocaleString('en-US') + ' rows. Markets flat today were not always: use the 1y and All ranges to see what each one has done since.',
+    });
 
     // ── Findings: weekday seasonality, computed from the deepest daily series
     const dowCode = D.histCodes.slice().sort((a, b) => D.daily[b].length - D.daily[a].length)[0];
@@ -859,6 +1102,13 @@ class Component extends DCLogic {
         { k: 'Off-ramp fee, taker', v: one(cLast.offFee), bg: '#f7f7f9' },
         { k: 'All-in, taker', v: one(cLast.usdt), bg: '#f1f1f4' },
       ],
+      tiles,
+      smNote: 'Ninety days where the daily backfill reaches — ' + smWithDaily + ' of ' + codes.length + ' markets — and the hourly live layer alone where it does not, labelled per tile. Each tile is scaled to its own range: Argentina and Singapore differ by three orders of magnitude, so a shared axis would flatten one or clip the other. Every tile draws the same zero line, so sign and crossings read across the grid; magnitude is the printed number. Click a tile to load it above.',
+      leaderRows,
+      boardHeadline,
+      landedLabel: 'Landed ' + dstCcy,
+      boardCaveat: 'Advertised retail prices at quote time from the Wise comparison API — the published shop window, not confirmed fills: real transfers can carry promotional rates, KYC-gated tiers or delivery-side slippage. The USDT row is the same walk as the corridor above, taker fees, all-in. Panel captured ' + this.fmtDate(D.panelT, true) + ' · ' + D.rowsPanel.toLocaleString('en-US') + ' quotes recorded.',
+      findingsIntro: 'The live layer is ' + liveDays + ' days old. These are observations with dates on them, not conclusions — every sentence below is recomputed from the CSVs on each page load, and only appears while its condition still holds.',
       corrNote: 'Sizes walked against live depth: slippage ' + one(cLast.onSlip) + ' on-ramp, ' + one(cLast.offSlip) + ' off-ramp at this size. Fee tiers ' + (cLast.verified ? 'verified ' + String(cLast.verified).replace(/\|/g, ' · ') : 'as published') + '. Basis legs are signed: a negative on-ramp basis is USDT cheap in ' + (crows.length ? 'SGD' : 'the source currency') + ', which helps the route.',
       findings,
       assumedNote: 'A flat ' + (cLast.netFee != null ? cLast.netFee : 1) + '-USDT network fee; exchange fees at published base tiers (' + one(cLast.onFee) + ' on-ramp, ' + one(cLast.offFee) + ' off-ramp), verified against the schedules.',
