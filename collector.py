@@ -419,6 +419,40 @@ def collect(corridor_key, cfg):
     return rows, prows
 
 
+def utc_hour(now=None):
+    """The current UTC hour, truncated -- the idempotency key for a capture."""
+    return (now or dt.datetime.now(dt.timezone.utc)).replace(
+        minute=0, second=0, microsecond=0)
+
+
+def captured_this_hour(path, ts_field, now=None):
+    """True if `path` already holds a row stamped in the current UTC hour.
+
+    The schedule fires at :17 and :47 so that GitHub dropping one fire still
+    leaves a capture for the hour. That only buys redundancy if the second fire
+    is a no-op when the first landed -- otherwise it buys duplicate rows.
+
+    Rows are append-only and in order, so the last row decides. Deliberately
+    duplicated in collector_basis.py rather than shared: the two layers stay
+    import-independent, so a break in one cannot take down the other.
+    """
+    if not os.path.exists(path):
+        return False
+    last = None
+    with open(path, newline="") as f:
+        for row in csv.DictReader(f):
+            last = row
+    if not last or not last.get(ts_field):
+        return False
+    try:
+        ts = dt.datetime.fromisoformat(last[ts_field])
+    except ValueError:
+        return False
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=dt.timezone.utc)
+    return utc_hour(ts.astimezone(dt.timezone.utc)) == utc_hour(now)
+
+
 def append(rows):
     os.makedirs(os.path.dirname(SAMPLES), exist_ok=True)
     new = not os.path.exists(SAMPLES)
@@ -601,6 +635,44 @@ def selftest():
         fr = provider_rows(ts, 200, bad, mid)
         assert len(fr) == 1 and fr[0]["source_ok"] is False and fr[0]["provider"] is None
     print("  [ok] empty/malformed panel -> single source_ok=False row, run continues\n")
+
+    # A venue outage leaves the basis fields None. This crashed the run on
+    # 2026-08-16 -- and because it crashed in a print helper that ran BEFORE
+    # append(), it took the sample with it. Both halves are locked down here.
+    blackout = {f: None for f in FIELDS}
+    blackout.update(corridor="SGD->PHP", stable="USDT", notional_src=5000,
+                    onramp_venue="IndependentReserve", offramp_venue="Coins.ph",
+                    ts="2026-08-16T07:47:13.000000+00:00", source_ok=False)
+    print_waterfall([blackout])       # must not raise
+    print_panel([])                   # must not raise
+    print("  [ok] waterfall renders a None basis as '--' instead of raising\n")
+
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, "samples.csv")
+        assert captured_this_hour(p, "ts") is False, "missing file -> not captured"
+        now = dt.datetime(2026, 8, 18, 14, 5, tzinfo=dt.timezone.utc)
+        with open(p, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=["ts", "x"])
+            w.writeheader()
+        assert captured_this_hour(p, "ts", now) is False, "header only -> not captured"
+        # a row from the PREVIOUS hour must not suppress this hour's capture
+        with open(p, "a", newline="") as f:
+            csv.DictWriter(f, fieldnames=["ts", "x"]).writerow(
+                {"ts": "2026-08-18T13:47:02.113000+00:00", "x": 1})
+        assert captured_this_hour(p, "ts", now) is False, "prior hour -> not captured"
+        with open(p, "a", newline="") as f:
+            csv.DictWriter(f, fieldnames=["ts", "x"]).writerow(
+                {"ts": "2026-08-18T14:17:30.551000+00:00", "x": 2})
+        assert captured_this_hour(p, "ts", now) is True, "same hour -> captured"
+        # :47 fire, same hour as the :17 row above -> still captured, no dupe
+        assert captured_this_hour(
+            p, "ts", now.replace(minute=47)) is True, ":47 sees :17's row"
+        # next hour reopens capture
+        assert captured_this_hour(
+            p, "ts", now.replace(hour=15)) is False, "new hour -> not captured"
+    print("  [ok] idempotency gate: one capture per UTC hour, reopens on the next\n")
+
     print("  ALL SELFTESTS PASSED\n")
 
 
@@ -620,7 +692,29 @@ def main():
     if requests is None:
         sys.exit("pip install requests")
 
+    # Idempotency gate, BEFORE the network: the schedule fires twice an hour so
+    # a dropped fire has a partner, not so we capture twice. Gating here also
+    # spares the venues a redundant pull on the second fire.
+    if not a.verify and captured_this_hour(SAMPLES, "ts"):
+        print(f"  {utc_hour():%Y-%m-%dT%H}Z already captured -> {SAMPLES}, nothing to do")
+        return
+
     rows, prows = collect(a.corridor, CORRIDORS[a.corridor])
+
+    # PERSIST FIRST, DISPLAY SECOND. Display is decoration; the sample is the
+    # product. Anything downstream of append() can crash without costing a row
+    # -- which is exactly what happened on 2026-08-16, when a TypeError in the
+    # waterfall header ran before the write and silently ate five samples.
+    wrote = panel_wrote = None
+    if not a.verify:
+        wrote = append(rows)
+        # The panel is supplementary: a write failure is logged, never fatal, so
+        # it can't sink the corridor step.
+        try:
+            append_providers(prows)
+            panel_wrote = PROVIDERS
+        except Exception as e:
+            print(f"  [warn] panel write failed (non-fatal): {e}\n", file=sys.stderr)
 
     if a.json:
         print(json.dumps({"corridor": rows, "panel": prows}, indent=2, default=str))
@@ -628,21 +722,17 @@ def main():
         print_waterfall(rows)
         print_panel(prows)
 
+    if wrote:
+        print(f"  appended -> {wrote}")
+    if panel_wrote:
+        print(f"  panel   -> {panel_wrote} ({len(prows)} rows)\n")
+
     if not rows[0]["source_ok"]:
         print(f"  [warn] incomplete sample: {rows[0]['errors']}", file=sys.stderr)
-
-    if not a.verify:
-        print(f"  appended -> {append(rows)}")
-        # The panel is supplementary: a write failure is logged, never fatal, so
-        # it can't sink the corridor step.
-        try:
-            append_providers(prows)
-            print(f"  panel   -> {PROVIDERS} ({len(prows)} rows)\n")
-        except Exception as e:
-            print(f"  [warn] panel write failed (non-fatal): {e}\n", file=sys.stderr)
         # exit non-zero on a dead CORRIDOR sample so the scheduler surfaces it
-        # loudly -- panel state deliberately does not affect this.
-        if not rows[0]["source_ok"]:
+        # loudly -- panel state deliberately does not affect this. The row is
+        # already on disk by now, so this is a signal, not a discard.
+        if not a.verify:
             sys.exit(1)
 
 

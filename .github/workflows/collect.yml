@@ -2,7 +2,11 @@ name: collect
 
 on:
   schedule:
-    - cron: "17 * * * *"
+    # Twice an hour on purpose. GitHub drops scheduled fires under load -- 44 of
+    # 168 expected hours went missing in the week to 2026-08-18 (~74% delivery).
+    # The collectors are idempotent per UTC hour, so the second fire is a no-op
+    # when the first landed and a rescue when it didn't. Redundancy, not dupes.
+    - cron: "17,47 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -47,8 +51,13 @@ jobs:
           git config user.email "actions@github.com"
           git add data/samples.csv data/basis.csv data/providers.csv
           if git diff --cached --quiet; then
-            echo "no new data -- failing so this never rots silently"
-            exit 1
+            # Expected on the second fire of an hour the first fire already
+            # captured. "Nothing staged" stopped meaning "rot" the moment the
+            # schedule went twice-hourly, so ask the real question instead:
+            # is the newest row still recent? Exits 1 if not (bash -e).
+            echo "nothing staged -- hour already captured, checking freshness"
+            python3 tools/check_freshness.py
+            exit 0
           fi
           # commit BEFORE rebasing: git refuses `pull --rebase` with a staged index.
           git commit -m "sample $(date -u +%Y-%m-%dT%H:%MZ)"

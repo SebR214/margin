@@ -286,4 +286,35 @@ Two corrections landed on 2026-08-10:
 - The collector exits non-zero on an incomplete sample so the scheduler goes red.
   An earlier version of this project failed silently for 34 days because nothing
   ever alerted; that is the failure mode this is designed against.
+- The sample is written to disk **before** anything is printed. On 2026-08-16 it
+  was the other way round, and a formatting bug in the summary table — triggered
+  by an on-ramp outage leaving the basis `null` — crashed the run before the
+  write, destroying five samples that the first bullet promises to record.
+  Persistence is never downstream of display.
 - Raw samples are public: `data/samples.csv`.
+
+### Capture cadence
+
+Nominal cadence is **one sample per UTC hour**, per layer.
+
+The workflow fires **twice** an hour (`:17` and `:47`), which is not the same
+thing as sampling twice an hour. GitHub Actions treats scheduled runs as
+best-effort and silently drops them under load: in the week to 2026-08-18, only
+125 of 168 expected hourly fires actually ran — **44 missed hours, ~74%
+delivery**, clustered at busy UTC hours rather than randomly. Hourly-only
+scheduling therefore lost about a quarter of the series to the scheduler alone.
+
+The second fire is a spare, not a second sample. Both collectors gate on the
+target CSV: if a row already carries the current UTC hour, the run exits 0
+without pulling or writing. So the `:47` fire is a no-op when `:17` landed and a
+rescue when it didn't. Duplicate-per-hour rows are not possible by construction,
+and the `concurrency: collect` group serialises the pair so they cannot race.
+
+One consequence worth stating: **a run that commits nothing is now a healthy
+outcome**, so "nothing changed" can no longer be the rot alarm. Freshness is
+checked directly instead (`tools/check_freshness.py`) — the job goes red if the
+newest row in either CSV is more than 3 hours old, whether or not that run had
+anything to write.
+
+Gaps remain visible in the data: a missing hour is a missing hour, never
+interpolated or back-filled.

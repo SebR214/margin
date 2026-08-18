@@ -333,6 +333,40 @@ def run_exit_code(n_ok):
     return 0 if n_ok > 0 else 1
 
 
+def utc_hour(now=None):
+    """The current UTC hour, truncated -- the idempotency key for a capture."""
+    return (now or dt.datetime.now(dt.timezone.utc)).replace(
+        minute=0, second=0, microsecond=0)
+
+
+def captured_this_hour(path, ts_field, now=None):
+    """True if `path` already holds a row stamped in the current UTC hour.
+
+    The schedule fires at :17 and :47 so that GitHub dropping one fire still
+    leaves a capture for the hour. That only buys redundancy if the second fire
+    is a no-op when the first landed -- otherwise it buys duplicate rows.
+
+    Rows are append-only and in order, so the last row decides. Deliberately
+    duplicated from collector.py rather than shared: the two layers stay
+    import-independent, so a break in one cannot take down the other.
+    """
+    if not os.path.exists(path):
+        return False
+    last = None
+    with open(path, newline="") as f:
+        for row in csv.DictReader(f):
+            last = row
+    if not last or not last.get(ts_field):
+        return False
+    try:
+        ts = dt.datetime.fromisoformat(last[ts_field])
+    except ValueError:
+        return False
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=dt.timezone.utc)
+    return utc_hour(ts.astimezone(dt.timezone.utc)) == utc_hour(now)
+
+
 def append(rows):
     os.makedirs(os.path.dirname(BASIS), exist_ok=True)
     new = not os.path.exists(BASIS)
@@ -536,6 +570,32 @@ def selftest():
 
     assert set(FIELDS) >= set(_base_row(TS_FIXTURE, VENUES[0]))
     print("  [ok] schema covers every row field\n")
+
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, "basis.csv")
+        assert captured_this_hour(p, "ts_utc") is False, "missing file -> not captured"
+        now = dt.datetime(2026, 8, 18, 14, 5, tzinfo=dt.timezone.utc)
+        with open(p, "w", newline="") as f:
+            csv.DictWriter(f, fieldnames=["ts_utc", "venue"]).writeheader()
+        assert captured_this_hour(p, "ts_utc", now) is False, "header only"
+        # the wide layer writes one row PER VENUE per run; the last one decides
+        with open(p, "a", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=["ts_utc", "venue"])
+            for v in ("Upbit", "Bitso", "CriptoYa (BRL)"):
+                w.writerow({"ts_utc": "2026-08-18T13:47:33.670000+00:00", "venue": v})
+        assert captured_this_hour(p, "ts_utc", now) is False, "prior hour"
+        with open(p, "a", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=["ts_utc", "venue"])
+            for v in ("Upbit", "Bitso", "CriptoYa (BRL)"):
+                w.writerow({"ts_utc": "2026-08-18T14:17:33.670000+00:00", "venue": v})
+        assert captured_this_hour(p, "ts_utc", now) is True, "same hour -> captured"
+        assert captured_this_hour(
+            p, "ts_utc", now.replace(minute=47)) is True, ":47 sees :17's rows"
+        assert captured_this_hour(
+            p, "ts_utc", now.replace(hour=15)) is False, "new hour reopens"
+    print("  [ok] idempotency gate: one capture per UTC hour, reopens on the next\n")
+
     print("  ALL SELFTESTS PASSED\n")
 
 
@@ -554,7 +614,19 @@ def main():
     if requests is None:
         sys.exit("pip install requests")
 
+    # Idempotency gate, BEFORE the network: the schedule fires twice an hour so
+    # a dropped fire has a partner, not so we capture twice. Gating here also
+    # spares the venues a redundant pull on the second fire.
+    if not a.verify and captured_this_hour(BASIS, "ts_utc"):
+        print(f"  {utc_hour():%Y-%m-%dT%H}Z already captured -> {BASIS}, nothing to do")
+        return
+
     rows, n_ok = collect()
+
+    # PERSIST FIRST, DISPLAY SECOND -- a formatting bug in print_table() must
+    # never be able to cost a captured row. See collector.py for the incident.
+    if not a.verify:
+        append(rows)
 
     if a.json:
         print(json.dumps(rows, indent=2, default=str))
@@ -564,7 +636,6 @@ def main():
     if a.verify:
         return
 
-    append(rows)
     print(f"  appended -> {BASIS}\n")
     # loud failure: only a total blackout goes red, per the wide-layer contract
     if run_exit_code(n_ok) != 0:
