@@ -8,13 +8,14 @@ geo-block warnings, which have not changed.
 
 ## The sentence this is building toward
 
-> "I built a live map of stablecoin capital-flow pressure across ~10 countries,
+> "I built a live board of stablecoin capital-flow pressure across ~10 countries,
 > with a fully audited cost decomposition of one corridor showing the
 > 'stablecoins are cheap' narrative is a fee-tier story, running unattended
 > since August."
 
-Every session should make that sentence more true. Note the tension flagged in
-**P1-1** below: the word "map" is currently not honest.
+Every session should make that sentence more true. It said "map" until
+2026-08-18; the map was cut, so the sentence changed to match the thing that
+actually exists rather than the other way round.
 
 ---
 
@@ -51,8 +52,12 @@ removed.
 
 ## In flight
 
-1. **Site upgrade (A/B/C)** — built and verified locally, **not pushed**,
-   awaiting approval. `index.html` only, +263/−13.
+1. **Cadence verification** — waiting on a week of `:17`/`:47` data to confirm
+   the drop rate actually fell. No action until then (see P0-1).
+
+## Recently shipped — 2026-08-18
+
+1. **Site upgrade (A/B/C)** — `index.html`.
    - **A.** Provider leaderboard — whole fiat field at the selected size with the
      USDT route inserted into the ranking; size pills share state with the
      corridor pills.
@@ -63,8 +68,11 @@ removed.
      each computed at render time and rendered only while its condition holds.
    - Also fixes two pre-existing mobile overflows (corridor x-tick labels; a
      missing `data-grid="split"`).
-2. **Cadence verification** — a watcher reports the natural `:17`/`:47` pair for
-   hour 08 on 2026-08-18. Expect one capture, two green runs.
+2. **Doc truth-up** — deleted `START_THE_CLOCK.md` (v1-era, described files and
+   workflows that no longer exist) and `data/world.geo.json` (orphaned by the
+   redesign). The map is **cut, not deferred**: HANDOFF's north-star sentence and
+   METHODOLOGY's "the map's history line" heading now describe the board that
+   exists. The ten-market grid shipped above covers the ground the map was for.
 
 ---
 
@@ -79,22 +87,15 @@ removed.
    than accepting the loss — a missing hour is gone permanently.
 2. **Put fee verification on a clock.** Fees are the largest single term in the
    taker decomposition and the easiest thing to get silently wrong. They were
-   verified once, on 2026-08-10, and nothing re-checks them. Needs a scheduled
-   re-verification and a "verified N days ago" staleness indicator on the site,
-   so a stale fee schedule is visible the way a stale sample already is.
+   verified once, on 2026-08-10, and nothing re-checks them. Needs a monthly job
+   that diffs the published schedules against the collector config, exits
+   non-zero on mismatch, and stamps a date the site can render as "fees verified
+   N days ago" — so a stale fee schedule is visible the way a stale sample
+   already is. **Specced in issue #4; not built.**
 
 ### P1 — the demo
 
-1. **Resolve the map.** HANDOFF calls the world map the centerpiece and "the
-   wow". It shipped (`b7b50c3`) and was then replaced by the 2026-08-12 redesign
-   (`5cfb6fc`). Today `data/world.geo.json` is an orphan — nothing in the repo
-   references it — and METHODOLOGY still has a section titled "Historical basis
-   (the map's history line)". Decide explicitly: bring the map back as a section
-   or page, or cut it and fix the METHODOLOGY heading and the north-star sentence
-   above. The in-flight small-multiples grid covers some of the same ground and
-   may make the map redundant; what is not acceptable is the current state, where
-   the docs promise something the site does not have.
-2. **The two write-ups** still open from the README:
+1. **The two write-ups** still open from the README:
    the taker/maker crossover, and why stablecoins are worst at remittance sizes
    (~156 bps at S$200). Both are now answerable from collected data rather than
    asserted — that was the point of waiting.
@@ -103,18 +104,14 @@ removed.
 
 1. **`README.md` Status is stale** — "One week of history" and "Front end" are
    both done; the run order still says the schedule is `:17`.
-2. **`START_THE_CLOCK.md` is v1-era fiction** — it references
-   `corridor_monitor.py`, a `collect-offramp-depth` workflow, and
-   `data/offramp_snapshots.csv` as the live target. None of that is current.
-   Delete it or rewrite it as a short "how to run locally".
-3. **Dead v1 code**: `corridor_monitor.py` and `corridor_monitor_v1_spec.md` are
+2. **Dead v1 code**: `corridor_monitor.py` and `corridor_monitor_v1_spec.md` are
    superseded by `collector.py`. Keep `data/offramp_snapshots.csv` — the 34-day
    silent-failure record is deliberate history.
-4. **Intraday FX mids.** `open.er-api.com` is daily. Fine for TRY/ARS/VES at
+3. **Intraday FX mids.** `open.er-api.com` is daily. Fine for TRY/ARS/VES at
    100+ bps, genuinely sloppy for SGD/THB/PHP, which are exactly the markets the
    corridor depends on. HANDOFF flagged this as a later upgrade; it is now the
    main precision ceiling on the corridor number.
-5. **A second corridor** — explicitly *not yet*. HANDOFF: do not add one before
+4. **A second corridor** — explicitly *not yet*. HANDOFF: do not add one before
    the demo is polished.
 
 ---
@@ -163,5 +160,4 @@ data/basis.csv          10-venue basis, hourly
 data/providers.csv      full incumbent panel, hourly
 data/basis_history.csv  daily backfill, 5 venues, 2024-03 →
 data/offramp_snapshots.csv   v1 wreckage, kept as history
-data/world.geo.json     ORPHAN — see P1-1
 ```

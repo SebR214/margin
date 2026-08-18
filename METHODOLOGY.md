@@ -180,10 +180,10 @@ are absent from `data/basis_history.csv` and carry `source = criptoya` in
 venues — a venue has a trailing history line iff it appears in basis_history.csv;
 ARS/VES/BRL render as a live point with no series, and the legend says so.
 
-## Historical basis (the map's history line)
+## Historical basis (the long-range history line)
 
 `data/basis_history.csv` is a one-time backfill (`tools/backfill_basis.py`, not
-part of the hourly collector) so the map shows years on day one. One row per
+part of the hourly collector) so the board shows years on day one. One row per
 venue per day: `date, venue, ccy, usdt_close, fx_mid, basis_bps, source`, same
 sign convention as live.
 
