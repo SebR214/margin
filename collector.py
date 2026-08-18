@@ -463,9 +463,13 @@ def print_waterfall(rows):
     r0 = rows[0]
     print(f"\n  {r0['corridor']}  via {r0['stable']}  "
           f"{r0['onramp_venue']} -> {r0['offramp_venue']}   {r0['ts'][:16]}Z")
-    print(f"  mid {r0['mid_src_dst']}   "
-          f"on-ramp basis {r0['onramp_basis_bps']:+} bps   "
-          f"off-ramp basis {r0['offramp_basis_bps']:+} bps")
+    # A venue outage leaves these None. Format defensively: this is a display
+    # helper, and a crash here runs BEFORE append() -- it would drop the very
+    # incomplete row the run exists to record.
+    sbps = lambda v: f"{v:+}" if v is not None else "--"
+    print(f"  mid {r0['mid_src_dst'] if r0['mid_src_dst'] is not None else '--'}   "
+          f"on-ramp basis {sbps(r0['onramp_basis_bps'])} bps   "
+          f"off-ramp basis {sbps(r0['offramp_basis_bps'])} bps")
     if "UNVERIFIED" in (r0["fees_verified"] or ""):
         print("  !! fee schedules UNVERIFIED -- largest term in the stack")
     print("  " + "-" * 74)
