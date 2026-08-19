@@ -50,6 +50,16 @@ IR_URL = "https://www.independentreserve.com/fees"
 # Bare domain in the spec; this is the article that actually carries the table.
 COINS_URL = ("https://support.coins.ph/hc/en-us/articles/11620285112217-How-are-"
              "my-trading-fees-calculated-based-on-the-VIP-level-setup")
+# Bitso publishes its own schedule as JSON -- no scraping, no parser to rot.
+BITSO_URL = "https://api.bitso.com/v3/available_books/"
+COINBASE_URL = "https://www.coinbase.com/advanced-fees"
+
+# Coinbase's stable-pair schedule sits behind a login, so it cannot be read by a
+# machine. Rather than pretend otherwise, the watcher puts the MANUAL
+# verification on a clock: within this window the recorded date still counts,
+# past it the row goes stale and the run goes red. The number is never invented
+# and never repaired here -- a human re-reads the account and moves the date.
+MANUAL_MAX_AGE_DAYS = 90
 
 
 # ---------------------------------------------------------------- fetch/parse
@@ -109,6 +119,39 @@ def parse_coins(text):
     return vals["taker"], vals["maker"]
 
 
+def fetch_json(url):
+    """Return (payload, resolved_url). Raises on transport, HTTP or JSON error."""
+    r = requests.get(url, timeout=HTTP_TIMEOUT, headers=UA, allow_redirects=True)
+    r.raise_for_status()
+    return r.json(), r.url
+
+
+def parse_bitso(payload, book):
+    """Base-tier maker/taker for one Bitso book, in bps. -> (taker_bps, maker_bps).
+
+    Source is Bitso's own public API, so this reads a published number rather
+    than scraping a rendered table: available_books returns, per book,
+    fees.flat_rate {maker, taker} as decimal fractions ("0.006" = 0.60% = 60 bps).
+
+    This is also what settles WHICH of Bitso's two published schedules governs
+    usdt_mxn -- the API answers per book, so there is nothing to infer.
+    """
+    books = (payload or {}).get("payload")
+    if not isinstance(books, list):
+        raise ValueError("available_books payload missing or not a list")
+    row = next((b for b in books if isinstance(b, dict) and b.get("book") == book), None)
+    if row is None:
+        raise ValueError(f"book {book} not present in available_books")
+    flat = ((row.get("fees") or {}).get("flat_rate") or {})
+    try:
+        taker, maker = float(flat["taker"]), float(flat["maker"])
+    except (KeyError, TypeError, ValueError):
+        raise ValueError(f"fees.flat_rate maker/taker missing for {book}")
+    # Fractions, not percents: 0.0078 -> 78 bps. A schedule that ever arrives as
+    # a percent would read 100x high and trip the mismatch, which is the point.
+    return taker * 1e4, maker * 1e4
+
+
 # ---------------------------------------------------------------- rows
 
 def clean(msg):
@@ -133,6 +176,38 @@ def check(ts, venue, leg, regime, config_bps, published_bps, url, error):
             "status": "ok" if ok else "mismatch", "source_url": url,
             "error": "" if ok else clean(
                 f"config {config_bps} bps != published {published_bps} bps")}
+
+
+def check_manual(ts, venue, leg, regime, config_bps, verified, url, now=None):
+    """A schedule that cannot be read by a machine, checked against its clock.
+
+    There is no published value to diff, so `published_bps` stays EMPTY --
+    writing the config value back into that column would manufacture a
+    confirmation the watcher never obtained. What is actually verified here is
+    the age of the human verification: fresh -> ok, stale or unparseable -> a
+    row and a non-zero exit, same as any other failure.
+    """
+    now = now or dt.datetime.now(dt.timezone.utc)
+    row = {"ts_utc": ts, "venue": venue, "leg": leg, "regime": regime,
+           "config_bps": config_bps, "published_bps": "",
+           "source_url": url}
+    try:
+        seen = dt.datetime.strptime((verified or "").strip(), "%Y-%m-%d").replace(
+            tzinfo=dt.timezone.utc)
+    except ValueError:
+        row.update(status="stale", error=clean(
+            f"no usable verified date ({verified!r}); login-gated, verify by hand"))
+        return row
+    age = (now - seen).days
+    if age > MANUAL_MAX_AGE_DAYS:
+        row.update(status="stale", error=clean(
+            f"manual verification {age}d old (limit {MANUAL_MAX_AGE_DAYS}d); "
+            f"login-gated, re-read the account and update `verified`"))
+    else:
+        row.update(status="ok", error=clean(
+            f"not scrapable (login-gated); manual verification {age}d old, "
+            f"limit {MANUAL_MAX_AGE_DAYS}d"))
+    return row
 
 
 def append(rows):
@@ -179,12 +254,40 @@ def build_rows(ts, cfg):
     ]
 
 
+def build_rows_usdmxn(ts, cfg, now=None):
+    """Corridor 2. Bitso is machine-readable; Coinbase is not."""
+    on, off = cfg["onramp"], cfg["offramp"]
+
+    # Off-ramp: Bitso usdt_mxn base tier, straight from Bitso's own API.
+    bt_bps = bm_bps = None
+    bitso_url, bitso_err = BITSO_URL, None
+    try:
+        payload, bitso_url = fetch_json(BITSO_URL)
+        bt_bps, bm_bps = parse_bitso(payload, off["symbol"])
+    except Exception as e:
+        bitso_err = f"{type(e).__name__}: {e}"
+
+    # On-ramp: Coinbase Advanced stable-pair fees are behind a login. Not
+    # scraped, not guessed -- the manual verification is put on a clock instead.
+    return [
+        check_manual(ts, on["venue"], "onramp", "taker",
+                     float(on["taker_bps"]), on.get("verified"), COINBASE_URL, now),
+        check_manual(ts, on["venue"], "onramp", "maker",
+                     float(on["maker_bps"]), on.get("verified"), COINBASE_URL, now),
+        check(ts, off["venue"], "offramp", "taker",
+              float(off["taker_bps"]), bt_bps, bitso_url, bitso_err),
+        check(ts, off["venue"], "offramp", "maker",
+              float(off["maker_bps"]), bm_bps, bitso_url, bitso_err),
+    ]
+
+
 def main():
     if requests is None:
         sys.exit("pip install requests")
 
     ts = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     rows = build_rows(ts, CORRIDORS["SGD->PHP"])
+    rows += build_rows_usdmxn(ts, CORRIDORS["USD->MXN"])
 
     # Persist before display. Always -- the row is the evidence, and the print
     # below is only a convenience for whoever is reading the log.
