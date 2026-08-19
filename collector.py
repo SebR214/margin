@@ -91,7 +91,13 @@ CORRIDORS = {
             "maker_bps": 10.0,
             "verified": "2026-08-10",
         },
-        "network_fee_stable": 1.0,     # TRC20 USDT withdrawal, flat
+        # USDT withdrawal from the ON-RAMP venue (IR), TRC20/Tron, flat.
+        # Was 1.0 and unsourced from 2026-08-10 to 2026-08-19, which understated
+        # the network leg ~4x and the all-in taker cost by ~8 bps at S$5,000.
+        # Independent Reserve's published crypto withdrawal table reads
+        # "Tether USD | TRON | 4.0 USDT" (and Ethereum 10.0, not used here).
+        # Source: https://www.independentreserve.com/fees  read 2026-08-19.
+        "network_fee_stable": 4.0,
         "ladder": [200, 1000, 5000, 25000, 50000],
         "providers_file": "providers.csv",
     },
@@ -681,12 +687,14 @@ def selftest():
           f"off-ramp {d['offramp_basis_bps']:+} bps (stable cheap in PH)")
 
     # Verified fees (2026-08-10): IR flat 50 (no maker discount), Coins taker 15 /
-    # maker 10. Taker ~84.6; maker ~79.3 -- NOT the old ~19.8 that assumed free
-    # maker trading. At base-tier fees the regimes sit only ~5 bps apart (the
+    # maker 10, plus IR's published 4.0 USDT Tron withdrawal (2026-08-19).
+    # Taker ~92.2; maker ~87.3. These were ~84.6 / ~79.3 while the network leg
+    # was carried at an unsourced 1.0 USDT -- the correction is worth ~7.6 bps
+    # at S$5,000. At base-tier fees the regimes still sit only ~5 bps apart (the
     # Coins taker/maker spread; IR is flat), and BOTH lose to the ~66 bps fiat
-    # baseline. The route wins only once volume-tier fees kick in.
-    assert abs(d["cost_bps_taker"] - 84.6) < 1.0, d["cost_bps_taker"]
-    assert abs(d["cost_bps_maker"] - 79.3) < 1.0, d["cost_bps_maker"]
+    # baseline by an even wider margin than before.
+    assert abs(d["cost_bps_taker"] - 92.2) < 1.0, d["cost_bps_taker"]
+    assert abs(d["cost_bps_maker"] - 87.3) < 1.0, d["cost_bps_maker"]
     gap = d["cost_bps_taker"] - d["cost_bps_maker"]
     assert 4.0 < gap < 6.5, gap  # the only base-tier edge is Coins 15->10 bps
     print(f"  [ok] base-tier fees: taker {d['cost_bps_taker']:.1f} vs maker "
@@ -701,11 +709,12 @@ def selftest():
     print(f"  [ok] waterfall reconciles: parts {parts:.1f} == total "
           f"{d['cost_bps_taker']:.1f} bps")
 
-    # small size: the flat network fee should dominate
+    # small size: the flat network fee should dominate. At the real 4.0 USDT
+    # withdrawal it is no longer merely large at S$200 -- it is the whole story.
     small = decompose(200, on, off, MIDS_FIXTURE, cfg)
     net_small = cfg["network_fee_stable"] / (200 / on["asks"][0][0]) * 1e4
-    assert net_small > 60, net_small
-    assert small["cost_bps_taker"] > d["cost_bps_taker"] + 50, small["cost_bps_taker"]
+    assert net_small > 240, net_small
+    assert small["cost_bps_taker"] > d["cost_bps_taker"] + 200, small["cost_bps_taker"]
     print(f"  [ok] size effect: at S$200 the flat network fee alone is "
           f"{net_small:.0f} bps ({small['cost_bps_taker']:.0f} bps all-in)")
 
