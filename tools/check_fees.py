@@ -54,6 +54,18 @@ COINS_URL = ("https://support.coins.ph/hc/en-us/articles/11620285112217-How-are-
 BITSO_URL = "https://api.bitso.com/v3/available_books/"
 COINBASE_URL = "https://www.coinbase.com/advanced-fees"
 
+# --- withdrawal (network) fees -------------------------------------------
+# The network leg of a corridor is the SENDING venue's withdrawal fee, so these
+# are what a route costs. Both pages below are public and state the number
+# outright; Coinbase's is login-gated and is never scraped (see check_manual).
+BITSO_WITHDRAW_URL = "https://bitso.com/fees/transactions"
+IR_WITHDRAW_URL = "https://www.independentreserve.com/fees"
+WITHDRAWALS = os.path.join(HERE, "data", "withdrawal_fees.csv")
+WITHDRAWAL_FIELDS = [
+    "ts_utc", "venue", "asset", "network", "fee_asset_units", "source_url",
+    "source_ok",
+]
+
 # Coinbase's stable-pair schedule sits behind a login, so it cannot be read by a
 # machine. Rather than pretend otherwise, the watcher puts the MANUAL
 # verification on a clock: within this window the recorded date still counts,
@@ -150,6 +162,50 @@ def parse_bitso(payload, book):
     # Fractions, not percents: 0.0078 -> 78 bps. A schedule that ever arrives as
     # a percent would read 100x high and trip the mismatch, which is the point.
     return taker * 1e4, maker * 1e4
+
+
+def parse_bitso_withdrawals(markup, asset="USDT"):
+    """USDT withdrawal fee per network from bitso.com/fees/transactions, in
+    ASSET UNITS (not bps). -> {network: fee}.
+
+    The page carries two tables with the same row shape. Deposit rows read
+    "... - Tron Network10 Confirmations | Free of charge"; withdrawal rows read
+    "... - Tron Network* | 3.4 USDT". Only rows whose value parses as a number
+    of the asset are taken, so a "Free of charge" DEPOSIT row can never be
+    mistaken for a zero-cost withdrawal.
+    """
+    out = {}
+    rows = re.findall(r'<tr><td class="left">(.*?)</td><td class="right">(.*?)</td></tr>',
+                      markup, re.S)
+    for label, value in rows:
+        label = html.unescape(re.sub(r"<[^>]+>", "", label)).strip()
+        value = html.unescape(re.sub(r"<[^>]+>", "", value)).strip()
+        if f"({asset})" not in label:
+            continue
+        net = re.search(r"-\s*([A-Za-z ]+?)\s*Network", label)
+        amt = re.match(rf"^([\d.]+)\s*{asset}$", value)
+        if not net or not amt:
+            continue                     # deposit row, or a shape we do not know
+        out[net.group(1).strip().lower()] = float(amt.group(1))
+    if not out:
+        raise ValueError(f"no {asset} withdrawal rows found in fee table")
+    return out
+
+
+def parse_ir_withdrawals(text, asset="USDT"):
+    """USDT withdrawal fee per network from IR's fees page, in ASSET UNITS.
+
+    The crypto table reads `Crypto | Network | Fees` with rows flattened to
+    "Tether USD TRON 4.0 USDT". Anchored on the asset ticker at the end of the
+    row so a neighbouring asset's row cannot bleed in.
+    """
+    out = {}
+    for m in re.finditer(rf"Tether USD\s+([A-Za-z][A-Za-z0-9 ]*?)\s+([\d.]+)\s+{asset}\b",
+                         text):
+        out[m.group(1).strip().lower()] = float(m.group(2))
+    if not out:
+        raise ValueError(f"no Tether USD ({asset}) rows found in crypto withdrawal table")
+    return out
 
 
 # ---------------------------------------------------------------- rows
@@ -281,6 +337,109 @@ def build_rows_usdmxn(ts, cfg, now=None):
     ]
 
 
+def load_withdrawals():
+    """Every recorded withdrawal observation. Missing file -> no rows."""
+    if not os.path.exists(WITHDRAWALS):
+        return []
+    with open(WITHDRAWALS, newline="") as f:
+        return list(csv.DictReader(f))
+
+
+def recorded_ceiling(rows, venue, network):
+    """Highest fee ever recorded for this venue+network, or None.
+
+    The ceiling, not the latest row, because not every published number is a
+    fixed schedule: Bitso's Ethereum fee is gas-linked and was observed
+    alternating 0.01/0.02 seconds apart. Taking the maximum means the recorded
+    figure can only overstate a route's cost, never understate it -- the same
+    direction as the CONSERVATIVE-UNCONFIRMED network fee in collector.py.
+    """
+    fees = []
+    for r in rows:
+        if r.get("venue") == venue and r.get("network") == network \
+                and (r.get("source_ok") or "").strip() == "True":
+            try:
+                fees.append(float(r["fee_asset_units"]))
+            except (KeyError, TypeError, ValueError):
+                continue
+    return max(fees) if fees else None
+
+
+def check_withdrawals(ts):
+    """Re-read the published withdrawal tables and append what was observed.
+
+    Returns (new_rows, breaches). This layer keeps its OWN file rather than
+    borrowing fee_checks.csv: a flat chain fee in USDT is not a rate in bps, and
+    a `regime` column holding a network name would make those column names lie.
+
+    Append-only, like every other layer here -- each run adds what it saw, so
+    the history of a floating fee is visible instead of overwritten. A run is a
+    BREACH only when the published fee EXCEEDS everything recorded before it:
+    that is the direction where the site would be understating a real cost. A
+    fee that has fallen is recorded and passes, because the standing ceiling
+    still overstates.
+
+    Coinbase is absent by design: login-gated, never scraped, and already
+    covered by the 90-day manual clock on its trading fees.
+    """
+    prior = load_withdrawals()
+    live, errs = {}, {}
+    try:
+        r = requests.get(BITSO_WITHDRAW_URL, timeout=HTTP_TIMEOUT, headers=UA,
+                         allow_redirects=True)
+        r.raise_for_status()
+        live["bitso"] = (parse_bitso_withdrawals(r.text), r.url)
+    except Exception as e:
+        errs["bitso"] = f"{type(e).__name__}: {e}"
+    try:
+        text, url = fetch(IR_WITHDRAW_URL)
+        live["independentreserve"] = (parse_ir_withdrawals(text), url)
+    except Exception as e:
+        errs["independentreserve"] = f"{type(e).__name__}: {e}"
+
+    new_rows, breaches = [], []
+    # Only re-check pairs already on record. A network appearing for the first
+    # time is a seeding decision (tools/seed_withdrawal_fees.py), not something
+    # a drift watcher should quietly adopt.
+    known = sorted({(r.get("venue"), r.get("network")) for r in prior
+                    if r.get("venue") in ("bitso", "independentreserve")})
+    for venue, network in known:
+        ceiling = recorded_ceiling(prior, venue, network)
+        if venue in errs:
+            # An unreadable page is a recorded gap, not a silent skip.
+            new_rows.append({"ts_utc": ts, "venue": venue, "asset": "USDT",
+                             "network": network, "fee_asset_units": "",
+                             "source_url": errs[venue][:200], "source_ok": False})
+            breaches.append(f"{venue}/{network} unreadable: {errs[venue]}")
+            continue
+        fees, url = live[venue]
+        published = fees.get(network)
+        if published is None:
+            new_rows.append({"ts_utc": ts, "venue": venue, "asset": "USDT",
+                             "network": network, "fee_asset_units": "",
+                             "source_url": url, "source_ok": False})
+            breaches.append(f"{venue}/{network} no longer listed")
+            continue
+        new_rows.append({"ts_utc": ts, "venue": venue, "asset": "USDT",
+                         "network": network, "fee_asset_units": published,
+                         "source_url": url, "source_ok": True})
+        if ceiling is not None and published > ceiling + 1e-12:
+            breaches.append(
+                f"{venue}/{network} {published} USDT exceeds recorded {ceiling}")
+    return new_rows, breaches
+
+
+def append_withdrawals(rows):
+    os.makedirs(os.path.dirname(WITHDRAWALS), exist_ok=True)
+    new = not os.path.exists(WITHDRAWALS) or os.path.getsize(WITHDRAWALS) == 0
+    with open(WITHDRAWALS, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=WITHDRAWAL_FIELDS, extrasaction="ignore")
+        if new:
+            w.writeheader()
+        w.writerows(rows)
+    return WITHDRAWALS
+
+
 def main():
     if requests is None:
         sys.exit("pip install requests")
@@ -289,9 +448,14 @@ def main():
     rows = build_rows(ts, CORRIDORS["SGD->PHP"])
     rows += build_rows_usdmxn(ts, CORRIDORS["USD->MXN"])
 
+    wrows, breaches = check_withdrawals(ts)
+
     # Persist before display. Always -- the row is the evidence, and the print
-    # below is only a convenience for whoever is reading the log.
+    # below is only a convenience for whoever is reading the log. Two files,
+    # two schemas: trading fees in bps, withdrawal fees in asset units.
     append(rows)
+    if wrows:
+        append_withdrawals(wrows)
 
     for r in rows:
         pub = r["published_bps"]
@@ -300,13 +464,25 @@ def main():
               f"config {r['config_bps']} bps vs published {pub}"
               + (f" -- {r['error']}" if r["error"] else ""))
 
+    for r in wrows:
+        fee = r["fee_asset_units"]
+        mark = "ok" if r["source_ok"] else "unreadable"
+        print(f"  [{mark:>10}] {r['venue']} withdrawal {r['network']}: "
+              + (f"{fee} USDT" if fee != "" else "— not read"))
+    if wrows:
+        print(f"  {len(wrows)} withdrawal observations appended to "
+              f"{os.path.relpath(WITHDRAWALS, HERE)}")
+
     bad = [r for r in rows if r["status"] != "ok"]
-    if bad:
-        detail = "; ".join(f"{r['venue']}/{r['regime']} {r['status']}" for r in bad)
+    if bad or breaches:
+        detail = "; ".join([f"{r['venue']}/{r['regime']} {r['status']}" for r in bad]
+                           + breaches)
         print(f"\n  [error] fee drift or unreadable schedule -- {detail}",
               file=sys.stderr)
-        print(f"  {len(bad)} of {len(rows)} checks failed; {len(rows)} rows "
-              f"written to {os.path.relpath(CHECKS, HERE)}")
+        print(f"  {len(bad)} of {len(rows)} trading checks failed, "
+              f"{len(breaches)} withdrawal breach(es); evidence written to "
+              f"{os.path.relpath(CHECKS, HERE)}"
+              + (f" and {os.path.relpath(WITHDRAWALS, HERE)}" if wrows else ""))
         sys.exit(1)
 
     print(f"  fees verified {ts} -- {len(rows)} checks ok, appended to "

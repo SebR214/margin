@@ -109,6 +109,19 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    quoting +48.1 at USD 5,000. Both corridor pages' small print now names promo
    rates. No data changes, no flag columns, no filtering.
 
+6. **Withdrawal-fee record** (route engine, data half). `data/withdrawal_fees.csv`
+   is an append-only log of USDT withdrawal fees per venue per network, from
+   primary sources only: Bitso and Independent Reserve read from their published
+   pages, Coinbase `source_ok=False` because the schedule is login-gated —
+   **pending manual entry**. `tools/check_fees.py` re-reads both pages monthly
+   and appends what it observed, in its OWN file with honest columns (a flat
+   chain fee in USDT is not a rate in bps). It goes red when a published fee
+   EXCEEDS every value recorded before it — Bitso's Ethereum fee is gas-linked
+   and moves between reads, so the record is a ceiling rather than a point.
+   The render half is held on `route-engine-v1` until a corridor has ≥2 real
+   paths: SGD→PHP needs a public Coins.ph free-USDT-deposit statement, USD→MXN
+   needs Coinbase's per-network withdrawal fees.
+
 ## Recently shipped — 2026-08-18
 
 1. **Site upgrade (A/B/C)** — `index.html`.
@@ -224,5 +237,7 @@ data/providers_usdmxn.csv    full incumbent panel, hourly (USD→MXN)
 data/basis_history.csv  daily backfill, 5 venues, 2024-03 →
 data/offramp_snapshots.csv   v1 wreckage, kept as history
 data/latest.json        machine-readable snapshot, regenerated each run
+data/withdrawal_fees.csv USDT withdrawal fee per venue/network, append-only
+tools/seed_withdrawal_fees.py   one-time seed for withdrawal_fees.csv
 tools/emit_latest.py    builds latest.json from the CSVs
 ```
