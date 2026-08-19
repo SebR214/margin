@@ -93,6 +93,46 @@ CORRIDORS = {
         },
         "network_fee_stable": 1.0,     # TRC20 USDT withdrawal, flat
         "ladder": [200, 1000, 5000, 25000, 50000],
+        "providers_file": "providers.csv",
+    },
+    "USD->MXN": {
+        "src": "USD", "dst": "MXN", "stable": "USDT",
+        "onramp": {
+            "venue": "Coinbase",
+            # Coinbase Advanced, USDT-USD *stable pair* schedule: maker 0.5 bps,
+            # taker 1.0 bps. Read from a live account 2026-08-19. This is FLAT,
+            # not volume tiered -- the stable-pair table has no tier column and
+            # stable-pair volume is excluded from the tier calculation.
+            # The fee page sits behind login, so there is nothing to scrape:
+            # re-verification of these two numbers is MANUAL.
+            "taker_bps": 1.0,
+            "maker_bps": 0.5,
+            "verified": "2026-08-19",
+        },
+        "offramp": {
+            "venue": "Bitso",
+            "symbol": "usdt_mxn",
+            # Base tier (30-day volume < 20,000 MXN): maker 0.60%, taker 0.78%.
+            # Source is Bitso's OWN public API, checked 2026-08-19:
+            # api.bitso.com/v3/available_books/ -> fees.flat_rate for usdt_mxn
+            # returns {maker: "0.006", taker: "0.0078"}. That settles which of
+            # Bitso's two published schedules governs this book: the MXN one.
+            "taker_bps": 78.0,
+            "maker_bps": 60.0,
+            "verified": "2026-08-19",
+        },
+        # CONSERVATIVE-UNCONFIRMED. Coinbase passes network fees through at send
+        # time and publishes no flat schedule, so this is not a quoted number.
+        # 1 USDT OVERSTATES the cost on the cheap rails Bitso accepts (Solana,
+        # Polygon), so the error counts against the crypto route, never for it.
+        # Source: bitso.com/fees/transactions (crypto deposits free, MXN
+        # withdrawal by SPEI free), checked 2026-08-19.
+        "network_fee_stable": 1.0,
+        "ladder": [200, 1000, 5000, 25000, 50000],
+        # providers.csv has NO corridor column and its schema is frozen, so it
+        # cannot carry a second corridor. This corridor gets its own file with
+        # exactly the same header.
+        "providers_file": "providers_usdmxn.csv",
     },
 }
 
@@ -176,6 +216,19 @@ def depth_within_pct(bids, pct=0.01):
         return 0.0
     floor = bids[0][0] * (1 - pct)
     return sum(q for p, q in bids if p >= floor)
+
+
+def bitso_bids(payload):
+    """Bitso payload.bids ({book, price, amount} dicts) -> [(p, q)].
+
+    Pure so it can be tested offline against a real payload. Kept OUT of
+    norm_levels on purpose: norm_levels is corridor 1's parser too, and
+    teaching it the key "amount" would change behaviour for every venue.
+    """
+    raw = (payload or {}).get("payload") or {}
+    levels = [(lvl.get("price"), lvl.get("amount"))
+              for lvl in (raw.get("bids") or []) if isinstance(lvl, dict)]
+    return norm_levels(levels)
 
 
 def bps(x):
@@ -323,6 +376,10 @@ def fetch_mids(src, dst):
 
 
 def fetch_onramp(cfg, src):
+    # Dispatch on the configured venue. IndependentReserve stays the default
+    # path, unchanged -- a new corridor must not be able to break corridor 1.
+    if cfg["onramp"]["venue"] == "Coinbase":
+        return fetch_onramp_coinbase(cfg, src)
     stable = cfg["stable"].capitalize()
     d = get_json("https://api.independentreserve.com/Public/GetOrderBook"
                  f"?primaryCurrencyCode={stable}&secondaryCurrencyCode={src.capitalize()}")
@@ -330,13 +387,43 @@ def fetch_onramp(cfg, src):
     return {"asks": asks}
 
 
+def fetch_onramp_coinbase(cfg, src):
+    """Coinbase Exchange public book, level 2 (aggregated per price).
+
+    Verified live 2026-08-19: public, no auth. Asks arrive as
+    [price, size, num_orders] arrays -- norm_levels reads [0] and [1] and
+    ignores the third element, so the payload needs no reshaping.
+    """
+    pair = f"{cfg['stable']}-{src}"
+    d = get_json(f"https://api.exchange.coinbase.com/products/{pair}/book?level=2")
+    asks = sorted(norm_levels(d.get("asks")), key=lambda x: x[0])
+    return {"asks": asks}
+
+
 def fetch_offramp(cfg):
+    # Dispatch on the configured venue. Coins.ph stays the default path.
+    if cfg["offramp"]["venue"] == "Bitso":
+        return fetch_offramp_bitso(cfg)
     # NOTE: api.pro.coins.ph -- `api.coins.ph` is NXDOMAIN and silently killed
     # 34 days of collection. Do not "simplify" this hostname.
     sym = cfg["offramp"]["symbol"]
     d = get_json(f"https://api.pro.coins.ph/openapi/quote/v1/depth?symbol={sym}&limit=200")
     bids = sorted(norm_levels(d.get("bids")), key=lambda x: x[0], reverse=True)
     return {"bids": bids}
+
+
+def fetch_offramp_bitso(cfg):
+    """Bitso public order book. Verified live 2026-08-19.
+
+    Levels arrive under payload.bids as dicts {book, price, amount}. "amount"
+    is NOT one of the quantity keys norm_levels knows, so those dicts would be
+    silently dropped -- an empty book, recorded as a real one. Map to
+    (price, amount) tuples here instead of teaching norm_levels a new key:
+    norm_levels is shared with corridor 1 and stays untouched.
+    """
+    sym = cfg["offramp"]["symbol"]
+    d = get_json(f"https://api.bitso.com/v3/order_book/?book={sym}")
+    return {"bids": sorted(bitso_bids(d), key=lambda x: x[0], reverse=True)}
 
 
 def fetch_baseline(src, dst, amount):
@@ -425,7 +512,7 @@ def utc_hour(now=None):
         minute=0, second=0, microsecond=0)
 
 
-def captured_this_hour(path, ts_field, now=None):
+def captured_this_hour(path, ts_field, now=None, corridor=None):
     """True if `path` already holds a row stamped in the current UTC hour.
 
     The schedule fires at :17 and :47 so that GitHub dropping one fire still
@@ -435,12 +522,18 @@ def captured_this_hour(path, ts_field, now=None):
     Rows are append-only and in order, so the last row decides. Deliberately
     duplicated in collector_basis.py rather than shared: the two layers stay
     import-independent, so a break in one cannot take down the other.
+
+    `corridor`, when set, narrows the question to rows of that corridor. Two
+    corridors share samples.csv, so without it the first corridor captured in
+    an hour would gate the second one out of that hour entirely.
     """
     if not os.path.exists(path):
         return False
     last = None
     with open(path, newline="") as f:
         for row in csv.DictReader(f):
+            if corridor is not None and row.get("corridor") != corridor:
+                continue
             last = row
     if not last or not last.get(ts_field):
         return False
@@ -464,26 +557,39 @@ def append(rows):
     return SAMPLES
 
 
-def append_providers(prows):
-    os.makedirs(os.path.dirname(PROVIDERS), exist_ok=True)
-    new = not os.path.exists(PROVIDERS)
-    with open(PROVIDERS, "a", newline="") as f:
+def providers_path(cfg):
+    """Panel file for this corridor. providers.csv has no corridor column and a
+    frozen schema, so each corridor gets its own file with the SAME header."""
+    return os.path.join(HERE, "data", cfg.get("providers_file", "providers.csv"))
+
+
+def append_providers(prows, path=PROVIDERS):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="") as f:
         w = csv.DictWriter(f, fieldnames=PROVIDER_FIELDS, extrasaction="ignore")
         if new:
             w.writeheader()
         w.writerows(prows)
-    return PROVIDERS
+    return path
 
 
-def print_panel(prows):
-    """Print the incumbent panel grouped by size (for --verify)."""
+def print_panel(prows, src=None):
+    """Print the incumbent panel grouped by size (for --verify).
+
+    `src` labels the size column with the corridor's real send currency. The
+    hardcoded "S$" was only ever correct for SGD, so SGD (and an unspecified
+    src) keep it and corridor 1's output is unchanged; any other corridor gets
+    its own currency rather than a wrong symbol.
+    """
     if not prows:
         return
     print("\n  Incumbent panel -- Wise comparison (cost = bps below mid-market):")
     for s in sorted({r["notional_src"] for r in prows}):
         ok = sorted((r for r in prows if r["notional_src"] == s and r["source_ok"]),
                     key=lambda r: r["rank"])
-        print(f"  S${s:,}  ({len(ok)} providers)")
+        label = f"S${s:,}" if src in (None, "SGD") else f"{src} {s:,}"
+        print(f"  {label}  ({len(ok)} providers)")
         for r in ok:
             print(f"    {r['rank']:>2}. {r['provider']:<20} {r['cost_bps']:>8.1f} bps")
         for r in (r for r in prows if r["notional_src"] == s and not r["source_ok"]):
@@ -541,6 +647,19 @@ COINS_FIXTURE = {"bids": [
     ["60.670000000000000000", "56845.970000000000000000"],
     ["60.660000000000000000", "122172.710000000000000000"]]}
 MIDS_FIXTURE = {"src_per_usd": 1.279634, "dst_per_usd": 60.857717}
+
+# Corridor 2 payloads, captured live 2026-08-19. Coinbase asks carry a THIRD
+# element (num_orders) that norm_levels ignores; Bitso levels are dicts keyed
+# "amount", which norm_levels does NOT recognise -- the exact shape that would
+# silently produce an empty book if fetch_offramp_bitso stopped reshaping them.
+COINBASE_FIXTURE = {"asks": [
+    ["0.99916", "28060.73", 1], ["0.99917", "2850.6", 2],
+    ["0.99919", "36479.8", 2]]}
+BITSO_FIXTURE = {"payload": {"bids": [
+    {"book": "usdt_mxn", "price": "17.049", "amount": "8797.60"},
+    {"book": "usdt_mxn", "price": "17.048", "amount": "1781.4934"},
+    {"book": "usdt_mxn", "price": "17.047", "amount": "9642.67"}]}}
+MIDS_FIXTURE_MXN = {"src_per_usd": 1.0, "dst_per_usd": 17.060644}
 
 
 def selftest():
@@ -609,6 +728,47 @@ def selftest():
     assert set(FIELDS) >= set(dead) | {"ts", "corridor", "source_ok", "errors"}
     print("  [ok] schema covers every derived field")
 
+    # --- corridor 2: USD->MXN (Coinbase -> Bitso), real payloads 2026-08-19 ---
+    cfg2 = CORRIDORS["USD->MXN"]
+    on2 = {"asks": sorted(norm_levels(COINBASE_FIXTURE["asks"]), key=lambda x: x[0])}
+    off2 = {"bids": sorted(bitso_bids(BITSO_FIXTURE), key=lambda x: x[0], reverse=True)}
+    # Coinbase's third element (num_orders) must be ignored, not misread as size.
+    assert on2["asks"][0] == (0.99916, 28060.73), on2["asks"][:1]
+    # The Bitso reshape is the whole point: norm_levels alone drops these dicts.
+    assert off2["bids"][0] == (17.049, 8797.6), off2["bids"][:1]
+    assert norm_levels(BITSO_FIXTURE["payload"]["bids"]) == [], \
+        "norm_levels must NOT know 'amount' -- reshaping is fetch_offramp_bitso's job"
+    print("  [ok] corridor 2 parsers: Coinbase 3-element asks, Bitso 'amount' dicts")
+
+    d2 = decompose(1000, on2, off2, MIDS_FIXTURE_MXN, cfg2)
+    assert abs(d2["mid_src_dst"] - 17.0606) < 1e-3, d2["mid_src_dst"]
+    # USDT trades BELOW 1.00 on Coinbase, so the on-ramp basis is a small GAIN.
+    assert abs(d2["onramp_basis_bps"] - (-8.4)) < 0.5, d2["onramp_basis_bps"]
+    assert abs(d2["offramp_basis_bps"] - 6.8) < 0.5, d2["offramp_basis_bps"]
+    print(f"  [ok] corridor 2 basis: on-ramp {d2['onramp_basis_bps']:+} bps "
+          f"(USDT under peg at Coinbase), off-ramp {d2['offramp_basis_bps']:+} bps")
+
+    # Bitso's 78/60 bps dominates: the venue fees, not the rails, are the cost.
+    assert abs(d2["cost_bps_taker"] - 87.3) < 1.0, d2["cost_bps_taker"]
+    assert abs(d2["cost_bps_maker"] - 68.9) < 1.0, d2["cost_bps_maker"]
+    gap2 = d2["cost_bps_taker"] - d2["cost_bps_maker"]
+    assert 18.0 < gap2 < 19.0, gap2      # Bitso 78->60 (18) + Coinbase 1->0.5
+    print(f"  [ok] corridor 2 fees: taker {d2['cost_bps_taker']:.1f} vs maker "
+          f"{d2['cost_bps_maker']:.1f} bps -- {gap2:.1f} bps apart (Bitso 18 + "
+          f"Coinbase 0.5)")
+
+    parts2 = (d2["onramp_basis_bps"] + cfg2["onramp"]["taker_bps"]
+              + cfg2["network_fee_stable"] / (1000 / on2["asks"][0][0]) * 1e4
+              + d2["offramp_basis_bps"] + cfg2["offramp"]["taker_bps"])
+    assert abs(parts2 - d2["cost_bps_taker"]) < 1.5, (parts2, d2["cost_bps_taker"])
+    print(f"  [ok] corridor 2 waterfall reconciles: parts {parts2:.1f} == total "
+          f"{d2['cost_bps_taker']:.1f} bps")
+
+    assert providers_path(cfg2).endswith("providers_usdmxn.csv")
+    assert providers_path(CORRIDORS["SGD->PHP"]).endswith("providers.csv")
+    print("  [ok] panel routing: corridor 2 -> providers_usdmxn.csv, "
+          "corridor 1 -> providers.csv")
+
     # --- incumbent panel (data/providers.csv) ---
     WISE_FIXTURE = {"providers": [
         {"name": "Wise", "quotes": [{"receivedAmount": 238000.0}]},
@@ -673,6 +833,32 @@ def selftest():
             p, "ts", now.replace(hour=15)) is False, "new hour -> not captured"
     print("  [ok] idempotency gate: one capture per UTC hour, reopens on the next\n")
 
+    # Per-corridor gate: two corridors share samples.csv, so corridor 1 landing
+    # at :17 must NOT convince corridor 2 that its hour is already captured.
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, "samples.csv")
+        now = dt.datetime(2026, 8, 19, 14, 5, tzinfo=dt.timezone.utc)
+        with open(p, "w", newline="") as f:
+            csv.DictWriter(f, fieldnames=["ts", "corridor"]).writeheader()
+        with open(p, "a", newline="") as f:
+            csv.DictWriter(f, fieldnames=["ts", "corridor"]).writerow(
+                {"ts": "2026-08-19T14:17:02.113000+00:00", "corridor": "SGD->PHP"})
+        assert captured_this_hour(p, "ts", now, "SGD->PHP") is True
+        assert captured_this_hour(p, "ts", now, "USD->MXN") is False, \
+            "corridor 1's capture must not block corridor 2"
+        with open(p, "a", newline="") as f:
+            csv.DictWriter(f, fieldnames=["ts", "corridor"]).writerow(
+                {"ts": "2026-08-19T14:18:44.900000+00:00", "corridor": "USD->MXN"})
+        assert captured_this_hour(p, "ts", now, "USD->MXN") is True
+        # corridor 1 still reads as captured even though corridor 2's row is last
+        assert captured_this_hour(p, "ts", now, "SGD->PHP") is True, \
+            "a later corridor-2 row must not hide corridor 1's own capture"
+        assert captured_this_hour(
+            p, "ts", now.replace(hour=15), "USD->MXN") is False, "new hour reopens"
+        # unscoped call is unchanged: last row of ANY corridor decides
+        assert captured_this_hour(p, "ts", now) is True
+    print("  [ok] per-corridor gate: each corridor claims the hour independently\n")
+
     print("  ALL SELFTESTS PASSED\n")
 
 
@@ -695,11 +881,16 @@ def main():
     # Idempotency gate, BEFORE the network: the schedule fires twice an hour so
     # a dropped fire has a partner, not so we capture twice. Gating here also
     # spares the venues a redundant pull on the second fire.
-    if not a.verify and captured_this_hour(SAMPLES, "ts"):
-        print(f"  {utc_hour():%Y-%m-%dT%H}Z already captured -> {SAMPLES}, nothing to do")
+    # Scoped to THIS corridor: both corridors append to samples.csv, so an
+    # unscoped gate would let whichever corridor ran first claim the hour.
+    if not a.verify and captured_this_hour(SAMPLES, "ts", corridor=a.corridor):
+        print(f"  {utc_hour():%Y-%m-%dT%H}Z already captured -> {SAMPLES} "
+              f"({a.corridor}), nothing to do")
         return
 
-    rows, prows = collect(a.corridor, CORRIDORS[a.corridor])
+    cfg = CORRIDORS[a.corridor]
+    panel_path = providers_path(cfg)
+    rows, prows = collect(a.corridor, cfg)
 
     # PERSIST FIRST, DISPLAY SECOND. Display is decoration; the sample is the
     # product. Anything downstream of append() can crash without costing a row
@@ -711,8 +902,8 @@ def main():
         # The panel is supplementary: a write failure is logged, never fatal, so
         # it can't sink the corridor step.
         try:
-            append_providers(prows)
-            panel_wrote = PROVIDERS
+            append_providers(prows, panel_path)
+            panel_wrote = panel_path
         except Exception as e:
             print(f"  [warn] panel write failed (non-fatal): {e}\n", file=sys.stderr)
 
@@ -720,7 +911,7 @@ def main():
         print(json.dumps({"corridor": rows, "panel": prows}, indent=2, default=str))
     else:
         print_waterfall(rows)
-        print_panel(prows)
+        print_panel(prows, cfg["src"])
 
     if wrote:
         print(f"  appended -> {wrote}")
