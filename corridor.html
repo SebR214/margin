@@ -234,7 +234,8 @@ function selectCorridor(key){
   const dst=(r5.dst||"").trim();
   document.getElementById("foot").innerHTML=
     `On-ramp: ${r5.onramp_venue} (${srcCcy}→USDT). Off-ramp: ${r5.offramp_venue} (USDT→${dst}). `+
-    `Incumbent baseline: Wise comparison API. USD mids: open.er-api.com. Maker assumes a fill at top-of-book. `+
+    `Incumbent baseline: Wise comparison API — advertised retail prices, not confirmed fills, and they can carry promotional pricing (first-transfer or new-customer offers) recorded exactly as quoted. The baseline is therefore the best advertised price at that instant, not necessarily the best recurring one; a promo can price above mid-market. `+
+    `USD mids: open.er-api.com. Maker assumes a fill at top-of-book. `+
     `Enterprise payout pricing is invisible by nature and never estimated. `+
     `<a href="./methodology.html">Methodology &amp; data honesty →</a> · <a href="./index.html">the basis board →</a>`;
 }
