@@ -54,6 +54,18 @@ COINS_URL = ("https://support.coins.ph/hc/en-us/articles/11620285112217-How-are-
 BITSO_URL = "https://api.bitso.com/v3/available_books/"
 COINBASE_URL = "https://www.coinbase.com/advanced-fees"
 
+# --- withdrawal (network) fees -------------------------------------------
+# The network leg of a corridor is the SENDING venue's withdrawal fee, so these
+# are what a route costs. Both pages below are public and state the number
+# outright; Coinbase's is login-gated and is never scraped (see check_manual).
+BITSO_WITHDRAW_URL = "https://bitso.com/fees/transactions"
+IR_WITHDRAW_URL = "https://www.independentreserve.com/fees"
+WITHDRAWALS = os.path.join(HERE, "data", "withdrawal_fees.csv")
+WITHDRAWAL_FIELDS = [
+    "ts_utc", "venue", "asset", "network", "fee_asset_units", "source_url",
+    "source_ok",
+]
+
 # Coinbase's stable-pair schedule sits behind a login, so it cannot be read by a
 # machine. Rather than pretend otherwise, the watcher puts the MANUAL
 # verification on a clock: within this window the recorded date still counts,
@@ -150,6 +162,50 @@ def parse_bitso(payload, book):
     # Fractions, not percents: 0.0078 -> 78 bps. A schedule that ever arrives as
     # a percent would read 100x high and trip the mismatch, which is the point.
     return taker * 1e4, maker * 1e4
+
+
+def parse_bitso_withdrawals(markup, asset="USDT"):
+    """USDT withdrawal fee per network from bitso.com/fees/transactions, in
+    ASSET UNITS (not bps). -> {network: fee}.
+
+    The page carries two tables with the same row shape. Deposit rows read
+    "... - Tron Network10 Confirmations | Free of charge"; withdrawal rows read
+    "... - Tron Network* | 3.4 USDT". Only rows whose value parses as a number
+    of the asset are taken, so a "Free of charge" DEPOSIT row can never be
+    mistaken for a zero-cost withdrawal.
+    """
+    out = {}
+    rows = re.findall(r'<tr><td class="left">(.*?)</td><td class="right">(.*?)</td></tr>',
+                      markup, re.S)
+    for label, value in rows:
+        label = html.unescape(re.sub(r"<[^>]+>", "", label)).strip()
+        value = html.unescape(re.sub(r"<[^>]+>", "", value)).strip()
+        if f"({asset})" not in label:
+            continue
+        net = re.search(r"-\s*([A-Za-z ]+?)\s*Network", label)
+        amt = re.match(rf"^([\d.]+)\s*{asset}$", value)
+        if not net or not amt:
+            continue                     # deposit row, or a shape we do not know
+        out[net.group(1).strip().lower()] = float(amt.group(1))
+    if not out:
+        raise ValueError(f"no {asset} withdrawal rows found in fee table")
+    return out
+
+
+def parse_ir_withdrawals(text, asset="USDT"):
+    """USDT withdrawal fee per network from IR's fees page, in ASSET UNITS.
+
+    The crypto table reads `Crypto | Network | Fees` with rows flattened to
+    "Tether USD TRON 4.0 USDT". Anchored on the asset ticker at the end of the
+    row so a neighbouring asset's row cannot bleed in.
+    """
+    out = {}
+    for m in re.finditer(rf"Tether USD\s+([A-Za-z][A-Za-z0-9 ]*?)\s+([\d.]+)\s+{asset}\b",
+                         text):
+        out[m.group(1).strip().lower()] = float(m.group(2))
+    if not out:
+        raise ValueError(f"no Tether USD ({asset}) rows found in crypto withdrawal table")
+    return out
 
 
 # ---------------------------------------------------------------- rows
@@ -254,6 +310,64 @@ def build_rows(ts, cfg):
     ]
 
 
+def load_withdrawals():
+    """Recorded withdrawal rows. Missing file -> no rows, and the caller says so."""
+    if not os.path.exists(WITHDRAWALS):
+        return []
+    with open(WITHDRAWALS, newline="") as f:
+        return list(csv.DictReader(f))
+
+
+def build_rows_withdrawals(ts):
+    """Re-read each measured withdrawal fee and diff it against the recorded row.
+
+    Reuses the frozen fee_checks.csv schema, so the columns carry a documented
+    convention rather than a new file: `leg` is "withdrawal", `regime` is the
+    NETWORK, and config/published hold ASSET UNITS (USDT), not bps -- there is
+    no notional here to express a flat chain fee against.
+
+    Coinbase rows are skipped on purpose: that schedule is login-gated and is
+    never scraped. Its staleness is already covered by the 90-day manual clock.
+    """
+    recorded = [r for r in load_withdrawals()
+                if (r.get("source_ok") or "").strip() == "True"]
+    if not recorded:
+        return []
+
+    live, errs = {}, {}
+    try:
+        r = requests.get(BITSO_WITHDRAW_URL, timeout=HTTP_TIMEOUT, headers=UA,
+                         allow_redirects=True)
+        r.raise_for_status()
+        live["bitso"] = (parse_bitso_withdrawals(r.text), r.url)
+    except Exception as e:
+        errs["bitso"] = f"{type(e).__name__}: {e}"
+    try:
+        text, url = fetch(IR_WITHDRAW_URL)
+        live["independentreserve"] = (parse_ir_withdrawals(text), url)
+    except Exception as e:
+        errs["independentreserve"] = f"{type(e).__name__}: {e}"
+
+    out = []
+    for row in recorded:
+        venue, net = row.get("venue"), row.get("network")
+        try:
+            recorded_fee = float(row.get("fee_asset_units"))
+        except (TypeError, ValueError):
+            recorded_fee = None
+        if venue in errs:
+            out.append(check(ts, venue, "withdrawal", net, recorded_fee, None,
+                             row.get("source_url"), errs[venue]))
+            continue
+        fees, url = live.get(venue, ({}, row.get("source_url")))
+        published = fees.get(net)
+        err = None if published is not None else (
+            f"network {net} no longer listed for {venue}")
+        out.append(check(ts, venue, "withdrawal", net, recorded_fee, published,
+                         url, err))
+    return out
+
+
 def build_rows_usdmxn(ts, cfg, now=None):
     """Corridor 2. Bitso is machine-readable; Coinbase is not."""
     on, off = cfg["onramp"], cfg["offramp"]
@@ -288,6 +402,7 @@ def main():
     ts = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     rows = build_rows(ts, CORRIDORS["SGD->PHP"])
     rows += build_rows_usdmxn(ts, CORRIDORS["USD->MXN"])
+    rows += build_rows_withdrawals(ts)
 
     # Persist before display. Always -- the row is the evidence, and the print
     # below is only a convenience for whoever is reading the log.
