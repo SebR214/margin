@@ -16,7 +16,35 @@ For each corridor, hourly, at a set of notional sizes:
 | Incumbent fiat baseline | Wise comparison API (Wise, Instarem, HSBC, OFX, PayPal…) | measured |
 | Incumbent panel (every provider) | Wise comparison API → `data/providers.csv` | measured |
 | Exchange taker & maker fees | venue published schedules | published, verified 2026-08-10 |
-| Network withdrawal fee | 1 USDT, TRC20, flat | assumed |
+| Network withdrawal fee, SGD→PHP | Independent Reserve, Tron, 4.0 USDT flat | published, read 2026-08-19 |
+| Network withdrawal fee, USD→MXN | Coinbase, Polygon, 0.01% of amount (max 20 USDT) | published, read 2026-08-19 |
+| Network gas, USD→MXN | not published by Coinbase — see below | **not modelled** |
+
+### The network leg is per corridor, not a constant
+
+It was recorded as "1 USDT, TRC20, flat" for both corridors. That was wrong
+twice over. **Coinbase does not support USDT on Tron at all** — its USDT exit
+networks are Ethereum, Solana, Base, Polygon, Arbitrum and Avalanche — so the
+USD→MXN corridor was being priced on a chain it cannot use, and at a flat fee
+that no venue in it charges.
+
+The two corridors now carry what their **sending** venue actually publishes:
+
+- **SGD→PHP** sends from Independent Reserve, whose crypto withdrawal table
+  reads `Tether USD | TRON | 4.0 USDT`. Flat, so it dominates small transfers:
+  191 bps of the cost at S$200, 7.6 bps at S$5,000.
+- **USD→MXN** sends from Coinbase over **Polygon** — the cheapest chain both
+  Coinbase and Bitso support, and Bitso accepts Polygon USDT deposits free.
+  Coinbase charges "a processing fee equal to 0.01% of the amount transferred,
+  with a maximum of 20 USDT". Being proportional, it is 1 bp at *every* size,
+  which is why this corridor's cost barely moves along the ladder while
+  SGD→PHP's triples at the small end.
+
+**What is not modelled:** Coinbase states "a separate network transaction fee
+will also apply" — gas, estimated at send time and never published as a
+schedule. On Polygon it is fractions of a cent, so it is left at zero rather
+than invented. This is the one term on the site that understates rather than
+overstates, and it is stated here rather than buried.
 
 Both books are *walked* for the actual notional, so a size that would move the
 price shows up as slippage rather than being priced at top-of-book. Where a book

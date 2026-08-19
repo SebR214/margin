@@ -586,7 +586,7 @@ const num = v => { const n = parseFloat(v); return isFinite(n) ? n : null; };
 // Three states and no fourth: verified, UNVERIFIED, or nothing at all. An
 // absent or empty file renders nothing -- no placeholder, no guessed date. The
 // age is computed here, at render time, so the stamp cannot go stale in cache.
-function feeStamp(rows) {
+function feeStamp(rows, verified) {
   if (!rows || !rows.length) return '';
   const runs = {};
   rows.forEach(r => { if (r && r.ts_utc) (runs[r.ts_utc] = runs[r.ts_utc] || []).push(r); });
@@ -598,8 +598,15 @@ function feeStamp(rows) {
   if (runs[latest].some(r => (r.status || '').trim() !== 'ok')) {
     return 'fees UNVERIFIED — last clean check ' + (lastClean ? lastClean.slice(0, 10) : 'none on record');
   }
-  const days = Math.max(0, Math.floor((Date.now() - Date.parse(lastClean)) / DAY));
-  return 'fees verified ' + (days === 0 ? 'today' : days === 1 ? '1 day ago' : days + ' days ago');
+  // The DATE the fees were verified, out of the fee config, never an age from
+  // the wall clock. "today" was a lie the moment the page was cached or opened
+  // tomorrow, and it disagreed with the decomposition beside it, which prints
+  // the real date from fees_verified. Both now read the same field.
+  // A regime is only as verified as its STALEST leg, so take the oldest date.
+  const legs = String(verified || '').split('|')
+    .map(x => (x.split(':')[1] || '').trim()).filter(Boolean).sort();
+  return legs.length ? 'fees verified ' + legs[0]
+                     : 'fees verified ' + lastClean.slice(0, 10);
 }
 const bpsFmt = (v, d) => v == null ? '—' : (v >= 0 ? '+' : '−') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }) + ' bps';
 
@@ -712,7 +719,7 @@ class Component extends DCLogic {
     const lastTs = Math.max.apply(null, ORDER.filter(c => live[c]).map(c => live[c][live[c].length - 1].t));
     const histCodes = Object.keys(daily);
     const histStartT = histCodes.length ? Math.min.apply(null, histCodes.map(c => daily[c][0].t)) : null;
-    return { live, fails, venues, daily, histVenues, corrs, corrKeys, panels, lastTs, histStartT, histCodes, panel, panelT, feeStamp: feeStamp(feeChecks), rowsLive: basis.length, rowsHist: hist.length, rowsPanel: providers.length };
+    return { live, fails, venues, daily, histVenues, corrs, corrKeys, panels, lastTs, histStartT, histCodes, panel, panelT, feeChecks, rowsLive: basis.length, rowsHist: hist.length, rowsPanel: providers.length };
   }
 
   fmtRate(v) {
@@ -1209,7 +1216,7 @@ class Component extends DCLogic {
       corrNote: (corrSparse ? (C.hours || 0) + (C.hours === 1 ? ' capture' : ' captures') + ' so far for this corridor — the chart shows every point collected, with no line drawn between them and nothing filled in. ' : '') + 'Sizes walked against live depth: slippage ' + one(cLast.onSlip) + ' on-ramp, ' + one(cLast.offSlip) + ' off-ramp at this size. Fee tiers ' + (cLast.verified ? 'verified ' + String(cLast.verified).replace(/\|/g, ' · ') : 'as published') + '. Basis legs are signed: a negative on-ramp basis is USDT cheap in ' + (cLast.src || 'the source currency') + ', which helps the route.',
       findings,
       assumedNote: 'A flat ' + (cLast.netFee != null ? cLast.netFee : 1) + '-USDT network fee; exchange fees at published base tiers (' + one(cLast.onFee) + ' on-ramp, ' + one(cLast.offFee) + ' off-ramp), verified against the schedules.',
-      feeStamp: D.feeStamp || '',
+      feeStamp: feeStamp(D.feeChecks || [], cLast.verified),
       failNote: failed ? failed.toLocaleString('en-US') + ' hours without a tick in the last ' + COV_DAYS + ' days on ' + ccy + ' — visible as gaps in the grid above.' : 'No missing hours on ' + ccy + ' in the last ' + COV_DAYS + ' days.',
       sourcesLabel: venueList.join(', ') + '.',
     };
