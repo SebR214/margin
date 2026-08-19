@@ -25,9 +25,11 @@ actually exists rather than the other way round.
 
 | | File | Scope | Since | Rows |
 |---|---|---|---|---|
-| Deep layer | `collector.py` | SGD→PHP, ladder S$200 / 1k / 5k / 25k / 50k, full fee-verified decomposition | 2026-08-10 | 770 |
-| Wide layer | `collector_basis.py` | 10 venues, USDT vs official USD mid | 2026-08-10 | 1,519 |
-| Panel | `collector.py` → `providers.csv` | every rail the Wise comparison API returns, per size | 2026-08-11 | 2,944 |
+| Deep layer | `collector.py` | SGD→PHP, ladder S$200 / 1k / 5k / 25k / 50k, full fee-verified decomposition | 2026-08-10 | 875 |
+| Deep layer | `collector.py` | USD→MXN, same ladder in USD, same method | 2026-08-19 | 10 |
+| Wide layer | `collector_basis.py` | 10 venues, USDT vs official USD mid | 2026-08-10 | 1,729 |
+| Panel | `collector.py` → `providers.csv` | every rail the Wise comparison API returns, per size (SGD→PHP) | 2026-08-11 | 3,427 |
+| Panel | `collector.py` → `providers_usdmxn.csv` | same, USD→MXN | 2026-08-19 | 66 |
 | Backfill | `tools/backfill_basis.py` | daily basis, 5 venues (TRY, KRW, IDR, THB, MXN) | 2024-03-02 → 2026-08-10 | 4,198 |
 
 Venues live: Independent Reserve (SGD), Coins.ph (PHP), BTCTurk (TRY), Upbit
@@ -40,13 +42,19 @@ not by "this run staged nothing", which is now a healthy outcome.
 
 **Site.** Live at margin.wiki via GitHub Pages (`CNAME`, `.nojekyll`, React
 vendored to `vendor/`, no external runtime deps). `index.html` is the basis &
-corridor board, `corridor.html` the SGD→PHP detail, `methodology.html` renders
+corridor board, `corridor.html` the per-corridor detail (both corridors),
+`methodology.html` renders
 `METHODOLOGY.md` at runtime so it cannot drift.
 
-**Fee verification.** IR 0.50% flat (no maker discount), Coins.ph Pro 0.15/0.10
-VIP0, both verified 2026-08-10. The correction that killed the original
-"maker beats Wise 3×" headline is documented in METHODOLOGY rather than quietly
-removed.
+**Fee verification.** Corridor 1: IR 0.50% flat (no maker discount), Coins.ph
+Pro 0.15/0.10 VIP0, both verified 2026-08-10. Corridor 2: Bitso `usdt_mxn`
+0.78/0.60 and Coinbase stable-pair 1.0/0.5 bps, both 2026-08-19. The correction
+that killed the original "maker beats Wise 3×" headline is documented in
+METHODOLOGY rather than quietly removed.
+
+`tools/check_fees.py` re-checks all four monthly. Three are read from a
+published source; **Coinbase is login-gated and is never scraped** — its manual
+verification is on a 90-day clock instead, and goes `stale` (red) past it.
 
 ---
 
@@ -57,18 +65,49 @@ removed.
 
 ## Recently shipped — 2026-08-19
 
-1. **Corridor 2 collection (USD→MXN) shipped 2026-08-19.** Coinbase on-ramp →
-   Bitso off-ramp, same method and same fields as SGD→PHP, sampled hourly by
-   `collect.yml`. Panel rows go to `data/providers_usdmxn.csv` (providers.csv
-   has no corridor column and a frozen schema); the hourly idempotency gate is
-   now per-corridor, so the two corridors never contend for an hour. Display is
-   the next issue — no site changes. Issue #7.
-2. **Machine-readable snapshot shipped 2026-08-19.** `tools/emit_latest.py`
-   (stdlib only) regenerates `data/latest.json` every collector run: latest
-   basis per venue, latest ladder per corridor, best/worst panel provider per
-   size, and the source CSV paths. Derived, never authoritative — a missing or
-   empty CSV yields an absent key, never a placeholder, and bad rows are
-   skipped rather than fatal. Issue #8.
+All five merged the same day. SHAs are the squashed merge commits on `main`.
+
+1. **Corridor 2 collection — USD→MXN** (`3127140`, PR #9, issue #7). Coinbase
+   on-ramp → Bitso off-ramp, same method and same fields as SGD→PHP, sampled
+   hourly by `collect.yml`. Panel rows go to `data/providers_usdmxn.csv`
+   (`providers.csv` has no corridor column and a frozen schema); the hourly
+   idempotency gate is now per-corridor, so the two corridors never contend for
+   an hour. Fees verified 2026-08-19: Coinbase stable-pair 1.0/0.5 bps (manual,
+   login-gated), Bitso `usdt_mxn` 78/60 bps from Bitso's own API.
+2. **Machine-readable snapshot** (`0f817d7`, PR #10, issue #8).
+   `tools/emit_latest.py` (stdlib only) regenerates `data/latest.json` every
+   collector run: latest basis per venue, latest ladder per corridor, best/worst
+   panel provider per size, source CSV paths. Derived, never authoritative — a
+   missing or empty CSV yields an absent key, never a placeholder, and bad rows
+   are skipped rather than fatal. `as_of_utc` is the newest **source** row, not
+   the wall clock, so an unchanged dataset regenerates a byte-identical file —
+   which is what keeps the commit step's "nothing staged" branch reachable and
+   `check_freshness.py` running. That guard now runs on every fire, last, so a
+   stale-data failure is loud without costing an already-written sample.
+3. **Mexico on the site** (`2a808e2`, PR #11). Both corridors render, grouped by
+   the `corridor` column, with corridor pills on `index.html` and
+   `corridor.html` defaulting to SGD→PHP; corridor 2's panel reads
+   `providers_usdmxn.csv`, corridor 1 keeps `providers.csv`. Fixed a live bug:
+   both pages read `samples.csv` unfiltered, so from #9 landing until this
+   merged, USD→MXN rows were spliced into the SGD→PHP cost series and the
+   heading followed whichever row was written last. Also stopped clamping the
+   y-scale at zero — four real SGD→PHP readings (min −1.59 bps) and Xoom's
+   −114 bps were being drawn off-canvas. **Drawing a real measurement off
+   canvas is the same failure as filling a gap**; see Invariants.
+4. **Bitso in the fee watcher** (`3c2d823`, PR #12). `tools/check_fees.py` diffs
+   `usdt_mxn` against `fees.flat_rate` from Bitso's `available_books` API — a
+   published number, so no parser to rot. Coinbase's stable-pair schedule is
+   login-gated and is **not** scraped: its *manual* verification runs on a
+   90-day clock (`status=stale` and a non-zero exit past it), with
+   `published_bps` left empty rather than echoing the config back as if
+   confirmed. First run 2026-08-19: 8 checks, all ok.
+5. **Promotional-pricing honesty** (`03414e1`, PR #15). METHODOLOGY gains a
+   *Promotional pricing* section: comparison-API quotes can carry promo pricing,
+   the panel records them exactly as received, and the baseline is therefore the
+   best *advertised* price, not necessarily the best *recurring* one. Prompted by
+   Xoom quoting −114.0 bps at USD 200 and −114.7 at USD 1,000 on USD→MXN while
+   quoting +48.1 at USD 5,000. Both corridor pages' small print now names promo
+   rates. No data changes, no flag columns, no filtering.
 
 ## Recently shipped — 2026-08-18
 
@@ -131,8 +170,11 @@ removed.
    100+ bps, genuinely sloppy for SGD/THB/PHP, which are exactly the markets the
    corridor depends on. HANDOFF flagged this as a later upgrade; it is now the
    main precision ceiling on the corridor number.
-4. **A second corridor** — explicitly *not yet*. HANDOFF: do not add one before
-   the demo is polished.
+4. ~~**A second corridor** — explicitly *not yet*.~~ **Done 2026-08-19**
+   (`3127140`) — USD→MXN collects hourly and renders on the site. HANDOFF's
+   "not before the demo is polished" is superseded: the demo shipped
+   2026-08-18, and the second corridor is what makes the method read as a
+   method rather than one lucky pair.
 
 ---
 
@@ -169,10 +211,10 @@ P2P-only — all out of scope by nature, not by omission.
 collector.py            deep layer — SGD→PHP + USD→MXN decomposition + Wise panel
 collector_basis.py      wide layer — 10-venue basis
 tools/backfill_basis.py one-time daily history (not re-run)
-tools/check_freshness.py rot guard for collect.yml
+tools/check_freshness.py rot guard, runs every fire of collect.yml
 .github/workflows/collect.yml   the clock
 index.html              basis & corridor board (site entry)
-corridor.html           SGD→PHP detail
+corridor.html           corridor detail, both corridors (switcher)
 methodology.html        renders METHODOLOGY.md at runtime
 support.js              the board's static runtime
 data/samples.csv        corridor decomposition, hourly
