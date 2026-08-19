@@ -290,6 +290,13 @@
         <div style="display: flex; flex-direction: column; gap: 6px; max-width: 660px;">
           <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">The corridor — {{ corrName }}</div>
           <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">All-in cost of the transfer, sampled hourly: the USDT route walked at real size on live books against the cheapest fiat rail quoting the same amount. Everything in basis points of the amount sent.</p>
+          <sc-if value="{{ corrTabs.length }}" hint-placeholder-val="{{ 2 }}">
+            <div style="display: flex; gap: 2px; background: #f1f1f4; border-radius: 999px; padding: 3px; align-self: flex-start; margin-top: 2px;">
+              <sc-for list="{{ corrTabs }}" as="c" hint-placeholder-count="2">
+                <button onClick="{{ c.onClick }}" style="border: none; cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 7px 15px; border-radius: 999px; background: {{ c.bg }}; color: {{ c.color }}; box-shadow: {{ c.shadow }}; white-space: nowrap;">{{ c.label }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
         </div>
         <div style="display: flex; gap: 2px; background: #f1f1f4; border-radius: 999px; padding: 3px;">
           <sc-for list="{{ sizeTabs }}" as="s" hint-placeholder-count="5">
@@ -334,6 +341,12 @@
             <path d="{{ corrArea }}" fill="url(#corrfill)" />
             <path d="{{ corrFiatPath }}" fill="none" stroke="#b6b7c0" stroke-width="1.6" stroke-dasharray="5 4" />
             <path d="{{ corrUsdtPath }}" fill="none" stroke="{{ accent }}" stroke-width="1.9" stroke-linejoin="round" />
+            <sc-for list="{{ corrPoints }}" as="p" hint-placeholder-count="1">
+              <circle cx="{{ p.cx }}" cy="{{ p.fy }}" r="3.2" fill="#fff" stroke="#b6b7c0" stroke-width="1.6"><title>{{ p.fyTitle }}</title></circle>
+            </sc-for>
+            <sc-for list="{{ corrPoints }}" as="p" hint-placeholder-count="1">
+              <circle cx="{{ p.cx }}" cy="{{ p.cy }}" r="3.6" fill="{{ accent }}"><title>{{ p.title }}</title></circle>
+            </sc-for>
             <sc-if value="{{ corrHovering }}" hint-placeholder-val="{{ false }}">
               <line x1="{{ corrHoverX }}" x2="{{ corrHoverX }}" y1="0" y2="220" stroke="{{ accent }}" stroke-width="1" stroke-opacity="0.35" />
             </sc-if>
@@ -527,7 +540,7 @@
         <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #a2a3ad;">Read further</div>
         <div style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px;">
           <a href="./methodology.html">Methodology &amp; data honesty</a>
-          <a href="./corridor.html">SGD → PHP corridor detail</a>
+          <a href="./corridor.html">corridor detail — both corridors</a>
           <a href="https://github.com/SebR214/margin" target="_blank" rel="noopener">Repository &amp; raw CSVs</a>
         </div>
       </div>
@@ -591,19 +604,22 @@ function feeStamp(rows) {
 const bpsFmt = (v, d) => v == null ? '—' : (v >= 0 ? '+' : '−') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }) + ' bps';
 
 class Component extends DCLogic {
-  state = { ccy: 'ARS', range: '1w', size: null, hover: null, chover: null, data: null, err: null };
+  state = { ccy: 'ARS', range: '1w', size: null, corridor: 'SGD->PHP', hover: null, chover: null, data: null, err: null };
 
   componentDidMount() {
     const get = p => fetch(p).then(r => { if (!r.ok) throw new Error(p + ' ' + r.status); return r.text(); });
     // fee_checks.csv is optional by design: absent file -> no stamp, not an
     // error page. Every other layer stays required.
     const opt = p => get(p).catch(() => '');
-    Promise.all([get('./data/basis.csv'), get('./data/basis_history.csv'), get('./data/samples.csv'), get('./data/providers.csv'), opt('./data/fee_checks.csv')])
-      .then(([b, h, s, p, f]) => this.setState({ data: this.build(parseCSV(b), parseCSV(h), parseCSV(s), parseCSV(p), f.trim() ? parseCSV(f) : []) }))
+    // providers_usdmxn.csv is optional the same way fee_checks.csv is: corridor 2's
+    // panel may not have been collected yet, and a missing panel must degrade to a
+    // corridor without a leaderboard, never to an error page.
+    Promise.all([get('./data/basis.csv'), get('./data/basis_history.csv'), get('./data/samples.csv'), get('./data/providers.csv'), opt('./data/fee_checks.csv'), opt('./data/providers_usdmxn.csv')])
+      .then(([b, h, s, p, f, p2]) => this.setState({ data: this.build(parseCSV(b), parseCSV(h), parseCSV(s), parseCSV(p), f.trim() ? parseCSV(f) : [], p2.trim() ? parseCSV(p2) : []) }))
       .catch(e => this.setState({ err: String(e.message || e) }));
   }
 
-  build(basis, hist, samples, providers, feeChecks) {
+  build(basis, hist, samples, providers, feeChecks, providersMxn) {
     const live = {}, fails = {}, venues = {}, daily = {}, histVenues = {};
     basis.forEach(r => {
       const c = r.ccy; if (!c || !META[c]) return;
@@ -626,12 +642,15 @@ class Component extends DCLogic {
     Object.keys(live).forEach(c => live[c].sort((a, b) => a.t - b.t));
     Object.keys(daily).forEach(c => daily[c].sort((a, b) => a.t - b.t));
 
-    const corr = {}, sizes = [];
-    let corrName = '', railName = '';
+    // Corridors are grouped by the `corridor` column, NOT flattened by size.
+    // samples.csv holds every corridor interleaved, so keying on notional alone
+    // would splice one corridor's cost series into another's chart and let the
+    // heading follow whichever row happened to be written last.
+    const corrs = {};
     samples.forEach(r => {
       if ((r.source_ok || '').trim() !== 'True') return;
       const n = num(r.notional_src); if (n == null) return;
-      corrName = r.corridor || corrName;
+      const key = (r.corridor || '').trim(); if (!key) return;
       const row = {
         t: Date.parse(r.ts), n,
         usdt: num(r.cost_bps_taker), fiat: num(r.baseline_cost_bps), rail: r.baseline_provider,
@@ -640,38 +659,60 @@ class Component extends DCLogic {
         netFee: num(r.network_fee_stable), midSrc: num(r.mid_src_per_usd),
         onVenue: r.onramp_venue, offVenue: r.offramp_venue, verified: r.fees_verified,
         onSlip: num(r.onramp_slip_bps), offSlip: num(r.offramp_slip_bps),
-        landedTaker: num(r.landed_taker),
+        landedTaker: num(r.landed_taker), src: r.src, dst: r.dst,
       };
       if (row.usdt == null) return;
-      (corr[n] = corr[n] || []).push(row);
-      if (sizes.indexOf(n) < 0) sizes.push(n);
-      railName = row.rail || railName;
+      const C = corrs[key] = corrs[key] || { key, corr: {}, sizes: [], railName: '', src: r.src, dst: r.dst };
+      (C.corr[n] = C.corr[n] || []).push(row);
+      if (C.sizes.indexOf(n) < 0) C.sizes.push(n);
+      C.railName = row.rail || C.railName;
     });
-    sizes.sort((a, b) => a - b);
-    Object.keys(corr).forEach(k => corr[k].sort((a, b) => a.t - b.t));
+    Object.keys(corrs).forEach(k => {
+      const C = corrs[k];
+      C.sizes.sort((a, b) => a - b);
+      Object.keys(C.corr).forEach(s => C.corr[s].sort((a, b) => a.t - b.t));
+      // Distinct capture hours, so "how much history is there" is answered by the
+      // data rather than by a row count that moves five at a time per sample.
+      const hours = {};
+      Object.keys(C.corr).forEach(s => C.corr[s].forEach(p => { hours[Math.floor(p.t / HOUR)] = 1; }));
+      C.hours = Object.keys(hours).length;
+    });
+    // Corridor 1 first, then any newer corridor, so the default never drifts.
+    const corrKeys = Object.keys(corrs).sort((a, b) =>
+      (a === 'SGD->PHP' ? -1 : b === 'SGD->PHP' ? 1 : a < b ? -1 : 1));
 
     // Incumbent panel (data/providers.csv) — every rail the Wise comparison API
     // returned, per size, per run. Only the latest snapshot per size is shown,
     // so keep the newest timestamp and drop everything older.
-    const panelAll = {};
-    let panelT = 0;
-    providers.forEach(r => {
-      if ((r.source_ok || '').trim() !== 'True') return;
-      const n = num(r.notional_src), bps = num(r.cost_bps), t = Date.parse(r.ts_utc);
-      if (n == null || bps == null || !isFinite(t) || !r.provider) return;
-      (panelAll[n] = panelAll[n] || []).push({ t, provider: r.provider, landed: num(r.landed_dst), bps });
-      if (t > panelT) panelT = t;
-    });
-    const panel = {};
-    Object.keys(panelAll).forEach(n => {
-      const newest = Math.max.apply(null, panelAll[n].map(r => r.t));
-      panel[n] = panelAll[n].filter(r => r.t === newest).sort((a, b) => a.bps - b.bps);
-    });
+    // One panel per corridor: providers.csv has no corridor column, so each
+    // corridor keeps its own file (see collector.py providers_path).
+    const buildPanel = rowsIn => {
+      const all = {};
+      let t0 = 0;
+      (rowsIn || []).forEach(r => {
+        if ((r.source_ok || '').trim() !== 'True') return;
+        const n = num(r.notional_src), bps = num(r.cost_bps), t = Date.parse(r.ts_utc);
+        if (n == null || bps == null || !isFinite(t) || !r.provider) return;
+        (all[n] = all[n] || []).push({ t, provider: r.provider, landed: num(r.landed_dst), bps });
+        if (t > t0) t0 = t;
+      });
+      const out = {};
+      Object.keys(all).forEach(n => {
+        const newest = Math.max.apply(null, all[n].map(r => r.t));
+        out[n] = all[n].filter(r => r.t === newest).sort((a, b) => a.bps - b.bps);
+      });
+      return { panel: out, panelT: t0, rows: (rowsIn || []).length };
+    };
+    const panels = {
+      'SGD->PHP': buildPanel(providers),
+      'USD->MXN': buildPanel(providersMxn),
+    };
+    const { panel, panelT } = panels['SGD->PHP'];
 
     const lastTs = Math.max.apply(null, ORDER.filter(c => live[c]).map(c => live[c][live[c].length - 1].t));
     const histCodes = Object.keys(daily);
     const histStartT = histCodes.length ? Math.min.apply(null, histCodes.map(c => daily[c][0].t)) : null;
-    return { live, fails, venues, daily, histVenues, corr, sizes, corrName, railName, lastTs, histStartT, histCodes, panel, panelT, feeStamp: feeStamp(feeChecks), rowsLive: basis.length, rowsHist: hist.length, rowsPanel: providers.length };
+    return { live, fails, venues, daily, histVenues, corrs, corrKeys, panels, lastTs, histStartT, histCodes, panel, panelT, feeStamp: feeStamp(feeChecks), rowsLive: basis.length, rowsHist: hist.length, rowsPanel: providers.length };
   }
 
   fmtRate(v) {
@@ -705,6 +746,7 @@ class Component extends DCLogic {
       sizeTabs: [], corrLegs: [], corrUsdt: '—', corrFiat: '—', corrRail: '—', corrGap: '—',
       corrGapColor: '#12131a', corrGapBg: '#f5f5f8', corrUsdtPath: '', corrFiatPath: '', corrArea: '',
       corrGrid: [], corrXTicks: [], corrName: 'SGD → PHP', corrNote: '', findings: [],
+      corrTabs: [], corrPoints: [], corrSparse: false,
       tiles: [], smNote: '', leaderRows: [], boardHeadline: '', boardCaveat: '', landedLabel: 'Landed',
       findingsIntro: 'Loading the collector output…',
       assumedNote: 'Exchange fees at published base tiers, verified against the schedules.',
@@ -795,19 +837,41 @@ class Component extends DCLogic {
       }
     }
 
-    // corridor
-    const sizes = D.sizes;
+    // corridor — everything below is scoped to the SELECTED corridor
+    const corrKeys = D.corrKeys || [];
+    const corrKey = corrKeys.indexOf(st.corridor) >= 0 ? st.corridor : corrKeys[0];
+    const C = (D.corrs || {})[corrKey] || { corr: {}, sizes: [], hours: 0 };
+    const corrPanel = (D.panels || {})[corrKey] || { panel: {}, panelT: 0, rows: 0 };
+    const sizes = C.sizes;
     const size = sizes.indexOf(st.size) >= 0 ? st.size : sizes[0];
-    const crows = D.corr[size] || [];
+    const crows = C.corr[size] || [];
     const cLast = crows[crows.length - 1] || {};
+    // Fewer than 3 distinct capture hours: draw what exists and say so. The
+    // points are rendered as dots because a 1-point path draws nothing, and a
+    // line between two points would imply a trend the data cannot support.
+    const corrSparse = (C.hours || 0) < 3;
     const cAll = crows.map(r => r.usdt).concat(crows.map(r => r.fiat).filter(v => v != null));
-    let clo = cAll.length ? Math.min.apply(null, cAll) : 0, chi = cAll.length ? Math.max.apply(null, cAll) : 1;
-    const cpad = (chi - clo) * 0.22 || 8; clo = Math.max(0, clo - cpad); chi += cpad;
+    const cRawLo = cAll.length ? Math.min.apply(null, cAll) : 0;
+    let clo = cRawLo, chi = cAll.length ? Math.max.apply(null, cAll) : 1;
+    const cpad = (chi - clo) * 0.22 || 8;
+    // Clamping the floor to zero is only safe while every cost is positive. A
+    // promotional quote lands BELOW mid-market (negative cost) and would be
+    // drawn off-canvas -- silently hiding the rail the route is measured against.
+    // Below zero, pad by a small fraction of the span rather than the full 22%:
+    // a -1.6 bps promo dip should not open a 38 bps band of empty chart.
+    clo = cRawLo < 0 ? cRawLo - (chi - Math.min(0, cRawLo)) * 0.06 : Math.max(0, clo - cpad);
+    chi += cpad;
     const CH = 220;
     const CX = i => crows.length < 2 ? 500 : (i / (crows.length - 1)) * 1000;
     const CY = v => CH - ((v - clo) / (chi - clo)) * CH;
     const uPath = crows.map((r, i) => (i ? 'L' : 'M') + CX(i).toFixed(1) + ' ' + CY(r.usdt).toFixed(1)).join(' ');
     const fPath = crows.map((r, i) => (i ? 'L' : 'M') + CX(i).toFixed(1) + ' ' + CY(r.fiat == null ? r.usdt : r.fiat).toFixed(1)).join(' ');
+    const corrPoints = corrSparse ? crows.map((r, i) => ({
+      cx: CX(i).toFixed(1), cy: CY(r.usdt).toFixed(1),
+      fy: r.fiat == null ? '-99' : CY(r.fiat).toFixed(1),   // off-canvas when unquoted
+      fyTitle: r.fiat == null ? '' : this.fmtDate(r.t, true) + ' — ' + (r.rail || 'best rail') + ' ' + bpsFmt(r.fiat, 1),
+      title: this.fmtDate(r.t, true) + ' — USDT ' + bpsFmt(r.usdt, 1),
+    })) : [];
     let chv = null;
     if (st.chover != null && crows.length > 1) { const i = Math.max(0, Math.min(crows.length - 1, Math.round(st.chover * (crows.length - 1)))); chv = { i, r: crows[i] }; }
     const cGap = (cLast.usdt || 0) - (cLast.fiat || 0);
@@ -822,7 +886,9 @@ class Component extends DCLogic {
 
     const idr = latest.IDR, sinceDays = Math.max(1, Math.round((nowT - (liveArr.length ? D.live[codes[0]][0].t : nowT)) / DAY));
     const histStart = D.histStartT ? this.fmtDate(D.histStartT, false) : null;
-    const sizeLabel = size >= 1000 ? 'S$' + (size / 1000) + 'k' : 'S$' + size;
+    const srcCcy = C.src || (crows.length ? crows[0].src : '') || 'SGD';
+    const cur = n => (srcCcy === 'SGD' ? 'S$' + n : srcCcy + ' ' + n);
+    const sizeLabel = cur(size >= 1000 ? (size / 1000) + 'k' : String(size));
 
     // ── B. Small multiples — 90 days per market, daily backfill stitched to live.
     // Scale decision: each tile is scaled to its OWN range. A shared y-axis is
@@ -864,10 +930,10 @@ class Component extends DCLogic {
     // ── A. Provider leaderboard — the whole fiat field at this size, with the
     // USDT route dropped into the same ranking. cost_bps shares a convention
     // across both files (see METHODOLOGY), so they are directly comparable.
-    const DEST = { PHP: 'Manila' };
-    const dstCcy = (D.corrName || 'SGD->PHP').split('->')[1] || 'PHP';
+    const DEST = { PHP: 'Manila', MXN: 'Mexico City' };
+    const dstCcy = (corrKey || 'SGD->PHP').split('->')[1] || 'PHP';
     const destName = DEST[dstCcy] || dstCcy;
-    const fiatBoard = (D.panel[size] || []).map(r => ({ ...r, isUsdt: false }));
+    const fiatBoard = (corrPanel.panel[size] || []).map(r => ({ ...r, isUsdt: false }));
     const usdtEntry = cLast.usdt == null ? null :
       { provider: 'USDT route — ' + (cLast.onVenue || 'on-ramp') + ' → ' + (cLast.offVenue || 'off-ramp'), bps: cLast.usdt, landed: cLast.landedTaker, isUsdt: true };
     const boardRows = fiatBoard.concat(usdtEntry ? [usdtEntry] : []).sort((a, b) => a.bps - b.bps);
@@ -960,7 +1026,7 @@ class Component extends DCLogic {
     const findings = [];
     if (cLast.usdt != null && cLast.fiat != null) findings.push({
       k: this.fmtDate(cLast.t || nowT, false),
-      v: 'At ' + (D.corrName || 'SGD->PHP').replace('->', '→') + ', ' + sizeLabel + ': the USDT route lands at ' + Math.round(cLast.usdt) + ' bps against ' + (cLast.rail || 'the fiat rail') + ' at ' + Math.round(cLast.fiat) + ' bps — ' + (cGap > 0 ? 'the rail still wins by ' + Math.round(cGap) + ' bps.' : 'the crypto route wins by ' + Math.round(-cGap) + ' bps.'),
+      v: 'At ' + corrKey.replace('->', '→') + ', ' + sizeLabel + ': the USDT route lands at ' + Math.round(cLast.usdt) + ' bps against ' + (cLast.rail || 'the fiat rail') + ' at ' + Math.round(cLast.fiat) + ' bps — ' + (cGap > 0 ? 'the rail still wins by ' + Math.round(cGap) + ' bps.' : 'the crypto route wins by ' + Math.round(-cGap) + ' bps.'),
     });
     if (ranked.length >= 2) findings.push({
       k: this.fmtDate(nowT, false),
@@ -1092,9 +1158,16 @@ class Component extends DCLogic {
       tipOfficial: hv ? this.fmtRate(hv.p.o) : '',
       tipPrem: hv ? bpsFmt(hv.p.p, 1) : '',
 
-      corrName: (D.corrName || 'SGD->PHP').replace('->', ' → '),
+      corrName: corrKey.replace('->', ' → '),
+      corrSparse, corrPoints,
+      corrTabs: corrKeys.length > 1 ? corrKeys.map(k => ({
+        label: k.replace('->', ' → '),
+        onClick: () => this.setState({ corridor: k, size: null, chover: null }),
+        bg: k === corrKey ? '#fff' : 'transparent', color: k === corrKey ? '#12131a' : '#7c7e8a',
+        shadow: k === corrKey ? '0 1px 2px rgba(18,19,26,0.10)' : 'none',
+      })) : [],
       sizeTabs: sizes.map(sz => ({
-        label: (sz >= 1000 ? 'S$' + (sz / 1000) + 'k' : 'S$' + sz),
+        label: cur(sz >= 1000 ? (sz / 1000) + 'k' : String(sz)),
         onClick: () => this.setState({ size: sz, chover: null }),
         bg: sz === size ? '#fff' : 'transparent', color: sz === size ? '#12131a' : '#7c7e8a',
         shadow: sz === size ? '0 1px 2px rgba(18,19,26,0.10)' : 'none',
@@ -1105,9 +1178,9 @@ class Component extends DCLogic {
       corrGap: (cGap >= 0 ? '+' : '−') + Math.abs(Math.round(cGap)).toLocaleString('en-US') + ' bps',
       corrGapColor: cGap > 0 ? RED : GREEN,
       corrGapBg: cGap > 0 ? 'color-mix(in oklab, ' + RED + ' 8%, white)' : 'color-mix(in oklab, ' + GREEN + ' 8%, white)',
-      corrUsdtPath: uPath, corrFiatPath: fPath, corrArea: uPath + ' L1000 ' + CH + ' L0 ' + CH + ' Z',
+      corrUsdtPath: uPath, corrFiatPath: fPath, corrArea: crows.length < 2 ? '' : uPath + ' L1000 ' + CH + ' L0 ' + CH + ' Z',
       corrGrid: [1, 0.667, 0.333, 0].map(f => ({ y: (CH - f * CH).toFixed(0), label: Math.round(clo + f * (chi - clo)).toLocaleString('en-US') })),
-      corrXTicks: crows.length ? [0, 0.33, 0.66, 1].map(f => ({ label: this.fmtDate(crows[Math.round(f * (crows.length - 1))].t, true) })) : [],
+      corrXTicks: !crows.length ? [] : crows.length < 2 ? [{ label: this.fmtDate(crows[0].t, true) }] : [0, 0.33, 0.66, 1].map(f => ({ label: this.fmtDate(crows[Math.round(f * (crows.length - 1))].t, true) })),
       corrRef: el => { this.cel = el; },
       onCorrMove: e => { const r = this.cel.getBoundingClientRect(); this.setState({ chover: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) }); },
       onCorrLeave: () => this.setState({ chover: null }),
@@ -1131,9 +1204,9 @@ class Component extends DCLogic {
       leaderRows,
       boardHeadline,
       landedLabel: 'Landed ' + dstCcy,
-      boardCaveat: 'Advertised retail prices at quote time from the Wise comparison API — the published shop window, not confirmed fills: real transfers can carry promotional rates, KYC-gated tiers or delivery-side slippage. The USDT row is the same walk as the corridor above, taker fees, all-in. Panel captured ' + this.fmtDate(D.panelT, true) + ' · ' + D.rowsPanel.toLocaleString('en-US') + ' quotes recorded.',
+      boardCaveat: 'Advertised retail prices at quote time from the Wise comparison API — the published shop window, not confirmed fills: real transfers can carry promotional rates, KYC-gated tiers or delivery-side slippage. The USDT row is the same walk as the corridor above, taker fees, all-in. Panel captured ' + this.fmtDate(corrPanel.panelT, true) + ' · ' + corrPanel.rows.toLocaleString('en-US') + ' quotes recorded.',
       findingsIntro: 'The live layer is ' + liveDays + ' days old. These are observations with dates on them, not conclusions — every sentence below is recomputed from the CSVs on each page load, and only appears while its condition still holds.',
-      corrNote: 'Sizes walked against live depth: slippage ' + one(cLast.onSlip) + ' on-ramp, ' + one(cLast.offSlip) + ' off-ramp at this size. Fee tiers ' + (cLast.verified ? 'verified ' + String(cLast.verified).replace(/\|/g, ' · ') : 'as published') + '. Basis legs are signed: a negative on-ramp basis is USDT cheap in ' + (crows.length ? 'SGD' : 'the source currency') + ', which helps the route.',
+      corrNote: (corrSparse ? (C.hours || 0) + (C.hours === 1 ? ' capture' : ' captures') + ' so far for this corridor — the chart shows every point collected, with no line drawn between them and nothing filled in. ' : '') + 'Sizes walked against live depth: slippage ' + one(cLast.onSlip) + ' on-ramp, ' + one(cLast.offSlip) + ' off-ramp at this size. Fee tiers ' + (cLast.verified ? 'verified ' + String(cLast.verified).replace(/\|/g, ' · ') : 'as published') + '. Basis legs are signed: a negative on-ramp basis is USDT cheap in ' + (cLast.src || 'the source currency') + ', which helps the route.',
       findings,
       assumedNote: 'A flat ' + (cLast.netFee != null ? cLast.netFee : 1) + '-USDT network fee; exchange fees at published base tiers (' + one(cLast.onFee) + ' on-ramp, ' + one(cLast.offFee) + ' off-ramp), verified against the schedules.',
       feeStamp: D.feeStamp || '',

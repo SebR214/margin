@@ -85,13 +85,14 @@
 <div class="wrap">
   <header>
     <div>
-      <div class="brand">margin.wiki <span>· SGD → PHP corridor</span></div>
-      <div class="sub">Every basis point of a Singapore→Philippines transfer over USDT, sampled hourly. The blockchain is nearly free; the cost lives at the two <b>doors</b> — the on-ramp and off-ramp — plus the fees. Here is the whole stack, versus what the incumbent fiat rail charges the same second.</div>
+      <div class="brand">margin.wiki <span id="brandCorr">· SGD → PHP corridor</span></div>
+      <div class="sub"><span id="subLead">Every basis point of a transfer from Singapore to the Philippines over USDT, sampled hourly.</span> The blockchain is nearly free; the cost lives at the two <b>doors</b> — the on-ramp and off-ramp — plus the fees. Here is the whole stack, versus what the incumbent fiat rail charges the same second.</div>
     </div>
     <a class="back" href="./index.html">← the basis board</a>
   </header>
   <div class="stamp" id="stamp">loading…</div>
 
+  <div class="sizebar" id="corrbar"><span class="lbl">corridor</span></div>
   <div class="sizebar" id="sizebar"><span class="lbl">send amount</span></div>
   <div class="nums" id="nums"></div>
   <div class="verdict" id="verdict"></div>
@@ -111,7 +112,7 @@
 
   <div class="card">
     <h2>The size ladder — worst at remittance sizes</h2>
-    <p class="cap">The flat 1-USDT network fee is a rounding error at scale but dominates a small transfer. S$200 is highlighted.</p>
+    <p class="cap">The flat 1-USDT network fee is a rounding error at scale but dominates a small transfer. <span id="ladderCap">S$200 is highlighted</span>.</p>
     <div style="overflow-x:auto"><table id="ladder"></table></div>
   </div>
 
@@ -133,7 +134,8 @@
 "use strict";
 const SIZES=[200,1000,5000,25000,50000];
 const fmtBps=b=>(b>=0?"+":"−")+Math.abs(b).toFixed(b>=100?0:1)+" bps";
-const money=n=>"S$"+(+n).toLocaleString();
+let srcCcy="SGD";
+const money=n=>(srcCcy==="SGD"?"S$":srcCcy+" ")+(+n).toLocaleString();
 
 function parseCSV(text){
   const rows=[]; let i=0,field="",row=[],q=false,t=text.trim();
@@ -148,6 +150,12 @@ function parseCSV(text){
 }
 
 let bySize={}, histBySize={}, size=5000, newest="";
+// Corridor 1 is the default and stays first. allRows holds every corridor so
+// switching regroups in place rather than refetching samples.csv.
+let allRows=[], corrKeys=[], corridor="SGD->PHP", feeStampText="";
+const PLACE={SGD:"Singapore",PHP:"the Philippines",USD:"the US",MXN:"Mexico"};
+const place=c=>PLACE[c]||c;
+const dstOf=r=>((r&&r.dst)||"").trim();
 
 // Fee verification stamp from data/fee_checks.csv (tools/check_fees.py). Three
 // states and no fourth: verified, UNVERIFIED, or nothing at all. An absent or
@@ -179,31 +187,75 @@ async function loadFeeChecks(){
 }
 
 async function boot(){
-  const rows=parseCSV(await fetch("./data/samples.csv").then(r=>r.text())).filter(r=>r.source_ok==="True");
-  const stamp=feeStamp(await loadFeeChecks());
+  allRows=parseCSV(await fetch("./data/samples.csv").then(r=>r.text())).filter(r=>r.source_ok==="True");
+  feeStampText=feeStamp(await loadFeeChecks());
+  // samples.csv carries every corridor interleaved. Group by the corridor
+  // column: without it one corridor's rows land in another's waterfall.
+  corrKeys=[...new Set(allRows.map(r=>(r.corridor||"").trim()).filter(Boolean))]
+    .sort((a,b)=>a==="SGD->PHP"?-1:b==="SGD->PHP"?1:a<b?-1:1);
+  if(corrKeys.indexOf(corridor)<0) corridor=corrKeys[0];
+  renderCorridors(); selectCorridor(corridor);
+}
+
+// Everything below is scoped to the selected corridor.
+function selectCorridor(key){
+  corridor=key;
+  const rows=allRows.filter(r=>(r.corridor||"").trim()===key);
+  newest=""; bySize={}; histBySize={};
   for(const r of rows){ if(r.ts>newest) newest=r.ts; }
+  const present=[];
   for(const s of SIZES){
     const rs=rows.filter(r=>+r.notional_src===s).sort((a,b)=>a.ts<b.ts?-1:1);
-    histBySize[s]=rs; bySize[s]=rs[rs.length-1];
+    if(!rs.length) continue;            // a size never sampled is absent, not zero
+    histBySize[s]=rs; bySize[s]=rs[rs.length-1]; present.push(s);
   }
+  if(!present.length){                   // honest empty state, never placeholder rows
+    document.getElementById("stamp").innerHTML=`<b>${key.replace("->"," → ")}</b> — no completed samples yet.`;
+    return;
+  }
+  if(present.indexOf(size)<0) size=present[present.length-1];
+  srcCcy=(bySize[size].src||"SGD").trim();
+  const r5=bySize[size];
   const d=new Date(newest.replace(" ","T")), ago=Math.round((Date.now()-d)/6e4);
-  const r5=bySize[5000];
+  const hours=new Set(rows.map(r=>r.ts.slice(0,13))).size;
+  document.getElementById("brandCorr").textContent="· "+key.replace("->"," → ")+" corridor";
+  document.title="margin.wiki — "+key.replace("->","→")+" corridor, decomposed";
   document.getElementById("stamp").innerHTML=
     `<b>updated</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?ago+" min ago":Math.round(ago/60)+" h ago"} · `+
-    `${r5.onramp_venue} → ${r5.offramp_venue} · fees verified ${(r5.fees_verified||"").split("|")[0].split(":")[1]||"—"}`+
-    (stamp?` · ${stamp}`:"");
-  renderSizes(); render();
+    `${r5.onramp_venue} → ${r5.offramp_venue} · fees verified ${(r5.fees_verified||"").replace(/\|/g," · ").replace(/[a-z]+:/g,"")||"—"}`+
+    (feeStampText?` · ${feeStampText}`:"")+
+    // Under three hours there is no trend to read. Say how thin it is rather
+    // than letting a two-point chart imply one.
+    (hours<3?` · <b>${hours} capture${hours===1?"":"s"} so far</b> — every point collected is shown, nothing filled in`:"");
+  document.getElementById("subLead").textContent=
+    "Every basis point of a transfer from "+place(srcCcy)+" to "+place(dstOf(r5))+" over USDT, sampled hourly.";
+  document.getElementById("ladderCap").textContent=money(SIZES[0])+" is highlighted";
+  renderCorridors(); renderSizes(); render();
+  const dst=(r5.dst||"").trim();
   document.getElementById("foot").innerHTML=
-    `On-ramp: ${r5.onramp_venue} (SGD→USDT). Off-ramp: ${r5.offramp_venue} (USDT→PHP, api.pro.coins.ph). `+
+    `On-ramp: ${r5.onramp_venue} (${srcCcy}→USDT). Off-ramp: ${r5.offramp_venue} (USDT→${dst}). `+
     `Incumbent baseline: Wise comparison API. USD mids: open.er-api.com. Maker assumes a fill at top-of-book. `+
     `Enterprise payout pricing is invisible by nature and never estimated. `+
     `<a href="./methodology.html">Methodology &amp; data honesty →</a> · <a href="./index.html">the basis board →</a>`;
+}
+
+function renderCorridors(){
+  const bar=document.getElementById("corrbar");
+  bar.querySelectorAll(".sz").forEach(e=>e.remove());
+  if(corrKeys.length<2){ bar.style.display="none"; return; }
+  for(const k of corrKeys){
+    const b=document.createElement("button");
+    b.className="sz"+(k===corridor?" on":""); b.textContent=k.replace("->"," → ");
+    b.onclick=()=>selectCorridor(k);
+    bar.appendChild(b);
+  }
 }
 
 function renderSizes(){
   const bar=document.getElementById("sizebar");
   bar.querySelectorAll(".sz").forEach(e=>e.remove());
   for(const s of SIZES){
+    if(!bySize[s]) continue;            // never sampled at this size -> no pill
     const b=document.createElement("button");
     b.className="sz"+(s===size?" on":""); b.textContent=money(s); b.onclick=()=>{size=s;renderSizes();render();};
     bar.appendChild(b);
@@ -272,7 +324,7 @@ function drawWaterfall(r){
 }
 
 function drawLadder(){
-  const rows=SIZES.map(s=>bySize[s]);
+  const rows=SIZES.map(s=>bySize[s]).filter(Boolean);
   let h=`<tr><th>Send</th><th>Taker</th><th>Maker</th><th>Incumbent</th><th>Winner</th></tr>`;
   for(const r of rows){
     const s=+r.notional_src, t=+r.cost_bps_taker, m=+r.cost_bps_maker, b=+r.baseline_cost_bps, cw=t<b;
