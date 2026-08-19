@@ -111,6 +111,13 @@
   </div>
 
   <div class="card">
+    <h2>Network paths <span id="paths-size" style="color:var(--faint);font-weight:400"></span></h2>
+    <p class="cap">The chain the USDT crosses on is a priced choice, not a constant: every network both venues support, with the sending venue's published withdrawal fee substituted into the same decomposition above. Cheapest highlighted.</p>
+    <div style="overflow-x:auto"><table id="paths"></table></div>
+    <p class="cap" id="paths-note" style="margin-top:10px"></p>
+  </div>
+
+  <div class="card">
     <h2>The size ladder — worst at remittance sizes</h2>
     <p class="cap">The flat 1-USDT network fee is a rounding error at scale but dominates a small transfer. <span id="ladderCap">S$200 is highlighted</span>.</p>
     <div style="overflow-x:auto"><table id="ladder"></table></div>
@@ -152,7 +159,7 @@ function parseCSV(text){
 let bySize={}, histBySize={}, size=5000, newest="";
 // Corridor 1 is the default and stays first. allRows holds every corridor so
 // switching regroups in place rather than refetching samples.csv.
-let allRows=[], corrKeys=[], corridor="SGD->PHP", feeStampText="";
+let allRows=[], corrKeys=[], corridor="SGD->PHP", feeStampText="", withdrawals=[];
 const PLACE={SGD:"Singapore",PHP:"the Philippines",USD:"the US",MXN:"Mexico"};
 const place=c=>PLACE[c]||c;
 const dstOf=r=>((r&&r.dst)||"").trim();
@@ -189,6 +196,7 @@ async function loadFeeChecks(){
 async function boot(){
   allRows=parseCSV(await fetch("./data/samples.csv").then(r=>r.text())).filter(r=>r.source_ok==="True");
   feeStampText=feeStamp(await loadFeeChecks());
+  withdrawals=await loadWithdrawals();
   // samples.csv carries every corridor interleaved. Group by the corridor
   // column: without it one corridor's rows land in another's waterfall.
   corrKeys=[...new Set(allRows.map(r=>(r.corridor||"").trim()).filter(Boolean))]
@@ -263,7 +271,102 @@ function renderSizes(){
   }
 }
 
+async function loadWithdrawals(){
+  // Optional by design: a 404 is an honest empty path table, not a broken page.
+  try{
+    const r=await fetch("./data/withdrawal_fees.csv");
+    if(!r.ok) return [];
+    const t=await r.text();
+    return t.trim()?parseCSV(t):[];
+  }catch(e){ return []; }
+}
+
+// Venue name as the collector writes it -> venue key in withdrawal_fees.csv.
+const VENUE_KEY={"IndependentReserve":"independentreserve","Coinbase":"coinbase","Bitso":"bitso"};
+
+// A path may only price the deposit leg at zero where the RECEIVING venue
+// publicly states USDT deposits are free, and only for the networks it states.
+// Anything not listed here is excluded rather than assumed — see the PR.
+//
+//   Bitso: bitso.com/fees/transactions lists, in the deposits table,
+//     "USDT (Digital Dollars) (USDT) - {Polygon,Tron,Solana,Ethereum} Network
+//      N Confirmations | Free of charge". Read 2026-08-19.
+//
+//   Coins.ph: NOT listed. coins.ph/fees renders client-side with no fee table
+//     in the document, the help-centre search is JS-rendered, and
+//     api.pro.coins.ph/openapi/wallet/v1/config/getall requires auth
+//     ("You are not authorized to execute this request"). No public statement
+//     of USDT deposit fees or supported networks was found, so SGD->PHP paths
+//     are excluded. One sourced line here enables them.
+const RECEIVER_FREE_DEPOSIT={ bitso:["ethereum","polygon","tron","solana"] };
+
 function netBps(r){ return (+r.network_fee_stable)/((+r.notional_src)/(+r.onramp_vwap))*1e4; }
+
+// Same conversion as netBps, for an arbitrary flat fee in USDT. Kept next to it
+// so the two can never drift apart.
+function feeBps(r,feeUsdt){ return feeUsdt/((+r.notional_src)/(+r.onramp_vwap))*1e4; }
+
+function computePaths(r){
+  // Reuses the shipped decomposition: take the row's all-in taker cost, remove
+  // the network term it was computed with, add this network's measured fee.
+  // Nothing here re-derives basis, fees or slippage.
+  const sender=VENUE_KEY[(r.onramp_venue||"").trim()];
+  const receiver=VENUE_KEY[(r.offramp_venue||"").trim()];
+  const allowed=RECEIVER_FREE_DEPOSIT[receiver]||[];
+  const base=+r.cost_bps_taker-netBps(r);
+  return withdrawals
+    .filter(w=>w.venue===sender && (w.asset||"").toUpperCase()==="USDT"
+             && (w.source_ok||"").trim()==="True" && w.fee_asset_units!==""
+             && allowed.indexOf(w.network)>=0)
+    .map(w=>{ const fee=+w.fee_asset_units, fb=feeBps(r,fee);
+              return {network:w.network, fee, feeBps:fb, allIn:base+fb, url:w.source_url}; })
+    .filter(p=>isFinite(p.allIn))
+    .sort((a,b)=>a.allIn-b.allIn);
+}
+
+function renderPaths(r){
+  const tbl=document.getElementById("paths"), note=document.getElementById("paths-note");
+  document.getElementById("paths-size").textContent="· "+money(size);
+  const paths=computePaths(r);
+  const pending="Further networks pending fee verification.";
+  if(!paths.length){
+    tbl.innerHTML="";
+    // Honest empty state: name what is missing, never a placeholder row.
+    const sender=(r.onramp_venue||"the on-ramp"), receiver=(r.offramp_venue||"the off-ramp");
+    const senderRows=withdrawals.filter(w=>w.venue===VENUE_KEY[(r.onramp_venue||"").trim()]);
+    const senderMeasured=senderRows.some(w=>(w.source_ok||"").trim()==="True");
+    // Each cause gets its own sentence. "No file" is not the same as "the venue
+    // does not publish it", and saying the wrong one would misattribute the gap.
+    const why = !withdrawals.length
+      ? "no withdrawal fees are recorded yet (data/withdrawal_fees.csv is absent or empty)"
+      : !senderRows.length
+      ? `no withdrawal fees are recorded for ${sender}`
+      : !senderMeasured
+      ? `${sender} withdrawal fees are not published (login-gated) and are never guessed here`
+      : `${receiver} does not publicly state USDT deposit fees or supported networks`;
+    note.innerHTML=`No measured path for this corridor — ${why}. ${pending}`;
+    return;
+  }
+  const best=paths[0];
+  let h=`<tr><th>Network</th><th>Withdrawal fee</th><th>Fee at ${money(size)}</th><th>All-in (taker)</th></tr>`;
+  for(const p of paths){
+    h+=`<tr class="${p===best?"hl":""}">
+      <td>${p.network}${p===best?' <span class="tag">cheapest</span>':""}</td>
+      <td>${p.fee} USDT</td>
+      <td>${fmtBps(p.feeBps)}</td>
+      <td>${fmtBps(p.allIn)}</td></tr>`;
+  }
+  tbl.innerHTML=h;
+  // Computed at render time from this row — never written by hand.
+  const base=+r.baseline_cost_bps, rail=r.baseline_provider||"the best fiat rail";
+  const gap=best.allIn-base;
+  let sentence=`Cheapest path is <b>${best.network}</b> at ${fmtBps(best.allIn)} all-in`;
+  sentence+=isFinite(base)
+    ? `, versus ${rail} at ${fmtBps(base)} — ${gap>0?`the rail wins by ${Math.abs(gap).toFixed(0)} bps`:`the USDT route wins by ${Math.abs(gap).toFixed(0)} bps`}.`
+    : `. No fiat rail quoted this size at this sample, so there is nothing to compare against.`;
+  if(paths.length<2) sentence+=" "+pending;
+  note.innerHTML=sentence;
+}
 
 function render(){
   const r=bySize[size], t=+r.cost_bps_taker, m=+r.cost_bps_maker, base=+r.baseline_cost_bps;
@@ -280,6 +383,7 @@ function render(){
     `<div class="split"><span>rail (network fee): <b>${fmtBps(rail)}</b></span><span>doors (execution + peg): <b>${fmtBps(doors)}</b></span></div>`;
   document.getElementById("wf-size").textContent="· "+money(size);
   document.getElementById("hist-size").textContent="· "+money(size);
+  renderPaths(r);
   drawWaterfall(r); drawLadder(); drawHistory();
 }
 

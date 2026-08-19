@@ -361,11 +361,40 @@ def build_rows_withdrawals(ts):
             continue
         fees, url = live.get(venue, ({}, row.get("source_url")))
         published = fees.get(net)
-        err = None if published is not None else (
-            f"network {net} no longer listed for {venue}")
-        out.append(check(ts, venue, "withdrawal", net, recorded_fee, published,
-                         url, err))
+        if published is None:
+            out.append(check(ts, venue, "withdrawal", net, recorded_fee, published,
+                             url, f"network {net} no longer listed for {venue}"))
+            continue
+        out.append(check_withdrawal(ts, venue, net, recorded_fee, published, url))
     return out
+
+
+def check_withdrawal(ts, venue, network, recorded, published, url):
+    """One withdrawal-fee diff, against the recorded CEILING rather than an exact
+    equality.
+
+    Some of these are not fixed schedules: Bitso's Ethereum fee is gas-linked and
+    was observed alternating 0.01/0.02 seconds apart. Recording the observed
+    maximum and going red only when the published fee EXCEEDS it keeps the check
+    loud in the direction that matters -- the route getting more expensive than
+    the site claims -- without a monthly false alarm that trains everyone to
+    ignore a red build. A fee that has fallen is recorded in `error` and stays
+    ok: the recorded number still overstates the cost, never understates it.
+    """
+    row = {"ts_utc": ts, "venue": venue, "leg": "withdrawal", "regime": network,
+           "config_bps": recorded, "published_bps": published, "source_url": url}
+    if recorded is None:
+        row.update(status="parse_fail", error=clean("no recorded fee to compare"))
+    elif published > recorded + 1e-12:
+        row.update(status="mismatch", error=clean(
+            f"published {published} USDT exceeds recorded ceiling {recorded} USDT"))
+    elif published < recorded - 1e-12:
+        row.update(status="ok", error=clean(
+            f"published {published} USDT below recorded ceiling {recorded} USDT "
+            f"(conservative; re-seed to tighten)"))
+    else:
+        row.update(status="ok", error="")
+    return row
 
 
 def build_rows_usdmxn(ts, cfg, now=None):
