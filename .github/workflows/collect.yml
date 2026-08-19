@@ -51,22 +51,36 @@ jobs:
         # A partial pull is a success with source_ok=False holes.
         run: python3 collector_basis.py
 
+      - name: Emit machine-readable snapshot
+        if: always()
+        # Derived from the CSVs the two steps above just wrote, so it runs after
+        # both -- and always(), so a failed collector still refreshes the
+        # snapshot from whatever did land. Exits non-zero only if it cannot
+        # write the file.
+        run: python3 tools/emit_latest.py
+
       - name: Commit samples
         if: always()
         run: |
           git config user.name "margin-collector"
           git config user.email "actions@github.com"
-          git add data/samples.csv data/basis.csv data/providers.csv data/providers_usdmxn.csv
+          git add data/samples.csv data/basis.csv data/providers.csv data/providers_usdmxn.csv data/latest.json
           if git diff --cached --quiet; then
             # Expected on the second fire of an hour the first fire already
-            # captured. "Nothing staged" stopped meaning "rot" the moment the
-            # schedule went twice-hourly, so ask the real question instead:
-            # is the newest row still recent? Exits 1 if not (bash -e).
-            echo "nothing staged -- hour already captured, checking freshness"
-            python3 tools/check_freshness.py
-            exit 0
+            # captured. latest.json is a pure function of the data (no wall
+            # clock in it), so a no-op run really does stage nothing -- this
+            # branch stays reachable instead of being papered over by a
+            # timestamp-only diff.
+            echo "nothing staged -- hour already captured"
+          else
+            # commit BEFORE rebasing: git refuses `pull --rebase` with a staged index.
+            git commit -m "sample $(date -u +%Y-%m-%dT%H:%MZ)"
+            git pull --rebase origin ${GITHUB_REF_NAME}
+            git push origin ${GITHUB_REF_NAME}
           fi
-          # commit BEFORE rebasing: git refuses `pull --rebase` with a staged index.
-          git commit -m "sample $(date -u +%Y-%m-%dT%H:%MZ)"
-          git pull --rebase origin ${GITHUB_REF_NAME}
-          git push origin ${GITHUB_REF_NAME}
+          # Rot guard runs on EVERY fire, not just the ones that staged nothing:
+          # whether the data is rotting has nothing to do with what this
+          # particular run happened to stage. Runs LAST so a stale-data failure
+          # still leaves the rows committed and pushed -- loud, but never at the
+          # cost of a sample. Exits 1 if the newest row is too old (bash -e).
+          python3 tools/check_freshness.py
