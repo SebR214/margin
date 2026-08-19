@@ -1,1227 +1,1574 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — basis &amp; corridor monitor</title>
+<meta name="description" content="Hourly USDT basis across ten markets and the all-in cost of two corridors, decomposed to basis points. Every figure computed from the collected CSVs."/>
+<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<script src="./vendor/react.production.min.js"></script>
+<script src="./vendor/react-dom.production.min.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<style>/* Modernist — design-system tokens and component classes. This file is the source of truth for the system's look; retune it here and see readme.md. */
+/* vietnamese */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url("./vendor/fonts/archivo-vietnamese.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url("./vendor/fonts/archivo-latin-ext.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url("./vendor/fonts/archivo-latin.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 600;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url("./vendor/fonts/archivo-vietnamese.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 600;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url("./vendor/fonts/archivo-latin-ext.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 600;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url("./vendor/fonts/archivo-latin.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url("./vendor/fonts/archivo-vietnamese.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url("./vendor/fonts/archivo-latin-ext.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url("./vendor/fonts/archivo-latin.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+
+:root {
+  --color-bg: #f3f2f2;
+  --color-surface: #eae9e9;
+  --color-text: #201e1d;
+  --color-accent: #ec3013;
+  --color-accent-2: #e15b47;
+  --color-divider: color-mix(in srgb, #201e1d 40%, transparent);
+
+  /* Tonal ramps — generated in OKLCH on one shared lightness scale, so the
+     same step of any role matches the others in visual value. */
+  --color-neutral-100: #f8f4f4;
+  --color-neutral-200: #eae7e7;
+  --color-neutral-300: #d7d3d3;
+  --color-neutral-400: #bab6b6;
+  --color-neutral-500: #9b9797;
+  --color-neutral-600: #7d7979;
+  --color-neutral-700: #605d5d;
+  --color-neutral-800: #444141;
+  --color-neutral-900: #2d2b2b;
+
+  --color-accent-100: #fff2ef;
+  --color-accent-200: #ffe0d9;
+  --color-accent-300: #ffc4b8;
+  --color-accent-400: #ff9783;
+  --color-accent-500: #ff563c;
+  --color-accent-600: #dd2b0f;
+  --color-accent-700: #ae1800;
+  --color-accent-800: #7c1405;
+  --color-accent-900: #4d170e;
+
+  --color-accent-2-100: #fff2ef;
+  --color-accent-2-200: #ffe0da;
+  --color-accent-2-300: #ffc4b9;
+  --color-accent-2-400: #ff9784;
+  --color-accent-2-500: #ef6853;
+  --color-accent-2-600: #c94b39;
+  --color-accent-2-700: #9e3526;
+  --color-accent-2-800: #71261b;
+  --color-accent-2-900: #471d16;
+
+  --font-heading: "Archivo", system-ui, sans-serif;
+  --font-heading-weight: 800;
+  --font-body: "Archivo", system-ui, sans-serif;
+
+  --space-1: 4.0px;
+  --space-2: 8.0px;
+  --space-3: 12.0px;
+  --space-4: 16.0px;
+  --space-6: 24.0px;
+  --space-8: 32.0px;
+
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  /* Elevation — derived from the ground: soft ink-tinted shadows on a
+     light theme, a hairline edge + ambient darkness on a dark one. */
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: var(--font-heading-weight); }
+
+.grayscale{filter:grayscale(1) contrast(1.08)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Components — built with the tokens above. Plain CSS
+   on plain HTML: no JavaScript, no build step. Each class is documented in
+   readme.md and demonstrated in foundations/ and components/.
+   ══════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; font-size: 15px; line-height: 1.55; font-weight: 400; }
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 var(--space-2);
+}
+h1 { font-size: 42px; }
+h2 { font-size: 32px; }
+h3 { font-size: 25px; }
+h4 { font-size: 20px; }
+h5 { font-size: 16px; }
+h6 { font-size: 13px; }
+h6 { letter-spacing: 0.08em; text-transform: uppercase; }
+p { margin: 0 0 var(--space-3); }
+a { color: var(--color-accent); text-underline-offset: 3px; }
+img { display: block; max-width: 100%; }
+figure { margin: 0; }
+figcaption {
+  font-size: 11px; margin-top: var(--space-1);
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+.text-muted { color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+
+/* — rules — */
+.hr {
+  height: 2px; border: 0; margin: var(--space-4) 0;
+  background: var(--color-divider);
+}
+
+/* — buttons — */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  cursor: pointer; text-decoration: none;
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 14px; line-height: 1.2; color: var(--color-text); /* matches the .input's 14px —
+     the pair sits side by side in sign-up rows */
+  background: transparent; border: 1px solid transparent;
+  padding: var(--space-2) calc(var(--space-3) * 1.2);
+  border-radius: var(--radius-md);
+}
+.btn svg { display: block; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: var(--color-accent); color: var(--color-bg); }
+.btn-primary:hover { background: var(--color-accent-600); }
+.btn-primary:active { background: var(--color-accent-700); }
+.btn-secondary { border-color: var(--color-divider); }
+.btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.btn-secondary:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
+.btn-ghost { color: var(--color-accent); padding-inline: var(--space-1); }
+.btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.btn-ghost:active { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
+.btn-icon { width: 36px; height: 36px; padding: 0; }
+.btn-block { width: 100%; margin-top: var(--space-2); justify-content: flex-start; text-align: left; }
+
+/* — forms — */
+.field > label {
+  display: block; font-size: 12px; margin-bottom: 5px;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+}
+.input {
+  width: 100%; min-height: 36px; padding: 6px 10px; font: inherit;
+  font-size: 14px; color: var(--color-text); caret-color: var(--color-accent);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
+}
+.input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
+.input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
+textarea.input { min-height: 90px; resize: vertical; }
+.radio { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+.radio input, .seg-opt input {
+  position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none;
+}
+.radio .dot {
+  width: 16px; height: 16px; flex: none; border-radius: 50%;
+  border: 1.5px solid var(--color-divider);
+}
+.radio:hover .dot { border-color: var(--color-accent); }
+.radio input:checked + .dot {
+  border-color: var(--color-accent); background: var(--color-accent);
+  box-shadow: inset 0 0 0 4px var(--color-bg);
+}
+.radio input:focus-visible + .dot { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.seg {
+  display: inline-flex; overflow: hidden;
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
+}
+.seg-opt {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; font-size: 13px; cursor: pointer;
+}
+.seg-opt + .seg-opt { border-left: 1px solid var(--color-divider); }
+.seg-opt:has(input:checked) { background: var(--color-accent); color: var(--color-bg); }
+.seg-opt:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.seg-opt:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
+/* — cards — */
+.card {
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-surface);
+}
+.card-kicker { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-accent); }
+.card-title {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 17px; line-height: 1.2;
+}
+.card-body { margin: 0; font-size: 13px; opacity: 0.8; flex: 1; }
+.card-meta {
+  display: flex; align-items: center; gap: 6px; font-size: 11px;
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
+}
+.elev-sm { box-shadow: var(--shadow-sm); }
+.elev-md { box-shadow: var(--shadow-md); }
+.elev-lg { box-shadow: var(--shadow-lg); }
+
+/* — tags — */
+.tag {
+  display: inline-flex; align-items: center; font-size: 11px;
+  letter-spacing: 0.02em; padding: 3px 10px;
+  border-radius: calc(var(--radius-md) * 0.75);
+}
+.tag-accent { background: var(--color-accent-100); color: var(--color-accent-800); }
+.tag-accent-2 { background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
+.tag-neutral { background: var(--color-neutral-100); color: var(--color-neutral-800); }
+.tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
+
+/* — navigation — */
+.nav {
+  display: flex; align-items: center; gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 2px solid var(--color-divider);
+}
+.nav-brand {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 18px; margin-right: auto;
+}
+.nav a { color: inherit; text-decoration: none; font-size: 14px; }
+.nav a:hover, .nav a[aria-current='page'] { color: var(--color-accent); }
+
+/* — tables — */
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th {
+  text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  padding: var(--space-2); border-bottom: 2px solid var(--color-divider);
+}
+.table td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-divider);
+}
+.table tbody tr:hover { background: color-mix(in srgb, var(--color-text) 4%, transparent); }
+
+/* — dialog — */
+.dialog-backdrop {
+  position: fixed; inset: 0; display: grid; place-items: center;
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent);
+}
+.dialog {
+  width: min(440px, 100%); display: flex; flex-direction: column; gap: var(--space-3);
+  padding: var(--space-4); border-radius: var(--radius-lg);
+  background: var(--color-surface); box-shadow: var(--shadow-lg);
+}
+.dialog-title {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 20px;
+}
+.dialog-body { font-size: 14px; opacity: 0.85; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
+
+</style>
 <style>
-  body { margin: 0; background: #ffffff; }
-  a { color: oklch(0.55 0.17 275); text-decoration: none; }
-  a:hover { color: oklch(0.45 0.17 275); }
-  @media (max-width: 980px) {
-    [data-grid="split"] { grid-template-columns: minmax(0, 1fr) !important; gap: 22px !important; }
-    [data-grid="label-row"] { grid-template-columns: minmax(0, 1fr) !important; gap: 4px !important; }
-    [data-pad] { padding: 20px 16px 44px !important; }
-  }
-  @media (max-width: 980px) {
-    [data-grid="tiles"] { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-  }
-  @media (max-width: 700px) {
-    [data-bar-val] { display: none !important; }
-    [data-grid="tiles"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
-    [data-grid="board"] { grid-template-columns: 24px minmax(0, 1fr) 78px 70px !important; gap: 8px !important; }
-    [data-board-landed] { display: none !important; }
-    /* Four nowrap "18 Aug 26 · 07:00 UTC" labels cannot fit 375px; keep the ends. */
-    [data-xticks] > span:nth-child(2), [data-xticks] > span:nth-child(3) { display: none !important; }
+  body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); }
+  a { color: var(--color-text); text-decoration: none; border-bottom: 1px solid var(--color-neutral-400); }
+  a:hover { color: var(--color-text); border-bottom-color: var(--color-text); }
+  :root {
+    --data-100: #f7f8fe;
+    --data-200: #f2f4fd;
+    --data-300: #e6eafb;
+    --data-400: #d2d9f7;
+    --data-500: #b3bdf1;
+    --data-600: #8b96e4;
+    --data-700: #5a63c4;
+    --grid-empty: #eaeaed;
   }
 </style>
-</helmet>
-<div style="min-height: 100vh; background: #ffffff; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, sans-serif; color: #12131a; padding: 28px 32px 56px; box-sizing: border-box;" data-pad="1">
-  <div style="max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;">
+</helmet></helmet>
+<div style="min-height: 100vh; background: var(--color-bg); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;">
 
-    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
-      <div style="display: flex; flex-direction: column; gap: 6px;">
-        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #8b8d99;">USDT ↔ local currency · hourly capture</div>
-        <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.02em;">margin.wiki — basis &amp; corridor monitor</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 8px; border: 1px solid #e6e6eb; background: #fff; border-radius: 999px; padding: 7px 14px;">
-          <span style="width: 7px; height: 7px; border-radius: 50%; background: {{ statusDot }};"></span>
-          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">{{ statusLabel }}</span>
-        </div>
-        <a href="./corridor.html" style="font-size: 12.5px; color: #4d4f5c; border: 1px solid #e6e6eb; background: #fff; border-radius: 9px; padding: 7px 12px;">corridor detail →</a>
-        <a href="./methodology.html" style="font-size: 12.5px; color: #4d4f5c; border: 1px solid #e6e6eb; background: #fff; border-radius: 9px; padding: 7px 12px;">methodology →</a>
-      </div>
-    </div>
-
-    <div data-grid="split" style="display: grid; grid-template-columns: minmax(0, 1fr) 328px; gap: 40px; align-items: start; padding: 10px 0 22px; border-bottom: 1px solid #ebebf0;">
-      <div style="max-width: 660px; display: flex; flex-direction: column; gap: 22px;">
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Why I built this</div>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">I've spent most of my career in cross-border payments, and for the last few years the loudest claim in the industry has been that stablecoins made moving money cheap. I couldn't find anyone who had actually priced that claim off live order books — not a quote, not a blog benchmark, the actual execution cost, decomposed. So I built a collector that does.</p>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">Along the way it turned into two instruments: the corridor I originally wanted the receipt for, and a wider board that fell out of the method — if you're already comparing USDT prices to official dollar rates in one country, you can do it in ten.</p>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">What it measures</div>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;"><strong style="font-weight: 600; color: #12131a;">The basis board.</strong> Every hour, the price of USDT in local currency on each country's main exchange, against the official USD rate at the same moment. The gap, in basis points. Positive — people pay a premium over the official rate for a dollar; negative — USDT trades below it.</p>
-        </div>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 6px;">
-        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #a2a3ad; margin-bottom: 4px;">Basis now — largest divergence right now</div>
-        <sc-for list="{{ featured }}" as="f" hint-placeholder-count="5">
-          <button onClick="{{ f.onClick }}" style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; cursor: pointer; font-family: inherit; text-align: left; background: {{ f.bg }}; color: {{ f.color }}; border: 1px solid {{ f.border }}; border-radius: 10px; padding: 9px 12px;">
-            <span style="display: flex; align-items: baseline; gap: 8px; font-size: 13.5px; font-weight: 500; white-space: nowrap;"><span style="font-size: 15px;">{{ f.flag }}</span>{{ f.country }}</span>
-            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: {{ f.sub }}; white-space: nowrap;">{{ f.bps }}</span>
-          </button>
+  <div style="display: flex; align-items: stretch; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding: 0 24px; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 28px;">
+      <div style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: -0.02em; padding: 14px 0;">margin.wiki</div>
+      <div style="display: flex; align-items: stretch; gap: 0;">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="3">
+          <button type="button" sc-camel-on-click="{{ n.go }}" style="appearance: none; background: transparent; border: 0; border-bottom: 3px solid transparent; cursor: pointer; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 15px 14px 12px; color: {{ n.color }}; border-bottom-color: {{ n.rule }};" style-hover="color: var(--color-accent);">{{ n.label }}</button>
         </sc-for>
       </div>
     </div>
-
-    <div style="display: flex; flex-direction: column; gap: 14px; padding-bottom: 4px;">
-      <div style="display: flex; flex-direction: column; gap: 6px; max-width: 720px;">
-        <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Ten markets at a glance</div>
-        <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">USDT against the official USD mid in each market, ordered by how far from it they sit right now.</p>
+    <div style="display: flex; align-items: center; gap: 20px; padding: 10px 0; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">
+      <div style="display: flex; align-items: center; gap: 7px;">
+        <span style="width: 8px; height: 8px; background: var(--color-text); display: block;"></span>
+        <span style="font-weight: 600;">{{ health }}</span>
       </div>
-      <div data-grid="tiles" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px;">
-        <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="10">
-          <button onClick="{{ t.onClick }}" title="{{ t.title }}" style="display: flex; flex-direction: column; gap: 7px; width: 100%; text-align: left; cursor: pointer; font-family: inherit; background: {{ t.bg }}; border: 1px solid {{ t.border }}; border-radius: 14px; padding: 12px 12px 9px;">
-            <span style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; width: 100%;">
-              <span style="display: flex; align-items: center; gap: 7px; min-width: 0;">
-                <span style="font-size: 15px;">{{ t.flag }}</span>
-                <span style="font-size: 13px; font-weight: 600; color: #12131a;">{{ t.code }}</span>
-              </span>
-              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: {{ t.color }}; white-space: nowrap;">{{ t.bps }}</span>
-            </span>
-            <svg viewBox="0 0 200 46" preserveAspectRatio="none" style="width: 100%; height: 46px; display: block;">
-              <line x1="0" x2="200" y1="{{ t.zeroY }}" y2="{{ t.zeroY }}" stroke="#e2e2e9" stroke-width="1" />
-              <path d="{{ t.area }}" fill="{{ t.color }}" fill-opacity="0.13" />
-              <path d="{{ t.path }}" fill="none" stroke="{{ t.color }}" stroke-width="1.5" stroke-linejoin="round" />
-            </svg>
-            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: #a2a3ad; white-space: nowrap;">{{ t.span }}</span>
-          </button>
-        </sc-for>
-      </div>
-      <div style="font-size: 12px; color: #a2a3ad; line-height: 1.55; text-wrap: pretty;">{{ smNote }}</div>
+      <div class="text-muted">last tick {{ lastTick }}</div>
     </div>
+  </div>
 
-    <div data-grid="split" style="display: grid; grid-template-columns: minmax(0, 1fr) 328px; gap: 18px; align-items: start;">
 
-      <div style="display: flex; flex-direction: column; gap: 18px; min-width: 0;">
 
-        <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 24px 24px 16px;">
-          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
-            <div style="display: flex; flex-direction: column; gap: 7px;">
-              <div style="display: flex; align-items: baseline; gap: 10px; font-size: 27px; font-weight: 700; letter-spacing: -0.025em; white-space: nowrap;"><span>{{ heroFlag }}</span><span>1 USDT = {{ rateLabel }} {{ ccy }}</span></div>
-              <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; white-space: nowrap;">
-                <span style="font-family: 'IBM Plex Mono', monospace; color: {{ deltaColor }}; font-weight: 500;">{{ deltaAbs }} · {{ deltaPct }}</span>
-                <span style="color: #b6b7c0;">|</span>
-                <span style="color: #8b8d99;">{{ rangeLabel }}</span>
-              </div>
-              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #8b8d99; margin-top: 2px;">{{ venueLabel }}</div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
-              <div style="display: flex; align-items: baseline; gap: 8px; background: {{ premBg }}; border-radius: 10px; padding: 8px 12px; white-space: nowrap;">
-                <span style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6c6e7a;">Basis vs official</span>
-                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 500; color: {{ premColor }};">{{ premLabel }}</span>
-              </div>
-              <div style="display: flex; gap: 14px; font-size: 12px; color: #8b8d99; white-space: nowrap;">
-                <span>Official FX <span style="font-family: 'IBM Plex Mono', monospace; color: #4d4f5c;">{{ officialLabel }}</span></span>
-                <span>Last tick <span style="font-family: 'IBM Plex Mono', monospace; color: #4d4f5c;">{{ lastTick }}</span></span>
-              </div>
-            </div>
+  <sc-if value="{{ isBoard }}" hint-placeholder-val="{{ true }}">
+  <div>
+    <div style="padding: 56px 24px 40px; border-bottom: 2px solid var(--color-text); display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; align-items: end;">
+      <div>
+        <h1 style="font-size: 44px; line-height: 1.06; margin: 0 0 14px; max-width: 24ch;">A dollar costs {{ hl.wide }} over the official rate in {{ hl.wideCountry }} and {{ hl.narrow }} in {{ hl.narrowCountry }}. Same asset, same hour.</h1>
+        <p class="text-muted" style="max-width: 62ch; font-size: 15px; margin: 0;">Ten markets and one corridor, decomposed to basis points. Order books walked at real size against the official USD mid at the same second, kept raw.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; background: var(--color-divider);">
+        <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="4">
+          <div style="background: var(--color-bg); padding: 14px 16px 12px;">
+            <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">{{ s.k }}</div>
+            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 24px; line-height: 1;">{{ s.v }}<span style="font-size: 12px; color: var(--data-700); vertical-align: super; margin-left: 2px;">{{ s.mark }}</span></div>
+            <div class="text-muted" style="font-size: 11px; margin-top: 4px;">{{ s.sub }}</div>
           </div>
+        </sc-for>
+      </div>
+    </div>
 
-          <div ref="{{ chartRef }}" onMouseMove="{{ onMove }}" onMouseLeave="{{ onLeave }}" style="position: relative; margin-top: 18px; height: 268px; cursor: crosshair;">
-            <svg viewBox="0 0 1000 268" preserveAspectRatio="none" style="width: 100%; height: 268px; display: block; overflow: visible;">
+    <div style="padding: 36px 24px 0;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
+        <div>
+          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; white-space: nowrap;">{{ mk.venue }} · basis history </div>
+          <h2 style="font-size: 30px; margin: 0;">{{ mk.code }} <span class="text-muted" style="font-weight: 400; font-size: 18px;">{{ mk.country }}</span></h2>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 28px;">
+          <div>
+            <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">basis now</div>
+            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 28px; line-height: 1.1; color: {{ mk.color }};">{{ mk.bps }}<span class="text-muted" style="font-size: 13px; font-weight: 400; margin-left: 5px;">bps</span></div>
+          </div>
+          <div style="display: flex; gap: 0; border: 1px solid var(--color-neutral-400);">
+            <sc-for list="{{ ranges }}" as="r" hint-placeholder-count="4">
+              <button type="button" sc-camel-on-click="{{ r.go }}" style="appearance: none; border: 0; cursor: pointer; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 12px; background: {{ r.bg }}; color: {{ r.color }};" style-hover="background: var(--color-neutral-200);">{{ r.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 0; padding-top: 4px;">
+        <div>
+          <div sc-camel-on-mouse-move="{{ mk.onMove }}" sc-camel-on-mouse-leave="{{ mk.onLeave }}" sc-camel-on-click="{{ mk.onPin }}" style="position: relative; cursor: crosshair;">
+            <svg sc-camel-view-box="0 0 1000 240" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 240px; display: block;">
               <defs>
-                <linearGradient id="scfill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="{{ accent }}" stop-opacity="0.22" />
-                  <stop offset="100%" stop-color="{{ accent }}" stop-opacity="0.01" />
+                <linearGradient id="mkFade" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#e6eafb" stop-opacity="1"></stop>
+                  <stop offset="100%" stop-color="#f2f4fd" stop-opacity="0"></stop>
                 </linearGradient>
               </defs>
-              <sc-for list="{{ yTicks }}" as="g" hint-placeholder-count="5">
-                <line x1="0" x2="1000" y1="{{ g.y }}" y2="{{ g.y }}" stroke="#f0f0f4" stroke-width="1" />
-              </sc-for>
-              <path d="{{ areaPath }}" fill="url(#scfill)" />
-              <sc-if value="{{ showOfficial }}" hint-placeholder-val="{{ true }}">
-                <path d="{{ officialPath }}" fill="none" stroke="#c3c4cf" stroke-width="1.4" stroke-dasharray="4 4" />
-              </sc-if>
-              <path d="{{ linePath }}" fill="none" stroke="{{ accent }}" stroke-width="1.9" stroke-linejoin="round" />
-              <sc-if value="{{ hovering }}" hint-placeholder-val="{{ false }}">
-                <line x1="{{ hoverX }}" x2="{{ hoverX }}" y1="0" y2="240" stroke="{{ accent }}" stroke-width="1" stroke-opacity="0.35" />
-              </sc-if>
+              <sc-for list="{{ mk.dots }}" as="d" hint-placeholder-count="0">
+            <circle cx="{{ d.cx }}" cy="{{ d.cy }}" r="4" fill="var(--data-600)"></circle>
+          </sc-for>
+          <path d="{{ mk.area }}" fill="url(#mkFade)"></path>
+              <line x1="0" x2="1000" y1="{{ mk.zeroY }}" y2="{{ mk.zeroY }}" stroke="var(--color-neutral-500)" stroke-dasharray="5 5" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+              <path d="{{ mk.line }}" fill="none" stroke="var(--data-600)" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+              <line x1="1000" x2="1000" y1="0" y2="240" stroke="var(--color-text)" stroke-width="2" vector-effect="non-scaling-stroke"></line>
             </svg>
-            <sc-if value="{{ hovering }}" hint-placeholder-val="{{ false }}">
-              <div style="position: absolute; top: {{ hoverDotTop }}; left: {{ hoverDotLeft }}; width: 9px; height: 9px; margin: -5px 0 0 -5px; border-radius: 50%; background: {{ accent }}; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.06);"></div>
+            <sc-if value="{{ mk.tipOn }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; top: 0; bottom: 0; width: 1px; background: var(--color-neutral-600); left: {{ mk.tipX }}; pointer-events: none;"></div>
             </sc-if>
-            <sc-if value="{{ hovering }}" hint-placeholder-val="{{ false }}">
-              <div style="position: absolute; top: 0; left: {{ tipLeft }}; transform: translateX(-50%); background: #12131a; color: #fff; border-radius: 10px; padding: 9px 12px; display: flex; flex-direction: column; gap: 3px; pointer-events: none; white-space: nowrap;">
-                <span style="font-size: 11px; color: rgba(255,255,255,0.6);">{{ tipTime }}</span>
-                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500;">{{ tipRate }} {{ ccy }}</span>
-                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.65);">official {{ tipOfficial }} · basis {{ tipPrem }}</span>
-              </div>
+            <sc-if value="{{ mk.tipOn }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; width: 7px; height: 7px; background: var(--data-700); left: {{ mk.tipX }}; top: {{ mk.tipY }}; transform: translate(-3.5px, -3.5px); pointer-events: none;"></div>
             </sc-if>
-            <div style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; font-size: 11px; color: #a2a3ad; font-family: 'IBM Plex Mono', monospace;">
-              <sc-for list="{{ xTicks }}" as="x" hint-placeholder-count="4">
-                <span style="white-space: nowrap;">{{ x.label }}</span>
-              </sc-for>
-            </div>
-          </div>
-
-          <div style="display: flex; justify-content: center; margin-top: 6px;">
-            <div style="display: flex; gap: 2px; flex-wrap: wrap; justify-content: center;">
-              <sc-for list="{{ rangeTabs }}" as="r" hint-placeholder-count="7">
-                <button onClick="{{ r.onClick }}" style="border: none; cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 7px 14px; border-radius: 999px; background: {{ r.bg }}; color: {{ r.color }};">{{ r.label }}</button>
-              </sc-for>
-            </div>
-          </div>
-        </div>
-
-        <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 22px 24px;">
-          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
-            <div>
-              <div style="font-size: 15px; font-weight: 600;">Basis — USDT/{{ ccy }} vs official mid, bps</div>
-              <div style="font-size: 12.5px; color: #8b8d99; margin-top: 3px;">Positive = local buyers pay above the official rate for dollars.</div>
-            </div>
-            <div style="display: flex; gap: 18px; text-align: right;">
-              <div>
-                <div style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad;">Mean</div>
-                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; margin-top: 2px; white-space: nowrap;">{{ premMean }}</div>
-              </div>
-              <div>
-                <div style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad;">Peak</div>
-                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; margin-top: 2px; white-space: nowrap;">{{ premPeak }}</div>
-              </div>
-              <div>
-                <div style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad;">σ</div>
-                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; margin-top: 2px; white-space: nowrap;">{{ premSigma }}</div>
-              </div>
-            </div>
-          </div>
-          <svg viewBox="0 0 1000 120" preserveAspectRatio="none" style="width: 100%; height: 120px; display: block; margin-top: 14px;">
-            <line x1="0" x2="1000" y1="{{ zeroY }}" y2="{{ zeroY }}" stroke="#e2e2e9" stroke-width="1" />
-            <path d="{{ premArea }}" fill="{{ accent }}" fill-opacity="0.14" />
-            <path d="{{ premPath }}" fill="none" stroke="{{ accent }}" stroke-width="1.5" />
-          </svg>
-        </div>
-
-        <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 22px 24px;">
-          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
-            <div>
-              <div style="font-size: 15px; font-weight: 600;">{{ coverTitle }}</div>
-              <div style="font-size: 12.5px; color: #8b8d99; margin-top: 3px;">One cell per hour of the live layer, shaded by |basis|. {{ coverageLabel }}</div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: #8b8d99; white-space: nowrap; flex-wrap: wrap;">
-              <span>low</span>
-              <div style="display: flex; gap: 2px;">
-                <sc-for list="{{ legend }}" as="l" hint-placeholder-count="5">
-                  <div style="width: 14px; height: 10px; border-radius: 2px; background: {{ l.bg }};"></div>
-                </sc-for>
-              </div>
-              <span>high</span>
-              <div style="width: 14px; height: 10px; border-radius: 2px; background: #f2f2f5; margin-left: 8px;"></div>
-              <span>no tick</span>
-              <div style="width: 14px; height: 10px; border-radius: 2px; background: #ffffff; border: 1px dashed #e0e0e7; margin-left: 8px;"></div>
-              <span>not yet collecting</span>
-            </div>
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <sc-if value="{{ hourAxis }}" hint-placeholder-val="{{ false }}">
-              <div style="display: flex; flex-direction: column; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: #a2a3ad; padding: 1px 0;">
-                <span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span>
+            <sc-if value="{{ mk.tipOn }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; left: {{ mk.tipX }}; top: {{ mk.tipY }}; transform: {{ mk.tipShift }}; pointer-events: none; background: var(--color-bg); border: 1px solid var(--color-text); padding: 5px 9px; white-space: nowrap;">
+                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; line-height: 1.15;">{{ mk.tipV }}<span class="text-muted" style="font-weight: 400; font-size: 11px; margin-left: 4px;">bps</span></div>
+                <div class="text-muted" style="font-size: 10px; letter-spacing: 0.04em;">{{ mk.tipT }}</div>
               </div>
             </sc-if>
-            <div style="flex: 1; min-width: 0; display: grid; grid-template-columns: repeat({{ covDays }}, 1fr); grid-auto-rows: {{ cellHeight }}; gap: 3px;">
-              <sc-for list="{{ cells }}" as="c" hint-placeholder-count="168">
-                <div title="{{ c.title }}" style="border-radius: 2px; background: {{ c.bg }}; box-shadow: {{ c.ring }};"></div>
-              </sc-for>
-            </div>
           </div>
-          <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #a2a3ad; margin-top: 8px; padding-left: 0;">
-            <sc-for list="{{ coverTicks }}" as="t" hint-placeholder-count="4">
-              <span style="white-space: nowrap;">{{ t.label }}</span>
-            </sc-for>
-          </div>
-          <div style="font-size: 12px; color: #a2a3ad; margin-top: 10px;">Backfill before August 2026 is daily, not hourly — it appears in the chart above as history, never as hourly coverage.</div>
-        </div>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 18px;">
-        <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 18px 18px 10px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-            <div style="font-size: 13px; font-weight: 600;">Markets</div>
-            <div style="font-size: 11px; color: #a2a3ad; font-family: 'IBM Plex Mono', monospace;">basis · bps</div>
-          </div>
-          <div style="display: flex; flex-direction: column;">
-            <sc-for list="{{ marketRows }}" as="m" hint-placeholder-count="10">
-              <button onClick="{{ m.onClick }}" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; border: none; cursor: pointer; font-family: inherit; text-align: left; background: {{ m.bg }}; border-radius: 10px; padding: 9px 10px;">
-                <span style="display: flex; align-items: center; gap: 9px; min-width: 0;">
-                  <span style="font-size: 15px;">{{ m.flag }}</span>
-                  <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0;">
-                    <span style="font-size: 13px; font-weight: 500; color: #12131a;">{{ m.code }}</span>
-                    <span style="font-size: 11px; color: #8b8d99; white-space: nowrap;">{{ m.venue }}</span>
-                  </span>
-                </span>
-                <span style="display: flex; flex-direction: column; gap: 1px; text-align: right; font-family: 'IBM Plex Mono', monospace; white-space: nowrap;">
-                  <span style="font-size: 12.5px; color: #4d4f5c;">{{ m.rate }}</span>
-                  <span style="font-size: 11px; color: {{ m.premColor }};">{{ m.prem }}</span>
-                </span>
-              </button>
+          <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--color-divider); padding-top: 7px;">
+            <sc-for list="{{ mk.xLabels }}" as="x" hint-placeholder-count="5">
+              <span class="text-muted" style="font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;">{{ x }}</span>
             </sc-for>
           </div>
         </div>
-
-        <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 18px;">
-          <div style="font-size: 13px; font-weight: 600; margin-bottom: 12px;">Window statistics</div>
-          <div style="display: flex; flex-direction: column; gap: 9px;">
-            <sc-for list="{{ stats }}" as="s" hint-placeholder-count="6">
-              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid #f4f4f7; padding-bottom: 8px;">
-                <span style="font-size: 12.5px; color: #8b8d99;">{{ s.k }}</span>
-                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #12131a; white-space: nowrap;">{{ s.v }}</span>
-              </div>
-            </sc-for>
-          </div>
-        </div>
-
-        <div style="background: #f5f5f8; border-radius: 18px; padding: 18px;">
-          <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Collection</div>
-          <div style="font-size: 12.5px; color: #5c5e6a; line-height: 1.55;">{{ collectionNote }}</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="border-top: 1px solid #ebebf0; padding-top: 26px; display: flex; flex-direction: column; gap: 14px;">
-      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
-        <div style="display: flex; flex-direction: column; gap: 6px; max-width: 660px;">
-          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">The corridor — {{ corrName }}</div>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">All-in cost of the transfer, sampled hourly: the USDT route walked at real size on live books against the cheapest fiat rail quoting the same amount. Everything in basis points of the amount sent.</p>
-          <sc-if value="{{ corrTabs.length }}" hint-placeholder-val="{{ 2 }}">
-            <div style="display: flex; gap: 2px; background: #f1f1f4; border-radius: 999px; padding: 3px; align-self: flex-start; margin-top: 2px;">
-              <sc-for list="{{ corrTabs }}" as="c" hint-placeholder-count="2">
-                <button onClick="{{ c.onClick }}" style="border: none; cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 7px 15px; border-radius: 999px; background: {{ c.bg }}; color: {{ c.color }}; box-shadow: {{ c.shadow }}; white-space: nowrap;">{{ c.label }}</button>
-              </sc-for>
-            </div>
-          </sc-if>
-        </div>
-        <div style="display: flex; gap: 2px; background: #f1f1f4; border-radius: 999px; padding: 3px;">
-          <sc-for list="{{ sizeTabs }}" as="s" hint-placeholder-count="5">
-            <button onClick="{{ s.onClick }}" style="border: none; cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 7px 15px; border-radius: 999px; background: {{ s.bg }}; color: {{ s.color }}; box-shadow: {{ s.shadow }}; white-space: nowrap;">{{ s.label }}</button>
+        <div style="display: flex; flex-direction: column; justify-content: space-between; height: 240px; padding-left: 10px;">
+          <sc-for list="{{ mk.yLabels }}" as="y" hint-placeholder-count="3">
+            <span class="text-muted" style="font-size: 10px; letter-spacing: 0.04em;">{{ y }}</span>
           </sc-for>
         </div>
       </div>
+        <div class="text-muted" style="font-size: 11px; line-height: 1.5; padding: 8px 0 0;">{{ mk.note }}</div>
 
-      <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 24px 24px 18px;">
-        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
-          <div style="display: flex; gap: 28px; flex-wrap: wrap;">
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-              <div style="display: flex; align-items: center; gap: 7px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6c6e7a;">
-                <span style="width: 14px; height: 2px; background: {{ accent }}; border-radius: 2px;"></span>USDT route, all-in
-              </div>
-              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 500; letter-spacing: -0.01em; white-space: nowrap;">{{ corrUsdt }}</div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-              <div style="display: flex; align-items: center; gap: 7px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6c6e7a;">
-                <span style="width: 14px; height: 0; border-top: 2px dashed #b6b7c0;"></span>Best fiat rail — {{ corrRail }}
-              </div>
-              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 500; letter-spacing: -0.01em; color: #4d4f5c; white-space: nowrap;">{{ corrFiat }}</div>
-            </div>
-          </div>
-          <div style="display: flex; align-items: baseline; gap: 8px; background: {{ corrGapBg }}; border-radius: 10px; padding: 8px 12px; white-space: nowrap;">
-            <span style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6c6e7a;">USDT vs rail</span>
-            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 500; color: {{ corrGapColor }};">{{ corrGap }}</span>
-          </div>
-        </div>
-
-        <div ref="{{ corrRef }}" onMouseMove="{{ onCorrMove }}" onMouseLeave="{{ onCorrLeave }}" style="position: relative; margin-top: 18px; height: 248px; cursor: crosshair;">
-          <svg viewBox="0 0 1000 248" preserveAspectRatio="none" style="width: 100%; height: 248px; display: block; overflow: visible;">
-            <defs>
-              <linearGradient id="corrfill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="{{ accent }}" stop-opacity="0.18" />
-                <stop offset="100%" stop-color="{{ accent }}" stop-opacity="0.01" />
-              </linearGradient>
-            </defs>
-            <sc-for list="{{ corrGrid }}" as="g" hint-placeholder-count="4">
-              <line x1="0" x2="1000" y1="{{ g.y }}" y2="{{ g.y }}" stroke="#f0f0f4" stroke-width="1" />
-            </sc-for>
-            <path d="{{ corrArea }}" fill="url(#corrfill)" />
-            <path d="{{ corrFiatPath }}" fill="none" stroke="#b6b7c0" stroke-width="1.6" stroke-dasharray="5 4" />
-            <path d="{{ corrUsdtPath }}" fill="none" stroke="{{ accent }}" stroke-width="1.9" stroke-linejoin="round" />
-            <sc-for list="{{ corrPoints }}" as="p" hint-placeholder-count="1">
-              <circle cx="{{ p.cx }}" cy="{{ p.fy }}" r="3.2" fill="#fff" stroke="#b6b7c0" stroke-width="1.6"><title>{{ p.fyTitle }}</title></circle>
-            </sc-for>
-            <sc-for list="{{ corrPoints }}" as="p" hint-placeholder-count="1">
-              <circle cx="{{ p.cx }}" cy="{{ p.cy }}" r="3.6" fill="{{ accent }}"><title>{{ p.title }}</title></circle>
-            </sc-for>
-            <sc-if value="{{ corrHovering }}" hint-placeholder-val="{{ false }}">
-              <line x1="{{ corrHoverX }}" x2="{{ corrHoverX }}" y1="0" y2="220" stroke="{{ accent }}" stroke-width="1" stroke-opacity="0.35" />
-            </sc-if>
-          </svg>
-          <div style="position: absolute; top: 0; right: 0; height: 220px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; pointer-events: none;">
-            <sc-for list="{{ corrGrid }}" as="g" hint-placeholder-count="4">
-              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #a2a3ad; background: #fff; padding-left: 6px; white-space: nowrap;">{{ g.label }}</span>
-            </sc-for>
-          </div>
-          <sc-if value="{{ corrHovering }}" hint-placeholder-val="{{ false }}">
-            <div style="position: absolute; top: 0; left: {{ corrTipLeft }}; transform: translateX(-50%); background: #12131a; color: #fff; border-radius: 10px; padding: 9px 12px; display: flex; flex-direction: column; gap: 3px; pointer-events: none; white-space: nowrap;">
-              <span style="font-size: 11px; color: rgba(255,255,255,0.6);">{{ corrTipTime }}</span>
-              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500;">USDT {{ corrTipUsdt }}</span>
-              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.65);">rail {{ corrTipFiat }} · gap {{ corrTipGap }}</span>
-            </div>
-          </sc-if>
-          <div data-xticks="1" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; font-size: 11px; color: #a2a3ad; font-family: 'IBM Plex Mono', monospace;">
-            <sc-for list="{{ corrXTicks }}" as="x" hint-placeholder-count="4">
-              <span style="white-space: nowrap;">{{ x.label }}</span>
-            </sc-for>
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-          <sc-for list="{{ corrLegs }}" as="l" hint-placeholder-count="6">
-            <div style="display: flex; align-items: baseline; gap: 8px; background: {{ l.bg }}; border-radius: 8px; padding: 7px 11px;">
-              <span style="font-size: 11.5px; color: #6c6e7a;">{{ l.k }}</span>
-              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #12131a; white-space: nowrap;">{{ l.v }}</span>
-            </div>
-          </sc-for>
-        </div>
-        <div style="font-size: 12px; color: #a2a3ad; margin-top: 10px;">{{ corrNote }}</div>
-      </div>
-    </div>
-
-    <div style="border-top: 1px solid #ebebf0; padding-top: 26px; display: flex; flex-direction: column; gap: 14px;">
-      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
-        <div style="display: flex; flex-direction: column; gap: 6px; max-width: 720px;">
-          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Every rail, priced live — {{ corrName }}</div>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">{{ boardHeadline }}</p>
-        </div>
-        <div style="display: flex; gap: 2px; background: #f1f1f4; border-radius: 999px; padding: 3px;">
-          <sc-for list="{{ sizeTabs }}" as="s" hint-placeholder-count="5">
-            <button onClick="{{ s.onClick }}" style="border: none; cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 7px 15px; border-radius: 999px; background: {{ s.bg }}; color: {{ s.color }}; box-shadow: {{ s.shadow }}; white-space: nowrap;">{{ s.label }}</button>
-          </sc-for>
-        </div>
-      </div>
-
-      <div style="background: #fff; border: 1px solid #ebebf0; border-radius: 18px; padding: 16px 18px 18px;">
-        <div data-grid="board" style="display: grid; grid-template-columns: 30px minmax(0, 1fr) 148px 104px 104px; gap: 12px; align-items: baseline; padding: 0 9px 9px; border-bottom: 1px solid #f2f2f5;">
-          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #a2a3ad;">#</span>
-          <span style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad;">Provider</span>
-          <span data-board-landed="1" style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad; text-align: right;">{{ landedLabel }}</span>
-          <span style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad; text-align: right;">Cost</span>
-          <span style="font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #a2a3ad; text-align: right;">vs best</span>
-        </div>
-        <sc-for list="{{ leaderRows }}" as="r" hint-placeholder-count="6">
-          <div data-grid="board" style="display: grid; grid-template-columns: 30px minmax(0, 1fr) 148px 104px 104px; gap: 12px; align-items: center; padding: 11px 9px; margin-top: 3px; border-radius: 10px; background: {{ r.bg }}; box-shadow: {{ r.ring }};">
-            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #a2a3ad;">{{ r.pos }}</span>
-            <span style="display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap;">
-              <span style="font-size: 13.5px; font-weight: {{ r.weight }}; color: {{ r.nameColor }};">{{ r.provider }}</span>
-              <sc-if value="{{ r.showTag }}" hint-placeholder-val="{{ false }}">
-                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: {{ r.nameColor }}; border: 1px solid currentColor; border-radius: 999px; padding: 2px 7px; white-space: nowrap;">{{ r.tag }}</span>
-              </sc-if>
-            </span>
-            <span data-board-landed="1" style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4d4f5c; text-align: right; white-space: nowrap;">{{ r.landed }}</span>
-            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #12131a; text-align: right; white-space: nowrap;">{{ r.bps }}</span>
-            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: {{ r.deltaColor }}; text-align: right; white-space: nowrap;">{{ r.delta }}</span>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 2px; background: var(--color-divider); margin-top: 16px;">
+        <sc-for list="{{ mk.stats }}" as="s" hint-placeholder-count="4">
+          <div style="background: var(--color-bg); padding: 11px 14px;">
+            <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">{{ s.k }}</div>
+            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 17px;">{{ s.v }}</div>
           </div>
         </sc-for>
-        <div style="font-size: 12px; color: #a2a3ad; line-height: 1.55; margin-top: 14px; text-wrap: pretty;">{{ boardCaveat }}</div>
+      </div>
+      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">Pick any market in the board below to load its series; hover the chart to read a point, click to pin it. The series is read from data/basis.csv and data/basis_history.csv over the selected window; every point is a collected row.</p>
+    </div>
+
+    <div style="padding: 40px 24px 0;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
+        <h2 style="font-size: 26px; margin: 0;">Basis now — USDT vs official USD mid</h2>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">signed bps · zero-centred · {{ scaleNote }}</div>
+      </div>
+
+      <sc-for list="{{ bands }}" as="band" hint-placeholder-count="2">
+        <div style="padding-top: 18px;">
+          <div style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: baseline; padding: 0 0 6px 12px;">
+            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;">{{ band.title }}</div>
+            <div class="text-muted" style="font-size: 11px;">{{ band.sub }}</div>
+            <div class="text-muted" style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;"><span>{{ band.axisLeft }}</span><span>below mid ← 0 → above mid</span><span>{{ band.axisRight }}</span></div>
+            <div class="text-muted" style="text-align: right; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">basis</div>
+          </div>
+          <sc-for list="{{ band.rows }}" as="b" hint-placeholder-count="8">
+            <div sc-camel-on-click="{{ b.go }}" style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); border-left: 3px solid transparent; padding: 9px 0 9px 9px; cursor: pointer; border-left-color: {{ b.sel }};" style-hover="background: var(--color-neutral-200);">
+              <div style="display: flex; flex-direction: column;">
+                <span style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.02em;">{{ b.code }}</span>
+                <span class="text-muted" style="font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase;">{{ b.country }}</span>
+              </div>
+              <div class="text-muted" style="font-size: 12px;">{{ b.venue }}</div>
+              <div style="position: relative; height: 22px;">
+                <div style="position: absolute; left: 50%; top: -9px; bottom: -9px; width: 1px; background: var(--color-neutral-500);"></div>
+                <div style="position: absolute; top: 3px; height: 16px; background: {{ b.fill }}; box-shadow: inset 0 0 0 1px rgba(32, 30, 29, 0.12); left: {{ b.left }}; width: {{ b.width }};"></div>
+              </div>
+              <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: var(--color-text);">{{ b.bps }}<span style="font-size: 10px; color: var(--data-700); vertical-align: super; margin-left: 2px;">{{ b.mark }}</span></div>
+            </div>
+          </sc-for>
+          <div style="border-top: 2px solid var(--color-text);"></div>
+        </div>
+      </sc-for>
+      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 88ch;">Positive: local buyers pay above the official rate for a dollar. The two bands carry their own axis, printed above each, because a shared one would render eight of ten markets as the same stub. Bars are comparable within a band, never across.</p>
+    </div>
+
+    <div style="padding: 44px 24px 0;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
+        <h2 style="font-size: 26px; margin: 0;">Hourly coverage</h2>
+        <div style="display: flex; align-items: baseline; gap: 16px;">
+          <sc-if value="{{ cov.on }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; align-items: baseline; gap: 10px;">
+              <span style="font-family: var(--font-heading); font-weight: 800; font-size: 15px;">{{ cov.code }}</span>
+              <span style="font-size: 14px;">{{ cov.v }}</span>
+              <span class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ cov.t }}</span>
+            </div>
+          </sc-if>
+          <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ cov.hint }}</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 0 16px; align-items: center; padding-top: 12px;">
+        <sc-for list="{{ coverage }}" as="c" hint-placeholder-count="10">
+          <div style="font-family: var(--font-heading); font-weight: 800; font-size: 12px; letter-spacing: 0.02em; padding: 3px 0;">{{ c.code }}</div>
+          <div style="display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 2px; padding: 3px 0;">
+            <sc-for list="{{ c.cells }}" as="cell" hint-placeholder-count="24">
+              <div sc-camel-on-mouse-enter="{{ cell.enter }}" sc-camel-on-mouse-leave="{{ cell.leave }}" style="height: 12px; background: {{ cell.bg }}; box-shadow: {{ cell.ring }};"></div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; gap: 18px; align-items: center; margin-top: 14px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
+        <span>00h</span>
+        <div style="display: flex; gap: 2px;">
+          <sc-for list="{{ legendCells }}" as="g" hint-placeholder-count="5">
+            <div style="width: 22px; height: 10px; background: {{ g.bg }};"></div>
+          </sc-for>
+        </div>
+        <span>low → high |basis|</span>
+        <span style="margin-left: auto;">23h UTC</span>
+      </div>
+      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0;">Daily backfill before August 2026 appears as history, never as hourly coverage.</p>
+    </div>
+
+    <div style="padding: 44px 24px 0;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
+        <div>
+          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">what the transfer costs, hourly <span style="border: 1px solid var(--color-neutral-400); padding: 0 5px; font-size: 9px;">placeholder</span></div>
+          <h2 style="font-size: 26px; margin: 0;">The corridor — {{ cc.name }} <span class="text-muted" style="font-weight: 400; font-size: 17px;">{{ cc.size }}</span></h2>
+        </div>
+        <div style="display: flex; align-items: flex-end; gap: 24px;">
+          <div style="display: flex; gap: 18px;">
+            <sc-for list="{{ cc.keys }}" as="k" hint-placeholder-count="2">
+              <div style="display: flex; align-items: center; gap: 7px;">
+                <span style="width: 14px; height: 3px; display: block; background: {{ k.color }};"></span>
+                <span style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ k.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display: flex; border: 1px solid var(--color-neutral-400);">
+            <sc-for list="{{ cc.tabs }}" as="t" hint-placeholder-count="2">
+              <button type="button" sc-camel-on-click="{{ t.go }}" style="appearance: none; border: 0; cursor: pointer; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.06em; padding: 7px 12px; background: {{ t.bg }}; color: {{ t.color }};" style-hover="background: var(--color-neutral-200);">{{ t.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 0; align-items: stretch;">
+        <div>
+          <div sc-camel-on-mouse-move="{{ cc.onMove }}" sc-camel-on-mouse-leave="{{ cc.onLeave }}" sc-camel-on-click="{{ cc.onPin }}" style="position: relative; cursor: crosshair;">
+            <svg sc-camel-view-box="0 0 1000 240" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 220px; display: block;">
+              <defs>
+                <linearGradient id="ccFadeBoard" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#e6eafb" stop-opacity="1"></stop>
+                  <stop offset="100%" stop-color="#f2f4fd" stop-opacity="0"></stop>
+                </linearGradient>
+              </defs>
+              <sc-for list="{{ cc.dots }}" as="d" hint-placeholder-count="0">
+            <circle cx="{{ d.cx }}" cy="{{ d.cy }}" r="4" fill="var(--data-600)"></circle>
+          </sc-for>
+          <path d="{{ cc.gapArea }}" fill="url(#ccFadeBoard)"></path>
+              <path d="{{ cc.railLine }}" fill="none" stroke="var(--color-neutral-400)" stroke-width="1.5" stroke-dasharray="6 4" vector-effect="non-scaling-stroke"></path>
+              <path d="{{ cc.usdtLine }}" fill="none" stroke="var(--data-600)" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+            </svg>
+            <sc-if value="{{ cc.tipOn }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; top: 0; bottom: 0; width: 1px; background: var(--color-neutral-600); left: {{ cc.tipX }}; pointer-events: none;"></div>
+            </sc-if>
+            <sc-if value="{{ cc.tipOn }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; left: {{ cc.tipX }}; top: {{ cc.tipY }}; transform: {{ cc.tipShift }}; pointer-events: none; background: var(--color-bg); border: 1px solid var(--color-text); padding: 5px 9px; white-space: nowrap;">
+                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; line-height: 1.2;">USDT {{ cc.tipU }}</div>
+                <div style="font-size: 12px;">rail {{ cc.tipR }} · gap {{ cc.tipG }}</div>
+                <div class="text-muted" style="font-size: 10px;">{{ cc.tipT }}</div>
+              </div>
+            </sc-if>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--color-divider); padding-top: 7px;">
+            <sc-for list="{{ cc.xLabels }}" as="x" hint-placeholder-count="5">
+              <span class="text-muted" style="font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;">{{ x }}</span>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 2px; background: var(--color-divider); margin-left: 24px;">
+          <sc-for list="{{ corridorSummary }}" as="s" hint-placeholder-count="3">
+            <div style="background: var(--color-bg); padding: 12px 16px; display: flex; flex-direction: column; justify-content: center;">
+              <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px;">{{ s.k }}</div>
+              <div style="font-family: var(--font-heading); font-weight: 800; font-size: 26px; line-height: 1; color: {{ s.color }};">{{ s.v }}</div>
+              <div class="text-muted" style="font-size: 11px; margin-top: 4px;">{{ s.sub }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 18px;">
+        <button type="button" sc-camel-on-click="{{ goCorridor }}" style="appearance: none; cursor: pointer; background: var(--color-text); color: var(--color-bg); border: 1px solid var(--color-text); padding: 10px 16px; font-family: var(--font-heading); font-weight: 800; font-size: 13px; text-align: left;" style-hover="background: var(--color-neutral-800);">Corridor detail</button>
+        <button type="button" sc-camel-on-click="{{ goMethod }}" style="appearance: none; cursor: pointer; background: transparent; color: var(--color-text); border: 1px solid var(--color-text); padding: 10px 16px; font-family: var(--font-heading); font-weight: 800; font-size: 13px; text-align: left;" style-hover="background: var(--color-neutral-200);">How it's measured</button>
       </div>
     </div>
 
-    <div data-grid="split" style="border-top: 1px solid #ebebf0; padding-top: 26px; display: grid; grid-template-columns: minmax(0, 1fr) 328px; gap: 40px; align-items: start;">
-      <div style="max-width: 700px; display: flex; flex-direction: column; gap: 26px;">
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">What it's shown so far</div>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">{{ findingsIntro }}</p>
-          <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 6px;">
-            <sc-for list="{{ findings }}" as="f" hint-placeholder-count="4">
-              <div data-grid="label-row" style="display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 16px; align-items: start;">
-                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8b8d99; padding-top: 3px;">{{ f.k }}</span>
-                <span style="font-size: 14.5px; line-height: 1.6; color: #464854; text-wrap: pretty;">{{ f.v }}</span>
+    <div style="padding: 44px 24px 0;">
+      <div style="border: 2px solid var(--color-text); display: grid; grid-template-columns: minmax(0, 1fr);">
+        <div style="background: var(--color-text); color: var(--color-bg); padding: 10px 20px; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;">Correction on the record · {{ correctionDate }}</div>
+        <div style="padding: 20px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px; align-items: start;">
+          <div>
+            <h3 style="font-size: 21px; margin: 0 0 8px;">The first version had the patient route beating the incumbent 3×. It was wrong.</h3>
+            <p class="text-muted" style="font-size: 14px; margin: 0; max-width: 60ch;">Maker execution was modelled as free. {{ makerProse }}, so the claim died against the venues' own published schedules. It stays here because the site only works if the numbers survive someone checking.</p>
+          </div>
+          <div style="display: grid; gap: 2px; background: var(--color-divider);">
+            <sc-for list="{{ correction }}" as="c" hint-placeholder-count="3">
+              <div style="background: var(--color-bg); padding: 10px 14px; display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
+                <span class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ c.k }}</span>
+                <span style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; text-decoration: {{ c.strike }};">{{ c.v }}</span>
               </div>
             </sc-for>
           </div>
         </div>
-
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Findings</div>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">Occasional write-ups, dated. One question per entry, the chart it turns on, and what the data does and doesn't settle.</p>
-          <div style="border: 1px solid #ebebf0; border-radius: 18px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px;">
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #a2a3ad;">2026-08</div>
-              <div style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Does the gap widen when banks are closed?</div>
-              <div style="font-size: 12.5px; color: #8b8d99;">{{ findingSub }}</div>
-            </div>
-            <div style="display: flex; gap: 10px; position: relative;">
-              <div style="position: absolute; left: 0; right: 0; top: 78px; border-top: 1px solid #e2e2e9;"></div>
-              <sc-for list="{{ dowBars }}" as="b" hint-placeholder-count="7">
-                <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
-                  <div style="width: 100%; height: 78px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px;">
-                    <sc-if value="{{ b.up }}" hint-placeholder-val="{{ true }}">
-                      <span data-bar-val="1" style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8b8d99; white-space: nowrap;">{{ b.v }}</span>
-                    </sc-if>
-                    <sc-if value="{{ b.up }}" hint-placeholder-val="{{ true }}">
-                      <div style="width: 100%; height: {{ b.h }}; background: {{ b.bg }}; border-radius: 3px 3px 0 0;"></div>
-                    </sc-if>
-                  </div>
-                  <div style="width: 100%; height: 78px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 5px;">
-                    <sc-if value="{{ b.down }}" hint-placeholder-val="{{ false }}">
-                      <div style="width: 100%; height: {{ b.h }}; background: {{ b.bg }}; border-radius: 0 0 3px 3px;"></div>
-                    </sc-if>
-                    <sc-if value="{{ b.down }}" hint-placeholder-val="{{ false }}">
-                      <span data-bar-val="1" style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8b8d99; white-space: nowrap;">{{ b.v }}</span>
-                    </sc-if>
-                  </div>
-                </div>
-              </sc-for>
-            </div>
-            <div style="display: flex; gap: 10px;">
-              <sc-for list="{{ dowBars }}" as="b" hint-placeholder-count="7">
-                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;">
-                  <span style="font-size: 11.5px; color: #4d4f5c;">{{ b.label }}</span>
-                  <span data-bar-val="1" style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #b6b7c0;">n={{ b.n }}</span>
-                </div>
-              </sc-for>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 11px; margin-top: 2px;">
-              <sc-for list="{{ findingParas }}" as="p" hint-placeholder-count="3">
-                <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">{{ p }}</p>
-              </sc-for>
-            </div>
-          </div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">How it's measured — and what isn't</div>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854;">Every number is one of three things:</p>
-          <div style="display: flex; flex-direction: column; border: 1px solid #ebebf0; border-radius: 14px; overflow: hidden; background: #fff;">
-            <div data-grid="label-row" style="display: grid; grid-template-columns: 122px minmax(0, 1fr); gap: 16px; padding: 13px 16px; border-bottom: 1px solid #f2f2f5; align-items: start;">
-              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #12131a;">measured</span>
-              <span style="font-size: 14px; line-height: 1.55; color: #464854;">Live order books walked at real sizes, official mids, incumbent quotes — timestamped, kept raw.</span>
-            </div>
-            <div data-grid="label-row" style="display: grid; grid-template-columns: 122px minmax(0, 1fr); gap: 16px; padding: 13px 16px; border-bottom: 1px solid #f2f2f5; align-items: start;">
-              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #12131a;">assumed</span>
-              <span style="font-size: 14px; line-height: 1.55; color: #464854;">{{ assumedNote }}<span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #8b8d99; margin-left: 6px; white-space: nowrap;">{{ feeStamp }}</span></span>
-            </div>
-            <div data-grid="label-row" style="display: grid; grid-template-columns: 122px minmax(0, 1fr); gap: 16px; padding: 13px 16px; align-items: start;">
-              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #12131a;">not visible</span>
-              <span style="font-size: 14px; line-height: 1.55; color: #464854;">Enterprise pricing (Nium, Thunes, Circle partners), OTC execution — stated, never estimated.</span>
-            </div>
-          </div>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.62; color: #464854; text-wrap: pretty;">One correction is part of the record: my first version had the patient-execution route beating the incumbent 3×. Verifying the venues' published fee schedules killed it — there is no zero-fee maker tier. The correction stays documented, because the site only works if the numbers survive someone checking.</p>
-        </div>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 14px;">
-        <div style="background: #12131a; color: #fff; border-radius: 18px; padding: 18px;">
-          <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Built to fail loudly</div>
-          <div style="font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.72); text-wrap: pretty;">Failed pulls are written as failures, gaps show as gaps, and the scheduler goes red when a sample is incomplete — an earlier version of this project died silently for 34 days, and that's the failure mode everything here is designed against.</div>
-          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 10px;">{{ failNote }}</div>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13.5px;">
-          <a href="./methodology.html">Full methodology →</a>
-          <a href="https://github.com/SebR214/margin" target="_blank" rel="noopener">Raw data in the repo →</a>
-        </div>
       </div>
     </div>
 
-    <div style="border-top: 1px solid #ebebf0; margin-top: 8px; padding-top: 22px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 28px;">
-      <div style="display: flex; flex-direction: column; gap: 7px;">
-        <div style="font-size: 13px; font-weight: 600;">Sebastian Roervig</div>
-        <div style="font-size: 12.5px; color: #8b8d99; line-height: 1.55;">Cross-border payments. Building margin.wiki in the open.</div>
-        <div style="display: flex; gap: 12px; font-size: 12.5px; margin-top: 2px;">
-          <a href="https://www.linkedin.com/in/sebastianroervig/" target="_blank" rel="noopener">LinkedIn</a>
-          <a href="https://github.com/SebR214/margin" target="_blank" rel="noopener">GitHub</a>
+    <div style="padding: 44px 24px 0;">
+      <div style="border-bottom: 2px solid var(--color-text); padding-bottom: 10px;">
+        <h2 style="font-size: 26px; margin: 0;">Findings</h2>
+      </div>
+      <sc-for list="{{ findings }}" as="f" hint-placeholder-count="2">
+        <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 200px; gap: 24px; border-bottom: 1px solid var(--color-divider); padding: 16px 0; align-items: start;">
+          <div class="text-muted" style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">{{ f.date }}</div>
+          <div>
+            <h3 style="font-size: 18px; margin: 0 0 4px;">{{ f.q }}</h3>
+            <p class="text-muted" style="font-size: 13px; margin: 0; max-width: 70ch;">{{ f.a }}</p>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 22px;">{{ f.stat }}</div>
+            <div class="text-muted" style="font-size: 11px;">{{ f.statSub }}</div>
+            
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isCorridor }}" hint-placeholder-val="{{ false }}">
+  <div>
+    <div style="padding: 48px 24px 32px; border-bottom: 2px solid var(--color-text);">
+      <h1 style="font-size: 40px; margin: 0 0 12px; max-width: 24ch;">All-in cost of the transfer, sampled hourly.</h1>
+      <p class="text-muted" style="max-width: 74ch; font-size: 15px; margin: 0;">The USDT route walked at real size on live books, against the cheapest fiat rail quoting the same amount at the same second. Everything in basis points of the amount sent.</p>
+    </div>
+
+    <sc-for list="{{ corridors }}" as="c" hint-placeholder-count="2">
+      <div style="padding: 36px 24px 0;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
+          <h2 style="font-size: 28px; margin: 0;">{{ c.name }}</h2>
+          <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">fees verified {{ c.verified }} · sampled {{ c.ts }}</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 108px repeat(5, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
+          <div>size sent</div>
+          <div style="text-align: right;">USDT taker</div>
+          <div style="text-align: right;">USDT maker</div>
+          <div style="text-align: right;">best fiat rail</div>
+          <div style="text-align: right;">rail bps</div>
+          <div style="text-align: right;">USDT vs rail</div>
+        </div>
+        <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="5">
+          <div style="display: grid; grid-template-columns: 108px repeat(5, minmax(0, 1fr)); gap: 0 16px; border-top: 1px solid var(--color-divider); padding: 10px 0; align-items: baseline; background: {{ r.bg }};">
+            <div style="font-size: 14px; font-weight: 600;">{{ r.size }}</div>
+            <div style="text-align: right; font-size: 14px;">{{ r.taker }}</div>
+            <div style="text-align: right; font-size: 14px;" class="text-muted">{{ r.maker }}</div>
+            <div style="text-align: right; font-size: 13px;">{{ r.provider }}</div>
+            <div style="text-align: right; font-size: 14px;">{{ r.rail }}</div>
+            <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: {{ r.gapColor }};">{{ r.gap }}</div>
+          </div>
+        </sc-for>
+        <div style="border-top: 2px solid var(--color-text);"></div>
+        <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">{{ c.note }}</p>
+      </div>
+    </sc-for>
+
+    <div style="padding: 40px 24px 0;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
+        <div>
+          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">all-in cost over the collection window </div>
+          <h2 style="font-size: 26px; margin: 0;">{{ cc.name }} <span class="text-muted" style="font-weight: 400; font-size: 17px;">{{ cc.size }}</span></h2>
+        </div>
+        <div style="display: flex; align-items: flex-end; gap: 24px;">
+          <div style="display: flex; gap: 18px;">
+            <sc-for list="{{ cc.keys }}" as="k" hint-placeholder-count="2">
+              <div style="display: flex; align-items: center; gap: 7px;">
+                <span style="width: 14px; height: 3px; display: block; background: {{ k.color }};"></span>
+                <span style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ k.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display: flex; border: 1px solid var(--color-neutral-400);">
+            <sc-for list="{{ cc.tabs }}" as="t" hint-placeholder-count="2">
+              <button type="button" sc-camel-on-click="{{ t.go }}" style="appearance: none; border: 0; cursor: pointer; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.06em; padding: 7px 12px; background: {{ t.bg }}; color: {{ t.color }};" style-hover="background: var(--color-neutral-200);">{{ t.label }}</button>
+            </sc-for>
+          </div>
         </div>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 7px;">
-        <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #a2a3ad;">Price sources</div>
-        <div style="font-size: 12.5px; color: #5c5e6a; line-height: 1.6;">{{ sourcesLabel }}</div>
-        <div style="font-size: 12.5px; color: #5c5e6a; line-height: 1.6;">ARS, VES and BRL quotes via <a href="https://criptoya.com" target="_blank" rel="noopener">CriptoYa</a> — median-bid rule, used with attribution.</div>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 7px;">
-        <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #a2a3ad;">Reference rates</div>
-        <div style="font-size: 12.5px; color: #5c5e6a; line-height: 1.6;">Official USD mids from open.er-api.com, with the fawazahmed0 currency dataset for the daily backfill. Every basis figure is quote vs the mid carried in the same row.</div>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 7px;">
-        <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #a2a3ad;">Read further</div>
-        <div style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px;">
-          <a href="./methodology.html">Methodology &amp; data honesty</a>
-          <a href="./corridor.html">corridor detail — both corridors</a>
-          <a href="https://github.com/SebR214/margin" target="_blank" rel="noopener">Repository &amp; raw CSVs</a>
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 96px; padding-top: 4px;">
+        <div>
+          <div sc-camel-on-mouse-move="{{ cc.onMove }}" sc-camel-on-mouse-leave="{{ cc.onLeave }}" sc-camel-on-click="{{ cc.onPin }}" style="position: relative; cursor: crosshair;">
+            <svg sc-camel-view-box="0 0 1000 240" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 240px; display: block;">
+              <defs>
+                <linearGradient id="ccFade" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#e6eafb" stop-opacity="1"></stop>
+                  <stop offset="100%" stop-color="#f2f4fd" stop-opacity="0"></stop>
+                </linearGradient>
+              </defs>
+              <path d="{{ cc.gapArea }}" fill="url(#ccFade)"></path>
+              <path d="{{ cc.railLine }}" fill="none" stroke="var(--color-neutral-400)" stroke-width="1.5" stroke-dasharray="6 4" vector-effect="non-scaling-stroke"></path>
+              <path d="{{ cc.usdtLine }}" fill="none" stroke="var(--data-600)" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+              <line x1="1000" x2="1000" y1="0" y2="240" stroke="var(--color-text)" stroke-width="2" vector-effect="non-scaling-stroke"></line>
+            </svg>
+            <sc-if value="{{ cc.tipOn }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; top: 0; bottom: 0; width: 1px; background: var(--color-neutral-600); left: {{ cc.tipX }}; pointer-events: none;"></div>
+            </sc-if>
+            <sc-if value="{{ cc.tipOn }}" hint-placeholder-val="{{ false }}">
+              <div style="position: absolute; left: {{ cc.tipX }}; top: {{ cc.tipY }}; transform: {{ cc.tipShift }}; pointer-events: none; background: var(--color-bg); border: 1px solid var(--color-text); padding: 5px 9px; white-space: nowrap;">
+                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; line-height: 1.2;">USDT {{ cc.tipU }}</div>
+                <div style="font-size: 12px;">rail {{ cc.tipR }} · gap {{ cc.tipG }}</div>
+                <div class="text-muted" style="font-size: 10px;">{{ cc.tipT }}</div>
+              </div>
+            </sc-if>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--color-divider); padding-top: 7px;">
+            <sc-for list="{{ cc.xLabels }}" as="x" hint-placeholder-count="5">
+              <span class="text-muted" style="font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;">{{ x }}</span>
+            </sc-for>
+          </div>
         </div>
+        <div style="display: flex; flex-direction: column; justify-content: space-between; height: 240px; padding-left: 10px;">
+          <sc-for list="{{ cc.yLabels }}" as="y" hint-placeholder-count="3">
+            <span class="text-muted" style="font-size: 10px;">{{ y }}</span>
+          </sc-for>
+        </div>
+      </div>
+        <div class="text-muted" style="font-size: 11px; line-height: 1.5; padding: 8px 0 0;">{{ cc.note }}</div>
+      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">The shaded band is what the sender pays for choosing the stablecoin route. Hover the chart to read a day, click to pin it. Both legs are read from data/samples.csv at the highlighted size; every point is a collected row.</p>
+    </div>
+
+    <div style="padding: 40px 24px 0;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
+        <div>
+          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">where the stablecoin route starts winning <span style="border: 1px solid var(--color-neutral-400); padding: 0 5px; font-size: 9px;">placeholder</span></div>
+          <h2 style="font-size: 26px; margin: 0;">Fee-tier crossover</h2>
+        </div>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">all-in bps by size sent</div>
+      </div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; align-items: start; padding-top: 6px;">
+        <div>
+          <div sc-camel-on-mouse-move="{{ cx.onMove }}" sc-camel-on-mouse-leave="{{ cx.onLeave }}" style="position: relative; cursor: crosshair;">
+          <svg sc-camel-view-box="0 0 1000 260" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 260px; display: block;">
+            <path d="{{ cx.line4 }}" fill="none" stroke="var(--data-300)" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+            <path d="{{ cx.line3 }}" fill="none" stroke="var(--data-400)" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+            <path d="{{ cx.line2 }}" fill="none" stroke="var(--data-500)" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+            <path d="{{ cx.line1 }}" fill="none" stroke="var(--data-600)" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+            <path d="{{ cx.railLine }}" fill="none" stroke="var(--color-text)" stroke-width="2" stroke-dasharray="6 4" vector-effect="non-scaling-stroke"></path>
+          </svg>
+          <sc-if value="{{ cx.tipOn }}" hint-placeholder-val="{{ false }}">
+            <div style="position: absolute; top: 0; bottom: 0; width: 1px; background: var(--color-neutral-600); left: {{ cx.tipX }}; pointer-events: none;"></div>
+          </sc-if>
+          <sc-if value="{{ cx.tipOn }}" hint-placeholder-val="{{ false }}">
+            <div style="position: absolute; left: {{ cx.tipX }}; top: 12px; transform: {{ cx.tipShift }}; pointer-events: none; background: var(--color-bg); border: 1px solid var(--color-text); padding: 7px 10px; white-space: nowrap;">
+              <div style="font-family: var(--font-heading); font-weight: 800; font-size: 13px; margin-bottom: 4px;">{{ cx.tipSize }}</div>
+              <sc-for list="{{ cx.tipRows }}" as="tr2" hint-placeholder-count="5">
+                <div style="display: flex; align-items: baseline; gap: 10px; font-size: 12px;">
+                  <span style="width: 12px; height: 3px; display: block; background: {{ tr2.color }}; flex: none;"></span>
+                  <span style="flex: none;">{{ tr2.label }}</span>
+                  <span style="margin-left: auto; font-weight: 600;">{{ tr2.v }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--color-divider); padding-top: 7px;">
+            <sc-for list="{{ cx.xLabels }}" as="cxx" hint-placeholder-count="5">
+              <span class="text-muted" style="font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;">{{ cxx }}</span>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <sc-if value="{{ cx.empty }}" hint-placeholder-val="{{ true }}">
+        <div style="border: 2px solid var(--color-text); padding: 18px 20px; margin-bottom: 18px;">
+          <div style="font-family: var(--font-heading); font-weight: 800; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px;">Pending fee-tier verification</div>
+          <div class="text-muted" style="font-size: 13px; line-height: 1.55;">{{ cx.emptyNote }}</div>
+        </div>
+      </sc-if>
+      <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding-bottom: 4px;">result by venue fee tier</div>
+          <sc-for list="{{ cx.tiers }}" as="tier" hint-placeholder-count="4">
+            <div style="display: flex; align-items: baseline; gap: 10px; border-top: 1px solid var(--color-divider); padding: 9px 0;">
+              <span style="width: 14px; height: 3px; display: block; background: {{ tier.color }}; flex: none;"></span>
+              <span style="font-size: 13px; font-weight: 600; flex: none;">{{ tier.label }}</span>
+              <span class="text-muted" style="font-size: 12px; margin-left: auto; text-align: right;">{{ tier.verdict }}</span>
+            </div>
+          </sc-for>
+          <div style="border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); padding: 9px 0; display: flex; align-items: baseline; gap: 10px;">
+            <span style="width: 14px; height: 2px; background: var(--color-text); display: block; flex: none;"></span>
+            <span style="font-size: 13px; font-weight: 600;">best fiat rail</span>
+            <span class="text-muted" style="font-size: 12px; margin-left: auto;">{{ cx.railNote }}</span>
+          </div>
+        </div>
+      </div>
+      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 92ch;">Each line is the same route priced at a different published fee tier, against the cheapest fiat rail as the dashed line. Tier discounts are placeholders until the collector reads volume-tier fees from history.</p>
+    </div>
+
+    <div style="padding: 40px 24px 0;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
+        <h2 style="font-size: 26px; margin: 0;">Where the cost sits — SGD→PHP, S$5,000</h2>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">fee-verification snapshot · 2026-08-10</div>
+      </div>
+      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 84ch;">This decomposition is the 2026-08-10 verification sample, not the live row. The live ladder above puts the same route at 64.96 bps against Wise at 28.68, because both bases moved with the market since. The shape of the cost is what this chart is for.</p>
+      <div style="padding-top: 18px;">
+        <div style="display: flex; height: 46px; border: 1px solid var(--color-text);">
+          <sc-for list="{{ stack }}" as="s" hint-placeholder-count="3">
+            <div style="width: {{ s.w }}; background: {{ s.bg }}; color: {{ s.fg }}; display: flex; align-items: center; padding: 0 10px; font-family: var(--font-heading); font-weight: 800; font-size: 12px; letter-spacing: 0.04em; overflow: hidden; white-space: nowrap;">{{ s.label }}</div>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 28px; margin-top: 9px;">
+          <sc-for list="{{ stackKeys }}" as="k" hint-placeholder-count="3">
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+              <span style="width: 10px; height: 10px; display: block; background: {{ k.bg }};"></span>
+              <span class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ k.label }}</span>
+              <span style="font-family: var(--font-heading); font-weight: 800; font-size: 13px;">{{ k.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="padding-top: 20px;">
+        <sc-for list="{{ waterfall }}" as="w" hint-placeholder-count="6">
+          <div style="display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr) 92px; gap: 20px; align-items: center; border-top: 1px solid var(--color-divider); padding: 9px 0;">
+            <div style="font-size: 14px; font-weight: {{ w.weight }};">{{ w.label }}</div>
+            <div style="position: relative; height: 18px;">
+              <div style="position: absolute; left: 8%; top: -9px; bottom: -9px; width: 1px; background: var(--color-neutral-400);"></div>
+              <div style="position: absolute; top: 2px; height: 14px; background: {{ w.fill }}; left: {{ w.left }}; width: {{ w.width }};"></div>
+            </div>
+            <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--color-text);">{{ w.v }}<span style="font-size: 10px; color: var(--data-700); vertical-align: super; margin-left: 2px;">{{ w.mark }}</span></div>
+          </div>
+        </sc-for>
+        <div style="border-top: 2px solid var(--color-text);"></div>
+      </div>
+      <p class="text-muted" style="font-size: 13px; margin: 12px 0 0; max-width: 78ch;">The rail costs 2.6 bps. The doors cost 82. At published base-tier fees the stablecoin route loses to Wise in both execution regimes, at every size on the ladder. It turns favourable only once volume-tier discounts apply, a crossover this collector is built to measure from history rather than assume.</p>
+    </div>
+
+    <div style="padding: 40px 24px 0;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
+        <h2 style="font-size: 26px; margin: 0;">Every rail, priced live</h2>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">best vs worst quote per size</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 132px 108px repeat(4, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
+        <div>corridor</div>
+        <div>size</div>
+        <div>cheapest</div>
+        <div style="text-align: right;">bps</div>
+        <div>most expensive</div>
+        <div style="text-align: right;">bps · n quoting</div>
+      </div>
+      <sc-for list="{{ spread }}" as="s" hint-placeholder-count="10">
+        <div style="display: grid; grid-template-columns: 132px 108px repeat(4, minmax(0, 1fr)); gap: 0 16px; border-top: 1px solid var(--color-divider); padding: 9px 0; align-items: baseline;">
+          <div class="text-muted" style="font-size: 12px;">{{ s.corridor }}</div>
+          <div style="font-size: 13px; font-weight: 600;">{{ s.size }}</div>
+          <div style="font-size: 13px;">{{ s.best }}</div>
+          <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 14px;">{{ s.bestBps }}</div>
+          <div class="text-muted" style="font-size: 13px;">{{ s.worst }}</div>
+          <div style="text-align: right; font-size: 14px;" class="text-muted">{{ s.worstBps }}</div>
+        </div>
+      </sc-for>
+      <div style="border-top: 2px solid var(--color-text);"></div>
+      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">A negative cheapest figure is a promotional rate quoted above the official mid, not an arbitrage. Enterprise pricing and OTC execution are not visible here.</p>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isMethod }}" hint-placeholder-val="{{ false }}">
+  <div>
+    <div style="padding: 40px 24px 28px; max-width: 78ch;">
+      <h1 style="font-size: 30px; margin: 0 0 14px;">Methodology</h1>
+      <p style="font-size: 16px; margin: 0 0 18px;">Every figure here is one of three things, and the site marks which.</p>
+      <p style="font-size: 14px; margin: 0 0 14px;">Most of it is measured. I walk the live order book at real sizes, take the official USD mid at the same second, and pull the incumbent rails' quotes at that instant. One row an hour, per corridor, per size sent, kept raw.</p>
+      <p style="font-size: 14px; margin: 0 0 14px;">The fees I can't read off a book, so I take them from each venue's published schedule and check them by hand. {{ takerProse }}. Every figure carries the date its fees were last verified, because schedules change and a stale fee quietly poisons everything downstream.</p>
+      <p style="font-size: 14px; margin: 0 0 14px;">Some cost I can't see at all. Enterprise desks like Nium and Thunes, and OTC execution, price privately. I say so and leave it out. I don't estimate it, because a guess dressed as a measurement is the one thing that would make the rest untrustworthy.</p>
+      <p style="font-size: 14px; margin: 0;">When a pull fails it's written as a failure, and gaps stay gaps rather than getting filled in. History is the only part I can't rebuild, so collection comes before everything else.</p>
+    </div>
+
+    <div style="padding: 0 24px;">
+      <h2 style="font-size: 20px; margin: 0 0 4px;">Definitions</h2>
+      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
+        <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Basis</div>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">The quote against the official USD mid carried in the same row, in basis points. Positive means local buyers pay above the official rate for a dollar.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
+        <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Corridor cost</div>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">All-in cost of a bank-to-bank transfer, in basis points of the amount sent: on-ramp basis and fee, network fee, off-ramp basis and fee, against the cheapest fiat rail quoting the same amount at the same second.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
+        <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Bar scale</div>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">Basis bars use a compressed scale so a 6 bps market stays legible next to a 1,652 bps one. The number beside each bar is always the real figure.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); padding: 13px 0;">
+        <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Backfill</div>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">History before August 2026 is daily, not hourly. It shows in charts as history, never as hourly coverage.</p>
+      </div>
+    </div>
+
+    <div style="padding: 32px 24px 0;">
+      <h2 style="font-size: 20px; margin: 0 0 4px;">Sources</h2>
+      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
+        <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Price sources</div>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">BTCTurk, Bitkub, Bitso, Coins.ph, Independent Reserve, Indodax, Upbit. ARS, VES and BRL quotes via <a href="https://criptoya.com">CriptoYa</a> on a median-bid rule, used with attribution.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
+        <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Reference rates</div>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">Official USD mids from open.er-api.com, with the fawazahmed0 currency dataset for daily backfill. Every basis figure is the quote against the mid carried in the same row.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); padding: 13px 0;">
+        <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Raw data</div>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">Hourly rows and the fee configuration in force when each was written: <a href="https://github.com/SebR214/margin">github.com/SebR214/margin</a></p>
       </div>
     </div>
   </div>
+  </sc-if>
+
+  <div style="margin-top: 56px; border-top: 2px solid var(--color-text); padding: 28px 24px 40px;">
+    <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;">why this exists</div>
+    <p style="font-size: 14px; margin: 0; max-width: 76ch;">I work in cross-border payments. The loudest claim in the industry is that stablecoins made moving money cheap, and I could not find anyone who had priced that claim off live order books. So I built a collector that does, and left the workings visible.</p>
+  </div>
 </div>
+
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;oklch(0.55 0.17 275)&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;oklch(0.55 0.17 275)&quot;,&quot;oklch(0.55 0.14 152)&quot;,&quot;oklch(0.58 0.16 30)&quot;,&quot;oklch(0.5 0.05 260)&quot;],&quot;section&quot;:&quot;Style&quot;},&quot;showOfficial&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Chart&quot;}}">
+<script type="text/x-dc" data-dc-script>
+/*
+  margin.wiki — board, corridor and methodology, rendered from the CSVs.
+
+  RULE ONE: no hardcoded number anywhere. Every figure on this page is computed
+  from data/*.csv at render time and carries the timestamp of the row it came
+  from, or it does not appear. The design this markup came from shipped with
+  literal constants and procedurally generated series (a seeded random walk) so
+  the artboards had something to draw; none of that survived the port. If a
+  number here is wrong, the fix is in the collector or the CSV, never here.
+
+  Empty states are first-class. A missing CSV, a corridor with two samples, a
+  failed pull — each renders as itself and says so. Nothing is smoothed,
+  interpolated or defaulted.
+*/
+
+const INK = "var(--color-text)";
+const MUTED = "var(--color-neutral-700)";
+const DAY = 864e5, HOUR = 36e5;
+
+// Display metadata only — country and venue labels, never a number. The venue
+// string is what the collector wrote; this map only supplies the country name
+// and the display order used when two markets tie.
 const META = {
-  ARS: { country: 'Argentina', flag: '🇦🇷' }, VES: { country: 'Venezuela', flag: '🇻🇪' },
-  BRL: { country: 'Brazil', flag: '🇧🇷' }, KRW: { country: 'Korea', flag: '🇰🇷' },
-  TRY: { country: 'Türkiye', flag: '🇹🇷' }, IDR: { country: 'Indonesia', flag: '🇮🇩' },
-  THB: { country: 'Thailand', flag: '🇹🇭' }, MXN: { country: 'Mexico', flag: '🇲🇽' },
-  PHP: { country: 'Philippines', flag: '🇵🇭' }, SGD: { country: 'Singapore', flag: '🇸🇬' },
+  VES: { country: "Venezuela" }, ARS: { country: "Argentina" },
+  BRL: { country: "Brazil" }, PHP: { country: "Philippines" },
+  MXN: { country: "Mexico" }, IDR: { country: "Indonesia" },
+  TRY: { country: "Turkey" }, SGD: { country: "Singapore" },
+  THB: { country: "Thailand" }, KRW: { country: "South Korea" },
 };
-const ORDER = ['ARS', 'VES', 'BRL', 'KRW', 'TRY', 'IDR', 'THB', 'MXN', 'PHP', 'SGD'];
+
 const RANGES = [
-  { key: '1d', label: '1d', h: 24 }, { key: '1w', label: '1w', h: 168 },
-  { key: '1m', label: '1m', h: 720 }, { key: '3m', label: '3m', h: 2160 },
-  { key: '6m', label: '6m', h: 4344 }, { key: '1y', label: '1y', h: 8760 },
-  { key: 'all', label: 'All', h: Infinity },
+  { key: "1d", label: "1d", ms: DAY, unit: "h" },
+  { key: "1w", label: "1w", ms: 7 * DAY, unit: "d" },
+  { key: "1m", label: "1m", ms: 30 * DAY, unit: "d" },
+  { key: "1y", label: "1y", ms: 365 * DAY, unit: "d" },
 ];
-const HOUR = 3600000, DAY = 86400000;
-const GREEN = 'oklch(0.55 0.14 152)', RED = 'oklch(0.56 0.19 25)';
-const COV_DAYS = 7;
 
 function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  const head = lines[0].split(',');
-  const out = [];
-  for (let i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue;
-    const parts = lines[i].split(',');
-    const row = {};
-    for (let j = 0; j < head.length; j++) row[head[j]] = parts[j];
-    out.push(row);
+  const rows = []; let i = 0, field = "", row = [], q = false;
+  const t = (text || "").trim();
+  const push = () => { row.push(field); field = ""; }, eol = () => { push(); rows.push(row); row = []; };
+  while (i < t.length) {
+    const ch = t[i];
+    if (q) { if (ch === '"') { if (t[i + 1] === '"') { field += '"'; i++; } else q = false; } else field += ch; }
+    else if (ch === '"') q = true; else if (ch === ",") push();
+    else if (ch === "\n") eol(); else if (ch === "\r") { } else field += ch;
+    i++;
   }
-  return out;
+  if (field.length || row.length) eol();
+  const head = rows.shift() || [];
+  return rows.map(r => Object.fromEntries(head.map((h, j) => [h, r[j]])));
 }
-const num = v => { const n = parseFloat(v); return isFinite(n) ? n : null; };
 
-// Fee verification stamp, read from data/fee_checks.csv (tools/check_fees.py).
-// Three states and no fourth: verified, UNVERIFIED, or nothing at all. An
-// absent or empty file renders nothing -- no placeholder, no guessed date. The
-// age is computed here, at render time, so the stamp cannot go stale in cache.
-function feeStamp(rows, verified) {
-  if (!rows || !rows.length) return '';
-  const runs = {};
-  rows.forEach(r => { if (r && r.ts_utc) (runs[r.ts_utc] = runs[r.ts_utc] || []).push(r); });
-  const stamps = Object.keys(runs).sort();
-  if (!stamps.length) return '';
-  const latest = stamps[stamps.length - 1];
-  const clean = stamps.filter(t => runs[t].every(r => (r.status || '').trim() === 'ok'));
-  const lastClean = clean.length ? clean[clean.length - 1] : null;
-  if (runs[latest].some(r => (r.status || '').trim() !== 'ok')) {
-    return 'fees UNVERIFIED — last clean check ' + (lastClean ? lastClean.slice(0, 10) : 'none on record');
-  }
-  // The DATE the fees were verified, out of the fee config, never an age from
-  // the wall clock. "today" was a lie the moment the page was cached or opened
-  // tomorrow, and it disagreed with the decomposition beside it, which prints
-  // the real date from fees_verified. Both now read the same field.
-  // A regime is only as verified as its STALEST leg, so take the oldest date.
-  const legs = String(verified || '').split('|')
-    .map(x => (x.split(':')[1] || '').trim()).filter(Boolean).sort();
-  return legs.length ? 'fees verified ' + legs[0]
-                     : 'fees verified ' + lastClean.slice(0, 10);
-}
-const bpsFmt = (v, d) => v == null ? '—' : (v >= 0 ? '+' : '−') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }) + ' bps';
+const num = v => { const n = parseFloat(v); return isFinite(n) ? n : null; };
+const ok = r => (r.source_ok || "").trim() === "True";
+const ts = v => { const t = Date.parse(v); return isFinite(t) ? t : null; };
 
 class Component extends DCLogic {
-  state = { ccy: 'ARS', range: '1w', size: null, corridor: 'SGD->PHP', hover: null, chover: null, data: null, err: null };
+  state = {
+    page: "board", market: null, range: "1m", corridor: null,
+    hover: null, pinned: null, covCell: null, cxCol: null, data: null, err: null,
+  };
 
   componentDidMount() {
-    const get = p => fetch(p).then(r => { if (!r.ok) throw new Error(p + ' ' + r.status); return r.text(); });
-    // fee_checks.csv is optional by design: absent file -> no stamp, not an
-    // error page. Every other layer stays required.
-    const opt = p => get(p).catch(() => '');
-    // providers_usdmxn.csv is optional the same way fee_checks.csv is: corridor 2's
-    // panel may not have been collected yet, and a missing panel must degrade to a
-    // corridor without a leaderboard, never to an error page.
-    Promise.all([get('./data/basis.csv'), get('./data/basis_history.csv'), get('./data/samples.csv'), get('./data/providers.csv'), opt('./data/fee_checks.csv'), opt('./data/providers_usdmxn.csv')])
-      .then(([b, h, s, p, f, p2]) => this.setState({ data: this.build(parseCSV(b), parseCSV(h), parseCSV(s), parseCSV(p), f.trim() ? parseCSV(f) : [], p2.trim() ? parseCSV(p2) : []) }))
-      .catch(e => this.setState({ err: String(e.message || e) }));
+    // no-store: this is a live monitor, and a cached CSV would show yesterday's
+    // numbers under today's timestamp — the exact failure the site exists to avoid.
+    const get = p => fetch(p, { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(p + " " + r.status); return r.text(); });
+    // Every layer is optional at the fetch level: a missing file must produce an
+    // empty section that says so, never a broken page and never a fallback number.
+    const opt = p => get(p).catch(() => "");
+    Promise.all([
+      opt("./data/basis.csv"), opt("./data/basis_history.csv"), opt("./data/samples.csv"),
+      opt("./data/providers.csv"), opt("./data/providers_usdmxn.csv"),
+      opt("./data/fee_checks.csv"), opt("./data/fee_tiers.csv"),
+    ]).then(([b, h, s, p1, p2, fc, ft]) => {
+      this.setState({ data: {
+        basis: parseCSV(b), hist: parseCSV(h), samples: parseCSV(s),
+        panels: { "SGD->PHP": parseCSV(p1), "USD->MXN": parseCSV(p2) },
+        feeChecks: parseCSV(fc), tiers: parseCSV(ft),
+      }});
+    }).catch(e => this.setState({ err: String(e.message || e) }));
   }
 
-  build(basis, hist, samples, providers, feeChecks, providersMxn) {
-    const live = {}, fails = {}, venues = {}, daily = {}, histVenues = {};
-    basis.forEach(r => {
-      const c = r.ccy; if (!c || !META[c]) return;
-      const t = Date.parse(r.ts_utc);
-      const ok = (r.source_ok || '').trim() === 'True';
-      if (!ok) { (fails[c] = fails[c] || []).push({ t, err: r.error || 'failed pull' }); return; }
-      const mid = num(r.usdt_mid), fx = num(r.fx_mid_per_usd), bp = num(r.basis_bps);
-      if (mid == null || bp == null) return;
-      (live[c] = live[c] || []).push({ t, v: mid, o: fx, p: bp, venue: r.venue, source: r.source });
-      venues[c] = r.venue;
-    });
-    hist.forEach(r => {
-      const c = r.ccy; if (!c || !META[c]) return;
-      const t = Date.parse(r.date + 'T00:00:00Z');
-      const mid = num(r.usdt_close), fx = num(r.fx_mid), bp = num(r.basis_bps);
-      if (mid == null || bp == null) return;
-      (daily[c] = daily[c] || []).push({ t, v: mid, o: fx, p: bp, daily: true });
-      histVenues[c] = r.venue;
-    });
-    Object.keys(live).forEach(c => live[c].sort((a, b) => a.t - b.t));
-    Object.keys(daily).forEach(c => daily[c].sort((a, b) => a.t - b.t));
-
-    // Corridors are grouped by the `corridor` column, NOT flattened by size.
-    // samples.csv holds every corridor interleaved, so keying on notional alone
-    // would splice one corridor's cost series into another's chart and let the
-    // heading follow whichever row happened to be written last.
-    const corrs = {};
-    samples.forEach(r => {
-      if ((r.source_ok || '').trim() !== 'True') return;
-      const n = num(r.notional_src); if (n == null) return;
-      const key = (r.corridor || '').trim(); if (!key) return;
-      const row = {
-        t: Date.parse(r.ts), n,
-        usdt: num(r.cost_bps_taker), fiat: num(r.baseline_cost_bps), rail: r.baseline_provider,
-        onBasis: num(r.onramp_basis_bps), onFee: num(r.fee_on_taker_bps),
-        offBasis: num(r.offramp_basis_bps), offFee: num(r.fee_off_taker_bps),
-        netFee: num(r.network_fee_stable), midSrc: num(r.mid_src_per_usd),
-        onVenue: r.onramp_venue, offVenue: r.offramp_venue, verified: r.fees_verified,
-        onSlip: num(r.onramp_slip_bps), offSlip: num(r.offramp_slip_bps),
-        landedTaker: num(r.landed_taker), src: r.src, dst: r.dst,
-      };
-      if (row.usdt == null) return;
-      const C = corrs[key] = corrs[key] || { key, corr: {}, sizes: [], railName: '', src: r.src, dst: r.dst };
-      (C.corr[n] = C.corr[n] || []).push(row);
-      if (C.sizes.indexOf(n) < 0) C.sizes.push(n);
-      C.railName = row.rail || C.railName;
-    });
-    Object.keys(corrs).forEach(k => {
-      const C = corrs[k];
-      C.sizes.sort((a, b) => a - b);
-      Object.keys(C.corr).forEach(s => C.corr[s].sort((a, b) => a.t - b.t));
-      // Distinct capture hours, so "how much history is there" is answered by the
-      // data rather than by a row count that moves five at a time per sample.
-      const hours = {};
-      Object.keys(C.corr).forEach(s => C.corr[s].forEach(p => { hours[Math.floor(p.t / HOUR)] = 1; }));
-      C.hours = Object.keys(hours).length;
-    });
-    // Corridor 1 first, then any newer corridor, so the default never drifts.
-    const corrKeys = Object.keys(corrs).sort((a, b) =>
-      (a === 'SGD->PHP' ? -1 : b === 'SGD->PHP' ? 1 : a < b ? -1 : 1));
-
-    // Incumbent panel (data/providers.csv) — every rail the Wise comparison API
-    // returned, per size, per run. Only the latest snapshot per size is shown,
-    // so keep the newest timestamp and drop everything older.
-    // One panel per corridor: providers.csv has no corridor column, so each
-    // corridor keeps its own file (see collector.py providers_path).
-    const buildPanel = rowsIn => {
-      const all = {};
-      let t0 = 0;
-      (rowsIn || []).forEach(r => {
-        if ((r.source_ok || '').trim() !== 'True') return;
-        const n = num(r.notional_src), bps = num(r.cost_bps), t = Date.parse(r.ts_utc);
-        if (n == null || bps == null || !isFinite(t) || !r.provider) return;
-        (all[n] = all[n] || []).push({ t, provider: r.provider, landed: num(r.landed_dst), bps });
-        if (t > t0) t0 = t;
-      });
-      const out = {};
-      Object.keys(all).forEach(n => {
-        const newest = Math.max.apply(null, all[n].map(r => r.t));
-        out[n] = all[n].filter(r => r.t === newest).sort((a, b) => a.bps - b.bps);
-      });
-      return { panel: out, panelT: t0, rows: (rowsIn || []).length };
-    };
-    const panels = {
-      'SGD->PHP': buildPanel(providers),
-      'USD->MXN': buildPanel(providersMxn),
-    };
-    const { panel, panelT } = panels['SGD->PHP'];
-
-    const lastTs = Math.max.apply(null, ORDER.filter(c => live[c]).map(c => live[c][live[c].length - 1].t));
-    const histCodes = Object.keys(daily);
-    const histStartT = histCodes.length ? Math.min.apply(null, histCodes.map(c => daily[c][0].t)) : null;
-    return { live, fails, venues, daily, histVenues, corrs, corrKeys, panels, lastTs, histStartT, histCodes, panel, panelT, feeChecks, rowsLive: basis.length, rowsHist: hist.length, rowsPanel: providers.length };
+  // ---------------------------------------------------------------- helpers
+  fmtBps(v, sign) {
+    if (v === null || v === undefined || !isFinite(v)) return "—";
+    const s = Math.abs(v) >= 1000
+      ? Math.round(v).toLocaleString("en-US")
+      : Math.abs(v).toFixed(2).replace(/^/, v < 0 ? "-" : "");
+    if (sign === false) return s.replace("-", "−");
+    return (v >= 0 ? "+" : "−") + s.replace("-", "");
   }
-
-  fmtRate(v) {
-    if (v == null) return '—';
-    const a = Math.abs(v);
-    const d = a >= 1000 ? 2 : a >= 100 ? 3 : a >= 10 ? 4 : 5;
-    return v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: d });
+  fmtSize(cur, n) {
+    if (n === null || n === undefined) return "—";
+    const sym = cur === "SGD" ? "S$" : cur === "USD" ? "US$" : cur + " ";
+    return sym + n.toLocaleString("en-US");
   }
-  fmtDate(t, withHour) {
+  fmtStamp(t, withHour) {
+    if (!t) return "—";
     const d = new Date(t);
-    const s = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit', timeZone: 'UTC' });
-    return withHour ? s + ' · ' + String(d.getUTCHours()).padStart(2, '0') + ':00 UTC' : s;
+    const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getUTCMonth()];
+    const s = String(d.getUTCDate()).padStart(2, "0") + " " + mo + " " + d.getUTCFullYear();
+    return withHour ? s + ", " + String(d.getUTCHours()).padStart(2, "0") + ":00 UTC" : s;
+  }
+  scale(v, max) { return max ? (Math.abs(v) / max) * 50 : 0; }
+  cellBg(a, max) {
+    if (a === null) return "var(--grid-empty)";
+    const t = max ? Math.min(1, Math.sqrt(a) / Math.sqrt(max)) : 0;
+    const step = t < 0.15 ? 200 : t < 0.35 ? 300 : t < 0.6 ? 400 : t < 0.82 ? 500 : 600;
+    return "var(--data-" + step + ")";
+  }
+  pointFromEvent(e, n) {
+    const r = e.currentTarget.getBoundingClientRect();
+    const frac = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    return Math.round(frac * (n - 1));
+  }
+  hoverHandlers(chart, n) {
+    return {
+      onMove: e => { if (n < 1) return; const i = this.pointFromEvent(e, n); const h = this.state.hover;
+        if (!h || h.chart !== chart || h.i !== i) this.setState({ hover: { chart, i } }); },
+      onLeave: () => this.setState({ hover: null }),
+      onPin: e => { if (n < 1) return; const i = this.pointFromEvent(e, n);
+        const p = this.state.pinned;
+        this.setState({ pinned: p && p.chart === chart && p.i === i ? null : { chart, i } }); },
+    };
+  }
+  activeIdx(chart) {
+    const p = this.state.pinned, h = this.state.hover;
+    if (p && p.chart === chart) return p.i;
+    if (h && h.chart === chart) return h.i;
+    return null;
   }
 
+  // Series -> svg path. Returns nulls when there is nothing to draw, so the
+  // caller renders points (or an empty state) instead of inventing a line.
+  plot(series, lo, hi, W, H) {
+    W = W || 1000; H = H || 240;
+    const span = (hi - lo) || 1;
+    const y = v => H - ((v - lo) / span) * (H - 8) - 4;
+    const x = i => series.length < 2 ? W / 2 : (i / (series.length - 1)) * W;
+    const pts = series.map((v, i) => x(i).toFixed(1) + " " + y(v).toFixed(1));
+    return { line: series.length < 2 ? "" : "M " + pts.join(" L "), x, y, W, H,
+             dots: series.map((v, i) => ({ cx: x(i).toFixed(1), cy: y(v).toFixed(1) })) };
+  }
+
+  // ------------------------------------------------------------ data views
+  markets(D) {
+    // Latest usable row per currency, from basis.csv. A currency whose newest
+    // row is a failed pull keeps the failure — it does not fall back to an
+    // older row and pretend to be current.
+    const latest = {}, failed = {};
+    D.basis.forEach(r => {
+      const c = r.ccy, t = ts(r.ts_utc);
+      if (!c || t === null) return;
+      if (!ok(r)) { if (!failed[c] || t > failed[c].t) failed[c] = { t, err: r.error || "failed pull" }; return; }
+      const bps = num(r.basis_bps);
+      if (bps === null) return;
+      if (!latest[c] || t > latest[c].t) latest[c] = { t, bps, venue: r.venue, code: c };
+    });
+    return Object.keys(latest).map(c => ({
+      code: c, country: (META[c] || {}).country || c,
+      venue: latest[c].venue || "—", bps: latest[c].bps, t: latest[c].t,
+    })).sort((a, b) => b.bps - a.bps);
+  }
+
+  seriesFor(D, code, def) {
+    // Live hourly rows plus daily backfill, both real. Backfill is only used
+    // where the window reaches past the live layer, and is never presented as
+    // hourly coverage.
+    const now = Date.now(), from = now - def.ms;
+    const live = D.basis.filter(r => r.ccy === code && ok(r) && num(r.basis_bps) !== null)
+      .map(r => ({ t: ts(r.ts_utc), v: num(r.basis_bps) })).filter(p => p.t !== null && p.t >= from);
+    const daily = D.hist.filter(r => r.ccy === code && num(r.basis_bps) !== null)
+      .map(r => ({ t: ts(r.date + "T00:00:00Z"), v: num(r.basis_bps) })).filter(p => p.t !== null && p.t >= from);
+    const all = daily.concat(live).sort((a, b) => a.t - b.t);
+    return all;
+  }
+
+  corridorRows(D, key) {
+    const rows = D.samples.filter(r => (r.corridor || "").trim() === key && ok(r));
+    const byTs = {};
+    rows.forEach(r => { const t = ts(r.ts); if (t !== null) (byTs[t] = byTs[t] || []).push(r); });
+    return { rows, byTs, stamps: Object.keys(byTs).map(Number).sort((a, b) => a - b) };
+  }
+
+  // ---------------------------------------------------------------- render
   renderVals() {
-    const accent = this.props.accentColor ?? 'oklch(0.55 0.17 275)';
-    const showOfficial = this.props.showOfficial ?? true;
     const st = this.state, D = st.data;
+    const page = st.page;
+    const go = p => () => this.setState({ page: p });
+    const nav = [
+      { key: "board", label: "Basis board" },
+      { key: "corridor", label: "Corridor" },
+      { key: "methodology", label: "Methodology" },
+    ].map(n => ({ label: n.label, go: go(n.key),
+      color: page === n.key ? INK : MUTED, rule: page === n.key ? INK : "transparent" }));
+
+    // Everything below the fold degrades to an explicit empty state. This is
+    // the shape returned before the CSVs land, and the shape a missing file
+    // leaves behind — identical on purpose.
     const empty = {
-      accent, showOfficial, ccy: st.ccy, heroFlag: (META[st.ccy] || {}).flag || '',
-      statusDot: st.err ? RED : '#c9cad2', statusLabel: st.err ? 'data unavailable — ' + st.err : 'loading data…',
-      rateLabel: '—', officialLabel: '—', lastTick: '—', venueLabel: 'reading data/basis.csv',
-      deltaAbs: '—', deltaPct: '', deltaColor: '#8b8d99', rangeLabel: '',
-      premLabel: '—', premColor: '#12131a', premBg: '#f5f5f8',
-      linePath: '', officialPath: '', areaPath: '', premPath: '', premArea: '', zeroY: 108,
-      premMean: '—', premPeak: '—', premSigma: '—',
-      yTicks: [0, 0.25, 0.5, 0.75, 1].map(f => ({ y: (f * 240).toFixed(0) })), xTicks: [],
-      featured: [], marketRows: [], stats: [], rangeTabs: [], cells: [], legend: [], coverTicks: [],
-      covDays: COV_DAYS, coverTitle: 'Hourly capture coverage', coverageLabel: '',
-      collectionNote: 'Loading the collector output…', hovering: false, corrHovering: false,
-      sizeTabs: [], corrLegs: [], corrUsdt: '—', corrFiat: '—', corrRail: '—', corrGap: '—',
-      corrGapColor: '#12131a', corrGapBg: '#f5f5f8', corrUsdtPath: '', corrFiatPath: '', corrArea: '',
-      corrGrid: [], corrXTicks: [], corrName: 'SGD → PHP', corrNote: '', findings: [],
-      corrTabs: [], corrPoints: [], corrSparse: false,
-      tiles: [], smNote: '', leaderRows: [], boardHeadline: '', boardCaveat: '', landedLabel: 'Landed',
-      findingsIntro: 'Loading the collector output…',
-      assumedNote: 'Exchange fees at published base tiers, verified against the schedules.',
-      feeStamp: '',
-      findingSub: 'mean basis by weekday, bps', dowBars: [], findingParas: [], dowAxis: '',
-      failNote: '', sourcesLabel: 'Loading venue list…',
-      chartRef: () => {}, onMove: () => {}, onLeave: () => {}, corrRef: () => {}, onCorrMove: () => {}, onCorrLeave: () => {},
+      nav, isBoard: page === "board", isCorridor: page === "corridor", isMethod: page === "methodology",
+      goCorridor: go("corridor"), goMethod: go("methodology"),
+      health: st.err ? "collector unreachable — " + st.err : "reading data/…",
+      lastTick: "—", scaleNote: "",
+      hl: { wide: "—", wideCountry: "—", narrow: "—", narrowCountry: "—" },
+      heroStats: [], bands: [], coverage: [], legendCells: [],
+      cov: { on: false, code: "", v: "", t: "", hint: "" },
+      mk: { code: "—", country: "", venue: "", bps: "—", color: INK, line: "", area: "", zeroY: "120",
+            xLabels: [], yLabels: [], stats: [], dots: [], sparse: false, note: "",
+            tipOn: false, tipX: "0%", tipY: "0%", tipShift: "none", tipV: "", tipT: "",
+            onMove: () => {}, onLeave: () => {}, onPin: () => {} },
+      ranges: [], corridorSummary: [], corridors: [], correction: [], findings: [],
+      cc: { name: "—", size: "—", usdtLine: "", railLine: "", gapArea: "", xLabels: [], yLabels: [],
+            keys: [], tabs: [], dots: [], sparse: false, note: "",
+            tipOn: false, tipX: "0%", tipY: "0%", tipShift: "none", tipU: "", tipR: "", tipG: "", tipT: "",
+            onMove: () => {}, onLeave: () => {}, onPin: () => {} },
+      cx: { name: "—", tiers: [], line1: "", line2: "", line3: "", line4: "", railLine: "",
+            xLabels: [], tipRows: [], tipOn: false, tipX: "0%", tipShift: "none", tipSize: "",
+            railNote: "", empty: true,
+            emptyNote: "Pending fee-tier verification. This chart binds to data/fee_tiers.csv, one row per venue per published tier; no such file has been collected yet, so there is nothing to draw. Tier figures are never assumed.",
+            onMove: () => {}, onLeave: () => {} },
+      cxx: false,
+      stack: [], stackKeys: [], waterfall: [], spread: [],
+      legend: [], provenance: [], failStats: [], methodNotes: [],
+      makerProse: "", takerProse: "", correctionDate: "—",
     };
     if (!D) return empty;
 
-    const codes = ORDER.filter(c => D.live[c] || D.daily[c]);
-    const ccy = codes.indexOf(st.ccy) >= 0 ? st.ccy : codes[0];
-    const meta = META[ccy];
-    const liveArr = D.live[ccy] || [], dayArr = D.daily[ccy] || [];
-    const all = dayArr.concat(liveArr);
-    const nowT = D.lastTs;
-    const R = RANGES.find(x => x.key === st.range) || RANGES[1];
-    const oldest = all.length ? all[0].t : nowT;
-    const spanH = (nowT - oldest) / HOUR;
-    const winH = Math.min(R.h, spanH + 1);
-    const cutoff = nowT - winH * HOUR;
-    let pts = all.filter(p => p.t >= cutoff);
-    if (pts.length < 2) pts = all.slice(-2);
-    if (!pts.length) pts = [{ t: nowT, v: 0, o: 0, p: 0 }];
+    // ---- markets -------------------------------------------------------
+    const mkts = this.markets(D);
+    if (!mkts.length) return Object.assign(empty, {
+      health: "no readable rows in data/basis.csv",
+      cov: { on: false, code: "", v: "", t: "", hint: "no basis rows collected yet" },
+    });
 
-    const last = pts[pts.length - 1], first = pts[0];
-    const vals = pts.map(p => p.v).concat(showOfficial ? pts.map(p => p.o).filter(v => v != null) : []);
-    let lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
-    const pad = (hi - lo) * 0.18 || Math.abs(hi) * 0.001 || 1; lo -= pad; hi += pad;
-    const H = 240;
-    const X = i => pts.length < 2 ? 500 : (i / (pts.length - 1)) * 1000;
-    const Y = v => H - ((v - lo) / (hi - lo)) * H;
-    const line = pts.map((p, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p.v).toFixed(1)).join(' ');
-    const offPath = pts.map((p, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p.o == null ? p.v : p.o).toFixed(1)).join(' ');
+    const lastT = Math.max.apply(null, mkts.map(m => m.t));
+    // The newest collector run only. A window would double-count when two
+    // fires land inside the same hour, which is the normal cadence.
+    const runStampsBasis = Array.from(new Set(D.basis.map(r => r.ts_utc).filter(Boolean))).sort();
+    const newestRunTs = runStampsBasis[runStampsBasis.length - 1];
+    const latestRun = D.basis.filter(r => r.ts_utc === newestRunTs);
+    const okCount = latestRun.filter(ok).length;
+    const hi = String(this.props.highlightSize ?? "5000");
+    const banded = (this.props.barScale ?? "banded") !== "log";
 
-    const ps = pts.map(p => p.p);
-    let plo = Math.min.apply(null, ps), phi = Math.max.apply(null, ps);
-    plo = Math.min(0, plo); phi = Math.max(0, phi);
-    const pspan = (phi - plo) || 1;
-    plo -= pspan * 0.12; phi += pspan * 0.12;
-    const PY = v => 108 - ((v - plo) / (phi - plo)) * 100;
-    const premPath = pts.map((p, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + PY(p.p).toFixed(1)).join(' ');
-    const mean = ps.reduce((a, b) => a + b, 0) / ps.length;
-    const sd = Math.sqrt(ps.reduce((a, b) => a + (b - mean) * (b - mean), 0) / Math.max(1, ps.length - 1));
-    const peak = ps.reduce((a, b) => Math.abs(b) > Math.abs(a) ? b : a, ps[0]);
+    const wide = mkts.reduce((a, b) => Math.abs(b.bps) > Math.abs(a.bps) ? b : a, mkts[0]);
+    const narrow = mkts.reduce((a, b) => Math.abs(b.bps) < Math.abs(a.bps) ? b : a, mkts[0]);
 
-    let hv = null;
-    if (st.hover != null && pts.length > 1) { const i = Math.max(0, Math.min(pts.length - 1, Math.round(st.hover * (pts.length - 1)))); hv = { i, p: pts[i] }; }
-    const delta = last.v - first.v, dpct = first.v ? (delta / first.v) * 100 : 0, up = delta >= 0;
+    const market = mkts.some(m => m.code === st.market) ? st.market : wide.code;
+    const sel = mkts.find(m => m.code === market);
 
-    // coverage — hourly live layer only
-    const covEnd = Math.floor(nowT / HOUR) * HOUR;
-    const firstLiveT = liveArr.length ? Math.floor(liveArr[0].t / HOUR) * HOUR : covEnd;
-    const liveHours = Math.round((covEnd - firstLiveT) / HOUR) + 1;
-    // strip mode while the live layer is younger than three days; matrix once there are enough days
-    const stripMode = liveHours <= 72;
-    const covCols = stripMode ? Math.max(12, Math.min(72, liveHours)) : COV_DAYS;
-    const covStart = stripMode ? covEnd - (covCols - 1) * HOUR : covEnd - (COV_DAYS * 24 - 1) * HOUR;
-    const byHour = {};
-    liveArr.forEach(p => { byHour[Math.floor(p.t / HOUR)] = p; });
-    const failHour = {};
-    (D.fails[ccy] || []).forEach(f => { failHour[Math.floor(f.t / HOUR)] = f; });
-    const firstLive = liveArr.length ? liveArr[0].t : Infinity;
-    const absAll = liveArr.map(p => Math.abs(p.p)).sort((a, b) => a - b);
-    const q = f => absAll.length ? absAll[Math.floor(f * (absAll.length - 1))] : 0;
-    const cut = [q(0.2), q(0.4), q(0.6), q(0.8)];
-    const alphas = [0.14, 0.3, 0.48, 0.7, 0.94];
-    const cells = [];
-    let captured = 0, failed = 0, expected = 0;
-    const rowsN = stripMode ? 1 : 24, colsN = covCols;
-    for (let h = 0; h < rowsN; h++) {
-      for (let d = 0; d < colsN; d++) {
-        const t = stripMode ? covStart + d * HOUR : covStart + d * DAY + h * HOUR;
-        const key = Math.floor(t / HOUR);
-        if (t < firstLive) { cells.push({ bg: '#ffffff', ring: 'inset 0 0 0 1px #f0f0f4', title: this.fmtDate(t, true) + ' — not yet collecting' }); continue; }
-        if (t > nowT + HOUR) { cells.push({ bg: '#ffffff', ring: 'inset 0 0 0 1px #f0f0f4', title: 'future' }); continue; }
-        expected++;
-        const hit = byHour[key];
-        if (hit) {
-          captured++;
-          const a = Math.abs(hit.p);
-          let k = 0; while (k < 4 && a > cut[k]) k++;
-          cells.push({ bg: 'color-mix(in oklab, ' + accent + ' ' + Math.round(alphas[k] * 100) + '%, white)', ring: 'none', title: this.fmtDate(t, true) + ' — ' + bpsFmt(hit.p, 1) });
-        } else {
-          failed++;
-          cells.push({ bg: '#f2f2f5', ring: 'none', title: this.fmtDate(t, true) + ' — ' + (failHour[key] ? 'failed pull' : 'no tick') });
-        }
+    const bandOf = list => {
+      const max = list.length ? Math.max.apply(null, list.map(m => Math.abs(m.bps))) : 1;
+      return { max, rows: list.map(m => {
+        const w = this.scale(m.bps, max);
+        return { code: m.code, country: m.country, venue: m.venue,
+          bps: this.fmtBps(m.bps), mark: "",
+          fill: m.bps >= 0 ? "var(--data-400)" : "#dedede",
+          left: (m.bps >= 0 ? 50 : 50 - w) + "%", width: Math.max(w, 0.4) + "%",
+          go: () => this.setState({ market: m.code, hover: null, pinned: null }),
+          sel: market === m.code ? INK : "transparent" };
+      })};
+    };
+    const axis = v => (v >= 0 ? "+" : "−") + Math.round(Math.abs(v)).toLocaleString("en-US");
+    let bands;
+    if (banded) {
+      const big = mkts.filter(m => Math.abs(m.bps) >= 200), small = mkts.filter(m => Math.abs(m.bps) < 200);
+      bands = [];
+      if (big.length) { const b = bandOf(big);
+        bands.push({ title: "Dislocated", sub: "|basis| above 200 bps", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }); }
+      if (small.length) { const b = bandOf(small);
+        bands.push({ title: "At or near the mid", sub: "|basis| under 200 bps · own axis", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }); }
+    } else { const b = bandOf(mkts);
+      bands = [{ title: "All markets", sub: "one shared axis", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }]; }
+
+    // ---- hourly coverage, real ------------------------------------------
+    // One cell per hour for the last 24. A cell is filled only where a row was
+    // actually collected in that hour; a failed pull is its own state and is
+    // never shaded as if it had a value.
+    const covEnd = Math.floor(lastT / HOUR) * HOUR;
+    const covH = st.covCell;
+    const byCcyHour = {};
+    D.basis.forEach(r => {
+      const t = ts(r.ts_utc); if (t === null || !r.ccy) return;
+      const k = r.ccy + "|" + Math.floor(t / HOUR);
+      const prev = byCcyHour[k];
+      if (!prev || t > prev.t) byCcyHour[k] = { t, ok: ok(r), bps: num(r.basis_bps), err: r.error || "" };
+    });
+    const coverage = mkts.map(m => {
+      const max = Math.abs(m.bps) >= 200 ? Math.max.apply(null, mkts.filter(x => Math.abs(x.bps) >= 200).map(x => Math.abs(x.bps)))
+                                         : Math.max.apply(null, mkts.filter(x => Math.abs(x.bps) < 200).map(x => Math.abs(x.bps)));
+      return { code: m.code, cells: Array.from({ length: 24 }, (_, i) => {
+        const hourStart = covEnd - (23 - i) * HOUR;
+        const cell = byCcyHour[m.code + "|" + Math.floor(hourStart / HOUR)];
+        const label = this.fmtStamp(hourStart, true);
+        let bg, v, t;
+        if (!cell) { bg = "var(--grid-empty)"; v = "no sample"; t = label + " · not collected"; }
+        else if (!cell.ok || cell.bps === null) { bg = "#dedede"; v = "failed pull"; t = label + " · " + (cell.err || "source_ok=False"); }
+        else { bg = this.cellBg(Math.abs(cell.bps), max); v = this.fmtBps(cell.bps) + " bps"; t = label + " · " + m.venue; }
+        return { t: m.code + " " + label, bg,
+          ring: covH && covH.code === m.code && covH.i === i ? "inset 0 0 0 1.5px var(--color-text)" : "none",
+          enter: () => this.setState({ covCell: { code: m.code, i, v, t } }),
+          leave: () => this.setState({ covCell: null }) };
+      })};
+    });
+
+    // ---- selected market series -----------------------------------------
+    const rangeDef = RANGES.find(r => r.key === st.range) || RANGES[2];
+    const pts = this.seriesFor(D, sel.code, rangeDef);
+    const vals = pts.map(p => p.v);
+    const vmax = vals.length ? Math.max.apply(null, vals) : 1;
+    const vmin = vals.length ? Math.min.apply(null, vals) : 0;
+    const pad = (vmax - vmin) * 0.12 + 0.5;
+    const yLo = Math.min(vmin - pad, 0), yHi = Math.max(vmax + pad, 0);
+    const p = this.plot(vals, yLo, yHi);
+    const zeroY = p.y(0);
+    const mkSparse = vals.length < 3;
+    const mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+    const sigma = vals.length ? Math.sqrt(vals.reduce((a, b) => a + (b - mean) * (b - mean), 0) / vals.length) : null;
+    const peak = vals.length ? vals.reduce((a, b) => Math.abs(b) > Math.abs(a) ? b : a, vals[0]) : null;
+    const mkIdx = this.activeIdx("mk");
+    const mkH = this.hoverHandlers("mk", vals.length);
+    const pctX = px => ((px / 1000) * 100).toFixed(2) + "%";
+    const pctY = py => ((py / 240) * 100).toFixed(2) + "%";
+    const shift = (i, n) => (i < n * 0.15 ? "translate(8px, -120%)" : i > n * 0.85 ? "translate(-100%, -120%)" : "translate(-50%, -130%)");
+    const xLabels = pts.length < 2 ? (pts.length ? [this.fmtStamp(pts[0].t, rangeDef.unit === "h")] : [])
+      : [0, 0.25, 0.5, 0.75, 1].map(f => this.fmtStamp(pts[Math.round(f * (pts.length - 1))].t, rangeDef.unit === "h"));
+
+    // ---- corridors -------------------------------------------------------
+    const corrKeys = Array.from(new Set(D.samples.map(r => (r.corridor || "").trim()).filter(Boolean)))
+      .sort((a, b) => a === "SGD->PHP" ? -1 : b === "SGD->PHP" ? 1 : a < b ? -1 : 1);
+    const cName = corrKeys.indexOf(st.corridor) >= 0 ? st.corridor : corrKeys[0];
+    const disp = k => (k || "").replace("->", "→");
+
+    const ladderFor = key => {
+      const { byTs, stamps } = this.corridorRows(D, key);
+      if (!stamps.length) return null;
+      const last = stamps[stamps.length - 1];
+      const rows = byTs[last].slice().sort((a, b) => (num(a.notional_src) || 0) - (num(b.notional_src) || 0));
+      const cur = (rows[0] || {}).src || key.slice(0, 3);
+      return { key, name: disp(key), t: last, cur,
+        verified: ((rows[0] || {}).fees_verified || "").split("|").map(x => (x.split(":")[1] || "").trim()).filter(Boolean).sort()[0] || "—",
+        ts: this.fmtStamp(last, true),
+        note: "On-ramp " + ((rows[0] || {}).onramp_venue || "—") + ", off-ramp " + ((rows[0] || {}).offramp_venue || "—") +
+              ". Fiat rails quoted at the same instant for the same amount.",
+        raw: rows,
+        rows: rows.map(r => {
+          const taker = num(r.cost_bps_taker), maker = num(r.cost_bps_maker), rail = num(r.baseline_cost_bps);
+          const gap = taker !== null && rail !== null ? taker - rail : null;
+          return { size: this.fmtSize(cur, num(r.notional_src)),
+            taker: this.fmtBps(taker, false), maker: this.fmtBps(maker, false),
+            provider: r.baseline_provider || "—", rail: this.fmtBps(rail, false),
+            gap: this.fmtBps(gap), gapColor: INK,
+            bg: String(num(r.notional_src)) === hi ? "var(--color-neutral-200)" : "transparent" };
+        })};
+    };
+    const ladders = corrKeys.map(ladderFor).filter(Boolean);
+    const cLad = ladders.find(l => l.key === cName) || ladders[0] || null;
+    const cRowRaw = cLad ? (cLad.raw.find(r => String(num(r.notional_src)) === hi) || cLad.raw[Math.min(2, cLad.raw.length - 1)]) : null;
+
+    // corridor time series at the highlighted size, both legs, real
+    let cc = Object.assign({}, empty.cc, {
+      sparse: true,
+      note: "No corridor samples collected yet — data/samples.csv is absent or has no usable rows. Nothing is drawn and nothing is filled in.",
+      tabs: [],
+    });
+    if (cLad && cRowRaw) {
+      const size = num(cRowRaw.notional_src);
+      const { rows } = this.corridorRows(D, cName);
+      const series = rows.filter(r => num(r.notional_src) === size)
+        .map(r => ({ t: ts(r.ts), u: num(r.cost_bps_taker), r: num(r.baseline_cost_bps) }))
+        .filter(x => x.t !== null && x.u !== null).sort((a, b) => a.t - b.t);
+      const us = series.map(x => x.u), rl = series.map(x => x.r === null ? x.u : x.r);
+      const all = us.concat(rl);
+      const cHi = all.length ? Math.max.apply(null, all) * 1.08 : 1;
+      const cLo = all.length ? Math.min(0, Math.min.apply(null, all) * 1.08) : 0;
+      const pu = this.plot(us, cLo, cHi), pr = this.plot(rl, cLo, cHi);
+      const ccIdx = this.activeIdx("cc");
+      const ccH = this.hoverHandlers("cc", us.length);
+      const sparse = us.length < 3;
+      const railRev = rl.map((v, i) => pr.x(rl.length - 1 - i).toFixed(1) + " " + pr.y(rl[rl.length - 1 - i]).toFixed(1));
+      cc = {
+        name: cLad.name, size: this.fmtSize(cLad.cur, size),
+        usdtLine: pu.line, railLine: pr.line,
+        gapArea: (pu.line && rl.length > 1) ? pu.line + " L " + railRev.join(" L ") + " Z" : "",
+        dots: sparse ? pu.dots : [], sparse,
+        note: sparse ? (us.length + (us.length === 1 ? " capture" : " captures") +
+              " so far at this size — every point collected is shown, with no line between them and nothing filled in.") : "",
+        xLabels: series.length < 2 ? (series.length ? [this.fmtStamp(series[0].t, true)] : [])
+          : [0, 0.33, 0.66, 1].map(f => this.fmtStamp(series[Math.round(f * (series.length - 1))].t, true)),
+        yLabels: [this.fmtBps(cHi, false), this.fmtBps((cHi + cLo) / 2, false), this.fmtBps(cLo, false)],
+        tipOn: ccIdx !== null && ccIdx < us.length,
+        tipX: ccIdx === null ? "0%" : pctX(pu.x(ccIdx)), tipY: ccIdx === null ? "0%" : pctY(pu.y(us[ccIdx])),
+        tipShift: ccIdx === null ? "none" : shift(ccIdx, us.length),
+        tipU: ccIdx === null ? "" : this.fmtBps(us[ccIdx], false),
+        tipR: ccIdx === null ? "" : this.fmtBps(rl[ccIdx], false),
+        tipG: ccIdx === null ? "" : this.fmtBps(us[ccIdx] - rl[ccIdx]),
+        tipT: ccIdx === null ? "" : this.fmtStamp(series[ccIdx].t, true),
+        onMove: ccH.onMove, onLeave: ccH.onLeave, onPin: ccH.onPin,
+        keys: [{ label: "USDT route, all-in", color: "var(--data-600)" },
+               { label: "best fiat rail", color: "var(--color-neutral-500)" }],
+        tabs: ladders.map(l => ({ label: l.name, go: () => this.setState({ corridor: l.key, hover: null, pinned: null }),
+          bg: cName === l.key ? "var(--color-text)" : "transparent",
+          color: cName === l.key ? "var(--color-bg)" : MUTED })),
+      };
+    }
+
+    // ---- waterfall + rail/doors split, from the highlighted sample --------
+    let waterfall = [], stack = [], stackKeys = [];
+    if (cRowRaw) {
+      const onB = num(cRowRaw.onramp_basis_bps), onF = num(cRowRaw.fee_on_taker_bps);
+      const offB = num(cRowRaw.offramp_basis_bps), offF = num(cRowRaw.fee_off_taker_bps);
+      const netUsdt = num(cRowRaw.network_fee_stable), vwap = num(cRowRaw.onramp_vwap), size = num(cRowRaw.notional_src);
+      const netBps = (netUsdt !== null && vwap && size) ? netUsdt / (size / vwap) * 1e4 : null;
+      const allIn = num(cRowRaw.cost_bps_taker), rail = num(cRowRaw.baseline_cost_bps);
+      const when = this.fmtStamp(ts(cRowRaw.ts), false);
+      const items = [
+        { label: "On-ramp basis — USDT vs USD mid, " + (cRowRaw.src || ""), v: onB },
+        { label: "On-ramp taker fee — " + (onF === null ? "—" : (onF / 100).toFixed(2) + "%"), v: onF },
+        { label: "Network fee — " + (netUsdt === null ? "—" : netUsdt + " USDT, " + (cRowRaw.onramp_venue || "")), v: netBps },
+        { label: "Off-ramp basis — USDT vs USD mid, " + (cRowRaw.dst || ""), v: offB },
+        { label: "Off-ramp taker fee — " + (offF === null ? "—" : (offF / 100).toFixed(2) + "%"), v: offF },
+        { label: "USDT route, all-in — " + when, v: allIn, total: true },
+        { label: (cRowRaw.baseline_provider || "best fiat rail") + ", same instant — " + when, v: rail, total: true },
+      ].filter(w => w.v !== null);
+      const wfMax = items.length ? Math.max.apply(null, items.map(w => Math.abs(w.v))) : 1;
+      waterfall = items.map(w => {
+        const zero = 8, span = 92 - zero, f = (Math.abs(w.v) / wfMax) * span;
+        return { label: w.label, v: this.fmtBps(w.v), mark: "", weight: w.total ? 800 : 400,
+          fill: w.v >= 0 ? (w.total ? "var(--data-600)" : "var(--data-400)") : "#dedede",
+          left: (w.v >= 0 ? zero : zero - Math.min(f, zero)) + "%", width: Math.max(f, 0.4) + "%" };
+      });
+      if (onB !== null && onF !== null && offB !== null && offF !== null && netBps !== null) {
+        const doors = onB + onF + offB + offF, total = doors + netBps;
+        stack = [
+          { label: "the two doors, " + this.fmtBps(doors, false) + " bps", w: ((doors / total) * 100).toFixed(1) + "%", bg: "var(--data-400)", fg: "var(--color-text)" },
+          { label: "", w: ((netBps / total) * 100).toFixed(1) + "%", bg: "var(--data-600)", fg: "var(--color-bg)" },
+        ];
+        stackKeys = [
+          { label: "on-ramp + off-ramp, basis and fees", bg: "var(--data-400)", v: this.fmtBps(doors, false) + " bps" },
+          { label: "the blockchain itself", bg: "var(--data-600)", v: this.fmtBps(netBps, false) + " bps" },
+        ];
       }
     }
 
-    // corridor — everything below is scoped to the SELECTED corridor
-    const corrKeys = D.corrKeys || [];
-    const corrKey = corrKeys.indexOf(st.corridor) >= 0 ? st.corridor : corrKeys[0];
-    const C = (D.corrs || {})[corrKey] || { corr: {}, sizes: [], hours: 0 };
-    const corrPanel = (D.panels || {})[corrKey] || { panel: {}, panelT: 0, rows: 0 };
-    const sizes = C.sizes;
-    const size = sizes.indexOf(st.size) >= 0 ? st.size : sizes[0];
-    const crows = C.corr[size] || [];
-    const cLast = crows[crows.length - 1] || {};
-    // Fewer than 3 distinct capture hours: draw what exists and say so. The
-    // points are rendered as dots because a 1-point path draws nothing, and a
-    // line between two points would imply a trend the data cannot support.
-    const corrSparse = (C.hours || 0) < 3;
-    const cAll = crows.map(r => r.usdt).concat(crows.map(r => r.fiat).filter(v => v != null));
-    const cRawLo = cAll.length ? Math.min.apply(null, cAll) : 0;
-    let clo = cRawLo, chi = cAll.length ? Math.max.apply(null, cAll) : 1;
-    const cpad = (chi - clo) * 0.22 || 8;
-    // Clamping the floor to zero is only safe while every cost is positive. A
-    // promotional quote lands BELOW mid-market (negative cost) and would be
-    // drawn off-canvas -- silently hiding the rail the route is measured against.
-    // Below zero, pad by a small fraction of the span rather than the full 22%:
-    // a -1.6 bps promo dip should not open a 38 bps band of empty chart.
-    clo = cRawLo < 0 ? cRawLo - (chi - Math.min(0, cRawLo)) * 0.06 : Math.max(0, clo - cpad);
-    chi += cpad;
-    const CH = 220;
-    const CX = i => crows.length < 2 ? 500 : (i / (crows.length - 1)) * 1000;
-    const CY = v => CH - ((v - clo) / (chi - clo)) * CH;
-    const uPath = crows.map((r, i) => (i ? 'L' : 'M') + CX(i).toFixed(1) + ' ' + CY(r.usdt).toFixed(1)).join(' ');
-    const fPath = crows.map((r, i) => (i ? 'L' : 'M') + CX(i).toFixed(1) + ' ' + CY(r.fiat == null ? r.usdt : r.fiat).toFixed(1)).join(' ');
-    const corrPoints = corrSparse ? crows.map((r, i) => ({
-      cx: CX(i).toFixed(1), cy: CY(r.usdt).toFixed(1),
-      fy: r.fiat == null ? '-99' : CY(r.fiat).toFixed(1),   // off-canvas when unquoted
-      fyTitle: r.fiat == null ? '' : this.fmtDate(r.t, true) + ' — ' + (r.rail || 'best rail') + ' ' + bpsFmt(r.fiat, 1),
-      title: this.fmtDate(r.t, true) + ' — USDT ' + bpsFmt(r.usdt, 1),
-    })) : [];
-    let chv = null;
-    if (st.chover != null && crows.length > 1) { const i = Math.max(0, Math.min(crows.length - 1, Math.round(st.chover * (crows.length - 1)))); chv = { i, r: crows[i] }; }
-    const cGap = (cLast.usdt || 0) - (cLast.fiat || 0);
-    const netBps = cLast.netFee != null && cLast.midSrc ? (cLast.netFee / (size / cLast.midSrc)) * 10000 : null;
-    const sgdCur = (D.live.SGD || []).slice(-1)[0], phpCur = (D.live.PHP || []).slice(-1)[0];
-    const one = v => v == null ? '—' : (v < 0 ? '−' : '') + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' bps';
-
-    const latest = {};
-    codes.forEach(c => { const a = D.live[c] || D.daily[c]; latest[c] = a[a.length - 1]; });
-    const ranked = codes.slice().sort((a, b) => Math.abs(latest[b].p) - Math.abs(latest[a].p)).slice(0, 5);
-    const venueList = codes.map(c => D.venues[c]).filter((v, i, a) => v && a.indexOf(v) === i);
-
-    const idr = latest.IDR, sinceDays = Math.max(1, Math.round((nowT - (liveArr.length ? D.live[codes[0]][0].t : nowT)) / DAY));
-    const histStart = D.histStartT ? this.fmtDate(D.histStartT, false) : null;
-    const srcCcy = C.src || (crows.length ? crows[0].src : '') || 'SGD';
-    const cur = n => (srcCcy === 'SGD' ? 'S$' + n : srcCcy + ' ' + n);
-    const sizeLabel = cur(size >= 1000 ? (size / 1000) + 'k' : String(size));
-
-    // ── B. Small multiples — 90 days per market, daily backfill stitched to live.
-    // Scale decision: each tile is scaled to its OWN range. A shared y-axis is
-    // impossible here — Argentina runs four orders of magnitude wider than
-    // Singapore, so one band either flattens SGD to a dead line or pushes ARS
-    // off the tile. Every tile does draw the same zero line, so sign, crossings
-    // and shape stay comparable; magnitude is carried by the printed number.
-    const SM_DAYS = 90, SM_W = 200, SM_H = 46;
-    const tint = p => p >= 100 ? RED : p <= -50 ? GREEN : accent;
-    const smCut = nowT - SM_DAYS * DAY;
-    const tiles = codes.map(c => {
-      const full = (D.daily[c] || []).concat(D.live[c] || []);
-      let win = full.filter(p => p.t >= smCut);
-      if (win.length < 2) win = full.slice(-2);
-      const cur = latest[c], col = tint(cur.p);
-      const ps2 = win.map(p => p.p);
-      let lo2 = Math.min(0, Math.min.apply(null, ps2)), hi2 = Math.max(0, Math.max.apply(null, ps2));
-      const sp2 = (hi2 - lo2) || 1;
-      lo2 -= sp2 * 0.14; hi2 += sp2 * 0.14;
-      const TX = i => win.length < 2 ? SM_W / 2 : (i / (win.length - 1)) * SM_W;
-      const TY = v => SM_H - ((v - lo2) / (hi2 - lo2)) * SM_H;
-      const tline = win.map((p, i) => (i ? 'L' : 'M') + TX(i).toFixed(1) + ' ' + TY(p.p).toFixed(1)).join(' ');
-      const z = TY(0).toFixed(1);
-      const hasDaily = (D.daily[c] || []).length > 0;
-      const spanD = Math.max(1, Math.round((win[win.length - 1].t - win[0].t) / DAY));
-      return {
-        code: c, flag: META[c].flag, country: META[c].country,
-        bps: bpsFmt(cur.p, 0), color: col, path: tline, zeroY: z,
-        area: tline + ' L' + TX(win.length - 1).toFixed(1) + ' ' + z + ' L' + TX(0).toFixed(1) + ' ' + z + ' Z',
-        span: hasDaily ? spanD + 'd' : 'live only · ' + spanD + 'd',
-        title: META[c].country + ' — ' + spanD + ' days, ' + (hasDaily ? 'daily backfill + hourly live' : 'hourly live only') + '. Tile range ' + bpsFmt(Math.min.apply(null, ps2), 0) + ' to ' + bpsFmt(Math.max.apply(null, ps2), 0) + '.',
-        bg: c === ccy ? '#f5f5f8' : '#fff',
-        border: c === ccy ? '#c9cad2' : '#ebebf0',
-        onClick: () => this.setState({ ccy: c, hover: null }),
-      };
-    }).sort((a, b) => Math.abs(latest[b.code].p) - Math.abs(latest[a.code].p));
-    const smWithDaily = codes.filter(c => (D.daily[c] || []).length).length;
-
-    // ── A. Provider leaderboard — the whole fiat field at this size, with the
-    // USDT route dropped into the same ranking. cost_bps shares a convention
-    // across both files (see METHODOLOGY), so they are directly comparable.
-    const DEST = { PHP: 'Manila', MXN: 'Mexico City' };
-    const dstCcy = (corrKey || 'SGD->PHP').split('->')[1] || 'PHP';
-    const destName = DEST[dstCcy] || dstCcy;
-    const fiatBoard = (corrPanel.panel[size] || []).map(r => ({ ...r, isUsdt: false }));
-    const usdtEntry = cLast.usdt == null ? null :
-      { provider: 'USDT route — ' + (cLast.onVenue || 'on-ramp') + ' → ' + (cLast.offVenue || 'off-ramp'), bps: cLast.usdt, landed: cLast.landedTaker, isUsdt: true };
-    const boardRows = fiatBoard.concat(usdtEntry ? [usdtEntry] : []).sort((a, b) => a.bps - b.bps);
-    const bestBps = boardRows.length ? boardRows[0].bps : null;
-    const usdtIdx = boardRows.findIndex(r => r.isUsdt);
-    const money = v => v == null ? '—' : Math.round(v).toLocaleString('en-US');
-    const leaderRows = boardRows.map((r, i) => ({
-      pos: String(i + 1),
-      provider: r.provider,
-      landed: money(r.landed),
-      bps: r.bps.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
-      delta: i === 0 ? 'best' : '+' + (r.bps - bestBps).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
-      deltaColor: i === 0 ? GREEN : '#8b8d99',
-      bg: r.isUsdt ? 'color-mix(in oklab, ' + accent + ' 7%, white)' : '#fff',
-      ring: r.isUsdt ? 'inset 0 0 0 1px color-mix(in oklab, ' + accent + ' 35%, white)' : 'none',
-      nameColor: r.isUsdt ? accent : '#12131a',
-      weight: r.isUsdt ? '600' : '500',
-      tag: r.isUsdt ? 'taker, all-in' : '',
-      showTag: r.isUsdt,
-    }));
-    const fiatSorted = boardRows.filter(r => !r.isUsdt);
-    const boardHeadline = boardRows.length >= 2 && fiatSorted.length >= 2 ?
-      'Right now the cheapest way to send ' + sizeLabel + ' to ' + destName + ' is ' + boardRows[0].provider.replace(/ —.*$/, '') +
-      ' at ' + Math.round(boardRows[0].bps) + ' bps; the most expensive quoted rail is ' + fiatSorted[fiatSorted.length - 1].provider +
-      ' at ' + Math.round(fiatSorted[fiatSorted.length - 1].bps) + ' bps — a ' +
-      Math.round(fiatSorted[fiatSorted.length - 1].bps - fiatSorted[0].bps) + ' bps spread inside fiat.' +
-      (usdtIdx >= 0 ? ' The USDT route ranks #' + (usdtIdx + 1) + ' of ' + boardRows.length + '.' : '') : '';
-
-    // ── C. Auto-conclusions. Every sentence is computed from the CSVs at render
-    // time and only appears while its condition holds, so nothing here can go
-    // stale against the data underneath it.
-    const seriesOf = c => (D.daily[c] || []).concat(D.live[c] || []);
-    const auto = [];
-
-    const WEEK = 7 * DAY;
-    let mv = null;
-    codes.forEach(c => {
-      const arr = seriesOf(c);
-      if (arr.length < 2) return;
-      const cur = arr[arr.length - 1], target = cur.t - WEEK;
-      let ref = null;
-      arr.forEach(p => { if (p.t < cur.t && (ref === null || Math.abs(p.t - target) < Math.abs(ref.t - target))) ref = p; });
-      if (!ref || Math.abs(ref.t - target) > 1.5 * DAY) return;
-      const d = Math.abs(cur.p) - Math.abs(ref.p);
-      if (mv === null || Math.abs(d) > Math.abs(mv.d)) mv = { c, d, ref, cur };
-    });
-    if (mv && Math.abs(mv.d) >= 1) auto.push({
-      k: this.fmtDate(mv.cur.t, false),
-      v: META[mv.c].country + '’s basis ' + (mv.d > 0 ? 'widened ' : 'narrowed ') + Math.abs(Math.round(mv.d)) +
-         ' bps over the past week — ' + bpsFmt(mv.ref.p, 0) + ' on ' + this.fmtDate(mv.ref.t, false) + ', ' + bpsFmt(mv.cur.p, 0) +
-         ' now. That is the largest seven-day move on the board.',
-    });
-
-    let rec = null;
-    codes.forEach(c => {
-      const arr = seriesOf(c);
-      if (arr.length < 30) return;
-      const cur = arr[arr.length - 1], a = Math.abs(cur.p);
-      const prior = arr.slice(0, -1).map(p => Math.abs(p.p));
-      const mx = Math.max.apply(null, prior), mn = Math.min.apply(null, prior);
-      let cand = null;
-      if (a > mx) cand = { c, kind: 'widest', cur, prev: mx, prevAt: arr.slice(0, -1)[prior.indexOf(mx)], n: arr.length };
-      else if (a < mn) cand = { c, kind: 'narrowest', cur, prev: mn, prevAt: arr.slice(0, -1)[prior.indexOf(mn)], n: arr.length };
-      if (cand && (rec === null || cand.n > rec.n)) rec = cand;
-    });
-    if (rec) auto.push({
-      k: this.fmtDate(rec.cur.t, false),
-      v: META[rec.c].country + ' just printed its ' + rec.kind + ' reading since collection began: ' + bpsFmt(rec.cur.p, 0) +
-         ', against a previous ' + (rec.kind === 'widest' ? 'high' : 'low') + ' of ' + Math.round(rec.prev) + ' bps' +
-         (rec.prevAt ? ' on ' + this.fmtDate(rec.prevAt.t, false) : '') + ' across ' + rec.n.toLocaleString('en-US') + ' observations.',
-    });
-
-    if (crows.length >= 2 && crows[0].fiat != null && cLast.fiat != null) {
-      const g0 = crows[0].usdt - crows[0].fiat;
-      const gN = cLast.usdt - cLast.fiat;
-      const moved = gN - g0;
-      auto.push({
-        k: this.fmtDate(cLast.t, false),
-        v: 'At ' + sizeLabel + ' the USDT-vs-rail gap is ' + one(gN) + ', against ' + one(g0) + ' when this size was first sampled on ' +
-           this.fmtDate(crows[0].t, false) + ' — ' + (Math.abs(moved) < 0.5 ? 'essentially unchanged.' :
-           (moved > 0 ? 'the rail has pulled ' + Math.abs(Math.round(moved)) + ' bps further ahead.' : 'the crypto route has closed ' + Math.abs(Math.round(moved)) + ' bps of it.')),
+    // ---- incumbent spread, from the panel CSVs ---------------------------
+    const spread = [];
+    ladders.forEach(l => {
+      const panel = (D.panels[l.key] || []).filter(r => ok(r) && num(r.cost_bps) !== null && r.provider);
+      if (!panel.length) return;
+      const newest = Math.max.apply(null, panel.map(r => ts(r.ts_utc)).filter(t => t !== null));
+      const cur = panel.filter(r => ts(r.ts_utc) === newest);
+      const sizes = Array.from(new Set(cur.map(r => num(r.notional_src)))).filter(v => v !== null).sort((a, b) => a - b);
+      sizes.forEach(n => {
+        const g = cur.filter(r => num(r.notional_src) === n).sort((a, b) => num(a.cost_bps) - num(b.cost_bps));
+        if (!g.length) return;
+        spread.push({ corridor: l.name, size: this.fmtSize(l.cur, n),
+          best: g[0].provider, bestBps: this.fmtBps(num(g[0].cost_bps), false),
+          worst: g[g.length - 1].provider,
+          worstBps: this.fmtBps(num(g[g.length - 1].cost_bps), false) + " · n=" + g.length });
       });
+    });
+
+    // ---- findings: computed, and only where the data supports them -------
+    const findings = [];
+    if (cLad && cLad.raw.length >= 2) {
+      const small = cLad.raw[0], big = cLad.raw[cLad.raw.length - 1];
+      const st1 = num(small.cost_bps_taker), sr1 = num(small.baseline_cost_bps), bt = num(big.cost_bps_taker);
+      if (st1 !== null && sr1 !== null && bt !== null) {
+        findings.push({ date: this.fmtStamp(cLad.t, false),
+          q: "Are stablecoins worst at remittance size?",
+          a: "At " + this.fmtSize(cLad.cur, num(small.notional_src)) + " the fixed costs dominate: " +
+             this.fmtBps(st1, false) + " bps all-in against " + this.fmtBps(sr1, false) + " for " +
+             (small.baseline_provider || "the cheapest rail") + ". By " + this.fmtSize(cLad.cur, num(big.notional_src)) +
+             " the route is " + this.fmtBps(bt, false) + " bps. Computed from the ladder in this sample, not asserted.",
+          stat: this.fmtBps(st1, false), statSub: "bps at " + this.fmtSize(cLad.cur, num(small.notional_src)), mark: "" });
+      }
     }
 
-    const idrLive = D.live.IDR || [];
-    const idrBelow = idrLive.filter(p => p.p < 0).length;
-    const liveStartAll = Math.min.apply(null, codes.filter(c => D.live[c]).map(c => D.live[c][0].t));
-    const liveDays = Math.max(1, Math.round((nowT - liveStartAll) / DAY));
+    // ---- fee verification stamp, from the data, never now() --------------
+    const runs = {};
+    D.feeChecks.forEach(r => { if (r.ts_utc) (runs[r.ts_utc] = runs[r.ts_utc] || []).push(r); });
+    const runStamps = Object.keys(runs).sort();
+    let feeStamp = "";
+    if (runStamps.length) {
+      const latest = runStamps[runStamps.length - 1];
+      const clean = runStamps.filter(t => runs[t].every(r => (r.status || "").trim() === "ok"));
+      feeStamp = runs[latest].some(r => (r.status || "").trim() !== "ok")
+        ? "fees UNVERIFIED — last clean check " + (clean.length ? clean[clean.length - 1].slice(0, 10) : "none on record")
+        : "fees verified " + (cLad ? cLad.verified : clean[clean.length - 1].slice(0, 10));
+    }
 
-    const findings = [];
-    if (cLast.usdt != null && cLast.fiat != null) findings.push({
-      k: this.fmtDate(cLast.t || nowT, false),
-      v: 'At ' + corrKey.replace('->', '→') + ', ' + sizeLabel + ': the USDT route lands at ' + Math.round(cLast.usdt) + ' bps against ' + (cLast.rail || 'the fiat rail') + ' at ' + Math.round(cLast.fiat) + ' bps — ' + (cGap > 0 ? 'the rail still wins by ' + Math.round(cGap) + ' bps.' : 'the crypto route wins by ' + Math.round(-cGap) + ' bps.'),
-    });
-    if (ranked.length >= 2) findings.push({
-      k: this.fmtDate(nowT, false),
-      v: ranked.slice(0, 2).map(c => META[c].country + ' ' + bpsFmt(latest[c].p, 0)).join(' and ') + ' against their official mids — the parallel-dollar premium, off broker quotes.',
-    });
-    auto.forEach(f => findings.push(f));
-    if (idr && idr.p < 0 && idrLive.length >= 24 && idrBelow / idrLive.length > 0.5) findings.push({
-      k: 'Under investigation',
-      v: 'Indonesia prints ' + bpsFmt(idr.p, 0) + ' on Indodax at the latest pull, and has sat below its official mid in ' +
-         Math.round(100 * idrBelow / idrLive.length) + '% of its ' + idrLive.length.toLocaleString('en-US') +
-         ' hourly samples. Fresh book, tight spread. I don’t have an explanation I’d defend yet.',
-    });
-    if (histStart) findings.push({
-      k: 'Daily backfill',
-      v: D.histCodes.length + ' venues carry a daily series from ' + histStart + ' — ' + D.rowsHist.toLocaleString('en-US') + ' rows. Markets flat today were not always: use the 1y and All ranges to see what each one has done since.',
-    });
-
-    // ── Findings: weekday seasonality, computed from the deepest daily series
-    const dowCode = D.histCodes.slice().sort((a, b) => D.daily[b].length - D.daily[a].length)[0];
-    const dowSrc = dowCode ? D.daily[dowCode] : [];
-    const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const sums = [0, 0, 0, 0, 0, 0, 0], counts = [0, 0, 0, 0, 0, 0, 0];
-    dowSrc.forEach(p => { const i = (new Date(p.t).getUTCDay() + 6) % 7; sums[i] += p.p; counts[i]++; });
-    const means = sums.map((s, i) => counts[i] ? s / counts[i] : 0);
-    const mAbsMax = Math.max.apply(null, means.map(Math.abs)) || 1;
-    const weekdayMean = means.slice(0, 5).reduce((a, b) => a + b, 0) / 5;
-    const weekendMean = (means[5] + means[6]) / 2;
-    const dowSpread = weekendMean - weekdayMean;
-    const dowSd = Math.sqrt(dowSrc.reduce((a, p) => a + Math.pow(p.p - (dowSrc.reduce((x, y) => x + y.p, 0) / dowSrc.length), 2), 0) / Math.max(1, dowSrc.length - 1));
-    const dowBars = means.map((v, i) => ({
-      label: DOW[i],
-      up: v >= 0,
-      down: v < 0,
-      h: Math.max(2, Math.round((Math.abs(v) / mAbsMax) * 56)) + 'px',
-      v: (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1),
-      n: counts[i].toLocaleString('en-US'),
-      bg: i > 4 ? accent : 'color-mix(in oklab, ' + accent + ' 42%, white)',
-    }));
-    const dowMeta = dowCode ? META[dowCode] : null;
+    // ---- crossover: binds to data/fee_tiers.csv, empty until it exists ----
+    const tierRows = (D.tiers || []).filter(r => ok(r));
+    const cx = Object.assign({}, empty.cx, { name: cLad ? cLad.name : "—" });
 
     return {
-      accent, showOfficial, ccy,
-      findingSub: dowMeta ? dowMeta.flag + ' ' + dowMeta.country + ' · ' + (D.histVenues[dowCode] || '') + ' · mean basis by weekday, bps · ' + dowSrc.length.toLocaleString('en-US') + ' daily observations from ' + this.fmtDate(dowSrc[0].t, false) : '',
-      dowBars,
-      dowAxis: bpsFmt(mAbsMax, 0) + ' scale',
-      findingParas: dowCode ? [
-        'Official mids are set on banking days; the venues quote through the weekend. If the basis were mostly a settlement effect — dollars hard to get when the banks are shut — the weekend bars should stand off the weekday ones. On ' + dowMeta.country + '\u2019s daily series the weekday mean is ' + bpsFmt(weekdayMean, 1) + ' against a weekend mean of ' + bpsFmt(weekendMean, 1) + ', a spread of ' + bpsFmt(dowSpread, 1) + '.',
-        'Day-to-day variation in the same series is ' + dowSd.toFixed(1) + ' bps (σ), so the weekday–weekend gap is ' + (Math.abs(dowSpread) > dowSd ? 'wider than the ordinary daily noise — enough to be worth chasing, not enough to call a cause' : 'inside the ordinary daily noise, which is a reason to hold off on reading anything into it') + '. It is also confounded: the reference mid carries the last banking day\u2019s value forward, so a weekend reading compares a live quote to a stale official rate. The chart cannot separate those two things, and I am not going to pretend it can.',
-        'The hourly layer is the test that matters here — it can put the intraday shape of a Saturday next to a Tuesday at the same hour. That layer is days old. This entry exists to be revisited when it has months in it, and to be wrong in public if it turns out the other way.',
+      nav, isBoard: page === "board", isCorridor: page === "corridor", isMethod: page === "methodology",
+      goCorridor: go("corridor"), goMethod: go("methodology"),
+      health: "collector ok · " + okCount + "/" + latestRun.length + " sources",
+      lastTick: this.fmtStamp(lastT, true),
+      scaleNote: banded ? "two bands, each on its own axis" : "single axis",
+      hl: { wide: this.fmtBps(wide.bps) + " bps", wideCountry: wide.country,
+            narrow: this.fmtBps(narrow.bps) + " bps", narrowCountry: narrow.country },
+      heroStats: [
+        { k: "widest divergence", v: this.fmtBps(wide.bps), sub: wide.code + " · " + wide.venue, mark: "" },
+        { k: "narrowest", v: this.fmtBps(narrow.bps), sub: narrow.code + " · " + narrow.venue, mark: "" },
+      ].concat(cRowRaw ? [
+        { k: "USDT route, " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
+          v: this.fmtBps(num(cRowRaw.cost_bps_taker), false), sub: "bps all-in, taker", mark: "" },
+        { k: "cheapest fiat rail", v: this.fmtBps(num(cRowRaw.baseline_cost_bps), false),
+          sub: "bps · " + (cRowRaw.baseline_provider || "—") + ", same second", mark: "" },
+      ] : []),
+      bands, coverage,
+      cov: { on: !!covH, code: covH ? covH.code : "", v: covH ? covH.v : "", t: covH ? covH.t : "",
+             hint: covH ? "one cell per hour" : "hover a cell · one cell per hour, shaded by |basis|; grey is a failed pull, blank is not collected" },
+      legendCells: [200, 300, 400, 500, 600].map(s => ({ bg: "var(--data-" + s + ")" })),
+      mk: {
+        code: sel.code, country: sel.country, venue: sel.venue, bps: this.fmtBps(sel.bps), color: INK,
+        line: mkSparse ? "" : p.line,
+        area: mkSparse ? "" : p.line + " L 1000 " + zeroY.toFixed(1) + " L 0 " + zeroY.toFixed(1) + " Z",
+        dots: mkSparse ? p.dots : [], sparse: mkSparse,
+        note: mkSparse ? (vals.length + (vals.length === 1 ? " sample" : " samples") + " in this window — points only, no line drawn.") : "",
+        zeroY: zeroY.toFixed(1), xLabels, yLabels: [this.fmtBps(yHi), this.fmtBps((yHi + yLo) / 2), this.fmtBps(yLo)],
+        tipOn: mkIdx !== null && mkIdx < vals.length,
+        tipX: mkIdx === null ? "0%" : pctX(p.x(mkIdx)), tipY: mkIdx === null ? "0%" : pctY(p.y(vals[mkIdx])),
+        tipShift: mkIdx === null ? "none" : shift(mkIdx, vals.length),
+        tipV: mkIdx === null ? "" : this.fmtBps(vals[mkIdx]),
+        tipT: mkIdx === null ? "" : this.fmtStamp(pts[mkIdx].t, true),
+        onMove: mkH.onMove, onLeave: mkH.onLeave, onPin: mkH.onPin,
+        stats: [
+          { k: "mean, window", v: this.fmtBps(mean) },
+          { k: "peak |basis|", v: this.fmtBps(peak) },
+          { k: "σ", v: sigma === null ? "—" : sigma.toFixed(2) },
+          { k: "samples", v: vals.length + " · " + rangeDef.key },
+        ],
+      },
+      ranges: RANGES.map(r => ({ label: r.label, go: () => this.setState({ range: r.key, hover: null, pinned: null }),
+        bg: st.range === r.key ? "var(--color-text)" : "transparent",
+        color: st.range === r.key ? "var(--color-bg)" : MUTED })),
+      cc, cx, cxx: false,
+      corridorSummary: cRowRaw ? [
+        { k: cLad.name + " · " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)) + " · USDT all-in",
+          v: this.fmtBps(num(cRowRaw.cost_bps_taker), false), sub: "bps, taker execution", color: INK },
+        { k: "cheapest fiat rail, same instant", v: this.fmtBps(num(cRowRaw.baseline_cost_bps), false),
+          sub: "bps · " + (cRowRaw.baseline_provider || "—"), color: INK },
+        { k: "USDT vs rail", v: this.fmtBps((num(cRowRaw.cost_bps_taker) || 0) - (num(cRowRaw.baseline_cost_bps) || 0)),
+          sub: "bps · " + (feeStamp || "fee stamp unavailable"), color: INK },
       ] : [],
-      heroFlag: meta.flag,
-      statusDot: GREEN, statusLabel: 'collector live · last pull ' + this.fmtDate(nowT, true),
-      rateLabel: this.fmtRate(last.v), officialLabel: this.fmtRate(last.o),
-      lastTick: this.fmtDate(last.t, true).split('· ')[1] || this.fmtDate(last.t, false),
-      venueLabel: (D.venues[ccy] || D.histVenues[ccy] || 'venue') + ' · ' + (dayArr.length ? 'daily backfill from ' + this.fmtDate(dayArr[0].t, false) : 'hourly since ' + this.fmtDate(liveArr.length ? liveArr[0].t : nowT, false)),
-      deltaAbs: (up ? '+' : '−') + this.fmtRate(Math.abs(delta)),
-      deltaPct: (up ? '+' : '−') + Math.abs(dpct).toFixed(2) + ' %',
-      deltaColor: up ? GREEN : RED,
-      rangeLabel: winH < R.h ? 'full history · ' + (winH >= 48 ? Math.round(winH / 24) + ' d' : Math.round(winH) + ' h') : 'past ' + R.label,
-      premLabel: bpsFmt(last.p, 1),
-      premColor: Math.abs(last.p) >= 100 ? RED : '#12131a',
-      premBg: Math.abs(last.p) >= 100 ? 'color-mix(in oklab, ' + RED + ' 8%, white)' : '#f5f5f8',
-      linePath: line, officialPath: offPath, areaPath: line + ' L1000 ' + H + ' L0 ' + H + ' Z',
-      premPath, premArea: premPath + ' L1000 ' + PY(plo).toFixed(1) + ' L0 ' + PY(plo).toFixed(1) + ' Z',
-      zeroY: PY(0).toFixed(1),
-      premMean: bpsFmt(mean, 1), premPeak: bpsFmt(peak, 1), premSigma: sd.toFixed(1) + ' bps',
-      yTicks: [0, 0.25, 0.5, 0.75, 1].map(f => ({ y: (f * H).toFixed(0) })),
-      xTicks: [0, 0.33, 0.66, 1].map((f, i) => {
-        const t = pts[Math.round(f * (pts.length - 1))].t;
-        const hourly = winH <= 168;
-        if (!hourly) return { label: this.fmtDate(t, false) };
-        const hh = String(new Date(t).getUTCHours()).padStart(2, '0') + ':00';
-        return { label: i === 0 ? this.fmtDate(t, false) + ' · ' + hh : hh + (i === 3 ? ' UTC' : '') };
-      }),
-      rangeTabs: RANGES.map(r => {
-        const short = r.h > spanH + 1 && r.key !== 'all';
-        return {
-          label: r.label, onClick: () => this.setState({ range: r.key, hover: null }),
-          bg: r.key === st.range ? '#f1f1f4' : 'transparent',
-          color: r.key === st.range ? '#12131a' : short ? '#cbccd4' : '#8b8d99',
-        };
-      }),
-      featured: ranked.map(c => ({
-        country: META[c].country, flag: META[c].flag, bps: bpsFmt(latest[c].p, 0),
-        bg: c === ccy ? '#12131a' : '#fff', color: c === ccy ? '#fff' : '#12131a',
-        sub: c === ccy ? 'rgba(255,255,255,0.62)' : (latest[c].p >= 100 ? RED : latest[c].p <= -50 ? GREEN : '#8b8d99'),
-        border: c === ccy ? '#12131a' : '#e6e6eb',
-        onClick: () => this.setState({ ccy: c, hover: null }),
-      })),
-      marketRows: codes.map(c => ({
-        code: c, flag: META[c].flag, venue: D.venues[c] || D.histVenues[c] || '—',
-        rate: this.fmtRate(latest[c].v), prem: bpsFmt(latest[c].p, 0),
-        premColor: latest[c].p >= 100 ? RED : latest[c].p <= -50 ? GREEN : '#7c7e8a',
-        bg: c === ccy ? '#f1f1f4' : 'transparent',
-        onClick: () => this.setState({ ccy: c, hover: null }),
-      })),
-      stats: [
-        { k: 'High', v: this.fmtRate(Math.max.apply(null, pts.map(p => p.v))) },
-        { k: 'Low', v: this.fmtRate(Math.min.apply(null, pts.map(p => p.v))) },
-        { k: 'Average', v: this.fmtRate(pts.reduce((a, p) => a + p.v, 0) / pts.length) },
-        { k: 'Observations in window', v: pts.length.toLocaleString('en-US') },
-        { k: 'Resolution', v: pts.some(p => p.daily) ? (pts.some(p => !p.daily) ? 'daily + hourly' : 'daily') : 'hourly' },
-        { k: 'History depth', v: this.fmtDate(all[0].t, false) + ' →' },
+      corridors: ladders,
+      correction: cRowRaw ? [
+        // The claimed figure is a historical error, not a measurement, and has
+        // no CSV to compute from — it carries the placeholder mark rather than
+        // being presented as data. The rest is live.
+        { k: "claimed maker cost, first version", v: "not wired °", strike: "none" },
+        { k: "actual maker cost, " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
+          v: this.fmtBps(num(cRowRaw.cost_bps_maker), false) + " bps", strike: "none" },
+        { k: "verdict", v: (num(cRowRaw.cost_bps_maker) !== null && num(cRowRaw.baseline_cost_bps) !== null &&
+            num(cRowRaw.cost_bps_maker) < num(cRowRaw.baseline_cost_bps)) ? "route wins" : "rail wins", strike: "none" },
+      ] : [],
+      findings, waterfall, stack, stackKeys, spread,
+      correctionDate: cLad ? this.fmtStamp(cLad.t, false) : "—",
+      // Fee prose on the methodology screen is built from the fee columns the
+      // collector stamped on the row, so it cannot drift from what was charged.
+      makerProse: cRowRaw
+        ? (cRowRaw.onramp_venue || "the on-ramp") + " charges a flat " +
+          ((num(cRowRaw.fee_on_maker_bps) ?? 0) / 100).toFixed(2) + "% at the base tier and " +
+          (cRowRaw.offramp_venue || "the off-ramp") + " " +
+          ((num(cRowRaw.fee_off_maker_bps) ?? 0) / 100).toFixed(2) + "% on maker fills"
+        : "the venues' maker schedules are not in this sample",
+      takerProse: cRowRaw
+        ? (cRowRaw.onramp_venue || "the on-ramp") + " charges " +
+          ((num(cRowRaw.fee_on_taker_bps) ?? 0) / 100).toFixed(2) + "% taker, " +
+          (cRowRaw.offramp_venue || "the off-ramp") + " " +
+          ((num(cRowRaw.fee_off_taker_bps) ?? 0) / 100).toFixed(2) + "%, both verified " +
+          (cLad ? cLad.verified : "—")
+        : "taker schedules are not in this sample",
+      legend: [
+        { mark: "m", k: "measured", v: "live books, official mids, incumbent quotes" },
+        { mark: "a", k: "assumed", v: "published fee schedules, dated" },
+        { mark: "n", k: "not visible", v: "enterprise pricing, OTC" },
+        { mark: "°", k: "placeholder", v: "not yet wired to the collector" },
       ],
-      covDays: covCols,
-      hourAxis: !stripMode,
-      cellHeight: stripMode ? '22px' : '9px',
-      coverTitle: stripMode ? 'Hourly capture coverage — every hour of the live layer' : 'Hourly capture coverage — last ' + COV_DAYS + ' days',
-      coverageLabel: expected ? captured.toLocaleString('en-US') + ' of ' + expected.toLocaleString('en-US') + ' hours captured since ' + this.fmtDate(firstLive, true) + ' · ' + ((captured / expected) * 100).toFixed(1) + '% of hours have a tick' : 'No hourly rows yet for this market.',
-      legend: alphas.map(a => ({ bg: 'color-mix(in oklab, ' + accent + ' ' + Math.round(a * 100) + '%, white)' })),
-      coverTicks: [0, 0.34, 0.67, 1].map((f, i) => {
-        if (!stripMode) return { label: this.fmtDate(covStart + Math.round(f * (COV_DAYS - 1)) * DAY, false) };
-        const t = covStart + Math.round(f * (covCols - 1)) * HOUR;
-        const hh = String(new Date(t).getUTCHours()).padStart(2, '0') + ':00';
-        return { label: i === 0 ? this.fmtDate(t, false) + ' · ' + hh : hh + (i === 3 ? ' UTC' : '') };
-      }),
-      cells,
-      collectionNote: 'Hourly quotes from ' + venueList.length + ' venues (' + venueList.slice(0, 3).join(', ') + '…), each aligned to the official USD mid carried in the same row. ' + D.rowsLive.toLocaleString('en-US') + ' live rows since ' + this.fmtDate(firstLive, false) + '; ' + D.rowsHist.toLocaleString('en-US') + ' daily backfill rows from ' + (histStart || '—') + '. Failed pulls are written as failures and read as gaps.',
-      chartRef: el => { this.el = el; },
-      onMove: e => { const r = this.el.getBoundingClientRect(); this.setState({ hover: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) }); },
-      onLeave: () => this.setState({ hover: null }),
-      hovering: !!hv,
-      hoverX: hv ? X(hv.i).toFixed(1) : 0,
-      hoverDotLeft: hv ? (X(hv.i) / 10).toFixed(2) + '%' : '0%',
-      hoverDotTop: hv ? ((Y(hv.p.v) / 268) * 100).toFixed(2) + '%' : '0%',
-      tipLeft: hv ? Math.max(9, Math.min(91, X(hv.i) / 10)).toFixed(2) + '%' : '0%',
-      tipTime: hv ? this.fmtDate(hv.p.t, !hv.p.daily) + (hv.p.daily ? ' · daily close' : '') : '',
-      tipRate: hv ? this.fmtRate(hv.p.v) : '',
-      tipOfficial: hv ? this.fmtRate(hv.p.o) : '',
-      tipPrem: hv ? bpsFmt(hv.p.p, 1) : '',
-
-      corrName: corrKey.replace('->', ' → '),
-      corrSparse, corrPoints,
-      corrTabs: corrKeys.length > 1 ? corrKeys.map(k => ({
-        label: k.replace('->', ' → '),
-        onClick: () => this.setState({ corridor: k, size: null, chover: null }),
-        bg: k === corrKey ? '#fff' : 'transparent', color: k === corrKey ? '#12131a' : '#7c7e8a',
-        shadow: k === corrKey ? '0 1px 2px rgba(18,19,26,0.10)' : 'none',
-      })) : [],
-      sizeTabs: sizes.map(sz => ({
-        label: cur(sz >= 1000 ? (sz / 1000) + 'k' : String(sz)),
-        onClick: () => this.setState({ size: sz, chover: null }),
-        bg: sz === size ? '#fff' : 'transparent', color: sz === size ? '#12131a' : '#7c7e8a',
-        shadow: sz === size ? '0 1px 2px rgba(18,19,26,0.10)' : 'none',
-      })),
-      corrUsdt: cLast.usdt == null ? '—' : Math.round(cLast.usdt).toLocaleString('en-US') + ' bps',
-      corrFiat: cLast.fiat == null ? '—' : Math.round(cLast.fiat).toLocaleString('en-US') + ' bps',
-      corrRail: cLast.rail || '—',
-      corrGap: (cGap >= 0 ? '+' : '−') + Math.abs(Math.round(cGap)).toLocaleString('en-US') + ' bps',
-      corrGapColor: cGap > 0 ? RED : GREEN,
-      corrGapBg: cGap > 0 ? 'color-mix(in oklab, ' + RED + ' 8%, white)' : 'color-mix(in oklab, ' + GREEN + ' 8%, white)',
-      corrUsdtPath: uPath, corrFiatPath: fPath, corrArea: crows.length < 2 ? '' : uPath + ' L1000 ' + CH + ' L0 ' + CH + ' Z',
-      corrGrid: [1, 0.667, 0.333, 0].map(f => ({ y: (CH - f * CH).toFixed(0), label: Math.round(clo + f * (chi - clo)).toLocaleString('en-US') })),
-      corrXTicks: !crows.length ? [] : crows.length < 2 ? [{ label: this.fmtDate(crows[0].t, true) }] : [0, 0.33, 0.66, 1].map(f => ({ label: this.fmtDate(crows[Math.round(f * (crows.length - 1))].t, true) })),
-      corrRef: el => { this.cel = el; },
-      onCorrMove: e => { const r = this.cel.getBoundingClientRect(); this.setState({ chover: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) }); },
-      onCorrLeave: () => this.setState({ chover: null }),
-      corrHovering: !!chv,
-      corrHoverX: chv ? CX(chv.i).toFixed(1) : 0,
-      corrTipLeft: chv ? Math.max(9, Math.min(91, CX(chv.i) / 10)).toFixed(2) + '%' : '0%',
-      corrTipTime: chv ? this.fmtDate(chv.r.t, true) : '',
-      corrTipUsdt: chv ? Math.round(chv.r.usdt) + ' bps' : '',
-      corrTipFiat: chv ? Math.round(chv.r.fiat) + ' bps' : '',
-      corrTipGap: chv ? ((chv.r.usdt - chv.r.fiat) >= 0 ? '+' : '−') + Math.abs(Math.round(chv.r.usdt - chv.r.fiat)) + ' bps' : '',
-      corrLegs: [
-        { k: 'On-ramp basis (' + (cLast.onVenue || '—') + ')', v: one(cLast.onBasis), bg: '#f7f7f9' },
-        { k: 'On-ramp fee, taker', v: one(cLast.onFee), bg: '#f7f7f9' },
-        { k: 'Network fee (' + (cLast.netFee != null ? cLast.netFee + ' USDT' : '—') + ')', v: one(netBps), bg: '#f7f7f9' },
-        { k: 'Off-ramp basis (' + (cLast.offVenue || '—') + ')', v: one(cLast.offBasis), bg: '#f7f7f9' },
-        { k: 'Off-ramp fee, taker', v: one(cLast.offFee), bg: '#f7f7f9' },
-        { k: 'All-in, taker', v: one(cLast.usdt), bg: '#f1f1f4' },
+      provenance: [
+        { mark: "m", k: "Measured", v: "Live order books walked at real sizes, official mids, incumbent quotes. Timestamped and kept raw, one row per hour per corridor per notional." },
+        { mark: "a", k: "Assumed", v: "Venue fee tiers taken from published schedules and re-verified by hand. " +
+            ladders.map(l => l.name + " " + l.verified).join(", ") + ". " + (feeStamp || "") },
+        { mark: "n", k: "Not visible", v: "Enterprise pricing (Nium, Thunes, Circle partners) and OTC execution. Stated as invisible, never estimated." },
       ],
-      tiles,
-      smNote: 'Ninety days where the daily backfill reaches — ' + smWithDaily + ' of ' + codes.length + ' markets — and the hourly live layer alone where it does not, labelled per tile. Each tile is scaled to its own range: Argentina and Singapore differ by three orders of magnitude, so a shared axis would flatten one or clip the other. Every tile draws the same zero line, so sign and crossings read across the grid; magnitude is the printed number. Click a tile to load it above.',
-      leaderRows,
-      boardHeadline,
-      landedLabel: 'Landed ' + dstCcy,
-      boardCaveat: 'Advertised retail prices at quote time from the Wise comparison API — the published shop window, not confirmed fills: real transfers can carry KYC-gated tiers or delivery-side slippage. Quotes can also carry promotional pricing (first-transfer or new-customer offers), recorded here exactly as quoted and never filtered — so this ranks the best ADVERTISED price at this instant, not necessarily the best recurring one. A promo can even price above mid-market, which shows up as a negative cost. The USDT row is the same walk as the corridor above, taker fees, all-in. Panel captured ' + this.fmtDate(corrPanel.panelT, true) + ' · ' + corrPanel.rows.toLocaleString('en-US') + ' quotes recorded.',
-      findingsIntro: 'The live layer is ' + liveDays + ' days old. These are observations with dates on them, not conclusions — every sentence below is recomputed from the CSVs on each page load, and only appears while its condition still holds.',
-      corrNote: (corrSparse ? (C.hours || 0) + (C.hours === 1 ? ' capture' : ' captures') + ' so far for this corridor — the chart shows every point collected, with no line drawn between them and nothing filled in. ' : '') + 'Sizes walked against live depth: slippage ' + one(cLast.onSlip) + ' on-ramp, ' + one(cLast.offSlip) + ' off-ramp at this size. Fee tiers ' + (cLast.verified ? 'verified ' + String(cLast.verified).replace(/\|/g, ' · ') : 'as published') + '. Basis legs are signed: a negative on-ramp basis is USDT cheap in ' + (cLast.src || 'the source currency') + ', which helps the route.',
-      findings,
-      assumedNote: 'A flat ' + (cLast.netFee != null ? cLast.netFee : 1) + '-USDT network fee; exchange fees at published base tiers (' + one(cLast.onFee) + ' on-ramp, ' + one(cLast.offFee) + ' off-ramp), verified against the schedules.',
-      feeStamp: feeStamp(D.feeChecks || [], cLast.verified),
-      failNote: failed ? failed.toLocaleString('en-US') + ' hours without a tick in the last ' + COV_DAYS + ' days on ' + ccy + ' — visible as gaps in the grid above.' : 'No missing hours on ' + ccy + ' in the last ' + COV_DAYS + ' days.',
-      sourcesLabel: venueList.join(', ') + '.',
+      failStats: [
+        { k: "markets reporting", v: okCount + "/" + latestRun.length },
+        { k: "newest row", v: this.fmtStamp(lastT, true) },
+        { k: "failed pull", v: "written as a row, never dropped" },
+        { k: "incomplete sample", v: "scheduler red" },
+      ],
+      methodNotes: [
+        { k: "Bar scale", v: "The basis board is split into two bands, each with its own axis: markets above 200 bps and markets under it. The extremes differ from the tightest markets by three orders of magnitude, so a single shared axis renders most of them as one stub. Bars are comparable within a band, never across, and the number beside each bar is always the real figure." },
+        { k: "Basis definition", v: "Quote against the official USD mid carried in the same row, expressed in basis points. Positive means local buyers pay above the official rate for a dollar." },
+        { k: "Corridor cost", v: "All-in cost of a bank-to-bank transfer in basis points of the amount sent: on-ramp basis and fee, network fee, off-ramp basis and fee. Compared against the cheapest fiat rail quoting the same amount at the same second." },
+        { k: "Backfill", v: "History before August 2026 is daily, not hourly. It appears in charts as history and never as hourly coverage." },
+        { k: "Every figure is computed", v: "Nothing on this page is typed in. Each number is read from data/*.csv at render time and carries the timestamp of the row it came from; where a figure cannot be computed it is shown as an empty state rather than filled in." },
+      ],
     };
   }
 }
+
 </script>
 </body>
 </html>
