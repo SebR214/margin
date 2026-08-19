@@ -60,8 +60,19 @@ verification is on a 90-day clock instead, and goes `stale` (red) past it.
 
 ## In flight
 
-1. **Cadence verification** — waiting on a week of `:17`/`:47` data to confirm
-   the drop rate actually fell. No action until then (see P0-1).
+Nothing is being built right now. All four standing-plan items are gated and
+none of the gates has cleared:
+
+| # | Item | Waiting on |
+|---|---|---|
+| 1 | Crossover toggle | sourced IR + Coins.ph tier tables, and its spec issue |
+| 2 | Front-end rebuild | design final pass + design source on the issue |
+| 3 | EU corridor | venue verification (product agent, via the browser) |
+| 4 | Time layer | ~60 days of hourly data — October |
+
+Also open: **#16** route-engine render half, held until a corridor has ≥2 real
+paths (needs a public Coins.ph free-USDT-deposit statement, or Coinbase's
+per-network withdrawal fees entered by hand).
 
 ## Recently shipped — 2026-08-19
 
@@ -109,7 +120,7 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    quoting +48.1 at USD 5,000. Both corridor pages' small print now names promo
    rates. No data changes, no flag columns, no filtering.
 
-6. **Withdrawal-fee record** (route engine, data half). `data/withdrawal_fees.csv`
+6. **Withdrawal-fee record** (`0df09d1`, PR #18 — route engine, data half). `data/withdrawal_fees.csv`
    is an append-only log of USDT withdrawal fees per venue per network, from
    primary sources only: Bitso and Independent Reserve read from their published
    pages, Coinbase `source_ok=False` because the schedule is login-gated —
@@ -121,6 +132,22 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    The render half is held on `route-engine-v1` until a corridor has ≥2 real
    paths: SGD→PHP needs a public Coins.ph free-USDT-deposit statement, USD→MXN
    needs Coinbase's per-network withdrawal fees.
+
+7. **Network-fee corrections, both corridors** (`bdef58a` PR #17, `d8a718e`
+   PR #19). Two live wrong numbers on the same line. SGD→PHP carried an
+   unsourced flat 1.0 USDT: IR publishes **4.0** on Tron, so the corridor was
+   understated by ~191 bps at S$200. USD→MXN carried the same 1.0 copied
+   across — on **Tron, which Coinbase does not support for USDT at all**. It
+   now models **Polygon** and Coinbase's published **0.01% of amount, capped
+   20 USDT**; being proportional that is 1 bp at every size, where the old
+   constant read 50 bps at USD 200. `decompose()` models both fee shapes and
+   writes the effective per-size cost to the existing `network_fee_stable`
+   column, so samples.csv keeps its schema. Also: the fee stamp read
+   `Date.now()` and printed "fees verified today"; both pages now print the
+   date from the fee config, taking the **oldest leg**. Confirmed in the data
+   at 2026-08-19T10:47Z.
+   *Not modelled:* Coinbase's separate gas fee, never published — left at zero
+   rather than invented, and the one term on the site that understates.
 
 ## Recently shipped — 2026-08-18
 
@@ -145,49 +172,94 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
 
 ## Next, prioritised
 
-### P0 — history is the only thing that cannot be rebuilt
+**The standing plan, committed 2026-08-19.** Four items, in this order. Each
+carries its gate; an item does not start until its gate clears, and the gate is
+part of the item rather than a caveat on it.
+
+### 1. Crossover toggle — NOW, gated on sourced tier tables
+
+Show at which size and fee tier the USDT route overtakes the best fiat rail.
+
+- **New** `data/fee_tiers.csv`, one row per venue per published tier, header:
+  `ts_utc,venue,tier_name,maker_bps,taker_bps,min_volume_usd,source_url,source_ok`
+- **Compute** reuses the existing corridor decomposition with the fee legs
+  swapped per tier. It does not fork the math.
+- **Crossover** = the smallest ladder size where USDT all-in beats the best fiat
+  rail *at that size*. Where it never does, the honest answer is
+  "no crossover on the ladder" — **no interpolation between ladder points**, and
+  no invented tiers.
+- **GATE:** the IR and Coins.ph tier tables, read from their live pages. Do not
+  start until the sourced numbers arrive. **No tier figure from memory, and none
+  from any third-party summary.** The full spec arrives as its own issue.
+
+### 2. Front-end rebuild — parallel, gated on the design source
+
+Full spec exists. Rule one: **no hardcoded number anywhere** — every figure
+computes from the CSVs and carries its as-of date, or it does not appear.
+
+- **GATE:** ships once the design's final pass lands *and* the design source
+  (exported markup or screenshots) is attached to the issue.
+- Merge is gated on Sebastian's screenshot approval. The red `review` check
+  stays ignored per the standing rule (known upstream crash in
+  `anthropics/claude-code-action`; it has failed on every branch since
+  2026-08-12 and kills both auth methods — do not spend time on it and do not
+  touch a credential over it).
+
+### 3. EU corridor — next, BLOCKED ON VENUE VERIFICATION
+
+A EUR on-ramp venue with a readable book and hand-verified fees, verified
+**through the browser before any spec exists**.
+
+- **Verification is the product agent's job.** Do not research venues and do not
+  draft a collector. This item is blocked until verified venue facts arrive.
+
+### 4. Time layer — October, calendar-gated
+
+Basis by hour of day; weekend versus weekday on hourly data; the cheapest hour
+to move the corridor. Each lands as its own **dated Findings entry**.
+
+- **GATE:** the hourly layer reaching ~60 days. Hourly collection began
+  2026-08-10, so this is an October item. **Nothing to build now** — this is a
+  ROADMAP note, not a backlog ticket.
+
+---
+
+## Carried over, not in the standing plan
+
+Still true, still unscheduled. These do not compete with the four above.
 
 1. **Confirm twice-hourly actually lifts delivery.** Measure over a full week.
    Baseline was 125 of 168 expected hours (~74%) with a single fire. If GitHub
    still drops *both* fires in an hour often enough to matter, escalate to an
    external trigger (`repository_dispatch` from a cheap always-on cron) rather
-   than accepting the loss — a missing hour is gone permanently.
-2. ~~**Put fee verification on a clock.**~~ **Shipped 2026-08-18.**
-   `tools/check_fees.py` re-reads both published schedules, diffs the base tier
-   against the `CORRIDORS` constants it imports from `collector.py`, and appends
-   one row per checked value to `data/fee_checks.csv`. Any drift or unreadable
-   page is a row *and* a non-zero exit — it never edits the constant, because a
-   silently corrected fee is the failure mode the check exists to catch.
-   `.github/workflows/fees.yml` runs it monthly (`23 3 1 * *`) and commits the
-   evidence even when the run goes red. Both pages render the stamp from the
-   CSV: "fees verified N days ago", or "fees UNVERIFIED — last clean check
-   YYYY-MM-DD" when the latest run has any bad row, or nothing at all when the
-   file is absent. First clean run 2026-08-18: IR 0.50% flat and Coins.ph VIP0
-   0.15/0.10 both still match the 2026-08-10 hand verification. Issue #4.
-
-### P1 — the demo
-
-1. **The two write-ups** still open from the README:
-   the taker/maker crossover, and why stablecoins are worst at remittance sizes
-   (~156 bps at S$200). Both are now answerable from collected data rather than
-   asserted — that was the point of waiting.
-
-### P2 — debt and polish
-
-1. **`README.md` Status is stale** — "One week of history" and "Front end" are
+   than accepting the loss — a missing hour is gone permanently. Live evidence:
+   the 2026-08-19 10:17Z fire dropped and 10:47Z landed, which is the redundancy
+   working as designed.
+2. **The remittance-size write-up.** Why the stablecoin route is worst at small
+   sizes. Now materially better evidenced — see the held finding below.
+3. **`README.md` Status is stale** — "One week of history" and "Front end" are
    both done; the run order still says the schedule is `:17`.
-2. **Dead v1 code**: `corridor_monitor.py` and `corridor_monitor_v1_spec.md` are
+4. **Dead v1 code**: `corridor_monitor.py` and `corridor_monitor_v1_spec.md` are
    superseded by `collector.py`. Keep `data/offramp_snapshots.csv` — the 34-day
    silent-failure record is deliberate history.
-3. **Intraday FX mids.** `open.er-api.com` is daily. Fine for TRY/ARS/VES at
+5. **Intraday FX mids.** `open.er-api.com` is daily. Fine for TRY/ARS/VES at
    100+ bps, genuinely sloppy for SGD/THB/PHP, which are exactly the markets the
-   corridor depends on. HANDOFF flagged this as a later upgrade; it is now the
-   main precision ceiling on the corridor number.
-4. ~~**A second corridor** — explicitly *not yet*.~~ **Done 2026-08-19**
-   (`3127140`) — USD→MXN collects hourly and renders on the site. HANDOFF's
-   "not before the demo is polished" is superseded: the demo shipped
-   2026-08-18, and the second corridor is what makes the method read as a
-   method rather than one lucky pair.
+   corridor depends on. It is now the main precision ceiling on the corridor
+   number.
+
+## Held findings — evidenced, deliberately unpublished
+
+1. **Flat versus proportional network fees.** The stablecoin route is worst at
+   remittance size on SGD→PHP because Independent Reserve's withdrawal fee is
+   **flat per send** (4.0 USDT — 255 bps at S$200, 1 bp at S$50,000), while
+   USD→MXN stays even across the whole ladder because Coinbase's is
+   **proportional** (0.01% of amount, capped 20 USDT — exactly 1 bp at every
+   size). First run under both corrected fees: **2026-08-19T10:47Z**
+   (`ad57f4d`), where SGD→PHP falls 314 → 71 bps across the ladder while
+   USD→MXN sits flat at ~103.5 throughout.
+   **Do not write this up yet** — it needs a few days of clean rows collected
+   under the corrected fees. Every row before 2026-08-19T10:47Z carries a fee
+   regime that was never charged.
 
 ---
 
