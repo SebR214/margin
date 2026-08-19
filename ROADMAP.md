@@ -63,6 +63,12 @@ removed.
    has no corridor column and a frozen schema); the hourly idempotency gate is
    now per-corridor, so the two corridors never contend for an hour. Display is
    the next issue — no site changes. Issue #7.
+2. **Machine-readable snapshot shipped 2026-08-19.** `tools/emit_latest.py`
+   (stdlib only) regenerates `data/latest.json` every collector run: latest
+   basis per venue, latest ladder per corridor, best/worst panel provider per
+   size, and the source CSV paths. Derived, never authoritative — a missing or
+   empty CSV yields an absent key, never a placeholder, and bad rows are
+   skipped rather than fatal. Issue #8.
 
 ## Recently shipped — 2026-08-18
 
@@ -175,4 +181,6 @@ data/providers.csv      full incumbent panel, hourly (SGD→PHP)
 data/providers_usdmxn.csv    full incumbent panel, hourly (USD→MXN)
 data/basis_history.csv  daily backfill, 5 venues, 2024-03 →
 data/offramp_snapshots.csv   v1 wreckage, kept as history
+data/latest.json        machine-readable snapshot, regenerated each run
+tools/emit_latest.py    builds latest.json from the CSVs
 ```
