@@ -38,6 +38,13 @@ jobs:
         # written, so the commit step (always()) captures it either way.
         run: python3 collector.py
 
+      - name: Collect corridor sample USD->MXN
+        if: always()
+        # Second corridor, same method. always() so corridor 1 going red never
+        # hides corridor 2 -- and the per-corridor idempotency gate means the
+        # two never contend for the hour.
+        run: python3 collector.py --corridor "USD->MXN"
+
       - name: Collect basis sample
         if: always()
         # Wide layer: exits non-zero ONLY on a total blackout (all venues down).
@@ -49,7 +56,7 @@ jobs:
         run: |
           git config user.name "margin-collector"
           git config user.email "actions@github.com"
-          git add data/samples.csv data/basis.csv data/providers.csv
+          git add data/samples.csv data/basis.csv data/providers.csv data/providers_usdmxn.csv
           if git diff --cached --quiet; then
             # Expected on the second fire of an hour the first fire already
             # captured. "Nothing staged" stopped meaning "rot" the moment the

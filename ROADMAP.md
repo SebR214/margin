@@ -55,6 +55,15 @@ removed.
 1. **Cadence verification** — waiting on a week of `:17`/`:47` data to confirm
    the drop rate actually fell. No action until then (see P0-1).
 
+## Recently shipped — 2026-08-19
+
+1. **Corridor 2 collection (USD→MXN) shipped 2026-08-19.** Coinbase on-ramp →
+   Bitso off-ramp, same method and same fields as SGD→PHP, sampled hourly by
+   `collect.yml`. Panel rows go to `data/providers_usdmxn.csv` (providers.csv
+   has no corridor column and a frozen schema); the hourly idempotency gate is
+   now per-corridor, so the two corridors never contend for an hour. Display is
+   the next issue — no site changes. Issue #7.
+
 ## Recently shipped — 2026-08-18
 
 1. **Site upgrade (A/B/C)** — `index.html`.
@@ -151,7 +160,7 @@ P2P-only — all out of scope by nature, not by omission.
 ## File map
 
 ```
-collector.py            deep layer — SGD→PHP decomposition + Wise panel
+collector.py            deep layer — SGD→PHP + USD→MXN decomposition + Wise panel
 collector_basis.py      wide layer — 10-venue basis
 tools/backfill_basis.py one-time daily history (not re-run)
 tools/check_freshness.py rot guard for collect.yml
@@ -162,7 +171,8 @@ methodology.html        renders METHODOLOGY.md at runtime
 support.js              the board's static runtime
 data/samples.csv        corridor decomposition, hourly
 data/basis.csv          10-venue basis, hourly
-data/providers.csv      full incumbent panel, hourly
+data/providers.csv      full incumbent panel, hourly (SGD→PHP)
+data/providers_usdmxn.csv    full incumbent panel, hourly (USD→MXN)
 data/basis_history.csv  daily backfill, 5 venues, 2024-03 →
 data/offramp_snapshots.csv   v1 wreckage, kept as history
 ```
