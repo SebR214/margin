@@ -241,6 +241,34 @@ A Wise-API outage is isolated: `providers.csv` gets a `source_ok=false` row for
 that run and the corridor sample still lands (with `baseline_provider` empty) —
 a panel failure never fails the corridor collector.
 
+### Promotional pricing
+
+Comparison-API quotes can carry **promotional pricing** — first-transfer offers,
+new-customer rates, limited-time discounts. These are real prices, really
+quoted, and the panel records them exactly as received. Nothing is filtered,
+flagged, or normalised away.
+
+The consequence is worth stating plainly, because it changes how the headline
+number should be read: **the baseline is the best *advertised* price at that
+instant, not necessarily the best *recurring* price.** A promotional rate can
+land a provider *above* mid-market — a negative `cost_bps` under this
+convention, i.e. the recipient gets more than the mid-market rate implies —
+which no rail can sustain across repeat transfers.
+
+This is not hypothetical. On **2026-08-19**, Xoom quoted **−114.0 bps at USD 200**
+and **−114.7 bps at USD 1,000** on USD→MXN, ranking first at both sizes while
+pricing above mid-market; at USD 5,000 the same provider quoted **+48.1 bps**.
+SGD→PHP shows the milder version of the same thing: 76 of its panel rows sit
+below mid-market, all Wise or Instarem, but by fractions of a basis point rather
+than a hundred.
+
+So a corridor can read "the fiat rail wins by 240 bps" at small sizes on the
+strength of an offer that applies once. The honest fix is to record the quote as
+given and say so here, rather than to invent a filter for "real" prices — any
+such rule would be this project guessing at commercial terms it cannot see. When
+a size shows an unusually large gap in the incumbent's favour, check whether the
+winning provider is also winning at the larger sizes; a promo usually is not.
+
 ## What is not visible
 
 - **Enterprise payout pricing.** What Nium, Thunes, or a Circle partner quotes a
