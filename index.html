@@ -355,6 +355,65 @@ textarea.input { min-height: 90px; resize: vertical; }
 .dialog-body { font-size: 14px; opacity: 0.85; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
 
+
+/* ---------------------------------------------------------------- responsive
+   The delivered design ships no breakpoints and uses fixed-column grids, so it
+   overflows on a phone. These rules are ADDITIVE and live only inside media
+   queries: above 980px nothing here applies and the page is pixel-identical to
+   the design as delivered. Structure follows the previous site — three
+   breakpoints at 980 / 700 / 640 — and overrides inline styles via
+   [data-grid] hooks with !important, the same mechanism the old index.html used.
+   No new components, no reordering: every rule below only changes how an
+   existing container wraps. */
+
+/* Tablet and narrow desktop: two-column layouts become one. */
+@media (max-width: 980px) {
+  [data-grid="hero"],
+  [data-grid="split"]     { grid-template-columns: minmax(0, 1fr) !important; gap: 24px !important; }
+  [data-grid="label-row"] { grid-template-columns: minmax(0, 1fr) !important; gap: 4px !important; }
+  [data-grid="finding"]   { grid-template-columns: minmax(0, 1fr) !important; gap: 8px !important; }
+  [data-grid="stat-row"]  { grid-template-columns: minmax(0, 1fr) !important; gap: 2px !important; }
+}
+
+/* Small tablet and below: the six-column numeric tables keep every column and
+   scroll sideways inside their own box, the same treatment as the coverage
+   grid. Hiding columns by nth-child was the alternative and it is worse twice
+   over — it is fragile against any markup change, and it would drop exactly the
+   two columns the table exists for (the rail and the gap against it). Nothing
+   on this site is hidden to make a layout fit. */
+@media (max-width: 700px) {
+  [data-grid="ladder"] {
+    grid-template-columns: 104px 84px repeat(4, minmax(74px, 1fr)) !important;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  [data-grid="spread"] {
+    grid-template-columns: 96px repeat(5, minmax(74px, 1fr)) !important;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  [data-grid="bar-row"] { grid-template-columns: 56px minmax(0, 1fr) 72px !important; gap: 8px !important; }
+}
+
+/* Phone. */
+@media (max-width: 640px) {
+  [data-grid="tiles"] { grid-template-columns: minmax(0, 1fr) !important; }
+  [data-grid="bar-row"] { grid-template-columns: 48px minmax(0, 1fr) 64px !important; }
+  /* The hourly coverage grid is 24 fixed columns by design — one cell per hour,
+     and hour N must stay under hour N across every market row. Reflowing it
+     would destroy that alignment, so each row's grid keeps all 24 columns at a
+     legible minimum and scrolls sideways inside its own cell instead. */
+  [data-grid="coverage-row"] { grid-template-columns: 52px minmax(0, 1fr) !important; gap: 0 10px !important; }
+  [data-grid="coverage"] {
+    grid-template-columns: repeat(24, minmax(13px, 1fr)) !important;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  /* The header is the only row that still exceeded a 390px viewport: three
+     uppercase nav labels plus the status block. Tighten its own spacing rather
+     than dropping anything — every link stays reachable. */
+  [data-nav="bar"] { padding: 0 12px !important; gap: 10px !important; }
+  [data-nav="links"] button { padding: 12px 9px 10px !important; letter-spacing: 0.04em !important; }
+  h1 { font-size: 30px !important; line-height: 1.1 !important; }
+  h2 { font-size: 19px !important; }
+}
 </style>
 <style>
   body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); }
@@ -374,10 +433,10 @@ textarea.input { min-height: 90px; resize: vertical; }
 </helmet></helmet>
 <div style="min-height: 100vh; background: var(--color-bg); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;">
 
-  <div style="display: flex; align-items: stretch; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding: 0 24px; flex-wrap: wrap;">
+  <div data-nav="bar" style="display: flex; align-items: stretch; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding: 0 24px; flex-wrap: wrap;">
     <div style="display: flex; align-items: center; gap: 28px;">
       <div style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: -0.02em; padding: 14px 0;">margin.wiki</div>
-      <div style="display: flex; align-items: stretch; gap: 0;">
+      <div data-nav="links" style="display: flex; align-items: stretch; gap: 0;">
         <sc-for list="{{ nav }}" as="n" hint-placeholder-count="3">
           <button type="button" sc-camel-on-click="{{ n.go }}" style="appearance: none; background: transparent; border: 0; border-bottom: 3px solid transparent; cursor: pointer; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 15px 14px 12px; color: {{ n.color }}; border-bottom-color: {{ n.rule }};" style-hover="color: var(--color-accent);">{{ n.label }}</button>
         </sc-for>
@@ -396,12 +455,12 @@ textarea.input { min-height: 90px; resize: vertical; }
 
   <sc-if value="{{ isBoard }}" hint-placeholder-val="{{ true }}">
   <div>
-    <div style="padding: 56px 24px 40px; border-bottom: 2px solid var(--color-text); display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; align-items: end;">
+    <div data-grid="hero" style="padding: 56px 24px 40px; border-bottom: 2px solid var(--color-text); display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; align-items: end;">
       <div>
         <h1 style="font-size: 44px; line-height: 1.06; margin: 0 0 14px; max-width: 24ch;">A dollar costs {{ hl.wide }} over the official rate in {{ hl.wideCountry }} and {{ hl.narrow }} in {{ hl.narrowCountry }}. Same asset, same hour.</h1>
         <p class="text-muted" style="max-width: 62ch; font-size: 15px; margin: 0;">Ten markets and one corridor, decomposed to basis points. Order books walked at real size against the official USD mid at the same second, kept raw.</p>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; background: var(--color-divider);">
+      <div data-grid="tiles" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; background: var(--color-divider);">
         <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="4">
           <div style="background: var(--color-bg); padding: 14px 16px 12px;">
             <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">{{ s.k }}</div>
@@ -431,7 +490,7 @@ textarea.input { min-height: 90px; resize: vertical; }
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 0; padding-top: 4px;">
+      <div data-grid="stat-row" style="display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 0; padding-top: 4px;">
         <div>
           <div sc-camel-on-mouse-move="{{ mk.onMove }}" sc-camel-on-mouse-leave="{{ mk.onLeave }}" sc-camel-on-click="{{ mk.onPin }}" style="position: relative; cursor: crosshair;">
             <svg sc-camel-view-box="0 0 1000 240" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 240px; display: block;">
@@ -495,14 +554,14 @@ textarea.input { min-height: 90px; resize: vertical; }
 
       <sc-for list="{{ bands }}" as="band" hint-placeholder-count="2">
         <div style="padding-top: 18px;">
-          <div style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: baseline; padding: 0 0 6px 12px;">
+          <div data-grid="bar-row" style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: baseline; padding: 0 0 6px 12px;">
             <div style="font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;">{{ band.title }}</div>
             <div class="text-muted" style="font-size: 11px;">{{ band.sub }}</div>
             <div class="text-muted" style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;"><span>{{ band.axisLeft }}</span><span>below mid ← 0 → above mid</span><span>{{ band.axisRight }}</span></div>
             <div class="text-muted" style="text-align: right; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">basis</div>
           </div>
           <sc-for list="{{ band.rows }}" as="b" hint-placeholder-count="8">
-            <div sc-camel-on-click="{{ b.go }}" style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); border-left: 3px solid transparent; padding: 9px 0 9px 9px; cursor: pointer; border-left-color: {{ b.sel }};" style-hover="background: var(--color-neutral-200);">
+            <div sc-camel-on-click="{{ b.go }}" data-grid="bar-row" style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); border-left: 3px solid transparent; padding: 9px 0 9px 9px; cursor: pointer; border-left-color: {{ b.sel }};" style-hover="background: var(--color-neutral-200);">
               <div style="display: flex; flex-direction: column;">
                 <span style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.02em;">{{ b.code }}</span>
                 <span class="text-muted" style="font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase;">{{ b.country }}</span>
@@ -535,10 +594,10 @@ textarea.input { min-height: 90px; resize: vertical; }
           <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ cov.hint }}</div>
         </div>
       </div>
-      <div style="display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 0 16px; align-items: center; padding-top: 12px;">
+      <div data-grid="coverage-row" style="display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 0 16px; align-items: center; padding-top: 12px;">
         <sc-for list="{{ coverage }}" as="c" hint-placeholder-count="10">
           <div style="font-family: var(--font-heading); font-weight: 800; font-size: 12px; letter-spacing: 0.02em; padding: 3px 0;">{{ c.code }}</div>
-          <div style="display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 2px; padding: 3px 0;">
+          <div data-grid="coverage" style="display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 2px; padding: 3px 0;">
             <sc-for list="{{ c.cells }}" as="cell" hint-placeholder-count="24">
               <div sc-camel-on-mouse-enter="{{ cell.enter }}" sc-camel-on-mouse-leave="{{ cell.leave }}" style="height: 12px; background: {{ cell.bg }}; box-shadow: {{ cell.ring }};"></div>
             </sc-for>
@@ -581,7 +640,7 @@ textarea.input { min-height: 90px; resize: vertical; }
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 0; align-items: stretch;">
+      <div data-grid="split" style="display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 0; align-items: stretch;">
         <div>
           <div sc-camel-on-mouse-move="{{ cc.onMove }}" sc-camel-on-mouse-leave="{{ cc.onLeave }}" sc-camel-on-click="{{ cc.onPin }}" style="position: relative; cursor: crosshair;">
             <svg sc-camel-view-box="0 0 1000 240" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 220px; display: block;">
@@ -634,7 +693,7 @@ textarea.input { min-height: 90px; resize: vertical; }
     <div style="padding: 44px 24px 0;">
       <div style="border: 2px solid var(--color-text); display: grid; grid-template-columns: minmax(0, 1fr);">
         <div style="background: var(--color-text); color: var(--color-bg); padding: 10px 20px; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;">Correction on the record · {{ correctionDate }}</div>
-        <div style="padding: 20px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px; align-items: start;">
+        <div data-grid="split" style="padding: 20px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px; align-items: start;">
           <div>
             <h3 style="font-size: 21px; margin: 0 0 8px;">The first version had the patient route beating the incumbent 3×. It was wrong.</h3>
             <p class="text-muted" style="font-size: 14px; margin: 0; max-width: 60ch;">Maker execution was modelled as free. {{ makerProse }}, so the claim died against the venues' own published schedules. It stays here because the site only works if the numbers survive someone checking.</p>
@@ -656,7 +715,7 @@ textarea.input { min-height: 90px; resize: vertical; }
         <h2 style="font-size: 26px; margin: 0;">Findings</h2>
       </div>
       <sc-for list="{{ findings }}" as="f" hint-placeholder-count="2">
-        <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 200px; gap: 24px; border-bottom: 1px solid var(--color-divider); padding: 16px 0; align-items: start;">
+        <div data-grid="finding" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 200px; gap: 24px; border-bottom: 1px solid var(--color-divider); padding: 16px 0; align-items: start;">
           <div class="text-muted" style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">{{ f.date }}</div>
           <div>
             <h3 style="font-size: 18px; margin: 0 0 4px;">{{ f.q }}</h3>
@@ -686,7 +745,7 @@ textarea.input { min-height: 90px; resize: vertical; }
           <h2 style="font-size: 28px; margin: 0;">{{ c.name }}</h2>
           <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">fees verified {{ c.verified }} · sampled {{ c.ts }}</div>
         </div>
-        <div style="display: grid; grid-template-columns: 108px repeat(5, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
+        <div data-grid="spread" style="display: grid; grid-template-columns: 108px repeat(5, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
           <div>size sent</div>
           <div style="text-align: right;">USDT taker</div>
           <div style="text-align: right;">USDT maker</div>
@@ -695,7 +754,7 @@ textarea.input { min-height: 90px; resize: vertical; }
           <div style="text-align: right;">USDT vs rail</div>
         </div>
         <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="5">
-          <div style="display: grid; grid-template-columns: 108px repeat(5, minmax(0, 1fr)); gap: 0 16px; border-top: 1px solid var(--color-divider); padding: 10px 0; align-items: baseline; background: {{ r.bg }};">
+          <div data-grid="spread" style="display: grid; grid-template-columns: 108px repeat(5, minmax(0, 1fr)); gap: 0 16px; border-top: 1px solid var(--color-divider); padding: 10px 0; align-items: baseline; background: {{ r.bg }};">
             <div style="font-size: 14px; font-weight: 600;">{{ r.size }}</div>
             <div style="text-align: right; font-size: 14px;">{{ r.taker }}</div>
             <div style="text-align: right; font-size: 14px;" class="text-muted">{{ r.maker }}</div>
@@ -731,7 +790,7 @@ textarea.input { min-height: 90px; resize: vertical; }
           </div>
         </div>
       </div>
-      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 96px; padding-top: 4px;">
+      <div data-grid="stat-row" style="display: grid; grid-template-columns: minmax(0, 1fr) 96px; padding-top: 4px;">
         <div>
           <div sc-camel-on-mouse-move="{{ cc.onMove }}" sc-camel-on-mouse-leave="{{ cc.onLeave }}" sc-camel-on-click="{{ cc.onPin }}" style="position: relative; cursor: crosshair;">
             <svg sc-camel-view-box="0 0 1000 240" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 240px; display: block;">
@@ -781,7 +840,7 @@ textarea.input { min-height: 90px; resize: vertical; }
         </div>
         <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">all-in bps by size sent</div>
       </div>
-      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; align-items: start; padding-top: 6px;">
+      <div data-grid="split" style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; align-items: start; padding-top: 6px;">
         <div>
           <div sc-camel-on-mouse-move="{{ cx.onMove }}" sc-camel-on-mouse-leave="{{ cx.onLeave }}" style="position: relative; cursor: crosshair;">
           <svg sc-camel-view-box="0 0 1000 260" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 260px; display: block;">
@@ -862,7 +921,7 @@ textarea.input { min-height: 90px; resize: vertical; }
       </div>
       <div style="padding-top: 20px;">
         <sc-for list="{{ waterfall }}" as="w" hint-placeholder-count="6">
-          <div style="display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr) 92px; gap: 20px; align-items: center; border-top: 1px solid var(--color-divider); padding: 9px 0;">
+          <div data-grid="bar-row" style="display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr) 92px; gap: 20px; align-items: center; border-top: 1px solid var(--color-divider); padding: 9px 0;">
             <div style="font-size: 14px; font-weight: {{ w.weight }};">{{ w.label }}</div>
             <div style="position: relative; height: 18px;">
               <div style="position: absolute; left: 8%; top: -9px; bottom: -9px; width: 1px; background: var(--color-neutral-400);"></div>
@@ -881,7 +940,7 @@ textarea.input { min-height: 90px; resize: vertical; }
         <h2 style="font-size: 26px; margin: 0;">Every rail, priced live</h2>
         <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">best vs worst quote per size</div>
       </div>
-      <div style="display: grid; grid-template-columns: 132px 108px repeat(4, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
+      <div data-grid="ladder" style="display: grid; grid-template-columns: 132px 108px repeat(4, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
         <div>corridor</div>
         <div>size</div>
         <div>cheapest</div>
@@ -890,7 +949,7 @@ textarea.input { min-height: 90px; resize: vertical; }
         <div style="text-align: right;">bps · n quoting</div>
       </div>
       <sc-for list="{{ spread }}" as="s" hint-placeholder-count="10">
-        <div style="display: grid; grid-template-columns: 132px 108px repeat(4, minmax(0, 1fr)); gap: 0 16px; border-top: 1px solid var(--color-divider); padding: 9px 0; align-items: baseline;">
+        <div data-grid="ladder" style="display: grid; grid-template-columns: 132px 108px repeat(4, minmax(0, 1fr)); gap: 0 16px; border-top: 1px solid var(--color-divider); padding: 9px 0; align-items: baseline;">
           <div class="text-muted" style="font-size: 12px;">{{ s.corridor }}</div>
           <div style="font-size: 13px; font-weight: 600;">{{ s.size }}</div>
           <div style="font-size: 13px;">{{ s.best }}</div>
@@ -918,19 +977,19 @@ textarea.input { min-height: 90px; resize: vertical; }
 
     <div style="padding: 0 24px;">
       <h2 style="font-size: 20px; margin: 0 0 4px;">Definitions</h2>
-      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
+      <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Basis</div>
         <p style="font-size: 14px; margin: 0; max-width: 78ch;">The quote against the official USD mid carried in the same row, in basis points. Positive means local buyers pay above the official rate for a dollar.</p>
       </div>
-      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
+      <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Corridor cost</div>
         <p style="font-size: 14px; margin: 0; max-width: 78ch;">All-in cost of a bank-to-bank transfer, in basis points of the amount sent: on-ramp basis and fee, network fee, off-ramp basis and fee, against the cheapest fiat rail quoting the same amount at the same second.</p>
       </div>
-      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
+      <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Bar scale</div>
         <p style="font-size: 14px; margin: 0; max-width: 78ch;">Basis bars use a compressed scale so a 6 bps market stays legible next to a 1,652 bps one. The number beside each bar is always the real figure.</p>
       </div>
-      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); padding: 13px 0;">
+      <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Backfill</div>
         <p style="font-size: 14px; margin: 0; max-width: 78ch;">History before August 2026 is daily, not hourly. It shows in charts as history, never as hourly coverage.</p>
       </div>
@@ -938,15 +997,15 @@ textarea.input { min-height: 90px; resize: vertical; }
 
     <div style="padding: 32px 24px 0;">
       <h2 style="font-size: 20px; margin: 0 0 4px;">Sources</h2>
-      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
+      <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Price sources</div>
         <p style="font-size: 14px; margin: 0; max-width: 78ch;">BTCTurk, Bitkub, Bitso, Coins.ph, Independent Reserve, Indodax, Upbit. ARS, VES and BRL quotes via <a href="https://criptoya.com">CriptoYa</a> on a median-bid rule, used with attribution.</p>
       </div>
-      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
+      <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Reference rates</div>
         <p style="font-size: 14px; margin: 0; max-width: 78ch;">Official USD mids from open.er-api.com, with the fawazahmed0 currency dataset for daily backfill. Every basis figure is the quote against the mid carried in the same row.</p>
       </div>
-      <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); padding: 13px 0;">
+      <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Raw data</div>
         <p style="font-size: 14px; margin: 0; max-width: 78ch;">Hourly rows and the fee configuration in force when each was written: <a href="https://github.com/SebR214/margin">github.com/SebR214/margin</a></p>
       </div>
