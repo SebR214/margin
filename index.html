@@ -457,8 +457,8 @@ textarea.input { min-height: 90px; resize: vertical; }
   <div>
     <div data-grid="hero" style="padding: 56px 24px 40px; border-bottom: 2px solid var(--color-text); display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; align-items: end;">
       <div>
-        <h1 style="font-size: 44px; line-height: 1.06; margin: 0 0 14px; max-width: 24ch;">A dollar costs {{ hl.wide }} over the official rate in {{ hl.wideCountry }} and {{ hl.narrow }} in {{ hl.narrowCountry }}. Same asset, same hour.</h1>
-        <p class="text-muted" style="max-width: 62ch; font-size: 15px; margin: 0;">Ten markets and one corridor, decomposed to basis points. Order books walked at real size against the official USD mid at the same second, kept raw.</p>
+        <h1 style="font-size: 44px; line-height: 1.06; margin: 0 0 14px; max-width: 24ch;">Does sending money with crypto actually cost less than a bank transfer? I measure it live, every hour, on real exchanges. {{ heroVerdict }}</h1>
+        <p class="text-muted" style="max-width: 62ch; font-size: 15px; margin: 0;">Prices are read straight from the exchanges people actually use, at the amounts people actually send, and compared against the official exchange rate captured in the same second. Nothing is smoothed or filled in.</p>
       </div>
       <div data-grid="tiles" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; background: var(--color-divider);">
         <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="4">
@@ -474,12 +474,12 @@ textarea.input { min-height: 90px; resize: vertical; }
     <div style="padding: 36px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
         <div>
-          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; white-space: nowrap;">{{ mk.venue }} · basis history </div>
+          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; white-space: nowrap;">{{ mk.venue }} · one country over time </div>
           <h2 style="font-size: 30px; margin: 0;">{{ mk.code }} <span class="text-muted" style="font-weight: 400; font-size: 18px;">{{ mk.country }}</span></h2>
         </div>
         <div style="display: flex; align-items: baseline; gap: 28px;">
           <div>
-            <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">basis now</div>
+            <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">the board</div>
             <div style="font-family: var(--font-heading); font-weight: 800; font-size: 28px; line-height: 1.1; color: {{ mk.color }};">{{ mk.bps }}<span class="text-muted" style="font-size: 13px; font-weight: 400; margin-left: 5px;">bps</span></div>
           </div>
           <div style="display: flex; gap: 0; border: 1px solid var(--color-neutral-400);">
@@ -543,13 +543,13 @@ textarea.input { min-height: 90px; resize: vertical; }
           </div>
         </sc-for>
       </div>
-      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">Pick any market in the board below to load its series; hover the chart to read a point, click to pin it. The series is read from data/basis.csv and data/basis_history.csv over the selected window; every point is a collected row.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">Click any country on the board to see its history here. Hover the chart to read a point, click to pin it. Every point is a price that was actually captured.</p>
     </div>
 
     <div style="padding: 40px 24px 0;">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
-        <h2 style="font-size: 26px; margin: 0;">Basis now — USDT vs official USD mid</h2>
-        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">signed bps · zero-centred · {{ scaleNote }}</div>
+        <h2 style="font-size: 26px; margin: 0;">What a dollar really costs in ten countries</h2>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">each bar is one country · {{ scaleNote }}</div>
       </div>
 
       <sc-for list="{{ bands }}" as="band" hint-placeholder-count="2">
@@ -557,8 +557,8 @@ textarea.input { min-height: 90px; resize: vertical; }
           <div data-grid="bar-row" style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: baseline; padding: 0 0 6px 12px;">
             <div style="font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;">{{ band.title }}</div>
             <div class="text-muted" style="font-size: 11px;">{{ band.sub }}</div>
-            <div class="text-muted" style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;"><span>{{ band.axisLeft }}</span><span>below mid ← 0 → above mid</span><span>{{ band.axisRight }}</span></div>
-            <div class="text-muted" style="text-align: right; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">basis</div>
+            <div class="text-muted" style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;"><span>{{ band.axisLeft }}</span><span>cheaper than official ← 0 → dearer than official</span><span>{{ band.axisRight }}</span></div>
+            <div class="text-muted" style="text-align: right; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">gap</div>
           </div>
           <sc-for list="{{ band.rows }}" as="b" hint-placeholder-count="8">
             <div sc-camel-on-click="{{ b.go }}" data-grid="bar-row" style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); border-left: 3px solid transparent; padding: 9px 0 9px 9px; cursor: pointer; border-left-color: {{ b.sel }};" style-hover="background: var(--color-neutral-200);">
@@ -577,12 +577,12 @@ textarea.input { min-height: 90px; resize: vertical; }
           <div style="border-top: 2px solid var(--color-text);"></div>
         </div>
       </sc-for>
-      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 88ch;">Positive: local buyers pay above the official rate for a dollar. The two bands carry their own axis, printed above each, because a shared one would render eight of ten markets as the same stub. Bars are comparable within a band, never across.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 88ch;">Each bar is one country. It shows how far the local price of a digital dollar (USDT) sits from the official exchange rate, right now. Above zero: people there pay more than the official rate to get dollars. {{ dislocatedNames }} so far above that they get their own scale. Below zero: the digital dollar trades cheaper than the official rate. The number beside each bar is always the real figure.</p>
     </div>
 
     <div style="padding: 44px 24px 0;">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
-        <h2 style="font-size: 26px; margin: 0;">Hourly coverage</h2>
+        <h2 style="font-size: 26px; margin: 0;">Is the data complete?</h2>
         <div style="display: flex; align-items: baseline; gap: 16px;">
           <sc-if value="{{ cov.on }}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; align-items: baseline; gap: 10px;">
@@ -611,10 +611,10 @@ textarea.input { min-height: 90px; resize: vertical; }
             <div style="width: 22px; height: 10px; background: {{ g.bg }};"></div>
           </sc-for>
         </div>
-        <span>low → high |basis|</span>
+        <span>small gap → big gap</span>
         <span style="margin-left: auto;">23h UTC</span>
       </div>
-      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0;">Daily backfill before August 2026 appears as history, never as hourly coverage.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0;">Prices from before August 2026 are daily, not hourly, so they appear in the history chart but never in this grid.</p>
     </div>
 
     <div style="padding: 44px 24px 0;">
@@ -695,8 +695,8 @@ textarea.input { min-height: 90px; resize: vertical; }
         <div style="background: var(--color-text); color: var(--color-bg); padding: 10px 20px; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;">Correction on the record · {{ correctionDate }}</div>
         <div data-grid="split" style="padding: 20px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px; align-items: start;">
           <div>
-            <h3 style="font-size: 21px; margin: 0 0 8px;">The first version had the patient route beating the incumbent 3×. It was wrong.</h3>
-            <p class="text-muted" style="font-size: 14px; margin: 0; max-width: 60ch;">Maker execution was modelled as free. {{ makerProse }}, so the claim died against the venues' own published schedules. It stays here because the site only works if the numbers survive someone checking.</p>
+            <h3 style="font-size: 21px; margin: 0 0 8px;">I published a wrong number once</h3>
+            <p class="text-muted" style="font-size: 14px; margin: 0; max-width: 60ch;">My first version said the crypto route beat Wise by 3x. Then I checked the exchanges' real fees, and it didn't. {{ makerProse }}. The mistake stays on the page so you can see the numbers here get checked, including mine.</p>
           </div>
           <div style="display: grid; gap: 2px; background: var(--color-divider);">
             <sc-for list="{{ correction }}" as="c" hint-placeholder-count="3">
@@ -712,7 +712,8 @@ textarea.input { min-height: 90px; resize: vertical; }
 
     <div style="padding: 44px 24px 0;">
       <div style="border-bottom: 2px solid var(--color-text); padding-bottom: 10px;">
-        <h2 style="font-size: 26px; margin: 0;">Findings</h2>
+        <h2 style="font-size: 26px; margin: 0;">What the data has shown so far</h2>
+        <div class="text-muted" style="font-size: 13px; margin-top: 6px;">{{ findingsIntro }}</div>
       </div>
       <sc-for list="{{ findings }}" as="f" hint-placeholder-count="2">
         <div data-grid="finding" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 200px; gap: 24px; border-bottom: 1px solid var(--color-divider); padding: 16px 0; align-items: start;">
@@ -735,8 +736,8 @@ textarea.input { min-height: 90px; resize: vertical; }
   <sc-if value="{{ isCorridor }}" hint-placeholder-val="{{ false }}">
   <div>
     <div style="padding: 48px 24px 32px; border-bottom: 2px solid var(--color-text);">
-      <h1 style="font-size: 40px; margin: 0 0 12px; max-width: 24ch;">All-in cost of the transfer, sampled hourly.</h1>
-      <p class="text-muted" style="max-width: 74ch; font-size: 15px; margin: 0;">The USDT route walked at real size on live books, against the cheapest fiat rail quoting the same amount at the same second. Everything in basis points of the amount sent.</p>
+      <h1 style="font-size: 40px; margin: 0 0 12px; max-width: 24ch;">Sending money abroad: crypto vs the banks</h1>
+      <p class="text-muted" style="max-width: 74ch; font-size: 15px; margin: 0;">{{ corridorIntro }}</p>
     </div>
 
     <sc-for list="{{ corridors }}" as="c" hint-placeholder-count="2">
@@ -747,11 +748,11 @@ textarea.input { min-height: 90px; resize: vertical; }
         </div>
         <div data-grid="spread" style="display: grid; grid-template-columns: 108px repeat(5, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
           <div>size sent</div>
-          <div style="text-align: right;">USDT taker</div>
-          <div style="text-align: right;">USDT maker</div>
-          <div style="text-align: right;">best fiat rail</div>
-          <div style="text-align: right;">rail bps</div>
-          <div style="text-align: right;">USDT vs rail</div>
+          <div style="text-align: right;">crypto route</div>
+          <div style="text-align: right;">crypto, if you wait</div>
+          <div style="text-align: right;">cheapest provider</div>
+          <div style="text-align: right;">their cost</div>
+          <div style="text-align: right;">difference</div>
         </div>
         <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="5">
           <div data-grid="spread" style="display: grid; grid-template-columns: 108px repeat(5, minmax(0, 1fr)); gap: 0 16px; border-top: 1px solid var(--color-divider); padding: 10px 0; align-items: baseline; background: {{ r.bg }};">
@@ -829,7 +830,7 @@ textarea.input { min-height: 90px; resize: vertical; }
         </div>
       </div>
         <div class="text-muted" style="font-size: 11px; line-height: 1.5; padding: 8px 0 0;">{{ cc.note }}</div>
-      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">The shaded band is what the sender pays for choosing the stablecoin route. Hover the chart to read a day, click to pin it. Both legs are read from data/samples.csv at the highlighted size; every point is a collected row.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">The shaded band is the extra cost of going the crypto way. Hover the chart to read an hour, click to pin it. Every point is a real captured price.</p>
     </div>
 
     <div style="padding: 40px 24px 0;">
@@ -875,7 +876,7 @@ textarea.input { min-height: 90px; resize: vertical; }
         <div>
           <sc-if value="{{ cx.empty }}" hint-placeholder-val="{{ true }}">
         <div style="border: 2px solid var(--color-text); padding: 18px 20px; margin-bottom: 18px;">
-          <div style="font-family: var(--font-heading); font-weight: 800; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px;">Pending fee-tier verification</div>
+          <div style="font-family: var(--font-heading); font-weight: 800; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px;">Waiting on verified fee tiers</div>
           <div class="text-muted" style="font-size: 13px; line-height: 1.55;">{{ cx.emptyNote }}</div>
         </div>
       </sc-if>
@@ -889,7 +890,7 @@ textarea.input { min-height: 90px; resize: vertical; }
           </sc-for>
           <div style="border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); padding: 9px 0; display: flex; align-items: baseline; gap: 10px;">
             <span style="width: 14px; height: 2px; background: var(--color-text); display: block; flex: none;"></span>
-            <span style="font-size: 13px; font-weight: 600;">best fiat rail</span>
+            <span style="font-size: 13px; font-weight: 600;">cheapest provider</span>
             <span class="text-muted" style="font-size: 12px; margin-left: auto;">{{ cx.railNote }}</span>
           </div>
         </div>
@@ -900,7 +901,7 @@ textarea.input { min-height: 90px; resize: vertical; }
     <div style="padding: 40px 24px 0;">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
         <h2 style="font-size: 26px; margin: 0;">Where the cost sits — SGD→PHP, S$5,000</h2>
-        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">fee-verification snapshot · 2026-08-10</div>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ waterfallStamp }}</div>
       </div>
       <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 84ch;">This decomposition is the 2026-08-10 verification sample, not the live row. The live ladder above puts the same route at 64.96 bps against Wise at 28.68, because both bases moved with the market since. The shape of the cost is what this chart is for.</p>
       <div style="padding-top: 18px;">
@@ -932,13 +933,13 @@ textarea.input { min-height: 90px; resize: vertical; }
         </sc-for>
         <div style="border-top: 2px solid var(--color-text);"></div>
       </div>
-      <p class="text-muted" style="font-size: 13px; margin: 12px 0 0; max-width: 78ch;">The rail costs 2.6 bps. The doors cost 82. At published base-tier fees the stablecoin route loses to Wise in both execution regimes, at every size on the ladder. It turns favourable only once volume-tier discounts apply, a crossover this collector is built to measure from history rather than assume.</p>
+      <p class="text-muted" style="font-size: 13px; margin: 12px 0 0; max-width: 78ch;">{{ stackNote }}</p>
     </div>
 
     <div style="padding: 40px 24px 0;">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
-        <h2 style="font-size: 26px; margin: 0;">Every rail, priced live</h2>
-        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">best vs worst quote per size</div>
+        <h2 style="font-size: 26px; margin: 0;">Every way to send it, ranked</h2>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">cheapest first, crypto ranked among them</div>
       </div>
       <div data-grid="ladder" style="display: grid; grid-template-columns: 132px 108px repeat(4, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
         <div>corridor</div>
@@ -959,7 +960,7 @@ textarea.input { min-height: 90px; resize: vertical; }
         </div>
       </sc-for>
       <div style="border-top: 2px solid var(--color-text);"></div>
-      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">A negative cheapest figure is a promotional rate quoted above the official mid, not an arbitrage. Enterprise pricing and OTC execution are not visible here.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">The same transfer priced across every provider quoting it right now, cheapest first, with the crypto route ranked among them. A negative figure is a promotional rate — better than the official exchange rate, funded by the provider, and usually only for a first transfer. Large institutions get private pricing that is not visible here.</p>
     </div>
   </div>
   </sc-if>
@@ -967,12 +968,12 @@ textarea.input { min-height: 90px; resize: vertical; }
   <sc-if value="{{ isMethod }}" hint-placeholder-val="{{ false }}">
   <div>
     <div style="padding: 40px 24px 28px; max-width: 78ch;">
-      <h1 style="font-size: 30px; margin: 0 0 14px;">Methodology</h1>
-      <p style="font-size: 16px; margin: 0 0 18px;">Every figure here is one of three things, and the site marks which.</p>
-      <p style="font-size: 14px; margin: 0 0 14px;">Most of it is measured. I walk the live order book at real sizes, take the official USD mid at the same second, and pull the incumbent rails' quotes at that instant. One row an hour, per corridor, per size sent, kept raw.</p>
-      <p style="font-size: 14px; margin: 0 0 14px;">The fees I can't read off a book, so I take them from each venue's published schedule and check them by hand. {{ takerProse }}. Every figure carries the date its fees were last verified, because schedules change and a stale fee quietly poisons everything downstream.</p>
-      <p style="font-size: 14px; margin: 0 0 14px;">Some cost I can't see at all. Enterprise desks like Nium and Thunes, and OTC execution, price privately. I say so and leave it out. I don't estimate it, because a guess dressed as a measurement is the one thing that would make the rest untrustworthy.</p>
-      <p style="font-size: 14px; margin: 0;">When a pull fails it's written as a failure, and gaps stay gaps rather than getting filled in. History is the only part I can't rebuild, so collection comes before everything else.</p>
+      <h1 style="font-size: 30px; margin: 0 0 14px;">How the numbers are made</h1>
+      <p style="font-size: 16px; margin: 0 0 18px;">Every number on this site comes from one of three places, and each number is marked with which.</p>
+      <p style="font-size: 14px; margin: 0 0 14px;">Measured. Every hour, the site pulls live prices from each exchange and each transfer provider, at real transfer sizes, and records the official exchange rate at the same moment. Everything is stored raw.</p>
+      <p style="font-size: 14px; margin: 0 0 14px;">From published fee pages. Exchange fees can't be read from live prices, so they come from each exchange's own fee page, checked by hand. {{ takerProse }}. Each fee shows the date it was last checked, because fees change and an outdated fee makes every number after it wrong.</p>
+      <p style="font-size: 14px; margin: 0 0 14px;">Not visible. Large institutions get private pricing from companies like Nium and Thunes. I can't see those prices, so they are not on this site. I don't estimate them.</p>
+      <p style="font-size: 14px; margin: 0;">If a price fails to come in, that failure is recorded and shows as a gap in the charts. Gaps are never filled in.</p>
     </div>
 
     <div style="padding: 0 24px;">
@@ -1014,8 +1015,8 @@ textarea.input { min-height: 90px; resize: vertical; }
   </sc-if>
 
   <div style="margin-top: 56px; border-top: 2px solid var(--color-text); padding: 28px 24px 40px;">
-    <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;">why this exists</div>
-    <p style="font-size: 14px; margin: 0; max-width: 76ch;">I work in cross-border payments. The loudest claim in the industry is that stablecoins made moving money cheap, and I could not find anyone who had priced that claim off live order books. So I built a collector that does, and left the workings visible.</p>
+    <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;">who made this</div>
+    <p style="font-size: 14px; margin: 0; max-width: 76ch;">Built by Sebastian Roervig. I work in cross-border payments. Everyone says crypto made moving money cheap. I couldn't find anyone who had measured it, so I did. Raw data and code: github.com/SebR214/margin</p>
   </div>
 </div>
 
@@ -1043,6 +1044,10 @@ const DAY = 864e5, HOUR = 36e5;
 // Display metadata only — country and venue labels, never a number. The venue
 // string is what the collector wrote; this map only supplies the country name
 // and the display order used when two markets tie.
+const CITY = {
+  SGD: "Singapore", PHP: "Manila", USD: "the US", MXN: "Mexico City",
+};
+
 const META = {
   VES: { country: "Venezuela" }, ARS: { country: "Argentina" },
   BRL: { country: "Brazil" }, PHP: { country: "Philippines" },
@@ -1241,12 +1246,13 @@ class Component extends DCLogic {
       cx: { name: "—", tiers: [], line1: "", line2: "", line3: "", line4: "", railLine: "",
             xLabels: [], tipRows: [], tipOn: false, tipX: "0%", tipShift: "none", tipSize: "",
             railNote: "", empty: true,
-            emptyNote: "Pending fee-tier verification. This chart binds to data/fee_tiers.csv, one row per venue per published tier; no such file has been collected yet, so there is nothing to draw. Tier figures are never assumed.",
+            emptyNote: "Waiting on verified fee tiers from the exchanges. Nothing is shown until the numbers are sourced — this chart binds to data/fee_tiers.csv, and no such file has been collected yet.",
             onMove: () => {}, onLeave: () => {} },
       cxx: false,
       stack: [], stackKeys: [], waterfall: [], spread: [],
       legend: [], provenance: [], failStats: [], methodNotes: [],
-      makerProse: "", takerProse: "", correctionDate: "—",
+      makerProse: "", takerProse: "", correctionDate: "—", heroVerdict: "", dislocatedNames: "",
+      corridorIntro: "", waterfallNote: "", waterfallStamp: "", stackNote: "", findingsIntro: "",
     };
     if (!D) return empty;
 
@@ -1291,11 +1297,11 @@ class Component extends DCLogic {
       const big = mkts.filter(m => Math.abs(m.bps) >= 200), small = mkts.filter(m => Math.abs(m.bps) < 200);
       bands = [];
       if (big.length) { const b = bandOf(big);
-        bands.push({ title: "Dislocated", sub: "|basis| above 200 bps", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }); }
+        bands.push({ title: "Far from the official rate", sub: "more than 2% away · own scale", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }); }
       if (small.length) { const b = bandOf(small);
-        bands.push({ title: "At or near the mid", sub: "|basis| under 200 bps · own axis", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }); }
+        bands.push({ title: "Close to the official rate", sub: "within 2% · own scale", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }); }
     } else { const b = bandOf(mkts);
-      bands = [{ title: "All markets", sub: "one shared axis", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }]; }
+      bands = [{ title: "All countries", sub: "one shared scale", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }]; }
 
     // ---- hourly coverage, real ------------------------------------------
     // One cell per hour for the last 24. A cell is filled only where a row was
@@ -1365,8 +1371,21 @@ class Component extends DCLogic {
       return { key, name: disp(key), t: last, cur,
         verified: ((rows[0] || {}).fees_verified || "").split("|").map(x => (x.split(":")[1] || "").trim()).filter(Boolean).sort()[0] || "—",
         ts: this.fmtStamp(last, true),
-        note: "On-ramp " + ((rows[0] || {}).onramp_venue || "—") + ", off-ramp " + ((rows[0] || {}).offramp_venue || "—") +
-              ". Fiat rails quoted at the same instant for the same amount.",
+        note: (() => {
+          // Verdict first, computed from the highlighted row of THIS ladder, so
+          // the sentence flips on its own if the crypto route ever wins.
+          const hl = rows.find(r => String(num(r.notional_src)) === hi) || rows[Math.min(2, rows.length - 1)];
+          const t = hl ? num(hl.cost_bps_taker) : null, rl = hl ? num(hl.baseline_cost_bps) : null;
+          const verdict = (t === null || rl === null) ? "" :
+            "At " + this.fmtSize(cur, num(hl.notional_src)) + ", the crypto route costs " +
+            this.fmtBps(t, false) + " bps. The cheapest provider (" + (hl.baseline_provider || "—") +
+            ") costs " + this.fmtBps(rl, false) + " bps. " +
+            (t > rl ? "The provider wins by " + Math.abs(t - rl).toFixed(0) + " bps."
+                    : "The crypto route wins by " + Math.abs(t - rl).toFixed(0) + " bps.") + " ";
+          return verdict + "Bought on " + ((rows[0] || {}).onramp_venue || "—") + ", sold on " +
+                 ((rows[0] || {}).offramp_venue || "—") +
+                 ". Provider quotes taken at the same moment for the same amount.";
+        })(),
         raw: rows,
         rows: rows.map(r => {
           const taker = num(r.cost_bps_taker), maker = num(r.cost_bps_maker), rail = num(r.baseline_cost_bps);
@@ -1421,8 +1440,8 @@ class Component extends DCLogic {
         tipG: ccIdx === null ? "" : this.fmtBps(us[ccIdx] - rl[ccIdx]),
         tipT: ccIdx === null ? "" : this.fmtStamp(series[ccIdx].t, true),
         onMove: ccH.onMove, onLeave: ccH.onLeave, onPin: ccH.onPin,
-        keys: [{ label: "USDT route, all-in", color: "var(--data-600)" },
-               { label: "best fiat rail", color: "var(--color-neutral-500)" }],
+        keys: [{ label: "crypto route, all-in", color: "var(--data-600)" },
+               { label: "cheapest normal provider", color: "var(--color-neutral-500)" }],
         tabs: ladders.map(l => ({ label: l.name, go: () => this.setState({ corridor: l.key, hover: null, pinned: null }),
           bg: cName === l.key ? "var(--color-text)" : "transparent",
           color: cName === l.key ? "var(--color-bg)" : MUTED })),
@@ -1457,11 +1476,11 @@ class Component extends DCLogic {
       if (onB !== null && onF !== null && offB !== null && offF !== null && netBps !== null) {
         const doors = onB + onF + offB + offF, total = doors + netBps;
         stack = [
-          { label: "the two doors, " + this.fmtBps(doors, false) + " bps", w: ((doors / total) * 100).toFixed(1) + "%", bg: "var(--data-400)", fg: "var(--color-text)" },
+          { label: "the exchanges, " + this.fmtBps(doors, false) + " bps", w: ((doors / total) * 100).toFixed(1) + "%", bg: "var(--data-400)", fg: "var(--color-text)" },
           { label: "", w: ((netBps / total) * 100).toFixed(1) + "%", bg: "var(--data-600)", fg: "var(--color-bg)" },
         ];
         stackKeys = [
-          { label: "on-ramp + off-ramp, basis and fees", bg: "var(--data-400)", v: this.fmtBps(doors, false) + " bps" },
+          { label: "what the two exchanges charge to get in and out", bg: "var(--data-400)", v: this.fmtBps(doors, false) + " bps" },
           { label: "the blockchain itself", bg: "var(--data-600)", v: this.fmtBps(netBps, false) + " bps" },
         ];
       }
@@ -1515,7 +1534,16 @@ class Component extends DCLogic {
     }
 
     // ---- crossover: binds to data/fee_tiers.csv, empty until it exists ----
-    const tierRows = (D.tiers || []).filter(r => ok(r));
+    // Tier rows are labelled by the exchange's own tier name, and the first one
+    // carries "(high-volume tier)" so "VIP2" never renders bare to a reader who
+    // has no idea what it means. Nothing renders today — fee_tiers.csv does not
+    // exist — but the rule ships with the code that will draw it.
+    const tierRows = (D.tiers || []).filter(r => ok(r)).map((r, i) => ({
+      venue: r.venue,
+      label: (r.tier_name || "tier") + (i === 0 ? " (high-volume tier)" : ""),
+      maker_bps: num(r.maker_bps), taker_bps: num(r.taker_bps),
+      min_volume_usd: num(r.min_volume_usd), source_url: r.source_url,
+    }));
     const cx = Object.assign({}, empty.cx, { name: cLad ? cLad.name : "—" });
 
     return {
@@ -1527,17 +1555,17 @@ class Component extends DCLogic {
       hl: { wide: this.fmtBps(wide.bps) + " bps", wideCountry: wide.country,
             narrow: this.fmtBps(narrow.bps) + " bps", narrowCountry: narrow.country },
       heroStats: [
-        { k: "widest divergence", v: this.fmtBps(wide.bps), sub: wide.code + " · " + wide.venue, mark: "" },
-        { k: "narrowest", v: this.fmtBps(narrow.bps), sub: narrow.code + " · " + narrow.venue, mark: "" },
+        { k: "Biggest gap right now", v: this.fmtBps(wide.bps), sub: wide.code + " · " + wide.venue, mark: "" },
+        { k: "Smallest gap right now", v: this.fmtBps(narrow.bps), sub: narrow.code + " · " + narrow.venue, mark: "" },
       ].concat(cRowRaw ? [
-        { k: "USDT route, " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
-          v: this.fmtBps(num(cRowRaw.cost_bps_taker), false), sub: "bps all-in, taker", mark: "" },
-        { k: "cheapest fiat rail", v: this.fmtBps(num(cRowRaw.baseline_cost_bps), false),
-          sub: "bps · " + (cRowRaw.baseline_provider || "—") + ", same second", mark: "" },
+        { k: "Crypto route, cost to send " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
+          v: this.fmtBps(num(cRowRaw.cost_bps_taker), false), sub: "bps — the all-in cost, in hundredths of a percent", mark: "" },
+        { k: "Cheapest bank rail, same moment", v: this.fmtBps(num(cRowRaw.baseline_cost_bps), false),
+          sub: "bps · " + (cRowRaw.baseline_provider || "—"), mark: "" },
       ] : []),
       bands, coverage,
       cov: { on: !!covH, code: covH ? covH.code : "", v: covH ? covH.v : "", t: covH ? covH.t : "",
-             hint: covH ? "one cell per hour" : "hover a cell · one cell per hour, shaded by |basis|; grey is a failed pull, blank is not collected" },
+             hint: covH ? "each cell is one hour" : "one cell per hour · filled: captured · grey: pull failed · blank: hour missed — misses are shown, never hidden" },
       legendCells: [200, 300, 400, 500, 600].map(s => ({ bg: "var(--data-" + s + ")" })),
       mk: {
         code: sel.code, country: sel.country, venue: sel.venue, bps: this.fmtBps(sel.bps), color: INK,
@@ -1553,8 +1581,8 @@ class Component extends DCLogic {
         tipT: mkIdx === null ? "" : this.fmtStamp(pts[mkIdx].t, true),
         onMove: mkH.onMove, onLeave: mkH.onLeave, onPin: mkH.onPin,
         stats: [
-          { k: "mean, window", v: this.fmtBps(mean) },
-          { k: "peak |basis|", v: this.fmtBps(peak) },
+          { k: "average gap", v: this.fmtBps(mean) },
+          { k: "biggest gap in window", v: this.fmtBps(peak) },
           { k: "σ", v: sigma === null ? "—" : sigma.toFixed(2) },
           { k: "samples", v: vals.length + " · " + rangeDef.key },
         ],
@@ -1584,6 +1612,36 @@ class Component extends DCLogic {
       ] : [],
       findings, waterfall, stack, stackKeys, spread,
       correctionDate: cLad ? this.fmtStamp(cLad.t, false) : "—",
+      // --- copy that carries a number is computed, so a sentence cannot go
+      // stale against the row it describes. ---
+      heroVerdict: (() => {
+        if (!cRowRaw) return "";
+        const t = num(cRowRaw.cost_bps_taker), r = num(cRowRaw.baseline_cost_bps);
+        if (t === null || r === null) return "The answer depends on the size you send.";
+        return t > r ? "So far the answer is no." : "Right now, at this size, the answer is yes.";
+      })(),
+      dislocatedNames: (() => {
+        const big = mkts.filter(m => Math.abs(m.bps) >= 200).map(m => m.country);
+        if (!big.length) return "No country is";
+        if (big.length === 1) return big[0] + " is";
+        return big.slice(0, -1).join(", ") + " and " + big[big.length - 1] + " are";
+      })(),
+      corridorIntro: cLad && cRowRaw
+        ? "The full cost of one real transfer, measured every hour. The crypto route: buy " +
+          (cRowRaw.stable || "USDT") + " in " + (CITY[cLad.cur] || cLad.cur) + ", send it, sell it in " +
+          (CITY[(cRowRaw.dst || "").trim()] || (cRowRaw.dst || "")) +
+          ", with every fee and the real market price included. Next to it: the cheapest normal provider quoting the same amount at the same moment."
+        : "The full cost of one real transfer, measured every hour, against the cheapest normal provider quoting the same amount at the same moment.",
+      waterfallNote: cRowRaw
+        ? "Each bar is one cost in the transfer, in bps — hundredths of a percent of the amount sent. Read top to bottom, they add up to the all-in figure. Taken from the " +
+          this.fmtStamp(ts(cRowRaw.ts), true) + " sample at " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)) + "."
+        : "",
+      waterfallStamp: cRowRaw ? "sampled " + this.fmtStamp(ts(cRowRaw.ts), true) : "",
+      stackNote: (stackKeys.length === 2)
+        ? "The blockchain itself costs " + stackKeys[1].v + ". Everything else — " + stackKeys[0].v +
+          " — is what the two exchanges charge to get in and out. The chain is not the expensive part; the doors are."
+        : "",
+      findingsIntro: "Dated observations. Each one says what was measured and what it does and does not prove.",
       // Fee prose on the methodology screen is built from the fee columns the
       // collector stamped on the row, so it cannot drift from what was charged.
       makerProse: cRowRaw
