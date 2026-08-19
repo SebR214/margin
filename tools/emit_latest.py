@@ -7,9 +7,18 @@ every layer, regenerated each collector run and committed alongside the rows it
 summarises. A researcher can ingest the whole instrument with one GET of
 https://margin.wiki/data/latest.json instead of parsing five growing CSVs.
 
-Derived, never authoritative. Every value here is copied or computed from a CSV
-row; nothing is invented, interpolated, or defaulted. That has two consequences
-worth stating, because they look like bugs and are not:
+Derived, never authoritative -- including its own clock. `as_of_utc` is the
+newest source timestamp among the rows that fed the file, NOT the time the
+script ran. There is no wall clock anywhere in the output, which makes the
+snapshot a pure function of the data: a collector run that changes nothing
+regenerates a byte-identical file. That is what keeps the commit step's
+"nothing staged" branch reachable, and with it `tools/check_freshness.py`.
+It also matches how the rest of the repo works -- outputs derive from data,
+never from when a script happened to fire.
+
+Every value here is copied or computed from a CSV row; nothing is invented,
+interpolated, or defaulted. That has two consequences worth stating, because
+they look like bugs and are not:
 
   - A missing or empty CSV produces an ABSENT KEY, never a placeholder value.
     Absent means "not collected"; a zero would be a claim about the market.
@@ -75,13 +84,18 @@ def flag(row, key):
     return True if v == "true" else False if v == "false" else None
 
 
-def ts_of(row, key):
-    """Parsed timestamp for ordering, or None if the cell is unusable."""
+def parse_ts(s):
+    """ISO string -> aware datetime, or None. Naive stamps are read as UTC."""
     try:
-        t = dt.datetime.fromisoformat(row.get(key) or "")
+        t = dt.datetime.fromisoformat(s or "")
     except (TypeError, ValueError):
         return None
     return t.replace(tzinfo=dt.timezone.utc) if t.tzinfo is None else t
+
+
+def ts_of(row, key):
+    """Parsed timestamp for ordering, or None if the cell is unusable."""
+    return parse_ts(row.get(key))
 
 
 def newest(rs, key):
@@ -208,9 +222,27 @@ def providers_section():
 
 
 # ---------------------------------------------------------------- main
+def as_of(snap):
+    """Newest source timestamp among the rows that fed the snapshot.
+
+    Read back off the emitted values, so it is by construction a stamp that
+    appears verbatim in a CSV row rather than a number this script invented.
+    None when nothing was collected -- then the key is absent like any other.
+    """
+    stamps = [e.get("ts_utc") for e in snap.get("basis", [])]
+    stamps += [v.get("ts") for v in snap.get("corridors", {}).values()]
+    stamps += [v.get("ts_utc") for v in snap.get("providers", {}).values()]
+    parsed = [(t, s) for s, t in ((s, parse_ts(s)) for s in stamps) if t is not None]
+    return max(parsed)[1] if parsed else None
+
+
 def build():
-    """The snapshot. Empty sections are omitted, never emitted as placeholders."""
-    snap = {"generated_utc": dt.datetime.now(dt.timezone.utc).isoformat()}
+    """The snapshot. Empty sections are omitted, never emitted as placeholders.
+
+    Deliberately contains NO wall clock: identical inputs must produce an
+    identical file, byte for byte.
+    """
+    snap = {}
     sources = []
 
     basis = basis_section()
@@ -230,6 +262,10 @@ def build():
 
     if sources:
         snap["sources"] = sorted(set(sources))
+
+    stamp = as_of(snap)
+    if stamp is not None:
+        snap["as_of_utc"] = stamp
     return snap
 
 
@@ -250,6 +286,8 @@ def main():
     missing = [k for k in ("basis", "corridors", "providers") if k not in snap]
     print(f"  wrote {os.path.relpath(OUT, HERE)} "
           f"({os.path.getsize(OUT):,} bytes)")
+    if "as_of_utc" in snap:
+        print(f"    as of      : {snap['as_of_utc']} (newest source row)")
     if "basis" in snap:
         print(f"    basis      : {len(snap['basis'])} venues")
     if "corridors" in snap:
