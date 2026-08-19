@@ -127,13 +127,30 @@ CORRIDORS = {
             "maker_bps": 60.0,
             "verified": "2026-08-19",
         },
-        # CONSERVATIVE-UNCONFIRMED. Coinbase passes network fees through at send
-        # time and publishes no flat schedule, so this is not a quoted number.
-        # 1 USDT OVERSTATES the cost on the cheap rails Bitso accepts (Solana,
-        # Polygon), so the error counts against the crypto route, never for it.
-        # Source: bitso.com/fees/transactions (crypto deposits free, MXN
-        # withdrawal by SPEI free), checked 2026-08-19.
-        "network_fee_stable": 1.0,
+        # The corridor models POLYGON. Coinbase supports USDT on Ethereum,
+        # Solana, Base, Polygon, Arbitrum and Avalanche -- NOT Tron -- and Bitso
+        # accepts USDT deposits free on Polygon (bitso.com/fees/transactions,
+        # deposits table, read 2026-08-19). Polygon is the cheapest chain both
+        # sides support, so it is what a rational sender uses.
+        #
+        # Coinbase's published USDT withdrawal cost has two parts:
+        #   1. a PROCESSING fee of 0.01% of the amount transferred, capped at
+        #      20 USDT -- proportional, not flat. Source:
+        #      help.coinbase.com/en/coinbase/trading-and-funding/pricing-and-fees/fees
+        #      read 2026-08-19: "All USDT withdrawals sent from your Coinbase
+        #      account will be charged a processing fee equal to 0.01% of the
+        #      amount transferred, with a maximum of 20 USDT."
+        #   2. "A separate network transaction fee will also apply" -- gas,
+        #      estimated at send time and NOT published. On Polygon this is
+        #      fractions of a cent, so it is left at 0.0 rather than invented.
+        #      This is the one term here that UNDERSTATES; see METHODOLOGY.
+        #
+        # The previous flat 1.0 USDT was neither: it was the SGD->PHP TRC20
+        # assumption copied across, on a chain Coinbase does not even support
+        # for USDT. At USD 200 it read 50 bps; the published fee is 1 bp.
+        "network_fee_stable": 0.0,          # unmodelled gas, see above
+        "withdraw_pct": 0.0001,             # 0.01%, published
+        "withdraw_pct_cap": 20.0,           # USDT, published
         "ladder": [200, 1000, 5000, 25000, 50000],
         # providers.csv has NO corridor column and its schema is frozen, so it
         # cannot carry a second corridor. This corridor gets its own file with
@@ -267,7 +284,13 @@ def decompose(notional, on_book, off_book, mids, cfg):
     off_fee = cfg["offramp"]["taker_bps"] / 1e4
     on_fee_mk = cfg["onramp"]["maker_bps"] / 1e4
     off_fee_mk = cfg["offramp"]["maker_bps"] / 1e4
-    netfee = cfg["network_fee_stable"]
+    # The network leg has two shapes across venues: a flat per-send fee (IR
+    # charges 4.0 USDT on Tron) and a proportional processing fee (Coinbase
+    # charges 0.01% of the amount, capped at 20 USDT). Model both; a corridor
+    # that only has one leaves the other at zero.
+    netfee_flat = cfg["network_fee_stable"]
+    pct = cfg.get("withdraw_pct", 0.0)
+    pct_cap = cfg.get("withdraw_pct_cap")
 
     asks, bids = on_book.get("asks", []), off_book.get("bids", [])
     top_ask = asks[0][0] if asks else None
@@ -291,7 +314,18 @@ def decompose(notional, on_book, off_book, mids, cfg):
 
     for regime, fee_on, fee_off in (("taker", on_fee, off_fee),
                                     ("maker", on_fee_mk, off_fee_mk)):
-        stable = gross * (1 - fee_on) - netfee
+        bought = gross * (1 - fee_on)
+        proc = bought * pct
+        if pct_cap is not None:
+            proc = min(proc, pct_cap)
+        netfee = netfee_flat + proc
+        # Record what the network leg ACTUALLY cost at this size, in USDT, in
+        # the column that already exists. A proportional fee cannot be carried
+        # by a single config constant, and samples.csv is frozen -- so the
+        # per-row value becomes the effective one rather than the config one.
+        if regime == "taker":
+            out["network_fee_stable"] = round(netfee, 6)
+        stable = bought - netfee
         if stable <= 0:
             out[f"landed_{regime}"] = 0.0
             out[f"cost_bps_{regime}"] = None
@@ -758,16 +792,30 @@ def selftest():
           f"(USDT under peg at Coinbase), off-ramp {d2['offramp_basis_bps']:+} bps")
 
     # Bitso's 78/60 bps dominates: the venue fees, not the rails, are the cost.
-    assert abs(d2["cost_bps_taker"] - 87.3) < 1.0, d2["cost_bps_taker"]
-    assert abs(d2["cost_bps_maker"] - 68.9) < 1.0, d2["cost_bps_maker"]
+    # These were 87.3 / 68.9 while the network leg carried a flat 1.0 USDT
+    # copied from corridor 1's Tron assumption -- a chain Coinbase does not
+    # support for USDT. Coinbase's published 0.01% processing fee is 1 bp at
+    # every size, so the network leg stops being size-dependent here.
+    assert abs(d2["cost_bps_taker"] - 78.4) < 1.0, d2["cost_bps_taker"]
+    assert abs(d2["cost_bps_maker"] - 59.9) < 1.0, d2["cost_bps_maker"]
+
+    # A proportional fee is the same bps at every size -- that is the whole
+    # difference from a flat one, and the reason USD 200 fell 50 bps -> 1 bp.
+    net_bps = [round(decompose(n, on2, off2, MIDS_FIXTURE_MXN, cfg2)["network_fee_stable"]
+                     / (n / on2["asks"][0][0]) * 1e4, 2) for n in (200, 1000, 5000)]
+    assert net_bps == [1.0, 1.0, 1.0], net_bps
+    print(f"  [ok] corridor 2 network leg: 0.01% processing fee = "
+          f"{net_bps[0]} bps at every size (was 50 bps at USD 200 on a flat 1 USDT)")
     gap2 = d2["cost_bps_taker"] - d2["cost_bps_maker"]
     assert 18.0 < gap2 < 19.0, gap2      # Bitso 78->60 (18) + Coinbase 1->0.5
     print(f"  [ok] corridor 2 fees: taker {d2['cost_bps_taker']:.1f} vs maker "
           f"{d2['cost_bps_maker']:.1f} bps -- {gap2:.1f} bps apart (Bitso 18 + "
           f"Coinbase 0.5)")
 
+    # Reconcile against the EFFECTIVE network fee for this size, not the config
+    # constant -- the config no longer holds the whole story for this corridor.
     parts2 = (d2["onramp_basis_bps"] + cfg2["onramp"]["taker_bps"]
-              + cfg2["network_fee_stable"] / (1000 / on2["asks"][0][0]) * 1e4
+              + d2["network_fee_stable"] / (1000 / on2["asks"][0][0]) * 1e4
               + d2["offramp_basis_bps"] + cfg2["offramp"]["taker_bps"])
     assert abs(parts2 - d2["cost_bps_taker"]) < 1.5, (parts2, d2["cost_bps_taker"])
     print(f"  [ok] corridor 2 waterfall reconciles: parts {parts2:.1f} == total "
