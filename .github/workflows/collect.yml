@@ -1,68 +1,111 @@
 name: collect
 
 on:
-  # PRIMARY TRIGGER as of 2026-09-02: an external cron POSTs
-  # {"event_type":"collect"} to /repos/SebR214/margin/dispatches twice an hour.
-  # GitHub's own schedule below is now only the fallback.
+  # THIS WORKFLOW STARTS ITSELF. Every run ends by sleeping to the next :05 or
+  # :35 and dispatching the next one with the built-in GITHUB_TOKEN, so the
+  # chain needs no cron, no personal access token and nothing outside GitHub.
+  # The schedule below is the RESTARTER, not the clock: it exists only to
+  # revive the chain if a link dies, and a scheduled fire that finds the chain
+  # already alive exits immediately without collecting. See "Am I needed".
   repository_dispatch:
     types: [collect]
   schedule:
-    # FALLBACK. Twice an hour on purpose, and no longer trusted on its own.
-    # GitHub drops scheduled fires under load: 44 of 168 expected hours went
-    # missing in the week to 2026-08-18 (~74% delivery), and it then collapsed
-    # outright -- Aug 20-25 averaged 21 of 24 hours a day, Aug 27 delivered 2,
-    # and Aug 28 to Sep 1 ran between 3 and 7, with 5-to-8-hour holes routine.
-    # Measured by tools/check_delivery.py; a dropped hour is gone for good.
-    # The collectors are idempotent per UTC hour, so extra fires from either
-    # trigger are a no-op when the hour landed and a rescue when it didn't.
-    # Redundancy, not dupes.
+    # RESTARTER. GitHub drops scheduled fires under load: 44 of 168 expected
+    # hours went missing in the week to 2026-08-18 (~74% delivery), and it then
+    # collapsed outright -- Aug 20-25 averaged 21 of 24 hours a day, Aug 27
+    # delivered 2, and Aug 28 to Sep 1 ran between 3 and 7, with 5-to-8-hour
+    # holes routine. Measured by tools/check_delivery.py; a dropped hour is
+    # gone for good. Unreliable as a clock, which is why it is no longer used
+    # as one -- but a trigger that fires eventually is all a restarter needs.
     - cron: "17,47 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+  # actions: write is what lets a run dispatch its successor.
+  actions: write
 
-concurrency:
-  group: collect
-  cancel-in-progress: false
+# No concurrency group on purpose. The chain plus the restarter can overlap by
+# design, and the "Am I needed" gate below is what resolves that -- a group
+# would instead queue the restarter behind a running link for up to half an
+# hour, which is the opposite of what a restarter is for. The collectors are
+# idempotent per UTC hour, so an overlap costs nothing anyway.
 
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Up to ~30 minutes of that is the successor step sleeping to the next
+    # slot. 45 leaves room for a full collection either side of a 29-minute
+    # sleep without ever cutting the dispatch off.
+    timeout-minutes: 45
     steps:
+      # 3. THE GATE. A scheduled fire is a restarter, not a sample: if any link
+      # of the chain is already running or queued, this run has nothing to do
+      # and says so. Only a schedule can be redundant this way -- a dispatch was
+      # asked for explicitly, by the chain itself or by a person, and always
+      # proceeds.
+      #
+      # Runs BEFORE checkout: deciding whether to work needs no working tree,
+      # and a redundant restarter should cost seconds, not a checkout and a pip
+      # install.
+      - name: Am I needed
+        id: needed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "dispatched (${{ github.event_name }}) -- always proceeds"
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Any other run of THIS workflow still going, excluding this one.
+          alive=$(gh run list --workflow=collect.yml --limit 50                     --json databaseId,status                     --jq '[.[] | select(.status == "in_progress" or .status == "queued")
+                               | select(.databaseId != ${{ github.run_id }})
+                               | .databaseId] | first // ""')
+          if [ -n "$alive" ]; then
+            echo "chain alive, run $alive"
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "chain dead, restarting"
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.needed.outputs.proceed == 'true'
 
       - uses: actions/setup-python@v5
+        if: steps.needed.outputs.proceed == 'true'
         with:
           python-version: "3.12"
 
       - name: Install dependencies
+        if: steps.needed.outputs.proceed == 'true'
         run: pip install -r requirements.txt
 
       # Two collectors, two layers, INDEPENDENT pass/fail. The basis step runs
       # even if the corridor step failed (always()), so one layer breaking never
       # hides the other -- but either one going red fails the whole job.
       - name: Collect corridor sample
+        if: steps.needed.outputs.proceed == 'true'
         # Exits non-zero on an incomplete corridor sample. The row is still
         # written, so the commit step (always()) captures it either way.
         run: python3 collector.py
 
       - name: Collect corridor sample USD->MXN
-        if: always()
+        if: always() && steps.needed.outputs.proceed == 'true'
         # Second corridor, same method. always() so corridor 1 going red never
         # hides corridor 2 -- and the per-corridor idempotency gate means the
         # two never contend for the hour.
         run: python3 collector.py --corridor "USD->MXN"
 
       - name: Collect basis sample
-        if: always()
+        if: always() && steps.needed.outputs.proceed == 'true'
         # Wide layer: exits non-zero ONLY on a total blackout (all venues down).
         # A partial pull is a success with source_ok=False holes.
         run: python3 collector_basis.py
 
       - name: Emit machine-readable snapshot
-        if: always()
+        if: always() && steps.needed.outputs.proceed == 'true'
         # Derived from the CSVs the two steps above just wrote, so it runs after
         # both -- and always(), so a failed collector still refreshes the
         # snapshot from whatever did land. Exits non-zero only if it cannot
@@ -70,7 +113,7 @@ jobs:
         run: python3 tools/emit_latest.py
 
       - name: Commit samples
-        if: always()
+        if: always() && steps.needed.outputs.proceed == 'true'
         run: |
           git config user.name "margin-collector"
           git config user.email "actions@github.com"
@@ -104,3 +147,51 @@ jobs:
           # still leaves the rows committed and pushed -- loud, but never at the
           # cost of a sample. Exits 1 if the newest row is too old (bash -e).
           python3 tools/check_freshness.py
+
+      # 5. THE LINK. What makes the chain a chain: sleep to the next slot, then
+      # start the next run with the workflow's own GITHUB_TOKEN.
+      #
+      # This works because of one documented exception. GitHub, "Triggering a
+      # workflow from a workflow":
+      #
+      #   "When you use the repository's GITHUB_TOKEN to perform tasks, events
+      #    triggered by the GITHUB_TOKEN will not create a new workflow run,
+      #    with the following exceptions: workflow_dispatch and
+      #    repository_dispatch events always create workflow runs."
+      #
+      # always(), so a link is forged even when the collection above went red --
+      # one bad hour must not end the chain. It runs AFTER the freshness guard
+      # so a stale-data failure is still loud, and after the commit so a crash
+      # here cannot cost a sample that was already pushed.
+      - name: Dispatch successor
+        if: always() && steps.needed.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Seconds until the next :05 or :35 UTC. Computed from the clock at
+          # this instant, so a slow collection shortens the sleep instead of
+          # pushing the whole chain later and later.
+          now_m=$(date -u +%M); now_s=$(date -u +%S)
+          now_m=$((10#$now_m)); now_s=$((10#$now_s))
+          if   [ "$now_m" -lt 5  ]; then target=5
+          elif [ "$now_m" -lt 35 ]; then target=35
+          else target=65; fi          # 65 == :05 of the next hour
+          wait=$(( (target - now_m) * 60 - now_s ))
+          [ "$wait" -lt 5 ] && wait=5   # never dispatch into the slot just left
+          echo "now $(date -u +%H:%M:%SZ), next slot :$(printf '%02d' $((target % 60))), sleeping ${wait}s"
+          sleep "$wait"
+
+          # A failed dispatch breaks the chain, so it must be LOUD: the run goes
+          # red, and the schedule's next fire finds no link alive and restarts.
+          # That is the whole recovery path, so it must never be swallowed.
+          gh workflow run collect.yml --ref main
+          # `gh workflow run` prints no id, so read it back. Best effort only --
+          # the dispatch is what matters and a slow-to-appear run must not fail
+          # a step that already succeeded.
+          sleep 5
+          new_id=$(gh run list --workflow=collect.yml --limit 10 \
+                     --json databaseId,event,status \
+                     --jq '[.[] | select(.event == "workflow_dispatch")
+                                | select(.status == "in_progress" or .status == "queued")
+                                | .databaseId] | first // ""' || true)
+          echo "successor dispatched: run ${new_id:-<id not yet visible>}"

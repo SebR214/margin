@@ -62,7 +62,11 @@ gh repo create margin-wiki --public --source=. --push
 ```
 
 Actions → enable workflows → run **collect** manually once → confirm a new row
-lands in `data/samples.csv`. After that it runs at :17 past every hour.
+lands in `data/samples.csv`. After that the workflow keeps itself running: every
+run sleeps until the next :05 or :35 UTC and starts the next one with the
+built-in `GITHUB_TOKEN`, so collection needs no cron, no personal access token
+and nothing outside GitHub — and the `17,47` schedule stays on as a restarter
+that only collects if it finds the chain dead.
 
 History is the only part of this that cannot be rebuilt. The site can be ugly for
 months; the collector cannot be down for a week.

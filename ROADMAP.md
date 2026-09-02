@@ -283,34 +283,42 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    distinct UTC hours per day in `data/basis.csv` and always exits 0; it is a
    measurement, not a guard.
 
-   **An external cron is now the primary trigger.** `collect.yml` takes
-   `repository_dispatch` with `types: [collect]`; the `schedule` block stays as
-   the fallback, unchanged. The cron itself is Sebastian's because it needs a
-   token — see the config in issue #23, section 3.
+   **The workflow now keeps itself running.** No cron, no personal access
+   token, no external service, nothing outside GitHub. Every run of
+   `collect.yml` ends by sleeping until the next :05 or :35 UTC and dispatching
+   the next run with the built-in `GITHUB_TOKEN`. That is possible because of
+   one documented exception — GitHub, *Triggering a workflow from a workflow*:
 
-   **Stopgap in place 2026-09-02, on Sebastian's Mac.** The dispatch trigger
-   works, but nothing was pressing it — only GitHub's own broken cron was — so
-   2026-09-02 lost ten hours (00, 02-05, 07, 08, 12, 13) before anyone noticed.
-   A launchd agent now POSTs the dispatch at :05 and :35, landing clear of the
-   fallback cron's :17/:47 so the two interleave:
+   > When you use the repository's `GITHUB_TOKEN` to perform tasks, events
+   > triggered by the `GITHUB_TOKEN` will not create a new workflow run, with
+   > the following exceptions: `workflow_dispatch` and `repository_dispatch`
+   > events always create workflow runs.
+
+   The `17,47` schedule stays, demoted from clock to **restarter**. A scheduled
+   fire first asks "Am I needed": if any run of this workflow is already
+   in progress or queued it prints `chain alive, run <id>` and stops before
+   checkout; otherwise it prints `chain dead, restarting` and collects
+   normally, forging a new first link. Dispatched runs — from the chain or from
+   a person — always proceed. The concurrency group is gone, because it would
+   queue a restarter behind a running link for up to half an hour, which is the
+   opposite of what a restarter is for; overlap is free anyway, since the
+   collectors are idempotent per UTC hour.
+
+   The chain is self-healing in both directions: the dispatch step runs under
+   `always()`, so one bad hour cannot end the chain, and a *failed* dispatch
+   exits non-zero, so the run goes red and the next scheduled fire finds no
+   link alive and restarts. `timeout-minutes` is 45 to cover a 30-minute sleep
+   either side of a full collection.
+
+   Follow-up: re-measure hourly delivery after 7 days of self-chaining. Target
+   23 of 24 or better. Every dropped hour is gone permanently.
+
+   **Sebastian: retire the laptop stopgap.** The launchd agent from earlier
+   today is now redundant and would double-trigger:
 
    ```
-   ~/Library/LaunchAgents/wiki.margin.collect.plist   the schedule
-   ~/.local/bin/margin-collect.sh                     the one-line POST
-   ~/.local/share/margin-collect.log                  one line per fire
+   launchctl unload ~/Library/LaunchAgents/wiki.margin.collect.plist
    ```
-
-   It uses the `gh` CLI's existing auth, so there is **no new token and no
-   secret on disk**, and it fires on wake if it slept through a slot. Its
-   weakness is exactly what you would expect: it only fires while that Mac is
-   awake and online. It is a bridge, not the answer.
-
-   `launchctl unload ~/Library/LaunchAgents/wiki.margin.collect.plist` retires
-   it — **do that once the cron-job.org job from PR #25 is running**, or the
-   repo ends up with two triggers and one of them is a laptop.
-
-   Follow-up: re-measure hourly delivery after 7 days of external triggering.
-   Target 23 of 24 or better. Every dropped hour is gone permanently.
 2. ~~**Put fee verification on a clock.**~~ **Shipped 2026-08-18.**
    `tools/check_fees.py` re-reads both published schedules, diffs the base tier
    against the `CORRIDORS` constants it imports from `collector.py`, and appends
