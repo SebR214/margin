@@ -208,6 +208,77 @@ are absent from `data/basis_history.csv` and carry `source = criptoya` in
 venues — a venue has a trailing history line iff it appears in basis_history.csv;
 ARS/VES/BRL render as a live point with no series, and the legend says so.
 
+## More than one exchange per country
+
+Until 2026-09-02 every country on the board had exactly one exchange behind it,
+and that exchange's quote *was* the country's number. That is not defensible:
+a thin book, a stale feed or one venue's inventory position becomes a national
+statistic. From 2026-09-02 the headline for a country is the **median across
+every exchange that reported in the same UTC hour**, and the disagreement
+between those exchanges is published alongside it.
+
+**Same hour, or not at all.** Venues are grouped by the UTC hour they were
+captured in. Comparing a Seoul print from 14:00 with a São Paulo print from
+09:00 would measure the clock, not the market. Only the newest hour that has any
+successful row counts; older hours are discarded rather than merged in to pad
+the venue count.
+
+**Median, not mean.** One stale or dislocated quote should move the headline as
+little as possible. On 2026-09-02 the Argentine feed carried twenty-four
+exchanges between −22 and +530 bps; a mean would have been dragged by both ends,
+the median was +392.
+
+**Spread is the disagreement, not a bid/ask.** `basis_spread_bps` is the widest
+minus the narrowest basis across the exchanges in that hour. A wide spread is a
+real finding — a fragmented or thin market — and is shown rather than smoothed.
+
+**A median needs two.** Where only one exchange reports, no median and no spread
+are computed and the site says "one exchange only" with the venue named. That is
+still true of Singapore, the Philippines, Thailand and Mexico. The number is not
+dressed up as a consensus it does not have.
+
+**Aggregates are listed, never counted.** A `CriptoYa (XXX)` row is itself a
+median across exchanges. It is still collected and still shown — for Venezuela
+and Brazil it is the longest-running number there is — but it is never one of
+the exchanges in a cross-venue median, which would place a median beside its own
+inputs. For Argentina and Venezuela the individual exchanges CriptoYa lists are
+now collected as their own rows (`CriptoYa:<exchange>`), which is what lets those
+countries have a median at all.
+
+**P2P books are excluded.** CriptoYa lists P2P venues alongside spot ones. A P2P
+advertisement is a different instrument — no matching engine, counterparty risk,
+a price that is asked rather than traded — and blending it into a spot median
+silently would be exactly the sort of quiet mixing this document exists to
+prevent. Any venue whose name contains `p2p` is dropped at collection. P2P is
+its own layer, not yet built.
+
+### Exchanges live as of 2026-09-02
+
+| Currency | Exchanges | Median? |
+|---|---|---|
+| KRW | Upbit, Bithumb, Coinone | yes, 3 |
+| BRL | Foxbit, Mercado Bitcoin (+ CriptoYa aggregate) | yes, 2 |
+| TRY | BTCTurk, Paribu | yes, 2 |
+| IDR | Indodax, Pintu | yes, 2 |
+| ARS | 24 exchanges via CriptoYa, P2P excluded | yes |
+| VES | 1 non-P2P exchange via CriptoYa | no — one only |
+| SGD | Independent Reserve | no — one only |
+| PHP | Coins.ph | no — one only |
+| THB | Bitkub | no — one only |
+| MXN | Bitso | no — one only |
+
+Every endpoint above was called from a US GitHub runner — the environment the
+collector actually runs in, not a laptop — on 2026-09-02 and returned a real
+USDT quote before it was added. Candidates that were called and rejected are
+listed in `collector_basis.py` with their status codes: PDAX (403 on every
+path), Coinhako (403), Orbix (no public endpoint), Binance TH (reachable, but
+`-1121 Invalid symbol` — it has no USDT/THB book), Binance TR and binance.com
+(451), Tokocrypto (451, and no USDT_IDR pair), Reku (404). Nothing was added on
+the strength of documentation alone.
+
+Pintu publishes a last price and no order book, so its `usdt_bid` and
+`usdt_ask` cells are empty rather than filled with the last price twice.
+
 ## Historical basis (the long-range history line)
 
 `data/basis_history.csv` is a one-time backfill (`tools/backfill_basis.py`, not
