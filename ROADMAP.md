@@ -288,6 +288,27 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    the fallback, unchanged. The cron itself is Sebastian's because it needs a
    token — see the config in issue #23, section 3.
 
+   **Stopgap in place 2026-09-02, on Sebastian's Mac.** The dispatch trigger
+   works, but nothing was pressing it — only GitHub's own broken cron was — so
+   2026-09-02 lost ten hours (00, 02-05, 07, 08, 12, 13) before anyone noticed.
+   A launchd agent now POSTs the dispatch at :05 and :35, landing clear of the
+   fallback cron's :17/:47 so the two interleave:
+
+   ```
+   ~/Library/LaunchAgents/wiki.margin.collect.plist   the schedule
+   ~/.local/bin/margin-collect.sh                     the one-line POST
+   ~/.local/share/margin-collect.log                  one line per fire
+   ```
+
+   It uses the `gh` CLI's existing auth, so there is **no new token and no
+   secret on disk**, and it fires on wake if it slept through a slot. Its
+   weakness is exactly what you would expect: it only fires while that Mac is
+   awake and online. It is a bridge, not the answer.
+
+   `launchctl unload ~/Library/LaunchAgents/wiki.margin.collect.plist` retires
+   it — **do that once the cron-job.org job from PR #25 is running**, or the
+   repo ends up with two triggers and one of them is a laptop.
+
    Follow-up: re-measure hourly delivery after 7 days of external triggering.
    Target 23 of 24 or better. Every dropped hour is gone permanently.
 2. ~~**Put fee verification on a clock.**~~ **Shipped 2026-08-18.**
