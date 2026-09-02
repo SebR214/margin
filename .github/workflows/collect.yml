@@ -104,6 +104,14 @@ jobs:
         # A partial pull is a success with source_ok=False holes.
         run: python3 collector_basis.py
 
+      - name: Collect P2P sample
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Capital-controlled markets, read off advertisement boards rather than
+        # order books, in their own file. Same contract as the basis layer:
+        # exits non-zero ONLY on a total blackout; a currency with no ads is a
+        # source_ok=False row, which is a finding about that market.
+        run: python3 collector_p2p.py
+
       - name: Emit machine-readable snapshot
         if: always() && steps.needed.outputs.proceed == 'true'
         # Derived from the CSVs the two steps above just wrote, so it runs after
@@ -125,7 +133,8 @@ jobs:
           # its first row yet is a normal state, not a failure.
           for f in data/samples.csv data/basis.csv data/providers.csv \
                    data/providers_usdmxn.csv data/latest.json \
-                   data/crosses_latest.json data/stable_spread.csv; do
+                   data/crosses_latest.json data/stable_spread.csv \
+                   data/p2p_basis.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           if git diff --cached --quiet; then
