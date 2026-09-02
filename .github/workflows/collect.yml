@@ -74,7 +74,7 @@ jobs:
         run: |
           git config user.name "margin-collector"
           git config user.email "actions@github.com"
-          git add data/samples.csv data/basis.csv data/providers.csv data/providers_usdmxn.csv data/latest.json data/crosses_latest.json
+          git add data/samples.csv data/basis.csv data/providers.csv data/providers_usdmxn.csv data/latest.json data/crosses_latest.json data/stable_spread.csv
           if git diff --cached --quiet; then
             # Expected on the second fire of an hour the first fire already
             # captured. latest.json is a pure function of the data (no wall

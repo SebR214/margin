@@ -318,6 +318,44 @@ because `1/(1+g) - 1` is not `-g`.
 Regenerated every collector run, alongside `data/latest.json`, and containing no
 wall clock for the same reason: identical inputs must produce an identical file.
 
+## USDT versus USDC on the same venue (`data/stable_spread.csv`)
+
+"Stablecoin" is treated everywhere on this site as if it meant one thing. Where
+a venue already in the collector also lists **USDC** against the same local
+currency, both are captured in the same hour and the difference recorded:
+
+```
+spread_bps = (usdc_mid / usdt_mid - 1) * 10_000
+```
+
+Positive means USDC trades dearer than USDT in that market.
+
+**Same hour, same run, same quote.** The USDT side is not re-fetched — it is the
+mid this run already wrote to `basis.csv`. So the two prices are the same
+observation, not two observations minutes apart. A venue whose USDT pull failed
+therefore gets no USDC price either: half a spread is not a spread, and the row
+says so with `source_ok=False` rather than being skipped.
+
+**Twelve of thirteen venues quote both**, verified from a US runner 2026-09-02:
+Independent Reserve, Coins.ph, BTCTurk, Upbit, Indodax, Bitkub, Bithumb,
+Coinone, Paribu, Pintu, Foxbit, Mercado Bitcoin. **Bitso is absent entirely** —
+it has no `usdc_mxn` book and the API says so (`Unknown OrderBook`). Absent, not
+a row of nulls, because a row of nulls would read as a market that failed rather
+than one that does not exist.
+
+Bitkub, Paribu, Pintu and Foxbit publish every pair in one payload, so the USDC
+price costs no extra request. Those four are also where the easy bug lives: read
+the wrong key and the spread comes back as exactly zero, which looks like a
+finding. The selftest asserts a non-zero spread for each of them.
+
+Own file, own frozen schema. `basis.csv` carries one price per row; a second
+stablecoin would mean either a new column on a frozen schema or a second row
+that reads as a second venue.
+
+**Nothing is on the site yet, by design.** Seven days of rows first. A
+single-figure basis-point difference between two stablecoins is inside the noise
+of any one hour, and a week is the minimum needed to tell a spread from a print.
+
 ## Historical basis (the long-range history line)
 
 `data/basis_history.csv` is a one-time backfill (`tools/backfill_basis.py`, not
