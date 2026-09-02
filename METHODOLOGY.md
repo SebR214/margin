@@ -279,6 +279,45 @@ the strength of documentation alone.
 Pintu publishes a last price and no order book, so its `usdt_bid` and
 `usdt_ask` cells are empty rather than filled with the last price twice.
 
+## Implied crosses (`data/crosses_latest.json`)
+
+Every pair of the ten currencies, priced two ways. For a pair A/B:
+
+```
+implied_rate  (B per A) = usdt_mid_B / usdt_mid_A
+official_rate (B per A) = fx_mid_per_usd_B / fx_mid_per_usd_A
+gap_pct                 = (implied_rate / official_rate - 1) * 100
+```
+
+That is the round trip a person would actually take: sell A for USDT on an
+A-quoted exchange, buy B with the USDT on a B-quoted one. The gap is how far
+that route's rate sits from the official cross at the same moment.
+
+**This is a market-price comparison, not a cost quote.** It contains no exchange
+fee, no spread crossed, no withdrawal fee and no network fee. Nobody sending
+money will receive `implied_rate`. Those costs are measured, with verified fee
+schedules, in the corridor layer — and on the corridor the fees are large enough
+to reverse the sign of a favourable-looking gap. What this file measures is
+whether two markets' view of a cross has drifted from the official one, which is
+the same question basis asks, asked between two countries instead of against the
+dollar.
+
+**Same hour, both legs.** A pair is emitted only where both currencies were
+captured in the same UTC hour. A Manila print against a five-hour-old Istanbul
+print would measure the clock. Where the hours differ the pair is simply absent
+— never carried forward.
+
+**One price per currency**: the median across the exchanges that reported that
+hour, the same number the board shows, falling back to the aggregated feed where
+no individual exchange reported.
+
+Pairs are stored once, alphabetically (`SGD/THB`, not also `THB/SGD`). Reversing
+a pair inverts both rates; the gap must be recomputed from the inverted rates,
+because `1/(1+g) - 1` is not `-g`.
+
+Regenerated every collector run, alongside `data/latest.json`, and containing no
+wall clock for the same reason: identical inputs must produce an identical file.
+
 ## Historical basis (the long-range history line)
 
 `data/basis_history.csv` is a one-time backfill (`tools/backfill_basis.py`, not

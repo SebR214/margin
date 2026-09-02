@@ -43,6 +43,7 @@ import sys
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
 OUT = os.path.join(DATA, "latest.json")
+CROSSES = os.path.join(DATA, "crosses_latest.json")
 
 BASIS = os.path.join(DATA, "basis.csv")
 SAMPLES = os.path.join(DATA, "samples.csv")
@@ -212,6 +213,85 @@ def markets_section():
     return out
 
 
+def crosses_section():
+    """Every currency pair, priced two ways: through USDT, and officially.
+
+    Pure arithmetic on rows already collected -- nothing new is fetched. For a
+    pair A/B, the crypto route is: sell one unit of A for USDT on an A-quoted
+    venue, then buy B with that USDT on a B-quoted venue. So
+
+        implied_rate (B per A) = usdt_mid_B / usdt_mid_A
+        official_rate (B per A) = fx_mid_per_usd_B / fx_mid_per_usd_A
+        gap_pct = (implied / official - 1) * 100
+
+    This is a MARKET-PRICE comparison, not a cost quote. It carries no exchange
+    fee, no spread crossed, no withdrawal fee and no network fee: those live in
+    the corridor layer, where they are verified against published schedules.
+    A reader who sends money along this route will not get `implied_rate`. What
+    the gap shows is how far the two markets' view of a cross has drifted from
+    the official one, which is the whole point of measuring basis at all.
+
+    Only pairs where BOTH legs were captured in the SAME UTC hour are emitted.
+    A cross built from a Manila print and a five-hour-old Istanbul print would
+    be measuring the clock. Currencies whose newest hour differs are simply not
+    paired, and the pair is absent rather than stale.
+
+    Per currency the price is the median across the exchanges that reported
+    that hour -- the same number the board shows -- falling back to the
+    aggregated feed where no individual exchange reported (ARS/VES/BRL history).
+    """
+    by_ccy = {}
+    for r in rows(BASIS):
+        ccy, t = r.get("ccy"), ts_of(r, "ts_utc")
+        if not ccy or t is None or not flag(r, "source_ok"):
+            continue
+        mid, fx = num(r, "usdt_mid"), num(r, "fx_mid_per_usd")
+        if mid is None or fx is None or mid <= 0 or fx <= 0:
+            continue
+        hour = t.replace(minute=0, second=0, microsecond=0)
+        cur = by_ccy.get(ccy)
+        if cur is None or hour > cur["hour"]:
+            cur = by_ccy[ccy] = {"hour": hour, "mids": {}, "aggs": {}, "fx": fx,
+                                 "ts": r.get("ts_utc")}
+        if hour < cur["hour"]:
+            continue
+        target = cur["aggs"] if is_aggregate(r.get("venue") or "") else cur["mids"]
+        target[r.get("venue")] = mid
+        cur["fx"] = fx
+        cur["ts"] = r.get("ts_utc")
+
+    price = {}
+    for ccy, e in by_ccy.items():
+        vals = list(e["mids"].values()) or list(e["aggs"].values())
+        if not vals:
+            continue
+        price[ccy] = {"mid": statistics.median(vals), "fx": e["fx"],
+                      "hour": e["hour"], "ts": e["ts"],
+                      "venues": len(e["mids"]) or len(e["aggs"])}
+
+    out = {}
+    codes = sorted(price)
+    for i, a in enumerate(codes):
+        for b in codes[i + 1:]:
+            pa, pb = price[a], price[b]
+            if pa["hour"] != pb["hour"]:
+                continue                  # different hours -> no pair, not a stale one
+            implied = pb["mid"] / pa["mid"]
+            official = pb["fx"] / pa["fx"]
+            if official <= 0:
+                continue
+            out[f"{a}/{b}"] = {
+                "base": a, "quote": b,
+                "implied_rate": round(implied, 8),
+                "official_rate": round(official, 8),
+                "gap_pct": round((implied / official - 1) * 100, 4),
+                "ts_utc": max(pa["ts"], pb["ts"]),
+                "hour_utc": pa["hour"].isoformat(),
+                "venues": {a: pa["venues"], b: pb["venues"]},
+            }
+    return out
+
+
 def corridors_section():
     """Latest full ladder per corridor in samples.csv.
 
@@ -359,12 +439,36 @@ def build():
     return snap
 
 
+def build_crosses():
+    """The crosses file. Its own file, not a key in latest.json: it is a
+    different question (a pair of markets against each other) at a different
+    shape (45 pairs), and latest.json is meant to stay small enough to read.
+
+    Same contract as latest.json: no wall clock, so identical inputs produce an
+    identical file and the collector's "nothing staged" branch stays reachable.
+    """
+    pairs = crosses_section()
+    snap = {}
+    if pairs:
+        snap["pairs"] = pairs
+        snap["source"] = "data/basis.csv"
+        stamps = [(parse_ts(v["ts_utc"]), v["ts_utc"]) for v in pairs.values()]
+        stamps = [(t, s) for t, s in stamps if t is not None]
+        if stamps:
+            snap["as_of_utc"] = max(stamps)[1]
+    return snap
+
+
 def main():
     snap = build()
+    crosses = build_crosses()
     try:
         os.makedirs(DATA, exist_ok=True)
         with open(OUT, "w") as f:
             json.dump(snap, f, indent=2, sort_keys=True)
+            f.write("\n")
+        with open(CROSSES, "w") as f:
+            json.dump(crosses, f, indent=2, sort_keys=True)
             f.write("\n")
     except OSError as e:
         # The ONLY fatal case: consumers would otherwise keep reading a stale
@@ -380,6 +484,15 @@ def main():
         print(f"    as of      : {snap['as_of_utc']} (newest source row)")
     if "basis" in snap:
         print(f"    basis      : {len(snap['basis'])} venues")
+    if crosses.get("pairs"):
+        gaps = [abs(v["gap_pct"]) for v in crosses["pairs"].values()]
+        widest = max(crosses["pairs"].items(), key=lambda kv: abs(kv[1]["gap_pct"]))
+        print(f"  wrote {os.path.relpath(CROSSES, HERE)} "
+              f"({len(crosses['pairs'])} pairs, widest {widest[0]} "
+              f"{widest[1]['gap_pct']:+.2f}%, median gap "
+              f"{statistics.median(gaps):.2f}%)")
+    else:
+        print(f"  no crosses written -- no two currencies share a captured hour")
     if "markets" in snap:
         multi = sum(1 for v in snap["markets"].values() if "basis_median_bps" in v)
         print(f"    markets    : {len(snap['markets'])} currencies, "

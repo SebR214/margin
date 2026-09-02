@@ -581,6 +581,47 @@ textarea.input { min-height: 90px; resize: vertical; }
     </div>
 
     <div style="padding: 44px 24px 0;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
+        <div>
+          <h2 style="font-size: 26px; margin: 0;">If you moved money through crypto, what rate would you get?</h2>
+          <p class="text-muted" style="font-size: 13px; margin: 6px 0 0; max-width: 70ch;">Turn {{ cross.baseCode }} into a digital dollar on a {{ cross.baseCountry }} exchange, then turn that dollar into the other country's money on an exchange there. This is the rate that round trip works out to, next to the official rate for the same moment.</p>
+        </div>
+        <div style="display: flex; gap: 0; border: 1px solid var(--color-neutral-400); flex-wrap: wrap;">
+          <sc-for list="{{ cross.bases }}" as="c" hint-placeholder-count="10">
+            <button type="button" sc-camel-on-click="{{ c.go }}" style="appearance: none; border: 0; cursor: pointer; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.08em; padding: 7px 10px; background: {{ c.bg }}; color: {{ c.color }};" style-hover="background: var(--color-neutral-200);">{{ c.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{ cross.has }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div data-grid="spread" style="display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
+            <div>one {{ cross.baseCode }} buys</div>
+            <div style="text-align: right;">official rate</div>
+            <div style="text-align: right;">through crypto</div>
+            <div style="text-align: right;">difference</div>
+          </div>
+          <sc-for list="{{ cross.rows }}" as="x" hint-placeholder-count="9">
+            <div data-grid="spread" style="display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 0 16px; border-top: 1px solid var(--color-divider); padding: 10px 0; align-items: baseline;" title="{{ x.verdict }}">
+              <div style="display: flex; flex-direction: column;">
+                <span style="font-family: var(--font-heading); font-weight: 800; font-size: 15px;">{{ x.code }}</span>
+                <span class="text-muted" style="font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase;">{{ x.country }}</span>
+              </div>
+              <div style="text-align: right; font-size: 15px;">{{ x.official }}</div>
+              <div style="text-align: right; font-size: 15px;">{{ x.implied }}</div>
+              <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: {{ x.gapColor }};">{{ x.gap }}</div>
+            </div>
+          </sc-for>
+          <div style="border-top: 2px solid var(--color-text);"></div>
+          <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 88ch;">A plus means the crypto route works out to more of the other country's money than the official rate would give you, before any fees. {{ cross.note }}</p>
+        </div>
+      </sc-if>
+      <sc-if value="{{ cross.none }}" hint-placeholder-val="{{ true }}">
+        <p class="text-muted" style="font-size: 13px; padding-top: 14px;">{{ cross.empty }}</p>
+      </sc-if>
+    </div>
+
+    <div style="padding: 44px 24px 0;">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
         <h2 style="font-size: 26px; margin: 0;">Is the data complete?</h2>
         <div style="display: flex; align-items: baseline; gap: 16px;">
@@ -1085,7 +1126,7 @@ const ts = v => { const t = Date.parse(v); return isFinite(t) ? t : null; };
 
 class Component extends DCLogic {
   state = {
-    page: "board", market: null, range: "1m", corridor: null,
+    page: "board", market: null, range: "1m", corridor: null, crossBase: "SGD",
     hover: null, pinned: null, covCell: null, cxCol: null, data: null, err: null,
   };
 
@@ -1100,11 +1141,16 @@ class Component extends DCLogic {
       opt("./data/basis.csv"), opt("./data/basis_history.csv"), opt("./data/samples.csv"),
       opt("./data/providers.csv"), opt("./data/providers_usdmxn.csv"),
       opt("./data/fee_checks.csv"), opt("./data/fee_tiers.csv"),
-    ]).then(([b, h, s, p1, p2, fc, ft]) => {
+      opt("./data/crosses_latest.json"),
+    ]).then(([b, h, s, p1, p2, fc, ft, cx]) => {
+      // A missing or unparseable crosses file means the table renders its empty
+      // state. It must never take the rest of the page down with it.
+      let crosses = null;
+      try { crosses = cx ? JSON.parse(cx) : null; } catch (e) { crosses = null; }
       this.setState({ data: {
         basis: parseCSV(b), hist: parseCSV(h), samples: parseCSV(s),
         panels: { "SGD->PHP": parseCSV(p1), "USD->MXN": parseCSV(p2) },
-        feeChecks: parseCSV(fc), tiers: parseCSV(ft),
+        feeChecks: parseCSV(fc), tiers: parseCSV(ft), crosses,
       }});
     }).catch(e => this.setState({ err: String(e.message || e) }));
   }
@@ -1238,6 +1284,41 @@ class Component extends DCLogic {
     return out.sort((a, b) => b.bps - a.bps);
   }
 
+  // Rates here span from thousands (IDR per SGD) to millionths (SGD per IDR),
+  // so a fixed number of decimals is wrong at one end or the other. Six
+  // significant figures, trailing zeros trimmed, thousands grouped.
+  fmtRate(v) {
+    if (v === null || v === undefined || !isFinite(v)) return "—";
+    if (v >= 1000) return v.toLocaleString("en-US", { maximumFractionDigits: 2 });
+    let out = Number(v.toPrecision(6)).toString();
+    if (out.indexOf("e") >= 0) out = v.toFixed(10).replace(/0+$/, "");
+    return out;
+  }
+
+  // One row per other currency, for the currency the reader picked. The file
+  // stores each pair once (A/B with A before B alphabetically), so half the
+  // rows are read backwards -- both rates invert, and the gap is recomputed
+  // from the inverted rates rather than sign-flipped, which would be wrong:
+  // 1/(1+g) - 1 is not -g.
+  crossRows(D, base) {
+    const cx = D && D.crosses && D.crosses.pairs;
+    if (!cx) return [];
+    const out = [];
+    Object.keys(cx).forEach(k => {
+      const p = cx[k];
+      let quote, implied, official;
+      if (p.base === base) { quote = p.quote; implied = p.implied_rate; official = p.official_rate; }
+      else if (p.quote === base) { quote = p.base; implied = 1 / p.implied_rate; official = 1 / p.official_rate; }
+      else return;
+      if (!isFinite(implied) || !isFinite(official) || official === 0) return;
+      out.push({
+        code: quote, country: (META[quote] || {}).country || quote,
+        implied, official, gap: (implied / official - 1) * 100,
+      });
+    });
+    return out.sort((a, b) => b.gap - a.gap);
+  }
+
   median(xs) {
     const a = xs.slice().sort((x, y) => x - y), n = a.length;
     if (!n) return null;
@@ -1337,6 +1418,8 @@ class Component extends DCLogic {
       legend: [], provenance: [], failStats: [], methodNotes: [],
       makerProse: "", takerProse: "", correctionDate: "—", heroVerdict: "", dislocatedNames: "",
       corridorIntro: "", waterfallNote: "", waterfallStamp: "", stackNote: "", findingsIntro: "",
+      cross: { rows: [], has: false, none: true, bases: [], baseCountry: "", baseCode: "—",
+               note: "", empty: "No pair has both currencies priced in the same hour yet." },
     };
     if (!D) return empty;
 
@@ -1387,6 +1470,41 @@ class Component extends DCLogic {
         bands.push({ title: "Close to the official rate", sub: "within 2% · own scale", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }); }
     } else { const b = bandOf(mkts);
       bands = [{ title: "All countries", sub: "one shared scale", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }]; }
+
+    // ---- the crypto route's implied cross rate ---------------------------
+    // Read from data/crosses_latest.json, which emit_latest.py computes from
+    // the same rows the board is drawn from. Nothing is fetched or recomputed
+    // here beyond inverting the half of the pairs that are stored the other
+    // way round.
+    const crossCodes = mkts.map(m => m.code);
+    const crossBase = crossCodes.indexOf(st.crossBase) >= 0 ? st.crossBase
+                    : (crossCodes.indexOf("SGD") >= 0 ? "SGD" : crossCodes[0]);
+    const crossRows = this.crossRows(D, crossBase).map(r => ({
+      code: r.code, country: r.country,
+      official: this.fmtRate(r.official),
+      implied: this.fmtRate(r.implied),
+      gap: (r.gap >= 0 ? "+" : "−") + Math.abs(r.gap).toFixed(2) + "%",
+      gapColor: Math.abs(r.gap) >= 1 ? "var(--data-700)" : INK,
+      verdict: r.gap >= 0 ? "better than the official rate" : "worse than the official rate",
+    }));
+    const cross = {
+      rows: crossRows,
+      has: crossRows.length > 0,
+      none: crossRows.length === 0,
+      baseCode: crossBase,
+      baseCountry: (META[crossBase] || {}).country || crossBase,
+      bases: crossCodes.map(c => ({
+        label: c, go: () => this.setState({ crossBase: c }),
+        bg: c === crossBase ? INK : "var(--color-bg)",
+        color: c === crossBase ? "var(--color-bg)" : INK,
+      })),
+      note: crossRows.length
+        ? "Market prices only. Sending money along this route also costs exchange "
+          + "fees, a withdrawal fee and a network fee, none of which are in these "
+          + "numbers — the corridor section below is where those are counted."
+        : "",
+      empty: "No pair has both currencies priced in the same hour yet.",
+    };
 
     // ---- hourly coverage, real ------------------------------------------
     // One cell per hour for the last 24. A cell is filled only where a row was
@@ -1669,7 +1787,7 @@ class Component extends DCLogic {
         { k: "Cheapest bank rail, same moment", v: this.fmtBps(num(cRowRaw.baseline_cost_bps), false),
           sub: "bps · " + (cRowRaw.baseline_provider || "—"), mark: "" },
       ] : []),
-      bands, coverage,
+      bands, coverage, cross,
       cov: { on: !!covH, code: covH ? covH.code : "", v: covH ? covH.v : "", t: covH ? covH.t : "",
              hint: covH ? "each cell is one hour" : "one cell per hour · filled: captured · grey: pull failed · blank: hour missed — misses are shown, never hidden" },
       legendCells: [200, 300, 400, 500, 600].map(s => ({ bg: "var(--data-" + s + ")" })),
