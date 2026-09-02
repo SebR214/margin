@@ -46,6 +46,7 @@ OUT = os.path.join(DATA, "latest.json")
 CROSSES = os.path.join(DATA, "crosses_latest.json")
 
 BASIS = os.path.join(DATA, "basis.csv")
+P2P = os.path.join(DATA, "p2p_basis.csv")
 SAMPLES = os.path.join(DATA, "samples.csv")
 
 # Panel files are per-corridor: providers.csv has no corridor column and a
@@ -292,6 +293,47 @@ def crosses_section():
     return out
 
 
+def p2p_section():
+    """Latest row per currency in p2p_basis.csv.
+
+    Kept as its own key rather than folded into `markets`, for the same reason
+    it has its own CSV: an advertisement board is not an order book. A P2P
+    price is asked, not filled, and it carries counterparty risk and a payment
+    rail. Merging the two under one name would be the quiet blend this file
+    exists to avoid.
+
+    A currency whose newest row is a failed pull KEEPS the failure and the
+    reason -- it does not fall back to an older row and present itself as
+    current. For NGN, GHS and ETB that reason is "no ads", which is a fact
+    about those markets and is published as one.
+    """
+    best = {}
+    for r in rows(P2P):
+        ccy, t = r.get("ccy"), ts_of(r, "ts_utc")
+        if not ccy or t is None:
+            continue
+        if ccy not in best or t > best[ccy][0]:
+            best[ccy] = (t, r)
+    out = {}
+    for ccy in sorted(best):
+        _, r = best[ccy]
+        entry = {
+            "source": r.get("source") or None,
+            "buy_median": num(r, "buy_median"),
+            "sell_median": num(r, "sell_median"),
+            "mid": num(r, "mid"),
+            "fx_mid_per_usd": num(r, "fx_mid_per_usd"),
+            "basis_bps": num(r, "basis_bps"),
+            "n_ads": num(r, "n_ads"),
+            "ts_utc": r.get("ts_utc"),
+            "source_ok": flag(r, "source_ok"),
+        }
+        if not entry["source_ok"] and r.get("error"):
+            entry["error"] = r.get("error")
+        out[ccy] = entry
+    return out
+
+
 def corridors_section():
     """Latest full ladder per corridor in samples.csv.
 
@@ -397,6 +439,7 @@ def as_of(snap):
     stamps = [e.get("ts_utc") for e in snap.get("basis", [])]
     stamps += [v.get("ts") for v in snap.get("corridors", {}).values()]
     stamps += [v.get("ts_utc") for v in snap.get("providers", {}).values()]
+    stamps += [v.get("ts_utc") for v in snap.get("p2p", {}).values()]
     parsed = [(t, s) for s, t in ((s, parse_ts(s)) for s in stamps) if t is not None]
     return max(parsed)[1] if parsed else None
 
@@ -414,6 +457,11 @@ def build():
     if basis:
         snap["basis"] = basis
         sources.append("data/basis.csv")
+
+    p2p = p2p_section()
+    if p2p:
+        snap["p2p"] = p2p
+        sources.append("data/p2p_basis.csv")
 
     markets = markets_section()
     if markets:
@@ -476,8 +524,8 @@ def main():
         print(f"  [error] cannot write {OUT}: {e}", file=sys.stderr)
         sys.exit(1)
 
-    present = [k for k in ("basis", "markets", "corridors", "providers") if k in snap]
-    missing = [k for k in ("basis", "markets", "corridors", "providers") if k not in snap]
+    present = [k for k in ("basis", "markets", "p2p", "corridors", "providers") if k in snap]
+    missing = [k for k in ("basis", "markets", "p2p", "corridors", "providers") if k not in snap]
     print(f"  wrote {os.path.relpath(OUT, HERE)} "
           f"({os.path.getsize(OUT):,} bytes)")
     if "as_of_utc" in snap:
@@ -493,6 +541,9 @@ def main():
               f"{statistics.median(gaps):.2f}%)")
     else:
         print(f"  no crosses written -- no two currencies share a captured hour")
+    if "p2p" in snap:
+        ok_n = sum(1 for v in snap["p2p"].values() if v.get("source_ok"))
+        print(f"    p2p        : {ok_n}/{len(snap['p2p'])} currencies priced")
     if "markets" in snap:
         multi = sum(1 for v in snap["markets"].values() if "basis_median_bps" in v)
         print(f"    markets    : {len(snap['markets'])} currencies, "

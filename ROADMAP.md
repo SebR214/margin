@@ -332,6 +332,52 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    file is absent. First clean run 2026-08-18: IR 0.50% flat and Coins.ph VIP0
    0.15/0.10 both still match the 2026-08-10 hand verification. Issue #4.
 
+### P0.4 — P2P layer, collecting since 2026-09-02
+
+1. **Ten capital-controlled currencies now have an hourly price**, from
+   `collector_p2p.py` into `data/p2p_basis.csv`: NGN, EGP, PKR, BDT, VND, KES,
+   GHS, BOB, LBP, ETB. These have no licensed spot USDT book to read, which is
+   why they were "known-invisible" until now — an advertisement board is what
+   these markets have instead.
+
+   **Both sources were called from a US runner before anything was written.**
+
+   - **Bybit P2P: blocked, not used.** `api.bybit.com` returns
+     `403 "The Amazon CloudFront distribution is configured to block access
+     from your country"`; `api2.bybit.com` and `www.bybit.com` time out behind
+     the same block (curl exit 28). No workaround was attempted and none will
+     be — proxying around a geo-block would make the source a lie.
+   - **Binance P2P: answers.** `p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search`
+     returns 200 for all ten currencies. So the layer has one source, and every
+     row says so in its `source` column.
+
+   **Seven of ten currencies have a market.** NGN, GHS and ETB return an empty
+   board — zero ads either side at any size. That is a finding about those
+   markets, not a gap in the collector, and it is written as a row with
+   `source_ok=False` and the reason, every hour, rather than omitted.
+
+   First live reading, 2026-09-02 15:03Z, against the official rate:
+
+   ```
+   EGP  +132 bps    PKR  +276 bps    BDT  +366 bps    BOB  +322 bps
+   KES   +11 bps    VND   -76 bps    LBP   -51 bps
+   NGN / GHS / ETB  no ads
+   ```
+
+   **Method.** Top 10 ads each side, filtered to an amount worth about USD 500
+   so the number is a price a person could actually transact at rather than the
+   thin best ad on the board; the median of each side is stored, and the mid is
+   their midpoint. A mid needs BOTH sides — one side alone is an asking price,
+   not a market — so a currency with only one side is a failed row.
+
+   **A P2P ad is not an order-book quote** and never gets merged into
+   `basis.csv`. It is a price someone is asking, with counterparty risk, a
+   payment-rail requirement and a settlement window, and nothing guarantees a
+   fill. Own collector, own file, own key in `latest.json`.
+
+   **No site work until seven days of rows exist.** Nothing renders before
+   then. Re-read this section before building anything on it.
+
 ### P0.5 — consequence of the multi-venue change
 
 1. **`data/basis.csv` now grows ~4x faster.** One row per venue per hour went
@@ -394,7 +440,14 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
 - **METHODOLOGY gates the site.** If a number is shown, METHODOLOGY says whether
   it is measured, assumed, or invisible. No hand-written copy on the site that
   can go stale against the data — compute it or condition it.
-- **No Binance**, including P2P: 451 from US-hosted runners.
+- **No Binance SPOT**: `api.binance.com` returns 451 from US-hosted runners,
+  "restricted location", re-confirmed 2026-09-02, as do `binance.th` for
+  USDT/THB (no such book) and `trbinance.com`. **The P2P search endpoint is a
+  different story and the old wording was wrong**: `p2p.binance.com` answers
+  200 from the same runners for every currency asked, verified 2026-09-02. It
+  is now the only source of the P2P layer, because Bybit's is geo-blocked. The
+  invariant was never "avoid Binance"; it was "do not pretend a blocked
+  endpoint answered", and that still holds.
 - **CriptoYa uses the median *bid*** — the broker ask carries retail markup
   (`fbac138`).
 - **Every row carries its fee regime**, so history stays interpretable when a
@@ -403,8 +456,13 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
 ## Known-invisible (stated, never estimated)
 
 Enterprise payout pricing (Nium/Thunes/Circle), OTC desks, local cash-out fees,
-KYC/limits. Vietnam has no licensed spot USDT/VND book; Nigeria and India are
-P2P-only — all out of scope by nature, not by omission.
+KYC/limits — out of scope by nature, not by omission.
+
+Vietnam, Nigeria and the other capital-controlled markets were listed here until
+2026-09-02 because they have no licensed spot book. They are now collected off
+P2P boards instead, in their own file, under their own rules — see P0.4. Nigeria
+in particular is still effectively invisible: its board returns no ads at all,
+which is recorded hourly rather than assumed.
 
 ## File map
 
@@ -428,6 +486,8 @@ data/offramp_snapshots.csv   v1 wreckage, kept as history
 data/latest.json        machine-readable snapshot, regenerated each run
 data/crosses_latest.json  every currency pair: crypto-route rate vs official, per run
 data/stable_spread.csv  USDT vs USDC on the same venue, same hour (12 venues)
+data/p2p_basis.csv      P2P layer -- 10 capital-controlled currencies, hourly
+collector_p2p.py        P2P layer -- Binance P2P board, median of top 10 each side
 data/withdrawal_fees.csv USDT withdrawal fee per venue/network, append-only
 tools/seed_withdrawal_fees.py   one-time seed for withdrawal_fees.csv
 tools/emit_latest.py    builds latest.json from the CSVs

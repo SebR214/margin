@@ -26,7 +26,13 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BASIS = os.path.join(HERE, "data", "basis.csv")
+# Two collectors, two clocks. They run in the same job but fail independently,
+# so a day where one delivered 23 hours and the other 4 is a real and useful
+# thing to see -- reporting only their union would hide it.
+FILES = [
+    ("basis", os.path.join(HERE, "data", "basis.csv")),
+    ("p2p", os.path.join(HERE, "data", "p2p_basis.csv")),
+]
 DAYS = 14
 
 
@@ -54,17 +60,27 @@ def hours_by_day(path):
 
 
 def main():
-    seen = hours_by_day(BASIS)
-    if not seen:
-        print(f"  no readable rows in {os.path.relpath(BASIS, HERE)}")
+    tables = [(name, path, hours_by_day(path)) for name, path in FILES]
+    live = [(name, path, seen) for name, path, seen in tables if seen]
+    if not live:
+        for _, path, _ in tables:
+            print(f"  no readable rows in {os.path.relpath(path, HERE)}")
         return
 
+    # A file that does not exist yet is named and skipped, not reported as
+    # zeros -- "not collected yet" and "collected nothing" are different facts.
+    for name, path, seen in tables:
+        if not seen:
+            print(f"  {name}: no rows yet in {os.path.relpath(path, HERE)}")
+
+    header = "  " + " " * 10 + "".join(f"  {name:>8}" for name, _, _ in live)
+    print(header)
     today = dt.datetime.now(dt.timezone.utc).date()
     for offset in range(DAYS - 1, -1, -1):
         day = today - dt.timedelta(days=offset)
-        n = len(seen.get(day, ()))
+        cells = "".join(f"  {len(seen.get(day, ())):5d}/24" for _, _, seen in live)
         note = "  <- today, still filling" if day == today else ""
-        print(f"  {day}  {n:2d}/24{note}")
+        print(f"  {day}{cells}{note}")
 
 
 if __name__ == "__main__":
