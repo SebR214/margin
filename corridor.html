@@ -4,8 +4,8 @@
 <meta charset="utf-8"/>
 <link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — SGD→PHP corridor, decomposed</title>
-<meta name="description" content="Every basis point of a SGD→PHP stablecoin transfer, hourly: on-ramp and off-ramp basis, fees, the network rail, versus the incumbent fiat rail."/>
+<title>margin.wiki — what it costs to send money to the Philippines</title>
+<meta name="description" content="What one real transfer from Singapore to the Philippines costs through crypto, measured hourly and broken into buying the coin, moving it and selling it, against the cheapest ordinary provider quoting the same amount."/>
 <style>
   :root{
     --ink:#12131a; --sub:#5b6472; --faint:#8b93a1; --line:#ebebf0;
@@ -85,45 +85,45 @@
 <div class="wrap">
   <header>
     <div>
-      <div class="brand">margin.wiki <span id="brandCorr">· SGD → PHP corridor</span></div>
-      <div class="sub"><span id="subLead">Every basis point of a transfer from Singapore to the Philippines over USDT, sampled hourly.</span> The blockchain is nearly free; the cost lives at the two <b>doors</b> — the on-ramp and off-ramp — plus the fees. Here is the whole stack, versus what the incumbent fiat rail charges the same second.</div>
+      <div class="brand">margin.wiki <span id="brandCorr">· Singapore → Philippines</span></div>
+      <div class="sub"><span id="subLead">What it costs to send money from Singapore to the Philippines through crypto, measured every hour.</span> The blockchain is nearly free; almost all of the cost is what the two exchanges charge to get in and out. Here is the whole thing, next to what the cheapest ordinary provider charges in the same second.</div>
     </div>
-    <a class="back" href="./index.html">← the basis board</a>
+    <a class="back" href="./index.html">← the country board</a>
   </header>
   <div class="stamp" id="stamp">loading…</div>
 
-  <div class="sizebar" id="corrbar"><span class="lbl">corridor</span></div>
+  <div class="sizebar" id="corrbar"><span class="lbl">route</span></div>
   <div class="sizebar" id="sizebar"><span class="lbl">send amount</span></div>
   <div class="nums" id="nums"></div>
   <div class="verdict" id="verdict"></div>
 
   <div class="card">
-    <h2>The decomposition — where the cost sits <span id="wf-size" style="color:var(--faint);font-weight:400"></span></h2>
-    <p class="cap">Taker execution, in bps below mid-market. Bars left of zero are gains (a favourable basis); right of zero are costs. The <b style="color:var(--rail)">network fee is the rail</b> — everything else is the doors.</p>
+    <h2>Where the cost goes <span id="wf-size" style="color:var(--faint);font-weight:400"></span></h2>
+    <p class="cap">Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the cheapest ordinary provider, same second.</p>
     <svg class="wf" id="wf" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet"></svg>
     <div class="legend-row">
-      <span><i style="background:var(--neg)"></i>gain (basis)</span>
-      <span><i style="background:var(--pos)"></i>cost (fee / basis)</span>
-      <span><i style="background:var(--rail)"></i>the rail (network)</span>
-      <span><i style="background:var(--ink)"></i>all-in</span>
-      <span><i style="background:transparent;border:1px dashed var(--neg)"></i>incumbent (Wise/Instarem)</span>
+      <span><i style="background:var(--neg)"></i>money gained</span>
+      <span><i style="background:var(--pos)"></i>money lost</span>
+      <span><i style="background:var(--rail)"></i>the blockchain</span>
+      <span><i style="background:var(--ink)"></i>total</span>
+      <span><i style="background:transparent;border:1px dashed var(--neg)"></i>cheapest ordinary provider</span>
     </div>
   </div>
 
   <div class="card">
-    <h2>The size ladder — worst at remittance sizes</h2>
-    <p class="cap">The flat 1-USDT network fee is a rounding error at scale but dominates a small transfer. <span id="ladderCap">S$200 is highlighted</span>.</p>
+    <h2>It is worst at the amounts people actually send</h2>
+    <p class="cap">The blockchain charges the same flat fee whatever you send, so it barely registers on a large transfer and dominates a small one. <span id="ladderCap">S$200 is highlighted</span>.</p>
     <div style="overflow-x:auto"><table id="ladder"></table></div>
   </div>
 
   <div class="card">
     <h2>History <span id="hist-size" style="color:var(--faint);font-weight:400"></span></h2>
-    <p class="cap">All-in cost over time — the moat is this record. Taker, maker, and the incumbent, hourly since collection began. History cannot be back-filled.</p>
+    <p class="cap">The total cost over time, hourly since collection began: buying at the price on offer, waiting for your own price, and the cheapest ordinary provider. History cannot be back-filled.</p>
     <svg class="wf" id="hist" viewBox="0 0 640 220" preserveAspectRatio="xMidYMid meet"></svg>
     <div class="legend-row">
-      <span><i style="background:var(--pos)"></i>taker</span>
-      <span><i style="background:var(--sub)"></i>maker</span>
-      <span><i style="background:var(--neg)"></i>incumbent</span>
+      <span><i style="background:var(--pos)"></i>buying at the price on offer</span>
+      <span><i style="background:var(--sub)"></i>waiting for your own price</span>
+      <span><i style="background:var(--neg)"></i>cheapest ordinary provider</span>
     </div>
   </div>
 
@@ -133,9 +133,30 @@
 <script>
 "use strict";
 const SIZES=[200,1000,5000,25000,50000];
-const fmtBps=b=>(b>=0?"+":"−")+Math.abs(b).toFixed(b>=100?0:1)+" bps";
+// This page speaks in money and percent. Basis points are a desk unit and they
+// live in methodology.html. Precision follows the number so a cost of 0.004%
+// does not print as 0.00%, which would read as "not measured".
+const pct=(b,signed)=>{
+  if(b===null||b===undefined||!isFinite(b)) return "—";
+  const p=b/100, a=Math.abs(p), dp=a>=10?1:a>=0.1?2:3, body=a.toFixed(dp)+"%";
+  return signed ? (p>=0?"+":"−")+body : (p<0?"−":"")+body;
+};
 let srcCcy="SGD";
-const money=n=>(srcCcy==="SGD"?"S$":srcCcy+" ")+(+n).toLocaleString();
+const sym=()=>(srcCcy==="SGD"?"S$":srcCcy==="USD"?"US$":srcCcy+" ");
+const money=n=>sym()+(+n).toLocaleString();
+// What a cost quoted as a share of the amount actually comes to, in money,
+// rounded to the cent. Differences are taken between ROUNDED values -- see
+// cashDiff -- so that the numbers on the page add up to each other. Computing
+// the difference from the unrounded shares is more precise by a fraction of a
+// cent and reads as an arithmetic error: "S$27.48 against S$13.60, that is
+// S$13.89 more" is the kind of line that costs a page its credibility.
+const cents=(n,b)=>(n===null||b===null||!isFinite(n)||!isFinite(b))?null:Math.round(n*b/1e4*100)/100;
+const fmtCents=v=>v===null?"—":(v<0?"−":"")+sym()+Math.abs(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const cash=(n,b)=>fmtCents(cents(n,b));
+const cashDiff=(n,a,b)=>{
+  const x=cents(n,a), y=cents(n,b);
+  return (x===null||y===null)?"—":fmtCents(Math.round((x-y)*100)/100);
+};
 
 function parseCSV(text){
   const rows=[]; let i=0,field="",row=[],q=false,t=text.trim();
@@ -221,11 +242,11 @@ function selectCorridor(key){
   const r5=bySize[size];
   const d=new Date(newest.replace(" ","T")), ago=Math.round((Date.now()-d)/6e4);
   const hours=new Set(rows.map(r=>r.ts.slice(0,13))).size;
-  document.getElementById("brandCorr").textContent="· "+key.replace("->"," → ")+" corridor";
-  document.title="margin.wiki — "+key.replace("->","→")+" corridor, decomposed";
+  document.getElementById("brandCorr").textContent="· "+place(srcCcy)+" → "+place(dstOf(r5));
+  document.title="margin.wiki — what it costs to send money to "+place(dstOf(r5));
   document.getElementById("stamp").innerHTML=
     `<b>updated</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?ago+" min ago":Math.round(ago/60)+" h ago"} · `+
-    `${r5.onramp_venue} → ${r5.offramp_venue} · fees verified ${(r5.fees_verified||"").replace(/\|/g," · ").replace(/[a-z]+:/g,"")||"—"}`+
+    `bought on ${r5.onramp_venue}, sold on ${r5.offramp_venue} · fees verified ${(r5.fees_verified||"").replace(/\|/g," · ").replace(/[a-z]+:/g,"")||"—"}`+
     // The dates are already printed above from fees_verified. The watcher stamp
     // only earns its place when it DISAGREES -- i.e. a check has gone red.
     ((feeStampText=feeStamp(feeChecks,r5.fees_verified)).startsWith("fees UNVERIFIED")
@@ -234,16 +255,16 @@ function selectCorridor(key){
     // than letting a two-point chart imply one.
     (hours<3?` · <b>${hours} capture${hours===1?"":"s"} so far</b> — every point collected is shown, nothing filled in`:"");
   document.getElementById("subLead").textContent=
-    "Every basis point of a transfer from "+place(srcCcy)+" to "+place(dstOf(r5))+" over USDT, sampled hourly.";
+    "What it costs to send money from "+place(srcCcy)+" to "+place(dstOf(r5))+" through crypto, measured every hour.";
   document.getElementById("ladderCap").textContent=money(SIZES[0])+" is highlighted";
   renderCorridors(); renderSizes(); render();
   const dst=(r5.dst||"").trim();
   document.getElementById("foot").innerHTML=
-    `On-ramp: ${r5.onramp_venue} (${srcCcy}→USDT). Off-ramp: ${r5.offramp_venue} (USDT→${dst}). `+
-    `Incumbent baseline: Wise comparison API — advertised retail prices, not confirmed fills, and they can carry promotional pricing (first-transfer or new-customer offers) recorded exactly as quoted. The baseline is therefore the best advertised price at that instant, not necessarily the best recurring one; a promo can price above mid-market. `+
-    `USD mids: open.er-api.com. Maker assumes a fill at top-of-book. `+
-    `Enterprise payout pricing is invisible by nature and never estimated. `+
-    `<a href="./methodology.html">Methodology &amp; data honesty →</a> · <a href="./index.html">the basis board →</a>`;
+    `The coin is bought on ${r5.onramp_venue} in ${srcCcy} and sold on ${r5.offramp_venue} for ${dst}. `+
+    `The comparison is the Wise comparison API — advertised retail prices, not confirmed fills, and they can carry promotional pricing (first-transfer or new-customer offers) recorded exactly as quoted. The comparison is therefore the best advertised price at that instant, not necessarily the best recurring one. `+
+    `Official exchange rates: open.er-api.com. "Waiting for your own price" assumes the order fills at the top of the book. `+
+    `Pricing that large institutions get privately is invisible by nature and never estimated. `+
+    `<a href="./methodology.html">Methodology &amp; data honesty →</a> · <a href="./index.html">the country board →</a>`;
 }
 
 function renderCorridors(){
@@ -275,33 +296,43 @@ function render(){
   const r=bySize[size], t=+r.cost_bps_taker, m=+r.cost_bps_maker, base=+r.baseline_cost_bps;
   const cw=t<base, mw=m<base;
   document.getElementById("nums").innerHTML=`
-    ${numCard("Taker","what retail pays",t,cw)}
-    ${numCard("Maker","posts &amp; waits",m,mw)}
-    ${numCard(r.baseline_provider||"Incumbent","best fiat rail, same second",base,null)}`;
+    ${numCard("Crypto, buying now","the price on offer",t,cw,size)}
+    ${numCard("Crypto, waiting","if you wait for your own price",m,mw,size)}
+    ${numCard(r.baseline_provider||"Cheapest provider","the cheapest ordinary provider, same second",base,null,size)}`;
   const rail=netBps(r), doors=t-rail;
+  // The worked example, in the currency being sent, at the amount selected.
+  const dstPlace=place(dstOf(r));
   document.getElementById("verdict").innerHTML=
-    `<b>${cw?"The stablecoin route wins.":"The incumbent wins at this size."}</b> `+
-    `At ${money(size)}, taker is ${fmtBps(t)} vs ${r.baseline_provider} at ${fmtBps(base)} — `+
-    `${cw?"crypto is cheaper":"crypto loses by "+Math.abs(t-base).toFixed(0)+" bps"}. Maker (${fmtBps(m)}) ${mw?"beats it":"still doesn't close the gap"}.`+
-    `<div class="split"><span>rail (network fee): <b>${fmtBps(rail)}</b></span><span>doors (execution + peg): <b>${fmtBps(doors)}</b></span></div>`;
+    `<b>${cw?"Crypto is cheaper at this amount.":"The ordinary provider is cheaper at this amount."}</b> `+
+    `Send ${money(size)} to ${dstPlace} now: ${r.baseline_provider} costs ${cash(size,base)} all in, `+
+    `the crypto route costs ${cash(size,t)}. `+
+    `${cw?"You save "+cashDiff(size,base,t)+"."
+         :"That is "+cashDiff(size,t,base)+" more."} `+
+    `Waiting for your own price instead costs ${cash(size,m)}, which ${mw?"does close the gap":"still does not close the gap"}.`+
+    `<div class="split"><span>the blockchain: <b>${cash(size,rail)}</b></span><span>what the two exchanges charge: <b>${cash(size,doors)}</b></span></div>`;
   document.getElementById("wf-size").textContent="· "+money(size);
   document.getElementById("hist-size").textContent="· "+money(size);
   drawWaterfall(r); drawLadder(); drawHistory();
 }
 
-function numCard(label,sub,val,win){
-  const pill = win===null?"":`<span class="pill ${win?"win":"lose"}">${win?"wins":"loses"}</span>`;
+function numCard(label,sub,val,win,n){
+  const pill = win===null?"":`<span class="pill ${win?"win":"lose"}">${win?"cheaper":"dearer"}</span>`;
+  // Money is the headline; the percentage is the footnote. Nobody sends 0.55%.
   return `<div class="num"><div class="n-l">${label} ${pill}</div>
-    <div class="n-v">${fmtBps(val)}</div><div class="n-s">${sub}</div></div>`;
+    <div class="n-v">${cash(n,val)}</div><div class="n-s">${pct(val)} of what you send · ${sub}</div></div>`;
 }
 
 function drawWaterfall(r){
+  // Buy the coin, move it, sell it. The five separate line items -- the price
+  // against the official rate and the exchange's cut, at each end -- are true
+  // but are an accountant's breakdown; they fold into the step they belong to.
+  const n=+r.notional_src;
+  const buy=(+r.onramp_basis_bps)+(+r.fee_on_taker_bps);
+  const sell=(+r.offramp_basis_bps)+(+r.fee_off_taker_bps);
   const comps=[
-    {l:"On-ramp basis", v:+r.onramp_basis_bps, k:"neg"},
-    {l:"On-ramp fee (taker)", v:+r.fee_on_taker_bps, k:"fee"},
-    {l:"Network fee — the rail", v:netBps(r), k:"rail"},
-    {l:"Off-ramp basis", v:+r.offramp_basis_bps, k:"neg"},
-    {l:"Off-ramp fee (taker)", v:+r.fee_off_taker_bps, k:"fee"},
+    {l:"Buying the coin in "+place(srcCcy), v:buy, k:"neg"},
+    {l:"Moving it", v:netBps(r), k:"rail"},
+    {l:"Selling it in "+place(dstOf(r)), v:sell, k:"neg"},
   ];
   const total=+r.cost_bps_taker, base=+r.baseline_cost_bps;
   let run=0; const cum=[0]; comps.forEach(c=>{run+=c.v; cum.push(run);});
@@ -315,30 +346,31 @@ function drawWaterfall(r){
   let s=`<line x1="${X(0)}" y1="${top}" x2="${X(0)}" y2="${top+rows*rowH}" stroke="var(--line)" stroke-width="1"/>`;
   // baseline (incumbent) marker
   s+=`<line x1="${X(base).toFixed(1)}" y1="${top-2}" x2="${X(base).toFixed(1)}" y2="${top+rows*rowH+4}" stroke="var(--neg)" stroke-width="1.3" stroke-dasharray="3 3"/>`+
-     `<text x="${X(base).toFixed(1)}" y="${top+rows*rowH+18}" fill="var(--neg)" font-size="10.5" font-family="var(--mono)" text-anchor="middle">${r.baseline_provider} ${fmtBps(base)}</text>`;
+     `<text x="${X(base).toFixed(1)}" y="${top+rows*rowH+18}" fill="var(--neg)" font-size="10.5" font-family="var(--mono)" text-anchor="middle">${r.baseline_provider} ${cash(n,base)}</text>`;
   comps.forEach((c,i)=>{
     const y=top+i*rowH, a=X(cum[i]), b=X(cum[i+1]), x0=Math.min(a,b), w=Math.max(2,Math.abs(b-a));
     const fill = c.k==="neg" ? (c.v<0?col.neg:col.fee) : col[c.k];
     s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--ink)" font-size="12" font-family="var(--sans)">${c.l}</text>`+
        `<rect x="${x0.toFixed(1)}" y="${y+6}" width="${w.toFixed(1)}" height="${rowH-12}" rx="2.5" fill="${fill}"/>`+
-       `<text x="${(b+(b>=a?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--sub)" font-size="11" font-family="var(--mono)" text-anchor="${b>=a?"start":"end"}">${fmtBps(c.v)}</text>`;
+       `<text x="${(b+(b>=a?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--sub)" font-size="11" font-family="var(--mono)" text-anchor="${b>=a?"start":"end"}">${cash(n,c.v)}</text>`;
   });
   const y=top+comps.length*rowH, xt=X(total);
-  s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--ink)" font-size="12.5" font-family="var(--sans)" font-weight="700">All-in (taker)</text>`+
+  s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--ink)" font-size="12.5" font-family="var(--sans)" font-weight="700">The whole transfer</text>`+
      `<rect x="${Math.min(X(0),xt).toFixed(1)}" y="${y+5}" width="${Math.max(2,Math.abs(xt-X(0))).toFixed(1)}" height="${rowH-10}" rx="2.5" fill="var(--ink)"/>`+
-     `<text x="${(xt+(total>=0?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--ink)" font-size="12" font-family="var(--mono)" font-weight="700" text-anchor="${total>=0?"start":"end"}">${fmtBps(total)}</text>`;
+     `<text x="${(xt+(total>=0?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--ink)" font-size="12" font-family="var(--mono)" font-weight="700" text-anchor="${total>=0?"start":"end"}">${cash(n,total)}</text>`;
   svg.innerHTML=s;
 }
 
 function drawLadder(){
   const rows=SIZES.map(s=>bySize[s]).filter(Boolean);
-  let h=`<tr><th>Send</th><th>Taker</th><th>Maker</th><th>Incumbent</th><th>Winner</th></tr>`;
+  let h=`<tr><th>Send</th><th>Crypto, buying now</th><th>Crypto, waiting</th><th>Cheapest provider</th><th>Cheaper</th></tr>`;
   for(const r of rows){
     const s=+r.notional_src, t=+r.cost_bps_taker, m=+r.cost_bps_maker, b=+r.baseline_cost_bps, cw=t<b;
     h+=`<tr class="${s===size?"hl":""}${s===200?" hl":""}">
       <td>${money(s)}${s===200?' <span class="tag">worst</span>':""}</td>
-      <td>${fmtBps(t)}</td><td>${fmtBps(m)}</td>
-      <td>${r.baseline_provider}<br><span class="tag">${fmtBps(b)}</span></td>
+      <td>${cash(s,t)}<br><span class="tag">${pct(t)}</span></td>
+      <td>${cash(s,m)}<br><span class="tag">${pct(m)}</span></td>
+      <td>${r.baseline_provider}<br><span class="tag">${cash(s,b)}</span></td>
       <td class="winner ${cw?"c":"f"}">${cw?"crypto":r.baseline_provider}</td></tr>`;
   }
   document.getElementById("ladder").innerHTML=h;
@@ -353,9 +385,9 @@ function drawHistory(){
   let lo=Math.min(0,...vals), hi=Math.max(0,...vals); const pv=(hi-lo)*.1||5; lo-=pv; hi+=pv;
   const X=i=>padL+i*(W-padL-padR)/(rows.length-1), Y=v=>padT+(hi-v)/(hi-lo)*(H-padT-padB);
   let s=`<line x1="${padL}" y1="${Y(0).toFixed(1)}" x2="${W-padR}" y2="${Y(0).toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`+
-        `<text x="${padL-6}" y="${Y(0).toFixed(1)+4}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="var(--mono)">0</text>`+
-        `<text x="${padL-6}" y="${(Y(hi)+8).toFixed(1)}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="var(--mono)">${Math.round(hi)}</text>`+
-        `<text x="${padL-6}" y="${(Y(lo)+0).toFixed(1)}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="var(--mono)">${Math.round(lo)}</text>`;
+        `<text x="${padL-6}" y="${Y(0).toFixed(1)+4}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="var(--mono)">0%</text>`+
+        `<text x="${padL-6}" y="${(Y(hi)+8).toFixed(1)}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="var(--mono)">${pct(hi)}</text>`+
+        `<text x="${padL-6}" y="${(Y(lo)+0).toFixed(1)}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="var(--mono)">${pct(lo)}</text>`;
   for(const [k,c] of series){
     const pts=rows.map((r,i)=>`${X(i).toFixed(1)},${Y(+r[k]).toFixed(1)}`).join(" ");
     s+=`<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.7" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`;

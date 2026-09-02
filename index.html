@@ -481,11 +481,12 @@ textarea.input { min-height: 90px; resize: vertical; }
         <div>
           <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; white-space: nowrap;">{{ mk.venue }} · one country over time </div>
           <h2 style="font-size: 30px; margin: 0;">{{ mk.code }} <span class="text-muted" style="font-weight: 400; font-size: 18px;">{{ mk.country }}</span></h2>
+          <p class="text-muted" style="font-size: 13px; margin: 6px 0 0; max-width: 60ch;">{{ mk.sentence }}</p>
         </div>
         <div style="display: flex; align-items: baseline; gap: 28px;">
           <div>
             <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">the board</div>
-            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 28px; line-height: 1.1; color: {{ mk.color }};">{{ mk.bps }}</div>
+            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 28px; line-height: 1.1; color: {{ mk.color }};" title="{{ mk.sentence }}">{{ mk.bps }}</div>
           </div>
           <div style="display: flex; gap: 0; border: 1px solid var(--color-neutral-400);">
             <sc-for list="{{ ranges }}" as="r" hint-placeholder-count="4">
@@ -548,7 +549,7 @@ textarea.input { min-height: 90px; resize: vertical; }
           </div>
         </sc-for>
       </div>
-      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">Click any country on the board to see its history here. Hover the chart to read a point, click to pin it. Every point is a price that was actually captured.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">Click any country on the board to see its history here. Hover the chart to read a point, click to pin it.</p>
     </div>
 
     <div style="padding: 40px 24px 0;">
@@ -582,7 +583,7 @@ textarea.input { min-height: 90px; resize: vertical; }
           <div style="border-top: 2px solid var(--color-text);"></div>
         </div>
       </sc-for>
-      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 88ch;">Each bar is one country. It shows how far the local price of a digital dollar sits from the official exchange rate, right now. Above zero: people there pay more than the official rate to get dollars. {{ dislocatedNames }} so far above that they get their own scale. Below zero: the digital dollar trades cheaper than the official rate. The number beside each bar is always the real figure.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 88ch;">Each bar is one country. It shows how far the local price of a digital dollar sits from the official exchange rate, right now. Above zero: people there pay more than the official rate to get dollars. {{ dislocatedNames }} so far above that they get their own scale. Below zero: the digital dollar trades cheaper than the official rate.</p>
     </div>
 
     <div style="padding: 44px 24px 0;">
@@ -926,7 +927,7 @@ textarea.input { min-height: 90px; resize: vertical; }
           <div class="text-muted" style="font-size: 13px; line-height: 1.55;">{{ cx.emptyNote }}</div>
         </div>
       </sc-if>
-      <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding-bottom: 4px;">result by venue fee tier</div>
+      <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding-bottom: 4px;">result by fee tier</div>
           <sc-for list="{{ cx.tiers }}" as="tier" hint-placeholder-count="4">
             <div style="display: flex; align-items: baseline; gap: 10px; border-top: 1px solid var(--color-divider); padding: 9px 0;">
               <span style="width: 14px; height: 3px; display: block; background: {{ tier.color }}; flex: none;"></span>
@@ -969,12 +970,12 @@ textarea.input { min-height: 90px; resize: vertical; }
       <div style="padding-top: 20px;">
         <sc-for list="{{ waterfall }}" as="w" hint-placeholder-count="6">
           <div data-grid="bar-row" style="display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr) 92px; gap: 20px; align-items: center; border-top: 1px solid var(--color-divider); padding: 9px 0;">
-            <div style="font-size: 14px; font-weight: {{ w.weight }};">{{ w.label }}</div>
+            <div style="font-size: 14px; font-weight: {{ w.weight }};" title="{{ w.tip }}">{{ w.label }}</div>
             <div style="position: relative; height: 18px;">
               <div style="position: absolute; left: 8%; top: -9px; bottom: -9px; width: 1px; background: var(--color-neutral-400);"></div>
               <div style="position: absolute; top: 2px; height: 14px; background: {{ w.fill }}; left: {{ w.left }}; width: {{ w.width }};"></div>
             </div>
-            <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--color-text);">{{ w.v }}<span style="font-size: 10px; color: var(--data-700); vertical-align: super; margin-left: 2px;">{{ w.mark }}</span></div>
+            <div style="text-align: right;"><span style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--color-text);">{{ w.v }}</span><span class="text-muted" style="font-size: 11px; margin-left: 6px;">{{ w.pct }}</span></div>
           </div>
         </sc-for>
         <div style="border-top: 2px solid var(--color-text);"></div>
@@ -1034,7 +1035,7 @@ textarea.input { min-height: 90px; resize: vertical; }
       </div>
       <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Bar scale</div>
-        <p style="font-size: 14px; margin: 0; max-width: 78ch;">The bars use a compressed scale so a country sitting 0.06% from the official rate stays visible next to one sitting 16% away. The number beside each bar is always the real figure.</p>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">The bars use a compressed scale so a country sitting 0.06% from the official rate stays visible next to one sitting 16% away.</p>
       </div>
       <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Backfill</div>
@@ -1197,10 +1198,15 @@ class Component extends DCLogic {
       { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  // A cost quoted as a fraction of the amount sent, turned back into money.
+  // A cost quoted as a fraction of the amount sent, turned back into money,
+  // rounded to the cent. Rounding HERE rather than at display time is what
+  // makes the numbers on the page add up to each other: a difference taken
+  // between the unrounded shares is more precise by a fraction of a cent and
+  // reads as an arithmetic error -- "S$27.48 against S$13.60, that is S$13.89
+  // more" is the kind of line that costs a page its credibility.
   costOf(cur, notional, bps) {
     if (notional === null || bps === null || !isFinite(notional) || !isFinite(bps)) return null;
-    return notional * bps / 1e4;
+    return Math.round(notional * bps / 1e4 * 100) / 100;
   }
 
   // Countries, not currency codes, wherever a heading or a sentence can carry
@@ -1208,6 +1214,13 @@ class Component extends DCLogic {
   countryOf(code) {
     if (code === "USD") return "the United States";
     return (META[code] || {}).country || code;
+  }
+
+  // "a dollar in Philippines" is the kind of sentence that tells a reader a
+  // machine wrote it. A handful of country names take the article.
+  countryIn(code) {
+    const name = this.countryOf(code);
+    return /^(Philippines|United States|Netherlands)$/.test(name) ? "the " + name : name;
   }
 
   fmtSize(cur, n) {
@@ -1371,6 +1384,23 @@ class Component extends DCLogic {
     return n % 2 ? a[(n - 1) / 2] : (a[n / 2 - 1] + a[n / 2]) / 2;
   }
 
+  // "+3.92%" is a trader's notation. A reader wants to know a dollar costs more
+  // there than it should, and by how much. Unsigned, with the direction in a
+  // word: "3.92% more" / "0.18% less" / "the official rate" when it is flat.
+  gapWords(bps) {
+    if (bps === null || bps === undefined || !isFinite(bps)) return "—";
+    const body = this.fmtPct(bps, false).replace("−", "");
+    if (Math.abs(bps) < 0.5) return body + (bps >= 0 ? " more" : " less");
+    return body + (bps > 0 ? " more" : " less");
+  }
+
+  // The whole finding for one country, as a sentence someone could say aloud.
+  gapSentence(m) {
+    const dir = m.bps >= 0 ? "more" : "less";
+    return "A dollar costs " + this.fmtPct(m.bps, false).replace("−", "") +
+           " " + dir + " than the official rate in " + this.countryIn(m.code) + ".";
+  }
+
   // Every exchange behind a country's number, as plain text for the hover.
   venueTip(m) {
     const lines = m.venues.map(v =>
@@ -1445,7 +1475,7 @@ class Component extends DCLogic {
       hl: { wide: "—", wideCountry: "—", narrow: "—", narrowCountry: "—" },
       heroStats: [], bands: [], coverage: [], legendCells: [],
       cov: { on: false, code: "", v: "", t: "", hint: "" },
-      mk: { code: "—", country: "", venue: "", bps: "—", color: INK, line: "", area: "", zeroY: "120",
+      mk: { code: "—", country: "", venue: "", bps: "—", sentence: "", color: INK, line: "", area: "", zeroY: "120",
             xLabels: [], yLabels: [], stats: [], dots: [], sparse: false, note: "",
             tipOn: false, tipX: "0%", tipY: "0%", tipShift: "none", tipV: "", tipT: "",
             onMove: () => {}, onLeave: () => {}, onPin: () => {} },
@@ -1497,8 +1527,8 @@ class Component extends DCLogic {
       return { max, rows: list.map(m => {
         const w = this.scale(m.bps, max);
         return { code: m.code, country: m.country, venue: m.venue,
-          tip: this.venueTip(m),
-          bps: this.fmtPct(m.bps), mark: "",
+          tip: this.gapSentence(m) + "\n\n" + this.venueTip(m),
+          bps: this.gapWords(m.bps), mark: "",
           fill: m.bps >= 0 ? "var(--data-400)" : "#dedede",
           left: (m.bps >= 0 ? 50 : 50 - w) + "%", width: Math.max(w, 0.4) + "%",
           go: () => this.setState({ market: m.code, hover: null, pinned: null }),
@@ -1655,13 +1685,14 @@ class Component extends DCLogic {
           // cost me".
           const tm = this.costOf(cur, size, t), rm = this.costOf(cur, size, rl);
           const verdict = (tm === null || rm === null) ? "" :
-            "Send " + this.fmtSize(cur, size) + " to " + this.countryOf(key.slice(-3)) +
+            "Send " + this.fmtSize(cur, size) + " to " + this.countryIn(key.slice(-3)) +
             " right now: " + (hl.baseline_provider || "the cheapest provider") + " costs " +
             this.fmtMoney(cur, rm) + " all in, the crypto route costs " +
             this.fmtMoney(cur, tm) + ". " +
             (tm > rm ? (hl.baseline_provider || "The provider") + " is cheaper by " +
-                       this.fmtMoney(cur, tm - rm) + "."
-                     : "The crypto route is cheaper by " + this.fmtMoney(cur, rm - tm) + ".") + " ";
+                       this.fmtMoney(cur, Math.round((tm - rm) * 100) / 100) + "."
+                     : "The crypto route is cheaper by " +
+                       this.fmtMoney(cur, Math.round((rm - tm) * 100) / 100) + ".") + " ";
           return verdict + "Bought on " + ((rows[0] || {}).onramp_venue || "—") + ", sold on " +
                  ((rows[0] || {}).offramp_venue || "—") +
                  ". Both provider quotes were taken at the same moment for the same amount.";
@@ -1721,7 +1752,7 @@ class Component extends DCLogic {
         tipT: ccIdx === null ? "" : this.fmtStamp(series[ccIdx].t, true),
         onMove: ccH.onMove, onLeave: ccH.onLeave, onPin: ccH.onPin,
         keys: [{ label: "crypto route, all-in", color: "var(--data-600)" },
-               { label: "cheapest normal provider", color: "var(--color-neutral-500)" }],
+               { label: "cheapest ordinary provider", color: "var(--color-neutral-500)" }],
         tabs: ladders.map(l => ({ label: l.name, go: () => this.setState({ corridor: l.key, hover: null, pinned: null }),
           bg: cName === l.key ? "var(--color-text)" : "transparent",
           color: cName === l.key ? "var(--color-bg)" : MUTED })),
@@ -1737,20 +1768,41 @@ class Component extends DCLogic {
       const netBps = (netUsdt !== null && vwap && size) ? netUsdt / (size / vwap) * 1e4 : null;
       const allIn = num(cRowRaw.cost_bps_taker), rail = num(cRowRaw.baseline_cost_bps);
       const when = this.fmtStamp(ts(cRowRaw.ts), false);
-      const from = this.countryOf(cRowRaw.src || ""), to = this.countryOf(cRowRaw.dst || "");
+      const from = this.countryIn(cRowRaw.src || ""), to = this.countryIn(cRowRaw.dst || "");
+      // Three things happen to your money, in order: you buy the coin, you
+      // move it, you sell it. That is the shape a reader can hold. The five
+      // separate line items underneath -- price against the official rate and
+      // the exchange's cut, at each end -- are true but are an accountant's
+      // breakdown, so they fold into the step they belong to and the detail
+      // goes in the hover.
+      const sum = xs => xs.every(x => x === null) ? null
+                      : xs.reduce((a, x) => a + (x || 0), 0);
+      const buy = sum([onB, onF]), sell = sum([offB, offF]);
+      const cash = v => this.fmtMoney(cLad.cur, this.costOf(cLad.cur, size, v));
       const items = [
-        { label: "Buying the digital dollar in " + from + " — what it costs above the official rate", v: onB },
-        { label: "What the " + from + " exchange charges" + (onF === null ? "" : " — " + (onF / 100).toFixed(2) + "% of the amount"), v: onF },
-        { label: "Moving it across the blockchain" + (netUsdt === null ? "" : " — a flat " + netUsdt + " dollars, whatever you send"), v: netBps },
-        { label: "Selling it in " + to + " — what you lose against the official rate", v: offB },
-        { label: "What the " + to + " exchange charges" + (offF === null ? "" : " — " + (offF / 100).toFixed(2) + "% of the amount"), v: offF },
-        { label: "The crypto route, all in — " + when, v: allIn, total: true },
-        { label: (cRowRaw.baseline_provider || "the cheapest provider") + ", same instant — " + when, v: rail, total: true },
+        { label: "Buying the coin in " + from, v: buy,
+          detail: "The price above the official rate, plus what the " + from +
+                  " exchange charges" +
+                  (onF === null ? "" : " (" + (onF / 100).toFixed(2) + "%)") + "." },
+        { label: "Moving it", v: netBps,
+          detail: netUsdt === null ? "The blockchain fee."
+                : "A flat " + netUsdt + " dollars on the blockchain, whatever you send." },
+        { label: "Selling it in " + to, v: sell,
+          detail: "What you lose against the official rate, plus what the " + to +
+                  " exchange charges" +
+                  (offF === null ? "" : " (" + (offF / 100).toFixed(2) + "%)") + "." },
+        { label: "The crypto route, all in — " + when, v: allIn, total: true,
+          detail: "The three steps above, added up." },
+        { label: (cRowRaw.baseline_provider || "the cheapest provider") + ", same instant — " + when,
+          v: rail, total: true,
+          detail: "The cheapest ordinary provider quoting the same amount in the same second." },
       ].filter(w => w.v !== null);
       const wfMax = items.length ? Math.max.apply(null, items.map(w => Math.abs(w.v))) : 1;
       waterfall = items.map(w => {
         const zero = 8, span = 92 - zero, f = (Math.abs(w.v) / wfMax) * span;
-        return { label: w.label, v: this.fmtPct(w.v), mark: "", weight: w.total ? 800 : 400,
+        // Money is the value; the percentage is the footnote.
+        return { label: w.label, v: cash(w.v), pct: this.fmtPct(w.v, false),
+          tip: w.detail, mark: "", weight: w.total ? 800 : 400,
           fill: w.v >= 0 ? (w.total ? "var(--data-600)" : "var(--data-400)") : "#dedede",
           left: (w.v >= 0 ? zero : zero - Math.min(f, zero)) + "%", width: Math.max(f, 0.4) + "%" };
       });
@@ -1840,11 +1892,13 @@ class Component extends DCLogic {
       health: "collector ok · " + okCount + "/" + latestRun.length + " sources",
       lastTick: this.fmtStamp(lastT, true),
       scaleNote: banded ? "two bands, each on its own axis" : "single axis",
-      hl: { wide: this.fmtPct(wide.bps), wideCountry: wide.country,
-            narrow: this.fmtPct(narrow.bps), narrowCountry: narrow.country },
+      hl: { wide: this.gapWords(wide.bps), wideCountry: wide.country,
+            narrow: this.gapWords(narrow.bps), narrowCountry: narrow.country },
       heroStats: [
-        { k: "Biggest gap right now", v: this.fmtPct(wide.bps), sub: wide.country, mark: "" },
-        { k: "Smallest gap right now", v: this.fmtPct(narrow.bps), sub: narrow.country, mark: "" },
+        { k: "Furthest from the official rate", v: this.gapWords(wide.bps),
+          sub: "a dollar in " + this.countryIn(wide.code), mark: "" },
+        { k: "Closest to the official rate", v: this.gapWords(narrow.bps),
+          sub: "a dollar in " + this.countryIn(narrow.code), mark: "" },
       ].concat(cRowRaw ? [
         // Money first. A percentage of an amount the reader has not multiplied
         // out is not an answer to "what would this cost me".
@@ -1857,10 +1911,11 @@ class Component extends DCLogic {
       ] : []),
       bands, coverage, cross,
       cov: { on: !!covH, code: covH ? covH.code : "", v: covH ? covH.v : "", t: covH ? covH.t : "",
-             hint: covH ? "each cell is one hour" : "one cell per hour · filled: captured · grey: pull failed · blank: hour missed — misses are shown, never hidden" },
+             hint: covH ? "each cell is one hour" : "one cell per hour · filled: captured · grey: pull failed · blank: hour missed" },
       legendCells: [200, 300, 400, 500, 600].map(s => ({ bg: "var(--data-" + s + ")" })),
       mk: {
-        code: sel.code, country: sel.country, venue: sel.venue, bps: this.fmtPct(sel.bps), color: INK,
+        code: sel.code, country: sel.country, venue: sel.venue,
+        bps: this.gapWords(sel.bps), sentence: this.gapSentence(sel), color: INK,
         line: mkSparse ? "" : p.line,
         area: mkSparse ? "" : p.line + " L 1000 " + zeroY.toFixed(1) + " L 0 " + zeroY.toFixed(1) + " Z",
         dots: mkSparse ? p.dots : [], sparse: mkSparse,
@@ -1873,9 +1928,9 @@ class Component extends DCLogic {
         tipT: mkIdx === null ? "" : this.fmtStamp(pts[mkIdx].t, true),
         onMove: mkH.onMove, onLeave: mkH.onLeave, onPin: mkH.onPin,
         stats: [
-          { k: "average gap", v: this.fmtPct(mean) },
-          { k: "biggest gap in window", v: this.fmtPct(peak) },
-          { k: "σ", v: sigma === null ? "—" : sigma.toFixed(2) },
+          { k: "average gap", v: this.gapWords(mean) },
+          { k: "biggest gap in window", v: this.gapWords(peak) },
+          { k: "how much it moves", v: sigma === null ? "—" : this.fmtPct(sigma, false) },
           { k: "samples", v: vals.length + " · " + rangeDef.key },
         ],
       },
@@ -1897,7 +1952,8 @@ class Component extends DCLogic {
           { k: "cheapest ordinary provider, same instant", v: this.fmtMoney(cur, rm),
             sub: this.fmtPct(rb, false) + " · " + (cRowRaw.baseline_provider || "—"), color: INK },
           { k: "what crypto costs you extra",
-            v: (tm === null || rm === null) ? "—" : this.fmtMoney(cur, tm - rm),
+            v: (tm === null || rm === null) ? "—"
+               : this.fmtMoney(cur, Math.round((tm - rm) * 100) / 100),
             sub: this.fmtPct((tb || 0) - (rb || 0)) + " · " + (feeStamp || "fee check unavailable"),
             color: INK },
         ];
@@ -1909,7 +1965,8 @@ class Component extends DCLogic {
         // being presented as data. The rest is live.
         { k: "claimed cost with the cheaper fee tier, first version", v: "not wired °", strike: "none" },
         { k: "actual cost with the cheaper fee tier, " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
-          v: this.fmtPct(num(cRowRaw.cost_bps_maker), false), strike: "none" },
+          v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src),
+                                                 num(cRowRaw.cost_bps_maker))), strike: "none" },
         { k: "verdict", v: (num(cRowRaw.cost_bps_maker) !== null && num(cRowRaw.baseline_cost_bps) !== null &&
             num(cRowRaw.cost_bps_maker) < num(cRowRaw.baseline_cost_bps))
             ? "the crypto route is cheaper" : "the ordinary provider is cheaper", strike: "none" },
@@ -1948,11 +2005,13 @@ class Component extends DCLogic {
         ? "The full cost of one real transfer, measured every hour. The crypto route: buy " +
           "a digital dollar in " + (CITY[cLad.cur] || cLad.cur) + ", send it, sell it in " +
           (CITY[(cRowRaw.dst || "").trim()] || (cRowRaw.dst || "")) +
-          ", with every fee and the real market price included. Next to it: the cheapest normal provider quoting the same amount at the same moment."
-        : "The full cost of one real transfer, measured every hour, against the cheapest normal provider quoting the same amount at the same moment.",
+          ", with every fee and the real market price included. Next to it: the cheapest ordinary provider quoting the same amount at the same moment."
+        : "The full cost of one real transfer, measured every hour, against the cheapest ordinary provider quoting the same amount at the same moment.",
       waterfallNote: cRowRaw
-        ? "Each bar is one cost in the transfer, as a share of the amount sent. Read top to bottom, they add up to the total. Taken from the " +
-          this.fmtStamp(ts(cRowRaw.ts), true) + " sample at " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)) + "."
+        ? "Three things happen to your money: you buy the coin, you move it, you sell it. "
+          + "Each line is what that step costs on " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src))
+          + ", and the three add up to the total. Hover a line for what is inside it. "
+          + "Taken from the " + this.fmtStamp(ts(cRowRaw.ts), true) + " sample."
         : "",
       waterfallStamp: cRowRaw ? "sampled " + this.fmtStamp(ts(cRowRaw.ts), true) : "",
       stackNote: (stackKeys.length === 2)
@@ -1983,7 +2042,7 @@ class Component extends DCLogic {
       ],
       provenance: [
         { mark: "m", k: "Measured", v: "Live order books walked at the real amounts, official exchange rates, and every ordinary provider's quote. Timestamped and kept raw, one row per hour per route per amount." },
-        { mark: "a", k: "Assumed", v: "Venue fee tiers taken from published schedules and re-verified by hand. " +
+        { mark: "a", k: "Assumed", v: "Fee tiers taken from each exchange’s published schedule and re-verified by hand. " +
             ladders.map(l => l.name + " " + l.verified).join(", ") + ". " + (feeStamp || "") },
         { mark: "n", k: "Not visible", v: "Enterprise pricing (Nium, Thunes, Circle partners) and OTC execution. Stated as invisible, never estimated." },
       ],
@@ -1994,11 +2053,11 @@ class Component extends DCLogic {
         { k: "incomplete sample", v: "scheduler red" },
       ],
       methodNotes: [
-        { k: "Bar scale", v: "The board is split into two bands, each with its own axis: countries more than 2% from the official rate, and countries under it. The extremes differ from the tightest markets by three orders of magnitude, so a single shared axis renders most of them as one stub. Bars are comparable within a band, never across, and the number beside each bar is always the real figure." },
+        { k: "Bar scale", v: "The board is split into two bands, each with its own axis: countries more than 2% from the official rate, and countries under it. The extremes differ from the tightest markets by three orders of magnitude, so a single shared axis renders most of them as one stub. Bars are comparable within a band, never across." },
         { k: "What the gap means", v: "How far the price of a digital dollar on a local exchange sits from the official exchange rate captured in the same second. A plus means people there pay more than the official rate to get a dollar." },
         { k: "What a transfer costs", v: "Everything it takes to move money from one bank account to another, as a share of the amount sent: what the digital dollar costs above the official rate at each end, what each exchange charges, and the blockchain fee. Compared against the cheapest ordinary provider quoting the same amount at the same second." },
         { k: "Backfill", v: "History before August 2026 is daily, not hourly. It appears in charts as history and never as hourly coverage." },
-        { k: "Every figure is computed", v: "Nothing on this page is typed in. Each number is read from data/*.csv at render time and carries the timestamp of the row it came from." },
+        { k: "Where the figures come from", v: "Each number is read from data/*.csv at render time and carries the timestamp of the row it came from." },
       ],
     };
   }
