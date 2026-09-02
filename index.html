@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — basis &amp; corridor monitor</title>
-<meta name="description" content="Hourly USDT basis across ten markets and the all-in cost of two corridors, decomposed to basis points. Every figure computed from the collected CSVs."/>
+<title>margin.wiki — what a dollar really costs, country by country</title>
+<meta name="description" content="How far the price of a dollar in ten countries sits from the official rate, measured every hour on real exchanges, and what it actually costs to send money along two routes."/>
 <link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
@@ -386,6 +386,11 @@ textarea.input { min-height: 90px; resize: vertical; }
     grid-template-columns: 104px 84px repeat(4, minmax(74px, 1fr)) !important;
     overflow-x: auto; -webkit-overflow-scrolling: touch;
   }
+  /* The crosses table is four columns, not six -- it needs its own rule or the
+     spread rule above would force two phantom columns onto it. */
+  [data-grid="cross"] {
+    grid-template-columns: 96px repeat(3, minmax(74px, 1fr)) !important;
+  }
   [data-grid="spread"] {
     grid-template-columns: 96px repeat(5, minmax(74px, 1fr)) !important;
     overflow-x: auto; -webkit-overflow-scrolling: touch;
@@ -458,7 +463,7 @@ textarea.input { min-height: 90px; resize: vertical; }
     <div data-grid="hero" style="padding: 56px 24px 40px; border-bottom: 2px solid var(--color-text); display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; align-items: end;">
       <div>
         <h1 style="font-size: 44px; line-height: 1.06; margin: 0 0 14px; max-width: 24ch;">Does sending money with crypto actually cost less than a bank transfer? I measure it live, every hour, on real exchanges. {{ heroVerdict }}</h1>
-        <p class="text-muted" style="max-width: 62ch; font-size: 15px; margin: 0;">Prices are read straight from the exchanges people actually use, at the amounts people actually send, and compared against the official exchange rate captured in the same second. Nothing is smoothed or filled in.</p>
+        <p class="text-muted" style="max-width: 62ch; font-size: 15px; margin: 0;">Prices are read straight from the exchanges people actually use, at the amounts people actually send, and compared against the official exchange rate captured in the same second.</p>
       </div>
       <div data-grid="tiles" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; background: var(--color-divider);">
         <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="4">
@@ -476,11 +481,12 @@ textarea.input { min-height: 90px; resize: vertical; }
         <div>
           <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; white-space: nowrap;">{{ mk.venue }} · one country over time </div>
           <h2 style="font-size: 30px; margin: 0;">{{ mk.code }} <span class="text-muted" style="font-weight: 400; font-size: 18px;">{{ mk.country }}</span></h2>
+          <p class="text-muted" style="font-size: 13px; margin: 6px 0 0; max-width: 60ch;">{{ mk.sentence }}</p>
         </div>
         <div style="display: flex; align-items: baseline; gap: 28px;">
           <div>
             <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">the board</div>
-            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 28px; line-height: 1.1; color: {{ mk.color }};">{{ mk.bps }}<span class="text-muted" style="font-size: 13px; font-weight: 400; margin-left: 5px;">bps</span></div>
+            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 28px; line-height: 1.1; color: {{ mk.color }};" title="{{ mk.sentence }}">{{ mk.bps }}</div>
           </div>
           <div style="display: flex; gap: 0; border: 1px solid var(--color-neutral-400);">
             <sc-for list="{{ ranges }}" as="r" hint-placeholder-count="4">
@@ -516,7 +522,7 @@ textarea.input { min-height: 90px; resize: vertical; }
             </sc-if>
             <sc-if value="{{ mk.tipOn }}" hint-placeholder-val="{{ false }}">
               <div style="position: absolute; left: {{ mk.tipX }}; top: {{ mk.tipY }}; transform: {{ mk.tipShift }}; pointer-events: none; background: var(--color-bg); border: 1px solid var(--color-text); padding: 5px 9px; white-space: nowrap;">
-                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; line-height: 1.15;">{{ mk.tipV }}<span class="text-muted" style="font-weight: 400; font-size: 11px; margin-left: 4px;">bps</span></div>
+                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; line-height: 1.15;">{{ mk.tipV }}</div>
                 <div class="text-muted" style="font-size: 10px; letter-spacing: 0.04em;">{{ mk.tipT }}</div>
               </div>
             </sc-if>
@@ -543,7 +549,7 @@ textarea.input { min-height: 90px; resize: vertical; }
           </div>
         </sc-for>
       </div>
-      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">Click any country on the board to see its history here. Hover the chart to read a point, click to pin it. Every point is a price that was actually captured.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">Click any country on the board to see its history here. Hover the chart to read a point, click to pin it.</p>
     </div>
 
     <div style="padding: 40px 24px 0;">
@@ -577,7 +583,7 @@ textarea.input { min-height: 90px; resize: vertical; }
           <div style="border-top: 2px solid var(--color-text);"></div>
         </div>
       </sc-for>
-      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 88ch;">Each bar is one country. It shows how far the local price of a digital dollar (USDT) sits from the official exchange rate, right now. Above zero: people there pay more than the official rate to get dollars. {{ dislocatedNames }} so far above that they get their own scale. Below zero: the digital dollar trades cheaper than the official rate. The number beside each bar is always the real figure.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 88ch;">Each bar is one country. It shows how far the local price of a digital dollar sits from the official exchange rate, right now. Above zero: people there pay more than the official rate to get dollars. {{ dislocatedNames }} so far above that they get their own scale. Below zero: the digital dollar trades cheaper than the official rate.</p>
     </div>
 
     <div style="padding: 44px 24px 0;">
@@ -595,14 +601,14 @@ textarea.input { min-height: 90px; resize: vertical; }
 
       <sc-if value="{{ cross.has }}" hint-placeholder-val="{{ false }}">
         <div>
-          <div data-grid="spread" style="display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
+          <div data-grid="cross" style="display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
             <div>one {{ cross.baseCode }} buys</div>
             <div style="text-align: right;">official rate</div>
             <div style="text-align: right;">through crypto</div>
             <div style="text-align: right;">difference</div>
           </div>
           <sc-for list="{{ cross.rows }}" as="x" hint-placeholder-count="9">
-            <div data-grid="spread" style="display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 0 16px; border-top: 1px solid var(--color-divider); padding: 10px 0; align-items: baseline;" title="{{ x.verdict }}">
+            <div data-grid="cross" style="display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 0 16px; border-top: 1px solid var(--color-divider); padding: 10px 0; align-items: baseline;" title="{{ x.verdict }}">
               <div style="display: flex; flex-direction: column;">
                 <span style="font-family: var(--font-heading); font-weight: 800; font-size: 15px;">{{ x.code }}</span>
                 <span class="text-muted" style="font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase;">{{ x.country }}</span>
@@ -661,8 +667,8 @@ textarea.input { min-height: 90px; resize: vertical; }
     <div style="padding: 44px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
         <div>
-          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">what the transfer costs, hourly <span style="border: 1px solid var(--color-neutral-400); padding: 0 5px; font-size: 9px;">placeholder</span></div>
-          <h2 style="font-size: 26px; margin: 0;">The corridor — {{ cc.name }} <span class="text-muted" style="font-weight: 400; font-size: 17px;">{{ cc.size }}</span></h2>
+          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">what the transfer costs, hourly</div>
+          <h2 style="font-size: 26px; margin: 0;">Sending money — {{ cc.name }} <span class="text-muted" style="font-weight: 400; font-size: 17px;">{{ cc.size }}</span></h2>
         </div>
         <div style="display: flex; align-items: flex-end; gap: 24px;">
           <div style="display: flex; gap: 18px;">
@@ -703,8 +709,8 @@ textarea.input { min-height: 90px; resize: vertical; }
             </sc-if>
             <sc-if value="{{ cc.tipOn }}" hint-placeholder-val="{{ false }}">
               <div style="position: absolute; left: {{ cc.tipX }}; top: {{ cc.tipY }}; transform: {{ cc.tipShift }}; pointer-events: none; background: var(--color-bg); border: 1px solid var(--color-text); padding: 5px 9px; white-space: nowrap;">
-                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; line-height: 1.2;">USDT {{ cc.tipU }}</div>
-                <div style="font-size: 12px;">rail {{ cc.tipR }} · gap {{ cc.tipG }}</div>
+                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; line-height: 1.2;">crypto {{ cc.tipU }}</div>
+                <div style="font-size: 12px;">provider {{ cc.tipR }} · difference {{ cc.tipG }}</div>
                 <div class="text-muted" style="font-size: 10px;">{{ cc.tipT }}</div>
               </div>
             </sc-if>
@@ -726,7 +732,7 @@ textarea.input { min-height: 90px; resize: vertical; }
         </div>
       </div>
       <div style="display: flex; gap: 12px; margin-top: 18px;">
-        <button type="button" sc-camel-on-click="{{ goCorridor }}" style="appearance: none; cursor: pointer; background: var(--color-text); color: var(--color-bg); border: 1px solid var(--color-text); padding: 10px 16px; font-family: var(--font-heading); font-weight: 800; font-size: 13px; text-align: left;" style-hover="background: var(--color-neutral-800);">Corridor detail</button>
+        <button type="button" sc-camel-on-click="{{ goCorridor }}" style="appearance: none; cursor: pointer; background: var(--color-text); color: var(--color-bg); border: 1px solid var(--color-text); padding: 10px 16px; font-family: var(--font-heading); font-weight: 800; font-size: 13px; text-align: left;" style-hover="background: var(--color-neutral-800);">See one transfer in detail</button>
         <button type="button" sc-camel-on-click="{{ goMethod }}" style="appearance: none; cursor: pointer; background: transparent; color: var(--color-text); border: 1px solid var(--color-text); padding: 10px 16px; font-family: var(--font-heading); font-weight: 800; font-size: 13px; text-align: left;" style-hover="background: var(--color-neutral-200);">How it's measured</button>
       </div>
     </div>
@@ -852,8 +858,8 @@ textarea.input { min-height: 90px; resize: vertical; }
             </sc-if>
             <sc-if value="{{ cc.tipOn }}" hint-placeholder-val="{{ false }}">
               <div style="position: absolute; left: {{ cc.tipX }}; top: {{ cc.tipY }}; transform: {{ cc.tipShift }}; pointer-events: none; background: var(--color-bg); border: 1px solid var(--color-text); padding: 5px 9px; white-space: nowrap;">
-                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; line-height: 1.2;">USDT {{ cc.tipU }}</div>
-                <div style="font-size: 12px;">rail {{ cc.tipR }} · gap {{ cc.tipG }}</div>
+                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; line-height: 1.2;">crypto {{ cc.tipU }}</div>
+                <div style="font-size: 12px;">provider {{ cc.tipR }} · difference {{ cc.tipG }}</div>
                 <div class="text-muted" style="font-size: 10px;">{{ cc.tipT }}</div>
               </div>
             </sc-if>
@@ -877,10 +883,10 @@ textarea.input { min-height: 90px; resize: vertical; }
     <div style="padding: 40px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
         <div>
-          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">where the stablecoin route starts winning <span style="border: 1px solid var(--color-neutral-400); padding: 0 5px; font-size: 9px;">placeholder</span></div>
-          <h2 style="font-size: 26px; margin: 0;">Fee-tier crossover</h2>
+          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">where the crypto route starts winning</div>
+          <h2 style="font-size: 26px; margin: 0;">Where the cheaper fee tier stops mattering</h2>
         </div>
-        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">all-in bps by size sent</div>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">total cost, by amount sent</div>
       </div>
       <div data-grid="split" style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; align-items: start; padding-top: 6px;">
         <div>
@@ -921,7 +927,7 @@ textarea.input { min-height: 90px; resize: vertical; }
           <div class="text-muted" style="font-size: 13px; line-height: 1.55;">{{ cx.emptyNote }}</div>
         </div>
       </sc-if>
-      <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding-bottom: 4px;">result by venue fee tier</div>
+      <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding-bottom: 4px;">result by fee tier</div>
           <sc-for list="{{ cx.tiers }}" as="tier" hint-placeholder-count="4">
             <div style="display: flex; align-items: baseline; gap: 10px; border-top: 1px solid var(--color-divider); padding: 9px 0;">
               <span style="width: 14px; height: 3px; display: block; background: {{ tier.color }}; flex: none;"></span>
@@ -936,15 +942,15 @@ textarea.input { min-height: 90px; resize: vertical; }
           </div>
         </div>
       </div>
-      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 92ch;">Each line is the same route priced at a different published fee tier, against the cheapest fiat rail as the dashed line. Tier discounts are placeholders until the collector reads volume-tier fees from history.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 92ch;">Each line is the same route priced at a different published fee tier, against the cheapest ordinary provider as the dashed line. The discounted tiers are not drawn yet: the collector does not read volume-tier fees from history, so there is nothing measured to draw.</p>
     </div>
 
     <div style="padding: 40px 24px 0;">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
-        <h2 style="font-size: 26px; margin: 0;">Where the cost sits — SGD→PHP, S$5,000</h2>
+        <h2 style="font-size: 26px; margin: 0;">Where the cost goes — Singapore to the Philippines, S$5,000</h2>
         <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ waterfallStamp }}</div>
       </div>
-      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 84ch;">This decomposition is the 2026-08-10 verification sample, not the live row. The live ladder above puts the same route at 64.96 bps against Wise at 28.68, because both bases moved with the market since. The shape of the cost is what this chart is for.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 84ch;">This breakdown is the hand-verified sample from 2026-08-10, not the live row above, and the two differ because the market moved. The shape of the cost is what this chart is for.</p>
       <div style="padding-top: 18px;">
         <div style="display: flex; height: 46px; border: 1px solid var(--color-text);">
           <sc-for list="{{ stack }}" as="s" hint-placeholder-count="3">
@@ -964,12 +970,12 @@ textarea.input { min-height: 90px; resize: vertical; }
       <div style="padding-top: 20px;">
         <sc-for list="{{ waterfall }}" as="w" hint-placeholder-count="6">
           <div data-grid="bar-row" style="display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr) 92px; gap: 20px; align-items: center; border-top: 1px solid var(--color-divider); padding: 9px 0;">
-            <div style="font-size: 14px; font-weight: {{ w.weight }};">{{ w.label }}</div>
+            <div style="font-size: 14px; font-weight: {{ w.weight }};" title="{{ w.tip }}">{{ w.label }}</div>
             <div style="position: relative; height: 18px;">
               <div style="position: absolute; left: 8%; top: -9px; bottom: -9px; width: 1px; background: var(--color-neutral-400);"></div>
               <div style="position: absolute; top: 2px; height: 14px; background: {{ w.fill }}; left: {{ w.left }}; width: {{ w.width }};"></div>
             </div>
-            <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--color-text);">{{ w.v }}<span style="font-size: 10px; color: var(--data-700); vertical-align: super; margin-left: 2px;">{{ w.mark }}</span></div>
+            <div style="text-align: right;"><span style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--color-text);">{{ w.v }}</span><span class="text-muted" style="font-size: 11px; margin-left: 6px;">{{ w.pct }}</span></div>
           </div>
         </sc-for>
         <div style="border-top: 2px solid var(--color-text);"></div>
@@ -983,16 +989,16 @@ textarea.input { min-height: 90px; resize: vertical; }
         <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">cheapest first, crypto ranked among them</div>
       </div>
       <div data-grid="ladder" style="display: grid; grid-template-columns: 132px 108px repeat(4, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
-        <div>corridor</div>
+        <div>route</div>
         <div>size</div>
         <div>cheapest</div>
-        <div style="text-align: right;">bps</div>
+        <div style="text-align: right;">their fee</div>
         <div>most expensive</div>
-        <div style="text-align: right;">bps · n quoting</div>
+        <div style="text-align: right;">their fee · how many quoted</div>
       </div>
       <sc-for list="{{ spread }}" as="s" hint-placeholder-count="10">
         <div data-grid="ladder" style="display: grid; grid-template-columns: 132px 108px repeat(4, minmax(0, 1fr)); gap: 0 16px; border-top: 1px solid var(--color-divider); padding: 9px 0; align-items: baseline;">
-          <div class="text-muted" style="font-size: 12px;">{{ s.corridor }}</div>
+          <div class="text-muted" style="font-size: 12px;">{{ s.route }}</div>
           <div style="font-size: 13px; font-weight: 600;">{{ s.size }}</div>
           <div style="font-size: 13px;">{{ s.best }}</div>
           <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 14px;">{{ s.bestBps }}</div>
@@ -1014,22 +1020,22 @@ textarea.input { min-height: 90px; resize: vertical; }
       <p style="font-size: 14px; margin: 0 0 14px;">Measured. Every hour, the site pulls live prices from each exchange and each transfer provider, at real transfer sizes, and records the official exchange rate at the same moment. Everything is stored raw.</p>
       <p style="font-size: 14px; margin: 0 0 14px;">From published fee pages. Exchange fees can't be read from live prices, so they come from each exchange's own fee page, checked by hand. {{ takerProse }}. Each fee shows the date it was last checked, because fees change and an outdated fee makes every number after it wrong.</p>
       <p style="font-size: 14px; margin: 0 0 14px;">Not visible. Large institutions get private pricing from companies like Nium and Thunes. I can't see those prices, so they are not on this site. I don't estimate them.</p>
-      <p style="font-size: 14px; margin: 0;">If a price fails to come in, that failure is recorded and shows as a gap in the charts. Gaps are never filled in.</p>
+      <p style="font-size: 14px; margin: 0;">If a price fails to come in, that failure is recorded and shows as a gap in the charts. Nothing on this page is smoothed, estimated or filled in — a number that could not be measured is left blank and says so.</p>
     </div>
 
     <div style="padding: 0 24px;">
       <h2 style="font-size: 20px; margin: 0 0 4px;">Definitions</h2>
       <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
-        <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Basis</div>
-        <p style="font-size: 14px; margin: 0; max-width: 78ch;">The quote against the official USD mid carried in the same row, in basis points. Positive means local buyers pay above the official rate for a dollar.</p>
+        <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">The gap</div>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">How far the price of a digital dollar on a local exchange sits from the official exchange rate captured in the same second, as a percentage. A plus means people there pay more than the official rate to get a dollar.</p>
       </div>
       <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
-        <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Corridor cost</div>
-        <p style="font-size: 14px; margin: 0; max-width: 78ch;">All-in cost of a bank-to-bank transfer, in basis points of the amount sent: on-ramp basis and fee, network fee, off-ramp basis and fee, against the cheapest fiat rail quoting the same amount at the same second.</p>
+        <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">What a transfer costs</div>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">Everything it takes to get money from one bank account to another, as a share of the amount sent: what the digital dollar costs above the official rate at each end, what each exchange charges, and the blockchain fee. Compared against the cheapest ordinary provider quoting the same amount in the same second.</p>
       </div>
       <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Bar scale</div>
-        <p style="font-size: 14px; margin: 0; max-width: 78ch;">Basis bars use a compressed scale so a 6 bps market stays legible next to a 1,652 bps one. The number beside each bar is always the real figure.</p>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">The bars use a compressed scale so a country sitting 0.06% from the official rate stays visible next to one sitting 16% away.</p>
       </div>
       <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Backfill</div>
@@ -1041,11 +1047,11 @@ textarea.input { min-height: 90px; resize: vertical; }
       <h2 style="font-size: 20px; margin: 0 0 4px;">Sources</h2>
       <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Price sources</div>
-        <p style="font-size: 14px; margin: 0; max-width: 78ch;">BTCTurk, Bitkub, Bitso, Coins.ph, Independent Reserve, Indodax, Upbit. ARS, VES and BRL quotes via <a href="https://criptoya.com">CriptoYa</a> on a median-bid rule, used with attribution.</p>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">Bithumb, Bitkub, Bitso, BTCTurk, Coinone, Coins.ph, Foxbit, Independent Reserve, Indodax, Mercado Bitcoin, Paribu, Pintu, Upbit. Argentine, Venezuelan and Brazilian prices via <a href="https://criptoya.com">CriptoYa</a>, used with attribution. Where a country has more than one exchange the figure shown is the middle one; hover a bar on the board to see every exchange behind it.</p>
       </div>
       <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Reference rates</div>
-        <p style="font-size: 14px; margin: 0; max-width: 78ch;">Official USD mids from open.er-api.com, with the fawazahmed0 currency dataset for daily backfill. Every basis figure is the quote against the mid carried in the same row.</p>
+        <p style="font-size: 14px; margin: 0; max-width: 78ch;">Official exchange rates from open.er-api.com, with the fawazahmed0 currency dataset for the daily history. Every gap on this page is measured against the official rate stored in the same row as the price, not a rate looked up later.</p>
       </div>
       <div data-grid="label-row" style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; border-top: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); padding: 13px 0;">
         <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px;">Raw data</div>
@@ -1156,6 +1162,24 @@ class Component extends DCLogic {
   }
 
   // ---------------------------------------------------------------- helpers
+  // The front page speaks in percent. Basis points are an FX-desk unit and this
+  // page is read by people sending money, so the conversion happens once, here,
+  // and "bps" appears nowhere on it — only in methodology.html.
+  //
+  // Precision follows the number rather than being fixed, because these span
+  // four orders of magnitude: Venezuela is +18.8% and Singapore is −0.002%.
+  // Two decimals everywhere would print Singapore as −0.00%, which reads as a
+  // measurement that was not taken rather than a market sitting on the
+  // official rate.
+  fmtPct(v, sign) {
+    if (v === null || v === undefined || !isFinite(v)) return "—";
+    const p = v / 100, a = Math.abs(p);
+    const dp = a >= 10 ? 1 : a >= 0.1 ? 2 : 3;
+    const body = a.toFixed(dp) + "%";
+    if (sign === false) return (p < 0 ? "−" : "") + body;
+    return (p >= 0 ? "+" : "−") + body;
+  }
+
   fmtBps(v, sign) {
     if (v === null || v === undefined || !isFinite(v)) return "—";
     const s = Math.abs(v) >= 1000
@@ -1164,6 +1188,41 @@ class Component extends DCLogic {
     if (sign === false) return s.replace("-", "−");
     return (v >= 0 ? "+" : "−") + s.replace("-", "");
   }
+  // Money, to the cent. fmtSize() is for round amounts sent ("S$5,000");
+  // this is for what something costs ("S$11.60"), which is the unit the front
+  // page is supposed to answer in.
+  fmtMoney(cur, n) {
+    if (n === null || n === undefined || !isFinite(n)) return "—";
+    const sym = cur === "SGD" ? "S$" : cur === "USD" ? "US$" : cur + " ";
+    return (n < 0 ? "−" : "") + sym + Math.abs(n).toLocaleString("en-US",
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // A cost quoted as a fraction of the amount sent, turned back into money,
+  // rounded to the cent. Rounding HERE rather than at display time is what
+  // makes the numbers on the page add up to each other: a difference taken
+  // between the unrounded shares is more precise by a fraction of a cent and
+  // reads as an arithmetic error -- "S$27.48 against S$13.60, that is S$13.89
+  // more" is the kind of line that costs a page its credibility.
+  costOf(cur, notional, bps) {
+    if (notional === null || bps === null || !isFinite(notional) || !isFinite(bps)) return null;
+    return Math.round(notional * bps / 1e4 * 100) / 100;
+  }
+
+  // Countries, not currency codes, wherever a heading or a sentence can carry
+  // the longer word.
+  countryOf(code) {
+    if (code === "USD") return "the United States";
+    return (META[code] || {}).country || code;
+  }
+
+  // "a dollar in Philippines" is the kind of sentence that tells a reader a
+  // machine wrote it. A handful of country names take the article.
+  countryIn(code) {
+    const name = this.countryOf(code);
+    return /^(Philippines|United States|Netherlands)$/.test(name) ? "the " + name : name;
+  }
+
   fmtSize(cur, n) {
     if (n === null || n === undefined) return "—";
     const sym = cur === "SGD" ? "S$" : cur === "USD" ? "US$" : cur + " ";
@@ -1263,13 +1322,13 @@ class Component extends DCLogic {
         single = false;
       } else if (venues.length === 1) {
         bps = venues[0].bps;
-        label = "one exchange only · " + venues[0].venue;
+        label = "only one exchange reports here";
         single = true;
       } else if (agg) {
         // No individual exchange reported — only the aggregated feed did. Show
         // it, and say what it is, rather than dropping the country off the board.
         bps = agg.bps;
-        label = "several exchanges, averaged by CriptoYa";
+        label = "one averaged feed, no single exchange";
         single = true;
       } else { return; }
       const vals = venues.map(v => v.bps);
@@ -1325,14 +1384,31 @@ class Component extends DCLogic {
     return n % 2 ? a[(n - 1) / 2] : (a[n / 2 - 1] + a[n / 2]) / 2;
   }
 
+  // "+3.92%" is a trader's notation. A reader wants to know a dollar costs more
+  // there than it should, and by how much. Unsigned, with the direction in a
+  // word: "3.92% more" / "0.18% less" / "the official rate" when it is flat.
+  gapWords(bps) {
+    if (bps === null || bps === undefined || !isFinite(bps)) return "—";
+    const body = this.fmtPct(bps, false).replace("−", "");
+    if (Math.abs(bps) < 0.5) return body + (bps >= 0 ? " more" : " less");
+    return body + (bps > 0 ? " more" : " less");
+  }
+
+  // The whole finding for one country, as a sentence someone could say aloud.
+  gapSentence(m) {
+    const dir = m.bps >= 0 ? "more" : "less";
+    return "A dollar costs " + this.fmtPct(m.bps, false).replace("−", "") +
+           " " + dir + " than the official rate in " + this.countryIn(m.code) + ".";
+  }
+
   // Every exchange behind a country's number, as plain text for the hover.
   venueTip(m) {
     const lines = m.venues.map(v =>
       "  " + v.venue + (v.agg ? " (an average, not an exchange)" : "") +
-      "   " + this.fmtBps(v.bps));
+      "   " + this.fmtPct(v.bps));
     const head = m.count >= 2
       ? m.country + ": middle of " + m.count + " exchanges, " +
-        this.fmtBps(m.bps) + " — widest disagreement " +
+        this.fmtPct(m.bps) + " — widest disagreement " +
         Math.round(m.spread).toLocaleString("en-US")
       : m.country + ": only one exchange reports here, so there is no middle to take";
     return head + "\n" + lines.join("\n");
@@ -1382,8 +1458,8 @@ class Component extends DCLogic {
     const page = st.page;
     const go = p => () => this.setState({ page: p });
     const nav = [
-      { key: "board", label: "Basis board" },
-      { key: "corridor", label: "Corridor" },
+      { key: "board", label: "The board" },
+      { key: "corridor", label: "Sending money" },
       { key: "methodology", label: "Methodology" },
     ].map(n => ({ label: n.label, go: go(n.key),
       color: page === n.key ? INK : MUTED, rule: page === n.key ? INK : "transparent" }));
@@ -1399,7 +1475,7 @@ class Component extends DCLogic {
       hl: { wide: "—", wideCountry: "—", narrow: "—", narrowCountry: "—" },
       heroStats: [], bands: [], coverage: [], legendCells: [],
       cov: { on: false, code: "", v: "", t: "", hint: "" },
-      mk: { code: "—", country: "", venue: "", bps: "—", color: INK, line: "", area: "", zeroY: "120",
+      mk: { code: "—", country: "", venue: "", bps: "—", sentence: "", color: INK, line: "", area: "", zeroY: "120",
             xLabels: [], yLabels: [], stats: [], dots: [], sparse: false, note: "",
             tipOn: false, tipX: "0%", tipY: "0%", tipShift: "none", tipV: "", tipT: "",
             onMove: () => {}, onLeave: () => {}, onPin: () => {} },
@@ -1426,8 +1502,8 @@ class Component extends DCLogic {
     // ---- markets -------------------------------------------------------
     const mkts = this.markets(D);
     if (!mkts.length) return Object.assign(empty, {
-      health: "no readable rows in data/basis.csv",
-      cov: { on: false, code: "", v: "", t: "", hint: "no basis rows collected yet" },
+      health: "no readable prices in data/basis.csv",
+      cov: { on: false, code: "", v: "", t: "", hint: "no prices collected yet" },
     });
 
     const lastT = Math.max.apply(null, mkts.map(m => m.t));
@@ -1451,15 +1527,15 @@ class Component extends DCLogic {
       return { max, rows: list.map(m => {
         const w = this.scale(m.bps, max);
         return { code: m.code, country: m.country, venue: m.venue,
-          tip: this.venueTip(m),
-          bps: this.fmtBps(m.bps), mark: "",
+          tip: this.gapSentence(m) + "\n\n" + this.venueTip(m),
+          bps: this.gapWords(m.bps), mark: "",
           fill: m.bps >= 0 ? "var(--data-400)" : "#dedede",
           left: (m.bps >= 0 ? 50 : 50 - w) + "%", width: Math.max(w, 0.4) + "%",
           go: () => this.setState({ market: m.code, hover: null, pinned: null }),
           sel: market === m.code ? INK : "transparent" };
       })};
     };
-    const axis = v => (v >= 0 ? "+" : "−") + Math.round(Math.abs(v)).toLocaleString("en-US");
+    const axis = v => this.fmtPct(v);
     let bands;
     if (banded) {
       const big = mkts.filter(m => Math.abs(m.bps) >= 200), small = mkts.filter(m => Math.abs(m.bps) < 200);
@@ -1501,7 +1577,7 @@ class Component extends DCLogic {
       note: crossRows.length
         ? "Market prices only. Sending money along this route also costs exchange "
           + "fees, a withdrawal fee and a network fee, none of which are in these "
-          + "numbers — the corridor section below is where those are counted."
+          + "numbers — the transfer section below is where those are counted."
         : "",
       empty: "No pair has both currencies priced in the same hour yet.",
     };
@@ -1546,7 +1622,7 @@ class Component extends DCLogic {
         let bg, v, t;
         if (!cell) { bg = "var(--grid-empty)"; v = "no sample"; t = label + " · not collected"; }
         else if (!cell.ok || cell.bps === null) { bg = "#dedede"; v = "failed pull"; t = label + " · " + (cell.err || "source_ok=False"); }
-        else { bg = this.cellBg(Math.abs(cell.bps), max); v = this.fmtBps(cell.bps) + " bps";
+        else { bg = this.cellBg(Math.abs(cell.bps), max); v = this.fmtPct(cell.bps);
                t = label + " · " + (cell.count >= 2
                      ? "middle of " + cell.count + " exchanges"
                      : cell.count === 1 ? "one exchange"
@@ -1584,7 +1660,10 @@ class Component extends DCLogic {
     const corrKeys = Array.from(new Set(D.samples.map(r => (r.corridor || "").trim()).filter(Boolean)))
       .sort((a, b) => a === "SGD->PHP" ? -1 : b === "SGD->PHP" ? 1 : a < b ? -1 : 1);
     const cName = corrKeys.indexOf(st.corridor) >= 0 ? st.corridor : corrKeys[0];
-    const disp = k => (k || "").replace("->", "→");
+    // "SGD->PHP" reads as a currency pair to an FX desk and as nothing at all
+    // to everyone else. Top level gets country names.
+    const disp = k => this.countryOf((k || "").slice(0, 3)) + " → " +
+                      this.countryOf((k || "").slice(-3));
 
     const ladderFor = key => {
       const { byTs, stamps } = this.corridorRows(D, key);
@@ -1600,24 +1679,32 @@ class Component extends DCLogic {
           // the sentence flips on its own if the crypto route ever wins.
           const hl = rows.find(r => String(num(r.notional_src)) === hi) || rows[Math.min(2, rows.length - 1)];
           const t = hl ? num(hl.cost_bps_taker) : null, rl = hl ? num(hl.baseline_cost_bps) : null;
-          const verdict = (t === null || rl === null) ? "" :
-            "At " + this.fmtSize(cur, num(hl.notional_src)) + ", the crypto route costs " +
-            this.fmtBps(t, false) + " bps. The cheapest provider (" + (hl.baseline_provider || "—") +
-            ") costs " + this.fmtBps(rl, false) + " bps. " +
-            (t > rl ? "The provider wins by " + Math.abs(t - rl).toFixed(0) + " bps."
-                    : "The crypto route wins by " + Math.abs(t - rl).toFixed(0) + " bps.") + " ";
+          const size = hl ? num(hl.notional_src) : null;
+          // The worked example in money, because a percentage of an amount the
+          // reader has not multiplied out is not an answer to "what does this
+          // cost me".
+          const tm = this.costOf(cur, size, t), rm = this.costOf(cur, size, rl);
+          const verdict = (tm === null || rm === null) ? "" :
+            "Send " + this.fmtSize(cur, size) + " to " + this.countryIn(key.slice(-3)) +
+            " right now: " + (hl.baseline_provider || "the cheapest provider") + " costs " +
+            this.fmtMoney(cur, rm) + " all in, the crypto route costs " +
+            this.fmtMoney(cur, tm) + ". " +
+            (tm > rm ? (hl.baseline_provider || "The provider") + " is cheaper by " +
+                       this.fmtMoney(cur, Math.round((tm - rm) * 100) / 100) + "."
+                     : "The crypto route is cheaper by " +
+                       this.fmtMoney(cur, Math.round((rm - tm) * 100) / 100) + ".") + " ";
           return verdict + "Bought on " + ((rows[0] || {}).onramp_venue || "—") + ", sold on " +
                  ((rows[0] || {}).offramp_venue || "—") +
-                 ". Provider quotes taken at the same moment for the same amount.";
+                 ". Both provider quotes were taken at the same moment for the same amount.";
         })(),
         raw: rows,
         rows: rows.map(r => {
           const taker = num(r.cost_bps_taker), maker = num(r.cost_bps_maker), rail = num(r.baseline_cost_bps);
           const gap = taker !== null && rail !== null ? taker - rail : null;
           return { size: this.fmtSize(cur, num(r.notional_src)),
-            taker: this.fmtBps(taker, false), maker: this.fmtBps(maker, false),
-            provider: r.baseline_provider || "—", rail: this.fmtBps(rail, false),
-            gap: this.fmtBps(gap), gapColor: INK,
+            taker: this.fmtPct(taker, false), maker: this.fmtPct(maker, false),
+            provider: r.baseline_provider || "—", rail: this.fmtPct(rail, false),
+            gap: this.fmtPct(gap), gapColor: INK,
             bg: String(num(r.notional_src)) === hi ? "var(--color-neutral-200)" : "transparent" };
         })};
     };
@@ -1628,7 +1715,7 @@ class Component extends DCLogic {
     // corridor time series at the highlighted size, both legs, real
     let cc = Object.assign({}, empty.cc, {
       sparse: true,
-      note: "No corridor samples collected yet — data/samples.csv is absent or has no usable rows. Nothing is drawn and nothing is filled in.",
+      note: "No transfers priced yet — data/samples.csv is absent or has no usable rows.",
       tabs: [],
     });
     if (cLad && cRowRaw) {
@@ -1652,20 +1739,20 @@ class Component extends DCLogic {
         gapArea: (pu.line && rl.length > 1) ? pu.line + " L " + railRev.join(" L ") + " Z" : "",
         dots: sparse ? pu.dots : [], sparse,
         note: sparse ? (us.length + (us.length === 1 ? " capture" : " captures") +
-              " so far at this size — every point collected is shown, with no line between them and nothing filled in.") : "",
+              " so far at this size — every point collected is shown, with no line drawn between them.") : "",
         xLabels: series.length < 2 ? (series.length ? [this.fmtStamp(series[0].t, true)] : [])
           : [0, 0.33, 0.66, 1].map(f => this.fmtStamp(series[Math.round(f * (series.length - 1))].t, true)),
-        yLabels: [this.fmtBps(cHi, false), this.fmtBps((cHi + cLo) / 2, false), this.fmtBps(cLo, false)],
+        yLabels: [this.fmtPct(cHi, false), this.fmtPct((cHi + cLo) / 2, false), this.fmtPct(cLo, false)],
         tipOn: ccIdx !== null && ccIdx < us.length,
         tipX: ccIdx === null ? "0%" : pctX(pu.x(ccIdx)), tipY: ccIdx === null ? "0%" : pctY(pu.y(us[ccIdx])),
         tipShift: ccIdx === null ? "none" : shift(ccIdx, us.length),
-        tipU: ccIdx === null ? "" : this.fmtBps(us[ccIdx], false),
-        tipR: ccIdx === null ? "" : this.fmtBps(rl[ccIdx], false),
-        tipG: ccIdx === null ? "" : this.fmtBps(us[ccIdx] - rl[ccIdx]),
+        tipU: ccIdx === null ? "" : this.fmtPct(us[ccIdx], false),
+        tipR: ccIdx === null ? "" : this.fmtPct(rl[ccIdx], false),
+        tipG: ccIdx === null ? "" : this.fmtPct(us[ccIdx] - rl[ccIdx]),
         tipT: ccIdx === null ? "" : this.fmtStamp(series[ccIdx].t, true),
         onMove: ccH.onMove, onLeave: ccH.onLeave, onPin: ccH.onPin,
         keys: [{ label: "crypto route, all-in", color: "var(--data-600)" },
-               { label: "cheapest normal provider", color: "var(--color-neutral-500)" }],
+               { label: "cheapest ordinary provider", color: "var(--color-neutral-500)" }],
         tabs: ladders.map(l => ({ label: l.name, go: () => this.setState({ corridor: l.key, hover: null, pinned: null }),
           bg: cName === l.key ? "var(--color-text)" : "transparent",
           color: cName === l.key ? "var(--color-bg)" : MUTED })),
@@ -1681,31 +1768,53 @@ class Component extends DCLogic {
       const netBps = (netUsdt !== null && vwap && size) ? netUsdt / (size / vwap) * 1e4 : null;
       const allIn = num(cRowRaw.cost_bps_taker), rail = num(cRowRaw.baseline_cost_bps);
       const when = this.fmtStamp(ts(cRowRaw.ts), false);
+      const from = this.countryIn(cRowRaw.src || ""), to = this.countryIn(cRowRaw.dst || "");
+      // Three things happen to your money, in order: you buy the coin, you
+      // move it, you sell it. That is the shape a reader can hold. The five
+      // separate line items underneath -- price against the official rate and
+      // the exchange's cut, at each end -- are true but are an accountant's
+      // breakdown, so they fold into the step they belong to and the detail
+      // goes in the hover.
+      const sum = xs => xs.every(x => x === null) ? null
+                      : xs.reduce((a, x) => a + (x || 0), 0);
+      const buy = sum([onB, onF]), sell = sum([offB, offF]);
+      const cash = v => this.fmtMoney(cLad.cur, this.costOf(cLad.cur, size, v));
       const items = [
-        { label: "On-ramp basis — USDT vs USD mid, " + (cRowRaw.src || ""), v: onB },
-        { label: "On-ramp taker fee — " + (onF === null ? "—" : (onF / 100).toFixed(2) + "%"), v: onF },
-        { label: "Network fee — " + (netUsdt === null ? "—" : netUsdt + " USDT, " + (cRowRaw.onramp_venue || "")), v: netBps },
-        { label: "Off-ramp basis — USDT vs USD mid, " + (cRowRaw.dst || ""), v: offB },
-        { label: "Off-ramp taker fee — " + (offF === null ? "—" : (offF / 100).toFixed(2) + "%"), v: offF },
-        { label: "USDT route, all-in — " + when, v: allIn, total: true },
-        { label: (cRowRaw.baseline_provider || "best fiat rail") + ", same instant — " + when, v: rail, total: true },
+        { label: "Buying the coin in " + from, v: buy,
+          detail: "The price above the official rate, plus what the " + from +
+                  " exchange charges" +
+                  (onF === null ? "" : " (" + (onF / 100).toFixed(2) + "%)") + "." },
+        { label: "Moving it", v: netBps,
+          detail: netUsdt === null ? "The blockchain fee."
+                : "A flat " + netUsdt + " dollars on the blockchain, whatever you send." },
+        { label: "Selling it in " + to, v: sell,
+          detail: "What you lose against the official rate, plus what the " + to +
+                  " exchange charges" +
+                  (offF === null ? "" : " (" + (offF / 100).toFixed(2) + "%)") + "." },
+        { label: "The crypto route, all in — " + when, v: allIn, total: true,
+          detail: "The three steps above, added up." },
+        { label: (cRowRaw.baseline_provider || "the cheapest provider") + ", same instant — " + when,
+          v: rail, total: true,
+          detail: "The cheapest ordinary provider quoting the same amount in the same second." },
       ].filter(w => w.v !== null);
       const wfMax = items.length ? Math.max.apply(null, items.map(w => Math.abs(w.v))) : 1;
       waterfall = items.map(w => {
         const zero = 8, span = 92 - zero, f = (Math.abs(w.v) / wfMax) * span;
-        return { label: w.label, v: this.fmtBps(w.v), mark: "", weight: w.total ? 800 : 400,
+        // Money is the value; the percentage is the footnote.
+        return { label: w.label, v: cash(w.v), pct: this.fmtPct(w.v, false),
+          tip: w.detail, mark: "", weight: w.total ? 800 : 400,
           fill: w.v >= 0 ? (w.total ? "var(--data-600)" : "var(--data-400)") : "#dedede",
           left: (w.v >= 0 ? zero : zero - Math.min(f, zero)) + "%", width: Math.max(f, 0.4) + "%" };
       });
       if (onB !== null && onF !== null && offB !== null && offF !== null && netBps !== null) {
         const doors = onB + onF + offB + offF, total = doors + netBps;
         stack = [
-          { label: "the exchanges, " + this.fmtBps(doors, false) + " bps", w: ((doors / total) * 100).toFixed(1) + "%", bg: "var(--data-400)", fg: "var(--color-text)" },
+          { label: "the exchanges, " + this.fmtPct(doors, false), w: ((doors / total) * 100).toFixed(1) + "%", bg: "var(--data-400)", fg: "var(--color-text)" },
           { label: "", w: ((netBps / total) * 100).toFixed(1) + "%", bg: "var(--data-600)", fg: "var(--color-bg)" },
         ];
         stackKeys = [
-          { label: "what the two exchanges charge to get in and out", bg: "var(--data-400)", v: this.fmtBps(doors, false) + " bps" },
-          { label: "the blockchain itself", bg: "var(--data-600)", v: this.fmtBps(netBps, false) + " bps" },
+          { label: "what the two exchanges charge to get in and out", bg: "var(--data-400)", v: this.fmtPct(doors, false) },
+          { label: "the blockchain itself", bg: "var(--data-600)", v: this.fmtPct(netBps, false) },
         ];
       }
     }
@@ -1721,10 +1830,12 @@ class Component extends DCLogic {
       sizes.forEach(n => {
         const g = cur.filter(r => num(r.notional_src) === n).sort((a, b) => num(a.cost_bps) - num(b.cost_bps));
         if (!g.length) return;
-        spread.push({ corridor: l.name, size: this.fmtSize(l.cur, n),
-          best: g[0].provider, bestBps: this.fmtBps(num(g[0].cost_bps), false),
+        spread.push({ route: l.name, size: this.fmtSize(l.cur, n),
+          best: g[0].provider,
+          bestBps: this.fmtMoney(l.cur, this.costOf(l.cur, n, num(g[0].cost_bps))),
           worst: g[g.length - 1].provider,
-          worstBps: this.fmtBps(num(g[g.length - 1].cost_bps), false) + " · n=" + g.length });
+          worstBps: this.fmtMoney(l.cur, this.costOf(l.cur, n, num(g[g.length - 1].cost_bps)))
+                    + " · " + g.length + " quoting" });
       });
     });
 
@@ -1735,12 +1846,17 @@ class Component extends DCLogic {
       const st1 = num(small.cost_bps_taker), sr1 = num(small.baseline_cost_bps), bt = num(big.cost_bps_taker);
       if (st1 !== null && sr1 !== null && bt !== null) {
         findings.push({ date: this.fmtStamp(cLad.t, false),
-          q: "Are stablecoins worst at remittance size?",
-          a: "At " + this.fmtSize(cLad.cur, num(small.notional_src)) + " the fixed costs dominate: " +
-             this.fmtBps(st1, false) + " bps all-in against " + this.fmtBps(sr1, false) + " for " +
-             (small.baseline_provider || "the cheapest rail") + ". By " + this.fmtSize(cLad.cur, num(big.notional_src)) +
-             " the route is " + this.fmtBps(bt, false) + " bps. Computed from the ladder in this sample, not asserted.",
-          stat: this.fmtBps(st1, false), statSub: "bps at " + this.fmtSize(cLad.cur, num(small.notional_src)), mark: "" });
+          q: "Is crypto worst for the small transfers most people send?",
+          a: "Yes. Sending " + this.fmtSize(cLad.cur, num(small.notional_src)) + " costs " +
+             this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(small.notional_src), st1)) +
+             " through crypto against " +
+             this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(small.notional_src), sr1)) + " with " +
+             (small.baseline_provider || "the cheapest provider") +
+             " — the flat costs do not shrink with the amount. Send " +
+             this.fmtSize(cLad.cur, num(big.notional_src)) + " instead and the same route takes " +
+             this.fmtPct(bt, false) + " of it. Computed from this sample, not asserted.",
+          stat: this.fmtPct(st1, false),
+          statSub: "of " + this.fmtSize(cLad.cur, num(small.notional_src)) + " sent", mark: "" });
       }
     }
 
@@ -1776,38 +1892,45 @@ class Component extends DCLogic {
       health: "collector ok · " + okCount + "/" + latestRun.length + " sources",
       lastTick: this.fmtStamp(lastT, true),
       scaleNote: banded ? "two bands, each on its own axis" : "single axis",
-      hl: { wide: this.fmtBps(wide.bps) + " bps", wideCountry: wide.country,
-            narrow: this.fmtBps(narrow.bps) + " bps", narrowCountry: narrow.country },
+      hl: { wide: this.gapWords(wide.bps), wideCountry: wide.country,
+            narrow: this.gapWords(narrow.bps), narrowCountry: narrow.country },
       heroStats: [
-        { k: "Biggest gap right now", v: this.fmtBps(wide.bps), sub: wide.code + " · " + wide.venue, mark: "" },
-        { k: "Smallest gap right now", v: this.fmtBps(narrow.bps), sub: narrow.code + " · " + narrow.venue, mark: "" },
+        { k: "Furthest from the official rate", v: this.gapWords(wide.bps),
+          sub: "a dollar in " + this.countryIn(wide.code), mark: "" },
+        { k: "Closest to the official rate", v: this.gapWords(narrow.bps),
+          sub: "a dollar in " + this.countryIn(narrow.code), mark: "" },
       ].concat(cRowRaw ? [
-        { k: "Crypto route, cost to send " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
-          v: this.fmtBps(num(cRowRaw.cost_bps_taker), false), sub: "bps — the all-in cost, in hundredths of a percent", mark: "" },
-        { k: "Cheapest bank rail, same moment", v: this.fmtBps(num(cRowRaw.baseline_cost_bps), false),
-          sub: "bps · " + (cRowRaw.baseline_provider || "—"), mark: "" },
+        // Money first. A percentage of an amount the reader has not multiplied
+        // out is not an answer to "what would this cost me".
+        { k: "Crypto route, to send " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
+          v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src), num(cRowRaw.cost_bps_taker))),
+          sub: this.fmtPct(num(cRowRaw.cost_bps_taker), false) + " of what you send, all in", mark: "" },
+        { k: "Cheapest ordinary provider, same moment",
+          v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src), num(cRowRaw.baseline_cost_bps))),
+          sub: this.fmtPct(num(cRowRaw.baseline_cost_bps), false) + " · " + (cRowRaw.baseline_provider || "—"), mark: "" },
       ] : []),
       bands, coverage, cross,
       cov: { on: !!covH, code: covH ? covH.code : "", v: covH ? covH.v : "", t: covH ? covH.t : "",
-             hint: covH ? "each cell is one hour" : "one cell per hour · filled: captured · grey: pull failed · blank: hour missed — misses are shown, never hidden" },
+             hint: covH ? "each cell is one hour" : "one cell per hour · filled: captured · grey: pull failed · blank: hour missed" },
       legendCells: [200, 300, 400, 500, 600].map(s => ({ bg: "var(--data-" + s + ")" })),
       mk: {
-        code: sel.code, country: sel.country, venue: sel.venue, bps: this.fmtBps(sel.bps), color: INK,
+        code: sel.code, country: sel.country, venue: sel.venue,
+        bps: this.gapWords(sel.bps), sentence: this.gapSentence(sel), color: INK,
         line: mkSparse ? "" : p.line,
         area: mkSparse ? "" : p.line + " L 1000 " + zeroY.toFixed(1) + " L 0 " + zeroY.toFixed(1) + " Z",
         dots: mkSparse ? p.dots : [], sparse: mkSparse,
         note: mkSparse ? (vals.length + (vals.length === 1 ? " sample" : " samples") + " in this window — points only, no line drawn.") : "",
-        zeroY: zeroY.toFixed(1), xLabels, yLabels: [this.fmtBps(yHi), this.fmtBps((yHi + yLo) / 2), this.fmtBps(yLo)],
+        zeroY: zeroY.toFixed(1), xLabels, yLabels: [this.fmtPct(yHi), this.fmtPct((yHi + yLo) / 2), this.fmtPct(yLo)],
         tipOn: mkIdx !== null && mkIdx < vals.length,
         tipX: mkIdx === null ? "0%" : pctX(p.x(mkIdx)), tipY: mkIdx === null ? "0%" : pctY(p.y(vals[mkIdx])),
         tipShift: mkIdx === null ? "none" : shift(mkIdx, vals.length),
-        tipV: mkIdx === null ? "" : this.fmtBps(vals[mkIdx]),
+        tipV: mkIdx === null ? "" : this.fmtPct(vals[mkIdx]),
         tipT: mkIdx === null ? "" : this.fmtStamp(pts[mkIdx].t, true),
         onMove: mkH.onMove, onLeave: mkH.onLeave, onPin: mkH.onPin,
         stats: [
-          { k: "average gap", v: this.fmtBps(mean) },
-          { k: "biggest gap in window", v: this.fmtBps(peak) },
-          { k: "σ", v: sigma === null ? "—" : sigma.toFixed(2) },
+          { k: "average gap", v: this.gapWords(mean) },
+          { k: "biggest gap in window", v: this.gapWords(peak) },
+          { k: "how much it moves", v: sigma === null ? "—" : this.fmtPct(sigma, false) },
           { k: "samples", v: vals.length + " · " + rangeDef.key },
         ],
       },
@@ -1815,34 +1938,74 @@ class Component extends DCLogic {
         bg: st.range === r.key ? "var(--color-text)" : "transparent",
         color: st.range === r.key ? "var(--color-bg)" : MUTED })),
       cc, cx, cxx: false,
-      corridorSummary: cRowRaw ? [
-        { k: cLad.name + " · " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)) + " · USDT all-in",
-          v: this.fmtBps(num(cRowRaw.cost_bps_taker), false), sub: "bps, taker execution", color: INK },
-        { k: "cheapest fiat rail, same instant", v: this.fmtBps(num(cRowRaw.baseline_cost_bps), false),
-          sub: "bps · " + (cRowRaw.baseline_provider || "—"), color: INK },
-        { k: "USDT vs rail", v: this.fmtBps((num(cRowRaw.cost_bps_taker) || 0) - (num(cRowRaw.baseline_cost_bps) || 0)),
-          sub: "bps · " + (feeStamp || "fee stamp unavailable"), color: INK },
-      ] : [],
+      corridorSummary: (() => {
+        if (!cRowRaw) return [];
+        // Money is the headline and the percentage is the footnote, everywhere
+        // a cost is shown. Nobody sends "0.61%".
+        const cur = cLad.cur, size = num(cRowRaw.notional_src);
+        const tb = num(cRowRaw.cost_bps_taker), rb = num(cRowRaw.baseline_cost_bps);
+        const tm = this.costOf(cur, size, tb), rm = this.costOf(cur, size, rb);
+        return [
+          { k: cLad.name + " · sending " + this.fmtSize(cur, size) + " · crypto, all in",
+            v: this.fmtMoney(cur, tm),
+            sub: this.fmtPct(tb, false) + " of what you send, buying at the price on offer", color: INK },
+          { k: "cheapest ordinary provider, same instant", v: this.fmtMoney(cur, rm),
+            sub: this.fmtPct(rb, false) + " · " + (cRowRaw.baseline_provider || "—"), color: INK },
+          { k: "what crypto costs you extra",
+            v: (tm === null || rm === null) ? "—"
+               : this.fmtMoney(cur, Math.round((tm - rm) * 100) / 100),
+            sub: this.fmtPct((tb || 0) - (rb || 0)) + " · " + (feeStamp || "fee check unavailable"),
+            color: INK },
+        ];
+      })(),
       corridors: ladders,
-      correction: cRowRaw ? [
-        // The claimed figure is a historical error, not a measurement, and has
-        // no CSV to compute from — it carries the placeholder mark rather than
-        // being presented as data. The rest is live.
-        { k: "claimed maker cost, first version", v: "not wired °", strike: "none" },
-        { k: "actual maker cost, " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
-          v: this.fmtBps(num(cRowRaw.cost_bps_maker), false) + " bps", strike: "none" },
+      correction: cRowRaw ? [].concat(
+        // What this site PUBLISHED before fee verification, at S$5,000: maker
+        // modelled as free gave ~19.8 bps, corrected to ~79.6. Recorded in
+        // METHODOLOGY.md, "Two corrections landed on 2026-08-10".
+        //
+        // This is the one hardcoded figure on the page, and it is defensible
+        // for a reason that does not generalise: it is a record of a claim, not
+        // a measurement of a market. The market moving cannot make it wrong,
+        // because it was never right. It is pinned to the corridor and the size
+        // it was claimed at, and disappears entirely on any other, rather than
+        // being quietly re-used as if it applied there too.
+        (cLad.key === "SGD->PHP" ? [{
+          k: "claimed cost with the cheaper fee tier, first version, "
+             + this.fmtSize("SGD", 5000),
+          v: this.fmtMoney("SGD", this.costOf("SGD", 5000, 19.8)),
+          strike: "line-through" }] : []),
+      [
+        { k: "actual cost with the cheaper fee tier, " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
+          v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src),
+                                                 num(cRowRaw.cost_bps_maker))), strike: "none" },
         { k: "verdict", v: (num(cRowRaw.cost_bps_maker) !== null && num(cRowRaw.baseline_cost_bps) !== null &&
-            num(cRowRaw.cost_bps_maker) < num(cRowRaw.baseline_cost_bps)) ? "route wins" : "rail wins", strike: "none" },
-      ] : [],
+            num(cRowRaw.cost_bps_maker) < num(cRowRaw.baseline_cost_bps))
+            ? "the crypto route is cheaper" : "the ordinary provider is cheaper", strike: "none" },
+      ]) : [],
       findings, waterfall, stack, stackKeys, spread,
       correctionDate: cLad ? this.fmtStamp(cLad.t, false) : "—",
       // --- copy that carries a number is computed, so a sentence cannot go
       // stale against the row it describes. ---
+      // Still computed, never typed: the sentence has to be able to flip if
+      // the crypto route ever starts winning. "Mostly no, and it depends how
+      // much you send" is what the ladder actually shows -- the route loses at
+      // every size measured, and by very different margins -- so it is the
+      // wording used while that stays true, and only while it stays true.
       heroVerdict: (() => {
-        if (!cRowRaw) return "";
-        const t = num(cRowRaw.cost_bps_taker), r = num(cRowRaw.baseline_cost_bps);
-        if (t === null || r === null) return "The answer depends on the size you send.";
-        return t > r ? "So far the answer is no." : "Right now, at this size, the answer is yes.";
+        if (!cLad || !cLad.raw.length) return "";
+        const pairs = cLad.raw
+          .map(r => [num(r.cost_bps_taker), num(r.baseline_cost_bps)])
+          .filter(([t, r]) => t !== null && r !== null);
+        if (!pairs.length) return "";
+        const lost = pairs.filter(([t, r]) => t > r).length;
+        if (lost === pairs.length) {
+          return pairs.length > 1
+            ? "So far the answer is mostly no, and it depends how much you send."
+            : "So far the answer is no.";
+        }
+        if (lost === 0) return "Right now, at every size measured, the answer is yes.";
+        return "So far the answer is: sometimes, and it depends how much you send.";
       })(),
       dislocatedNames: (() => {
         const big = mkts.filter(m => Math.abs(m.bps) >= 200).map(m => m.country);
@@ -1852,13 +2015,15 @@ class Component extends DCLogic {
       })(),
       corridorIntro: cLad && cRowRaw
         ? "The full cost of one real transfer, measured every hour. The crypto route: buy " +
-          (cRowRaw.stable || "USDT") + " in " + (CITY[cLad.cur] || cLad.cur) + ", send it, sell it in " +
+          "a digital dollar in " + (CITY[cLad.cur] || cLad.cur) + ", send it, sell it in " +
           (CITY[(cRowRaw.dst || "").trim()] || (cRowRaw.dst || "")) +
-          ", with every fee and the real market price included. Next to it: the cheapest normal provider quoting the same amount at the same moment."
-        : "The full cost of one real transfer, measured every hour, against the cheapest normal provider quoting the same amount at the same moment.",
+          ", with every fee and the real market price included. Next to it: the cheapest ordinary provider quoting the same amount at the same moment."
+        : "The full cost of one real transfer, measured every hour, against the cheapest ordinary provider quoting the same amount at the same moment.",
       waterfallNote: cRowRaw
-        ? "Each bar is one cost in the transfer, in bps — hundredths of a percent of the amount sent. Read top to bottom, they add up to the all-in figure. Taken from the " +
-          this.fmtStamp(ts(cRowRaw.ts), true) + " sample at " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)) + "."
+        ? "Three things happen to your money: you buy the coin, you move it, you sell it. "
+          + "Each line is what that step costs on " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src))
+          + ", and the three add up to the total. Hover a line for what is inside it. "
+          + "Taken from the " + this.fmtStamp(ts(cRowRaw.ts), true) + " sample."
         : "",
       waterfallStamp: cRowRaw ? "sampled " + this.fmtStamp(ts(cRowRaw.ts), true) : "",
       stackNote: (stackKeys.length === 2)
@@ -1869,27 +2034,26 @@ class Component extends DCLogic {
       // Fee prose on the methodology screen is built from the fee columns the
       // collector stamped on the row, so it cannot drift from what was charged.
       makerProse: cRowRaw
-        ? (cRowRaw.onramp_venue || "the on-ramp") + " charges a flat " +
+        ? (cRowRaw.onramp_venue || "the buying exchange") + " charges a flat " +
           ((num(cRowRaw.fee_on_maker_bps) ?? 0) / 100).toFixed(2) + "% at the base tier and " +
-          (cRowRaw.offramp_venue || "the off-ramp") + " " +
-          ((num(cRowRaw.fee_off_maker_bps) ?? 0) / 100).toFixed(2) + "% on maker fills"
-        : "the venues' maker schedules are not in this sample",
+          (cRowRaw.offramp_venue || "the selling exchange") + " " +
+          ((num(cRowRaw.fee_off_maker_bps) ?? 0) / 100).toFixed(2) + "% if you wait for your price"
+        : "the exchanges' cheaper fee tiers are not in this sample",
       takerProse: cRowRaw
-        ? (cRowRaw.onramp_venue || "the on-ramp") + " charges " +
-          ((num(cRowRaw.fee_on_taker_bps) ?? 0) / 100).toFixed(2) + "% taker, " +
-          (cRowRaw.offramp_venue || "the off-ramp") + " " +
+        ? (cRowRaw.onramp_venue || "the buying exchange") + " charges " +
+          ((num(cRowRaw.fee_on_taker_bps) ?? 0) / 100).toFixed(2) + "% to buy at the price on offer, " +
+          (cRowRaw.offramp_venue || "the selling exchange") + " " +
           ((num(cRowRaw.fee_off_taker_bps) ?? 0) / 100).toFixed(2) + "%, both verified " +
           (cLad ? cLad.verified : "—")
-        : "taker schedules are not in this sample",
+        : "the exchanges' fee schedules are not in this sample",
       legend: [
         { mark: "m", k: "measured", v: "live books, official mids, incumbent quotes" },
         { mark: "a", k: "assumed", v: "published fee schedules, dated" },
         { mark: "n", k: "not visible", v: "enterprise pricing, OTC" },
-        { mark: "°", k: "placeholder", v: "not yet wired to the collector" },
       ],
       provenance: [
-        { mark: "m", k: "Measured", v: "Live order books walked at real sizes, official mids, incumbent quotes. Timestamped and kept raw, one row per hour per corridor per notional." },
-        { mark: "a", k: "Assumed", v: "Venue fee tiers taken from published schedules and re-verified by hand. " +
+        { mark: "m", k: "Measured", v: "Live order books walked at the real amounts, official exchange rates, and every ordinary provider's quote. Timestamped and kept raw, one row per hour per route per amount." },
+        { mark: "a", k: "Assumed", v: "Fee tiers taken from each exchange’s published schedule and re-verified by hand. " +
             ladders.map(l => l.name + " " + l.verified).join(", ") + ". " + (feeStamp || "") },
         { mark: "n", k: "Not visible", v: "Enterprise pricing (Nium, Thunes, Circle partners) and OTC execution. Stated as invisible, never estimated." },
       ],
@@ -1900,11 +2064,11 @@ class Component extends DCLogic {
         { k: "incomplete sample", v: "scheduler red" },
       ],
       methodNotes: [
-        { k: "Bar scale", v: "The basis board is split into two bands, each with its own axis: markets above 200 bps and markets under it. The extremes differ from the tightest markets by three orders of magnitude, so a single shared axis renders most of them as one stub. Bars are comparable within a band, never across, and the number beside each bar is always the real figure." },
-        { k: "Basis definition", v: "Quote against the official USD mid carried in the same row, expressed in basis points. Positive means local buyers pay above the official rate for a dollar." },
-        { k: "Corridor cost", v: "All-in cost of a bank-to-bank transfer in basis points of the amount sent: on-ramp basis and fee, network fee, off-ramp basis and fee. Compared against the cheapest fiat rail quoting the same amount at the same second." },
+        { k: "Bar scale", v: "The board is split into two bands, each with its own axis: countries more than 2% from the official rate, and countries under it. The extremes differ from the tightest markets by three orders of magnitude, so a single shared axis renders most of them as one stub. Bars are comparable within a band, never across." },
+        { k: "What the gap means", v: "How far the price of a digital dollar on a local exchange sits from the official exchange rate captured in the same second. A plus means people there pay more than the official rate to get a dollar." },
+        { k: "What a transfer costs", v: "Everything it takes to move money from one bank account to another, as a share of the amount sent: what the digital dollar costs above the official rate at each end, what each exchange charges, and the blockchain fee. Compared against the cheapest ordinary provider quoting the same amount at the same second." },
         { k: "Backfill", v: "History before August 2026 is daily, not hourly. It appears in charts as history and never as hourly coverage." },
-        { k: "Every figure is computed", v: "Nothing on this page is typed in. Each number is read from data/*.csv at render time and carries the timestamp of the row it came from; where a figure cannot be computed it is shown as an empty state rather than filled in." },
+        { k: "Where the figures come from", v: "Each number is read from data/*.csv at render time and carries the timestamp of the row it came from." },
       ],
     };
   }
