@@ -182,6 +182,13 @@ const dstOf=r=>((r&&r.dst)||"").trim();
 // states and no fourth: verified, UNVERIFIED, or nothing at all. An absent or
 // empty file renders nothing -- no placeholder, no guessed date. Age computes
 // here, at render time, so the stamp cannot go stale in a cached page.
+// Distinct verification dates from a fees_verified string, oldest first.
+function feeDates(verified){
+  const legs=String(verified||"").split("|").map(x=>(x.split(":")[1]||"").trim()).filter(Boolean);
+  const uniq=Array.from(new Set(legs)).sort();
+  return uniq.length?uniq.join(" · "):"—";
+}
+
 function feeStamp(rows,verified){
   if(!rows||!rows.length) return "";
   const runs={};
@@ -246,7 +253,11 @@ function selectCorridor(key){
   document.title="margin.wiki — what it costs to send money to "+place(dstOf(r5));
   document.getElementById("stamp").innerHTML=
     `<b>updated</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?ago+" min ago":Math.round(ago/60)+" h ago"} · `+
-    `bought on ${r5.onramp_venue}, sold on ${r5.offramp_venue} · fees verified ${(r5.fees_verified||"").replace(/\|/g," · ").replace(/[a-z]+:/g,"")||"—"}`+
+    // fees_verified carries one date per leg ("ir:2026-08-10|coins:2026-08-10").
+    // Both legs are usually verified on the same day, and printing the string
+    // straight through rendered that as "2026-08-10 · 2026-08-10". Distinct
+    // dates only -- if the legs ever diverge, both still show.
+    `bought on ${r5.onramp_venue}, sold on ${r5.offramp_venue} · fees verified ${feeDates(r5.fees_verified)}`+
     // The dates are already printed above from fees_verified. The watcher stamp
     // only earns its place when it DISAGREES -- i.e. a check has gone red.
     ((feeStampText=feeStamp(feeChecks,r5.fees_verified)).startsWith("fees UNVERIFIED")

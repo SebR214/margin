@@ -667,7 +667,7 @@ textarea.input { min-height: 90px; resize: vertical; }
     <div style="padding: 44px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
         <div>
-          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">what the transfer costs, hourly <span style="border: 1px solid var(--color-neutral-400); padding: 0 5px; font-size: 9px;">placeholder</span></div>
+          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">what the transfer costs, hourly</div>
           <h2 style="font-size: 26px; margin: 0;">Sending money — {{ cc.name }} <span class="text-muted" style="font-weight: 400; font-size: 17px;">{{ cc.size }}</span></h2>
         </div>
         <div style="display: flex; align-items: flex-end; gap: 24px;">
@@ -883,7 +883,7 @@ textarea.input { min-height: 90px; resize: vertical; }
     <div style="padding: 40px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
         <div>
-          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">where the stablecoin route starts winning <span style="border: 1px solid var(--color-neutral-400); padding: 0 5px; font-size: 9px;">placeholder</span></div>
+          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">where the crypto route starts winning</div>
           <h2 style="font-size: 26px; margin: 0;">Where the cheaper fee tier stops mattering</h2>
         </div>
         <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">total cost, by amount sent</div>
@@ -942,7 +942,7 @@ textarea.input { min-height: 90px; resize: vertical; }
           </div>
         </div>
       </div>
-      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 92ch;">Each line is the same route priced at a different published fee tier, against the cheapest ordinary provider as the dashed line. Tier discounts are placeholders until the collector reads volume-tier fees from history.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 92ch;">Each line is the same route priced at a different published fee tier, against the cheapest ordinary provider as the dashed line. The discounted tiers are not drawn yet: the collector does not read volume-tier fees from history, so there is nothing measured to draw.</p>
     </div>
 
     <div style="padding: 40px 24px 0;">
@@ -1846,7 +1846,7 @@ class Component extends DCLogic {
       const st1 = num(small.cost_bps_taker), sr1 = num(small.baseline_cost_bps), bt = num(big.cost_bps_taker);
       if (st1 !== null && sr1 !== null && bt !== null) {
         findings.push({ date: this.fmtStamp(cLad.t, false),
-          q: "Are stablecoins worst at remittance size?",
+          q: "Is crypto worst for the small transfers most people send?",
           a: "Yes. Sending " + this.fmtSize(cLad.cur, num(small.notional_src)) + " costs " +
              this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(small.notional_src), st1)) +
              " through crypto against " +
@@ -1959,18 +1959,30 @@ class Component extends DCLogic {
         ];
       })(),
       corridors: ladders,
-      correction: cRowRaw ? [
-        // The claimed figure is a historical error, not a measurement, and has
-        // no CSV to compute from — it carries the placeholder mark rather than
-        // being presented as data. The rest is live.
-        { k: "claimed cost with the cheaper fee tier, first version", v: "not wired °", strike: "none" },
+      correction: cRowRaw ? [].concat(
+        // What this site PUBLISHED before fee verification, at S$5,000: maker
+        // modelled as free gave ~19.8 bps, corrected to ~79.6. Recorded in
+        // METHODOLOGY.md, "Two corrections landed on 2026-08-10".
+        //
+        // This is the one hardcoded figure on the page, and it is defensible
+        // for a reason that does not generalise: it is a record of a claim, not
+        // a measurement of a market. The market moving cannot make it wrong,
+        // because it was never right. It is pinned to the corridor and the size
+        // it was claimed at, and disappears entirely on any other, rather than
+        // being quietly re-used as if it applied there too.
+        (cLad.key === "SGD->PHP" ? [{
+          k: "claimed cost with the cheaper fee tier, first version, "
+             + this.fmtSize("SGD", 5000),
+          v: this.fmtMoney("SGD", this.costOf("SGD", 5000, 19.8)),
+          strike: "line-through" }] : []),
+      [
         { k: "actual cost with the cheaper fee tier, " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
           v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src),
                                                  num(cRowRaw.cost_bps_maker))), strike: "none" },
         { k: "verdict", v: (num(cRowRaw.cost_bps_maker) !== null && num(cRowRaw.baseline_cost_bps) !== null &&
             num(cRowRaw.cost_bps_maker) < num(cRowRaw.baseline_cost_bps))
             ? "the crypto route is cheaper" : "the ordinary provider is cheaper", strike: "none" },
-      ] : [],
+      ]) : [],
       findings, waterfall, stack, stackKeys, spread,
       correctionDate: cLad ? this.fmtStamp(cLad.t, false) : "—",
       // --- copy that carries a number is computed, so a sentence cannot go
@@ -2038,7 +2050,6 @@ class Component extends DCLogic {
         { mark: "m", k: "measured", v: "live books, official mids, incumbent quotes" },
         { mark: "a", k: "assumed", v: "published fee schedules, dated" },
         { mark: "n", k: "not visible", v: "enterprise pricing, OTC" },
-        { mark: "°", k: "placeholder", v: "not yet wired to the collector" },
       ],
       provenance: [
         { mark: "m", k: "Measured", v: "Live order books walked at the real amounts, official exchange rates, and every ordinary provider's quote. Timestamped and kept raw, one row per hour per route per amount." },
