@@ -278,6 +278,15 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
 
 ### P1 — the demo
 
+0. **USDT/USDC spread: wait for seven days of rows, then decide.** Collecting
+   since 2026-09-02 into `data/stable_spread.csv`, 12 venues. Nothing renders
+   until 7 days exist — a few bps between two stablecoins is inside one hour's
+   noise, and a week is the minimum that tells a spread from a print. First
+   live reading spanned −11.3 bps (Indodax) to +9.3 bps (Independent Reserve),
+   which is wide enough to be worth the wait and too thin to publish off one
+   sample.
+
+
 1. **The two write-ups** still open from the README:
    the taker/maker crossover, and why stablecoins are worst at remittance sizes
    (~156 bps at S$200). Both are now answerable from collected data rather than
@@ -350,6 +359,7 @@ data/basis_history.csv  daily backfill, 5 venues, 2024-03 →
 data/offramp_snapshots.csv   v1 wreckage, kept as history
 data/latest.json        machine-readable snapshot, regenerated each run
 data/crosses_latest.json  every currency pair: crypto-route rate vs official, per run
+data/stable_spread.csv  USDT vs USDC on the same venue, same hour (12 venues)
 data/withdrawal_fees.csv USDT withdrawal fee per venue/network, append-only
 tools/seed_withdrawal_fees.py   one-time seed for withdrawal_fees.csv
 tools/emit_latest.py    builds latest.json from the CSVs

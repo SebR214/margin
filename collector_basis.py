@@ -48,6 +48,7 @@ HTTP_TIMEOUT = 20
 UA = {"User-Agent": "margin.wiki basis-collector/1.0 (+https://margin.wiki)"}
 HERE = os.path.dirname(os.path.abspath(__file__))
 BASIS = os.path.join(HERE, "data", "basis.csv")
+STABLE = os.path.join(HERE, "data", "stable_spread.csv")
 FX_URL = "https://open.er-api.com/v6/latest/USD"
 
 FIELDS = [
@@ -59,6 +60,14 @@ FIELDS = [
     # venues carry their own slug. History-backed = also present in
     # data/basis_history.csv.
     "source",
+    "source_ok", "error",
+]
+
+# The USDT-vs-USDC layer. Its own file and its own frozen schema: basis.csv has
+# one price per row and adding a second stablecoin to it would either mean a new
+# column on a frozen schema or a second row that looks like a second venue.
+STABLE_FIELDS = [
+    "ts_utc", "venue", "ccy", "usdt_mid", "usdc_mid", "spread_bps",
     "source_ok", "error",
 ]
 
@@ -123,9 +132,10 @@ def parse_indodax(d):
     return (_f(t.get("buy")), _f(t.get("sell")), _f(t.get("last")))
 
 
-def parse_bitkub(d):
+def parse_bitkub(d, sym="THB_USDT"):
     # market/ticker: all pairs keyed by "THB_USDT" -> {"highestBid","lowestAsk","last"}.
-    t = d.get("THB_USDT") or {}
+    # `sym` because the same payload also carries THB_USDC.
+    t = d.get(sym) or {}
     return (_f(t.get("highestBid")), _f(t.get("lowestAsk")), _f(t.get("last")))
 
 
@@ -178,19 +188,20 @@ def parse_coinone(d):
     return (bid, ask, _f(t.get("last")))
 
 
-def parse_paribu(d):
+def parse_paribu(d, key="USDT_TL"):
     # /ticker: every pair in one payload, keyed "USDT_TL" (Paribu says TL, not
-    # TRY). {"lowestAsk","highestBid","last"}. Numeric.
-    t = d.get("USDT_TL") or {}
+    # TRY). {"lowestAsk","highestBid","last"}. Numeric. USDC_TL is in the same
+    # payload, hence `key`.
+    t = d.get(key) or {}
     return (_f(t.get("highestBid")), _f(t.get("lowestAsk")), _f(t.get("last")))
 
 
-def parse_foxbit(d):
+def parse_foxbit(d, sym="usdtbrl"):
     # rest/v3/markets/ticker/24hr: every market in one list. The `symbols` query
     # param is ignored by the API (verified 2026-09-02 -- it returns btcbrl
     # first regardless), so filter here rather than trusting the URL.
     for row in (d.get("data") or []):
-        if isinstance(row, dict) and row.get("market_symbol") == "usdtbrl":
+        if isinstance(row, dict) and row.get("market_symbol") == sym:
             best = row.get("best") or {}
             bid = (best.get("bid") or {}).get("price")
             ask = (best.get("ask") or {}).get("price")
@@ -208,13 +219,13 @@ def parse_mercadobitcoin(d):
     return (_f(row.get("buy")), _f(row.get("sell")), _f(row.get("last")))
 
 
-def parse_pintu(d):
+def parse_pintu(d, pair="usdt/idr"):
     # v2/trade/price-changes: {"payload":[{"pair":"usdt/idr","latestPrice"}]}.
     # Last price only -- Pintu publishes no public book, so mid_of() falls back
     # to last and usdt_bid/usdt_ask stay empty. That is a real limitation of the
     # source, recorded as blank cells rather than papered over.
     for row in (d.get("payload") or []):
-        if isinstance(row, dict) and row.get("pair") == "usdt/idr":
+        if isinstance(row, dict) and row.get("pair") == pair:
             return (None, None, _f(row.get("latestPrice")))
     return (None, None, None)
 
@@ -263,6 +274,8 @@ VENUES = [
                        "?primaryCurrencyCode=Usdt&secondaryCurrencyCode=Sgd"),
         "parse_fn": parse_independent_reserve,
         "candles_fn": None,
+        "usdc_url": ("https://api.independentreserve.com/Public/GetMarketSummary"
+                     "?primaryCurrencyCode=Usdc&secondaryCurrencyCode=Sgd"),
         "enabled": True,
     },
     {
@@ -273,6 +286,8 @@ VENUES = [
                        "?symbol=USDTPHP"),
         "parse_fn": parse_coins_pro,
         "candles_fn": None,
+        "usdc_url": ("https://api.pro.coins.ph/openapi/quote/v1/ticker/bookTicker"
+                     "?symbol=USDCPHP"),
         "enabled": True,
     },
     # --- item 3: five new venues (endpoints verified live 2026-08-10). Each is
@@ -284,6 +299,7 @@ VENUES = [
         "ticker_url": "https://api.btcturk.com/api/v2/ticker?pairSymbol=USDTTRY",
         "parse_fn": parse_btcturk,
         "candles_fn": None,
+        "usdc_url": "https://api.btcturk.com/api/v2/ticker?pairSymbol=USDCTRY",
         "enabled": True,
     },
     {
@@ -292,6 +308,7 @@ VENUES = [
         "ticker_url": "https://api.upbit.com/v1/ticker?markets=KRW-USDT",
         "parse_fn": parse_upbit,
         "candles_fn": None,
+        "usdc_url": "https://api.upbit.com/v1/ticker?markets=KRW-USDC",
         "enabled": True,
     },
     {
@@ -300,6 +317,7 @@ VENUES = [
         "ticker_url": "https://indodax.com/api/usdt_idr/ticker",
         "parse_fn": parse_indodax,
         "candles_fn": None,
+        "usdc_url": "https://indodax.com/api/usdc_idr/ticker",
         "enabled": True,
     },
     {
@@ -308,6 +326,9 @@ VENUES = [
         "ticker_url": "https://api.bitkub.com/api/market/ticker",
         "parse_fn": parse_bitkub,
         "candles_fn": None,
+        # Same payload as USDT -- one fetch, two pairs.
+        "usdc_url": "https://api.bitkub.com/api/market/ticker",
+        "usdc_parse_fn": lambda d: parse_bitkub(d, "THB_USDC"),
         "enabled": True,
     },
     {
@@ -333,6 +354,7 @@ VENUES = [
         "ticker_url": "https://api.bithumb.com/public/orderbook/USDT_KRW?count=1",
         "parse_fn": parse_bithumb,
         "candles_fn": None,
+        "usdc_url": "https://api.bithumb.com/public/orderbook/USDC_KRW?count=1",
         "enabled": True,
     },
     {
@@ -341,6 +363,7 @@ VENUES = [
         "ticker_url": "https://api.coinone.co.kr/public/v2/ticker_new/KRW/USDT",
         "parse_fn": parse_coinone,
         "candles_fn": None,
+        "usdc_url": "https://api.coinone.co.kr/public/v2/ticker_new/KRW/USDC",
         "enabled": True,
     },
     {
@@ -349,6 +372,8 @@ VENUES = [
         "ticker_url": "https://www.paribu.com/ticker",
         "parse_fn": parse_paribu,
         "candles_fn": None,
+        "usdc_url": "https://www.paribu.com/ticker",
+        "usdc_parse_fn": lambda d: parse_paribu(d, "USDC_TL"),
         "enabled": True,
     },
     {
@@ -358,6 +383,8 @@ VENUES = [
         "ticker_url": "https://api.pintu.co.id/v2/trade/price-changes",
         "parse_fn": parse_pintu,
         "candles_fn": None,
+        "usdc_url": "https://api.pintu.co.id/v2/trade/price-changes",
+        "usdc_parse_fn": lambda d: parse_pintu(d, "usdc/idr"),
         "enabled": True,
     },
     {
@@ -366,6 +393,8 @@ VENUES = [
         "ticker_url": "https://api.foxbit.com.br/rest/v3/markets/ticker/24hr",
         "parse_fn": parse_foxbit,
         "candles_fn": None,
+        "usdc_url": "https://api.foxbit.com.br/rest/v3/markets/ticker/24hr",
+        "usdc_parse_fn": lambda d: parse_foxbit(d, "usdcbrl"),
         "enabled": True,
     },
     {
@@ -376,6 +405,7 @@ VENUES = [
         "ticker_url": "https://api.mercadobitcoin.net/api/v4/tickers?symbols=USDT-BRL",
         "parse_fn": parse_mercadobitcoin,
         "candles_fn": None,
+        "usdc_url": "https://api.mercadobitcoin.net/api/v4/tickers?symbols=USDC-BRL",
         "enabled": True,
     },
     # --- item 5: CriptoYa aggregator. ONE integration = the LatAm
@@ -539,6 +569,94 @@ def build_rows(ts, venues, fx, fetch=get_json):
     return rows, n_ok
 
 
+def stable_spread_bps(usdt_mid, usdc_mid):
+    """How far USDC trades from USDT on the same venue, in bps. None if either
+    is missing. Positive = USDC is dearer than USDT in that market."""
+    if not usdt_mid or not usdc_mid:
+        return None
+    return round((usdc_mid / usdt_mid - 1) * 1e4, 2)
+
+
+def build_stable_rows(ts, venues, usdt_mids, fetch=get_json):
+    """One row per venue that quotes BOTH stablecoins against the same currency.
+
+    "Both, in the same hour" is the whole point, so the USDT side is not
+    re-fetched: it is the mid this same run already captured for basis.csv,
+    passed in. A venue whose USDT pull failed therefore has no USDC row either —
+    half a spread is not a spread — and that is recorded, not skipped.
+
+    Venues with no `usdc_url` are absent entirely rather than present with empty
+    cells: Bitso has no `usdc_mxn` book at all (the API answers "Unknown
+    OrderBook"), and a row of nulls would suggest a market that failed rather
+    than one that does not exist.
+
+    Same isolation contract as the wide layer: one venue erroring writes
+    source_ok=False and the error string and does not stop the rest.
+    """
+    rows, n_ok, cache = [], 0, {}
+
+    def fetch_cached(url):
+        # Bitkub, Paribu, Pintu and Foxbit publish every pair in one payload, so
+        # the USDC url IS the USDT url. One call, two prices.
+        if url not in cache:
+            cache[url] = fetch(url)
+        return cache[url]
+
+    for v in venues:
+        if not v.get("enabled", True) or not v.get("usdc_url"):
+            continue
+        row = {"ts_utc": ts, "venue": v["name"], "ccy": v["fiat_ccy"],
+               "usdt_mid": None, "usdc_mid": None, "spread_bps": None,
+               "source_ok": False, "error": ""}
+        try:
+            u_mid = usdt_mids.get(v["name"])
+            if u_mid is None:
+                raise ValueError("no USDT mid captured this run")
+            row["usdt_mid"] = u_mid
+            payload = fetch_cached(v["usdc_url"])
+            parse = v.get("usdc_parse_fn") or v["parse_fn"]
+            bid, ask, last = parse(payload)
+            c_mid = bid if v.get("mid_rule") == "bid" else mid_of(bid, ask, last)
+            if c_mid is None:
+                raise ValueError("no usable USDC price")
+            row["usdc_mid"] = round(c_mid, 8)
+            row["spread_bps"] = stable_spread_bps(u_mid, c_mid)
+            row["source_ok"] = True
+            n_ok += 1
+        except Exception as e:
+            row["error"] = f"{type(e).__name__}:{e}"[:300]
+        rows.append(row)
+    return rows, n_ok
+
+
+def append_stable(rows):
+    os.makedirs(os.path.dirname(STABLE), exist_ok=True)
+    new = not os.path.exists(STABLE)
+    with open(STABLE, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=STABLE_FIELDS, extrasaction="ignore")
+        if new:
+            w.writeheader()
+        w.writerows(rows)
+    return STABLE
+
+
+def print_stable(rows):
+    print(f"  USDC vs USDT on the same venue   {rows[0]['ts_utc'][:16]}Z")
+    print("  " + "-" * 58)
+    print(f"  {'VENUE':<20}{'CCY':>5}{'USDT':>12}{'USDC':>12}{'SPREAD':>9}")
+    print("  " + "-" * 58)
+    for r in rows:
+        u = f"{r['usdt_mid']:.5f}" if r["usdt_mid"] is not None else "--"
+        c = f"{r['usdc_mid']:.5f}" if r["usdc_mid"] is not None else "--"
+        sp = f"{r['spread_bps']:+.1f}bp" if r["spread_bps"] is not None else "--"
+        print(f"  {r['venue']:<20}{r['ccy']:>5}{u:>12}{c:>12}{sp:>9}")
+    print("  " + "-" * 58)
+    for r in [r for r in rows if not r["source_ok"]]:
+        print(f"  ! {r['venue']}: {r['error']}")
+    bad = sum(1 for r in rows if not r["source_ok"])
+    print(f"  {len(rows) - bad}/{len(rows)} venues quote both\n")
+
+
 def collect(venues=VENUES):
     """One live sample across the registry. Never raises; records failures."""
     ts = dt.datetime.now(dt.timezone.utc).isoformat()
@@ -641,7 +759,9 @@ UPBIT_FIXTURE = [{"market": "KRW-USDT", "trade_price": 1408.0,
 INDODAX_FIXTURE = {"ticker": {"buy": "17649", "sell": "17650", "last": "17649",
                               "high": "17709", "low": "17600"}}
 BITKUB_FIXTURE = {"THB_USDT": {"id": 8, "last": 33.02, "highestBid": 33.02,
-                               "lowestAsk": 33.03, "baseVolume": 15532950.29}}
+                               "lowestAsk": 33.03, "baseVolume": 15532950.29},
+                  "THB_USDC": {"id": 9, "last": 33.06, "highestBid": 33.05,
+                               "lowestAsk": 33.07, "baseVolume": 210433.11}}
 BITSO_FIXTURE = {"success": True, "payload": {"book": "usdt_mxn", "bid": "17.132",
                  "ask": "17.133", "last": "17.132", "high": "17.18"}}
 # Captured live from a US GitHub runner 2026-09-02, one call per venue.
@@ -658,7 +778,10 @@ COINONE_FIXTURE = {"result": "success", "error_code": "0", "tickers": [{
 PARIBU_FIXTURE = {"USDT_TL": {"chartData": [], "lowestAsk": 48.196,
                               "highestBid": 48.195, "low24hr": 48.182,
                               "high24hr": 48.234, "volume": 6580796.64,
-                              "last": 48.195, "percentChange": -0.03}}
+                              "last": 48.195, "percentChange": -0.03},
+                  "USDC_TL": {"chartData": [], "lowestAsk": 48.188,
+                              "highestBid": 48.179, "volume": 31696.07,
+                              "last": 48.179, "percentChange": 0.02}}
 # Foxbit ignores ?symbols= and returns every market -- btcbrl really is first.
 FOXBIT_FIXTURE = {"data": [
     {"market_symbol": "btcbrl", "last_trade": {"price": "397312.00000000"},
@@ -666,14 +789,36 @@ FOXBIT_FIXTURE = {"data": [
               "bid": {"price": "397300.00000000"}}},
     {"market_symbol": "usdtbrl", "last_trade": {"price": "5.16750000"},
      "rolling_24h": {"open": "5.20020000"},
-     "best": {"ask": {"price": "5.16750000"}, "bid": {"price": "5.16740000"}}}]}
+     "best": {"ask": {"price": "5.16750000"}, "bid": {"price": "5.16740000"}}},
+    {"market_symbol": "usdcbrl", "last_trade": {"price": "5.17250000"},
+     "best": {"ask": {"price": "5.17360000"}, "bid": {"price": "5.17250000"}}}]}
 MERCADO_FIXTURE = [{"pair": "USDT-BRL", "high": "5.21820000",
                     "low": "5.14960000", "vol": "1746665.02450000",
                     "last": "5.16930000", "buy": "5.16920000",
                     "sell": "5.16930000", "open": "5.20200000"}]
 PINTU_FIXTURE = {"code": "success", "message": "", "payload": [
     {"pair": "cvx/idr", "latestPrice": "42024", "day": "2.21"},
-    {"pair": "usdt/idr", "latestPrice": "17734", "day": "0.16"}]}
+    {"pair": "usdt/idr", "latestPrice": "17734", "day": "0.16"},
+    {"pair": "usdc/idr", "latestPrice": "17756", "day": "0.24"}]}
+
+# The USDC side, for venues that publish it on a separate endpoint. Same shapes
+# as their USDT payloads -- same parsers, different pair.
+IR_USDC_FIXTURE = {"CurrentHighestBidPrice": 1.2812, "CurrentLowestOfferPrice": 1.2822,
+                   "LastPrice": 1.2817}
+COINS_USDC_FIXTURE = {"symbol": "USDCPHP", "bidPrice": "62.62", "askPrice": "62.63"}
+BTCTURK_USDC_FIXTURE = {"data": [{"pair": "USDCTRY", "bid": 48.123, "ask": 48.209,
+                                  "last": 48.122}], "success": True}
+UPBIT_USDC_FIXTURE = [{"market": "KRW-USDC", "trade_price": 1377.0}]
+INDODAX_USDC_FIXTURE = {"ticker": {"buy": "17709", "sell": "17710", "last": "17709"}}
+BITHUMB_USDC_FIXTURE = {"status": "0000", "data": {
+    "payment_currency": "KRW", "order_currency": "USDC",
+    "bids": [{"price": "1375", "quantity": "38817.0528"}],
+    "asks": [{"price": "1377", "quantity": "12004.9"}]}}
+COINONE_USDC_FIXTURE = {"result": "success", "tickers": [{
+    "quote_currency": "krw", "target_currency": "usdc", "last": "1376.0",
+    "best_asks": [{"price": "1377.0"}], "best_bids": [{"price": "1375.0"}]}]}
+MERCADO_USDC_FIXTURE = [{"pair": "USDC-BRL", "last": "5.17250000",
+                         "buy": "5.17250000", "sell": "5.17360000"}]
 
 # CriptoYa general endpoint: many exchanges. Odd counts -> exact medians.
 CRIPTOYA_ARS_FIXTURE = {  # median bid 1565, median ask 1585 -> mid 1575
@@ -721,6 +866,13 @@ TS_FIXTURE = "2026-08-10T00:00:00+00:00"
 # Exception instance (raised) to simulate malformed data or an outage. CriptoYa
 # keys on the fiat in the path (usdt/ars...) so the three pairs stay distinct.
 _ROUTES = {
+    # USDC first: these urls also contain the venue's generic key, so a generic
+    # match would silently hand back the USDT payload and the spread would read
+    # as exactly zero -- a wrong number that looks like a finding.
+    "primarycurrencycode=usdc": IR_USDC_FIXTURE, "usdcphp": COINS_USDC_FIXTURE,
+    "usdctry": BTCTURK_USDC_FIXTURE, "krw-usdc": UPBIT_USDC_FIXTURE,
+    "usdc_idr": INDODAX_USDC_FIXTURE, "usdc_krw": BITHUMB_USDC_FIXTURE,
+    "krw/usdc": COINONE_USDC_FIXTURE, "usdc-brl": MERCADO_USDC_FIXTURE,
     "independentreserve": IR_FIXTURE, "coins": COINS_FIXTURE,
     "btcturk": BTCTURK_FIXTURE, "upbit": UPBIT_FIXTURE, "indodax": INDODAX_FIXTURE,
     "bitkub": BITKUB_FIXTURE, "bitso": BITSO_FIXTURE,
@@ -879,7 +1031,49 @@ def selftest():
     print("  [ok] total blackout (all venues fail) -> run exits non-zero")
 
     assert set(FIELDS) >= set(_base_row(TS_FIXTURE, VENUES[0]))
-    print("  [ok] schema covers every row field\n")
+    print("  [ok] schema covers every row field")
+
+    # 9. USDT vs USDC on the same venue, same hour
+    assert stable_spread_bps(33.02, 33.06) == 12.11, stable_spread_bps(33.02, 33.06)
+    assert stable_spread_bps(None, 1.0) is None and stable_spread_bps(1.0, 0) is None
+    usdt_mids = {r["venue"]: r["usdt_mid"] for r in rows if r["source_ok"]}
+    srows, sok = build_stable_rows(TS_FIXTURE, VENUES, usdt_mids, fetch=_make_fetch())
+    assert len(srows) == 12 and sok == 12, (len(srows), sok)
+    sby = {r["venue"]: r for r in srows}
+    # Bitso has no usdc_mxn book at all -- absent, not a row of nulls
+    assert "Bitso" not in sby and not any(r["ccy"] == "MXN" for r in srows)
+    # the four combined payloads must read the USDC pair, not hand back USDT
+    for name in ("Bitkub", "Paribu", "Pintu", "Foxbit"):
+        assert sby[name]["usdc_mid"] != sby[name]["usdt_mid"], name
+        assert sby[name]["spread_bps"] not in (None, 0.0), (name, sby[name])
+    # Bitkub: USDT mid 33.025, USDC mid 33.06 -> USDC dearer by 10.6 bps.
+    # Both are MIDS, not last prices -- the fixture's last prices would give
+    # 12.11, and reading the wrong field is exactly the mistake to catch here.
+    assert abs(sby["Bitkub"]["spread_bps"] - 10.6) < 0.1, sby["Bitkub"]
+    # the USDT side is the mid this run already captured, never re-fetched
+    assert sby["Bitkub"]["usdt_mid"] == by["Bitkub"]["usdt_mid"]
+    assert set(STABLE_FIELDS) >= set(srows[0])
+    print(f"  [ok] USDT/USDC: {sok}/{len(srows)} venues quote both; "
+          f"Bitso absent (no usdc_mxn book)")
+
+    # 10. half a spread is not a spread: a venue whose USDT pull failed gets a
+    #     row saying so rather than a USDC price with nothing to compare it to
+    srows_h, sok_h = build_stable_rows(
+        TS_FIXTURE, VENUES, {k: v for k, v in usdt_mids.items() if k != "Upbit"},
+        fetch=_make_fetch())
+    up = next(r for r in srows_h if r["venue"] == "Upbit")
+    assert up["source_ok"] is False and "no USDT mid" in up["error"], up
+    assert up["usdc_mid"] is None and up["spread_bps"] is None, up
+    assert sok_h == 11, sok_h
+    # and one venue's USDC endpoint dying does not touch the others
+    srows_o, sok_o = build_stable_rows(
+        TS_FIXTURE, VENUES, usdt_mids,
+        fetch=_make_fetch({"usdc_krw": RuntimeError("simulated 503")}))
+    bh = next(r for r in srows_o if r["venue"] == "Bithumb")
+    assert bh["source_ok"] is False and "simulated 503" in bh["error"]
+    assert sok_o == 11, sok_o
+    print("  [ok] USDT/USDC: missing USDT mid and a dead endpoint isolate to "
+          "their own row\n")
 
     import tempfile
     with tempfile.TemporaryDirectory() as d:
@@ -938,18 +1132,46 @@ def main():
     if not a.verify:
         append(rows)
 
+    # USDT vs USDC on the same venue, in the same hour, off the mids just
+    # captured. Gated on ITS OWN file: the layer is newer than basis.csv, so an
+    # hour where basis already landed can still be the first hour this file has.
+    # Failing here must never cost the basis rows, which are already on disk.
+    stable_rows, stable_ok = [], 0
+    if a.verify or not captured_this_hour(STABLE, "ts_utc"):
+        usdt_mids = {r["venue"]: r["usdt_mid"] for r in rows if r["source_ok"]}
+        ts = rows[0]["ts_utc"] if rows else dt.datetime.now(dt.timezone.utc).isoformat()
+        try:
+            stable_rows, stable_ok = build_stable_rows(ts, VENUES, usdt_mids)
+        except Exception as e:
+            print(f"  [warn] stable layer failed entirely: "
+                  f"{type(e).__name__}: {e}", file=sys.stderr)
+        if stable_rows and not a.verify:
+            append_stable(stable_rows)
+
     if a.json:
         print(json.dumps(rows, indent=2, default=str))
     else:
         print_table(rows)
+        if stable_rows:
+            print_stable(stable_rows)
 
     if a.verify:
         return
 
-    print(f"  appended -> {BASIS}\n")
+    print(f"  appended -> {BASIS}")
+    if stable_rows:
+        print(f"  appended -> {STABLE}")
+    print()
     # loud failure: only a total blackout goes red, per the wide-layer contract
     if run_exit_code(n_ok) != 0:
         print("  [error] TOTAL BLACKOUT -- every venue failed this run", file=sys.stderr)
+        sys.exit(1)
+    # Same contract for the stable layer, and only when it actually ran: every
+    # venue that quotes both stablecoins failing at once is an outage, not a
+    # market. A hour it skipped (already captured) is silent, as it should be.
+    if stable_rows and stable_ok == 0:
+        print("  [error] every venue failed the USDT/USDC pull this run",
+              file=sys.stderr)
         sys.exit(1)
 
 
