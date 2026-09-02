@@ -349,6 +349,7 @@ data/providers_usdmxn.csv    full incumbent panel, hourly (USD→MXN)
 data/basis_history.csv  daily backfill, 5 venues, 2024-03 →
 data/offramp_snapshots.csv   v1 wreckage, kept as history
 data/latest.json        machine-readable snapshot, regenerated each run
+data/crosses_latest.json  every currency pair: crypto-route rate vs official, per run
 data/withdrawal_fees.csv USDT withdrawal fee per venue/network, append-only
 tools/seed_withdrawal_fees.py   one-time seed for withdrawal_fees.csv
 tools/emit_latest.py    builds latest.json from the CSVs
