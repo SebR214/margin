@@ -74,7 +74,17 @@ jobs:
         run: |
           git config user.name "margin-collector"
           git config user.email "actions@github.com"
-          git add data/samples.csv data/basis.csv data/providers.csv data/providers_usdmxn.csv data/latest.json data/crosses_latest.json data/stable_spread.csv
+          # Staged one at a time, and only if present. `git add` on a path
+          # that does not exist yet is a fatal error (exit 128), and under
+          # `bash -e` that kills the step BEFORE the freshness guard runs --
+          # which is how adding data/stable_spread.csv to this list turned a
+          # healthy no-op run red on 2026-09-02. A layer that has not written
+          # its first row yet is a normal state, not a failure.
+          for f in data/samples.csv data/basis.csv data/providers.csv \
+                   data/providers_usdmxn.csv data/latest.json \
+                   data/crosses_latest.json data/stable_spread.csv; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
           if git diff --cached --quiet; then
             # Expected on the second fire of an hour the first fire already
             # captured. latest.json is a pure function of the data (no wall
