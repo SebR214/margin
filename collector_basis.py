@@ -31,6 +31,7 @@ Usage:
 """
 
 import argparse
+import collections
 import csv
 import datetime as dt
 import json
@@ -152,6 +153,101 @@ def parse_criptoya(d):
             statistics.median(asks) if asks else None, None)
 
 
+def parse_bithumb(d):
+    # public/orderbook/USDT_KRW?count=1: {"status":"0000","data":{"bids":[{"price"}],
+    # "asks":[{"price"}]}}. The /public/ticker endpoint has no bid/ask at all --
+    # only closing_price -- so the order book is the honest source here.
+    data = d.get("data") or {}
+    bids = data.get("bids") or []
+    asks = data.get("asks") or []
+    bid = _f(bids[0].get("price")) if bids and isinstance(bids[0], dict) else None
+    ask = _f(asks[0].get("price")) if asks and isinstance(asks[0], dict) else None
+    return (bid, ask, None)
+
+
+def parse_coinone(d):
+    # public/v2/ticker_new/KRW/USDT: {"tickers":[{"best_bids":[{"price"}],
+    # "best_asks":[{"price"}],"last"}]}. KRW is the quote, so prices are won/USDT.
+    t = (d.get("tickers") or [{}])[0]
+    if not isinstance(t, dict):
+        return (None, None, None)
+    bids = t.get("best_bids") or []
+    asks = t.get("best_asks") or []
+    bid = _f(bids[0].get("price")) if bids and isinstance(bids[0], dict) else None
+    ask = _f(asks[0].get("price")) if asks and isinstance(asks[0], dict) else None
+    return (bid, ask, _f(t.get("last")))
+
+
+def parse_paribu(d):
+    # /ticker: every pair in one payload, keyed "USDT_TL" (Paribu says TL, not
+    # TRY). {"lowestAsk","highestBid","last"}. Numeric.
+    t = d.get("USDT_TL") or {}
+    return (_f(t.get("highestBid")), _f(t.get("lowestAsk")), _f(t.get("last")))
+
+
+def parse_foxbit(d):
+    # rest/v3/markets/ticker/24hr: every market in one list. The `symbols` query
+    # param is ignored by the API (verified 2026-09-02 -- it returns btcbrl
+    # first regardless), so filter here rather than trusting the URL.
+    for row in (d.get("data") or []):
+        if isinstance(row, dict) and row.get("market_symbol") == "usdtbrl":
+            best = row.get("best") or {}
+            bid = (best.get("bid") or {}).get("price")
+            ask = (best.get("ask") or {}).get("price")
+            last = (row.get("last_trade") or {}).get("price")
+            return (_f(bid), _f(ask), _f(last))
+    return (None, None, None)
+
+
+def parse_mercadobitcoin(d):
+    # api/v4/tickers?symbols=USDT-BRL: [{"pair":"USDT-BRL","buy","sell","last"}].
+    # buy/sell are the book's best bid/ask. String-priced.
+    row = d[0] if isinstance(d, list) and d else {}
+    if not isinstance(row, dict):
+        return (None, None, None)
+    return (_f(row.get("buy")), _f(row.get("sell")), _f(row.get("last")))
+
+
+def parse_pintu(d):
+    # v2/trade/price-changes: {"payload":[{"pair":"usdt/idr","latestPrice"}]}.
+    # Last price only -- Pintu publishes no public book, so mid_of() falls back
+    # to last and usdt_bid/usdt_ask stay empty. That is a real limitation of the
+    # source, recorded as blank cells rather than papered over.
+    for row in (d.get("payload") or []):
+        if isinstance(row, dict) and row.get("pair") == "usdt/idr":
+            return (None, None, _f(row.get("latestPrice")))
+    return (None, None, None)
+
+
+def expand_criptoya(d):
+    """CriptoYa's payload is many exchanges at once -> one row each.
+
+    The aggregate row (median across exchanges, see parse_criptoya) is still
+    written and still keys the existing history. This is the per-exchange
+    detail underneath it, so a country whose only source is CriptoYa can have a
+    median across real venues instead of a median presented as a venue.
+
+    P2P books are dropped. They are a different market with a different
+    mechanism -- an advertised price with counterparty risk and no matching
+    engine -- and they are their own piece of work (ROADMAP, P2P layer). Mixing
+    them into a spot median silently would be the kind of quiet blend this repo
+    exists to avoid. That also keeps Binance out, per the invariant.
+
+    -> [(exchange_name, bid, ask, last)], sorted, empty on a malformed payload.
+    """
+    if not isinstance(d, dict):
+        return []
+    out = []
+    for name, v in sorted(d.items()):
+        if not isinstance(v, dict) or "p2p" in name.lower():
+            continue
+        bid, ask = _f(v.get("bid")), _f(v.get("ask"))
+        if bid is None and ask is None:
+            continue
+        out.append((name, bid, ask, None))
+    return out
+
+
 # ------------------------------------------------------------- registry
 # name       : row label, must be stable (it keys history)
 # fiat_ccy   : ISO code, indexes the shared FX snapshot
@@ -223,23 +319,87 @@ VENUES = [
         "candles_fn": None,
         "enabled": True,
     },
+    # --- 2026-09-02: a second venue per currency, so a country's headline is a
+    # median across venues rather than one venue's opinion. Every endpoint below
+    # was called from a US GitHub runner (the environment production runs in,
+    # not a laptop) on 2026-09-02 and returned a real USDT quote. Candidates
+    # that did NOT are listed under "not added" beneath the registry, with the
+    # status code, rather than being left as an unexplained absence.
+    {
+        "name": "Bithumb",
+        "fiat_ccy": "KRW",
+        # Order book, not /public/ticker: the ticker endpoint publishes no
+        # bid/ask at all, only closing_price.
+        "ticker_url": "https://api.bithumb.com/public/orderbook/USDT_KRW?count=1",
+        "parse_fn": parse_bithumb,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "Coinone",
+        "fiat_ccy": "KRW",
+        "ticker_url": "https://api.coinone.co.kr/public/v2/ticker_new/KRW/USDT",
+        "parse_fn": parse_coinone,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "Paribu",
+        "fiat_ccy": "TRY",
+        "ticker_url": "https://www.paribu.com/ticker",
+        "parse_fn": parse_paribu,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "Pintu",
+        "fiat_ccy": "IDR",
+        # Last price only -- no public book. usdt_bid/usdt_ask stay empty.
+        "ticker_url": "https://api.pintu.co.id/v2/trade/price-changes",
+        "parse_fn": parse_pintu,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "Foxbit",
+        "fiat_ccy": "BRL",
+        "ticker_url": "https://api.foxbit.com.br/rest/v3/markets/ticker/24hr",
+        "parse_fn": parse_foxbit,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "MercadoBitcoin",
+        "fiat_ccy": "BRL",
+        # Cloudflare 1009s this from some countries (it did from a laptop in
+        # Asia); it answers 200 from the US runner, which is where it runs.
+        "ticker_url": "https://api.mercadobitcoin.net/api/v4/tickers?symbols=USDT-BRL",
+        "parse_fn": parse_mercadobitcoin,
+        "candles_fn": None,
+        "enabled": True,
+    },
     # --- item 5: CriptoYa aggregator. ONE integration = the LatAm
     # parallel-dollar map. Snapshot-only (no candle history), so source is
     # "criptoya" and the map marks these venues as no-history. General endpoint;
     # the quote taken is the median across listed exchanges (see parse_criptoya).
     # For ARS/VES the er-api comparator is the OFFICIAL rate, so basis here IS
     # the parallel-dollar premium -- the whole point. Attribute CriptoYa on site.
+    # ARS and VES have no direct venue at all, so their aggregate row was also
+    # their only row. expand_fn writes one extra row per exchange CriptoYa
+    # lists (P2P excluded), which is what lets a median be a median. The
+    # aggregate row is kept unchanged -- it keys 2024-onward history and the
+    # backfill -- and is excluded from the median by name.
     {
         "name": "CriptoYa (ARS)", "fiat_ccy": "ARS",
         "ticker_url": "https://criptoya.com/api/USDT/ARS/1",
         "parse_fn": parse_criptoya, "candles_fn": None, "enabled": True,
-        "source": "criptoya", "mid_rule": "bid",
+        "source": "criptoya", "mid_rule": "bid", "expand_fn": expand_criptoya,
     },
     {
         "name": "CriptoYa (VES)", "fiat_ccy": "VES",
         "ticker_url": "https://criptoya.com/api/USDT/VES/1",
         "parse_fn": parse_criptoya, "candles_fn": None, "enabled": True,
-        "source": "criptoya", "mid_rule": "bid",
+        "source": "criptoya", "mid_rule": "bid", "expand_fn": expand_criptoya,
     },
     {
         "name": "CriptoYa (BRL)", "fiat_ccy": "BRL",
@@ -248,6 +408,37 @@ VENUES = [
         "source": "criptoya", "mid_rule": "bid",
     },
 ]
+
+# Candidates called and REJECTED, 2026-09-02, all from a US GitHub runner. Kept
+# here because "why is there only one venue for the Philippines" is a question
+# the site now has to answer, and an empty list is not an answer.
+#
+#   PDAX (PHP)            403 {"message":"Forbidden"} on every path tried
+#                         (/trading-pairs, /markets, /products, /public/ticker,
+#                         /v1/trading-pairs). No public ticker exists.
+#   Coinhako (SGD)        403, Cloudflare interstitial. No public API.
+#   Orbix (THB)           no public ticker endpoint found to call at all.
+#   Binance TH (THB)      reachable (200), but -1121 "Invalid symbol" for
+#                         USDTTHB: it has no USDT/THB book to quote. Its own
+#                         product list is USDC-quoted.
+#   Binance TR (TRY)      451. Binance MX / binance.com (MXN, TRY): 451,
+#                         "restricted location". Unchanged since 2026-08-10 and
+#                         the reason for the no-Binance invariant.
+#   Tokocrypto (IDR)      451 from the runner; separately, its symbol list has
+#                         no USDT_IDR pair -- IDR pairs there are BTC/ETH/etc.
+#   Reku (IDR)            404, no public tickers endpoint at the documented path.
+#
+# So SGD, PHP, THB and MXN still have exactly one venue each. The site says so
+# rather than showing a one-venue median, and no number is invented to fill the
+# gap.
+
+# Aggregate rows: a median across exchanges, not a venue. They are written (they
+# key the pre-2026-09 history) but must never be counted as one of the venues in
+# a cross-venue median -- that would be a median of a median next to its own
+# inputs. tools/emit_latest.py excludes exactly these names.
+AGGREGATE_VENUES = frozenset(
+    v["name"] for v in VENUES if v.get("parse_fn") is parse_criptoya
+)
 
 
 # ------------------------------------------------------------------ I/O
@@ -267,9 +458,9 @@ def fetch_fx(fetch=get_json):
 
 
 # ------------------------------------------------------------- collection
-def _base_row(ts, v):
+def _base_row(ts, v, name=None):
     return {
-        "ts_utc": ts, "venue": v["name"], "ccy": v["fiat_ccy"],
+        "ts_utc": ts, "venue": name or v["name"], "ccy": v["fiat_ccy"],
         "usdt_bid": None, "usdt_ask": None, "usdt_mid": None,
         "fx_mid_per_usd": None, "basis_bps": None,
         "source": v.get("source") or v["name"].lower(),
@@ -288,6 +479,7 @@ def build_rows(ts, venues, fx, fetch=get_json):
         if not v.get("enabled", True):
             continue
         row = _base_row(ts, v)
+        payload = None
         try:
             payload = fetch(v["ticker_url"])
             bid, ask, last = v["parse_fn"](payload)
@@ -312,6 +504,38 @@ def build_rows(ts, venues, fx, fetch=get_json):
         except Exception as e:
             row["error"] = f"{type(e).__name__}:{e}"[:300]
         rows.append(row)
+
+        # An aggregating source can also publish its constituents. One fetch,
+        # many rows -- the payload is already in hand, so this costs the venue
+        # nothing extra. A break in the expansion must never cost the aggregate
+        # row that was just appended, hence the separate try and the payload-is-
+        # None guard for the case where the fetch above is what failed.
+        expand = v.get("expand_fn")
+        if expand and payload is not None:
+            try:
+                entries = expand(payload)
+            except Exception as e:
+                row["error"] = (row["error"] or "") + f" expand:{type(e).__name__}"
+                entries = []
+            for name, e_bid, e_ask, e_last in entries:
+                sub = _base_row(ts, v, name=f"CriptoYa:{name}")
+                try:
+                    e_mid = (e_bid if v.get("mid_rule") == "bid"
+                             else mid_of(e_bid, e_ask, e_last))
+                    fx_mid = fx.get(v["fiat_ccy"])
+                    if e_mid is None:
+                        raise ValueError("no usable venue price")
+                    if fx_mid is None:
+                        raise ValueError(f"no FX mid for {v['fiat_ccy']}")
+                    sub.update(
+                        usdt_bid=e_bid, usdt_ask=e_ask, usdt_mid=round(e_mid, 8),
+                        fx_mid_per_usd=fx_mid, basis_bps=basis_bps(e_mid, fx_mid),
+                        source_ok=True,
+                    )
+                    n_ok += 1
+                except Exception as e:
+                    sub["error"] = f"{type(e).__name__}:{e}"[:300]
+                rows.append(sub)
     return rows, n_ok
 
 
@@ -420,6 +644,37 @@ BITKUB_FIXTURE = {"THB_USDT": {"id": 8, "last": 33.02, "highestBid": 33.02,
                                "lowestAsk": 33.03, "baseVolume": 15532950.29}}
 BITSO_FIXTURE = {"success": True, "payload": {"book": "usdt_mxn", "bid": "17.132",
                  "ask": "17.133", "last": "17.132", "high": "17.18"}}
+# Captured live from a US GitHub runner 2026-09-02, one call per venue.
+BITHUMB_FIXTURE = {"status": "0000", "data": {
+    "timestamp": "1788340816643", "payment_currency": "KRW",
+    "order_currency": "USDT",
+    "bids": [{"price": "1375", "quantity": "1769752.9407"}],
+    "asks": [{"price": "1376", "quantity": "785568.5759"}]}}
+COINONE_FIXTURE = {"result": "success", "error_code": "0", "tickers": [{
+    "quote_currency": "krw", "target_currency": "usdt", "high": "1388.0",
+    "low": "1375.0", "first": "1383.0", "last": "1375.0",
+    "best_asks": [{"price": "1376.0", "qty": "238491.96539225"}],
+    "best_bids": [{"price": "1375.0", "qty": "92249.22447896"}]}]}
+PARIBU_FIXTURE = {"USDT_TL": {"chartData": [], "lowestAsk": 48.196,
+                              "highestBid": 48.195, "low24hr": 48.182,
+                              "high24hr": 48.234, "volume": 6580796.64,
+                              "last": 48.195, "percentChange": -0.03}}
+# Foxbit ignores ?symbols= and returns every market -- btcbrl really is first.
+FOXBIT_FIXTURE = {"data": [
+    {"market_symbol": "btcbrl", "last_trade": {"price": "397312.00000000"},
+     "best": {"ask": {"price": "397400.00000000"},
+              "bid": {"price": "397300.00000000"}}},
+    {"market_symbol": "usdtbrl", "last_trade": {"price": "5.16750000"},
+     "rolling_24h": {"open": "5.20020000"},
+     "best": {"ask": {"price": "5.16750000"}, "bid": {"price": "5.16740000"}}}]}
+MERCADO_FIXTURE = [{"pair": "USDT-BRL", "high": "5.21820000",
+                    "low": "5.14960000", "vol": "1746665.02450000",
+                    "last": "5.16930000", "buy": "5.16920000",
+                    "sell": "5.16930000", "open": "5.20200000"}]
+PINTU_FIXTURE = {"code": "success", "message": "", "payload": [
+    {"pair": "cvx/idr", "latestPrice": "42024", "day": "2.21"},
+    {"pair": "usdt/idr", "latestPrice": "17734", "day": "0.16"}]}
+
 # CriptoYa general endpoint: many exchanges. Odd counts -> exact medians.
 CRIPTOYA_ARS_FIXTURE = {  # median bid 1565, median ask 1585 -> mid 1575
     "belo": {"ask": 1585.0, "bid": 1565.0, "time": 1},
@@ -439,6 +694,12 @@ CRIPTOYA_BRL_FIXTURE = {  # median bid 5.12, median ask 5.15
 
 # One malformed payload per venue: right envelope, no usable price.
 MALFORMED = {
+    "Bithumb": {"status": "5100", "data": {}},
+    "Coinone": {"result": "error", "tickers": []},
+    "Paribu": {"BTC_TL": {"last": 1}},          # payload fine, our pair absent
+    "Foxbit": {"data": [{"market_symbol": "btcbrl", "best": {}}]},
+    "MercadoBitcoin": [],
+    "Pintu": {"payload": [{"pair": "btc/idr", "latestPrice": "1"}]},
     "IndependentReserve": {},
     "Coins.ph": {"symbol": "USDTPHP"},
     "CriptoYa": {"buenbit": {"time": 1}},  # exchanges listed, no bid/ask
@@ -463,6 +724,9 @@ _ROUTES = {
     "independentreserve": IR_FIXTURE, "coins": COINS_FIXTURE,
     "btcturk": BTCTURK_FIXTURE, "upbit": UPBIT_FIXTURE, "indodax": INDODAX_FIXTURE,
     "bitkub": BITKUB_FIXTURE, "bitso": BITSO_FIXTURE,
+    "bithumb": BITHUMB_FIXTURE, "coinone": COINONE_FIXTURE,
+    "paribu": PARIBU_FIXTURE, "foxbit": FOXBIT_FIXTURE,
+    "mercadobitcoin": MERCADO_FIXTURE, "pintu": PINTU_FIXTURE,
     "usdt/ars": CRIPTOYA_ARS_FIXTURE, "usdt/ves": CRIPTOYA_VES_FIXTURE,
     "usdt/brl": CRIPTOYA_BRL_FIXTURE,
 }
@@ -494,7 +758,16 @@ def selftest():
     assert parse_bitso(BITSO_FIXTURE) == (17.132, 17.133, 17.132)
     # CriptoYa: median bid/ask across the listed exchanges
     assert parse_criptoya(CRIPTOYA_ARS_FIXTURE) == (1565.0, 1585.0, None)
-    print("  [ok] all 8 parsers extract quotes from real payload shapes "
+    # 2026-09-02 venues
+    assert parse_bithumb(BITHUMB_FIXTURE) == (1375.0, 1376.0, None)
+    assert parse_coinone(COINONE_FIXTURE) == (1375.0, 1376.0, 1375.0)
+    assert parse_paribu(PARIBU_FIXTURE) == (48.195, 48.196, 48.195)
+    # Foxbit: the right market is picked out of a list that starts with btcbrl
+    assert parse_foxbit(FOXBIT_FIXTURE) == (5.1674, 5.1675, 5.1675)
+    assert parse_mercadobitcoin(MERCADO_FIXTURE) == (5.1692, 5.1693, 5.1693)
+    # Pintu publishes no book: last only, and the right pair out of the list
+    assert parse_pintu(PINTU_FIXTURE) == (None, None, 17734.0)
+    print("  [ok] all 14 parsers extract quotes from real payload shapes "
           "(CriptoYa = median across exchanges)")
 
     # 2. every parser degrades a malformed payload to all-None, never raises
@@ -502,11 +775,22 @@ def selftest():
         "IndependentReserve": parse_independent_reserve, "Coins.ph": parse_coins_pro,
         "BTCTurk": parse_btcturk, "Upbit": parse_upbit, "Indodax": parse_indodax,
         "Bitkub": parse_bitkub, "Bitso": parse_bitso, "CriptoYa": parse_criptoya,
+        "Bithumb": parse_bithumb, "Coinone": parse_coinone, "Paribu": parse_paribu,
+        "Foxbit": parse_foxbit, "MercadoBitcoin": parse_mercadobitcoin,
+        "Pintu": parse_pintu,
     }
     for name, pf in _parsers.items():
         assert pf(MALFORMED[name]) == (None, None, None), (name, pf(MALFORMED[name]))
     assert parse_criptoya([]) == (None, None, None)  # non-dict envelope
-    print("  [ok] all 8 parsers turn a malformed payload into (None, None, None)")
+    print("  [ok] all 14 parsers turn a malformed payload into (None, None, None)")
+
+    # 2b. the expander drops P2P books and survives a malformed payload
+    ves = expand_criptoya(CRIPTOYA_VES_FIXTURE)
+    assert [n for n, *_ in ves] == ["eldorado", "syklo"], ves  # binancep2p dropped
+    assert ves[0] == ("eldorado", 864.0, 870.0, None), ves[0]
+    assert expand_criptoya({}) == [] and expand_criptoya([]) == []
+    assert expand_criptoya({"buenbit": {"time": 1}}) == []     # listed, no prices
+    print("  [ok] expander: one entry per exchange, P2P dropped, malformed -> []")
 
     # 3. basis math, both signs; mid fallback ladder
     assert abs(basis_bps(1.2810, 1.2796) - 10.94) < 0.1     # SG: barely rich
@@ -519,14 +803,16 @@ def selftest():
     # 4. FX snapshot must carry every registered venue's currency
     ccys = {v["fiat_ccy"] for v in VENUES}
     assert ccys <= set(FX_FIXTURE), ccys - set(FX_FIXTURE)
+    assert len(VENUES) == 16, len(VENUES)
     assert {"TRY", "KRW", "IDR", "THB", "MXN"} <= ccys, "the 5 new currencies"
     assert {"ARS", "VES", "BRL"} <= ccys, "the CriptoYa currencies"
     print(f"  [ok] FX snapshot covers all {len(ccys)} venue currencies "
           f"({', '.join(sorted(ccys))})")
 
-    # 5. full happy path: all 10 venues price, all source_ok
+    # 5. full happy path: 16 registered venues + 5 CriptoYa expansion rows
+    #    (ARS lists 3 exchanges, VES lists 3 of which one is P2P), all source_ok
     rows, n_ok = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=_make_fetch())
-    assert len(rows) == 10 and n_ok == 10, (len(rows), n_ok)
+    assert len(rows) == 21 and n_ok == 21, (len(rows), n_ok)
     by = {r["venue"]: r for r in rows}
     assert abs(by["IndependentReserve"]["basis_bps"] - 10.94) < 0.2
     assert abs(by["Bitso"]["basis_bps"] - (-4.96)) < 0.2          # MXN near zero
@@ -540,7 +826,31 @@ def selftest():
     assert abs(ars["basis_bps"] - 433.33) < 1.0, ars           # bid, not midpoint
     assert by["CriptoYa (VES)"]["basis_bps"] > 1000, by["CriptoYa (VES)"]  # strong
     assert ars["source"] == "criptoya"                         # snapshot-only tag
-    print("  [ok] 10/10 venues price; CriptoYa on bid rule (ARS +433, not +500 midpoint)")
+    print("  [ok] 21/21 rows price; CriptoYa on bid rule (ARS +433, not +500 midpoint)")
+
+    # 5b. the point of the whole change: how many venues answer per currency.
+    #     KRW/BRL gain real venues; ARS gains them through the expansion; and
+    #     SGD/PHP/THB/MXN honestly still have one, which the site must say.
+    per_ccy = collections.Counter(
+        r["ccy"] for r in rows
+        if r["source_ok"] and r["venue"] not in AGGREGATE_VENUES)
+    assert per_ccy["KRW"] == 3, per_ccy          # Upbit, Bithumb, Coinone
+    assert per_ccy["BRL"] == 2, per_ccy          # Foxbit, MercadoBitcoin
+    assert per_ccy["TRY"] == 2 and per_ccy["IDR"] == 2, per_ccy
+    assert per_ccy["ARS"] == 3, per_ccy          # expansion rows only
+    assert per_ccy["VES"] == 2, per_ccy          # expansion, P2P dropped
+    for single in ("SGD", "PHP", "THB", "MXN"):
+        assert per_ccy[single] == 1, (single, per_ccy)
+    # the aggregate row is still written, and still excluded from that count
+    assert any(r["venue"] == "CriptoYa (ARS)" and r["source_ok"] for r in rows)
+    assert "CriptoYa (ARS)" in AGGREGATE_VENUES
+    # expansion rows are named for their exchange and carry the criptoya source
+    belo = next(r for r in rows if r["venue"] == "CriptoYa:belo")
+    assert belo["ccy"] == "ARS" and belo["source"] == "criptoya"
+    assert belo["usdt_mid"] == belo["usdt_bid"] == 1565.0, belo   # bid rule
+    assert not any(r["venue"].endswith("p2p") for r in rows), "P2P leaked in"
+    print(f"  [ok] venues per currency: "
+          f"{', '.join(f'{c}={n}' for c, n in sorted(per_ccy.items()))}")
 
     # 6. per-venue isolation: one outage + one malformed payload, run continues
     fetch = _make_fetch({"coins": RuntimeError("simulated 503 from Coins.ph"),
@@ -548,7 +858,7 @@ def selftest():
     rows_m, n_ok_m = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=fetch)
     co = next(r for r in rows_m if r["venue"] == "Coins.ph")
     bk = next(r for r in rows_m if r["venue"] == "Bitkub")
-    assert n_ok_m == 8, n_ok_m  # 10 - coins(outage) - bitkub(malformed)
+    assert n_ok_m == 19, n_ok_m  # 21 - coins(outage) - bitkub(malformed)
     assert co["source_ok"] is False and "simulated 503" in co["error"]
     assert bk["source_ok"] is False and bk["basis_bps"] is None
     assert run_exit_code(n_ok_m) == 0  # 5 good venues -> the run SUCCEEDS

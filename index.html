@@ -566,7 +566,7 @@ textarea.input { min-height: 90px; resize: vertical; }
                 <span style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.02em;">{{ b.code }}</span>
                 <span class="text-muted" style="font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase;">{{ b.country }}</span>
               </div>
-              <div class="text-muted" style="font-size: 12px;">{{ b.venue }}</div>
+              <div class="text-muted" style="font-size: 12px;" title="{{ b.tip }}">{{ b.venue }}</div>
               <div style="position: relative; height: 22px;">
                 <div style="position: absolute; left: 50%; top: -9px; bottom: -9px; width: 1px; background: var(--color-neutral-500);"></div>
                 <div style="position: absolute; top: 3px; height: 16px; background: {{ b.fill }}; box-shadow: inset 0 0 0 1px rgba(32, 30, 29, 0.12); left: {{ b.left }}; width: {{ b.width }};"></div>
@@ -1172,23 +1172,89 @@ class Component extends DCLogic {
   }
 
   // ------------------------------------------------------------ data views
+  // A "CriptoYa (XXX)" row is a median across exchanges, not an exchange. It is
+  // shown, because for Venezuela and Brazil it is the longest-running number
+  // there is, but it is never counted as one of the exchanges in a median —
+  // that would put a median beside its own inputs.
+  isAggregate(venue) {
+    return /^CriptoYa \(.*\)$/.test(venue || "");
+  }
+
   markets(D) {
-    // Latest usable row per currency, from basis.csv. A currency whose newest
-    // row is a failed pull keeps the failure — it does not fall back to an
-    // older row and pretend to be current.
-    const latest = {}, failed = {};
+    // One country, several exchanges. The headline is the MEDIAN across every
+    // exchange that reported in the same hour, not whichever row happened to be
+    // written last — with one exchange per country that distinction did not
+    // exist, and the number was one venue's opinion presented as a country's.
+    //
+    // Same hour matters: a Seoul price from 14:00 next to a Sao Paulo price
+    // from 09:00 would produce a spread of the clock, not of the market. Only
+    // the newest hour that has any successful row counts; older hours are
+    // dropped outright rather than merged in to pad the count.
+    const byCcy = {};
     D.basis.forEach(r => {
       const c = r.ccy, t = ts(r.ts_utc);
-      if (!c || t === null) return;
-      if (!ok(r)) { if (!failed[c] || t > failed[c].t) failed[c] = { t, err: r.error || "failed pull" }; return; }
+      if (!c || t === null || !ok(r)) return;
       const bps = num(r.basis_bps);
       if (bps === null) return;
-      if (!latest[c] || t > latest[c].t) latest[c] = { t, bps, venue: r.venue, code: c };
+      const hour = Math.floor(t / HOUR);
+      let e = byCcy[c];
+      if (!e || hour > e.hour) e = byCcy[c] = { hour, t, rows: {} };
+      if (hour < e.hour) return;
+      const prev = e.rows[r.venue];
+      if (!prev || t > prev.t) e.rows[r.venue] = { t, bps, venue: r.venue };
+      if (t > e.t) e.t = t;
     });
-    return Object.keys(latest).map(c => ({
-      code: c, country: (META[c] || {}).country || c,
-      venue: latest[c].venue || "—", bps: latest[c].bps, t: latest[c].t,
-    })).sort((a, b) => b.bps - a.bps);
+
+    const out = [];
+    Object.keys(byCcy).forEach(c => {
+      const all = Object.keys(byCcy[c].rows).sort().map(v => byCcy[c].rows[v]);
+      const venues = all.filter(v => !this.isAggregate(v.venue));
+      const agg = all.find(v => this.isAggregate(v.venue));
+      let bps, label, single;
+      if (venues.length >= 2) {
+        bps = this.median(venues.map(v => v.bps));
+        label = "middle of " + venues.length + " exchanges";
+        single = false;
+      } else if (venues.length === 1) {
+        bps = venues[0].bps;
+        label = "one exchange only · " + venues[0].venue;
+        single = true;
+      } else if (agg) {
+        // No individual exchange reported — only the aggregated feed did. Show
+        // it, and say what it is, rather than dropping the country off the board.
+        bps = agg.bps;
+        label = "several exchanges, averaged by CriptoYa";
+        single = true;
+      } else { return; }
+      const vals = venues.map(v => v.bps);
+      const spread = vals.length >= 2 ? Math.max.apply(null, vals) - Math.min.apply(null, vals) : null;
+      out.push({
+        code: c, country: (META[c] || {}).country || c,
+        bps, t: byCcy[c].t, venue: label, single, spread,
+        count: venues.length,
+        venues: all.map(v => ({ venue: v.venue, bps: v.bps, agg: this.isAggregate(v.venue) })),
+      });
+    });
+    return out.sort((a, b) => b.bps - a.bps);
+  }
+
+  median(xs) {
+    const a = xs.slice().sort((x, y) => x - y), n = a.length;
+    if (!n) return null;
+    return n % 2 ? a[(n - 1) / 2] : (a[n / 2 - 1] + a[n / 2]) / 2;
+  }
+
+  // Every exchange behind a country's number, as plain text for the hover.
+  venueTip(m) {
+    const lines = m.venues.map(v =>
+      "  " + v.venue + (v.agg ? " (an average, not an exchange)" : "") +
+      "   " + this.fmtBps(v.bps));
+    const head = m.count >= 2
+      ? m.country + ": middle of " + m.count + " exchanges, " +
+        this.fmtBps(m.bps) + " — widest disagreement " +
+        Math.round(m.spread).toLocaleString("en-US")
+      : m.country + ": only one exchange reports here, so there is no middle to take";
+    return head + "\n" + lines.join("\n");
   }
 
   seriesFor(D, code, def) {
@@ -1196,8 +1262,26 @@ class Component extends DCLogic {
     // where the window reaches past the live layer, and is never presented as
     // hourly coverage.
     const now = Date.now(), from = now - def.ms;
-    const live = D.basis.filter(r => r.ccy === code && ok(r) && num(r.basis_bps) !== null)
-      .map(r => ({ t: ts(r.ts_utc), v: num(r.basis_bps) })).filter(p => p.t !== null && p.t >= from);
+    // Several exchanges now report the same country in the same hour. Plotting
+    // them raw would draw a sawtooth between exchanges and read as volatility
+    // that is not there, so each hour is collapsed to the MIDDLE value across
+    // the exchanges that reported it — the same number the board shows.
+    // Aggregated feed rows are left out of that middle, as on the board.
+    const buckets = {};
+    D.basis.forEach(r => {
+      if (r.ccy !== code || !ok(r)) return;
+      const v = num(r.basis_bps), t = ts(r.ts_utc);
+      if (v === null || t === null || t < from) return;
+      const h = Math.floor(t / HOUR);
+      const b = buckets[h] || (buckets[h] = { t, vals: [], aggVals: [] });
+      if (t > b.t) b.t = t;
+      (this.isAggregate(r.venue) ? b.aggVals : b.vals).push(v);
+    });
+    const live = Object.keys(buckets).map(h => {
+      const b = buckets[h];
+      const vals = b.vals.length ? b.vals : b.aggVals;
+      return { t: b.t, v: this.median(vals) };
+    }).filter(p => p.v !== null);
     const daily = D.hist.filter(r => r.ccy === code && num(r.basis_bps) !== null)
       .map(r => ({ t: ts(r.date + "T00:00:00Z"), v: num(r.basis_bps) })).filter(p => p.t !== null && p.t >= from);
     const all = daily.concat(live).sort((a, b) => a.t - b.t);
@@ -1284,6 +1368,7 @@ class Component extends DCLogic {
       return { max, rows: list.map(m => {
         const w = this.scale(m.bps, max);
         return { code: m.code, country: m.country, venue: m.venue,
+          tip: this.venueTip(m),
           bps: this.fmtBps(m.bps), mark: "",
           fill: m.bps >= 0 ? "var(--data-400)" : "#dedede",
           left: (m.bps >= 0 ? 50 : 50 - w) + "%", width: Math.max(w, 0.4) + "%",
@@ -1313,8 +1398,25 @@ class Component extends DCLogic {
     D.basis.forEach(r => {
       const t = ts(r.ts_utc); if (t === null || !r.ccy) return;
       const k = r.ccy + "|" + Math.floor(t / HOUR);
-      const prev = byCcyHour[k];
-      if (!prev || t > prev.t) byCcyHour[k] = { t, ok: ok(r), bps: num(r.basis_bps), err: r.error || "" };
+      const prev = byCcyHour[k] || (byCcyHour[k] = { t, ok: false, vals: [], aggVals: [], err: "" });
+      if (t > prev.t) prev.t = t;
+      const v = num(r.basis_bps);
+      if (ok(r) && v !== null) {
+        prev.ok = true;
+        (this.isAggregate(r.venue) ? prev.aggVals : prev.vals).push(v);
+      } else if (!prev.err) prev.err = r.error || "source_ok=False";
+      // An hour counts as collected if ANY exchange reported. One exchange
+      // failing while three others answered is not a missing hour, and the
+      // cell says how many answered.
+    });
+    Object.keys(byCcyHour).forEach(k => {
+      const c = byCcyHour[k];
+      // Every hour before 2026-09-02 has exactly one row per country, and for
+      // ARS/VES/BRL that row is the aggregated feed. Falling back to it keeps
+      // two years of history rendering instead of turning grey.
+      const use = c.vals.length ? c.vals : c.aggVals;
+      c.bps = use.length ? this.median(use) : null;
+      c.count = c.vals.length;
     });
     const coverage = mkts.map(m => {
       const max = Math.abs(m.bps) >= 200 ? Math.max.apply(null, mkts.filter(x => Math.abs(x.bps) >= 200).map(x => Math.abs(x.bps)))
@@ -1326,7 +1428,11 @@ class Component extends DCLogic {
         let bg, v, t;
         if (!cell) { bg = "var(--grid-empty)"; v = "no sample"; t = label + " · not collected"; }
         else if (!cell.ok || cell.bps === null) { bg = "#dedede"; v = "failed pull"; t = label + " · " + (cell.err || "source_ok=False"); }
-        else { bg = this.cellBg(Math.abs(cell.bps), max); v = this.fmtBps(cell.bps) + " bps"; t = label + " · " + m.venue; }
+        else { bg = this.cellBg(Math.abs(cell.bps), max); v = this.fmtBps(cell.bps) + " bps";
+               t = label + " · " + (cell.count >= 2
+                     ? "middle of " + cell.count + " exchanges"
+                     : cell.count === 1 ? "one exchange"
+                     : "several exchanges, averaged by CriptoYa"); }
         return { t: m.code + " " + label, bg,
           ring: covH && covH.code === m.code && covH.i === i ? "inset 0 0 0 1.5px var(--color-text)" : "none",
           enter: () => this.setState({ covCell: { code: m.code, i, v, t } }),

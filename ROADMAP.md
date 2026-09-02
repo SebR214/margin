@@ -27,13 +27,17 @@ actually exists rather than the other way round.
 |---|---|---|---|---|
 | Deep layer | `collector.py` | SGD→PHP, ladder S$200 / 1k / 5k / 25k / 50k, full fee-verified decomposition | 2026-08-10 | 875 |
 | Deep layer | `collector.py` | USD→MXN, same ladder in USD, same method | 2026-08-19 | 10 |
-| Wide layer | `collector_basis.py` | 10 venues, USDT vs official USD mid | 2026-08-10 | 1,729 |
+| Wide layer | `collector_basis.py` | 16 venues + per-exchange expansion of the ARS/VES feeds (~41 rows/hour), USDT vs official USD mid | 2026-08-10 | 3,669 |
 | Panel | `collector.py` → `providers.csv` | every rail the Wise comparison API returns, per size (SGD→PHP) | 2026-08-11 | 3,427 |
 | Panel | `collector.py` → `providers_usdmxn.csv` | same, USD→MXN | 2026-08-19 | 66 |
 | Backfill | `tools/backfill_basis.py` | daily basis, 5 venues (TRY, KRW, IDR, THB, MXN) | 2024-03-02 → 2026-08-10 | 4,198 |
 
-Venues live: Independent Reserve (SGD), Coins.ph (PHP), BTCTurk (TRY), Upbit
-(KRW), Indodax (IDR), Bitkub (THB), Bitso (MXN), CriptoYa (ARS, VES, BRL).
+Venues live: Independent Reserve (SGD), Coins.ph (PHP), BTCTurk + Paribu (TRY),
+Upbit + Bithumb + Coinone (KRW), Indodax + Pintu (IDR), Bitkub (THB), Bitso
+(MXN), Foxbit + Mercado Bitcoin (BRL), CriptoYa (ARS, VES, BRL) with ARS and VES
+also expanded to one row per listed exchange. **Five countries now have a median
+across two or more exchanges; SGD, PHP, THB and MXN still have one each and the
+site says so** — see METHODOLOGY, "More than one exchange per country".
 
 **Scheduling.** `collect.yml` fires `17,47 * * * *`. Both collectors are
 idempotent per UTC hour — the second fire is a no-op when the first landed and a
@@ -259,6 +263,18 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    YYYY-MM-DD" when the latest run has any bad row, or nothing at all when the
    file is absent. First clean run 2026-08-18: IR 0.50% flat and Coins.ph VIP0
    0.15/0.10 both still match the 2026-08-10 hand verification. Issue #4.
+
+### P0.5 — consequence of the multi-venue change
+
+1. **`data/basis.csv` now grows ~4x faster.** One row per venue per hour went
+   from 10 to ~41, almost all of it the Argentine per-exchange expansion (24
+   rows an hour on its own). At that rate the file adds roughly 1.5 MB a month,
+   and `index.html` downloads the whole thing on every page load. This was
+   accepted knowingly, not overlooked: Argentina has no direct venue at all, so
+   the expansion is the only way it gets a median rather than one feed's
+   average. Revisit when the file passes ~5 MB — the fix is a rolling window
+   for the live layer with the tail rolled into `basis_history.csv`, not
+   dropping venues.
 
 ### P1 — the demo
 

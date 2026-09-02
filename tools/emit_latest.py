@@ -35,6 +35,7 @@ Stdlib only. Usage: python3 tools/emit_latest.py
 
 import csv
 import datetime as dt
+import statistics
 import json
 import os
 import sys
@@ -124,6 +125,90 @@ def basis_section():
             "ts_utc": r.get("ts_utc"),
             "source_ok": flag(r, "source_ok"),
         })
+    return out
+
+
+# A CriptoYa "(CCY)" row is a median across exchanges, not a venue. It is still
+# published in `basis` (it keys the pre-2026-09 history and the daily backfill)
+# but it must never be one of the venues in a cross-venue median -- that would
+# put a median next to its own inputs and count it twice. Named by pattern
+# rather than imported from collector_basis.py, which needs `requests`: this
+# tool is stdlib-only on purpose, the same reason captured_this_hour() is
+# duplicated rather than shared.
+def is_aggregate(venue):
+    return venue.startswith("CriptoYa (") and venue.endswith(")")
+
+
+def markets_section():
+    """Per-currency cross-venue view: median basis, and the spread around it.
+
+    One venue per country was the whole weakness: a single exchange's quote,
+    presented as a country's number. This groups every venue that answered in
+    the SAME UTC HOUR -- comparing a Seoul print from 14:00 with a Sao Paulo
+    print from 09:00 would be a spread of the clock, not of the market -- and
+    reports the median across them.
+
+    `basis_median_bps` and `basis_spread_bps` appear ONLY where two or more
+    venues answered that hour. With one venue there is no median to take and no
+    spread to measure, and emitting the lone venue's number under a name that
+    implies agreement would be exactly the overstatement this replaces. In that
+    case `venues` still lists the one, `venue_count` is 1, and both derived
+    keys are absent -- absent meaning "not measurable", the same contract as
+    every other absent key in this file.
+
+    Spread is max minus min basis, in bps: the disagreement between the venues,
+    not a bid/ask spread. A wide one is a real signal (thin books, a stale
+    quote, a fragmented market) and is shown rather than smoothed away.
+    """
+    by_ccy = {}
+    for r in rows(BASIS):
+        venue, ccy, t = r.get("venue"), r.get("ccy"), ts_of(r, "ts_utc")
+        if not venue or not ccy or t is None:
+            continue
+        if not flag(r, "source_ok"):
+            continue                      # a failed pull is not a venue answering
+        if num(r, "basis_bps") is None:
+            continue
+        hour = t.replace(minute=0, second=0, microsecond=0)
+        # Newest hour wins; an older hour's venues are discarded outright rather
+        # than merged in to pad the count.
+        cur = by_ccy.get(ccy)
+        if cur is None or hour > cur["hour"]:
+            by_ccy[ccy] = {"hour": hour, "venues": {}}
+            cur = by_ccy[ccy]
+        if hour < cur["hour"]:
+            continue
+        # Within the hour the latest row for a venue wins, so a rescue fire
+        # cannot make one venue count twice.
+        prev = cur["venues"].get(venue)
+        if prev is None or t > prev[0]:
+            cur["venues"][venue] = (t, r)
+
+    out = {}
+    for ccy in sorted(by_ccy):
+        entries = by_ccy[ccy]["venues"]
+        listed = [{
+            "venue": v,
+            "basis_bps": num(r, "basis_bps"),
+            "ts_utc": r.get("ts_utc"),
+            "aggregate": is_aggregate(v),
+        } for v, (_, r) in sorted(entries.items())]
+        if not listed:
+            continue
+        # Aggregates are listed -- for VES and BRL the CriptoYa aggregate is the
+        # longest-running number there is, and dropping it from the output
+        # would hide it from the site entirely -- but they are not venues, so
+        # they are counted by neither venue_count nor the median.
+        vals = [e["basis_bps"] for e in listed if not e["aggregate"]]
+        entry = {
+            "venues": listed,
+            "venue_count": len(vals),
+            "hour_utc": by_ccy[ccy]["hour"].isoformat(),
+        }
+        if len(vals) >= 2:
+            entry["basis_median_bps"] = round(statistics.median(vals), 2)
+            entry["basis_spread_bps"] = round(max(vals) - min(vals), 2)
+        out[ccy] = entry
     return out
 
 
@@ -250,6 +335,11 @@ def build():
         snap["basis"] = basis
         sources.append("data/basis.csv")
 
+    markets = markets_section()
+    if markets:
+        snap["markets"] = markets
+        sources.append("data/basis.csv")
+
     corridors = corridors_section()
     if corridors:
         snap["corridors"] = corridors
@@ -282,14 +372,27 @@ def main():
         print(f"  [error] cannot write {OUT}: {e}", file=sys.stderr)
         sys.exit(1)
 
-    present = [k for k in ("basis", "corridors", "providers") if k in snap]
-    missing = [k for k in ("basis", "corridors", "providers") if k not in snap]
+    present = [k for k in ("basis", "markets", "corridors", "providers") if k in snap]
+    missing = [k for k in ("basis", "markets", "corridors", "providers") if k not in snap]
     print(f"  wrote {os.path.relpath(OUT, HERE)} "
           f"({os.path.getsize(OUT):,} bytes)")
     if "as_of_utc" in snap:
         print(f"    as of      : {snap['as_of_utc']} (newest source row)")
     if "basis" in snap:
         print(f"    basis      : {len(snap['basis'])} venues")
+    if "markets" in snap:
+        multi = sum(1 for v in snap["markets"].values() if "basis_median_bps" in v)
+        print(f"    markets    : {len(snap['markets'])} currencies, "
+              f"{multi} with 2+ venues this hour")
+        for ccy, v in sorted(snap["markets"].items()):
+            if "basis_median_bps" in v:
+                print(f"      {ccy}  median {v['basis_median_bps']:+.1f}bp  "
+                      f"spread {v['basis_spread_bps']:.1f}bp  "
+                      f"across {v['venue_count']} venues")
+            else:
+                names = ", ".join(e["venue"] for e in v["venues"])
+                print(f"      {ccy}  {v['venue_count']} venue "
+                      f"({names}) -- no median")
     if "corridors" in snap:
         for k, v in sorted(snap["corridors"].items()):
             print(f"    corridor   : {k} -- {len(v['sizes'])} sizes @ {v['ts'][:16]}Z")
