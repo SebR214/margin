@@ -150,6 +150,45 @@ the work.
 
 ---
 
+## Recently shipped — 2026-09-02
+
+Six merged the same day. Delivery of the whole 2026-09-02 brief except task 4,
+which waits on approval, and task 6, which has not started by design.
+
+1. **Robot post-mortem and the `queue` fallback** (PR #24, task 0). `@claude` in
+   CI has been dead since 2026-08-18 for two reasons, neither fixable from
+   inside the repo: the API key authenticates but has **no credit**, and the
+   `CLAUDE_CODE_OAUTH_TOKEN` secret contains a **line break**. Both errors,
+   verbatim, are under **Robot** above, along with the two fixes — both
+   Sebastian's. The fallback ships either way: label an issue `queue`, and
+   `claude "work every open issue labelled queue, one PR each"` works the lot.
+2. **External trigger for `collect.yml`** (PR #25, issue #23, task 1).
+   `repository_dispatch` `types: [collect]` is primary, GitHub's cron is the
+   fallback, and `tools/check_delivery.py` measures what actually arrives.
+   Verified live: a dispatch produced run `33613358354`, event
+   `repository_dispatch`, green, `sample 2026-09-02T09:18Z`. **The external cron
+   itself still needs Sebastian's token** — config in the PR.
+3. **More than one exchange per country** (PR #26, task 2). Six new venues, each
+   called from a US runner first; ARS and VES expanded to one row per exchange.
+   Five countries now carry a median with the spread beside it. First production
+   run with all of them: `41/41 venues ok`, and
+   `markets: 10 currencies, 5 with 2+ venues this hour`.
+4. **Implied crosses** (PR #27, task 3). `data/crosses_latest.json`, 45 pairs,
+   both legs from the same hour or no pair at all, plus a plain-words table on
+   the site. Market prices only — no fees — and the page says so.
+5. **USDT vs USDC** (PR #29, task 5). `data/stable_spread.csv`, 12 of 13 venues
+   quoting both, same run and same mid as the basis row. Nothing renders for
+   seven days. First production run: `12/12 venues quote both`.
+6. **`git add` on an unwritten file** (PR #30). Adding `stable_spread.csv` to
+   the commit step turned a healthy no-op run red — exit 128, killing the step
+   before the freshness guard. Files are staged behind `[ -f ]` now. Recorded
+   because it is the invariant inverted: a layer that has not written its first
+   row took down the guard that exists to make real rot loud.
+
+**Open:** PR #28, plain language across the site (task 4), waiting on approval.
+
+---
+
 ## Recently shipped — 2026-08-19
 
 All five merged the same day. SHAs are the squashed merge commits on `main`.
