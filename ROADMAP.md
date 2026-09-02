@@ -63,6 +63,89 @@ verification is on a 90-day clock instead, and goes `stale` (red) past it.
 1. **Cadence verification** — waiting on a week of `:17`/`:47` data to confirm
    the drop rate actually fell. No action until then (see P0-1).
 
+## Robot
+
+**Status 2026-09-02: `@claude` in CI is dead, and neither cause is fixable from
+inside the repo.** Both need Sebastian.
+
+Every `claude.yml` run since 2026-08-18 has failed the same way. Reference run
+`33599792947`. Everything up to the model call succeeds — trigger detected, OIDC
+and app token obtained, branch created, prompt assembled, Claude Code v2.1.258
+installed — and then:
+
+```
+{"type":"system","subtype":"init","model":"claude-opus-5[1m]"}
+{"type":"result","subtype":"success","is_error":true,"duration_ms":346,
+ "num_turns":1,"total_cost_usd":0,"modelUsage":{}}
+##[error]Claude result reported subtype success with is_error:true
+```
+
+No error text, because `anthropics/claude-code-action` runs the SDK with output
+hidden. Running `claude -p` directly on a runner with the same secrets, with
+`--output-format json`, prints the text the wrapper swallows:
+
+**`ANTHROPIC_API_KEY`** — the key authenticates (`GET /v1/models` returns 200 and
+lists twelve models, `claude-opus-5` and `claude-sonnet-5` among them) but has no
+money behind it:
+
+```
+POST /v1/messages ->
+{"type":"error","error":{"type":"invalid_request_error",
+ "message":"Your credit balance is too low to access the Anthropic API.
+            Please go to Plans & Billing to upgrade or purchase credits."}}
+
+claude -p ... -> "api_error_status":400, "result":"Credit balance is too low",
+                 "is_error":true, "num_turns":1, "total_cost_usd":0
+```
+
+**`CLAUDE_CODE_OAUTH_TOKEN`** — the alternate auth path, set 2026-08-18, is
+malformed. The secret was pasted with a newline in the middle of it:
+
+```
+claude -p ... -> "result":"Invalid auth token · Fix external auth token ·
+                  Invalid Authorization header value from CLAUDE_CODE_OAUTH_TOKEN:
+                  it contains a line break at character 80
+                  (110 characters on 2 lines)."
+```
+
+So all three escalation steps that were planned for this — pin a model, pin the
+action to a release tag, bypass the Bun wrapper and call `claude -p` directly —
+would have failed identically, because none of them touches the cause. The model
+id was never the problem; `claude-opus-5` is on the key's list. The wrapper was
+never the problem either, though bypassing it is what made the error legible,
+which is the one thing worth keeping from the exercise.
+
+**Two fixes, both Sebastian's, either one is sufficient:**
+
+1. Add credit at console.anthropic.com → Plans & Billing. The existing key then
+   works with no repo change.
+2. Re-add `CLAUDE_CODE_OAUTH_TOKEN` as a single line with no trailing newline
+   (`gh secret set CLAUDE_CODE_OAUTH_TOKEN --body "$(claude setup-token | tr -d '\n')"`),
+   then swap `anthropic_api_key:` for `claude_code_oauth_token:` in both
+   workflows. This bills the Claude subscription instead of API credits.
+
+Until one of those happens, `@claude` on an issue does nothing, and the fallback
+below is the path.
+
+### Fallback: the `queue` label
+
+Filing an issue is still enough. Label it `queue`. Then, on the Mac, in the repo:
+
+```
+claude "work every open issue labelled queue, one PR each"
+```
+
+Claude reads them with `gh issue list --label queue --state open` and
+`gh issue view <n>`, and opens one PR per issue with `gh pr create`. Sebastian
+never copies an issue body into a chat window; the label is the handoff. The
+`queue` label exists on the repo as of 2026-09-02.
+
+This is a worse robot than CI — it runs when he runs it, not when the issue is
+filed — but it has no API-credit dependency and no wrapper between the issue and
+the work.
+
+---
+
 ## Recently shipped — 2026-08-19
 
 All five merged the same day. SHAs are the squashed merge commits on `main`.
