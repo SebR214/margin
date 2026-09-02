@@ -230,11 +230,23 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
 
 ### P0 — history is the only thing that cannot be rebuilt
 
-1. **Confirm twice-hourly actually lifts delivery.** Measure over a full week.
-   Baseline was 125 of 168 expected hours (~74%) with a single fire. If GitHub
-   still drops *both* fires in an hour often enough to matter, escalate to an
-   external trigger (`repository_dispatch` from a cheap always-on cron) rather
-   than accepting the loss — a missing hour is gone permanently.
+1. ~~**Confirm twice-hourly actually lifts delivery.**~~ **Escalated
+   2026-09-02.** It did not. Twice-hourly held ~21 of 24 hours a day through
+   Aug 25, then GitHub's scheduler collapsed: **Aug 26: 17. Aug 27: 2. Aug 28:
+   3. Aug 29: 6. Aug 30: 6. Aug 31: 4. Sep 1: 7.** Holes of five to eight hours
+   became routine, and nothing went red — the runs that *did* fire were green
+   and landed data, and `check_freshness.py` cannot see a fire that never
+   happened. Measured by the new `tools/check_delivery.py`, which counts
+   distinct UTC hours per day in `data/basis.csv` and always exits 0; it is a
+   measurement, not a guard.
+
+   **An external cron is now the primary trigger.** `collect.yml` takes
+   `repository_dispatch` with `types: [collect]`; the `schedule` block stays as
+   the fallback, unchanged. The cron itself is Sebastian's because it needs a
+   token — see the config in issue #23, section 3.
+
+   Follow-up: re-measure hourly delivery after 7 days of external triggering.
+   Target 23 of 24 or better. Every dropped hour is gone permanently.
 2. ~~**Put fee verification on a clock.**~~ **Shipped 2026-08-18.**
    `tools/check_fees.py` re-reads both published schedules, diffs the base tier
    against the `CORRIDORS` constants it imports from `collector.py`, and appends
@@ -308,6 +320,7 @@ collector.py            deep layer — SGD→PHP + USD→MXN decomposition + Wis
 collector_basis.py      wide layer — 10-venue basis
 tools/backfill_basis.py one-time daily history (not re-run)
 tools/check_freshness.py rot guard, runs every fire of collect.yml
+tools/check_delivery.py  hours captured per day, last 14 days (measurement, never red)
 .github/workflows/collect.yml   the clock
 index.html              basis & corridor board (site entry)
 corridor.html           corridor detail, both corridors (switcher)
