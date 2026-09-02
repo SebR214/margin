@@ -1132,21 +1132,21 @@ def main():
     if not a.verify:
         append(rows)
 
-    # USDT vs USDC on the same venue, in the same hour, off the mids just
-    # captured. Gated on ITS OWN file: the layer is newer than basis.csv, so an
-    # hour where basis already landed can still be the first hour this file has.
-    # Failing here must never cost the basis rows, which are already on disk.
+    # USDT vs USDC on the same venue, off the mids just captured. No separate
+    # hour gate: the spread is only meaningful against the USDT mid from THIS
+    # run, so the layer runs exactly when the basis layer runs and is deduped by
+    # the same gate above. Failing here must never cost the basis rows, which
+    # are already on disk -- hence the try, and hence it running after append().
     stable_rows, stable_ok = [], 0
-    if a.verify or not captured_this_hour(STABLE, "ts_utc"):
-        usdt_mids = {r["venue"]: r["usdt_mid"] for r in rows if r["source_ok"]}
-        ts = rows[0]["ts_utc"] if rows else dt.datetime.now(dt.timezone.utc).isoformat()
-        try:
-            stable_rows, stable_ok = build_stable_rows(ts, VENUES, usdt_mids)
-        except Exception as e:
-            print(f"  [warn] stable layer failed entirely: "
-                  f"{type(e).__name__}: {e}", file=sys.stderr)
-        if stable_rows and not a.verify:
-            append_stable(stable_rows)
+    usdt_mids = {r["venue"]: r["usdt_mid"] for r in rows if r["source_ok"]}
+    ts = rows[0]["ts_utc"] if rows else dt.datetime.now(dt.timezone.utc).isoformat()
+    try:
+        stable_rows, stable_ok = build_stable_rows(ts, VENUES, usdt_mids)
+    except Exception as e:
+        print(f"  [warn] stable layer failed entirely: "
+              f"{type(e).__name__}: {e}", file=sys.stderr)
+    if stable_rows and not a.verify:
+        append_stable(stable_rows)
 
     if a.json:
         print(json.dumps(rows, indent=2, default=str))

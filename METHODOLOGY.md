@@ -331,7 +331,8 @@ spread_bps = (usdc_mid / usdt_mid - 1) * 10_000
 Positive means USDC trades dearer than USDT in that market.
 
 **Same hour, same run, same quote.** The USDT side is not re-fetched — it is the
-mid this run already wrote to `basis.csv`. So the two prices are the same
+mid this run already wrote to `basis.csv`. The layer therefore runs exactly when
+the basis layer runs, and is deduped by the same per-hour gate. So the two prices are the same
 observation, not two observations minutes apart. A venue whose USDT pull failed
 therefore gets no USDC price either: half a spread is not a spread, and the row
 says so with `source_ok=False` rather than being skipped.
