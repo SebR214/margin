@@ -1,11 +1,21 @@
 name: collect
 
 on:
+  # PRIMARY TRIGGER as of 2026-09-02: an external cron POSTs
+  # {"event_type":"collect"} to /repos/SebR214/margin/dispatches twice an hour.
+  # GitHub's own schedule below is now only the fallback.
+  repository_dispatch:
+    types: [collect]
   schedule:
-    # Twice an hour on purpose. GitHub drops scheduled fires under load -- 44 of
-    # 168 expected hours went missing in the week to 2026-08-18 (~74% delivery).
-    # The collectors are idempotent per UTC hour, so the second fire is a no-op
-    # when the first landed and a rescue when it didn't. Redundancy, not dupes.
+    # FALLBACK. Twice an hour on purpose, and no longer trusted on its own.
+    # GitHub drops scheduled fires under load: 44 of 168 expected hours went
+    # missing in the week to 2026-08-18 (~74% delivery), and it then collapsed
+    # outright -- Aug 20-25 averaged 21 of 24 hours a day, Aug 27 delivered 2,
+    # and Aug 28 to Sep 1 ran between 3 and 7, with 5-to-8-hour holes routine.
+    # Measured by tools/check_delivery.py; a dropped hour is gone for good.
+    # The collectors are idempotent per UTC hour, so extra fires from either
+    # trigger are a no-op when the hour landed and a rescue when it didn't.
+    # Redundancy, not dupes.
     - cron: "17,47 * * * *"
   workflow_dispatch:
 
