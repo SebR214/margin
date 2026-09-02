@@ -437,6 +437,13 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
   construction; do not "fix" a run that commits nothing.
 - **Gaps stay gaps.** Failed pulls are written as rows with `source_ok=false` and
   the error string. Never interpolate, never backfill the live layer.
+- **The front page speaks money and percent.** No bps, basis, on-ramp, off-ramp,
+  notional, taker, maker, corridor, mid or USDT in anything a reader sees on
+  `index.html` — those words live in `methodology.html` only. Country names, not
+  exchange names, at the top level; exchange names belong in the hover. Every
+  cost figure is shown as money first and the percentage second, because nobody
+  sends "0.61%". The "nothing is filled in" reassurance appears once, in the
+  small print, not five times.
 - **METHODOLOGY gates the site.** If a number is shown, METHODOLOGY says whether
   it is measured, assumed, or invisible. No hand-written copy on the site that
   can go stale against the data — compute it or condition it.
