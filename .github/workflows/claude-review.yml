@@ -14,8 +14,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # Pinned. The CLI's own default resolved to "claude-opus-5[1m]", a 1M-context
+      # variant that is NOT in the list GET /v1/models returns for this key
+      # (plain "claude-opus-5" is). Verified against that endpoint 2026-09-02.
+      # This is not the reason runs fail — see ROADMAP "Robot" — it removes a
+      # second latent cause so the next failure has one explanation, not two.
       - uses: anthropics/claude-code-action@v1
         with:
+          claude_args: "--model claude-sonnet-5"
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
             Review this PR. Post one comment covering:
