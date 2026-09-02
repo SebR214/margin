@@ -52,6 +52,14 @@ jobs:
         id: needed
         env:
           GH_TOKEN: ${{ github.token }}
+          # REQUIRED, and the reason this step failed every scheduled fire
+          # between 2026-09-02 14:39 and 15:5x: `gh` infers the repository from
+          # the git remote, and this step runs BEFORE checkout on purpose, so
+          # there is no remote to infer from -- "failed to determine base repo".
+          # Dispatched runs never hit it (they exit above), so the chain kept
+          # running and only the restarter was broken, which is the one failure
+          # you would not notice until you needed it.
+          GH_REPO: ${{ github.repository }}
         run: |
           if [ "${{ github.event_name }}" != "schedule" ]; then
             echo "dispatched (${{ github.event_name }}) -- always proceeds"
@@ -176,6 +184,10 @@ jobs:
         if: always() && steps.needed.outputs.proceed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          # Not strictly needed here -- this step runs after checkout, so `gh`
+          # can infer the repo -- but the chain must not depend on a checkout
+          # having succeeded to forge its next link.
+          GH_REPO: ${{ github.repository }}
         run: |
           # Seconds until the next :05 or :35 UTC. Computed from the clock at
           # this instant, so a slow collection shortens the sleep instead of

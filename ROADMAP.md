@@ -307,7 +307,17 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    The chain is self-healing in both directions: the dispatch step runs under
    `always()`, so one bad hour cannot end the chain, and a *failed* dispatch
    exits non-zero, so the run goes red and the next scheduled fire finds no
-   link alive and restarts. `timeout-minutes` is 45 to cover a 30-minute sleep
+   link alive and restarts.
+
+   **One bug worth keeping on the record**, because it is the shape of failure
+   this design is most exposed to. The gate calls `gh run list` before
+   checkout, and `gh` infers the repository from the git remote — which does
+   not exist yet at that point. Every scheduled fire failed with "failed to
+   determine base repo" from the moment it merged until `GH_REPO` was added.
+   Dispatched runs never reach that line, so **the chain kept running and only
+   the restarter was broken**: collection looked perfectly healthy, and the
+   safety net would only have been missed at the exact moment it was needed.
+   A red scheduled run is now the signal to check that first. `timeout-minutes` is 45 to cover a 30-minute sleep
    either side of a full collection.
 
    Follow-up: re-measure hourly delivery after 7 days of self-chaining. Target
