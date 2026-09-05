@@ -19,6 +19,11 @@ on:
     # as one -- but a trigger that fires eventually is all a restarter needs.
     - cron: "17,47 * * * *"
   workflow_dispatch:
+    inputs:
+      chain:
+        description: "true only when this run is the next link of a running chain"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -180,8 +185,26 @@ jobs:
       # one bad hour must not end the chain. It runs AFTER the freshness guard
       # so a stale-data failure is still loud, and after the commit so a crash
       # here cannot cost a sample that was already pushed.
+      # ONLY A CHAIN LINK FORGES THE NEXT ONE. This is what stops a stray
+      # dispatch from becoming a second, permanent, self-perpetuating chain.
+      #
+      # On 2026-09-05 that is exactly what happened: a laptop reboot re-loaded
+      # a launchd agent that POSTs repository_dispatch twice an hour, every one
+      # of those runs dispatched a successor, and none of the resulting chains
+      # ever died. They all sleep to the same :05/:35 slots, so they converged
+      # and fired in clumps -- 41 concurrent runs before it was caught.
+      #
+      # So: a run continues the chain only if it IS the chain (dispatched with
+      # chain=true) or is a scheduled fire starting a new one. Anything else --
+      # a repository_dispatch, a bare `gh workflow run` -- collects its hour and
+      # stops. Useful, harmless, one-shot. Checked here rather than by counting
+      # live runs, because counting races: parent and successor overlap by
+      # seconds at handover, and a "who is oldest" rule can kill the very chain
+      # it is meant to protect.
       - name: Dispatch successor
-        if: always() && steps.needed.outputs.proceed == 'true'
+        if: >-
+          always() && steps.needed.outputs.proceed == 'true'
+          && (github.event_name == 'schedule' || github.event.inputs.chain == 'true')
         env:
           GH_TOKEN: ${{ github.token }}
           # Not strictly needed here -- this step runs after checkout, so `gh`
@@ -205,7 +228,7 @@ jobs:
           # A failed dispatch breaks the chain, so it must be LOUD: the run goes
           # red, and the schedule's next fire finds no link alive and restarts.
           # That is the whole recovery path, so it must never be swallowed.
-          gh workflow run collect.yml --ref main
+          gh workflow run collect.yml --ref main -f chain=true
           # `gh workflow run` prints no id, so read it back. Best effort only --
           # the dispatch is what matters and a slow-to-appear run must not fail
           # a step that already succeeded.

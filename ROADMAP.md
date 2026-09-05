@@ -309,6 +309,33 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    exits non-zero, so the run goes red and the next scheduled fire finds no
    link alive and restarts.
 
+   **Incident, 2026-09-05: 41 concurrent runs.** Sebastian rebooted his Mac.
+   macOS auto-loads `~/Library/LaunchAgents/*.plist` at login, so the launchd
+   agent that had been unloaded on 2026-09-02 came back and resumed POSTing
+   `repository_dispatch` twice an hour. Every one of those runs dispatched a
+   successor, and **a chain never dies**, so each stray dispatch became a
+   permanent second chain. They all sleep to the same :05/:35 slots, so they
+   converged and fired in clumps: 20 in progress and 21 queued before it was
+   caught. No data was harmed — the per-hour idempotency gate meant exactly one
+   capture an hour throughout, and the extra runs staged nothing.
+
+   Two fixes, and the second is the one that matters:
+
+   1. The agent is now `launchctl disable`d for the user, which **survives a
+      reboot**, rather than merely unloaded. The three files stay on disk as
+      documented. Re-enable with
+      `launchctl enable gui/$UID/wiki.margin.collect && launchctl bootstrap gui/$UID ~/Library/LaunchAgents/wiki.margin.collect.plist`.
+   2. **Only a chain link forges the next link.** `workflow_dispatch` takes a
+      `chain` input; the successor is dispatched with `-f chain=true`, and the
+      dispatch step only runs for a scheduled fire or a run carrying that flag.
+      Anything else — a `repository_dispatch`, a bare `gh workflow run` —
+      collects its hour and stops. One-shot, useful, harmless. **The repo no
+      longer depends on the state of a laptop to stay single-threaded.**
+
+   Not done by counting live runs and letting the oldest win: parent and
+   successor overlap by seconds at handover, so that rule races and can kill
+   the chain it is meant to protect.
+
    **One bug worth keeping on the record**, because it is the shape of failure
    this design is most exposed to. The gate calls `gh run list` before
    checkout, and `gh` infers the repository from the git remote — which does
