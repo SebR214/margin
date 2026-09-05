@@ -72,9 +72,21 @@ jobs:
             exit 0
           fi
           # Any other run of THIS workflow still going, excluding this one.
-          alive=$(gh run list --workflow=collect.yml --limit 50                     --json databaseId,status                     --jq '[.[] | select(.status == "in_progress" or .status == "queued")
-                               | select(.databaseId != ${{ github.run_id }})
-                               | .databaseId] | first // ""')
+          #
+          # Asked by STATUS, not by scanning the newest N runs. The previous
+          # version listed the 50 most recent and filtered them, which fails
+          # exactly when it matters: a chain link sleeps for up to 30 minutes,
+          # so under any burst it falls out of the newest-50 window and the gate
+          # concludes "chain dead" while the chain is very much alive -- and
+          # then starts another one. On 2026-09-05 a scheduled fire did exactly
+          # that with ~20 chains running, which is part of how the pile-up grew.
+          # Status-filtered queries have no window and cannot drift.
+          alive=""
+          for st in in_progress queued; do
+            [ -n "$alive" ] && break
+            alive=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/collect.yml/runs?status=$st&per_page=100" \
+                      --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }}) | .id] | first // \"\"")
+          done
           if [ -n "$alive" ]; then
             echo "chain alive, run $alive"
             echo "proceed=false" >> "$GITHUB_OUTPUT"
