@@ -2,10 +2,10 @@
 """
 margin.wiki P2P collector -- the CAPITAL-CONTROLLED layer.
 
-Ten currencies with no licensed spot USDT book to read: NGN, EGP, PKR, BDT,
-VND, KES, GHS, BOB, LBP, ETB. Where `collector_basis.py` reads an order book,
-this reads an advertisement board, and the difference matters enough that it
-gets its own file rather than a source column in basis.csv.
+Fifty-three currencies, most with no licensed spot USDT book to read. Where
+`collector_basis.py` reads an order book, this reads an advertisement board,
+and the difference matters enough that it gets its own file rather than a
+source column in basis.csv.
 
 A P2P ad is NOT an order-book quote. It is a price someone is asking, with
 counterparty risk, a payment-method requirement and a settlement window; it is
@@ -46,6 +46,7 @@ import json
 import os
 import statistics
 import sys
+import time
 
 try:
     import requests
@@ -53,6 +54,15 @@ except ImportError:
     requests = None
 
 HTTP_TIMEOUT = 25
+# The board is one endpoint asked 106 times an hour (53 currencies, two sides).
+# Eight parallel requests got rate-limited during the 2026-09-05 survey and
+# serial requests ~0.7s apart did not, so the collector paces itself rather than
+# discovering the limit in production. Two extra minutes an hour is nothing
+# against an hourly cadence; a throttled currency is a hole that cannot be
+# refilled.
+REQUEST_GAP = 0.7
+RETRY_ATTEMPTS = 3
+RETRY_BACKOFF = 2.0
 UA = {"User-Agent": "margin.wiki p2p-collector/1.0 (+https://margin.wiki)",
       "content-type": "application/json"}
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -68,10 +78,34 @@ SOURCE = "binance_p2p"
 FILTER_USD = 500
 ROWS = 10
 
-# Every currency asked for, including the three that currently return no ads.
-# They stay in the list on purpose: an empty board is a finding about the market
-# and is recorded as a row, not omitted as if it had never been asked.
-CURRENCIES = ["NGN", "EGP", "PKR", "BDT", "VND", "KES", "GHS", "BOB", "LBP", "ETB"]
+# Every currency asked for. Fifty of these returned live ads when the board was
+# surveyed from a runner on 2026-09-05; NGN, GHS and ETB did not, and are kept
+# deliberately. An empty board is a finding about that market -- Binance delisted
+# NGN P2P after the 2024 crackdown, and Nigeria is precisely the country this
+# index is most often asked about -- so it is recorded hourly as a row with the
+# reason, not omitted as if it had never been asked.
+#
+# Raw rows are definition-independent: collecting a currency costs one request
+# and cannot be backfilled if skipped, so the list is wide on purpose and ahead
+# of any decision about what gets published.
+CURRENCIES = [
+    "AED", "AFN", "AMD", "AOA", "ARS", "AZN", "BDT", "BND", "BOB", "BWP",
+    "CLP", "COP", "DZD", "EGP", "ETB", "GEL", "GHS", "IDR", "INR", "IQD",
+    "JOD", "KES", "KHR", "KWD", "KZT", "LAK", "LBP", "LKR", "MAD", "MNT",
+    "MXN", "MZN", "NGN", "NPR", "PEN", "PHP", "PKR", "QAR", "RWF", "SAR",
+    "SDG", "SYP", "TND", "TRY", "TZS", "UAH", "UGX", "VES", "VND", "XAF",
+    "XOF", "ZAR", "ZMW",
+]
+
+# The subset that had a live board at the 2026-09-05 survey. Recorded so a
+# currency going quiet later is visibly a change rather than assumed normal.
+HAD_ADS_2026_09_05 = frozenset([
+    "AED", "AFN", "AMD", "AOA", "ARS", "AZN", "BDT", "BND", "BOB", "BWP",
+    "CLP", "COP", "DZD", "EGP", "GEL", "IDR", "INR", "IQD", "JOD", "KES",
+    "KHR", "KWD", "KZT", "LAK", "LBP", "LKR", "MAD", "MNT", "MXN", "MZN",
+    "NPR", "PEN", "PHP", "PKR", "QAR", "RWF", "SAR", "SDG", "SYP", "TND",
+    "TRY", "TZS", "UAH", "UGX", "VES", "VND", "XAF", "XOF", "ZAR", "ZMW",
+])
 
 FIELDS = [
     "ts_utc", "source", "ccy",
@@ -132,10 +166,37 @@ def summarise(buys, sells):
 
 
 # ------------------------------------------------------------------ I/O
+_last_call = [0.0]
+
+
+def _pace():
+    """Hold REQUEST_GAP between outbound calls, wherever they are made from."""
+    wait = REQUEST_GAP - (time.monotonic() - _last_call[0])
+    if wait > 0:
+        time.sleep(wait)
+    _last_call[0] = time.monotonic()
+
+
 def post_json(url, body):
-    r = requests.post(url, json=body, timeout=HTTP_TIMEOUT, headers=UA)
-    r.raise_for_status()
-    return r.json()
+    """Paced, and retried on a transient failure.
+
+    A retry here is not papering over an error: the alternative is that one
+    throttled request costs a currency its row for that hour, and an hour is
+    not recoverable. A currency that fails all attempts still lands as a
+    source_ok=False row with the reason, exactly as before.
+    """
+    last = None
+    for attempt in range(RETRY_ATTEMPTS):
+        if attempt:
+            time.sleep(RETRY_BACKOFF * attempt)
+        _pace()
+        try:
+            r = requests.post(url, json=body, timeout=HTTP_TIMEOUT, headers=UA)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            last = e
+    raise last
 
 
 def get_json(url):
@@ -287,10 +348,22 @@ def _board(prices):
 
 
 EMPTY_BOARD = {"code": "000000", "success": True, "data": [], "total": 0}
-FX_FIXTURE = {"NGN": 1332.607355, "EGP": 50.924246, "PKR": 277.866264,
-              "BDT": 122.692712, "VND": 26007.437228, "KES": 129.481429,
-              "GHS": 11.266187, "BOB": 11.879488, "LBP": 89500.0,
-              "ETB": 161.438389}
+FX_FIXTURE = {
+    "AED": 3.6725, "AFN": 64.838212, "AMD": 363.830153, "AOA": 931.930703,
+    "ARS": 1507.3745, "AZN": 1.699716, "BDT": 122.859412, "BND": 1.266802,
+    "BOB": 12.145708, "BWP": 13.688252, "CLP": 932.412272, "COP": 3152.90844,
+    "DZD": 133.338687, "EGP": 50.944245, "ETB": 162.347477, "GEL": 2.613051,
+    "GHS": 11.363793, "IDR": 17674.218391, "INR": 94.51761,
+    "IQD": 1311.094196, "JOD": 0.709, "KES": 129.388213, "KHR": 4045.073099,
+    "KWD": 0.308726, "KZT": 455.771483, "LAK": 22199.314709, "LBP": 89500,
+    "LKR": 328.202304, "MAD": 9.348756, "MNT": 3557.475045, "MXN": 16.894736,
+    "MZN": 63.818874, "NGN": 1324.205782, "NPR": 151.228136, "PEN": 3.360932,
+    "PHP": 62.696582, "PKR": 277.597405, "QAR": 3.64, "RWF": 1476.188744,
+    "SAR": 3.75, "SDG": 510.232995, "SYP": 121.840777, "TND": 2.90854,
+    "TRY": 48.416604, "TZS": 2641.564042, "UAH": 44.598868,
+    "UGX": 3716.890981, "VES": 813.7361, "VND": 26025.122751,
+    "XAF": 564.855203, "XOF": 564.855203, "ZAR": 15.966228, "ZMW": 19.110335,
+}
 TS_FIXTURE = "2026-09-02T00:00:00+00:00"
 
 
@@ -337,13 +410,18 @@ def selftest():
     # 4. happy path: every currency priced, BUY 1% over / SELL 1% under -> mid
     #    exactly the official rate, so basis is 0 by construction
     rows, n_ok = build_rows(TS_FIXTURE, CURRENCIES, FX_FIXTURE, post=_make_post())
-    assert len(rows) == 10 and n_ok == 10, (len(rows), n_ok)
+    assert len(rows) == len(CURRENCIES) == 53, (len(rows), len(CURRENCIES))
+    assert n_ok == 53, n_ok
+    assert set(FX_FIXTURE) >= set(CURRENCIES), set(CURRENCIES) - set(FX_FIXTURE)
+    assert HAD_ADS_2026_09_05 <= set(CURRENCIES)
+    assert set(CURRENCIES) - HAD_ADS_2026_09_05 == {"NGN", "GHS", "ETB"}
     by = {r["ccy"]: r for r in rows}
     assert all(r["n_ads"] == 22 for r in rows), [r["n_ads"] for r in rows]
     assert abs(by["VND"]["basis_bps"]) < 0.01, by["VND"]
     assert by["VND"]["buy_median"] > by["VND"]["sell_median"], by["VND"]
     assert set(FIELDS) >= set(rows[0])
-    print("  [ok] 10/10 currencies priced; buy above sell; schema covers the row")
+    print(f"  [ok] {n_ok}/{len(CURRENCIES)} currencies priced; buy above sell; "
+          f"schema covers the row")
 
     # 5. an empty board is a FINDING, recorded, and does not kill the run
     rows_e, n_ok_e = build_rows(TS_FIXTURE, CURRENCIES, FX_FIXTURE,
@@ -353,15 +431,24 @@ def selftest():
         assert r["source_ok"] is False and "no ads" in r["error"], r
         assert r["mid"] is None and r["basis_bps"] is None and r["n_ads"] == 0
         assert r["fx_mid_per_usd"] is not None, "the rate we asked against is kept"
-    assert n_ok_e == 7 and run_exit_code(n_ok_e) == 0
+    assert n_ok_e == 50 and run_exit_code(n_ok_e) == 0
     print("  [ok] empty board -> source_ok=False row with the reason, run exits 0")
+
+    # 5b. pacing is real and lives in the transport, so the collector cannot
+    #     discover the rate limit in production
+    assert REQUEST_GAP > 0 and RETRY_ATTEMPTS >= 2
+    t0 = time.monotonic(); _pace(); _pace(); _pace()
+    held = time.monotonic() - t0
+    assert held >= REQUEST_GAP * 2 - 0.05, held
+    print(f"  [ok] transport paces {REQUEST_GAP}s between calls "
+          f"({len(CURRENCIES) * 2} calls/hour, ~{len(CURRENCIES) * 2 * REQUEST_GAP / 60:.1f} min)")
 
     # 6. one currency erroring isolates to its own row
     rows_o, n_ok_o = build_rows(TS_FIXTURE, CURRENCIES, FX_FIXTURE,
                                 post=_make_post({"PKR": RuntimeError("simulated 503")}))
     pkr = next(r for r in rows_o if r["ccy"] == "PKR")
     assert pkr["source_ok"] is False and "simulated 503" in pkr["error"]
-    assert n_ok_o == 9 and run_exit_code(n_ok_o) == 0
+    assert n_ok_o == 52 and run_exit_code(n_ok_o) == 0
     print("  [ok] one currency erroring isolates to its own row")
 
     # 7. missing FX degrades only its currency
