@@ -332,6 +332,15 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
       collects its hour and stops. One-shot, useful, harmless. **The repo no
       longer depends on the state of a laptop to stay single-threaded.**
 
+   A second, quieter bug came out of the same incident. The gate detected a
+   live chain by listing the **newest 50 runs** and filtering them. A chain link
+   sleeps for up to 30 minutes, so under any burst it falls out of that window
+   and the gate concludes "chain dead" — then starts another chain. A scheduled
+   fire at 2026-09-05 00:58 did exactly that with ~20 chains running, so the
+   restarter was adding to the pile it existed to prevent. The gate now asks
+   GitHub by **status** (`runs?status=in_progress`, `runs?status=queued`), which
+   has no window and cannot drift.
+
    Not done by counting live runs and letting the oldest win: parent and
    successor overlap by seconds at handover, so that rule races and can kill
    the chain it is meant to protect.
