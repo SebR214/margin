@@ -396,12 +396,17 @@ textarea.input { min-height: 90px; resize: vertical; }
     overflow-x: auto; -webkit-overflow-scrolling: touch;
   }
   [data-grid="bar-row"] { grid-template-columns: 56px minmax(0, 1fr) 72px !important; gap: 8px !important; }
+  /* The board has its own hook: it is five columns where bar-row is three, and
+     the provider leaderboard shares bar-row. Items past the third wrap onto a
+     second line inside the row, which is how bar-row already degrades. */
+  [data-grid="board-row"] { grid-template-columns: 56px minmax(0, 1fr) 96px !important; gap: 4px 8px !important; }
 }
 
 /* Phone. */
 @media (max-width: 640px) {
   [data-grid="tiles"] { grid-template-columns: minmax(0, 1fr) !important; }
   [data-grid="bar-row"] { grid-template-columns: 48px minmax(0, 1fr) 64px !important; }
+  [data-grid="board-row"] { grid-template-columns: 48px minmax(0, 1fr) 76px !important; }
   /* The hourly coverage grid is 24 fixed columns by design — one cell per hour,
      and hour N must stay under hour N across every market row. Reflowing it
      would destroy that alignment, so each row's grid keeps all 24 columns at a
@@ -560,14 +565,15 @@ textarea.input { min-height: 90px; resize: vertical; }
 
       <sc-for list="{{ bands }}" as="band" hint-placeholder-count="2">
         <div style="padding-top: 18px;">
-          <div data-grid="bar-row" style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: baseline; padding: 0 0 6px 12px;">
+          <div data-grid="board-row" style="display: grid; grid-template-columns: 74px minmax(0, 130px) minmax(0, 1fr) minmax(0, 176px) 96px; gap: 0 16px; align-items: baseline; padding: 0 0 6px 12px;">
             <div style="font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;">{{ band.title }}</div>
             <div class="text-muted" style="font-size: 11px;">{{ band.sub }}</div>
             <div class="text-muted" style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;"><span>{{ band.axisLeft }}</span><span>cheaper than official ← 0 → dearer than official</span><span>{{ band.axisRight }}</span></div>
+            <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">between exchanges</div>
             <div class="text-muted" style="text-align: right; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">gap</div>
           </div>
           <sc-for list="{{ band.rows }}" as="b" hint-placeholder-count="8">
-            <div sc-camel-on-click="{{ b.go }}" data-grid="bar-row" style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); border-left: 3px solid transparent; padding: 9px 0 9px 9px; cursor: pointer; border-left-color: {{ b.sel }};" style-hover="background: var(--color-neutral-200);">
+            <div sc-camel-on-click="{{ b.go }}" data-grid="board-row" style="display: grid; grid-template-columns: 74px minmax(0, 130px) minmax(0, 1fr) minmax(0, 176px) 96px; gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); border-left: 3px solid transparent; padding: 9px 0 9px 9px; cursor: pointer; border-left-color: {{ b.sel }};" style-hover="background: var(--color-neutral-200);">
               <div style="display: flex; flex-direction: column;">
                 <span style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.02em;">{{ b.code }}</span>
                 <span class="text-muted" style="font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase;">{{ b.country }}</span>
@@ -577,12 +583,19 @@ textarea.input { min-height: 90px; resize: vertical; }
                 <div style="position: absolute; left: 50%; top: -9px; bottom: -9px; width: 1px; background: var(--color-neutral-500);"></div>
                 <div style="position: absolute; top: 3px; height: 16px; background: {{ b.fill }}; box-shadow: inset 0 0 0 1px rgba(32, 30, 29, 0.12); left: {{ b.left }}; width: {{ b.width }};"></div>
               </div>
+              <div style="font-size: 12px; line-height: 1.35;">
+                <span style="font-family: var(--font-heading); font-weight: 800;">{{ b.spread }}</span>
+                <span class="text-muted"> {{ b.spreadPair }}</span>
+                <span style="color: var(--color-neutral-600);">{{ b.spreadNone }}</span>
+              </div>
               <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: var(--color-text);">{{ b.bps }}<span style="font-size: 10px; color: var(--data-700); vertical-align: super; margin-left: 2px;">{{ b.mark }}</span></div>
             </div>
           </sc-for>
           <div style="border-top: 2px solid var(--color-text);"></div>
         </div>
       </sc-for>
+      <p style="font-size: 14px; margin: 14px 0 0; max-width: 86ch;">{{ spreadLede }}</p>
+      <p class="text-muted" style="font-size: 12px; margin: 6px 0 0; max-width: 88ch;">{{ brokerNote }}</p>
       <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 88ch;">Each bar is one country. It shows how far the local price of a digital dollar sits from the official exchange rate, right now. Above zero: people there pay more than the official rate to get dollars. {{ dislocatedNames }} so far above that they get their own scale. Below zero: the digital dollar trades cheaper than the official rate.</p>
     </div>
 
@@ -1103,6 +1116,20 @@ const META = {
   THB: { country: "Thailand" }, KRW: { country: "South Korea" },
 };
 
+// Display metadata only — how an exchange's slug is spelled for a reader. The
+// collector's `venue` string stays the key; this never touches a number.
+const VENUE_LABEL = {
+  lemoncash: "Lemon Cash", mexc: "MEXC", buenbit: "Buenbit", ripio: "Ripio",
+  ripioexchange: "Ripio Exchange", belo: "Belo", astropay: "AstroPay",
+  bitsoalpha: "Bitso Alpha", cocoscrypto: "Cocos Crypto", decrypto: "Decrypto",
+  cryptomktpro: "CryptoMarket Pro", fiwind: "Fiwind", letsbit: "Let'sBit",
+  satoshitango: "SatoshiTango", tiendacrypto: "TiendaCrypto", vitawallet: "Vita Wallet",
+  universalcoins: "Universal Coins", wallbit: "Wallbit", saldo: "Saldo",
+  eluter: "Eluter", peanut: "Peanut", nexo: "Nexo", binance: "Binance",
+  bybit: "Bybit", trubit: "TruBit", brasilbitcoin: "Brasil Bitcoin",
+  kucoin: "KuCoin", foxbit: "Foxbit",
+};
+
 const RANGES = [
   { key: "1d", label: "1d", ms: DAY, unit: "h" },
   { key: "1w", label: "1w", ms: 7 * DAY, unit: "d" },
@@ -1147,16 +1174,22 @@ class Component extends DCLogic {
       opt("./data/basis.csv"), opt("./data/basis_history.csv"), opt("./data/samples.csv"),
       opt("./data/providers.csv"), opt("./data/providers_usdmxn.csv"),
       opt("./data/fee_checks.csv"), opt("./data/fee_tiers.csv"),
-      opt("./data/crosses_latest.json"),
-    ]).then(([b, h, s, p1, p2, fc, ft, cx]) => {
+      opt("./data/crosses_latest.json"), opt("./data/latest.json"),
+    ]).then(([b, h, s, p1, p2, fc, ft, cx, lj]) => {
       // A missing or unparseable crosses file means the table renders its empty
       // state. It must never take the rest of the page down with it.
       let crosses = null;
       try { crosses = cx ? JSON.parse(cx) : null; } catch (e) { crosses = null; }
+      // The between-exchange spread is read from the snapshot the collector
+      // writes, not recomputed here, so the page and data/latest.json can never
+      // disagree about it. Missing or unparseable file -> the column says
+      // nothing, rather than the page inventing a number.
+      let latest = null;
+      try { latest = lj ? JSON.parse(lj) : null; } catch (e) { latest = null; }
       this.setState({ data: {
         basis: parseCSV(b), hist: parseCSV(h), samples: parseCSV(s),
         panels: { "SGD->PHP": parseCSV(p1), "USD->MXN": parseCSV(p2) },
-        feeChecks: parseCSV(fc), tiers: parseCSV(ft), crosses,
+        feeChecks: parseCSV(fc), tiers: parseCSV(ft), crosses, latest,
       }});
     }).catch(e => this.setState({ err: String(e.message || e) }));
   }
@@ -1401,6 +1434,37 @@ class Component extends DCLogic {
            " " + dir + " than the official rate in " + this.countryIn(m.code) + ".";
   }
 
+  // "CriptoYa:lemoncash" -> "Lemon Cash". Splits camelCase for the direct
+  // venues (MercadoBitcoin -> Mercado Bitcoin) and falls back to the string the
+  // collector wrote, so an exchange added later reads sensibly with no edit.
+  venueLabel(v) {
+    const raw = String(v || "").replace(/^CriptoYa:/, "");
+    if (VENUE_LABEL[raw]) return VENUE_LABEL[raw];
+    const split = raw.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
+    return split === raw && raw === raw.toLowerCase()
+      ? raw.charAt(0).toUpperCase() + raw.slice(1)
+      : split;
+  }
+
+  // The between-exchange spread for one country, read from data/latest.json --
+  // the same snapshot the collector commits, so the page cannot disagree with
+  // the file. Returns null where the snapshot has no median for that currency,
+  // which is exactly the one-exchange case.
+  spreadOf(D, code) {
+    const m = D && D.latest && D.latest.markets && D.latest.markets[code];
+    if (!m || m.basis_spread_bps === undefined || m.basis_spread_bps === null) return null;
+    const vs = (m.venues || []).filter(v => !v.aggregate && v.basis_bps !== null);
+    if (vs.length < 2) return null;
+    const lo = vs.reduce((a, b) => b.basis_bps < a.basis_bps ? b : a);
+    const hi = vs.reduce((a, b) => b.basis_bps > a.basis_bps ? b : a);
+    return {
+      bps: m.basis_spread_bps, count: m.venue_count,
+      loBps: lo.basis_bps, hiBps: hi.basis_bps,
+      lo: this.venueLabel(lo.venue), hi: this.venueLabel(hi.venue),
+      allBrokered: vs.every(v => /^CriptoYa:/.test(v.venue)),
+    };
+  }
+
   // Every exchange behind a country's number, as plain text for the hover.
   venueTip(m) {
     const lines = m.venues.map(v =>
@@ -1494,6 +1558,7 @@ class Component extends DCLogic {
       legend: [], provenance: [], failStats: [], methodNotes: [],
       makerProse: "", takerProse: "", correctionDate: "—", heroVerdict: "", dislocatedNames: "",
       corridorIntro: "", waterfallNote: "", waterfallStamp: "", stackNote: "", findingsIntro: "",
+      spreadLede: "", brokerNote: "",
       cross: { rows: [], has: false, none: true, bases: [], baseCountry: "", baseCode: "—",
                note: "", empty: "No pair has both currencies priced in the same hour yet." },
     };
@@ -1526,8 +1591,12 @@ class Component extends DCLogic {
       const max = list.length ? Math.max.apply(null, list.map(m => Math.abs(m.bps))) : 1;
       return { max, rows: list.map(m => {
         const w = this.scale(m.bps, max);
+        const sp = this.spreadOf(D, m.code);
         return { code: m.code, country: m.country, venue: m.venue,
           tip: this.gapSentence(m) + "\n\n" + this.venueTip(m),
+          spread: sp ? this.fmtPct(sp.bps, false) : "",
+          spreadPair: sp ? "· " + sp.lo + " to " + sp.hi : "",
+          spreadNone: sp ? "" : "one exchange",
           bps: this.gapWords(m.bps), mark: "",
           fill: m.bps >= 0 ? "var(--data-400)" : "#dedede",
           left: (m.bps >= 0 ? 50 : 50 - w) + "%", width: Math.max(w, 0.4) + "%",
@@ -1536,6 +1605,43 @@ class Component extends DCLogic {
       })};
     };
     const axis = v => this.fmtPct(v);
+
+    // The two sentences under the board. Computed from data/latest.json every
+    // render -- the countries named, the numbers and the venue count all move
+    // with the data, so nothing here can go stale against it.
+    const spreads = mkts
+      .map(m => ({ m, sp: this.spreadOf(D, m.code) }))
+      .filter(x => x.sp);
+    let spreadLede = "", brokerNote = "";
+    if (spreads.length >= 1) {
+      const widest = spreads.reduce((a, b) => b.sp.bps > a.sp.bps ? b : a);
+      const w = widest.sp, wc = this.countryIn(widest.m.code);
+      const side = (lo, hi) =>
+        lo >= 0 && hi >= 0 ? " over the official rate"
+        : lo < 0 && hi < 0 ? " under the official rate"
+        : " against the official rate";
+      spreadLede = "The same dollar can cost " + this.fmtPct(w.loBps, false).replace("−", "")
+        + " or " + this.fmtPct(w.hiBps, false).replace("−", "") + side(w.loBps, w.hiBps)
+        + " in " + wc + " depending which exchange you use.";
+      const others = spreads.filter(x => x !== widest);
+      if (others.length) {
+        const tightest = others.reduce((a, b) => b.sp.bps < a.sp.bps ? b : a);
+        const n = tightest.sp.count;
+        const word = { 2: "two", 3: "three", 4: "four", 5: "five" }[n] || String(n);
+        spreadLede += " In " + this.countryIn(tightest.m.code) + " the " + word
+          + " exchanges are within " + this.fmtPct(tightest.sp.bps, false).replace("−", "")
+          + " of each other.";
+      }
+      // Only claim "brokers, not order books" where that is actually true of
+      // every source behind that country, and name the count from the data.
+      const brokered = spreads.filter(x => x.sp.allBrokered);
+      if (brokered.length) {
+        brokerNote = brokered.map(x =>
+          this.countryIn(x.m.code) + "'s " + x.sp.count).join(", ")
+          + " sources are brokers reported by CriptoYa, not order books, so part of that"
+          + " spread is retail markup rather than a difference between exchanges.";
+      }
+    }
     let bands;
     if (banded) {
       const big = mkts.filter(m => Math.abs(m.bps) >= 200), small = mkts.filter(m => Math.abs(m.bps) < 200);
@@ -1909,7 +2015,7 @@ class Component extends DCLogic {
           v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src), num(cRowRaw.baseline_cost_bps))),
           sub: this.fmtPct(num(cRowRaw.baseline_cost_bps), false) + " · " + (cRowRaw.baseline_provider || "—"), mark: "" },
       ] : []),
-      bands, coverage, cross,
+      bands, coverage, cross, spreadLede, brokerNote,
       cov: { on: !!covH, code: covH ? covH.code : "", v: covH ? covH.v : "", t: covH ? covH.t : "",
              hint: covH ? "each cell is one hour" : "one cell per hour · filled: captured · grey: pull failed · blank: hour missed" },
       legendCells: [200, 300, 400, 500, 600].map(s => ({ bg: "var(--data-" + s + ")" })),
