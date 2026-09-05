@@ -421,6 +421,24 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    payment-rail requirement and a settlement window, and nothing guarantees a
    fill. Own collector, own file, own key in `latest.json`.
 
+   **Widened to 53 currencies, 2026-09-05.** Fifty returned live ads in a
+   survey from a runner; NGN, GHS and ETB did not and are kept anyway, because
+   an empty board is a finding — Binance delisted NGN P2P after the 2024
+   crackdown and Nigeria is the country this index is most often asked about.
+   Raw rows are definition-independent and cannot be backfilled, so the list is
+   deliberately ahead of any decision about what gets published. 106 requests
+   an hour, paced 0.7s apart in the transport after eight parallel requests were
+   throttled during the survey; first live run 49 of 53 priced in 74 seconds.
+
+   **The wide pull immediately proved the denominator problem is the binding
+   one.** Several currencies read as enormous premia that are really a comment
+   on the reference rate: SDG +12,946 bps against an official 510 when the board
+   says 7,116, DZD +8,422, IQD +1,779, MZN +1,693, SYP +851. Others show a
+   broken board rather than a market — AOA and UAH quote the sell side ABOVE the
+   buy side, NPR spreads 10%. All are recorded exactly as observed and **none of
+   them may be published as an index number** until the denominator policy and
+   a thin-board rule exist. See "The index, version 1".
+
    **No site work until seven days of rows exist.** Nothing renders before
    then. Re-read this section before building anything on it.
 
