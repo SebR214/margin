@@ -33,12 +33,13 @@ import os
 import statistics
 import sys
 
-INDEX_VERSION = "1.0"
+INDEX_VERSION = "1.1"
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
 BASIS = os.path.join(DATA, "basis.csv")
 P2P = os.path.join(DATA, "p2p_basis.csv")
+SIDES = os.path.join(DATA, "p2p_sides.csv")
 HIST = os.path.join(DATA, "basis_history.csv")
 OUT_DIR = os.path.join(DATA, "countries")
 OUT_INDEX = os.path.join(DATA, "index_latest.json")
@@ -72,6 +73,29 @@ COUNTRY = {
 MANAGED = {"ARS", "VES", "LBP", "SDG", "DZD", "SYP", "IQD", "AFN", "MZN",
            "ETB", "NGN", "AOA", "UAH", "MMK", "ZWL"}
 PEGGED = {"AED", "SAR", "QAR", "KWD", "JOD", "BND", "XAF", "XOF"}
+
+# v1.1 evidence rule, per METHODOLOGY. A P2P value is published only with at
+# least MIN_BUY_ADS ads on the buy side AND a buyer's price at or above the
+# seller's. Both are about whether a price is evidence, not about whether it is
+# convenient: the first rejects a number resting on two ads, the second rejects
+# a crossed board where the two sides are not the same market.
+MIN_BUY_ADS = 10
+
+# Sanity bands. A value outside these is not wrong by definition -- Sudan's
+# +1200% is arithmetic against a policy rate -- but it does not go into the
+# ranked snapshot until a human has checked it against an outside reference and
+# recorded the check. See METHODOLOGY, "Checked against".
+BAND_HIGH, BAND_LOW = 200.0, -3.0
+
+# Outside-band values that HAVE been checked, with the reference that explains
+# them. Anything outside the bands and not listed here is published on its own
+# page with an "unverified" label and left out of index_latest.json.
+VERIFIED_OUTLIERS = {
+    "SDG": ("2026-09-10", "The board is internally coherent -- buy 7,015-7,100 "
+                          "against sell 6,901-6,960, a 2.9% round trip, every ad on "
+                          "Bank of Khartoum. The figure is the distance from an "
+                          "official rate of 544 that no transaction uses."),
+}
 
 CLASS_WORDS = {
     "order_book_median": "from order books",
@@ -115,6 +139,21 @@ def parse_ts(s):
 
 def is_aggregate(venue):
     return venue.startswith("CriptoYa (") and venue.endswith(")")
+
+
+def buy_side_counts():
+    """{(ccy, hour): n_buy} from the sidecar, empty before it existed."""
+    out = {}
+    for r in rows(SIDES):
+        t = parse_ts(r.get("ts_utc"))
+        ccy = r.get("ccy")
+        if t is None or not ccy:
+            continue
+        try:
+            out[(ccy, t.replace(minute=0, second=0, microsecond=0))] = int(r.get("n_buy") or 0)
+        except ValueError:
+            continue
+    return out
 
 
 def is_broker(venue):
@@ -172,6 +211,7 @@ def latest_by_ccy():
             continue
         p2p_hours[ccy].setdefault(t.replace(minute=0, second=0, microsecond=0), []).append(r)
 
+    sides = buy_side_counts()
     out = {}
     for ccy in set(book_hours) | set(p2p_hours):
         entry = {"ccy": ccy, "country": COUNTRY.get(ccy, ccy),
@@ -214,14 +254,32 @@ def latest_by_ccy():
         else:
             pr = ph.get(hour) or []
             r = pr[0] if pr else None
-            if r is not None and flag(r, "source_ok") and num(r, "buy_median"):
+            n_buy = sides.get((ccy, hour))
+            if n_buy is None:
+                # Rows predating the sidecar carry only the two sides added
+                # together. Both sides full is the only combination that
+                # guarantees a full buy side, so it is the conservative stand-in
+                # and it is recorded as such rather than assumed exact.
+                total = num(r, "n_ads") if r is not None else None
+                n_buy = MIN_BUY_ADS if (total or 0) >= MIN_BUY_ADS * 2 else 0
+                entry["buy_ads_estimated"] = True
+            price = num(r, "buy_median") if r is not None else None
+            sell = num(r, "sell_median") if r is not None else None
+            fails = None
+            if r is None or not flag(r, "source_ok") or price is None:
+                fails = (r or {}).get("error") or "no buy-side source"
+            elif n_buy < MIN_BUY_ADS:
+                fails = (f"not enough evidence this hour: {n_buy} buy-side "
+                         f"ad{'' if n_buy == 1 else 's'}, {MIN_BUY_ADS} required")
+            elif sell is not None and price < sell:
+                fails = ("not enough evidence this hour: the buy side is below the "
+                         "sell side, so the two are not the same market")
+            if fails is None:
                 fx = num(r, "fx_mid_per_usd")
-                price = num(r, "buy_median")
-                sell = num(r, "sell_median")
                 entry.update(
                     source_class="p2p_buy_median",
                     source_words=CLASS_WORDS["p2p_buy_median"],
-                    n_sources=int(num(r, "n_ads") or 0), buy_price=price,
+                    n_sources=n_buy, buy_price=price,
                     fx_mid_per_usd=fx, index_pct=index_pct(price, fx),
                     venues=[{"venue": r.get("source"), "buy_price": price,
                              "index_pct": index_pct(price, fx),
@@ -230,10 +288,13 @@ def latest_by_ccy():
                 if sell:
                     entry["round_trip_pct"] = round((price / sell - 1) * 100, 4)
             else:
-                # No buy side is an absence of a price, not a filtered market.
+                # Not a filtered market: the hour is recorded, with the reason,
+                # and the country page prints it.
                 entry.update(source_class=None, source_words="no price this hour",
-                             n_sources=0,
-                             no_value_reason=(r or {}).get("error") or "no buy-side source")
+                             n_sources=0, no_value_reason=fails)
+                if sell is not None and price is not None:
+                    entry["round_trip_pct"] = round((price / sell - 1) * 100, 4)
+                    entry["withheld_buy_price"] = price
 
         entry["denominator"] = {
             "source": "open.er-api.com",
@@ -336,6 +397,10 @@ PAGE_TEMPLATE = """<!doctype html>
   td.n{text-align:right;font-family:var(--head);font-weight:800}
   svg{width:100%;height:230px;display:block}
   .empty{padding:22px 0;color:var(--muted)}
+  .banner{margin:22px 0 -8px;padding:11px 14px;border:1px solid var(--ink);
+          font-size:13px;line-height:1.45}
+  .banner b{letter-spacing:.08em;text-transform:uppercase;font-size:11px;
+            display:block;margin-bottom:3px}
   @media(max-width:640px){h1{font-size:29px}.stat{font-size:26px}}
 </style>
 </head>
@@ -347,6 +412,7 @@ PAGE_TEMPLATE = """<!doctype html>
     <a href="../methodology.html">methodology</a>
     <span class="muted" id="stamp"></span>
   </header>
+  <div id="banner"></div>
   <h1 id="h1">—</h1>
   <p class="lede" id="lede"></p>
   <p class="muted small" id="caveat"></p>
@@ -400,12 +466,23 @@ function render(d){
     "hour " + (d.hour_utc || "").slice(0,13).replace("T"," ") + "Z";
 
   if(d.index_pct == null){
-    document.getElementById("h1").textContent = "No price for " + c + " this hour";
-    document.getElementById("lede").textContent =
-      d.no_value_reason ? "Reason recorded by the collector: " + d.no_value_reason
-                        : "No source reported a price to buy a dollar this hour.";
-    notes.push("This is an absence of a price, not a market filtered out. "
-             + "It is recorded every hour, with the reason.");
+    const r = d.no_value_reason || "";
+    const thin = r.indexOf("not enough evidence") === 0;
+    document.getElementById("h1").textContent = thin
+      ? "Not enough evidence this hour for " + c
+      : "No price for " + c + " this hour";
+    document.getElementById("lede").textContent = r
+      ? r.replace(/^not enough evidence this hour: /, "The rule was not met: ")
+      : "No source reported a price to buy a dollar this hour.";
+    notes.push("A number was collected and stored; it is not published because it "
+             + "does not meet the evidence rule in the index definition. This is "
+             + "recorded every hour, with the reason, and is never a market "
+             + "quietly filtered out.");
+    if(d.withheld_buy_price != null){
+      notes.push("The buy-side price the board showed was "
+        + Number(d.withheld_buy_price).toLocaleString("en-US",{maximumFractionDigits:4})
+        + ", and the round trip was " + pct(d.round_trip_pct) + ".");
+    }
   } else {
     document.getElementById("h1").textContent =
       "A dollar costs " + words(d.index_pct) + " than the official rate in " + c + ".";
@@ -423,6 +500,15 @@ function render(d){
              + "That it stays near zero is the finding.");
   }
   document.getElementById("caveat").textContent = notes.join(" ");
+
+  const b = document.getElementById("banner");
+  if(d.unverified){
+    b.innerHTML = '<div class="banner"><b>Unverified</b>' + d.unverified_reason + "</div>";
+  } else if(d.outlier_checked){
+    b.innerHTML = '<div class="banner"><b>Checked ' + d.outlier_checked.date + "</b>"
+      + "This figure sits outside the normal range and has been checked against an "
+      + "outside reference. " + d.outlier_checked.explanation + "</div>";
+  } else { b.innerHTML = ""; }
 
   const cells = [
     ["What a dollar costs", words(d.index_pct),
@@ -515,7 +601,26 @@ def build():
         doc["history_days"] = len(h)
         files[ccy] = doc
 
-    listed = [f for f in files.values() if f.get("index_pct") is not None]
+    # A value outside the bands stays on its own page and keeps its number.
+    # What it loses is its place in the ranked snapshot, until a check against
+    # an outside reference is recorded in VERIFIED_OUTLIERS.
+    for f in files.values():
+        v = f.get("index_pct")
+        if v is None or BAND_LOW <= v <= BAND_HIGH:
+            continue
+        chk = VERIFIED_OUTLIERS.get(f["ccy"])
+        if chk:
+            f["outlier_checked"] = {"date": chk[0], "explanation": chk[1]}
+        else:
+            f["unverified"] = True
+            f["unverified_reason"] = (
+                f"{v:+.2f}% is outside the sanity band of {BAND_LOW:+g}% to "
+                f"{BAND_HIGH:+g}% and has not yet been checked against an outside "
+                f"reference. The number is published here and left out of the "
+                f"ranked index until it has been.")
+
+    listed = [f for f in files.values()
+              if f.get("index_pct") is not None and not f.get("unverified")]
     listed.sort(key=lambda f: f["index_pct"], reverse=True)
     snapshot = {
         "index_version": INDEX_VERSION,
@@ -526,6 +631,9 @@ def build():
                       for f in listed],
         "without_value": sorted(f["ccy"] for f in files.values()
                                 if f.get("index_pct") is None),
+        "unverified": sorted(f["ccy"] for f in files.values() if f.get("unverified")),
+        "sanity_band": {"low_pct": BAND_LOW, "high_pct": BAND_HIGH},
+        "min_buy_ads": MIN_BUY_ADS,
         "sources": ["data/basis.csv", "data/p2p_basis.csv", "data/basis_history.csv"],
     }
     stamps = [f.get("hour_utc") for f in files.values() if f.get("hour_utc")]
@@ -569,7 +677,11 @@ def main():
         print(f"    dearest : {top['country']} {top['index_pct']:+.2f}%  ({top['source_words']})")
         print(f"    cheapest: {bot['country']} {bot['index_pct']:+.2f}%  ({bot['source_words']})")
     if snapshot["without_value"]:
-        print(f"    no price this hour: {', '.join(snapshot['without_value'])}")
+        print(f"    no price this hour ({len(snapshot['without_value'])}): "
+              f"{', '.join(snapshot['without_value'])}")
+    if snapshot["unverified"]:
+        print(f"    unverified, excluded from the ranking: "
+              f"{', '.join(snapshot['unverified'])}")
 
 
 if __name__ == "__main__":
