@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — who changed their price, and when</title>
+<meta name="description" content="Every confirmed price change by a money transfer company, on four routes, since we started measuring. A change counts only when the company moved against every one of its competitors on the same day."/>
+<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<style>
+  :root{
+    --bg:#f3f2f2; --ink:#201e1d; --muted:#7d7979;
+    --line:color-mix(in srgb,#201e1d 18%,transparent);
+    --rule:color-mix(in srgb,#201e1d 40%,transparent);
+    --fill:#d2d9f7; --deep:#8b9ae8;
+    --up:#9a3412; --down:#166534;
+    --head:"Archivo",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--head);
+       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px 72px}
+  header{display:flex;align-items:center;gap:16px;padding:14px 0;
+         border-bottom:1px solid var(--rule);font-size:11px;
+         letter-spacing:.1em;text-transform:uppercase;flex-wrap:wrap}
+  header a{color:var(--ink);text-decoration:none}
+  header a:hover{text-decoration:underline}
+  h1{font-size:38px;line-height:1.08;margin:34px 0 10px;max-width:24ch}
+  .lede{font-size:16px;max-width:66ch;margin:0 0 22px;color:var(--muted)}
+  .muted{color:var(--muted)} .small{font-size:12px}
+  .note{border-left:3px solid var(--deep);padding:12px 16px;margin:22px 0 4px;
+        background:color-mix(in srgb,#d2d9f7 40%,transparent);max-width:72ch}
+  .note b{display:block;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+          margin-bottom:4px}
+  .pills{display:flex;gap:0;border:1px solid var(--rule);flex-wrap:wrap;margin:0 0 4px}
+  .pills button{appearance:none;border:0;cursor:pointer;font-family:var(--head);
+    font-weight:800;font-size:11px;letter-spacing:.06em;padding:8px 12px;
+    background:var(--bg);color:var(--ink)}
+  .pills button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+  .pills button:hover{background:var(--fill)}
+  .bar{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin:22px 0 6px}
+  .bar > div{display:flex;flex-direction:column;gap:5px}
+  .k{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  h2{font-size:22px;margin:30px 0 4px;border-bottom:2px solid var(--ink);padding-bottom:8px}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:4px}
+  th{text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+     color:var(--muted);font-weight:400;padding:11px 8px 7px}
+  th.r,td.r{text-align:right}
+  td{padding:10px 8px;border-top:1px solid var(--line);vertical-align:top}
+  tr.wk{background:color-mix(in srgb,#d2d9f7 45%,transparent)}
+  .n{font-weight:800}
+  .up{color:var(--up);font-weight:800}
+  .down{color:var(--down);font-weight:800}
+  .tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .empty{padding:26px 0;color:var(--muted)}
+  .scroll{overflow-x:auto}
+  .rt{display:none}
+  @media(max-width:720px){
+    h1{font-size:28px}
+    /* Route, amount and the old-price column fold away; the route moves under
+       the company name so a narrow screen still says which route it is. */
+    th:nth-child(3),td:nth-child(3),th:nth-child(4),td:nth-child(4),
+    th:nth-child(5),td:nth-child(5){display:none}
+    .rt{display:block}
+    table{font-size:13px}
+    td,th{padding-left:0;padding-right:6px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="./index.html"><b>margin.wiki</b></a>
+    <a href="./index.html">the board</a>
+    <a href="./providers.html">every way to send it</a>
+    <a href="./corridor.html">sending money</a>
+    <a href="./methodology.html">methodology</a>
+    <span class="muted" id="stamp"></span>
+  </header>
+
+  <h1>Who changed their price, and when.</h1>
+  <p class="lede">Prices here are checked every hour. Most of what looks like a
+     price change is really the exchange rate moving underneath everybody at
+     once. So a change is only counted when one company moved against
+     <em>every</em> one of its competitors on the same day, in the same
+     direction. That test is described below, and it is strict on purpose.</p>
+
+  <div id="finding"></div>
+
+  <div class="bar">
+    <div><span class="k">route</span><span class="pills" id="routes"></span></div>
+    <div><span class="k">show</span><span class="pills" id="kinds"></span></div>
+  </div>
+
+  <h2 id="title">—</h2>
+  <p class="muted small" id="sub"></p>
+  <div id="table"></div>
+
+  <h2>How a change is confirmed</h2>
+  <p class="small" id="method"></p>
+  <p class="small muted" id="caveat"></p>
+</div>
+<script>
+const pct = v => v === null || v === undefined || !isFinite(v) ? "—"
+  : (v >= 0 ? "" : "−") + Math.abs(v).toFixed(2) + "%";
+const move = v => (v > 0 ? "+" : "−") + Math.abs(v).toFixed(2) + " points";
+let DATA = null, route = "all", kind = "all";
+
+fetch("./data/price_changes_latest.json", {cache:"no-store"})
+  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+  .then(d => { DATA = d; init(); })
+  .catch(e => {
+    document.getElementById("title").textContent = "No price history available";
+    document.getElementById("table").innerHTML =
+      '<div class="empty">data/price_changes_latest.json could not be read ('
+      + e.message + "). Nothing is shown rather than a guess.</div>";
+  });
+
+// One company changing one price shows up once per amount tested. Group those
+// back into the single event they are, and keep the range across amounts.
+function grouped(){
+  const rows = (DATA.changes || []).filter(r =>
+    (route === "all" || r.corridor === route) &&
+    (kind === "all" || (kind === "weekend" ? r.kind !== "change" : r.kind === "change")));
+  const by = new Map();
+  for (const r of rows){
+    const k = r.day + "|" + r.corridor + "|" + r.provider;
+    if (!by.has(k)) by.set(k, {day:r.day, weekday:r.weekday, corridor:r.corridor,
+      route_words:r.route_words, provider:r.provider, rows:[]});
+    by.get(k).rows.push(r);
+  }
+  const out = [...by.values()];
+  for (const g of out){
+    g.rows.sort((a,b) => parseFloat(a.size) - parseFloat(b.size));
+    // Cost varies a lot by amount, so show one named amount rather than a
+    // blend: 1,000 where it was tested, otherwise the smallest that was.
+    const mid = g.rows.find(r => parseFloat(r.size) === 1000) || g.rows[0];
+    g.old = mid.old_cost_pct; g.now = mid.new_cost_pct; g.at = mid.amount_words;
+    g.move = mid.move_pct; g.kind = mid.kind;
+    g.amounts = g.rows.length;
+    g.agree = mid.n_agree; g.panel = mid.n_panel;
+  }
+  out.sort((a,b) => a.day < b.day ? 1 : a.day > b.day ? -1
+                  : Math.abs(b.move) - Math.abs(a.move));
+  return out;
+}
+
+function init(){
+  const rs = DATA.routes || {};
+  const mk = (host, opts, get, set) => {
+    document.getElementById(host).innerHTML = opts.map(([v,l]) =>
+      `<button data-v="${v}">${l}</button>`).join("");
+    document.getElementById(host).onclick = e => {
+      const b = e.target.closest("button"); if(!b) return;
+      set(b.dataset.v); render();
+    };
+  };
+  const seen = new Set((DATA.changes||[]).map(r => r.corridor));
+  mk("routes", [["all","All routes"]].concat(
+      Object.keys(rs).filter(c => seen.has(c)).map(c => [c, rs[c]])),
+     () => route, v => route = v);
+  mk("kinds", [["all","Everything"],["change","One-off changes"],
+               ["weekend","Weekend rates"]], () => kind, v => kind = v);
+
+  const c = DATA.counts || {};
+  const days = [...new Set((DATA.changes||[]).map(r => r.day))].sort();
+  document.getElementById("stamp").textContent =
+    days.length ? days[0] + " to " + days[days.length-1] : "";
+
+  // The one thing on this page a reader should take away, stated only if the
+  // data still supports it. Recomputed from the rows every time, never fixed.
+  const wk = (DATA.changes||[]).filter(r => r.kind === "weekend_up");
+  const who = {};
+  for (const r of wk) who[r.provider] = (who[r.provider]||0) + 1;
+  const rank = Object.entries(who).sort((a,b) => b[1]-a[1]);
+  if (rank.length){
+    const top = rank[0][0];
+    const mine = wk.filter(r => r.provider === top);
+    // Per route, because the same company charges a very different weekend
+    // premium on each -- an average across routes would hide that.
+    const byRoute = {};
+    for (const r of mine){
+      (byRoute[r.route_words] = byRoute[r.route_words] || []).push(r.move_pct);
+    }
+    // How many Saturdays it happened on, out of how many were measured. A
+    // pattern without its denominator is an anecdote.
+    const sats = DATA.saturdays_judged || {};
+    const legs = Object.entries(byRoute).map(([w, v]) => {
+      const c = mine.find(r => r.route_words === w).corridor;
+      const hit = new Set(mine.filter(r => r.corridor === c).map(r => r.day)).size;
+      const avg = v.reduce((a,b)=>a+b,0)/v.length;
+      return `${avg.toFixed(2)} points on ${w}, on ${hit} of the `
+           + `${sats[c] ?? hit} Saturdays measured`;
+    });
+    const others = rank.slice(1).map(x => x[0]);
+    const also = others.length
+      ? ` ${others.join(" and ")} ${others.length > 1 ? "show" : "shows"} a `
+        + `smaller version of the same pattern.`
+      : " No other company on these routes does it.";
+    document.getElementById("finding").innerHTML =
+      `<div class="note"><b>The clearest thing in this data</b>
+       ${top} charges more at the weekend: its price rises on a Saturday and
+       comes back down on the Monday. It has done that by
+       ${legs.join("; and by ")}.${also}</div>`;
+  }
+  render();
+}
+
+function render(){
+  for (const [host, cur] of [["routes", route], ["kinds", kind]])
+    document.querySelectorAll("#" + host + " button").forEach(b =>
+      b.setAttribute("aria-pressed", b.dataset.v === cur));
+
+  const g = grouped();
+  const rs = DATA.routes || {};
+  const nRoutes = Object.keys(rs).length;
+  const word = ["no","one","two","three","four","five","six"][nRoutes] || nRoutes;
+  document.getElementById("title").textContent =
+    g.length + (g.length === 1 ? " price change" : " price changes")
+    + (route === "all"
+        ? ` on ${word} route${nRoutes === 1 ? "" : "s"}`
+        : " on " + (rs[route]||route));
+  document.getElementById("sub").textContent = g.length
+    ? "Newest first. A company that changed its price at several amounts on the "
+      + "same day appears once."
+    : "";
+
+  document.getElementById("table").innerHTML = !g.length
+    ? '<div class="empty">No price change has met the test on this route yet. '
+      + 'An empty list is the honest answer, not a missing one.</div>'
+    : `<div class="scroll"><table><tr><th>When</th><th>Who</th><th>Route</th><th>At</th>
+        <th class="r">At the old price</th><th class="r">Cost after</th>
+        <th class="r">Moved</th></tr>` +
+      g.map(r => {
+        const cls = r.kind === "change" ? "" : "wk";
+        const dir = r.move > 0 ? "up" : "down";
+        const tag = r.kind === "weekend_up" ? '<div class="tag">weekend rate</div>'
+                  : r.kind === "weekend_back" ? '<div class="tag">back to weekday</div>'
+                  : r.amounts > 1 ? `<div class="tag">at ${r.amounts} amounts</div>` : "";
+        return `<tr class="${cls}">
+          <td>${r.day}<div class="tag">${r.weekday}</div></td>
+          <td class="n">${r.provider}${tag}
+              <div class="tag rt">${r.route_words}</div></td>
+          <td class="muted small">${r.route_words}</td>
+          <td class="muted small">${r.at}</td>
+          <td class="r">${pct(r.old)}</td>
+          <td class="r">${pct(r.now)}</td>
+          <td class="r ${dir}">${move(r.move)}</td></tr>`;
+      }).join("") + "</table></div>";
+
+  document.getElementById("method").textContent =
+    "Every company on a route is priced at the same moment, every hour. For each "
+    + "pair of companies we take the gap between them, and the middle value of "
+    + "that gap over a whole day. A company is recorded as changing its price "
+    + "only when that gap moved against every other company on the route on the "
+    + "same day, in the same direction, by at least "
+    + (DATA.threshold_pct ?? 0.02).toFixed(2) + " percentage points, with at least "
+    + (DATA.min_readings ?? 6) + " readings on each of the two days. Because both "
+    + "companies in a pair are measured at the same instant against the same "
+    + "exchange rate, a move in the rate itself cancels out and is never reported "
+    + "as news.";
+  document.getElementById("caveat").textContent =
+    "Cost is how much less the person receiving ends up with than the mid-market "
+    + "rate would give them, fees included. 'Cost after' is the middle reading on "
+    + "the day of the change; 'at the old price' is what that same day would have "
+    + "cost had they not changed it. Both sit on the same day's exchange rate, so "
+    + "the difference between them is exactly the move. Cost varies by amount, so "
+    + "each row is shown at one named amount even when the change was confirmed at "
+    + "several. Only completed days are judged, so today never appears, and "
+    + "nothing is backfilled: the record starts when measurement started.";
+}
+</script>
+</body>
+</html>

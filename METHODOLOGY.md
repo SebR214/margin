@@ -558,6 +558,64 @@ One thing the data shows plainly and the site states without comment: a
 company's own quote and a third-party comparison of it are **not always the same
 number**. Both are recorded. Neither is called wrong.
 
+## When a company has changed its price (`data/price_changes.csv`)
+
+A provider's cost is measured against a mid-market rate. Our snapshot of that
+rate and the moment the provider's quote was captured are never the same
+instant, so every measured cost wobbles even when nobody has touched their
+pricing. Measured over a month of SGD→PHP and USD→MXN:
+
+| | median hour-to-hour | median day-over-day, on daily medians |
+|---|---|---|
+| every provider, every size | 2 to 4 bps | ~12 bps |
+
+The second number is the one that matters, and the giveaway is *when* it lands:
+the same day for every provider in a panel at once — 2026-08-19→20 across all
+nine providers on USD→MXN, 2026-08-11→12 across all six on SGD→PHP. Nine
+companies do not reprice in unison. That is the reference moving.
+
+So a plain "cost changed by more than X" test reports the reference as news, at
+any threshold: at 0.02 percentage points it fires on roughly half of all hours.
+
+**The test used instead is pairwise unanimity.** A provider is recorded as
+having changed its price on a day only if its cost moved against **every** other
+provider in the same panel, on the same day, in the same direction, by at least
+0.02 percentage points, with at least six hourly readings on each of the two
+days being compared.
+
+Both sides of each pair are measured against the same rate at the same instant,
+so the rate cancels exactly. A move in the reference shifts the whole panel
+together and produces no pairwise difference at all — it is silent. A move by
+one provider shows up against all of its peers and is reported.
+
+This also survives the case that defeats a basket average. When OFX moved ~90
+bps on USD→MXN it dragged any average or median of the panel with it, painting
+a false ~18 bps move on every other provider. Pairwise differences are immune,
+because the peer being compared against is never the mover.
+
+**What the two cost columns mean.** `new_cost_pct` is the provider's observed
+daily median cost on the day of the change. `old_cost_pct` is that figure minus
+the confirmed move — what the same day would have cost at the old price. Both
+therefore sit on the same day's exchange rate, so their difference is exactly
+the move and a row can never contradict itself. The previous day's raw observed
+median is kept alongside as `prev_day_cost_pct`; it differs from `old_cost_pct`
+by the reference drift, which is precisely the quantity this file refuses to
+publish as news.
+
+**Weekend rates.** A rise on a Saturday that comes back on the following Monday
+is labelled a weekend rate rather than two repricings. Matched on the event —
+one company, one route, one day — not on each amount separately, because a
+company raises its price, not its price-at-S$200. Both legs must be present in
+the data; nothing is inferred from one leg alone.
+
+**What is judged.** Only complete days: the first day in a panel has nothing
+before it, and the last is today, still filling. The file is append-only and
+never rewrites a row, so a call made on half a day could not be corrected.
+
+**Not backfilled.** The record starts when measurement started — 2026-08-11 for
+SGD→PHP, 2026-08-19 for USD→MXN. AUD→PHP and NZD→PHP began on 2026-09-10 and
+will produce their first eligible comparison once they have three days.
+
 ## Checked against
 
 Every number here is computed from rows this project collected itself, which
