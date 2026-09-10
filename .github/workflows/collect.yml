@@ -145,6 +145,14 @@ jobs:
         # write the file.
         run: python3 tools/emit_latest.py
 
+      - name: Emit per-country index files and pages
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Derived from the CSVs the collectors just wrote. Implements
+        # METHODOLOGY "The index, version 1"; writes data/countries/<CCY>.json,
+        # data/index_latest.json and one page per country under c/. Exits
+        # non-zero only if it cannot write.
+        run: python3 tools/emit_countries.py
+
       - name: Commit samples
         if: always() && steps.needed.outputs.proceed == 'true'
         run: |
@@ -159,8 +167,15 @@ jobs:
           for f in data/samples.csv data/basis.csv data/providers.csv \
                    data/providers_usdmxn.csv data/latest.json \
                    data/crosses_latest.json data/stable_spread.csv \
-                   data/p2p_basis.csv; do
+                   data/p2p_basis.csv data/index_latest.json; do
             if [ -f "$f" ]; then git add "$f"; fi
+          done
+          # Directories: one file per country, and a page per country. A
+          # country added to the collector appears here on its first run with
+          # no edit to this list -- which is the point of staging the directory
+          # rather than naming the files.
+          for d in data/countries c; do
+            if [ -d "$d" ]; then git add "$d"; fi
           done
           if git diff --cached --quiet; then
             # Expected on the second fire of an hour the first fire already

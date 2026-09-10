@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — what a dollar costs in Tunisia</title>
+<meta name="description" content="How much it costs to buy a dollar in Tunisia compared with the official exchange rate, measured every hour from real exchanges."/>
+<link rel="stylesheet" href="../vendor/fonts/fonts.css"/>
+<style>
+  :root{
+    --bg:#f3f2f2; --ink:#201e1d; --muted:#7d7979;
+    --line:color-mix(in srgb,#201e1d 18%,transparent);
+    --rule:color-mix(in srgb,#201e1d 40%,transparent);
+    --fill:#d2d9f7; --deep:#8b9ae8;
+    --head:"Archivo",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--head);
+       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px 64px}
+  header{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);
+         font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  header a{color:var(--ink);text-decoration:none}
+  header a:hover{text-decoration:underline}
+  h1{font-size:40px;line-height:1.08;margin:36px 0 10px;max-width:22ch}
+  .lede{font-size:17px;max-width:60ch;margin:0 0 4px}
+  .muted{color:var(--muted)}
+  .small{font-size:12px}
+  .stat{font-family:var(--head);font-weight:800;font-size:34px;line-height:1}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+        gap:2px;background:var(--rule);margin:26px 0 8px}
+  .cell{background:var(--bg);padding:13px 15px}
+  .k{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  h2{font-size:22px;margin:38px 0 4px;border-bottom:2px solid var(--ink);padding-bottom:8px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+     color:var(--muted);font-weight:400;padding:10px 0 6px}
+  td{padding:9px 0;border-top:1px solid var(--line)}
+  td.n{text-align:right;font-family:var(--head);font-weight:800}
+  svg{width:100%;height:230px;display:block}
+  .empty{padding:22px 0;color:var(--muted)}
+  @media(max-width:640px){h1{font-size:29px}.stat{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="../index.html"><b>margin.wiki</b></a>
+    <a href="../index.html">← all countries</a>
+    <a href="../methodology.html">methodology</a>
+    <span class="muted" id="stamp"></span>
+  </header>
+  <h1 id="h1">—</h1>
+  <p class="lede" id="lede"></p>
+  <p class="muted small" id="caveat"></p>
+
+  <div class="grid" id="stats"></div>
+
+  <h2>How it has moved</h2>
+  <p class="muted small" id="histnote"></p>
+  <svg id="chart" viewBox="0 0 1000 230" preserveAspectRatio="none"></svg>
+  <div class="muted small" id="axis" style="display:flex;justify-content:space-between;padding-top:6px"></div>
+
+  <h2 id="exch-h">Where the price comes from</h2>
+  <div id="exch"></div>
+
+  <h2>The small print</h2>
+  <p class="small" id="print"></p>
+  <p class="small muted">Every figure is read from
+     <a href="../data/countries/TND.json">data/countries/TND.json</a>,
+     regenerated every hour from
+     <a href="../data/basis.csv">basis.csv</a> and
+     <a href="../data/p2p_basis.csv">p2p_basis.csv</a>. Nothing is smoothed,
+     estimated or filled in.</p>
+</div>
+<script>
+const CCY = "TND";
+const pct = v => v == null || !isFinite(v) ? "—"
+  : (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(Math.abs(v) >= 10 ? 1 : 2) + "%";
+const words = v => v == null || !isFinite(v) ? "—"
+  : Math.abs(v).toFixed(Math.abs(v) >= 10 ? 1 : 2) + "%" + (v >= 0 ? " more" : " less");
+const DAY = ["January","February","March","April","May","June","July",
+             "August","September","October","November","December"];
+function longDate(iso){
+  if(!iso) return "—";
+  const [y,m,d] = iso.split("-").map(Number);
+  return `${d} ${DAY[m-1]} ${y}`;
+}
+fetch("../data/countries/" + CCY + ".json", {cache:"no-store"})
+  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+  .then(render)
+  .catch(e => {
+    document.getElementById("h1").textContent = "No data for " + CCY;
+    document.getElementById("lede").textContent =
+      "data/countries/" + CCY + ".json could not be read (" + e.message + ").";
+  });
+
+function render(d){
+  const c = d.country;
+  const notes = [];
+  document.title = "margin.wiki — what a dollar costs in " + c;
+  document.getElementById("stamp").textContent =
+    "hour " + (d.hour_utc || "").slice(0,13).replace("T"," ") + "Z";
+
+  if(d.index_pct == null){
+    document.getElementById("h1").textContent = "No price for " + c + " this hour";
+    document.getElementById("lede").textContent =
+      d.no_value_reason ? "Reason recorded by the collector: " + d.no_value_reason
+                        : "No source reported a price to buy a dollar this hour.";
+    notes.push("This is an absence of a price, not a market filtered out. "
+             + "It is recorded every hour, with the reason.");
+  } else {
+    document.getElementById("h1").textContent =
+      "A dollar costs " + words(d.index_pct) + " than the official rate in " + c + ".";
+    document.getElementById("lede").textContent =
+      "That is what it costs to buy one dollar " + d.source_words +
+      ", measured against the official exchange rate captured in the same second.";
+  }
+
+  if(d.denominator && d.denominator.class === "managed"){
+    notes.push("The official rate for " + c + " is a number the authorities set and "
+             + "defend, not a market price. Any figure here is the distance from that "
+             + "policy rate.");
+  } else if(d.denominator && d.denominator.class === "pegged"){
+    notes.push(c + "'s currency is pegged, so this figure sits near zero by design. "
+             + "That it stays near zero is the finding.");
+  }
+  document.getElementById("caveat").textContent = notes.join(" ");
+
+  const cells = [
+    ["What a dollar costs", words(d.index_pct),
+     "against the official rate"],
+    ["Round trip", pct(d.round_trip_pct),
+     "buying then selling again"],
+    ["Where it comes from", (d.source_words || "—").replace(/^from /,""),
+     d.n_sources === 1 ? "1 source" : d.n_sources + " sources"],
+    ["History since", longDate(d.history_start),
+     d.history_days + (d.history_days === 1 ? " day" : " days") + " of readings"],
+  ];
+  document.getElementById("stats").innerHTML = cells.map(([k,v,s]) =>
+    `<div class="cell"><div class="k">${k}</div><div class="stat">${v}</div>
+     <div class="muted small" style="margin-top:4px">${s}</div></div>`).join("");
+
+  const h = d.history || [];
+  const back = h.filter(p => p.source === "daily_backfill_mid").length;
+  document.getElementById("histnote").textContent = h.length < 2
+    ? "Not enough days yet to draw a line. Every point collected is shown."
+    : "One point per day, the middle reading of that day. Readings start "
+      + longDate(d.history_start) + "."
+      + (back ? " The first " + back + " days are a daily backfill of the mid-market price, "
+              + "which is a slightly different measurement and is drawn in grey." : "");
+  drawChart(h);
+
+  const vs = d.venues || [];
+  document.getElementById("exch-h").textContent =
+    vs.length > 1 ? "The " + vs.length + " sources behind it" : "Where the price comes from";
+  document.getElementById("exch").innerHTML = !vs.length
+    ? '<div class="empty">No source reported a price this hour.</div>'
+    : `<table><tr><th>Source</th><th style="text-align:right">Price of one dollar</th>
+       <th style="text-align:right">Against official</th></tr>` +
+      vs.map(v => `<tr><td>${v.venue}${v.last_price_used
+        ? ' <span class="muted small">— last traded price, no live offer</span>' : ""}</td>
+        <td class="n">${v.buy_price === null ? "—" : Number(v.buy_price).toLocaleString("en-US",{maximumFractionDigits:4})}</td>
+        <td class="n">${pct(v.index_pct)}</td></tr>`).join("") + "</table>";
+
+  const den = d.denominator || {};
+  document.getElementById("print").textContent =
+    "The official rate used is " + (den.rate_per_usd === null || den.rate_per_usd === undefined
+      ? "not available this hour" : Number(den.rate_per_usd).toLocaleString("en-US",{maximumFractionDigits:4})
+        + " " + d.ccy + " to the dollar")
+    + ", from " + (den.source || "—") + ", classed as a " + (den.class || "—") + " rate. "
+    + "Index definition version " + d.index_version + ". "
+    + "This page shows the price to buy a dollar, never a midpoint — "
+    + "buying and selling can be different markets.";
+}
+
+function drawChart(h){
+  const svg = document.getElementById("chart"), ax = document.getElementById("axis");
+  if(h.length < 2){ svg.innerHTML = ""; ax.textContent = ""; return; }
+  const vs = h.map(p => p.index_pct);
+  let lo = Math.min(0, ...vs), hi = Math.max(0, ...vs);
+  const pad = (hi - lo) * 0.12 || 1; lo -= pad; hi += pad;
+  const X = i => (i / (h.length - 1)) * 1000;
+  const Y = v => 222 - ((v - lo) / (hi - lo)) * 214;
+  const seg = (from, to, colour) => {
+    const pts = [];
+    for(let i = from; i <= to; i++) pts.push(X(i).toFixed(1) + " " + Y(vs[i]).toFixed(1));
+    return pts.length < 2 ? "" :
+      `<path d="M ${pts.join(" L ")}" fill="none" stroke="${colour}" stroke-width="1.6"
+       vector-effect="non-scaling-stroke"/>`;
+  };
+  let split = h.findIndex(p => p.source !== "daily_backfill_mid");
+  if(split < 0) split = h.length - 1;
+  let s = `<line x1="0" x2="1000" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}"
+            stroke="#7d7979" stroke-dasharray="4 4" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
+  if(split > 0) s += seg(0, split, "#b9b6b4");
+  s += seg(Math.max(split - 1, 0), h.length - 1, "#8b9ae8");
+  svg.innerHTML = s;
+  ax.innerHTML = `<span>${longDate(h[0].date)}</span>
+                  <span>${pct(lo)} to ${pct(hi)}</span>
+                  <span>${longDate(h[h.length-1].date)}</span>`;
+}
+</script>
+</body>
+</html>
