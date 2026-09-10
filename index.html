@@ -570,7 +570,7 @@ textarea.input { min-height: 90px; resize: vertical; }
             <div sc-camel-on-click="{{ b.go }}" data-grid="bar-row" style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); border-left: 3px solid transparent; padding: 9px 0 9px 9px; cursor: pointer; border-left-color: {{ b.sel }};" style-hover="background: var(--color-neutral-200);">
               <div style="display: flex; flex-direction: column;">
                 <span style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.02em;">{{ b.code }}</span>
-                <span class="text-muted" style="font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase;">{{ b.country }}</span>
+                <a href="{{ b.href }}" style="font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-neutral-600); text-decoration: none; border-bottom: 1px solid var(--color-divider);" title="{{ b.hrefTitle }}">{{ b.country }}</a>
               </div>
               <div class="text-muted" style="font-size: 12px;" title="{{ b.tip }}">{{ b.venue }}</div>
               <div style="position: relative; height: 22px;">
@@ -1527,6 +1527,10 @@ class Component extends DCLogic {
       return { max, rows: list.map(m => {
         const w = this.scale(m.bps, max);
         return { code: m.code, country: m.country, venue: m.venue,
+          // Every country now has a page of its own at a stable URL.
+          href: "./c/" + m.code.toLowerCase() + ".html",
+          hrefTitle: m.country + " — every source, the full history, and how the "
+                     + "official rate is chosen",
           tip: this.gapSentence(m) + "\n\n" + this.venueTip(m),
           bps: this.gapWords(m.bps), mark: "",
           fill: m.bps >= 0 ? "var(--data-400)" : "#dedede",

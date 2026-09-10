@@ -378,6 +378,24 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    file is absent. First clean run 2026-08-18: IR 0.50% flat and Coins.ph VIP0
    0.15/0.10 both still match the 2026-08-10 hand verification. Issue #4.
 
+### P0.3 — the index, published per country since 2026-09-10
+
+1. **Every country has a file and a page.** `tools/emit_countries.py` runs on
+   every collector fire and writes `data/countries/<CCY>.json` (57 countries),
+   `data/index_latest.json` (one row per country, sorted, version-stamped) and
+   one page per country at `c/<ccy>.html`. Implements METHODOLOGY "The index,
+   version 1" — read that before changing this tool.
+
+   The index is the **price to buy a dollar**, never a midpoint. Source class in
+   precedence: order books, then broker quotes, then person-to-person ads, never
+   blended, printed in words on every page. `round_trip_pct` is published beside
+   it and never folded in. History is one buy-side median per day; the
+   2024-onward daily backfill is included, drawn separately and labelled,
+   because it is a mid rather than a buy side.
+
+   First run: **53 countries with a value, 4 without** (BWP, ETB, GHS, NGN —
+   an absence of a price, recorded hourly with its reason, never a filter).
+
 ### P0.4 — P2P layer, collecting since 2026-09-02
 
 1. **Ten capital-controlled currencies now have an hourly price**, from
@@ -557,7 +575,11 @@ data/offramp_snapshots.csv   v1 wreckage, kept as history
 data/latest.json        machine-readable snapshot, regenerated each run
 data/crosses_latest.json  every currency pair: crypto-route rate vs official, per run
 data/stable_spread.csv  USDT vs USDC on the same venue, same hour (12 venues)
-data/p2p_basis.csv      P2P layer -- 10 capital-controlled currencies, hourly
+data/p2p_basis.csv      P2P layer -- 53 currencies, hourly
+data/countries/<CCY>.json  per-country index, history and sources, per run
+data/index_latest.json  every country ranked, version-stamped, per run
+c/<ccy>.html            one page per country, stable URL, rendered from the JSON
+tools/emit_countries.py builds all of the above from the CSVs
 collector_p2p.py        P2P layer -- Binance P2P board, median of top 10 each side
 data/withdrawal_fees.csv USDT withdrawal fee per venue/network, append-only
 tools/seed_withdrawal_fees.py   one-time seed for withdrawal_fees.csv
