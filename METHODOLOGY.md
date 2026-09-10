@@ -316,7 +316,7 @@ printed alongside the index:
 | Class | Meaning | Examples |
 |---|---|---|
 | `market` | The reference is itself a market price. The index measures a genuine local premium or discount. | SGD, PHP, THB, MXN, BRL, KRW, IDR, ZAR, PEN, CLP, COP, KES, TZS, UGX |
-| `managed` | The reference is a number a central bank sets or defends, which the market trades away from. **The index measures distance from a policy rate, not a market spread.** | ARS, VES, LBP, SDG, DZD, SYP, IQD, AFN, MZN, ETB, NGN, AOA, UAH |
+| `managed` | The reference is a number a central bank sets or defends, which the market trades away from. **The index measures distance from a policy rate, not a market spread.** | ARS, VES, LBP, SDG, DZD, SYP, IQD, AFN, MZN, ETB, NGN, AOA, UAH, TND |
 | `pegged` | The reference is a hard peg. The index reads near zero by construction, and that *is* the finding. | AED, SAR, QAR, KWD, JOD, BND, XAF, XOF |
 
 **For `managed` currencies the headline sentence must carry the qualifier.** Not
