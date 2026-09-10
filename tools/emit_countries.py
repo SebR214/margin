@@ -50,6 +50,7 @@ PAGE_DIR = os.path.join(HERE, "c")
 # site's CITY/META maps.
 COUNTRY = {
     "AED": "the United Arab Emirates", "AFN": "Afghanistan", "AMD": "Armenia",
+    "AUD": "Australia", "NZD": "New Zealand", "TWD": "Taiwan",
     "AOA": "Angola", "ARS": "Argentina", "AZN": "Azerbaijan", "BDT": "Bangladesh",
     "BND": "Brunei", "BOB": "Bolivia", "BRL": "Brazil", "BWP": "Botswana",
     "CLP": "Chile", "COP": "Colombia", "DZD": "Algeria", "EGP": "Egypt",

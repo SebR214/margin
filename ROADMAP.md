@@ -32,7 +32,8 @@ actually exists rather than the other way round.
 | Panel | `collector.py` → `providers_usdmxn.csv` | same, USD→MXN | 2026-08-19 | 66 |
 | Backfill | `tools/backfill_basis.py` | daily basis, 5 venues (TRY, KRW, IDR, THB, MXN) | 2024-03-02 → 2026-08-10 | 4,198 |
 
-Venues live: Independent Reserve (SGD), Coins.ph (PHP), BTCTurk + Paribu (TRY),
+Venues live: Independent Reserve (SGD, AUD, NZD), Coins.ph (PHP), BitoPro + MAX
+(TWD), WazirX + CoinDCX (INR), BTCTurk + Paribu (TRY),
 Upbit + Bithumb + Coinone (KRW), Indodax + Pintu (IDR), Bitkub (THB), Bitso
 (MXN), Foxbit + Mercado Bitcoin (BRL), CriptoYa (ARS, VES, BRL) with ARS and VES
 also expanded to one row per listed exchange. **Five countries now have a median
@@ -395,6 +396,39 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
 
    First run: **53 countries with a value, 4 without** (BWP, ETB, GHS, NGN —
    an absence of a price, recorded hourly with its reason, never a filter).
+
+### P0.05 — APAC coverage, part 1: countries, 2026-09-10
+
+1. **Six new order books, four new countries.** Every endpoint called from a US
+   runner and returning a two-sided USDT quote before it was added:
+
+   ```
+   BitoPro   TWD  +49.0 bps      IndependentReserve (AUD)  +14.8 bps
+   MAX       TWD  +50.6 bps      IndependentReserve (NZD)  +12.4 bps
+   WazirX    INR +489.3 bps      CoinDCX                   +488.7 bps
+   ```
+
+   Taiwan and India each get **two** books, so both carry a median. On the first
+   reading the two agree within 1.6 bps (Taiwan) and 0.6 bps (India).
+
+2. **India changes class.** It was withheld under the v1.1 evidence rule because
+   its P2P board is crossed. It now has two real order books, so it is published
+   from a matching engine instead. Its index history starts 2026-09-10; the
+   earlier P2P rows stay in `p2p_basis.csv` as the record of a market that could
+   not be published.
+
+3. **Rejected, with the reason.** Coinhako (SGD) 403 behind Cloudflare; Luno
+   (MYR) answers `ErrMarketUnavailable` — a MYR book for Bitcoin, none for
+   USDT; bitFlyer and Coincheck (JPY) both answer but list no USDT/JPY market
+   at all. Singapore still has one exchange; Malaysia and Japan have no book.
+
+4. **Corridors are part 2** and are constrained by fee pages, not by the panel.
+   All 19 APAC pairs probed return providers on the Wise comparison API with
+   Wise present. The binding constraint is the crypto leg: Indodax publishes no
+   readable fee page (404 on both the API and the help page), WazirX's is a JS
+   shell behind a 403 API, and CoinDCX's `markets_details` is readable but its
+   `maker_fee`/`taker_fee` are **null**. Legs whose fees cannot be read do not
+   get built.
 
 ### P0.1 — the denominator of record, since 2026-09-10
 
