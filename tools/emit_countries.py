@@ -40,6 +40,7 @@ DATA = os.path.join(HERE, "data")
 BASIS = os.path.join(DATA, "basis.csv")
 P2P = os.path.join(DATA, "p2p_basis.csv")
 SIDES = os.path.join(DATA, "p2p_sides.csv")
+FX = os.path.join(DATA, "fx_rates.csv")
 HIST = os.path.join(DATA, "basis_history.csv")
 OUT_DIR = os.path.join(DATA, "countries")
 OUT_INDEX = os.path.join(DATA, "index_latest.json")
@@ -170,6 +171,59 @@ def is_aggregate(venue):
     return venue.startswith("CriptoYa (") and venue.endswith(")")
 
 
+def fx_book():
+    """{(ccy, hour): row} from data/fx_rates.csv -- the denominator of record.
+
+    The rate that arrived inside a price row is a fallback, not the source of
+    truth. This file is, because it says WHERE the rate came from, which a price
+    row cannot. Where a central bank publishes its own reference rate the
+    collector already preferred it, so reading from here is how that preference
+    reaches the index.
+    """
+    out = {}
+    for r in rows(FX):
+        t = parse_ts(r.get("ts_utc"))
+        ccy = r.get("ccy")
+        if t is None or not ccy or num(r, "fx_mid_per_usd") is None:
+            continue
+        out.setdefault(ccy, []).append((t.replace(minute=0, second=0, microsecond=0), r))
+    for ccy in out:
+        out[ccy].sort(key=lambda x: x[0])
+    return out
+
+
+def fx_for(book, ccy, hour, fallback):
+    """The rate in force for this currency at this hour, and where it came from.
+
+    An official rate is a step function, not an hourly observation: it holds
+    until the next one is published. So this takes the newest row AT OR BEFORE
+    the price hour rather than demanding an exact match -- the two collectors
+    run minutes apart in the same job, and a missed FX hour must not silently
+    drop the whole layer back to the fallback.
+    """
+    series = book.get(ccy) or []
+    r = None
+    for h, row in series:
+        if h <= hour:
+            r = row
+        else:
+            break
+    if r is None:
+        # Every source available is a DAILY fix, so a rate stamped later the
+        # same day is the same published number, not a peek at the future. This
+        # is what makes the file usable on the hour it starts, and it is the one
+        # place the daily-ness of the sources leaks into the code -- if an
+        # intraday source ever appears, delete this branch.
+        same_day = [row for h, row in series if h.date() == hour.date()]
+        r = same_day[0] if same_day else None
+    if r:
+        return (num(r, "fx_mid_per_usd"), r.get("source") or "unknown",
+                num(r, "parallel_rate_per_usd"), r.get("parallel_source") or "")
+    # Before fx_rates.csv existed the rate lived in the price row itself, from
+    # open.er-api. Said plainly rather than left to look like a fresh reading.
+    return (fallback, "open.er-api (from the price row)", None, "")
+
+
 def buy_side_counts():
     """{(ccy, hour): n_buy} from the sidecar, empty before it existed."""
     out = {}
@@ -241,6 +295,7 @@ def latest_by_ccy():
         p2p_hours[ccy].setdefault(t.replace(minute=0, second=0, microsecond=0), []).append(r)
 
     sides = buy_side_counts()
+    book = fx_book()
     out = {}
     for ccy in set(book_hours) | set(p2p_hours):
         entry = {"ccy": ccy, "country": COUNTRY.get(ccy, ccy),
@@ -253,9 +308,10 @@ def latest_by_ccy():
         venues = [_venue_entry(r) for r in bh.get(hour, [])]
         books = [v for v in venues if v["kind"] == "order_book"]
         brokers = [v for v in venues if v["kind"] == "broker"]
-        fx = None
+        row_fx = None
         for r in bh.get(hour, []):
-            fx = num(r, "fx_mid_per_usd") or fx
+            row_fx = num(r, "fx_mid_per_usd") or row_fx
+        fx, fx_source, par_rate, par_source = fx_for(book, ccy, hour, row_fx)
 
         chosen, cls = None, None
         if books:
@@ -283,6 +339,9 @@ def latest_by_ccy():
         else:
             pr = ph.get(hour) or []
             r = pr[0] if pr else None
+            if fx is None:
+                fx, fx_source, par_rate, par_source = fx_for(
+                    book, ccy, hour, num(r, "fx_mid_per_usd") if r is not None else None)
             n_buy = sides.get((ccy, hour))
             if n_buy is None:
                 # Rows predating the sidecar carry only the two sides added
@@ -304,7 +363,7 @@ def latest_by_ccy():
                 fails = ("not enough evidence this hour: the buy side is below the "
                          "sell side, so the two are not the same market")
             if fails is None:
-                fx = num(r, "fx_mid_per_usd")
+                fx = fx if fx else num(r, "fx_mid_per_usd")
                 entry.update(
                     source_class="p2p_buy_median",
                     source_words=CLASS_WORDS["p2p_buy_median"],
@@ -326,10 +385,15 @@ def latest_by_ccy():
                     entry["withheld_buy_price"] = price
 
         entry["denominator"] = {
-            "source": "open.er-api.com",
+            "source": fx_source,
             "rate_per_usd": fx,
             "class": "managed" if ccy in MANAGED else "pegged" if ccy in PEGGED else "market",
         }
+        if par_rate:
+            entry["denominator"]["parallel_rate_per_usd"] = par_rate
+            entry["denominator"]["parallel_source"] = par_source
+            if fx:
+                entry["denominator"]["parallel_gap_pct"] = round((par_rate / fx - 1) * 100, 4)
         out[ccy] = entry
     return out
 
@@ -576,11 +640,18 @@ function render(d){
         <td class="n">${pct(v.index_pct)}</td></tr>`).join("") + "</table>";
 
   const den = d.denominator || {};
+  const parallel = den.parallel_rate_per_usd == null ? "" :
+    " A parallel rate is published for " + c + " as well: "
+    + Number(den.parallel_rate_per_usd).toLocaleString("en-US",{maximumFractionDigits:4})
+    + " " + d.ccy + " to the dollar from " + (den.parallel_source || "a public feed")
+    + ", which is " + pct(den.parallel_gap_pct) + " from the official rate. "
+    + "It is recorded beside the official rate and never used in its place.";
   document.getElementById("print").textContent =
     "The official rate used is " + (den.rate_per_usd === null || den.rate_per_usd === undefined
       ? "not available this hour" : Number(den.rate_per_usd).toLocaleString("en-US",{maximumFractionDigits:4})
         + " " + d.ccy + " to the dollar")
-    + ", from " + (den.source || "—") + ", classed as a " + (den.class || "—") + " rate. "
+    + ", from " + (den.source || "—") + ", classed as a " + (den.class || "—") + " rate."
+    + parallel + " "
     + "Index definition version " + d.index_version + ". "
     + "This page shows the price to buy a dollar, never a midpoint — "
     + "buying and selling can be different markets.";

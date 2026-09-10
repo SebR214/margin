@@ -456,6 +456,43 @@ board at all).
 number is, and no minimum is imposed. Imposing one would be a filter, and a
 filter would need to be stated here first — which is what this section is for.
 
+## The denominator of record (`data/fx_rates.csv`)
+
+Every index figure is a price divided by an official rate, so the rate deserves
+a record of its own rather than arriving invisibly inside a price row.
+`data/fx_rates.csv` is that record: one row per currency per hour, carrying the
+rate, **the source it came from**, whether the currency is managed, and a
+parallel rate where a public feed publishes one.
+
+**There is no intraday source.** Four candidates were called from a US runner on
+2026-09-10 and three are worse than what was already in use:
+
+| Source | Currencies | Ours covered | Cadence |
+|---|---|---|---|
+| `open.er-api` | 166 | **36 of 36** | daily, stamped 00:02 UTC |
+| `frankfurter.app` | 29 | 10 of 36 | the ECB daily fix, a day older |
+| ECB reference feed | 29 | 10 of 36 | the same daily fix |
+| `exchangerate.host` | — | — | refuses without an access key |
+
+`frankfurter` and the ECB feed *are* the same fix and cover almost no emerging
+market. So `open.er-api` remains primary on both freshness and coverage, and the
+file records that choice on every row instead of leaving it implicit. If an
+intraday source ever appears, only the source list changes.
+
+**A central bank outranks an aggregator.** Where one publishes its own reference
+rate without a key, it is preferred for its own currency. Today that is
+Argentina: BCRA's Comunicación A 3500 rate, which is why Argentina's denominator
+now matches the central bank exactly rather than to a tenth of a percent.
+
+**Parallel rates are recorded, never substituted.** For a managed currency the
+official rate is a policy number, so where a public feed publishes the parallel
+rate it sits in `parallel_rate_per_usd` beside the official one, with its source
+named and the gap computed. It is never used as the denominator — swapping it in
+would be a version bump under the rules above, and both would then be published
+side by side. Blank where no public feed exists; never estimated.
+
+First run, 2026-09-10: ARS parallel +1.09%, BOB −2.01%, VES **+14.03%**.
+
 ## Checked against
 
 Every number here is computed from rows this project collected itself, which
@@ -511,12 +548,23 @@ A route with no stablecoin in it at all agrees to a fifth of a percent.
 | CriptoYa published *dólar cripto* USDT ask | **1,595.00 ARS** |
 | Difference | **0.82%** |
 
-The price agrees. **The denominator does not**, and it is the larger problem:
-`open.er-api.com` gave 1,515.11 ARS to the dollar while Argentina's official
-rate that hour was 1,535 — **1.31% apart**. Our index reads +6.15%; against the
-real official it is +4.77%. The gap is entirely the reference rate, not the
-market price, and it is the strongest argument for the intraday-rate work still
-open in ROADMAP. Recorded here rather than corrected silently.
+**Correction, 2026-09-10.** This section previously claimed the denominator was
+1.31% wrong, on the basis that CriptoYa's `oficial` read 1,535 against
+`open.er-api`'s 1,515.11. That comparison was mistaken: **1,535 is the retail
+*sell* rate, not the official mid.** Checked against the central bank itself —
+BCRA's Comunicación A 3500 reference rate, published without a key — the numbers
+are:
+
+| | ARS per USD | vs BCRA |
+|---|---|---|
+| **BCRA reference** | **1,513.50** | — |
+| `open.er-api` | 1,515.11 | **+0.11%** |
+| CriptoYa `oficial` mid (1,485 / 1,535) | 1,510.00 | −0.23% |
+| CriptoYa `oficial` ask — what was wrongly used | 1,535.00 | +1.42% |
+
+`open.er-api` was within **0.11%** of the central bank all along. The index now
+takes Argentina's denominator from **BCRA directly**, because a central bank
+outranks an aggregator, which puts it at 0.00% by construction.
 
 ### Singapore to the Philippines — against Wise's live quote
 

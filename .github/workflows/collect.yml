@@ -137,6 +137,13 @@ jobs:
         # source_ok=False row, which is a finding about that market.
         run: python3 collector_p2p.py
 
+      - name: Collect official exchange rates
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # The denominator of every index figure, as a record of its own with the
+        # source named. Runs after the price layers so it covers exactly the
+        # currencies they collected. Exits non-zero only on a total blackout.
+        run: python3 collector_fx.py
+
       - name: Emit machine-readable snapshot
         if: always() && steps.needed.outputs.proceed == 'true'
         # Derived from the CSVs the two steps above just wrote, so it runs after
@@ -167,7 +174,8 @@ jobs:
           for f in data/samples.csv data/basis.csv data/providers.csv \
                    data/providers_usdmxn.csv data/latest.json \
                    data/crosses_latest.json data/stable_spread.csv \
-                   data/p2p_basis.csv data/p2p_sides.csv data/index_latest.json; do
+                   data/p2p_basis.csv data/p2p_sides.csv data/index_latest.json \
+                   data/fx_rates.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Directories: one file per country, and a page per country. A

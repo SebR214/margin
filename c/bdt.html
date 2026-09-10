@@ -189,11 +189,18 @@ function render(d){
         <td class="n">${pct(v.index_pct)}</td></tr>`).join("") + "</table>";
 
   const den = d.denominator || {};
+  const parallel = den.parallel_rate_per_usd == null ? "" :
+    " A parallel rate is published for " + c + " as well: "
+    + Number(den.parallel_rate_per_usd).toLocaleString("en-US",{maximumFractionDigits:4})
+    + " " + d.ccy + " to the dollar from " + (den.parallel_source || "a public feed")
+    + ", which is " + pct(den.parallel_gap_pct) + " from the official rate. "
+    + "It is recorded beside the official rate and never used in its place.";
   document.getElementById("print").textContent =
     "The official rate used is " + (den.rate_per_usd === null || den.rate_per_usd === undefined
       ? "not available this hour" : Number(den.rate_per_usd).toLocaleString("en-US",{maximumFractionDigits:4})
         + " " + d.ccy + " to the dollar")
-    + ", from " + (den.source || "—") + ", classed as a " + (den.class || "—") + " rate. "
+    + ", from " + (den.source || "—") + ", classed as a " + (den.class || "—") + " rate."
+    + parallel + " "
     + "Index definition version " + d.index_version + ". "
     + "This page shows the price to buy a dollar, never a midpoint — "
     + "buying and selling can be different markets.";
