@@ -1128,6 +1128,8 @@ const CITY = {
 
 const META = {
   VES: { country: "Venezuela" }, ARS: { country: "Argentina" },
+  AUD: { country: "Australia" }, NZD: { country: "New Zealand" },
+  TWD: { country: "Taiwan" }, INR: { country: "India" },
   BRL: { country: "Brazil" }, PHP: { country: "Philippines" },
   MXN: { country: "Mexico" }, IDR: { country: "Indonesia" },
   TRY: { country: "Turkey" }, SGD: { country: "Singapore" },
@@ -1177,9 +1179,10 @@ class Component extends DCLogic {
     Promise.all([
       opt("./data/basis.csv"), opt("./data/basis_history.csv"), opt("./data/samples.csv"),
       opt("./data/providers.csv"), opt("./data/providers_usdmxn.csv"),
+      opt("./data/providers_audphp.csv"), opt("./data/providers_nzdphp.csv"),
       opt("./data/fee_checks.csv"), opt("./data/fee_tiers.csv"),
       opt("./data/crosses_latest.json"), opt("./data/index_latest.json"),
-    ]).then(([b, h, s, p1, p2, fc, ft, cx, ix]) => {
+    ]).then(([b, h, s, p1, p2, p3, p4, fc, ft, cx, ix]) => {
       // A missing or unparseable crosses file means the table renders its empty
       // state. It must never take the rest of the page down with it.
       let crosses = null;
@@ -1191,7 +1194,8 @@ class Component extends DCLogic {
       try { index = ix ? JSON.parse(ix) : null; } catch (e) { index = null; }
       this.setState({ data: {
         basis: parseCSV(b), hist: parseCSV(h), samples: parseCSV(s),
-        panels: { "SGD->PHP": parseCSV(p1), "USD->MXN": parseCSV(p2) },
+        panels: { "SGD->PHP": parseCSV(p1), "USD->MXN": parseCSV(p2),
+                  "AUD->PHP": parseCSV(p3), "NZD->PHP": parseCSV(p4) },
         feeChecks: parseCSV(fc), tiers: parseCSV(ft), crosses, index,
       }});
     }).catch(e => this.setState({ err: String(e.message || e) }));

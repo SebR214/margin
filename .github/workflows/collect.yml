@@ -123,6 +123,17 @@ jobs:
         # two never contend for the hour.
         run: python3 collector.py --corridor "USD->MXN"
 
+      - name: Collect corridor sample AUD->PHP
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Same two venues as SGD->PHP and the same verified fee schedules, so
+        # no new fee source enters the record. always() so one corridor going
+        # red never hides another.
+        run: python3 collector.py --corridor "AUD->PHP"
+
+      - name: Collect corridor sample NZD->PHP
+        if: always() && steps.needed.outputs.proceed == 'true'
+        run: python3 collector.py --corridor "NZD->PHP"
+
       - name: Collect basis sample
         if: always() && steps.needed.outputs.proceed == 'true'
         # Wide layer: exits non-zero ONLY on a total blackout (all venues down).
@@ -172,7 +183,8 @@ jobs:
           # healthy no-op run red on 2026-09-02. A layer that has not written
           # its first row yet is a normal state, not a failure.
           for f in data/samples.csv data/basis.csv data/providers.csv \
-                   data/providers_usdmxn.csv data/latest.json \
+                   data/providers_usdmxn.csv data/providers_audphp.csv \
+                   data/providers_nzdphp.csv data/latest.json \
                    data/crosses_latest.json data/stable_spread.csv \
                    data/p2p_basis.csv data/p2p_sides.csv data/index_latest.json \
                    data/fx_rates.csv; do
