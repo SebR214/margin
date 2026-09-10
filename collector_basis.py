@@ -230,6 +230,37 @@ def parse_pintu(d, pair="usdt/idr"):
     return (None, None, None)
 
 
+def parse_bitopro(d):
+    # v3/order-book/usdt_twd?limit=1: {"bids":[{"price"}],"asks":[{"price"}]}.
+    # The tickers endpoint publishes lastPrice with no two-sided quote, so the
+    # book is the honest source here.
+    bids = d.get("bids") or []
+    asks = d.get("asks") or []
+    bid = _f(bids[0].get("price")) if bids and isinstance(bids[0], dict) else None
+    ask = _f(asks[0].get("price")) if asks and isinstance(asks[0], dict) else None
+    return (bid, ask, None)
+
+
+def parse_max(d):
+    # api/v2/tickers/usdttwd: {"buy","sell","last"}. String-priced.
+    return (_f(d.get("buy")), _f(d.get("sell")), _f(d.get("last")))
+
+
+def parse_wazirx(d):
+    # api/v2/tickers/usdtinr: {"ticker":{"buy","sell","last"}}.
+    t = d.get("ticker") or {}
+    return (_f(t.get("buy")), _f(t.get("sell")), _f(t.get("last")))
+
+
+def parse_coindcx(d):
+    # exchange/ticker: every market in one array. 337 INR pairs, so the market
+    # is picked here rather than trusting a query string the endpoint ignores.
+    for row in (d if isinstance(d, list) else []):
+        if isinstance(row, dict) and row.get("market") == "USDTINR":
+            return (_f(row.get("bid")), _f(row.get("ask")), _f(row.get("last_price")))
+    return (None, None, None)
+
+
 def expand_criptoya(d):
     """CriptoYa's payload is many exchanges at once -> one row each.
 
@@ -406,6 +437,62 @@ VENUES = [
         "parse_fn": parse_mercadobitcoin,
         "candles_fn": None,
         "usdc_url": "https://api.mercadobitcoin.net/api/v4/tickers?symbols=USDC-BRL",
+        "enabled": True,
+    },
+    # --- 2026-09-10, APAC coverage. Every endpoint below was called from a US
+    # runner and returned a real two-sided USDT quote before it was added.
+    # Taiwan and India each get TWO order books, so both carry a median rather
+    # than one venue's opinion.
+    {
+        "name": "BitoPro",
+        "fiat_ccy": "TWD",
+        # Order book, not /v3/tickers: the ticker publishes lastPrice with no
+        # two-sided quote.
+        "ticker_url": "https://api.bitopro.com/v3/order-book/usdt_twd?limit=1",
+        "parse_fn": parse_bitopro,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "MAX",
+        "fiat_ccy": "TWD",
+        "ticker_url": "https://max-api.maicoin.com/api/v2/tickers/usdttwd",
+        "parse_fn": parse_max,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "IndependentReserve (AUD)",
+        "fiat_ccy": "AUD",
+        "ticker_url": ("https://api.independentreserve.com/Public/GetMarketSummary"
+                       "?primaryCurrencyCode=Usdt&secondaryCurrencyCode=Aud"),
+        "parse_fn": parse_independent_reserve,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "IndependentReserve (NZD)",
+        "fiat_ccy": "NZD",
+        "ticker_url": ("https://api.independentreserve.com/Public/GetMarketSummary"
+                       "?primaryCurrencyCode=Usdt&secondaryCurrencyCode=Nzd"),
+        "parse_fn": parse_independent_reserve,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "WazirX",
+        "fiat_ccy": "INR",
+        "ticker_url": "https://api.wazirx.com/api/v2/tickers/usdtinr",
+        "parse_fn": parse_wazirx,
+        "candles_fn": None,
+        "enabled": True,
+    },
+    {
+        "name": "CoinDCX",
+        "fiat_ccy": "INR",
+        "ticker_url": "https://api.coindcx.com/exchange/ticker",
+        "parse_fn": parse_coindcx,
+        "candles_fn": None,
         "enabled": True,
     },
     # --- item 5: CriptoYa aggregator. ONE integration = the LatAm
@@ -820,6 +907,24 @@ COINONE_USDC_FIXTURE = {"result": "success", "tickers": [{
 MERCADO_USDC_FIXTURE = [{"pair": "USDC-BRL", "last": "5.17250000",
                          "buy": "5.17250000", "sell": "5.17360000"}]
 
+# APAC, captured live from a US runner 2026-09-10.
+BITOPRO_FIXTURE = {"bids": [{"price": "31.622", "amount": "33.7811", "count": 1}],
+                   "asks": [{"price": "31.632", "amount": "13583.27", "count": 2}]}
+MAX_FIXTURE = {"at": 1789031968, "buy": "31.629", "sell": "31.63", "last": "31.629",
+               "open": "31.54", "low": "31.52", "high": "31.639"}
+IR_AUD_FIXTURE = {"CurrentHighestBidPrice": 1.5281, "CurrentLowestOfferPrice": 1.5289,
+                  "LastPrice": 1.5285}
+IR_NZD_FIXTURE = {"CurrentHighestBidPrice": 1.6902, "CurrentLowestOfferPrice": 1.6915,
+                  "LastPrice": 1.6908}
+WAZIRX_FIXTURE = {"at": 1789031794, "ticker": {"buy": "99.41", "sell": "100.14",
+                                               "low": "99.11", "high": "100.15",
+                                               "last": "100.14", "vol": "271946.72"}}
+# CoinDCX returns every market in one array; 337 of them are INR pairs.
+COINDCX_FIXTURE = [
+    {"market": "BTCINR", "bid": "7778372.4", "ask": "7818335.8", "last_price": "7778410.7"},
+    {"market": "USDTINR", "bid": "99.20", "ask": "99.45", "last_price": "99.30"},
+]
+
 # CriptoYa general endpoint: many exchanges. Odd counts -> exact medians.
 CRIPTOYA_ARS_FIXTURE = {  # median bid 1565, median ask 1585 -> mid 1575
     "belo": {"ask": 1585.0, "bid": 1565.0, "time": 1},
@@ -839,6 +944,10 @@ CRIPTOYA_BRL_FIXTURE = {  # median bid 5.12, median ask 5.15
 
 # One malformed payload per venue: right envelope, no usable price.
 MALFORMED = {
+    "BitoPro": {"bids": [], "asks": []},
+    "MAX": {"at": 1, "open": "31.5"},
+    "WazirX": {"at": 1, "ticker": {}},
+    "CoinDCX": [{"market": "BTCINR", "bid": "1"}],   # right shape, our pair absent
     "Bithumb": {"status": "5100", "data": {}},
     "Coinone": {"result": "error", "tickers": []},
     "Paribu": {"BTC_TL": {"last": 1}},          # payload fine, our pair absent
@@ -859,7 +968,8 @@ MALFORMED = {
 # er-api quotes the OFFICIAL rate, so basis is the parallel premium (see #5/#8).
 FX_FIXTURE = {"SGD": 1.2796, "PHP": 60.86, "TRY": 47.706, "KRW": 1409.64,
               "IDR": 17862.19, "THB": 33.024, "MXN": 17.141,
-              "ARS": 1500.0, "VES": 760.0, "BRL": 5.09}
+              "ARS": 1500.0, "VES": 760.0, "BRL": 5.09,
+              "TWD": 31.60, "AUD": 1.528, "NZD": 1.690, "INR": 99.2}
 TS_FIXTURE = "2026-08-10T00:00:00+00:00"
 
 # route a fake fetch by URL substring; override a venue with a payload or an
@@ -877,6 +987,10 @@ _ROUTES = {
     "btcturk": BTCTURK_FIXTURE, "upbit": UPBIT_FIXTURE, "indodax": INDODAX_FIXTURE,
     "bitkub": BITKUB_FIXTURE, "bitso": BITSO_FIXTURE,
     "bithumb": BITHUMB_FIXTURE, "coinone": COINONE_FIXTURE,
+    "bitopro": BITOPRO_FIXTURE, "maicoin": MAX_FIXTURE,
+    "wazirx": WAZIRX_FIXTURE, "coindcx": COINDCX_FIXTURE,
+    "secondarycurrencycode=aud": IR_AUD_FIXTURE,
+    "secondarycurrencycode=nzd": IR_NZD_FIXTURE,
     "paribu": PARIBU_FIXTURE, "foxbit": FOXBIT_FIXTURE,
     "mercadobitcoin": MERCADO_FIXTURE, "pintu": PINTU_FIXTURE,
     "usdt/ars": CRIPTOYA_ARS_FIXTURE, "usdt/ves": CRIPTOYA_VES_FIXTURE,
@@ -919,7 +1033,14 @@ def selftest():
     assert parse_mercadobitcoin(MERCADO_FIXTURE) == (5.1692, 5.1693, 5.1693)
     # Pintu publishes no book: last only, and the right pair out of the list
     assert parse_pintu(PINTU_FIXTURE) == (None, None, 17734.0)
-    print("  [ok] all 14 parsers extract quotes from real payload shapes "
+    # 2026-09-10 APAC venues
+    assert parse_bitopro(BITOPRO_FIXTURE) == (31.622, 31.632, None)
+    assert parse_max(MAX_FIXTURE) == (31.629, 31.63, 31.629)
+    assert parse_wazirx(WAZIRX_FIXTURE) == (99.41, 100.14, 100.14)
+    # the right market is picked out of an array that starts with BTCINR
+    assert parse_coindcx(COINDCX_FIXTURE) == (99.20, 99.45, 99.30)
+    assert parse_independent_reserve(IR_AUD_FIXTURE) == (1.5281, 1.5289, 1.5285)
+    print("  [ok] all 18 parsers extract quotes from real payload shapes "
           "(CriptoYa = median across exchanges)")
 
     # 2. every parser degrades a malformed payload to all-None, never raises
@@ -929,12 +1050,13 @@ def selftest():
         "Bitkub": parse_bitkub, "Bitso": parse_bitso, "CriptoYa": parse_criptoya,
         "Bithumb": parse_bithumb, "Coinone": parse_coinone, "Paribu": parse_paribu,
         "Foxbit": parse_foxbit, "MercadoBitcoin": parse_mercadobitcoin,
-        "Pintu": parse_pintu,
+        "Pintu": parse_pintu, "BitoPro": parse_bitopro, "MAX": parse_max,
+        "WazirX": parse_wazirx, "CoinDCX": parse_coindcx,
     }
     for name, pf in _parsers.items():
         assert pf(MALFORMED[name]) == (None, None, None), (name, pf(MALFORMED[name]))
     assert parse_criptoya([]) == (None, None, None)  # non-dict envelope
-    print("  [ok] all 14 parsers turn a malformed payload into (None, None, None)")
+    print("  [ok] all 18 parsers turn a malformed payload into (None, None, None)")
 
     # 2b. the expander drops P2P books and survives a malformed payload
     ves = expand_criptoya(CRIPTOYA_VES_FIXTURE)
@@ -955,16 +1077,16 @@ def selftest():
     # 4. FX snapshot must carry every registered venue's currency
     ccys = {v["fiat_ccy"] for v in VENUES}
     assert ccys <= set(FX_FIXTURE), ccys - set(FX_FIXTURE)
-    assert len(VENUES) == 16, len(VENUES)
+    assert len(VENUES) == 22, len(VENUES)
     assert {"TRY", "KRW", "IDR", "THB", "MXN"} <= ccys, "the 5 new currencies"
     assert {"ARS", "VES", "BRL"} <= ccys, "the CriptoYa currencies"
     print(f"  [ok] FX snapshot covers all {len(ccys)} venue currencies "
           f"({', '.join(sorted(ccys))})")
 
-    # 5. full happy path: 16 registered venues + 5 CriptoYa expansion rows
+    # 5. full happy path: 22 registered venues + 5 CriptoYa expansion rows
     #    (ARS lists 3 exchanges, VES lists 3 of which one is P2P), all source_ok
     rows, n_ok = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=_make_fetch())
-    assert len(rows) == 21 and n_ok == 21, (len(rows), n_ok)
+    assert len(rows) == 27 and n_ok == 27, (len(rows), n_ok)
     by = {r["venue"]: r for r in rows}
     assert abs(by["IndependentReserve"]["basis_bps"] - 10.94) < 0.2
     assert abs(by["Bitso"]["basis_bps"] - (-4.96)) < 0.2          # MXN near zero
@@ -978,7 +1100,7 @@ def selftest():
     assert abs(ars["basis_bps"] - 433.33) < 1.0, ars           # bid, not midpoint
     assert by["CriptoYa (VES)"]["basis_bps"] > 1000, by["CriptoYa (VES)"]  # strong
     assert ars["source"] == "criptoya"                         # snapshot-only tag
-    print("  [ok] 21/21 rows price; CriptoYa on bid rule (ARS +433, not +500 midpoint)")
+    print("  [ok] 27/27 rows price; CriptoYa on bid rule (ARS +433, not +500 midpoint)")
 
     # 5b. the point of the whole change: how many venues answer per currency.
     #     KRW/BRL gain real venues; ARS gains them through the expansion; and
@@ -987,11 +1109,14 @@ def selftest():
         r["ccy"] for r in rows
         if r["source_ok"] and r["venue"] not in AGGREGATE_VENUES)
     assert per_ccy["KRW"] == 3, per_ccy          # Upbit, Bithumb, Coinone
+    assert per_ccy["TWD"] == 2, per_ccy          # BitoPro, MAX
+    assert per_ccy["INR"] == 2, per_ccy          # WazirX, CoinDCX
+    assert per_ccy["AUD"] == 1 and per_ccy["NZD"] == 1, per_ccy
     assert per_ccy["BRL"] == 2, per_ccy          # Foxbit, MercadoBitcoin
     assert per_ccy["TRY"] == 2 and per_ccy["IDR"] == 2, per_ccy
     assert per_ccy["ARS"] == 3, per_ccy          # expansion rows only
     assert per_ccy["VES"] == 2, per_ccy          # expansion, P2P dropped
-    for single in ("SGD", "PHP", "THB", "MXN"):
+    for single in ("SGD", "PHP", "THB", "MXN", "AUD", "NZD"):
         assert per_ccy[single] == 1, (single, per_ccy)
     # the aggregate row is still written, and still excluded from that count
     assert any(r["venue"] == "CriptoYa (ARS)" and r["source_ok"] for r in rows)
@@ -1010,7 +1135,7 @@ def selftest():
     rows_m, n_ok_m = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=fetch)
     co = next(r for r in rows_m if r["venue"] == "Coins.ph")
     bk = next(r for r in rows_m if r["venue"] == "Bitkub")
-    assert n_ok_m == 19, n_ok_m  # 21 - coins(outage) - bitkub(malformed)
+    assert n_ok_m == 25, n_ok_m  # 27 - coins(outage) - bitkub(malformed)
     assert co["source_ok"] is False and "simulated 503" in co["error"]
     assert bk["source_ok"] is False and bk["basis_bps"] is None
     assert run_exit_code(n_ok_m) == 0  # 5 good venues -> the run SUCCEEDS

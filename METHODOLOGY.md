@@ -356,6 +356,13 @@ column and stated on every country page.
 | Hourly order book | ARS, BRL, PHP, SGD, VES | 2026-08-10 / 2026-08-11 |
 | Hourly P2P | BDT, BOB, EGP, ETB, GHS, KES, LBP, NGN, PKR, VND | 2026-09-02 |
 | Hourly P2P | the 43 currencies added in the wide expansion | 2026-09-05 |
+| Hourly order book | TWD, INR, AUD, NZD (APAC additions) | 2026-09-10 |
+
+India is the one currency to move *class* rather than merely gain a source: it
+was withheld under the evidence rule because its P2P board is crossed, and it
+now has two real order books instead. Its index history therefore begins
+2026-09-10, and the P2P rows collected before that remain in `p2p_basis.csv`
+as the record of a market that could not be published.
 
 **Five countries have history before 2026. The rest begin when collection
 began.** For the P2P layer this is not a gap that can be closed later: Binance
@@ -627,11 +634,15 @@ silently would be exactly the sort of quiet mixing this document exists to
 prevent. Any venue whose name contains `p2p` is dropped at collection. P2P is
 its own layer, not yet built.
 
-### Exchanges live as of 2026-09-02
+### Exchanges live as of 2026-09-10
 
 | Currency | Exchanges | Median? |
 |---|---|---|
 | KRW | Upbit, Bithumb, Coinone | yes, 3 |
+| TWD | BitoPro, MAX | yes, 2 |
+| INR | WazirX, CoinDCX | yes, 2 |
+| AUD | Independent Reserve | no — one only |
+| NZD | Independent Reserve | no — one only |
 | BRL | Foxbit, Mercado Bitcoin (+ CriptoYa aggregate) | yes, 2 |
 | TRY | BTCTurk, Paribu | yes, 2 |
 | IDR | Indodax, Pintu | yes, 2 |
@@ -653,6 +664,17 @@ the strength of documentation alone.
 
 Pintu publishes a last price and no order book, so its `usdt_bid` and
 `usdt_ask` cells are empty rather than filled with the last price twice.
+
+**APAC additions, 2026-09-10.** Taiwan and India each gained two independent
+order books, so both carry a median rather than one venue's opinion, and the two
+books agree closely on the first reading — Taiwan within 1.6 bps, India within
+0.6 bps. Australia and New Zealand have one book each and say so.
+
+Called and rejected, with the reason: **Coinhako (SGD)** 403 behind Cloudflare,
+unchanged since 2026-09-02; **Luno (MYR)** answers `ErrMarketUnavailable` — it
+runs a MYR book for Bitcoin but none for USDT; **bitFlyer and Coincheck (JPY)**
+both answer, but neither lists a USDT/JPY market at all, only BTC. So Singapore
+still has one exchange, and Malaysia and Japan have no order book to read.
 
 ## Implied crosses (`data/crosses_latest.json`)
 
