@@ -8,6 +8,37 @@ jobs:
     steps:
       - run: |
           python3 - <<'PY'
+          import json, urllib.request
+          UA={"User-Agent":"margin.wiki fx-probe/1.0 (+https://margin.wiki)"}
+          def g(u):
+              try:
+                  r=urllib.request.Request(u,headers=UA)
+                  return urllib.request.urlopen(r,timeout=25).read()
+              except Exception as e: return e
+          def show(name,u,fn):
+              raw=g(u)
+              if isinstance(raw,Exception): print(f"{name:26} FAIL {type(raw).__name__}: {str(raw)[:70]}"); return
+              try: print(f"{name:26} OK   {fn(raw)}")
+              except Exception as e: print(f"{name:26} PARSE {type(e).__name__}: {str(e)[:60]} body={raw[:110]}")
+          # Argentina official, straight from the central bank
+          show("BCRA cotizaciones","https://api.bcra.gob.ar/estadisticascambiarias/v1.0/Cotizaciones",
+               lambda r: str([d for d in json.loads(r)["results"]["detalle"] if d["codigoMoneda"]=="USD"])[:200])
+          show("BCRA (no results key)","https://api.bcra.gob.ar/estadisticascambiarias/v1.0/Cotizaciones",
+               lambda r: str(json.loads(r))[:200])
+          # CriptoYa's own dolar feed: oficial + blue, no key
+          show("criptoya /api/dolar","https://criptoya.com/api/dolar",
+               lambda r: "oficial=%s blue=%s cripto.usdt=%s" % (
+                   json.loads(r).get("oficial"), json.loads(r).get("blue"),
+                   (json.loads(r).get("cripto") or {}).get("usdt")))
+          # dolarapi family, public, no key -- also covers VES
+          for c,u in (("AR","https://dolarapi.com/v1/dolares"),
+                      ("VE","https://ve.dolarapi.com/v1/dolares"),
+                      ("BO","https://bo.dolarapi.com/v1/dolares")):
+              show(f"dolarapi {c}", u, lambda r: str(json.loads(r))[:180])
+          PY
+
+      - run: |
+          python3 - <<'PY'
           import json, urllib.request, urllib.error, time
           UA={"User-Agent":"margin.wiki fx-probe/1.0 (+https://margin.wiki)"}
           WANT=["ARS","VES","LBP","SDG","DZD","SYP","IQD","AFN","MZN","ETB","NGN","AOA",
