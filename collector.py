@@ -101,6 +101,57 @@ CORRIDORS = {
         "ladder": [200, 1000, 5000, 25000, 50000],
         "providers_file": "providers.csv",
     },
+    # --- 2026-09-10, APAC. Both legs reuse venues whose published fee
+    # schedules are ALREADY verified in data/fee_checks.csv: Independent
+    # Reserve's 0.50% brokerage is a single flat schedule across its markets
+    # (its own tiers are denominated in AUD volume, not per-currency), and
+    # Coins.ph VIP0 is 0.15/0.10 on every book. No new fee source is introduced,
+    # which is the only reason these two could be built at all -- Indodax,
+    # WazirX and CoinDCX publish nothing readable, so SGD->IDR and SGD->INR are
+    # deliberately absent rather than quoted from a fee nobody can check.
+    #
+    # The on-ramp path already parameterises on `src`, so these need no code:
+    # the same IR order-book call serves AUD and NZD as it serves SGD.
+    "AUD->PHP": {
+        "src": "AUD", "dst": "PHP", "stable": "USDT",
+        "onramp": {
+            "venue": "IndependentReserve",
+            "taker_bps": 50.0,
+            "maker_bps": 50.0,
+            "verified": "2026-08-10",
+        },
+        "offramp": {
+            "venue": "Coins.ph",
+            "symbol": "USDTPHP",
+            "taker_bps": 15.0,
+            "maker_bps": 10.0,
+            "verified": "2026-08-10",
+        },
+        # Same on-ramp venue as SGD->PHP, so the same published TRC20
+        # withdrawal applies: "Tether USD | TRON | 4.0 USDT".
+        "network_fee_stable": 4.0,
+        "ladder": [200, 1000, 5000, 25000, 50000],
+        "providers_file": "providers_audphp.csv",
+    },
+    "NZD->PHP": {
+        "src": "NZD", "dst": "PHP", "stable": "USDT",
+        "onramp": {
+            "venue": "IndependentReserve",
+            "taker_bps": 50.0,
+            "maker_bps": 50.0,
+            "verified": "2026-08-10",
+        },
+        "offramp": {
+            "venue": "Coins.ph",
+            "symbol": "USDTPHP",
+            "taker_bps": 15.0,
+            "maker_bps": 10.0,
+            "verified": "2026-08-10",
+        },
+        "network_fee_stable": 4.0,
+        "ladder": [200, 1000, 5000, 25000, 50000],
+        "providers_file": "providers_nzdphp.csv",
+    },
     "USD->MXN": {
         "src": "USD", "dst": "MXN", "stable": "USDT",
         "onramp": {

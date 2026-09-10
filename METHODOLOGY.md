@@ -500,6 +500,32 @@ side by side. Blank where no public feed exists; never estimated.
 
 First run, 2026-09-10: ARS parallel +1.09%, BOB −2.01%, VES **+14.03%**.
 
+## Corridors priced
+
+Four routes, each priced hourly across a five-amount ladder against every
+provider the Wise comparison API returns for it.
+
+| Route | Buy the coin | Sell it | Fees verified |
+|---|---|---|---|
+| Singapore → Philippines | Independent Reserve | Coins.ph | 2026-08-10 |
+| Australia → Philippines | Independent Reserve | Coins.ph | 2026-08-10 |
+| New Zealand → Philippines | Independent Reserve | Coins.ph | 2026-08-10 |
+| United States → Mexico | Coinbase | Bitso | 2026-08-19 |
+
+The two APAC routes added on 2026-09-10 introduce **no new fee source**:
+Independent Reserve publishes one flat 0.50% brokerage across its markets — its
+volume tiers are denominated in AUD, not per currency — and Coins.ph VIP0 is
+0.15/0.10 on every book. That is the whole reason they could be built.
+
+**Three APAC routes were probed and deliberately not built.** The comparison
+side is not the constraint: all 19 APAC pairs tested return providers with Wise
+present. The crypto leg is. Indodax 404s on both its fee API and its help page;
+WazirX's fee API returns 403 and its fee page is a JavaScript shell with no fee
+text; CoinDCX's `markets_details` is readable but its `maker_fee` and
+`taker_fee` are both `null`. A cost built on a fee nobody can check is not a
+measurement, so SGD→IDR, SGD→INR and SGD→MYR are absent and this paragraph is
+why.
+
 ## Checked against
 
 Every number here is computed from rows this project collected itself, which

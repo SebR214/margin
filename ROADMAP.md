@@ -430,6 +430,40 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    `maker_fee`/`taker_fee` are **null**. Legs whose fees cannot be read do not
    get built.
 
+### P0.04 — APAC coverage, part 2: corridors, 2026-09-10
+
+1. **Two new corridors: AUD→PHP and NZD→PHP.** Both legs are Independent
+   Reserve → Coins.ph, whose published schedules are already verified in
+   `data/fee_checks.csv` — IR's 0.50% brokerage is one flat schedule across its
+   markets (its tiers are denominated in AUD volume, not per currency) and
+   Coins.ph VIP0 is 0.15/0.10 on every book. **No new fee source enters the
+   record**, which is the only reason these two could be built.
+
+   The on-ramp path already parameterises on `src`, so neither needed new code:
+   the same IR order-book call serves AUD and NZD as it serves SGD. Books are
+   deep — 127 and 128 levels.
+
+   First live reading, both against a full incumbent panel:
+
+   ```
+   AUD->PHP   200: 360bps vs Instarem 91    50,000: 87bps vs Wise 53
+   NZD->PHP   200: 428bps vs Wise     98    50,000: 98bps vs Wise 38
+   ```
+
+   Wise wins at every size on both, which is the same finding as SGD→PHP.
+
+2. **Three corridors were NOT built, and the reason is fees, not the panel.**
+   All 19 APAC pairs probed return providers with Wise present, so the
+   comparison side is unconstrained. The crypto leg is: **Indodax** 404s on both
+   its fee API and its help page, **WazirX**'s fee API is 403 and its fee page a
+   JS shell, and **CoinDCX**'s `markets_details` is readable but its
+   `maker_fee` and `taker_fee` are **null**. SGD→IDR, SGD→INR and SGD→MYR are
+   therefore absent rather than quoted from a fee nobody can check.
+
+3. Corridor pills pick up new corridors on their own — the switcher reads the
+   distinct corridors present in `samples.csv` — so the site needed only the two
+   new panel files and two country names.
+
 ### P0.1 — the denominator of record, since 2026-09-10
 
 1. **`collector_fx.py` writes `data/fx_rates.csv`** — one row per currency per
@@ -698,6 +732,8 @@ data/samples.csv        corridor decomposition, hourly
 data/basis.csv          10-venue basis, hourly
 data/providers.csv      full incumbent panel, hourly (SGD→PHP)
 data/providers_usdmxn.csv    full incumbent panel, hourly (USD→MXN)
+data/providers_audphp.csv full incumbent panel, hourly (AUD->PHP)
+data/providers_nzdphp.csv full incumbent panel, hourly (NZD->PHP)
 data/basis_history.csv  daily backfill, 5 venues, 2024-03 →
 data/offramp_snapshots.csv   v1 wreckage, kept as history
 data/latest.json        machine-readable snapshot, regenerated each run
