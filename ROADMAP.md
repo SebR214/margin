@@ -396,6 +396,42 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    First run: **53 countries with a value, 4 without** (BWP, ETB, GHS, NGN —
    an absence of a price, recorded hourly with its reason, never a filter).
 
+### P0.35 — verification sprint, 2026-09-10
+
+1. **The P2P side labels are correct. No row has ever been swapped.** This was
+   checked because ten currencies persistently showed a buyer's price below a
+   seller's, which is a free arbitrage nobody takes and looked like a labelling
+   bug. It is not. Binance takes `tradeType` from the **user's** side and
+   returns ads whose `adv.tradeType` is the **advertiser's**, always the mirror:
+   request `BUY` returns `adv.tradeType=SELL`, an advertiser selling to you. So
+   request `BUY` is the price a person pays. Confirmed on VND, INR and EGP.
+   **No collector fix, no recompute, nothing to restate about earlier rows.**
+
+   The crossed boards are real. India's ten cheapest asks ran 102.44–103.44
+   against ten highest bids at 103.90–103.96 — genuinely crossed by 1.5%.
+
+2. **Index definition v1.1** — the evidence rule. A P2P value is published only
+   with ≥10 buy-side ads and a buyer's price at or above the seller's. Otherwise
+   the hour is stored, unpublished, and the country page says "not enough
+   evidence this hour" with the reason and the withheld price. 15 of 57
+   withheld on the first run. Per-side ad counts go to a new sidecar,
+   `data/p2p_sides.csv`, because `p2p_basis.csv` is frozen and its `n_ads` is
+   both sides summed.
+
+3. **Sanity bands** at +200% / −3%, with an "unverified" banner and exclusion
+   from the ranked snapshot until a value is checked against an outside
+   reference. Sudan checked and explained (coherent board, policy denominator);
+   Angola is withheld by the evidence rule before the band is reached.
+
+4. **Four independent cross-checks**, in METHODOLOGY "Checked against": Korea
+   0.20%, Nigeria 0.21%, Argentina price 0.82%, the SGD→PHP corridor **0.004%**
+   against Wise's live quote.
+
+   **The one failure is the denominator, not the market.** `open.er-api.com`
+   gave Argentina 1,515.11 to the dollar while the official rate was 1,535 —
+   1.31% out, moving our index from +4.77% to +6.15%. That is the case for
+   intraday rates (P2-3), now the highest-value open item.
+
 ### P0.4 — P2P layer, collecting since 2026-09-02
 
 1. **Ten capital-controlled currencies now have an hourly price**, from
@@ -576,6 +612,7 @@ data/latest.json        machine-readable snapshot, regenerated each run
 data/crosses_latest.json  every currency pair: crypto-route rate vs official, per run
 data/stable_spread.csv  USDT vs USDC on the same venue, same hour (12 venues)
 data/p2p_basis.csv      P2P layer -- 53 currencies, hourly
+data/p2p_sides.csv      per-side ad counts, for the v1.1 evidence rule
 data/countries/<CCY>.json  per-country index, history and sources, per run
 data/index_latest.json  every country ranked, version-stamped, per run
 c/<ccy>.html            one page per country, stable URL, rendered from the JSON

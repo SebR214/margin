@@ -39,6 +39,10 @@
   td.n{text-align:right;font-family:var(--head);font-weight:800}
   svg{width:100%;height:230px;display:block}
   .empty{padding:22px 0;color:var(--muted)}
+  .banner{margin:22px 0 -8px;padding:11px 14px;border:1px solid var(--ink);
+          font-size:13px;line-height:1.45}
+  .banner b{letter-spacing:.08em;text-transform:uppercase;font-size:11px;
+            display:block;margin-bottom:3px}
   @media(max-width:640px){h1{font-size:29px}.stat{font-size:26px}}
 </style>
 </head>
@@ -50,6 +54,7 @@
     <a href="../methodology.html">methodology</a>
     <span class="muted" id="stamp"></span>
   </header>
+  <div id="banner"></div>
   <h1 id="h1">—</h1>
   <p class="lede" id="lede"></p>
   <p class="muted small" id="caveat"></p>
@@ -103,12 +108,23 @@ function render(d){
     "hour " + (d.hour_utc || "").slice(0,13).replace("T"," ") + "Z";
 
   if(d.index_pct == null){
-    document.getElementById("h1").textContent = "No price for " + c + " this hour";
-    document.getElementById("lede").textContent =
-      d.no_value_reason ? "Reason recorded by the collector: " + d.no_value_reason
-                        : "No source reported a price to buy a dollar this hour.";
-    notes.push("This is an absence of a price, not a market filtered out. "
-             + "It is recorded every hour, with the reason.");
+    const r = d.no_value_reason || "";
+    const thin = r.indexOf("not enough evidence") === 0;
+    document.getElementById("h1").textContent = thin
+      ? "Not enough evidence this hour for " + c
+      : "No price for " + c + " this hour";
+    document.getElementById("lede").textContent = r
+      ? r.replace(/^not enough evidence this hour: /, "The rule was not met: ")
+      : "No source reported a price to buy a dollar this hour.";
+    notes.push("A number was collected and stored; it is not published because it "
+             + "does not meet the evidence rule in the index definition. This is "
+             + "recorded every hour, with the reason, and is never a market "
+             + "quietly filtered out.");
+    if(d.withheld_buy_price != null){
+      notes.push("The buy-side price the board showed was "
+        + Number(d.withheld_buy_price).toLocaleString("en-US",{maximumFractionDigits:4})
+        + ", and the round trip was " + pct(d.round_trip_pct) + ".");
+    }
   } else {
     document.getElementById("h1").textContent =
       "A dollar costs " + words(d.index_pct) + " than the official rate in " + c + ".";
@@ -126,6 +142,15 @@ function render(d){
              + "That it stays near zero is the finding.");
   }
   document.getElementById("caveat").textContent = notes.join(" ");
+
+  const b = document.getElementById("banner");
+  if(d.unverified){
+    b.innerHTML = '<div class="banner"><b>Unverified</b>' + d.unverified_reason + "</div>";
+  } else if(d.outlier_checked){
+    b.innerHTML = '<div class="banner"><b>Checked ' + d.outlier_checked.date + "</b>"
+      + "This figure sits outside the normal range and has been checked against an "
+      + "outside reference. " + d.outlier_checked.explanation + "</div>";
+  } else { b.innerHTML = ""; }
 
   const cells = [
     ["What a dollar costs", words(d.index_pct),

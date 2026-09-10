@@ -67,6 +67,12 @@ UA = {"User-Agent": "margin.wiki p2p-collector/1.0 (+https://margin.wiki)",
       "content-type": "application/json"}
 HERE = os.path.dirname(os.path.abspath(__file__))
 P2P = os.path.join(HERE, "data", "p2p_basis.csv")
+# Sidecar, because p2p_basis.csv's schema is frozen and its `n_ads` is the two
+# sides added together. The v1.1 evidence rule is about the BUY side alone, and
+# 15 ads could be 10 buy + 5 sell or the reverse -- the difference decides
+# whether a country is published. Own file, own header, no schema change.
+SIDES = os.path.join(HERE, "data", "p2p_sides.csv")
+SIDES_FIELDS = ["ts_utc", "ccy", "n_buy", "n_sell"]
 FX_URL = "https://open.er-api.com/v6/latest/USD"
 
 SEARCH_URL = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
@@ -249,6 +255,7 @@ def build_rows(ts, currencies, fx, post=post_json):
             sells = prices_from(post(SEARCH_URL, search_body(ccy, "SELL", amount)))
             b, s, mid, n = summarise(buys, sells)
             row["n_ads"] = n
+            row["_n_buy"], row["_n_sell"] = len(buys), len(sells)
             if mid is None:
                 # No board, or only one side of one. Both are real facts about
                 # the market and neither is a half-price worth publishing.
@@ -306,6 +313,20 @@ def captured_this_hour(path, ts_field, now=None):
     if t.tzinfo is None:
         t = t.replace(tzinfo=dt.timezone.utc)
     return utc_hour(t.astimezone(dt.timezone.utc)) == utc_hour(now)
+
+
+def append_sides(rows):
+    """Per-side ad counts. Written from the same rows, in the same run."""
+    os.makedirs(os.path.dirname(SIDES), exist_ok=True)
+    new = not os.path.exists(SIDES)
+    with open(SIDES, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=SIDES_FIELDS, extrasaction="ignore")
+        if new:
+            w.writeheader()
+        w.writerows([{"ts_utc": r["ts_utc"], "ccy": r["ccy"],
+                      "n_buy": r.get("_n_buy", 0), "n_sell": r.get("_n_sell", 0)}
+                     for r in rows])
+    return SIDES
 
 
 def append(rows):
@@ -419,7 +440,14 @@ def selftest():
     assert all(r["n_ads"] == 22 for r in rows), [r["n_ads"] for r in rows]
     assert abs(by["VND"]["basis_bps"]) < 0.01, by["VND"]
     assert by["VND"]["buy_median"] > by["VND"]["sell_median"], by["VND"]
-    assert set(FIELDS) >= set(rows[0])
+    # Keys beginning "_" are working values for the sidecar, never written to
+    # p2p_basis.csv -- DictWriter drops them via extrasaction="ignore".
+    public = {k for k in rows[0] if not k.startswith("_")}
+    assert set(FIELDS) >= public, public - set(FIELDS)
+    assert set(SIDES_FIELDS) == {"ts_utc", "ccy", "n_buy", "n_sell"}
+    vnd = next(r for r in rows if r["ccy"] == "VND")
+    assert vnd["_n_buy"] == 11 and vnd["_n_sell"] == 11, (vnd["_n_buy"], vnd["_n_sell"])
+    assert vnd["_n_buy"] + vnd["_n_sell"] == vnd["n_ads"]
     print(f"  [ok] {n_ok}/{len(CURRENCIES)} currencies priced; buy above sell; "
           f"schema covers the row")
 
@@ -526,6 +554,7 @@ def main():
     # PERSIST FIRST, DISPLAY SECOND. A formatting bug must never cost a sample.
     if not a.verify:
         append(rows)
+        append_sides(rows)
 
     if a.json:
         print(json.dumps(rows, indent=2, default=str))
@@ -535,7 +564,8 @@ def main():
     if a.verify:
         return
 
-    print(f"  appended -> {P2P}\n")
+    print(f"  appended -> {P2P}")
+    print(f"  appended -> {SIDES}\n")
     if run_exit_code(n_ok) != 0:
         print("  [error] TOTAL BLACKOUT -- no currency priced this run", file=sys.stderr)
         sys.exit(1)

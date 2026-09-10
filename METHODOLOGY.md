@@ -210,7 +210,7 @@ ARS/VES/BRL render as a live point with no series, and the legend says so.
 
 ## The index, version 1
 
-**Version 1.0, in force from 2026-09-10.** This section defines what "the margin
+**Version 1.1, in force from 2026-09-10.** This section defines what "the margin
 index for Nigeria is +12% this week" means, precisely enough to be attacked.
 Both questions this section originally left open were answered in the 2026-09-10
 brief and are now settled below: the index is the **buy side**, and **broker
@@ -365,8 +365,9 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. **Version 1.0 is in force from
-2026-09-10.** It is incremented when **any
+Every published file carries `index_version`. **Version 1.1 is in force from
+2026-09-10**; v1.0 was superseded the same day by the evidence rule below, after
+a verification sprint found that ten P2P boards were crossed. It is incremented when **any
 change alters what a published number means**, specifically:
 
 - the composition rule or the precedence between classes
@@ -389,6 +390,47 @@ trust the change.
 That is also why collection went wide to 53 currencies before this definition
 was settled: a raw row not captured in a given hour is gone permanently, while a
 definition can be changed and applied backwards at any time.
+
+### The evidence rule (v1.1)
+
+A peer-to-peer value is published only when **both** of these hold:
+
+1. **At least 10 ads on the buy side.** A median resting on two advertisements
+   is not evidence of a market price.
+2. **The buyer's price is at or above the seller's price.** Where it is not, the
+   two sides are not the same market and neither number describes the other.
+
+Where either fails the hour is still collected and stored; it is simply not
+published. The country page says **"not enough evidence this hour"**, prints the
+reason, and prints the buy-side price that was withheld together with the round
+trip, so nothing is hidden — only unpublished.
+
+**This is not a filter that removes a market.** A filter would make a country
+disappear. Here the country keeps its page, its history and its reason, every
+hour, and returns to the index the moment its board meets the rule.
+
+On 2026-09-10 the rule withheld 15 of 57: AOA, BND, INR, MZN, UAH, UGX, XAF and
+XOF for a crossed book; AFN, BDT, NPR and BWP for too few buy-side ads; ETB, GHS
+and NGN because no board exists at all.
+
+`p2p_basis.csv` records `n_ads` as the two sides added together and its schema is
+frozen, so the per-side counts the rule needs are written to a sidecar,
+`data/p2p_sides.csv` (`ts_utc,ccy,n_buy,n_sell`). Rows collected before that
+sidecar existed carry `buy_ads_estimated`, and for those the rule uses "both
+sides full" as a conservative stand-in — the only combination of a summed count
+that guarantees a full buy side.
+
+### Sanity bands and the "unverified" label
+
+A value above **+200%** or below **−3%** is not published in the ranked index
+until it has been checked against a reference outside this project and the check
+recorded in "Checked against" below. Until then the country keeps its page and
+its number, carrying a visible **Unverified** banner that says why, and is left
+out of `data/index_latest.json`.
+
+The band is not a claim that such values are wrong. Sudan's +1,203% is correct
+arithmetic against an official rate no transaction uses. The band only decides
+what gets ranked without a human having looked.
 
 ### Settled: thin and broken boards need no filter
 
@@ -413,6 +455,85 @@ board at all).
 `n_sources` is published beside every value so a reader can judge how thin the
 number is, and no minimum is imposed. Imposing one would be a filter, and a
 filter would need to be stated here first — which is what this section is for.
+
+## Checked against
+
+Every number here is computed from rows this project collected itself, which
+means the project can be internally consistent and still wrong. These are checks
+against references it does not control. **A difference over 1% needs an
+explanation or the country carries the "unverified" label.**
+
+All figures below captured 2026-09-10, 08:00–09:00 UTC.
+
+### Which side of a peer-to-peer board a buyer pays
+
+Checked first, because everything else rests on it. Binance's search endpoint
+takes a `tradeType` from the **user's** side and returns ads whose
+`adv.tradeType` is the **advertiser's** — always the mirror:
+
+```
+request tradeType=BUY   -> adv.tradeType=SELL   (an advertiser selling to you)
+request tradeType=SELL  -> adv.tradeType=BUY    (an advertiser buying from you)
+```
+
+Confirmed on VND, INR and EGP. **Request `BUY` is the price a person pays to buy
+a dollar**, which is what this project labels the buy side. The labels are
+correct and no row has ever been swapped.
+
+The same check disproved the comfortable explanation for the crossed boards. In
+India the ten cheapest asks ran 102.44–103.44 while the ten highest bids ran
+103.90–103.96: the book is genuinely crossed by 1.5%, not mislabelled. That
+finding produced the v1.1 evidence rule rather than a correction.
+
+### South Korea — against Bitcoin, independently of USDT
+
+| | |
+|---|---|
+| Ours, buy side across three order books | **1,357.00 KRW** |
+| Upbit BTC/KRW 106,126,000 ÷ Coinbase BTC/USD 78,050.99 | **1,359.70 KRW** |
+| Difference | **0.20%** |
+
+A route with no stablecoin in it at all agrees to a fifth of a percent.
+
+### Nigeria — Luno, against Bitcoin
+
+| | |
+|---|---|
+| Ours, Luno USDT/NGN ask | **1,372.20 NGN** |
+| Luno BTC/NGN 106,869,092 ÷ Coinbase BTC/USD 78,048.98 | **1,369.26 NGN** |
+| Difference | **0.21%** |
+
+### Argentina — against CriptoYa's own published figure
+
+| | |
+|---|---|
+| Ours, median broker ask | **1,608.22 ARS** |
+| CriptoYa published *dólar cripto* USDT ask | **1,595.00 ARS** |
+| Difference | **0.82%** |
+
+The price agrees. **The denominator does not**, and it is the larger problem:
+`open.er-api.com` gave 1,515.11 ARS to the dollar while Argentina's official
+rate that hour was 1,535 — **1.31% apart**. Our index reads +6.15%; against the
+real official it is +4.77%. The gap is entirely the reference rate, not the
+market price, and it is the strongest argument for the intraday-rate work still
+open in ROADMAP. Recorded here rather than corrected silently.
+
+### Singapore to the Philippines — against Wise's live quote
+
+| | |
+|---|---|
+| Wise, live: rate 49.4622, fee S$4.63 on S$1,000, received ₱49,233.19 | **44.89 bps all in** |
+| Ours, `providers.csv`, same hour | **45.25 bps** |
+| Difference | **0.36 bps — 0.004%** |
+
+### Checks that could not be completed
+
+A published Nigerian parallel-rate feed and a public kimchi-premium tracker were
+both attempted and neither answered without a key
+(`api.kimpga.com` 404, `api.dunamu.com` 404, `api.exchangerate.host` no data).
+The Bitcoin-implied routes above stand in for both, and are arguably stronger
+because they share no source with the number being checked. Said here rather
+than left as a gap someone else has to notice.
 
 ## More than one exchange per country
 
