@@ -397,6 +397,48 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    First run: **53 countries with a value, 4 without** (BWP, ETB, GHS, NGN —
    an absence of a price, recorded hourly with its reason, never a filter).
 
+### P0.06 — who changed their price, and when, 2026-09-10
+
+1. **`/pricing-history.html`** lists every confirmed price change on the routes
+   measured, newest first, filterable by route and by one-off change versus
+   weekend rate. `tools/emit_price_changes.py` writes `data/price_changes.csv`
+   (append-only, idempotent) and `data/price_changes_latest.json`.
+
+2. **The threshold in the brief could not be used on its own.** Measured over a
+   month, the median hour-to-hour wobble in a provider's cost is 2 to 4 bps and
+   the median day-over-day wobble of the daily median is ~12 bps — and it lands
+   on the *same day for every provider in the panel at once*. That is the
+   reference rate moving, not nine companies repricing in unison. A plain
+   "moved by more than 0.02 points" test fires on roughly half of all hours.
+
+3. **Pairwise unanimity instead.** A change is recorded only when a provider
+   moved against **every** other provider in its panel, same day, same
+   direction, ≥0.02 points, ≥6 readings on each day. Both sides of a pair are
+   measured against the same rate at the same instant, so the rate cancels
+   exactly and a move in the reference is silent. This also survives what
+   defeats a basket average: OFX's ~90 bps move dragged the panel median with
+   it and painted a false ~18 bps move on everyone else. 210 changes confirmed
+   out of 26,443 panel rows.
+
+4. **A finding arrived with it: OFX charges more at the weekend.** Its price
+   rises on a Saturday and comes back on the Monday — by 0.85 points on
+   US→MXN (2 of the 3 Saturdays measured) and 0.27 points on SGD→PHP (2 of 4).
+   Instarem shows a smaller version on SGD→PHP (0.10 points). Stated with its
+   denominator: "every weekend" would have been a guess, and was wrong when
+   first written.
+
+5. **Two cost columns that cannot contradict each other.** `new_cost_pct` is
+   the observed daily median on the day of the change; `old_cost_pct` is that
+   minus the confirmed move, so both sit on the same day's rate and their
+   difference is exactly the move. The raw previous-day median is kept as
+   `prev_day_cost_pct`. An earlier draft showed the two raw daily medians and
+   produced rows reading "1.24% → 1.39%, moved −0.07 points" — caught by
+   rendering the page rather than by reading the CSV.
+
+6. **Only complete days are judged.** The last day in the file is today and
+   still filling; the file never rewrites a row, so a call made on half a day
+   could not be corrected.
+
 ### P0.03 — every way to send it, ranked, 2026-09-10
 
 1. **`/providers.html`** ranks every way to send money on each of the four

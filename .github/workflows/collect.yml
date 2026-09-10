@@ -174,6 +174,14 @@ jobs:
         if: always() && steps.needed.outputs.proceed == 'true'
         run: python3 tools/emit_providers.py
 
+      - name: Emit the price-change record
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Append-only. A change is recorded only when a provider moved against
+        # every other provider in its panel on the same day, so a move in the
+        # reference rate -- which shifts the whole panel at once -- is silent.
+        # See the docstring in tools/emit_price_changes.py.
+        run: python3 tools/emit_price_changes.py
+
       - name: Emit per-country index files and pages
         if: always() && steps.needed.outputs.proceed == 'true'
         # Derived from the CSVs the collectors just wrote. Implements
@@ -199,7 +207,8 @@ jobs:
                    data/crosses_latest.json data/stable_spread.csv \
                    data/p2p_basis.csv data/p2p_sides.csv data/index_latest.json \
                    data/fx_rates.csv data/provider_quotes.csv \
-                   data/providers_latest.json; do
+                   data/providers_latest.json data/price_changes.csv \
+                   data/price_changes_latest.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Directories: one file per country, and a page per country. A
