@@ -71,7 +71,7 @@ COUNTRY = {
 # `pegged` one reads near zero by construction and that is the finding. Anything
 # not listed is treated as `market`.
 MANAGED = {"ARS", "VES", "LBP", "SDG", "DZD", "SYP", "IQD", "AFN", "MZN",
-           "ETB", "NGN", "AOA", "UAH", "MMK", "ZWL"}
+           "ETB", "NGN", "AOA", "UAH", "TND", "MMK", "ZWL"}
 PEGGED = {"AED", "SAR", "QAR", "KWD", "JOD", "BND", "XAF", "XOF"}
 
 # v1.1 evidence rule, per METHODOLOGY. A P2P value is published only with at
@@ -96,6 +96,35 @@ VERIFIED_OUTLIERS = {
                           "Bank of Khartoum. The figure is the distance from an "
                           "official rate of 544 that no transaction uses."),
 }
+
+# The evidence behind a number, in the words a reader uses. "3 order books"
+# and "31 people selling" are different kinds of claim and the board has to say
+# which without using the word "venue".
+# A collector's exception is a fact for the record, not a sentence for a
+# reader. The raw string stays in the country file; this is what a page shows.
+def reason_words(raw):
+    r = (raw or "").strip()
+    if r.startswith("not enough evidence this hour: the buy side is below"):
+        return "the buying and selling sides are not the same market here"
+    if r.startswith("not enough evidence this hour:"):
+        return "too few people selling to call it a price"
+    if "no ads at" in r:
+        return "nobody is offering to sell dollars here right now"
+    if "no FX mid" in r:
+        return "no official exchange rate published for this currency this hour"
+    return "no price collected this hour"
+
+
+def evidence_words(cls, n):
+    n = int(n or 0)
+    if cls in ("order_book_median", "order_book_single"):
+        return f"{n} order book" + ("" if n == 1 else "s")
+    if cls in ("broker_median", "broker_single"):
+        return f"{n} broker quote" + ("" if n == 1 else "s")
+    if cls == "p2p_buy_median":
+        return f"{n} person selling" if n == 1 else f"{n} people selling"
+    return "no evidence this hour"
+
 
 CLASS_WORDS = {
     "order_book_median": "from order books",
@@ -624,11 +653,25 @@ def build():
     listed.sort(key=lambda f: f["index_pct"], reverse=True)
     snapshot = {
         "index_version": INDEX_VERSION,
-        "countries": [{k: f.get(k) for k in
-                       ("ccy", "country", "index_pct", "round_trip_pct",
-                        "source_class", "source_words", "n_sources",
-                        "hour_utc", "history_start")}
-                      for f in listed],
+        # Rows carry everything the board needs, so the page makes one request
+        # rather than 42. `spark` is the last 30 daily points, which is what a
+        # sparkline needs and nothing more.
+        "countries": [dict(
+            {k: f.get(k) for k in
+             ("ccy", "country", "index_pct", "round_trip_pct", "source_class",
+              "source_words", "n_sources", "hour_utc", "history_start")},
+            denominator_class=(f.get("denominator") or {}).get("class"),
+            evidence_words=evidence_words(f.get("source_class"), f.get("n_sources")),
+            spark=[p["index_pct"] for p in (f.get("history") or [])[-30:]],
+        ) for f in listed],
+        # Withheld countries are named, with the reason, so the board can show
+        # them rather than let them vanish.
+        "withheld": [{"ccy": f["ccy"], "country": f.get("country"),
+                      "reason": reason_words(f.get("no_value_reason")),
+                      "reason_raw": f.get("no_value_reason") or "",
+                      "denominator_class": (f.get("denominator") or {}).get("class")}
+                     for f in sorted(files.values(), key=lambda x: x["ccy"])
+                     if f.get("index_pct") is None],
         "without_value": sorted(f["ccy"] for f in files.values()
                                 if f.get("index_pct") is None),
         "unverified": sorted(f["ccy"] for f in files.values() if f.get("unverified")),

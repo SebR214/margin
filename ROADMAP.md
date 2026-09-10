@@ -432,6 +432,32 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    1.31% out, moving our index from +4.77% to +6.15%. That is the case for
    intraday rates (P2-3), now the highest-value open item.
 
+### P0.2 — the index is the board, since 2026-09-10
+
+1. **`index.html` shows the whole index**, read from `data/index_latest.json`
+   and never recomputed in the page, so the board and the file cannot disagree.
+   Title computed: "What a dollar really costs in N countries" — 42 today.
+
+   **Three bands, because three different questions.** A country whose official
+   rate is set by its government is not "far from the market"; there is no
+   market rate for it to be far from, so it cannot share a scale with Turkey.
+   Each band carries a sentence saying which question it answers.
+
+   Columns: country, what a dollar costs, round trip, evidence in words
+   ("3 order books", "24 broker quotes", "10 people selling"), and a 30-day
+   sparkline scaled to its own range — shape, not level, because a shared scale
+   would flatten every country against Sudan. Every row links to its country
+   page.
+
+   Withheld countries sit at the bottom in grey with a reason in plain words. A
+   collector's exception is a fact for the record, not a sentence for a reader:
+   the raw string stays in the country file and the page says "nobody is
+   offering to sell dollars here right now".
+
+   The two headline figures above the chart now come from all 42 countries. The
+   hero chart still draws from the ten with an hourly series, because that is
+   the only layer with one.
+
 ### P0.4 — P2P layer, collecting since 2026-09-02
 
 1. **Ten capital-controlled currencies now have an hourly price**, from

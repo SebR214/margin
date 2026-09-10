@@ -396,12 +396,16 @@ textarea.input { min-height: 90px; resize: vertical; }
     overflow-x: auto; -webkit-overflow-scrolling: touch;
   }
   [data-grid="bar-row"] { grid-template-columns: 56px minmax(0, 1fr) 72px !important; gap: 8px !important; }
+  /* The board is six columns where bar-row is three, and the provider
+     leaderboard shares bar-row. Items past the third wrap inside the row. */
+  [data-grid="board-row"] { grid-template-columns: 56px minmax(0, 1fr) 96px !important; gap: 4px 8px !important; }
 }
 
 /* Phone. */
 @media (max-width: 640px) {
   [data-grid="tiles"] { grid-template-columns: minmax(0, 1fr) !important; }
   [data-grid="bar-row"] { grid-template-columns: 48px minmax(0, 1fr) 64px !important; }
+  [data-grid="board-row"] { grid-template-columns: 48px minmax(0, 1fr) 78px !important; }
   /* The hourly coverage grid is 24 fixed columns by design — one cell per hour,
      and hour N must stay under hour N across every market row. Reflowing it
      would destroy that alignment, so each row's grid keeps all 24 columns at a
@@ -554,36 +558,63 @@ textarea.input { min-height: 90px; resize: vertical; }
 
     <div style="padding: 40px 24px 0;">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
-        <h2 style="font-size: 26px; margin: 0;">What a dollar really costs in ten countries</h2>
-        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">each bar is one country · {{ scaleNote }}</div>
+        <h2 style="font-size: 26px; margin: 0;">{{ boardTitle }}</h2>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">measured every hour · furthest above the official rate first</div>
       </div>
 
-      <sc-for list="{{ bands }}" as="band" hint-placeholder-count="2">
-        <div style="padding-top: 18px;">
-          <div data-grid="bar-row" style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: baseline; padding: 0 0 6px 12px;">
-            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;">{{ band.title }}</div>
-            <div class="text-muted" style="font-size: 11px;">{{ band.sub }}</div>
-            <div class="text-muted" style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;"><span>{{ band.axisLeft }}</span><span>cheaper than official ← 0 → dearer than official</span><span>{{ band.axisRight }}</span></div>
-            <div class="text-muted" style="text-align: right; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">gap</div>
+      <sc-for list="{{ bands }}" as="band" hint-placeholder-count="3">
+        <div style="padding-top: 26px;">
+          <div style="border-bottom: 1px solid var(--color-text); padding-bottom: 8px;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+              <h3 style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.02em; margin: 0;">{{ band.title }}</h3>
+              <span class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ band.count }}</span>
+            </div>
+            <p class="text-muted" style="font-size: 12px; margin: 5px 0 0; max-width: 86ch;">{{ band.note }}</p>
+          </div>
+          <div data-grid="board-row" style="display: grid; grid-template-columns: 86px minmax(0, 1fr) 132px 108px minmax(0, 150px) 104px; gap: 0 16px; padding: 9px 0 6px 12px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
+            <div>country</div>
+            <div></div>
+            <div style="text-align: right;">a dollar costs</div>
+            <div style="text-align: right;">round trip</div>
+            <div>evidence</div>
+            <div style="text-align: right;">last 30 days</div>
           </div>
           <sc-for list="{{ band.rows }}" as="b" hint-placeholder-count="8">
-            <div sc-camel-on-click="{{ b.go }}" data-grid="bar-row" style="display: grid; grid-template-columns: 74px minmax(0, 150px) minmax(0, 1fr) 108px; gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); border-left: 3px solid transparent; padding: 9px 0 9px 9px; cursor: pointer; border-left-color: {{ b.sel }};" style-hover="background: var(--color-neutral-200);">
-              <div style="display: flex; flex-direction: column;">
-                <span style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.02em;">{{ b.code }}</span>
-                <a href="{{ b.href }}" style="font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-neutral-600); text-decoration: none; border-bottom: 1px solid var(--color-divider);" title="{{ b.hrefTitle }}">{{ b.country }}</a>
+            <div data-grid="board-row" style="display: grid; grid-template-columns: 86px minmax(0, 1fr) 132px 108px minmax(0, 150px) 104px; gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); padding: 9px 0 9px 12px;">
+              <a href="{{ b.href }}" title="{{ b.hrefTitle }}" style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.02em; color: var(--color-text); text-decoration: none;">{{ b.code }}</a>
+              <a href="{{ b.href }}" title="{{ b.hrefTitle }}" style="font-size: 13px; color: var(--color-text); text-decoration: none; border-bottom: 1px solid var(--color-divider);">{{ b.country }}</a>
+              <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: {{ b.valueColor }};">{{ b.value }}</div>
+              <div class="text-muted" style="text-align: right; font-size: 13px;">{{ b.trip }}</div>
+              <div class="text-muted" style="font-size: 12px;">{{ b.evidence }}</div>
+              <div style="display: flex; justify-content: flex-end;" title="{{ b.sparkTitle }}">
+                <svg sc-camel-view-box="0 0 100 20" sc-camel-preserve-aspect-ratio="none" style="width: 100px; height: 20px; display: block;">
+                  <path d="{{ b.spark }}" fill="none" stroke="var(--data-600)" stroke-width="1.2" vector-effect="non-scaling-stroke"></path>
+                </svg>
               </div>
-              <div class="text-muted" style="font-size: 12px;" title="{{ b.tip }}">{{ b.venue }}</div>
-              <div style="position: relative; height: 22px;">
-                <div style="position: absolute; left: 50%; top: -9px; bottom: -9px; width: 1px; background: var(--color-neutral-500);"></div>
-                <div style="position: absolute; top: 3px; height: 16px; background: {{ b.fill }}; box-shadow: inset 0 0 0 1px rgba(32, 30, 29, 0.12); left: {{ b.left }}; width: {{ b.width }};"></div>
-              </div>
-              <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: var(--color-text);">{{ b.bps }}<span style="font-size: 10px; color: var(--data-700); vertical-align: super; margin-left: 2px;">{{ b.mark }}</span></div>
             </div>
           </sc-for>
           <div style="border-top: 2px solid var(--color-text);"></div>
         </div>
       </sc-for>
-      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 88ch;">Each bar is one country. It shows how far the local price of a digital dollar sits from the official exchange rate, right now. Above zero: people there pay more than the official rate to get dollars. {{ dislocatedNames }} so far above that they get their own scale. Below zero: the digital dollar trades cheaper than the official rate.</p>
+
+      <sc-if value="{{ withheldRows.length }}" hint-placeholder-val="{{ 0 }}">
+        <div style="padding-top: 26px;">
+          <div style="border-bottom: 1px solid var(--color-neutral-400); padding-bottom: 8px;">
+            <h3 class="text-muted" style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; margin: 0;">Not published this hour</h3>
+            <p class="text-muted" style="font-size: 12px; margin: 5px 0 0; max-width: 86ch;">A price was collected for these and stored, but it does not meet the evidence rule, so it is not shown as a number. Each country keeps its page and its reason, and returns as soon as its market does.</p>
+          </div>
+          <sc-for list="{{ withheldRows }}" as="w" hint-placeholder-count="6">
+            <div style="display: flex; gap: 12px; align-items: baseline; border-top: 1px solid var(--color-divider); padding: 7px 0 7px 12px; color: var(--color-neutral-600);">
+              <a href="{{ w.href }}" style="font-family: var(--font-heading); font-weight: 800; font-size: 13px; color: var(--color-neutral-600); text-decoration: none; min-width: 40px;">{{ w.code }}</a>
+              <a href="{{ w.href }}" style="font-size: 12px; color: var(--color-neutral-600); text-decoration: none; border-bottom: 1px solid var(--color-divider); min-width: 130px;">{{ w.country }}</a>
+              <span style="font-size: 12px;" title="{{ w.full }}">{{ w.reason }}</span>
+            </div>
+          </sc-for>
+          <div style="border-top: 1px solid var(--color-neutral-400);"></div>
+        </div>
+      </sc-if>
+
+      <p class="text-muted" style="font-size: 12px; margin: 16px 0 0; max-width: 88ch;">Each row is one country. "A dollar costs" is what you pay to buy one dollar there, against the official exchange rate captured in the same second. "Round trip" is what it costs to buy and then sell again. Click any country for every source behind its number.</p>
     </div>
 
     <div style="padding: 44px 24px 0;">
@@ -1147,16 +1178,21 @@ class Component extends DCLogic {
       opt("./data/basis.csv"), opt("./data/basis_history.csv"), opt("./data/samples.csv"),
       opt("./data/providers.csv"), opt("./data/providers_usdmxn.csv"),
       opt("./data/fee_checks.csv"), opt("./data/fee_tiers.csv"),
-      opt("./data/crosses_latest.json"),
-    ]).then(([b, h, s, p1, p2, fc, ft, cx]) => {
+      opt("./data/crosses_latest.json"), opt("./data/index_latest.json"),
+    ]).then(([b, h, s, p1, p2, fc, ft, cx, ix]) => {
       // A missing or unparseable crosses file means the table renders its empty
       // state. It must never take the rest of the page down with it.
       let crosses = null;
       try { crosses = cx ? JSON.parse(cx) : null; } catch (e) { crosses = null; }
+      // The board IS the index, read from the file the collector writes and
+      // never recomputed here, so the page and data/index_latest.json cannot
+      // disagree about what the index says.
+      let index = null;
+      try { index = ix ? JSON.parse(ix) : null; } catch (e) { index = null; }
       this.setState({ data: {
         basis: parseCSV(b), hist: parseCSV(h), samples: parseCSV(s),
         panels: { "SGD->PHP": parseCSV(p1), "USD->MXN": parseCSV(p2) },
-        feeChecks: parseCSV(fc), tiers: parseCSV(ft), crosses,
+        feeChecks: parseCSV(fc), tiers: parseCSV(ft), crosses, index,
       }});
     }).catch(e => this.setState({ err: String(e.message || e) }));
   }
@@ -1473,7 +1509,8 @@ class Component extends DCLogic {
       health: st.err ? "collector unreachable — " + st.err : "reading data/…",
       lastTick: "—", scaleNote: "",
       hl: { wide: "—", wideCountry: "—", narrow: "—", narrowCountry: "—" },
-      heroStats: [], bands: [], coverage: [], legendCells: [],
+      heroStats: [], bands: [], boardTitle: "What a dollar really costs",
+      withheldRows: [], coverage: [], legendCells: [],
       cov: { on: false, code: "", v: "", t: "", hint: "" },
       mk: { code: "—", country: "", venue: "", bps: "—", sentence: "", color: INK, line: "", area: "", zeroY: "120",
             xLabels: [], yLabels: [], stats: [], dots: [], sparse: false, note: "",
@@ -1519,37 +1556,76 @@ class Component extends DCLogic {
     const wide = mkts.reduce((a, b) => Math.abs(b.bps) > Math.abs(a.bps) ? b : a, mkts[0]);
     const narrow = mkts.reduce((a, b) => Math.abs(b.bps) < Math.abs(a.bps) ? b : a, mkts[0]);
 
+    // The two headline figures are drawn from the WHOLE index, not from the ten
+    // countries that happen to have an hourly series. The hero CHART still
+    // needs that hourly series, so its subject stays among those ten; the
+    // numbers above it describe all 42.
+    const ixSorted = ((D.index && D.index.countries) || []).slice()
+      .sort((a, b) => Math.abs(b.index_pct) - Math.abs(a.index_pct));
+    const ixWide = ixSorted[0] || null;
+    const ixNarrow = ixSorted[ixSorted.length - 1] || null;
+
     const market = mkts.some(m => m.code === st.market) ? st.market : wide.code;
     const sel = mkts.find(m => m.code === market);
 
-    const bandOf = list => {
-      const max = list.length ? Math.max.apply(null, list.map(m => Math.abs(m.bps))) : 1;
-      return { max, rows: list.map(m => {
-        const w = this.scale(m.bps, max);
-        return { code: m.code, country: m.country, venue: m.venue,
-          // Every country now has a page of its own at a stable URL.
-          href: "./c/" + m.code.toLowerCase() + ".html",
-          hrefTitle: m.country + " — every source, the full history, and how the "
-                     + "official rate is chosen",
-          tip: this.gapSentence(m) + "\n\n" + this.venueTip(m),
-          bps: this.gapWords(m.bps), mark: "",
-          fill: m.bps >= 0 ? "var(--data-400)" : "#dedede",
-          left: (m.bps >= 0 ? 50 : 50 - w) + "%", width: Math.max(w, 0.4) + "%",
-          go: () => this.setState({ market: m.code, hover: null, pinned: null }),
-          sel: market === m.code ? INK : "transparent" };
-      })};
+    // ---- the board IS the index -------------------------------------------
+    // Three bands because three different questions are being asked. A country
+    // whose official rate is set by its government is not "far from the market"
+    // -- there is no market rate for it to be far from -- so it cannot share a
+    // scale with Turkey, and saying so under the heading is the honest fix.
+    const ix = (D.index && D.index.countries) || [];
+    const withheldRows = ((D.index && D.index.withheld) || []).map(w => ({
+      code: w.ccy, country: w.country || w.ccy,
+      href: "./c/" + w.ccy.toLowerCase() + ".html",
+      reason: w.reason || "no price collected this hour",
+      full: w.reason_raw || "",
+    }));
+
+    // A sparkline is shape, not level: scaled to its own 30 days on purpose,
+    // because a shared scale would flatten every country against Sudan.
+    const sparkPath = vals => {
+      if (!vals || vals.length < 2) return "";
+      const lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+      const span = (hi - lo) || 1;
+      return "M " + vals.map((v, i) =>
+        ((i / (vals.length - 1)) * 100).toFixed(1) + " " +
+        (17 - ((v - lo) / span) * 14).toFixed(1)).join(" L ");
     };
-    const axis = v => this.fmtPct(v);
-    let bands;
-    if (banded) {
-      const big = mkts.filter(m => Math.abs(m.bps) >= 200), small = mkts.filter(m => Math.abs(m.bps) < 200);
-      bands = [];
-      if (big.length) { const b = bandOf(big);
-        bands.push({ title: "Far from the official rate", sub: "more than 2% away · own scale", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }); }
-      if (small.length) { const b = bandOf(small);
-        bands.push({ title: "Close to the official rate", sub: "within 2% · own scale", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }); }
-    } else { const b = bandOf(mkts);
-      bands = [{ title: "All countries", sub: "one shared scale", axisLeft: axis(-b.max), axisRight: axis(b.max), rows: b.rows }]; }
+
+    const rowOf = c => ({
+      code: c.ccy, country: c.country || c.ccy,
+      href: "./c/" + c.ccy.toLowerCase() + ".html",
+      hrefTitle: (c.country || c.ccy) + " — every source, the full history, and "
+                 + "how the official rate is chosen",
+      value: this.gapWords(c.index_pct * 100),
+      valueColor: Math.abs(c.index_pct) > 2 ? "var(--data-700)" : INK,
+      trip: (c.round_trip_pct === null || c.round_trip_pct === undefined)
+        ? "—" : this.fmtPct(c.round_trip_pct * 100, false),
+      evidence: c.evidence_words || "—",
+      spark: sparkPath(c.spark),
+      sparkTitle: (c.spark || []).length > 1
+        ? (c.country || c.ccy) + " over the last " + c.spark.length + " days"
+        : "not enough days yet to draw a line",
+    });
+
+    const bandFrom = (list, title, note) => list.length
+      ? [{ title, note,
+           count: list.length + (list.length === 1 ? " country" : " countries"),
+           rows: list.map(rowOf) }] : [];
+
+    const managedList = ix.filter(c => c.denominator_class === "managed");
+    const restList = ix.filter(c => c.denominator_class !== "managed");
+    const bands = [].concat(
+      bandFrom(managedList, "Official rate set by the government",
+        "These governments set the rate their currency is supposed to trade at. "
+        + "The figure is the distance from that official number, not from a market price."),
+      bandFrom(restList.filter(c => Math.abs(c.index_pct) > 2), "Far from the official rate",
+        "A dollar costs more than 2% away from the official exchange rate here."),
+      bandFrom(restList.filter(c => Math.abs(c.index_pct) <= 2), "Close to the official rate",
+        "A dollar costs within 2% of the official exchange rate here."));
+
+    const boardTitle = "What a dollar really costs in " + ix.length
+      + (ix.length === 1 ? " country" : " countries");
 
     // ---- the crypto route's implied cross rate ---------------------------
     // Read from data/crosses_latest.json, which emit_latest.py computes from
@@ -1896,13 +1972,19 @@ class Component extends DCLogic {
       health: "collector ok · " + okCount + "/" + latestRun.length + " sources",
       lastTick: this.fmtStamp(lastT, true),
       scaleNote: banded ? "two bands, each on its own axis" : "single axis",
-      hl: { wide: this.gapWords(wide.bps), wideCountry: wide.country,
-            narrow: this.gapWords(narrow.bps), narrowCountry: narrow.country },
+      hl: { wide: this.gapWords((ixWide ? ixWide.index_pct * 100 : wide.bps)),
+            wideCountry: ixWide ? ixWide.country : wide.country,
+            narrow: this.gapWords((ixNarrow ? ixNarrow.index_pct * 100 : narrow.bps)),
+            narrowCountry: ixNarrow ? ixNarrow.country : narrow.country },
       heroStats: [
-        { k: "Furthest from the official rate", v: this.gapWords(wide.bps),
-          sub: "a dollar in " + this.countryIn(wide.code), mark: "" },
-        { k: "Closest to the official rate", v: this.gapWords(narrow.bps),
-          sub: "a dollar in " + this.countryIn(narrow.code), mark: "" },
+        { k: "Furthest from the official rate",
+          v: this.gapWords(ixWide ? ixWide.index_pct * 100 : wide.bps),
+          sub: "a dollar in " + (ixWide ? ixWide.country : this.countryIn(wide.code)),
+          mark: "" },
+        { k: "Closest to the official rate",
+          v: this.gapWords(ixNarrow ? ixNarrow.index_pct * 100 : narrow.bps),
+          sub: "a dollar in " + (ixNarrow ? ixNarrow.country : this.countryIn(narrow.code)),
+          mark: "" },
       ].concat(cRowRaw ? [
         // Money first. A percentage of an amount the reader has not multiplied
         // out is not an answer to "what would this cost me".
@@ -1913,7 +1995,7 @@ class Component extends DCLogic {
           v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src), num(cRowRaw.baseline_cost_bps))),
           sub: this.fmtPct(num(cRowRaw.baseline_cost_bps), false) + " · " + (cRowRaw.baseline_provider || "—"), mark: "" },
       ] : []),
-      bands, coverage, cross,
+      bands, boardTitle, withheldRows, coverage, cross,
       cov: { on: !!covH, code: covH ? covH.code : "", v: covH ? covH.v : "", t: covH ? covH.t : "",
              hint: covH ? "each cell is one hour" : "one cell per hour · filled: captured · grey: pull failed · blank: hour missed" },
       legendCells: [200, 300, 400, 500, 600].map(s => ({ bg: "var(--data-" + s + ")" })),
