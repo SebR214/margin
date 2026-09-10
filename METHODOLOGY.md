@@ -210,32 +210,63 @@ ARS/VES/BRL render as a live point with no series, and the legend says so.
 
 ## The index, version 1
 
-**Status: DRAFT. Nothing on the site publishes an index number until this is
-approved.** This section defines what "the margin index for Nigeria is +12% this
-week" would mean, precisely enough to be attacked.
+**Version 1.0, in force from 2026-09-10.** This section defines what "the margin
+index for Nigeria is +12% this week" means, precisely enough to be attacked.
+Both questions this section originally left open were answered in the 2026-09-10
+brief and are now settled below: the index is the **buy side**, and **broker
+quotes are their own source class**.
 
 ### What the number is
 
 One figure per country per hour, and one published weekly: **how much more, or
-less, a dollar costs in that country than its official exchange rate.**
+less it costs to buy a dollar in that country than its official exchange rate.**
 
 ```
-index = (local price of one USDT / official USD rate - 1) * 100
+index = (price to BUY one USDT locally / official USD rate - 1) * 100
 ```
 
 Positive means people there pay above the official rate to obtain dollars.
 Negative means below. The weekly figure is the median of that country's hourly
 figures across the published week, so one dislocated hour cannot carry a week.
 
+**The buy side, not a midpoint.** This is the single most consequential choice
+in the definition and it was made on evidence. A midpoint averages what you pay
+to obtain dollars with what you would receive selling them — two different
+transactions. On an order book those differ by about a basis point and the
+choice is cosmetic. On a peer-to-peer board they can be different markets
+entirely: on 2026-09-05 Angola's board asked 825 to buy and 1,120 to sell, a 36%
+gap that nobody arbitrages because the two sides are segmented by payment rail
+and capital controls. Re-tested with and without the amount filter, the gap
+persisted, so it is not an artefact of how ads are selected. A midpoint between
+them is the price of nothing.
+
+Ten currencies quote a sell side above their buy side for most hours — AOA and
+XOF always, UAH 95%, XAF 73%, EGP 68%, INR 59%, BND 52%, UGX 44%, ZMW 40%, MZN
+31%. Under a midpoint rule those ten would have to be filtered out. Under a buy
+rule they are publishable, and the gap between the sides becomes its own
+published number.
+
+**Round-trip cost.** The distance between the buy side and the sell side is
+published beside the index as `round_trip_pct`. It is what a market charges to
+go in and come out again, and in a segmented market it is the more interesting
+of the two numbers. It is never folded into the index.
+
 ### Composition — one number, and where it came from
 
 Per country, per hour, in strict precedence. **The classes are never blended.**
 
-| Rank | Class | Rule |
-|---|---|---|
-| 1 | `order_book_median` | Two or more exchange order books quote USDT against that currency in the same hour → median across them |
-| 2 | `order_book_single` | Exactly one order book → that book |
-| 3 | `p2p_median` | No order book → median of the two-sided advertisement board |
+| Rank | Class | Shown as | Rule |
+|---|---|---|---|
+| 1 | `order_book_median` | from order books | Two or more exchange order books → median of their **ask** |
+| 2 | `order_book_single` | from an order book | Exactly one order book → its **ask** |
+| 3 | `broker_median` | from broker quotes | Two or more broker quotes → median of their **ask** |
+| 4 | `broker_single` | from a broker quote | Exactly one broker → its **ask** |
+| 5 | `p2p_buy_median` | from person-to-person ads | No venue → median of the **buy-side** ads |
+
+Where a venue publishes no two-sided quote — Upbit and Pintu publish a last
+price only — the last price stands in for the ask, and the row records that it
+did. A last price is a trade that happened rather than one offered, which is a
+weaker claim, and the country page says so.
 
 **Every published row prints its class.** A reader must never have to guess
 whether a number came from a matching engine or an advertisement, and a country
@@ -248,7 +279,7 @@ carrying counterparty risk, a payment-rail requirement and a settlement window.
 Averaging the two produces a number that is neither, and no reader could say
 what it measures.
 
-#### Open question 1 — brokers are not order books
+#### Settled: brokers are their own class
 
 The rule above says "order books". Some of what the collector treats as a venue
 is not one. CriptoYa reports **brokers and fintechs**, which quote a spread to a
@@ -259,18 +290,19 @@ retail customer rather than running a book. Under the rule as written, today:
   retail markup, which the board already footnotes.
 - **Venezuela** is classed `order_book_single` on **one broker**.
 
-Neither country has a single real order book behind it. Two ways to resolve,
-and this needs your decision:
+Neither country has a real order book behind it. **Resolved in favour of
+separate broker classes**, as ranks 3 and 4 above: Argentina is `broker_median`
+and reads "from broker quotes", Venezuela is `broker_single`. It costs a column
+value and removes a claim the data does not support.
 
-1. **Four classes.** Insert `broker_median` and `broker_single` between the
-   order-book classes and P2P. Argentina becomes `broker_median`, Venezuela
-   `broker_single`. Most honest, and it changes how two countries are labelled
-   but not their numbers.
-2. **Leave as written.** Simpler, and defensible only if the published note
-   makes clear that "order book" here means "a venue quoting a two-sided price",
-   which is a weaker claim than it sounds.
-
-I recommend (1). It costs a column value and removes a claim we cannot support.
+**One consequence, stated because it moves published numbers.** The collector
+records CriptoYa on a median-**bid** rule, chosen when the number being measured
+was market dislocation and a broker's ask carries retail markup. The index
+measures what it costs to buy, so it takes the **ask** — markup included,
+because the markup is part of what a person pays. Argentina and Venezuela
+therefore read higher on the index than the basis figure in `basis.csv`, and the
+two are different quantities on purpose. `basis.csv` is unchanged; nothing is
+rewritten.
 
 ### The denominator, and where it is a policy number
 
@@ -333,7 +365,8 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. It is incremented when **any
+Every published file carries `index_version`. **Version 1.0 is in force from
+2026-09-10.** It is incremented when **any
 change alters what a published number means**, specifically:
 
 - the composition rule or the precedence between classes
@@ -357,11 +390,12 @@ That is also why collection went wide to 53 currencies before this definition
 was settled: a raw row not captured in a given hour is gone permanently, while a
 definition can be changed and applied backwards at any time.
 
-### Open question 2 — thin and broken boards
+### Settled: thin and broken boards need no filter
 
-Not in the brief for this section, but it blocks publication and belongs here
-rather than in a later surprise. The wide pull surfaced boards that are not
-markets:
+The buy-side rule dissolves most of this. A sell median above a buy median is
+not a broken board once the sell side is no longer used — it is a segmented
+market, and the segmentation is published as `round_trip_pct` rather than
+hidden. **No market is filtered out of the index.** What remains:
 
 ```
 AOA   buy   826.58   sell 1,113.54    sell 35% ABOVE buy, 15 ads
@@ -371,11 +405,14 @@ BWP   0 buy ads against 10 sell       already fails: a mid needs both sides
 BND   pegged 1:1 to SGD, reads +639 bps on 18 ads
 ```
 
-A sell median above a buy median is not a spread, it is a broken board. No rule
-is proposed here because it is your call, but the index cannot publish these as
-they stand. The candidates are a minimum ad count per side, a rejection when
-`sell_median > buy_median`, and a maximum plausible spread — each of which is a
-filter, and every filter needs stating in this section before it is applied.
+A country with **no buy-side ads at all** has no index value for that hour, and
+the row says so with its reason. That is not a filter; it is the absence of a
+price. As of 2026-09-05 that is BWP (sell ads only), and NGN, GHS and ETB (no
+board at all).
+
+`n_sources` is published beside every value so a reader can judge how thin the
+number is, and no minimum is imposed. Imposing one would be a filter, and a
+filter would need to be stated here first — which is what this section is for.
 
 ## More than one exchange per country
 
