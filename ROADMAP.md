@@ -396,6 +396,34 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    First run: **53 countries with a value, 4 without** (BWP, ETB, GHS, NGN —
    an absence of a price, recorded hourly with its reason, never a filter).
 
+### P0.1 — the denominator of record, since 2026-09-10
+
+1. **`collector_fx.py` writes `data/fx_rates.csv`** — one row per currency per
+   hour with the rate, its source, the managed flag, and a parallel rate where a
+   public feed publishes one. Every emitter reads the denominator from there;
+   `basis.csv` is untouched.
+
+2. **There is no intraday source, and three of the four candidates are worse
+   than what we had.** Measured from a runner: `open.er-api` 166 currencies,
+   36/36 of ours, stamped 00:02 UTC daily; `frankfurter.app` and the ECB feed
+   are the *same* ECB daily fix, 29 currencies, 10/36 of ours, a day older;
+   `exchangerate.host` now refuses without a key. So er-api stays primary and
+   the file records that choice per row. The task as written cannot be
+   satisfied; this is what actually improves.
+
+3. **A central bank outranks an aggregator.** BCRA publishes Argentina's
+   reference rate with no key, so ARS now takes its denominator from the central
+   bank directly — 0.00% from BCRA by construction, against the 0.2% bar.
+
+4. **Correction to the 2026-09-10 verification sprint.** That sprint claimed the
+   Argentine denominator was 1.31% wrong. It was not: the comparison used
+   CriptoYa's retail *sell* rate (1,535) as if it were the official mid. Against
+   BCRA's own reference (1,513.50), `open.er-api` was within **0.11%** all
+   along. METHODOLOGY "Checked against" carries the correction in full.
+
+5. **Parallel rates recorded, never substituted.** First run: ARS +1.09%,
+   BOB −2.01%, VES **+14.03%**.
+
 ### P0.35 — verification sprint, 2026-09-10
 
 1. **The P2P side labels are correct. No row has ever been swapped.** This was
@@ -557,7 +585,11 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
 2. **Dead v1 code**: `corridor_monitor.py` and `corridor_monitor_v1_spec.md` are
    superseded by `collector.py`. Keep `data/offramp_snapshots.csv` — the 34-day
    silent-failure record is deliberate history.
-3. **Intraday FX mids.** `open.er-api.com` is daily. Fine for TRY/ARS/VES at
+3. ~~**Intraday FX mids.**~~ **Addressed as far as it can be, 2026-09-10** —
+   see P0.1. No intraday source exists among the free, keyless candidates; the
+   denominator now has its own file, its own source column, and a central bank
+   where one publishes. Reopen only if an intraday source appears.
+   Original note: `open.er-api.com` is daily. Fine for TRY/ARS/VES at
    100+ bps, genuinely sloppy for SGD/THB/PHP, which are exactly the markets the
    corridor depends on. HANDOFF flagged this as a later upgrade; it is now the
    main precision ceiling on the corridor number.
@@ -639,6 +671,8 @@ data/crosses_latest.json  every currency pair: crypto-route rate vs official, pe
 data/stable_spread.csv  USDT vs USDC on the same venue, same hour (12 venues)
 data/p2p_basis.csv      P2P layer -- 53 currencies, hourly
 data/p2p_sides.csv      per-side ad counts, for the v1.1 evidence rule
+data/fx_rates.csv       the denominator of record: rate, source, parallel rate
+collector_fx.py         official rates, central bank where one publishes
 data/countries/<CCY>.json  per-country index, history and sources, per run
 data/index_latest.json  every country ranked, version-stamped, per run
 c/<ccy>.html            one page per country, stable URL, rendered from the JSON
