@@ -148,6 +148,13 @@ jobs:
         # source_ok=False row, which is a finding about that market.
         run: python3 collector_p2p.py
 
+      - name: Collect provider quotes
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Quotes asked of the providers themselves, where they publish one, so
+        # the comparison is not sourced entirely from a single competitor.
+        # Exits non-zero only if nobody quoted at all.
+        run: python3 collector_providers.py
+
       - name: Collect official exchange rates
         if: always() && steps.needed.outputs.proceed == 'true'
         # The denominator of every index figure, as a record of its own with the
@@ -162,6 +169,10 @@ jobs:
         # snapshot from whatever did land. Exits non-zero only if it cannot
         # write the file.
         run: python3 tools/emit_latest.py
+
+      - name: Emit the provider ranking
+        if: always() && steps.needed.outputs.proceed == 'true'
+        run: python3 tools/emit_providers.py
 
       - name: Emit per-country index files and pages
         if: always() && steps.needed.outputs.proceed == 'true'
@@ -187,7 +198,8 @@ jobs:
                    data/providers_nzdphp.csv data/latest.json \
                    data/crosses_latest.json data/stable_spread.csv \
                    data/p2p_basis.csv data/p2p_sides.csv data/index_latest.json \
-                   data/fx_rates.csv; do
+                   data/fx_rates.csv data/provider_quotes.csv \
+                   data/providers_latest.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Directories: one file per country, and a page per country. A

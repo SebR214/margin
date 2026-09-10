@@ -397,6 +397,34 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    First run: **53 countries with a value, 4 without** (BWP, ETB, GHS, NGN —
    an absence of a price, recorded hourly with its reason, never a filter).
 
+### P0.03 — every way to send it, ranked, 2026-09-10
+
+1. **`/providers.html`** ranks every way to send money on each of the four
+   routes, at five amounts, cheapest first, with the crypto route among them.
+
+2. **Providers are now asked directly.** `collector_providers.py` writes
+   `data/provider_quotes.csv` from the companies' own public endpoints —
+   Instarem's quote API (SG and AU; the account id is per source country and
+   only those two are verified) and Airwallex's indicative quote (all four
+   routes). Until now every competitor figure came from one source: the
+   comparison Wise publishes.
+
+   **Precedence: a company's own rate wins; the comparison fills the rest.**
+   Every row says which. The comparison figure is still recorded in
+   `providers_latest.json` but is deliberately **not shown beside** a company's
+   own quote — putting the two side by side reads as an accusation, and this is
+   a ranking, not an argument with anyone's comparison.
+
+3. **Revolut is out, with the reason on the page.** It publishes a live rate,
+   but the quote needs an account and the page blocks anything that is not a
+   browser. Reading it hourly would mean running a headless browser in CI — a
+   real new dependency in a repo that has none. Left out rather than estimated.
+
+4. A finding that arrived with the data: **Instarem is free below about 5,000
+   and charges a flat fee above it** (S$22.50 on SGD→PHP), which is why its
+   cost jumps between the S$1,000 and S$5,000 rungs while its rate does not
+   move. Recorded, not smoothed.
+
 ### P0.05 — APAC coverage, part 1: countries, 2026-09-10
 
 1. **Six new order books, four new countries.** Every endpoint called from a US
@@ -742,6 +770,11 @@ data/stable_spread.csv  USDT vs USDC on the same venue, same hour (12 venues)
 data/p2p_basis.csv      P2P layer -- 53 currencies, hourly
 data/p2p_sides.csv      per-side ad counts, for the v1.1 evidence rule
 data/fx_rates.csv       the denominator of record: rate, source, parallel rate
+data/provider_quotes.csv  quotes from the providers' own public endpoints
+data/providers_latest.json  every way to send it, ranked, per route per amount
+collector_providers.py  asks Instarem and Airwallex directly
+tools/emit_providers.py builds the ranking under the precedence rule
+providers.html          the ranking page
 collector_fx.py         official rates, central bank where one publishes
 data/countries/<CCY>.json  per-country index, history and sources, per run
 data/index_latest.json  every country ranked, version-stamped, per run

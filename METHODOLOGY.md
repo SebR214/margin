@@ -526,6 +526,38 @@ text; CoinDCX's `markets_details` is readable but its `maker_fee` and
 measurement, so SGD→IDR, SGD→INR and SGD→MYR are absent and this paragraph is
 why.
 
+## Where a provider's price comes from
+
+Every competitor figure used to come from one place: the comparison Wise
+publishes. That is a good source and it is not a neutral one — it is one
+company's list of who counts as a competitor, and it does not include everyone.
+
+**The precedence rule.** Where a company publishes its own rate, that is the
+number used. Where it does not, the comparison stands in. A company quoting
+itself is the more direct evidence. Every published row says which source it
+came from, so a reader never has to guess.
+
+Where both exist the comparison figure is still recorded in
+`data/providers_latest.json` as `also_quoted_pct`, but it is **not shown beside
+the company's own quote**. Putting the two side by side reads as an accusation,
+and the ranking is not an argument with anyone's published comparison.
+
+Cost is measured the same way as everywhere else here: how much less the
+recipient ends up with than the mid-market rate would give them, counting the
+exchange rate and every fee as one number, because that is what a sender
+experiences.
+
+| Company | Own published quote | Notes |
+|---|---|---|
+| Instarem | yes, public quote API | account id is per source country; only SG and AU are verified, so only those two routes are asked |
+| Airwallex | yes, public indicative quote | all four routes |
+| Revolut | **no** | publishes a live rate on its site, but the quote needs an account and the page blocks non-browsers. Reading it hourly would mean running a headless browser; left out rather than estimated |
+| everyone else | no | from the comparison Wise publishes |
+
+One thing the data shows plainly and the site states without comment: a
+company's own quote and a third-party comparison of it are **not always the same
+number**. Both are recorded. Neither is called wrong.
+
 ## Checked against
 
 Every number here is computed from rows this project collected itself, which
