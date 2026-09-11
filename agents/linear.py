@@ -91,10 +91,15 @@ def issues_in_project():
 
 
 def find(ident):
-    d = call("""query($q: String!) {
-      issues(filter: { number: { eq: %s }, team: { key: { eq: "%s" } } })
+    """Look up an issue by its key, e.g. SEB-8."""
+    ident = ident.strip().upper()
+    if "-" not in ident or not ident.split("-")[1].isdigit():
+        sys.exit("expected an issue key like SEB-8, got %r" % ident)
+    number = int(ident.split("-")[1])
+    d = call("""query($n: Float!, $k: String!) {
+      issues(filter: { number: { eq: $n }, team: { key: { eq: $k } } })
         { nodes { %s } }
-    }""" % (ident.split("-")[1], TEAM_KEY, ISSUE_FIELDS), {"q": ident})
+    }""" % ISSUE_FIELDS, {"n": number, "k": TEAM_KEY})
     n = d["issues"]["nodes"]
     if not n:
         sys.exit("no issue %s" % ident)
