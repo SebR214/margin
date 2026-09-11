@@ -11,7 +11,14 @@
 set -uo pipefail
 
 ROLE="${1:?usage: run.sh builder|reviewer|product}"
-REPO=/srv/margin
+
+# Each role gets its OWN checkout. Three agents sharing one working tree race on
+# .git/FETCH_HEAD -- three simultaneous `git pull` calls produced
+# "fatal: Cannot rebase onto multiple branches" on the very first pass -- and it
+# is worse than that: the reviewer runs `gh pr checkout` to inspect a branch
+# while the builder runs `git checkout -b` for a different one, in the same
+# directory. Separate clones make each loop's branch state its own business.
+REPO="/srv/margin-$ROLE"
 LOGDIR=/var/log/margin
 LOG="$LOGDIR/$ROLE.log"
 JSONL="$LOGDIR/$ROLE.jsonl"
@@ -50,7 +57,21 @@ while true; do
   START=$(date +%s)
   say "[$ROLE] pass starting"
 
+  if [ ! -d "$REPO/.git" ]; then
+    say "[$ROLE] no checkout at $REPO; cloning"
+    rm -rf "$REPO"
+    if ! git clone -q https://github.com/SebR214/margin.git "$REPO" >>"$LOG" 2>&1; then
+      say "[$ROLE] clone failed"; sleep "$ERROR_WAIT"; continue
+    fi
+    git -C "$REPO" config user.name "margin-agent"
+    git -C "$REPO" config user.email "margin-agent@users.noreply.github.com"
+  fi
   cd "$REPO" || { say "[$ROLE] $REPO is missing"; sleep "$ERROR_WAIT"; continue; }
+
+  # A pass that died mid-review can leave the checkout on a PR branch. Start
+  # every pass from main so the loop cannot wedge itself.
+  git rebase --abort >/dev/null 2>&1 || true
+  git checkout -q main 2>>"$LOG" || true
 
   # Files a tool here regenerates on every run, and that CI also rewrites every
   # hour. Left dirty they collide with the rebase on the very next pass, so

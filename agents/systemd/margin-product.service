@@ -6,7 +6,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/srv/margin
+WorkingDirectory=/srv/margin-product
 EnvironmentFile=/etc/margin/env
 ExecStart=/srv/margin/agents/run.sh product
 Restart=always
@@ -15,7 +15,7 @@ StandardOutput=append:/var/log/margin/product.systemd.log
 StandardError=append:/var/log/margin/product.systemd.log
 # The agent edits this repository and nothing else on the box.
 ProtectSystem=full
-ReadWritePaths=/srv/margin /var/log/margin /etc/margin
+ReadWritePaths=/srv/margin-product /var/log/margin /etc/margin
 NoNewPrivileges=true
 
 [Install]
