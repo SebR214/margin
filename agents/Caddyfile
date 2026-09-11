@@ -1,0 +1,31 @@
+# api.margin.wiki -- TLS is obtained and renewed automatically once the A record
+# for `api` points at this box. Until then Caddy serves the site over HTTP and
+# retries the certificate; nothing else has to change when DNS lands.
+
+api.margin.wiki {
+	encode gzip
+
+	# /ask is served from margin.wiki and calls this host from the browser, so
+	# the read-only API is open by CORS. It exposes only what the site already
+	# publishes, and it is read-only by construction.
+	header {
+		Access-Control-Allow-Origin "*"
+		Access-Control-Allow-Methods "GET, OPTIONS"
+		Access-Control-Allow-Headers "Content-Type"
+		-Server
+	}
+	@options method OPTIONS
+	respond @options 204
+
+	reverse_proxy 127.0.0.1:8899 {
+		health_uri /health
+		health_interval 30s
+	}
+
+	log {
+		output file /var/log/margin/api-access.log {
+			roll_size 20MiB
+			roll_keep 5
+		}
+	}
+}

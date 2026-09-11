@@ -1,0 +1,13 @@
+[Unit]
+Description=Refresh the API's checkout from main
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/margin
+# The collectors commit new rows to main every half hour. The API reads the
+# files straight off this checkout, so this is what makes it serve today's
+# numbers rather than whatever was there at boot. Hard reset, never merge:
+# this checkout has no work of its own to protect.
+ExecStart=/usr/bin/git fetch -q origin main
+ExecStart=/usr/bin/git reset -q --hard origin/main
