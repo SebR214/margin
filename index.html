@@ -1503,6 +1503,7 @@ class Component extends DCLogic {
       { key: "providers", label: "Every way to send", href: "./providers.html" },
       { key: "prices", label: "Price changes", href: "./pricing-history.html" },
       { key: "findings", label: "Findings", href: "./findings.html" },
+      { key: "requests", label: "Requests", href: "./requests.html" },
       { key: "methodology", label: "Methodology" },
     ].map(n => ({ label: n.label, href: n.href || "", go: n.href ? (() => { location.href = n.href; }) : go(n.key),
       color: page === n.key ? INK : MUTED, rule: page === n.key ? INK : "transparent" }));
