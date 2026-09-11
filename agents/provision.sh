@@ -62,6 +62,18 @@ fi
 (command -v google-chrome || command -v chromium || command -v chromium-browser) \
   | head -1
 
+say "caddy"
+if ! command -v caddy >/dev/null; then
+  apt-get install -y -qq debian-keyring debian-archive-keyring apt-transport-https
+  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
+    | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
+    | tee /etc/apt/sources.list.d/caddy-stable.list >/dev/null
+  apt-get update -qq
+  apt-get install -y -qq caddy
+fi
+caddy version
+
 say "claude code"
 npm install -g @anthropic-ai/claude-code
 claude --version || true

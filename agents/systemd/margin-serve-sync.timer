@@ -1,0 +1,10 @@
+[Unit]
+Description=Run margin-serve-sync every 15 minutes, so served data is never more than 15 minutes stale
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=15min
+Unit=margin-serve-sync.service
+
+[Install]
+WantedBy=timers.target

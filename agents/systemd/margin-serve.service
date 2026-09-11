@@ -1,0 +1,23 @@
+[Unit]
+Description=margin.wiki serve agent (REST API + MCP)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/srv/margin-serve
+EnvironmentFile=/etc/margin/env
+ExecStart=/usr/bin/python3 /srv/margin-serve/tools/serve.py
+Restart=always
+RestartSec=30
+StandardOutput=append:/var/log/margin/serve.systemd.log
+StandardError=append:/var/log/margin/serve.systemd.log
+# This process only reads data/ -- it has no reason to write to its own
+# checkout, so unlike the three role services it gets no ReadWritePaths there.
+ProtectSystem=full
+ReadWritePaths=/var/log/margin
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

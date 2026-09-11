@@ -17,9 +17,11 @@ api.margin.wiki {
 	@options method OPTIONS
 	respond @options 204
 
-	reverse_proxy 127.0.0.1:8899 {
-		health_uri /health
-		health_interval 30s
+	handle /mcp* {
+		reverse_proxy 127.0.0.1:8900
+	}
+	handle {
+		reverse_proxy 127.0.0.1:8899
 	}
 
 	log {
