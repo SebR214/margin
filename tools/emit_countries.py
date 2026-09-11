@@ -409,6 +409,7 @@ def daily_history():
     """
     per = collections.defaultdict(lambda: collections.defaultdict(list))
     kind = {}
+    book_days = set()
     for r in rows(BASIS):
         ccy, venue, t = r.get("ccy"), r.get("venue") or "", parse_ts(r.get("ts_utc"))
         if not ccy or t is None or not flag(r, "source_ok") or is_aggregate(venue):
@@ -418,11 +419,12 @@ def daily_history():
         if v is not None:
             per[ccy][t.date()].append(v)
             kind[(ccy, t.date())] = "hourly_buy"
+            book_days.add((ccy, t.date()))
     for r in rows(P2P):
         ccy, t = r.get("ccy"), parse_ts(r.get("ts_utc"))
         if not ccy or t is None or not flag(r, "source_ok"):
             continue
-        if ccy in per and per[ccy].get(t.date()):
+        if (ccy, t.date()) in book_days:
             continue                       # an order book outranks the ad board
         v = index_pct(num(r, "buy_median"), num(r, "fx_mid_per_usd"))
         if v is not None:
