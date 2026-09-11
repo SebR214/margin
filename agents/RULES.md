@@ -46,6 +46,15 @@ and move on to the next item.
 Never print, echo, commit or transmit the contents of `/etc/margin/env`, any
 token, or any file under `~/.ssh`.
 
+## When two documents disagree
+
+`ROADMAP.md`'s `## Invariants` outrank an issue body. An issue is written by an
+agent and can drift; the invariants are Sebastian's, and they are the contract.
+
+Where they conflict, follow the invariant, build to it, and say in the PR that
+you did and which line of the issue you overrode. Do not silently follow the
+looser of the two, and do not stop over a difference you can resolve this way.
+
 ## When you are out of your depth
 
 Stopping is always allowed and is never a failure. Comment what you found,

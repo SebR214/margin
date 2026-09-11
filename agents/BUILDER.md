@@ -58,8 +58,22 @@ nothing downstream can tell whether it is waiting or being worked.
 ## 2. Build it
 
 ```bash
-git checkout -b agent/issue-N
+git checkout -b agent/issue-N        # see below if it already exists
 ```
+
+**If that branch already exists**, this is a rework: the reviewer rejected an
+earlier attempt and put the issue back in `queue`. Do not start a second branch
+and do not open a second PR. Continue the one that is there:
+
+```bash
+git fetch origin
+git checkout agent/issue-N && git pull --rebase origin agent/issue-N
+gh pr list --state open --search "Closes #N" --json number,url
+```
+
+Read the reviewer's comment on that PR first and fix exactly what it named.
+Push onto the same branch, which updates the same PR, then put `in-review` back
+on both the PR and the issue. A rejected PR is a conversation, not a restart.
 
 Build **exactly** what the issue specifies. Not the obvious adjacent
 improvement, not the thing you would have designed, not a refactor you passed on
