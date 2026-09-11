@@ -90,8 +90,14 @@ can call it.
 
 **Ask (humans).** `/ask` on the site: a question in; a sentence, a chart, a
 table, the SQL, and the source file out. Ten suggested questions, the stress
-signal among them. **The model writes SQL only, never a number.** OpenRouter
-behind it, with a daily spend cap and a per-IP limit.
+signal among them. **The model writes SQL only, never a number.** Behind it, a
+metered API key with a daily spend cap and a per-IP limit — **vendor not
+chosen**, decided when step 2 arrives, not before.
+
+It must be a key of its own, not the token that runs the agents. That token is
+a personal subscription and the three loops depend on it; one anonymous burst
+on a public page should never be able to exhaust the limit the builder and
+reviewer are living on.
 
 **Commission.** `request_series` from either surface opens a GitHub issue
 labelled `commission`. The builder probes candidate sources, verifies each
@@ -122,7 +128,9 @@ true fastest, and everything else is built on its engine.
 
 **2. Ask — `/ask` on the same tools.** Question in; sentence, chart, table,
 SQL and source file out. The model writes SQL only and never writes a number.
-*Needs Sebastian once: an OpenRouter key, with a daily spend cap set.*
+*Needs Sebastian once: a metered API key with a daily spend cap. Which vendor
+is deliberately undecided — do not assume one, and do not start this item
+without asking.*
 
 **3. Commission — `request_series` end to end**, plus the public `/requests`
 page. An issue labelled `commission`, sources probed and verified against an
