@@ -406,6 +406,14 @@ def daily_history():
     that layer ever recorded. It is included so the long history is not thrown
     away, and every point carries which it is, so nobody has to guess whether a
     2024 figure means the same thing as a 2026 one.
+
+    The P2P leg applies the same v1.1 evidence rule as `latest_by_ccy()` --
+    at least MIN_BUY_ADS on the buy side, and the buy side at or above the
+    sell side. Without this an hour the "current" view withholds as "not
+    enough evidence" still counted toward the daily median, which is how a
+    permanently crossed board (METHODOLOGY, "The evidence rule (v1.1)") ended
+    up with a published multi-day index history despite never once clearing
+    the bar that gates every other hour.
     """
     per = collections.defaultdict(lambda: collections.defaultdict(list))
     kind = {}
@@ -420,13 +428,27 @@ def daily_history():
             per[ccy][t.date()].append(v)
             kind[(ccy, t.date())] = "hourly_buy"
             book_days.add((ccy, t.date()))
+    sides = buy_side_counts()
     for r in rows(P2P):
         ccy, t = r.get("ccy"), parse_ts(r.get("ts_utc"))
         if not ccy or t is None or not flag(r, "source_ok"):
             continue
         if (ccy, t.date()) in book_days:
             continue                       # an order book outranks the ad board
-        v = index_pct(num(r, "buy_median"), num(r, "fx_mid_per_usd"))
+        price, sell = num(r, "buy_median"), num(r, "sell_median")
+        hour = t.replace(minute=0, second=0, microsecond=0)
+        n_buy = sides.get((ccy, hour))
+        if n_buy is None:
+            # Same conservative stand-in as latest_by_ccy(): rows predating the
+            # sidecar carry only the two sides summed, and both sides full is
+            # the only combination that guarantees a full buy side.
+            total = num(r, "n_ads")
+            n_buy = MIN_BUY_ADS if (total or 0) >= MIN_BUY_ADS * 2 else 0
+        if n_buy < MIN_BUY_ADS:
+            continue                       # too few buy-side ads to be evidence
+        if sell is not None and price is not None and price < sell:
+            continue                       # crossed board: not the same market
+        v = index_pct(price, num(r, "fx_mid_per_usd"))
         if v is not None:
             per[ccy][t.date()].append(v)
             kind.setdefault((ccy, t.date()), "hourly_buy_p2p")
