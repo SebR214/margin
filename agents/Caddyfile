@@ -24,8 +24,11 @@ api.margin.wiki {
 		reverse_proxy 127.0.0.1:8899
 	}
 
+	# /var/log/caddy, not /var/log/margin: Caddy drops to its own unprivileged
+	# user, which cannot write to the root-owned margin log directory, and it
+	# refuses to start rather than logging nowhere.
 	log {
-		output file /var/log/margin/api-access.log {
+		output file /var/log/caddy/api-access.log {
 			roll_size 20MiB
 			roll_keep 5
 		}
