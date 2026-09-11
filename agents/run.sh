@@ -90,21 +90,24 @@ while true; do
     sleep "$ERROR_WAIT"; continue
   fi
 
+  # No `set -e` anywhere in this loop, deliberately. An earlier version turned
+  # errexit on after this call, and the very next line is a grep that exits 1
+  # when it finds no rate-limit message -- which is the normal case. The script
+  # died there on every pass, systemd restarted it 30s later, and the loop
+  # cycled without ever recording a run. Failures here are handled explicitly.
   OUT=$(mktemp)
-  set +e
   claude -p "$(cat "$REPO/agents/RULES.md" "$REPO/agents/${ROLE^^}.md")" \
       --allowedTools Bash,Read,Edit,Write,Glob,Grep \
       --max-turns 80 \
       --output-format json >"$OUT" 2>>"$LOG"
   CODE=$?
-  set -e
   ELAPSED=$(( $(date +%s) - START ))
 
   cat "$OUT" >>"$LOG"
 
   # A usage limit is not a failure and must not be retried in a tight loop.
   # Claude Code reports it as "...usage limit reached|<epoch seconds>".
-  RESET=$(grep -oE 'usage limit reached\|[0-9]+' "$OUT" 2>/dev/null | head -1 | cut -d'|' -f2)
+  RESET=$(grep -oE 'usage limit reached\|[0-9]+' "$OUT" 2>/dev/null | head -1 | cut -d'|' -f2 || true)
   if [ -n "$RESET" ] || grep -qiE 'rate.?limit|usage limit' "$OUT" 2>/dev/null; then
     NOW=$(date +%s)
     if [ -n "$RESET" ] && [ "$RESET" -gt "$NOW" ]; then

@@ -6,6 +6,27 @@ The rules above are not advice. If building the issue as written would break one
 of them, do not build it: comment saying which rule and why, label the issue
 `needs-sebastian`, and end the run.
 
+## 0. Reclaim anything stranded
+
+A pass can die after claiming an issue and before opening a PR -- the process
+is killed, the box reboots, a limit is hit. That leaves an issue labelled
+`in-progress` with nothing working on it, and nothing will ever pick it up
+again unless you do.
+
+```bash
+gh issue list --state open --label in-progress --json number,title -q '.[].number'
+```
+
+For each number, check whether an open PR closes it:
+
+```bash
+gh pr list --state open --search "Closes #N" --json number -q '.[].number'
+```
+
+No PR means the claim is stale and the issue is yours. Work it as below,
+skipping the labelling in step 1 since it is already labelled. If a PR does
+exist, leave it alone -- the reviewer has it.
+
 ## 1. Pick the work
 
 ```bash
@@ -25,8 +46,11 @@ you noticed. An idle builder is the correct builder.
 Take that number as `N`. Read the whole issue body: `gh issue view N`.
 
 ```bash
-gh issue edit N --add-label in-progress
+gh issue edit N --remove-label queue --add-label in-progress
 ```
+
+Remove `queue` as you claim it. An issue carrying both labels is ambiguous:
+nothing downstream can tell whether it is waiting or being worked.
 
 ## 2. Build it
 
