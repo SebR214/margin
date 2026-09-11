@@ -52,6 +52,14 @@ while true; do
 
   cd "$REPO" || { say "[$ROLE] $REPO is missing"; sleep "$ERROR_WAIT"; continue; }
 
+  # Files a tool here regenerates on every run, and that CI also rewrites every
+  # hour. Left dirty they collide with the rebase on the very next pass, so
+  # they are discarded before pulling rather than stashed and popped into a
+  # conflict. Nothing else in the tree is touched: real work lives on branches.
+  for f in data/agent_status.json; do
+    git checkout -- "$f" 2>/dev/null || true
+  done
+
   # The collector chain commits to main every half hour, so a rebase is normal.
   # --autostash keeps a half-finished working tree from blocking the pull.
   if ! git pull --rebase --autostash origin main >>"$LOG" 2>&1; then
