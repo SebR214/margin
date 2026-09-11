@@ -8,8 +8,11 @@ that nothing is quietly broken.
 
 ## 1. Read the state
 
+You are already in your own checkout -- `run.sh` put you there, and each role
+has its own so two agents can never fight over one working tree. **Do not `cd`
+to another directory.** Everything below runs where you already are.
+
 ```bash
-cd /srv/margin
 git checkout main && git pull --rebase --autostash origin main
 
 python3 tools/agent_status.py            # writes data/agent_status.json
