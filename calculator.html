@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — every way to send money, ranked</title>
-<meta name="description" content="What it actually costs to send money on four routes, ranked cheapest first, measured every hour. Each provider's own published rate where it publishes one."/>
+<title>margin.wiki — type an amount, see what it costs</title>
+<meta name="description" content="Type any amount on four measured routes and see the same ranked, cheapest-first table providers.html shows, at the nearest amount this project actually measures."/>
 <link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
 <style>
   :root{
@@ -32,9 +32,14 @@
     background:var(--bg);color:var(--ink)}
   .pills button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
   .pills button:hover{background:var(--fill)}
+  .amt{appearance:none;font-family:var(--head);font-weight:800;font-size:14px;
+    padding:8px 12px;border:1px solid var(--rule);background:var(--bg);
+    color:var(--ink);width:160px}
+  .amt:focus{outline:2px solid var(--deep)}
   .bar{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin:22px 0 6px}
   .bar > div{display:flex;flex-direction:column;gap:5px}
   .k{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .match{margin:14px 0 0}
   h2{font-size:22px;margin:30px 0 4px;border-bottom:2px solid var(--ink);padding-bottom:8px}
   table{width:100%;border-collapse:collapse;font-size:14px;margin-top:4px}
   th{text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
@@ -57,6 +62,7 @@
   <header>
     <a href="./index.html"><b>margin.wiki</b></a>
     <a href="./index.html">the board</a>
+    <a href="./providers.html">every way to send it</a>
     <a href="./pricing-history.html">price changes</a>
     <a href="./corridor.html">sending money</a>
     <a href="./findings.html">findings</a>
@@ -66,29 +72,33 @@
     <span class="muted" id="stamp"></span>
   </header>
 
-  <h1>Every way to send money, ranked.</h1>
-  <p class="lede">Four routes, priced every hour at five amounts. Cheapest first.
-     Where a company publishes its own rate, that is the number shown; where it
-     does not, the figure comes from the comparison Wise publishes. Each row says
-     which.</p>
+  <h1>Type any amount. See what it costs.</h1>
+  <p class="lede">Pick a route and type any amount you want to send. This shows the
+     same ranked, cheapest-first table as <a href="./providers.html">every way to
+     send it</a> — but at the amount you actually asked for, snapped to the nearest
+     amount this project actually measures this hour.</p>
 
   <div class="bar">
     <div><span class="k">route</span><span class="pills" id="routes"></span></div>
-    <div><span class="k">amount</span><span class="pills" id="sizes"></span></div>
+    <div><span class="k">amount</span>
+      <input class="amt" type="number" id="amount" min="0" step="any" placeholder="e.g. 1200"/>
+    </div>
   </div>
+  <p class="muted small match" id="match">&nbsp;</p>
 
   <h2 id="title">—</h2>
   <p class="muted small" id="sub"></p>
   <div id="table"></div>
-
-  <h2>How this is measured</h2>
-  <p class="small" id="method"></p>
-  <p class="small muted" id="notincluded"></p>
 </div>
 <script>
 const pct = v => v === null || v === undefined || !isFinite(v) ? "—"
   : (v >= 0 ? "" : "−") + Math.abs(v).toFixed(Math.abs(v) >= 10 ? 1 : 2) + "%";
-let DATA = null, route = null, size = null;
+// Same symbols tools/emit_providers.py uses to write amount_words, so a typed
+// amount reads the same way the matched amount already does.
+const SYMBOL = {SGD:"S$", AUD:"A$", NZD:"NZ$", USD:"US$"};
+const money = (cur, v) => (SYMBOL[cur] || cur + " ") + Math.round(v).toLocaleString("en-US");
+
+let DATA = null, route = null;
 
 fetch("./data/providers_latest.json", {cache:"no-store"})
   .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
@@ -111,25 +121,41 @@ function init(){
     `<button data-route="${k}">${cs[k].route_words}</button>`).join("");
   document.getElementById("routes").onclick = e => {
     const k = e.target.getAttribute("data-route");
-    if(k){ route = k; size = null; render(); }
+    if(k){ route = k; render(); }
   };
-  document.getElementById("sizes").onclick = e => {
-    const s = e.target.getAttribute("data-size");
-    if(s){ size = s; render(); }
-  };
+  const input = document.getElementById("amount");
+  input.value = 1000;
+  input.oninput = render;
   render();
+}
+
+// Same rule tools/serve_common.py's compare_routes() uses:
+// min(sizes, key=lambda t: abs(t - target)), sizes ascending so a tie
+// resolves to the smaller tier, exactly as Python's min() would.
+function nearestSize(sizesAscending, target){
+  let best = sizesAscending[0];
+  for(const s of sizesAscending){
+    if(Math.abs(s - target) < Math.abs(best - target)) best = s;
+  }
+  return best;
 }
 
 function render(){
   const c = DATA.corridors[route];
-  const sizes = Object.keys(c.sizes).sort((a,b) => Number(a) - Number(b));
-  if(!size || !c.sizes[size]) size = sizes.indexOf("1000") >= 0 ? "1000" : sizes[0];
-  document.getElementById("sizes").innerHTML = sizes.map(s =>
-    `<button data-size="${s}" aria-pressed="${s===size}">${c.sizes[s].amount_words}</button>`).join("");
+  const sizes = Object.keys(c.sizes).map(Number).sort((a,b) => a - b);
   [...document.querySelectorAll("#routes button")].forEach(b =>
     b.setAttribute("aria-pressed", b.getAttribute("data-route") === route));
 
-  const bucket = c.sizes[size];
+  const target = parseFloat(document.getElementById("amount").value);
+  if(!isFinite(target) || target <= 0) return; // leave the table as it was
+
+  const chosen = nearestSize(sizes, target);
+  const bucket = c.sizes[String(chosen)];
+
+  document.getElementById("match").textContent =
+    "You asked for " + money(c.src, target) + "; showing " + bucket.amount_words
+    + ", the nearest amount measured this hour.";
+
   document.getElementById("title").textContent =
     "Sending " + bucket.amount_words + " " + c.route_words;
   const best = bucket.rows[0], crypto = bucket.rows.find(r => r.source === "measured");
@@ -149,10 +175,6 @@ function render(){
        <th class="r">Of what you send</th><th>Where the price comes from</th></tr>` +
     bucket.rows.map(r => {
       const cls = (r.source === "measured" ? "crypto " : "") + (r.rank === 1 ? "best" : "");
-      // The comparison figure is kept in providers_latest.json for anyone who
-      // wants it, but it is not shown beside a company's own quote. Putting the
-      // two side by side reads as an accusation, and this page is a ranking,
-      // not an argument with anybody's published comparison.
       const fee = r.fee_words ? `<div class="tag">${r.fee_words}</div>` : "";
       return `<tr class="${cls}"><td class="muted">${r.rank}</td>
         <td>${r.provider}${fee}</td>
@@ -160,19 +182,6 @@ function render(){
         <td class="r">${pct(r.cost_pct)}</td>
         <td class="muted small">${r.source_words}</td></tr>`;
     }).join("") + "</table>";
-
-  document.getElementById("method").textContent =
-    "Cost is how much less the person receiving ends up with than the mid-market "
-    + "rate would give them, counting the exchange rate and every fee together, "
-    + "because that is what a sender actually experiences. Where a company "
-    + "publishes its own rate, that is the number used; where it does not, the "
-    + "figure comes from the comparison Wise publishes, and the row says so. "
-    + "The crypto route is measured on real exchanges, all in.";
-  document.getElementById("notincluded").textContent =
-    "Not included: Revolut publishes a live rate on its website, but its quote "
-    + "needs an account and the page blocks anything that is not a browser, so "
-    + "there is no way to read it hourly without pretending to be one. It is left "
-    + "out rather than estimated.";
 }
 </script>
 </body>
