@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — requests</title>
+<meta name="description" content="Every currency or corridor anyone has asked this project to collect, and what happened when a candidate source was checked."/>
+<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<style>
+  :root{
+    --bg:#f3f2f2; --ink:#201e1d; --muted:#7d7979;
+    --line:color-mix(in srgb,#201e1d 18%,transparent);
+    --rule:color-mix(in srgb,#201e1d 40%,transparent);
+    --fill:#d2d9f7; --deep:#8b9ae8;
+    --open:#5319e7; --accepted:#166534; --rejected:#9a3412;
+    --head:"Archivo",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--head);
+       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px 72px}
+  header{display:flex;align-items:center;gap:16px;padding:14px 0;
+         border-bottom:1px solid var(--rule);font-size:11px;
+         letter-spacing:.1em;text-transform:uppercase;flex-wrap:wrap}
+  header a{color:var(--ink);text-decoration:none}
+  header a:hover{text-decoration:underline}
+  h1{font-size:38px;line-height:1.08;margin:34px 0 10px;max-width:26ch}
+  .lede{font-size:16px;max-width:66ch;margin:0 0 22px;color:var(--muted)}
+  .muted{color:var(--muted)} .small{font-size:12px}
+  .note{border-left:3px solid var(--deep);padding:14px 18px 16px;margin:0 0 26px;
+        background:color-mix(in srgb,#d2d9f7 40%,transparent);max-width:72ch}
+  .note b{display:block;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+          margin-bottom:6px}
+  .file{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 6px}
+  .file input{flex:1 1 320px;font-family:var(--head);font-size:14px;padding:9px 11px;
+              border:1px solid var(--rule);background:#fff;color:var(--ink)}
+  .file button{appearance:none;border:0;cursor:pointer;font-family:var(--head);
+    font-weight:800;font-size:12px;letter-spacing:.04em;padding:10px 16px;
+    background:var(--ink);color:var(--bg)}
+  .file button:hover{background:#3a3735}
+  .count{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+         margin:26px 0 14px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+     color:var(--muted);font-weight:400;padding:11px 8px 7px}
+  td{padding:10px 8px;border-top:1px solid var(--line);vertical-align:top}
+  .n{font-weight:800}
+  .tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:800}
+  .tag.open{color:var(--open)} .tag.accepted{color:var(--accepted)} .tag.rejected{color:var(--rejected)}
+  .empty{padding:26px 0;color:var(--muted)}
+  .scroll{overflow-x:auto}
+  @media(max-width:720px){
+    h1{font-size:28px}
+    table{font-size:13px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="./index.html"><b>margin.wiki</b></a>
+    <a href="./index.html">the board</a>
+    <a href="./providers.html">every way to send it</a>
+    <a href="./pricing-history.html">price changes</a>
+    <a href="./corridor.html">sending money</a>
+    <a href="./findings.html">findings</a>
+    <a href="./methodology.html">methodology</a>
+    <span class="muted" id="stamp"></span>
+  </header>
+
+  <h1>Ask for a market we don't have yet.</h1>
+  <p class="lede">A commission is a request for a currency or a corridor this
+     project does not collect. Filing one opens a public issue: a candidate
+     source is checked against an independent reference the same way every
+     number on this site is checked, and either the market goes live saying
+     "collecting since &lt;date&gt;", or the attempt is shown here, rejected,
+     with exactly what was checked and why. Nothing is accepted without that
+     check, and nothing is rejected without saying so.</p>
+
+  <div class="note">
+    <b>File a new request</b>
+    <div class="file">
+      <input type="text" id="ask" placeholder="e.g. a second source for Nigeria (NGN), or a Brazil corridor"/>
+      <button id="askBtn">Open an issue on GitHub &rarr;</button>
+    </div>
+    <p class="small muted" style="margin:8px 0 0">Filing a new request opens a
+       GitHub issue, so it needs a GitHub account. Reading what happened to
+       every past request, below, does not.</p>
+  </div>
+
+  <p class="count" id="count"></p>
+  <div id="table"></div>
+</div>
+<script>
+const REPO = "SebR214/margin";
+
+document.getElementById("askBtn").onclick = () => {
+  const text = document.getElementById("ask").value.trim()
+    || "Describe the currency or corridor you want collected.";
+  const url = "https://github.com/" + REPO + "/issues/new?labels=commission"
+    + "&title=" + encodeURIComponent("Series request: " + text.slice(0, 60))
+    + "&body=" + encodeURIComponent(text);
+  window.open(url, "_blank", "noopener");
+};
+
+fetch("./data/requests_latest.json", {cache:"no-store"})
+  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+  .then(render)
+  .catch(e => {
+    document.getElementById("table").innerHTML =
+      '<div class="empty">The request list could not be read '
+      + '(' + e.message + '). Nothing is shown rather than a guess.</div>';
+  });
+
+function render(DATA){
+  const rows = DATA.requests || [];
+  document.getElementById("stamp").textContent = DATA.as_of_utc || "";
+
+  const c = DATA.counts || {};
+  document.getElementById("count").textContent =
+    rows.length + (rows.length === 1 ? " request" : " requests") + " -- "
+    + (c.open||0) + " open, " + (c.accepted||0) + " accepted, "
+    + (c.rejected||0) + " rejected";
+
+  document.getElementById("table").innerHTML = !rows.length
+    ? '<div class="empty">No commission has been requested yet. An empty '
+      + 'list is the honest answer, not a missing one.</div>'
+    : `<div class="scroll"><table><tr><th>Request</th><th>Status</th>
+        <th>Opened</th><th>Closed</th><th></th></tr>` +
+      rows.map(r => `
+        <tr>
+          <td class="n">${escapeHtml(r.title)}</td>
+          <td><span class="tag ${r.status}">${r.status}</span></td>
+          <td class="muted small">${(r.created_at||"").slice(0,10)}</td>
+          <td class="muted small">${(r.closed_at||"").slice(0,10)}</td>
+          <td class="small"><a href="${r.url}" target="_blank" rel="noopener">issue #${r.number} &rarr;</a></td>
+        </tr>`).join("") + "</table></div>";
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[m]));
+}
+</script>
+</body>
+</html>

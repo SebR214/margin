@@ -197,6 +197,15 @@ jobs:
         # non-zero only if it cannot write.
         run: python3 tools/emit_countries.py
 
+      - name: Emit the requests list
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Derived entirely from GitHub issues labelled `commission`, not from
+        # any CSV, so it can run anywhere in the always() chain. Feeds
+        # /requests.html.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/emit_requests.py
+
       - name: Commit samples
         if: always() && steps.needed.outputs.proceed == 'true'
         run: |
@@ -215,7 +224,8 @@ jobs:
                    data/p2p_basis.csv data/p2p_sides.csv data/index_latest.json \
                    data/fx_rates.csv data/provider_quotes.csv \
                    data/providers_latest.json data/price_changes.csv \
-                   data/price_changes_latest.json data/agent_status.json; do
+                   data/price_changes_latest.json data/agent_status.json \
+                   data/requests_latest.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Directories: one file per country, and a page per country. A

@@ -48,7 +48,8 @@ EMPTY_STATES = ("could not be read", "no comparison available",
 
 # Every page a reader can reach. A new page must be listed here to be covered.
 PAGES = ["index.html", "providers.html", "pricing-history.html",
-         "corridor.html", "methodology.html", "status.html", "findings.html"]
+         "corridor.html", "methodology.html", "status.html", "findings.html",
+         "requests.html"]
 
 # The site ships no favicon, so every page logs one 404 that means nothing.
 IGNORED_ERRORS = ("favicon.ico",)
