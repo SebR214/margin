@@ -68,6 +68,109 @@ verification is on a 90-day clock instead, and goes `stale` (red) past it.
 1. **Cadence verification** — waiting on a week of `:17`/`:47` data to confirm
    the drop rate actually fell. No action until then (see P0-1).
 
+## Vision — where this is going
+
+Three versions out. Each is a sentence a reader would repeat, not a feature
+list. `## Queue` below is cut from these, in order; when the queue empties, the
+product agent opens a PR proposing the next slice from here.
+
+**v2 — the index.** One number per country for what a dollar really costs
+there, for forty to fifty countries, measured every hour, with the official
+rate beside it so a reader can see the gap for themselves. *Largely shipped:
+45 countries published, 14 held back for want of evidence.* What remains is
+reach and explanation, not definition.
+
+**v3 — the routing engine.** Given an amount and a route, the cheapest way to
+send it right now, and what that costs against the mid-market rate. Three
+faces on the same engine: a page a person can use, a JSON endpoint an analyst
+can call, and an MCP server a model can query. This is the version that stops
+being a report and starts being a tool.
+
+**v4 — the explanation layer.** Not just that a number moved, but why. A
+recorded event stream (`data/events.csv`), a page that ties a move to a
+central-bank decision or a holiday or a fee change, and alerts when something
+crosses a line a reader cares about. This is the version a journalist cites.
+
+---
+
+## Queue — in order, top first
+
+The product agent keeps exactly three of these open as issues at a time,
+written up using `agents/SPEC-TEMPLATE.md`, **in this order**. Nothing here is
+started before the thing above it ships.
+
+K (pricing history) was shipped on 2026-09-10 in
+[#50](https://github.com/SebR214/margin/pull/50) and is deliberately not
+listed again.
+
+**1. G — findings.** A page per finding, each one a claim with its evidence
+under it. Lead with the one already in the data: **one company charges more at
+the weekend** — OFX, +0.85 points on the United States to Mexico on 2 of the 3
+Saturdays measured, +0.27 on Singapore to the Philippines on 2 of 4, with
+Instarem showing a smaller version. From `data/price_changes.csv`. The finding
+must recompute from the file at render time and must state its denominator; a
+pattern without one is an anecdote.
+
+**2. H — the data page.** Every file in `data/`, what is in it, how many rows,
+what it covers, how to download it. The page that makes the rest of the site
+checkable by a stranger. From the files themselves, never a hand-written list.
+
+**3. C — the weekly snapshot and a feed.** One page per week, frozen, with what
+changed and what it cost; an RSS feed so it can be followed. Written from the
+same JSON the board is drawn from, at a fixed point in the week.
+
+**4. E — depth.** How much a person could actually move at the price shown
+before it moves against them. `data/depth.csv`, and a column on the board.
+Without this the index is a price with no size behind it.
+
+**5. M — the calculator.** Type an amount and a route, see what each way of
+sending it costs today. Reads `data/providers_latest.json`; computes nothing
+that is not already in a file.
+
+**6. I — ask the data (demo mode).** A question box over the CSVs. Ships in
+demo mode first — a fixed set of questions answered from files already in the
+repository, no key required. Live mode needs a worker and a paid key, and is
+**blocked on Sebastian**; do not attempt it in the agent loop.
+
+---
+
+## Gated — real work, not queued, because it is blocked on a fact
+
+These are not in `## Queue` and an agent must not start them. Each is blocked on
+something only Sebastian can supply, and each says exactly what. Recorded here
+when PRs #20 and #16 were closed on 2026-09-11 so the content outlived them.
+
+**Fee tiers and the crossover chart.** `index.html` already draws a chart bound
+to `data/fee_tiers.csv`, and renders an explicit empty state because the file
+does not exist — which is also the one 404 the page logs on every load. The
+spec: the exact header, compute by reusing the existing decomposition with the
+fee legs swapped per tier, crossover defined as the smallest ladder size where
+the crypto route beats the best other way of sending at that size, an honest
+"no crossover on the ladder" when there isn't one, no interpolation, no
+invented tiers. **Gate, in its strongest form: no tier figure from memory or
+from any third-party summary — only the exchanges' own live tier tables
+(Independent Reserve and Coins.ph).**
+
+**The route engine's render half.** Built and verified on the branch from
+[#16](https://github.com/SebR214/margin/pull/16), which is closed, not deleted.
+It draws the per-path table and the computed comparison sentence, reusing the
+shipped decomposition rather than forking the arithmetic. It cannot draw a row
+yet because the network leg is the *sending* venue's withdrawal fee, and each
+corridor has at most one usable path. **Gate: a public Coins.ph statement on
+free stablecoin deposits (SGD→PHP), and Coinbase's per-network withdrawal fees
+entered by hand (USD→MXN), since Coinbase is login-gated and is never scraped.**
+
+**The front-end rebuild.** Gated on a final design pass, with the design source
+attached to the issue before anyone starts.
+
+**The EU corridor.** Blocked on venue verification, to be done through a
+browser by a person. Do not research venues and do not draft a collector.
+
+**The time layer.** Needs roughly sixty days of hourly history. Nothing to
+build before then.
+
+---
+
 ## Robot
 
 **Status 2026-09-02: `@claude` in CI is dead, and neither cause is fixable from
