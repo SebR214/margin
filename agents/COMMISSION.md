@@ -1,6 +1,6 @@
 # Role: commission
 
-You work exactly one issue labelled `commission` per run, then stop.
+You work exactly one Linear issue labelled `commission` per run, then stop.
 
 The rules above are not advice. If working the issue as written would break one
 of them, do not work it: comment saying which rule and why, label the issue
@@ -16,25 +16,27 @@ guess at a candidate the issue did not name.**
 
 ## 0. Reclaim anything stranded
 
-A pass can die after claiming an issue and before opening a PR or commenting.
-That leaves an issue labelled `in-progress` with nothing working on it.
+A pass can die after claiming an issue and before opening a PR. That leaves an
+issue sitting in **In Progress** with nothing working on it.
 
 ```bash
-gh issue list --state open --label in-progress --label commission \
-  --json number,title -q '.[].number'
+python3 agents/linear.py issues
+gh pr list --state open --json number,title,headRefName
 ```
 
-For each number, check whether an open PR closes it:
-
-```bash
-gh pr list --state open --search "Closes #N" --json number -q '.[].number'
-```
-
-No PR means the claim is stale and the issue is yours. Work it as below,
-skipping the labelling in step 1 since it is already labelled. If a PR does
-exist, leave it alone -- the reviewer has it.
+An issue in **In Progress** whose key does not appear in any open PR branch or
+title is a stale claim, and it is yours. Work it as below, skipping the state
+change in step 1 since it is already In Progress.
 
 ## 1. Pick the work
+
+```bash
+python3 agents/linear.py next
+```
+
+If the issue it names is labelled `commission`, it is yours and this file is
+how you work it. If it is not, hand back to `BUILDER.md` -- ordinary issues are
+built there.
 
 You are already in your own checkout -- `run.sh` put you there, and each role
 has its own so two agents can never fight over one working tree. **Do not `cd`
@@ -43,20 +45,21 @@ to another directory.** Everything below runs where you already are.
 ```bash
 git checkout main && git pull --rebase --autostash origin main
 
-gh issue list --state open --label commission --limit 50 \
-  --json number,title,createdAt,labels,body \
-  -q '[ .[] | select( ([.labels[].name] | any(. == "in-progress" or . == "blocked" or . == "needs-sebastian" or . == "in-review" or . == "wontfix")) | not ) ]
-      | sort_by(.createdAt) | .[0].number'
+python3 agents/linear.py next
 ```
+
+That prints the top unstarted issue in the `margin.wiki` project. **If it is
+not labelled `commission`, it is not yours** -- it is an ordinary build and
+`BUILDER.md` handles it. Check with `python3 agents/linear.py show SEB-N`.
 
 Empty output means there is nothing to do. Say so and end the run -- do not go
 looking for a currency to commission on your own; every commission starts from
 a labelled issue, never from this role's own initiative.
 
-Take that number as `N`. Read the whole issue body: `gh issue view N`.
+Read the whole spec: `python3 agents/linear.py show SEB-N`.
 
 ```bash
-gh issue edit N --add-label in-progress
+python3 agents/linear.py state SEB-N "In Progress"
 ```
 
 `commission` stays on the issue for its whole life -- `tools/emit_requests.py`
@@ -109,15 +112,15 @@ python3 tools/check_freshness.py
 python3 tools/check_page.py            # if any .html changed
 ```
 
-Open the PR the same way `BUILDER.md` does -- `Closes #N`, the probe's `check`
+Open the PR the same way `BUILDER.md` does -- the issue key `SEB-N` in the title, the probe's `check`
 line pasted verbatim, the verification output, and the attribution line from
 the rules. **Never merge your own PR.** The reviewer loop still gates this the
 same as any other issue:
 
 ```bash
-gh pr create --title "<what it does>" --body "<body>"
-gh pr edit <pr> --add-label in-review
-gh issue edit N --remove-label in-progress --add-label in-review
+gh pr create --title "SEB-N <what it does>" --body "<body>"
+python3 agents/linear.py say SEB-N builder "<what you probed, what survived, what it costs to collect -- in plain language>"
+python3 agents/linear.py state SEB-N "In Review"
 ```
 
 The requester's page starts saying "collecting since `<date>`" once the
@@ -131,9 +134,8 @@ gets a comment naming exactly what was checked and exactly why it failed,
 using `probe_source.py`'s own `check` line wherever one was produced:
 
 ```bash
-gh issue comment N --body "<the check line, or, if nothing usable was named, exactly what was missing>"
-gh issue edit N --remove-label in-progress --add-label wontfix
-gh issue close N
+python3 agents/linear.py say SEB-N builder "<the check line, or, if nothing usable was named, exactly what was missing>"
+python3 agents/linear.py state SEB-N "Canceled"
 ```
 
 **Nothing usable was named.** If the issue body names no URL or documented
@@ -156,8 +158,9 @@ contradicts the rules. It does not mean the probe failed -- that is step 4, a
 normal outcome, not a blocker.
 
 ```bash
-gh issue comment N --body "<exactly what blocked you, and what would unblock it>"
-gh issue edit N --remove-label in-progress --add-label blocked
+python3 agents/linear.py say SEB-N builder "Blocked. <exactly what stopped you, and what would unblock it.>"
+python3 agents/linear.py label SEB-N blocked
+python3 agents/linear.py state SEB-N "Todo"
 ```
 
 Push the branch anyway if it holds real work, so nothing is lost. Then end the

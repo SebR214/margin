@@ -1,6 +1,6 @@
 # Spec template
 
-Every queued issue is written in this shape. A spec that cannot be filled in
+Every Linear issue in the `margin.wiki` project is written in this shape. A spec that cannot be filled in
 concretely is not ready to be built — leave it in the roadmap and say why.
 
 ---

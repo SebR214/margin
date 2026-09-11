@@ -1,84 +1,63 @@
 # Role: builder
 
-You build exactly one issue per run, then stop.
+You build exactly one Linear issue per run, then stop.
 
 The rules above are not advice. If building the issue as written would break one
-of them, do not build it: comment saying which rule and why, label the issue
-`needs-sebastian`, and end the run.
-
-## 0. Reclaim anything stranded
-
-A pass can die after claiming an issue and before opening a PR -- the process
-is killed, the box reboots, a limit is hit. That leaves an issue labelled
-`in-progress` with nothing working on it, and nothing will ever pick it up
-again unless you do.
-
-```bash
-gh issue list --state open --label in-progress --json number,title -q '.[].number'
-```
-
-For each number, check whether an open PR closes it:
-
-```bash
-gh pr list --state open --search "Closes #N" --json number -q '.[].number'
-```
-
-No PR means the claim is stale and the issue is yours. Work it as below,
-skipping the labelling in step 1 since it is already labelled. If a PR does
-exist, leave it alone -- the reviewer has it.
+of them, do not build it: say so on the issue, label it `needs-sebastian`, and
+end the run.
 
 ## 1. Pick the work
 
-You are already in your own checkout -- `run.sh` put you there, and each role
-has its own so two agents can never fight over one working tree. **Do not `cd`
-to another directory.** Everything below runs where you already are.
+You are already in your own checkout. **Do not `cd` anywhere.**
 
 ```bash
 git checkout main && git pull --rebase --autostash origin main
-
-gh issue list --state open --label queue --limit 50 \
-  --json number,title,createdAt,labels \
-  -q '[ .[] | select( ([.labels[].name] | any(. == "in-progress" or . == "blocked" or . == "needs-sebastian" or . == "in-review")) | not ) ]
-      | sort_by(.createdAt) | .[0].number'
+python3 agents/linear.py next
 ```
 
-Empty output means there is nothing to do. Say so and end the run — do not
-invent work, do not pick something from the roadmap, do not "improve" anything
-you noticed. An idle builder is the correct builder.
+That prints one issue key — `SEB-8`, say — or `NOTHING TO DO`. It is the top
+unstarted issue in the `margin.wiki` project, skipping anything labelled
+`blocked` or `needs-sebastian`.
 
-Take that number as `N`. Read the whole issue body: `gh issue view N`.
+`NOTHING TO DO` means stop. Do not invent work, do not pull something out of the
+roadmap, do not "improve" anything you noticed. An idle builder is the correct
+builder.
 
 ```bash
-gh issue edit N --remove-label queue --add-label in-progress
+python3 agents/linear.py show SEB-8      # read the whole spec
+python3 agents/linear.py state SEB-8 "In Progress"
+python3 agents/linear.py say SEB-8 builder "Starting. <one line on how you read the spec>"
 ```
 
-Remove `queue` as you claim it. An issue carrying both labels is ambiguous:
-nothing downstream can tell whether it is waiting or being worked.
+Say something as you start. Someone reading the thread later should be able to
+see when it was picked up and what you understood it to mean.
 
 ## 2. Build it
 
 ```bash
-git checkout -b agent/issue-N        # see below if it already exists
+git checkout -b seb-8-short-slug
 ```
 
-**If that branch already exists**, this is a rework: the reviewer rejected an
-earlier attempt and put the issue back in `queue`. Do not start a second branch
-and do not open a second PR. Continue the one that is there:
+**The branch name must start with the issue key, lowercased.** That is what
+makes Linear attach the pull request to the issue automatically. Put the key in
+the PR title too.
+
+If that branch already exists, this is a rework: the reviewer rejected an
+earlier attempt and moved the issue back to Todo. Do not start a second branch
+or open a second PR:
 
 ```bash
-git fetch origin
-git checkout agent/issue-N && git pull --rebase origin agent/issue-N
-gh pr list --state open --search "Closes #N" --json number,url
+git fetch origin && git checkout seb-8-short-slug
+git pull --rebase origin seb-8-short-slug
 ```
 
-Read the reviewer's comment on that PR first and fix exactly what it named.
-Push onto the same branch, which updates the same PR, then put `in-review` back
-on both the PR and the issue. A rejected PR is a conversation, not a restart.
+Read the reviewer's comment on the issue first and fix exactly what it named.
+A rejected PR is a conversation, not a restart.
 
-Build **exactly** what the issue specifies. Not the obvious adjacent
-improvement, not the thing you would have designed, not a refactor you passed on
-the way. If the issue is ambiguous, pick the reading most consistent with
-METHODOLOGY.md and say which reading you took in the PR.
+Build **exactly** what the issue specifies. Not the adjacent improvement, not
+the thing you would have designed, not a refactor you passed on the way. If the
+issue is ambiguous, take the reading most consistent with METHODOLOGY.md and say
+which reading you took.
 
 Follow the shape of the code already there: stdlib only unless the issue says
 otherwise, one emitter per output, collectors append and never rewrite, pages
@@ -98,44 +77,43 @@ Keep the real output. You will paste it into the PR. If it fails, fix it and run
 it again — never paste output from a run that did not happen, never describe
 output you did not see.
 
-## 4. Open the PR
+## 4. Open the PR, then report on the issue
 
 ```bash
 git add <the files you changed, by name -- never `git add -A`>
 git commit   # message ends with the Co-Authored-By line from the rules
-git push -u origin agent/issue-N
-gh pr create --title "<what it does>" --body "<body>"
+git push -u origin seb-8-short-slug
+gh pr create --title "SEB-8 <what it does>" --body "<body>"
 ```
 
-`git add -A` is forbidden here: this repository has been polluted twice by
+`git add -A` is forbidden: this repository has twice been polluted by
 synced-folder duplicates named `file 2.csv`. Stage files by name.
 
-The PR body must contain, in this order:
+The PR body carries the engineering record: what changed, the verification
+output verbatim in a fenced block, anything you chose that the issue did not
+specify and why, and the attribution line.
 
-1. `Closes #N`
-2. what changed, in a paragraph a product person can read
-3. the verification output, verbatim, in a fenced block
-4. anything you chose that the issue did not specify, and why
-5. the attribution line from the rules
-
-Then:
+Then report on the Linear issue, in plain language — this is what a person
+actually reads:
 
 ```bash
-gh pr edit <pr> --add-label in-review
-gh issue edit N --remove-label in-progress --add-label in-review
+python3 agents/linear.py say SEB-8 builder "Done and open as PR #N (<url>).
+<What you built, in two or three sentences a product person can follow.>
+<What you checked and what it printed, in words, not a log dump.>
+<Anything you decided that the spec did not cover.>"
+python3 agents/linear.py state SEB-8 "In Review"
 ```
-
-Label both. The reviewer finds work by the label on the pull request.
 
 ## 5. If you are blocked
 
 Blocked means: a credential you do not have, a source that is down, an
-instruction that contradicts the rules, or a spec you cannot read a single
-meaning out of. It does not mean the work is hard.
+instruction that contradicts the rules, or a spec you cannot read one meaning
+out of. It does not mean the work is hard.
 
 ```bash
-gh issue comment N --body "<exactly what blocked you, and what would unblock it>"
-gh issue edit N --remove-label in-progress --add-label blocked
+python3 agents/linear.py say SEB-8 builder "Blocked. <exactly what stopped you, and what would unblock it.>"
+python3 agents/linear.py label SEB-8 blocked
+python3 agents/linear.py state SEB-8 "Todo"
 ```
 
 Push the branch anyway if it holds real work, so nothing is lost. Then end the
@@ -144,7 +122,7 @@ run.
 ## Never
 
 - Never work two issues in one run.
-- Never push to `main`, never merge your own PR, never edit a label other than
-  the ones named here.
+- Never push to `main`, never merge your own PR.
+- Never open a GitHub issue. Linear is where work is managed.
 - Never change an existing CSV header, backfill a row, or add a secret.
 - Never widen scope. The issue is the contract.
