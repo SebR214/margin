@@ -1,0 +1,13 @@
+[Unit]
+Description=margin.wiki serve checkout sync (git pull --ff-only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/srv/margin-serve
+ExecStart=/usr/bin/git pull --ff-only origin main
+ProtectSystem=full
+ReadWritePaths=/srv/margin-serve
+NoNewPrivileges=true

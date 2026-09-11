@@ -18,15 +18,27 @@ for role in builder reviewer product; do
   fi
 done
 
+# The serve process is not a role -- it never commits -- but it is its own
+# checkout for the same reason the roles are: see a69bd44, a process reading
+# or writing a checkout something else commits into.
+if [ ! -d /srv/margin-serve/.git ]; then
+  echo "cloning /srv/margin-serve"
+  git clone -q https://github.com/SebR214/margin.git /srv/margin-serve
+fi
+
 chmod +x "$REPO/agents/run.sh"
 install -d -m 755 /var/log/margin
 install -m 644 "$REPO"/agents/systemd/margin-*.service /etc/systemd/system/
+install -m 644 "$REPO"/agents/systemd/margin-*.timer /etc/systemd/system/
 systemctl daemon-reload
 
 for role in builder reviewer product; do
   systemctl enable "margin-$role"
   systemctl restart "margin-$role"
 done
+systemctl enable --now margin-serve
+systemctl enable --now margin-serve-sync.timer
 
 sleep 3
-systemctl --no-pager --lines=3 status margin-builder margin-reviewer margin-product || true
+systemctl --no-pager --lines=3 status \
+  margin-builder margin-reviewer margin-product margin-serve margin-serve-sync.timer || true
