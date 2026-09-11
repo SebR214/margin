@@ -68,28 +68,44 @@ verification is on a 90-day clock instead, and goes `stale` (red) past it.
 1. **Cadence verification** — waiting on a week of `:17`/`:47` data to confirm
    the drop rate actually fell. No action until then (see P0-1).
 
-## Vision — where this is going
+## Vision — locked 2026-09-12
 
-Three versions out. Each is a sentence a reader would repeat, not a feature
-list. `## Queue` below is cut from these, in order; when the queue empties, the
-product agent opens a PR proposing the next slice from here.
+**margin.wiki is the data utility for cross-border money:** a live index of what
+a dollar really costs in 45+ countries, queryable by AI agents as a tool, where
+a request for data that does not exist triggers agents to find sources, verify
+them, and stand up the collector. **Demand-driven data collection run by agents
+exists nowhere else.**
 
-**v2 — the index.** One number per country for what a dollar really costs
-there, for forty to fifty countries, measured every hour, with the official
-rate beside it so a reader can see the gap for themselves. *Largely shipped:
-45 countries published, 14 held back for want of evidence.* What remains is
-reach and explanation, not definition.
+The stress signal — a crypto premium as an early warning of devaluation — is a
+**showcase query, not the product**.
 
-**v3 — the routing engine.** Given an amount and a route, the cheapest way to
-send it right now, and what that costs against the mid-market rate. Three
-faces on the same engine: a page a person can use, a JSON endpoint an analyst
-can call, and an MCP server a model can query. This is the version that stops
-being a report and starts being a tool.
+### Three surfaces, one engine
 
-**v4 — the explanation layer.** Not just that a number moved, but why. A
-recorded event stream (`data/events.csv`), a page that ties a move to a
-central-bank decision or a holiday or a fee change, and alerts when something
-crosses a line a reader cares about. This is the version a journalist cites.
+**Serve (agents).** An MCP server and a REST API at `api.margin.wiki`, on the
+Hetzner box, wrapping the CSVs and JSON the site already publishes. Tools:
+`dollar_cost(country)`, `compare_routes(from, to, amount)`,
+`series(country|corridor, days)`, `query(sql)` read-only and row-limited, and
+`request_series(description)`. One line of config and any Claude or GPT agent
+can call it.
+
+**Ask (humans).** `/ask` on the site: a question in; a sentence, a chart, a
+table, the SQL, and the source file out. Ten suggested questions, the stress
+signal among them. **The model writes SQL only, never a number.** OpenRouter
+behind it, with a daily spend cap and a per-IP limit.
+
+**Commission.** `request_series` from either surface opens a GitHub issue
+labelled `commission`. The builder probes candidate sources, verifies each
+against an independent reference, and wires the survivor into hourly
+collection; the reviewer merges; the requester gets `/c/<ccy>` reading
+"collecting since <date>". **A failure shows what was probed and why it was
+rejected.** A public `/requests` page lists every commission and its status —
+the live demonstration of the dataset growing on demand.
+
+**Standing asks (later).** `watch(condition)`: the same engine, subscribed,
+notifying by RSS or email.
+
+Collection integrity sits above all of it: no backfill, no invented numbers,
+loud failure, verified fees.
 
 ---
 
@@ -99,38 +115,36 @@ The product agent keeps exactly three of these open as issues at a time,
 written up using `agents/SPEC-TEMPLATE.md`, **in this order**. Nothing here is
 started before the thing above it ships.
 
-K (pricing history) was shipped on 2026-09-10 in
-[#50](https://github.com/SebR214/margin/pull/50) and is deliberately not
-listed again.
+**1. Serve — MCP and API over the data that already exists.** No new
+collection. Wraps `data/` as it stands. This is the item that makes the claim
+true fastest, and everything else is built on its engine.
+*Needs Sebastian once: a DNS A record for `api.margin.wiki` → `78.47.61.109`.*
 
-**1. G — findings.** A page per finding, each one a claim with its evidence
-under it. Lead with the one already in the data: **one company charges more at
-the weekend** — OFX, +0.85 points on the United States to Mexico on 2 of the 3
-Saturdays measured, +0.27 on Singapore to the Philippines on 2 of 4, with
-Instarem showing a smaller version. From `data/price_changes.csv`. The finding
-must recompute from the file at render time and must state its denominator; a
-pattern without one is an anecdote.
+**2. Ask — `/ask` on the same tools.** Question in; sentence, chart, table,
+SQL and source file out. The model writes SQL only and never writes a number.
+*Needs Sebastian once: an OpenRouter key, with a daily spend cap set.*
 
-**2. H — the data page.** Every file in `data/`, what is in it, how many rows,
-what it covers, how to download it. The page that makes the rest of the site
-checkable by a stranger. From the files themselves, never a hand-written list.
+**3. Commission — `request_series` end to end**, plus the public `/requests`
+page. An issue labelled `commission`, sources probed and verified against an
+independent reference, the survivor wired into hourly collection, and the
+rejects published with their reasons.
 
-**3. C — the weekly snapshot and a feed.** One page per week, frozen, with what
-changed and what it cost; an RSS feed so it can be followed. Written from the
-same JSON the board is drawn from, at a fixed point in the week.
+**4. Standing asks — `watch(condition)`**, subscribed, over RSS or email.
 
-**4. E — depth.** How much a person could actually move at the price shown
-before it moves against them. `data/depth.csv`, and a column on the board.
-Without this the index is a price with no size behind it.
+**5. Showcase queries.** The stress-signal backtest and its board, the weekly
+snapshot, and the findings pages. These demonstrate the engine; they are not
+the engine, which is why they sit last.
 
-**5. M — the calculator.** Type an amount and a route, see what each way of
-sending it costs today. Reads `data/providers_latest.json`; computes nothing
-that is not already in a file.
+Already shipped and not listed again: **K** (pricing history,
+[#50](https://github.com/SebR214/margin/pull/50)). In flight when this vision
+landed: **G** (the first findings page,
+[#52](https://github.com/SebR214/margin/issues/52)) — allowed to finish, since
+findings are item 5 above and the work was already underway.
 
-**6. I — ask the data (demo mode).** A question box over the CSVs. Ships in
-demo mode first — a fixed set of questions answered from files already in the
-repository, no key required. Live mode needs a worker and a paid key, and is
-**blocked on Sebastian**; do not attempt it in the agent loop.
+Earlier queue items **H** (data page), **C** (weekly snapshot and RSS), **E**
+(depth) and **M** (calculator) are **not dropped** but are no longer ahead of
+the engine. H and M become thin clients of Serve once it exists, rather than
+separate builds.
 
 ---
 
@@ -843,6 +857,17 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
 ---
 
 ## Invariants — do not regress these
+
+### The tool's own invariants (Serve, Ask, Commission)
+
+- SQL is **read-only**, capped at **5,000 rows**, with a **10-second timeout**.
+- Every query is logged with the question, the SQL, and the timing.
+- **No personal data** is stored, ever.
+- Every answer **cites the file** it came from.
+- A commissioned series **starts at zero history and says so** on its page.
+- **Nothing is published that failed verification** — a rejected source is
+  shown as rejected, with what was probed and why.
+- The model writes SQL. **The model never writes a number.**
 
 - **Loud failure.** Non-zero exits on bad data; no green run on a rotting CSV.
   v1 died silently for 34 days; that is the failure mode everything is built
