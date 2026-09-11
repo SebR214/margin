@@ -6,9 +6,9 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/srv/margin-serve
+WorkingDirectory=/srv/margin
 EnvironmentFile=/etc/margin/env
-ExecStart=/usr/bin/python3 /srv/margin-serve/tools/serve.py
+ExecStart=/usr/bin/python3 /srv/margin/tools/serve.py
 Restart=always
 RestartSec=30
 StandardOutput=append:/var/log/margin/serve.systemd.log
@@ -17,6 +17,15 @@ StandardError=append:/var/log/margin/serve.systemd.log
 # checkout, so unlike the three role services it gets no ReadWritePaths there.
 ProtectSystem=full
 ReadWritePaths=/var/log/margin
+NoNewPrivileges=true
+
+# Served from its own checkout of main, refreshed by margin-pull.timer. Never
+# an agent's working tree: an agent mid-build must not be able to change what
+# the public API returns.
+ProtectSystem=strict
+ReadOnlyPaths=/srv/margin
+ReadWritePaths=/var/log/margin
+PrivateTmp=true
 NoNewPrivileges=true
 
 [Install]
