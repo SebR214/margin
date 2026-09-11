@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — findings</title>
+<meta name="description" content="One claim at a time, with the evidence directly under it, so a reader can check it rather than trust it."/>
+<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<style>
+  :root{
+    --bg:#f3f2f2; --ink:#201e1d; --muted:#7d7979;
+    --line:color-mix(in srgb,#201e1d 18%,transparent);
+    --rule:color-mix(in srgb,#201e1d 40%,transparent);
+    --fill:#d2d9f7; --deep:#8b9ae8;
+    --head:"Archivo",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--head);
+       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px 72px}
+  header{display:flex;align-items:center;gap:16px;padding:14px 0;
+         border-bottom:1px solid var(--rule);font-size:11px;
+         letter-spacing:.1em;text-transform:uppercase;flex-wrap:wrap}
+  header a{color:var(--ink);text-decoration:none}
+  header a:hover{text-decoration:underline}
+  h1{font-size:38px;line-height:1.08;margin:34px 0 10px;max-width:24ch}
+  .lede{font-size:16px;max-width:66ch;margin:0 0 22px;color:var(--muted)}
+  .muted{color:var(--muted)} .small{font-size:12px}
+  .count{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+         margin:0 0 14px}
+  .finding{border-left:3px solid var(--deep);padding:14px 18px 16px;margin:0 0 20px;
+           background:color-mix(in srgb,#d2d9f7 40%,transparent);max-width:72ch}
+  .finding .tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+                color:var(--muted);margin:0 0 6px}
+  .finding h2{font-size:20px;margin:0 0 8px;border:0;padding:0}
+  .finding .body{margin:0 0 10px;max-width:66ch}
+  .finding .small a{color:var(--ink)}
+  .empty{padding:26px 0;color:var(--muted)}
+  @media(max-width:720px){
+    h1{font-size:28px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="./index.html"><b>margin.wiki</b></a>
+    <a href="./index.html">the board</a>
+    <a href="./providers.html">every way to send it</a>
+    <a href="./pricing-history.html">price changes</a>
+    <a href="./corridor.html">sending money</a>
+    <a href="./methodology.html">methodology</a>
+    <span class="muted" id="stamp"></span>
+  </header>
+
+  <h1>What the numbers have shown so far.</h1>
+  <p class="lede">Not a feed of every change -- a short list of patterns that
+     held up. Each one is a single claim, with the numbers behind it stated
+     right underneath, so it can be checked rather than trusted. Newest
+     first.</p>
+
+  <p class="count" id="count"></p>
+  <div id="list"></div>
+</div>
+<script>
+let DATA = null;
+
+fetch("./data/price_changes_latest.json", {cache:"no-store"})
+  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+  .then(d => { DATA = d; render(); })
+  .catch(e => {
+    document.getElementById("list").innerHTML =
+      '<div class="empty">No findings available -- data/price_changes_latest.json '
+      + 'could not be read (' + e.message + '). Nothing is shown rather than a '
+      + 'guess.</div>';
+  });
+
+// One finding: the company that charges more at the weekend. Its price rises
+// on a Saturday and comes back down on the Monday. Every number here is
+// recomputed from the rows every time this page loads, never fixed -- and a
+// route with no weekend rows for the leading company does not appear in it.
+function weekendFinding(DATA){
+  const wk = (DATA.changes || []).filter(r => r.kind === "weekend_up");
+  if (!wk.length) return null;
+
+  const who = {};
+  for (const r of wk) who[r.provider] = (who[r.provider] || 0) + 1;
+  const rank = Object.entries(who).sort((a, b) => b[1] - a[1]);
+  const top = rank[0][0];
+  const mine = wk.filter(r => r.provider === top);
+
+  const byRoute = {};
+  for (const r of mine) (byRoute[r.route_words] = byRoute[r.route_words] || []).push(r);
+
+  // Denominator is the Saturdays actually judged on that route -- not the
+  // Saturdays the leading company happened to move on. A pattern without its
+  // denominator is an anecdote.
+  const sats = DATA.saturdays_judged || {};
+  const legs = Object.entries(byRoute).map(([routeWords, rows]) => {
+    const corridor = rows[0].corridor;
+    const days = new Set(rows.map(r => r.day));
+    const avg = rows.reduce((a, r) => a + r.move_pct, 0) / rows.length;
+    return `${avg.toFixed(2)} points on ${routeWords}, on ${days.size} of the `
+         + `${sats[corridor] ?? days.size} Saturdays measured`;
+  });
+
+  const others = rank.slice(1).map(x => x[0]);
+  const also = others.length
+    ? `${others.join(" and ")} ${others.length > 1 ? "show" : "shows"} a smaller `
+      + `version of the same pattern.`
+    : "No other company on these routes does it.";
+
+  const latest = mine.map(r => r.day).sort().slice(-1)[0];
+  return {
+    sortKey: latest,
+    tag: "weekend pricing · last seen " + latest,
+    headline: `${top} charges more at the weekend.`,
+    body: `Its price rises on a Saturday and comes back down on the Monday. `
+        + `It has done that by ${legs.join("; and by ")}. ${also}`,
+  };
+}
+
+// Add a finder here to add a finding. Each finder reads DATA and returns
+// either null (the pattern it looks for isn't there) or a finding with a
+// sortKey to order it against the rest.
+const FINDERS = [weekendFinding];
+
+function render(){
+  const days = [...new Set((DATA.changes || []).map(r => r.day))].sort();
+  document.getElementById("stamp").textContent =
+    days.length ? days[0] + " to " + days[days.length - 1] : "";
+
+  const findings = FINDERS.map(fn => fn(DATA)).filter(Boolean)
+    .sort((a, b) => a.sortKey < b.sortKey ? 1 : -1);
+
+  document.getElementById("count").textContent =
+    findings.length + (findings.length === 1 ? " finding" : " findings");
+
+  document.getElementById("list").innerHTML = !findings.length
+    ? '<div class="empty">No finding meets the bar yet. An empty list is the '
+      + 'honest answer, not a missing one.</div>'
+    : findings.map(f => `
+      <article class="finding">
+        <div class="tag">${f.tag}</div>
+        <h2>${f.headline}</h2>
+        <p class="body">${f.body}</p>
+        <p class="small"><a href="./pricing-history.html">See the full price record &rarr;</a></p>
+      </article>`).join("");
+}
+</script>
+</body>
+</html>
