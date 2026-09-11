@@ -1,0 +1,22 @@
+[Unit]
+Description=margin.wiki builder agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/srv/margin
+EnvironmentFile=/etc/margin/env
+ExecStart=/srv/margin/agents/run.sh builder
+Restart=always
+RestartSec=30
+StandardOutput=append:/var/log/margin/builder.systemd.log
+StandardError=append:/var/log/margin/builder.systemd.log
+# The agent edits this repository and nothing else on the box.
+ProtectSystem=full
+ReadWritePaths=/srv/margin /var/log/margin /etc/margin
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

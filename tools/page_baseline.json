@@ -1,0 +1,10 @@
+{
+  "_why": "Known, accepted exceptions on pages that shipped before this gate existed. The gate fails on anything NOT listed here, so this file only ever shrinks. Never regenerate it to make a build pass: add an entry with a reason, or fix the page.",
+  "index.html": {
+    "literals": ["S$5,000"],
+    "_literals_why": "The heading 'Where the cost goes - Singapore to the Philippines, S$5,000' names the rung that section always draws. It labels a fixed choice rather than reporting a measurement, but it is still a number in the markup: worth binding to the value the chart is drawn from.",
+    "errors": ["{{", "data/fee_tiers.csv"],
+    "_errors_why_braces": "index.html is rendered by a small templating runtime. Between parse and substitution the raw {{ ... }} text sits briefly in SVG geometry attributes and the browser logs a parse error for each before the runtime replaces it. Cosmetic, on every load, and worth removing by setting those attributes from script instead of markup.",
+    "_errors_why_fee_tiers": "data/fee_tiers.csv is fetched through opt() and does not exist yet. The chart renders an explicit empty state saying so, which is the 'gaps stay gaps' rule working as intended. The 404 disappears when the fee-tier collector lands; this entry should be deleted then."
+  }
+}

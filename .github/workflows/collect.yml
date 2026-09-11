@@ -182,6 +182,13 @@ jobs:
         # See the docstring in tools/emit_price_changes.py.
         run: python3 tools/emit_price_changes.py
 
+      - name: Emit the status of the machine
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Feeds /status.html. Derived entirely from files already in data/, so
+        # if this page is wrong the rest of the site is wrong too -- which is
+        # the point of having it.
+        run: python3 tools/agent_status.py
+
       - name: Emit per-country index files and pages
         if: always() && steps.needed.outputs.proceed == 'true'
         # Derived from the CSVs the collectors just wrote. Implements
@@ -208,7 +215,7 @@ jobs:
                    data/p2p_basis.csv data/p2p_sides.csv data/index_latest.json \
                    data/fx_rates.csv data/provider_quotes.csv \
                    data/providers_latest.json data/price_changes.csv \
-                   data/price_changes_latest.json; do
+                   data/price_changes_latest.json data/agent_status.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Directories: one file per country, and a page per country. A
