@@ -15,6 +15,8 @@ import os
 import re
 import sqlite3
 import subprocess
+import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -36,7 +38,8 @@ QUERY_TABLES = [
     "provider_quotes", "basis", "p2p_sides",
 ]
 
-MAX_QUERY_ROWS = 500
+MAX_QUERY_ROWS = 5000
+QUERY_TIMEOUT_SECONDS = 10
 _SELECT_ONLY = re.compile(r"^\s*select\s", re.IGNORECASE)
 
 
@@ -213,8 +216,28 @@ def _build_query_db():
     return conn
 
 
-def run_query(sql):
-    """Run one read-only SELECT over the raw CSVs, capped at MAX_QUERY_ROWS."""
+def _log_query(question, sql, elapsed_s):
+    """ROADMAP.md's Serve invariant: every query logged with question, SQL, timing.
+
+    Printed to stdout, which the systemd unit appends to
+    /var/log/margin/serve.systemd.log -- no new dependency for a log file.
+    """
+    print(
+        "query question=%r sql=%r elapsed_ms=%d"
+        % (question, sql, int(elapsed_s * 1000)),
+        file=sys.stdout,
+        flush=True,
+    )
+
+
+def run_query(sql, question=None):
+    """Run one read-only SELECT over the raw CSVs, capped at MAX_QUERY_ROWS.
+
+    Aborts after QUERY_TIMEOUT_SECONDS and logs every attempt -- the two
+    invariants ROADMAP.md locks for SQL over this data. `question` defaults to
+    the SQL itself: this layer takes SQL directly and has no natural-language
+    question of its own -- that's Ask, a separate item.
+    """
     if not sql or not sql.strip():
         raise ServeError("sql parameter is required")
     body = sql.strip()
@@ -224,15 +247,25 @@ def run_query(sql):
         raise ServeError("only one statement is allowed")
     if not _SELECT_ONLY.match(body):
         raise ServeError("only SELECT statements are allowed")
+    start = time.monotonic()
     conn = _build_query_db()
+    conn.set_progress_handler(
+        lambda: 1 if time.monotonic() - start > QUERY_TIMEOUT_SECONDS else 0, 1000
+    )
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.execute(body)
         rows = cur.fetchmany(MAX_QUERY_ROWS + 1)
     except sqlite3.Error as e:
+        elapsed = time.monotonic() - start
+        _log_query(question or body, body, elapsed)
+        if elapsed >= QUERY_TIMEOUT_SECONDS:
+            raise ServeError("query timed out after %ds" % QUERY_TIMEOUT_SECONDS)
         raise ServeError(str(e))
     finally:
         conn.close()
+    elapsed = time.monotonic() - start
+    _log_query(question or body, body, elapsed)
     truncated = len(rows) > MAX_QUERY_ROWS
     rows = rows[:MAX_QUERY_ROWS]
     return {

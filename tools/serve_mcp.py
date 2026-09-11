@@ -66,7 +66,7 @@ TOOLS = [
         "name": "query",
         "description": (
             "Run one read-only SELECT statement over the raw data tables "
-            "and get back up to 500 rows."
+            "and get back up to 5,000 rows."
         ),
         "inputSchema": {
             "type": "object",
@@ -126,9 +126,6 @@ def _handle(method, params):
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
-    def log_message(self, *a):
-        pass
-
     def _send(self, payload):
         body = json.dumps(payload).encode()
         self.send_response(200)

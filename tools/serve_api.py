@@ -27,9 +27,6 @@ HOST, PORT = "127.0.0.1", 8899
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
-    def log_message(self, *a):
-        pass
-
     def _send(self, status, payload):
         body = json.dumps(payload, indent=2, sort_keys=True).encode()
         self.send_response(status)
