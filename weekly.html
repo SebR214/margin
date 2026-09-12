@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — the weekly snapshot</title>
+<meta name="description" content="What it cost to buy a dollar, by country, one frozen figure per week. Each week is written once it ends and never recomputed."/>
+<link rel="alternate" type="application/rss+xml" title="margin.wiki — the weekly snapshot" href="./weekly.xml"/>
+<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<style>
+  :root{
+    --bg:#f3f2f2; --ink:#201e1d; --muted:#7d7979;
+    --line:color-mix(in srgb,#201e1d 18%,transparent);
+    --rule:color-mix(in srgb,#201e1d 40%,transparent);
+    --fill:#d2d9f7; --deep:#8b9ae8;
+    --head:"Archivo",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--head);
+       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px 72px}
+  header{display:flex;align-items:center;gap:16px;padding:14px 0;
+         border-bottom:1px solid var(--rule);font-size:11px;
+         letter-spacing:.1em;text-transform:uppercase;flex-wrap:wrap}
+  header a{color:var(--ink);text-decoration:none}
+  header a:hover{text-decoration:underline}
+  h1{font-size:38px;line-height:1.08;margin:34px 0 10px;max-width:26ch}
+  .lede{font-size:16px;max-width:66ch;margin:0 0 22px;color:var(--muted)}
+  .muted{color:var(--muted)} .small{font-size:12px}
+  .rss{font-size:12px}
+  .count{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+         margin:26px 0 14px}
+  .week{border-left:3px solid var(--deep);padding:14px 18px 16px;margin:0 0 22px;
+        background:color-mix(in srgb,#d2d9f7 40%,transparent);max-width:920px}
+  .week h2{font-size:20px;margin:0 0 4px;border:0;padding:0}
+  .week h2 a{color:inherit}
+  .week .tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+             color:var(--muted);margin:0 0 8px}
+  .week table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 0}
+  .week th{text-align:left;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+     color:var(--muted);font-weight:400;padding:8px 6px 5px}
+  .week td{padding:6px 6px;border-top:1px solid var(--line)}
+  .week td.n{text-align:right;font-family:var(--head);font-weight:800}
+  .more{font-size:12px}
+  .empty{padding:26px 0;color:var(--muted)}
+  @media(max-width:720px){ h1{font-size:28px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="./index.html"><b>margin.wiki</b></a>
+    <a href="./index.html">the board</a>
+    <a href="./providers.html">every way to send it</a>
+    <a href="./pricing-history.html">price changes</a>
+    <a href="./corridor.html">sending money</a>
+    <a href="./findings.html">findings</a>
+    <a href="./requests.html">requests</a>
+    <a href="./calculator.html">calculator</a>
+    <a href="./methodology.html">methodology</a>
+    <span class="muted" id="stamp"></span>
+  </header>
+
+  <h1>What a dollar cost, one frozen week at a time.</h1>
+  <p class="lede">The board above is live and moves hour to hour. This is the
+     opposite: once a week ends, the median of every hour it collected is
+     written down and never touched again -- so a claim about "last week"
+     stays true no matter what happens to the data afterward. The week in
+     progress isn't shown yet, because it hasn't happened.</p>
+  <p class="rss"><a href="./weekly.xml">Subscribe by RSS &rarr;</a></p>
+
+  <p class="count" id="count"></p>
+  <div id="list"></div>
+</div>
+<script>
+const words = v => v == null || !isFinite(v) ? "—"
+  : Math.abs(v).toFixed(Math.abs(v) >= 10 ? 1 : 2) + "%" + (v >= 0 ? " more" : " less");
+const DAY = ["January","February","March","April","May","June","July",
+             "August","September","October","November","December"];
+function longDate(iso){
+  if(!iso) return "—";
+  const [y,m,d] = iso.split("-").map(Number);
+  return `${d} ${DAY[m-1]} ${y}`;
+}
+
+fetch("./data/weekly_latest.json", {cache:"no-store"})
+  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+  .then(render)
+  .catch(e => {
+    document.getElementById("list").innerHTML =
+      '<div class="empty">The weekly snapshot could not be read '
+      + '(' + e.message + '). Nothing is shown rather than a guess.</div>';
+  });
+
+function render(DATA){
+  const weeks = DATA.weeks || [];
+  document.getElementById("stamp").textContent = "updated " + (DATA.as_of_utc || "");
+  document.getElementById("count").textContent =
+    weeks.length + (weeks.length === 1 ? " week frozen" : " weeks frozen");
+
+  if(!weeks.length){
+    document.getElementById("list").innerHTML =
+      '<div class="empty">No week has finished yet. The first one freezes '
+      + 'once a full Monday-to-Sunday week of collection is behind it.</div>';
+    return;
+  }
+
+  document.getElementById("list").innerHTML = weeks.map(w => {
+    const top = (w.countries || [])[0];
+    const bottom = (w.countries || [])[(w.countries || []).length - 1];
+    const rows = top === bottom ? [top].filter(Boolean) : [top, bottom].filter(Boolean);
+    return `
+      <article class="week">
+        <div class="tag">${longDate(w.start)} to ${longDate(w.end)} &middot; ${w.countries.length} countries</div>
+        <h2><a href="./${w.href}">The week of ${longDate(w.start)}</a></h2>
+        <table>
+          <tr><th>Country</th><th>Dollar cost</th><th>Hours counted</th></tr>
+          ${rows.map(c => `
+            <tr>
+              <td>${c.country}</td>
+              <td class="n">${words(c.index_pct)} than the official rate</td>
+              <td class="n">${c.n}</td>
+            </tr>`).join("")}
+        </table>
+        <p class="more"><a href="./${w.href}">See all ${w.countries.length} countries this week &rarr;</a></p>
+      </article>`;
+  }).join("");
+}
+</script>
+</body>
+</html>
