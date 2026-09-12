@@ -23,6 +23,7 @@ Usage:
   python3 tools/check_page.py providers.html  # only these
 """
 
+import glob
 import html.parser
 import http.server
 import json
@@ -49,10 +50,31 @@ EMPTY_STATES = ("could not be read", "no comparison available",
 # Every page a reader can reach. A new page must be listed here to be covered.
 PAGES = ["index.html", "providers.html", "pricing-history.html",
          "corridor.html", "methodology.html", "status.html", "findings.html",
-         "requests.html", "calculator.html", "weekly.html"]
+         "requests.html", "calculator.html", "weekly.html", "data.html"]
 
 # The site ships no favicon, so every page logs one 404 that means nothing.
 IGNORED_ERRORS = ("favicon.ico",)
+
+
+def real_filenames():
+    """Basenames of files actually on disk under data/ -- 'basis.csv' etc.
+
+    A page that lists what data/ holds has to quote those names verbatim, the
+    same way it quotes a column name like `cost_bps`: citing an identifier
+    is not the same as using the word in prose. This scrubs only names that
+    are literally present on disk, so it cannot be used to smuggle jargon --
+    it has no effect on any word that is not also a real file.
+    """
+    names = set()
+    for pattern in ("data/*.csv", "data/*.json"):
+        names.update(os.path.basename(p) for p in glob.glob(os.path.join(HERE, pattern)))
+    return names
+
+
+def scrub_filenames(text):
+    for name in real_filenames():
+        text = re.sub(re.escape(name), " ", text, flags=re.I)
+    return text
 
 
 class Quiet(http.server.SimpleHTTPRequestHandler):
@@ -143,10 +165,12 @@ def check(page, port, browser, base):
         return [f"{page}: rendered no text at all"]
 
     if page not in EXEMPT:
+        scrubbed = scrub_filenames(text)
+        scrubbed_low = scrubbed.lower()
         for w in BANNED:
-            if re.search(r"\b" + re.escape(w) + r"\b", low):
+            if re.search(r"\b" + re.escape(w) + r"\b", scrubbed_low):
                 fails.append(f"{page}: banned word on a reader-facing page: {w!r}")
-        if BARE_MID.search(text):
+        if BARE_MID.search(scrubbed):
             fails.append(f"{page}: banned word 'mid' on a reader-facing page "
                          f"(use 'mid-market' or plain language)")
 
