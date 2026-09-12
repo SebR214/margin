@@ -68,9 +68,9 @@ git checkout -b seb-8-short-slug
 makes Linear attach the pull request to the issue automatically. Put the key in
 the PR title too.
 
-If that branch already exists, this is a rework: the reviewer rejected an
-earlier attempt and moved the issue back to Todo. Do not start a second branch
-or open a second PR:
+If that branch already exists, either the reviewer rejected an earlier attempt
+or a previous pass ran out of turns partway through. Either way it is yours to
+continue. Do not start a second branch or open a second PR:
 
 ```bash
 git fetch origin && git checkout seb-8-short-slug
@@ -79,6 +79,20 @@ git pull --rebase origin seb-8-short-slug
 
 Read the reviewer's comment on the issue first and fix exactly what it named.
 A rejected PR is a conversation, not a restart.
+
+**Commit and push as soon as you have something that stands on its own**, and
+keep doing it. A run has a turn limit; when it is reached the process stops
+wherever it happens to be, and anything not committed is gone. A half-finished
+branch a later pass can resume is worth far more than a perfect one that was
+never written down.
+
+Push on your first real commit, before the work is finished. Nothing is reviewed
+until you move the issue to In Review, so an incomplete branch costs nothing and
+insures everything.
+
+**Never leave work uncommitted on `main`.** Every pass starts by returning to
+main, so anything left there is stranded or stashed, and the next agent finds a
+dirty tree it did not create.
 
 Build **exactly** what the issue specifies. Not the adjacent improvement, not
 the thing you would have designed, not a refactor you passed on the way. If the
