@@ -145,16 +145,31 @@ rejects published with their reasons.
 snapshot, and the findings pages. These demonstrate the engine; they are not
 the engine, which is why they sit last.
 
+**6. E — depth, surfaced.** `collector.py` already reads the full order book on
+every sample and already writes `offramp_depth_top_level` and
+`offramp_depth_1pct` to `data/samples.csv` for both deep-layer corridors
+(SGD→PHP, USD→MXN) — nothing new to collect, nothing gated on Sebastian. It is
+computed and persisted every hour and shown nowhere: not on `corridor.html`,
+not in `METHODOLOGY.md`. The original Task E asked "how much a person could
+actually move at the price shown before it moves against them" — this is that
+number, sitting unread in a file that already has history. Scope: `corridor.html`
+only, since the wide-layer board (`index.html`, 43 countries) has no depth
+column to draw from and none should be invented for it. No new CSV, no changed
+header — this reads two columns that already exist.
+
 Already shipped and not listed again: **K** (pricing history,
 [#50](https://github.com/SebR214/margin/pull/50)). In flight when this vision
 landed: **G** (the first findings page,
 [#52](https://github.com/SebR214/margin/issues/52)) — allowed to finish, since
 findings are item 5 above and the work was already underway.
 
-Earlier queue items **H** (data page), **C** (weekly snapshot and RSS), **E**
-(depth) and **M** (calculator) are **not dropped** but are no longer ahead of
-the engine. H and M become thin clients of Serve once it exists, rather than
-separate builds.
+Earlier queue items **H** (data page) and **C** (weekly snapshot and RSS) are
+**not dropped** but are no longer ahead of the engine — H becomes a thin
+client of Serve once it exists, rather than a separate build, and C is folded
+into item 5 above. **M** (calculator) shipped 2026-09-11
+([#71](https://github.com/SebR214/margin/pull/71)). **E** (depth) is item 6
+above, promoted back into the Queue because its data already exists and
+displaying it needs nothing from Sebastian.
 
 ---
 
