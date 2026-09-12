@@ -262,6 +262,7 @@ Per country, per hour, in strict precedence. **The classes are never blended.**
 | 3 | `broker_median` | from broker quotes | Two or more broker quotes → median of their **ask** |
 | 4 | `broker_single` | from a broker quote | Exactly one broker → its **ask** |
 | 5 | `p2p_buy_median` | from person-to-person ads | No venue → median of the **buy-side** ads |
+| 6 | `p2p_fallback` | from an independent price source | Only when rank 5 has no evidence at all for the hour, and only for a currency with a named, checked fallback — today just NGN, whose board is structurally empty most hours (see "An independent price for Nigeria" below) |
 
 Where a venue publishes no two-sided quote — Upbit and Pintu publish a last
 price only — the last price stands in for the ask, and the row records that it
@@ -426,6 +427,48 @@ frozen, so the per-side counts the rule needs are written to a sidecar,
 sidecar existed carry `buy_ads_estimated`, and for those the rule uses "both
 sides full" as a conservative stand-in — the only combination of a summed count
 that guarantees a full buy side.
+
+### An independent price for Nigeria (SEB-8)
+
+NGN is the one currency this rule withholds for a *structural* reason rather
+than a thin or crossed one: Binance delisted its NGN board after the 2024
+crackdown, and the search endpoint now answers zero ads on both sides, most
+hours, every day (see ROADMAP, "Known-invisible"). A commission asked for a
+second source for exactly those hours.
+
+`collector_p2p.py` now reads CoinGecko's public price endpoint
+(`api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=ngn`) as a
+second row, written **only on the hours the ad board itself has zero ads on
+both sides.** It is never consulted while the board has ads of its own, and it
+is never blended with a board price — the two never coexist for the same hour.
+
+It is a materially different kind of source and the page says so: a single
+aggregated price, not two sides of a market, so it carries no buy or sell side
+of its own and no round-trip figure. It is shown with its own class,
+`p2p_fallback`, "from an independent price source", never folded into
+`p2p_buy_median`.
+
+Before being wired in, the one candidate the commission named was checked with
+`tools/probe_source.py` against `open.er-api.com`, the same reference this
+project already uses as the FX denominator:
+
+```
+candidate  https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=ngn
+           field `tether.ngn` reported 1326.44 NGN per dollar
+reference  open.er-api.com reported 1327.27 NGN per dollar
+difference -0.06%, against the ±1% accept bar (checked 2026-09-12)
+```
+
+Well inside the bar, so it is trusted the same as any other row. Because
+`data/p2p_basis.csv`'s columns are frozen and were built for a two-sided ad
+board, the fallback row uses only the columns that are true of it: `source`
+reads `coingecko`, `mid` carries the price, `buy_median`, `sell_median` and
+`n_ads` stay empty or zero because none of those were measured. The daily
+history in `daily_history()` reads `buy_median` for its P2P leg, so an hour
+priced only by the fallback does not (yet) feed the multi-day chart — the
+v1.1 evidence rule and the daily series stay exactly as they were for every
+other currency; only the current-hour reading on Nigeria's page gains a value
+it did not have before.
 
 ### Sanity bands and the "unverified" label
 
@@ -662,6 +705,17 @@ A route with no stablecoin in it at all agrees to a fifth of a percent.
 | Ours, Luno USDT/NGN ask | **1,372.20 NGN** |
 | Luno BTC/NGN 106,869,092 ÷ Coinbase BTC/USD 78,048.98 | **1,369.26 NGN** |
 | Difference | **0.21%** |
+
+### Nigeria's fallback — CoinGecko, against `open.er-api.com`
+
+Checked 2026-09-12, before wiring in the `p2p_fallback` source described in
+"An independent price for Nigeria (SEB-8)" above.
+
+| | |
+|---|---|
+| CoinGecko `simple/price`, `tether.ngn` | **1,326.44 NGN** |
+| `open.er-api.com`, the same denominator this project uses everywhere | **1,327.27 NGN** |
+| Difference | **-0.06%** |
 
 ### Argentina — against CriptoYa's own published figure
 

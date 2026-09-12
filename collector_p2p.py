@@ -33,6 +33,15 @@ geo-blocked from GitHub's US runners (CloudFront 403, "configured to block
 access from your country", verified 2026-09-02), so it is not used and not
 faked. See ROADMAP, "P2P layer".
 
+NGN is a special case in this file (SEB-8, a commission request). Its board is
+structurally empty most hours -- 0 buy, 0 sell -- not thin, just gone (see
+ROADMAP, "Known-invisible"). On exactly those hours, a second row is added
+from CoinGecko's public price endpoint, checked against open.er-api.com in
+tools/probe_source.py before being wired in here (-0.06% on 2026-09-12; see
+METHODOLOGY.md, "Checked against"). It is a single aggregated price, not an
+ad-board reading, so it carries no buy/sell side and no ad count, and it is
+never consulted while the real board has ads.
+
 Usage:
   python3 collector_p2p.py --verify     # one live pull, print, write nothing
   python3 collector_p2p.py              # one pull, append data/p2p_basis.csv
@@ -77,6 +86,12 @@ FX_URL = "https://open.er-api.com/v6/latest/USD"
 
 SEARCH_URL = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
 SOURCE = "binance_p2p"
+
+# NGN fallback (SEB-8). One candidate, named in the commission and probed
+# against open.er-api.com before being wired in here -- see the module
+# docstring and METHODOLOGY.md, "Checked against".
+NGN_FALLBACK_URL = "https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=ngn"
+NGN_FALLBACK_SOURCE = "coingecko"
 
 # The amount the price has to be good for. The best ad on a P2P board is often
 # for a trivial size; filtering to a realistic ticket is what makes the median
@@ -211,6 +226,19 @@ def get_json(url):
     return r.json()
 
 
+def fetch_ngn_fallback():
+    """CoinGecko's public tether/ngn price, for the hours NGN's own board has
+    no ads at all. A single aggregated price, not an ad-board quote -- no
+    buy/sell side, no pacing against Binance's limit (a different host).
+    Never raises: any transport or shape failure comes back as None, exactly
+    like a board with no ads."""
+    try:
+        payload = get_json(NGN_FALLBACK_URL)
+        return _f((payload.get("tether") or {}).get("ngn"))
+    except Exception:
+        return None
+
+
 def fetch_fx(fetch=get_json):
     """Snapshot official USD mids once. -> {ccy: local_per_usd}. Raises on failure."""
     d = fetch(FX_URL)
@@ -238,8 +266,10 @@ def _base_row(ts, ccy):
     }
 
 
-def build_rows(ts, currencies, fx, post=post_json):
-    """One row per currency. Pure but for `post`. Returns (rows, n_ok)."""
+def build_rows(ts, currencies, fx, post=post_json, ngn_fallback=fetch_ngn_fallback):
+    """One row per currency, plus a second row for NGN on the hours its own
+    board has no ads at all (SEB-8: see `fetch_ngn_fallback`). Pure but for
+    `post` and `ngn_fallback`. Returns (rows, n_ok)."""
     rows, n_ok = [], 0
     for ccy in currencies:
         row = _base_row(ts, ccy)
@@ -268,6 +298,22 @@ def build_rows(ts, currencies, fx, post=post_json):
         except Exception as e:
             row["error"] = f"{type(e).__name__}:{e}"[:300]
         rows.append(row)
+
+        if ccy == "NGN" and not row["source_ok"]:
+            fb = _base_row(ts, "NGN")
+            fb["source"] = NGN_FALLBACK_SOURCE
+            fb["fx_mid_per_usd"] = row["fx_mid_per_usd"]
+            try:
+                price = ngn_fallback()
+                if price is None:
+                    raise ValueError(
+                        "coingecko simple/price returned no tether.ngn value")
+                fb.update(mid=round(price, 8), source_ok=True,
+                          basis_bps=basis_bps(price, fb["fx_mid_per_usd"]))
+                n_ok += 1
+            except Exception as e:
+                fb["error"] = f"{type(e).__name__}:{e}"[:300]
+            rows.append(fb)
     return rows, n_ok
 
 
@@ -451,9 +497,12 @@ def selftest():
     print(f"  [ok] {n_ok}/{len(CURRENCIES)} currencies priced; buy above sell; "
           f"schema covers the row")
 
-    # 5. an empty board is a FINDING, recorded, and does not kill the run
+    # 5. an empty board is a FINDING, recorded, and does not kill the run.
+    #    ngn_fallback is stubbed to None here so this stays the "board empty,
+    #    no independent price either" case -- SEB-8's own case is 5c below.
     rows_e, n_ok_e = build_rows(TS_FIXTURE, CURRENCIES, FX_FIXTURE,
-                                post=_make_post(empty=("NGN", "GHS", "ETB")))
+                                post=_make_post(empty=("NGN", "GHS", "ETB")),
+                                ngn_fallback=lambda: None)
     for c in ("NGN", "GHS", "ETB"):
         r = next(x for x in rows_e if x["ccy"] == c)
         assert r["source_ok"] is False and "no ads" in r["error"], r
@@ -461,6 +510,40 @@ def selftest():
         assert r["fx_mid_per_usd"] is not None, "the rate we asked against is kept"
     assert n_ok_e == 50 and run_exit_code(n_ok_e) == 0
     print("  [ok] empty board -> source_ok=False row with the reason, run exits 0")
+
+    # 5c. SEB-8: NGN gets a second, independent price on exactly the hours its
+    #     own board is empty -- never GHS or ETB, which have no fallback, and
+    #     never NGN itself while its own board has ads.
+    rows_fb, n_ok_fb = build_rows(TS_FIXTURE, CURRENCIES, FX_FIXTURE,
+                                  post=_make_post(empty=("NGN", "GHS", "ETB")),
+                                  ngn_fallback=lambda: 1326.44)
+    ngn_rows = [r for r in rows_fb if r["ccy"] == "NGN"]
+    assert len(ngn_rows) == 2, ngn_rows
+    primary, fallback = ngn_rows
+    assert primary["source"] == SOURCE and primary["source_ok"] is False
+    assert fallback["source"] == NGN_FALLBACK_SOURCE and fallback["source_ok"] is True
+    assert fallback["mid"] == 1326.44
+    assert fallback["buy_median"] is None and fallback["sell_median"] is None
+    assert fallback["basis_bps"] == basis_bps(1326.44, FX_FIXTURE["NGN"])
+    assert n_ok_fb == 51, n_ok_fb   # 50 boards + the NGN fallback
+    assert len([r for r in rows_fb if r["ccy"] == "GHS"]) == 1, \
+        "GHS has no fallback -- it stays a single failed row"
+
+    def _boom():
+        raise AssertionError("fallback must not be called while the board has ads")
+    rows_ok, _ = build_rows(TS_FIXTURE, CURRENCIES, FX_FIXTURE, post=_make_post(),
+                            ngn_fallback=_boom)
+    assert len([r for r in rows_ok if r["ccy"] == "NGN"]) == 1, \
+        "no fallback row while the real board has ads"
+
+    rows_bd, n_ok_bd = build_rows(TS_FIXTURE, CURRENCIES, FX_FIXTURE,
+                                  post=_make_post(empty=("NGN", "GHS", "ETB")),
+                                  ngn_fallback=lambda: None)
+    ngn_both_dead = [r for r in rows_bd if r["ccy"] == "NGN"]
+    assert len(ngn_both_dead) == 2 and all(not r["source_ok"] for r in ngn_both_dead)
+    assert ngn_both_dead[1]["error"], "a dead fallback is recorded too, not dropped"
+    print("  [ok] SEB-8: NGN gets an independent price only on hours its own "
+          "board is empty, never for GHS or ETB")
 
     # 5b. pacing is real and lives in the transport, so the collector cannot
     #     discover the rate limit in production
@@ -488,7 +571,8 @@ def selftest():
 
     # 8. total blackout is the only non-zero exit
     dead = {c: RuntimeError("down") for c in CURRENCIES}
-    rows_b, n_ok_b = build_rows(TS_FIXTURE, CURRENCIES, FX_FIXTURE, post=_make_post(dead))
+    rows_b, n_ok_b = build_rows(TS_FIXTURE, CURRENCIES, FX_FIXTURE, post=_make_post(dead),
+                                ngn_fallback=lambda: None)
     assert n_ok_b == 0 and all(not r["source_ok"] for r in rows_b)
     assert run_exit_code(n_ok_b) == 1
     print("  [ok] total blackout -> run exits non-zero")
