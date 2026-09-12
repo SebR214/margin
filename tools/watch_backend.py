@@ -216,15 +216,25 @@ def create_watch(condition, client_ip):
     except sc.ServeError as e:
         raise WatchError(str(e))
 
+    currently_true = result["row_count"] > 0
+    # A condition that is already true the moment it's created still needs a
+    # fire event -- otherwise its feed stays empty until it happens to go
+    # false and true again, which could be never.
+    sentence = _fire_sentence(condition, result["rows"]) if currently_true else None
+
     conn = _db()
     try:
         watch_id = _new_id(conn)
         now = _now()
-        currently_true = result["row_count"] > 0
         conn.execute(
             "INSERT INTO watches (id, created_utc, condition, sql, "
-            "is_true, last_checked_utc, fired_count) VALUES (?,?,?,?,?,?,0)",
-            (watch_id, now, condition, sql, int(currently_true), now))
+            "is_true, last_checked_utc, fired_count) VALUES (?,?,?,?,?,?,?)",
+            (watch_id, now, condition, sql, int(currently_true), now,
+             1 if currently_true else 0))
+        if currently_true:
+            conn.execute(
+                "INSERT INTO fires (watch_id, fired_utc, sentence, row_count) "
+                "VALUES (?,?,?,?)", (watch_id, now, sentence, result["row_count"]))
         conn.commit()
     finally:
         conn.close()
