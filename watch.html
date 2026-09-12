@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — ask it a question</title>
-<meta name="description" content="Type a question about the data this site collects and get back one plain sentence, a small table, and the exact query and file that produced it."/>
+<title>margin.wiki — watch a condition</title>
+<meta name="description" content="State a condition in plain words and get back a link. Add it to any RSS reader and it fills in the moment the condition becomes true."/>
 <link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
 <style>
   :root{
@@ -38,13 +38,9 @@
   .chip:hover{background:var(--fill)}
   #result{margin-top:12px}
   .answer{font-size:19px;max-width:66ch;margin:0 0 14px}
-  .empty{padding:26px 0;color:var(--muted)}
   .bad{color:var(--bad)}
-  .scroll{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
-  th{text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
-     color:var(--muted);font-weight:400;padding:9px 8px 6px;white-space:nowrap}
-  td{padding:8px 8px;border-top:1px solid var(--line);vertical-align:top;white-space:nowrap}
+  #feed{width:100%;padding:10px 12px;font-size:13px;font-family:inherit;
+        border:1px solid var(--rule);background:#fff;color:var(--ink)}
   details{margin-top:14px}
   summary{cursor:pointer;font-size:12px;color:var(--muted);letter-spacing:.04em}
   pre{white-space:pre-wrap;word-break:break-word;font-size:12px;background:#fff;
@@ -65,56 +61,50 @@
     <a href="./requests.html">requests</a>
     <a href="./calculator.html">calculator</a>
     <a href="./data.html">the data</a>
-    <a href="./watch.html">watch</a>
+    <a href="./ask.html">ask</a>
     <a href="./methodology.html">methodology</a>
   </header>
 
-  <h1>Ask it a question.</h1>
-  <p class="lede">Type a question in plain words. It is answered from the same
-     files the rest of this site reads — nothing new is collected for this
-     page. You get one sentence, a small table, and, if you want to check the
-     work, the exact query and the file it ran against. If the data to answer
-     a question does not exist, it says so rather than guessing.</p>
+  <h1>Watch for a condition.</h1>
+  <p class="lede">State a condition in plain words, the same way you would
+     ask a question on <a href="./ask.html">Ask</a>. This turns it into a
+     standing check against the same files the rest of this site reads, and
+     hands back a link. Add that link to any RSS reader and an entry appears
+     the moment the condition becomes true -- nothing to sign up for, no
+     email collected.</p>
 
   <div class="askrow">
     <input id="q" type="text" maxlength="300"
-           placeholder="e.g. what does a dollar cost in the Philippines today?"/>
-    <button id="go">ask</button>
+           placeholder="e.g. tell me when Argentina's gap goes above 10%"/>
+    <button id="go">watch</button>
   </div>
   <div class="chips" id="chips"></div>
 
   <div id="result"></div>
 </div>
 <script>
-const QUESTIONS = [
-  "What does a dollar cost in the Philippines today?",
-  "Which currency's crypto premium moved the most in the last day?",
-  "Is the SGD to PHP corridor cheaper by crypto or by a provider right now?",
-  "How many buy and sell listings were on Nepal's person-to-person board the last time it was checked?",
-  "What is the crypto premium for the Indonesian rupiah for the last 7 days?",
-  "Which venue has the widest gap between two competing stablecoins right now?",
-  "What is the official exchange rate for the Turkish lira right now?",
-  "Which money transfer company most recently changed its price for sending to Mexico?",
-  "What does it cost to withdraw a stablecoin from Bitso?",
-  "What trading fee did Bitso last publish?",
+const CONDITIONS = [
+  "Argentina's crypto premium goes above 10%",
+  "the SGD to PHP corridor is cheaper by crypto than by any other provider",
+  "any exchange's stablecoin spread goes above 1%",
 ];
 
 const API_BASE = location.hostname.endsWith("margin.wiki")
-  ? "https://api.margin.wiki" : "http://127.0.0.1:8901";
+  ? "https://api.margin.wiki" : "http://127.0.0.1:8902";
 
 const chipsEl = document.getElementById("chips");
-chipsEl.innerHTML = QUESTIONS.map((q, i) =>
-  `<button class="chip" data-i="${i}">${q}</button>`).join("");
+chipsEl.innerHTML = CONDITIONS.map((c, i) =>
+  `<button class="chip" data-i="${i}">${c}</button>`).join("");
 chipsEl.addEventListener("click", e => {
   const b = e.target.closest(".chip");
   if (!b) return;
-  document.getElementById("q").value = QUESTIONS[+b.dataset.i];
-  doAsk(QUESTIONS[+b.dataset.i]);
+  document.getElementById("q").value = CONDITIONS[+b.dataset.i];
+  doWatch(CONDITIONS[+b.dataset.i]);
 });
 
 document.getElementById("go").addEventListener("click", () => {
   const q = document.getElementById("q").value.trim();
-  if (q) doAsk(q);
+  if (q) doWatch(q);
 });
 document.getElementById("q").addEventListener("keydown", e => {
   if (e.key === "Enter") document.getElementById("go").click();
@@ -125,56 +115,48 @@ function escapeHtml(s){
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
 
-function renderTable(rows){
-  if (!rows || !rows.length) return "";
-  const cols = Object.keys(rows[0]);
-  const shown = rows.slice(0, 25);
-  return '<div class="scroll"><table><tr>'
-    + cols.map(c => `<th>${escapeHtml(c)}</th>`).join("") + "</tr>"
-    + shown.map(r => "<tr>" + cols.map(c => `<td>${escapeHtml(r[c])}</td>`).join("") + "</tr>").join("")
-    + "</table></div>"
-    + (rows.length > shown.length
-        ? `<p class="small muted">Showing the first ${shown.length} of ${rows.length} rows.</p>` : "");
-}
-
-function doAsk(question){
+function doWatch(condition){
   const go = document.getElementById("go");
   go.disabled = true;
   document.getElementById("result").innerHTML =
-    '<p class="lede">Asking…</p>';
-  fetch(API_BASE + "/ask", {
+    '<p class="lede">Setting up the watch…</p>';
+  fetch(API_BASE + "/watch", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({question}),
+    body: JSON.stringify({condition}),
   })
     .then(r => r.json().then(body => ({ok: r.ok, body})))
     .then(({ok, body}) => {
       go.disabled = false;
       if (!ok) {
         document.getElementById("result").innerHTML =
-          `<p class="answer bad">${escapeHtml(body.error || "could not answer that question right now")}</p>`;
+          `<p class="answer bad">${escapeHtml(body.error || "could not set up that watch right now")}</p>`;
         return;
       }
-      const sources = Array.isArray(body.source) ? body.source : [body.source];
+      const state = body.currently_true
+        ? "It is true right now, so the first entry will already be waiting."
+        : "It is not true right now -- the feed fills in the moment it is.";
       document.getElementById("result").innerHTML =
-        `<p class="answer">${escapeHtml(body.sentence)}</p>`
-        + renderTable(body.rows)
-        + `<p class="cite">Source: ${sources.map(escapeHtml).join(", ")}</p>`
-        + `<details><summary>show the query this ran</summary>`
+        `<p class="answer">Watching: ${escapeHtml(body.condition)}</p>`
+        + `<p class="lede">${state} Checked every fifteen minutes.</p>`
+        + `<input id="feed" type="text" readonly value="${escapeHtml(body.feed_url)}" onclick="this.select()"/>`
+        + `<p class="cite">Paste that link into any RSS reader.</p>`
+        + `<details><summary>show the query this checks</summary>`
         + `<pre>${escapeHtml(body.sql)}</pre></details>`;
     })
     .catch(e => {
       go.disabled = false;
       document.getElementById("result").innerHTML =
-        `<p class="answer bad">Ask could not be reached (${escapeHtml(e.message)}). Nothing is shown rather than a guess.</p>`;
+        `<p class="answer bad">Watch could not be reached (${escapeHtml(e.message)}). Nothing is shown rather than a guess.</p>`;
     });
 }
 
-// Lets tools/check_page.py exercise one real answer headlessly, the same way
-// a reader clicking a chip would -- see that script for why this matters.
+// Lets tools/check_page.py exercise one real watch headlessly, the same way
+// ask.html's own verify query string does -- see that script for why this
+// matters, and ask.html for the identical pattern.
 const verifyIdx = new URLSearchParams(location.search).get("verify");
-if (verifyIdx !== null && QUESTIONS[+verifyIdx]) {
-  doAsk(QUESTIONS[+verifyIdx]);
+if (verifyIdx !== null && CONDITIONS[+verifyIdx]) {
+  doWatch(CONDITIONS[+verifyIdx]);
 }
 </script>
 </body>

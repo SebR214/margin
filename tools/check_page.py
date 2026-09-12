@@ -51,14 +51,15 @@ EMPTY_STATES = ("could not be read", "no comparison available",
 PAGES = ["index.html", "providers.html", "pricing-history.html",
          "corridor.html", "methodology.html", "status.html", "findings.html",
          "requests.html", "calculator.html", "weekly.html", "data.html",
-         "ask.html"]
+         "ask.html", "watch.html"]
 
-# ask.html calls a live backend rather than reading a static file, so a check
-# of its static shell alone would never touch the code that actually answers
-# a question. This visits it with a query string ask.html's own script reads
-# to fire one fixed suggested question automatically, headlessly -- see the
-# comment above `verifyIdx` in ask.html.
-PAGE_VISIT_SUFFIX = {"ask.html": "?verify=0"}
+# ask.html and watch.html both call a live backend rather than reading a
+# static file, so a check of the static shell alone would never touch the
+# code that actually answers a question or sets up a watch. This visits each
+# with a query string its own script reads to fire one fixed action
+# automatically, headlessly -- see the comment above `verifyIdx` in ask.html
+# and watch.html.
+PAGE_VISIT_SUFFIX = {"ask.html": "?verify=0", "watch.html": "?verify=0"}
 
 # The site ships no favicon, so every page logs one 404 that means nothing.
 IGNORED_ERRORS = ("favicon.ico",)
@@ -225,9 +226,10 @@ def main():
     httpd, port = serve()
     base = baseline()
     bad = set()
-    # ask.html's live answer is two sequential model calls plus a query --
-    # slower than any static page's fetch, so it gets a longer settle.
-    settle = 8 if "ask.html" in pages else 2.5
+    # ask.html's live answer is two sequential model calls plus a query, and
+    # watch.html's is one model call plus a query -- slower than any static
+    # page's fetch, so both get a longer settle.
+    settle = 8 if ("ask.html" in pages or "watch.html" in pages) else 2.5
     try:
         with Page(settle=settle) as browser:
             for p in pages:
