@@ -8,6 +8,13 @@ Type=simple
 User=root
 WorkingDirectory=/srv/margin
 EnvironmentFile=/etc/margin/env
+# The metered Anthropic key lives in its OWN file, read only by this unit.
+# It must never be in /etc/margin/env: that file is the EnvironmentFile for the
+# three agent loops, and Claude Code prefers ANTHROPIC_API_KEY over the
+# subscription token whenever it is set -- so putting it there silently moved
+# every builder, reviewer and product pass onto metered API billing and drained
+# the credit balance in twenty minutes.
+EnvironmentFile=/etc/margin/ask.env
 ExecStart=/usr/bin/python3 /srv/margin/tools/serve.py
 Restart=always
 RestartSec=30
