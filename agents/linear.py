@@ -12,6 +12,7 @@ Every command is deterministic and prints plain text, so a role file can say
     python3 agents/linear.py say SEB-6 builder "what I did, in plain language"
     python3 agents/linear.py label SEB-6 blocked
     python3 agents/linear.py unlabel SEB-6 blocked
+    python3 agents/linear.py respec SEB-7 --body-file spec.md
     python3 agents/linear.py new "title" --body-file spec.md --label commission
     python3 agents/linear.py doc "Digest 2026-09-11" --body-file digest.md
     python3 agents/linear.py issues                # everything in the project
@@ -228,6 +229,23 @@ def cmd_new(a):
     print("%s %s" % (i["identifier"], i["url"]))
 
 
+def cmd_respec(a):
+    """Replace an issue's description.
+
+    The body is the contract -- a comment cannot override it, and an agent that
+    follows a stale body over a fresh comment is behaving correctly. So when
+    the spec changes, change the spec.
+    """
+    i = find(a.ident)
+    body = open(a.body_file).read() if a.body_file else (a.body or "")
+    if not body.strip():
+        sys.exit("refusing to blank an issue description")
+    call("""mutation($id: String!, $d: String!) {
+      issueUpdate(id: $id, input: { description: $d }) { success }
+    }""", {"id": i["id"], "d": body})
+    print("rewrote the spec on %s" % i["identifier"])
+
+
 def cmd_doc(a):
     body = open(a.body_file).read() if a.body_file else (a.body or "")
     r = call("""mutation($i: DocumentCreateInput!) {
@@ -266,6 +284,8 @@ def main():
     x = s.add_parser("new"); x.add_argument("title"); x.add_argument("--body")
     x.add_argument("--body-file"); x.add_argument("--label", action="append")
     x.add_argument("--priority", type=int, default=3); x.set_defaults(fn=cmd_new)
+    x = s.add_parser("respec"); x.add_argument("ident"); x.add_argument("--body")
+    x.add_argument("--body-file"); x.set_defaults(fn=cmd_respec)
     x = s.add_parser("doc"); x.add_argument("title"); x.add_argument("--body")
     x.add_argument("--body-file"); x.set_defaults(fn=cmd_doc)
 
