@@ -125,6 +125,8 @@ def evidence_words(cls, n):
         return f"{n} broker quote" + ("" if n == 1 else "s")
     if cls == "p2p_buy_median":
         return f"{n} person selling" if n == 1 else f"{n} people selling"
+    if cls == "p2p_fallback":
+        return "an independent price check"
     return "no evidence this hour"
 
 
@@ -134,6 +136,7 @@ CLASS_WORDS = {
     "broker_median": "from broker quotes",
     "broker_single": "from a broker quote",
     "p2p_buy_median": "from person-to-person ads",
+    "p2p_fallback": "from an independent price source",
 }
 
 
@@ -377,13 +380,31 @@ def latest_by_ccy():
                 if sell:
                     entry["round_trip_pct"] = round((price / sell - 1) * 100, 4)
             else:
-                # Not a filtered market: the hour is recorded, with the reason,
-                # and the country page prints it.
-                entry.update(source_class=None, source_words="no price this hour",
-                             n_sources=0, no_value_reason=fails)
-                if sell is not None and price is not None:
-                    entry["round_trip_pct"] = round((price / sell - 1) * 100, 4)
-                    entry["withheld_buy_price"] = price
+                # A second, independent row for this hour (SEB-8: today only
+                # NGN's collector ever writes one, on the hours its own board
+                # has no ads at all) stands in for the withheld ad-board price.
+                fb = next((x for x in pr if x is not r and flag(x, "source_ok")
+                           and num(x, "mid") is not None), None)
+                if fb is not None:
+                    fb_price = num(fb, "mid")
+                    fx = fx if fx else num(fb, "fx_mid_per_usd")
+                    entry.update(
+                        source_class="p2p_fallback",
+                        source_words=CLASS_WORDS["p2p_fallback"],
+                        n_sources=1, buy_price=fb_price,
+                        fx_mid_per_usd=fx, index_pct=index_pct(fb_price, fx),
+                        venues=[{"venue": fb.get("source"), "buy_price": fb_price,
+                                 "index_pct": index_pct(fb_price, fx),
+                                 "last_price_used": False}],
+                    )
+                else:
+                    # Not a filtered market: the hour is recorded, with the
+                    # reason, and the country page prints it.
+                    entry.update(source_class=None, source_words="no price this hour",
+                                 n_sources=0, no_value_reason=fails)
+                    if sell is not None and price is not None:
+                        entry["round_trip_pct"] = round((price / sell - 1) * 100, 4)
+                        entry["withheld_buy_price"] = price
 
         entry["denominator"] = {
             "source": fx_source,
