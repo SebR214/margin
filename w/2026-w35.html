@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — the week of 24 August 2026 to 30 August 2026</title>
+<meta name="description" content="What it cost to buy a dollar, by country, median across every hour of this week. Frozen once the week ended -- these numbers do not move."/>
+<link rel="stylesheet" href="../vendor/fonts/fonts.css"/>
+<style>
+  :root{
+    --bg:#f3f2f2; --ink:#201e1d; --muted:#7d7979;
+    --line:color-mix(in srgb,#201e1d 18%,transparent);
+    --rule:color-mix(in srgb,#201e1d 40%,transparent);
+    --fill:#d2d9f7; --deep:#8b9ae8;
+    --head:"Archivo",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--head);
+       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:0 24px 64px}
+  header{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--rule);
+         font-size:11px;letter-spacing:.1em;text-transform:uppercase;flex-wrap:wrap}
+  header a{color:var(--ink);text-decoration:none}
+  header a:hover{text-decoration:underline}
+  h1{font-size:34px;line-height:1.1;margin:34px 0 8px;max-width:26ch}
+  .lede{font-size:16px;max-width:64ch;margin:0 0 22px;color:var(--muted)}
+  .muted{color:var(--muted)} .small{font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:18px 0}
+  th{text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+     color:var(--muted);font-weight:400;padding:10px 0 6px}
+  td{padding:8px 0;border-top:1px solid var(--line)}
+  td.n{text-align:right;font-family:var(--head);font-weight:800}
+  .empty{padding:26px 0;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="../index.html"><b>margin.wiki</b></a>
+    <a href="../index.html">the board</a>
+    <a href="../weekly.html">← every week</a>
+    <a href="../methodology.html">methodology</a>
+    <span class="muted" id="stamp"></span>
+  </header>
+  <h1>The week of 24 August 2026 to 30 August 2026.</h1>
+  <p class="lede">One figure per country: the median of every hour that country
+     cleared this week, so a single dislocated hour cannot carry the week. This
+     page is frozen -- once written it is never recomputed, even if the source
+     files change later.</p>
+  <div id="list"></div>
+  <p class="small muted">Every figure is read from
+     <a href="../data/weekly/2026-W35.json">data/weekly/2026-W35.json</a>, written
+     once when the week ended and never rewritten.</p>
+</div>
+<script>
+const WEEK = "2026-W35";
+const words = v => v == null || !isFinite(v) ? "—"
+  : Math.abs(v).toFixed(Math.abs(v) >= 10 ? 1 : 2) + "%" + (v >= 0 ? " more" : " less");
+fetch("../data/weekly/" + WEEK + ".json", {cache:"no-store"})
+  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+  .then(render)
+  .catch(e => {
+    document.getElementById("list").innerHTML =
+      '<div class="empty">No data available for this week ('
+      + e.message + ').</div>';
+  });
+function render(d){
+  document.getElementById("stamp").textContent =
+    d.countries.length + " countries · frozen";
+  if(!d.countries.length){
+    document.getElementById("list").innerHTML =
+      '<div class="empty">No country cleared the evidence rule this week.</div>';
+    return;
+  }
+  document.getElementById("list").innerHTML = `
+    <table>
+      <tr><th>Country</th><th>Dollar cost this week</th><th>Hours counted</th></tr>
+      ${d.countries.map(c => `
+        <tr>
+          <td>${c.country}</td>
+          <td class="n">${words(c.index_pct)} than the official rate</td>
+          <td class="n">${c.n}</td>
+        </tr>`).join("")}
+    </table>`;
+}
+</script>
+</body>
+</html>

@@ -49,6 +49,7 @@
     <a href="./providers.html">every way to send it</a>
     <a href="./pricing-history.html">price changes</a>
     <a href="./corridor.html">sending money</a>
+    <a href="./weekly.html">weekly snapshot</a>
     <a href="./requests.html">requests</a>
     <a href="./calculator.html">calculator</a>
     <a href="./methodology.html">methodology</a>
@@ -67,9 +68,17 @@
 <script>
 let DATA = null;
 
-fetch("./data/price_changes_latest.json", {cache:"no-store"})
-  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
-  .then(d => { DATA = d; render(); })
+const get = p => fetch(p, {cache:"no-store"}).then(r => { if(!r.ok) throw new Error(p + " " + r.status); return r.json(); });
+// Every layer past the first is optional at the fetch level -- a finder whose
+// file did not load just returns null, and the rest of the page still shows.
+const opt = p => get(p).catch(() => null);
+
+Promise.all([get("./data/price_changes_latest.json"), opt("./data/providers_latest.json")])
+  .then(([changes, providers]) => {
+    DATA = changes;
+    DATA.providers = providers;
+    render();
+  })
   .catch(e => {
     document.getElementById("list").innerHTML =
       '<div class="empty">No findings available -- data/price_changes_latest.json '
@@ -119,13 +128,92 @@ function weekendFinding(DATA){
     headline: `${top} charges more at the weekend.`,
     body: `Its price rises on a Saturday and comes back down on the Monday. `
         + `It has done that by ${legs.join("; and by ")}. ${also}`,
+    sourceHref: "./pricing-history.html", sourceLabel: "See the full price record",
+  };
+}
+
+// A second finding: a company that quotes its own rate directly sometimes
+// charges nothing up to a point, then adds a fee -- while its own exchange
+// rate never moves between sizes. Recomputed from data/providers_latest.json
+// every time this page loads, so a provider that has since dropped the free
+// tier stops appearing on its own.
+function flatFeeFinding(DATA){
+  const corridors = (DATA.providers && DATA.providers.corridors) || {};
+  const byProvider = {};
+
+  for (const route of Object.values(corridors)) {
+    const points = {};
+    for (const [amount, sizeData] of Object.entries(route.sizes || {})) {
+      for (const row of sizeData.rows || []) {
+        // Only a company's own quote proves this -- the comparison feed
+        // reports a total cost, never a fee, so it cannot show the jump.
+        if (row.source !== "own" || row.fee == null) continue;
+        (points[row.provider] = points[row.provider] || []).push({
+          amount: Number(amount), amountWords: sizeData.amount_words,
+          fee: row.fee, rate: row.rate,
+        });
+      }
+    }
+    for (const [provider, pts] of Object.entries(points)) {
+      if (pts.length < 2) continue;
+      pts.sort((a, b) => a.amount - b.amount);
+      const free = pts.filter(p => p.fee === 0);
+      const charged = pts.filter(p => p.fee > 0);
+      if (!free.length || !charged.length) continue;
+      const cutoff = free[free.length - 1], firstCharged = charged[0];
+      if (firstCharged.amount <= cutoff.amount) continue;
+      // Its own rate has to be identical at every size measured, or the
+      // jump could be the rate moving rather than a fee appearing.
+      if (new Set(pts.map(p => p.rate)).size !== 1) continue;
+      const feePcts = charged.map(p => p.fee / p.amount * 100);
+      (byProvider[provider] = byProvider[provider] || []).push({
+        routeWords: route.route_words, cutoffWords: cutoff.amountWords,
+        firstChargedWords: firstCharged.amountWords,
+        feeLow: Math.min(...feePcts), feeHigh: Math.max(...feePcts),
+      });
+    }
+  }
+
+  const providers = Object.keys(byProvider);
+  if (!providers.length) return null;
+
+  // Same tie-break as the weekend finder: whichever company shows the
+  // pattern on the most routes leads the sentence.
+  providers.sort((a, b) => byProvider[b].length - byProvider[a].length);
+  const top = providers[0];
+  const legs = byProvider[top];
+
+  // Denominator is every route where this company quotes itself directly --
+  // not just the routes where the pattern happens to show up.
+  const testable = Object.values(corridors).filter(route =>
+    Object.values(route.sizes || {}).some(sd =>
+      (sd.rows || []).some(r => r.provider === top && r.source === "own"))).length;
+
+  const legWords = legs.map(l => {
+    const feeWords = l.feeLow === l.feeHigh
+      ? l.feeLow.toFixed(2) + "%"
+      : l.feeLow.toFixed(2) + "% to " + l.feeHigh.toFixed(2) + "%";
+    return `on ${l.routeWords}, free up to ${l.cutoffWords} and ${feeWords} of `
+         + `the amount from ${l.firstChargedWords} up`;
+  });
+
+  const asOf = ((DATA.providers && DATA.providers.as_of_utc) || "").slice(0, 10);
+  return {
+    sortKey: asOf,
+    tag: "pricing schedule" + (asOf ? " · confirmed " + asOf : ""),
+    headline: `${top} is free up to a point, then adds a fee.`,
+    body: `Its own exchange rate does not move between sizes -- only the fee `
+        + `does. Confirmed ${legWords.join("; and ")}, on ${legs.length} of `
+        + `the ${testable} route${testable === 1 ? "" : "s"} ${top} quotes `
+        + `directly.`,
+    sourceHref: "./providers.html", sourceLabel: "See every way to send it",
   };
 }
 
 // Add a finder here to add a finding. Each finder reads DATA and returns
 // either null (the pattern it looks for isn't there) or a finding with a
 // sortKey to order it against the rest.
-const FINDERS = [weekendFinding];
+const FINDERS = [weekendFinding, flatFeeFinding];
 
 function render(){
   const days = [...new Set((DATA.changes || []).map(r => r.day))].sort();
@@ -146,7 +234,7 @@ function render(){
         <div class="tag">${f.tag}</div>
         <h2>${f.headline}</h2>
         <p class="body">${f.body}</p>
-        <p class="small"><a href="./pricing-history.html">See the full price record &rarr;</a></p>
+        <p class="small"><a href="${f.sourceHref}">${f.sourceLabel} &rarr;</a></p>
       </article>`).join("");
 }
 </script>
