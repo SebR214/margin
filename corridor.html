@@ -98,6 +98,12 @@
   <div class="verdict" id="verdict"></div>
 
   <div class="card">
+    <h2>Room to sell before the price moves</h2>
+    <p class="cap" id="depthCap"></p>
+    <div class="nums" id="depthNums" style="grid-template-columns:repeat(2,1fr)"></div>
+  </div>
+
+  <div class="card">
     <h2>Where the cost goes <span id="wf-size" style="color:var(--faint);font-weight:400"></span></h2>
     <p class="cap">Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the cheapest ordinary provider, same second.</p>
     <svg class="wf" id="wf" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet"></svg>
@@ -144,6 +150,10 @@ const pct=(b,signed)=>{
 let srcCcy="SGD";
 const sym=()=>(srcCcy==="SGD"?"S$":srcCcy==="USD"?"US$":srcCcy+" ");
 const money=n=>sym()+(+n).toLocaleString();
+// Same symbol convention as sym(), for whichever currency the money lands in
+// rather than the one it was sent in -- there is only ever this one mapping.
+const symIn=c=>(c==="SGD"?"S$":c==="USD"?"US$":c+" ");
+const moneyIn=(c,n)=>(n===null||n===undefined||!isFinite(n))?"—":symIn(c)+Math.round(n).toLocaleString("en-US");
 // What a cost quoted as a share of the amount actually comes to, in money,
 // rounded to the cent. Differences are taken between ROUNDED values -- see
 // cashDiff -- so that the numbers on the page add up to each other. Computing
@@ -303,6 +313,29 @@ function renderSizes(){
 
 function netBps(r){ return (+r.network_fee_stable)/((+r.notional_src)/(+r.onramp_vwap))*1e4; }
 
+// How much the selling side of the route could take right now, in the
+// destination currency rather than a raw coin count. Same run, same row as
+// everything else on the page; both figures convert at the one live price
+// that exchange is actually quoting for this leg (offramp_vwap), not the
+// separate official cross-rate used nowhere else on this page. This has
+// nothing to do with the send-amount pills above -- it is what the market
+// could absorb from anyone selling, not what the reader is sending.
+function renderDepth(r){
+  const dst=dstOf(r), venue=r.offramp_venue||"the exchange", rate=+r.offramp_vwap;
+  const top=+r.offramp_depth_top_level, within1=+r.offramp_depth_1pct;
+  const okTop=r.offramp_depth_top_level!==undefined&&r.offramp_depth_top_level!==""&&isFinite(top)&&isFinite(rate);
+  const ok1=r.offramp_depth_1pct!==undefined&&r.offramp_depth_1pct!==""&&isFinite(within1)&&isFinite(rate);
+  document.getElementById("depthCap").textContent=
+    `How much money could be sold into ${dst} right now on ${venue}, the exchange that turns it into local currency, before the price moves. Separate from the send amount above.`;
+  document.getElementById("depthNums").innerHTML=`
+    <div class="num"><div class="n-l">At today's best price</div>
+      <div class="n-v">${okTop?moneyIn(dst,top*rate):"—"}</div>
+      <div class="n-s">room to sell before the price starts to move against the next seller</div></div>
+    <div class="num"><div class="n-l">Before the price drops 1%</div>
+      <div class="n-v">${ok1?moneyIn(dst,within1*rate):"—"}</div>
+      <div class="n-s">room to sell in total before the price falls a full percent</div></div>`;
+}
+
 function render(){
   const r=bySize[size], t=+r.cost_bps_taker, m=+r.cost_bps_maker, base=+r.baseline_cost_bps;
   const cw=t<base, mw=m<base;
@@ -323,6 +356,7 @@ function render(){
     `<div class="split"><span>the blockchain: <b>${cash(size,rail)}</b></span><span>what the two exchanges charge: <b>${cash(size,doors)}</b></span></div>`;
   document.getElementById("wf-size").textContent="· "+money(size);
   document.getElementById("hist-size").textContent="· "+money(size);
+  renderDepth(r);
   drawWaterfall(r); drawLadder(); drawHistory();
 }
 
