@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
-"""Read-only REST API over data/.
+"""REST API over data/, plus one write: filing a request for new data.
 
 Binds 127.0.0.1:8899 only -- agents/Caddyfile is the only thing meant to be
-reachable from outside this box. Four endpoints, each answering straight from
-a file this repo already writes:
+reachable from outside this box. Five endpoints:
 
-  GET /dollar_cost?country=
-  GET /compare_routes?from=&to=&amount=
-  GET /series?country=&days=
-  GET /query?sql=
+  GET  /dollar_cost?country=
+  GET  /compare_routes?from=&to=&amount=
+  GET  /series?country=&days=
+  GET  /query?sql=
+  POST /request_series   {"description": "..."}
+
+The first four answer straight from a file this repo already writes. The
+last one doesn't touch data/ at all -- it files the request in Linear, where
+the work is managed, and is rate-limited since this endpoint is public and
+unauthenticated.
 
 Stdlib only.
 """
@@ -50,6 +55,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     params.get("country", ""), params.get("days")))
             elif parsed.path == "/query":
                 self._send(200, sc.run_query(params.get("sql", "")))
+            else:
+                self._send(404, {"error": "no such endpoint"})
+        except sc.ServeError as e:
+            self._send(400, {"error": str(e)})
+
+    def do_POST(self):
+        parsed = urllib.parse.urlsplit(self.path)
+        try:
+            if parsed.path == "/request_series":
+                length = int(self.headers.get("Content-Length", 0))
+                raw = self.rfile.read(length) if length else b""
+                try:
+                    payload = json.loads(raw) if raw else {}
+                except ValueError:
+                    raise sc.ServeError("body must be valid JSON")
+                self._send(200, sc.request_series(payload.get("description", "")))
             else:
                 self._send(404, {"error": "no such endpoint"})
         except sc.ServeError as e:
