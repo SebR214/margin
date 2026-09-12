@@ -5,9 +5,10 @@
 api.margin.wiki {
 	encode gzip
 
-	# /ask is served from margin.wiki and calls this host from the browser, so
-	# the read-only API is open by CORS. It exposes only what the site already
-	# publishes, and it is read-only by construction.
+	# /ask and /watch are served from margin.wiki and call this host from the
+	# browser, so the API is open by CORS. Everything here reads data/
+	# read-only; /watch also keeps its own subscriber state under
+	# /var/log/margin, never in the git checkout -- see watch_backend.py.
 	header {
 		Access-Control-Allow-Origin "*"
 		Access-Control-Allow-Methods "GET, POST, OPTIONS"
@@ -22,6 +23,9 @@ api.margin.wiki {
 	}
 	handle /ask* {
 		reverse_proxy 127.0.0.1:8901
+	}
+	handle /watch* {
+		reverse_proxy 127.0.0.1:8902
 	}
 	handle {
 		reverse_proxy 127.0.0.1:8899

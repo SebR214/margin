@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — watch a condition</title>
+<meta name="description" content="State a condition in plain words and get back a link. Add it to any RSS reader and it fills in the moment the condition becomes true."/>
+<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<style>
+  :root{
+    --bg:#f3f2f2; --ink:#201e1d; --muted:#7d7979;
+    --line:color-mix(in srgb,#201e1d 18%,transparent);
+    --rule:color-mix(in srgb,#201e1d 40%,transparent);
+    --fill:#d2d9f7; --deep:#8b9ae8; --bad:#9a3412;
+    --head:"Archivo",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--head);
+       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px 72px}
+  header{display:flex;align-items:center;gap:16px;padding:14px 0;
+         border-bottom:1px solid var(--rule);font-size:11px;
+         letter-spacing:.1em;text-transform:uppercase;flex-wrap:wrap}
+  header a{color:var(--ink);text-decoration:none}
+  header a:hover{text-decoration:underline}
+  h1{font-size:38px;line-height:1.08;margin:34px 0 10px;max-width:24ch}
+  .lede{font-size:16px;max-width:66ch;margin:0 0 22px;color:var(--muted)}
+  .muted{color:var(--muted)} .small{font-size:12px}
+  .askrow{display:flex;gap:8px;margin:22px 0 12px;flex-wrap:wrap}
+  #q{flex:1;min-width:240px;padding:12px 14px;font-size:15px;font-family:inherit;
+     border:1px solid var(--rule);background:#fff;color:var(--ink)}
+  #go{padding:12px 22px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+      background:var(--ink);color:#fff;border:none;cursor:pointer}
+  #go:disabled{opacity:.5;cursor:default}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 28px}
+  .chip{padding:8px 14px;font-size:13px;border:1px solid var(--rule);
+        background:#fff;color:var(--ink);cursor:pointer;text-align:left}
+  .chip:hover{background:var(--fill)}
+  #result{margin-top:12px}
+  .answer{font-size:19px;max-width:66ch;margin:0 0 14px}
+  .bad{color:var(--bad)}
+  #feed{width:100%;padding:10px 12px;font-size:13px;font-family:inherit;
+        border:1px solid var(--rule);background:#fff;color:var(--ink)}
+  details{margin-top:14px}
+  summary{cursor:pointer;font-size:12px;color:var(--muted);letter-spacing:.04em}
+  pre{white-space:pre-wrap;word-break:break-word;font-size:12px;background:#fff;
+      border:1px solid var(--line);padding:12px;margin:8px 0}
+  .cite{font-size:12px;color:var(--muted);margin-top:6px}
+  @media(max-width:720px){h1{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="./index.html"><b>margin.wiki</b></a>
+    <a href="./index.html">the board</a>
+    <a href="./providers.html">every way to send it</a>
+    <a href="./pricing-history.html">price changes</a>
+    <a href="./findings.html">findings</a>
+    <a href="./weekly.html">weekly snapshot</a>
+    <a href="./requests.html">requests</a>
+    <a href="./calculator.html">calculator</a>
+    <a href="./data.html">the data</a>
+    <a href="./ask.html">ask</a>
+    <a href="./methodology.html">methodology</a>
+  </header>
+
+  <h1>Watch for a condition.</h1>
+  <p class="lede">State a condition in plain words, the same way you would
+     ask a question on <a href="./ask.html">Ask</a>. This turns it into a
+     standing check against the same files the rest of this site reads, and
+     hands back a link. Add that link to any RSS reader and an entry appears
+     the moment the condition becomes true -- nothing to sign up for, no
+     email collected.</p>
+
+  <div class="askrow">
+    <input id="q" type="text" maxlength="300"
+           placeholder="e.g. tell me when Argentina's gap goes above 10%"/>
+    <button id="go">watch</button>
+  </div>
+  <div class="chips" id="chips"></div>
+
+  <div id="result"></div>
+</div>
+<script>
+const CONDITIONS = [
+  "Argentina's crypto premium goes above 10%",
+  "the SGD to PHP corridor is cheaper by crypto than by any other provider",
+  "any exchange's stablecoin spread goes above 1%",
+];
+
+const API_BASE = location.hostname.endsWith("margin.wiki")
+  ? "https://api.margin.wiki" : "http://127.0.0.1:8902";
+
+const chipsEl = document.getElementById("chips");
+chipsEl.innerHTML = CONDITIONS.map((c, i) =>
+  `<button class="chip" data-i="${i}">${c}</button>`).join("");
+chipsEl.addEventListener("click", e => {
+  const b = e.target.closest(".chip");
+  if (!b) return;
+  document.getElementById("q").value = CONDITIONS[+b.dataset.i];
+  doWatch(CONDITIONS[+b.dataset.i]);
+});
+
+document.getElementById("go").addEventListener("click", () => {
+  const q = document.getElementById("q").value.trim();
+  if (q) doWatch(q);
+});
+document.getElementById("q").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("go").click();
+});
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function doWatch(condition){
+  const go = document.getElementById("go");
+  go.disabled = true;
+  document.getElementById("result").innerHTML =
+    '<p class="lede">Setting up the watch…</p>';
+  fetch(API_BASE + "/watch", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({condition}),
+  })
+    .then(r => r.json().then(body => ({ok: r.ok, body})))
+    .then(({ok, body}) => {
+      go.disabled = false;
+      if (!ok) {
+        document.getElementById("result").innerHTML =
+          `<p class="answer bad">${escapeHtml(body.error || "could not set up that watch right now")}</p>`;
+        return;
+      }
+      const state = body.currently_true
+        ? "It is true right now, so the first entry will already be waiting."
+        : "It is not true right now -- the feed fills in the moment it is.";
+      document.getElementById("result").innerHTML =
+        `<p class="answer">Watching: ${escapeHtml(body.condition)}</p>`
+        + `<p class="lede">${state} Checked every fifteen minutes.</p>`
+        + `<input id="feed" type="text" readonly value="${escapeHtml(body.feed_url)}" onclick="this.select()"/>`
+        + `<p class="cite">Paste that link into any RSS reader.</p>`
+        + `<details><summary>show the query this checks</summary>`
+        + `<pre>${escapeHtml(body.sql)}</pre></details>`;
+    })
+    .catch(e => {
+      go.disabled = false;
+      document.getElementById("result").innerHTML =
+        `<p class="answer bad">Watch could not be reached (${escapeHtml(e.message)}). Nothing is shown rather than a guess.</p>`;
+    });
+}
+
+// Lets tools/check_page.py exercise one real watch headlessly, the same way
+// ask.html's own verify query string does -- see that script for why this
+// matters, and ask.html for the identical pattern.
+const verifyIdx = new URLSearchParams(location.search).get("verify");
+if (verifyIdx !== null && CONDITIONS[+verifyIdx]) {
+  doWatch(CONDITIONS[+verifyIdx]);
+}
+</script>
+</body>
+</html>
