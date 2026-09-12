@@ -50,7 +50,15 @@ EMPTY_STATES = ("could not be read", "no comparison available",
 # Every page a reader can reach. A new page must be listed here to be covered.
 PAGES = ["index.html", "providers.html", "pricing-history.html",
          "corridor.html", "methodology.html", "status.html", "findings.html",
-         "requests.html", "calculator.html", "weekly.html", "data.html"]
+         "requests.html", "calculator.html", "weekly.html", "data.html",
+         "ask.html"]
+
+# ask.html calls a live backend rather than reading a static file, so a check
+# of its static shell alone would never touch the code that actually answers
+# a question. This visits it with a query string ask.html's own script reads
+# to fire one fixed suggested question automatically, headlessly -- see the
+# comment above `verifyIdx` in ask.html.
+PAGE_VISIT_SUFFIX = {"ask.html": "?verify=0"}
 
 # The site ships no favicon, so every page logs one 404 that means nothing.
 IGNORED_ERRORS = ("favicon.ico",)
@@ -158,7 +166,7 @@ def baseline():
 def check(page, port, browser, base):
     fails = []
     known = base.get(page, {})
-    r = browser.visit(f"http://127.0.0.1:{port}/{page}")
+    r = browser.visit(f"http://127.0.0.1:{port}/{page}{PAGE_VISIT_SUFFIX.get(page, '')}")
     text, low = r.text, r.text.lower()
 
     if not text.strip():
@@ -217,8 +225,11 @@ def main():
     httpd, port = serve()
     base = baseline()
     bad = set()
+    # ask.html's live answer is two sequential model calls plus a query --
+    # slower than any static page's fetch, so it gets a longer settle.
+    settle = 8 if "ask.html" in pages else 2.5
     try:
-        with Page() as browser:
+        with Page(settle=settle) as browser:
             for p in pages:
                 f = check(p, port, browser, base)
                 print(("  FAIL  " if f else "  ok    ") + p)
