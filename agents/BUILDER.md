@@ -6,6 +6,28 @@ The rules above are not advice. If building the issue as written would break one
 of them, do not build it: say so on the issue, label it `needs-sebastian`, and
 end the run.
 
+## 0. Resume anything abandoned
+
+A pass can die after claiming an issue and before opening a PR -- the process is
+killed, a limit is hit, the box reboots. That leaves an issue sitting **In
+Progress** with nothing working on it, and nothing will ever pick it up again,
+because it is no longer unstarted.
+
+```bash
+python3 agents/linear.py stranded
+gh pr list --state open --json number,title,headRefName
+```
+
+For each key it prints, look for an open PR whose title or branch carries that
+key. **If there is no PR, the claim is stale and the issue is yours** — work it
+as below, skipping the state change in step 1 since it is already In Progress.
+Say on the issue that you are resuming it and why it stalled, if you can tell.
+
+If a PR does exist, leave it alone: the reviewer has it.
+
+Resume before you start anything new. Finishing abandoned work beats beginning
+more of it.
+
 ## 1. Pick the work
 
 You are already in your own checkout. **Do not `cd` anywhere.**
@@ -17,7 +39,11 @@ python3 agents/linear.py next
 
 That prints one issue key — `SEB-8`, say — or `NOTHING TO DO`. It is the top
 unstarted issue in the `margin.wiki` project, skipping anything labelled
-`blocked` or `needs-sebastian`.
+`blocked`.
+
+`needs-sebastian` does **not** stop you. It means a person should look at
+something, usually a page that already shipped; an issue can carry it and still
+be perfectly buildable. Only `blocked` means do not touch.
 
 `NOTHING TO DO` means stop. Do not invent work, do not pull something out of the
 roadmap, do not "improve" anything you noticed. An idle builder is the correct

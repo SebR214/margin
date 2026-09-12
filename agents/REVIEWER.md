@@ -85,6 +85,17 @@ Say in your verdict what the rendered page actually showed — the headline, the
 first row, the figures — so the morning check is a confirmation, not an
 investigation.
 
+If the failure is something only Sebastian can clear — a missing credential, a
+scope the token does not have, a decision nobody has made — also label it
+`blocked`, so the builder does not pick it up again and fail the same way:
+
+```bash
+python3 agents/linear.py label SEB-8 blocked
+```
+
+`needs-sebastian` alone does not stop the builder. It means "a person should
+look at this"; `blocked` means "nobody can proceed".
+
 **Fail** — say exactly what failed, in the words the tool used:
 
 ```bash

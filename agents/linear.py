@@ -5,6 +5,7 @@ GitHub holds code and pull requests only.
 Every command is deterministic and prints plain text, so a role file can say
 "run this" instead of describing a GraphQL query.
 
+    python3 agents/linear.py stranded              # claimed but abandoned, resume these first
     python3 agents/linear.py next                  # top unstarted issue, or nothing
     python3 agents/linear.py show SEB-6
     python3 agents/linear.py state SEB-6 "In Progress"
@@ -119,15 +120,33 @@ def cmd_next(_):
     Order is Linear's own: priority first, then the manual position in the
     project. Whatever sits at the top of the Todo column is what gets built.
     """
+    # Only `blocked` stops work. `needs-sebastian` means a person should look
+    # at something -- usually a page that already shipped -- and an issue can
+    # carry it while still being perfectly buildable. Treating the two the same
+    # is what silently emptied the builder's queue overnight.
     todo = [i for i in issues_in_project()
             if i["state"]["type"] == "unstarted"
-            and "blocked" not in [l["name"] for l in i["labels"]["nodes"]]
-            and "needs-sebastian" not in [l["name"] for l in i["labels"]["nodes"]]]
+            and "blocked" not in [l["name"] for l in i["labels"]["nodes"]]]
     if not todo:
         print("NOTHING TO DO")
         return
     todo.sort(key=lambda i: (i["priority"] or 99, i["sortOrder"]))
     print(todo[0]["identifier"])
+
+
+def cmd_stranded(_):
+    """Issues sitting In Progress: a pass claimed them and never finished.
+
+    Nothing else will ever pick these up, because they are no longer unstarted.
+    The builder checks this before looking for new work.
+    """
+    stuck = [i for i in issues_in_project() if i["state"]["type"] == "started"]
+    if not stuck:
+        print("NONE STRANDED")
+        return
+    stuck.sort(key=lambda i: (i["priority"] or 99, i["sortOrder"]))
+    for i in stuck:
+        print(i["identifier"])
 
 
 def cmd_issues(_):
@@ -230,6 +249,7 @@ def main():
     s = p.add_subparsers(dest="cmd", required=True)
 
     s.add_parser("next").set_defaults(fn=cmd_next)
+    s.add_parser("stranded").set_defaults(fn=cmd_stranded)
     s.add_parser("issues").set_defaults(fn=cmd_issues)
     s.add_parser("docs").set_defaults(fn=cmd_docs)
 
