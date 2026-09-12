@@ -90,9 +90,12 @@ can call it.
 
 **Ask (humans).** `/ask` on the site: a question in; a sentence, a chart, a
 table, the SQL, and the source file out. Ten suggested questions, the stress
-signal among them. **The model writes SQL only, never a number.** Behind it, a
-metered API key with a daily spend cap and a per-IP limit — **vendor not
-chosen**, decided when step 2 arrives, not before.
+signal among them. **The model writes SQL only, never a number.** Behind it,
+**the Anthropic API**, decided 2026-09-12: the model's only job here is writing
+SQL, which makes model routing worth little, and it is one fewer account to
+hold. The key is `ANTHROPIC_API_KEY` in `/etc/margin/env`, scoped to the
+Default workspace, and the spend ceiling is the organisation's credit balance
+rather than a per-day setting — top it up deliberately, and it cannot run away.
 
 It must be a key of its own, not the token that runs the agents. That token is
 a personal subscription and the three loops depend on it; one anonymous burst
@@ -128,9 +131,8 @@ true fastest, and everything else is built on its engine.
 
 **2. Ask — `/ask` on the same tools.** Question in; sentence, chart, table,
 SQL and source file out. The model writes SQL only and never writes a number.
-*Needs Sebastian once: a metered API key with a daily spend cap. Which vendor
-is deliberately undecided — do not assume one, and do not start this item
-without asking.*
+*Settled 2026-09-12: the Anthropic API, key already installed on the server as
+`ANTHROPIC_API_KEY`. Nothing further is needed to start this.*
 
 **3. Commission — `request_series` end to end**, plus the public `/requests`
 page. An issue labelled `commission`, sources probed and verified against an
