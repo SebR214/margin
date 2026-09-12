@@ -93,10 +93,19 @@ BAND_HIGH, BAND_LOW = 200.0, -3.0
 # them. Anything outside the bands and not listed here is published on its own
 # page with an "unverified" label and left out of index_latest.json.
 VERIFIED_OUTLIERS = {
-    "SDG": ("2026-09-10", "The board is internally coherent -- buy 7,015-7,100 "
-                          "against sell 6,901-6,960, a 2.9% round trip, every ad on "
-                          "Bank of Khartoum. The figure is the distance from an "
-                          "official rate of 544 that no transaction uses."),
+    "SDG": ("2026-09-12",
+            "The street price stands: about 7,059 SDG to the dollar on the "
+            "person-to-person board, a 1.5% round trip between buying and "
+            "selling, steady for eight days. The denominator underneath it is "
+            "the open question. Sudan's central bank still lists an official "
+            "rate at cbos.gov.sd, but that page has not moved since 7 March "
+            "2022, when it read 445 SDG to the dollar, so there is no current "
+            "government rate to divide by. The 511 we use comes from open.er-api "
+            "and slid 544 -> 512 -> 511 in two days, which reads as an aggregate "
+            "of the rates commercial banks now set for themselves rather than a "
+            "rate the state holds in place. The figure is the distance from that "
+            "bank-set reference; the denominator is not changed to make the "
+            "number smaller."),
 }
 
 # The evidence behind a number, in the words a reader uses. "3 order books"
