@@ -90,6 +90,11 @@ while true; do
     sleep "$ERROR_WAIT"; continue
   fi
 
+  # 200 turns, not 80. Ask (SEB-7) hit the 80-turn ceiling after sixteen minutes
+  # and exited with error_max_turns having committed nothing, which would have
+  # repeated on every pass forever. A truncated pass wastes everything it did,
+  # so a limit set too low costs more than one set too high.
+  #
   # No `set -e` anywhere in this loop, deliberately. An earlier version turned
   # errexit on after this call, and the very next line is a grep that exits 1
   # when it finds no rate-limit message -- which is the normal case. The script
@@ -98,7 +103,7 @@ while true; do
   OUT=$(mktemp)
   claude -p "$(cat "$REPO/agents/RULES.md" "$REPO/agents/${ROLE^^}.md")" \
       --allowedTools Bash,Read,Edit,Write,Glob,Grep \
-      --max-turns 80 \
+      --max-turns 200 \
       --output-format json >"$OUT" 2>>"$LOG"
   CODE=$?
   ELAPSED=$(( $(date +%s) - START ))
