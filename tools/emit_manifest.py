@@ -152,6 +152,20 @@ def build():
     manifest = {"files": files}
     if stamps:
         manifest["as_of_utc"] = max(stamps).isoformat()
+        # SEB-38: computed_at under the uniform name, same value as as_of_utc
+        # above -- the newest row this manifest actually found, not the wall
+        # clock, for the same byte-identical reason as everywhere else here.
+        manifest["computed_at"] = manifest["as_of_utc"]
+    else:
+        manifest["computed_at"] = None
+    # n_sources: how many of the entries above actually hold data, a real
+    # count read back off `files`, never invented. source_file: this manifest
+    # is not one figure drawn from one file -- it is an inventory of every
+    # file under data/, so that directory is the honest single answer.
+    manifest["n_sources"] = sum(
+        1 for e in files
+        if e.get("rows", 0) > 0 or e.get("bytes", 0) > 0 or e.get("file_count", 0) > 0)
+    manifest["source_file"] = "data/"
     return manifest
 
 

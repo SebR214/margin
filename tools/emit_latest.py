@@ -30,6 +30,17 @@ snapshot. The only failure that exits non-zero is being unable to write the
 file -- the one condition that leaves consumers reading a stale snapshot with
 no signal that anything went wrong.
 
+SEB-38: `computed_at`, `n_sources` and `source_file` are added at the top
+level as the uniform provenance receipt. `computed_at` is set to `as_of_utc`,
+not `datetime.now()` -- the issue's literal wording is "the moment the emitter
+ran", but a real wall-clock stamp would change on every fire even when nothing
+was collected, which is exactly the byte-identical property two paragraphs up
+that keeps the commit step's "nothing staged" branch reachable (ROADMAP
+Invariants, "One capture per UTC hour, two fires... do not fix a run that
+commits nothing"). That invariant wins; `computed_at` reads as "the moment the
+underlying data was last true," which is the only clock this file can carry
+without breaking it.
+
 Stdlib only. Usage: python3 tools/emit_latest.py
 """
 
@@ -480,10 +491,22 @@ def build():
 
     if sources:
         snap["sources"] = sorted(set(sources))
+        # SEB-38: n_sources/source_file alongside the existing `sources` list,
+        # under the names the receipt needs -- same value, not a rename.
+        snap["n_sources"] = len(snap["sources"])
+        snap["source_file"] = list(snap["sources"])
+    else:
+        snap["n_sources"] = None
+        snap["n_sources_reason"] = "no source CSV had a usable row this run"
 
     stamp = as_of(snap)
     if stamp is not None:
         snap["as_of_utc"] = stamp
+        # computed_at is as_of_utc under the uniform name: the newest source
+        # row, never the wall clock -- see the module docstring for why.
+        snap["computed_at"] = stamp
+    else:
+        snap["computed_at"] = None
     return snap
 
 
@@ -500,10 +523,22 @@ def build_crosses():
     if pairs:
         snap["pairs"] = pairs
         snap["source"] = "data/basis.csv"
+        # SEB-38: source_file is the uniform name for the same value as
+        # `source` above; n_sources counts the pairs this run actually
+        # computed, since this file's one CSV expands into many figures.
+        snap["source_file"] = snap["source"]
+        snap["n_sources"] = len(pairs)
         stamps = [(parse_ts(v["ts_utc"]), v["ts_utc"]) for v in pairs.values()]
         stamps = [(t, s) for t, s in stamps if t is not None]
         if stamps:
             snap["as_of_utc"] = max(stamps)[1]
+            snap["computed_at"] = snap["as_of_utc"]
+        else:
+            snap["computed_at"] = None
+    else:
+        snap["n_sources"] = None
+        snap["n_sources_reason"] = "no two currencies shared a captured hour this run"
+        snap["computed_at"] = None
     return snap
 
 

@@ -166,7 +166,8 @@ function render(d){
     ["Round trip", pct(d.round_trip_pct),
      "buying then selling again"],
     ["Where it comes from", (d.source_words || "—").replace(/^from /,""),
-     d.n_sources === 1 ? "1 source" : d.n_sources + " sources"],
+     d.n_sources == null ? "no source this hour"
+       : d.n_sources === 1 ? "1 source" : d.n_sources + " sources"],
     ["History since", longDate(d.history_start),
      d.history_days + (d.history_days === 1 ? " day" : " days") + " of readings"],
   ];

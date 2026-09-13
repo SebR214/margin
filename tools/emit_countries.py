@@ -154,6 +154,17 @@ CLASS_WORDS = {
     "p2p_fallback": "from an independent price source",
 }
 
+# SEB-38: the one CSV a country's figure actually came from, repo-relative.
+# The order-book/broker layer and the P2P layer are different files, and an
+# hour with no value still tried the P2P layer last (see latest_by_ccy), so
+# that is the honest attribution for it too.
+SOURCE_FILE_BY_CLASS = {
+    "order_book_median": "data/basis.csv", "order_book_single": "data/basis.csv",
+    "broker_median": "data/basis.csv", "broker_single": "data/basis.csv",
+    "p2p_buy_median": "data/p2p_basis.csv", "p2p_fallback": "data/p2p_basis.csv",
+    None: "data/p2p_basis.csv",
+}
+
 
 # ------------------------------------------------------------- parsing
 def rows(path):
@@ -398,6 +409,10 @@ def latest_by_ccy():
         ph = p2p_hours.get(ccy) or {}
         hour = max(list(bh) + list(ph))
         entry["hour_utc"] = hour.isoformat()
+        # SEB-38: the newest source row behind this country's figure -- not the
+        # wall clock. Kept equal to hour_utc so an unchanged dataset still
+        # regenerates a byte-identical file (see ROADMAP, "nothing staged").
+        entry["computed_at"] = entry["hour_utc"]
 
         venues = [_venue_entry(r) for r in bh.get(hour, [])]
         books = [v for v in venues if v["kind"] == "order_book"]
@@ -421,7 +436,8 @@ def latest_by_ccy():
             price = statistics.median(prices)
             entry.update(
                 source_class=cls, source_words=CLASS_WORDS[cls],
-                n_sources=len(chosen), buy_price=round(price, 8),
+                n_sources=len(chosen), source_file=SOURCE_FILE_BY_CLASS[cls],
+                buy_price=round(price, 8),
                 fx_mid_per_usd=fx, index_pct=index_pct(price, fx),
                 venues=[{"venue": v["venue"], "buy_price": v["buy_price"],
                          "index_pct": index_pct(v["buy_price"], fx),
@@ -461,7 +477,9 @@ def latest_by_ccy():
                 entry.update(
                     source_class="p2p_buy_median",
                     source_words=CLASS_WORDS["p2p_buy_median"],
-                    n_sources=n_buy, buy_price=price,
+                    n_sources=n_buy,
+                    source_file=SOURCE_FILE_BY_CLASS["p2p_buy_median"],
+                    buy_price=price,
                     fx_mid_per_usd=fx, index_pct=index_pct(price, fx),
                     venues=[{"venue": r.get("source"), "buy_price": price,
                              "index_pct": index_pct(price, fx),
@@ -481,7 +499,9 @@ def latest_by_ccy():
                     entry.update(
                         source_class="p2p_fallback",
                         source_words=CLASS_WORDS["p2p_fallback"],
-                        n_sources=1, buy_price=fb_price,
+                        n_sources=1,
+                        source_file=SOURCE_FILE_BY_CLASS["p2p_fallback"],
+                        buy_price=fb_price,
                         fx_mid_per_usd=fx, index_pct=index_pct(fb_price, fx),
                         venues=[{"venue": fb.get("source"), "buy_price": fb_price,
                                  "index_pct": index_pct(fb_price, fx),
@@ -489,9 +509,14 @@ def latest_by_ccy():
                     )
                 else:
                     # Not a filtered market: the hour is recorded, with the
-                    # reason, and the country page prints it.
+                    # reason, and the country page prints it. SEB-38: n_sources
+                    # is null, not zero -- zero would read as "checked and
+                    # found nothing"; null with no_value_reason says "no
+                    # measurement stood behind this hour" instead.
                     entry.update(source_class=None, source_words="no price this hour",
-                                 n_sources=0, no_value_reason=fails)
+                                 n_sources=None,
+                                 source_file=SOURCE_FILE_BY_CLASS[None],
+                                 no_value_reason=fails)
                     if sell is not None and price is not None:
                         entry["round_trip_pct"] = round((price / sell - 1) * 100, 4)
                         entry["withheld_buy_price"] = price
@@ -759,7 +784,8 @@ function render(d){
     ["Round trip", pct(d.round_trip_pct),
      "buying then selling again"],
     ["Where it comes from", (d.source_words || "—").replace(/^from /,""),
-     d.n_sources === 1 ? "1 source" : d.n_sources + " sources"],
+     d.n_sources == null ? "no source this hour"
+       : d.n_sources === 1 ? "1 source" : d.n_sources + " sources"],
     ["History since", longDate(d.history_start),
      d.history_days + (d.history_days === 1 ? " day" : " days") + " of readings"],
   ];
@@ -878,10 +904,14 @@ def build():
         # Rows carry everything the board needs, so the page makes one request
         # rather than 42. `spark` is the last 30 daily points, which is what a
         # sparkline needs and nothing more.
+        # SEB-38: computed_at and source_file ride along with n_sources here --
+        # a country's figure carries different sources and a different hour
+        # than the snapshot as a whole, so each row states its own.
         "countries": [dict(
             {k: f.get(k) for k in
              ("ccy", "country", "index_pct", "round_trip_pct", "source_class",
-              "source_words", "n_sources", "hour_utc", "history_start")},
+              "source_words", "n_sources", "hour_utc", "history_start",
+              "computed_at", "source_file")},
             denominator_class=(f.get("denominator") or {}).get("class"),
             evidence_words=evidence_words(f.get("source_class"), f.get("n_sources")),
             spark=[p["index_pct"] for p in (f.get("history") or [])[-30:]],
@@ -891,7 +921,10 @@ def build():
         "withheld": [{"ccy": f["ccy"], "country": f.get("country"),
                       "reason": reason_words(f.get("no_value_reason")),
                       "reason_raw": f.get("no_value_reason") or "",
-                      "denominator_class": (f.get("denominator") or {}).get("class")}
+                      "denominator_class": (f.get("denominator") or {}).get("class"),
+                      "n_sources": f.get("n_sources"),
+                      "computed_at": f.get("computed_at"),
+                      "source_file": f.get("source_file")}
                      for f in sorted(files.values(), key=lambda x: x["ccy"])
                      if f.get("index_pct") is None],
         "without_value": sorted(f["ccy"] for f in files.values()
@@ -901,9 +934,17 @@ def build():
         "min_buy_ads": MIN_BUY_ADS,
         "sources": ["data/basis.csv", "data/p2p_basis.csv", "data/basis_history.csv"],
     }
+    # SEB-38: the file-as-a-whole's own provenance, distinct from any one
+    # country's row above. n_sources/source_file here describe the snapshot
+    # (how many CSVs feed it), not any single figure.
+    snapshot["n_sources"] = len(snapshot["sources"])
+    snapshot["source_file"] = list(snapshot["sources"])
     stamps = [f.get("hour_utc") for f in files.values() if f.get("hour_utc")]
     if stamps:
         snapshot["as_of_utc"] = max(stamps)
+        snapshot["computed_at"] = snapshot["as_of_utc"]
+    else:
+        snapshot["computed_at"] = None
     return files, snapshot
 
 

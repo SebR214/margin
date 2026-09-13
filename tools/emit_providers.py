@@ -219,9 +219,18 @@ def build():
             "own_quote_hour_utc": own_hour.isoformat() if own_hour else None,
             "sources": ["data/provider_quotes.csv", "data/samples.csv"]
                        + [f"data/{p}" for p in sorted(PANELS.values())]}
+    # SEB-38: n_sources/source_file under the uniform names -- same files as
+    # `sources` above, which is always the same fixed list this tool reads.
+    snap["n_sources"] = len(snap["sources"])
+    snap["source_file"] = list(snap["sources"])
     stamps = [c["panel_hour_utc"] for c in corridors.values() if c["panel_hour_utc"]]
     if stamps:
         snap["as_of_utc"] = max(stamps)
+        snap["computed_at"] = snap["as_of_utc"]
+    else:
+        # No wall clock here either: falling back to own_quote_hour_utc keeps
+        # this a pure function of the data rather than of when it ran.
+        snap["computed_at"] = snap["own_quote_hour_utc"]
     return snap
 
 
