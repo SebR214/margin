@@ -76,9 +76,16 @@ that is a rejection: see step 4, "Nothing usable was named."
 For each candidate, run:
 
 ```bash
+# --reference: use fawazahmed0 if erapi carries no rate for CCY
 python3 tools/probe_source.py --ccy <CCY> --url <candidate> --field <path> \
-  --reference erapi        # or fawazahmed0, if erapi carries no rate for CCY
+  --reference erapi \
+  --request-id SEB-N
 ```
+
+**Always pass `--request-id SEB-N`**, the issue's own key. That is what lets a
+visitor watching the machine room's event stream follow this one attempt --
+without it, the probe still runs exactly the same, but nothing is published to
+that stream (SEB-43/B4).
 
 Read the printed `check` line. It states the candidate's value, the reference
 used, its value, and the percentage difference against the accept bar in

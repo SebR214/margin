@@ -19,10 +19,16 @@ of the collectors, per SEB-42:
                      already written to serve.systemd.log (queries, SQL,
                      model token counts, watch conditions) is read and
                      discarded without being parsed for fields.
-  commission_step   B4 (SEB-43) is what will produce these; it has not
-                     shipped, so this kind is wired into the protocol and
-                     never fires. That is a stated gap, not a fabricated one
-                     -- see the SEB-42 PR.
+  commission_step   one per step of a commission's source probe -- probing a
+                     source, the status that came back, and the final
+                     verdict -- keyed by the Linear issue id (`request_id`)
+                     so a visitor can follow one request's thread. Produced
+                     by serve_common.log_commission_step, called from
+                     tools/probe_source.py as agents/COMMISSION.md runs it
+                     (SEB-43/B4). One `commission_step {...}` line of JSON
+                     per step, tailed the same way `call` events are, from a
+                     separate log file since the commission role runs from
+                     its own checkout, not this process.
 
 Capped at MAX_CONNECTIONS concurrent streams -- a code-enforced ceiling, not
 a load-tested one; see the PR for the arithmetic behind the number. Past the
@@ -45,6 +51,8 @@ DATA = os.path.join(ROOT, "data")
 AGENT_STATUS_PATH = os.path.join(DATA, "agent_status.json")
 CALL_LOG_PATH = os.environ.get(
     "SERVE_EVENTS_LOG_PATH", "/var/log/margin/serve.systemd.log")
+COMMISSION_LOG_PATH = os.environ.get(
+    "COMMISSION_EVENTS_LOG_PATH", "/var/log/margin/commission.systemd.log")
 
 HOST, PORT = "127.0.0.1", 8903
 
@@ -109,27 +117,60 @@ def _parse_call_event(line):
     }
 
 
-def _call_events(state):
-    """Yield one `call` event per new `call_event tool=... country=...` line.
+def _tail_new_lines(path, state):
+    """Yield each line appended to `path` since the last call.
 
     `state` carries the file's inode and the byte offset already read, so a
     rotated log (Caddy and systemd both roll files) is noticed -- the offset
     resets to zero rather than seeking past the end of a now-smaller file.
+    Shared by every event kind that comes from tailing a log file.
     """
     try:
-        st = os.stat(CALL_LOG_PATH)
+        st = os.stat(path)
     except OSError:
         return
     if state.get("inode") != st.st_ino or state.get("offset", 0) > st.st_size:
         state["inode"] = st.st_ino
         state["offset"] = 0
-    with open(CALL_LOG_PATH) as f:
+    with open(path) as f:
         f.seek(state.get("offset", 0))
         for line in f:
-            event = _parse_call_event(line)
-            if event is not None:
-                yield event
+            yield line
         state["offset"] = f.tell()
+
+
+def _call_events(state):
+    """Yield one `call` event per new `call_event tool=... country=...` line."""
+    for line in _tail_new_lines(CALL_LOG_PATH, state):
+        event = _parse_call_event(line)
+        if event is not None:
+            yield event
+
+
+def _parse_commission_step_event(line):
+    if not line.startswith("commission_step "):
+        return None
+    try:
+        record = json.loads(line[len("commission_step "):])
+    except ValueError:
+        return None
+    if record.get("kind") != "commission_step" or not record.get("request_id"):
+        return None
+    return record
+
+
+def _commission_step_events(state):
+    """Yield one `commission_step` event per new line probe_source.py wrote.
+
+    Unlike the call tail, this is one JSON object per line rather than
+    space-separated `k=v` pairs -- a probe's `check` line and a rejection
+    reason are free text that can contain spaces, which the `k=v` shape
+    would silently truncate.
+    """
+    for line in _tail_new_lines(COMMISSION_LOG_PATH, state):
+        event = _parse_commission_step_event(line)
+        if event is not None:
+            yield event
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -172,10 +213,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         seen_sources = {}
         call_state = {}
+        commission_state = {}
         while True:
             for event in _collection_pass_events(seen_sources):
                 self._send_event(event)
             for event in _call_events(call_state):
+                self._send_event(event)
+            for event in _commission_step_events(commission_state):
                 self._send_event(event)
             time.sleep(POLL_SECONDS)
 

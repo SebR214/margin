@@ -280,6 +280,44 @@ def log_call_event(tool, country=None):
     )
 
 
+COMMISSION_EVENTS_LOG_PATH = os.environ.get(
+    "COMMISSION_EVENTS_LOG_PATH", "/var/log/margin/commission.systemd.log")
+
+
+def log_commission_step(request_id, step, **fields):
+    """One probe step for SEB-43/B4, appended to the log serve_events.py
+    tails and turns into a `commission_step` event.
+
+    Unlike log_call_event, this cannot rely on being run inside a supervised
+    service whose stdout systemd already redirects to a log file --
+    tools/probe_source.py is a one-shot script the commission role runs from
+    its own checkout, not a daemon. So this opens and appends to the log
+    file directly.
+
+    The line is one JSON object, not the space-separated `k=v` shape
+    log_call_event uses: a probe's `check` line and a rejection reason are
+    free text that can contain spaces and punctuation, and splitting on
+    spaces the way _parse_call_event does would silently truncate them.
+
+    A write failure here is a broken observability channel, not a broken
+    probe -- probe_source.py's actual verdict still reaches Linear either
+    way (agents/COMMISSION.md posts it directly), so this warns on stderr
+    and continues rather than raising.
+    """
+    record = {"kind": "commission_step", "request_id": request_id, "step": step}
+    record.update(fields)
+    line = "commission_step " + json.dumps(record, sort_keys=True)
+    try:
+        with open(COMMISSION_EVENTS_LOG_PATH, "a") as f:
+            f.write(line + "\n")
+    except OSError as e:
+        print(
+            "log_commission_step: could not write to %s: %s"
+            % (COMMISSION_EVENTS_LOG_PATH, e),
+            file=sys.stderr,
+        )
+
+
 def run_query(sql, question=None):
     """Run one read-only SELECT over the raw CSVs, capped at MAX_QUERY_ROWS.
 
