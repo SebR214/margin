@@ -1181,8 +1181,9 @@ class Component extends DCLogic {
       opt("./data/providers.csv"), opt("./data/providers_usdmxn.csv"),
       opt("./data/providers_audphp.csv"), opt("./data/providers_nzdphp.csv"),
       opt("./data/fee_checks.csv"), opt("./data/fee_tiers.csv"),
+      opt("./data/withdrawal_fees.csv"),
       opt("./data/crosses_latest.json"), opt("./data/index_latest.json"),
-    ]).then(([b, h, s, p1, p2, p3, p4, fc, ft, cx, ix]) => {
+    ]).then(([b, h, s, p1, p2, p3, p4, fc, ft, wf, cx, ix]) => {
       // A missing or unparseable crosses file means the table renders its empty
       // state. It must never take the rest of the page down with it.
       let crosses = null;
@@ -1196,7 +1197,7 @@ class Component extends DCLogic {
         basis: parseCSV(b), hist: parseCSV(h), samples: parseCSV(s),
         panels: { "SGD->PHP": parseCSV(p1), "USD->MXN": parseCSV(p2),
                   "AUD->PHP": parseCSV(p3), "NZD->PHP": parseCSV(p4) },
-        feeChecks: parseCSV(fc), tiers: parseCSV(ft), crosses, index,
+        feeChecks: parseCSV(fc), tiers: parseCSV(ft), withdrawalFees: parseCSV(wf), crosses, index,
       }});
     }).catch(e => this.setState({ err: String(e.message || e) }));
   }
@@ -1958,13 +1959,29 @@ class Component extends DCLogic {
     const runs = {};
     D.feeChecks.forEach(r => { if (r.ts_utc) (runs[r.ts_utc] = runs[r.ts_utc] || []).push(r); });
     const runStamps = Object.keys(runs).sort();
+    // The network leg (data/withdrawal_fees.csv) is keyed by venue and runs on
+    // its own schedule -- only a failure on THIS corridor's sending venue can
+    // make this corridor's number unverified.
+    const wruns = {};
+    D.withdrawalFees.forEach(r => { if (r.ts_utc) (wruns[r.ts_utc] = wruns[r.ts_utc] || []).push(r); });
+    const wStamps = Object.keys(wruns).sort();
+    const onVenue = ((cLad && cLad.raw[0] && cLad.raw[0].onramp_venue) || "").trim().toLowerCase();
     let feeStamp = "";
-    if (runStamps.length) {
+    if (runStamps.length || wStamps.length) {
       const latest = runStamps[runStamps.length - 1];
       const clean = runStamps.filter(t => runs[t].every(r => (r.status || "").trim() === "ok"));
-      feeStamp = runs[latest].some(r => (r.status || "").trim() !== "ok")
-        ? "fees UNVERIFIED — last clean check " + (clean.length ? clean[clean.length - 1].slice(0, 10) : "none on record")
-        : "fees verified " + (cLad ? cLad.verified : clean[clean.length - 1].slice(0, 10));
+      const lastClean = clean.length ? clean[clean.length - 1] : null;
+      const tradeBad = latest && runs[latest].some(r => (r.status || "").trim() !== "ok");
+      const wLatest = wStamps[wStamps.length - 1];
+      const withdrawBad = Boolean(onVenue) && wLatest && wruns[wLatest]
+        .some(r => (r.venue || "").trim().toLowerCase() === onVenue && (r.source_ok || "").trim() !== "True");
+      if (tradeBad || withdrawBad) {
+        const reason = tradeBad && withdrawBad ? "trading and network fees"
+          : withdrawBad ? "network fee" : "trading fees";
+        feeStamp = "fees UNVERIFIED (" + reason + ") — last clean check " + (lastClean ? lastClean.slice(0, 10) : "none on record");
+      } else {
+        feeStamp = "fees verified " + (cLad ? cLad.verified : (lastClean ? lastClean.slice(0, 10) : "—"));
+      }
     }
 
     // ---- crossover: binds to data/fee_tiers.csv, empty until it exists ----

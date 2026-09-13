@@ -38,11 +38,19 @@ jobs:
         # always(): a mismatch is exactly the run whose evidence must survive.
         # The job still reports the failure -- this step preserves the row, it
         # does not rescue the result.
+        #
+        # Both files, always together: check_fees.py writes fee_checks.csv AND
+        # withdrawal_fees.csv in the same run. Staging only the first left the
+        # second modified-but-uncommitted, which made `git pull --rebase` below
+        # refuse to run ("You have unstaged changes") and abort the whole step
+        # -- discarding the commit that had just been made, on an ephemeral
+        # runner, with nothing left to retry. That is exactly how the 2026-09-01
+        # run lost its evidence (SEB-36).
         if: always()
         run: |
           git config user.name "margin-collector"
           git config user.email "actions@github.com"
-          git add data/fee_checks.csv
+          git add data/fee_checks.csv data/withdrawal_fees.csv
           if git diff --cached --quiet; then
             echo "nothing staged -- fee check wrote no new rows"
             exit 0
