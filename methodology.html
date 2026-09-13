@@ -126,8 +126,23 @@ function render(md){
   return h;
 }
 
-fetch("./METHODOLOGY.md").then(r=>r.text()).then(t=>{
-  document.getElementById("doc").innerHTML=render(t);
+const pct=v=>v==null||!isFinite(v)?"—":(v>=0?"+":"−")+Math.abs(v).toFixed(2)+"%";
+
+// The stable-spread section cites a live number, so it is a fetch of a
+// data/ file at render time, same as every other figure on the site --
+// never a number typed into this prose.
+Promise.all([
+  fetch("./METHODOLOGY.md").then(r=>r.text()),
+  fetch("./data/stable_spread_summary.json").then(r=>r.ok?r.json():null).catch(()=>null),
+]).then(([t, summary])=>{
+  let html=render(t);
+  const live=summary
+    ? `<p>Right now: ${summary.venues} venues report both prices, the current spread `
+      +`between them runs from ${pct(summary.range_pct.low)} to ${pct(summary.range_pct.high)}, `
+      +`and the widest reading is ${pct(summary.widest_pct)} on ${summary.widest_venue} `
+      +`(${summary.widest_ccy}), as of ${summary.as_of.replace("T"," ").slice(0,16)} UTC.</p>`
+    : `<p class="loading">Live spread numbers could not be read from data/stable_spread_summary.json.</p>`;
+  document.getElementById("doc").innerHTML=html.replace("<p>__STABLE_SPREAD_LIVE__</p>", live);
 }).catch(e=>{
   document.getElementById("doc").innerHTML=`<p class="loading">Couldn't load METHODOLOGY.md — read it <a href="./METHODOLOGY.md">directly</a>.</p>`;
   console.error(e);

@@ -920,9 +920,16 @@ Own file, own frozen schema. `basis.csv` carries one price per row; a second
 stablecoin would mean either a new column on a frozen schema or a second row
 that reads as a second venue.
 
-**Nothing is on the site yet, by design.** Seven days of rows first. A
-single-figure basis-point difference between two stablecoins is inside the noise
-of any one hour, and a week is the minimum needed to tell a spread from a print.
+**Now on the site.** Seven days of rows was the bar (a single-figure difference
+between two stablecoins is inside the noise of any one hour); the file now
+holds well over that. `tools/emit_countries.py` carries the most recent
+reading for a country's own venues onto its page as `instrument_check`, keyed
+strictly by (currency, venue) — a country never inherits another country's
+reading. Below a 0.5% gap the page says nothing, since that is inside the noise
+this file exists to measure; above it, the country's page says in plain
+language that the dollar itself is trading off, and names the venue.
+
+__STABLE_SPREAD_LIVE__
 
 ## Historical basis (the long-range history line)
 
