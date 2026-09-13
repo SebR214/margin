@@ -279,6 +279,14 @@ def main():
                        "fee_stale_hours": FEE_STALE_HOURS,
                        "big_move_pt": BIG_MOVE_PT,
                        "fx_explains_pct": FX_EXPLAINS_PCT},
+        # SEB-38: computed_at is as_of_utc under the uniform name -- the
+        # newest sample row, not the wall clock this script happened to run
+        # at. n_sources is how many collectors this status is actually
+        # tracking; source_file is which CSVs they are, read back off what
+        # `sources()` found rather than the static file list it started from.
+        "computed_at": newest or None,
+        "n_sources": len(src) or None,
+        "source_file": sorted({"data/" + s["file"] for s in src}) or None,
     }
     with open(OUT, "w") as f:
         json.dump(payload, f, indent=1)

@@ -310,6 +310,16 @@ def main():
         r["amount_words"] = money(r["corridor"], r["size"])
         r["day"] = r["ts_utc"][:10]
         r["weekday"] = dt.date.fromisoformat(r["day"]).strftime("%A")
+        # SEB-38: this event's own provenance -- the panel that confirmed it
+        # (n_agree/n_panel already say this; n_sources is the uniform name for
+        # n_panel, the size of the panel the move was tested against), the day
+        # it was confirmed (ts_utc, already the row's own clock), and which
+        # panel file it came from.
+        r["computed_at"] = r["ts_utc"]
+        n_panel = num(r["n_panel"])
+        r["n_sources"] = int(n_panel) if n_panel is not None else None
+        r["source_file"] = ("data/" + PANELS[r["corridor"]]
+                             if r["corridor"] in PANELS else None)
     allrows.sort(key=lambda r: (r["day"], r["corridor"], float(r["size"])),
                  reverse=True)
     saturdays = {}
@@ -321,18 +331,27 @@ def main():
         saturdays[corridor] = sum(
             1 for d in days if dt.date.fromisoformat(d).weekday() == 5)
 
+    routes = {c: ROUTE_WORDS[c] for c in PANELS
+              if any(r["corridor"] == c for r in allrows)}
     payload = {
         "index_version": "1.1",
         "saturdays_judged": saturdays,
         "threshold_pct": THRESHOLD_PCT,
         "min_readings": MIN_READINGS,
-        "routes": {c: ROUTE_WORDS[c] for c in PANELS
-                   if any(r["corridor"] == c for r in allrows)},
+        "routes": routes,
         "changes": allrows,
         "counts": {
             "total": len(allrows),
             "weekend": sum(1 for r in allrows if r["kind"].startswith("weekend")),
         },
+        # SEB-38: the file-as-a-whole's own provenance -- how many corridor
+        # panels are actually represented here, from which files, and the
+        # newest confirmed change (never the wall clock: this file is rebuilt
+        # from price_changes.csv every run, and a run that confirms nothing
+        # new must not stage a diff of its own clock).
+        "n_sources": len(routes),
+        "source_file": sorted(f"data/{PANELS[c]}" for c in routes),
+        "computed_at": max((r["day"] for r in allrows), default=None),
     }
     with open(OUT_JSON, "w") as f:
         json.dump(payload, f, indent=1, sort_keys=False)

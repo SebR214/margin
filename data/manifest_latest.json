@@ -1,5 +1,6 @@
 {
-  "as_of_utc": "2026-09-13T05:07:03.737205+00:00",
+  "as_of_utc": "2026-09-13T09:40:36+00:00",
+  "computed_at": "2026-09-13T09:40:36+00:00",
   "files": [
     {
       "columns": [
@@ -58,11 +59,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-08-18T09:48:38Z",
-        "to": "2026-08-19T06:21:39Z"
+        "to": "2026-09-13T09:40:36Z"
       },
       "kind": "csv",
       "path": "data/fee_checks.csv",
-      "rows": 16
+      "rows": 24
     },
     {
       "columns": [
@@ -352,6 +353,25 @@
     {
       "columns": [
         "ts_utc",
+        "ccy",
+        "index_pct",
+        "gap_widened_pt",
+        "official_move_pct",
+        "triggered_on",
+        "note"
+      ],
+      "date_column": "ts_utc",
+      "date_range": {
+        "from": "2026-09-12T00:00:00+00:00",
+        "to": "2026-09-12T00:00:00+00:00"
+      },
+      "kind": "csv",
+      "path": "data/stress_signal.csv",
+      "rows": 1
+    },
+    {
+      "columns": [
+        "ts_utc",
         "venue",
         "asset",
         "network",
@@ -362,44 +382,53 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-08-19T08:02:25Z",
-        "to": "2026-08-19T08:21:28Z"
+        "to": "2026-09-13T09:40:36Z"
       },
       "kind": "csv",
       "path": "data/withdrawal_fees.csv",
-      "rows": 22
+      "rows": 28
     },
     {
-      "bytes": 42532,
+      "bytes": 42757,
       "columns": [
         "as_of_utc",
         "basis",
+        "computed_at",
         "corridors",
         "markets",
+        "n_sources",
         "p2p",
         "providers",
+        "source_file",
         "sources"
       ],
       "kind": "snapshot",
       "path": "data/latest.json"
     },
     {
-      "bytes": 29444,
+      "bytes": 29551,
       "columns": [
         "as_of_utc",
+        "computed_at",
+        "n_sources",
         "pairs",
-        "source"
+        "source",
+        "source_file"
       ],
       "kind": "snapshot",
       "path": "data/crosses_latest.json"
     },
     {
-      "bytes": 32429,
+      "bytes": 38355,
       "columns": [
         "as_of_utc",
+        "computed_at",
         "countries",
         "index_version",
         "min_buy_ads",
+        "n_sources",
         "sanity_band",
+        "source_file",
         "sources",
         "unverified",
         "withheld",
@@ -409,40 +438,50 @@
       "path": "data/index_latest.json"
     },
     {
-      "bytes": 73618,
+      "bytes": 73886,
       "columns": [
         "as_of_utc",
+        "computed_at",
         "corridors",
+        "n_sources",
         "own_quote_hour_utc",
+        "source_file",
         "sources"
       ],
       "kind": "snapshot",
       "path": "data/providers_latest.json"
     },
     {
-      "bytes": 130771,
+      "bytes": 162659,
       "columns": [
         "changes",
+        "computed_at",
         "counts",
         "index_version",
         "min_readings",
+        "n_sources",
         "routes",
         "saturdays_judged",
+        "source_file",
         "threshold_pct"
       ],
       "kind": "snapshot",
       "path": "data/price_changes_latest.json"
     },
     {
-      "bytes": 46100,
+      "bytes": 54161,
       "columns": [
         "as_of_utc",
+        "computed_at",
         "delivery",
         "delivery_ok",
         "judged_day",
         "loops",
         "moves",
+        "moves_denominator_explained",
         "moves_unexplained",
+        "n_sources",
+        "source_file",
         "sources",
         "sources_broken",
         "sources_expected_silent",
@@ -456,6 +495,7 @@
       "columns": [
         "buy_price",
         "ccy",
+        "computed_at",
         "country",
         "denominator",
         "fx_mid_per_usd",
@@ -465,9 +505,11 @@
         "hour_utc",
         "index_pct",
         "index_version",
+        "instrument_check",
         "n_sources",
         "round_trip_pct",
         "source_class",
+        "source_file",
         "source_words",
         "venues"
       ],
@@ -475,5 +517,7 @@
       "kind": "countries",
       "path": "data/countries/"
     }
-  ]
+  ],
+  "n_sources": 24,
+  "source_file": "data/"
 }
