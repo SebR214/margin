@@ -98,6 +98,29 @@ the index inherits the error. `data/stable_spread.csv` already measures USDT
 against USDC on every venue that lists both. Using it, and showing it, is what
 makes this claim defensible rather than merely plausible.
 
+### The corridor work is evidence, not a rival product
+
+Decided 2026-09-13. The question `corridor.html` was built to answer — *does
+sending money with a stablecoin beat a bank?* — is answered: **no**. Measured
+6,065 times since August, the stablecoin route came out cheaper **32 times,
+about one in two hundred.**
+
+That result is kept and published, because it is load-bearing. The index claims
+a stablecoin price tells you what a dollar costs *because it is the dollar a
+person can actually buy*. The round trip is the only place that claim is
+demonstrated rather than asserted: buy one, move it, sell it, pay every fee,
+count what comes out. If the digital dollar were not a real dollar, nothing
+would come out the other end.
+
+So the page survives, reframed from a rival thesis into the proof behind the
+index: **"Is it a real dollar?"**, one level down under how-it-works, beside
+methodology and status. It is no longer a peer of the index and no longer a
+"how to send money cheaply" page — that use case belongs to the calculator and
+to `compare_routes`.
+
+Published negative results are the cheapest credibility this project has. The
+0.5% stays on the page, near the top, in those words.
+
 ### Absence is data, and it is published
 
 59 currencies are tracked. Roughly 46 carry a price in a given hour; the rest
