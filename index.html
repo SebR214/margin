@@ -466,8 +466,8 @@ textarea.input { min-height: 90px; resize: vertical; }
   <div>
     <div data-grid="hero" style="padding: 56px 24px 40px; border-bottom: 2px solid var(--color-text); display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; align-items: end;">
       <div>
-        <h1 style="font-size: 44px; line-height: 1.06; margin: 0 0 14px; max-width: 24ch;">Does sending money with crypto actually cost less than a bank transfer? I measure it live, every hour, on real exchanges. {{ heroVerdict }}</h1>
-        <p class="text-muted" style="max-width: 62ch; font-size: 15px; margin: 0;">Prices are read straight from the exchanges people actually use, at the amounts people actually send, and compared against the official exchange rate captured in the same second.</p>
+        <h1 style="font-size: 44px; line-height: 1.06; margin: 0 0 14px; max-width: 24ch;">What does a dollar really cost?</h1>
+        <p class="text-muted" style="max-width: 62ch; font-size: 15px; margin: 0;">In much of the world the official exchange rate is not the rate anyone gets. This measures what people actually pay for a dollar — the kind an ordinary person can buy on their phone — in {{ heroCurrencyCount }} currencies, every hour. Where there is no price, it says so, and why.</p>
       </div>
       <div data-grid="tiles" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; background: var(--color-divider);">
         <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="4">
@@ -1524,7 +1524,7 @@ class Component extends DCLogic {
       health: st.err ? "collector unreachable — " + st.err : "reading data/…",
       lastTick: "—", scaleNote: "",
       hl: { wide: "—", wideCountry: "—", narrow: "—", narrowCountry: "—" },
-      heroStats: [], bands: [], boardTitle: "What a dollar really costs",
+      heroStats: [], heroCurrencyCount: "—", bands: [], boardTitle: "What a dollar really costs",
       withheldRows: [], coverage: [], legendCells: [],
       cov: { on: false, code: "", v: "", t: "", hint: "" },
       mk: { code: "—", country: "", venue: "", bps: "—", sentence: "", color: INK, line: "", area: "", zeroY: "120",
@@ -1544,7 +1544,7 @@ class Component extends DCLogic {
       cxx: false,
       stack: [], stackKeys: [], waterfall: [], spread: [],
       legend: [], provenance: [], failStats: [], methodNotes: [],
-      makerProse: "", takerProse: "", correctionDate: "—", heroVerdict: "", dislocatedNames: "",
+      makerProse: "", takerProse: "", correctionDate: "—", dislocatedNames: "",
       corridorIntro: "", waterfallNote: "", waterfallStamp: "", stackNote: "", findingsIntro: "",
       cross: { rows: [], has: false, none: true, bases: [], baseCountry: "", baseCode: "—",
                note: "", empty: "No pair has both currencies priced in the same hour yet." },
@@ -1595,6 +1595,10 @@ class Component extends DCLogic {
       reason: w.reason || "no price collected this hour",
       full: w.reason_raw || "",
     }));
+    // Every currency the board attempts this hour, published or not -- the
+    // hero's headline count, so it cannot drift from what the board below it
+    // actually shows.
+    const heroCurrencyCount = ix.length + withheldRows.length;
 
     // A sparkline is shape, not level: scaled to its own 30 days on purpose,
     // because a shared scale would flatten every country against Sudan.
@@ -2019,14 +2023,14 @@ class Component extends DCLogic {
       ].concat(cRowRaw ? [
         // Money first. A percentage of an amount the reader has not multiplied
         // out is not an answer to "what would this cost me".
-        { k: "Crypto route, to send " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
+        { k: "Stablecoin route, to send " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
           v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src), num(cRowRaw.cost_bps_taker))),
           sub: this.fmtPct(num(cRowRaw.cost_bps_taker), false) + " of what you send, all in", mark: "" },
         { k: "Cheapest ordinary provider, same moment",
           v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src), num(cRowRaw.baseline_cost_bps))),
           sub: this.fmtPct(num(cRowRaw.baseline_cost_bps), false) + " · " + (cRowRaw.baseline_provider || "—"), mark: "" },
       ] : []),
-      bands, boardTitle, withheldRows, coverage, cross,
+      heroCurrencyCount, bands, boardTitle, withheldRows, coverage, cross,
       cov: { on: !!covH, code: covH ? covH.code : "", v: covH ? covH.v : "", t: covH ? covH.t : "",
              hint: covH ? "each cell is one hour" : "one cell per hour · filled: captured · grey: pull failed · blank: hour missed" },
       legendCells: [200, 300, 400, 500, 600].map(s => ({ bg: "var(--data-" + s + ")" })),
@@ -2102,28 +2106,6 @@ class Component extends DCLogic {
       ]) : [],
       findings, waterfall, stack, stackKeys, spread,
       correctionDate: cLad ? this.fmtStamp(cLad.t, false) : "—",
-      // --- copy that carries a number is computed, so a sentence cannot go
-      // stale against the row it describes. ---
-      // Still computed, never typed: the sentence has to be able to flip if
-      // the crypto route ever starts winning. "Mostly no, and it depends how
-      // much you send" is what the ladder actually shows -- the route loses at
-      // every size measured, and by very different margins -- so it is the
-      // wording used while that stays true, and only while it stays true.
-      heroVerdict: (() => {
-        if (!cLad || !cLad.raw.length) return "";
-        const pairs = cLad.raw
-          .map(r => [num(r.cost_bps_taker), num(r.baseline_cost_bps)])
-          .filter(([t, r]) => t !== null && r !== null);
-        if (!pairs.length) return "";
-        const lost = pairs.filter(([t, r]) => t > r).length;
-        if (lost === pairs.length) {
-          return pairs.length > 1
-            ? "So far the answer is mostly no, and it depends how much you send."
-            : "So far the answer is no.";
-        }
-        if (lost === 0) return "Right now, at every size measured, the answer is yes.";
-        return "So far the answer is: sometimes, and it depends how much you send.";
-      })(),
       dislocatedNames: (() => {
         const big = mkts.filter(m => Math.abs(m.bps) >= 200).map(m => m.country);
         if (!big.length) return "No country is";
