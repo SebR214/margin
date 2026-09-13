@@ -1108,8 +1108,8 @@
    "last_ok_utc": "2026-09-12T22:05:11.982170+00:00",
    "last_seen_utc": "2026-09-12T22:05:11.982170+00:00",
    "hours_since_ok": 5.0,
-   "expected_silent": null,
-   "broken": true
+   "expected_silent": "Wise's public comparisons API stopped listing HSBC Australia as an AUD->PHP competitor after the 2026-09-12T22:05 run; confirmed live on 2026-09-13 by querying the same endpoint the collector uses at every ladder size (200/1000/5000/25000/50000) -- HSBC Australia is simply absent from the provider list Wise returns, not a parsing or collector fault",
+   "broken": false
   },
   {
    "file": "providers_audphp.csv",
@@ -1400,15 +1400,6 @@
    "hours_since_ok": 7.0,
    "expected_silent": null,
    "broken": true
-  },
-  {
-   "file": "providers_audphp.csv",
-   "name": "HSBC Australia",
-   "last_ok_utc": "2026-09-12T22:05:11.982170+00:00",
-   "last_seen_utc": "2026-09-12T22:05:11.982170+00:00",
-   "hours_since_ok": 5.0,
-   "expected_silent": null,
-   "broken": true
   }
  ],
  "sources_expected_silent": [
@@ -1456,20 +1447,27 @@
    "hours_since_ok": 191.0,
    "expected_silent": "Wise's public comparisons API stopped listing Xoom as a USD->MXN competitor on 2026-09-05; confirmed live on 2026-09-11 by querying the same endpoint the collector uses -- Xoom is simply absent from the provider list Wise returns, not a parsing or collector fault",
    "broken": false
+  },
+  {
+   "file": "providers_audphp.csv",
+   "name": "HSBC Australia",
+   "last_ok_utc": "2026-09-12T22:05:11.982170+00:00",
+   "last_seen_utc": "2026-09-12T22:05:11.982170+00:00",
+   "hours_since_ok": 5.0,
+   "expected_silent": "Wise's public comparisons API stopped listing HSBC Australia as an AUD->PHP competitor after the 2026-09-12T22:05 run; confirmed live on 2026-09-13 by querying the same endpoint the collector uses at every ladder size (200/1000/5000/25000/50000) -- HSBC Australia is simply absent from the provider list Wise returns, not a parsing or collector fault",
+   "broken": false
   }
  ],
  "withheld": {
   "today": 13,
   "published": 46,
-  "as_of": "2026-09-13T02:00:00+00:00",
+  "as_of": "2026-09-13T03:00:00+00:00",
   "reasons": [
    "ValueError:no ads at ~USD 500 (0 buy, 0 sell)",
    "ValueError:no ads at ~USD 500 (0 buy, 10 sell)",
    "not enough evidence this hour: 1 buy-side ad, 10 required",
-   "not enough evidence this hour: 3 buy-side ads, 10 required",
    "not enough evidence this hour: 4 buy-side ads, 10 required",
    "not enough evidence this hour: 5 buy-side ads, 10 required",
-   "not enough evidence this hour: 6 buy-side ads, 10 required",
    "not enough evidence this hour: 7 buy-side ads, 10 required",
    "not enough evidence this hour: 9 buy-side ads, 10 required",
    "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market"
@@ -1481,7 +1479,7 @@
    "country": "Sudan",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": 13.857,
+   "index_move_pt": 11.453,
    "official_move_pct": -0.309,
    "parallel_move_pct": null,
    "unexplained": true
@@ -1501,7 +1499,7 @@
    "country": "South Africa",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": 2.394,
+   "index_move_pt": 2.41,
    "official_move_pct": -0.008,
    "parallel_move_pct": null,
    "unexplained": false
@@ -1511,7 +1509,7 @@
    "country": "Kazakhstan",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": 2.222,
+   "index_move_pt": 2.024,
    "official_move_pct": -0.008,
    "parallel_move_pct": null,
    "unexplained": false
@@ -1521,18 +1519,8 @@
    "country": "Algeria",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": 1.917,
+   "index_move_pt": 1.729,
    "official_move_pct": -0.001,
-   "parallel_move_pct": null,
-   "unexplained": false
-  },
-  {
-   "ccy": "LKR",
-   "country": "Sri Lanka",
-   "from_date": "2026-09-12",
-   "to_date": "2026-09-13",
-   "index_move_pt": 1.552,
-   "official_move_pct": -0.017,
    "parallel_move_pct": null,
    "unexplained": false
   },
@@ -1541,9 +1529,19 @@
    "country": "Bolivia",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": 1.151,
+   "index_move_pt": 1.588,
    "official_move_pct": 0.001,
    "parallel_move_pct": 1.31,
+   "unexplained": false
+  },
+  {
+   "ccy": "LKR",
+   "country": "Sri Lanka",
+   "from_date": "2026-09-12",
+   "to_date": "2026-09-13",
+   "index_move_pt": 0.993,
+   "official_move_pct": -0.017,
+   "parallel_move_pct": null,
    "unexplained": false
   },
   {
@@ -1551,7 +1549,7 @@
    "country": "Saudi Arabia",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": 0.933,
+   "index_move_pt": 0.867,
    "official_move_pct": 0.0,
    "parallel_move_pct": null,
    "unexplained": false
@@ -1571,7 +1569,7 @@
    "country": "Cambodia",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": -0.648,
+   "index_move_pt": -0.654,
    "official_move_pct": -0.006,
    "parallel_move_pct": null,
    "unexplained": false
@@ -1589,10 +1587,10 @@
   {
    "ccy": "ZMW",
    "country": "Zambia",
-   "from_date": "2026-09-11",
-   "to_date": "2026-09-12",
-   "index_move_pt": 0.511,
-   "official_move_pct": -0.104,
+   "from_date": "2026-09-12",
+   "to_date": "2026-09-13",
+   "index_move_pt": 0.576,
+   "official_move_pct": -0.065,
    "parallel_move_pct": null,
    "unexplained": false
   },
@@ -1617,12 +1615,12 @@
    "unexplained": false
   },
   {
-   "ccy": "LAK",
-   "country": "Laos",
+   "ccy": "AMD",
+   "country": "Armenia",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": 0.385,
-   "official_move_pct": 0.001,
+   "index_move_pt": 0.401,
+   "official_move_pct": 0.003,
    "parallel_move_pct": null,
    "unexplained": false
   },
@@ -1631,18 +1629,18 @@
    "country": "Central African CFA",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": 0.341,
+   "index_move_pt": 0.358,
    "official_move_pct": -0.026,
    "parallel_move_pct": null,
    "unexplained": false
   },
   {
-   "ccy": "AED",
-   "country": "the United Arab Emirates",
+   "ccy": "LAK",
+   "country": "Laos",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": 0.34,
-   "official_move_pct": 0.0,
+   "index_move_pt": 0.341,
+   "official_move_pct": 0.001,
    "parallel_move_pct": null,
    "unexplained": false
   },
@@ -1657,12 +1655,12 @@
    "unexplained": false
   },
   {
-   "ccy": "AMD",
-   "country": "Armenia",
+   "ccy": "AED",
+   "country": "the United Arab Emirates",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": 0.311,
-   "official_move_pct": 0.003,
+   "index_move_pt": 0.286,
+   "official_move_pct": 0.0,
    "parallel_move_pct": null,
    "unexplained": false
   },
@@ -1671,7 +1669,7 @@
    "country": "Pakistan",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": 0.285,
+   "index_move_pt": 0.251,
    "official_move_pct": -0.009,
    "parallel_move_pct": null,
    "unexplained": false
@@ -1683,16 +1681,34 @@
    "country": "Sudan",
    "from_date": "2026-09-12",
    "to_date": "2026-09-13",
-   "index_move_pt": 13.857,
+   "index_move_pt": 11.453,
    "official_move_pct": -0.309,
    "parallel_move_pct": null,
    "unexplained": true
   }
  ],
  "loops": {
-  "builder": null,
-  "reviewer": null,
-  "product": null
+  "builder": {
+   "role": "builder",
+   "finished_utc": "2026-09-13T03:17:58+00:00",
+   "ok": true,
+   "reason": "ok",
+   "seconds": 9.0
+  },
+  "reviewer": {
+   "role": "reviewer",
+   "finished_utc": "2026-09-13T03:20:43+00:00",
+   "ok": true,
+   "reason": "ok",
+   "seconds": 12.0
+  },
+  "product": {
+   "role": "product",
+   "finished_utc": "2026-09-13T03:21:05+00:00",
+   "ok": true,
+   "reason": "ok",
+   "seconds": 169.0
+  }
  },
  "thresholds": {
   "delivery_hours": 23,
