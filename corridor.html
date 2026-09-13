@@ -4,8 +4,8 @@
 <meta charset="utf-8"/>
 <link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — what it costs to send money to the Philippines</title>
-<meta name="description" content="What one real transfer from Singapore to the Philippines costs through crypto, measured hourly and broken into buying the coin, moving it and selling it, against the cheapest ordinary provider quoting the same amount."/>
+<title>margin.wiki — Is it a real dollar?</title>
+<meta name="description" content="Is a digital dollar a real dollar? We buy one in Singapore, move it, and sell it in the Philippines, paying every fee on the way, measured hourly against the cheapest ordinary provider quoting the same amount."/>
 <style>
   :root{
     --ink:#12131a; --sub:#5b6472; --faint:#8b93a1; --line:#ebebf0;
@@ -37,6 +37,9 @@
   .back:hover{border-color:#cfd3db}
   .stamp{font-family:var(--mono); font-size:11.5px; color:var(--faint); margin-top:10px}
   .stamp b{color:var(--sub); font-weight:600}
+
+  .pageTitle{font-size:26px; margin:20px 0 8px; letter-spacing:-.01em}
+  .lede{color:var(--sub); font-size:14.5px; line-height:1.55; max-width:68ch; margin:0 0 10px}
 
   .sizebar{display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin:18px 0 6px}
   .sizebar .lbl{font-size:12px; color:var(--faint); margin-right:2px}
@@ -86,25 +89,40 @@
   <header>
     <div>
       <div class="brand">margin.wiki <span id="brandCorr">· Singapore → Philippines</span></div>
-      <div class="sub"><span id="subLead">What it costs to send money from Singapore to the Philippines through crypto, measured every hour.</span> The blockchain is nearly free; almost all of the cost is what the two exchanges charge to get in and out. Here is the whole thing, next to what the cheapest ordinary provider charges in the same second.</div>
+      <div class="sub"><span id="subLead">Singapore → Philippines, measured every hour.</span></div>
     </div>
     <a class="back" href="./index.html">← the country board</a>
   </header>
+
+  <h1 class="pageTitle">Is it a real dollar?</h1>
+  <p class="lede">Every price on this site is the price of a digital dollar — the kind an ordinary person can buy on their phone, in places where the bank won't sell them one. So the obvious question is whether that's a real dollar or just a number on a screen.</p>
+  <p class="lede">We answer it the only honest way: we take one all the way through. Buy it in one country, move it, sell it in another, pay every fee on the way. Then we count what actually came out the other end.</p>
+
+  <div class="verdict" id="topVerdict">
+    <p style="margin:0 0 8px"><b>Doing this is almost always more expensive than just using a bank.</b> We've measured it <span id="measureCount">—</span> times. The stablecoin route came out cheaper <span id="winCount">—</span> times — about one time in two hundred.</p>
+    <p style="margin:0">We publish that because the point was never to sell you on it. The round trip isn't advice, it's a test: if the digital dollar weren't a real dollar, the money wouldn't come out the other end at all. It does, minus a cost we can show you line by line.</p>
+  </div>
+
   <div class="stamp" id="stamp">loading…</div>
 
   <div class="sizebar" id="corrbar"><span class="lbl">route</span></div>
   <div class="sizebar" id="sizebar"><span class="lbl">send amount</span></div>
-  <div class="nums" id="nums"></div>
-  <div class="verdict" id="verdict"></div>
 
   <div class="card">
-    <h2>Room to sell before the price moves</h2>
+    <h2>What came out the other end</h2>
+    <p class="cap">The landed amount, against what a bank would have given you for the same transfer, right now.</p>
+    <div class="nums" id="nums"></div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <div class="card">
+    <h2>Could you actually sell it?</h2>
     <p class="cap" id="depthCap"></p>
     <div class="nums" id="depthNums" style="grid-template-columns:repeat(2,1fr)"></div>
   </div>
 
   <div class="card">
-    <h2>Where the cost goes <span id="wf-size" style="color:var(--faint);font-weight:400"></span></h2>
+    <h2>Where the money goes <span id="wf-size" style="color:var(--faint);font-weight:400"></span></h2>
     <p class="cap">Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the cheapest ordinary provider, same second.</p>
     <svg class="wf" id="wf" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet"></svg>
     <div class="legend-row">
@@ -123,7 +141,7 @@
   </div>
 
   <div class="card">
-    <h2>History <span id="hist-size" style="color:var(--faint);font-weight:400"></span></h2>
+    <h2>Every round trip we've run <span id="hist-size" style="color:var(--faint);font-weight:400"></span></h2>
     <p class="cap">The total cost over time, hourly since collection began: buying at the price on offer, waiting for your own price, and the cheapest ordinary provider. History cannot be back-filled.</p>
     <svg class="wf" id="hist" viewBox="0 0 640 220" preserveAspectRatio="xMidYMid meet"></svg>
     <div class="legend-row">
@@ -229,6 +247,11 @@ async function loadFeeChecks(){
 
 async function boot(){
   allRows=parseCSV(await fetch("./data/samples.csv").then(r=>r.text())).filter(r=>r.source_ok==="True");
+  // The "is it a real dollar" count is a claim about every round trip ever
+  // run, not the one corridor on screen -- so it is computed once here, from
+  // every row, and does not change when the reader switches corridors.
+  document.getElementById("measureCount").textContent=allRows.length.toLocaleString("en-US");
+  document.getElementById("winCount").textContent=allRows.filter(r=>r.crypto_wins_taker==="True").length.toLocaleString("en-US");
   feeChecks=await loadFeeChecks();
   // samples.csv carries every corridor interleaved. Group by the corridor
   // column: without it one corridor's rows land in another's waterfall.
@@ -260,7 +283,7 @@ function selectCorridor(key){
   const d=new Date(newest.replace(" ","T")), ago=Math.round((Date.now()-d)/6e4);
   const hours=new Set(rows.map(r=>r.ts.slice(0,13))).size;
   document.getElementById("brandCorr").textContent="· "+place(srcCcy)+" → "+place(dstOf(r5));
-  document.title="margin.wiki — what it costs to send money to "+place(dstOf(r5));
+  document.title="margin.wiki — Is it a real dollar? · "+place(srcCcy)+" → "+place(dstOf(r5));
   document.getElementById("stamp").innerHTML=
     `<b>updated</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?ago+" min ago":Math.round(ago/60)+" h ago"} · `+
     // fees_verified carries one date per leg ("ir:2026-08-10|coins:2026-08-10").
@@ -276,7 +299,7 @@ function selectCorridor(key){
     // than letting a two-point chart imply one.
     (hours<3?` · <b>${hours} capture${hours===1?"":"s"} so far</b> — every point collected is shown, nothing filled in`:"");
   document.getElementById("subLead").textContent=
-    "What it costs to send money from "+place(srcCcy)+" to "+place(dstOf(r5))+" through crypto, measured every hour.";
+    place(srcCcy)+" → "+place(dstOf(r5))+", measured every hour.";
   document.getElementById("ladderCap").textContent=money(SIZES[0])+" is highlighted";
   renderCorridors(); renderSizes(); render();
   const dst=(r5.dst||"").trim();
@@ -340,16 +363,16 @@ function render(){
   const r=bySize[size], t=+r.cost_bps_taker, m=+r.cost_bps_maker, base=+r.baseline_cost_bps;
   const cw=t<base, mw=m<base;
   document.getElementById("nums").innerHTML=`
-    ${numCard("Crypto, buying now","the price on offer",t,cw,size)}
-    ${numCard("Crypto, waiting","if you wait for your own price",m,mw,size)}
+    ${numCard("Buying it now","the price on offer",t,cw,size)}
+    ${numCard("Waiting for your price","if you wait for your own price",m,mw,size)}
     ${numCard(r.baseline_provider||"Cheapest provider","the cheapest ordinary provider, same second",base,null,size)}`;
   const rail=netBps(r), doors=t-rail;
   // The worked example, in the currency being sent, at the amount selected.
   const dstPlace=place(dstOf(r));
   document.getElementById("verdict").innerHTML=
-    `<b>${cw?"Crypto is cheaper at this amount.":"The ordinary provider is cheaper at this amount."}</b> `+
+    `<b>${cw?"The dollar route is cheaper at this amount.":"The ordinary provider is cheaper at this amount."}</b> `+
     `Send ${money(size)} to ${dstPlace} now: ${r.baseline_provider} costs ${cash(size,base)} all in, `+
-    `the crypto route costs ${cash(size,t)}. `+
+    `the dollar route costs ${cash(size,t)}. `+
     `${cw?"You save "+cashDiff(size,base,t)+"."
          :"That is "+cashDiff(size,t,base)+" more."} `+
     `Waiting for your own price instead costs ${cash(size,m)}, which ${mw?"does close the gap":"still does not close the gap"}.`+
@@ -408,7 +431,7 @@ function drawWaterfall(r){
 
 function drawLadder(){
   const rows=SIZES.map(s=>bySize[s]).filter(Boolean);
-  let h=`<tr><th>Send</th><th>Crypto, buying now</th><th>Crypto, waiting</th><th>Cheapest provider</th><th>Cheaper</th></tr>`;
+  let h=`<tr><th>Send</th><th>Buying it now</th><th>Waiting for your price</th><th>Cheapest provider</th><th>Cheaper</th></tr>`;
   for(const r of rows){
     const s=+r.notional_src, t=+r.cost_bps_taker, m=+r.cost_bps_maker, b=+r.baseline_cost_bps, cw=t<b;
     h+=`<tr class="${s===size?"hl":""}${s===200?" hl":""}">
@@ -416,7 +439,7 @@ function drawLadder(){
       <td>${cash(s,t)}<br><span class="tag">${pct(t)}</span></td>
       <td>${cash(s,m)}<br><span class="tag">${pct(m)}</span></td>
       <td>${r.baseline_provider}<br><span class="tag">${cash(s,b)}</span></td>
-      <td class="winner ${cw?"c":"f"}">${cw?"crypto":r.baseline_provider}</td></tr>`;
+      <td class="winner ${cw?"c":"f"}">${cw?"the dollar route":r.baseline_provider}</td></tr>`;
   }
   document.getElementById("ladder").innerHTML=h;
 }
