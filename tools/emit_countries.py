@@ -72,11 +72,15 @@ COUNTRY = {
 # Denominator class, per METHODOLOGY "The denominator, and where it is a policy
 # number". A `managed` reference is a rate an authority sets and defends, so the
 # index measures distance from a policy number rather than a market spread; a
-# `pegged` one reads near zero by construction and that is the finding. Anything
-# not listed is treated as `market`.
-MANAGED = {"ARS", "VES", "LBP", "SDG", "DZD", "SYP", "IQD", "AFN", "MZN",
+# `pegged` one reads near zero by construction and that is the finding. An
+# `unmaintained` reference is a government rate that exists on paper but has
+# stopped being updated, so what we divide by is whatever aggregate is left --
+# SEB-31, evidence gathered in PR #77. Anything not listed is treated as
+# `market`.
+MANAGED = {"ARS", "VES", "LBP", "DZD", "SYP", "IQD", "AFN", "MZN",
            "ETB", "NGN", "AOA", "UAH", "TND", "MMK", "ZWL"}
 PEGGED = {"AED", "SAR", "QAR", "KWD", "JOD", "BND", "XAF", "XOF"}
+UNMAINTAINED = {"SDG"}
 
 # v1.1 evidence rule, per METHODOLOGY. A P2P value is published only with at
 # least MIN_BUY_ADS ads on the buy side AND a buyer's price at or above the
@@ -495,7 +499,10 @@ def latest_by_ccy():
         entry["denominator"] = {
             "source": fx_source,
             "rate_per_usd": fx,
-            "class": "managed" if ccy in MANAGED else "pegged" if ccy in PEGGED else "market",
+            "class": ("managed" if ccy in MANAGED
+                      else "pegged" if ccy in PEGGED
+                      else "unmaintained" if ccy in UNMAINTAINED
+                      else "market"),
         }
         if par_rate:
             entry["denominator"]["parallel_rate_per_usd"] = par_rate
@@ -726,6 +733,9 @@ function render(d){
   } else if(d.denominator && d.denominator.class === "pegged"){
     notes.push(c + "'s currency is pegged, so this figure sits near zero by design. "
              + "That it stays near zero is the finding.");
+  } else if(d.denominator && d.denominator.class === "unmaintained"){
+    notes.push(c + " has no maintained official rate. This compares against an "
+             + "average of what banks there quote, which itself moves.");
   }
   const ic = d.instrument_check;
   if(ic && ic.spread_pct != null && Math.abs(ic.spread_pct) > 0.5){ // matches STABLE_SPREAD_NOTE_PCT
@@ -790,7 +800,8 @@ function render(d){
     "The official rate used is " + (den.rate_per_usd === null || den.rate_per_usd === undefined
       ? "not available this hour" : Number(den.rate_per_usd).toLocaleString("en-US",{maximumFractionDigits:4})
         + " " + d.ccy + " to the dollar")
-    + ", from " + (den.source || "—") + ", classed as a " + (den.class || "—") + " rate."
+    + ", from " + (den.source || "—") + ", classed as "
+    + (den.class ? (/^[aeiou]/i.test(den.class) ? "an " : "a ") + den.class : "—") + " rate."
     + parallel + " "
     + "Index definition version " + d.index_version + ". "
     + "This page shows the price to buy a dollar, never a midpoint — "

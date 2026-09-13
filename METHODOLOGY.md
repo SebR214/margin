@@ -311,14 +311,36 @@ Every figure is measured against the **`open.er-api.com` USD mid captured in the
 same row** as the price. Never a rate looked up later, never a rate from a
 different hour.
 
-That reference is not the same kind of object in every country. Three classes,
+That reference is not the same kind of object in every country. Four classes,
 printed alongside the index:
 
 | Class | Meaning | Examples |
 |---|---|---|
 | `market` | The reference is itself a market price. The index measures a genuine local premium or discount. | SGD, PHP, THB, MXN, BRL, KRW, IDR, ZAR, PEN, CLP, COP, KES, TZS, UGX |
-| `managed` | The reference is a number a central bank sets or defends, which the market trades away from. **The index measures distance from a policy rate, not a market spread.** | ARS, VES, LBP, SDG, DZD, SYP, IQD, AFN, MZN, ETB, NGN, AOA, UAH, TND |
+| `managed` | The reference is a number a central bank sets or defends, which the market trades away from. **The index measures distance from a policy rate, not a market spread.** | ARS, VES, LBP, DZD, SYP, IQD, AFN, MZN, ETB, NGN, AOA, UAH, TND |
 | `pegged` | The reference is a hard peg. The index reads near zero by construction, and that *is* the finding. | AED, SAR, QAR, KWD, JOD, BND, XAF, XOF |
+| `unmaintained` | The government rate exists on paper but has stopped being updated. What we divide by is whatever aggregate of bank-declared rates is still published, not a defended policy number. | SDG |
+
+**`unmaintained`, added SEB-31.** Sudan's central bank still publishes a rate
+page at `cbos.gov.sd`, but it returns the same figure it did on 2026-03-07 —
+confirmed by a live fetch, not inferred (PR #77). The `open.er-api` aggregate
+we fall back to moved 544 → 512 → 511 in two days over the same window, which
+is the behaviour of banks re-quoting for themselves, not a rate the state is
+holding in place. Calling that `managed`, as if a policy number were being
+defended, is a stronger claim than the evidence supports; `unmaintained` says
+only what is known. `tools/agent_status.py` treats a big move in an
+`unmaintained` currency as explained by the denominator itself, and reports it
+on its own line rather than flagging it as a daily mystery.
+
+The other `managed` currencies were checked against three days of
+`data/fx_rates.csv` (2026-09-10 to 2026-09-13) for the same evidence and none
+of them qualify yet: LBP was byte-identical (89,500) across all 69 readings,
+which is consistent with either a genuinely-held peg or a frozen aggregate and
+three days cannot tell the two apart; SYP, IQD and AFN drifted a few hundredths
+of a percent, too little to read either way; MMK and ZWL have no rows in
+`fx_rates.csv` at all. None of the six is moved. A longer window, or a live
+check of the issuing central bank's own page the way PR #77 did for Sudan,
+would be needed before any of them could be.
 
 **For `managed` currencies the headline sentence must carry the qualifier.** Not
 "a dollar costs 129× more in Sudan" but "the P2P board prices a dollar 129×

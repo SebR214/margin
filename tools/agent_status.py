@@ -177,12 +177,19 @@ def moves():
             par_move = round((p1 - p0) / p0 * 100, 3)
         explained = any(m is not None and abs(m) >= FX_EXPLAINS_PCT
                         for m in (fx_move, par_move))
+        # A currency whose denominator is `unmaintained` moves on its own --
+        # that IS the explanation, so it is reported on its own line rather
+        # than flagged as a mystery every day (SEB-31).
+        den_class = (c.get("denominator") or {}).get("class")
+        big = abs(move) > BIG_MOVE_PT and not explained
         out.append({
             "ccy": ccy, "country": c.get("country"),
             "from_date": a["date"], "to_date": b["date"],
             "index_move_pt": round(move, 3),
             "official_move_pct": fx_move, "parallel_move_pct": par_move,
-            "unexplained": abs(move) > BIG_MOVE_PT and not explained,
+            "denominator_class": den_class,
+            "unexplained": big and den_class != "unmaintained",
+            "denominator_explained": big and den_class == "unmaintained",
         })
     out.sort(key=lambda m: -abs(m["index_move_pt"]))
     return out
@@ -245,6 +252,7 @@ def main():
         "withheld": withheld(),
         "moves": mv[:20],
         "moves_unexplained": [m for m in mv if m["unexplained"]],
+        "moves_denominator_explained": [m for m in mv if m["denominator_explained"]],
         "loops": loops(),
         "thresholds": {"delivery_hours": 23, "stale_hours": STALE_HOURS,
                        "big_move_pt": BIG_MOVE_PT,
@@ -270,6 +278,11 @@ def main():
     print(f"  countries        {w['published']} published, {w['today']} withheld")
     print(f"  unexplained move {len(payload['moves_unexplained'])}")
     for m in payload["moves_unexplained"][:5]:
+        print(f"                     {m['ccy']} {m['index_move_pt']:+.2f} pt, "
+              f"official {m['official_move_pct']}%")
+    print(f"  denominator move {len(payload['moves_denominator_explained'])}"
+          f"  (unmaintained rate, not a mystery)")
+    for m in payload["moves_denominator_explained"][:5]:
         print(f"                     {m['ccy']} {m['index_move_pt']:+.2f} pt, "
               f"official {m['official_move_pct']}%")
     return 0
