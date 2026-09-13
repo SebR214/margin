@@ -45,7 +45,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         params = {k: v[0] for k, v in urllib.parse.parse_qs(parsed.query).items()}
         try:
             if parsed.path == "/dollar_cost":
-                sc.log_call_event("dollar_cost", params.get("country"))
+                sc.log_call_event(
+                    "dollar_cost", sc.resolved_country_name(params.get("country")))
                 self._send(200, sc.dollar_cost(params.get("country", "")))
             elif parsed.path == "/compare_routes":
                 sc.log_call_event("compare_routes")
@@ -53,7 +54,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     params.get("from", ""), params.get("to", ""),
                     params.get("amount")))
             elif parsed.path == "/series":
-                sc.log_call_event("series", params.get("country"))
+                sc.log_call_event(
+                    "series", sc.resolved_country_name(params.get("country")))
                 self._send(200, sc.series(
                     params.get("country", ""), params.get("days")))
             elif parsed.path == "/query":
