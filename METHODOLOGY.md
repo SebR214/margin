@@ -659,6 +659,46 @@ never rewrites a row, so a call made on half a day could not be corrected.
 SGD→PHP, 2026-08-19 for USD→MXN. AUD→PHP and NZD→PHP began on 2026-09-10 and
 will produce their first eligible comparison once they have three days.
 
+## The stress signal (`data/stress_signal.csv`)
+
+A standing, public prediction: when a country's street price for a dollar
+pulls sharply further from its official rate in a single day, and the official
+rate itself did not move enough to explain that, it is flagged and kept on the
+record — so what its official rate does afterward can be checked against the
+flag, not just asserted.
+
+**The trigger reuses a check that already existed.** `tools/agent_status.py`
+already computes, every run, whether a published country's index moved a lot
+in a day without its own official or parallel rate moving enough to explain
+it — an internal health check, not a public claim. `tools/emit_stress_signal.py`
+runs the same comparison and keeps a permanent, append-only record of it
+instead of overwriting it hourly:
+
+* **Widened**: the country's premium (`index_pct`, the same figure "The index,
+  version 1" defines above) moves further from zero — `|index_pct| ` grows —
+  by more than **5 percentage points** in one day.
+* **Unexplained**: over the same day, `data/fx_rates.csv`'s daily median
+  official rate for that currency moved by less than **2%**. A currency whose
+  official rate also moved that day is not a street-price story; it is just
+  the currency, and is not flagged.
+* Both days being compared must be calendar-adjacent and on or after the
+  first day `data/fx_rates.csv` has a row for. A gap in either file's history
+  is a gap, not a one-day move, and is skipped rather than spanned.
+
+**Not backtested.** `data/fx_rates.csv` — the official rate this signal checks
+a street price against — starts on 2026-09-10, with nothing before it to
+compare against. Rather than backfill it, which the project never does, the
+record starts on that date and runs forward. `/stress.html` states the
+record's start date and its length in days on every load, so a four-day record
+reads as four days, not as an established track record.
+
+**What "since" means.** Each flagged row also carries, in
+`data/stress_signal_latest.json` only (not the frozen CSV — this changes every
+run), how far the official rate has moved between the day it triggered and the
+newest day on record for that currency. That is the "what happened next" half
+of the prediction, recomputed on every page load from the same
+`data/fx_rates.csv` daily medians.
+
 ## Checked against
 
 Every number here is computed from rows this project collected itself, which

@@ -197,6 +197,16 @@ jobs:
         # non-zero only if it cannot write.
         run: python3 tools/emit_countries.py
 
+      - name: Emit the stress signal
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Append-only. Checks data/countries/*.json (just written above)
+        # against data/fx_rates.csv for a currency pulling away from its
+        # official rate unexplained by the official rate itself moving --
+        # the same check tools/agent_status.py already runs, kept here as a
+        # public record instead of an internal one. See the docstring in
+        # tools/emit_stress_signal.py.
+        run: python3 tools/emit_stress_signal.py
+
       - name: Emit the data manifest
         if: always() && steps.needed.outputs.proceed == 'true'
         # Runs after the per-country step so it reflects what that step just
@@ -224,7 +234,8 @@ jobs:
                    data/fx_rates.csv data/provider_quotes.csv \
                    data/providers_latest.json data/price_changes.csv \
                    data/price_changes_latest.json data/agent_status.json \
-                   data/manifest_latest.json; do
+                   data/manifest_latest.json data/stress_signal.csv \
+                   data/stress_signal_latest.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Directories: one file per country, and a page per country. A
