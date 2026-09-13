@@ -311,6 +311,7 @@ def ask(question, client_ip):
     if not question or not question.strip():
         raise AskError("question is required")
     question = question.strip()
+    sc.log_call_event("ask")
     if len(question) > MAX_QUESTION_CHARS:
         raise AskError("keep the question under %d characters"
                         % MAX_QUESTION_CHARS)

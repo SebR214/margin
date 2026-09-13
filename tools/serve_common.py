@@ -240,6 +240,26 @@ def _log_query(question, sql, elapsed_s):
     )
 
 
+def log_call_event(tool, country=None):
+    """The anonymised call-tail line SEB-42's SSE endpoint (serve_events.py)
+    tails and turns into a `call` event, and the ONLY thing it turns into
+    one -- every other line this process already logs (the question and SQL
+    in `_log_query`, model token counts, watch conditions) keeps printing to
+    the same file and stays there, never reaching this line's shape.
+
+    `country` is the country parameter a caller asked about (dollar_cost?
+    country=, series?country=), never where the caller is -- there is no IP
+    geolocation anywhere in this codebase, and ROADMAP.md's "no personal
+    data, ever" is the reason this file draws the line there rather than
+    trying to resolve one.
+    """
+    print(
+        "call_event tool=%s country=%s" % (tool, country or ""),
+        file=sys.stdout,
+        flush=True,
+    )
+
+
 def run_query(sql, question=None):
     """Run one read-only SELECT over the raw CSVs, capped at MAX_QUERY_ROWS.
 

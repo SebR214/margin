@@ -193,6 +193,7 @@ def create_watch(condition, client_ip):
     if not condition or not condition.strip():
         raise WatchError("condition is required")
     condition = condition.strip()
+    sc.log_call_event("watch")
     if len(condition) > MAX_CONDITION_CHARS:
         raise WatchError("keep the condition under %d characters"
                           % MAX_CONDITION_CHARS)

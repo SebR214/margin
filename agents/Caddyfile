@@ -27,6 +27,14 @@ api.margin.wiki {
 	handle /watch* {
 		reverse_proxy 127.0.0.1:8902
 	}
+	# /v1/events is SEB-42's stream -- the first versioned path in this API.
+	# Every other route above is unprefixed; see the SEB-42 PR for the open
+	# question of whether the rest should gain a /v1 prefix or this should
+	# lose it. Caddy auto-disables buffering for a text/event-stream
+	# response, so this needs no flush_interval override.
+	handle /v1/events* {
+		reverse_proxy 127.0.0.1:8903
+	}
 	handle {
 		reverse_proxy 127.0.0.1:8899
 	}

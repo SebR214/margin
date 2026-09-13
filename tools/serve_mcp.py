@@ -117,6 +117,7 @@ def _handle(method, params):
                 "content": [{"type": "text", "text": "no such tool: %s" % name}],
                 "isError": True,
             }
+        sc.log_call_event(name, arguments.get("country"))
         try:
             result = fn(arguments)
         except sc.ServeError as e:
