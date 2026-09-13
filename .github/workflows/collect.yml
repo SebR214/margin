@@ -215,6 +215,17 @@ jobs:
         # Exits non-zero only if it cannot write.
         run: python3 tools/emit_manifest.py
 
+      - name: Emit the browser dataset bundle
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-40. Runs last of the emitters so it packages what every step
+        # above just wrote: one parquet file per top-level CSV, plus the
+        # country index flattened out of data/countries/*.json, into
+        # data/bundle/ -- what a browser queries directly instead of hitting
+        # the server. Exits non-zero if it cannot write, or if the bundle
+        # grows past its 15 MB target; either way this step going red is the
+        # point, not something to route around.
+        run: python3 tools/emit_bundle.py
+
       - name: Commit samples
         if: always() && steps.needed.outputs.proceed == 'true'
         run: |
@@ -238,11 +249,12 @@ jobs:
                    data/stress_signal_latest.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
-          # Directories: one file per country, and a page per country. A
-          # country added to the collector appears here on its first run with
+          # Directories: one file per country, a page per country, and the
+          # bundle's parquet files + manifest. A country (or a table
+          # emit_bundle.py starts writing) appears here on its first run with
           # no edit to this list -- which is the point of staging the directory
           # rather than naming the files.
-          for d in data/countries c; do
+          for d in data/countries c data/bundle; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           if git diff --cached --quiet; then
