@@ -1321,15 +1321,32 @@ class Component extends DCLogic {
   // shows. Every label comes from copy.json's live.commission block -- this
   // only picks which label fits the step already on the wire from B4/SEB-43,
   // it invents none of them.
+  //
+  // The verdict and ended steps carry a free-text field from probe_source.py
+  // (`check`, `reason`) that is sometimes a raw Python exception -- a
+  // transport failure reads as "ConnectionError: HTTPSConnectionPool(...)".
+  // That is never shown: the verdict's reason is derived instead from the
+  // last status this commission actually saw (already plain-language, from
+  // the same `results` map the status line itself uses), and an unexpected
+  // "ended" never repeats the crash text either.
   commissionLines(commission, c) {
     const roleOf = s => s.role === "reference" ? c.roleReference : c.roleCandidate;
     const results = { reachable: c.resultReachable, blocked: c.resultBlocked,
       "no data": c.resultNoData, "wrong shape": c.resultWrongShape };
+    let lastBadStatus = null;
     return (commission.steps || []).map(s => {
       if (s.step === "probing") return { label: c.stepProbing, detail: roleOf(s) };
-      if (s.step === "status") return { label: c.stepStatus, detail: roleOf(s) + " — " + (results[s.result] || s.result || "") };
-      if (s.step === "verdict") return { label: c.stepVerdict, detail: (s.accepted ? c.accepted : c.rejected) + (s.check ? " — " + s.check : "") };
-      if (s.step === "ended") return { label: c.stepEnded, detail: s.reason || "" };
+      if (s.step === "status") {
+        if (s.result !== "reachable") lastBadStatus = s;
+        return { label: c.stepStatus, detail: roleOf(s) + " — " + (results[s.result] || s.result || "") };
+      }
+      if (s.step === "verdict") {
+        const reason = s.accepted ? c.verdictMatch
+          : lastBadStatus ? roleOf(lastBadStatus) + " " + (results[lastBadStatus.result] || lastBadStatus.result || "")
+          : c.verdictOutOfRange;
+        return { label: c.stepVerdict, detail: (s.accepted ? c.accepted : c.rejected) + " — " + reason };
+      }
+      if (s.step === "ended") return { label: c.stepEnded, detail: c.endedUnexpected };
       return { label: s.step || "—", detail: "" };
     });
   }
