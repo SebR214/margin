@@ -800,7 +800,8 @@ function render(d){
     "The official rate used is " + (den.rate_per_usd === null || den.rate_per_usd === undefined
       ? "not available this hour" : Number(den.rate_per_usd).toLocaleString("en-US",{maximumFractionDigits:4})
         + " " + d.ccy + " to the dollar")
-    + ", from " + (den.source || "—") + ", classed as a " + (den.class || "—") + " rate."
+    + ", from " + (den.source || "—") + ", classed as "
+    + (den.class ? (/^[aeiou]/i.test(den.class) ? "an " : "a ") + den.class : "—") + " rate."
     + parallel + " "
     + "Index definition version " + d.index_version + ". "
     + "This page shows the price to buy a dollar, never a midpoint — "
