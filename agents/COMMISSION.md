@@ -76,8 +76,9 @@ that is a rejection: see step 4, "Nothing usable was named."
 For each candidate, run:
 
 ```bash
+# --reference: use fawazahmed0 if erapi carries no rate for CCY
 python3 tools/probe_source.py --ccy <CCY> --url <candidate> --field <path> \
-  --reference erapi \       # or fawazahmed0, if erapi carries no rate for CCY
+  --reference erapi \
   --request-id SEB-N
 ```
 
