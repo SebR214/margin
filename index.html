@@ -1537,7 +1537,7 @@ class Component extends DCLogic {
       noDataText: copy.noData,
       zeroY: yOf(0).toFixed(1),
       xLabels: tLo === null ? [] : [this.fmtStamp(tLo, false), this.fmtStamp((tLo + tHi) / 2, false), this.fmtStamp(tHi, false)],
-      yLabels: [fmtChartPct(yHi), fmtChartPct(0), fmtChartPct(yLo)],
+      yLabels: [fmtChartPct(yHi), fmtChartPct((yHi + yLo) / 2), fmtChartPct(yLo)],
       hasNotes: notes.length > 0, notes: notes.join(" "),
       note: copy.note.replace("{range}", (rangeLabel[rangeKey] || "").toLowerCase()),
     };
