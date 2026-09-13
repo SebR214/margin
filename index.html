@@ -2023,7 +2023,7 @@ class Component extends DCLogic {
       ].concat(cRowRaw ? [
         // Money first. A percentage of an amount the reader has not multiplied
         // out is not an answer to "what would this cost me".
-        { k: "Crypto route, to send " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
+        { k: "Stablecoin route, to send " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
           v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src), num(cRowRaw.cost_bps_taker))),
           sub: this.fmtPct(num(cRowRaw.cost_bps_taker), false) + " of what you send, all in", mark: "" },
         { k: "Cheapest ordinary provider, same moment",
