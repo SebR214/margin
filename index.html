@@ -617,6 +617,71 @@ textarea.input { min-height: 90px; resize: vertical; }
       <p class="text-muted" style="font-size: 12px; margin: 16px 0 0; max-width: 88ch;">Each row is one country. "A dollar costs" is what you pay to buy one dollar there, against the official exchange rate captured in the same second. "Round trip" is what it costs to buy and then sell again. Click any country for every source behind its number.</p>
     </div>
 
+    <sc-if value="{{ chart.show }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 44px 24px 0;">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
+          <div>
+            <h2 style="font-size: 26px; margin: 0;">{{ chart.heading }}</h2>
+            <p class="text-muted" style="font-size: 13px; margin: 6px 0 0; max-width: 70ch;">{{ chart.lede }}</p>
+          </div>
+          <div style="display: flex; gap: 0; border: 1px solid var(--color-neutral-400);">
+            <sc-for list="{{ chart.rangeOptions }}" as="r" hint-placeholder-count="3">
+              <button type="button" sc-camel-on-click="{{ r.go }}" style="appearance: none; border: 0; cursor: pointer; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 12px; background: {{ r.bg }}; color: {{ r.color }};">{{ r.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 16px 0 4px;">
+          <sc-for list="{{ chart.candidates }}" as="cd" hint-placeholder-count="10">
+            <button type="button" title="{{ cd.title }}" sc-camel-on-click="{{ cd.go }}" style="appearance: none; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.04em; padding: 5px 10px; border: 1px solid var(--color-neutral-400); background: {{ cd.bg }}; color: {{ cd.color }}; opacity: {{ cd.opacity }}; cursor: {{ cd.cursor }};">{{ cd.code }}</button>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ chart.hasLines }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div data-grid="stat-row" style="display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 0; padding-top: 10px;">
+              <div>
+                <svg sc-camel-view-box="0 0 1000 240" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 240px; display: block;">
+                  <line x1="0" x2="1000" y1="{{ chart.zeroY }}" y2="{{ chart.zeroY }}" stroke="var(--color-neutral-500)" stroke-dasharray="5 5" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                  <sc-for list="{{ chart.lines }}" as="ln" hint-placeholder-count="1">
+                    <path d="{{ ln.line }}" fill="none" stroke="{{ ln.color }}" stroke-width="1.75" vector-effect="non-scaling-stroke"></path>
+                  </sc-for>
+                </svg>
+                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--color-divider); padding-top: 7px;">
+                  <sc-for list="{{ chart.xLabels }}" as="x" hint-placeholder-count="3">
+                    <span class="text-muted" style="font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;">{{ x }}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; justify-content: space-between; height: 240px; padding-left: 10px;">
+                <sc-for list="{{ chart.yLabels }}" as="y" hint-placeholder-count="3">
+                  <span class="text-muted" style="font-size: 10px; letter-spacing: 0.04em;">{{ y }}</span>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 14px; padding-top: 10px;">
+              <sc-for list="{{ chart.lines }}" as="ln" hint-placeholder-count="1">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
+                  <span style="width: 10px; height: 10px; background: {{ ln.color }}; display: inline-block;"></span>
+                  <span style="font-family: var(--font-heading); font-weight: 800;">{{ ln.ccy }}</span>
+                  <span class="text-muted">{{ ln.country }}</span>
+                  <span style="font-weight: 800;">{{ ln.lastValue }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ chart.hasNoData }}" hint-placeholder-val="{{ false }}">
+          <p class="text-muted" style="font-size: 13px; padding-top: 14px;">{{ chart.noDataText }}</p>
+        </sc-if>
+
+        <sc-if value="{{ chart.hasNotes }}" hint-placeholder-val="{{ false }}">
+          <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">{{ chart.notes }}</p>
+        </sc-if>
+        <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">{{ chart.note }}</p>
+      </div>
+    </sc-if>
+
     <div style="padding: 44px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
         <div>
@@ -1143,6 +1208,12 @@ const RANGES = [
   { key: "1y", label: "1y", ms: 365 * DAY, unit: "d" },
 ];
 
+// U4/SEB-46 -- "follow a country over time". Four series max: that is how
+// many colours CHART_PALETTE can tell apart, and the cap is enforced by that
+// length rather than a separate number, so the two can never drift apart.
+const CHART_RANGES = ["30", "90", "all"];
+const CHART_PALETTE = ["var(--data-700)", "var(--color-accent-600)", "var(--color-neutral-800)", "var(--data-500)"];
+
 function parseCSV(text) {
   const rows = []; let i = 0, field = "", row = [], q = false;
   const t = (text || "").trim();
@@ -1167,6 +1238,11 @@ class Component extends DCLogic {
   state = {
     page: "board", market: null, range: "1m", corridor: null, crossBase: "SGD",
     hover: null, pinned: null, covCell: null, cxCol: null, data: null, err: null,
+    // U4/SEB-46: which countries are on the "follow a country over time"
+    // chart and how far back it looks. Empty means "not chosen yet" --
+    // chartVals() falls back to one sensible default rather than storing it,
+    // so a stale default never has to be migrated later.
+    chartRange: "90", chartCcys: [],
   };
 
   componentDidMount() {
@@ -1183,7 +1259,10 @@ class Component extends DCLogic {
       opt("./data/fee_checks.csv"), opt("./data/fee_tiers.csv"),
       opt("./data/withdrawal_fees.csv"),
       opt("./data/crosses_latest.json"), opt("./data/index_latest.json"),
-    ]).then(([b, h, s, p1, p2, p3, p4, fc, ft, wf, cx, ix]) => {
+      // The copy deck. Every string the U4/SEB-46 chart shows comes from
+      // here, never typed into the markup -- see copy.json and agents/RULES.md.
+      opt("./copy.json"),
+    ]).then(([b, h, s, p1, p2, p3, p4, fc, ft, wf, cx, ix, cp]) => {
       // A missing or unparseable crosses file means the table renders its empty
       // state. It must never take the rest of the page down with it.
       let crosses = null;
@@ -1193,12 +1272,33 @@ class Component extends DCLogic {
       // disagree about what the index says.
       let index = null;
       try { index = ix ? JSON.parse(ix) : null; } catch (e) { index = null; }
+      let copy = null;
+      try { copy = cp ? JSON.parse(cp) : null; } catch (e) { copy = null; }
       this.setState({ data: {
         basis: parseCSV(b), hist: parseCSV(h), samples: parseCSV(s),
         panels: { "SGD->PHP": parseCSV(p1), "USD->MXN": parseCSV(p2),
                   "AUD->PHP": parseCSV(p3), "NZD->PHP": parseCSV(p4) },
-        feeChecks: parseCSV(fc), tiers: parseCSV(ft), withdrawalFees: parseCSV(wf), crosses, index,
+        feeChecks: parseCSV(fc), tiers: parseCSV(ft), withdrawalFees: parseCSV(wf), crosses, index, copy,
+        countryData: null,
       }});
+      // U4/SEB-46: the full daily history behind every published country,
+      // fetched once, right after we learn which countries exist. Loading it
+      // into the browser is what B2/SEB-40 built the per-country files for
+      // (see tools/emit_bundle.py) but deferred doing -- this is that step.
+      // Everything after this point (a range click, adding or removing a
+      // country) redraws from what is already here; no further fetch is
+      // needed, which is what the issue means by "no round trip to the
+      // server". A country whose file 404s or fails to parse is recorded as
+      // failed (null), never silently dropped from the compare list.
+      const ccys = (index && index.countries || []).map(c => c.ccy);
+      Promise.all(ccys.map(c => opt("./data/countries/" + c + ".json"))).then(jsons => {
+        const countryData = {};
+        ccys.forEach((c, i) => {
+          try { countryData[c] = jsons[i] ? JSON.parse(jsons[i]) : null; }
+          catch (e) { countryData[c] = null; }
+        });
+        this.setState({ data: Object.assign({}, this.state.data, { countryData }) });
+      });
     }).catch(e => this.setState({ err: String(e.message || e) }));
   }
 
@@ -1315,6 +1415,132 @@ class Component extends DCLogic {
     const pts = series.map((v, i) => x(i).toFixed(1) + " " + y(v).toFixed(1));
     return { line: series.length < 2 ? "" : "M " + pts.join(" L "), x, y, W, H,
              dots: series.map((v, i) => ({ cx: x(i).toFixed(1), cy: y(v).toFixed(1) })) };
+  }
+
+  // ---------------------------------------------------------------- U4/SEB-46
+  // Add or remove one country from the compare set. Kept as a method (rather
+  // than inlined in chartVals) so the closure captures `current` -- the
+  // resolved list for THIS render -- and not `this.state.chartCcys`, which is
+  // still empty on the very first click (state.chartCcys starts `[]`; the
+  // default only ever lives in chartVals's return value).
+  toggleChartCcy(code, current) {
+    const has = current.indexOf(code) >= 0;
+    if (has) {
+      if (current.length <= 1) return; // always at least one line on the chart
+      this.setState({ chartCcys: current.filter(c => c !== code) });
+    } else {
+      if (current.length >= CHART_PALETTE.length) return; // one colour each, no more
+      this.setState({ chartCcys: current.concat([code]) });
+    }
+  }
+
+  // "Follow a country over time" -- U4/SEB-46. Every currency's full daily
+  // history was fetched once, in componentDidMount, right after the page
+  // learned which currencies are published; a range click or a compare click
+  // only ever re-slices what is already in state.data.countryData, so this
+  // never fetches. When B5/SEB-45 ships, the instructable half hands this
+  // same function a different `wantCcys` (parsed from a question instead of
+  // clicked) -- the redraw underneath does not change.
+  chartVals(D, ix) {
+    const st = this.state;
+    const copy = D.copy && D.copy.index && D.copy.index.chart;
+    if (!copy || !D.countryData || !ix.length) return { show: false };
+
+    const countryData = D.countryData;
+    const published = ix.map(c => c.ccy);
+    const rangeKey = CHART_RANGES.indexOf(st.chartRange) >= 0 ? st.chartRange : "90";
+    const wantCcys = (st.chartCcys.length ? st.chartCcys : [ix[0].ccy])
+      .filter(c => published.indexOf(c) >= 0);
+    const colorFor = c => CHART_PALETTE[wantCcys.indexOf(c) % CHART_PALETTE.length];
+    const nameOf = c => (META[c] || {}).country || c;
+
+    const dayMs = 864e5;
+    // "Today" is the newest date the SELECTED countries actually carry, not
+    // the reader's clock -- a stale bundle must not silently shrink its own
+    // window, the same reasoning basis.csv's own staleness check uses.
+    let newestT = null;
+    wantCcys.forEach(c => {
+      ((countryData[c] && countryData[c].history) || []).forEach(p => {
+        const t = Date.parse(p.date);
+        if (isFinite(t) && (newestT === null || t > newestT)) newestT = t;
+      });
+    });
+    const cutoffT = (rangeKey === "all" || newestT === null) ? null
+      : newestT - (parseInt(rangeKey, 10) - 1) * dayMs;
+
+    const seriesOf = c => {
+      const cd = countryData[c];
+      if (cd === null) return { ccy: c, failed: true, points: [] };
+      const h = ((cd && cd.history) || []).filter(p => {
+        const t = Date.parse(p.date);
+        return isFinite(t) && (cutoffT === null || t >= cutoffT);
+      }).map(p => ({ t: Date.parse(p.date), v: p.index_pct })).sort((a, b) => a.t - b.t);
+      return { ccy: c, country: (cd && cd.country) || nameOf(c), failed: false, points: h };
+    };
+    const raw = wantCcys.map(seriesOf);
+    const withLine = raw.filter(s => !s.failed && s.points.length >= 2);
+    const thin = raw.filter(s => !s.failed && s.points.length < 2);
+    const failed = raw.filter(s => s.failed);
+
+    const allT = withLine.reduce((a, s) => a.concat(s.points.map(p => p.t)), []);
+    const allV = withLine.reduce((a, s) => a.concat(s.points.map(p => p.v)), []);
+    const tLo = allT.length ? Math.min.apply(null, allT) : null;
+    const tHi = allT.length ? Math.max.apply(null, allT) : null;
+    const vMax = allV.length ? Math.max.apply(null, allV) : 1;
+    const vMin = allV.length ? Math.min.apply(null, allV) : 0;
+    const pad = (vMax - vMin) * 0.12 + 0.5;
+    const yLo = Math.min(vMin - pad, 0), yHi = Math.max(vMax + pad, 0);
+    const W = 1000, H = 240;
+    const xOf = t => (tLo === null || tHi === tLo) ? W / 2 : ((t - tLo) / (tHi - tLo)) * W;
+    const yOf = v => H - ((v - yLo) / ((yHi - yLo) || 1)) * (H - 8) - 4;
+    const fmtChartPct = v => v === null || v === undefined || !isFinite(v) ? "—"
+      : (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(Math.abs(v) >= 10 ? 1 : 2) + "%";
+
+    const lines = withLine.map(s => {
+      const d = "M " + s.points.map(p => xOf(p.t).toFixed(1) + " " + yOf(p.v).toFixed(1)).join(" L ");
+      return { ccy: s.ccy, country: s.country, color: colorFor(s.ccy), line: d,
+        lastValue: fmtChartPct(s.points[s.points.length - 1].v) };
+    });
+
+    const rangeLabel = { "30": copy.range30, "90": copy.range90, "all": copy.rangeAll };
+    const candidates = ix.map(c => {
+      const sel = wantCcys.indexOf(c.ccy) >= 0;
+      const atCap = !sel && wantCcys.length >= CHART_PALETTE.length;
+      const country = c.country || c.ccy;
+      return {
+        code: c.ccy, selected: sel ? 1 : 0,
+        title: atCap ? copy.capTitle.replace("{max}", String(CHART_PALETTE.length))
+          : (sel ? copy.removeTitle.replace("{country}", country) : copy.addTitle.replace("{country}", country)),
+        bg: sel ? colorFor(c.ccy) : "var(--color-bg)",
+        color: sel ? "var(--color-bg)" : "var(--color-text)",
+        opacity: atCap ? "0.4" : "1", cursor: atCap ? "default" : "pointer",
+        go: atCap ? (() => {}) : (() => this.toggleChartCcy(c.ccy, wantCcys)),
+      };
+    });
+
+    // "Every instruction must be answerable from the bundle... it says so --
+    // what it has, and what it does not." Applies just as much to a preset
+    // click: a country added to the chart that has nothing to draw says why,
+    // it does not just vanish from the legend.
+    const notes = thin.map(s => copy.emptyNote.replace("{country}", s.country || nameOf(s.ccy)))
+      .concat(failed.map(s => copy.failedNote.replace("{country}", nameOf(s.ccy))));
+
+    return {
+      show: true, heading: copy.heading, lede: copy.lede,
+      rangeOptions: CHART_RANGES.map(key => ({
+        key, label: rangeLabel[key],
+        go: () => this.setState({ chartRange: key }),
+        bg: key === rangeKey ? "var(--color-text)" : "var(--color-bg)",
+        color: key === rangeKey ? "var(--color-bg)" : "var(--color-text)",
+      })),
+      candidates, lines, hasLines: lines.length > 0, hasNoData: lines.length === 0,
+      noDataText: copy.noData,
+      zeroY: yOf(0).toFixed(1),
+      xLabels: tLo === null ? [] : [this.fmtStamp(tLo, false), this.fmtStamp((tLo + tHi) / 2, false), this.fmtStamp(tHi, false)],
+      yLabels: [fmtChartPct(yHi), fmtChartPct(0), fmtChartPct(yLo)],
+      hasNotes: notes.length > 0, notes: notes.join(" "),
+      note: copy.note.replace("{range}", (rangeLabel[rangeKey] || "").toLowerCase()),
+    };
   }
 
   // ------------------------------------------------------------ data views
@@ -1548,6 +1774,7 @@ class Component extends DCLogic {
       corridorIntro: "", waterfallNote: "", waterfallStamp: "", stackNote: "", findingsIntro: "",
       cross: { rows: [], has: false, none: true, bases: [], baseCountry: "", baseCode: "—",
                note: "", empty: "No pair has both currencies priced in the same hour yet." },
+      chart: { show: false },
     };
     if (!D) return empty;
 
@@ -2031,6 +2258,7 @@ class Component extends DCLogic {
           sub: this.fmtPct(num(cRowRaw.baseline_cost_bps), false) + " · " + (cRowRaw.baseline_provider || "—"), mark: "" },
       ] : []),
       heroCurrencyCount, bands, boardTitle, withheldRows, coverage, cross,
+      chart: this.chartVals(D, ix),
       cov: { on: !!covH, code: covH ? covH.code : "", v: covH ? covH.v : "", t: covH ? covH.t : "",
              hint: covH ? "each cell is one hour" : "one cell per hour · filled: captured · grey: pull failed · blank: hour missed" },
       legendCells: [200, 300, 400, 500, 600].map(s => ({ bg: "var(--data-" + s + ")" })),
