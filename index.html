@@ -695,6 +695,54 @@ textarea.input { min-height: 90px; resize: vertical; }
       <p class="text-muted" style="font-size: 12px; margin: 12px 0 0;">Prices from before August 2026 are daily, not hourly, so they appear in the history chart but never in this grid.</p>
     </div>
 
+    <sc-if value="{{ live.show }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 44px 24px 0;">
+        <div style="border-bottom: 2px solid var(--color-text); padding-bottom: 10px;">
+          <h2 style="font-size: 26px; margin: 0;">{{ live.heading }}</h2>
+          <p class="text-muted" style="font-size: 13px; margin: 6px 0 0; max-width: 74ch;">{{ live.lede }}</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2px; background: var(--color-divider); margin-top: 18px;">
+          <sc-if value="{{ live.room.show }}" hint-placeholder-val="{{ false }}">
+            <div style="background: var(--color-bg); padding: 16px;">
+              <h3 style="font-size: 15px; margin: 0 0 4px;">{{ live.room.title }}</h3>
+              <p class="text-muted" style="font-size: 12px; margin: 0 0 10px;">{{ live.room.lede }}</p>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                <sc-for list="{{ live.room.items }}" as="rs" hint-placeholder-count="12">
+                  <span title="{{ rs.title }}" style="width: 14px; height: 14px; display: inline-block; background: {{ rs.color }};"></span>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ live.commission.show }}" hint-placeholder-val="{{ false }}">
+            <div style="background: var(--color-bg); padding: 16px;">
+              <h3 style="font-size: 15px; margin: 0 0 4px;">{{ live.commission.title }}</h3>
+              <p class="text-muted" style="font-size: 12px; margin: 0 0 10px;">{{ live.commission.lede }}</p>
+              <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px;">{{ live.commission.requestId }}</div>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <sc-for list="{{ live.commission.steps }}" as="cst" hint-placeholder-count="4">
+                  <div style="font-size: 12px; display: flex; gap: 6px; align-items: baseline;">
+                    <span style="font-family: var(--font-heading); font-weight: 800; text-transform: uppercase; font-size: 10px; letter-spacing: 0.06em; white-space: nowrap;">{{ cst.label }}</span>
+                    <span class="text-muted">{{ cst.detail }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ live.calls.show }}" hint-placeholder-val="{{ false }}">
+            <div style="background: var(--color-bg); padding: 16px;">
+              <h3 style="font-size: 15px; margin: 0 0 4px;">{{ live.calls.title }}</h3>
+              <p class="text-muted" style="font-size: 12px; margin: 0 0 10px;">{{ live.calls.lede }}</p>
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <sc-for list="{{ live.calls.items }}" as="cl" hint-placeholder-count="8">
+                  <div style="font-size: 12px;">{{ cl.line }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
     <div style="padding: 44px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
         <div>
@@ -1167,6 +1215,10 @@ class Component extends DCLogic {
   state = {
     page: "board", market: null, range: "1m", corridor: null, crossBase: "SGD",
     hover: null, pinned: null, covCell: null, cxCol: null, data: null, err: null,
+    // U3/SEB-44: state fed by /v1/events (B3/SEB-42), never persisted, never
+    // used to compute a figure shown elsewhere on the page -- these three
+    // panes only ever show what the stream itself just said.
+    live: { connected: false, sources: [], calls: [], commission: null },
   };
 
   componentDidMount() {
@@ -1183,7 +1235,10 @@ class Component extends DCLogic {
       opt("./data/fee_checks.csv"), opt("./data/fee_tiers.csv"),
       opt("./data/withdrawal_fees.csv"),
       opt("./data/crosses_latest.json"), opt("./data/index_latest.json"),
-    ]).then(([b, h, s, p1, p2, p3, p4, fc, ft, wf, cx, ix]) => {
+      // The copy deck. Every string the three live panes show comes from here,
+      // never typed into the markup -- see copy.json and agents/RULES.md.
+      opt("./copy.json"),
+    ]).then(([b, h, s, p1, p2, p3, p4, fc, ft, wf, cx, ix, cp]) => {
       // A missing or unparseable crosses file means the table renders its empty
       // state. It must never take the rest of the page down with it.
       let crosses = null;
@@ -1193,13 +1248,111 @@ class Component extends DCLogic {
       // disagree about what the index says.
       let index = null;
       try { index = ix ? JSON.parse(ix) : null; } catch (e) { index = null; }
+      // A missing or unparseable copy.json means the live panes stay absent --
+      // they have no fallback text to fall back to, by design (see RULES.md).
+      let copy = null;
+      try { copy = cp ? JSON.parse(cp) : null; } catch (e) { copy = null; }
       this.setState({ data: {
         basis: parseCSV(b), hist: parseCSV(h), samples: parseCSV(s),
         panels: { "SGD->PHP": parseCSV(p1), "USD->MXN": parseCSV(p2),
                   "AUD->PHP": parseCSV(p3), "NZD->PHP": parseCSV(p4) },
-        feeChecks: parseCSV(fc), tiers: parseCSV(ft), withdrawalFees: parseCSV(wf), crosses, index,
+        feeChecks: parseCSV(fc), tiers: parseCSV(ft), withdrawalFees: parseCSV(wf), crosses, index, copy,
       }});
     }).catch(e => this.setState({ err: String(e.message || e) }));
+    this.connectLive();
+  }
+
+  componentWillUnmount() {
+    if (this._liveSource) this._liveSource.close();
+  }
+
+  // ---------------------------------------------------------------- U3/SEB-44
+  // One SSE connection to the stream B3/SEB-42 built. Kept entirely separate
+  // from the CSV/JSON load above: the board must be complete with this branch
+  // never firing at all (no browser support, connection refused, cap hit), so
+  // nothing here is awaited by anything else on the page.
+  connectLive() {
+    if (typeof EventSource === "undefined") return;
+    const base = location.hostname.endsWith("margin.wiki")
+      ? "https://api.margin.wiki" : "http://127.0.0.1:8903";
+    let es;
+    try { es = new EventSource(base + "/v1/events"); } catch (e) { return; }
+    this._liveSource = es;
+    es.onopen = () => this.setState(s => ({ live: Object.assign({}, s.live, { connected: true }) }));
+    // No retry logic here: EventSource retries on its own, and every render
+    // reads state.live.connected, so a drop hides the panes on the very next
+    // render rather than leaving stale numbers up under a broken connection.
+    es.onerror = () => this.setState(s => ({ live: Object.assign({}, s.live, { connected: false }) }));
+    es.onmessage = ev => {
+      let d;
+      try { d = JSON.parse(ev.data); } catch (e) { return; }
+      this.setState(s => ({ live: this.reduceLive(s.live, d) }));
+    };
+  }
+
+  // Folds one event from the stream into live state. Each event kind is additive
+  // and capped -- nothing here is ever cleared except by being pushed out the
+  // end of its own ring buffer, so a quiet stream just stops changing rather
+  // than reverting to an empty state under a connection that is still open.
+  reduceLive(live, d) {
+    const cap = (arr, n) => arr.length > n ? arr.slice(0, n) : arr;
+    if (d.kind === "collection_pass") {
+      const rest = live.sources.filter(s => !(s.file === d.file && s.name === d.name));
+      const sources = cap([{ file: d.file, name: d.name, ok: !!d.ok, last_ok_utc: d.last_ok_utc }].concat(rest), 18);
+      return Object.assign({}, live, { sources });
+    }
+    if (d.kind === "call") {
+      return Object.assign({}, live, { calls: cap([{ tool: d.tool, country: d.country }].concat(live.calls), 8) });
+    }
+    if (d.kind === "commission_step") {
+      let commission = live.commission;
+      if (d.step === "probing" && (!commission || commission.requestId !== d.request_id)) {
+        commission = { requestId: d.request_id, steps: [] };
+      }
+      if (commission && commission.requestId === d.request_id) {
+        commission = Object.assign({}, commission, { steps: commission.steps.concat([d]).slice(-10) });
+      }
+      return Object.assign({}, live, { commission });
+    }
+    return live;
+  }
+
+  // Turns one commission's raw steps into the plain-language lines the panel
+  // shows. Every label comes from copy.json's live.commission block -- this
+  // only picks which label fits the step already on the wire from B4/SEB-43,
+  // it invents none of them.
+  commissionLines(commission, c) {
+    const roleOf = s => s.role === "reference" ? c.roleReference : c.roleCandidate;
+    const results = { reachable: c.resultReachable, blocked: c.resultBlocked,
+      "no data": c.resultNoData, "wrong shape": c.resultWrongShape };
+    return (commission.steps || []).map(s => {
+      if (s.step === "probing") return { label: c.stepProbing, detail: roleOf(s) };
+      if (s.step === "status") return { label: c.stepStatus, detail: roleOf(s) + " — " + (results[s.result] || s.result || "") };
+      if (s.step === "verdict") return { label: c.stepVerdict, detail: (s.accepted ? c.accepted : c.rejected) + (s.check ? " — " + s.check : "") };
+      if (s.step === "ended") return { label: c.stepEnded, detail: s.reason || "" };
+      return { label: s.step || "—", detail: "" };
+    });
+  }
+
+  // The one object the three panes bind to. Absent (show: false) whenever the
+  // stream is not connected, or connected but nothing has arrived on any of
+  // the three kinds yet -- never a spinner, never an empty box.
+  computeLive(liveState, copy) {
+    const L = liveState || { connected: false, sources: [], calls: [], commission: null };
+    const c = copy && copy.index && copy.index.live;
+    if (!L.connected || !c) return { show: false };
+    const room = { show: L.sources.length > 0, title: c.machineRoom.title, lede: c.machineRoom.lede,
+      items: L.sources.map(s => ({
+        color: s.ok ? "var(--data-600)" : "var(--color-accent)",
+        title: (s.name || s.file || "source") + " — " + (s.ok ? c.machineRoom.ok : c.machineRoom.failed),
+      })) };
+    const commission = L.commission
+      ? { show: true, title: c.commission.title, lede: c.commission.lede,
+          requestId: L.commission.requestId, steps: this.commissionLines(L.commission, c.commission) }
+      : { show: false };
+    const calls = { show: L.calls.length > 0, title: c.callTail.title, lede: c.callTail.lede,
+      items: L.calls.map(x => ({ line: (x.tool || "—") + " · " + (x.country || "—") })) };
+    return { show: room.show || commission.show || calls.show, heading: c.heading, lede: c.lede, room, commission, calls };
   }
 
   // ---------------------------------------------------------------- helpers
@@ -1548,6 +1701,7 @@ class Component extends DCLogic {
       corridorIntro: "", waterfallNote: "", waterfallStamp: "", stackNote: "", findingsIntro: "",
       cross: { rows: [], has: false, none: true, bases: [], baseCountry: "", baseCode: "—",
                note: "", empty: "No pair has both currencies priced in the same hour yet." },
+      live: { show: false },
     };
     if (!D) return empty;
 
@@ -2169,6 +2323,7 @@ class Component extends DCLogic {
         { k: "Backfill", v: "History before August 2026 is daily, not hourly. It appears in charts as history and never as hourly coverage." },
         { k: "Where the figures come from", v: "Each number is read from data/*.csv at render time and carries the timestamp of the row it came from." },
       ],
+      live: this.computeLive(st.live, D.copy),
     };
   }
 }
