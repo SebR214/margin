@@ -201,15 +201,16 @@ function parseCSV(text){
 let bySize={}, histBySize={}, size=5000, newest="";
 // Corridor 1 is the default and stays first. allRows holds every corridor so
 // switching regroups in place rather than refetching samples.csv.
-let allRows=[], corrKeys=[], corridor="SGD->PHP", feeStampText="", feeChecks=[];
+let allRows=[], corrKeys=[], corridor="SGD->PHP", feeStampText="", feeChecks=[], withdrawalFees=[];
 const PLACE={SGD:"Singapore",PHP:"the Philippines",USD:"the US",MXN:"Mexico",AUD:"Australia",NZD:"New Zealand"};
 const place=c=>PLACE[c]||c;
 const dstOf=r=>((r&&r.dst)||"").trim();
 
-// Fee verification stamp from data/fee_checks.csv (tools/check_fees.py). Three
-// states and no fourth: verified, UNVERIFIED, or nothing at all. An absent or
-// empty file renders nothing -- no placeholder, no guessed date. Age computes
-// here, at render time, so the stamp cannot go stale in a cached page.
+// Fee verification stamp from data/fee_checks.csv and data/withdrawal_fees.csv
+// (both from tools/check_fees.py). Three states and no fourth: verified,
+// UNVERIFIED, or nothing at all. An absent or empty file renders nothing -- no
+// placeholder, no guessed date. Age computes here, at render time, so the
+// stamp cannot go stale in a cached page.
 // Distinct verification dates from a fees_verified string, oldest first.
 function feeDates(verified){
   const legs=String(verified||"").split("|").map(x=>(x.split(":")[1]||"").trim()).filter(Boolean);
@@ -217,28 +218,38 @@ function feeDates(verified){
   return uniq.length?uniq.join(" · "):"—";
 }
 
-function feeStamp(rows,verified){
-  if(!rows||!rows.length) return "";
+function feeStamp(rows,verified,wrows,onVenue){
   const runs={};
-  for(const r of rows){ if(r&&r.ts_utc) (runs[r.ts_utc]=runs[r.ts_utc]||[]).push(r); }
+  for(const r of (rows||[])){ if(r&&r.ts_utc) (runs[r.ts_utc]=runs[r.ts_utc]||[]).push(r); }
   const stamps=Object.keys(runs).sort();
-  if(!stamps.length) return "";
-  const latest=stamps[stamps.length-1];
   const clean=stamps.filter(t=>runs[t].every(r=>(r.status||"").trim()==="ok"));
   const lastClean=clean.length?clean[clean.length-1]:null;
-  if(runs[latest].some(r=>(r.status||"").trim()!=="ok"))
-    return "fees UNVERIFIED — last clean check "+(lastClean?lastClean.slice(0,10):"none on record");
+  const tradeBad=stamps.length>0&&runs[stamps[stamps.length-1]].some(r=>(r.status||"").trim()!=="ok");
+  // The network leg (data/withdrawal_fees.csv) is keyed by venue, not by
+  // corridor, and runs on its own schedule -- only a failure on THIS
+  // corridor's sending venue can make this corridor's number unverified.
+  const wruns={};
+  for(const r of (wrows||[])){ if(r&&r.ts_utc) (wruns[r.ts_utc]=wruns[r.ts_utc]||[]).push(r); }
+  const wstamps=Object.keys(wruns).sort();
+  const withdrawBad=Boolean(onVenue)&&wstamps.length>0&&wruns[wstamps[wstamps.length-1]]
+    .some(r=>(r.venue||"").trim().toLowerCase()===onVenue&&(r.source_ok||"").trim()!=="True");
+  if(!stamps.length&&!withdrawBad) return "";
+  if(tradeBad||withdrawBad){
+    const reason=tradeBad&&withdrawBad?"trading and network fees"
+      :withdrawBad?"network fee":"trading fees";
+    return "fees UNVERIFIED ("+reason+") — last clean check "+(lastClean?lastClean.slice(0,10):"none on record");
+  }
   // The DATE from the fee config, never an age from the wall clock. Only as
   // verified as the stalest leg, so take the oldest.
   const legs=String(verified||"").split("|").map(x=>(x.split(":")[1]||"").trim())
     .filter(Boolean).sort();
-  return legs.length?"fees verified "+legs[0]:"fees verified "+lastClean.slice(0,10);
+  return legs.length?"fees verified "+legs[0]:(lastClean?"fees verified "+lastClean.slice(0,10):"");
 }
 
-async function loadFeeChecks(){
+async function loadCSVOptional(path){
   // Optional by design: a 404 is "no stamp", not a broken page.
   try{
-    const r=await fetch("./data/fee_checks.csv");
+    const r=await fetch(path);
     if(!r.ok) return [];
     const t=await r.text();
     return t.trim()?parseCSV(t):[];
@@ -252,7 +263,8 @@ async function boot(){
   // every row, and does not change when the reader switches corridors.
   document.getElementById("measureCount").textContent=allRows.length.toLocaleString("en-US");
   document.getElementById("winCount").textContent=allRows.filter(r=>r.crypto_wins_taker==="True").length.toLocaleString("en-US");
-  feeChecks=await loadFeeChecks();
+  feeChecks=await loadCSVOptional("./data/fee_checks.csv");
+  withdrawalFees=await loadCSVOptional("./data/withdrawal_fees.csv");
   // samples.csv carries every corridor interleaved. Group by the corridor
   // column: without it one corridor's rows land in another's waterfall.
   corrKeys=[...new Set(allRows.map(r=>(r.corridor||"").trim()).filter(Boolean))]
@@ -293,7 +305,7 @@ function selectCorridor(key){
     `bought on ${r5.onramp_venue}, sold on ${r5.offramp_venue} · fees verified ${feeDates(r5.fees_verified)}`+
     // The dates are already printed above from fees_verified. The watcher stamp
     // only earns its place when it DISAGREES -- i.e. a check has gone red.
-    ((feeStampText=feeStamp(feeChecks,r5.fees_verified)).startsWith("fees UNVERIFIED")
+    ((feeStampText=feeStamp(feeChecks,r5.fees_verified,withdrawalFees,(r5.onramp_venue||"").trim().toLowerCase())).startsWith("fees UNVERIFIED")
       ? ` · ${feeStampText}` : "")+
     // Under three hours there is no trend to read. Say how thin it is rather
     // than letting a two-point chart imply one.

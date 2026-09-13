@@ -28,6 +28,9 @@ LOGDIR = "/var/log/margin"
 
 # A source silent this long is broken, not late.
 STALE_HOURS = 3
+# The fee watcher runs monthly (cron `23 3 1 * *`), so 3h means nothing to it --
+# it gets its own clock, sized the same way check_freshness.py's is (SEB-36).
+FEE_STALE_HOURS = 35 * 24
 # A published country moving this far in a day is either a story or a bug.
 BIG_MOVE_PT = 5.0
 # ...unless its official rate moved too, in which case it is just the currency.
@@ -79,21 +82,36 @@ def delivery():
 
 
 def sources(newest):
-    """Every collector that records source_ok: is it answering, and since when?
+    """Every collector that records an ok/not-ok signal: is it answering, and
+    since when?
 
     Keyed by the column that names the thing being collected, so a single dead
-    venue is visible instead of being averaged into a healthy file.
+    venue is visible instead of being averaged into a healthy file. Most files
+    say so with `source_ok`; fee_checks.csv predates that column and says it
+    with `status == "ok"` instead (parse_fail/mismatch otherwise) -- read
+    off whichever field the file actually has rather than widening its header
+    to match the others (SEB-36).
+
+    Cadence differs too: hourly collectors go stale in STALE_HOURS, the
+    monthly fee watcher in FEE_STALE_HOURS -- so the limit is per file, not
+    one number applied everywhere.
     """
     files = {
-        "basis.csv": "venue", "p2p_basis.csv": "ccy",
-        "provider_quotes.csv": "provider", "providers.csv": "provider",
-        "providers_usdmxn.csv": "provider", "providers_audphp.csv": "provider",
-        "providers_nzdphp.csv": "provider", "samples.csv": "corridor",
-        "stable_spread.csv": "venue",
+        "basis.csv": ("venue", "source_ok", STALE_HOURS),
+        "p2p_basis.csv": ("ccy", "source_ok", STALE_HOURS),
+        "provider_quotes.csv": ("provider", "source_ok", STALE_HOURS),
+        "providers.csv": ("provider", "source_ok", STALE_HOURS),
+        "providers_usdmxn.csv": ("provider", "source_ok", STALE_HOURS),
+        "providers_audphp.csv": ("provider", "source_ok", STALE_HOURS),
+        "providers_nzdphp.csv": ("provider", "source_ok", STALE_HOURS),
+        "samples.csv": ("corridor", "source_ok", STALE_HOURS),
+        "stable_spread.csv": ("venue", "source_ok", STALE_HOURS),
+        "fee_checks.csv": ("venue", "status", FEE_STALE_HOURS),
+        "withdrawal_fees.csv": ("venue", "source_ok", FEE_STALE_HOURS),
     }
     known = exceptions()
     out = []
-    for fname, key in files.items():
+    for fname, (key, ok_field, stale_hours) in files.items():
         data = rows(fname)
         if not data:
             continue
@@ -104,7 +122,9 @@ def sources(newest):
             if not s:
                 continue
             last_seen[name] = max(last_seen.get(name, ""), s)
-            if (r.get("source_ok") or "").strip().lower() == "true":
+            ok_val = (r.get(ok_field) or "").strip().lower()
+            is_ok = ok_val == "ok" if ok_field == "status" else ok_val == "true"
+            if is_ok:
                 last_ok[name] = max(last_ok.get(name, ""), s)
         for name in sorted(last_seen):
             ok = last_ok.get(name)
@@ -121,8 +141,9 @@ def sources(newest):
                 "file": fname, "name": name,
                 "last_ok_utc": ok, "last_seen_utc": last_seen[name],
                 "hours_since_ok": hours,
+                "stale_hours": stale_hours,
                 "expected_silent": silent,
-                "broken": (ok is None or (hours is not None and hours > STALE_HOURS))
+                "broken": (ok is None or (hours is not None and hours > stale_hours))
                           and not silent,
             })
     return out
@@ -255,6 +276,7 @@ def main():
         "moves_denominator_explained": [m for m in mv if m["denominator_explained"]],
         "loops": loops(),
         "thresholds": {"delivery_hours": 23, "stale_hours": STALE_HOURS,
+                       "fee_stale_hours": FEE_STALE_HOURS,
                        "big_move_pt": BIG_MOVE_PT,
                        "fx_explains_pct": FX_EXPLAINS_PCT},
     }

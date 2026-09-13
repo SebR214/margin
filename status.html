@@ -151,10 +151,12 @@ function render(d){
       + '</div><div class="tag">' + days[0].date + " to " + days[days.length-1].date
       + "</div>";
 
+  const feeDays = Math.round(((d.thresholds||{}).fee_stale_hours ?? 840) / 24);
   document.getElementById("srcnote").textContent =
-    (d.sources ? d.sources.length : 0) + " sources are tracked. A source that has "
-    + "not answered for more than " + ((d.thresholds||{}).stale_hours ?? 3)
-    + " hours is counted as not answering.";
+    (d.sources ? d.sources.length : 0) + " sources are tracked. Most go stale after "
+    + ((d.thresholds||{}).stale_hours ?? 3) + " hours of silence; the fee checks "
+    + "(fee_checks.csv, withdrawal_fees.csv) only run monthly, so they are allowed "
+    + feeDays + " days before counting as not answering.";
 
   const rows = broken.concat(silent);
   document.getElementById("sources").innerHTML = !rows.length
