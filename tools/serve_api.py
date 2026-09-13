@@ -91,15 +91,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
         params = {k: v[0] for k, v in urllib.parse.parse_qs(parsed.query).items()}
         try:
             if parsed.path == "/dollar_cost":
+                sc.log_call_event(
+                    "dollar_cost", sc.resolved_country_name(params.get("country")))
                 self._send(200, sc.dollar_cost(params.get("country", "")))
             elif parsed.path == "/compare_routes":
+                sc.log_call_event("compare_routes")
                 self._send(200, sc.compare_routes(
                     params.get("from", ""), params.get("to", ""),
                     params.get("amount")))
             elif parsed.path == "/series":
+                sc.log_call_event(
+                    "series", sc.resolved_country_name(params.get("country")))
                 self._send(200, sc.series(
                     params.get("country", ""), params.get("days")))
             elif parsed.path == "/query":
+                sc.log_call_event("query")
                 self._send(200, sc.run_query(params.get("sql", "")))
             elif parsed.path.startswith("/bundle/"):
                 self._send_bundle_file(parsed.path[len("/bundle/"):])
@@ -112,6 +118,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         parsed = urllib.parse.urlsplit(self.path)
         try:
             if parsed.path == "/request_series":
+                sc.log_call_event("request_series")
                 length = int(self.headers.get("Content-Length", 0))
                 raw = self.rfile.read(length) if length else b""
                 try:

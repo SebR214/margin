@@ -90,6 +90,22 @@ def load_country(ccy):
         return json.load(f)
 
 
+def resolved_country_name(country_or_ccy):
+    """The canonical data/countries/*.json name for a raw query param, or None.
+
+    The only safe thing to hand to log_call_event: a string that can never be
+    more than one of the country names already on disk, never the caller's
+    raw, unvalidated text. An unmatched or empty input resolves to None.
+    """
+    if not country_or_ccy:
+        return None
+    ccy = find_country(country_or_ccy)
+    if ccy is None:
+        return None
+    data = load_country(ccy)
+    return data.get("country") if data else None
+
+
 def load_index_latest():
     with open(os.path.join(DATA, "index_latest.json")) as f:
         return json.load(f)
@@ -235,6 +251,30 @@ def _log_query(question, sql, elapsed_s):
     print(
         "query question=%r sql=%r elapsed_ms=%d"
         % (question, sql, int(elapsed_s * 1000)),
+        file=sys.stdout,
+        flush=True,
+    )
+
+
+def log_call_event(tool, country=None):
+    """The anonymised call-tail line SEB-42's SSE endpoint (serve_events.py)
+    tails and turns into a `call` event, and the ONLY thing it turns into
+    one -- every other line this process already logs (the question and SQL
+    in `_log_query`, model token counts, watch conditions) keeps printing to
+    the same file and stays there, never reaching this line's shape.
+
+    `country` is the country parameter a caller asked about (dollar_cost?
+    country=, series?country=), never where the caller is -- there is no IP
+    geolocation anywhere in this codebase, and ROADMAP.md's "no personal
+    data, ever" is the reason this file draws the line there rather than
+    trying to resolve one.
+
+    Callers MUST pass the output of resolved_country_name(), never the raw
+    query parameter -- this line goes straight to the public call tail, and
+    an unresolved value is caller-supplied free text with no shape guarantee.
+    """
+    print(
+        "call_event tool=%s country=%s" % (tool, country or ""),
         file=sys.stdout,
         flush=True,
     )
