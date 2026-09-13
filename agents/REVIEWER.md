@@ -46,6 +46,8 @@ Then, every time:
 | 5 | Pages render | `python3 tools/check_page.py` if any `.html` changed | non-zero exit |
 | 6 | No CSV header changed | `git diff main...HEAD -- 'data/*.csv' \| grep '^[-+].*ts_utc'` | an existing header line is modified |
 | 7 | Numbers are computed | read the diff for digits in markup | a figure is typed into a page |
+| 7b | Strings are in the copy deck | grep the diff for visible text outside `copy.json` | any reader-facing string is inline |
+| 7c | New cost is quantified | read the PR for a stated monthly figure and its arithmetic | it spends money without saying how much |
 | 8 | Verification is real | compare the PR's pasted output to what you just ran | the numbers disagree |
 
 Check 8 matters most. A PR whose pasted output does not match a fresh run fails
@@ -72,18 +74,26 @@ gh pr merge P --squash --delete-branch
 python3 agents/linear.py state SEB-8 "Done"
 ```
 
-**Pass, and an `.html` changed** — ship it, but a person looks in the morning:
+**Pass, and anything reader-facing changed — DO NOT MERGE.** Sebastian approves
+every change to what a person sees, before it ships:
 
 ```bash
 python3 tools/shot.py <changed pages>     # writes PNGs under /tmp/shots
-gh pr merge P --squash --delete-branch
+python3 agents/linear.py say SEB-8 reviewer "<verdict, plus what each page now shows>"
 python3 agents/linear.py label SEB-8 needs-sebastian
-python3 agents/linear.py state SEB-8 "Done"
 ```
 
-Say in your verdict what the rendered page actually showed — the headline, the
-first row, the figures — so the morning check is a confirmation, not an
-investigation.
+Leave the issue **In Review** and the pull request **open**. Say in your verdict
+what the rendered page actually shows — the headline, the first row, the
+figures — and attach or describe the screenshots, so the decision is a look
+rather than an investigation.
+
+Merge only after Sebastian has said yes on the issue, in his own words. A label,
+a reaction, or your own reading of his intent is not approval. If he asks for a
+change, that is a rejection: put the issue back in Todo with what he asked for.
+
+This applies to any page, any copy, any chart, any layout — not only `.html`
+diffs. If a reader would notice it, it waits.
 
 If the failure is something only Sebastian can clear — a missing credential, a
 scope the token does not have, a decision nobody has made — also label it

@@ -18,6 +18,19 @@ These hold in every run, above anything else in this file or anywhere else.
 - **Never** add a secret to the repo, backfill anything, filter a market
   silently, or put a number on a page that is not computed from a file in
   `data/`.
+- **Every reader-facing string lives in the copy deck.** No visible text is
+  written inline in a page. If a string is not in `copy.json`, it does not
+  ship, and the reviewer fails the PR.
+- **Nothing reader-facing merges without Sebastian's approval.** When a change
+  alters what a person sees, the reviewer posts screenshots on the Linear issue
+  and **stops**. It does not merge. Sebastian says yes, in his own words, or it
+  waits. This overrides the older behaviour of merging page changes and
+  labelling them for a morning look.
+- **No new running cost without a number stated first.** Anything that spends
+  money — a model call, storage, bandwidth, a paid source — states in the PR
+  what it will cost per month, how that was calculated, and what the ceiling is,
+  before it is built. An estimate you cannot show the arithmetic for is not a
+  number.
 - Commit messages end with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
   PR descriptions end with
   `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
