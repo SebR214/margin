@@ -179,7 +179,9 @@ function render(d){
           <td class="r muted">${m.official_move_pct === null ? "—"
               : pt(m.official_move_pct) + "%"}</td>
           <td class="${m.unexplained ? "bad" : "muted"} small">${
-            m.unexplained ? "moved on its own" : "currency moved too"}</td></tr>`)
+            m.unexplained ? "moved on its own"
+              : m.denominator_explained ? "no maintained official rate to compare against"
+              : "currency moved too"}</td></tr>`)
         .join("") + "</table></div>";
 
   const l = d.loops || {};

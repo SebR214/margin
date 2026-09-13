@@ -140,6 +140,9 @@ function render(d){
   } else if(d.denominator && d.denominator.class === "pegged"){
     notes.push(c + "'s currency is pegged, so this figure sits near zero by design. "
              + "That it stays near zero is the finding.");
+  } else if(d.denominator && d.denominator.class === "unmaintained"){
+    notes.push(c + " has no maintained official rate. This compares against an "
+             + "average of what banks there quote, which itself moves.");
   }
   const ic = d.instrument_check;
   if(ic && ic.spread_pct != null && Math.abs(ic.spread_pct) > 0.5){ // matches STABLE_SPREAD_NOTE_PCT
