@@ -42,8 +42,10 @@ P2P = os.path.join(DATA, "p2p_basis.csv")
 SIDES = os.path.join(DATA, "p2p_sides.csv")
 FX = os.path.join(DATA, "fx_rates.csv")
 HIST = os.path.join(DATA, "basis_history.csv")
+STABLE_SPREAD = os.path.join(DATA, "stable_spread.csv")
 OUT_DIR = os.path.join(DATA, "countries")
 OUT_INDEX = os.path.join(DATA, "index_latest.json")
+OUT_STABLE_SPREAD_SUMMARY = os.path.join(DATA, "stable_spread_summary.json")
 PAGE_DIR = os.path.join(HERE, "c")
 
 # Country names for display. Labels only, never numbers — same rule as the
@@ -252,6 +254,80 @@ def buy_side_counts():
     return out
 
 
+# A gap below this is inside the noise of any one hour (METHODOLOGY, "USDT
+# versus USDC on the same venue") and would only clutter a country page.
+STABLE_SPREAD_NOTE_PCT = 0.5
+
+
+def stable_spread_latest():
+    """Most recent source_ok (ccy, venue) -> (ts, spread_bps) from stable_spread.csv.
+
+    Keyed by the pair, never by venue alone: a venue that prices two
+    currencies would otherwise let one currency's reading leak into the
+    other's, and the issue this file exists for is precisely that no
+    currency may borrow another's instrument check.
+    """
+    best = {}
+    for r in rows(STABLE_SPREAD):
+        if not flag(r, "source_ok"):
+            continue
+        ccy, venue = r.get("ccy"), r.get("venue")
+        t = parse_ts(r.get("ts_utc"))
+        spread = num(r, "spread_bps")
+        if not ccy or not venue or t is None or spread is None:
+            continue
+        key = (ccy, venue)
+        if key not in best or t > best[key][0]:
+            best[key] = (t, spread)
+    return best
+
+
+def instrument_check(ccy, venue_names, spread_latest):
+    """Is the dollar this currency's price is built on actually worth a dollar.
+
+    Only venues that both (a) fed this currency's own published price and (b)
+    have their own source_ok stable_spread.csv row for this same currency
+    count -- never another currency's venues, and never a spread inferred
+    from a venue that did not price this currency.
+    """
+    hits = [(venue, ts, spread) for venue in venue_names
+            for ts, spread in [spread_latest.get((ccy, venue), (None, None))]
+            if ts is not None]
+    if not hits:
+        return {"checked": False, "reason": "no venue here lists both"}
+    spreads = [h[2] for h in hits]
+    return {
+        "spread_pct": round(statistics.median(spreads) / 100, 4),
+        "venues": sorted(h[0] for h in hits),
+        "as_of": max(h[1] for h in hits).isoformat(),
+    }
+
+
+def stable_spread_summary(spread_latest):
+    """What methodology.html shows: the dataset's own current shape.
+
+    Every figure here is read straight from stable_spread.csv's most recent
+    source_ok rows -- nothing here is the per-currency instrument_check, and
+    nothing here decides whether a country page shows a note.
+    """
+    if not spread_latest:
+        return None
+    widest_key = max(spread_latest, key=lambda k: abs(spread_latest[k][1]))
+    widest_ccy, widest_venue = widest_key
+    widest_ts, widest_bps = spread_latest[widest_key]
+    pcts = [spread / 100 for _, spread in spread_latest.values()]
+    return {
+        "venues": len({venue for _, venue in spread_latest}),
+        "readings": len(spread_latest),
+        "rows": len(rows(STABLE_SPREAD)),
+        "range_pct": {"low": round(min(pcts), 4), "high": round(max(pcts), 4)},
+        "widest_pct": round(widest_bps / 100, 4),
+        "widest_venue": widest_venue,
+        "widest_ccy": widest_ccy,
+        "as_of": max(ts for ts, _ in spread_latest.values()).isoformat(),
+    }
+
+
 def is_broker(venue):
     """CriptoYa reports brokers and fintechs quoting a retail spread, not books."""
     return venue.startswith("CriptoYa:")
@@ -309,6 +385,7 @@ def latest_by_ccy():
 
     sides = buy_side_counts()
     book = fx_book()
+    spread_latest = stable_spread_latest()
     out = {}
     for ccy in set(book_hours) | set(p2p_hours):
         entry = {"ccy": ccy, "country": COUNTRY.get(ccy, ccy),
@@ -425,6 +502,9 @@ def latest_by_ccy():
             entry["denominator"]["parallel_source"] = par_source
             if fx:
                 entry["denominator"]["parallel_gap_pct"] = round((par_rate / fx - 1) * 100, 4)
+
+        venue_names = {v.get("venue") for v in entry.get("venues", []) if v.get("venue")}
+        entry["instrument_check"] = instrument_check(ccy, venue_names, spread_latest)
         out[ccy] = entry
     return out
 
@@ -647,6 +727,11 @@ function render(d){
     notes.push(c + "'s currency is pegged, so this figure sits near zero by design. "
              + "That it stays near zero is the finding.");
   }
+  const ic = d.instrument_check;
+  if(ic && ic.spread_pct != null && Math.abs(ic.spread_pct) > 0.5){ // matches STABLE_SPREAD_NOTE_PCT
+    notes.push("The dollar itself is trading " + Math.abs(ic.spread_pct).toFixed(2)
+             + "% off here, measured on " + ic.venues.join(", ") + ".");
+  }
   document.getElementById("caveat").textContent = notes.join(" ");
 
   const b = document.getElementById("banner");
@@ -813,6 +898,7 @@ def build():
 
 def main():
     files, snapshot = build()
+    spread_summary = stable_spread_summary(stable_spread_latest())
     try:
         os.makedirs(OUT_DIR, exist_ok=True)
         for ccy, doc in files.items():
@@ -822,6 +908,10 @@ def main():
         with open(OUT_INDEX, "w") as f:
             json.dump(snapshot, f, indent=2, sort_keys=True)
             f.write("\n")
+        if spread_summary:
+            with open(OUT_STABLE_SPREAD_SUMMARY, "w") as f:
+                json.dump(spread_summary, f, indent=2, sort_keys=True)
+                f.write("\n")
         # One page per country, so every country has a stable URL that exists as
         # a file rather than a query string. Generated here so a country added
         # to the collector gets a page on its first run with no edit.
@@ -841,6 +931,10 @@ def main():
     print(f"  wrote {len(files)} country pages -> c/<ccy>.html")
     print(f"  wrote data/index_latest.json  (index v{INDEX_VERSION}, {n} with a value, "
           f"{len(snapshot['without_value'])} without)")
+    if spread_summary:
+        print(f"  wrote data/stable_spread_summary.json ({spread_summary['venues']} venues, "
+              f"widest {spread_summary['widest_pct']:+.2f}% on "
+              f"{spread_summary['widest_venue']} ({spread_summary['widest_ccy']}))")
     if n:
         top, bot = snapshot["countries"][0], snapshot["countries"][-1]
         print(f"    dearest : {top['country']} {top['index_pct']:+.2f}%  ({top['source_words']})")

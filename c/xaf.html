@@ -141,6 +141,11 @@ function render(d){
     notes.push(c + "'s currency is pegged, so this figure sits near zero by design. "
              + "That it stays near zero is the finding.");
   }
+  const ic = d.instrument_check;
+  if(ic && ic.spread_pct != null && Math.abs(ic.spread_pct) > 0.5){ // matches STABLE_SPREAD_NOTE_PCT
+    notes.push("The dollar itself is trading " + Math.abs(ic.spread_pct).toFixed(2)
+             + "% off here, measured on " + ic.venues.join(", ") + ".");
+  }
   document.getElementById("caveat").textContent = notes.join(" ");
 
   const b = document.getElementById("banner");
