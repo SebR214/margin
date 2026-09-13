@@ -68,16 +68,47 @@ verification is on a 90-day clock instead, and goes `stale` (red) past it.
 1. **Cadence verification** — waiting on a week of `:17`/`:47` data to confirm
    the drop rate actually fell. No action until then (see P0-1).
 
-## Vision — locked 2026-09-12
+## Vision — locked 2026-09-12, sharpened 2026-09-13
 
-**margin.wiki is the data utility for cross-border money:** a live index of what
-a dollar really costs in 45+ countries, queryable by AI agents as a tool, where
-a request for data that does not exist triggers agents to find sources, verify
-them, and stand up the collector. **Demand-driven data collection run by agents
-exists nowhere else.**
+**margin.wiki prices a dollar in 59 currencies, every hour, using the only
+dollar a person can actually buy — and says which ones have no price today, and
+why.**
 
-The stress signal — a crypto premium as an early warning of devaluation — is a
-**showcase query, not the product**.
+It is the data utility for cross-border money: queryable by AI agents as a tool,
+where a request for data that does not exist triggers agents to find sources,
+verify them, and stand up the collector. **Demand-driven data collection run by
+agents exists nowhere else.**
+
+### The instrument is a stablecoin, not "crypto"
+
+What the collectors price is **USDT, a dollar stablecoin**, quoted in local
+currency on person-to-person boards and order books. In a country with capital
+controls that is the only liquid, retail-accessible dollar a person can
+actually obtain, so its local price **is** what a dollar costs there.
+
+This is an **FX story**, not a crypto story, and the site says so. The word
+"crypto" invites an argument about crypto; "stablecoin" is precise, and it is
+what the data actually is. Bitcoin and other assets are trackable but add
+nothing here — the premium they carry is an arbitrage story (Korea's being the
+famous one), which is a different game from dollar access.
+
+**The instrument has to be checked, not assumed.** The index divides a USDT
+price by an official rate, so if USDT is not trading at a dollar on that venue,
+the index inherits the error. `data/stable_spread.csv` already measures USDT
+against USDC on every venue that lists both. Using it, and showing it, is what
+makes this claim defensible rather than merely plausible.
+
+### Absence is data, and it is published
+
+59 currencies are tracked. Roughly 46 carry a price in a given hour; the rest
+are withheld under the v1.1 evidence rule, each with a stated reason — too few
+people selling to call it a price, the buying and selling sides are not the
+same market, or nobody is offering to sell dollars at all.
+
+**"No price, and here is why" is an answer, not a gap.** An agent asking what a
+dollar costs in Ethiopia learns something real from being told nobody is
+selling one. The site leads with 59 tracked and names the reasons, because a
+falsifiable claim is stronger than a flattering one.
 
 ### Three surfaces, one engine
 
@@ -884,6 +915,15 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
 ## Invariants — do not regress these
 
 ### The tool's own invariants (Serve, Ask, Commission)
+
+- The instrument is **USDT, a dollar stablecoin**. Reader-facing pages say
+  "stablecoin" or "a dollar", never "crypto", except where describing the
+  mechanism in methodology.
+- **The dollar must be checked against a dollar.** Where a venue lists both,
+  the USDT/USDC spread is measured and published; a country whose instrument is
+  visibly off a dollar says so beside its number.
+- **Absence is published.** A currency without a price this hour carries a
+  stated reason, in plain language, in the same place the price would be.
 
 - SQL is **read-only**, capped at **5,000 rows**, with a **10-second timeout**.
 - Every query is logged with the question, the SQL, and the timing.
