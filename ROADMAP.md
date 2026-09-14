@@ -569,6 +569,38 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
    ```
    launchctl unload ~/Library/LaunchAgents/wiki.margin.collect.plist
    ```
+
+   **Incident, 2026-09-13/14: two chains, forked and racing.** The same
+   failure class recurred at a smaller scale. Around 2026-09-13 06:00 UTC the
+   chain split in two, each self-perpetuating and each blind to the other:
+   `tools/check_delivery.py` counted only 6 of 24 hours for 2026-09-13 despite
+   runs firing at nearly every slot, and `Commit samples` failed on alternating
+   fires with `cannot lock ref 'refs/heads/main'` -- two links racing to push
+   the same slot's commit.
+
+   The "Am I needed" gate only re-checks aliveness for a **scheduled** fire; a
+   run already carrying `chain=true` forges the next link unconditionally, no
+   re-check. That is correct in steady state, but it means the one moment two
+   independent chains can ever be told apart is a check that itself races: if
+   two scheduled fires both read "chain dead" before either run's own
+   existence is visible to the other's `runs?status=` query -- plausible right
+   after an outage, when several restarter fires land close together -- each
+   starts its own permanent chain, and nothing in the design ever merges them
+   back down.
+
+   Fix: `Dispatch successor` now re-runs the same status-based aliveness check
+   immediately before it forges the next link, for every run, chain or
+   schedule. It does not carry the restarter's race -- by the time a link
+   reaches that step it has been alive for the run's full duration (collection
+   plus up to a 30-minute sleep), long past any propagation delay, so a
+   sibling chain is always visible by then. Two live chains each see the other
+   there and both stand down instead of both re-forging: worst case a gap
+   until the next restarter fire (<=30 min), never a permanent second chain. A
+   healthy single chain is unaffected, since by the time a link reaches this
+   check its own parent finished minutes ago and it only ever sees itself. No
+   manual cancellation of the two runs live at the time of the fix: both call
+   `--ref main`, so the next link either dispatches already carries it and
+   reconciles on its own.
 2. ~~**Put fee verification on a clock.**~~ **Shipped 2026-08-18.**
    `tools/check_fees.py` re-reads both published schedules, diffs the base tier
    against the `CORRIDORS` constants it imports from `collector.py`, and appends
