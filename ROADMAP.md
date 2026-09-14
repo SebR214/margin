@@ -253,8 +253,15 @@ corridor has at most one usable path. **Gate: a public Coins.ph statement on
 free stablecoin deposits (SGD→PHP), and Coinbase's per-network withdrawal fees
 entered by hand (USD→MXN), since Coinbase is login-gated and is never scraped.**
 
-**The front-end rebuild.** Gated on a final design pass, with the design source
-attached to the issue before anyone starts.
+**The front-end rebuild — gate lifted 2026-09-13.** The design pass happened:
+Sebastian set the direction in full — conversation structure, a black hero band
+with white below, Archivo throughout, indigo reserved for data, pills only on
+things you can act on — and it is written into the U1–U5 issues. **This is no
+longer gated and must not be treated as such.** The gate text below is kept only
+so the change is legible; it no longer applies.
+
+> *(Former gate, satisfied: "gated on a final design pass, with the design
+> source attached to the issue before anyone starts.")*
 
 **The EU corridor.** Blocked on venue verification, to be done through a
 browser by a person. Do not research venues and do not draft a collector.
