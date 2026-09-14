@@ -189,7 +189,7 @@ function parseCSV(text){
 let bySize={}, histBySize={}, size=5000, newest="";
 // Corridor 1 is the default and stays first. allRows holds every corridor so
 // switching regroups in place rather than refetching samples.csv.
-let allRows=[], corrKeys=[], corridor="SGD->PHP", feeStampText="", feeChecks=[], withdrawalFees=[];
+let allRows=[], corrKeys=[], corridor="SGD->PHP", feeChecks=[], withdrawalFees=[];
 const PLACE={SGD:"Singapore",PHP:"the Philippines",USD:"the US",MXN:"Mexico",AUD:"Australia",NZD:"New Zealand"};
 const place=c=>PLACE[c]||c;
 const dstOf=r=>((r&&r.dst)||"").trim();
@@ -221,17 +221,21 @@ function feeStamp(rows,verified,wrows,onVenue){
   const wstamps=Object.keys(wruns).sort();
   const withdrawBad=Boolean(onVenue)&&wstamps.length>0&&wruns[wstamps[wstamps.length-1]]
     .some(r=>(r.venue||"").trim().toLowerCase()===onVenue&&(r.source_ok||"").trim()!=="True");
-  if(!stamps.length&&!withdrawBad) return "";
+  if(!stamps.length&&!withdrawBad) return {text:"",unverified:false};
+  const FS=COPY.feeStamp||{};
   if(tradeBad||withdrawBad){
-    const reason=tradeBad&&withdrawBad?"trading and network fees"
-      :withdrawBad?"network fee":"trading fees";
-    return "fees UNVERIFIED ("+reason+") — last clean check "+(lastClean?lastClean.slice(0,10):"none on record");
+    const reason=tradeBad&&withdrawBad?(FS.reasonBoth||"trading and network fees")
+      :withdrawBad?(FS.reasonNetwork||"network fee"):(FS.reasonTrading||"trading fees");
+    const text=T(FS.unverifiedTemplate||"fees UNVERIFIED ({reason}) — last clean check {lastClean}",
+      {reason, lastClean: lastClean?lastClean.slice(0,10):(FS.noneOnRecord||"none on record")});
+    return {text, unverified:true};
   }
   // The DATE from the fee config, never an age from the wall clock. Only as
   // verified as the stalest leg, so take the oldest.
   const legs=String(verified||"").split("|").map(x=>(x.split(":")[1]||"").trim())
     .filter(Boolean).sort();
-  return legs.length?"fees verified "+legs[0]:(lastClean?"fees verified "+lastClean.slice(0,10):"");
+  const date=legs.length?legs[0]:(lastClean?lastClean.slice(0,10):"");
+  return {text: date?T(FS.verifiedTemplate||"fees verified {date}",{date}):"", unverified:false};
 }
 
 async function loadCSVOptional(path){
@@ -339,17 +343,18 @@ function selectCorridor(key){
   const d=new Date(newest.replace(" ","T")), ago=Math.round((Date.now()-d)/6e4);
   const hours=new Set(rows.map(r=>r.ts.slice(0,13))).size;
   document.title="margin.wiki — Is it a real dollar? · "+place(srcCcy)+" → "+place(dstOf(r5));
+  const feeStampR=feeStamp(feeChecks,r5.fees_verified,withdrawalFees,(r5.onramp_venue||"").trim().toLowerCase());
   document.getElementById("stamp").innerHTML=
     `<b>updated</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?ago+" min ago":Math.round(ago/60)+" h ago"} · `+
     // fees_verified carries one date per leg ("ir:2026-08-10|coins:2026-08-10").
     // Both legs are usually verified on the same day, and printing the string
     // straight through rendered that as "2026-08-10 · 2026-08-10". Distinct
     // dates only -- if the legs ever diverge, both still show.
-    `bought on ${r5.onramp_venue}, sold on ${r5.offramp_venue} · fees verified ${feeDates(r5.fees_verified)}`+
+    T(COPY.venueTemplate||"bought on {onrampVenue}, sold on {offrampVenue} · fees verified {dates}",
+      {onrampVenue: r5.onramp_venue, offrampVenue: r5.offramp_venue, dates: feeDates(r5.fees_verified)})+
     // The dates are already printed above from fees_verified. The watcher stamp
     // only earns its place when it DISAGREES -- i.e. a check has gone red.
-    ((feeStampText=feeStamp(feeChecks,r5.fees_verified,withdrawalFees,(r5.onramp_venue||"").trim().toLowerCase())).startsWith("fees UNVERIFIED")
-      ? ` · ${feeStampText}` : "")+
+    (feeStampR.unverified ? ` · ${feeStampR.text}` : "")+
     // Under three hours there is no trend to read. Say how thin it is rather
     // than letting a two-point chart imply one.
     (hours<3?` · <b>${hours} capture${hours===1?"":"s"} so far</b> — every point collected is shown, nothing filled in`:"");
