@@ -321,7 +321,7 @@
             </sc-if>
             <sc-if value="{{ cc.tipOn }}" hint-placeholder-val="{{ false }}">
               <div style="position: absolute; left: {{ cc.tipX }}; top: {{ cc.tipY }}; transform: {{ cc.tipShift }}; pointer-events: none; background: var(--color-bg); border: 1px solid var(--color-text); padding: 5px 9px; white-space: nowrap;">
-                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; line-height: 1.2;">crypto {{ cc.tipU }}</div>
+                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; line-height: 1.2;">{{ cc.tipULabel }} {{ cc.tipU }}</div>
                 <div style="font-size: 12px;">provider {{ cc.tipR }} · difference {{ cc.tipG }}</div>
                 <div class="text-muted" style="font-size: 10px;">{{ cc.tipT }}</div>
               </div>
@@ -1150,7 +1150,7 @@ class Component extends DCLogic {
       ranges: [], corridorSummary: [], corridors: [], correction: [], findings: [],
       cc: { name: "—", size: "—", usdtLine: "", railLine: "", gapArea: "", xLabels: [], yLabels: [],
             keys: [], tabs: [], dots: [], sparse: false, note: "",
-            tipOn: false, tipX: "0%", tipY: "0%", tipShift: "none", tipU: "", tipR: "", tipG: "", tipT: "",
+            tipOn: false, tipX: "0%", tipY: "0%", tipShift: "none", tipU: "", tipULabel: "", tipR: "", tipG: "", tipT: "",
             onMove: () => {}, onLeave: () => {}, onPin: () => {} },
       cx: { name: "—", tiers: [], line1: "", line2: "", line3: "", line4: "", railLine: "",
             xLabels: [], tipRows: [], tipOn: false, tipX: "0%", tipShift: "none", tipSize: "",
@@ -1466,6 +1466,7 @@ class Component extends DCLogic {
         tipX: ccIdx === null ? "0%" : pctX(pu.x(ccIdx)), tipY: ccIdx === null ? "0%" : pctY(pu.y(us[ccIdx])),
         tipShift: ccIdx === null ? "none" : shift(ccIdx, us.length),
         tipU: ccIdx === null ? "" : this.fmtPct(us[ccIdx], false),
+        tipULabel: (CI.sending || {}).tooltipLabel || "",
         tipR: ccIdx === null ? "" : this.fmtPct(rl[ccIdx], false),
         tipG: ccIdx === null ? "" : this.fmtPct(us[ccIdx] - rl[ccIdx]),
         tipT: ccIdx === null ? "" : this.fmtStamp(series[ccIdx].t, true),

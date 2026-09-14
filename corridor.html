@@ -480,7 +480,7 @@ function drawWaterfall(r){
        `<text x="${(b+(b>=a?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-neutral-700)" font-size="11" font-family="var(--mono)" text-anchor="${b>=a?"start":"end"}">${cash(n,c.v)}</text>`;
   });
   const y=top+comps.length*rowH, xt=X(total);
-  s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12.5" font-family="var(--font-body)" font-weight="700">The whole transfer</text>`+
+  s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12.5" font-family="var(--font-body)" font-weight="700">${(COPY.legend||{}).wholeTransfer||"The whole transfer"}</text>`+
      `<rect x="${Math.min(X(0),xt).toFixed(1)}" y="${y+5}" width="${Math.max(2,Math.abs(xt-X(0))).toFixed(1)}" height="${rowH-10}" fill="var(--color-ink)"/>`+
      `<text x="${(xt+(total>=0?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12" font-family="var(--mono)" font-weight="700" text-anchor="${total>=0?"start":"end"}">${cash(n,total)}</text>`;
   svg.innerHTML=s;
