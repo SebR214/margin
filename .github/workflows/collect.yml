@@ -327,6 +327,31 @@ jobs:
       # live runs, because counting races: parent and successor overlap by
       # seconds at handover, and a "who is oldest" rule can kill the very chain
       # it is meant to protect.
+      #
+      # THE 2026-09-13/14 GAP: the "Am I needed" gate above is what tells two
+      # would-be chains apart, and it only runs for a scheduled fire -- once a
+      # run carries chain=true it forges the next link unconditionally, with no
+      # re-check. That is fine in steady state, but it means the only place two
+      # independent chains can ever be told apart is a check that itself races:
+      # if two schedule fires both read "chain dead" before either run's own
+      # existence is visible to the other's `runs?status=` query -- plausible
+      # right after an outage, when several restarter fires land close together
+      # -- each starts its own permanent chain, and nothing ever merges them
+      # back down. That is what happened: two chains, still forming a moment
+      # later on 2026-09-13, converged on the same :05/:35 slots and raced to
+      # push the same commit -- 6 of 24 hours delivered instead of 24.
+      #
+      # So this step re-runs the same status-based check immediately before it
+      # forges the next link, for every run, chain or schedule. It does not
+      # carry the restarter's race: by the time a link reaches this line it has
+      # been alive for the run's full duration (collection plus up to the
+      # 30-minute sleep above), long past any propagation delay, so a sibling
+      # chain is always visible by now. Two live chains each see the other here
+      # and both stand down, rather than both re-forging -- worst case a gap
+      # until the next restarter fire (<=30 min), never a permanent second
+      # chain. A healthy single chain is unaffected: by the time a link reaches
+      # this check, its own parent finished minutes ago, so it only ever sees
+      # itself.
       - name: Dispatch successor
         if: >-
           always() && steps.needed.outputs.proceed == 'true'
@@ -350,6 +375,19 @@ jobs:
           [ "$wait" -lt 5 ] && wait=5   # never dispatch into the slot just left
           echo "now $(date -u +%H:%M:%SZ), next slot :$(printf '%02d' $((target % 60))), sleeping ${wait}s"
           sleep "$wait"
+
+          # Re-check right before forging -- see "THE 2026-09-13/14 GAP" above.
+          # Same status-by-API check as "Am I needed", excluding this run.
+          alive=""
+          for st in in_progress queued; do
+            [ -n "$alive" ] && break
+            alive=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/collect.yml/runs?status=$st&per_page=100" \
+                      --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }}) | .id] | first // \"\"")
+          done
+          if [ -n "$alive" ]; then
+            echo "another link already alive (run $alive) -- standing down instead of forking a second chain"
+            exit 0
+          fi
 
           # A failed dispatch breaks the chain, so it must be LOUD: the run goes
           # red, and the schedule's next fire finds no link alive and restarts.
