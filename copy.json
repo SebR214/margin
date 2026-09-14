@@ -1,0 +1,127 @@
+{
+  "brand": "margin.wiki",
+  "nav": [
+    { "key": "index", "label": "The index", "href": "./index.html" },
+    { "key": "use", "label": "Use it", "href": "./calculator.html" },
+    { "key": "findings", "label": "Findings", "href": "./findings.html" },
+    { "key": "how", "label": "How it works", "href": "./methodology.html" }
+  ],
+  "index": {
+    "health": { "reading": "reading data/…", "errorPrefix": "collector unreachable — " },
+    "lastTick": "last tick",
+    "hero": {
+      "title": "What does a dollar really cost?",
+      "body": "In much of the world the official exchange rate is not the rate anyone gets. This measures what people actually pay for a dollar — the kind an ordinary person can buy on their phone — in {count} currencies, every hour. Where there is no price, it says so, and why."
+    },
+    "market": {
+      "overTime": "one country over time",
+      "theBoard": "the board",
+      "hint": "Click any country on the board to see its history here. Hover the chart to read a point, click to pin it.",
+      "ranges": { "1d": "1d", "1w": "1w", "1m": "1m", "1y": "1y" }
+    },
+    "board": {
+      "title": "What a dollar really costs",
+      "subhead": "measured every hour · furthest above the official rate first",
+      "columns": { "country": "country", "cost": "a dollar costs", "roundTrip": "round trip", "evidence": "evidence", "sparkline": "last 30 days" },
+      "withheldTitle": "Not published this hour",
+      "withheldNote": "A price was collected for these and stored, but it does not meet the evidence rule, so it is not shown as a number. Each country keeps its page and its reason, and returns as soon as its market does.",
+      "footnote": "Each row is one country. \"A dollar costs\" is what you pay to buy one dollar there, against the official exchange rate captured in the same second. \"Round trip\" is what it costs to buy and then sell again. Click any country for every source behind its number."
+    },
+    "cross": {
+      "title": "If you moved money through crypto, what rate would you get?",
+      "intro": "Turn {baseCode} into a digital dollar on a {baseCountry} exchange, then turn that dollar into the other country's money on an exchange there. This is the rate that round trip works out to, next to the official rate for the same moment.",
+      "oneBuys": "one {baseCode} buys",
+      "columns": { "official": "official rate", "crypto": "through crypto", "difference": "difference" },
+      "footnote": "A plus means the crypto route works out to more of the other country's money than the official rate would give you, before any fees.",
+      "empty": "No pair has both currencies priced in the same hour yet."
+    },
+    "coverage": {
+      "title": "Is the data complete?",
+      "legendStart": "00h",
+      "legendMid": "small gap → big gap",
+      "legendEnd": "23h UTC",
+      "footnote": "Prices from before August 2026 are daily, not hourly, so they appear in the history chart but never in this grid."
+    },
+    "sending": {
+      "kicker": "what the transfer costs, hourly",
+      "detailButton": "See one transfer in detail",
+      "methodButton": "How it's measured"
+    },
+    "correction": {
+      "label": "Correction on the record",
+      "title": "I published a wrong number once",
+      "body": "My first version said the crypto route beat Wise by 3x. Then I checked the exchanges' real fees, and it didn't. {makerProse}. The mistake stays on the page so you can see the numbers here get checked, including mine."
+    },
+    "findings": {
+      "title": "What the data has shown so far"
+    },
+    "footer": {
+      "kicker": "who made this",
+      "body": "Built by Sebastian Roervig. I work in cross-border payments. Everyone says crypto made moving money cheap. I couldn't find anyone who had measured it, so I did. Raw data and code: github.com/SebR214/margin"
+    }
+  },
+  "corridor": {
+    "title": "Is it a real dollar?",
+    "lede1": "Every price on this site is the price of a digital dollar — the kind an ordinary person can buy on their phone, in places where the bank won't sell them one. So the obvious question is whether that's a real dollar or just a number on a screen.",
+    "lede2": "We answer it the only honest way: we take one all the way through. Buy it in one country, move it, sell it in another, pay every fee on the way. Then we count what actually came out the other end.",
+    "verdict1": "Doing this is almost always more expensive than just using a bank. We've measured it {measureCount} times. The stablecoin route came out cheaper {winCount} times — about one time in two hundred.",
+    "verdict2": "We publish that because the point was never to sell you on it. The round trip isn't advice, it's a test: if the digital dollar weren't a real dollar, the money wouldn't come out the other end at all. It does, minus a cost we can show you line by line.",
+    "loading": "loading…",
+    "loadFailed": "failed to load data",
+    "sizebar": { "route": "route", "sendAmount": "send amount" },
+    "cards": {
+      "landed": { "title": "What came out the other end", "cap": "The landed amount, against what a bank would have given you for the same transfer, right now." },
+      "depth": { "title": "Could you actually sell it?" },
+      "waterfall": { "title": "Where the money goes", "cap": "Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the cheapest ordinary provider, same second." },
+      "ladder": { "title": "It is worst at the amounts people actually send", "capTemplate": "The blockchain charges the same flat fee whatever you send, so it barely registers on a large transfer and dominates a small one. {highlight} is highlighted." },
+      "history": { "title": "Every round trip we've run", "cap": "The total cost over time, hourly since collection began: buying at the price on offer, waiting for your own price, and the cheapest ordinary provider. History cannot be back-filled." }
+    },
+    "legend": {
+      "moneyGained": "money gained",
+      "moneyLost": "money lost",
+      "blockchain": "the blockchain",
+      "total": "total",
+      "cheapestProvider": "cheapest ordinary provider",
+      "buyingNow": "buying at the price on offer",
+      "waitingOwnPrice": "waiting for your own price"
+    },
+    "numCards": {
+      "buyingNow": { "label": "Buying it now", "sub": "the price on offer" },
+      "waitingOwnPrice": { "label": "Waiting for your price", "sub": "if you wait for your own price" },
+      "cheapestProviderLabel": "Cheapest provider",
+      "cheapestProviderSub": "the cheapest ordinary provider, same second",
+      "cheaper": "cheaper",
+      "dearer": "dearer"
+    },
+    "depth": {
+      "capTemplate": "How much money could be sold into {dst} right now on {venue}, the exchange that turns it into local currency, before the price moves. Separate from the send amount above.",
+      "atBestPrice": "At today's best price",
+      "atBestPriceSub": "room to sell before the price starts to move against the next seller",
+      "before1Pct": "Before the price drops 1%",
+      "before1PctSub": "room to sell in total before the price falls a full percent"
+    },
+    "ladderTable": {
+      "columns": { "send": "Send", "buyingNow": "Buying it now", "waitingOwnPrice": "Waiting for your price", "cheapestProvider": "Cheapest provider", "cheaper": "Cheaper" },
+      "worstTag": "worst",
+      "dollarRoute": "the dollar route"
+    },
+    "verdictLine": {
+      "cryptoCheaper": "The dollar route is cheaper at this amount.",
+      "cryptoDearer": "The ordinary provider is cheaper at this amount.",
+      "sendTemplate": "Send {amount} to {place} now: {provider} costs {providerCost} all in, the dollar route costs {routeCost}.",
+      "youSave": "You save {amount}.",
+      "moreExpensive": "That is {amount} more.",
+      "waitingTemplate": "Waiting for your own price instead costs {amount}, which {closes} the gap.",
+      "doesClose": "does close",
+      "doesNotClose": "still does not close",
+      "blockchainSplit": "the blockchain",
+      "exchangesSplit": "what the two exchanges charge"
+    },
+    "history": {
+      "buildingTemplate": "history builds hourly — {count} so far"
+    },
+    "noSamples": "no completed samples yet.",
+    "footerTemplate": "The coin is bought on {onrampVenue} in {srcCcy} and sold on {offrampVenue} for {dst}. The comparison is the Wise comparison API — advertised retail prices, not confirmed fills, and they can carry promotional pricing (first-transfer or new-customer offers) recorded exactly as quoted. The comparison is therefore the best advertised price at that instant, not necessarily the best recurring one. Official exchange rates: open.er-api.com. \"Waiting for your own price\" assumes the order fills at the top of the book. Pricing that large institutions get privately is invisible by nature and never estimated.",
+    "footerLinks": { "methodology": "Methodology & data honesty →", "board": "the country board →" }
+  }
+}

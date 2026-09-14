@@ -2,153 +2,135 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<link rel="stylesheet" href="./style.css"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki — Is it a real dollar?</title>
 <meta name="description" content="Is a digital dollar a real dollar? We buy one in Singapore, move it, and sell it in the Philippines, paying every fee on the way, measured hourly against the cheapest ordinary provider quoting the same amount."/>
 <style>
+  /* Page-specific only: the layout components below (cards, the size
+     switcher, the waterfall legend, tables) belong to this page alone, so
+     they live here rather than in style.css. They read the shared tokens --
+     ink, paper, divider, Archivo -- rather than defining their own. The
+     waterfall/history chart's own colour keys (gain, loss, the blockchain)
+     are out of scope for this rebuild (charts are U4) and stay local too. */
   :root{
-    --ink:#12131a; --sub:#5b6472; --faint:#8b93a1; --line:#ebebf0;
-    --bg:#ffffff; --card:#ffffff; --fill:#f5f5f8;
-    --pos:#b3241b; --neg:#2f7dae; --rail:#d98a2b; --win:#166534; --accent:#0d1117;
+    --pos:#b3241b; --neg:#2f7dae; --rail:#d98a2b; --win:#166534;
     --shadow:0 1px 2px rgba(16,22,34,.04),0 8px 30px rgba(16,22,34,.06);
-    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    --sans:"Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-  }
-  @media (prefers-color-scheme:dark) and (min-width:99999px){
-    :root{
-      --ink:#e9ecf2; --sub:#9aa3b2; --faint:#6b7480; --line:#22262e;
-      --bg:#0b0d10; --card:#12151a; --fill:#171b21;
-      --pos:#f0574d; --neg:#4aa3d6; --rail:#e6a24e; --win:#7ee0a0; --accent:#e9ecf2;
-      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 34px rgba(0,0,0,.5);
-    }
+    --mono:var(--font-body);
   }
   *{box-sizing:border-box}
   html,body{margin:0; overflow-x:hidden; max-width:100%}
-  body{background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.45; -webkit-font-smoothing:antialiased}
+  body{font-family:var(--font-body); line-height:1.45; -webkit-font-smoothing:antialiased}
   a{color:inherit}
-  .wrap{max-width:960px; margin:0 auto; padding:22px 20px 60px}
+  .wrap{max-width:960px; margin:0 auto; padding:0 20px 60px}
 
-  header{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:12px}
-  .brand{font-weight:700; letter-spacing:-.02em; font-size:19px}
-  .brand span{color:var(--faint); font-weight:600}
-  .sub{color:var(--sub); font-size:13.5px; margin-top:3px; max-width:60ch}
-  .back{font-size:12.5px; color:var(--sub); text-decoration:none; border:1px solid var(--line); border-radius:9px; padding:6px 11px; white-space:nowrap}
-  .back:hover{border-color:#cfd3db}
-  .stamp{font-family:var(--mono); font-size:11.5px; color:var(--faint); margin-top:10px}
-  .stamp b{color:var(--sub); font-weight:600}
+  .sub{color:var(--color-neutral-700); font-size:13.5px; margin-top:8px; max-width:60ch}
+  .stamp{font-family:var(--mono); font-size:11.5px; color:var(--color-neutral-600); margin-top:10px}
+  .stamp b{color:var(--color-neutral-700); font-weight:600}
 
-  .pageTitle{font-size:26px; margin:20px 0 8px; letter-spacing:-.01em}
-  .lede{color:var(--sub); font-size:14.5px; line-height:1.55; max-width:68ch; margin:0 0 10px}
+  .lede{color:var(--color-neutral-700); font-size:14.5px; line-height:1.55; max-width:68ch; margin:0 0 10px}
 
-  .sizebar{display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin:18px 0 6px}
-  .sizebar .lbl{font-size:12px; color:var(--faint); margin-right:2px}
-  .sz{font-family:var(--mono); font-size:12.5px; padding:6px 11px; border:1px solid var(--line); border-radius:9px; background:var(--card); cursor:pointer; color:var(--sub)}
-  .sz.on{background:var(--accent); color:var(--bg); border-color:var(--accent); font-weight:600}
+  .sizebar{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:18px 0 6px}
+  .sizebar .lbl{font-size:12px; color:var(--color-neutral-600); margin-right:2px}
+  .sz{font-family:var(--mono); font-size:12.5px; padding:6px 14px}
+  .sz.on{font-weight:700}
 
-  .nums{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:8px 0 6px}
-  .num{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow)}
-  .num .n-l{font-size:12px; color:var(--sub); font-weight:600; display:flex; gap:6px; align-items:center}
-  .num .n-v{font-family:var(--mono); font-size:30px; font-weight:600; letter-spacing:-.01em; margin-top:3px; line-height:1}
-  .num .n-s{font-size:11.5px; color:var(--faint); margin-top:3px}
-  .pill{font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px; text-transform:uppercase; letter-spacing:.03em}
-  .pill.win{background:#eaf7ee; color:var(--win)}
-  .pill.lose{background:#fdeceb; color:var(--pos)}
-  @media (prefers-color-scheme:dark) and (min-width:99999px){ .pill.win{background:#0f1c14} .pill.lose{background:#1e0f0e} }
+  .nums{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; margin:8px 0 6px; background:var(--color-divider)}
+  .num{background:var(--color-bg); padding:14px 16px}
+  .num .n-l{font-size:12px; color:var(--color-neutral-700); font-weight:600; display:flex; gap:6px; align-items:center}
+  .num .n-v{font-family:var(--mono); font-size:30px; font-weight:600; letter-spacing:-.01em; margin-top:3px; line-height:1; font-variant-numeric:tabular-nums}
+  .num .n-s{font-size:11.5px; color:var(--color-neutral-600); margin-top:3px}
+  .badge{font-size:10px; font-weight:700; padding:1px 6px; border-radius:3px; text-transform:uppercase; letter-spacing:.03em}
+  .badge.win{background:#eaf7ee; color:var(--win)}
+  .badge.lose{background:#fdeceb; color:var(--pos)}
 
-  .verdict{background:var(--fill); border:1px solid var(--line); border-radius:14px; padding:13px 16px; margin:12px 0; font-size:14px}
+  .verdict{background:var(--color-surface); border-top:2px solid var(--color-ink); padding:13px 16px; margin:12px 0; font-size:14px}
   .verdict b{font-weight:700}
-  .verdict .split{display:flex; gap:20px; flex-wrap:wrap; margin-top:8px; font-family:var(--mono); font-size:12.5px; color:var(--sub)}
-  .verdict .split b{color:var(--ink)}
+  .verdict .split{display:flex; gap:20px; flex-wrap:wrap; margin-top:8px; font-family:var(--mono); font-size:12.5px; color:var(--color-neutral-700)}
+  .verdict .split b{color:var(--color-ink)}
 
-  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); padding:16px 18px; margin-top:16px}
-  .card h2{font-size:14px; margin:0 0 3px; letter-spacing:-.01em}
-  .card .cap{font-size:12px; color:var(--faint); margin:0 0 12px}
+  .card{border-top:2px solid var(--color-ink); padding:16px 0; margin-top:28px}
+  .card h2{font-size:18px; margin:0 0 3px}
+  .card .cap{font-size:12.5px; color:var(--color-neutral-600); margin:0 0 12px; max-width:78ch}
   .wf{display:block; width:100%; height:auto}
 
   table{width:100%; border-collapse:collapse; font-size:13px; margin-top:4px}
-  th,td{text-align:right; padding:8px 6px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; font-family:var(--mono)}
-  th{color:var(--faint); font-weight:600; font-family:var(--sans); font-size:11.5px; text-transform:uppercase; letter-spacing:.03em}
+  th,td{text-align:right; padding:8px 6px; border-bottom:1px solid var(--color-divider); font-variant-numeric:tabular-nums; font-family:var(--mono)}
+  th{color:var(--color-neutral-600); font-weight:600; font-family:var(--font-body); font-size:11.5px; text-transform:uppercase; letter-spacing:.03em}
   th:first-child,td:first-child{text-align:left}
-  tr.hl td{background:var(--fill)}
+  tr.hl td{background:var(--color-surface)}
   tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--rail)}
-  td .tag{font-family:var(--sans); font-size:11px; color:var(--faint)}
-  .winner{font-family:var(--sans); font-size:11.5px; font-weight:600}
-  .winner.c{color:var(--win)} .winner.f{color:var(--sub)}
+  td .tag{font-family:var(--font-body); font-size:11px; color:var(--color-neutral-600)}
+  .winner{font-family:var(--font-body); font-size:11.5px; font-weight:600}
+  .winner.c{color:var(--win)} .winner.f{color:var(--color-neutral-700)}
 
-  .legend-row{display:flex; flex-wrap:wrap; gap:14px; font-size:11.5px; color:var(--sub); margin-top:10px}
-  .legend-row i{width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:5px; vertical-align:-1px}
+  .legend-row{display:flex; flex-wrap:wrap; gap:14px; font-size:11.5px; color:var(--color-neutral-700); margin-top:10px}
+  .legend-row i{width:10px; height:10px; display:inline-block; margin-right:5px; vertical-align:-1px}
 
-  footer{margin-top:22px; padding-top:14px; border-top:1px solid var(--line); color:var(--faint); font-size:12px; line-height:1.6}
-  footer a{color:var(--sub)}
+  footer{margin-top:22px; padding-top:14px; border-top:1px solid var(--color-divider); color:var(--color-neutral-600); font-size:12px; line-height:1.6}
+  footer a{color:var(--color-neutral-700)}
   @media (max-width:640px){ .nums{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div>
-      <div class="brand">margin.wiki <span id="brandCorr">· Singapore → Philippines</span></div>
-      <div class="sub"><span id="subLead">Singapore → Philippines, measured every hour.</span></div>
+
+  <div data-nav="bar">
+    <div style="display: flex; align-items: center; gap: 28px;">
+      <a data-nav="brand" href="./index.html" id="brand"></a>
+      <div data-nav="links" id="navLinks"></div>
     </div>
-    <a class="back" href="./index.html">← the country board</a>
-  </header>
-
-  <h1 class="pageTitle">Is it a real dollar?</h1>
-  <p class="lede">Every price on this site is the price of a digital dollar — the kind an ordinary person can buy on their phone, in places where the bank won't sell them one. So the obvious question is whether that's a real dollar or just a number on a screen.</p>
-  <p class="lede">We answer it the only honest way: we take one all the way through. Buy it in one country, move it, sell it in another, pay every fee on the way. Then we count what actually came out the other end.</p>
-
-  <div class="verdict" id="topVerdict">
-    <p style="margin:0 0 8px"><b>Doing this is almost always more expensive than just using a bank.</b> We've measured it <span id="measureCount">—</span> times. The stablecoin route came out cheaper <span id="winCount">—</span> times — about one time in two hundred.</p>
-    <p style="margin:0">We publish that because the point was never to sell you on it. The round trip isn't advice, it's a test: if the digital dollar weren't a real dollar, the money wouldn't come out the other end at all. It does, minus a cost we can show you line by line.</p>
   </div>
 
-  <div class="stamp" id="stamp">loading…</div>
+  <div class="hero">
+    <div class="wrap" style="padding-top:0; padding-bottom:0;">
+      <h1 id="pageTitle" style="font-size:34px; margin:0 0 12px; max-width:24ch;"></h1>
+      <p class="lede" style="color:inherit; opacity:.92;" id="lede1"></p>
+      <p class="lede" style="color:inherit; opacity:.92;" id="lede2"></p>
+    </div>
+  </div>
 
-  <div class="sizebar" id="corrbar"><span class="lbl">route</span></div>
-  <div class="sizebar" id="sizebar"><span class="lbl">send amount</span></div>
+<div class="wrap">
+  <div class="verdict" id="topVerdict" style="margin-top:22px">
+    <p style="margin:0 0 8px" id="verdict1"></p>
+    <p style="margin:0" id="verdict2"></p>
+  </div>
+
+  <div class="stamp" id="stamp"></div>
+
+  <div class="sizebar" id="corrbar"><span class="lbl" id="routeLbl"></span></div>
+  <div class="sizebar" id="sizebar"><span class="lbl" id="sendLbl"></span></div>
 
   <div class="card">
-    <h2>What came out the other end</h2>
-    <p class="cap">The landed amount, against what a bank would have given you for the same transfer, right now.</p>
+    <h2 id="landedTitle"></h2>
+    <p class="cap" id="landedCap"></p>
     <div class="nums" id="nums"></div>
     <div class="verdict" id="verdict"></div>
   </div>
 
   <div class="card">
-    <h2>Could you actually sell it?</h2>
+    <h2 id="depthTitle"></h2>
     <p class="cap" id="depthCap"></p>
     <div class="nums" id="depthNums" style="grid-template-columns:repeat(2,1fr)"></div>
   </div>
 
   <div class="card">
-    <h2>Where the money goes <span id="wf-size" style="color:var(--faint);font-weight:400"></span></h2>
-    <p class="cap">Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the cheapest ordinary provider, same second.</p>
+    <h2><span id="wfTitle"></span> <span id="wf-size" style="color:var(--color-neutral-600);font-weight:400"></span></h2>
+    <p class="cap" id="wfCap"></p>
     <svg class="wf" id="wf" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet"></svg>
-    <div class="legend-row">
-      <span><i style="background:var(--neg)"></i>money gained</span>
-      <span><i style="background:var(--pos)"></i>money lost</span>
-      <span><i style="background:var(--rail)"></i>the blockchain</span>
-      <span><i style="background:var(--ink)"></i>total</span>
-      <span><i style="background:transparent;border:1px dashed var(--neg)"></i>cheapest ordinary provider</span>
-    </div>
+    <div class="legend-row" id="wfLegend"></div>
   </div>
 
   <div class="card">
-    <h2>It is worst at the amounts people actually send</h2>
-    <p class="cap">The blockchain charges the same flat fee whatever you send, so it barely registers on a large transfer and dominates a small one. <span id="ladderCap">S$200 is highlighted</span>.</p>
+    <h2 id="ladderTitle"></h2>
+    <p class="cap"><span id="ladderCap"></span></p>
     <div style="overflow-x:auto"><table id="ladder"></table></div>
   </div>
 
   <div class="card">
-    <h2>Every round trip we've run <span id="hist-size" style="color:var(--faint);font-weight:400"></span></h2>
-    <p class="cap">The total cost over time, hourly since collection began: buying at the price on offer, waiting for your own price, and the cheapest ordinary provider. History cannot be back-filled.</p>
+    <h2><span id="histTitle"></span> <span id="hist-size" style="color:var(--color-neutral-600);font-weight:400"></span></h2>
+    <p class="cap" id="histCap"></p>
     <svg class="wf" id="hist" viewBox="0 0 640 220" preserveAspectRatio="xMidYMid meet"></svg>
-    <div class="legend-row">
-      <span><i style="background:var(--pos)"></i>buying at the price on offer</span>
-      <span><i style="background:var(--sub)"></i>waiting for your own price</span>
-      <span><i style="background:var(--neg)"></i>cheapest ordinary provider</span>
-    </div>
+    <div class="legend-row" id="histLegend"></div>
   </div>
 
   <footer id="foot"></footer>
@@ -157,6 +139,12 @@
 <script>
 "use strict";
 const SIZES=[200,1000,5000,25000,50000];
+let COPY={};
+const T=(s,vals)=>{
+  let out=String(s||"");
+  for(const k in (vals||{})) out=out.split("{"+k+"}").join(vals[k]);
+  return out;
+};
 // This page speaks in money and percent. Basis points are a desk unit and they
 // live in methodology.html. Precision follows the number so a cost of 0.004%
 // does not print as 0.00%, which would read as "not measured".
@@ -256,13 +244,69 @@ async function loadCSVOptional(path){
   }catch(e){ return []; }
 }
 
+async function loadCopy(){
+  try{
+    const r=await fetch("./copy.json");
+    if(!r.ok) return {};
+    return await r.json();
+  }catch(e){ return {}; }
+}
+
+// The shared header: same markup, same copy.json, every page. This page
+// belongs to "how it works" -- the corridor is the proof behind the index,
+// one level under methodology and status (see ROADMAP.md).
+function renderHeader(){
+  document.getElementById("brand").textContent=COPY.brand||"margin.wiki";
+  const links=document.getElementById("navLinks");
+  links.innerHTML="";
+  for(const n of (COPY.nav||[])){
+    const a=document.createElement("a");
+    a.href=n.href; a.textContent=n.label;
+    if(n.key==="how") a.setAttribute("aria-current","page");
+    links.appendChild(a);
+  }
+}
+
 async function boot(){
+  const C=await loadCopy();
+  COPY=C.corridor||{};
+  COPY.brand=C.brand; COPY.nav=C.nav;
+  renderHeader();
+  document.getElementById("pageTitle").textContent=COPY.title||"Is it a real dollar?";
+  document.getElementById("lede1").textContent=COPY.lede1||"";
+  document.getElementById("lede2").textContent=COPY.lede2||"";
+  document.getElementById("routeLbl").textContent=(COPY.sizebar||{}).route||"route";
+  document.getElementById("sendLbl").textContent=(COPY.sizebar||{}).sendAmount||"send amount";
+  document.getElementById("landedTitle").textContent=(COPY.cards||{}).landed?.title||"";
+  document.getElementById("landedCap").textContent=(COPY.cards||{}).landed?.cap||"";
+  document.getElementById("depthTitle").textContent=(COPY.cards||{}).depth?.title||"";
+  document.getElementById("wfTitle").textContent=(COPY.cards||{}).waterfall?.title||"";
+  document.getElementById("wfCap").textContent=(COPY.cards||{}).waterfall?.cap||"";
+  document.getElementById("ladderTitle").textContent=(COPY.cards||{}).ladder?.title||"";
+  document.getElementById("histTitle").textContent=(COPY.cards||{}).history?.title||"";
+  document.getElementById("histCap").textContent=(COPY.cards||{}).history?.cap||"";
+  document.getElementById("stamp").textContent=COPY.loading||"loading…";
+
+  const L=COPY.legend||{};
+  document.getElementById("wfLegend").innerHTML=
+    `<span><i style="background:var(--neg)"></i>${L.moneyGained||""}</span>`+
+    `<span><i style="background:var(--pos)"></i>${L.moneyLost||""}</span>`+
+    `<span><i style="background:var(--rail)"></i>${L.blockchain||""}</span>`+
+    `<span><i style="background:var(--color-ink)"></i>${L.total||""}</span>`+
+    `<span><i style="background:transparent;border:1px dashed var(--neg)"></i>${L.cheapestProvider||""}</span>`;
+  document.getElementById("histLegend").innerHTML=
+    `<span><i style="background:var(--pos)"></i>${L.buyingNow||""}</span>`+
+    `<span><i style="background:var(--color-neutral-700)"></i>${L.waitingOwnPrice||""}</span>`+
+    `<span><i style="background:var(--neg)"></i>${L.cheapestProvider||""}</span>`;
+
   allRows=parseCSV(await fetch("./data/samples.csv").then(r=>r.text())).filter(r=>r.source_ok==="True");
   // The "is it a real dollar" count is a claim about every round trip ever
   // run, not the one corridor on screen -- so it is computed once here, from
   // every row, and does not change when the reader switches corridors.
-  document.getElementById("measureCount").textContent=allRows.length.toLocaleString("en-US");
-  document.getElementById("winCount").textContent=allRows.filter(r=>r.crypto_wins_taker==="True").length.toLocaleString("en-US");
+  const measureCount=allRows.length, winCount=allRows.filter(r=>r.crypto_wins_taker==="True").length;
+  document.getElementById("verdict1").textContent=T(COPY.verdict1,
+    { measureCount: measureCount.toLocaleString("en-US"), winCount: winCount.toLocaleString("en-US") });
+  document.getElementById("verdict2").textContent=COPY.verdict2||"";
   feeChecks=await loadCSVOptional("./data/fee_checks.csv");
   withdrawalFees=await loadCSVOptional("./data/withdrawal_fees.csv");
   // samples.csv carries every corridor interleaved. Group by the corridor
@@ -286,7 +330,7 @@ function selectCorridor(key){
     histBySize[s]=rs; bySize[s]=rs[rs.length-1]; present.push(s);
   }
   if(!present.length){                   // honest empty state, never placeholder rows
-    document.getElementById("stamp").innerHTML=`<b>${key.replace("->"," → ")}</b> — no completed samples yet.`;
+    document.getElementById("stamp").innerHTML=`<b>${key.replace("->"," → ")}</b> — ${COPY.noSamples||"no completed samples yet."}`;
     return;
   }
   if(present.indexOf(size)<0) size=present[present.length-1];
@@ -294,7 +338,6 @@ function selectCorridor(key){
   const r5=bySize[size];
   const d=new Date(newest.replace(" ","T")), ago=Math.round((Date.now()-d)/6e4);
   const hours=new Set(rows.map(r=>r.ts.slice(0,13))).size;
-  document.getElementById("brandCorr").textContent="· "+place(srcCcy)+" → "+place(dstOf(r5));
   document.title="margin.wiki — Is it a real dollar? · "+place(srcCcy)+" → "+place(dstOf(r5));
   document.getElementById("stamp").innerHTML=
     `<b>updated</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?ago+" min ago":Math.round(ago/60)+" h ago"} · `+
@@ -310,17 +353,13 @@ function selectCorridor(key){
     // Under three hours there is no trend to read. Say how thin it is rather
     // than letting a two-point chart imply one.
     (hours<3?` · <b>${hours} capture${hours===1?"":"s"} so far</b> — every point collected is shown, nothing filled in`:"");
-  document.getElementById("subLead").textContent=
-    place(srcCcy)+" → "+place(dstOf(r5))+", measured every hour.";
-  document.getElementById("ladderCap").textContent=money(SIZES[0])+" is highlighted";
+  document.getElementById("ladderCap").textContent=T((COPY.cards||{}).ladder?.capTemplate,
+    { highlight: money(SIZES[0]) });
   renderCorridors(); renderSizes(); render();
   const dst=(r5.dst||"").trim();
   document.getElementById("foot").innerHTML=
-    `The coin is bought on ${r5.onramp_venue} in ${srcCcy} and sold on ${r5.offramp_venue} for ${dst}. `+
-    `The comparison is the Wise comparison API — advertised retail prices, not confirmed fills, and they can carry promotional pricing (first-transfer or new-customer offers) recorded exactly as quoted. The comparison is therefore the best advertised price at that instant, not necessarily the best recurring one. `+
-    `Official exchange rates: open.er-api.com. "Waiting for your own price" assumes the order fills at the top of the book. `+
-    `Pricing that large institutions get privately is invisible by nature and never estimated. `+
-    `<a href="./methodology.html">Methodology &amp; data honesty →</a> · <a href="./index.html">the country board →</a>`;
+    T(COPY.footerTemplate, { onrampVenue: r5.onramp_venue, srcCcy, offrampVenue: r5.offramp_venue, dst })+" "+
+    `<a href="./methodology.html">${(COPY.footerLinks||{}).methodology||""}</a> · <a href="./index.html">${(COPY.footerLinks||{}).board||""}</a>`;
 }
 
 function renderCorridors(){
@@ -329,7 +368,7 @@ function renderCorridors(){
   if(corrKeys.length<2){ bar.style.display="none"; return; }
   for(const k of corrKeys){
     const b=document.createElement("button");
-    b.className="sz"+(k===corridor?" on":""); b.textContent=k.replace("->"," → ");
+    b.className="sz pill-input"+(k===corridor?" on is-active":""); b.textContent=k.replace("->"," → ");
     b.onclick=()=>selectCorridor(k);
     bar.appendChild(b);
   }
@@ -341,7 +380,7 @@ function renderSizes(){
   for(const s of SIZES){
     if(!bySize[s]) continue;            // never sampled at this size -> no pill
     const b=document.createElement("button");
-    b.className="sz"+(s===size?" on":""); b.textContent=money(s); b.onclick=()=>{size=s;renderSizes();render();};
+    b.className="sz pill-input"+(s===size?" on is-active":""); b.textContent=money(s); b.onclick=()=>{size=s;renderSizes();render();};
     bar.appendChild(b);
   }
 }
@@ -360,35 +399,35 @@ function renderDepth(r){
   const top=+r.offramp_depth_top_level, within1=+r.offramp_depth_1pct;
   const okTop=r.offramp_depth_top_level!==undefined&&r.offramp_depth_top_level!==""&&isFinite(top)&&isFinite(rate);
   const ok1=r.offramp_depth_1pct!==undefined&&r.offramp_depth_1pct!==""&&isFinite(within1)&&isFinite(rate);
-  document.getElementById("depthCap").textContent=
-    `How much money could be sold into ${dst} right now on ${venue}, the exchange that turns it into local currency, before the price moves. Separate from the send amount above.`;
+  const D=COPY.depth||{};
+  document.getElementById("depthCap").textContent=T(D.capTemplate, { dst, venue });
   document.getElementById("depthNums").innerHTML=`
-    <div class="num"><div class="n-l">At today's best price</div>
+    <div class="num"><div class="n-l">${D.atBestPrice||""}</div>
       <div class="n-v">${okTop?moneyIn(dst,top*rate):"—"}</div>
-      <div class="n-s">room to sell before the price starts to move against the next seller</div></div>
-    <div class="num"><div class="n-l">Before the price drops 1%</div>
+      <div class="n-s">${D.atBestPriceSub||""}</div></div>
+    <div class="num"><div class="n-l">${D.before1Pct||""}</div>
       <div class="n-v">${ok1?moneyIn(dst,within1*rate):"—"}</div>
-      <div class="n-s">room to sell in total before the price falls a full percent</div></div>`;
+      <div class="n-s">${D.before1PctSub||""}</div></div>`;
 }
 
 function render(){
   const r=bySize[size], t=+r.cost_bps_taker, m=+r.cost_bps_maker, base=+r.baseline_cost_bps;
   const cw=t<base, mw=m<base;
+  const N=COPY.numCards||{};
   document.getElementById("nums").innerHTML=`
-    ${numCard("Buying it now","the price on offer",t,cw,size)}
-    ${numCard("Waiting for your price","if you wait for your own price",m,mw,size)}
-    ${numCard(r.baseline_provider||"Cheapest provider","the cheapest ordinary provider, same second",base,null,size)}`;
+    ${numCard((N.buyingNow||{}).label,(N.buyingNow||{}).sub,t,cw,size)}
+    ${numCard((N.waitingOwnPrice||{}).label,(N.waitingOwnPrice||{}).sub,m,mw,size)}
+    ${numCard(r.baseline_provider||N.cheapestProviderLabel,N.cheapestProviderSub,base,null,size)}`;
   const rail=netBps(r), doors=t-rail;
   // The worked example, in the currency being sent, at the amount selected.
   const dstPlace=place(dstOf(r));
+  const VL=COPY.verdictLine||{};
   document.getElementById("verdict").innerHTML=
-    `<b>${cw?"The dollar route is cheaper at this amount.":"The ordinary provider is cheaper at this amount."}</b> `+
-    `Send ${money(size)} to ${dstPlace} now: ${r.baseline_provider} costs ${cash(size,base)} all in, `+
-    `the dollar route costs ${cash(size,t)}. `+
-    `${cw?"You save "+cashDiff(size,base,t)+"."
-         :"That is "+cashDiff(size,t,base)+" more."} `+
-    `Waiting for your own price instead costs ${cash(size,m)}, which ${mw?"does close the gap":"still does not close the gap"}.`+
-    `<div class="split"><span>the blockchain: <b>${cash(size,rail)}</b></span><span>what the two exchanges charge: <b>${cash(size,doors)}</b></span></div>`;
+    `<b>${cw?VL.cryptoCheaper:VL.cryptoDearer}</b> `+
+    T(VL.sendTemplate,{ amount: money(size), place: dstPlace, provider: r.baseline_provider, providerCost: cash(size,base), routeCost: cash(size,t) })+" "+
+    (cw?T(VL.youSave,{amount:cashDiff(size,base,t)}):T(VL.moreExpensive,{amount:cashDiff(size,t,base)}))+" "+
+    T(VL.waitingTemplate,{ amount: cash(size,m), closes: mw?VL.doesClose:VL.doesNotClose })+
+    `<div class="split"><span>${VL.blockchainSplit}: <b>${cash(size,rail)}</b></span><span>${VL.exchangesSplit}: <b>${cash(size,doors)}</b></span></div>`;
   document.getElementById("wf-size").textContent="· "+money(size);
   document.getElementById("hist-size").textContent="· "+money(size);
   renderDepth(r);
@@ -396,9 +435,10 @@ function render(){
 }
 
 function numCard(label,sub,val,win,n){
-  const pill = win===null?"":`<span class="pill ${win?"win":"lose"}">${win?"cheaper":"dearer"}</span>`;
+  const NC=COPY.numCards||{};
+  const badge = win===null?"":`<span class="badge ${win?"win":"lose"}">${win?NC.cheaper:NC.dearer}</span>`;
   // Money is the headline; the percentage is the footnote. Nobody sends 0.55%.
-  return `<div class="num"><div class="n-l">${label} ${pill}</div>
+  return `<div class="num"><div class="n-l">${label} ${badge}</div>
     <div class="n-v">${cash(n,val)}</div><div class="n-s">${pct(val)} of what you send · ${sub}</div></div>`;
 }
 
@@ -423,35 +463,36 @@ function drawWaterfall(r){
   const rows=comps.length+1, H=top+rows*rowH+30;
   const svg=document.getElementById("wf"); svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
   const col={fee:"var(--pos)",neg:"var(--neg)",rail:"var(--rail)"};
-  let s=`<line x1="${X(0)}" y1="${top}" x2="${X(0)}" y2="${top+rows*rowH}" stroke="var(--line)" stroke-width="1"/>`;
+  let s=`<line x1="${X(0)}" y1="${top}" x2="${X(0)}" y2="${top+rows*rowH}" stroke="var(--color-divider)" stroke-width="1"/>`;
   // baseline (incumbent) marker
   s+=`<line x1="${X(base).toFixed(1)}" y1="${top-2}" x2="${X(base).toFixed(1)}" y2="${top+rows*rowH+4}" stroke="var(--neg)" stroke-width="1.3" stroke-dasharray="3 3"/>`+
      `<text x="${X(base).toFixed(1)}" y="${top+rows*rowH+18}" fill="var(--neg)" font-size="10.5" font-family="var(--mono)" text-anchor="middle">${r.baseline_provider} ${cash(n,base)}</text>`;
   comps.forEach((c,i)=>{
     const y=top+i*rowH, a=X(cum[i]), b=X(cum[i+1]), x0=Math.min(a,b), w=Math.max(2,Math.abs(b-a));
     const fill = c.k==="neg" ? (c.v<0?col.neg:col.fee) : col[c.k];
-    s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--ink)" font-size="12" font-family="var(--sans)">${c.l}</text>`+
-       `<rect x="${x0.toFixed(1)}" y="${y+6}" width="${w.toFixed(1)}" height="${rowH-12}" rx="2.5" fill="${fill}"/>`+
-       `<text x="${(b+(b>=a?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--sub)" font-size="11" font-family="var(--mono)" text-anchor="${b>=a?"start":"end"}">${cash(n,c.v)}</text>`;
+    s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12" font-family="var(--font-body)">${c.l}</text>`+
+       `<rect x="${x0.toFixed(1)}" y="${y+6}" width="${w.toFixed(1)}" height="${rowH-12}" fill="${fill}"/>`+
+       `<text x="${(b+(b>=a?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-neutral-700)" font-size="11" font-family="var(--mono)" text-anchor="${b>=a?"start":"end"}">${cash(n,c.v)}</text>`;
   });
   const y=top+comps.length*rowH, xt=X(total);
-  s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--ink)" font-size="12.5" font-family="var(--sans)" font-weight="700">The whole transfer</text>`+
-     `<rect x="${Math.min(X(0),xt).toFixed(1)}" y="${y+5}" width="${Math.max(2,Math.abs(xt-X(0))).toFixed(1)}" height="${rowH-10}" rx="2.5" fill="var(--ink)"/>`+
-     `<text x="${(xt+(total>=0?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--ink)" font-size="12" font-family="var(--mono)" font-weight="700" text-anchor="${total>=0?"start":"end"}">${cash(n,total)}</text>`;
+  s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12.5" font-family="var(--font-body)" font-weight="700">The whole transfer</text>`+
+     `<rect x="${Math.min(X(0),xt).toFixed(1)}" y="${y+5}" width="${Math.max(2,Math.abs(xt-X(0))).toFixed(1)}" height="${rowH-10}" fill="var(--color-ink)"/>`+
+     `<text x="${(xt+(total>=0?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12" font-family="var(--mono)" font-weight="700" text-anchor="${total>=0?"start":"end"}">${cash(n,total)}</text>`;
   svg.innerHTML=s;
 }
 
 function drawLadder(){
   const rows=SIZES.map(s=>bySize[s]).filter(Boolean);
-  let h=`<tr><th>Send</th><th>Buying it now</th><th>Waiting for your price</th><th>Cheapest provider</th><th>Cheaper</th></tr>`;
+  const LT=COPY.ladderTable||{}, cols=LT.columns||{};
+  let h=`<tr><th>${cols.send||""}</th><th>${cols.buyingNow||""}</th><th>${cols.waitingOwnPrice||""}</th><th>${cols.cheapestProvider||""}</th><th>${cols.cheaper||""}</th></tr>`;
   for(const r of rows){
     const s=+r.notional_src, t=+r.cost_bps_taker, m=+r.cost_bps_maker, b=+r.baseline_cost_bps, cw=t<b;
     h+=`<tr class="${s===size?"hl":""}${s===200?" hl":""}">
-      <td>${money(s)}${s===200?' <span class="tag">worst</span>':""}</td>
+      <td>${money(s)}${s===200?` <span class="tag">${LT.worstTag||""}</span>`:""}</td>
       <td>${cash(s,t)}<br><span class="tag">${pct(t)}</span></td>
       <td>${cash(s,m)}<br><span class="tag">${pct(m)}</span></td>
       <td>${r.baseline_provider}<br><span class="tag">${cash(s,b)}</span></td>
-      <td class="winner ${cw?"c":"f"}">${cw?"the dollar route":r.baseline_provider}</td></tr>`;
+      <td class="winner ${cw?"c":"f"}">${cw?LT.dollarRoute:r.baseline_provider}</td></tr>`;
   }
   document.getElementById("ladder").innerHTML=h;
 }
@@ -459,15 +500,15 @@ function drawLadder(){
 function drawHistory(){
   const rows=histBySize[size]; const svg=document.getElementById("hist");
   const W=640,H=200,padL=44,padR=12,padT=12,padB=22;
-  if(rows.length<2){ svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="var(--faint)" font-size="12" font-family="var(--sans)">history builds hourly — ${rows.length} sample${rows.length===1?"":"s"} so far</text>`; return; }
-  const series=[["cost_bps_taker","var(--pos)"],["cost_bps_maker","var(--sub)"],["baseline_cost_bps","var(--neg)"]];
+  if(rows.length<2){ svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="var(--color-neutral-600)" font-size="12" font-family="var(--font-body)">${T((COPY.history||{}).buildingTemplate,{count:rows.length+(rows.length===1?" sample":" samples")})}</text>`; return; }
+  const series=[["cost_bps_taker","var(--pos)"],["cost_bps_maker","var(--color-neutral-700)"],["baseline_cost_bps","var(--neg)"]];
   const vals=rows.flatMap(r=>series.map(([k])=>+r[k]));
   let lo=Math.min(0,...vals), hi=Math.max(0,...vals); const pv=(hi-lo)*.1||5; lo-=pv; hi+=pv;
   const X=i=>padL+i*(W-padL-padR)/(rows.length-1), Y=v=>padT+(hi-v)/(hi-lo)*(H-padT-padB);
-  let s=`<line x1="${padL}" y1="${Y(0).toFixed(1)}" x2="${W-padR}" y2="${Y(0).toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`+
-        `<text x="${padL-6}" y="${Y(0).toFixed(1)+4}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="var(--mono)">0%</text>`+
-        `<text x="${padL-6}" y="${(Y(hi)+8).toFixed(1)}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="var(--mono)">${pct(hi)}</text>`+
-        `<text x="${padL-6}" y="${(Y(lo)+0).toFixed(1)}" text-anchor="end" fill="var(--faint)" font-size="10" font-family="var(--mono)">${pct(lo)}</text>`;
+  let s=`<line x1="${padL}" y1="${Y(0).toFixed(1)}" x2="${W-padR}" y2="${Y(0).toFixed(1)}" stroke="var(--color-divider)" stroke-width="1"/>`+
+        `<text x="${padL-6}" y="${Y(0).toFixed(1)+4}" text-anchor="end" fill="var(--color-neutral-600)" font-size="10" font-family="var(--mono)">0%</text>`+
+        `<text x="${padL-6}" y="${(Y(hi)+8).toFixed(1)}" text-anchor="end" fill="var(--color-neutral-600)" font-size="10" font-family="var(--mono)">${pct(hi)}</text>`+
+        `<text x="${padL-6}" y="${(Y(lo)+0).toFixed(1)}" text-anchor="end" fill="var(--color-neutral-600)" font-size="10" font-family="var(--mono)">${pct(lo)}</text>`;
   for(const [k,c] of series){
     const pts=rows.map((r,i)=>`${X(i).toFixed(1)},${Y(+r[k]).toFixed(1)}`).join(" ");
     s+=`<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.7" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`;
@@ -477,7 +518,7 @@ function drawHistory(){
   svg.innerHTML=s;
 }
 
-boot().catch(e=>{document.getElementById("stamp").textContent="failed to load data"; console.error(e);});
+boot().catch(e=>{document.getElementById("stamp").textContent=(COPY.loadFailed)||"failed to load data"; console.error(e);});
 </script>
 </body>
 </html>
