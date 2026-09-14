@@ -246,7 +246,9 @@ jobs:
                    data/providers_latest.json data/price_changes.csv \
                    data/price_changes_latest.json data/agent_status.json \
                    data/manifest_latest.json data/stress_signal.csv \
-                   data/stress_signal_latest.json; do
+                   data/stress_signal_latest.json data/basis_history.csv \
+                   data/fee_checks.csv data/withdrawal_fees.csv \
+                   data/requests_latest.json data/stable_spread_summary.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Directories: one file per country, a page per country, and the
@@ -257,6 +259,23 @@ jobs:
           for d in data/countries c data/bundle; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
+          # Anything TRACKED that an emitter rewrote but the list above forgot.
+          # `git add -u` stages modifications to files already in the repo and
+          # never picks up a new one, so this cannot repeat the `git add -A`
+          # accident that swept in synced-folder duplicates -- a new file still
+          # has to be named above to ever be committed.
+          #
+          # This exists because an omission here is silent and fatal: the step
+          # commits, then rebases, and git refuses to rebase with unstaged
+          # changes. data/stable_spread_summary.json was added by an emitter on
+          # 2026-09-13 and left out of the list, and collection died for 21
+          # hours -- readings that cannot be backfilled.
+          MISSED=$(git diff --name-only -- data c)
+          if [ -n "$MISSED" ]; then
+            echo "::warning::staged by fallback, add these to the list above:"
+            echo "$MISSED" | sed 's/^/::warning::  /'
+            git add -u data c
+          fi
           if git diff --cached --quiet; then
             # Expected on the second fire of an hour the first fire already
             # captured. latest.json is a pure function of the data (no wall
