@@ -1471,7 +1471,7 @@ class Component extends DCLogic {
         tipG: ccIdx === null ? "" : this.fmtPct(us[ccIdx] - rl[ccIdx]),
         tipT: ccIdx === null ? "" : this.fmtStamp(series[ccIdx].t, true),
         onMove: ccH.onMove, onLeave: ccH.onLeave, onPin: ccH.onPin,
-        keys: [{ label: "crypto route, all-in", color: "var(--data-600)" },
+        keys: [{ label: "the dollar route, all-in", color: "var(--data-600)" },
                { label: "cheapest ordinary provider", color: "var(--color-neutral-500)" }],
         tabs: ladders.map(l => ({ label: l.name, go: () => this.setState({ corridor: l.key, hover: null, pinned: null }),
           bg: cName === l.key ? "var(--color-text)" : "transparent",
@@ -1566,10 +1566,10 @@ class Component extends DCLogic {
       const st1 = num(small.cost_bps_taker), sr1 = num(small.baseline_cost_bps), bt = num(big.cost_bps_taker);
       if (st1 !== null && sr1 !== null && bt !== null) {
         findings.push({ date: this.fmtStamp(cLad.t, false),
-          q: "Is crypto worst for the small transfers most people send?",
+          q: "Is the dollar route worst for the small transfers most people send?",
           a: "Yes. Sending " + this.fmtSize(cLad.cur, num(small.notional_src)) + " costs " +
              this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(small.notional_src), st1)) +
-             " through crypto against " +
+             " through the dollar route against " +
              this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(small.notional_src), sr1)) + " with " +
              (small.baseline_provider || "the cheapest provider") +
              " — the flat costs do not shrink with the amount. Send " +
@@ -1702,12 +1702,12 @@ class Component extends DCLogic {
         const tb = num(cRowRaw.cost_bps_taker), rb = num(cRowRaw.baseline_cost_bps);
         const tm = this.costOf(cur, size, tb), rm = this.costOf(cur, size, rb);
         return [
-          { k: cLad.name + " · sending " + this.fmtSize(cur, size) + " · crypto, all in",
+          { k: cLad.name + " · sending " + this.fmtSize(cur, size) + " · the dollar route, all in",
             v: this.fmtMoney(cur, tm),
             sub: this.fmtPct(tb, false) + " of what you send, buying at the price on offer", color: INK },
           { k: "cheapest ordinary provider, same instant", v: this.fmtMoney(cur, rm),
             sub: this.fmtPct(rb, false) + " · " + (cRowRaw.baseline_provider || "—"), color: INK },
-          { k: "what crypto costs you extra",
+          { k: "what the dollar route costs you extra",
             v: (tm === null || rm === null) ? "—"
                : this.fmtMoney(cur, Math.round((tm - rm) * 100) / 100),
             sub: this.fmtPct((tb || 0) - (rb || 0)) + " · " + (feeStamp || "fee check unavailable"),
@@ -1737,7 +1737,7 @@ class Component extends DCLogic {
                                                  num(cRowRaw.cost_bps_maker))), strike: "none" },
         { k: "verdict", v: (num(cRowRaw.cost_bps_maker) !== null && num(cRowRaw.baseline_cost_bps) !== null &&
             num(cRowRaw.cost_bps_maker) < num(cRowRaw.baseline_cost_bps))
-            ? "the crypto route is cheaper" : "the ordinary provider is cheaper", strike: "none" },
+            ? "the dollar route is cheaper" : "the ordinary provider is cheaper", strike: "none" },
       ]) : [],
       findings, waterfall, stack, stackKeys, spread,
       correctionDate: cLad ? this.fmtStamp(cLad.t, false) : "—",
