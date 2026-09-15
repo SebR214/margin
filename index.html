@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki — what a dollar really costs, country by country</title>
 <meta name="description" content="How far the price of a dollar in ten countries sits from the official rate, measured every hour on real exchanges, and what it actually costs to send money along two routes."/>
-<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<link rel="stylesheet" href="./style.css"/>
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./support.js"></script>
@@ -13,450 +13,31 @@
 <body>
 <x-dc>
 <helmet>
-<style>/* Modernist — design-system tokens and component classes. This file is the source of truth for the system's look; retune it here and see readme.md. */
-/* vietnamese */
-@font-face {
-  font-family: 'Archivo';
-  font-style: normal;
-  font-weight: 400;
-  font-stretch: 100%;
-  font-display: swap;
-  src: url("./vendor/fonts/archivo-vietnamese.woff2") format('woff2');
-  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
-}
-/* latin-ext */
-@font-face {
-  font-family: 'Archivo';
-  font-style: normal;
-  font-weight: 400;
-  font-stretch: 100%;
-  font-display: swap;
-  src: url("./vendor/fonts/archivo-latin-ext.woff2") format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-/* latin */
-@font-face {
-  font-family: 'Archivo';
-  font-style: normal;
-  font-weight: 400;
-  font-stretch: 100%;
-  font-display: swap;
-  src: url("./vendor/fonts/archivo-latin.woff2") format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-/* vietnamese */
-@font-face {
-  font-family: 'Archivo';
-  font-style: normal;
-  font-weight: 600;
-  font-stretch: 100%;
-  font-display: swap;
-  src: url("./vendor/fonts/archivo-vietnamese.woff2") format('woff2');
-  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
-}
-/* latin-ext */
-@font-face {
-  font-family: 'Archivo';
-  font-style: normal;
-  font-weight: 600;
-  font-stretch: 100%;
-  font-display: swap;
-  src: url("./vendor/fonts/archivo-latin-ext.woff2") format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-/* latin */
-@font-face {
-  font-family: 'Archivo';
-  font-style: normal;
-  font-weight: 600;
-  font-stretch: 100%;
-  font-display: swap;
-  src: url("./vendor/fonts/archivo-latin.woff2") format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-/* vietnamese */
-@font-face {
-  font-family: 'Archivo';
-  font-style: normal;
-  font-weight: 800;
-  font-stretch: 100%;
-  font-display: swap;
-  src: url("./vendor/fonts/archivo-vietnamese.woff2") format('woff2');
-  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
-}
-/* latin-ext */
-@font-face {
-  font-family: 'Archivo';
-  font-style: normal;
-  font-weight: 800;
-  font-stretch: 100%;
-  font-display: swap;
-  src: url("./vendor/fonts/archivo-latin-ext.woff2") format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-/* latin */
-@font-face {
-  font-family: 'Archivo';
-  font-style: normal;
-  font-weight: 800;
-  font-stretch: 100%;
-  font-display: swap;
-  src: url("./vendor/fonts/archivo-latin.woff2") format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-
-:root {
-  --color-bg: #f3f2f2;
-  --color-surface: #eae9e9;
-  --color-text: #201e1d;
-  --color-accent: #ec3013;
-  --color-accent-2: #e15b47;
-  --color-divider: color-mix(in srgb, #201e1d 40%, transparent);
-
-  /* Tonal ramps — generated in OKLCH on one shared lightness scale, so the
-     same step of any role matches the others in visual value. */
-  --color-neutral-100: #f8f4f4;
-  --color-neutral-200: #eae7e7;
-  --color-neutral-300: #d7d3d3;
-  --color-neutral-400: #bab6b6;
-  --color-neutral-500: #9b9797;
-  --color-neutral-600: #7d7979;
-  --color-neutral-700: #605d5d;
-  --color-neutral-800: #444141;
-  --color-neutral-900: #2d2b2b;
-
-  --color-accent-100: #fff2ef;
-  --color-accent-200: #ffe0d9;
-  --color-accent-300: #ffc4b8;
-  --color-accent-400: #ff9783;
-  --color-accent-500: #ff563c;
-  --color-accent-600: #dd2b0f;
-  --color-accent-700: #ae1800;
-  --color-accent-800: #7c1405;
-  --color-accent-900: #4d170e;
-
-  --color-accent-2-100: #fff2ef;
-  --color-accent-2-200: #ffe0da;
-  --color-accent-2-300: #ffc4b9;
-  --color-accent-2-400: #ff9784;
-  --color-accent-2-500: #ef6853;
-  --color-accent-2-600: #c94b39;
-  --color-accent-2-700: #9e3526;
-  --color-accent-2-800: #71261b;
-  --color-accent-2-900: #471d16;
-
-  --font-heading: "Archivo", system-ui, sans-serif;
-  --font-heading-weight: 800;
-  --font-body: "Archivo", system-ui, sans-serif;
-
-  --space-1: 4.0px;
-  --space-2: 8.0px;
-  --space-3: 12.0px;
-  --space-4: 16.0px;
-  --space-6: 24.0px;
-  --space-8: 32.0px;
-
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-
-  /* Elevation — derived from the ground: soft ink-tinted shadows on a
-     light theme, a hairline edge + ambient darkness on a dark one. */
-  --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
-  --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
-  --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
-}
-
-body {
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-body);
-}
-h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: var(--font-heading-weight); }
-
-.grayscale{filter:grayscale(1) contrast(1.08)}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   Components — built with the tokens above. Plain CSS
-   on plain HTML: no JavaScript, no build step. Each class is documented in
-   readme.md and demonstrated in foundations/ and components/.
-   ══════════════════════════════════════════════════════════════════════ */
-
-*, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; font-size: 15px; line-height: 1.55; font-weight: 400; }
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
-  line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 var(--space-2);
-}
-h1 { font-size: 42px; }
-h2 { font-size: 32px; }
-h3 { font-size: 25px; }
-h4 { font-size: 20px; }
-h5 { font-size: 16px; }
-h6 { font-size: 13px; }
-h6 { letter-spacing: 0.08em; text-transform: uppercase; }
-p { margin: 0 0 var(--space-3); }
-a { color: var(--color-accent); text-underline-offset: 3px; }
-img { display: block; max-width: 100%; }
-figure { margin: 0; }
-figcaption {
-  font-size: 11px; margin-top: var(--space-1);
-  color: color-mix(in srgb, var(--color-text) 55%, transparent);
-}
-.text-muted { color: color-mix(in srgb, var(--color-text) 55%, transparent); }
-:focus { outline: none; }
-:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
-
-/* — rules — */
-.hr {
-  height: 2px; border: 0; margin: var(--space-4) 0;
-  background: var(--color-divider);
-}
-
-/* — buttons — */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  cursor: pointer; text-decoration: none;
-  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
-  font-size: 14px; line-height: 1.2; color: var(--color-text); /* matches the .input's 14px —
-     the pair sits side by side in sign-up rows */
-  background: transparent; border: 1px solid transparent;
-  padding: var(--space-2) calc(var(--space-3) * 1.2);
-  border-radius: var(--radius-md);
-}
-.btn svg { display: block; }
-.btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-primary { background: var(--color-accent); color: var(--color-bg); }
-.btn-primary:hover { background: var(--color-accent-600); }
-.btn-primary:active { background: var(--color-accent-700); }
-.btn-secondary { border-color: var(--color-divider); }
-.btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
-.btn-secondary:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
-.btn-ghost { color: var(--color-accent); padding-inline: var(--space-1); }
-.btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
-.btn-ghost:active { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
-.btn-icon { width: 36px; height: 36px; padding: 0; }
-.btn-block { width: 100%; margin-top: var(--space-2); justify-content: flex-start; text-align: left; }
-
-/* — forms — */
-.field > label {
-  display: block; font-size: 12px; margin-bottom: 5px;
-  color: color-mix(in srgb, var(--color-text) 70%, transparent);
-}
-.input {
-  width: 100%; min-height: 36px; padding: 6px 10px; font: inherit;
-  font-size: 14px; color: var(--color-text); caret-color: var(--color-accent);
-  background: var(--color-surface);
-  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
-}
-.input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
-.input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
-textarea.input { min-height: 90px; resize: vertical; }
-.radio { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
-.radio input, .seg-opt input {
-  position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none;
-}
-.radio .dot {
-  width: 16px; height: 16px; flex: none; border-radius: 50%;
-  border: 1.5px solid var(--color-divider);
-}
-.radio:hover .dot { border-color: var(--color-accent); }
-.radio input:checked + .dot {
-  border-color: var(--color-accent); background: var(--color-accent);
-  box-shadow: inset 0 0 0 4px var(--color-bg);
-}
-.radio input:focus-visible + .dot { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-.seg {
-  display: inline-flex; overflow: hidden;
-  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
-}
-.seg-opt {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 12px; font-size: 13px; cursor: pointer;
-}
-.seg-opt + .seg-opt { border-left: 1px solid var(--color-divider); }
-.seg-opt:has(input:checked) { background: var(--color-accent); color: var(--color-bg); }
-.seg-opt:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
-.seg-opt:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: -2px; }
-
-/* — cards — */
-.card {
-  display: flex; flex-direction: column; gap: var(--space-2);
-  padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-surface);
-}
-.card-kicker { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-accent); }
-.card-title {
-  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
-  font-size: 17px; line-height: 1.2;
-}
-.card-body { margin: 0; font-size: 13px; opacity: 0.8; flex: 1; }
-.card-meta {
-  display: flex; align-items: center; gap: 6px; font-size: 11px;
-  color: color-mix(in srgb, var(--color-text) 50%, transparent);
-}
-.elev-sm { box-shadow: var(--shadow-sm); }
-.elev-md { box-shadow: var(--shadow-md); }
-.elev-lg { box-shadow: var(--shadow-lg); }
-
-/* — tags — */
-.tag {
-  display: inline-flex; align-items: center; font-size: 11px;
-  letter-spacing: 0.02em; padding: 3px 10px;
-  border-radius: calc(var(--radius-md) * 0.75);
-}
-.tag-accent { background: var(--color-accent-100); color: var(--color-accent-800); }
-.tag-accent-2 { background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
-.tag-neutral { background: var(--color-neutral-100); color: var(--color-neutral-800); }
-.tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
-
-/* — navigation — */
-.nav {
-  display: flex; align-items: center; gap: var(--space-4);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 2px solid var(--color-divider);
-}
-.nav-brand {
-  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
-  font-size: 18px; margin-right: auto;
-}
-.nav a { color: inherit; text-decoration: none; font-size: 14px; }
-.nav a:hover, .nav a[aria-current='page'] { color: var(--color-accent); }
-
-/* — tables — */
-.table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.table th {
-  text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-text) 60%, transparent);
-  padding: var(--space-2); border-bottom: 2px solid var(--color-divider);
-}
-.table td {
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--color-divider);
-}
-.table tbody tr:hover { background: color-mix(in srgb, var(--color-text) 4%, transparent); }
-
-/* — dialog — */
-.dialog-backdrop {
-  position: fixed; inset: 0; display: grid; place-items: center;
-  padding: var(--space-4);
-  background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent);
-}
-.dialog {
-  width: min(440px, 100%); display: flex; flex-direction: column; gap: var(--space-3);
-  padding: var(--space-4); border-radius: var(--radius-lg);
-  background: var(--color-surface); box-shadow: var(--shadow-lg);
-}
-.dialog-title {
-  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
-  font-size: 20px;
-}
-.dialog-body { font-size: 14px; opacity: 0.85; }
-.dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
-
-
-/* ---------------------------------------------------------------- responsive
-   The delivered design ships no breakpoints and uses fixed-column grids, so it
-   overflows on a phone. These rules are ADDITIVE and live only inside media
-   queries: above 980px nothing here applies and the page is pixel-identical to
-   the design as delivered. Structure follows the previous site — three
-   breakpoints at 980 / 700 / 640 — and overrides inline styles via
-   [data-grid] hooks with !important, the same mechanism the old index.html used.
-   No new components, no reordering: every rule below only changes how an
-   existing container wraps. */
-
-/* Tablet and narrow desktop: two-column layouts become one. */
-@media (max-width: 980px) {
-  [data-grid="hero"],
-  [data-grid="split"]     { grid-template-columns: minmax(0, 1fr) !important; gap: 24px !important; }
-  [data-grid="label-row"] { grid-template-columns: minmax(0, 1fr) !important; gap: 4px !important; }
-  [data-grid="finding"]   { grid-template-columns: minmax(0, 1fr) !important; gap: 8px !important; }
-  [data-grid="stat-row"]  { grid-template-columns: minmax(0, 1fr) !important; gap: 2px !important; }
-}
-
-/* Small tablet and below: the six-column numeric tables keep every column and
-   scroll sideways inside their own box, the same treatment as the coverage
-   grid. Hiding columns by nth-child was the alternative and it is worse twice
-   over — it is fragile against any markup change, and it would drop exactly the
-   two columns the table exists for (the rail and the gap against it). Nothing
-   on this site is hidden to make a layout fit. */
-@media (max-width: 700px) {
-  [data-grid="ladder"] {
-    grid-template-columns: 104px 84px repeat(4, minmax(74px, 1fr)) !important;
-    overflow-x: auto; -webkit-overflow-scrolling: touch;
-  }
-  /* The crosses table is four columns, not six -- it needs its own rule or the
-     spread rule above would force two phantom columns onto it. */
-  [data-grid="cross"] {
-    grid-template-columns: 96px repeat(3, minmax(74px, 1fr)) !important;
-  }
-  [data-grid="spread"] {
-    grid-template-columns: 96px repeat(5, minmax(74px, 1fr)) !important;
-    overflow-x: auto; -webkit-overflow-scrolling: touch;
-  }
-  [data-grid="bar-row"] { grid-template-columns: 56px minmax(0, 1fr) 72px !important; gap: 8px !important; }
-  /* The board is six columns where bar-row is three, and the provider
-     leaderboard shares bar-row. Items past the third wrap inside the row. */
-  [data-grid="board-row"] { grid-template-columns: 56px minmax(0, 1fr) 96px !important; gap: 4px 8px !important; }
-}
-
-/* Phone. */
-@media (max-width: 640px) {
-  [data-grid="tiles"] { grid-template-columns: minmax(0, 1fr) !important; }
-  [data-grid="bar-row"] { grid-template-columns: 48px minmax(0, 1fr) 64px !important; }
-  [data-grid="board-row"] { grid-template-columns: 48px minmax(0, 1fr) 78px !important; }
-  /* The hourly coverage grid is 24 fixed columns by design — one cell per hour,
-     and hour N must stay under hour N across every market row. Reflowing it
-     would destroy that alignment, so each row's grid keeps all 24 columns at a
-     legible minimum and scrolls sideways inside its own cell instead. */
-  [data-grid="coverage-row"] { grid-template-columns: 52px minmax(0, 1fr) !important; gap: 0 10px !important; }
-  [data-grid="coverage"] {
-    grid-template-columns: repeat(24, minmax(13px, 1fr)) !important;
-    overflow-x: auto; -webkit-overflow-scrolling: touch;
-  }
-  /* The header is the only row that still exceeded a 390px viewport: three
-     uppercase nav labels plus the status block. Tighten its own spacing rather
-     than dropping anything — every link stays reachable. */
-  [data-nav="bar"] { padding: 0 12px !important; gap: 10px !important; }
-  [data-nav="links"] button { padding: 12px 9px 10px !important; letter-spacing: 0.04em !important; }
-  h1 { font-size: 30px !important; line-height: 1.1 !important; }
-  h2 { font-size: 19px !important; }
-}
-</style>
 <style>
-  body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); }
-  a { color: var(--color-text); text-decoration: none; border-bottom: 1px solid var(--color-neutral-400); }
-  a:hover { color: var(--color-text); border-bottom-color: var(--color-text); }
-  :root {
-    --data-100: #f7f8fe;
-    --data-200: #f2f4fd;
-    --data-300: #e6eafb;
-    --data-400: #d2d9f7;
-    --data-500: #b3bdf1;
-    --data-600: #8b96e4;
-    --data-700: #5a63c4;
-    --grid-empty: #eaeaed;
-  }
+  /* Page-specific only: links keep the underline this page has always used
+     for in-copy references. Everything else -- tokens, header, hero,
+     responsive rules -- lives in style.css, the one stylesheet. */
+  a { text-decoration: none; border-bottom: 1px solid var(--color-neutral-400); }
+  a:hover { border-bottom-color: var(--color-ink); }
 </style>
-</helmet></helmet>
+</helmet>
 <div style="min-height: 100vh; background: var(--color-bg); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;">
 
-  <div data-nav="bar" style="display: flex; align-items: stretch; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding: 0 24px; flex-wrap: wrap;">
+  <div data-nav="bar">
     <div style="display: flex; align-items: center; gap: 28px;">
-      <div style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: -0.02em; padding: 14px 0;">margin.wiki</div>
-      <div data-nav="links" style="display: flex; align-items: stretch; gap: 0;">
-        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="3">
-          <button type="button" sc-camel-on-click="{{ n.go }}" style="appearance: none; background: transparent; border: 0; border-bottom: 3px solid transparent; cursor: pointer; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 15px 14px 12px; color: {{ n.color }}; border-bottom-color: {{ n.rule }};" style-hover="color: var(--color-accent);">{{ n.label }}</button>
+      <a data-nav="brand" href="./index.html">{{ brand }}</a>
+      <div data-nav="links">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+          <a href="{{ n.href }}" aria-current="{{ n.current }}">{{ n.label }}</a>
         </sc-for>
       </div>
     </div>
     <div style="display: flex; align-items: center; gap: 20px; padding: 10px 0; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">
       <div style="display: flex; align-items: center; gap: 7px;">
-        <span style="width: 8px; height: 8px; background: var(--color-text); display: block;"></span>
+        <span style="width: 8px; height: 8px; background: var(--color-ink); display: block;"></span>
         <span style="font-weight: 600;">{{ health }}</span>
       </div>
-      <div class="text-muted">last tick {{ lastTick }}</div>
+      <div class="text-muted">{{ lastTickLabel }} {{ lastTick }}</div>
     </div>
   </div>
 
@@ -464,16 +45,16 @@ textarea.input { min-height: 90px; resize: vertical; }
 
   <sc-if value="{{ isBoard }}" hint-placeholder-val="{{ true }}">
   <div>
-    <div data-grid="hero" style="padding: 56px 24px 40px; border-bottom: 2px solid var(--color-text); display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; align-items: end;">
+    <div data-grid="hero" class="hero" style="display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; align-items: end;">
       <div>
-        <h1 style="font-size: 44px; line-height: 1.06; margin: 0 0 14px; max-width: 24ch;">What does a dollar really cost?</h1>
-        <p class="text-muted" style="max-width: 62ch; font-size: 15px; margin: 0;">In much of the world the official exchange rate is not the rate anyone gets. This measures what people actually pay for a dollar — the kind an ordinary person can buy on their phone — in {{ heroCurrencyCount }} currencies, every hour. Where there is no price, it says so, and why.</p>
+        <h1 style="font-size: 44px; line-height: 1.06; margin: 0 0 14px; max-width: 24ch;">{{ heroTitle }}</h1>
+        <p class="text-muted" style="max-width: 62ch; font-size: 15px; margin: 0;">{{ heroBody }}</p>
       </div>
-      <div data-grid="tiles" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; background: var(--color-divider);">
+      <div data-grid="tiles" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; background: color-mix(in srgb, var(--color-bg) 25%, transparent);">
         <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="4">
-          <div style="background: var(--color-bg); padding: 14px 16px 12px;">
+          <div style="background: var(--color-ink); padding: 14px 16px 12px;">
             <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">{{ s.k }}</div>
-            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 24px; line-height: 1;">{{ s.v }}<span style="font-size: 12px; color: var(--data-700); vertical-align: super; margin-left: 2px;">{{ s.mark }}</span></div>
+            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 24px; line-height: 1; color: var(--color-bg);">{{ s.v }}<span style="font-size: 12px; color: var(--data-500); vertical-align: super; margin-left: 2px;">{{ s.mark }}</span></div>
             <div class="text-muted" style="font-size: 11px; margin-top: 4px;">{{ s.sub }}</div>
           </div>
         </sc-for>
@@ -483,13 +64,13 @@ textarea.input { min-height: 90px; resize: vertical; }
     <div style="padding: 36px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
         <div>
-          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; white-space: nowrap;">{{ mk.venue }} · one country over time </div>
+          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; white-space: nowrap;">{{ mk.venue }} · {{ marketOverTime }}</div>
           <h2 style="font-size: 30px; margin: 0;">{{ mk.code }} <span class="text-muted" style="font-weight: 400; font-size: 18px;">{{ mk.country }}</span></h2>
           <p class="text-muted" style="font-size: 13px; margin: 6px 0 0; max-width: 60ch;">{{ mk.sentence }}</p>
         </div>
         <div style="display: flex; align-items: baseline; gap: 28px;">
           <div>
-            <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">the board</div>
+            <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">{{ marketTheBoard }}</div>
             <div style="font-family: var(--font-heading); font-weight: 800; font-size: 28px; line-height: 1.1; color: {{ mk.color }};" title="{{ mk.sentence }}">{{ mk.bps }}</div>
           </div>
           <div style="display: flex; gap: 0; border: 1px solid var(--color-neutral-400);">
@@ -553,13 +134,13 @@ textarea.input { min-height: 90px; resize: vertical; }
           </div>
         </sc-for>
       </div>
-      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">Click any country on the board to see its history here. Hover the chart to read a point, click to pin it.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">{{ marketHint }}</p>
     </div>
 
     <div style="padding: 40px 24px 0;">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
         <h2 style="font-size: 26px; margin: 0;">{{ boardTitle }}</h2>
-        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">measured every hour · furthest above the official rate first</div>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ boardSubhead }}</div>
       </div>
 
       <sc-for list="{{ bands }}" as="band" hint-placeholder-count="3">
@@ -572,12 +153,12 @@ textarea.input { min-height: 90px; resize: vertical; }
             <p class="text-muted" style="font-size: 12px; margin: 5px 0 0; max-width: 86ch;">{{ band.note }}</p>
           </div>
           <div data-grid="board-row" style="display: grid; grid-template-columns: 86px minmax(0, 1fr) 132px 108px minmax(0, 150px) 104px; gap: 0 16px; padding: 9px 0 6px 12px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
-            <div>country</div>
+            <div>{{ boardCol.country }}</div>
             <div></div>
-            <div style="text-align: right;">a dollar costs</div>
-            <div style="text-align: right;">round trip</div>
-            <div>evidence</div>
-            <div style="text-align: right;">last 30 days</div>
+            <div style="text-align: right;">{{ boardCol.cost }}</div>
+            <div style="text-align: right;">{{ boardCol.roundTrip }}</div>
+            <div>{{ boardCol.evidence }}</div>
+            <div style="text-align: right;">{{ boardCol.sparkline }}</div>
           </div>
           <sc-for list="{{ band.rows }}" as="b" hint-placeholder-count="8">
             <div data-grid="board-row" style="display: grid; grid-template-columns: 86px minmax(0, 1fr) 132px 108px minmax(0, 150px) 104px; gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); padding: 9px 0 9px 12px;">
@@ -600,8 +181,8 @@ textarea.input { min-height: 90px; resize: vertical; }
       <sc-if value="{{ withheldRows.length }}" hint-placeholder-val="{{ 0 }}">
         <div style="padding-top: 26px;">
           <div style="border-bottom: 1px solid var(--color-neutral-400); padding-bottom: 8px;">
-            <h3 class="text-muted" style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; margin: 0;">Not published this hour</h3>
-            <p class="text-muted" style="font-size: 12px; margin: 5px 0 0; max-width: 86ch;">A price was collected for these and stored, but it does not meet the evidence rule, so it is not shown as a number. Each country keeps its page and its reason, and returns as soon as its market does.</p>
+            <h3 class="text-muted" style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; margin: 0;">{{ withheldTitle }}</h3>
+            <p class="text-muted" style="font-size: 12px; margin: 5px 0 0; max-width: 86ch;">{{ withheldNote }}</p>
           </div>
           <sc-for list="{{ withheldRows }}" as="w" hint-placeholder-count="6">
             <div style="display: flex; gap: 12px; align-items: baseline; border-top: 1px solid var(--color-divider); padding: 7px 0 7px 12px; color: var(--color-neutral-600);">
@@ -614,14 +195,14 @@ textarea.input { min-height: 90px; resize: vertical; }
         </div>
       </sc-if>
 
-      <p class="text-muted" style="font-size: 12px; margin: 16px 0 0; max-width: 88ch;">Each row is one country. "A dollar costs" is what you pay to buy one dollar there, against the official exchange rate captured in the same second. "Round trip" is what it costs to buy and then sell again. Click any country for every source behind its number.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 16px 0 0; max-width: 88ch;">{{ boardFootnote }}</p>
     </div>
 
     <div style="padding: 44px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
         <div>
-          <h2 style="font-size: 26px; margin: 0;">If you moved money through crypto, what rate would you get?</h2>
-          <p class="text-muted" style="font-size: 13px; margin: 6px 0 0; max-width: 70ch;">Turn {{ cross.baseCode }} into a digital dollar on a {{ cross.baseCountry }} exchange, then turn that dollar into the other country's money on an exchange there. This is the rate that round trip works out to, next to the official rate for the same moment.</p>
+          <h2 style="font-size: 26px; margin: 0;">{{ crossTitle }}</h2>
+          <p class="text-muted" style="font-size: 13px; margin: 6px 0 0; max-width: 70ch;">{{ cross.intro }}</p>
         </div>
         <div style="display: flex; gap: 0; border: 1px solid var(--color-neutral-400); flex-wrap: wrap;">
           <sc-for list="{{ cross.bases }}" as="c" hint-placeholder-count="10">
@@ -633,10 +214,10 @@ textarea.input { min-height: 90px; resize: vertical; }
       <sc-if value="{{ cross.has }}" hint-placeholder-val="{{ false }}">
         <div>
           <div data-grid="cross" style="display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
-            <div>one {{ cross.baseCode }} buys</div>
-            <div style="text-align: right;">official rate</div>
-            <div style="text-align: right;">through crypto</div>
-            <div style="text-align: right;">difference</div>
+            <div>{{ cross.oneBuys }}</div>
+            <div style="text-align: right;">{{ crossCol.official }}</div>
+            <div style="text-align: right;">{{ crossCol.crypto }}</div>
+            <div style="text-align: right;">{{ crossCol.difference }}</div>
           </div>
           <sc-for list="{{ cross.rows }}" as="x" hint-placeholder-count="9">
             <div data-grid="cross" style="display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 0 16px; border-top: 1px solid var(--color-divider); padding: 10px 0; align-items: baseline;" title="{{ x.verdict }}">
@@ -650,7 +231,7 @@ textarea.input { min-height: 90px; resize: vertical; }
             </div>
           </sc-for>
           <div style="border-top: 2px solid var(--color-text);"></div>
-          <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 88ch;">A plus means the crypto route works out to more of the other country's money than the official rate would give you, before any fees. {{ cross.note }}</p>
+          <p class="text-muted" style="font-size: 12px; margin: 12px 0 0; max-width: 88ch;">{{ crossFootnote }} {{ cross.note }}</p>
         </div>
       </sc-if>
       <sc-if value="{{ cross.none }}" hint-placeholder-val="{{ true }}">
@@ -660,7 +241,7 @@ textarea.input { min-height: 90px; resize: vertical; }
 
     <div style="padding: 44px 24px 0;">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
-        <h2 style="font-size: 26px; margin: 0;">Is the data complete?</h2>
+        <h2 style="font-size: 26px; margin: 0;">{{ coverageTitle }}</h2>
         <div style="display: flex; align-items: baseline; gap: 16px;">
           <sc-if value="{{ cov.on }}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; align-items: baseline; gap: 10px;">
@@ -683,22 +264,22 @@ textarea.input { min-height: 90px; resize: vertical; }
         </sc-for>
       </div>
       <div style="display: flex; gap: 18px; align-items: center; margin-top: 14px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
-        <span>00h</span>
+        <span>{{ covLegendStart }}</span>
         <div style="display: flex; gap: 2px;">
           <sc-for list="{{ legendCells }}" as="g" hint-placeholder-count="5">
             <div style="width: 22px; height: 10px; background: {{ g.bg }};"></div>
           </sc-for>
         </div>
-        <span>small gap → big gap</span>
-        <span style="margin-left: auto;">23h UTC</span>
+        <span>{{ covLegendMid }}</span>
+        <span style="margin-left: auto;">{{ covLegendEnd }}</span>
       </div>
-      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0;">Prices from before August 2026 are daily, not hourly, so they appear in the history chart but never in this grid.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 12px 0 0;">{{ coverageFootnote }}</p>
     </div>
 
     <div style="padding: 44px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
         <div>
-          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">what the transfer costs, hourly</div>
+          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">{{ sendingKicker }}</div>
           <h2 style="font-size: 26px; margin: 0;">Sending money — {{ cc.name }} <span class="text-muted" style="font-weight: 400; font-size: 17px;">{{ cc.size }}</span></h2>
         </div>
         <div style="display: flex; align-items: flex-end; gap: 24px;">
@@ -740,7 +321,7 @@ textarea.input { min-height: 90px; resize: vertical; }
             </sc-if>
             <sc-if value="{{ cc.tipOn }}" hint-placeholder-val="{{ false }}">
               <div style="position: absolute; left: {{ cc.tipX }}; top: {{ cc.tipY }}; transform: {{ cc.tipShift }}; pointer-events: none; background: var(--color-bg); border: 1px solid var(--color-text); padding: 5px 9px; white-space: nowrap;">
-                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; line-height: 1.2;">crypto {{ cc.tipU }}</div>
+                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; line-height: 1.2;">{{ cc.tipULabel }} {{ cc.tipU }}</div>
                 <div style="font-size: 12px;">provider {{ cc.tipR }} · difference {{ cc.tipG }}</div>
                 <div class="text-muted" style="font-size: 10px;">{{ cc.tipT }}</div>
               </div>
@@ -763,18 +344,18 @@ textarea.input { min-height: 90px; resize: vertical; }
         </div>
       </div>
       <div style="display: flex; gap: 12px; margin-top: 18px;">
-        <button type="button" sc-camel-on-click="{{ goCorridor }}" style="appearance: none; cursor: pointer; background: var(--color-text); color: var(--color-bg); border: 1px solid var(--color-text); padding: 10px 16px; font-family: var(--font-heading); font-weight: 800; font-size: 13px; text-align: left;" style-hover="background: var(--color-neutral-800);">See one transfer in detail</button>
-        <button type="button" sc-camel-on-click="{{ goMethod }}" style="appearance: none; cursor: pointer; background: transparent; color: var(--color-text); border: 1px solid var(--color-text); padding: 10px 16px; font-family: var(--font-heading); font-weight: 800; font-size: 13px; text-align: left;" style-hover="background: var(--color-neutral-200);">How it's measured</button>
+        <button type="button" sc-camel-on-click="{{ goCorridor }}" style="appearance: none; cursor: pointer; background: var(--color-text); color: var(--color-bg); border: 1px solid var(--color-text); padding: 10px 16px; font-family: var(--font-heading); font-weight: 800; font-size: 13px; text-align: left;" style-hover="background: var(--color-neutral-800);">{{ detailButtonLabel }}</button>
+        <button type="button" sc-camel-on-click="{{ goMethod }}" style="appearance: none; cursor: pointer; background: transparent; color: var(--color-text); border: 1px solid var(--color-text); padding: 10px 16px; font-family: var(--font-heading); font-weight: 800; font-size: 13px; text-align: left;" style-hover="background: var(--color-neutral-200);">{{ methodButtonLabel }}</button>
       </div>
     </div>
 
     <div style="padding: 44px 24px 0;">
       <div style="border: 2px solid var(--color-text); display: grid; grid-template-columns: minmax(0, 1fr);">
-        <div style="background: var(--color-text); color: var(--color-bg); padding: 10px 20px; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;">Correction on the record · {{ correctionDate }}</div>
+        <div style="background: var(--color-text); color: var(--color-bg); padding: 10px 20px; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;">{{ correctionLabel }} · {{ correctionDate }}</div>
         <div data-grid="split" style="padding: 20px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px; align-items: start;">
           <div>
-            <h3 style="font-size: 21px; margin: 0 0 8px;">I published a wrong number once</h3>
-            <p class="text-muted" style="font-size: 14px; margin: 0; max-width: 60ch;">My first version said the crypto route beat Wise by 3x. Then I checked the exchanges' real fees, and it didn't. {{ makerProse }}. The mistake stays on the page so you can see the numbers here get checked, including mine.</p>
+            <h3 style="font-size: 21px; margin: 0 0 8px;">{{ correctionTitle }}</h3>
+            <p class="text-muted" style="font-size: 14px; margin: 0; max-width: 60ch;">{{ correctionBody }}</p>
           </div>
           <div style="display: grid; gap: 2px; background: var(--color-divider);">
             <sc-for list="{{ correction }}" as="c" hint-placeholder-count="3">
@@ -790,7 +371,7 @@ textarea.input { min-height: 90px; resize: vertical; }
 
     <div style="padding: 44px 24px 0;">
       <div style="border-bottom: 2px solid var(--color-text); padding-bottom: 10px;">
-        <h2 style="font-size: 26px; margin: 0;">What the data has shown so far</h2>
+        <h2 style="font-size: 26px; margin: 0;">{{ findingsTitle }}</h2>
         <div class="text-muted" style="font-size: 13px; margin-top: 6px;">{{ findingsIntro }}</div>
       </div>
       <sc-for list="{{ findings }}" as="f" hint-placeholder-count="2">
@@ -1093,8 +674,8 @@ textarea.input { min-height: 90px; resize: vertical; }
   </sc-if>
 
   <div style="margin-top: 56px; border-top: 2px solid var(--color-text); padding: 28px 24px 40px;">
-    <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;">who made this</div>
-    <p style="font-size: 14px; margin: 0; max-width: 76ch;">Built by Sebastian Roervig. I work in cross-border payments. Everyone says crypto made moving money cheap. I couldn't find anyone who had measured it, so I did. Raw data and code: github.com/SebR214/margin</p>
+    <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;">{{ footerKicker }}</div>
+    <p style="font-size: 14px; margin: 0; max-width: 76ch;">{{ footerBody }}</p>
   </div>
 </div>
 
@@ -1183,7 +764,8 @@ class Component extends DCLogic {
       opt("./data/fee_checks.csv"), opt("./data/fee_tiers.csv"),
       opt("./data/withdrawal_fees.csv"),
       opt("./data/crosses_latest.json"), opt("./data/index_latest.json"),
-    ]).then(([b, h, s, p1, p2, p3, p4, fc, ft, wf, cx, ix]) => {
+      opt("./copy.json"),
+    ]).then(([b, h, s, p1, p2, p3, p4, fc, ft, wf, cx, ix, cp]) => {
       // A missing or unparseable crosses file means the table renders its empty
       // state. It must never take the rest of the page down with it.
       let crosses = null;
@@ -1193,11 +775,16 @@ class Component extends DCLogic {
       // disagree about what the index says.
       let index = null;
       try { index = ix ? JSON.parse(ix) : null; } catch (e) { index = null; }
+      // The copy deck. Every visible string on this page comes from here --
+      // a missing or broken copy.json renders blank labels, never a made-up
+      // fallback that could quietly drift from what copy.json actually says.
+      let copy = null;
+      try { copy = cp ? JSON.parse(cp) : null; } catch (e) { copy = null; }
       this.setState({ data: {
         basis: parseCSV(b), hist: parseCSV(h), samples: parseCSV(s),
         panels: { "SGD->PHP": parseCSV(p1), "USD->MXN": parseCSV(p2),
                   "AUD->PHP": parseCSV(p3), "NZD->PHP": parseCSV(p4) },
-        feeChecks: parseCSV(fc), tiers: parseCSV(ft), withdrawalFees: parseCSV(wf), crosses, index,
+        feeChecks: parseCSV(fc), tiers: parseCSV(ft), withdrawalFees: parseCSV(wf), crosses, index, copy,
       }});
     }).catch(e => this.setState({ err: String(e.message || e) }));
   }
@@ -1497,34 +1084,63 @@ class Component extends DCLogic {
   renderVals() {
     const st = this.state, D = st.data;
     const page = st.page;
-    const go = p => () => this.setState({ page: p });
-    const nav = [
-      { key: "board", label: "The board" },
-      { key: "corridor", label: "Is it a real dollar?" },
-      { key: "providers", label: "Every way to send", href: "./providers.html" },
-      { key: "prices", label: "Price changes", href: "./pricing-history.html" },
-      { key: "findings", label: "Findings", href: "./findings.html" },
-      { key: "stress", label: "Stress signal", href: "./stress.html" },
-      { key: "weekly", label: "Weekly snapshot", href: "./weekly.html" },
-      { key: "requests", label: "Requests", href: "./requests.html" },
-      { key: "calculator", label: "Calculator", href: "./calculator.html" },
-      { key: "data", label: "The data", href: "./data.html" },
-      { key: "ask", label: "Ask", href: "./ask.html" },
-      { key: "watch", label: "Watch", href: "./watch.html" },
-      { key: "methodology", label: "Methodology" },
-    ].map(n => ({ label: n.label, href: n.href || "", go: n.href ? (() => { location.href = n.href; }) : go(n.key),
-      color: page === n.key ? INK : MUTED, rule: page === n.key ? INK : "transparent" }));
+    const C = (D && D.copy) || {};
+    const CI = C.index || {};
+    // Four nav items, same markup and same copy.json every page loads. This
+    // page is "the index", so that item alone carries aria-current.
+    const nav = (C.nav || []).map(n => ({
+      label: n.label, href: n.href,
+      current: n.key === "index" ? "page" : undefined,
+    }));
+
+    // Every static string on this page comes from copy.json, not from a
+    // literal here. Templates with a live number in them (the hero, the
+    // correction, the crypto-cross intro) are filled in further down, once
+    // that number is computed.
+    const copyVals = {
+      brand: C.brand || "margin.wiki",
+      lastTickLabel: CI.lastTick || "last tick",
+      marketOverTime: (CI.market || {}).overTime || "",
+      marketTheBoard: (CI.market || {}).theBoard || "",
+      marketHint: (CI.market || {}).hint || "",
+      boardSubhead: (CI.board || {}).subhead || "",
+      boardCol: (CI.board || {}).columns || {},
+      withheldTitle: (CI.board || {}).withheldTitle || "",
+      withheldNote: (CI.board || {}).withheldNote || "",
+      boardFootnote: (CI.board || {}).footnote || "",
+      crossTitle: (CI.cross || {}).title || "",
+      crossCol: (CI.cross || {}).columns || {},
+      crossFootnote: (CI.cross || {}).footnote || "",
+      coverageTitle: (CI.coverage || {}).title || "",
+      covLegendStart: (CI.coverage || {}).legendStart || "",
+      covLegendMid: (CI.coverage || {}).legendMid || "",
+      covLegendEnd: (CI.coverage || {}).legendEnd || "",
+      coverageFootnote: (CI.coverage || {}).footnote || "",
+      sendingKicker: (CI.sending || {}).kicker || "",
+      detailButtonLabel: (CI.sending || {}).detailButton || "",
+      methodButtonLabel: (CI.sending || {}).methodButton || "",
+      correctionLabel: (CI.correction || {}).label || "",
+      correctionTitle: (CI.correction || {}).title || "",
+      findingsTitle: (CI.findings || {}).title || "",
+      footerKicker: (CI.footer || {}).kicker || "",
+      footerBody: (CI.footer || {}).body || "",
+    };
 
     // Everything below the fold degrades to an explicit empty state. This is
     // the shape returned before the CSVs land, and the shape a missing file
     // leaves behind — identical on purpose.
-    const empty = {
+    const empty = Object.assign({
       nav, isBoard: page === "board", isCorridor: page === "corridor", isMethod: page === "methodology",
-      goCorridor: go("corridor"), goMethod: go("methodology"),
-      health: st.err ? "collector unreachable — " + st.err : "reading data/…",
+      goCorridor: () => { location.href = "./corridor.html"; },
+      goMethod: () => { location.href = "./methodology.html"; },
+      health: st.err ? ((CI.health && CI.health.errorPrefix) || "collector unreachable — ") + st.err
+                     : (CI.health && CI.health.reading) || "reading data/…",
       lastTick: "—", scaleNote: "",
       hl: { wide: "—", wideCountry: "—", narrow: "—", narrowCountry: "—" },
-      heroStats: [], heroCurrencyCount: "—", bands: [], boardTitle: "What a dollar really costs",
+      heroTitle: (CI.hero || {}).title || "",
+      heroBody: ((CI.hero || {}).body || "").replace("{count}", "—"),
+      heroStats: [], heroCurrencyCount: "—", bands: [], boardTitle: (CI.board || {}).title || "",
+      correctionBody: "",
       withheldRows: [], coverage: [], legendCells: [],
       cov: { on: false, code: "", v: "", t: "", hint: "" },
       mk: { code: "—", country: "", venue: "", bps: "—", sentence: "", color: INK, line: "", area: "", zeroY: "120",
@@ -1534,7 +1150,7 @@ class Component extends DCLogic {
       ranges: [], corridorSummary: [], corridors: [], correction: [], findings: [],
       cc: { name: "—", size: "—", usdtLine: "", railLine: "", gapArea: "", xLabels: [], yLabels: [],
             keys: [], tabs: [], dots: [], sparse: false, note: "",
-            tipOn: false, tipX: "0%", tipY: "0%", tipShift: "none", tipU: "", tipR: "", tipG: "", tipT: "",
+            tipOn: false, tipX: "0%", tipY: "0%", tipShift: "none", tipU: "", tipULabel: "", tipR: "", tipG: "", tipT: "",
             onMove: () => {}, onLeave: () => {}, onPin: () => {} },
       cx: { name: "—", tiers: [], line1: "", line2: "", line3: "", line4: "", railLine: "",
             xLabels: [], tipRows: [], tipOn: false, tipX: "0%", tipShift: "none", tipSize: "",
@@ -1547,8 +1163,9 @@ class Component extends DCLogic {
       makerProse: "", takerProse: "", correctionDate: "—", dislocatedNames: "",
       corridorIntro: "", waterfallNote: "", waterfallStamp: "", stackNote: "", findingsIntro: "",
       cross: { rows: [], has: false, none: true, bases: [], baseCountry: "", baseCode: "—",
-               note: "", empty: "No pair has both currencies priced in the same hour yet." },
-    };
+               note: "", intro: "", oneBuys: "",
+               empty: (CI.cross || {}).empty || "No pair has both currencies priced in the same hour yet." },
+    }, copyVals);
     if (!D) return empty;
 
     // ---- markets -------------------------------------------------------
@@ -1673,12 +1290,15 @@ class Component extends DCLogic {
         bg: c === crossBase ? INK : "var(--color-bg)",
         color: c === crossBase ? "var(--color-bg)" : INK,
       })),
+      intro: ((CI.cross || {}).intro || "").split("{baseCode}").join(crossBase)
+        .split("{baseCountry}").join((META[crossBase] || {}).country || crossBase),
+      oneBuys: ((CI.cross || {}).oneBuys || "").split("{baseCode}").join(crossBase),
       note: crossRows.length
         ? "Market prices only. Sending money along this route also costs exchange "
           + "fees, a withdrawal fee and a network fee, none of which are in these "
           + "numbers — the transfer section below is where those are counted."
         : "",
-      empty: "No pair has both currencies priced in the same hour yet.",
+      empty: (CI.cross || {}).empty || "No pair has both currencies priced in the same hour yet.",
     };
 
     // ---- hourly coverage, real ------------------------------------------
@@ -1846,11 +1466,12 @@ class Component extends DCLogic {
         tipX: ccIdx === null ? "0%" : pctX(pu.x(ccIdx)), tipY: ccIdx === null ? "0%" : pctY(pu.y(us[ccIdx])),
         tipShift: ccIdx === null ? "none" : shift(ccIdx, us.length),
         tipU: ccIdx === null ? "" : this.fmtPct(us[ccIdx], false),
+        tipULabel: (CI.sending || {}).tooltipLabel || "",
         tipR: ccIdx === null ? "" : this.fmtPct(rl[ccIdx], false),
         tipG: ccIdx === null ? "" : this.fmtPct(us[ccIdx] - rl[ccIdx]),
         tipT: ccIdx === null ? "" : this.fmtStamp(series[ccIdx].t, true),
         onMove: ccH.onMove, onLeave: ccH.onLeave, onPin: ccH.onPin,
-        keys: [{ label: "crypto route, all-in", color: "var(--data-600)" },
+        keys: [{ label: "the dollar route, all-in", color: "var(--data-600)" },
                { label: "cheapest ordinary provider", color: "var(--color-neutral-500)" }],
         tabs: ladders.map(l => ({ label: l.name, go: () => this.setState({ corridor: l.key, hover: null, pinned: null }),
           bg: cName === l.key ? "var(--color-text)" : "transparent",
@@ -1945,10 +1566,10 @@ class Component extends DCLogic {
       const st1 = num(small.cost_bps_taker), sr1 = num(small.baseline_cost_bps), bt = num(big.cost_bps_taker);
       if (st1 !== null && sr1 !== null && bt !== null) {
         findings.push({ date: this.fmtStamp(cLad.t, false),
-          q: "Is crypto worst for the small transfers most people send?",
+          q: "Is the dollar route worst for the small transfers most people send?",
           a: "Yes. Sending " + this.fmtSize(cLad.cur, num(small.notional_src)) + " costs " +
              this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(small.notional_src), st1)) +
-             " through crypto against " +
+             " through the dollar route against " +
              this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(small.notional_src), sr1)) + " with " +
              (small.baseline_provider || "the cheapest provider") +
              " — the flat costs do not shrink with the amount. Send " +
@@ -2001,9 +1622,23 @@ class Component extends DCLogic {
     }));
     const cx = Object.assign({}, empty.cx, { name: cLad ? cLad.name : "—" });
 
-    return {
+    // Fee prose on the methodology screen is built from the fee columns the
+    // collector stamped on the row, so it cannot drift from what was charged.
+    // Hoisted out of the return object below because the correction copy
+    // template also needs it, mid-sentence.
+    const makerProse = cRowRaw
+      ? (cRowRaw.onramp_venue || "the buying exchange") + " charges a flat " +
+        ((num(cRowRaw.fee_on_maker_bps) ?? 0) / 100).toFixed(2) + "% at the base tier and " +
+        (cRowRaw.offramp_venue || "the selling exchange") + " " +
+        ((num(cRowRaw.fee_off_maker_bps) ?? 0) / 100).toFixed(2) + "% if you wait for your price"
+      : "the exchanges' cheaper fee tiers are not in this sample";
+
+    return Object.assign({
       nav, isBoard: page === "board", isCorridor: page === "corridor", isMethod: page === "methodology",
-      goCorridor: go("corridor"), goMethod: go("methodology"),
+      goCorridor: () => { location.href = "./corridor.html"; },
+      goMethod: () => { location.href = "./methodology.html"; },
+      heroTitle: (CI.hero || {}).title || "",
+      heroBody: ((CI.hero || {}).body || "").replace("{count}", String(heroCurrencyCount)),
       health: "collector ok · " + okCount + "/" + latestRun.length + " sources",
       lastTick: this.fmtStamp(lastT, true),
       scaleNote: banded ? "two bands, each on its own axis" : "single axis",
@@ -2055,7 +1690,7 @@ class Component extends DCLogic {
           { k: "samples", v: vals.length + " · " + rangeDef.key },
         ],
       },
-      ranges: RANGES.map(r => ({ label: r.label, go: () => this.setState({ range: r.key, hover: null, pinned: null }),
+      ranges: RANGES.map(r => ({ label: ((CI.market || {}).ranges || {})[r.key] || r.label, go: () => this.setState({ range: r.key, hover: null, pinned: null }),
         bg: st.range === r.key ? "var(--color-text)" : "transparent",
         color: st.range === r.key ? "var(--color-bg)" : MUTED })),
       cc, cx, cxx: false,
@@ -2067,12 +1702,12 @@ class Component extends DCLogic {
         const tb = num(cRowRaw.cost_bps_taker), rb = num(cRowRaw.baseline_cost_bps);
         const tm = this.costOf(cur, size, tb), rm = this.costOf(cur, size, rb);
         return [
-          { k: cLad.name + " · sending " + this.fmtSize(cur, size) + " · crypto, all in",
+          { k: cLad.name + " · sending " + this.fmtSize(cur, size) + " · the dollar route, all in",
             v: this.fmtMoney(cur, tm),
             sub: this.fmtPct(tb, false) + " of what you send, buying at the price on offer", color: INK },
           { k: "cheapest ordinary provider, same instant", v: this.fmtMoney(cur, rm),
             sub: this.fmtPct(rb, false) + " · " + (cRowRaw.baseline_provider || "—"), color: INK },
-          { k: "what crypto costs you extra",
+          { k: "what the dollar route costs you extra",
             v: (tm === null || rm === null) ? "—"
                : this.fmtMoney(cur, Math.round((tm - rm) * 100) / 100),
             sub: this.fmtPct((tb || 0) - (rb || 0)) + " · " + (feeStamp || "fee check unavailable"),
@@ -2102,7 +1737,7 @@ class Component extends DCLogic {
                                                  num(cRowRaw.cost_bps_maker))), strike: "none" },
         { k: "verdict", v: (num(cRowRaw.cost_bps_maker) !== null && num(cRowRaw.baseline_cost_bps) !== null &&
             num(cRowRaw.cost_bps_maker) < num(cRowRaw.baseline_cost_bps))
-            ? "the crypto route is cheaper" : "the ordinary provider is cheaper", strike: "none" },
+            ? "the dollar route is cheaper" : "the ordinary provider is cheaper", strike: "none" },
       ]) : [],
       findings, waterfall, stack, stackKeys, spread,
       correctionDate: cLad ? this.fmtStamp(cLad.t, false) : "—",
@@ -2130,14 +1765,7 @@ class Component extends DCLogic {
           " — is what the two exchanges charge to get in and out. The chain is not the expensive part; the doors are."
         : "",
       findingsIntro: "Dated observations. Each one says what was measured and what it does and does not prove.",
-      // Fee prose on the methodology screen is built from the fee columns the
-      // collector stamped on the row, so it cannot drift from what was charged.
-      makerProse: cRowRaw
-        ? (cRowRaw.onramp_venue || "the buying exchange") + " charges a flat " +
-          ((num(cRowRaw.fee_on_maker_bps) ?? 0) / 100).toFixed(2) + "% at the base tier and " +
-          (cRowRaw.offramp_venue || "the selling exchange") + " " +
-          ((num(cRowRaw.fee_off_maker_bps) ?? 0) / 100).toFixed(2) + "% if you wait for your price"
-        : "the exchanges' cheaper fee tiers are not in this sample",
+      makerProse,
       takerProse: cRowRaw
         ? (cRowRaw.onramp_venue || "the buying exchange") + " charges " +
           ((num(cRowRaw.fee_on_taker_bps) ?? 0) / 100).toFixed(2) + "% to buy at the price on offer, " +
@@ -2169,7 +1797,9 @@ class Component extends DCLogic {
         { k: "Backfill", v: "History before August 2026 is daily, not hourly. It appears in charts as history and never as hourly coverage." },
         { k: "Where the figures come from", v: "Each number is read from data/*.csv at render time and carries the timestamp of the row it came from." },
       ],
-    };
+    }, copyVals, {
+      correctionBody: ((CI.correction || {}).body || "").replace("{makerProse}", makerProse),
+    });
   }
 }
 
