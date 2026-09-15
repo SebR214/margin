@@ -462,7 +462,7 @@ Binance's own search response already carries the real count behind the page,
 in a `total` field that the collector previously read and discarded, so
 `data/p2p_depth.csv` (`ts_utc,ccy,buy_total,sell_total`) now records it — at no
 extra request and with no change to the fetched page or the published price.
-Empty where the field could not be read, never 0, and empty for every hour
+Empty where the field was unreadable, never 0, and empty for every hour
 before this sidecar existed; nothing here is backfilled. **This depth is not
 yet part of the publish decision above** — rule 1 still tests `n_buy`. Wiring
 real depth into the rule changes which hours count as evidence and is its own
