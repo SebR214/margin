@@ -82,6 +82,16 @@ P2P = os.path.join(HERE, "data", "p2p_basis.csv")
 # whether a country is published. Own file, own header, no schema change.
 SIDES = os.path.join(HERE, "data", "p2p_sides.csv")
 SIDES_FIELDS = ["ts_utc", "ccy", "n_buy", "n_sell"]
+# Second sidecar (SEB-50). n_buy/n_sell above answer "did the page fill" --
+# they are capped at ROWS and cannot say more than that once a board is at or
+# past the ceiling. This answers a different question: how many ads actually
+# match the search, full stop. Binance's own response carries that count
+# already (verified against a live payload, 2026-09-15 -- see `total_from`),
+# so it costs nothing extra to read and nothing about the fetched page or the
+# published price changes. Diagnostic only: nothing here decides publication
+# yet. See METHODOLOGY.md, "The evidence rule (v1.1)".
+DEPTH = os.path.join(HERE, "data", "p2p_depth.csv")
+DEPTH_FIELDS = ["ts_utc", "ccy", "buy_total", "sell_total"]
 FX_URL = "https://open.er-api.com/v6/latest/USD"
 
 SEARCH_URL = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
@@ -163,6 +173,28 @@ def prices_from(payload):
         if p is not None:
             out.append(p)
     return out
+
+
+def total_from(payload):
+    """Ad-board payload -> real number of ads matching the search, or None.
+
+    Distinct from `prices_from`: `data` is capped at ROWS by the request
+    itself, so it can only ever say "the page filled". Binance's response also
+    carries `total`, the count behind the whole search before pagination --
+    the market's actual depth, read here without touching how a price is
+    built. None if the field is missing or not a plain non-negative number --
+    an unreadable depth is a gap, not a zero.
+    """
+    if not isinstance(payload, dict):
+        return None
+    t = payload.get("total")
+    if isinstance(t, bool):
+        return None
+    try:
+        v = int(t)
+    except (TypeError, ValueError):
+        return None
+    return v if v >= 0 else None
 
 
 def basis_bps(mid, fx_mid):
@@ -281,11 +313,14 @@ def build_rows(ts, currencies, fx, post=post_json, ngn_fallback=fetch_ngn_fallba
             # The amount filter is in local currency, so it depends on the FX
             # snapshot -- which is why it is computed here and not a constant.
             amount = int(round(FILTER_USD * fx_mid))
-            buys = prices_from(post(SEARCH_URL, search_body(ccy, "BUY", amount)))
-            sells = prices_from(post(SEARCH_URL, search_body(ccy, "SELL", amount)))
+            buy_board = post(SEARCH_URL, search_body(ccy, "BUY", amount))
+            sell_board = post(SEARCH_URL, search_body(ccy, "SELL", amount))
+            buys, sells = prices_from(buy_board), prices_from(sell_board)
             b, s, mid, n = summarise(buys, sells)
             row["n_ads"] = n
             row["_n_buy"], row["_n_sell"] = len(buys), len(sells)
+            row["_buy_total"] = total_from(buy_board)
+            row["_sell_total"] = total_from(sell_board)
             if mid is None:
                 # No board, or only one side of one. Both are real facts about
                 # the market and neither is a half-price worth publishing.
@@ -375,6 +410,23 @@ def append_sides(rows):
     return SIDES
 
 
+def append_depth(rows):
+    """Real per-side ad counts (SEB-50), from the same rows, same run. Empty
+    for a side whose total could not be read -- never 0, which would read as
+    a measured empty board rather than an unknown one."""
+    os.makedirs(os.path.dirname(DEPTH), exist_ok=True)
+    new = not os.path.exists(DEPTH)
+    with open(DEPTH, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=DEPTH_FIELDS, extrasaction="ignore")
+        if new:
+            w.writeheader()
+        w.writerows([{"ts_utc": r["ts_utc"], "ccy": r["ccy"],
+                      "buy_total": r.get("_buy_total"),
+                      "sell_total": r.get("_sell_total")}
+                     for r in rows])
+    return DEPTH
+
+
 def append(rows):
     os.makedirs(os.path.dirname(P2P), exist_ok=True)
     new = not os.path.exists(P2P)
@@ -405,9 +457,13 @@ def print_table(rows):
 
 
 # -------------------------------------------------------------- selftest
-def _board(prices):
-    """A payload in the real shape, from the live response captured 2026-09-02."""
-    return {"code": "000000", "success": True,
+def _board(prices, total=None):
+    """A payload in the real shape, from the live response captured 2026-09-02.
+
+    `total` defaults to the page length -- a board with no depth beyond what
+    was fetched. A caller wanting a deep board that only shows its best 10
+    prices passes a larger `total` explicitly."""
+    return {"code": "000000", "success": True, "total": len(prices) if total is None else total,
             "data": [{"adv": {"advNo": str(i), "asset": "USDT", "price": str(p),
                               "tradeType": "SELL", "fiatUnit": "VND"},
                       "advertiser": {"nickName": "n%d" % i}}
@@ -462,6 +518,21 @@ def selftest():
     assert prices_from({}) == [] and prices_from([]) == [] and prices_from(None) == []
     print("  [ok] board parser: prices out, malformed and empty boards -> []")
 
+    # 1b. depth (SEB-50): a board's own `total` is the real depth, independent
+    #     of how many prices came back on the page. Missing or unreadable is
+    #     a gap, never coerced to 0.
+    assert total_from(_board([1, 2, 3])) == 3          # default: no hidden depth
+    assert total_from(_board([1, 2, 3], total=500)) == 500   # deep board, thin page
+    assert total_from({"data": [], "total": "18"}) == 18     # numeric string, as seen live
+    assert total_from(EMPTY_BOARD) == 0
+    assert total_from({"data": []}) is None            # field absent -> unknown, not 0
+    assert total_from({"data": [], "total": None}) is None
+    assert total_from({"data": [], "total": True}) is None   # bool is not a count
+    assert total_from({"data": [], "total": -1}) is None
+    assert total_from({"data": [], "total": "not a number"}) is None
+    assert total_from(None) is None and total_from([]) is None
+    print("  [ok] depth parser: real `total` out, unreadable or missing -> None (never 0)")
+
     # 2. a median needs both sides. One side alone is an asking price.
     assert summarise([10, 12, 14], [8, 9, 10]) == (12.0, 9.0, 10.5, 6)
     assert summarise([10, 12], []) == (11.0, None, None, 2)
@@ -494,8 +565,35 @@ def selftest():
     vnd = next(r for r in rows if r["ccy"] == "VND")
     assert vnd["_n_buy"] == 11 and vnd["_n_sell"] == 11, (vnd["_n_buy"], vnd["_n_sell"])
     assert vnd["_n_buy"] + vnd["_n_sell"] == vnd["n_ads"]
+    assert vnd["_buy_total"] == 11 and vnd["_sell_total"] == 11, \
+        "the fixture's default board has no depth beyond its page"
+    assert set(DEPTH_FIELDS) == {"ts_utc", "ccy", "buy_total", "sell_total"}
     print(f"  [ok] {n_ok}/{len(CURRENCIES)} currencies priced; buy above sell; "
           f"schema covers the row")
+
+    # 4b. SEB-50: a board deeper than its page reports that depth without the
+    #     fetched price or count changing at all.
+    val = round(FX_FIXTURE["VND"] * 1.01, 4)
+    deep_board = _board([val] * 10, total=500)
+    rows_deep, _ = build_rows(TS_FIXTURE, ["VND"], FX_FIXTURE,
+                               post=_make_post({"VND": deep_board}))
+    vnd_deep = rows_deep[0]
+    assert vnd_deep["_buy_total"] == 500 and vnd_deep["_sell_total"] == 500
+    assert vnd_deep["_n_buy"] == 10 and vnd_deep["_n_sell"] == 10, \
+        "the page itself is still capped at ROWS"
+    assert vnd_deep["buy_median"] == val, "price is untouched by the depth read"
+    print("  [ok] SEB-50: a 500-ad board and a 10-ad board no longer look identical "
+          "(depth 500 recorded, page still 10, price unchanged)")
+
+    # 4c. and a board whose response doesn't carry `total` at all records the
+    #     gap rather than a false 0 -- this is what every row before SEB-50
+    #     landed will look like, and it must stay a gap, not backfilled.
+    no_total_board = {"code": "000000", "success": True,
+                       "data": _board([val] * 10)["data"]}
+    rows_nt, _ = build_rows(TS_FIXTURE, ["VND"], FX_FIXTURE,
+                             post=_make_post({"VND": no_total_board}))
+    assert rows_nt[0]["_buy_total"] is None and rows_nt[0]["_sell_total"] is None
+    print("  [ok] a response with no `total` field records depth as unknown, not 0")
 
     # 5. an empty board is a FINDING, recorded, and does not kill the run.
     #    ngn_fallback is stubbed to None here so this stays the "board empty,
@@ -639,6 +737,7 @@ def main():
     if not a.verify:
         append(rows)
         append_sides(rows)
+        append_depth(rows)
 
     if a.json:
         print(json.dumps(rows, indent=2, default=str))
@@ -649,7 +748,8 @@ def main():
         return
 
     print(f"  appended -> {P2P}")
-    print(f"  appended -> {SIDES}\n")
+    print(f"  appended -> {SIDES}")
+    print(f"  appended -> {DEPTH}\n")
     if run_exit_code(n_ok) != 0:
         print("  [error] TOTAL BLACKOUT -- no currency priced this run", file=sys.stderr)
         sys.exit(1)
