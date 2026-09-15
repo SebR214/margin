@@ -23,7 +23,7 @@ hour, the rest are withheld with a stated reason.
 | Site | margin.wiki (GitHub Pages, from `main`) |
 | API | api.margin.wiki → Caddy → `127.0.0.1:8899` REST, `:8900` MCP, `:8901` ask |
 | Repo | `SebR214/margin` (public) — code and PRs only |
-| Work | Linear, project `margin.wiki`, team `SEB` |
+| Work | Linear — [linear.app/sebastian-roervig](https://linear.app/sebastian-roervig), project `margin.wiki`, team `SEB`. An issue is `https://linear.app/sebastian-roervig/issue/SEB-<n>` |
 
 Three loops on the server — `margin-builder`, `margin-reviewer`,
 `margin-product` — take work from Linear and open PRs. `margin-serve` runs the
@@ -89,10 +89,23 @@ Sebastian's screenshot approval as PR #94** and everything else is behind it.
 
 ## Cost
 
-The loops are the main consumer of the subscription. As of 15 September they run
-**Sonnet**, poll every 5 minutes, and **back off to 30 minutes when idle** —
-before this, 88% of ~3,900 daily passes did nothing at full price. If work feels
-slow to start, that backoff is why, and it resets the moment a pass does
-something.
+The loops are the largest consumer of the subscription, so they are built to
+cost nothing when there is nothing to do.
 
-`MARGIN_MODEL` in `/etc/margin/env` overrides the model per deployment.
+**A plain guard runs before the model, every pass.** It asks Linear and GitHub
+whether there is work, over ordinary HTTP with no model involved, and only wakes
+a session if the answer is yes. An empty queue therefore costs one request, not
+a session. Before this existed, 88% of roughly 3,900 daily passes were full
+model sessions that discovered the queue was empty.
+
+They run **Sonnet**, not the default. `MARGIN_MODEL` in `/etc/margin/env`
+overrides it.
+
+**Do not restate the poll intervals here.** They live in `agents/run.sh` and
+have already changed twice; a number copied into this file goes stale and then
+seeds every new session with it. Read the script.
+
+The one principle worth keeping in your head: **polling is cheap, so it should
+be frequent.** If you ever find yourself slowing the loops down to save money,
+check first whether the thing you are slowing down actually costs anything — it
+probably does not, and you would be buying latency for nothing.
