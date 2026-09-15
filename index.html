@@ -910,14 +910,28 @@ class Component extends DCLogic {
   titleWords(s) {
     return (s || "").split(" ").filter(Boolean).map((w, i) => ({ w, delay: (i * 55) + "ms" }));
   }
-  // The receipt behind a hovered number: which file it came from, when it was
-  // computed, and how many independent readings stood behind it. Where the
-  // source JSON already carries B1's computed_at/n_sources/source_file, those
-  // are passed straight through; where a figure is read straight from a CSV
-  // that has no such fields, this is built from the row's own real timestamp
-  // and a real count of the rows that fed it -- never a guessed number.
+  // The receipt behind a hovered number: what fed it, when it was computed,
+  // and how many independent readings stood behind it. Where the source JSON
+  // already carries B1's computed_at/n_sources/source_file, those are passed
+  // straight through; where a figure is read straight from a CSV that has no
+  // such fields, this is built from the row's own real timestamp and a real
+  // count of the rows that fed it -- never a guessed number.
+  //
+  // "What fed it" is always a plain-language label from copy.json's
+  // sourceLabels, never the raw path: a bare filename like "basis.csv" is a
+  // banned word on this page (see ROADMAP.md invariants), and Sebastian
+  // caught an earlier draft leaking it through this exact popover. A path
+  // with no label is a mapping bug, not a display choice -- it fails loudly
+  // to the console rather than falling back to the path it exists to hide.
+  sourceLabel(file) {
+    const label = this.sourceLabels[file];
+    if (label) return label;
+    console.error("provText: no plain-language sourceLabels entry for", file);
+    return "an internal source";
+  }
   provText(file, whenMs, n) {
-    const files = Array.isArray(file) ? file.join(", ") : (file || "—");
+    const list = Array.isArray(file) ? file : (file ? [file] : []);
+    const files = list.length ? list.map(f => this.sourceLabel(f)).join(", ") : "—";
     const when = whenMs ? this.fmtStamp(whenMs, true) : "—";
     const sources = (n === null || n === undefined) ? "source count not recorded"
       : n + (n === 1 ? " source" : " sources");
@@ -1153,6 +1167,11 @@ class Component extends DCLogic {
     const page = st.page;
     const C = (D && D.copy) || {};
     const CI = C.index || {};
+    // provText() reads this to turn a raw CSV path into the plain-language
+    // label a reader sees -- the popover must never show a bare filename
+    // (that is how "basis" and friends leak onto the page). Set here, once
+    // per render, so the method itself stays free of copy.json wiring.
+    this.sourceLabels = (CI.ask || {}).sourceLabels || {};
     // Four nav items, same markup and same copy.json every page loads. This
     // page is "the index", so that item alone carries aria-current.
     const nav = (C.nav || []).map(n => ({
@@ -1194,8 +1213,6 @@ class Component extends DCLogic {
       provLabel: (CI.ask || {}).provLabel || "",
       askKicker: (CI.ask || {}).kicker || "",
       askNote: (CI.ask || {}).note || "",
-      askOpenLabel: (CI.ask || {}).openLabel || "",
-      askCloseLabel: (CI.ask || {}).closeLabel || "",
     };
 
     // Everything below the fold degrades to an explicit empty state. This is
