@@ -721,6 +721,39 @@ newest day on record for that currency. That is the "what happened next" half
 of the prediction, recomputed on every page load from the same
 `data/fx_rates.csv` daily medians.
 
+## The P2P spread signal (`data/p2p_spread_signal.csv`)
+
+Every two-sided P2P reading already carries a buy price and a sell price
+(`data/p2p_basis.csv`'s `buy_median`/`sell_median`) — the cost of buying a
+dollar on that board that hour and immediately selling it back. A gap that
+suddenly widens is a thin-market signal: it caught Algeria pulling 12% in two
+hours (SEB-49) while the official rate stayed flat, and CriptoYa's own Algeria
+reference confirmed the real market had not moved — the excursion reverted
+within three hours.
+
+`tools/emit_spread_signal.py` reads `data/p2p_basis.csv` and, for every
+two-sided reading, records:
+
+* `spread_pct` — `(buy_median − sell_median) / mid × 100`, that hour's
+  round-trip cost.
+* `ccy_mean_spread_pct` — that currency's own mean `spread_pct`, over every
+  strictly earlier two-sided reading of the same currency. Never a reading
+  from later, so an old row's baseline is never rewritten by what came after
+  it — and never a global number: NPR and BWP run a double-digit spread every
+  hour and a currency running near 2% does not, so the same number means
+  different things on each.
+* `spread_ratio` — `spread_pct / ccy_mean_spread_pct`, this reading against
+  that baseline. Needs at least 30 strictly earlier readings (roughly a day
+  and a quarter at the hourly cadence every currency here keeps) and a
+  positive baseline — a currency whose board runs crossed or flat (see "The
+  evidence rule" above) has no stable cost to compare against, so its ratio
+  stays a gap rather than a number that would blow up or flip sign on an
+  ordinary move.
+
+This is a record, not a rule. Nothing reads this file yet, and nothing
+withholds or marks an hour because of it — what to do when it fires is a
+separate, reader-facing decision (SEB-52).
+
 ## Checked against
 
 Every number here is computed from rows this project collected itself, which

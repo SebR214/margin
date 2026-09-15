@@ -207,6 +207,14 @@ jobs:
         # tools/emit_stress_signal.py.
         run: python3 tools/emit_stress_signal.py
 
+      - name: Emit the P2P spread signal
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Append-only. Reads the buy/sell sides data/p2p_basis.csv already
+        # collected above and records each reading's spread against its own
+        # currency's prior history -- SEB-52. See the docstring in
+        # tools/emit_spread_signal.py.
+        run: python3 tools/emit_spread_signal.py
+
       - name: Emit the data manifest
         if: always() && steps.needed.outputs.proceed == 'true'
         # Runs after the per-country step so it reflects what that step just
@@ -248,7 +256,8 @@ jobs:
                    data/manifest_latest.json data/stress_signal.csv \
                    data/stress_signal_latest.json data/basis_history.csv \
                    data/fee_checks.csv data/withdrawal_fees.csv \
-                   data/requests_latest.json data/stable_spread_summary.json; do
+                   data/requests_latest.json data/stable_spread_summary.json \
+                   data/p2p_spread_signal.csv data/p2p_spread_signal_latest.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Directories: one file per country, a page per country, and the
