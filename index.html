@@ -937,6 +937,15 @@ class Component extends DCLogic {
       : n + (n === 1 ? " source" : " sources");
     return files + " · computed " + when + " · " + sources;
   }
+  // Fills every {placeholder} in a copy-deck template with its value -- the
+  // same fixed-fragment-plus-placeholder pattern heroBody's {count} and
+  // cross's {baseCode} already use, generalised to templates with more than
+  // one slot, so ask-box answers never carry hardcoded English.
+  fillCopy(tpl, map) {
+    let out = tpl || "";
+    for (const k in map) out = out.split("{" + k + "}").join(map[k]);
+    return out;
+  }
   fmtStamp(t, withHour) {
     if (!t) return "—";
     const d = new Date(t);
@@ -1739,22 +1748,24 @@ class Component extends DCLogic {
 
     // ---- pre-computed ask box ---------------------------------------------
     // A fixed set of questions, each answered from a file this page already
-    // has open in memory -- nothing fetched for this, nothing guessed. The
-    // question text lives in copy.json; the answer is a computed sentence,
-    // the same way mk.sentence and corridorIntro already are.
+    // has open in memory -- nothing fetched for this, nothing guessed. Every
+    // reader-facing fragment (question and answer alike) lives in copy.json's
+    // ask.answers; this only fills in the placeholders via fillCopy(), the
+    // same pattern heroBody's {count} and cross's {baseCode} already use.
     const askQuestions = (CI.ask || {}).questions || [];
+    const askCopy = (CI.ask || {}).answers || {};
     const askAnswers = [];
     askAnswers.push((() => { // Q0: furthest from the official rate
       const v = ixWide ? ixWide.index_pct * 100 : wide.bps;
       const c = ixWide ? ixWide.country : this.countryIn(wide.code);
-      return { a: "In " + c + ", a dollar costs " + this.gapWords(v) + " than the official rate — the widest gap measured this hour.",
+      return { a: this.fillCopy(askCopy.widest, { country: c, gap: this.gapWords(v) }),
         prov: ixWide ? this.provText(ixWide.source_file, ts(ixWide.computed_at), ixWide.n_sources)
                      : this.provText("data/basis.csv", wide.t, wide.count) };
     })());
     askAnswers.push((() => { // Q1: closest to the official rate
       const v = ixNarrow ? ixNarrow.index_pct * 100 : narrow.bps;
       const c = ixNarrow ? ixNarrow.country : this.countryIn(narrow.code);
-      return { a: "In " + c + ", a dollar costs " + this.gapWords(v) + " than the official rate — the closest to it measured this hour.",
+      return { a: this.fillCopy(askCopy.narrowest, { country: c, gap: this.gapWords(v) }),
         prov: ixNarrow ? this.provText(ixNarrow.source_file, ts(ixNarrow.computed_at), ixNarrow.n_sources)
                        : this.provText("data/basis.csv", narrow.t, narrow.count) };
     })());
@@ -1762,43 +1773,41 @@ class Component extends DCLogic {
       const php = ix.find(c => c.ccy === "PHP");
       const phpM = mkts.find(m => m.code === "PHP");
       const phpW = withheldRows.find(w => w.code === "PHP");
-      if (php) return { a: "A dollar costs " + this.gapWords(php.index_pct * 100) + " than the official rate in the Philippines.",
+      if (php) return { a: this.fillCopy(askCopy.phpPriced, { gap: this.gapWords(php.index_pct * 100) }),
         prov: this.provText(php.source_file, ts(php.computed_at), php.n_sources) };
-      if (phpM) return { a: "A dollar costs " + this.gapWords(phpM.bps) + " than the official rate in the Philippines.",
+      if (phpM) return { a: this.fillCopy(askCopy.phpPriced, { gap: this.gapWords(phpM.bps) }),
         prov: this.provText("data/basis.csv", phpM.t, phpM.count) };
-      if (phpW) return { a: "No price for the Philippines this hour — " + phpW.reason + ".", prov: "" };
-      return { a: "No price collected for the Philippines this hour.", prov: "" };
+      if (phpW) return { a: this.fillCopy(askCopy.phpWithheld, { reason: phpW.reason }), prov: "" };
+      return { a: askCopy.phpMissing || "", prov: "" };
     })());
     askAnswers.push((() => { // Q3: cheaper than a bank right now?
-      if (!(cLad && cRowRaw)) return { a: "No transfer has been priced yet.", prov: "" };
+      if (!(cLad && cRowRaw)) return { a: askCopy.transferMissing || "", prov: "" };
       const cur = cLad.cur, size = num(cRowRaw.notional_src);
       const tb = num(cRowRaw.cost_bps_taker), rb = num(cRowRaw.baseline_cost_bps);
       const tm = this.costOf(cur, size, tb), rm = this.costOf(cur, size, rb);
-      if (tm === null || rm === null) return { a: "Not enough data on this corridor to compare right now.", prov: cRowProv };
+      if (tm === null || rm === null) return { a: askCopy.transferInsufficient || "", prov: cRowProv };
       const provider = cRowRaw.baseline_provider || "the cheapest ordinary provider";
       const cheaper = tm <= rm;
-      const a = (cheaper ? "Yes — " : "No — ") + "sending " + this.fmtSize(cur, size) + " on " + cLad.name +
-        " right now costs " + this.fmtMoney(cur, tm) + " through the dollar route against " +
-        this.fmtMoney(cur, rm) + " with " + provider + ". " +
-        (cheaper
-          ? "The dollar route is cheaper by " + this.fmtMoney(cur, Math.round((rm - tm) * 100) / 100) +
-            " — that is rare; it has won about once in two hundred measurements since collection began."
-          : provider + " is cheaper by " + this.fmtMoney(cur, Math.round((tm - rm) * 100) / 100) + ".");
+      const fields = {
+        size: this.fmtSize(cur, size), ladder: cLad.name,
+        taker: this.fmtMoney(cur, tm), baseline: this.fmtMoney(cur, rm), provider,
+        diff: this.fmtMoney(cur, Math.round(Math.abs(rm - tm) * 100) / 100),
+      };
+      const a = this.fillCopy(cheaper ? askCopy.transferCheaper : askCopy.transferPricier, fields);
       return { a, prov: cRowProv };
     })());
     askAnswers.push({ // Q4: how many currencies
-      a: heroCurrencyCount + " currencies are attempted every hour; " + ix.length +
-         " carry a published price this hour, and " + withheldRows.length +
-         " are withheld, each with a stated reason.",
+      a: this.fillCopy(askCopy.currencyCount,
+        { attempted: heroCurrencyCount, priced: ix.length, withheld: withheldRows.length }),
       prov: this.provText((D.index || {}).source_file, ts((D.index || {}).computed_at), (D.index || {}).n_sources),
     });
     askAnswers.push((() => { // Q5: on schedule?
       const s = D.status;
-      if (!s) return { a: "The machine's health record hasn't loaded this visit.", prov: "" };
+      if (!s) return { a: askCopy.scheduleMissing || "", prov: "" };
       const jd = s.judged_day || {};
-      return { a: "The last complete day (" + (jd.date || "—") + ") captured " +
-          (jd.hours != null ? jd.hours : "—") + " of 24 hours. " +
-          (s.delivery_ok ? "That is on schedule." : "That is short of a full day — collection has been dropping hours."),
+      const note = s.delivery_ok ? (askCopy.scheduleOnTime || "") : (askCopy.scheduleBehind || "");
+      return { a: this.fillCopy(askCopy.scheduleSummary,
+          { date: jd.date || "—", hours: jd.hours != null ? jd.hours : "—", note }),
         prov: this.provText(s.source_file, ts(s.computed_at), s.n_sources) };
     })());
     const ask = askQuestions.map((q, i) => ({
