@@ -112,6 +112,46 @@ while true; do
   # when it finds no rate-limit message -- which is the normal case. The script
   # died there on every pass, systemd restarted it 30s later, and the loop
   # cycled without ever recording a run. Failures here are handled explicitly.
+  # ---- Is there anything to do? Ask cheaply, before paying for a session. ----
+  #
+  # An idle pass used to cost a full model session: load the rules and the role
+  # file, reason, discover the queue is empty, exit. Measured over 24 hours that
+  # was 88% of every pass -- 3,444 of 3,921. This asks Linear and GitHub the same
+  # question over plain HTTP for a fraction of a cent, and only wakes the model
+  # when the answer is yes.
+  #
+  # If the check itself fails, RUN THE PASS. A broken check must never be able
+  # to silently stop the machine; the worst case is one wasted session, and the
+  # alternative is a loop that quietly does nothing for a day.
+  HAVE_WORK=1
+  case "$ROLE" in
+    builder)
+      NEXT=$(python3 "$REPO/agents/linear.py" next 2>/dev/null)
+      STRANDED=$(python3 "$REPO/agents/linear.py" stranded 2>/dev/null)
+      if [ "$NEXT" = "NOTHING TO DO" ] && [ "$STRANDED" = "NONE STRANDED" ]; then
+        HAVE_WORK=0
+      fi
+      ;;
+    reviewer)
+      OPEN=$(gh pr list --repo SebR214/margin --state open --json number              --jq "length" 2>/dev/null)
+      if [ "$OPEN" = "0" ]; then HAVE_WORK=0; fi
+      ;;
+  esac
+
+  if [ "$HAVE_WORK" = "0" ]; then
+    idle_streak=$((idle_streak + 1))
+    WAIT=$IDLE
+    n=$idle_streak
+    while [ "$n" -gt 0 ] && [ "$WAIT" -lt "$IDLE_MAX" ]; do
+      WAIT=$((WAIT * 2)); n=$((n - 1))
+    done
+    [ "$WAIT" -gt "$IDLE_MAX" ] && WAIT=$IDLE_MAX
+    say "[$ROLE] nothing to do (checked without the model, x${idle_streak}); next in ${WAIT}s"
+    record 1 "idle, no model call" 0
+    sleep "$WAIT"
+    continue
+  fi
+
   # Sonnet, not the default. These loops are the largest single consumer of the
   # subscription and most of their work is mechanical -- read an issue, follow a
   # spec, run the checks. Override per role with MARGIN_MODEL if one of them
