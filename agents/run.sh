@@ -25,7 +25,7 @@ JSONL="$LOGDIR/$ROLE.jsonl"
 
 # How long to wait after a pass that did some work and ended cleanly.
 case "$ROLE" in
-  builder|reviewer) IDLE=300 ;;
+  builder|reviewer) IDLE=60 ;;
   product)          IDLE=14400 ;;
   *) echo "unknown role: $ROLE" >&2; exit 64 ;;
 esac
@@ -38,7 +38,10 @@ esac
 # Latency is barely affected. Work arrives when Sebastian queues an issue or a
 # builder opens a PR, and neither is urgent to the minute; the reviewer picking
 # a PR up twenty minutes later costs nothing real.
-IDLE_MAX=1800          # never wait longer than half an hour
+# Still used when a MODEL pass returns almost immediately -- that means the
+# agent disagreed with the guard about there being work, which is worth slowing
+# down on, unlike an honest empty queue.
+IDLE_MAX=1800
 IDLE_SECONDS=45        # a pass shorter than this did nothing
 idle_streak=0
 ERROR_WAIT=300          # something went wrong that is not a usage limit
@@ -145,16 +148,16 @@ while true; do
   esac
 
   if [ "$HAVE_WORK" = "0" ]; then
+    # No backoff here, deliberately. The check above is one HTTP request and no
+    # model call, so polling frequently costs approximately nothing -- and
+    # backing off would trade latency against a cost that no longer exists.
+    # Cheap polling can afford to be frequent, so work gets picked up within a
+    # minute instead of up to half an hour.
     idle_streak=$((idle_streak + 1))
-    WAIT=$IDLE
-    n=$idle_streak
-    while [ "$n" -gt 0 ] && [ "$WAIT" -lt "$IDLE_MAX" ]; do
-      WAIT=$((WAIT * 2)); n=$((n - 1))
-    done
-    [ "$WAIT" -gt "$IDLE_MAX" ] && WAIT=$IDLE_MAX
-    say "[$ROLE] nothing to do (checked without the model, x${idle_streak}); next in ${WAIT}s"
-    record 1 "idle, no model call" 0
-    sleep "$WAIT"
+    if [ $((idle_streak % 30)) -eq 1 ]; then
+      say "[$ROLE] nothing to do (no model call); polling every ${IDLE}s"
+    fi
+    sleep "$IDLE"
     continue
   fi
 
