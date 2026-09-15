@@ -1066,6 +1066,7 @@ data/crosses_latest.json  every currency pair: crypto-route rate vs official, pe
 data/stable_spread.csv  USDT vs USDC on the same venue, same hour (12 venues)
 data/p2p_basis.csv      P2P layer -- 53 currencies, hourly
 data/p2p_sides.csv      per-side ad counts, for the v1.1 evidence rule
+data/p2p_depth.csv      per-side real ad totals (SEB-50), diagnostic, not yet wired into publishing
 data/fx_rates.csv       the denominator of record: rate, source, parallel rate
 data/provider_quotes.csv  quotes from the providers' own public endpoints
 data/providers_latest.json  every way to send it, ranked, per route per amount

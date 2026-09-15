@@ -450,6 +450,24 @@ sidecar existed carry `buy_ads_estimated`, and for those the rule uses "both
 sides full" as a conservative stand-in — the only combination of a summed count
 that guarantees a full buy side.
 
+**`n_buy` measures whether the page filled, not how deep the board is (SEB-50).**
+The collector fetches one page of 10 ads per side; `n_buy` counts how many of
+those had a usable price, so it tops out at 10 and stays there whether the
+board holds 11 ads or 5,000. A board sitting at "10 buy / 10 sell" every hour
+reads as well-evidenced by rule 1 above and gives no way to tell a deep,
+liquid board from one that would fail the rule if two more ads were pulled
+off it — the finding behind
+[SEB-49](https://linear.app/sebastian-roervig/issue/SEB-49/dzd-moved-143-index-points-in-one-hour-with-the-official-rate-flat-and).
+Binance's own search response already carries the real count behind the page,
+in a `total` field that the collector previously read and discarded, so
+`data/p2p_depth.csv` (`ts_utc,ccy,buy_total,sell_total`) now records it — at no
+extra request and with no change to the fetched page or the published price.
+Empty where the field could not be read, never 0, and empty for every hour
+before this sidecar existed; nothing here is backfilled. **This depth is not
+yet part of the publish decision above** — rule 1 still tests `n_buy`. Wiring
+real depth into the rule changes which hours count as evidence and is its own
+methodology decision, left for a follow-up issue.
+
 ### An independent price for Nigeria (SEB-8)
 
 NGN is the one currency this rule withholds for a *structural* reason rather
