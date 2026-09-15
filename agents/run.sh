@@ -133,8 +133,14 @@ while true; do
       fi
       ;;
     reviewer)
-      OPEN=$(gh pr list --repo SebR214/margin --state open --json number              --jq "length" 2>/dev/null)
-      if [ "$OPEN" = "0" ]; then HAVE_WORK=0; fi
+      # NOT "is any PR open". A PR awaiting Sebastian's approval stays open by
+      # design, and counting it as work makes the reviewer re-review the same
+      # branch every pass until he answers -- which could be days.
+      #
+      # Real work is an issue In Review that has not already been reviewed,
+      # i.e. one not yet carrying needs-sebastian.
+      PENDING=$(python3 "$REPO/agents/linear.py" issues 2>/dev/null | grep "In Review" | grep -vc "needs-sebastian")
+      if [ "$PENDING" = "0" ]; then HAVE_WORK=0; fi
       ;;
   esac
 
