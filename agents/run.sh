@@ -25,10 +25,22 @@ JSONL="$LOGDIR/$ROLE.jsonl"
 
 # How long to wait after a pass that did some work and ended cleanly.
 case "$ROLE" in
-  builder|reviewer) IDLE=120 ;;
+  builder|reviewer) IDLE=300 ;;
   product)          IDLE=14400 ;;
   *) echo "unknown role: $ROLE" >&2; exit 64 ;;
 esac
+
+# A pass that finds nothing still pays for the whole prompt. Over 24 hours the
+# builder ran 2,003 passes and 1,933 of them did nothing -- 96% of the cost for
+# none of the work. So an idle pass backs off: each consecutive one doubles the
+# wait, up to IDLE_MAX, and the first pass that does real work resets it.
+#
+# Latency is barely affected. Work arrives when Sebastian queues an issue or a
+# builder opens a PR, and neither is urgent to the minute; the reviewer picking
+# a PR up twenty minutes later costs nothing real.
+IDLE_MAX=1800          # never wait longer than half an hour
+IDLE_SECONDS=45        # a pass shorter than this did nothing
+idle_streak=0
 ERROR_WAIT=300          # something went wrong that is not a usage limit
 LIMIT_FALLBACK=1800     # usage limit with no reset time we could read
 
@@ -100,8 +112,15 @@ while true; do
   # when it finds no rate-limit message -- which is the normal case. The script
   # died there on every pass, systemd restarted it 30s later, and the loop
   # cycled without ever recording a run. Failures here are handled explicitly.
+  # Sonnet, not the default. These loops are the largest single consumer of the
+  # subscription and most of their work is mechanical -- read an issue, follow a
+  # spec, run the checks. Override per role with MARGIN_MODEL if one of them
+  # ever needs more.
+  MODEL="${MARGIN_MODEL:-claude-sonnet-5}"
+
   OUT=$(mktemp)
   claude -p "$(cat "$REPO/agents/RULES.md" "$REPO/agents/${ROLE^^}.md")" \
+      --model "$MODEL" \
       --allowedTools Bash,Read,Edit,Write,Glob,Grep \
       --max-turns 200 \
       --output-format json >"$OUT" 2>>"$LOG"
@@ -131,8 +150,24 @@ while true; do
     rm -f "$OUT"; sleep "$ERROR_WAIT"; continue
   fi
 
-  say "[$ROLE] pass finished in ${ELAPSED}s; next in ${IDLE}s"
+  if [ "$ELAPSED" -lt "$IDLE_SECONDS" ]; then
+    idle_streak=$((idle_streak + 1))
+  else
+    idle_streak=0
+  fi
+  WAIT=$IDLE
+  n=$idle_streak
+  while [ "$n" -gt 0 ] && [ "$WAIT" -lt "$IDLE_MAX" ]; do
+    WAIT=$((WAIT * 2)); n=$((n - 1))
+  done
+  [ "$WAIT" -gt "$IDLE_MAX" ] && WAIT=$IDLE_MAX
+
+  if [ "$idle_streak" -gt 0 ]; then
+    say "[$ROLE] pass finished in ${ELAPSED}s (idle x${idle_streak}); next in ${WAIT}s"
+  else
+    say "[$ROLE] pass finished in ${ELAPSED}s; next in ${WAIT}s"
+  fi
   record 1 "ok" "$ELAPSED"
   rm -f "$OUT"
-  sleep "$IDLE"
+  sleep "$WAIT"
 done
