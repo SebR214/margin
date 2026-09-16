@@ -44,6 +44,40 @@
   .banner b{letter-spacing:.08em;text-transform:uppercase;font-size:11px;
             display:block;margin-bottom:3px}
   @media(max-width:640px){h1{font-size:29px}.stat{font-size:26px}}
+
+  /* SEB-61, the one chart component. Fully rendered, statically, by
+     tools/chart.py at generation time -- everything below only redraws the
+     plot for a different range pill, or answers hover. Neither can run
+     before the static chart above has already painted. */
+  .chart-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:10px}
+  .chart-value{font-family:var(--head);font-weight:800;font-size:34px;line-height:1;
+               font-variant-numeric:tabular-nums}
+  .chart-change{font-size:13px}
+  .chart-plot-row{display:flex;gap:10px;align-items:stretch;margin-top:10px}
+  .chart-plot-wrap{position:relative;flex:1 1 auto;min-width:0;cursor:crosshair}
+  .chart-svg{width:100%;height:200px;display:block}
+  .chart-badge{position:absolute;right:0;transform:translateY(-50%);
+               background:#5A55E0;color:#fff;font-weight:800;font-size:11px;
+               font-variant-numeric:tabular-nums;padding:2px 6px;white-space:nowrap;
+               pointer-events:none}
+  .chart-hover{position:absolute;top:-4px;transform:translate(-50%,-100%);
+               background:var(--ink);color:#fff;font-size:11px;font-weight:600;
+               padding:3px 7px;white-space:nowrap;pointer-events:none}
+  .chart-gutter{position:relative;width:52px;flex:0 0 52px;height:200px}
+  .chart-gutter-label{position:absolute;right:0;transform:translateY(-50%);
+                       font-size:11px;color:var(--muted);white-space:nowrap}
+  .chart-dates{display:flex;justify-content:space-between;border-top:1px solid var(--line);
+               padding-top:6px;margin-top:2px}
+  .chart-date{font-size:12px;color:var(--muted);flex:1 1 0}
+  .chart-pills{display:none;justify-content:center;gap:2px;margin-top:14px;
+               background:#F6F6F6;padding:3px;width:fit-content;margin-left:auto;
+               margin-right:auto}
+  .js .chart-pills{display:flex}
+  .chart-pill{appearance:none;border:0;cursor:pointer;background:transparent;
+              font-family:var(--head);font-weight:800;font-size:11px;
+              letter-spacing:.04em;padding:5px 10px;color:var(--muted)}
+  .chart-pill.is-on{background:#fff;color:var(--ink)}
+  @media(prefers-reduced-motion:no-preference){.chart-hover{transition:left .05s linear}}
 </style>
 </head>
 <body>
@@ -63,8 +97,7 @@
 
   <h2>How it has moved</h2>
   <p class="muted small" id="histnote"></p>
-  <svg id="chart" viewBox="0 0 1000 230" preserveAspectRatio="none"></svg>
-  <div class="muted small" id="axis" style="display:flex;justify-content:space-between;padding-top:6px"></div>
+  <div id="chart" class="chart" data-points="[]"><p class="muted small">Not enough days yet to draw a line. Every point collected is shown.</p></div>
 
   <h2 id="exch-h">Where the price comes from</h2>
   <div id="exch"></div>
@@ -78,6 +111,7 @@
      <a href="../data/p2p_basis.csv">p2p_basis.csv</a>. Nothing is smoothed,
      estimated or filled in.</p>
 </div>
+<script src="../chart.js"></script>
 <script>
 const CCY = "NGN";
 const pct = v => v == null || !isFinite(v) ? "—"
@@ -182,7 +216,7 @@ function render(d){
       + longDate(d.history_start) + "."
       + (back ? " The first " + back + " days are a daily backfill of the mid-market price, "
               + "which is a slightly different measurement and is drawn in grey." : "");
-  drawChart(h);
+  if(window.MarginChart) MarginChart.wire(document.getElementById("chart"));
 
   const vs = d.venues || [];
   document.getElementById("exch-h").textContent =
@@ -215,32 +249,6 @@ function render(d){
     + "buying and selling can be different markets.";
 }
 
-function drawChart(h){
-  const svg = document.getElementById("chart"), ax = document.getElementById("axis");
-  if(h.length < 2){ svg.innerHTML = ""; ax.textContent = ""; return; }
-  const vs = h.map(p => p.index_pct);
-  let lo = Math.min(0, ...vs), hi = Math.max(0, ...vs);
-  const pad = (hi - lo) * 0.12 || 1; lo -= pad; hi += pad;
-  const X = i => (i / (h.length - 1)) * 1000;
-  const Y = v => 222 - ((v - lo) / (hi - lo)) * 214;
-  const seg = (from, to, colour) => {
-    const pts = [];
-    for(let i = from; i <= to; i++) pts.push(X(i).toFixed(1) + " " + Y(vs[i]).toFixed(1));
-    return pts.length < 2 ? "" :
-      `<path d="M ${pts.join(" L ")}" fill="none" stroke="${colour}" stroke-width="1.6"
-       vector-effect="non-scaling-stroke"/>`;
-  };
-  let split = h.findIndex(p => p.source !== "daily_backfill_mid");
-  if(split < 0) split = h.length - 1;
-  let s = `<line x1="0" x2="1000" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}"
-            stroke="#7d7979" stroke-dasharray="4 4" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
-  if(split > 0) s += seg(0, split, "#b9b6b4");
-  s += seg(Math.max(split - 1, 0), h.length - 1, "#8b9ae8");
-  svg.innerHTML = s;
-  ax.innerHTML = `<span>${longDate(h[0].date)}</span>
-                  <span>${pct(lo)} to ${pct(hi)}</span>
-                  <span>${longDate(h[h.length-1].date)}</span>`;
-}
 </script>
 </body>
 </html>
