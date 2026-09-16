@@ -27,6 +27,28 @@ REPO="/srv/margin-$ROLE"
 # survives a re-clone.
 git -C "$REPO" config user.name  "margin-$ROLE" 2>/dev/null || true
 git -C "$REPO" config user.email "$ROLE@margin.wiki" 2>/dev/null || true
+
+  # Act as the margin-agents GitHub App, not as Sebastian. Until this existed
+  # every role authenticated as his account, so `git log` credited him with
+  # every commit and `gh pr review` refused outright -- the reviewer was the
+  # author of the PR it was reviewing, which is why every verdict on this repo
+  # carries "request-changes not available" (SEB-51).
+  #
+  # gh and the git credential helper both honour GH_TOKEN over the stored
+  # login, so exporting it is the whole switch. Tokens last an hour; minted per
+  # pass, never written to disk.
+  #
+  # If minting fails the pass still runs, unauthenticated-as-app. A broken
+  # credential must not silently stop the machine -- the cost of being wrong
+  # that way is one pass attributed to the old identity, and the cost of the
+  # opposite is a loop that quietly does nothing.
+  if [ -n "${MARGIN_GH_APP_ID:-}" ]; then
+    if GH_TOKEN="$("$REPO/agents/gh_token.sh" 2>/dev/null)"; then
+      export GH_TOKEN
+    else
+      say "[$ROLE] could not mint a GitHub App token; running as the stored login"
+    fi
+  fi
 LOGDIR=/var/log/margin
 LOG="$LOGDIR/$ROLE.log"
 JSONL="$LOGDIR/$ROLE.jsonl"

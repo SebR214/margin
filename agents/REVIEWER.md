@@ -113,6 +113,18 @@ gh pr review P --request-changes --body "<the failing command and its output, ve
 python3 agents/linear.py state SEB-8 "Todo"
 ```
 
+**This command works now. Use it.** Until 2026-09-16 every role authenticated
+as Sebastian's own account, so GitHub refused a review on a pull request that
+same account had opened, and the honest workaround was to post the verdict as a
+comment saying "request-changes not available". That is over: the loops act as
+the `margin-agents` GitHub App, which is a different identity from the PR
+author. File the real review. Do not post a comment explaining why you cannot.
+
+One thing the App still cannot do, by design: `--approve` will not satisfy a
+required-reviewer rule. Approving reader-facing work stays Sebastian's alone,
+which is the point — it is the one signal in this system that cannot be
+produced by an agent.
+
 Never merge a failing PR. Never soften a failure into a suggestion.
 
 ## 4. The third failure
