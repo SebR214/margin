@@ -943,6 +943,19 @@ class Component extends DCLogic {
     console.error("provText: no plain-language sourceLabels entry for", file);
     return this.askFallbacks.unknownSource || "";
   }
+  // A pass is due every hour. Ninety minutes allows for a late run without
+  // crying wolf; past that the collector is not "ok" and the header must stop
+  // saying so. A site whose whole claim is that it does not smooth over gaps
+  // cannot smooth over its own.
+  healthWords(copy, lastMs, okCount, total) {
+    const STALE_AFTER_MS = 90 * 60 * 1000;
+    const late = !lastMs || (Date.now() - lastMs) > STALE_AFTER_MS;
+    if (late) {
+      return this.fillCopy(copy.stale || "", { when: lastMs ? this.fmtStamp(lastMs, true) : "\u2014" });
+    }
+    return this.fillCopy(copy.ok || "", { ok: String(okCount), total: String(total) });
+  }
+
   provText(file, whenMs, n) {
     const list = Array.isArray(file) ? file : (file ? [file] : []);
     const files = list.length ? list.map(f => this.sourceLabel(f)).join(", ") : "—";
@@ -1875,7 +1888,7 @@ class Component extends DCLogic {
       heroTitle: (CI.hero || {}).title || "",
       heroTitleWords: this.titleWords((CI.hero || {}).title || ""),
       heroBody: ((CI.hero || {}).body || "").replace("{count}", String(heroCurrencyCount)),
-      health: "collector ok · " + okCount + "/" + latestRun.length + " sources",
+      health: this.healthWords(CI.health || {}, lastT, okCount, latestRun.length),
       lastTick: this.fmtStamp(lastT, true),
       scaleNote: banded ? "two bands, each on its own axis" : "single axis",
       hl: { wide: this.gapWords((ixWide ? ixWide.index_pct * 100 : wide.bps)),

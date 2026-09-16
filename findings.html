@@ -116,6 +116,31 @@ function weekendFinding(DATA){
          + `${sats[corridor] ?? days.size} Saturdays measured`;
   });
 
+  // U7: the card used to appear whenever a single weekend move existed, and
+  // the headline states a pattern -- "X charges more at the weekend" -- that a
+  // couple of Saturdays does not support. On 2026-09-16 the leading company had
+  // moved on 2 of the 5 Saturdays measured on SGD->PHP and 2 of 4 on USD->MXN,
+  // most recently eleven days earlier, with nothing on the most recent Saturday.
+  // That is a coin flip that has gone quiet, not a pricing habit.
+  //
+  // So the card now has to earn its headline: the pattern must hold on more
+  // than half the Saturdays actually judged on at least one route, and must
+  // have been seen within the last three weeks. Otherwise there is no finding
+  // and the page says nothing, which is the honest outcome. Nothing is deleted
+  // -- the card comes back by itself the moment the pattern does.
+  const HOLDS_ON = 0.5, SEEN_WITHIN_DAYS = 21;
+  const holdsSomewhere = Object.entries(byRoute).some(([, rows]) => {
+    const corridor = rows[0].corridor;
+    const hit = new Set(rows.map(r => r.day)).size;
+    const judged = sats[corridor];
+    return judged ? (hit / judged) > HOLDS_ON : false;
+  });
+  const newest = mine.map(r => r.day).sort().slice(-1)[0];
+  const ageDays = newest
+    ? (Date.now() - new Date(newest + "T00:00:00Z").getTime()) / 86400000
+    : Infinity;
+  if (!holdsSomewhere || ageDays > SEEN_WITHIN_DAYS) return null;
+
   const others = rank.slice(1).map(x => x[0]);
   const also = others.length
     ? `${others.join(" and ")} ${others.length > 1 ? "show" : "shows"} a smaller `
