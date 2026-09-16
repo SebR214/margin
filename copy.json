@@ -1,10 +1,26 @@
 {
   "brand": "margin.wiki",
   "nav": [
-    { "key": "index", "label": "The index", "href": "./index.html" },
-    { "key": "use", "label": "Use it", "href": "./calculator.html" },
-    { "key": "findings", "label": "Findings", "href": "./findings.html" },
-    { "key": "how", "label": "How it works", "href": "./methodology.html" }
+    {
+      "key": "index",
+      "label": "The index",
+      "href": "./index.html"
+    },
+    {
+      "key": "use",
+      "label": "Use it",
+      "href": "./calculator.html"
+    },
+    {
+      "key": "findings",
+      "label": "Findings",
+      "href": "./findings.html"
+    },
+    {
+      "key": "how",
+      "label": "How it works",
+      "href": "./methodology.html"
+    }
   ],
   "chart": {
     "changeNone": "No change over the period",
@@ -13,7 +29,10 @@
     "empty": "Not enough days yet to draw a line. Every point collected is shown."
   },
   "index": {
-    "health": { "reading": "reading data/…", "errorPrefix": "collector unreachable — " },
+    "health": {
+      "reading": "reading data/…",
+      "errorPrefix": "collector unreachable — "
+    },
     "lastTick": "last tick",
     "hero": {
       "title": "What does a dollar really cost?",
@@ -23,22 +42,65 @@
       "overTime": "one country over time",
       "theBoard": "the board",
       "hint": "Click any country on the board to see its history here. Hover the chart to read a point, click to pin it.",
-      "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-      "ranges": { "1h": "1h", "6h": "6h", "1d": "1d", "1w": "1w", "1m": "1m", "3m": "3m", "1y": "1y", "all": "All" }
+      "months": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ],
+      "ranges": {
+        "1h": "1h",
+        "6h": "6h",
+        "1d": "1d",
+        "1w": "1w",
+        "1m": "1m",
+        "3m": "3m",
+        "1y": "1y",
+        "all": "All"
+      }
     },
     "board": {
       "title": "What a dollar really costs",
       "subhead": "measured every hour · furthest above the official rate first",
-      "columns": { "country": "country", "cost": "a dollar costs", "roundTrip": "round trip", "evidence": "evidence", "sparkline": "last 30 days" },
+      "columns": {
+        "country": "country",
+        "cost": "a dollar costs",
+        "roundTrip": "round trip",
+        "evidence": "evidence",
+        "sparkline": "last 30 days"
+      },
       "withheldTitle": "Not published this hour",
       "withheldNote": "A price was collected for these and stored, but it does not meet the evidence rule, so it is not shown as a number. Each country keeps its page and its reason, and returns as soon as its market does.",
-      "footnote": "Each row is one country. \"A dollar costs\" is what you pay to buy one dollar there, against the official exchange rate captured in the same second. \"Round trip\" is what it costs to buy and then sell again. Click any country for every source behind its number."
+      "footnote": "Each row is one country. \"A dollar costs\" is what you pay to buy one dollar there, against the official exchange rate captured in the same second. \"Round trip\" is what it costs to buy and then sell again. Click any country for every source behind its number.",
+      "searchLabel": "Find a country",
+      "searchNone": "No country matches that.",
+      "gapsTitle": "The biggest gaps this hour",
+      "gapsNote": "The eight countries where a dollar costs the most above the official rate.",
+      "pricedTitle": "Every country priced this hour",
+      "pricedNote": "Each one links to its own page, with the full history and the receipt behind the number.",
+      "colCode": "code",
+      "colCountry": "country",
+      "colCost": "a dollar costs",
+      "colTrip": "buy then sell back",
+      "colBasis": "based on"
     },
     "cross": {
       "title": "If you moved money through the dollar route, what rate would you get?",
       "intro": "Turn {baseCode} into a digital dollar on a {baseCountry} exchange, then turn that dollar into the other country's money on an exchange there. This is the rate that round trip works out to, next to the official rate for the same moment.",
       "oneBuys": "one {baseCode} buys",
-      "columns": { "official": "official rate", "crypto": "through the dollar route", "difference": "difference" },
+      "columns": {
+        "official": "official rate",
+        "crypto": "through the dollar route",
+        "difference": "difference"
+      },
       "footnote": "A plus means the dollar route works out to more of the other country's money than the official rate would give you, before any fees.",
       "empty": "No pair has both currencies priced in the same hour yet."
     },
@@ -122,13 +184,30 @@
     "verdict2": "We publish that because the point was never to sell you on it. The round trip isn't advice, it's a test: if the digital dollar weren't a real dollar, the money wouldn't come out the other end at all. It does, minus a cost we can show you line by line.",
     "loading": "loading…",
     "loadFailed": "failed to load data",
-    "sizebar": { "route": "route", "sendAmount": "send amount" },
+    "sizebar": {
+      "route": "route",
+      "sendAmount": "send amount"
+    },
     "cards": {
-      "landed": { "title": "What came out the other end", "cap": "The landed amount, against what a bank would have given you for the same transfer, right now." },
-      "depth": { "title": "Could you actually sell it?" },
-      "waterfall": { "title": "Where the money goes", "cap": "Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the cheapest ordinary provider, same second." },
-      "ladder": { "title": "It is worst at the amounts people actually send", "capTemplate": "The blockchain charges the same flat fee whatever you send, so it barely registers on a large transfer and dominates a small one. {highlight} is highlighted." },
-      "history": { "title": "Every round trip we've run", "cap": "The total cost over time, hourly since collection began: buying at the price on offer, waiting for your own price, and the cheapest ordinary provider. History cannot be back-filled." }
+      "landed": {
+        "title": "What came out the other end",
+        "cap": "The landed amount, against what a bank would have given you for the same transfer, right now."
+      },
+      "depth": {
+        "title": "Could you actually sell it?"
+      },
+      "waterfall": {
+        "title": "Where the money goes",
+        "cap": "Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the cheapest ordinary provider, same second."
+      },
+      "ladder": {
+        "title": "It is worst at the amounts people actually send",
+        "capTemplate": "The blockchain charges the same flat fee whatever you send, so it barely registers on a large transfer and dominates a small one. {highlight} is highlighted."
+      },
+      "history": {
+        "title": "Every round trip we've run",
+        "cap": "The total cost over time, hourly since collection began: buying at the price on offer, waiting for your own price, and the cheapest ordinary provider. History cannot be back-filled."
+      }
     },
     "legend": {
       "moneyGained": "money gained",
@@ -141,8 +220,14 @@
       "waitingOwnPrice": "waiting for your own price"
     },
     "numCards": {
-      "buyingNow": { "label": "Buying it now", "sub": "the price on offer" },
-      "waitingOwnPrice": { "label": "Waiting for your price", "sub": "if you wait for your own price" },
+      "buyingNow": {
+        "label": "Buying it now",
+        "sub": "the price on offer"
+      },
+      "waitingOwnPrice": {
+        "label": "Waiting for your price",
+        "sub": "if you wait for your own price"
+      },
       "cheapestProviderLabel": "Cheapest provider",
       "cheapestProviderSub": "the cheapest ordinary provider, same second",
       "cheaper": "cheaper",
@@ -156,7 +241,13 @@
       "before1PctSub": "room to sell in total before the price falls a full percent"
     },
     "ladderTable": {
-      "columns": { "send": "Send", "buyingNow": "Buying it now", "waitingOwnPrice": "Waiting for your price", "cheapestProvider": "Cheapest provider", "cheaper": "Cheaper" },
+      "columns": {
+        "send": "Send",
+        "buyingNow": "Buying it now",
+        "waitingOwnPrice": "Waiting for your price",
+        "cheapestProvider": "Cheapest provider",
+        "cheaper": "Cheaper"
+      },
       "worstTag": "worst",
       "dollarRoute": "the dollar route"
     },
@@ -177,7 +268,10 @@
     },
     "noSamples": "no completed samples yet.",
     "footerTemplate": "The coin is bought on {onrampVenue} in {srcCcy} and sold on {offrampVenue} for {dst}. The comparison is the Wise comparison API — advertised retail prices, not confirmed fills, and they can carry promotional pricing (first-transfer or new-customer offers) recorded exactly as quoted. The comparison is therefore the best advertised price at that instant, not necessarily the best recurring one. Official exchange rates: open.er-api.com. \"Waiting for your own price\" assumes the order fills at the top of the book. Pricing that large institutions get privately is invisible by nature and never estimated.",
-    "footerLinks": { "methodology": "Methodology & data honesty →", "board": "the country board →" },
+    "footerLinks": {
+      "methodology": "Methodology & data honesty →",
+      "board": "the country board →"
+    },
     "venueTemplate": "bought on {onrampVenue}, sold on {offrampVenue} · fees verified {dates}",
     "feeStamp": {
       "reasonTrading": "trading fees",
