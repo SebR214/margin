@@ -43,7 +43,7 @@ python3 agents/linear.py issues      # everything in the project
 python3 agents/linear.py next        # what the builder takes next
 python3 agents/linear.py show SEB-39
 python3 agents/linear.py say SEB-39 product "..."
-python3 agents/linear.py respec SEB-39 --body-file spec.md
+python3 agents/linear.py respec SEB-39 --body-file spec.md --role product
 ```
 
 ## Standing rules

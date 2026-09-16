@@ -12,16 +12,22 @@ Every command is deterministic and prints plain text, so a role file can say
     python3 agents/linear.py say SEB-6 builder "what I did, in plain language"
     python3 agents/linear.py label SEB-6 blocked
     python3 agents/linear.py unlabel SEB-6 blocked
-    python3 agents/linear.py respec SEB-7 --body-file spec.md
-    python3 agents/linear.py new "title" --body-file spec.md --label commission
-    python3 agents/linear.py doc "Digest 2026-09-11" --body-file digest.md
+    python3 agents/linear.py respec SEB-7 --body-file spec.md --role product
+    python3 agents/linear.py new "title" --body-file spec.md --label commission --role product
+    python3 agents/linear.py doc "Digest 2026-09-11" --body-file digest.md --role product
     python3 agents/linear.py issues                # everything in the project
 
-`say` is how agents talk to each other. It stamps the role on the comment,
-because the API key authenticates as Sebastian: without the stamp every comment
-in every thread would read as though he wrote it. If this workspace ever
-installs the agents as real Linear apps (OAuth with actor=app), the stamp
-becomes redundant and can go.
+`say`, `new`, `respec` and `doc` all stamp the role that wrote them, because
+the API key authenticates as Sebastian: without the stamp every comment, issue
+and document would read as though he wrote it. `--role` is therefore required
+on every command that writes prose. An unstamped comment, issue or document is
+Sebastian's own -- that is the only signal telling his word from an agent's,
+and it is now true by construction rather than by convention (SEB-51).
+
+This is a workaround, not the fix. The real fix is installing the agents as
+real Linear apps (OAuth with actor=app) and giving them their own GitHub
+identity, after which the stamp becomes redundant and unforgeable rather than
+merely conventional.
 
 Reads LINEAR_API_KEY from the environment. Never prints it. Stdlib only.
 """
@@ -43,6 +49,23 @@ ROLES = {
     "reviewer": "🔍 **Reviewer**",
     "product":  "📋 **Product**",
 }
+
+
+def stamped(role, body, verb):
+    """Append the role that wrote this, to an issue body or a document.
+
+    `say` has always stamped comments. Issue descriptions and documents did
+    not, so an issue an agent filed was indistinguishable from one Sebastian
+    wrote -- which is SEB-51, and which is how SEB-61 and SEB-62 came to cite a
+    design artifact nobody could confirm he had authored.
+
+    The stamp goes at the end rather than the top so it never displaces the
+    first line of a spec, which is what the builder reads first.
+    """
+    if role not in ROLES:
+        sys.exit("role must be one of: %s" % ", ".join(ROLES))
+    return "%s\n\n---\n\n*%s by %s. An unstamped issue or document is " \
+           "Sebastian's own.*" % (body.rstrip(), verb, ROLES[role])
 
 
 def call(query, variables=None):
@@ -215,6 +238,7 @@ def cmd_unlabel(a):
 
 def cmd_new(a):
     body = open(a.body_file).read() if a.body_file else (a.body or "")
+    body = stamped(a.role, body, "Filed")
     team = call("""{ teams(filter: { key: { eq: "%s" } }) { nodes { id } } }"""
                 % TEAM_KEY)["teams"]["nodes"][0]["id"]
     inp = {"teamId": team, "projectId": project_id(), "title": a.title,
@@ -240,6 +264,7 @@ def cmd_respec(a):
     body = open(a.body_file).read() if a.body_file else (a.body or "")
     if not body.strip():
         sys.exit("refusing to blank an issue description")
+    body = stamped(a.role, body, "Respecced")
     call("""mutation($id: String!, $d: String!) {
       issueUpdate(id: $id, input: { description: $d }) { success }
     }""", {"id": i["id"], "d": body})
@@ -248,6 +273,7 @@ def cmd_respec(a):
 
 def cmd_doc(a):
     body = open(a.body_file).read() if a.body_file else (a.body or "")
+    body = stamped(a.role, body, "Written")
     r = call("""mutation($i: DocumentCreateInput!) {
       documentCreate(input: $i) { document { id title url } }
     }""", {"i": {"title": a.title, "content": body, "projectId": project_id()}})
@@ -283,11 +309,17 @@ def main():
     x.set_defaults(fn=cmd_unlabel)
     x = s.add_parser("new"); x.add_argument("title"); x.add_argument("--body")
     x.add_argument("--body-file"); x.add_argument("--label", action="append")
-    x.add_argument("--priority", type=int, default=3); x.set_defaults(fn=cmd_new)
+    x.add_argument("--priority", type=int, default=3)
+    x.add_argument("--role", required=True, choices=sorted(ROLES))
+    x.set_defaults(fn=cmd_new)
     x = s.add_parser("respec"); x.add_argument("ident"); x.add_argument("--body")
-    x.add_argument("--body-file"); x.set_defaults(fn=cmd_respec)
+    x.add_argument("--body-file")
+    x.add_argument("--role", required=True, choices=sorted(ROLES))
+    x.set_defaults(fn=cmd_respec)
     x = s.add_parser("doc"); x.add_argument("title"); x.add_argument("--body")
-    x.add_argument("--body-file"); x.set_defaults(fn=cmd_doc)
+    x.add_argument("--body-file")
+    x.add_argument("--role", required=True, choices=sorted(ROLES))
+    x.set_defaults(fn=cmd_doc)
 
     a = p.parse_args()
     a.fn(a)

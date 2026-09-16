@@ -19,6 +19,14 @@ ROLE="${1:?usage: run.sh builder|reviewer|product}"
 # while the builder runs `git checkout -b` for a different one, in the same
 # directory. Separate clones make each loop's branch state its own business.
 REPO="/srv/margin-$ROLE"
+
+# Every role pushes with the same credential, so GitHub records Sebastian as the
+# pusher whatever happens. The commit AUTHOR is ours to set, and setting it is
+# the difference between `git log` saying who wrote a change and `git log`
+# claiming he wrote all of it (SEB-51). Set per clone, every pass, so it
+# survives a re-clone.
+git -C "$REPO" config user.name  "margin-$ROLE" 2>/dev/null || true
+git -C "$REPO" config user.email "$ROLE@margin.wiki" 2>/dev/null || true
 LOGDIR=/var/log/margin
 LOG="$LOGDIR/$ROLE.log"
 JSONL="$LOGDIR/$ROLE.jsonl"
