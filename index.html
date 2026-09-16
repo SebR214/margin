@@ -395,7 +395,7 @@
   <sc-if value="{{ isCorridor }}" hint-placeholder-val="{{ false }}">
   <div>
     <div style="padding: 48px 24px 32px; border-bottom: 2px solid var(--color-text);">
-      <h1 style="font-size: 40px; margin: 0 0 12px; max-width: 24ch;">Sending money abroad: crypto vs the banks</h1>
+      <h1 style="font-size: 40px; margin: 0 0 12px; max-width: 24ch;">Sending money abroad: the dollar route vs the banks</h1>
       <p class="text-muted" style="max-width: 74ch; font-size: 15px; margin: 0;">{{ corridorIntro }}</p>
     </div>
 
@@ -407,8 +407,8 @@
         </div>
         <div data-grid="spread" style="display: grid; grid-template-columns: 108px repeat(5, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
           <div>size sent</div>
-          <div style="text-align: right;">crypto route</div>
-          <div style="text-align: right;">crypto, if you wait</div>
+          <div style="text-align: right;">the dollar route</div>
+          <div style="text-align: right;">the dollar route, if you wait</div>
           <div style="text-align: right;">cheapest provider</div>
           <div style="text-align: right;">their cost</div>
           <div style="text-align: right;">difference</div>
@@ -470,7 +470,7 @@
             </sc-if>
             <sc-if value="{{ cc.tipOn }}" hint-placeholder-val="{{ false }}">
               <div style="position: absolute; left: {{ cc.tipX }}; top: {{ cc.tipY }}; transform: {{ cc.tipShift }}; pointer-events: none; background: var(--color-bg); border: 1px solid var(--color-text); padding: 5px 9px; white-space: nowrap;">
-                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; line-height: 1.2;">crypto {{ cc.tipU }}</div>
+                <div style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; line-height: 1.2;">the dollar route {{ cc.tipU }}</div>
                 <div style="font-size: 12px;">provider {{ cc.tipR }} · difference {{ cc.tipG }}</div>
                 <div class="text-muted" style="font-size: 10px;">{{ cc.tipT }}</div>
               </div>
@@ -489,13 +489,13 @@
         </div>
       </div>
         <div class="text-muted" style="font-size: 11px; line-height: 1.5; padding: 8px 0 0;">{{ cc.note }}</div>
-      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">The shaded band is the extra cost of going the crypto way. Hover the chart to read an hour, click to pin it. Every point is a real captured price.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">The shaded band is the extra cost of going the dollar route. Hover the chart to read an hour, click to pin it. Every point is a real captured price.</p>
     </div>
 
     <div style="padding: 40px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
         <div>
-          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">where the crypto route starts winning</div>
+          <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; gap: 8px; align-items: center;">where the dollar route starts winning</div>
           <h2 style="font-size: 26px; margin: 0;">Where the cheaper fee tier stops mattering</h2>
         </div>
         <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">total cost, by amount sent</div>
@@ -598,7 +598,7 @@
     <div style="padding: 40px 24px 0;">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
         <h2 style="font-size: 26px; margin: 0;">Every way to send it, ranked</h2>
-        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">cheapest first, crypto ranked among them</div>
+        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">cheapest first, the dollar route ranked among them</div>
       </div>
       <div data-grid="ladder" style="display: grid; grid-template-columns: 132px 108px repeat(4, minmax(0, 1fr)); gap: 0 16px; padding: 12px 0 8px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
         <div>route</div>
@@ -619,7 +619,7 @@
         </div>
       </sc-for>
       <div style="border-top: 2px solid var(--color-text);"></div>
-      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">The same transfer priced across every provider quoting it right now, cheapest first, with the crypto route ranked among them. A negative figure is a promotional rate — better than the official exchange rate, funded by the provider, and usually only for a first transfer. Large institutions get private pricing that is not visible here.</p>
+      <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">The same transfer priced across every provider quoting it right now, cheapest first, with the dollar route ranked among them. A negative figure is a promotional rate — better than the official exchange rate, funded by the provider, and usually only for a first transfer. Large institutions get private pricing that is not visible here.</p>
     </div>
   </div>
   </sc-if>
@@ -1406,11 +1406,11 @@ class Component extends DCLogic {
           const verdict = (tm === null || rm === null) ? "" :
             "Send " + this.fmtSize(cur, size) + " to " + this.countryIn(key.slice(-3)) +
             " right now: " + (hl.baseline_provider || "the cheapest provider") + " costs " +
-            this.fmtMoney(cur, rm) + " all in, the crypto route costs " +
+            this.fmtMoney(cur, rm) + " all in, the dollar route costs " +
             this.fmtMoney(cur, tm) + ". " +
             (tm > rm ? (hl.baseline_provider || "The provider") + " is cheaper by " +
                        this.fmtMoney(cur, Math.round((tm - rm) * 100) / 100) + "."
-                     : "The crypto route is cheaper by " +
+                     : "The dollar route is cheaper by " +
                        this.fmtMoney(cur, Math.round((rm - tm) * 100) / 100) + ".") + " ";
           return verdict + "Bought on " + ((rows[0] || {}).onramp_venue || "—") + ", sold on " +
                  ((rows[0] || {}).offramp_venue || "—") +
@@ -1511,7 +1511,7 @@ class Component extends DCLogic {
           detail: "What you lose against the official rate, plus what the " + to +
                   " exchange charges" +
                   (offF === null ? "" : " (" + (offF / 100).toFixed(2) + "%)") + "." },
-        { label: "The crypto route, all in — " + when, v: allIn, total: true,
+        { label: "The dollar route, all in — " + when, v: allIn, total: true,
           detail: "The three steps above, added up." },
         { label: (cRowRaw.baseline_provider || "the cheapest provider") + ", same instant — " + when,
           v: rail, total: true,
@@ -1748,7 +1748,7 @@ class Component extends DCLogic {
         return big.slice(0, -1).join(", ") + " and " + big[big.length - 1] + " are";
       })(),
       corridorIntro: cLad && cRowRaw
-        ? "The full cost of one real transfer, measured every hour. The crypto route: buy " +
+        ? "The full cost of one real transfer, measured every hour. The dollar route: buy " +
           "a digital dollar in " + (CITY[cLad.cur] || cLad.cur) + ", send it, sell it in " +
           (CITY[(cRowRaw.dst || "").trim()] || (cRowRaw.dst || "")) +
           ", with every fee and the real market price included. Next to it: the cheapest ordinary provider quoting the same amount at the same moment."
