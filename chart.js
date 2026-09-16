@@ -22,11 +22,11 @@
     return (v >= 0 ? "+" : "−") + mag.toFixed(mag >= 10 ? 1 : 2) + "%";
   }
 
-  var MONTHS = ["January", "February", "March", "April", "May", "June", "July",
-    "August", "September", "October", "November", "December"];
-  function longDate(iso) {
+  // Month names are reader-facing text, so they come from the copy deck via a
+  // data attribute, the same way the change wording does -- never typed here.
+  function longDate(iso, months) {
     var parts = iso.split("-").map(Number);
-    return parts[2] + " " + MONTHS[parts[1] - 1] + " " + parts[0];
+    return parts[2] + " " + months[parts[1] - 1] + " " + parts[0];
   }
 
   function sliceRange(all, key) {
@@ -127,7 +127,7 @@
     idxs.forEach(function (i, j) {
       var align = j === 0 ? "start" : (j === idxs.length - 1 ? "end" : "middle");
       datesHtml += '<span class="chart-date" style="text-align:' + align + '">' +
-        longDate(pts[i].date) + "</span>";
+        longDate(pts[i].date, copy.months) + "</span>";
     });
     root.querySelector(".chart-dates").innerHTML = datesHtml;
   }
@@ -140,7 +140,8 @@
     var copy = {
       changeNone: root.dataset.copyChangeNone,
       changeUp: root.dataset.copyChangeUp,
-      changeDown: root.dataset.copyChangeDown
+      changeDown: root.dataset.copyChangeDown,
+      months: (root.dataset.copyMonths || "").split("|")
     };
 
     var pills = root.querySelectorAll(".chart-pill");
@@ -165,7 +166,7 @@
       if (!p) return;
       hoverEl.hidden = false;
       hoverEl.style.left = (current.length > 1 ? (i / (current.length - 1)) * 100 : 0) + "%";
-      hoverEl.textContent = fmtPct(p.index_pct) + " — " + longDate(p.date);
+      hoverEl.textContent = fmtPct(p.index_pct) + " — " + longDate(p.date, copy.months);
     });
     wrap.addEventListener("mouseleave", function () { hoverEl.hidden = true; });
   }

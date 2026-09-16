@@ -75,8 +75,10 @@ def _range_label(key):
     return _copy()["index"]["market"]["ranges"][key]
 
 
-DAY_NAMES = ["January", "February", "March", "April", "May", "June", "July",
-             "August", "September", "October", "November", "December"]
+def _month_name(m):
+    """Month names are reader-facing text, so they live in the copy deck like
+    every other string on a page -- not typed here."""
+    return _copy()["index"]["market"]["months"][m - 1]
 
 
 def fmt_pct(v):
@@ -90,7 +92,7 @@ def fmt_pct(v):
 
 def long_date(iso):
     y, m, d = (int(x) for x in iso.split("-"))
-    return f"{d} {DAY_NAMES[m - 1]} {y}"
+    return f"{d} {_month_name(m)} {y}"
 
 
 def _parsed(points):
@@ -289,7 +291,8 @@ def render_html(points, *, root_id="chart"):
 
     return f"""<div id="{root_id}" class="chart" data-points='{points_json}'
      data-copy-change-none="{copy["changeNone"]}" data-copy-change-up="{copy["changeUp"]}"
-     data-copy-change-down="{copy["changeDown"]}">
+     data-copy-change-down="{copy["changeDown"]}"
+     data-copy-months="{"|".join(_copy()["index"]["market"]["months"])}">
   <div class="chart-head">
     <div class="chart-value">{c["headline"]}</div>
     <div class="chart-change" style="color:{c["change_colour"]}">{c["change_text"]}</div>
