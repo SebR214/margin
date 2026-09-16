@@ -40,7 +40,7 @@ measurement that triggered it.
 | A published country moving more than 5% in a day with no matching move in its official or parallel rate | `agent_status.json` → `moves` |
 
 ```bash
-python3 agents/linear.py new "<what is wrong, in one line>" --body-file /tmp/spec.md --label bug --priority 2
+python3 agents/linear.py new "<what is wrong, in one line>" --body-file /tmp/spec.md --label bug --priority 2 --role product
 ```
 
 That last trigger is the one that matters. A country's price moving 5% is
@@ -74,7 +74,7 @@ document already titled `Digest <today>` — write one as a Linear document in
 the project, **under 200 words**:
 
 ```bash
-python3 agents/linear.py doc "Digest 2026-09-11" --body-file /tmp/digest.md
+python3 agents/linear.py doc "Digest 2026-09-11" --body-file /tmp/digest.md --role product
 ```
 
 - **Shipped** — what merged in the last 24 hours, each a markdown link
