@@ -108,23 +108,42 @@ while true; do
     if ! git clone -q https://github.com/SebR214/margin.git "$REPO" >>"$LOG" 2>&1; then
       say "[$ROLE] clone failed"; sleep "$ERROR_WAIT"; continue
     fi
-    git -C "$REPO" config user.name "margin-agent"
-    git -C "$REPO" config user.email "margin-agent@users.noreply.github.com"
+    git -C "$REPO" config user.name  "margin-$ROLE"
+    git -C "$REPO" config user.email "$ROLE@margin.wiki"
   fi
   cd "$REPO" || { say "[$ROLE] $REPO is missing"; sleep "$ERROR_WAIT"; continue; }
 
-  # A pass that died mid-review can leave the checkout on a PR branch. Start
-  # every pass from main so the loop cannot wedge itself.
+  # A pass that died mid-review leaves the checkout on a PR branch with the
+  # files that pass regenerated still dirty. `git checkout main` then ABORTS --
+  # and the `|| true` this line used to carry swallowed it, so the loop stayed
+  # on the branch and every later pass died the same way, silently.
+  #
+  # On 2026-09-16 the reviewer sat wedged exactly like that, 52 regenerated
+  # country pages dirty on seb-61-one-chart-component, and not one verdict
+  # reached a pull request until a person went looking for why.
+  #
+  # So: discard tracked modifications first, then switch. Real work lives on
+  # branches and is committed before a pass ends, so nothing of value is in the
+  # working tree at the top of a pass -- that includes the files a tool
+  # regenerates every run and that CI rewrites every hour.
   git rebase --abort >/dev/null 2>&1 || true
+  git checkout -- . >/dev/null 2>&1 || true
   git checkout -q main 2>>"$LOG" || true
 
-  # Files a tool here regenerates on every run, and that CI also rewrites every
-  # hour. Left dirty they collide with the rebase on the very next pass, so
-  # they are discarded before pulling rather than stashed and popped into a
-  # conflict. Nothing else in the tree is touched: real work lives on branches.
-  for f in data/agent_status.json; do
-    git checkout -- "$f" 2>/dev/null || true
-  done
+  # Then check it worked. A loop that cannot reach main cannot do anything
+  # useful, and must say so rather than running a pass that is guaranteed to
+  # fail.
+  if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" != "main" ]; then
+    say "[$ROLE] not on main after checkout; resetting hard"
+    git reset -q --hard >>"$LOG" 2>&1 || true
+    git clean -qfd >>"$LOG" 2>&1 || true
+    git checkout -q main 2>>"$LOG" || true
+  fi
+  if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" != "main" ]; then
+    say "[$ROLE] cannot return to main -- this clone needs a person"
+    record 0 "cannot reach main" "$(( $(date +%s) - START ))"
+    sleep "$ERROR_WAIT"; continue
+  fi
 
   # The collector chain commits to main every half hour, so a rebase is normal.
   # --autostash keeps a half-finished working tree from blocking the pull.
