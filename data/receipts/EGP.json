@@ -4,20 +4,32 @@
     "denominator": 52.063931,
     "denominator_meaning": "the official rate, local currency per dollar",
     "formula": "(numerator / denominator - 1) * 100",
-    "numerator": 52.565,
+    "numerator": 52.515,
     "numerator_meaning": "price to buy one dollar locally",
-    "result_pct": 0.9624
+    "result_pct": 0.8664
   },
-  "computed_at": "2026-09-16T10:00:00+00:00",
+  "computed_at": "2026-09-16T11:00:00+00:00",
   "country": "Egypt",
   "evidence": {
-    "buy_median": 52.565,
-    "collected_at": "2026-09-16T10:05:39.610400+00:00",
+    "buy_median": 52.515,
+    "collected_at": "2026-09-16T11:05:36.435972+00:00",
     "n_offers": 10,
     "offer_detail": "per_offer",
     "offers": [
       {
-        "price": 52.45,
+        "price": 52.39,
+        "side": "buy"
+      },
+      {
+        "price": 52.43,
+        "side": "buy"
+      },
+      {
+        "price": 52.48,
+        "side": "buy"
+      },
+      {
+        "price": 52.49,
         "side": "buy"
       },
       {
@@ -45,31 +57,19 @@
         "side": "buy"
       },
       {
-        "price": 52.6,
-        "side": "buy"
-      },
-      {
-        "price": 52.64,
-        "side": "buy"
-      },
-      {
-        "price": 52.68,
-        "side": "buy"
-      },
-      {
-        "price": 52.6,
+        "price": 52.67,
         "side": "sell"
       },
       {
-        "price": 52.56,
+        "price": 52.66,
+        "side": "sell"
+      },
+      {
+        "price": 52.62,
         "side": "sell"
       },
       {
         "price": 52.55,
-        "side": "sell"
-      },
-      {
-        "price": 52.54,
         "side": "sell"
       },
       {
@@ -85,44 +85,44 @@
         "side": "sell"
       },
       {
-        "price": 52.51,
-        "side": "sell"
-      },
-      {
         "price": 52.5,
         "side": "sell"
       },
       {
         "price": 52.5,
+        "side": "sell"
+      },
+      {
+        "price": 52.46,
         "side": "sell"
       }
     ],
     "sell_median": 52.525,
-    "source_kind": "p2p_buy_median",
-    "source_words": "from person-to-person ads"
+    "source_kind": null,
+    "source_words": "no price this hour"
   },
   "evidence_rule": {
     "applies": true,
     "buy_ads_actual": 10,
     "buy_ads_estimated": false,
-    "buy_at_or_above_sell": true,
+    "buy_at_or_above_sell": false,
     "min_buy_ads_required": 10,
     "note": null,
-    "passed": true,
-    "reason": null
+    "passed": false,
+    "reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market"
   },
-  "hour_utc": "2026-09-16T10:00:00+00:00",
+  "hour_utc": "2026-09-16T11:00:00+00:00",
   "index_version": "1.1",
-  "not_published_reason": null,
+  "not_published_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market",
   "official_rate": {
     "class": "market",
     "source": "open.er-api",
     "source_file": "data/fx_rates.csv",
-    "timestamp": "2026-09-16T10:07:07.571973+00:00",
+    "timestamp": "2026-09-16T11:07:03.933480+00:00",
     "value": 52.063931
   },
   "outlier_checked": null,
-  "published": true,
+  "published": false,
   "source_files": [
     "data/countries/EGP.json",
     "data/fx_rates.csv",
