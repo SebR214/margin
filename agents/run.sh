@@ -166,13 +166,20 @@ while true; do
       fi
       ;;
     reviewer)
-      # NOT "is any PR open". A PR awaiting Sebastian's approval stays open by
-      # design, and counting it as work makes the reviewer re-review the same
-      # branch every pass until he answers -- which could be days.
+      # "Has the code changed since I last looked", not "is this labelled".
       #
-      # Real work is an issue In Review that has not already been reviewed,
-      # i.e. one not yet carrying needs-sebastian.
-      PENDING=$(python3 "$REPO/agents/linear.py" issues 2>/dev/null | grep "In Review" | grep -vc "needs-sebastian")
+      # This used to ask for issues In Review not carrying needs-sebastian, and
+      # it deadlocked three times on 2026-09-16: the reviewer failed a PR and
+      # labelled it, the builder pushed a fix, the label stayed -- so the
+      # reviewer went blind to the exact branch it had asked to be fixed, and
+      # nothing moved until a human cleared the label by hand. A label says what
+      # a person should do; it cannot say whether new code has arrived, which is
+      # the only question that decides whether there is reviewing to do.
+      #
+      # A PR needs review when it carries no review yet, or when its head commit
+      # is newer than the newest review on it. An issue can carry
+      # needs-sebastian and still deserve a fresh pass the moment a fix lands.
+      PENDING=$(python3 "$REPO/agents/reviewer_work.py" 2>/dev/null | wc -l | tr -d " ")
       if [ "$PENDING" = "0" ]; then HAVE_WORK=0; fi
       ;;
   esac
