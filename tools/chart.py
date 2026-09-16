@@ -19,10 +19,17 @@ hover with a point's value and date. Nothing it does can appear before this
 module's static markup has already painted the chart -- the chart is fully
 present with JavaScript off, or `prefers-reduced-motion` on.
 
+Every reader-facing string this module prints -- range pill labels, the
+change sentence's "up"/"down" and "no change" text, and the empty-chart
+message -- comes from `copy.json`, the one deck every page's strings live in.
+Nothing here is typed.
+
 Stdlib only.
 """
 
 import datetime as dt
+import json
+import os
 
 INDIGO = "#5A55E0"
 DOWN = "#D0453B"
@@ -32,20 +39,41 @@ AREA_TOP = "#DCDFFA"
 WIDTH = 1000
 HEIGHT = 200
 
-# key, label, window in days. 1h/6h/1d need intraday points a one-a-day
-# history structurally cannot hold, so they are never offered here -- but the
-# check is generic, not hard-coded to "this chart is daily", so the same
-# table works if a chart is ever built over hourly points instead.
+COPY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "copy.json")
+
+_copy_cache = None
+
+
+def _copy():
+    """copy.json, read once and cached. A missing key fails loudly (KeyError),
+    never silently, so a chart can't ship text nobody put in the deck."""
+    global _copy_cache
+    if _copy_cache is None:
+        with open(COPY_PATH, encoding="utf-8") as f:
+            _copy_cache = json.load(f)
+    return _copy_cache
+
+
+# key, window in days. 1h/6h/1d need intraday points a one-a-day history
+# structurally cannot hold, so they are never offered here -- but the check
+# is generic, not hard-coded to "this chart is daily", so the same table
+# works if a chart is ever built over hourly points instead. Labels come
+# from copy.json's index.market.ranges, not from this table.
 RANGES = [
-    ("1h", "1h", 1 / 24),
-    ("6h", "6h", 6 / 24),
-    ("1d", "1d", 1),
-    ("1w", "1w", 7),
-    ("1m", "1m", 30),
-    ("3m", "3m", 90),
-    ("1y", "1y", 365),
-    ("all", "All", None),
+    ("1h", 1 / 24),
+    ("6h", 6 / 24),
+    ("1d", 1),
+    ("1w", 7),
+    ("1m", 30),
+    ("3m", 90),
+    ("1y", 365),
+    ("all", None),
 ]
+
+
+def _range_label(key):
+    return _copy()["index"]["market"]["ranges"][key]
+
 
 DAY_NAMES = ["January", "February", "March", "April", "May", "June", "July",
              "August", "September", "October", "November", "December"]
@@ -95,15 +123,15 @@ def available_ranges(points):
         return []
     span_days = (pts[-1]["date"] - pts[0]["date"]).days
     out = []
-    for key, label, window in RANGES:
+    for key, window in RANGES:
         if window is None:
-            out.append((key, label))
+            out.append((key, _range_label(key)))
             continue
         if span_days < window:
             continue
         in_window = [p for p in pts if (pts[-1]["date"] - p["date"]).days <= window]
         if len(in_window) >= MIN_POINTS_IN_WINDOW:
-            out.append((key, label))
+            out.append((key, _range_label(key)))
     return out
 
 
@@ -111,7 +139,7 @@ def slice_range(points, key):
     pts = _parsed(points)
     if key == "all" or not pts:
         return pts
-    window = next((w for k, _, w in RANGES if k == key), None)
+    window = next((w for k, w in RANGES if k == key), None)
     if not window:
         return pts
     cutoff = pts[-1]["date"] - dt.timedelta(days=window)
@@ -194,10 +222,11 @@ def build(points, *, default_range="all"):
             continue
         gutter.append({"top_pct": round(top_pct, 1), "text": fmt_pct(val)})
 
+    copy = _copy()["chart"]
     first = pts[0]
     change_pts = last["value"] - first["value"]
     if round(change_pts, 2) == 0:
-        change_text, change_colour = "No change over the period", "var(--muted)"
+        change_text, change_colour = copy["changeNone"], "var(--muted)"
     else:
         sign = "+" if change_pts >= 0 else "−"
         points_txt = f"{sign}{abs(change_pts):.2f} points"
@@ -205,7 +234,7 @@ def build(points, *, default_range="all"):
         # past that point "up 400%" is a real division, not a real story.
         if first["value"] != 0 and (first["value"] > 0) == (last["value"] > 0):
             rel = change_pts / abs(first["value"]) * 100
-            dir_word = "up" if change_pts >= 0 else "down"
+            dir_word = copy["changeUp"] if change_pts >= 0 else copy["changeDown"]
             points_txt += f", {dir_word} {abs(rel):.1f}%"
         change_text = points_txt
         change_colour = INDIGO if change_pts >= 0 else DOWN
@@ -234,11 +263,11 @@ def build(points, *, default_range="all"):
 
 def render_html(points, *, root_id="chart"):
     """The full static fragment: fully rendered with no JavaScript at all."""
+    copy = _copy()["chart"]
     c = build(points)
     if not c["has_data"]:
         return (f'<div id="{root_id}" class="chart" data-points="[]">'
-                '<p class="muted small">Not enough days yet to draw a line. '
-                'Every point collected is shown.</p></div>')
+                f'<p class="muted small">{copy["empty"]}</p></div>')
 
     pills = ""
     if len(c["ranges"]) > 1:
@@ -256,10 +285,11 @@ def render_html(points, *, root_id="chart"):
         f'<span class="chart-date" style="text-align:{d["align"]}">{d["text"]}</span>'
         for d in c["dates"])
 
-    import json as _json
-    points_json = _json.dumps(c["points_json"])
+    points_json = json.dumps(c["points_json"])
 
-    return f"""<div id="{root_id}" class="chart" data-points='{points_json}'>
+    return f"""<div id="{root_id}" class="chart" data-points='{points_json}'
+     data-copy-change-none="{copy["changeNone"]}" data-copy-change-up="{copy["changeUp"]}"
+     data-copy-change-down="{copy["changeDown"]}">
   <div class="chart-head">
     <div class="chart-value">{c["headline"]}</div>
     <div class="chart-change" style="color:{c["change_colour"]}">{c["change_text"]}</div>

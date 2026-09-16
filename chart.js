@@ -52,7 +52,7 @@
     return out;
   }
 
-  function render(root, pts) {
+  function render(root, pts, copy) {
     var n = pts.length;
     var values = pts.map(function (p) { return p.index_pct; });
     var lo = Math.min.apply(null, values.concat([0]));
@@ -108,14 +108,14 @@
     var changeEl = root.querySelector(".chart-change");
     var changePts = last.index_pct - first.index_pct;
     if (Math.round(changePts * 100) / 100 === 0) {
-      changeEl.textContent = "No change over the period";
+      changeEl.textContent = copy.changeNone;
       changeEl.style.color = "var(--muted)";
     } else {
       var sign = changePts >= 0 ? "+" : "−";
       var text = sign + Math.abs(changePts).toFixed(2) + " points";
       if (first.index_pct !== 0 && (first.index_pct > 0) === (last.index_pct > 0)) {
         var rel = changePts / Math.abs(first.index_pct) * 100;
-        text += ", " + (changePts >= 0 ? "up" : "down") + " " + Math.abs(rel).toFixed(1) + "%";
+        text += ", " + (changePts >= 0 ? copy.changeUp : copy.changeDown) + " " + Math.abs(rel).toFixed(1) + "%";
       }
       changeEl.textContent = text;
       changeEl.style.color = changePts >= 0 ? INDIGO : DOWN;
@@ -137,13 +137,18 @@
     try { all = JSON.parse(root.dataset.points || "[]"); } catch (e) { all = []; }
     if (all.length < 2) return;
     var current = all;
+    var copy = {
+      changeNone: root.dataset.copyChangeNone,
+      changeUp: root.dataset.copyChangeUp,
+      changeDown: root.dataset.copyChangeDown
+    };
 
     var pills = root.querySelectorAll(".chart-pill");
     pills.forEach(function (btn) {
       btn.addEventListener("click", function () {
         current = sliceRange(all, btn.dataset.range);
         if (current.length < 2) return;
-        render(root, current);
+        render(root, current, copy);
         pills.forEach(function (b) { b.classList.toggle("is-on", b === btn); });
       });
     });
