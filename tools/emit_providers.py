@@ -12,7 +12,7 @@ so nothing is discarded -- but the headline is the provider's own number. Every
 row says which source it came from. This is a precedence rule, not a judgement
 about any source being wrong.
 
-The crypto route is ranked among them as simply another way to send money,
+The dollar route is ranked among them as simply another way to send money,
 using the same measure: how far below the mid-market rate the recipient lands.
 
 Derived, never authoritative. Stdlib only. No wall clock in the output.
@@ -194,7 +194,7 @@ def build():
             if size in crypto:
                 c = crypto[size]
                 entries.append({
-                    "provider": "The crypto route", "cost_pct": round(c / 100, 4),
+                    "provider": "The dollar route", "cost_pct": round(c / 100, 4),
                     "costs": money(src, size * c / 1e4),
                     "source": "measured",
                     "source_words": "measured on real exchanges, all in",

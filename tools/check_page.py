@@ -39,7 +39,11 @@ from headless import Page                                    # noqa: E402
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 BANNED = ["bps", "basis point", "basis", "on-ramp", "off-ramp", "notional",
-          "taker", "maker", "usdt", "fiat rail"]
+          "taker", "maker", "usdt", "fiat rail", "crypto"]
+
+# ROADMAP names "corridor" for index.html specifically. A global ban would fail
+# corridor.html on its own filename, so it is scoped rather than widened.
+PAGE_BANNED = {"index.html": ["corridor"]}
 BARE_MID = re.compile(r"\bmid\b(?!-market)", re.I)
 BROKEN = ["placeholder", "[object object]", "lorem ipsum", "todo:", "fixme"]
 EXEMPT = {"methodology.html"}
@@ -176,7 +180,7 @@ def check(page, port, browser, base):
     if page not in EXEMPT:
         scrubbed = scrub_filenames(text)
         scrubbed_low = scrubbed.lower()
-        for w in BANNED:
+        for w in BANNED + PAGE_BANNED.get(page, []):
             if re.search(r"\b" + re.escape(w) + r"\b", scrubbed_low):
                 fails.append(f"{page}: banned word on a reader-facing page: {w!r}")
         if BARE_MID.search(scrubbed):

@@ -165,10 +165,10 @@ function render(){
       + ", which is " + pct(best.cost_pct) + " of what you send." : "";
   if(crypto && best && crypto.provider !== best.provider){
     const gap = crypto.cost_pct - best.cost_pct;
-    sub += " The crypto route costs " + crypto.costs + ", "
+    sub += " The dollar route costs " + crypto.costs + ", "
         + pct(gap) + " more than the cheapest.";
   } else if(crypto && best && crypto.provider === best.provider){
-    sub += " That is the crypto route.";
+    sub += " That is the dollar route.";
   }
   document.getElementById("sub").textContent = sub;
 
