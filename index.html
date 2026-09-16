@@ -47,20 +47,22 @@
   <div>
     <div data-grid="hero" class="hero" style="display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; align-items: end;">
       <div>
-        <h1 style="font-size: 44px; line-height: 1.06; margin: 0 0 14px; max-width: 24ch;">{{ heroTitle }}</h1>
+        <h1 style="font-size: 44px; line-height: 1.06; margin: 0 0 14px; max-width: 24ch;"><sc-for list="{{ heroTitleWords }}" as="tw" hint-placeholder-count="6"><span class="type-word" style="animation-delay: {{ tw.delay }};">{{ tw.w }}</span> </sc-for></h1>
         <p class="text-muted" style="max-width: 62ch; font-size: 15px; margin: 0;">{{ heroBody }}</p>
       </div>
       <div data-grid="tiles" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; background: color-mix(in srgb, var(--color-bg) 25%, transparent);">
         <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="4">
           <div style="background: var(--color-ink); padding: 14px 16px 12px;">
             <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">{{ s.k }}</div>
-            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 24px; line-height: 1; color: var(--color-bg);">{{ s.v }}<span style="font-size: 12px; color: var(--data-500); vertical-align: super; margin-left: 2px;">{{ s.mark }}</span></div>
+            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 24px; line-height: 1; color: var(--color-bg);"><span class="prov" tabindex="0">{{ s.v }}<span class="prov-pop"><b>{{ provLabel }}</b>{{ s.prov }}</span></span><span style="font-size: 12px; color: var(--data-500); vertical-align: super; margin-left: 2px;">{{ s.mark }}</span></div>
             <div class="text-muted" style="font-size: 11px; margin-top: 4px;">{{ s.sub }}</div>
           </div>
         </sc-for>
       </div>
     </div>
 
+    <div data-thread="turn">
+      <div data-thread="rail"><span data-thread="mark"></span></div>
     <div style="padding: 36px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
         <div>
@@ -71,7 +73,7 @@
         <div style="display: flex; align-items: baseline; gap: 28px;">
           <div>
             <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;">{{ marketTheBoard }}</div>
-            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 28px; line-height: 1.1; color: {{ mk.color }};" title="{{ mk.sentence }}">{{ mk.bps }}</div>
+            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 28px; line-height: 1.1; color: {{ mk.color }};" title="{{ mk.sentence }}"><span class="prov" tabindex="0">{{ mk.bps }}<span class="prov-pop"><b>{{ provLabel }}</b>{{ mk.prov }}</span></span></div>
           </div>
           <div style="display: flex; gap: 0; border: 1px solid var(--color-neutral-400);">
             <sc-for list="{{ ranges }}" as="r" hint-placeholder-count="4">
@@ -96,7 +98,7 @@
           </sc-for>
           <path d="{{ mk.area }}" fill="url(#mkFade)"></path>
               <line x1="0" x2="1000" y1="{{ mk.zeroY }}" y2="{{ mk.zeroY }}" stroke="var(--color-neutral-500)" stroke-dasharray="5 5" stroke-width="1" vector-effect="non-scaling-stroke"></line>
-              <path d="{{ mk.line }}" fill="none" stroke="var(--data-600)" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+              <path class="chart-draw" d="{{ mk.line }}" fill="none" stroke="var(--data-600)" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
               <line x1="1000" x2="1000" y1="0" y2="240" stroke="var(--color-text)" stroke-width="2" vector-effect="non-scaling-stroke"></line>
             </svg>
             <sc-if value="{{ mk.tipOn }}" hint-placeholder-val="{{ false }}">
@@ -136,7 +138,10 @@
       </div>
       <p class="text-muted" style="font-size: 12px; margin: 10px 0 0;">{{ marketHint }}</p>
     </div>
+    </div>
 
+    <div data-thread="turn">
+      <div data-thread="rail"><span data-thread="mark"></span></div>
     <div style="padding: 40px 24px 0;">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
         <h2 style="font-size: 26px; margin: 0;">{{ boardTitle }}</h2>
@@ -164,7 +169,7 @@
             <div data-grid="board-row" style="display: grid; grid-template-columns: 86px minmax(0, 1fr) 132px 108px minmax(0, 150px) 104px; gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); padding: 9px 0 9px 12px;">
               <a href="{{ b.href }}" title="{{ b.hrefTitle }}" style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.02em; color: var(--color-text); text-decoration: none;">{{ b.code }}</a>
               <a href="{{ b.href }}" title="{{ b.hrefTitle }}" style="font-size: 13px; color: var(--color-text); text-decoration: none; border-bottom: 1px solid var(--color-divider);">{{ b.country }}</a>
-              <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: {{ b.valueColor }};">{{ b.value }}</div>
+              <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: {{ b.valueColor }};"><span class="prov" tabindex="0">{{ b.value }}<span class="prov-pop"><b>{{ provLabel }}</b>{{ b.prov }}</span></span></div>
               <div class="text-muted" style="text-align: right; font-size: 13px;">{{ b.trip }}</div>
               <div class="text-muted" style="font-size: 12px;">{{ b.evidence }}</div>
               <div style="display: flex; justify-content: flex-end;" title="{{ b.sparkTitle }}">
@@ -197,7 +202,10 @@
 
       <p class="text-muted" style="font-size: 12px; margin: 16px 0 0; max-width: 88ch;">{{ boardFootnote }}</p>
     </div>
+    </div>
 
+    <div data-thread="turn">
+      <div data-thread="rail"><span data-thread="mark"></span></div>
     <div style="padding: 44px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
         <div>
@@ -227,7 +235,7 @@
               </div>
               <div style="text-align: right; font-size: 15px;">{{ x.official }}</div>
               <div style="text-align: right; font-size: 15px;">{{ x.implied }}</div>
-              <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: {{ x.gapColor }};">{{ x.gap }}</div>
+              <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: {{ x.gapColor }};"><span class="prov" tabindex="0">{{ x.gap }}<span class="prov-pop"><b>{{ provLabel }}</b>{{ x.prov }}</span></span></div>
             </div>
           </sc-for>
           <div style="border-top: 2px solid var(--color-text);"></div>
@@ -238,7 +246,10 @@
         <p class="text-muted" style="font-size: 13px; padding-top: 14px;">{{ cross.empty }}</p>
       </sc-if>
     </div>
+    </div>
 
+    <div data-thread="turn">
+      <div data-thread="rail"><span data-thread="mark"></span></div>
     <div style="padding: 44px 24px 0;">
       <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
         <h2 style="font-size: 26px; margin: 0;">{{ coverageTitle }}</h2>
@@ -275,7 +286,10 @@
       </div>
       <p class="text-muted" style="font-size: 12px; margin: 12px 0 0;">{{ coverageFootnote }}</p>
     </div>
+    </div>
 
+    <div data-thread="turn">
+      <div data-thread="rail"><span data-thread="mark"></span></div>
     <div style="padding: 44px 24px 0;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 12px; flex-wrap: wrap;">
         <div>
@@ -337,7 +351,7 @@
           <sc-for list="{{ corridorSummary }}" as="s" hint-placeholder-count="3">
             <div style="background: var(--color-bg); padding: 12px 16px; display: flex; flex-direction: column; justify-content: center;">
               <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px;">{{ s.k }}</div>
-              <div style="font-family: var(--font-heading); font-weight: 800; font-size: 26px; line-height: 1; color: {{ s.color }};">{{ s.v }}</div>
+              <div style="font-family: var(--font-heading); font-weight: 800; font-size: 26px; line-height: 1; color: {{ s.color }};"><span class="prov" tabindex="0">{{ s.v }}<span class="prov-pop"><b>{{ provLabel }}</b>{{ s.prov }}</span></span></div>
               <div class="text-muted" style="font-size: 11px; margin-top: 4px;">{{ s.sub }}</div>
             </div>
           </sc-for>
@@ -348,7 +362,10 @@
         <button type="button" sc-camel-on-click="{{ goMethod }}" style="appearance: none; cursor: pointer; background: transparent; color: var(--color-text); border: 1px solid var(--color-text); padding: 10px 16px; font-family: var(--font-heading); font-weight: 800; font-size: 13px; text-align: left;" style-hover="background: var(--color-neutral-200);">{{ methodButtonLabel }}</button>
       </div>
     </div>
+    </div>
 
+    <div data-thread="turn">
+      <div data-thread="rail"><span data-thread="mark"></span></div>
     <div style="padding: 44px 24px 0;">
       <div style="border: 2px solid var(--color-text); display: grid; grid-template-columns: minmax(0, 1fr);">
         <div style="background: var(--color-text); color: var(--color-bg); padding: 10px 20px; font-family: var(--font-heading); font-weight: 800; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;">{{ correctionLabel }} · {{ correctionDate }}</div>
@@ -368,7 +385,10 @@
         </div>
       </div>
     </div>
+    </div>
 
+    <div data-thread="turn">
+      <div data-thread="rail"><span data-thread="mark"></span></div>
     <div style="padding: 44px 24px 0;">
       <div style="border-bottom: 2px solid var(--color-text); padding-bottom: 10px;">
         <h2 style="font-size: 26px; margin: 0;">{{ findingsTitle }}</h2>
@@ -388,6 +408,27 @@
           </div>
         </div>
       </sc-for>
+    </div>
+    </div>
+
+    <div data-ask="dock">
+      <div style="padding: 16px 24px 18px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+          <div style="font-family: var(--font-heading); font-weight: 800; font-size: 13px; letter-spacing: 0.02em;">{{ askKicker }}</div>
+          <div style="font-size: 11px; max-width: 62ch; color: color-mix(in srgb, var(--color-bg) 65%, transparent);">{{ askNote }}</div>
+        </div>
+        <div data-ask="row">
+          <sc-for list="{{ ask }}" as="qa" hint-placeholder-count="6">
+            <button type="button" data-ask="pill" aria-pressed="{{ qa.pressed }}" sc-camel-on-click="{{ qa.toggle }}">{{ qa.q }}</button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+          <div data-ask="answer" style="padding: 12px 14px;">
+            <p style="margin: 0; font-size: 13px; line-height: 1.55;">{{ askOpen.a }}</p>
+            <div style="margin-top: 6px; font-size: 10px; letter-spacing: 0.03em; color: color-mix(in srgb, var(--color-bg) 55%, transparent);">{{ provLabel }}: {{ askOpen.prov }}</div>
+          </div>
+        </sc-if>
+      </div>
     </div>
   </div>
   </sc-if>
@@ -748,6 +789,7 @@ class Component extends DCLogic {
   state = {
     page: "board", market: null, range: "1m", corridor: null, crossBase: "SGD",
     hover: null, pinned: null, covCell: null, cxCol: null, data: null, err: null,
+    askIdx: null,
   };
 
   componentDidMount() {
@@ -764,8 +806,9 @@ class Component extends DCLogic {
       opt("./data/fee_checks.csv"), opt("./data/fee_tiers.csv"),
       opt("./data/withdrawal_fees.csv"),
       opt("./data/crosses_latest.json"), opt("./data/index_latest.json"),
+      opt("./data/agent_status.json"),
       opt("./copy.json"),
-    ]).then(([b, h, s, p1, p2, p3, p4, fc, ft, wf, cx, ix, cp]) => {
+    ]).then(([b, h, s, p1, p2, p3, p4, fc, ft, wf, cx, ix, as_, cp]) => {
       // A missing or unparseable crosses file means the table renders its empty
       // state. It must never take the rest of the page down with it.
       let crosses = null;
@@ -775,6 +818,11 @@ class Component extends DCLogic {
       // disagree about what the index says.
       let index = null;
       try { index = ix ? JSON.parse(ix) : null; } catch (e) { index = null; }
+      // The machine's own health record -- delivery hours per day, per-source
+      // pull status. Read only for the pre-computed ask box's "is collection
+      // on schedule" answer; nothing here is new collection.
+      let status = null;
+      try { status = as_ ? JSON.parse(as_) : null; } catch (e) { status = null; }
       // The copy deck. Every visible string on this page comes from here --
       // a missing or broken copy.json renders blank labels, never a made-up
       // fallback that could quietly drift from what copy.json actually says.
@@ -784,7 +832,7 @@ class Component extends DCLogic {
         basis: parseCSV(b), hist: parseCSV(h), samples: parseCSV(s),
         panels: { "SGD->PHP": parseCSV(p1), "USD->MXN": parseCSV(p2),
                   "AUD->PHP": parseCSV(p3), "NZD->PHP": parseCSV(p4) },
-        feeChecks: parseCSV(fc), tiers: parseCSV(ft), withdrawalFees: parseCSV(wf), crosses, index, copy,
+        feeChecks: parseCSV(fc), tiers: parseCSV(ft), withdrawalFees: parseCSV(wf), crosses, index, status, copy,
       }});
     }).catch(e => this.setState({ err: String(e.message || e) }));
   }
@@ -855,6 +903,48 @@ class Component extends DCLogic {
     if (n === null || n === undefined) return "—";
     const sym = cur === "SGD" ? "S$" : cur === "USD" ? "US$" : cur + " ";
     return sym + n.toLocaleString("en-US");
+  }
+  // The hero line reveals word by word on load (CSS-driven, cancelled under
+  // prefers-reduced-motion in style.css) -- one word per span, staggered by a
+  // small delay computed here so the template stays pure markup.
+  titleWords(s) {
+    return (s || "").split(" ").filter(Boolean).map((w, i) => ({ w, delay: (i * 55) + "ms" }));
+  }
+  // The receipt behind a hovered number: what fed it, when it was computed,
+  // and how many independent readings stood behind it. Where the source JSON
+  // already carries B1's computed_at/n_sources/source_file, those are passed
+  // straight through; where a figure is read straight from a CSV that has no
+  // such fields, this is built from the row's own real timestamp and a real
+  // count of the rows that fed it -- never a guessed number.
+  //
+  // "What fed it" is always a plain-language label from copy.json's
+  // sourceLabels, never the raw path: a bare filename like "basis.csv" is a
+  // banned word on this page (see ROADMAP.md invariants), and Sebastian
+  // caught an earlier draft leaking it through this exact popover. A path
+  // with no label is a mapping bug, not a display choice -- it fails loudly
+  // to the console rather than falling back to the path it exists to hide.
+  sourceLabel(file) {
+    const label = this.sourceLabels[file];
+    if (label) return label;
+    console.error("provText: no plain-language sourceLabels entry for", file);
+    return this.askFallbacks.unknownSource || "";
+  }
+  provText(file, whenMs, n) {
+    const list = Array.isArray(file) ? file : (file ? [file] : []);
+    const files = list.length ? list.map(f => this.sourceLabel(f)).join(", ") : "—";
+    const when = whenMs ? this.fmtStamp(whenMs, true) : "—";
+    const sources = (n === null || n === undefined) ? (this.askFallbacks.countMissing || "")
+      : n + (n === 1 ? " source" : " sources");
+    return files + " · computed " + when + " · " + sources;
+  }
+  // Fills every {placeholder} in a copy-deck template with its value -- the
+  // same fixed-fragment-plus-placeholder pattern heroBody's {count} and
+  // cross's {baseCode} already use, generalised to templates with more than
+  // one slot, so ask-box answers never carry hardcoded English.
+  fillCopy(tpl, map) {
+    let out = tpl || "";
+    for (const k in map) out = out.split("{" + k + "}").join(map[k]);
+    return out;
   }
   fmtStamp(t, withHour) {
     if (!t) return "—";
@@ -1086,6 +1176,14 @@ class Component extends DCLogic {
     const page = st.page;
     const C = (D && D.copy) || {};
     const CI = C.index || {};
+    // provText() reads this to turn a raw CSV path into the plain-language
+    // label a reader sees -- the popover must never show a bare filename
+    // (that is how "basis" and friends leak onto the page). Set here, once
+    // per render, so the method itself stays free of copy.json wiring.
+    this.sourceLabels = (CI.ask || {}).sourceLabels || {};
+    // The provenance helpers below render text too, so their fallbacks
+    // live in the deck like every other reader-facing string.
+    this.askFallbacks = CI.ask || {};
     // Four nav items, same markup and same copy.json every page loads. This
     // page is "the index", so that item alone carries aria-current.
     const nav = (C.nav || []).map(n => ({
@@ -1124,6 +1222,9 @@ class Component extends DCLogic {
       findingsTitle: (CI.findings || {}).title || "",
       footerKicker: (CI.footer || {}).kicker || "",
       footerBody: (CI.footer || {}).body || "",
+      provLabel: (CI.ask || {}).provLabel || "",
+      askKicker: (CI.ask || {}).kicker || "",
+      askNote: (CI.ask || {}).note || "",
     };
 
     // Everything below the fold degrades to an explicit empty state. This is
@@ -1138,12 +1239,13 @@ class Component extends DCLogic {
       lastTick: "—", scaleNote: "",
       hl: { wide: "—", wideCountry: "—", narrow: "—", narrowCountry: "—" },
       heroTitle: (CI.hero || {}).title || "",
+      heroTitleWords: this.titleWords((CI.hero || {}).title || ""),
       heroBody: ((CI.hero || {}).body || "").replace("{count}", "—"),
       heroStats: [], heroCurrencyCount: "—", bands: [], boardTitle: (CI.board || {}).title || "",
       correctionBody: "",
       withheldRows: [], coverage: [], legendCells: [],
       cov: { on: false, code: "", v: "", t: "", hint: "" },
-      mk: { code: "—", country: "", venue: "", bps: "—", sentence: "", color: INK, line: "", area: "", zeroY: "120",
+      mk: { code: "—", country: "", venue: "", bps: "—", sentence: "", prov: "", color: INK, line: "", area: "", zeroY: "120",
             xLabels: [], yLabels: [], stats: [], dots: [], sparse: false, note: "",
             tipOn: false, tipX: "0%", tipY: "0%", tipShift: "none", tipV: "", tipT: "",
             onMove: () => {}, onLeave: () => {}, onPin: () => {} },
@@ -1160,6 +1262,7 @@ class Component extends DCLogic {
       cxx: false,
       stack: [], stackKeys: [], waterfall: [], spread: [],
       legend: [], provenance: [], failStats: [], methodNotes: [],
+      ask: [], askOpen: null,
       makerProse: "", takerProse: "", correctionDate: "—", dislocatedNames: "",
       corridorIntro: "", waterfallNote: "", waterfallStamp: "", stackNote: "", findingsIntro: "",
       cross: { rows: [], has: false, none: true, bases: [], baseCountry: "", baseCode: "—",
@@ -1242,6 +1345,7 @@ class Component extends DCLogic {
       sparkTitle: (c.spark || []).length > 1
         ? (c.country || c.ccy) + " over the last " + c.spark.length + " days"
         : "not enough days yet to draw a line",
+      prov: this.provText(c.source_file, ts(c.computed_at), c.n_sources),
     });
 
     const bandFrom = (list, title, note) => list.length
@@ -1271,6 +1375,9 @@ class Component extends DCLogic {
     const crossCodes = mkts.map(m => m.code);
     const crossBase = crossCodes.indexOf(st.crossBase) >= 0 ? st.crossBase
                     : (crossCodes.indexOf("SGD") >= 0 ? "SGD" : crossCodes[0]);
+    // Every row on this table comes from the same emitter run, so all of them
+    // share the one top-level receipt on data/crosses_latest.json.
+    const crossProv = this.provText((D.crosses || {}).source_file, ts((D.crosses || {}).computed_at), (D.crosses || {}).n_sources);
     const crossRows = this.crossRows(D, crossBase).map(r => ({
       code: r.code, country: r.country,
       official: this.fmtRate(r.official),
@@ -1278,6 +1385,7 @@ class Component extends DCLogic {
       gap: (r.gap >= 0 ? "+" : "−") + Math.abs(r.gap).toFixed(2) + "%",
       gapColor: Math.abs(r.gap) >= 1 ? "var(--data-700)" : INK,
       verdict: r.gap >= 0 ? "better than the official rate" : "worse than the official rate",
+      prov: crossProv,
     }));
     const cross = {
       rows: crossRows,
@@ -1430,6 +1538,14 @@ class Component extends DCLogic {
     const ladders = corrKeys.map(ladderFor).filter(Boolean);
     const cLad = ladders.find(l => l.key === cName) || ladders[0] || null;
     const cRowRaw = cLad ? (cLad.raw.find(r => String(num(r.notional_src)) === hi) || cLad.raw[Math.min(2, cLad.raw.length - 1)]) : null;
+
+    // How many providers actually stood behind the same-hour comparison used
+    // by the sending-money figures below -- a real count of the panel rows at
+    // that timestamp, not a guess.
+    const cRowProvN = cRowRaw
+      ? (D.panels[cLad.key] || []).filter(r => ok(r) && ts(r.ts_utc) === ts(cRowRaw.ts)).length
+      : null;
+    const cRowProv = cRowRaw ? this.provText("data/samples.csv", ts(cRowRaw.ts), cRowProvN) : "";
 
     // corridor time series at the highlighted size, both legs, real
     let cc = Object.assign({}, empty.cc, {
@@ -1633,11 +1749,90 @@ class Component extends DCLogic {
         ((num(cRowRaw.fee_off_maker_bps) ?? 0) / 100).toFixed(2) + "% if you wait for your price"
       : "the exchanges' cheaper fee tiers are not in this sample";
 
+    // ---- pre-computed ask box ---------------------------------------------
+    // A fixed set of questions, each answered from a file this page already
+    // has open in memory -- nothing fetched for this, nothing guessed. Every
+    // reader-facing fragment (question and answer alike) lives in copy.json's
+    // ask.answers; this only fills in the placeholders via fillCopy(), the
+    // same pattern heroBody's {count} and cross's {baseCode} already use.
+    const askQuestions = (CI.ask || {}).questions || [];
+    const askCopy = (CI.ask || {}).answers || {};
+    const askAnswers = [];
+    askAnswers.push((() => { // Q0: furthest from the official rate
+      const v = ixWide ? ixWide.index_pct * 100 : wide.bps;
+      const c = ixWide ? ixWide.country : this.countryIn(wide.code);
+      return { a: this.fillCopy(askCopy.widest, { country: c, gap: this.gapWords(v) }),
+        prov: ixWide ? this.provText(ixWide.source_file, ts(ixWide.computed_at), ixWide.n_sources)
+                     : this.provText("data/basis.csv", wide.t, wide.count) };
+    })());
+    askAnswers.push((() => { // Q1: closest to the official rate
+      const v = ixNarrow ? ixNarrow.index_pct * 100 : narrow.bps;
+      const c = ixNarrow ? ixNarrow.country : this.countryIn(narrow.code);
+      return { a: this.fillCopy(askCopy.narrowest, { country: c, gap: this.gapWords(v) }),
+        prov: ixNarrow ? this.provText(ixNarrow.source_file, ts(ixNarrow.computed_at), ixNarrow.n_sources)
+                       : this.provText("data/basis.csv", narrow.t, narrow.count) };
+    })());
+    askAnswers.push((() => { // Q2: the Philippines, by name
+      const php = ix.find(c => c.ccy === "PHP");
+      const phpM = mkts.find(m => m.code === "PHP");
+      const phpW = withheldRows.find(w => w.code === "PHP");
+      if (php) return { a: this.fillCopy(askCopy.phpPriced, { gap: this.gapWords(php.index_pct * 100) }),
+        prov: this.provText(php.source_file, ts(php.computed_at), php.n_sources) };
+      if (phpM) return { a: this.fillCopy(askCopy.phpPriced, { gap: this.gapWords(phpM.bps) }),
+        prov: this.provText("data/basis.csv", phpM.t, phpM.count) };
+      if (phpW) return { a: this.fillCopy(askCopy.phpWithheld, { reason: phpW.reason }), prov: "" };
+      return { a: askCopy.phpMissing || "", prov: "" };
+    })());
+    askAnswers.push((() => { // Q3: cheaper than a bank right now?
+      if (!(cLad && cRowRaw)) return { a: askCopy.transferMissing || "", prov: "" };
+      const cur = cLad.cur, size = num(cRowRaw.notional_src);
+      const tb = num(cRowRaw.cost_bps_taker), rb = num(cRowRaw.baseline_cost_bps);
+      const tm = this.costOf(cur, size, tb), rm = this.costOf(cur, size, rb);
+      if (tm === null || rm === null) return { a: askCopy.transferInsufficient || "", prov: cRowProv };
+      const provider = cRowRaw.baseline_provider || this.askFallbacks.defaultProvider || "";
+      const cheaper = tm <= rm;
+      // The "that is rare" clause has to be counted, not asserted. Same
+      // source and same filter the ladder itself is drawn from, so the
+      // sentence and the table can never disagree.
+      const ladRows = this.corridorRows(D, cLad.key).rows;
+      const winCount = ladRows.filter(r => r.crypto_wins_taker === "True").length;
+      const fields = {
+        size: this.fmtSize(cur, size), ladder: cLad.name,
+        taker: this.fmtMoney(cur, tm), baseline: this.fmtMoney(cur, rm), provider,
+        diff: this.fmtMoney(cur, Math.round(Math.abs(rm - tm) * 100) / 100),
+        winCount: winCount.toLocaleString("en-US"),
+        measureCount: ladRows.length.toLocaleString("en-US"),
+      };
+      const a = this.fillCopy(cheaper ? askCopy.transferCheaper : askCopy.transferPricier, fields);
+      return { a, prov: cRowProv };
+    })());
+    askAnswers.push({ // Q4: how many currencies
+      a: this.fillCopy(askCopy.currencyCount,
+        { attempted: heroCurrencyCount, priced: ix.length, withheld: withheldRows.length }),
+      prov: this.provText((D.index || {}).source_file, ts((D.index || {}).computed_at), (D.index || {}).n_sources),
+    });
+    askAnswers.push((() => { // Q5: on schedule?
+      const s = D.status;
+      if (!s) return { a: askCopy.scheduleMissing || "", prov: "" };
+      const jd = s.judged_day || {};
+      const note = s.delivery_ok ? (askCopy.scheduleOnTime || "") : (askCopy.scheduleBehind || "");
+      return { a: this.fillCopy(askCopy.scheduleSummary,
+          { date: jd.date || "—", hours: jd.hours != null ? jd.hours : "—", note }),
+        prov: this.provText(s.source_file, ts(s.computed_at), s.n_sources) };
+    })());
+    const ask = askQuestions.map((q, i) => ({
+      q, i, a: (askAnswers[i] || {}).a || "", prov: (askAnswers[i] || {}).prov || "",
+      open: st.askIdx === i, pressed: st.askIdx === i ? "true" : "false",
+      toggle: () => this.setState({ askIdx: st.askIdx === i ? null : i }),
+    }));
+    const askOpen = ask.find(a => a.open) || null;
+
     return Object.assign({
       nav, isBoard: page === "board", isCorridor: page === "corridor", isMethod: page === "methodology",
       goCorridor: () => { location.href = "./corridor.html"; },
       goMethod: () => { location.href = "./methodology.html"; },
       heroTitle: (CI.hero || {}).title || "",
+      heroTitleWords: this.titleWords((CI.hero || {}).title || ""),
       heroBody: ((CI.hero || {}).body || "").replace("{count}", String(heroCurrencyCount)),
       health: "collector ok · " + okCount + "/" + latestRun.length + " sources",
       lastTick: this.fmtStamp(lastT, true),
@@ -1650,20 +1845,26 @@ class Component extends DCLogic {
         { k: "Furthest from the official rate",
           v: this.gapWords(ixWide ? ixWide.index_pct * 100 : wide.bps),
           sub: "a dollar in " + (ixWide ? ixWide.country : this.countryIn(wide.code)),
-          mark: "" },
+          mark: "",
+          prov: ixWide ? this.provText(ixWide.source_file, ts(ixWide.computed_at), ixWide.n_sources)
+                       : this.provText("data/basis.csv", wide.t, wide.count) },
         { k: "Closest to the official rate",
           v: this.gapWords(ixNarrow ? ixNarrow.index_pct * 100 : narrow.bps),
           sub: "a dollar in " + (ixNarrow ? ixNarrow.country : this.countryIn(narrow.code)),
-          mark: "" },
+          mark: "",
+          prov: ixNarrow ? this.provText(ixNarrow.source_file, ts(ixNarrow.computed_at), ixNarrow.n_sources)
+                         : this.provText("data/basis.csv", narrow.t, narrow.count) },
       ].concat(cRowRaw ? [
         // Money first. A percentage of an amount the reader has not multiplied
         // out is not an answer to "what would this cost me".
         { k: "Stablecoin route, to send " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
           v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src), num(cRowRaw.cost_bps_taker))),
-          sub: this.fmtPct(num(cRowRaw.cost_bps_taker), false) + " of what you send, all in", mark: "" },
+          sub: this.fmtPct(num(cRowRaw.cost_bps_taker), false) + " of what you send, all in", mark: "",
+          prov: cRowProv },
         { k: "Cheapest ordinary provider, same moment",
           v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src), num(cRowRaw.baseline_cost_bps))),
-          sub: this.fmtPct(num(cRowRaw.baseline_cost_bps), false) + " · " + (cRowRaw.baseline_provider || "—"), mark: "" },
+          sub: this.fmtPct(num(cRowRaw.baseline_cost_bps), false) + " · " + (cRowRaw.baseline_provider || "—"), mark: "",
+          prov: cRowProv },
       ] : []),
       heroCurrencyCount, bands, boardTitle, withheldRows, coverage, cross,
       cov: { on: !!covH, code: covH ? covH.code : "", v: covH ? covH.v : "", t: covH ? covH.t : "",
@@ -1671,7 +1872,8 @@ class Component extends DCLogic {
       legendCells: [200, 300, 400, 500, 600].map(s => ({ bg: "var(--data-" + s + ")" })),
       mk: {
         code: sel.code, country: sel.country, venue: sel.venue,
-        bps: this.gapWords(sel.bps), sentence: this.gapSentence(sel), color: INK,
+        bps: this.gapWords(sel.bps), sentence: this.gapSentence(sel),
+        prov: this.provText("data/basis.csv", sel.t, sel.count), color: INK,
         line: mkSparse ? "" : p.line,
         area: mkSparse ? "" : p.line + " L 1000 " + zeroY.toFixed(1) + " L 0 " + zeroY.toFixed(1) + " Z",
         dots: mkSparse ? p.dots : [], sparse: mkSparse,
@@ -1704,14 +1906,16 @@ class Component extends DCLogic {
         return [
           { k: cLad.name + " · sending " + this.fmtSize(cur, size) + " · the dollar route, all in",
             v: this.fmtMoney(cur, tm),
-            sub: this.fmtPct(tb, false) + " of what you send, buying at the price on offer", color: INK },
+            sub: this.fmtPct(tb, false) + " of what you send, buying at the price on offer", color: INK,
+            prov: cRowProv },
           { k: "cheapest ordinary provider, same instant", v: this.fmtMoney(cur, rm),
-            sub: this.fmtPct(rb, false) + " · " + (cRowRaw.baseline_provider || "—"), color: INK },
+            sub: this.fmtPct(rb, false) + " · " + (cRowRaw.baseline_provider || "—"), color: INK,
+            prov: cRowProv },
           { k: "what the dollar route costs you extra",
             v: (tm === null || rm === null) ? "—"
                : this.fmtMoney(cur, Math.round((tm - rm) * 100) / 100),
             sub: this.fmtPct((tb || 0) - (rb || 0)) + " · " + (feeStamp || "fee check unavailable"),
-            color: INK },
+            color: INK, prov: cRowProv },
         ];
       })(),
       corridors: ladders,
@@ -1739,7 +1943,7 @@ class Component extends DCLogic {
             num(cRowRaw.cost_bps_maker) < num(cRowRaw.baseline_cost_bps))
             ? "the dollar route is cheaper" : "the ordinary provider is cheaper", strike: "none" },
       ]) : [],
-      findings, waterfall, stack, stackKeys, spread,
+      findings, waterfall, stack, stackKeys, spread, ask, askOpen,
       correctionDate: cLad ? this.fmtStamp(cLad.t, false) : "—",
       dislocatedNames: (() => {
         const big = mkts.filter(m => Math.abs(m.bps) >= 200).map(m => m.country);

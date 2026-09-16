@@ -211,3 +211,71 @@ figcaption { font-size: 11px; margin-top: var(--space-1); color: color-mix(in sr
   h1 { font-size: 30px !important; line-height: 1.1 !important; }
   h2 { font-size: 19px !important; }
 }
+
+/* ---------------------------------------------------------------- thread
+   The homepage reads as the agent's report, one turn after another, not a
+   grid of tiles. A rail with a small indigo mark runs down the left of every
+   turn below the hero; the hero band itself is the opening line and keeps its
+   own full-bleed treatment. See ROADMAP.md, U2. */
+[data-thread="turn"] {
+  display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 0 16px; align-items: start;
+}
+[data-thread="rail"] { display: flex; flex-direction: column; align-items: center; height: 100%; }
+[data-thread="mark"] {
+  width: 9px; height: 9px; background: var(--data-600); flex: none; margin-top: 6px;
+}
+[data-thread="rail"]::after { content: ""; flex: 1; width: 1px; background: var(--color-divider); margin-top: 8px; min-height: 24px; }
+[data-thread="turn"]:last-of-type [data-thread="rail"]::after { display: none; }
+
+/* ---------------------------------------------------------------- provenance
+   The receipt on a number: where it came from, when it was computed, how many
+   sources stood behind it. Pure CSS hover/focus, so it costs nothing to run
+   and works with the keyboard. Only wraps a figure that actually carries B1's
+   fields (or an equivalent real, derived count) -- never a fabricated one. */
+.prov { position: relative; display: inline-block; cursor: help; border-bottom: 1px dotted var(--color-neutral-500); }
+.prov:hover, .prov:focus-visible { border-bottom-color: var(--color-ink); }
+.prov .prov-pop {
+  display: none; position: absolute; z-index: 30; bottom: calc(100% + 7px); left: 0;
+  width: max-content; min-width: 200px; max-width: 280px;
+  background: var(--color-ink); color: var(--color-bg); border: 1px solid var(--color-neutral-600);
+  padding: 9px 11px; font-size: 11px; line-height: 1.5; font-weight: 400;
+  letter-spacing: normal; text-transform: none; box-shadow: var(--shadow-card);
+}
+.prov:hover .prov-pop, .prov:focus-visible .prov-pop { display: block; }
+.prov .prov-pop b {
+  display: block; font-family: var(--font-heading); font-weight: 800; font-size: 9px;
+  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 3px; color: var(--data-400);
+}
+
+/* ---------------------------------------------------------------- intro sequence
+   One orchestrated moment on load: the hero line reveals word by word, then
+   the market chart's line draws left to right. Both are CSS-only so they
+   still fire even while the rest of the page's data is loading, and both are
+   cancelled outright under prefers-reduced-motion -- everything is simply
+   there, at rest, immediately. */
+.type-word { display: inline-block; opacity: 0; animation: sc-word-in 420ms ease-out forwards; }
+@keyframes sc-word-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.chart-draw { stroke-dasharray: 3000; animation: sc-draw-line 900ms ease-out 1.05s both; }
+@keyframes sc-draw-line { from { stroke-dashoffset: 3000; } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .type-word { opacity: 1; animation: none; transform: none; }
+  .chart-draw { animation: none; stroke-dashoffset: 0; }
+}
+
+/* ---------------------------------------------------------------- docked ask
+   The ask box lives at the bottom of the thread, not a floating chrome
+   widget. Pre-computed mode: a fixed set of pills, each answered from a file
+   already in the repo -- never a text field that looks like it takes a
+   question it cannot answer. */
+[data-ask="dock"] {
+  position: sticky; bottom: 0; z-index: 10; margin-top: 48px;
+  background: var(--color-ink); color: var(--color-bg); border-top: 2px solid var(--color-ink);
+}
+[data-ask="row"] { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+[data-ask="pill"] {
+  appearance: none; cursor: pointer; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--color-bg) 40%, transparent);
+  background: transparent; color: var(--color-bg); font-family: var(--font-body); font-size: 12px;
+  padding: 7px 13px; text-align: left;
+}
+[data-ask="pill"]:hover, [data-ask="pill"][aria-pressed="true"] { background: var(--color-bg); color: var(--color-ink); border-color: var(--color-bg); }
+[data-ask="answer"] { background: color-mix(in srgb, var(--color-bg) 8%, transparent); border-top: 1px solid color-mix(in srgb, var(--color-bg) 25%, transparent); }

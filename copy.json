@@ -59,6 +59,52 @@
     "footer": {
       "kicker": "who made this",
       "body": "Built by Sebastian Roervig. I work in cross-border payments. Everyone says stablecoins made moving money cheap. I couldn't find anyone who had measured it, so I did. Raw data and code: github.com/SebR214/margin"
+    },
+    "ask": {
+      "kicker": "Ask the data",
+      "note": "Answered from files already in this repo — nothing is fetched over the network and nothing is guessed. Free-form questions arrive once the question-answering key is switched on; until then, these are the questions it can answer.",
+      "provLabel": "where this comes from",
+      "unknownSource": "an internal source",
+      "countMissing": "source count not recorded",
+      "defaultProvider": "the cheapest ordinary provider",
+      "sourceLabels": {
+        "data/basis.csv": "the board",
+        "data/basis_history.csv": "the daily history archive",
+        "data/fee_checks.csv": "a fee verification check",
+        "data/p2p_basis.csv": "the person-to-person board",
+        "data/provider_quotes.csv": "a money-transfer company's raw quote",
+        "data/providers.csv": "the Singapore-to-Philippines ranking",
+        "data/providers_audphp.csv": "the Australia-to-Philippines ranking",
+        "data/providers_nzdphp.csv": "the New Zealand-to-Philippines ranking",
+        "data/providers_usdmxn.csv": "the US-to-Mexico ranking",
+        "data/samples.csv": "the sending-money comparison",
+        "data/stable_spread.csv": "the stablecoin price check",
+        "data/withdrawal_fees.csv": "stablecoin withdrawal fees"
+      },
+      "questions": [
+        "Which country is furthest from the official rate right now?",
+        "Which country is closest to the official rate right now?",
+        "What does a dollar cost in the Philippines right now?",
+        "Is sending money by the dollar route cheaper than a bank right now?",
+        "How many currencies are tracked, and how many have a price this hour?",
+        "Has data collection been running on schedule?"
+      ],
+      "answers": {
+        "widest": "In {country}, a dollar costs {gap} than the official rate — the widest gap measured this hour.",
+        "narrowest": "In {country}, a dollar costs {gap} than the official rate — the closest to it measured this hour.",
+        "phpPriced": "A dollar costs {gap} than the official rate in the Philippines.",
+        "phpWithheld": "No price for the Philippines this hour — {reason}.",
+        "phpMissing": "No price collected for the Philippines this hour.",
+        "transferMissing": "No transfer has been priced yet.",
+        "transferInsufficient": "Not enough data on this route to compare right now.",
+        "transferCheaper": "Yes — sending {size} on {ladder} right now costs {taker} through the dollar route against {baseline} with {provider}. The dollar route is cheaper by {diff} — that is rare; on {ladder} it has won {winCount} of {measureCount} measurements since collection began.",
+        "transferPricier": "No — sending {size} on {ladder} right now costs {taker} through the dollar route against {baseline} with {provider}. {provider} is cheaper by {diff}.",
+        "currencyCount": "{attempted} currencies are attempted every hour; {priced} carry a published price this hour, and {withheld} are withheld, each with a stated reason.",
+        "scheduleMissing": "The machine's health record hasn't loaded this visit.",
+        "scheduleSummary": "The last complete day ({date}) captured {hours} of 24 hours. {note}",
+        "scheduleOnTime": "That is on schedule.",
+        "scheduleBehind": "That is short of a full day — collection has been dropping hours."
+      }
     }
   },
   "corridor": {
