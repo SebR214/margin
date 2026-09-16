@@ -1067,6 +1067,7 @@ data/stable_spread.csv  USDT vs USDC on the same venue, same hour (12 venues)
 data/p2p_basis.csv      P2P layer -- 53 currencies, hourly
 data/p2p_sides.csv      per-side ad counts, for the v1.1 evidence rule
 data/p2p_depth.csv      per-side real ad totals (SEB-50), diagnostic, not yet wired into publishing
+data/p2p_offers.csv     individual ad prices behind each median (SEB-56), from this run forward
 data/fx_rates.csv       the denominator of record: rate, source, parallel rate
 data/provider_quotes.csv  quotes from the providers' own public endpoints
 data/providers_latest.json  every way to send it, ranked, per route per amount
@@ -1078,6 +1079,9 @@ data/countries/<CCY>.json  per-country index, history and sources, per run
 data/index_latest.json  every country ranked, version-stamped, per run
 c/<ccy>.html            one page per country, stable URL, rendered from the JSON
 tools/emit_countries.py builds all of the above from the CSVs
+data/receipts/<CCY>.json  the evidence, official rate, arithmetic and evidence-rule
+                        check behind that country's number (SEB-56), published or withheld
+tools/emit_receipts.py  builds the receipts from data/countries/*.json and the CSVs beneath it
 collector_p2p.py        P2P layer -- Binance P2P board, median of top 10 each side
 data/withdrawal_fees.csv USDT withdrawal fee per venue/network, append-only
 tools/seed_withdrawal_fees.py   one-time seed for withdrawal_fees.csv
