@@ -305,6 +305,11 @@ jobs:
           # still leaves the rows committed and pushed -- loud, but never at the
           # cost of a sample. Exits 1 if the newest row is too old (bash -e).
           python3 tools/check_freshness.py
+          # SEB-60: a country's chart and its published number are meant to be
+          # the same measurement -- this fails loudly if a future change to
+          # tools/emit_countries.py ever lets them drift apart again, the way
+          # daily_history() and latest_by_ccy() drifted before this fix.
+          python3 tools/check_index_consistency.py
 
       # 5. THE LINK. What makes the chain a chain: sleep to the next slot, then
       # start the next run with the workflow's own GITHUB_TOKEN.
