@@ -1788,10 +1788,17 @@ class Component extends DCLogic {
       if (tm === null || rm === null) return { a: askCopy.transferInsufficient || "", prov: cRowProv };
       const provider = cRowRaw.baseline_provider || "the cheapest ordinary provider";
       const cheaper = tm <= rm;
+      // The "that is rare" clause has to be counted, not asserted. Same
+      // source and same filter the ladder itself is drawn from, so the
+      // sentence and the table can never disagree.
+      const ladRows = this.corridorRows(D, cLad.key).rows;
+      const winCount = ladRows.filter(r => r.crypto_wins_taker === "True").length;
       const fields = {
         size: this.fmtSize(cur, size), ladder: cLad.name,
         taker: this.fmtMoney(cur, tm), baseline: this.fmtMoney(cur, rm), provider,
         diff: this.fmtMoney(cur, Math.round(Math.abs(rm - tm) * 100) / 100),
+        winCount: winCount.toLocaleString("en-US"),
+        measureCount: ladRows.length.toLocaleString("en-US"),
       };
       const a = this.fillCopy(cheaper ? askCopy.transferCheaper : askCopy.transferPricier, fields);
       return { a, prov: cRowProv };
