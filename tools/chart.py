@@ -165,8 +165,11 @@ def _runs(pts):
 
 
 def _geometry(pts):
+    # Scaled to the data's own range, not anchored to zero -- a series that
+    # never nears zero (most of these don't) would otherwise render as a
+    # flat line pinned to the top of the plot, hiding real movement.
     values = [p["value"] for p in pts]
-    lo, hi = min(values + [0]), max(values + [0])
+    lo, hi = min(values), max(values)
     pad = (hi - lo) * 0.12 or 1
     lo -= pad
     hi += pad

@@ -54,9 +54,11 @@
 
   function render(root, pts, copy) {
     var n = pts.length;
+    // Scaled to the data's own range, not anchored to zero -- see chart.py's
+    // _geometry for why (a series far from zero would otherwise flatten).
     var values = pts.map(function (p) { return p.index_pct; });
-    var lo = Math.min.apply(null, values.concat([0]));
-    var hi = Math.max.apply(null, values.concat([0]));
+    var lo = Math.min.apply(null, values);
+    var hi = Math.max.apply(null, values);
     var pad = (hi - lo) * 0.12 || 1;
     lo -= pad; hi += pad;
     var indexOf = {};
