@@ -870,7 +870,22 @@ def build():
     hist = daily_history()
     files = {}
     for ccy, entry in latest.items():
-        h = hist.get(ccy, [])
+        h = list(hist.get(ccy, []))
+        # SEB-60: daily_history() medians every hourly reading landed so far
+        # for the newest day, which is a different, still-open window from the
+        # single latest hour latest_by_ccy() published as index_pct -- the two
+        # disagreed on 37 of 48 countries. There is one published figure for
+        # "right now": entry["index_pct"]. The newest history point is that
+        # same value, not a second figure computed from the same rows again,
+        # so the two cannot drift apart by construction.
+        today = (entry.get("hour_utc") or "")[:10]
+        if entry.get("index_pct") is not None and today:
+            point = {"date": today, "index_pct": entry["index_pct"],
+                     "n": entry.get("n_sources"), "source": "current_hour"}
+            if h and h[-1]["date"] == today:
+                h[-1] = point
+            else:
+                h.append(point)
         doc = dict(entry)
         doc["history"] = h
         doc["history_start"] = h[0]["date"] if h else None
