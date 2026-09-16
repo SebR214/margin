@@ -927,13 +927,13 @@ class Component extends DCLogic {
     const label = this.sourceLabels[file];
     if (label) return label;
     console.error("provText: no plain-language sourceLabels entry for", file);
-    return "an internal source";
+    return this.askFallbacks.unknownSource || "";
   }
   provText(file, whenMs, n) {
     const list = Array.isArray(file) ? file : (file ? [file] : []);
     const files = list.length ? list.map(f => this.sourceLabel(f)).join(", ") : "—";
     const when = whenMs ? this.fmtStamp(whenMs, true) : "—";
-    const sources = (n === null || n === undefined) ? "source count not recorded"
+    const sources = (n === null || n === undefined) ? (this.askFallbacks.countMissing || "")
       : n + (n === 1 ? " source" : " sources");
     return files + " · computed " + when + " · " + sources;
   }
@@ -1181,6 +1181,9 @@ class Component extends DCLogic {
     // (that is how "basis" and friends leak onto the page). Set here, once
     // per render, so the method itself stays free of copy.json wiring.
     this.sourceLabels = (CI.ask || {}).sourceLabels || {};
+    // The provenance helpers below render text too, so their fallbacks
+    // live in the deck like every other reader-facing string.
+    this.askFallbacks = CI.ask || {};
     // Four nav items, same markup and same copy.json every page loads. This
     // page is "the index", so that item alone carries aria-current.
     const nav = (C.nav || []).map(n => ({
@@ -1786,7 +1789,7 @@ class Component extends DCLogic {
       const tb = num(cRowRaw.cost_bps_taker), rb = num(cRowRaw.baseline_cost_bps);
       const tm = this.costOf(cur, size, tb), rm = this.costOf(cur, size, rb);
       if (tm === null || rm === null) return { a: askCopy.transferInsufficient || "", prov: cRowProv };
-      const provider = cRowRaw.baseline_provider || "the cheapest ordinary provider";
+      const provider = cRowRaw.baseline_provider || this.askFallbacks.defaultProvider || "";
       const cheaper = tm <= rm;
       // The "that is rare" clause has to be counted, not asserted. Same
       // source and same filter the ladder itself is drawn from, so the
