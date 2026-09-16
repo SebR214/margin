@@ -197,6 +197,16 @@ jobs:
         # non-zero only if it cannot write.
         run: python3 tools/emit_countries.py
 
+      - name: Emit receipts
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-56. Runs right after the per-country step so it reads what that
+        # step just wrote (data/countries/<CCY>.json) alongside the raw CSVs
+        # underneath it, and writes data/receipts/<CCY>.json: the evidence,
+        # the official rate, the arithmetic and the evidence-rule check for
+        # every currency, published or withheld. Exits non-zero only if it
+        # cannot write.
+        run: python3 tools/emit_receipts.py
+
       - name: Emit the stress signal
         if: always() && steps.needed.outputs.proceed == 'true'
         # Append-only. Checks data/countries/*.json (just written above)
@@ -250,6 +260,7 @@ jobs:
                    data/providers_nzdphp.csv data/latest.json \
                    data/crosses_latest.json data/stable_spread.csv \
                    data/p2p_basis.csv data/p2p_sides.csv data/p2p_depth.csv \
+                   data/p2p_offers.csv \
                    data/index_latest.json \
                    data/fx_rates.csv data/provider_quotes.csv \
                    data/providers_latest.json data/price_changes.csv \
@@ -261,12 +272,12 @@ jobs:
                    data/p2p_spread_signal.csv data/p2p_spread_signal_latest.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
-          # Directories: one file per country, a page per country, and the
-          # bundle's parquet files + manifest. A country (or a table
-          # emit_bundle.py starts writing) appears here on its first run with
-          # no edit to this list -- which is the point of staging the directory
-          # rather than naming the files.
-          for d in data/countries c data/bundle; do
+          # Directories: one file per country, a page per country, one
+          # receipt per country, and the bundle's parquet files + manifest. A
+          # country (or a table emit_bundle.py starts writing) appears here
+          # on its first run with no edit to this list -- which is the point
+          # of staging the directory rather than naming the files.
+          for d in data/countries data/receipts c data/bundle; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Anything TRACKED that an emitter rewrote but the list above forgot.

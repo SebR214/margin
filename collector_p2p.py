@@ -92,6 +92,18 @@ SIDES_FIELDS = ["ts_utc", "ccy", "n_buy", "n_sell"]
 # yet. See METHODOLOGY.md, "The evidence rule (v1.1)".
 DEPTH = os.path.join(HERE, "data", "p2p_depth.csv")
 DEPTH_FIELDS = ["ts_utc", "ccy", "buy_total", "sell_total"]
+# Third sidecar (SEB-56). Every median published rests on individual ad
+# prices that were fetched and then thrown away -- `summarise()` reduces
+# `buys`/`sells` straight to a median with nothing kept behind it. This
+# writes the prices themselves, one row per ad, so a future receipt can show
+# the offers a median came from instead of only the median. It costs nothing
+# extra to collect -- the prices already arrive in the same response
+# `prices_from` already parses -- and it changes nothing about the fetched
+# page or the published price. History cannot be backfilled: rows exist only
+# from the hour this sidecar started forward, and a receipt for an earlier
+# hour says so rather than inventing offers that were never recorded.
+OFFERS = os.path.join(HERE, "data", "p2p_offers.csv")
+OFFERS_FIELDS = ["ts_utc", "ccy", "side", "price"]
 FX_URL = "https://open.er-api.com/v6/latest/USD"
 
 SEARCH_URL = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
@@ -321,6 +333,7 @@ def build_rows(ts, currencies, fx, post=post_json, ngn_fallback=fetch_ngn_fallba
             row["_n_buy"], row["_n_sell"] = len(buys), len(sells)
             row["_buy_total"] = total_from(buy_board)
             row["_sell_total"] = total_from(sell_board)
+            row["_buys"], row["_sells"] = buys, sells
             if mid is None:
                 # No board, or only one side of one. Both are real facts about
                 # the market and neither is a half-price worth publishing.
@@ -425,6 +438,29 @@ def append_depth(rows):
                       "sell_total": r.get("_sell_total")}
                      for r in rows])
     return DEPTH
+
+
+def append_offers(rows):
+    """One row per individual ad price (SEB-56), from the same rows, same run.
+
+    Only rows that actually parsed offers carry `_buys`/`_sells` -- a failed
+    currency or the NGN aggregate fallback have neither key and contribute no
+    offer rows, which is correct: there is no individual ad behind either.
+    """
+    os.makedirs(os.path.dirname(OFFERS), exist_ok=True)
+    new = not os.path.exists(OFFERS)
+    out = []
+    for r in rows:
+        for price in r.get("_buys") or []:
+            out.append({"ts_utc": r["ts_utc"], "ccy": r["ccy"], "side": "buy", "price": price})
+        for price in r.get("_sells") or []:
+            out.append({"ts_utc": r["ts_utc"], "ccy": r["ccy"], "side": "sell", "price": price})
+    with open(OFFERS, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=OFFERS_FIELDS, extrasaction="ignore")
+        if new:
+            w.writeheader()
+        w.writerows(out)
+    return OFFERS
 
 
 def append(rows):
@@ -571,6 +607,24 @@ def selftest():
     print(f"  [ok] {n_ok}/{len(CURRENCIES)} currencies priced; buy above sell; "
           f"schema covers the row")
 
+    # 4a2. SEB-56: the individual ad prices behind a median are kept, not
+    #      thrown away -- one entry per ad, on both sides, matching the
+    #      counts already asserted above.
+    assert set(OFFERS_FIELDS) == {"ts_utc", "ccy", "side", "price"}
+    assert len(vnd["_buys"]) == vnd["_n_buy"] and len(vnd["_sells"]) == vnd["_n_sell"]
+    assert abs(statistics.median(vnd["_buys"]) - vnd["buy_median"]) < 1e-9
+    assert abs(statistics.median(vnd["_sells"]) - vnd["sell_median"]) < 1e-9
+    offer_rows = []
+    for r in rows:
+        for p in r.get("_buys") or []:
+            offer_rows.append({"ts_utc": r["ts_utc"], "ccy": r["ccy"], "side": "buy", "price": p})
+        for p in r.get("_sells") or []:
+            offer_rows.append({"ts_utc": r["ts_utc"], "ccy": r["ccy"], "side": "sell", "price": p})
+    assert len(offer_rows) == sum(r["n_ads"] for r in rows), \
+        "one offer row per ad, both sides, across every priced currency"
+    print(f"  [ok] SEB-56: {len(offer_rows)} individual offer prices kept behind "
+          f"{n_ok} medians, matching the per-side ad counts exactly")
+
     # 4b. SEB-50: a board deeper than its page reports that depth without the
     #     fetched price or count changing at all.
     val = round(FX_FIXTURE["VND"] * 1.01, 4)
@@ -608,6 +662,14 @@ def selftest():
         assert r["fx_mid_per_usd"] is not None, "the rate we asked against is kept"
     assert n_ok_e == 50 and run_exit_code(n_ok_e) == 0
     print("  [ok] empty board -> source_ok=False row with the reason, run exits 0")
+
+    # 5a2. SEB-56: an empty board has no ads behind it, so it contributes no
+    #      offer rows -- never an invented zero-price row standing in.
+    for c in ("NGN", "GHS", "ETB"):
+        r = next(x for x in rows_e if x["ccy"] == c)
+        assert not r.get("_buys") and not r.get("_sells"), \
+            "an empty board must not fabricate offer rows"
+    print("  [ok] SEB-56: an empty board contributes zero offer rows, not invented ones")
 
     # 5c. SEB-8: NGN gets a second, independent price on exactly the hours its
     #     own board is empty -- never GHS or ETB, which have no fallback, and
@@ -738,6 +800,7 @@ def main():
         append(rows)
         append_sides(rows)
         append_depth(rows)
+        append_offers(rows)
 
     if a.json:
         print(json.dumps(rows, indent=2, default=str))
@@ -749,7 +812,8 @@ def main():
 
     print(f"  appended -> {P2P}")
     print(f"  appended -> {SIDES}")
-    print(f"  appended -> {DEPTH}\n")
+    print(f"  appended -> {DEPTH}")
+    print(f"  appended -> {OFFERS}\n")
     if run_exit_code(n_ok) != 0:
         print("  [error] TOTAL BLACKOUT -- no currency priced this run", file=sys.stderr)
         sys.exit(1)
