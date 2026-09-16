@@ -74,6 +74,7 @@ esac
 IDLE_MAX=1800
 IDLE_SECONDS=45        # a pass shorter than this did nothing
 idle_streak=0
+quiet_polls=0
 ERROR_WAIT=300          # something went wrong that is not a usage limit
 LIMIT_FALLBACK=1800     # usage limit with no reset time we could read
 
@@ -96,6 +97,27 @@ with open(path, "a") as f:
         "seconds": float(secs),
     }) + "\n")
 PY
+}
+
+# Is there anything to do? One HTTP request, no model call. Defined as a
+# function because the backoff below has to ask the same question while it
+# waits -- a loop that sleeps through newly arrived work is the same latency
+# bug as a loop that never wakes.
+have_work_now() {
+  case "$ROLE" in
+    builder)
+      _next=$(python3 "$REPO/agents/linear.py" next 2>/dev/null)
+      _stranded=$(python3 "$REPO/agents/linear.py" stranded 2>/dev/null)
+      [ "$_next" = "NOTHING TO DO" ] && [ "$_stranded" = "NONE STRANDED" ] && return 1
+      return 0
+      ;;
+    reviewer)
+      _pending=$(python3 "$REPO/agents/reviewer_work.py" 2>/dev/null | wc -l | tr -d " ")
+      [ "$_pending" = "0" ] && return 1
+      return 0
+      ;;
+  esac
+  return 0
 }
 
 while true; do
@@ -176,32 +198,7 @@ while true; do
   # to silently stop the machine; the worst case is one wasted session, and the
   # alternative is a loop that quietly does nothing for a day.
   HAVE_WORK=1
-  case "$ROLE" in
-    builder)
-      NEXT=$(python3 "$REPO/agents/linear.py" next 2>/dev/null)
-      STRANDED=$(python3 "$REPO/agents/linear.py" stranded 2>/dev/null)
-      if [ "$NEXT" = "NOTHING TO DO" ] && [ "$STRANDED" = "NONE STRANDED" ]; then
-        HAVE_WORK=0
-      fi
-      ;;
-    reviewer)
-      # "Has the code changed since I last looked", not "is this labelled".
-      #
-      # This used to ask for issues In Review not carrying needs-sebastian, and
-      # it deadlocked three times on 2026-09-16: the reviewer failed a PR and
-      # labelled it, the builder pushed a fix, the label stayed -- so the
-      # reviewer went blind to the exact branch it had asked to be fixed, and
-      # nothing moved until a human cleared the label by hand. A label says what
-      # a person should do; it cannot say whether new code has arrived, which is
-      # the only question that decides whether there is reviewing to do.
-      #
-      # A PR needs review when it carries no review yet, or when its head commit
-      # is newer than the newest review on it. An issue can carry
-      # needs-sebastian and still deserve a fresh pass the moment a fix lands.
-      PENDING=$(python3 "$REPO/agents/reviewer_work.py" 2>/dev/null | wc -l | tr -d " ")
-      if [ "$PENDING" = "0" ]; then HAVE_WORK=0; fi
-      ;;
-  esac
+  have_work_now || HAVE_WORK=0
 
   if [ "$HAVE_WORK" = "0" ]; then
     # No backoff here, deliberately. The check above is one HTTP request and no
@@ -209,8 +206,13 @@ while true; do
     # backing off would trade latency against a cost that no longer exists.
     # Cheap polling can afford to be frequent, so work gets picked up within a
     # minute instead of up to half an hour.
-    idle_streak=$((idle_streak + 1))
-    if [ $((idle_streak % 30)) -eq 1 ]; then
+    # A separate counter from idle_streak, which governs how long to wait
+    # after a MODEL pass came back empty. Cheap polls must not inflate that --
+    # thirty free checks finding nothing is not evidence the model should be
+    # rationed, and letting them share a counter sent the next model backoff
+    # straight to its ceiling.
+    quiet_polls=$((quiet_polls + 1))
+    if [ $((quiet_polls % 30)) -eq 1 ]; then
       say "[$ROLE] nothing to do (no model call); polling every ${IDLE}s"
     fi
     sleep "$IDLE"
@@ -274,5 +276,26 @@ while true; do
   fi
   record 1 "ok" "$ELAPSED"
   rm -f "$OUT"
-  sleep "$WAIT"
+
+  # Wait out the backoff, but keep asking. The backoff exists to stop the model
+  # being woken over and over for an empty queue -- it was never meant to make
+  # the loop deaf to work that arrives while it waits.
+  #
+  # On 2026-09-16 the builder backed off to half an hour after five empty
+  # passes, U6 went back into Todo ninety seconds later, and it slept through
+  # the lot. A person had to restart the service to get it moving.
+  #
+  # The check is one HTTP request and no model call, so asking every IDLE
+  # seconds during the wait costs approximately nothing and removes up to half
+  # an hour of dead time.
+  waited=0
+  while [ "$waited" -lt "$WAIT" ]; do
+    sleep "$IDLE"
+    waited=$((waited + IDLE))
+    if have_work_now; then
+      say "[$ROLE] work arrived after ${waited}s of a ${WAIT}s wait; going now"
+      idle_streak=0
+      break
+    fi
+  done
 done
