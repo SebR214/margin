@@ -1,0 +1,9 @@
+[Unit]
+Description=Record how many pull requests are open, for the machine room page
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/margin
+EnvironmentFile=/etc/margin/env
+ExecStart=/srv/margin/agents/emit_open_prs.sh

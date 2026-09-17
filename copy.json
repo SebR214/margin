@@ -136,6 +136,12 @@
       "kicker": "who made this",
       "body": "Built by Sebastian Roervig. I work in cross-border payments. Everyone says stablecoins made moving money cheap. I couldn't find anyone who had measured it, so I did. Raw data and code: github.com/SebR214/margin"
     },
+    "machineRoom": {
+      "label": "the machine room",
+      "statusTemplate": "{priced} priced this hour · {withheld} withheld",
+      "statusUnknown": "reading data/…",
+      "cta": "watch it run →"
+    },
     "ask": {
       "kicker": "Ask the data",
       "note": "Answered from files already in this repo — nothing is fetched over the network and nothing is guessed. Free-form questions arrive once the question-answering key is switched on; until then, these are the questions it can answer.",
@@ -290,6 +296,53 @@
       "unverifiedTemplate": "fees UNVERIFIED ({reason}) — last clean check {lastClean}",
       "noneOnRecord": "none on record",
       "verifiedTemplate": "fees verified {date}"
+    }
+  },
+  "machineRoom": {
+    "title": "The machine room",
+    "lede": "This is the machine running, unedited: the collector working through this hour's currencies, and the people and agents building this site. Nothing here is smoothed or filled in — a quiet hour reads as quiet.",
+    "loadFailed": "the machine room's feed could not be reached",
+    "connectionLost": "the live feed dropped — retrying…",
+    "columns": {
+      "collection": {
+        "title": "This hour's collection",
+        "idle": "collector idle, next pass on the hour",
+        "active": "collector pass under way",
+        "empty": "Nothing collected yet this run.",
+        "pricedTemplate": "{ccy} — {country} priced · {words} · {evidence}",
+        "withheldTemplate": "{ccy} — {country} withheld · {reason}",
+        "evidenceCount": "{n} sources",
+        "classWords": {
+          "order_book_median": "from order books",
+          "order_book_single": "from an order book",
+          "broker_median": "from broker quotes",
+          "broker_single": "from a broker quote",
+          "p2p_buy_median": "from person-to-person ads",
+          "p2p_fallback": "from an independent price source"
+        }
+      },
+      "agents": {
+        "title": "What the agents are doing",
+        "empty": "No agent activity seen yet this visit.",
+        "unknownRole": "an agent",
+        "transitionTemplate": "{role} moved {ident} to “{toState}”",
+        "commentTemplate": "{role} commented on {ident}: {text}",
+        "commitTemplate": "{author} committed: {message}",
+        "loopPassTemplate": "{role} finished a pass · {count} today",
+        "loopStoppedTemplate": "{role} has stopped — no pass in over two hours",
+        "loopRecoveredTemplate": "{role} is running again"
+      },
+      "meters": {
+        "title": "Where things stand",
+        "priced": "priced this hour",
+        "withheld": "withheld, with reasons",
+        "commitsToday": "collector commits today",
+        "openPrs": "open pull requests",
+        "unbrokenHours": "unbroken hours of history",
+        "people": "people working here",
+        "peopleValue": "1",
+        "unknown": "—"
+      }
     }
   },
   "receipt": {

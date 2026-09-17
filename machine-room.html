@@ -2,56 +2,334 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
+<link rel="stylesheet" href="./style.css"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki — the machine room</title>
-<meta name="description" content="Watching the collector and the agents that build this site run, unedited. Not built yet."/>
-<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<meta name="description" content="Watching the collector and the agents that build this site run, unedited, as it happens."/>
 <style>
-  :root{
-    --bg:#f3f2f2; --ink:#201e1d; --muted:#7d7979;
-    --line:color-mix(in srgb,#201e1d 18%,transparent);
-    --rule:color-mix(in srgb,#201e1d 40%,transparent);
-    --head:"Archivo",system-ui,sans-serif;
+  /* Page-specific only: the three-column live-feed layout belongs to this
+     page alone. Tokens, header, hero all come from style.css. */
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px 72px}
+  [data-grid="room"]{display:grid;grid-template-columns:1.1fr 1.1fr 0.85fr;gap:2px;
+                      background:var(--color-divider);margin-top:32px}
+  .col{background:var(--color-bg);padding:20px 20px 26px;min-width:0}
+  .col h2{font-size:16px;margin:0 0 4px}
+  .col .sub{font-size:12px;color:var(--color-neutral-600);margin:0 0 14px}
+  .feed{display:flex;flex-direction:column;gap:0;max-height:640px;overflow-y:auto}
+  .feed .line{padding:9px 0;border-top:1px solid var(--color-divider);font-size:13px;line-height:1.4}
+  .feed .line:first-child{border-top:0}
+  .feed .line .t{font-size:10.5px;color:var(--color-neutral-500);letter-spacing:.03em;
+                  text-transform:uppercase;display:block;margin-bottom:2px}
+  .feed .line.withheld{color:#B3822D}
+  .feed .divider{padding:7px 0;font-size:11px;color:var(--color-neutral-600);
+                  text-transform:uppercase;letter-spacing:.06em}
+  .empty{padding:26px 0;color:var(--color-neutral-600);font-size:13.5px}
+  .meters{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--color-divider);
+          border:1px solid var(--color-divider);margin-top:2px}
+  .meter{background:var(--color-bg);padding:14px 14px}
+  .meter .n{font-family:var(--font-heading);font-weight:800;font-size:30px;line-height:1.1;
+             color:var(--data-700)}
+  .meter .k{font-size:11px;color:var(--color-neutral-700);margin-top:2px}
+  .stale{font-size:11.5px;color:var(--color-neutral-600);margin-top:16px}
+  @media(max-width:980px){
+    [data-grid="room"]{grid-template-columns:1fr}
+    .meters{grid-template-columns:1fr 1fr}
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--head);
-       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:760px;margin:0 auto;padding:0 24px 72px}
-  header{display:flex;align-items:center;gap:16px;padding:14px 0;
-         border-bottom:1px solid var(--rule);font-size:11px;
-         letter-spacing:.1em;text-transform:uppercase;flex-wrap:wrap}
-  header a{color:var(--ink);text-decoration:none}
-  header a:hover{text-decoration:underline}
-  h1{font-size:34px;line-height:1.08;margin:34px 0 10px;max-width:24ch}
-  .lede{font-size:16px;max-width:60ch;margin:0 0 10px;color:var(--muted)}
-  .muted{color:var(--muted)} .small{font-size:12px}
-  a.inline{color:var(--ink)}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <a href="./index.html"><b>margin.wiki</b></a>
-    <a href="./index.html">the board</a>
-    <a href="./providers.html">every way to send it</a>
-    <a href="./pricing-history.html">price changes</a>
-    <a href="./corridor.html">is it a real dollar?</a>
-    <a href="./stress.html">stress signal</a>
-    <a href="./weekly.html">weekly snapshot</a>
-    <a href="./requests.html">requests</a>
-    <a href="./calculator.html">calculator</a>
-    <a href="./methodology.html">methodology</a>
-    <a href="./status.html">status</a>
-  </header>
 
-  <h1>The machine room isn't built yet.</h1>
-  <p class="lede">This page will show the collector's current pass and what the
-     agents building this site are doing, unedited, as it happens. That work
-     is still in progress -- M1, the event feed, and M2, this page, haven't
-     shipped.</p>
-  <p class="lede">What's real today: <a class="inline" href="./status.html">whether
-     the measurement is still running</a> -- hours collected, sources
-     answering, countries published.</p>
+<div data-nav="bar">
+  <div style="display: flex; align-items: center; gap: 28px;">
+    <a data-nav="brand" href="./index.html" id="brand"></a>
+    <div data-nav="links" id="navLinks"></div>
+  </div>
 </div>
+
+<div class="hero">
+  <div class="wrap" style="padding-top:0; padding-bottom:0;">
+    <h1 id="pageTitle" style="font-size:34px; margin:0 0 12px; max-width:26ch;"></h1>
+    <p class="text-muted" style="max-width:66ch; font-size:15px; margin:0;" id="lede"></p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div data-grid="room" id="room">
+    <div class="col">
+      <h2 id="col1Title"></h2>
+      <p class="sub" id="col1Sub"></p>
+      <div class="feed" id="col1Feed"></div>
+    </div>
+    <div class="col">
+      <h2 id="col2Title"></h2>
+      <p class="sub" id="col2Sub"></p>
+      <div class="feed" id="col2Feed"></div>
+    </div>
+    <div class="col">
+      <h2 id="col3Title"></h2>
+      <div class="meters" id="meters"></div>
+      <p class="stale" id="stale"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const API_BASE = location.hostname.endsWith("margin.wiki")
+  ? "https://api.margin.wiki" : "http://127.0.0.1:8903";
+
+let COPY = {};
+const T = (s, vals) => {
+  let out = String(s || "");
+  for (const k in (vals || {})) out = out.split("{" + k + "}").join(vals[k] === null || vals[k] === undefined ? "—" : vals[k]);
+  return out;
+};
+const escapeHtml = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => (
+  { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtStamp = iso => {
+  if (!iso) return "";
+  const t = Date.parse(iso);
+  if (!isFinite(t)) return "";
+  return new Date(t).toISOString().slice(0, 16).replace("T", " ") + "Z";
+};
+
+function loadJSON(path) {
+  return fetch(path, { cache: "no-store" })
+    .then(r => r.ok ? r.json() : null)
+    .catch(() => null);
+}
+
+// ---------------------------------------------------------------- state
+// Priced/withheld are Maps keyed by ccy, seeded from data/index_latest.json
+// (a real file, already written before this page ever loads) and updated in
+// place by live collector_source events -- a country changing hands from
+// withheld to priced (or back) just overwrites its one entry, never doubles
+// it. The meter counts are these maps' sizes, always, never a separate
+// running tally that could drift from the list actually shown.
+const priced = new Map(), withheld = new Map();
+let passActive = false;
+const seenKeys = new Set();     // dedupes a replayed event from a live one
+const commitsToday = new Set(); // commit sha -> counted once, today's UTC date only
+let openPrs = null, unbrokenHours = null;
+
+function todayUTC() { return new Date().toISOString().slice(0, 10); }
+
+function dedupeKey(ev) { return JSON.stringify(ev); }
+
+// ---------------------------------------------------------------- column 1
+function classWords(kind) {
+  const w = (COPY.columns.collection.classWords || {})[kind];
+  return w || "";
+}
+
+function renderCol1Row(ev) {
+  const C = COPY.columns.collection;
+  if (ev.priced) {
+    const words = ev.words || classWords(ev.source_kind);
+    const evidence = ev.evidenceText || T(C.evidenceCount, { n: ev.evidence_count });
+    return { html: T(C.pricedTemplate, { ccy: ev.ccy, country: ev.country || ev.ccy, words, evidence }), withheld: false };
+  }
+  return { html: T(C.withheldTemplate, { ccy: ev.ccy, country: ev.country || ev.ccy, reason: ev.reason || "" }), withheld: true };
+}
+
+let col1Rows = []; // newest first, each {html, withheld, ts}
+
+function seedCol1(index) {
+  if (!index) return;
+  for (const c of (index.countries || [])) {
+    priced.set(c.ccy, true);
+    withheld.delete(c.ccy);
+  }
+  for (const w of (index.withheld || [])) {
+    withheld.set(w.ccy, w.reason || w.reason_raw || "");
+    priced.delete(w.ccy);
+  }
+  const C = COPY.columns.collection;
+  const rows = [];
+  for (const c of (index.countries || [])) {
+    rows.push({
+      html: T(C.pricedTemplate, {
+        ccy: c.ccy, country: c.country || c.ccy,
+        words: c.source_words || classWords(c.source_class),
+        evidence: c.evidence_words || T(C.evidenceCount, { n: c.n_sources }),
+      }),
+      withheld: false, ts: c.computed_at || index.computed_at,
+    });
+  }
+  for (const w of (index.withheld || [])) {
+    rows.push({
+      html: T(C.withheldTemplate, { ccy: w.ccy, country: w.country || w.ccy, reason: w.reason || w.reason_raw || "" }),
+      withheld: true, ts: w.computed_at || index.computed_at,
+    });
+  }
+  rows.sort((a, b) => (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : (a.html < b.html ? -1 : 1)));
+  col1Rows = rows;
+}
+
+function renderCol1() {
+  const C = COPY.columns.collection;
+  document.getElementById("col1Sub").textContent = passActive ? C.active : C.idle;
+  const el = document.getElementById("col1Feed");
+  if (!col1Rows.length) { el.innerHTML = `<div class="empty">${escapeHtml(C.empty)}</div>`; return; }
+  el.innerHTML = col1Rows.slice(0, 60).map(r =>
+    `<div class="line${r.withheld ? " withheld" : ""}">${r.html}</div>`).join("");
+}
+
+// ---------------------------------------------------------------- column 2
+function renderCol2Row(ev) {
+  const C = COPY.columns.agents;
+  const role = ev.role && ev.role !== "unknown" ? ev.role : C.unknownRole;
+  if (ev.kind === "linear") {
+    if (ev.event === "transition") {
+      return T(C.transitionTemplate, { role, ident: ev.ident, toState: ev.to_state || "" });
+    }
+    if (ev.event === "comment") {
+      const text = (ev.text || "").slice(0, 180) + ((ev.text || "").length > 180 ? "…" : "");
+      return T(C.commentTemplate, { role, ident: ev.ident, text: escapeHtml(text) });
+    }
+    return null;
+  }
+  if (ev.kind === "commit") {
+    return T(C.commitTemplate, { author: escapeHtml(ev.author || ""), message: escapeHtml(ev.message || "") });
+  }
+  if (ev.kind === "loop_health") {
+    if (ev.event === "pass") return T(C.loopPassTemplate, { role: ev.role, count: ev.passes_today });
+    if (ev.event === "stopped") return T(C.loopStoppedTemplate, { role: ev.role });
+    if (ev.event === "recovered") return T(C.loopRecoveredTemplate, { role: ev.role });
+  }
+  return null;
+}
+
+let col2Rows = []; // newest first, each {html, ts}
+
+function renderCol2() {
+  const el = document.getElementById("col2Feed");
+  const C = COPY.columns.agents;
+  if (!col2Rows.length) { el.innerHTML = `<div class="empty">${escapeHtml(C.empty)}</div>`; return; }
+  el.innerHTML = col2Rows.slice(0, 60).map(r =>
+    `<div class="line"><span class="t">${escapeHtml(fmtStamp(r.ts))}</span>${r.html}</div>`).join("");
+}
+
+// ---------------------------------------------------------------- meters
+function renderMeters() {
+  const M = COPY.columns.meters;
+  const rows = [
+    [priced.size, M.priced],
+    [withheld.size, M.withheld],
+    [commitsToday.size, M.commitsToday],
+    [openPrs === null ? M.unknown : openPrs, M.openPrs],
+    [unbrokenHours === null ? M.unknown : unbrokenHours, M.unbrokenHours],
+    [M.peopleValue, M.people],
+  ];
+  document.getElementById("meters").innerHTML = rows.map(([n, k]) =>
+    `<div class="meter"><div class="n">${escapeHtml(String(n))}</div><div class="k">${escapeHtml(k)}</div></div>`
+  ).join("");
+}
+
+// ---------------------------------------------------------------- events
+function handleEvent(ev) {
+  const key = dedupeKey(ev);
+  if (seenKeys.has(key)) return;
+  seenKeys.add(key);
+
+  if (ev.kind === "collector_pass") {
+    passActive = ev.phase === "start";
+    renderCol1();
+    return;
+  }
+  if (ev.kind === "collector_source") {
+    if (ev.priced) { priced.set(ev.ccy, true); withheld.delete(ev.ccy); }
+    else { withheld.set(ev.ccy, ev.reason || ""); priced.delete(ev.ccy); }
+    const r = renderCol1Row(ev);
+    col1Rows.unshift({ html: r.html, withheld: r.withheld, ts: ev.ts });
+    renderCol1();
+    renderMeters();
+    return;
+  }
+  if (ev.kind === "linear" || ev.kind === "commit" || ev.kind === "loop_health") {
+    const html = renderCol2Row(ev);
+    if (html === null) return;
+    if (ev.kind === "commit" && ev.sha && (ev.ts || "").slice(0, 10) === todayUTC()) {
+      commitsToday.add(ev.sha);
+      renderMeters();
+    }
+    col2Rows.unshift({ html, ts: ev.ts });
+    renderCol2();
+    return;
+  }
+  // collection_pass and call/commission_step kinds belong to other pages
+  // (status.html, the receipt replay) -- this page is scoped to what M1's
+  // spec named for it, so anything else is simply not rendered here.
+}
+
+// ---------------------------------------------------------------- boot
+function renderHeader() {
+  document.getElementById("brand").textContent = COPY.brand || "margin.wiki";
+  const links = document.getElementById("navLinks");
+  links.innerHTML = "";
+  for (const n of (COPY.nav || [])) {
+    const a = document.createElement("a");
+    a.href = n.href; a.textContent = n.label;
+    if (n.key === "machine") a.setAttribute("aria-current", "page");
+    links.appendChild(a);
+  }
+}
+
+async function boot() {
+  const copyDoc = await loadJSON("./copy.json") || {};
+  COPY = copyDoc.machineRoom || {};
+  COPY.brand = copyDoc.brand; COPY.nav = copyDoc.nav;
+  renderHeader();
+  document.getElementById("pageTitle").textContent = COPY.title || "";
+  document.getElementById("lede").textContent = COPY.lede || "";
+  document.getElementById("col1Title").textContent = (COPY.columns.collection || {}).title || "";
+  document.getElementById("col2Title").textContent = (COPY.columns.agents || {}).title || "";
+  document.getElementById("col3Title").textContent = (COPY.columns.meters || {}).title || "";
+  renderCol1(); renderCol2(); renderMeters();
+
+  const [index, status, prs] = await Promise.all([
+    loadJSON("./data/index_latest.json"),
+    loadJSON("./data/agent_status.json"),
+    loadJSON("./data/open_prs_latest.json"),
+  ]);
+  seedCol1(index);
+  renderCol1(); renderMeters();
+
+  const staleParts = [];
+  if (status && status.as_of_utc) {
+    unbrokenHours = (typeof status.unbroken_hours === "number") ? status.unbroken_hours : null;
+    staleParts.push("collector status as of " + fmtStamp(status.as_of_utc));
+  }
+  if (prs && prs.as_of_utc) {
+    openPrs = (typeof prs.open_prs === "number") ? prs.open_prs : null;
+    staleParts.push("open pull requests as of " + fmtStamp(prs.as_of_utc));
+  } else {
+    staleParts.push("open pull requests: not wired up yet");
+  }
+  document.getElementById("stale").textContent = staleParts.join(" · ");
+  renderMeters();
+
+  try {
+    const es = new EventSource(API_BASE + "/v1/events");
+    es.onmessage = e => {
+      let ev;
+      try { ev = JSON.parse(e.data); } catch (err) { return; }
+      handleEvent(ev);
+    };
+    es.onerror = () => {
+      document.getElementById("stale").textContent =
+        (COPY.connectionLost || "") + (staleParts.length ? " · " + staleParts.join(" · ") : "");
+    };
+  } catch (e) {
+    document.getElementById("stale").textContent = COPY.loadFailed || "";
+  }
+}
+
+boot().catch(e => {
+  document.getElementById("col1Sub").textContent = (COPY.loadFailed) || "failed to load data";
+  console.error(e);
+});
+</script>
 </body>
 </html>
