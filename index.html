@@ -59,6 +59,20 @@
     header{flex-wrap:wrap;gap:12px} nav{flex-wrap:wrap;gap:16px}
     h1{font-size:38px} .body{grid-template-columns:1fr;padding:0 24px 48px} .hero{padding:34px 24px 24px}
   }
+
+  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
+  @media(max-width:760px){
+    header{position:relative;flex-wrap:nowrap!important}
+    .brand{gap:14px}
+    nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column!important;gap:0!important;padding:6px 24px 16px;border-bottom:1px solid #F0F0F0;box-shadow:0 8px 16px rgba(11,11,11,0.06);z-index:30}
+    nav.open{display:flex}
+    nav a{padding:12px 0;border-bottom:1px solid #F6F6F6;font-size:16px}
+    .nav-toggle{display:block}
+    .status{gap:10px}
+    .mcp{display:none}
+    .live{max-width:52vw;overflow:hidden}
+    .live .num{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:middle}
+  }
 </style>
 </head>
 <body>
@@ -73,6 +87,7 @@
         <a href="./machine-room.html">The machine room</a>
         <a href="./how-it-works.html">How it works</a>
       </nav>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
     <div class="status">
       <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · 157 SOURCES · &mdash;</span></div>
@@ -108,12 +123,8 @@
         <input type="text" placeholder="Ask the agent anything…" id="askInput"/>
         <button aria-label="ask" id="askBtn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
-      <div class="chips">
-        <button class="chip">Why is Nigeria not priced?</button>
-        <button class="chip">A dollar in Argentina?</button>
-        <button class="chip">Is the digital dollar really worth a dollar?</button>
-      </div>
-      <div id="answerBox" style="display:none;margin-top:16px;max-width:720px;padding:16px 20px;background:#F6F6F6;border-radius:14px;font-size:15px;line-height:1.55;color:#0B0B0B"></div>
+      <div class="chips" id="chips"></div>
+      <div id="answerBox" style="display:none"></div>
     </div>
 
     <div class="side">
@@ -257,54 +268,76 @@
       MarginChart.render(chartEl, { spark: top.spark, timestamps: sparkDates(top), valueSuffix: '%' });
     }
 
-    // ---- Ask box: the three chips answer instantly from data already on
-    // this page (computed, not fetched, so they never round-trip for
-    // something the page already has). Free text goes to the real /ask
-    // backend -- it went live after the spec's "B5 is still blocked" note
-    // was written, so this now genuinely answers open questions rather than
-    // repeating a fixed FAQ.
+    // ---- Ask box: chips answer instantly from data already on this page,
+    // regenerated every pass so a withheld-country chip always points at a
+    // country that is actually withheld right now (it used to say
+    // "Nigeria", stale the moment Nigeria got priced again). Free text goes
+    // to the real /ask backend -- it went live after the spec's "B5 is
+    // still blocked" note was written, so this genuinely answers open
+    // questions now.
     var API_BASE = location.hostname.endsWith("margin.wiki")
       ? "https://api.margin.wiki" : "http://127.0.0.1:8901";
     var answerBox = document.getElementById('answerBox');
-    function showAnswer(html) {
-      answerBox.innerHTML = html;
+    var lastPassStamp = 'this hour, ' + hourUtc + ' UTC';
+
+    // Renders an answer as the same agent-voice card as the feed above it --
+    // stamp, sentence, receipt line -- not a flat footnote.
+    function showAnswerCard(stamp, sentenceHtml, receiptHtml) {
+      answerBox.innerHTML = '<div class="item" style="padding-top:22px;border-top:1px solid #F0F0F0;margin-top:6px">' +
+        '<div class="stamp num">' + esc(stamp) + '</div>' +
+        '<p>' + sentenceHtml + '</p>' +
+        (receiptHtml ? '<div class="receipt">' + receiptHtml + '</div>' : '') +
+        '</div>';
       answerBox.style.display = 'block';
     }
-    var withheldNames = withheld.map(function(w){ return w.country; });
-    var nigeria = withheld.find(function(w){ return w.country === 'Nigeria'; });
-    var argentina = countries.find(function(c){ return c.country === 'Argentina'; });
-    var dollarRouteRow = null;
+
+    var withheldPick = withheld.length ? withheld[Math.floor(Math.random() * withheld.length)] : null;
+    var secondPick = countries.find(function(c){ return c.country === 'Argentina'; }) || countries[Math.floor(countries.length / 2)];
+    var dollarRouteRow = null, cheapestRow = null;
     if (prov && prov.corridors) {
       var r0 = prov.corridors[Object.keys(prov.corridors)[0]];
       var s0 = r0 && r0.sizes['5000'];
       dollarRouteRow = s0 && s0.rows.find(function(r){ return r.provider === 'The dollar route'; });
-      var cheapestRow = s0 && s0.rows[0];
+      cheapestRow = s0 && s0.rows[0];
     }
 
-    var CANNED = {
-      'Why is Nigeria not priced?': function(){
-        return nigeria
-          ? '<b>Nigeria (' + esc(nigeria.ccy) + '):</b> ' + esc(nigeria.reason) + '. The collector checks every hour; this is the current hour\'s real result, not a permanent state.'
-          : '<b>Nigeria</b> has a price this hour — see <a href="./the-index.html">the index</a>.';
-      },
-      'A dollar in Argentina?': function(){
-        return argentina
-          ? '<b>Argentina (ARS):</b> a dollar ' + costPhrase(argentina.index_pct) + ' this hour, from ' + esc(argentina.evidence_words) + '. <a href="./the-index.html#ARS">Argentina in full →</a>'
-          : 'No current price for Argentina this hour.';
-      },
-      'Is the digital dollar really worth a dollar?': function(){
-        return dollarRouteRow && cheapestRow
-          ? 'Measured, not assumed: sending through the digital-dollar route costs ' + esc(dollarRouteRow.costs) + ' right now (' + dollarRouteRow.cost_pct.toFixed(2) + '% of the amount), against ' + esc(cheapestRow.costs) + ' for the cheapest ordinary option. See <a href="./sending-money.html">sending money</a> for every route and amount.'
-          : 'See <a href="./sending-money.html">sending money</a> for the real, hourly comparison.';
-      }
-    };
-
-    document.querySelectorAll('.chip').forEach(function(btn){
-      var q = btn.textContent.trim();
-      btn.addEventListener('click', function(){
-        var fn = CANNED[q];
-        showAnswer(fn ? fn() : 'Not answerable from pre-computed material yet.');
+    var CHIPS = [];
+    if (withheldPick) {
+      CHIPS.push({
+        label: 'Why is ' + withheldPick.country + ' not priced?',
+        answer: function(){
+          showAnswerCard('ASKED · ' + lastPassStamp,
+            '<b>' + esc(withheldPick.country) + ' (' + esc(withheldPick.ccy) + '):</b> ' + esc(withheldPick.reason) + '. Checked again next pass — this is the current hour\'s real result, not a permanent state.',
+            'nothing ships unverified · <a href="./the-index.html#withheld" style="font-weight:600;color:#0B0B0B">every withheld country →</a>');
+        }
       });
+    }
+    if (secondPick) {
+      CHIPS.push({
+        label: 'A dollar in ' + secondPick.country + '?',
+        answer: function(){
+          showAnswerCard('ASKED · ' + lastPassStamp,
+            '<b>' + esc(secondPick.country) + ' (' + esc(secondPick.ccy) + '):</b> a dollar ' + costPhrase(secondPick.index_pct) + ' this hour, from ' + esc(secondPick.evidence_words) + '.',
+            'click the number on <a href="./the-index.html#' + esc(secondPick.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(secondPick.country) + '\'s page →</a> to see the receipt');
+        }
+      });
+    }
+    CHIPS.push({
+      label: 'Is the digital dollar really worth a dollar?',
+      answer: function(){
+        showAnswerCard('ASKED · ' + lastPassStamp,
+          dollarRouteRow && cheapestRow
+            ? 'Measured, not assumed: sending through the digital-dollar route costs <b class="num">' + esc(dollarRouteRow.costs) + '</b> right now, against <b class="num">' + esc(cheapestRow.costs) + '</b> for the cheapest ordinary option.'
+            : 'See sending money for the real, hourly comparison.',
+          're-priced every hour · <a href="./sending-money.html" style="font-weight:600;color:#0B0B0B">every way to send it, ranked →</a>');
+      }
+    });
+
+    document.getElementById('chips').innerHTML = CHIPS.map(function(c, i){
+      return '<button class="chip" data-i="' + i + '">' + esc(c.label) + '</button>';
+    }).join('');
+    document.querySelectorAll('.chip').forEach(function(btn){
+      btn.addEventListener('click', function(){ CHIPS[+btn.getAttribute('data-i')].answer(); });
     });
 
     var askInput = document.getElementById('askInput');
@@ -312,9 +345,7 @@
     function submitAsk(){
       var q = (askInput.value || '').trim();
       if (!q) return;
-      var fn = CANNED[q];
-      if (fn) { showAnswer(fn()); return; }
-      showAnswer('<span style="color:#9A9A9A">Asking…</span>');
+      showAnswerCard('ASKED · ' + lastPassStamp, '<span style="color:#9A9A9A">Asking…</span>', null);
       fetch(API_BASE + '/ask', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -322,15 +353,16 @@
       }).then(function(r){ return r.json().then(function(body){ return {ok: r.ok, body: body}; }); })
         .then(function(res){
           if (!res.ok || res.body.error) {
-            showAnswer(esc(res.body.error || 'That could not be answered from the data this site collects.') + ' <a href="./machine-room.html">Full ask page →</a>');
+            showAnswerCard('ASKED · ' + lastPassStamp,
+              esc(res.body.error || 'That could not be answered from the data this site collects.'), null);
             return;
           }
-          var html = esc(res.body.sentence || JSON.stringify(res.body.rows || res.body));
-          if (res.body.sql) html += '<div style="font-size:12px;color:#9A9A9A;margin-top:8px;font-family:ui-monospace,monospace">' + esc(res.body.sql) + '</div>';
-          showAnswer(html);
+          var sentence = esc(res.body.sentence || JSON.stringify(res.body.rows || res.body));
+          var receipt = res.body.sql ? '<span style="font-family:ui-monospace,monospace">' + esc(res.body.sql) + '</span>' : null;
+          showAnswerCard('ASKED · ' + lastPassStamp, sentence, receipt);
         })
         .catch(function(){
-          showAnswer('The live ask service is not reachable right now. That failure is shown, not hidden.');
+          showAnswerCard('ASKED · ' + lastPassStamp, 'The live ask service is not reachable right now. That failure is shown, not hidden.', null);
         });
     }
     if (askBtn) askBtn.addEventListener('click', submitAsk);
@@ -338,6 +370,19 @@
   }).catch(function(err){
     document.getElementById('items').innerHTML = '<div class="item"><p style="color:#B3822D">Could not load this hour\'s data. That failure is shown, not hidden.</p></div>';
   });
+})();
+</script>
+
+<script>
+(function(){
+  var btn = document.getElementById('navToggle');
+  var nav = document.querySelector('header nav');
+  if (btn && nav) {
+    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
+    document.addEventListener('click', function(e){
+      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
+    });
+  }
 })();
 </script>
 </body>

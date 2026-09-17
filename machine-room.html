@@ -37,6 +37,20 @@
   .meter .v.muted{color:#9A9A9A;font-size:16px;font-weight:700}
   .empty{padding:20px 0;color:#9A9A9A;font-size:13px}
   @media(max-width:1000px){.cols{grid-template-columns:1fr;padding:24px 24px 44px}h1{font-size:30px}header{padding:22px 24px}.hero{padding:32px 24px 0}}
+
+  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
+  @media(max-width:760px){
+    header{position:relative;flex-wrap:nowrap!important}
+    .brand{gap:14px}
+    nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column!important;gap:0!important;padding:6px 24px 16px;border-bottom:1px solid #F0F0F0;box-shadow:0 8px 16px rgba(11,11,11,0.06);z-index:30}
+    nav.open{display:flex}
+    nav a{padding:12px 0;border-bottom:1px solid #F6F6F6;font-size:16px}
+    .nav-toggle{display:block}
+    .status{gap:10px}
+    .mcp{display:none}
+    .live{max-width:52vw;overflow:hidden}
+    .live .num{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:middle}
+  }
 </style>
 </head>
 <body>
@@ -51,6 +65,7 @@
         <a href="./machine-room.html" class="active">The machine room</a>
         <a href="./how-it-works.html">How it works</a>
       </nav>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
     <div class="live"><span class="dot off" id="dot"></span><span class="num" id="connLabel">connecting…</span></div>
   </header>
@@ -98,14 +113,53 @@
     while (el.children.length > (cap||60)) el.removeChild(el.lastChild);
   }
 
+  // A live page must never open empty -- an empty live page reads as broken
+  // or fake. Seed the collection column with the real last completed pass
+  // (every country actually checked, real evidence words, real verdict)
+  // before any live SSE event has arrived; live events prepend on top of
+  // this, not replace it.
   fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
-    var priced = (d.countries||[]).length, withheld = (d.withheld||[]).length;
+    var countries = d.countries || [], withheldList = d.withheld || [];
+    var priced = countries.length, withheld = withheldList.length;
     document.getElementById('mPriced').textContent = priced;
     document.getElementById('mWithheld').textContent = withheld;
     var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
     document.getElementById('passProgress').textContent =
       'Last completed pass (' + hourUtc + ' UTC): ' + priced + ' of ' + (priced + withheld) + ' countries checked and priced, ' + withheld + ' withheld with a reason.';
+
+    var rows = countries.map(function(c){
+      return { ccy: c.ccy, priced: true, kind: c.source_words, note: c.evidence_words };
+    }).concat(withheldList.map(function(w){
+      return { ccy: w.ccy, priced: false, kind: 'checked', note: w.reason };
+    }));
+    // No per-country timestamp is published, only the shared pass hour --
+    // shown once in the label above, not invented per row.
+    var html = rows.map(function(r){
+      return '<div class="log"><div class="stamp num" style="min-width:62px">' + esc(r.ccy) + '</div>' +
+        '<div style="flex-grow:1">' + esc(r.kind) + '</div>' +
+        '<div class="num" style="color:' + (r.priced ? '#0B0B0B' : '#B3822D') + ';font-weight:600;font-size:12px">' +
+        esc(r.note) + (r.priced ? ' · priced' : ' · withheld') + '</div></div>';
+    }).join('');
+    var feed = document.getElementById('collectorFeed');
+    feed.innerHTML = html + '<div style="font-size:12px;color:#9A9A9A;padding:10px 0 4px">— last pass, seeded on load — live below —</div>';
   }).catch(function(){});
+
+  // Seed "what the agents are doing" with real recent commits from GitHub's
+  // public API (no auth needed, public repo) -- live SSE events (issues,
+  // reviews, further commits) prepend above these as they arrive.
+  fetch('https://api.github.com/repos/SebR214/margin/commits?per_page=8', {headers:{'Accept':'application/vnd.github+json'}})
+    .then(function(r){ return r.ok ? r.json() : []; })
+    .then(function(commits){
+      var html = commits.map(function(c){
+        var msg = (c.commit.message.split('\n')[0] || '').replace(/\s*\(#\d+\)\s*$/, '');
+        var prMatch = c.commit.message.match(/\(#(\d+)\)/);
+        return '<div class="log"><div class="stamp num" style="min-width:46px">' + esc(timeOf(c.commit.author.date)) + '</div>' +
+          '<div class="stamp" style="min-width:64px;letter-spacing:.08em">BUILDER</div>' +
+          '<div style="flex-grow:1">committed <span style="font-weight:600">' + esc(msg) + '</span>' + (prMatch ? ' (#' + prMatch[1] + ')' : '') + '</div></div>';
+      }).join('');
+      var feed = document.getElementById('agentFeed');
+      if (html) feed.innerHTML = html + '<div style="font-size:12px;color:#9A9A9A;padding:10px 0 4px">— recent commits, seeded on load — live below —</div>';
+    }).catch(function(){});
 
   fetch('./data/agent_status.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
     var delivery = d.delivery || [];
@@ -165,6 +219,19 @@
       return;
     }
   };
+})();
+</script>
+
+<script>
+(function(){
+  var btn = document.getElementById('navToggle');
+  var nav = document.querySelector('header nav');
+  if (btn && nav) {
+    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
+    document.addEventListener('click', function(e){
+      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
+    });
+  }
 })();
 </script>
 </body>
