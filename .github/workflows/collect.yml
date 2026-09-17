@@ -233,6 +233,14 @@ jobs:
         # Exits non-zero only if it cannot write.
         run: python3 tools/emit_manifest.py
 
+      - name: Emit the source list
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-62/U7. Reads data/index_latest.json and data/basis.csv -- both
+        # already written above -- and writes data/sources_latest.json, the
+        # file methodology.html's "How it works" reads to name what actually
+        # priced this hour instead of a list someone typed once.
+        run: python3 tools/emit_sources.py
+
       - name: Emit the browser dataset bundle
         if: always() && steps.needed.outputs.proceed == 'true'
         # SEB-40. Runs last of the emitters so it packages what every step
