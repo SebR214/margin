@@ -33,6 +33,7 @@ Reads LINEAR_API_KEY from the environment. Never prints it. Stdlib only.
 """
 
 import argparse
+import datetime
 import io
 import json
 import os
@@ -87,6 +88,39 @@ def call(query, variables=None):
         sys.exit("Linear rejected the request: %s"
                  % json.dumps(out["errors"])[:600])
     return out["data"]
+
+
+ACTIVITY_LOG_PATH = os.environ.get(
+    "LINEAR_ACTIVITY_LOG_PATH", "/var/log/margin/linear_activity.jsonl")
+
+
+def _log_activity(kind, ident, role, **fields):
+    """One line per Linear mutation this process makes, for SEB-58's event
+    feed (tools/serve_events.py) to tail -- the only local record that a
+    transition or comment happened, since `call()` above talks straight to
+    the Linear API and nothing else keeps a copy.
+
+    `role` is the ROLE environment variable agents/run.sh exports for the
+    loop that is running, not a guess -- "unknown" when it is absent, which
+    is the honest answer for an interactive session run by hand.
+
+    A write failure here is a broken observability channel, not a broken
+    Linear update -- the mutation above already succeeded -- so this warns on
+    stderr and continues rather than raising.
+    """
+    record = {
+        "kind": kind, "ident": ident, "role": role,
+        "ts": datetime.datetime.now(datetime.timezone.utc)
+                              .replace(microsecond=0).isoformat(),
+    }
+    record.update(fields)
+    line = "linear_activity " + json.dumps(record, sort_keys=True)
+    try:
+        with open(ACTIVITY_LOG_PATH, "a") as f:
+            f.write(line + "\n")
+    except OSError as e:
+        print("_log_activity: could not write to %s: %s"
+              % (ACTIVITY_LOG_PATH, e), file=sys.stderr)
 
 
 def project_id():
@@ -248,6 +282,8 @@ def cmd_state(a):
     call("""mutation($id: String!, $s: String!) {
       issueUpdate(id: $id, input: { stateId: $s }) { success }
     }""", {"id": i["id"], "s": st[a.state]["id"]})
+    _log_activity("transition", i["identifier"], os.environ.get("ROLE", "unknown"),
+                  from_state=i["state"]["name"], to_state=a.state)
     print("%s -> %s" % (i["identifier"], a.state))
 
 
@@ -262,6 +298,7 @@ def cmd_say(a):
     call("""mutation($id: String!, $b: String!) {
       commentCreate(input: { issueId: $id, body: $b }) { success }
     }""", {"id": i["id"], "b": body})
+    _log_activity("comment", i["identifier"], a.role, text=text.strip())
     print("commented on %s as %s" % (i["identifier"], a.role))
 
 

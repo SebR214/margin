@@ -1,46 +1,73 @@
 #!/usr/bin/env python3
-"""B3: one SSE stream the homepage (and anyone else) can watch live.
+"""SEB-58/M1: the machine room's event feed -- SEB-42's SSE endpoint (B3),
+extended to stream three more kinds of real event, all still built by
+tailing or diffing files something else already writes. No new collector
+instrumentation, no new credentials: everything below reads a file already
+on disk, or shells out to the local `git log` (no network, no token).
 
-Binds 127.0.0.1:8903, GET /v1/events only. Three kinds of event, all built by
-tailing logs the other four listeners already write -- no new instrumentation
-of the collectors, per SEB-42:
+New kinds, alongside the three B3 already streams (`collection_pass`,
+`call`, `commission_step`):
 
-  collection_pass   one per source, each time data/agent_status.json records
-                     a fresh last_ok_utc or a change in `broken` -- the same
-                     file status.html already reads, tailed here instead of
-                     rebuilt.
-  call              the anonymised call tail: tool name and the country
-                     parameter it was asked about, nothing else. Produced by
-                     serve_common.log_call_event and its callers in
-                     serve_api.py, serve_mcp.py, ask_backend.py and
-                     watch_backend.py -- one `call_event tool=... country=...`
-                     line per request, and this is the ONLY log-line shape
-                     this file turns into a `call` event. Every other line
-                     already written to serve.systemd.log (queries, SQL,
-                     model token counts, watch conditions) is read and
-                     discarded without being parsed for fields.
-  commission_step   one per step of a commission's source probe -- probing a
-                     source, the status that came back, and the final
-                     verdict -- keyed by the Linear issue id (`request_id`)
-                     so a visitor can follow one request's thread. Produced
-                     by serve_common.log_commission_step, called from
-                     tools/probe_source.py as agents/COMMISSION.md runs it
-                     (SEB-43/B4). One `commission_step {...}` line of JSON
-                     per step, tailed the same way `call` events are, from a
-                     separate log file since the commission role runs from
-                     its own checkout, not this process.
+  collector_pass    one `phase: start` and one `phase: complete` bracketing
+                     a batch of `collector_source` events, keyed to
+                     data/index_latest.json's own `computed_at` -- the only
+                     timestamp this process can see for an index rebuild, so
+                     both ends of the bracket carry it rather than guessing
+                     when the process actually began.
+  collector_source   one per country whose priced/withheld state moved in
+                     data/index_latest.json's `countries` (priced) or
+                     `withheld` (unpriced) lists: ccy, source kind, evidence
+                     count, priced or withheld with its plain-language
+                     reason.
+  linear             one per line agents/linear.py's `_log_activity()`
+                     appends when a builder/reviewer/product pass changes an
+                     issue's state or posts a comment -- the only local
+                     record that a Linear mutation happened, since that
+                     script talks straight to the API and keeps nothing
+                     else.
+  commit             one per new commit `git log` finds on this checkout's
+                     current branch -- sha, author, message, and the PR
+                     number when the message ends `(#123)`, which is how a
+                     squash-merge names it. This is also how a merged pull
+                     request appears in the feed; nothing here shows a pull
+                     request the moment it is OPENED, because that needs the
+                     GitHub API, and handing this publicly-reachable process
+                     a GitHub credential is a bigger hole than the gap it
+                     would close -- see SEB-73, which is actively asking
+                     whether a GitHub credential on this box has already
+                     been used to post as Sebastian. Left for M2 to source
+                     another way (a periodic sidecar, not this stream).
+  loop_health        one per new line appended to a role's own
+                     /var/log/margin/<role>.jsonl (agents/run.sh's
+                     `record()`), carrying that role's pass count for today;
+                     plus one whenever a role crosses agents/watchdog.sh's
+                     own silence threshold (SILENT_AFTER, 7200s) in either
+                     direction, so a stopped loop is shown stopped rather
+                     than just going quiet.
 
-Capped at MAX_CONNECTIONS concurrent streams -- a code-enforced ceiling, not
-a load-tested one; see the PR for the arithmetic behind the number. Past the
-cap, a new connection gets a plain 503 with a reason, never a silent hang.
+Replay: the last 50 events this SERVER PROCESS has actually published,
+across every kind, held in one bounded deque and sent to a client the
+moment it connects, before it starts receiving live events. Nothing older
+than server start is replayed -- backfilling from the beginning of a log
+file that predates this process would dump old lines under today's
+timestamp, which is exactly the resampled event the issue rules out.
+
+One background thread polls everything and publishes to that deque and to
+every connected client's own queue; each HTTP connection is otherwise just
+a subscriber, under the same MAX_CONNECTIONS cap as before.
 
 Stdlib only.
 """
 
+import collections
+import datetime
 import http.server
 import json
 import os
+import queue
+import re
 import socketserver
+import subprocess
 import sys
 import threading
 import time
@@ -49,10 +76,19 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 DATA = os.path.join(ROOT, "data")
 AGENT_STATUS_PATH = os.path.join(DATA, "agent_status.json")
+INDEX_LATEST_PATH = os.path.join(DATA, "index_latest.json")
 CALL_LOG_PATH = os.environ.get(
     "SERVE_EVENTS_LOG_PATH", "/var/log/margin/serve.systemd.log")
 COMMISSION_LOG_PATH = os.environ.get(
     "COMMISSION_EVENTS_LOG_PATH", "/var/log/margin/commission.systemd.log")
+LINEAR_ACTIVITY_LOG_PATH = os.environ.get(
+    "LINEAR_ACTIVITY_LOG_PATH", "/var/log/margin/linear_activity.jsonl")
+LOOP_LOG_DIR = os.environ.get("LOOP_LOG_DIR", "/var/log/margin")
+
+LOOP_ROLES = ("builder", "reviewer", "product")
+# Same number agents/watchdog.sh pages on -- "stopped" here has to mean the
+# same thing it means there, or the two disagree about the same loop.
+SILENT_AFTER = 7200
 
 HOST, PORT = "127.0.0.1", 8903
 
@@ -64,15 +100,48 @@ MAX_CONNECTIONS = 20
 
 POLL_SECONDS = 5
 
+# The last 50 events this process has published, across every kind -- what
+# SEB-58 means by "on connect, replay the last 50 events".
+HISTORY_MAX = 50
+
 _slots = threading.Semaphore(MAX_CONNECTIONS)
+_history = collections.deque(maxlen=HISTORY_MAX)
+_history_lock = threading.Lock()
+_subscribers = set()
+_subscribers_lock = threading.Lock()
 
 
-def _read_agent_status():
+def _publish(event):
+    with _history_lock:
+        _history.append(event)
+    with _subscribers_lock:
+        subs = list(_subscribers)
+    for q in subs:
+        try:
+            q.put_nowait(event)
+        except queue.Full:
+            # A subscriber too slow to keep up misses a live event, but the
+            # replay buffer still catches it up to the last 50 on its next
+            # poll -- dropping here beats blocking the one shared poller on
+            # one slow reader.
+            pass
+
+
+def _iso_now():
+    return datetime.datetime.now(datetime.timezone.utc) \
+                             .replace(microsecond=0).isoformat()
+
+
+def _read_json(path):
     try:
-        with open(AGENT_STATUS_PATH) as f:
+        with open(path) as f:
             return json.load(f)
     except (OSError, ValueError):
         return None
+
+
+def _read_agent_status():
+    return _read_json(AGENT_STATUS_PATH)
 
 
 def _collection_pass_events(seen):
@@ -102,6 +171,58 @@ def _collection_pass_events(seen):
         }
 
 
+def _collector_pass_events(state):
+    """Diff data/index_latest.json against the last snapshot this process
+    saw, bracketing any change with a `collector_pass` start/complete pair.
+
+    `state` carries `computed_at` (the top-level timestamp last seen) and
+    `countries` (ccy -> the marker last reported for that country). The
+    first call ever seeds both from the file's CURRENT contents without
+    yielding anything -- a restart shouldn't replay the whole index as if it
+    had just happened, the same reasoning `_seed_tail_state` applies to log
+    files below.
+    """
+    doc = _read_json(INDEX_LATEST_PATH)
+    if doc is None:
+        return
+    computed_at = doc.get("computed_at")
+    if computed_at == state.get("computed_at"):
+        return
+    seeding = "computed_at" not in state
+    state["computed_at"] = computed_at
+
+    rows = []
+    for c in doc.get("countries", []):
+        rows.append((c.get("ccy"), {
+            "ccy": c.get("ccy"), "country": c.get("country"),
+            "source_kind": c.get("source_class"),
+            "evidence_count": c.get("n_sources"), "priced": True,
+        }))
+    for w in doc.get("withheld", []):
+        rows.append((w.get("ccy"), {
+            "ccy": w.get("ccy"), "country": w.get("country"),
+            "source_kind": None, "evidence_count": w.get("n_sources"),
+            "priced": False, "reason": w.get("reason"),
+        }))
+
+    changed = []
+    seen_now = {}
+    for ccy, payload in rows:
+        marker = json.dumps(payload, sort_keys=True)
+        seen_now[ccy] = marker
+        if state.get("countries", {}).get(ccy) != marker:
+            changed.append(payload)
+    state["countries"] = seen_now
+
+    if seeding or not changed:
+        return
+
+    yield {"kind": "collector_pass", "phase": "start", "ts": computed_at}
+    for payload in changed:
+        yield dict(payload, kind="collector_source", ts=computed_at)
+    yield {"kind": "collector_pass", "phase": "complete", "ts": computed_at}
+
+
 def _parse_call_event(line):
     if not line.startswith("call_event tool="):
         return None
@@ -115,6 +236,18 @@ def _parse_call_event(line):
         "tool": fields.get("tool") or None,
         "country": fields.get("country") or None,
     }
+
+
+def _seed_tail_state(path):
+    """A tail cursor pre-set to end-of-file, so the first poll after this
+    process starts reports only what happens from here on -- not the whole
+    history of a log file that predates it.
+    """
+    try:
+        st = os.stat(path)
+        return {"inode": st.st_ino, "offset": st.st_size}
+    except OSError:
+        return {}
 
 
 def _tail_new_lines(path, state):
@@ -173,6 +306,176 @@ def _commission_step_events(state):
             yield event
 
 
+def _parse_linear_activity_event(line):
+    if not line.startswith("linear_activity "):
+        return None
+    try:
+        record = json.loads(line[len("linear_activity "):])
+    except ValueError:
+        return None
+    if record.get("kind") not in ("transition", "comment") or not record.get("ident"):
+        return None
+    event = dict(record)
+    event["event"] = event.pop("kind")
+    event["kind"] = "linear"
+    return event
+
+
+def _linear_activity_events(state):
+    """Yield one `linear` event per line agents/linear.py's `_log_activity()`
+    appended -- a builder/reviewer/product transition or comment, written by
+    the loop that made it, at the moment it made it.
+    """
+    for line in _tail_new_lines(LINEAR_ACTIVITY_LOG_PATH, state):
+        event = _parse_linear_activity_event(line)
+        if event is not None:
+            yield event
+
+
+def _commit_events(state):
+    """Yield one `commit` event per new commit on this checkout's current
+    branch, oldest first -- sha, author, message, and the PR number a
+    squash-merge leaves at the end of its message in parens, e.g.
+    "SEB-57 R2: the receipt replay (#113)".
+
+    Local `git log` only: no GitHub API, no credential. This checkout is
+    kept in sync with origin/main by margin-pull.timer, the same mechanism
+    the REST API already trusts for "today's numbers".
+    """
+    args = ["git", "-C", ROOT, "log", "--format=%H%x1f%aI%x1f%an%x1f%s"]
+    args.append("%s..HEAD" % state["head"] if "head" in state else "-1")
+    try:
+        out = subprocess.run(args, capture_output=True, text=True, timeout=10)
+    except OSError:
+        return
+    if out.returncode != 0 or not out.stdout.strip():
+        return
+    lines = out.stdout.strip("\n").split("\n")
+    seeding = "head" not in state
+    state["head"] = lines[0].split("\x1f", 1)[0]
+    if seeding:
+        return
+    for line in reversed(lines):
+        sha, iso, author, subject = line.split("\x1f", 3)
+        m = re.search(r"\(#(\d+)\)\s*$", subject)
+        yield {
+            "kind": "commit", "sha": sha[:9], "author": author,
+            "message": subject, "ts": iso,
+            "pr_number": int(m.group(1)) if m else None,
+        }
+
+
+def _is_stopped(last_finished_utc, now_ts):
+    if not last_finished_utc:
+        return True  # a role that has never recorded a pass reads as stopped
+    try:
+        last_s = datetime.datetime.fromisoformat(last_finished_utc).timestamp()
+    except ValueError:
+        return True
+    return (now_ts - last_s) > SILENT_AFTER
+
+
+def _seed_loop_role(path, st):
+    """Read a role's whole jsonl once at startup so `passes_today` is right
+    from the first live event, then seed the tail cursor to end-of-file so
+    future polls only see genuinely new passes.
+    """
+    st.update(_seed_tail_state(path))
+    today = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
+    count, last = 0, None
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rec = json.loads(line)
+                except ValueError:
+                    continue
+                last = rec
+                if (rec.get("finished_utc") or "")[:10] == today:
+                    count += 1
+    except OSError:
+        pass
+    st["today"] = today
+    st["passes_today"] = count
+    st["last_finished_utc"] = last.get("finished_utc") if last else None
+
+
+def _loop_health_events(states):
+    now_ts = time.time()
+    for role in LOOP_ROLES:
+        path = os.path.join(LOOP_LOG_DIR, role + ".jsonl")
+        st = states.get(role)
+        if st is None:
+            st = {}
+            _seed_loop_role(path, st)
+            st["stopped"] = _is_stopped(st.get("last_finished_utc"), now_ts)
+            states[role] = st
+            continue  # seeding pass: report nothing, same as every other source
+
+        for line in _tail_new_lines(path, st):
+            try:
+                rec = json.loads(line)
+            except ValueError:
+                continue
+            day = (rec.get("finished_utc") or "")[:10]
+            if day and day != st.get("today"):
+                st["today"] = day
+                st["passes_today"] = 0
+            st["passes_today"] = st.get("passes_today", 0) + 1
+            st["last_finished_utc"] = rec.get("finished_utc")
+            yield {
+                "kind": "loop_health", "event": "pass", "role": role,
+                "ok": rec.get("ok"), "reason": rec.get("reason"),
+                "seconds": rec.get("seconds"),
+                "passes_today": st["passes_today"],
+                "ts": rec.get("finished_utc"),
+            }
+
+        is_stopped = _is_stopped(st.get("last_finished_utc"), now_ts)
+        if is_stopped != st.get("stopped", False):
+            st["stopped"] = is_stopped
+            yield {
+                "kind": "loop_health",
+                "event": "stopped" if is_stopped else "recovered",
+                "role": role, "last_finished_utc": st.get("last_finished_utc"),
+                "ts": _iso_now(),
+            }
+
+
+def _poll_forever():
+    """The one background thread that watches every source and publishes
+    what it finds. Every HTTP connection is a subscriber to this, not a
+    poller of its own -- which is what makes "replay the last 50" possible:
+    there is exactly one shared history to replay from.
+    """
+    seen_sources = {}
+    collector_state = {}
+    call_state = _seed_tail_state(CALL_LOG_PATH)
+    commission_state = _seed_tail_state(COMMISSION_LOG_PATH)
+    linear_state = _seed_tail_state(LINEAR_ACTIVITY_LOG_PATH)
+    commit_state = {}
+    loop_states = {}
+    while True:
+        for event in _collection_pass_events(seen_sources):
+            _publish(event)
+        for event in _collector_pass_events(collector_state):
+            _publish(event)
+        for event in _call_events(call_state):
+            _publish(event)
+        for event in _commission_step_events(commission_state):
+            _publish(event)
+        for event in _linear_activity_events(linear_state):
+            _publish(event)
+        for event in _commit_events(commit_state):
+            _publish(event)
+        for event in _loop_health_events(loop_states):
+            _publish(event)
+        time.sleep(POLL_SECONDS)
+
+
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path != "/v1/events":
@@ -211,17 +514,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_header("Connection", "keep-alive")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
-        seen_sources = {}
-        call_state = {}
-        commission_state = {}
-        while True:
-            for event in _collection_pass_events(seen_sources):
+        q = queue.Queue(maxsize=200)
+        with _subscribers_lock:
+            _subscribers.add(q)
+        try:
+            with _history_lock:
+                backlog = list(_history)
+            for event in backlog:
                 self._send_event(event)
-            for event in _call_events(call_state):
-                self._send_event(event)
-            for event in _commission_step_events(commission_state):
-                self._send_event(event)
-            time.sleep(POLL_SECONDS)
+            while True:
+                self._send_event(q.get())
+        finally:
+            with _subscribers_lock:
+                _subscribers.discard(q)
 
     def log_message(self, *a):
         pass
@@ -234,6 +539,7 @@ class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 def main():
     ThreadingHTTPServer.allow_reuse_address = True
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
+    threading.Thread(target=_poll_forever, daemon=True).start()
     print("serve_events listening on http://%s:%d" % (HOST, PORT))
     httpd.serve_forever()
 
