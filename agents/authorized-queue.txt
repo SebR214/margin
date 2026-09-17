@@ -19,12 +19,24 @@
 # An agent that genuinely cannot proceed on one of these says what is missing on
 # the issue. It does not get to stop the queue quietly.
 #
-# One key per line. Blank lines and # comments ignored.
+# ORDER MATTERS. These are the spec's own sequence, and `linear.py next` will
+# not hand out an entry while an earlier one is still unfinished. That is how a
+# dependency is expressed here -- not with a `blocked` label, which this file
+# refuses, and which an agent therefore has nowhere to put "not yet".
+#
+# That gap cost real money. M2 depends on M1, M1 on R2; with no way to say so,
+# the issue stayed in Todo, `next` kept handing it over, and the builder woke a
+# model every pass to re-explain the dependency -- 62 times in 4h20m (SEB-71).
+# A sequence is a fact about the work. It does not need a label and cannot be
+# used to hide anything, because it resolves the moment the earlier item is Done.
+#
+# One key per line, in build order. Blank lines and # comments ignored.
 
-# docs/UI-SPEC-2026-09-16.md
+# docs/UI-SPEC-2026-09-16.md -- D1 -> U6 -> U7 -> R1 -> R2 -> M1 -> M2
+SEB-60
+SEB-61
+SEB-62
+SEB-56
 SEB-57
 SEB-58
 SEB-59
-SEB-62
-SEB-61
-SEB-60
