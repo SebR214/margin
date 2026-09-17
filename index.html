@@ -120,10 +120,12 @@
       </div>
 
       <div class="ask">
-        <input type="text" placeholder="Ask the agent anything…" id="askInput"/>
+        <input type="text" placeholder="Ask about any country, corridor or provider here…" id="askInput"/>
         <button aria-label="ask" id="askBtn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
       <div class="chips" id="chips"></div>
+      <div id="coverage" style="margin-top:12px;font-size:13px;color:#9A9A9A;max-width:720px"></div>
+      <div id="coverageList" style="display:none;margin-top:10px;max-width:720px;padding:16px 20px;background:#F6F6F6;border-radius:12px;font-size:13px;line-height:1.7;color:#333"></div>
       <div id="answerBox" style="display:none"></div>
     </div>
 
@@ -301,44 +303,115 @@
       cheapestRow = s0 && s0.rows[0];
     }
 
-    var CHIPS = [];
-    if (withheldPick) {
-      CHIPS.push({
-        label: 'Why is ' + withheldPick.country + ' not priced?',
-        answer: function(){
-          showAnswerCard('ASKED · ' + lastPassStamp,
-            '<b>' + esc(withheldPick.country) + ' (' + esc(withheldPick.ccy) + '):</b> ' + esc(withheldPick.reason) + '. Checked again next pass — this is the current hour\'s real result, not a permanent state.',
-            'nothing ships unverified · <a href="./the-index.html#withheld" style="font-weight:600;color:#0B0B0B">every withheld country →</a>');
+    // ---- What can you actually ask? -------------------------------------
+    //
+    // The backend is not a fixed set of questions -- it translates plain
+    // English into one read-only SELECT across 12 real tables (see
+    // tools/ask_backend.py). It can answer far more than a menu of three.
+    //
+    // What it CANNOT do is answer about a country, provider or venue this
+    // site has never collected. "a dollar in denmark?" fails for that reason
+    // alone, and the old refusal never said so -- it read as "this box
+    // barely works" instead of "Denmark isn't one of the 59 tracked".
+    //
+    // So: state the real coverage, make it browsable, and diagnose a miss by
+    // name instead of refusing blankly.
+
+    var trackedNames = {};   // lowercase country name -> {ccy, priced}
+    countries.forEach(function(c){ trackedNames[c.country.toLowerCase()] = { ccy: c.ccy, priced: true, country: c.country }; });
+    withheld.forEach(function(w){ trackedNames[w.country.toLowerCase()] = { ccy: w.ccy, priced: false, country: w.country }; });
+    var trackedCcy = {};
+    Object.keys(trackedNames).forEach(function(n){ trackedCcy[trackedNames[n].ccy.toLowerCase()] = trackedNames[n]; });
+
+    // Every ISO country name the browser itself knows, so an untracked
+    // country can be named specifically without shipping (or maintaining) a
+    // gazetteer of our own.
+    var worldNames = {};
+    try {
+      var dn = new Intl.DisplayNames(['en'], { type: 'region' });
+      for (var a = 65; a <= 90; a++) {
+        for (var b = 65; b <= 90; b++) {
+          var code = String.fromCharCode(a) + String.fromCharCode(b);
+          var nm = dn.of(code);
+          if (nm && nm !== code) worldNames[nm.toLowerCase()] = nm;
         }
-      });
-    }
-    if (secondPick) {
-      CHIPS.push({
-        label: 'A dollar in ' + secondPick.country + '?',
-        answer: function(){
-          showAnswerCard('ASKED · ' + lastPassStamp,
-            '<b>' + esc(secondPick.country) + ' (' + esc(secondPick.ccy) + '):</b> a dollar ' + costPhrase(secondPick.index_pct) + ' this hour, from ' + esc(secondPick.evidence_words) + '.',
-            esc(secondPick.country) + ' <a href="./country.html?ccy=' + esc(secondPick.ccy) + '" style="font-weight:600;color:#0B0B0B">in full, with the receipt →</a>');
-        }
-      });
-    }
-    CHIPS.push({
-      label: 'Is the digital dollar really worth a dollar?',
-      answer: function(){
-        showAnswerCard('ASKED · ' + lastPassStamp,
-          dollarRouteRow && cheapestRow
-            ? 'Measured, not assumed: sending through the digital-dollar route costs <b class="num">' + esc(dollarRouteRow.costs) + '</b> right now, against <b class="num">' + esc(cheapestRow.costs) + '</b> for the cheapest ordinary option.'
-            : 'See sending money for the real, hourly comparison.',
-          're-priced every hour · <a href="./sending-money.html" style="font-weight:600;color:#0B0B0B">every way to send it, ranked →</a>');
       }
+    } catch (e) { /* older browser: fall back to the generic message */ }
+
+    // Coverage line: real counts, live, with the full list one click away.
+    var corridorCount = prov && prov.corridors ? Object.keys(prov.corridors).length : 0;
+    // Earliest record across the set -- each country's own history starts on
+    // its own date, so this is "as far back as anything goes", not a claim
+    // that every country has been collected since then.
+    var earliest = countries.reduce(function(m, c){
+      if (!c.history_start) return m;
+      return (!m || c.history_start < m) ? c.history_start : m;
+    }, null);
+    document.getElementById('coverage').innerHTML =
+      'Answers come from what this site has actually collected: ' +
+      '<a href="#" id="showCountries" style="color:#0B0B0B;font-weight:600;border-bottom:1px solid #DDD">' +
+      (countries.length + withheld.length) + ' countries</a> · ' +
+      corridorCount + ' money corridors · priced every hour, the longest record going back to ' +
+      (earliest ? shortDate(earliest + 'T00:00:00Z') + ' ' + earliest.slice(0, 4) : 'the start') +
+      '. Ask about anything in there, in your own words.';
+
+    document.getElementById('showCountries').addEventListener('click', function(e){
+      e.preventDefault();
+      var box = document.getElementById('coverageList');
+      if (box.style.display === 'block') { box.style.display = 'none'; return; }
+      var all = Object.keys(trackedNames).map(function(n){ return trackedNames[n]; })
+        .sort(function(x, y){ return x.country.localeCompare(y.country); });
+      box.innerHTML = '<b>Every country this site tracks</b> — ' + countries.length +
+        ' priced this hour, ' + withheld.length + ' checked but withheld:<br>' +
+        all.map(function(t){
+          return '<a href="./country.html?ccy=' + esc(t.ccy) + '" style="color:' + (t.priced ? '#0B0B0B' : '#B3822D') + '">' + esc(t.country) + '</a>';
+        }).join(' · ');
+      box.style.display = 'block';
     });
 
-    document.getElementById('chips').innerHTML = CHIPS.map(function(c, i){
-      return '<button class="chip" data-i="' + i + '">' + esc(c.label) + '</button>';
+    // Example questions that teach the SHAPE of what's answerable, filled
+    // from live data and regenerated each pass -- not a fixed menu.
+    var anyPriced = countries[Math.floor(Math.random() * countries.length)];
+    var routeWords = prov && prov.corridors
+      ? prov.corridors[Object.keys(prov.corridors)[0]].route_words : 'Singapore to the Philippines';
+    var EXAMPLES = [
+      'What does a dollar cost in ' + (anyPriced ? anyPriced.country : 'Argentina') + ' right now?',
+      'Which country has the widest gap this hour?',
+      'Who changed their price this week?',
+      'Cheapest way to send money ' + routeWords + '?'
+    ];
+    if (withheldPick) EXAMPLES.push('Why is ' + withheldPick.country + ' not priced?');
+
+    document.getElementById('chips').innerHTML = EXAMPLES.map(function(q){
+      return '<button class="chip" data-q="' + esc(q) + '">' + esc(q) + '</button>';
     }).join('');
     document.querySelectorAll('.chip').forEach(function(btn){
-      btn.addEventListener('click', function(){ CHIPS[+btn.getAttribute('data-i')].answer(); });
+      btn.addEventListener('click', function(){
+        var q = btn.getAttribute('data-q');
+        document.getElementById('askInput').value = q;
+        submitAsk();
+      });
     });
+
+    // Given a question that came back unanswerable, say WHY in terms of the
+    // real coverage rather than repeating a generic refusal.
+    function diagnose(q) {
+      var lower = ' ' + q.toLowerCase().replace(/[^a-z\s]/g, ' ') + ' ';
+      var mentionedTracked = Object.keys(trackedNames).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
+      var mentionedWorld = Object.keys(worldNames).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
+      var untracked = mentionedWorld.filter(function(n){ return !trackedNames[n]; });
+      if (untracked.length) {
+        return '<b>' + esc(worldNames[untracked[0]]) + '</b> isn’t one of the ' +
+          (countries.length + withheld.length) + ' countries this site collects prices for, so there’s nothing measured to answer from — nothing is being hidden, it simply was never collected. ' +
+          '<a href="#" id="diagShow" style="font-weight:600;color:#0B0B0B">See the ones that are tracked →</a>';
+      }
+      if (mentionedTracked.length) {
+        var t = trackedNames[mentionedTracked[0]];
+        return 'That one couldn’t be turned into a query, but <b>' + esc(t.country) + '</b> <i>is</i> tracked — try asking it a different way, or ' +
+          '<a href="./country.html?ccy=' + esc(t.ccy) + '" style="font-weight:600;color:#0B0B0B">see ' + esc(t.country) + ' in full →</a>';
+      }
+      return 'That couldn’t be turned into a query against what’s collected here. The examples above show the kinds of question that work — countries, corridors, providers, prices over time.';
+    }
 
     var askInput = document.getElementById('askInput');
     var askBtn = document.getElementById('askBtn');
@@ -353,8 +426,19 @@
       }).then(function(r){ return r.json().then(function(body){ return {ok: r.ok, body: body}; }); })
         .then(function(res){
           if (!res.ok || res.body.error) {
+            // A rate-limit or outage is about the service, not the question
+            // -- only a genuine "can't answer that" gets the coverage
+            // diagnosis, or it would explain the wrong thing.
+            var err = String(res.body.error || '');
+            var isUnanswerable = /can't be answered|cannot be answered/i.test(err);
             showAnswerCard('ASKED · ' + lastPassStamp,
-              esc(res.body.error || 'That could not be answered from the data this site collects.'), null);
+              isUnanswerable ? diagnose(q) : esc(err || 'That could not be answered right now.'), null);
+            var dlink = document.getElementById('diagShow');
+            if (dlink) dlink.addEventListener('click', function(e){
+              e.preventDefault();
+              document.getElementById('showCountries').click();
+              document.getElementById('coverageList').scrollIntoView({behavior:'smooth', block:'center'});
+            });
             return;
           }
           var sentence = esc(res.body.sentence || JSON.stringify(res.body.rows || res.body));
