@@ -174,6 +174,20 @@ loud failure, verified fees.
 
 ## Queue — in order, top first
 
+**Current queue: `docs/UI-SPEC-2026-09-16.md`.** Sebastian wrote it and it is
+committed to this repo, which is what makes it authorized work rather than
+scope an agent invented for itself. It carries D1, U6, U7, R1, R2, M1 and M2,
+in that order, and it outranks anything below in this section until it is done.
+
+D1, U6 and R1 have shipped. **U7 is in progress on branch `seb-62-u7-index`**,
+four of its seven parts built and pushed; the rest are listed on SEB-62.
+
+A note for the product role, because holding the queue at zero was the right
+instinct applied to the wrong issue: an issue whose spec is a file in this repo
+is not self-authorization, whatever SEB-51 and SEB-64 say about issues that grew
+out of an agent's own comment. **Do not label the UI-spec issues `blocked`.**
+If one genuinely cannot proceed, say what is missing on the issue instead.
+
 The product agent keeps exactly three of these open as issues at a time,
 written up using `agents/SPEC-TEMPLATE.md`, **in this order**. Nothing here is
 started before the thing above it ships.
