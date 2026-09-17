@@ -121,7 +121,7 @@
         <div id="rankList"></div>
         <div class="rank-note" id="rankNote"></div>
       </div>
-      <div class="about">Built by one person and the agent itself, which collects, verifies and publishes around the clock. Raw data and code are public.</div>
+      <div class="about">Built by one person and the agents that run this site around the clock — one collects, one builds, one reviews, one decides what's next. <a href="./machine-room.html">Watch them work →</a> Raw data and code are public.</div>
     </div>
   </div>
 </div>
@@ -237,9 +237,14 @@
       MarginChart.render(chartEl, { spark: top.spark, timestamps: sparkDates(top), valueSuffix: '%' });
     }
 
-    // ---- Ask box: the three chips answer from data already on this page;
-    // free text gets the honest "not live yet" message, per spec, rather
-    // than a canned fake answer.
+    // ---- Ask box: the three chips answer instantly from data already on
+    // this page (computed, not fetched, so they never round-trip for
+    // something the page already has). Free text goes to the real /ask
+    // backend -- it went live after the spec's "B5 is still blocked" note
+    // was written, so this now genuinely answers open questions rather than
+    // repeating a fixed FAQ.
+    var API_BASE = location.hostname.endsWith("margin.wiki")
+      ? "https://api.margin.wiki" : "http://127.0.0.1:8901";
     var answerBox = document.getElementById('answerBox');
     function showAnswer(html) {
       answerBox.innerHTML = html;
@@ -289,7 +294,24 @@
       if (!q) return;
       var fn = CANNED[q];
       if (fn) { showAnswer(fn()); return; }
-      showAnswer('Live free-form answers aren\'t on yet. Here\'s what this page can answer today: try one of the questions below, or see <a href="./the-index.html">the index</a>, <a href="./sending-money.html">sending money</a> or <a href="./machine-room.html">the machine room</a> directly.');
+      showAnswer('<span style="color:#9A9A9A">Asking…</span>');
+      fetch(API_BASE + '/ask', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({question: q})
+      }).then(function(r){ return r.json().then(function(body){ return {ok: r.ok, body: body}; }); })
+        .then(function(res){
+          if (!res.ok || res.body.error) {
+            showAnswer(esc(res.body.error || 'That could not be answered from the data this site collects.') + ' <a href="./machine-room.html">Full ask page →</a>');
+            return;
+          }
+          var html = esc(res.body.sentence || JSON.stringify(res.body.rows || res.body));
+          if (res.body.sql) html += '<div style="font-size:12px;color:#9A9A9A;margin-top:8px;font-family:ui-monospace,monospace">' + esc(res.body.sql) + '</div>';
+          showAnswer(html);
+        })
+        .catch(function(){
+          showAnswer('The live ask service is not reachable right now. That failure is shown, not hidden.');
+        });
     }
     if (askBtn) askBtn.addEventListener('click', submitAsk);
     if (askInput) askInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') submitAsk(); });

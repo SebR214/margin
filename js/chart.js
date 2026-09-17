@@ -14,12 +14,16 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  // Date only. A daily-cadence series shares the same collection hour across
+  // every point, so repeating "13:00" on every single hover reading is
+  // noise, not information -- the date is what actually changes point to
+  // point.
   function fmtDate(iso) {
     if (!iso) return '';
     var d = new Date(iso);
     if (isNaN(d)) return '';
-    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return d.getUTCDate() + ' ' + months[d.getUTCMonth()] + ' ' + String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0');
+    return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()];
   }
 
   function render(container, opts) {
@@ -50,7 +54,7 @@
 
     var yLabels = [min, min + range / 2, max].map(function (v) {
       var y = pad + (1 - (v - min) / range) * plotH;
-      return '<text x="' + (plotW + 14) + '" y="' + (y + 4).toFixed(1) + '" font-family="Archivo, sans-serif" font-size="11" fill="#9A9A9A">' + v.toFixed(1) + suffix + '</text>';
+      return '<text x="' + (plotW + 14) + '" y="' + (y + 4).toFixed(1) + '" font-family="Archivo, sans-serif" font-size="13" fill="#9A9A9A">' + v.toFixed(1) + suffix + '</text>';
     }).join('');
 
     var xFirst = timestamps[0] ? fmtDate(timestamps[0]) : 'earliest in window';
@@ -73,8 +77,8 @@
       yLabels +
       '<line id="' + vlineId + '" x1="0" y1="0" x2="0" y2="' + (h - bottomAxis) + '" stroke="#0B0B0B" stroke-width="1" opacity="0" />' +
       '<circle id="' + dotId + '" r="4" fill="#5A55E0" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
-      '<text x="0" y="' + (h - 6) + '" text-anchor="start" font-family="Archivo, sans-serif" font-size="12" fill="#9A9A9A">' + esc(xFirst) + '</text>' +
-      '<text x="' + lastX.toFixed(1) + '" y="' + (h - 6) + '" text-anchor="end" font-family="Archivo, sans-serif" font-size="12" fill="#9A9A9A">' + esc(xLast) + '</text>' +
+      '<text x="0" y="' + (h - 6) + '" text-anchor="start" font-family="Archivo, sans-serif" font-size="13" fill="#9A9A9A">' + esc(xFirst) + '</text>' +
+      '<text x="' + lastX.toFixed(1) + '" y="' + (h - 6) + '" text-anchor="end" font-family="Archivo, sans-serif" font-size="13" fill="#9A9A9A">' + esc(xLast) + '</text>' +
       '</svg>' +
       '<div id="' + tipId + '" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;transform:translate(-50%,-130%)"></div>' +
       '</div>';
@@ -108,6 +112,7 @@
       tip.style.left = leftPct + '%';
       tip.style.top = ((p.y / h) * 100) + '%';
       tip.style.opacity = 1;
+      tip.style.fontSize = '13px';
       tip.textContent = p.v.toFixed(2) + suffix + (p.ts ? ' · ' + fmtDate(p.ts) : '');
     });
     svg.addEventListener('mouseleave', function () {

@@ -63,7 +63,8 @@
   <div class="cols">
     <div style="display:flex;flex-direction:column">
       <div class="col-hdr"><div class="col-title">This hour's collection</div><div class="lbl num" id="collectorState">&nbsp;</div></div>
-      <div class="feed" id="collectorFeed"><div class="empty">Waiting for the next pass — the browser connects live below.</div></div>
+      <div id="passProgress" style="font-size:13px;color:#6B6B6B;padding:10px 0;border-bottom:1px solid #F6F6F6">&nbsp;</div>
+      <div class="feed" id="collectorFeed"><div class="empty">Watching live from here — what you see below happened since this page opened. Nothing before that is replayed.</div></div>
     </div>
     <div style="display:flex;flex-direction:column">
       <div class="col-hdr"><div class="col-title">What the agents are doing</div><div class="lbl">ISSUES · REVIEWS · COMMITS</div></div>
@@ -98,8 +99,12 @@
   }
 
   fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
-    document.getElementById('mPriced').textContent = (d.countries||[]).length;
-    document.getElementById('mWithheld').textContent = (d.withheld||[]).length;
+    var priced = (d.countries||[]).length, withheld = (d.withheld||[]).length;
+    document.getElementById('mPriced').textContent = priced;
+    document.getElementById('mWithheld').textContent = withheld;
+    var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
+    document.getElementById('passProgress').textContent =
+      'Last completed pass (' + hourUtc + ' UTC): ' + priced + ' of ' + (priced + withheld) + ' countries checked and priced, ' + withheld + ' withheld with a reason.';
   }).catch(function(){});
 
   fetch('./data/agent_status.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
