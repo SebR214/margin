@@ -1,0 +1,28 @@
+# Issues whose spec Sebastian wrote and committed to this repo.
+#
+# `linear.py label <key> blocked` REFUSES for anything listed here. Not as a
+# convention -- the command exits non-zero and does nothing.
+#
+# Why this file exists: on 2026-09-16 the product role held the Todo queue at
+# zero and re-labelled U7 `blocked` on every sweep, reasoning that unblocking
+# it would repeat the self-authorization pattern of SEB-51. That instinct is
+# correct in general and was wrong here: Sebastian wrote docs/UI-SPEC-2026-09-16.md
+# himself. It could not tell his work from an agent's, so a spec he handed over
+# sat blocked for ten hours while the builder worked an unrelated bug. The label
+# had been cleared by hand six times before that across four issues.
+#
+# A label is invisible: it changes the machine's behaviour and leaves no trace
+# anyone reads. Removing a key from this file is a commit -- reviewable, in the
+# history, and attributable. That is the whole point of putting it here rather
+# than asking politely in ROADMAP.
+#
+# An agent that genuinely cannot proceed on one of these says what is missing on
+# the issue. It does not get to stop the queue quietly.
+#
+# One key per line. Blank lines and # comments ignored.
+
+# docs/UI-SPEC-2026-09-16.md
+SEB-57
+SEB-58
+SEB-59
+SEB-62

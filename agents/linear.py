@@ -33,6 +33,7 @@ Reads LINEAR_API_KEY from the environment. Never prints it. Stdlib only.
 """
 
 import argparse
+import io
 import json
 import os
 import sys
@@ -220,8 +221,35 @@ def _label_id(name):
     sys.exit("no label %r" % name)
 
 
+def authorized_keys():
+    """Issue keys whose spec Sebastian wrote and committed to this repo.
+
+    Read fresh on every call rather than cached, so adding a key takes effect on
+    the next command and not the next restart.
+    """
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "authorized-queue.txt")
+    try:
+        lines = io.open(path, encoding="utf-8").read().splitlines()
+    except OSError:
+        return set()
+    return {l.strip().upper() for l in lines
+            if l.strip() and not l.strip().startswith("#")}
+
+
 def cmd_label(a):
     i = find(a.ident)
+    # `blocked` stops the builder taking an issue at all, and nothing surfaces
+    # that it happened. On an issue Sebastian specced himself that is not a
+    # judgement call an agent gets to make quietly -- see
+    # agents/authorized-queue.txt for what this cost.
+    if a.label.lower() == "blocked" and i["identifier"].upper() in authorized_keys():
+        sys.exit(
+            "refusing to block %s: its spec is a file Sebastian committed to "
+            "this repo (agents/authorized-queue.txt).\n"
+            "If it genuinely cannot proceed, say what is missing:\n"
+            "  python3 agents/linear.py say %s <role> \"Cannot proceed: ...\""
+            % (i["identifier"], i["identifier"]))
     call("""mutation($id: String!, $l: String!) {
       issueAddLabel(id: $id, labelId: $l) { success }
     }""", {"id": i["id"], "l": _label_id(a.label)})
