@@ -257,8 +257,17 @@ while true; do
 
   # A usage limit is not a failure and must not be retried in a tight loop.
   # Claude Code reports it as "...usage limit reached|<epoch seconds>".
+  #
+  # The org's monthly spend cap is a different message with no epoch in it --
+  # "You've hit your org's monthly spend limit ... claude.ai/settings/usage" --
+  # and until SEB-72 it matched neither 'rate limit' nor 'usage limit', so it
+  # fell through to the generic-error branch below and retried every
+  # ERROR_WAIT (300s) for hours at a stretch (measured: 235 hits across three
+  # multi-hour blackouts, 2026-09-14 through 09-17). It has no reset time to
+  # read, so it takes the same LIMIT_FALLBACK wait a usage limit gets when it
+  # can't read one either.
   RESET=$(grep -oE 'usage limit reached\|[0-9]+' "$OUT" 2>/dev/null | head -1 | cut -d'|' -f2 || true)
-  if [ -n "$RESET" ] || grep -qiE 'rate.?limit|usage limit' "$OUT" 2>/dev/null; then
+  if [ -n "$RESET" ] || grep -qiE 'rate.?limit|usage limit|spend limit' "$OUT" 2>/dev/null; then
     NOW=$(date +%s)
     if [ -n "$RESET" ] && [ "$RESET" -gt "$NOW" ]; then
       WAIT=$(( RESET - NOW + 60 ))
