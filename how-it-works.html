@@ -150,7 +150,8 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
       var diff = ours.index_pct - refPremium;
       return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' +
         '<b>' + esc(ccy) + ':</b> we measure <b class="num">' + (ours.index_pct>=0?'+':'') + ours.index_pct.toFixed(1) + '%</b> above official; ' +
-        esc(ref.src) + ' independently publishes <b class="num">' + (refPremium>=0?'+':'') + refPremium.toFixed(1) + '%</b> — we differ by <b class="num">' + Math.abs(diff).toFixed(1) + ' points</b>.</div>';
+        esc(ref.src) + ' independently publishes <b class="num">' + (refPremium>=0?'+':'') + refPremium.toFixed(1) + '%</b> — we differ by <b class="num">' + Math.abs(diff).toFixed(1) + ' points</b>. ' +
+        '<a href="./country.html?ccy=' + esc(ccy) + '" style="font-weight:600;color:#0B0B0B">the gap over time →</a></div>';
     }).join('');
 
     document.getElementById('refCheck').outerHTML = '<div id="refCheck">' + rows + '</div>';

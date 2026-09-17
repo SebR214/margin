@@ -157,12 +157,80 @@
     }
     html += '</div>';
 
+    // ---- Checked against an independent reference ----
+    // For the few currencies where a real, independently published rate
+    // exists (data/fx_rates.csv's parallel_rate_per_usd -- ARS, BOB, VES,
+    // from dolarapi.ar/bo/ve, a third party, not us), show our own measure
+    // against it directly rather than asking for trust on faith.
+    var REF_SOURCE = { ARS: 'dolarapi.ar', BOB: 'dolarapi.bo', VES: 'dolarapi.ve' };
+    if (REF_SOURCE[ccy]) {
+      html += '<div id="refSection"><div style="border-top:1px solid #0B0B0B;margin-top:36px;padding-top:20px;font-size:16px;font-weight:700">Checked against an independent reference</div>' +
+        '<div id="refBody" style="padding-top:10px;font-size:14px;color:#6B6B6B">Loading the comparison&hellip;</div></div>';
+    }
+
     html += '<div class="footlinks"><a href="./the-index.html">&larr; every country</a><a href="./machine-room.html">Watch the next pass &rarr;</a><a href="./data.html">Open the raw files &rarr;</a></div>';
 
     main.innerHTML = html;
 
     if (country.spark && country.spark.length > 1) {
       MarginChart.render(document.getElementById('countryChart'), { spark: country.spark, timestamps: dates, valueSuffix: '%' });
+    }
+
+    if (REF_SOURCE[ccy]) {
+      fetch('./data/fx_rates.csv', {cache:'no-store'}).then(function(r){ return r.text(); }).then(function(text){
+        var lines = text.split('\n');
+        var header = lines[0].split(',');
+        var iCcy = header.indexOf('ccy'), iFx = header.indexOf('fx_mid_per_usd'),
+            iPar = header.indexOf('parallel_rate_per_usd'), iTs = header.indexOf('ts_utc');
+        // Last reading of each real calendar day, so an hourly-collected
+        // official rate paired with a daily-published reference compares
+        // one point per day on both sides, not an arbitrary hour.
+        var byDay = {};
+        for (var i = 1; i < lines.length; i++) {
+          if (!lines[i]) continue;
+          var cols = lines[i].split(',');
+          if (cols[iCcy] !== ccy || !cols[iPar]) continue;
+          var day = cols[iTs].slice(0, 10);
+          byDay[day] = { fx: parseFloat(cols[iFx]), par: parseFloat(cols[iPar]) };
+        }
+        var refDays = Object.keys(byDay).sort();
+        if (!refDays.length) {
+          document.getElementById('refBody').textContent = 'No reference reading available right now.';
+          return;
+        }
+
+        // Pair with our own daily spark by matching real calendar day.
+        var ourByDay = {};
+        (country.spark || []).forEach(function(v, i){ if (dates[i]) ourByDay[dates[i].slice(0,10)] = v; });
+
+        var diffDays = refDays.filter(function(d){ return ourByDay[d] !== undefined; });
+        var refPremiums = diffDays.map(function(d){ return (byDay[d].par / byDay[d].fx - 1) * 100; });
+        var diffs = diffDays.map(function(d, i){ return ourByDay[d] - refPremiums[i]; });
+
+        var latestDiff = diffs.length ? diffs[diffs.length - 1] : null;
+        var avgDiff = diffs.length ? diffs.reduce(function(a,b){return a+Math.abs(b);},0) / diffs.length : null;
+
+        var body = '<p style="font-size:14px;line-height:1.6;color:#333;margin:0 0 16px">' +
+          esc(REF_SOURCE[ccy]) + ' independently publishes a parallel rate for ' + esc(country.country) +
+          (latestDiff != null
+            ? ' &mdash; right now it implies a premium of <b class="num">' + (refPremiums[refPremiums.length-1]>=0?'+':'') + refPremiums[refPremiums.length-1].toFixed(1) + '%</b>, ' +
+              'we measure <b class="num">' + (ourByDay[diffDays[diffDays.length-1]]>=0?'+':'') + ourByDay[diffDays[diffDays.length-1]].toFixed(1) + '%</b> &mdash; ' +
+              '<b class="num">' + Math.abs(latestDiff).toFixed(1) + ' points apart</b>, averaging ' + avgDiff.toFixed(1) + ' points apart over the last ' + diffDays.length + ' days.'
+            : ', but there is no overlapping day to compare yet.') +
+          '</p>';
+
+        if (diffDays.length > 1) {
+          body += '<div id="refChart"></div><div style="font-size:12px;color:#9A9A9A;padding-top:8px">the gap between our measure and ' + esc(REF_SOURCE[ccy]) + ', in points, each day &mdash; zero would mean an exact match</div>';
+        }
+        document.getElementById('refBody').outerHTML = '<div id="refBody">' + body + '</div>';
+
+        if (diffDays.length > 1) {
+          var refTimestamps = diffDays.map(function(d){ return d + 'T00:00:00Z'; });
+          MarginChart.render(document.getElementById('refChart'), { spark: diffs, timestamps: refTimestamps, valueSuffix: ' pts' });
+        }
+      }).catch(function(){
+        document.getElementById('refBody').textContent = 'Could not load the reference comparison. That failure is shown, not hidden.';
+      });
     }
 
     function step(n, label, body, file) {
