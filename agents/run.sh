@@ -11,6 +11,7 @@
 set -uo pipefail
 
 ROLE="${1:?usage: run.sh builder|reviewer|product}"
+export ROLE  # so `linear.py state` (SEB-58) can stamp who made the transition
 
 # Each role gets its OWN checkout. Three agents sharing one working tree race on
 # .git/FETCH_HEAD -- three simultaneous `git pull` calls produced
