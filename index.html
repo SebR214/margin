@@ -7,7 +7,6 @@
 <meta name="description" content="In much of the world the official exchange rate is not the real one. The agent watches real sources in 59 countries, every hour."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
-<script src="./js/receipt.js"></script>
 <style>
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
   *{box-sizing:border-box}
@@ -204,9 +203,9 @@
     var ranked = countries.slice().sort(function(a,b){ return b.index_pct - a.index_pct; });
     var top5 = ranked.slice(0,5);
     var rankHtml = top5.map(function(c,i){
-      return '<div class="rank-row" style="' + (i===0?'':'') + '">' +
+      return '<a class="rank-row" href="./country.html?ccy='+esc(c.ccy)+'" style="'+(i===0?'':'')+'text-decoration:none">' +
         '<div class="name">'+esc(c.country)+'</div>' +
-        '<div class="val num">+'+fmtPct(c.index_pct)+'%</div></div>';
+        '<div class="val num">+'+fmtPct(c.index_pct)+'%</div></a>';
     }).join('');
     document.getElementById('rankList').innerHTML = rankHtml;
     document.getElementById('rankNote').textContent =
@@ -226,7 +225,7 @@
       itemsHtml += '<div class="item"><div class="stamp num">TODAY '+hourUtc+'</div>' +
         '<p>' + countries.length + ' countries have a price this hour, ' + withheld.length + ' do not. The move that matters: ' +
         '<span class="num">' + esc(top.country) + ' is widening fastest, a dollar there now ' +
-        '<span class="indigo num" data-receipt="' + esc(top.ccy) + '" style="cursor:pointer" title="Click to see how this number was made">' + costPhrase(top.index_pct) + '</span></span>' +
+        '<a class="indigo num" href="./country.html?ccy=' + esc(top.ccy) + '" title="See how this number was made">' + costPhrase(top.index_pct) + '</a></span>' +
         (delta > 0 && topSince ? ', up ' + fmtPct(Math.abs(delta)) + ' points since ' + topSince + '.' : '.') + '</p>' +
         '<div id="homeChart"></div>' +
         '<div class="receipt">' + esc(top.evidence_words) + ', ' + esc(top.source_words) + ' · ' +
@@ -257,7 +256,7 @@
     if (withheld.length) {
       var w = withheld[0];
       itemsHtml += '<div class="item"><div class="stamp num">' + dateUtc + '</div>' +
-        '<p>No price for ' + esc(w.country) + ' (' + esc(w.ccy) + ') this hour: ' + esc(w.reason) + '. The failed attempt is public, not hidden.</p>' +
+        '<p>No price for <a href="./country.html?ccy=' + esc(w.ccy) + '" style="color:#0B0B0B">' + esc(w.country) + ' (' + esc(w.ccy) + ')</a> this hour: ' + esc(w.reason) + '. The failed attempt is public, not hidden.</p>' +
         '<div class="receipt">nothing ships unverified · <a href="./the-index.html#withheld" style="font-weight:600;color:#0B0B0B">every withheld country →</a></div></div>';
     }
 
