@@ -35,6 +35,7 @@
   .finding h2{font-size:20px;margin:0 0 8px;border:0;padding:0}
   .finding .body{margin:0 0 10px;max-width:66ch}
   .finding .small a{color:var(--ink)}
+  .finding-chart{margin:6px 0 12px}
   .empty{padding:26px 0;color:var(--muted)}
   @media(max-width:720px){
     h1{font-size:28px}
@@ -54,6 +55,7 @@
     <a href="./requests.html">requests</a>
     <a href="./calculator.html">calculator</a>
     <a href="./methodology.html">methodology</a>
+    <a href="./machine-room.html">the machine room</a>
     <span class="muted" id="stamp"></span>
   </header>
 
@@ -68,6 +70,38 @@
 </div>
 <script>
 let DATA = null;
+
+// U7: a number inside a finding's sentence is bold and black, never the
+// indigo used for table and chart values -- so it just needs weight, no
+// colour override, since the surrounding prose is already black.
+const b = x => `<b>${x}</b>`;
+
+// U7: "each finding gets a chart where the data supports the claim it
+// makes" -- a plain indigo bar per point, drawn straight from the same
+// numbers already in the sentence above it. No history to interpolate, no
+// range pills: this is evidence for one claim, not a market chart.
+function barChart(bars){
+  if (!bars.length) return "";
+  const w = 640, h = 90, bw = w / bars.length;
+  const vals = bars.map(x => x.value);
+  const max = Math.max(...vals, 0), min = Math.min(...vals, 0);
+  const span = (max - min) || 1;
+  const y0 = h * (max / span); // baseline (zero line)
+  const bars_svg = bars.map((bpt, i) => {
+    const x = i * bw + bw * 0.18, bwv = bw * 0.64;
+    const y = h * ((max - bpt.value) / span);
+    const top = Math.min(y, y0), barH = Math.max(Math.abs(y - y0), 1);
+    return `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${bwv.toFixed(1)}" `
+         + `height="${barH.toFixed(1)}" fill="#5A55E0"><title>${esc(bpt.label)}: ${esc(bpt.formatted)}</title></rect>`;
+  }).join("");
+  const labels = bars.map((bpt, i) =>
+    `<span style="flex:1 1 0;text-align:center">${esc(bpt.label)}</span>`).join("");
+  return `<div class="finding-chart">
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:60px;display:block">${bars_svg}</svg>
+    <div style="display:flex;font-size:10px;color:var(--muted);margin-top:4px">${labels}</div>
+  </div>`;
+}
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 
 const get = p => fetch(p, {cache:"no-store"}).then(r => { if(!r.ok) throw new Error(p + " " + r.status); return r.json(); });
 // Every layer past the first is optional at the fetch level -- a finder whose
@@ -112,9 +146,34 @@ function weekendFinding(DATA){
     const corridor = rows[0].corridor;
     const days = new Set(rows.map(r => r.day));
     const avg = rows.reduce((a, r) => a + r.move_pct, 0) / rows.length;
-    return `${avg.toFixed(2)} points on ${routeWords}, on ${days.size} of the `
-         + `${sats[corridor] ?? days.size} Saturdays measured`;
+    return `${b(avg.toFixed(2) + " points")} on ${routeWords}, on `
+         + `${b(days.size + " of the " + (sats[corridor] ?? days.size))} Saturdays measured`;
   });
+
+  // U7: the card used to appear whenever a single weekend move existed, and
+  // the headline states a pattern -- "X charges more at the weekend" -- that a
+  // couple of Saturdays does not support. On 2026-09-16 the leading company had
+  // moved on 2 of the 5 Saturdays measured on SGD->PHP and 2 of 4 on USD->MXN,
+  // most recently eleven days earlier, with nothing on the most recent Saturday.
+  // That is a coin flip that has gone quiet, not a pricing habit.
+  //
+  // So the card now has to earn its headline: the pattern must hold on more
+  // than half the Saturdays actually judged on at least one route, and must
+  // have been seen within the last three weeks. Otherwise there is no finding
+  // and the page says nothing, which is the honest outcome. Nothing is deleted
+  // -- the card comes back by itself the moment the pattern does.
+  const HOLDS_ON = 0.5, SEEN_WITHIN_DAYS = 21;
+  const holdsSomewhere = Object.entries(byRoute).some(([, rows]) => {
+    const corridor = rows[0].corridor;
+    const hit = new Set(rows.map(r => r.day)).size;
+    const judged = sats[corridor];
+    return judged ? (hit / judged) > HOLDS_ON : false;
+  });
+  const newest = mine.map(r => r.day).sort().slice(-1)[0];
+  const ageDays = newest
+    ? (Date.now() - new Date(newest + "T00:00:00Z").getTime()) / 86400000
+    : Infinity;
+  if (!holdsSomewhere || ageDays > SEEN_WITHIN_DAYS) return null;
 
   const others = rank.slice(1).map(x => x[0]);
   const also = others.length
@@ -123,12 +182,16 @@ function weekendFinding(DATA){
     : "No other company on these routes does it.";
 
   const latest = mine.map(r => r.day).sort().slice(-1)[0];
+  const chartBars = mine.slice().sort((a, b) => a.day < b.day ? -1 : 1)
+    .map(r => ({ label: r.day.slice(5), value: r.move_pct,
+                 formatted: r.move_pct.toFixed(2) + " points" }));
   return {
     sortKey: latest,
     tag: "weekend pricing · last seen " + latest,
     headline: `${top} charges more at the weekend.`,
     body: `Its price rises on a Saturday and comes back down on the Monday. `
         + `It has done that by ${legs.join("; and by ")}. ${also}`,
+    chart: barChart(chartBars),
     sourceHref: "./pricing-history.html", sourceLabel: "See the full price record",
   };
 }
@@ -169,7 +232,7 @@ function flatFeeFinding(DATA){
       const feePcts = charged.map(p => p.fee / p.amount * 100);
       (byProvider[provider] = byProvider[provider] || []).push({
         routeWords: route.route_words, cutoffWords: cutoff.amountWords,
-        firstChargedWords: firstCharged.amountWords,
+        firstChargedWords: firstCharged.amountWords, pts,
         feeLow: Math.min(...feePcts), feeHigh: Math.max(...feePcts),
       });
     }
@@ -194,19 +257,24 @@ function flatFeeFinding(DATA){
     const feeWords = l.feeLow === l.feeHigh
       ? l.feeLow.toFixed(2) + "%"
       : l.feeLow.toFixed(2) + "% to " + l.feeHigh.toFixed(2) + "%";
-    return `on ${l.routeWords}, free up to ${l.cutoffWords} and ${feeWords} of `
-         + `the amount from ${l.firstChargedWords} up`;
+    return `on ${l.routeWords}, free up to ${b(l.cutoffWords)} and ${b(feeWords)} of `
+         + `the amount from ${b(l.firstChargedWords)} up`;
   });
 
   const asOf = ((DATA.providers && DATA.providers.as_of_utc) || "").slice(0, 10);
+  const chartBars = legs[0].pts.map(p => ({
+    label: p.amountWords, value: p.fee / p.amount * 100,
+    formatted: (p.fee / p.amount * 100).toFixed(2) + "% fee",
+  }));
   return {
     sortKey: asOf,
     tag: "pricing schedule" + (asOf ? " · confirmed " + asOf : ""),
     headline: `${top} is free up to a point, then adds a fee.`,
     body: `Its own exchange rate does not move between sizes -- only the fee `
-        + `does. Confirmed ${legWords.join("; and ")}, on ${legs.length} of `
-        + `the ${testable} route${testable === 1 ? "" : "s"} ${top} quotes `
-        + `directly.`,
+        + `does. Confirmed ${legWords.join("; and ")}, on `
+        + `${b(legs.length + " of the " + testable + " route" + (testable === 1 ? "" : "s"))} `
+        + `${top} quotes directly.`,
+    chart: barChart(chartBars),
     sourceHref: "./providers.html", sourceLabel: "See every way to send it",
   };
 }
@@ -235,6 +303,7 @@ function render(){
         <div class="tag">${f.tag}</div>
         <h2>${f.headline}</h2>
         <p class="body">${f.body}</p>
+        ${f.chart || ""}
         <p class="small"><a href="${f.sourceHref}">${f.sourceLabel} &rarr;</a></p>
       </article>`).join("");
 }

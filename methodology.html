@@ -57,7 +57,7 @@
 <div class="wrap">
   <header>
     <div class="brand">margin.wiki <span>· methodology</span></div>
-    <nav class="nav"><a href="./index.html">← the basis board</a><a href="./calculator.html">calculator</a><a href="./corridor.html">corridor →</a></nav>
+    <nav class="nav"><a href="./index.html">← the basis board</a><a href="./calculator.html">calculator</a><a href="./machine-room.html">the machine room</a><a href="./corridor.html">corridor →</a></nav>
   </header>
   <article id="doc"><div class="loading">loading methodology…</div></article>
   <footer>
@@ -128,13 +128,26 @@ function render(md){
 
 const pct=v=>v==null||!isFinite(v)?"—":(v>=0?"+":"−")+Math.abs(v).toFixed(2)+"%";
 
+// SEB-62/U7: the source list under "How it works" is generated from the same
+// files the index itself reads (tools/emit_sources.py), so it names exactly
+// what priced this hour rather than a list someone typed once and forgot.
+function sourceListHtml(doc){
+  if(!doc || !Array.isArray(doc.sources)){
+    return `<p class="loading">Live source list could not be read from data/sources_latest.json.</p>`;
+  }
+  const items=doc.sources.map(s=>
+    `<li><strong>${esc(s.name)}</strong> — ${esc(s.role)}, ${esc(s.detail)}</li>`).join("");
+  return `<ul>${items}</ul>`;
+}
+
 // The stable-spread section cites a live number, so it is a fetch of a
 // data/ file at render time, same as every other figure on the site --
 // never a number typed into this prose.
 Promise.all([
   fetch("./METHODOLOGY.md").then(r=>r.text()),
   fetch("./data/stable_spread_summary.json").then(r=>r.ok?r.json():null).catch(()=>null),
-]).then(([t, summary])=>{
+  fetch("./data/sources_latest.json").then(r=>r.ok?r.json():null).catch(()=>null),
+]).then(([t, summary, sourcesDoc])=>{
   let html=render(t);
   const live=summary
     ? `<p>Right now: ${summary.venues} venues report both prices, the current spread `
@@ -142,7 +155,9 @@ Promise.all([
       +`and the widest reading is ${pct(summary.widest_pct)} on ${summary.widest_venue} `
       +`(${summary.widest_ccy}), as of ${summary.as_of.replace("T"," ").slice(0,16)} UTC.</p>`
     : `<p class="loading">Live spread numbers could not be read from data/stable_spread_summary.json.</p>`;
-  document.getElementById("doc").innerHTML=html.replace("<p>__STABLE_SPREAD_LIVE__</p>", live);
+  html=html.replace("<p>__STABLE_SPREAD_LIVE__</p>", live);
+  html=html.replace("<p>__SOURCE_LIST_LIVE__</p>", sourceListHtml(sourcesDoc));
+  document.getElementById("doc").innerHTML=html;
 }).catch(e=>{
   document.getElementById("doc").innerHTML=`<p class="loading">Couldn't load METHODOLOGY.md — read it <a href="./METHODOLOGY.md">directly</a>.</p>`;
   console.error(e);

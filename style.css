@@ -125,9 +125,13 @@ figcaption { font-size: 11px; margin-top: var(--space-1); color: color-mix(in sr
 
 /* ---------------------------------------------------------------- header
    One shared header, four nav items, identical markup on every page. */
+/* Sticky on scroll, white, and no separator line -- the rule under it was
+   doing the work of saying "the header ends here", which a header that stays
+   put does not need. Stays opaque so the board does not show through it. */
 [data-nav="bar"] {
+  position: sticky; top: 0; z-index: 20;
   display: flex; align-items: stretch; justify-content: space-between;
-  gap: 24px; border-bottom: 2px solid var(--color-ink); padding: 0 24px; flex-wrap: wrap;
+  gap: 24px; border-bottom: 0; padding: 0 24px; flex-wrap: wrap;
   background: var(--color-bg);
 }
 [data-nav="brand"] {

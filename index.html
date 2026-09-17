@@ -140,67 +140,81 @@
     </div>
     </div>
 
-    <div data-thread="turn">
+  <div data-thread="turn">
       <div data-thread="rail"><span data-thread="mark"></span></div>
     <div style="padding: 40px 24px 0;">
-      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; border-bottom: 2px solid var(--color-text); padding-bottom: 10px; flex-wrap: wrap;">
-        <h2 style="font-size: 26px; margin: 0;">{{ boardTitle }}</h2>
-        <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ boardSubhead }}</div>
+      <div style="border-bottom: 2px solid var(--color-text); padding-bottom: 12px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+          <h2 style="font-size: 26px; margin: 0;">{{ boardTitle }}</h2>
+          <div class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ boardSubhead }}</div>
+        </div>
+        <input id="country-search" type="search" autocomplete="off" placeholder="{{ board.searchLabel }}" aria-label="{{ board.searchLabel }}"
+               style="margin-top: 14px; width: 100%; max-width: 420px; font: inherit; font-size: 14px; padding: 9px 14px; border: 1px solid var(--color-neutral-400); border-radius: 999px; background: var(--color-bg); color: var(--color-text);">
       </div>
 
-      <sc-for list="{{ bands }}" as="band" hint-placeholder-count="3">
-        <div style="padding-top: 26px;">
-          <div style="border-bottom: 1px solid var(--color-text); padding-bottom: 8px;">
-            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
-              <h3 style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.02em; margin: 0;">{{ band.title }}</h3>
-              <span class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ band.count }}</span>
-            </div>
-            <p class="text-muted" style="font-size: 12px; margin: 5px 0 0; max-width: 86ch;">{{ band.note }}</p>
-          </div>
-          <div data-grid="board-row" style="display: grid; grid-template-columns: 86px minmax(0, 1fr) 132px 108px minmax(0, 150px) 104px; gap: 0 16px; padding: 9px 0 6px 12px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
-            <div>{{ boardCol.country }}</div>
-            <div></div>
-            <div style="text-align: right;">{{ boardCol.cost }}</div>
-            <div style="text-align: right;">{{ boardCol.roundTrip }}</div>
-            <div>{{ boardCol.evidence }}</div>
-            <div style="text-align: right;">{{ boardCol.sparkline }}</div>
-          </div>
-          <sc-for list="{{ band.rows }}" as="b" hint-placeholder-count="8">
-            <div data-grid="board-row" style="display: grid; grid-template-columns: 86px minmax(0, 1fr) 132px 108px minmax(0, 150px) 104px; gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); padding: 9px 0 9px 12px;">
-              <a href="{{ b.href }}" title="{{ b.hrefTitle }}" style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.02em; color: var(--color-text); text-decoration: none;">{{ b.code }}</a>
-              <a href="{{ b.href }}" title="{{ b.hrefTitle }}" style="font-size: 13px; color: var(--color-text); text-decoration: none; border-bottom: 1px solid var(--color-divider);">{{ b.country }}</a>
-              <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: {{ b.valueColor }};"><span class="prov" tabindex="0">{{ b.value }}<span class="prov-pop"><b>{{ provLabel }}</b>{{ b.prov }}</span></span></div>
-              <div class="text-muted" style="text-align: right; font-size: 13px;">{{ b.trip }}</div>
-              <div class="text-muted" style="font-size: 12px;">{{ b.evidence }}</div>
-              <div style="display: flex; justify-content: flex-end;" title="{{ b.sparkTitle }}">
-                <svg sc-camel-view-box="0 0 100 20" sc-camel-preserve-aspect-ratio="none" style="width: 100px; height: 20px; display: block;">
-                  <path d="{{ b.spark }}" fill="none" stroke="var(--data-600)" stroke-width="1.2" vector-effect="non-scaling-stroke"></path>
-                </svg>
-              </div>
-            </div>
-          </sc-for>
-          <div style="border-top: 2px solid var(--color-text);"></div>
+      <div style="padding-top: 26px;">
+        <div style="border-bottom: 1px solid var(--color-text); padding-bottom: 8px;">
+          <h3 style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; margin: 0;">{{ board.gapsTitle }}</h3>
+          <p class="text-muted" style="font-size: 12px; margin: 5px 0 0; max-width: 86ch;">{{ board.gapsNote }}</p>
         </div>
-      </sc-for>
+        <div data-grid="gaps-row" style="display: grid; grid-template-columns: 74px minmax(0, 1fr) 132px 122px minmax(0, 170px); gap: 0 16px; padding: 9px 0 6px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;" class="text-muted">
+          <div>{{ board.colCode }}</div><div>{{ board.colCountry }}</div>
+          <div style="text-align: right;">{{ board.colCost }}</div>
+          <div style="text-align: right;">{{ board.colTrip }}</div>
+          <div>{{ board.colBasis }}</div>
+        </div>
+        <sc-for list="{{ topGaps }}" as="g" hint-placeholder-count="8">
+          <div data-grid="gaps-row" style="display: grid; grid-template-columns: 74px minmax(0, 1fr) 132px 122px minmax(0, 170px); gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); padding: 9px 0;">
+            <a href="{{ g.href }}" style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--color-text); text-decoration: none;">{{ g.code }}</a>
+            <a href="{{ g.href }}" style="font-size: 13px; color: var(--color-text); text-decoration: none; border-bottom: 1px solid var(--color-divider);">{{ g.country }}</a>
+            <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: var(--data-700);"><span class="prov" tabindex="0">{{ g.value }}<span class="prov-pop"><b>{{ provLabel }}</b>{{ g.prov }}</span></span></div>
+            <div class="text-muted" style="text-align: right; font-size: 13px;">{{ g.trip }}</div>
+            <div class="text-muted" style="font-size: 12px;">{{ g.evidence }}</div>
+          </div>
+        </sc-for>
+        <div style="border-top: 2px solid var(--color-text);"></div>
+      </div>
+
+      <div style="padding-top: 30px;">
+        <div style="border-bottom: 1px solid var(--color-text); padding-bottom: 8px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+            <h3 style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; margin: 0;">{{ board.pricedTitle }}</h3>
+            <span class="text-muted" style="font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">{{ pricedCount }}</span>
+          </div>
+          <p class="text-muted" style="font-size: 12px; margin: 5px 0 0; max-width: 86ch;">{{ board.pricedNote }}</p>
+        </div>
+        <div id="priced-columns" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 28px; padding-top: 4px;">
+          <sc-for list="{{ pricedAll }}" as="p" hint-placeholder-count="18">
+            <a href="{{ p.href }}" data-country="{{ p.search }}" style="display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 0 10px; align-items: baseline; border-top: 1px solid var(--color-divider); padding: 7px 0; color: var(--color-text); text-decoration: none;">
+              <span style="font-family: var(--font-heading); font-weight: 800; font-size: 12px;">{{ p.code }}</span>
+              <span style="font-size: 12px;" class="text-muted">{{ p.country }}</span>
+              <span style="font-family: var(--font-heading); font-weight: 800; font-size: 12px; color: {{ p.valueColor }};">{{ p.value }}</span>
+            </a>
+          </sc-for>
+        </div>
+        <p id="search-none" hidden class="text-muted" style="font-size: 12px; margin: 12px 0 0;">{{ board.searchNone }}</p>
+      </div>
 
       <sc-if value="{{ withheldRows.length }}" hint-placeholder-val="{{ 0 }}">
-        <div style="padding-top: 26px;">
+        <div style="padding-top: 30px;">
           <div style="border-bottom: 1px solid var(--color-neutral-400); padding-bottom: 8px;">
             <h3 class="text-muted" style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; margin: 0;">{{ withheldTitle }}</h3>
             <p class="text-muted" style="font-size: 12px; margin: 5px 0 0; max-width: 86ch;">{{ withheldNote }}</p>
           </div>
-          <sc-for list="{{ withheldRows }}" as="w" hint-placeholder-count="6">
-            <div style="display: flex; gap: 12px; align-items: baseline; border-top: 1px solid var(--color-divider); padding: 7px 0 7px 12px; color: var(--color-neutral-600);">
-              <a href="{{ w.href }}" style="font-family: var(--font-heading); font-weight: 800; font-size: 13px; color: var(--color-neutral-600); text-decoration: none; min-width: 40px;">{{ w.code }}</a>
-              <a href="{{ w.href }}" style="font-size: 12px; color: var(--color-neutral-600); text-decoration: none; border-bottom: 1px solid var(--color-divider); min-width: 130px;">{{ w.country }}</a>
-              <span style="font-size: 12px;" title="{{ w.full }}">{{ w.reason }}</span>
-            </div>
-          </sc-for>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px;">
+            <sc-for list="{{ withheldRows }}" as="w" hint-placeholder-count="6">
+              <div style="display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 0 10px; align-items: baseline; border-top: 1px solid var(--color-divider); padding: 7px 0; color: var(--color-neutral-600);">
+                <a href="{{ w.href }}" style="font-family: var(--font-heading); font-weight: 800; font-size: 12px; color: var(--color-neutral-600); text-decoration: none;">{{ w.code }}</a>
+                <div><div style="font-size: 12px;">{{ w.country }}</div><div style="font-size: 11px; margin-top: 2px;" title="{{ w.full }}">{{ w.reason }}</div></div>
+              </div>
+            </sc-for>
+          </div>
           <div style="border-top: 1px solid var(--color-neutral-400);"></div>
         </div>
       </sc-if>
 
       <p class="text-muted" style="font-size: 12px; margin: 16px 0 0; max-width: 88ch;">{{ boardFootnote }}</p>
+    </div>
     </div>
     </div>
 
@@ -428,6 +442,12 @@
             <div style="margin-top: 6px; font-size: 10px; letter-spacing: 0.03em; color: color-mix(in srgb, var(--color-bg) 55%, transparent);">{{ provLabel }}: {{ askOpen.prov }}</div>
           </div>
         </sc-if>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px;">
+          <input id="ask-free" type="text" autocomplete="off" placeholder="{{ askFreeTextPlaceholder }}"
+                 style="flex: 1 1 220px; font: inherit; font-size: 13px; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--color-bg) 35%, transparent); background: transparent; color: var(--color-bg);">
+          <button type="button" id="ask-free-go" data-ask="pill" data-honest="{{ askFreeTextHonest }}">{{ askFreeTextButton }}</button>
+        </div>
+        <p id="ask-free-result" style="margin: 0; font-size: 12px; color: color-mix(in srgb, var(--color-bg) 70%, transparent);"></p>
       </div>
     </div>
   </div>
@@ -929,6 +949,19 @@ class Component extends DCLogic {
     console.error("provText: no plain-language sourceLabels entry for", file);
     return this.askFallbacks.unknownSource || "";
   }
+  // A pass is due every hour. Ninety minutes allows for a late run without
+  // crying wolf; past that the collector is not "ok" and the header must stop
+  // saying so. A site whose whole claim is that it does not smooth over gaps
+  // cannot smooth over its own.
+  healthWords(copy, lastMs, okCount, total) {
+    const STALE_AFTER_MS = 90 * 60 * 1000;
+    const late = !lastMs || (Date.now() - lastMs) > STALE_AFTER_MS;
+    if (late) {
+      return this.fillCopy(copy.stale || "", { when: lastMs ? this.fmtStamp(lastMs, true) : "\u2014" });
+    }
+    return this.fillCopy(copy.ok || "", { ok: String(okCount), total: String(total) });
+  }
+
   provText(file, whenMs, n) {
     const list = Array.isArray(file) ? file : (file ? [file] : []);
     const files = list.length ? list.map(f => this.sourceLabel(f)).join(", ") : "—";
@@ -1225,6 +1258,9 @@ class Component extends DCLogic {
       provLabel: (CI.ask || {}).provLabel || "",
       askKicker: (CI.ask || {}).kicker || "",
       askNote: (CI.ask || {}).note || "",
+      askFreeTextPlaceholder: (CI.ask || {}).freeTextPlaceholder || "",
+      askFreeTextButton: (CI.ask || {}).freeTextButton || "",
+      askFreeTextHonest: (CI.ask || {}).freeTextHonest || "",
     };
 
     // Everything below the fold degrades to an explicit empty state. This is
@@ -1232,6 +1268,7 @@ class Component extends DCLogic {
     // leaves behind — identical on purpose.
     const empty = Object.assign({
       nav, isBoard: page === "board", isCorridor: page === "corridor", isMethod: page === "methodology",
+      board: CI.board || {}, topGaps: [], pricedAll: [], pricedCount: "—",
       goCorridor: () => { location.href = "./corridor.html"; },
       goMethod: () => { location.href = "./methodology.html"; },
       health: st.err ? ((CI.health && CI.health.errorPrefix) || "collector unreachable — ") + st.err
@@ -1242,6 +1279,7 @@ class Component extends DCLogic {
       heroTitleWords: this.titleWords((CI.hero || {}).title || ""),
       heroBody: ((CI.hero || {}).body || "").replace("{count}", "—"),
       heroStats: [], heroCurrencyCount: "—", bands: [], boardTitle: (CI.board || {}).title || "",
+      board: CI.board || {}, topGaps: [], pricedAll: [], pricedCount: "—",
       correctionBody: "",
       withheldRows: [], coverage: [], legendCells: [],
       cov: { on: false, code: "", v: "", t: "", hint: "" },
@@ -1366,6 +1404,30 @@ class Component extends DCLogic {
 
     const boardTitle = "What a dollar really costs in " + ix.length
       + (ix.length === 1 ? " country" : " countries");
+
+    // U7: the page stopped being forty-eight rows. The eight widest gaps get a
+    // table, every priced country gets a compact linked cell in three columns,
+    // and the search box filters those cells. Ordering is by distance from the
+    // official rate, largest first -- the same figure the board has always
+    // sorted on, not a new one.
+    const topGaps = ix.slice()
+      .sort((a, b) => Math.abs(b.index_pct) - Math.abs(a.index_pct))
+      .slice(0, 8)
+      .map(rowOf);
+
+    // Alphabetical by country here, not by size: this list is for finding a
+    // place you already have in mind, which is what the search box is for too.
+    const pricedAll = ix.slice()
+      .sort((a, b) => String(a.country || a.ccy).localeCompare(String(b.country || b.ccy)))
+      .map(c => ({
+        code: c.ccy,
+        country: c.country || c.ccy,
+        href: "./c/" + String(c.ccy).toLowerCase() + ".html",
+        value: this.fmtPct(c.index_pct * 100, true),
+        valueColor: Math.abs(c.index_pct) > 2 ? "var(--data-700)" : INK,
+        search: (String(c.ccy) + " " + String(c.country || "")).toLowerCase(),
+      }));
+    const pricedCount = ix.length + (ix.length === 1 ? " country" : " countries");
 
     // ---- the crypto route's implied cross rate ---------------------------
     // Read from data/crosses_latest.json, which emit_latest.py computes from
@@ -1829,12 +1891,13 @@ class Component extends DCLogic {
 
     return Object.assign({
       nav, isBoard: page === "board", isCorridor: page === "corridor", isMethod: page === "methodology",
+      board: CI.board || {}, topGaps, pricedAll, pricedCount,
       goCorridor: () => { location.href = "./corridor.html"; },
       goMethod: () => { location.href = "./methodology.html"; },
       heroTitle: (CI.hero || {}).title || "",
       heroTitleWords: this.titleWords((CI.hero || {}).title || ""),
       heroBody: ((CI.hero || {}).body || "").replace("{count}", String(heroCurrencyCount)),
-      health: "collector ok · " + okCount + "/" + latestRun.length + " sources",
+      health: this.healthWords(CI.health || {}, lastT, okCount, latestRun.length),
       lastTick: this.fmtStamp(lastT, true),
       scaleNote: banded ? "two bands, each on its own axis" : "single axis",
       hl: { wide: this.gapWords((ixWide ? ixWide.index_pct * 100 : wide.bps)),
@@ -2007,6 +2070,43 @@ class Component extends DCLogic {
   }
 }
 
+</script>
+
+<script>
+  // U7: the search box filters the priced-country cells in place.
+  //
+  // Delegated on document rather than bound to the input, because the page
+  // re-renders its whole body when data arrives and a bound listener would be
+  // thrown away with the old node. Filtering is done on a data-country
+  // attribute the template writes, so this never has to know the data shape.
+  //
+  // No results is a state the page states, not an empty space it leaves.
+  document.addEventListener("input", function (e) {
+    var box = e.target;
+    if (!box || box.id !== "country-search") return;
+    var q = (box.value || "").trim().toLowerCase();
+    var cells = document.querySelectorAll("#priced-columns [data-country]");
+    var shown = 0;
+    for (var i = 0; i < cells.length; i++) {
+      var hit = !q || (cells[i].getAttribute("data-country") || "").indexOf(q) !== -1;
+      cells[i].hidden = !hit;
+      if (hit) shown++;
+    }
+    var none = document.getElementById("search-none");
+    if (none) none.hidden = !(q && shown === 0);
+  });
+
+  // U7/B5: the ask endpoint is still dark, so free text never reaches a live
+  // model -- it only ever shows the honest, precomputed line the template
+  // wrote onto the button (data-honest, from copy.json), the same text a
+  // reader would see if they read the note above the chips. Never a canned
+  // fake answer. Delegated for the same re-render reason as the search box.
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("#ask-free-go");
+    if (!btn) return;
+    var result = document.getElementById("ask-free-result");
+    if (result) result.textContent = btn.getAttribute("data-honest") || "";
+  });
 </script>
 </body>
 </html>

@@ -4,6 +4,31 @@ Every number on this site is one of three things: **measured**, **assumed**, or
 **not visible**. This page says which is which. If you find something here that
 contradicts the charts, the charts are wrong and I want to know.
 
+## How it works
+
+An official exchange rate is not what a person actually pays to turn their own
+money into dollars. This site measures that gap, country by country, and
+publishes it every hour.
+
+A number gets made the same way every time: the site collects live buy-side
+offers on the exchanges people actually use, takes the median price, and
+compares it to the official rate captured in the same pass. Nothing is
+modelled or smoothed, and a price never publishes on fewer than ten offers.
+
+Where the prices come from, named plainly rather than typed out and left to
+go stale:
+
+__SOURCE_LIST_LIVE__
+
+Three things made this hard. Fees hide inside the exchange rate itself and
+move with the size sent, so everything is measured all-in, at several
+transfer amounts, rather than as one headline percentage. History cannot be
+back-filled, so keeping collection running has always mattered more than
+shipping a new feature. And a pipeline nobody is watching will happily invent
+a plausible-looking number, so nothing here publishes without tracing back to
+a file that was actually collected — and a failed attempt stays up rather
+than disappearing.
+
 ## What is being measured
 
 For each corridor, hourly, at a set of notional sizes:

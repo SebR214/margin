@@ -55,7 +55,7 @@ EMPTY_STATES = ("could not be read", "no comparison available",
 PAGES = ["index.html", "providers.html", "pricing-history.html",
          "corridor.html", "methodology.html", "status.html", "findings.html",
          "requests.html", "calculator.html", "weekly.html", "data.html",
-         "ask.html", "watch.html", "stress.html"]
+         "ask.html", "watch.html", "stress.html", "machine-room.html"]
 
 # ask.html and watch.html both call a live backend rather than reading a
 # static file, so a check of the static shell alone would never touch the

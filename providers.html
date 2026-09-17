@@ -68,14 +68,13 @@
     <a href="./ask.html">ask</a>
     <a href="./watch.html">watch</a>
     <a href="./methodology.html">methodology</a>
+    <a href="./machine-room.html">the machine room</a>
     <span class="muted" id="stamp"></span>
   </header>
 
   <h1>Every way to send money, ranked.</h1>
   <p class="lede">Four routes, priced every hour at five amounts. Cheapest first.
-     Where a company publishes its own rate, that is the number shown; where it
-     does not, the figure comes from the comparison Wise publishes. Each row says
-     which.</p>
+     Where a company publishes its own rate, that is the number shown.</p>
 
   <div class="bar">
     <div><span class="k">route</span><span class="pills" id="routes"></span></div>
@@ -149,9 +148,31 @@ function render(){
   }
   document.getElementById("sub").textContent = sub;
 
+  // U7: the per-row "where the price comes from" column repeated the same
+  // sentence on almost every line. That is one fact about the table, not a fact
+  // about each row, so it is said once underneath -- and built from the rows'
+  // own `source` field, so it cannot drift from what the table actually shows.
+  function sourceFootnote(rows) {
+    const named = kind => {
+      const seen = [];
+      rows.forEach(r => {
+        if (r.source === kind && r.provider && seen.indexOf(r.provider) === -1) seen.push(r.provider);
+      });
+      return seen.sort();
+    };
+    const list = xs => xs.length <= 1 ? (xs[0] || "")
+      : xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1];
+    const own = named("own"), comp = named("comparison"), measured = named("measured");
+    const parts = [];
+    if (own.length) parts.push(list(own) + (own.length === 1 ? " quotes its own price." : " quote their own prices."));
+    if (comp.length) parts.push("The rest \u2014 " + list(comp) + " \u2014 come from the comparison Wise publishes.");
+    if (measured.length) parts.push(list(measured) + " is measured on real exchanges, all in.");
+    return parts.length ? `<p class="muted small">${parts.join(" ")}</p>` : "";
+  }
+
   document.getElementById("table").innerHTML =
     `<table><tr><th>#</th><th>Way to send it</th><th class="r">What it costs you</th>
-       <th class="r">Of what you send</th><th>Where the price comes from</th></tr>` +
+       <th class="r">Of what you send</th></tr>` +
     bucket.rows.map(r => {
       const cls = (r.source === "measured" ? "crypto " : "") + (r.rank === 1 ? "best" : "");
       // The comparison figure is kept in providers_latest.json for anyone who
@@ -162,16 +183,16 @@ function render(){
       return `<tr class="${cls}"><td class="muted">${r.rank}</td>
         <td>${r.provider}${fee}</td>
         <td class="r n">${r.costs}</td>
-        <td class="r">${pct(r.cost_pct)}</td>
-        <td class="muted small">${r.source_words}</td></tr>`;
-    }).join("") + "</table>";
+        <td class="r">${pct(r.cost_pct)}</td></tr>`;
+    }).join("") + "</table>" + sourceFootnote(bucket.rows);
 
   document.getElementById("method").textContent =
     "Cost is how much less the person receiving ends up with than the mid-market "
     + "rate would give them, counting the exchange rate and every fee together, "
     + "because that is what a sender actually experiences. Where a company "
     + "publishes its own rate, that is the number used; where it does not, the "
-    + "figure comes from the comparison Wise publishes, and the row says so. "
+    + "figure comes from the comparison Wise publishes, and the note under each "
+    + "table says which is which. "
     + "The dollar route is measured on real exchanges, all in.";
   document.getElementById("notincluded").textContent =
     "Not included: Revolut publishes a live rate on its website, but its quote "
