@@ -142,15 +142,34 @@ while true; do
   # was nothing to review, silently, for as long as the service stayed up
   # (SEB-69 -- the reviewer went dark for 13+ hours this way).
   #
-  # If minting fails the pass still runs, unauthenticated-as-app. A broken
-  # credential must not silently stop the machine -- the cost of being wrong
-  # that way is one pass attributed to the old identity, and the cost of the
-  # opposite is a loop that quietly does nothing.
+  # `gh` must never be able to fall back to a personal login. It resolves
+  # credentials in order: the GH_TOKEN env var, then whatever `gh auth login`
+  # has stored on this machine. Pointing GH_CONFIG_DIR at a directory that
+  # never holds a stored login means a failed mint makes gh fail LOUDLY (no
+  # credential found) instead of silently acting as whoever is logged in.
+  #
+  # This was not hypothetical. Root had a `gh auth login` session for
+  # Sebastian's own GitHub account, left over from before this App existed.
+  # On 2026-09-17 a single failed mint fell through to it, and `gh` posted a
+  # PR comment under his real, write-scoped GitHub login -- not a
+  # misattributed git-commit-author field (SEB-64's shape), an actual account
+  # session (SEB-73). That stored login has been revoked, but the code must
+  # not depend on nobody ever running `gh auth login` on this box again.
+  export GH_CONFIG_DIR="/tmp/margin-gh-config-$ROLE"
+  mkdir -p "$GH_CONFIG_DIR"
+
+  # If minting fails the pass still runs -- a broken credential must not
+  # silently stop the machine -- but every gh call this pass makes will now
+  # fail loudly with "no credential found" rather than quietly using
+  # something else. The cost of being wrong that way is one wasted pass; the
+  # opposite cost, before today, was Sebastian's own GitHub account narrating
+  # agent work without his knowledge.
   if [ -n "${MARGIN_GH_APP_ID:-}" ]; then
     if GH_TOKEN="$("$REPO/agents/gh_token.sh" 2>/dev/null)"; then
       export GH_TOKEN
     else
-      say "[$ROLE] could not mint a GitHub App token; running as the stored login"
+      unset GH_TOKEN
+      say "[$ROLE] could not mint a GitHub App token; gh calls this pass fail loudly (isolated GH_CONFIG_DIR, no stored login available)"
     fi
   fi
 
