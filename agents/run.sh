@@ -51,11 +51,66 @@ esac
 # Still used when a MODEL pass returns almost immediately -- that means the
 # agent disagreed with the guard about there being work, which is worth slowing
 # down on, unlike an honest empty queue.
-IDLE_MAX=1800
+# A loop whose work signature never changes still wakes the model every
+# IDLE_MAX seconds, forever. At 1800 that was 48 paid sessions a day per role
+# -- 144 across the three -- spent re-reading a world that had not moved. On
+# 2026-09-17 the builder alone woke 161 times and shipped a handful of merges.
+# Three hours is still well inside the latency that matters here: work arrives
+# when Sebastian queues an issue, and nothing downstream is urgent to the hour.
+IDLE_MAX=10800
 IDLE_SECONDS=45        # a pass shorter than this did nothing
 idle_streak=0
 quiet_polls=0
 ERROR_WAIT=300          # something went wrong that is not a usage limit
+
+# The backoff above is a heuristic, and heuristics fail open: every previous
+# cost incident here was the guard becoming convinced there was work when there
+# was not. So the backoff is not the only thing standing between a logic bug
+# and the whole subscription. This is a hard ceiling on paid sessions per role
+# per UTC day. It cannot be reasoned around, it survives restarts, and when it
+# is reached the loop says so plainly and waits for the date to roll over.
+# The numbers are deliberately well above a normal day's real work and far
+# below what the loops actually spent before it existed.
+case "$ROLE" in
+  builder)  MAX_WAKES_PER_DAY="${MARGIN_MAX_WAKES:-40}" ;;
+  reviewer) MAX_WAKES_PER_DAY="${MARGIN_MAX_WAKES:-30}" ;;
+  product)  MAX_WAKES_PER_DAY="${MARGIN_MAX_WAKES:-6}" ;;
+esac
+WAKES_FILE="$LOGDIR/$ROLE.wakes"
+
+# "<utc-date> <count>". A new date resets the count; an unreadable or corrupt
+# file is treated as a fresh day rather than as a reason to stop working.
+wakes_today() {
+  local d n today
+  today=$(date -u +%Y-%m-%d)
+  # Guard on readability first: redirecting from a missing file reports the
+  # failure before the redirect is suppressed, which would put a spurious
+  # error in the log on the first pass of every day.
+  [ -r "$WAKES_FILE" ] || { echo 0; return; }
+  read -r d n <"$WAKES_FILE" 2>/dev/null || { echo 0; return; }
+  # A different date, a missing count, or anything non-numeric means today has
+  # no recorded wakes yet. Erring toward 0 lets the loop work; the ceiling is
+  # the backstop, not the file's integrity.
+  case "$n" in
+    ''|*[!0-9]*) echo 0; return ;;
+  esac
+  if [ "$d" = "$today" ]; then echo "$n"; else echo 0; fi
+}
+
+bump_wakes() {
+  local today n
+  today=$(date -u +%Y-%m-%d)
+  n=$(wakes_today)
+  printf '%s %s\n' "$today" "$((n + 1))" >"$WAKES_FILE"
+}
+
+# Seconds until the next UTC midnight, when the ceiling resets.
+until_utc_midnight() {
+  local now end
+  now=$(date -u +%s)
+  end=$(date -u -d "tomorrow 00:00" +%s 2>/dev/null) || end=$((now + 3600))
+  echo $((end - now))
+}
 LIMIT_FALLBACK=1800     # usage limit with no reset time we could read
 
 mkdir -p "$LOGDIR"
@@ -257,6 +312,17 @@ while true; do
     sleep "$IDLE"
     continue
   fi
+
+  # ---- Hard daily ceiling, checked after the work guard and before paying. ----
+  WAKES=$(wakes_today)
+  if [ "$WAKES" -ge "$MAX_WAKES_PER_DAY" ]; then
+    SLEEP_FOR=$(until_utc_midnight)
+    say "[$ROLE] daily ceiling reached: $WAKES/$MAX_WAKES_PER_DAY model sessions today; there IS work queued, but this loop is done paying until the UTC date rolls over in ${SLEEP_FOR}s"
+    record 0 "daily ceiling" 0
+    sleep "$SLEEP_FOR"
+    continue
+  fi
+  bump_wakes
 
   # Sonnet, not the default. These loops are the largest single consumer of the
   # subscription and most of their work is mechanical -- read an issue, follow a
