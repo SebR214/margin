@@ -111,7 +111,6 @@ const priced = new Map(), withheld = new Map();
 let passActive = false;
 const seenKeys = new Set();     // dedupes a replayed event from a live one
 const commitsToday = new Set(); // commit sha -> counted once, today's UTC date only
-let openPrs = null, unbrokenHours = null;
 
 function todayUTC() { return new Date().toISOString().slice(0, 10); }
 
@@ -218,8 +217,6 @@ function renderMeters() {
     [priced.size, M.priced],
     [withheld.size, M.withheld],
     [commitsToday.size, M.commitsToday],
-    [openPrs === null ? M.unknown : openPrs, M.openPrs],
-    [unbrokenHours === null ? M.unknown : unbrokenHours, M.unbrokenHours],
     [M.peopleValue, M.people],
   ];
   document.getElementById("meters").innerHTML = rows.map(([n, k]) =>
@@ -288,27 +285,9 @@ async function boot() {
   document.getElementById("col3Title").textContent = (COPY.columns.meters || {}).title || "";
   renderCol1(); renderCol2(); renderMeters();
 
-  const [index, status, prs] = await Promise.all([
-    loadJSON("./data/index_latest.json"),
-    loadJSON("./data/agent_status.json"),
-    loadJSON("./data/open_prs_latest.json"),
-  ]);
+  const index = await loadJSON("./data/index_latest.json");
   seedCol1(index);
   renderCol1(); renderMeters();
-
-  const staleParts = [];
-  if (status && status.as_of_utc) {
-    unbrokenHours = (typeof status.unbroken_hours === "number") ? status.unbroken_hours : null;
-    staleParts.push("collector status as of " + fmtStamp(status.as_of_utc));
-  }
-  if (prs && prs.as_of_utc) {
-    openPrs = (typeof prs.open_prs === "number") ? prs.open_prs : null;
-    staleParts.push("open pull requests as of " + fmtStamp(prs.as_of_utc));
-  } else {
-    staleParts.push("open pull requests: not wired up yet");
-  }
-  document.getElementById("stale").textContent = staleParts.join(" · ");
-  renderMeters();
 
   try {
     const es = new EventSource(API_BASE + "/v1/events");
@@ -318,8 +297,7 @@ async function boot() {
       handleEvent(ev);
     };
     es.onerror = () => {
-      document.getElementById("stale").textContent =
-        (COPY.connectionLost || "") + (staleParts.length ? " · " + staleParts.join(" · ") : "");
+      document.getElementById("stale").textContent = COPY.connectionLost || "";
     };
   } catch (e) {
     document.getElementById("stale").textContent = COPY.loadFailed || "";

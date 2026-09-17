@@ -6,9 +6,5 @@
     "errors": ["{{", "data/fee_tiers.csv"],
     "_errors_why_braces": "index.html is rendered by a small templating runtime. Between parse and substitution the raw {{ ... }} text sits briefly in SVG geometry attributes and the browser logs a parse error for each before the runtime replaces it. Cosmetic, on every load, and worth removing by setting those attributes from script instead of markup.",
     "_errors_why_fee_tiers": "data/fee_tiers.csv is fetched through opt() and does not exist yet. The chart renders an explicit empty state saying so, which is the 'gaps stay gaps' rule working as intended. The 404 disappears when the fee-tier collector lands; this entry should be deleted then."
-  },
-  "machine-room.html": {
-    "errors": ["data/open_prs_latest.json"],
-    "_errors_why": "M1 (SEB-58) left 'pull requests opened' out of the live event stream on purpose -- it needs a GitHub credential the public-facing SSE process should not hold, see SEB-73 -- and named a periodic sidecar as the way M2 should source it instead. tools/emit_open_prs.py and agents/emit_open_prs.sh are that sidecar, but they still need a human or provisioning step to install agents/systemd/margin-open-prs.timer on the server; nothing in this checkout can do that. Until it runs once, data/open_prs_latest.json does not exist and the 'open pull requests' meter reads its honest absence ('not wired up yet') rather than a guessed or stale number. This entry -- and the meter's fallback text -- should be deleted once the timer is installed and has run."
   }
 }

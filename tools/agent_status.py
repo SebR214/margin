@@ -70,12 +70,7 @@ def num(v):
 
 
 def delivery():
-    """Hours of the day that produced at least one sample.
-
-    Returns the last 8 days for display, the newest day's date, and the full
-    day -> hour-set map so a caller that needs to look further back (the
-    unbroken-streak count below) does not have to re-read samples.csv.
-    """
+    """Hours of the day that produced at least one sample."""
     by_day = {}
     for r in rows("samples.csv"):
         s = stamp(r)
@@ -83,32 +78,7 @@ def delivery():
             by_day.setdefault(s[:10], set()).add(s[11:13])
     days = sorted(by_day)
     return ([{"date": d, "hours": len(by_day[d])} for d in days[-8:]],
-            days[-1] if days else None, by_day)
-
-
-def unbroken_hours(by_day):
-    """Hours of continuous delivery counting back from now, for M2's
-    "unbroken hours of history" meter on the machine room page.
-
-    Walks days newest-first. The newest day is still in progress and always
-    counts, however many hours it has so far. Every earlier day counts only
-    if it cleared the same 23-of-24 bar `delivery_ok` already judges a
-    finished day by; the walk stops at the first day that falls short of it,
-    which is the most recent gap. Unlike `delivery`'s last-8-days display,
-    this walks the full history, so a streak longer than 8 days is not cut
-    short by that slice.
-    """
-    days = sorted(by_day)
-    if not days:
-        return None
-    total = 0
-    for i, d in enumerate(reversed(days)):
-        hrs = len(by_day[d])
-        if i == 0 or hrs >= 23:
-            total += hrs
-        else:
-            break
-    return total
+            days[-1] if days else None)
 
 
 def sources(newest):
@@ -296,7 +266,7 @@ def loops():
 
 
 def main():
-    days, newest_day, by_day = delivery()
+    days, newest_day = delivery()
     newest = ""
     for r in rows("samples.csv")[-400:]:
         newest = max(newest, stamp(r))
@@ -309,7 +279,6 @@ def main():
         "judged_day": judged,
         "delivery": days,
         "delivery_ok": (judged["hours"] >= 23) if judged else None,
-        "unbroken_hours": unbroken_hours(by_day),
         "sources": src,
         "sources_broken": [s for s in src if s["broken"]],
         "sources_expected_silent": [s for s in src if s.get("expected_silent")],
@@ -341,7 +310,6 @@ def main():
               f"  {'ok' if payload['delivery_ok'] else 'BELOW 23'}")
     else:
         print("  delivery         unknown -- not enough days to judge")
-    print(f"  unbroken hours   {payload['unbroken_hours']}")
     print(f"  sources          {len(src)} tracked, "
           f"{len(payload['sources_broken'])} not answering, "
           f"{len(payload['sources_expected_silent'])} silent by design")
