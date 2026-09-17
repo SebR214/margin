@@ -5,122 +5,79 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki — the machine room</title>
 <meta name="description" content="What the collector is doing this hour, and what the agents building this site are doing, unedited, as it happens."/>
-<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#f3f2f2; --ink:#201e1d; --muted:#7d7979;
-    --line:color-mix(in srgb,#201e1d 18%,transparent);
-    --rule:color-mix(in srgb,#201e1d 40%,transparent);
-    --fill:#d2d9f7; --deep:#8b9ae8;
-    --withheld:#B3822D;
-    --head:"Archivo",system-ui,sans-serif;
-  }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; --withheld:#B3822D; }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--head);
-       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1180px;margin:0 auto;padding:0 24px 72px}
-  header{position:sticky;top:0;z-index:5;background:var(--bg);
-         display:flex;align-items:center;gap:16px;padding:14px 0;
-         font-size:11px;letter-spacing:.1em;text-transform:uppercase;flex-wrap:wrap}
-  header a{color:var(--ink);text-decoration:none}
-  header a:hover{text-decoration:underline}
-  header a[aria-current]{border-bottom:2px solid var(--deep)}
-  h1{font-size:38px;line-height:1.08;margin:34px 0 10px;max-width:26ch}
-  .lede{font-size:16px;max-width:70ch;margin:0 0 8px;color:var(--muted)}
-  .lede a{color:var(--ink)}
-  .conn{font-size:12px;color:var(--muted);margin:0 0 26px;display:flex;align-items:center;gap:8px}
-  .dot{width:7px;height:7px;border-radius:50%;background:#5a8f5a;display:inline-block}
-  .dot.off{background:#b34a3a}
-  .muted{color:var(--muted)} .small{font-size:12px}
-
-  .meters{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--rule);
-          margin:0 0 40px;border:1px solid var(--rule)}
-  .meter{background:var(--bg);padding:14px 14px 12px}
-  .meter .v{font-size:26px;font-weight:700;line-height:1}
-  .meter .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
-  .meter .note{font-size:11px;color:var(--muted);margin-top:4px}
-  @media(max-width:900px){.meters{grid-template-columns:repeat(3,1fr)}}
-  @media(max-width:560px){.meters{grid-template-columns:repeat(2,1fr)}}
-
-  .cols{display:grid;grid-template-columns:1.1fr 1.1fr 0.8fr;gap:0;border-top:1px solid var(--rule)}
-  .col{border-right:1px solid var(--rule);padding:0 20px 0 0;min-width:0}
-  .col:last-child{border-right:0;padding-right:0}
-  .col + .col{padding-left:20px}
-  .col h2{font-size:16px;margin:20px 0 4px;border:0;padding:0}
-  .col .sub{font-size:12px;color:var(--muted);margin:0 0 14px}
-  @media(max-width:900px){.cols{grid-template-columns:1fr}.col{border-right:0;padding:0!important}
-    .col{border-bottom:1px solid var(--rule);padding-bottom:16px!important}}
-
-  .feed{list-style:none;margin:0;padding:0;max-height:520px;overflow-y:auto}
-  .feed li{padding:9px 0;border-top:1px solid var(--rule);font-size:13px;display:flex;gap:8px;align-items:baseline}
-  .feed li:first-child{border-top:0}
-  .feed .t{font-family:ui-monospace,monospace;font-size:10px;color:var(--muted);flex:0 0 auto;padding-top:1px}
-  .feed .body{min-width:0}
-  .feed .who{font-weight:700;font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--deep)}
-  .feed .who.reviewer{color:#6d7fce}
-  .feed .who.product{color:#3f7a6b}
-  .feed .who.builder{color:#8b9ae8}
+  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
+  a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
+  .num{font-variant-numeric:tabular-nums}
+  .lbl{font-size:11px;letter-spacing:.1em;color:#6B6B6B}
+  .stamp{font-size:11px;color:var(--stamp);letter-spacing:.06em}
+  .log{font-size:13px;padding:7px 0;border-bottom:1px solid #F6F6F6;display:flex;gap:12px;align-items:baseline}
+  .wrap{max-width:1440px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
+  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
+  nav a.active{color:var(--ink);font-weight:700}
+  .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
+  .dot.off{background:#B3822D}
+  .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:12px}
+  h1{font-size:42px;font-weight:800;letter-spacing:-0.02em;margin:0}
+  .lede{max-width:840px;font-size:16px;color:#6B6B6B;line-height:1.5}
+  .cols{flex-grow:1;display:grid;grid-template-columns:1fr 1fr 330px;gap:56px;padding:36px 48px 44px}
+  .col-hdr{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #0B0B0B;padding-bottom:8px}
+  .col-title{font-size:16px;font-weight:700}
+  .feed{max-height:560px;overflow-y:auto}
   .withheld-row{color:var(--withheld)}
-  .withheld-row .who{color:var(--withheld)}
-  .empty{padding:26px 0;color:var(--muted);font-size:13px}
-  code{font-family:ui-monospace,monospace;font-size:.92em;background:color-mix(in srgb,var(--ink) 6%,transparent);padding:1px 4px}
+  .meter{display:flex;flex-direction:column;gap:2px;padding:14px 0;border-bottom:1px solid var(--rule)}
+  .meter .v{font-size:30px;font-weight:800;color:var(--indigo)}
+  .meter .v.muted{color:#9A9A9A;font-size:16px;font-weight:700}
+  .empty{padding:20px 0;color:#9A9A9A;font-size:13px}
+  @media(max-width:1000px){.cols{grid-template-columns:1fr;padding:24px 24px 44px}h1{font-size:30px}header{padding:22px 24px}.hero{padding:32px 24px 0}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <a href="./index.html"><b>margin.wiki</b></a>
-    <a href="./index.html">the board</a>
-    <a href="./providers.html">every way to send it</a>
-    <a href="./pricing-history.html">price changes</a>
-    <a href="./findings.html">findings</a>
-    <a href="./stress.html">stress signal</a>
-    <a href="./weekly.html">weekly snapshot</a>
-    <a href="./requests.html">requests</a>
-    <a href="./calculator.html">calculator</a>
-    <a href="./data.html">the data</a>
-    <a href="./ask.html">ask</a>
-    <a href="./watch.html">watch</a>
-    <a href="./methodology.html">methodology</a>
-    <a href="./machine-room.html" aria-current="page">the machine room</a>
+    <div class="brand">
+      <div class="logo"><a href="./index.html">margin.wiki</a></div>
+      <nav>
+        <a href="./the-index.html">The index</a>
+        <a href="./sending-money.html">Sending money</a>
+        <a href="./findings.html">Findings</a>
+        <a href="./machine-room.html" class="active">The machine room</a>
+        <a href="./how-it-works.html">How it works</a>
+      </nav>
+    </div>
+    <div class="live"><span class="dot off" id="dot"></span><span class="num" id="connLabel">connecting…</span></div>
   </header>
 
-  <h1>The machine room.</h1>
-  <p class="lede">This hour's collection and what the agents building this site are
-     doing, read straight from the logs and pushed here as it happens. Nothing on
-     this page is written by hand, and nothing is smoothed over — a source that
-     failed shows as failed, and a loop that has gone quiet shows as quiet.
-     Everything below traces to a real file, commit or Linear record; see
-     <a href="./methodology.html">how it works</a> for the rest of the site.</p>
-  <p class="conn"><span class="dot off" id="dot"></span><span id="connLabel">connecting…</span></p>
-
-  <div class="meters" id="meters">
-    <div class="meter"><div class="v" id="mPriced">—</div><div class="k">priced this hour</div></div>
-    <div class="meter"><div class="v" id="mWithheld">—</div><div class="k">withheld, with reasons</div></div>
-    <div class="meter"><div class="v" id="mCommits">—</div><div class="k">collector commits today</div><div class="note" id="mCommitsNote"></div></div>
-    <div class="meter"><div class="v" id="mPRs">see GitHub</div><div class="k">open pull requests</div><div class="note"><a href="https://github.com/SebR214/margin/pulls" class="small">github.com/SebR214/margin/pulls →</a></div></div>
-    <div class="meter"><div class="v" id="mHours">—</div><div class="k">unbroken hours of history</div></div>
-    <div class="meter"><div class="v">1</div><div class="k">people working here</div></div>
+  <div class="hero">
+    <h1>The machine room</h1>
+    <div class="lede">Four bits of software do the work here. One collects the prices every hour, one builds the site, one reviews what got built, one decides what to build next. They hand work to each other through issues and pull requests, same as a small team would. This page is that, live. Nothing is cleaned up first, so when something breaks you see it break.</div>
   </div>
 
   <div class="cols">
-    <div class="col">
-      <h2>This hour's collection</h2>
-      <p class="sub" id="collectorSub">Waiting for the next pass.</p>
-      <ul class="feed" id="collectorFeed"><li class="empty">Nothing collected yet this connection — the next pass lands on the hour.</li></ul>
+    <div style="display:flex;flex-direction:column">
+      <div class="col-hdr"><div class="col-title">This hour's collection</div><div class="lbl num" id="collectorState">&nbsp;</div></div>
+      <div class="feed" id="collectorFeed"><div class="empty">Waiting for the next pass — the browser connects live below.</div></div>
     </div>
-    <div class="col">
-      <h2>What the agents are doing</h2>
-      <p class="sub">Issues, comments, pull requests and commits — builder, reviewer and
-         product, by name. A stopped loop is shown stopped, not left silent.</p>
-      <ul class="feed" id="agentFeed"><li class="empty">Nothing since this page connected. Reload to see the backlog again.</li></ul>
+    <div style="display:flex;flex-direction:column">
+      <div class="col-hdr"><div class="col-title">What the agents are doing</div><div class="lbl">ISSUES · REVIEWS · COMMITS</div></div>
+      <div class="feed" id="agentFeed"><div class="empty">Nothing since this page connected.</div></div>
+      <div style="padding-top:16px;font-size:13px;color:#6B6B6B"><a href="https://github.com/SebR214/margin/commits/main">Everything they have ever done, including the failures →</a></div>
     </div>
-    <div class="col">
-      <h2>Loop health</h2>
-      <p class="sub">The last pass each loop actually recorded.</p>
-      <ul class="feed" id="healthFeed">
-        <li class="empty" id="healthEmpty">Waiting for a health record…</li>
-      </ul>
+    <div style="display:flex;flex-direction:column">
+      <div style="border-bottom:1px solid #0B0B0B;padding-bottom:8px;font-size:16px;font-weight:700">Where things stand</div>
+      <div class="meter"><div class="v num" id="mPriced">—</div><div class="lbl">PRICED THIS HOUR</div></div>
+      <div class="meter"><div class="v num" id="mWithheld">—</div><div class="lbl">WITHHELD, WITH REASONS</div></div>
+      <div class="meter"><div class="v num" id="mCommits">0</div><div class="lbl">COMMITS SEEN SINCE CONNECTING</div></div>
+      <div class="meter"><div class="v muted" id="mPRs">see GitHub</div><div class="lbl"><a href="https://github.com/SebR214/margin/pulls">OPEN PULL REQUESTS →</a></div></div>
+      <div class="meter"><div class="v num" id="mHours">—</div><div class="lbl">HOURS OF HISTORY, UNBROKEN</div></div>
+      <div class="meter"><div class="v num">1</div><div class="lbl">PEOPLE WORKING HERE</div></div>
     </div>
   </div>
 </div>
@@ -130,160 +87,78 @@
   var API_BASE = location.hostname.endsWith("margin.wiki")
     ? "https://api.margin.wiki" : "http://127.0.0.1:8903";
 
-  function esc(s) {
-    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
-  function timeOf(iso) {
-    if (!iso) return "";
-    var d = new Date(iso);
-    if (isNaN(d)) return "";
-    return d.toISOString().slice(11, 16) + "z";
-  }
-  function todayUTC() {
-    return new Date().toISOString().slice(0, 10);
-  }
-  function prepend(ul, html, cap) {
-    var empty = ul.querySelector(".empty");
-    if (empty) empty.remove();
-    var li = document.createElement("li");
-    li.innerHTML = html;
-    ul.insertBefore(li, ul.firstChild);
-    while (ul.children.length > (cap || 40)) ul.removeChild(ul.lastChild);
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function timeOf(iso){ if(!iso) return ''; var d=new Date(iso); if(isNaN(d)) return ''; return d.toISOString().slice(11,19); }
+  function todayUTC(){ return new Date().toISOString().slice(0,10); }
+  function prepend(el, html, cap){
+    var empty = el.querySelector('.empty'); if (empty) empty.remove();
+    var row = document.createElement('div'); row.className='log'; row.innerHTML = html;
+    el.insertBefore(row, el.firstChild);
+    while (el.children.length > (cap||60)) el.removeChild(el.lastChild);
   }
 
-  // ---- meters: real counts from the same files the rest of the site reads,
-  // not derived from the SSE replay window, which is capped at 50 events
-  // across every kind and would silently undercount after any burst.
-  fetch("./data/index_latest.json", { cache: "no-store" })
-    .then(function (r) { return r.json(); })
-    .then(function (d) {
-      document.getElementById("mPriced").textContent = (d.countries || []).length;
-      document.getElementById("mWithheld").textContent = (d.withheld || []).length;
-    })
-    .catch(function () {});
+  fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
+    document.getElementById('mPriced').textContent = (d.countries||[]).length;
+    document.getElementById('mWithheld').textContent = (d.withheld||[]).length;
+  }).catch(function(){});
 
-  fetch("./data/agent_status.json", { cache: "no-store" })
-    .then(function (r) { return r.json(); })
-    .then(function (d) {
-      // Unbroken hours: walk backward through full (24h) days from the most
-      // recent COMPLETE day, stopping at the first day that fell short --
-      // that is a real gap, per SEB-48/SEB-54 -- then add today's hours so
-      // far, since a partial day in progress with no gap yet recorded is
-      // still part of the same unbroken run.
-      var delivery = d.delivery || [];
-      var hours = 0;
-      for (var i = delivery.length - 2; i >= 0; i--) {
-        if (delivery[i].hours >= 24) hours += 24; else break;
-      }
-      var last = delivery[delivery.length - 1];
-      if (last) hours += last.hours || 0;
-      document.getElementById("mHours").textContent = hours;
-    })
-    .catch(function () {});
+  fetch('./data/agent_status.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
+    var delivery = d.delivery || [];
+    var hours = 0;
+    for (var i = delivery.length - 2; i >= 0; i--) { if (delivery[i].hours >= 24) hours += 24; else break; }
+    var last = delivery[delivery.length-1];
+    if (last) hours += last.hours || 0;
+    document.getElementById('mHours').textContent = hours;
+  }).catch(function(){});
 
-  // ---- the live feed --------------------------------------------------
-  var commitsToday = 0, sourcesThisHour = 0;
-  var es = new EventSource(API_BASE + "/v1/events");
+  var commitsSeen = 0;
+  var es = new EventSource(API_BASE + '/v1/events');
+  es.onopen = function(){ document.getElementById('dot').classList.remove('off'); document.getElementById('connLabel').textContent = 'connected · live'; };
+  es.onerror = function(){ document.getElementById('dot').classList.add('off'); document.getElementById('connLabel').textContent = 'not connected — retrying'; };
 
-  es.onopen = function () {
-    document.getElementById("dot").classList.remove("off");
-    document.getElementById("connLabel").textContent = "connected — live";
-  };
-  es.onerror = function () {
-    document.getElementById("dot").classList.add("off");
-    document.getElementById("connLabel").textContent =
-      "not connected — the browser will keep retrying";
-  };
+  es.onmessage = function(ev){
+    var e; try { e = JSON.parse(ev.data); } catch(err){ return; }
 
-  es.onmessage = function (ev) {
-    var e;
-    try { e = JSON.parse(ev.data); } catch (err) { return; }
-
-    if (e.kind === "collector_pass") {
-      if (e.phase === "start") { sourcesThisHour = 0; }
-      var sub = document.getElementById("collectorSub");
-      sub.textContent = e.phase === "start"
-        ? "Pass running, started " + timeOf(e.ts) + "…"
-        : "Pass complete, " + timeOf(e.ts) + " — " + sourcesThisHour +
-          " countr" + (sourcesThisHour === 1 ? "y" : "ies") + " changed.";
+    if (e.kind === 'collector_pass') {
+      document.getElementById('collectorState').textContent =
+        (e.phase === 'start' ? 'RUNNING · STARTED ' : 'IDLE · LAST PASS ') + timeOf(e.ts);
       return;
     }
-
-    if (e.kind === "collector_source") {
-      sourcesThisHour++;
+    if (e.kind === 'collector_source') {
       var row = e.priced
-        ? '<span class="t">' + esc(timeOf(e.ts)) + '</span><span class="body">' +
-          '<b>' + esc(e.ccy) + '</b> ' + esc(e.country) + ' — priced, ' +
-          esc(e.evidence_count) + ' source' + (e.evidence_count === 1 ? "" : "s") +
-          " (" + esc(e.source_kind || "unknown") + ")</span>"
-        : '<span class="t">' + esc(timeOf(e.ts)) + '</span><span class="body">' +
-          '<b>' + esc(e.ccy) + '</b> ' + esc(e.country) + " — withheld: " +
-          esc(e.reason || "no reason given") + "</span>";
-      var li = document.createElement("li");
-      if (!e.priced) li.className = "withheld-row";
-      li.innerHTML = row;
-      var feed = document.getElementById("collectorFeed");
-      var empty = feed.querySelector(".empty");
-      if (empty) empty.remove();
-      feed.insertBefore(li, feed.firstChild);
-      while (feed.children.length > 60) feed.removeChild(feed.lastChild);
+        ? '<div class="stamp num" style="min-width:62px">'+esc(timeOf(e.ts))+'</div><div style="flex-grow:1">'+esc(e.ccy)+' · '+esc(e.source_kind||'checked')+'</div><div class="num" style="color:#0B0B0B;font-weight:600;font-size:12px">'+esc(e.evidence_count)+' sources · priced</div>'
+        : '<div class="stamp num" style="min-width:62px">'+esc(timeOf(e.ts))+'</div><div style="flex-grow:1">'+esc(e.ccy)+' · checked</div><div class="num" style="color:#B3822D;font-weight:600;font-size:12px">withheld: '+esc(e.reason||'no reason given')+'</div>';
+      var f = document.getElementById('collectorFeed');
+      var empty = f.querySelector('.empty'); if (empty) empty.remove();
+      var d2 = document.createElement('div'); d2.className='log'+(e.priced?'':' withheld-row'); d2.innerHTML = row;
+      f.insertBefore(d2, f.firstChild);
+      while (f.children.length > 80) f.removeChild(f.lastChild);
       return;
     }
-
-    if (e.kind === "linear") {
-      var who = '<span class="who ' + esc(e.role) + '">' + esc(e.role) + "</span>";
-      var what = e.event === "transition"
-        ? esc(e.ident) + " moved " + esc(e.from_state) + " → " + esc(e.to_state)
-        : esc(e.ident) + ": " + esc((e.text || "").slice(0, 140)) +
-          ((e.text || "").length > 140 ? "…" : "");
-      prepend(document.getElementById("agentFeed"),
-        '<span class="t">' + esc(timeOf(e.ts)) + "</span><span class=\"body\">" +
-        who + " " + what + "</span>", 50);
+    if (e.kind === 'linear') {
+      var what = e.event === 'transition' ? esc(e.ident)+' moved '+esc(e.from_state)+' → '+esc(e.to_state)
+        : esc(e.ident)+': '+esc((e.text||'').slice(0,120));
+      prepend(document.getElementById('agentFeed'),
+        '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">'+esc((e.role||'').toUpperCase())+'</div><div style="flex-grow:1">'+what+'</div>');
       return;
     }
-
-    if (e.kind === "commit") {
-      if ((e.ts || "").slice(0, 10) === todayUTC()) {
-        commitsToday++;
-        document.getElementById("mCommits").textContent = commitsToday;
-        document.getElementById("mCommitsNote").textContent = "seen since this page connected";
-      }
-      var pr = e.pr_number ? " (#" + e.pr_number + ")" : "";
-      prepend(document.getElementById("agentFeed"),
-        '<span class="t">' + esc(timeOf(e.ts)) + '</span><span class="body">' +
-        '<span class="who builder">commit</span> <code>' + esc(e.sha) + "</code> " +
-        esc((e.message || "").replace(/\s*\(#\d+\)\s*$/, "")) + esc(pr) + "</span>", 50);
+    if (e.kind === 'commit') {
+      if ((e.ts||'').slice(0,10) === todayUTC()) { commitsSeen++; document.getElementById('mCommits').textContent = commitsSeen; }
+      var pr = e.pr_number ? ' (#'+e.pr_number+')' : '';
+      prepend(document.getElementById('agentFeed'),
+        '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">BUILDER</div><div style="flex-grow:1">committed <span style="font-weight:600">'+esc((e.message||'').replace(/\s*\(#\d+\)\s*$/,''))+'</span>'+esc(pr)+'</div>');
       return;
     }
-
-    if (e.kind === "loop_health") {
-      var label, cls = "";
-      if (e.event === "pass") {
-        label = esc(e.role) + ": pass " + (e.ok ? "ok" : "failed (" + esc(e.reason) + ")") +
-          ", " + (e.seconds != null ? Math.round(e.seconds) + "s" : "") +
-          (e.passes_today ? " · " + e.passes_today + " today" : "");
-      } else if (e.event === "stopped") {
-        label = "<b>" + esc(e.role) + " has gone quiet</b> — last pass " +
-          (e.last_finished_utc ? timeOf(e.last_finished_utc) + "z" : "never");
-        cls = "withheld-row";
-      } else {
-        label = esc(e.role) + " is running again";
-      }
-      var li2 = document.createElement("li");
-      if (cls) li2.className = cls;
-      li2.innerHTML = '<span class="t">' + esc(timeOf(e.ts)) + '</span><span class="body">' + label + "</span>";
-      var hf = document.getElementById("healthFeed");
-      var he = document.getElementById("healthEmpty");
-      if (he) he.remove();
-      hf.insertBefore(li2, hf.firstChild);
-      while (hf.children.length > 30) hf.removeChild(hf.lastChild);
+    if (e.kind === 'loop_health') {
+      var label = e.event === 'stopped'
+        ? '<span style="color:#B3822D;font-weight:600">stopped for repair.</span> Last pass '+esc(timeOf(e.last_finished_utc))
+        : e.event === 'pass'
+          ? 'pass '+(e.ok?'ok':'failed')+', '+(e.seconds!=null?Math.round(e.seconds)+'s':'')
+          : 'running again';
+      prepend(document.getElementById('agentFeed'),
+        '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">'+esc((e.role||'').toUpperCase())+'</div><div style="flex-grow:1">'+label+'</div>');
       return;
     }
-    // call / commission_step: not shown on this page -- collector activity
-    // and agent activity are the point of it; the query log has its own
-    // place (SEB-42's stream exists for more than this one page).
   };
 })();
 </script>

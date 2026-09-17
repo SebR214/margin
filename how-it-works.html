@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — how it works</title>
+<meta name="description" content="How a number gets made, where the prices come from, and what was hard."/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
+  a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
+  .num{font-variant-numeric:tabular-nums}
+  .wrap{max-width:1440px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
+  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
+  nav a.active{color:var(--ink);font-weight:700}
+  .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
+  main{padding:44px 48px 0}
+  h1{font-size:42px;font-weight:800;letter-spacing:-0.02em;max-width:900px;margin:0}
+  .p{font-size:17px;line-height:1.65;color:#222;max-width:760px;padding-top:14px}
+  .h{font-size:20px;font-weight:700;padding-top:34px;padding-bottom:8px}
+  .b{font-size:16px;line-height:1.6;color:#222;max-width:760px;padding:5px 0 5px 20px;position:relative}
+  .ask{margin:44px 0 48px;max-width:720px;height:60px;background:#F6F6F6;border-radius:999px;display:flex;align-items:center;justify-content:space-between;padding:0 9px 0 26px}
+  .ask input{border:0;background:none;outline:none;font-size:18px;font-family:inherit;flex:1;color:var(--ink)}
+  .ask input::placeholder{color:#9A9A9A;font-weight:500}
+  .ask button{width:44px;height:44px;border-radius:50%;background:#0B0B0B;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+  .askNote{font-size:13px;color:#6B6B6B;padding-bottom:48px}
+  @media(max-width:900px){h1{font-size:30px} header{padding:22px 24px} main{padding:32px 24px 0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo"><a href="./index.html">margin.wiki</a></div>
+      <nav>
+        <a href="./the-index.html">The index</a>
+        <a href="./sending-money.html">Sending money</a>
+        <a href="./findings.html">Findings</a>
+        <a href="./machine-room.html">The machine room</a>
+        <a href="./how-it-works.html" class="active">How it works</a>
+      </nav>
+    </div>
+    <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
+  </header>
+
+  <main>
+    <h1>How it works</h1>
+    <div class="p">Most currency sites show the official exchange rate. In a lot of countries that is not what people actually pay. The street price of a dollar can be a few percent off the official rate, or a thousand percent off, and the official number hides it completely. This site measures that difference, every hour, in 59 countries. It also prices what it really costs to send money on four corridors, fees and exchange-rate margin together.</div>
+
+    <div class="h">How a number gets made</div>
+    <div class="p">Every hour the collector goes out and gets real offers, what people are asking for a dollar right now. It takes the median price you would actually pay, compares it to the official rate captured in the same pass, and the gap is the number. Nothing is modelled or smoothed. If the offers move, the number moves.</div>
+    <div class="p" id="thresholdP">The rule is ten sell offers minimum. Under that, the country shows its reason instead of a price. Loading today's counts…</div>
+
+    <div class="h">Where the prices come from</div>
+    <div class="p">All of it is collected directly, every hour, and written to files you can open:</div>
+    <div class="b">· Binance P2P, live buy and sell ads, the main source for most countries</div>
+    <div class="b">· Order books on twelve exchanges: Upbit, Bithumb and Coinone in Korea, Indodax and Pintu in Indonesia, BTCTurk and Paribu in Turkey, Bitkub in Thailand, Coins.ph in the Philippines, Independent Reserve in Australia, Foxbit and Mercado Bitcoin in Brazil</div>
+    <div class="b">· CoinGecko, a backup price when a venue is down</div>
+    <div class="b">· open.er-api, the official exchange rate, captured in the same second as the market price</div>
+    <div class="b">· BCRA, Argentina's central bank, for its published parallel rate</div>
+    <div class="b">· Airwallex and Instarem, live quotes pulled from their own pricing at five different transfer amounts</div>
+    <div class="b">· Wise's public comparison, for the other transfer providers including Wise itself</div>
+    <div class="p">Every number on the site links back to the file it came from. Nothing is typed in by hand.</div>
+
+    <div class="h">What was hard</div>
+    <div class="p">Fees. They hide inside the exchange rate and they change with how much you send, so one headline fee number is almost always wrong. Everything here is all-in, measured at five different amounts, which is the only way the comparison means anything.</div>
+    <div class="p">History. An hour that does not get collected is gone, you cannot go back and fill it in. So keeping collection running has mattered more than shipping any feature.</div>
+    <div class="p">Made-up numbers. An automated pipeline will happily produce a plausible figure when the data is missing, and that would kill the whole point of this. So nothing gets published unless it traces to a file that was actually collected, and the attempts that failed stay up.</div>
+
+    <div class="ask">
+      <input type="text" placeholder="Ask the agent how any number was made"/>
+      <button aria-label="ask"><svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M4 10h11M11 5l5 5-5 5" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="askNote">The code and every data file are public. Your AI can ask the same questions over MCP or the API.</div>
+  </main>
+</div>
+
+<script>
+fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
+  var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
+  document.getElementById('liveStamp').textContent = 'LIVE · ' + hourUtc + ' UTC';
+  document.getElementById('thresholdP').textContent =
+    'The rule is ten sell offers minimum. Under that, the country shows its reason instead of a price. Right now ' +
+    (d.countries||[]).length + ' countries have a price and ' + (d.withheld||[]).length + ' do not.';
+}).catch(function(){});
+</script>
+</body>
+</html>

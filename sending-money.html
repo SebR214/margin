@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — sending money</title>
+<meta name="description" content="Every provider's all-in cost to send money, fee plus the margin hidden in the exchange rate, re-priced every hour."/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
+  a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
+  .num{font-variant-numeric:tabular-nums}
+  .lbl{font-size:11px;letter-spacing:.1em;color:#6B6B6B}
+  .wrap{max-width:1440px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
+  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
+  nav a.active{color:var(--ink);font-weight:700}
+  .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
+  .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:12px}
+  h1{font-size:42px;font-weight:800;letter-spacing:-0.02em;margin:0}
+  .lede{max-width:780px;font-size:16px;color:#6B6B6B;line-height:1.5}
+  .corridor{padding:40px 48px 0;display:flex;flex-direction:column;max-width:860px;box-sizing:content-box}
+  .corridor-hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;flex-wrap:wrap;gap:10px}
+  .corridor-title{font-size:22px;font-weight:800;letter-spacing:-0.01em}
+  .pills{display:flex;gap:6px;flex-wrap:wrap}
+  .pill{padding:6px 13px;background:#F6F6F6;color:#0B0B0B;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:0;font-family:inherit}
+  .pill.on{background:#0B0B0B;color:#fff}
+  .prow-hdr{display:grid;grid-template-columns:1fr 150px 150px;gap:16px;align-items:center;border-bottom:1px solid #0B0B0B;padding:8px 0}
+  .prow{display:grid;grid-template-columns:1fr 150px 150px;gap:16px;align-items:center;padding:12px 0;border-bottom:1px solid var(--rule);font-size:15px}
+  .prow .cost{text-align:right;font-weight:700} .prow .pct{text-align:right;color:#6B6B6B}
+  .foot{padding-top:10px;font-size:12px;color:#9A9A9A;line-height:1.5}
+  @media(max-width:900px){h1{font-size:30px} header{padding:22px 24px} .hero{padding:32px 24px 0} .corridor{padding:32px 24px 0;max-width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo"><a href="./index.html">margin.wiki</a></div>
+      <nav>
+        <a href="./the-index.html">The index</a>
+        <a href="./sending-money.html" class="active">Sending money</a>
+        <a href="./findings.html">Findings</a>
+        <a href="./machine-room.html">The machine room</a>
+        <a href="./how-it-works.html">How it works</a>
+      </nav>
+    </div>
+    <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
+  </header>
+
+  <div class="hero">
+    <h1>What sending money really costs</h1>
+    <div class="lede">Every provider's all-in cost — the fee plus the margin hidden in the exchange rate — against the same mid-market snapshot, re-priced every hour. Cheapest first.</div>
+  </div>
+
+  <div id="corridors"></div>
+</div>
+
+<script>
+(function(){
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  var AMOUNT_ORDER = ['200','1000','5000','25000','50000'];
+
+  fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
+    var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
+    document.getElementById('liveStamp').textContent = 'LIVE · ' + hourUtc + ' UTC';
+
+    var container = document.getElementById('corridors');
+    Object.keys(d.corridors).forEach(function(routeKey, idx){
+      var route = d.corridors[routeKey];
+      var div = document.createElement('div');
+      div.className = 'corridor';
+      div.id = 'c-' + idx;
+      container.appendChild(div);
+      renderCorridor(div, route, '5000');
+    });
+
+    function renderCorridor(el, route, selectedSize){
+      var size = route.sizes[selectedSize];
+      var rows = size.rows.slice().sort(function(a,b){ return a.rank - b.rank; });
+      var pillsHtml = AMOUNT_ORDER.filter(a => route.sizes[a]).map(function(a){
+        var amt = route.sizes[a].amount_words;
+        return '<button class="pill'+(a===selectedSize?' on':'')+'" data-amt="'+a+'">'+esc(amt)+'</button>';
+      }).join('');
+      var rowsHtml = rows.map(function(r){
+        var name = r.provider === 'The dollar route' ? '<span style="color:#6B6B6B">'+esc(r.provider)+'</span>' : (r.rank===1 ? '<span style="font-weight:700">'+esc(r.provider)+'</span>' : esc(r.provider));
+        return '<div class="prow"><div>'+name+'</div><div class="cost num">'+esc(r.costs)+'</div><div class="pct num">'+r.cost_pct.toFixed(2)+'%</div></div>';
+      }).join('');
+      var ownProviders = rows.filter(r => r.source === 'own').map(r => r.provider);
+      var footnote = (ownProviders.length ? ownProviders.join(' and ') + ' quote their own prices; the rest come ' : 'Every price comes ') +
+        'from the public comparison Wise runs; the dollar route is measured on real exchanges, all in.';
+      el.innerHTML =
+        '<div class="corridor-hdr"><div class="corridor-title">'+esc(route.route_words)+'</div>' +
+        '<div class="pills">'+pillsHtml+'</div></div>' +
+        '<div class="prow-hdr lbl"><div>SENDING '+esc(size.amount_words)+'</div><div style="text-align:right">ALL IN</div><div style="text-align:right">% OF AMOUNT</div></div>' +
+        rowsHtml +
+        '<div class="foot">'+esc(footnote)+'</div>';
+      el.querySelectorAll('.pill').forEach(function(btn){
+        btn.addEventListener('click', function(){ renderCorridor(el, route, btn.getAttribute('data-amt')); });
+      });
+    }
+  }).catch(function(){
+    document.getElementById('corridors').innerHTML = '<div class="corridor"><p style="color:#B3822D">Could not load corridor data. That failure is shown, not hidden.</p></div>';
+  });
+})();
+</script>
+</body>
+</html>

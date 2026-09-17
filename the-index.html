@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — the index</title>
+<meta name="description" content="What a dollar really costs, country by country, priced every hour with a receipt behind every number."/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
+  a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
+  .num{font-variant-numeric:tabular-nums}
+  .lbl{font-size:11px;letter-spacing:.1em;color:#6B6B6B}
+  .stamp{font-size:11px;color:var(--stamp);letter-spacing:.06em}
+  .receipt{font-size:13px;color:var(--sub)}
+  .wrap{max-width:1440px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
+  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
+  nav a.active{color:var(--ink);font-weight:700}
+  .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
+  .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:14px}
+  h1{font-size:42px;font-weight:800;letter-spacing:-0.02em;margin:0}
+  .lede{max-width:780px;font-size:16px;color:#6B6B6B;line-height:1.5}
+  .search{margin-top:6px;max-width:560px;height:56px;background:#F6F6F6;border-radius:999px;display:flex;align-items:center;gap:14px;padding:0 24px}
+  .search input{border:0;background:none;outline:none;font-size:17px;font-family:inherit;flex:1;color:var(--ink)}
+  .search input::placeholder{color:#9A9A9A;font-weight:500}
+  .featured{padding:36px 48px 0;display:flex;flex-direction:column;border-top:1px solid var(--rule);margin:34px 48px 0;padding-left:0;padding-right:0}
+  .headline{font-size:34px;font-weight:800;letter-spacing:-0.02em}
+  .delta{font-size:14px;color:#6B6B6B;padding-top:4px}
+  .h{font-size:18px;font-weight:700;padding-bottom:8px}
+  .gaps-hdr{display:grid;grid-template-columns:70px 1fr 190px 190px 200px;gap:16px;align-items:center;border-bottom:1px solid #0B0B0B;padding:8px 0}
+  .gap-row{display:grid;grid-template-columns:70px 1fr 190px 190px 200px;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--rule)}
+  .gap-row .code{font-weight:700} .gap-val{text-align:right;font-size:19px;font-weight:700;color:var(--indigo)}
+  .gap-rt{text-align:right;color:#6B6B6B}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:0 48px;border-top:1px solid #0B0B0B;padding-top:4px}
+  .mini{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--rule);font-size:14px;cursor:pointer}
+  .mini .val{color:var(--indigo);font-weight:700}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px}
+  .wrow{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--rule);font-size:14px}
+  .wrow .c{color:#6B6B6B;white-space:nowrap} .wrow .r{color:#9A9A9A;text-align:right}
+  section{padding:40px 48px 0}
+  section:last-of-type{padding-bottom:44px}
+  @media(max-width:900px){
+    .gaps-hdr,.gap-row{grid-template-columns:50px 1fr 130px} .gap-rt,.gaps-hdr div:nth-child(4){display:none}
+    .grid3{grid-template-columns:1fr 1fr} .grid2{grid-template-columns:1fr}
+    h1{font-size:30px} .headline{font-size:26px} section{padding:32px 24px 0} header{padding:22px 24px} .hero{padding:32px 24px 0}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo"><a href="./index.html">margin.wiki</a></div>
+      <nav>
+        <a href="./the-index.html" class="active">The index</a>
+        <a href="./sending-money.html">Sending money</a>
+        <a href="./findings.html">Findings</a>
+        <a href="./machine-room.html">The machine room</a>
+        <a href="./how-it-works.html">How it works</a>
+      </nav>
+    </div>
+    <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
+  </header>
+
+  <div class="hero">
+    <h1>What a dollar really costs</h1>
+    <div class="lede" id="ledeText">Loading this hour's prices…</div>
+    <div class="search">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6.5" stroke="#9A9A9A" stroke-width="2"/><path d="M14 14l4 4" stroke="#9A9A9A" stroke-width="2" stroke-linecap="round"/></svg>
+      <input type="text" id="searchBox" placeholder="Find a country — Algeria, Vietnam, Argentina…"/>
+    </div>
+  </div>
+
+  <div class="featured" id="featured"></div>
+
+  <section>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px">
+      <div class="h" style="padding-bottom:0">The biggest gaps this hour</div>
+    </div>
+    <div class="gaps-hdr lbl"><div>CODE</div><div>COUNTRY</div><div style="text-align:right">A DOLLAR COSTS</div><div style="text-align:right">BUY THEN SELL BACK</div><div>BASED ON</div></div>
+    <div id="gapsBody"></div>
+  </section>
+
+  <section>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px">
+      <div class="h" style="padding-bottom:0">Every country priced this hour</div>
+      <div class="lbl" id="pricedCount">&nbsp;</div>
+    </div>
+    <div class="grid3" id="pricedGrid"></div>
+  </section>
+
+  <section>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:6px">
+      <div class="h" style="padding-bottom:0;color:#6B6B6B">No price this hour</div>
+      <div class="lbl" id="withheldCount">&nbsp;</div>
+    </div>
+    <div style="font-size:13px;color:#6B6B6B;padding-bottom:10px">A price was collected and stored, but it does not meet the evidence rule, so it is not shown as a number. Each country keeps its page and its reason.</div>
+    <div class="grid2" id="withheldGrid"></div>
+  </section>
+</div>
+
+<script>
+(function(){
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmtPct(n, digits){ digits = digits==null?2:digits; var v=n.toFixed(digits); return (n>=0?'+':'')+v+'%'; }
+
+  function bigChart(spark, badgeText){
+    var w=1240, h=300, rightGutter=96;
+    var min = Math.min.apply(null, spark), max = Math.max.apply(null, spark);
+    var range = (max-min) || 1;
+    var plotW = w - rightGutter;
+    var stepX = plotW / (spark.length - 1);
+    var pad=4, bottom=34;
+    var pts = spark.map(function(v,i){
+      var x = i*stepX;
+      var y = pad + (1 - (v-min)/range) * (h - pad*2 - bottom);
+      return [x,y];
+    });
+    var lastY = pts[pts.length-1][1], lastX = pts[pts.length-1][0];
+    var path = 'M0,'+(h-bottom)+' L' + pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ') + ' L'+lastX.toFixed(1)+','+(h-bottom)+' Z';
+    var poly = pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    var labels = [min, min+range/2, max];
+    var labelSvg = labels.map(function(v){
+      var y = pad + (1 - (v-min)/range) * (h - pad*2 - bottom);
+      return '<text x="'+(plotW+14)+'" y="'+(y+4).toFixed(1)+'" font-family="Archivo, sans-serif" font-size="11" fill="#9A9A9A">'+v.toFixed(1)+'%</text>';
+    }).join('');
+    return '<svg width="1240" height="300" viewBox="0 0 1240 300">' +
+      '<defs><linearGradient id="gix" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" stop-color="#DCDFFA" stop-opacity="0.95"/>' +
+      '<stop offset="1" stop-color="#DCDFFA" stop-opacity="0.05"/></linearGradient></defs>' +
+      '<path d="'+path+'" fill="url(#gix)"/>' +
+      '<polyline points="'+poly+'" fill="none" stroke="#5A55E0" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<line x1="0" y1="'+lastY.toFixed(1)+'" x2="'+lastX.toFixed(1)+'" y2="'+lastY.toFixed(1)+'" stroke="#5A55E0" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.7"/>' +
+      '<rect x="'+(lastX+6).toFixed(1)+'" y="'+(lastY-10).toFixed(1)+'" width="64" height="20" rx="3" fill="#5A55E0"/>' +
+      '<text x="'+(lastX+38).toFixed(1)+'" y="'+(lastY+4).toFixed(1)+'" text-anchor="middle" font-family="Archivo, sans-serif" font-size="11" font-weight="600" fill="#FFFFFF">'+esc(badgeText)+'</text>' +
+      labelSvg +
+      '<text x="0" y="'+(h-6)+'" text-anchor="start" font-family="Archivo, sans-serif" font-size="12" fill="#9A9A9A">'+esc('earliest in window')+'</text>' +
+      '<text x="'+lastX.toFixed(1)+'" y="'+(h-6)+'" text-anchor="end" font-family="Archivo, sans-serif" font-size="12" fill="#9A9A9A">now</text>' +
+      '</svg>';
+  }
+
+  function renderFeatured(c){
+    var delta = c.spark && c.spark.length>1 ? c.index_pct - c.spark[0] : null;
+    var html = '<div style="padding-top:26px"><div style="padding-bottom:18px">' +
+      '<div class="headline num">A dollar in '+esc(c.country)+' costs '+fmtPct(c.index_pct).replace('+','')+' more than the official rate</div>' +
+      (delta!=null ? '<div class="delta num">'+(delta>=0?'+':'')+delta.toFixed(1)+' points <span style="color:#5A55E0">'+(delta>=0?'▲':'▼')+' over this window</span></div>' : '') +
+      '</div>' + (c.spark && c.spark.length>1 ? bigChart(c.spark, c.index_pct.toFixed(1)+'%') : '') + '</div>' +
+      '<div class="receipt" style="padding-top:16px">'+esc(c.evidence_words)+', '+esc(c.source_words)+' · you\'d lose '+c.round_trip_pct.toFixed(1)+'% selling back · <span style="font-weight:600;color:#0B0B0B" id="fullLink">'+esc(c.country)+' in full →</span></div>';
+    document.getElementById('featured').innerHTML = html;
+  }
+
+  fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
+    var countries = d.countries || [];
+    var withheld = d.withheld || [];
+    var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
+
+    document.getElementById('liveStamp').textContent = 'LIVE · ' + hourUtc + ' UTC';
+    document.getElementById('ledeText').textContent =
+      countries.length + ' countries have a price this hour, ' + withheld.length + ' are withheld with their reason. Pick a country, or start from the biggest gaps. Click any number to see how it was made.';
+
+    var byGap = countries.slice().sort(function(a,b){ return b.index_pct - a.index_pct; });
+
+    // Featured country: the biggest real (non-frozen-peg) mover, same rule as Home.
+    var managed = countries.filter(c => c.denominator_class !== 'unmaintained');
+    var featured = managed.slice().sort((a,b)=>b.index_pct-a.index_pct)[0] || byGap[0];
+    renderFeatured(featured);
+
+    // Biggest gaps table: top 8 by raw index_pct, unmaintained pegs included but
+    // labeled, exactly as the design calls for -- the absence of a real market
+    // shouldn't be hidden, just not used to pick the headline.
+    var gapsHtml = byGap.slice(0,8).map(function(c){
+      var tag = c.denominator_class === 'unmaintained' ? ' <span style="font-size:12px;color:#9A9A9A">· official rate unmaintained</span>' : '';
+      return '<div class="gap-row">' +
+        '<div class="code">'+esc(c.ccy)+'</div>' +
+        '<div>'+esc(c.country)+tag+'</div>' +
+        '<div class="gap-val num">'+fmtPct(c.index_pct).replace('+','')+' more</div>' +
+        '<div class="gap-rt num">you\'d lose '+c.round_trip_pct.toFixed(1)+'% selling back</div>' +
+        '<div style="font-size:13px;color:#6B6B6B">'+esc(c.evidence_words)+'</div></div>';
+    }).join('');
+    document.getElementById('gapsBody').innerHTML = gapsHtml;
+
+    // Every priced country, three columns, ranked.
+    document.getElementById('pricedCount').textContent = countries.length + ' COUNTRIES · CLICK ANY FOR ITS CHART AND SOURCES';
+    document.getElementById('pricedGrid').innerHTML = byGap.map(function(c){
+      return '<div class="mini" data-ccy="'+esc(c.ccy)+'"><div><span style="font-weight:700">'+esc(c.ccy)+'</span>&nbsp; '+esc(c.country)+'</div>' +
+        '<div class="val num">'+fmtPct(c.index_pct)+'</div></div>';
+    }).join('');
+    document.querySelectorAll('.mini').forEach(function(el){
+      el.addEventListener('click', function(){
+        var ccy = el.getAttribute('data-ccy');
+        var c = countries.find(x => x.ccy === ccy);
+        if (c) { renderFeatured(c); document.getElementById('featured').scrollIntoView({behavior:'smooth', block:'start'}); }
+      });
+    });
+
+    // Withheld, two columns, real reasons, alphabetical.
+    var withheldSorted = withheld.slice().sort((a,b)=> a.country.localeCompare(b.country));
+    document.getElementById('withheldCount').textContent = withheld.length + ' COUNTRIES';
+    document.getElementById('withheldGrid').innerHTML = withheldSorted.map(function(w){
+      return '<div class="wrow"><div class="c">'+esc(w.country)+'</div><div class="r">'+esc(w.reason)+'</div></div>';
+    }).join('');
+
+    // Search: filter both grids live, case-insensitive, by country or code.
+    document.getElementById('searchBox').addEventListener('input', function(e){
+      var q = e.target.value.trim().toLowerCase();
+      document.querySelectorAll('.mini').forEach(function(el){
+        var t = el.textContent.toLowerCase();
+        el.style.display = (!q || t.includes(q)) ? '' : 'none';
+      });
+      document.querySelectorAll('.wrow').forEach(function(el){
+        var t = el.textContent.toLowerCase();
+        el.style.display = (!q || t.includes(q)) ? '' : 'none';
+      });
+    });
+  }).catch(function(){
+    document.getElementById('ledeText').textContent = 'Could not load this hour\'s data. That failure is shown, not hidden.';
+  });
+})();
+</script>
+</body>
+</html>
