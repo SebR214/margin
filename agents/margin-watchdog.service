@@ -1,0 +1,8 @@
+[Unit]
+Description=margin.wiki watchdog — notices when a loop or the collector has stopped
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/margin/env
+ExecStart=/srv/margin-product/agents/watchdog.sh
