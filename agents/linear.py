@@ -36,6 +36,8 @@ import argparse
 import io
 import json
 import os
+import subprocess
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -159,13 +161,47 @@ def cmd_next(_):
     print(todo[0]["identifier"])
 
 
-def cmd_stranded(_):
-    """Issues sitting In Progress: a pass claimed them and never finished.
+def _keys_with_open_prs():
+    """Issue keys that already have an open pull request.
 
-    Nothing else will ever pick these up, because they are no longer unstarted.
-    The builder checks this before looking for new work.
+    `gh` is the only thing that knows this, and it is one HTTP call. If it
+    cannot answer, return an empty set: the caller then reports more stranded
+    work rather than less, and the model sorts it out. Being wrong that way
+    costs one pass; the opposite hides work forever.
+    """
+    try:
+        out = subprocess.run(
+            ["gh", "pr", "list", "--repo", "SebR214/margin", "--state", "open",
+             "--json", "title,headRefName"],
+            capture_output=True, text=True, timeout=30)
+        if out.returncode != 0:
+            return set()
+        keys = set()
+        for pr in json.loads(out.stdout or "[]"):
+            blob = (pr.get("title", "") + " " + pr.get("headRefName", "")).upper()
+            for m in re.finditer(r"\b(SEB-\d+)\b", blob.replace("_", "-")):
+                keys.add(m.group(1))
+        return keys
+    except Exception:
+        return set()
+
+
+def cmd_stranded(_):
+    """Issues sitting In Progress that nothing is working on.
+
+    "In Progress" alone is not stranded. An issue whose pull request is open is
+    being reviewed, and BUILDER.md already says to leave those alone -- but it
+    said so in prose, so the builder had to WAKE A MODEL to find out, every
+    pass, and exit again. Measured over 2026-09-16/17: 2,420 model wakes, 2,300
+    of them under sixty seconds, which is the shape of a model booting up to
+    conclude there is nothing to do. That is ~95% of the builder's spend.
+
+    So the filter moves here, where it is one HTTP call and free. A key with an
+    open pull request is not stranded; only a claim nobody is working on is.
     """
     stuck = [i for i in issues_in_project() if i["state"]["type"] == "started"]
+    with_prs = _keys_with_open_prs()
+    stuck = [i for i in stuck if i["identifier"].upper() not in with_prs]
     if not stuck:
         print("NONE STRANDED")
         return
