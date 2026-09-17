@@ -154,6 +154,22 @@ def cmd_next(_):
     todo = [i for i in issues_in_project()
             if i["state"]["type"] == "unstarted"
             and "blocked" not in [l["name"] for l in i["labels"]["nodes"]]]
+    # An issue on the spec's ordered queue is not ready while anything earlier
+    # in that queue is unfinished. Dependencies live in the order, not in a
+    # label -- see authorized_order().
+    order = authorized_order()
+    if order:
+        by_key = {i["identifier"].upper(): i for i in issues_in_project()}
+        done = {"completed", "canceled"}
+        not_ready = set()
+        for pos, key in enumerate(order):
+            earlier_open = [k for k in order[:pos]
+                            if k in by_key
+                            and by_key[k]["state"]["type"] not in done]
+            if earlier_open:
+                not_ready.add(key)
+        todo = [i for i in todo if i["identifier"].upper() not in not_ready]
+
     if not todo:
         print("NOTHING TO DO")
         return
@@ -271,6 +287,29 @@ def authorized_keys():
         return set()
     return {l.strip().upper() for l in lines
             if l.strip() and not l.strip().startswith("#")}
+
+
+def authorized_order():
+    """The same file, read as an ordered build sequence.
+
+    A dependency is a fact about the work, not a label. M2 cannot start before
+    M1, and M1 not before R2 -- but `blocked` is refused on these issues (that
+    refusal is what stops an agent hiding Sebastian's work), so there was
+    nowhere to record "not yet". The issue sat in Todo, `next` kept handing it
+    out, and the builder woke a model every pass to re-explain the dependency:
+    62 times in 4h20m on 2026-09-17 (SEB-71).
+
+    Expressing it as order costs nothing and cannot hide anything -- it
+    resolves by itself the moment the earlier issue is Done.
+    """
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "authorized-queue.txt")
+    try:
+        lines = io.open(path, encoding="utf-8").read().splitlines()
+    except OSError:
+        return []
+    return [l.strip().upper() for l in lines
+            if l.strip() and not l.strip().startswith("#")]
 
 
 def cmd_label(a):
