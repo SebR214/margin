@@ -56,7 +56,19 @@ done
 
 # 2. Collection missing two consecutive passes. The collector commits a sample
 #    every half hour, so two missed passes is a gap of more than 75 minutes.
+#
+# Fetches before reading: nothing else keeps this checkout's origin/main
+# current. /srv/margin has margin-pull.timer fetching it every 5 minutes for
+# the API, but this repo's ref only moves when the product role's own loop
+# happens to `git pull`, and that loop can sit idle well past 75 minutes with
+# no work queued. Without the fetch this step measures the AGENT'S clone, not
+# the collector -- on 2026-09-17 this checkout's last pull landed at 08:17,
+# so every check after that compared "now" against a sample commit that was
+# already stale, and it eventually crossed the threshold and raised a false
+# alarm (SEB-76) while collect.yml, checked directly on GitHub Actions, had
+# not missed a single run.
 if [ -d "$REPO/.git" ]; then
+  git -C "$REPO" fetch -q origin main 2>/dev/null
   last_sample=$(git -C "$REPO" log origin/main --format=%ct --grep='^sample ' -1 2>/dev/null || echo 0)
   if [ "${last_sample:-0}" != "0" ] && [ $((now - last_sample)) -gt 4500 ]; then
     mins=$(( (now - last_sample) / 60 ))
