@@ -82,20 +82,30 @@ PY
 # function because the backoff below has to ask the same question while it
 # waits -- a loop that sleeps through newly arrived work is the same latency
 # bug as a loop that never wakes.
+#
+# Also sets WORK_SIG as a side effect: a string describing the
+# buildable/reviewable world as Linear and GitHub see it right now. Calling
+# this before and after a pass and comparing the two strings tells you
+# whether the pass changed anything observable -- used below to catch a pass
+# that ran long, read a spec, and posted a comment restating a block nothing
+# resolved (SEB-71).
 have_work_now() {
   case "$ROLE" in
     builder)
       _next=$(python3 "$REPO/agents/linear.py" next 2>/dev/null)
       _stranded=$(python3 "$REPO/agents/linear.py" stranded 2>/dev/null)
+      WORK_SIG="$_next|$_stranded"
       [ "$_next" = "NOTHING TO DO" ] && [ "$_stranded" = "NONE STRANDED" ] && return 1
       return 0
       ;;
     reviewer)
-      _pending=$(python3 "$REPO/agents/reviewer_work.py" 2>/dev/null | wc -l | tr -d " ")
-      [ "$_pending" = "0" ] && return 1
+      _pending=$(python3 "$REPO/agents/reviewer_work.py" 2>/dev/null)
+      WORK_SIG="$_pending"
+      [ -z "$_pending" ] && return 1
       return 0
       ;;
   esac
+  WORK_SIG=""
   return 0
 }
 
@@ -207,6 +217,7 @@ while true; do
   # alternative is a loop that quietly does nothing for a day.
   HAVE_WORK=1
   have_work_now || HAVE_WORK=0
+  SIG_BEFORE="$WORK_SIG"
 
   if [ "$HAVE_WORK" = "0" ]; then
     # No backoff here, deliberately. The check above is one HTTP request and no
@@ -265,7 +276,20 @@ while true; do
     rm -f "$OUT"; sleep "$ERROR_WAIT"; continue
   fi
 
-  if [ "$ELAPSED" -lt "$IDLE_SECONDS" ]; then
+  # A pass that ran long is not the same as a pass that did something. SEB-71:
+  # the builder spent 4h20m across 62 passes reaching the same "blocked on R2"
+  # conclusion for SEB-58/SEB-59, one paid session at a time. Reading the spec,
+  # checking SEB-57's state and posting a comment via `linear.py say` reliably
+  # took longer than IDLE_SECONDS, so the elapsed-time check below never saw
+  # those passes as idle and the backoff never grew past the base IDLE.
+  # Comparing the buildable/reviewable world before and after the pass catches
+  # that: if `next`/`stranded` (or the reviewer's pending list) come back
+  # identical, nothing observable moved, whatever the pass spent its turns on
+  # -- restating an unchanged block counts as idle here, same as a fast no-op.
+  have_work_now >/dev/null 2>&1
+  SIG_AFTER="$WORK_SIG"
+  if [ "$ELAPSED" -lt "$IDLE_SECONDS" ] || \
+     { [ -n "$SIG_BEFORE" ] && [ "$SIG_BEFORE" = "$SIG_AFTER" ]; }; then
     idle_streak=$((idle_streak + 1))
   else
     idle_streak=0
