@@ -67,12 +67,20 @@ and what you concluded. Not a log dump.
 python3 agents/linear.py say SEB-8 reviewer "<verdict>"
 ```
 
-**Pass, and no `.html` changed:**
+**Pass, and nothing reader-facing changed (OPS-3).** Backend, data, `agents/`,
+`tools/`, ops. **Merge it yourself** on your own approval plus green checks.
+Sebastian is not involved and must not be asked:
 
 ```bash
+gh pr review P --approve --body "<what you verified, and what it printed>"
 gh pr merge P --squash --delete-branch
 python3 agents/linear.py state SEB-8 "Done"
 ```
+
+`gh pr review` works now. The loops authenticate as the `margin-agents` App, so
+you are no longer the author of the pull request you are reviewing -- which is
+why every older verdict on this repo carries "request-changes not available".
+File the real review. Do not post a comment explaining why you cannot.
 
 **Pass, and anything reader-facing changed — DO NOT MERGE.** Sebastian approves
 every change to what a person sees, before it ships:
@@ -88,8 +96,15 @@ what the rendered page actually shows — the headline, the first row, the
 figures — and attach or describe the screenshots, so the decision is a look
 rather than an investigation.
 
-Merge only after Sebastian has said yes on the issue, in his own words. A label,
-a reaction, or your own reading of his intent is not approval. If he asks for a
+**Keep one stack, not a scatter (OPS-3).** Every reader-facing pull request
+waiting on him lives in a single Linear document, `Awaiting your eyes`,
+refreshed every brief: one numbered line each, with the PR link, the pages it
+changes, what they now show, and how long it has waited. He clears the stack in
+one reply, approving or rejecting by number. Do not chase him per pull request
+-- the brief is the only channel (RULES.md).
+
+Merge only after Sebastian has said yes, in his own words. A label, a reaction,
+or your own reading of his intent is not approval. If he asks for a
 change, that is a rejection: put the issue back in Todo with what he asked for.
 
 This applies to any page, any copy, any chart, any layout — not only `.html`

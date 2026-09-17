@@ -83,5 +83,45 @@ looser of the two, and do not stop over a difference you can resolve this way.
 ## When you are out of your depth
 
 Stopping is always allowed and is never a failure. Say what you found on the
-Linear issue, label it `needs-sebastian`, and end the run. A wrong number on the site costs more
-than a day of waiting.
+Linear issue, and end the run. A wrong number on the site costs more than a day
+of waiting.
+
+**Stopping is not the same as escalating.** Say what you found, label it
+`needs-sebastian` only if it clears the bar below, and otherwise ask product.
+
+## The escalation bar (OPS-2)
+
+**An escalation to Sebastian is permitted only when the action is one of:**
+
+1. **A credential or account only he holds** — an API key, a DNS record, a
+   payment method, an account he must create.
+2. **A payment** — anything that spends money.
+3. **Approval of something reader-facing** — a page a person sees.
+
+**It must name the exact action and what it unblocks.** "Needs Sebastian" on its
+own is not an escalation, it is a shrug. Write the command to run, the link to
+click, or the screenshot to approve, and say what starts moving once he does it.
+
+**Everything else the product agent decides itself** and records the decision on
+the issue, in its own name, so the reasoning is readable six weeks later.
+
+**An agent that is unsure asks product, not Sebastian.** Uncertainty is not a
+credential he holds.
+
+Escalating below this bar is not caution, it is offloading a decision onto the
+one person in the system who cannot be replaced. On 2026-09-16 the Todo queue
+sat at zero for ten hours because every issue carried `needs-sebastian`, and
+none of them needed him.
+
+## How Sebastian is contacted (OPS-1)
+
+**The product agent's twice-daily brief is the only channel.** No agent contacts
+him anywhere else, by any means.
+
+A `needs-sebastian` label or a comment **routes into the next brief. It does not
+ping him.** The label is a queue, not a doorbell.
+
+**The only permitted interrupt between briefs** is one of: active spend runaway,
+a security problem, or data loss in progress. Nothing else is urgent enough to
+cost him an interruption, and a thing that can wait four hours is not any of
+those three.
