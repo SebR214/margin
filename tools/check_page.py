@@ -125,6 +125,43 @@ class _Text(html.parser.HTMLParser):
         self.out.append((list(self.stack), data))
 
 
+class _Unquoted(html.parser.HTMLParser):
+    """Rendered text, minus anything inside a data-verbatim="true" element.
+
+    machine-room.html quotes real Linear comments verbatim, per its spec
+    ("never fabricate activity"). Those can legitimately contain a word like
+    "todo:" as part of someone's real sentence -- that is not leftover
+    developer placeholder text, so the BROKEN-word check below must not see
+    it. Nesting inherits: anything inside a marked element counts as quoted
+    even if not marked itself.
+    """
+
+    VOID = {"br", "img", "input", "meta", "link", "hr", "source"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.stack, self.out = [], []
+
+    def handle_starttag(self, tag, attrs):
+        quoted = dict(attrs).get("data-verbatim") == "true" or (self.stack and self.stack[-1])
+        if tag not in self.VOID:
+            self.stack.append(quoted)
+
+    def handle_endtag(self, tag):
+        if self.stack:
+            self.stack.pop()
+
+    def handle_data(self, data):
+        if not (self.stack and self.stack[-1]):
+            self.out.append(data)
+
+
+def unquoted_text(rendered_html):
+    p = _Unquoted()
+    p.feed(rendered_html)
+    return "".join(p.out)
+
+
 MONEY = re.compile(r"(?<![\w.-])\d[\d,]*\.?\d*\s*%"
                    r"|(?:US\$|S\$|A\$|NZ\$|€|£|\$)\s?\d[\d,]*\.?\d*")
 
@@ -187,8 +224,9 @@ def check(page, port, browser, base):
             fails.append(f"{page}: banned word 'mid' on a reader-facing page "
                          f"(use 'mid-market' or plain language)")
 
+    broken_low = unquoted_text(r.html).lower()
     for w in BROKEN:
-        if w in low:
+        if w in broken_low:
             fails.append(f"{page}: {w!r} appears in the rendered page")
     for w in ("nan", "undefined"):
         if re.search(r"\b" + w + r"\b", low):
