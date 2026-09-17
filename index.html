@@ -228,7 +228,7 @@
         (delta > 0 && topSince ? ', up ' + fmtPct(Math.abs(delta)) + ' points since ' + topSince + '.' : '.') + '</p>' +
         '<div id="homeChart"></div>' +
         '<div class="receipt">' + esc(top.evidence_words) + ', ' + esc(top.source_words) + ' · ' +
-        '<a href="./the-index.html#' + esc(top.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(top.country) + ' in full →</a></div></div>';
+        '<a href="./country.html?ccy=' + esc(top.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(top.country) + ' in full →</a></div></div>';
     }
 
     // This hour: a real corridor from providers_latest.json, cheapest vs the
@@ -318,7 +318,7 @@
         answer: function(){
           showAnswerCard('ASKED · ' + lastPassStamp,
             '<b>' + esc(secondPick.country) + ' (' + esc(secondPick.ccy) + '):</b> a dollar ' + costPhrase(secondPick.index_pct) + ' this hour, from ' + esc(secondPick.evidence_words) + '.',
-            'click the number on <a href="./the-index.html#' + esc(secondPick.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(secondPick.country) + '\'s page →</a> to see the receipt');
+            esc(secondPick.country) + ' <a href="./country.html?ccy=' + esc(secondPick.ccy) + '" style="font-weight:600;color:#0B0B0B">in full, with the receipt →</a>');
         }
       });
     }

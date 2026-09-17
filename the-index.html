@@ -112,7 +112,7 @@
     <div class="grid3" id="pricedGrid"></div>
   </section>
 
-  <section>
+  <section id="withheld">
     <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:6px">
       <div class="h" style="padding-bottom:0;color:#6B6B6B">No price this hour</div>
       <div class="lbl" id="withheldCount">&nbsp;</div>
@@ -170,7 +170,7 @@
       '<div class="headline num" data-receipt="'+esc(c.ccy)+'" style="cursor:pointer" title="Click to see how this number was made">A dollar in '+esc(c.country)+' '+costPhrase(c.index_pct)+'</div>' +
       (delta!=null ? '<div class="delta num">'+(delta>=0?'+':'-')+Math.abs(delta).toFixed(1)+' points <span style="color:#5A55E0">'+(delta>=0?'▲':'▼')+'</span>'+(sinceLabel ? ' since '+sinceLabel : '')+'</div>' : '') +
       '</div><div id="featChart"></div></div>' +
-      '<div class="receipt" style="padding-top:16px">'+esc(c.evidence_words)+', '+esc(c.source_words)+' · you\'d lose '+c.round_trip_pct.toFixed(1)+'% selling back · <span style="font-weight:600;color:#0B0B0B" id="fullLink">'+esc(c.country)+' in full →</span></div>';
+      '<div class="receipt" style="padding-top:16px">'+esc(c.evidence_words)+', '+esc(c.source_words)+' · you\'d lose '+c.round_trip_pct.toFixed(1)+'% selling back · <a href="./country.html?ccy='+esc(c.ccy)+'" style="font-weight:600;color:#0B0B0B" id="fullLink">'+esc(c.country)+' in full →</a></div>';
     document.getElementById('featured').innerHTML = html;
     if (c.spark && c.spark.length > 1) {
       MarginChart.render(document.getElementById('featChart'), { spark: c.spark, timestamps: sparkDates(c), valueSuffix: '%' });

@@ -48,6 +48,10 @@
       return { x: i * stepX, y: pad + (1 - (v - min) / range) * plotH, v: v, ts: timestamps[i] };
     });
     var lastX = pts[pts.length - 1].x, lastY = pts[pts.length - 1].y, lastV = pts[pts.length - 1].v;
+    // A tiny negative rounds to "-0.0" at one decimal -- true but reads as a
+    // typo. Zero it explicitly rather than let toFixed manufacture a minus
+    // sign the rounded figure doesn't actually carry.
+    var badgeV = Math.abs(lastV) < 0.05 ? 0 : lastV;
 
     var areaPath = 'M0,' + (h - bottomAxis) + ' L' + pts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ') + ' L' + lastX.toFixed(1) + ',' + (h - bottomAxis) + ' Z';
     var linePoly = pts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
@@ -73,7 +77,7 @@
       '<polyline points="' + linePoly + '" fill="none" stroke="#5A55E0" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
       '<line x1="0" y1="' + lastY.toFixed(1) + '" x2="' + lastX.toFixed(1) + '" y2="' + lastY.toFixed(1) + '" stroke="#5A55E0" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.7"/>' +
       '<rect x="' + (lastX + 6).toFixed(1) + '" y="' + (lastY - 10).toFixed(1) + '" width="64" height="20" rx="3" fill="#5A55E0"/>' +
-      '<text x="' + (lastX + 38).toFixed(1) + '" y="' + (lastY + 4).toFixed(1) + '" text-anchor="middle" font-family="Archivo, sans-serif" font-size="11" font-weight="600" fill="#FFFFFF">' + lastV.toFixed(1) + suffix + '</text>' +
+      '<text x="' + (lastX + 38).toFixed(1) + '" y="' + (lastY + 4).toFixed(1) + '" text-anchor="middle" font-family="Archivo, sans-serif" font-size="11" font-weight="600" fill="#FFFFFF">' + badgeV.toFixed(1) + suffix + '</text>' +
       yLabels +
       '<line id="' + vlineId + '" x1="0" y1="0" x2="0" y2="' + (h - bottomAxis) + '" stroke="#0B0B0B" stroke-width="1" opacity="0" />' +
       '<circle id="' + dotId + '" r="4" fill="#5A55E0" stroke="#fff" stroke-width="1.5" opacity="0"/>' +

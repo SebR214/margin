@@ -56,15 +56,19 @@ PAGES = ["index.html", "providers.html", "pricing-history.html",
          "corridor.html", "methodology.html", "status.html", "findings.html",
          "requests.html", "calculator.html", "weekly.html", "data.html",
          "ask.html", "watch.html", "stress.html", "machine-room.html",
-         "the-index.html", "sending-money.html", "how-it-works.html"]
+         "the-index.html", "sending-money.html", "how-it-works.html",
+         "country.html"]
 
 # ask.html and watch.html both call a live backend rather than reading a
 # static file, so a check of the static shell alone would never touch the
 # code that actually answers a question or sets up a watch. This visits each
 # with a query string its own script reads to fire one fixed action
 # automatically, headlessly -- see the comment above `verifyIdx` in ask.html
-# and watch.html.
-PAGE_VISIT_SUFFIX = {"ask.html": "?verify=0", "watch.html": "?verify=0"}
+# and watch.html. country.html reads ?ccy= client-side and renders nothing
+# but a loading state without one -- DZD is a real, currently-priced code so
+# the check exercises the actual receipt-steps render path, not just the
+# not-found branch.
+PAGE_VISIT_SUFFIX = {"ask.html": "?verify=0", "watch.html": "?verify=0", "country.html": "?ccy=DZD"}
 
 # The site ships no favicon, so every page logs one 404 that means nothing.
 IGNORED_ERRORS = ("favicon.ico",)

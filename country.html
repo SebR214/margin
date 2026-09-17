@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — a country's price in full</title>
+<meta name="description" content="One country's price, its full history, and the receipt behind the number, in one place."/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="./js/chart.js"></script>
+<style>
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; --withheld:#B3822D; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
+  a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
+  .num{font-variant-numeric:tabular-nums}
+  .lbl{font-size:11px;letter-spacing:.1em;color:#6B6B6B}
+  .wrap{max-width:1000px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
+  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
+  .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
+  .back{padding:20px 48px 0;font-size:13px}
+  main{padding:28px 48px 60px}
+  .code{font-size:14px;font-weight:700;color:var(--indigo);letter-spacing:.04em}
+  h1{font-size:40px;font-weight:800;letter-spacing:-0.02em;margin:8px 0 6px;max-width:820px}
+  .delta{font-size:14px;color:#6B6B6B;padding-bottom:24px}
+  .receipt-line{font-size:14px;color:#6B6B6B;padding-top:14px}
+  .steps{border-top:1px solid var(--rule);margin-top:30px}
+  .step{display:flex;gap:16px;padding:18px 0;border-bottom:1px solid var(--rule)}
+  .step .n{font-size:20px;font-weight:800;color:var(--indigo);flex:0 0 auto;width:26px}
+  .step .b{flex:1;min-width:0}
+  .step .b .lbl{padding-bottom:4px}
+  .step .b .txt{font-size:15px;line-height:1.55}
+  .step .f{flex:0 0 auto;font-size:12px;color:#9A9A9A;font-family:ui-monospace,monospace;padding-top:2px}
+  .context{margin-top:36px;padding:22px 24px;background:#F6F6F6;border-radius:14px;font-size:14px;line-height:1.6;color:#333}
+  .footlinks{margin-top:30px;font-size:14px;display:flex;gap:24px;flex-wrap:wrap}
+  .notfound{padding:60px 48px;font-size:18px;color:#6B6B6B}
+  @media(max-width:760px){
+    header{padding:22px 24px} main{padding:24px 24px 48px} .back{padding:16px 24px 0}
+    h1{font-size:30px} .step{flex-wrap:wrap} .step .f{order:3;width:100%}
+  }
+
+  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
+  @media(max-width:760px){
+    header{position:relative;flex-wrap:nowrap!important}
+    .brand{gap:14px}
+    nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column!important;gap:0!important;padding:6px 24px 16px;border-bottom:1px solid #F0F0F0;box-shadow:0 8px 16px rgba(11,11,11,0.06);z-index:30}
+    nav.open{display:flex}
+    nav a{padding:12px 0;border-bottom:1px solid #F6F6F6;font-size:16px}
+    .nav-toggle{display:block}
+    .live{max-width:52vw;overflow:hidden}
+    .live .num{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:middle}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo"><a href="./index.html">margin.wiki</a></div>
+      <nav>
+        <a href="./the-index.html">The index</a>
+        <a href="./sending-money.html">Sending money</a>
+        <a href="./findings.html">Findings</a>
+        <a href="./machine-room.html">The machine room</a>
+        <a href="./how-it-works.html">How it works</a>
+      </nav>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+    </div>
+    <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
+  </header>
+
+  <div class="back"><a href="./the-index.html">&larr; back to the index</a></div>
+
+  <main id="main">
+    <div class="notfound" id="loading">Loading this country's full record&hellip;</div>
+  </main>
+</div>
+
+<script>
+(function(){
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  var PAR_EPSILON = 0.05;
+  function costPhrase(pct, digits) {
+    digits = digits == null ? 2 : digits;
+    if (Math.abs(pct) < PAR_EPSILON) return 'trades basically at the official rate';
+    if (pct > 0) return 'costs ' + pct.toFixed(digits) + '% more than the official rate';
+    return 'costs ' + Math.abs(pct).toFixed(digits) + '% less than the official rate';
+  }
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function shortDate(iso){ var d=new Date(iso); return isNaN(d)?'':d.getUTCDate()+' '+MONTHS[d.getUTCMonth()]; }
+  function fmtTs(iso){ var d=new Date(iso); return isNaN(d)?'':d.toISOString().slice(0,16).replace('T',' ')+' UTC'; }
+  function sparkDates(c){
+    if (!c.spark || !c.history_start || !c.hour_utc) return [];
+    var end = new Date(c.hour_utc), n = c.spark.length, out = [];
+    for (var i=0;i<n;i++){ var d=new Date(end); d.setUTCDate(d.getUTCDate()-(n-1-i)); out.push(d.toISOString()); }
+    return out;
+  }
+
+  var params = new URLSearchParams(location.search);
+  var ccy = (params.get('ccy') || '').toUpperCase();
+
+  Promise.all([
+    fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()),
+    fetch('./data/latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+  ]).then(function(res){
+    var idx = res[0], raw = res[1];
+    var hourUtc = (idx.as_of_utc || idx.computed_at || '').replace('T',' ').slice(0,16);
+    document.getElementById('liveStamp').textContent = 'LIVE · ' + hourUtc + ' UTC';
+
+    var country = (idx.countries || []).find(function(c){ return c.ccy === ccy; });
+    var withheld = (idx.withheld || []).find(function(w){ return w.ccy === ccy; });
+    var main = document.getElementById('main');
+
+    if (!country && !withheld) {
+      main.innerHTML = '<div class="notfound">No country found for code "' + esc(ccy || '(none given)') +
+        '". <a href="./the-index.html">See every country on the index &rarr;</a></div>';
+      return;
+    }
+
+    if (withheld && !country) {
+      main.innerHTML =
+        '<div class="code">' + esc(withheld.ccy) + '</div>' +
+        '<h1>' + esc(withheld.country) + '</h1>' +
+        '<div class="delta">No price this hour.</div>' +
+        '<div class="context"><b>Why:</b> ' + esc(withheld.reason) + '. A price is collected and checked every hour; this country will show a number the moment it passes the evidence rule again — nothing is permanent about a withheld state.</div>' +
+        '<div class="footlinks"><a href="./the-index.html#withheld">Every withheld country &rarr;</a><a href="./machine-room.html">Watch the next pass &rarr;</a></div>';
+      return;
+    }
+
+    var delta = country.spark && country.spark.length > 1 ? country.index_pct - country.spark[0] : null;
+    var dates = sparkDates(country);
+    var sinceLabel = dates.length ? shortDate(dates[0]) : null;
+
+    var html = '<div class="code">' + esc(country.ccy) + '</div>' +
+      '<h1 class="num">A dollar in ' + esc(country.country) + ' ' + costPhrase(country.index_pct) + '</h1>' +
+      (delta != null ? '<div class="delta num">' + (delta>=0?'+':'-') + Math.abs(delta).toFixed(1) + ' points <span style="color:#5A55E0">' + (delta>=0?'▲':'▼') + '</span>' + (sinceLabel ? ' since ' + sinceLabel : '') + '</div>' : '<div class="delta">&nbsp;</div>') +
+      '<div id="countryChart"></div>' +
+      '<div class="receipt-line">' + esc(country.evidence_words) + ', ' + esc(country.source_words) +
+      ' &middot; you’d lose ' + country.round_trip_pct.toFixed(1) + '% selling back &middot; ' +
+      (country.denominator_class === 'unmaintained' ? '<span style="color:#B3822D">the official rate here is unmaintained &mdash; this gap is partly a frozen-peg artifact, not purely a market move</span>' : 'official rate class: ' + esc(country.denominator_class)) +
+      '</div>';
+
+    var p2p = raw && raw.p2p && raw.p2p[ccy];
+    html += '<div class="steps">';
+    if (p2p) {
+      var reqAds = idx.min_buy_ads || 10;
+      var verdictOk = (p2p.n_ads || 0) >= reqAds;
+      html += step(1, 'THE EVIDENCE', Math.round(p2p.n_ads) + ' sell-side ads collected on the open market at ' + fmtTs(p2p.ts_utc) + ' &middot; median asking price <b class="num">' + p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar', 'data/p2p_basis.csv');
+      html += step(2, 'THE OFFICIAL RATE', 'captured in the same pass: <b class="num">' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar', 'data/fx_rates.csv');
+      html += step(3, 'THE MATH', p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ÷ ' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' − 1 = <b class="num">' + (country.index_pct>=0?'+':'') + country.index_pct.toFixed(2) + '%</b>', 'data/index_latest.json');
+      html += step(4, 'THE VERDICT', 'published, because the evidence rule is ' + (verdictOk?'met':'not met') + ' — ' + Math.round(p2p.n_ads) + ' ads, ' + reqAds + ' required.', 'data/index_latest.json');
+    } else {
+      html += '<div style="padding:22px 0;color:#6B6B6B;font-size:15px;line-height:1.6">Priced from an exchange order book (' + esc(country.source_class || '') + '), not person-to-person ads. The published figure (<b class="num">' + (country.index_pct>=0?'+':'') + country.index_pct.toFixed(2) + '%</b>) is real, from ' + esc(country.source_file) + ', but the raw per-venue price and official rate this page shows for other countries aren’t in a published file yet for this source type.</div>';
+    }
+    html += '</div>';
+
+    html += '<div class="footlinks"><a href="./the-index.html">&larr; every country</a><a href="./machine-room.html">Watch the next pass &rarr;</a><a href="./data.html">Open the raw files &rarr;</a></div>';
+
+    main.innerHTML = html;
+
+    if (country.spark && country.spark.length > 1) {
+      MarginChart.render(document.getElementById('countryChart'), { spark: country.spark, timestamps: dates, valueSuffix: '%' });
+    }
+
+    function step(n, label, body, file) {
+      return '<div class="step"><div class="n">' + n + '</div>' +
+        '<div class="b"><div class="lbl">' + label + '</div><div class="txt num">' + body + '</div></div>' +
+        '<div class="f">' + esc(file) + '</div></div>';
+    }
+  }).catch(function(){
+    document.getElementById('main').innerHTML = '<div class="notfound" style="color:#B3822D">Could not load this country\'s data. That failure is shown, not hidden.</div>';
+  });
+})();
+</script>
+
+<script>
+(function(){
+  var btn = document.getElementById('navToggle');
+  var nav = document.querySelector('header nav');
+  if (btn && nav) {
+    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
+    document.addEventListener('click', function(e){
+      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
+    });
+  }
+})();
+</script>
+</body>
+</html>
