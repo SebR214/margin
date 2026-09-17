@@ -138,6 +138,7 @@
      estimated or filled in.</p>
 </div>
 <script src="../chart.js"></script>
+<script src="../receipt.js"></script>
 <script>
 const CCY = "IQD";
 const pct = v => v == null || !isFinite(v) ? "—"
@@ -230,8 +231,15 @@ function render(d){
     ["History since", longDate(d.history_start),
      d.history_days + (d.history_days === 1 ? " day" : " days") + " of readings"],
   ];
-  document.getElementById("stats").innerHTML = cells.map(([k,v,s]) =>
-    `<div class="cell"><div class="k">${k}</div><div class="stat">${v}</div>
+  // SEB-57: "What a dollar costs" is the same published index number the
+  // receipt (SEB-56) is built for, so it alone carries the click-through --
+  // the other three cells are different measurements with no receipt of
+  // their own.
+  document.getElementById("stats").innerHTML = cells.map(([k,v,s], i) =>
+    `<div class="cell"><div class="k">${k}</div><div class="stat"${
+      i === 0 && d.index_pct != null
+        ? ` data-receipt-ccy="${CCY}" data-receipt-value="${v}"` : ""
+    }>${v}</div>
      <div class="muted small" style="margin-top:4px">${s}</div></div>`).join("");
 
   const h = d.history || [];
@@ -243,6 +251,13 @@ function render(d){
       + (back ? " The first " + back + " days are a daily backfill of the mid-market price, "
               + "which is a slightly different measurement and is drawn in grey." : "");
   if(window.MarginChart) MarginChart.wire(document.getElementById("chart"));
+  // The chart's own headline value is the same figure as "What a dollar
+  // costs" above -- emit_countries.py builds history's newest point from
+  // entry.index_pct directly (SEB-60), so the two cannot disagree.
+  if (d.index_pct != null) {
+    const cv = document.querySelector(".chart-value");
+    if (cv) { cv.setAttribute("data-receipt-ccy", CCY); cv.setAttribute("data-receipt-value", cv.textContent); }
+  }
 
   const vs = d.venues || [];
   document.getElementById("exch-h").textContent =

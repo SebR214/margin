@@ -9,6 +9,7 @@
 <script src="./vendor/react.production.min.js"></script>
 <script src="./vendor/react-dom.production.min.js"></script>
 <script src="./support.js"></script>
+<script src="./receipt.js"></script>
 </head>
 <body>
 <x-dc>
@@ -54,7 +55,7 @@
         <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="4">
           <div style="background: var(--color-ink); padding: 14px 16px 12px;">
             <div class="text-muted" style="font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;">{{ s.k }}</div>
-            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 24px; line-height: 1; color: var(--color-bg);"><span class="prov" tabindex="0">{{ s.v }}<span class="prov-pop"><b>{{ provLabel }}</b>{{ s.prov }}</span></span><span style="font-size: 12px; color: var(--data-500); vertical-align: super; margin-left: 2px;">{{ s.mark }}</span></div>
+            <div style="font-family: var(--font-heading); font-weight: 800; font-size: 24px; line-height: 1; color: var(--color-bg);"><span class="prov" tabindex="0" data-receipt-ccy="{{ s.receiptCcy }}" data-receipt-value="{{ s.v }}">{{ s.v }}<span class="prov-pop"><b>{{ provLabel }}</b>{{ s.prov }}</span></span><span style="font-size: 12px; color: var(--data-500); vertical-align: super; margin-left: 2px;">{{ s.mark }}</span></div>
             <div class="text-muted" style="font-size: 11px; margin-top: 4px;">{{ s.sub }}</div>
           </div>
         </sc-for>
@@ -167,7 +168,7 @@
           <div data-grid="gaps-row" style="display: grid; grid-template-columns: 74px minmax(0, 1fr) 132px 122px minmax(0, 170px); gap: 0 16px; align-items: center; border-top: 1px solid var(--color-divider); padding: 9px 0;">
             <a href="{{ g.href }}" style="font-family: var(--font-heading); font-weight: 800; font-size: 15px; color: var(--color-text); text-decoration: none;">{{ g.code }}</a>
             <a href="{{ g.href }}" style="font-size: 13px; color: var(--color-text); text-decoration: none; border-bottom: 1px solid var(--color-divider);">{{ g.country }}</a>
-            <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: var(--data-700);"><span class="prov" tabindex="0">{{ g.value }}<span class="prov-pop"><b>{{ provLabel }}</b>{{ g.prov }}</span></span></div>
+            <div style="text-align: right; font-family: var(--font-heading); font-weight: 800; font-size: 16px; color: var(--data-700);"><span class="prov" tabindex="0" data-receipt-ccy="{{ g.code }}" data-receipt-value="{{ g.value }}">{{ g.value }}<span class="prov-pop"><b>{{ provLabel }}</b>{{ g.prov }}</span></span></div>
             <div class="text-muted" style="text-align: right; font-size: 13px;">{{ g.trip }}</div>
             <div class="text-muted" style="font-size: 12px;">{{ g.evidence }}</div>
           </div>
@@ -188,7 +189,7 @@
             <a href="{{ p.href }}" data-country="{{ p.search }}" style="display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 0 10px; align-items: baseline; border-top: 1px solid var(--color-divider); padding: 7px 0; color: var(--color-text); text-decoration: none;">
               <span style="font-family: var(--font-heading); font-weight: 800; font-size: 12px;">{{ p.code }}</span>
               <span style="font-size: 12px;" class="text-muted">{{ p.country }}</span>
-              <span style="font-family: var(--font-heading); font-weight: 800; font-size: 12px; color: {{ p.valueColor }};">{{ p.value }}</span>
+              <span style="font-family: var(--font-heading); font-weight: 800; font-size: 12px; color: {{ p.valueColor }};" data-receipt-ccy="{{ p.code }}" data-receipt-value="{{ p.value }}">{{ p.value }}</span>
             </a>
           </sc-for>
         </div>
@@ -1908,13 +1909,13 @@ class Component extends DCLogic {
         { k: "Furthest from the official rate",
           v: this.gapWords(ixWide ? ixWide.index_pct * 100 : wide.bps),
           sub: "a dollar in " + (ixWide ? ixWide.country : this.countryIn(wide.code)),
-          mark: "",
+          mark: "", receiptCcy: ixWide ? ixWide.ccy : "",
           prov: ixWide ? this.provText(ixWide.source_file, ts(ixWide.computed_at), ixWide.n_sources)
                        : this.provText("data/basis.csv", wide.t, wide.count) },
         { k: "Closest to the official rate",
           v: this.gapWords(ixNarrow ? ixNarrow.index_pct * 100 : narrow.bps),
           sub: "a dollar in " + (ixNarrow ? ixNarrow.country : this.countryIn(narrow.code)),
-          mark: "",
+          mark: "", receiptCcy: ixNarrow ? ixNarrow.ccy : "",
           prov: ixNarrow ? this.provText(ixNarrow.source_file, ts(ixNarrow.computed_at), ixNarrow.n_sources)
                          : this.provText("data/basis.csv", narrow.t, narrow.count) },
       ].concat(cRowRaw ? [
@@ -1922,11 +1923,11 @@ class Component extends DCLogic {
         // out is not an answer to "what would this cost me".
         { k: "Stablecoin route, to send " + this.fmtSize(cLad.cur, num(cRowRaw.notional_src)),
           v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src), num(cRowRaw.cost_bps_taker))),
-          sub: this.fmtPct(num(cRowRaw.cost_bps_taker), false) + " of what you send, all in", mark: "",
+          sub: this.fmtPct(num(cRowRaw.cost_bps_taker), false) + " of what you send, all in", mark: "", receiptCcy: "",
           prov: cRowProv },
         { k: "Cheapest ordinary provider, same moment",
           v: this.fmtMoney(cLad.cur, this.costOf(cLad.cur, num(cRowRaw.notional_src), num(cRowRaw.baseline_cost_bps))),
-          sub: this.fmtPct(num(cRowRaw.baseline_cost_bps), false) + " · " + (cRowRaw.baseline_provider || "—"), mark: "",
+          sub: this.fmtPct(num(cRowRaw.baseline_cost_bps), false) + " · " + (cRowRaw.baseline_provider || "—"), mark: "", receiptCcy: "",
           prov: cRowProv },
       ] : []),
       heroCurrencyCount, bands, boardTitle, withheldRows, coverage, cross,
