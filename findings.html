@@ -70,6 +70,7 @@
     <div class="lede">Findings the agent published as it watched the record: every provider's price against every other, day over day, the reference rate cancelled out so only a real move is reported. Newest first. A day's changes are only reported once that day has fully closed, so this updates once a day, unlike <a href="./index.html">the home page</a>'s hourly index — the two measure different things on different clocks, and neither is stale relative to what it actually tracks.</div>
   </div>
 
+  <div id="patterns" style="padding:24px 48px 0"></div>
   <div class="cards" id="cards"></div>
 </div>
 
@@ -83,6 +84,40 @@
     var latestTs = changes.reduce((m,c)=> c.ts_utc > m ? c.ts_utc : m, '');
     document.getElementById('liveStamp').textContent = 'LIVE · ' + latestTs.replace('T',' ').slice(0,16) + ' UTC';
 
+    // ---- Patterns: a repeated weekend price hike is a different kind of
+    // finding from a one-off move -- it's a provider's actual pricing
+    // behavior, caught and counted, not a single day's noise. Computed from
+    // the same real weekend_up records the daily cards already use, grouped
+    // by unique day so five hikes on one Saturday at five amount tiers
+    // count as one Saturday, not five.
+    var weekendUps = changes.filter(function(c){ return c.kind === 'weekend_up'; });
+    var byProvider = {};
+    weekendUps.forEach(function(c){
+      var key = c.provider + '|' + c.corridor;
+      if (!byProvider[key]) byProvider[key] = { provider: c.provider, corridor: c.corridor, route_words: c.route_words, days: {} };
+      byProvider[key].days[c.day] = true;
+    });
+    var patterns = Object.keys(byProvider).map(function(k){
+      var p = byProvider[k];
+      p.dayCount = Object.keys(p.days).length;
+      p.judged = (d.saturdays_judged || {})[p.corridor] || p.dayCount;
+      return p;
+    }).filter(function(p){ return p.dayCount >= 2; })
+      .sort(function(a,b){ return (b.dayCount/b.judged) - (a.dayCount/a.judged); });
+
+    if (patterns.length) {
+      document.getElementById('patterns').innerHTML =
+        '<div style="padding:0 0 8px;font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase">Patterns, not one-offs</div>' +
+        patterns.slice(0, 5).map(function(p){
+          return '<div class="card" style="border-bottom:1px solid #F0F0F0"><div class="p">' +
+            '<b>' + esc(p.provider) + '</b> has raised its weekend price on ' + esc(p.route_words) +
+            ' on <b>' + p.dayCount + ' of the ' + p.judged + ' Saturdays</b> we\'ve watched that corridor.</div>' +
+            '<div class="receipt">every weekend hike, caught the same way a daily change is · <a href="./sending-money.html">' + esc(p.route_words) + ' →</a></div></div>';
+        }).join('') +
+        '<div style="height:1px;background:#0B0B0B;margin:34px 0 0"></div>' +
+        '<div style="padding:20px 0 4px;font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase">Every change, day by day</div>';
+    }
+
     // One card per (day, provider, corridor): prefer the $5,000-equivalent
     // size when a provider moved at several sizes the same day, since that's
     // the amount used everywhere else on the site.
@@ -94,7 +129,7 @@
         if (!seen[key]) { seen[key] = true; dedup.push(c); }
       });
 
-    var cardsHtml = dedup.slice(0, 10).map(function(c){
+    var cardsHtml = dedup.slice(0, 20).map(function(c){
       var up = c.move_pct > 0;
       var sentence;
       if (c.kind === 'weekend_up') {
