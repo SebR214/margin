@@ -7,6 +7,7 @@
 <meta name="description" content="What a dollar really costs, country by country, priced every hour with a receipt behind every number."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
+<script src="./js/receipt.js"></script>
 <style>
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
   *{box-sizing:border-box}
@@ -111,6 +112,25 @@
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function fmtPct(n, digits){ digits = digits==null?2:digits; var v=n.toFixed(digits); return (n>=0?'+':'')+v+'%'; }
 
+  // A negative index_pct means the street price is BELOW the official rate --
+  // real, and it happens (Vietnam, Singapore, several others). A template
+  // that always says "costs X% more" turns a negative number into a false
+  // claim ("costs -0.35% more"). Branches on sign; a genuinely tiny gap gets
+  // its own honest phrase rather than a misleading "+0.02% more".
+  var PAR_EPSILON = 0.05;
+  function costPhrase(pct, digits) {
+    digits = digits == null ? 2 : digits;
+    if (Math.abs(pct) < PAR_EPSILON) return 'trades basically at the official rate';
+    if (pct > 0) return 'costs ' + pct.toFixed(digits) + '% more than the official rate';
+    return 'costs ' + Math.abs(pct).toFixed(digits) + '% less than the official rate';
+  }
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function shortDate(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()];
+  }
+
   // spark points are daily (tools/emit_countries.py), no per-point date
   // stored upstream -- derive real calendar days between history_start and
   // hour_utc, same approach as Home, so both pages' charts agree.
@@ -128,10 +148,12 @@
   }
 
   function renderFeatured(c){
+    var dates = sparkDates(c);
     var delta = c.spark && c.spark.length>1 ? c.index_pct - c.spark[0] : null;
+    var sinceLabel = dates.length ? shortDate(dates[0]) : null;
     var html = '<div style="padding-top:26px"><div style="padding-bottom:18px">' +
-      '<div class="headline num">A dollar in '+esc(c.country)+' costs '+fmtPct(c.index_pct).replace('+','')+' more than the official rate</div>' +
-      (delta!=null ? '<div class="delta num">'+(delta>=0?'+':'')+delta.toFixed(1)+' points <span style="color:#5A55E0">'+(delta>=0?'▲':'▼')+' over this window</span></div>' : '') +
+      '<div class="headline num" data-receipt="'+esc(c.ccy)+'" style="cursor:pointer" title="Click to see how this number was made">A dollar in '+esc(c.country)+' '+costPhrase(c.index_pct)+'</div>' +
+      (delta!=null ? '<div class="delta num">'+(delta>=0?'+':'-')+Math.abs(delta).toFixed(1)+' points <span style="color:#5A55E0">'+(delta>=0?'▲':'▼')+'</span>'+(sinceLabel ? ' since '+sinceLabel : '')+'</div>' : '') +
       '</div><div id="featChart"></div></div>' +
       '<div class="receipt" style="padding-top:16px">'+esc(c.evidence_words)+', '+esc(c.source_words)+' · you\'d lose '+c.round_trip_pct.toFixed(1)+'% selling back · <span style="font-weight:600;color:#0B0B0B" id="fullLink">'+esc(c.country)+' in full →</span></div>';
     document.getElementById('featured').innerHTML = html;
@@ -164,7 +186,7 @@
       return '<div class="gap-row">' +
         '<div class="code">'+esc(c.ccy)+'</div>' +
         '<div>'+esc(c.country)+tag+'</div>' +
-        '<div class="gap-val num">'+fmtPct(c.index_pct).replace('+','')+' more</div>' +
+        '<div class="gap-val num" data-receipt="'+esc(c.ccy)+'" style="cursor:pointer" title="Click to see how this number was made">'+(c.index_pct>=0 ? c.index_pct.toFixed(2)+'% more' : Math.abs(c.index_pct).toFixed(2)+'% less')+'</div>' +
         '<div class="gap-rt num">you\'d lose '+c.round_trip_pct.toFixed(1)+'% selling back</div>' +
         '<div style="font-size:13px;color:#6B6B6B">'+esc(c.evidence_words)+'</div></div>';
     }).join('');

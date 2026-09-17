@@ -7,6 +7,7 @@
 <meta name="description" content="In much of the world the official exchange rate is not the real one. The agent watches real sources in 59 countries, every hour."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
+<script src="./js/receipt.js"></script>
 <style>
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
   *{box-sizing:border-box}
@@ -131,6 +132,23 @@
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function fmtPct(n, digits){ digits = digits==null?1:digits; return (n>=0?'':'') + n.toFixed(digits); }
 
+  // A negative index_pct means the street price is BELOW the official rate --
+  // real, and it happens. "costs -0.35% more" is a false claim from a sign
+  // bug, not an edge case to ignore.
+  var PAR_EPSILON = 0.05;
+  function costPhrase(pct, digits) {
+    digits = digits == null ? 1 : digits;
+    if (Math.abs(pct) < PAR_EPSILON) return 'trades basically at the official rate';
+    if (pct > 0) return 'costs ' + pct.toFixed(digits) + '% more than the official rate';
+    return 'costs ' + Math.abs(pct).toFixed(digits) + '% less than the official rate';
+  }
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function shortDate(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()];
+  }
+
   // spark points are daily (tools/emit_countries.py: "last 30 daily
   // points"), ending at hour_utc's date and starting at history_start, with
   // no per-point date stored. Real, derived dates for the chart's hover and
@@ -190,11 +208,13 @@
     var itemsHtml = '';
     if (top && top.spark && top.spark.length > 1) {
       var delta = top.index_pct - top.spark[0];
+      var topDates = sparkDates(top);
+      var topSince = topDates.length ? shortDate(topDates[0]) : null;
       itemsHtml += '<div class="item"><div class="stamp num">TODAY '+hourUtc+'</div>' +
         '<p>' + countries.length + ' countries have a price this hour, ' + withheld.length + ' do not. The move that matters: ' +
-        '<span class="num">' + esc(top.country) + ' is widening fastest, a dollar there now costs ' +
-        '<span class="indigo num">' + fmtPct(top.index_pct) + '% more</span> than the official rate</span>' +
-        (delta > 0 ? ', up ' + fmtPct(Math.abs(delta)) + ' points over this window.' : '.') + '</p>' +
+        '<span class="num">' + esc(top.country) + ' is widening fastest, a dollar there now ' +
+        '<span class="indigo num" data-receipt="' + esc(top.ccy) + '" style="cursor:pointer" title="Click to see how this number was made">' + costPhrase(top.index_pct) + '</span></span>' +
+        (delta > 0 && topSince ? ', up ' + fmtPct(Math.abs(delta)) + ' points since ' + topSince + '.' : '.') + '</p>' +
         '<div id="homeChart"></div>' +
         '<div class="receipt">' + esc(top.evidence_words) + ', ' + esc(top.source_words) + ' · ' +
         '<a href="./the-index.html#' + esc(top.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(top.country) + ' in full →</a></div></div>';
@@ -269,7 +289,7 @@
       },
       'A dollar in Argentina?': function(){
         return argentina
-          ? '<b>Argentina (ARS):</b> a dollar costs ' + fmtPct(argentina.index_pct) + '% more than the official rate this hour, from ' + esc(argentina.evidence_words) + '. <a href="./the-index.html#ARS">Argentina in full →</a>'
+          ? '<b>Argentina (ARS):</b> a dollar ' + costPhrase(argentina.index_pct) + ' this hour, from ' + esc(argentina.evidence_words) + '. <a href="./the-index.html#ARS">Argentina in full →</a>'
           : 'No current price for Argentina this hour.';
       },
       'Is the digital dollar really worth a dollar?': function(){
