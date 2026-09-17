@@ -5,7 +5,8 @@
 # loops write and the collector's own output, and raises one alarm when any of
 # these is true:
 #
-#   - a loop has recorded nothing for 2+ hours
+#   - a loop has real work waiting and has recorded nothing for 2+ hours
+#     (product: 4+, it has no cheap "is there work" check of its own)
 #   - collection has missed 2 consecutive passes
 #   - more than 2 live model sessions exist for one role
 #
@@ -22,7 +23,12 @@ set -uo pipefail
 LOGDIR=/var/log/margin
 STATE=/var/lib/margin/watchdog.state
 QUIET_SECONDS=$((6 * 3600))
-SILENT_AFTER=$((2 * 3600))     # a loop that has said nothing this long is down
+SILENT_AFTER=$((2 * 3600))     # builder/reviewer: silent this long, WITH real work waiting, is down
+# product has no cheap "is there work" check of its own (agents/run.sh only
+# defines one for builder/reviewer) -- it wakes the model every cycle
+# regardless, on a backoff capped at IDLE_MAX=10800 there -- so it needs a
+# wider flat window instead, sized to clear that cap plus one real pass.
+PRODUCT_SILENT_AFTER=$((4 * 3600))
 REPO=/srv/margin-product
 
 mkdir -p "$(dirname "$STATE")"
@@ -36,7 +42,46 @@ fi
 
 problems=()
 
-# 1. A loop that has recorded nothing for two hours.
+# 1. A loop gone quiet -- but only when that is not what it is supposed to do.
+#    SEB-80 raised this on builder AND reviewer in the same alarm, and neither
+#    was actually down:
+#
+#    - builder/reviewer only write a jsonl record when a MODEL pass runs. The
+#      cheap poll that decides whether to wake the model (agents/run.sh,
+#      have_work_now) costs no model call, so it writes nothing either -- an
+#      honestly idle role with an empty queue is silent for as long as the
+#      queue stays empty, unbounded by anything, same shape as the ten-hour
+#      empty Todo queue on 2026-09-16. Builder's queue was empty; that is why
+#      it had recorded nothing.
+#    - a role that hits its own daily wake ceiling (agents/run.sh) logs that
+#      fact once, truthfully, then sleeps on purpose until the UTC date rolls
+#      over -- which can be most of a day, far past this check's window.
+#      Reviewer sat at 30/30 wakes and had logged exactly that.
+#
+#    So: a role whose last record already explains the silence (a logged
+#    "daily ceiling") is not a problem. And for builder, whose queue is one
+#    `linear.py` call away (same one agents/run.sh itself uses, no new
+#    credential needed), only alarm when there is real unstarted or stranded
+#    work actually waiting -- silence with an empty queue is correct, not
+#    down. Reviewer's equivalent check (agents/reviewer_work.py) needs a
+#    minted GitHub token that this standalone script does not have, so its
+#    "empty queue, no record, unbounded silence" case is not covered here --
+#    only its "hit the daily ceiling" case is. Left as a known gap, not a
+#    blocker.
+role_has_real_work() {
+  case "$1" in
+    builder)
+      n=$(python3 "$REPO/agents/linear.py" next 2>/dev/null)
+      s=$(python3 "$REPO/agents/linear.py" stranded 2>/dev/null)
+      [ "$n" = "NOTHING TO DO" ] && [ "$s" = "NONE STRANDED" ] && return 1
+      return 0
+      ;;
+    *)
+      return 0
+      ;;
+  esac
+}
+
 for role in builder reviewer product; do
   f="$LOGDIR/$role.jsonl"
   if [ ! -s "$f" ]; then
@@ -44,11 +89,17 @@ for role in builder reviewer product; do
     continue
   fi
   # `finished_utc` is ISO with a +00:00 offset; date -d parses it directly.
-  last_iso=$(tail -1 "$f" | sed -n 's/.*"finished_utc": *"\([^"]*\)".*/\1/p')
+  last_line=$(tail -1 "$f")
+  last_iso=$(printf '%s' "$last_line" | sed -n 's/.*"finished_utc": *"\([^"]*\)".*/\1/p')
+  last_reason=$(printf '%s' "$last_line" | sed -n 's/.*"reason": *"\([^"]*\)".*/\1/p')
   last_s=$(date -d "$last_iso" +%s 2>/dev/null || echo 0)
+  limit=$SILENT_AFTER
+  [ "$role" = "product" ] && limit=$PRODUCT_SILENT_AFTER
   if [ "$last_s" = "0" ]; then
     problems+=("$role: cannot read a timestamp from the last line of $f")
-  elif [ $((now - last_s)) -gt "$SILENT_AFTER" ]; then
+  elif [ "$last_reason" = "daily ceiling" ]; then
+    : # sleeping on purpose until the UTC date rolls over -- see comment above
+  elif [ $((now - last_s)) -gt "$limit" ] && role_has_real_work "$role"; then
     mins=$(( (now - last_s) / 60 ))
     problems+=("$role has recorded nothing for ${mins} minutes -- systemctl restart margin-$role")
   fi
