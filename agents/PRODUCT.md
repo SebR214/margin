@@ -38,6 +38,32 @@ measurement that triggered it.
 | Any collector with `source_ok` false for more than 3 hours | `agent_status.json` → `sources` |
 | Withheld country count up by more than 5 in a day | `agent_status.json` → `withheld` |
 | A published country moving more than 5% in a day with no matching move in its official or parallel rate | `agent_status.json` → `moves` |
+| **The machine wasting itself** — any loop whose model wakes are mostly no-ops, or repeating the same no-op pass | `python3 tools/loop_health.py` |
+
+**Run `tools/loop_health.py` every pass.** It prints what each loop cost and
+whether it earned it, and ends with a FILE THESE list. If that list is not
+empty, file what it names.
+
+The other four triggers all measure the data. **None of them measures the
+machine**, and that gap has been expensive: over 2026-09-16/17 the builder woke a
+model 2,420 times and 2,300 of those ran under sixty seconds -- a model booting
+up to conclude there was nothing to do, roughly 95% of its spend. Nobody filed
+it, because nobody was looking, because nothing told them to look. A person had
+to notice and say so.
+
+Two shapes worth recognising by name, because each has a different fix:
+
+- **Mostly no-op wakes** means the guard in `agents/run.sh` is letting the model
+  answer a question a script could answer. The fix is to move that question into
+  the tool -- `stranded` excluding issues with an open pull request was exactly
+  this.
+- **The same no-op repeating** means a loop has something true to say and
+  nowhere to record it. SEB-71 was this: the builder knew M2 depended on M1 and
+  had no way to express it, so it told a model 62 times. The fix is to give the
+  fact a home, not to silence the loop.
+
+**This is your job, not Sebastian's.** He should not be the one who notices that
+the machine is burning money, and until 2026-09-17 he was.
 
 ```bash
 python3 agents/linear.py new "<what is wrong, in one line>" --body-file /tmp/spec.md --label bug --priority 2 --role product
