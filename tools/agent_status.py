@@ -117,7 +117,19 @@ def sources(newest):
             continue
         last_ok, last_seen = {}, {}
         for r in data:
-            name = (r.get(key) or "?").strip()
+            name = (r.get(key) or "").strip()
+            if not name:
+                # A blank key means the row never learned who it was about --
+                # e.g. providers.csv logs a whole-panel fetch failure this way
+                # (collector.py: source_ok=False, provider=None) before any
+                # provider name is known. That is not a nameable source: a
+                # successful row always carries a name, so a blank one can
+                # never post source_ok=True. Grouping it under "?" turned
+                # every one-off failure into a pseudo-source that could never
+                # show recovered (SEB-67). Drop it instead -- a real, sustained
+                # outage still shows up because the real provider names then
+                # go stale on their own, same as any other dead source.
+                continue
             s = stamp(r)
             if not s:
                 continue
