@@ -25,6 +25,7 @@
   h1{font-size:42px;font-weight:800;letter-spacing:-0.02em;margin:0}
   .lede{max-width:780px;font-size:16px;color:#6B6B6B;line-height:1.5}
   .corridor{padding:40px 48px 0;display:flex;flex-direction:column;max-width:860px;box-sizing:content-box}
+  .corridor:last-child{padding-bottom:56px}
   .corridor-hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;flex-wrap:wrap;gap:10px}
   .corridor-title{font-size:22px;font-weight:800;letter-spacing:-0.01em}
   .pills{display:flex;gap:6px;flex-wrap:wrap}
@@ -93,7 +94,7 @@
       }).join('');
       var ownProviders = rows.filter(r => r.source === 'own').map(r => r.provider);
       var footnote = (ownProviders.length ? ownProviders.join(' and ') + ' quote their own prices; the rest come ' : 'Every price comes ') +
-        'from the public comparison Wise runs; the dollar route is measured on real exchanges, all in.';
+        'from a public comparison across providers; the dollar route is measured on real exchanges, all in.';
       el.innerHTML =
         '<div class="corridor-hdr"><div class="corridor-title">'+esc(route.route_words)+'</div>' +
         '<div class="pills">'+pillsHtml+'</div></div>' +

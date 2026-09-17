@@ -6,6 +6,7 @@
 <title>margin.wiki — the index</title>
 <meta name="description" content="What a dollar really costs, country by country, priced every hour with a receipt behind every number."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="./js/chart.js"></script>
 <style>
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
   *{box-sizing:border-box}
@@ -110,39 +111,20 @@
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function fmtPct(n, digits){ digits = digits==null?2:digits; var v=n.toFixed(digits); return (n>=0?'+':'')+v+'%'; }
 
-  function bigChart(spark, badgeText){
-    var w=1240, h=300, rightGutter=96;
-    var min = Math.min.apply(null, spark), max = Math.max.apply(null, spark);
-    var range = (max-min) || 1;
-    var plotW = w - rightGutter;
-    var stepX = plotW / (spark.length - 1);
-    var pad=4, bottom=34;
-    var pts = spark.map(function(v,i){
-      var x = i*stepX;
-      var y = pad + (1 - (v-min)/range) * (h - pad*2 - bottom);
-      return [x,y];
-    });
-    var lastY = pts[pts.length-1][1], lastX = pts[pts.length-1][0];
-    var path = 'M0,'+(h-bottom)+' L' + pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ') + ' L'+lastX.toFixed(1)+','+(h-bottom)+' Z';
-    var poly = pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-    var labels = [min, min+range/2, max];
-    var labelSvg = labels.map(function(v){
-      var y = pad + (1 - (v-min)/range) * (h - pad*2 - bottom);
-      return '<text x="'+(plotW+14)+'" y="'+(y+4).toFixed(1)+'" font-family="Archivo, sans-serif" font-size="11" fill="#9A9A9A">'+v.toFixed(1)+'%</text>';
-    }).join('');
-    return '<svg width="1240" height="300" viewBox="0 0 1240 300">' +
-      '<defs><linearGradient id="gix" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0" stop-color="#DCDFFA" stop-opacity="0.95"/>' +
-      '<stop offset="1" stop-color="#DCDFFA" stop-opacity="0.05"/></linearGradient></defs>' +
-      '<path d="'+path+'" fill="url(#gix)"/>' +
-      '<polyline points="'+poly+'" fill="none" stroke="#5A55E0" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
-      '<line x1="0" y1="'+lastY.toFixed(1)+'" x2="'+lastX.toFixed(1)+'" y2="'+lastY.toFixed(1)+'" stroke="#5A55E0" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.7"/>' +
-      '<rect x="'+(lastX+6).toFixed(1)+'" y="'+(lastY-10).toFixed(1)+'" width="64" height="20" rx="3" fill="#5A55E0"/>' +
-      '<text x="'+(lastX+38).toFixed(1)+'" y="'+(lastY+4).toFixed(1)+'" text-anchor="middle" font-family="Archivo, sans-serif" font-size="11" font-weight="600" fill="#FFFFFF">'+esc(badgeText)+'</text>' +
-      labelSvg +
-      '<text x="0" y="'+(h-6)+'" text-anchor="start" font-family="Archivo, sans-serif" font-size="12" fill="#9A9A9A">'+esc('earliest in window')+'</text>' +
-      '<text x="'+lastX.toFixed(1)+'" y="'+(h-6)+'" text-anchor="end" font-family="Archivo, sans-serif" font-size="12" fill="#9A9A9A">now</text>' +
-      '</svg>';
+  // spark points are daily (tools/emit_countries.py), no per-point date
+  // stored upstream -- derive real calendar days between history_start and
+  // hour_utc, same approach as Home, so both pages' charts agree.
+  function sparkDates(c){
+    if (!c.spark || !c.history_start || !c.hour_utc) return [];
+    var end = new Date(c.hour_utc);
+    var n = c.spark.length;
+    var out = [];
+    for (var i = 0; i < n; i++) {
+      var d = new Date(end);
+      d.setUTCDate(d.getUTCDate() - (n - 1 - i));
+      out.push(d.toISOString());
+    }
+    return out;
   }
 
   function renderFeatured(c){
@@ -150,9 +132,12 @@
     var html = '<div style="padding-top:26px"><div style="padding-bottom:18px">' +
       '<div class="headline num">A dollar in '+esc(c.country)+' costs '+fmtPct(c.index_pct).replace('+','')+' more than the official rate</div>' +
       (delta!=null ? '<div class="delta num">'+(delta>=0?'+':'')+delta.toFixed(1)+' points <span style="color:#5A55E0">'+(delta>=0?'▲':'▼')+' over this window</span></div>' : '') +
-      '</div>' + (c.spark && c.spark.length>1 ? bigChart(c.spark, c.index_pct.toFixed(1)+'%') : '') + '</div>' +
+      '</div><div id="featChart"></div></div>' +
       '<div class="receipt" style="padding-top:16px">'+esc(c.evidence_words)+', '+esc(c.source_words)+' · you\'d lose '+c.round_trip_pct.toFixed(1)+'% selling back · <span style="font-weight:600;color:#0B0B0B" id="fullLink">'+esc(c.country)+' in full →</span></div>';
     document.getElementById('featured').innerHTML = html;
+    if (c.spark && c.spark.length > 1) {
+      MarginChart.render(document.getElementById('featChart'), { spark: c.spark, timestamps: sparkDates(c), valueSuffix: '%' });
+    }
   }
 
   fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
@@ -206,17 +191,38 @@
       return '<div class="wrow"><div class="c">'+esc(w.country)+'</div><div class="r">'+esc(w.reason)+'</div></div>';
     }).join('');
 
-    // Search: filter both grids live, case-insensitive, by country or code.
-    document.getElementById('searchBox').addEventListener('input', function(e){
-      var q = e.target.value.trim().toLowerCase();
+    // Search: filters both grids live, AND -- since a distant filtered list is
+    // easy to miss -- selects a single unambiguous match into the featured
+    // country up top, the same view a click on it gives.
+    var searchBox = document.getElementById('searchBox');
+    function runSearch(){
+      var q = searchBox.value.trim().toLowerCase();
+      var matches = [];
       document.querySelectorAll('.mini').forEach(function(el){
         var t = el.textContent.toLowerCase();
-        el.style.display = (!q || t.includes(q)) ? '' : 'none';
+        var hit = !q || t.includes(q);
+        el.style.display = hit ? '' : 'none';
+        if (hit && q) matches.push(el.getAttribute('data-ccy'));
       });
       document.querySelectorAll('.wrow').forEach(function(el){
         var t = el.textContent.toLowerCase();
         el.style.display = (!q || t.includes(q)) ? '' : 'none';
       });
+      if (q && matches.length === 1) {
+        var c = countries.find(function(x){ return x.ccy === matches[0]; });
+        if (c) renderFeatured(c);
+      }
+    }
+    searchBox.addEventListener('input', runSearch);
+    searchBox.addEventListener('keydown', function(e){
+      if (e.key === 'Enter') {
+        var q = searchBox.value.trim().toLowerCase();
+        var visible = Array.from(document.querySelectorAll('.mini')).filter(el => el.style.display !== 'none');
+        if (q && visible.length >= 1) {
+          var c = countries.find(x => x.ccy === visible[0].getAttribute('data-ccy'));
+          if (c) { renderFeatured(c); document.getElementById('featured').scrollIntoView({behavior:'smooth', block:'start'}); }
+        }
+      }
     });
   }).catch(function(){
     document.getElementById('ledeText').textContent = 'Could not load this hour\'s data. That failure is shown, not hidden.';

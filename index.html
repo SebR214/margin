@@ -6,6 +6,7 @@
 <title>margin.wiki</title>
 <meta name="description" content="In much of the world the official exchange rate is not the real one. The agent watches real sources in 59 countries, every hour."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="./js/chart.js"></script>
 <style>
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
   *{box-sizing:border-box}
@@ -104,13 +105,14 @@
 
       <div class="ask">
         <input type="text" placeholder="Ask the agent anything…" id="askInput"/>
-        <button aria-label="ask"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button aria-label="ask" id="askBtn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
       <div class="chips">
         <button class="chip">Why is Nigeria not priced?</button>
         <button class="chip">A dollar in Argentina?</button>
         <button class="chip">Is the digital dollar really worth a dollar?</button>
       </div>
+      <div id="answerBox" style="display:none;margin-top:16px;max-width:720px;padding:16px 20px;background:#F6F6F6;border-radius:14px;font-size:15px;line-height:1.55;color:#0B0B0B"></div>
     </div>
 
     <div class="side">
@@ -129,30 +131,22 @@
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function fmtPct(n, digits){ digits = digits==null?1:digits; return (n>=0?'':'') + n.toFixed(digits); }
 
-  function sparkSVG(spark, badgeText){
-    var w=700, h=200, pad=4;
-    var min = Math.min.apply(null, spark), max = Math.max.apply(null, spark);
-    var range = (max-min) || 1;
-    var stepX = (w - 96) / (spark.length - 1);
-    var pts = spark.map(function(v,i){
-      var x = i*stepX;
-      var y = pad + (1 - (v-min)/range) * (h - pad*2 - 30);
-      return [x,y];
-    });
-    var lastY = pts[pts.length-1][1];
-    var path = 'M0,'+h+' L' + pts.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ') + ' L'+pts[pts.length-1][0].toFixed(1)+','+h+' Z';
-    var poly = pts.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ');
-    var lastX = pts[pts.length-1][0];
-    return '<svg width="700" height="200" viewBox="0 0 700 200">' +
-      '<defs><linearGradient id="ghm" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0" stop-color="#DCDFFA" stop-opacity="0.95"/>' +
-      '<stop offset="1" stop-color="#DCDFFA" stop-opacity="0.05"/></linearGradient></defs>' +
-      '<path d="'+path+'" fill="url(#ghm)"/>' +
-      '<polyline points="'+poly+'" fill="none" stroke="#5A55E0" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
-      '<line x1="0" y1="'+lastY.toFixed(1)+'" x2="'+lastX.toFixed(1)+'" y2="'+lastY.toFixed(1)+'" stroke="#5A55E0" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.7"/>' +
-      '<rect x="'+(lastX+6).toFixed(1)+'" y="'+(lastY-10).toFixed(1)+'" width="64" height="20" rx="3" fill="#5A55E0"/>' +
-      '<text x="'+(lastX+38).toFixed(1)+'" y="'+(lastY+4).toFixed(1)+'" text-anchor="middle" font-family="Archivo, sans-serif" font-size="11" font-weight="600" fill="#FFFFFF">'+esc(badgeText)+'</text>' +
-      '</svg>';
+  // spark points are daily (tools/emit_countries.py: "last 30 daily
+  // points"), ending at hour_utc's date and starting at history_start, with
+  // no per-point date stored. Real, derived dates for the chart's hover and
+  // x-axis: evenly spaced calendar days between those two real timestamps --
+  // not invented, just not individually persisted upstream.
+  function sparkDates(c){
+    if (!c.spark || !c.history_start || !c.hour_utc) return [];
+    var end = new Date(c.hour_utc);
+    var n = c.spark.length;
+    var out = [];
+    for (var i = 0; i < n; i++) {
+      var d = new Date(end);
+      d.setUTCDate(d.getUTCDate() - (n - 1 - i));
+      out.push(d.toISOString());
+    }
+    return out;
   }
 
   Promise.all([
@@ -201,7 +195,7 @@
         '<span class="num">' + esc(top.country) + ' is widening fastest, a dollar there now costs ' +
         '<span class="indigo num">' + fmtPct(top.index_pct) + '% more</span> than the official rate</span>' +
         (delta > 0 ? ', up ' + fmtPct(Math.abs(delta)) + ' points over this window.' : '.') + '</p>' +
-        sparkSVG(top.spark, fmtPct(top.index_pct)+'%') +
+        '<div id="homeChart"></div>' +
         '<div class="receipt">' + esc(top.evidence_words) + ', ' + esc(top.source_words) + ' · ' +
         '<a href="./the-index.html#' + esc(top.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(top.country) + ' in full →</a></div></div>';
     }
@@ -237,6 +231,68 @@
     document.getElementById('items').innerHTML = itemsHtml || '<div class="item"><p>Collector idle, next pass on the hour.</p></div>';
     document.getElementById('machineNote').textContent =
       countries.length + ' priced · ' + withheld.length + ' withheld this pass';
+
+    var chartEl = document.getElementById('homeChart');
+    if (chartEl && top) {
+      MarginChart.render(chartEl, { spark: top.spark, timestamps: sparkDates(top), valueSuffix: '%' });
+    }
+
+    // ---- Ask box: the three chips answer from data already on this page;
+    // free text gets the honest "not live yet" message, per spec, rather
+    // than a canned fake answer.
+    var answerBox = document.getElementById('answerBox');
+    function showAnswer(html) {
+      answerBox.innerHTML = html;
+      answerBox.style.display = 'block';
+    }
+    var withheldNames = withheld.map(function(w){ return w.country; });
+    var nigeria = withheld.find(function(w){ return w.country === 'Nigeria'; });
+    var argentina = countries.find(function(c){ return c.country === 'Argentina'; });
+    var dollarRouteRow = null;
+    if (prov && prov.corridors) {
+      var r0 = prov.corridors[Object.keys(prov.corridors)[0]];
+      var s0 = r0 && r0.sizes['5000'];
+      dollarRouteRow = s0 && s0.rows.find(function(r){ return r.provider === 'The dollar route'; });
+      var cheapestRow = s0 && s0.rows[0];
+    }
+
+    var CANNED = {
+      'Why is Nigeria not priced?': function(){
+        return nigeria
+          ? '<b>Nigeria (' + esc(nigeria.ccy) + '):</b> ' + esc(nigeria.reason) + '. The collector checks every hour; this is the current hour\'s real result, not a permanent state.'
+          : '<b>Nigeria</b> has a price this hour — see <a href="./the-index.html">the index</a>.';
+      },
+      'A dollar in Argentina?': function(){
+        return argentina
+          ? '<b>Argentina (ARS):</b> a dollar costs ' + fmtPct(argentina.index_pct) + '% more than the official rate this hour, from ' + esc(argentina.evidence_words) + '. <a href="./the-index.html#ARS">Argentina in full →</a>'
+          : 'No current price for Argentina this hour.';
+      },
+      'Is the digital dollar really worth a dollar?': function(){
+        return dollarRouteRow && cheapestRow
+          ? 'Measured, not assumed: sending through the digital-dollar route costs ' + esc(dollarRouteRow.costs) + ' right now (' + dollarRouteRow.cost_pct.toFixed(2) + '% of the amount), against ' + esc(cheapestRow.costs) + ' for the cheapest ordinary option. See <a href="./sending-money.html">sending money</a> for every route and amount.'
+          : 'See <a href="./sending-money.html">sending money</a> for the real, hourly comparison.';
+      }
+    };
+
+    document.querySelectorAll('.chip').forEach(function(btn){
+      var q = btn.textContent.trim();
+      btn.addEventListener('click', function(){
+        var fn = CANNED[q];
+        showAnswer(fn ? fn() : 'Not answerable from pre-computed material yet.');
+      });
+    });
+
+    var askInput = document.getElementById('askInput');
+    var askBtn = document.getElementById('askBtn');
+    function submitAsk(){
+      var q = (askInput.value || '').trim();
+      if (!q) return;
+      var fn = CANNED[q];
+      if (fn) { showAnswer(fn()); return; }
+      showAnswer('Live free-form answers aren\'t on yet. Here\'s what this page can answer today: try one of the questions below, or see <a href="./the-index.html">the index</a>, <a href="./sending-money.html">sending money</a> or <a href="./machine-room.html">the machine room</a> directly.');
+    }
+    if (askBtn) askBtn.addEventListener('click', submitAsk);
+    if (askInput) askInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') submitAsk(); });
   }).catch(function(err){
     document.getElementById('items').innerHTML = '<div class="item"><p style="color:#B3822D">Could not load this hour\'s data. That failure is shown, not hidden.</p></div>';
   });
