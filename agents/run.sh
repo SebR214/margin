@@ -415,11 +415,23 @@ while true; do
   # The check is one HTTP request and no model call, so asking every IDLE
   # seconds during the wait costs approximately nothing and removes up to half
   # an hour of dead time.
+  #
+  # "Work arrived" has to mean the signature CHANGED, not merely that
+  # have_work_now() is true -- otherwise it means nothing. SEB-78: overnight on
+  # 2026-09-17, SEB-67 sat stranded with PR #109 already open (the filter that
+  # excludes that case, #116, hadn't shipped yet), so `stranded` returned it on
+  # every check, have_work_now() was true on the very first tick of every wait,
+  # and the backoff this loop exists to apply got cancelled before it could
+  # grow past its first doubling -- idle x1 for a solid hour, 42 passes, all
+  # reaching the same conclusion the tick before had already reached. Comparing
+  # against the signature captured right after the last pass (SIG_AFTER) means
+  # a persistent, unresolved fact keeps waiting instead of resetting the clock.
   waited=0
+  WAIT_BASELINE_SIG="$SIG_AFTER"
   while [ "$waited" -lt "$WAIT" ]; do
     sleep "$IDLE"
     waited=$((waited + IDLE))
-    if have_work_now; then
+    if have_work_now && [ "$WORK_SIG" != "$WAIT_BASELINE_SIG" ]; then
       say "[$ROLE] work arrived after ${waited}s of a ${WAIT}s wait; going now"
       idle_streak=0
       break
