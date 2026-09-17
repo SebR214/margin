@@ -105,7 +105,25 @@
     }).filter(function(p){ return p.dayCount >= 2; })
       .sort(function(a,b){ return (b.dayCount/b.judged) - (a.dayCount/a.judged); });
 
-    if (patterns.length) {
+    // Same question asked of every day, not just Saturdays: which provider
+    // raises its price most often, period. Same real records the daily
+    // cards already read (kind:"change", the ordinary pairwise-unanimity
+    // detector), just counted across the whole window instead of shown one
+    // day at a time.
+    var weekdayUps = changes.filter(function(c){ return c.kind === 'change' && c.move_pct > 0; });
+    var byFreq = {};
+    weekdayUps.forEach(function(c){
+      var key = c.provider + '|' + c.corridor;
+      if (!byFreq[key]) byFreq[key] = { provider: c.provider, corridor: c.corridor, route_words: c.route_words, days: {} };
+      byFreq[key].days[c.day] = true;
+    });
+    var freqRanked = Object.keys(byFreq).map(function(k){
+      var p = byFreq[k]; p.dayCount = Object.keys(p.days).length; return p;
+    }).filter(function(p){ return p.dayCount >= 5; })
+      .sort(function(a,b){ return b.dayCount - a.dayCount; })
+      .slice(0, 3);
+
+    if (patterns.length || freqRanked.length) {
       document.getElementById('patterns').innerHTML =
         '<div style="padding:0 0 8px;font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase">Patterns, not one-offs</div>' +
         patterns.slice(0, 5).map(function(p){
@@ -113,6 +131,12 @@
             '<b>' + esc(p.provider) + '</b> has raised its weekend price on ' + esc(p.route_words) +
             ' on <b>' + p.dayCount + ' of the ' + p.judged + ' Saturdays</b> we\'ve watched that corridor.</div>' +
             '<div class="receipt">every weekend hike, caught the same way a daily change is · <a href="./sending-money.html">' + esc(p.route_words) + ' →</a></div></div>';
+        }).join('') +
+        freqRanked.map(function(p){
+          return '<div class="card" style="border-bottom:1px solid #F0F0F0"><div class="p">' +
+            '<b>' + esc(p.provider) + '</b> has raised its price on ' + esc(p.route_words) +
+            ' on <b>' + p.dayCount + ' separate days</b> since we started watching — not a one-off, a habit.</div>' +
+            '<div class="receipt">every price rise counted the same way, any day of the week · <a href="./sending-money.html">' + esc(p.route_words) + ' →</a></div></div>';
         }).join('') +
         '<div style="height:1px;background:#0B0B0B;margin:34px 0 0"></div>' +
         '<div style="padding:20px 0 4px;font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase">Every change, day by day</div>';
