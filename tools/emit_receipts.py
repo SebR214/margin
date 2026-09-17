@@ -206,9 +206,7 @@ def evidence_and_rule(doc, ccy, hour):
         }
         rule = {
             "applies": False,
-            "note": ("the v1.1 minimum-ad rule governs peer-to-peer sources only; "
-                     "this figure comes from an order book or broker quote, "
-                     "evidenced by venue count instead"),
+            "reason_code": "order_book",
             "n_venues_required": 1,
             "n_venues_actual": doc.get("n_sources"),
             "passed": True,
@@ -249,8 +247,7 @@ def evidence_and_rule(doc, ccy, hour):
         }
         rule = {
             "applies": False,
-            "note": ("a single aggregated price from an independent source "
-                     "(SEB-8), not a two-sided ad board -- no ad count to test"),
+            "reason_code": "single_source_aggregate",
             "n_venues_required": None, "n_venues_actual": None,
             "passed": True, "reason": None,
         }
@@ -287,7 +284,7 @@ def evidence_and_rule(doc, ccy, hour):
     }
     rule = {
         "applies": True,
-        "note": None,
+        "reason_code": None,
         "min_buy_ads_required": MIN_BUY_ADS,
         "buy_ads_actual": n_buy,
         "buy_ads_estimated": buy_ads_estimated,
@@ -451,6 +448,16 @@ def _step_files(r):
     }
 
 
+# The only two `evidence_rule.reason_code` values a not-applicable rule can
+# carry, each mapped to its own copy.json sentence -- never the rule's own
+# free-text `reason`/internal note, so nothing but reviewed reader copy ever
+# reaches a page. Mirrored in receipt.js's REASON_CODE_COPY_KEYS.
+VERDICT_NOTE_COPY_KEYS = {
+    "order_book": "verdictNoteOrderBook",
+    "single_source_aggregate": "verdictNoteAggregate",
+}
+
+
 def build_steps(receipt, copy, display_value=None):
     """The same four {label, text, files} steps receipt.js's buildSteps()
     renders into the overlay -- built here so the no-JS page can show them
@@ -488,7 +495,7 @@ def build_steps(receipt, copy, display_value=None):
             verdict_detail = _template(copy.get("verdictRuleDetailTemplate"),
                                         {"actual": rule.get("buy_ads_actual"), "required": rule.get("min_buy_ads_required")})
         else:
-            verdict_detail = rule.get("note") or ""
+            verdict_detail = copy.get(VERDICT_NOTE_COPY_KEYS.get(rule.get("reason_code"), "")) or ""
     else:
         verdict_text = _template(copy.get("verdictWithheldTemplate"), {"reason": receipt.get("not_published_reason") or ""})
 

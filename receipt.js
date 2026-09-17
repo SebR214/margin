@@ -86,6 +86,15 @@
     };
   }
 
+  // The only two `evidence_rule.reason_code` values a not-applicable rule can
+  // carry, each mapped to its own copy.json sentence -- never the rule's own
+  // internal note, so nothing but reviewed reader copy ever reaches a page.
+  // Mirrored in tools/emit_receipts.py's VERDICT_NOTE_COPY_KEYS.
+  var REASON_CODE_COPY_KEYS = {
+    order_book: "verdictNoteOrderBook",
+    single_source_aggregate: "verdictNoteAggregate"
+  };
+
   function buildSteps(receipt, copy, displayValue) {
     var files = stepFiles(receipt);
     var ev = receipt.evidence || {}, rate = receipt.official_rate || {},
@@ -118,8 +127,8 @@
         verdictDetail = T(copy.verdictRuleDetailTemplate, {
           actual: rule.buy_ads_actual, required: rule.min_buy_ads_required
         });
-      } else if (rule.note) {
-        verdictDetail = rule.note;
+      } else if (rule.reason_code && REASON_CODE_COPY_KEYS[rule.reason_code]) {
+        verdictDetail = copy[REASON_CODE_COPY_KEYS[rule.reason_code]] || "";
       }
     } else {
       verdictText = T(copy.verdictWithheldTemplate, { reason: receipt.not_published_reason || "" });
