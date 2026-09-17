@@ -96,6 +96,13 @@
       <div class="meter"><div class="v num">1</div><div class="lbl">PEOPLE WORKING HERE</div></div>
     </div>
   </div>
+
+  <div style="padding:0 48px 56px">
+    <div style="border-top:1px solid #0B0B0B;padding-top:20px;font-size:16px;font-weight:700">The org chart</div>
+    <div style="font-size:14px;color:#6B6B6B;padding-top:6px;max-width:760px">Four roles, what each one's actual job is, and what it shipped this week. Not the logs above — the headcount and the real operating limits behind them.</div>
+    <div id="orgChart" style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding-top:22px"></div>
+    <div id="orgFooter" style="padding-top:18px;font-size:13px;color:#6B6B6B">&nbsp;</div>
+  </div>
 </div>
 
 <script>
@@ -219,6 +226,49 @@
       return;
     }
   };
+})();
+</script>
+
+<script>
+// The org chart: four real roles, their actual job (quoted from the rule
+// files each one runs under), and real weekly output -- not the live logs
+// above, the headcount. No dollar figure: these run on a flat-rate
+// subscription, not billed per call, so there is no honest per-session cost
+// to state without disclosing a private subscription price. What's real
+// instead: a hard ceiling on paid sessions per day (SEB-78), stated plainly.
+(function(){
+  var ROLES = [
+    { name: 'Collector', job: 'Prices the market every hour: real offers in, median computed, written to a file before anything reads it.' },
+    { name: 'Builder', job: 'Builds exactly one issue per run, then stops. Won’t build past a rule — flags it and hands it back instead.' },
+    { name: 'Reviewer', job: 'The last thing between a wrong number and the public site. Never fixes a PR itself — rejects it with the exact reason.' },
+    { name: 'Product', job: 'Decides what gets built next and tells Sebastian what happened. Writes no code, merges nothing.' }
+  ];
+  document.getElementById('orgChart').innerHTML = ROLES.map(function(r){
+    return '<div><div style="font-size:11px;letter-spacing:.08em;color:#9A9A9A;padding-bottom:6px">' + r.name.toUpperCase() + '</div>' +
+      '<div style="font-size:14px;line-height:1.5;color:#222">' + r.job + '</div></div>';
+  }).join('');
+
+  // Real commits this week via GitHub's public API, paginated up to a
+  // sane cap -- stated as "200+" rather than an exact count past that
+  // point, honest about the cap rather than implying exhaustive precision.
+  var since = new Date(Date.now() - 7*24*3600*1000).toISOString();
+  function countCommits(page, total) {
+    return fetch('https://api.github.com/repos/SebR214/margin/commits?since=' + since + '&per_page=100&page=' + page)
+      .then(function(r){ return r.ok ? r.json() : []; })
+      .then(function(list){
+        var n = total + list.length;
+        if (list.length === 100 && page < 3) return countCommits(page + 1, n);
+        return { n: n, capped: list.length === 100 };
+      });
+  }
+  countCommits(1, 0).then(function(res){
+    document.getElementById('orgFooter').innerHTML =
+      (res.capped ? res.n + '+' : res.n) + ' commits to main in the last 7 days &middot; ' +
+      '1 person, 4 agent roles &middot; hard ceiling of 76 paid model sessions a day across all three loops (builder 40, reviewer 30, product 6) &middot; ' +
+      'runs on a flat-rate subscription, not billed per call, so there is no honest per-session dollar figure to publish here.';
+  }).catch(function(){
+    document.getElementById('orgFooter').textContent = 'Could not load this week\'s commit count. That failure is shown, not hidden.';
+  });
 })();
 </script>
 
