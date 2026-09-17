@@ -50,13 +50,16 @@ Usage: python3 tools/emit_receipts.py
 
 import csv
 import datetime as dt
+import html
 import json
 import os
+import re
 import statistics
 import sys
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
+COPY_PATH = os.path.join(HERE, "copy.json")
 COUNTRIES_DIR = os.path.join(DATA, "countries")
 P2P = os.path.join(DATA, "p2p_basis.csv")
 BASIS = os.path.join(DATA, "basis.csv")
@@ -203,9 +206,7 @@ def evidence_and_rule(doc, ccy, hour):
         }
         rule = {
             "applies": False,
-            "note": ("the v1.1 minimum-ad rule governs peer-to-peer sources only; "
-                     "this figure comes from an order book or broker quote, "
-                     "evidenced by venue count instead"),
+            "reason_code": "order_book",
             "n_venues_required": 1,
             "n_venues_actual": doc.get("n_sources"),
             "passed": True,
@@ -246,8 +247,7 @@ def evidence_and_rule(doc, ccy, hour):
         }
         rule = {
             "applies": False,
-            "note": ("a single aggregated price from an independent source "
-                     "(SEB-8), not a two-sided ad board -- no ad count to test"),
+            "reason_code": "single_source_aggregate",
             "n_venues_required": None, "n_venues_actual": None,
             "passed": True, "reason": None,
         }
@@ -284,7 +284,7 @@ def evidence_and_rule(doc, ccy, hour):
     }
     rule = {
         "applies": True,
-        "note": None,
+        "reason_code": None,
         "min_buy_ads_required": MIN_BUY_ADS,
         "buy_ads_actual": n_buy,
         "buy_ads_estimated": buy_ads_estimated,
@@ -369,6 +369,177 @@ def build_receipt(ccy, doc):
         "evidence_rule": rule,
         "source_files": source_files,
     }
+
+
+# ------------------------------------------------- no-JS / reduced-motion
+# SEB-57's overlay (receipt.js) is one implementation of this receipt; a
+# reader with no JavaScript needs the same four steps with no interaction at
+# all. Rather than a second, divergent description of the receipt, this
+# mirrors receipt.js's own buildSteps() field-for-field -- same copy.json
+# keys, same wording rules -- so the no-JS rendering and the JS overlay can
+# never say something different about the same number.
+_copy_cache = None
+
+
+def _copy():
+    """copy.json's `receipt` key, read once. A missing file or key fails
+    loudly (the caller sees the exception), same as chart.py's own reader --
+    no page ships with a made-up label standing in for a missing one."""
+    global _copy_cache
+    if _copy_cache is None:
+        with open(COPY_PATH, encoding="utf-8") as f:
+            _copy_cache = json.load(f)["receipt"]
+    return _copy_cache
+
+
+def _template(s, vals):
+    if not s:
+        return ""
+    return re.sub(r"\{(\w+)\}",
+                   lambda m: "" if vals.get(m.group(1)) is None else str(vals[m.group(1)]),
+                   s)
+
+
+def _fmt_num(v):
+    if v is None:
+        return "—"
+    s = f"{float(v):,.6f}".rstrip("0").rstrip(".")
+    return s if s and s != "-" else "0"
+
+
+def _fmt_when(iso):
+    if not iso:
+        return "—"
+    try:
+        t = dt.datetime.fromisoformat(iso)
+    except ValueError:
+        return iso
+    return t.strftime("%Y-%m-%d %H:%M") + " UTC"
+
+
+def _evidence_count_words(kind, n):
+    """Mirrors receipt.js's evidenceCountWords() -- word choice only, the
+    same kind of small presentational duplication chart.js already carries
+    for chart.py's geometry."""
+    n = n or 0
+    if kind in ("order_book_median", "order_book_single"):
+        return f"{n} order book" + ("" if n == 1 else "s")
+    if kind in ("broker_median", "broker_single"):
+        return f"{n} broker quote" + ("" if n == 1 else "s")
+    if kind == "p2p_buy_median":
+        return "1 person selling" if n == 1 else f"{n} people selling"
+    if kind == "p2p_fallback":
+        return "an independent price check"
+    return None
+
+
+def _step_files(r):
+    rate_file = (r.get("official_rate") or {}).get("source_file")
+    files = r.get("source_files") or []
+    country_file = next((f for f in files if f.startswith("data/countries/")), None)
+    evidence_files = [f for f in files if f != rate_file and f != country_file]
+    verdict_file = (next((f for f in evidence_files if "p2p_sides" in f), None)
+                     or (evidence_files[0] if evidence_files else country_file))
+    return {
+        "evidence": evidence_files if evidence_files else ([country_file] if country_file else []),
+        "rate": [rate_file] if rate_file else [],
+        "math": [country_file] if country_file else [],
+        "verdict": [verdict_file] if verdict_file else [],
+    }
+
+
+# The only two `evidence_rule.reason_code` values a not-applicable rule can
+# carry, each mapped to its own copy.json sentence -- never the rule's own
+# free-text `reason`/internal note, so nothing but reviewed reader copy ever
+# reaches a page. Mirrored in receipt.js's REASON_CODE_COPY_KEYS.
+VERDICT_NOTE_COPY_KEYS = {
+    "order_book": "verdictNoteOrderBook",
+    "single_source_aggregate": "verdictNoteAggregate",
+}
+
+
+def build_steps(receipt, copy, display_value=None):
+    """The same four {label, text, files} steps receipt.js's buildSteps()
+    renders into the overlay -- built here so the no-JS page can show them
+    without a click, an animation, or a second fetch."""
+    files = _step_files(receipt)
+    ev = receipt.get("evidence") or {}
+    rate = receipt.get("official_rate") or {}
+    comp = receipt.get("computation") or {}
+    rule = receipt.get("evidence_rule") or {}
+
+    words = _evidence_count_words(ev.get("source_kind"), ev.get("n_offers")) or ev.get("source_words") or ""
+    evidence_text = _template(copy.get("evidenceSentenceTemplate"),
+                               {"words": words, "price": _fmt_num(ev.get("buy_median")), "ccy": receipt.get("ccy")})
+    evidence_note = copy.get("evidenceOffersNote") if ev.get("offer_detail") == "per_offer" else copy.get("evidenceAggregateNote")
+    collected = _template(copy.get("evidenceCollectedTemplate"), {"when": _fmt_when(ev.get("collected_at"))})
+
+    rate_class = rate.get("class")
+    rate_word = (copy.get("rateManaged") if rate_class == "managed"
+                 else copy.get("ratePegged") if rate_class == "pegged"
+                 else copy.get("rateUnmaintained") if rate_class == "unmaintained"
+                 else copy.get("rateMarket"))
+    rate_text = _template(copy.get("rateSentenceTemplate"),
+                           {"value": _fmt_num(rate.get("value")), "ccy": receipt.get("ccy"), "source": rate.get("source") or ""})
+
+    math_text = _template(copy.get("mathSentenceTemplate"),
+                           {"numerator": _fmt_num(comp.get("numerator")), "ccy": receipt.get("ccy"),
+                            "denominator": _fmt_num(comp.get("denominator"))})
+    math_result = _template(copy.get("mathResultTemplate"),
+                             {"result": display_value if display_value is not None else _fmt_num(comp.get("result_pct"))})
+
+    verdict_detail = ""
+    if receipt.get("published"):
+        verdict_text = copy.get("verdictPublished")
+        if rule.get("applies"):
+            verdict_detail = _template(copy.get("verdictRuleDetailTemplate"),
+                                        {"actual": rule.get("buy_ads_actual"), "required": rule.get("min_buy_ads_required")})
+        else:
+            verdict_detail = copy.get(VERDICT_NOTE_COPY_KEYS.get(rule.get("reason_code"), "")) or ""
+    else:
+        verdict_text = _template(copy.get("verdictWithheldTemplate"), {"reason": receipt.get("not_published_reason") or ""})
+
+    return [
+        {"label": copy.get("step1Label"), "text": " ".join(x for x in (evidence_text, evidence_note, collected) if x), "files": files["evidence"]},
+        {"label": copy.get("step2Label"), "text": " ".join(x for x in (rate_text, rate_word) if x), "files": files["rate"]},
+        {"label": copy.get("step3Label"), "text": " ".join(x for x in (math_text, math_result) if x), "files": files["math"]},
+        {"label": copy.get("step4Label"), "text": " ".join(x for x in (verdict_text, verdict_detail) if x), "files": files["verdict"]},
+    ]
+
+
+def render_static_html(receipt, display_value, link_prefix="../"):
+    """The `<noscript>` fragment for a published receipt: all four steps
+    rendered at once, no animation, no click needed -- what a reader with no
+    JavaScript, or `prefers-reduced-motion`, gets instead of the overlay.
+    Never called for a withheld number: c/<ccy>.html only wires a receipt to
+    the one figure it actually shows, same rule receipt.js's click handler
+    follows (SEB-57)."""
+    copy = _copy()
+    steps = build_steps(receipt, copy, display_value)
+
+    def links(files):
+        return " · ".join(
+            f'<a href="{link_prefix}{html.escape(f)}">{html.escape(f)}</a>' for f in (files or []))
+
+    items = []
+    for i, step in enumerate(steps, 1):
+        file_links = links(step["files"])
+        items.append(
+            '<li class="receipt-static-step">'
+            f'<span class="receipt-static-num">{i}</span>'
+            f'<span class="receipt-static-label">{html.escape(step["label"] or "")}</span>'
+            f'<span class="receipt-static-text">{html.escape(step["text"] or "")}</span>'
+            + (f'<span class="receipt-static-file">{file_links}</span>' if file_links else "")
+            + "</li>")
+
+    return (
+        '<noscript><div class="receipt-static">'
+        f'<p class="receipt-static-title">{html.escape(copy.get("title") or "")}</p>'
+        f'<ol class="receipt-static-steps">{"".join(items)}</ol>'
+        f'<p class="receipt-static-raw"><b>{html.escape(copy.get("rawFilesLabel") or "")}</b> '
+        f'{links(receipt.get("source_files"))}</p>'
+        "</div></noscript>"
+    )
 
 
 def build():

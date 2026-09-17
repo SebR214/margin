@@ -78,6 +78,27 @@
               letter-spacing:.04em;padding:5px 10px;color:var(--muted)}
   .chart-pill.is-on{background:#fff;color:var(--ink)}
   @media(prefers-reduced-motion:no-preference){.chart-hover{transition:left .05s linear}}
+
+  /* SEB-57: the receipt behind the chart's headline number, fully rendered
+     with no JavaScript at all. A browser with scripting on never shows this
+     -- receipt.js's overlay covers the same ground, interactively -- a
+     <noscript> block is invisible there by the HTML spec's own default,
+     not by any rule of ours. */
+  .receipt-static{margin:14px 0 0;padding:14px 16px;border:1px solid var(--line);font-size:13px}
+  .receipt-static-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+                         color:var(--muted);margin:0 0 8px}
+  .receipt-static-steps{list-style:none;margin:0;padding:0}
+  .receipt-static-step{display:block;padding:9px 0;border-top:1px solid var(--line)}
+  .receipt-static-step:first-child{border-top:0}
+  .receipt-static-num{display:inline-block;width:18px;height:18px;border-radius:50%;
+                       background:var(--ink);color:#fff;font-size:10px;font-weight:800;
+                       text-align:center;line-height:18px;margin-right:6px}
+  .receipt-static-label{font-weight:800}
+  .receipt-static-text{display:block;margin:3px 0 0 24px;line-height:1.5}
+  .receipt-static-file{display:block;margin:3px 0 0 24px;font-size:11px}
+  .receipt-static-file a,.receipt-static-raw a{color:#5A55E0;text-decoration:none}
+  .receipt-static-file a:hover,.receipt-static-raw a:hover{text-decoration:underline}
+  .receipt-static-raw{margin-top:10px;padding-top:10px;border-top:2px solid var(--ink);font-size:12px}
 </style>
 </head>
 <body>
@@ -124,6 +145,7 @@
   <div class="chart-dates"><span class="chart-date" style="text-align:start">5 September 2026</span><span class="chart-date" style="text-align:middle">9 September 2026</span><span class="chart-date" style="text-align:middle">13 September 2026</span><span class="chart-date" style="text-align:end">17 September 2026</span></div>
   <div class="chart-pills"><button type="button" class="chart-pill" data-range="1w">1w</button><button type="button" class="chart-pill is-on" data-range="all">All</button></div>
 </div>
+  <noscript><div class="receipt-static"><p class="receipt-static-title">The receipt behind this number</p><ol class="receipt-static-steps"><li class="receipt-static-step"><span class="receipt-static-num">1</span><span class="receipt-static-label">The evidence</span><span class="receipt-static-text">10 people selling put the median price to buy a dollar at 2.61 GEL. Every offer collected that hour is listed below. Collected 2026-09-17 07:05 UTC.</span><span class="receipt-static-file"><a href="../data/p2p_basis.csv">data/p2p_basis.csv</a> · <a href="../data/p2p_offers.csv">data/p2p_offers.csv</a> · <a href="../data/p2p_sides.csv">data/p2p_sides.csv</a></span></li><li class="receipt-static-step"><span class="receipt-static-num">2</span><span class="receipt-static-label">The official rate</span><span class="receipt-static-text">The official rate captured in the same pass: 2.604045 GEL to the dollar, from open.er-api. A market exchange rate.</span><span class="receipt-static-file"><a href="../data/fx_rates.csv">data/fx_rates.csv</a></span></li><li class="receipt-static-step"><span class="receipt-static-num">3</span><span class="receipt-static-label">The math</span><span class="receipt-static-text">2.61 GEL divided by 2.604045, minus one, times 100. The published figure: +0.23%.</span><span class="receipt-static-file"><a href="../data/countries/GEL.json">data/countries/GEL.json</a></span></li><li class="receipt-static-step"><span class="receipt-static-num">4</span><span class="receipt-static-label">The verdict</span><span class="receipt-static-text">Published — the evidence rule was met. 10 of 10 required buy-side offers.</span><span class="receipt-static-file"><a href="../data/p2p_sides.csv">data/p2p_sides.csv</a></span></li></ol><p class="receipt-static-raw"><b>Open the raw files</b> <a href="../data/countries/GEL.json">data/countries/GEL.json</a> · <a href="../data/fx_rates.csv">data/fx_rates.csv</a> · <a href="../data/p2p_basis.csv">data/p2p_basis.csv</a> · <a href="../data/p2p_offers.csv">data/p2p_offers.csv</a> · <a href="../data/p2p_sides.csv">data/p2p_sides.csv</a></p></div></noscript>
 
   <h2 id="exch-h">Where the price comes from</h2>
   <div id="exch"></div>
@@ -138,6 +160,7 @@
      estimated or filled in.</p>
 </div>
 <script src="../chart.js"></script>
+<script src="../receipt.js"></script>
 <script>
 const CCY = "GEL";
 const pct = v => v == null || !isFinite(v) ? "—"
@@ -230,8 +253,15 @@ function render(d){
     ["History since", longDate(d.history_start),
      d.history_days + (d.history_days === 1 ? " day" : " days") + " of readings"],
   ];
-  document.getElementById("stats").innerHTML = cells.map(([k,v,s]) =>
-    `<div class="cell"><div class="k">${k}</div><div class="stat">${v}</div>
+  // SEB-57: "What a dollar costs" is the same published index number the
+  // receipt (SEB-56) is built for, so it alone carries the click-through --
+  // the other three cells are different measurements with no receipt of
+  // their own.
+  document.getElementById("stats").innerHTML = cells.map(([k,v,s], i) =>
+    `<div class="cell"><div class="k">${k}</div><div class="stat"${
+      i === 0 && d.index_pct != null
+        ? ` data-receipt-ccy="${CCY}" data-receipt-value="${v}"` : ""
+    }>${v}</div>
      <div class="muted small" style="margin-top:4px">${s}</div></div>`).join("");
 
   const h = d.history || [];
@@ -243,6 +273,13 @@ function render(d){
       + (back ? " The first " + back + " days are a daily backfill of the mid-market price, "
               + "which is a slightly different measurement and is drawn in grey." : "");
   if(window.MarginChart) MarginChart.wire(document.getElementById("chart"));
+  // The chart's own headline value is the same figure as "What a dollar
+  // costs" above -- emit_countries.py builds history's newest point from
+  // entry.index_pct directly (SEB-60), so the two cannot disagree.
+  if (d.index_pct != null) {
+    const cv = document.querySelector(".chart-value");
+    if (cv) { cv.setAttribute("data-receipt-ccy", CCY); cv.setAttribute("data-receipt-value", cv.textContent); }
+  }
 
   const vs = d.venues || [];
   document.getElementById("exch-h").textContent =

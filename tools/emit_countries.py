@@ -35,6 +35,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import chart  # noqa: E402  -- SEB-61, the one chart component
+import emit_receipts  # noqa: E402  -- SEB-57, the no-JS receipt fallback
 
 INDEX_VERSION = "1.1"
 
@@ -699,6 +700,27 @@ PAGE_TEMPLATE = """<!doctype html>
               letter-spacing:.04em;padding:5px 10px;color:var(--muted)}
   .chart-pill.is-on{background:#fff;color:var(--ink)}
   @media(prefers-reduced-motion:no-preference){.chart-hover{transition:left .05s linear}}
+
+  /* SEB-57: the receipt behind the chart's headline number, fully rendered
+     with no JavaScript at all. A browser with scripting on never shows this
+     -- receipt.js's overlay covers the same ground, interactively -- a
+     <noscript> block is invisible there by the HTML spec's own default,
+     not by any rule of ours. */
+  .receipt-static{margin:14px 0 0;padding:14px 16px;border:1px solid var(--line);font-size:13px}
+  .receipt-static-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+                         color:var(--muted);margin:0 0 8px}
+  .receipt-static-steps{list-style:none;margin:0;padding:0}
+  .receipt-static-step{display:block;padding:9px 0;border-top:1px solid var(--line)}
+  .receipt-static-step:first-child{border-top:0}
+  .receipt-static-num{display:inline-block;width:18px;height:18px;border-radius:50%;
+                       background:var(--ink);color:#fff;font-size:10px;font-weight:800;
+                       text-align:center;line-height:18px;margin-right:6px}
+  .receipt-static-label{font-weight:800}
+  .receipt-static-text{display:block;margin:3px 0 0 24px;line-height:1.5}
+  .receipt-static-file{display:block;margin:3px 0 0 24px;font-size:11px}
+  .receipt-static-file a,.receipt-static-raw a{color:#5A55E0;text-decoration:none}
+  .receipt-static-file a:hover,.receipt-static-raw a:hover{text-decoration:underline}
+  .receipt-static-raw{margin-top:10px;padding-top:10px;border-top:2px solid var(--ink);font-size:12px}
 </style>
 </head>
 <body>
@@ -719,6 +741,7 @@ PAGE_TEMPLATE = """<!doctype html>
   <h2>How it has moved</h2>
   <p class="muted small" id="histnote"></p>
   __CHART__
+  __RECEIPT_STATIC__
 
   <h2 id="exch-h">Where the price comes from</h2>
   <div id="exch"></div>
@@ -733,6 +756,7 @@ PAGE_TEMPLATE = """<!doctype html>
      estimated or filled in.</p>
 </div>
 <script src="../chart.js"></script>
+<script src="../receipt.js"></script>
 <script>
 const CCY = "__CCY__";
 const pct = v => v == null || !isFinite(v) ? "—"
@@ -825,8 +849,15 @@ function render(d){
     ["History since", longDate(d.history_start),
      d.history_days + (d.history_days === 1 ? " day" : " days") + " of readings"],
   ];
-  document.getElementById("stats").innerHTML = cells.map(([k,v,s]) =>
-    `<div class="cell"><div class="k">${k}</div><div class="stat">${v}</div>
+  // SEB-57: "What a dollar costs" is the same published index number the
+  // receipt (SEB-56) is built for, so it alone carries the click-through --
+  // the other three cells are different measurements with no receipt of
+  // their own.
+  document.getElementById("stats").innerHTML = cells.map(([k,v,s], i) =>
+    `<div class="cell"><div class="k">${k}</div><div class="stat"${
+      i === 0 && d.index_pct != null
+        ? ` data-receipt-ccy="${CCY}" data-receipt-value="${v}"` : ""
+    }>${v}</div>
      <div class="muted small" style="margin-top:4px">${s}</div></div>`).join("");
 
   const h = d.history || [];
@@ -838,6 +869,13 @@ function render(d){
       + (back ? " The first " + back + " days are a daily backfill of the mid-market price, "
               + "which is a slightly different measurement and is drawn in grey." : "");
   if(window.MarginChart) MarginChart.wire(document.getElementById("chart"));
+  // The chart's own headline value is the same figure as "What a dollar
+  // costs" above -- emit_countries.py builds history's newest point from
+  // entry.index_pct directly (SEB-60), so the two cannot disagree.
+  if (d.index_pct != null) {
+    const cv = document.querySelector(".chart-value");
+    if (cv) { cv.setAttribute("data-receipt-ccy", CCY); cv.setAttribute("data-receipt-value", cv.textContent); }
+  }
 
   const vs = d.venues || [];
   document.getElementById("exch-h").textContent =
@@ -994,8 +1032,19 @@ def main():
         # to the collector gets a page on its first run with no edit.
         os.makedirs(PAGE_DIR, exist_ok=True)
         for ccy, doc in files.items():
+            receipt_static = ""
+            if doc.get("index_pct") is not None:
+                # The chart's headline value is this same index_pct by
+                # construction (SEB-60, above) -- feeding it through
+                # chart.fmt_pct here, the exact function that formats the
+                # headline, means the no-JS receipt cannot show a different
+                # figure than the number it explains.
+                receipt = emit_receipts.build_receipt(ccy, doc)
+                receipt_static = emit_receipts.render_static_html(
+                    receipt, chart.fmt_pct(doc["index_pct"]))
             html = (PAGE_TEMPLATE
                     .replace("__CHART__", chart.render_html(doc.get("history") or []))
+                    .replace("__RECEIPT_STATIC__", receipt_static)
                     .replace("__CCY__", ccy)
                     .replace("__COUNTRY__", doc.get("country") or ccy))
             with open(os.path.join(PAGE_DIR, f"{ccy.lower()}.html"), "w") as f:
