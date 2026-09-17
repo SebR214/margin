@@ -28,27 +28,6 @@ REPO="/srv/margin-$ROLE"
 git -C "$REPO" config user.name  "margin-$ROLE" 2>/dev/null || true
 git -C "$REPO" config user.email "$ROLE@margin.wiki" 2>/dev/null || true
 
-  # Act as the margin-agents GitHub App, not as Sebastian. Until this existed
-  # every role authenticated as his account, so `git log` credited him with
-  # every commit and `gh pr review` refused outright -- the reviewer was the
-  # author of the PR it was reviewing, which is why every verdict on this repo
-  # carries "request-changes not available" (SEB-51).
-  #
-  # gh and the git credential helper both honour GH_TOKEN over the stored
-  # login, so exporting it is the whole switch. Tokens last an hour; minted per
-  # pass, never written to disk.
-  #
-  # If minting fails the pass still runs, unauthenticated-as-app. A broken
-  # credential must not silently stop the machine -- the cost of being wrong
-  # that way is one pass attributed to the old identity, and the cost of the
-  # opposite is a loop that quietly does nothing.
-  if [ -n "${MARGIN_GH_APP_ID:-}" ]; then
-    if GH_TOKEN="$("$REPO/agents/gh_token.sh" 2>/dev/null)"; then
-      export GH_TOKEN
-    else
-      say "[$ROLE] could not mint a GitHub App token; running as the stored login"
-    fi
-  fi
 LOGDIR=/var/log/margin
 LOG="$LOGDIR/$ROLE.log"
 JSONL="$LOGDIR/$ROLE.jsonl"
@@ -134,6 +113,35 @@ while true; do
     git -C "$REPO" config user.email "$ROLE@margin.wiki"
   fi
   cd "$REPO" || { say "[$ROLE] $REPO is missing"; sleep "$ERROR_WAIT"; continue; }
+
+  # Act as the margin-agents GitHub App, not as Sebastian. Until this existed
+  # every role authenticated as his account, so `git log` credited him with
+  # every commit and `gh pr review` refused outright -- the reviewer was the
+  # author of the PR it was reviewing, which is why every verdict on this repo
+  # carries "request-changes not available" (SEB-51).
+  #
+  # gh and the git credential helper both honour GH_TOKEN over the stored
+  # login, so exporting it is the whole switch. Tokens last an hour, so this
+  # has to run inside the loop and mint a fresh one every pass, never written
+  # to disk -- minting it once before the loop (the previous shape of this
+  # code) left every pass after the first hour running on an expired token.
+  # have_work_now() below calls gh for the reviewer role and swallows its
+  # errors (2>/dev/null) to keep a broken check from stopping the machine, so
+  # an expired token didn't fail loud: it just made every pass conclude there
+  # was nothing to review, silently, for as long as the service stayed up
+  # (SEB-69 -- the reviewer went dark for 13+ hours this way).
+  #
+  # If minting fails the pass still runs, unauthenticated-as-app. A broken
+  # credential must not silently stop the machine -- the cost of being wrong
+  # that way is one pass attributed to the old identity, and the cost of the
+  # opposite is a loop that quietly does nothing.
+  if [ -n "${MARGIN_GH_APP_ID:-}" ]; then
+    if GH_TOKEN="$("$REPO/agents/gh_token.sh" 2>/dev/null)"; then
+      export GH_TOKEN
+    else
+      say "[$ROLE] could not mint a GitHub App token; running as the stored login"
+    fi
+  fi
 
   # A pass that died mid-review leaves the checkout on a PR branch with the
   # files that pass regenerated still dirty. `git checkout main` then ABORTS --
