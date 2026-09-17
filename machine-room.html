@@ -185,7 +185,10 @@ function renderCol2Row(ev) {
     }
     if (ev.event === "comment") {
       const text = (ev.text || "").slice(0, 180) + ((ev.text || "").length > 180 ? "…" : "");
-      return T(C.commentTemplate, { role, ident: ev.ident, text: escapeHtml(text) });
+      // data-verbatim tells check_page.py this is a quoted comment, not
+      // leftover developer text, so a real comment saying e.g. "moved it
+      // back to Todo:" doesn't trip the placeholder-word check.
+      return T(C.commentTemplate, { role, ident: ev.ident, text: `<span data-verbatim="true">${escapeHtml(text)}</span>` });
     }
     return null;
   }
