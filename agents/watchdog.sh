@@ -31,7 +31,16 @@ SILENT_AFTER=$((2 * 3600))     # builder/reviewer: silent this long, WITH real w
 PRODUCT_SILENT_AFTER=$((4 * 3600))
 REPO=/srv/margin-product
 
-mkdir -p "$(dirname "$STATE")"
+# SEB-84: role_has_real_work below is a single snapshot. "Silent for N minutes"
+# and "real work waiting right now" can both be true without the work having
+# been waiting anywhere near N minutes -- a role that has been correctly idle
+# for an empty queue the whole time, with a real issue arriving in the last
+# minute, looks identical at check time to one that has been stuck the whole
+# time. One file per role remembers whether this exact condition also fired
+# last check (30 minutes earlier, same cadence as PENDING_DIR's use below) --
+# see the loop for how it's used.
+PENDING_DIR=/var/lib/margin/watchdog-pending
+mkdir -p "$(dirname "$STATE")" "$PENDING_DIR"
 now=$(date +%s)
 
 # Still inside the quiet window from a previous alarm? Say nothing.
@@ -84,6 +93,7 @@ role_has_real_work() {
 
 for role in builder reviewer product; do
   f="$LOGDIR/$role.jsonl"
+  pending_file="$PENDING_DIR/$role"
   if [ ! -s "$f" ]; then
     problems+=("$role has never recorded a pass ($f is missing or empty)")
     continue
@@ -100,9 +110,20 @@ for role in builder reviewer product; do
   elif [ "$last_reason" = "daily ceiling" ]; then
     : # sleeping on purpose until the UTC date rolls over -- see comment above
   elif [ $((now - last_s)) -gt "$limit" ] && role_has_real_work "$role"; then
-    mins=$(( (now - last_s) / 60 ))
-    problems+=("$role has recorded nothing for ${mins} minutes -- systemctl restart margin-$role")
+    # Only alarm the second time this fires in a row. A role that is actually
+    # alive claims newly-arrived work within one poll cycle (well under 30
+    # minutes -- see agents/run.sh's have_work_now), so a real outage is still
+    # silent-with-work-waiting on the next check too; a one-tick coincidence
+    # is not.
+    if [ -f "$pending_file" ]; then
+      mins=$(( (now - last_s) / 60 ))
+      problems+=("$role has recorded nothing for ${mins} minutes -- systemctl restart margin-$role")
+    else
+      : > "$pending_file"
+    fi
+    continue
   fi
+  rm -f "$pending_file"
 done
 
 # 2. Collection missing two consecutive passes. The collector commits a sample
