@@ -82,7 +82,94 @@
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   var AMOUNT_ORDER = ['200','1000','5000','25000','50000'];
 
-  fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
+  // ---- Cost-by-size curve: real, and deliberately bounded. -----------
+  // samples.csv already carries a real cost figure (cost_bps_taker, the
+  // stablecoin route all-in) and a real baseline (the cheapest ordinary
+  // provider's own cost_bps) at five real measured sizes, $200 to $50,000.
+  // Nothing here is modelled or extrapolated -- the curve stops exactly
+  // where the measured fills stop. A $500k point would be invented; the
+  // order books this site samples were never asked to fill one.
+  var SIZE_TIERS = ['200', '1000', '5000', '25000', '50000'];
+  function parseSamplesCSV(text) {
+    var lines = text.split('\n');
+    var header = lines[0].split(',');
+    var idx = {};
+    header.forEach(function(h, i){ idx[h] = i; });
+    var byKey = {};
+    for (var i = 1; i < lines.length; i++) {
+      if (!lines[i]) continue;
+      var cols = lines[i].split(',');
+      var corridor = cols[idx.corridor], size = cols[idx.notional_src];
+      if (!corridor || !size) continue;
+      // File is chronological; later rows overwrite earlier ones for the
+      // same (corridor, size), leaving the latest real reading.
+      byKey[corridor + '|' + size] = {
+        costBpsTaker: parseFloat(cols[idx.cost_bps_taker]),
+        baselineProvider: cols[idx.baseline_provider],
+        baselineCostBps: parseFloat(cols[idx.baseline_cost_bps]),
+        cryptoWins: cols[idx.crypto_wins_taker] === 'True'
+      };
+    }
+    return byKey;
+  }
+
+  function renderCostCurve(container, corridorKey, byKey) {
+    var points = SIZE_TIERS.map(function(s){ return byKey[corridorKey + '|' + s]; });
+    if (points.some(function(p){ return !p; })) {
+      container.innerHTML = '<div style="font-size:13px;color:#9A9A9A;padding:16px 0">Not enough measured sizes for this corridor yet.</div>';
+      return;
+    }
+    var w = 860, h = 220, padL = 24, padR = 90, padT = 16, padB = 30;
+    var plotW = w - padL - padR, plotH = h - padT - padB;
+    var allVals = points.map(function(p){ return p.costBpsTaker; }).concat(points.map(function(p){ return p.baselineCostBps; }));
+    var maxV = Math.max.apply(null, allVals), minV = Math.min(0, Math.min.apply(null, allVals));
+    var range = (maxV - minV) || 1;
+    // Log-spaced x: sizes span 200 to 50,000, a 250x range -- linear
+    // spacing would crush the first two points into the same pixel.
+    var logSizes = SIZE_TIERS.map(function(s){ return Math.log10(+s); });
+    var logMin = logSizes[0], logMax = logSizes[logSizes.length - 1];
+    function xPos(i){ return padL + ((logSizes[i] - logMin) / (logMax - logMin)) * plotW; }
+    function yPos(v){ return padT + (1 - (v - minV) / range) * plotH; }
+
+    function pathFor(getVal) {
+      return points.map(function(p, i){ return (i===0?'M':'L') + xPos(i).toFixed(1) + ',' + yPos(getVal(p)).toFixed(1); }).join(' ');
+    }
+    var ourPath = pathFor(function(p){ return p.costBpsTaker; });
+    var basePath = pathFor(function(p){ return p.baselineCostBps; });
+    var lastOur = yPos(points[points.length-1].costBpsTaker);
+    var lastBase = yPos(points[points.length-1].baselineCostBps);
+    var lastX = xPos(points.length - 1);
+
+    var dots = points.map(function(p, i){
+      return '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.costBpsTaker).toFixed(1)+'" r="3.5" fill="#5A55E0"/>' +
+        '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.baselineCostBps).toFixed(1)+'" r="3.5" fill="#9A9A9A"/>';
+    }).join('');
+    var xLabels = points.map(function(p, i){
+      return '<text x="'+xPos(i).toFixed(1)+'" y="'+(h-8)+'" text-anchor="middle" font-family="Archivo, sans-serif" font-size="12" fill="#9A9A9A">'+esc(SIZE_TIERS[i].length>3 ? '$'+(+SIZE_TIERS[i]/1000)+'k' : '$'+SIZE_TIERS[i])+'</text>';
+    }).join('');
+    var yLabels = [minV, minV + range/2, maxV].map(function(v){
+      var y = yPos(v);
+      return '<text x="'+(plotW+padL+10)+'" y="'+(y+4).toFixed(1)+'" font-family="Archivo, sans-serif" font-size="12" fill="#9A9A9A">'+(v/100).toFixed(1)+'%</text>';
+    }).join('');
+
+    container.innerHTML =
+      '<div style="display:flex;gap:18px;font-size:12px;padding-bottom:6px">' +
+      '<span style="color:#5A55E0;font-weight:700">&#9679; the dollar route</span>' +
+      '<span style="color:#9A9A9A">&#9679; cheapest ordinary ('+esc(points[points.length-1].baselineProvider)+')</span></div>' +
+      '<svg width="100%" viewBox="0 0 '+w+' '+h+'" style="display:block">' +
+      '<path d="'+basePath+'" fill="none" stroke="#9A9A9A" stroke-width="1.5" stroke-dasharray="3,3"/>' +
+      '<path d="'+ourPath+'" fill="none" stroke="#5A55E0" stroke-width="2"/>' +
+      dots + yLabels + xLabels +
+      '</svg>' +
+      '<div style="font-size:12px;color:#9A9A9A;padding-top:4px">all-in cost, as a share of the amount, at each size actually measured -- stops at $50,000 because that is as far as real fills go; nothing past that point is estimated</div>';
+  }
+
+  Promise.all([
+    fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()),
+    fetch('./data/samples.csv', {cache:'no-store'}).then(r=>r.text())
+  ]).then(function(res){
+    var d = res[0];
+    var samplesByKey = parseSamplesCSV(res[1]);
     var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
     document.getElementById('liveStamp').textContent = 'LIVE · ' + hourUtc + ' UTC';
 
@@ -93,10 +180,10 @@
       div.className = 'corridor';
       div.id = 'c-' + idx;
       container.appendChild(div);
-      renderCorridor(div, route, '5000');
+      renderCorridor(div, route, '5000', routeKey, samplesByKey);
     });
 
-    function renderCorridor(el, route, selectedSize){
+    function renderCorridor(el, route, selectedSize, routeKey, samplesByKey){
       var size = route.sizes[selectedSize];
       var rows = size.rows.slice().sort(function(a,b){ return a.rank - b.rank; });
       var pillsHtml = AMOUNT_ORDER.filter(a => route.sizes[a]).map(function(a){
@@ -115,10 +202,13 @@
         '<div class="pills">'+pillsHtml+'</div></div>' +
         '<div class="prow-hdr lbl"><div>SENDING '+esc(size.amount_words)+'</div><div style="text-align:right">ALL IN</div><div style="text-align:right">% OF AMOUNT</div></div>' +
         rowsHtml +
-        '<div class="foot">'+esc(footnote)+'</div>';
+        '<div class="foot">'+esc(footnote)+'</div>' +
+        '<div style="margin-top:22px;font-size:15px;font-weight:700">The dollar route, by size</div>' +
+        '<div id="curve-'+esc(routeKey)+'" style="padding-top:10px"></div>';
       el.querySelectorAll('.pill').forEach(function(btn){
-        btn.addEventListener('click', function(){ renderCorridor(el, route, btn.getAttribute('data-amt')); });
+        btn.addEventListener('click', function(){ renderCorridor(el, route, btn.getAttribute('data-amt'), routeKey, samplesByKey); });
       });
+      renderCostCurve(document.getElementById('curve-'+routeKey), routeKey, samplesByKey);
     }
   }).catch(function(){
     document.getElementById('corridors').innerHTML = '<div class="corridor"><p style="color:#B3822D">Could not load corridor data. That failure is shown, not hidden.</p></div>';
