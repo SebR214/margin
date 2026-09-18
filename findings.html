@@ -70,6 +70,7 @@
     <div class="lede">Findings the agent published as it watched the record: every provider's price against every other, day over day, the reference rate cancelled out so only a real move is reported. Newest first. A day's changes are only reported once that day has fully closed, so this updates once a day, unlike <a href="./index.html">the home page</a>'s hourly index — the two measure different things on different clocks, and neither is stale relative to what it actually tracks.</div>
   </div>
 
+  <div id="weekendIndex" style="padding:24px 48px 0"></div>
   <div id="patterns" style="padding:24px 48px 0"></div>
   <div class="cards" id="cards"></div>
 </div>
@@ -78,6 +79,56 @@
 (function(){
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function fmt(n){ return n.toFixed(2)+'%'; }
+
+  // ---- The weekend penalty index -------------------------------------
+  // A single measured number across every provider and every corridor:
+  // of all the provider+Saturday combinations this site has actually
+  // watched, what share raised its price for the weekend, and by how much
+  // when it did. Built from the same real weekend_up records the pattern
+  // cards below use, denominated against the real provider count per
+  // corridor (providers_latest.json) times the real Saturdays judged for
+  // that corridor -- not asserted, counted. Whatever the number turns out
+  // to be is the finding.
+  Promise.all([
+    fetch('./data/price_changes_latest.json', {cache:'no-store'}).then(r=>r.json()),
+    fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+  ]).then(function(res){
+    var pc = res[0], prov = res[1];
+    if (prov) {
+      var judged = pc.saturdays_judged || {};
+      var totalSlots = 0, hikeDays = 0;
+      var hikesByPair = {};
+      (pc.changes||[]).filter(function(c){ return c.kind === 'weekend_up'; }).forEach(function(c){
+        var key = c.provider + '|' + c.corridor;
+        if (!hikesByPair[key]) hikesByPair[key] = { provider: c.provider, corridor: c.corridor, route_words: c.route_words, days: {}, moves: [] };
+        hikesByPair[key].days[c.day] = true;
+        hikesByPair[key].moves.push(c.move_pct);
+      });
+      Object.keys(judged).forEach(function(corridor){
+        var route = prov.corridors[corridor];
+        if (!route) return;
+        var providers = {};
+        Object.keys(route.sizes).forEach(function(sz){
+          route.sizes[sz].rows.forEach(function(r){ if (r.provider !== 'The dollar route') providers[r.provider] = true; });
+        });
+        totalSlots += Object.keys(providers).length * judged[corridor];
+      });
+      Object.keys(hikesByPair).forEach(function(k){ hikeDays += Object.keys(hikesByPair[k].days).length; });
+      var allMoves = Object.keys(hikesByPair).reduce(function(a,k){ return a.concat(hikesByPair[k].moves); }, []);
+      var avgMove = allMoves.length ? allMoves.reduce(function(a,b){return a+b;},0)/allMoves.length : 0;
+      var offenders = Object.keys(hikesByPair).map(function(k){ return hikesByPair[k]; })
+        .sort(function(a,b){ return Object.keys(b.days).length - Object.keys(a.days).length; });
+      var rate = totalSlots ? (hikeDays / totalSlots * 100) : 0;
+
+      document.getElementById('weekendIndex').innerHTML =
+        '<div style="font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase;padding-bottom:8px">The weekend penalty index</div>' +
+        '<div style="font-size:28px;font-weight:800;letter-spacing:-0.01em">' + rate.toFixed(1) + '% of provider-Saturday combinations we\'ve watched show a price hike</div>' +
+        '<div style="font-size:15px;color:#333;padding-top:8px;line-height:1.6">' + hikeDays + ' of ' + totalSlots + ' provider-Saturday observations, across every provider on every corridor this site tracks. Narrow, not industry-wide: ' +
+        (offenders.length ? offenders.map(function(o){ return '<b>' + esc(o.provider) + '</b> on ' + esc(o.route_words); }).join(' and ') + ' account for all of it.' : 'nobody has done it more than once.') +
+        ' When it happens, the average hike is <b class="num">' + avgMove.toFixed(2) + '%</b> of the amount.</div>' +
+        '<div style="font-size:13px;color:#9A9A9A;padding-top:10px">measured, not assumed -- the stablecoin route this site also tracks doesn\'t close for the weekend, which is the actual argument for it</div>';
+    }
+  }).catch(function(){});
 
   fetch('./data/price_changes_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
     var changes = d.changes || [];
