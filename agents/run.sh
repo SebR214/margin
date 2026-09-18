@@ -432,7 +432,12 @@ while true; do
     sleep "$IDLE"
     waited=$((waited + IDLE))
     if have_work_now && [ "$WORK_SIG" != "$WAIT_BASELINE_SIG" ]; then
-      say "[$ROLE] work arrived after ${waited}s of a ${WAIT}s wait; going now"
+      # SEB-86: the reviewer burned its whole daily wake budget in 47 minutes
+      # when this comparison flapped on every single recheck, and the log
+      # only ever said "work arrived" -- never what the two sides of the
+      # comparison actually were. Printing both here is the only way a
+      # future flap is diagnosable instead of guessed at.
+      say "[$ROLE] work arrived after ${waited}s of a ${WAIT}s wait; going now (signature before=<${WAIT_BASELINE_SIG}> after=<${WORK_SIG}>)"
       idle_streak=0
       break
     fi

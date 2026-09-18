@@ -19,12 +19,26 @@ newer than the newest review on it. Labels do not enter into it -- an issue can
 carry `needs-sebastian` and still deserve a fresh pass the moment the builder
 pushes a fix, which is exactly the case that kept jamming.
 
-Reads GH_TOKEN from the environment like every other gh call. Stdlib only.
+"No review yet" has one deliberate exception (SEB-86). REVIEWER.md's
+reader-facing path never calls `gh pr review` at all -- it posts the verdict
+on the Linear issue and stops, leaving the PR open for Sebastian. That PR will
+never have a GitHub review, so without this exception it reads as needing a
+look forever, and the reviewer re-litigates it every pass. If the linked
+Linear issue carries a reviewer-stamped comment newer than the head commit,
+that counts as the review this PR is short of on GitHub.
+
+Reads GH_TOKEN from the environment like every other gh call, and shells out
+to linear.py for the Linear-side check, which reads LINEAR_API_KEY itself.
+Stdlib only.
 """
 
 import json
+import os
+import re
 import subprocess
 import sys
+
+LINEAR_PY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "linear.py")
 
 
 def gh(*args):
@@ -38,6 +52,36 @@ def gh(*args):
     return r.stdout
 
 
+def issue_key(title, branch):
+    """The SEB-N key a PR's title or branch name carries, or None.
+
+    Same rule linear.py's stranded-issue filter already uses: builder
+    branches start with the lowercased key (BUILDER.md), PR titles carry it
+    uppercase.
+    """
+    blob = (title + " " + branch).upper().replace("_", "-")
+    m = re.search(r"\bSEB-\d+\b", blob)
+    return m.group(0) if m else None
+
+
+def last_reviewer_stamp(key):
+    """ISO timestamp of the most recent reviewer comment on `key`, or None.
+
+    A failure here (no Linear reachable, no such issue) must not be able to
+    hide a PR that genuinely needs review -- return None, same as the gh()
+    helper's "could not tell" posture, and the caller falls back to flagging
+    it.
+    """
+    r = subprocess.run(
+        [sys.executable, LINEAR_PY, "last-comment", key, "--role", "reviewer"],
+        capture_output=True, text=True)
+    if r.returncode != 0:
+        print("linear.py last-comment %s failed: %s"
+              % (key, r.stderr.strip()[:200]), file=sys.stderr)
+        return None
+    return r.stdout.strip() or None
+
+
 def main():
     out = gh("pr", "list", "--repo", "SebR214/margin", "--state", "open",
              "--json", "number")
@@ -48,7 +92,7 @@ def main():
     needs = []
     for n in numbers:
         out = gh("pr", "view", str(n), "--repo", "SebR214/margin",
-                 "--json", "reviews,commits")
+                 "--json", "reviews,commits,title,headRefName")
         if out is None:
             # Could not tell. Treat as work rather than silently skipping it.
             needs.append(n)
@@ -60,6 +104,10 @@ def main():
             continue
         head = max(c["committedDate"] for c in commits)
         if not reviews:
+            key = issue_key(d.get("title", ""), d.get("headRefName", ""))
+            stamp = last_reviewer_stamp(key) if key else None
+            if stamp and stamp > head:
+                continue
             needs.append(n)
             continue
         last = max(r["submittedAt"] for r in reviews if r.get("submittedAt"))

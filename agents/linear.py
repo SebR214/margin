@@ -16,6 +16,7 @@ Every command is deterministic and prints plain text, so a role file can say
     python3 agents/linear.py new "title" --body-file spec.md --label commission --role product
     python3 agents/linear.py doc "Digest 2026-09-11" --body-file digest.md --role product
     python3 agents/linear.py issues                # everything in the project
+    python3 agents/linear.py last-comment SEB-6 --role reviewer
 
 `say`, `new`, `respec` and `doc` all stamp the role that wrote them, because
 the API key authenticates as Sebastian: without the stamp every comment, issue
@@ -427,6 +428,27 @@ def cmd_docs(_):
         print("%s  %s  %s" % (x["createdAt"][:10], x["title"], x["url"]))
 
 
+def cmd_last_comment(a):
+    """The ISO timestamp of the most recent comment a role stamped on an
+    issue, or nothing.
+
+    Exists for reviewer_work.py (SEB-86): the reader-facing path in
+    REVIEWER.md posts its verdict here and deliberately never calls `gh pr
+    review`, so a PR waiting on Sebastian's own look has no GitHub review to
+    find and reads as permanently unreviewed to a script that only checks
+    GitHub. This is the other side of that comparison.
+    """
+    i = find(a.ident)
+    d = call("""query($id: String!) {
+      issue(id: $id) { comments(first: 250) { nodes { body createdAt } } }
+    }""", {"id": i["id"]})
+    prefix = ROLES[a.role]
+    stamps = [c["createdAt"] for c in d["issue"]["comments"]["nodes"]
+              if c["body"].startswith(prefix)]
+    if stamps:
+        print(max(stamps))
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -460,6 +482,9 @@ def main():
     x.add_argument("--body-file")
     x.add_argument("--role", required=True, choices=sorted(ROLES))
     x.set_defaults(fn=cmd_doc)
+    x = s.add_parser("last-comment"); x.add_argument("ident")
+    x.add_argument("--role", required=True, choices=sorted(ROLES))
+    x.set_defaults(fn=cmd_last_comment)
 
     a = p.parse_args()
     a.fn(a)
