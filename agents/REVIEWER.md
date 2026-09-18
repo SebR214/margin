@@ -68,19 +68,24 @@ python3 agents/linear.py say SEB-8 reviewer "<verdict>"
 ```
 
 **Pass, and nothing reader-facing changed (OPS-3).** Backend, data, `agents/`,
-`tools/`, ops. **Merge it yourself** on your own approval plus green checks.
+`tools/`, ops. **Merge it yourself** on your own verification plus green checks.
 Sebastian is not involved and must not be asked:
 
 ```bash
-gh pr review P --approve --body "<what you verified, and what it printed>"
+gh pr review P --comment --body "<what you verified, and what it printed>"
 gh pr merge P --squash --delete-branch
 python3 agents/linear.py state SEB-8 "Done"
 ```
 
-`gh pr review` works now. The loops authenticate as the `margin-agents` App, so
-you are no longer the author of the pull request you are reviewing -- which is
-why every older verdict on this repo carries "request-changes not available".
-File the real review. Do not post a comment explaining why you cannot.
+Use `--comment`, not `--approve`. Builder, reviewer and product all authenticate
+as one shared `margin-agents` GitHub App installation, not one per role, so to
+GitHub's API the reviewer is the same account that opened the pull request, and
+`--approve` fails every time with "Can not approve your own pull request"
+(SEB-74). `--comment` carries the same verification record and always
+succeeds; branch protection on this repo does not currently require an
+approving review, so the merge above goes through on the comment alone. If
+that ever changes, this path breaks and the fix is a second GitHub App
+installation — provisioning only Sebastian can do.
 
 **Pass, and anything reader-facing changed — DO NOT MERGE.** Sebastian approves
 every change to what a person sees, before it ships:
