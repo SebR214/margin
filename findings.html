@@ -82,7 +82,16 @@
   fetch('./data/price_changes_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
     var changes = d.changes || [];
     var latestTs = changes.reduce((m,c)=> c.ts_utc > m ? c.ts_utc : m, '');
-    document.getElementById('liveStamp').textContent = 'LIVE · ' + latestTs.replace('T',' ').slice(0,16) + ' UTC';
+    // This page updates once a day, never live -- the header said so in
+    // the HTML default and then the JS overwrote it back to "LIVE", the
+    // exact staleness confusion flagged in review. Real relative framing
+    // too, not just a bare date, so "is this old news" has an answer at a
+    // glance.
+    var latestDate = latestTs.slice(0, 10);
+    var daysAgo = Math.round((Date.now() - new Date(latestDate + 'T00:00:00Z')) / 86400000);
+    var recency = daysAgo <= 0 ? 'today' : daysAgo === 1 ? 'yesterday' : daysAgo + ' days ago';
+    document.getElementById('liveStamp').textContent =
+      'UPDATED DAILY · LAST FINDING ' + latestDate + ' (' + recency + ')';
 
     // ---- Patterns: a repeated weekend price hike is a different kind of
     // finding from a one-off move -- it's a provider's actual pricing

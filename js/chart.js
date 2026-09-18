@@ -52,13 +52,27 @@
     // typo. Zero it explicitly rather than let toFixed manufacture a minus
     // sign the rounded figure doesn't actually carry.
     var badgeV = Math.abs(lastV) < 0.05 ? 0 : lastV;
+    var badgeText = badgeV.toFixed(1) + suffix;
+    // Width follows the actual text -- a 3-digit reading like "107.5%" is
+    // measurably wider than "87.5%", and a fixed-width rect clipped it.
+    // ~7.5px/char at 14px bold is a safe estimate for this font; padded.
+    var badgeWidth = Math.max(50, badgeText.length * 8 + 16);
 
     var areaPath = 'M0,' + (h - bottomAxis) + ' L' + pts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ') + ' L' + lastX.toFixed(1) + ',' + (h - bottomAxis) + ' Z';
     var linePoly = pts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
 
-    var yLabels = [min, min + range / 2, max].map(function (v) {
+    // Skip any axis label that would sit at the same height as the current-
+    // value badge -- when the latest point IS the max (or min), that axis
+    // label and the badge land on top of each other and both become
+    // unreadable, which is exactly the "gray numbers and blue numbers
+    // overlapping" bug: the same number drawn twice in the same spot.
+    var BADGE_HALF_HEIGHT = 14;
+    var yLabels = [min, min + range / 2, max].filter(function (v) {
       var y = pad + (1 - (v - min) / range) * plotH;
-      return '<text x="' + (plotW + 14) + '" y="' + (y + 4).toFixed(1) + '" font-family="Archivo, sans-serif" font-size="15" fill="#9A9A9A">' + v.toFixed(1) + suffix + '</text>';
+      return Math.abs(y - lastY) > BADGE_HALF_HEIGHT;
+    }).map(function (v) {
+      var y = pad + (1 - (v - min) / range) * plotH;
+      return '<text x="' + (plotW + 14) + '" y="' + (y + 5).toFixed(1) + '" font-family="Archivo, sans-serif" font-size="17" fill="#9A9A9A">' + v.toFixed(1) + suffix + '</text>';
     }).join('');
 
     var xFirst = timestamps[0] ? fmtDate(timestamps[0]) : 'earliest in window';
@@ -76,13 +90,13 @@
       '<path d="' + areaPath + '" fill="url(#g-' + uid + ')"/>' +
       '<polyline points="' + linePoly + '" fill="none" stroke="#5A55E0" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
       '<line x1="0" y1="' + lastY.toFixed(1) + '" x2="' + lastX.toFixed(1) + '" y2="' + lastY.toFixed(1) + '" stroke="#5A55E0" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.7"/>' +
-      '<rect x="' + (lastX + 6).toFixed(1) + '" y="' + (lastY - 10).toFixed(1) + '" width="64" height="20" rx="3" fill="#5A55E0"/>' +
-      '<text x="' + (lastX + 38).toFixed(1) + '" y="' + (lastY + 4).toFixed(1) + '" text-anchor="middle" font-family="Archivo, sans-serif" font-size="11" font-weight="600" fill="#FFFFFF">' + badgeV.toFixed(1) + suffix + '</text>' +
+      '<rect x="' + (lastX + 6).toFixed(1) + '" y="' + (lastY - 12).toFixed(1) + '" width="' + badgeWidth + '" height="24" rx="4" fill="#5A55E0"/>' +
+      '<text x="' + (lastX + 6 + badgeWidth / 2).toFixed(1) + '" y="' + (lastY + 5).toFixed(1) + '" text-anchor="middle" font-family="Archivo, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">' + badgeText + '</text>' +
       yLabels +
       '<line id="' + vlineId + '" x1="0" y1="0" x2="0" y2="' + (h - bottomAxis) + '" stroke="#0B0B0B" stroke-width="1" opacity="0" />' +
       '<circle id="' + dotId + '" r="4" fill="#5A55E0" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
-      '<text x="0" y="' + (h - 6) + '" text-anchor="start" font-family="Archivo, sans-serif" font-size="15" fill="#9A9A9A">' + esc(xFirst) + '</text>' +
-      '<text x="' + lastX.toFixed(1) + '" y="' + (h - 6) + '" text-anchor="end" font-family="Archivo, sans-serif" font-size="15" fill="#9A9A9A">' + esc(xLast) + '</text>' +
+      '<text x="0" y="' + (h - 6) + '" text-anchor="start" font-family="Archivo, sans-serif" font-size="17" fill="#9A9A9A">' + esc(xFirst) + '</text>' +
+      '<text x="' + lastX.toFixed(1) + '" y="' + (h - 6) + '" text-anchor="end" font-family="Archivo, sans-serif" font-size="17" fill="#9A9A9A">' + esc(xLast) + '</text>' +
       '</svg>' +
       '<div id="' + tipId + '" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;transform:translate(-50%,-130%)"></div>' +
       '</div>';

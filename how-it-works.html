@@ -93,9 +93,10 @@
     <div class="p">Made-up numbers. An automated pipeline will happily produce a plausible figure when the data is missing, and that would kill the whole point of this. So nothing gets published unless it traces to a file that was actually collected, and the attempts that failed stay up.</div>
 
     <div class="ask">
-      <input type="text" placeholder="Ask the agent how any number was made"/>
-      <button aria-label="ask"><svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M4 10h11M11 5l5 5-5 5" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <input type="text" placeholder="Ask the agent how any number was made" id="hiwAskInput"/>
+      <button aria-label="ask" id="hiwAskBtn"><svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M4 10h11M11 5l5 5-5 5" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
+    <div id="hiwAnswer" style="display:none;max-width:720px;margin-top:16px;padding:16px 20px;background:#F6F6F6;border-radius:14px;font-size:15px;line-height:1.55;color:#0B0B0B"></div>
     <div class="askNote">The code and every data file are public. Your AI can ask the same questions over MCP or the API.</div>
   </main>
 </div>
@@ -159,6 +160,58 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
     document.getElementById('refCheck').textContent = 'Could not load the reference comparison. That failure is shown, not hidden.';
   });
 }).catch(function(){});
+
+// ---- The "how was it made" ask box: same real backend as Home's, not a
+// decoration. Answer shown as a plain sentence; the SQL that produced it is
+// available on click rather than dumped inline -- shown by default, it read
+// as unexplained code (real feedback: "the thing is a chat interface? ...
+// not clearly thought out"), when the plain sentence is the actual answer.
+(function(){
+  var API_BASE = location.hostname.endsWith("margin.wiki")
+    ? "https://api.margin.wiki" : "http://127.0.0.1:8901";
+  var input = document.getElementById('hiwAskInput');
+  var btn = document.getElementById('hiwAskBtn');
+  var box = document.getElementById('hiwAnswer');
+  if (!input || !btn) return;
+
+  function show(html) { box.innerHTML = html; box.style.display = 'block'; }
+
+  function submit(){
+    var q = (input.value || '').trim();
+    if (!q) return;
+    show('<span style="color:#9A9A9A">Asking…</span>');
+    fetch(API_BASE + '/ask', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question: q})
+    }).then(function(r){ return r.json().then(function(body){ return {ok: r.ok, body: body}; }); })
+      .then(function(res){
+        if (!res.ok || res.body.error) {
+          show(esc(res.body.error || 'That could not be answered right now.'));
+          return;
+        }
+        var sentence = esc(res.body.sentence || 'No plain answer came back for that.');
+        var sqlId = 'sql' + Math.random().toString(36).slice(2,8);
+        var html = '<div>' + sentence + '</div>';
+        if (res.body.sql) {
+          html += '<div style="margin-top:10px"><a href="#" id="' + sqlId + '-toggle" style="font-size:12px;color:#6B6B6B;font-weight:600">See the actual database query →</a>' +
+            '<div id="' + sqlId + '" style="display:none;margin-top:6px;font-size:12px;color:#9A9A9A;font-family:ui-monospace,monospace;word-break:break-all">' + esc(res.body.sql) + '</div></div>';
+        }
+        show(html);
+        var toggle = document.getElementById(sqlId + '-toggle');
+        if (toggle) toggle.addEventListener('click', function(e){
+          e.preventDefault();
+          var sqlBox = document.getElementById(sqlId);
+          sqlBox.style.display = sqlBox.style.display === 'none' ? 'block' : 'none';
+        });
+      })
+      .catch(function(){
+        show('The live ask service is not reachable right now. That failure is shown, not hidden.');
+      });
+  }
+  btn.addEventListener('click', submit);
+  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') submit(); });
+})();
 </script>
 
 <script>

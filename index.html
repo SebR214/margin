@@ -440,9 +440,27 @@
             });
             return;
           }
+          // The raw SQL used to always show inline -- real feedback: seeing
+          // code where a plain sentence was expected read as "not clearly
+          // thought out", since this is a free-text box, not a query
+          // builder. The sentence IS the answer; the query is verification
+          // for anyone who wants it, one click away, not the headline.
           var sentence = esc(res.body.sentence || JSON.stringify(res.body.rows || res.body));
-          var receipt = res.body.sql ? '<span style="font-family:ui-monospace,monospace">' + esc(res.body.sql) + '</span>' : null;
+          var receipt = null;
+          if (res.body.sql) {
+            var sqlId = 'sql' + Math.random().toString(36).slice(2,8);
+            receipt = '<a href="#" id="' + sqlId + '-toggle" style="font-weight:600;color:#0B0B0B">See the actual database query →</a>' +
+              '<div id="' + sqlId + '" style="display:none;margin-top:6px;font-family:ui-monospace,monospace;font-size:12px;word-break:break-all">' + esc(res.body.sql) + '</div>';
+          }
           showAnswerCard('ASKED · ' + lastPassStamp, sentence, receipt);
+          if (res.body.sql) {
+            var t = document.getElementById(sqlId + '-toggle');
+            if (t) t.addEventListener('click', function(e){
+              e.preventDefault();
+              var b = document.getElementById(sqlId);
+              b.style.display = b.style.display === 'none' ? 'block' : 'none';
+            });
+          }
         })
         .catch(function(){
           showAnswerCard('ASKED · ' + lastPassStamp, 'The live ask service is not reachable right now. That failure is shown, not hidden.', null);
