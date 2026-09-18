@@ -1,12 +1,14 @@
 {
+  "buy_price": 142.0,
   "ccy": "SYP",
-  "computed_at": "2026-09-18T10:00:00+00:00",
+  "computed_at": "2026-09-18T11:00:00+00:00",
   "country": "Syria",
   "denominator": {
     "class": "managed",
     "rate_per_usd": 121.768733,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 121.768733,
   "history": [
     {
       "date": "2026-09-05",
@@ -73,21 +75,34 @@
       "index_pct": 12.7814,
       "n": 10,
       "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-09-18",
+      "index_pct": 16.6145,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
-  "history_days": 11,
+  "history_days": 12,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-09-18T10:00:00+00:00",
+  "hour_utc": "2026-09-18T11:00:00+00:00",
+  "index_pct": 16.6145,
   "index_version": "1.1",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: 8 buy-side ads, 10 required",
-  "round_trip_pct": 8.4518,
-  "source_class": null,
+  "n_sources": 10,
+  "round_trip_pct": 5.7334,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 145.0
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 142.0,
+      "index_pct": 16.6145,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    }
+  ]
 }
