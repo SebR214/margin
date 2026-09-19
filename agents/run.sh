@@ -118,6 +118,34 @@ umask 022
 
 say() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" | tee -a "$LOG"; }
 
+# This script itself lives at /srv/margin, kept current by margin-pull.timer
+# every 5 minutes -- a different, shared checkout from the per-role $REPO this
+# loop pulls above. A `while true; do ... done` compound command is read into
+# the shell's memory once, when the process starts, so a long-running run.sh
+# keeps executing the code it booted with no matter how many merges land on
+# main; only a process restart makes it re-read the file. Nothing was ever
+# restarting it.
+#
+# SEB-90: the builder sat on pre-SEB-78 code for two days after that signature
+# fix merged, flapping every 60-120s and burning 22 of 40 daily wake budget by
+# 01:00 before anyone noticed -- because the file on disk had the fix but the
+# PID that had been running since before the merge did not. Hashing the file
+# and re-exec'ing in place when it changes means a stuck process self-heals
+# within one loop iteration instead of needing a person to notice and run
+# `systemctl restart`. `exec` replaces this process image under the same PID,
+# so systemd sees no restart and the in-memory backoff counters just reset the
+# way they would after any normal restart.
+SELF="$(readlink -f "$0")"
+SELF_HASH="$(sha256sum "$SELF" 2>/dev/null | cut -d' ' -f1)"
+check_self_updated() {
+  local h
+  h="$(sha256sum "$SELF" 2>/dev/null | cut -d' ' -f1)"
+  if [ -n "$h" ] && [ -n "$SELF_HASH" ] && [ "$h" != "$SELF_HASH" ]; then
+    say "[$ROLE] $SELF changed on disk; re-executing to pick it up"
+    exec "$SELF" "$ROLE"
+  fi
+}
+
 record() {   # record <ok> <reason> <seconds>
   python3 - "$JSONL" "$ROLE" "$1" "$2" "$3" <<'PY'
 import datetime, json, sys
@@ -166,6 +194,7 @@ have_work_now() {
 }
 
 while true; do
+  check_self_updated
   START=$(date +%s)
   say "[$ROLE] pass starting"
 
@@ -431,6 +460,7 @@ while true; do
   while [ "$waited" -lt "$WAIT" ]; do
     sleep "$IDLE"
     waited=$((waited + IDLE))
+    check_self_updated
     if have_work_now && [ "$WORK_SIG" != "$WAIT_BASELINE_SIG" ]; then
       # SEB-86: the reviewer burned its whole daily wake budget in 47 minutes
       # when this comparison flapped on every single recheck, and the log
