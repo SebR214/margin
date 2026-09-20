@@ -85,11 +85,23 @@ problems=()
 #    reviewer_work.py the same question the reviewer loop itself asks. A
 #    mint failure can't tell either way, so it falls back to "real work" --
 #    the same posture reviewer_work.py's own gh() helper takes.
+# SEB-96: linear.py fails a bad request or a network error by calling
+# sys.exit(message) -- the message goes to stderr, which this function
+# discards, and nothing goes to stdout. That made a Linear hiccup
+# indistinguishable from a real "next" result: $n came back empty, empty is
+# not "NOTHING TO DO", so this returned 0 (has real work) even though the
+# check never actually reached Linear -- the alarm then told a builder that
+# had been correctly idle for hours (empty queue, confirmed against
+# builder.log and the Linear activity log for the whole window) to restart
+# itself over a problem restarting it cannot fix. Return 2 for "the check
+# itself failed" so the caller can tell that apart from "checked, and there
+# is real work."
 role_has_real_work() {
   case "$1" in
     builder)
-      n=$(python3 "$REPO/agents/linear.py" next 2>/dev/null)
-      s=$(python3 "$REPO/agents/linear.py" stranded 2>/dev/null)
+      n=$(python3 "$REPO/agents/linear.py" next 2>/dev/null); n_rc=$?
+      s=$(python3 "$REPO/agents/linear.py" stranded 2>/dev/null); s_rc=$?
+      [ "$n_rc" -eq 0 ] && [ "$s_rc" -eq 0 ] || return 2
       [ "$n" = "NOTHING TO DO" ] && [ "$s" = "NONE STRANDED" ] && return 1
       return 0
       ;;
@@ -126,19 +138,31 @@ for role in builder reviewer product; do
     problems+=("$role: cannot read a timestamp from the last line of $f")
   elif [ "$last_reason" = "daily ceiling" ]; then
     : # sleeping on purpose until the UTC date rolls over -- see comment above
-  elif [ $((now - last_s)) -gt "$limit" ] && role_has_real_work "$role"; then
-    # Only alarm the second time this fires in a row. A role that is actually
-    # alive claims newly-arrived work within one poll cycle (well under 30
-    # minutes -- see agents/run.sh's have_work_now), so a real outage is still
-    # silent-with-work-waiting on the next check too; a one-tick coincidence
-    # is not.
-    if [ -f "$pending_file" ]; then
-      mins=$(( (now - last_s) / 60 ))
-      problems+=("$role has recorded nothing for ${mins} minutes -- systemctl restart margin-$role")
-    else
-      : > "$pending_file"
+  elif [ $((now - last_s)) -gt "$limit" ]; then
+    role_has_real_work "$role"; work_rc=$?
+    if [ "$work_rc" -eq 2 ]; then
+      # The check itself could not reach Linear -- that says something is
+      # wrong with the check, not with $role, so it gets its own problem
+      # line instead of a bogus "restart $role". Doesn't count toward the
+      # two-strikes gate below: a broken check on the next tick, once Linear
+      # is reachable again, should be judged fresh.
+      problems+=("could not tell whether $role has real work waiting -- linear.py failed to reach Linear, which is not evidence $role itself is down")
+      rm -f "$pending_file"
+      continue
+    elif [ "$work_rc" -eq 0 ]; then
+      # Only alarm the second time this fires in a row. A role that is
+      # actually alive claims newly-arrived work within one poll cycle (well
+      # under 30 minutes -- see agents/run.sh's have_work_now), so a real
+      # outage is still silent-with-work-waiting on the next check too; a
+      # one-tick coincidence is not.
+      if [ -f "$pending_file" ]; then
+        mins=$(( (now - last_s) / 60 ))
+        problems+=("$role has recorded nothing for ${mins} minutes -- systemctl restart margin-$role")
+      else
+        : > "$pending_file"
+      fi
+      continue
     fi
-    continue
   fi
   rm -f "$pending_file"
 done
