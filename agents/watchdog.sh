@@ -72,17 +72,34 @@ problems=()
 #    `linear.py` call away (same one agents/run.sh itself uses, no new
 #    credential needed), only alarm when there is real unstarted or stranded
 #    work actually waiting -- silence with an empty queue is correct, not
-#    down. Reviewer's equivalent check (agents/reviewer_work.py) needs a
-#    minted GitHub token that this standalone script does not have, so its
-#    "empty queue, no record, unbounded silence" case is not covered here --
-#    only its "hit the daily ceiling" case is. Left as a known gap, not a
-#    blocker.
+#    down.
+#
+#    SEB-95: this script's own EnvironmentFile already loads the GitHub App
+#    credential (same /etc/margin/env the reviewer loop reads), so the "no
+#    token available here" gap this comment used to describe was stale --
+#    the alarm fired on a reviewer that was correctly idle the whole time
+#    (PR #125 already reviewed at its head commit, agents/reviewer_work.py
+#    genuinely found nothing pending). Mint one the same isolated way
+#    agents/run.sh does (SEB-73: a dedicated GH_CONFIG_DIR so a failed mint
+#    fails loud instead of quietly picking up a stored login) and ask
+#    reviewer_work.py the same question the reviewer loop itself asks. A
+#    mint failure can't tell either way, so it falls back to "real work" --
+#    the same posture reviewer_work.py's own gh() helper takes.
 role_has_real_work() {
   case "$1" in
     builder)
       n=$(python3 "$REPO/agents/linear.py" next 2>/dev/null)
       s=$(python3 "$REPO/agents/linear.py" stranded 2>/dev/null)
       [ "$n" = "NOTHING TO DO" ] && [ "$s" = "NONE STRANDED" ] && return 1
+      return 0
+      ;;
+    reviewer)
+      [ -n "${MARGIN_GH_APP_ID:-}" ] || return 0
+      export GH_CONFIG_DIR=/tmp/margin-watchdog-gh-config
+      mkdir -p "$GH_CONFIG_DIR"
+      token=$("$REPO/agents/gh_token.sh" 2>/dev/null) || return 0
+      pending=$(GH_TOKEN="$token" python3 "$REPO/agents/reviewer_work.py" 2>/dev/null)
+      [ -z "$pending" ] && return 1
       return 0
       ;;
     *)
