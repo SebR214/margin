@@ -44,6 +44,19 @@ def rows(role, day):
     return out
 
 
+def _idle(r):
+    """A pass counts as idle if it was fast (booted, found nothing, exited) OR
+    if agents/run.sh's own before/after signature compare says the
+    buildable/reviewable world it looked at didn't move -- SEB-93: 24 passes
+    on SEB-59 ran 61-131s each, all of them well past IDLE_SECONDS, because
+    each one did a fresh, real re-check that landed on the same unchanged
+    conclusion. Wall-clock alone called every one of those "not idle"; the
+    signature flag, recorded by run.sh since SEB-93, catches what the clock
+    can't.
+    """
+    return (r.get("seconds") or 0) < IDLE_SECONDS or bool(r.get("sig_idle"))
+
+
 def main():
     day = sys.argv[1] if len(sys.argv) > 1 else \
         datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
@@ -56,7 +69,7 @@ def main():
             print("  %-9s no passes recorded" % role)
             continue
         wakes = [r for r in rs if (r.get("seconds") or 0) > 0]
-        idle = [r for r in wakes if (r.get("seconds") or 0) < IDLE_SECONDS]
+        idle = [r for r in wakes if _idle(r)]
         reasons = collections.Counter(r.get("reason", "?") for r in rs)
         share = (len(idle) / len(wakes)) if wakes else 0.0
         print("  %-9s passes %-5d model wakes %-5d  woke-and-found-nothing %-5d (%.0f%%)"
@@ -78,7 +91,7 @@ def main():
         streak = 0
         worst = 0
         for r in rs:
-            if (r.get("seconds") or 0) > 0 and (r.get("seconds") or 0) < IDLE_SECONDS:
+            if (r.get("seconds") or 0) > 0 and _idle(r):
                 streak += 1
                 worst = max(worst, streak)
             else:

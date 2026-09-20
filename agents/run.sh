@@ -146,10 +146,19 @@ check_self_updated() {
   fi
 }
 
-record() {   # record <ok> <reason> <seconds>
-  python3 - "$JSONL" "$ROLE" "$1" "$2" "$3" <<'PY'
+# <sig_idle> defaults to 0. SEB-93: this loop already knows, per pass, whether
+# the buildable/reviewable world moved (the SIG_BEFORE/SIG_AFTER compare below)
+# -- but threw that fact away once the pass was logged, leaving
+# tools/loop_health.py to guess from wall-clock seconds alone. A pass that does
+# real work (reads a spec, checks a dependency, posts a comment) reliably runs
+# longer than IDLE_SECONDS even when it reaches the exact conclusion the pass
+# before it reached, so the guess misses it: 24 such passes on SEB-59 in 2h07m
+# never tripped THRASH_ALARM because every one of them took 61-131s. Recording
+# the real signal here means the health check can use it directly.
+record() {   # record <ok> <reason> <seconds> [sig_idle]
+  python3 - "$JSONL" "$ROLE" "$1" "$2" "$3" "${4:-0}" <<'PY'
 import datetime, json, sys
-path, role, ok, reason, secs = sys.argv[1:6]
+path, role, ok, reason, secs, sig_idle = sys.argv[1:7]
 with open(path, "a") as f:
     f.write(json.dumps({
         "role": role,
@@ -158,6 +167,7 @@ with open(path, "a") as f:
         "ok": ok == "1",
         "reason": reason,
         "seconds": float(secs),
+        "sig_idle": sig_idle == "1",
     }) + "\n")
 PY
 }
@@ -412,8 +422,12 @@ while true; do
   # -- restating an unchanged block counts as idle here, same as a fast no-op.
   have_work_now >/dev/null 2>&1
   SIG_AFTER="$WORK_SIG"
-  if [ "$ELAPSED" -lt "$IDLE_SECONDS" ] || \
-     { [ -n "$SIG_BEFORE" ] && [ "$SIG_BEFORE" = "$SIG_AFTER" ]; }; then
+  # SEB-93: kept separate from the ELAPSED check below so it survives into the
+  # JSONL record on its own -- a pass that restates an unchanged world in 90s
+  # is exactly as idle as one that does it in 20s, but only this flag says so.
+  SIG_IDLE=0
+  [ -n "$SIG_BEFORE" ] && [ "$SIG_BEFORE" = "$SIG_AFTER" ] && SIG_IDLE=1
+  if [ "$ELAPSED" -lt "$IDLE_SECONDS" ] || [ "$SIG_IDLE" = "1" ]; then
     idle_streak=$((idle_streak + 1))
   else
     idle_streak=0
@@ -430,7 +444,7 @@ while true; do
   else
     say "[$ROLE] pass finished in ${ELAPSED}s; next in ${WAIT}s"
   fi
-  record 1 "ok" "$ELAPSED"
+  record 1 "ok" "$ELAPSED" "$SIG_IDLE"
   rm -f "$OUT"
 
   # Wait out the backoff, but keep asking. The backoff exists to stop the model
