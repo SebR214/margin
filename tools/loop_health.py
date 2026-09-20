@@ -78,13 +78,29 @@ def main():
         print("            reasons: %s" % top)
 
         # A model woken to discover there is nothing to do is the guard failing
-        # at its one job.
+        # at its one job. Idle has two different shapes -- say which one:
+        # a fast pass (under IDLE_SECONDS, a boot-and-do-nothing) is a
+        # different problem from a sig_idle pass (real seconds spent, but
+        # run.sh's own signature compare says the world didn't move) --
+        # see SEB-93's reviewer note on why claiming "under Ns" about a
+        # 60-131s pass is itself a false report.
         if wakes and share >= WASTE_ALARM and len(idle) >= 20:
+            fast = [r for r in idle if (r.get("seconds") or 0) < IDLE_SECONDS]
+            sig = [r for r in idle if r not in fast]
+            parts = []
+            if fast:
+                parts.append("%d ran under %ds" % (len(fast), IDLE_SECONDS))
+            if sig:
+                parts.append(
+                    "%d ran longer but flagged idle by run.sh's own "
+                    "signature check (same conclusion, nothing moved)"
+                    % len(sig))
             findings.append(
-                "%s woke a model %d times and %d of those (%.0f%%) ran under %ds -- "
-                "the guard in agents/run.sh is letting the model answer a question "
-                "a script should answer. File it."
-                % (role, len(wakes), len(idle), share * 100, IDLE_SECONDS))
+                "%s woke a model %d times and %d of those (%.0f%%) were idle "
+                "-- %s -- the guard in agents/run.sh is letting the model "
+                "answer a question a script should answer. File it."
+                % (role, len(wakes), len(idle), share * 100,
+                   "; ".join(parts)))
 
         # The same no-op repeating is a loop with something true to say and
         # nowhere to record it. That was SEB-71.
