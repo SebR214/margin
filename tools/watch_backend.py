@@ -70,6 +70,15 @@ WATCH_EVAL_INTERVAL_SECONDS = int(
 # place abuse has to be stopped, not each tick.
 PER_IP_DAILY_LIMIT = int(os.environ.get("WATCH_PER_IP_DAILY_LIMIT", "5"))
 
+# Only Caddy can reach this port from outside the box (see _client_ip below),
+# so client_ip is the loopback address only when nothing sat in front of this
+# request -- never a real reader, always local: check_page.py's headless
+# verify run, a health check, someone curling the box directly. Counting
+# those against the public quota means the verification tooling exhausts its
+# own IP's daily allowance and then fails loudly on a 400 that has nothing to
+# do with a broken backend (SEB-98).
+LOCAL_IPS = {"127.0.0.1", "::1"}
+
 DB_PATH = os.environ.get("WATCH_DB_PATH", "/var/log/margin/watches.sqlite3")
 
 WATCH_SQL_SYSTEM_PROMPT = """You translate one condition, written in plain
@@ -165,6 +174,8 @@ def _db():
 
 
 def _over_daily_limit(ip):
+    if ip in LOCAL_IPS:
+        return False
     day = time.strftime("%Y-%m-%d", time.gmtime())
     conn = _db()
     try:
@@ -386,6 +397,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _client_ip(self):
+        # Only Caddy can reach this port from outside the box (it binds
+        # 127.0.0.1), so its X-Forwarded-For is trustworthy here; falls back
+        # to the raw peer for local testing without Caddy in front.
         fwd = self.headers.get("X-Forwarded-For")
         return fwd.split(",")[0].strip() if fwd else self.client_address[0]
 
