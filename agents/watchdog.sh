@@ -100,7 +100,24 @@ role_has_real_work() {
   case "$1" in
     builder)
       n=$(python3 "$REPO/agents/linear.py" next 2>/dev/null); n_rc=$?
-      s=$(python3 "$REPO/agents/linear.py" stranded 2>/dev/null); s_rc=$?
+      # SEB-97: `stranded` shells out to `gh pr list` to see which "started"
+      # issues already have an open PR (cmd_stranded's _keys_with_open_prs).
+      # Called with no gh credential, that lookup fails closed to an empty
+      # set -- deliberately, on linear.py's side, so a broken check reports
+      # MORE stranded work rather than hiding it (see its own docstring).
+      # But this script had no credential of its own here, unlike
+      # agents/run.sh, which mints one every pass -- so while run.sh's
+      # identical `stranded` call correctly saw SEB-59's open PR (#125) and
+      # excluded it, this call saw none, called SEB-59 stranded on two
+      # consecutive checks, and alarmed on a builder that builder.log shows
+      # polling "nothing to do" at every single point across that same
+      # window. Mint one the same isolated way the reviewer branch below
+      # already does; if the mint itself fails, GH_TOKEN is empty and
+      # `stranded` degrades to today's fail-closed behaviour, not a new one.
+      export GH_CONFIG_DIR=/tmp/margin-watchdog-gh-config
+      mkdir -p "$GH_CONFIG_DIR"
+      token=$("$REPO/agents/gh_token.sh" 2>/dev/null) || token=""
+      s=$(GH_TOKEN="$token" python3 "$REPO/agents/linear.py" stranded 2>/dev/null); s_rc=$?
       [ "$n_rc" -eq 0 ] && [ "$s_rc" -eq 0 ] || return 2
       [ "$n" = "NOTHING TO DO" ] && [ "$s" = "NONE STRANDED" ] && return 1
       return 0
