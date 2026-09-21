@@ -39,18 +39,24 @@ jobs:
         # The job still reports the failure -- this step preserves the row, it
         # does not rescue the result.
         #
-        # Both files, always together: check_fees.py writes fee_checks.csv AND
-        # withdrawal_fees.csv in the same run. Staging only the first left the
-        # second modified-but-uncommitted, which made `git pull --rebase` below
+        # All three files, always together: check_fees.py writes
+        # fee_checks.csv, withdrawal_fees.csv AND fee_tier_schedule.csv in
+        # the same run. Staging only some of them left the rest
+        # modified-but-uncommitted, which made `git pull --rebase` below
         # refuse to run ("You have unstaged changes") and abort the whole step
         # -- discarding the commit that had just been made, on an ephemeral
         # runner, with nothing left to retry. That is exactly how the 2026-09-01
-        # run lost its evidence (SEB-36).
+        # run lost its evidence (SEB-36) -- and exactly the failure mode a new
+        # emitted file left off this list repeats, per START-HERE.md's own
+        # "an emitted file left out of collect.yml's staging list kills
+        # collection" lesson. Named explicitly on purpose (never `git add -A`
+        # -- see BUILDER.md on synced-folder duplicates), so any FOURTH file
+        # this script starts writing has to be added here too, not silently.
         if: always()
         run: |
           git config user.name "margin-collector"
           git config user.email "actions@github.com"
-          git add data/fee_checks.csv data/withdrawal_fees.csv
+          git add data/fee_checks.csv data/withdrawal_fees.csv data/fee_tier_schedule.csv
           if git diff --cached --quiet; then
             echo "nothing staged -- fee check wrote no new rows"
             exit 0

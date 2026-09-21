@@ -43,6 +43,16 @@ FIELDS = [
     "status", "source_url", "error",
 ]
 
+# Sidecar, not a widened fee_checks.csv -- a frozen header stays frozen. One
+# row per tier per (venue, leg, regime): the base tier already in
+# fee_checks.csv plus every discount tier above it, so a later job can
+# recompute a real cost at real volume instead of only the base rate.
+TIER_SCHEDULE = os.path.join(HERE, "data", "fee_tier_schedule.csv")
+TIER_FIELDS = [
+    "ts_utc", "venue", "leg", "regime", "tier_label", "volume_threshold",
+    "volume_ccy", "fee_pct", "source_url", "error",
+]
+
 HTTP_TIMEOUT = 20
 UA = {"User-Agent": "margin.wiki fee-watcher/1.0 (+https://margin.wiki)"}
 
@@ -129,6 +139,116 @@ def parse_coins(text):
     vals = {first: float(row.group(1)) * 100.0,
             second: float(row.group(2)) * 100.0}
     return vals["taker"], vals["maker"]
+
+
+# ---------------------------------------------------------- fee TIER schedules
+#
+# Everything above verifies only the base (lowest) tier against collector.py's
+# constants -- the tier a visitor with no trading history actually pays.
+# README.md's own headline says the story only turns once "volume-tier fee
+# discounts kick in -- a crossover this repo is built to measure from
+# history, not assume." It never has been: both pages above already carry
+# the full schedule in the same fetch, and the code has always thrown every
+# tier but the first one away. These functions keep the rest.
+
+
+def parse_ir_tiers(text):
+    """Every tier of the Independent Reserve brokerage schedule -> sorted
+    [(threshold_aud, fee_pct), ...], cheapest-volume first.
+
+    The page renders the table as two side-by-side halves, each carrying its
+    own "AUD volume Fees" header -- not a duplicate to be discarded (an
+    earlier version of this reasoning did exactly that and silently lost the
+    top 14 of 28 tiers). Every segment after a header is scanned; a
+    threshold seen twice keeps its first value rather than raising, so a
+    genuine responsive duplicate (if the page ever grows one) still can't
+    double an entry.
+    """
+    segments = re.split(r"AUD\s+volume\s+Fees", text, flags=re.I)[1:]
+    if not segments:
+        raise ValueError("tier table header not found")
+    seen = {}
+    for seg in segments:
+        for vol, pct in re.findall(r"(\d[\d,]*)\s+([\d.]+)\s*%", seg):
+            threshold = float(vol.replace(",", ""))
+            seen.setdefault(threshold, float(pct))
+    if not seen:
+        raise ValueError("no tier rows found in fee table")
+    return sorted(seen.items())
+
+
+def parse_coins_tiers(text):
+    """Every VIP tier of the Coins.ph Pro schedule -> sorted
+    [(vip_level, threshold_php, maker_pct, taker_pct), ...], fees as PERCENT
+    (0.15 means 0.15%) -- the same unit parse_ir_tiers() and
+    parse_bitso_tiers() both use, deliberately: build_tier_rows() writes all
+    three into one fee_pct column, and a venue whose numbers were quietly in
+    a different unit from the other two would be the exact bug an all-caps
+    docstring warning can't catch but a consistent unit prevents outright.
+    (parse_coins() above returns bps, not percent -- it feeds
+    fee_checks.csv's config_bps column, a different file with a different
+    contract. Do not copy its *100.0 here.)
+
+    VIP0 has no volume figure (it reads "VIP 0 -", the base tier under any
+    threshold at all) so it is matched on its own, the same way parse_coins()
+    already does; VIP1 upward each state a PHP threshold. Column order is
+    read off the header, not assumed, for the same reason parse_coins() does.
+    """
+    hdr = re.search(r"30-Day\s+Spot\s+Trading\s+Volume[^A-Za-z]*\(PHP\)\s+"
+                    r"(Maker|Taker)\s+(Maker|Taker)", text, re.I)
+    if not hdr:
+        raise ValueError("VIP fee table header (Maker/Taker columns) not found")
+    first, second = hdr.group(1).lower(), hdr.group(2).lower()
+    if {first, second} != {"maker", "taker"}:
+        raise ValueError(f"unexpected fee columns: {first}/{second}")
+
+    out = {}
+    vip0 = re.search(r"VIP\s*0\b[^%]*?([\d.]+)\s*%\s*([\d.]+)\s*%", text, re.I)
+    if not vip0:
+        raise ValueError("VIP0 row not found in fee table")
+    vals = {first: float(vip0.group(1)), second: float(vip0.group(2))}
+    out[0] = (0.0, vals["maker"], vals["taker"])
+
+    for level, vol, a, b in re.findall(
+            r"VIP\s*(\d+)\s*-?\s*([\d,]+)\s*PHP?\s*([\d.]+)\s*%\s*([\d.]+)\s*%",
+            text, re.I):
+        n = int(level)
+        if n == 0 or n in out:
+            continue
+        vals = {first: float(a), second: float(b)}
+        out[n] = (float(vol.replace(",", "")), vals["maker"], vals["taker"])
+    if len(out) < 2:
+        raise ValueError("fewer than 2 VIP tiers found -- table shape likely changed")
+    return sorted((level, thr, mk, tk) for level, (thr, mk, tk) in out.items())
+
+
+def parse_bitso_tiers(payload, book):
+    """Every tier of one Bitso book's fee schedule -> sorted
+    [(threshold_mxn, maker_pct, taker_pct), ...].
+
+    Unlike IR and Coins.ph this needs no scraping -- available_books already
+    returns the full schedule as fees.structure, a list of {volume, maker,
+    taker} at each break, fractions of 1 the same as flat_rate. Only the
+    parsing already done for the base tier (parse_bitso) is reused; this adds
+    the tiers that same response already carried.
+    """
+    books = (payload or {}).get("payload")
+    if not isinstance(books, list):
+        raise ValueError("available_books payload missing or not a list")
+    row = next((b for b in books if isinstance(b, dict) and b.get("book") == book), None)
+    if row is None:
+        raise ValueError(f"book {book} not present in available_books")
+    structure = ((row.get("fees") or {}).get("structure"))
+    if not isinstance(structure, list) or not structure:
+        raise ValueError(f"fees.structure missing or empty for {book}")
+    out = []
+    for tier in structure:
+        try:
+            out.append((float(tier["volume"]), round(float(tier["maker"]) * 100.0, 6),
+                        round(float(tier["taker"]) * 100.0, 6)))
+        except (KeyError, TypeError, ValueError):
+            raise ValueError(f"malformed tier row in fees.structure for {book}: {tier!r}")
+    return sorted(out)
 
 
 def fetch_json(url):
@@ -275,6 +395,82 @@ def append(rows):
             w.writeheader()
         w.writerows(rows)
     return CHECKS
+
+
+def append_tiers(rows):
+    os.makedirs(os.path.dirname(TIER_SCHEDULE), exist_ok=True)
+    new = not os.path.exists(TIER_SCHEDULE) or os.path.getsize(TIER_SCHEDULE) == 0
+    with open(TIER_SCHEDULE, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=TIER_FIELDS, extrasaction="ignore")
+        if new:
+            w.writeheader()
+        w.writerows(rows)
+    return TIER_SCHEDULE
+
+
+def _tier_error_row(ts, venue, leg, regime, url, err):
+    return {"ts_utc": ts, "venue": venue, "leg": leg, "regime": regime,
+            "tier_label": "", "volume_threshold": "", "volume_ccy": "",
+            "fee_pct": "", "source_url": url, "error": clean(err)}
+
+
+def build_tier_rows(ts):
+    """Every tier this run could read, across all three venues that have
+    one -- one row per (venue, leg, regime, tier). A venue that fails to
+    parse writes one error row for that venue rather than silently
+    contributing nothing; the same "every outcome is a row" rule as
+    build_rows() above.
+    """
+    rows = []
+
+    try:
+        text, url = fetch(IR_URL)
+        tiers = parse_ir_tiers(text)
+    except Exception as e:
+        rows.append(_tier_error_row(ts, "IndependentReserve", "onramp", "taker",
+                                     IR_URL, f"{type(e).__name__}: {e}"))
+    else:
+        # IR publishes one flat brokerage fee -- no maker/taker split -- so
+        # the same schedule is recorded under both regimes, same as
+        # build_rows() already does for the base tier.
+        for regime in ("taker", "maker"):
+            for i, (thr, pct) in enumerate(tiers):
+                rows.append({"ts_utc": ts, "venue": "IndependentReserve",
+                             "leg": "onramp", "regime": regime,
+                             "tier_label": str(i), "volume_threshold": thr,
+                             "volume_ccy": "AUD", "fee_pct": pct,
+                             "source_url": url, "error": ""})
+
+    try:
+        text, url = fetch(COINS_URL)
+        tiers = parse_coins_tiers(text)
+    except Exception as e:
+        rows.append(_tier_error_row(ts, "Coins.ph", "offramp", "taker",
+                                     COINS_URL, f"{type(e).__name__}: {e}"))
+    else:
+        for level, thr, maker_pct, taker_pct in tiers:
+            for regime, pct in (("maker", maker_pct), ("taker", taker_pct)):
+                rows.append({"ts_utc": ts, "venue": "Coins.ph",
+                             "leg": "offramp", "regime": regime,
+                             "tier_label": "VIP%d" % level,
+                             "volume_threshold": thr, "volume_ccy": "PHP",
+                             "fee_pct": pct, "source_url": url, "error": ""})
+
+    try:
+        payload, url = fetch_json(BITSO_URL)
+        tiers = parse_bitso_tiers(payload, CORRIDORS["USD->MXN"]["offramp"]["symbol"])
+    except Exception as e:
+        rows.append(_tier_error_row(ts, "Bitso", "offramp", "taker",
+                                     BITSO_URL, f"{type(e).__name__}: {e}"))
+    else:
+        for i, (thr, maker_pct, taker_pct) in enumerate(tiers):
+            for regime, pct in (("maker", maker_pct), ("taker", taker_pct)):
+                rows.append({"ts_utc": ts, "venue": "Bitso", "leg": "offramp",
+                             "regime": regime, "tier_label": str(i),
+                             "volume_threshold": thr, "volume_ccy": "MXN",
+                             "fee_pct": pct, "source_url": url, "error": ""})
+
+    return rows
 
 
 def build_rows(ts, cfg):
@@ -449,13 +645,31 @@ def main():
     rows += build_rows_usdmxn(ts, CORRIDORS["USD->MXN"])
 
     wrows, breaches = check_withdrawals(ts)
+    trows = build_tier_rows(ts)
 
     # Persist before display. Always -- the row is the evidence, and the print
-    # below is only a convenience for whoever is reading the log. Two files,
-    # two schemas: trading fees in bps, withdrawal fees in asset units.
+    # below is only a convenience for whoever is reading the log. Three
+    # files, three schemas: trading fees in bps, withdrawal fees in asset
+    # units, tier schedules as (threshold, fee_pct) pairs.
     append(rows)
     if wrows:
         append_withdrawals(wrows)
+    if trows:
+        append_tiers(trows)
+
+    tier_ok = [r for r in trows if not r["error"]]
+    tier_bad = [r for r in trows if r["error"]]
+    by_venue = {}
+    for r in tier_ok:
+        by_venue.setdefault(r["venue"], set()).add(r["tier_label"])
+    for venue, labels in sorted(by_venue.items()):
+        print(f"  [tier sched] {venue}: {len(labels)} tiers read")
+    for r in tier_bad:
+        print(f"  [tier sched] {r['venue']} {r['leg']} {r['regime']}: "
+              f"unreadable -- {r['error']}")
+    if trows:
+        print(f"  {len(trows)} tier rows appended to "
+              f"{os.path.relpath(TIER_SCHEDULE, HERE)}")
 
     for r in rows:
         pub = r["published_bps"]
@@ -474,15 +688,19 @@ def main():
               f"{os.path.relpath(WITHDRAWALS, HERE)}")
 
     bad = [r for r in rows if r["status"] != "ok"]
-    if bad or breaches:
-        detail = "; ".join([f"{r['venue']}/{r['regime']} {r['status']}" for r in bad]
-                           + breaches)
+    if bad or breaches or tier_bad:
+        detail = "; ".join(
+            [f"{r['venue']}/{r['regime']} {r['status']}" for r in bad]
+            + breaches
+            + [f"{r['venue']} tier schedule unreadable" for r in tier_bad])
         print(f"\n  [error] fee drift or unreadable schedule -- {detail}",
               file=sys.stderr)
         print(f"  {len(bad)} of {len(rows)} trading checks failed, "
-              f"{len(breaches)} withdrawal breach(es); evidence written to "
+              f"{len(breaches)} withdrawal breach(es), "
+              f"{len(tier_bad)} tier schedule(s) unreadable; evidence written to "
               f"{os.path.relpath(CHECKS, HERE)}"
-              + (f" and {os.path.relpath(WITHDRAWALS, HERE)}" if wrows else ""))
+              + (f" and {os.path.relpath(WITHDRAWALS, HERE)}" if wrows else "")
+              + (f" and {os.path.relpath(TIER_SCHEDULE, HERE)}" if trows else ""))
         sys.exit(1)
 
     print(f"  fees verified {ts} -- {len(rows)} checks ok, appended to "
