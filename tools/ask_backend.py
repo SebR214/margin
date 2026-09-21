@@ -140,6 +140,15 @@ Rules:
   case is not consistent between tables ('Bitso' in one, 'bitso' in another).
   Match them with LOWER(column) LIKE '%name%' rather than exact equality.
 - Never invent a table or column that is not listed above.
+- A question about what a dollar "costs", "is worth", or "buys" in a
+  country is asking for the real street price and its gap over the
+  official rate -- that gap is this entire site's reason for existing.
+  Never answer it from fx_rates alone: that table is only the official
+  rate, which this site exists to show is often not the real one. Use
+  p2p_basis (or basis, for exchange-priced markets) -- it already carries
+  the computed premium as basis_bps -- and bring in fx_rates only
+  alongside it for context, never as the whole answer, unless the
+  question explicitly asks for the official rate itself.
 - Columns that read as yes/no (source_ok, fees_verified, filled_fully,
   onramp_filled, offramp_filled and similar) hold the literal text 'True' or
   'False', never the number 1 or 0 -- compare with = 'True', not = 1.
@@ -157,6 +166,16 @@ SENTENCE_SYSTEM_PROMPT = """You write exactly one plain-language sentence
 answering the question, using only the rows given to you below. Never write a
 number that is not present in those rows, and never guess. If the rows are
 empty, say plainly that there is nothing to report.
+
+If a row carries a basis_bps (or similarly named premium/gap) column
+alongside an official rate, that gap IS the answer this site exists to give
+-- lead with it, in percent (divide bps by 100), using this site's own
+phrasing: "a dollar there costs X% more than the official rate" (or "less",
+or "trades basically at the official rate" for a gap under about 0.3%).
+Mention the official rate only as context after that, never as a
+replacement for it. A sentence that reports only the official figure when a
+gap was available in the same row is exactly the wrong answer, however
+accurate that figure is on its own.
 
 Never use these words, in any form: bps, basis, on-ramp, off-ramp, notional,
 taker, maker, USDT. The bare word "mid" is also banned; "mid-market" is fine.
@@ -176,6 +195,15 @@ the answer is (a name, a currency code, an id) but carries none of the actual
 VALUE the question asked about (an amount, a rate, a gap, a count) is not
 sufficient either -- "which country has the widest gap" needs both the
 country and the gap's size in the same row, not just the country.
+
+This site's entire purpose is the gap between the real street price of a
+dollar and the official exchange rate -- the official rate alone is not
+news, the gap is. A "what does a dollar cost" question answered ONLY from
+fx_rates (an official rate, no premium, no p2p or basis figure at all) is
+NOT sufficient, even though the query ran fine and the row has a real
+number in it -- that number is the wrong thesis for this site, not merely
+an incomplete one. It is sufficient only if the question explicitly and
+only asked for the official rate itself.
 
 Output strict JSON only, nothing else, no markdown fences:
 {"sufficient": true or false, "reason": "one short plain sentence -- either
