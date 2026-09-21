@@ -149,6 +149,23 @@ Rules:
   the computed premium as basis_bps -- and bring in fx_rates only
   alongside it for context, never as the whole answer, unless the
   question explicitly asks for the official rate itself.
+- A question about the cost of SENDING, TRANSFERRING, WIRING or REMITTING
+  money from one country to another (e.g. "cheapest way to send money from
+  X to Y", "which provider is cheapest for a transfer to Z") is a
+  different question from the one above -- it is asking about a
+  remittance corridor, not a currency's FX gap, even when the destination
+  currency also has a p2p_basis or basis row. Answer it from
+  provider_quotes (or price_changes for how a provider's price has moved),
+  filtered to that corridor and compared across providers by cost_bps --
+  never from fx_rates, basis or p2p_basis, which describe what a dollar is
+  really worth on the ground, not what a transfer costs, and would be
+  answering the wrong question even with a real number in hand. Exactly
+  four corridors exist in this data, no others: SGD->PHP (Singapore to
+  the Philippines), USD->MXN (United States to Mexico), AUD->PHP
+  (Australia to the Philippines), NZD->PHP (New Zealand to the
+  Philippines). If the corridor named in the question is not one of those
+  four, output exactly NO_QUERY -- never substitute a different corridor
+  or fall back to a currency's FX gap as if it were an answer.
 - A question about how a gap has moved "over time" is asking for history,
   not the current hour -- but basis_history only holds rows for five
   currencies (TRY, KRW, IDR, THB, MXN). For every other currency, its
@@ -212,6 +229,16 @@ NOT sufficient, even though the query ran fine and the row has a real
 number in it -- that number is the wrong thesis for this site, not merely
 an incomplete one. It is sufficient only if the question explicitly and
 only asked for the official rate itself.
+
+A question about the cost of SENDING, TRANSFERRING, WIRING or REMITTING
+money between two countries is a remittance-corridor question, a
+different thing from the FX-gap question above even when it names a
+currency that also has an FX gap. Rows from fx_rates, basis or p2p_basis
+alone -- an FX rate or a premium, but no provider name and no cost_bps
+comparison across providers -- are NOT sufficient to answer it, however
+real the number is: it answers the FX-gap question, not the one asked.
+Only rows naming providers and their relative cost (from provider_quotes
+or price_changes) are sufficient for a remittance-cost question.
 
 Output strict JSON only, nothing else, no markdown fences:
 {"sufficient": true or false, "reason": "one short plain sentence -- either
