@@ -104,7 +104,12 @@
 <script>
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
+Promise.all([
+  fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return {}; }),
+  fetch('./data/index_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); })
+]).then(function(results){
+  var COPY = results[0] || {};
+  var d = results[1];
   var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
   document.getElementById('liveStamp').textContent = 'LIVE · ' + hourUtc + ' UTC';
   document.getElementById('thresholdP').textContent =
@@ -127,12 +132,9 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
   // METHODOLOGY.md). BOB's reference instead comes from the same kind of
   // broker market this site measures everywhere else, which is why its gap
   // runs much smaller. Said here so a reader sees the reason, not just the
-  // number.
-  var REF_MARKET = {
-    ARS: 'dolarapi.ar publishes the cash street price of a dollar; this site measures the price of a digital dollar from local brokers, a different market with its own premium.',
-    VES: 'dolarapi.ve publishes the cash street price of a dollar; this site measures the price of a digital dollar from local brokers, a different market with its own premium.',
-    BOB: 'dolarapi.bo and this site both price a digital dollar from local brokers, which is why the two numbers usually run close.'
-  };
+  // number. The sentences themselves live in copy.json (howItWorks.refMarket),
+  // not here -- every reader-facing string ships through the copy deck.
+  var REF_MARKET = (COPY.howItWorks && COPY.howItWorks.refMarket) || {};
   var byCcy = {};
   (d.countries || []).forEach(function(c){ byCcy[c.ccy] = c; });
   // Exposed for the ask box's own methodology routing (A4) below --
