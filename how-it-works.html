@@ -189,7 +189,11 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
   // See the identical comment in index.html -- deliberately loose so the
   // page's own placeholder ("Ask the agent how any number was made")
   // reliably matches; a stricter pattern missed it.
-  var METHOD_RE = /\bhow\b.*\b(made|calculat|comput|built|measur|works?)\b|methodolog/i;
+  // SEB-107: the stems (calculat/comput/measur) need \w* before the
+  // trailing \b, or the boundary can never land -- the next character in
+  // every real form of those words (calculate, computed, measuring...) is
+  // itself a word character, so the bare stem never matched anything.
+  var METHOD_RE = /\bhow\b.*\b(made|calculat\w*|comput\w*|built|measur\w*|works?)\b|methodolog/i;
 
   function methodologyAnswer(q){
     var tracked = window.hiwTrackedByName || {};

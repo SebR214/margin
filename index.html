@@ -450,7 +450,14 @@
     // subject between "how" and "was" broke a stricter match). A false
     // positive here just routes a data question to prose instead of SQL,
     // which is the safer failure for this rule, not a real cost.
-    var METHOD_RE = /\bhow\b.*\b(made|calculat|comput|built|measur|works?)\b|methodolog/i;
+    // SEB-107: calculat/comput/measur are stems meant to catch every verb
+    // form (calculate, calculated, calculating...), but a trailing \b right
+    // after the bare stem can never match, because the next letter in every
+    // real form of those words is itself a word character -- so "how do you
+    // calculate this" silently missed and fell through to the live SQL
+    // path, landing on the generic A2 refusal instead of this same prose.
+    // \w* lets the boundary land after the real word ending.
+    var METHOD_RE = /\bhow\b.*\b(made|calculat\w*|comput\w*|built|measur\w*|works?)\b|methodolog/i;
     function methodologyAnswer(q, maybeCountry) {
       if (maybeCountry) {
         var p2pNote = esc(maybeCountry.evidence_words) + ' (' + esc(maybeCountry.source_words) + ')';

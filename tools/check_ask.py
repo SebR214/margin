@@ -59,6 +59,18 @@ def is_bare_refusal(answer_text, answer_html):
     return False
 
 
+# SEB-107: paraphrases of a methodology question, not the chip's or the
+# placeholder's exact wording -- what caught the bug was a stem
+# (calculat/comput/measur) whose trailing \b could never match inside a
+# real verb form, so these never reached the A4 prose route on free text
+# even though the identical question via chip always worked. Every one of
+# these must route to prose and never touch the network, on both pages.
+METHOD_PARAPHRASE_CASES = [
+    "How do you actually calculate these exchange rate numbers?",
+    "how is this number computed",
+    "how are these gaps measured",
+]
+
 # Close variants of what the chips already ask, untracked countries (the
 # Denmark case A0's own audit names), entity typos, and a small adversarial
 # handful -- all routed through the stubbed-miss path, since what's under
@@ -158,6 +170,40 @@ def run_page(page_name, cfg):
                 failures.append("%s placeholder question %r: called the network instead of routing to prose (A4)" % (page_name, pq))
             if is_bare_refusal(res["text"], res["html"]):
                 failures.append("%s placeholder question %r: bare or empty answer: %r" % (page_name, pq, res["text"][:200]))
+
+        # ---- SEB-107: methodology questions phrased in the reader's own
+        # words, not the chip's or the placeholder's exact text, must still
+        # route to prose (A4) and never touch the network -- the bug this
+        # guards against was a regex stem that only matched exact word
+        # forms, so a real paraphrase silently fell through to the live
+        # SQL path instead. index.html's live path opens an EventSource;
+        # how-it-works.html's calls fetch() -- watch whichever this page
+        # actually uses. ----
+        is_stream = cfg.get("transport") == "stream"
+        # Stubbed return value never settles/emits and never calls the real
+        # constructor -- this only needs to prove the call happened, not
+        # simulate a real round trip.
+        stub_return = "{ close: function(){} }" if is_stream else "new Promise(function(){})"
+        for q in METHOD_PARAPHRASE_CASES:
+            expr = """
+            (function(){
+              var calledNetwork = false;
+              var ctor = %s;
+              var orig = window[ctor];
+              window[ctor] = function(){ calledNetwork = true; return %s; };
+              document.getElementById(%s).value = %s;
+              document.getElementById(%s).click();
+              window[ctor] = orig;
+              var box = document.getElementById(%s);
+              return JSON.stringify({text: box.textContent, html: box.innerHTML, calledNetwork: calledNetwork});
+            })()
+            """ % (js_str("EventSource" if is_stream else "fetch"), stub_return,
+                   js_str(cfg["input_id"]), js_str(q), js_str(cfg["btn_id"]), js_str(cfg["answer_id"]))
+            res = json.loads(p.eval_js(expr))
+            if res["calledNetwork"]:
+                failures.append("%s methodology paraphrase %r: called the network instead of routing to prose (A4)" % (page_name, q))
+            if is_bare_refusal(res["text"], res["html"]):
+                failures.append("%s methodology paraphrase %r: bare or empty answer: %r" % (page_name, q, res["text"][:200]))
 
         # ---- free-text misses, stubbed to the real backend error shape:
         # the failure floor (A2) must never render a bare refusal. Two
