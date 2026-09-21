@@ -34,11 +34,15 @@ from headless import Page  # noqa: E402
 
 BASE_URL = os.environ.get("CHECK_ASK_BASE_URL", "http://127.0.0.1:8000")
 
-# The real shape ask_backend.py returns on a genuine miss (AskError) --
-# using the actual string, not an approximation, so this test would have
-# caught the exact bug A0 found: a bare refusal reaching the reader.
-STUB_MISS = {"error": "that question can't be answered from the data this site collects"}
-STUB_RATE_LIMIT = {"error": "ask again tomorrow -- this address has asked enough questions for today"}
+# The real shapes ask_backend.py returns on a genuine miss -- using the
+# actual strings, not an approximation, so this test would have caught the
+# exact bug A0 found: a bare refusal reaching the reader. V1
+# (SPEC-AGENT-2026-09-21) gave index.html's main box a streamed EventSource
+# loop over /ask_stream (one SSE "error" event); how-it-works.html's box is
+# unchanged and still POSTs /ask, getting back plain JSON {"error": ...}.
+# Both shapes are tested, one per page, per PAGES' "transport" below.
+STUB_MISS_STREAM = {"type": "error", "message": "that question can't be answered from the data this site collects"}
+STUB_MISS_FETCH = {"error": "that question can't be answered from the data this site collects"}
 
 # A bare refusal is the raw backend string with nothing else added -- no
 # named entity, no link, no "here's what you can ask instead". The rule is
@@ -48,7 +52,7 @@ STUB_RATE_LIMIT = {"error": "ask again tomorrow -- this address has asked enough
 def is_bare_refusal(answer_text, answer_html):
     if not answer_text or not answer_text.strip():
         return True
-    if answer_text.strip() == STUB_MISS["error"]:
+    if answer_text.strip() in (STUB_MISS_STREAM["message"], STUB_MISS_FETCH["error"]):
         return True
     if "->" not in answer_html and "→" not in answer_text:
         return True
@@ -76,6 +80,9 @@ PAGES = {
     "index.html": {
         "input_id": "askInput", "btn_id": "askBtn", "answer_id": "answerBox",
         "chip_selector": ".chip",
+        # V1 (SPEC-AGENT-2026-09-21): free text streams over EventSource
+        # against /ask_stream, not a single fetch() POST.
+        "transport": "stream",
     },
     "how-it-works.html": {
         "input_id": "hiwAskInput", "btn_id": "hiwAskBtn", "answer_id": "hiwAnswer",
@@ -86,6 +93,8 @@ PAGES = {
         # string (which isn't itself grammatical as a question).
         "placeholder_question": "how any number was made",
         "must_not_call_network": True,
+        # Unchanged since A0/A1-A4: still one fetch() POST to /ask.
+        "transport": "fetch",
     },
 }
 
@@ -151,9 +160,30 @@ def run_page(page_name, cfg):
                 failures.append("%s placeholder question %r: bare or empty answer: %r" % (page_name, pq, res["text"][:200]))
 
         # ---- free-text misses, stubbed to the real backend error shape:
-        # the failure floor (A2) must never render a bare refusal. ----
-        for q in FREE_TEXT_MISS_CASES:
-            expr = """
+        # the failure floor (A2) must never render a bare refusal. Two
+        # transports, two stubs -- index.html's EventSource loop, and
+        # how-it-works.html's plain fetch() POST. ----
+        if cfg.get("transport") == "stream":
+            miss_expr_tmpl = """
+            (async function(){
+              var OrigES = window.EventSource;
+              function StubES(url){
+                var self = this;
+                setTimeout(function(){ if (self.onmessage) self.onmessage({ data: JSON.stringify(%s) }); }, 5);
+              }
+              StubES.prototype.close = function(){};
+              window.EventSource = StubES;
+              document.getElementById(%s).value = %s;
+              document.getElementById(%s).click();
+              await new Promise(function(r){ setTimeout(r, 150); });
+              window.EventSource = OrigES;
+              var box = document.getElementById(%s);
+              return JSON.stringify({text: box.textContent, html: box.innerHTML});
+            })()
+            """
+            stub_payload = STUB_MISS_STREAM
+        else:
+            miss_expr_tmpl = """
             (async function(){
               var origFetch = window.fetch;
               window.fetch = function(url){
@@ -169,7 +199,11 @@ def run_page(page_name, cfg):
               var box = document.getElementById(%s);
               return JSON.stringify({text: box.textContent, html: box.innerHTML});
             })()
-            """ % (js_str(STUB_MISS), js_str(cfg["input_id"]), js_str(q), js_str(cfg["btn_id"]), js_str(cfg["answer_id"]))
+            """
+            stub_payload = STUB_MISS_FETCH
+
+        for q in FREE_TEXT_MISS_CASES:
+            expr = miss_expr_tmpl % (js_str(stub_payload), js_str(cfg["input_id"]), js_str(q), js_str(cfg["btn_id"]), js_str(cfg["answer_id"]))
             res = json.loads(p.eval_js(expr, await_promise=True))
             if is_bare_refusal(res["text"], res["html"]):
                 failures.append("%s free-text miss %r: bare refusal, no named entity or link: %r" % (page_name, q, res["text"][:200]))

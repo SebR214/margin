@@ -465,51 +465,123 @@
 
     var askInput = document.getElementById('askInput');
     var askBtn = document.getElementById('askBtn');
+
+    // ---- V1 (SPEC-AGENT-2026-09-21): the visible agentic loop -----------
+    // Free text no longer waits on one silent round trip. It watches a real
+    // multi-attempt loop over SSE: the query appears as it's written, runs,
+    // rows land, a verdict on whether they actually answer the question --
+    // up to three attempts -- then either the chart assembles from the real
+    // rows (U6, the same component every other chart on the site uses) or,
+    // on three real misses, an honest sentence about what the data
+    // couldn't support. Never a canned answer pretending to be live.
+    function renderLiveCard(state) {
+      var html = '<div class="item" style="padding-top:22px;border-top:1px solid #F0F0F0;margin-top:6px">' +
+        '<div class="stamp num">' + (state.final || state.error ? esc(passStampLabel) : 'watching the query run, live') + '</div>';
+      state.attempts.forEach(function(a, i){
+        html += '<div style="margin:10px 0;font-size:14px">' +
+          '<div style="font-weight:700;color:#0B0B0B">Attempt ' + (i + 1) + '</div>';
+        if (a.sql) html += '<div style="font-family:ui-monospace,monospace;font-size:12px;color:#5A55E0;word-break:break-all;margin:4px 0 2px">' + esc(a.sql) + '</div>';
+        if (a.rows != null) html += '<div style="color:#6B6B6B">' + a.rows + ' row' + (a.rows === 1 ? '' : 's') + ' came back' + (a.rowsError ? ' — ' + esc(a.rowsError) : '') + '</div>';
+        if (a.evaluated) html += '<div style="color:' + (a.sufficient ? '#2F7A4D' : '#B3822D') + '">' + (a.sufficient ? 'answers the question' : ('not enough on its own — ' + esc(a.note || ''))) + '</div>';
+        html += '</div>';
+      });
+      if (state.error) {
+        html += '<p>' + state.error + '</p>';
+      } else if (state.final) {
+        html += '<p style="margin-top:14px">' + esc(state.final.sentence) + '</p>';
+        if (state.final.chart) html += '<div id="askChartHost" style="margin:14px 0"></div>';
+        if (state.final.sql) {
+          html += '<a href="#" id="askSqlToggle" style="font-weight:600;color:#0B0B0B">See the actual database query →</a>' +
+            '<div id="askSqlBody" style="display:none;margin-top:6px;font-family:ui-monospace,monospace;font-size:12px;word-break:break-all">' + esc(state.final.sql) + '</div>';
+        }
+      } else if (!state.attempts.length) {
+        html += '<div style="color:#9A9A9A">Asking…</div>';
+      }
+      html += '</div>';
+      answerBox.innerHTML = html;
+      answerBox.style.display = 'block';
+      if (state.final && state.final.chart) {
+        var host = document.getElementById('askChartHost');
+        if (host && window.MarginChart) MarginChart.render(host, state.final.chart);
+      }
+      if (state.final && state.final.sql) {
+        var t = document.getElementById('askSqlToggle');
+        if (t) t.addEventListener('click', function(e){
+          e.preventDefault();
+          var b = document.getElementById('askSqlBody');
+          b.style.display = b.style.display === 'none' ? 'block' : 'none';
+        });
+      }
+      var dlink = document.getElementById('diagShow');
+      if (dlink) dlink.addEventListener('click', function(e){
+        e.preventDefault();
+        document.getElementById('showCountries').click();
+        document.getElementById('coverageList').scrollIntoView({behavior:'smooth', block:'center'});
+      });
+    }
+
     function submitAsk(){
       var q = (askInput.value || '').trim();
       if (!q) return;
       // A4 gate: methodology-shaped questions never reach the LLM/SQL path.
       if (METHOD_RE.test(q)) { methodologyAnswer(q, null); return; }
-      showAnswerCard('<span style="color:#9A9A9A">Asking…</span>', null);
-      fetch(API_BASE + '/ask', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({question: q})
-      }).then(function(r){ return r.json().then(function(body){ return {ok: r.ok, body: body}; }); })
-        .then(function(res){
-          if (!res.ok || res.body.error) {
-            var err = String(res.body.error || '');
-            var isRateLimit = /enough questions|reachable|budget/i.test(err);
-            showAnswerCard(isRateLimit ? esc(err) : diagnose(q), null);
-            var dlink = document.getElementById('diagShow');
-            if (dlink) dlink.addEventListener('click', function(e){
-              e.preventDefault();
-              document.getElementById('showCountries').click();
-              document.getElementById('coverageList').scrollIntoView({behavior:'smooth', block:'center'});
-            });
-            return;
+
+      var state = { attempts: [], final: null, error: null };
+      renderLiveCard(state);
+
+      var es;
+      try {
+        es = new EventSource(API_BASE + '/ask_stream?question=' + encodeURIComponent(q));
+      } catch (e) {
+        state.error = 'The live ask service is not reachable right now. That failure is shown, not hidden. ' +
+          (widestGap ? 'The widest gap this hour is still visible: <b>' + esc(widestGap.country) + '</b>.' : '');
+        renderLiveCard(state);
+        return;
+      }
+      var closed = false;
+      function close(){ if (!closed) { closed = true; es.close(); } }
+
+      es.onmessage = function(ev){
+        var data;
+        try { data = JSON.parse(ev.data); } catch (e) { return; }
+        var slot;
+        if (data.type === 'attempt') {
+          state.attempts[data.n - 1] = state.attempts[data.n - 1] || {};
+        } else if (data.type === 'sql') {
+          slot = state.attempts[data.n - 1] = state.attempts[data.n - 1] || {};
+          slot.sql = data.sql;
+        } else if (data.type === 'rows') {
+          slot = state.attempts[data.n - 1] = state.attempts[data.n - 1] || {};
+          slot.rows = data.count;
+          if (data.error) slot.rowsError = data.error;
+        } else if (data.type === 'evaluate') {
+          slot = state.attempts[data.n - 1] = state.attempts[data.n - 1] || {};
+          slot.evaluated = true;
+          slot.sufficient = data.sufficient;
+          slot.note = data.note;
+        } else if (data.type === 'error') {
+          var err = String(data.message || '');
+          var isOperational = /enough questions|reachable|budget|not configured/i.test(err);
+          state.error = isOperational ? esc(err) : diagnose(q);
+          close();
+        } else if (data.type === 'final') {
+          if (data.insufficient) {
+            state.error = esc(data.sentence) + ' ' + diagnose(q);
+          } else {
+            state.final = data;
           }
-          var sentence = esc(res.body.sentence || JSON.stringify(res.body.rows || res.body));
-          var receipt = null;
-          if (res.body.sql) {
-            var sqlId = 'sql' + Math.random().toString(36).slice(2,8);
-            receipt = '<a href="#" id="' + sqlId + '-toggle" style="font-weight:600;color:#0B0B0B">See the actual database query →</a>' +
-              '<div id="' + sqlId + '" style="display:none;margin-top:6px;font-family:ui-monospace,monospace;font-size:12px;word-break:break-all">' + esc(res.body.sql) + '</div>';
-          }
-          showAnswerCard(sentence, receipt);
-          if (res.body.sql) {
-            var t = document.getElementById(sqlId + '-toggle');
-            if (t) t.addEventListener('click', function(e){
-              e.preventDefault();
-              var b = document.getElementById(sqlId);
-              b.style.display = b.style.display === 'none' ? 'block' : 'none';
-            });
-          }
-        })
-        .catch(function(){
-          showAnswerCard('The live ask service is not reachable right now. That failure is shown, not hidden. ' +
-            (widestGap ? 'The widest gap this hour is still visible: <b>' + esc(widestGap.country) + '</b>.' : ''), null);
-        });
+          close();
+        }
+        renderLiveCard(state);
+      };
+      es.onerror = function(){
+        if (!state.final && !state.error) {
+          state.error = 'The live ask service is not reachable right now. That failure is shown, not hidden. ' +
+            (widestGap ? 'The widest gap this hour is still visible: <b>' + esc(widestGap.country) + '</b>.' : '');
+          renderLiveCard(state);
+        }
+        close();
+      };
     }
     if (askBtn) askBtn.addEventListener('click', submitAsk);
     if (askInput) askInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') submitAsk(); });

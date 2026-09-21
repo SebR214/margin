@@ -1,13 +1,29 @@
 #!/usr/bin/env python3
 """The backend behind /ask: a question in English, a sentence and a table out.
 
-Binds 127.0.0.1:8901. One endpoint:
+Binds 127.0.0.1:8901. Two things live here now:
 
-  POST /ask   {"question": "..."}
-  -> {"sentence": "...", "sql": "...", "rows": [...], "source": [...]}
+  POST /ask          the original single-shot path: one SQL call, one
+                      sentence call, no visible working. Left in place,
+                      unchanged, as a plain non-streaming fallback -- nothing
+                      currently calls it, but removing a working endpoint on
+                      the chance nothing needs it is a worse trade than
+                      leaving it.
 
-The model (the Anthropic API, `claude-sonnet-5` -- settled 2026-09-12, see
-ROADMAP.md and SEB-7) is called twice and never touches a file directly:
+  GET  /ask_stream    V1 (SPEC-AGENT-2026-09-21): a real agentic loop, sent
+                      live as Server-Sent Events (`?question=...`, same
+                      shape tools/serve_events.py already uses for the
+                      machine-room feed). Inspect the schema (already in the
+                      system prompt), write one query, run it, judge whether
+                      the rows actually answer the question, and if not,
+                      revise -- up to three attempts total. Every attempt's
+                      SQL, row count and verdict streams to the browser as it
+                      happens; nothing is held back and replayed as if it
+                      were instant. On the third insufficient attempt, the
+                      visitor gets an honest sentence about what the data
+                      couldn't support, never a bare refusal.
+
+The model (the Anthropic API) is called and never touches a file directly:
 
   1. Given only table and column NAMES (no data) plus a country->currency
      lookup, it writes one read-only SELECT and nothing else.
@@ -15,7 +31,9 @@ ROADMAP.md and SEB-7) is called twice and never touches a file directly:
      127.0.0.1:8899 -- the same single-statement, SELECT-only, row-capped,
      timeboxed guard every other caller of `query` goes through. This
      process never opens a CSV itself.
-  3. The model is handed the result rows and asked for one plain sentence,
+  3. For the streaming loop, a second small call judges whether the rows it
+     got back actually answer the question -- not just "did the query run".
+  4. The model is handed the result rows and asked for one plain sentence,
      banned words disallowed, no number that isn't already in the rows.
 
 A question typed into the box is untrusted public text, same as
@@ -23,10 +41,16 @@ A question typed into the box is untrusted public text, same as
 
 The key (ANTHROPIC_API_KEY) is read from the environment, never from a file
 path in this code -- see /etc/margin/ask.env and margin-serve.service, the
-only thing that sets it. There is no daily spend cap: the organisation's
-credit balance is the ceiling. The per-IP daily count below is the one limit
-this process enforces itself, because a public page that calls a model on
-every request with no limit hands the balance to whoever finds it first.
+only thing that sets it. The organisation's credit balance was previously
+the only ceiling; V1 adds a self-imposed monthly USD cap tracked in the same
+sqlite usage db as the per-IP daily count (ASK_MONTHLY_BUDGET_USD, default
+$10 -- Sebastian's own figure, not invented here). The cap is checked before
+every model call in the streaming loop, mid-loop, not just once per request
+-- a three-attempt loop makes up to seven small calls, and stopping only at
+the start of a request would let one question run the balance well past the
+cap. Once spent, the box says so plainly and the visitor falls back to the
+A1 (fixed template) and A2 (failure floor) paths -- never a canned answer
+dressed up as live.
 
 Stdlib only.
 """
@@ -53,19 +77,40 @@ SERVE_QUERY_URL = "http://127.0.0.1:8899/query"
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_VERSION = "2023-06-01"
 MODEL = "claude-sonnet-5"
-MAX_TOKENS_SQL = 600
-MAX_TOKENS_SENTENCE = 200
+# The streaming loop makes up to seven small calls a question (three
+# attempts x up to two calls, plus one closing sentence) -- "cheapest model
+# that holds up" (V1) means paying for that on the cheap tier, not sonnet-5.
+MODEL_STREAM = "claude-haiku-4-5-20251001"
+MAX_TOKENS_SQL = 800
+MAX_TOKENS_SENTENCE = 300
+MAX_TOKENS_EVAL = 500
+MAX_TOKENS_INSUFFICIENCY = 400
 ANTHROPIC_TIMEOUT_SECONDS = 20
 MAX_ROWS_SHOWN_TO_MODEL = 50
+MAX_ASK_ATTEMPTS = 3
 
 MAX_QUESTION_CHARS = 300
 
-# No per-day USD cap -- the credit balance is the ceiling (ROADMAP.md,
-# "Spend is controlled only by the credit balance"). The per-IP count is the
-# one abuse control this process is responsible for; override for testing
-# with ASK_PER_IP_DAILY_LIMIT.
+# No per-day USD cap on the legacy /ask path -- the credit balance is the
+# ceiling (ROADMAP.md, "Spend is controlled only by the credit balance"). The
+# per-IP count is the one abuse control this process is responsible for on
+# top of the monthly cap below; override for testing with
+# ASK_PER_IP_DAILY_LIMIT.
 PER_IP_DAILY_LIMIT = int(os.environ.get("ASK_PER_IP_DAILY_LIMIT", "50"))
 USAGE_DB = "/var/log/margin/ask_usage.sqlite3"
+
+# Self-imposed guardrail for V1's agentic loop, not a billing reconciliation
+# -- the real ceiling stays the org credit balance. Sebastian's own number,
+# not invented here.
+ASK_MONTHLY_BUDGET_USD = float(os.environ.get("ASK_MONTHLY_BUDGET_USD", "10"))
+
+# Approximate published per-token pricing, $ / million tokens, (input,
+# output) -- used only to estimate spend against the guardrail above, not to
+# reconcile an actual invoice.
+PRICING_PER_MILLION = {
+    MODEL: (3.00, 15.00),
+    MODEL_STREAM: (1.00, 5.00),
+}
 
 # Same words tools/check_page.py bans on every reader-facing page, checked
 # again here because a banned word reaching a real reader is worse than a
@@ -117,6 +162,35 @@ Never use these words, in any form: bps, basis, on-ramp, off-ramp, notional,
 taker, maker, USDT. The bare word "mid" is also banned; "mid-market" is fine.
 Describe what the numbers mean for someone sending money, not the name of the
 column they came from.
+
+Output only the sentence: no markdown, no preamble, no surrounding quotes.
+"""
+
+EVAL_SYSTEM_PROMPT = """You judge whether SQL query results actually answer a
+question -- not merely "did the query run without error". Given the question,
+the SQL that was run, and a sample of the rows it returned, decide honestly
+whether those rows are enough to answer the question specifically. Empty rows
+are never sufficient. A single aggregated row where the question asked to
+compare across a group is not sufficient. A row that identifies WHICH thing
+the answer is (a name, a currency code, an id) but carries none of the actual
+VALUE the question asked about (an amount, a rate, a gap, a count) is not
+sufficient either -- "which country has the widest gap" needs both the
+country and the gap's size in the same row, not just the country.
+
+Output strict JSON only, nothing else, no markdown fences:
+{"sufficient": true or false, "reason": "one short plain sentence -- either
+why it answers, or what specifically is missing or wrong"}
+"""
+
+INSUFFICIENCY_SYSTEM_PROMPT = """You write exactly one honest, plain-language
+sentence telling a reader that their question could not be answered from
+what this site's database actually holds, after real attempts were tried
+against it. Never invent what the data might show if it existed. Describe in
+plain words the kind of thing that was missing -- never a raw table or column
+name, never SQL syntax.
+
+Never use these words, in any form: bps, basis, on-ramp, off-ramp, notional,
+taker, maker, USDT.
 
 Output only the sentence: no markdown, no preamble, no surrounding quotes.
 """
@@ -215,6 +289,8 @@ def _usage_db():
     conn = sqlite3.connect(USAGE_DB)
     conn.execute("""CREATE TABLE IF NOT EXISTS asks
                      (ip TEXT, day TEXT, n INTEGER, PRIMARY KEY (ip, day))""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS spend
+                     (month TEXT PRIMARY KEY, usd REAL NOT NULL DEFAULT 0)""")
     return conn
 
 
@@ -240,12 +316,48 @@ def _over_daily_limit(ip):
         conn.close()
 
 
-def _anthropic_call(system, user_text, max_tokens):
+def _estimate_cost_usd(model, usage):
+    inp_price, out_price = PRICING_PER_MILLION.get(model, (3.00, 15.00))
+    inp = usage.get("input_tokens") or 0
+    out = usage.get("output_tokens") or 0
+    return inp / 1e6 * inp_price + out / 1e6 * out_price
+
+
+def _add_spend(usd):
+    if usd <= 0:
+        return
+    month = time.strftime("%Y-%m", time.gmtime())
+    conn = _usage_db()
+    try:
+        conn.execute(
+            "INSERT INTO spend (month, usd) VALUES (?, ?) "
+            "ON CONFLICT(month) DO UPDATE SET usd = usd + ?", (month, usd, usd))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _monthly_spend():
+    month = time.strftime("%Y-%m", time.gmtime())
+    conn = _usage_db()
+    try:
+        row = conn.execute(
+            "SELECT usd FROM spend WHERE month=?", (month,)).fetchone()
+        return row[0] if row else 0.0
+    finally:
+        conn.close()
+
+
+def _over_monthly_budget():
+    return _monthly_spend() >= ASK_MONTHLY_BUDGET_USD
+
+
+def _anthropic_call(system, user_text, max_tokens, model=MODEL):
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise AskError("ask is not configured on this server right now")
     body = json.dumps({
-        "model": MODEL,
+        "model": model,
         "max_tokens": max_tokens,
         "system": system,
         "messages": [{"role": "user", "content": user_text}],
@@ -276,8 +388,9 @@ def _anthropic_call(system, user_text, max_tokens):
     text = "".join(b.get("text", "") for b in payload.get("content", [])
                    if b.get("type") == "text")
     usage = payload.get("usage", {})
+    _add_spend(_estimate_cost_usd(model, usage))
     _log("ask_model_call model=%s input_tokens=%s output_tokens=%s "
-         "stop_reason=%s" % (MODEL, usage.get("input_tokens"),
+         "stop_reason=%s" % (model, usage.get("input_tokens"),
                               usage.get("output_tokens"),
                               payload.get("stop_reason")))
     if payload.get("stop_reason") == "max_tokens":
@@ -318,30 +431,247 @@ def ask(question, client_ip):
     if _over_daily_limit(client_ip):
         raise AskError("ask again tomorrow -- this address has asked enough "
                         "questions for today")
+    if _over_monthly_budget():
+        raise AskError("this month's ask budget is spent -- asking will "
+                        "work again next month")
 
     system = SQL_SYSTEM_PROMPT.format(
         schema=_schema_text(), countries=_country_lookup_text())
     sql = _clean_sql(_anthropic_call(system, question, MAX_TOKENS_SQL))
-    if not sql or sql.strip().upper() == "NO_QUERY":
+    if not sql or sql.strip().upper().startswith("NO_QUERY"):
         raise AskError("that question can't be answered from the data this "
                         "site collects")
 
     result = _run_query(sql)
     rows = result["rows"]
 
+    sentence = _write_sentence(question, rows, model=MODEL)
+    return {"sentence": sentence, "sql": sql, "rows": rows,
+            "source": result["source"]}
+
+
+def _write_sentence(question, rows, model=MODEL):
+    """One plain-language sentence from real rows -- with one corrective
+    retry if the first draft leaks banned jargon (a real failure the loop
+    hit live: the model wrote valid SQL against a column literally named
+    basis_bps, the rows were judged sufficient, and the first sentence
+    reused that column's name even though the system prompt already
+    forbids it). Giving up on a good answer over one bad word choice wastes
+    the two real model calls -- SQL and evaluate -- that got it right.
+    """
     shown = rows[:MAX_ROWS_SHOWN_TO_MODEL]
     note = ("" if len(rows) <= MAX_ROWS_SHOWN_TO_MODEL
             else " (showing the first %d of %d rows)"
                  % (MAX_ROWS_SHOWN_TO_MODEL, len(rows)))
     user_text = "Question: %s\n\nRows%s: %s" % (question, note, json.dumps(shown))
     sentence = _anthropic_call(
-        SENTENCE_SYSTEM_PROMPT, user_text, MAX_TOKENS_SENTENCE).strip().strip('"')
+        SENTENCE_SYSTEM_PROMPT, user_text, MAX_TOKENS_SENTENCE,
+        model=model).strip().strip('"')
+    if sentence and not _has_banned_word(sentence):
+        return sentence
+    retry_text = user_text + ("\n\nYour previous answer, \"%s\", used a "
+        "word the instructions ban. Do not use any banned word, in any "
+        "form -- describe the number in plain terms a non-specialist "
+        "would use, not the name of a column or industry jargon." % sentence)
+    sentence = _anthropic_call(
+        SENTENCE_SYSTEM_PROMPT, retry_text, MAX_TOKENS_SENTENCE,
+        model=model).strip().strip('"')
     if not sentence or _has_banned_word(sentence):
         raise AskError("could not put that into plain language -- try "
                         "asking again")
+    return sentence
 
-    return {"sentence": sentence, "sql": sql, "rows": rows,
-            "source": result["source"]}
+
+def _evaluate_rows(question, sql, rows):
+    shown = rows[:10]
+    user_text = "Question: %s\n\nSQL: %s\n\nRow count: %d\nSample rows: %s" % (
+        question, sql, len(rows), json.dumps(shown))
+    text = _anthropic_call(EVAL_SYSTEM_PROMPT, user_text, MAX_TOKENS_EVAL,
+                            model=MODEL_STREAM)
+    try:
+        start = text.index("{")
+        obj = json.loads(text[start:])
+        return {"sufficient": bool(obj.get("sufficient")),
+                "reason": str(obj.get("reason") or "")}
+    except (ValueError, KeyError):
+        # A parse glitch on the judge call shouldn't block a real non-empty
+        # result -- fail toward accepting real rows rather than silently
+        # burning another attempt on a call that itself misbehaved.
+        return {"sufficient": bool(rows),
+                "reason": "" if rows else "no rows returned"}
+
+
+def _insufficiency_sentence(question, attempts_log):
+    lines = ["Attempt %d: %s" % (i, reason)
+             for i, (_, reason) in enumerate(attempts_log, 1)]
+    user_text = "Question: %s\n\n%s" % (question, "\n".join(lines))
+    text = _anthropic_call(INSUFFICIENCY_SYSTEM_PROMPT, user_text,
+                            MAX_TOKENS_INSUFFICIENCY, model=MODEL_STREAM
+                            ).strip().strip('"')
+    if not text or _has_banned_word(text):
+        raise AskError("fallback")
+    return text
+
+
+_ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}([ T]\d{2}:\d{2}(:\d{2})?)?")
+
+
+def _chartable(rows):
+    """A (timestamp column, single numeric column) pair sorted into a
+    spark/timestamps series MarginChart.render already knows how to draw --
+    or None. Deliberately conservative: only fires on the common, obvious
+    shape (one time axis, one measure), never guesses at a multi-series or
+    categorical result. A query that doesn't fit still gets its rows shown
+    as a table -- nothing is lost, this only decides whether a chart is ALSO
+    drawn.
+
+    The timestamp column is found by what its VALUES look like, not its
+    name -- a real question hit this live: `date(ts_utc) AS day` is a
+    perfectly good time axis, but its column is named "day", which no
+    name-based pattern was ever going to anticipate. The model can alias a
+    column to anything; only the data itself is reliable.
+    """
+    if not rows or len(rows) < 2:
+        return None
+    cols = list(rows[0].keys())
+
+    def _looks_like_dates(c):
+        vals = [r.get(c) for r in rows if r.get(c) not in (None, "")]
+        return len(vals) >= 2 and all(
+            isinstance(v, str) and _ISO_DATE_RE.match(v) for v in vals)
+
+    ts_col = next((c for c in cols if _looks_like_dates(c)), None)
+    if not ts_col:
+        return None
+    numeric_cols = []
+    for c in cols:
+        if c == ts_col:
+            continue
+        try:
+            for r in rows:
+                if r.get(c) not in (None, ""):
+                    float(r[c])
+            numeric_cols.append(c)
+        except (TypeError, ValueError):
+            continue
+    if len(numeric_cols) != 1:
+        return None
+    val_col = numeric_cols[0]
+    try:
+        pairs = sorted(
+            ((r[ts_col], float(r[val_col])) for r in rows
+             if r.get(ts_col) and r.get(val_col) not in (None, "")),
+            key=lambda p: p[0])
+    except (TypeError, ValueError):
+        return None
+    if len(pairs) < 2:
+        return None
+    suffix = "%" if re.search(r"pct|percent", val_col, re.I) else ""
+    return {"spark": [p[1] for p in pairs], "timestamps": [p[0] for p in pairs],
+            "valueSuffix": suffix, "value_col": val_col}
+
+
+def ask_stream_events(question, client_ip):
+    """Yield one dict per event of the V1 agentic loop -- the generator the
+    SSE handler below writes straight to the wire, one event as soon as it
+    happens, never buffered until the end.
+    """
+    if not question or not question.strip():
+        yield {"type": "error", "message": "question is required"}
+        return
+    question = question.strip()
+    sc.log_call_event("ask")
+    if len(question) > MAX_QUESTION_CHARS:
+        yield {"type": "error",
+               "message": "keep the question under %d characters" % MAX_QUESTION_CHARS}
+        return
+    if _over_daily_limit(client_ip):
+        yield {"type": "error",
+               "message": "ask again tomorrow -- this address has asked "
+                          "enough questions for today"}
+        return
+
+    sql_system = SQL_SYSTEM_PROMPT.format(
+        schema=_schema_text(), countries=_country_lookup_text())
+
+    prev_sql, prev_reason = None, None
+    attempts_log = []
+    for attempt in range(1, MAX_ASK_ATTEMPTS + 1):
+        if _over_monthly_budget():
+            yield {"type": "error",
+                   "message": "this month's ask budget is spent -- asking "
+                              "will work again next month"}
+            return
+        yield {"type": "attempt", "n": attempt}
+
+        if prev_sql is None:
+            user_text = question
+        else:
+            user_text = (
+                "Question: %s\n\nYour previous query was:\n%s\n\nIt was "
+                "judged insufficient because: %s\n\nWrite a better query."
+                % (question, prev_sql, prev_reason))
+        try:
+            sql = _clean_sql(_anthropic_call(
+                sql_system, user_text, MAX_TOKENS_SQL, model=MODEL_STREAM))
+        except AskError as e:
+            yield {"type": "error", "message": str(e)}
+            return
+        if not sql or sql.strip().upper().startswith("NO_QUERY"):
+            yield {"type": "error",
+                   "message": "that question can't be answered from the "
+                              "data this site collects"}
+            return
+        yield {"type": "sql", "n": attempt, "sql": sql}
+
+        try:
+            result = _run_query(sql)
+        except AskError as e:
+            attempts_log.append((sql, str(e)))
+            yield {"type": "rows", "n": attempt, "count": 0, "error": str(e)}
+            prev_sql, prev_reason = sql, str(e)
+            continue
+        rows = result["rows"]
+        yield {"type": "rows", "n": attempt, "count": len(rows)}
+
+        if _over_monthly_budget():
+            yield {"type": "error",
+                   "message": "this month's ask budget is spent -- asking "
+                              "will work again next month"}
+            return
+
+        try:
+            verdict = _evaluate_rows(question, sql, rows)
+        except AskError as e:
+            yield {"type": "error", "message": str(e)}
+            return
+        yield {"type": "evaluate", "n": attempt,
+               "sufficient": verdict["sufficient"], "note": verdict["reason"]}
+
+        if verdict["sufficient"]:
+            try:
+                sentence = _write_sentence(question, rows, model=MODEL_STREAM)
+            except AskError as e:
+                yield {"type": "error", "message": str(e)}
+                return
+            shown = rows[:MAX_ROWS_SHOWN_TO_MODEL]
+            yield {"type": "final", "sentence": sentence, "sql": sql,
+                   "rows": shown, "row_count": len(rows),
+                   "source": result["source"], "chart": _chartable(rows)}
+            return
+
+        attempts_log.append((sql, verdict["reason"]))
+        prev_sql, prev_reason = sql, verdict["reason"]
+
+    try:
+        summary = _insufficiency_sentence(question, attempts_log)
+    except AskError:
+        summary = ("Three real attempts were made against the data this "
+                   "site actually collects, and none of them produced rows "
+                   "that answered the question.")
+    yield {"type": "final", "insufficient": True,
+           "attempts": [{"sql": s, "reason": r} for s, r in attempts_log],
+           "sentence": summary}
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -364,10 +694,36 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Content-Length", "0")
         self.end_headers()
+
+    def do_GET(self):
+        parsed = urllib.parse.urlsplit(self.path)
+        if parsed.path != "/ask_stream":
+            self._send(404, {"error": "no such endpoint"})
+            return
+        qs = urllib.parse.parse_qs(parsed.query)
+        question = (qs.get("question") or [""])[0]
+        # Unlike serve_events.py's /v1/events (a genuinely open-ended live
+        # feed), one ask_stream request has a real end -- the final or error
+        # event -- so the connection closes there rather than staying
+        # keep-alive with no Content-Length, which is ambiguous framing a
+        # client can be left waiting on.
+        self.close_connection = True
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "close")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        try:
+            for event in ask_stream_events(question, self._client_ip()):
+                self.wfile.write(("data: %s\n\n" % json.dumps(event)).encode())
+                self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):
+            pass
 
     def do_POST(self):
         parsed = urllib.parse.urlsplit(self.path)
@@ -387,9 +743,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self._send(400, {"error": str(e)})
 
 
+class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+    # A streaming request now holds its connection open for up to three
+    # model round trips -- a single-threaded server would make every other
+    # visitor queue behind it, same reasoning as serve_events.py.
+    daemon_threads = True
+    allow_reuse_address = True
+
+
 def main():
-    socketserver.TCPServer.allow_reuse_address = True
-    httpd = socketserver.TCPServer((HOST, PORT), Handler)
+    httpd = ThreadingHTTPServer((HOST, PORT), Handler)
     print("ask_backend listening on http://%s:%d" % (HOST, PORT))
     httpd.serve_forever()
 
