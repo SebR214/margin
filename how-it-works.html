@@ -66,7 +66,7 @@
 
   <main>
     <h1>How it works</h1>
-    <div class="p">Most currency sites show the official exchange rate. In a lot of countries that is not what people actually pay. The street price of a dollar can be a few percent off the official rate, or a thousand percent off, and the official number hides it completely. This site measures that difference, every hour, in 59 countries. It also prices what it really costs to send money on four corridors, fees and exchange-rate margin together.</div>
+    <div class="p">Most currency sites show the official exchange rate. In a lot of countries that is not what people actually pay. The street price of a dollar can be a few percent off the official rate, or a thousand percent off, and the official number hides it completely. This site measures that difference, every hour, in <span id="introCountryCount">60</span> countries. It also prices what it really costs to send money on four corridors, fees and exchange-rate margin together.</div>
 
     <div class="h">How a number gets made</div>
     <div class="p">Every hour the collector goes out and gets real offers, what people are asking for a dollar right now. It takes the median price you would actually pay, compares it to the official rate captured in the same pass, and the gap is the number. Nothing is modelled or smoothed. If the offers move, the number moves.</div>
@@ -107,6 +107,11 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&am
 fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
   var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
   document.getElementById('liveStamp').textContent = 'LIVE · ' + hourUtc + ' UTC';
+  // Same figure the homepage binds its hero line to (countries.length +
+  // withheld.length) -- these were two separately typed numbers for the
+  // same fact on different pages (59 here, 60 there) until now.
+  document.getElementById('introCountryCount').textContent =
+    (d.countries||[]).length + (d.withheld||[]).length;
   document.getElementById('thresholdP').textContent =
     'The rule is ten sell offers minimum. Under that, the country shows its reason instead of a price. Right now ' +
     (d.countries||[]).length + ' countries have a price and ' + (d.withheld||[]).length + ' do not.';
