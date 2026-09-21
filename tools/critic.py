@@ -26,6 +26,7 @@ import base64
 import json
 import os
 import random
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -263,6 +264,10 @@ def run(base_url, dry_run):
              "--body", full_body, "--role", "critic", "--label", "critic-finding"],
             text=True).strip()
         log("filed: %s -- %s" % (out, title))
+
+    if "CRITIC_SHOT_DIR" not in os.environ:
+        shutil.rmtree(SCREENSHOT_DIR, ignore_errors=True)
+        log("cleaned up %s" % SCREENSHOT_DIR)
 
 
 def main():
