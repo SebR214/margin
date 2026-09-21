@@ -149,6 +149,14 @@ Rules:
   the computed premium as basis_bps -- and bring in fx_rates only
   alongside it for context, never as the whole answer, unless the
   question explicitly asks for the official rate itself.
+- A question about how a gap has moved "over time" is asking for history,
+  not the current hour -- but basis_history only holds rows for five
+  currencies (TRY, KRW, IDR, THB, MXN). For every other currency, its
+  history lives in p2p_basis or basis instead, one row per hour, going
+  back as far as that table's own timestamps do. If a query against
+  basis_history for a currency returns zero rows, the fix on retry is to
+  query p2p_basis or basis for that same currency, never to repeat
+  basis_history with different column names.
 - Columns that read as yes/no (source_ok, fees_verified, filled_fully,
   onramp_filled, offramp_filled and similar) hold the literal text 'True' or
   'False', never the number 1 or 0 -- compare with = 'True', not = 1.
@@ -246,9 +254,13 @@ TABLE_CAPTIONS = {
     "basis": "How far the price of a stablecoin sits from the official "
              "exchange rate, checked hourly, exchange by exchange.",
     "basis_history": "The same daily comparison, kept further back than the "
-                      "hourly checks go.",
+                      "hourly checks go -- but only for five currencies: "
+                      "TRY, KRW, IDR, THB and MXN. Every other currency has "
+                      "zero rows here; its real history is in p2p_basis or "
+                      "basis instead.",
     "p2p_basis": "The same comparison as the exchange one above, priced "
-                 "instead from person-to-person trading boards.",
+                 "instead from person-to-person trading boards -- this is "
+                 "where most currencies' history over time actually lives.",
     "fx_rates": "The official exchange rate for each currency, as published "
                 "by the source this site treats as authoritative.",
     "samples": "One full side-by-side comparison per hour: sending money "
