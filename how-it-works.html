@@ -205,6 +205,37 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
     }
   }
 
+  // A2: this box had no failure floor at all -- a genuine miss bare-
+  // refused, caught by the golden set (tools/check_ask.py) the moment it
+  // ran. Same rule as Home's ask box: name what was understood, give a
+  // real link, never a bare string.
+  var worldNames = {};
+  try {
+    var dn = new Intl.DisplayNames(['en'], { type: 'region' });
+    for (var a = 65; a <= 90; a++) for (var b = 65; b <= 90; b++) {
+      var code = String.fromCharCode(a) + String.fromCharCode(b);
+      var nm = dn.of(code);
+      if (nm && nm !== code) worldNames[nm.toLowerCase()] = nm;
+    }
+  } catch (e) { /* falls through to the generic floor below */ }
+
+  function diagnose(q){
+    var tracked = window.hiwTrackedByName || {};
+    var lower = ' ' + q.toLowerCase().replace(/[^a-z\s]/g, ' ') + ' ';
+    var mentionedTracked = Object.keys(tracked).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
+    var mentionedWorld = Object.keys(worldNames).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
+    var untracked = mentionedWorld.filter(function(n){ return !tracked[n]; });
+    if (untracked.length) {
+      return esc(worldNames[untracked[0]]) + ' isn’t one of the countries this site collects prices for — nothing is being hidden, it was simply never collected. ' +
+        '<a href="./the-index.html" style="font-weight:600;color:#0B0B0B">See every tracked country →</a>';
+    }
+    if (mentionedTracked.length) {
+      var c = tracked[mentionedTracked[0]];
+      return 'That phrasing didn’t resolve, but <b>' + esc(c.country) + '</b> <i>is</i> tracked. <a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">See ' + esc(c.country) + '’s page →</a>';
+    }
+    return 'That couldn’t be turned into a query against what’s collected here. <a href="./the-index.html" style="font-weight:600;color:#0B0B0B">See every tracked country →</a> or <a href="./ask.html" style="font-weight:600;color:#0B0B0B">try the main ask page →</a>.';
+  }
+
   function submit(){
     var q = (input.value || '').trim();
     if (!q) return;
@@ -220,7 +251,9 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
     }).then(function(r){ return r.json().then(function(body){ return {ok: r.ok, body: body}; }); })
       .then(function(res){
         if (!res.ok || res.body.error) {
-          show(esc(res.body.error || 'That could not be answered right now.'));
+          var err = String(res.body.error || '');
+          var isRateLimit = /enough questions|reachable|budget/i.test(err);
+          show(isRateLimit ? esc(err) : diagnose(q));
           return;
         }
         var sentence = esc(res.body.sentence || 'No plain answer came back for that.');

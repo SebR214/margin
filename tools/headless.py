@@ -255,6 +255,27 @@ class Page:
                        {"expression": expr, "returnByValue": True})
         return ((r or {}).get("result", {}).get("result", {}) or {}).get("value")
 
+    def eval_js(self, expr, await_promise=False):
+        """Run arbitrary JS in the already-loaded page and return its value.
+
+        Public wrapper around `_eval` for callers that need more than
+        `visit`'s text/html/errors -- SEB-99's ask-box golden set (Q1)
+        clicks chips and stubs `window.fetch` to test the deterministic
+        client-side logic (A1's templates, A2's failure floor, A4's
+        methodology routing) without hitting the live paid backend on
+        every CI run. `await_promise=True` lets the expression be an
+        async IIFE the caller awaits, for code that needs to wait on a
+        DOM update after a click.
+        """
+        r = self._call("Runtime.evaluate",
+                       {"expression": expr, "returnByValue": True,
+                        "awaitPromise": await_promise})
+        result = (r or {}).get("result", {}).get("result", {}) or {}
+        if result.get("subtype") == "error" or "exceptionDetails" in (r or {}).get("result", {}):
+            exc = (r or {}).get("result", {}).get("exceptionDetails", {})
+            raise RuntimeError("JS error: " + json.dumps(exc)[:500])
+        return result.get("value")
+
     def close(self):
         try:
             if self.ws:

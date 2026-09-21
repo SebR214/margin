@@ -44,6 +44,7 @@ Then, every time:
 | 3 | Python is valid | `python3 -m py_compile $(git diff --name-only main...HEAD -- '*.py')` | non-zero exit |
 | 4 | Data is fresh | `python3 tools/check_freshness.py` | non-zero exit |
 | 5 | Pages render | `python3 tools/check_page.py` if any `.html` changed | non-zero exit |
+| 5b | The golden set holds | `python3 tools/check_ask.py` if `index.html`, `how-it-works.html`, or any file either one reads (`js/chart.js`, `data/index_latest.json`'s shape) changed | non-zero exit -- a chip, a placeholder-invited question, or a free-text miss produced a bare refusal or touched the network when it must not have (SPEC-AGENT-2026-09-21, A1/A2/A4, Q1) |
 | 6 | No CSV header changed | `git diff main...HEAD -- 'data/*.csv' \| grep '^[-+].*ts_utc'` | an existing header line is modified |
 | 7 | Numbers are computed | read the diff for digits in markup | a figure is typed into a page |
 | 7b | Strings are in the copy deck | grep the diff for visible text outside `copy.json` | any reader-facing string is inline |
@@ -100,6 +101,17 @@ Leave the issue **In Review** and the pull request **open**. Say in your verdict
 what the rendered page actually shows — the headline, the first row, the
 figures — and attach or describe the screenshots, so the decision is a look
 rather than an investigation.
+
+**Review from the rendered page, not the diff (Q3, SPEC-AGENT-2026-09-21).**
+Reading a diff tells you what the code says; it does not tell you what a
+visitor sees. Before approving any reader-facing PR: serve the PR branch
+locally (`tools/shot.py` and `tools/check_page.py` already do this) and look
+at the actual render. If the page carries an ask box, don't stop at a static
+screenshot — click one chip and type one free-text question for real, using
+`headless.Page.eval_js` the way `tools/check_ask.py` does, and put the actual
+answer text in your verdict. A page that merely loads is not the same claim
+as a page that answers correctly; only the second one is what's being
+approved.
 
 **Keep one stack, not a scatter (OPS-3).** Every reader-facing pull request
 waiting on him lives in a single Linear document, `Awaiting your eyes`,

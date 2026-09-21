@@ -111,11 +111,17 @@ Run the verification the issue specifies, and also, always:
 python3 -m py_compile $(git diff --name-only main...HEAD -- '*.py')
 python3 tools/check_freshness.py
 python3 tools/check_page.py            # if any .html changed
+python3 tools/check_ask.py             # if index.html, how-it-works.html, or ask logic changed
 ```
 
 Keep the real output. You will paste it into the PR. If it fails, fix it and run
 it again — never paste output from a run that did not happen, never describe
 output you did not see.
+
+If the issue adds or changes a chip, a placeholder question, or anything else
+the site itself suggests asking, add it to `tools/check_ask.py`'s golden set
+in the same PR (SPEC-AGENT-2026-09-21, Q1). A suggested question that isn't
+in the golden set is a suggested question nobody is checking.
 
 ## 4. Open the PR, then report on the issue
 
