@@ -53,6 +53,7 @@ ROLES = {
     "builder":  "🔨 **Builder**",
     "reviewer": "🔍 **Reviewer**",
     "product":  "📋 **Product**",
+    "critic":   "🕵️ **Critic**",
 }
 
 
@@ -377,6 +378,42 @@ def cmd_unlabel(a):
     print("%s -%s" % (i["identifier"], a.label))
 
 
+def upload_image(path):
+    """Upload a local file to Linear's asset storage, return its public URL.
+
+    Standard two-step Linear upload: ask for a signed PUT URL and the asset's
+    eventual public URL, then PUT the raw bytes there directly (not through
+    the GraphQL endpoint). The returned assetUrl can go straight into a
+    markdown image in any issue/comment body: `![alt](assetUrl)`.
+
+    Built for Q2 (SPEC-AGENT-2026-09-21): the critic attaches a real
+    screenshot to every issue it files, not a description of one.
+    """
+    size = os.path.getsize(path)
+    ctype = "image/png"
+    r = call("""mutation($ct: String!, $fn: String!, $sz: Int!) {
+      fileUpload(contentType: $ct, filename: $fn, size: $sz) {
+        success
+        uploadFile { uploadUrl assetUrl headers { key value } }
+      }
+    }""", {"ct": ctype, "fn": os.path.basename(path), "sz": size})
+    uf = r["fileUpload"]["uploadFile"]
+    headers = {"Content-Type": ctype}
+    for h in uf["headers"]:
+        headers[h["key"]] = h["value"]
+    with open(path, "rb") as f:
+        data = f.read()
+    req = urllib.request.Request(uf["uploadUrl"], data=data, method="PUT", headers=headers)
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        if resp.status not in (200, 201, 204):
+            sys.exit("Linear asset upload failed: HTTP %s" % resp.status)
+    return uf["assetUrl"]
+
+
+def cmd_attach(a):
+    print(upload_image(a.path))
+
+
 def cmd_new(a):
     body = open(a.body_file).read() if a.body_file else (a.body or "")
     body = stamped(a.role, body, "Filed")
@@ -469,6 +506,8 @@ def main():
     x.set_defaults(fn=cmd_label)
     x = s.add_parser("unlabel"); x.add_argument("ident"); x.add_argument("label")
     x.set_defaults(fn=cmd_unlabel)
+    x = s.add_parser("attach"); x.add_argument("path")
+    x.set_defaults(fn=cmd_attach)
     x = s.add_parser("new"); x.add_argument("title"); x.add_argument("--body")
     x.add_argument("--body-file"); x.add_argument("--label", action="append")
     x.add_argument("--priority", type=int, default=3)

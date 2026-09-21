@@ -231,6 +231,20 @@ class Page:
         html = self._eval("document.documentElement.outerHTML")
         return Result(text or "", html or "", list(self.errors))
 
+    def set_viewport(self, width, height=None, mobile=False):
+        """Pin the viewport to a specific size before a screenshot -- for
+        the critic (Q2), walking the nav at real desktop and phone widths
+        rather than always capturing the page's own natural content size.
+        Call `clear_viewport()` afterward or the override persists.
+        """
+        self._call("Emulation.setDeviceMetricsOverride", {
+            "width": width, "height": height or int(width * 1.8),
+            "deviceScaleFactor": 2 if mobile else 1, "mobile": mobile,
+        })
+
+    def clear_viewport(self):
+        self._call("Emulation.clearDeviceMetricsOverride")
+
     def screenshot(self, path, full=True):
         """PNG of the current page. Used by the reviewer to show its work."""
         if full:
