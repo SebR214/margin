@@ -563,13 +563,17 @@
     function submitAsk(){
       var q = (askInput.value || '').trim();
       if (!q) return;
-      // A4 gate: methodology-shaped questions never reach the LLM/SQL path.
-      if (METHOD_RE.test(q)) { methodologyAnswer(q, null); return; }
 
       // SEB-104: a question already in flight is for a different question --
-      // close it before starting this one so its events can never land in
-      // this box after the fact.
+      // close it before this one renders anything, on every path through
+      // this function, not just the free-text stream path. A methodology-
+      // shaped question below still needs this: it renders into answerBox
+      // immediately, and without closing the prior stream first, that
+      // stream's late "final" event could silently overwrite it afterward.
       if (activeAsk) { activeAsk.close(); activeAsk = null; }
+
+      // A4 gate: methodology-shaped questions never reach the LLM/SQL path.
+      if (METHOD_RE.test(q)) { methodologyAnswer(q, null); return; }
 
       var state = { attempts: [], final: null, error: null };
       renderLiveCard(state);
