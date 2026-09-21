@@ -490,6 +490,16 @@
     var askInput = document.getElementById('askInput');
     var askBtn = document.getElementById('askBtn');
 
+    // SEB-104: submitAsk() used to leave a prior EventSource running when a
+    // second question was asked before the first's three-attempt loop
+    // finished -- both streams wrote into the same answerBox, and whichever
+    // one's "final" event landed last won, regardless of which question was
+    // newest. A reader who asked about Japan then immediately asked about
+    // North Korea could see North Korea's box overwritten by Japan's answer
+    // once that older, slower stream finally completed. One live stream at a
+    // time: starting a new question always closes whatever is still open.
+    var activeAsk = null;
+
     // ---- V1 (SPEC-AGENT-2026-09-21): the visible agentic loop -----------
     // Free text no longer waits on one silent round trip. It watches a real
     // multi-attempt loop over SSE: the query appears as it's written, runs,
@@ -556,6 +566,11 @@
       // A4 gate: methodology-shaped questions never reach the LLM/SQL path.
       if (METHOD_RE.test(q)) { methodologyAnswer(q, null); return; }
 
+      // SEB-104: a question already in flight is for a different question --
+      // close it before starting this one so its events can never land in
+      // this box after the fact.
+      if (activeAsk) { activeAsk.close(); activeAsk = null; }
+
       var state = { attempts: [], final: null, error: null };
       renderLiveCard(state);
 
@@ -569,7 +584,9 @@
         return;
       }
       var closed = false;
-      function close(){ if (!closed) { closed = true; es.close(); } }
+      function close(){ if (!closed) { closed = true; es.close(); if (activeAsk === thisAsk) activeAsk = null; } }
+      var thisAsk = { close: close };
+      activeAsk = thisAsk;
 
       es.onmessage = function(ev){
         var data;
