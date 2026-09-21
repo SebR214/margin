@@ -681,7 +681,12 @@ def ask_stream_events(question, client_ip):
                    "message": "that question can't be answered from the "
                               "data this site collects"}
             return
-        yield {"type": "sql", "n": attempt, "sql": sql}
+        # The SQL text itself never reaches the browser: it names real table
+        # and column identifiers (basis_bps, fx_mid_per_usd) that are exactly
+        # the banned jargon the plain-language rule forbids on a reader page.
+        # The staging signal a reader needs -- "a query has been written" --
+        # doesn't need the text, only the fact of the event (SEB-103).
+        yield {"type": "sql", "n": attempt}
 
         try:
             result = _run_query(sql)
@@ -714,7 +719,7 @@ def ask_stream_events(question, client_ip):
                 yield {"type": "error", "message": str(e)}
                 return
             shown = rows[:MAX_ROWS_SHOWN_TO_MODEL]
-            yield {"type": "final", "sentence": sentence, "sql": sql,
+            yield {"type": "final", "sentence": sentence,
                    "rows": shown, "row_count": len(rows),
                    "source": result["source"], "chart": _chartable(rows)}
             return
@@ -729,7 +734,7 @@ def ask_stream_events(question, client_ip):
                    "site actually collects, and none of them produced rows "
                    "that answered the question.")
     yield {"type": "final", "insufficient": True,
-           "attempts": [{"sql": s, "reason": r} for s, r in attempts_log],
+           "attempts": [{"reason": r} for _, r in attempts_log],
            "sentence": summary}
 
 
