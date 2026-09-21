@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-09-21T07:07:11.547874+00:00",
+  "as_of_utc": "2026-09-21T07:20:27+00:00",
   "tables": {
     "basis": {
       "bytes": 385941,
@@ -74,7 +74,7 @@
       "rows": 60
     },
     "fee_checks": {
-      "bytes": 2866,
+      "bytes": 2972,
       "columns": [
         "ts_utc",
         "venue",
@@ -87,7 +87,24 @@
         "error"
       ],
       "file": "fee_checks.parquet",
-      "rows": 24
+      "rows": 32
+    },
+    "fee_tier_schedule": {
+      "bytes": 3067,
+      "columns": [
+        "ts_utc",
+        "venue",
+        "leg",
+        "regime",
+        "tier_label",
+        "volume_threshold",
+        "volume_ccy",
+        "fee_pct",
+        "source_url",
+        "error"
+      ],
+      "file": "fee_tier_schedule.parquet",
+      "rows": 94
     },
     "fx_rates": {
       "bytes": 16082,
@@ -364,7 +381,7 @@
       "rows": 4
     },
     "withdrawal_fees": {
-      "bytes": 1964,
+      "bytes": 1997,
       "columns": [
         "ts_utc",
         "venue",
@@ -375,8 +392,8 @@
         "source_ok"
       ],
       "file": "withdrawal_fees.parquet",
-      "rows": 28
+      "rows": 34
     }
   },
-  "total_bytes": 2639048
+  "total_bytes": 2642254
 }
