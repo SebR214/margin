@@ -45,16 +45,25 @@ New kinds, alongside the three B3 already streams (`collection_pass`,
                      direction, so a stopped loop is shown stopped rather
                      than just going quiet.
 
-Replay: the last 50 events this SERVER PROCESS has actually published,
-across every kind, held in one bounded deque and sent to a client the
-moment it connects, before it starts receiving live events. Nothing older
-than server start is replayed -- backfilling from the beginning of a log
-file that predates this process would dump old lines under today's
-timestamp, which is exactly the resampled event the issue rules out.
+Replay: the events this SERVER PROCESS has actually published, sent to a
+client the moment it connects, before it starts receiving live events.
+Nothing older than server start is replayed -- backfilling from the
+beginning of a log file that predates this process would dump old lines
+under today's timestamp, which is exactly the resampled event the issue
+rules out.
 
-One background thread polls everything and publishes to that deque and to
-every connected client's own queue; each HTTP connection is otherwise just
-a subscriber, under the same MAX_CONNECTIONS cap as before.
+Held per KIND, not in one shared deque (KIND_HISTORY_MAX below) -- one
+hourly collector_pass alone emits ~60 collector_source events, one per
+tracked country, and a single shared "last 50" bound meant that one pass
+silently evicted every commit, review and Linear event a visitor was
+supposed to see. Each kind now keeps its own bounded history (generous for
+the low-volume kinds that matter most, just enough for collector_source to
+hold one full pass), merged back into true chronological order at replay
+time by a monotonic sequence number stamped at publish.
+
+One background thread polls everything and publishes to those per-kind
+deques and to every connected client's own queue; each HTTP connection is
+otherwise just a subscriber, under the same MAX_CONNECTIONS cap as before.
 
 Stdlib only.
 """
@@ -62,6 +71,7 @@ Stdlib only.
 import collections
 import datetime
 import http.server
+import itertools
 import json
 import os
 import queue
@@ -100,20 +110,52 @@ MAX_CONNECTIONS = 20
 
 POLL_SECONDS = 5
 
-# The last 50 events this process has published, across every kind -- what
-# SEB-58 means by "on connect, replay the last 50 events".
-HISTORY_MAX = 50
+# SEB-58 means "replay the last 50 events" as "a new visitor should see
+# what just happened" -- one shared deque across every kind broke that
+# promise the first time it was actually load-bearing: one hourly
+# collector_pass alone emits ~60 collector_source events (one per tracked
+# country), so a single pass evicted EVERY commit, review, and Linear event
+# this whole page exists to show -- hours of real work vanished from a new
+# visitor's replay the moment the clock ticked over, not because nothing
+# happened, but because the loud, frequent kind drowned out the sparse,
+# important ones in one shared bound. A page whose whole point is proving
+# the work happened cannot let its own busiest event type erase the record
+# of that work.
+#
+# Fix: one bounded deque per kind, sized to what that kind actually needs --
+# generous for the low-volume kinds that matter most (commit, linear),
+# just enough for collector_source to hold one full pass. A monotonic
+# sequence number stamped at publish time lets replay merge every kind's
+# buffer back into one true chronological order.
+KIND_HISTORY_MAX = {
+    "collector_source": 70,   # one hourly pass, ~60 countries, with slack
+    "collection_pass":  20,
+    "collector_pass":   10,
+    "loop_health":      25,
+    "linear":           30,
+    "commit":           30,
+    "call":             20,
+    "commission_step":  20,
+}
+DEFAULT_KIND_HISTORY_MAX = 20
 
 _slots = threading.Semaphore(MAX_CONNECTIONS)
-_history = collections.deque(maxlen=HISTORY_MAX)
+_seq = itertools.count()
+_history_by_kind = {}
 _history_lock = threading.Lock()
 _subscribers = set()
 _subscribers_lock = threading.Lock()
 
 
 def _publish(event):
+    kind = event.get("kind", "")
+    seq = next(_seq)
     with _history_lock:
-        _history.append(event)
+        buf = _history_by_kind.get(kind)
+        if buf is None:
+            buf = collections.deque(maxlen=KIND_HISTORY_MAX.get(kind, DEFAULT_KIND_HISTORY_MAX))
+            _history_by_kind[kind] = buf
+        buf.append((seq, event))
     with _subscribers_lock:
         subs = list(_subscribers)
     for q in subs:
@@ -121,10 +163,19 @@ def _publish(event):
             q.put_nowait(event)
         except queue.Full:
             # A subscriber too slow to keep up misses a live event, but the
-            # replay buffer still catches it up to the last 50 on its next
-            # poll -- dropping here beats blocking the one shared poller on
-            # one slow reader.
+            # replay buffer still catches it up on its next poll -- dropping
+            # here beats blocking the one shared poller on one slow reader.
             pass
+
+
+def _replay_backlog():
+    """Every kind's retained history, merged back into one chronological
+    order by the sequence number each event was published with.
+    """
+    with _history_lock:
+        items = [pair for buf in _history_by_kind.values() for pair in buf]
+    items.sort(key=lambda pair: pair[0])
+    return [event for _, event in items]
 
 
 def _iso_now():
@@ -518,9 +569,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         with _subscribers_lock:
             _subscribers.add(q)
         try:
-            with _history_lock:
-                backlog = list(_history)
-            for event in backlog:
+            for event in _replay_backlog():
                 self._send_event(event)
             while True:
                 self._send_event(q.get())
