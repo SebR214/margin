@@ -127,7 +127,7 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
   (d.countries || []).forEach(function(c){ window.hiwTrackedByName[c.country.toLowerCase()] = c; });
 
   fetch('./data/fx_rates.csv', {cache:'no-store'}).then(function(r){ return r.text(); }).then(function(text){
-    var lines = text.split('\n');
+    var lines = text.replace(/\r/g, '').split('\n');
     var header = lines[0].split(',');
     var iCcy = header.indexOf('ccy'), iFx = header.indexOf('fx_mid_per_usd'),
         iPar = header.indexOf('parallel_rate_per_usd'), iSrc = header.indexOf('parallel_source'),
