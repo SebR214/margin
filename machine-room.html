@@ -7,7 +7,7 @@
 <meta name="description" content="What the collector is doing this hour, and what the agents building this site are doing, unedited, as it happens."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; --withheld:#B3822D; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
@@ -23,15 +23,14 @@
   nav a.active{color:var(--ink);font-weight:700}
   .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
-  .dot.off{background:#B3822D}
+  .dot.off{background:#9A9A9A}
   .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:12px}
   h1{font-size:42px;font-weight:800;letter-spacing:-0.02em;margin:0}
   .lede{max-width:840px;font-size:16px;color:#6B6B6B;line-height:1.5}
   .cols{flex-grow:1;display:grid;grid-template-columns:1fr 1fr 330px;gap:56px;padding:36px 48px 44px}
-  .col-hdr{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #0B0B0B;padding-bottom:8px}
+  .col-hdr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;border-bottom:1px solid #0B0B0B;padding-bottom:8px}
   .col-title{font-size:16px;font-weight:700}
   .feed{max-height:560px;overflow-y:auto}
-  .withheld-row{color:var(--withheld)}
   .meter{display:flex;flex-direction:column;gap:2px;padding:14px 0;border-bottom:1px solid var(--rule)}
   .meter .v{font-size:30px;font-weight:800;color:var(--indigo)}
   .meter .v.muted{color:#9A9A9A;font-size:16px;font-weight:700}
@@ -67,41 +66,32 @@
       </nav>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
-    <div class="live"><span class="dot off" id="dot"></span><span class="num" id="connLabel">connecting…</span></div>
+    <div class="live"><span class="dot off" id="dot"></span><span class="num" id="connLabel">&nbsp;</span></div>
   </header>
 
   <div class="hero">
-    <h1>The machine room</h1>
-    <div class="lede">Four bits of software do the work here. One collects the prices every hour, one builds the site, one reviews what got built, one decides what to build next. They hand work to each other through issues and pull requests, same as a small team would. This page is that, live. Nothing is cleaned up first, so when something breaks you see it break.</div>
+    <h1 id="pageTitle">&nbsp;</h1>
+    <div class="lede" id="pageLede">&nbsp;</div>
   </div>
 
   <div class="cols">
     <div style="display:flex;flex-direction:column">
-      <div class="col-hdr"><div class="col-title">This hour's collection</div><div class="lbl num" id="collectorState">&nbsp;</div></div>
+      <div class="col-hdr"><div class="col-title" id="col1Title">&nbsp;</div><div class="lbl num" id="collectorState">&nbsp;</div></div>
       <div id="passProgress" style="font-size:13px;color:#6B6B6B;padding:10px 0;border-bottom:1px solid #F6F6F6">&nbsp;</div>
-      <div class="feed" id="collectorFeed"><div class="empty">Watching live from here — what you see below happened since this page opened. Nothing before that is replayed.</div></div>
+      <div class="feed" id="collectorFeed"><div class="empty" id="col1Empty">&nbsp;</div></div>
     </div>
     <div style="display:flex;flex-direction:column">
-      <div class="col-hdr"><div class="col-title">What the agents are doing</div><div class="lbl">ISSUES · REVIEWS · COMMITS</div></div>
-      <div class="feed" id="agentFeed"><div class="empty">Nothing since this page connected.</div></div>
-      <div style="padding-top:16px;font-size:13px;color:#6B6B6B"><a href="https://github.com/SebR214/margin/commits/main">Everything they have ever done, including the failures →</a></div>
+      <div class="col-hdr"><div class="col-title" id="col2Title">&nbsp;</div><div class="lbl" id="col2Kicker">&nbsp;</div></div>
+      <div class="feed" id="agentFeed"><div class="empty" id="col2Empty">&nbsp;</div></div>
+      <div style="padding-top:16px;font-size:13px;color:#6B6B6B"><a href="https://github.com/SebR214/margin/commits/main" id="col2HistoryLink">&nbsp;</a></div>
     </div>
     <div style="display:flex;flex-direction:column">
-      <div style="border-bottom:1px solid #0B0B0B;padding-bottom:8px;font-size:16px;font-weight:700">Where things stand</div>
-      <div class="meter"><div class="v num" id="mPriced">—</div><div class="lbl">PRICED THIS HOUR</div></div>
-      <div class="meter"><div class="v num" id="mWithheld">—</div><div class="lbl">WITHHELD, WITH REASONS</div></div>
-      <div class="meter"><div class="v num" id="mCommits">0</div><div class="lbl">COMMITS SEEN SINCE CONNECTING</div></div>
-      <div class="meter"><div class="v muted" id="mPRs">see GitHub</div><div class="lbl"><a href="https://github.com/SebR214/margin/pulls">OPEN PULL REQUESTS →</a></div></div>
-      <div class="meter"><div class="v num" id="mHours">—</div><div class="lbl">HOURS OF HISTORY, UNBROKEN</div></div>
-      <div class="meter"><div class="v num">1</div><div class="lbl">PEOPLE WORKING HERE</div></div>
+      <div style="border-bottom:1px solid #0B0B0B;padding-bottom:8px;font-size:16px;font-weight:700" id="col3Title">&nbsp;</div>
+      <div class="meter"><div class="v num" id="mPriced">—</div><div class="lbl" id="lPriced">&nbsp;</div></div>
+      <div class="meter"><div class="v num" id="mWithheld">—</div><div class="lbl" id="lWithheld">&nbsp;</div></div>
+      <div class="meter"><div class="v num" id="mCommits">0</div><div class="lbl" id="lCommits">&nbsp;</div></div>
+      <div class="meter"><div class="v num" id="mPeople">—</div><div class="lbl" id="lPeople">&nbsp;</div></div>
     </div>
-  </div>
-
-  <div style="padding:0 48px 56px">
-    <div style="border-top:1px solid #0B0B0B;padding-top:20px;font-size:16px;font-weight:700">The org chart</div>
-    <div style="font-size:14px;color:#6B6B6B;padding-top:6px;max-width:760px">Four roles, what each one's actual job is, and what it shipped this week. Not the logs above — the headcount and the real operating limits behind them.</div>
-    <div id="orgChart" style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding-top:22px"></div>
-    <div id="orgFooter" style="padding-top:18px;font-size:13px;color:#6B6B6B">&nbsp;</div>
   </div>
 </div>
 
@@ -110,14 +100,42 @@
   var API_BASE = location.hostname.endsWith("margin.wiki")
     ? "https://api.margin.wiki" : "http://127.0.0.1:8903";
 
+  var COPY = {}; // filled from copy.json's "machineRoom" key before anything renders
+
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function T(s, vals){
+    var out = String(s||'');
+    for (var k in (vals||{})) out = out.split('{'+k+'}').join(vals[k]==null?'':vals[k]);
+    return out;
+  }
   function timeOf(iso){ if(!iso) return ''; var d=new Date(iso); if(isNaN(d)) return ''; return d.toISOString().slice(11,19); }
   function todayUTC(){ return new Date().toISOString().slice(0,10); }
-  function prepend(el, html, cap){
+  function prepend(el, html, emptyText, cap){
     var empty = el.querySelector('.empty'); if (empty) empty.remove();
     var row = document.createElement('div'); row.className='log'; row.innerHTML = html;
     el.insertBefore(row, el.firstChild);
     while (el.children.length > (cap||60)) el.removeChild(el.lastChild);
+  }
+  function classWords(kind){ return (COPY.columns.collection.classWords||{})[kind] || ''; }
+
+  function renderStatic(){
+    var M = COPY.columns.meters, C1 = COPY.columns.collection, C2 = COPY.columns.agents;
+    document.getElementById('pageTitle').textContent = COPY.title || '';
+    document.getElementById('pageLede').textContent = COPY.lede || '';
+    document.getElementById('col1Title').textContent = C1.title || '';
+    document.getElementById('col1Empty').textContent = C1.empty || '';
+    document.getElementById('collectorState').textContent = C1.idle || '';
+    document.getElementById('col2Title').textContent = C2.title || '';
+    document.getElementById('col2Kicker').textContent = C2.kicker || '';
+    document.getElementById('col2Empty').textContent = C2.empty || '';
+    document.getElementById('col2HistoryLink').textContent = C2.historyLink || '';
+    document.getElementById('col3Title').textContent = M.title || '';
+    document.getElementById('lPriced').textContent = M.priced || '';
+    document.getElementById('lWithheld').textContent = M.withheld || '';
+    document.getElementById('lCommits').textContent = M.commitsToday || '';
+    document.getElementById('lPeople').textContent = M.people || '';
+    document.getElementById('mPeople').textContent = M.peopleValue || '';
+    document.getElementById('connLabel').textContent = COPY.connecting || '';
   }
 
   // A live page must never open empty -- an empty live page reads as broken
@@ -125,150 +143,112 @@
   // (every country actually checked, real evidence words, real verdict)
   // before any live SSE event has arrived; live events prepend on top of
   // this, not replace it.
-  fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
+  function seedCollection(d){
+    var C = COPY.columns.collection;
     var countries = d.countries || [], withheldList = d.withheld || [];
     var priced = countries.length, withheld = withheldList.length;
     document.getElementById('mPriced').textContent = priced;
     document.getElementById('mWithheld').textContent = withheld;
     var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
-    document.getElementById('passProgress').textContent =
-      'Last completed pass (' + hourUtc + ' UTC): ' + priced + ' of ' + (priced + withheld) + ' countries checked and priced, ' + withheld + ' withheld with a reason.';
+    document.getElementById('passProgress').textContent = T(C.lastPassTemplate,
+      { hour: hourUtc, priced: priced, total: priced + withheld, withheld: withheld });
 
     var rows = countries.map(function(c){
-      return { ccy: c.ccy, priced: true, kind: c.source_words, note: c.evidence_words };
+      return { ccy: c.ccy, priced: true, kind: c.source_words, note: c.evidence_words + C.pricedSuffix };
     }).concat(withheldList.map(function(w){
-      return { ccy: w.ccy, priced: false, kind: 'checked', note: w.reason };
+      return { ccy: w.ccy, priced: false, kind: '', note: C.withheldPrefix + (w.reason || C.noReason) };
     }));
     // No per-country timestamp is published, only the shared pass hour --
     // shown once in the label above, not invented per row.
     var html = rows.map(function(r){
       return '<div class="log"><div class="stamp num" style="min-width:62px">' + esc(r.ccy) + '</div>' +
         '<div style="flex-grow:1">' + esc(r.kind) + '</div>' +
-        '<div class="num" style="color:' + (r.priced ? '#0B0B0B' : '#B3822D') + ';font-weight:600;font-size:12px">' +
-        esc(r.note) + (r.priced ? ' · priced' : ' · withheld') + '</div></div>';
+        '<div class="num" style="color:#0B0B0B;font-weight:600;font-size:12px">' + esc(r.note) + '</div></div>';
     }).join('');
     var feed = document.getElementById('collectorFeed');
-    feed.innerHTML = html + '<div style="font-size:12px;color:#9A9A9A;padding:10px 0 4px">— last pass, seeded on load — live below —</div>';
-  }).catch(function(){});
+    feed.innerHTML = html + '<div style="font-size:12px;color:#9A9A9A;padding:10px 0 4px">' + esc(C.seededNote) + '</div>';
+  }
 
   // Seed "what the agents are doing" with real recent commits from GitHub's
   // public API (no auth needed, public repo) -- live SSE events (issues,
   // reviews, further commits) prepend above these as they arrive.
-  fetch('https://api.github.com/repos/SebR214/margin/commits?per_page=8', {headers:{'Accept':'application/vnd.github+json'}})
-    .then(function(r){ return r.ok ? r.json() : []; })
-    .then(function(commits){
-      var html = commits.map(function(c){
-        var msg = (c.commit.message.split('\n')[0] || '').replace(/\s*\(#\d+\)\s*$/, '');
-        var prMatch = c.commit.message.match(/\(#(\d+)\)/);
-        return '<div class="log"><div class="stamp num" style="min-width:46px">' + esc(timeOf(c.commit.author.date)) + '</div>' +
-          '<div class="stamp" style="min-width:64px;letter-spacing:.08em">BUILDER</div>' +
-          '<div style="flex-grow:1">committed <span style="font-weight:600">' + esc(msg) + '</span>' + (prMatch ? ' (#' + prMatch[1] + ')' : '') + '</div></div>';
-      }).join('');
-      var feed = document.getElementById('agentFeed');
-      if (html) feed.innerHTML = html + '<div style="font-size:12px;color:#9A9A9A;padding:10px 0 4px">— recent commits, seeded on load — live below —</div>';
-    }).catch(function(){});
-
-  fetch('./data/agent_status.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
-    var delivery = d.delivery || [];
-    var hours = 0;
-    for (var i = delivery.length - 2; i >= 0; i--) { if (delivery[i].hours >= 24) hours += 24; else break; }
-    var last = delivery[delivery.length-1];
-    if (last) hours += last.hours || 0;
-    document.getElementById('mHours').textContent = hours;
-  }).catch(function(){});
-
-  var commitsSeen = 0;
-  var es = new EventSource(API_BASE + '/v1/events');
-  es.onopen = function(){ document.getElementById('dot').classList.remove('off'); document.getElementById('connLabel').textContent = 'connected · live'; };
-  es.onerror = function(){ document.getElementById('dot').classList.add('off'); document.getElementById('connLabel').textContent = 'not connected — retrying'; };
-
-  es.onmessage = function(ev){
-    var e; try { e = JSON.parse(ev.data); } catch(err){ return; }
-
-    if (e.kind === 'collector_pass') {
-      document.getElementById('collectorState').textContent =
-        (e.phase === 'start' ? 'RUNNING · STARTED ' : 'IDLE · LAST PASS ') + timeOf(e.ts);
-      return;
-    }
-    if (e.kind === 'collector_source') {
-      var row = e.priced
-        ? '<div class="stamp num" style="min-width:62px">'+esc(timeOf(e.ts))+'</div><div style="flex-grow:1">'+esc(e.ccy)+' · '+esc(e.source_kind||'checked')+'</div><div class="num" style="color:#0B0B0B;font-weight:600;font-size:12px">'+esc(e.evidence_count)+' sources · priced</div>'
-        : '<div class="stamp num" style="min-width:62px">'+esc(timeOf(e.ts))+'</div><div style="flex-grow:1">'+esc(e.ccy)+' · checked</div><div class="num" style="color:#B3822D;font-weight:600;font-size:12px">withheld: '+esc(e.reason||'no reason given')+'</div>';
-      var f = document.getElementById('collectorFeed');
-      var empty = f.querySelector('.empty'); if (empty) empty.remove();
-      var d2 = document.createElement('div'); d2.className='log'+(e.priced?'':' withheld-row'); d2.innerHTML = row;
-      f.insertBefore(d2, f.firstChild);
-      while (f.children.length > 80) f.removeChild(f.lastChild);
-      return;
-    }
-    if (e.kind === 'linear') {
-      var what = e.event === 'transition' ? esc(e.ident)+' moved '+esc(e.from_state)+' → '+esc(e.to_state)
-        : esc(e.ident)+': '+esc((e.text||'').slice(0,120));
-      prepend(document.getElementById('agentFeed'),
-        '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">'+esc((e.role||'').toUpperCase())+'</div><div style="flex-grow:1">'+what+'</div>');
-      return;
-    }
-    if (e.kind === 'commit') {
-      if ((e.ts||'').slice(0,10) === todayUTC()) { commitsSeen++; document.getElementById('mCommits').textContent = commitsSeen; }
-      var pr = e.pr_number ? ' (#'+e.pr_number+')' : '';
-      prepend(document.getElementById('agentFeed'),
-        '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">BUILDER</div><div style="flex-grow:1">committed <span style="font-weight:600">'+esc((e.message||'').replace(/\s*\(#\d+\)\s*$/,''))+'</span>'+esc(pr)+'</div>');
-      return;
-    }
-    if (e.kind === 'loop_health') {
-      var label = e.event === 'stopped'
-        ? '<span style="color:#B3822D;font-weight:600">stopped for repair.</span> Last pass '+esc(timeOf(e.last_finished_utc))
-        : e.event === 'pass'
-          ? 'pass '+(e.ok?'ok':'failed')+', '+(e.seconds!=null?Math.round(e.seconds)+'s':'')
-          : 'running again';
-      prepend(document.getElementById('agentFeed'),
-        '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">'+esc((e.role||'').toUpperCase())+'</div><div style="flex-grow:1">'+label+'</div>');
-      return;
-    }
-  };
-})();
-</script>
-
-<script>
-// The org chart: four real roles, their actual job (quoted from the rule
-// files each one runs under), and real weekly output -- not the live logs
-// above, the headcount. No dollar figure: these run on a flat-rate
-// subscription, not billed per call, so there is no honest per-session cost
-// to state without disclosing a private subscription price. What's real
-// instead: a hard ceiling on paid sessions per day (SEB-78), stated plainly.
-(function(){
-  var ROLES = [
-    { name: 'Collector', job: 'Prices the market every hour: real offers in, median computed, written to a file before anything reads it.' },
-    { name: 'Builder', job: 'Builds exactly one issue per run, then stops. Won’t build past a rule — flags it and hands it back instead.' },
-    { name: 'Reviewer', job: 'The last thing between a wrong number and the public site. Never fixes a PR itself — rejects it with the exact reason.' },
-    { name: 'Product', job: 'Decides what gets built next and tells Sebastian what happened. Writes no code, merges nothing.' }
-  ];
-  document.getElementById('orgChart').innerHTML = ROLES.map(function(r){
-    return '<div><div style="font-size:11px;letter-spacing:.08em;color:#9A9A9A;padding-bottom:6px">' + r.name.toUpperCase() + '</div>' +
-      '<div style="font-size:14px;line-height:1.5;color:#222">' + r.job + '</div></div>';
-  }).join('');
-
-  // Real commits this week via GitHub's public API, paginated up to a
-  // sane cap -- stated as "200+" rather than an exact count past that
-  // point, honest about the cap rather than implying exhaustive precision.
-  var since = new Date(Date.now() - 7*24*3600*1000).toISOString();
-  function countCommits(page, total) {
-    return fetch('https://api.github.com/repos/SebR214/margin/commits?since=' + since + '&per_page=100&page=' + page)
-      .then(function(r){ return r.ok ? r.json() : []; })
-      .then(function(list){
-        var n = total + list.length;
-        if (list.length === 100 && page < 3) return countCommits(page + 1, n);
-        return { n: n, capped: list.length === 100 };
-      });
+  function seedAgents(commits){
+    var C = COPY.columns.agents;
+    var html = commits.map(function(c){
+      var msg = (c.commit.message.split('\n')[0] || '').replace(/\s*\(#\d+\)\s*$/, '');
+      var prMatch = c.commit.message.match(/\(#(\d+)\)/);
+      return '<div class="log"><div class="stamp num" style="min-width:46px">' + esc(timeOf(c.commit.author.date)) + '</div>' +
+        '<div class="stamp" style="min-width:64px;letter-spacing:.08em">BUILDER</div>' +
+        '<div style="flex-grow:1">' + esc(T(C.commitTemplate, { message: msg })) + '</div>' + (prMatch ? ' (#' + prMatch[1] + ')' : '') + '</div>';
+    }).join('');
+    var feed = document.getElementById('agentFeed');
+    if (html) feed.innerHTML = html + '<div style="font-size:12px;color:#9A9A9A;padding:10px 0 4px">' + esc(C.seededNote) + '</div>';
   }
-  countCommits(1, 0).then(function(res){
-    document.getElementById('orgFooter').innerHTML =
-      (res.capped ? res.n + '+' : res.n) + ' commits to main in the last 7 days &middot; ' +
-      '1 person, 4 agent roles &middot; hard ceiling of 76 paid model sessions a day across all three loops (builder 40, reviewer 30, product 6) &middot; ' +
-      'runs on a flat-rate subscription, not billed per call, so there is no honest per-session dollar figure to publish here.';
-  }).catch(function(){
-    document.getElementById('orgFooter').textContent = 'Could not load this week\'s commit count. That failure is shown, not hidden.';
-  });
+
+  async function boot(){
+    var copyDoc = await fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return {}; });
+    COPY = copyDoc.machineRoom || { columns: { collection:{}, agents:{}, meters:{} } };
+    renderStatic();
+
+    fetch('./data/index_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(seedCollection).catch(function(){});
+    fetch('https://api.github.com/repos/SebR214/margin/commits?per_page=8', {headers:{'Accept':'application/vnd.github+json'}})
+      .then(function(r){ return r.ok ? r.json() : []; }).then(seedAgents).catch(function(){});
+
+    var commitsSeen = 0;
+    var es = new EventSource(API_BASE + '/v1/events');
+    es.onopen = function(){ document.getElementById('dot').classList.remove('off'); document.getElementById('connLabel').textContent = COPY.connected || ''; };
+    es.onerror = function(){ document.getElementById('dot').classList.add('off'); document.getElementById('connLabel').textContent = COPY.disconnected || ''; };
+
+    es.onmessage = function(ev){
+      var e; try { e = JSON.parse(ev.data); } catch(err){ return; }
+      var C1 = COPY.columns.collection, C2 = COPY.columns.agents;
+
+      if (e.kind === 'collector_pass') {
+        document.getElementById('collectorState').textContent = e.phase === 'start' ? C1.active : C1.idle;
+        return;
+      }
+      if (e.kind === 'collector_source') {
+        var words = e.priced ? classWords(e.source_kind) : '';
+        var row = e.priced
+          ? '<div class="stamp num" style="min-width:62px">'+esc(timeOf(e.ts))+'</div><div style="flex-grow:1">'+esc(e.ccy)+' · '+esc(words)+'</div><div class="num" style="color:#0B0B0B;font-weight:600;font-size:12px">'+esc(T(C1.evidenceCountTemplate,{n:e.evidence_count}))+esc(C1.pricedSuffix)+'</div>'
+          : '<div class="stamp num" style="min-width:62px">'+esc(timeOf(e.ts))+'</div><div style="flex-grow:1">'+esc(e.ccy)+'</div><div class="num" style="color:#0B0B0B;font-weight:600;font-size:12px">'+esc(C1.withheldPrefix)+esc(e.reason||C1.noReason)+'</div>';
+        var f = document.getElementById('collectorFeed');
+        var empty = f.querySelector('.empty'); if (empty) empty.remove();
+        var d2 = document.createElement('div'); d2.className='log'; d2.innerHTML = row;
+        f.insertBefore(d2, f.firstChild);
+        while (f.children.length > 80) f.removeChild(f.lastChild);
+        return;
+      }
+      if (e.kind === 'linear') {
+        var what = e.event === 'transition'
+          ? T(C2.transitionTemplate, { ident: esc(e.ident), from: esc(e.from_state), to: esc(e.to_state) })
+          : T(C2.commentTemplate, { ident: esc(e.ident), text: esc((e.text||'').slice(0,120)) });
+        prepend(document.getElementById('agentFeed'),
+          '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">'+esc((e.role||'').toUpperCase())+'</div><div style="flex-grow:1">'+what+'</div>');
+        return;
+      }
+      if (e.kind === 'commit') {
+        if ((e.ts||'').slice(0,10) === todayUTC()) { commitsSeen++; document.getElementById('mCommits').textContent = commitsSeen; }
+        var pr = e.pr_number ? ' (#'+e.pr_number+')' : '';
+        var message = T(C2.commitTemplate, { message: '<span style="font-weight:600">'+esc((e.message||'').replace(/\s*\(#\d+\)\s*$/,''))+'</span>' });
+        prepend(document.getElementById('agentFeed'),
+          '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">BUILDER</div><div style="flex-grow:1">'+message+esc(pr)+'</div>');
+        return;
+      }
+      if (e.kind === 'loop_health') {
+        var label = e.event === 'stopped'
+          ? T(C2.loopStoppedTemplate, { when: esc(timeOf(e.last_finished_utc)) })
+          : e.event === 'pass'
+            ? T(C2.loopPassTemplate, { result: e.ok ? C2.loopOk : C2.loopFailed, seconds: e.seconds!=null ? ', '+Math.round(e.seconds)+'s' : '' })
+            : C2.loopRecovered;
+        prepend(document.getElementById('agentFeed'),
+          '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">'+esc((e.role||'').toUpperCase())+'</div><div style="flex-grow:1">'+esc(label)+'</div>');
+        return;
+      }
+    };
+  }
+
+  boot();
 })();
 </script>
 
