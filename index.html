@@ -122,10 +122,12 @@
         <input type="text" placeholder="Ask about any country, corridor or provider here…" id="askInput"/>
         <button aria-label="ask" id="askBtn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
+      <!-- A3: answer renders directly under the box; chips sit below it,
+           not above -- never scroll to find your answer. -->
+      <div id="answerBox" style="display:none"></div>
       <div class="chips" id="chips"></div>
       <div id="coverage" style="margin-top:12px;font-size:13px;color:#9A9A9A;max-width:720px"></div>
       <div id="coverageList" style="display:none;margin-top:10px;max-width:720px;padding:16px 20px;background:#F6F6F6;border-radius:12px;font-size:13px;line-height:1.7;color:#333"></div>
-      <div id="answerBox" style="display:none"></div>
     </div>
 
     <div class="side">
@@ -269,90 +271,68 @@
       MarginChart.render(chartEl, { spark: top.spark, timestamps: sparkDates(top), valueSuffix: '%' });
     }
 
-    // ---- Ask box: chips answer instantly from data already on this page,
-    // regenerated every pass so a withheld-country chip always points at a
-    // country that is actually withheld right now (it used to say
-    // "Nigeria", stale the moment Nigeria got priced again). Free text goes
-    // to the real /ask backend -- it went live after the spec's "B5 is
-    // still blocked" note was written, so this genuinely answers open
-    // questions now.
+    // ==================== ASK BOX -- SPEC-AGENT-2026-09-21 ====================
+    //
+    // A1: every chip and placeholder-suggested phrasing answers from a
+    // FIXED, TESTED template reading index_latest.json/providers_latest.json
+    // directly -- never the LLM. "Widest gap" reads the same sorted field
+    // the sidebar rail reads. A chip is only rendered when its own data
+    // exists this hour. This is the fix for the exact failure A0 found and
+    // reproduced live: a chip asking a question the page's own data already
+    // answers must not be able to fail.
+    //
+    // A2: free text that the LLM can't turn into SQL never returns a bare
+    // refusal -- diagnose() names what was understood and gives a real
+    // link, always.
+    //
+    // A3: the answer renders directly under the question box; chips sit
+    // below it, not above -- you never scroll to find your answer. The
+    // stamp labels the DATA's timestamp, not the act of asking.
+    //
+    // A4: anything methodology-shaped ("how are the numbers made", "how
+    // does this work") is answered from prose here, in this function,
+    // before the free-text path is ever reached -- it never goes near SQL.
     var API_BASE = location.hostname.endsWith("margin.wiki")
       ? "https://api.margin.wiki" : "http://127.0.0.1:8901";
     var answerBox = document.getElementById('answerBox');
-    var lastPassStamp = 'this hour, ' + hourUtc + ' UTC';
+    var passStampLabel = 'answered from the ' + hourUtc + ' UTC pass';
 
-    // Renders an answer as the same agent-voice card as the feed above it --
-    // stamp, sentence, receipt line -- not a flat footnote.
-    function showAnswerCard(stamp, sentenceHtml, receiptHtml) {
+    function showAnswerCard(sentenceHtml, receiptHtml) {
       answerBox.innerHTML = '<div class="item" style="padding-top:22px;border-top:1px solid #F0F0F0;margin-top:6px">' +
-        '<div class="stamp num">' + esc(stamp) + '</div>' +
+        '<div class="stamp num">' + esc(passStampLabel) + '</div>' +
         '<p>' + sentenceHtml + '</p>' +
         (receiptHtml ? '<div class="receipt">' + receiptHtml + '</div>' : '') +
         '</div>';
       answerBox.style.display = 'block';
     }
 
-    var withheldPick = withheld.length ? withheld[Math.floor(Math.random() * withheld.length)] : null;
-    var secondPick = countries.find(function(c){ return c.country === 'Argentina'; }) || countries[Math.floor(countries.length / 2)];
-    var dollarRouteRow = null, cheapestRow = null;
-    if (prov && prov.corridors) {
-      var r0 = prov.corridors[Object.keys(prov.corridors)[0]];
-      var s0 = r0 && r0.sizes['5000'];
-      dollarRouteRow = s0 && s0.rows.find(function(r){ return r.provider === 'The dollar route'; });
-      cheapestRow = s0 && s0.rows[0];
-    }
-
-    // ---- What can you actually ask? -------------------------------------
-    //
-    // The backend is not a fixed set of questions -- it translates plain
-    // English into one read-only SELECT across 12 real tables (see
-    // tools/ask_backend.py). It can answer far more than a menu of three.
-    //
-    // What it CANNOT do is answer about a country, provider or venue this
-    // site has never collected. "a dollar in denmark?" fails for that reason
-    // alone, and the old refusal never said so -- it read as "this box
-    // barely works" instead of "Denmark isn't one of the 59 tracked".
-    //
-    // So: state the real coverage, make it browsable, and diagnose a miss by
-    // name instead of refusing blankly.
-
-    var trackedNames = {};   // lowercase country name -> {ccy, priced}
+    var trackedNames = {};   // lowercase country name -> {ccy, priced, country}
     countries.forEach(function(c){ trackedNames[c.country.toLowerCase()] = { ccy: c.ccy, priced: true, country: c.country }; });
     withheld.forEach(function(w){ trackedNames[w.country.toLowerCase()] = { ccy: w.ccy, priced: false, country: w.country }; });
-    var trackedCcy = {};
-    Object.keys(trackedNames).forEach(function(n){ trackedCcy[trackedNames[n].ccy.toLowerCase()] = trackedNames[n]; });
 
-    // Every ISO country name the browser itself knows, so an untracked
-    // country can be named specifically without shipping (or maintaining) a
-    // gazetteer of our own.
     var worldNames = {};
     try {
       var dn = new Intl.DisplayNames(['en'], { type: 'region' });
-      for (var a = 65; a <= 90; a++) {
-        for (var b = 65; b <= 90; b++) {
-          var code = String.fromCharCode(a) + String.fromCharCode(b);
-          var nm = dn.of(code);
-          if (nm && nm !== code) worldNames[nm.toLowerCase()] = nm;
-        }
+      for (var a = 65; a <= 90; a++) for (var b = 65; b <= 90; b++) {
+        var code = String.fromCharCode(a) + String.fromCharCode(b);
+        var nm = dn.of(code);
+        if (nm && nm !== code) worldNames[nm.toLowerCase()] = nm;
       }
-    } catch (e) { /* older browser: fall back to the generic message */ }
+    } catch (e) { /* older browser: falls through to the generic A2 message */ }
 
-    // Coverage line: real counts, live, with the full list one click away.
     var corridorCount = prov && prov.corridors ? Object.keys(prov.corridors).length : 0;
-    // Earliest record across the set -- each country's own history starts on
-    // its own date, so this is "as far back as anything goes", not a claim
-    // that every country has been collected since then.
     var earliest = countries.reduce(function(m, c){
       if (!c.history_start) return m;
       return (!m || c.history_start < m) ? c.history_start : m;
     }, null);
+    // A3: names the classes instead of "ask about anything in there" --
+    // that phrasing is exactly what set the expectation this box then
+    // broke.
     document.getElementById('coverage').innerHTML =
-      'Answers come from what this site has actually collected: ' +
-      '<a href="#" id="showCountries" style="color:#0B0B0B;font-weight:600;border-bottom:1px solid #DDD">' +
-      (countries.length + withheld.length) + ' countries</a> · ' +
-      corridorCount + ' money corridors · priced every hour, the longest record going back to ' +
-      (earliest ? shortDate(earliest + 'T00:00:00Z') + ' ' + earliest.slice(0, 4) : 'the start') +
-      '. Ask about anything in there, in your own words.';
+      'Answers what a dollar costs in any of the <a href="#" id="showCountries" style="color:#0B0B0B;font-weight:600;border-bottom:1px solid #DDD">' +
+      (countries.length + withheld.length) + ' tracked countries</a>, why one isn\'t priced, the cheapest way to send money on ' +
+      corridorCount + ' tracked corridors, how a price moved over time, how any published number was made, and how the site works.' +
+      (earliest ? ' Priced every hour since ' + shortDate(earliest + 'T00:00:00Z') + ' at the earliest.' : '');
 
     document.getElementById('showCountries').addEventListener('click', function(e){
       e.preventDefault();
@@ -368,32 +348,99 @@
       box.style.display = 'block';
     });
 
-    // Example questions that teach the SHAPE of what's answerable, filled
-    // from live data and regenerated each pass -- not a fixed menu.
-    var anyPriced = countries[Math.floor(Math.random() * countries.length)];
-    var routeWords = prov && prov.corridors
-      ? prov.corridors[Object.keys(prov.corridors)[0]].route_words : 'Singapore to the Philippines';
-    var EXAMPLES = [
-      'What does a dollar cost in ' + (anyPriced ? anyPriced.country : 'Argentina') + ' right now?',
-      'Which country has the widest gap this hour?',
-      'Who changed their price this week?',
-      'Cheapest way to send money ' + routeWords + '?'
-    ];
-    if (withheldPick) EXAMPLES.push('Why is ' + withheldPick.country + ' not priced?');
+    // ---- A1: fixed templates, one per class A3 names -------------------
+    var dollarRouteRow = null, cheapestRow = null, corridorWords = null;
+    if (prov && prov.corridors) {
+      var r0 = prov.corridors[Object.keys(prov.corridors)[0]];
+      var s0 = r0 && r0.sizes['5000'];
+      corridorWords = r0 && r0.route_words;
+      dollarRouteRow = s0 && s0.rows.find(function(r){ return r.provider === 'The dollar route'; });
+      cheapestRow = s0 && s0.rows[0];
+    }
+    var widestGap = ranked[0];    // same sort the sidebar rail uses -- literally the same array
+    var movedCountry = countries.filter(function(c){ return c.spark && c.spark.length > 1; })
+      .sort(function(a,b){ return Math.abs(b.index_pct-b.spark[0]) - Math.abs(a.index_pct-a.spark[0]); })[0];
+    var costCountry = countries.find(function(c){ return c.country === 'Argentina'; }) || countries[0];
+    var withheldPick = withheld[0];
 
-    document.getElementById('chips').innerHTML = EXAMPLES.map(function(q){
-      return '<button class="chip" data-q="' + esc(q) + '">' + esc(q) + '</button>';
-    }).join('');
-    document.querySelectorAll('.chip').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var q = btn.getAttribute('data-q');
-        document.getElementById('askInput').value = q;
-        submitAsk();
-      });
+    // Every claim carries the frame rule: street price + gap + evidence.
+    function countryFrame(c) {
+      return '<b>' + esc(c.country) + ' (' + esc(c.ccy) + '):</b> a dollar ' + costPhrase(c.index_pct) +
+        ' this hour, from ' + esc(c.evidence_words) + '. <a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">the full receipt →</a>';
+    }
+
+    var CHIP_DEFS = [];
+    if (costCountry) CHIP_DEFS.push({
+      label: 'What does a dollar cost in ' + costCountry.country + '?',
+      run: function(){ showAnswerCard(countryFrame(costCountry), null); }
+    });
+    if (widestGap) CHIP_DEFS.push({
+      label: 'Which country has the widest gap this hour?',
+      run: function(){ showAnswerCard('The widest gap right now: a dollar in <b>' + esc(widestGap.country) + '</b> ' + costPhrase(widestGap.index_pct) +
+        ', from ' + esc(widestGap.evidence_words) + '.', '<a href="./country.html?ccy=' + esc(widestGap.ccy) + '" style="font-weight:600;color:#0B0B0B">the full receipt →</a>'); }
+    });
+    if (withheldPick) CHIP_DEFS.push({
+      label: 'Why is ' + withheldPick.country + ' not priced?',
+      run: function(){
+        showAnswerCard('<b>' + esc(withheldPick.country) + ' (' + esc(withheldPick.ccy) + '):</b> ' + esc(withheldPick.reason) +
+          '. Checked again next pass — this is the current hour\'s real result, not a permanent state.',
+          'nothing ships unverified · <a href="./country.html?ccy=' + esc(withheldPick.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(withheldPick.country) + '\'s page →</a>');
+      }
+    });
+    if (dollarRouteRow && cheapestRow) CHIP_DEFS.push({
+      label: 'Cheapest way to send money ' + corridorWords + '?',
+      run: function(){
+        showAnswerCard('<b>' + esc(cheapestRow.provider) + '</b> is cheapest right now at <b class="num">' + esc(cheapestRow.costs) + '</b>. The digital-dollar route costs <b class="num">' + esc(dollarRouteRow.costs) + '</b> — ' +
+          (dollarRouteRow.cost_pct > cheapestRow.cost_pct ? 'more than the cheapest ordinary option.' : 'less than every ordinary option.'),
+          're-priced every hour · <a href="./sending-money.html" style="font-weight:600;color:#0B0B0B">every way to send it, ranked →</a>');
+      }
+    });
+    if (movedCountry) CHIP_DEFS.push({
+      label: 'How has the gap in ' + movedCountry.country + ' moved over time?',
+      run: function(){
+        var delta = movedCountry.index_pct - movedCountry.spark[0];
+        showAnswerCard('<b>' + esc(movedCountry.country) + ':</b> the gap has ' + (delta>=0?'widened':'narrowed') + ' by <b class="num">' + Math.abs(delta).toFixed(1) + ' points</b> over the tracked window — a dollar there now ' + costPhrase(movedCountry.index_pct) + '.',
+          '<a href="./country.html?ccy=' + esc(movedCountry.ccy) + '" style="font-weight:600;color:#0B0B0B">see the full chart →</a>');
+      }
+    });
+    CHIP_DEFS.push({
+      label: 'How was ' + (costCountry ? costCountry.country : 'a number') + '\'s number made?',
+      run: function(){ methodologyAnswer('how was ' + (costCountry ? costCountry.country : '') + ' made', costCountry); }
+    });
+    CHIP_DEFS.push({
+      label: 'How does this site work?',
+      run: function(){ methodologyAnswer('how does this work', null); }
     });
 
-    // Given a question that came back unanswerable, say WHY in terms of the
-    // real coverage rather than repeating a generic refusal.
+    document.getElementById('chips').innerHTML = CHIP_DEFS.map(function(c, i){
+      return '<button class="chip" data-i="' + i + '">' + esc(c.label) + '</button>';
+    }).join('');
+    document.querySelectorAll('.chip').forEach(function(btn){
+      btn.addEventListener('click', function(){ CHIP_DEFS[+btn.getAttribute('data-i')].run(); });
+    });
+
+    // ---- A4: route methodology-shaped questions to prose, never SQL ----
+    // Deliberately loose: "how" anywhere, one of these outcome-words
+    // anywhere after it, no strict adjacency. A tighter pattern missed the
+    // site's own placeholder phrasing ("how any number was made" -- the
+    // subject between "how" and "was" broke a stricter match). A false
+    // positive here just routes a data question to prose instead of SQL,
+    // which is the safer failure for this rule, not a real cost.
+    var METHOD_RE = /\bhow\b.*\b(made|calculat|comput|built|measur|works?)\b|methodolog/i;
+    function methodologyAnswer(q, maybeCountry) {
+      if (maybeCountry) {
+        var p2pNote = esc(maybeCountry.evidence_words) + ' (' + esc(maybeCountry.source_words) + ')';
+        showAnswerCard('Every hour the collector takes the real median price, ' + p2pNote +
+          ', compares it to the official rate captured in the same pass, and that gap is the number — nothing modelled, nothing smoothed.',
+          '<a href="./country.html?ccy=' + esc(maybeCountry.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(maybeCountry.country) + '\'s full receipt →</a> · <a href="./how-it-works.html" style="font-weight:600;color:#0B0B0B">how it works →</a>');
+      } else {
+        showAnswerCard('Every hour the collector takes a real median price, compares it to the official rate from the same pass, and publishes the gap — nothing modelled, nothing forecast. Every number traces to a file you can open.',
+          '<a href="./how-it-works.html" style="font-weight:600;color:#0B0B0B">read how it works, in full →</a>');
+      }
+    }
+
+    // ---- A2: the failure floor. Names the entity, gives a real link, ----
+    // never a bare refusal, in any wording.
     function diagnose(q) {
       var lower = ' ' + q.toLowerCase().replace(/[^a-z\s]/g, ' ') + ' ';
       var mentionedTracked = Object.keys(trackedNames).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
@@ -401,15 +448,19 @@
       var untracked = mentionedWorld.filter(function(n){ return !trackedNames[n]; });
       if (untracked.length) {
         return '<b>' + esc(worldNames[untracked[0]]) + '</b> isn’t one of the ' +
-          (countries.length + withheld.length) + ' countries this site collects prices for, so there’s nothing measured to answer from — nothing is being hidden, it simply was never collected. ' +
+          (countries.length + withheld.length) + ' countries this site collects prices for — nothing is being hidden, it was simply never collected. ' +
           '<a href="#" id="diagShow" style="font-weight:600;color:#0B0B0B">See the ones that are tracked →</a>';
       }
       if (mentionedTracked.length) {
         var t = trackedNames[mentionedTracked[0]];
-        return 'That one couldn’t be turned into a query, but <b>' + esc(t.country) + '</b> <i>is</i> tracked — try asking it a different way, or ' +
-          '<a href="./country.html?ccy=' + esc(t.ccy) + '" style="font-weight:600;color:#0B0B0B">see ' + esc(t.country) + ' in full →</a>';
+        var full = countries.find(function(c){ return c.ccy === t.ccy; });
+        if (full) return 'That phrasing didn’t resolve, but <b>' + esc(t.country) + '</b> <i>is</i> tracked. Right now: ' + countryFrame(full);
+        var w = withheld.find(function(x){ return x.ccy === t.ccy; });
+        return 'That phrasing didn’t resolve, but <b>' + esc(t.country) + '</b> <i>is</i> tracked — it just has no price this hour: ' + esc(w ? w.reason : 'checked, not yet priced') +
+          '. <a href="./country.html?ccy=' + esc(t.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(t.country) + '\'s page →</a>';
       }
-      return 'That couldn’t be turned into a query against what’s collected here. The examples above show the kinds of question that work — countries, corridors, providers, prices over time.';
+      return 'That couldn’t be turned into a query against what’s collected here. The nearest real answer: the widest gap this hour is <b>' + (widestGap ? esc(widestGap.country) : 'unavailable') + '</b>. ' +
+        '<a href="./the-index.html" style="font-weight:600;color:#0B0B0B">See every tracked country →</a>';
     }
 
     var askInput = document.getElementById('askInput');
@@ -417,7 +468,9 @@
     function submitAsk(){
       var q = (askInput.value || '').trim();
       if (!q) return;
-      showAnswerCard('ASKED · ' + lastPassStamp, '<span style="color:#9A9A9A">Asking…</span>', null);
+      // A4 gate: methodology-shaped questions never reach the LLM/SQL path.
+      if (METHOD_RE.test(q)) { methodologyAnswer(q, null); return; }
+      showAnswerCard('<span style="color:#9A9A9A">Asking…</span>', null);
       fetch(API_BASE + '/ask', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -425,13 +478,9 @@
       }).then(function(r){ return r.json().then(function(body){ return {ok: r.ok, body: body}; }); })
         .then(function(res){
           if (!res.ok || res.body.error) {
-            // A rate-limit or outage is about the service, not the question
-            // -- only a genuine "can't answer that" gets the coverage
-            // diagnosis, or it would explain the wrong thing.
             var err = String(res.body.error || '');
-            var isUnanswerable = /can't be answered|cannot be answered/i.test(err);
-            showAnswerCard('ASKED · ' + lastPassStamp,
-              isUnanswerable ? diagnose(q) : esc(err || 'That could not be answered right now.'), null);
+            var isRateLimit = /enough questions|reachable|budget/i.test(err);
+            showAnswerCard(isRateLimit ? esc(err) : diagnose(q), null);
             var dlink = document.getElementById('diagShow');
             if (dlink) dlink.addEventListener('click', function(e){
               e.preventDefault();
@@ -440,11 +489,6 @@
             });
             return;
           }
-          // The raw SQL used to always show inline -- real feedback: seeing
-          // code where a plain sentence was expected read as "not clearly
-          // thought out", since this is a free-text box, not a query
-          // builder. The sentence IS the answer; the query is verification
-          // for anyone who wants it, one click away, not the headline.
           var sentence = esc(res.body.sentence || JSON.stringify(res.body.rows || res.body));
           var receipt = null;
           if (res.body.sql) {
@@ -452,7 +496,7 @@
             receipt = '<a href="#" id="' + sqlId + '-toggle" style="font-weight:600;color:#0B0B0B">See the actual database query →</a>' +
               '<div id="' + sqlId + '" style="display:none;margin-top:6px;font-family:ui-monospace,monospace;font-size:12px;word-break:break-all">' + esc(res.body.sql) + '</div>';
           }
-          showAnswerCard('ASKED · ' + lastPassStamp, sentence, receipt);
+          showAnswerCard(sentence, receipt);
           if (res.body.sql) {
             var t = document.getElementById(sqlId + '-toggle');
             if (t) t.addEventListener('click', function(e){
@@ -463,7 +507,8 @@
           }
         })
         .catch(function(){
-          showAnswerCard('ASKED · ' + lastPassStamp, 'The live ask service is not reachable right now. That failure is shown, not hidden.', null);
+          showAnswerCard('The live ask service is not reachable right now. That failure is shown, not hidden. ' +
+            (widestGap ? 'The widest gap this hour is still visible: <b>' + esc(widestGap.country) + '</b>.' : ''), null);
         });
     }
     if (askBtn) askBtn.addEventListener('click', submitAsk);

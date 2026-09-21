@@ -120,6 +120,11 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
   var REF_CCY = { ARS: 'dolarapi.ar', BOB: 'dolarapi.bo', VES: 'dolarapi.ve' };
   var byCcy = {};
   (d.countries || []).forEach(function(c){ byCcy[c.ccy] = c; });
+  // Exposed for the ask box's own methodology routing (A4) below --
+  // country-name -> full record, so "how was Argentina's number made"
+  // can answer with real evidence rather than generic prose.
+  window.hiwTrackedByName = {};
+  (d.countries || []).forEach(function(c){ window.hiwTrackedByName[c.country.toLowerCase()] = c; });
 
   fetch('./data/fx_rates.csv', {cache:'no-store'}).then(function(r){ return r.text(); }).then(function(text){
     var lines = text.split('\n');
@@ -167,6 +172,11 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
 // as unexplained code (real feedback: "the thing is a chat interface? ...
 // not clearly thought out"), when the plain sentence is the actual answer.
 (function(){
+  // A4: this box's own placeholder invites "how any number was made" --
+  // spec-cited failure was this exact box refusing that exact question.
+  // Everything methodology-shaped answers from prose here, and never
+  // reaches SQL. window.hiwByCcy is set once the index data loads below
+  // (see the other script block on this page).
   var API_BASE = location.hostname.endsWith("margin.wiki")
     ? "https://api.margin.wiki" : "http://127.0.0.1:8901";
   var input = document.getElementById('hiwAskInput');
@@ -176,9 +186,32 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
 
   function show(html) { box.innerHTML = html; box.style.display = 'block'; }
 
+  // See the identical comment in index.html -- deliberately loose so the
+  // page's own placeholder ("Ask the agent how any number was made")
+  // reliably matches; a stricter pattern missed it.
+  var METHOD_RE = /\bhow\b.*\b(made|calculat|comput|built|measur|works?)\b|methodolog/i;
+
+  function methodologyAnswer(q){
+    var tracked = window.hiwTrackedByName || {};
+    var lower = ' ' + q.toLowerCase().replace(/[^a-z\s]/g, ' ') + ' ';
+    var mentioned = Object.keys(tracked).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
+    if (mentioned.length) {
+      var c = tracked[mentioned[0]];
+      show('Every hour the collector takes the real median price, ' + esc(c.evidence_words) + ' (' + esc(c.source_words) + '), compares it to the official rate captured in the same pass, and that gap is the number — nothing modelled, nothing smoothed.' +
+        '<div style="margin-top:10px;font-size:13px"><a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(c.country) + '’s full receipt →</a></div>');
+    } else {
+      show('Every hour the collector takes a real median price, compares it to the official rate from the same pass, and publishes the gap — nothing modelled, nothing forecast. Ten sell offers minimum; under that, a country shows its reason instead of a number. Every published figure traces to a file you can open.' +
+        '<div style="margin-top:10px;font-size:13px"><a href="./the-index.html" style="font-weight:600;color:#0B0B0B">see a real number on the index →</a></div>');
+    }
+  }
+
   function submit(){
     var q = (input.value || '').trim();
     if (!q) return;
+    // Anything methodology-shaped answers from prose -- this page's whole
+    // premise is "how it works", so free-form SQL is never the right tool
+    // for that shape of question, only for a genuinely open data question.
+    if (METHOD_RE.test(q)) { methodologyAnswer(q); return; }
     show('<span style="color:#9A9A9A">Asking…</span>');
     fetch(API_BASE + '/ask', {
       method: 'POST',
