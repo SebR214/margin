@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki</title>
-<meta name="description" content="In much of the world the official exchange rate is not the real one. The agent watches real sources in 59 countries, every hour."/>
+<meta name="description" content="In much of the world the official exchange rate is not the real one. The agent watches real sources in 60 countries, every hour."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
 <style>
@@ -96,7 +96,7 @@
 
   <div class="hero">
     <h1>In much of the world the official exchange rate is not the real one.</h1>
-    <div class="sub" id="heroSub">The agent watches real sources in 59 countries, every hour, and tells you what a dollar really costs — with the receipt for every claim.</div>
+    <div class="sub" id="heroSub">The agent watches real sources in 60 countries, every hour, and tells you what a dollar really costs — with the receipt for every claim.</div>
   </div>
 
   <div class="body">
@@ -195,10 +195,15 @@
     // priced country's own evidence count, not idx.n_sources (that field
     // counts the 3 index SOURCE FILES, a different and much smaller number).
     var evidenceTotal = countries.reduce(function(sum, c){ return sum + (c.n_sources || 0); }, 0);
+    // Same figure the capability line under the ask box binds to
+    // (countries.length + withheld.length) -- these were two separately
+    // typed numbers for the same fact on the same page (59 here, 60 there)
+    // until now; one computed field, used in both places.
+    var trackedCountryCount = countries.length + withheld.length;
     document.getElementById('liveStamp').textContent =
       'LIVE · ' + evidenceTotal + ' SOURCES · ' + hourUtc + ' UTC';
     document.getElementById('heroSub').textContent =
-      'The agent watches ' + evidenceTotal + ' sources in 59 countries, every hour, and tells you what a dollar really costs — with the receipt for every claim.';
+      'The agent watches ' + evidenceTotal + ' sources in ' + trackedCountryCount + ' countries, every hour, and tells you what a dollar really costs — with the receipt for every claim.';
     document.getElementById('passStamp').textContent = 'last pass ' + hourUtc + ' UTC';
 
     // Sidebar: real ranking by index_pct, top 5.
@@ -297,13 +302,31 @@
     var answerBox = document.getElementById('answerBox');
     var passStampLabel = 'answered from the ' + hourUtc + ' UTC pass';
 
-    function showAnswerCard(sentenceHtml, receiptHtml) {
+    function sparkDates(c){
+      if (!c.spark || !c.history_start || !c.hour_utc) return [];
+      var end = new Date(c.hour_utc), n = c.spark.length, out = [];
+      for (var i=0;i<n;i++){ var d=new Date(end); d.setUTCDate(d.getUTCDate()-(n-1-i)); out.push(d.toISOString()); }
+      return out;
+    }
+
+    // chartOpts, when given a country record with a real spark array, draws
+    // U6 inline in the answer rather than linking away to see it -- a chip
+    // whose whole claim is "the gap moved" has that movement sitting right
+    // there in already-fetched data; no reason to make a reader click
+    // through to see the thing the answer just told them about.
+    function showAnswerCard(sentenceHtml, receiptHtml, chartCountry) {
+      var chartId = chartCountry ? 'chip' + Math.random().toString(36).slice(2,8) : null;
       answerBox.innerHTML = '<div class="item" style="padding-top:22px;border-top:1px solid #F0F0F0;margin-top:6px">' +
         '<div class="stamp num">' + esc(passStampLabel) + '</div>' +
         '<p>' + sentenceHtml + '</p>' +
+        (chartId ? '<div id="' + chartId + '" style="margin:14px 0"></div>' : '') +
         (receiptHtml ? '<div class="receipt">' + receiptHtml + '</div>' : '') +
         '</div>';
       answerBox.style.display = 'block';
+      if (chartId && chartCountry.spark && chartCountry.spark.length > 1 && window.MarginChart) {
+        MarginChart.render(document.getElementById(chartId),
+          { spark: chartCountry.spark, timestamps: sparkDates(chartCountry), valueSuffix: '%' });
+      }
     }
 
     var trackedNames = {};   // lowercase country name -> {ccy, priced, country}
@@ -330,9 +353,9 @@
     // broke.
     document.getElementById('coverage').innerHTML =
       'Answers what a dollar costs in any of the <a href="#" id="showCountries" style="color:#0B0B0B;font-weight:600;border-bottom:1px solid #DDD">' +
-      (countries.length + withheld.length) + ' tracked countries</a>, why one isn\'t priced, the cheapest way to send money on ' +
+      (trackedCountryCount) + ' tracked countries</a>, why one isn\'t priced, the cheapest way to send money on ' +
       corridorCount + ' tracked corridors, how a price moved over time, how any published number was made, and how the site works.' +
-      (earliest ? ' Priced every hour since ' + shortDate(earliest + 'T00:00:00Z') + ' at the earliest.' : '');
+      (earliest ? ' The longest record goes back to ' + shortDate(earliest + 'T00:00:00Z') + '.' : '');
 
     document.getElementById('showCountries').addEventListener('click', function(e){
       e.preventDefault();
@@ -400,7 +423,8 @@
       run: function(){
         var delta = movedCountry.index_pct - movedCountry.spark[0];
         showAnswerCard('<b>' + esc(movedCountry.country) + ':</b> the gap has ' + (delta>=0?'widened':'narrowed') + ' by <b class="num">' + Math.abs(delta).toFixed(1) + ' points</b> over the tracked window — a dollar there now ' + costPhrase(movedCountry.index_pct) + '.',
-          '<a href="./country.html?ccy=' + esc(movedCountry.ccy) + '" style="font-weight:600;color:#0B0B0B">see the full chart →</a>');
+          '<a href="./country.html?ccy=' + esc(movedCountry.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(movedCountry.country) + '\'s full receipt →</a>',
+          movedCountry);
       }
     });
     CHIP_DEFS.push({
@@ -448,7 +472,7 @@
       var untracked = mentionedWorld.filter(function(n){ return !trackedNames[n]; });
       if (untracked.length) {
         return '<b>' + esc(worldNames[untracked[0]]) + '</b> isn’t one of the ' +
-          (countries.length + withheld.length) + ' countries this site collects prices for — nothing is being hidden, it was simply never collected. ' +
+          (trackedCountryCount) + ' countries this site collects prices for — nothing is being hidden, it was simply never collected. ' +
           '<a href="#" id="diagShow" style="font-weight:600;color:#0B0B0B">See the ones that are tracked →</a>';
       }
       if (mentionedTracked.length) {
@@ -476,13 +500,19 @@
     // couldn't support. Never a canned answer pretending to be live.
     function renderLiveCard(state) {
       var html = '<div class="item" style="padding-top:22px;border-top:1px solid #F0F0F0;margin-top:6px">' +
-        '<div class="stamp num">' + (state.final || state.error ? esc(passStampLabel) : 'watching the query run, live') + '</div>';
+        '<div class="stamp num">' + (state.final || state.error ? esc(passStampLabel) : 'watching the agent work, live') + '</div>';
       state.attempts.forEach(function(a, i){
-        html += '<div style="margin:10px 0;font-size:14px">' +
-          '<div style="font-weight:700;color:#0B0B0B">Attempt ' + (i + 1) + '</div>';
-        if (a.sql) html += '<div style="font-family:ui-monospace,monospace;font-size:12px;color:#5A55E0;word-break:break-all;margin:4px 0 2px">' + esc(a.sql) + '</div>';
-        if (a.rows != null) html += '<div style="color:#6B6B6B">' + a.rows + ' row' + (a.rows === 1 ? '' : 's') + ' came back' + (a.rowsError ? ' — ' + esc(a.rowsError) : '') + '</div>';
-        if (a.evaluated) html += '<div style="color:' + (a.sufficient ? '#2F7A4D' : '#B3822D') + '">' + (a.sufficient ? 'answers the question' : ('not enough on its own — ' + esc(a.note || ''))) + '</div>';
+        var retryNote = (i > 0 && state.attempts[i - 1] && state.attempts[i - 1].note)
+          ? '<div style="font-size:13px;color:#B3822D;margin-bottom:6px">That didn\'t fully answer it — trying again, because ' + esc(state.attempts[i - 1].note) + '</div>' : '';
+        html += '<div style="margin:14px 0;font-size:14px;padding-left:14px;border-left:2px solid #F0F0F0">' +
+          retryNote +
+          '<div style="font-weight:700;color:#0B0B0B;margin-bottom:6px">Attempt ' + (i + 1) + '</div>' +
+          '<div style="color:#6B6B6B;margin-bottom:2px">Looking at what’s collected, writing a query' + (a.sql ? '.' : '…') + '</div>';
+        if (a.sql) html += '<div style="font-family:ui-monospace,monospace;font-size:12px;color:#5A55E0;word-break:break-all;margin:4px 0 8px;background:#F9F9FC;padding:8px 10px;border-radius:6px">' + esc(a.sql) + '</div>';
+        if (a.sql && a.rows == null) html += '<div style="color:#6B6B6B;margin-bottom:2px">Running it against the real data…</div>';
+        if (a.rows != null) html += '<div style="color:#6B6B6B;margin-bottom:2px">Ran it — ' + a.rows + ' row' + (a.rows === 1 ? '' : 's') + ' came back' + (a.rowsError ? ' (' + esc(a.rowsError) + ')' : '') + '.</div>';
+        if (a.rows != null && !a.evaluated) html += '<div style="color:#6B6B6B;margin-bottom:2px">Checking whether that answers the question…</div>';
+        if (a.evaluated) html += '<div style="color:' + (a.sufficient ? '#2F7A4D' : '#B3822D') + ';font-weight:600">' + (a.sufficient ? 'Yes — answers the question.' : ('Not enough on its own — ' + esc(a.note || '') + '.')) + '</div>';
         html += '</div>';
       });
       if (state.error) {

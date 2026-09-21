@@ -582,9 +582,22 @@ def _chartable(rows):
             numeric_cols.append(c)
         except (TypeError, ValueError):
             continue
-    if len(numeric_cols) != 1:
+    if not numeric_cols:
         return None
-    val_col = numeric_cols[0]
+    if len(numeric_cols) == 1:
+        val_col = numeric_cols[0]
+    else:
+        # A real trend answer routinely carries more than one numeric
+        # column alongside the timestamp -- basis_bps next to
+        # fx_mid_per_usd, or min/avg/max together -- and requiring exactly
+        # one meant almost no genuine "how has X moved" question ever
+        # charted. This site's whole thesis is the gap, so prefer whichever
+        # numeric column IS the gap; fall back to the first column the
+        # query selected (presumably its primary one) if none match.
+        preferred = [c for c in numeric_cols
+                     if re.search(r"basis_bps|premium|\bgap\b|index_pct|spread|_pct$|percent",
+                                  c, re.I)]
+        val_col = preferred[0] if preferred else numeric_cols[0]
     try:
         pairs = sorted(
             ((r[ts_col], float(r[val_col])) for r in rows
@@ -594,8 +607,14 @@ def _chartable(rows):
         return None
     if len(pairs) < 2:
         return None
-    suffix = "%" if re.search(r"pct|percent", val_col, re.I) else ""
-    return {"spark": [p[1] for p in pairs], "timestamps": [p[0] for p in pairs],
+    # basis_bps is in the raw collectors' units (hundredths of a percent);
+    # every reader-facing number on this site is in percent (costPhrase(),
+    # the sentence-writer above) -- a chart in bps next to prose in percent
+    # would be two different numbers for the same fact on the same screen.
+    is_bps = bool(re.search(r"bps", val_col, re.I))
+    scale = 0.01 if is_bps else 1.0
+    suffix = "%" if (is_bps or re.search(r"pct|percent", val_col, re.I)) else ""
+    return {"spark": [p[1] * scale for p in pairs], "timestamps": [p[0] for p in pairs],
             "valueSuffix": suffix, "value_col": val_col}
 
 
