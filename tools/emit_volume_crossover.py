@@ -186,23 +186,41 @@ def validate_reconstruction(rows):
     return max(errs) if errs else None
 
 
+def median_cost_at_volume(rows, ir_sched, coins_sched, aud_per_sgd, v):
+    aud_vol = v * aud_per_sgd
+    fee_on = tier_fee_pct(ir_sched, aud_vol)
+    costs = []
+    # Real historical PHP notional at THIS row's own rung, scaled to v's
+    # implied transaction count -- not a separately assumed rate.
+    for r in rows:
+        bought_base = r["gross"] * (1 - tier_fee_pct(ir_sched, 0) / 100.0)
+        stable_base = bought_base - r["netfee"]
+        quote_base = stable_base * r["off_vwap"] if stable_base > 0 else 0.0
+        php_vol = quote_base * (v / r["notional"])
+        fee_off = tier_fee_pct(coins_sched, php_vol)
+        c = cost_at_fees(r, fee_on, fee_off)
+        if c is not None:
+            costs.append(c)
+    return median(costs)
+
+
+def cost_curve(rows, ir_sched, coins_sched, aud_per_sgd, lo=LO_VOLUME, hi=HI_VOLUME, n=9):
+    """n log-spaced (monthly_volume_sgd, median_cost_bps) points from lo to
+    hi -- the actual curve a chart draws, not just its two endpoints.
+    """
+    points = []
+    lo_l, hi_l = math.log(lo), math.log(hi)
+    for i in range(n):
+        v = math.exp(lo_l + (hi_l - lo_l) * i / (n - 1))
+        c = median_cost_at_volume(rows, ir_sched, coins_sched, aud_per_sgd, v)
+        if c is not None:
+            points.append({"monthly_volume_sgd": round(v, -2), "cost_bps": c})
+    return points
+
+
 def crossover_for_regime(rows, ir_sched, coins_sched, aud_per_sgd, baseline_med):
     def median_cost_at(v):
-        aud_vol = v * aud_per_sgd
-        fee_on = tier_fee_pct(ir_sched, aud_vol)
-        costs = []
-        # Real historical PHP notional at THIS row's own rung, scaled to v's
-        # implied transaction count -- not a separately assumed rate.
-        for r in rows:
-            bought_base = r["gross"] * (1 - tier_fee_pct(ir_sched, 0) / 100.0)
-            stable_base = bought_base - r["netfee"]
-            quote_base = stable_base * r["off_vwap"] if stable_base > 0 else 0.0
-            php_vol = quote_base * (v / r["notional"])
-            fee_off = tier_fee_pct(coins_sched, php_vol)
-            c = cost_at_fees(r, fee_on, fee_off)
-            if c is not None:
-                costs.append(c)
-        return median(costs)
+        return median_cost_at_volume(rows, ir_sched, coins_sched, aud_per_sgd, v)
 
     lo_cost = median_cost_at(LO_VOLUME)
     hi_cost = median_cost_at(HI_VOLUME)
@@ -232,6 +250,7 @@ def crossover_for_regime(rows, ir_sched, coins_sched, aud_per_sgd, baseline_med)
         "fee_pct_at_crossover_ir": tier_fee_pct(ir_sched, aud_at_cross),
         "cost_bps_at_floor": lo_cost,
         "cost_bps_at_ceiling": hi_cost,
+        "curve": cost_curve(rows, ir_sched, coins_sched, aud_per_sgd),
     }
 
 

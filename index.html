@@ -183,9 +183,10 @@
 
   Promise.all([
     fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()),
-    fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+    fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    fetch('./data/volume_crossover.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
   ]).then(function(res){
-    var idx = res[0], prov = res[1];
+    var idx = res[0], prov = res[1], crossover = res[2];
     var countries = idx.countries || [];
     var withheld = idx.withheld || [];
     var hourUtc = (idx.as_of_utc || idx.computed_at || '').slice(11,16);
@@ -314,8 +315,8 @@
     // whose whole claim is "the gap moved" has that movement sitting right
     // there in already-fetched data; no reason to make a reader click
     // through to see the thing the answer just told them about.
-    function showAnswerCard(sentenceHtml, receiptHtml, chartCountry) {
-      var chartId = chartCountry ? 'chip' + Math.random().toString(36).slice(2,8) : null;
+    function showAnswerCard(sentenceHtml, receiptHtml, chartCountry, rawChartOpts) {
+      var chartId = (chartCountry || rawChartOpts) ? 'chip' + Math.random().toString(36).slice(2,8) : null;
       answerBox.innerHTML = '<div class="item" style="padding-top:22px;border-top:1px solid #F0F0F0;margin-top:6px">' +
         '<div class="stamp num">' + esc(passStampLabel) + '</div>' +
         '<p>' + sentenceHtml + '</p>' +
@@ -323,9 +324,13 @@
         (receiptHtml ? '<div class="receipt">' + receiptHtml + '</div>' : '') +
         '</div>';
       answerBox.style.display = 'block';
-      if (chartId && chartCountry.spark && chartCountry.spark.length > 1 && window.MarginChart) {
-        MarginChart.render(document.getElementById(chartId),
-          { spark: chartCountry.spark, timestamps: sparkDates(chartCountry), valueSuffix: '%' });
+      if (chartId && window.MarginChart) {
+        if (chartCountry && chartCountry.spark && chartCountry.spark.length > 1) {
+          MarginChart.render(document.getElementById(chartId),
+            { spark: chartCountry.spark, timestamps: sparkDates(chartCountry), valueSuffix: '%' });
+        } else if (rawChartOpts) {
+          MarginChart.render(document.getElementById(chartId), rawChartOpts);
+        }
       }
     }
 
@@ -427,6 +432,39 @@
           movedCountry);
       }
     });
+    // fmtVolume: a monthly SGD figure in the shape a payments person reads
+    // at a glance (100K / 3.6M / 2.5B), matching the scale of the number.
+    function fmtVolume(v) {
+      if (v >= 1e9) return 'S$' + (v/1e9).toFixed(1).replace(/\.0$/,'') + 'B';
+      if (v >= 1e6) return 'S$' + (v/1e6).toFixed(1).replace(/\.0$/,'') + 'M';
+      if (v >= 1e3) return 'S$' + (v/1e3).toFixed(0) + 'K';
+      return 'S$' + v.toFixed(0);
+    }
+    if (crossover && crossover.status === 'ok' && crossover.taker && crossover.taker.status === 'crosses') {
+      CHIP_DEFS.push({
+        label: 'At what volume does SGD→PHP flip to stablecoins?',
+        run: function(){
+          var t = crossover.taker, m = crossover.maker;
+          var sentence = 'At S$' + Number(crossover.rung_sgd).toLocaleString() +
+            ' a transfer, the stablecoin route only beats the best incumbent fiat rail once a sender is running real payments-company volume, not retail: <b>' +
+            fmtVolume(t.monthly_volume_sgd) + '/month</b> and up for a taker order' +
+            (m && m.status === 'crosses' ? (', <b>' + fmtVolume(m.monthly_volume_sgd) + '/month</b> for a posted maker order') : '') +
+            ' — that volume is what unlocks Independent Reserve’s ' + t.fee_pct_at_crossover_ir.toFixed(2) +
+            '% tier, down from 0.50% at the base rate everyone starts on. Below it, stablecoins lose, every time.';
+          var chartOpts = {
+            spark: t.curve.map(function(p){ return p.cost_bps; }),
+            xLabels: t.curve.map(function(p){ return fmtVolume(p.monthly_volume_sgd) + '/mo'; }),
+            valueSuffix: ' bps',
+            refValue: crossover.baseline_cost_bps_median,
+            refLabel: 'best incumbent fiat: ' + crossover.baseline_cost_bps_median.toFixed(1) + ' bps'
+          };
+          showAnswerCard(sentence,
+            'measured from ' + crossover.n_samples + ' real S$' + Number(crossover.rung_sgd).toLocaleString() +
+            ' samples and the venues’ own published fee tiers, re-derived not assumed · <a href="./methodology.html" style="font-weight:600;color:#0B0B0B">the exact method →</a>',
+            null, chartOpts);
+        }
+      });
+    }
     CHIP_DEFS.push({
       label: 'How was ' + (costCountry ? costCountry.country : 'a number') + '\'s number made?',
       run: function(){ methodologyAnswer('how was ' + (costCountry ? costCountry.country : '') + ' made', costCountry); }
