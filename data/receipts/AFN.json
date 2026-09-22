@@ -4,20 +4,24 @@
     "denominator": 64.734514,
     "denominator_meaning": "the official rate, local currency per dollar",
     "formula": "(numerator / denominator - 1) * 100",
-    "numerator": null,
+    "numerator": 70.0,
     "numerator_meaning": "price to buy one dollar locally",
-    "result_pct": null
+    "result_pct": 8.134
   },
-  "computed_at": "2026-09-22T03:00:00+00:00",
+  "computed_at": "2026-09-22T04:00:00+00:00",
   "country": "Afghanistan",
   "evidence": {
-    "buy_median": null,
-    "collected_at": "2026-09-22T03:05:42.514332+00:00",
-    "n_offers": 0,
+    "buy_median": 70.0,
+    "collected_at": "2026-09-22T04:05:47.363989+00:00",
+    "n_offers": 1,
     "offer_detail": "per_offer",
     "offers": [
       {
-        "price": 64.22,
+        "price": 70.0,
+        "side": "buy"
+      },
+      {
+        "price": 64.68,
         "side": "sell"
       },
       {
@@ -35,30 +39,34 @@
       {
         "price": 62.0,
         "side": "sell"
+      },
+      {
+        "price": 61.53,
+        "side": "sell"
       }
     ],
-    "sell_median": null,
+    "sell_median": 62.8,
     "source_kind": null,
     "source_words": "no price this hour"
   },
   "evidence_rule": {
     "applies": true,
-    "buy_ads_actual": 0,
+    "buy_ads_actual": 1,
     "buy_ads_estimated": false,
-    "buy_at_or_above_sell": null,
+    "buy_at_or_above_sell": true,
     "min_buy_ads_required": 10,
     "passed": false,
-    "reason": "ValueError:no ads at ~USD 500 (0 buy, 5 sell)",
+    "reason": "not enough evidence this hour: 1 buy-side ad, 10 required",
     "reason_code": null
   },
-  "hour_utc": "2026-09-22T03:00:00+00:00",
+  "hour_utc": "2026-09-22T04:00:00+00:00",
   "index_version": "1.1",
-  "not_published_reason": "ValueError:no ads at ~USD 500 (0 buy, 5 sell)",
+  "not_published_reason": "not enough evidence this hour: 1 buy-side ad, 10 required",
   "official_rate": {
     "class": "managed",
     "source": "open.er-api",
     "source_file": "data/fx_rates.csv",
-    "timestamp": "2026-09-22T03:07:13.672784+00:00",
+    "timestamp": "2026-09-22T04:07:18.828339+00:00",
     "value": 64.734514
   },
   "outlier_checked": null,
