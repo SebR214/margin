@@ -242,7 +242,7 @@
         run: function(){
           var t = crossover.taker, m = crossover.maker;
           var sentence = 'At S$' + Number(crossover.rung_sgd).toLocaleString() +
-            ' a transfer, the stablecoin route only beats the best ordinary way to send money once a sender is running real payments-company volume, not retail: <b>' +
+            ' a transfer, the stablecoin route only beats the best fiat provider once a sender is running real payments-company volume, not retail: <b>' +
             fmtVolume(t.monthly_volume_sgd) + '/month</b> and up buying it now' +
             (m && m.status === 'crosses' ? (', <b>' + fmtVolume(m.monthly_volume_sgd) + '/month</b> if waiting for your price') : '') +
             ' — that volume is what unlocks Independent Reserve’s ' + t.fee_pct_at_crossover_ir.toFixed(2) +
@@ -252,7 +252,7 @@
             xLabels: t.curve.map(function(p){ return fmtVolume(p.monthly_volume_sgd) + '/mo'; }),
             valueSuffix: '%',
             refValue: crossover.baseline_cost_bps_median / 100,
-            refLabel: 'best ordinary way: ' + cashPct(crossover.baseline_cost_bps_median)
+            refLabel: 'best fiat provider: ' + cashPct(crossover.baseline_cost_bps_median)
           };
           showAnswerCard(sentence,
             'measured from ' + crossover.n_samples + ' real S$' + Number(crossover.rung_sgd).toLocaleString() +

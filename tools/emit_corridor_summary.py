@@ -170,7 +170,7 @@ def build():
     headline = None
     if loss_rate is not None:
         headline = (
-            "Stablecoins lost to the best ordinary way to send money in %s%% "
+            "Stablecoins lost to the best fiat provider in %s%% "
             "of measured hours on %d of %d routes. The rail is nearly free. "
             "The doors are not."
             % (("%.0f" % loss_rate) if loss_rate == int(loss_rate) else ("%.1f" % loss_rate),

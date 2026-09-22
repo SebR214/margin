@@ -48,18 +48,32 @@ def sub_html(home_copy):
             ' <a href="./the-index.html" style="font-weight:600;color:#0B0B0B">' + esc(index_pointer_link) + "</a>")
 
 
+def win_cell_html(c):
+    """The win-rate cell. When taker and maker execution genuinely diverge --
+    USD->MXN's whole story, where a near-zero taker win rate hides a ~44%
+    maker one -- both numbers are shown, at equal visual weight (colored,
+    not a muted footnote), not one buried under the other. A 5-point gap is
+    the data-driven test, not a hardcoded corridor name, so any future
+    corridor with the same shape gets the same honest treatment.
+    """
+    t, m = c["win_rate_taker_pct"], c["win_rate_maker_pct"]
+    if abs(t - m) >= 5:
+        return (
+            '<div class="' + ("win-yes" if t >= 10 else "win-no") + '">'
+            + ("%.1f" % t) + "% of hours buying it now</div>"
+            '<div class="' + ("win-yes" if m >= 10 else "win-no") + '" style="margin-top:4px">'
+            + ("%.1f" % m) + "% of hours waiting for your price</div>"
+        )
+    return '<span class="' + ("win-yes" if t >= 10 else "win-no") + '">' + ("%.1f" % t) + "% of hours</span>"
+
+
 def corridor_row_html(c, home_copy):
-    wins = c["win_rate_taker_pct"] >= 10 or c["win_rate_maker_pct"] >= 10
-    note = ""
-    if c["corridor"] == "USD->MXN":
-        note = '<div class="corridor-note">' + esc(home_copy.get("corridorMxnNote", "")) + "</div>"
     return (
         "<tr>"
         "<td><b>" + esc(c.get("route_words", c["corridor"])) + "</b></td>"
         '<td class="num">' + pct(c["taker_cost_bps_median"]) + "</td>"
         '<td class="num">' + pct(c["baseline_cost_bps_median"]) + "</td>"
-        '<td class="' + ("win-yes" if wins else "win-no") + '">'
-        + ("%.1f" % c["win_rate_taker_pct"]) + "% of hours" + note + "</td>"
+        "<td>" + win_cell_html(c) + "</td>"
         '<td><a href="./corridor.html?corridor=' + esc(c["corridor"]) + '" style="font-weight:600;color:#0B0B0B">'
         + esc(home_copy.get("seeCorridor", "see the receipt →")) + "</a></td>"
         "</tr>"
@@ -73,8 +87,8 @@ def corridor_table_html(corridors, home_copy):
         '<div class="waterfall-title">' + esc(home_copy.get("corridorTableTitle", "Every route, measured the same way")) + "</div>"
         '<table class="corridor-table"><thead><tr>'
         "<th>" + esc(cols.get("corridor", "ROUTE")) + "</th>"
-        "<th>" + esc(cols.get("stablecoin", "BUYING IT NOW")) + "</th>"
-        "<th>" + esc(cols.get("fiat", "BEST ORDINARY WAY")) + "</th>"
+        "<th>" + esc(cols.get("stablecoin", "STABLECOIN ROUTE")) + "</th>"
+        "<th>" + esc(cols.get("fiat", "BEST FIAT PROVIDER")) + "</th>"
         "<th>" + esc(cols.get("winRate", "STABLECOIN WINS")) + "</th>"
         "<th></th></tr></thead><tbody>" + rows + "</tbody></table>"
     )
