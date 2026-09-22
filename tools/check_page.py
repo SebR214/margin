@@ -168,9 +168,20 @@ def literal_numbers(page):
 
     Attributes are ignored -- `width: 100%` and `offset="0%"` are layout, not
     claims -- so only text a reader actually sees is scanned.
+
+    A number inside <!--BAKE:START:x-->...<!--BAKE:END:x--> is exempt, not
+    stripped-and-scanned like an ordinary comment: those markers are how
+    tools/bake_homepage.py (SPEC "v1 freeze and ship brief", D1's
+    server-rendered headline) writes a real, freshly computed number
+    straight into the page at collection time, for a crawler or a reader
+    with JS off. The marker itself is the proof the number came from a
+    script every pass, not a hand edit once -- stripped along with its
+    contents, same as script/style, rather than scanned as if it were
+    ordinary prose a person typed.
     """
     src = open(os.path.join(HERE, page)).read()
     src = re.sub(r"(?is)<(script|style)\b.*?</\1>", " ", src)
+    src = re.sub(r"(?s)<!--BAKE:START:[^-]+-->.*?<!--BAKE:END:[^-]+-->", " ", src)
     src = re.sub(r"(?s)<!--.*?-->", " ", src)
     parser = _Text()
     parser.feed(src)

@@ -272,6 +272,13 @@ function renderHeader(){
 }
 
 async function boot(){
+  // Deep link from another page (the homepage's per-corridor table, for
+  // one): ?corridor=AUD->PHP pre-selects that tab instead of always
+  // landing on SGD->PHP. Validated against corrKeys once they're known
+  // (below), not trusted blind -- an unrecognised value falls through to
+  // the existing corrKeys[0] default, same as no param at all.
+  const qp=new URLSearchParams(location.search).get("corridor");
+  if(qp) corridor=qp;
   const C=await loadCopy();
   COPY=C.corridor||{};
   COPY.brand=C.brand; COPY.nav=C.nav;

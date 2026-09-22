@@ -26,8 +26,19 @@
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
   .mcp{font-size:13px;font-weight:700}
   .hero{padding:64px 48px 48px}
-  h1{font-size:58px;font-weight:800;line-height:1.08;letter-spacing:-0.03em;max-width:1150px;margin:0}
+  h1{font-size:52px;font-weight:800;line-height:1.12;letter-spacing:-0.03em;max-width:1150px;margin:0}
   .sub{padding-top:20px;font-size:18px;line-height:1.5;color:var(--sub);max-width:720px}
+  .lead-section{padding:0 48px}
+  .waterfall-card{border:1px solid var(--rule);border-radius:16px;padding:28px 32px;max-width:1150px}
+  .waterfall-title{font-size:13px;letter-spacing:.06em;color:var(--sub);text-transform:uppercase;font-weight:700;margin-bottom:4px}
+  .waterfall-cap{font-size:14px;color:var(--sub);margin-bottom:18px;max-width:640px}
+  .corridor-table{width:100%;max-width:1150px;border-collapse:collapse;margin-top:8px}
+  .corridor-table th{text-align:left;font-size:11px;letter-spacing:.06em;color:#9A9A9A;font-weight:600;padding:0 14px 10px 0;border-bottom:1px solid var(--rule)}
+  .corridor-table td{padding:14px 14px 14px 0;border-bottom:1px solid var(--rule);font-size:15px;vertical-align:top}
+  .corridor-table tr:last-child td{border-bottom:none}
+  .corridor-table .win-yes{color:#2F7A4D;font-weight:700}
+  .corridor-table .win-no{color:#B3822D;font-weight:700}
+  .corridor-note{font-size:12.5px;color:#9A9A9A;margin-top:2px}
   .body{flex-grow:1;display:grid;grid-template-columns:1fr 380px;gap:64px;padding:0 48px 48px}
   .feed{display:flex;flex-direction:column;max-width:720px}
   .agent-hdr{display:flex;align-items:center;gap:10px;padding-bottom:34px}
@@ -56,7 +67,9 @@
   .about{border-top:1px solid #0B0B0B;padding-top:14px;font-size:14px;line-height:1.55;color:#0B0B0B}
   @media(max-width:900px){
     header{flex-wrap:wrap;gap:12px} nav{flex-wrap:wrap;gap:16px}
-    h1{font-size:38px} .body{grid-template-columns:1fr;padding:0 24px 48px} .hero{padding:34px 24px 24px}
+    h1{font-size:32px} .body{grid-template-columns:1fr;padding:0 24px 48px} .hero{padding:34px 24px 24px}
+    .lead-section{padding:0 24px} .waterfall-card{padding:20px 18px}
+    .corridor-table{font-size:13px} .corridor-table th,.corridor-table td{padding-right:8px}
   }
 
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
@@ -83,7 +96,6 @@
         <a href="./the-index.html">The index</a>
         <a href="./sending-money.html">Sending money</a>
         <a href="./findings.html">Findings</a>
-        <a href="./machine-room.html">The machine room</a>
         <a href="./how-it-works.html">How it works</a>
       </nav>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
@@ -95,9 +107,12 @@
   </header>
 
   <div class="hero">
-    <h1>In much of the world the official exchange rate is not the real one.</h1>
-    <div class="sub" id="heroSub">The agent watches real sources in 60 countries, every hour, and tells you what a dollar really costs — with the receipt for every claim.</div>
+    <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Stablecoins lost to the best ordinary way to send money in 99.6% of measured hours on 3 of 4 routes. The rail is nearly free. The doors are not.<!--BAKE:END:heroHeadline--></h1>
+    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->Measured, not assumed: every hour, on every tracked route, since August. Every tracked currency&#39;s own parallel-rate gap moved to <a href="./the-index.html" style="font-weight:600;color:#0B0B0B">the index →</a><!--BAKE:END:heroSub--></div>
   </div>
+
+  <div id="waterfallSection" class="lead-section"></div>
+  <div id="corridorTableSection" class="lead-section" style="padding-bottom:32px"><!--BAKE:START:corridorTableSection--><div class="waterfall-title">Every route, measured the same way</div><table class="corridor-table"><thead><tr><th>ROUTE</th><th>BUYING IT NOW</th><th>BEST ORDINARY WAY</th><th>STABLECOIN WINS</th><th></th></tr></thead><tbody><tr><td><b>Singapore to the Philippines</b></td><td class="num">+0.85%</td><td class="num">+0.45%</td><td class="win-no">0.0% of hours</td><td><a href="./corridor.html?corridor=SGD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>Australia to the Philippines</b></td><td class="num">+0.94%</td><td class="num">+0.60%</td><td class="win-no">0.0% of hours</td><td><a href="./corridor.html?corridor=AUD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>New Zealand to the Philippines</b></td><td class="num">+1.04%</td><td class="num">+0.62%</td><td class="win-no">2.3% of hours</td><td><a href="./corridor.html?corridor=NZD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>the United States to Mexico</b></td><td class="num">+0.79%</td><td class="num">+0.55%</td><td class="win-yes">0.3% of hours<div class="corridor-note">the interesting one: waiting for your price wins about half the time at small sizes</div></td><td><a href="./corridor.html?corridor=USD-&gt;MXN" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr></tbody></table><!--BAKE:END:corridorTableSection--></div>
 
   <div class="body">
     <div class="feed">
@@ -109,13 +124,6 @@
 
       <div class="items" id="items">
         <div class="item"><p>Loading this hour's findings…</p></div>
-      </div>
-
-      <div class="machine-strip">
-        <div class="msdot"></div>
-        <div class="stamp" style="letter-spacing:.1em;color:#6B6B6B;font-weight:600">THE MACHINE ROOM</div>
-        <div class="num" style="color:#6B6B6B" id="machineNote">&nbsp;</div>
-        <a href="./machine-room.html" style="font-weight:600">watch it run →</a>
       </div>
 
       <div class="ask">
@@ -136,7 +144,12 @@
         <div id="rankList"></div>
         <div class="rank-note" id="rankNote"></div>
       </div>
-      <div class="about">Built by one person and the agents that run this site around the clock — one collects, one builds, one reviews, one decides what's next. <a href="./machine-room.html">Watch them work →</a> Raw data and code are public.</div>
+      <div class="about">Built by one person and the agents that run this site around the clock — one collects, one builds, one reviews, one decides what's next. Raw data and code are public.</div>
+      <div class="stamp" style="margin-top:10px;display:flex;align-items:center;gap:8px">
+        <span class="msdot" style="width:6px;height:6px;border-radius:50%;background:var(--indigo);display:inline-block"></span>
+        <span id="machineFooterLine">&nbsp;</span>
+        <a href="./machine-room.html" style="font-weight:600;color:#0B0B0B">watch it run →</a>
+      </div>
     </div>
   </div>
 </div>
@@ -181,12 +194,94 @@
     return out;
   }
 
+  // D1 waterfall: same gain/loss/rail convention as corridor.html's own
+  // drawWaterfall() (red = cost added, blue = a gain, amber = the network
+  // leg), rebuilt small and self-contained for the one fixed corridor/size
+  // this page shows rather than importing corridor.html's general
+  // multi-corridor/multi-size machinery.
+  // "bps" is a banned word on reader-facing pages -- every value here
+  // comes in as bps (matching samples.csv's own columns) and is shown as
+  // percent, the same unit costPhrase() and every chip already use.
+  function cashPct(bps){ var pct = bps/100; return (pct>=0?'+':'') + pct.toFixed(2) + '%'; }
+  function renderWaterfall(wf, COPY){
+    var L = COPY.waterfallLegend || {};
+    var buy = wf.onramp_basis_bps + wf.onramp_fee_bps;
+    var sell = wf.offramp_basis_bps + wf.offramp_fee_bps;
+    var steps = [
+      {label: L.buying || 'Buying the coin', v: buy, kind: 'cost'},
+      {label: L.moving || 'Moving it', v: wf.network_fee_bps, kind: 'rail'},
+      {label: L.selling || 'Selling it', v: sell, kind: 'cost'}
+    ];
+    var total = wf.total_cost_bps, base = wf.baseline_cost_bps;
+    var run = 0, cum = [0];
+    steps.forEach(function(s){ run += s.v; cum.push(run); });
+    var all = [0, total, base].concat(cum);
+    var dMin = Math.min.apply(null, all), dMax = Math.max.apply(null, all);
+    var pad = (dMax - dMin) * 0.12 || 10, lo = dMin - pad, hi = dMax + pad;
+    var Lx = 190, Rx = 760, X = function(v){ return Lx + (v - lo) / (hi - lo) * (Rx - Lx); };
+    var rowH = 34, top = 10, W = 800, rows = steps.length + 1, H = top + rows * rowH + 34;
+    var col = {cost: '#B3241B', gain: '#2F7DAE', rail: '#D98A2B', total: '#0B0B0B'};
+    var svg = '<line x1="' + X(0).toFixed(1) + '" y1="' + top + '" x2="' + X(0).toFixed(1) + '" y2="' + (top + rows*rowH) + '" stroke="#E5E5EA" stroke-width="1"/>' +
+      '<line x1="' + X(base).toFixed(1) + '" y1="' + (top-4) + '" x2="' + X(base).toFixed(1) + '" y2="' + (top + rows*rowH + 4) + '" stroke="#B3241B" stroke-width="1.2" stroke-dasharray="3,3"/>' +
+      '<text x="' + X(base).toFixed(1) + '" y="' + (top + rows*rowH + 18) + '" fill="#B3241B" font-family="ui-monospace,monospace" font-size="11" text-anchor="middle">best fiat, ' + cashPct(base) + '</text>';
+    steps.forEach(function(s, i){
+      var y = top + i * rowH;
+      var a = X(cum[i]), b = X(cum[i+1]);
+      var x0 = Math.min(a,b), w = Math.max(2, Math.abs(b-a));
+      var fill = s.kind === 'rail' ? col.rail : (s.v < 0 ? col.gain : col.cost);
+      svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" fill="#0B0B0B">' + esc(s.label) + '</text>' +
+        '<rect x="' + x0.toFixed(1) + '" y="' + (y+7) + '" width="' + w.toFixed(1) + '" height="' + (rowH-14) + '" rx="2" fill="' + fill + '"/>' +
+        '<text x="' + (b + (b>=a?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="12.5" fill="#6B6B6B" text-anchor="' + (b>=a?'start':'end') + '">' + cashPct(s.v) + '</text>';
+    });
+    var y = top + steps.length * rowH, xt = X(total);
+    svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + esc(L.total || 'The whole transfer') + '</text>' +
+      '<rect x="' + Math.min(X(0), xt).toFixed(1) + '" y="' + (y+6) + '" width="' + Math.max(2, Math.abs(xt-X(0))).toFixed(1) + '" height="' + (rowH-12) + '" rx="2" fill="' + col.total + '"/>' +
+      '<text x="' + (xt + (total>=0?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="13" font-weight="700" fill="#0B0B0B" text-anchor="' + (total>=0?'start':'end') + '">' + cashPct(total) + '</text>';
+
+    var srcSym = wf.corridor.split('->')[0] === 'SGD' ? 'S$' :
+      wf.corridor.split('->')[0] === 'USD' ? 'US$' : wf.corridor.split('->')[0] + ' ';
+    var cap = (COPY.waterfallCap || 'Sending {rung} {corridor}, buying it now.')
+      .replace('{rung}', srcSym + wf.rung_src.toLocaleString())
+      .replace('{corridor}', wf.route_words || wf.corridor.replace('->', ' → '));
+    document.getElementById('waterfallSection').innerHTML =
+      '<div class="waterfall-card">' +
+      '<div class="waterfall-title">' + esc(COPY.waterfallTitle || 'Where the cost actually sits') + '</div>' +
+      '<div class="waterfall-cap">' + esc(cap) + ' (n=' + wf.n + ' hours measured)</div>' +
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:760px;height:auto">' + svg + '</svg>' +
+      '</div>';
+  }
+
+  function renderCorridorTable(corridors, COPY){
+    var cols = COPY.corridorTableCols || {};
+    var rows = corridors.map(function(c){
+      var wins = c.win_rate_taker_pct >= 10 || c.win_rate_maker_pct >= 10;
+      var note = (c.corridor === 'USD->MXN') ? ('<div class="corridor-note">' + esc(COPY.corridorMxnNote || '') + '</div>') : '';
+      return '<tr>' +
+        '<td><b>' + esc(c.route_words || c.corridor) + '</b></td>' +
+        '<td class="num">' + cashPct(c.taker_cost_bps_median) + '</td>' +
+        '<td class="num">' + cashPct(c.baseline_cost_bps_median) + '</td>' +
+        '<td class="' + (wins ? 'win-yes' : 'win-no') + '">' + c.win_rate_taker_pct.toFixed(1) + '% of hours' + note + '</td>' +
+        '<td><a href="./corridor.html?corridor=' + encodeURIComponent(c.corridor) + '" style="font-weight:600;color:#0B0B0B">' + esc(COPY.seeCorridor || 'see the receipt →') + '</a></td>' +
+        '</tr>';
+    }).join('');
+    document.getElementById('corridorTableSection').innerHTML =
+      '<div class="waterfall-title">' + esc(COPY.corridorTableTitle || 'Every corridor, measured the same way') + '</div>' +
+      '<table class="corridor-table"><thead><tr>' +
+      '<th>' + esc(cols.corridor || 'CORRIDOR') + '</th>' +
+      '<th>' + esc(cols.stablecoin || 'STABLECOIN (TAKER)') + '</th>' +
+      '<th>' + esc(cols.fiat || 'BEST FIAT') + '</th>' +
+      '<th>' + esc(cols.winRate || 'STABLECOIN WINS') + '</th>' +
+      '<th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
   Promise.all([
     fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()),
     fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-    fetch('./data/volume_crossover.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+    fetch('./data/volume_crossover.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    fetch('./data/corridor_summary.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
   ]).then(function(res){
-    var idx = res[0], prov = res[1], crossover = res[2];
+    var idx = res[0], prov = res[1], crossover = res[2], corridorSummary = res[3], COPY = (res[4] || {}).home || {};
     var countries = idx.countries || [];
     var withheld = idx.withheld || [];
     var hourUtc = (idx.as_of_utc || idx.computed_at || '').slice(11,16);
@@ -203,9 +298,33 @@
     var trackedCountryCount = countries.length + withheld.length;
     document.getElementById('liveStamp').textContent =
       'LIVE · ' + evidenceTotal + ' SOURCES · ' + hourUtc + ' UTC';
-    document.getElementById('heroSub').textContent =
-      'The agent watches ' + evidenceTotal + ' sources in ' + trackedCountryCount + ' countries, every hour, and tells you what a dollar really costs — with the receipt for every claim.';
     document.getElementById('passStamp').textContent = 'last pass ' + hourUtc + ' UTC';
+
+    // ---- D1 (v1 freeze and ship brief): the homepage leads with the
+    // corridor finding, not the currency index. Headline is the real
+    // computed sentence from data/corridor_summary.json -- if that file
+    // is missing or a run produced no measurable rows, the honest fallback
+    // says so rather than showing a stale or invented number. ----
+    var headlineEl = document.getElementById('heroHeadline');
+    var subEl = document.getElementById('heroSub');
+    if (corridorSummary && corridorSummary.headline && corridorSummary.headline.text) {
+      headlineEl.textContent = corridorSummary.headline.text;
+      subEl.innerHTML = esc(COPY.headlineSub || '') + ' ' + esc(COPY.indexPointer || 'Every tracked currency’s own parallel-rate gap moved to') +
+        ' <a href="./the-index.html" style="font-weight:600;color:#0B0B0B">' + esc(COPY.indexPointerLink || 'the index →') + '</a>';
+    } else {
+      headlineEl.textContent = COPY.headlineFallback ||
+        'Stablecoins lost to the best ordinary way to send money in nearly every measured hour. The rail is nearly free. The doors are not.';
+      subEl.textContent = 'This hour’s route measurement is unavailable -- showing the standing finding, not this pass’s number.';
+    }
+
+    // ---- The waterfall: SGD->PHP at the reference size, five real terms. ----
+    if (corridorSummary && corridorSummary.waterfall) {
+      renderWaterfall(corridorSummary.waterfall, COPY);
+    }
+    // ---- The corridor table: one row per tracked corridor. ----
+    if (corridorSummary && corridorSummary.corridors && corridorSummary.corridors.length) {
+      renderCorridorTable(corridorSummary.corridors, COPY);
+    }
 
     // Sidebar: real ranking by index_pct, top 5.
     var ranked = countries.slice().sort(function(a,b){ return b.index_pct - a.index_pct; });
@@ -269,8 +388,9 @@
     }
 
     document.getElementById('items').innerHTML = itemsHtml || '<div class="item"><p>Collector idle, next pass on the hour.</p></div>';
-    document.getElementById('machineNote').textContent =
-      countries.length + ' priced · ' + withheld.length + ' withheld this pass';
+    document.getElementById('machineFooterLine').textContent =
+      (COPY.footerMachineRoom || 'the machine room — {priced} priced · {withheld} withheld · last pass {hour} UTC')
+        .replace('{priced}', countries.length).replace('{withheld}', withheld.length).replace('{hour}', hourUtc);
 
     var chartEl = document.getElementById('homeChart');
     if (chartEl && top) {
@@ -446,17 +566,17 @@
         run: function(){
           var t = crossover.taker, m = crossover.maker;
           var sentence = 'At S$' + Number(crossover.rung_sgd).toLocaleString() +
-            ' a transfer, the stablecoin route only beats the best incumbent fiat rail once a sender is running real payments-company volume, not retail: <b>' +
-            fmtVolume(t.monthly_volume_sgd) + '/month</b> and up for a taker order' +
-            (m && m.status === 'crosses' ? (', <b>' + fmtVolume(m.monthly_volume_sgd) + '/month</b> for a posted maker order') : '') +
+            ' a transfer, the stablecoin route only beats the best ordinary way to send money once a sender is running real payments-company volume, not retail: <b>' +
+            fmtVolume(t.monthly_volume_sgd) + '/month</b> and up buying it now' +
+            (m && m.status === 'crosses' ? (', <b>' + fmtVolume(m.monthly_volume_sgd) + '/month</b> if waiting for your price') : '') +
             ' — that volume is what unlocks Independent Reserve’s ' + t.fee_pct_at_crossover_ir.toFixed(2) +
             '% tier, down from 0.50% at the base rate everyone starts on. Below it, stablecoins lose, every time.';
           var chartOpts = {
-            spark: t.curve.map(function(p){ return p.cost_bps; }),
+            spark: t.curve.map(function(p){ return p.cost_bps / 100; }),
             xLabels: t.curve.map(function(p){ return fmtVolume(p.monthly_volume_sgd) + '/mo'; }),
-            valueSuffix: ' bps',
-            refValue: crossover.baseline_cost_bps_median,
-            refLabel: 'best incumbent fiat: ' + crossover.baseline_cost_bps_median.toFixed(1) + ' bps'
+            valueSuffix: '%',
+            refValue: crossover.baseline_cost_bps_median / 100,
+            refLabel: 'best ordinary way: ' + cashPct(crossover.baseline_cost_bps_median)
           };
           showAnswerCard(sentence,
             'measured from ' + crossover.n_samples + ' real S$' + Number(crossover.rung_sgd).toLocaleString() +
