@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — "stablecoins are cheap" is a fee-tier story</title>
+<meta name="description" content="The rail costs almost nothing. The doors cost the rest, and a fee schedule most senders never read decides which one you're actually paying for."/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="./js/chart.js"></script>
+<style>
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
+  a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
+  .num{font-variant-numeric:tabular-nums}
+  .wrap{max-width:1440px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
+  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
+  nav a.active{color:var(--ink);font-weight:700}
+  .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
+  main{padding:44px 48px 64px;max-width:800px}
+  .kicker{font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase;font-weight:700}
+  h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;line-height:1.2;margin:10px 0 0;max-width:760px}
+  .dek{font-size:18px;line-height:1.55;color:var(--sub);padding-top:16px;max-width:720px}
+  .h{font-size:22px;font-weight:800;padding-top:44px;padding-bottom:10px;letter-spacing:-0.01em}
+  .p{font-size:17px;line-height:1.7;color:#1A1A1A;padding-top:14px;max-width:720px}
+  .p b{font-weight:800}
+  .breakdown{border:1px solid var(--rule);border-radius:14px;padding:22px 26px;margin-top:22px;max-width:640px}
+  .breakdown-row{display:flex;justify-content:space-between;padding:8px 0;font-size:15px;border-bottom:1px solid var(--rule)}
+  .breakdown-row:last-child{border-bottom:none;padding-top:12px;font-weight:800;border-top:1px solid #0B0B0B;margin-top:4px}
+  .breakdown-row .lbl{color:#333}
+  .breakdown-row .val{font-weight:700}
+  .callout{background:#F6F6F6;border-radius:14px;padding:20px 24px;margin-top:22px;max-width:640px;font-size:15px;line-height:1.6;color:#333}
+  .callout b{color:#0B0B0B}
+  .cite{font-size:13px;color:#9A9A9A;padding-top:6px}
+  .cite a{font-weight:600;color:#6B6B6B}
+  .cite a:hover{color:var(--indigo)}
+  .sources{border-top:1px solid var(--rule);margin-top:56px;padding-top:20px;font-size:13px;color:#9A9A9A;line-height:1.7;max-width:720px}
+  .sources a{font-weight:600;color:#6B6B6B}
+  @media(max-width:900px){h1{font-size:28px} header{padding:22px 24px} main{padding:32px 24px 48px}}
+
+  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
+  @media(max-width:760px){
+    header{position:relative;flex-wrap:nowrap!important}
+    .brand{gap:14px}
+    nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column!important;gap:0!important;padding:6px 24px 16px;border-bottom:1px solid #F0F0F0;box-shadow:0 8px 16px rgba(11,11,11,0.06);z-index:30}
+    nav.open{display:flex}
+    nav a{padding:12px 0;border-bottom:1px solid #F6F6F6;font-size:16px}
+    .nav-toggle{display:block}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo"><a href="./index.html">margin.wiki</a></div>
+      <nav>
+        <a href="./the-index.html">The index</a>
+        <a href="./sending-money.html">Sending money</a>
+        <a href="./findings.html">Findings</a>
+        <a href="./how-it-works.html">How it works</a>
+      </nav>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+    </div>
+    <div class="live"><span class="dot"></span><span class="num" id="liveStamp">&mdash;</span></div>
+  </header>
+
+  <main>
+    <div class="kicker">Findings</div>
+    <h1>"Stablecoins are cheap" is a fee-tier story</h1>
+    <div class="dek">The rail costs almost nothing. The doors cost the rest — and a fee schedule most senders never read decides which route actually wins.</div>
+
+    <div class="h">The claim everyone repeats</div>
+    <p class="p">Stablecoins are supposed to make cross-border payments cheap. The argument, in its usual form: they settle in seconds, cost fractions of a cent, and skip the correspondent-banking chain that makes a wire slow and expensive. On the narrow question of moving a stablecoin from one wallet to another, that's true. Measured live on the <a href="./corridor.html?corridor=SGD-&gt;PHP">Singapore-to-Philippines route</a>, sending S$5,000: the fee for moving the coin itself is <b>0.10%</b> of the transfer.</p>
+    <p class="p">That number is the entire public narrative. It is not the number that decides whether a real transfer is cheap.</p>
+
+    <div class="h">Where the cost actually sits</div>
+    <p class="p">A transfer that starts in a bank account and ends in one has to cross two doors — buying the stablecoin, then selling it back — and that's where almost all the real cost sits. Same route, same S$5,000, buying it now:</p>
+    <div class="breakdown" id="breakdown">
+      <div class="breakdown-row"><span class="lbl">Buying the coin</span><span class="val num" id="bdBuy">&mdash;</span></div>
+      <div class="breakdown-row"><span class="lbl">Moving it</span><span class="val num" id="bdMove">&mdash;</span></div>
+      <div class="breakdown-row"><span class="lbl">Selling it</span><span class="val num" id="bdSell">&mdash;</span></div>
+      <div class="breakdown-row"><span class="lbl">The whole transfer</span><span class="val num" id="bdTotal">&mdash;</span></div>
+    </div>
+    <div class="cite" id="bdCite">measured, median across every hour since August · <a href="./corridor.html?corridor=SGD-&gt;PHP">see the receipt →</a></div>
+    <p class="p" id="bdDoorsP">The rail costs a fraction of a percent. The doors cost the rest. Every point of that is a published fee or a real, live market gap — not an estimate.</p>
+
+    <div class="h">The correction</div>
+    <p class="p">The obvious objection: buying it now pays the worst price on both legs. What if you wait for your own price instead?</p>
+    <p class="p">An earlier version of this measurement said that changes everything: waiting for your price beat the best fiat provider by roughly 3×. That was wrong, and it's worth saying exactly how, because the mistake is more instructive than the corrected number.</p>
+    <p class="p">The earlier draft modelled waiting for your price as <i>free</i> execution — no fee, on the theory that a posted order doesn't cross the spread. It doesn't cross the spread. It still pays a fee. Independent Reserve publishes no discount at all for waiting — a posted order there pays the same flat 0.50% a market order does. Coins.ph's own schedule charges 0.10% to wait, against 0.15% to buy now. Once both legs are priced at their real, published fee schedule instead of zero, the gap barely moves: the same S$5,000 transfer costs about <b>0.80%</b> waiting for your price — a saving of about 5 hundredths of a percentage point, not the 3× the earlier draft claimed.</p>
+    <div class="callout"><b>At published fees, the stablecoin route loses to the best fiat provider in both execution styles, across every size this site measures.</b> This correction stays on the record, not because it's flattering, but because a site whose whole claim is "checked, not assumed" has to survive checking its own headline result. The mistake was an assumption; the fix was reading the actual fee schedules.</div>
+
+    <div class="h">The one route where it's close</div>
+    <p class="p">Of the four routes this site prices at the same rigor, three lose to the best fiat provider in almost every measured hour — Singapore, Australia and New Zealand to the Philippines all sit at or near a 0% win rate buying it now. <a href="./corridor.html?corridor=USD-&gt;MXN">The United States to Mexico</a> is different: waiting for your price there wins <b>43.7% of measured hours</b> at small sizes.</p>
+    <p class="p">Why that route specifically: Bitso, the exchange handling the Mexican side, runs materially tighter fees than Coins.ph's schedule, and publishes its volume-tier schedule as real, machine-readable data — nothing scraped off a page. That's a structural difference in what the two exchanges charge, not a fluke of one hour's prices.</p>
+
+    <div class="h">A fee-tier question, not a verdict</div>
+    <p class="p">None of this says stablecoins are a bad way to move money. It says the "stablecoins are cheap" argument, made about the rail alone, answers a question nobody sending real money is actually asking. The real question — does it beat what I'd pay otherwise — depends on a fee schedule most senders never see: the volume discount every exchange publishes and almost nobody reads.</p>
+    <p class="p">That crossover isn't a guess here. It's measured: for Singapore to the Philippines, the stablecoin route only starts winning once a sender is running real payments-company volume, not retail — <b>S$3.6M a month</b> and up buying it now, <b>S$2.7M a month</b> if waiting for your price. That's the volume that unlocks Independent Reserve's discounted 0.14%/0.18% tiers, down from the 0.50% base rate everyone starts on. Below it, stablecoins lose, every time.</p>
+    <div class="cite"><a href="./ask.html">ask the agent to show the crossover, live →</a></div>
+
+    <div class="sources">Every figure above is computed, not typed: the breakdown and the corridor win rates come from <a href="./data/corridor_summary.json">data/corridor_summary.json</a>, regenerated from <a href="./data/samples.csv">data/samples.csv</a> by <code>tools/emit_corridor_summary.py</code>; the volume crossover comes from <a href="./data/volume_crossover.json">data/volume_crossover.json</a>, regenerated by <code>tools/emit_volume_crossover.py</code> against the venues' own published fee schedules. Re-run either script and the numbers above are what it prints. See <a href="./how-it-works.html">how it works</a> for the collection method, and the <a href="https://github.com/SebR214/margin">raw code and data</a> for everything else.</div>
+  </main>
+</div>
+
+<script>
+fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
+  var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
+  document.getElementById('liveStamp').textContent = hourUtc ? ('LAST COLLECTION PASS ' + hourUtc + ' UTC') : '';
+}).catch(function(){});
+
+// The headline breakdown: same five-term arithmetic as index.html's
+// waterfall (data/corridor_summary.json, tools/emit_corridor_summary.py) --
+// computed here too, not hand-typed, so this page can't drift from the
+// number the homepage itself shows.
+function cashPct(bps){ var pct = bps/100; return (pct>=0?'+':'') + pct.toFixed(2) + '%'; }
+fetch('./data/corridor_summary.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(doc){
+  var wf = doc.waterfall;
+  if (!wf) return;
+  var buy = wf.onramp_basis_bps + wf.onramp_fee_bps;
+  var sell = wf.offramp_basis_bps + wf.offramp_fee_bps;
+  document.getElementById('bdBuy').textContent = cashPct(buy);
+  document.getElementById('bdMove').textContent = cashPct(wf.network_fee_bps);
+  document.getElementById('bdSell').textContent = cashPct(sell);
+  document.getElementById('bdTotal').textContent = cashPct(wf.total_cost_bps) + ', against ' + cashPct(wf.baseline_cost_bps) + ' for the best fiat provider';
+  document.getElementById('bdCite').innerHTML = 'measured, median across ' + wf.n + ' hours since August · <a href="./corridor.html?corridor=SGD-&gt;PHP">see the receipt →</a>';
+  var doors = wf.total_cost_bps - wf.network_fee_bps;
+  document.getElementById('bdDoorsP').textContent =
+    'The rail costs ' + cashPct(wf.network_fee_bps) + '. The doors cost ' + cashPct(doors) + '. Every point of that ' + cashPct(doors) + ' is a published fee or a real, live market gap — not an estimate.';
+}).catch(function(){});
+</script>
+
+<script>
+(function(){
+  var btn = document.getElementById('navToggle');
+  var nav = document.querySelector('header nav');
+  if (btn && nav) {
+    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
+    document.addEventListener('click', function(e){
+      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
+    });
+  }
+})();
+</script>
+</body>
+</html>

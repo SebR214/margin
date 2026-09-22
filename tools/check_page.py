@@ -63,7 +63,7 @@ PAGES = ["index.html", "providers.html", "pricing-history.html",
          "requests.html", "calculator.html", "weekly.html", "data.html",
          "ask.html", "watch.html", "stress.html", "machine-room.html",
          "the-index.html", "sending-money.html", "how-it-works.html",
-         "country.html"]
+         "country.html", "fee-tiers.html"]
 
 # ask.html and watch.html both call a live backend rather than reading a
 # static file, so a check of the static shell alone would never touch the
