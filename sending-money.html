@@ -25,7 +25,11 @@
   .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:12px}
   h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;margin:0}
   .lede{max-width:780px;font-size:16px;color:#6B6B6B;line-height:1.5}
-  .corridor{padding:40px 48px 0;display:flex;flex-direction:column;max-width:860px;box-sizing:content-box}
+  .job{font-size:15px;color:#6B6B6B;padding:2px 48px 0;max-width:780px}
+  .corridor-picker{display:flex;gap:8px;flex-wrap:wrap;padding:28px 48px 0}
+  .route-pill{padding:10px 18px;background:#F6F6F6;color:#0B0B0B;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;border:0;font-family:inherit}
+  .route-pill.on{background:#0B0B0B;color:#fff}
+  .corridor{padding:28px 48px 0;display:flex;flex-direction:column;max-width:860px;box-sizing:content-box}
   .corridor:last-child{padding-bottom:56px}
   .corridor-hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;flex-wrap:wrap;gap:10px}
   .corridor-title{font-size:22px;font-weight:800;letter-spacing:-0.01em}
@@ -73,9 +77,10 @@
 
   <div class="hero">
     <h1>What sending money really costs</h1>
-    <div class="lede">Every provider's all-in cost — the fee plus the margin hidden in the exchange rate — against the same mid-market snapshot, re-priced every hour. Cheapest first. Four corridors today, because that is what the collector currently tracks hourly; more get added as collection for them does.</div>
   </div>
+  <div class="job">For each route we track, every provider's all-in cost this hour, cheapest first.</div>
 
+  <div class="corridor-picker" id="corridorPicker"></div>
   <div id="corridors"></div>
 </div>
 
@@ -83,6 +88,16 @@
 (function(){
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   var AMOUNT_ORDER = ['200','1000','5000','25000','50000'];
+  // Fixed, not alphabetical or however the API happens to order its keys --
+  // SGD->PHP is the flagship corridor (the one measured longest, the one
+  // the homepage's own finding leads with) and reads first every time.
+  var ROUTE_ORDER = ['SGD->PHP', 'AUD->PHP', 'NZD->PHP', 'USD->MXN'];
+  // The by-size curve only earns its place on USD->MXN: that is the one
+  // corridor where the dollar route sometimes actually wins at some size
+  // (the crossover the homepage finding is about). On the three PHP
+  // corridors it never crosses, so the curve says the same "always more
+  // expensive" at every point -- a chart with nothing to show.
+  var CURVE_ROUTES = ['USD->MXN'];
 
   // ---- Cost-by-size curve: real, and deliberately bounded. -----------
   // samples.csv already carries a real cost figure (cost_bps_taker, the
@@ -107,9 +122,11 @@
       // same (corridor, size), leaving the latest real reading.
       byKey[corridor + '|' + size] = {
         costBpsTaker: parseFloat(cols[idx.cost_bps_taker]),
+        costBpsMaker: parseFloat(cols[idx.cost_bps_maker]),
         baselineProvider: cols[idx.baseline_provider],
         baselineCostBps: parseFloat(cols[idx.baseline_cost_bps]),
-        cryptoWins: cols[idx.crypto_wins_taker] === 'True'
+        cryptoWinsTaker: cols[idx.crypto_wins_taker] === 'True',
+        cryptoWinsMaker: cols[idx.crypto_wins_maker] === 'True'
       };
     }
     return byKey;
@@ -123,7 +140,9 @@
     }
     var w = 860, h = 220, padL = 24, padR = 90, padT = 16, padB = 30;
     var plotW = w - padL - padR, plotH = h - padT - padB;
-    var allVals = points.map(function(p){ return p.costBpsTaker; }).concat(points.map(function(p){ return p.baselineCostBps; }));
+    var allVals = points.map(function(p){ return p.costBpsTaker; })
+      .concat(points.map(function(p){ return p.costBpsMaker; }))
+      .concat(points.map(function(p){ return p.baselineCostBps; }));
     var maxV = Math.max.apply(null, allVals), minV = Math.min(0, Math.min.apply(null, allVals));
     var range = (maxV - minV) || 1;
     // Log-spaced x: sizes span 200 to 50,000, a 250x range -- linear
@@ -136,15 +155,19 @@
     function pathFor(getVal) {
       return points.map(function(p, i){ return (i===0?'M':'L') + xPos(i).toFixed(1) + ',' + yPos(getVal(p)).toFixed(1); }).join(' ');
     }
-    var ourPath = pathFor(function(p){ return p.costBpsTaker; });
+    var takerPath = pathFor(function(p){ return p.costBpsTaker; });
+    var makerPath = pathFor(function(p){ return p.costBpsMaker; });
     var basePath = pathFor(function(p){ return p.baselineCostBps; });
-    var lastOur = yPos(points[points.length-1].costBpsTaker);
-    var lastBase = yPos(points[points.length-1].baselineCostBps);
     var lastX = xPos(points.length - 1);
 
+    // Same three colors and the same meaning as the round-trip chart on
+    // corridor.html (--pos/--neg tokens): red = buying it now, gray =
+    // waiting for your price, blue = the cheapest ordinary provider. One
+    // color language across the site, not a new one per chart.
     var dots = points.map(function(p, i){
-      return '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.costBpsTaker).toFixed(1)+'" r="3.5" fill="#817FCC"/>' +
-        '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.baselineCostBps).toFixed(1)+'" r="3.5" fill="#9A9A9A"/>';
+      return '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.costBpsTaker).toFixed(1)+'" r="3.5" fill="#b3241b"/>' +
+        '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.costBpsMaker).toFixed(1)+'" r="3.5" fill="#6B6B6B"/>' +
+        '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.baselineCostBps).toFixed(1)+'" r="3.5" fill="#2f7dae"/>';
     }).join('');
     var xLabels = points.map(function(p, i){
       return '<text x="'+xPos(i).toFixed(1)+'" y="'+(h-8)+'" text-anchor="middle" font-family="Archivo, sans-serif" font-size="12" fill="#9A9A9A">'+esc(SIZE_TIERS[i].length>3 ? '$'+(+SIZE_TIERS[i]/1000)+'k' : '$'+SIZE_TIERS[i])+'</text>';
@@ -155,12 +178,14 @@
     }).join('');
 
     container.innerHTML =
-      '<div style="display:flex;gap:18px;font-size:12px;padding-bottom:6px">' +
-      '<span style="color:#817FCC;font-weight:700">&#9679; the dollar route</span>' +
-      '<span style="color:#9A9A9A">&#9679; cheapest ordinary ('+esc(points[points.length-1].baselineProvider)+')</span></div>' +
+      '<div style="display:flex;gap:18px;font-size:12px;flex-wrap:wrap;padding-bottom:6px">' +
+      '<span style="color:#b3241b;font-weight:700">&#9679; buying it now</span>' +
+      '<span style="color:#6B6B6B;font-weight:700">&#9679; waiting for your price</span>' +
+      '<span style="color:#2f7dae">&#9679; cheapest ordinary ('+esc(points[points.length-1].baselineProvider)+')</span></div>' +
       '<svg width="100%" viewBox="0 0 '+w+' '+h+'" style="display:block">' +
-      '<path d="'+basePath+'" fill="none" stroke="#9A9A9A" stroke-width="1.5" stroke-dasharray="3,3"/>' +
-      '<path d="'+ourPath+'" fill="none" stroke="#817FCC" stroke-width="2"/>' +
+      '<path d="'+basePath+'" fill="none" stroke="#2f7dae" stroke-width="1.5" stroke-dasharray="3,3"/>' +
+      '<path d="'+makerPath+'" fill="none" stroke="#6B6B6B" stroke-width="2"/>' +
+      '<path d="'+takerPath+'" fill="none" stroke="#b3241b" stroke-width="2"/>' +
       dots + yLabels + xLabels +
       '</svg>' +
       '<div style="font-size:12px;color:#9A9A9A;padding-top:4px">all-in cost, as a share of the amount, at each size actually measured -- stops at $50,000 because that is as far as real fills go; nothing past that point is estimated</div>';
@@ -172,19 +197,37 @@
   ]).then(function(res){
     var d = res[0];
     var samplesByKey = parseSamplesCSV(res[1]);
-    var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
 
+    // Fixed order, real keys only -- a route in ROUTE_ORDER the API doesn't
+    // currently have is dropped silently (nothing to show), never invented.
+    var routeKeys = ROUTE_ORDER.filter(function(k){ return d.corridors[k]; });
     var container = document.getElementById('corridors');
-    Object.keys(d.corridors).forEach(function(routeKey, idx){
-      var route = d.corridors[routeKey];
-      var div = document.createElement('div');
-      div.className = 'corridor';
-      div.id = 'c-' + idx;
-      container.appendChild(div);
-      renderCorridor(div, route, '5000', routeKey, samplesByKey);
+    var picker = document.getElementById('corridorPicker');
+    var current = routeKeys[0];
+    var sizeByRoute = {};
+
+    picker.innerHTML = routeKeys.map(function(k){
+      return '<button class="route-pill'+(k===current?' on':'')+'" data-route="'+esc(k)+'">'+esc(d.corridors[k].route_words)+'</button>';
+    }).join('');
+    picker.querySelectorAll('.route-pill').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        current = btn.getAttribute('data-route');
+        picker.querySelectorAll('.route-pill').forEach(function(b){ b.classList.toggle('on', b === btn); });
+        show(current);
+      });
     });
 
+    var el = document.createElement('div');
+    el.className = 'corridor';
+    container.appendChild(el);
+
+    function show(routeKey){
+      renderCorridor(el, d.corridors[routeKey], sizeByRoute[routeKey] || '5000', routeKey, samplesByKey);
+    }
+    show(current);
+
     function renderCorridor(el, route, selectedSize, routeKey, samplesByKey){
+      sizeByRoute[routeKey] = selectedSize;
       var size = route.sizes[selectedSize];
       var rows = size.rows.slice().sort(function(a,b){ return a.rank - b.rank; });
       var pillsHtml = AMOUNT_ORDER.filter(a => route.sizes[a]).map(function(a){
@@ -198,18 +241,25 @@
       var ownProviders = rows.filter(r => r.source === 'own').map(r => r.provider);
       var footnote = (ownProviders.length ? ownProviders.join(' and ') + ' quote their own prices; the rest come ' : 'Every price comes ') +
         'from a public comparison across providers; the dollar route is measured on real exchanges, all in.';
+      var showCurve = CURVE_ROUTES.indexOf(routeKey) !== -1;
       el.innerHTML =
         '<div class="corridor-hdr"><div class="corridor-title">'+esc(route.route_words)+'</div>' +
         '<div class="pills">'+pillsHtml+'</div></div>' +
         '<div class="prow-hdr lbl"><div>SENDING '+esc(size.amount_words)+'</div><div style="text-align:right">ALL IN</div><div style="text-align:right">% OF AMOUNT</div></div>' +
         rowsHtml +
         '<div class="foot">'+esc(footnote)+'</div>' +
-        '<div style="margin-top:22px;font-size:15px;font-weight:700">The dollar route, by size</div>' +
-        '<div id="curve-'+esc(routeKey)+'" style="padding-top:10px"></div>';
+        (showCurve ?
+          // This corridor is the one where waiting for your own price
+          // sometimes actually wins (real, in data/samples.csv) -- the
+          // by-size view earns its place here because there is a real
+          // crossover to see, not on a corridor where the dollar route
+          // never wins at any size.
+          '<div style="margin-top:22px;font-size:15px;font-weight:700">By size, on this corridor</div>' +
+          '<div id="curve-'+esc(routeKey)+'" style="padding-top:10px"></div>' : '');
       el.querySelectorAll('.pill').forEach(function(btn){
         btn.addEventListener('click', function(){ renderCorridor(el, route, btn.getAttribute('data-amt'), routeKey, samplesByKey); });
       });
-      renderCostCurve(document.getElementById('curve-'+routeKey), routeKey, samplesByKey);
+      if (showCurve) renderCostCurve(document.getElementById('curve-'+routeKey), routeKey, samplesByKey);
     }
   }).catch(function(){
     document.getElementById('corridors').innerHTML = '<div class="corridor"><p style="color:#0B0B0B">Could not load corridor data. That failure is shown, not hidden.</p></div>';
