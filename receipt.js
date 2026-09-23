@@ -163,7 +163,7 @@
     ".receipt-step-label{font-weight:800;font-size:13px;margin-bottom:3px;}",
     ".receipt-step-text{font-size:13px;line-height:1.5;color:#201e1d;}",
     ".receipt-step-file{font-size:11px;text-align:right;white-space:nowrap;}",
-    ".receipt-step-file a,.receipt-raw-links a{color:#5A55E0;text-decoration:none;}",
+    ".receipt-step-file a,.receipt-raw-links a{color:#817FCC;text-decoration:none;}",
     ".receipt-step-file a:hover,.receipt-raw-links a:hover{text-decoration:underline;}",
     ".receipt-footer{border-top:2px solid #201e1d;margin-top:6px;padding-top:12px;}",
     ".receipt-raw-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d7979;margin-bottom:6px;}",

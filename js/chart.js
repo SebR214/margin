@@ -109,8 +109,8 @@
       '<div style="position:relative">' +
       '<svg id="' + svgId + '" width="100%" viewBox="0 0 ' + w + ' ' + h + '" style="display:block;cursor:crosshair">' +
       '<defs><linearGradient id="g-' + uid + '" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0" stop-color="#DCDFFA" stop-opacity="0.95"/>' +
-      '<stop offset="1" stop-color="#DCDFFA" stop-opacity="0.05"/></linearGradient></defs>' +
+      '<stop offset="0" stop-color="#F0EBD8" stop-opacity="0.95"/>' +
+      '<stop offset="1" stop-color="#F0EBD8" stop-opacity="0.05"/></linearGradient></defs>' +
       '<path d="' + areaPath + '" fill="url(#g-' + uid + ')"/>' +
       refLine +
       '<polyline points="' + linePoly + '" fill="none" stroke="#817FCC" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
@@ -120,7 +120,7 @@
       // size, not at text size) -- a light tint of the same accent with ink
       // text reads clearly instead, and reuses the gradient's own tint
       // rather than adding a third color.
-      '<rect x="' + (lastX + 6).toFixed(1) + '" y="' + (lastY - 12).toFixed(1) + '" width="' + badgeWidth + '" height="24" rx="4" fill="#DCDFFA"/>' +
+      '<rect x="' + (lastX + 6).toFixed(1) + '" y="' + (lastY - 12).toFixed(1) + '" width="' + badgeWidth + '" height="24" rx="4" fill="#F0EBD8"/>' +
       '<text x="' + (lastX + 6 + badgeWidth / 2).toFixed(1) + '" y="' + (lastY + 5).toFixed(1) + '" text-anchor="middle" font-family="Archivo, sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + badgeText + '</text>' +
       yLabels +
       '<line id="' + vlineId + '" x1="0" y1="0" x2="0" y2="' + (h - bottomAxis) + '" stroke="#0B0B0B" stroke-width="1" opacity="0" />' +
