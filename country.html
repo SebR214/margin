@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; --withheld:#B3822D; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; --withheld:#6B6B6B; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
@@ -140,7 +140,7 @@
       '<div id="countryChart"></div>' +
       '<div class="receipt-line">' + esc(country.evidence_words) + ', ' + esc(country.source_words) +
       ' &middot; you’d lose ' + country.round_trip_pct.toFixed(1) + '% selling back &middot; ' +
-      (country.denominator_class === 'unmaintained' ? '<span style="color:#B3822D">the official rate here is unmaintained &mdash; this gap is partly a frozen-peg artifact, not purely a market move</span>' : 'official rate class: ' + esc(country.denominator_class)) +
+      (country.denominator_class === 'unmaintained' ? '<span style="color:#6B6B6B">the official rate here is unmaintained &mdash; this gap is partly a frozen-peg artifact, not purely a market move</span>' : 'official rate class: ' + esc(country.denominator_class)) +
       '</div>';
 
     var p2p = raw && raw.p2p && raw.p2p[ccy];
@@ -239,7 +239,7 @@
         '<div class="f">' + esc(file) + '</div></div>';
     }
   }).catch(function(){
-    document.getElementById('main').innerHTML = '<div class="notfound" style="color:#B3822D">Could not load this country\'s data. That failure is shown, not hidden.</div>';
+    document.getElementById('main').innerHTML = '<div class="notfound" style="color:#0B0B0B">Could not load this country\'s data. That failure is shown, not hidden.</div>';
   });
 })();
 </script>

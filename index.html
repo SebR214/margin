@@ -36,8 +36,8 @@
   .corridor-table th{text-align:left;font-size:11px;letter-spacing:.06em;color:#9A9A9A;font-weight:600;padding:0 20px 14px 0;border-bottom:1px solid var(--rule)}
   .corridor-table td{padding:18px 20px 18px 0;border-bottom:1px solid var(--rule);font-size:15px;vertical-align:top;line-height:1.5}
   .corridor-table tr:last-child td{border-bottom:none}
-  .corridor-table .win-yes{color:#2F7A4D;font-weight:700}
-  .corridor-table .win-no{color:#B3822D;font-weight:700}
+  .corridor-table .win-yes{color:#0B0B0B;font-weight:700}
+  .corridor-table .win-no{color:#6B6B6B;font-weight:500}
   .corridor-note{font-size:12.5px;color:#9A9A9A;margin-top:4px;font-weight:400;line-height:1.5}
   .break{border-top:1px solid var(--rule);margin:44px 48px 0}
   .body{padding:40px 48px 48px}
@@ -54,10 +54,10 @@
   .about{border-top:1px solid #0B0B0B;padding-top:14px;margin-top:44px;font-size:14px;line-height:1.55;color:#0B0B0B;max-width:680px}
   .msdot{width:6px;height:6px;border-radius:50%;background:var(--indigo);display:inline-block}
   @media(max-width:900px){
-    header{flex-wrap:wrap;gap:12px} nav{flex-wrap:wrap;gap:16px}
+    header{flex-wrap:wrap;gap:12px;padding:22px 24px} nav{flex-wrap:wrap;gap:16px}
     h1{font-size:26px} .body{padding:28px 24px 48px} .hero{padding:28px 24px 20px}
     .lead-section{padding:0 24px} .waterfall-card{padding:20px 18px} .break{margin:32px 24px 0}
-    .corridor-table{font-size:13px} .corridor-table th,.corridor-table td{padding-right:10px}
+    .corridor-table{font-size:12.5px} .corridor-table th,.corridor-table td{padding:0 6px 10px 0}
   }
 
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
@@ -373,7 +373,7 @@
       MarginChart.render(chartEl, { spark: top.spark, timestamps: sparkDates(top), valueSuffix: '%' });
     }
   }).catch(function(err){
-    document.getElementById('items').innerHTML = '<div class="item"><p style="color:#B3822D">Could not load this hour\'s data. That failure is shown, not hidden.</p></div>';
+    document.getElementById('items').innerHTML = '<div class="item"><p style="color:#0B0B0B">Could not load this hour\'s data. That failure is shown, not hidden.</p></div>';
   });
 })();
 </script>
