@@ -3,10 +3,9 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — "stablecoins are cheap" is a fee-tier story</title>
-<meta name="description" content="The rail costs almost nothing. The doors cost the rest, and a fee schedule most senders never read decides which one you're actually paying for."/>
+<title>margin.wiki — Stablecoins are cheap, kind of</title>
+<meta name="description" content="Moving the coin costs almost nothing, but getting in and out is where most of the money goes, and which route actually wins mostly comes down to a fee schedule most people sending money never read."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="./js/chart.js"></script>
 <style>
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
   *{box-sizing:border-box}
@@ -33,6 +32,7 @@
   .breakdown-row:last-child{border-bottom:none;padding-top:12px;font-weight:800;border-top:1px solid #0B0B0B;margin-top:4px}
   .breakdown-row .lbl{color:#333}
   .breakdown-row .val{font-weight:700}
+  .breakdown-note{font-size:12.5px;color:#9A9A9A;padding-top:10px;line-height:1.5}
   .callout{background:#F6F6F6;border-radius:14px;padding:20px 24px;margin-top:22px;max-width:640px;font-size:15px;line-height:1.6;color:#333}
   .callout b{color:#0B0B0B}
   .cite{font-size:13px;color:#9A9A9A;padding-top:6px}
@@ -71,40 +71,39 @@
 
   <main>
     <div class="kicker">Findings</div>
-    <h1>"Stablecoins are cheap" is a fee-tier story</h1>
-    <div class="dek">The rail costs almost nothing. The doors cost the rest — and a fee schedule most senders never read decides which route actually wins.</div>
+    <h1>Stablecoins are cheap, kind of</h1>
+    <div class="dek">Moving the coin costs almost nothing, but getting in and out is where most of the money goes, and which route actually wins mostly comes down to a fee schedule most people sending money never read.</div>
 
-    <div class="h">The claim everyone repeats</div>
-    <p class="p">Stablecoins are supposed to make cross-border payments cheap. The argument, in its usual form: they settle in seconds, cost fractions of a cent, and skip the correspondent-banking chain that makes a wire slow and expensive. On the narrow question of moving a stablecoin from one wallet to another, that's true. Measured live on the <a href="./corridor.html?corridor=SGD-&gt;PHP">Singapore-to-Philippines route</a>, sending S$5,000: the fee for moving the coin itself is <b>0.10%</b> of the transfer.</p>
-    <p class="p">That number is the entire public narrative. It is not the number that decides whether a real transfer is cheap.</p>
+    <div class="h">The thing everyone says</div>
+    <p class="p">The pitch for stablecoins in cross border is that they settle in seconds, cost next to nothing and skip the chain of correspondent banks that makes a wire slow and expensive, and if you only look at moving the coin from one wallet to another that's true — I measured it live on <a href="./corridor.html?corridor=SGD-&gt;PHP">Singapore to the Philippines</a> sending S$5,000 and the move itself costs 0.10% of the transfer. That's the number people tend to quote, but it's not really the one that tells you whether sending money this way is actually cheap.</p>
 
-    <div class="h">Where the cost actually sits</div>
-    <p class="p">A transfer that starts in a bank account and ends in one has to cross two doors — buying the stablecoin, then selling it back — and that's where almost all the real cost sits. Same route, same S$5,000, buying it now:</p>
+    <div class="h">Where the money actually goes</div>
+    <p class="p">If you start in a bank account and end in one, you have to buy the stablecoin first and sell it again on the other side, and that's where almost all the cost sits, so on the same route with the same S$5,000, buying at the current price, it looks like this:</p>
     <div class="breakdown" id="breakdown">
       <div class="breakdown-row"><span class="lbl">Buying the coin</span><span class="val num" id="bdBuy">&mdash;</span></div>
       <div class="breakdown-row"><span class="lbl">Moving it</span><span class="val num" id="bdMove">&mdash;</span></div>
       <div class="breakdown-row"><span class="lbl">Selling it</span><span class="val num" id="bdSell">&mdash;</span></div>
       <div class="breakdown-row"><span class="lbl">The whole transfer</span><span class="val num" id="bdTotal">&mdash;</span></div>
     </div>
+    <div class="breakdown-note">Each row is its own median across the same hours, so the three don't sum exactly to the total below — that's real variance across hours, not a rounding error.</div>
     <div class="cite" id="bdCite">measured, median across every hour since August · <a href="./corridor.html?corridor=SGD-&gt;PHP">see the receipt →</a></div>
-    <p class="p" id="bdDoorsP">The rail costs a fraction of a percent. The doors cost the rest. Every point of that is a published fee or a real, live market gap — not an estimate.</p>
+    <p class="p" id="bdDoorsP">The rail itself is a fraction of a percent, and getting in and out is the rest, and all of that is either a published fee or a real gap in the market price at that moment — nothing in there is estimated.</p>
 
-    <div class="h">The correction</div>
-    <p class="p">The obvious objection: buying it now pays the worst price on both legs. What if you wait for your own price instead?</p>
-    <p class="p">An earlier version of this measurement said that changes everything: waiting for your price beat the best fiat provider by roughly 3×. That was wrong, and it's worth saying exactly how, because the mistake is more instructive than the corrected number.</p>
-    <p class="p">The earlier draft modelled waiting for your price as <i>free</i> execution — no fee, on the theory that a posted order doesn't cross the spread. It doesn't cross the spread. It still pays a fee. Independent Reserve publishes no discount at all for waiting — a posted order there pays the same flat 0.50% a market order does. Coins.ph's own schedule charges 0.10% to wait, against 0.15% to buy now. Once both legs are priced at their real, published fee schedule instead of zero, the gap barely moves: the same S$5,000 transfer costs about <b>0.80%</b> waiting for your price — a saving of about 5 hundredths of a percentage point, not the 3× the earlier draft claimed.</p>
-    <div class="callout"><b>At published fees, the stablecoin route loses to the best fiat provider in both execution styles, across every size this site measures.</b> This correction stays on the record, not because it's flattering, but because a site whose whole claim is "checked, not assumed" has to survive checking its own headline result. The mistake was an assumption; the fix was reading the actual fee schedules.</div>
+    <div class="h">Where I got it wrong first</div>
+    <p class="p">The fair pushback is that buying at the current price means you pay the worst price on both sides, so what happens if you set your own price and wait for it to fill instead? An earlier version of this page said that changes everything and that waiting for your price beat the best fiat provider by about 3×, which was wrong, and I think the way it was wrong is more useful than the corrected number.</p>
+    <p class="p">The earlier draft treated waiting for your price as free, on the logic that a posted order doesn't cross the spread, which is right, but you still pay a fee: Independent Reserve charges the same flat 0.50% whether you wait or buy now, and Coins.ph charges 0.10% to wait vs 0.15% to buy now. Once both sides are priced on the real fee schedules the difference is pretty small — the same S$5,000 costs about 0.80% waiting for your price, so you save around 0.05 percentage points, nowhere near 3×.</p>
+    <div class="callout"><b>At published fees the stablecoin route loses to the best fiat provider either way, at every size the site measures.</b> I'm leaving the correction up because the whole point of the site is that numbers get checked rather than assumed, which has to include checking my own headline number. In the end the fix was just reading the fee schedules properly.</div>
 
     <div class="h">The one route where it's close</div>
-    <p class="p">Of the four routes this site prices at the same rigor, three lose to the best fiat provider in almost every measured hour — Singapore, Australia and New Zealand to the Philippines all sit at or near a 0% win rate buying it now. <a href="./corridor.html?corridor=USD-&gt;MXN">The United States to Mexico</a> is different: waiting for your price there wins <b>43.7% of measured hours</b> at small sizes.</p>
-    <p class="p">Why that route specifically: Bitso, the exchange handling the Mexican side, runs materially tighter fees than Coins.ph's schedule, and publishes its volume-tier schedule as real, machine-readable data — nothing scraped off a page. That's a structural difference in what the two exchanges charge, not a fluke of one hour's prices.</p>
+    <p class="p">Of the four routes I price at this level of detail, three lose to the best fiat provider in pretty much every hour I've measured — Singapore, Australia and New Zealand to the Philippines all sit at or close to a 0% win rate buying now. <a href="./corridor.html?corridor=USD-&gt;MXN">US to Mexico</a> is different, and waiting for your price there wins <b>43.7% of measured hours</b> at small sizes.</p>
+    <p class="p">The reason is mostly Bitso on the Mexican side — their fees are quite a bit tighter than Coins.ph's, and they publish their volume tiers as actual data I can pull directly rather than something scraped off a page, so it's a real difference in what the two exchanges charge and not just a lucky hour.</p>
 
-    <div class="h">A fee-tier question, not a verdict</div>
-    <p class="p">None of this says stablecoins are a bad way to move money. It says the "stablecoins are cheap" argument, made about the rail alone, answers a question nobody sending real money is actually asking. The real question — does it beat what I'd pay otherwise — depends on a fee schedule most senders never see: the volume discount every exchange publishes and almost nobody reads.</p>
-    <p class="p">That crossover isn't a guess here. It's measured: for Singapore to the Philippines, the stablecoin route only starts winning once a sender is running real payments-company volume, not retail — <b>S$3.6M a month</b> and up buying it now, <b>S$2.7M a month</b> if waiting for your price. That's the volume that unlocks Independent Reserve's discounted 0.14%/0.18% tiers, down from the 0.50% base rate everyone starts on. Below it, stablecoins lose, every time.</p>
+    <div class="h">So it's really a volume question</div>
+    <p class="p">I still think stablecoins can be a good way to move money, but "stablecoins are cheap" is usually said about the rail, and that's not really the question you have when you're sending money — which is whether it beats what you'd pay otherwise — and that mostly comes down to the volume discounts every exchange publishes and almost nobody reads.</p>
+    <p class="p">For Singapore to the Philippines I measured where it flips, and the stablecoin route only starts winning at payments-company volume: around <b>S$3.6M a month</b> buying now, or <b>S$2.7M a month</b> waiting for your price, which is the volume where Independent Reserve drops from the 0.50% base rate everyone starts on to its 0.14%/0.18% tiers. Below that it loses, and for a regular sender it isn't the cheaper option yet — at least on this route.</p>
     <div class="cite"><a href="./ask.html">ask the agent to show the crossover, live →</a></div>
 
-    <div class="sources">Every figure above is computed, not typed: the breakdown and the corridor win rates come from <a href="./data/corridor_summary.json">data/corridor_summary.json</a>, regenerated from <a href="./data/samples.csv">data/samples.csv</a> by <code>tools/emit_corridor_summary.py</code>; the volume crossover comes from <a href="./data/volume_crossover.json">data/volume_crossover.json</a>, regenerated by <code>tools/emit_volume_crossover.py</code> against the venues' own published fee schedules. Re-run either script and the numbers above are what it prints. See <a href="./how-it-works.html">how it works</a> for the collection method, and the <a href="https://github.com/SebR214/margin">raw code and data</a> for everything else.</div>
+    <div class="sources">Every number on this page is computed rather than typed in: the breakdown and win rates come from <a href="./data/corridor_summary.json">data/corridor_summary.json</a> (rebuilt from <a href="./data/samples.csv">data/samples.csv</a> by <code>tools/emit_corridor_summary.py</code>), and the volume crossover comes from <a href="./data/volume_crossover.json">data/volume_crossover.json</a> (rebuilt by <code>tools/emit_volume_crossover.py</code> against the exchanges' own published fee schedules) — so if you re-run either script you'll get the numbers above. <a href="./how-it-works.html">How it works</a> has the collection method, and the <a href="https://github.com/SebR214/margin">raw code and data</a> cover everything else.</div>
   </main>
 </div>
 
@@ -131,7 +130,7 @@ fetch('./data/corridor_summary.json', {cache:'no-store'}).then(function(r){ retu
   document.getElementById('bdCite').innerHTML = 'measured, median across ' + wf.n + ' hours since August · <a href="./corridor.html?corridor=SGD-&gt;PHP">see the receipt →</a>';
   var doors = wf.total_cost_bps - wf.network_fee_bps;
   document.getElementById('bdDoorsP').textContent =
-    'The rail costs ' + cashPct(wf.network_fee_bps) + '. The doors cost ' + cashPct(doors) + '. Every point of that ' + cashPct(doors) + ' is a published fee or a real, live market gap — not an estimate.';
+    'The rail itself is ' + cashPct(wf.network_fee_bps) + ', and getting in and out is ' + cashPct(doors) + ', and all of that is either a published fee or a real gap in the market price at that moment — nothing in there is estimated.';
 }).catch(function(){});
 </script>
 
