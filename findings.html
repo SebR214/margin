@@ -21,17 +21,22 @@
   .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
   .header-right{display:flex;align-items:center;gap:16px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
-  .hero{max-width:900px;padding:44px 48px 0;display:flex;flex-direction:column;gap:12px}
+  /* The layout containers (.hero, .cards, section) fill the same 1150px
+     .wrap the header does -- they used to cap at 900px on their own, on top
+     of the wrap's own width, leaving a 250px dead strip under the nav that
+     the header itself didn't have. Individual reading widths (.lede, .card)
+     stay narrow on purpose; that is prose legibility, not the bug. */
+  .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:12px}
   h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;margin:0}
   .lede{max-width:780px;font-size:16px;color:#6B6B6B;line-height:1.5}
-  .cards{max-width:900px;padding:20px 48px 44px;display:flex;flex-direction:column;gap:0}
+  .cards{padding:20px 48px 44px;display:flex;flex-direction:column;gap:0}
   .card{padding:34px 0;border-bottom:1px solid var(--rule);max-width:820px}
   .stamp{font-size:11px;color:#9A9A9A;letter-spacing:.06em;padding-bottom:8px}
   .p{font-size:18px;line-height:1.6;color:#1A1A1A;font-weight:400}
   .p b{font-weight:700}
   .receipt{font-size:13px;color:#6B6B6B;padding-top:12px}
   .receipt a{font-weight:600;color:#0B0B0B}
-  section{max-width:900px;padding:0 48px}
+  section{padding:0 48px}
   @media(max-width:900px){h1{font-size:30px} header{padding:22px 24px} .hero{padding:32px 24px 0} .cards{padding:20px 24px 44px}}
 
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
@@ -74,8 +79,8 @@
     <div class="lede" style="padding-top:2px"><a href="./agent-incidents.html" style="font-weight:600;color:var(--indigo)">Read the write-up: what it takes to run this on agents that cannot be trusted →</a></div>
   </div>
 
-  <div id="weekendIndex" style="max-width:900px;padding:24px 48px 0"></div>
-  <div id="patterns" style="max-width:900px;padding:24px 48px 0"></div>
+  <div id="weekendIndex" style="padding:24px 48px 0"></div>
+  <div id="patterns" style="padding:24px 48px 0"></div>
   <div class="cards" id="cards"></div>
 </div>
 

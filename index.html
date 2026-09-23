@@ -194,7 +194,13 @@
     var pad = (dMax - dMin) * 0.12 || 10, lo = dMin - pad, hi = dMax + pad;
     var Lx = 190, Rx = 760, X = function(v){ return Lx + (v - lo) / (hi - lo) * (Rx - Lx); };
     var rowH = 34, top = 10, W = 800, rows = steps.length + 1, H = top + rows * rowH + 34;
-    var col = {cost: '#817FCC', gain: '#B7B2F5', rail: '#9A9A9A', total: '#0B0B0B'};
+    // Not indigo: the spec (docs/UI-SPEC-2026-09-16.md) reserves indigo for
+    // a data value, never a category fill, and this chart was using it to
+    // mean "a cost leg" -- two unrelated bars (buying, selling) drawn the
+    // same color as every indigo number on the rest of the site. Reuses
+    // corridor.html's own waterfall palette instead of inventing a third:
+    // red = adds to cost, blue = takes away from it, orange = the rail leg.
+    var col = {cost: '#b3241b', gain: '#2f7dae', rail: '#d98a2b', total: '#0B0B0B'};
     var uid = 'wf' + Math.random().toString(36).slice(2,8);
     var svg = '<line x1="' + X(0).toFixed(1) + '" y1="' + top + '" x2="' + X(0).toFixed(1) + '" y2="' + (top + rows*rowH) + '" stroke="#E5E5EA" stroke-width="1"/>' +
       '<line x1="' + X(base).toFixed(1) + '" y1="' + (top-4) + '" x2="' + X(base).toFixed(1) + '" y2="' + (top + rows*rowH + 4) + '" stroke="#9A9A9A" stroke-width="1.2" stroke-dasharray="4,3"/>' +
