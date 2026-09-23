@@ -7,7 +7,7 @@
 <meta name="description" content="Every provider's all-in cost to send money, fee plus the margin hidden in the exchange rate, re-priced every hour."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
@@ -20,6 +20,7 @@
   nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
   nav a.active{color:var(--ink);font-weight:700}
   .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .header-right{display:flex;align-items:center;gap:16px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
   .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:12px}
   h1{font-size:42px;font-weight:800;letter-spacing:-0.02em;margin:0}
@@ -64,9 +65,11 @@
         <a href="./machine-room.html">The machine room</a>
         <a href="./how-it-works.html">How it works</a>
       </nav>
+    </div>
+    <div class="header-right">
+      <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
-    <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
   </header>
 
   <div class="hero">
@@ -141,7 +144,7 @@
     var lastX = xPos(points.length - 1);
 
     var dots = points.map(function(p, i){
-      return '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.costBpsTaker).toFixed(1)+'" r="3.5" fill="#5A55E0"/>' +
+      return '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.costBpsTaker).toFixed(1)+'" r="3.5" fill="#817FCC"/>' +
         '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.baselineCostBps).toFixed(1)+'" r="3.5" fill="#9A9A9A"/>';
     }).join('');
     var xLabels = points.map(function(p, i){
@@ -154,11 +157,11 @@
 
     container.innerHTML =
       '<div style="display:flex;gap:18px;font-size:12px;padding-bottom:6px">' +
-      '<span style="color:#5A55E0;font-weight:700">&#9679; the dollar route</span>' +
+      '<span style="color:#817FCC;font-weight:700">&#9679; the dollar route</span>' +
       '<span style="color:#9A9A9A">&#9679; cheapest ordinary ('+esc(points[points.length-1].baselineProvider)+')</span></div>' +
       '<svg width="100%" viewBox="0 0 '+w+' '+h+'" style="display:block">' +
       '<path d="'+basePath+'" fill="none" stroke="#9A9A9A" stroke-width="1.5" stroke-dasharray="3,3"/>' +
-      '<path d="'+ourPath+'" fill="none" stroke="#5A55E0" stroke-width="2"/>' +
+      '<path d="'+ourPath+'" fill="none" stroke="#817FCC" stroke-width="2"/>' +
       dots + yLabels + xLabels +
       '</svg>' +
       '<div style="font-size:12px;color:#9A9A9A;padding-top:4px">all-in cost, as a share of the amount, at each size actually measured -- stops at $50,000 because that is as far as real fills go; nothing past that point is estimated</div>';

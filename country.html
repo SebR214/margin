@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; --withheld:#6B6B6B; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; --withheld:#6B6B6B; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
@@ -20,6 +20,7 @@
   .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
   nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
   .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .header-right{display:flex;align-items:center;gap:16px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
   .back{padding:20px 48px 0;font-size:13px}
   main{padding:28px 48px 60px}
@@ -67,9 +68,11 @@
         <a href="./machine-room.html">The machine room</a>
         <a href="./how-it-works.html">How it works</a>
       </nav>
+    </div>
+    <div class="header-right">
+      <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
-    <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
   </header>
 
   <div class="back"><a href="./the-index.html">&larr; back to the index</a></div>
@@ -136,7 +139,7 @@
 
     var html = '<div class="code">' + esc(country.ccy) + '</div>' +
       '<h1 class="num">A dollar in ' + esc(country.country) + ' ' + costPhrase(country.index_pct) + '</h1>' +
-      (delta != null ? '<div class="delta num">' + (delta>=0?'+':'-') + Math.abs(delta).toFixed(1) + ' points <span style="color:#5A55E0">' + (delta>=0?'▲':'▼') + '</span>' + (sinceLabel ? ' since ' + sinceLabel : '') + '</div>' : '<div class="delta">&nbsp;</div>') +
+      (delta != null ? '<div class="delta num">' + (delta>=0?'+':'-') + Math.abs(delta).toFixed(1) + ' points <span style="color:#817FCC">' + (delta>=0?'▲':'▼') + '</span>' + (sinceLabel ? ' since ' + sinceLabel : '') + '</div>' : '<div class="delta">&nbsp;</div>') +
       '<div id="countryChart"></div>' +
       '<div class="receipt-line">' + esc(country.evidence_words) + ', ' + esc(country.source_words) +
       ' &middot; you’d lose ' + country.round_trip_pct.toFixed(1) + '% selling back &middot; ' +

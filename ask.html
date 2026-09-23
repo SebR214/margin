@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
@@ -36,6 +36,7 @@
     header{flex-wrap:wrap;gap:12px;padding:22px 24px}
   }
 
+  .header-right{display:flex;align-items:center;gap:16px}
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
   @media(max-width:760px){
     header{position:relative;flex-wrap:nowrap!important;padding:16px 20px} .hero{padding:20px 20px 8px} .body{padding:0 20px 48px}
@@ -59,6 +60,8 @@
         <a href="./findings.html">Findings</a>
         <a href="./how-it-works.html">How it works</a>
       </nav>
+    </div>
+    <div class="header-right">
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
   </header>
@@ -336,7 +339,7 @@
           retryNote +
           '<div style="font-weight:700;color:#0B0B0B;margin-bottom:6px">Attempt ' + (i + 1) + '</div>' +
           '<div style="color:#6B6B6B;margin-bottom:2px">Looking at what’s collected, writing a query' + (a.sql ? '.' : '…') + '</div>';
-        if (a.sql) html += '<div style="font-family:ui-monospace,monospace;font-size:12px;color:#5A55E0;word-break:break-all;margin:4px 0 8px;background:#F9F9FC;padding:8px 10px;border-radius:6px">' + esc(a.sql) + '</div>';
+        if (a.sql) html += '<div style="font-family:ui-monospace,monospace;font-size:12px;color:#817FCC;word-break:break-all;margin:4px 0 8px;background:#F9F9FC;padding:8px 10px;border-radius:6px">' + esc(a.sql) + '</div>';
         if (a.sql && a.rows == null) html += '<div style="color:#6B6B6B;margin-bottom:2px">Running it against the real data…</div>';
         if (a.rows != null) html += '<div style="color:#6B6B6B;margin-bottom:2px">Ran it — ' + a.rows + ' row' + (a.rows === 1 ? '' : 's') + ' came back' + (a.rowsError ? ' (' + esc(a.rowsError) + ')' : '') + '.</div>';
         if (a.rows != null && !a.evaluated) html += '<div style="color:#6B6B6B;margin-bottom:2px">Checking whether that answers the question…</div>';

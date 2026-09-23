@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
@@ -23,6 +23,7 @@
   nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
   nav a.active{color:var(--ink);font-weight:700}
   .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .header-right{display:flex;align-items:center;gap:16px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
   .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:14px}
   h1{font-size:42px;font-weight:800;letter-spacing:-0.02em;margin:0}
@@ -79,9 +80,11 @@
         <a href="./machine-room.html">The machine room</a>
         <a href="./how-it-works.html">How it works</a>
       </nav>
+    </div>
+    <div class="header-right">
+      <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
-    <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
   </header>
 
   <div class="hero">
@@ -168,7 +171,7 @@
     var sinceLabel = dates.length ? shortDate(dates[0]) : null;
     var html = '<div style="padding-top:26px"><div style="padding-bottom:18px">' +
       '<a class="headline num" href="./country.html?ccy='+esc(c.ccy)+'" style="display:block;color:#0B0B0B" title="See how this number was made">A dollar in '+esc(c.country)+' '+costPhrase(c.index_pct)+'</a>' +
-      (delta!=null ? '<div class="delta num">'+(delta>=0?'+':'-')+Math.abs(delta).toFixed(1)+' points <span style="color:#5A55E0">'+(delta>=0?'▲':'▼')+'</span>'+(sinceLabel ? ' since '+sinceLabel : '')+'</div>' : '') +
+      (delta!=null ? '<div class="delta num">'+(delta>=0?'+':'-')+Math.abs(delta).toFixed(1)+' points <span style="color:#817FCC">'+(delta>=0?'▲':'▼')+'</span>'+(sinceLabel ? ' since '+sinceLabel : '')+'</div>' : '') +
       '</div><div id="featChart"></div></div>' +
       '<div class="receipt" style="padding-top:16px">'+esc(c.evidence_words)+', '+esc(c.source_words)+' · you\'d lose '+c.round_trip_pct.toFixed(1)+'% selling back · <a href="./country.html?ccy='+esc(c.ccy)+'" style="font-weight:600;color:#0B0B0B" id="fullLink">'+esc(c.country)+' in full →</a></div>';
     document.getElementById('featured').innerHTML = html;
@@ -201,7 +204,7 @@
       return '<div class="gap-row">' +
         '<div class="code">'+esc(c.ccy)+'</div>' +
         '<div>'+esc(c.country)+tag+'</div>' +
-        '<a class="gap-val num" href="./country.html?ccy='+esc(c.ccy)+'" style="display:block;color:#5A55E0" title="See how this number was made">'+(c.index_pct>=0 ? c.index_pct.toFixed(2)+'% more' : Math.abs(c.index_pct).toFixed(2)+'% less')+'</a>' +
+        '<a class="gap-val num" href="./country.html?ccy='+esc(c.ccy)+'" style="display:block;color:#817FCC" title="See how this number was made">'+(c.index_pct>=0 ? c.index_pct.toFixed(2)+'% more' : Math.abs(c.index_pct).toFixed(2)+'% less')+'</a>' +
         '<div class="gap-rt num">you\'d lose '+c.round_trip_pct.toFixed(1)+'% selling back</div>' +
         '<div style="font-size:13px;color:#6B6B6B">'+esc(c.evidence_words)+'</div></div>';
     }).join('');
@@ -211,7 +214,7 @@
     document.getElementById('pricedCount').textContent = countries.length + ' COUNTRIES · CLICK ANY FOR ITS CHART AND SOURCES';
     document.getElementById('pricedGrid').innerHTML = byGap.map(function(c){
       return '<div class="mini" data-ccy="'+esc(c.ccy)+'"><div><span style="font-weight:700">'+esc(c.ccy)+'</span>&nbsp; '+esc(c.country)+'</div>' +
-        '<a class="val num" href="./country.html?ccy='+esc(c.ccy)+'" style="color:#5A55E0" title="See how this number was made">'+fmtPct(c.index_pct)+'</a></div>';
+        '<a class="val num" href="./country.html?ccy='+esc(c.ccy)+'" style="color:#817FCC" title="See how this number was made">'+fmtPct(c.index_pct)+'</a></div>';
     }).join('');
     // The row itself still previews the country up top on click (its own
     // useful behaviour); the number is now also a real link straight to the

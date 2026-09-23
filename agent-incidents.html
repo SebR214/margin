@@ -7,7 +7,7 @@
 <meta name="description" content="margin.wiki is run around the clock by four agents, and this is what it's actually taken to let them run something real without them quietly getting things wrong, told through the things that broke along the way."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
@@ -19,6 +19,7 @@
   nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
   nav a.active{color:var(--ink);font-weight:700}
   .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .header-right{display:flex;align-items:center;gap:16px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
   main{padding:44px 48px 64px;max-width:900px;margin:0 auto}
   .kicker{font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase;font-weight:700}
@@ -58,9 +59,11 @@
         <a href="./findings.html">Findings</a>
         <a href="./how-it-works.html">How it works</a>
       </nav>
+    </div>
+    <div class="header-right">
+      <div class="live"><span class="dot"></span><span class="num" id="liveStamp">&mdash;</span></div>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
-    <div class="live"><span class="dot"></span><span class="num" id="liveStamp">&mdash;</span></div>
   </header>
 
   <main>

@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --indigo-soft:#DCDFFA; --rule:#F0F0F0; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --indigo-soft:#DCDFFA; --rule:#F0F0F0; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
@@ -57,7 +57,7 @@
     header{flex-wrap:wrap;gap:12px;padding:22px 24px} nav{flex-wrap:wrap;gap:16px}
     h1{font-size:26px} .body{padding:28px 24px 48px} .hero{padding:28px 24px 20px}
     .lead-section{padding:0 24px} .waterfall-card{padding:20px 18px} .break{margin:32px 24px 0}
-    .corridor-table{font-size:12.5px} .corridor-table th,.corridor-table td{padding:0 6px 10px 0}
+    .corridor-table{font-size:12.5px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch} .corridor-table th,.corridor-table td{padding:0 6px 10px 0}
   }
 
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
@@ -70,7 +70,7 @@
     .nav-toggle{display:block}
     .status{gap:10px}
     .mcp{display:none}
-    .live{max-width:52vw;overflow:hidden}
+    .live{max-width:44vw;overflow:hidden}
     .live .num{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:middle}
   }
 </style>
@@ -85,11 +85,11 @@
         <a href="./findings.html">Findings</a>
         <a href="./how-it-works.html">How it works</a>
       </nav>
-      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
     <div class="status">
       <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · 157 SOURCES · &mdash;</span></div>
       <div class="mcp">MCP · API</div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
   </header>
 
@@ -195,7 +195,7 @@
     var pad = (dMax - dMin) * 0.12 || 10, lo = dMin - pad, hi = dMax + pad;
     var Lx = 190, Rx = 760, X = function(v){ return Lx + (v - lo) / (hi - lo) * (Rx - Lx); };
     var rowH = 34, top = 10, W = 800, rows = steps.length + 1, H = top + rows * rowH + 34;
-    var col = {cost: '#5A55E0', gain: '#B7B2F5', rail: '#9A9A9A', total: '#0B0B0B'};
+    var col = {cost: '#817FCC', gain: '#B7B2F5', rail: '#9A9A9A', total: '#0B0B0B'};
     var uid = 'wf' + Math.random().toString(36).slice(2,8);
     var svg = '<line x1="' + X(0).toFixed(1) + '" y1="' + top + '" x2="' + X(0).toFixed(1) + '" y2="' + (top + rows*rowH) + '" stroke="#E5E5EA" stroke-width="1"/>' +
       '<line x1="' + X(base).toFixed(1) + '" y1="' + (top-4) + '" x2="' + X(base).toFixed(1) + '" y2="' + (top + rows*rowH + 4) + '" stroke="#9A9A9A" stroke-width="1.2" stroke-dasharray="4,3"/>' +
