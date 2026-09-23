@@ -16,8 +16,8 @@ ask_backend.py actually returns, so the check exercises the real client
 code, not an imagined one), the failure floor (A2) must never render a bare
 refusal -- every miss must name what was understood and give a real link.
 
-    python3 tools/check_ask.py               # index.html + how-it-works.html
-    python3 tools/check_ask.py index.html    # just one page
+    python3 tools/check_ask.py               # ask.html + how-it-works.html
+    python3 tools/check_ask.py ask.html      # just one page
 
 Requires a local server already serving the built site on
 CHECK_ASK_BASE_URL (default http://127.0.0.1:8000) -- same convention as
@@ -37,8 +37,9 @@ BASE_URL = os.environ.get("CHECK_ASK_BASE_URL", "http://127.0.0.1:8000")
 # The real shapes ask_backend.py returns on a genuine miss -- using the
 # actual strings, not an approximation, so this test would have caught the
 # exact bug A0 found: a bare refusal reaching the reader. V1
-# (SPEC-AGENT-2026-09-21) gave index.html's main box a streamed EventSource
-# loop over /ask_stream (one SSE "error" event); how-it-works.html's box is
+# (SPEC-AGENT-2026-09-21) gave the ask box (originally on index.html, moved
+# to ask.html by the v1-freeze rebuild) a streamed EventSource loop over
+# /ask_stream (one SSE "error" event); how-it-works.html's box is
 # unchanged and still POSTs /ask, getting back plain JSON {"error": ...}.
 # Both shapes are tested, one per page, per PAGES' "transport" below.
 STUB_MISS_STREAM = {"type": "error", "message": "that question can't be answered from the data this site collects"}
@@ -77,7 +78,11 @@ FREE_TEXT_MISS_CASES = [
 ]
 
 PAGES = {
-    "index.html": {
+    # The v1-freeze rebuild moved the ask box and chips off index.html onto
+    # their own page; index.html now has no askInput/askBtn/answerBox/.chip
+    # elements at all (confirmed against the live DOM, same legwork
+    # SEB-111 already did for critic.py).
+    "ask.html": {
         "input_id": "askInput", "btn_id": "askBtn", "answer_id": "answerBox",
         "chip_selector": ".chip",
         # V1 (SPEC-AGENT-2026-09-21): free text streams over EventSource
@@ -161,7 +166,7 @@ def run_page(page_name, cfg):
 
         # ---- free-text misses, stubbed to the real backend error shape:
         # the failure floor (A2) must never render a bare refusal. Two
-        # transports, two stubs -- index.html's EventSource loop, and
+        # transports, two stubs -- ask.html's EventSource loop, and
         # how-it-works.html's plain fetch() POST. ----
         if cfg.get("transport") == "stream":
             miss_expr_tmpl = """
