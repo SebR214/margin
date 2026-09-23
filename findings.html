@@ -7,27 +7,33 @@
 <meta name="description" content="What the machine has noticed: real price changes, caught and published as they happened."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
   .num{font-variant-numeric:tabular-nums}
-  .wrap{max-width:1440px;margin:0 auto}
+  .wrap{max-width:1150px;margin:0 auto}
   header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
   .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
   .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
   nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
   nav a.active{color:var(--ink);font-weight:700}
   .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .header-right{display:flex;align-items:center;gap:16px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
+  /* The layout containers (.hero, .cards, section) fill the same 1150px
+     .wrap the header does -- they used to cap at 900px on their own, on top
+     of the wrap's own width, leaving a 250px dead strip under the nav that
+     the header itself didn't have. Individual reading widths (.lede, .card)
+     stay narrow on purpose; that is prose legibility, not the bug. */
   .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:12px}
-  h1{font-size:42px;font-weight:800;letter-spacing:-0.02em;margin:0}
+  h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;margin:0}
   .lede{max-width:780px;font-size:16px;color:#6B6B6B;line-height:1.5}
   .cards{padding:20px 48px 44px;display:flex;flex-direction:column;gap:0}
   .card{padding:34px 0;border-bottom:1px solid var(--rule);max-width:820px}
   .stamp{font-size:11px;color:#9A9A9A;letter-spacing:.06em;padding-bottom:8px}
-  .p{font-size:18px;line-height:1.6;color:#0B0B0B;font-weight:500}
-  .p b{font-weight:800}
+  .p{font-size:18px;line-height:1.6;color:#1A1A1A;font-weight:400}
+  .p b{font-weight:700}
   .receipt{font-size:13px;color:#6B6B6B;padding-top:12px}
   .receipt a{font-weight:600;color:#0B0B0B}
   section{padding:0 48px}
@@ -60,14 +66,17 @@
         <a href="./machine-room.html">The machine room</a>
         <a href="./how-it-works.html">How it works</a>
       </nav>
+    </div>
+    <div class="header-right">
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
-    <div class="live"><span class="dot"></span><span class="num" id="liveStamp">UPDATED DAILY · &mdash;</span></div>
   </header>
 
   <div class="hero">
     <h1>What the machine has noticed</h1>
     <div class="lede">Findings the agent published as it watched the record: every provider's price against every other, day over day, the reference rate cancelled out so only a real move is reported. Newest first. A day's changes are only reported once that day has fully closed, so this updates once a day, unlike <a href="./index.html">the home page</a>'s hourly index — the two measure different things on different clocks, and neither is stale relative to what it actually tracks.</div>
+    <div class="lede" style="padding-top:2px"><a href="./fee-tiers.html" style="font-weight:600;color:var(--indigo)">Read the write-up: why the stablecoin route usually loses, and the fee-tier volume where it stops →</a></div>
+    <div class="lede" style="padding-top:2px"><a href="./agent-incidents.html" style="font-weight:600;color:var(--indigo)">Read the write-up: what it takes to run this on agents that cannot be trusted →</a></div>
   </div>
 
   <div id="weekendIndex" style="padding:24px 48px 0"></div>
@@ -124,7 +133,7 @@
         '<div style="font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase;padding-bottom:8px">The weekend penalty index</div>' +
         '<div style="font-size:28px;font-weight:800;letter-spacing:-0.01em">' + rate.toFixed(1) + '% of provider-Saturday combinations we\'ve watched show a price hike</div>' +
         '<div style="font-size:15px;color:#333;padding-top:8px;line-height:1.6">' + hikeDays + ' of ' + totalSlots + ' provider-Saturday observations, across every provider on every corridor this site tracks. Narrow, not industry-wide: ' +
-        (offenders.length ? offenders.map(function(o){ return '<b>' + esc(o.provider) + '</b> on ' + esc(o.route_words); }).join(' and ') + ' account for all of it.' : 'nobody has done it more than once.') +
+        (offenders.length ? offenders.map(function(o){ return esc(o.provider) + ' on ' + esc(o.route_words); }).join(' and ') + ' account for all of it.' : 'nobody has done it more than once.') +
         ' When it happens, the average hike is <b class="num">' + avgMove.toFixed(2) + '%</b> of the amount.</div>' +
         '<div style="font-size:13px;color:#9A9A9A;padding-top:10px">measured, not assumed -- the stablecoin route this site also tracks doesn\'t close for the weekend, which is the actual argument for it</div>';
     }
@@ -141,8 +150,6 @@
     var latestDate = latestTs.slice(0, 10);
     var daysAgo = Math.round((Date.now() - new Date(latestDate + 'T00:00:00Z')) / 86400000);
     var recency = daysAgo <= 0 ? 'today' : daysAgo === 1 ? 'yesterday' : daysAgo + ' days ago';
-    document.getElementById('liveStamp').textContent =
-      'UPDATED DAILY · LAST FINDING ' + latestDate + ' (' + recency + ')';
 
     // ---- Patterns: a repeated weekend price hike is a different kind of
     // finding from a one-off move -- it's a provider's actual pricing
@@ -188,13 +195,13 @@
         '<div style="padding:0 0 8px;font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase">Patterns, not one-offs</div>' +
         patterns.slice(0, 5).map(function(p){
           return '<div class="card" style="border-bottom:1px solid #F0F0F0"><div class="p">' +
-            '<b>' + esc(p.provider) + '</b> has raised its weekend price on ' + esc(p.route_words) +
+            esc(p.provider) + ' has raised its weekend price on ' + esc(p.route_words) +
             ' on <b>' + p.dayCount + ' of the ' + p.judged + ' Saturdays</b> we\'ve watched that corridor.</div>' +
             '<div class="receipt">every weekend hike, caught the same way a daily change is · <a href="./sending-money.html">' + esc(p.route_words) + ' →</a></div></div>';
         }).join('') +
         freqRanked.map(function(p){
           return '<div class="card" style="border-bottom:1px solid #F0F0F0"><div class="p">' +
-            '<b>' + esc(p.provider) + '</b> has raised its price on ' + esc(p.route_words) +
+            esc(p.provider) + ' has raised its price on ' + esc(p.route_words) +
             ' on <b>' + p.dayCount + ' separate days</b> since we started watching — not a one-off, a habit.</div>' +
             '<div class="receipt">every price rise counted the same way, any day of the week · <a href="./sending-money.html">' + esc(p.route_words) + ' →</a></div></div>';
         }).join('') +
@@ -217,14 +224,14 @@
       var up = c.move_pct > 0;
       var sentence;
       if (c.kind === 'weekend_up') {
-        sentence = '<b>'+esc(c.provider)+'</b> raised its weekend price on '+esc(c.route_words)+
-          ': sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b> of the amount, up from <b>'+fmt(c.old_cost_pct)+'</b> on '+esc(c.weekday)+'.';
+        sentence = esc(c.provider)+' raised its weekend price on '+esc(c.route_words)+
+          ': sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b> of the amount, up from '+fmt(c.old_cost_pct)+' on '+esc(c.weekday)+'.';
       } else if (c.kind === 'weekend_back') {
-        sentence = '<b>'+esc(c.provider)+'</b> dropped its price back down on '+esc(c.route_words)+
-          ' after the weekend: sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b>, down from <b>'+fmt(c.old_cost_pct)+'</b>.';
+        sentence = esc(c.provider)+' dropped its price back down on '+esc(c.route_words)+
+          ' after the weekend: sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b>, down from '+fmt(c.old_cost_pct)+'.';
       } else {
-        sentence = '<b>'+esc(c.provider)+'</b> '+(up?'raised':'cut')+' its price on '+esc(c.route_words)+
-          ': sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b> of the amount, '+(up?'up':'down')+' from <b>'+fmt(c.old_cost_pct)+'</b> the day before.';
+        sentence = esc(c.provider)+' '+(up?'raised':'cut')+' its price on '+esc(c.route_words)+
+          ': sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b> of the amount, '+(up?'up':'down')+' from '+fmt(c.old_cost_pct)+' the day before.';
       }
       return '<div class="card"><div class="stamp">'+esc(c.day).toUpperCase()+'</div>' +
         '<div class="p">'+sentence+'</div>' +
@@ -234,7 +241,7 @@
 
     document.getElementById('cards').innerHTML = cardsHtml || '<div class="card"><div class="p">No verified price changes in the current window.</div></div>';
   }).catch(function(){
-    document.getElementById('cards').innerHTML = '<div class="card"><p style="color:#B3822D">Could not load findings data. That failure is shown, not hidden.</p></div>';
+    document.getElementById('cards').innerHTML = '<div class="card"><p style="color:#0B0B0B">Could not load findings data. That failure is shown, not hidden.</p></div>';
   });
 })();
 </script>

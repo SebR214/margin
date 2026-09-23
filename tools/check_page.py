@@ -21,6 +21,12 @@ Stdlib only. Exit status 0 only if every page passed.
 Usage:
   python3 tools/check_page.py                 # every reader-facing page
   python3 tools/check_page.py providers.html  # only these
+
+ask.html's static shell is always checked. Its live answer -- a real question
+asked of the real backend -- only runs under CHECK_PAGE_LIVE_ASK=1, since a
+live model call makes the result depend on what the model returns today, not
+on the code under review (SEB-110):
+  CHECK_PAGE_LIVE_ASK=1 python3 tools/check_page.py ask.html
 """
 
 import glob
@@ -57,7 +63,7 @@ PAGES = ["index.html", "providers.html", "pricing-history.html",
          "requests.html", "calculator.html", "weekly.html", "data.html",
          "ask.html", "watch.html", "stress.html", "machine-room.html",
          "the-index.html", "sending-money.html", "how-it-works.html",
-         "country.html"]
+         "country.html", "fee-tiers.html", "agent-incidents.html"]
 
 # ask.html and watch.html both call a live backend rather than reading a
 # static file, so a check of the static shell alone would never touch the
@@ -68,7 +74,24 @@ PAGES = ["index.html", "providers.html", "pricing-history.html",
 # but a loading state without one -- DZD is a real, currently-priced code so
 # the check exercises the actual receipt-steps render path, not just the
 # not-found branch.
-PAGE_VISIT_SUFFIX = {"ask.html": "?verify=0", "watch.html": "?verify=0", "country.html": "?ccy=DZD"}
+#
+# ask.html's live path is two sequential model calls (SQL, then a sentence),
+# so its pass/fail depends on what a live model happens to return at test
+# time -- a rate limit, a truncated response, or a sentence that leaks a
+# banned word on the one run in ten that needs the retry ask_backend.py
+# already does. That makes it fail PRs that never touched ask.html and pass
+# ones that broke it (SEB-110). The merge gate this script runs for every
+# .html-touching PR (agents/REVIEWER.md row 5) has to be decided by the code,
+# not by today's model, so by default ask.html gets only the static-shell
+# suffixless visit here -- chips render, nothing crashes, no stray jargon in
+# the template. The live smoke test -- an actual question answered end to
+# end -- still exists, opt-in, behind CHECK_PAGE_LIVE_ASK=1; a reviewer
+# looking specifically at an ask.html change already does this real check by
+# hand (agents/REVIEWER.md "Review from the rendered page").
+LIVE_ASK = os.environ.get("CHECK_PAGE_LIVE_ASK") == "1"
+PAGE_VISIT_SUFFIX = {"watch.html": "?verify=0", "country.html": "?ccy=DZD"}
+if LIVE_ASK:
+    PAGE_VISIT_SUFFIX["ask.html"] = "?verify=0"
 
 # The site ships no favicon, so every page logs one 404 that means nothing.
 IGNORED_ERRORS = ("favicon.ico",)
@@ -145,9 +168,20 @@ def literal_numbers(page):
 
     Attributes are ignored -- `width: 100%` and `offset="0%"` are layout, not
     claims -- so only text a reader actually sees is scanned.
+
+    A number inside <!--BAKE:START:x-->...<!--BAKE:END:x--> is exempt, not
+    stripped-and-scanned like an ordinary comment: those markers are how
+    tools/bake_homepage.py (SPEC "v1 freeze and ship brief", D1's
+    server-rendered headline) writes a real, freshly computed number
+    straight into the page at collection time, for a crawler or a reader
+    with JS off. The marker itself is the proof the number came from a
+    script every pass, not a hand edit once -- stripped along with its
+    contents, same as script/style, rather than scanned as if it were
+    ordinary prose a person typed.
     """
     src = open(os.path.join(HERE, page)).read()
     src = re.sub(r"(?is)<(script|style)\b.*?</\1>", " ", src)
+    src = re.sub(r"(?s)<!--BAKE:START:[^-]+-->.*?<!--BAKE:END:[^-]+-->", " ", src)
     src = re.sub(r"(?s)<!--.*?-->", " ", src)
     parser = _Text()
     parser.feed(src)
@@ -237,8 +271,9 @@ def main():
     bad = set()
     # ask.html's live answer is two sequential model calls plus a query, and
     # watch.html's is one model call plus a query -- slower than any static
-    # page's fetch, so both get a longer settle.
-    settle = 8 if ("ask.html" in pages or "watch.html" in pages) else 2.5
+    # page's fetch, so both get a longer settle. ask.html only fires its live
+    # call under CHECK_PAGE_LIVE_ASK=1 (see PAGE_VISIT_SUFFIX above).
+    settle = 8 if (("ask.html" in pages and LIVE_ASK) or "watch.html" in pages) else 2.5
     try:
         with Page(settle=settle) as browser:
             for p in pages:

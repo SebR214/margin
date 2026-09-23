@@ -7,21 +7,22 @@
 <meta name="description" content="How a number gets made, where the prices come from, and what was hard."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
   .num{font-variant-numeric:tabular-nums}
-  .wrap{max-width:1440px;margin:0 auto}
+  .wrap{max-width:1150px;margin:0 auto}
   header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
   .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
   .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
   nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
   nav a.active{color:var(--ink);font-weight:700}
   .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .header-right{display:flex;align-items:center;gap:16px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
-  main{padding:44px 48px 0}
-  h1{font-size:42px;font-weight:800;letter-spacing:-0.02em;max-width:900px;margin:0}
+  main{padding:44px 48px 0;max-width:900px}
+  h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;max-width:900px;margin:0}
   .p{font-size:17px;line-height:1.65;color:#222;max-width:760px;padding-top:14px}
   .h{font-size:20px;font-weight:700;padding-top:34px;padding-bottom:8px}
   .b{font-size:16px;line-height:1.6;color:#222;max-width:760px;padding:5px 0 5px 20px;position:relative}
@@ -59,9 +60,10 @@
         <a href="./machine-room.html">The machine room</a>
         <a href="./how-it-works.html" class="active">How it works</a>
       </nav>
+    </div>
+    <div class="header-right">
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
-    <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
   </header>
 
   <main>
@@ -106,7 +108,6 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&am
 
 fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
   var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
-  document.getElementById('liveStamp').textContent = 'LIVE · ' + hourUtc + ' UTC';
   // Same figure the homepage binds its hero line to (countries.length +
   // withheld.length) -- these were two separately typed numbers for the
   // same fact on different pages (59 here, 60 there) until now.

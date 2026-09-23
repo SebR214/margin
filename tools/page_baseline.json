@@ -6,5 +6,9 @@
     "errors": ["{{", "data/fee_tiers.csv"],
     "_errors_why_braces": "index.html is rendered by a small templating runtime. Between parse and substitution the raw {{ ... }} text sits briefly in SVG geometry attributes and the browser logs a parse error for each before the runtime replaces it. Cosmetic, on every load, and worth removing by setting those attributes from script instead of markup.",
     "_errors_why_fee_tiers": "data/fee_tiers.csv is fetched through opt() and does not exist yet. The chart renders an explicit empty state saying so, which is the 'gaps stay gaps' rule working as intended. The 404 disappears when the fee-tier collector lands; this entry should be deleted then."
+  },
+  "corridor.html": {
+    "errors": ["data/corridor_waterfall.csv"],
+    "_errors_why": "New sidecar (collector.py's append_waterfall) that the current samples.csv rows have no matching entry for yet -- it only exists from the next real collection pass onward, 'never backfill'. The waterfall renders an explicit 'not available yet' state for that sample rather than the old, non-reconciling approximation. The 404 disappears on its own once collection has run at least once past this change; this entry should be deleted then."
   }
 }

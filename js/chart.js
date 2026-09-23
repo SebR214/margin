@@ -29,8 +29,20 @@
   function render(container, opts) {
     var spark = opts.spark || [];
     var timestamps = opts.timestamps || [];
+    // xLabels: an axis that isn't time (e.g. a volume ladder) -- when given,
+    // used verbatim for the end labels and the hover tooltip instead of
+    // treating each point as a date. Same component, same visual language,
+    // one non-time axis rather than a second chart to keep in sync with U6.
+    var xLabels = opts.xLabels || null;
     var suffix = opts.valueSuffix == null ? '%' : opts.valueSuffix;
-    var w = opts.width || 1240, h = opts.height || 300;
+    // viewBox width = the container's real rendered width, not a fixed 1240.
+    // width="100%" scales the whole coordinate system (text included) to fit
+    // the container, so a fixed viewBox shrinks every label on a narrow
+    // screen -- a 340px-wide phone container scaled a 1240-unit viewBox down
+    // by 0.27x, turning a "17"-unit label into an actual ~4.5px glyph.
+    // Measuring the container keeps 1 SVG unit equal to 1 real CSS pixel, so
+    // font-size:17 always renders as 17px regardless of screen width.
+    var w = opts.width || Math.round(container.getBoundingClientRect().width) || 1240, h = opts.height || 300;
     var rightGutter = 96, bottomAxis = 34, pad = 8;
 
     if (spark.length < 2) {
@@ -45,7 +57,7 @@
     var stepX = plotW / (spark.length - 1);
 
     var pts = spark.map(function (v, i) {
-      return { x: i * stepX, y: pad + (1 - (v - min) / range) * plotH, v: v, ts: timestamps[i] };
+      return { x: i * stepX, y: pad + (1 - (v - min) / range) * plotH, v: v, ts: timestamps[i], label: xLabels ? xLabels[i] : null };
     });
     var lastX = pts[pts.length - 1].x, lastY = pts[pts.length - 1].y, lastV = pts[pts.length - 1].v;
     // A tiny negative rounds to "-0.0" at one decimal -- true but reads as a
@@ -75,11 +87,23 @@
       return '<text x="' + (plotW + 14) + '" y="' + (y + 5).toFixed(1) + '" font-family="Archivo, sans-serif" font-size="17" fill="#9A9A9A">' + v.toFixed(1) + suffix + '</text>';
     }).join('');
 
-    var xFirst = timestamps[0] ? fmtDate(timestamps[0]) : 'earliest in window';
-    var xLast = timestamps[timestamps.length - 1] ? fmtDate(timestamps[timestamps.length - 1]) : 'now';
+    var xFirst = xLabels ? (xLabels[0] || '') :
+      (timestamps[0] ? fmtDate(timestamps[0]) : 'earliest in window');
+    var xLast = xLabels ? (xLabels[xLabels.length - 1] || '') :
+      (timestamps[timestamps.length - 1] ? fmtDate(timestamps[timestamps.length - 1]) : 'now');
 
     var uid = 'mc' + Math.random().toString(36).slice(2, 9);
     var svgId = 'svg-' + uid, tipId = 'tip-' + uid, dotId = 'dot-' + uid, vlineId = 'vl-' + uid;
+
+    // refValue: an optional second reference line -- not this series, some
+    // other real number worth comparing against (e.g. the incumbent rail's
+    // own cost, so a crossover is something you can actually see cross).
+    var refLine = '';
+    if (opts.refValue != null && opts.refValue >= min - range * 0.15 && opts.refValue <= max + range * 0.15) {
+      var refY = pad + (1 - (opts.refValue - min) / range) * plotH;
+      refLine = '<line x1="0" y1="' + refY.toFixed(1) + '" x2="' + plotW.toFixed(1) + '" y2="' + refY.toFixed(1) + '" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="4,3"/>' +
+        (opts.refLabel ? '<text x="4" y="' + (refY - 5).toFixed(1) + '" font-family="Archivo, sans-serif" font-size="13" fill="#6B6B6B">' + esc(opts.refLabel) + '</text>' : '');
+    }
 
     container.innerHTML =
       '<div style="position:relative">' +
@@ -88,13 +112,19 @@
       '<stop offset="0" stop-color="#DCDFFA" stop-opacity="0.95"/>' +
       '<stop offset="1" stop-color="#DCDFFA" stop-opacity="0.05"/></linearGradient></defs>' +
       '<path d="' + areaPath + '" fill="url(#g-' + uid + ')"/>' +
-      '<polyline points="' + linePoly + '" fill="none" stroke="#5A55E0" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
-      '<line x1="0" y1="' + lastY.toFixed(1) + '" x2="' + lastX.toFixed(1) + '" y2="' + lastY.toFixed(1) + '" stroke="#5A55E0" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.7"/>' +
-      '<rect x="' + (lastX + 6).toFixed(1) + '" y="' + (lastY - 12).toFixed(1) + '" width="' + badgeWidth + '" height="24" rx="4" fill="#5A55E0"/>' +
-      '<text x="' + (lastX + 6 + badgeWidth / 2).toFixed(1) + '" y="' + (lastY + 5).toFixed(1) + '" text-anchor="middle" font-family="Archivo, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">' + badgeText + '</text>' +
+      refLine +
+      '<polyline points="' + linePoly + '" fill="none" stroke="#817FCC" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<line x1="0" y1="' + lastY.toFixed(1) + '" x2="' + lastX.toFixed(1) + '" y2="' + lastY.toFixed(1) + '" stroke="#817FCC" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.7"/>' +
+      // A solid periwinkle fill under white text falls short of the 4.5:1
+      // contrast a 14px badge needs (periwinkle reads well at UI-component
+      // size, not at text size) -- a light tint of the same accent with ink
+      // text reads clearly instead, and reuses the gradient's own tint
+      // rather than adding a third color.
+      '<rect x="' + (lastX + 6).toFixed(1) + '" y="' + (lastY - 12).toFixed(1) + '" width="' + badgeWidth + '" height="24" rx="4" fill="#DCDFFA"/>' +
+      '<text x="' + (lastX + 6 + badgeWidth / 2).toFixed(1) + '" y="' + (lastY + 5).toFixed(1) + '" text-anchor="middle" font-family="Archivo, sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + badgeText + '</text>' +
       yLabels +
       '<line id="' + vlineId + '" x1="0" y1="0" x2="0" y2="' + (h - bottomAxis) + '" stroke="#0B0B0B" stroke-width="1" opacity="0" />' +
-      '<circle id="' + dotId + '" r="4" fill="#5A55E0" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
+      '<circle id="' + dotId + '" r="4" fill="#817FCC" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
       '<text x="0" y="' + (h - 6) + '" text-anchor="start" font-family="Archivo, sans-serif" font-size="17" fill="#9A9A9A">' + esc(xFirst) + '</text>' +
       '<text x="' + lastX.toFixed(1) + '" y="' + (h - 6) + '" text-anchor="end" font-family="Archivo, sans-serif" font-size="17" fill="#9A9A9A">' + esc(xLast) + '</text>' +
       '</svg>' +
@@ -131,7 +161,7 @@
       tip.style.top = ((p.y / h) * 100) + '%';
       tip.style.opacity = 1;
       tip.style.fontSize = "14px";
-      tip.textContent = p.v.toFixed(2) + suffix + (p.ts ? ' · ' + fmtDate(p.ts) : '');
+      tip.textContent = p.v.toFixed(2) + suffix + (p.label ? ' · ' + p.label : (p.ts ? ' · ' + fmtDate(p.ts) : ''));
     });
     svg.addEventListener('mouseleave', function () {
       dot.setAttribute('opacity', 0);

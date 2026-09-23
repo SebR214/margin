@@ -1,15 +1,38 @@
 {
   "brand": "margin.wiki",
+  "home": {
+    "headlineFallback": "Stablecoins lost to the best fiat provider in nearly every measured hour. The rail is nearly free. The doors are not.",
+    "headlineSub": "Measured, not assumed: every hour, on every tracked route, since August.",
+    "waterfallTitle": "Where the cost actually sits",
+    "waterfallCap": "Sending {rung} {corridor}, buying it now. Five real terms, median across every hour measured -- the same decomposition as README.md's own headline.",
+    "waterfallLegend": {
+      "buying": "Buying the coin",
+      "moving": "Moving it",
+      "selling": "Selling it",
+      "total": "The whole transfer"
+    },
+    "corridorTableTitle": "Every route, measured the same way",
+    "corridorTableCols": {
+      "corridor": "ROUTE",
+      "stablecoin": "STABLECOIN ROUTE",
+      "fiat": "BEST FIAT PROVIDER",
+      "winRate": "STABLECOIN WINS"
+    },
+    "seeCorridor": "see the receipt →",
+    "indexPointer": "Every tracked currency's own parallel-rate gap moved to",
+    "indexPointerLink": "the index →",
+    "footerMachineRoom": "the machine room — {priced} priced · {withheld} withheld · last pass {hour} UTC"
+  },
   "nav": [
     {
       "key": "index",
       "label": "The index",
-      "href": "./index.html"
+      "href": "./the-index.html"
     },
     {
-      "key": "use",
-      "label": "Use it",
-      "href": "./calculator.html"
+      "key": "money",
+      "label": "Sending money",
+      "href": "./sending-money.html"
     },
     {
       "key": "findings",
@@ -17,14 +40,14 @@
       "href": "./findings.html"
     },
     {
-      "key": "how",
-      "label": "How it works",
-      "href": "./methodology.html"
-    },
-    {
       "key": "machine",
       "label": "The machine room",
       "href": "./machine-room.html"
+    },
+    {
+      "key": "how",
+      "label": "How it works",
+      "href": "./how-it-works.html"
     }
   ],
   "chart": {
@@ -208,7 +231,7 @@
       },
       "waterfall": {
         "title": "Where the money goes",
-        "cap": "Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the cheapest ordinary provider, same second."
+        "cap": "Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the best fiat provider, same second."
       },
       "ladder": {
         "title": "It is worst at the amounts people actually send",
@@ -216,7 +239,7 @@
       },
       "history": {
         "title": "Every round trip we've run",
-        "cap": "The total cost over time, hourly since collection began: buying at the price on offer, waiting for your own price, and the cheapest ordinary provider. History cannot be back-filled."
+        "cap": "The total cost over time, hourly since collection began: buying at the price on offer, waiting for your own price, and the best fiat provider. History cannot be back-filled."
       }
     },
     "legend": {
@@ -225,7 +248,7 @@
       "blockchain": "the blockchain",
       "total": "total",
       "wholeTransfer": "The whole transfer",
-      "cheapestProvider": "cheapest ordinary provider",
+      "cheapestProvider": "best fiat provider",
       "buyingNow": "buying at the price on offer",
       "waitingOwnPrice": "waiting for your own price"
     },
@@ -238,8 +261,8 @@
         "label": "Waiting for your price",
         "sub": "if you wait for your own price"
       },
-      "cheapestProviderLabel": "Cheapest provider",
-      "cheapestProviderSub": "the cheapest ordinary provider, same second",
+      "cheapestProviderLabel": "Best fiat provider",
+      "cheapestProviderSub": "the best fiat provider, same second",
       "cheaper": "cheaper",
       "dearer": "dearer"
     },
@@ -255,16 +278,18 @@
         "send": "Send",
         "buyingNow": "Buying it now",
         "waitingOwnPrice": "Waiting for your price",
-        "cheapestProvider": "Cheapest provider",
+        "cheapestProvider": "Best fiat provider",
         "cheaper": "Cheaper"
       },
       "worstTag": "worst",
-      "dollarRoute": "the dollar route"
+      "dollarRoute": "the stablecoin route",
+      "dollarRouteByTemplate": "the stablecoin route, by {amount}",
+      "providerByTemplate": "by {amount}"
     },
     "verdictLine": {
-      "cryptoCheaper": "The dollar route is cheaper at this amount.",
+      "cryptoCheaper": "The stablecoin route is cheaper at this amount.",
       "cryptoDearer": "The ordinary provider is cheaper at this amount.",
-      "sendTemplate": "Send {amount} to {place} now: {provider} costs {providerCost} all in, the dollar route costs {routeCost}.",
+      "sendTemplate": "Send {amount} to {place} now: {provider} costs {providerCost} all in, the stablecoin route costs {routeCost}.",
       "youSave": "You save {amount}.",
       "moreExpensive": "That is {amount} more.",
       "waitingTemplate": "Waiting for your own price instead costs {amount}, which {closes} the gap.",
@@ -274,7 +299,8 @@
       "exchangesSplit": "what the two exchanges charge"
     },
     "history": {
-      "buildingTemplate": "history builds hourly — {count} so far"
+      "buildingTemplate": "history builds hourly — {count} so far",
+      "cheapestProvider": "the best fiat provider"
     },
     "noSamples": "no completed samples yet.",
     "footerTemplate": "The coin is bought on {onrampVenue} in {srcCcy} and sold on {offrampVenue} for {dst}. The comparison is the Wise comparison API — advertised retail prices, not confirmed fills, and they can carry promotional pricing (first-transfer or new-customer offers) recorded exactly as quoted. The comparison is therefore the best advertised price at that instant, not necessarily the best recurring one. Official exchange rates: open.er-api.com. \"Waiting for your own price\" assumes the order fills at the top of the book. Pricing that large institutions get privately is invisible by nature and never estimated.",
@@ -290,7 +316,11 @@
       "unverifiedTemplate": "fees UNVERIFIED ({reason}) — last clean check {lastClean}",
       "noneOnRecord": "none on record",
       "verifiedTemplate": "fees verified {date}"
-    }
+    },
+    "waterfallUnavailable": "Not available for this sample yet — it appears the pass after this shipped.",
+    "minAgoTemplate": "{n} min ago",
+    "hAgoTemplate": "{n} h ago",
+    "updatedLabel": "updated"
   },
   "receipt": {
     "title": "The receipt behind this number",
@@ -331,8 +361,6 @@
         "title": "This hour's collection",
         "idle": "collector idle · next pass :00",
         "active": "collector pass under way",
-        "empty": "Watching live from here — what you see below happened since this page opened. Nothing before that is replayed.",
-        "seededNote": "— last pass, seeded on load — live below —",
         "pricedSuffix": " · priced",
         "withheldPrefix": "withheld: ",
         "noReason": "no reason given",
@@ -345,13 +373,15 @@
           "broker_single": "from a broker quote",
           "p2p_buy_median": "from person-to-person ads",
           "p2p_fallback": "from an independent price source"
-        }
+        },
+        "legendPriced": "priced this hour",
+        "legendWithheld": "withheld, with a reason",
+        "selectPrompt": "Pick a currency to see what the collector found for it."
       },
       "agents": {
         "title": "What the agents are doing",
         "kicker": "ISSUES · REVIEWS · COMMITS",
         "empty": "Nothing since this page connected.",
-        "seededNote": "— recent commits, seeded on load — live below —",
         "historyLink": "Everything they have ever done, including the failures →",
         "transitionTemplate": "{ident} moved {from} → {to}",
         "commentTemplate": "{ident}: {text}",
@@ -360,10 +390,18 @@
         "loopOk": "ok",
         "loopFailed": "failed",
         "loopStoppedTemplate": "stopped for repair. Last pass {when}",
-        "loopRecovered": "running again"
+        "loopRecovered": "running again",
+        "capNote": "The most recent events only. The full history, including every failure, is in the commit log.",
+        "byline": {
+          "builder": "BUILDER",
+          "reviewer": "REVIEWER",
+          "product": "PRODUCT",
+          "agents": "AGENT",
+          "person": "SEBASTIAN",
+          "unknown": "—"
+        }
       },
       "meters": {
-        "title": "Where things stand",
         "priced": "PRICED THIS HOUR",
         "withheld": "WITHHELD, WITH REASONS",
         "commitsToday": "COMMITS SEEN SINCE CONNECTING",

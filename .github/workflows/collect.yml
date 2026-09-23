@@ -252,6 +252,27 @@ jobs:
         # point, not something to route around.
         run: python3 tools/emit_bundle.py
 
+      - name: Emit the corridor summary
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # D1 (margin.wiki -- v1 freeze and ship brief). Reads data/samples.csv
+        # (written by the collector.py runs above) and writes
+        # data/corridor_summary.json -- the homepage's headline, waterfall
+        # and per-route table, computed fresh every pass, never typed.
+        run: python3 tools/emit_corridor_summary.py
+
+      - name: Bake the homepage
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # D1. Writes the real headline and corridor table straight into
+        # index.html's own markup (inside <!--BAKE:START/END--> markers) so
+        # a crawler or a JS-off visitor sees this hour's real measurement,
+        # not "Loading...". The waterfall chart itself stays client-rendered
+        # -- tools/bake_homepage.py's own docstring says why. If
+        # corridor_summary.json is missing or unmeasurable this pass, this
+        # leaves whatever was baked last time in place rather than blanking
+        # it, so exits 0 either way; only a genuinely broken page structure
+        # (the id= anchors moved) makes it fail loud.
+        run: python3 tools/bake_homepage.py
+
       - name: Commit samples
         if: always() && steps.needed.outputs.proceed == 'true'
         run: |
@@ -277,9 +298,16 @@ jobs:
                    data/stress_signal_latest.json data/basis_history.csv \
                    data/fee_checks.csv data/withdrawal_fees.csv \
                    data/requests_latest.json data/stable_spread_summary.json \
-                   data/p2p_spread_signal.csv data/p2p_spread_signal_latest.json; do
+                   data/p2p_spread_signal.csv data/p2p_spread_signal_latest.json \
+                   data/corridor_summary.json data/corridor_waterfall.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
+          # index.html itself -- D1's bake_homepage.py rewrites it in place
+          # every pass. Not under data/ or c/, so the MISSED fallback below
+          # (scoped to those two paths on purpose, per the comment there)
+          # would never catch it if left off this list; named explicitly
+          # instead of widening that fallback's pathspec for one file.
+          if [ -f index.html ]; then git add index.html; fi
           # Directories: one file per country, a page per country, one
           # receipt per country, and the bundle's parquet files + manifest. A
           # country (or a table emit_bundle.py starts writing) appears here

@@ -8,15 +8,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --indigo-soft:#DCDFFA; --rule:#F0F0F0; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
   .num{font-variant-numeric:tabular-nums}
   .stamp{font-size:11px;color:var(--stamp);letter-spacing:.06em}
   .receipt{font-size:13px;color:var(--sub)}
-  .wrap{max-width:1440px;margin:0 auto}
-  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px}
+  .wrap{max-width:1150px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;max-width:1150px;margin:0 auto}
   .brand{display:flex;align-items:center;gap:40px}
   .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
   nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333}
@@ -25,11 +25,23 @@
   .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
   .mcp{font-size:13px;font-weight:700}
-  .hero{padding:64px 48px 48px}
-  h1{font-size:58px;font-weight:800;line-height:1.08;letter-spacing:-0.03em;max-width:1150px;margin:0}
-  .sub{padding-top:20px;font-size:18px;line-height:1.5;color:var(--sub);max-width:720px}
-  .body{flex-grow:1;display:grid;grid-template-columns:1fr 380px;gap:64px;padding:0 48px 48px}
-  .feed{display:flex;flex-direction:column;max-width:720px}
+  .hero{padding:40px 48px 28px}
+  h1{font-size:32px;font-weight:800;line-height:1.22;letter-spacing:-0.02em;max-width:900px;margin:0}
+  .sub{padding-top:14px;font-size:16px;line-height:1.5;color:var(--sub);max-width:680px}
+  .lead-section{padding:0 48px}
+  .waterfall-card{border:1px solid var(--rule);border-radius:16px;padding:28px 32px;margin-bottom:40px}
+  .waterfall-title{font-size:13px;letter-spacing:.06em;color:var(--sub);text-transform:uppercase;font-weight:700;margin-bottom:4px}
+  .waterfall-cap{font-size:14px;color:var(--sub);margin-bottom:18px;max-width:640px}
+  .corridor-table{width:100%;border-collapse:collapse;margin-top:10px}
+  .corridor-table th{text-align:left;font-size:11px;letter-spacing:.06em;color:#9A9A9A;font-weight:600;padding:0 20px 14px 0;border-bottom:1px solid var(--rule)}
+  .corridor-table td{padding:18px 20px 18px 0;border-bottom:1px solid var(--rule);font-size:15px;vertical-align:top;line-height:1.5}
+  .corridor-table tr:last-child td{border-bottom:none}
+  .corridor-table .win-yes{color:#0B0B0B;font-weight:700}
+  .corridor-table .win-no{color:#6B6B6B;font-weight:500}
+  .corridor-note{font-size:12.5px;color:#9A9A9A;margin-top:4px;font-weight:400;line-height:1.5}
+  .break{border-top:1px solid var(--rule);margin:44px 48px 0}
+  .body{padding:40px 48px 48px}
+  .feed{display:flex;flex-direction:column;max-width:760px}
   .agent-hdr{display:flex;align-items:center;gap:10px;padding-bottom:34px}
   .agent-sq{width:10px;height:10px;background:var(--indigo)}
   .agent-name{font-size:13px;font-weight:700;letter-spacing:.02em}
@@ -37,26 +49,15 @@
   .item{display:flex;flex-direction:column;gap:10px}
   .item p{font-size:18px;font-weight:500;line-height:1.55;margin:0}
   .item .num{font-weight:700} .indigo{color:var(--indigo)}
-  .machine-strip{margin-top:44px;display:flex;align-items:center;gap:10px;font-size:13px}
-  .msdot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
-  .ask{margin-top:20px;max-width:720px;height:60px;background:#F6F6F6;border-radius:999px;display:flex;align-items:center;justify-content:space-between;padding:0 9px 0 26px;box-sizing:border-box}
-  .ask input{border:0;background:none;outline:none;font-size:18px;font-family:inherit;flex:1;color:var(--ink)}
-  .ask input::placeholder{color:#9A9A9A;font-weight:500}
-  .ask button{width:44px;height:44px;border-radius:50%;background:#0B0B0B;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
-  .chips{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
-  .chip{padding:8px 15px;background:#F6F6F6;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;border:0;font-family:inherit}
-  .side{display:flex;flex-direction:column;gap:30px;padding-top:4px}
-  .rank-lbl{font-weight:600;color:#6B6B6B;letter-spacing:.1em;padding-bottom:8px}
-  .rank-row{display:flex;justify-content:space-between;padding:11px 0;border-top:1px solid var(--rule);font-size:15px}
-  .rank-row:first-child{border-top:1px solid #0B0B0B}
-  .rank-row:last-child{border-bottom:1px solid var(--rule)}
-  .rank-row .name{font-weight:600}
-  .rank-row .val{color:var(--indigo);font-weight:700}
-  .rank-note{padding-top:10px;font-size:13px;color:#6B6B6B}
-  .about{border-top:1px solid #0B0B0B;padding-top:14px;font-size:14px;line-height:1.55;color:#0B0B0B}
+  .live-strip-note{font-size:15px;line-height:1.6;color:var(--sub);max-width:680px}
+  .live-strip-note a{font-weight:600;color:#0B0B0B}
+  .about{border-top:1px solid #0B0B0B;padding-top:14px;margin-top:44px;font-size:14px;line-height:1.55;color:#0B0B0B;max-width:680px}
+  .msdot{width:6px;height:6px;border-radius:50%;background:var(--indigo);display:inline-block}
   @media(max-width:900px){
-    header{flex-wrap:wrap;gap:12px} nav{flex-wrap:wrap;gap:16px}
-    h1{font-size:38px} .body{grid-template-columns:1fr;padding:0 24px 48px} .hero{padding:34px 24px 24px}
+    header{flex-wrap:wrap;gap:12px;padding:22px 24px} nav{flex-wrap:wrap;gap:16px}
+    h1{font-size:26px} .body{padding:28px 24px 48px} .hero{padding:28px 24px 20px}
+    .lead-section{padding:0 24px} .waterfall-card{padding:20px 18px} .break{margin:32px 24px 0}
+    .corridor-table{font-size:12.5px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch} .corridor-table th,.corridor-table td{padding:0 6px 10px 0}
   }
 
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
@@ -69,13 +70,12 @@
     .nav-toggle{display:block}
     .status{gap:10px}
     .mcp{display:none}
-    .live{max-width:52vw;overflow:hidden}
+    .live{max-width:44vw;overflow:hidden}
     .live .num{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:middle}
   }
 </style>
 </head>
 <body>
-<div class="wrap">
   <header>
     <div class="brand">
       <div class="logo">margin.wiki</div>
@@ -83,21 +83,26 @@
         <a href="./the-index.html">The index</a>
         <a href="./sending-money.html">Sending money</a>
         <a href="./findings.html">Findings</a>
-        <a href="./machine-room.html">The machine room</a>
         <a href="./how-it-works.html">How it works</a>
       </nav>
-      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
     <div class="status">
-      <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · 157 SOURCES · &mdash;</span></div>
       <div class="mcp">MCP · API</div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
   </header>
 
+<div class="wrap">
   <div class="hero">
-    <h1>In much of the world the official exchange rate is not the real one.</h1>
-    <div class="sub" id="heroSub">The agent watches real sources in 60 countries, every hour, and tells you what a dollar really costs — with the receipt for every claim.</div>
+    <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Stablecoins lost to the best fiat provider in 99.3% of measured hours on 3 of 4 routes. The rail is nearly free. The doors are not.<!--BAKE:END:heroHeadline--></h1>
+    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->Measured, not assumed: every hour, on every tracked route, since August. Every tracked currency&#39;s own parallel-rate gap moved to <a href="./the-index.html" style="font-weight:600;color:#0B0B0B">the index →</a><!--BAKE:END:heroSub--></div>
   </div>
+
+  <div id="waterfallSection" class="lead-section"></div>
+  <div id="corridorTableSection" class="lead-section" style="padding-bottom:0"><!--BAKE:START:corridorTableSection--><div class="waterfall-title">Every route, measured the same way</div><table class="corridor-table"><thead><tr><th>ROUTE</th><th>STABLECOIN ROUTE</th><th>BEST FIAT PROVIDER</th><th>STABLECOIN WINS</th><th></th></tr></thead><tbody><tr><td><b>Singapore to the Philippines</b></td><td class="num">+0.85%</td><td class="num">+0.45%</td><td><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=SGD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>Australia to the Philippines</b></td><td class="num">+0.95%</td><td class="num">+0.62%</td><td><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=AUD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>New Zealand to the Philippines</b></td><td class="num">+1.05%</td><td class="num">+0.65%</td><td><span class="win-no">3.6% of hours</span></td><td><a href="./corridor.html?corridor=NZD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>the United States to Mexico</b></td><td class="num">+0.78%</td><td class="num">+0.55%</td><td><div class="win-no">0.3% of hours buying it now</div><div class="win-yes" style="margin-top:4px">42.4% of hours waiting for your price</div></td><td><a href="./corridor.html?corridor=USD-&gt;MXN" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr></tbody></table><!--BAKE:END:corridorTableSection--></div>
+  <div class="lead-section" style="padding-top:14px"><a href="./fee-tiers.html" style="font-weight:600;color:#0B0B0B">Why the doors cost more than the rail, in full →</a></div>
+
+  <div class="break"></div>
 
   <div class="body">
     <div class="feed">
@@ -111,32 +116,14 @@
         <div class="item"><p>Loading this hour's findings…</p></div>
       </div>
 
-      <div class="machine-strip">
-        <div class="msdot"></div>
-        <div class="stamp" style="letter-spacing:.1em;color:#6B6B6B;font-weight:600">THE MACHINE ROOM</div>
-        <div class="num" style="color:#6B6B6B" id="machineNote">&nbsp;</div>
-        <a href="./machine-room.html" style="font-weight:600">watch it run →</a>
-      </div>
+      <div class="live-strip-note">The finding above is the headline result. This is what the agent is watching right now, updated hourly. <a href="./the-index.html">See every tracked country →</a></div>
 
-      <div class="ask">
-        <input type="text" placeholder="Ask about any country, corridor or provider here…" id="askInput"/>
-        <button aria-label="ask" id="askBtn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="about">Built by one person and the agents that run this site around the clock — one collects, one builds, one reviews, one decides what's next. Raw data and code are public.</div>
+      <div class="stamp" style="margin-top:10px;display:flex;align-items:center;gap:8px">
+        <span class="msdot"></span>
+        <span id="machineFooterLine">&nbsp;</span>
+        <a href="./machine-room.html" style="font-weight:600;color:#0B0B0B">watch it run →</a>
       </div>
-      <!-- A3: answer renders directly under the box; chips sit below it,
-           not above -- never scroll to find your answer. -->
-      <div id="answerBox" style="display:none"></div>
-      <div class="chips" id="chips"></div>
-      <div id="coverage" style="margin-top:12px;font-size:13px;color:#9A9A9A;max-width:720px"></div>
-      <div id="coverageList" style="display:none;margin-top:10px;max-width:720px;padding:16px 20px;background:#F6F6F6;border-radius:12px;font-size:13px;line-height:1.7;color:#333"></div>
-    </div>
-
-    <div class="side">
-      <div>
-        <div class="stamp rank-lbl">WHERE A DOLLAR COSTS MOST</div>
-        <div id="rankList"></div>
-        <div class="rank-note" id="rankNote"></div>
-      </div>
-      <div class="about">Built by one person and the agents that run this site around the clock — one collects, one builds, one reviews, one decides what's next. <a href="./machine-room.html">Watch them work →</a> Raw data and code are public.</div>
     </div>
   </div>
 </div>
@@ -181,47 +168,185 @@
     return out;
   }
 
+  // D1 waterfall, re-skinned to the site's one chart palette (js/chart.js,
+  // MarginChart -- indigo for cost added, the same soft indigo fill for a
+  // gain, ink for the total) and made genuinely interactive: hovering a bar
+  // shows its exact value in a tooltip, the same visual language as every
+  // other chart on the site, not a static picture.
+  // "bps" is a banned word on reader-facing pages -- every value here
+  // comes in as bps (matching samples.csv's own columns) and is shown as
+  // percent, the same unit costPhrase() and every chip already use.
+  function cashPct(bps){ var pct = bps/100; return (pct>=0?'+':'') + pct.toFixed(2) + '%'; }
+  function renderWaterfall(wf, COPY){
+    var L = COPY.waterfallLegend || {};
+    var buy = wf.onramp_basis_bps + wf.onramp_fee_bps;
+    var sell = wf.offramp_basis_bps + wf.offramp_fee_bps;
+    var steps = [
+      {label: L.buying || 'Buying the coin', v: buy, kind: 'cost'},
+      {label: L.moving || 'Moving it', v: wf.network_fee_bps, kind: 'rail'},
+      {label: L.selling || 'Selling it', v: sell, kind: 'cost'}
+    ];
+    var total = wf.total_cost_bps, base = wf.baseline_cost_bps;
+    var run = 0, cum = [0];
+    steps.forEach(function(s){ run += s.v; cum.push(run); });
+    var all = [0, total, base].concat(cum);
+    var dMin = Math.min.apply(null, all), dMax = Math.max.apply(null, all);
+    var pad = (dMax - dMin) * 0.12 || 10, lo = dMin - pad, hi = dMax + pad;
+    var Lx = 190, Rx = 760, X = function(v){ return Lx + (v - lo) / (hi - lo) * (Rx - Lx); };
+    var rowH = 34, top = 10, W = 800, rows = steps.length + 1, H = top + rows * rowH + 34;
+    // The site's actual chart palette: periwinkle for the dollar-route
+    // legs, dust grey for the rail/secondary leg, vintage grape (not pure
+    // black) for the total. One palette, reused verbatim on every cost
+    // chart -- index.html, corridor.html, sending-money.html.
+    var col = {cost: '#817FCC', gain: '#D3D0CB', rail: '#D3D0CB', total: '#3F3047'};
+    var uid = 'wf' + Math.random().toString(36).slice(2,8);
+    var svg = '<line x1="' + X(0).toFixed(1) + '" y1="' + top + '" x2="' + X(0).toFixed(1) + '" y2="' + (top + rows*rowH) + '" stroke="#E5E5EA" stroke-width="1"/>' +
+      '<line x1="' + X(base).toFixed(1) + '" y1="' + (top-4) + '" x2="' + X(base).toFixed(1) + '" y2="' + (top + rows*rowH + 4) + '" stroke="#9A9A9A" stroke-width="1.2" stroke-dasharray="4,3"/>' +
+      '<text x="' + X(base).toFixed(1) + '" y="' + (top + rows*rowH + 18) + '" fill="#6B6B6B" font-family="Archivo,sans-serif" font-size="12" text-anchor="middle">best fiat provider, ' + cashPct(base) + '</text>';
+    var bars = [];
+    steps.forEach(function(s, i){
+      var y = top + i * rowH;
+      var a = X(cum[i]), b = X(cum[i+1]);
+      var x0 = Math.min(a,b), w = Math.max(2, Math.abs(b-a));
+      var fill = s.kind === 'rail' ? col.rail : (s.v < 0 ? col.gain : col.cost);
+      var barId = uid + 'b' + i;
+      svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" fill="#0B0B0B">' + esc(s.label) + '</text>' +
+        '<rect id="' + barId + '" class="wf-bar" data-label="' + esc(s.label) + '" data-value="' + cashPct(s.v) + '" x="' + x0.toFixed(1) + '" y="' + (y+7) + '" width="' + w.toFixed(1) + '" height="' + (rowH-14) + '" rx="2" fill="' + fill + '" style="cursor:pointer;transition:opacity .1s"/>' +
+        '<text x="' + (b + (b>=a?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="12.5" fill="#6B6B6B" text-anchor="' + (b>=a?'start':'end') + '">' + cashPct(s.v) + '</text>';
+      bars.push(barId);
+    });
+    var y = top + steps.length * rowH, xt = X(total);
+    var totalBarId = uid + 'btotal';
+    svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + esc(L.total || 'The whole transfer') + '</text>' +
+      '<rect id="' + totalBarId + '" class="wf-bar" data-label="' + esc(L.total || 'The whole transfer') + '" data-value="' + cashPct(total) + '" x="' + Math.min(X(0), xt).toFixed(1) + '" y="' + (y+6) + '" width="' + Math.max(2, Math.abs(xt-X(0))).toFixed(1) + '" height="' + (rowH-12) + '" rx="2" fill="' + col.total + '" style="cursor:pointer;transition:opacity .1s"/>' +
+      '<text x="' + (xt + (total>=0?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="13" font-weight="700" fill="#0B0B0B" text-anchor="' + (total>=0?'start':'end') + '">' + cashPct(total) + '</text>';
+    bars.push(totalBarId);
+
+    var srcSym = wf.corridor.split('->')[0] === 'SGD' ? 'S$' :
+      wf.corridor.split('->')[0] === 'USD' ? 'US$' : wf.corridor.split('->')[0] + ' ';
+    var cap = (COPY.waterfallCap || 'Sending {rung} {corridor}, buying it now.')
+      .replace('{rung}', srcSym + wf.rung_src.toLocaleString())
+      .replace('{corridor}', wf.route_words || wf.corridor.replace('->', ' → '));
+    var tipId = 'tip' + uid;
+    document.getElementById('waterfallSection').innerHTML =
+      '<div class="waterfall-card">' +
+      '<div class="waterfall-title">' + esc(COPY.waterfallTitle || 'Where the cost actually sits') + '</div>' +
+      '<div class="waterfall-cap">' + esc(cap) + ' (n=' + wf.n + ' hours measured)</div>' +
+      '<div style="position:relative">' +
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:760px;height:auto">' + svg + '</svg>' +
+      '<div id="' + tipId + '" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;top:0;left:0"></div>' +
+      '</div>' +
+      '</div>';
+
+    var card = document.getElementById('waterfallSection');
+    var tip = document.getElementById(tipId);
+    var svgEl = card.querySelector('svg');
+    bars.forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('mouseenter', function(ev){
+        el.style.opacity = 0.82;
+        tip.textContent = el.getAttribute('data-label') + ': ' + el.getAttribute('data-value');
+        tip.style.opacity = 1;
+      });
+      el.addEventListener('mousemove', function(ev){
+        var rect = svgEl.getBoundingClientRect();
+        var leftPct = ((ev.clientX - rect.left) / rect.width) * 100;
+        var topPct = ((ev.clientY - rect.top) / rect.height) * 100;
+        tip.style.left = leftPct + '%';
+        tip.style.top = Math.max(0, topPct - 12) + '%';
+      });
+      el.addEventListener('mouseleave', function(){
+        el.style.opacity = 1;
+        tip.style.opacity = 0;
+      });
+    });
+  }
+
+  // Taker and maker win rates are shown both, at equal weight, whenever
+  // they genuinely diverge (5+ points) -- USD->MXN's whole story is a
+  // near-zero taker rate hiding a ~44% maker one, and burying that second
+  // number in a muted footnote undersold the site's most interesting
+  // result. The 5-point gap is a data-driven test, not a hardcoded
+  // corridor name, so any future corridor with the same shape gets the
+  // same treatment automatically.
+  function winCellHtml(c){
+    var t = c.win_rate_taker_pct, m = c.win_rate_maker_pct;
+    if (Math.abs(t - m) >= 5) {
+      return '<div class="' + (t >= 10 ? 'win-yes' : 'win-no') + '">' + t.toFixed(1) + '% of hours buying it now</div>' +
+        '<div class="' + (m >= 10 ? 'win-yes' : 'win-no') + '" style="margin-top:4px">' + m.toFixed(1) + '% of hours waiting for your price</div>';
+    }
+    return '<span class="' + (t >= 10 ? 'win-yes' : 'win-no') + '">' + t.toFixed(1) + '% of hours</span>';
+  }
+
+  function renderCorridorTable(corridors, COPY){
+    var cols = COPY.corridorTableCols || {};
+    var rows = corridors.map(function(c){
+      return '<tr>' +
+        '<td><b>' + esc(c.route_words || c.corridor) + '</b></td>' +
+        '<td class="num">' + cashPct(c.taker_cost_bps_median) + '</td>' +
+        '<td class="num">' + cashPct(c.baseline_cost_bps_median) + '</td>' +
+        '<td>' + winCellHtml(c) + '</td>' +
+        '<td><a href="./corridor.html?corridor=' + encodeURIComponent(c.corridor) + '" style="font-weight:600;color:#0B0B0B">' + esc(COPY.seeCorridor || 'see the receipt →') + '</a></td>' +
+        '</tr>';
+    }).join('');
+    document.getElementById('corridorTableSection').innerHTML =
+      '<div class="waterfall-title">' + esc(COPY.corridorTableTitle || 'Every corridor, measured the same way') + '</div>' +
+      '<table class="corridor-table"><thead><tr>' +
+      '<th>' + esc(cols.corridor || 'CORRIDOR') + '</th>' +
+      '<th>' + esc(cols.stablecoin || 'STABLECOIN ROUTE') + '</th>' +
+      '<th>' + esc(cols.fiat || 'BEST FIAT PROVIDER') + '</th>' +
+      '<th>' + esc(cols.winRate || 'STABLECOIN WINS') + '</th>' +
+      '<th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
   Promise.all([
     fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()),
-    fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+    fetch('./data/corridor_summary.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
   ]).then(function(res){
-    var idx = res[0], prov = res[1];
+    var idx = res[0], corridorSummary = res[1], COPY = (res[2] || {}).home || {};
     var countries = idx.countries || [];
     var withheld = idx.withheld || [];
     var hourUtc = (idx.as_of_utc || idx.computed_at || '').slice(11,16);
-    var dateUtc = (idx.as_of_utc || idx.computed_at || '').slice(0,10);
 
     // Total live sellers/offers behind this hour's prices -- summed from each
     // priced country's own evidence count, not idx.n_sources (that field
     // counts the 3 index SOURCE FILES, a different and much smaller number).
     var evidenceTotal = countries.reduce(function(sum, c){ return sum + (c.n_sources || 0); }, 0);
-    // Same figure the capability line under the ask box binds to
-    // (countries.length + withheld.length) -- these were two separately
-    // typed numbers for the same fact on the same page (59 here, 60 there)
-    // until now; one computed field, used in both places.
-    var trackedCountryCount = countries.length + withheld.length;
-    document.getElementById('liveStamp').textContent =
-      'LIVE · ' + evidenceTotal + ' SOURCES · ' + hourUtc + ' UTC';
-    document.getElementById('heroSub').textContent =
-      'The agent watches ' + evidenceTotal + ' sources in ' + trackedCountryCount + ' countries, every hour, and tells you what a dollar really costs — with the receipt for every claim.';
     document.getElementById('passStamp').textContent = 'last pass ' + hourUtc + ' UTC';
 
-    // Sidebar: real ranking by index_pct, top 5.
-    var ranked = countries.slice().sort(function(a,b){ return b.index_pct - a.index_pct; });
-    var top5 = ranked.slice(0,5);
-    var rankHtml = top5.map(function(c,i){
-      return '<a class="rank-row" href="./country.html?ccy='+esc(c.ccy)+'" style="'+(i===0?'':'')+'text-decoration:none">' +
-        '<div class="name">'+esc(c.country)+'</div>' +
-        '<div class="val num">+'+fmtPct(c.index_pct)+'%</div></a>';
-    }).join('');
-    document.getElementById('rankList').innerHTML = rankHtml;
-    document.getElementById('rankNote').textContent =
-      countries.length + ' priced this hour · ' + withheld.length + ' without a price, each with its reason →';
+    // ---- D1 (v1 freeze and ship brief): the homepage leads with the
+    // corridor finding, not the currency index. Headline is the real
+    // computed sentence from data/corridor_summary.json -- if that file
+    // is missing or a run produced no measurable rows, the honest fallback
+    // says so rather than showing a stale or invented number. ----
+    var headlineEl = document.getElementById('heroHeadline');
+    var subEl = document.getElementById('heroSub');
+    if (corridorSummary && corridorSummary.headline && corridorSummary.headline.text) {
+      headlineEl.textContent = corridorSummary.headline.text;
+      subEl.innerHTML = esc(COPY.headlineSub || '') + ' ' + esc(COPY.indexPointer || 'Every tracked currency’s own parallel-rate gap moved to') +
+        ' <a href="./the-index.html" style="font-weight:600;color:#0B0B0B">' + esc(COPY.indexPointerLink || 'the index →') + '</a>';
+    } else {
+      headlineEl.textContent = COPY.headlineFallback ||
+        'Stablecoins lost to the best fiat provider in nearly every measured hour. The rail is nearly free. The doors are not.';
+      subEl.textContent = 'This hour’s route measurement is unavailable -- showing the standing finding, not this pass’s number.';
+    }
 
-    // Today's story: the biggest real move among actively-managed rates.
-    // "unmaintained" denominators (a frozen official number) produce a huge
-    // gap that is an artifact of the peg, not a market move -- so those are
-    // excluded from the headline the same way Sudan is excluded here.
+    // ---- The waterfall: SGD->PHP at the reference size, five real terms. ----
+    if (corridorSummary && corridorSummary.waterfall) {
+      renderWaterfall(corridorSummary.waterfall, COPY);
+    }
+    // ---- The corridor table: one row per tracked corridor. ----
+    if (corridorSummary && corridorSummary.corridors && corridorSummary.corridors.length) {
+      renderCorridorTable(corridorSummary.corridors, COPY);
+    }
+
+    // Chapter 2, slim: today's story is the only item -- the biggest real
+    // move among actively-managed rates. "unmaintained" denominators (a
+    // frozen official number) produce a huge gap that is an artifact of the
+    // peg, not a market move -- so those are excluded the same way Sudan is
+    // excluded here.
     var managed = countries.filter(function(c){ return c.denominator_class !== 'unmaintained'; });
     var top = managed.slice().sort(function(a,b){ return b.index_pct - a.index_pct; })[0];
     var itemsHtml = '';
@@ -239,384 +364,17 @@
         '<a href="./country.html?ccy=' + esc(top.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(top.country) + ' in full →</a></div></div>';
     }
 
-    // This hour: a real corridor from providers_latest.json, cheapest vs the
-    // stablecoin route, using whatever amount that corridor actually prices.
-    if (prov && prov.corridors) {
-      var routes = Object.keys(prov.corridors);
-      var route = prov.corridors['SGD->PHP'] || prov.corridors[routes[0]];
-      if (route) {
-        var sizeKeys = Object.keys(route.sizes);
-        var size = route.sizes['5000'] || route.sizes[sizeKeys[sizeKeys.length-1]];
-        var rows = size.rows;
-        var cheapest = rows[0];
-        var dollarRoute = rows.find(function(r){ return r.provider === 'The dollar route'; });
-        itemsHtml += '<div class="item"><div class="stamp num">THIS HOUR</div>' +
-          '<p>Cheapest way to send ' + esc(size.amount_words) + ' ' + esc(route.route_words) + ' right now: ' +
-          esc(cheapest.provider) + ', at <span class="num">' + esc(cheapest.costs) + '</span> all in.' +
-          (dollarRoute ? ' The digital-dollar route costs <span class="num">' + esc(dollarRoute.costs) + '</span> — ' +
-            (dollarRoute.cost_pct > cheapest.cost_pct ? 'more than the cheapest ordinary option.' : 'less than every ordinary option.') : '') +
-          '</p><div class="receipt">re-priced every hour · <a href="./sending-money.html" style="font-weight:600;color:#0B0B0B">every way to send it, ranked →</a></div></div>';
-      }
-    }
-
-    // A real withheld country, honestly -- no invented streak length.
-    if (withheld.length) {
-      var w = withheld[0];
-      itemsHtml += '<div class="item"><div class="stamp num">' + dateUtc + '</div>' +
-        '<p>No price for <a href="./country.html?ccy=' + esc(w.ccy) + '" style="color:#0B0B0B">' + esc(w.country) + ' (' + esc(w.ccy) + ')</a> this hour: ' + esc(w.reason) + '. The failed attempt is public, not hidden.</p>' +
-        '<div class="receipt">nothing ships unverified · <a href="./the-index.html#withheld" style="font-weight:600;color:#0B0B0B">every withheld country →</a></div></div>';
-    }
-
     document.getElementById('items').innerHTML = itemsHtml || '<div class="item"><p>Collector idle, next pass on the hour.</p></div>';
-    document.getElementById('machineNote').textContent =
-      countries.length + ' priced · ' + withheld.length + ' withheld this pass';
+    document.getElementById('machineFooterLine').textContent =
+      (COPY.footerMachineRoom || 'the machine room — {priced} priced · {withheld} withheld · last pass {hour} UTC')
+        .replace('{priced}', countries.length).replace('{withheld}', withheld.length).replace('{hour}', hourUtc);
 
     var chartEl = document.getElementById('homeChart');
     if (chartEl && top) {
       MarginChart.render(chartEl, { spark: top.spark, timestamps: sparkDates(top), valueSuffix: '%' });
     }
-
-    // ==================== ASK BOX -- SPEC-AGENT-2026-09-21 ====================
-    //
-    // A1: every chip and placeholder-suggested phrasing answers from a
-    // FIXED, TESTED template reading index_latest.json/providers_latest.json
-    // directly -- never the LLM. "Widest gap" reads the same sorted field
-    // the sidebar rail reads. A chip is only rendered when its own data
-    // exists this hour. This is the fix for the exact failure A0 found and
-    // reproduced live: a chip asking a question the page's own data already
-    // answers must not be able to fail.
-    //
-    // A2: free text that the LLM can't turn into SQL never returns a bare
-    // refusal -- diagnose() names what was understood and gives a real
-    // link, always.
-    //
-    // A3: the answer renders directly under the question box; chips sit
-    // below it, not above -- you never scroll to find your answer. The
-    // stamp labels the DATA's timestamp, not the act of asking.
-    //
-    // A4: anything methodology-shaped ("how are the numbers made", "how
-    // does this work") is answered from prose here, in this function,
-    // before the free-text path is ever reached -- it never goes near SQL.
-    var API_BASE = location.hostname.endsWith("margin.wiki")
-      ? "https://api.margin.wiki" : "http://127.0.0.1:8901";
-    var answerBox = document.getElementById('answerBox');
-    var passStampLabel = 'answered from the ' + hourUtc + ' UTC pass';
-
-    function sparkDates(c){
-      if (!c.spark || !c.history_start || !c.hour_utc) return [];
-      var end = new Date(c.hour_utc), n = c.spark.length, out = [];
-      for (var i=0;i<n;i++){ var d=new Date(end); d.setUTCDate(d.getUTCDate()-(n-1-i)); out.push(d.toISOString()); }
-      return out;
-    }
-
-    // chartOpts, when given a country record with a real spark array, draws
-    // U6 inline in the answer rather than linking away to see it -- a chip
-    // whose whole claim is "the gap moved" has that movement sitting right
-    // there in already-fetched data; no reason to make a reader click
-    // through to see the thing the answer just told them about.
-    function showAnswerCard(sentenceHtml, receiptHtml, chartCountry) {
-      var chartId = chartCountry ? 'chip' + Math.random().toString(36).slice(2,8) : null;
-      answerBox.innerHTML = '<div class="item" style="padding-top:22px;border-top:1px solid #F0F0F0;margin-top:6px">' +
-        '<div class="stamp num">' + esc(passStampLabel) + '</div>' +
-        '<p>' + sentenceHtml + '</p>' +
-        (chartId ? '<div id="' + chartId + '" style="margin:14px 0"></div>' : '') +
-        (receiptHtml ? '<div class="receipt">' + receiptHtml + '</div>' : '') +
-        '</div>';
-      answerBox.style.display = 'block';
-      if (chartId && chartCountry.spark && chartCountry.spark.length > 1 && window.MarginChart) {
-        MarginChart.render(document.getElementById(chartId),
-          { spark: chartCountry.spark, timestamps: sparkDates(chartCountry), valueSuffix: '%' });
-      }
-    }
-
-    var trackedNames = {};   // lowercase country name -> {ccy, priced, country}
-    countries.forEach(function(c){ trackedNames[c.country.toLowerCase()] = { ccy: c.ccy, priced: true, country: c.country }; });
-    withheld.forEach(function(w){ trackedNames[w.country.toLowerCase()] = { ccy: w.ccy, priced: false, country: w.country }; });
-
-    var worldNames = {};
-    try {
-      var dn = new Intl.DisplayNames(['en'], { type: 'region' });
-      for (var a = 65; a <= 90; a++) for (var b = 65; b <= 90; b++) {
-        var code = String.fromCharCode(a) + String.fromCharCode(b);
-        var nm = dn.of(code);
-        if (nm && nm !== code) worldNames[nm.toLowerCase()] = nm;
-      }
-    } catch (e) { /* older browser: falls through to the generic A2 message */ }
-
-    var corridorCount = prov && prov.corridors ? Object.keys(prov.corridors).length : 0;
-    var earliest = countries.reduce(function(m, c){
-      if (!c.history_start) return m;
-      return (!m || c.history_start < m) ? c.history_start : m;
-    }, null);
-    // A3: names the classes instead of "ask about anything in there" --
-    // that phrasing is exactly what set the expectation this box then
-    // broke.
-    document.getElementById('coverage').innerHTML =
-      'Answers what a dollar costs in any of the <a href="#" id="showCountries" style="color:#0B0B0B;font-weight:600;border-bottom:1px solid #DDD">' +
-      (trackedCountryCount) + ' tracked countries</a>, why one isn\'t priced, the cheapest way to send money on ' +
-      corridorCount + ' tracked corridors, how a price moved over time, how any published number was made, and how the site works.' +
-      (earliest ? ' The longest record goes back to ' + shortDate(earliest + 'T00:00:00Z') + '.' : '');
-
-    document.getElementById('showCountries').addEventListener('click', function(e){
-      e.preventDefault();
-      var box = document.getElementById('coverageList');
-      if (box.style.display === 'block') { box.style.display = 'none'; return; }
-      var all = Object.keys(trackedNames).map(function(n){ return trackedNames[n]; })
-        .sort(function(x, y){ return x.country.localeCompare(y.country); });
-      box.innerHTML = '<b>Every country this site tracks</b> — ' + countries.length +
-        ' priced this hour, ' + withheld.length + ' checked but withheld:<br>' +
-        all.map(function(t){
-          return '<a href="./country.html?ccy=' + esc(t.ccy) + '" style="color:' + (t.priced ? '#0B0B0B' : '#B3822D') + '">' + esc(t.country) + '</a>';
-        }).join(' · ');
-      box.style.display = 'block';
-    });
-
-    // ---- A1: fixed templates, one per class A3 names -------------------
-    var dollarRouteRow = null, cheapestRow = null, corridorWords = null;
-    if (prov && prov.corridors) {
-      var r0 = prov.corridors[Object.keys(prov.corridors)[0]];
-      var s0 = r0 && r0.sizes['5000'];
-      corridorWords = r0 && r0.route_words;
-      dollarRouteRow = s0 && s0.rows.find(function(r){ return r.provider === 'The dollar route'; });
-      cheapestRow = s0 && s0.rows[0];
-    }
-    var widestGap = ranked[0];    // same sort the sidebar rail uses -- literally the same array
-    var movedCountry = countries.filter(function(c){ return c.spark && c.spark.length > 1; })
-      .sort(function(a,b){ return Math.abs(b.index_pct-b.spark[0]) - Math.abs(a.index_pct-a.spark[0]); })[0];
-    var costCountry = countries.find(function(c){ return c.country === 'Argentina'; }) || countries[0];
-    var withheldPick = withheld[0];
-
-    // Every claim carries the frame rule: street price + gap + evidence.
-    function countryFrame(c) {
-      return '<b>' + esc(c.country) + ' (' + esc(c.ccy) + '):</b> a dollar ' + costPhrase(c.index_pct) +
-        ' this hour, from ' + esc(c.evidence_words) + '. <a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">the full receipt →</a>';
-    }
-
-    var CHIP_DEFS = [];
-    if (costCountry) CHIP_DEFS.push({
-      label: 'What does a dollar cost in ' + costCountry.country + '?',
-      run: function(){ showAnswerCard(countryFrame(costCountry), null); }
-    });
-    if (widestGap) CHIP_DEFS.push({
-      label: 'Which country has the widest gap this hour?',
-      run: function(){ showAnswerCard('The widest gap right now: a dollar in <b>' + esc(widestGap.country) + '</b> ' + costPhrase(widestGap.index_pct) +
-        ', from ' + esc(widestGap.evidence_words) + '.', '<a href="./country.html?ccy=' + esc(widestGap.ccy) + '" style="font-weight:600;color:#0B0B0B">the full receipt →</a>'); }
-    });
-    if (withheldPick) CHIP_DEFS.push({
-      label: 'Why is ' + withheldPick.country + ' not priced?',
-      run: function(){
-        showAnswerCard('<b>' + esc(withheldPick.country) + ' (' + esc(withheldPick.ccy) + '):</b> ' + esc(withheldPick.reason) +
-          '. Checked again next pass — this is the current hour\'s real result, not a permanent state.',
-          'nothing ships unverified · <a href="./country.html?ccy=' + esc(withheldPick.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(withheldPick.country) + '\'s page →</a>');
-      }
-    });
-    if (dollarRouteRow && cheapestRow) CHIP_DEFS.push({
-      label: 'Cheapest way to send money ' + corridorWords + '?',
-      run: function(){
-        showAnswerCard('<b>' + esc(cheapestRow.provider) + '</b> is cheapest right now at <b class="num">' + esc(cheapestRow.costs) + '</b>. The digital-dollar route costs <b class="num">' + esc(dollarRouteRow.costs) + '</b> — ' +
-          (dollarRouteRow.cost_pct > cheapestRow.cost_pct ? 'more than the cheapest ordinary option.' : 'less than every ordinary option.'),
-          're-priced every hour · <a href="./sending-money.html" style="font-weight:600;color:#0B0B0B">every way to send it, ranked →</a>');
-      }
-    });
-    if (movedCountry) CHIP_DEFS.push({
-      label: 'How has the gap in ' + movedCountry.country + ' moved over time?',
-      run: function(){
-        var delta = movedCountry.index_pct - movedCountry.spark[0];
-        showAnswerCard('<b>' + esc(movedCountry.country) + ':</b> the gap has ' + (delta>=0?'widened':'narrowed') + ' by <b class="num">' + Math.abs(delta).toFixed(1) + ' points</b> over the tracked window — a dollar there now ' + costPhrase(movedCountry.index_pct) + '.',
-          '<a href="./country.html?ccy=' + esc(movedCountry.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(movedCountry.country) + '\'s full receipt →</a>',
-          movedCountry);
-      }
-    });
-    CHIP_DEFS.push({
-      label: 'How was ' + (costCountry ? costCountry.country : 'a number') + '\'s number made?',
-      run: function(){ methodologyAnswer('how was ' + (costCountry ? costCountry.country : '') + ' made', costCountry); }
-    });
-    CHIP_DEFS.push({
-      label: 'How does this site work?',
-      run: function(){ methodologyAnswer('how does this work', null); }
-    });
-
-    document.getElementById('chips').innerHTML = CHIP_DEFS.map(function(c, i){
-      return '<button class="chip" data-i="' + i + '">' + esc(c.label) + '</button>';
-    }).join('');
-    document.querySelectorAll('.chip').forEach(function(btn){
-      btn.addEventListener('click', function(){ CHIP_DEFS[+btn.getAttribute('data-i')].run(); });
-    });
-
-    // ---- A4: route methodology-shaped questions to prose, never SQL ----
-    // Deliberately loose: "how" anywhere, one of these outcome-words
-    // anywhere after it, no strict adjacency. A tighter pattern missed the
-    // site's own placeholder phrasing ("how any number was made" -- the
-    // subject between "how" and "was" broke a stricter match). A false
-    // positive here just routes a data question to prose instead of SQL,
-    // which is the safer failure for this rule, not a real cost.
-    var METHOD_RE = /\bhow\b.*\b(made|calculat|comput|built|measur|works?)\b|methodolog/i;
-    function methodologyAnswer(q, maybeCountry) {
-      if (maybeCountry) {
-        var p2pNote = esc(maybeCountry.evidence_words) + ' (' + esc(maybeCountry.source_words) + ')';
-        showAnswerCard('Every hour the collector takes the real median price, ' + p2pNote +
-          ', compares it to the official rate captured in the same pass, and that gap is the number — nothing modelled, nothing smoothed.',
-          '<a href="./country.html?ccy=' + esc(maybeCountry.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(maybeCountry.country) + '\'s full receipt →</a> · <a href="./how-it-works.html" style="font-weight:600;color:#0B0B0B">how it works →</a>');
-      } else {
-        showAnswerCard('Every hour the collector takes a real median price, compares it to the official rate from the same pass, and publishes the gap — nothing modelled, nothing forecast. Every number traces to a file you can open.',
-          '<a href="./how-it-works.html" style="font-weight:600;color:#0B0B0B">read how it works, in full →</a>');
-      }
-    }
-
-    // ---- A2: the failure floor. Names the entity, gives a real link, ----
-    // never a bare refusal, in any wording.
-    function diagnose(q) {
-      var lower = ' ' + q.toLowerCase().replace(/[^a-z\s]/g, ' ') + ' ';
-      var mentionedTracked = Object.keys(trackedNames).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
-      var mentionedWorld = Object.keys(worldNames).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
-      var untracked = mentionedWorld.filter(function(n){ return !trackedNames[n]; });
-      if (untracked.length) {
-        return '<b>' + esc(worldNames[untracked[0]]) + '</b> isn’t one of the ' +
-          (trackedCountryCount) + ' countries this site collects prices for — nothing is being hidden, it was simply never collected. ' +
-          '<a href="#" id="diagShow" style="font-weight:600;color:#0B0B0B">See the ones that are tracked →</a>';
-      }
-      if (mentionedTracked.length) {
-        var t = trackedNames[mentionedTracked[0]];
-        var full = countries.find(function(c){ return c.ccy === t.ccy; });
-        if (full) return 'That phrasing didn’t resolve, but <b>' + esc(t.country) + '</b> <i>is</i> tracked. Right now: ' + countryFrame(full);
-        var w = withheld.find(function(x){ return x.ccy === t.ccy; });
-        return 'That phrasing didn’t resolve, but <b>' + esc(t.country) + '</b> <i>is</i> tracked — it just has no price this hour: ' + esc(w ? w.reason : 'checked, not yet priced') +
-          '. <a href="./country.html?ccy=' + esc(t.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(t.country) + '\'s page →</a>';
-      }
-      return 'That couldn’t be turned into a query against what’s collected here. The nearest real answer: the widest gap this hour is <b>' + (widestGap ? esc(widestGap.country) : 'unavailable') + '</b>. ' +
-        '<a href="./the-index.html" style="font-weight:600;color:#0B0B0B">See every tracked country →</a>';
-    }
-
-    var askInput = document.getElementById('askInput');
-    var askBtn = document.getElementById('askBtn');
-
-    // ---- V1 (SPEC-AGENT-2026-09-21): the visible agentic loop -----------
-    // Free text no longer waits on one silent round trip. It watches a real
-    // multi-attempt loop over SSE: the query appears as it's written, runs,
-    // rows land, a verdict on whether they actually answer the question --
-    // up to three attempts -- then either the chart assembles from the real
-    // rows (U6, the same component every other chart on the site uses) or,
-    // on three real misses, an honest sentence about what the data
-    // couldn't support. Never a canned answer pretending to be live.
-    function renderLiveCard(state) {
-      var html = '<div class="item" style="padding-top:22px;border-top:1px solid #F0F0F0;margin-top:6px">' +
-        '<div class="stamp num">' + (state.final || state.error ? esc(passStampLabel) : 'watching the agent work, live') + '</div>';
-      state.attempts.forEach(function(a, i){
-        var retryNote = (i > 0 && state.attempts[i - 1] && state.attempts[i - 1].note)
-          ? '<div style="font-size:13px;color:#B3822D;margin-bottom:6px">That didn\'t fully answer it — trying again, because ' + esc(state.attempts[i - 1].note) + '</div>' : '';
-        html += '<div style="margin:14px 0;font-size:14px;padding-left:14px;border-left:2px solid #F0F0F0">' +
-          retryNote +
-          '<div style="font-weight:700;color:#0B0B0B;margin-bottom:6px">Attempt ' + (i + 1) + '</div>' +
-          '<div style="color:#6B6B6B;margin-bottom:2px">Looking at what’s collected, writing a query' + (a.sql ? '.' : '…') + '</div>';
-        if (a.sql) html += '<div style="font-family:ui-monospace,monospace;font-size:12px;color:#5A55E0;word-break:break-all;margin:4px 0 8px;background:#F9F9FC;padding:8px 10px;border-radius:6px">' + esc(a.sql) + '</div>';
-        if (a.sql && a.rows == null) html += '<div style="color:#6B6B6B;margin-bottom:2px">Running it against the real data…</div>';
-        if (a.rows != null) html += '<div style="color:#6B6B6B;margin-bottom:2px">Ran it — ' + a.rows + ' row' + (a.rows === 1 ? '' : 's') + ' came back' + (a.rowsError ? ' (' + esc(a.rowsError) + ')' : '') + '.</div>';
-        if (a.rows != null && !a.evaluated) html += '<div style="color:#6B6B6B;margin-bottom:2px">Checking whether that answers the question…</div>';
-        if (a.evaluated) html += '<div style="color:' + (a.sufficient ? '#2F7A4D' : '#B3822D') + ';font-weight:600">' + (a.sufficient ? 'Yes — answers the question.' : ('Not enough on its own — ' + esc(a.note || '') + '.')) + '</div>';
-        html += '</div>';
-      });
-      if (state.error) {
-        html += '<p>' + state.error + '</p>';
-      } else if (state.final) {
-        html += '<p style="margin-top:14px">' + esc(state.final.sentence) + '</p>';
-        if (state.final.chart) html += '<div id="askChartHost" style="margin:14px 0"></div>';
-        if (state.final.sql) {
-          html += '<a href="#" id="askSqlToggle" style="font-weight:600;color:#0B0B0B">See the actual database query →</a>' +
-            '<div id="askSqlBody" style="display:none;margin-top:6px;font-family:ui-monospace,monospace;font-size:12px;word-break:break-all">' + esc(state.final.sql) + '</div>';
-        }
-      } else if (!state.attempts.length) {
-        html += '<div style="color:#9A9A9A">Asking…</div>';
-      }
-      html += '</div>';
-      answerBox.innerHTML = html;
-      answerBox.style.display = 'block';
-      if (state.final && state.final.chart) {
-        var host = document.getElementById('askChartHost');
-        if (host && window.MarginChart) MarginChart.render(host, state.final.chart);
-      }
-      if (state.final && state.final.sql) {
-        var t = document.getElementById('askSqlToggle');
-        if (t) t.addEventListener('click', function(e){
-          e.preventDefault();
-          var b = document.getElementById('askSqlBody');
-          b.style.display = b.style.display === 'none' ? 'block' : 'none';
-        });
-      }
-      var dlink = document.getElementById('diagShow');
-      if (dlink) dlink.addEventListener('click', function(e){
-        e.preventDefault();
-        document.getElementById('showCountries').click();
-        document.getElementById('coverageList').scrollIntoView({behavior:'smooth', block:'center'});
-      });
-    }
-
-    function submitAsk(){
-      var q = (askInput.value || '').trim();
-      if (!q) return;
-      // A4 gate: methodology-shaped questions never reach the LLM/SQL path.
-      if (METHOD_RE.test(q)) { methodologyAnswer(q, null); return; }
-
-      var state = { attempts: [], final: null, error: null };
-      renderLiveCard(state);
-
-      var es;
-      try {
-        es = new EventSource(API_BASE + '/ask_stream?question=' + encodeURIComponent(q));
-      } catch (e) {
-        state.error = 'The live ask service is not reachable right now. That failure is shown, not hidden. ' +
-          (widestGap ? 'The widest gap this hour is still visible: <b>' + esc(widestGap.country) + '</b>.' : '');
-        renderLiveCard(state);
-        return;
-      }
-      var closed = false;
-      function close(){ if (!closed) { closed = true; es.close(); } }
-
-      es.onmessage = function(ev){
-        var data;
-        try { data = JSON.parse(ev.data); } catch (e) { return; }
-        var slot;
-        if (data.type === 'attempt') {
-          state.attempts[data.n - 1] = state.attempts[data.n - 1] || {};
-        } else if (data.type === 'sql') {
-          slot = state.attempts[data.n - 1] = state.attempts[data.n - 1] || {};
-          slot.sql = data.sql;
-        } else if (data.type === 'rows') {
-          slot = state.attempts[data.n - 1] = state.attempts[data.n - 1] || {};
-          slot.rows = data.count;
-          if (data.error) slot.rowsError = data.error;
-        } else if (data.type === 'evaluate') {
-          slot = state.attempts[data.n - 1] = state.attempts[data.n - 1] || {};
-          slot.evaluated = true;
-          slot.sufficient = data.sufficient;
-          slot.note = data.note;
-        } else if (data.type === 'error') {
-          var err = String(data.message || '');
-          var isOperational = /enough questions|reachable|budget|not configured/i.test(err);
-          state.error = isOperational ? esc(err) : diagnose(q);
-          close();
-        } else if (data.type === 'final') {
-          if (data.insufficient) {
-            state.error = esc(data.sentence) + ' ' + diagnose(q);
-          } else {
-            state.final = data;
-          }
-          close();
-        }
-        renderLiveCard(state);
-      };
-      es.onerror = function(){
-        if (!state.final && !state.error) {
-          state.error = 'The live ask service is not reachable right now. That failure is shown, not hidden. ' +
-            (widestGap ? 'The widest gap this hour is still visible: <b>' + esc(widestGap.country) + '</b>.' : '');
-          renderLiveCard(state);
-        }
-        close();
-      };
-    }
-    if (askBtn) askBtn.addEventListener('click', submitAsk);
-    if (askInput) askInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') submitAsk(); });
   }).catch(function(err){
-    document.getElementById('items').innerHTML = '<div class="item"><p style="color:#B3822D">Could not load this hour\'s data. That failure is shown, not hidden.</p></div>';
+    document.getElementById('items').innerHTML = '<div class="item"><p style="color:#0B0B0B">Could not load this hour\'s data. That failure is shown, not hidden.</p></div>';
   });
 })();
 </script>
