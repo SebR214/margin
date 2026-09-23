@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki — running a team of agents that cannot be trusted</title>
+<meta name="description" content="Four pieces of software run this site around the clock. Here is what it actually takes to let them run something real without quietly lying to you — in incidents, not principles."/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#5A55E0; --rule:#F0F0F0; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
+  a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
+  .num{font-variant-numeric:tabular-nums}
+  .wrap{max-width:1440px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
+  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
+  nav a.active{color:var(--ink);font-weight:700}
+  .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
+  main{padding:44px 48px 64px;max-width:800px}
+  .kicker{font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase;font-weight:700}
+  h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;line-height:1.2;margin:10px 0 0;max-width:760px}
+  .dek{font-size:18px;line-height:1.55;color:var(--sub);padding-top:16px;max-width:720px}
+  .h{font-size:22px;font-weight:800;padding-top:44px;padding-bottom:10px;letter-spacing:-0.01em}
+  .p{font-size:17px;line-height:1.7;color:#1A1A1A;padding-top:14px;max-width:720px}
+  .p b{font-weight:800}
+  .callout{background:#F6F6F6;border-radius:14px;padding:20px 24px;margin-top:22px;max-width:640px;font-size:15px;line-height:1.6;color:#333}
+  .callout b{color:#0B0B0B}
+  .cite{font-size:13px;color:#9A9A9A;padding-top:8px}
+  .cite a{font-weight:600;color:#6B6B6B}
+  .cite a:hover{color:var(--indigo)}
+  .sources{border-top:1px solid var(--rule);margin-top:56px;padding-top:20px;font-size:13px;color:#9A9A9A;line-height:1.7;max-width:720px}
+  .sources a{font-weight:600;color:#6B6B6B}
+  @media(max-width:900px){h1{font-size:28px} header{padding:22px 24px} main{padding:32px 24px 48px}}
+
+  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
+  @media(max-width:760px){
+    header{position:relative;flex-wrap:nowrap!important}
+    .brand{gap:14px}
+    nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column!important;gap:0!important;padding:6px 24px 16px;border-bottom:1px solid #F0F0F0;box-shadow:0 8px 16px rgba(11,11,11,0.06);z-index:30}
+    nav.open{display:flex}
+    nav a{padding:12px 0;border-bottom:1px solid #F6F6F6;font-size:16px}
+    .nav-toggle{display:block}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo"><a href="./index.html">margin.wiki</a></div>
+      <nav>
+        <a href="./the-index.html">The index</a>
+        <a href="./sending-money.html">Sending money</a>
+        <a href="./findings.html">Findings</a>
+        <a href="./how-it-works.html">How it works</a>
+      </nav>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+    </div>
+    <div class="live"><span class="dot"></span><span class="num" id="liveStamp">&mdash;</span></div>
+  </header>
+
+  <main>
+    <div class="kicker">Findings</div>
+    <h1>Running a team of agents that cannot be trusted</h1>
+    <div class="dek">Four pieces of software run this site around the clock. Here is what it actually takes to let them run something real without them quietly lying to you — in incidents, not principles.</div>
+
+    <p class="p">One agent collects prices, one builds, one reviews what got built, one decides what to build next. No person is in that loop hour to hour. That sounds like a pitch. It's actually a liability, and most of what this project's own history records is the work of making that liability survivable — not by trusting the agents more, but by assuming, structurally, that they will eventually be wrong, and building so that "wrong" fails loud instead of quietly.</p>
+
+    <div class="h">The collector that ran for 34 days and reported nothing but silence</div>
+    <p class="p">An early version of the price collector was pointed at a hostname that didn't resolve — a typo, effectively. It went onto an hourly schedule without ever being run once by hand first. It ran for <b>34 days</b>, every hour, and recorded nothing but DNS errors. Nothing about that failure was visible from outside: no row was invented, no number was wrong — there was simply nothing, hour after hour, and nothing was watching for "nothing" as its own kind of failure.</p>
+    <p class="p">The fix wasn't a smarter collector. It was a rule: no collector goes on a schedule without first running as a single, one-shot, human-readable dry run that prints exactly what it would have written and writes nothing. That step exists on every collector in this project now. A 34-day silent failure doesn't need a bug. It needs nobody looking at the first output before automating the thousandth.</p>
+    <div class="cite"><a href="./README.md">README.md, "Run order" →</a></div>
+
+    <div class="h">The key that drained the credit balance in twenty minutes</div>
+    <p class="p">Two credentials run this system: one for the three agent loops, on a flat subscription, and a separate, narrowly-scoped, metered key for the one feature that calls a model on every public request. They are deliberately never the same file, never the same environment. Once, briefly, they were — a configuration change put the metered key where the loops' own subscription credential belonged, and every pass in that window ran on metered billing instead of the flat rate it should have used. Three loops, running two-to-sixteen-minute sessions with a large context, drained a $10 credit balance to a small negative balance in about twenty minutes.</p>
+    <p class="p">The fix was structural, not procedural: the metered key now lives in its own file, read by only the one service that needs it, with a comment at the point of use explaining exactly why it must never move — not a policy someone has to remember, a fact the next person editing that config can't miss.</p>
+
+    <div class="h">The passes that spent money to learn there was nothing to do</div>
+    <p class="p">Before a cheap pre-check existed, every agent loop's "pass" meant waking a full model session to read the state and decide what's next — sometimes nothing. Across roughly 3,900 daily passes, <b>88% of them</b> were exactly that: a full, billed model session whose only output was discovering the work queue was empty.</p>
+    <p class="p">The fix was almost insultingly simple once someone measured it: a plain check against the work queue, no model involved, runs first. Only if it finds real work does the loop wake a model session. The principle that survived the fix is the more interesting part: <b>polling is cheap, so it should be frequent</b> — the instinct to slow a loop down to save money is usually solving the wrong problem. The expensive part was never checking often. It was checking with a model instead of a plain request.</p>
+    <div class="cite"><a href="./START-HERE.md">START-HERE.md →</a></div>
+
+    <div class="h">The reviewer that is not allowed to approve itself</div>
+    <p class="p">Every agent in this system authenticates as the same shared identity when it talks to the code-hosting platform. For a while, that meant the reviewer role and the builder role were, from the platform's point of view, the same account — so a reviewer literally could not approve a pull request, because the platform correctly refuses to let an account approve its own submission. The honest fix was not to route around that refusal. It was to leave the one signal that can't be faked — a real, independent approval — as the one thing no role in this system can produce on its own.</p>
+    <div class="callout"><b>A reviewer here can verify, comment, and merge routine work on its own verification. It cannot approve anything a person would actually see without a person saying yes, in their own words, first.</b> That restriction exists on purpose and stays on purpose.</div>
+    <div class="cite"><a href="./agents/REVIEWER.md">agents/REVIEWER.md →</a></div>
+
+    <div class="h">The 21 hours that cannot be gotten back</div>
+    <p class="p">Every collection pass writes a growing list of files. Once, a genuinely new kind of measurement was added to what the collector wrote, but not to the explicit list of files the commit step was told to stage. The commit step didn't fail loudly: it committed what it knew about, then tried to sync with the remote, and the sync step refused because an untracked, uncommitted file was sitting in the way. The whole pipeline stopped. Twenty-one hours of real, hourly readings were generated, sat on disk, and were never committed — and because this project's own rule is that a gap in history is never backfilled or interpolated, those 21 hours are gone, permanently, visible in the record as a real gap rather than a smoothed-over one.</p>
+    <p class="p">The fix has two layers, on purpose. The specific one: every file a collector might write is now named explicitly in the commit step, so a new emitter has to be added deliberately. The general one, which matters more: if something tracked gets modified but forgotten from that list anyway, a fallback catches it and stages it too — loudly, with a warning — rather than letting the same failure repeat silently a second time. Belt and suspenders, because the first belt already broke once, for real, and the twenty-one hours it cost are still visible in this project's own history rather than quietly patched over.</p>
+    <div class="cite"><a href="./START-HERE.md">START-HERE.md →</a></div>
+
+    <div class="h">The rule underneath all of it</div>
+    <p class="p">None of these incidents were caused by an agent doing something clever and wrong. Every one of them was caused by silence — a failure with no signal, a gap nothing was watching for, an assumption nobody re-checked. So the standing rule across this whole system is not "agents should be smarter." It's narrower and more mechanical than that: nothing publishes unless it traces to a file that was actually collected, and a failed attempt stays visible, not hidden. A number that cannot be traced to a real collected row does not ship. A source that fails to respond gets recorded as failed, publicly, rather than quietly dropped from the average. An agent that cannot proceed is expected to say so and stop, not improvise around the gap.</p>
+    <p class="p">That's the actual claim this project makes, once the pitch language is stripped off: not that agents can be trusted to run something real unsupervised, but that a system can be built where it doesn't matter whether they can — because the failure mode, when it inevitably shows up, is loud, visible, and traceable back to a real file, every time.</p>
+
+    <div class="sources">Ops specifics — the server, credential file paths, exact key names — are deliberately left out of this page, same as the rest of the site. Every incident above is real and checked against this project's own commits and internal docs before publishing, not recalled from memory. See <a href="./how-it-works.html">how it works</a> for the collection method itself, and the <a href="https://github.com/SebR214/margin">raw code and history</a> for everything else.</div>
+  </main>
+</div>
+
+<script>
+fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
+  var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
+  document.getElementById('liveStamp').textContent = hourUtc ? ('LAST COLLECTION PASS ' + hourUtc + ' UTC') : '';
+}).catch(function(){});
+</script>
+
+<script>
+(function(){
+  var btn = document.getElementById('navToggle');
+  var nav = document.querySelector('header nav');
+  if (btn && nav) {
+    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
+    document.addEventListener('click', function(e){
+      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
+    });
+  }
+})();
+</script>
+</body>
+</html>
