@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="./style.css"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki — Is it a real dollar?</title>
-<meta name="description" content="Is a digital dollar a real dollar? We buy one in Singapore, move it, and sell it in the Philippines, paying every fee on the way, measured hourly against the cheapest ordinary provider quoting the same amount."/>
+<meta name="description" content="Is a digital dollar a real dollar? We buy one in Singapore, move it, and sell it in the Philippines, paying every fee on the way, measured hourly against the best fiat provider quoting the same amount."/>
 <style>
   /* Page-specific only: the layout components below (cards, the size
      switcher, the waterfall legend, tables) belong to this page alone, so
@@ -24,6 +24,13 @@
   a{color:var(--color-ink);text-decoration:none} a:hover{color:var(--pos)}
   .hero a{color:inherit}
   .wrap{max-width:960px; margin:0 auto; padding:0 20px 60px}
+
+  /* No black band: matches index.html/sending-money.html, which dropped it
+     from .hero already. style.css's shared .hero is still black -- this
+     page is the only one still linking that stylesheet, so override locally
+     rather than edit the shared rule underneath pages that may still want it. */
+  .hero{background:none!important;color:var(--color-ink)!important}
+  .hero h1{color:var(--color-ink)!important}
 
   /* Same header as every other current page -- was the old [data-nav="bar"]
      system (style.css, uppercase small-caps, sticky), never migrated when
@@ -158,7 +165,10 @@
   <div class="card">
     <h2><span id="histTitle"></span> <span id="hist-size" style="color:var(--color-neutral-600);font-weight:400"></span></h2>
     <p class="cap" id="histCap"></p>
-    <svg class="wf" id="hist" viewBox="0 0 640 220" preserveAspectRatio="xMidYMid meet"></svg>
+    <div style="position:relative">
+      <svg class="wf" id="hist" viewBox="0 0 640 220" preserveAspectRatio="xMidYMid meet"></svg>
+      <div id="histTip" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:var(--font-body);padding:6px 9px;border-radius:5px;white-space:nowrap;transform:translate(-50%,-130%)"></div>
+    </div>
     <div class="legend-row" id="histLegend"></div>
   </div>
 
@@ -169,6 +179,7 @@
 "use strict";
 const SIZES=[200,1000,5000,25000,50000];
 let COPY={};
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const T=(s,vals)=>{
   let out=String(s||"");
   for(const k in (vals||{})) out=out.split("{"+k+"}").join(vals[k]);
@@ -218,7 +229,7 @@ function parseCSV(text){
 let bySize={}, histBySize={}, size=5000, newest="";
 // Corridor 1 is the default and stays first. allRows holds every corridor so
 // switching regroups in place rather than refetching samples.csv.
-let allRows=[], corrKeys=[], corridor="SGD->PHP", feeChecks=[], withdrawalFees=[];
+let allRows=[], corrKeys=[], corridor="SGD->PHP", feeChecks=[], withdrawalFees=[], wfBySample={};
 const PLACE={SGD:"Singapore",PHP:"the Philippines",USD:"the US",MXN:"Mexico",AUD:"Australia",NZD:"New Zealand"};
 const place=c=>PLACE[c]||c;
 const dstOf=r=>((r&&r.dst)||"").trim();
@@ -332,6 +343,13 @@ async function boot(){
   document.getElementById("verdict2").textContent=COPY.verdict2||"";
   feeChecks=await loadCSVOptional("./data/fee_checks.csv");
   withdrawalFees=await loadCSVOptional("./data/withdrawal_fees.csv");
+  // The waterfall's three bars, computed once in the collector so they
+  // reconcile to the total exactly -- not reconstructed here from
+  // basis+fee fields, which is what drifted (SEB: corridor waterfall did
+  // not reconcile). Keyed the same way the row itself is identified.
+  const wfRows=await loadCSVOptional("./data/corridor_waterfall.csv");
+  wfBySample={};
+  for(const w of wfRows) wfBySample[w.ts+"|"+w.corridor+"|"+w.notional_src]=w;
   // samples.csv carries every corridor interleaved. Group by the corridor
   // column: without it one corridor's rows land in another's waterfall.
   corrKeys=[...new Set(allRows.map(r=>(r.corridor||"").trim()).filter(Boolean))]
@@ -364,7 +382,7 @@ function selectCorridor(key){
   document.title="margin.wiki — Is it a real dollar? · "+place(srcCcy)+" → "+place(dstOf(r5));
   const feeStampR=feeStamp(feeChecks,r5.fees_verified,withdrawalFees,(r5.onramp_venue||"").trim().toLowerCase());
   document.getElementById("stamp").innerHTML=
-    `<b>updated</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?ago+" min ago":Math.round(ago/60)+" h ago"} · `+
+    `<b>${esc(COPY.updatedLabel||"updated")}</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?T(COPY.minAgoTemplate||"{n} min ago",{n:ago}):T(COPY.hAgoTemplate||"{n} h ago",{n:Math.round(ago/60)})} · `+
     // fees_verified carries one date per leg ("ir:2026-08-10|coins:2026-08-10").
     // Both legs are usually verified on the same day, and printing the string
     // straight through rendered that as "2026-08-10 · 2026-08-10". Distinct
@@ -442,7 +460,12 @@ function render(){
     ${numCard((N.buyingNow||{}).label,(N.buyingNow||{}).sub,t,cw,size)}
     ${numCard((N.waitingOwnPrice||{}).label,(N.waitingOwnPrice||{}).sub,m,mw,size)}
     ${numCard(r.baseline_provider||N.cheapestProviderLabel,N.cheapestProviderSub,base,null,size)}`;
-  const rail=netBps(r), doors=t-rail;
+  // Same figure the waterfall's "Moving it" bar shows a few lines down --
+  // reads from the same sidecar so this line and that bar never disagree.
+  // Falls back to the old approximation only when the sidecar has no row
+  // for this exact sample yet.
+  const wfSum=wfBySample[r.ts+"|"+r.corridor+"|"+r.notional_src];
+  const rail=wfSum?+wfSum.wf_move_bps:netBps(r), doors=t-rail;
   // The worked example, in the currency being sent, at the amount selected.
   const dstPlace=place(dstOf(r));
   const VL=COPY.verdictLine||{};
@@ -467,16 +490,23 @@ function numCard(label,sub,val,win,n){
 }
 
 function drawWaterfall(r){
-  // Buy the coin, move it, sell it. The five separate line items -- the price
-  // against the official rate and the exchange's cut, at each end -- are true
-  // but are an accountant's breakdown; they fold into the step they belong to.
+  // Buy the coin, move it, sell it -- computed once in the collector as a
+  // sequential chain (decompose()'s own gross->bought->stable->quote->landed
+  // steps), not reconstructed here as independent basis+fee sums, which is
+  // what used to drift off the total (SEB: corridor waterfall did not
+  // reconcile -- 79.15 shown against a real 78.40 total). No sidecar row for
+  // this exact sample yet (a currency's first hour after this shipped, say)
+  // means no invented approximation either -- the section says so.
   const n=+r.notional_src;
-  const buy=(+r.onramp_basis_bps)+(+r.fee_on_taker_bps);
-  const sell=(+r.offramp_basis_bps)+(+r.fee_off_taker_bps);
+  const wf=wfBySample[r.ts+"|"+r.corridor+"|"+r.notional_src];
+  if(!wf){
+    document.getElementById("wf").innerHTML=`<text x="12" y="30" fill="var(--color-neutral-600)" font-size="13" font-family="var(--font-body)">${esc((COPY.waterfallUnavailable)||"Not available for this sample yet -- it appears the pass after this shipped.")}</text>`;
+    return;
+  }
   const comps=[
-    {l:"Buying the coin in "+place(srcCcy), v:buy, k:"neg"},
-    {l:"Moving it", v:netBps(r), k:"rail"},
-    {l:"Selling it in "+place(dstOf(r)), v:sell, k:"neg"},
+    {l:"Buying the coin in "+place(srcCcy), v:+wf.wf_buy_bps, k:"neg"},
+    {l:"Moving it", v:+wf.wf_move_bps, k:"rail"},
+    {l:"Selling it in "+place(dstOf(r)), v:+wf.wf_sell_bps, k:"neg"},
   ];
   const total=+r.cost_bps_taker, base=+r.baseline_cost_bps;
   let run=0; const cum=[0]; comps.forEach(c=>{run+=c.v; cum.push(run);});
@@ -491,12 +521,22 @@ function drawWaterfall(r){
   // baseline (incumbent) marker
   s+=`<line x1="${X(base).toFixed(1)}" y1="${top-2}" x2="${X(base).toFixed(1)}" y2="${top+rows*rowH+4}" stroke="var(--neg)" stroke-width="1.3" stroke-dasharray="3 3"/>`+
      `<text x="${X(base).toFixed(1)}" y="${top+rows*rowH+18}" fill="var(--neg)" font-size="10.5" font-family="var(--mono)" text-anchor="middle">${r.baseline_provider} ${cash(n,base)}</text>`;
+  // The three bps legs already sum to cost_bps_taker exactly (collector-side,
+  // to the cent). Converting each to a DOLLAR amount and rounding each
+  // independently can still land a bar's label a cent off the total --
+  // three coins rounded on their own don't reliably make the same total as
+  // one. Last leg's shown value is the remainder against the total's own
+  // cents, not its own independently-rounded figure, so the printed numbers
+  // always add up, not just the underlying bps.
+  const totalCents=cents(n,total);
+  const compCents=comps.map(c=>cents(n,c.v));
+  compCents[compCents.length-1]=Math.round((totalCents-compCents.slice(0,-1).reduce((a,b)=>a+b,0))*100)/100;
   comps.forEach((c,i)=>{
     const y=top+i*rowH, a=X(cum[i]), b=X(cum[i+1]), x0=Math.min(a,b), w=Math.max(2,Math.abs(b-a));
     const fill = c.k==="neg" ? (c.v<0?col.neg:col.fee) : col[c.k];
     s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12" font-family="var(--font-body)">${c.l}</text>`+
        `<rect x="${x0.toFixed(1)}" y="${y+6}" width="${w.toFixed(1)}" height="${rowH-12}" fill="${fill}"/>`+
-       `<text x="${(b+(b>=a?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-neutral-700)" font-size="11" font-family="var(--mono)" text-anchor="${b>=a?"start":"end"}">${cash(n,c.v)}</text>`;
+       `<text x="${(b+(b>=a?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-neutral-700)" font-size="11" font-family="var(--mono)" text-anchor="${b>=a?"start":"end"}">${fmtCents(compCents[i])}</text>`;
   });
   const y=top+comps.length*rowH, xt=X(total);
   s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12.5" font-family="var(--font-body)" font-weight="700">${(COPY.legend||{}).wholeTransfer||"The whole transfer"}</text>`+
@@ -521,14 +561,27 @@ function drawLadder(){
   document.getElementById("ladder").innerHTML=h;
 }
 
+// ROADMAP.md's chart invariant: every chart hovers, the nearest real point's
+// exact value, no interpolation. Three series on one x-axis, so js/chart.js
+// (one series plus an optional static reference line) doesn't fit directly --
+// same interaction pattern (nearest-point lookup, tooltip, hover dots, a
+// vertical guide), built for three live series instead of one.
+function fmtHistDate(iso){
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const d=new Date(iso); if(isNaN(d)) return "";
+  return d.getUTCDate()+" "+MONTHS[d.getUTCMonth()];
+}
 function drawHistory(){
   const rows=histBySize[size]; const svg=document.getElementById("hist");
-  const W=640,H=200,padL=44,padR=12,padT=12,padB=22;
-  if(rows.length<2){ svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="var(--color-neutral-600)" font-size="12" font-family="var(--font-body)">${T((COPY.history||{}).buildingTemplate,{count:rows.length+(rows.length===1?" sample":" samples")})}</text>`; return; }
-  const series=[["cost_bps_taker","var(--pos)"],["cost_bps_maker","var(--color-neutral-700)"],["baseline_cost_bps","var(--neg)"]];
+  const tip=document.getElementById("histTip");
+  const W=640,H=220,padL=44,padR=12,padT=12,padB=22;
+  if(rows.length<2){ svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="var(--color-neutral-600)" font-size="12" font-family="var(--font-body)">${T((COPY.history||{}).buildingTemplate,{count:rows.length+(rows.length===1?" sample":" samples")})}</text>`; tip.style.opacity=0; return; }
+  const HL=COPY.history||{};
+  const series=[["cost_bps_taker","var(--pos)",HL.buyingNow||"buying it now"],["cost_bps_maker","var(--color-neutral-700)",HL.waitingOwnPrice||"waiting for your price"],["baseline_cost_bps","var(--neg)",HL.cheapestProvider||"best fiat provider"]];
   const vals=rows.flatMap(r=>series.map(([k])=>+r[k]));
   let lo=Math.min(0,...vals), hi=Math.max(0,...vals); const pv=(hi-lo)*.1||5; lo-=pv; hi+=pv;
-  const X=i=>padL+i*(W-padL-padR)/(rows.length-1), Y=v=>padT+(hi-v)/(hi-lo)*(H-padT-padB);
+  const plotB=H-padB;
+  const X=i=>padL+i*(W-padL-padR)/(rows.length-1), Y=v=>padT+(hi-v)/(hi-lo)*(plotB-padT);
   let s=`<line x1="${padL}" y1="${Y(0).toFixed(1)}" x2="${W-padR}" y2="${Y(0).toFixed(1)}" stroke="var(--color-divider)" stroke-width="1"/>`+
         `<text x="${padL-6}" y="${Y(0).toFixed(1)+4}" text-anchor="end" fill="var(--color-neutral-600)" font-size="10" font-family="var(--mono)">0%</text>`+
         `<text x="${padL-6}" y="${(Y(hi)+8).toFixed(1)}" text-anchor="end" fill="var(--color-neutral-600)" font-size="10" font-family="var(--mono)">${pct(hi)}</text>`+
@@ -539,7 +592,33 @@ function drawHistory(){
     const last=rows[rows.length-1];
     s+=`<circle cx="${X(rows.length-1).toFixed(1)}" cy="${Y(+last[k]).toFixed(1)}" r="2.4" fill="${c}"/>`;
   }
+  const vlineId="hvl"+Math.random().toString(36).slice(2,8);
+  s+=`<line id="${vlineId}" x1="0" y1="${padT}" x2="0" y2="${plotB}" stroke="#0B0B0B" stroke-width="1" opacity="0"/>`;
+  const dotIds=series.map((_,i)=>{ const id="hd"+i+Math.random().toString(36).slice(2,6); s+=`<circle id="${id}" r="4" fill="${series[i][1]}" stroke="#fff" stroke-width="1.5" opacity="0"/>`; return id; });
   svg.innerHTML=s;
+
+  const vline=document.getElementById(vlineId);
+  const dots=dotIds.map(id=>document.getElementById(id));
+  function nearest(px){
+    let best=0, bestD=Infinity;
+    for(let i=0;i<rows.length;i++){ const d=Math.abs(X(i)-px); if(d<bestD){bestD=d; best=i;} }
+    return best;
+  }
+  svg.onmousemove=function(ev){
+    const rect=svg.getBoundingClientRect();
+    const px=(ev.clientX-rect.left)*(W/rect.width);
+    const i=nearest(px), r=rows[i];
+    vline.setAttribute("x1",X(i).toFixed(1)); vline.setAttribute("x2",X(i).toFixed(1)); vline.setAttribute("opacity",0.25);
+    let lines="";
+    series.forEach(([k,c,label],si)=>{
+      dots[si].setAttribute("cx",X(i).toFixed(1)); dots[si].setAttribute("cy",Y(+r[k]).toFixed(1)); dots[si].setAttribute("opacity",1);
+      lines+=`<div><span style="color:${c.replace("var(--color-neutral-700)","#6B6B6B").replace("var(--pos)","#817FCC").replace("var(--neg)","#D3D0CB")}">●</span> ${esc(label)}: ${pct(+r[k])}</div>`;
+    });
+    tip.innerHTML=`<div style="font-weight:700;padding-bottom:3px">${esc(fmtHistDate(r.ts))}</div>`+lines;
+    const leftPct=(X(i)/W)*100, topPct=(Y(+r[series[0][0]])/H)*100;
+    tip.style.left=leftPct+"%"; tip.style.top=topPct+"%"; tip.style.opacity=1;
+  };
+  svg.onmouseleave=function(){ vline.setAttribute("opacity",0); dots.forEach(d=>d.setAttribute("opacity",0)); tip.style.opacity=0; };
 }
 
 boot().catch(e=>{document.getElementById("stamp").textContent=(COPY.loadFailed)||"failed to load data"; console.error(e);});

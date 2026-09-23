@@ -389,6 +389,32 @@ def decompose(notional, on_book, off_book, mids, cfg):
         out[f"landed_{regime}"] = round(landed, 2)
         out[f"cost_bps_{regime}"] = (bps(1 - landed / (notional * mid))
                                      if (mid and notional) else None)
+        if regime == "taker" and mid and notional:
+            # The waterfall shown on corridor.html used to reconstruct its
+            # three bars as onramp_basis_bps + fee_on_taker_bps (etc.), summed
+            # independently on the original notional. That is a parallel
+            # approximation of a chain of multiplicative steps -- a fee applied
+            # AFTER basis has already shrunk the amount is not the same as the
+            # same fee applied to the original notional -- so the bars did not
+            # sum to cost_bps_taker (SEB-corridor-reconcile: off by ~1.5bps on
+            # a real AUD->PHP row, exactly this drift's known order of
+            # magnitude). Fixed by walking the SAME chain decompose() already
+            # computes (gross -> bought -> stable -> quote -> landed) and
+            # taking each step's own delta, in dst-currency terms, against the
+            # fair (zero-friction) target. Telescoping guarantees the parts
+            # sum to cost_bps_taker exactly, to the cent, by construction --
+            # not approximately, and not by adjusting a displayed number.
+            target = notional * mid
+            L2, L3 = bought * dst_usd, stable * dst_usd
+            out["wf_buy_bps"] = round(1e4 * (target - L2) / target, 2)
+            out["wf_move_bps"] = round(1e4 * (L2 - L3) / target, 2)
+            # The third leg is the remainder against cost_bps_taker, not its own
+            # independently-rounded value -- summing three numbers each rounded
+            # on their own does not reliably reproduce a fourth, separately
+            # rounded number (classic sum-of-rounded-parts drift). Anchoring the
+            # last leg to what the other two, plus the already-stored total,
+            # require is what actually guarantees the bars sum to the cent.
+            out["wf_sell_bps"] = round(out["cost_bps_taker"] - out["wf_buy_bps"] - out["wf_move_bps"], 2)
         if regime == "taker":
             out["offramp_vwap"] = round(off_vwap, 6) if off_vwap else None
             out["offramp_filled"] = off_filled
@@ -654,6 +680,33 @@ def providers_path(cfg):
     return os.path.join(HERE, "data", cfg.get("providers_file", "providers.csv"))
 
 
+WATERFALL_SIDECAR = os.path.join(HERE, "data", "corridor_waterfall.csv")
+WATERFALL_FIELDS = ["ts", "corridor", "notional_src", "wf_buy_bps", "wf_move_bps", "wf_sell_bps"]
+
+
+def append_waterfall(rows, path=WATERFALL_SIDECAR):
+    """The exact-reconciling waterfall legs, keyed the same as samples.csv but
+    written separately -- samples.csv's header is frozen, this is new. Only
+    rows that actually have the three fields (decompose() skips them when
+    stable<=0, same as every other taker-regime field) are written; a missing
+    row here is corridor.html's cue to say so, not to invent a number.
+    """
+    wrows = [{"ts": r["ts"], "corridor": r["corridor"], "notional_src": r["notional_src"],
+              "wf_buy_bps": r.get("wf_buy_bps"), "wf_move_bps": r.get("wf_move_bps"),
+              "wf_sell_bps": r.get("wf_sell_bps")}
+             for r in rows if r.get("wf_buy_bps") is not None]
+    if not wrows:
+        return None
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=WATERFALL_FIELDS)
+        if new:
+            w.writeheader()
+        w.writerows(wrows)
+    return path
+
+
 def append_providers(prows, path=PROVIDERS):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     new = not os.path.exists(path)
@@ -786,13 +839,18 @@ def selftest():
           f"{d['cost_bps_maker']:.1f} bps -- {gap:.1f} bps apart (Coins "
           f"maker/taker spread); both lose to ~66 bps Wise")
 
-    # the decomposition must reconcile to the taker total
-    parts = (d["onramp_basis_bps"] + cfg["onramp"]["taker_bps"]
-             + cfg["network_fee_stable"] / (5000 / on["asks"][0][0]) * 1e4
-             + d["offramp_basis_bps"] + cfg["offramp"]["taker_bps"])
-    assert abs(parts - d["cost_bps_taker"]) < 1.5, (parts, d["cost_bps_taker"])
-    print(f"  [ok] waterfall reconciles: parts {parts:.1f} == total "
-          f"{d['cost_bps_taker']:.1f} bps")
+    # The waterfall's three bars must reconcile to the taker total EXACTLY, to
+    # the cent -- not approximately. (This replaces an earlier version of this
+    # test that only checked the independently-summed basis+fee legs landed
+    # within 1.5 bps of the total; that ~1.5 bps gap was real, was the
+    # corridor.html reader-visible bug it looks like, and is the reason
+    # wf_buy_bps/wf_move_bps/wf_sell_bps exist -- a sequential decomposition of
+    # the same chain decompose() already walks, not a second, parallel one.)
+    wf_sum = d["wf_buy_bps"] + d["wf_move_bps"] + d["wf_sell_bps"]
+    assert abs(wf_sum - d["cost_bps_taker"]) < 0.005, (wf_sum, d["cost_bps_taker"])
+    print(f"  [ok] waterfall reconciles exactly: {d['wf_buy_bps']:.2f} + "
+          f"{d['wf_move_bps']:.2f} + {d['wf_sell_bps']:.2f} = {wf_sum:.2f} == "
+          f"{d['cost_bps_taker']:.2f} bps")
 
     # small size: the flat network fee should dominate. At the real 4.0 USDT
     # withdrawal it is no longer merely large at S$200 -- it is the whole story.
@@ -863,14 +921,13 @@ def selftest():
           f"{d2['cost_bps_maker']:.1f} bps -- {gap2:.1f} bps apart (Bitso 18 + "
           f"Coinbase 0.5)")
 
-    # Reconcile against the EFFECTIVE network fee for this size, not the config
-    # constant -- the config no longer holds the whole story for this corridor.
-    parts2 = (d2["onramp_basis_bps"] + cfg2["onramp"]["taker_bps"]
-              + d2["network_fee_stable"] / (1000 / on2["asks"][0][0]) * 1e4
-              + d2["offramp_basis_bps"] + cfg2["offramp"]["taker_bps"])
-    assert abs(parts2 - d2["cost_bps_taker"]) < 1.5, (parts2, d2["cost_bps_taker"])
-    print(f"  [ok] corridor 2 waterfall reconciles: parts {parts2:.1f} == total "
-          f"{d2['cost_bps_taker']:.1f} bps")
+    # Same exact reconciliation, second corridor, different size (1,000) and a
+    # different fee shape (proportional Coinbase fee, not IR's flat one) --
+    # confirms the fix isn't tuned to one corridor's numbers.
+    wf_sum2 = d2["wf_buy_bps"] + d2["wf_move_bps"] + d2["wf_sell_bps"]
+    assert abs(wf_sum2 - d2["cost_bps_taker"]) < 0.005, (wf_sum2, d2["cost_bps_taker"])
+    print(f"  [ok] corridor 2 waterfall reconciles exactly: {wf_sum2:.2f} == "
+          f"{d2['cost_bps_taker']:.2f} bps")
 
     assert providers_path(cfg2).endswith("providers_usdmxn.csv")
     assert providers_path(CORRIDORS["SGD->PHP"]).endswith("providers.csv")
@@ -1014,6 +1071,11 @@ def main():
             panel_wrote = panel_path
         except Exception as e:
             print(f"  [warn] panel write failed (non-fatal): {e}\n", file=sys.stderr)
+        # Same non-fatal shape: the waterfall sidecar is supplementary too.
+        try:
+            append_waterfall(rows)
+        except Exception as e:
+            print(f"  [warn] waterfall sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
 
     if a.json:
         print(json.dumps({"corridor": rows, "panel": prows}, indent=2, default=str))

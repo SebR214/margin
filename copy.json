@@ -231,7 +231,7 @@
       },
       "waterfall": {
         "title": "Where the money goes",
-        "cap": "Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the cheapest ordinary provider, same second."
+        "cap": "Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the best fiat provider, same second."
       },
       "ladder": {
         "title": "It is worst at the amounts people actually send",
@@ -239,7 +239,7 @@
       },
       "history": {
         "title": "Every round trip we've run",
-        "cap": "The total cost over time, hourly since collection began: buying at the price on offer, waiting for your own price, and the cheapest ordinary provider. History cannot be back-filled."
+        "cap": "The total cost over time, hourly since collection began: buying at the price on offer, waiting for your own price, and the best fiat provider. History cannot be back-filled."
       }
     },
     "legend": {
@@ -248,7 +248,7 @@
       "blockchain": "the blockchain",
       "total": "total",
       "wholeTransfer": "The whole transfer",
-      "cheapestProvider": "cheapest ordinary provider",
+      "cheapestProvider": "best fiat provider",
       "buyingNow": "buying at the price on offer",
       "waitingOwnPrice": "waiting for your own price"
     },
@@ -261,8 +261,8 @@
         "label": "Waiting for your price",
         "sub": "if you wait for your own price"
       },
-      "cheapestProviderLabel": "Cheapest provider",
-      "cheapestProviderSub": "the cheapest ordinary provider, same second",
+      "cheapestProviderLabel": "Best fiat provider",
+      "cheapestProviderSub": "the best fiat provider, same second",
       "cheaper": "cheaper",
       "dearer": "dearer"
     },
@@ -278,18 +278,18 @@
         "send": "Send",
         "buyingNow": "Buying it now",
         "waitingOwnPrice": "Waiting for your price",
-        "cheapestProvider": "Cheapest provider",
+        "cheapestProvider": "Best fiat provider",
         "cheaper": "Cheaper"
       },
       "worstTag": "worst",
-      "dollarRoute": "the dollar route",
-      "dollarRouteByTemplate": "the dollar route, by {amount}",
+      "dollarRoute": "the stablecoin route",
+      "dollarRouteByTemplate": "the stablecoin route, by {amount}",
       "providerByTemplate": "by {amount}"
     },
     "verdictLine": {
-      "cryptoCheaper": "The dollar route is cheaper at this amount.",
+      "cryptoCheaper": "The stablecoin route is cheaper at this amount.",
       "cryptoDearer": "The ordinary provider is cheaper at this amount.",
-      "sendTemplate": "Send {amount} to {place} now: {provider} costs {providerCost} all in, the dollar route costs {routeCost}.",
+      "sendTemplate": "Send {amount} to {place} now: {provider} costs {providerCost} all in, the stablecoin route costs {routeCost}.",
       "youSave": "You save {amount}.",
       "moreExpensive": "That is {amount} more.",
       "waitingTemplate": "Waiting for your own price instead costs {amount}, which {closes} the gap.",
@@ -299,7 +299,8 @@
       "exchangesSplit": "what the two exchanges charge"
     },
     "history": {
-      "buildingTemplate": "history builds hourly — {count} so far"
+      "buildingTemplate": "history builds hourly — {count} so far",
+      "cheapestProvider": "the best fiat provider"
     },
     "noSamples": "no completed samples yet.",
     "footerTemplate": "The coin is bought on {onrampVenue} in {srcCcy} and sold on {offrampVenue} for {dst}. The comparison is the Wise comparison API — advertised retail prices, not confirmed fills, and they can carry promotional pricing (first-transfer or new-customer offers) recorded exactly as quoted. The comparison is therefore the best advertised price at that instant, not necessarily the best recurring one. Official exchange rates: open.er-api.com. \"Waiting for your own price\" assumes the order fills at the top of the book. Pricing that large institutions get privately is invisible by nature and never estimated.",
@@ -315,7 +316,11 @@
       "unverifiedTemplate": "fees UNVERIFIED ({reason}) — last clean check {lastClean}",
       "noneOnRecord": "none on record",
       "verifiedTemplate": "fees verified {date}"
-    }
+    },
+    "waterfallUnavailable": "Not available for this sample yet — it appears the pass after this shipped.",
+    "minAgoTemplate": "{n} min ago",
+    "hAgoTemplate": "{n} h ago",
+    "updatedLabel": "updated"
   },
   "receipt": {
     "title": "The receipt behind this number",

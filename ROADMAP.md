@@ -1030,6 +1030,14 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
 - **METHODOLOGY gates the site.** If a number is shown, METHODOLOGY says whether
   it is measured, assumed, or invisible. No hand-written copy on the site that
   can go stale against the data — compute it or condition it.
+- **A chart is not a picture.** Every chart on a reader-facing page hovers: the
+  nearest real point's exact value and timestamp, on mousemove, no
+  interpolation. `js/chart.js` is the reference implementation and the default
+  choice for a single-series line chart — use it rather than hand-rolling a new
+  static SVG. A chart with more than one series that `js/chart.js` can't yet
+  render gets the same interaction (nearest-point tooltip, hover dot, vertical
+  guide) built into it before it ships, not left static "for now" — a chart
+  shipped static has shipped twice, once broken.
 - **No Binance SPOT**: `api.binance.com` returns 451 from US-hosted runners,
   "restricted location", re-confirmed 2026-09-02, as do `binance.th` for
   USDT/THB (no such book) and `trbinance.com`. **The P2P search endpoint is a
