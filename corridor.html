@@ -14,15 +14,35 @@
      waterfall/history chart's own colour keys (gain, loss, the blockchain)
      are out of scope for this rebuild (charts are U4) and stay local too. */
   :root{
-    --pos:#b3241b; --neg:#2f7dae; --rail:#d98a2b; --win:#166534;
+    --pos:#817FCC; --neg:#D3D0CB; --rail:#D3D0CB; --win:#3F3047;
     --shadow:0 1px 2px rgba(16,22,34,.04),0 8px 30px rgba(16,22,34,.06);
     --mono:var(--font-body);
   }
   *{box-sizing:border-box}
   html,body{margin:0; overflow-x:hidden; max-width:100%}
   body{font-family:var(--font-body); line-height:1.45; -webkit-font-smoothing:antialiased}
-  a{color:inherit}
+  a{color:var(--color-ink);text-decoration:none} a:hover{color:var(--pos)}
+  .hero a{color:inherit}
   .wrap{max-width:960px; margin:0 auto; padding:0 20px 60px}
+
+  /* Same header as every other current page -- was the old [data-nav="bar"]
+     system (style.css, uppercase small-caps, sticky), never migrated when
+     the rest of the site moved to this one. */
+  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
+  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
+  nav a.active{color:#0B0B0B;font-weight:700}
+  .header-right{display:flex;align-items:center;gap:16px}
+  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
+  @media(max-width:760px){
+    header{position:relative;flex-wrap:nowrap!important;padding:22px 24px}
+    .brand{gap:14px}
+    nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column!important;gap:0!important;padding:6px 24px 16px;border-bottom:1px solid #F0F0F0;box-shadow:0 8px 16px rgba(11,11,11,0.06);z-index:30}
+    nav.open{display:flex}
+    nav a{padding:12px 0;border-bottom:1px solid #F6F6F6;font-size:16px}
+    .nav-toggle{display:block}
+  }
 
   .sub{color:var(--color-neutral-700); font-size:13.5px; margin-top:8px; max-width:60ch}
   .stamp{font-family:var(--mono); font-size:11.5px; color:var(--color-neutral-600); margin-top:10px}
@@ -41,8 +61,8 @@
   .num .n-v{font-family:var(--mono); font-size:30px; font-weight:600; letter-spacing:-.01em; margin-top:3px; line-height:1; font-variant-numeric:tabular-nums}
   .num .n-s{font-size:11.5px; color:var(--color-neutral-600); margin-top:3px}
   .badge{font-size:10px; font-weight:700; padding:1px 6px; border-radius:3px; text-transform:uppercase; letter-spacing:.03em}
-  .badge.win{background:#eaf7ee; color:var(--win)}
-  .badge.lose{background:#fdeceb; color:var(--pos)}
+  .badge.win{background:#DCDFFA; color:var(--win)}
+  .badge.lose{background:#F0EBD8; color:var(--pos)}
 
   .verdict{background:var(--color-surface); border-top:2px solid var(--color-ink); padding:13px 16px; margin:12px 0; font-size:14px}
   .verdict b{font-weight:700}
@@ -74,12 +94,21 @@
 </head>
 <body>
 
-  <div data-nav="bar">
-    <div style="display: flex; align-items: center; gap: 28px;">
-      <a data-nav="brand" href="./index.html" id="brand"></a>
-      <div data-nav="links" id="navLinks"></div>
+  <header>
+    <div class="brand">
+      <div class="logo"><a href="./index.html">margin.wiki</a></div>
+      <nav>
+        <a href="./the-index.html">The index</a>
+        <a href="./sending-money.html">Sending money</a>
+        <a href="./findings.html">Findings</a>
+        <a href="./machine-room.html">The machine room</a>
+        <a href="./how-it-works.html" class="active">How it works</a>
+      </nav>
     </div>
-  </div>
+    <div class="header-right">
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+    </div>
+  </header>
 
   <div class="hero">
     <div class="wrap" style="padding-top:0; padding-bottom:0;">
@@ -256,21 +285,6 @@ async function loadCopy(){
   }catch(e){ return {}; }
 }
 
-// The shared header: same markup, same copy.json, every page. This page
-// belongs to "how it works" -- the corridor is the proof behind the index,
-// one level under methodology and status (see ROADMAP.md).
-function renderHeader(){
-  document.getElementById("brand").textContent=COPY.brand||"margin.wiki";
-  const links=document.getElementById("navLinks");
-  links.innerHTML="";
-  for(const n of (COPY.nav||[])){
-    const a=document.createElement("a");
-    a.href=n.href; a.textContent=n.label;
-    if(n.key==="how") a.setAttribute("aria-current","page");
-    links.appendChild(a);
-  }
-}
-
 async function boot(){
   // Deep link from another page (the homepage's per-corridor table, for
   // one): ?corridor=AUD->PHP pre-selects that tab instead of always
@@ -281,8 +295,6 @@ async function boot(){
   if(qp) corridor=qp;
   const C=await loadCopy();
   COPY=C.corridor||{};
-  COPY.brand=C.brand; COPY.nav=C.nav;
-  renderHeader();
   document.getElementById("pageTitle").textContent=COPY.title||"Is it a real dollar?";
   document.getElementById("lede1").textContent=COPY.lede1||"";
   document.getElementById("lede2").textContent=COPY.lede2||"";
@@ -531,6 +543,18 @@ function drawHistory(){
 }
 
 boot().catch(e=>{document.getElementById("stamp").textContent=(COPY.loadFailed)||"failed to load data"; console.error(e);});
+</script>
+<script>
+(function(){
+  var btn = document.getElementById('navToggle');
+  var nav = document.querySelector('header nav');
+  if (btn && nav) {
+    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
+    document.addEventListener('click', function(e){
+      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
+    });
+  }
+})();
 </script>
 </body>
 </html>
