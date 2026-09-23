@@ -139,16 +139,30 @@ The PR body carries the engineering record: what changed, the verification
 output verbatim in a fenced block, anything you chose that the issue did not
 specify and why, and the attribution line.
 
-Then report on the Linear issue, in plain language — this is what a person
-actually reads:
+Then move the issue to review and report on it, **state first**:
 
 ```bash
+python3 agents/linear.py state SEB-8 "In Review"
 python3 agents/linear.py say SEB-8 builder "Done and open as PR #N (<url>).
 <What you built, in two or three sentences a product person can follow.>
 <What you checked and what it printed, in words, not a log dump.>
 <Anything you decided that the spec did not cover.>"
-python3 agents/linear.py state SEB-8 "In Review"
 ```
+
+**State before the comment, always** (SEB-114). A run has a turn limit and can
+die between these two calls same as anywhere else, and REVIEWER.md finds its
+work by querying Linear for **In Review** — not by reading builder comments,
+not by asking GitHub. A death after `say` but before `state` leaves a finished,
+fully-reported PR sitting In Progress forever: invisible to the reviewer's own
+query, forever, while the open PR keeps tripping `reviewer_work.py`'s cheap
+"is there work" check every pass, waking the model onto a Linear "In Review"
+list that never contains it. That is silent and expensive — repeated wakes,
+growing backoff, no progress — and it is what happened to SEB-112 and SEB-109
+here: both fully built, both reported "Done and open as PR #N", both stuck In
+Progress for hours to two days, because the pass that built them died on
+exactly this line order. Flip the state first: if the process dies right after,
+the issue is already visible to review, just missing its comment. That is the
+safe direction to fail in.
 
 ## 5. If you are blocked
 
