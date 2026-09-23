@@ -67,7 +67,6 @@
       </nav>
     </div>
     <div class="header-right">
-      <div class="live"><span class="dot"></span><span class="num" id="liveStamp">&mdash;</span></div>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
   </header>
@@ -113,7 +112,6 @@
 <script>
 fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
   var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
-  document.getElementById('liveStamp').textContent = hourUtc ? ('LAST COLLECTION PASS ' + hourUtc + ' UTC') : '';
 }).catch(function(){});
 
 // The headline breakdown: same five-term arithmetic as index.html's

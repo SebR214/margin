@@ -504,7 +504,7 @@ function drawLadder(){
       <td>${cash(s,t)}<br><span class="tag">${pct(t)}</span></td>
       <td>${cash(s,m)}<br><span class="tag">${pct(m)}</span></td>
       <td>${r.baseline_provider}<br><span class="tag">${cash(s,b)}</span></td>
-      <td class="winner ${cw?"c":"f"}">${cw?LT.dollarRoute:r.baseline_provider}</td></tr>`;
+      <td class="winner ${cw?"c":"f"}">${cw?T(LT.dollarRouteByTemplate,{amount:cashDiff(s,t,b)}):T(LT.providerByTemplate,{amount:cashDiff(s,b,t)})}</td></tr>`;
   }
   document.getElementById("ladder").innerHTML=h;
 }

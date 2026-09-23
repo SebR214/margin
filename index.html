@@ -87,7 +87,6 @@
       </nav>
     </div>
     <div class="status">
-      <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · 157 SOURCES · &mdash;</span></div>
       <div class="mcp">MCP · API</div>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
@@ -311,8 +310,6 @@
     // priced country's own evidence count, not idx.n_sources (that field
     // counts the 3 index SOURCE FILES, a different and much smaller number).
     var evidenceTotal = countries.reduce(function(sum, c){ return sum + (c.n_sources || 0); }, 0);
-    document.getElementById('liveStamp').textContent =
-      'LIVE · ' + evidenceTotal + ' SOURCES · ' + hourUtc + ' UTC';
     document.getElementById('passStamp').textContent = 'last pass ' + hourUtc + ' UTC';
 
     // ---- D1 (v1 freeze and ship brief): the homepage leads with the

@@ -15,9 +15,8 @@
   .lbl{font-size:11px;letter-spacing:.1em;color:#6B6B6B}
   .stamp{font-size:11px;color:var(--stamp);letter-spacing:.06em}
   .log{font-size:13px;padding:7px 0;border-bottom:1px solid #F6F6F6;display:flex;gap:12px;align-items:baseline}
-  .log>div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .log>div:nth-child(2){flex-grow:1;flex-shrink:1}
-  .log>div:last-child{flex-shrink:0;max-width:44%;text-align:right}
+  .log>div{min-width:0;overflow-wrap:anywhere}
+  .log>div:last-child{flex-grow:1}
   .wrap{max-width:1150px;margin:0 auto}
   header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
   .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
@@ -31,15 +30,32 @@
   .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:12px}
   h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;margin:0}
   .lede{max-width:840px;font-size:16px;color:#6B6B6B;line-height:1.5}
-  .cols{flex-grow:1;display:grid;grid-template-columns:1fr 1fr 330px;gap:56px;padding:36px 48px 44px}
+  .stack{display:flex;flex-direction:column;gap:44px;padding:36px 48px 64px}
   .col-hdr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;border-bottom:1px solid #0B0B0B;padding-bottom:8px}
   .col-title{font-size:16px;font-weight:700}
-  .feed{max-height:560px;overflow-y:auto}
-  .meter{display:flex;flex-direction:column;gap:2px;padding:14px 0;border-bottom:1px solid var(--rule)}
+  .feed{}
+  .meters{display:flex;flex-wrap:wrap;gap:8px 56px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:18px 0}
+  .meter{display:flex;flex-direction:column;gap:2px;min-width:150px}
   .meter .v{font-size:30px;font-weight:800;color:var(--indigo)}
   .meter .v.muted{color:#9A9A9A;font-size:16px;font-weight:700}
   .empty{padding:20px 0;color:#9A9A9A;font-size:13px}
-  @media(max-width:1000px){.cols{grid-template-columns:1fr;padding:24px 24px 44px}h1{font-size:30px}header{padding:22px 24px}.hero{padding:32px 24px 0}}
+
+  /* Collection is a bounded set -- 60 currencies, the same 60 every hour --
+     so it is shown whole, not as a feed you scroll. Absence is the point of
+     this site, so a withheld currency has to be as visible as a priced one. */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;padding:16px 0 0}
+  .chip{font-size:13px;font-weight:600;letter-spacing:.02em;text-align:center;padding:9px 4px;border:1px solid var(--ink);border-radius:2px;background:var(--ink);color:#fff;cursor:pointer;font-variant-numeric:tabular-nums}
+  .chip.withheld{background:#fff;color:var(--stamp);border:1px dashed #C8C8C8}
+  .chip.on{outline:2px solid var(--indigo);outline-offset:1px}
+  .chip:hover{border-color:var(--indigo)}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 20px;padding-top:14px;font-size:12px;color:var(--sub)}
+  .key{display:inline-block;width:20px;height:11px;border:1px solid var(--ink);background:var(--ink);border-radius:2px;vertical-align:-1px;margin-right:7px}
+  .key.withheld{background:#fff;border:1px dashed #C8C8C8}
+  .detail{margin-top:16px;padding:14px 16px;background:#FAFAFA;border-left:2px solid var(--indigo);font-size:14px;line-height:1.5;min-height:52px}
+  .detail .who{font-weight:700;margin-right:8px}
+  .hourrule{font-size:11px;letter-spacing:.1em;color:var(--stamp);padding:16px 0 6px;border-bottom:1px solid var(--rule)}
+  .feed-note{font-size:12px;color:#9A9A9A;padding:14px 0 0}
+  @media(max-width:1000px){.stack{padding:24px 24px 48px;gap:36px}h1{font-size:30px}header{padding:22px 24px}.hero{padding:32px 24px 0}.meters{gap:8px 32px}}
 
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
   @media(max-width:760px){
@@ -80,23 +96,30 @@
     <div class="lede" id="pageLede">&nbsp;</div>
   </div>
 
-  <div class="cols">
-    <div style="display:flex;flex-direction:column">
-      <div class="col-hdr"><div class="col-title" id="col1Title">&nbsp;</div><div class="lbl num" id="collectorState">&nbsp;</div></div>
-      <div id="passProgress" style="font-size:13px;color:#6B6B6B;padding:10px 0;border-bottom:1px solid #F6F6F6">&nbsp;</div>
-      <div class="feed" id="collectorFeed"><div class="empty" id="col1Empty">&nbsp;</div></div>
-    </div>
-    <div style="display:flex;flex-direction:column">
-      <div class="col-hdr"><div class="col-title" id="col2Title">&nbsp;</div><div class="lbl" id="col2Kicker">&nbsp;</div></div>
-      <div class="feed" id="agentFeed"><div class="empty" id="col2Empty">&nbsp;</div></div>
-      <div style="padding-top:16px;font-size:13px;color:#6B6B6B"><a href="https://github.com/SebR214/margin/commits/main" id="col2HistoryLink">&nbsp;</a></div>
-    </div>
-    <div style="display:flex;flex-direction:column">
-      <div style="border-bottom:1px solid #0B0B0B;padding-bottom:8px;font-size:16px;font-weight:700" id="col3Title">&nbsp;</div>
+  <div class="stack">
+    <div class="meters">
       <div class="meter"><div class="v num" id="mPriced">—</div><div class="lbl" id="lPriced">&nbsp;</div></div>
       <div class="meter"><div class="v num" id="mWithheld">—</div><div class="lbl" id="lWithheld">&nbsp;</div></div>
       <div class="meter"><div class="v num" id="mCommits">0</div><div class="lbl" id="lCommits">&nbsp;</div></div>
       <div class="meter"><div class="v num" id="mPeople">—</div><div class="lbl" id="lPeople">&nbsp;</div></div>
+    </div>
+
+    <div>
+      <div class="col-hdr"><div class="col-title" id="col1Title">&nbsp;</div><div class="lbl num" id="collectorState">&nbsp;</div></div>
+      <div id="passProgress" style="font-size:13px;color:#6B6B6B;padding:10px 0">&nbsp;</div>
+      <div class="grid" id="collectorGrid"></div>
+      <div class="legend">
+        <span><span class="key"></span><span id="legendPriced">&nbsp;</span></span>
+        <span><span class="key withheld"></span><span id="legendWithheld">&nbsp;</span></span>
+      </div>
+      <div class="detail" id="collectorDetail">&nbsp;</div>
+    </div>
+
+    <div>
+      <div class="col-hdr"><div class="col-title" id="col2Title">&nbsp;</div><div class="lbl" id="col2Kicker">&nbsp;</div></div>
+      <div class="feed" id="agentFeed"><div class="empty" id="col2Empty">&nbsp;</div></div>
+      <div class="feed-note" id="feedCap">&nbsp;</div>
+      <div style="padding-top:10px;font-size:13px;color:#6B6B6B"><a href="https://github.com/SebR214/margin/commits/main" id="col2HistoryLink">&nbsp;</a></div>
     </div>
   </div>
 </div>
@@ -107,6 +130,8 @@
     ? "https://api.margin.wiki" : "http://127.0.0.1:8903";
 
   var COPY = {}; // filled from copy.json's "machineRoom" key before anything renders
+  var STATE = {};      // ccy -> what the collector found for it this pass
+  var SELECTED = null; // the chip the reader has opened, if any
 
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function T(s, vals){
@@ -116,26 +141,43 @@
   }
   function timeOf(iso){ if(!iso) return ''; var d=new Date(iso); if(isNaN(d)) return ''; return d.toISOString().slice(11,19); }
   function todayUTC(){ return new Date().toISOString().slice(0,10); }
+  // One stream, finite. The page scrolls; this does not. When it reaches the
+  // cap the oldest row goes -- the commit log below is the full history, so
+  // nothing is lost by saying so plainly rather than scrolling forever.
+  var FEED_CAP = 40;
   function prepend(el, html, emptyText, cap){
     var empty = el.querySelector('.empty'); if (empty) empty.remove();
     var row = document.createElement('div'); row.className='log'; row.innerHTML = html;
     el.insertBefore(row, el.firstChild);
-    while (el.children.length > (cap||60)) el.removeChild(el.lastChild);
+    while (el.children.length > (cap||FEED_CAP)) el.removeChild(el.lastChild);
   }
   function classWords(kind){ return (COPY.columns.collection.classWords||{})[kind] || ''; }
+
+  // Who actually made a commit, read from the git author rather than assumed.
+  // Assuming builder is how a commit made from Sebastian's own laptop gets
+  // credited to an agent -- the exact mistake this page exists to avoid.
+  function bylineFor(email){
+    var B = (COPY.columns.agents||{}).byline || {}, e = String(email||'');
+    if (/^(builder|reviewer|product)@margin\.wiki$/.test(e)) return B[e.split('@')[0]] || B.unknown || '';
+    if (e.indexOf('margin-agents') !== -1) return B.agents || B.unknown || '';
+    if (e && e.indexOf('@users.noreply.github.com') === -1 && e !== 'actions@github.com') return B.person || B.unknown || '';
+    return B.unknown || '';
+  }
 
   function renderStatic(){
     var M = COPY.columns.meters, C1 = COPY.columns.collection, C2 = COPY.columns.agents;
     document.getElementById('pageTitle').textContent = COPY.title || '';
     document.getElementById('pageLede').textContent = COPY.lede || '';
     document.getElementById('col1Title').textContent = C1.title || '';
-    document.getElementById('col1Empty').textContent = C1.empty || '';
     document.getElementById('collectorState').textContent = C1.idle || '';
+    document.getElementById('legendPriced').textContent = C1.legendPriced || '';
+    document.getElementById('legendWithheld').textContent = C1.legendWithheld || '';
+    document.getElementById('collectorDetail').textContent = C1.selectPrompt || '';
+    document.getElementById('feedCap').textContent = C2.capNote || '';
     document.getElementById('col2Title').textContent = C2.title || '';
     document.getElementById('col2Kicker').textContent = C2.kicker || '';
     document.getElementById('col2Empty').textContent = C2.empty || '';
     document.getElementById('col2HistoryLink').textContent = C2.historyLink || '';
-    document.getElementById('col3Title').textContent = M.title || '';
     document.getElementById('lPriced').textContent = M.priced || '';
     document.getElementById('lWithheld').textContent = M.withheld || '';
     document.getElementById('lCommits').textContent = M.commitsToday || '';
@@ -159,20 +201,36 @@
     document.getElementById('passProgress').textContent = T(C.lastPassTemplate,
       { hour: hourUtc, priced: priced, total: priced + withheld, withheld: withheld });
 
-    var rows = countries.map(function(c){
-      return { ccy: c.ccy, priced: true, kind: c.source_words, note: c.evidence_words + C.pricedSuffix };
-    }).concat(withheldList.map(function(w){
-      return { ccy: w.ccy, priced: false, kind: '', note: C.withheldPrefix + (w.reason || C.noReason) };
-    }));
+    countries.forEach(function(c){
+      STATE[c.ccy] = { ccy: c.ccy, priced: true, kind: c.source_words, note: c.evidence_words + C.pricedSuffix };
+    });
+    withheldList.forEach(function(w){
+      STATE[w.ccy] = { ccy: w.ccy, priced: false, kind: '', note: C.withheldPrefix + (w.reason || C.noReason) };
+    });
+    drawGrid();
     // No per-country timestamp is published, only the shared pass hour --
-    // shown once in the label above, not invented per row.
-    var html = rows.map(function(r){
-      return '<div class="log"><div class="stamp num" style="min-width:62px">' + esc(r.ccy) + '</div>' +
-        '<div style="flex-grow:1">' + esc(r.kind) + '</div>' +
-        '<div class="num" style="color:#0B0B0B;font-weight:600;font-size:12px">' + esc(r.note) + '</div></div>';
+    // shown once in the label above, not invented per currency.
+  }
+
+  // The grid holds every currency the collector checked, priced or not, and
+  // is redrawn in place when a live event changes one of them. It never
+  // grows: the set is the set.
+  function drawGrid(){
+    var grid = document.getElementById('collectorGrid');
+    var keys = Object.keys(STATE).sort();
+    grid.innerHTML = keys.map(function(k){
+      var s = STATE[k];
+      return '<button class="chip' + (s.priced ? '' : ' withheld') + (k === SELECTED ? ' on' : '') +
+        '" data-ccy="' + esc(k) + '">' + esc(k) + '</button>';
     }).join('');
-    var feed = document.getElementById('collectorFeed');
-    feed.innerHTML = html + '<div style="font-size:12px;color:#9A9A9A;padding:10px 0 4px">' + esc(C.seededNote) + '</div>';
+  }
+
+  function showDetail(ccy){
+    var C = COPY.columns.collection, s = STATE[ccy], el = document.getElementById('collectorDetail');
+    SELECTED = ccy; drawGrid();
+    if (!s) { el.textContent = C.selectPrompt || ''; return; }
+    el.innerHTML = '<span class="who">' + esc(s.ccy) + '</span>' +
+      esc(s.kind ? (s.kind + ' · ' + s.note) : s.note);
   }
 
   // Seed "what the agents are doing" with real recent commits from GitHub's
@@ -180,15 +238,21 @@
   // reviews, further commits) prepend above these as they arrive.
   function seedAgents(commits){
     var C = COPY.columns.agents;
-    var html = commits.map(function(c){
+    // The hourly collection commits are the collector's, not the builder's.
+    // They belong to the half of this page above, and labelling them BUILDER
+    // credits one agent with another's work.
+    var html = commits.filter(function(c){
+      return ((c.commit.author||{}).email || '') !== 'actions@github.com';
+    }).slice(0, 8).map(function(c){
+      var by = bylineFor((c.commit.author||{}).email);
       var msg = (c.commit.message.split('\n')[0] || '').replace(/\s*\(#\d+\)\s*$/, '');
       var prMatch = c.commit.message.match(/\(#(\d+)\)/);
       return '<div class="log"><div class="stamp num" style="min-width:46px">' + esc(timeOf(c.commit.author.date)) + '</div>' +
-        '<div class="stamp" style="min-width:64px;letter-spacing:.08em">BUILDER</div>' +
+        '<div class="stamp" style="min-width:78px;letter-spacing:.08em">' + esc(by) + '</div>' +
         '<div style="flex-grow:1">' + esc(T(C.commitTemplate, { message: msg })) + '</div>' + (prMatch ? ' (#' + prMatch[1] + ')' : '') + '</div>';
     }).join('');
     var feed = document.getElementById('agentFeed');
-    if (html) feed.innerHTML = html + '<div style="font-size:12px;color:#9A9A9A;padding:10px 0 4px">' + esc(C.seededNote) + '</div>';
+    if (html) feed.innerHTML = html;
   }
 
   async function boot(){
@@ -197,8 +261,12 @@
     renderStatic();
 
     fetch('./data/index_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(seedCollection).catch(function(){});
-    fetch('https://api.github.com/repos/SebR214/margin/commits?per_page=8', {headers:{'Accept':'application/vnd.github+json'}})
+    fetch('https://api.github.com/repos/SebR214/margin/commits?per_page=60', {headers:{'Accept':'application/vnd.github+json'}})
       .then(function(r){ return r.ok ? r.json() : []; }).then(seedAgents).catch(function(){});
+
+    document.getElementById('collectorGrid').addEventListener('click', function(ev){
+      var b = ev.target.closest('.chip'); if (b) showDetail(b.getAttribute('data-ccy'));
+    });
 
     var commitsSeen = 0;
     var es = new EventSource(API_BASE + '/v1/events');
@@ -214,15 +282,19 @@
         return;
       }
       if (e.kind === 'collector_source') {
-        var words = e.priced ? classWords(e.source_kind) : '';
-        var row = e.priced
-          ? '<div class="stamp num" style="min-width:62px">'+esc(timeOf(e.ts))+'</div><div style="flex-grow:1">'+esc(e.ccy)+' · '+esc(words)+'</div><div class="num" style="color:#0B0B0B;font-weight:600;font-size:12px">'+esc(T(C1.evidenceCountTemplate,{n:e.evidence_count}))+esc(C1.pricedSuffix)+'</div>'
-          : '<div class="stamp num" style="min-width:62px">'+esc(timeOf(e.ts))+'</div><div style="flex-grow:1">'+esc(e.ccy)+'</div><div class="num" style="color:#0B0B0B;font-weight:600;font-size:12px">'+esc(C1.withheldPrefix)+esc(e.reason||C1.noReason)+'</div>';
-        var f = document.getElementById('collectorFeed');
-        var empty = f.querySelector('.empty'); if (empty) empty.remove();
-        var d2 = document.createElement('div'); d2.className='log'; d2.innerHTML = row;
-        f.insertBefore(d2, f.firstChild);
-        while (f.children.length > 80) f.removeChild(f.lastChild);
+        // A pass revises the set, it does not append to it: update this
+        // currency in place and leave the other 59 alone.
+        STATE[e.ccy] = e.priced
+          ? { ccy: e.ccy, priced: true, kind: classWords(e.source_kind),
+              note: T(C1.evidenceCountTemplate, { n: e.evidence_count }) + C1.pricedSuffix }
+          : { ccy: e.ccy, priced: false, kind: '',
+              note: C1.withheldPrefix + (e.reason || C1.noReason) };
+        drawGrid();
+        if (SELECTED === e.ccy) showDetail(e.ccy);
+        var pricedNow = 0, withheldNow = 0;
+        Object.keys(STATE).forEach(function(k){ STATE[k].priced ? pricedNow++ : withheldNow++; });
+        document.getElementById('mPriced').textContent = pricedNow;
+        document.getElementById('mWithheld').textContent = withheldNow;
         return;
       }
       if (e.kind === 'linear') {

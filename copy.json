@@ -277,7 +277,9 @@
         "cheaper": "Cheaper"
       },
       "worstTag": "worst",
-      "dollarRoute": "the dollar route"
+      "dollarRoute": "the dollar route",
+      "dollarRouteByTemplate": "the dollar route, by {amount}",
+      "providerByTemplate": "by {amount}"
     },
     "verdictLine": {
       "cryptoCheaper": "The dollar route is cheaper at this amount.",
@@ -349,8 +351,6 @@
         "title": "This hour's collection",
         "idle": "collector idle · next pass :00",
         "active": "collector pass under way",
-        "empty": "Watching live from here — what you see below happened since this page opened. Nothing before that is replayed.",
-        "seededNote": "— last pass, seeded on load — live below —",
         "pricedSuffix": " · priced",
         "withheldPrefix": "withheld: ",
         "noReason": "no reason given",
@@ -363,13 +363,15 @@
           "broker_single": "from a broker quote",
           "p2p_buy_median": "from person-to-person ads",
           "p2p_fallback": "from an independent price source"
-        }
+        },
+        "legendPriced": "priced this hour",
+        "legendWithheld": "withheld, with a reason",
+        "selectPrompt": "Pick a currency to see what the collector found for it."
       },
       "agents": {
         "title": "What the agents are doing",
         "kicker": "ISSUES · REVIEWS · COMMITS",
         "empty": "Nothing since this page connected.",
-        "seededNote": "— recent commits, seeded on load — live below —",
         "historyLink": "Everything they have ever done, including the failures →",
         "transitionTemplate": "{ident} moved {from} → {to}",
         "commentTemplate": "{ident}: {text}",
@@ -378,10 +380,18 @@
         "loopOk": "ok",
         "loopFailed": "failed",
         "loopStoppedTemplate": "stopped for repair. Last pass {when}",
-        "loopRecovered": "running again"
+        "loopRecovered": "running again",
+        "capNote": "The most recent events only. The full history, including every failure, is in the commit log.",
+        "byline": {
+          "builder": "BUILDER",
+          "reviewer": "REVIEWER",
+          "product": "PRODUCT",
+          "agents": "AGENT",
+          "person": "SEBASTIAN",
+          "unknown": "—"
+        }
       },
       "meters": {
-        "title": "Where things stand",
         "priced": "PRICED THIS HOUR",
         "withheld": "WITHHELD, WITH REASONS",
         "commitsToday": "COMMITS SEEN SINCE CONNECTING",

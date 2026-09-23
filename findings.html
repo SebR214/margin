@@ -63,7 +63,6 @@
       </nav>
     </div>
     <div class="header-right">
-      <div class="live"><span class="dot"></span><span class="num" id="liveStamp">UPDATED DAILY · &mdash;</span></div>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
   </header>
@@ -146,8 +145,6 @@
     var latestDate = latestTs.slice(0, 10);
     var daysAgo = Math.round((Date.now() - new Date(latestDate + 'T00:00:00Z')) / 86400000);
     var recency = daysAgo <= 0 ? 'today' : daysAgo === 1 ? 'yesterday' : daysAgo + ' days ago';
-    document.getElementById('liveStamp').textContent =
-      'UPDATED DAILY · LAST FINDING ' + latestDate + ' (' + recency + ')';
 
     // ---- Patterns: a repeated weekend price hike is a different kind of
     // finding from a one-off move -- it's a provider's actual pricing

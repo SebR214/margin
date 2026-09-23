@@ -70,7 +70,6 @@
       </nav>
     </div>
     <div class="header-right">
-      <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
   </header>
@@ -111,7 +110,6 @@
   ]).then(function(res){
     var idx = res[0], raw = res[1];
     var hourUtc = (idx.as_of_utc || idx.computed_at || '').replace('T',' ').slice(0,16);
-    document.getElementById('liveStamp').textContent = 'LIVE · ' + hourUtc + ' UTC';
 
     var country = (idx.countries || []).find(function(c){ return c.ccy === ccy; });
     var withheld = (idx.withheld || []).find(function(w){ return w.ccy === ccy; });

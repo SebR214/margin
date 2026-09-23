@@ -62,7 +62,6 @@
       </nav>
     </div>
     <div class="header-right">
-      <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
   </header>
@@ -109,7 +108,6 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&am
 
 fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
   var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
-  document.getElementById('liveStamp').textContent = 'LIVE · ' + hourUtc + ' UTC';
   document.getElementById('thresholdP').textContent =
     'The rule is ten sell offers minimum. Under that, the country shows its reason instead of a price. Right now ' +
     (d.countries||[]).length + ' countries have a price and ' + (d.withheld||[]).length + ' do not.';

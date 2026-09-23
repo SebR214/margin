@@ -67,7 +67,6 @@
       </nav>
     </div>
     <div class="header-right">
-      <div class="live"><span class="dot"></span><span class="num" id="liveStamp">LIVE · &mdash;</span></div>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
   </header>
@@ -174,7 +173,6 @@
     var d = res[0];
     var samplesByKey = parseSamplesCSV(res[1]);
     var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
-    document.getElementById('liveStamp').textContent = 'LIVE · ' + hourUtc + ' UTC';
 
     var container = document.getElementById('corridors');
     Object.keys(d.corridors).forEach(function(routeKey, idx){
