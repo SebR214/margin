@@ -299,7 +299,7 @@ jobs:
                    data/fee_checks.csv data/withdrawal_fees.csv \
                    data/requests_latest.json data/stable_spread_summary.json \
                    data/p2p_spread_signal.csv data/p2p_spread_signal_latest.json \
-                   data/corridor_summary.json; do
+                   data/corridor_summary.json data/corridor_waterfall.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # index.html itself -- D1's bake_homepage.py rewrites it in place
