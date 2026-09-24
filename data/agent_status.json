@@ -1297,8 +1297,8 @@
    "last_seen_utc": "2026-09-23T20:05:21.324768+00:00",
    "hours_since_ok": 16.0,
    "stale_hours": 3,
-   "expected_silent": null,
-   "broken": true
+   "expected_silent": "Wise's public comparisons API stopped listing Westpac as an AUD->PHP competitor after the 2026-09-23T20:05 run; confirmed live on 2026-09-24 by querying the same endpoint the collector uses at every ladder size (200/1000/5000/25000/50000) -- Westpac is simply absent from the provider list Wise returns, not a parsing or collector fault",
+   "broken": false
   },
   {
    "file": "providers_audphp.csv",
@@ -1611,18 +1611,7 @@
    "broken": false
   }
  ],
- "sources_broken": [
-  {
-   "file": "providers_audphp.csv",
-   "name": "Westpac",
-   "last_ok_utc": "2026-09-23T20:05:21.324768+00:00",
-   "last_seen_utc": "2026-09-23T20:05:21.324768+00:00",
-   "hours_since_ok": 16.0,
-   "stale_hours": 3,
-   "expected_silent": null,
-   "broken": true
-  }
- ],
+ "sources_broken": [],
  "sources_expected_silent": [
   {
    "file": "p2p_basis.csv",
@@ -1685,6 +1674,16 @@
    "broken": false
   },
   {
+   "file": "providers_audphp.csv",
+   "name": "Westpac",
+   "last_ok_utc": "2026-09-23T20:05:21.324768+00:00",
+   "last_seen_utc": "2026-09-23T20:05:21.324768+00:00",
+   "hours_since_ok": 16.0,
+   "stale_hours": 3,
+   "expected_silent": "Wise's public comparisons API stopped listing Westpac as an AUD->PHP competitor after the 2026-09-23T20:05 run; confirmed live on 2026-09-24 by querying the same endpoint the collector uses at every ladder size (200/1000/5000/25000/50000) -- Westpac is simply absent from the provider list Wise returns, not a parsing or collector fault",
+   "broken": false
+  },
+  {
    "file": "withdrawal_fees.csv",
    "name": "coinbase",
    "last_ok_utc": null,
@@ -1696,15 +1695,16 @@
   }
  ],
  "withheld": {
-  "today": 12,
-  "published": 48,
-  "as_of": "2026-09-24T11:00:00+00:00",
+  "today": 14,
+  "published": 46,
+  "as_of": "2026-09-24T12:00:00+00:00",
   "reasons": [
    "ValueError:no ads at ~USD 500 (0 buy, 0 sell)",
    "not enough evidence this hour: 1 buy-side ad, 10 required",
    "not enough evidence this hour: 2 buy-side ads, 10 required",
    "not enough evidence this hour: 4 buy-side ads, 10 required",
-   "not enough evidence this hour: 5 buy-side ads, 10 required",
+   "not enough evidence this hour: 6 buy-side ads, 10 required",
+   "not enough evidence this hour: 9 buy-side ads, 10 required",
    "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market"
   ]
  },
@@ -1714,7 +1714,7 @@
    "country": "Sudan",
    "from_date": "2026-09-23",
    "to_date": "2026-09-24",
-   "index_move_pt": -224.706,
+   "index_move_pt": -226.327,
    "official_move_pct": 17.427,
    "parallel_move_pct": null,
    "denominator_class": "unmaintained",
@@ -1726,7 +1726,7 @@
    "country": "Bolivia",
    "from_date": "2026-09-23",
    "to_date": "2026-09-24",
-   "index_move_pt": -8.198,
+   "index_move_pt": -8.366,
    "official_move_pct": 7.885,
    "parallel_move_pct": 0.0,
    "denominator_class": "market",
@@ -1734,12 +1734,12 @@
    "denominator_explained": false
   },
   {
-   "ccy": "CLP",
-   "country": "Chile",
+   "ccy": "UGX",
+   "country": "Uganda",
    "from_date": "2026-09-23",
    "to_date": "2026-09-24",
-   "index_move_pt": 2.008,
-   "official_move_pct": -0.14,
+   "index_move_pt": 2.006,
+   "official_move_pct": -1.355,
    "parallel_move_pct": null,
    "denominator_class": "market",
    "unexplained": false,
@@ -1758,23 +1758,11 @@
    "denominator_explained": false
   },
   {
-   "ccy": "UGX",
-   "country": "Uganda",
-   "from_date": "2026-09-23",
-   "to_date": "2026-09-24",
-   "index_move_pt": 1.833,
-   "official_move_pct": -1.355,
-   "parallel_move_pct": null,
-   "denominator_class": "market",
-   "unexplained": false,
-   "denominator_explained": false
-  },
-  {
    "ccy": "COP",
    "country": "Colombia",
    "from_date": "2026-09-23",
    "to_date": "2026-09-24",
-   "index_move_pt": 1.828,
+   "index_move_pt": 1.826,
    "official_move_pct": 0.082,
    "parallel_move_pct": null,
    "denominator_class": "market",
@@ -1782,14 +1770,38 @@
    "denominator_explained": false
   },
   {
-   "ccy": "DZD",
-   "country": "Algeria",
+   "ccy": "CLP",
+   "country": "Chile",
    "from_date": "2026-09-23",
    "to_date": "2026-09-24",
-   "index_move_pt": 1.438,
-   "official_move_pct": -0.176,
+   "index_move_pt": 1.801,
+   "official_move_pct": -0.14,
+   "parallel_move_pct": null,
+   "denominator_class": "market",
+   "unexplained": false,
+   "denominator_explained": false
+  },
+  {
+   "ccy": "TND",
+   "country": "Tunisia",
+   "from_date": "2026-09-23",
+   "to_date": "2026-09-24",
+   "index_move_pt": -1.151,
+   "official_move_pct": 0.346,
    "parallel_move_pct": null,
    "denominator_class": "managed",
+   "unexplained": false,
+   "denominator_explained": false
+  },
+  {
+   "ccy": "KZT",
+   "country": "Kazakhstan",
+   "from_date": "2026-09-23",
+   "to_date": "2026-09-24",
+   "index_move_pt": -1.054,
+   "official_move_pct": -0.545,
+   "parallel_move_pct": null,
+   "denominator_class": "market",
    "unexplained": false,
    "denominator_explained": false
   },
@@ -1798,7 +1810,7 @@
    "country": "Brazil",
    "from_date": "2026-09-23",
    "to_date": "2026-09-24",
-   "index_move_pt": 0.978,
+   "index_move_pt": 1.031,
    "official_move_pct": 0.093,
    "parallel_move_pct": null,
    "denominator_class": "market",
@@ -1810,70 +1822,10 @@
    "country": "Syria",
    "from_date": "2026-09-23",
    "to_date": "2026-09-24",
-   "index_move_pt": -0.697,
+   "index_move_pt": -0.607,
    "official_move_pct": -0.063,
    "parallel_move_pct": null,
    "denominator_class": "managed",
-   "unexplained": false,
-   "denominator_explained": false
-  },
-  {
-   "ccy": "TND",
-   "country": "Tunisia",
-   "from_date": "2026-09-23",
-   "to_date": "2026-09-24",
-   "index_move_pt": -0.644,
-   "official_move_pct": 0.346,
-   "parallel_move_pct": null,
-   "denominator_class": "managed",
-   "unexplained": false,
-   "denominator_explained": false
-  },
-  {
-   "ccy": "MNT",
-   "country": "Mongolia",
-   "from_date": "2026-09-23",
-   "to_date": "2026-09-24",
-   "index_move_pt": -0.566,
-   "official_move_pct": 0.698,
-   "parallel_move_pct": null,
-   "denominator_class": "market",
-   "unexplained": false,
-   "denominator_explained": false
-  },
-  {
-   "ccy": "KZT",
-   "country": "Kazakhstan",
-   "from_date": "2026-09-23",
-   "to_date": "2026-09-24",
-   "index_move_pt": 0.562,
-   "official_move_pct": -0.545,
-   "parallel_move_pct": null,
-   "denominator_class": "market",
-   "unexplained": false,
-   "denominator_explained": false
-  },
-  {
-   "ccy": "QAR",
-   "country": "Qatar",
-   "from_date": "2026-09-23",
-   "to_date": "2026-09-24",
-   "index_move_pt": 0.556,
-   "official_move_pct": 0.0,
-   "parallel_move_pct": null,
-   "denominator_class": "pegged",
-   "unexplained": false,
-   "denominator_explained": false
-  },
-  {
-   "ccy": "KRW",
-   "country": "South Korea",
-   "from_date": "2026-09-23",
-   "to_date": "2026-09-24",
-   "index_move_pt": 0.506,
-   "official_move_pct": 0.817,
-   "parallel_move_pct": null,
-   "denominator_class": "market",
    "unexplained": false,
    "denominator_explained": false
   },
@@ -1882,10 +1834,46 @@
    "country": "Indonesia",
    "from_date": "2026-09-23",
    "to_date": "2026-09-24",
-   "index_move_pt": 0.458,
+   "index_move_pt": 0.551,
    "official_move_pct": -0.013,
    "parallel_move_pct": null,
    "denominator_class": "market",
+   "unexplained": false,
+   "denominator_explained": false
+  },
+  {
+   "ccy": "MNT",
+   "country": "Mongolia",
+   "from_date": "2026-09-23",
+   "to_date": "2026-09-24",
+   "index_move_pt": -0.502,
+   "official_move_pct": 0.698,
+   "parallel_move_pct": null,
+   "denominator_class": "market",
+   "unexplained": false,
+   "denominator_explained": false
+  },
+  {
+   "ccy": "IQD",
+   "country": "Iraq",
+   "from_date": "2026-09-23",
+   "to_date": "2026-09-24",
+   "index_move_pt": 0.478,
+   "official_move_pct": -0.08,
+   "parallel_move_pct": null,
+   "denominator_class": "managed",
+   "unexplained": false,
+   "denominator_explained": false
+  },
+  {
+   "ccy": "DZD",
+   "country": "Algeria",
+   "from_date": "2026-09-23",
+   "to_date": "2026-09-24",
+   "index_move_pt": 0.473,
+   "official_move_pct": -0.176,
+   "parallel_move_pct": null,
+   "denominator_class": "managed",
    "unexplained": false,
    "denominator_explained": false
   },
@@ -1902,26 +1890,14 @@
    "denominator_explained": false
   },
   {
-   "ccy": "INR",
-   "country": "India",
+   "ccy": "KRW",
+   "country": "South Korea",
    "from_date": "2026-09-23",
    "to_date": "2026-09-24",
-   "index_move_pt": 0.445,
-   "official_move_pct": 0.169,
+   "index_move_pt": 0.433,
+   "official_move_pct": 0.817,
    "parallel_move_pct": null,
    "denominator_class": "market",
-   "unexplained": false,
-   "denominator_explained": false
-  },
-  {
-   "ccy": "IQD",
-   "country": "Iraq",
-   "from_date": "2026-09-23",
-   "to_date": "2026-09-24",
-   "index_move_pt": 0.439,
-   "official_move_pct": -0.08,
-   "parallel_move_pct": null,
-   "denominator_class": "managed",
    "unexplained": false,
    "denominator_explained": false
   },
@@ -1930,10 +1906,22 @@
    "country": "Taiwan",
    "from_date": "2026-09-23",
    "to_date": "2026-09-24",
-   "index_move_pt": 0.417,
+   "index_move_pt": 0.422,
    "official_move_pct": 0.248,
    "parallel_move_pct": null,
    "denominator_class": "market",
+   "unexplained": false,
+   "denominator_explained": false
+  },
+  {
+   "ccy": "UAH",
+   "country": "Ukraine",
+   "from_date": "2026-09-17",
+   "to_date": "2026-09-21",
+   "index_move_pt": 0.369,
+   "official_move_pct": 0.303,
+   "parallel_move_pct": null,
+   "denominator_class": "managed",
    "unexplained": false,
    "denominator_explained": false
   },
@@ -1942,9 +1930,21 @@
    "country": "Venezuela",
    "from_date": "2026-09-23",
    "to_date": "2026-09-24",
-   "index_move_pt": -0.415,
+   "index_move_pt": -0.368,
    "official_move_pct": 0.113,
    "parallel_move_pct": 0.426,
+   "denominator_class": "managed",
+   "unexplained": false,
+   "denominator_explained": false
+  },
+  {
+   "ccy": "LBP",
+   "country": "Lebanon",
+   "from_date": "2026-09-23",
+   "to_date": "2026-09-24",
+   "index_move_pt": -0.352,
+   "official_move_pct": 0.0,
+   "parallel_move_pct": null,
    "denominator_class": "managed",
    "unexplained": false,
    "denominator_explained": false
@@ -1953,9 +1953,28 @@
  "moves_unexplained": [],
  "moves_denominator_explained": [],
  "loops": {
-  "builder": null,
-  "reviewer": null,
-  "product": null
+  "builder": {
+   "role": "builder",
+   "finished_utc": "2026-09-24T12:20:31+00:00",
+   "ok": true,
+   "reason": "ok",
+   "seconds": 365.0
+  },
+  "reviewer": {
+   "role": "reviewer",
+   "finished_utc": "2026-09-24T12:31:37+00:00",
+   "ok": true,
+   "reason": "ok",
+   "seconds": 242.0,
+   "sig_idle": false
+  },
+  "product": {
+   "role": "product",
+   "finished_utc": "2026-09-24T10:17:14+00:00",
+   "ok": false,
+   "reason": "daily ceiling",
+   "seconds": 0.0
+  }
  },
  "thresholds": {
   "delivery_hours": 23,
