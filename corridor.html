@@ -4,8 +4,8 @@
 <meta charset="utf-8"/>
 <link rel="stylesheet" href="./style.css"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — one route, the receipt in full</title>
-<meta name="description" content="Is a digital dollar a real dollar? We buy one in Singapore, move it, and sell it in the Philippines, paying every fee on the way, measured hourly against the best fiat provider quoting the same amount."/>
+<title>margin.wiki — one transfer, the receipt in full</title>
+<meta name="description" content="Is a digital dollar a real dollar? We buy one in Singapore, move it, and sell it in the Philippines, paying every fee on the way, checked hourly against the cheapest app quoting the same amount."/>
 <style>
   /* Page-specific only: the layout components below (cards, the size
      switcher, the waterfall legend, tables) belong to this page alone, so
@@ -105,10 +105,10 @@
     <div class="brand">
       <div class="logo"><a href="./index.html">margin.wiki</a></div>
       <nav>
-        <a href="./the-index.html">The index</a>
+        <a href="./index.html">Home</a>
         <a href="./sending-money.html">Sending money</a>
-        <a href="./findings.html">Findings</a>
-        <a href="./how-it-works.html">How it works</a>
+        <a href="./the-index.html">Countries</a>
+        <a href="./machine-room.html">How it was built</a>
       </nav>
     </div>
     <div class="header-right">
@@ -384,7 +384,7 @@ function selectCorridor(key){
   const r5=bySize[size];
   const d=new Date(newest.replace(" ","T")), ago=Math.round((Date.now()-d)/6e4);
   const hours=new Set(rows.map(r=>r.ts.slice(0,13))).size;
-  document.title="margin.wiki — one route, the receipt in full · "+place(srcCcy)+" → "+place(dstOf(r5));
+  document.title="margin.wiki — one transfer, the receipt in full · "+place(srcCcy)+" → "+place(dstOf(r5));
   const feeStampR=feeStamp(feeChecks,r5.fees_verified,withdrawalFees,(r5.onramp_venue||"").trim().toLowerCase());
   document.getElementById("stamp").innerHTML=
     `<b>${esc(COPY.updatedLabel||cmiss("updatedLabel"))}</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?(COPY.minAgoTemplate?T(COPY.minAgoTemplate,{n:ago}):cmiss("minAgoTemplate")):(COPY.hAgoTemplate?T(COPY.hAgoTemplate,{n:Math.round(ago/60)}):cmiss("hAgoTemplate"))} · `+

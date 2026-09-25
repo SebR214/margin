@@ -63,10 +63,10 @@
     <div class="brand">
       <div class="logo"><a href="./index.html">margin.wiki</a></div>
       <nav>
-        <a href="./the-index.html">The index</a>
+        <a href="./index.html">Home</a>
         <a href="./sending-money.html" class="active">Sending money</a>
-        <a href="./findings.html">Findings</a>
-        <a href="./how-it-works.html">How it works</a>
+        <a href="./the-index.html">Countries</a>
+        <a href="./machine-room.html">How it was built</a>
       </nav>
     </div>
     <div class="header-right">
@@ -234,7 +234,7 @@
         return '<button class="pill'+(a===selectedSize?' on':'')+'" data-amt="'+a+'">'+esc(amt)+'</button>';
       }).join('');
       var rowsHtml = rows.map(function(r){
-        var name = r.provider === 'The dollar route' ? '<span style="color:#6B6B6B">'+esc(r.provider)+'</span>' : (r.rank===1 ? '<span style="font-weight:700">'+esc(r.provider)+'</span>' : esc(r.provider));
+        var name = r.provider === 'Sending it with stablecoins' ? '<span style="color:#6B6B6B">'+esc(r.provider)+'</span>' : (r.rank===1 ? '<span style="font-weight:700">'+esc(r.provider)+'</span>' : esc(r.provider));
         return '<div class="prow"><div>'+name+'</div><div class="cost num">'+esc(r.costs)+'</div><div class="pct num">'+r.cost_pct.toFixed(2)+'%</div></div>';
       }).join('');
       var ownProviders = rows.filter(r => r.source === 'own').map(r => r.provider);

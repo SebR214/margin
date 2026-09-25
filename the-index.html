@@ -74,10 +74,10 @@
     <div class="brand">
       <div class="logo"><a href="./index.html">margin.wiki</a></div>
       <nav>
-        <a href="./the-index.html" class="active">The index</a>
+        <a href="./index.html">Home</a>
         <a href="./sending-money.html">Sending money</a>
-        <a href="./findings.html">Findings</a>
-        <a href="./how-it-works.html">How it works</a>
+        <a href="./the-index.html" class="active">Countries</a>
+        <a href="./machine-room.html">How it was built</a>
       </nav>
     </div>
     <div class="header-right">
@@ -184,7 +184,7 @@
     var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
 
     document.getElementById('ledeText').textContent =
-      countries.length + ' countries have a price this hour, ' + withheld.length + ' are withheld with their reason. Pick a country, or start from the biggest gaps. Click any number to see how it was made.';
+      countries.length + ' countries have a price this hour, ' + withheld.length + ' don\u2019t have enough data, each with a reason. Pick a country, or start from the biggest gaps. Click any number to see how it was made.';
 
     var byGap = countries.slice().sort(function(a,b){ return b.index_pct - a.index_pct; });
 

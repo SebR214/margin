@@ -62,10 +62,10 @@
     <div class="brand">
       <div class="logo"><a href="./index.html">margin.wiki</a></div>
       <nav>
-        <a href="./the-index.html">The index</a>
+        <a href="./index.html">Home</a>
         <a href="./sending-money.html">Sending money</a>
-        <a href="./findings.html">Findings</a>
-        <a href="./how-it-works.html">How it works</a>
+        <a href="./the-index.html">Countries</a>
+        <a href="./machine-room.html">How it was built</a>
       </nav>
     </div>
     <div class="header-right">
@@ -125,8 +125,8 @@
         '<div class="code">' + esc(withheld.ccy) + '</div>' +
         '<h1>' + esc(withheld.country) + '</h1>' +
         '<div class="delta">No price this hour.</div>' +
-        '<div class="context"><b>Why:</b> ' + esc(withheld.reason) + '. A price is collected and checked every hour; this country will show a number the moment it passes the evidence rule again — nothing is permanent about a withheld state.</div>' +
-        '<div class="footlinks"><a href="./the-index.html#withheld">Every withheld country &rarr;</a><a href="./machine-room.html">Watch the next pass &rarr;</a></div>';
+        '<div class="context"><b>Why:</b> ' + esc(withheld.reason) + '. A price is collected and checked every hour; this country will show a number the moment it meets the evidence rule again — nothing here is permanent.</div>' +
+        '<div class="footlinks"><a href="./the-index.html#withheld">Every country without enough data &rarr;</a><a href="./machine-room.html">Watch it check again &rarr;</a></div>';
       return;
     }
 
@@ -172,7 +172,7 @@
         '<div id="refBody" style="padding-top:10px;font-size:14px;color:#6B6B6B">Loading the comparison&hellip;</div></div>';
     }
 
-    html += '<div class="footlinks"><a href="./the-index.html">&larr; every country</a><a href="./machine-room.html">Watch the next pass &rarr;</a><a href="./machine-room.html">Open the raw files &rarr;</a></div>';
+    html += '<div class="footlinks"><a href="./the-index.html">&larr; every country</a><a href="./machine-room.html">Watch it check again &rarr;</a><a href="./machine-room.html">Open the raw files &rarr;</a></div>';
 
     main.innerHTML = html;
 

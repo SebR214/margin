@@ -60,10 +60,10 @@
     <div class="brand">
       <div class="logo"><a href="./index.html">margin.wiki</a></div>
       <nav>
-        <a href="./the-index.html">The index</a>
+        <a href="./index.html">Home</a>
         <a href="./sending-money.html">Sending money</a>
-        <a href="./findings.html">Findings</a>
-        <a href="./how-it-works.html">How it works</a>
+        <a href="./the-index.html">Countries</a>
+        <a href="./machine-room.html">How it was built</a>
       </nav>
     </div>
     <div class="header-right">
@@ -88,7 +88,7 @@
       <div class="breakdown-row"><span class="lbl">The whole transfer</span><span class="val num" id="bdTotal">&mdash;</span></div>
     </div>
     <div class="breakdown-note">Each row is its own median across the same hours, so the three don't sum exactly to the total below — that's real variance across hours, not a rounding error.</div>
-    <div class="cite" id="bdCite">measured, median across every hour since August · <a href="./corridor.html?corridor=SGD-&gt;PHP">see the receipt →</a></div>
+    <div class="cite" id="bdCite">the typical value across the hours we've checked · <a href="./corridor.html?corridor=SGD-&gt;PHP">see the receipt →</a></div>
     <p class="p" id="bdDoorsP">The rail itself is a fraction of a percent, and getting in and out is the rest, and all of that is either a published fee or a real gap in the market price at that moment — nothing in there is estimated.</p>
 
     <div class="h">Where I got it wrong first</div>
@@ -103,8 +103,6 @@
     <div class="h">So it's really a volume question</div>
     <p class="p">I still think stablecoins can be a good way to move money, but "stablecoins are cheap" is usually said about the rail, and that's not really the question you have when you're sending money — which is whether it beats what you'd pay otherwise — and that mostly comes down to the volume discounts every exchange publishes and almost nobody reads.</p>
     <p class="p">For Singapore to the Philippines I measured where it flips, and the stablecoin route only starts winning at payments-company volume: around <b>S$3.6M a month</b> buying now, or <b>S$2.7M a month</b> waiting for your price, which is the volume where Independent Reserve drops from the 0.50% base rate everyone starts on to its 0.14%/0.18% tiers. Below that it loses, and for a regular sender it isn't the cheaper option yet — at least on this route.</p>
-    <div class="cite"><a href="./ask.html">ask the agent to show the crossover, live →</a></div>
-
     <div class="sources">Every number on this page is computed rather than typed in: the breakdown and win rates come from <a href="./data/corridor_summary.json">data/corridor_summary.json</a> (rebuilt from <a href="./data/samples.csv">data/samples.csv</a> by <code>tools/emit_corridor_summary.py</code>), and the volume crossover comes from <a href="./data/volume_crossover.json">data/volume_crossover.json</a> (rebuilt by <code>tools/emit_volume_crossover.py</code> against the exchanges' own published fee schedules) — so if you re-run either script you'll get the numbers above. <a href="./how-it-works.html">How it works</a> has the collection method, and the <a href="https://github.com/SebR214/margin">raw code and data</a> cover everything else.</div>
   </main>
 </div>
@@ -119,7 +117,11 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
 // computed here too, not hand-typed, so this page can't drift from the
 // number the homepage itself shows.
 function cashPct(bps){ var pct = bps/100; return (pct>=0?'+':'') + pct.toFixed(2) + '%'; }
-fetch('./data/corridor_summary.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(doc){
+Promise.all([
+  fetch('./data/corridor_summary.json', {cache:'no-store'}).then(function(r){ return r.json(); }),
+  fetch('./data/corridor_window.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return {}; })
+]).then(function(res){
+  var doc = res[0], windowRow = (res[1] || {})['SGD->PHP'] || {};
   var wf = doc.waterfall;
   if (!wf) return;
   var buy = wf.onramp_basis_bps + wf.onramp_fee_bps;
@@ -127,8 +129,13 @@ fetch('./data/corridor_summary.json', {cache:'no-store'}).then(function(r){ retu
   document.getElementById('bdBuy').textContent = cashPct(buy);
   document.getElementById('bdMove').textContent = cashPct(wf.network_fee_bps);
   document.getElementById('bdSell').textContent = cashPct(sell);
-  document.getElementById('bdTotal').textContent = cashPct(wf.total_cost_bps) + ', against ' + cashPct(wf.baseline_cost_bps) + ' for the best fiat provider';
-  document.getElementById('bdCite').innerHTML = 'measured, median across ' + wf.n + ' hours since August · <a href="./corridor.html?corridor=SGD-&gt;PHP">see the receipt →</a>';
+  document.getElementById('bdTotal').textContent = cashPct(wf.total_cost_bps) + ', against ' + cashPct(wf.baseline_cost_bps) + ' for the cheapest app';
+  // Same file, same window, as index.html's own hero sub and waterfall
+  // caption -- data/corridor_window.json -- so this page's window can
+  // never say something different from the homepage's.
+  document.getElementById('bdCite').innerHTML =
+    (windowRow.window || "the typical value across the hours we've checked") +
+    ' · <a href="./corridor.html?corridor=SGD-&gt;PHP">see the receipt →</a>';
   var doors = wf.total_cost_bps - wf.network_fee_bps;
   document.getElementById('bdDoorsP').textContent =
     'The rail itself is ' + cashPct(wf.network_fee_bps) + ', and getting in and out is ' + cashPct(doors) + ', and all of that is either a published fee or a real gap in the market price at that moment — nothing in there is estimated.';

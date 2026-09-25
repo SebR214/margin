@@ -4,9 +4,9 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki — this page moved</title>
-<meta name="description" content="Asking a question and getting a real answer moved to Ask."/>
-<meta http-equiv="refresh" content="0; url=./ask.html"/>
-<link rel="canonical" href="./ask.html"/>
+<meta name="description" content="Seeing what the site is doing right now moved to How it was built."/>
+<meta http-equiv="refresh" content="0; url=./machine-room.html"/>
+<link rel="canonical" href="./machine-room.html"/>
 <style>
   body{margin:0;font-family:Archivo,system-ui,'Helvetica Neue',sans-serif;color:#0B0B0B;background:#fff;
        display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;box-sizing:border-box}
@@ -21,7 +21,7 @@
   <div class="card">
     <h1 id="rHeading">&nbsp;</h1>
     <p id="rBody">&nbsp;</p>
-    <a href="./ask.html" id="rLink">Continue &rarr;</a>
+    <a href="./machine-room.html" id="rLink">Continue &rarr;</a>
   </div>
 <script>
 fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
@@ -36,7 +36,7 @@ fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).t
   document.getElementById('rBody').textContent = T(R.bodyTemplate, { old: 'watch.html', reason: page.reason || '', destLabel: page.destLabel || '' });
   document.getElementById('rLink').textContent = T(R.linkTemplate, { destLabel: page.destLabel || '' });
 }).catch(function(){
-  document.getElementById('rBody').textContent = 'Continuing to ./ask.html.';
+  document.getElementById('rBody').textContent = 'Continuing to ./machine-room.html.';
 });
 </script>
 </body>
