@@ -180,6 +180,12 @@
 const SIZES=[200,1000,5000,25000,50000];
 let COPY={};
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// Loud, not plausible: a missing copy.json key used to fall back to
+// hardcoded English that reads exactly like real content, so the deck
+// drifting out of sync with this file (a key renamed, a load that quietly
+// returned {}) was never visible on the page. "[copy: x]" cannot be
+// mistaken for a real sentence.
+const cmiss=k=>"[copy: "+k+"]";
 const T=(s,vals)=>{
   let out=String(s||"");
   for(const k in (vals||{})) out=out.split("{"+k+"}").join(vals[k]);
@@ -382,7 +388,7 @@ function selectCorridor(key){
   document.title="margin.wiki — Is it a real dollar? · "+place(srcCcy)+" → "+place(dstOf(r5));
   const feeStampR=feeStamp(feeChecks,r5.fees_verified,withdrawalFees,(r5.onramp_venue||"").trim().toLowerCase());
   document.getElementById("stamp").innerHTML=
-    `<b>${esc(COPY.updatedLabel||"updated")}</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?T(COPY.minAgoTemplate||"{n} min ago",{n:ago}):T(COPY.hAgoTemplate||"{n} h ago",{n:Math.round(ago/60)})} · `+
+    `<b>${esc(COPY.updatedLabel||cmiss("updatedLabel"))}</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?(COPY.minAgoTemplate?T(COPY.minAgoTemplate,{n:ago}):cmiss("minAgoTemplate")):(COPY.hAgoTemplate?T(COPY.hAgoTemplate,{n:Math.round(ago/60)}):cmiss("hAgoTemplate"))} · `+
     // fees_verified carries one date per leg ("ir:2026-08-10|coins:2026-08-10").
     // Both legs are usually verified on the same day, and printing the string
     // straight through rendered that as "2026-08-10 · 2026-08-10". Distinct
@@ -500,7 +506,7 @@ function drawWaterfall(r){
   const n=+r.notional_src;
   const wf=wfBySample[r.ts+"|"+r.corridor+"|"+r.notional_src];
   if(!wf){
-    document.getElementById("wf").innerHTML=`<text x="12" y="30" fill="var(--color-neutral-600)" font-size="13" font-family="var(--font-body)">${esc((COPY.waterfallUnavailable)||"Not available for this sample yet -- it appears the pass after this shipped.")}</text>`;
+    document.getElementById("wf").innerHTML=`<text x="12" y="30" fill="var(--color-neutral-600)" font-size="13" font-family="var(--font-body)">${esc(COPY.waterfallUnavailable||cmiss("waterfallUnavailable"))}</text>`;
     return;
   }
   const comps=[
