@@ -155,20 +155,32 @@ def run(base_url, dry_run):
     transcript = []
 
     with Page() as p:
-        # ---- Home: chips, real answers ----
+        # ---- Home: the corridor-finding front page. No ask box here since
+        # the v1-freeze rebuild split it out to ask.html -- just judge the
+        # page itself loads clean. ----
         p.visit(base_url + "/index.html")
         home_shot = os.path.join(SCREENSHOT_DIR, "home.png")
         p.screenshot(home_shot)
         shots.append(home_shot)
+        headline = p.eval_js("(document.getElementById('heroHeadline')||{}).textContent || ''")
+        transcript.append("HOME PAGE loaded. Headline: %s" % headline)
+        if p.errors:
+            transcript.append("Console errors on home page: %r" % p.errors[:5])
+
+        # ---- Ask page: chips, real answers ----
+        p.visit(base_url + "/ask.html")
+        ask_shot = os.path.join(SCREENSHOT_DIR, "ask.png")
+        p.screenshot(ask_shot)
+        shots.append(ask_shot)
         coverage = p.eval_js("(document.getElementById('coverage')||{}).textContent || ''")
-        transcript.append("HOME PAGE loaded. Coverage line: %s" % coverage)
+        transcript.append("ASK PAGE loaded. Coverage line: %s" % coverage)
 
         chip_count = int(p.eval_js("document.querySelectorAll('.chip').length") or 0)
         for i in range(chip_count):
             res = click_chip(p, i)
             if res:
                 transcript.append("CHIP %r -> %r" % (res["label"], res["answer"][:300]))
-        chip_shot = os.path.join(SCREENSHOT_DIR, "home-after-chip.png")
+        chip_shot = os.path.join(SCREENSHOT_DIR, "ask-after-chip.png")
         p.screenshot(chip_shot)
         shots.append(chip_shot)
 
@@ -181,9 +193,11 @@ def run(base_url, dry_run):
             res = ask_freetext(p, q)
             if res:
                 transcript.append("FREE TEXT (critic's own) %r -> %r" % (q, res["answer"][:400]))
-        freetext_shot = os.path.join(SCREENSHOT_DIR, "home-after-freetext.png")
+        freetext_shot = os.path.join(SCREENSHOT_DIR, "ask-after-freetext.png")
         p.screenshot(freetext_shot)
         shots.append(freetext_shot)
+        if p.errors:
+            transcript.append("Console errors on ask page: %r" % p.errors[:5])
 
         # ---- Open a receipt: whichever country the widest-gap chip named ----
         widest_ccy = p.eval_js("""
