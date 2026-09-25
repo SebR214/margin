@@ -433,21 +433,6 @@ def _evidence_count_words(kind, n):
     return None
 
 
-def _step_files(r):
-    rate_file = (r.get("official_rate") or {}).get("source_file")
-    files = r.get("source_files") or []
-    country_file = next((f for f in files if f.startswith("data/countries/")), None)
-    evidence_files = [f for f in files if f != rate_file and f != country_file]
-    verdict_file = (next((f for f in evidence_files if "p2p_sides" in f), None)
-                     or (evidence_files[0] if evidence_files else country_file))
-    return {
-        "evidence": evidence_files if evidence_files else ([country_file] if country_file else []),
-        "rate": [rate_file] if rate_file else [],
-        "math": [country_file] if country_file else [],
-        "verdict": [verdict_file] if verdict_file else [],
-    }
-
-
 # The only two `evidence_rule.reason_code` values a not-applicable rule can
 # carry, each mapped to its own copy.json sentence -- never the rule's own
 # free-text `reason`/internal note, so nothing but reviewed reader copy ever
@@ -456,90 +441,6 @@ VERDICT_NOTE_COPY_KEYS = {
     "order_book": "verdictNoteOrderBook",
     "single_source_aggregate": "verdictNoteAggregate",
 }
-
-
-def build_steps(receipt, copy, display_value=None):
-    """The same four {label, text, files} steps receipt.js's buildSteps()
-    renders into the overlay -- built here so the no-JS page can show them
-    without a click, an animation, or a second fetch."""
-    files = _step_files(receipt)
-    ev = receipt.get("evidence") or {}
-    rate = receipt.get("official_rate") or {}
-    comp = receipt.get("computation") or {}
-    rule = receipt.get("evidence_rule") or {}
-
-    words = _evidence_count_words(ev.get("source_kind"), ev.get("n_offers")) or ev.get("source_words") or ""
-    evidence_text = _template(copy.get("evidenceSentenceTemplate"),
-                               {"words": words, "price": _fmt_num(ev.get("buy_median")), "ccy": receipt.get("ccy")})
-    evidence_note = copy.get("evidenceOffersNote") if ev.get("offer_detail") == "per_offer" else copy.get("evidenceAggregateNote")
-    collected = _template(copy.get("evidenceCollectedTemplate"), {"when": _fmt_when(ev.get("collected_at"))})
-
-    rate_class = rate.get("class")
-    rate_word = (copy.get("rateManaged") if rate_class == "managed"
-                 else copy.get("ratePegged") if rate_class == "pegged"
-                 else copy.get("rateUnmaintained") if rate_class == "unmaintained"
-                 else copy.get("rateMarket"))
-    rate_text = _template(copy.get("rateSentenceTemplate"),
-                           {"value": _fmt_num(rate.get("value")), "ccy": receipt.get("ccy"), "source": rate.get("source") or ""})
-
-    math_text = _template(copy.get("mathSentenceTemplate"),
-                           {"numerator": _fmt_num(comp.get("numerator")), "ccy": receipt.get("ccy"),
-                            "denominator": _fmt_num(comp.get("denominator"))})
-    math_result = _template(copy.get("mathResultTemplate"),
-                             {"result": display_value if display_value is not None else _fmt_num(comp.get("result_pct"))})
-
-    verdict_detail = ""
-    if receipt.get("published"):
-        verdict_text = copy.get("verdictPublished")
-        if rule.get("applies"):
-            verdict_detail = _template(copy.get("verdictRuleDetailTemplate"),
-                                        {"actual": rule.get("buy_ads_actual"), "required": rule.get("min_buy_ads_required")})
-        else:
-            verdict_detail = copy.get(VERDICT_NOTE_COPY_KEYS.get(rule.get("reason_code"), "")) or ""
-    else:
-        verdict_text = _template(copy.get("verdictWithheldTemplate"), {"reason": receipt.get("not_published_reason") or ""})
-
-    return [
-        {"label": copy.get("step1Label"), "text": " ".join(x for x in (evidence_text, evidence_note, collected) if x), "files": files["evidence"]},
-        {"label": copy.get("step2Label"), "text": " ".join(x for x in (rate_text, rate_word) if x), "files": files["rate"]},
-        {"label": copy.get("step3Label"), "text": " ".join(x for x in (math_text, math_result) if x), "files": files["math"]},
-        {"label": copy.get("step4Label"), "text": " ".join(x for x in (verdict_text, verdict_detail) if x), "files": files["verdict"]},
-    ]
-
-
-def render_static_html(receipt, display_value, link_prefix="../"):
-    """The `<noscript>` fragment for a published receipt: all four steps
-    rendered at once, no animation, no click needed -- what a reader with no
-    JavaScript, or `prefers-reduced-motion`, gets instead of the overlay.
-    Never called for a withheld number: c/<ccy>.html only wires a receipt to
-    the one figure it actually shows, same rule receipt.js's click handler
-    follows (SEB-57)."""
-    copy = _copy()
-    steps = build_steps(receipt, copy, display_value)
-
-    def links(files):
-        return " · ".join(
-            f'<a href="{link_prefix}{html.escape(f)}">{html.escape(f)}</a>' for f in (files or []))
-
-    items = []
-    for i, step in enumerate(steps, 1):
-        file_links = links(step["files"])
-        items.append(
-            '<li class="receipt-static-step">'
-            f'<span class="receipt-static-num">{i}</span>'
-            f'<span class="receipt-static-label">{html.escape(step["label"] or "")}</span>'
-            f'<span class="receipt-static-text">{html.escape(step["text"] or "")}</span>'
-            + (f'<span class="receipt-static-file">{file_links}</span>' if file_links else "")
-            + "</li>")
-
-    return (
-        '<noscript><div class="receipt-static">'
-        f'<p class="receipt-static-title">{html.escape(copy.get("title") or "")}</p>'
-        f'<ol class="receipt-static-steps">{"".join(items)}</ol>'
-        f'<p class="receipt-static-raw"><b>{html.escape(copy.get("rawFilesLabel") or "")}</b> '
-        f'{links(receipt.get("source_files"))}</p>'
-        "</div></noscript>"
-    )
 
 
 def build():

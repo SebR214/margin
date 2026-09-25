@@ -53,29 +53,35 @@ everything else does).
 Scope: settle who actually did what on `main`, then make the answer
 mechanical instead of re-derived by hand every time.
 
-1. **The commit audit.** Every commit on `main` since the loops started
-   that has no PR or no recorded reviewer verdict. For each: read its git
-   author email, its commit timestamp's timezone offset, and its
-   `Co-Authored-By` line -- that's what actually identifies who committed
-   it. **Never conclude "the agent did this" from an absence in
-   `linear_activity.jsonl` or any other log** -- a log that only sees
-   Linear activity cannot see a commit made from Sebastian's own laptop,
-   and treating silence there as proof produced a false accusation once
-   already (SEB-101, corrected 2026-09-23: six commits blamed on the
-   builder were `+0800`, Sebastian's own timezone, while the server runs
-   `+0000`). Classify each commit as collector, index, or reader-facing,
-   since that's what determines how much it actually mattered.
+1. **The commit audit — done.** `docs/AUDIT-2026-09-25.md`. Zero commits
+   from any agent identity bypassed a PR; the real problem is the seven
+   still-open findings (SEB-53/63/70/75/77/79/81) where a PR got a verdict
+   and was merged over it anyway, or merged with none on record. SEB-101
+   was investigated and retracted (six commits blamed on the builder were
+   `+0800`, Sebastian's own machine; the server runs `+0000` -- corrected
+   on the issue directly). **Never conclude "the agent did this" from an
+   absence in `linear_activity.jsonl` or any other log** -- that's exactly
+   the mistake SEB-101 made, and a log that only sees Linear activity
+   cannot see a commit made from Sebastian's own laptop.
 
-2. **Branch protection on `main`**, only after the audit's done: pull
-   requests required, one approval required, from `SebR214` specifically.
-   This is the mechanical fix for the thing the audit will surface by
-   hand -- PRs merged over a rejected review, merges nobody can attribute
-   with certainty, because GitHub's own record can't currently
-   distinguish Sebastian from an agent.
+2. **Branch protection on `main` — attempted, reverted, not done.**
+   Turning it on (PR required, 1 approval, enforced on admins) also blocks
+   `collect.yml`'s own hourly push, which uses the default `GITHUB_TOKEN`
+   -- that token has no admin standing and no way to satisfy a required
+   review. Confirmed by testing an actual push under the live rule.
+   Reverted the same day rather than risk a collection gap. **Do not
+   re-enable until step 3 is done and tested on one real collection run
+   with protection off first.**
 
-3. **Agent commits move to their own identity** (GitHub App or machine
-   user, not `SebR214`) so that distinction is real going forward, not
-   just asserted in a commit message.
+3. **Agent commits move to their own identity — not started, the real
+   blocker.** `agents/gh_token.sh` already mints GitHub App tokens for
+   this purpose; `collect.yml` needs to push through that App instead of
+   the default token, and the App needs to be on branch protection's
+   bypass list. Checked once: a personal (non-org) repo does not support
+   an addressable Actions/App bypass actor -- GitHub's own API rejected
+   it ("must be part of the ruleset source or owner organization"). If
+   that holds up on a second look, moving the repo to a free org is the
+   real fix, not a workaround around it.
 
 **Once branch protection is live, the human-merge rule is back and
 permanent** -- the waiver that let a session merge #153 and Session 2's
