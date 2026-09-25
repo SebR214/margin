@@ -13,7 +13,7 @@
 (function () {
   "use strict";
   var WIDTH = 1000, HEIGHT = 200;
-  var INDIGO = "#5A55E0", DOWN = "#D0453B", BACKFILL = "#b9b6b4";
+  var INDIGO = "#817FCC", DOWN = "#D0453B", BACKFILL = "#D3D0CB";
   var WINDOWS = { "1w": 7, "1m": 30, "3m": 90, "1y": 365 };
 
   function fmtPct(v) {

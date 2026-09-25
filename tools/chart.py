@@ -31,10 +31,10 @@ import datetime as dt
 import json
 import os
 
-INDIGO = "#5A55E0"
+INDIGO = "#817FCC"     # DESIGN.md palette: periwinkle, the primary data value
 DOWN = "#D0453B"
-BACKFILL = "#b9b6b4"
-AREA_TOP = "#DCDFFA"
+BACKFILL = "#D3D0CB"   # DESIGN.md palette: dust grey, de-emphasized/backfilled points
+AREA_TOP = "#F0EBD8"   # DESIGN.md palette: eggshell, area fills
 
 WIDTH = 1000
 HEIGHT = 200

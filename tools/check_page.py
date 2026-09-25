@@ -41,6 +41,7 @@ import threading
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from headless import Page                                    # noqa: E402
+from bake_nav import NAV_PAGES, nav_html                     # noqa: E402
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -207,6 +208,51 @@ def baseline():
         return json.load(f)
 
 
+def nav_items():
+    with open(os.path.join(HERE, "copy.json")) as f:
+        return json.load(f)["nav"]
+
+
+RENDERED_NAV = re.compile(r"<nav>.*?</nav>", re.S)
+RENDERED_TITLE = re.compile(r"<title>(.*?)</title>", re.S)
+
+
+def normalize_markup(s):
+    return re.sub(r"\s+", " ", s).strip()
+
+
+# Each reader-facing page has one job; its <title> says what it is. This is
+# a regression guard, not a style rule -- a page whose title stops matching
+# this map has either been repurposed without updating the title, or had
+# its title edited without anyone checking it still describes the page.
+# tools/check_page.py compares with startswith(), not ==, because
+# corridor.html appends the corridor's own currencies to this base title
+# client-side (see its `document.title=...` line).
+PAGE_TITLE = {
+    "index.html": "margin.wiki",
+    "providers.html": "margin.wiki — every way to send money, ranked",
+    "pricing-history.html": "margin.wiki — who changed their price, and when",
+    "corridor.html": "margin.wiki — Is it a real dollar?",
+    "methodology.html": "margin.wiki — methodology & data honesty",
+    "status.html": "margin.wiki — is this thing still working",
+    "findings.html": "margin.wiki — findings",
+    "requests.html": "margin.wiki — requests",
+    "calculator.html": "margin.wiki — type an amount, see what it costs",
+    "weekly.html": "margin.wiki — the weekly snapshot",
+    "data.html": "margin.wiki — every file this site reads from",
+    "ask.html": "margin.wiki — ask it a question",
+    "watch.html": "margin.wiki — watch a condition",
+    "stress.html": "margin.wiki — the stress signal",
+    "machine-room.html": "margin.wiki — the machine room",
+    "the-index.html": "margin.wiki — the index",
+    "sending-money.html": "margin.wiki — sending money",
+    "how-it-works.html": "margin.wiki — how it works",
+    "country.html": "margin.wiki — a country's price in full",
+    "fee-tiers.html": "margin.wiki — Stablecoins are cheap, kind of",
+    "agent-incidents.html": "margin.wiki — Running a site on agents I don't fully trust",
+}
+
+
 def check(page, port, browser, base):
     fails = []
     known = base.get(page, {})
@@ -215,6 +261,25 @@ def check(page, port, browser, base):
 
     if not text.strip():
         return [f"{page}: rendered no text at all"]
+
+    if page in NAV_PAGES:
+        m = RENDERED_NAV.search(r.html)
+        expected = nav_html(nav_items(), page)
+        if not m:
+            fails.append(f"{page}: no <nav>...</nav> found in the rendered page")
+        elif normalize_markup(m.group(0)) != normalize_markup(expected):
+            fails.append(f"{page}: rendered nav does not match copy.json's nav "
+                         f"array -- run tools/bake_nav.py")
+
+    expected_title = PAGE_TITLE.get(page)
+    if expected_title:
+        tm = RENDERED_TITLE.search(r.html)
+        rendered_title = html.unescape(tm.group(1)) if tm else ""
+        if not rendered_title.startswith(expected_title):
+            fails.append(f"{page}: title {rendered_title!r} does not match its "
+                         f"job ({expected_title!r} expected) -- update PAGE_TITLE "
+                         f"in tools/check_page.py if the page's job genuinely "
+                         f"changed, otherwise fix the <title>")
 
     if page not in EXEMPT:
         scrubbed = scrub_filenames(text)

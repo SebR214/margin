@@ -68,7 +68,7 @@
   .num .n-v{font-family:var(--mono); font-size:30px; font-weight:600; letter-spacing:-.01em; margin-top:3px; line-height:1; font-variant-numeric:tabular-nums}
   .num .n-s{font-size:11.5px; color:var(--color-neutral-600); margin-top:3px}
   .badge{font-size:10px; font-weight:700; padding:1px 6px; border-radius:3px; text-transform:uppercase; letter-spacing:.03em}
-  .badge.win{background:#DCDFFA; color:var(--win)}
+  .badge.win{background:#F0EBD8; color:var(--win)}
   .badge.lose{background:#F0EBD8; color:var(--pos)}
 
   .verdict{background:var(--color-surface); border-top:2px solid var(--color-ink); padding:13px 16px; margin:12px 0; font-size:14px}
@@ -108,8 +108,7 @@
         <a href="./the-index.html">The index</a>
         <a href="./sending-money.html">Sending money</a>
         <a href="./findings.html">Findings</a>
-        <a href="./machine-room.html">The machine room</a>
-        <a href="./how-it-works.html" class="active">How it works</a>
+        <a href="./how-it-works.html">How it works</a>
       </nav>
     </div>
     <div class="header-right">
@@ -332,7 +331,7 @@ async function boot(){
     `<span><i style="background:var(--neg)"></i>${L.moneyGained||""}</span>`+
     `<span><i style="background:var(--pos)"></i>${L.moneyLost||""}</span>`+
     `<span><i style="background:var(--rail)"></i>${L.blockchain||""}</span>`+
-    `<span><i style="background:var(--color-ink)"></i>${L.total||""}</span>`+
+    `<span><i style="background:var(--win)"></i>${L.total||""}</span>`+
     `<span><i style="background:transparent;border:1px dashed var(--neg)"></i>${L.cheapestProvider||""}</span>`;
   document.getElementById("histLegend").innerHTML=
     `<span><i style="background:var(--pos)"></i>${L.buyingNow||""}</span>`+
@@ -546,7 +545,7 @@ function drawWaterfall(r){
   });
   const y=top+comps.length*rowH, xt=X(total);
   s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12.5" font-family="var(--font-body)" font-weight="700">${(COPY.legend||{}).wholeTransfer||"The whole transfer"}</text>`+
-     `<rect x="${Math.min(X(0),xt).toFixed(1)}" y="${y+5}" width="${Math.max(2,Math.abs(xt-X(0))).toFixed(1)}" height="${rowH-10}" fill="var(--color-ink)"/>`+
+     `<rect x="${Math.min(X(0),xt).toFixed(1)}" y="${y+5}" width="${Math.max(2,Math.abs(xt-X(0))).toFixed(1)}" height="${rowH-10}" fill="var(--win)"/>`+
      `<text x="${(xt+(total>=0?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12" font-family="var(--mono)" font-weight="700" text-anchor="${total>=0?"start":"end"}">${cash(n,total)}</text>`;
   svg.innerHTML=s;
 }
