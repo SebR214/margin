@@ -165,9 +165,9 @@
     // waiting for your price, blue = the cheapest ordinary provider. One
     // color language across the site, not a new one per chart.
     var dots = points.map(function(p, i){
-      return '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.costBpsTaker).toFixed(1)+'" r="3.5" fill="#b3241b"/>' +
+      return '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.costBpsTaker).toFixed(1)+'" r="3.5" fill="#817FCC"/>' +
         '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.costBpsMaker).toFixed(1)+'" r="3.5" fill="#6B6B6B"/>' +
-        '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.baselineCostBps).toFixed(1)+'" r="3.5" fill="#2f7dae"/>';
+        '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.baselineCostBps).toFixed(1)+'" r="3.5" fill="#D3D0CB"/>';
     }).join('');
     var xLabels = points.map(function(p, i){
       return '<text x="'+xPos(i).toFixed(1)+'" y="'+(h-8)+'" text-anchor="middle" font-family="Archivo, sans-serif" font-size="12" fill="#9A9A9A">'+esc(SIZE_TIERS[i].length>3 ? '$'+(+SIZE_TIERS[i]/1000)+'k' : '$'+SIZE_TIERS[i])+'</text>';
@@ -179,13 +179,13 @@
 
     container.innerHTML =
       '<div style="display:flex;gap:18px;font-size:12px;flex-wrap:wrap;padding-bottom:6px">' +
-      '<span style="color:#b3241b;font-weight:700">&#9679; buying it now</span>' +
+      '<span style="color:#817FCC;font-weight:700">&#9679; buying it now</span>' +
       '<span style="color:#6B6B6B;font-weight:700">&#9679; waiting for your price</span>' +
-      '<span style="color:#2f7dae">&#9679; cheapest ordinary ('+esc(points[points.length-1].baselineProvider)+')</span></div>' +
+      '<span style="color:#9A9A9A">&#9679; cheapest ordinary ('+esc(points[points.length-1].baselineProvider)+')</span></div>' +
       '<svg width="100%" viewBox="0 0 '+w+' '+h+'" style="display:block">' +
-      '<path d="'+basePath+'" fill="none" stroke="#2f7dae" stroke-width="1.5" stroke-dasharray="3,3"/>' +
+      '<path d="'+basePath+'" fill="none" stroke="#D3D0CB" stroke-width="1.5" stroke-dasharray="3,3"/>' +
       '<path d="'+makerPath+'" fill="none" stroke="#6B6B6B" stroke-width="2"/>' +
-      '<path d="'+takerPath+'" fill="none" stroke="#b3241b" stroke-width="2"/>' +
+      '<path d="'+takerPath+'" fill="none" stroke="#817FCC" stroke-width="2"/>' +
       dots + yLabels + xLabels +
       '</svg>' +
       '<div style="font-size:12px;color:#9A9A9A;padding-top:4px">all-in cost, as a share of the amount, at each size actually measured -- stops at $50,000 because that is as far as real fills go; nothing past that point is estimated</div>';
