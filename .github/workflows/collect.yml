@@ -313,7 +313,7 @@ jobs:
           # country (or a table emit_bundle.py starts writing) appears here
           # on its first run with no edit to this list -- which is the point
           # of staging the directory rather than naming the files.
-          for d in data/countries data/receipts c data/bundle; do
+          for d in data/countries data/receipts data/bundle; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Anything TRACKED that an emitter rewrote but the list above forgot.
@@ -327,11 +327,11 @@ jobs:
           # changes. data/stable_spread_summary.json was added by an emitter on
           # 2026-09-13 and left out of the list, and collection died for 21
           # hours -- readings that cannot be backfilled.
-          MISSED=$(git diff --name-only -- data c)
+          MISSED=$(git diff --name-only -- data)
           if [ -n "$MISSED" ]; then
             echo "::warning::staged by fallback, add these to the list above:"
             echo "$MISSED" | sed 's/^/::warning::  /'
-            git add -u data c
+            git add -u data
           fi
           if git diff --cached --quiet; then
             # Expected on the second fire of an hour the first fire already

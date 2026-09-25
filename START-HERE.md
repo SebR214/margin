@@ -59,9 +59,41 @@ python3 agents/linear.py respec SEB-39 --body-file spec.md --role product
 
 ## State
 
-See the most recent "margin.wiki — v1 freeze and ship brief" in Linear (or
-pasted into the working session) for the current plan and what's frozen.
-Everything before it is superseded where the two disagree.
+`DESIGN.md` (repo root) is now the single source of truth for anything
+reader-facing — palette, the canonical nav, register. If a rule isn't in
+there, it isn't a rule. `docs/SESSIONS.md` tracks what's left to do and in
+what order; `docs/AUDIT-2026-09-25.md` is the commit-history audit Session
+3 opened with. Read those three before the Linear brief — they supersede
+anything older where they disagree, same as the brief always has.
+
+**Unfinished, in progress when this was last edited:** Session 3 (identity
+migration + branch protection) is *not* done. Branch protection on `main`
+was enabled, then immediately removed again the same day — it broke, or
+would have broken, the hourly collector's own direct push, because
+`collect.yml` pushes with the default `GITHUB_TOKEN`, which has no way to
+satisfy a required-review rule. **Do not re-enable branch protection until
+the collector pushes through the GitHub App identity `agents/gh_token.sh`
+already mints tokens with, tested on a real run with protection off
+first.** If a personal (non-org) repo won't allow that App onto a bypass
+list — checked once, it didn't — moving the repo to a free org is the
+real fix, not a workaround.
+
+`c/*.html` (60 files) and the code that generated them
+(`emit_countries.py`'s page-writing block, `emit_receipts.py`'s
+`render_static_html`/`build_steps`) are gone — nothing linked to them, and
+they cost real hourly compute for zero reachability. `data/countries/`,
+`data/index_latest.json`, `data/receipts/` — everything actually read by a
+live page — are untouched; only the c/ output was removed.
+
+The eight governance findings from Session 3's own audit
+(SEB-53/63/70/75/77/79/81) are still open, still unaddressed. They're the
+actual reason branch protection matters: every one is a PR that got a
+verdict and was merged over it, or merged with no verdict on record, and
+the common cause (builder/reviewer/product/Sebastian's manual commits all
+sharing one GitHub identity, so GitHub itself can't tell them apart) is
+exactly what identity migration + branch protection fixes. Don't treat
+Session 3 as done until both are live and one of these seven is actually
+closed by the mechanism, not just by hand.
 
 ## Things that have bitten, twice each
 
