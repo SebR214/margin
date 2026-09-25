@@ -237,7 +237,7 @@
       label: 'Cheapest way to send money ' + corridorWords + '?',
       run: function(){
         showAnswerCard('<b>' + esc(cheapestRow.provider) + '</b> is cheapest right now at <b class="num">' + esc(cheapestRow.costs) + '</b>. The digital-dollar route costs <b class="num">' + esc(dollarRouteRow.costs) + '</b> — ' +
-          (dollarRouteRow.cost_pct > cheapestRow.cost_pct ? 'more than the cheapest ordinary option.' : 'less than every ordinary option.'),
+          (dollarRouteRow.cost_pct > cheapestRow.cost_pct ? 'more than the best fiat option.' : 'less than every fiat option.'),
           're-priced every hour · <a href="./sending-money.html" style="font-weight:600;color:#0B0B0B">every way to send it, ranked →</a>');
       }
     });
@@ -270,7 +270,7 @@
           };
           showAnswerCard(sentence,
             'measured from ' + crossover.n_samples + ' real S$' + Number(crossover.rung_sgd).toLocaleString() +
-            ' samples and the venues’ own published fee tiers, re-derived not assumed · <a href="./methodology.html" style="font-weight:600;color:#0B0B0B">the exact method →</a>',
+            ' samples and the venues’ own published fee tiers, re-derived not assumed · <a href="./how-it-works.html" style="font-weight:600;color:#0B0B0B">the exact method →</a>',
             null, chartOpts);
         }
       });

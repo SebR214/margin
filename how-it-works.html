@@ -75,14 +75,9 @@
 
     <div class="h">Where the prices come from</div>
     <div class="p">All of it is collected directly, every hour, and written to files you can open:</div>
-    <div class="b">· Binance P2P, live buy and sell ads, the main source for most countries</div>
-    <div class="b">· Order books on twelve exchanges: Upbit, Bithumb and Coinone in Korea, Indodax and Pintu in Indonesia, BTCTurk and Paribu in Turkey, Bitkub in Thailand, Coins.ph in the Philippines, Independent Reserve in Australia, Foxbit and Mercado Bitcoin in Brazil</div>
-    <div class="b">· CoinGecko, a backup price when a venue is down</div>
-    <div class="b">· open.er-api, the official exchange rate, captured in the same second as the market price</div>
-    <div class="b">· BCRA, Argentina's central bank, for its published parallel rate</div>
-    <div class="b">· Airwallex and Instarem, live quotes pulled from their own pricing at five different transfer amounts</div>
-    <div class="b">· Wise's public comparison, for the other transfer providers including Wise itself</div>
+    <div id="sourceList"><div class="b">Loading the live source list&hellip;</div></div>
     <div class="p">Every number on the site links back to the file it came from. Nothing is typed in by hand.</div>
+    <div class="p"><a href="./METHODOLOGY.md">The full technical methodology, unabridged →</a></div>
 
     <div class="h">Checking ourselves against a reference</div>
     <div class="p">This site's own measurement is the only thing behind most of its numbers — so for the few countries where an independent, publicly published reference exists, it's worth showing the two side by side rather than asking for trust on faith.</div>
@@ -104,6 +99,21 @@
 
 <script>
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// Folded in from methodology.html (SESSIONS.md Session 2): this list used
+// to be six hand-typed lines that undercounted the real venue list --
+// twelve exchanges named, twenty actually in data/sources_latest.json,
+// including BTCTurk, Bitso, CoinDCX, MAX and WazirX, none of which were
+// mentioned. Same live source methodology.html always read from.
+fetch('./data/sources_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(doc){
+  var sources = (doc && doc.sources) || [];
+  var html = sources.map(function(s){
+    return '<div class="b">· ' + esc(s.name) + ' — ' + esc(s.role) + ', ' + esc(s.detail) + '</div>';
+  }).join('');
+  document.getElementById('sourceList').innerHTML = html || '<div class="b">Source list could not be read from data/sources_latest.json.</div>';
+}).catch(function(){
+  document.getElementById('sourceList').innerHTML = '<div class="b">Could not load the live source list. That failure is shown, not hidden.</div>';
+});
 
 fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
   var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);

@@ -3,189 +3,41 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — type an amount, see what it costs</title>
-<meta name="description" content="Type any amount on four measured routes and see the same ranked, cheapest-first table providers.html shows, at the nearest amount this project actually measures."/>
-<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<title>margin.wiki — this page moved</title>
+<meta name="description" content="Typing an amount and seeing what it costs moved to Sending money."/>
+<meta http-equiv="refresh" content="0; url=./sending-money.html"/>
+<link rel="canonical" href="./sending-money.html"/>
 <style>
-  :root{
-    --bg:#f3f2f2; --ink:#201e1d; --muted:#7d7979;
-    --line:color-mix(in srgb,#201e1d 18%,transparent);
-    --rule:color-mix(in srgb,#201e1d 40%,transparent);
-    --fill:#d2d9f7; --deep:#8b9ae8; --win:#166534;
-    --head:"Archivo",system-ui,sans-serif;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--head);
-       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1060px;margin:0 auto;padding:0 24px 72px}
-  header{display:flex;align-items:center;gap:16px;padding:14px 0;
-         border-bottom:1px solid var(--rule);font-size:11px;
-         letter-spacing:.1em;text-transform:uppercase;flex-wrap:wrap}
-  header a{color:var(--ink);text-decoration:none}
-  header a:hover{text-decoration:underline}
-  h1{font-size:38px;line-height:1.08;margin:34px 0 10px;max-width:24ch}
-  .lede{font-size:16px;max-width:66ch;margin:0 0 22px;color:var(--muted)}
-  .muted{color:var(--muted)} .small{font-size:12px}
-  .pills{display:flex;gap:0;border:1px solid var(--rule);flex-wrap:wrap;margin:0 0 4px}
-  .pills button{appearance:none;border:0;cursor:pointer;font-family:var(--head);
-    font-weight:800;font-size:11px;letter-spacing:.06em;padding:8px 12px;
-    background:var(--bg);color:var(--ink)}
-  .pills button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
-  .pills button:hover{background:var(--fill)}
-  .amt{appearance:none;font-family:var(--head);font-weight:800;font-size:14px;
-    padding:8px 12px;border:1px solid var(--rule);background:var(--bg);
-    color:var(--ink);width:160px}
-  .amt:focus{outline:2px solid var(--deep)}
-  .bar{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin:22px 0 6px}
-  .bar > div{display:flex;flex-direction:column;gap:5px}
-  .k{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-  .match{margin:14px 0 0}
-  h2{font-size:22px;margin:30px 0 4px;border-bottom:2px solid var(--ink);padding-bottom:8px}
-  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:4px}
-  th{text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
-     color:var(--muted);font-weight:400;padding:11px 8px 7px}
-  th.r,td.r{text-align:right}
-  td{padding:10px 8px;border-top:1px solid var(--line);vertical-align:top}
-  tr.crypto{background:color-mix(in srgb,#d2d9f7 45%,transparent)}
-  tr.best td{font-weight:800}
-  .n{font-family:var(--head);font-weight:800}
-  .tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-  .empty{padding:26px 0;color:var(--muted)}
-  @media(max-width:720px){
-    h1{font-size:28px}
-    th:nth-child(5),td:nth-child(5){display:none}
-  }
+  body{margin:0;font-family:Archivo,system-ui,'Helvetica Neue',sans-serif;color:#0B0B0B;background:#fff;
+       display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;box-sizing:border-box}
+  .card{max-width:480px;text-align:center}
+  h1{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0 0 10px}
+  p{font-size:15px;color:#6B6B6B;line-height:1.5;margin:0 0 18px}
+  a{display:inline-block;font-size:15px;font-weight:700;color:#0B0B0B;text-decoration:none;
+     border-bottom:2px solid #0B0B0B;padding-bottom:2px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <a href="./index.html"><b>margin.wiki</b></a>
-    <a href="./index.html">the board</a>
-    <a href="./providers.html">every way to send it</a>
-    <a href="./pricing-history.html">price changes</a>
-    <a href="./corridor.html">is it a real dollar?</a>
-    <a href="./findings.html">findings</a>
-    <a href="./stress.html">stress signal</a>
-    <a href="./weekly.html">weekly snapshot</a>
-    <a href="./requests.html">requests</a>
-    <a href="./calculator.html">calculator</a>
-    <a href="./methodology.html">methodology</a>
-    <a href="./machine-room.html">the machine room</a>
-    <span class="muted" id="stamp"></span>
-  </header>
-
-  <h1>Type any amount. See what it costs.</h1>
-  <p class="lede">Pick a route and type any amount you want to send. This shows the
-     same ranked, cheapest-first table as <a href="./providers.html">every way to
-     send it</a> — but at the amount you actually asked for, snapped to the nearest
-     amount this project actually measures this hour.</p>
-
-  <div class="bar">
-    <div><span class="k">route</span><span class="pills" id="routes"></span></div>
-    <div><span class="k">amount</span>
-      <input class="amt" type="number" id="amount" min="0" step="any" placeholder="e.g. 1200"/>
-    </div>
+  <div class="card">
+    <h1 id="rHeading">&nbsp;</h1>
+    <p id="rBody">&nbsp;</p>
+    <a href="./sending-money.html" id="rLink">Continue &rarr;</a>
   </div>
-  <p class="muted small match" id="match">&nbsp;</p>
-
-  <h2 id="title">—</h2>
-  <p class="muted small" id="sub"></p>
-  <div id="table"></div>
-</div>
 <script>
-const pct = v => v === null || v === undefined || !isFinite(v) ? "—"
-  : (v >= 0 ? "" : "−") + Math.abs(v).toFixed(Math.abs(v) >= 10 ? 1 : 2) + "%";
-// Same symbols tools/emit_providers.py uses to write amount_words, so a typed
-// amount reads the same way the matched amount already does.
-const SYMBOL = {SGD:"S$", AUD:"A$", NZD:"NZ$", USD:"US$"};
-const money = (cur, v) => (SYMBOL[cur] || cur + " ") + Math.round(v).toLocaleString("en-US");
-
-let DATA = null, route = null;
-
-fetch("./data/providers_latest.json", {cache:"no-store"})
-  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
-  .then(d => { DATA = d; init(); })
-  .catch(e => {
-    document.getElementById("title").textContent = "No comparison available";
-    document.getElementById("table").innerHTML =
-      '<div class="empty">data/providers_latest.json could not be read ('
-      + e.message + "). Nothing is shown rather than a guess.</div>";
-  });
-
-function init(){
-  const cs = DATA.corridors || {};
-  const keys = Object.keys(cs);
-  if(!keys.length){ document.getElementById("title").textContent = "No routes priced yet"; return; }
-  route = keys.indexOf("SGD->PHP") >= 0 ? "SGD->PHP" : keys[0];
-  document.getElementById("stamp").textContent =
-    "hour " + (DATA.as_of_utc || "").slice(0,13).replace("T"," ") + "Z";
-  document.getElementById("routes").innerHTML = keys.map(k =>
-    `<button data-route="${k}">${cs[k].route_words}</button>`).join("");
-  document.getElementById("routes").onclick = e => {
-    const k = e.target.getAttribute("data-route");
-    if(k){ route = k; render(); }
-  };
-  const input = document.getElementById("amount");
-  input.value = 1000;
-  input.oninput = render;
-  render();
-}
-
-// Same rule tools/serve_common.py's compare_routes() uses:
-// min(sizes, key=lambda t: abs(t - target)), sizes ascending so a tie
-// resolves to the smaller tier, exactly as Python's min() would.
-function nearestSize(sizesAscending, target){
-  let best = sizesAscending[0];
-  for(const s of sizesAscending){
-    if(Math.abs(s - target) < Math.abs(best - target)) best = s;
+fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+  var R = (d.redirects) || {};
+  var page = (R.pages || {})['calculator.html'] || {};
+  function T(s, vals){
+    var out = String(s||'');
+    for (var k in vals) out = out.split('{' + k + '}').join(vals[k]);
+    return out;
   }
-  return best;
-}
-
-function render(){
-  const c = DATA.corridors[route];
-  const sizes = Object.keys(c.sizes).map(Number).sort((a,b) => a - b);
-  [...document.querySelectorAll("#routes button")].forEach(b =>
-    b.setAttribute("aria-pressed", b.getAttribute("data-route") === route));
-
-  const target = parseFloat(document.getElementById("amount").value);
-  if(!isFinite(target) || target <= 0) return; // leave the table as it was
-
-  const chosen = nearestSize(sizes, target);
-  const bucket = c.sizes[String(chosen)];
-
-  document.getElementById("match").textContent =
-    "You asked for " + money(c.src, target) + "; showing " + bucket.amount_words
-    + ", the nearest amount measured this hour.";
-
-  document.getElementById("title").textContent =
-    "Sending " + bucket.amount_words + " " + c.route_words;
-  const best = bucket.rows[0], crypto = bucket.rows.find(r => r.source === "measured");
-  let sub = best ? "Cheapest right now: " + best.provider + " at " + best.costs
-      + ", which is " + pct(best.cost_pct) + " of what you send." : "";
-  if(crypto && best && crypto.provider !== best.provider){
-    const gap = crypto.cost_pct - best.cost_pct;
-    sub += " The dollar route costs " + crypto.costs + ", "
-        + pct(gap) + " more than the cheapest.";
-  } else if(crypto && best && crypto.provider === best.provider){
-    sub += " That is the dollar route.";
-  }
-  document.getElementById("sub").textContent = sub;
-
-  document.getElementById("table").innerHTML =
-    `<table><tr><th>#</th><th>Way to send it</th><th class="r">What it costs you</th>
-       <th class="r">Of what you send</th><th>Where the price comes from</th></tr>` +
-    bucket.rows.map(r => {
-      const cls = (r.source === "measured" ? "crypto " : "") + (r.rank === 1 ? "best" : "");
-      const fee = r.fee_words ? `<div class="tag">${r.fee_words}</div>` : "";
-      return `<tr class="${cls}"><td class="muted">${r.rank}</td>
-        <td>${r.provider}${fee}</td>
-        <td class="r n">${r.costs}</td>
-        <td class="r">${pct(r.cost_pct)}</td>
-        <td class="muted small">${r.source_words}</td></tr>`;
-    }).join("") + "</table>";
-}
+  document.getElementById('rHeading').textContent = R.heading || '';
+  document.getElementById('rBody').textContent = T(R.bodyTemplate, { old: 'calculator.html', reason: page.reason || '', destLabel: page.destLabel || '' });
+  document.getElementById('rLink').textContent = T(R.linkTemplate, { destLabel: page.destLabel || '' });
+}).catch(function(){
+  document.getElementById('rBody').textContent = 'Continuing to ./sending-money.html.';
+});
 </script>
 </body>
 </html>
