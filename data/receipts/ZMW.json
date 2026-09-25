@@ -4,15 +4,15 @@
     "denominator": 19.659658,
     "denominator_meaning": "the official rate, local currency per dollar",
     "formula": "(numerator / denominator - 1) * 100",
-    "numerator": 20.02,
+    "numerator": 20.005,
     "numerator_meaning": "price to buy one dollar locally",
-    "result_pct": 1.8329
+    "result_pct": 1.7566
   },
-  "computed_at": "2026-09-25T04:00:00+00:00",
+  "computed_at": "2026-09-25T05:00:00+00:00",
   "country": "Zambia",
   "evidence": {
-    "buy_median": 20.02,
-    "collected_at": "2026-09-25T04:05:47.087793+00:00",
+    "buy_median": 20.005,
+    "collected_at": "2026-09-25T05:05:42.484114+00:00",
     "n_offers": 10,
     "offer_detail": "per_offer",
     "offers": [
@@ -33,11 +33,19 @@
         "side": "buy"
       },
       {
-        "price": 20.02,
+        "price": 20.0,
+        "side": "buy"
+      },
+      {
+        "price": 20.01,
         "side": "buy"
       },
       {
         "price": 20.02,
+        "side": "buy"
+      },
+      {
+        "price": 20.1,
         "side": "buy"
       },
       {
@@ -45,16 +53,20 @@
         "side": "buy"
       },
       {
-        "price": 20.19,
+        "price": 20.18,
         "side": "buy"
       },
       {
-        "price": 20.19,
-        "side": "buy"
+        "price": 20.1,
+        "side": "sell"
       },
       {
-        "price": 20.3,
-        "side": "buy"
+        "price": 20.09,
+        "side": "sell"
+      },
+      {
+        "price": 20.09,
+        "side": "sell"
       },
       {
         "price": 20.08,
@@ -65,15 +77,7 @@
         "side": "sell"
       },
       {
-        "price": 20.05,
-        "side": "sell"
-      },
-      {
-        "price": 20.04,
-        "side": "sell"
-      },
-      {
-        "price": 19.97,
+        "price": 20.0,
         "side": "sell"
       },
       {
@@ -82,10 +86,6 @@
       },
       {
         "price": 19.95,
-        "side": "sell"
-      },
-      {
-        "price": 19.93,
         "side": "sell"
       },
       {
@@ -97,32 +97,32 @@
         "side": "sell"
       }
     ],
-    "sell_median": 19.96,
-    "source_kind": "p2p_buy_median",
-    "source_words": "from person-to-person ads"
+    "sell_median": 20.035,
+    "source_kind": null,
+    "source_words": "no price this hour"
   },
   "evidence_rule": {
     "applies": true,
     "buy_ads_actual": 10,
     "buy_ads_estimated": false,
-    "buy_at_or_above_sell": true,
+    "buy_at_or_above_sell": false,
     "min_buy_ads_required": 10,
-    "passed": true,
-    "reason": null,
+    "passed": false,
+    "reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market",
     "reason_code": null
   },
-  "hour_utc": "2026-09-25T04:00:00+00:00",
+  "hour_utc": "2026-09-25T05:00:00+00:00",
   "index_version": "1.1",
-  "not_published_reason": null,
+  "not_published_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market",
   "official_rate": {
     "class": "market",
     "source": "open.er-api",
     "source_file": "data/fx_rates.csv",
-    "timestamp": "2026-09-25T04:07:19.235880+00:00",
+    "timestamp": "2026-09-25T05:07:14.668010+00:00",
     "value": 19.659658
   },
   "outlier_checked": null,
-  "published": true,
+  "published": false,
   "source_files": [
     "data/countries/ZMW.json",
     "data/fx_rates.csv",
