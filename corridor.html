@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <link rel="stylesheet" href="./style.css"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — Is it a real dollar?</title>
+<title>margin.wiki — one route, the receipt in full</title>
 <meta name="description" content="Is a digital dollar a real dollar? We buy one in Singapore, move it, and sell it in the Philippines, paying every fee on the way, measured hourly against the best fiat provider quoting the same amount."/>
 <style>
   /* Page-specific only: the layout components below (cards, the size
@@ -311,7 +311,7 @@ async function boot(){
   if(qp) corridor=qp;
   const C=await loadCopy();
   COPY=C.corridor||{};
-  document.getElementById("pageTitle").textContent=COPY.title||"Is it a real dollar?";
+  document.getElementById("pageTitle").textContent=COPY.title||cmiss("title");
   document.getElementById("lede1").textContent=COPY.lede1||"";
   document.getElementById("lede2").textContent=COPY.lede2||"";
   document.getElementById("routeLbl").textContent=(COPY.sizebar||{}).route||"route";
@@ -384,7 +384,7 @@ function selectCorridor(key){
   const r5=bySize[size];
   const d=new Date(newest.replace(" ","T")), ago=Math.round((Date.now()-d)/6e4);
   const hours=new Set(rows.map(r=>r.ts.slice(0,13))).size;
-  document.title="margin.wiki — Is it a real dollar? · "+place(srcCcy)+" → "+place(dstOf(r5));
+  document.title="margin.wiki — one route, the receipt in full · "+place(srcCcy)+" → "+place(dstOf(r5));
   const feeStampR=feeStamp(feeChecks,r5.fees_verified,withdrawalFees,(r5.onramp_venue||"").trim().toLowerCase());
   document.getElementById("stamp").innerHTML=
     `<b>${esc(COPY.updatedLabel||cmiss("updatedLabel"))}</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?(COPY.minAgoTemplate?T(COPY.minAgoTemplate,{n:ago}):cmiss("minAgoTemplate")):(COPY.hAgoTemplate?T(COPY.hAgoTemplate,{n:Math.round(ago/60)}):cmiss("hAgoTemplate"))} · `+
@@ -406,7 +406,7 @@ function selectCorridor(key){
   const dst=(r5.dst||"").trim();
   document.getElementById("foot").innerHTML=
     T(COPY.footerTemplate, { onrampVenue: r5.onramp_venue, srcCcy, offrampVenue: r5.offramp_venue, dst })+" "+
-    `<a href="./methodology.html">${(COPY.footerLinks||{}).methodology||""}</a> · <a href="./index.html">${(COPY.footerLinks||{}).board||""}</a>`;
+    `<a href="./how-it-works.html">${(COPY.footerLinks||{}).methodology||""}</a> · <a href="./index.html">${(COPY.footerLinks||{}).board||""}</a>`;
 }
 
 function renderCorridors(){
@@ -541,12 +541,12 @@ function drawWaterfall(r){
     const fill = c.k==="neg" ? (c.v<0?col.neg:col.fee) : col[c.k];
     s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12" font-family="var(--font-body)">${c.l}</text>`+
        `<rect x="${x0.toFixed(1)}" y="${y+6}" width="${w.toFixed(1)}" height="${rowH-12}" fill="${fill}"/>`+
-       `<text x="${(b+(b>=a?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-neutral-700)" font-size="11" font-family="var(--mono)" text-anchor="${b>=a?"start":"end"}">${fmtCents(compCents[i])}</text>`;
+       `<text data-wf-leg="${i}" x="${(b+(b>=a?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-neutral-700)" font-size="11" font-family="var(--mono)" text-anchor="${b>=a?"start":"end"}">${fmtCents(compCents[i])}</text>`;
   });
   const y=top+comps.length*rowH, xt=X(total);
   s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12.5" font-family="var(--font-body)" font-weight="700">${(COPY.legend||{}).wholeTransfer||"The whole transfer"}</text>`+
      `<rect x="${Math.min(X(0),xt).toFixed(1)}" y="${y+5}" width="${Math.max(2,Math.abs(xt-X(0))).toFixed(1)}" height="${rowH-10}" fill="var(--win)"/>`+
-     `<text x="${(xt+(total>=0?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12" font-family="var(--mono)" font-weight="700" text-anchor="${total>=0?"start":"end"}">${cash(n,total)}</text>`;
+     `<text data-wf-total="1" x="${(xt+(total>=0?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12" font-family="var(--mono)" font-weight="700" text-anchor="${total>=0?"start":"end"}">${cash(n,total)}</text>`;
   svg.innerHTML=s;
 }
 

@@ -3,135 +3,41 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — the stress signal</title>
-<meta name="description" content="A standing prediction, scored in public: when a country's street price pulls away from its official rate, what happens to that official rate next."/>
-<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
+<title>margin.wiki — this page moved</title>
+<meta name="description" content="The stress signal moved to Findings."/>
+<meta http-equiv="refresh" content="0; url=./findings.html"/>
+<link rel="canonical" href="./findings.html"/>
 <style>
-  :root{
-    --bg:#f3f2f2; --ink:#201e1d; --muted:#7d7979;
-    --line:color-mix(in srgb,#201e1d 18%,transparent);
-    --rule:color-mix(in srgb,#201e1d 40%,transparent);
-    --fill:#d2d9f7; --deep:#8b9ae8; --bad:#a83232;
-    --head:"Archivo",system-ui,sans-serif;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--head);
-       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1060px;margin:0 auto;padding:0 24px 72px}
-  header{display:flex;align-items:center;gap:16px;padding:14px 0;
-         border-bottom:1px solid var(--rule);font-size:11px;
-         letter-spacing:.1em;text-transform:uppercase;flex-wrap:wrap}
-  header a{color:var(--ink);text-decoration:none}
-  header a:hover{text-decoration:underline}
-  h1{font-size:38px;line-height:1.08;margin:34px 0 10px;max-width:28ch}
-  .lede{font-size:16px;max-width:66ch;margin:0 0 10px;color:var(--muted)}
-  .record{font-size:13px;max-width:66ch;margin:0 0 22px;padding:10px 14px;
-           background:color-mix(in srgb,#201e1d 6%,transparent);
-           border-left:3px solid var(--rule)}
-  .muted{color:var(--muted)} .small{font-size:12px}
-  .count{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
-         margin:0 0 14px}
-  .trigger{border-left:3px solid var(--bad);padding:14px 18px 16px;margin:0 0 20px;
-           background:color-mix(in srgb,#d2d9f7 40%,transparent);max-width:72ch}
-  .trigger .tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;
-                color:var(--muted);margin:0 0 6px}
-  .trigger h2{font-size:20px;margin:0 0 8px;border:0;padding:0}
-  .trigger .body{margin:0 0 6px;max-width:66ch}
-  .trigger .since{font-size:13px;color:var(--muted)}
-  .empty{padding:26px 0;color:var(--muted)}
-  @media(max-width:720px){ h1{font-size:28px} }
+  body{margin:0;font-family:Archivo,system-ui,'Helvetica Neue',sans-serif;color:#0B0B0B;background:#fff;
+       display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;box-sizing:border-box}
+  .card{max-width:480px;text-align:center}
+  h1{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0 0 10px}
+  p{font-size:15px;color:#6B6B6B;line-height:1.5;margin:0 0 18px}
+  a{display:inline-block;font-size:15px;font-weight:700;color:#0B0B0B;text-decoration:none;
+     border-bottom:2px solid #0B0B0B;padding-bottom:2px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <a href="./index.html"><b>margin.wiki</b></a>
-    <a href="./index.html">the board</a>
-    <a href="./providers.html">every way to send it</a>
-    <a href="./pricing-history.html">price changes</a>
-    <a href="./findings.html">findings</a>
-    <a href="./weekly.html">weekly snapshot</a>
-    <a href="./requests.html">requests</a>
-    <a href="./calculator.html">calculator</a>
-    <a href="./data.html">the data</a>
-    <a href="./ask.html">ask</a>
-    <a href="./watch.html">watch</a>
-    <a href="./methodology.html">methodology</a>
-    <a href="./machine-room.html">the machine room</a>
-    <span class="muted" id="stamp"></span>
-  </header>
-
-  <h1>A currency under pressure, called in public, and scored afterward.</h1>
-  <p class="lede">When a country's street price for a dollar pulls sharply
-     further from its official rate in a single day, and the official rate
-     itself did not move enough to explain that, it is flagged here as a
-     standing prediction. Nothing is filled in and nothing is guessed:
-     every figure below is read off the files this site already publishes,
-     recomputed every time this page loads.</p>
-  <p class="record" id="record"></p>
-
-  <p class="count" id="count"></p>
-  <div id="list"></div>
-</div>
+  <div class="card">
+    <h1 id="rHeading">&nbsp;</h1>
+    <p id="rBody">&nbsp;</p>
+    <a href="./findings.html" id="rLink">Continue &rarr;</a>
+  </div>
 <script>
-const pct = v => v == null || !isFinite(v) ? "—"
-  : (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(Math.abs(v) >= 10 ? 1 : 2) + "%";
-const DAY = ["January","February","March","April","May","June","July",
-             "August","September","October","November","December"];
-function longDate(iso){
-  if(!iso) return "—";
-  const [y,m,d] = iso.split("-").map(Number);
-  return `${d} ${DAY[m-1]} ${y}`;
-}
-
-fetch("./data/stress_signal_latest.json", {cache:"no-store"})
-  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
-  .then(render)
-  .catch(e => {
-    document.getElementById("list").innerHTML =
-      '<div class="empty">The stress signal could not be read '
-      + '(' + e.message + '). Nothing is shown rather than a guess.</div>';
-  });
-
-function render(DATA){
-  document.getElementById("stamp").textContent = "as of " + (DATA.as_of || "");
-
-  const days = DATA.record_days || 0;
-  document.getElementById("record").innerHTML =
-    `<b>This record starts on ${longDate(DATA.record_start)}</b> -- the day `
-    + `an official rate first existed to check a street price against. `
-    + `It has run for ${days} ${days === 1 ? "day" : "days"} so far. `
-    + `Nothing from before that date is shown here: a signal that would have `
-    + `fired earlier is unknowable, not zero, and this page does not pretend `
-    + `otherwise.`;
-
-  const triggers = DATA.triggers || [];
-  document.getElementById("count").textContent =
-    triggers.length + (triggers.length === 1 ? " currency flagged" : " currencies flagged")
-    + " since the record began";
-
-  if(!triggers.length){
-    document.getElementById("list").innerHTML =
-      '<div class="empty">No currency has crossed the bar yet. An empty list '
-      + 'is the honest answer this early in the record, not a missing one.</div>';
-    return;
+fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+  var R = (d.redirects) || {};
+  var page = (R.pages || {})['stress.html'] || {};
+  function T(s, vals){
+    var out = String(s||'');
+    for (var k in vals) out = out.split('{' + k + '}').join(vals[k]);
+    return out;
   }
-
-  document.getElementById("list").innerHTML = triggers.map(t => {
-    const since = t.official_rate_move_since_pct == null
-      ? `No day has passed since ${longDate(t.triggered_on)} to score this against yet.`
-      : `Since then, over ${t.days_since} ${t.days_since === 1 ? "day" : "days"}, `
-        + `${t.country}'s official rate has moved ${pct(t.official_rate_move_since_pct)} `
-        + `(as of ${longDate(t.since_date)}).`;
-    return `
-      <article class="trigger">
-        <div class="tag">triggered ${longDate(t.triggered_on)} &middot; ${t.ccy}</div>
-        <h2>${t.country} pulled away from its official rate.</h2>
-        <p class="body">${t.note}</p>
-        <p class="since">${since}</p>
-      </article>`;
-  }).join("");
-}
+  document.getElementById('rHeading').textContent = R.heading || '';
+  document.getElementById('rBody').textContent = T(R.bodyTemplate, { old: 'stress.html', reason: page.reason || '', destLabel: page.destLabel || '' });
+  document.getElementById('rLink').textContent = T(R.linkTemplate, { destLabel: page.destLabel || '' });
+}).catch(function(){
+  document.getElementById('rBody').textContent = 'Continuing to ./findings.html.';
+});
 </script>
 </body>
 </html>

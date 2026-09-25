@@ -90,7 +90,10 @@ PAGES = ["index.html", "providers.html", "pricing-history.html",
 # looking specifically at an ask.html change already does this real check by
 # hand (agents/REVIEWER.md "Review from the rendered page").
 LIVE_ASK = os.environ.get("CHECK_PAGE_LIVE_ASK") == "1"
-PAGE_VISIT_SUFFIX = {"watch.html": "?verify=0", "country.html": "?ccy=DZD"}
+PAGE_VISIT_SUFFIX = {"country.html": "?ccy=DZD"}
+# watch.html used to need "?verify=0" here to headlessly trigger its live
+# backend condition-setting flow -- it's a redirect stub now (SESSIONS.md
+# Session 2), that flow doesn't exist on this page anymore.
 if LIVE_ASK:
     PAGE_VISIT_SUFFIX["ask.html"] = "?verify=0"
 
@@ -228,21 +231,32 @@ def normalize_markup(s):
 # tools/check_page.py compares with startswith(), not ==, because
 # corridor.html appends the corridor's own currencies to this base title
 # client-side (see its `document.title=...` line).
+#
+# The ten retired pages (providers.html, pricing-history.html,
+# methodology.html, status.html, requests.html, calculator.html,
+# weekly.html, data.html, watch.html, stress.html -- SESSIONS.md Session 2)
+# are `<meta http-equiv="refresh" content="0; ...">` stubs now: this check
+# visits the URL the same way a reader would, and a 0-second refresh has
+# already fired by the time it reads the title, so what it actually
+# observes is the DESTINATION page's title, never the stub's own. That
+# is the stronger test -- it proves the redirect really lands somewhere,
+# not just that the stub's markup looks right -- so each entry below names
+# its destination's title, not its own.
 PAGE_TITLE = {
     "index.html": "margin.wiki",
-    "providers.html": "margin.wiki — every way to send money, ranked",
-    "pricing-history.html": "margin.wiki — who changed their price, and when",
-    "corridor.html": "margin.wiki — Is it a real dollar?",
-    "methodology.html": "margin.wiki — methodology & data honesty",
-    "status.html": "margin.wiki — is this thing still working",
+    "providers.html": "margin.wiki — sending money",
+    "pricing-history.html": "margin.wiki — findings",
+    "corridor.html": "margin.wiki — one route, the receipt in full",
+    "methodology.html": "margin.wiki — how it works",
+    "status.html": "margin.wiki — the machine room",
     "findings.html": "margin.wiki — findings",
-    "requests.html": "margin.wiki — requests",
-    "calculator.html": "margin.wiki — type an amount, see what it costs",
-    "weekly.html": "margin.wiki — the weekly snapshot",
-    "data.html": "margin.wiki — every file this site reads from",
+    "requests.html": "margin.wiki — the index",
+    "calculator.html": "margin.wiki — sending money",
+    "weekly.html": "margin.wiki — findings",
+    "data.html": "margin.wiki — the machine room",
     "ask.html": "margin.wiki — ask it a question",
-    "watch.html": "margin.wiki — watch a condition",
-    "stress.html": "margin.wiki — the stress signal",
+    "watch.html": "margin.wiki — ask it a question",
+    "stress.html": "margin.wiki — findings",
     "machine-room.html": "margin.wiki — the machine room",
     "the-index.html": "margin.wiki — the index",
     "sending-money.html": "margin.wiki — sending money",
@@ -280,6 +294,39 @@ def check(page, port, browser, base):
                          f"job ({expected_title!r} expected) -- update PAGE_TITLE "
                          f"in tools/check_page.py if the page's job genuinely "
                          f"changed, otherwise fix the <title>")
+
+    # The waterfall's three bars must sum to the rendered total, to the cent
+    # -- read off the page a reader actually sees (data-wf-leg/data-wf-total
+    # text content), not re-derived from data/ here. That was the point of
+    # SEB's waterfall fix (three bars used to be reconstructed independently
+    # and drifted off the total by real cents on a live row); this check
+    # exists so a future edit to drawWaterfall() can't silently reintroduce
+    # the same drift. Skipped, not failed, when the page shows its own
+    # honest "not available yet" state (no bars rendered at all).
+    if page == "corridor.html":
+        wf_vals = browser.eval_js("""
+          (function(){
+            var legs = Array.from(document.querySelectorAll('[data-wf-leg]')).map(function(el){ return el.textContent; });
+            var totalEl = document.querySelector('[data-wf-total]');
+            return {legs: legs, total: totalEl ? totalEl.textContent : null};
+          })()
+        """)
+        if wf_vals and wf_vals.get("total") is not None:
+            def parse_cash(s):
+                m = re.search(r"([\d,]+\.\d{2})$", s or "")
+                if not m:
+                    return None
+                v = float(m.group(1).replace(",", ""))
+                return -v if "−" in s else v
+            leg_vals = [parse_cash(s) for s in wf_vals["legs"]]
+            total_val = parse_cash(wf_vals["total"])
+            if total_val is not None and all(v is not None for v in leg_vals) and leg_vals:
+                drift = round(sum(leg_vals) - total_val, 2)
+                if abs(drift) > 0.005:
+                    fails.append(f"{page}: waterfall bars ({leg_vals}) sum to "
+                                 f"{round(sum(leg_vals), 2)}, rendered total is "
+                                 f"{total_val} -- drift {drift}, does not "
+                                 f"reconcile to the cent")
 
     if page not in EXEMPT:
         scrubbed = scrub_filenames(text)

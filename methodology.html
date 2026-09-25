@@ -2,165 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<link rel="stylesheet" href="./vendor/fonts/fonts.css"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — methodology &amp; data honesty</title>
-<meta name="description" content="Every number on margin.wiki is measured, assumed, or not visible. This page says which is which."/>
+<title>margin.wiki — this page moved</title>
+<meta name="description" content="The full technical methodology moved to How it works."/>
+<meta http-equiv="refresh" content="0; url=./how-it-works.html"/>
+<link rel="canonical" href="./how-it-works.html"/>
 <style>
-  :root{
-    --ink:#12131a; --sub:#464854; --faint:#8b8d99; --line:#ebebf0;
-    --bg:#ffffff; --card:#ffffff; --fill:#f5f5f8; --accent:#12131a;
-    --link:oklch(0.55 0.17 275);
-    --shadow:0 1px 2px rgba(16,22,34,.04),0 8px 30px rgba(16,22,34,.06);
-    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    --sans:"Instrument Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0; overflow-x:hidden; max-width:100%}
-  body{background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased}
-  .wrap{max-width:760px; margin:0 auto; padding:22px 20px 72px}
-
-  header{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:8px}
-  .brand{font-weight:700; letter-spacing:-.02em; font-size:19px}
-  .brand span{color:var(--faint); font-weight:600}
-  .nav{display:flex; gap:8px}
-  .nav a{font-size:12.5px; color:var(--sub); text-decoration:none; border:1px solid var(--line); border-radius:9px; padding:6px 11px; white-space:nowrap; background:var(--card)}
-  .nav a:hover{border-color:#cfd3db}
-
-  article{margin-top:14px}
-  article h1{font-size:26px; letter-spacing:-.02em; margin:8px 0 4px}
-  article h2{font-size:18px; letter-spacing:-.01em; margin:30px 0 8px; padding-top:16px; border-top:1px solid var(--line)}
-  article h3{font-size:15px; margin:22px 0 6px; color:var(--ink)}
-  article p{margin:11px 0; color:var(--ink)}
-  article ul{margin:11px 0; padding-left:20px}
-  article li{margin:5px 0}
-  article a{color:var(--link); text-decoration:none; border-bottom:1px solid color-mix(in srgb,var(--link) 35%,transparent)}
-  article a:hover{border-bottom-color:var(--link)}
-  article strong{font-weight:600}
-  article em{font-style:italic; color:var(--sub)}
-  article code{font-family:var(--mono); font-size:.88em; background:var(--fill); border:1px solid var(--line); border-radius:5px; padding:1px 5px}
-  article pre{background:var(--fill); border:1px solid var(--line); border-radius:12px; padding:14px 16px; overflow-x:auto; margin:14px 0}
-  article pre code{background:none; border:0; padding:0; font-size:12.5px; line-height:1.5; white-space:pre}
-  article hr{border:0; border-top:1px solid var(--line); margin:22px 0}
-  .tbl-scroll{overflow-x:auto; margin:14px 0}
-  article table{border-collapse:collapse; width:100%; font-size:13.5px}
-  article th,article td{text-align:left; padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:top}
-  article th{font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--faint); font-weight:600; white-space:nowrap}
-  article tr:last-child td{border-bottom:0}
-
-  footer{margin-top:34px; padding-top:14px; border-top:1px solid var(--line); color:var(--faint); font-size:12px}
-  footer a{color:var(--sub)}
-  .loading{color:var(--faint); font-size:14px; padding:40px 0}
+  body{margin:0;font-family:Archivo,system-ui,'Helvetica Neue',sans-serif;color:#0B0B0B;background:#fff;
+       display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;box-sizing:border-box}
+  .card{max-width:480px;text-align:center}
+  h1{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0 0 10px}
+  p{font-size:15px;color:#6B6B6B;line-height:1.5;margin:0 0 18px}
+  a{display:inline-block;font-size:15px;font-weight:700;color:#0B0B0B;text-decoration:none;
+     border-bottom:2px solid #0B0B0B;padding-bottom:2px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="brand">margin.wiki <span>· methodology</span></div>
-    <nav class="nav"><a href="./index.html">← the basis board</a><a href="./calculator.html">calculator</a><a href="./machine-room.html">the machine room</a><a href="./corridor.html">corridor →</a></nav>
-  </header>
-  <article id="doc"><div class="loading">loading methodology…</div></article>
-  <footer>
-    Source of truth: <a href="./METHODOLOGY.md">METHODOLOGY.md</a> — this page renders it directly, so it can never drift from the data.
-  </footer>
-</div>
-
+  <div class="card">
+    <h1 id="rHeading">&nbsp;</h1>
+    <p id="rBody">&nbsp;</p>
+    <a href="./how-it-works.html" id="rLink">Continue &rarr;</a>
+  </div>
 <script>
-"use strict";
-const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-
-// inline: protect code spans, then links/bold/italic on escaped text
-function inline(s){
-  const code=[];
-  s=s.replace(/`([^`]+)`/g,(m,c)=>{code.push(c);return `\u0000${code.length-1}\u0000`;});
-  s=esc(s);
-  s=s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,(m,t,u)=>`<a href="${u}" target="_blank" rel="noopener">${t}</a>`);
-  s=s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
-  s=s.replace(/(^|[\s(–—-])\*([^*\n]+)\*/g,"$1<em>$2</em>");
-  s=s.replace(/(^|[\s(–—])_([^_\n]+)_/g,"$1<em>$2</em>");
-  s=s.replace(/\u0000(\d+)\u0000/g,(m,i)=>`<code>${esc(code[+i])}</code>`);
-  return s;
-}
-const cells=line=>line.replace(/^\||\|$/g,"").split("|").map(c=>c.trim());
-
-function render(md){
-  const L=md.replace(/\r/g,"").split("\n"); let h="", i=0;
-  const isTableSep=s=>/^\s*\|?[\s:|-]*-[\s:|-]*\|?\s*$/.test(s)&&s.includes("-");
-  while(i<L.length){
-    let line=L[i];
-    if(/^```/.test(line)){                                   // fenced code
-      const buf=[]; i++;
-      while(i<L.length&&!/^```/.test(L[i])){buf.push(L[i]);i++;}
-      i++; h+=`<pre><code>${esc(buf.join("\n"))}</code></pre>`; continue;
-    }
-    if(line.trim()===""){i++;continue;}
-    if(/^#{1,3}\s/.test(line)){                              // headings
-      const n=line.match(/^#+/)[0].length, t=inline(line.replace(/^#+\s/,""));
-      h+=`<h${n}>${t}</h${n}>`; i++; continue;
-    }
-    if(/^-{3,}\s*$/.test(line)){h+="<hr>";i++;continue;}      // hr
-    if(line.includes("|")&&i+1<L.length&&isTableSep(L[i+1])){ // table
-      const head=cells(line); i+=2; let body="";
-      while(i<L.length&&L[i].includes("|")&&L[i].trim()!==""){
-        body+="<tr>"+cells(L[i]).map(c=>`<td>${inline(c)}</td>`).join("")+"</tr>"; i++;
-      }
-      h+=`<div class="tbl-scroll"><table><thead><tr>${head.map(c=>`<th>${inline(c)}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`;
-      continue;
-    }
-    if(/^\s*[-*]\s/.test(line)){                              // unordered list
-      const items=[]; let cur=null;
-      while(i<L.length){
-        if(/^\s*[-*]\s/.test(L[i])){ if(cur!==null)items.push(cur); cur=L[i].replace(/^\s*[-*]\s/,""); i++; }
-        else if(L[i].trim()!==""&&!/^(#{1,3}\s|```|-{3,}\s*$)/.test(L[i])&&!L[i].includes("|")){
-          cur+=" "+L[i].trim(); i++;                         // wrapped continuation of the item
-        } else break;
-      }
-      if(cur!==null)items.push(cur);
-      h+=`<ul>${items.map(it=>`<li>${inline(it)}</li>`).join("")}</ul>`; continue;
-    }
-    let para=[];                                             // paragraph
-    while(i<L.length&&L[i].trim()!==""&&!/^(#{1,3}\s|```|\s*[-*]\s|-{3,}\s*$)/.test(L[i])
-          &&!(L[i].includes("|")&&i+1<L.length&&isTableSep(L[i+1]))){para.push(L[i]);i++;}
-    if(para.length) h+=`<p>${inline(para.join(" "))}</p>`;
+fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+  var R = (d.redirects) || {};
+  var page = (R.pages || {})['methodology.html'] || {};
+  function T(s, vals){
+    var out = String(s||'');
+    for (var k in vals) out = out.split('{' + k + '}').join(vals[k]);
+    return out;
   }
-  return h;
-}
-
-const pct=v=>v==null||!isFinite(v)?"—":(v>=0?"+":"−")+Math.abs(v).toFixed(2)+"%";
-
-// SEB-62/U7: the source list under "How it works" is generated from the same
-// files the index itself reads (tools/emit_sources.py), so it names exactly
-// what priced this hour rather than a list someone typed once and forgot.
-function sourceListHtml(doc){
-  if(!doc || !Array.isArray(doc.sources)){
-    return `<p class="loading">Live source list could not be read from data/sources_latest.json.</p>`;
-  }
-  const items=doc.sources.map(s=>
-    `<li><strong>${esc(s.name)}</strong> — ${esc(s.role)}, ${esc(s.detail)}</li>`).join("");
-  return `<ul>${items}</ul>`;
-}
-
-// The stable-spread section cites a live number, so it is a fetch of a
-// data/ file at render time, same as every other figure on the site --
-// never a number typed into this prose.
-Promise.all([
-  fetch("./METHODOLOGY.md").then(r=>r.text()),
-  fetch("./data/stable_spread_summary.json").then(r=>r.ok?r.json():null).catch(()=>null),
-  fetch("./data/sources_latest.json").then(r=>r.ok?r.json():null).catch(()=>null),
-]).then(([t, summary, sourcesDoc])=>{
-  let html=render(t);
-  const live=summary
-    ? `<p>Right now: ${summary.venues} venues report both prices, the current spread `
-      +`between them runs from ${pct(summary.range_pct.low)} to ${pct(summary.range_pct.high)}, `
-      +`and the widest reading is ${pct(summary.widest_pct)} on ${summary.widest_venue} `
-      +`(${summary.widest_ccy}), as of ${summary.as_of.replace("T"," ").slice(0,16)} UTC.</p>`
-    : `<p class="loading">Live spread numbers could not be read from data/stable_spread_summary.json.</p>`;
-  html=html.replace("<p>__STABLE_SPREAD_LIVE__</p>", live);
-  html=html.replace("<p>__SOURCE_LIST_LIVE__</p>", sourceListHtml(sourcesDoc));
-  document.getElementById("doc").innerHTML=html;
-}).catch(e=>{
-  document.getElementById("doc").innerHTML=`<p class="loading">Couldn't load METHODOLOGY.md — read it <a href="./METHODOLOGY.md">directly</a>.</p>`;
-  console.error(e);
+  document.getElementById('rHeading').textContent = R.heading || '';
+  document.getElementById('rBody').textContent = T(R.bodyTemplate, { old: 'methodology.html', reason: page.reason || '', destLabel: page.destLabel || '' });
+  document.getElementById('rLink').textContent = T(R.linkTemplate, { destLabel: page.destLabel || '' });
+}).catch(function(){
+  document.getElementById('rBody').textContent = 'Continuing to ./how-it-works.html.';
 });
 </script>
 </body>
