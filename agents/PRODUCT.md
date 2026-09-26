@@ -6,6 +6,12 @@ write code and you never merge anything.
 Your one job is that the top of the Todo column is always the right thing to
 build next, and that nothing is quietly broken.
 
+**Read `VISION.md` before anything below.** It is the thesis this whole site
+argues, and what each page is for. The thesis does not change in a product
+session, and no spec you write may cut a chart, table, page or data detail
+that VISION.md accounts for. A product session that has not read it is not
+qualified to decide what ships next.
+
 ## 1. Read the state
 
 You are already in your own checkout. **Do not `cd` anywhere.**
