@@ -39,11 +39,24 @@ BANNED = [
     "on-ramp", "off-ramp", "onramp", "offramp", "p2p", "parallel rate",
     "median", "decomposition", "spread", "liquidity", "maker", "taker",
     "vip tier", "measured hours", "pass", "collector", "withheld",
+    # Phase 1 (FINAL spec): naming a specific transfer app in a heading,
+    # card or caption reads as an endorsement -- "apps like Wise" is fine
+    # in body prose (see BODY_KEY_EXCEPTIONS / EXEMPT_FILES) but not here.
+    "wise",
 ]
 
 BANNED_RE = re.compile(
     r"\b(" + "|".join(re.escape(w) for w in BANNED) + r")\b", re.I
 )
+
+# Exact-string exemptions: a restored or otherwise pre-existing heading/
+# caption/label whose text is kept verbatim (per the FINAL spec, restored
+# content is never rewritten to satisfy this check) but trips BANNED_RE.
+# Keyed by the exact snippet the check would otherwise report, matched
+# case-sensitively and in full -- deliberately narrow, never a whole-file
+# or whole-word carve-out, so a NEW violation of the same word elsewhere
+# still fails.
+ALLOWLIST = set()
 
 # A template placeholder like {corridor} or {rung} is never reader-visible on
 # its own -- it is substituted with a real, already-plain value (a route's
@@ -177,6 +190,8 @@ def main():
     violations = []
     violations += [("copy.json:" + p, w, s) for p, w, s in check_copy_json()]
     violations += check_all_html()
+
+    violations = [v for v in violations if v[2] not in ALLOWLIST]
 
     if not violations:
         print("  check_copy.py: clean -- no banned word in any heading, "

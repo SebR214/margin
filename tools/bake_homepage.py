@@ -134,19 +134,16 @@ def build_window(doc):
     return out
 
 
-def sub_html(home_copy, window_row):
+def sub_html(home_copy, n_routes, n_countries):
     """The plain, fixed sub sentence (copy.json home.headlineSub), with its
-    three real values -- send amount, stablecoin cost, cheapest-app cost --
-    and the window they cover filled in from data/corridor_window.json's
-    own SGD->PHP row, the same row index.html's client JS reads.
+    two real counts -- how many routes we price sending money on, how many
+    countries we price a street dollar in -- filled in live from
+    data/corridor_summary.json and data/index_latest.json, never typed.
     """
     tmpl = home_copy.get("headlineSub", "")
     vals = {
-        "sendAmount": window_row.get("send_amount") or "",
-        "dest": window_row.get("dest") or "",
-        "stableCost": window_row.get("stable_cost_words") or "",
-        "bestCost": window_row.get("best_cost_words") or "",
-        "window": window_row.get("window") or "",
+        "n_routes": str(n_routes) if n_routes is not None else "",
+        "n_countries": str(n_countries) if n_countries is not None else "",
     }
     out = tmpl
     for k, v in vals.items():
@@ -154,81 +151,68 @@ def sub_html(home_copy, window_row):
     return out
 
 
-def widest_gap_country(index_doc):
-    """The country with the widest street-price gap this hour -- same
-    computation index.html's own client JS uses (widestGapCountry):
-    "unmaintained" denominators (a frozen official rate) excluded since that
-    gap is an artifact of the peg, not a real market move.
+def count_countries():
+    """How many countries have a priced street-dollar rate this hour --
+    read from data/index_latest.json's own "countries" list (the priced
+    ones; "withheld" is counted separately), the same file the-index.html
+    reads for the identical count.
     """
-    countries = [c for c in (index_doc or {}).get("countries", [])
-                 if c.get("denominator_class") != "unmaintained"]
-    if not countries:
+    if not os.path.exists(INDEX_LATEST):
         return None
-    return max(countries, key=lambda c: c.get("index_pct", 0))
+    with open(INDEX_LATEST) as f:
+        doc = json.load(f)
+    countries = doc.get("countries")
+    return len(countries) if countries is not None else None
 
 
-def best_crossover_line(corridors):
-    """The one route (if any) where waiting for your own price beats the
-    cheapest app this hour, read from the SAME per-corridor win rate
-    sending-money.html's by-size crossover curve is built from. D3 spec:
-    say plainly when no route wins, never invent or reuse a stale one.
+def win_cell_html(c):
+    """The win-rate cell. When taker and maker execution genuinely diverge --
+    USD->MXN's whole story, where a near-zero taker win rate hides a ~44%
+    maker one -- both numbers are shown, at equal visual weight (colored,
+    not a muted footnote), not one buried under the other. A 5-point gap is
+    the data-driven test, not a hardcoded corridor name, so any future
+    corridor with the same shape gets the same honest treatment.
     """
-    best = None
-    for c in corridors or []:
-        if best is None or c.get("win_rate_maker_pct", 0) > best.get("win_rate_maker_pct", 0):
-            best = c
-    if not best or not (best.get("win_rate_maker_pct", 0) > 0):
-        return "No route beats the cheapest app this hour, at any size we've measured."
-    line = ("Waiting for your own price on sending money from " + esc(best.get("route_words", best["corridor"]))
-            + " beats the cheapest app about " + str(round(best["win_rate_maker_pct"])) + "% of the time.")
-    if len(corridors) > 1:
-        line += " Nowhere else does it win."
-    return line
+    t, m = c["win_rate_taker_pct"], c["win_rate_maker_pct"]
+    if abs(t - m) >= 5:
+        return (
+            '<div class="' + ("win-yes" if t >= 10 else "win-no") + '">'
+            + ("%.1f" % t) + "% of hours buying it now</div>"
+            '<div class="' + ("win-yes" if m >= 10 else "win-no") + '" style="margin-top:4px">'
+            + ("%.1f" % m) + "% of hours waiting for your price</div>"
+        )
+    return '<span class="' + ("win-yes" if t >= 10 else "win-no") + '">' + ("%.1f" % t) + "% of hours</span>"
 
 
-def home_cards_html(index_doc, window_row, corridors, home_copy):
-    """D3: the home page's one argument, in two cards -- what sending money
-    with stablecoins costs (left) and the widest broken-currency gap right
-    now (right) -- plus the one crossover line. Mirrors renderHomeCards in
-    index.html's own client JS exactly, so a crawler or JS-off visitor sees
-    the same real numbers a browser would render.
-    """
-    top = widest_gap_country(index_doc)
-    stable_cost = window_row.get("stable_cost")
-    best_cost = window_row.get("best_cost")
-    left_diff = (stable_cost - best_cost) if (stable_cost is not None and best_cost is not None) else None
-    send_amount = window_row.get("send_amount") or ""
-    left_symbol = "".join(ch for ch in send_amount if not (ch.isdigit() or ch == ",")) or "S$"
-    if left_diff is not None:
-        left_num = left_symbol + str(round(abs(left_diff))) + (" more" if left_diff >= 0 else " less")
-    else:
-        left_num = "—"
-    if send_amount and window_row.get("dest") and window_row.get("stable_cost_words") and window_row.get("best_cost_words"):
-        left_body = ("Sending " + esc(send_amount) + " to " + esc(window_row["dest"]) + " with stablecoins costs about "
-                      + esc(window_row["stable_cost_words"]) + ". The cheapest app charges about "
-                      + esc(window_row["best_cost_words"]) + ".")
-    else:
-        left_body = "This hour’s measurement is unavailable."
-    if top:
-        right_num = ("+" if top["index_pct"] >= 0 else "") + ("%.1f" % top["index_pct"]) + "%"
-        more_or_less = "more" if top["index_pct"] > 0 else "less"
-        right_body = ("In " + esc(top["country"]) + ", a dollar bought on the street costs "
-                      + ("%.1f" % abs(top["index_pct"])) + "% " + more_or_less
-                      + " than the official rate right now, the widest gap this hour.")
-    else:
-        right_num = "—"
-        right_body = "No country has a price this hour."
+def pct(bps):
+    v = bps / 100.0
+    return ("+" if v >= 0 else "") + ("%.2f" % v) + "%"
 
+
+def corridor_row_html(c, home_copy):
     return (
-        '<div class="halves">'
-        '<a class="half-card" href="./sending-money.html"><div class="half-kicker">Sending money: stablecoins lose</div>'
-        '<div class="half-num">' + esc(left_num) + '</div><div class="half-body">' + left_body + '</div>'
-        '<div class="half-link">See every route →</div></a>'
-        '<a class="half-card" href="./the-index.html"><div class="half-kicker">Broken currencies: stablecoins are the way out</div>'
-        '<div class="half-num">' + esc(right_num) + '</div><div class="half-body">' + right_body + '</div>'
-        '<div class="half-link">See every country →</div></a>'
-        '</div>'
-        '<div class="crossover-line">' + best_crossover_line(corridors) + '</div>'
+        "<tr>"
+        "<td><b>" + esc(c.get("route_words", c["corridor"])) + "</b></td>"
+        '<td class="num">' + pct(c["taker_cost_bps_median"]) + "</td>"
+        '<td class="num">' + pct(c["baseline_cost_bps_median"]) + "</td>"
+        "<td>" + win_cell_html(c) + "</td>"
+        '<td><a href="./corridor.html?corridor=' + esc(c["corridor"]) + '" style="font-weight:600;color:#0B0B0B">'
+        + esc(home_copy.get("seeCorridor", "see the receipt →")) + "</a></td>"
+        "</tr>"
+    )
+
+
+def corridor_table_html(corridors, home_copy):
+    cols = home_copy.get("corridorTableCols", {})
+    rows = "".join(corridor_row_html(c, home_copy) for c in corridors)
+    return (
+        '<div class="waterfall-title">' + esc(home_copy.get("corridorTableTitle", "Every transfer we check, priced the same way")) + "</div>"
+        '<table class="corridor-table"><thead><tr>'
+        "<th>" + esc(cols.get("corridor", "SENDING")) + "</th>"
+        "<th>" + esc(cols.get("stablecoin", "STABLECOIN COST")) + "</th>"
+        "<th>" + esc(cols.get("fiat", "BEST APP")) + "</th>"
+        "<th>" + esc(cols.get("winRate", "STABLECOIN CHEAPER")) + "</th>"
+        "<th></th></tr></thead><tbody>" + rows + "</tbody></table>"
     )
 
 
@@ -274,26 +258,21 @@ def main():
         json.dump(window, f, indent=2, sort_keys=True)
         f.write("\n")
 
-    reference = window.get("SGD->PHP") or next(iter(window.values()), {})
-
-    index_doc = None
-    if os.path.exists(INDEX_LATEST):
-        with open(INDEX_LATEST) as f:
-            index_doc = json.load(f)
-
     with open(INDEX_HTML) as f:
         html = f.read()
 
     changed = False
     html, ok1 = replace_by_marker(html, "heroHeadline", esc(home_copy.get(
-        "headline", "Sending money with stablecoins almost always costs more than using an app like Wise.")))
+        "headline", "Stablecoins rarely beat the cheapest transfer app. Except where money itself is broken.")))
     changed = changed or ok1
 
-    html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, reference))
+    n_routes = len(doc.get("corridors") or [])
+    n_countries = count_countries()
+    html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, n_routes, n_countries))
     changed = changed or ok2
 
-    cards = home_cards_html(index_doc, reference, doc["corridors"], home_copy)
-    html, ok3 = replace_by_marker(html, "homeCards", cards)
+    table = corridor_table_html(doc["corridors"], home_copy)
+    html, ok3 = replace_by_marker(html, "corridorTableSection", table)
     changed = changed or ok3
 
     if not changed:
