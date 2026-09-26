@@ -97,6 +97,15 @@ jobs:
 
       - uses: actions/checkout@v4
         if: steps.needed.outputs.proceed == 'true'
+        with:
+          # Phase 5: checkout's own persisted credential and the App token
+          # this job sets later both write to http.https://github.com/.extraheader,
+          # and git allows a config key to hold more than one value -- so
+          # without this, push sends BOTH as separate Authorization headers
+          # and GitHub's server 400s with "Duplicate header: Authorization"
+          # (found live, 2026-09-26, testing this exact phase). Read access
+          # for checkout itself is unaffected; this repo is public.
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         if: steps.needed.outputs.proceed == 'true'
@@ -277,11 +286,57 @@ jobs:
         # (the id= anchors moved) makes it fail loud.
         run: python3 tools/bake_homepage.py
 
+      # Mints a margin-agents GitHub App installation token so the commit
+      # below is pushed -- and therefore reviewed, once branch protection is
+      # back on -- as the App, not as whoever's GITHUB_TOKEN happened to run
+      # this job. Phase 5. See agents/gh_token.sh for why: an App cannot cast
+      # an approving review, which is what keeps Sebastian's approval the
+      # only one that counts.
+      #
+      # The three secrets hold what gh_token.sh needs, except MARGIN_GH_APP_KEY:
+      # the script wants a file it can read with `-r`, but the secret holds
+      # the raw PEM. So this step writes it to $RUNNER_TEMP (torn down with the
+      # runner, never in the repo or a persisted path) and points the env var
+      # at that file, unchanged from what the script already expects.
+      #
+      # `: "${VAR:?msg}"` inside gh_token.sh already fails loudly if any of the
+      # three secrets is unset (e.g. a fork with no App provisioned) -- this
+      # step does not catch or reinterpret that; it lets the step go red with
+      # the script's own message in the log.
+      - name: Mint GitHub App token
+        if: always() && steps.needed.outputs.proceed == 'true'
+        id: app_token
+        env:
+          MARGIN_GH_APP_ID: ${{ secrets.MARGIN_GH_APP_ID }}
+          MARGIN_GH_INSTALL_ID: ${{ secrets.MARGIN_GH_INSTALL_ID }}
+          MARGIN_GH_APP_KEY_CONTENT: ${{ secrets.MARGIN_GH_APP_KEY }}
+        run: |
+          set +x
+          key_file="$RUNNER_TEMP/margin-app-key.pem"
+          umask 077
+          printf '%s\n' "$MARGIN_GH_APP_KEY_CONTENT" > "$key_file"
+          export MARGIN_GH_APP_KEY="$key_file"
+          token="$(agents/gh_token.sh)"
+          rm -f "$key_file"
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
       - name: Commit samples
         if: always() && steps.needed.outputs.proceed == 'true'
+        env:
+          APP_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
-          git config user.name "margin-collector"
-          git config user.email "actions@github.com"
+          set +x
+          # margin-agents[bot]'s standard commit identity, so GitHub renders
+          # the commit as the App, matching the token it's pushed with below.
+          git config user.name "margin-agents[bot]"
+          # 329969015 is the margin-agents[bot] USER account's id, not the App
+          # ID -- GitHub's bot-commit-linking convention keys on the former.
+          # Using MARGIN_GH_APP_ID here (found live, first Phase 5 test run)
+          # produces a commit that LOOKS right but GitHub never links back to
+          # the bot account, so it shows unattributed rather than as the App.
+          # Confirm via: gh api users/margin-agents%5Bbot%5D --jq .id
+          git config user.email "329969015+margin-agents[bot]@users.noreply.github.com"
           # Staged one at a time, and only if present. `git add` on a path
           # that does not exist yet is a fatal error (exit 128), and under
           # `bash -e` that kills the step BEFORE the freshness guard runs --
@@ -348,8 +403,17 @@ jobs:
           else
             # commit BEFORE rebasing: git refuses `pull --rebase` with a staged index.
             git commit -m "sample $(date -u +%Y-%m-%dT%H:%MZ)"
-            git pull --rebase origin ${GITHUB_REF_NAME}
-            git push origin ${GITHUB_REF_NAME}
+            # Push (and the rebase's own fetch) as the App: checkout's default
+            # credential is untouched (it's a read concern, and changing it
+            # doesn't change whose review requirements apply once branch
+            # protection is back), but the identity that actually writes to
+            # main is what matters here, so only this remote is repointed,
+            # only for this step, and only in memory (never `git remote
+            # set-url`, which would write the token into .git/config on disk).
+            git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)" \
+              pull --rebase origin "${GITHUB_REF_NAME}"
+            git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)" \
+              push origin "${GITHUB_REF_NAME}"
           fi
           # Rot guard runs on EVERY fire, not just the ones that staged nothing:
           # whether the data is rotting has nothing to do with what this
