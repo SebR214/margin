@@ -231,9 +231,7 @@ def run(base_url, dry_run):
         shots.append(hiw_shot)
 
         # ---- Walk the nav, desktop width, each page loads clean ----
-        # findings.html is a redirect stub now (D3) -- sending-money.html is
-        # its destination and already covers the same real page load.
-        nav_pages = ["the-index.html", "sending-money.html", "machine-room.html"]
+        nav_pages = ["the-index.html", "sending-money.html", "findings.html", "machine-room.html"]
         for np in nav_pages:
             p.visit(base_url + "/" + np)
             if p.errors:

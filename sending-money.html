@@ -44,16 +44,7 @@
   .prow.missing{opacity:.5}
   .prow.missing .cost,.prow.missing .pct{color:#9A9A9A;font-weight:400;font-style:italic}
   .foot{padding-top:10px;font-size:12px;color:#9A9A9A;line-height:1.5}
-  .changes-section{padding:44px 48px 56px;border-top:1px solid var(--rule);margin-top:28px}
-  .changes-title{font-size:22px;font-weight:800;letter-spacing:-0.01em}
-  .changes-lede{font-size:15px;color:#6B6B6B;line-height:1.5;padding-top:8px;max-width:780px}
-  .change-card{padding:22px 0;border-bottom:1px solid var(--rule);max-width:780px}
-  .change-card .stamp{font-size:11px;color:#9A9A9A;letter-spacing:.06em;padding-bottom:6px}
-  .change-card .p{font-size:16px;line-height:1.55;color:#1A1A1A}
-  .change-card .p b{font-weight:700}
-  .change-card .receipt{font-size:12.5px;color:#6B6B6B;padding-top:8px}
-  .change-card .receipt a{font-weight:600;color:#0B0B0B}
-  @media(max-width:900px){h1{font-size:30px} header{padding:22px 24px} .hero{padding:32px 24px 0} .corridor{padding:32px 24px 0;max-width:100%} .changes-section{padding:32px 24px 40px}}
+  @media(max-width:900px){h1{font-size:30px} header{padding:22px 24px} .hero{padding:32px 24px 0} .corridor{padding:32px 24px 0;max-width:100%}}
 
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
   @media(max-width:760px){
@@ -94,14 +85,6 @@
 
   <div class="corridor-picker" id="corridorPicker"></div>
   <div id="corridors"></div>
-
-  <div class="changes-section">
-    <div class="changes-title">When a price actually moves</div>
-    <div class="changes-lede">Every provider's price against every other, day over day, the reference rate cancelled out so only a real move is reported. A day's changes are only counted once that day has fully closed.</div>
-    <div id="weekendIndex" style="padding-top:20px"></div>
-    <div id="patterns" style="padding-top:20px"></div>
-    <div id="changeCards" style="padding-top:8px"></div>
-  </div>
 </div>
 
 <script>
@@ -290,138 +273,6 @@
     }
   }).catch(function(){
     document.getElementById('corridors').innerHTML = '<div class="corridor"><p style="color:#0B0B0B">Could not load corridor data. That failure is shown, not hidden.</p></div>';
-  });
-})();
-</script>
-
-<script>
-// Migrated from findings.html (retired, D3): the weekend-price index, the
-// repeated-hike patterns, and the day-by-day change cards -- all real
-// provider-price content findings.html carried that this page did not
-// already show. Same data files, same logic, re-skinned to this page's
-// own card style rather than findings.html's.
-(function(){
-  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function fmt(n){ return n.toFixed(2)+'%'; }
-
-  Promise.all([
-    fetch('./data/price_changes_latest.json', {cache:'no-store'}).then(r=>r.json()),
-    fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
-  ]).then(function(res){
-    var pc = res[0], prov = res[1];
-    if (prov) {
-      var judged = pc.saturdays_judged || {};
-      var totalSlots = 0, hikeDays = 0;
-      var hikesByPair = {};
-      (pc.changes||[]).filter(function(c){ return c.kind === 'weekend_up'; }).forEach(function(c){
-        var key = c.provider + '|' + c.corridor;
-        if (!hikesByPair[key]) hikesByPair[key] = { provider: c.provider, corridor: c.corridor, route_words: c.route_words, days: {}, moves: [] };
-        hikesByPair[key].days[c.day] = true;
-        hikesByPair[key].moves.push(c.move_pct);
-      });
-      Object.keys(judged).forEach(function(corridor){
-        var route = prov.corridors[corridor];
-        if (!route) return;
-        var providers = {};
-        Object.keys(route.sizes).forEach(function(sz){
-          route.sizes[sz].rows.forEach(function(r){ if (r.provider !== 'The dollar route') providers[r.provider] = true; });
-        });
-        totalSlots += Object.keys(providers).length * judged[corridor];
-      });
-      Object.keys(hikesByPair).forEach(function(k){ hikeDays += Object.keys(hikesByPair[k].days).length; });
-      var allMoves = Object.keys(hikesByPair).reduce(function(a,k){ return a.concat(hikesByPair[k].moves); }, []);
-      var avgMove = allMoves.length ? allMoves.reduce(function(a,b){return a+b;},0)/allMoves.length : 0;
-      var offenders = Object.keys(hikesByPair).map(function(k){ return hikesByPair[k]; })
-        .sort(function(a,b){ return Object.keys(b.days).length - Object.keys(a.days).length; });
-      var rate = totalSlots ? (hikeDays / totalSlots * 100) : 0;
-
-      document.getElementById('weekendIndex').innerHTML =
-        '<div style="font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase;padding-bottom:8px">The weekend price check</div>' +
-        '<div style="font-size:20px;font-weight:800;letter-spacing:-0.01em;line-height:1.3">' + rate.toFixed(1) + '% of the provider-Saturday pairs we\'ve watched show a price hike</div>' +
-        '<div style="font-size:15px;color:#333;padding-top:8px;line-height:1.6">' + hikeDays + ' of ' + totalSlots + ' provider-Saturday checks, across every provider on every route this site tracks. Narrow, not industry-wide: ' +
-        (offenders.length ? offenders.map(function(o){ return esc(o.provider) + ' on ' + esc(o.route_words); }).join(' and ') + ' account for all of it.' : 'nobody has done it more than once.') +
-        ' When it happens, the average hike is <b class="num">' + avgMove.toFixed(2) + '%</b> of the amount.</div>' +
-        '<div style="font-size:13px;color:#9A9A9A;padding-top:10px">Sending money with stablecoins doesn\'t close for the weekend, which is the real argument for it.</div>';
-    }
-  }).catch(function(){});
-
-  fetch('./data/price_changes_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
-    var changes = d.changes || [];
-
-    var weekendUps = changes.filter(function(c){ return c.kind === 'weekend_up'; });
-    var byProvider = {};
-    weekendUps.forEach(function(c){
-      var key = c.provider + '|' + c.corridor;
-      if (!byProvider[key]) byProvider[key] = { provider: c.provider, corridor: c.corridor, route_words: c.route_words, days: {} };
-      byProvider[key].days[c.day] = true;
-    });
-    var patterns = Object.keys(byProvider).map(function(k){
-      var p = byProvider[k];
-      p.dayCount = Object.keys(p.days).length;
-      p.judged = (d.saturdays_judged || {})[p.corridor] || p.dayCount;
-      return p;
-    }).filter(function(p){ return p.dayCount >= 2; })
-      .sort(function(a,b){ return (b.dayCount/b.judged) - (a.dayCount/a.judged); });
-
-    var weekdayUps = changes.filter(function(c){ return c.kind === 'change' && c.move_pct > 0; });
-    var byFreq = {};
-    weekdayUps.forEach(function(c){
-      var key = c.provider + '|' + c.corridor;
-      if (!byFreq[key]) byFreq[key] = { provider: c.provider, corridor: c.corridor, route_words: c.route_words, days: {} };
-      byFreq[key].days[c.day] = true;
-    });
-    var freqRanked = Object.keys(byFreq).map(function(k){
-      var p = byFreq[k]; p.dayCount = Object.keys(p.days).length; return p;
-    }).filter(function(p){ return p.dayCount >= 5; })
-      .sort(function(a,b){ return b.dayCount - a.dayCount; })
-      .slice(0, 3);
-
-    if (patterns.length || freqRanked.length) {
-      document.getElementById('patterns').innerHTML =
-        '<div style="padding:0 0 8px;font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase">Not a one-off, a habit</div>' +
-        patterns.slice(0, 5).map(function(p){
-          return '<div class="change-card"><div class="p">' +
-            esc(p.provider) + ' has raised its weekend price on ' + esc(p.route_words) +
-            ' on <b>' + p.dayCount + ' of the ' + p.judged + ' Saturdays</b> we\'ve watched that route.</div>' +
-            '<div class="receipt">every weekend hike, caught the same way any price change is</div></div>';
-        }).join('') +
-        freqRanked.map(function(p){
-          return '<div class="change-card"><div class="p">' +
-            esc(p.provider) + ' has raised its price on ' + esc(p.route_words) +
-            ' on <b>' + p.dayCount + ' separate days</b> since we started watching.</div>' +
-            '<div class="receipt">every price rise counted the same way, any day of the week</div></div>';
-        }).join('');
-    }
-
-    var seen = {};
-    var dedup = [];
-    changes.slice().sort((a,b)=> b.ts_utc.localeCompare(a.ts_utc) || (a.size==='5000'?-1:1))
-      .forEach(function(c){
-        var key = c.day+'|'+c.provider+'|'+c.corridor;
-        if (!seen[key]) { seen[key] = true; dedup.push(c); }
-      });
-
-    var cardsHtml = dedup.slice(0, 12).map(function(c){
-      var up = c.move_pct > 0;
-      var sentence;
-      if (c.kind === 'weekend_up') {
-        sentence = esc(c.provider)+' raised its weekend price on '+esc(c.route_words)+
-          ': sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b> of the amount, up from '+fmt(c.old_cost_pct)+' on '+esc(c.weekday)+'.';
-      } else if (c.kind === 'weekend_back') {
-        sentence = esc(c.provider)+' dropped its price back down on '+esc(c.route_words)+
-          ' after the weekend: sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b>, down from '+fmt(c.old_cost_pct)+'.';
-      } else {
-        sentence = esc(c.provider)+' '+(up?'raised':'cut')+' its price on '+esc(c.route_words)+
-          ': sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b> of the amount, '+(up?'up':'down')+' from '+fmt(c.old_cost_pct)+' the day before.';
-      }
-      return '<div class="change-card"><div class="stamp">'+esc(c.day).toUpperCase()+'</div>' +
-        '<div class="p">'+sentence+'</div>' +
-        '<div class="receipt">from the daily provider panel, '+esc(c.n_agree)+' of '+esc(c.n_panel)+' readings agree</div></div>';
-    }).join('');
-
-    document.getElementById('changeCards').innerHTML = cardsHtml || '<div class="change-card"><div class="p">No verified price changes in the current window.</div></div>';
-  }).catch(function(){
-    document.getElementById('changeCards').innerHTML = '<div class="change-card"><p style="color:#0B0B0B">Could not load price-change data. That failure is shown, not hidden.</p></div>';
   });
 })();
 </script>

@@ -39,16 +39,6 @@
   .corridor-table .win-yes{color:#0B0B0B;font-weight:700}
   .corridor-table .win-no{color:#6B6B6B;font-weight:500}
   .corridor-note{font-size:12.5px;color:#9A9A9A;margin-top:4px;font-weight:400;line-height:1.5}
-  .halves{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:18px}
-  .half-card{display:block;border:1px solid var(--rule);border-radius:16px;padding:24px 26px;color:var(--ink)}
-  .half-card:hover{border-color:var(--indigo)}
-  .half-kicker{font-size:13px;letter-spacing:.02em;color:var(--sub);font-weight:700}
-  .half-num{font-size:34px;font-weight:800;letter-spacing:-0.02em;padding-top:10px;color:var(--ink)}
-  .half-body{font-size:14.5px;line-height:1.5;color:#333;padding-top:8px}
-  .half-link{font-size:13px;font-weight:700;padding-top:14px;color:var(--ink)}
-  .crossover-line{font-size:14.5px;line-height:1.5;color:var(--sub);padding:2px 0 4px}
-  .agents-strip{margin-bottom:8px}
-  @media(max-width:640px){ .halves{grid-template-columns:1fr} }
   .break{border-top:1px solid var(--rule);margin:44px 48px 0}
   .body{padding:40px 48px 48px}
   .feed{display:flex;flex-direction:column;max-width:760px}
@@ -97,7 +87,7 @@
       </nav>
     </div>
     <div class="status">
-      <a class="mcp" href="./how-it-works.html#use-this-data">Use this data</a>
+      <div class="mcp">MCP · API</div>
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
   </header>
@@ -108,22 +98,25 @@
     <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->We check real prices every hour. Sending S$5,000 to the Philippines this way costs about S$43, the cheapest app charges about S$22. That's the typical cost over the 919 hours we&#39;ve checked since 10 August 2026. The coin is cheap to move. Buying it and cashing it out is what costs you.<!--BAKE:END:heroSub--></div>
   </div>
 
-  <div id="homeCards" class="lead-section" style="padding-bottom:0"><!--BAKE:START:homeCards--><div class="halves"><a class="half-card" href="./sending-money.html"><div class="half-kicker">Sending money: stablecoins lose</div><div class="half-num">S$20 more</div><div class="half-body">Sending S$5,000 to the Philippines with stablecoins costs about S$43. The cheapest app charges about S$22.</div><div class="half-link">See every route →</div></a><a class="half-card" href="./the-index.html"><div class="half-kicker">Broken currencies: stablecoins are the way out</div><div class="half-num">+90.2%</div><div class="half-body">In Algeria, a dollar bought on the street costs 90.2% more than the official rate right now, the widest gap this hour.</div><div class="half-link">See every country →</div></a></div><div class="crossover-line">Waiting for your own price on sending money from the United States to Mexico beats the cheapest app about 42% of the time. Nowhere else does it win.</div><!--BAKE:END:homeCards--></div>
+  <div id="waterfallSection" class="lead-section"></div>
+  <div id="corridorTableSection" class="lead-section" style="padding-bottom:0"><!--BAKE:START:corridorTableSection--><div class="waterfall-title">Every transfer we check, priced the same way</div><table class="corridor-table"><thead><tr><th>SENDING</th><th>STABLECOIN COST</th><th>BEST APP</th><th>STABLECOIN CHEAPER</th><th></th></tr></thead><tbody><tr><td><b>Singapore to the Philippines</b></td><td class="num">+0.85%</td><td class="num">+0.45%</td><td><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=SGD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>Australia to the Philippines</b></td><td class="num">+0.99%</td><td class="num">+0.62%</td><td><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=AUD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>New Zealand to the Philippines</b></td><td class="num">+1.10%</td><td class="num">+0.67%</td><td><span class="win-no">3.1% of hours</span></td><td><a href="./corridor.html?corridor=NZD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>the United States to Mexico</b></td><td class="num">+0.76%</td><td class="num">+0.54%</td><td><div class="win-no">0.3% of hours buying it now</div><div class="win-yes" style="margin-top:4px">41.4% of hours waiting for your price</div></td><td><a href="./corridor.html?corridor=USD-&gt;MXN" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr></tbody></table><!--BAKE:END:corridorTableSection--></div>
+  <div class="lead-section" style="padding-top:14px"><a href="./fee-tiers.html" style="font-weight:600;color:#0B0B0B">Why the doors cost more than the rail, in full →</a></div>
 
   <div class="break"></div>
 
   <div class="body">
-    <div class="agents-strip">
+    <div class="feed">
       <div class="agent-hdr">
         <div class="agent-sq"></div>
-        <div class="agent-name">Built and run by AI agents</div>
+        <div class="agent-name">the margin agent</div>
         <div class="stamp num" id="passStamp">&nbsp;</div>
       </div>
+
       <div class="items" id="items">
         <div class="item"><p>Loading this hour's findings…</p></div>
       </div>
-      <div class="live-strip-note">One collects prices, one builds, one reviews what got built, one decides what to build next. No person is in that loop hour to hour. <a href="./agent-incidents.html">See where that went wrong →</a></div>
-    </div>
+
+      <div class="live-strip-note">The finding above is the headline result. This is what the agent is watching right now, updated hourly. <a href="./the-index.html">See every tracked country →</a></div>
 
       <div class="about">Built by one person and the agents that run this site around the clock — one collects, one builds, one reviews, one decides what's next. Raw data and code are public.</div>
       <div class="stamp" style="margin-top:10px;display:flex;align-items:center;gap:8px">
@@ -175,66 +168,147 @@
     return out;
   }
 
+  // D1 waterfall, re-skinned to the site's one chart palette (js/chart.js,
+  // MarginChart -- indigo for cost added, the same soft indigo fill for a
+  // gain, ink for the total) and made genuinely interactive: hovering a bar
+  // shows its exact value in a tooltip, the same visual language as every
+  // other chart on the site, not a static picture.
   // "bps" is a banned word on reader-facing pages -- every value here
-  // comes in as bps and is shown as percent, the same unit costPhrase() uses.
+  // comes in as bps (matching samples.csv's own columns) and is shown as
+  // percent, the same unit costPhrase() and every chip already use.
   function cashPct(bps){ var pct = bps/100; return (pct>=0?'+':'') + pct.toFixed(2) + '%'; }
-
-  // D3: the home page's one argument, in two cards. Left: what sending
-  // money with stablecoins actually costs against the cheapest app, from
-  // data/corridor_window.json's SGD->PHP row (the SAME file the hero
-  // sentence above reads, so the two numbers can never disagree). Right:
-  // the country with the widest street-price gap this hour, from
-  // data/index_latest.json -- the same "widest gap" computation the board
-  // on the-index.html uses, "unmaintained" pegs excluded since a frozen
-  // official rate is an artifact of the peg, not a real market gap.
-  function widestGapCountry(countries){
-    var managed = countries.filter(function(c){ return c.denominator_class !== 'unmaintained'; });
-    return managed.slice().sort(function(a,b){ return b.index_pct - a.index_pct; })[0];
-  }
-
-  // The one route where waiting for your own price (not buying it now)
-  // sometimes actually beats the cheapest app -- read straight off
-  // data/corridor_summary.json's per-corridor win rate, the SAME aggregate
-  // sending-money.html's own by-size crossover curve is built from. If no
-  // corridor's maker win rate is above zero this hour, that is said
-  // plainly rather than a stale or invented route being named.
-  function bestCrossoverLine(corridors){
-    var best = null;
-    (corridors || []).forEach(function(c){
-      if (!best || c.win_rate_maker_pct > best.win_rate_maker_pct) best = c;
+  function renderWaterfall(wf, COPY, windowRow){
+    var L = COPY.waterfallLegend || {};
+    var buy = wf.onramp_basis_bps + wf.onramp_fee_bps;
+    var sell = wf.offramp_basis_bps + wf.offramp_fee_bps;
+    var steps = [
+      {label: L.buying || 'Buying the coin', v: buy, kind: 'cost'},
+      {label: L.moving || 'Moving it', v: wf.network_fee_bps, kind: 'rail'},
+      {label: L.selling || 'Selling it', v: sell, kind: 'cost'}
+    ];
+    var total = wf.total_cost_bps, base = wf.baseline_cost_bps;
+    var run = 0, cum = [0];
+    steps.forEach(function(s){ run += s.v; cum.push(run); });
+    var all = [0, total, base].concat(cum);
+    var dMin = Math.min.apply(null, all), dMax = Math.max.apply(null, all);
+    var pad = (dMax - dMin) * 0.12 || 10, lo = dMin - pad, hi = dMax + pad;
+    var Lx = 190, Rx = 760, X = function(v){ return Lx + (v - lo) / (hi - lo) * (Rx - Lx); };
+    var rowH = 34, top = 10, W = 800, rows = steps.length + 1, H = top + rows * rowH + 34;
+    // The site's actual chart palette: periwinkle for the first dollar-route
+    // leg, eggshell (bordered so it still reads on white) for the second --
+    // two legs the same color read as "the same number" (SEB, 2026-09-25) --
+    // dust grey for the rail/secondary leg, vintage grape (not pure black)
+    // for the total. One palette, reused verbatim on every cost chart --
+    // index.html, corridor.html, sending-money.html.
+    var col = {cost: '#817FCC', cost2: '#F0EBD8', gain: '#D3D0CB', rail: '#D3D0CB', total: '#3F3047'};
+    var uid = 'wf' + Math.random().toString(36).slice(2,8);
+    var svg = '<line x1="' + X(0).toFixed(1) + '" y1="' + top + '" x2="' + X(0).toFixed(1) + '" y2="' + (top + rows*rowH) + '" stroke="#E5E5EA" stroke-width="1"/>' +
+      '<line x1="' + X(base).toFixed(1) + '" y1="' + (top-4) + '" x2="' + X(base).toFixed(1) + '" y2="' + (top + rows*rowH + 4) + '" stroke="#9A9A9A" stroke-width="1.2" stroke-dasharray="4,3"/>' +
+      '<text x="' + X(base).toFixed(1) + '" y="' + (top + rows*rowH + 18) + '" fill="#6B6B6B" font-family="Archivo,sans-serif" font-size="12" text-anchor="middle">cheapest app, ' + cashPct(base) + '</text>';
+    var bars = [];
+    var costLegsSeen = 0;
+    steps.forEach(function(s, i){
+      var y = top + i * rowH;
+      var a = X(cum[i]), b = X(cum[i+1]);
+      var x0 = Math.min(a,b), w = Math.max(2, Math.abs(b-a));
+      var fill;
+      if (s.kind === 'rail') fill = col.rail;
+      else if (s.v < 0) fill = col.gain;
+      else { fill = costLegsSeen === 0 ? col.cost : col.cost2; costLegsSeen++; }
+      var stroke = fill === col.cost2 ? ' stroke="#D3D0CB" stroke-width="1"' : '';
+      var barId = uid + 'b' + i;
+      svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" fill="#0B0B0B">' + esc(s.label) + '</text>' +
+        '<rect id="' + barId + '" class="wf-bar" data-label="' + esc(s.label) + '" data-value="' + cashPct(s.v) + '" x="' + x0.toFixed(1) + '" y="' + (y+7) + '" width="' + w.toFixed(1) + '" height="' + (rowH-14) + '" rx="2" fill="' + fill + '"' + stroke + ' style="cursor:pointer;transition:opacity .1s"/>' +
+        '<text x="' + (b + (b>=a?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="12.5" fill="#6B6B6B" text-anchor="' + (b>=a?'start':'end') + '">' + cashPct(s.v) + '</text>';
+      bars.push(barId);
     });
-    if (!best || !(best.win_rate_maker_pct > 0)) {
-      return 'No route beats the cheapest app this hour, at any size we\'ve measured.';
-    }
-    return 'Waiting for your own price on sending money from ' + esc(best.route_words) +
-      ' beats the cheapest app about ' + Math.round(best.win_rate_maker_pct) + '% of the time.' +
-      (corridors.length > 1 ? ' Nowhere else does it win.' : '');
+    var y = top + steps.length * rowH, xt = X(total);
+    var totalBarId = uid + 'btotal';
+    svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + esc(L.total || 'The whole transfer') + '</text>' +
+      '<rect id="' + totalBarId + '" class="wf-bar" data-label="' + esc(L.total || 'The whole transfer') + '" data-value="' + cashPct(total) + '" x="' + Math.min(X(0), xt).toFixed(1) + '" y="' + (y+6) + '" width="' + Math.max(2, Math.abs(xt-X(0))).toFixed(1) + '" height="' + (rowH-12) + '" rx="2" fill="' + col.total + '" style="cursor:pointer;transition:opacity .1s"/>' +
+      '<text x="' + (xt + (total>=0?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="13" font-weight="700" fill="#0B0B0B" text-anchor="' + (total>=0?'start':'end') + '">' + cashPct(total) + '</text>';
+    bars.push(totalBarId);
+
+    // The send amount, the destination and the window all come from
+    // data/corridor_window.json -- the SAME file the hero sub reads its
+    // own numbers from -- so this caption can never state a different
+    // window than the sentence above it.
+    windowRow = windowRow || {};
+    var cap = (COPY.waterfallCap || 'Sending {rung} to {dest}, buying it now.')
+      .replace('{rung}', windowRow.send_amount || (wf.rung_src ? '' + wf.rung_src.toLocaleString() : ''))
+      .replace('{dest}', windowRow.dest || '')
+      .replace('{window}', windowRow.window || 'the typical value across every hour we have checked');
+    var tipId = 'tip' + uid;
+    document.getElementById('waterfallSection').innerHTML =
+      '<div class="waterfall-card">' +
+      '<div class="waterfall-title">' + esc(COPY.waterfallTitle || 'Where the cost actually sits') + '</div>' +
+      '<div class="waterfall-cap">' + esc(cap) + ' (n=' + wf.n + ' hours measured)</div>' +
+      '<div style="position:relative">' +
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:760px;height:auto">' + svg + '</svg>' +
+      '<div id="' + tipId + '" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;top:0;left:0"></div>' +
+      '</div>' +
+      '</div>';
+
+    var card = document.getElementById('waterfallSection');
+    var tip = document.getElementById(tipId);
+    var svgEl = card.querySelector('svg');
+    bars.forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('mouseenter', function(ev){
+        el.style.opacity = 0.82;
+        tip.textContent = el.getAttribute('data-label') + ': ' + el.getAttribute('data-value');
+        tip.style.opacity = 1;
+      });
+      el.addEventListener('mousemove', function(ev){
+        var rect = svgEl.getBoundingClientRect();
+        var leftPct = ((ev.clientX - rect.left) / rect.width) * 100;
+        var topPct = ((ev.clientY - rect.top) / rect.height) * 100;
+        tip.style.left = leftPct + '%';
+        tip.style.top = Math.max(0, topPct - 12) + '%';
+      });
+      el.addEventListener('mouseleave', function(){
+        el.style.opacity = 1;
+        tip.style.opacity = 0;
+      });
+    });
   }
 
-  function renderHomeCards(idx, corridorSummary, windowRow){
-    var sgd = windowRow || {};
-    var top = widestGapCountry(idx.countries || []);
-    var leftDiff = (sgd.stable_cost != null && sgd.best_cost != null) ? (sgd.stable_cost - sgd.best_cost) : null;
-    var leftSymbol = (sgd.send_amount || '').replace(/[0-9,]+$/, '') || 'S$';
-    var leftNum = leftDiff != null ? leftSymbol + Math.round(Math.abs(leftDiff)) + (leftDiff >= 0 ? ' more' : ' less') : '—';
-    var leftBody = (sgd.send_amount && sgd.dest && sgd.stable_cost_words && sgd.best_cost_words)
-      ? 'Sending ' + esc(sgd.send_amount) + ' to ' + esc(sgd.dest) + ' with stablecoins costs about ' + esc(sgd.stable_cost_words) + '. The cheapest app charges about ' + esc(sgd.best_cost_words) + '.'
-      : 'This hour’s measurement is unavailable.';
-    var rightNum = top ? (top.index_pct >= 0 ? '+' : '') + top.index_pct.toFixed(1) + '%' : '—';
-    var rightBody = top
-      ? 'In ' + esc(top.country) + ', a dollar bought on the street ' + costPhrase(top.index_pct) + ' right now, the widest gap this hour.'
-      : 'No country has a price this hour.';
+  // Taker and maker win rates are shown both, at equal weight, whenever
+  // they genuinely diverge (5+ points) -- USD->MXN's whole story is a
+  // near-zero taker rate hiding a ~44% maker one, and burying that second
+  // number in a muted footnote undersold the site's most interesting
+  // result. The 5-point gap is a data-driven test, not a hardcoded
+  // corridor name, so any future corridor with the same shape gets the
+  // same treatment automatically.
+  function winCellHtml(c){
+    var t = c.win_rate_taker_pct, m = c.win_rate_maker_pct;
+    if (Math.abs(t - m) >= 5) {
+      return '<div class="' + (t >= 10 ? 'win-yes' : 'win-no') + '">' + t.toFixed(1) + '% of hours buying it now</div>' +
+        '<div class="' + (m >= 10 ? 'win-yes' : 'win-no') + '" style="margin-top:4px">' + m.toFixed(1) + '% of hours waiting for your price</div>';
+    }
+    return '<span class="' + (t >= 10 ? 'win-yes' : 'win-no') + '">' + t.toFixed(1) + '% of hours</span>';
+  }
 
-    document.getElementById('homeCards').innerHTML =
-      '<div class="halves">' +
-      '<a class="half-card" href="./sending-money.html"><div class="half-kicker">Sending money: stablecoins lose</div>' +
-      '<div class="half-num">' + leftNum + '</div><div class="half-body">' + leftBody + '</div>' +
-      '<div class="half-link">See every route →</div></a>' +
-      '<a class="half-card" href="./the-index.html"><div class="half-kicker">Broken currencies: stablecoins are the way out</div>' +
-      '<div class="half-num">' + rightNum + '</div><div class="half-body">' + rightBody + '</div>' +
-      '<div class="half-link">See every country →</div></a>' +
-      '</div>' +
-      '<div class="crossover-line">' + bestCrossoverLine(corridorSummary && corridorSummary.corridors) + '</div>';
+  function renderCorridorTable(corridors, COPY){
+    var cols = COPY.corridorTableCols || {};
+    var rows = corridors.map(function(c){
+      return '<tr>' +
+        '<td><b>' + esc(c.route_words || c.corridor) + '</b></td>' +
+        '<td class="num">' + cashPct(c.taker_cost_bps_median) + '</td>' +
+        '<td class="num">' + cashPct(c.baseline_cost_bps_median) + '</td>' +
+        '<td>' + winCellHtml(c) + '</td>' +
+        '<td><a href="./corridor.html?corridor=' + encodeURIComponent(c.corridor) + '" style="font-weight:600;color:#0B0B0B">' + esc(COPY.seeCorridor || 'see the receipt →') + '</a></td>' +
+        '</tr>';
+    }).join('');
+    document.getElementById('corridorTableSection').innerHTML =
+      '<div class="waterfall-title">' + esc(COPY.corridorTableTitle || 'Every transfer we check, priced the same way') + '</div>' +
+      '<table class="corridor-table"><thead><tr>' +
+      '<th>' + esc(cols.corridor || 'SENDING') + '</th>' +
+      '<th>' + esc(cols.stablecoin || 'STABLECOIN COST') + '</th>' +
+      '<th>' + esc(cols.fiat || 'BEST APP') + '</th>' +
+      '<th>' + esc(cols.winRate || 'STABLECOIN WINS') + '</th>' +
+      '<th></th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
 
   Promise.all([
@@ -276,9 +350,14 @@
       subEl.textContent = 'This hour’s measurement is unavailable -- showing the standing headline, not this hour’s numbers.';
     }
 
-    // ---- The home page's one argument, in two cards + the one crossover
-    // line -- see renderHomeCards' own comment above. ----
-    renderHomeCards(idx, corridorSummary, windowRow);
+    // ---- The waterfall: SGD->PHP at the reference size, five real terms. ----
+    if (corridorSummary && corridorSummary.waterfall) {
+      renderWaterfall(corridorSummary.waterfall, COPY, windowRow);
+    }
+    // ---- The corridor table: one row per tracked corridor. ----
+    if (corridorSummary && corridorSummary.corridors && corridorSummary.corridors.length) {
+      renderCorridorTable(corridorSummary.corridors, COPY);
+    }
 
     // Chapter 2, slim: today's story is the only item -- the biggest real
     // move among actively-managed rates. "unmaintained" denominators (a
