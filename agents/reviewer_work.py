@@ -19,6 +19,14 @@ newer than the newest review on it. Labels do not enter into it -- an issue can
 carry `needs-sebastian` and still deserve a fresh pass the moment the builder
 pushes a fix, which is exactly the case that kept jamming.
 
+One thing does enter into it: whether the linked issue has reached "In Review"
+at all (SEB-126). A PR sitting open while its builder is still pushing commits
+-- issue still "In Progress" -- has no review to be stale, and flagging it woke
+the reviewer 28 times in one day to re-read REVIEWER.md's own conclusion that
+there was nothing to do yet. If the state lookup itself fails, that is "could
+not tell", same posture as everywhere else in this file: flag it rather than
+hide it.
+
 "No review yet" has one deliberate exception (SEB-86). REVIEWER.md's
 reader-facing path never calls `gh pr review` at all -- it posts the verdict
 on the Linear issue and stops, leaving the PR open for Sebastian. That PR will
@@ -64,6 +72,23 @@ def issue_key(title, branch):
     return m.group(0) if m else None
 
 
+def issue_state(key):
+    """Linear's state name for `key`, or None if it can't be determined.
+
+    None means "could not tell" -- same posture as gh() and
+    last_reviewer_stamp() -- so the caller falls back to flagging the PR
+    rather than silently skipping it.
+    """
+    r = subprocess.run(
+        [sys.executable, LINEAR_PY, "state-of", key],
+        capture_output=True, text=True)
+    if r.returncode != 0:
+        print("linear.py state-of %s failed: %s"
+              % (key, r.stderr.strip()[:200]), file=sys.stderr)
+        return None
+    return r.stdout.strip() or None
+
+
 def last_reviewer_stamp(key):
     """ISO timestamp of the most recent reviewer comment on `key`, or None.
 
@@ -102,9 +127,15 @@ def main():
         reviews = d.get("reviews") or []
         if not commits:
             continue
+
+        key = issue_key(d.get("title", ""), d.get("headRefName", ""))
+        if key:
+            st = issue_state(key)
+            if st is not None and st != "In Review":
+                continue
+
         head = max(c["committedDate"] for c in commits)
         if not reviews:
-            key = issue_key(d.get("title", ""), d.get("headRefName", ""))
             stamp = last_reviewer_stamp(key) if key else None
             if stamp and stamp > head:
                 continue
