@@ -49,6 +49,13 @@ ROUTE_WORDS = {
 }
 SYMBOL = {"SGD": "S$", "AUD": "A$", "NZD": "NZ$", "USD": "US$"}
 
+# How far back a provider's roster looks for "who normally quotes this
+# corridor" -- long enough that one bad hour doesn't drop a provider from
+# the roster (so its next miss still greys out rather than vanishing), short
+# enough that a provider dropped from the panel or Instarem's own account
+# list months ago eventually stops being chased as "missing".
+ROSTER_LOOKBACK_DAYS = 14
+
 
 def rows(path):
     if not os.path.exists(path):
@@ -127,6 +134,29 @@ def panel_quotes(corridor):
     return out, hour
 
 
+def roster(corridor, now=None):
+    """Every provider that has quoted this corridor -- own or comparison --
+    in the lookback window. The set a missing price is measured against, so
+    a provider that goes quiet this hour still gets a greyed row instead of
+    just not being there (SEB direct-quotes spec, "MISSING PRICES").
+    """
+    now = now or dt.datetime.now(dt.timezone.utc)
+    cutoff = now - dt.timedelta(days=ROSTER_LOOKBACK_DAYS)
+    out = set()
+    for r in rows(QUOTES):
+        if (r.get("corridor") or "").strip() != corridor:
+            continue
+        t = parse_ts(r.get("ts_utc"))
+        if t and t >= cutoff and r.get("provider"):
+            out.add(r["provider"])
+    for r in rows(os.path.join(DATA, PANELS[corridor])):
+        t = parse_ts(r.get("ts_utc"))
+        prov = (r.get("provider") or "").strip()
+        if t and t >= cutoff and prov:
+            out.add(prov)
+    return out
+
+
 def crypto_route(corridor):
     """{size: cost_bps} for the crypto route, newest hour of that corridor."""
     rs = [r for r in rows(SAMPLES)
@@ -149,12 +179,13 @@ def money(cur, v, dp=2):
     return f"{sym}{v:,.{dp}f}"
 
 
-def build():
+def build(now=None):
     own, own_hour = own_quotes()
     corridors = {}
     for corridor in sorted(PANELS):
         panel, panel_hour = panel_quotes(corridor)
         crypto, crypto_hour = crypto_route(corridor)
+        panel_roster = roster(corridor, now)
         src, dst = corridor.split("->")
         sizes = sorted({s for s, _ in panel} | {s for (c, s, _) in own if c == corridor}
                        | set(crypto))
@@ -204,6 +235,22 @@ def build():
             entries.sort(key=lambda e: e["cost_pct"])
             for i, e in enumerate(entries):
                 e["rank"] = i + 1
+            # 3. anyone on the roster who quoted nothing this hour -- own
+            # quote failed and there is no comparison fallback, or the
+            # comparison panel itself skipped them. The row stays, greyed,
+            # ranked after everyone with a real price, rather than
+            # disappearing: a silent drop would look like they got
+            # cheaper, not that they went quiet.
+            priced = {e["provider"] for e in entries}
+            missing = sorted(panel_roster - priced)
+            base_rank = len(entries)
+            for i, prov in enumerate(missing):
+                entries.append({
+                    "provider": prov, "cost_pct": None, "costs": None,
+                    "source": "missing", "source_words": "no price this hour",
+                    "rate": None, "fee": None, "fee_words": None,
+                    "also_quoted_pct": None, "rank": base_rank + i + 1,
+                })
             out_sizes[str(size)] = {
                 "amount": size, "amount_words": money(src, size, 0),
                 "rows": entries,
