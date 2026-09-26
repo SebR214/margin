@@ -9,7 +9,10 @@ asks providers directly, where they publish a public quote.
 
     data/provider_quotes.csv
     ts_utc,corridor,size_src,provider,rate,fee_src,received_dst,cost_bps,
-    source,source_ok,error,payout_type
+    source,source_ok,error
+
+    data/provider_quotes_payout_type.csv   (sidecar, added SEB-124)
+    ts_utc,corridor,size_src,provider,payout_type
 
 THE PRECEDENCE RULE. Where a provider publishes its own rate, that is the number
 used. Where it does not, the comparison API stands in. A provider quoting itself
@@ -26,7 +29,11 @@ margin are one number, because that is what a sender experiences.
 "cash" (cash pickup) or "wallet" -- because those are not like-for-like. The
 default comparison on the page is bank deposit; a cash-pickup-only quote is
 still collected here but is not ranked against a bank-deposit quote by
-tools/emit_providers.py.
+tools/emit_providers.py. It lives in the sidecar file above, keyed by
+(ts_utc, corridor, size_src, provider), rather than in provider_quotes.csv
+itself: that file's header is frozen, and payout_type was never recorded for
+the rows collected before this column existed. A sidecar entry present means
+it was measured; absent means it wasn't -- never inferred after the fact.
 
 WHO IS HERE, AND WHO IS NOT.
   Instarem   public quote API. The account id is per source country, so only
@@ -90,6 +97,7 @@ import datetime as dt
 import json
 import os
 import sys
+import tempfile
 import time
 
 try:
@@ -103,11 +111,13 @@ UA = {"User-Agent": "margin.wiki provider-collector/1.0 (+https://margin.wiki)",
       "accept": "application/json"}
 HERE = os.path.dirname(os.path.abspath(__file__))
 QUOTES = os.path.join(HERE, "data", "provider_quotes.csv")
+PAYOUT_TYPES = os.path.join(HERE, "data", "provider_quotes_payout_type.csv")
 FX_URL = "https://open.er-api.com/v6/latest/USD"
 
 FIELDS = ["ts_utc", "corridor", "size_src", "provider", "rate", "fee_src",
-          "received_dst", "cost_bps", "source", "source_ok", "error",
-          "payout_type"]
+          "received_dst", "cost_bps", "source", "source_ok", "error"]
+KEY_FIELDS = ["ts_utc", "corridor", "size_src", "provider"]
+PAYOUT_FIELDS = KEY_FIELDS + ["payout_type"]
 
 LADDER = [200, 1000, 5000, 25000, 50000]
 
@@ -311,11 +321,21 @@ def captured_this_hour(path, ts_field, now=None):
 
 
 def append(rows):
+    """Core fields to the frozen QUOTES header; payout_type to its own
+    sidecar, keyed by KEY_FIELDS, so QUOTES never gains a column and no row
+    collected before payout_type existed gets one invented for it."""
     os.makedirs(os.path.dirname(QUOTES), exist_ok=True)
     new = not os.path.exists(QUOTES)
     with open(QUOTES, "a", newline="") as f:
         w = csv.DictWriter(f, fieldnames=FIELDS, extrasaction="ignore")
         if new:
+            w.writeheader()
+        w.writerows(rows)
+
+    new_payout = not os.path.exists(PAYOUT_TYPES)
+    with open(PAYOUT_TYPES, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=PAYOUT_FIELDS, extrasaction="ignore")
+        if new_payout:
             w.writeheader()
         w.writerows(rows)
     return QUOTES
@@ -423,8 +443,28 @@ def selftest():
     print("  [ok] a missing mid degrades its corridor, never invents a rate")
 
     assert all(r["payout_type"] == "bank" for r in rows)
-    assert set(FIELDS) >= set(rows[0])
-    print("  [ok] schema covers every field, payout_type recorded\n")
+    assert set(FIELDS) == set(rows[0]) - {"payout_type"}
+    print("  [ok] core schema covers every field but payout_type\n")
+
+    with tempfile.TemporaryDirectory() as d:
+        global QUOTES, PAYOUT_TYPES
+        real_quotes, real_payout = QUOTES, PAYOUT_TYPES
+        QUOTES = os.path.join(d, "provider_quotes.csv")
+        PAYOUT_TYPES = os.path.join(d, "provider_quotes_payout_type.csv")
+        try:
+            append(rows[:2])
+            with open(QUOTES, newline="") as f:
+                q = list(csv.DictReader(f))
+            with open(PAYOUT_TYPES, newline="") as f:
+                p = list(csv.DictReader(f))
+            assert list(q[0]) == FIELDS, "QUOTES header never widens past FIELDS"
+            assert "payout_type" not in q[0]
+            assert list(p[0]) == PAYOUT_FIELDS
+            assert p[0]["payout_type"] == "bank"
+        finally:
+            QUOTES, PAYOUT_TYPES = real_quotes, real_payout
+    print("  [ok] append() splits payout_type into its own sidecar, "
+          "keyed by ts_utc/corridor/size_src/provider\n")
     print("  ALL SELFTESTS PASSED\n")
 
 
