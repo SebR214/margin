@@ -4,18 +4,26 @@
     "denominator": 64.660102,
     "denominator_meaning": "the official rate, local currency per dollar",
     "formula": "(numerator / denominator - 1) * 100",
-    "numerator": null,
+    "numerator": 66.37,
     "numerator_meaning": "price to buy one dollar locally",
-    "result_pct": null
+    "result_pct": 2.6444
   },
-  "computed_at": "2026-09-26T02:00:00+00:00",
+  "computed_at": "2026-09-26T03:00:00+00:00",
   "country": "Afghanistan",
   "evidence": {
-    "buy_median": null,
-    "collected_at": "2026-09-26T02:05:44.910935+00:00",
-    "n_offers": 0,
+    "buy_median": 66.37,
+    "collected_at": "2026-09-26T03:05:49.408417+00:00",
+    "n_offers": 1,
     "offer_detail": "per_offer",
     "offers": [
+      {
+        "price": 66.37,
+        "side": "buy"
+      },
+      {
+        "price": 64.76,
+        "side": "sell"
+      },
       {
         "price": 63.2,
         "side": "sell"
@@ -37,28 +45,28 @@
         "side": "sell"
       }
     ],
-    "sell_median": null,
+    "sell_median": 62.8,
     "source_kind": null,
     "source_words": "no price this hour"
   },
   "evidence_rule": {
     "applies": true,
-    "buy_ads_actual": 0,
+    "buy_ads_actual": 1,
     "buy_ads_estimated": false,
-    "buy_at_or_above_sell": null,
+    "buy_at_or_above_sell": true,
     "min_buy_ads_required": 10,
     "passed": false,
-    "reason": "ValueError:no ads at ~USD 500 (0 buy, 5 sell)",
+    "reason": "not enough evidence this hour: 1 buy-side ad, 10 required",
     "reason_code": null
   },
-  "hour_utc": "2026-09-26T02:00:00+00:00",
+  "hour_utc": "2026-09-26T03:00:00+00:00",
   "index_version": "1.1",
-  "not_published_reason": "ValueError:no ads at ~USD 500 (0 buy, 5 sell)",
+  "not_published_reason": "not enough evidence this hour: 1 buy-side ad, 10 required",
   "official_rate": {
     "class": "managed",
     "source": "open.er-api",
     "source_file": "data/fx_rates.csv",
-    "timestamp": "2026-09-26T02:07:16.186102+00:00",
+    "timestamp": "2026-09-26T03:07:21.422887+00:00",
     "value": 64.660102
   },
   "outlier_checked": null,
