@@ -325,13 +325,18 @@ jobs:
         if: always() && steps.needed.outputs.proceed == 'true'
         env:
           APP_TOKEN: ${{ steps.app_token.outputs.token }}
-          MARGIN_GH_APP_ID: ${{ secrets.MARGIN_GH_APP_ID }}
         run: |
           set +x
           # margin-agents[bot]'s standard commit identity, so GitHub renders
           # the commit as the App, matching the token it's pushed with below.
           git config user.name "margin-agents[bot]"
-          git config user.email "${MARGIN_GH_APP_ID}+margin-agents[bot]@users.noreply.github.com"
+          # 329969015 is the margin-agents[bot] USER account's id, not the App
+          # ID -- GitHub's bot-commit-linking convention keys on the former.
+          # Using MARGIN_GH_APP_ID here (found live, first Phase 5 test run)
+          # produces a commit that LOOKS right but GitHub never links back to
+          # the bot account, so it shows unattributed rather than as the App.
+          # Confirm via: gh api users/margin-agents%5Bbot%5D --jq .id
+          git config user.email "329969015+margin-agents[bot]@users.noreply.github.com"
           # Staged one at a time, and only if present. `git add` on a path
           # that does not exist yet is a fatal error (exit 128), and under
           # `bash -e` that kills the step BEFORE the freshness guard runs --
