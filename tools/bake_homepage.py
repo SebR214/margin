@@ -241,7 +241,7 @@ def build_premium_strip(idx_doc, home_copy):
             f'<a href="{href}"><title>{esc(tip)}</title>'
             f'<text x="0" y="{y+19:.1f}" font-family="Archivo,sans-serif" font-size="13" font-weight="{weight}" fill="{text_fill}">{esc(c.get("country", ""))}</text>'
             f'<rect x="{bar_left}" y="{y+6:.1f}" width="{w:.1f}" height="12" rx="2" fill="{fill}"/>'
-            f'<text x="{bar_left+w+8:.1f}" y="{y+16:.1f}" font-family="ui-monospace,monospace" font-size="12" font-weight="{weight}" fill="{text_fill}">{sign}{pct:.1f}%</text>'
+            f'<text x="{W-4}" y="{y+16:.1f}" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="{weight}" fill="{text_fill}">{sign}{pct:.1f}%</text>'
             f'</a>'
         )
 

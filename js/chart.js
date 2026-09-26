@@ -88,7 +88,7 @@
       return Math.abs(y - lastY) > BADGE_HALF_HEIGHT;
     }).map(function (v) {
       var y = pad + (1 - (v - min) / range) * plotH;
-      return '<text x="' + (plotW + 14) + '" y="' + (y + 5).toFixed(1) + '" font-family="Archivo, sans-serif" font-size="17" fill="#9A9A9A">' + v.toFixed(1) + suffix + '</text>';
+      return '<text x="' + (plotW + 22) + '" y="' + (y + 5).toFixed(1) + '" font-family="Archivo, sans-serif" font-size="17" fill="#9A9A9A">' + v.toFixed(1) + suffix + '</text>';
     }).join('');
 
     var xFirst = xLabels ? (xLabels[0] || '') :
@@ -124,13 +124,11 @@
       refLine +
       '<polyline points="' + linePoly + '" fill="none" stroke="#6B6B6B" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
       '<line x1="0" y1="' + lastY.toFixed(1) + '" x2="' + lastX.toFixed(1) + '" y2="' + lastY.toFixed(1) + '" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.6"/>' +
-      // Badge's left edge must match the axis labels' left edge (plotW+14
-      // below) exactly -- they were two different hardcoded offsets (+6
-      // here, +14 there) off the same lastX===plotW baseline, so the badge
-      // and every axis percentage sat 8px out of column with each other on
-      // every trend chart sitewide (SEB, 2026-09-26: "basic alignment").
+      // Badge rect starts at lastX+14; text starts at lastX+22 (8px inside).
+      // Axis labels also start at plotW+22 = lastX+22, so badge value and
+      // axis labels left-align exactly (SEB, 2026-09-26).
       '<rect x="' + (lastX + 14).toFixed(1) + '" y="' + (lastY - 12).toFixed(1) + '" width="' + badgeWidth + '" height="24" rx="4" fill="#EDEDED"/>' +
-      '<text x="' + (lastX + 14 + badgeWidth / 2).toFixed(1) + '" y="' + (lastY + 5).toFixed(1) + '" text-anchor="middle" font-family="Archivo, sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + badgeText + '</text>' +
+      '<text x="' + (lastX + 22).toFixed(1) + '" y="' + (lastY + 5).toFixed(1) + '" text-anchor="start" font-family="Archivo, sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + badgeText + '</text>' +
       yLabels +
       '<line id="' + vlineId + '" x1="0" y1="0" x2="0" y2="' + (h - bottomAxis) + '" stroke="#0B0B0B" stroke-width="1" opacity="0" />' +
       '<circle id="' + dotId + '" r="4" fill="#6B6B6B" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
