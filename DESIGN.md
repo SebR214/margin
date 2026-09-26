@@ -11,6 +11,10 @@ Every reader-facing decision lives here. If a rule is not in this file, it is no
 
 One mapping, every chart, no exceptions. Page chrome (text, background, borders) keeps the existing neutral greys; the palette above is for data. Indigo `#5A55E0` from UI-SPEC-2026-09-16 is retired.
 
+The accent colors above are reserved for charts that compare two or more *named* things (a cost waterfall's legs, the multi-series history chart). A single-series trend chart (`js/chart.js`, used sitewide for "this one number over time") is not a comparison, so it renders in plain grey (`#6B6B6B` line, light grey fill, `#EDEDED` current-value badge) instead of periwinkle-on-eggshell — that combo read as an arbitrary mix of two accent colors with nothing to distinguish (SEB, 2026-09-25).
+
+In a cost waterfall (`index.html`, `corridor.html`), the two "dollar-route" legs (buying the coin, selling it) do not share one color even though both are "cost" in kind — same color on two different bars reads as "these are the same number." First cost leg periwinkle, second cost leg eggshell with a thin periwinkle border (so it still shows against a white background); the rail/secondary leg stays dust grey, the total stays vintage grape (SEB, 2026-09-25).
+
 ## Nav (canonical, the only nav)
 
 1. Home → `index.html`

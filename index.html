@@ -194,24 +194,31 @@
     var pad = (dMax - dMin) * 0.12 || 10, lo = dMin - pad, hi = dMax + pad;
     var Lx = 190, Rx = 760, X = function(v){ return Lx + (v - lo) / (hi - lo) * (Rx - Lx); };
     var rowH = 34, top = 10, W = 800, rows = steps.length + 1, H = top + rows * rowH + 34;
-    // The site's actual chart palette: periwinkle for the dollar-route
-    // legs, dust grey for the rail/secondary leg, vintage grape (not pure
-    // black) for the total. One palette, reused verbatim on every cost
-    // chart -- index.html, corridor.html, sending-money.html.
-    var col = {cost: '#817FCC', gain: '#D3D0CB', rail: '#D3D0CB', total: '#3F3047'};
+    // The site's actual chart palette: periwinkle for the first dollar-route
+    // leg, eggshell (bordered so it still reads on white) for the second --
+    // two legs the same color read as "the same number" (SEB, 2026-09-25) --
+    // dust grey for the rail/secondary leg, vintage grape (not pure black)
+    // for the total. One palette, reused verbatim on every cost chart --
+    // index.html, corridor.html, sending-money.html.
+    var col = {cost: '#817FCC', cost2: '#F0EBD8', gain: '#D3D0CB', rail: '#D3D0CB', total: '#3F3047'};
     var uid = 'wf' + Math.random().toString(36).slice(2,8);
     var svg = '<line x1="' + X(0).toFixed(1) + '" y1="' + top + '" x2="' + X(0).toFixed(1) + '" y2="' + (top + rows*rowH) + '" stroke="#E5E5EA" stroke-width="1"/>' +
       '<line x1="' + X(base).toFixed(1) + '" y1="' + (top-4) + '" x2="' + X(base).toFixed(1) + '" y2="' + (top + rows*rowH + 4) + '" stroke="#9A9A9A" stroke-width="1.2" stroke-dasharray="4,3"/>' +
       '<text x="' + X(base).toFixed(1) + '" y="' + (top + rows*rowH + 18) + '" fill="#6B6B6B" font-family="Archivo,sans-serif" font-size="12" text-anchor="middle">cheapest app, ' + cashPct(base) + '</text>';
     var bars = [];
+    var costLegsSeen = 0;
     steps.forEach(function(s, i){
       var y = top + i * rowH;
       var a = X(cum[i]), b = X(cum[i+1]);
       var x0 = Math.min(a,b), w = Math.max(2, Math.abs(b-a));
-      var fill = s.kind === 'rail' ? col.rail : (s.v < 0 ? col.gain : col.cost);
+      var fill;
+      if (s.kind === 'rail') fill = col.rail;
+      else if (s.v < 0) fill = col.gain;
+      else { fill = costLegsSeen === 0 ? col.cost : col.cost2; costLegsSeen++; }
+      var stroke = fill === col.cost2 ? ' stroke="#817FCC" stroke-width="1"' : '';
       var barId = uid + 'b' + i;
       svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" fill="#0B0B0B">' + esc(s.label) + '</text>' +
-        '<rect id="' + barId + '" class="wf-bar" data-label="' + esc(s.label) + '" data-value="' + cashPct(s.v) + '" x="' + x0.toFixed(1) + '" y="' + (y+7) + '" width="' + w.toFixed(1) + '" height="' + (rowH-14) + '" rx="2" fill="' + fill + '" style="cursor:pointer;transition:opacity .1s"/>' +
+        '<rect id="' + barId + '" class="wf-bar" data-label="' + esc(s.label) + '" data-value="' + cashPct(s.v) + '" x="' + x0.toFixed(1) + '" y="' + (y+7) + '" width="' + w.toFixed(1) + '" height="' + (rowH-14) + '" rx="2" fill="' + fill + '"' + stroke + ' style="cursor:pointer;transition:opacity .1s"/>' +
         '<text x="' + (b + (b>=a?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="12.5" fill="#6B6B6B" text-anchor="' + (b>=a?'start':'end') + '">' + cashPct(s.v) + '</text>';
       bars.push(barId);
     });

@@ -78,7 +78,11 @@
     // label and the badge land on top of each other and both become
     // unreadable, which is exactly the "gray numbers and blue numbers
     // overlapping" bug: the same number drawn twice in the same spot.
-    var BADGE_HALF_HEIGHT = 14;
+    // 14px only excluded labels that literally collided pixel-for-pixel;
+    // a 17px axis label and the 24px badge one line apart still read as
+    // one smear (SEB, 2026-09-25 -- "90.7% and 90.4% almost sit on top of
+    // each other"), so the exclusion zone needs to cover both text heights.
+    var BADGE_HALF_HEIGHT = 24;
     var yLabels = [min, min + range / 2, max].filter(function (v) {
       var y = pad + (1 - (v - min) / range) * plotH;
       return Math.abs(y - lastY) > BADGE_HALF_HEIGHT;
@@ -108,23 +112,23 @@
     container.innerHTML =
       '<div style="position:relative">' +
       '<svg id="' + svgId + '" width="100%" viewBox="0 0 ' + w + ' ' + h + '" style="display:block;cursor:crosshair">' +
+      // Plain grey line, grey fill -- periwinkle-line-on-eggshell-fill read
+      // as an arbitrary mix of two accent colors on a chart that is just one
+      // series over time, not a comparison (SEB, 2026-09-25). The palette's
+      // accent colors stay reserved for charts that actually compare named
+      // things (the cost waterfalls, the multi-series history chart).
       '<defs><linearGradient id="g-' + uid + '" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0" stop-color="#F0EBD8" stop-opacity="0.95"/>' +
-      '<stop offset="1" stop-color="#F0EBD8" stop-opacity="0.05"/></linearGradient></defs>' +
+      '<stop offset="0" stop-color="#9A9A9A" stop-opacity="0.18"/>' +
+      '<stop offset="1" stop-color="#9A9A9A" stop-opacity="0.02"/></linearGradient></defs>' +
       '<path d="' + areaPath + '" fill="url(#g-' + uid + ')"/>' +
       refLine +
-      '<polyline points="' + linePoly + '" fill="none" stroke="#817FCC" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
-      '<line x1="0" y1="' + lastY.toFixed(1) + '" x2="' + lastX.toFixed(1) + '" y2="' + lastY.toFixed(1) + '" stroke="#817FCC" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.7"/>' +
-      // A solid periwinkle fill under white text falls short of the 4.5:1
-      // contrast a 14px badge needs (periwinkle reads well at UI-component
-      // size, not at text size) -- a light tint of the same accent with ink
-      // text reads clearly instead, and reuses the gradient's own tint
-      // rather than adding a third color.
-      '<rect x="' + (lastX + 6).toFixed(1) + '" y="' + (lastY - 12).toFixed(1) + '" width="' + badgeWidth + '" height="24" rx="4" fill="#F0EBD8"/>' +
+      '<polyline points="' + linePoly + '" fill="none" stroke="#6B6B6B" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<line x1="0" y1="' + lastY.toFixed(1) + '" x2="' + lastX.toFixed(1) + '" y2="' + lastY.toFixed(1) + '" stroke="#6B6B6B" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.6"/>' +
+      '<rect x="' + (lastX + 6).toFixed(1) + '" y="' + (lastY - 12).toFixed(1) + '" width="' + badgeWidth + '" height="24" rx="4" fill="#EDEDED"/>' +
       '<text x="' + (lastX + 6 + badgeWidth / 2).toFixed(1) + '" y="' + (lastY + 5).toFixed(1) + '" text-anchor="middle" font-family="Archivo, sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + badgeText + '</text>' +
       yLabels +
       '<line id="' + vlineId + '" x1="0" y1="0" x2="0" y2="' + (h - bottomAxis) + '" stroke="#0B0B0B" stroke-width="1" opacity="0" />' +
-      '<circle id="' + dotId + '" r="4" fill="#817FCC" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
+      '<circle id="' + dotId + '" r="4" fill="#6B6B6B" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
       '<text x="0" y="' + (h - 6) + '" text-anchor="start" font-family="Archivo, sans-serif" font-size="17" fill="#9A9A9A">' + esc(xFirst) + '</text>' +
       '<text x="' + lastX.toFixed(1) + '" y="' + (h - 6) + '" text-anchor="end" font-family="Archivo, sans-serif" font-size="17" fill="#9A9A9A">' + esc(xLast) + '</text>' +
       '</svg>' +
