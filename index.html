@@ -94,12 +94,12 @@
 
 <div class="wrap">
   <div class="hero">
-    <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Sending money with stablecoins almost always costs more than using an app like Wise.<!--BAKE:END:heroHeadline--></h1>
-    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->We check real prices every hour. Sending S$5,000 to the Philippines this way costs about S$43, the cheapest app charges about S$22. That's the typical cost over the 919 hours we&#39;ve checked since 10 August 2026. The coin is cheap to move. Buying it and cashing it out is what costs you.<!--BAKE:END:heroSub--></div>
+    <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Stablecoins rarely beat the cheapest transfer app. Except where money itself is broken.<!--BAKE:END:heroHeadline--></h1>
+    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->We check real prices every hour: what it costs to send money on 4 routes, and what a dollar really costs on the street in 46 countries.<!--BAKE:END:heroSub--></div>
   </div>
 
   <div id="waterfallSection" class="lead-section"></div>
-  <div id="corridorTableSection" class="lead-section" style="padding-bottom:0"><!--BAKE:START:corridorTableSection--><div class="waterfall-title">Every transfer we check, priced the same way</div><table class="corridor-table"><thead><tr><th>SENDING</th><th>STABLECOIN COST</th><th>BEST APP</th><th>STABLECOIN CHEAPER</th><th></th></tr></thead><tbody><tr><td><b>Singapore to the Philippines</b></td><td class="num">+0.85%</td><td class="num">+0.45%</td><td><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=SGD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>Australia to the Philippines</b></td><td class="num">+0.99%</td><td class="num">+0.62%</td><td><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=AUD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>New Zealand to the Philippines</b></td><td class="num">+1.10%</td><td class="num">+0.67%</td><td><span class="win-no">3.1% of hours</span></td><td><a href="./corridor.html?corridor=NZD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>the United States to Mexico</b></td><td class="num">+0.76%</td><td class="num">+0.54%</td><td><div class="win-no">0.3% of hours buying it now</div><div class="win-yes" style="margin-top:4px">41.4% of hours waiting for your price</div></td><td><a href="./corridor.html?corridor=USD-&gt;MXN" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr></tbody></table><!--BAKE:END:corridorTableSection--></div>
+  <div id="corridorTableSection" class="lead-section" style="padding-bottom:0"><!--BAKE:START:corridorTableSection--><div class="waterfall-title">Every transfer we check, priced the same way</div><table class="corridor-table"><thead><tr><th>SENDING</th><th>STABLECOIN COST</th><th>BEST APP</th><th>STABLECOIN CHEAPER</th><th></th></tr></thead><tbody><tr><td><b>Singapore to the Philippines</b></td><td class="num">+0.85%</td><td class="num">+0.45%</td><td><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=SGD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>Australia to the Philippines</b></td><td class="num">+0.99%</td><td class="num">+0.62%</td><td><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=AUD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>New Zealand to the Philippines</b></td><td class="num">+1.10%</td><td class="num">+0.67%</td><td><span class="win-no">3.0% of hours</span></td><td><a href="./corridor.html?corridor=NZD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>the United States to Mexico</b></td><td class="num">+0.76%</td><td class="num">+0.54%</td><td><div class="win-no">0.3% of hours buying it now</div><div class="win-yes" style="margin-top:4px">41.5% of hours waiting for your price</div></td><td><a href="./corridor.html?corridor=USD-&gt;MXN" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr></tbody></table><!--BAKE:END:corridorTableSection--></div>
   <div class="lead-section" style="padding-top:14px"><a href="./fee-tiers.html" style="font-weight:600;color:#0B0B0B">Why the doors cost more than the rail, in full →</a></div>
 
   <div class="break"></div>
@@ -329,23 +329,23 @@
     document.getElementById('passStamp').textContent = 'last check ' + hourUtc + ' UTC';
 
     // ---- The headline is a fixed, plain sentence (copy.json home.headline)
-    // -- it never changes with the data. The sub's three numbers (the send
-    // amount, what stablecoins cost, what the cheapest app costs) and the
-    // window they cover all come from data/corridor_window.json's SGD->PHP
-    // row -- the SAME file tools/bake_homepage.py reads to bake the exact
-    // same sentence server-side, so the two can never disagree. ----
+    // -- it never changes with the data. The sub's two counts (how many
+    // routes we price sending money on, how many countries we price a
+    // street dollar in) are computed live from corridor_summary.json and
+    // index_latest.json -- the SAME files tools/bake_homepage.py reads to
+    // bake the exact same sentence server-side, so the two can never
+    // disagree. ----
     var windowRow = corridorWindow['SGD->PHP'] || {};
     var headlineEl = document.getElementById('heroHeadline');
     var subEl = document.getElementById('heroSub');
     headlineEl.textContent = COPY.headline || COPY.headlineFallback ||
-      'Sending money with stablecoins almost always costs more than using an app like Wise.';
-    if (windowRow.stable_cost_words && windowRow.best_cost_words) {
+      'Stablecoins rarely beat the cheapest transfer app. Except where money itself is broken.';
+    var nRoutes = corridorSummary && corridorSummary.corridors ? corridorSummary.corridors.length : null;
+    var nCountries = countries.length;
+    if (nRoutes && nCountries) {
       subEl.textContent = (COPY.headlineSub || '')
-        .replace('{sendAmount}', windowRow.send_amount || '')
-        .replace('{dest}', windowRow.dest || '')
-        .replace('{stableCost}', windowRow.stable_cost_words || '')
-        .replace('{bestCost}', windowRow.best_cost_words || '')
-        .replace('{window}', windowRow.window || 'the typical cost across every hour we have checked');
+        .replace('{n_routes}', String(nRoutes))
+        .replace('{n_countries}', String(nCountries));
     } else {
       subEl.textContent = 'This hour’s measurement is unavailable -- showing the standing headline, not this hour’s numbers.';
     }

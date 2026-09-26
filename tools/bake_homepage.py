@@ -43,6 +43,7 @@ SUMMARY = os.path.join(HERE, "data", "corridor_summary.json")
 SAMPLES = os.path.join(HERE, "data", "samples.csv")
 WINDOW_OUT = os.path.join(HERE, "data", "corridor_window.json")
 INDEX_HTML = os.path.join(HERE, "index.html")
+INDEX_LATEST = os.path.join(HERE, "data", "index_latest.json")
 
 # Plain currency symbols for the four routes this site prices at this
 # level of detail. Labels only, never a number -- same rule as every other
@@ -133,24 +134,35 @@ def build_window(doc):
     return out
 
 
-def sub_html(home_copy, window_row):
+def sub_html(home_copy, n_routes, n_countries):
     """The plain, fixed sub sentence (copy.json home.headlineSub), with its
-    three real values -- send amount, stablecoin cost, cheapest-app cost --
-    and the window they cover filled in from data/corridor_window.json's
-    own SGD->PHP row, the same row index.html's client JS reads.
+    two real counts -- how many routes we price sending money on, how many
+    countries we price a street dollar in -- filled in live from
+    data/corridor_summary.json and data/index_latest.json, never typed.
     """
     tmpl = home_copy.get("headlineSub", "")
     vals = {
-        "sendAmount": window_row.get("send_amount") or "",
-        "dest": window_row.get("dest") or "",
-        "stableCost": window_row.get("stable_cost_words") or "",
-        "bestCost": window_row.get("best_cost_words") or "",
-        "window": window_row.get("window") or "",
+        "n_routes": str(n_routes) if n_routes is not None else "",
+        "n_countries": str(n_countries) if n_countries is not None else "",
     }
     out = tmpl
     for k, v in vals.items():
         out = out.replace("{" + k + "}", esc(v))
     return out
+
+
+def count_countries():
+    """How many countries have a priced street-dollar rate this hour --
+    read from data/index_latest.json's own "countries" list (the priced
+    ones; "withheld" is counted separately), the same file the-index.html
+    reads for the identical count.
+    """
+    if not os.path.exists(INDEX_LATEST):
+        return None
+    with open(INDEX_LATEST) as f:
+        doc = json.load(f)
+    countries = doc.get("countries")
+    return len(countries) if countries is not None else None
 
 
 def win_cell_html(c):
@@ -246,17 +258,17 @@ def main():
         json.dump(window, f, indent=2, sort_keys=True)
         f.write("\n")
 
-    reference = window.get("SGD->PHP") or next(iter(window.values()), {})
-
     with open(INDEX_HTML) as f:
         html = f.read()
 
     changed = False
     html, ok1 = replace_by_marker(html, "heroHeadline", esc(home_copy.get(
-        "headline", "Sending money with stablecoins almost always costs more than using an app like Wise.")))
+        "headline", "Stablecoins rarely beat the cheapest transfer app. Except where money itself is broken.")))
     changed = changed or ok1
 
-    html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, reference))
+    n_routes = len(doc.get("corridors") or [])
+    n_countries = count_countries()
+    html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, n_routes, n_countries))
     changed = changed or ok2
 
     table = corridor_table_html(doc["corridors"], home_copy)
