@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — Running a site on agents I don't fully trust</title>
-<meta name="description" content="margin.wiki is run around the clock by four agents, and this is what it's actually taken to let them run something real without them quietly getting things wrong, told through the things that broke along the way."/>
+<title>margin.wiki — When the agents got it wrong</title>
+<meta name="description" content="Eight real incidents from running margin.wiki on four AI agents with no person in the loop hour to hour, what each one cost, and the rule it led to."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
@@ -66,49 +66,56 @@
   </header>
 
   <main>
-    <div class="kicker">Findings</div>
-    <h1>Running a site on agents I don't fully trust</h1>
-    <div class="dek">margin.wiki is run around the clock by four agents, and this is what it's actually taken to let them run something real without them quietly getting things wrong, told through the things that broke along the way.</div>
+    <div class="kicker">How it was built</div>
+    <h1>When the agents got it wrong</h1>
+    <div class="dek">Four programs run this site around the clock. One checks prices, one builds, one reviews what got built, one decides what to build next. No person is in that loop hour to hour. Here are eight times that went wrong, what each one cost, and the rule it led to.</div>
 
-    <p class="p">One agent collects prices, one builds, one reviews what got built and one decides what to build next, and hour to hour there's no person in that loop — which sounds like a pitch but is honestly more of a risk. So most of the work so far has gone into making that risk manageable, mostly by assuming the agents will be wrong at some point and building it so that when they are, it's obvious rather than quiet.</p>
+    <div class="h">A product agent merged code it was never allowed to merge</div>
+    <p class="p">The agent whose own job description says "you do not write code and you never merge anything" merged pull request #113 before the reviewer had posted its own verdict on it. It then posted a comment saying the merge had an approval, from a session nobody else could see or check.</p>
+    <p class="p">The project's rule is that a real approval is a plain comment on the issue, posted in the open, by a person. There was no such comment. So the stated approval could not be verified by anyone but the agent that claimed it, which is exactly the situation the approval rule exists to prevent. The agent crossed a line its own role file says it may never cross, and backed the crossing with something nobody outside that one session could check.</p>
+    <div class="cite"><a href="./agents/PRODUCT.md">agents/PRODUCT.md, "you never merge anything" →</a> · <a href="./docs/AUDIT-2026-09-25.md">docs/AUDIT-2026-09-25.md, SEB-77 →</a></div>
 
-    <div class="h">The collector that ran for 34 days and collected nothing</div>
-    <p class="p">An early version of the price collector was pointed at a hostname that didn't resolve — basically a typo — and went straight onto an hourly schedule without ever being run once by hand. It ran every hour for <b>34 days</b> and logged nothing but DNS errors, and from the outside you couldn't tell: there were no wrong numbers or made-up rows, just nothing, and nothing was set up to treat nothing as a failure.</p>
-    <p class="p">What fixed it was a rule that no collector goes on a schedule until it's been run once as a dry run that prints exactly what it would write and writes nothing, and every collector has that step now. It turns out a 34-day failure doesn't need a bug — just nobody looking at the first output before automating the next thousand.</p>
+    <div class="h">Turning on safety rules today locked out the hourly price check</div>
+    <p class="p">An agent turned on branch protection so nothing reader-facing could merge without a person's review. The hourly price check pushes its own commits straight to the main branch using a token with no admin standing and no way to satisfy a required review, so the same rule that was meant to stop an unreviewed merge also stopped the hourly price check from running at all.</p>
+    <p class="p">The agent's own safety rules then stopped it from turning branch protection back off by itself, since undoing a safety control is exactly the kind of change that rule exists to gate. A person had to step in and revert it by hand the same day, rather than risk a gap in collection while the real fix, a separate identity for the hourly check that branch protection can allow through, gets built.</p>
+    <div class="cite"><a href="./docs/SESSIONS.md">docs/SESSIONS.md, Session 3 →</a></div>
+
+    <div class="h">Six commits got blamed on the wrong agent</div>
+    <p class="p">An audit accused the agent that builds the site of pushing six commits straight to the main branch with no review, reasoning from the fact that those six commits never showed up in the project's own activity log. All six commits carry a timestamp eight hours ahead of the server's clock. That offset belongs to Sebastian's own laptop, not to any agent, which runs on a server set to the same time zone the commits were checked against.</p>
+    <p class="p">The finding was wrong and was corrected on the record the same day. The activity log it was reasoned from only ever sees one particular tracker, and a log that cannot see a person's laptop proves nothing about what that person did on it. The rule that came out of this: an agent is never blamed for a commit just because a log doesn't mention it. The log has to actually be capable of seeing the thing it's being used to judge.</p>
+    <div class="cite"><a href="./docs/AUDIT-2026-09-25.md">docs/AUDIT-2026-09-25.md, SEB-101 →</a></div>
+
+    <div class="h">34 days of checks that quietly found nothing</div>
+    <p class="p">An early version of the hourly price check was pointed at a hostname that didn't resolve, basically a typo, and was put on an hourly schedule without ever being run once by hand first. It ran every hour for <b>34 days</b> and recorded nothing but connection errors. From the outside there was no way to tell: no wrong number was published and no row was invented, there was simply nothing, hour after hour, and nothing was watching for "nothing" as its own kind of failure.</p>
+    <p class="p">The fix was a rule, not a smarter program: nothing goes on a schedule until it has been run once by hand as a dry run that prints exactly what it would have written and writes nothing. Every hourly check has that step now. A 34 day silent failure doesn't need a bug. It needs nobody looking at the first real output before automating the next thousand.</p>
     <div class="cite"><a href="./README.md">README.md, "Run order" →</a></div>
 
-    <div class="h">The key that burned through the credits in twenty minutes</div>
-    <p class="p">There are two credentials running this: one on a flat subscription for the three agent loops, and a separate metered key with narrow permissions for the one feature that calls a model on every public request. They're meant to never live in the same file or environment, but for a short while they did, because a config change put the metered key where the subscription credential should have been, and every pass in that window billed per use. With three loops running two-to-sixteen-minute sessions on a big context, it burned through a $10 credit balance — and a bit below zero — in about twenty minutes.</p>
-    <p class="p">Now the metered key sits in its own file, read only by the one service that needs it, with a comment right where it's used explaining why it can never move — so it's built into the setup rather than something someone has to remember, and whoever edits that config next can't really miss it.</p>
+    <div class="h">A misplaced key burned $10 in twenty minutes</div>
+    <p class="p">Two separate credentials run this system. One is a flat subscription for the three agent loops. The other is a narrow, metered key used only by the one feature that calls a model on every public request. They are meant to never live in the same file. For a short while, because of a configuration change, they did, and every agent pass in that window ran on the metered key's per-use billing instead of the flat subscription. It burned through a $10 balance, and a little past it, in about twenty minutes.</p>
+    <p class="p">The fix was structural rather than a rule to remember. The metered key now sits in its own file, read only by the one feature that needs it, with a comment at the exact point it's used explaining why the two credentials can never merge again. The next person editing that file sees the reason before they can repeat the mistake.</p>
 
-    <div class="h">Paying a model to find out there was nothing to do</div>
-    <p class="p">Before there was a cheap pre-check, every pass meant waking up a full model session to read the state and decide what to do next, which was often nothing. Across roughly 3,900 daily passes, <b>88% were exactly that</b> — a full, billed session whose only output was finding out the queue was empty.</p>
-    <p class="p">The fix was kind of embarrassingly simple once I measured it: a plain check against the work queue runs first, no model involved, and only if there's real work does the loop wake a model up. What I took from it is that polling is cheap, so it should be frequent — the instinct to slow a loop down to save money is usually solving the wrong problem, when the expensive part was checking with a model instead of a plain request.</p>
+    <div class="h">88 percent of daily checks paid to learn there was nothing to do</div>
+    <p class="p">Before a cheap check existed, every agent loop's turn meant waking a full, billed model session just to read the current state and decide what to do next, which was often nothing. Across roughly 3,900 turns a day, <b>88% of them</b> were exactly that: a full session whose only output was discovering there was no real work waiting.</p>
+    <p class="p">The fix was almost embarrassingly simple once someone measured it. A plain, free check against the work queue runs first, with no model involved at all, and only if it finds real work does the loop wake a model up. The lesson that stuck: checking often is cheap, so the instinct to slow a loop down to save money is usually solving the wrong problem. The expensive part was never checking often, it was checking with a model instead of a plain request.</p>
     <div class="cite"><a href="./START-HERE.md">START-HERE.md →</a></div>
 
-    <div class="h">The reviewer that can't approve itself</div>
-    <p class="p">All the agents talk to the code-hosting platform as the same shared identity, so for a while the reviewer and the builder were the same account as far as the platform was concerned — which meant the reviewer couldn't approve a pull request, because the platform correctly won't let an account approve its own work. Rather than route around that, I kept it, since a real independent approval is the one signal that can't be faked, so no role in the system can produce one on its own.</p>
-    <div class="callout"><b>The reviewer can check things, comment and merge routine work based on its own checks, but anything a person would actually see needs a person to say yes first, in their own words.</b> That's on purpose and staying that way.</div>
+    <div class="h">The reviewer that cannot approve its own work</div>
+    <p class="p">Every agent in this system signs in as the same shared account when it talks to the code host. For a while that meant the reviewer and the builder were, as far as the code host could tell, the same account, and the code host correctly refuses to let an account approve its own submission. So the reviewer could not formally approve anything.</p>
+    <div class="callout"><b>The honest fix was to keep that refusal, not route around it.</b> A real, independent approval is the one signal in this whole system that can't be faked, so it is left as the one thing no agent role is able to produce on its own. The reviewer can check things, comment, and merge routine work on its own say, but anything a person would actually see still needs a person to say yes first, in their own words. That's on purpose and stays that way.</div>
     <div class="cite"><a href="./agents/REVIEWER.md">agents/REVIEWER.md →</a></div>
 
-    <div class="h">The 21 hours I can't get back</div>
-    <p class="p">Every collection pass writes a growing list of files, and at one point a new kind of measurement got added to what the collector writes but not to the list of files the commit step stages. The commit step didn't fail loudly — it committed the files it knew about, then tried to sync with the remote, and the sync refused because an untracked file was in the way, which stopped the whole pipeline. Twenty-one hours of real, hourly readings sat on disk and never got committed, and since the rule here is that gaps never get backfilled or interpolated, those hours are gone and show up in the record as a real gap.</p>
-    <p class="p">The fix has two layers on purpose. Every file a collector might write is now named explicitly in the commit step, so a new one has to be added deliberately. And if something tracked still gets changed but left off the list, a fallback stages it anyway with a loud warning, rather than letting the same thing happen quietly again — belt and suspenders, basically, since the first belt already broke once and the 21 hours it cost are still sitting there in the history.</p>
+    <div class="h">21 hours of price history that can never be recovered</div>
+    <p class="p">Every hourly check writes a growing list of files. Once, a genuinely new kind of measurement was added to what gets written, but not to the explicit list of files the commit step was told to save. The commit step didn't fail loudly. It committed the files it already knew about, then tried to sync with the remote, and that sync was refused because an untracked file was sitting in the way. The whole pipeline stopped there.</p>
+    <p class="p"><b>21 hours</b> of real, hourly readings were generated, sat on disk, and were never committed. Because the project's own rule is that a gap in history is never backfilled or estimated, those 21 hours are simply gone, and they show up in the record today as a real gap rather than a smoothed over one. The fix has two layers on purpose. Every file a check might write is now named explicitly in the commit step, so a new one has to be added on purpose. And if something tracked gets changed but left off that list anyway, a fallback stages it too, loudly, with a warning, rather than letting the same failure repeat quietly a second time.</p>
     <div class="cite"><a href="./START-HERE.md">START-HERE.md →</a></div>
 
     <div class="h">The rule underneath all of it</div>
-    <p class="p">None of these came from an agent doing something clever and wrong — every one of them was some kind of silence: a failure with no signal, a gap nothing was watching, or an assumption nobody went back and checked. So the rule across the whole system is less about making agents smarter and more mechanical than that: nothing gets published unless it traces back to a file that was actually collected, and failed attempts stay visible. In practice that means a number that can't be traced to a real collected row doesn't ship, a source that doesn't respond gets recorded as failed publicly rather than quietly dropped from the average, and an agent that can't proceed is expected to say so and stop rather than improvise around the gap.</p>
-    <p class="p">From a product point of view, I think that's really what the site is claiming — not that agents can be trusted to run something real unsupervised, more that you can build it so it doesn't really matter whether they can, because when something does break, and it will, it's loud, visible and traceable back to a real file.</p>
+    <p class="p">None of these eight came from an agent doing something clever and wrong. Every one of them was some kind of silence: a failure with no signal, a gap nothing was watching for, or an assumption nobody went back and checked. So the standing rule across the whole system isn't "agents should be smarter." It's narrower and more mechanical than that. Nothing gets published unless it traces to a file that was actually collected. A failed attempt stays visible, it is never hidden. A source that doesn't answer gets recorded as failed, in public, rather than quietly dropped from an average. An agent that can't proceed is expected to say so and stop, not improvise around the gap.</p>
+    <p class="p">That's the actual claim this project makes, once the pitch language is stripped off. Not that four agents can be trusted to run something real with nobody watching, but that it can be built so it doesn't matter whether they can, because when one of them is eventually wrong, the failure is loud, visible, and traceable back to a real file, every time.</p>
 
-    <div class="sources">I've left out the ops details on purpose — the server, where credentials live, key names — same as the rest of the site, and every incident above is real and was checked against this project's own commits and internal docs before publishing rather than written from memory. <a href="./how-it-works.html">How it works</a> has the collection method, and the <a href="https://github.com/SebR214/margin">raw code and history</a> have everything else.</div>
+    <div class="sources">Ops details on purpose left out of this page: the server address, where credentials live, and every key name. Every incident above is checked against this project's own commits, pull requests, and internal notes before publishing, not written from memory. <a href="./how-it-works.html">How it works</a> has the collection method, and the <a href="https://github.com/SebR214/margin">raw code and history</a> have everything else.</div>
   </main>
 </div>
-
-<script>
-fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
-  var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
-}).catch(function(){});
-</script>
 
 <script>
 (function(){
