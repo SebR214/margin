@@ -34,6 +34,7 @@ Stdlib only.
 import csv
 import datetime as dt
 import json
+import math
 import os
 import re
 import sys
@@ -151,18 +152,160 @@ def sub_html(home_copy, n_routes, n_countries):
     return out
 
 
+def load_index_latest():
+    """The parsed data/index_latest.json doc, or None if it doesn't exist
+    yet -- the one file both count_countries() and build_premium_strip()
+    read, so neither ever recomputes a country count or a premium figure
+    from a second, independent source.
+    """
+    if not os.path.exists(INDEX_LATEST):
+        return None
+    with open(INDEX_LATEST) as f:
+        return json.load(f)
+
+
 def count_countries():
     """How many countries have a priced street-dollar rate this hour --
     read from data/index_latest.json's own "countries" list (the priced
     ones; "withheld" is counted separately), the same file the-index.html
     reads for the identical count.
     """
-    if not os.path.exists(INDEX_LATEST):
+    doc = load_index_latest()
+    if doc is None:
         return None
-    with open(INDEX_LATEST) as f:
-        doc = json.load(f)
     countries = doc.get("countries")
     return len(countries) if countries is not None else None
+
+
+# Phase 3: "Where the line runs" -- a single horizontal strip of every
+# tracked country, positioned by its own real index_pct (street-dollar
+# premium over the official rate), from "official rate is real" (0, left)
+# to "official rate is fiction" (a log1p scale, right). Built ONLY from
+# data/index_latest.json -- no new data collection, additive-only per
+# VISION.md.
+#
+# x-position: index_pct clamped to [0, PREMIUM_CAP] then log1p-scaled, so
+# the many countries clustered near 0% (PHP, MXN, IDR, ...) actually
+# separate visually instead of collapsing into one pixel, while a genuine
+# outlier (Sudan's frozen, unmaintained peg -- 1000%+ some hours) clamps to
+# the right edge rather than compressing every other country into the
+# leftmost 10% of the strip.
+PREMIUM_CAP = 100.0
+
+
+def _premium_xfrac(pct):
+    v = max(pct, 0.0)
+    v = min(v, PREMIUM_CAP)
+    return math.log1p(v) / math.log1p(PREMIUM_CAP)
+
+
+# Label collision avoidance: a plain beeswarm. Countries are sorted by
+# their real x-position, then each is placed in the first lane (a stacked
+# row above the axis) whose last-placed label doesn't overlap this one --
+# never a fixed/hand-picked lane per country, so the layout self-adjusts
+# as the real numbers (and which countries cluster where) change hour to
+# hour.
+_LABEL_HALF_W = 15
+_LANE_H = 13
+_MIN_GAP = 4
+
+
+def _pack_lanes(points):
+    lanes = []  # last right-edge (in x units) claimed in each lane
+    for p in points:
+        lane = 0
+        while lane < len(lanes) and lanes[lane] + _MIN_GAP > (p["x"] - _LABEL_HALF_W):
+            lane += 1
+        if lane == len(lanes):
+            lanes.append(0.0)
+        lanes[lane] = p["x"] + _LABEL_HALF_W
+        p["lane"] = lane
+    return points
+
+
+def build_premium_strip(idx_doc, home_copy):
+    """The inner HTML for the premium-strip section: title, the SVG strip
+    itself (axis + one marker per tracked country, each linking to
+    country.html?ccy=X), and the three-sentence note with the real
+    biggest-gap country and percentage filled in live.
+
+    "Biggest gap" uses the same rule as the-index.html's own featured-
+    country pick (denominator_class != "unmaintained") -- a frozen,
+    unmaintained peg's huge nominal gap is an artifact of the peg, not a
+    real market read, so it's shown on the strip (still a real, tracked
+    country) but never the sentence's own headline number.
+    """
+    if idx_doc is None:
+        return None
+    countries = idx_doc.get("countries") or []
+    if not countries:
+        return None
+
+    managed = [c for c in countries if c.get("denominator_class") != "unmaintained"]
+    pool = managed if managed else countries
+    biggest = max(pool, key=lambda c: c.get("index_pct", 0.0))
+    hour = (idx_doc.get("as_of_utc") or idx_doc.get("computed_at") or "")[11:16]
+
+    W = 800
+    ML, MR = 16, 16
+    PW = W - ML - MR
+    TOP_PAD = 16
+    BOTTOM_H = 40
+
+    pts = []
+    for c in countries:
+        pct = c.get("index_pct")
+        if pct is None:
+            continue
+        pts.append({"c": c, "x": ML + _premium_xfrac(pct) * PW})
+    pts.sort(key=lambda p: p["x"])
+    _pack_lanes(pts)
+
+    max_lane = max((p["lane"] for p in pts), default=0)
+    axis_y = TOP_PAD + (max_lane + 1) * _LANE_H + 10
+    h = axis_y + BOTTOM_H
+    thresh_x = ML + _premium_xfrac(10.0) * PW
+
+    svg = []
+    svg.append(f'<line x1="{ML:.1f}" y1="{axis_y:.1f}" x2="{ML+PW:.1f}" y2="{axis_y:.1f}" stroke="#E5E5EA" stroke-width="1"/>')
+    svg.append(f'<line x1="{thresh_x:.1f}" y1="{axis_y-6:.1f}" x2="{thresh_x:.1f}" y2="{axis_y+6:.1f}" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="4,3"/>')
+    svg.append(f'<text x="{thresh_x:.1f}" y="{axis_y+20:.1f}" font-family="Archivo,sans-serif" font-size="10.5" fill="#9A9A9A" text-anchor="middle">10%</text>')
+    svg.append(f'<text x="{ML:.1f}" y="{axis_y+34:.1f}" font-family="Archivo,sans-serif" font-size="12" fill="#6B6B6B">' + esc(home_copy.get("premiumStripAxisLeft", "official rate is real")) + '</text>')
+    svg.append(f'<text x="{ML+PW:.1f}" y="{axis_y+34:.1f}" font-family="Archivo,sans-serif" font-size="12" fill="#6B6B6B" text-anchor="end">' + esc(home_copy.get("premiumStripAxisRight", "official rate is fiction (log scale above 10%)")) + '</text>')
+
+    biggest_ccy = biggest.get("ccy")
+    for p in pts:
+        c, x, lane = p["c"], p["x"], p["lane"]
+        label_y = axis_y - 10 - lane * _LANE_H
+        is_big = c.get("ccy") == biggest_ccy
+        is_unmaintained = c.get("denominator_class") == "unmaintained"
+        r = 5 if is_big else 3
+        fill = "#3F3047" if is_big else ("#D3D0CB" if is_unmaintained else "#817FCC")
+        text_fill = "#3F3047" if is_big else ("#9A9A9A" if is_unmaintained else "#0B0B0B")
+        weight = "700" if is_big else "500"
+        pct = c.get("index_pct", 0.0)
+        tip = c.get("country", "") + ": " + ("+" if pct >= 0 else "") + f"{pct:.2f}% vs the official rate"
+        href = "./country.html?ccy=" + esc(c.get("ccy", ""))
+        piece = ['<a href="' + href + '">', '<title>' + esc(tip) + '</title>']
+        if lane > 0:
+            piece.append(f'<line x1="{x:.1f}" y1="{axis_y-3:.1f}" x2="{x:.1f}" y2="{label_y+3:.1f}" stroke="#E5E5EA" stroke-width="1"/>')
+        piece.append(f'<circle cx="{x:.1f}" cy="{axis_y:.1f}" r="{r}" fill="{fill}"/>')
+        piece.append(f'<text x="{x:.1f}" y="{label_y:.1f}" text-anchor="middle" font-family="Archivo,sans-serif" font-size="9.5" font-weight="{weight}" fill="{text_fill}">' + esc(c.get("ccy", "")) + '</text>')
+        piece.append('</a>')
+        svg.append("".join(piece))
+
+    svg_html = f'<svg viewBox="0 0 {W} {h}" style="width:100%;max-width:800px;height:auto" class="strip-svg">' + "".join(svg) + '</svg>'
+
+    note_tmpl = home_copy.get("premiumStripNote", "")
+    note = (note_tmpl
+            .replace("{biggest_gap_country}", esc(biggest.get("country", "")))
+            .replace("{biggest_gap_pct}", f"{biggest.get('index_pct', 0.0):.1f}%")
+            .replace("{hour}", esc(hour)))
+
+    title = esc(home_copy.get("premiumStripTitle", "Where the line runs"))
+    return ('<div class="waterfall-title">' + title + '</div>'
+            '<div class="strip-wrap">' + svg_html + '</div>'
+            '<div class="strip-note">' + note + '</div>')
 
 
 def win_cell_html(c):
@@ -274,6 +417,14 @@ def main():
     table = corridor_table_html(doc["corridors"], home_copy)
     html, ok3 = replace_by_marker(html, "corridorTableSection", table)
     changed = changed or ok3
+
+    idx_doc = load_index_latest()
+    strip = build_premium_strip(idx_doc, home_copy)
+    if strip is not None:
+        html, ok4 = replace_by_marker(html, "premiumStrip", strip)
+        changed = changed or ok4
+    else:
+        print("  no data/index_latest.json countries yet -- leaving premium strip's prior bake in place")
 
     if not changed:
         print("  WARNING: none of the expected id= anchors were found in index.html -- "
