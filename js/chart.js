@@ -123,7 +123,7 @@
       '<path d="' + areaPath + '" fill="url(#g-' + uid + ')"/>' +
       refLine +
       '<polyline points="' + linePoly + '" fill="none" stroke="#6B6B6B" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
-      '<line x1="0" y1="' + lastY.toFixed(1) + '" x2="' + lastX.toFixed(1) + '" y2="' + lastY.toFixed(1) + '" stroke="#6B6B6B" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.6"/>' +
+      '<line x1="0" y1="' + lastY.toFixed(1) + '" x2="' + lastX.toFixed(1) + '" y2="' + lastY.toFixed(1) + '" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.6"/>' +
       '<rect x="' + (lastX + 6).toFixed(1) + '" y="' + (lastY - 12).toFixed(1) + '" width="' + badgeWidth + '" height="24" rx="4" fill="#EDEDED"/>' +
       '<text x="' + (lastX + 6 + badgeWidth / 2).toFixed(1) + '" y="' + (lastY + 5).toFixed(1) + '" text-anchor="middle" font-family="Archivo, sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + badgeText + '</text>' +
       yLabels +

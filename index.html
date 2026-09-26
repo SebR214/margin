@@ -215,7 +215,7 @@
       if (s.kind === 'rail') fill = col.rail;
       else if (s.v < 0) fill = col.gain;
       else { fill = costLegsSeen === 0 ? col.cost : col.cost2; costLegsSeen++; }
-      var stroke = fill === col.cost2 ? ' stroke="#817FCC" stroke-width="1"' : '';
+      var stroke = fill === col.cost2 ? ' stroke="#D3D0CB" stroke-width="1"' : '';
       var barId = uid + 'b' + i;
       svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" fill="#0B0B0B">' + esc(s.label) + '</text>' +
         '<rect id="' + barId + '" class="wf-bar" data-label="' + esc(s.label) + '" data-value="' + cashPct(s.v) + '" x="' + x0.toFixed(1) + '" y="' + (y+7) + '" width="' + w.toFixed(1) + '" height="' + (rowH-14) + '" rx="2" fill="' + fill + '"' + stroke + ' style="cursor:pointer;transition:opacity .1s"/>' +

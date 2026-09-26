@@ -543,7 +543,7 @@ function drawWaterfall(r){
     if(c.k!=="neg") fill=col[c.k];
     else if(c.v<0) fill=col.neg;
     else { fill=feeLegsSeen===0?col.fee:col.fee2; feeLegsSeen++; }
-    const stroke = fill===col.fee2 ? ' stroke="var(--pos)" stroke-width="1"' : '';
+    const stroke = fill===col.fee2 ? ' stroke="var(--neg)" stroke-width="1"' : '';
     s+=`<text x="12" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12" font-family="var(--font-body)">${c.l}</text>`+
        `<rect x="${x0.toFixed(1)}" y="${y+6}" width="${w.toFixed(1)}" height="${rowH-12}" fill="${fill}"${stroke}/>`+
        `<text data-wf-leg="${i}" x="${(b+(b>=a?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-neutral-700)" font-size="11" font-family="var(--mono)" text-anchor="${b>=a?"start":"end"}">${fmtCents(compCents[i])}</text>`;
