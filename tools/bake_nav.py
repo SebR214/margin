@@ -34,9 +34,12 @@ COPY = os.path.join(HERE, "copy.json")
 # nav's own link list.
 NAV_PAGES = [
     "index.html", "agent-incidents.html", "ask.html", "corridor.html",
-    "country.html", "fee-tiers.html", "findings.html", "how-it-works.html",
+    "country.html", "fee-tiers.html", "how-it-works.html",
     "machine-room.html", "sending-money.html", "the-index.html",
 ]
+# findings.html is NOT in this list -- D3 retired it to a redirect stub
+# (tools/write_redirects.py), same shape as the ten pages from Session 2,
+# and a stub carries no <nav> for this script to bake into.
 
 NAV_RE = re.compile(r"<nav>.*?</nav>", re.S)
 

@@ -67,26 +67,34 @@
 
   <main>
     <h1>How it works</h1>
-    <div class="p">Most currency sites show the official exchange rate. In a lot of countries that is not what people actually pay. The street price of a dollar can be a few percent off the official rate, or a thousand percent off, and the official number hides it completely. This site measures that difference, every hour, in <span id="introCountryCount">Loading…</span> countries. It also prices what it really costs to send money on four corridors, fees and exchange-rate margin together.</div>
+    <div class="p">This site measures two things. The real price of a dollar in <span id="introCountryCount">Loading…</span> countries, and what it really costs to send money using stablecoins (digital dollars) instead of an app like Wise. Every number below is computed from a file you can open, not typed in by hand.</div>
 
-    <div class="h">How a number gets made</div>
-    <div class="p">Every hour the collector goes out and gets real offers, what people are asking for a dollar right now. It takes the median price you would actually pay, compares it to the official rate captured in the same pass, and the gap is the number. Nothing is modelled or smoothed. If the offers move, the number moves.</div>
-    <div class="p" id="thresholdP">The rule is ten sell offers minimum. Under that, the country shows its reason instead of a price. Loading today's counts…</div>
+    <div class="h">How we price a country</div>
+    <div class="p">Every hour, we go out and get real offers, what people are actually asking for a dollar right now, in that country's own currency. We take the typical price you would actually pay, compare it to the official exchange rate captured in the same hour, and the gap between the two is the number this site publishes. Nothing is modelled or smoothed. If the real offers move, the number moves.</div>
+    <div class="p" id="thresholdP">The rule is ten real sell offers, at minimum, before we'll publish a price. Under that, the country shows its reason instead of a number. Loading today's counts…</div>
 
-    <div class="h">Where the prices come from</div>
-    <div class="p">All of it is collected directly, every hour, and written to files you can open:</div>
-    <div id="sourceList"><div class="b">Loading the live source list&hellip;</div></div>
-    <div class="p">Every number on the site links back to the file it came from. Nothing is typed in by hand.</div>
-    <div class="p"><a href="./METHODOLOGY.md">The full technical methodology, unabridged →</a></div>
-
-    <div class="h">Checking ourselves against a reference</div>
-    <div class="p">This site's own measurement is the only thing behind most of its numbers — so for the few countries where an independent, publicly published reference exists, it's worth showing the two side by side rather than asking for trust on faith.</div>
-    <div id="refCheck" class="p" style="padding-top:14px">Loading the comparison&hellip;</div>
+    <div class="h">How we price sending money</div>
+    <div class="p">Sending money with stablecoins takes three real steps, each with its own real cost, and we price every one of them.</div>
+    <div id="sendingSteps"><div class="b">Loading this hour's route…</div></div>
+    <div class="p">The app prices on the same page come from two places. Where an app quotes its own price directly, we use that. Where it doesn't, we fall back to a public comparison feed that Wise itself publishes, which is a real quote but not the app's own, and we say which one it is on every row.</div>
 
     <div class="h">What was hard</div>
-    <div class="p">Fees. They hide inside the exchange rate and they change with how much you send, so one headline fee number is almost always wrong. Everything here is all-in, measured at five different amounts, which is the only way the comparison means anything.</div>
-    <div class="p">History. An hour that does not get collected is gone, you cannot go back and fill it in. So keeping collection running has mattered more than shipping any feature.</div>
-    <div class="p">Made-up numbers. An automated pipeline will happily produce a plausible figure when the data is missing, and that would kill the whole point of this. So nothing gets published unless it traces to a file that was actually collected, and the attempts that failed stay up.</div>
+    <div class="p">Fees hide inside the exchange rate, and they change with how much you send, so one headline fee number is almost always wrong. Every cost on this site is all-in, measured at five real amounts, which is the only way the comparison means anything.</div>
+    <div class="p">History cannot be gotten back. An hour that never gets collected is gone, you cannot go back later and fill it in. So keeping the hourly check running has mattered more than shipping any single feature.</div>
+    <div class="p">A pipeline like this will happily produce a plausible number when the real data is missing, and that would defeat the entire point of this site. So nothing gets published unless it traces to a file that was actually collected, and the attempts that failed stay visible instead of being smoothed away.</div>
+
+    <div class="h">Where the data comes from</div>
+    <div id="sourceGroups"><div class="b">Loading the live source list&hellip;</div></div>
+    <div class="p">Every number on the site links back to the file it came from.</div>
+    <div class="p"><a href="./METHODOLOGY.md">The full technical methodology, unabridged →</a></div>
+
+    <div class="h">Checking ourselves</div>
+    <div class="p">This site's own measurement is the only thing behind most of its numbers. For the few countries where an independent, publicly published reference exists, it's worth showing the two side by side rather than asking for trust on faith.</div>
+    <div id="refCheck" class="p" style="padding-top:14px">Loading the comparison&hellip;</div>
+
+    <div class="h" id="use-this-data">Use this data</div>
+    <div class="p">Every file behind every number on this site is public. You can read it directly, or point a program at api.margin.wiki and ask it a question over a plain API.</div>
+    <div class="p">If your AI assistant speaks MCP, it can ask the same questions the same way, live, without anyone copying a number by hand.</div>
 
     <div class="ask">
       <input type="text" placeholder="Ask the agent how any number was made" id="hiwAskInput"/>
@@ -100,19 +108,81 @@
 <script>
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-// Folded in from methodology.html (SESSIONS.md Session 2): this list used
-// to be six hand-typed lines that undercounted the real venue list --
-// twelve exchanges named, twenty actually in data/sources_latest.json,
-// including BTCTurk, Bitso, CoinDCX, MAX and WazirX, none of which were
-// mentioned. Same live source methodology.html always read from.
+// D3: replaces a flat, one-line-per-source list with four plain groups a
+// reader can actually take in. Still reading the same live file
+// (data/sources_latest.json), still real counts, not typed -- just
+// classified and deduplicated before being shown. "IndependentReserve
+// (AUD)" and "IndependentReserve (NZD)" collapse to one venue name, the way
+// a reader would actually count them.
+// Only entries shaped "on VenueA, VenueB, ..." actually name real exchange
+// venues -- CriptoYa/CoinGecko-style fallback aggregators have a role like
+// "backup price" instead, and are counted in the group's country total but
+// not listed by name here, since they are not themselves the venue.
+function dedupVenueNames(sources){
+  var names = {};
+  sources.forEach(function(s){
+    var m = /^on (.+)$/.exec(s.role || '');
+    if (!m) return;
+    m[1].split(',').forEach(function(n){
+      var clean = n.trim().replace(/\s*\([A-Z]{2,4}\)\s*$/, '');
+      if (clean) names[clean] = true;
+    });
+  });
+  return Object.keys(names).sort();
+}
+
 fetch('./data/sources_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(doc){
   var sources = (doc && doc.sources) || [];
-  var html = sources.map(function(s){
-    return '<div class="b">· ' + esc(s.name) + ' — ' + esc(s.role) + ', ' + esc(s.detail) + '</div>';
-  }).join('');
-  document.getElementById('sourceList').innerHTML = html || '<div class="b">Source list could not be read from data/sources_latest.json.</div>';
+  var p2p = sources.filter(function(s){ return /buy and sell ads/i.test(s.role || ''); });
+  var exchanges = sources.filter(function(s){
+    return /order books/i.test(s.name || '') || /broker aggregation|backup price/i.test(s.role || '');
+  });
+  var appQuotes = sources.filter(function(s){ return /live quotes from their own pricing|the other transfer providers/i.test(s.role || ''); });
+  var official = sources.filter(function(s){ return /official exchange rate|central bank/i.test(s.role || ''); });
+
+  var union = function(list){
+    var out = {};
+    list.forEach(function(s){ (s.countries || []).forEach(function(c){ out[c] = true; }); });
+    return Object.keys(out);
+  };
+  var p2pCount = union(p2p).length;
+  var exchangeCount = union(exchanges).length;
+  var venues = dedupVenueNames(exchanges);
+
+  var groups = [];
+  if (p2pCount) groups.push('Person-to-person ads on Binance, ' + p2pCount + ' countries');
+  if (exchangeCount) groups.push('Crypto exchanges, ' + exchangeCount + ' countries (' + esc(venues.join(', ')) + ')');
+  if (appQuotes.length) groups.push('Prices quoted by the apps themselves, with a public comparison feed as backup');
+  if (official.length) groups.push('Official exchange rates, captured in the same hour as the market price');
+
+  document.getElementById('sourceGroups').innerHTML = groups.length
+    ? groups.map(function(g){ return '<div class="b">· ' + g + '</div>'; }).join('')
+    : '<div class="b">Source list could not be read from data/sources_latest.json.</div>';
 }).catch(function(){
-  document.getElementById('sourceList').innerHTML = '<div class="b">Could not load the live source list. That failure is shown, not hidden.</div>';
+  document.getElementById('sourceGroups').innerHTML = '<div class="b">Could not load the live source list. That failure is shown, not hidden.</div>';
+});
+
+// ---- How we price sending money: the same real waterfall corridor.html
+// and index.html chart, in plain sentences instead of a bar chart. Every
+// figure read from data/corridor_summary.json, never typed.
+fetch('./data/corridor_summary.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(doc){
+  var wf = doc && doc.waterfall;
+  var c = (doc && doc.corridors || [])[0];
+  if (!wf || !c) throw new Error('no waterfall this pass');
+  var buyPct = ((wf.onramp_basis_bps + wf.onramp_fee_bps) / 100).toFixed(2);
+  var movePct = (wf.network_fee_bps / 100).toFixed(2);
+  var sellPct = ((wf.offramp_basis_bps + wf.offramp_fee_bps) / 100).toFixed(2);
+  var totalPct = (wf.total_cost_bps / 100).toFixed(2);
+  var basePct = (wf.baseline_cost_bps / 100).toFixed(2);
+  document.getElementById('sendingSteps').innerHTML =
+    '<div class="b">1. Buy digital dollars where the sender is. On ' + esc(c.route_words.split(' to ')[0]) +
+    '’s exchange, that step alone costs about ' + buyPct + '% of what you send.</div>' +
+    '<div class="b">2. Move it. Sending the digital dollars themselves, network fee only, costs about ' + movePct + '%.</div>' +
+    '<div class="b">3. Sell it for local currency where it lands. On the exchange at the other end, that costs about ' + sellPct + '%.</div>' +
+    '<div class="b">All in, sending this way costs about ' + totalPct + '% of the amount, against about ' + basePct +
+    '% for the cheapest app right now, on ' + esc(c.route_words) + '. <a href="./corridor.html?corridor=' + esc(c.corridor) + '" style="font-weight:600;color:#0B0B0B">the full receipt →</a></div>';
+}).catch(function(){
+  document.getElementById('sendingSteps').innerHTML = '<div class="b">Could not load this hour\'s route pricing. That failure is shown, not hidden.</div>';
 });
 
 fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
@@ -174,6 +244,20 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
         esc(ref.src) + ' independently publishes <b class="num">' + (refPremium>=0?'+':'') + refPremium.toFixed(1) + '%</b> — we differ by <b class="num">' + Math.abs(diff).toFixed(1) + ' points</b>. ' +
         '<a href="./country.html?ccy=' + esc(ccy) + '" style="font-weight:600;color:#0B0B0B">the gap over time →</a></div>';
     }).join('');
+
+    // Why we differ: dolarapi's own project notes (its README, on GitHub)
+    // say plainly that it reads DolarHoy.com, a news site, to get its
+    // published numbers for all three of these currencies. We collect live
+    // peer-to-person offers directly, every hour, and take the actual
+    // typical price. Two real methods measuring the same market can land
+    // on different numbers without either one being wrong -- this is the
+    // real, sourced reason, not a guess, so all three currencies keep this
+    // line. If a reason like this can't be found from the source's own
+    // docs, the rule is to cut the line rather than guess at one.
+    if (rows) {
+      document.getElementById('refCheck').insertAdjacentHTML('afterend',
+        '<div class="p" style="padding-top:10px;font-size:15px">Why the numbers differ: dolarapi.com’s own project notes say it reads its published rate for these currencies off DolarHoy.com, a news site that itself publishes a number. We collect live peer-to-person offers directly, every hour, and take the real typical price paid. Two honest methods measuring the same market can land on different numbers without either one being wrong.</div>');
+    }
 
     document.getElementById('refCheck').outerHTML = '<div id="refCheck">' + rows + '</div>';
   }).catch(function(){
