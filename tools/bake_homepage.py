@@ -209,13 +209,15 @@ _LABEL_HALF_W = 15
 _LANE_H = 13
 _MIN_GAP = 4
 # The left edge of a log-scaled strip is where most countries land -- near-
-# zero gaps barely separate on this axis, so lane-packing alone stacked a
-# dozen-deep tower of 3-letter codes there (SEB, 2026-09-26: "could be
-# nicer visually"). Past this many stacked rows a label adds clutter, not
-# information -- the dot, the leader line and the hover tooltip still carry
-# the real number either way. The chart's one deliberate outlier (the
-# biggest gap) always keeps its label regardless of lane.
-_MAX_LABEL_LANE = 4
+# zero gaps barely separate on this axis, so lane-packing stacked a dozen-
+# deep tower of 3-letter codes there. A first pass capped the tower at 5
+# rows; still a block of touching labels, not actually fixed (SEB,
+# 2026-09-26: "doesn't seem like you fixed anything"). Single row only -- a
+# label prints when it clears the previous KEPT label, exactly what "lane
+# 0" already means in _pack_lanes. Everything else stays a plain dot on the
+# axis with its leader line and hover tooltip; the chart's one deliberate
+# outlier (the biggest gap) always keeps its label regardless of lane.
+_MAX_LABEL_LANE = 0
 
 
 def _pack_lanes(points):
