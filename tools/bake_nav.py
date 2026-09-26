@@ -34,9 +34,12 @@ COPY = os.path.join(HERE, "copy.json")
 # nav's own link list.
 NAV_PAGES = [
     "index.html", "agent-incidents.html", "ask.html", "corridor.html",
-    "country.html", "fee-tiers.html", "findings.html", "how-it-works.html",
+    "country.html", "fee-tiers.html", "how-it-works.html",
     "machine-room.html", "sending-money.html", "the-index.html",
 ]
+# findings.html is a redirect stub as of Phase 4 (FINAL spec) -- its content
+# moved into sending-money.html and it no longer carries its own header, the
+# same reason calculator.html/providers.html/etc. were never in this list.
 
 NAV_RE = re.compile(r"<nav>.*?</nav>", re.S)
 
