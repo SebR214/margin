@@ -1,0 +1,86 @@
+name: collector-watchdog
+
+# Watches collect.yml FROM THE OUTSIDE. collect.yml's own freshness guard
+# (tools/check_freshness.py) only runs as one of its own late steps -- if the
+# job dies earlier (a schema mismatch, a bad dependency, anything before that
+# step), the guard never fires and nothing outside the Actions tab finds out.
+# That happened 2026-09-26: the chain was broken for ~3.5 hours and was only
+# caught because a human asked for a status update. This workflow has no
+# dependency on collect.yml completing -- it reads its run history and the
+# repo's commit log, both true regardless of whether the last run finished --
+# and it is the only thing in this repo whose entire job is to tell a human
+# when the core product has gone quiet. See tools/check_collector_health.py
+# for the actual health logic; this workflow is just its alarm wiring.
+#
+# Cheap by design: no LLM anywhere in this workflow, so running it every 30
+# minutes costs nothing but a few seconds of a free GitHub-hosted runner.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 200
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check collector health
+        id: health
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if python3 tools/check_collector_health.py > health_output.txt 2>&1; then
+            echo "healthy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "healthy=false" >> "$GITHUB_OUTPUT"
+          fi
+          cat health_output.txt
+
+      # One issue, reused across outages rather than one per incident --
+      # a pinned, reopened issue is what a human (or a scheduled agent)
+      # actually watches; a pile of one-off issues is not.
+      - name: File or update the alert
+        if: steps.health.outputs.healthy == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          BODY="Collector chain looks down as of $(date -u +%Y-%m-%dT%H:%MZ).
+
+          \`\`\`
+          $(cat health_output.txt)
+          \`\`\`
+
+          See [collect.yml runs](https://github.com/${GH_REPO}/actions/workflows/collect.yml) and \`tools/check_collector_health.py\` for the check that raised this."
+          existing=$(gh issue list --label collector-down --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$BODY"
+          else
+            gh issue create --title "Collector chain down" --label collector-down --body "$BODY"
+          fi
+
+      - name: Close the alert if recovered
+        if: steps.health.outputs.healthy == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          existing=$(gh issue list --label collector-down --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "Recovered as of $(date -u +%Y-%m-%dT%H:%MZ)."
+            gh issue close "$existing"
+          fi
