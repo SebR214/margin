@@ -231,7 +231,9 @@ def run(base_url, dry_run):
         shots.append(hiw_shot)
 
         # ---- Walk the nav, desktop width, each page loads clean ----
-        nav_pages = ["the-index.html", "sending-money.html", "findings.html", "machine-room.html"]
+        # findings.html is a redirect stub as of Phase 4 (FINAL spec) -- its
+        # content lives on sending-money.html now, already in this list.
+        nav_pages = ["the-index.html", "sending-money.html", "machine-room.html"]
         for np in nav_pages:
             p.visit(base_url + "/" + np)
             if p.errors:

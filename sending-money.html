@@ -44,7 +44,21 @@
   .prow.missing{opacity:.5}
   .prow.missing .cost,.prow.missing .pct{color:#9A9A9A;font-weight:400;font-style:italic}
   .foot{padding-top:10px;font-size:12px;color:#9A9A9A;line-height:1.5}
-  @media(max-width:900px){h1{font-size:30px} header{padding:22px 24px} .hero{padding:32px 24px 0} .corridor{padding:32px 24px 0;max-width:100%}}
+  .crossover{font-size:15px;line-height:1.6;color:#1A1A1A;padding-bottom:6px;max-width:780px}
+  .crossover-explain{font-size:13px;color:#6B6B6B;line-height:1.5;padding-bottom:16px;max-width:780px}
+
+  /* ---- Folded-in findings section (formerly findings.html, Phase 4) ---- */
+  .findings{padding:12px 48px 56px}
+  .findings-hdr{font-size:26px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px}
+  .section-kicker{font-size:13px;letter-spacing:.06em;color:#9A9A9A;text-transform:uppercase;padding:28px 0 8px}
+  .findings .card{padding:24px 0;border-bottom:1px solid var(--rule);max-width:820px}
+  .findings .stamp{font-size:11px;color:#9A9A9A;letter-spacing:.06em;padding-bottom:8px}
+  .findings .p{font-size:16px;line-height:1.6;color:#1A1A1A;font-weight:400}
+  .findings .p b{font-weight:700}
+  .findings .receipt{font-size:13px;color:#6B6B6B;padding-top:10px}
+  .findings .receipt a{font-weight:600;color:#0B0B0B}
+  .show-all-wrap{padding-top:18px}
+  @media(max-width:900px){h1{font-size:30px} header{padding:22px 24px} .hero{padding:32px 24px 0} .corridor{padding:32px 24px 0;max-width:100%} .findings{padding:12px 24px 56px}}
 
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
   @media(max-width:760px){
@@ -85,11 +99,23 @@
 
   <div class="corridor-picker" id="corridorPicker"></div>
   <div id="corridors"></div>
+
+  <div class="findings" id="findings">
+    <div class="findings-hdr" id="findingsHeading">&nbsp;</div>
+    <div class="lede" id="findingsLede">&nbsp;</div>
+    <div id="weekendIndex"></div>
+    <div id="weekendChart"></div>
+    <div id="patterns"></div>
+    <div class="section-kicker" id="changesKicker">&nbsp;</div>
+    <div id="priceChangeCards"></div>
+    <div class="show-all-wrap" id="showAllWrap"></div>
+  </div>
 </div>
 
 <script>
 (function(){
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function fmt(n){ return n.toFixed(2)+'%'; }
   var AMOUNT_ORDER = ['200','1000','5000','25000','50000'];
   // Fixed, not alphabetical or however the API happens to order its keys --
   // SGD->PHP is the flagship corridor (the one measured longest, the one
@@ -194,12 +220,25 @@
       '<div style="font-size:12px;color:#9A9A9A;padding-top:4px">all-in cost, as a share of the amount, at each size actually measured -- stops at $50,000 because that is as far as real fills go; nothing past that point is estimated</div>';
   }
 
+  // ---- Template substitution, same convention as findings.html's own T()
+  // and corridor.html's -- a copy.json string with {name} placeholders,
+  // filled with already-plain values. ----------------------------------
+  function T(s, vals){
+    var out = String(s||'');
+    for (var k in vals) out = out.split('{' + k + '}').join(vals[k]);
+    return out;
+  }
+
+  var COPY = {};
+
   Promise.all([
     fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()),
-    fetch('./data/samples.csv', {cache:'no-store'}).then(r=>r.text())
+    fetch('./data/samples.csv', {cache:'no-store'}).then(r=>r.text()),
+    fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(function(){ return {}; })
   ]).then(function(res){
     var d = res[0];
     var samplesByKey = parseSamplesCSV(res[1]);
+    COPY = res[2].sendingMoney || {};
 
     // Fixed order, real keys only -- a route in ROUTE_ORDER the API doesn't
     // currently have is dropped silently (nothing to show), never invented.
@@ -228,6 +267,7 @@
       renderCorridor(el, d.corridors[routeKey], sizeByRoute[routeKey] || '5000', routeKey, samplesByKey);
     }
     show(current);
+    renderFindings();
 
     function renderCorridor(el, route, selectedSize, routeKey, samplesByKey){
       sizeByRoute[routeKey] = selectedSize;
@@ -252,9 +292,28 @@
       var footnote = (ownProviders.length ? ownProviders.join(' and ') + ' quote their own prices; the rest come ' : 'Every price comes ') +
         'from a public comparison across providers; the dollar route is measured on real exchanges, all in.';
       var showCurve = CURVE_ROUTES.indexOf(routeKey) !== -1;
+      // Phase 4 (FINAL spec): one plain sentence, computed from real
+      // samples.csv counts (tools/emit_providers.py's crossover_stats),
+      // saying when the stablecoin route -- waiting for its own price,
+      // not paying whatever the market offers right now -- actually beats
+      // the cheapest ordinary provider on this corridor. Never invented:
+      // a corridor with a real zero win rate says so, plainly, instead of
+      // manufacturing an exception.
+      var co = route.crossover;
+      var crossoverHtml = '';
+      if (co) {
+        var pct = Math.round(co.win_rate_pct);
+        var sentence = pct > 0
+          ? T(COPY.crossoverWinTemplate, { sendingWords: co.sending_words, pct: pct })
+          : T(COPY.crossoverNeverTemplate, { sendingWords: co.sending_words });
+        crossoverHtml =
+          '<div class="crossover">' + esc(sentence) + '</div>' +
+          '<div class="crossover-explain">' + esc(COPY.crossoverExplain || '') + '</div>';
+      }
       el.innerHTML =
         '<div class="corridor-hdr"><div class="corridor-title">'+esc(route.route_words)+'</div>' +
         '<div class="pills">'+pillsHtml+'</div></div>' +
+        crossoverHtml +
         '<div class="prow-hdr lbl"><div>SENDING '+esc(size.amount_words)+'</div><div style="text-align:right">ALL IN</div><div style="text-align:right">% OF AMOUNT</div></div>' +
         rowsHtml +
         '<div class="foot">'+esc(footnote)+'</div>' +
@@ -271,6 +330,192 @@
       });
       if (showCurve) renderCostCurve(document.getElementById('curve-'+routeKey), routeKey, samplesByKey);
     }
+
+    // ==================================================================
+    // Folded in from findings.html (Phase 4, FINAL spec): the weekend
+    // penalty index, the per-corridor hike-rate chart built from the same
+    // numbers, the "patterns, not one-offs" cards, and the day-by-day
+    // price-change cards -- max 5 visible, the rest behind a "show all"
+    // pill, same expander idiom as the site's other pickers/chips.
+    // findings.html itself becomes a redirect stub to this page.
+    // ==================================================================
+    function renderFindings(){
+    function renderWeekendChart(container, corridorRows){
+      // corridorRows: [{routeWords, ratePct, hikeDays, totalSlots}], real
+      // counts only -- no corridor with zero judged Saturdays is drawn.
+      var rows = corridorRows.filter(function(r){ return r.totalSlots > 0; });
+      if (!rows.length) { container.innerHTML = ''; return; }
+      var w = 760, rowH = 34, padL = 4, padR = 54, top = 8;
+      var h = top + rows.length * rowH + 8;
+      var plotW = w - padL - padR;
+      var maxRate = Math.max(10, Math.max.apply(null, rows.map(function(r){ return r.ratePct; })));
+      var bars = rows.map(function(r, i){
+        var y = top + i * rowH;
+        var barW = (r.ratePct / maxRate) * plotW;
+        return '<text x="'+padL+'" y="'+(y+14)+'" font-family="Archivo, sans-serif" font-size="13" fill="#0B0B0B">'+esc(r.routeWords)+'</text>' +
+          '<rect x="'+padL+'" y="'+(y+18)+'" width="'+plotW+'" height="6" rx="3" fill="#F0F0F0"/>' +
+          '<rect x="'+padL+'" y="'+(y+18)+'" width="'+Math.max(2, barW).toFixed(1)+'" height="6" rx="3" fill="#817FCC"/>' +
+          '<text x="'+(padL+plotW+8)+'" y="'+(y+27)+'" font-family="Archivo, sans-serif" font-size="12" fill="#6B6B6B" class="num">'+r.ratePct.toFixed(1)+'%</text>';
+      }).join('');
+      container.innerHTML =
+        '<svg width="100%" viewBox="0 0 '+w+' '+h+'" style="display:block">' + bars + '</svg>' +
+        '<div style="font-size:12px;color:#9A9A9A;padding-top:6px">'+esc(COPY.weekendChartCaption||'')+'</div>';
+    }
+
+    fetch('./data/price_changes_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(pc){
+      document.getElementById('findingsHeading').textContent = COPY.findingsHeading || '';
+      document.getElementById('findingsLede').textContent = COPY.findingsLede || '';
+
+      var changes = pc.changes || [];
+
+      // ---- The weekend penalty index, sitewide and per corridor --------
+      var judged = pc.saturdays_judged || {};
+      var totalSlots = 0, hikeDays = 0;
+      var hikesByPair = {};
+      var slotsByCorridor = {}, hikeDaysByCorridor = {};
+      changes.filter(function(c){ return c.kind === 'weekend_up'; }).forEach(function(c){
+        var key = c.provider + '|' + c.corridor;
+        if (!hikesByPair[key]) hikesByPair[key] = { provider: c.provider, corridor: c.corridor, route_words: c.route_words, days: {}, moves: [] };
+        hikesByPair[key].days[c.day] = true;
+        hikesByPair[key].moves.push(c.move_pct);
+      });
+      Object.keys(judged).forEach(function(corridor){
+        var route = d.corridors[corridor];
+        if (!route) return;
+        var providers = {};
+        Object.keys(route.sizes).forEach(function(sz){
+          route.sizes[sz].rows.forEach(function(r){ if (r.provider !== 'Sending it with stablecoins') providers[r.provider] = true; });
+        });
+        var slots = Object.keys(providers).length * judged[corridor];
+        totalSlots += slots;
+        slotsByCorridor[corridor] = slots;
+      });
+      Object.keys(hikesByPair).forEach(function(k){
+        var n = Object.keys(hikesByPair[k].days).length;
+        hikeDays += n;
+        var c = hikesByPair[k].corridor;
+        hikeDaysByCorridor[c] = (hikeDaysByCorridor[c] || 0) + n;
+      });
+      var allMoves = Object.keys(hikesByPair).reduce(function(a,k){ return a.concat(hikesByPair[k].moves); }, []);
+      var avgMove = allMoves.length ? allMoves.reduce(function(a,b){return a+b;},0)/allMoves.length : 0;
+      var offenders = Object.keys(hikesByPair).map(function(k){ return hikesByPair[k]; })
+        .sort(function(a,b){ return Object.keys(b.days).length - Object.keys(a.days).length; });
+      var rate = totalSlots ? (hikeDays / totalSlots * 100) : 0;
+
+      if (totalSlots) {
+        document.getElementById('weekendIndex').innerHTML =
+          '<div class="section-kicker">'+esc(COPY.weekendTitle||'')+'</div>' +
+          '<div style="font-size:20px;font-weight:800;letter-spacing:-0.01em;line-height:1.3">' + rate.toFixed(1) + '% of provider-Saturday combinations we\'ve watched show a price hike</div>' +
+          '<div style="font-size:15px;color:#333;padding-top:8px;line-height:1.6">' + hikeDays + ' of ' + totalSlots + ' provider-Saturday observations, across every provider on every route this site tracks. Narrow, not industry-wide: ' +
+          (offenders.length ? offenders.map(function(o){ return esc(o.provider) + ' on ' + esc(o.route_words); }).join(' and ') + ' account for all of it.' : 'nobody has done it more than once.') +
+          ' When it happens, the average hike is <b class="num">' + avgMove.toFixed(2) + '%</b> of the amount.</div>' +
+          '<div style="font-size:13px;color:#9A9A9A;padding-top:10px">measured, not assumed -- the stablecoin route this site also tracks doesn\'t close for the weekend, which is the actual argument for it</div>';
+
+        var chartRows = Object.keys(slotsByCorridor).map(function(c){
+          var slots = slotsByCorridor[c];
+          var hikes = hikeDaysByCorridor[c] || 0;
+          return { routeWords: (d.corridors[c]||{}).route_words || c, ratePct: slots ? hikes/slots*100 : 0, hikeDays: hikes, totalSlots: slots };
+        }).sort(function(a,b){ return b.ratePct - a.ratePct; });
+        renderWeekendChart(document.getElementById('weekendChart'), chartRows);
+      }
+
+      // ---- Patterns, not one-offs --------------------------------------
+      var weekendUps = changes.filter(function(c){ return c.kind === 'weekend_up'; });
+      var byProvider = {};
+      weekendUps.forEach(function(c){
+        var key = c.provider + '|' + c.corridor;
+        if (!byProvider[key]) byProvider[key] = { provider: c.provider, corridor: c.corridor, route_words: c.route_words, days: {} };
+        byProvider[key].days[c.day] = true;
+      });
+      var patterns = Object.keys(byProvider).map(function(k){
+        var p = byProvider[k];
+        p.dayCount = Object.keys(p.days).length;
+        p.judged = (pc.saturdays_judged || {})[p.corridor] || p.dayCount;
+        return p;
+      }).filter(function(p){ return p.dayCount >= 2; })
+        .sort(function(a,b){ return (b.dayCount/b.judged) - (a.dayCount/a.judged); });
+
+      var weekdayUps = changes.filter(function(c){ return c.kind === 'change' && c.move_pct > 0; });
+      var byFreq = {};
+      weekdayUps.forEach(function(c){
+        var key = c.provider + '|' + c.corridor;
+        if (!byFreq[key]) byFreq[key] = { provider: c.provider, corridor: c.corridor, route_words: c.route_words, days: {} };
+        byFreq[key].days[c.day] = true;
+      });
+      var freqRanked = Object.keys(byFreq).map(function(k){
+        var p = byFreq[k]; p.dayCount = Object.keys(p.days).length; return p;
+      }).filter(function(p){ return p.dayCount >= 5; })
+        .sort(function(a,b){ return b.dayCount - a.dayCount; })
+        .slice(0, 3);
+
+      if (patterns.length || freqRanked.length) {
+        document.getElementById('patterns').innerHTML =
+          '<div class="section-kicker">'+esc(COPY.patternsTitle||'')+'</div>' +
+          patterns.slice(0, 5).map(function(p){
+            return '<div class="card"><div class="p">' +
+              esc(p.provider) + ' has raised its weekend price on ' + esc(p.route_words) +
+              ' on <b>' + p.dayCount + ' of the ' + p.judged + ' Saturdays</b> we\'ve watched that route.</div></div>';
+          }).join('') +
+          freqRanked.map(function(p){
+            return '<div class="card"><div class="p">' +
+              esc(p.provider) + ' has raised its price on ' + esc(p.route_words) +
+              ' on <b>' + p.dayCount + ' separate days</b> since we started watching — not a one-off, a habit.</div></div>';
+          }).join('');
+      }
+
+      // ---- Every change, day by day -- max 5, rest behind "show all" --
+      document.getElementById('changesKicker').textContent = COPY.changesTitle || '';
+      var seen = {};
+      var dedup = [];
+      changes.slice().sort((a,b)=> b.ts_utc.localeCompare(a.ts_utc) || (a.size==='5000'?-1:1))
+        .forEach(function(c){
+          var key = c.day+'|'+c.provider+'|'+c.corridor;
+          if (!seen[key]) { seen[key] = true; dedup.push(c); }
+        });
+
+      function cardFor(c){
+        var up = c.move_pct > 0;
+        var sentence;
+        if (c.kind === 'weekend_up') {
+          sentence = esc(c.provider)+' raised its weekend price on '+esc(c.route_words)+
+            ': sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b> of the amount, up from '+fmt(c.old_cost_pct)+' on '+esc(c.weekday)+'.';
+        } else if (c.kind === 'weekend_back') {
+          sentence = esc(c.provider)+' dropped its price back down on '+esc(c.route_words)+
+            ' after the weekend: sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b>, down from '+fmt(c.old_cost_pct)+'.';
+        } else {
+          sentence = esc(c.provider)+' '+(up?'raised':'cut')+' its price on '+esc(c.route_words)+
+            ': sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b> of the amount, '+(up?'up':'down')+' from '+fmt(c.old_cost_pct)+' the day before.';
+        }
+        return '<div class="card"><div class="stamp">'+esc(c.day).toUpperCase()+'</div>' +
+          '<div class="p">'+sentence+'</div>' +
+          '<div class="receipt">from the daily provider panel, '+esc(c.n_agree)+' of '+esc(c.n_panel)+' readings agree</div></div>';
+      }
+
+      var cardsEl = document.getElementById('priceChangeCards');
+      var wrapEl = document.getElementById('showAllWrap');
+      var VISIBLE = 5;
+      var expanded = false;
+
+      function draw(){
+        var shown = expanded ? dedup : dedup.slice(0, VISIBLE);
+        cardsEl.innerHTML = shown.length ? shown.map(cardFor).join('')
+          : '<div class="card"><div class="p">'+esc(COPY.noChanges||'')+'</div></div>';
+        if (dedup.length > VISIBLE) {
+          var label = expanded ? (COPY.showFewerLabel || '') : T(COPY.showAllTemplate || '', { n: dedup.length });
+          wrapEl.innerHTML = '<button class="pill" id="showAllBtn">'+esc(label)+'</button>';
+          document.getElementById('showAllBtn').addEventListener('click', function(){
+            expanded = !expanded;
+            draw();
+          });
+        } else {
+          wrapEl.innerHTML = '';
+        }
+      }
+      draw();
+    }).catch(function(){
+      document.getElementById('priceChangeCards').innerHTML = '<div class="card"><p style="color:#0B0B0B">Could not load findings data. That failure is shown, not hidden.</p></div>';
+    });
+    } // end renderFindings
   }).catch(function(){
     document.getElementById('corridors').innerHTML = '<div class="corridor"><p style="color:#0B0B0B">Could not load corridor data. That failure is shown, not hidden.</p></div>';
   });

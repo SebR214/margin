@@ -49,6 +49,24 @@ ROUTE_WORDS = {
 }
 SYMBOL = {"SGD": "S$", "AUD": "A$", "NZD": "NZ$", "USD": "US$"}
 
+# Phase 4 (FINAL spec, crossover sentences): "Sending {sending_words},
+# stablecoins beat the cheapest app about X% of the time..." -- a currency
+# + destination phrase, not the ROUTE_WORDS "country to country" phrasing,
+# because that is the exact template's own wording ("Sending dollars to
+# Mexico"), plain per DESIGN.md's "name real things" rule.
+SENDING_WORDS = {
+    "SGD->PHP": "Singapore dollars to the Philippines",
+    "AUD->PHP": "Australian dollars to the Philippines",
+    "NZD->PHP": "New Zealand dollars to the Philippines",
+    "USD->MXN": "dollars to Mexico",
+}
+
+# The size every crossover stat is measured at -- $5,000-equivalent, the
+# same default amount the page itself opens on (AMOUNT_ORDER in
+# sending-money.html), so the sentence above the table describes the same
+# rows the reader is looking at, not a different size silently blended in.
+CROSSOVER_SIZE = 5000
+
 # How far back a provider's roster looks for "who normally quotes this
 # corridor" -- long enough that one bad hour doesn't drop a provider from
 # the roster (so its next miss still greys out rather than vanishing), short
@@ -172,6 +190,31 @@ def crypto_route(corridor):
     return out, hour
 
 
+def crossover_stats(corridor):
+    """How often the stablecoin route, waiting for its own price, beats the
+    cheapest ordinary provider -- at $5,000, across every hour samples.csv
+    has for this corridor. Real counts, not modelled: `crypto_wins_maker`
+    is samples.csv's own column (landed_maker cheaper than
+    baseline_cost_bps), computed by the collector that wrote the row, not
+    re-derived here.
+    """
+    rs = [r for r in rows(SAMPLES)
+          if (r.get("corridor") or "").strip() == corridor
+          and flag(r, "source_ok")
+          and num(r, "notional_src") == CROSSOVER_SIZE]
+    hours = len(rs)
+    if hours == 0:
+        return None
+    wins = sum(1 for r in rs if flag(r, "crypto_wins_maker"))
+    return {
+        "size": CROSSOVER_SIZE,
+        "hours": hours,
+        "wins": wins,
+        "win_rate_pct": round(wins / hours * 100, 1),
+        "sending_words": SENDING_WORDS.get(corridor, corridor),
+    }
+
+
 def money(cur, v, dp=2):
     if v is None:
         return None
@@ -261,6 +304,7 @@ def build(now=None):
             "src": src, "dst": dst, "sizes": out_sizes,
             "panel_hour_utc": panel_hour.isoformat() if panel_hour else None,
             "crypto_hour_utc": crypto_hour.isoformat() if crypto_hour else None,
+            "crossover": crossover_stats(corridor),
         }
     snap = {"corridors": corridors,
             "own_quote_hour_utc": own_hour.isoformat() if own_hour else None,

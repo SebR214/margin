@@ -232,10 +232,11 @@ def normalize_markup(s):
 # corridor.html appends the corridor's own currencies to this base title
 # client-side (see its `document.title=...` line).
 #
-# The ten retired pages (providers.html, pricing-history.html,
+# The retired pages (providers.html, pricing-history.html,
 # methodology.html, status.html, requests.html, calculator.html,
-# weekly.html, data.html, watch.html, stress.html -- SESSIONS.md Session 2)
-# are `<meta http-equiv="refresh" content="0; ...">` stubs now: this check
+# weekly.html, data.html, watch.html, stress.html -- SESSIONS.md Session 2;
+# findings.html -- Phase 4, FINAL spec, folded into sending-money.html) are
+# `<meta http-equiv="refresh" content="0; ...">` stubs now: this check
 # visits the URL the same way a reader would, and a 0-second refresh has
 # already fired by the time it reads the title, so what it actually
 # observes is the DESTINATION page's title, never the stub's own. That
@@ -245,18 +246,18 @@ def normalize_markup(s):
 PAGE_TITLE = {
     "index.html": "margin.wiki",
     "providers.html": "margin.wiki — sending money",
-    "pricing-history.html": "margin.wiki — findings",
+    "pricing-history.html": "margin.wiki — sending money",
     "corridor.html": "margin.wiki — one transfer, the receipt in full",
     "methodology.html": "margin.wiki — how it works",
     "status.html": "margin.wiki — the machine room",
-    "findings.html": "margin.wiki — findings",
+    "findings.html": "margin.wiki — sending money",
     "requests.html": "margin.wiki — the index",
     "calculator.html": "margin.wiki — sending money",
-    "weekly.html": "margin.wiki — findings",
+    "weekly.html": "margin.wiki — sending money",
     "data.html": "margin.wiki — the machine room",
     "ask.html": "margin.wiki — ask it a question",
     "watch.html": "margin.wiki — the machine room",
-    "stress.html": "margin.wiki — findings",
+    "stress.html": "margin.wiki — sending money",
     "machine-room.html": "margin.wiki — the machine room",
     "the-index.html": "margin.wiki — the index",
     "sending-money.html": "margin.wiki — sending money",
