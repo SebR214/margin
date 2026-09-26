@@ -177,20 +177,14 @@ def count_countries():
     return len(countries) if countries is not None else None
 
 
-# Phase 3: "Where the line runs" -- a single horizontal strip of every
-# tracked country, positioned by its own real index_pct (street-dollar
-# premium over the official rate), from "official rate is real" (0, left)
-# to "official rate is fiction" (a log1p scale, right). Built ONLY from
-# data/index_latest.json -- no new data collection, additive-only per
-# VISION.md.
-#
-# x-position: index_pct clamped to [0, PREMIUM_CAP] then log1p-scaled, so
-# the many countries clustered near 0% (PHP, MXN, IDR, ...) actually
-# separate visually instead of collapsing into one pixel, while a genuine
-# outlier (Sudan's frozen, unmaintained peg -- 1000%+ some hours) clamps to
-# the right edge rather than compressing every other country into the
-# leftmost 10% of the strip.
+# Phase 3: "Where the line runs" -- ranked bar list of countries by
+# street-dollar premium over official rate, biggest first. Top PREMIUM_TOP_N
+# shown; each row: country name | proportional bar | gap%. Built ONLY from
+# data/index_latest.json -- no new data collection, additive-only per VISION.md.
+# Bar width uses log1p scaling so near-zero countries don't all render as
+# one-pixel slivers.
 PREMIUM_CAP = 100.0
+PREMIUM_TOP_N = 10
 
 
 def _premium_xfrac(pct):
@@ -199,128 +193,79 @@ def _premium_xfrac(pct):
     return math.log1p(v) / math.log1p(PREMIUM_CAP)
 
 
-# Label collision avoidance: a plain beeswarm. Countries are sorted by
-# their real x-position, then each is placed in the first lane (a stacked
-# row above the axis) whose last-placed label doesn't overlap this one --
-# never a fixed/hand-picked lane per country, so the layout self-adjusts
-# as the real numbers (and which countries cluster where) change hour to
-# hour.
-_LABEL_HALF_W = 15
-_LANE_H = 13
-_MIN_GAP = 4
-# The left edge of a log-scaled strip is where most countries land -- near-
-# zero gaps barely separate on this axis, so lane-packing stacked a dozen-
-# deep tower of 3-letter codes there. A first pass capped the tower at 5
-# rows; still a block of touching labels, not actually fixed (SEB,
-# 2026-09-26: "doesn't seem like you fixed anything"). Single row only -- a
-# label prints when it clears the previous KEPT label, exactly what "lane
-# 0" already means in _pack_lanes. Everything else stays a plain dot on the
-# axis with its leader line and hover tooltip; the chart's one deliberate
-# outlier (the biggest gap) always keeps its label regardless of lane.
-_MAX_LABEL_LANE = 0
-
-
-def _pack_lanes(points):
-    lanes = []  # last right-edge (in x units) claimed in each lane
-    for p in points:
-        lane = 0
-        while lane < len(lanes) and lanes[lane] + _MIN_GAP > (p["x"] - _LABEL_HALF_W):
-            lane += 1
-        if lane == len(lanes):
-            lanes.append(0.0)
-        lanes[lane] = p["x"] + _LABEL_HALF_W
-        p["lane"] = lane
-    return points
-
-
 def build_premium_strip(idx_doc, home_copy):
-    """The inner HTML for the premium-strip section: title, the SVG strip
-    itself (axis + one marker per tracked country, each linking to
-    country.html?ccy=X), and the three-sentence note with the real
-    biggest-gap country and percentage filled in live.
-
-    "Biggest gap" uses the same rule as the-index.html's own featured-
-    country pick (denominator_class != "unmaintained") -- a frozen,
-    unmaintained peg's huge nominal gap is an artifact of the peg, not a
-    real market read, so it's shown on the strip (still a real, tracked
-    country) but never the sentence's own headline number.
+    """Ranked horizontal bar list matching renderPremiumStrip() in index.html.
+    Top PREMIUM_TOP_N countries by index_pct, sorted biggest-first.
+    "Biggest gap" excludes unmaintained pegs -- their frozen nominal gap is an
+    artifact, not a real market read.
     """
     if idx_doc is None:
         return None
     countries = idx_doc.get("countries") or []
-    if not countries:
+    priced = sorted(
+        [c for c in countries if c.get("index_pct") is not None],
+        key=lambda c: c.get("index_pct", 0.0),
+        reverse=True,
+    )
+    if not priced:
         return None
 
-    managed = [c for c in countries if c.get("denominator_class") != "unmaintained"]
-    pool = managed if managed else countries
-    biggest = max(pool, key=lambda c: c.get("index_pct", 0.0))
+    managed = [c for c in priced if c.get("denominator_class") != "unmaintained"]
+    biggest = (managed if managed else priced)[0]
+    biggest_ccy = biggest.get("ccy")
     hour = (idx_doc.get("as_of_utc") or idx_doc.get("computed_at") or "")[11:16]
 
-    W = 800
-    ML, MR = 16, 16
-    PW = W - ML - MR
-    TOP_PAD = 16
-    BOTTOM_H = 40
+    shown = priced[:PREMIUM_TOP_N]
+    rest = priced[PREMIUM_TOP_N:]
 
-    pts = []
-    for c in countries:
-        pct = c.get("index_pct")
-        if pct is None:
-            continue
-        pts.append({"c": c, "x": ML + _premium_xfrac(pct) * PW})
-    pts.sort(key=lambda p: p["x"])
-    _pack_lanes(pts)
+    W, row_h, top = 800, 30, 6
+    label_w, value_w = 190, 70
+    bar_left = label_w
+    bar_w = W - value_w - bar_left  # 540
+    H = top + len(shown) * row_h + 10
 
-    biggest_ccy = biggest.get("ccy")
-    max_lane = max(
-        (p["lane"] if p["c"].get("ccy") == biggest_ccy else min(p["lane"], _MAX_LABEL_LANE) for p in pts),
-        default=0,
-    )
-    axis_y = TOP_PAD + (max_lane + 1) * _LANE_H + 10
-    h = axis_y + BOTTOM_H
-    thresh_x = ML + _premium_xfrac(10.0) * PW
-
-    svg = []
-    svg.append(f'<line x1="{ML:.1f}" y1="{axis_y:.1f}" x2="{ML+PW:.1f}" y2="{axis_y:.1f}" stroke="#E5E5EA" stroke-width="1"/>')
-    svg.append(f'<line x1="{thresh_x:.1f}" y1="{axis_y-6:.1f}" x2="{thresh_x:.1f}" y2="{axis_y+6:.1f}" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="4,3"/>')
-    svg.append(f'<text x="{thresh_x:.1f}" y="{axis_y+20:.1f}" font-family="Archivo,sans-serif" font-size="10.5" fill="#9A9A9A" text-anchor="middle">10%</text>')
-    svg.append(f'<text x="{ML:.1f}" y="{axis_y+34:.1f}" font-family="Archivo,sans-serif" font-size="12" fill="#6B6B6B">' + esc(home_copy.get("premiumStripAxisLeft", "official rate is real")) + '</text>')
-    svg.append(f'<text x="{ML+PW:.1f}" y="{axis_y+34:.1f}" font-family="Archivo,sans-serif" font-size="12" fill="#6B6B6B" text-anchor="end">' + esc(home_copy.get("premiumStripAxisRight", "official rate is fiction (log scale above 10%)")) + '</text>')
-
-    for p in pts:
-        c, x, lane = p["c"], p["x"], p["lane"]
-        is_big = c.get("ccy") == biggest_ccy
-        labeled = is_big or lane <= _MAX_LABEL_LANE
-        label_y = axis_y - 10 - min(lane, _MAX_LABEL_LANE) * _LANE_H
-        is_unmaintained = c.get("denominator_class") == "unmaintained"
-        r = 5 if is_big else 3
-        fill = "#3F3047" if is_big else ("#D3D0CB" if is_unmaintained else "#817FCC")
-        text_fill = "#3F3047" if is_big else ("#9A9A9A" if is_unmaintained else "#0B0B0B")
-        weight = "700" if is_big else "500"
+    rows = []
+    for i, c in enumerate(shown):
+        y = top + i * row_h
         pct = c.get("index_pct", 0.0)
+        is_big = c.get("ccy") == biggest_ccy
+        is_unmaintained = c.get("denominator_class") == "unmaintained"
+        w = max(2.0, _premium_xfrac(pct) * bar_w)
+        fill = "#3F3047" if is_big else ("#D3D0CB" if is_unmaintained else "#817FCC")
+        text_fill = "#9A9A9A" if is_unmaintained else "#0B0B0B"
+        weight = "700" if is_big else "500"
         tip = c.get("country", "") + ": " + ("+" if pct >= 0 else "") + f"{pct:.2f}% vs the official rate"
         href = "./country.html?ccy=" + esc(c.get("ccy", ""))
-        piece = ['<a href="' + href + '">', '<title>' + esc(tip) + '</title>']
-        if labeled and lane > 0:
-            piece.append(f'<line x1="{x:.1f}" y1="{axis_y-3:.1f}" x2="{x:.1f}" y2="{label_y+3:.1f}" stroke="#E5E5EA" stroke-width="1"/>')
-        piece.append(f'<circle cx="{x:.1f}" cy="{axis_y:.1f}" r="{r}" fill="{fill}"/>')
-        if labeled:
-            piece.append(f'<text x="{x:.1f}" y="{label_y:.1f}" text-anchor="middle" font-family="Archivo,sans-serif" font-size="9.5" font-weight="{weight}" fill="{text_fill}">' + esc(c.get("ccy", "")) + '</text>')
-        piece.append('</a>')
-        svg.append("".join(piece))
+        sign = "+" if pct >= 0 else ""
+        rows.append(
+            f'<a href="{href}"><title>{esc(tip)}</title>'
+            f'<text x="0" y="{y+19:.1f}" font-family="Archivo,sans-serif" font-size="13" font-weight="{weight}" fill="{text_fill}">{esc(c.get("country", ""))}</text>'
+            f'<rect x="{bar_left}" y="{y+6:.1f}" width="{w:.1f}" height="12" rx="2" fill="{fill}"/>'
+            f'<text x="{bar_left+w+8:.1f}" y="{y+16:.1f}" font-family="ui-monospace,monospace" font-size="12" font-weight="{weight}" fill="{text_fill}">{sign}{pct:.1f}%</text>'
+            f'</a>'
+        )
 
-    svg_html = f'<svg viewBox="0 0 {W} {h}" style="width:100%;max-width:800px;height:auto" class="strip-svg">' + "".join(svg) + '</svg>'
+    svg_html = (
+        f'<svg viewBox="0 0 {W} {H}" style="width:100%;max-width:800px;height:auto" class="strip-svg">'
+        + "".join(rows)
+        + '</svg>'
+    )
 
+    rest_max = max((c.get("index_pct", 0.0) for c in rest), default=0.0)
     note_tmpl = home_copy.get("premiumStripNote", "")
     note = (note_tmpl
             .replace("{biggest_gap_country}", esc(biggest.get("country", "")))
             .replace("{biggest_gap_pct}", f"{biggest.get('index_pct', 0.0):.1f}%")
+            .replace("{rest_count}", str(len(rest)))
+            .replace("{rest_max_pct}", f"{rest_max:.1f}%")
             .replace("{hour}", esc(hour)))
 
     title = esc(home_copy.get("premiumStripTitle", "Where the line runs"))
-    return ('<div class="waterfall-title">' + title + '</div>'
-            '<div class="strip-wrap">' + svg_html + '</div>'
-            '<div class="strip-note">' + note + '</div>')
+    return (
+        '<div class="waterfall-title">' + title + '</div>'
+        '<div class="strip-wrap">' + svg_html + '</div>'
+        '<div class="strip-note">' + note + '</div>'
+    )
 
 
 def win_cell_html(c):

@@ -124,8 +124,13 @@
       refLine +
       '<polyline points="' + linePoly + '" fill="none" stroke="#6B6B6B" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
       '<line x1="0" y1="' + lastY.toFixed(1) + '" x2="' + lastX.toFixed(1) + '" y2="' + lastY.toFixed(1) + '" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.6"/>' +
-      '<rect x="' + (lastX + 6).toFixed(1) + '" y="' + (lastY - 12).toFixed(1) + '" width="' + badgeWidth + '" height="24" rx="4" fill="#EDEDED"/>' +
-      '<text x="' + (lastX + 6 + badgeWidth / 2).toFixed(1) + '" y="' + (lastY + 5).toFixed(1) + '" text-anchor="middle" font-family="Archivo, sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + badgeText + '</text>' +
+      // Badge's left edge must match the axis labels' left edge (plotW+14
+      // below) exactly -- they were two different hardcoded offsets (+6
+      // here, +14 there) off the same lastX===plotW baseline, so the badge
+      // and every axis percentage sat 8px out of column with each other on
+      // every trend chart sitewide (SEB, 2026-09-26: "basic alignment").
+      '<rect x="' + (lastX + 14).toFixed(1) + '" y="' + (lastY - 12).toFixed(1) + '" width="' + badgeWidth + '" height="24" rx="4" fill="#EDEDED"/>' +
+      '<text x="' + (lastX + 14 + badgeWidth / 2).toFixed(1) + '" y="' + (lastY + 5).toFixed(1) + '" text-anchor="middle" font-family="Archivo, sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + badgeText + '</text>' +
       yLabels +
       '<line id="' + vlineId + '" x1="0" y1="0" x2="0" y2="' + (h - bottomAxis) + '" stroke="#0B0B0B" stroke-width="1" opacity="0" />' +
       '<circle id="' + dotId + '" r="4" fill="#6B6B6B" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
