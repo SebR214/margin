@@ -277,8 +277,7 @@
         "cost_bps",
         "source",
         "source_ok",
-        "error",
-        "payout_type"
+        "error"
       ],
       "date_column": "ts_utc",
       "date_range": {
@@ -288,6 +287,23 @@
       "kind": "csv",
       "path": "data/provider_quotes.csv",
       "rows": 11030
+    },
+    {
+      "columns": [
+        "ts_utc",
+        "corridor",
+        "size_src",
+        "provider",
+        "payout_type"
+      ],
+      "date_column": "ts_utc",
+      "date_range": {
+        "from": "2026-09-26T04:06:56.558549+00:00",
+        "to": "2026-09-26T10:06:56.809508+00:00"
+      },
+      "kind": "csv",
+      "path": "data/provider_quotes_payout_type.csv",
+      "rows": 350
     },
     {
       "columns": [
@@ -529,7 +545,7 @@
       "path": "data/index_latest.json"
     },
     {
-      "bytes": 82893,
+      "bytes": 83625,
       "columns": [
         "as_of_utc",
         "computed_at",
@@ -609,6 +625,6 @@
       "path": "data/countries/"
     }
   ],
-  "n_sources": 29,
+  "n_sources": 30,
   "source_file": "data/"
 }
