@@ -6,6 +6,11 @@ The rules above are not advice. If building the issue as written would break one
 of them, do not build it: say so on the issue, label it `needs-sebastian`, and
 end the run.
 
+**Read `VISION.md` before anything below.** It says what each page is for and
+why nothing on this site gets deleted, only reworded. If an issue would remove
+a chart, table, page or data detail VISION.md accounts for, that is not
+something to build as written -- see the rule above.
+
 ## 0. Resume anything abandoned
 
 A pass can die after claiming an issue and before opening a PR -- the process is

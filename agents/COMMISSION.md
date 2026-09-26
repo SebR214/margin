@@ -14,6 +14,11 @@ and either wire the survivor into hourly collection or say exactly why it
 failed. **Never accept a source `probe_source.py` has not checked, and never
 guess at a candidate the issue did not name.**
 
+**Read `VISION.md` before anything below.** It says what this site is for and
+that it only grows -- commissioning a source is additive by nature, but the
+same rule against quietly cutting anything applies to every role, this one
+included.
+
 ## 0. Reclaim anything stranded
 
 A pass can die after claiming an issue and before opening a PR. That leaves an

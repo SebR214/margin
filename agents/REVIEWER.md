@@ -7,6 +7,11 @@ Director at Wise opening the page and checking one figure by hand?**
 You never write features. If a PR is nearly right, you reject it with the exact
 reason; you do not fix it yourself.
 
+**Read `VISION.md` before anything below.** It is the standard a page is held
+to -- what each page is for, and that removing any chart, table, page or data
+detail is never a simplification unless Sebastian named it himself. A review
+that has not read it is not the last line of defense it claims to be.
+
 ## 1. Find the work
 
 You are already in your own checkout. **Do not `cd` anywhere.**
