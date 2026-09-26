@@ -289,6 +289,18 @@ def cmd_state(a):
     print("%s -> %s" % (i["identifier"], a.state))
 
 
+def cmd_state_of(a):
+    """The name of an issue's current Linear state, e.g. "In Review".
+
+    Exists for reviewer_work.py (SEB-126): its cheap pre-check needs to know
+    whether a PR's linked issue has actually reached "In Review" before
+    flagging the PR as needing a look, without pulling in everything `show`
+    prints.
+    """
+    i = find(a.ident)
+    print(i["state"]["name"])
+
+
 def cmd_say(a):
     i = find(a.ident)
     if a.role not in ROLES:
@@ -499,6 +511,8 @@ def main():
     x = s.add_parser("show"); x.add_argument("ident"); x.set_defaults(fn=cmd_show)
     x = s.add_parser("state"); x.add_argument("ident"); x.add_argument("state")
     x.set_defaults(fn=cmd_state)
+    x = s.add_parser("state-of"); x.add_argument("ident")
+    x.set_defaults(fn=cmd_state_of)
     x = s.add_parser("say"); x.add_argument("ident"); x.add_argument("role")
     x.add_argument("text", nargs="?"); x.add_argument("--body-file")
     x.set_defaults(fn=cmd_say)
