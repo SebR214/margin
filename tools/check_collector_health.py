@@ -52,6 +52,11 @@ def last_sample_commit_age_minutes(now):
     """Minutes since the newest commit on main whose message is a chain
     "sample <ts>" commit -- the chain's own heartbeat, independent of the
     hotfix/feature commits that sit on top of it."""
+    try:
+        run(["git", "fetch", "origin", "main"])
+    except subprocess.CalledProcessError as e:
+        print(f"  [warn] could not fetch origin/main, using local ref: {e.stderr.strip()}",
+              file=sys.stderr)
     log = run(["git", "log", "origin/main", "--format=%H %aI %s", "-n", "200"])
     for line in log.splitlines():
         parts = line.split(" ", 2)
@@ -110,6 +115,9 @@ def main():
         conclusions = recent_run_conclusions()
     except subprocess.CalledProcessError as e:
         print(f"  [warn] could not read run history: {e.stderr.strip()}", file=sys.stderr)
+        conclusions = []
+    except FileNotFoundError:
+        print("  [warn] could not read run history: 'gh' CLI not found", file=sys.stderr)
         conclusions = []
 
     if conclusions:
