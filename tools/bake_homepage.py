@@ -208,6 +208,14 @@ def _premium_xfrac(pct):
 _LABEL_HALF_W = 15
 _LANE_H = 13
 _MIN_GAP = 4
+# The left edge of a log-scaled strip is where most countries land -- near-
+# zero gaps barely separate on this axis, so lane-packing alone stacked a
+# dozen-deep tower of 3-letter codes there (SEB, 2026-09-26: "could be
+# nicer visually"). Past this many stacked rows a label adds clutter, not
+# information -- the dot, the leader line and the hover tooltip still carry
+# the real number either way. The chart's one deliberate outlier (the
+# biggest gap) always keeps its label regardless of lane.
+_MAX_LABEL_LANE = 4
 
 
 def _pack_lanes(points):
@@ -261,7 +269,11 @@ def build_premium_strip(idx_doc, home_copy):
     pts.sort(key=lambda p: p["x"])
     _pack_lanes(pts)
 
-    max_lane = max((p["lane"] for p in pts), default=0)
+    biggest_ccy = biggest.get("ccy")
+    max_lane = max(
+        (p["lane"] if p["c"].get("ccy") == biggest_ccy else min(p["lane"], _MAX_LABEL_LANE) for p in pts),
+        default=0,
+    )
     axis_y = TOP_PAD + (max_lane + 1) * _LANE_H + 10
     h = axis_y + BOTTOM_H
     thresh_x = ML + _premium_xfrac(10.0) * PW
@@ -273,11 +285,11 @@ def build_premium_strip(idx_doc, home_copy):
     svg.append(f'<text x="{ML:.1f}" y="{axis_y+34:.1f}" font-family="Archivo,sans-serif" font-size="12" fill="#6B6B6B">' + esc(home_copy.get("premiumStripAxisLeft", "official rate is real")) + '</text>')
     svg.append(f'<text x="{ML+PW:.1f}" y="{axis_y+34:.1f}" font-family="Archivo,sans-serif" font-size="12" fill="#6B6B6B" text-anchor="end">' + esc(home_copy.get("premiumStripAxisRight", "official rate is fiction (log scale above 10%)")) + '</text>')
 
-    biggest_ccy = biggest.get("ccy")
     for p in pts:
         c, x, lane = p["c"], p["x"], p["lane"]
-        label_y = axis_y - 10 - lane * _LANE_H
         is_big = c.get("ccy") == biggest_ccy
+        labeled = is_big or lane <= _MAX_LABEL_LANE
+        label_y = axis_y - 10 - min(lane, _MAX_LABEL_LANE) * _LANE_H
         is_unmaintained = c.get("denominator_class") == "unmaintained"
         r = 5 if is_big else 3
         fill = "#3F3047" if is_big else ("#D3D0CB" if is_unmaintained else "#817FCC")
@@ -287,10 +299,11 @@ def build_premium_strip(idx_doc, home_copy):
         tip = c.get("country", "") + ": " + ("+" if pct >= 0 else "") + f"{pct:.2f}% vs the official rate"
         href = "./country.html?ccy=" + esc(c.get("ccy", ""))
         piece = ['<a href="' + href + '">', '<title>' + esc(tip) + '</title>']
-        if lane > 0:
+        if labeled and lane > 0:
             piece.append(f'<line x1="{x:.1f}" y1="{axis_y-3:.1f}" x2="{x:.1f}" y2="{label_y+3:.1f}" stroke="#E5E5EA" stroke-width="1"/>')
         piece.append(f'<circle cx="{x:.1f}" cy="{axis_y:.1f}" r="{r}" fill="{fill}"/>')
-        piece.append(f'<text x="{x:.1f}" y="{label_y:.1f}" text-anchor="middle" font-family="Archivo,sans-serif" font-size="9.5" font-weight="{weight}" fill="{text_fill}">' + esc(c.get("ccy", "")) + '</text>')
+        if labeled:
+            piece.append(f'<text x="{x:.1f}" y="{label_y:.1f}" text-anchor="middle" font-family="Archivo,sans-serif" font-size="9.5" font-weight="{weight}" fill="{text_fill}">' + esc(c.get("ccy", "")) + '</text>')
         piece.append('</a>')
         svg.append("".join(piece))
 
