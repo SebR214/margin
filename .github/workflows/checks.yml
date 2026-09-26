@@ -1,0 +1,54 @@
+name: checks
+
+# PR-time gate. Nothing else in this repo runs on pull_request today --
+# collect.yml, fees.yml and collector_watchdog.yml are all schedule-driven
+# collection/health jobs, not code review. That gap is how PR #160 ("D3: how
+# it works rewrite...") landed and quietly deleted the homepage's waterfall
+# chart and its full corridor table: nothing automated ever looked at the
+# diff, only a person noticing after the fact caught it (and it was later
+# reverted). This workflow is that missing check.
+#
+# tools/check_inventory.py is the specific gate for that regression: it fails
+# the PR if any page's chart/table/interactive-element count drops below the
+# committed page_inventory.json baseline (see that script's own docstring
+# for what "baseline" means here -- commit 7078efd09, the last commit before
+# PR #160 landed).
+#
+# tools/check_copy.py and tools/check_index_consistency.py are included too
+# -- both are stdlib-only, need no live network call and no browser, and
+# were previously runnable by hand only. Not included: tools/check_page.py
+# (needs a real Chromium via CDP -- a browser dependency this workflow does
+# not set up, left for a follow-up rather than risking a red PR build over
+# missing infrastructure unrelated to the diff under review), and
+# tools/check_fees.py / check_freshness.py / check_delivery.py /
+# check_collector_health.py / check_ask.py, which check the health of the
+# live collection pipeline and a real model backend, not the correctness of
+# a PR's diff -- collect.yml and collector_watchdog.yml already own that.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Inventory gate (no page may lose charts, tables or interactive elements)
+        run: python3 tools/check_inventory.py
+
+      - name: Plain-language gate (no payments jargon in headings/nav/labels)
+        run: python3 tools/check_copy.py
+
+      - name: Index consistency (published figures match their own charts)
+        run: python3 tools/check_index_consistency.py
