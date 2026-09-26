@@ -194,7 +194,7 @@ def build():
             if size in crypto:
                 c = crypto[size]
                 entries.append({
-                    "provider": "The dollar route", "cost_pct": round(c / 100, 4),
+                    "provider": "Sending it with stablecoins", "cost_pct": round(c / 100, 4),
                     "costs": money(src, size * c / 1e4),
                     "source": "measured",
                     "source_words": "measured on real exchanges, all in",

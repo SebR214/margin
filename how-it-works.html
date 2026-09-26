@@ -54,10 +54,10 @@
     <div class="brand">
       <div class="logo"><a href="./index.html">margin.wiki</a></div>
       <nav>
-        <a href="./the-index.html">The index</a>
+        <a href="./index.html">Home</a>
         <a href="./sending-money.html">Sending money</a>
-        <a href="./findings.html">Findings</a>
-        <a href="./how-it-works.html" class="active">How it works</a>
+        <a href="./the-index.html">Countries</a>
+        <a href="./machine-room.html">How it was built</a>
       </nav>
     </div>
     <div class="header-right">
@@ -248,7 +248,7 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
       var c = tracked[mentionedTracked[0]];
       return 'That phrasing didn’t resolve, but <b>' + esc(c.country) + '</b> <i>is</i> tracked. <a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">See ' + esc(c.country) + '’s page →</a>';
     }
-    return 'That couldn’t be turned into a query against what’s collected here. <a href="./the-index.html" style="font-weight:600;color:#0B0B0B">See every tracked country →</a> or <a href="./ask.html" style="font-weight:600;color:#0B0B0B">try the main ask page →</a>.';
+    return 'That couldn’t be turned into a query against what’s collected here. <a href="./the-index.html" style="font-weight:600;color:#0B0B0B">See every tracked country →</a>.';
   }
 
   function submit(){

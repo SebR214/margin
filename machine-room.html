@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki — the machine room</title>
-<meta name="description" content="What the collector is doing this hour, and what the agents building this site are doing, unedited, as it happens."/>
+<meta name="description" content="What the site is checking this hour, and what the programs building this site are doing, unedited, as it happens."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
@@ -78,10 +78,10 @@
     <div class="brand">
       <div class="logo"><a href="./index.html">margin.wiki</a></div>
       <nav>
-        <a href="./the-index.html">The index</a>
+        <a href="./index.html">Home</a>
         <a href="./sending-money.html">Sending money</a>
-        <a href="./findings.html">Findings</a>
-        <a href="./how-it-works.html">How it works</a>
+        <a href="./the-index.html">Countries</a>
+        <a href="./machine-room.html" class="active">How it was built</a>
       </nav>
     </div>
     <div class="header-right">
@@ -120,6 +120,16 @@
       <div class="feed-note" id="feedCap">&nbsp;</div>
       <div style="padding-top:10px;font-size:13px;color:#6B6B6B"><a href="https://github.com/SebR214/margin/commits/main" id="col2HistoryLink">&nbsp;</a></div>
     </div>
+
+    <div style="border-top:1px solid var(--rule);padding-top:20px">
+      <div class="col-title" style="margin-bottom:10px">Read more</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px 28px;font-size:14px">
+        <a href="./findings.html" style="font-weight:600">What the data has found →</a>
+        <a href="./how-it-works.html" style="font-weight:600">How the prices are checked →</a>
+        <a href="./fee-tiers.html" style="font-weight:600">Why sending more can cost less →</a>
+        <a href="./agent-incidents.html" style="font-weight:600">When the agents got it wrong →</a>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -151,6 +161,15 @@
     while (el.children.length > (cap||FEED_CAP)) el.removeChild(el.lastChild);
   }
   function classWords(kind){ return (COPY.columns.collection.classWords||{})[kind] || ''; }
+
+  // A role label for the feed's left column. Never falls through to a raw
+  // "unknown" or "" printed as UNKNOWN -- an unmapped role always reads as
+  // the copy's own byline.unknown ("--"), never the literal word.
+  function roleLabel(role){
+    var B = (COPY.columns.agents||{}).byline || {};
+    var r = String(role||'').toLowerCase();
+    return B[r] || B.unknown || '—';
+  }
 
   // Who actually made a commit, read from the git author rather than assumed.
   // Assuming builder is how a commit made from Sebastian's own laptop gets
@@ -300,8 +319,11 @@
         var what = e.event === 'transition'
           ? T(C2.transitionTemplate, { ident: esc(e.ident), from: esc(e.from_state), to: esc(e.to_state) })
           : T(C2.commentTemplate, { ident: esc(e.ident), text: esc((e.text||'').slice(0,120)) });
+        // A Linear issue move is never one of the four agent identities --
+        // it's the tracker itself, so it is always labelled LINEAR, not
+        // whatever (or nothing) the event's own role field carries.
         prepend(document.getElementById('agentFeed'),
-          '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">'+esc((e.role||'').toUpperCase())+'</div><div style="flex-grow:1">'+what+'</div>');
+          '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">'+esc((C2.byline||{}).linear || 'LINEAR')+'</div><div style="flex-grow:1">'+what+'</div>');
         return;
       }
       if (e.kind === 'commit') {
@@ -319,7 +341,7 @@
             ? T(C2.loopPassTemplate, { result: e.ok ? C2.loopOk : C2.loopFailed, seconds: e.seconds!=null ? ', '+Math.round(e.seconds)+'s' : '' })
             : C2.loopRecovered;
         prepend(document.getElementById('agentFeed'),
-          '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">'+esc((e.role||'').toUpperCase())+'</div><div style="flex-grow:1">'+esc(label)+'</div>');
+          '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">'+esc(roleLabel(e.role))+'</div><div style="flex-grow:1">'+esc(label)+'</div>');
         return;
       }
     };

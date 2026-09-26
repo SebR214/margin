@@ -1,33 +1,32 @@
 {
   "brand": "margin.wiki",
   "home": {
-    "headlineFallback": "Stablecoins lost to the best fiat provider in nearly every measured hour. The rail is nearly free. The doors are not.",
-    "headlineSub": "Measured, not assumed: every hour, on every tracked route, since August.",
+    "headline": "Sending money with stablecoins almost always costs more than using an app like Wise.",
+    "headlineFallback": "Sending money with stablecoins almost always costs more than using an app like Wise.",
+    "headlineSub": "We check real prices every hour. Sending {sendAmount} to {dest} this way costs about {stableCost}, the cheapest app charges about {bestCost}. That's {window}. The coin is cheap to move. Buying it and cashing it out is what costs you.",
     "waterfallTitle": "Where the cost actually sits",
-    "waterfallCap": "Sending {rung} {corridor}, buying it now. Five real terms, median across every hour measured -- the same decomposition as README.md's own headline.",
+    "waterfallCap": "Sending {rung} to {dest}, buying it now. Five real costs: {window}.",
     "waterfallLegend": {
       "buying": "Buying the coin",
       "moving": "Moving it",
       "selling": "Selling it",
       "total": "The whole transfer"
     },
-    "corridorTableTitle": "Every route, measured the same way",
+    "corridorTableTitle": "Every transfer we check, priced the same way",
     "corridorTableCols": {
-      "corridor": "ROUTE",
-      "stablecoin": "STABLECOIN ROUTE",
-      "fiat": "BEST FIAT PROVIDER",
-      "winRate": "STABLECOIN WINS"
+      "corridor": "SENDING",
+      "stablecoin": "STABLECOIN COST",
+      "fiat": "BEST APP",
+      "winRate": "STABLECOIN CHEAPER"
     },
     "seeCorridor": "see the receipt →",
-    "indexPointer": "Every tracked currency's own parallel-rate gap moved to",
-    "indexPointerLink": "the index →",
-    "footerMachineRoom": "the machine room — {priced} priced · {withheld} withheld · last pass {hour} UTC"
+    "footerMachineRoom": "how it was built — {priced} priced, {withheld} without enough data, last check {hour} UTC"
   },
   "nav": [
     {
-      "key": "index",
-      "label": "The index",
-      "href": "./the-index.html"
+      "key": "home",
+      "label": "Home",
+      "href": "./index.html"
     },
     {
       "key": "money",
@@ -35,14 +34,14 @@
       "href": "./sending-money.html"
     },
     {
-      "key": "findings",
-      "label": "Findings",
-      "href": "./findings.html"
+      "key": "countries",
+      "label": "Countries",
+      "href": "./the-index.html"
     },
     {
       "key": "how",
-      "label": "How it works",
-      "href": "./how-it-works.html"
+      "label": "How it was built",
+      "href": "./machine-room.html"
     }
   ],
   "chart": {
@@ -118,12 +117,12 @@
       "colBasis": "based on"
     },
     "cross": {
-      "title": "If you moved money through the dollar route, what rate would you get?",
+      "title": "If you moved money through stablecoins, what rate would you get?",
       "intro": "Turn {baseCode} into a digital dollar on a {baseCountry} exchange, then turn that dollar into the other country's money on an exchange there. This is the rate that round trip works out to, next to the official rate for the same moment.",
       "oneBuys": "one {baseCode} buys",
       "columns": {
         "official": "official rate",
-        "crypto": "through the dollar route",
+        "crypto": "through stablecoins",
         "difference": "difference"
       },
       "footnote": "A plus means the dollar route works out to more of the other country's money than the official rate would give you, before any fees.",
@@ -140,7 +139,7 @@
       "kicker": "what the transfer costs, hourly",
       "detailButton": "See one transfer in detail",
       "methodButton": "How it's measured",
-      "tooltipLabel": "the dollar route"
+      "tooltipLabel": "sending it with stablecoins"
     },
     "correction": {
       "label": "Correction on the record",
@@ -160,7 +159,7 @@
       "provLabel": "where this comes from",
       "unknownSource": "an internal source",
       "countMissing": "source count not recorded",
-      "defaultProvider": "the best fiat provider",
+      "defaultProvider": "the cheapest app",
       "sourceLabels": {
         "data/basis.csv": "the board",
         "data/basis_history.csv": "the daily history archive",
@@ -205,7 +204,7 @@
     }
   },
   "corridor": {
-    "title": "One route, the receipt in full",
+    "title": "One transfer, the receipt in full",
     "lede1": "Every price on this site is the price of a digital dollar — the kind an ordinary person can buy on their phone, in places where the bank won't sell them one. So the obvious question is whether that's a real dollar or just a number on a screen.",
     "lede2": "We answer it the only honest way: we take one all the way through. Buy it in one country, move it, sell it in another, pay every fee on the way. Then we count what actually came out the other end.",
     "verdict1": "Doing this is almost always more expensive than just using a bank. We've measured it {measureCount} times. The stablecoin route came out cheaper {winCount} times.",
@@ -226,7 +225,7 @@
       },
       "waterfall": {
         "title": "Where the money goes",
-        "cap": "Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the best fiat provider, same second."
+        "cap": "Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the cheapest app, checked at the same moment."
       },
       "ladder": {
         "title": "It is worst at the amounts people actually send",
@@ -234,7 +233,7 @@
       },
       "history": {
         "title": "Every round trip we've run",
-        "cap": "The total cost over time, hourly since collection began: buying at the price on offer, waiting for your own price, and the best fiat provider. History cannot be back-filled."
+        "cap": "The total cost over time, checked hourly since we started: buying at the price on offer, waiting for your own price, and the cheapest app. History cannot be back-filled."
       }
     },
     "legend": {
@@ -243,7 +242,7 @@
       "blockchain": "the blockchain",
       "total": "total",
       "wholeTransfer": "The whole transfer",
-      "cheapestProvider": "best fiat provider",
+      "cheapestProvider": "the cheapest app",
       "buyingNow": "buying at the price on offer",
       "waitingOwnPrice": "waiting for your own price"
     },
@@ -256,8 +255,8 @@
         "label": "Waiting for your price",
         "sub": "if you wait for your own price"
       },
-      "cheapestProviderLabel": "Best fiat provider",
-      "cheapestProviderSub": "the best fiat provider, same second",
+      "cheapestProviderLabel": "Cheapest app",
+      "cheapestProviderSub": "the cheapest app, checked at the same moment",
       "cheaper": "cheaper",
       "dearer": "dearer"
     },
@@ -273,18 +272,18 @@
         "send": "Send",
         "buyingNow": "Buying it now",
         "waitingOwnPrice": "Waiting for your price",
-        "cheapestProvider": "Best fiat provider",
+        "cheapestProvider": "Cheapest app",
         "cheaper": "Cheaper"
       },
       "worstTag": "worst",
-      "dollarRoute": "the stablecoin route",
-      "dollarRouteByTemplate": "the stablecoin route, by {amount}",
+      "dollarRoute": "sending it with stablecoins",
+      "dollarRouteByTemplate": "sending it with stablecoins, by {amount}",
       "providerByTemplate": "by {amount}"
     },
     "verdictLine": {
-      "cryptoCheaper": "The stablecoin route is cheaper at this amount.",
-      "cryptoDearer": "The best fiat provider is cheaper at this amount.",
-      "sendTemplate": "Send {amount} to {place} now: {provider} costs {providerCost} all in, the stablecoin route costs {routeCost}.",
+      "cryptoCheaper": "Sending it with stablecoins is cheaper at this amount.",
+      "cryptoDearer": "The cheapest app is cheaper at this amount.",
+      "sendTemplate": "Send {amount} to {place} now: {provider} costs {providerCost} all in, sending it with stablecoins costs {routeCost}.",
       "youSave": "You save {amount}.",
       "moreExpensive": "That is {amount} more.",
       "waitingTemplate": "Waiting for your own price instead costs {amount}, which {closes} the gap.",
@@ -295,7 +294,7 @@
     },
     "history": {
       "buildingTemplate": "history builds hourly — {count} so far",
-      "cheapestProvider": "the best fiat provider"
+      "cheapestProvider": "the cheapest app"
     },
     "noSamples": "no completed samples yet.",
     "footerTemplate": "The coin is bought on {onrampVenue} in {srcCcy} and sold on {offrampVenue} for {dst}. The comparison is the Wise comparison API — advertised retail prices, not confirmed fills, and they can carry promotional pricing (first-transfer or new-customer offers) recorded exactly as quoted. The comparison is therefore the best advertised price at that instant, not necessarily the best recurring one. Official exchange rates: open.er-api.com. \"Waiting for your own price\" assumes the order fills at the top of the book. Pricing that large institutions get privately is invisible by nature and never estimated.",
@@ -312,7 +311,7 @@
       "noneOnRecord": "none on record",
       "verifiedTemplate": "fees verified {date}"
     },
-    "waterfallUnavailable": "Not available for this sample yet — it appears the pass after this shipped.",
+    "waterfallUnavailable": "Not available for this hour yet — it appears the check after this one shipped.",
     "minAgoTemplate": "{n} min ago",
     "hAgoTemplate": "{n} h ago",
     "updatedLabel": "updated"
@@ -347,20 +346,20 @@
   },
   "machineRoom": {
     "title": "The machine room",
-    "lede": "Four bits of software do the work here. One collects the prices every hour, one builds the site, one reviews what got built, one decides what to build next. They hand work to each other through issues and pull requests, same as a small team would. This page is that, live. Nothing is cleaned up first, so when something breaks you see it break.",
+    "lede": "Four programs do the work here. One checks prices every hour. One builds the site. One checks what got built. One decides what to build next. This page shows them working, live, with nothing cleaned up first.",
     "connecting": "connecting…",
     "connected": "connected · live",
     "disconnected": "not connected — retrying",
     "columns": {
       "collection": {
         "title": "This hour's collection",
-        "idle": "collector idle · next pass :00",
-        "active": "collector pass under way",
+        "idle": "nothing being checked right now · next check on the hour",
+        "active": "a check is running now",
         "pricedSuffix": " · priced",
-        "withheldPrefix": "withheld: ",
+        "withheldPrefix": "not enough data: ",
         "noReason": "no reason given",
         "evidenceCountTemplate": "{n} sources",
-        "lastPassTemplate": "Last completed pass ({hour} UTC): {priced} of {total} countries checked and priced, {withheld} withheld with a reason.",
+        "lastPassTemplate": "Last check ({hour} UTC): {priced} of {total} countries priced, {withheld} without enough data, each with a reason.",
         "classWords": {
           "order_book_median": "from order books",
           "order_book_single": "from an order book",
@@ -370,8 +369,8 @@
           "p2p_fallback": "from an independent price source"
         },
         "legendPriced": "priced this hour",
-        "legendWithheld": "withheld, with a reason",
-        "selectPrompt": "Pick a currency to see what the collector found for it."
+        "legendWithheld": "not enough data, with a reason",
+        "selectPrompt": "Pick a currency to see what we found for it."
       },
       "agents": {
         "title": "What the agents are doing",
@@ -381,10 +380,10 @@
         "transitionTemplate": "{ident} moved {from} → {to}",
         "commentTemplate": "{ident}: {text}",
         "commitTemplate": "committed {message}",
-        "loopPassTemplate": "pass {result}{seconds}",
+        "loopPassTemplate": "check {result}{seconds}",
         "loopOk": "ok",
         "loopFailed": "failed",
-        "loopStoppedTemplate": "stopped for repair. Last pass {when}",
+        "loopStoppedTemplate": "stopped for repair. Last check {when}",
         "loopRecovered": "running again",
         "capNote": "The most recent events only. The full history, including every failure, is in the commit log.",
         "byline": {
@@ -393,14 +392,15 @@
           "product": "PRODUCT",
           "agents": "AGENT",
           "person": "SEBASTIAN",
+          "linear": "LINEAR",
           "unknown": "—"
         }
       },
       "meters": {
         "priced": "PRICED THIS HOUR",
-        "withheld": "WITHHELD, WITH REASONS",
+        "withheld": "NOT ENOUGH DATA, WITH REASONS",
         "commitsToday": "COMMITS SEEN SINCE CONNECTING",
-        "people": "PEOPLE WORKING HERE",
+        "people": "PERSON ON THE TEAM",
         "peopleValue": "1",
         "unknown": "—"
       }
@@ -442,9 +442,9 @@
         "destLabel": "Findings"
       },
       "watch.html": {
-        "reason": "Asking a question and getting a real answer",
-        "destHref": "./ask.html",
-        "destLabel": "Ask"
+        "reason": "Seeing what the site is doing right now",
+        "destHref": "./machine-room.html",
+        "destLabel": "How it was built"
       },
       "weekly.html": {
         "reason": "What it cost to buy a dollar, by country, over time",
