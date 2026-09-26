@@ -21,6 +21,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Phase 5: see collect.yml's checkout step for why -- checkout's
+          # own persisted credential collides with the App token's push
+          # header on the same git config key otherwise ("Duplicate header:
+          # Authorization", found live 2026-09-26).
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:

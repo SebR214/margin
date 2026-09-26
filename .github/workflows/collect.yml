@@ -97,6 +97,15 @@ jobs:
 
       - uses: actions/checkout@v4
         if: steps.needed.outputs.proceed == 'true'
+        with:
+          # Phase 5: checkout's own persisted credential and the App token
+          # this job sets later both write to http.https://github.com/.extraheader,
+          # and git allows a config key to hold more than one value -- so
+          # without this, push sends BOTH as separate Authorization headers
+          # and GitHub's server 400s with "Duplicate header: Authorization"
+          # (found live, 2026-09-26, testing this exact phase). Read access
+          # for checkout itself is unaffected; this repo is public.
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         if: steps.needed.outputs.proceed == 'true'
