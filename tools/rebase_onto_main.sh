@@ -21,6 +21,19 @@
 # Run from the branch you want rebased, in its own worktree/checkout.
 
 set -euo pipefail
+
+# Needs associative arrays (bash 4+). macOS ships bash 3.2 as /bin/bash for
+# license reasons, and it fails this silently rather than loudly -- `bash -n`
+# passes and the array reads come back empty, so every conflict looks
+# "unhandled" instead of auto-resolved. Fail loud instead: found live during
+# testing 2026-09-26.
+if [ "${BASH_VERSINFO:-0}" -lt 4 ]; then
+  echo "rebase_onto_main.sh needs bash 4+ (this shell is ${BASH_VERSION:-unknown})." >&2
+  echo "macOS: brew install bash, then run with: /opt/homebrew/bin/bash tools/rebase_onto_main.sh" >&2
+  echo "Linux / CI runners already ship bash 4+ by default." >&2
+  exit 1
+fi
+
 cd "$(git rev-parse --show-toplevel)"
 
 # path -> regeneration command. Order matters: run in this order after
