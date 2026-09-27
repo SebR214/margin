@@ -285,7 +285,7 @@ def build(now=None):
                 entries.append({
                     "provider": prov, "cost_pct": round(cost / 100, 4),
                     "costs": money(src, size * cost / 1e4),
-                    "source": "own", "source_words": "quoted by " + prov + " itself",
+                    "source": "own", "source_words": "quoted by the provider",
                     "rate": num(r, "rate"), "fee": num(r, "fee_src"),
                     "fee_words": (None if not num(r, "fee_src")
                                   else money(src, num(r, "fee_src")) + " fee"),
@@ -301,7 +301,7 @@ def build(now=None):
                     "provider": prov, "cost_pct": round(cost / 100, 4),
                     "costs": money(src, size * cost / 1e4),
                     "source": "comparison",
-                    "source_words": "from the comparison Wise publishes",
+                    "source_words": "from a public price comparison",
                     "rate": None, "fee": None, "fee_words": None,
                     "also_quoted_pct": None,
                 })
@@ -316,12 +316,12 @@ def build(now=None):
                     # it just isn't the number shown as "the" stablecoin cost
                     # once a cheaper combination exists this hour.
                     cost_pct = venues["best"]["cost_pct"]
-                    words = ("best of " + str(venues["n_venues"])
-                             + " exchanges, via " + venues["best"]["buy_venue"]
-                             + " and " + venues["best"]["sell_venue"])
+                    words = ("Cheapest of " + str(len(venues["combos"]))
+                             + " exchange pairs this hour: buy on " + venues["best"]["buy_venue"]
+                             + ", sell on " + venues["best"]["sell_venue"] + ". All fees in.")
                 else:
                     cost_pct = round(c / 100, 4)
-                    words = "measured on real exchanges, all in"
+                    words = "Priced on real exchanges this hour. All fees in."
                 entries.append({
                     "provider": "Sending it with stablecoins", "cost_pct": cost_pct,
                     "costs": money(src, size * cost_pct / 100),

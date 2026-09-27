@@ -113,9 +113,8 @@
   </header>
 
   <div class="hero">
-    <h1>What sending money really costs</h1>
+    <h1>What sending money costs, every provider, this hour</h1>
   </div>
-  <div class="job">For each route we track, every provider's all-in cost this hour, cheapest first.</div>
 
   <div class="corridor-picker" id="corridorPicker"></div>
   <div id="corridors"></div>
@@ -220,8 +219,8 @@
     var lastX = xPos(points.length - 1);
 
     // Same three colors and the same meaning as the round-trip chart on
-    // corridor.html (--pos/--neg tokens): red = buying it now, gray =
-    // waiting for your price, blue = the cheapest ordinary provider. One
+    // corridor.html (--pos/--neg tokens): red = market order, gray =
+    // limit order, blue = the cheapest ordinary provider. One
     // color language across the site, not a new one per chart.
     var dots = points.map(function(p, i){
       return '<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(p.costBpsTaker).toFixed(1)+'" r="3.5" fill="#817FCC"/>' +
@@ -238,8 +237,8 @@
 
     container.innerHTML =
       '<div style="display:flex;gap:18px;font-size:12px;flex-wrap:wrap;padding-bottom:6px">' +
-      '<span style="color:#817FCC;font-weight:700">&#9679; buying it now</span>' +
-      '<span style="color:#6B6B6B;font-weight:700">&#9679; waiting for your price</span>' +
+      '<span style="color:#817FCC;font-weight:700">&#9679; market order</span>' +
+      '<span style="color:#6B6B6B;font-weight:700">&#9679; limit order</span>' +
       '<span style="color:#9A9A9A">&#9679; best fiat provider ('+esc(points[points.length-1].baselineProvider)+')</span></div>' +
       '<svg width="100%" viewBox="0 0 '+w+' '+h+'" style="display:block">' +
       '<path d="'+basePath+'" fill="none" stroke="#D3D0CB" stroke-width="1.5" stroke-dasharray="3,3"/>' +
@@ -247,7 +246,7 @@
       '<path d="'+takerPath+'" fill="none" stroke="#817FCC" stroke-width="2"/>' +
       dots + yLabels + xLabels +
       '</svg>' +
-      '<div style="font-size:12px;color:#9A9A9A;padding-top:4px">all-in cost, as a share of the amount, at each size actually measured -- stops at $50,000 because that is as far as real fills go; nothing past that point is estimated</div>';
+      '<div style="font-size:12px;color:#9A9A9A;padding-top:4px">All-in cost, as a share of the amount, at each size actually measured. Stops at $50,000, the largest size measured. Nothing past that point is estimated.</div>';
   }
 
   // ---- Template substitution, same convention as findings.html's own T()
@@ -323,10 +322,11 @@
       var rowsHtml = rows.map(function(r, i){
         var isMissing = r.source === 'missing';
         var isStable = r.provider === 'Sending it with stablecoins';
+        var displayName = isStable ? 'The stablecoin route' : r.provider;
         var hasVenues = isStable && r.venues && r.venues.combos && r.venues.combos.length > 1;
-        var name = isStable ? '<span style="color:#6B6B6B">'+esc(r.provider)+(hasVenues ? ' <span class="venue-toggle-caret">▸</span>' : '')+'</span>' : (r.rank===1 && !isMissing ? '<span style="font-weight:700">'+esc(r.provider)+'</span>' : esc(r.provider));
+        var name = isStable ? '<span style="color:#6B6B6B">'+esc(displayName)+(hasVenues ? ' <span class="venue-toggle-caret">▸</span>' : '')+'</span>' : (r.rank===1 && !isMissing ? '<span style="font-weight:700">'+esc(displayName)+'</span>' : esc(displayName));
         // Every row says where its number came from -- a provider's own
-        // quote, Wise's comparison feed, the stablecoin measurement,
+        // quote, a public comparison feed, the stablecoin measurement,
         // or, when nothing came back this hour, that plainly too.
         var nameCell = '<div class="name-cell">'+name+'<span class="source-label">'+esc(r.source_words||'')+'</span></div>';
         var cost = isMissing ? 'no price this hour' : esc(r.costs);
@@ -343,44 +343,46 @@
           combosHtml + '</div>';
         return rowHtml + expandHtml;
       }).join('');
-      var ownProviders = rows.filter(r => r.source === 'own').map(r => r.provider);
-      var footnote = (ownProviders.length ? ownProviders.join(' and ') + ' quote their own prices; the rest come ' : 'Every price comes ') +
-        'from a public comparison across providers; the dollar route is measured on real exchanges, all in.';
       var showCurve = CURVE_ROUTES.indexOf(routeKey) !== -1;
-      // Phase 4 (FINAL spec): one plain sentence, computed from real
-      // samples.csv counts (tools/emit_providers.py's crossover_stats),
-      // saying when the stablecoin route -- waiting for its own price,
-      // not paying whatever the market offers right now -- actually beats
-      // the cheapest ordinary provider on this corridor. Never invented:
-      // a corridor with a real zero win rate says so, plainly, instead of
-      // manufacturing an exception.
+      // The first line under each route's title, generated (never typed):
+      // the cheapest ordinary provider this hour, the stablecoin route's
+      // own cost this hour, and whether the stablecoin route (waiting for
+      // its own price, not paying whatever the market offers right now)
+      // has ever beaten that cheapest provider, from
+      // tools/emit_providers.py's crossover_stats. A corridor with a real
+      // zero win rate says so, plainly, instead of manufacturing an
+      // exception.
+      var ordinaryRows = rows.filter(function(r){ return r.provider !== 'Sending it with stablecoins' && r.source !== 'missing'; });
+      var stableRow = rows.filter(function(r){ return r.provider === 'Sending it with stablecoins'; })[0];
       var co = route.crossover;
-      var crossoverHtml = '';
-      if (co) {
-        var pct = Math.round(co.win_rate_pct);
-        var sentence = pct > 0
-          ? T(COPY.crossoverWinTemplate, { sendingWords: co.sending_words, pct: pct })
-          : T(COPY.crossoverNeverTemplate, { sendingWords: co.sending_words });
-        crossoverHtml =
-          '<div class="crossover">' + esc(sentence) + '</div>' +
-          '<div class="crossover-explain">' + esc(COPY.crossoverExplain || '') + '</div>';
+      var cov = COVERAGE[routeKey];
+      var firstLineHtml = '';
+      if (ordinaryRows.length && stableRow && co && cov) {
+        var cheapest = ordinaryRows[0];
+        var winPct = co.win_rate_pct;
+        var vals = {
+          routeWords: route.route_words, amountWords: size.amount_words,
+          cheapestProvider: cheapest.provider, cheapestPct: cheapest.cost_pct.toFixed(2),
+          stablecoinPct: stableRow.cost_pct.toFixed(2), winPct: winPct, startWords: cov.start_words
+        };
+        var tmpl = winPct > 0 ? COPY.routeFirstLineWinTemplate : COPY.routeFirstLineNeverTemplate;
+        firstLineHtml = '<div class="crossover">' + esc(T(tmpl || '', vals)) + '</div>';
       }
       // Honest coverage note (Sebastian, chat 2026-09-27): the stablecoin
       // row's price comes from an hourly collector, but the collector has
-      // real gaps -- computed live from data/samples.csv by
+      // real gaps, computed live from data/samples.csv by
       // tools/emit_coverage.py, never typed, so this number moves the
       // moment the real gap count changes. Per route, since different
       // routes started being watched on different days.
-      var cov = COVERAGE[routeKey];
       var coverageHtml = cov ? '<div class="coverage-note">' + esc(cov.sentence) + '</div>' : '';
+      var pctColHeader = T(COPY.colPctTemplate || '', { amountWords: size.amount_words });
       el.innerHTML =
         '<div class="corridor-hdr"><div class="corridor-title">'+esc(route.route_words)+'</div>' +
         '<div class="pills">'+pillsHtml+'</div></div>' +
-        crossoverHtml +
+        firstLineHtml +
         coverageHtml +
-        '<div class="prow-hdr lbl"><div>SENDING '+esc(size.amount_words)+'</div><div style="text-align:right">ALL IN</div><div style="text-align:right">% OF AMOUNT</div></div>' +
+        '<div class="prow-hdr lbl"><div>'+esc(COPY.colProvider||'')+'</div><div style="text-align:right">'+esc(COPY.colCost||'')+'</div><div style="text-align:right">'+esc(pctColHeader)+'</div></div>' +
         rowsHtml +
-        '<div class="foot">'+esc(footnote)+'</div>' +
         (showCurve ?
           // This corridor is the one where waiting for your own price
           // sometimes actually wins (real, in data/samples.csv) -- the
@@ -459,7 +461,7 @@
       // a hardcoded 760 -- measured effective text size before this fix
       // was ~5.2px on a 375px-wide phone.
       var w = Math.max(240, Math.round(container.getBoundingClientRect().width)) || 760;
-      var rowH = 34, padL = 4, padR = 54, top = 8;
+      var rowH = 34, padL = 4, padR = 92, top = 8;
       var h = top + rows.length * rowH + 8;
       var plotW = w - padL - padR;
       var maxRate = Math.max(10, Math.max.apply(null, rows.map(function(r){ return r.ratePct; })));
@@ -469,7 +471,7 @@
         return '<text x="'+padL+'" y="'+(y+14)+'" font-family="Archivo, sans-serif" font-size="13" fill="#0B0B0B">'+esc(r.routeWords)+'</text>' +
           '<rect x="'+padL+'" y="'+(y+18)+'" width="'+plotW+'" height="6" rx="3" fill="#F0F0F0"/>' +
           '<rect x="'+padL+'" y="'+(y+18)+'" width="'+Math.max(2, barW).toFixed(1)+'" height="6" rx="3" fill="#817FCC"/>' +
-          '<text x="'+(padL+plotW+8)+'" y="'+(y+27)+'" font-family="Archivo, sans-serif" font-size="12" fill="#6B6B6B" class="num">'+r.ratePct.toFixed(1)+'%</text>';
+          '<text x="'+(padL+plotW+8)+'" y="'+(y+27)+'" font-family="Archivo, sans-serif" font-size="12" fill="#6B6B6B" class="num">'+r.ratePct.toFixed(1)+'% ('+r.hikeDays+' of '+r.totalSlots+')</text>';
       }).join('');
       container.innerHTML =
         '<svg width="100%" viewBox="0 0 '+w+' '+h+'" style="display:block">' + bars + '</svg>' +
@@ -517,13 +519,15 @@
       var rate = totalSlots ? (hikeDays / totalSlots * 100) : 0;
 
       if (totalSlots) {
+        var namedWk = offenders.length
+          ? offenders.map(function(o){ return esc(o.provider) + ' on ' + esc(o.route_words); }).join(' and ') + ' account for it'
+          : 'Nobody has done it more than once';
+        var weekendLine = T(COPY.weekendFirstLineTemplate || '', {
+          n: hikeDays, m: totalSlots, pct: avgMove.toFixed(2), named: namedWk
+        });
         document.getElementById('weekendIndex').innerHTML =
           '<div class="section-kicker">'+esc(COPY.weekendTitle||'')+'</div>' +
-          '<div style="font-size:20px;font-weight:800;letter-spacing:-0.01em;line-height:1.3">' + rate.toFixed(1) + '% of provider-Saturday combinations we\'ve watched show a price hike</div>' +
-          '<div style="font-size:15px;color:#333;padding-top:8px;line-height:1.6">' + hikeDays + ' of ' + totalSlots + ' provider-Saturday observations, across every provider on every route this site tracks. Narrow, not industry-wide: ' +
-          (offenders.length ? offenders.map(function(o){ return esc(o.provider) + ' on ' + esc(o.route_words); }).join(' and ') + ' account for all of it.' : 'nobody has done it more than once.') +
-          ' When it happens, the average hike is <b class="num">' + avgMove.toFixed(2) + '%</b> of the amount.</div>' +
-          '<div style="font-size:13px;color:#9A9A9A;padding-top:10px">measured, not assumed -- the stablecoin route this site also tracks doesn\'t close for the weekend, which is the actual argument for it</div>';
+          '<div style="font-size:16px;color:#1A1A1A;line-height:1.6;max-width:780px">' + esc(weekendLine) + '</div>';
 
         var chartRows = Object.keys(slotsByCorridor).map(function(c){
           var slots = slotsByCorridor[c];
@@ -533,7 +537,7 @@
         renderWeekendChart(document.getElementById('weekendChart'), chartRows);
       }
 
-      // ---- Patterns, not one-offs --------------------------------------
+      // ---- Who raises prices most often --------------------------------
       var weekendUps = changes.filter(function(c){ return c.kind === 'weekend_up'; });
       var byProvider = {};
       weekendUps.forEach(function(c){
@@ -549,17 +553,23 @@
       }).filter(function(p){ return p.dayCount >= 2; })
         .sort(function(a,b){ return (b.dayCount/b.judged) - (a.dayCount/a.judged); });
 
-      var weekdayUps = changes.filter(function(c){ return c.kind === 'change' && c.move_pct > 0; });
+      // Up vs down since this corridor was first watched, per provider --
+      // only shown as a pattern when the rises are at least double the
+      // cuts (Sebastian's rule), never phrased as "a habit."
       var byFreq = {};
-      weekdayUps.forEach(function(c){
+      changes.filter(function(c){ return c.kind === 'change'; }).forEach(function(c){
         var key = c.provider + '|' + c.corridor;
-        if (!byFreq[key]) byFreq[key] = { provider: c.provider, corridor: c.corridor, route_words: c.route_words, days: {} };
-        byFreq[key].days[c.day] = true;
+        if (!byFreq[key]) byFreq[key] = { provider: c.provider, corridor: c.corridor, route_words: c.route_words, up: {}, down: {} };
+        var bucket = c.move_pct > 0 ? byFreq[key].up : byFreq[key].down;
+        bucket[c.day] = true;
       });
       var freqRanked = Object.keys(byFreq).map(function(k){
-        var p = byFreq[k]; p.dayCount = Object.keys(p.days).length; return p;
-      }).filter(function(p){ return p.dayCount >= 5; })
-        .sort(function(a,b){ return b.dayCount - a.dayCount; })
+        var p = byFreq[k];
+        p.upCount = Object.keys(p.up).length;
+        p.downCount = Object.keys(p.down).length;
+        return p;
+      }).filter(function(p){ return p.upCount >= 3 && p.upCount >= 2 * p.downCount; })
+        .sort(function(a,b){ return b.upCount - a.upCount; })
         .slice(0, 3);
 
       if (patterns.length || freqRanked.length) {
@@ -567,13 +577,14 @@
           '<div class="section-kicker">'+esc(COPY.patternsTitle||'')+'</div>' +
           patterns.slice(0, 5).map(function(p){
             return '<div class="card"><div class="p">' +
-              esc(p.provider) + ' has raised its weekend price on ' + esc(p.route_words) +
-              ' on <b>' + p.dayCount + ' of the ' + p.judged + ' Saturdays</b> we\'ve watched that route.</div></div>';
+              esc(T(COPY.patternsWeekendCardTemplate || '', { provider: p.provider, n: p.dayCount, m: p.judged, routeWords: p.route_words })) +
+              '</div></div>';
           }).join('') +
           freqRanked.map(function(p){
+            var cov = COVERAGE[p.corridor];
             return '<div class="card"><div class="p">' +
-              esc(p.provider) + ' has raised its price on ' + esc(p.route_words) +
-              ' on <b>' + p.dayCount + ' separate days</b> since we started watching — not a one-off, a habit.</div></div>';
+              esc(T(COPY.patternsFreqCardTemplate || '', { provider: p.provider, routeWords: p.route_words, n: p.upCount, m: p.downCount, startWords: cov ? cov.start_words : '' })) +
+              '</div></div>';
           }).join('');
       }
 
@@ -589,20 +600,11 @@
 
       function cardFor(c){
         var up = c.move_pct > 0;
-        var sentence;
-        if (c.kind === 'weekend_up') {
-          sentence = esc(c.provider)+' raised its weekend price on '+esc(c.route_words)+
-            ': sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b> of the amount, up from '+fmt(c.old_cost_pct)+' on '+esc(c.weekday)+'.';
-        } else if (c.kind === 'weekend_back') {
-          sentence = esc(c.provider)+' dropped its price back down on '+esc(c.route_words)+
-            ' after the weekend: sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b>, down from '+fmt(c.old_cost_pct)+'.';
-        } else {
-          sentence = esc(c.provider)+' '+(up?'raised':'cut')+' its price on '+esc(c.route_words)+
-            ': sending '+esc(c.amount_words)+' now costs <b>'+fmt(c.new_cost_pct)+'</b> of the amount, '+(up?'up':'down')+' from '+fmt(c.old_cost_pct)+' the day before.';
-        }
-        return '<div class="card"><div class="stamp">'+esc(c.day).toUpperCase()+'</div>' +
-          '<div class="p">'+sentence+'</div>' +
-          '<div class="receipt">from the daily provider panel, '+esc(c.n_agree)+' of '+esc(c.n_panel)+' readings agree</div></div>';
+        var sentence = esc(c.day)+' &middot; '+esc(c.provider)+', '+esc(c.route_words)+', '+esc(c.amount_words)+
+          ': '+(up?'up':'down')+' from '+fmt(c.old_cost_pct)+' to <b>'+fmt(c.new_cost_pct)+'</b>.';
+        var agree = T(COPY.changeAgreeTemplate || '', { n: c.n_agree, m: c.n_panel });
+        return '<div class="card"><div class="p">'+sentence+'</div>' +
+          '<div class="receipt">'+esc(agree)+'</div></div>';
       }
 
       var cardsEl = document.getElementById('priceChangeCards');
