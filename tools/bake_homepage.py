@@ -335,12 +335,13 @@ def corridor_row_html(c, home_copy, window):
     win_text = row.get("window")
     if win_text:
         win_note = '<div style="font-size:11px;color:#9A9A9A;font-weight:400">' + esc(win_text) + "</div>"
+    cols = home_copy.get("corridorTableCols", {})
     return (
         "<tr>"
         "<td><b>" + esc(c.get("route_words", c["corridor"])) + "</b>" + win_note + "</td>"
-        '<td class="num">' + pct(c["taker_cost_bps_median"]) + "</td>"
-        '<td class="num">' + pct(c["baseline_cost_bps_median"]) + "</td>"
-        "<td>" + win_cell_html(c) + "</td>"
+        '<td class="num" data-label="' + esc(cols.get("stablecoin", "Stablecoin cost")) + '">' + pct(c["taker_cost_bps_median"]) + "</td>"
+        '<td class="num" data-label="' + esc(cols.get("fiat", "Best app")) + '">' + pct(c["baseline_cost_bps_median"]) + "</td>"
+        '<td data-label="' + esc(cols.get("winRate", "Stablecoin cheaper")) + '">' + win_cell_html(c) + "</td>"
         '<td><a href="./corridor.html?corridor=' + esc(c["corridor"]) + '" style="font-weight:600;color:#0B0B0B">'
         + esc(home_copy.get("seeCorridor", "see the receipt →")) + "</a></td>"
         "</tr>"
@@ -352,12 +353,12 @@ def corridor_table_html(corridors, home_copy, window):
     rows = "".join(corridor_row_html(c, home_copy, window) for c in corridors)
     return (
         '<div class="waterfall-title">' + esc(home_copy.get("corridorTableTitle", "Every transfer we check, priced the same way")) + "</div>"
-        '<table class="corridor-table"><thead><tr>'
+        '<div class="table-scroll"><table class="corridor-table"><thead><tr>'
         "<th>" + esc(cols.get("corridor", "SENDING")) + "</th>"
         "<th>" + esc(cols.get("stablecoin", "STABLECOIN COST")) + "</th>"
         "<th>" + esc(cols.get("fiat", "BEST APP")) + "</th>"
         "<th>" + esc(cols.get("winRate", "STABLECOIN CHEAPER")) + "</th>"
-        "<th></th></tr></thead><tbody>" + rows + "</tbody></table>"
+        "<th></th></tr></thead><tbody>" + rows + "</tbody></table></div>"
     )
 
 

@@ -33,6 +33,7 @@
   .waterfall-title{font-size:13px;letter-spacing:.06em;color:var(--sub);text-transform:uppercase;font-weight:700;margin-bottom:4px}
   .waterfall-cap{font-size:14px;color:var(--sub);margin-bottom:18px;max-width:640px}
   .disclosure-note{font-size:13px;line-height:1.5;color:var(--sub);max-width:640px;margin-top:14px;padding-left:12px;border-left:2px solid var(--rule)}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .corridor-table{width:100%;border-collapse:collapse;margin-top:10px}
   .corridor-table th{text-align:left;font-size:11px;letter-spacing:.06em;color:#9A9A9A;font-weight:600;padding:0 20px 14px 0;border-bottom:1px solid var(--rule)}
   .corridor-table td{padding:18px 20px 18px 0;border-bottom:1px solid var(--rule);font-size:15px;vertical-align:top;line-height:1.5}
@@ -63,7 +64,23 @@
     header{flex-wrap:wrap;gap:12px;padding:22px 24px} nav{flex-wrap:wrap;gap:16px}
     h1{font-size:26px} .body{padding:28px 24px 48px} .hero{padding:28px 24px 20px}
     .lead-section{padding:0 24px} .waterfall-card{padding:20px 18px} .break{margin:32px 24px 0}
-    .corridor-table{font-size:12.5px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch} .corridor-table th,.corridor-table td{padding:0 6px 10px 0}
+  }
+
+  /* Below 640px a 5-column table has no honest column width left to give --
+     shrinking font-size or letting it scroll sideways both just hide data.
+     Each row becomes its own card instead: one fact per line, its own label
+     printed next to it, the same information a column header used to carry. */
+  @media(max-width:640px){
+    .table-scroll{overflow-x:visible}
+    .corridor-table{min-width:0}
+    .corridor-table thead{display:none}
+    .corridor-table, .corridor-table tbody, .corridor-table tr, .corridor-table td{display:block;width:100%}
+    .corridor-table tr{padding:16px 0;border-bottom:1px solid var(--rule)}
+    .corridor-table tr:first-child{padding-top:0}
+    .corridor-table td{padding:3px 0;border-bottom:0;font-size:14px}
+    .corridor-table td:first-child{padding-bottom:8px}
+    .corridor-table td[data-label]::before{content:attr(data-label);display:block;font-size:11px;letter-spacing:.06em;color:#9A9A9A;font-weight:600;text-transform:uppercase;margin-bottom:2px}
+    .corridor-table td:last-child{padding-top:8px}
   }
 
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
@@ -106,7 +123,7 @@
 
   <div id="waterfallSection" class="lead-section"></div>
   <div class="lead-section"><div id="premiumStripSection" class="waterfall-card"><!--BAKE:START:premiumStrip--><div class="waterfall-title">Where the line runs</div><div class="strip-wrap"><svg viewBox="0 0 234 316" style="width:100%;max-width:800px;height:auto" class="strip-svg"><a href="./country.html?ccy=SDG"><title>Sudan: +1490.44% vs the official rate</title><text x="0" y="25.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#9A9A9A">Sudan</text><rect x="98" y="12.0" width="94.0" height="12" rx="2" fill="#D3D0CB"/><text x="230" y="22.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#9A9A9A">+1490.4%</text></a><a href="./country.html?ccy=DZD"><title>Algeria: +91.09% vs the official rate</title><text x="0" y="55.0" font-family="Archivo,sans-serif" font-size="13" font-weight="700" fill="#0B0B0B">Algeria</text><rect x="98" y="42.0" width="92.1" height="12" rx="2" fill="#3F3047"/><text x="230" y="52.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="700" fill="#0B0B0B">+91.1%</text></a><a href="./country.html?ccy=IQD"><title>Iraq: +19.71% vs the official rate</title><text x="0" y="85.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Iraq</text><rect x="98" y="72.0" width="61.7" height="12" rx="2" fill="#817FCC"/><text x="230" y="82.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+19.7%</text></a><a href="./country.html?ccy=TND"><title>Tunisia: +15.22% vs the official rate</title><text x="0" y="115.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Tunisia</text><rect x="98" y="102.0" width="56.8" height="12" rx="2" fill="#817FCC"/><text x="230" y="112.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+15.2%</text></a><a href="./country.html?ccy=SYP"><title>Syria: +14.38% vs the official rate</title><text x="0" y="145.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Syria</text><rect x="98" y="132.0" width="55.7" height="12" rx="2" fill="#817FCC"/><text x="230" y="142.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+14.4%</text></a><a href="./country.html?ccy=VES"><title>Venezuela: +14.21% vs the official rate</title><text x="0" y="175.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Venezuela</text><rect x="98" y="162.0" width="55.4" height="12" rx="2" fill="#817FCC"/><text x="230" y="172.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+14.2%</text></a><a href="./country.html?ccy=ZAR"><title>South Africa: +7.67% vs the official rate</title><text x="0" y="205.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">South Africa</text><rect x="98" y="192.0" width="44.0" height="12" rx="2" fill="#817FCC"/><text x="230" y="202.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+7.7%</text></a><a href="./country.html?ccy=ARS"><title>Argentina: +6.63% vs the official rate</title><text x="0" y="235.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Argentina</text><rect x="98" y="222.0" width="41.4" height="12" rx="2" fill="#817FCC"/><text x="230" y="232.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+6.6%</text></a><a href="./country.html?ccy=QAR"><title>Qatar: +6.46% vs the official rate</title><text x="0" y="265.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Qatar</text><rect x="98" y="252.0" width="40.9" height="12" rx="2" fill="#817FCC"/><text x="230" y="262.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+6.5%</text></a><a href="./country.html?ccy=MAD"><title>Morocco: +4.55% vs the official rate</title><text x="0" y="295.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Morocco</text><rect x="98" y="282.0" width="34.9" height="12" rx="2" fill="#817FCC"/><text x="230" y="292.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+4.6%</text></a></svg></div><div class="strip-note">The biggest tracked gap right now is Algeria at 91.1% above the official rate (15:00 UTC). Beyond the countries shown above, 37 more have gaps up to 4.4%. Every route this site prices end to end has a near-zero gap, which is why stablecoins keep losing here.</div><!--BAKE:END:premiumStrip--></div></div>
-  <div id="corridorTableSection" class="lead-section" style="padding-bottom:0"><!--BAKE:START:corridorTableSection--><div class="waterfall-title">Every transfer we check, priced the same way</div><table class="corridor-table"><thead><tr><th>SENDING</th><th>STABLECOIN COST</th><th>BEST APP</th><th>STABLECOIN CHEAPER</th><th></th></tr></thead><tbody><tr><td><b>Singapore to the Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 947 hours we&#39;ve checked since 10 August 2026</div></td><td class="num">+0.86%</td><td class="num">+0.45%</td><td><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=SGD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>Australia to the Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 388 hours we&#39;ve checked since 10 September 2026</div></td><td class="num">+1.01%</td><td class="num">+0.65%</td><td><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=AUD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>New Zealand to the Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 388 hours we&#39;ve checked since 10 September 2026</div></td><td class="num">+1.11%</td><td class="num">+0.69%</td><td><span class="win-no">2.8% of hours</span></td><td><a href="./corridor.html?corridor=NZD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>the United States to Mexico</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 778 hours we&#39;ve checked since 19 August 2026</div></td><td class="num">+0.77%</td><td class="num">+0.55%</td><td><div class="win-no">0.3% of hours buying it now</div><div class="win-yes" style="margin-top:4px">42.9% of hours waiting for your price</div></td><td><a href="./corridor.html?corridor=USD-&gt;MXN" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr></tbody></table><!--BAKE:END:corridorTableSection--></div>
+  <div id="corridorTableSection" class="lead-section" style="padding-bottom:0"><!--BAKE:START:corridorTableSection--><div class="waterfall-title">Every transfer we check, priced the same way</div><div class="table-scroll"><table class="corridor-table"><thead><tr><th>SENDING</th><th>STABLECOIN COST</th><th>BEST APP</th><th>STABLECOIN CHEAPER</th><th></th></tr></thead><tbody><tr><td><b>Singapore to the Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 947 hours we&#39;ve checked since 10 August 2026</div></td><td class="num" data-label="Stablecoin cost">+0.86%</td><td class="num" data-label="Best app">+0.45%</td><td data-label="Stablecoin cheaper"><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=SGD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>Australia to the Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 388 hours we&#39;ve checked since 10 September 2026</div></td><td class="num" data-label="Stablecoin cost">+1.01%</td><td class="num" data-label="Best app">+0.65%</td><td data-label="Stablecoin cheaper"><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=AUD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>New Zealand to the Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 388 hours we&#39;ve checked since 10 September 2026</div></td><td class="num" data-label="Stablecoin cost">+1.11%</td><td class="num" data-label="Best app">+0.69%</td><td data-label="Stablecoin cheaper"><span class="win-no">2.8% of hours</span></td><td><a href="./corridor.html?corridor=NZD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>the United States to Mexico</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 778 hours we&#39;ve checked since 19 August 2026</div></td><td class="num" data-label="Stablecoin cost">+0.77%</td><td class="num" data-label="Best app">+0.55%</td><td data-label="Stablecoin cheaper"><div class="win-no">0.3% of hours buying it now</div><div class="win-yes" style="margin-top:4px">42.9% of hours waiting for your price</div></td><td><a href="./corridor.html?corridor=USD-&gt;MXN" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr></tbody></table></div><!--BAKE:END:corridorTableSection--></div>
   <div class="lead-section" style="padding-top:14px"><a href="./fee-tiers.html" style="font-weight:600;color:#0B0B0B">Why the doors cost more than the rail, in full →</a></div>
 
   <div class="break"></div>
@@ -184,6 +201,24 @@
   // comes in as bps (matching samples.csv's own columns) and is shown as
   // percent, the same unit costPhrase() and every chip already use.
   function cashPct(bps){ var pct = bps/100; return (pct>=0?'+':'') + pct.toFixed(2) + '%'; }
+
+  // Real usable width for a chart that will sit inside a .waterfall-card --
+  // el is already in the DOM (either as the card itself, or the section that
+  // is about to contain one) so its rendered width is real. .waterfall-card's
+  // own left+right padding (28px 32px desktop, 20px 18px <=900px, see
+  // style block above) isn't part of that box's own rect, so it's netted out
+  // here rather than left for the svg to silently lose. Matches the pattern
+  // already used by corridor.html and sending-money.html: viewBox width ==
+  // real rendered width keeps 1 unit == 1 real px at any screen size, so a
+  // fixed 800-unit viewBox stretched down to a ~340px phone can't shrink
+  // every font-size and stroke in it to a fraction of its real size.
+  function chartInnerWidth(el){
+    var mobile = window.matchMedia('(max-width:900px)').matches;
+    var cardPadX = mobile ? 36 : 64;
+    var raw = el ? el.getBoundingClientRect().width : 0;
+    return Math.max(240, Math.round(raw - cardPadX)) || 800;
+  }
+
   function renderWaterfall(wf, COPY, windowRow){
     var L = COPY.waterfallLegend || {};
     var buy = wf.onramp_basis_bps + wf.onramp_fee_bps;
@@ -199,8 +234,13 @@
     var all = [0, total, base].concat(cum);
     var dMin = Math.min.apply(null, all), dMax = Math.max.apply(null, all);
     var pad = (dMax - dMin) * 0.12 || 10, lo = dMin - pad, hi = dMax + pad;
-    var Lx = 190, Rx = 760, X = function(v){ return Lx + (v - lo) / (hi - lo) * (Rx - Lx); };
-    var rowH = 34, top = 10, W = 800, rows = steps.length + 1, H = top + rows * rowH + 34;
+    // Label column and right margin stay fixed pixel gutters (like
+    // js/chart.js's rightGutter) -- only the plotted bar span shrinks on a
+    // narrow screen, never the label chrome or font sizes.
+    var W = chartInnerWidth(document.getElementById('waterfallSection'));
+    var Lx = 150, Rx = Math.max(Lx + 60, W - 40);
+    var X = function(v){ return Lx + (v - lo) / (hi - lo) * (Rx - Lx); };
+    var rowH = 34, top = 10, rows = steps.length + 1, H = top + rows * rowH + 34;
     // The site's actual chart palette: periwinkle for the first dollar-route
     // leg, eggshell (bordered so it still reads on white) for the second --
     // two legs the same color read as "the same number" (SEB, 2026-09-25) --
@@ -326,20 +366,20 @@
       var winNote = winText ? '<div style="font-size:11px;color:#9A9A9A;font-weight:400">' + esc(winText) + '</div>' : '';
       return '<tr>' +
         '<td><b>' + esc(c.route_words || c.corridor) + '</b>' + winNote + '</td>' +
-        '<td class="num">' + cashPct(c.taker_cost_bps_median) + '</td>' +
-        '<td class="num">' + cashPct(c.baseline_cost_bps_median) + '</td>' +
-        '<td>' + winCellHtml(c) + '</td>' +
+        '<td class="num" data-label="' + esc(cols.stablecoin || 'Stablecoin cost') + '">' + cashPct(c.taker_cost_bps_median) + '</td>' +
+        '<td class="num" data-label="' + esc(cols.fiat || 'Best app') + '">' + cashPct(c.baseline_cost_bps_median) + '</td>' +
+        '<td data-label="' + esc(cols.winRate || 'Stablecoin cheaper') + '">' + winCellHtml(c) + '</td>' +
         '<td><a href="./corridor.html?corridor=' + encodeURIComponent(c.corridor) + '" style="font-weight:600;color:#0B0B0B">' + esc(COPY.seeCorridor || 'see the receipt →') + '</a></td>' +
         '</tr>';
     }).join('');
     document.getElementById('corridorTableSection').innerHTML =
       '<div class="waterfall-title">' + esc(COPY.corridorTableTitle || 'Every transfer we check, priced the same way') + '</div>' +
-      '<table class="corridor-table"><thead><tr>' +
+      '<div class="table-scroll"><table class="corridor-table"><thead><tr>' +
       '<th>' + esc(cols.corridor || 'SENDING') + '</th>' +
       '<th>' + esc(cols.stablecoin || 'STABLECOIN COST') + '</th>' +
       '<th>' + esc(cols.fiat || 'BEST APP') + '</th>' +
       '<th>' + esc(cols.winRate || 'STABLECOIN WINS') + '</th>' +
-      '<th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+      '<th></th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
 
   // "Where the line runs": a strip plot put every country's dot on one
@@ -362,9 +402,14 @@
   function renderPremiumStrip(countries, COPY, hourUtc){
     var el = document.getElementById('premiumStripSection');
     if (!el || !countries.length) return;
-    var W = 800, rowH = 30, top = 6;
-    var labelW = 190, valueW = 70, barLeft = labelW, barRight = W - valueW;
-    var barW = barRight - barLeft;
+    var W = chartInnerWidth(el), rowH = 30, top = 6;
+    // Fixed pixel columns, not a fraction of W -- at true (1 unit == 1 real
+    // px) scale a 13px country name and a 12px monospace value both fit
+    // comfortably in a much narrower budget than the old 800-wide design
+    // assumed, and fixing them means the bar itself is what shrinks on a
+    // narrow phone, not the text.
+    var labelW = 108, valueW = 62, barLeft = labelW, barRight = W - valueW;
+    var barW = Math.max(30, barRight - barLeft);
 
     var priced = countries.filter(function(c){ return c.index_pct != null; })
       .sort(function(a,b){ return b.index_pct - a.index_pct; });
