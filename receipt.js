@@ -136,7 +136,7 @@
 
     return [
       { label: copy.step1Label, text: [evidenceText, evidenceNote, collected].filter(Boolean).join(" "), files: files.evidence },
-      { label: copy.step2Label, text: [rateText, rateWord].filter(Boolean).join(" "), files: files.rate },
+      { label: copy.step2Label, text: [rateText, rateWord, copy.rateStalenessNote].filter(Boolean).join(" "), files: files.rate },
       { label: copy.step3Label, text: [mathText, mathResult].filter(Boolean).join(" "), files: files.math },
       { label: copy.step4Label, text: [verdictText, verdictDetail].filter(Boolean).join(" "), files: files.verdict }
     ];

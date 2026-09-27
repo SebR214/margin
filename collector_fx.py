@@ -26,6 +26,46 @@ no emerging market, and their stamp is the previous working day. So er-api stays
 primary on both freshness and coverage, and this file records that choice per
 row rather than leaving it implicit.
 
+RE-CHECKED 2026-09-27, same question asked of the sources that "advertise" a
+live update. None qualify -- one is daily under marketing language, one is
+daily on its free tier, one needs a signup key even on its free tier:
+
+    fawazahmed0/currency-api  README says "Daily Updated" outright; its own
+                              GitHub data-branch commit history shows gaps of
+                              days to months between pushes, not hours
+                              (checked live via api.github.com/repos/
+                              fawazahmed0/exchange-api/commits).
+    CurrencyFreaks            free tier is daily-only ("refreshed... at
+                              12:00 AM UTC"); hourly starts on the paid
+                              Starter plan.
+    fxratesapi.com            the ONLY one of these that answers with no key
+                              at all, and its docs claim "updated every
+                              minute." Live-verified false: four calls to
+                              api.fxratesapi.com/latest, 60s apart
+                              (2026-09-27T14:26-14:29Z), returned a
+                              timestamp that ticks forward every minute but
+                              a EUR/USD and USD/JPY rate that only jitters by
+                              ~1e-7 relative -- rounding noise, not a market
+                              moving on a real feed. The per-minute stamp is
+                              cosmetic; the rate under it is not intraday.
+    Open Exchange Rates       free ("Forever Free") plan genuinely refreshes
+                              hourly, ~1-2 minutes past the hour -- the one
+                              candidate that would actually fix this. But it
+                              requires an account and an App ID (API key)
+                              even on the free tier, which is a step away
+                              from "zero registration" every other source
+                              here clears. Not wired in: registering for a
+                              key is Sebastian's call, not this collector's
+                              to make unilaterally. If he wants it, the slot
+                              is CENTRAL_BANKS-shaped -- a keyed override that
+                              outranks the daily aggregators the same way
+                              BCRA already does for ARS.
+
+Until/unless a genuinely intraday, no-key source turns up, the denominator
+stays daily and that fact is now surfaced on every published number, not just
+in this docstring: receipt.js's "official rate" step appends
+copy.json's `rateStalenessNote` to every receipt, sitewide.
+
 What DOES improve the denominator is a central bank where one publishes
 directly. Argentina's BCRA publishes its reference rate (Comunicacion A 3500)
 with no key, and a central bank outranks an aggregator by definition. Per-
