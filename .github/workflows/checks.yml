@@ -14,9 +14,13 @@ name: checks
 # for what "baseline" means here -- commit 7078efd09, the last commit before
 # PR #160 landed).
 #
-# tools/check_copy.py and tools/check_index_consistency.py are included too
-# -- both are stdlib-only, need no live network call and no browser, and
-# were previously runnable by hand only. Not included: tools/check_page.py
+# tools/check_copy.py, tools/check_index_consistency.py and
+# tools/check_wise_share.py (SOURCES task 4 -- the single-company
+# dependency ceiling: fails a PR that raises the share of published prices
+# depending on one external company, Wise, above the committed baseline in
+# tools/wise_share_baseline.json) are included too -- all three are
+# stdlib-only, need no live network call and no browser, and were
+# previously runnable by hand only. Not included: tools/check_page.py
 # (needs a real Chromium via CDP -- a browser dependency this workflow does
 # not set up, left for a follow-up rather than risking a red PR build over
 # missing infrastructure unrelated to the diff under review), and
@@ -52,3 +56,6 @@ jobs:
 
       - name: Index consistency (published figures match their own charts)
         run: python3 tools/check_index_consistency.py
+
+      - name: Single-company dependency ceiling (Wise share must not rise)
+        run: python3 tools/check_wise_share.py
