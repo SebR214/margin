@@ -6,6 +6,7 @@
 <title>margin.wiki — how it works</title>
 <meta name="description" content="How a number gets made, where the prices come from, and what was hard."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="./js/chart.js"></script>
 <style>
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
   *{box-sizing:border-box}
@@ -83,6 +84,24 @@
     <div class="p">This site's own measurement is the only thing behind most of its numbers — so for the few countries where an independent, publicly published reference exists, it's worth showing the two side by side rather than asking for trust on faith.</div>
     <div id="refCheck" class="p" style="padding-top:14px">Loading the comparison&hellip;</div>
 
+    <div class="h">Three real examples from this data</div>
+    <div class="p">The rules above are abstract. Here they are with real countries, using nothing but the files this site already collects.</div>
+
+    <div class="h" style="padding-top:26px">What a float does to the premium</div>
+    <div class="p" id="floatP">Loading…</div>
+    <div id="floatChart"></div>
+    <div class="p" id="floatCap" style="font-size:13px;color:#6B6B6B;padding-top:6px"></div>
+
+    <div class="h" style="padding-top:26px">What capital controls do to the premium</div>
+    <div class="p" id="controlsP">Loading…</div>
+    <div id="controlsChart"></div>
+    <div class="p" id="controlsCap" style="font-size:13px;color:#6B6B6B;padding-top:6px"></div>
+
+    <div class="h" style="padding-top:26px">What a peg hides</div>
+    <div class="p" id="pegP">Loading…</div>
+    <div id="pegChart"></div>
+    <div class="p" id="pegCap" style="font-size:13px;color:#6B6B6B;padding-top:6px"></div>
+
     <div class="h">What was hard</div>
     <div class="p">Fees. They hide inside the exchange rate and they change with how much you send, so one headline fee number is almost always wrong. Everything here is all-in, measured at five different amounts, which is the only way the comparison means anything.</div>
     <div class="p">History. An hour that does not get collected is gone, you cannot go back and fill it in. So keeping collection running has mattered more than shipping any feature.</div>
@@ -140,6 +159,107 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
   // can answer with real evidence rather than generic prose.
   window.hiwTrackedByName = {};
   (d.countries || []).forEach(function(c){ window.hiwTrackedByName[c.country.toLowerCase()] = c; });
+
+  // ---- Three real case studies, read straight from each currency's own
+  // data/countries/<CCY>.json rather than from index_latest.json's
+  // "countries" list. That list only carries currencies priced THIS hour --
+  // a currency briefly withheld (e.g. a crossed market) drops out of it
+  // entirely, which would blank a whole case study over a one-hour hiccup.
+  // Each country file keeps its full daily "history" array (with real
+  // dates, not reconstructed ones) regardless of whether the current hour
+  // itself cleared the evidence bar, so these examples stay stable.
+  function loadCountryFile(ccy) {
+    return fetch('./data/countries/' + ccy + '.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; });
+  }
+
+  Promise.all([loadCountryFile('NGN'), loadCountryFile('DZD'), loadCountryFile('XAF')]).then(function(res){
+    var ngn = res[0], dzd = res[1], xaf = res[2];
+
+    // 1. FLOAT -- Nigeria let the naira trade freely instead of defending
+    // an official peg. Its own history array only started accumulating
+    // daily points recently, so the day-by-day chart is built straight from
+    // data/p2p_basis.csv's raw hourly rows (the same file this country's
+    // own number is computed from) instead.
+    var ngnNow = ngn && (ngn.index_pct != null ? ngn.index_pct : (ngn.history && ngn.history.length ? ngn.history[ngn.history.length - 1].index_pct : null));
+    if (ngnNow != null) {
+      document.getElementById('floatP').innerHTML =
+        'Nigeria used to run two dollar prices: an official one, and a much higher street price. The government stopped defending the official rate and let the naira trade freely. Today a dollar on the street costs about what the official rate says it should, <b class="num">' +
+        (ngnNow >= 0 ? '+' : '') + ngnNow.toFixed(1) + '%</b> apart.';
+    } else {
+      document.getElementById('floatP').textContent = 'Nigeria has no price from us this hour to show here.';
+    }
+    fetch('./data/p2p_basis.csv', {cache:'no-store'}).then(function(r){ return r.text(); }).then(function(text){
+      var lines = text.replace(/\r/g, '').split('\n');
+      var header = lines[0].split(',');
+      var iTs = header.indexOf('ts_utc'), iCcy = header.indexOf('ccy'), iSrc = header.indexOf('source'),
+          iBps = header.indexOf('basis_bps'), iOk = header.indexOf('source_ok');
+      var byDay = {};
+      for (var i = 1; i < lines.length; i++) {
+        if (!lines[i]) continue;
+        var cols = lines[i].split(',');
+        if (cols[iCcy] !== 'NGN' || cols[iSrc] !== 'coingecko' || cols[iOk] !== 'True' || !cols[iBps]) continue;
+        var day = cols[iTs].slice(0, 10);
+        (byDay[day] = byDay[day] || []).push(parseFloat(cols[iBps]) / 100);
+      }
+      var days = Object.keys(byDay).sort();
+      var spark = days.map(function(day){ var a = byDay[day]; return a.reduce(function(x,y){ return x+y; }, 0) / a.length; });
+      var timestamps = days.map(function(day){ return day + 'T00:00:00Z'; });
+      if (spark.length > 1) {
+        document.getElementById('floatCap').textContent = 'Nigeria, the naira: the gap between the street price of a dollar and the official rate, one point per day, ' + days[0] + ' to ' + days[days.length - 1] + '.';
+        MarginChart.render(document.getElementById('floatChart'), { spark: spark, timestamps: timestamps, valueSuffix: '%' });
+      } else {
+        document.getElementById('floatChart').innerHTML = '<div style="font-size:13px;color:#9A9A9A">Not enough days collected yet to draw this line.</div>';
+      }
+    }).catch(function(){
+      document.getElementById('floatChart').innerHTML = '<div style="font-size:13px;color:#9A9A9A">Could not load Nigeria’s daily history. That failure is shown, not hidden.</div>';
+    });
+
+    // 2. CAPITAL CONTROLS -- Algeria restricts legal access to dollars.
+    // Its own history array is real dates paired with real daily figures,
+    // going back to when collection for it began.
+    var dzdHist = dzd && dzd.history;
+    if (dzdHist && dzdHist.length > 1) {
+      var dzdN = dzdHist.length;
+      var threeWeeksAgoIdx = Math.max(0, dzdN - 1 - 21);
+      var startV = dzdHist[threeWeeksAgoIdx].index_pct, endV = dzdHist[dzdN - 1].index_pct;
+      var climb = endV - startV;
+      document.getElementById('controlsP').innerHTML =
+        'Algeria makes it hard to legally buy dollars. That scarcity has a price. Three weeks ago a dollar cost <b class="num">' +
+        startV.toFixed(1) + '%</b> more than the official rate on the street. Today it costs <b class="num">' +
+        endV.toFixed(1) + '%</b> more, a climb of about <b class="num">' + Math.abs(climb).toFixed(1) + ' points</b> in three weeks.';
+      document.getElementById('controlsCap').textContent = 'Algeria, the dinar: the same gap, every day since ' + dzdHist[0].date + '.';
+      MarginChart.render(document.getElementById('controlsChart'), {
+        spark: dzdHist.map(function(p){ return p.index_pct; }),
+        timestamps: dzdHist.map(function(p){ return p.date + 'T00:00:00Z'; }),
+        valueSuffix: '%'
+      });
+    } else {
+      document.getElementById('controlsP').textContent = 'Algeria has no price from us this hour to show here.';
+    }
+
+    // 3. PEG -- six central African countries peg their currency to the
+    // euro at a fixed official rate. A peg fixes the OFFICIAL number; it
+    // says nothing about what people actually pay, which is exactly what
+    // this site measures independently of that peg.
+    var xafHist = xaf && xaf.history;
+    if (xafHist && xafHist.length > 1) {
+      var xafVals = xafHist.map(function(p){ return p.index_pct; });
+      var lo = Math.min.apply(null, xafVals), hi = Math.max.apply(null, xafVals);
+      var xafNow = xaf.index_pct != null ? xaf.index_pct : xafVals[xafVals.length - 1];
+      document.getElementById('pegP').innerHTML =
+        'Six countries in central Africa peg their currency to the euro at a fixed rate. On paper that should mean the gap to the official rate is zero. It has not been. Every day we have measured it, a dollar has cost between <b class="num">' +
+        lo.toFixed(1) + '%</b> and <b class="num">' + hi.toFixed(1) + '%</b> more than the pegged rate says it should, ' +
+        (xafNow >= 0 ? '+' : '') + xafNow.toFixed(1) + '% most recently. The peg fixes the official number. It does not fix what people actually pay.';
+      document.getElementById('pegCap').textContent = 'The Central African CFA franc: the gap to its own official euro peg, every day since ' + xafHist[0].date + '.';
+      MarginChart.render(document.getElementById('pegChart'), {
+        spark: xafVals,
+        timestamps: xafHist.map(function(p){ return p.date + 'T00:00:00Z'; }),
+        valueSuffix: '%'
+      });
+    } else {
+      document.getElementById('pegP').textContent = 'The Central African CFA franc has no price from us this hour to show here.';
+    }
+  });
 
   fetch('./data/fx_rates.csv', {cache:'no-store'}).then(function(r){ return r.text(); }).then(function(text){
     var lines = text.replace(/\r/g, '').split('\n');
