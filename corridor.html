@@ -121,32 +121,23 @@
   <div class="hero">
     <div class="wrap" style="padding-top:0; padding-bottom:0;">
       <h1 id="pageTitle" style="font-size:34px; margin:0 0 12px; max-width:24ch;"></h1>
-      <p class="lede" style="color:inherit; opacity:.92;" id="lede1"></p>
-      <p class="lede" style="color:inherit; opacity:.92;" id="lede2"></p>
+      <p class="lede" style="color:inherit; opacity:.92;" id="verdict1"></p>
     </div>
   </div>
 
 <div class="wrap">
-  <div class="verdict" id="topVerdict" style="margin-top:22px">
-    <p style="margin:0 0 8px" id="verdict1"></p>
-    <p style="margin:0" id="verdict2"></p>
-  </div>
-
   <div class="stamp" id="stamp"></div>
 
   <div class="sizebar" id="corrbar"><span class="lbl" id="routeLbl"></span></div>
   <div class="sizebar" id="sizebar"><span class="lbl" id="sendLbl"></span></div>
 
   <div class="card">
-    <h2 id="landedTitle"></h2>
-    <p class="cap" id="landedCap"></p>
     <div class="nums" id="nums"></div>
     <div class="verdict" id="verdict"></div>
   </div>
 
   <div class="card">
     <h2 id="depthTitle"></h2>
-    <p class="cap" id="depthCap"></p>
     <div class="nums" id="depthNums" style="grid-template-columns:repeat(2,1fr)"></div>
   </div>
 
@@ -239,6 +230,7 @@ let bySize={}, histBySize={}, size=5000, newest="";
 // Corridor 1 is the default and stays first. allRows holds every corridor so
 // switching regroups in place rather than refetching samples.csv.
 let allRows=[], corrKeys=[], corridor="SGD->PHP", feeChecks=[], withdrawalFees=[], wfBySample={};
+let measureCount=0, winCount=0, historyStart="";
 let providersLatest=null;
 // The true cheapest APP (never the stablecoin route itself) for this
 // corridor+size, from data/providers_latest.json -- the same file
@@ -345,16 +337,8 @@ async function boot(){
   try{ COVERAGE=await fetch("./data/coverage.json").then(r=>r.ok?r.json():{}); }catch(e){ COVERAGE={}; }
   const C=await loadCopy();
   COPY=C.corridor||{};
-  document.getElementById("pageTitle").textContent=COPY.title||cmiss("title");
-  document.getElementById("lede1").textContent=COPY.lede1||"";
-  document.getElementById("lede2").textContent=COPY.lede2||"";
   document.getElementById("routeLbl").textContent=(COPY.sizebar||{}).route||"route";
   document.getElementById("sendLbl").textContent=(COPY.sizebar||{}).sendAmount||"send amount";
-  document.getElementById("landedTitle").textContent=(COPY.cards||{}).landed?.title||"";
-  document.getElementById("landedCap").textContent=(COPY.cards||{}).landed?.cap||"";
-  document.getElementById("depthTitle").textContent=(COPY.cards||{}).depth?.title||"";
-  document.getElementById("wfTitle").textContent=(COPY.cards||{}).waterfall?.title||"";
-  document.getElementById("wfCap").textContent=(COPY.cards||{}).waterfall?.cap||"";
   // This bars-and-total chart stops at a balance sitting on the two
   // exchanges named in the footer below (buy venue, sell venue). It never
   // prices getting the sending country's money into the first exchange, or
@@ -362,33 +346,33 @@ async function boot(){
   // -- both of which the cheapest-app price it's compared against already
   // includes. Said here, next to the chart, not only in the footer few
   // people read (SEB audit, 2026-09-27).
-  document.getElementById("wfDisclosure").textContent=(COPY.cards||{}).waterfall?.disclosure||
-    "This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.";
-  document.getElementById("ladderTitle").textContent=(COPY.cards||{}).ladder?.title||"";
-  document.getElementById("histTitle").textContent=(COPY.cards||{}).history?.title||"";
-  document.getElementById("histCap").textContent=(COPY.cards||{}).history?.cap||"";
+  // Kept rather than cut: the buy/sell legs genuinely can land negative
+  // (data/corridor_waterfall.csv has buy-leg bps < 0 on ~25% of rows and
+  // sell-leg bps < 0 on ~11%), so a bar left of the zero line is a real,
+  // recurring case on this chart, not a hypothetical -- see PR notes.
+  document.getElementById("wfDisclosure").textContent=
+    ((COPY.cards||{}).waterfall?.disclosure||"This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.")
+    +" "+((COPY.cards||{}).waterfall?.gainNote||"A bar to the left of that line means that step paid money back on this sample, not that it cost money.");
   document.getElementById("stamp").textContent=COPY.loading||"loading…";
 
   const L=COPY.legend||{};
   document.getElementById("wfLegend").innerHTML=
-    `<span><i style="background:var(--neg)"></i>${L.moneyGained||""}</span>`+
-    `<span><i style="background:var(--pos)"></i>${L.moneyLost||""}</span>`+
+    `<span><i style="background:var(--neg)"></i>money gained on that step</span>`+
+    `<span><i style="background:var(--pos)"></i>money lost on that step</span>`+
     `<span><i style="background:var(--rail)"></i>${L.blockchain||""}</span>`+
     `<span><i style="background:var(--win)"></i>${L.total||""}</span>`+
     `<span><i style="background:transparent;border:1px dashed var(--neg)"></i>${L.cheapestProvider||""}</span>`;
   document.getElementById("histLegend").innerHTML=
-    `<span><i style="background:var(--pos)"></i>${L.buyingNow||""}</span>`+
-    `<span><i style="background:var(--color-neutral-700)"></i>${L.waitingOwnPrice||""}</span>`+
-    `<span><i style="background:var(--neg)"></i>${L.cheapestProvider||""}</span>`;
+    `<span><i style="background:var(--pos)"></i>${L.marketOrder||"market order"}</span>`+
+    `<span><i style="background:var(--color-neutral-700)"></i>${L.limitOrder||"limit order"}</span>`+
+    `<span><i style="background:var(--neg)"></i>${L.cheapestProvider||"cheapest app"}</span>`;
 
   allRows=parseCSV(await fetch("./data/samples.csv").then(r=>r.text())).filter(r=>r.source_ok==="True");
   // The "is it a real dollar" count is a claim about every round trip ever
   // run, not the one corridor on screen -- so it is computed once here, from
   // every row, and does not change when the reader switches corridors.
-  const measureCount=allRows.length, winCount=allRows.filter(r=>r.crypto_wins_taker==="True").length;
-  document.getElementById("verdict1").textContent=T(COPY.verdict1,
-    { measureCount: measureCount.toLocaleString("en-US"), winCount: winCount.toLocaleString("en-US") });
-  document.getElementById("verdict2").textContent=COPY.verdict2||"";
+  measureCount=allRows.length; winCount=allRows.filter(r=>r.crypto_wins_taker==="True").length;
+  historyStart=allRows.reduce((min,r)=>(!min||r.ts<min)?r.ts:min,"");
   feeChecks=await loadCSVOptional("./data/fee_checks.csv");
   withdrawalFees=await loadCSVOptional("./data/withdrawal_fees.csv");
   providersLatest=await fetch("./data/providers_latest.json").then(r=>r.ok?r.json():null).catch(()=>null);
@@ -426,26 +410,25 @@ function selectCorridor(key){
   if(present.indexOf(size)<0) size=present[present.length-1];
   srcCcy=(bySize[size].src||"SGD").trim();
   const r5=bySize[size];
+  const routeWords=place(srcCcy)+" → "+place(dstOf(r5));
+  document.getElementById("pageTitle").textContent=T(COPY.titleTemplate||"{route} by stablecoin: every cost, line by line",{route:routeWords});
   const d=new Date(newest.replace(" ","T")), ago=Math.round((Date.now()-d)/6e4);
   const hours=new Set(rows.map(r=>r.ts.slice(0,13))).size;
-  document.title="margin.wiki — one transfer, the receipt in full · "+place(srcCcy)+" → "+place(dstOf(r5));
+  document.title="margin.wiki — "+routeWords+" by stablecoin";
   const feeStampR=feeStamp(feeChecks,r5.fees_verified,withdrawalFees,(r5.onramp_venue||"").trim().toLowerCase());
   document.getElementById("stamp").innerHTML=
-    `<b>${esc(COPY.updatedLabel||cmiss("updatedLabel"))}</b> ${newest.slice(0,16).replace("T"," ")}Z · ${ago<90?(COPY.minAgoTemplate?T(COPY.minAgoTemplate,{n:ago}):cmiss("minAgoTemplate")):(COPY.hAgoTemplate?T(COPY.hAgoTemplate,{n:Math.round(ago/60)}):cmiss("hAgoTemplate"))} · `+
     // fees_verified carries one date per leg ("ir:2026-08-10|coins:2026-08-10").
     // Both legs are usually verified on the same day, and printing the string
     // straight through rendered that as "2026-08-10 · 2026-08-10". Distinct
     // dates only -- if the legs ever diverge, both still show.
-    T(COPY.venueTemplate||"bought on {onrampVenue}, sold on {offrampVenue} · fees verified {dates}",
-      {onrampVenue: r5.onramp_venue, offrampVenue: r5.offramp_venue, dates: feeDates(r5.fees_verified)})+
+    T(COPY.sourceTemplate||"Updated {time} UTC · buy on {onrampVenue}, sell on {offrampVenue} · exchange fees checked {dates}",
+      {time: newest.slice(0,16).replace("T"," "), onrampVenue: r5.onramp_venue, offrampVenue: r5.offramp_venue, dates: feeDates(r5.fees_verified)})+
     // The dates are already printed above from fees_verified. The watcher stamp
     // only earns its place when it DISAGREES -- i.e. a check has gone red.
     (feeStampR.unverified ? ` · ${feeStampR.text}` : "")+
     // Under three hours there is no trend to read. Say how thin it is rather
     // than letting a two-point chart imply one.
     (hours<3?` · <b>${hours} capture${hours===1?"":"s"} so far</b> — every point collected is shown, nothing filled in`:"");
-  document.getElementById("ladderCap").textContent=T((COPY.cards||{}).ladder?.capTemplate,
-    { highlight: money(SIZES[0]) });
   renderCorridors(); renderSizes(); render();
   const dst=(r5.dst||"").trim();
   document.getElementById("foot").innerHTML=
@@ -491,14 +474,10 @@ function renderDepth(r){
   const okTop=r.offramp_depth_top_level!==undefined&&r.offramp_depth_top_level!==""&&isFinite(top)&&isFinite(rate);
   const ok1=r.offramp_depth_1pct!==undefined&&r.offramp_depth_1pct!==""&&isFinite(within1)&&isFinite(rate);
   const D=COPY.depth||{};
-  document.getElementById("depthCap").textContent=T(D.capTemplate, { dst, venue });
+  document.getElementById("depthTitle").textContent=T((COPY.cards||{}).depth?.titleTemplate||"How much USDT you could sell into {dst} on {venue} right now",{dst,venue});
   document.getElementById("depthNums").innerHTML=`
-    <div class="num"><div class="n-l">${D.atBestPrice||""}</div>
-      <div class="n-v">${okTop?moneyIn(dst,top*rate):"—"}</div>
-      <div class="n-s">${D.atBestPriceSub||""}</div></div>
-    <div class="num"><div class="n-l">${D.before1Pct||""}</div>
-      <div class="n-v">${ok1?moneyIn(dst,within1*rate):"—"}</div>
-      <div class="n-s">${D.before1PctSub||""}</div></div>`;
+    <div class="num"><div class="n-l">${T(D.atBestPriceTemplate||"At the best price: {dst} {amount} before the price moves.",{dst,amount:okTop?moneyIn(dst,top*rate):"—"})}</div></div>
+    <div class="num"><div class="n-l">${T(D.before1PctTemplate||"Within 1% of the best price: {dst} {amount}.",{dst,amount:ok1?moneyIn(dst,within1*rate):"—"})}</div></div>`;
 }
 
 function render(){
@@ -510,9 +489,9 @@ function render(){
   const cw=t<base, mw=m<base;
   const N=COPY.numCards||{};
   document.getElementById("nums").innerHTML=`
-    ${numCard((N.buyingNow||{}).label,(N.buyingNow||{}).sub,t,cw,size)}
-    ${numCard((N.waitingOwnPrice||{}).label,(N.waitingOwnPrice||{}).sub,m,mw,size)}
-    ${numCard(cheapest.provider||N.cheapestProviderLabel,N.cheapestProviderSub,base,null,size)}`;
+    ${numCard(N.marketLabel||"Stablecoin, market order",t,cw,size)}
+    ${numCard(N.limitLabel||"Stablecoin, limit order",m,mw,size)}
+    ${numCard(T(N.cheapestLabelTemplate||"Cheapest app ({provider})",{provider:cheapest.provider}),base,null,size)}`;
   // Same figure the waterfall's "Moving it" bar shows a few lines down --
   // reads from the same sidecar so this line and that bar never disagree.
   // Falls back to the old approximation only when the sidecar has no row
@@ -520,26 +499,34 @@ function render(){
   const wfSum=wfBySample[r.ts+"|"+r.corridor+"|"+r.notional_src];
   const rail=wfSum?+wfSum.wf_move_bps:netBps(r), doors=t-rail;
   // The worked example, in the currency being sent, at the amount selected.
-  const dstPlace=place(dstOf(r));
   const VL=COPY.verdictLine||{};
   document.getElementById("verdict").innerHTML=
-    `<b>${cw?VL.cryptoCheaper:VL.cryptoDearer}</b> `+
-    T(VL.sendTemplate,{ amount: money(size), place: dstPlace, provider: cheapest.provider, providerCost: cash(size,base), routeCost: cash(size,t) })+" "+
-    (cw?T(VL.youSave,{amount:cashDiff(size,base,t)}):T(VL.moreExpensive,{amount:cashDiff(size,t,base)}))+" "+
-    T(VL.waitingTemplate,{ amount: cash(size,m), closes: mw?VL.doesClose:VL.doesNotClose })+
-    `<div class="split"><span>${VL.blockchainSplit}: <b>${cash(size,rail)}</b></span><span>${VL.exchangesSplit}: <b>${cash(size,doors)}</b></span></div>`;
-  document.getElementById("wf-size").textContent="· "+money(size);
-  document.getElementById("hist-size").textContent="· "+money(size);
+    (cw
+      ? T(VL.stableCheaperTemplate||"The stablecoin route is cheaper at this amount by {amount}.",{amount:cashDiff(size,base,t)})
+      : T(VL.appCheaperTemplate||"The cheapest app is cheaper at this amount by {amount}. A limit order saves {limitAmount}, {closes} the gap.",
+          {amount:cashDiff(size,t,base), limitAmount:cashDiff(size,t,m), closes: mw?(VL.closes||"closing"):(VL.doesNotClose||"not enough to close")}))+
+    `<div class="split"><span>${VL.blockchainSplit||"Network fee"}: <b>${cash(size,rail)}</b></span><span>${VL.exchangesSplit||"exchange fees"}: <b>${cash(size,doors)}</b></span></div>`;
+  // Generated headline: the site's real, live claim for this route+amount,
+  // never a fixed sentence -- market order vs the true cheapest app (see
+  // cheapestApp() above), whichever actually wins at this amount.
+  document.getElementById("verdict1").textContent=T(COPY.verdict1,{
+    amount: money(size),
+    marketCost: cash(size,t), marketPct: pct(t),
+    appCost: cash(size,base), appPct: pct(base),
+    provider: cheapest.provider,
+    diff: cw?cashDiff(size,base,t):cashDiff(size,t,base),
+    moreOrLess: cw?(COPY.lessLabel||"less"):(COPY.moreLabel||"more"),
+  });
   renderDepth(r);
   drawWaterfall(r,cheapest); drawLadder(); drawHistory();
 }
 
-function numCard(label,sub,val,win,n){
+function numCard(label,val,win,n){
   const NC=COPY.numCards||{};
   const badge = win===null?"":`<span class="badge ${win?"win":"lose"}">${win?NC.cheaper:NC.dearer}</span>`;
   // Money is the headline; the percentage is the footnote. Nobody sends 0.55%.
   return `<div class="num"><div class="n-l">${label} ${badge}</div>
-    <div class="n-v">${cash(n,val)}</div><div class="n-s">${pct(val)} of what you send · ${sub}</div></div>`;
+    <div class="n-v">${cash(n,val)}</div><div class="n-s">${T(NC.subTemplate||"{pct} of the amount",{pct:pct(val)})}</div></div>`;
 }
 
 function drawWaterfall(r,cheapest){
@@ -551,19 +538,22 @@ function drawWaterfall(r,cheapest){
   // this exact sample yet (a currency's first hour after this shipped, say)
   // means no invented approximation either -- the section says so.
   const n=+r.notional_src;
+  document.getElementById("wfTitle").textContent=T((COPY.cards||{}).waterfall?.titleTemplate||"Where the {amount} cost goes",{amount:money(n)});
   const wf=wfBySample[r.ts+"|"+r.corridor+"|"+r.notional_src];
   if(!wf){
     document.getElementById("wf").innerHTML=`<text x="12" y="30" fill="var(--color-neutral-600)" font-size="13" font-family="var(--font-body)">${esc(COPY.waterfallUnavailable||cmiss("waterfallUnavailable"))}</text>`;
     return;
   }
   const comps=[
-    {l:"Buying the coin in "+place(srcCcy), v:+wf.wf_buy_bps, k:"neg"},
-    {l:"Moving it", v:+wf.wf_move_bps, k:"rail"},
-    {l:"Selling it in "+place(dstOf(r)), v:+wf.wf_sell_bps, k:"neg"},
+    {l:"Buy USDT with "+srcCcy, v:+wf.wf_buy_bps, k:"neg"},
+    {l:"Send it on chain", v:+wf.wf_move_bps, k:"rail"},
+    {l:"Sell USDT for "+dstOf(r), v:+wf.wf_sell_bps, k:"neg"},
   ];
   const total=+r.cost_bps_taker;
   cheapest=cheapest||cheapestApp(r.corridor,n,r);
   const base=cheapest.bps;
+  document.getElementById("wfCap").textContent=T((COPY.cards||{}).waterfall?.capTemplate||"Buying USDT is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
+    {buyCost:cash(n,+wf.wf_buy_bps), totalCost:cash(n,total)});
   let run=0; const cum=[0]; comps.forEach(c=>{run+=c.v; cum.push(run);});
   const all=[0,total,base,...cum], dMin=Math.min(...all), dMax=Math.max(...all);
   const pad=(dMax-dMin)*.12||10, lo=dMin-pad, hi=dMax+pad;
@@ -624,16 +614,30 @@ function drawWaterfall(r,cheapest){
 function drawLadder(){
   const rows=SIZES.map(s=>bySize[s]).filter(Boolean);
   const LT=COPY.ladderTable||{}, cols=LT.columns||{};
+  const smallest=rows[0], largest=rows[rows.length-1];
+  const smallS=+smallest.notional_src, largeS=+largest.notional_src;
+  document.getElementById("ladderTitle").textContent=T((COPY.cards||{}).ladder?.titleTemplate||"Cost by amount sent: worst at {smallest}",{smallest:money(smallS)});
+  // "wins at every size" is only printed when it is actually true for the
+  // corridor on screen -- computed live from cheapestApp() on each row here,
+  // not assumed.
+  const appWinsAll=rows.every(r=>{
+    const s=+r.notional_src, t=+r.cost_bps_taker, b=cheapestApp(r.corridor,s,r).bps;
+    return t>=b;
+  });
+  const smallNet=netBps(smallest);
+  document.getElementById("ladderCap").textContent=T(
+    appWinsAll?((COPY.cards||{}).ladder?.capAllTemplate):((COPY.cards||{}).ladder?.capMostTemplate),
+    { smallPct: pct(smallNet), smallest: money(smallS), largest: money(largeS) });
   let h=`<tr><th>${cols.send||""}</th><th>${cols.buyingNow||""}</th><th>${cols.waitingOwnPrice||""}</th><th>${cols.cheapestProvider||""}</th><th>${cols.cheaper||""}</th></tr>`;
   for(const r of rows){
     const s=+r.notional_src, t=+r.cost_bps_taker, m=+r.cost_bps_maker;
     const cheapest=cheapestApp(r.corridor,s,r), b=cheapest.bps, cw=t<b;
     h+=`<tr class="${s===size?"hl":""}${s===200?" hl":""}">
-      <td>${money(s)}${s===200?` <span class="tag">${LT.worstTag||""}</span>`:""}</td>
+      <td>${money(s)}</td>
       <td>${cash(s,t)}<br><span class="tag">${pct(t)}</span></td>
       <td>${cash(s,m)}<br><span class="tag">${pct(m)}</span></td>
       <td>${cheapest.provider}<br><span class="tag">${cash(s,b)}</span></td>
-      <td class="winner ${cw?"c":"f"}">${cw?T(LT.dollarRouteByTemplate,{amount:cashDiff(s,t,b)}):T(LT.providerByTemplate,{amount:cashDiff(s,b,t)})}</td></tr>`;
+      <td class="winner ${cw?"c":"f"}">${cw?T(LT.dollarRouteByTemplate,{amount:cashDiff(s,b,t)}):T(LT.providerByTemplate,{amount:cashDiff(s,t,b)})}</td></tr>`;
   }
   document.getElementById("ladder").innerHTML=h;
 }
@@ -651,6 +655,12 @@ function fmtHistDate(iso){
 function drawHistory(){
   const rows=histBySize[size]; const svg=document.getElementById("hist");
   const tip=document.getElementById("histTip");
+  const startDate=historyStart?historyStart.slice(0,10):"";
+  document.getElementById("histTitle").textContent=T((COPY.cards||{}).history?.titleTemplate||"Stablecoin vs cheapest app, every hour since {start} · {amount}",
+    {start:startDate, amount:money(size)});
+  const winPct=measureCount?Math.round(winCount/measureCount*1000)/10+"%":"—";
+  document.getElementById("histCap").textContent=T((COPY.cards||{}).history?.capTemplate||"Across all four routes and five amounts we've priced it {count} times. The stablecoin route was cheaper {winCount} times ({winPct}).",
+    { count: measureCount.toLocaleString("en-US"), winCount: winCount.toLocaleString("en-US"), winPct });
   // Real coverage for the corridor on screen, computed live -- replaces
   // the old flat "checked hourly since we started" claim in histCap, which
   // was true of the collector's schedule but not of what actually landed.
@@ -664,9 +674,9 @@ function drawHistory(){
   // screen size instead of shrinking the axis/tooltip text on mobile.
   const W=Math.max(240, Math.round(svg.getBoundingClientRect().width)) || 640, H=220, padL=44, padR=12, padT=12, padB=22;
   svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
-  if(rows.length<2){ svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="var(--color-neutral-600)" font-size="12" font-family="var(--font-body)">${T((COPY.history||{}).buildingTemplate,{count:rows.length+(rows.length===1?" sample":" samples")})}</text>`; tip.style.opacity=0; return; }
-  const HL=COPY.history||{};
-  const series=[["cost_bps_taker","var(--pos)",HL.buyingNow||"buying it now"],["cost_bps_maker","var(--color-neutral-700)",HL.waitingOwnPrice||"waiting for your price"],["baseline_cost_bps","var(--neg)",HL.cheapestProvider||"best fiat provider"]];
+  if(rows.length<2){ svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="var(--color-neutral-600)" font-size="12" font-family="var(--font-body)">${T(COPY.buildingTemplate||"history builds as we check — {count} so far",{count:rows.length+(rows.length===1?" sample":" samples")})}</text>`; tip.style.opacity=0; return; }
+  const HL=COPY.legend||{};
+  const series=[["cost_bps_taker","var(--pos)",HL.marketOrder||"market order"],["cost_bps_maker","var(--color-neutral-700)",HL.limitOrder||"limit order"],["baseline_cost_bps","var(--neg)",HL.cheapestProvider||"cheapest app"]];
   const vals=rows.flatMap(r=>series.map(([k])=>+r[k]));
   let lo=Math.min(0,...vals), hi=Math.max(0,...vals); const pv=(hi-lo)*.1||5; lo-=pv; hi+=pv;
   const plotB=H-padB;
