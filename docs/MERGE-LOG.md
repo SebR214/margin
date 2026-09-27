@@ -120,3 +120,38 @@ findings.html is a genuine redirect stub, confirmed the crossover sentence templ
 (`crossoverWinTemplate`/`crossoverNeverTemplate`) exist in copy.json exactly as
 specified and are rendered client-side with real computed `pct`/`sending_words` values,
 not hardcoded strings.
+
+## #171 — Phase 5: push collect.yml/fees.yml under the GitHub App identity
+**Merged:** 2026-09-27T03:28:47Z
+**Why self-merged:** FINAL spec amendment 1/2, highest-stakes phase (production push
+credentials) but explicitly gated on live proof, not a guess.
+**Evidence:** found and fixed two real bugs via live `workflow_dispatch` test runs before
+touching main — a duplicate `Authorization` header (actions/checkout's persisted credential
+collided with the App token's, both writing to `http.https://github.com/.extraheader`,
+GitHub 400'd with "Duplicate header") fixed via `persist-credentials: false`; and a wrong
+numeric id in the bot's noreply email (used the App's own ID instead of the bot user
+account's id, confirmed via `gh api users/margin-agents%5Bbot%5D --jq .id` -> 329969015),
+which meant the first "successful" test commit LOOKED right but GitHub never linked it to
+the bot account (`author.login: null`). After both fixes, confirmed on a genuinely fresh
+test commit AND on a real production commit on main post-merge:
+`gh api repos/SebR214/margin/commits/<sha> --jq '.author.login'` returned
+`"margin-agents[bot]"` with `author_type: "Bot"` both times — the real link, not just a
+matching name. One of the live test dispatches (on a feature branch, before merge)
+incidentally confused the live chain's un-scoped alive-check and caused a real ~1h+ gap in
+production collection, caught by the watchdog and fixed separately in #173 (that repo-side
+fix is outside this log's scope — see its own PR).
+
+## #172 — SOURCES 1-2: second comparison feed, direct quotes round 2
+**Merged:** 2026-09-27T05:29:16Z
+**Why self-merged:** additive tooling/docstring change only (one file:
+collector_providers.py), zero runtime risk, all gates passed clean; left open initially per
+the parent spec's explicit "runs after FINAL" ordering, merged once Phase 5 + branch
+protection were confirmed done.
+**Evidence:** a documented, live-verified NEGATIVE result, not a shortcut -- probed Monito,
+RemitFinder, iCompareFX, CompareRemit (all blocked: CloudFront/Cloudflare walls, robots.txt
+disallow, or no real per-provider rate data) and re-probed Remitly, Western Union,
+MoneyGram, WorldRemit, Xe, Ria, Xoom plus closed out the DBS Singapore redirect chase (all
+still blocked per the same HARD RULES standard: no login, no headless browser, no CAPTCHA
+bypass). `collector_providers.py --verify` and `--selftest` both passed (including new
+synthetic fixtures for the not-yet-live second-feed precedence logic), plus
+check_inventory.py/check_copy.py/check_index_consistency.py all clean.
