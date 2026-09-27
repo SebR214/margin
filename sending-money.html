@@ -313,7 +313,7 @@
           return '<div class="venue-combo-row"><div>'+esc(c.buy_venue)+' &rarr; '+esc(c.sell_venue)+star+'</div><div class="num">'+c.cost_pct.toFixed(2)+'%</div></div>';
         }).join('');
         var expandHtml = '<div class="venue-breakdown" id="'+vid+'" style="display:none">' +
-          '<div class="venue-breakdown-hdr">All '+r.venues.combos.length+' venue combinations priced this hour ('+esc((r.venues.as_of_utc||'').slice(11,16))+' UTC)</div>' +
+          '<div class="venue-breakdown-hdr">All '+r.venues.combos.length+' exchange combinations priced this hour ('+esc((r.venues.as_of_utc||'').slice(11,16))+' UTC)</div>' +
           combosHtml + '</div>';
         return rowHtml + expandHtml;
       }).join('');

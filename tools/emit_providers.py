@@ -317,7 +317,7 @@ def build(now=None):
                     # once a cheaper combination exists this hour.
                     cost_pct = venues["best"]["cost_pct"]
                     words = ("best of " + str(venues["n_venues"])
-                             + " venues, via " + venues["best"]["buy_venue"]
+                             + " exchanges, via " + venues["best"]["buy_venue"]
                              + " and " + venues["best"]["sell_venue"])
                 else:
                     cost_pct = round(c / 100, 4)
