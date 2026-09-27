@@ -207,3 +207,24 @@ console errors, no horizontal overflow. `tools/check_inventory.py`, `check_copy.
 after rebasing onto main a second time (one real conflict in corridor.html, an
 unrelated `cheapestApp()` addition from #193/#194's neighbors, resolved by keeping
 both additions); PR #195's own CI check also passed before merge.
+
+## #196 — Disclose stablecoin route's exchange-only scope and comparison feed's promo pricing
+**Merged:** 2026-09-27T14:50:23Z (self-merged)
+**Why self-merged:** two additive disclosures about existing measurements' known scope,
+not new published numbers or metrics -- the same 2026-09-27 policy carve-out #193 relied
+on. Issue 1: the stablecoin cost this site measures stops at a balance on the two
+exchanges and never prices getting money into the first exchange or out to a bank
+account, both already included in the apps' own prices. Issue 2: sending-money.html's
+comparison-feed rows can carry first-transfer promotional prices recorded as quoted.
+**Evidence:** investigated before writing -- confirmed corridor.html's footer
+(`footerTemplate`) already states the promo-pricing caveat, so the new
+`comparisonPromoDisclosure` text was added only to sending-money.html, which had no such
+caveat anywhere on the page, avoiding duplication. New copy added to `copy.json`
+(`home.exchangeOnlyDisclosure`, `corridor.cards.waterfall.disclosure`,
+`sendingMoney.exchangeOnlyDisclosure`, `sendingMoney.comparisonPromoDisclosure`) and
+rendered next to each stablecoin-cost display (index.html's waterfall, corridor.html's
+waterfall, sending-money.html's provider table) and next to the comparison-feed source
+labels. `check_inventory.py`, `check_copy.py`, and `check_index_consistency.py` all ran
+clean before and after two rebases onto a fast-moving main; screenshots of index.html,
+sending-money.html, and corridor.html reviewed at desktop width and 390px mobile width,
+confirming the new text renders fully visible, not clipped or hidden.
