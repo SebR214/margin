@@ -51,6 +51,7 @@
   .venue-combo-row{display:grid;grid-template-columns:1fr 90px;gap:16px;font-size:13px;color:#3F3047;padding:3px 0}
   .venue-combo-row .num{text-align:right}
   .foot{padding-top:10px;font-size:12px;color:#9A9A9A;line-height:1.5}
+  .table-source-meter{padding:14px 48px 0;font-size:13px;color:#6B6B6B;max-width:860px}
   .crossover{font-size:15px;line-height:1.6;color:#1A1A1A;padding-bottom:6px;max-width:780px}
   .crossover-explain{font-size:13px;color:#6B6B6B;line-height:1.5;padding-bottom:16px;max-width:780px}
 
@@ -106,6 +107,7 @@
 
   <div class="corridor-picker" id="corridorPicker"></div>
   <div id="corridors"></div>
+  <div class="table-source-meter" id="sourceMeter">&nbsp;</div>
 
   <div class="findings" id="findings">
     <div class="findings-hdr" id="findingsHeading">&nbsp;</div>
@@ -275,6 +277,7 @@
     }
     show(current);
     renderFindings();
+    renderSourceMeter();
 
     function renderCorridor(el, route, selectedSize, routeKey, samplesByKey){
       sizeByRoute[routeKey] = selectedSize;
@@ -375,6 +378,20 @@
     // pill, same expander idiom as the site's other pickers/chips.
     // findings.html itself becomes a redirect stub to this page.
     // ==================================================================
+    // SOURCES task 4: the honest source meter. Generated from data, never
+    // hand-written -- tools/emit_source_meter.py computes this sentence
+    // from data/providers_latest.json (which already tags every row
+    // own/comparison/measured/missing) and writes both the counts and the
+    // filled copy.json template to data/source_meter.json. This just
+    // displays that file's own `sentence`; no counting happens here.
+    function renderSourceMeter(){
+      var el = document.getElementById('sourceMeter');
+      if (!el) return;
+      fetch('./data/source_meter.json', {cache:'no-store'}).then(function(r){ return r.json(); })
+        .then(function(m){ el.textContent = m.sentence || ''; })
+        .catch(function(){ el.textContent = ''; });
+    }
+
     function renderFindings(){
     function renderWeekendChart(container, corridorRows){
       // corridorRows: [{routeWords, ratePct, hikeDays, totalSlots}], real
