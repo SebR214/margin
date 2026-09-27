@@ -85,6 +85,86 @@ WHO IS HERE, AND WHO IS NOT.
   RULE is no workarounds for auth, CAPTCHAs or headless browsers, and every
   one of them needed one of those three.
 
+  Probed again, round 2, 2026-09-26 (SOURCES spec task 2 -- re-checked live,
+  not assumed from the note above; none of these get a request from this
+  file either):
+    Remitly        api.remitly.io/v3/calculator/estimate still answers with a
+                   real payload (base_rate + a promotional DEBIT-only rate),
+                   but re-tested today with the ladder's own pacing (five
+                   sizes, 0.4s apart) it still drew 429 NOT_ALLOWED on most
+                   requests -- three tries spaced 6s apart came back
+                   429/200/429. Same failure as 2026-09-25, now confirmed
+                   live rather than carried over on faith.
+    Western Union  wu.com/router/api/rate still answers 403 (Akamai "Access
+                   Denied") to a plain GET. Unchanged.
+    Ria             riamoneytransfer.com's own quote path now answers with a
+                   Cloudflare interactive challenge ("Just a moment...",
+                   cf_chl_opt) rather than a plain 403 -- worse than before,
+                   still a hard block per the CAPTCHA rule.
+    MoneyGram      moneygram.com/mgo/api/v1/prices redirects to a
+                   locale-guessed path (observed: /th/en/... from a request
+                   naming SG/PH) which then 404s; the Next.js-rendered
+                   locale picker never resolves to one stable JSON path.
+                   Unchanged in kind from 2026-09-25.
+    WorldRemit     worldremit.com/en/philippines still serves fully via
+                   client-side JS with no api reference in the plain HTML.
+                   Unchanged.
+    Xe             xecdapi.xe.com still needs a key (403 "Authorization
+                   header was missing"); the public-facing
+                   xe.com/currencyconverter/convert page is Next.js
+                   client-rendered and xe.com/api/currencyquote/quote 404s
+                   on a plain request. Unchanged in effect.
+    Xoom           xoom.com/philippines/send-money is client-rendered
+                   (PayPal's checkout stack); no api reference in the plain
+                   HTML and a guessed lookup path 404s. Unchanged.
+  DBS Singapore chase closed, 2026-09-26: the prior redirect
+  (personal/remit/rate-calculator -> error) was re-checked and still
+  redirects to /personal/default.page?rd=err. Followed DBS's own site
+  navigation instead of guessing further paths: the homepage
+  (www.dbs.com.sg) and dbs.com.sg/sitemap.xml both serve a client-side
+  "Spinner App" loading shell in plain HTML, with no static links to follow
+  -- the whole site is rendered by JS after load, so a plain request cannot
+  discover the current remit-rate path by navigation. Rendering it to find
+  the real link would need a headless browser, which the HARD RULE forbids.
+  Chase closed as blocked, not abandoned by guesswork.
+
+SECOND COMPARISON FEED (SOURCES spec task 1). Wise's comparison API
+(api.wise.com/v3/comparisons, read by collector.py / tools/emit_providers.py)
+is ONE competitor's list of who counts as a competitor. Four independent
+aggregators were probed, 2026-09-26, for a second one -- the public endpoint
+each site's own calculator calls, no login, no key:
+  Monito         every path (the compare page, a guessed /api/v3/rates, even
+                 /robots.txt) answers 403 from CloudFront: "Request blocked."
+                 This is an edge WAF block on the whole origin, not a route
+                 that needs finding -- there is no plain request that gets
+                 past it.
+  RemitFinder    the compare page is an Angular SPA (no JSON in the plain
+                 HTML); its own robots.txt explicitly disallows /api/* --
+                 exactly where a client-rendered app's own calculator would
+                 live. Respecting robots.txt here means not asking, not
+                 finding a workaround.
+  iCompareFX     reachable and not disallowed by robots.txt, but it is a
+                 content/review site (guides, "X vs Y" articles, reviews),
+                 not a live rate aggregator: its per-country send-money pages
+                 are a Nuxt SPA and the server-rendered HTML carries no
+                 per-provider rate table, only a single static currency
+                 figure. There is no live comparison endpoint to wire.
+  CompareRemit   every path, including /robots.txt, answers with Cloudflare's
+                 interactive "Just a moment..." managed challenge (a JS
+                 puzzle, not a bot-token header) -- the CAPTCHA rule.
+None of the four cleared this repo's bar for a source: a plain,
+unauthenticated request that returns the number, not a login page, a
+CAPTCHA, or a client-side app with no visible endpoint. So no second feed is
+fetched by this file yet. What IS added below is the merge rule the SOURCES
+spec calls for -- own quote, then the median of two comparison feeds where
+both have a price, then whichever feed has it, with a disagreement over
+0.15% of the amount kept visible rather than blended away -- as a pure,
+tested function (`combine_feed_quotes`) that tools/emit_providers.py can
+call the moment a feed clears probe_source.py, the same way a `Commission`
+gets wired in once accepted (see ROADMAP.md). Its selftest fixtures are
+synthetic, including one forced disagreement, because no live feed exists
+yet to produce one -- noted here rather than presented as a real reading.
+
 Usage:
   python3 collector_providers.py --verify     # live pull, print, write nothing
   python3 collector_providers.py              # append data/provider_quotes.csv
@@ -195,6 +275,44 @@ def parse_wise(d, sent):
             recv = _f(po.get("targetAmount"))
             return (rate, 0.0 if fee is None else fee, recv)
     return (rate, 0.0, None)
+
+
+# ------------------------------------------- second comparison feed (task 1)
+# 0.15% of the amount sent, expressed in bps of the amount (cost_bps' own
+# unit) -- 0.15% == 15 bps. The bar named in the SOURCES spec, not invented
+# here.
+DISAGREE_TOLERANCE_BPS = 15.0
+
+
+def combine_feed_quotes(cost_a, cost_b, tol_bps=DISAGREE_TOLERANCE_BPS):
+    """Merge one provider's cost_bps from two comparison feeds (A, B).
+
+    THE PRECEDENCE RULE (own quote beats both) is applied by the caller,
+    before this is ever reached -- this function only resolves the case
+    where there is no own quote and up to two comparison feeds are in play.
+
+      - neither feed has it -> no price.
+      - only one feed has it -> that feed's number, unchanged.
+      - both have it -> the median of the two (== their mean, for n=2) is
+        published as the number to rank by. Both inputs are always
+        returned too ("store both"), never discarded, whether or not they
+        agree.
+
+    Returns (used_cost_bps, disagree) -- `disagree` is True when the two
+    feeds differ by tol_bps (0.15% of the amount) or more, which the caller
+    uses to decide whether to print both numbers on the row ("Wise's
+    comparison says X, <feed B> says Y"). A disagreement is a finding to
+    show, not a reason to hide one number -- the median is still returned,
+    it is not thrown out.
+    """
+    if cost_a is None and cost_b is None:
+        return None, False
+    if cost_a is None:
+        return cost_b, False
+    if cost_b is None:
+        return cost_a, False
+    disagree = abs(cost_a - cost_b) >= tol_bps
+    return (cost_a + cost_b) / 2.0, disagree
 
 
 # ------------------------------------------------------------------ I/O
@@ -465,6 +583,31 @@ def selftest():
             QUOTES, PAYOUT_TYPES = real_quotes, real_payout
     print("  [ok] append() splits payout_type into its own sidecar, "
           "keyed by ts_utc/corridor/size_src/provider\n")
+
+    # -- second comparison feed (task 1): combine_feed_quotes(). Synthetic
+    # fixtures -- no live feed B exists yet (see module docstring), so
+    # these are made-up numbers, clearly labelled as such, not a real
+    # reading. One of them deliberately forces a >0.15%-of-amount
+    # disagreement, per the SOURCES spec's own instruction to do that when
+    # none occurs naturally.
+    assert combine_feed_quotes(None, None) == (None, False)
+    assert combine_feed_quotes(42.0, None) == (42.0, False)
+    assert combine_feed_quotes(None, 37.5) == (37.5, False)
+    # Agreeing feeds: Wise says 40.0 bps, feed B says 40.2 bps -- 0.2bps
+    # apart, nowhere near the 15bps (0.15%) bar. Median is their mean.
+    used, disagree = combine_feed_quotes(40.0, 40.2)
+    assert abs(used - 40.1) < 1e-9 and disagree is False
+    # Forced disagreement: Wise says 40.0 bps, feed B says 70.0 bps -- 30bps
+    # apart, double the 15bps bar. Median is still published (55.0) but the
+    # row must show both numbers, per the spec ("a finding, not a bug").
+    used2, disagree2 = combine_feed_quotes(40.0, 70.0)
+    assert abs(used2 - 55.0) < 1e-9 and disagree2 is True
+    # Exactly at the bar counts as disagreeing (>= , not >).
+    _, at_bar = combine_feed_quotes(0.0, DISAGREE_TOLERANCE_BPS)
+    assert at_bar is True
+    print("  [ok] combine_feed_quotes: one feed passes through untouched, "
+          "two feeds median, forced 30bps gap flags disagree=True\n")
+
     print("  ALL SELFTESTS PASSED\n")
 
 
