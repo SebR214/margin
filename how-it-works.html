@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki — how it works</title>
-<meta name="description" content="How a number gets made, where the prices come from, and what was hard."/>
+<meta name="description" content="How a street price is made, where every price comes from, and what was hard."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
 <style>
@@ -69,24 +69,23 @@
 
   <main>
     <h1>How it works</h1>
-    <div class="p">Most currency sites show the official exchange rate. In a lot of countries that is not what people actually pay. The street price of a dollar can be a few percent off the official rate, or a thousand percent off, and the official number hides it completely. This site measures that difference, every hour, in <span id="introCountryCount">Loading…</span> countries. It also prices what it really costs to send money on four corridors, fees and exchange-rate margin together.</div>
+    <div class="p">Official exchange rates hide what people actually pay for a dollar in a lot of countries. We measure the real price every hour in <span id="introCountryCount">Loading…</span> countries, and the all-in cost of sending money on <span id="introRouteCount">Loading…</span> routes.</div>
 
-    <div class="h">How a number gets made</div>
-    <div class="p">Every hour the collector goes out and gets real offers, what people are asking for a dollar right now. It takes the median price you would actually pay, compares it to the official rate captured in the same pass, and the gap is the number. Nothing is modelled or smoothed. If the offers move, the number moves.</div>
-    <div class="p" id="thresholdP">The rule is ten sell offers minimum. Under that, the country shows its reason instead of a price. Loading today's counts…</div>
+    <div class="h">How a street price is made</div>
+    <div class="p">Every hour we collect live offers to sell dollars, take the median, and compare it to the official rate captured in the same check. Nothing is modelled or smoothed. A country needs at least 10 sell ads, or a real exchange order book, to get a price.</div>
+    <div class="p" id="thresholdP">Loading today's counts…</div>
 
-    <div class="h">Where the prices come from</div>
+    <div class="h">Where every price comes from</div>
     <div class="p">All of it is collected directly, every hour, and written to files you can open:</div>
     <div id="sourceList"><div class="b">Loading the live source list&hellip;</div></div>
     <div class="p">Every number on the site links back to the file it came from. Nothing is typed in by hand.</div>
     <div class="p"><a href="./METHODOLOGY.md">The full technical methodology, unabridged →</a></div>
 
-    <div class="h">Checking ourselves against a reference</div>
-    <div class="p">This site's own measurement is the only thing behind most of its numbers — so for the few countries where an independent, publicly published reference exists, it's worth showing the two side by side rather than asking for trust on faith.</div>
+    <div class="h">Our numbers vs independent ones</div>
+    <div class="p" id="refCheckIntro">Loading…</div>
     <div id="refCheck" class="p" style="padding-top:14px">Loading the comparison&hellip;</div>
 
-    <div class="h">Three real examples from this data</div>
-    <div class="p">The rules above are abstract. Here they are with real countries, using nothing but the files this site already collects.</div>
+    <div class="h">Three things our data shows</div>
 
     <div class="h" style="padding-top:26px">What a float does to the premium</div>
     <div class="p" id="floatP">Loading…</div>
@@ -139,19 +138,59 @@
 <script>
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-// Folded in from methodology.html (SESSIONS.md Session 2): this list used
-// to be six hand-typed lines that undercounted the real venue list --
-// twelve exchanges named, twenty actually in data/sources_latest.json,
-// including BTCTurk, Bitso, CoinDCX, MAX and WazirX, none of which were
-// mentioned. Same live source methodology.html always read from.
-fetch('./data/sources_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(doc){
+// This page's own plain-language read of data/sources_latest.json (the
+// same generated file methodology.html reads) -- rebuilt here as a
+// deduplicated, human-named list rather than rendered straight from the
+// generator's "name — role, detail" strings, and joined with copy.json's
+// own staleness note for the official rate rather than repeating that
+// text a second time by hand.
+Promise.all([
+  fetch('./data/sources_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; }),
+  fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; })
+]).then(function(res){
+  var doc = res[0], copy = res[1];
   var sources = (doc && doc.sources) || [];
-  var html = sources.map(function(s){
-    return '<div class="b">· ' + esc(s.name) + ' — ' + esc(s.role) + ', ' + esc(s.detail) + '</div>';
-  }).join('');
-  document.getElementById('sourceList').innerHTML = html || '<div class="b">Source list could not be read from data/sources_latest.json.</div>';
+  var byName = {};
+  sources.forEach(function(s){ byName[s.name] = s; });
+
+  function n(name) { var s = byName[name]; return (s && s.countries) ? s.countries.length : 0; }
+  function plural(n) { return n === 1 ? 'country' : 'countries'; }
+
+  // Order-book venue names come as one comma-joined role string, with the
+  // same exchange repeated per currency it prices (IndependentReserve
+  // appears once for AUD and once again for NZD) -- deduplicated to one
+  // name each here rather than shipping that repetition to a reader.
+  var obRole = (byName['Order books'] && byName['Order books'].role) || '';
+  var obVenues = obRole.replace(/^on\s+/, '').split(',').map(function(v){
+    return v.trim().replace(/\s*\([^)]*\)\s*$/, '');
+  }).filter(Boolean);
+  var obVenuesUnique = obVenues.filter(function(v, i){ return obVenues.indexOf(v) === i; });
+
+  var staleNote = (copy && copy.receipt && copy.receipt.rateStalenessNote) || '';
+
+  var lines = [
+    'Binance P2P sell ads: main source for ' + n('Binance P2P') + ' ' + plural(n('Binance P2P')) + '.',
+    'Exchange order books: ' + n('Order books') + ' ' + plural(n('Order books')) + '. ' + esc(obVenuesUnique.join(', ')) + '.',
+    'CriptoYa broker quotes: Argentina and Venezuela parallel dollar.',
+    'BCRA: Argentina’s published parallel rate.',
+    'CoinGecko: backup for Nigeria when its P2P board is empty.',
+    'open.er-api.com: official rates.' + (staleNote ? ' ' + esc(staleNote) : ''),
+    'Airwallex, Instarem, Wise, WorldRemit: their own live quotes, at five amounts.',
+    'A public price comparison: all other transfer providers.'
+  ];
+  var html = lines.map(function(l){ return '<div class="b">· ' + l + '</div>'; }).join('');
+  document.getElementById('sourceList').innerHTML = doc ? html : '<div class="b">Source list could not be read from data/sources_latest.json.</div>';
 }).catch(function(){
   document.getElementById('sourceList').innerHTML = '<div class="b">Could not load the live source list. That failure is shown, not hidden.</div>';
+});
+
+fetch('./data/providers_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+  var n = Object.keys(d.corridors || {}).length;
+  var el = document.getElementById('introRouteCount');
+  if (el) el.textContent = n;
+}).catch(function(){
+  var el = document.getElementById('introRouteCount');
+  if (el) el.textContent = 'several';
 });
 
 fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
@@ -162,8 +201,7 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
   document.getElementById('introCountryCount').textContent =
     (d.countries||[]).length + (d.withheld||[]).length;
   document.getElementById('thresholdP').textContent =
-    'The rule is ten sell offers minimum. Under that, the country shows its reason instead of a price. Right now ' +
-    (d.countries||[]).length + ' countries have a price and ' + (d.withheld||[]).length + ' do not.';
+    'This hour: ' + (d.countries||[]).length + ' priced, ' + (d.withheld||[]).length + ' not.';
 
   // ---- Checking ourselves against a reference ----
   // data/fx_rates.csv already carries an independently published parallel
@@ -203,7 +241,7 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
     var ngnNow = ngn && (ngn.index_pct != null ? ngn.index_pct : (ngn.history && ngn.history.length ? ngn.history[ngn.history.length - 1].index_pct : null));
     if (ngnNow != null) {
       document.getElementById('floatP').innerHTML =
-        'Nigeria used to run two dollar prices: an official one, and a much higher street price. The government stopped defending the official rate and let the naira trade freely. Today a dollar on the street costs about what the official rate says it should, <b class="num">' +
+        'Nigeria used to have two dollar prices, an official one and a much higher street price. The government stopped defending the official rate and let the naira trade freely. Today a dollar on the street costs about what the official rate says it should, <b class="num">' +
         (ngnNow >= 0 ? '+' : '') + ngnNow.toFixed(1) + '%</b> apart.';
     } else {
       document.getElementById('floatP').textContent = 'Nigeria has no price from us this hour to show here.';
@@ -308,27 +346,55 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
       }
     }
 
+    var CCY_COUNTRY = { ARS: 'Argentina', BOB: 'Bolivia', VES: 'Venezuela' };
+    var groups = { higher: [], lower: [], match: [] };
     var rows = Object.keys(REF_CCY).map(function(ccy){
       var ref = latest[ccy];
       var ours = byCcy[ccy];
-      if (!ref) return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' + esc(ccy) + ': no reference reading available.</div>';
+      var country = CCY_COUNTRY[ccy] || ccy;
+      if (!ref) return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' + esc(country) + ': no reference reading available.</div>';
       var refPremium = (ref.par / ref.fx - 1) * 100;
       if (!ours) {
         return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' +
-          '<b>' + esc(ccy) + ':</b> ' + esc(ref.src) + ' currently publishes a parallel rate ' +
-          (refPremium >= 0 ? refPremium.toFixed(1) + '% above' : Math.abs(refPremium).toFixed(1) + '% below') +
-          ' the official rate, but ' + esc(ccy) + ' has no price from us this hour to compare it against.</div>';
+          esc(country) + ': ' + esc(ref.src) + ' publishes ' +
+          (refPremium >= 0 ? '+' : '') + refPremium.toFixed(1) + '%, we have no price this hour to set beside it.</div>';
       }
       var diff = ours.index_pct - refPremium;
+      var group = Math.abs(diff) < 1 ? 'match' : (diff > 0 ? 'higher' : 'lower');
+      groups[group].push({ country: country, diff: diff });
       return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' +
-        '<b>' + esc(ccy) + ':</b> we measure <b class="num">' + (ours.index_pct>=0?'+':'') + ours.index_pct.toFixed(1) + '%</b> above official; ' +
-        esc(ref.src) + ' independently publishes <b class="num">' + (refPremium>=0?'+':'') + refPremium.toFixed(1) + '%</b> — we differ by <b class="num">' + Math.abs(diff).toFixed(1) + ' points</b>. ' +
+        esc(country) + ': us <b class="num">' + (ours.index_pct>=0?'+':'') + ours.index_pct.toFixed(1) + '%</b>, ' +
+        esc(ref.src) + ' <b class="num">' + (refPremium>=0?'+':'') + refPremium.toFixed(1) + '%</b> &middot; ' +
         '<a href="./country.html?ccy=' + esc(ccy) + '" style="font-weight:600;color:#0B0B0B">the gap over time →</a></div>';
     }).join('');
 
-    document.getElementById('refCheck').outerHTML = '<div id="refCheck">' + rows + '</div>';
+    function nameList(items) {
+      var names = items.map(function(i){ return i.country + ' (' + Math.abs(i.diff).toFixed(1) + ' points)'; });
+      if (names.length < 2) return names.join('');
+      return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+    }
+    var parts = [];
+    if (groups.higher.length) parts.push('run higher in ' + nameList(groups.higher));
+    if (groups.lower.length) parts.push('run lower in ' + nameList(groups.lower));
+    if (groups.match.length) parts.push('match in ' + nameList(groups.match));
+    var summary = 'Where someone else publishes the same number, we show both.';
+    if (parts.length) {
+      summary += ' We ' + parts.slice(0, -1).join(', ') + (parts.length > 1 ? ', and ' : '') + parts[parts.length - 1] + '.';
+    }
+    document.getElementById('refCheckIntro').textContent = summary;
+
+    // Whether the gap has a real, checkable cause: dolarapi.bo's own feed
+    // (the reference this page compares Bolivia against) is itself sourced
+    // from Binance, the same kind of market this site prices from, not a
+    // separate cash rate -- so "we price USDT, they publish cash" does not
+    // hold for all three countries, and is left unstated rather than
+    // asserted (SEB, plain-language rewrite, 2026-09-27).
+    var why = '<div class="mini" style="padding:8px 0;font-size:15px">Why we differ: we haven’t found why yet.</div>';
+
+    document.getElementById('refCheck').outerHTML = '<div id="refCheck">' + rows + why + '</div>';
   }).catch(function(){
-    document.getElementById('refCheck').textContent = 'Could not load the reference comparison. That failure is shown, not hidden.';
+    document.getElementById('refCheckIntro').textContent = 'Could not load the reference comparison. That failure is shown, not hidden.';
+    document.getElementById('refCheck').textContent = '';
   });
 }).catch(function(){});
 
