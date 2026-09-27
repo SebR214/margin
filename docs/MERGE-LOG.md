@@ -165,3 +165,21 @@ still blocked per the same HARD RULES standard: no login, no headless browser, n
 bypass). `collector_providers.py --verify` and `--selftest` both passed (including new
 synthetic fixtures for the not-yet-live second-feed precedence logic), plus
 check_inventory.py/check_copy.py/check_index_consistency.py all clean.
+
+## #193 — Disclose official-rate staleness (up to ~24h) on cost/route pages
+**Merged:** 2026-09-27T14:36:38Z (self-merged)
+**Why self-merged:** additive disclosure about an existing number's known limitation
+(new `rateStalenessNote` copy string, appended sitewide in `receipt.js`'s official-rate
+step), not a new published number or metric -- explicitly the kind of fix the
+2026-09-27 policy update carves out as staying self-mergeable on green checks.
+**Evidence:** re-investigated the intraday-FX-source brief live rather than reusing the
+2026-09-10 docstring findings verbatim -- checked fawazahmed0/currency-api (confirmed
+"Daily Updated" in its own README, sparse GitHub commit history), CurrencyFreaks (free
+tier daily-only per its own FAQ), and fxratesapi.com (the only no-key candidate; its
+"updated every minute" claim live-disproved with 4 calls 60s apart returning a ticking
+timestamp over a rate that only jitters ~1e-7 relative -- not a real market move). Open
+Exchange Rates' free tier is genuinely hourly but needs a signup API key, so it was
+documented in `collector_fx.py` and left for Sebastian's own decision, not wired in.
+`collector_fx.py --selftest`, `check_inventory.py`, `check_copy.py`, and
+`check_index_consistency.py` all ran clean; PR #193's own CI check also passed before
+merge.
