@@ -28,6 +28,7 @@
   h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;margin:8px 0 6px;max-width:820px}
   .delta{font-size:14px;color:#6B6B6B;padding-bottom:24px}
   .receipt-line{font-size:14px;color:#6B6B6B;padding-top:14px}
+  .depth-line{font-size:14px;color:#6B6B6B;padding-top:6px}
   .steps{border-top:1px solid var(--rule);margin-top:30px}
   .step{display:flex;gap:16px;padding:18px 0;border-bottom:1px solid var(--rule)}
   .step .n{font-size:20px;font-weight:800;color:var(--indigo);flex:0 0 auto;width:26px}
@@ -103,11 +104,16 @@
   var params = new URLSearchParams(location.search);
   var ccy = (params.get('ccy') || '').toUpperCase();
 
+  function fmtMoney(usd){
+    return '$' + Math.round(usd).toLocaleString('en-US');
+  }
+
   Promise.all([
     fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()),
-    fetch('./data/latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+    fetch('./data/latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
   ]).then(function(res){
-    var idx = res[0], raw = res[1];
+    var idx = res[0], raw = res[1], depthDoc = res[2];
     var hourUtc = (idx.as_of_utc || idx.computed_at || '').replace('T',' ').slice(0,16);
 
     var country = (idx.countries || []).find(function(c){ return c.ccy === ccy; });
@@ -147,6 +153,22 @@
       (country.denominator_class === 'unmaintained' ? '<span style="color:#6B6B6B">the official rate here is unmaintained &mdash; this gap is partly a frozen-peg artifact, not purely a market move</span>' : 'official rate class: ' + esc(country.denominator_class)) +
       '</div>';
 
+    // Depth is built from the person-to-person board (data/p2p_offers.csv),
+    // the same board that produces p2p_buy_median. Showing it next to a
+    // premium priced from an exchange order book instead (e.g. the
+    // Philippines, priced from Coins.ph) would attach one market's volume
+    // to a different market's price -- so this only shows when the
+    // published premium itself is p2p-sourced.
+    var isP2pSourced = (country.source_class || '').indexOf('p2p') === 0;
+    var depth = isP2pSourced && depthDoc && depthDoc.countries && depthDoc.countries[ccy];
+    if (depth) {
+      html += '<div class="depth-line">' +
+        (depth.is_floor
+          ? 'This gap held for at least ' + fmtMoney(depth.depth_usd) + ' this hour, with no sign yet of the price moving.'
+          : 'This gap held for about ' + fmtMoney(depth.depth_usd) + ' this hour, then the price moved.') +
+        '</div>';
+    }
+
     var p2p = raw && raw.p2p && raw.p2p[ccy];
     html += '<div class="steps">';
     if (p2p) {
@@ -156,6 +178,9 @@
       html += step(2, 'THE OFFICIAL RATE', 'captured in the same pass: <b class="num">' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar', 'data/fx_rates.csv');
       html += step(3, 'THE MATH', p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ÷ ' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' − 1 = <b class="num">' + (country.index_pct>=0?'+':'') + country.index_pct.toFixed(2) + '%</b>', 'data/index_latest.json');
       html += step(4, 'THE VERDICT', 'published, because the evidence rule is ' + (verdictOk?'met':'not met') + ' — ' + Math.round(p2p.n_ads) + ' ads, ' + reqAds + ' required.', 'data/index_latest.json');
+      if (depth) {
+        html += step(5, 'HOW MUCH THIS HOLDS FOR', depth.n_ads_held + ' of the ' + depth.n_ads_priced + ' offers checked stayed within 1% of the best price, each good for about $' + depth.filter_usd + ' &middot; ' + (depth.is_floor ? 'at least ' : 'about ') + '<b class="num">' + fmtMoney(depth.depth_usd) + '</b> before the price moved', 'data/street_depth_latest.json');
+      }
     } else {
       html += '<div style="padding:22px 0;color:#6B6B6B;font-size:15px;line-height:1.6">Priced from an exchange order book (' + esc(country.source_class || '') + '), not person-to-person ads. The published figure (<b class="num">' + (country.index_pct>=0?'+':'') + country.index_pct.toFixed(2) + '%</b>) is real, from ' + esc(country.source_file) + ', but the raw per-venue price and official rate this page shows for other countries aren’t in a published file yet for this source type.</div>';
     }
