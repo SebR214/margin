@@ -214,7 +214,12 @@ def build_premium_strip(idx_doc, home_copy):
     """Ranked horizontal bar list matching renderPremiumStrip() in index.html.
     Top PREMIUM_TOP_N countries by index_pct, sorted biggest-first.
     "Biggest gap" excludes unmaintained pegs -- their frozen nominal gap is an
-    artifact, not a real market read.
+    artifact, not a real market read -- and excludes maintained pegs
+    (denominator_class == "pegged", tools/emit_countries.py's PEGGED set:
+    Gulf riyals/dinars etc pegged to the dollar). A pegged currency's gap is
+    the cost of accessing crypto under capital/crypto restrictions, not
+    currency weakness, so it should never be crowned "biggest gap" any more
+    than a frozen official rate should.
     """
     if idx_doc is None:
         return None
@@ -227,7 +232,8 @@ def build_premium_strip(idx_doc, home_copy):
     if not priced:
         return None
 
-    managed = [c for c in priced if c.get("denominator_class") != "unmaintained"]
+    managed = [c for c in priced
+               if c.get("denominator_class") not in ("unmaintained", "pegged")]
     biggest = (managed if managed else priced)[0]
     biggest_ccy = biggest.get("ccy")
     hour = (idx_doc.get("as_of_utc") or idx_doc.get("computed_at") or "")[11:16]
@@ -314,10 +320,24 @@ def pct(bps):
     return ("+" if v >= 0 else "") + ("%.2f" % v) + "%"
 
 
-def corridor_row_html(c, home_copy):
+def corridor_row_html(c, home_copy, window):
+    """One corridor row, with its own window ("typical, N hours since D
+    Mon YYYY") printed right under the route name -- Day 1's window-label
+    rule: a reader should never have to guess which window a number on this
+    table covers, and every corridor gets its own real label instead of the
+    page stating one window (SGD->PHP's, in the waterfall above) and
+    letting the reader assume every other row shares it. Read from
+    data/corridor_window.json, the one file this figure is written to, so
+    the label can never say a different window than the number itself.
+    """
+    row = (window or {}).get(c.get("corridor"), {})
+    win_note = ""
+    win_text = row.get("window")
+    if win_text:
+        win_note = '<div style="font-size:11px;color:#9A9A9A;font-weight:400">' + esc(win_text) + "</div>"
     return (
         "<tr>"
-        "<td><b>" + esc(c.get("route_words", c["corridor"])) + "</b></td>"
+        "<td><b>" + esc(c.get("route_words", c["corridor"])) + "</b>" + win_note + "</td>"
         '<td class="num">' + pct(c["taker_cost_bps_median"]) + "</td>"
         '<td class="num">' + pct(c["baseline_cost_bps_median"]) + "</td>"
         "<td>" + win_cell_html(c) + "</td>"
@@ -327,9 +347,9 @@ def corridor_row_html(c, home_copy):
     )
 
 
-def corridor_table_html(corridors, home_copy):
+def corridor_table_html(corridors, home_copy, window):
     cols = home_copy.get("corridorTableCols", {})
-    rows = "".join(corridor_row_html(c, home_copy) for c in corridors)
+    rows = "".join(corridor_row_html(c, home_copy, window) for c in corridors)
     return (
         '<div class="waterfall-title">' + esc(home_copy.get("corridorTableTitle", "Every transfer we check, priced the same way")) + "</div>"
         '<table class="corridor-table"><thead><tr>'
@@ -396,7 +416,7 @@ def main():
     html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, n_routes, n_countries))
     changed = changed or ok2
 
-    table = corridor_table_html(doc["corridors"], home_copy)
+    table = corridor_table_html(doc["corridors"], home_copy, window)
     html, ok3 = replace_by_marker(html, "corridorTableSection", table)
     changed = changed or ok3
 

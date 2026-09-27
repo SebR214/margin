@@ -89,6 +89,14 @@ def corridor_window_mismatches(summary, window):
                 bad.append((corridor, "best_cost", expected, row.get("best_cost")))
         if row.get("n_hours") != c.get("n"):
             bad.append((corridor, "n_hours", c.get("n"), row.get("n_hours")))
+        # Day 1's window-label rule: every corridor shown anywhere (the home
+        # page's corridor table, in particular -- SEB, 2026-09-27) must state
+        # which window its number covers. A corridor with no "window" string
+        # here is one a reader is left to guess about, the same failure mode
+        # as the three non-SGD->PHP rows that used to have no window note at
+        # all on index.html.
+        if not row.get("window"):
+            bad.append((corridor, "window", "a non-empty window label", row.get("window")))
     return bad
 
 
