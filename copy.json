@@ -360,38 +360,21 @@
     "loadErrorTemplate": "The receipt at {file} could not be read."
   },
   "machineRoom": {
-    "title": "The machine room",
-    "lede": "Four programs do the work here. One checks prices every hour. One builds the site. One checks what got built. One decides what to build next. This page shows them working, live, with nothing cleaned up first.",
-    "connecting": "connecting…",
+    "title": "How it was built",
+    "lede": "Four AI agents run this site with no person in the loop hour to hour. One collects prices, one builds the site, one reviews every change, one decides what to build next. This page shows them working, live.",
+    "connecting": "",
     "connected": "connected · live",
-    "disconnected": "not connected — retrying",
+    "offline": "live feed offline",
     "columns": {
       "collection": {
-        "title": "This hour's collection",
-        "idle": "nothing being checked right now · next check on the hour",
-        "active": "a check is running now",
-        "pricedSuffix": " · priced",
-        "withheldPrefix": "not enough data: ",
-        "noReason": "no reason given",
-        "evidenceCountTemplate": "{n} sources",
-        "lastPassTemplate": "Last check ({hour} UTC): {priced} of {total} countries priced, {withheld} without enough data, each with a reason.",
-        "classWords": {
-          "order_book_median": "from order books",
-          "order_book_single": "from an order book",
-          "broker_median": "from broker quotes",
-          "broker_single": "from a broker quote",
-          "p2p_buy_median": "from person-to-person ads",
-          "p2p_fallback": "from an independent price source"
-        },
-        "legendPriced": "priced this hour",
-        "legendWithheld": "not enough data, with a reason",
-        "selectPrompt": "Pick a currency to see what we found for it."
+        "checkTemplate": "This hour's check: {priced} of {total} priced · next check on the hour",
+        "noReason": "no reason given"
       },
       "agents": {
-        "title": "What the agents are doing",
+        "title": "What the agents did today",
         "kicker": "ISSUES · REVIEWS · COMMITS",
-        "empty": "Nothing since this page connected.",
-        "historyLink": "Everything they have ever done, including the failures →",
+        "empty": "No agent activity yet today.",
+        "historyLink": "Every change, including the failures →",
         "transitionTemplate": "{ident} moved {from} → {to}",
         "commentTemplate": "{ident}: {text}",
         "commitTemplate": "committed {message}",
@@ -412,9 +395,9 @@
         }
       },
       "meters": {
-        "priced": "PRICED THIS HOUR",
+        "priced": "COUNTRIES PRICED THIS HOUR",
         "withheld": "NOT ENOUGH DATA, WITH REASONS",
-        "commitsToday": "COMMITS SEEN SINCE CONNECTING",
+        "mergedThisWeek": "CHANGES MERGED THIS WEEK",
         "people": "PERSON ON THE TEAM",
         "peopleValue": "1",
         "unknown": "—"

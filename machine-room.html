@@ -35,25 +35,10 @@
   .col-title{font-size:16px;font-weight:700}
   .feed{}
   .meters{display:flex;flex-wrap:wrap;gap:8px 56px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:18px 0}
-  .source-meter{font-size:13px;color:#6B6B6B;padding:12px 0;max-width:780px}
   .meter{display:flex;flex-direction:column;gap:2px;min-width:150px}
   .meter .v{font-size:30px;font-weight:800;color:var(--indigo)}
   .meter .v.muted{color:#9A9A9A;font-size:16px;font-weight:700}
   .empty{padding:20px 0;color:#9A9A9A;font-size:13px}
-
-  /* Collection is a bounded set -- 60 currencies, the same 60 every hour --
-     so it is shown whole, not as a feed you scroll. Absence is the point of
-     this site, so a withheld currency has to be as visible as a priced one. */
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;padding:16px 0 0}
-  .chip{font-size:13px;font-weight:600;letter-spacing:.02em;text-align:center;padding:9px 4px;border:1px solid var(--ink);border-radius:2px;background:var(--ink);color:#fff;cursor:pointer;font-variant-numeric:tabular-nums}
-  .chip.withheld{background:#fff;color:var(--stamp);border:1px dashed #C8C8C8}
-  .chip.on{outline:2px solid var(--indigo);outline-offset:1px}
-  .chip:hover{border-color:var(--indigo)}
-  .legend{display:flex;flex-wrap:wrap;gap:6px 20px;padding-top:14px;font-size:12px;color:var(--sub)}
-  .key{display:inline-block;width:20px;height:11px;border:1px solid var(--ink);background:var(--ink);border-radius:2px;vertical-align:-1px;margin-right:7px}
-  .key.withheld{background:#fff;border:1px dashed #C8C8C8}
-  .detail{margin-top:16px;padding:14px 16px;background:#FAFAFA;border-left:2px solid var(--indigo);font-size:14px;line-height:1.5;min-height:52px}
-  .detail .who{font-weight:700;margin-right:8px}
   .hourrule{font-size:11px;letter-spacing:.1em;color:var(--stamp);padding:16px 0 6px;border-bottom:1px solid var(--rule)}
   .feed-note{font-size:12px;color:#9A9A9A;padding:14px 0 0}
   @media(max-width:1000px){.stack{padding:24px 24px 48px;gap:36px}h1{font-size:30px}header{padding:22px 24px}.hero{padding:32px 24px 0}.meters{gap:8px 32px}}
@@ -101,20 +86,12 @@
     <div class="meters">
       <div class="meter"><div class="v num" id="mPriced">—</div><div class="lbl" id="lPriced">&nbsp;</div></div>
       <div class="meter"><div class="v num" id="mWithheld">—</div><div class="lbl" id="lWithheld">&nbsp;</div></div>
-      <div class="meter"><div class="v num" id="mCommits">0</div><div class="lbl" id="lCommits">&nbsp;</div></div>
+      <div class="meter"><div class="v num" id="mMerged">—</div><div class="lbl" id="lMerged">&nbsp;</div></div>
       <div class="meter"><div class="v num" id="mPeople">—</div><div class="lbl" id="lPeople">&nbsp;</div></div>
     </div>
-    <div class="source-meter" id="sourceMeter">&nbsp;</div>
 
     <div>
-      <div class="col-hdr"><div class="col-title" id="col1Title">&nbsp;</div><div class="lbl num" id="collectorState">&nbsp;</div></div>
-      <div id="passProgress" style="font-size:13px;color:#6B6B6B;padding:10px 0">&nbsp;</div>
-      <div class="grid" id="collectorGrid"></div>
-      <div class="legend">
-        <span><span class="key"></span><span id="legendPriced">&nbsp;</span></span>
-        <span><span class="key withheld"></span><span id="legendWithheld">&nbsp;</span></span>
-      </div>
-      <div class="detail" id="collectorDetail">&nbsp;</div>
+      <div id="hourCheck" style="font-size:15px;color:#333;padding:10px 0">&nbsp;</div>
     </div>
 
     <div>
@@ -127,9 +104,8 @@
     <div style="border-top:1px solid var(--rule);padding-top:20px">
       <div class="col-title" style="margin-bottom:10px">Read more</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px 28px;font-size:14px">
-        <a href="./sending-money.html" style="font-weight:600">What the data has found →</a>
-        <a href="./how-it-works.html" style="font-weight:600">How the prices are checked →</a>
-        <a href="./fee-tiers.html" style="font-weight:600">Why sending more can cost less →</a>
+        <a href="./sending-money.html" style="font-weight:600">Where the stablecoin cost comes from →</a>
+        <a href="./how-it-works.html" style="font-weight:600">How prices are checked →</a>
         <a href="./agent-incidents.html" style="font-weight:600">When the agents got it wrong →</a>
       </div>
     </div>
@@ -142,8 +118,7 @@
     ? "https://api.margin.wiki" : "http://127.0.0.1:8903";
 
   var COPY = {}; // filled from copy.json's "machineRoom" key before anything renders
-  var STATE = {};      // ccy -> what the collector found for it this pass
-  var SELECTED = null; // the chip the reader has opened, if any
+  var STATE = {};      // ccy -> whether the collector priced it this pass
 
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function T(s, vals){
@@ -163,7 +138,6 @@
     el.insertBefore(row, el.firstChild);
     while (el.children.length > (cap||FEED_CAP)) el.removeChild(el.lastChild);
   }
-  function classWords(kind){ return (COPY.columns.collection.classWords||{})[kind] || ''; }
 
   // A role label for the feed's left column. Never falls through to a raw
   // "unknown" or "" printed as UNKNOWN -- an unmapped role always reads as
@@ -186,14 +160,9 @@
   }
 
   function renderStatic(){
-    var M = COPY.columns.meters, C1 = COPY.columns.collection, C2 = COPY.columns.agents;
+    var M = COPY.columns.meters, C2 = COPY.columns.agents;
     document.getElementById('pageTitle').textContent = COPY.title || '';
     document.getElementById('pageLede').textContent = COPY.lede || '';
-    document.getElementById('col1Title').textContent = C1.title || '';
-    document.getElementById('collectorState').textContent = C1.idle || '';
-    document.getElementById('legendPriced').textContent = C1.legendPriced || '';
-    document.getElementById('legendWithheld').textContent = C1.legendWithheld || '';
-    document.getElementById('collectorDetail').textContent = C1.selectPrompt || '';
     document.getElementById('feedCap').textContent = C2.capNote || '';
     document.getElementById('col2Title').textContent = C2.title || '';
     document.getElementById('col2Kicker').textContent = C2.kicker || '';
@@ -201,57 +170,36 @@
     document.getElementById('col2HistoryLink').textContent = C2.historyLink || '';
     document.getElementById('lPriced').textContent = M.priced || '';
     document.getElementById('lWithheld').textContent = M.withheld || '';
-    document.getElementById('lCommits').textContent = M.commitsToday || '';
+    document.getElementById('lMerged').textContent = M.mergedThisWeek || '';
     document.getElementById('lPeople').textContent = M.people || '';
     document.getElementById('mPeople').textContent = M.peopleValue || '';
     document.getElementById('connLabel').textContent = COPY.connecting || '';
   }
 
-  // A live page must never open empty -- an empty live page reads as broken
-  // or fake. Seed the collection column with the real last completed pass
-  // (every country actually checked, real evidence words, real verdict)
-  // before any live SSE event has arrived; live events prepend on top of
-  // this, not replace it.
-  function seedCollection(d){
+  // Redraws the one-line "this hour's check" sentence from STATE. STATE's
+  // key count is the real live number of currencies the collector has
+  // touched so far this pass; TOTAL_CURRENCIES (60, the fixed bounded set
+  // this site checks every hour) is the fixed denominator.
+  var TOTAL_CURRENCIES = 60;
+  function drawHourCheck(){
     var C = COPY.columns.collection;
-    var countries = d.countries || [], withheldList = d.withheld || [];
-    var priced = countries.length, withheld = withheldList.length;
+    var priced = 0, withheld = 0;
+    Object.keys(STATE).forEach(function(k){ STATE[k] ? priced++ : withheld++; });
     document.getElementById('mPriced').textContent = priced;
     document.getElementById('mWithheld').textContent = withheld;
-    var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
-    document.getElementById('passProgress').textContent = T(C.lastPassTemplate,
-      { hour: hourUtc, priced: priced, total: priced + withheld, withheld: withheld });
-
-    countries.forEach(function(c){
-      STATE[c.ccy] = { ccy: c.ccy, priced: true, kind: c.source_words, note: c.evidence_words + C.pricedSuffix };
-    });
-    withheldList.forEach(function(w){
-      STATE[w.ccy] = { ccy: w.ccy, priced: false, kind: '', note: C.withheldPrefix + (w.reason || C.noReason) };
-    });
-    drawGrid();
-    // No per-country timestamp is published, only the shared pass hour --
-    // shown once in the label above, not invented per currency.
+    document.getElementById('hourCheck').textContent = T(C.checkTemplate,
+      { priced: priced, total: TOTAL_CURRENCIES });
   }
 
-  // The grid holds every currency the collector checked, priced or not, and
-  // is redrawn in place when a live event changes one of them. It never
-  // grows: the set is the set.
-  function drawGrid(){
-    var grid = document.getElementById('collectorGrid');
-    var keys = Object.keys(STATE).sort();
-    grid.innerHTML = keys.map(function(k){
-      var s = STATE[k];
-      return '<button class="chip' + (s.priced ? '' : ' withheld') + (k === SELECTED ? ' on' : '') +
-        '" data-ccy="' + esc(k) + '">' + esc(k) + '</button>';
-    }).join('');
-  }
-
-  function showDetail(ccy){
-    var C = COPY.columns.collection, s = STATE[ccy], el = document.getElementById('collectorDetail');
-    SELECTED = ccy; drawGrid();
-    if (!s) { el.textContent = C.selectPrompt || ''; return; }
-    el.innerHTML = '<span class="who">' + esc(s.ccy) + '</span>' +
-      esc(s.kind ? (s.kind + ' · ' + s.note) : s.note);
+  // A live page must never open empty -- an empty live page reads as broken
+  // or fake. Seed the collection stat with the real last completed pass
+  // before any live SSE event has arrived; live events update STATE in
+  // place as they arrive.
+  function seedCollection(d){
+    var countries = d.countries || [], withheldList = d.withheld || [];
+    countries.forEach(function(c){ STATE[c.ccy] = true; });
+    withheldList.forEach(function(w){ STATE[w.ccy] = false; });
+    drawHourCheck();
   }
 
   // Seed "what the agents are doing" with real recent commits from GitHub's
@@ -282,48 +230,50 @@
     renderStatic();
 
     fetch('./data/index_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(seedCollection).catch(function(){});
-    // SOURCES task 4: the same honest source meter shown on sending-money.html,
-    // as a live stat here too. tools/emit_source_meter.py computes and fills
-    // this sentence from data/providers_latest.json; this just displays it.
-    fetch('./data/source_meter.json', {cache:'no-store'}).then(function(r){ return r.json(); })
-      .then(function(m){
-        var el = document.getElementById('sourceMeter');
-        if (el) el.textContent = m.sentence || '';
-      }).catch(function(){});
+    // "Changes merged this week" -- tools/emit_changes_merged.py counts real
+    // commits on main (each one a squash-merged PR, see its own docstring)
+    // in the trailing 7 days from this repo's own git history. Never typed.
+    fetch('./data/changes_merged.json', {cache:'no-store'}).then(function(r){ return r.json(); })
+      .then(function(m){ document.getElementById('mMerged').textContent = (m && m.count != null) ? m.count : '—'; })
+      .catch(function(){});
     fetch('https://api.github.com/repos/SebR214/margin/commits?per_page=60', {headers:{'Accept':'application/vnd.github+json'}})
       .then(function(r){ return r.ok ? r.json() : []; }).then(seedAgents).catch(function(){});
 
-    document.getElementById('collectorGrid').addEventListener('click', function(ev){
-      var b = ev.target.closest('.chip'); if (b) showDetail(b.getAttribute('data-ccy'));
-    });
-
-    var commitsSeen = 0;
     var es = new EventSource(API_BASE + '/v1/events');
-    es.onopen = function(){ document.getElementById('dot').classList.remove('off'); document.getElementById('connLabel').textContent = COPY.connected || ''; };
-    es.onerror = function(){ document.getElementById('dot').classList.add('off'); document.getElementById('connLabel').textContent = COPY.disconnected || ''; };
+    // Retrying, quietly, is normal for a live feed and should not read as
+    // broken -- so an error shows nothing at first. Only a failure that
+    // persists past OFFLINE_AFTER_MS (never reconnecting in that window)
+    // is "genuinely failed," and that's the only case that gets a visible
+    // label. A later successful open clears it back to "connected".
+    var OFFLINE_AFTER_MS = 15000;
+    var offlineTimer = null;
+    es.onopen = function(){
+      if (offlineTimer) { clearTimeout(offlineTimer); offlineTimer = null; }
+      document.getElementById('dot').classList.remove('off');
+      document.getElementById('connLabel').textContent = COPY.connected || '';
+    };
+    es.onerror = function(){
+      document.getElementById('dot').classList.add('off');
+      if (!offlineTimer) {
+        offlineTimer = setTimeout(function(){
+          document.getElementById('connLabel').textContent = COPY.offline || '';
+          offlineTimer = null;
+        }, OFFLINE_AFTER_MS);
+      }
+    };
 
     es.onmessage = function(ev){
       var e; try { e = JSON.parse(ev.data); } catch(err){ return; }
-      var C1 = COPY.columns.collection, C2 = COPY.columns.agents;
+      var C2 = COPY.columns.agents;
 
       if (e.kind === 'collector_pass') {
-        document.getElementById('collectorState').textContent = e.phase === 'start' ? C1.active : C1.idle;
-        return;
+        return; // no separate active/idle state is shown any more
       }
       if (e.kind === 'collector_source') {
         // A pass revises the set, it does not append to it: update this
         // currency in place and leave the other 59 alone.
-        STATE[e.ccy] = e.priced
-          ? { ccy: e.ccy, priced: true, kind: classWords(e.source_kind),
-              note: T(C1.evidenceCountTemplate, { n: e.evidence_count }) + C1.pricedSuffix }
-          : { ccy: e.ccy, priced: false, kind: '',
-              note: C1.withheldPrefix + (e.reason || C1.noReason) };
-        drawGrid();
-        if (SELECTED === e.ccy) showDetail(e.ccy);
-        var pricedNow = 0, withheldNow = 0;
-        Object.keys(STATE).forEach(function(k){ STATE[k].priced ? pricedNow++ : withheldNow++; });
-        document.getElementById('mPriced').textContent = pricedNow;
-        document.getElementById('mWithheld').textContent = withheldNow;
+        STATE[e.ccy] = !!e.priced;
+        drawHourCheck();
         return;
       }
       if (e.kind === 'linear') {
@@ -338,7 +288,15 @@
         return;
       }
       if (e.kind === 'commit') {
-        if ((e.ts||'').slice(0,10) === todayUTC()) { commitsSeen++; document.getElementById('mCommits').textContent = commitsSeen; }
+        // A live commit that carries a PR number is a change merging right
+        // now -- the same definition tools/emit_changes_merged.py used to
+        // compute the seeded count, so bump it in place rather than waiting
+        // for the next page load to catch up.
+        if (e.pr_number) {
+          var mergedEl = document.getElementById('mMerged');
+          var cur = parseInt(mergedEl.textContent, 10);
+          mergedEl.textContent = isNaN(cur) ? 1 : cur + 1;
+        }
         var pr = e.pr_number ? ' (#'+e.pr_number+')' : '';
         var message = T(C2.commitTemplate, { message: '<span style="font-weight:600">'+esc((e.message||'').replace(/\s*\(#\d+\)\s*$/,''))+'</span>' });
         prepend(document.getElementById('agentFeed'),
