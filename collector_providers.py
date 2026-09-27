@@ -81,7 +81,22 @@ WHO IS HERE, AND WHO IS NOT.
     Xoom           no public unauthenticated quote endpoint found at their
                    conventional paths. Most of these are bank online-banking
                    surfaces gated behind login; none was chased past that.
-  None of the above get a scheduled request from this collector -- the HARD
+  ONE NARROW EXCEPTION, owner-approved 2026-09-27 (in chat, not asserted by
+  a task or a subagent): a headless browser MAY be used, but ONLY to render
+  WorldRemit's own public calculator page and read the price it displays --
+  the same page any anonymous visitor sees, filled in the same way a human
+  would, nothing requiring a login or account. If a CAPTCHA or bot challenge
+  appears at any point, stop; that is still forbidden, exception or not.
+  This does NOT extend to Ria: round 2 (2026-09-26, below) found Ria now
+  serves a Cloudflare interactive challenge, which is a CAPTCHA wall a
+  headless browser does not clear and this exception does not touch.
+  Every other provider in this file's lists (Western Union, Remitly,
+  MoneyGram, Xe, OFX, DBS/OCBC/UOB/SingX/HSBC Singapore/CommBank/Westpac/
+  ANZ/Xoom) stays under the original HARD RULE untouched: no auth
+  workaround, no CAPTCHA bypass, no headless browser for any of them.
+
+  None of the above (other than the WorldRemit exception just described)
+  get a scheduled request from this collector -- the HARD
   RULE is no workarounds for auth, CAPTCHAs or headless browsers, and every
   one of them needed one of those three.
 
