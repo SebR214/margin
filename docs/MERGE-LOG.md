@@ -11,6 +11,16 @@ repo's own separate Linear-driven agent loop (agents/PRODUCT.md, BUILDER.md,
 REVIEWER.md, COMMISSION.md) keeps its own record via Linear issues/PR review comments,
 not this file.
 
+**Policy update, 2026-09-27 (Sebastian, in chat):** the self-merge gates (inventory,
+copy, index consistency, wise-share ceiling) catch deletions and banned words, but not
+a wrong or contradictory NUMBER -- two things got past them: #182 published a stablecoin
+cost with the fees left out, and #183 shipped a measurement that doesn't measure what
+it claims to (see below). Effective immediately, "any new published number or metric"
+joins deletions, VISION.md changes, spending money, and credentials as a category that
+needs Sebastian's own review before self-merging, not just green checks. A self-merged
+PR that changes an EXISTING number's computation (a bug fix to logic already on the
+site) is not what this covers; a genuinely NEW figure, chart, or finding is.
+
 ---
 
 ## #161 — Hotfix: backfill payout_type column, unbreak the hourly collector
