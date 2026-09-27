@@ -32,6 +32,7 @@
   .waterfall-card{border:1px solid var(--rule);border-radius:16px;padding:28px 32px;margin-bottom:40px}
   .waterfall-title{font-size:13px;letter-spacing:.06em;color:var(--sub);text-transform:uppercase;font-weight:700;margin-bottom:4px}
   .waterfall-cap{font-size:14px;color:var(--sub);margin-bottom:18px;max-width:640px}
+  .disclosure-note{font-size:13px;line-height:1.5;color:var(--sub);max-width:640px;margin-top:14px;padding-left:12px;border-left:2px solid var(--rule)}
   .corridor-table{width:100%;border-collapse:collapse;margin-top:10px}
   .corridor-table th{text-align:left;font-size:11px;letter-spacing:.06em;color:#9A9A9A;font-weight:600;padding:0 20px 14px 0;border-bottom:1px solid var(--rule)}
   .corridor-table td{padding:18px 20px 18px 0;border-bottom:1px solid var(--rule);font-size:15px;vertical-align:top;line-height:1.5}
@@ -251,6 +252,15 @@
       .replace('{n_costs}', NUM_WORDS[nCosts] || String(nCosts))
       .replace('{window}', windowRow.window || 'the typical value across every hour we have checked');
     var tipId = 'tip' + uid;
+    // This bar chart stops at a balance sitting on the two exchanges (buy
+    // venue, sell venue) -- it never prices getting the sending country's
+    // money into the first exchange, or getting the receiving country's
+    // money out of the last exchange into an actual bank account, both of
+    // which the "Best app" line's price already includes. Nobody has
+    // measured what those two steps would cost, so this note says so
+    // plainly, right under the chart it qualifies (SEB audit, 2026-09-27).
+    var disclosure = COPY.exchangeOnlyDisclosure ||
+      'This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.';
     document.getElementById('waterfallSection').innerHTML =
       '<div class="waterfall-card">' +
       '<div class="waterfall-title">' + esc(COPY.waterfallTitle || 'Where the cost actually sits') + '</div>' +
@@ -259,6 +269,7 @@
       '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:760px;height:auto">' + svg + '</svg>' +
       '<div id="' + tipId + '" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;top:0;left:0"></div>' +
       '</div>' +
+      '<div class="disclosure-note">' + esc(disclosure) + '</div>' +
       '</div>';
 
     var card = document.getElementById('waterfallSection');

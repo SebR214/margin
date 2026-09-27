@@ -79,6 +79,7 @@
   .card{border-top:2px solid var(--color-ink); padding:16px 0; margin-top:28px}
   .card h2{font-size:18px; margin:0 0 3px}
   .card .cap{font-size:12.5px; color:var(--color-neutral-600); margin:0 0 12px; max-width:78ch}
+  .disclosure-note{font-size:12.5px; line-height:1.5; color:var(--color-neutral-600); max-width:78ch; margin-top:14px; padding-left:12px; border-left:2px solid var(--color-neutral-200,#F0F0F0)}
   .wf{display:block; width:100%; height:auto}
 
   table{width:100%; border-collapse:collapse; font-size:13px; margin-top:4px}
@@ -153,6 +154,7 @@
     <p class="cap" id="wfCap"></p>
     <svg class="wf" id="wf" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet"></svg>
     <div class="legend-row" id="wfLegend"></div>
+    <div class="disclosure-note" id="wfDisclosure"></div>
   </div>
 
   <div class="card">
@@ -352,6 +354,15 @@ async function boot(){
   document.getElementById("depthTitle").textContent=(COPY.cards||{}).depth?.title||"";
   document.getElementById("wfTitle").textContent=(COPY.cards||{}).waterfall?.title||"";
   document.getElementById("wfCap").textContent=(COPY.cards||{}).waterfall?.cap||"";
+  // This bars-and-total chart stops at a balance sitting on the two
+  // exchanges named in the footer below (buy venue, sell venue). It never
+  // prices getting the sending country's money into the first exchange, or
+  // getting the receiving country's money out to a bank account at the end
+  // -- both of which the cheapest-app price it's compared against already
+  // includes. Said here, next to the chart, not only in the footer few
+  // people read (SEB audit, 2026-09-27).
+  document.getElementById("wfDisclosure").textContent=(COPY.cards||{}).waterfall?.disclosure||
+    "This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.";
   document.getElementById("ladderTitle").textContent=(COPY.cards||{}).ladder?.title||"";
   document.getElementById("histTitle").textContent=(COPY.cards||{}).history?.title||"";
   document.getElementById("histCap").textContent=(COPY.cards||{}).history?.cap||"";

@@ -52,6 +52,8 @@
   .venue-combo-row .num{text-align:right}
   .foot{padding-top:10px;font-size:12px;color:#9A9A9A;line-height:1.5}
   .table-source-meter{padding:14px 48px 0;font-size:13px;color:#6B6B6B;max-width:860px}
+  .disclosure-note{margin:10px 48px 0;padding-left:12px;font-size:13px;line-height:1.5;color:#6B6B6B;max-width:812px;border-left:2px solid var(--rule)}
+  @media(max-width:600px){ .disclosure-note{margin:10px 24px 0} }
   .crossover{font-size:15px;line-height:1.6;color:#1A1A1A;padding-bottom:6px;max-width:780px}
   .crossover-explain{font-size:13px;color:#6B6B6B;line-height:1.5;padding-bottom:16px;max-width:780px}
   .coverage-note{font-size:13px;color:#6B6B6B;line-height:1.5;padding-top:2px;padding-bottom:10px;max-width:780px}
@@ -117,6 +119,8 @@
   <div class="corridor-picker" id="corridorPicker"></div>
   <div id="corridors"></div>
   <div class="table-source-meter" id="sourceMeter">&nbsp;</div>
+  <div class="disclosure-note" id="exchangeOnlyDisclosure"></div>
+  <div class="disclosure-note" id="comparisonPromoDisclosure"></div>
 
   <div class="findings" id="findings">
     <div class="findings-hdr" id="findingsHeading">&nbsp;</div>
@@ -298,6 +302,7 @@
     show(current);
     renderFindings();
     renderSourceMeter();
+    renderDisclosures();
 
     function renderCorridor(el, route, selectedSize, routeKey, samplesByKey){
       sizeByRoute[routeKey] = selectedSize;
@@ -413,6 +418,27 @@
     // own/comparison/measured/missing) and writes both the counts and the
     // filled copy.json template to data/source_meter.json. This just
     // displays that file's own `sentence`; no counting happens here.
+    // Two real gaps in this table, said in plain words right next to it
+    // rather than left implicit or buried in a page footer nobody reads
+    // (SEB audit, 2026-09-27):
+    // 1. The stablecoin row's cost stops at a balance on the two exchanges.
+    //    It never prices getting money INTO the first exchange or getting
+    //    it OUT to a bank account, both of which the apps' own prices
+    //    already include, and nobody has measured what those two steps
+    //    would cost.
+    // 2. Every non-own row's price comes from the public comparison Wise
+    //    publishes (see each row's "from the comparison Wise publishes"
+    //    label), which can carry first-transfer offers recorded exactly as
+    //    quoted -- a repeat sender may not get that price again.
+    function renderDisclosures(){
+      var exEl = document.getElementById('exchangeOnlyDisclosure');
+      if (exEl) exEl.textContent = COPY.exchangeOnlyDisclosure ||
+        'The stablecoin cost above only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.';
+      var promoEl = document.getElementById('comparisonPromoDisclosure');
+      if (promoEl) promoEl.textContent = COPY.comparisonPromoDisclosure ||
+        'Some of these prices are first-time offers for new customers. Someone sending money again later may not get the same price.';
+    }
+
     function renderSourceMeter(){
       var el = document.getElementById('sourceMeter');
       if (!el) return;
