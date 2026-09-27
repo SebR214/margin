@@ -228,3 +228,27 @@ labels. `check_inventory.py`, `check_copy.py`, and `check_index_consistency.py` 
 clean before and after two rebases onto a fast-moving main; screenshots of index.html,
 sending-money.html, and corridor.html reviewed at desktop width and 390px mobile width,
 confirming the new text renders fully visible, not clipped or hidden.
+
+## #200 — Copy rewrite: Country page template (country.html)
+**Merged:** 2026-09-27T15:55:15Z (self-merged)
+**Why self-merged:** a plain-language copy rewrite of country.html's headline, sub,
+chart caption, depth line and five-step "how this number is made" breakdown, per
+Sebastian's own copy rewrite doc, fully approved verbatim in chat 2026-09-27 (Section
+6 of that doc). No new published number or metric: every figure shown was already
+computed and published, only the wording around it changed (terminology swaps,
+removed jargon and dashes/semicolons, cut two named low-value items). Falls under the
+Section-6-only scope Sebastian named for this session.
+**Evidence:** deliberately preserved, not touched, the existing single-ad-count fix
+(`country.n_sources` used consistently in the evidence sentence, Step 1 and Step 4)
+that an earlier PR landed after Algeria's page once showed two contradictory ad counts
+("10 people selling" vs "20 ads, 10 required") -- verified both DZD (Algeria) and VND
+(Vietnam) render `10` in all three spots with no reintroduced mismatch. Also verified
+the existing `is_floor`-aware street-depth sentence logic was reused unchanged (only
+reworded), rendering correctly for both example countries (`data/street_depth_latest.json`
+currently has `is_floor: true` for both). `tools/check_inventory.py`, `check_copy.py`
+and `check_index_consistency.py` all ran clean after rebasing onto a fast-moving main
+(clean rebase, no conflicts); screenshots of `country.html?ccy=DZD` and
+`country.html?ccy=VND` reviewed at desktop width and 390px mobile width, confirming
+correct rendering, no console errors, no horizontal overflow, and that VND's near-zero
+gap correctly exercises the "costs about the same on the street" title branch. PR
+#200's own CI check also passed before merge.
