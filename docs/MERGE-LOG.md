@@ -183,3 +183,27 @@ documented in `collector_fx.py` and left for Sebastian's own decision, not wired
 `collector_fx.py --selftest`, `check_inventory.py`, `check_copy.py`, and
 `check_index_consistency.py` all ran clean; PR #193's own CI check also passed before
 merge.
+
+## #195 — Disclose real hourly coverage on sending-money.html, show gaps in the chart
+**Merged:** 2026-09-27T14:49:08Z (self-merged)
+**Why self-merged:** additive disclosure about an existing series' known coverage gaps
+(new `data/coverage.json`/`tools/emit_coverage.py`, a coverage sentence on
+sending-money.html and corridor.html, and a gap-aware redraw of corridor.html's
+existing history chart), not a new published number or metric -- the underlying
+sending-money price figures and their computation are unchanged. Falls under the same
+2026-09-27 policy carve-out as #193.
+**Evidence:** independently recomputed coverage from `data/samples.csv` rather than
+trusting the originally reported 933/1,157/~81%/21h figures -- got 934/1,158/80.7%/21h
+for the flagship SGD->PHP route (one hour newer, same real gap, ending 14 Sep 2026);
+also computed AUD->PHP/NZD->PHP (391/413, 94.7%) and USD->MXN (777/946, 82.1%).
+Confirmed the false "every hour"/"checked hourly" claims this replaced in
+sending-money.html, corridor.html and ask.html, and in copy.json's history-card
+caption/building-template strings. Verified in a real browser at desktop and 390px:
+the coverage sentence renders per selected route, and corridor.html's history chart --
+now spaced by real elapsed time instead of row index -- shows the real 21-hour gap as
+a visible shaded band with a dashed boundary instead of a smooth interpolated line, no
+console errors, no horizontal overflow. `tools/check_inventory.py`, `check_copy.py`,
+`check_index_consistency.py` and `check_wise_share.py` all ran clean, both before and
+after rebasing onto main a second time (one real conflict in corridor.html, an
+unrelated `cheapestApp()` addition from #193/#194's neighbors, resolved by keeping
+both additions); PR #195's own CI check also passed before merge.
