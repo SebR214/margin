@@ -58,8 +58,11 @@ UA = {"User-Agent": "margin.wiki fee-watcher/1.0 (+https://margin.wiki)"}
 
 IR_URL = "https://www.independentreserve.com/fees"
 # Bare domain in the spec; this is the article that actually carries the table.
+# The article was retitled from "...VIP-level-setup" to "...Trader-Tier-setup"
+# sometime after 2026-09-21 (same article id, 11620285112217; confirmed live
+# 2026-09-27 -- the old slug still 302s here, but this is the canonical URL).
 COINS_URL = ("https://support.coins.ph/hc/en-us/articles/11620285112217-How-are-"
-             "my-trading-fees-calculated-based-on-the-VIP-level-setup")
+             "my-trading-fees-calculated-based-on-the-Trader-Tier-setup")
 # Bitso publishes its own schedule as JSON -- no scraping, no parser to rot.
 BITSO_URL = "https://api.bitso.com/v3/available_books/"
 COINBASE_URL = "https://www.coinbase.com/advanced-fees"
@@ -118,24 +121,34 @@ def parse_ir(text):
 
 
 def parse_coins(text):
-    """VIP0 maker and taker from the Coins.ph Pro VIP table, in bps.
+    """Tier-0 maker and taker from the Coins.ph Pro tier table, in bps.
 
     Returns (taker_bps, maker_bps). The column order is read off the header
     rather than assumed -- the page currently prints Maker before Taker, which
     is the reverse of every other venue and exactly the kind of detail that
     silently inverts a fee schedule.
+
+    Coins.ph renamed this table's tier label from "VIP <n>" to "Trader Tier
+    <n>" sometime after 2026-09-21 (confirmed live 2026-09-27: same URL now
+    redirects to an article titled "...Trader-Tier-setup", and the rendered
+    text says "Trader Tier 0", "Trader Tier 1", etc. instead of "VIP 0",
+    "VIP 1"). The numbers at tier 0 are unchanged (maker 0.10%, taker 0.15%,
+    matching this repo's already-recorded fee_tier_schedule.csv row from
+    2026-09-21) -- only the label changed, so the regex now accepts either
+    word rather than assuming the older name is permanent.
     """
     hdr = re.search(r"30-Day\s+Spot\s+Trading\s+Volume[^A-Za-z]*\(PHP\)\s+"
                     r"(Maker|Taker)\s+(Maker|Taker)", text, re.I)
     if not hdr:
-        raise ValueError("VIP fee table header (Maker/Taker columns) not found")
+        raise ValueError("tier fee table header (Maker/Taker columns) not found")
     first, second = hdr.group(1).lower(), hdr.group(2).lower()
     if {first, second} != {"maker", "taker"}:
         raise ValueError(f"unexpected fee columns: {first}/{second}")
 
-    row = re.search(r"VIP\s*0\b[^%]*?([\d.]+)\s*%\s*([\d.]+)\s*%", text, re.I)
+    row = re.search(r"(?:VIP|Trader\s*Tier)\s*0\b[^%]*?([\d.]+)\s*%\s*([\d.]+)\s*%",
+                     text, re.I)
     if not row:
-        raise ValueError("VIP0 row not found in fee table")
+        raise ValueError("tier-0 row not found in fee table")
     vals = {first: float(row.group(1)) * 100.0,
             second: float(row.group(2)) * 100.0}
     return vals["taker"], vals["maker"]
@@ -178,8 +191,8 @@ def parse_ir_tiers(text):
 
 
 def parse_coins_tiers(text):
-    """Every VIP tier of the Coins.ph Pro schedule -> sorted
-    [(vip_level, threshold_php, maker_pct, taker_pct), ...], fees as PERCENT
+    """Every tier of the Coins.ph Pro schedule -> sorted
+    [(tier_level, threshold_php, maker_pct, taker_pct), ...], fees as PERCENT
     (0.15 means 0.15%) -- the same unit parse_ir_tiers() and
     parse_bitso_tiers() both use, deliberately: build_tier_rows() writes all
     three into one fee_pct column, and a venue whose numbers were quietly in
@@ -189,28 +202,33 @@ def parse_coins_tiers(text):
     fee_checks.csv's config_bps column, a different file with a different
     contract. Do not copy its *100.0 here.)
 
-    VIP0 has no volume figure (it reads "VIP 0 -", the base tier under any
-    threshold at all) so it is matched on its own, the same way parse_coins()
-    already does; VIP1 upward each state a PHP threshold. Column order is
-    read off the header, not assumed, for the same reason parse_coins() does.
+    Coins.ph renamed "VIP <n>" to "Trader Tier <n>" sometime after
+    2026-09-21 (see parse_coins()'s docstring) -- the regex below accepts
+    either word so a label-only change doesn't read as "table shape
+    likely changed". Tier 0 has no volume figure (it reads "Trader Tier 0
+    -", the base tier under any threshold at all) so it is matched on its
+    own, the same way parse_coins() already does; tier 1 upward each state
+    a PHP threshold. Column order is read off the header, not assumed, for
+    the same reason parse_coins() does.
     """
     hdr = re.search(r"30-Day\s+Spot\s+Trading\s+Volume[^A-Za-z]*\(PHP\)\s+"
                     r"(Maker|Taker)\s+(Maker|Taker)", text, re.I)
     if not hdr:
-        raise ValueError("VIP fee table header (Maker/Taker columns) not found")
+        raise ValueError("tier fee table header (Maker/Taker columns) not found")
     first, second = hdr.group(1).lower(), hdr.group(2).lower()
     if {first, second} != {"maker", "taker"}:
         raise ValueError(f"unexpected fee columns: {first}/{second}")
 
     out = {}
-    vip0 = re.search(r"VIP\s*0\b[^%]*?([\d.]+)\s*%\s*([\d.]+)\s*%", text, re.I)
-    if not vip0:
-        raise ValueError("VIP0 row not found in fee table")
-    vals = {first: float(vip0.group(1)), second: float(vip0.group(2))}
+    tier0 = re.search(r"(?:VIP|Trader\s*Tier)\s*0\b[^%]*?([\d.]+)\s*%\s*([\d.]+)\s*%",
+                       text, re.I)
+    if not tier0:
+        raise ValueError("tier-0 row not found in fee table")
+    vals = {first: float(tier0.group(1)), second: float(tier0.group(2))}
     out[0] = (0.0, vals["maker"], vals["taker"])
 
     for level, vol, a, b in re.findall(
-            r"VIP\s*(\d+)\s*-?\s*([\d,]+)\s*PHP?\s*([\d.]+)\s*%\s*([\d.]+)\s*%",
+            r"(?:VIP|Trader\s*Tier)\s*(\d+)\s*-?\s*([\d,]+)\s*PHP?\s*([\d.]+)\s*%\s*([\d.]+)\s*%",
             text, re.I):
         n = int(level)
         if n == 0 or n in out:
@@ -218,7 +236,7 @@ def parse_coins_tiers(text):
         vals = {first: float(a), second: float(b)}
         out[n] = (float(vol.replace(",", "")), vals["maker"], vals["taker"])
     if len(out) < 2:
-        raise ValueError("fewer than 2 VIP tiers found -- table shape likely changed")
+        raise ValueError("fewer than 2 tiers found -- table shape likely changed")
     return sorted((level, thr, mk, tk) for level, (thr, mk, tk) in out.items())
 
 
