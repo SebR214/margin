@@ -217,11 +217,10 @@
     }
   },
   "corridor": {
-    "title": "One transfer, the receipt in full",
-    "lede1": "Every price on this site is the price of a digital dollar — the kind an ordinary person can buy on their phone, in places where the bank won't sell them one. So the obvious question is whether that's a real dollar or just a number on a screen.",
-    "lede2": "We answer it the only honest way: we take one all the way through. Buy it in one country, move it, sell it in another, pay every fee on the way. Then we count what actually came out the other end.",
-    "verdict1": "Doing this is almost always more expensive than just using a bank. We've measured it {measureCount} times. The stablecoin route came out cheaper {winCount} times.",
-    "verdict2": "We publish that because the point was never to sell you on it. The round trip isn't advice, it's a test: if the digital dollar weren't a real dollar, the money wouldn't come out the other end at all. It does, minus a cost we can show you line by line.",
+    "titleTemplate": "{route} by stablecoin: every cost, line by line",
+    "verdict1": "Right now {amount} costs {marketCost} ({marketPct}) all in by stablecoin with a market order, and {appCost} ({appPct}) with the cheapest app, {provider}. The stablecoin route costs {diff} {moreOrLess}.",
+    "moreLabel": "more",
+    "lessLabel": "less",
     "loading": "loading…",
     "loadFailed": "failed to load data",
     "sizebar": {
@@ -229,94 +228,71 @@
       "sendAmount": "send amount"
     },
     "cards": {
-      "landed": {
-        "title": "What came out the other end",
-        "cap": "The landed amount, against what a bank would have given you for the same transfer, right now."
-      },
       "depth": {
-        "title": "Could you actually sell it?"
+        "titleTemplate": "How much USDT you could sell into {dst} on {venue} right now"
       },
       "waterfall": {
-        "title": "Where the money goes",
-        "cap": "Three things happen to your money: you buy the coin, you move it, you sell it. Each bar is what that step costs at this amount. Bars left of the line are money you gain, right of the line are money you lose. The dashed line is the cheapest app, checked at the same moment.",
+        "titleTemplate": "Where the {amount} cost goes",
+        "capTemplate": "Buying USDT is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
+        "gainNote": "A bar to the left of that line means that step paid money back on this sample, not that it cost money.",
         "disclosure": "This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost."
       },
       "ladder": {
-        "title": "It is worst at the amounts people actually send",
-        "capTemplate": "The blockchain charges the same flat fee whatever you send, so it barely registers on a large transfer and dominates a small one. {highlight} is highlighted."
+        "titleTemplate": "Cost by amount sent: worst at {smallest}",
+        "capAllTemplate": "The network fee is flat, so it is {smallPct} of a {smallest} transfer and almost nothing at {largest}. The cheapest app wins at every size.",
+        "capMostTemplate": "The network fee is flat, so it is {smallPct} of a {smallest} transfer and almost nothing at {largest}. The cheapest app wins at most sizes."
       },
       "history": {
-        "title": "Every round trip we've run",
-        "cap": "The total cost over time: buying at the price on offer, waiting for your own price, and the cheapest app. History cannot be back-filled, and a shaded band marks any stretch we didn't manage to check."
+        "titleTemplate": "Stablecoin vs cheapest app, every hour since {start} · {amount}",
+        "capTemplate": "Across all four routes and five amounts we've priced it {count} times. The stablecoin route was cheaper {winCount} times ({winPct})."
       }
     },
     "legend": {
-      "moneyGained": "money gained",
-      "moneyLost": "money lost",
-      "blockchain": "the blockchain",
+      "blockchain": "send it on chain",
       "total": "total",
-      "wholeTransfer": "The whole transfer",
-      "cheapestProvider": "the cheapest app",
-      "buyingNow": "buying at the price on offer",
-      "waitingOwnPrice": "waiting for your own price"
+      "wholeTransfer": "Total",
+      "cheapestProvider": "cheapest app",
+      "marketOrder": "market order",
+      "limitOrder": "limit order"
     },
     "numCards": {
-      "buyingNow": {
-        "label": "Buying it now",
-        "sub": "the price on offer"
-      },
-      "waitingOwnPrice": {
-        "label": "Waiting for your price",
-        "sub": "if you wait for your own price"
-      },
-      "cheapestProviderLabel": "Cheapest app",
-      "cheapestProviderSub": "the cheapest app, checked at the same moment",
+      "marketLabel": "Stablecoin, market order",
+      "limitLabel": "Stablecoin, limit order",
+      "cheapestLabelTemplate": "Cheapest app ({provider})",
+      "subTemplate": "{pct} of the amount",
       "cheaper": "cheaper",
       "dearer": "dearer"
     },
     "depth": {
-      "capTemplate": "How much money could be sold into {dst} right now on {venue}, the exchange that turns it into local currency, before the price moves. Separate from the send amount above.",
-      "atBestPrice": "At today's best price",
-      "atBestPriceSub": "room to sell before the price starts to move against the next seller",
-      "before1Pct": "Before the price drops 1%",
-      "before1PctSub": "room to sell in total before the price falls a full percent"
+      "atBestPriceTemplate": "At the best price: {amount} before the price moves.",
+      "before1PctTemplate": "Within 1% of the best price: {amount}."
     },
     "ladderTable": {
       "columns": {
-        "send": "Send",
-        "buyingNow": "Buying it now",
-        "waitingOwnPrice": "Waiting for your price",
+        "send": "Amount",
+        "buyingNow": "Market order",
+        "waitingOwnPrice": "Limit order",
         "cheapestProvider": "Cheapest app",
-        "cheaper": "Cheaper"
+        "cheaper": "App cheaper by"
       },
-      "worstTag": "worst",
-      "dollarRoute": "sending it with stablecoins",
-      "dollarRouteByTemplate": "sending it with stablecoins, by {amount}",
-      "providerByTemplate": "by {amount}"
+      "dollarRouteByTemplate": "stablecoin cheaper by {amount}",
+      "providerByTemplate": "app cheaper by {amount}"
     },
     "verdictLine": {
-      "cryptoCheaper": "Sending it with stablecoins is cheaper at this amount.",
-      "cryptoDearer": "The cheapest app is cheaper at this amount.",
-      "sendTemplate": "Send {amount} to {place} now: {provider} costs {providerCost} all in, sending it with stablecoins costs {routeCost}.",
-      "youSave": "You save {amount}.",
-      "moreExpensive": "That is {amount} more.",
-      "waitingTemplate": "Waiting for your own price instead costs {amount}, which {closes} the gap.",
-      "doesClose": "does close",
-      "doesNotClose": "still does not close",
-      "blockchainSplit": "the blockchain",
-      "exchangesSplit": "what the two exchanges charge"
-    },
-    "history": {
-      "buildingTemplate": "history builds as we check — {count} so far",
-      "cheapestProvider": "the cheapest app"
+      "appCheaperTemplate": "The cheapest app is cheaper at this amount by {amount}. A limit order saves {limitAmount}, {closes} the gap.",
+      "stableCheaperTemplate": "Sending it with stablecoins is cheaper at this amount by {amount}.",
+      "closes": "closing",
+      "doesNotClose": "not enough to close",
+      "blockchainSplit": "Network fee",
+      "exchangesSplit": "exchange fees"
     },
     "noSamples": "no completed samples yet.",
-    "footerTemplate": "The coin is bought on {onrampVenue} in {srcCcy} and sold on {offrampVenue} for {dst}. The comparison is the Wise comparison API — advertised retail prices, not confirmed fills, and they can carry promotional pricing (first-transfer or new-customer offers) recorded exactly as quoted. The comparison is therefore the best advertised price at that instant, not necessarily the best recurring one. Official exchange rates: open.er-api.com. \"Waiting for your own price\" assumes the order fills at the top of the book. Pricing that large institutions get privately is invisible by nature and never estimated.",
+    "footerTemplate": "Stablecoin bought on {onrampVenue} in {srcCcy}, sold on {offrampVenue} for {dst}, on each exchange's published fees. App prices are advertised prices, including first-transfer offers where shown. Limit orders assume a fill at the top of the book. Official rate from open.er-api.com. Negotiated corporate rates are not included.",
     "footerLinks": {
-      "methodology": "Methodology & data honesty →",
+      "methodology": "Full method →",
       "board": "the country board →"
     },
-    "venueTemplate": "bought on {onrampVenue}, sold on {offrampVenue} · fees verified {dates}",
+    "sourceTemplate": "Updated {time} UTC · buy on {onrampVenue}, sell on {offrampVenue} · exchange fees checked {dates}",
     "feeStamp": {
       "reasonTrading": "trading fees",
       "reasonNetwork": "network fee",
