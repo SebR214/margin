@@ -102,6 +102,24 @@ SUMMARY = os.path.join(HERE, "data", "corridor_summary.json")
 DEFAULT_RUNG = 5000
 HTTP_TIMEOUT = 20
 REQUEST_GAP = 0.5
+
+# Plausibility floor, bps. Found live 2026-09-27: an OKX P2P PHP bid filled
+# SGD->PHP's whole notional off a single top-of-book ad and produced a 0.56
+# bps round trip -- essentially free, which a real cross-currency stablecoin
+# trade never is (the site's own existing venues run 25-80+ bps). This is the
+# same class of problem METHODOLOGY's v1.1 evidence rule exists for on the
+# P2P index (MIN_BUY_ADS in tools/emit_countries.py): an unfiltered peer ad
+# board can carry a single bait/scam-priced post, and walking it like a real
+# order book takes that price at face value. There is no ad-count signal
+# available here the way there is for the country index (walk_buy/walk_sell
+# only return the filled VWAP, not how many ads it drew on), so the floor is
+# on the RESULT instead of the input: a combination whose own math says it
+# beats every venue this site has ever verified by an order of magnitude is
+# not evidence of a better price, it is evidence the walk hit a price that
+# was never real. Reject it the same way a missing quote is rejected --
+# recorded, never silently dropped, never averaged away -- rather than let it
+# win pick_best() by construction.
+MIN_PLAUSIBLE_COST_BPS = 5.0
 UA = {"User-Agent": "margin.wiki stable-venues-collector/1.0 (+https://margin.wiki)"}
 
 FIELDS = [
@@ -336,13 +354,16 @@ def price_corridor(corridor_key, cfg, notional=None, fetch_mids=None):
             landed = round(quote, 2) if quote else None
             cost = (collector.bps(1 - landed / (notional * mid))
                     if (landed and mid and notional) else None)
+            implausible = cost is not None and cost < MIN_PLAUSIBLE_COST_BPS
+            ok = bool(on_filled and off_filled and cost is not None and not implausible)
             rows.append({
                 "buy_venue": buy_venue, "sell_venue": sell_venue,
                 "cost_bps": cost, "landed_dst": landed,
                 "is_default_pair": (buy_venue == default_on and sell_venue == default_off),
                 "buy_filled": bool(on_filled), "sell_filled": bool(off_filled),
-                "source_ok": bool(on_filled and off_filled and cost is not None),
-                "error": "",
+                "source_ok": ok,
+                "error": (f"implausible:{cost:.2f}bps < {MIN_PLAUSIBLE_COST_BPS}bps floor"
+                          if implausible else ""),
             })
     for v, e in ask_errors.items():
         rows.append({"buy_venue": v, "sell_venue": None, "cost_bps": None,
@@ -436,7 +457,13 @@ def selftest():
     cfg = collector.CORRIDORS["SGD->PHP"]
 
     def fake_mids(src, dst):
-        return {"src_per_usd": 1.28, "dst_per_usd": 60.0}
+        # Tuned so the fake asks/bids below land at realistic positive costs
+        # (tens of bps, like every verified real venue), not the arbitrary
+        # near-zero/negative costs the old 60.0 mid produced -- those synthetic
+        # numbers happened to sit under MIN_PLAUSIBLE_COST_BPS by accident,
+        # which is exactly the class of bug this floor exists to catch, so a
+        # test fixture that trips it by coincidence would be a false failure.
+        return {"src_per_usd": 1.28, "dst_per_usd": 61.056}
 
     calls = {"n": 0}
 
@@ -479,6 +506,31 @@ def selftest():
     assert ("SGD", "onramp", "OKX_P2P") in BLOCKED_VENUES
     assert "OKX_P2P" not in onramp_venues_for("SGD")
     assert "OKX_P2P" in onramp_venues_for("AUD")
+
+    # Reproduces the live bug found 2026-09-27: a bid so generous it fills
+    # the whole notional off effectively free money (mirrors the real
+    # IndependentReserve+OKX_P2P SGD->PHP row that landed at 0.56 bps).
+    # Must be rejected, not selected as "the" price.
+    def fake_fetch_offramp_bids_bait(v, dst, notional):
+        if v == "Coins.ph":
+            return [(60.7, 100000.0)]
+        if v == "Binance_P2P":
+            return [(60.9, 100000.0)]
+        if v == "OKX_P2P":
+            return [(99.0, 100000.0)]  # implausibly generous bait ad
+        raise ValueError("blocked")
+
+    g["fetch_onramp_asks"], g["fetch_offramp_bids"] = fake_fetch_onramp_asks, fake_fetch_offramp_bids_bait
+    try:
+        _, _, bait_rows = price_corridor("SGD->PHP", cfg, notional=5000, fetch_mids=fake_mids)
+    finally:
+        g["fetch_onramp_asks"], g["fetch_offramp_bids"] = orig_on, orig_off
+    okx_row = next(r for r in bait_rows if r["sell_venue"] == "OKX_P2P")
+    assert okx_row["source_ok"] is False, okx_row
+    assert "implausible" in okx_row["error"], okx_row
+    bait_best = pick_best(bait_rows)
+    assert bait_best is not None and bait_best["sell_venue"] != "OKX_P2P", (
+        "an implausible quote must never win pick_best()")
 
     print("  selftest OK")
 
