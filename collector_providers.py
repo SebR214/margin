@@ -54,6 +54,26 @@ WHO IS HERE, AND WHO IS NOT.
              quote API needs auth (401) and the page returns 403 to anything
              that is not a browser. Collecting it would mean running a headless
              browser in CI. Not done, and recorded here rather than omitted.
+  WorldRemit wired for AUD->PHP and NZD->PHP and USD->MXN only, via the ONE
+             NARROW EXCEPTION below (headless render of WorldRemit's own
+             public calculator, no login, no CAPTCHA). SGD->PHP is NOT
+             wired: WorldRemit's own calculator has no Singapore option in
+             its send-country list at all (checked live, 2026-09-27 -- no
+             en-sg locale page exists, and "Singapore"/"SGD" return "No
+             countries found" in the international calculator's own
+             country search), a real product gap, not a scraping failure.
+             Each render also reads WorldRemit's own per-corridor size
+             limit off the page when the ladder exceeds it (e.g. "Send
+             amount too high, cannot send more than 9990 AUD" at
+             AUD->PHP's 25,000/50,000 tiers; "cannot receive more than
+             193000 MXN" / "cannot send more than 30000 USD" at
+             USD->MXN's 25,000/50,000 tiers) -- recorded as a normal
+             not-offered-at-this-size row, the same as any other
+             provider's missing quote, never invented past the limit.
+             The rate itself carries WorldRemit's own "First Transfer Rate"
+             label -- that is the number the calculator shows an anonymous
+             visitor, with no toggle to a different one, so that is the
+             number collected and labelled as such.
 
   Probed and rejected, 2026-09-25 (see the PR that added this line for the
   exact requests tried; none of these get a request from this file):
@@ -94,6 +114,27 @@ WHO IS HERE, AND WHO IS NOT.
   MoneyGram, Xe, OFX, DBS/OCBC/UOB/SingX/HSBC Singapore/CommBank/Westpac/
   ANZ/Xoom) stays under the original HARD RULE untouched: no auth
   workaround, no CAPTCHA bypass, no headless browser for any of them.
+
+  OUTCOME, checked live 2026-09-27 (Playwright + Chromium, the render is in
+  `render_worldremit()` below): the calculator's own bot-check element
+  (data-testid="pxElement") was present on every page but never switched
+  from hidden to visible, on any of the three corridors that were wired or
+  during the Singapore-support check on the fourth -- no CAPTCHA was hit,
+  so nothing needed to stop. Three of the four target routes render
+  cleanly: AUD->PHP, NZD->PHP, USD->MXN (worldremit.com/en-au/philippines,
+  /en-nz/philippines, /en-us/mexico -- fixed per-country calculator pages,
+  no dropdown interaction needed at all beyond typing the send amount).
+  SGD->PHP is blocked for a different reason than the one this exception
+  was written to get past: WorldRemit's own calculator does not offer
+  Singapore as a send country -- there is no en-sg locale page, and typing
+  "Singapore" or "SGD" into the international calculator's own send-country
+  search returns "No countries found". That is WorldRemit not supporting
+  the corridor, not a render failure, so no amount of headless rendering
+  fixes it -- recorded as unsupported, not retried. If `pxElement` ever
+  does become visible in a future run, `render_worldremit()` reports it as
+  a PX_CHALLENGE error on that row rather than trying to clear it, and the
+  per-row try/except in `build_rows()` isolates it the same way a 429 or a
+  timeout isolates any other provider's row.
 
   None of the above (other than the WorldRemit exception just described)
   get a scheduled request from this collector -- the HARD
@@ -183,7 +224,16 @@ yet to produce one -- noted here rather than presented as a real reading.
 Usage:
   python3 collector_providers.py --verify     # live pull, print, write nothing
   python3 collector_providers.py              # append data/provider_quotes.csv
-  python3 collector_providers.py --selftest   # offline
+  python3 collector_providers.py --selftest   # offline (never touches a
+                                               # network or a browser, incl.
+                                               # WorldRemit's render path)
+
+WorldRemit needs `pip install playwright && playwright install chromium`
+(the ONE NARROW EXCEPTION above) to actually render live; every other
+provider here only needs `requests`. Its absence degrades to a per-row
+error on WorldRemit's three wired corridors, exactly like any other
+provider being down -- it does not stop the rest of this file from
+running, and --selftest never needs it installed at all.
 """
 
 import argparse
@@ -191,6 +241,7 @@ import csv
 import datetime as dt
 import json
 import os
+import re
 import sys
 import tempfile
 import time
@@ -199,6 +250,11 @@ try:
     import requests
 except ImportError:
     requests = None
+
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    sync_playwright = None
 
 HTTP_TIMEOUT = 20
 REQUEST_GAP = 0.4
@@ -228,6 +284,22 @@ CORRIDOR_CCY = {
     "SGD->PHP": ("SGD", "PHP"), "AUD->PHP": ("AUD", "PHP"),
     "NZD->PHP": ("NZD", "PHP"), "USD->MXN": ("USD", "MXN"),
 }
+
+# WorldRemit's own per-country calculator page, checked live 2026-09-27 --
+# each one loads with the right send currency already selected, so no
+# dropdown interaction is needed at all, just typing the send amount (see
+# module docstring, ONE NARROW EXCEPTION). SGD->PHP has no entry: WorldRemit
+# has no Singapore send-country option anywhere on its own calculator (no
+# en-sg locale page, and the international calculator's own country search
+# returns "No countries found" for "Singapore"/"SGD") -- not wired because
+# WorldRemit itself does not offer it, not because rendering failed.
+WORLDREMIT_URLS = {
+    "AUD->PHP": "https://www.worldremit.com/en-au/philippines",
+    "NZD->PHP": "https://www.worldremit.com/en-nz/philippines",
+    "USD->MXN": "https://www.worldremit.com/en-us/mexico",
+}
+WORLDREMIT_NAV_TIMEOUT_MS = 30_000
+WORLDREMIT_STEP_WAIT_MS = 2_000
 
 
 # ------------------------------------------------------------- pure core
@@ -290,6 +362,39 @@ def parse_wise(d, sent):
             recv = _f(po.get("targetAmount"))
             return (rate, 0.0 if fee is None else fee, recv)
     return (rate, 0.0, None)
+
+
+_WR_RATE_RE = re.compile(r"=\s*\n*\s*([\d,]+\.?\d*)")
+_WR_FEE_RE = re.compile(r"Fee\s*\n*\s*([\d,]+\.?\d*)")
+
+
+def parse_worldremit(snapshot, sent):
+    """{"calc_text","error_text"} -> (rate, fee, received, error).
+
+    `snapshot` is plain text read off WorldRemit's own rendered calculator
+    widget (see `render_worldremit`) -- calc_text is the whole widget's
+    innerText (e.g. "You send\\n\\nAUD\\n\\nFirst Transfer Rate...\\n\\n1
+    AUD =\\n\\n43.8417 PHP\\n\\n...Fee\\n0 AUD\\n..."), error_text is
+    WorldRemit's own inline alert (data-testid="generic-error") when it
+    declines the amount, e.g. "Send amount too high, cannot send more than
+    9990 AUD". A non-empty error_text is WorldRemit answering "not at this
+    size", not a render failure -- returned as a labelled error, never
+    silently turned into a missing quote with no reason. The rate carries
+    WorldRemit's own "First Transfer Rate" label (there is no toggle to a
+    different one on the public page), so that is the number read.
+    """
+    err = (snapshot.get("error_text") or "").strip()
+    if err:
+        return (None, None, None, err)
+    text = snapshot.get("calc_text") or ""
+    m_rate = _WR_RATE_RE.search(text)
+    rate = _f(m_rate.group(1).replace(",", "")) if m_rate else None
+    m_fee = _WR_FEE_RE.search(text)
+    fee = _f(m_fee.group(1).replace(",", "")) if m_fee else None
+    if rate is None:
+        return (None, fee, None, "no rate displayed")
+    recv = round(rate * sent, 4)
+    return (rate, 0.0 if fee is None else fee, recv, None)
 
 
 # ------------------------------------------- second comparison feed (task 1)
@@ -382,6 +487,85 @@ def wise_payload(src, dst, amount):
     return {"sourceCurrency": src, "targetCurrency": dst, "sourceAmount": amount}
 
 
+def render_worldremit(url, sizes):
+    """Render WorldRemit's own public calculator once and read the price at
+    every ladder size -- the ONE NARROW EXCEPTION described in the module
+    docstring: a headless browser, used only to load WorldRemit's own page
+    and read what it displays, the same way an anonymous visitor would,
+    nothing requiring login or an account. Never called by --selftest.
+
+    One page load, one send-amount field filled once per size -- not one
+    page load per size -- because the per-country URLs in WORLDREMIT_URLS
+    already load with the right send currency selected; only the amount
+    changes across the ladder.
+
+    Returns {size: {"calc_text", "error_text"}}, the raw material
+    `parse_worldremit` reads. A CAPTCHA/bot-challenge (WorldRemit's own
+    data-testid="pxElement" becoming visible) stops immediately and is
+    reported back as an error_text of "PX_CHALLENGE: ..." on every size
+    from that point on -- never clicked through, never solved, per the
+    HARD RULE this exception does not touch.
+    """
+    if sync_playwright is None:
+        raise RuntimeError("playwright not installed")
+    out = {}
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            page = browser.new_page()
+            page.goto(url, wait_until="networkidle", timeout=WORLDREMIT_NAV_TIMEOUT_MS)
+            page.wait_for_timeout(1500)
+            try:
+                reject = page.locator("#onetrust-reject-all-handler")
+                if reject.count():
+                    reject.click(timeout=5000)
+                    page.wait_for_timeout(500)
+            except Exception:
+                pass  # no cookie banner this time -- not fatal either way
+
+            px = page.locator('[data-testid="pxElement"]')
+
+            def px_visible():
+                return px.count() > 0 and px.get_attribute("hidden") is None
+
+            if px_visible():
+                raise RuntimeError("PX_CHALLENGE: bot-check shown on page load")
+
+            send_input = page.locator(
+                '[data-testid="calculator-v2-send-country-input"] input')
+            calc = page.locator('[data-testid="calculator"]')
+            err_block = page.locator('[data-testid="generic-error"]')
+
+            for size in sizes:
+                if px_visible():
+                    out[size] = {"calc_text": "",
+                                 "error_text": "PX_CHALLENGE: bot-check shown mid-session"}
+                    continue
+                send_input.click()
+                send_input.fill("")
+                send_input.type(str(int(size)), delay=30)
+                page.wait_for_timeout(WORLDREMIT_STEP_WAIT_MS)
+                if px_visible():
+                    out[size] = {"calc_text": "",
+                                 "error_text": "PX_CHALLENGE: bot-check shown mid-session"}
+                    continue
+                calc_text = calc.inner_text() if calc.count() else ""
+                error_text = err_block.inner_text() if err_block.count() else ""
+                # The widget occasionally hasn't finished re-rendering by
+                # WORLDREMIT_STEP_WAIT_MS (observed live, 2026-09-27: one
+                # size in a run of five came back with neither a rate nor
+                # an error line) -- one extra wait-and-reread before giving
+                # up on this size, not a second amount entry.
+                if "=" not in calc_text and not error_text:
+                    page.wait_for_timeout(WORLDREMIT_STEP_WAIT_MS)
+                    calc_text = calc.inner_text() if calc.count() else ""
+                    error_text = err_block.inner_text() if err_block.count() else ""
+                out[size] = {"calc_text": calc_text, "error_text": error_text}
+        finally:
+            browser.close()
+    return out
+
+
 # ------------------------------------------------------------- collection
 def _row(ts, corridor, size, provider, source):
     return {"ts_utc": ts, "corridor": corridor, "size_src": size,
@@ -390,7 +574,7 @@ def _row(ts, corridor, size, provider, source):
             "source_ok": False, "error": "", "payout_type": "bank"}
 
 
-def build_rows(ts, corridors, mids, fetch=get_json):
+def build_rows(ts, corridors, mids, fetch=get_json, render=render_worldremit):
     """One row per corridor per size per provider. Never raises."""
     rows, n_ok = [], 0
     for corridor in corridors:
@@ -398,6 +582,25 @@ def build_rows(ts, corridors, mids, fetch=get_json):
         mid = None
         if mids.get(src) and mids.get(dst):
             mid = mids[dst] / mids[src]
+
+        # WorldRemit is rendered once per corridor (one page load, one
+        # send-amount field filled per ladder size) rather than once per
+        # size like the JSON-API providers below -- see render_worldremit.
+        # A total render failure (browser crash, navigation timeout, a
+        # PerimeterX challenge on page load) is caught HERE so it produces
+        # the same labelled error on every size for this corridor instead
+        # of taking down the rest of build_rows -- the same isolation this
+        # file already gives every other provider, one level up because
+        # the failure can happen before any one size is even attempted.
+        wr_snapshots = {}
+        if corridor in WORLDREMIT_URLS:
+            try:
+                wr_snapshots = render(WORLDREMIT_URLS[corridor], LADDER)
+            except Exception as e:
+                err = f"{type(e).__name__}:{e}"[:300]
+                wr_snapshots = {size: {"calc_text": "", "error_text": err}
+                                for size in LADDER}
+
         for size in LADDER:
             # (provider, source host, url, parser, POST payload or None)
             # -- every provider here pays out as a bank deposit, the
@@ -418,6 +621,25 @@ def build_rows(ts, corridors, mids, fetch=get_json):
                         raise ValueError(f"no mid for {src}->{dst}")
                     payload_arg = () if payload is None else (payload,)
                     rate, fee, recv = parse(fetch(url, *payload_arg), size)
+                    if not rate or not recv:
+                        raise ValueError("no usable quote")
+                    row.update(rate=round(rate, 8), fee_src=fee,
+                               received_dst=round(recv, 4),
+                               cost_bps=cost_bps(recv, size, mid), source_ok=True)
+                    n_ok += 1
+                except Exception as e:
+                    row["error"] = f"{type(e).__name__}:{e}"[:300]
+                rows.append(row)
+
+            if corridor in WORLDREMIT_URLS:
+                row = _row(ts, corridor, size, "WorldRemit", "worldremit.com")
+                try:
+                    if mid is None:
+                        raise ValueError(f"no mid for {src}->{dst}")
+                    snap = wr_snapshots.get(size) or {"error_text": "no render"}
+                    rate, fee, recv, err = parse_worldremit(snap, size)
+                    if err:
+                        raise RuntimeError(err)
                     if not rate or not recv:
                         raise ValueError("no usable quote")
                     row.update(rate=round(rate, 8), fee_src=fee,
@@ -515,6 +737,24 @@ MIDS = {"SGD": 1.2728, "PHP": 62.9455, "AUD": 1.5281, "NZD": 1.6902,
         "USD": 1.0, "MXN": 18.35}
 TS = "2026-09-10T10:00:00+00:00"
 
+# Trimmed from a real render, 2026-09-27 (see calc_au.html captured while
+# probing worldremit.com/en-au/philippines): innerText of the whole
+# data-testid="calculator" widget, including the "First Transfer Rate"
+# label this collector has no way to bypass -- it is what an anonymous
+# visitor is shown, so it is what gets read.
+WR_CALC_TEXT_OK = ("You send\n\nUSD\n\nFirst Transfer Rate \U0001f389\n\n"
+                    "1 USD =\n\n17.2737 MXN\n\nThey get\n\nMXN\n"
+                    "Receive method\nBank Transfer\nReceive method\nFee\n"
+                    "0 USD\nTransfer time\nSame day\nTotal to pay\n"
+                    "1000 USD\nSend Money")
+WR_FIXTURE_OK = {"calc_text": WR_CALC_TEXT_OK, "error_text": ""}
+# A real limit message, read live from worldremit.com/en-us/mexico at the
+# 25,000 and 50,000 ladder tiers, 2026-09-27 -- WorldRemit declining the
+# amount, not a render failure.
+WR_FIXTURE_LIMIT = {"calc_text": "",
+                     "error_text": "Send amount too high, cannot send more than 30000 USD"}
+WR_FIXTURE_PX = {"calc_text": "", "error_text": "PX_CHALLENGE: bot-check shown mid-session"}
+
 
 def _make_fetch(overrides=None):
     overrides = overrides or {}
@@ -531,6 +771,24 @@ def _make_fetch(overrides=None):
     return fetch
 
 
+def _make_wr_render(per_size=None, raises=None):
+    """Fake render_worldremit for --selftest -- no browser, no network, no
+    playwright import even attempted. `per_size` overrides individual
+    ladder sizes with a specific snapshot (e.g. the limit or PX fixtures
+    above); anything not listed gets WR_FIXTURE_OK. `raises`, if given, is
+    raised by the fake render itself, standing in for a total render
+    failure (browser crash, navigation timeout, a PX challenge on page
+    load) that build_rows must catch one level up, before any per-size
+    snapshot exists."""
+    per_size = per_size or {}
+
+    def render(url, sizes):
+        if raises is not None:
+            raise raises
+        return {size: per_size.get(size, WR_FIXTURE_OK) for size in sizes}
+    return render
+
+
 def selftest():
     assert parse_airwallex(AWX_FIXTURE, 1000) == (49.367261, 0.0, 49367.26)
     assert parse_instarem(INSTA_FIXTURE, 1000) == (49.4144, 0.0, 49414.4)
@@ -541,20 +799,38 @@ def selftest():
     print("  [ok] all three parsers read their real payload; malformed -> no quote")
     print("  [ok] Wise's disabled BALANCE option is skipped for BANK_TRANSFER")
 
+    rate, fee, recv, err = parse_worldremit(WR_FIXTURE_OK, 1000)
+    assert (rate, fee, recv, err) == (17.2737, 0.0, 17273.7, None), (rate, fee, recv, err)
+    rate, fee, recv, err = parse_worldremit(WR_FIXTURE_LIMIT, 25000)
+    assert rate is None and recv is None
+    assert err == "Send amount too high, cannot send more than 30000 USD"
+    assert parse_worldremit({"calc_text": "", "error_text": ""}, 1000) == \
+        (None, None, None, "no rate displayed")
+    print("  [ok] parse_worldremit reads the rendered widget's own text; "
+          "WorldRemit's own limit message comes back as a labelled error, "
+          "never a silently missing quote")
+
     mid = MIDS["PHP"] / MIDS["SGD"]
     assert abs(cost_bps(49414.4, 1000, mid) - 8.25) < 3.0
     assert cost_bps(None, 1000, mid) is None and cost_bps(1.0, 0, mid) is None
     print("  [ok] cost is bps below mid-market, None-safe")
 
-    rows, n_ok = build_rows(TS, ["SGD->PHP", "USD->MXN"], MIDS, fetch=_make_fetch())
-    # SGD->PHP has Airwallex + Wise + Instarem; USD->MXN has no Instarem
-    assert len(rows) == 5 * 3 + 5 * 2 == 25, len(rows)
-    assert n_ok == 25, n_ok
+    rows, n_ok = build_rows(TS, ["SGD->PHP", "USD->MXN"], MIDS,
+                             fetch=_make_fetch(), render=_make_wr_render())
+    # SGD->PHP has Airwallex + Wise + Instarem (no WorldRemit -- unsupported
+    # corridor, see WORLDREMIT_URLS); USD->MXN has Airwallex + Wise +
+    # WorldRemit (no Instarem)
+    assert len(rows) == 5 * 3 + 5 * 3 == 30, len(rows)
+    assert n_ok == 30, n_ok
     provs = {(r["corridor"], r["provider"]) for r in rows}
     assert ("USD->MXN", "Instarem") not in provs, "unconfigured corridor is not asked"
     assert ("SGD->PHP", "Instarem") in provs
     assert ("USD->MXN", "Wise") in provs, "Wise is asked on every corridor"
+    assert ("USD->MXN", "WorldRemit") in provs
+    assert ("SGD->PHP", "WorldRemit") not in provs, \
+        "WorldRemit has no Singapore send option -- not asked, not guessed"
     print("  [ok] a corridor with no verified account id is not asked, not guessed")
+    print("  [ok] WorldRemit is only asked on the corridors it actually offers")
 
     rows_e, n_e = build_rows(TS, ["SGD->PHP"], MIDS,
                              fetch=_make_fetch({"instarem": RuntimeError("503")}))
@@ -574,6 +850,50 @@ def selftest():
     rows_m, n_m = build_rows(TS, ["SGD->PHP"], {"SGD": 1.27}, fetch=_make_fetch())
     assert n_m == 0 and all("no mid" in r["error"] for r in rows_m)
     print("  [ok] a missing mid degrades its corridor, never invents a rate")
+
+    # WorldRemit's own per-size limit (a real "not offered at this size",
+    # not a bug) isolates to just that size, on just that provider.
+    rows_l, n_l = build_rows(TS, ["USD->MXN"], MIDS, fetch=_make_fetch(),
+                             render=_make_wr_render({25000: WR_FIXTURE_LIMIT,
+                                                      50000: WR_FIXTURE_LIMIT}))
+    wr_limited = [r for r in rows_l if r["provider"] == "WorldRemit"
+                  and r["size_src"] in (25000, 50000)]
+    assert len(wr_limited) == 2
+    assert all(not r["source_ok"] and "too high" in r["error"] for r in wr_limited)
+    wr_ok = [r for r in rows_l if r["provider"] == "WorldRemit"
+             and r["size_src"] not in (25000, 50000)]
+    assert all(r["source_ok"] for r in wr_ok)
+    other_provs_ok = [r for r in rows_l if r["provider"] != "WorldRemit"]
+    assert all(r["source_ok"] for r in other_provs_ok)
+    print("  [ok] WorldRemit declining an amount above its own limit isolates "
+          "to that size, on that provider, never blocking the rest")
+
+    # A CAPTCHA/bot-challenge appearing mid-session (WorldRemit's own
+    # pxElement) must isolate exactly the same way -- never solved, never
+    # routed around, just reported as a failed row like any other.
+    rows_px, n_px = build_rows(TS, ["USD->MXN"], MIDS, fetch=_make_fetch(),
+                               render=_make_wr_render({5000: WR_FIXTURE_PX}))
+    px_row = [r for r in rows_px if r["provider"] == "WorldRemit"
+              and r["size_src"] == 5000][0]
+    assert not px_row["source_ok"] and "PX_CHALLENGE" in px_row["error"]
+    print("  [ok] a WorldRemit bot-challenge isolates to its own row, "
+          "never attempted past")
+
+    # A total render failure (browser crash, navigation timeout, a
+    # PerimeterX challenge on page load itself) is caught one level up in
+    # build_rows, before any per-size snapshot exists -- every WorldRemit
+    # row for that corridor fails with the same reason, every other
+    # provider on the same corridor is untouched.
+    rows_crash, n_crash = build_rows(
+        TS, ["USD->MXN"], MIDS, fetch=_make_fetch(),
+        render=_make_wr_render(raises=RuntimeError("Timeout 30000ms exceeded")))
+    wr_crash = [r for r in rows_crash if r["provider"] == "WorldRemit"]
+    assert len(wr_crash) == len(LADDER)
+    assert all(not r["source_ok"] and "Timeout" in r["error"] for r in wr_crash)
+    other_provs_crash = [r for r in rows_crash if r["provider"] != "WorldRemit"]
+    assert all(r["source_ok"] for r in other_provs_crash)
+    print("  [ok] a total WorldRemit render failure isolates to its own "
+          "provider, never blocks Airwallex or Wise on the same corridor")
 
     assert all(r["payout_type"] == "bank" for r in rows)
     assert set(FIELDS) == set(rows[0]) - {"payout_type"}

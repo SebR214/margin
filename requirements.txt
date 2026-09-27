@@ -1,2 +1,9 @@
 requests>=2.31
 duckdb>=1.0
+
+# Optional: only WorldRemit's collector path in collector_providers.py uses
+# this (the ONE NARROW EXCEPTION documented in that file's HARD RULES --
+# a headless render of WorldRemit's own public calculator, nothing else).
+# Every other provider, and --selftest, works without it. After installing,
+# also run: playwright install chromium
+playwright>=1.40
