@@ -634,6 +634,43 @@ text; CoinDCX's `markets_details` is readable but its `maker_fee` and
 measurement, so SGD→IDR, SGD→INR and SGD→MYR are absent and this paragraph is
 why.
 
+**Re-checked 2026-09-27, specifically to test whether SGD→INR could carry the
+route where India's street premium (about 4.5% over official, see the index)
+might outweigh a stablecoin route's own cost.** The 2026-09-10 finding still
+holds, and two more venues were added to the search:
+
+- `api.wazirx.com/sapi/v1/fees` still returns HTTP 403. `exchangeInfo` lists
+  the `usdtinr` market but carries no fee field.
+- `api.coindcx.com/exchange/v1/markets_details` still returns `USDTINR` with
+  no `maker_fee` / `taker_fee` field at all now, not even a `null` one.
+- **ZebPay**, checked for the first time: `zebpay.com/fees` is a real,
+  readable page (not a JS shell) with a dated crypto-withdrawal table — USDT
+  is 3 (Ethereum, ERC-20) or 8 (Tron, TRC-20), a genuinely checkable number.
+  But the INR-leg trading fee is not in that table. The page states fiat
+  deposit and withdrawal are both free and lists a single figure for
+  converting between assets: "Quick Trade 0.5% onwards." *Onwards* is not a
+  fee schedule; it names a floor with no ceiling and no tier definition, so it
+  fails the same bar Indodax and WazirX fail on, for a different reason.
+- **Giottus**, checked for the first time: no readable first-party fee page
+  was reachable (bot-blocked, matching CoinDCX); third-party trackers quote
+  contradicting numbers for its own maker/taker table, which is exactly the
+  "estimate, not a measurement" problem this file exists to avoid.
+- `api.binance.com/api/v3/exchangeInfo` — the largest global venue, checked as
+  a control — lists no `INR`, `BDT` or `PKR` pair of any kind. These three
+  currencies exist in this site's index only through Binance's P2P
+  advertisement board (see the P2P layer below), which has no fee schedule to
+  check because it is not an order book with a maker/taker table; it is
+  individuals naming their own price.
+
+The conclusion is stronger than the 2026-09-10 version of it: this is not one
+exchange's bad page, it is every venue with an INR, BDT or PKR order book
+failing the same check, for four different reasons (403, `null`, "onwards",
+bot-blocked). SGD→INR, and any corridor into BDT or PKR, stay unbuilt for the
+same reason SGD→IDR does. The site would rather publish nothing for these
+routes than publish a stablecoin cost built on a guessed fee — which is the
+one number that would decide whether stablecoins beat apps here, so guessing
+it is exactly the guess this file cannot make.
+
 ## Where a provider's price comes from
 
 Every competitor figure used to come from one place: the comparison Wise
