@@ -102,6 +102,15 @@
     <div id="pegChart"></div>
     <div class="p" id="pegCap" style="font-size:13px;color:#6B6B6B;padding-top:6px"></div>
 
+    <div class="h" id="reaction-speed">How fast does the street react?</div>
+    <div class="p">When the official rate moves, the street price does not follow instantly. <a href="./the-index.html#reaction">The countries page</a> now measures the gap between the two, in hours, country by country.</div>
+    <div class="p">There is no ready-made hourly history file for this. Each country's history array is daily, going back to 2024, and only carries the premium, not a separate official-rate series. The one place both series exist hour by hour is git itself: since per-country files started (10 September 2026), a scheduled job commits every country's JSON once an hour, and <span style="font-family:monospace">tools/emit_response_time.py</span> replays those commits back into a time series. That also sets a hard ceiling: only as much hourly history exists as days have passed since 10 September 2026, no matter what any other date on the site implies.</div>
+    <div class="p" id="reactionMethodP">Loading the current thresholds&hellip;</div>
+    <div class="p">The method is an event study, not a correlation, because the official rate in this data does not drift continuously — it holds flat for hours at a time, then steps, because its upstream source only refreshes periodically. For each detected step: take the median premium over the six hours before it as a baseline (what the premium looked like before the move), then walk forward hour by hour until the premium has closed most of the gap the step opened (the exact share and search window are the two figures in the paragraph above). That hour, minus the step's hour, is the reaction time for that one event. A country's headline number is the median across every event it had that resolved, capped at the next detected step so one event's recovery can't be mistaken for another's.</div>
+    <div class="p">A country is only published if it has at least 12.5 days of continuous hourly history (of the ~17 available market-wide as of this writing) and at least one event that actually resolved. Below that, it is left out with a reason, the same as any other "not enough data" gap on this site — never a guessed or averaged-in number.</div>
+    <div class="p" id="reactionFindingP">Loading the real numbers&hellip;</div>
+    <div class="p"><a href="./data/response_time_latest.json">The full per-country output, every detected event, every resolved and unresolved one →</a></div>
+
     <div class="h">What was hard</div>
     <div class="p">Fees. They hide inside the exchange rate and they change with how much you send, so one headline fee number is almost always wrong. Everything here is all-in, measured at five different amounts, which is the only way the comparison means anything.</div>
     <div class="p">History. An hour that does not get collected is gone, you cannot go back and fill it in. So keeping collection running has mattered more than shipping any feature.</div>
@@ -300,6 +309,20 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
     document.getElementById('refCheck').textContent = 'Could not load the reference comparison. That failure is shown, not hidden.';
   });
 }).catch(function(){});
+
+fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+  document.getElementById('reactionMethodP').innerHTML =
+    'Right now that is <b class="num">' + d.n_countries_qualified + ' of ' + d.n_countries_total + '</b> tracked countries, each with at least <b class="num">' + d.min_hours_required + ' hours</b> of continuous hourly history. ' +
+    'A step counts as an official-rate move once it exceeds <b class="num">' + d.event_threshold_pct + '%</b>, and a reaction counts as "caught up" once the premium has closed to within <b class="num">' + Math.round((1 - d.reversion_fraction) * 100) + '%</b> of its pre-move level, searched for up to <b class="num">' + Math.round(d.max_window_hours / 24) + ' days</b> after the step.';
+  var r = d.premium_lag_correlation;
+  document.getElementById('reactionFindingP').innerHTML =
+    'This feature started from a guess: the wider a country’s premium, the slower its street price should react. Checked against every qualified country’s own numbers, the two are ' +
+    (r == null ? 'not yet checkable' : 'barely related (r = <b class="num">' + r.toFixed(2) + '</b>)') +
+    '. Algeria (' + 'DZD' + ') has one of the widest premiums measured anywhere on the site and one of the fastest reactions; Turkey trades close to the official rate and reacts far slower. The illustrative "Turkey in about 2 hours, Algeria in about 3 days" framing this feature was scoped from does not hold up against the real numbers — read <a href="./the-index.html#reaction">the countries page</a> for what each one actually measures.';
+}).catch(function(){
+  document.getElementById('reactionMethodP').textContent = 'Could not load the current thresholds. That failure is shown, not hidden.';
+  document.getElementById('reactionFindingP').textContent = 'Could not load the real numbers. That failure is shown, not hidden.';
+});
 
 // ---- The "how was it made" ask box: same real backend as Home's, not a
 // decoration. Answer shown as a plain sentence; the SQL that produced it is
