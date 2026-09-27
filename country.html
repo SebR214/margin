@@ -75,7 +75,7 @@
     </div>
   </header>
 
-  <div class="back"><a href="./the-index.html">&larr; back to the index</a></div>
+  <div class="back"><a href="./the-index.html">&larr; All countries</a></div>
 
   <main id="main">
     <div class="notfound" id="loading">Loading this country's full record&hellip;</div>
@@ -88,9 +88,9 @@
   var PAR_EPSILON = 0.05;
   function costPhrase(pct, digits) {
     digits = digits == null ? 2 : digits;
-    if (Math.abs(pct) < PAR_EPSILON) return 'trades basically at the official rate';
-    if (pct > 0) return 'costs ' + pct.toFixed(digits) + '% more than the official rate';
-    return 'costs ' + Math.abs(pct).toFixed(digits) + '% less than the official rate';
+    if (Math.abs(pct) < PAR_EPSILON) return 'costs about the same on the street as at the official rate';
+    if (pct > 0) return 'costs ' + pct.toFixed(digits) + '% more on the street than at the official rate';
+    return 'costs ' + Math.abs(pct).toFixed(digits) + '% less on the street than at the official rate';
   }
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function shortDate(iso){ var d=new Date(iso); return isNaN(d)?'':d.getUTCDate()+' '+MONTHS[d.getUTCMonth()]; }
@@ -132,8 +132,8 @@
         '<div class="code">' + esc(withheld.ccy) + '</div>' +
         '<h1>' + esc(withheld.country) + '</h1>' +
         '<div class="delta">No price this hour.</div>' +
-        '<div class="context"><b>Why:</b> ' + esc(withheld.reason) + '. A price is collected and checked every hour; this country will show a number the moment it meets the evidence rule again — nothing here is permanent.</div>' +
-        '<div class="footlinks"><a href="./the-index.html#withheld">Every country without enough data &rarr;</a><a href="./machine-room.html">Watch it check again &rarr;</a></div>';
+        '<div class="context"><b>Why:</b> ' + esc(withheld.reason) + '. A price is collected and checked every hour. This country will show a number the moment it meets the 10-ad minimum again. Nothing here is permanent.</div>' +
+        '<div class="footlinks"><a href="./the-index.html">&larr; All countries</a><a href="./the-index.html#withheld">Every country without enough data &rarr;</a></div>';
       return;
     }
 
@@ -141,17 +141,24 @@
     var dates = sparkDates(country);
     var sinceLabel = dates.length ? shortDate(dates[0]) : null;
 
+    var evidenceDisplay = esc(country.evidence_words);
+    var showSourceWords = true;
+    if (evidenceDisplay.indexOf('people selling') !== -1) {
+      evidenceDisplay = evidenceDisplay.replace('people selling', 'Binance P2P sell ads');
+      showSourceWords = false; // "from person-to-person ads" would just repeat "Binance P2P" now
+    }
+
     var html = '<div class="code">' + esc(country.ccy) + '</div>' +
       '<h1 class="num">A dollar in ' + esc(country.country) + ' ' + costPhrase(country.index_pct) + '</h1>' +
-      (delta != null ? '<div class="delta num">' + (delta>=0?'+':'-') + Math.abs(delta).toFixed(1) + ' points <span style="color:#817FCC">' + (delta>=0?'▲':'▼') + '</span>' + (sinceLabel ? ' since ' + sinceLabel : '') + '</div>' : '<div class="delta">&nbsp;</div>') +
+      (delta != null ? '<div class="delta num">' + (delta>=0?'Up ':'Down ') + Math.abs(delta).toFixed(1) + ' points' + (sinceLabel ? ' since ' + sinceLabel : '') + '.</div>' : '<div class="delta">&nbsp;</div>') +
       // The chart below is this same number, over time -- not a new one.
       // Without saying so, a reader can hover a line of bare "%" and never
       // connect it back to the headline they just read.
-      '<div style="font-size:13px;color:#6B6B6B;padding:2px 0 6px">This line is the number above, hour by hour, since collection began &mdash; how much more a dollar has cost here than the official rate.</div>' +
+      '<div style="font-size:13px;color:#6B6B6B;padding:2px 0 6px">Street price over official rate, %, hourly' + (sinceLabel ? ' since ' + sinceLabel : '') + '.</div>' +
       '<div id="countryChart"></div>' +
-      '<div class="receipt-line">' + esc(country.evidence_words) + ', ' + esc(country.source_words) +
-      ' &middot; you’d lose ' + country.round_trip_pct.toFixed(1) + '% selling back &middot; ' +
-      (country.denominator_class === 'unmaintained' ? '<span style="color:#6B6B6B">the official rate here is unmaintained &mdash; this gap is partly a frozen-peg artifact, not purely a market move</span>' : 'official rate class: ' + esc(country.denominator_class)) +
+      '<div class="receipt-line">' + evidenceDisplay + (showSourceWords ? ', ' + esc(country.source_words) : '') +
+      ' &middot; you’d lose ' + country.round_trip_pct.toFixed(1) + '% selling back' +
+      (country.denominator_class === 'unmaintained' ? ' &middot; <span style="color:#6B6B6B">the official rate here is unmaintained. This gap is partly a frozen-peg artifact, not purely a market move.</span>' : '') +
       '</div>';
 
     // Depth is built from the person-to-person board (data/p2p_offers.csv),
@@ -165,8 +172,8 @@
     if (depth) {
       html += '<div class="depth-line">' +
         (depth.is_floor
-          ? 'This gap held for at least ' + fmtMoney(depth.depth_usd) + ' this hour, with no sign yet of the price moving.'
-          : 'This gap held for about ' + fmtMoney(depth.depth_usd) + ' this hour, then the price moved.') +
+          ? 'Holds for at least ' + fmtMoney(depth.depth_usd) + ': ' + depth.n_ads_held + ' sellers, each good for about ' + fmtMoney(depth.filter_usd) + ', all within ' + depth.threshold_pct + '% of the best price this hour.'
+          : 'Holds for about ' + fmtMoney(depth.depth_usd) + ', then the price moved.') +
         '</div>';
     }
 
@@ -184,12 +191,12 @@
       // the same page for the same evidence).
       var nAdsForEvidence = country.n_sources != null ? country.n_sources : p2p.n_ads;
       var verdictOk = (nAdsForEvidence || 0) >= reqAds;
-      html += step(1, 'THE EVIDENCE', Math.round(nAdsForEvidence) + ' buy-side ads collected on the open market at ' + fmtTs(p2p.ts_utc) + ' &middot; median asking price <b class="num">' + p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar', 'data/p2p_basis.csv');
-      html += step(2, 'THE OFFICIAL RATE', 'captured in the same pass: <b class="num">' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar', 'data/fx_rates.csv');
-      html += step(3, 'THE MATH', p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ÷ ' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' − 1 = <b class="num">' + (country.index_pct>=0?'+':'') + country.index_pct.toFixed(2) + '%</b>', 'data/index_latest.json');
-      html += step(4, 'THE VERDICT', 'published, because the evidence rule is ' + (verdictOk?'met':'not met') + ' — ' + Math.round(nAdsForEvidence) + ' ads, ' + reqAds + ' required.', 'data/index_latest.json');
+      html += step(1, 'STREET PRICE', Math.round(nAdsForEvidence) + ' Binance P2P sell ads at ' + fmtTs(p2p.ts_utc) + '. Median asking price <b class="num">' + p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar.', 'data/p2p_basis.csv');
+      html += step(2, 'OFFICIAL RATE', '<b class="num">' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar, captured in the same check.', 'data/fx_rates.csv');
+      html += step(3, 'GAP', p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ÷ ' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' − 1 = <b class="num">' + (country.index_pct>=0?'+':'') + country.index_pct.toFixed(2) + '%</b>.', 'data/index_latest.json');
+      html += step(4, 'PUBLISHED', '<b class="num">' + (verdictOk?'Yes':'No') + '</b>, ' + Math.round(nAdsForEvidence) + ' ads against a minimum of ' + reqAds + '.', 'data/index_latest.json');
       if (depth) {
-        html += step(5, 'HOW MUCH THIS HOLDS FOR', depth.n_ads_held + ' of the ' + depth.n_ads_priced + ' offers checked stayed within 1% of the best price, each good for about $' + depth.filter_usd + ' &middot; ' + (depth.is_floor ? 'at least ' : 'about ') + '<b class="num">' + fmtMoney(depth.depth_usd) + '</b> before the price moved', 'data/street_depth_latest.json');
+        html += step(5, 'DEPTH', depth.n_ads_held + ' of ' + depth.n_ads_priced + ' offers within ' + depth.threshold_pct + '% of the best price, about ' + fmtMoney(depth.filter_usd) + ' each.', 'data/street_depth_latest.json');
       }
     } else {
       html += '<div style="padding:22px 0;color:#6B6B6B;font-size:15px;line-height:1.6">Priced from an exchange order book (' + esc(country.source_class || '') + '), not person-to-person ads. The published figure (<b class="num">' + (country.index_pct>=0?'+':'') + country.index_pct.toFixed(2) + '%</b>) is real, from ' + esc(country.source_file) + ', but the raw per-venue price and official rate this page shows for other countries aren’t in a published file yet for this source type.</div>';
@@ -207,7 +214,7 @@
         '<div id="refBody" style="padding-top:10px;font-size:14px;color:#6B6B6B">Loading the comparison&hellip;</div></div>';
     }
 
-    html += '<div class="footlinks"><a href="./the-index.html">&larr; every country</a><a href="./machine-room.html">Watch it check again &rarr;</a><a href="./machine-room.html">Open the raw files &rarr;</a></div>';
+    html += '<div class="footlinks"><a href="./the-index.html">&larr; All countries</a><a href="./machine-room.html">Raw files &rarr;</a></div>';
 
     main.innerHTML = html;
 
