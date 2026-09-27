@@ -224,6 +224,16 @@ jobs:
         # only if it cannot write.
         run: python3 tools/emit_countries.py
 
+      - name: Emit street depth
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # How much volume a country's premium holds before the price would
+        # move. Reads data/p2p_offers.csv and data/p2p_depth.csv, both
+        # already collected above; writes data/street_depth_latest.json,
+        # read by country.html next to the premium itself. See the
+        # docstring in tools/emit_depth.py for the threshold and why.
+        # Exits non-zero only if it cannot write.
+        run: python3 tools/emit_depth.py
+
       - name: Emit receipts
         if: always() && steps.needed.outputs.proceed == 'true'
         # SEB-56. Runs right after the per-country step so it reads what that
@@ -362,7 +372,7 @@ jobs:
                    data/providers_nzdphp.csv data/latest.json \
                    data/crosses_latest.json data/stable_spread.csv \
                    data/p2p_basis.csv data/p2p_sides.csv data/p2p_depth.csv \
-                   data/p2p_offers.csv \
+                   data/p2p_offers.csv data/street_depth_latest.json \
                    data/index_latest.json \
                    data/fx_rates.csv data/provider_quotes.csv \
                    data/providers_latest.json data/price_changes.csv \
