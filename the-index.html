@@ -40,7 +40,18 @@
   .gap-row .code{font-weight:700} .gap-val{text-align:right;font-size:19px;font-weight:700;color:var(--indigo)}
   .gap-rt{text-align:right;color:#6B6B6B}
   .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:0 48px;border-top:1px solid #0B0B0B;padding-top:4px}
-  .mini{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--rule);font-size:14px;cursor:pointer}
+  .mini{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--rule);font-size:14px;cursor:pointer;gap:8px;min-width:0}
+  /* The label (code + country name) used to be free to wrap when the grid
+     narrowed to 2 columns on mobile -- align-items:baseline then anchored
+     the value to the FIRST wrapped line only, so a long name (Sudan, South
+     Africa, the United Arab Emirates...) left its own continuation
+     stranded on an orphan second line below, disconnected from the value
+     that reads as belonging to just the code. Every row stays one line
+     instead; a name that doesn't fit truncates -- the code is the row's
+     real key, and the full name is one click away on the country's own
+     page either way. */
+  .mini > div:first-child{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mini .val{flex:none}
   .mini .val{color:var(--indigo);font-weight:700}
   .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px}
   .wrow{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--rule);font-size:14px}
@@ -56,6 +67,16 @@
     .grid3{grid-template-columns:1fr 1fr} .grid2{grid-template-columns:1fr}
     .reaction-hdr,.reaction-row{grid-template-columns:1fr 110px 90px;gap:10px}
     h1{font-size:30px} .headline{font-size:26px} section{padding:32px 24px 0} header{padding:22px 24px} .hero{padding:32px 24px 0}
+  }
+
+  /* Two columns halved the width available to each row, so keeping a row to
+     one line (see .mini above) truncated even short names like "Sudan" once
+     they were paired with a wide value like "+1490.44%". A single column
+     gives every row the full width -- truncation still exists as a
+     fallback for a genuinely long name + value combination, but stops
+     firing on the common case. */
+  @media(max-width:520px){
+    .grid3{grid-template-columns:1fr}
   }
 
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
