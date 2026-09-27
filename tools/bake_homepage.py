@@ -135,21 +135,16 @@ def build_window(doc):
     return out
 
 
-def sub_html(home_copy, n_routes, n_countries):
+def sub_html(home_copy, n_countries):
     """The plain, fixed sub sentence (copy.json home.headlineSub), with its
-    two real counts -- how many routes we price sending money on, how many
-    countries we price a street dollar in -- filled in live from
-    data/corridor_summary.json and data/index_latest.json, never typed.
+    one real count -- how many countries we price a street dollar in --
+    filled in live from data/index_latest.json, never typed. The sentence
+    itself carries a real <a> to how-it-works.html, so this is NOT html-
+    escaped as a whole (only the numeric substitution would need it, and a
+    plain digit string never needs escaping).
     """
     tmpl = home_copy.get("headlineSub", "")
-    vals = {
-        "n_routes": str(n_routes) if n_routes is not None else "",
-        "n_countries": str(n_countries) if n_countries is not None else "",
-    }
-    out = tmpl
-    for k, v in vals.items():
-        out = out.replace("{" + k + "}", esc(v))
-    return out
+    return tmpl.replace("{n_countries}", str(n_countries) if n_countries is not None else "")
 
 
 def load_index_latest():
@@ -204,53 +199,52 @@ PREMIUM_TOP_N = 10
 PREMIUM_BAKE_W = 234
 
 
-def _premium_xfrac(pct):
-    v = max(pct, 0.0)
-    v = min(v, PREMIUM_CAP)
-    return math.log1p(v) / math.log1p(PREMIUM_CAP)
-
-
-def build_premium_strip(idx_doc, home_copy):
-    """Ranked horizontal bar list matching renderPremiumStrip() in index.html.
-    Top PREMIUM_TOP_N countries by index_pct, sorted biggest-first.
-    "Biggest gap" excludes unmaintained pegs -- their frozen nominal gap is an
-    artifact, not a real market read -- and excludes maintained pegs
-    (denominator_class == "pegged", tools/emit_countries.py's PEGGED set:
-    Gulf riyals/dinars etc pegged to the dollar). A pegged currency's gap is
-    the cost of accessing crypto under capital/crypto restrictions, not
-    currency weakness, so it should never be crowned "biggest gap" any more
-    than a frozen official rate should.
-    """
-    if idx_doc is None:
-        return None
-    countries = idx_doc.get("countries") or []
-    priced = sorted(
-        [c for c in countries if c.get("index_pct") is not None],
+def _priced_sorted(idx_doc, exclude_pegged):
+    countries = (idx_doc or {}).get("countries") or []
+    exclude = ("pegged",) if exclude_pegged else ()
+    return sorted(
+        [c for c in countries
+         if c.get("index_pct") is not None and c.get("denominator_class") not in exclude],
         key=lambda c: c.get("index_pct", 0.0),
         reverse=True,
     )
+
+
+def build_gaps_chart(idx_doc, home_copy):
+    """Section 4 (demoted from the lead): the 10 widest gaps this hour.
+    Matches renderGapsChart() in index.html's own <script>. Pegged
+    currencies (tools/emit_countries.py's PEGGED set) are excluded entirely
+    -- their gap is the cost of accessing crypto under capital controls,
+    not a currency read. Sudan (UNMAINTAINED, a frozen official rate) stays
+    in the ranking but is capped at the bar's right edge with its own label
+    instead of a proportional bar -- its nominal +1490% would otherwise set
+    the whole linear axis and flatten every other bar to a sliver.
+    """
+    if idx_doc is None:
+        return None
+    priced = _priced_sorted(idx_doc, exclude_pegged=True)
     if not priced:
         return None
 
-    managed = [c for c in priced
-               if c.get("denominator_class") not in ("unmaintained", "pegged")]
+    managed = [c for c in priced if c.get("denominator_class") != "unmaintained"]
     biggest = (managed if managed else priced)[0]
     biggest_ccy = biggest.get("ccy")
-    hour = (idx_doc.get("as_of_utc") or idx_doc.get("computed_at") or "")[11:16]
 
     shown = priced[:PREMIUM_TOP_N]
     rest = priced[PREMIUM_TOP_N:]
 
     W, row_h, top = PREMIUM_BAKE_W, 30, 6
-    # Same proportional-gutter scaling as renderPremiumStrip() in
-    # index.html's own <script> -- 190/70 are the desktop amounts this
-    # reduces to at W=800; at the mobile bake width they shrink so the bar
-    # span keeps a real proportion of the row instead of a sliver.
     label_w = min(190, round(W * 0.42))
     value_w = min(70, round(W * 0.18))
     bar_left = label_w
-    bar_w = W - value_w - bar_left
+    bar_right = W - value_w
+    bar_w = bar_right - bar_left
     H = top + len(shown) * row_h + 10
+
+    max_real = max(
+        [c.get("index_pct", 0.0) for c in shown if c.get("denominator_class") != "unmaintained"],
+        default=1.0,
+    ) or 1.0
 
     rows = []
     for i, c in enumerate(shown):
@@ -258,19 +252,32 @@ def build_premium_strip(idx_doc, home_copy):
         pct = c.get("index_pct", 0.0)
         is_big = c.get("ccy") == biggest_ccy
         is_unmaintained = c.get("denominator_class") == "unmaintained"
-        w = max(2.0, _premium_xfrac(pct) * bar_w)
-        fill = "#3F3047" if is_big else ("#D3D0CB" if is_unmaintained else "#817FCC")
+        w = bar_w if is_unmaintained else max(2.0, min(1.0, pct / max_real) * bar_w)
+        fill = "#3F3047" if is_big else ("#D3D0CB" if is_unmaintained else "#9A9A9A")
         text_fill = "#9A9A9A" if is_unmaintained else "#0B0B0B"
         weight = "700" if is_big else "500"
         tip = c.get("country", "") + ": " + ("+" if pct >= 0 else "") + f"{pct:.2f}% vs the official rate"
         href = "./country.html?ccy=" + esc(c.get("ccy", ""))
-        sign = "+" if pct >= 0 else ""
+        break_mark = (
+            f'<line x1="{bar_right-5}" y1="{y+3:.1f}" x2="{bar_right-1}" y2="{y+15:.1f}" stroke="#fff" stroke-width="2"/>'
+            if is_unmaintained else ""
+        )
+        if is_unmaintained:
+            value_text = (
+                f'<text x="{bar_left+6}" y="{y+16:.1f}" font-family="Archivo,sans-serif" font-size="10.5" '
+                f'font-weight="500" fill="#6B6B6B">{esc(c.get("country",""))}, official rate frozen, not comparable</text>'
+            )
+        else:
+            sign = "+" if pct >= 0 else ""
+            value_text = (
+                f'<text x="{W-4}" y="{y+16:.1f}" text-anchor="end" font-family="ui-monospace,monospace" '
+                f'font-size="12" font-weight="{weight}" fill="{text_fill}">{sign}{pct:.1f}%</text>'
+            )
         rows.append(
             f'<a href="{href}"><title>{esc(tip)}</title>'
             f'<text x="0" y="{y+19:.1f}" font-family="Archivo,sans-serif" font-size="13" font-weight="{weight}" fill="{text_fill}">{esc(c.get("country", ""))}</text>'
-            f'<rect x="{bar_left}" y="{y+6:.1f}" width="{w:.1f}" height="12" rx="2" fill="{fill}"/>'
-            f'<text x="{W-4}" y="{y+16:.1f}" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="{weight}" fill="{text_fill}">{sign}{pct:.1f}%</text>'
-            f'</a>'
+            f'<rect x="{bar_left}" y="{y+6:.1f}" width="{w:.1f}" height="12" rx="2" fill="{fill}"/>{break_mark}'
+            f'{value_text}</a>'
         )
 
     svg_html = (
@@ -280,15 +287,102 @@ def build_premium_strip(idx_doc, home_copy):
     )
 
     rest_max = max((c.get("index_pct", 0.0) for c in rest), default=0.0)
-    note_tmpl = home_copy.get("premiumStripNote", "")
-    note = (note_tmpl
-            .replace("{biggest_gap_country}", esc(biggest.get("country", "")))
-            .replace("{biggest_gap_pct}", f"{biggest.get('index_pct', 0.0):.1f}%")
+    lede = (home_copy.get("premiumStripLede", "")
+            .replace("{biggest_gap_country}", esc(biggest.get("country", ""))))
+    note = (home_copy.get("premiumStripNote", "")
             .replace("{rest_count}", str(len(rest)))
-            .replace("{rest_max_pct}", f"{rest_max:.1f}%")
-            .replace("{hour}", esc(hour)))
+            .replace("{rest_max_pct}", f"{rest_max:.1f}%"))
 
-    title = esc(home_copy.get("premiumStripTitle", "Where the line runs"))
+    title = esc(home_copy.get("premiumStripTitle", "Street dollar vs official rate: the 10 widest gaps this hour"))
+    return (
+        '<div class="waterfall-title">' + title + '</div>'
+        '<div class="lede">' + lede + '</div>'
+        '<div class="strip-wrap">' + svg_html + '</div>'
+        '<div class="strip-note">' + note + '</div>'
+    )
+
+
+# Section 1, the new lead chart: every priced country, ranked by gap, grey.
+# Matches renderAllCountriesStrip() in index.html's own <script>. Unlike
+# the demoted chart above, pegged currencies are shown (lighter grey, their
+# own caption) rather than excluded -- the whole point of this chart is
+# showing where EVERY tracked country sits.
+ALL_LABEL_CCY = {"PHP": "transferPriced", "MXN": "transferPriced", "DZD": "noDollarsSold"}
+
+
+def build_all_countries_strip(idx_doc, home_copy):
+    if idx_doc is None:
+        return None
+    priced = _priced_sorted(idx_doc, exclude_pegged=False)
+    if not priced:
+        return None
+
+    labels = home_copy.get("allCountriesLabels", {})
+    W, row_h_plain, row_h_caption, top = PREMIUM_BAKE_W, 24, 38, 6
+    label_w = min(170, round(W * 0.42))
+    value_w = min(60, round(W * 0.15))
+    bar_left = label_w
+    bar_right = W - value_w
+    bar_w = bar_right - bar_left
+
+    max_real = max(
+        [c.get("index_pct", 0.0) for c in priced if c.get("denominator_class") != "unmaintained"],
+        default=1.0,
+    ) or 1.0
+
+    # Every priced country gets a row; one with its own caption (Sudan, the
+    # Philippines/Mexico, Algeria, any pegged currency) gets a taller row so
+    # the caption prints on its own full-width line below the bar instead
+    # of being squeezed into a narrow value column and clipped by the SVG's
+    # own viewBox (SEB-reported).
+    rows = []
+    y = top
+    for c in priced:
+        pct = c.get("index_pct", 0.0)
+        is_unmaintained = c.get("denominator_class") == "unmaintained"
+        is_pegged = c.get("denominator_class") == "pegged"
+        label_key = ALL_LABEL_CCY.get(c.get("ccy"))
+        if is_unmaintained:
+            caption = labels.get("frozenRate", "official rate frozen, not comparable")
+        elif is_pegged:
+            caption = labels.get("peggedGap", "pegged, gap is the cost of buying stablecoins")
+        elif label_key:
+            caption = labels.get(label_key, "")
+        else:
+            caption = ""
+        row_y = y
+        y += row_h_caption if caption else row_h_plain
+        w = bar_w if is_unmaintained else max(2.0, min(1.0, pct / max_real) * bar_w)
+        fill = "#EDEDED" if is_pegged else ("#D3D0CB" if is_unmaintained else "#9A9A9A")
+        text_fill = "#9A9A9A" if (is_pegged or is_unmaintained) else "#0B0B0B"
+        tip = c.get("country", "") + ": " + ("+" if pct >= 0 else "") + f"{pct:.2f}% vs the official rate"
+        href = "./country.html?ccy=" + esc(c.get("ccy", ""))
+        sign = "+" if pct >= 0 else ""
+        value_text = f"{sign}{pct:.1f}%"
+        break_mark = (
+            f'<line x1="{bar_right-5}" y1="{row_y+2:.1f}" x2="{bar_right-1}" y2="{row_y+12:.1f}" stroke="#fff" stroke-width="2"/>'
+            if is_unmaintained else ""
+        )
+        caption_svg = (
+            f'<text x="0" y="{row_y+30:.1f}" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">{esc(caption)}</text>'
+            if caption else ""
+        )
+        rows.append(
+            f'<a href="{href}"><title>{esc(tip)}</title>'
+            f'<text x="0" y="{row_y+16:.1f}" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="{text_fill}">{esc(c.get("country", ""))}</text>'
+            f'<rect x="{bar_left}" y="{row_y+4:.1f}" width="{w:.1f}" height="10" rx="2" fill="{fill}"/>{break_mark}'
+            f'<text x="{W-4}" y="{row_y+13:.1f}" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="{text_fill}">{value_text}</text>'
+            f'{caption_svg}</a>'
+        )
+    H = y + 10
+
+    svg_html = (
+        f'<svg viewBox="0 0 {W} {H}" style="width:100%;max-width:800px;height:auto" class="strip-svg">'
+        + "".join(rows)
+        + '</svg>'
+    )
+    title = esc(home_copy.get("allCountriesTitle", "What a dollar costs on the street vs the official rate, every country we track"))
+    note = esc(home_copy.get("allCountriesNote", ""))
     return (
         '<div class="waterfall-title">' + title + '</div>'
         '<div class="strip-wrap">' + svg_html + '</div>'
@@ -297,22 +391,18 @@ def build_premium_strip(idx_doc, home_copy):
 
 
 def win_cell_html(c):
-    """The win-rate cell. When taker and maker execution genuinely diverge --
-    USD->MXN's whole story, where a near-zero taker win rate hides a ~44%
-    maker one -- both numbers are shown, at equal visual weight (colored,
-    not a muted footnote), not one buried under the other. A 5-point gap is
-    the data-driven test, not a hardcoded corridor name, so any future
-    corridor with the same shape gets the same honest treatment.
+    """The win-rate cell. Always states the market-order (taker) win rate --
+    the real, almost-always-zero result -- and adds the limit-order (maker)
+    rate as a second line only where it clears 10%, so a route where
+    waiting for your own price genuinely changes the answer (USD->MXN)
+    still shows both numbers, at equal visual weight, instead of one
+    hiding the other.
     """
     t, m = c["win_rate_taker_pct"], c["win_rate_maker_pct"]
-    if abs(t - m) >= 5:
-        return (
-            '<div class="' + ("win-yes" if t >= 10 else "win-no") + '">'
-            + ("%.1f" % t) + "% of hours buying it now</div>"
-            '<div class="' + ("win-yes" if m >= 10 else "win-no") + '" style="margin-top:4px">'
-            + ("%.1f" % m) + "% of hours waiting for your price</div>"
-        )
-    return '<span class="' + ("win-yes" if t >= 10 else "win-no") + '">' + ("%.1f" % t) + "% of hours</span>"
+    html = '<div class="' + ("win-yes" if t >= 10 else "win-no") + '">' + ("%.1f" % t) + "% (market order)</div>"
+    if m >= 10:
+        html += '<div class="win-yes" style="margin-top:4px">' + ("%.1f" % m) + "% (limit order)</div>"
+    return html
 
 
 def pct(bps):
@@ -350,13 +440,17 @@ def corridor_row_html(c, home_copy, window):
 def corridor_table_html(corridors, home_copy, window):
     cols = home_copy.get("corridorTableCols", {})
     rows = "".join(corridor_row_html(c, home_copy, window) for c in corridors)
+    mxn = next((c for c in corridors if c.get("corridor") == "USD->MXN"), None)
+    first_line = (home_copy.get("corridorTableFirstLine", "")
+                  .replace("{maker_pct}", ("%.1f" % mxn["win_rate_maker_pct"]) if mxn else ""))
     return (
-        '<div class="waterfall-title">' + esc(home_copy.get("corridorTableTitle", "Every transfer we check, priced the same way")) + "</div>"
+        '<div class="waterfall-title">' + esc(home_copy.get("corridorTableTitle", "Stablecoin route vs cheapest app, all-in cost per route")) + "</div>"
+        '<div class="lede">' + esc(first_line) + "</div>"
         '<table class="corridor-table"><thead><tr>'
-        "<th>" + esc(cols.get("corridor", "SENDING")) + "</th>"
-        "<th>" + esc(cols.get("stablecoin", "STABLECOIN COST")) + "</th>"
-        "<th>" + esc(cols.get("fiat", "BEST APP")) + "</th>"
-        "<th>" + esc(cols.get("winRate", "STABLECOIN CHEAPER")) + "</th>"
+        "<th>" + esc(cols.get("corridor", "ROUTE")) + "</th>"
+        "<th>" + esc(cols.get("stablecoin", "STABLECOIN ROUTE")) + "</th>"
+        "<th>" + esc(cols.get("fiat", "CHEAPEST APP")) + "</th>"
+        "<th>" + esc(cols.get("winRate", "HOURS STABLECOIN WAS CHEAPER")) + "</th>"
         "<th></th></tr></thead><tbody>" + rows + "</tbody></table>"
     )
 
@@ -408,12 +502,11 @@ def main():
 
     changed = False
     html, ok1 = replace_by_marker(html, "heroHeadline", esc(home_copy.get(
-        "headline", "Stablecoins rarely beat the cheapest transfer app. Except where money itself is broken.")))
+        "headline", "Stablecoins rarely beat the cheapest transfer app. But where banks won't sell you dollars, they're how people get one.")))
     changed = changed or ok1
 
-    n_routes = len(doc.get("corridors") or [])
     n_countries = count_countries()
-    html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, n_routes, n_countries))
+    html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, n_countries))
     changed = changed or ok2
 
     table = corridor_table_html(doc["corridors"], home_copy, window)
@@ -421,12 +514,19 @@ def main():
     changed = changed or ok3
 
     idx_doc = load_index_latest()
-    strip = build_premium_strip(idx_doc, home_copy)
+    strip = build_gaps_chart(idx_doc, home_copy)
     if strip is not None:
         html, ok4 = replace_by_marker(html, "premiumStrip", strip)
         changed = changed or ok4
     else:
-        print("  no data/index_latest.json countries yet -- leaving premium strip's prior bake in place")
+        print("  no data/index_latest.json countries yet -- leaving gaps chart's prior bake in place")
+
+    all_strip = build_all_countries_strip(idx_doc, home_copy)
+    if all_strip is not None:
+        html, ok5 = replace_by_marker(html, "allCountriesStrip", all_strip)
+        changed = changed or ok5
+    else:
+        print("  no data/index_latest.json countries yet -- leaving all-countries chart's prior bake in place")
 
     if not changed:
         print("  WARNING: none of the expected id= anchors were found in index.html -- "

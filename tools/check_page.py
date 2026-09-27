@@ -46,7 +46,15 @@ from bake_nav import NAV_PAGES, nav_html                     # noqa: E402
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 BANNED = ["bps", "basis point", "basis", "on-ramp", "off-ramp", "notional",
-          "taker", "maker", "usdt", "fiat rail", "crypto"]
+          "taker", "maker", "fiat rail", "crypto"]
+# "usdt" was banned here as crypto jargon. Sebastian's 2026-09-27 copy
+# rewrite (Section 2, home page) explicitly names it in the waterfall's own
+# bar labels ("Buy USDT with SGD", "Sell USDT for PHP") -- rule 3 of that
+# spec is to use the real payments/crypto terms as people actually use
+# them, and USDT is the plain name of the specific coin this site prices,
+# not an abstraction like "taker"/"bps". Removed globally rather than
+# scoped to index.html since the same reasoning applies anywhere this site
+# names the coin it measured.
 
 # ROADMAP names "corridor" for index.html specifically. A global ban would fail
 # corridor.html on its own filename, so it is scoped rather than widened.

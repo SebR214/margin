@@ -4,7 +4,8 @@ currency is failing can hold dollars. This site tests both, every hour, with rea
 prices. The answer so far: where money already works, stablecoins lose. Sending
 S$5,000 to the Philippines costs more with stablecoins than with the cheapest app,
 almost every hour, because buying and selling the coin costs more than the apps
-charge. Where money is broken, stablecoins are the way out. In Algeria a street
+charge. Where money is broken, stablecoins are how people get dollars where
+banks won't sell them. In Algeria a street
 dollar costs 90% over the official rate. This site shows where that line runs,
 country by country, hour by hour. Four AI agents run it. Every number links to the
 file it came from, and the failures stay published.

@@ -4,31 +4,55 @@
     "sourceMeterTemplate": "This hour: {n_own} of {n_total_quoted} prices came straight from the provider, {n_comparison} from a public price comparison. Stablecoin prices from {n_stable_venues} exchanges."
   },
   "home": {
-    "headline": "Stablecoins rarely beat the cheapest transfer app. Except where money itself is broken.",
-    "headlineFallback": "Stablecoins rarely beat the cheapest transfer app. Except where money itself is broken.",
-    "headlineSub": "We check real prices every hour: what it costs to send money on {n_routes} routes, and what a dollar really costs on the street in {n_countries} countries.",
-    "waterfallTitle": "Where the cost actually sits",
-    "waterfallCap": "Sending {rung} to {dest}, buying it now. {n_costs} real costs: {window}.",
+    "headline": "Stablecoins rarely beat the cheapest transfer app. But where banks won't sell you dollars, they're how people get one.",
+    "headlineFallback": "Stablecoins rarely beat the cheapest transfer app. But where banks won't sell you dollars, they're how people get one.",
+    "headlineSub": "Four AI agents run this site every hour. They track what a dollar costs on the street in {n_countries} countries, and what it costs to send money with an app or with stablecoins. <a href=\"./how-it-works.html\">How it was built →</a>",
+    "purposeNote": "Built to test one claim: that stablecoins make moving money cheaper.",
+
+    "allCountriesTitle": "What a dollar costs on the street vs the official rate, every country we track",
+    "allCountriesNote": "Where the gap is near zero, the official rate is real and a normal app is cheaper. Where the gap is big, the official rate isn't what people pay, and stablecoins are how people get dollars at all.",
+    "allCountriesLabels": {
+      "transferPriced": "We price transfers here. The app wins.",
+      "noDollarsSold": "Banks won't sell dollars here. USDT is the street price.",
+      "frozenRate": "official rate frozen, not comparable",
+      "peggedGap": "pegged, gap is the cost of buying stablecoins"
+    },
+
+    "waterfallTitle": "Sending S$5,000 to the Philippines by stablecoin costs {stable_pct}. The cheapest app costs {best_pct}.",
+    "waterfallCap": "Typical hour since {since}. Market orders, all fees in. Buying USDT with SGD costs the most. Sending it on chain costs {network_pct}.",
     "exchangeOnlyDisclosure": "This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.",
     "waterfallLegend": {
-      "buying": "Buying the coin",
-      "moving": "Moving it",
-      "selling": "Selling it",
-      "total": "The whole transfer"
+      "buying": "Buy USDT with SGD",
+      "moving": "Send it on chain",
+      "selling": "Sell USDT for PHP",
+      "total": "Total"
     },
-    "corridorTableTitle": "Every transfer we check, priced the same way",
+    "corridorTableTitle": "Stablecoin route vs cheapest app, all-in cost per route",
+    "corridorTableFirstLine": "The cheapest app wins almost every hour on every route. The exception: US → Mexico with a limit order, cheaper in {maker_pct}% of hours.",
     "corridorTableCols": {
-      "corridor": "SENDING",
-      "stablecoin": "STABLECOIN COST",
-      "fiat": "BEST APP",
-      "winRate": "STABLECOIN CHEAPER"
+      "corridor": "ROUTE",
+      "stablecoin": "STABLECOIN ROUTE",
+      "fiat": "CHEAPEST APP",
+      "winRate": "HOURS STABLECOIN WAS CHEAPER"
     },
-    "seeCorridor": "see the receipt →",
+    "seeCorridor": "full breakdown →",
+    "corridorNote": "Stablecoin cost shown is the typical hour since {since} at S$5,000 or equivalent.",
+    "corridorMoreLink": "Where the cost comes from, and at what volume stablecoins win →",
+    "corridorCrossoverNote": "On Singapore → Philippines the stablecoin route only wins above about {crossover_amount} a month, when exchange fees drop to volume rates.",
+
     "footerMachineRoom": "how it was built — {priced} priced, {withheld} without enough data, last check {hour} UTC",
-    "premiumStripTitle": "Where the line runs",
+    "footerLine": "Prices checked every hour by four AI agents. Every number links to the file it came from. <a href=\"https://github.com/SebR214/margin\">Code and raw data are public on GitHub →</a>",
+
+    "premiumStripTitle": "Street dollar vs official rate: the 10 widest gaps this hour",
+    "premiumStripLede": "A real gap exists in only a handful of countries. {biggest_gap_country} is by far the widest.",
     "premiumStripAxisLeft": "official rate is real",
     "premiumStripAxisRight": "official rate is fiction (log scale above 10%)",
-    "premiumStripNote": "The biggest tracked gap right now is {biggest_gap_country} at {biggest_gap_pct} above the official rate ({hour} UTC). Beyond the countries shown above, {rest_count} more have gaps up to {rest_max_pct}. Every route this site prices end to end has a near-zero gap, which is why stablecoins keep losing here."
+    "premiumStripNote": "The other {rest_count} countries we price have gaps below {rest_max_pct}. <a href=\"./the-index.html\">See all countries →</a>",
+
+    "thisHourHeader": "This hour · updated {hour} UTC",
+    "thisHourLineTemplate": "Widest gap: {country}. A dollar costs {pct} more on the street than at the official rate, up from {past_pct} on {since}. Rising fastest this month: {fast_country}, up {points} points.",
+    "chartTitleTemplate": "{country}: street price over official rate, % · since {since}",
+    "sourceLineTemplate": "Based on {n} Binance P2P sell ads · <a href=\"./country.html?ccy={ccy}\" style=\"font-weight:600;color:#0B0B0B\">{country} in full →</a>"
   },
   "nav": [
     {
