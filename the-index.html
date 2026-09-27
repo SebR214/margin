@@ -45,11 +45,16 @@
   .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px}
   .wrow{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--rule);font-size:14px}
   .wrow .c{color:#6B6B6B;white-space:nowrap} .wrow .r{color:#9A9A9A;text-align:right}
+  .reaction-hdr{display:grid;grid-template-columns:1fr 180px 130px;gap:16px;align-items:center;border-bottom:1px solid #0B0B0B;padding:8px 0}
+  .reaction-row{display:grid;grid-template-columns:1fr 180px 130px;gap:16px;align-items:center;padding:11px 0;border-bottom:1px solid var(--rule);font-size:14px}
+  .reaction-row .val{color:#817FCC;font-weight:700}
+  .reaction-row .conf{font-size:12px;letter-spacing:.04em;color:#6B6B6B;text-transform:uppercase}
   section{padding:40px 48px 0}
   section:last-of-type{padding-bottom:44px}
   @media(max-width:900px){
     .gaps-hdr,.gap-row{grid-template-columns:50px 1fr 130px} .gap-rt,.gaps-hdr div:nth-child(4){display:none}
     .grid3{grid-template-columns:1fr 1fr} .grid2{grid-template-columns:1fr}
+    .reaction-hdr,.reaction-row{grid-template-columns:1fr 110px 90px;gap:10px}
     h1{font-size:30px} .headline{font-size:26px} section{padding:32px 24px 0} header{padding:22px 24px} .hero{padding:32px 24px 0}
   }
 
@@ -120,6 +125,19 @@
     </div>
     <div style="font-size:13px;color:#6B6B6B;padding-bottom:10px">A price was collected and stored, but it does not meet the evidence rule, so it is not shown as a number. Each country keeps its page and its reason.</div>
     <div class="grid2" id="withheldGrid"></div>
+  </section>
+
+  <section id="reaction">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px">
+      <div class="h" style="padding-bottom:0">How fast does the street react?</div>
+      <div class="lbl" id="reactionCount">&nbsp;</div>
+    </div>
+    <div class="p" id="reactionLede" style="font-size:14px;color:#6B6B6B;max-width:760px;padding-bottom:14px">Loading…</div>
+    <div class="reaction-hdr lbl"><div>COUNTRY</div><div>CATCHES UP IN</div><div>CONFIDENCE</div></div>
+    <div id="reactionBody"></div>
+    <div class="p" id="reactionSkipped" style="font-size:13px;color:#6B6B6B;padding-top:12px"></div>
+    <div class="p" id="reactionFinding" style="font-size:14px;color:#222;max-width:760px;padding-top:16px"></div>
+    <div style="font-size:13px;color:#6B6B6B;padding-top:8px"><a href="./how-it-works.html#reaction-speed" style="font-weight:600;color:#0B0B0B">How this is measured, and which countries aren't counted yet →</a></div>
   </section>
 </div>
 
@@ -268,6 +286,66 @@
     });
   }).catch(function(){
     document.getElementById('ledeText').textContent = 'Could not load this hour\'s data. That failure is shown, not hidden.';
+  });
+})();
+</script>
+
+<script>
+(function(){
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // Plain-language duration, per DESIGN.md: round numbers in headline text,
+  // "about" rather than a false-precision decimal, days once it's really days.
+  function fmtLag(hours) {
+    if (hours < 1.5) return 'about an hour';
+    if (hours < 36) return 'about ' + Math.round(hours) + ' hours';
+    var days = hours / 24;
+    var d = Math.round(days * 10) / 10;
+    if (d >= 3) d = Math.round(d);
+    return 'about ' + (d % 1 === 0 ? d.toFixed(0) : d.toFixed(1)) + (d === 1 ? ' day' : ' days');
+  }
+
+  fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+    var countries = d.countries || [];
+    var skipped = d.not_enough_data || [];
+
+    document.getElementById('reactionCount').textContent = countries.length + ' OF ' + d.n_countries_total + ' COUNTRIES';
+
+    if (!countries.length) {
+      document.getElementById('reactionLede').textContent = 'Not enough hourly history yet to measure this for any tracked country.';
+      return;
+    }
+
+    var fastest = countries[0];
+    var slowest = countries[countries.length - 1];
+    document.getElementById('reactionLede').innerHTML =
+      'When a country’s official dollar rate moves, how long until its street price catches up? ' +
+      countries.length + ' countries now have enough hourly history to measure it. The fastest, <b>' + esc(fastest.country) + '</b>, catches up in ' + fmtLag(fastest.median_response_hours) +
+      '. The slowest, <b>' + esc(slowest.country) + '</b>, takes ' + fmtLag(slowest.median_response_hours) + '.';
+
+    document.getElementById('reactionBody').innerHTML = countries.map(function(c){
+      return '<div class="reaction-row">' +
+        '<a href="./country.html?ccy='+esc(c.ccy)+'" style="color:#0B0B0B">'+esc(c.country)+'</a>' +
+        '<div class="val num">'+fmtLag(c.median_response_hours)+'</div>' +
+        '<div class="conf">'+esc(c.confidence)+' &middot; '+c.n_events_resolved+' move'+(c.n_events_resolved===1?'':'s')+' seen</div></div>';
+    }).join('');
+
+    document.getElementById('reactionSkipped').textContent =
+      skipped.length + ' countries don’t have enough hourly history yet to measure this, or their official rate hasn’t moved enough to react to: ' +
+      skipped.slice(0, 8).map(function(s){ return s.country; }).join(', ') + (skipped.length > 8 ? ', and ' + (skipped.length - 8) + ' more' : '') + '.';
+
+    // Honest check against the framing this feature started from: does a
+    // wider premium mean a slower reaction? d.premium_lag_correlation is
+    // computed once in tools/emit_response_time.py from these same rows,
+    // never typed in here.
+    var r = d.premium_lag_correlation;
+    var relStrength = (r == null) ? 'not enough countries to check yet'
+      : (Math.abs(r) < 0.2 ? 'barely related at all (r = ' + r.toFixed(2) + ')'
+        : (Math.abs(r) < 0.5 ? 'weakly related (r = ' + r.toFixed(2) + ')' : 'closely related (r = ' + r.toFixed(2) + ')'));
+    document.getElementById('reactionFinding').textContent =
+      'You might expect the countries with the biggest gap between street and official price to react the slowest. In this data they’re ' + relStrength + ': how wide a country’s premium runs and how fast its street price reacts to an official move don’t reliably move together. See how it’s measured for the full check.';
+  }).catch(function(){
+    document.getElementById('reactionLede').textContent = 'Could not load the reaction-speed data. That failure is shown, not hidden.';
   });
 })();
 </script>
