@@ -160,35 +160,31 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
   window.hiwTrackedByName = {};
   (d.countries || []).forEach(function(c){ window.hiwTrackedByName[c.country.toLowerCase()] = c; });
 
-  // Same date-reconstruction helper country.html and the-index.html already
-  // use for their own MarginChart calls -- spark has no timestamps of its
-  // own, only history_start + hour_utc + length, so the x-axis is rebuilt
-  // from those the same way everywhere on the site.
-  function sparkDates(c) {
-    if (!c.spark || !c.history_start || !c.hour_utc) return [];
-    var end = new Date(c.hour_utc), n = c.spark.length, out = [];
-    for (var i = 0; i < n; i++) { var dd = new Date(end); dd.setUTCDate(dd.getUTCDate() - (n - 1 - i)); out.push(dd.toISOString()); }
-    return out;
+  // ---- Three real case studies, read straight from each currency's own
+  // data/countries/<CCY>.json rather than from index_latest.json's
+  // "countries" list. That list only carries currencies priced THIS hour --
+  // a currency briefly withheld (e.g. a crossed market) drops out of it
+  // entirely, which would blank a whole case study over a one-hour hiccup.
+  // Each country file keeps its full daily "history" array (with real
+  // dates, not reconstructed ones) regardless of whether the current hour
+  // itself cleared the evidence bar, so these examples stay stable.
+  function loadCountryFile(ccy) {
+    return fetch('./data/countries/' + ccy + '.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; });
   }
 
-  // ---- Three real case studies, built only from files this site already
-  // collects (data/index_latest.json's own spark for Algeria and the CFA
-  // franc, data/p2p_basis.csv's raw hourly rows for Nigeria, whose own
-  // index_latest spark is only 1 point long right now). Every number below
-  // is read from those files at load time, never typed into this page.
-  (function renderCaseStudies() {
-    var ngn = byCcy['NGN'], dzd = byCcy['DZD'], xaf = byCcy['XAF'];
+  Promise.all([loadCountryFile('NGN'), loadCountryFile('DZD'), loadCountryFile('XAF')]).then(function(res){
+    var ngn = res[0], dzd = res[1], xaf = res[2];
 
     // 1. FLOAT -- Nigeria let the naira trade freely instead of defending
-    // an official peg. data/p2p_basis.csv's own coingecko rows (source_ok
-    // true) go back to 5 September; this site's daily index for NGN only
-    // started accumulating history on 27 September, so the chart is built
-    // straight from that raw file instead of from index_latest's 1-point
-    // spark.
-    if (ngn) {
+    // an official peg. Its own history array only started accumulating
+    // daily points recently, so the day-by-day chart is built straight from
+    // data/p2p_basis.csv's raw hourly rows (the same file this country's
+    // own number is computed from) instead.
+    var ngnNow = ngn && (ngn.index_pct != null ? ngn.index_pct : (ngn.history && ngn.history.length ? ngn.history[ngn.history.length - 1].index_pct : null));
+    if (ngnNow != null) {
       document.getElementById('floatP').innerHTML =
         'Nigeria used to run two dollar prices: an official one, and a much higher street price. The government stopped defending the official rate and let the naira trade freely. Today a dollar on the street costs about what the official rate says it should, <b class="num">' +
-        (ngn.index_pct >= 0 ? '+' : '') + ngn.index_pct.toFixed(1) + '%</b> apart, as of this hour.';
+        (ngnNow >= 0 ? '+' : '') + ngnNow.toFixed(1) + '%</b> apart.';
     } else {
       document.getElementById('floatP').textContent = 'Nigeria has no price from us this hour to show here.';
     }
@@ -219,20 +215,24 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
     });
 
     // 2. CAPITAL CONTROLS -- Algeria restricts legal access to dollars.
-    // data/index_latest.json's own 23-day spark for DZD covers exactly
-    // three weeks, so "three weeks ago" is the first point already in it,
-    // not a chosen window.
-    if (dzd && dzd.spark && dzd.spark.length > 1) {
-      var dzdSpark = dzd.spark, dzdN = dzdSpark.length;
+    // Its own history array is real dates paired with real daily figures,
+    // going back to when collection for it began.
+    var dzdHist = dzd && dzd.history;
+    if (dzdHist && dzdHist.length > 1) {
+      var dzdN = dzdHist.length;
       var threeWeeksAgoIdx = Math.max(0, dzdN - 1 - 21);
-      var startV = dzdSpark[threeWeeksAgoIdx], endV = dzdSpark[dzdN - 1];
+      var startV = dzdHist[threeWeeksAgoIdx].index_pct, endV = dzdHist[dzdN - 1].index_pct;
       var climb = endV - startV;
       document.getElementById('controlsP').innerHTML =
         'Algeria makes it hard to legally buy dollars. That scarcity has a price. Three weeks ago a dollar cost <b class="num">' +
         startV.toFixed(1) + '%</b> more than the official rate on the street. Today it costs <b class="num">' +
         endV.toFixed(1) + '%</b> more, a climb of about <b class="num">' + Math.abs(climb).toFixed(1) + ' points</b> in three weeks.';
-      document.getElementById('controlsCap').textContent = 'Algeria, the dinar: the same gap, every day since ' + dzd.history_start + '.';
-      MarginChart.render(document.getElementById('controlsChart'), { spark: dzdSpark, timestamps: sparkDates(dzd), valueSuffix: '%' });
+      document.getElementById('controlsCap').textContent = 'Algeria, the dinar: the same gap, every day since ' + dzdHist[0].date + '.';
+      MarginChart.render(document.getElementById('controlsChart'), {
+        spark: dzdHist.map(function(p){ return p.index_pct; }),
+        timestamps: dzdHist.map(function(p){ return p.date + 'T00:00:00Z'; }),
+        valueSuffix: '%'
+      });
     } else {
       document.getElementById('controlsP').textContent = 'Algeria has no price from us this hour to show here.';
     }
@@ -241,19 +241,25 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
     // euro at a fixed official rate. A peg fixes the OFFICIAL number; it
     // says nothing about what people actually pay, which is exactly what
     // this site measures independently of that peg.
-    if (xaf && xaf.spark && xaf.spark.length > 1) {
-      var xafSpark = xaf.spark;
-      var lo = Math.min.apply(null, xafSpark), hi = Math.max.apply(null, xafSpark);
+    var xafHist = xaf && xaf.history;
+    if (xafHist && xafHist.length > 1) {
+      var xafVals = xafHist.map(function(p){ return p.index_pct; });
+      var lo = Math.min.apply(null, xafVals), hi = Math.max.apply(null, xafVals);
+      var xafNow = xaf.index_pct != null ? xaf.index_pct : xafVals[xafVals.length - 1];
       document.getElementById('pegP').innerHTML =
         'Six countries in central Africa peg their currency to the euro at a fixed rate. On paper that should mean the gap to the official rate is zero. It has not been. Every day we have measured it, a dollar has cost between <b class="num">' +
         lo.toFixed(1) + '%</b> and <b class="num">' + hi.toFixed(1) + '%</b> more than the pegged rate says it should, ' +
-        (xaf.index_pct >= 0 ? '+' : '') + xaf.index_pct.toFixed(1) + '% right now. The peg fixes the official number. It does not fix what people actually pay.';
-      document.getElementById('pegCap').textContent = 'The Central African CFA franc: the gap to its own official euro peg, every day since ' + xaf.history_start + '.';
-      MarginChart.render(document.getElementById('pegChart'), { spark: xafSpark, timestamps: sparkDates(xaf), valueSuffix: '%' });
+        (xafNow >= 0 ? '+' : '') + xafNow.toFixed(1) + '% most recently. The peg fixes the official number. It does not fix what people actually pay.';
+      document.getElementById('pegCap').textContent = 'The Central African CFA franc: the gap to its own official euro peg, every day since ' + xafHist[0].date + '.';
+      MarginChart.render(document.getElementById('pegChart'), {
+        spark: xafVals,
+        timestamps: xafHist.map(function(p){ return p.date + 'T00:00:00Z'; }),
+        valueSuffix: '%'
+      });
     } else {
       document.getElementById('pegP').textContent = 'The Central African CFA franc has no price from us this hour to show here.';
     }
-  })();
+  });
 
   fetch('./data/fx_rates.csv', {cache:'no-store'}).then(function(r){ return r.text(); }).then(function(text){
     var lines = text.replace(/\r/g, '').split('\n');
