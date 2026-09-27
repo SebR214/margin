@@ -235,6 +235,32 @@ let bySize={}, histBySize={}, size=5000, newest="";
 // Corridor 1 is the default and stays first. allRows holds every corridor so
 // switching regroups in place rather than refetching samples.csv.
 let allRows=[], corrKeys=[], corridor="SGD->PHP", feeChecks=[], withdrawalFees=[], wfBySample={};
+let providersLatest=null;
+// The true cheapest APP (never the stablecoin route itself) for this
+// corridor+size, from data/providers_latest.json -- the same file
+// sending-money.html reads, built by tools/emit_providers.py from BOTH
+// providers' own direct quotes (data/provider_quotes.csv, which is where
+// Airwallex/Instarem live) and the Wise comparison feed, sorted cheapest
+// first. samples.csv's baseline_provider/baseline_cost_bps columns only
+// ever hold the winner of the Wise feed alone, which can name a provider
+// that is not actually the cheapest once direct quotes are considered
+// (SEB: corridor.html called Wise "the cheapest app" while Airwallex
+// quoted less for the same route). Falls back to the samples.csv row's own
+// baseline_provider/baseline_cost_bps when providers_latest.json has no
+// entry for this exact corridor+size yet, so a gap in the newer file never
+// blanks this number.
+function cheapestApp(corridorKey, sizeAmount, fallbackRow){
+  const rows=providersLatest && providersLatest.corridors &&
+    providersLatest.corridors[corridorKey] &&
+    providersLatest.corridors[corridorKey].sizes &&
+    providersLatest.corridors[corridorKey].sizes[String(sizeAmount)] &&
+    providersLatest.corridors[corridorKey].sizes[String(sizeAmount)].rows;
+  if(rows && rows.length){
+    const app=rows.find(rr=>rr.source!=="measured");
+    if(app) return { provider: app.provider, bps: app.cost_pct*100 };
+  }
+  return { provider: fallbackRow.baseline_provider, bps: +fallbackRow.baseline_cost_bps };
+}
 const PLACE={SGD:"Singapore",PHP:"the Philippines",USD:"the US",MXN:"Mexico",AUD:"Australia",NZD:"New Zealand"};
 const place=c=>PLACE[c]||c;
 const dstOf=r=>((r&&r.dst)||"").trim();
@@ -348,6 +374,7 @@ async function boot(){
   document.getElementById("verdict2").textContent=COPY.verdict2||"";
   feeChecks=await loadCSVOptional("./data/fee_checks.csv");
   withdrawalFees=await loadCSVOptional("./data/withdrawal_fees.csv");
+  providersLatest=await fetch("./data/providers_latest.json").then(r=>r.ok?r.json():null).catch(()=>null);
   // The waterfall's three bars, computed once in the collector so they
   // reconcile to the total exactly -- not reconstructed here from
   // basis+fee fields, which is what drifted (SEB: corridor waterfall did
@@ -458,13 +485,17 @@ function renderDepth(r){
 }
 
 function render(){
-  const r=bySize[size], t=+r.cost_bps_taker, m=+r.cost_bps_maker, base=+r.baseline_cost_bps;
+  const r=bySize[size], t=+r.cost_bps_taker, m=+r.cost_bps_maker;
+  // "The cheapest app" is the true cheapest of every quote for this route
+  // (direct provider quotes plus the comparison feed), not just whoever
+  // wins the Wise comparison feed alone -- see cheapestApp() above.
+  const cheapest=cheapestApp(r.corridor,size,r), base=cheapest.bps;
   const cw=t<base, mw=m<base;
   const N=COPY.numCards||{};
   document.getElementById("nums").innerHTML=`
     ${numCard((N.buyingNow||{}).label,(N.buyingNow||{}).sub,t,cw,size)}
     ${numCard((N.waitingOwnPrice||{}).label,(N.waitingOwnPrice||{}).sub,m,mw,size)}
-    ${numCard(r.baseline_provider||N.cheapestProviderLabel,N.cheapestProviderSub,base,null,size)}`;
+    ${numCard(cheapest.provider||N.cheapestProviderLabel,N.cheapestProviderSub,base,null,size)}`;
   // Same figure the waterfall's "Moving it" bar shows a few lines down --
   // reads from the same sidecar so this line and that bar never disagree.
   // Falls back to the old approximation only when the sidecar has no row
@@ -476,14 +507,14 @@ function render(){
   const VL=COPY.verdictLine||{};
   document.getElementById("verdict").innerHTML=
     `<b>${cw?VL.cryptoCheaper:VL.cryptoDearer}</b> `+
-    T(VL.sendTemplate,{ amount: money(size), place: dstPlace, provider: r.baseline_provider, providerCost: cash(size,base), routeCost: cash(size,t) })+" "+
+    T(VL.sendTemplate,{ amount: money(size), place: dstPlace, provider: cheapest.provider, providerCost: cash(size,base), routeCost: cash(size,t) })+" "+
     (cw?T(VL.youSave,{amount:cashDiff(size,base,t)}):T(VL.moreExpensive,{amount:cashDiff(size,t,base)}))+" "+
     T(VL.waitingTemplate,{ amount: cash(size,m), closes: mw?VL.doesClose:VL.doesNotClose })+
     `<div class="split"><span>${VL.blockchainSplit}: <b>${cash(size,rail)}</b></span><span>${VL.exchangesSplit}: <b>${cash(size,doors)}</b></span></div>`;
   document.getElementById("wf-size").textContent="· "+money(size);
   document.getElementById("hist-size").textContent="· "+money(size);
   renderDepth(r);
-  drawWaterfall(r); drawLadder(); drawHistory();
+  drawWaterfall(r,cheapest); drawLadder(); drawHistory();
 }
 
 function numCard(label,sub,val,win,n){
@@ -494,7 +525,7 @@ function numCard(label,sub,val,win,n){
     <div class="n-v">${cash(n,val)}</div><div class="n-s">${pct(val)} of what you send · ${sub}</div></div>`;
 }
 
-function drawWaterfall(r){
+function drawWaterfall(r,cheapest){
   // Buy the coin, move it, sell it -- computed once in the collector as a
   // sequential chain (decompose()'s own gross->bought->stable->quote->landed
   // steps), not reconstructed here as independent basis+fee sums, which is
@@ -513,7 +544,9 @@ function drawWaterfall(r){
     {l:"Moving it", v:+wf.wf_move_bps, k:"rail"},
     {l:"Selling it in "+place(dstOf(r)), v:+wf.wf_sell_bps, k:"neg"},
   ];
-  const total=+r.cost_bps_taker, base=+r.baseline_cost_bps;
+  const total=+r.cost_bps_taker;
+  cheapest=cheapest||cheapestApp(r.corridor,n,r);
+  const base=cheapest.bps;
   let run=0; const cum=[0]; comps.forEach(c=>{run+=c.v; cum.push(run);});
   const all=[0,total,base,...cum], dMin=Math.min(...all), dMax=Math.max(...all);
   const pad=(dMax-dMin)*.12||10, lo=dMin-pad, hi=dMax+pad;
@@ -541,7 +574,7 @@ function drawWaterfall(r){
   let s=`<line x1="${X(0)}" y1="${top}" x2="${X(0)}" y2="${top+rows*rowH}" stroke="var(--color-divider)" stroke-width="1"/>`;
   // baseline (incumbent) marker
   s+=`<line x1="${X(base).toFixed(1)}" y1="${top-2}" x2="${X(base).toFixed(1)}" y2="${top+rows*rowH+4}" stroke="var(--neg)" stroke-width="1.3" stroke-dasharray="3 3"/>`+
-     `<text x="${X(base).toFixed(1)}" y="${top+rows*rowH+18}" fill="var(--neg)" font-size="10.5" font-family="var(--mono)" text-anchor="middle">${r.baseline_provider} ${cash(n,base)}</text>`;
+     `<text x="${X(base).toFixed(1)}" y="${top+rows*rowH+18}" fill="var(--neg)" font-size="10.5" font-family="var(--mono)" text-anchor="middle">${cheapest.provider} ${cash(n,base)}</text>`;
   // The three bps legs already sum to cost_bps_taker exactly (collector-side,
   // to the cent). Converting each to a DOLLAR amount and rounding each
   // independently can still land a bar's label a cent off the total --
@@ -576,12 +609,13 @@ function drawLadder(){
   const LT=COPY.ladderTable||{}, cols=LT.columns||{};
   let h=`<tr><th>${cols.send||""}</th><th>${cols.buyingNow||""}</th><th>${cols.waitingOwnPrice||""}</th><th>${cols.cheapestProvider||""}</th><th>${cols.cheaper||""}</th></tr>`;
   for(const r of rows){
-    const s=+r.notional_src, t=+r.cost_bps_taker, m=+r.cost_bps_maker, b=+r.baseline_cost_bps, cw=t<b;
+    const s=+r.notional_src, t=+r.cost_bps_taker, m=+r.cost_bps_maker;
+    const cheapest=cheapestApp(r.corridor,s,r), b=cheapest.bps, cw=t<b;
     h+=`<tr class="${s===size?"hl":""}${s===200?" hl":""}">
       <td>${money(s)}${s===200?` <span class="tag">${LT.worstTag||""}</span>`:""}</td>
       <td>${cash(s,t)}<br><span class="tag">${pct(t)}</span></td>
       <td>${cash(s,m)}<br><span class="tag">${pct(m)}</span></td>
-      <td>${r.baseline_provider}<br><span class="tag">${cash(s,b)}</span></td>
+      <td>${cheapest.provider}<br><span class="tag">${cash(s,b)}</span></td>
       <td class="winner ${cw?"c":"f"}">${cw?T(LT.dollarRouteByTemplate,{amount:cashDiff(s,t,b)}):T(LT.providerByTemplate,{amount:cashDiff(s,b,t)})}</td></tr>`;
   }
   document.getElementById("ladder").innerHTML=h;

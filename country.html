@@ -173,11 +173,20 @@
     html += '<div class="steps">';
     if (p2p) {
       var reqAds = idx.min_buy_ads || 10;
-      var verdictOk = (p2p.n_ads || 0) >= reqAds;
-      html += step(1, 'THE EVIDENCE', Math.round(p2p.n_ads) + ' sell-side ads collected on the open market at ' + fmtTs(p2p.ts_utc) + ' &middot; median asking price <b class="num">' + p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar', 'data/p2p_basis.csv');
+      // The evidence rule only ever counts the buy side (tools/emit_countries.py's
+      // MIN_BUY_ADS check) -- that count is what's already baked as
+      // country.n_sources and is the same number behind country.evidence_words
+      // ("N people selling"). p2p.n_ads from data/p2p_basis.csv is buy-side AND
+      // sell-side ads added together, so using it here counted every ad twice
+      // and made the page compare two different numbers against one threshold
+      // (SEB: Algeria showed "10 people selling" and "20 ads, 10 required" on
+      // the same page for the same evidence).
+      var nAdsForEvidence = country.n_sources != null ? country.n_sources : p2p.n_ads;
+      var verdictOk = (nAdsForEvidence || 0) >= reqAds;
+      html += step(1, 'THE EVIDENCE', Math.round(nAdsForEvidence) + ' buy-side ads collected on the open market at ' + fmtTs(p2p.ts_utc) + ' &middot; median asking price <b class="num">' + p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar', 'data/p2p_basis.csv');
       html += step(2, 'THE OFFICIAL RATE', 'captured in the same pass: <b class="num">' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar', 'data/fx_rates.csv');
       html += step(3, 'THE MATH', p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ÷ ' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' − 1 = <b class="num">' + (country.index_pct>=0?'+':'') + country.index_pct.toFixed(2) + '%</b>', 'data/index_latest.json');
-      html += step(4, 'THE VERDICT', 'published, because the evidence rule is ' + (verdictOk?'met':'not met') + ' — ' + Math.round(p2p.n_ads) + ' ads, ' + reqAds + ' required.', 'data/index_latest.json');
+      html += step(4, 'THE VERDICT', 'published, because the evidence rule is ' + (verdictOk?'met':'not met') + ' — ' + Math.round(nAdsForEvidence) + ' ads, ' + reqAds + ' required.', 'data/index_latest.json');
       if (depth) {
         html += step(5, 'HOW MUCH THIS HOLDS FOR', depth.n_ads_held + ' of the ' + depth.n_ads_priced + ' offers checked stayed within 1% of the best price, each good for about $' + depth.filter_usd + ' &middot; ' + (depth.is_floor ? 'at least ' : 'about ') + '<b class="num">' + fmtMoney(depth.depth_usd) + '</b> before the price moved', 'data/street_depth_latest.json');
       }
