@@ -197,6 +197,13 @@ jobs:
         if: always() && steps.needed.outputs.proceed == 'true'
         run: python3 tools/emit_providers.py
 
+      - name: Emit real hourly coverage (sending-money series)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Recomputed every run from data/samples.csv, so the coverage % and
+        # longest-gap figure shown on sending-money.html and corridor.html
+        # never drift stale -- see tools/emit_coverage.py.
+        run: python3 tools/emit_coverage.py
+
       - name: Emit the price-change record
         if: always() && steps.needed.outputs.proceed == 'true'
         # Append-only. A change is recorded only when a provider moved against
