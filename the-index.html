@@ -127,6 +127,21 @@
     <div class="grid2" id="withheldGrid"></div>
   </section>
 
+  <!-- "How fast does the street react?" (PR #183) taken off the site
+       2026-09-27, owner-verified: data/fx_rates.csv's official rate from
+       open.er-api.com only actually changes once a day (confirmed live --
+       PHP's fx_mid_per_usd sat at exactly 62.509018 across 17 straight
+       hourly rows, then jumped once and held flat again), despite being
+       polled hourly. Every "official rate move" this feature detects is
+       that once-daily refresh, not a real market move, so every reaction
+       time it reports (e.g. "Australia catches up in about an hour") is
+       measuring how two data feeds happen to line up, not street behavior.
+       tools/emit_response_time.py and data/response_time_latest.json are
+       left in place, not deleted -- this is wrong given the input data,
+       not wrong as a method, and can come back once an hourly-updating
+       official rate exists. Do not re-enable by uncommenting alone; the
+       underlying rate source has to change first. -->
+  <!--
   <section id="reaction">
     <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px">
       <div class="h" style="padding-bottom:0">How fast does the street react?</div>
@@ -139,6 +154,7 @@
     <div class="p" id="reactionFinding" style="font-size:14px;color:#222;max-width:760px;padding-top:16px"></div>
     <div style="font-size:13px;color:#6B6B6B;padding-top:8px"><a href="./how-it-works.html#reaction-speed" style="font-weight:600;color:#0B0B0B">How this is measured, and which countries aren't counted yet →</a></div>
   </section>
+  -->
 </div>
 
 <script>
@@ -304,6 +320,11 @@
     if (d >= 3) d = Math.round(d);
     return 'about ' + (d % 1 === 0 ? d.toFixed(0) : d.toFixed(1)) + (d === 1 ? ' day' : ' days');
   }
+
+  // Section #reaction was taken off the page 2026-09-27 (see the HTML
+  // comment above it) -- this guard stops the fetch entirely rather than
+  // let it run against elements that no longer exist.
+  if (!document.getElementById('reactionCount')) return;
 
   fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
     var countries = d.countries || [];

@@ -80,6 +80,14 @@
     .mcp{display:none}
     .live{max-width:52vw;overflow:hidden}
     .live .num{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:middle}
+    /* .prow/.prow-hdr's 150px+150px fixed columns never had a mobile
+       override, so at <=760px the two fixed columns plus gaps alone
+       exceeded a 375px viewport and forced horizontal scroll on the
+       whole page -- found live 2026-09-27, scrollWidth 459px on a
+       375px viewport. */
+    .prow-hdr,.prow{grid-template-columns:1fr 74px 74px;gap:8px;font-size:13px}
+    .prow .source-label{font-size:10px}
+    .venue-combo-row{grid-template-columns:1fr 60px;gap:8px;font-size:12px}
   }
 </style>
 </head>
