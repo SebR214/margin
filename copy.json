@@ -1,7 +1,7 @@
 {
   "brand": "margin.wiki",
   "shared": {
-    "sourceMeterTemplate": "{n_own} of {n_total_quoted} prices this hour quoted by the provider itself, {n_comparison} from {comparison_feed_words} comparison, stablecoins from {n_stable_venues} exchanges."
+    "sourceMeterTemplate": "This hour: {n_own} of {n_total_quoted} prices came straight from the provider, {n_comparison} from a public price comparison. Stablecoin prices from {n_stable_venues} exchanges."
   },
   "home": {
     "headline": "Stablecoins rarely beat the cheapest transfer app. Except where money itself is broken.",
@@ -460,18 +460,25 @@
     }
   },
   "sendingMoney": {
+    "pageTitle": "What sending money costs, every provider, this hour",
     "exchangeOnlyDisclosure": "The stablecoin cost above only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.",
     "comparisonPromoDisclosure": "Some of these prices are first-time offers for new customers. Someone sending money again later may not get the same price.",
-    "crossoverWinTemplate": "Sending {sendingWords}, stablecoins beat the cheapest app about {pct}% of the time, when you wait for your own price instead of paying the market's.",
-    "crossoverNeverTemplate": "Sending {sendingWords}, stablecoins have not beaten the cheapest app in any of the hours we've measured.",
-    "crossoverExplain": "Waiting for your own price means placing an order at the price you want and letting it fill later, instead of buying or selling right away at whatever price is on offer.",
+    "routeFirstLineWinTemplate": "{routeWords}, {amountWords}: cheapest is {cheapestProvider} at {cheapestPct}%. The stablecoin route costs {stablecoinPct}% this hour. It has beaten the cheapest app in {winPct}% of hours since {startWords}.",
+    "routeFirstLineNeverTemplate": "{routeWords}, {amountWords}: cheapest is {cheapestProvider} at {cheapestPct}%. The stablecoin route costs {stablecoinPct}% this hour. It has not beaten the cheapest app in any hour since {startWords}.",
+    "colProvider": "PROVIDER",
+    "colCost": "COST",
+    "colPctTemplate": "COST AS % OF {amountWords}",
     "coverageTemplate": "Checked {checked} of {possible} hours since {start} ({pct}%). The longest single gap was {gapHours} hours, ending {gapEnd}.",
-    "findingsHeading": "What the machine has noticed",
-    "findingsLede": "Every provider's price against every other, day over day, folded in here instead of on a separate page. Newest first. This part of the page updates once a day, unlike the provider table above it, which updates hourly.",
-    "weekendTitle": "The weekend penalty index",
-    "patternsTitle": "Patterns, not one-offs",
-    "changesTitle": "Every change, day by day",
-    "weekendChartCaption": "share of provider-Saturday combinations that raised price, for each pair of countries this site tracks",
+    "findingsHeading": "Who changed their price, and when",
+    "findingsLede": "Checked once a day. Newest first.",
+    "weekendTitle": "Do providers charge more on Saturdays?",
+    "weekendFirstLineTemplate": "Rarely. In {n} of {m} cases a provider charged more on Saturday than on Friday, by {pct}% of the amount on average. {named}. The stablecoin route prices the same on weekends.",
+    "weekendChartCaption": "Saturday price rises: how often a provider's price went up from Friday, all providers, all Saturdays checked.",
+    "patternsTitle": "Who raises prices most often",
+    "patternsWeekendCardTemplate": "{provider} charged more on Saturday than Friday on {n} of {m} Saturdays, {routeWords}.",
+    "patternsFreqCardTemplate": "{provider}, {routeWords}: up {n} times, down {m} times since {startWords}.",
+    "changesTitle": "Every price change, newest first",
+    "changeAgreeTemplate": "{n} of {m} daily checks agree.",
     "showAllTemplate": "Show all {n}",
     "showFewerLabel": "Show fewer",
     "noChanges": "No verified price changes in the current window."
