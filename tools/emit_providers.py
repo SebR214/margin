@@ -30,6 +30,7 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
 QUOTES = os.path.join(DATA, "provider_quotes.csv")
 SAMPLES = os.path.join(DATA, "samples.csv")
+STABLE_VENUES = os.path.join(DATA, "stable_venues.csv")
 OUT = os.path.join(DATA, "providers_latest.json")
 
 # Each corridor's comparison panel lives in its own file, because providers.csv
@@ -190,6 +191,45 @@ def crypto_route(corridor):
     return out, hour
 
 
+def stable_venues_this_hour(corridor, size):
+    """SOURCES task 3: every buy-venue/sell-venue combination
+    collector_stable_venues.py priced for `corridor` at `size`, in its
+    newest captured hour -- or None if that file has nothing for this
+    corridor/size yet (a fresh checkout, or a size the multi-venue
+    collector hasn't been run at). Mirrors crypto_route()'s own
+    newest-hour-for-this-corridor pattern above, scoped to `size` too since
+    stable_venues.csv is priced at one rung, not the whole ladder.
+    """
+    rs = [r for r in rows(STABLE_VENUES)
+          if (r.get("corridor") or "").strip() == corridor
+          and num(r, "notional_src") == size]
+    hour = newest_hour(rs, "ts_utc")
+    if hour is None:
+        return None
+    this_hour = in_hour(rs, hour, "ts_utc")
+    combos = []
+    for r in this_hour:
+        if not flag(r, "source_ok"):
+            continue
+        combos.append({
+            "buy_venue": r.get("buy_venue"), "sell_venue": r.get("sell_venue"),
+            "cost_pct": round(num(r, "cost_bps") / 100, 4),
+            "is_default_pair": flag(r, "is_default_pair"),
+        })
+    if not combos:
+        return None
+    combos.sort(key=lambda c: c["cost_pct"])
+    all_venues = {c["buy_venue"] for c in combos} | {c["sell_venue"] for c in combos}
+    return {
+        "as_of_utc": hour.isoformat(),
+        "n_venues": len(all_venues),
+        "n_venues_buy": len({c["buy_venue"] for c in combos}),
+        "n_venues_sell": len({c["sell_venue"] for c in combos}),
+        "combos": combos,
+        "best": combos[0],
+    }
+
+
 def crossover_stats(corridor):
     """How often the stablecoin route, waiting for its own price, beats the
     cheapest ordinary provider -- at $5,000, across every hour samples.csv
@@ -267,13 +307,29 @@ def build(now=None):
                 })
             if size in crypto:
                 c = crypto[size]
+                venues = stable_venues_this_hour(corridor, size)
+                if venues:
+                    # Publish the cheapest EXECUTABLE combination this hour
+                    # (SOURCES task 3), not the single default-venue pair
+                    # samples.csv's cost_bps_taker still carries -- that pair's
+                    # own history keeps accumulating unchanged in samples.csv,
+                    # it just isn't the number shown as "the" stablecoin cost
+                    # once a cheaper combination exists this hour.
+                    cost_pct = venues["best"]["cost_pct"]
+                    words = ("best of " + str(venues["n_venues"])
+                             + " venues, via " + venues["best"]["buy_venue"]
+                             + " and " + venues["best"]["sell_venue"])
+                else:
+                    cost_pct = round(c / 100, 4)
+                    words = "measured on real exchanges, all in"
                 entries.append({
-                    "provider": "Sending it with stablecoins", "cost_pct": round(c / 100, 4),
-                    "costs": money(src, size * c / 1e4),
+                    "provider": "Sending it with stablecoins", "cost_pct": cost_pct,
+                    "costs": money(src, size * cost_pct / 100),
                     "source": "measured",
-                    "source_words": "measured on real exchanges, all in",
+                    "source_words": words,
                     "rate": None, "fee": None, "fee_words": None,
                     "also_quoted_pct": None,
+                    "venues": venues,
                 })
             entries.sort(key=lambda e: e["cost_pct"])
             for i, e in enumerate(entries):
