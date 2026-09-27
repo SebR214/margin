@@ -186,6 +186,23 @@ def count_countries():
 PREMIUM_CAP = 100.0
 PREMIUM_TOP_N = 10
 
+# The baked SVG has no real viewport to measure (no JS has run yet, so this
+# is what a crawler or a JS-off visitor sees, and what a visitor on any
+# device sees for the instant before index.html's own <script> re-renders
+# it at the real container width -- see renderPremiumStrip() there). A
+# hardcoded 800-wide viewBox scaled to fit a ~290px mobile card shrank
+# 13px/12px text down to an effective ~4.7px (SEB-reported). Baking at a
+# mobile-safe canonical width instead means the worst case (mobile, no JS)
+# still renders real, legible text; a wider screen's client-side render
+# then corrects it back UP to that screen's own real width. 320 is the
+# narrowest real content width index.html's own #premiumStripSection card
+# renders at on a 320px-wide viewport (the standard small-phone baseline):
+# 320 - 2*24 (lead-section padding) - 2*18 (card padding) - 2*1 (card
+# border) = 234. A wider phone (375px+) then scales this UP, not down, so
+# text only ever renders at or above its nominal size before JS corrects
+# the viewBox to the real width.
+PREMIUM_BAKE_W = 234
+
 
 def _premium_xfrac(pct):
     v = max(pct, 0.0)
@@ -218,10 +235,15 @@ def build_premium_strip(idx_doc, home_copy):
     shown = priced[:PREMIUM_TOP_N]
     rest = priced[PREMIUM_TOP_N:]
 
-    W, row_h, top = 800, 30, 6
-    label_w, value_w = 190, 70
+    W, row_h, top = PREMIUM_BAKE_W, 30, 6
+    # Same proportional-gutter scaling as renderPremiumStrip() in
+    # index.html's own <script> -- 190/70 are the desktop amounts this
+    # reduces to at W=800; at the mobile bake width they shrink so the bar
+    # span keeps a real proportion of the row instead of a sliver.
+    label_w = min(190, round(W * 0.42))
+    value_w = min(70, round(W * 0.18))
     bar_left = label_w
-    bar_w = W - value_w - bar_left  # 540
+    bar_w = W - value_w - bar_left
     H = top + len(shown) * row_h + 10
 
     rows = []

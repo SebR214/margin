@@ -184,7 +184,14 @@
       container.innerHTML = '<div style="font-size:13px;color:#9A9A9A;padding:16px 0">Not enough measured sizes for this corridor yet.</div>';
       return;
     }
-    var w = 860, h = 220, padL = 24, padR = 90, padT = 16, padB = 30;
+    // w = the container's own real rendered width (it's already in the DOM
+    // by the time this runs -- see the call site), not a hardcoded 860 --
+    // a fixed-860 viewBox squeezed width:100% into a narrow mobile card
+    // scaled every font-size down with it. padL/padR/padT/padB stay fixed
+    // pixel gutters (like js/chart.js's own rightGutter/pad): only the
+    // plotted span shrinks on a narrow screen, not the axis-label chrome.
+    var w = Math.max(240, Math.round(container.getBoundingClientRect().width)) || 860;
+    var h = 220, padL = 24, padR = 90, padT = 16, padB = 30;
     var plotW = w - padL - padR, plotH = h - padT - padB;
     var allVals = points.map(function(p){ return p.costBpsTaker; })
       .concat(points.map(function(p){ return p.costBpsMaker; }))
@@ -406,7 +413,12 @@
       // counts only -- no corridor with zero judged Saturdays is drawn.
       var rows = corridorRows.filter(function(r){ return r.totalSlots > 0; });
       if (!rows.length) { container.innerHTML = ''; return; }
-      var w = 760, rowH = 34, padL = 4, padR = 54, top = 8;
+      // Same fix as renderCostCurve() above: w is this container's own
+      // real rendered width (it's a static div already in the page), not
+      // a hardcoded 760 -- measured effective text size before this fix
+      // was ~5.2px on a 375px-wide phone.
+      var w = Math.max(240, Math.round(container.getBoundingClientRect().width)) || 760;
+      var rowH = 34, padL = 4, padR = 54, top = 8;
       var h = top + rows.length * rowH + 8;
       var plotW = w - padL - padR;
       var maxRate = Math.max(10, Math.max.apply(null, rows.map(function(r){ return r.ratePct; })));

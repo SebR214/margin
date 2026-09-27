@@ -517,10 +517,26 @@ function drawWaterfall(r){
   let run=0; const cum=[0]; comps.forEach(c=>{run+=c.v; cum.push(run);});
   const all=[0,total,base,...cum], dMin=Math.min(...all), dMax=Math.max(...all);
   const pad=(dMax-dMin)*.12||10, lo=dMin-pad, hi=dMax+pad;
-  const L=168, R=624, X=v=>L+(v-lo)/(hi-lo)*(R-L);
-  const rowH=30, top=6, W=640;
+  // W = the svg's own real rendered width (it's a static element, CSS
+  // width:100%, so its layout box is already correct before we touch the
+  // viewBox), not a hardcoded 640 -- a fixed 640-wide viewBox squeezed into
+  // a ~335px mobile card scaled every font-size down with it (measured:
+  // 10.5/10-unit text rendering at an effective ~5.5px/5.2px). Matches the
+  // same fix in index.html's renderWaterfall(); see its comment for why
+  // viewBox-width == real-width keeps 1 unit == 1 real px at any size.
+  const svg=document.getElementById("wf");
+  const W=Math.max(240, Math.round(svg.getBoundingClientRect().width)) || 640;
+  // Fixed pixel gutter, not a fraction of W -- like js/chart.js's own
+  // rightGutter, the value labels ("S$57.00") are real, constant-size text
+  // now that 1 unit == 1 real px, so the space reserved for them has to be
+  // a real constant amount too. A gutter that shrank proportionally with W
+  // clipped "S$57.00" down to "S$57" on a narrow card (measured: value text
+  // right edge at 355 against a 335-wide viewBox).
+  const rightGutter=56;
+  const L=Math.min(168, Math.round(W*0.5)), R=W-rightGutter, X=v=>L+(v-lo)/(hi-lo)*(R-L);
+  const rowH=30, top=6;
   const rows=comps.length+1, H=top+rows*rowH+30;
-  const svg=document.getElementById("wf"); svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
   const col={fee:"var(--pos)",fee2:"var(--fill)",neg:"var(--neg)",rail:"var(--rail)"};
   let s=`<line x1="${X(0)}" y1="${top}" x2="${X(0)}" y2="${top+rows*rowH}" stroke="var(--color-divider)" stroke-width="1"/>`;
   // baseline (incumbent) marker
@@ -584,7 +600,11 @@ function fmtHistDate(iso){
 function drawHistory(){
   const rows=histBySize[size]; const svg=document.getElementById("hist");
   const tip=document.getElementById("histTip");
-  const W=640,H=220,padL=44,padR=12,padT=12,padB=22;
+  // Same fix as drawWaterfall() above: W is this svg's own real rendered
+  // width, not a hardcoded 640 -- keeps 1 viewBox unit == 1 real px at any
+  // screen size instead of shrinking the axis/tooltip text on mobile.
+  const W=Math.max(240, Math.round(svg.getBoundingClientRect().width)) || 640, H=220, padL=44, padR=12, padT=12, padB=22;
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
   if(rows.length<2){ svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="var(--color-neutral-600)" font-size="12" font-family="var(--font-body)">${T((COPY.history||{}).buildingTemplate,{count:rows.length+(rows.length===1?" sample":" samples")})}</text>`; tip.style.opacity=0; return; }
   const HL=COPY.history||{};
   const series=[["cost_bps_taker","var(--pos)",HL.buyingNow||"buying it now"],["cost_bps_maker","var(--color-neutral-700)",HL.waitingOwnPrice||"waiting for your price"],["baseline_cost_bps","var(--neg)",HL.cheapestProvider||"best fiat provider"]];
