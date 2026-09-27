@@ -52,7 +52,7 @@
   section{padding:40px 48px 0}
   section:last-of-type{padding-bottom:44px}
   @media(max-width:900px){
-    .gaps-hdr,.gap-row{grid-template-columns:50px 1fr 130px} .gap-rt,.gaps-hdr div:nth-child(4){display:none}
+    .gaps-hdr,.gap-row{grid-template-columns:50px 1fr 130px} .gap-rt,.gaps-hdr div:nth-child(4),.gaps-hdr div:nth-child(6){display:none}
     .grid3{grid-template-columns:1fr 1fr} .grid2{grid-template-columns:1fr}
     .reaction-hdr,.reaction-row{grid-template-columns:1fr 110px 90px;gap:10px}
     h1{font-size:30px} .headline{font-size:26px} section{padding:32px 24px 0} header{padding:22px 24px} .hero{padding:32px 24px 0}
@@ -92,28 +92,31 @@
   </header>
 
   <div class="hero">
-    <h1>What a dollar really costs</h1>
+    <h1 id="pageTitle">What a dollar costs on the street vs the official rate</h1>
     <div class="lede" id="ledeText">Loading this hour's prices…</div>
     <div class="search">
       <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6.5" stroke="#9A9A9A" stroke-width="2"/><path d="M14 14l4 4" stroke="#9A9A9A" stroke-width="2" stroke-linecap="round"/></svg>
-      <input type="text" id="searchBox" placeholder="Find a country — Algeria, Vietnam, Argentina…"/>
+      <input type="text" id="searchBox" aria-label="Find a country" placeholder="Find a country"/>
     </div>
-    <div style="padding-top:8px;font-size:13px;color:#6B6B6B">Not sure what's tracked? <a href="#priced-list" style="font-weight:600;color:#0B0B0B">every country is listed below ↓</a></div>
   </div>
 
   <div class="featured" id="featured"></div>
 
   <section>
     <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px">
-      <div class="h" style="padding-bottom:0">The biggest gaps this hour</div>
+      <div class="h" style="padding-bottom:0">Widest gaps this hour</div>
     </div>
-    <div class="gaps-hdr lbl"><div>CODE</div><div>COUNTRY</div><div style="text-align:right">A DOLLAR COSTS</div><div style="text-align:right">BUY THEN SELL BACK</div><div>BASED ON</div></div>
+    <div class="gaps-hdr lbl">
+      <div>CODE</div><div>COUNTRY</div><div style="text-align:right">STREET PRICE OVER OFFICIAL</div><div style="text-align:right">ROUND-TRIP COST</div><div>BASED ON</div>
+      <div style="grid-row:2;grid-column:4;text-align:right;text-transform:none;letter-spacing:normal;font-size:12px;color:#9A9A9A;padding-top:4px">Buy a dollar and sell it straight back</div>
+    </div>
     <div id="gapsBody"></div>
+    <div id="frozenBody"></div>
   </section>
 
   <section id="priced-list">
     <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px">
-      <div class="h" style="padding-bottom:0">Every country priced this hour</div>
+      <div class="h" style="padding-bottom:0" id="pricedTitle">All countries with a price this hour</div>
       <div class="lbl" id="pricedCount">&nbsp;</div>
     </div>
     <div class="grid3" id="pricedGrid"></div>
@@ -121,10 +124,9 @@
 
   <section id="withheld">
     <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:6px">
-      <div class="h" style="padding-bottom:0;color:#6B6B6B">No price this hour</div>
-      <div class="lbl" id="withheldCount">&nbsp;</div>
+      <div class="h" style="padding-bottom:0;color:#6B6B6B" id="withheldTitle">No price this hour</div>
     </div>
-    <div style="font-size:13px;color:#6B6B6B;padding-bottom:10px">A price was collected and stored, but it does not meet the evidence rule, so it is not shown as a number. Each country keeps its page and its reason.</div>
+    <div style="font-size:13px;color:#6B6B6B;padding-bottom:10px">We only publish a price backed by at least 10 sell ads or a real order book. These fell short:</div>
     <div class="grid2" id="withheldGrid"></div>
   </section>
 
@@ -141,7 +143,13 @@
        left in place, not deleted -- this is wrong given the input data,
        not wrong as a method, and can come back once an hourly-updating
        official rate exists. Do not re-enable by uncommenting alone; the
-       underlying rate source has to change first. -->
+       underlying rate source has to change first.
+
+       Copy-rewrite session (2026-09-27, Section 5 of Sebastian's approved
+       copy rewrite): the rewrite doc's own section 5 content still assumed
+       this section existed and described how its copy should read. That
+       part of the doc is skipped here, deliberately -- this section stays
+       removed, per the above, not re-added and not re-worded. -->
   <!--
   <section id="reaction">
     <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px">
@@ -161,20 +169,62 @@
 <script>
 (function(){
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function fmtPct(n, digits){ digits = digits==null?2:digits; var v=n.toFixed(digits); return (n>=0?'+':'')+v+'%'; }
 
-  // A negative index_pct means the street price is BELOW the official rate --
-  // real, and it happens (Vietnam, Singapore, several others). A template
-  // that always says "costs X% more" turns a negative number into a false
-  // claim ("costs -0.35% more"). Branches on sign; a genuinely tiny gap gets
-  // its own honest phrase rather than a misleading "+0.02% more".
-  var PAR_EPSILON = 0.05;
-  function costPhrase(pct, digits) {
-    digits = digits == null ? 2 : digits;
-    if (Math.abs(pct) < PAR_EPSILON) return 'trades basically at the official rate';
-    if (pct > 0) return 'costs ' + pct.toFixed(digits) + '% more than the official rate';
-    return 'costs ' + Math.abs(pct).toFixed(digits) + '% less than the official rate';
+  // One decimal place everywhere on this page. A tiny negative rounds to
+  // "-0.0" at one decimal -- true but reads as a typo -- so a value that
+  // rounds to zero always prints as a plain "0.0%", never "-0.0%".
+  function fmtPct(n, digits){
+    digits = digits==null?1:digits;
+    var v = n.toFixed(digits);
+    if (parseFloat(v) === 0) return (0).toFixed(digits) + '%';
+    return (n>0?'+':'') + v + '%';
   }
+  // The widest-gaps table and the lede's own list state a gap as a plain,
+  // unsigned percentage -- the column header ("STREET PRICE OVER OFFICIAL")
+  // and the lede's own wording already carry the direction, so repeating a
+  // "+" or the word "more" on every row would say the same thing twice.
+  function fmtGapPct(n, digits){
+    digits = digits==null?1:digits;
+    var v = Math.abs(n).toFixed(digits);
+    if (parseFloat(v) === 0) v = (0).toFixed(digits);
+    return v + '%';
+  }
+
+  // "the Philippines", "the United Arab Emirates" -- correct as a sentence
+  // subject, but rule 6 of the copy rewrite bans "the" before a country
+  // name inside a list (a comma-separated run of countries, or a table/grid
+  // of them). Strips it only where this page builds that kind of list.
+  function listName(name){ return String(name||'').replace(/^the\s+/i, ''); }
+
+  // Terminology swap (Sebastian, 2026-09-27 copy rewrite): every P2P
+  // sell-ad count reads "Binance P2P sell ads", not "people selling" --
+  // the underlying evidence_words field itself still says "N people
+  // selling" (tools/emit_countries.py writes it), so the reword happens
+  // here, once, before display, rather than touching the data pipeline.
+  // A single-source quote (an order book, a broker quote, or the
+  // independent-price fallback) is exactly one source, one vote, so it
+  // gets "(low confidence)" appended regardless of which of those three it
+  // is -- n_sources === 1 is the one real signal for that, not the words.
+  function evidenceLabel(words, n){
+    var s = String(words||'')
+      .replace(/(\d+)\s+people selling/i, function(_, num){ return num + ' Binance P2P sell ads'; })
+      .replace(/(\d+)\s+person selling/i, function(_, num){ return num + ' Binance P2P sell ad'; });
+    if (n === 1) s += ' (low confidence)';
+    return s;
+  }
+
+  // Withheld reasons in plain words, per the copy rewrite -- the data's own
+  // `reason` field (tools/emit_countries.py) already carries one of exactly
+  // three plain-language sentences; this maps each to the shorter phrase
+  // the new Withheld section uses. Anything unmapped falls back to the raw
+  // reason rather than showing nothing.
+  var REASON_WORDS = {
+    'too few people selling to call it a price': 'too few sellers',
+    'nobody is offering to sell dollars here right now': 'no sellers right now',
+    'the buying and selling sides are not the same market here': 'buy and sell prices too far apart to trust'
+  };
+  function reasonWords(reason){ return REASON_WORDS[reason] || reason; }
+
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function shortDate(iso) {
     var d = new Date(iso);
@@ -200,55 +250,87 @@
 
   function renderFeatured(c){
     var dates = sparkDates(c);
-    var delta = c.spark && c.spark.length>1 ? c.index_pct - c.spark[0] : null;
     var sinceLabel = dates.length ? shortDate(dates[0]) : null;
     var html = '<div style="padding-top:26px"><div style="padding-bottom:18px">' +
-      '<a class="headline num" href="./country.html?ccy='+esc(c.ccy)+'" style="display:block;color:#0B0B0B" title="See how this number was made">A dollar in '+esc(c.country)+' '+costPhrase(c.index_pct)+'</a>' +
-      (delta!=null ? '<div class="delta num">'+(delta>=0?'+':'-')+Math.abs(delta).toFixed(1)+' points <span style="color:#817FCC">'+(delta>=0?'▲':'▼')+'</span>'+(sinceLabel ? ' since '+sinceLabel : '')+'</div>' : '') +
+      '<a class="headline num" href="./country.html?ccy='+esc(c.ccy)+'" style="display:block;color:#0B0B0B" title="See how this number was made">'+esc(listName(c.country))+': street price over official rate, %'+(sinceLabel ? ' · since '+sinceLabel : '')+'</a>' +
       '</div><div id="featChart"></div></div>' +
-      '<div class="receipt" style="padding-top:16px">'+esc(c.evidence_words)+', '+esc(c.source_words)+' · you\'d lose '+c.round_trip_pct.toFixed(1)+'% selling back · <a href="./country.html?ccy='+esc(c.ccy)+'" style="font-weight:600;color:#0B0B0B" id="fullLink">'+esc(c.country)+' in full →</a></div>';
+      '<div class="receipt" style="padding-top:16px">Based on '+evidenceLabel(c.evidence_words, c.n_sources)+' · round trip loses '+fmtGapPct(c.round_trip_pct)+' · <a href="./country.html?ccy='+esc(c.ccy)+'" style="font-weight:600;color:#0B0B0B" id="fullLink">'+esc(listName(c.country))+' in full →</a></div>';
     document.getElementById('featured').innerHTML = html;
     if (c.spark && c.spark.length > 1) {
       MarginChart.render(document.getElementById('featChart'), { spark: c.spark, timestamps: sparkDates(c), valueSuffix: '%' });
     }
   }
 
+  // A comma list ending "and X" -- "Algeria 90.4%, Nigeria 58.2% and
+  // Argentina 41.0%" -- never a dash or semicolon, and every country name
+  // run through listName so none of them carries a leading "the".
+  function joinList(parts){
+    if (parts.length <= 1) return parts.join('');
+    return parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1];
+  }
+
   fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
     var countries = d.countries || [];
     var withheld = d.withheld || [];
-    var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
 
-    document.getElementById('ledeText').textContent =
-      countries.length + ' countries have a price this hour, ' + withheld.length + ' don\u2019t have enough data, each with a reason. Pick a country, or start from the biggest gaps. Click any number to see how it was made.';
+    document.getElementById('pageTitle').textContent =
+      'What a dollar costs on the street vs the official rate, ' + countries.length + ' countries';
 
     var byGap = countries.slice().sort(function(a,b){ return b.index_pct - a.index_pct; });
 
-    // Featured country: the biggest real (non-frozen-peg, non-pegged-currency)
-    // mover, same rule as Home. "pegged" currencies (Gulf riyals/dinars etc)
-    // move only with the cost of accessing crypto under capital controls,
-    // not currency weakness, so they never win the headline slot either.
+    // "unmaintained" (Sudan's frozen official rate) and "pegged" (Gulf
+    // riyals/dinars etc, whose gap is the cost of buying crypto under
+    // capital controls, not a currency move) are both real prices, but
+    // neither is the "real gap" this page's opening line and hero chart
+    // are about -- same exclusion Home applies to its own "biggest gap"
+    // pick, preserved here rather than duplicated with different logic.
     var managed = countries.filter(c => c.denominator_class !== 'unmaintained' && c.denominator_class !== 'pegged');
-    var featured = managed.slice().sort((a,b)=>b.index_pct-a.index_pct)[0] || byGap[0];
+    var byRealGap = managed.slice().sort((a,b)=>b.index_pct-a.index_pct);
+
+    // Featured country: the biggest real mover -- already fixed to be
+    // whichever country that actually is this hour, not hardcoded.
+    var featured = byRealGap[0] || byGap[0];
     renderFeatured(featured);
 
-    // Biggest gaps table: top 8 by raw index_pct, unmaintained pegs included but
-    // labeled, exactly as the design calls for -- the absence of a real market
-    // shouldn't be hidden, just not used to pick the headline.
-    var gapsHtml = byGap.slice(0,8).map(function(c){
-      var tag = c.denominator_class === 'unmaintained' ? ' <span style="font-size:12px;color:#9A9A9A">· official rate unmaintained</span>' : '';
+    var top5 = byRealGap.slice(0, 5);
+    var otherCount = Math.max(countries.length - top5.length, 0);
+    document.getElementById('ledeText').innerHTML =
+      'A real gap exists in a handful of countries: ' +
+      joinList(top5.map(function(c){ return esc(listName(c.country)) + ' ' + fmtGapPct(c.index_pct); })) +
+      '. In most of the other ' + otherCount + ', the street price is within 2% of the official rate.';
+
+    // Widest gaps table: top 8 real gaps. Unmaintained pegs never enter
+    // this ranking -- Sudan's frozen official rate is listed separately,
+    // below, not as a "widest gap". Pegged currencies stay in the ranking,
+    // per the design, but labeled so the gap isn't mistaken for currency
+    // weakness.
+    var rankable = byGap.filter(c => c.denominator_class !== 'unmaintained');
+    var gapsHtml = rankable.slice(0,8).map(function(c){
+      var tag = c.denominator_class === 'pegged' ? ' <span style="font-size:12px;color:#9A9A9A">· pegged, the gap is the cost of buying stablecoins (digital dollars) there</span>' : '';
       return '<div class="gap-row">' +
         '<div class="code">'+esc(c.ccy)+'</div>' +
-        '<div>'+esc(c.country)+tag+'</div>' +
-        '<a class="gap-val num" href="./country.html?ccy='+esc(c.ccy)+'" style="display:block;color:#817FCC" title="See how this number was made">'+(c.index_pct>=0 ? c.index_pct.toFixed(2)+'% more' : Math.abs(c.index_pct).toFixed(2)+'% less')+'</a>' +
-        '<div class="gap-rt num">you\'d lose '+c.round_trip_pct.toFixed(1)+'% selling back</div>' +
-        '<div style="font-size:13px;color:#6B6B6B">'+esc(c.evidence_words)+'</div></div>';
+        '<div>'+esc(listName(c.country))+tag+'</div>' +
+        '<a class="gap-val num" href="./country.html?ccy='+esc(c.ccy)+'" style="display:block;color:#817FCC" title="See how this number was made">'+fmtGapPct(c.index_pct)+'</a>' +
+        '<div class="gap-rt num">'+fmtGapPct(c.round_trip_pct)+'</div>' +
+        '<div style="font-size:13px;color:#6B6B6B">'+esc(evidenceLabel(c.evidence_words, c.n_sources))+'</div></div>';
     }).join('');
     document.getElementById('gapsBody').innerHTML = gapsHtml;
 
+    // Sudan (and any other unmaintained-peg country) never enters the
+    // widest-gaps ranking above -- its frozen official rate makes its own
+    // "gap" a data artifact, not a real one -- but it still has a page, so
+    // it's listed here, separately, with that said plainly.
+    var frozen = countries.filter(c => c.denominator_class === 'unmaintained');
+    document.getElementById('frozenBody').innerHTML = frozen.map(function(c){
+      return '<div class="wrow"><a class="c" href="./country.html?ccy='+esc(c.ccy)+'" style="color:#6B6B6B" title="See how this number was made">'+esc(listName(c.country))+'</a>' +
+        '<div class="r">official rate frozen, not comparable</div></div>';
+    }).join('');
+
     // Every priced country, three columns, ranked.
-    document.getElementById('pricedCount').textContent = countries.length + ' COUNTRIES · CLICK ANY FOR ITS CHART AND SOURCES';
+    document.getElementById('pricedTitle').textContent = 'All ' + countries.length + ' countries with a price this hour';
+    document.getElementById('pricedCount').textContent = 'CLICK ANY FOR ITS CHART AND SOURCES';
     document.getElementById('pricedGrid').innerHTML = byGap.map(function(c){
-      return '<div class="mini" data-ccy="'+esc(c.ccy)+'"><div><span style="font-weight:700">'+esc(c.ccy)+'</span>&nbsp; '+esc(c.country)+'</div>' +
+      return '<div class="mini" data-ccy="'+esc(c.ccy)+'"><div><span style="font-weight:700">'+esc(c.ccy)+'</span>&nbsp; '+esc(listName(c.country))+'</div>' +
         '<a class="val num" href="./country.html?ccy='+esc(c.ccy)+'" style="color:#817FCC" title="See how this number was made">'+fmtPct(c.index_pct)+'</a></div>';
     }).join('');
     // The row itself still previews the country up top on click (its own
@@ -264,11 +346,11 @@
       });
     });
 
-    // Withheld, two columns, real reasons, alphabetical.
+    // Withheld, two columns, real reasons in plain words, alphabetical.
     var withheldSorted = withheld.slice().sort((a,b)=> a.country.localeCompare(b.country));
-    document.getElementById('withheldCount').textContent = withheld.length + ' COUNTRIES';
+    document.getElementById('withheldTitle').textContent = 'No price this hour (' + withheld.length + ')';
     document.getElementById('withheldGrid').innerHTML = withheldSorted.map(function(w){
-      return '<div class="wrow"><a class="c" href="./country.html?ccy='+esc(w.ccy)+'" style="color:#6B6B6B" title="See why, in full">'+esc(w.country)+'</a><div class="r">'+esc(w.reason)+'</div></div>';
+      return '<div class="wrow"><a class="c" href="./country.html?ccy='+esc(w.ccy)+'" style="color:#6B6B6B" title="See why, in full">'+esc(listName(w.country))+'</a><div class="r">'+esc(reasonWords(w.reason))+'</div></div>';
     }).join('');
 
     // Search: filters both grids live, AND -- since a distant filtered list is
