@@ -313,7 +313,7 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
 fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
   document.getElementById('reactionMethodP').innerHTML =
     'Right now that is <b class="num">' + d.n_countries_qualified + ' of ' + d.n_countries_total + '</b> tracked countries, each with at least <b class="num">' + d.min_hours_required + ' hours</b> of continuous hourly history. ' +
-    'A step counts as an official-rate move once it exceeds <b class="num">' + d.event_threshold_pct + '%</b>, and a reaction counts as "caught up" once the premium has closed to within <b class="num">' + Math.round((1 - d.reversion_fraction) * 100) + '%</b> of its pre-move level, searched for up to <b class="num">' + Math.round(d.max_window_hours / 24) + ' days</b> after the step.';
+    'A step counts as an official-rate move once it exceeds <b class="num">' + d.event_threshold_pct + '%</b>, and a reaction counts as "caught up" once the premium has closed at least <b class="num">' + Math.round((1 - d.reversion_fraction) * 100) + '%</b> of the gap the step opened, searched for up to <b class="num">' + Math.round(d.max_window_hours / 24) + ' days</b> after the step.';
   var r = d.premium_lag_correlation;
   document.getElementById('reactionFindingP').innerHTML =
     'This feature started from a guess: the wider a country’s premium, the slower its street price should react. Checked against every qualified country’s own numbers, the two are ' +

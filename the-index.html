@@ -327,7 +327,7 @@
       return '<div class="reaction-row">' +
         '<a href="./country.html?ccy='+esc(c.ccy)+'" style="color:#0B0B0B">'+esc(c.country)+'</a>' +
         '<div class="val num">'+fmtLag(c.median_response_hours)+'</div>' +
-        '<div class="conf">'+esc(c.confidence)+' &middot; '+c.n_events_resolved+' moves seen</div></div>';
+        '<div class="conf">'+esc(c.confidence)+' &middot; '+c.n_events_resolved+' move'+(c.n_events_resolved===1?'':'s')+' seen</div></div>';
     }).join('');
 
     document.getElementById('reactionSkipped').textContent =
