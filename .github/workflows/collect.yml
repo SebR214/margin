@@ -130,6 +130,19 @@ jobs:
         if: steps.needed.outputs.proceed == 'true'
         run: pip install -r requirements.txt
 
+      # SEB-139. `pip install` above only installs the playwright PYTHON
+      # PACKAGE (requirements.txt's own comment says so) -- it does not fetch
+      # the browser binary that package drives. Without this step every run
+      # since 2026-09-27 15:06 failed identically on WorldRemit's render path
+      # ("Executable doesn't exist at .../chrome-headless-shell..."), because
+      # collector_providers.py's ONE NARROW EXCEPTION (a headless render of
+      # WorldRemit's own calculator, see that file's HARD RULES) had nothing
+      # to launch. --with-deps also installs the OS libraries Chromium needs
+      # on a bare ubuntu-latest runner, not just the browser itself.
+      - name: Install Playwright browser (WorldRemit render path)
+        if: steps.needed.outputs.proceed == 'true'
+        run: playwright install --with-deps chromium
+
       # Two collectors, two layers, INDEPENDENT pass/fail. The basis step runs
       # even if the corridor step failed (always()), so one layer breaking never
       # hides the other -- but either one going red fails the whole job.
