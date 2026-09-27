@@ -102,6 +102,15 @@
     <div id="pegChart"></div>
     <div class="p" id="pegCap" style="font-size:13px;color:#6B6B6B;padding-top:6px"></div>
 
+    <!-- "How fast does the street react?" taken off the site 2026-09-27
+         alongside the-index.html's #reaction section -- see the HTML
+         comment there for the verified reason (the official rate this
+         method treats as a "step" only ever moves once a day, at a fixed
+         refresh time, so "reaction time" was measuring how soon the next
+         hourly street-price poll happens to land after that known daily
+         refresh, not a real market response). Left in place, commented
+         out, pending an hourly-updating official rate. -->
+    <!--
     <div class="h" id="reaction-speed">How fast does the street react?</div>
     <div class="p">When the official rate moves, the street price does not follow instantly. <a href="./the-index.html#reaction">The countries page</a> now measures the gap between the two, in hours, country by country.</div>
     <div class="p">There is no ready-made hourly history file for this. Each country's history array is daily, going back to 2024, and only carries the premium, not a separate official-rate series. The one place both series exist hour by hour is git itself: since per-country files started (10 September 2026), a scheduled job commits every country's JSON once an hour, and <span style="font-family:monospace">tools/emit_response_time.py</span> replays those commits back into a time series. That also sets a hard ceiling: only as much hourly history exists as days have passed since 10 September 2026, no matter what any other date on the site implies.</div>
@@ -110,6 +119,7 @@
     <div class="p">A country is only published if it has at least 12.5 days of continuous hourly history (of the ~17 available market-wide as of this writing) and at least one event that actually resolved. Below that, it is left out with a reason, the same as any other "not enough data" gap on this site — never a guessed or averaged-in number.</div>
     <div class="p" id="reactionFindingP">Loading the real numbers&hellip;</div>
     <div class="p"><a href="./data/response_time_latest.json">The full per-country output, every detected event, every resolved and unresolved one →</a></div>
+    -->
 
     <div class="h">What was hard</div>
     <div class="p">Fees. They hide inside the exchange rate and they change with how much you send, so one headline fee number is almost always wrong. Everything here is all-in, measured at five different amounts, which is the only way the comparison means anything.</div>
@@ -310,6 +320,9 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
   });
 }).catch(function(){});
 
+// Section commented out above 2026-09-27 -- guard stops this fetch from
+// running against elements that no longer exist.
+if (document.getElementById('reactionMethodP')) {
 fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
   document.getElementById('reactionMethodP').innerHTML =
     'Right now that is <b class="num">' + d.n_countries_qualified + ' of ' + d.n_countries_total + '</b> tracked countries, each with at least <b class="num">' + d.min_hours_required + ' hours</b> of continuous hourly history. ' +
@@ -323,6 +336,7 @@ fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ 
   document.getElementById('reactionMethodP').textContent = 'Could not load the current thresholds. That failure is shown, not hidden.';
   document.getElementById('reactionFindingP').textContent = 'Could not load the real numbers. That failure is shown, not hidden.';
 });
+}
 
 // ---- The "how was it made" ask box: same real backend as Home's, not a
 // decoration. Answer shown as a plain sentence; the SQL that produced it is
