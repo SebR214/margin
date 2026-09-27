@@ -45,6 +45,7 @@ declare -A REGEN=(
   ["data/index_latest.json"]="python3 tools/emit_countries.py"
   ["data/corridor_summary.json"]="python3 tools/emit_corridor_summary.py"
   ["data/corridor_window.json"]="python3 tools/bake_homepage.py"
+  ["data/coverage.json"]="python3 tools/emit_coverage.py"
 )
 # Append-only history files: never hand-merged, never regenerated from
 # scratch either (that would fabricate history). On conflict, main's copy is

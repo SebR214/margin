@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="./style.css"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki — one transfer, the receipt in full</title>
-<meta name="description" content="Is a digital dollar a real dollar? We buy one in Singapore, move it, and sell it in the Philippines, paying every fee on the way, checked hourly against the cheapest app quoting the same amount."/>
+<meta name="description" content="Is a digital dollar a real dollar? We buy one in Singapore, move it, and sell it in the Philippines, paying every fee on the way, checked most hours against the cheapest app quoting the same amount -- real gaps shown, not hidden."/>
 <style>
   /* Page-specific only: the layout components below (cards, the size
      switcher, the waterfall legend, tables) belong to this page alone, so
@@ -164,6 +164,7 @@
   <div class="card">
     <h2><span id="histTitle"></span> <span id="hist-size" style="color:var(--color-neutral-600);font-weight:400"></span></h2>
     <p class="cap" id="histCap"></p>
+    <p class="cap" id="histCoverage" style="color:var(--color-neutral-600)"></p>
     <div style="position:relative">
       <svg class="wf" id="hist" viewBox="0 0 640 220" preserveAspectRatio="xMidYMid meet"></svg>
       <div id="histTip" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:var(--font-body);padding:6px 9px;border-radius:5px;white-space:nowrap;transform:translate(-50%,-130%)"></div>
@@ -261,6 +262,9 @@ function cheapestApp(corridorKey, sizeAmount, fallbackRow){
   }
   return { provider: fallbackRow.baseline_provider, bps: +fallbackRow.baseline_cost_bps };
 }
+// Real coverage per corridor, from data/coverage.json (tools/emit_coverage.py,
+// computed from data/samples.csv -- never typed). {} until boot() loads it.
+let COVERAGE={};
 const PLACE={SGD:"Singapore",PHP:"the Philippines",USD:"the US",MXN:"Mexico",AUD:"Australia",NZD:"New Zealand"};
 const place=c=>PLACE[c]||c;
 const dstOf=r=>((r&&r.dst)||"").trim();
@@ -335,6 +339,7 @@ async function boot(){
   // the existing corrKeys[0] default, same as no param at all.
   const qp=new URLSearchParams(location.search).get("corridor");
   if(qp) corridor=qp;
+  try{ COVERAGE=await fetch("./data/coverage.json").then(r=>r.ok?r.json():{}); }catch(e){ COVERAGE={}; }
   const C=await loadCopy();
   COPY=C.corridor||{};
   document.getElementById("pageTitle").textContent=COPY.title||cmiss("title");
@@ -634,6 +639,14 @@ function fmtHistDate(iso){
 function drawHistory(){
   const rows=histBySize[size]; const svg=document.getElementById("hist");
   const tip=document.getElementById("histTip");
+  // Real coverage for the corridor on screen, computed live -- replaces
+  // the old flat "checked hourly since we started" claim in histCap, which
+  // was true of the collector's schedule but not of what actually landed.
+  const covEl=document.getElementById("histCoverage");
+  if(covEl){
+    const cov=(COVERAGE.corridors||{})[corridor];
+    covEl.textContent=cov ? cov.sentence : "";
+  }
   // Same fix as drawWaterfall() above: W is this svg's own real rendered
   // width, not a hardcoded 640 -- keeps 1 viewBox unit == 1 real px at any
   // screen size instead of shrinking the axis/tooltip text on mobile.
@@ -645,14 +658,51 @@ function drawHistory(){
   const vals=rows.flatMap(r=>series.map(([k])=>+r[k]));
   let lo=Math.min(0,...vals), hi=Math.max(0,...vals); const pv=(hi-lo)*.1||5; lo-=pv; hi+=pv;
   const plotB=H-padB;
-  const X=i=>padL+i*(W-padL-padR)/(rows.length-1), Y=v=>padT+(hi-v)/(hi-lo)*(plotB-padT);
+  // Sebastian, chat 2026-09-27: this chart used to space rows by INDEX, so
+  // a 21-hour silence in the collector sat on screen exactly like the
+  // normal ~90-minute gap between checks -- a straight line drew right
+  // through it as if nothing had happened. X now spaces points by their
+  // REAL elapsed time, and any gap wider than data/coverage.json's own
+  // gap_threshold_hours (computed by tools/emit_coverage.py from the same
+  // real gaps, not guessed here) breaks the line instead of joining it --
+  // same idea as this site's "not enough data" convention for a whole
+  // country/provider, applied to a single series' own time axis.
+  const times=rows.map(r=>+new Date(r.ts.replace(" ","T")));
+  const t0=times[0], tSpan=(times[times.length-1]-t0)||1;
+  const X=i=>padL+(times[i]-t0)/tSpan*(W-padL-padR), Y=v=>padT+(hi-v)/(hi-lo)*(plotB-padT);
+  const gapThresholdMs=(COVERAGE.gap_threshold_hours||3)*3600*1000;
+  const gaps=[];
+  for(let i=1;i<rows.length;i++){ if(times[i]-times[i-1]>gapThresholdMs) gaps.push(i); }
   let s=`<line x1="${padL}" y1="${Y(0).toFixed(1)}" x2="${W-padR}" y2="${Y(0).toFixed(1)}" stroke="var(--color-divider)" stroke-width="1"/>`+
         `<text x="${padL-6}" y="${Y(0).toFixed(1)+4}" text-anchor="end" fill="var(--color-neutral-600)" font-size="10" font-family="var(--mono)">0%</text>`+
         `<text x="${padL-6}" y="${(Y(hi)+8).toFixed(1)}" text-anchor="end" fill="var(--color-neutral-600)" font-size="10" font-family="var(--mono)">${pct(hi)}</text>`+
         `<text x="${padL-6}" y="${(Y(lo)+0).toFixed(1)}" text-anchor="end" fill="var(--color-neutral-600)" font-size="10" font-family="var(--mono)">${pct(lo)}</text>`;
+  // Shade every real gap once (shared across all three series, since they
+  // share one set of timestamps) so a reader sees WHERE checking stopped,
+  // not just that the line has a break somewhere.
+  for(const gi of gaps){
+    const gapHrs=Math.round((times[gi]-times[gi-1])/3600000);
+    s+=`<rect x="${X(gi-1).toFixed(1)}" y="${padT}" width="${(X(gi)-X(gi-1)).toFixed(1)}" height="${(plotB-padT).toFixed(1)}" fill="var(--color-neutral-600)" opacity="0.07"><title>no check for ${gapHrs}h</title></rect>`+
+        `<line x1="${X(gi-1).toFixed(1)}" y1="${padT}" x2="${X(gi-1).toFixed(1)}" y2="${plotB}" stroke="var(--color-neutral-600)" stroke-width="1" stroke-dasharray="2,2" opacity="0.5"/>`+
+        `<line x1="${X(gi).toFixed(1)}" y1="${padT}" x2="${X(gi).toFixed(1)}" y2="${plotB}" stroke="var(--color-neutral-600)" stroke-width="1" stroke-dasharray="2,2" opacity="0.5"/>`;
+  }
   for(const [k,c] of series){
-    const pts=rows.map((r,i)=>`${X(i).toFixed(1)},${Y(+r[k]).toFixed(1)}`).join(" ");
-    s+=`<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.7" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`;
+    // Break into one <polyline> per run between gaps, instead of one
+    // polyline for the whole series -- the actual honest fix. A dashed
+    // line drawn straight across a gap would still assert a value nobody
+    // measured; leaving the gap empty (just the shaded band above) doesn't.
+    let start=0;
+    const runs=[...gaps, rows.length];
+    for(const end of runs){
+      const seg=rows.slice(start,end);
+      if(seg.length>1){
+        const pts=seg.map((r,j)=>`${X(start+j).toFixed(1)},${Y(+r[k]).toFixed(1)}`).join(" ");
+        s+=`<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.7" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`;
+      } else if(seg.length===1){
+        s+=`<circle cx="${X(start).toFixed(1)}" cy="${Y(+seg[0][k]).toFixed(1)}" r="1.8" fill="${c}"/>`;
+      }
+      start=end;
+    }
     const last=rows[rows.length-1];
     s+=`<circle cx="${X(rows.length-1).toFixed(1)}" cy="${Y(+last[k]).toFixed(1)}" r="2.4" fill="${c}"/>`;
   }
