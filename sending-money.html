@@ -43,6 +43,13 @@
   .prow .source-label{font-size:11px;color:#9A9A9A;font-weight:400}
   .prow.missing{opacity:.5}
   .prow.missing .cost,.prow.missing .pct{color:#9A9A9A;font-weight:400;font-style:italic}
+  .prow.venue-row{cursor:pointer}
+  .prow.venue-row:hover{background:#FAFAF8}
+  .venue-toggle-caret{font-size:11px;color:#9A9A9A}
+  .venue-breakdown{padding:6px 0 12px 0;border-bottom:1px solid var(--rule)}
+  .venue-breakdown-hdr{font-size:11px;color:#9A9A9A;text-transform:uppercase;letter-spacing:.02em;padding-bottom:6px}
+  .venue-combo-row{display:grid;grid-template-columns:1fr 90px;gap:16px;font-size:13px;color:#3F3047;padding:3px 0}
+  .venue-combo-row .num{text-align:right}
   .foot{padding-top:10px;font-size:12px;color:#9A9A9A;line-height:1.5}
   .crossover{font-size:15px;line-height:1.6;color:#1A1A1A;padding-bottom:6px;max-width:780px}
   .crossover-explain{font-size:13px;color:#6B6B6B;line-height:1.5;padding-bottom:16px;max-width:780px}
@@ -277,16 +284,35 @@
         var amt = route.sizes[a].amount_words;
         return '<button class="pill'+(a===selectedSize?' on':'')+'" data-amt="'+a+'">'+esc(amt)+'</button>';
       }).join('');
-      var rowsHtml = rows.map(function(r){
+      // SOURCES task 3: the stablecoin row's "venues" object (from
+      // data/stable_venues.csv via tools/emit_providers.py) lists every
+      // buy-venue/sell-venue combination priced this hour, not just the
+      // cheapest one shown in the row itself. Clicking that row expands a
+      // small table of all of them, so the "best of N venues" claim in
+      // source_words is checkable, not just stated.
+      var venueRowIdx = 0;
+      var rowsHtml = rows.map(function(r, i){
         var isMissing = r.source === 'missing';
-        var name = r.provider === 'Sending it with stablecoins' ? '<span style="color:#6B6B6B">'+esc(r.provider)+'</span>' : (r.rank===1 && !isMissing ? '<span style="font-weight:700">'+esc(r.provider)+'</span>' : esc(r.provider));
+        var isStable = r.provider === 'Sending it with stablecoins';
+        var hasVenues = isStable && r.venues && r.venues.combos && r.venues.combos.length > 1;
+        var name = isStable ? '<span style="color:#6B6B6B">'+esc(r.provider)+(hasVenues ? ' <span class="venue-toggle-caret">▸</span>' : '')+'</span>' : (r.rank===1 && !isMissing ? '<span style="font-weight:700">'+esc(r.provider)+'</span>' : esc(r.provider));
         // Every row says where its number came from -- a provider's own
         // quote, Wise's comparison feed, the stablecoin measurement,
         // or, when nothing came back this hour, that plainly too.
         var nameCell = '<div class="name-cell">'+name+'<span class="source-label">'+esc(r.source_words||'')+'</span></div>';
         var cost = isMissing ? 'no price this hour' : esc(r.costs);
         var pct = isMissing ? '—' : r.cost_pct.toFixed(2)+'%';
-        return '<div class="prow'+(isMissing?' missing':'')+'">'+nameCell+'<div class="cost num">'+cost+'</div><div class="pct num">'+pct+'</div></div>';
+        var vid = 'venue-breakdown-'+routeKey+'-'+selectedSize+'-'+i;
+        var rowHtml = '<div class="prow'+(isMissing?' missing':'')+(hasVenues?' venue-row':'')+'"'+(hasVenues?' data-venue-target="'+vid+'"':'')+'>'+nameCell+'<div class="cost num">'+cost+'</div><div class="pct num">'+pct+'</div></div>';
+        if (!hasVenues) return rowHtml;
+        var combosHtml = r.venues.combos.map(function(c){
+          var star = c.is_default_pair ? ' <span style="color:#9A9A9A">(the one this site has always shown)</span>' : '';
+          return '<div class="venue-combo-row"><div>'+esc(c.buy_venue)+' &rarr; '+esc(c.sell_venue)+star+'</div><div class="num">'+c.cost_pct.toFixed(2)+'%</div></div>';
+        }).join('');
+        var expandHtml = '<div class="venue-breakdown" id="'+vid+'" style="display:none">' +
+          '<div class="venue-breakdown-hdr">All '+r.venues.combos.length+' venue combinations priced this hour ('+esc((r.venues.as_of_utc||'').slice(11,16))+' UTC)</div>' +
+          combosHtml + '</div>';
+        return rowHtml + expandHtml;
       }).join('');
       var ownProviders = rows.filter(r => r.source === 'own').map(r => r.provider);
       var footnote = (ownProviders.length ? ownProviders.join(' and ') + ' quote their own prices; the rest come ' : 'Every price comes ') +
@@ -327,6 +353,16 @@
           '<div id="curve-'+esc(routeKey)+'" style="padding-top:10px"></div>' : '');
       el.querySelectorAll('.pill').forEach(function(btn){
         btn.addEventListener('click', function(){ renderCorridor(el, route, btn.getAttribute('data-amt'), routeKey, samplesByKey); });
+      });
+      el.querySelectorAll('.venue-row').forEach(function(rowEl){
+        rowEl.addEventListener('click', function(){
+          var target = document.getElementById(rowEl.getAttribute('data-venue-target'));
+          if (!target) return;
+          var open = target.style.display !== 'none';
+          target.style.display = open ? 'none' : 'block';
+          var caret = rowEl.querySelector('.venue-toggle-caret');
+          if (caret) caret.textContent = open ? '▸' : '▾';
+        });
       });
       if (showCurve) renderCostCurve(document.getElementById('curve-'+routeKey), routeKey, samplesByKey);
     }
