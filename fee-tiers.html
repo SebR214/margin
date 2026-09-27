@@ -102,7 +102,7 @@
 
     <div class="h">So it's really a volume question</div>
     <p class="p">I still think stablecoins can be a good way to move money, but "stablecoins are cheap" is usually said about the rail, and that's not really the question you have when you're sending money — which is whether it beats what you'd pay otherwise — and that mostly comes down to the volume discounts every exchange publishes and almost nobody reads.</p>
-    <p class="p">For Singapore to the Philippines I measured where it flips, and the stablecoin route only starts winning at payments-company volume: around <b>S$3.6M a month</b> buying now, or <b>S$2.7M a month</b> waiting for your price, which is the volume where Independent Reserve drops from the 0.50% base rate everyone starts on to its 0.14%/0.18% tiers. Below that it loses, and for a regular sender it isn't the cheaper option yet — at least on this route.</p>
+    <p class="p" id="crossoverP">For Singapore to the Philippines I measured where it flips, and the stablecoin route only starts winning at payments-company volume: around <b id="coBuyVol">&mdash;</b> a month buying now, or <b id="coWaitVol">&mdash;</b> a month waiting for your price, which is the volume where Independent Reserve drops from the 0.50% base rate everyone starts on to its <b id="coFeePct">&mdash;</b> tiers. Below that it loses, and for a regular sender it isn't the cheaper option yet — at least on this route.</p>
     <div class="sources">Every number on this page is computed rather than typed in: the breakdown and win rates come from <a href="./data/corridor_summary.json">data/corridor_summary.json</a> (rebuilt from <a href="./data/samples.csv">data/samples.csv</a> by <code>tools/emit_corridor_summary.py</code>), and the volume crossover comes from <a href="./data/volume_crossover.json">data/volume_crossover.json</a> (rebuilt by <code>tools/emit_volume_crossover.py</code> against the exchanges' own published fee schedules) — so if you re-run either script you'll get the numbers above. <a href="./how-it-works.html">How it works</a> has the collection method, and the <a href="https://github.com/SebR214/margin">raw code and data</a> cover everything else.</div>
   </main>
 </div>
@@ -139,6 +139,21 @@ Promise.all([
   var doors = wf.total_cost_bps - wf.network_fee_bps;
   document.getElementById('bdDoorsP').textContent =
     'The rail itself is ' + cashPct(wf.network_fee_bps) + ', and getting in and out is ' + cashPct(doors) + ', and all of that is either a published fee or a real gap in the market price at that moment — nothing in there is estimated.';
+}).catch(function(){});
+
+// The volume-tier crossover paragraph: same file the sources footer already
+// points to (data/volume_crossover.json, tools/emit_volume_crossover.py),
+// rendered here rather than typed in, so the sentence can't quietly drift
+// from a re-run of that script.
+function sgdMillions(v){ return 'S$' + (v/1e6).toFixed(1) + 'M'; }
+fetch('./data/volume_crossover.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(doc){
+  if (!doc || doc.status !== 'ok') return;
+  var taker = doc.taker, maker = doc.maker;
+  if (!taker || taker.status !== 'crosses' || !maker || maker.status !== 'crosses') return;
+  document.getElementById('coBuyVol').textContent = sgdMillions(taker.monthly_volume_sgd);
+  document.getElementById('coWaitVol').textContent = sgdMillions(maker.monthly_volume_sgd);
+  document.getElementById('coFeePct').textContent =
+    taker.fee_pct_at_crossover_ir.toFixed(2) + '%/' + maker.fee_pct_at_crossover_ir.toFixed(2) + '%';
 }).catch(function(){});
 </script>
 
