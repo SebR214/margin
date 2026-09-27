@@ -268,7 +268,18 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
       document.getElementById('pegP').innerHTML =
         'Six countries in central Africa peg their currency to the euro at a fixed rate. On paper that should mean the gap to the official rate is zero. It has not been. Every day we have measured it, a dollar has cost between <b class="num">' +
         lo.toFixed(1) + '%</b> and <b class="num">' + hi.toFixed(1) + '%</b> more than the pegged rate says it should, ' +
-        (xafNow >= 0 ? '+' : '') + xafNow.toFixed(1) + '% most recently. The peg fixes the official number. It does not fix what people actually pay.';
+        (xafNow >= 0 ? '+' : '') + xafNow.toFixed(1) + '% most recently. The peg fixes the official number. It does not fix what people actually pay.' +
+        // Computed, not typed: the-index.html and data/index_latest.json can
+        // currently be withholding this hour's own CFA franc number (the
+        // evidence rule -- buying and selling sides not the same market --
+        // failing on a crossed board) even while this daily history array
+        // still shows a recent reading. That is a real, live disagreement
+        // between this case study's daily rollup and the hourly evidence
+        // check, not a stale cache -- so it is stated plainly rather than
+        // silently smoothed over. Flagged for editorial review (SEB).
+        (xaf.index_pct == null
+          ? ' <span style="color:#6B6B6B">A note on that last figure: this hour, our own evidence rule does not currently pass for this currency (the buying and selling sides are not the same market), so it is withheld as a number on <a href="./the-index.html#withheld">the countries page</a> right now. The ' + xafNow.toFixed(1) + '% above is the last daily reading before that, not this hour&rsquo;s. We are leaving this discrepancy visible rather than deleting or smoothing it while it is reviewed.</span>'
+          : '');
       document.getElementById('pegCap').textContent = 'The Central African CFA franc: the gap to its own official euro peg, every day since ' + xafHist[0].date + '.';
       MarginChart.render(document.getElementById('pegChart'), {
         spark: xafVals,

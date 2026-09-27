@@ -222,8 +222,11 @@
 
     var byGap = countries.slice().sort(function(a,b){ return b.index_pct - a.index_pct; });
 
-    // Featured country: the biggest real (non-frozen-peg) mover, same rule as Home.
-    var managed = countries.filter(c => c.denominator_class !== 'unmaintained');
+    // Featured country: the biggest real (non-frozen-peg, non-pegged-currency)
+    // mover, same rule as Home. "pegged" currencies (Gulf riyals/dinars etc)
+    // move only with the cost of accessing crypto under capital controls,
+    // not currency weakness, so they never win the headline slot either.
+    var managed = countries.filter(c => c.denominator_class !== 'unmaintained' && c.denominator_class !== 'pegged');
     var featured = managed.slice().sort((a,b)=>b.index_pct-a.index_pct)[0] || byGap[0];
     renderFeatured(featured);
 
