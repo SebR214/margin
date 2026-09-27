@@ -393,6 +393,18 @@ number. Intraday FX is an open item (ROADMAP P2-3) and until it lands, **the
 index for tight `market` currencies should be read as accurate to roughly a
 tenth of a percent, not better.**
 
+**Re-checked 2026-09-27, still open.** Live-checked every free/no-key
+candidate raised for this (Fawaz Ahmed's currency-api, CurrencyFreaks,
+fxratesapi.com): all are daily under the hood, one behind marketing language
+claiming per-minute updates that a live spot-check disproved (see
+`collector_fx.py`'s docstring for the evidence). Open Exchange Rates' free
+tier is genuinely hourly but requires an API key, which is a registration
+step none of this site's other sources need — left for Sebastian to decide,
+not switched in unilaterally. Until one of those changes, the receipt shown
+for every published number now says so directly: the "official rate" step
+carries a line stating the value can be up to 24 hours behind the market
+(`copy.json`'s `rateStalenessNote`, rendered by `receipt.js`).
+
 ### History start, per country, honestly
 
 There is no way to make this look better than it is, so it is published as a
