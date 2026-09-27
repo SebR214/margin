@@ -28,6 +28,8 @@
   .hero{padding:40px 48px 28px}
   h1{font-size:32px;font-weight:800;line-height:1.22;letter-spacing:-0.02em;max-width:900px;margin:0}
   .sub{padding-top:14px;font-size:16px;line-height:1.5;color:var(--sub);max-width:680px}
+  .purpose{padding-top:8px;font-size:13px;line-height:1.5;color:var(--stamp);max-width:680px}
+  .lede{font-size:14px;line-height:1.5;color:var(--sub);margin-bottom:14px;max-width:680px}
   .lead-section{padding:0 48px}
   .waterfall-card{border:1px solid var(--rule);border-radius:16px;padding:28px 32px;margin-bottom:40px}
   .waterfall-title{font-size:13px;letter-spacing:.06em;color:var(--sub);text-transform:uppercase;font-weight:700;margin-bottom:4px}
@@ -49,7 +51,7 @@
   .body{padding:40px 48px 48px}
   .feed{display:flex;flex-direction:column}
   .agent-hdr{display:flex;align-items:center;gap:10px;padding-bottom:34px}
-  .agent-sq{width:10px;height:10px;background:var(--indigo)}
+  .agent-sq{width:10px;height:10px;background:var(--stamp)}
   .agent-name{font-size:13px;font-weight:700;letter-spacing:.02em}
   .items{display:flex;flex-direction:column;gap:44px}
   .item{display:flex;flex-direction:column;gap:10px}
@@ -89,7 +91,6 @@
         <a href="./index.html" class="active">Home</a>
         <a href="./sending-money.html">Sending money</a>
         <a href="./the-index.html">Countries</a>
-        <a href="./how-it-works.html">How it works</a>
         <a href="./machine-room.html">How it was built</a>
       </nav>
     </div>
@@ -101,13 +102,19 @@
 
 <div class="wrap">
   <div class="hero">
-    <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Stablecoins rarely beat the cheapest transfer app. Except where money itself is broken.<!--BAKE:END:heroHeadline--></h1>
-    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->We check real prices every hour: what it costs to send money on 4 routes, and what a dollar really costs on the street in 48 countries.<!--BAKE:END:heroSub--></div>
+    <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Stablecoins rarely beat the cheapest transfer app. But where banks won&#39;t sell you dollars, they&#39;re how people get one.<!--BAKE:END:heroHeadline--></h1>
+    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->Four AI agents run this site every hour. They track what a dollar costs on the street in 47 countries, and what it costs to send money with an app or with stablecoins. <a href="./how-it-works.html">How it was built →</a><!--BAKE:END:heroSub--></div>
+    <div class="purpose" id="purposeNote">Built to test one claim: that stablecoins make moving money cheaper.</div>
   </div>
 
+  <div class="lead-section"><div id="allCountriesSection" class="waterfall-card"><!--BAKE:START:allCountriesStrip--><div class="waterfall-title">What a dollar costs on the street vs the official rate, every country we track</div><div class="strip-wrap"><svg viewBox="0 0 234 1270" style="width:100%;max-width:800px;height:auto" class="strip-svg"><a href="./country.html?ccy=SDG"><title>Sudan: +1490.44% vs the official rate</title><text x="0" y="22.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#9A9A9A">Sudan</text><rect x="98" y="10.0" width="101.0" height="10" rx="2" fill="#D3D0CB"/><line x1="194" y1="8.0" x2="198" y2="18.0" stroke="#fff" stroke-width="2"/><text x="230" y="19.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#9A9A9A">+1490.4%</text><text x="0" y="36.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">official rate frozen, not comparable</text></a><a href="./country.html?ccy=DZD"><title>Algeria: +91.09% vs the official rate</title><text x="0" y="60.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Algeria</text><rect x="98" y="48.0" width="101.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="57.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+91.1%</text><text x="0" y="74.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">Banks won&#39;t sell dollars here. USDT is the street price.</text></a><a href="./country.html?ccy=IQD"><title>Iraq: +19.71% vs the official rate</title><text x="0" y="98.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Iraq</text><rect x="98" y="86.0" width="21.9" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="95.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+19.7%</text></a><a href="./country.html?ccy=TND"><title>Tunisia: +15.22% vs the official rate</title><text x="0" y="122.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Tunisia</text><rect x="98" y="110.0" width="16.9" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="119.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+15.2%</text></a><a href="./country.html?ccy=SYP"><title>Syria: +14.38% vs the official rate</title><text x="0" y="146.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Syria</text><rect x="98" y="134.0" width="15.9" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="143.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+14.4%</text></a><a href="./country.html?ccy=VES"><title>Venezuela: +14.21% vs the official rate</title><text x="0" y="170.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Venezuela</text><rect x="98" y="158.0" width="15.8" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="167.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+14.2%</text></a><a href="./country.html?ccy=ZAR"><title>South Africa: +7.67% vs the official rate</title><text x="0" y="194.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">South Africa</text><rect x="98" y="182.0" width="8.5" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="191.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+7.7%</text></a><a href="./country.html?ccy=ARS"><title>Argentina: +6.63% vs the official rate</title><text x="0" y="218.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Argentina</text><rect x="98" y="206.0" width="7.3" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="215.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+6.6%</text></a><a href="./country.html?ccy=QAR"><title>Qatar: +6.46% vs the official rate</title><text x="0" y="242.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#9A9A9A">Qatar</text><rect x="98" y="230.0" width="7.2" height="10" rx="2" fill="#EDEDED"/><text x="230" y="239.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#9A9A9A">+6.5%</text><text x="0" y="256.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">pegged, gap is the cost of buying stablecoins</text></a><a href="./country.html?ccy=MAD"><title>Morocco: +4.55% vs the official rate</title><text x="0" y="280.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Morocco</text><rect x="98" y="268.0" width="5.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="277.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+4.6%</text></a><a href="./country.html?ccy=INR"><title>India: +4.44% vs the official rate</title><text x="0" y="304.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">India</text><rect x="98" y="292.0" width="4.9" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="301.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+4.4%</text></a><a href="./country.html?ccy=ZMW"><title>Zambia: +4.39% vs the official rate</title><text x="0" y="328.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Zambia</text><rect x="98" y="316.0" width="4.9" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="325.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+4.4%</text></a><a href="./country.html?ccy=BDT"><title>Bangladesh: +4.04% vs the official rate</title><text x="0" y="352.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Bangladesh</text><rect x="98" y="340.0" width="4.5" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="349.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+4.0%</text></a><a href="./country.html?ccy=KZT"><title>Kazakhstan: +3.59% vs the official rate</title><text x="0" y="376.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Kazakhstan</text><rect x="98" y="364.0" width="4.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="373.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+3.6%</text></a><a href="./country.html?ccy=PKR"><title>Pakistan: +3.14% vs the official rate</title><text x="0" y="400.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Pakistan</text><rect x="98" y="388.0" width="3.5" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="397.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+3.1%</text></a><a href="./country.html?ccy=SAR"><title>Saudi Arabia: +2.93% vs the official rate</title><text x="0" y="424.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#9A9A9A">Saudi Arabia</text><rect x="98" y="412.0" width="3.3" height="10" rx="2" fill="#EDEDED"/><text x="230" y="421.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#9A9A9A">+2.9%</text><text x="0" y="438.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">pegged, gap is the cost of buying stablecoins</text></a><a href="./country.html?ccy=LKR"><title>Sri Lanka: +2.40% vs the official rate</title><text x="0" y="462.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Sri Lanka</text><rect x="98" y="450.0" width="2.7" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="459.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+2.4%</text></a><a href="./country.html?ccy=LAK"><title>Laos: +1.67% vs the official rate</title><text x="0" y="486.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Laos</text><rect x="98" y="474.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="483.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+1.7%</text></a><a href="./country.html?ccy=BOB"><title>Bolivia: +1.66% vs the official rate</title><text x="0" y="510.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Bolivia</text><rect x="98" y="498.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="507.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+1.7%</text></a><a href="./country.html?ccy=UGX"><title>Uganda: +1.30% vs the official rate</title><text x="0" y="534.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Uganda</text><rect x="98" y="522.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="531.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+1.3%</text></a><a href="./country.html?ccy=PEN"><title>Peru: +1.05% vs the official rate</title><text x="0" y="558.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Peru</text><rect x="98" y="546.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="555.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+1.0%</text></a><a href="./country.html?ccy=KHR"><title>Cambodia: +0.84% vs the official rate</title><text x="0" y="582.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Cambodia</text><rect x="98" y="570.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="579.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.8%</text></a><a href="./country.html?ccy=AED"><title>the United Arab Emirates: +0.79% vs the official rate</title><text x="0" y="606.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#9A9A9A">the United Arab Emirates</text><rect x="98" y="594.0" width="2.0" height="10" rx="2" fill="#EDEDED"/><text x="230" y="603.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#9A9A9A">+0.8%</text><text x="0" y="620.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">pegged, gap is the cost of buying stablecoins</text></a><a href="./country.html?ccy=RWF"><title>Rwanda: +0.73% vs the official rate</title><text x="0" y="644.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Rwanda</text><rect x="98" y="632.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="641.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.7%</text></a><a href="./country.html?ccy=TWD"><title>Taiwan: +0.56% vs the official rate</title><text x="0" y="668.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Taiwan</text><rect x="98" y="656.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="665.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.6%</text></a><a href="./country.html?ccy=COP"><title>Colombia: +0.51% vs the official rate</title><text x="0" y="692.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Colombia</text><rect x="98" y="680.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="689.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.5%</text></a><a href="./country.html?ccy=KWD"><title>Kuwait: +0.50% vs the official rate</title><text x="0" y="716.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#9A9A9A">Kuwait</text><rect x="98" y="704.0" width="2.0" height="10" rx="2" fill="#EDEDED"/><text x="230" y="713.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#9A9A9A">+0.5%</text><text x="0" y="730.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">pegged, gap is the cost of buying stablecoins</text></a><a href="./country.html?ccy=JOD"><title>Jordan: +0.42% vs the official rate</title><text x="0" y="754.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#9A9A9A">Jordan</text><rect x="98" y="742.0" width="2.0" height="10" rx="2" fill="#EDEDED"/><text x="230" y="751.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#9A9A9A">+0.4%</text><text x="0" y="768.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">pegged, gap is the cost of buying stablecoins</text></a><a href="./country.html?ccy=LBP"><title>Lebanon: +0.42% vs the official rate</title><text x="0" y="792.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Lebanon</text><rect x="98" y="780.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="789.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.4%</text></a><a href="./country.html?ccy=SGD"><title>Singapore: +0.41% vs the official rate</title><text x="0" y="816.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Singapore</text><rect x="98" y="804.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="813.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.4%</text></a><a href="./country.html?ccy=THB"><title>Thailand: +0.25% vs the official rate</title><text x="0" y="840.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Thailand</text><rect x="98" y="828.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="837.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.3%</text></a><a href="./country.html?ccy=KRW"><title>South Korea: +0.22% vs the official rate</title><text x="0" y="864.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">South Korea</text><rect x="98" y="852.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="861.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.2%</text></a><a href="./country.html?ccy=NZD"><title>New Zealand: +0.18% vs the official rate</title><text x="0" y="888.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">New Zealand</text><rect x="98" y="876.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="885.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.2%</text></a><a href="./country.html?ccy=TZS"><title>Tanzania: +0.14% vs the official rate</title><text x="0" y="912.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Tanzania</text><rect x="98" y="900.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="909.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.1%</text></a><a href="./country.html?ccy=BRL"><title>Brazil: +0.13% vs the official rate</title><text x="0" y="936.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Brazil</text><rect x="98" y="924.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="933.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.1%</text></a><a href="./country.html?ccy=AUD"><title>Australia: +0.13% vs the official rate</title><text x="0" y="960.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Australia</text><rect x="98" y="948.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="957.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.1%</text></a><a href="./country.html?ccy=CLP"><title>Chile: +0.11% vs the official rate</title><text x="0" y="984.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Chile</text><rect x="98" y="972.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="981.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.1%</text></a><a href="./country.html?ccy=GEL"><title>Georgia: +0.10% vs the official rate</title><text x="0" y="1008.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Georgia</text><rect x="98" y="996.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="1005.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.1%</text></a><a href="./country.html?ccy=PHP"><title>the Philippines: +0.06% vs the official rate</title><text x="0" y="1032.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">the Philippines</text><rect x="98" y="1020.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="1029.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.1%</text><text x="0" y="1046.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">We price transfers here. The app wins.</text></a><a href="./country.html?ccy=TRY"><title>Turkey: +0.03% vs the official rate</title><text x="0" y="1070.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Turkey</text><rect x="98" y="1058.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="1067.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.0%</text></a><a href="./country.html?ccy=VND"><title>Vietnam: +0.03% vs the official rate</title><text x="0" y="1094.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Vietnam</text><rect x="98" y="1082.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="1091.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.0%</text></a><a href="./country.html?ccy=AZN"><title>Azerbaijan: +0.01% vs the official rate</title><text x="0" y="1118.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Azerbaijan</text><rect x="98" y="1106.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="1115.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.0%</text></a><a href="./country.html?ccy=KES"><title>Kenya: -0.00% vs the official rate</title><text x="0" y="1142.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Kenya</text><rect x="98" y="1130.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="1139.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">-0.0%</text></a><a href="./country.html?ccy=MXN"><title>Mexico: -0.07% vs the official rate</title><text x="0" y="1166.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Mexico</text><rect x="98" y="1154.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="1163.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">-0.1%</text><text x="0" y="1180.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">We price transfers here. The app wins.</text></a><a href="./country.html?ccy=NGN"><title>Nigeria: -0.11% vs the official rate</title><text x="0" y="1204.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Nigeria</text><rect x="98" y="1192.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="1201.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">-0.1%</text></a><a href="./country.html?ccy=IDR"><title>Indonesia: -0.42% vs the official rate</title><text x="0" y="1228.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Indonesia</text><rect x="98" y="1216.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="1225.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">-0.4%</text></a><a href="./country.html?ccy=AMD"><title>Armenia: -0.46% vs the official rate</title><text x="0" y="1252.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Armenia</text><rect x="98" y="1240.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="1249.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">-0.5%</text></a></svg></div><div class="strip-note">Where the gap is near zero, the official rate is real and a normal app is cheaper. Where the gap is big, the official rate isn&#39;t what people pay, and stablecoins are how people get dollars at all.</div><!--BAKE:END:allCountriesStrip--></div></div>
+
   <div id="waterfallSection" class="lead-section"></div>
-  <div class="lead-section"><div id="premiumStripSection" class="waterfall-card"><!--BAKE:START:premiumStrip--><div class="waterfall-title">Where the line runs</div><div class="strip-wrap"><svg viewBox="0 0 234 316" style="width:100%;max-width:800px;height:auto" class="strip-svg"><a href="./country.html?ccy=SDG"><title>Sudan: +1498.16% vs the official rate</title><text x="0" y="25.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#9A9A9A">Sudan</text><rect x="98" y="12.0" width="94.0" height="12" rx="2" fill="#D3D0CB"/><text x="230" y="22.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#9A9A9A">+1498.2%</text></a><a href="./country.html?ccy=DZD"><title>Algeria: +90.90% vs the official rate</title><text x="0" y="55.0" font-family="Archivo,sans-serif" font-size="13" font-weight="700" fill="#0B0B0B">Algeria</text><rect x="98" y="42.0" width="92.1" height="12" rx="2" fill="#3F3047"/><text x="230" y="52.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="700" fill="#0B0B0B">+90.9%</text></a><a href="./country.html?ccy=IQD"><title>Iraq: +20.15% vs the official rate</title><text x="0" y="85.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Iraq</text><rect x="98" y="72.0" width="62.2" height="12" rx="2" fill="#817FCC"/><text x="230" y="82.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+20.2%</text></a><a href="./country.html?ccy=MZN"><title>Mozambique: +17.13% vs the official rate</title><text x="0" y="115.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Mozambique</text><rect x="98" y="102.0" width="59.0" height="12" rx="2" fill="#817FCC"/><text x="230" y="112.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+17.1%</text></a><a href="./country.html?ccy=TND"><title>Tunisia: +15.73% vs the official rate</title><text x="0" y="145.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Tunisia</text><rect x="98" y="132.0" width="57.4" height="12" rx="2" fill="#817FCC"/><text x="230" y="142.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+15.7%</text></a><a href="./country.html?ccy=VES"><title>Venezuela: +14.40% vs the official rate</title><text x="0" y="175.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Venezuela</text><rect x="98" y="162.0" width="55.7" height="12" rx="2" fill="#817FCC"/><text x="230" y="172.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+14.4%</text></a><a href="./country.html?ccy=SYP"><title>Syria: +14.28% vs the official rate</title><text x="0" y="205.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Syria</text><rect x="98" y="192.0" width="55.5" height="12" rx="2" fill="#817FCC"/><text x="230" y="202.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+14.3%</text></a><a href="./country.html?ccy=ZAR"><title>South Africa: +8.44% vs the official rate</title><text x="0" y="235.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">South Africa</text><rect x="98" y="222.0" width="45.7" height="12" rx="2" fill="#817FCC"/><text x="230" y="232.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+8.4%</text></a><a href="./country.html?ccy=ARS"><title>Argentina: +6.63% vs the official rate</title><text x="0" y="265.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Argentina</text><rect x="98" y="252.0" width="41.4" height="12" rx="2" fill="#817FCC"/><text x="230" y="262.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+6.6%</text></a><a href="./country.html?ccy=ZMW"><title>Zambia: +4.93% vs the official rate</title><text x="0" y="295.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Zambia</text><rect x="98" y="282.0" width="36.3" height="12" rx="2" fill="#817FCC"/><text x="230" y="292.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+4.9%</text></a></svg></div><div class="strip-note">The biggest tracked gap right now is Algeria at 90.9% above the official rate (16:00 UTC). Beyond the countries shown above, 38 more have gaps up to 4.7%. Every route this site prices end to end has a near-zero gap, which is why stablecoins keep losing here.</div><!--BAKE:END:premiumStrip--></div></div>
-  <div id="corridorTableSection" class="lead-section" style="padding-bottom:0"><!--BAKE:START:corridorTableSection--><div class="waterfall-title">Every transfer we check, priced the same way</div><table class="corridor-table"><thead><tr><th>SENDING</th><th>STABLECOIN COST</th><th>BEST APP</th><th>STABLECOIN CHEAPER</th><th></th></tr></thead><tbody><tr><td><b>Singapore to the Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 948 hours we&#39;ve checked since 10 August 2026</div></td><td class="num">+0.86%</td><td class="num">+0.45%</td><td><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=SGD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>Australia to the Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 389 hours we&#39;ve checked since 10 September 2026</div></td><td class="num">+1.01%</td><td class="num">+0.65%</td><td><span class="win-no">0.0% of hours</span></td><td><a href="./corridor.html?corridor=AUD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>New Zealand to the Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 389 hours we&#39;ve checked since 10 September 2026</div></td><td class="num">+1.11%</td><td class="num">+0.69%</td><td><span class="win-no">2.8% of hours</span></td><td><a href="./corridor.html?corridor=NZD-&gt;PHP" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr><tr><td><b>the United States to Mexico</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 779 hours we&#39;ve checked since 19 August 2026</div></td><td class="num">+0.77%</td><td class="num">+0.55%</td><td><div class="win-no">0.3% of hours buying it now</div><div class="win-yes" style="margin-top:4px">43.0% of hours waiting for your price</div></td><td><a href="./corridor.html?corridor=USD-&gt;MXN" style="font-weight:600;color:#0B0B0B">see the receipt →</a></td></tr></tbody></table><!--BAKE:END:corridorTableSection--></div>
+
+  <div id="corridorTableSection" class="lead-section" style="padding-bottom:0"><!--BAKE:START:corridorTableSection--><div class="waterfall-title">Stablecoin route vs cheapest app, all-in cost per route</div><div class="lede">The cheapest app wins almost every hour on every route. The exception: US → Mexico with a limit order, cheaper in 42.9% of hours.</div><table class="corridor-table"><thead><tr><th>ROUTE</th><th>STABLECOIN ROUTE</th><th>CHEAPEST APP</th><th>HOURS STABLECOIN WAS CHEAPER</th><th></th></tr></thead><tbody><tr><td><b>Singapore to the Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 947 hours we&#39;ve checked since 10 August 2026</div></td><td class="num">+0.86%</td><td class="num">+0.45%</td><td><div class="win-no">0.0% (market order)</div></td><td><a href="./corridor.html?corridor=SGD-&gt;PHP" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr><tr><td><b>Australia to the Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 388 hours we&#39;ve checked since 10 September 2026</div></td><td class="num">+1.01%</td><td class="num">+0.65%</td><td><div class="win-no">0.0% (market order)</div></td><td><a href="./corridor.html?corridor=AUD-&gt;PHP" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr><tr><td><b>New Zealand to the Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 388 hours we&#39;ve checked since 10 September 2026</div></td><td class="num">+1.11%</td><td class="num">+0.69%</td><td><div class="win-no">2.8% (market order)</div></td><td><a href="./corridor.html?corridor=NZD-&gt;PHP" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr><tr><td><b>the United States to Mexico</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">the typical cost over the 778 hours we&#39;ve checked since 19 August 2026</div></td><td class="num">+0.77%</td><td class="num">+0.55%</td><td><div class="win-no">0.3% (market order)</div><div class="win-yes" style="margin-top:4px">42.9% (limit order)</div></td><td><a href="./corridor.html?corridor=USD-&gt;MXN" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr></tbody></table><!--BAKE:END:corridorTableSection--></div>
+  <div id="corridorNotesSection" class="lead-section" style="padding-top:0"></div>
+
+  <div class="lead-section"><div id="premiumStripSection" class="waterfall-card"><!--BAKE:START:premiumStrip--><div class="waterfall-title">Street dollar vs official rate: the 10 widest gaps this hour</div><div class="lede">A real gap exists in only a handful of countries. Algeria is by far the widest.</div><div class="strip-wrap"><svg viewBox="0 0 234 316" style="width:100%;max-width:800px;height:auto" class="strip-svg"><a href="./country.html?ccy=SDG"><title>Sudan: +1490.44% vs the official rate</title><text x="0" y="25.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#9A9A9A">Sudan</text><rect x="98" y="12.0" width="94.0" height="12" rx="2" fill="#D3D0CB"/><line x1="187" y1="9.0" x2="191" y2="21.0" stroke="#fff" stroke-width="2"/><text x="104" y="22.0" font-family="Archivo,sans-serif" font-size="10.5" font-weight="500" fill="#6B6B6B">Sudan, official rate frozen, not comparable</text></a><a href="./country.html?ccy=DZD"><title>Algeria: +91.09% vs the official rate</title><text x="0" y="55.0" font-family="Archivo,sans-serif" font-size="13" font-weight="700" fill="#0B0B0B">Algeria</text><rect x="98" y="42.0" width="94.0" height="12" rx="2" fill="#3F3047"/><text x="230" y="52.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="700" fill="#0B0B0B">+91.1%</text></a><a href="./country.html?ccy=IQD"><title>Iraq: +19.71% vs the official rate</title><text x="0" y="85.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Iraq</text><rect x="98" y="72.0" width="20.3" height="12" rx="2" fill="#9A9A9A"/><text x="230" y="82.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+19.7%</text></a><a href="./country.html?ccy=TND"><title>Tunisia: +15.22% vs the official rate</title><text x="0" y="115.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Tunisia</text><rect x="98" y="102.0" width="15.7" height="12" rx="2" fill="#9A9A9A"/><text x="230" y="112.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+15.2%</text></a><a href="./country.html?ccy=SYP"><title>Syria: +14.38% vs the official rate</title><text x="0" y="145.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Syria</text><rect x="98" y="132.0" width="14.8" height="12" rx="2" fill="#9A9A9A"/><text x="230" y="142.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+14.4%</text></a><a href="./country.html?ccy=VES"><title>Venezuela: +14.21% vs the official rate</title><text x="0" y="175.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Venezuela</text><rect x="98" y="162.0" width="14.7" height="12" rx="2" fill="#9A9A9A"/><text x="230" y="172.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+14.2%</text></a><a href="./country.html?ccy=ZAR"><title>South Africa: +7.67% vs the official rate</title><text x="0" y="205.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">South Africa</text><rect x="98" y="192.0" width="7.9" height="12" rx="2" fill="#9A9A9A"/><text x="230" y="202.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+7.7%</text></a><a href="./country.html?ccy=ARS"><title>Argentina: +6.63% vs the official rate</title><text x="0" y="235.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Argentina</text><rect x="98" y="222.0" width="6.8" height="12" rx="2" fill="#9A9A9A"/><text x="230" y="232.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+6.6%</text></a><a href="./country.html?ccy=MAD"><title>Morocco: +4.55% vs the official rate</title><text x="0" y="265.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">Morocco</text><rect x="98" y="252.0" width="4.7" height="12" rx="2" fill="#9A9A9A"/><text x="230" y="262.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+4.6%</text></a><a href="./country.html?ccy=INR"><title>India: +4.44% vs the official rate</title><text x="0" y="295.0" font-family="Archivo,sans-serif" font-size="13" font-weight="500" fill="#0B0B0B">India</text><rect x="98" y="282.0" width="4.6" height="12" rx="2" fill="#9A9A9A"/><text x="230" y="292.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="500" fill="#0B0B0B">+4.4%</text></a></svg></div><div class="strip-note">The other 32 countries we price have gaps below 4.4%. <a href="./the-index.html">See all countries →</a></div><!--BAKE:END:premiumStrip--></div></div>
   <div class="lead-section" style="padding-top:14px"><a href="./fee-tiers.html" style="font-weight:600;color:#0B0B0B">Why the doors cost more than the rail, in full →</a></div>
 
   <div class="break"></div>
@@ -116,22 +123,16 @@
     <div class="feed">
       <div class="agent-hdr">
         <div class="agent-sq"></div>
-        <div class="agent-name">the margin agent</div>
-        <div class="stamp num" id="passStamp">&nbsp;</div>
+        <div class="agent-name num" id="passStamp">This hour</div>
       </div>
 
       <div class="items" id="items">
         <div class="item"><p>Loading this hour's findings…</p></div>
       </div>
 
-      <div class="live-strip-note">The finding above is the headline result. This is what the agent is watching right now, updated hourly. <a href="./the-index.html">See every tracked country →</a></div>
+      <div class="live-strip-note"><a href="./the-index.html">See every tracked country →</a></div>
 
-      <div class="about">Built by one person and the agents that run this site around the clock — one collects, one builds, one reviews, one decides what's next. Raw data and code are public.</div>
-      <div class="stamp" style="margin-top:10px;display:flex;align-items:center;gap:8px">
-        <span class="msdot"></span>
-        <span id="machineFooterLine">&nbsp;</span>
-        <a href="./machine-room.html" style="font-weight:600;color:#0B0B0B">watch it run →</a>
-      </div>
+      <div class="stamp" style="margin-top:24px" id="footerLine">Prices checked every hour by four AI agents. Every number links to the file it came from. <a href="https://github.com/SebR214/margin" style="font-weight:600;color:#0B0B0B">Code and raw data are public on GitHub →</a></div>
     </div>
   </div>
 </div>
@@ -242,16 +243,6 @@
     // own numbers from -- so this caption can never state a different
     // window than the sentence above it.
     windowRow = windowRow || {};
-    // The caption's cost count must match the bars actually drawn (steps +
-    // the total row) -- never a typed number that can drift when a corridor
-    // gains or loses a leg. See DESIGN.md: numbers are computed, never typed.
-    var NUM_WORDS = {1:'One',2:'Two',3:'Three',4:'Four',5:'Five',6:'Six',7:'Seven',8:'Eight'};
-    var nCosts = steps.length + 1;
-    var cap = (COPY.waterfallCap || 'Sending {rung} to {dest}, buying it now.')
-      .replace('{rung}', windowRow.send_amount || (wf.rung_src ? '' + wf.rung_src.toLocaleString() : ''))
-      .replace('{dest}', windowRow.dest || '')
-      .replace('{n_costs}', NUM_WORDS[nCosts] || String(nCosts))
-      .replace('{window}', windowRow.window || 'the typical value across every hour we have checked');
     var tipId = 'tip' + uid;
     // This bar chart stops at a balance sitting on the two exchanges (buy
     // venue, sell venue) -- it never prices getting the sending country's
@@ -262,10 +253,25 @@
     // plainly, right under the chart it qualifies (SEB audit, 2026-09-27).
     var disclosure = COPY.exchangeOnlyDisclosure ||
       'This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.';
+    // The headline names the two live percentages this chart draws (the
+    // stablecoin route's total, the cheapest app's) so it can never state a
+    // number the chart itself disagrees with -- both come straight from
+    // wf.total_cost_bps / wf.baseline_cost_bps, the same figures the bars
+    // and the dashed "cheapest app" line above already use.
+    var titleText = (COPY.waterfallTitle || 'Sending {rung} to {dest} by stablecoin costs {stable_pct}. The cheapest app costs {best_pct}.')
+      .replace('{rung}', windowRow.send_amount || '')
+      .replace('{dest}', windowRow.dest || '')
+      .replace('{stable_pct}', cashPct(total))
+      .replace('{best_pct}', cashPct(base));
+    var sinceShort = windowRow.since ? shortDate(windowRow.since) : '';
+    var capText = (COPY.waterfallCap || 'Typical hour since {since} ({n_hours} hours). Market orders, all fees in. Buying USDT with SGD costs the most. Sending it on chain costs {network_pct}.')
+      .replace('{since}', sinceShort)
+      .replace('{n_hours}', String(wf.n))
+      .replace('{network_pct}', cashPct(wf.network_fee_bps));
     document.getElementById('waterfallSection').innerHTML =
       '<div class="waterfall-card">' +
-      '<div class="waterfall-title">' + esc(COPY.waterfallTitle || 'Where the cost actually sits') + '</div>' +
-      '<div class="waterfall-cap">' + esc(cap) + ' (n=' + wf.n + ' hours measured)</div>' +
+      '<div class="waterfall-title">' + esc(titleText) + '</div>' +
+      '<div class="waterfall-cap">' + esc(capText) + '</div>' +
       '<div style="position:relative">' +
       '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:760px;height:auto">' + svg + '</svg>' +
       '<div id="' + tipId + '" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;top:0;left:0"></div>' +
@@ -305,18 +311,31 @@
   // result. The 5-point gap is a data-driven test, not a hardcoded
   // corridor name, so any future corridor with the same shape gets the
   // same treatment automatically.
+  // Cell always states the market-order (taker) win rate -- the real,
+  // almost-always-zero result -- and adds the limit-order (maker) rate as
+  // a second line only where it clears 10%, so a route where waiting for
+  // your own price genuinely changes the answer (USD->MXN) still shows
+  // both numbers instead of one hiding the other.
   function winCellHtml(c){
     var t = c.win_rate_taker_pct, m = c.win_rate_maker_pct;
-    if (Math.abs(t - m) >= 5) {
-      return '<div class="' + (t >= 10 ? 'win-yes' : 'win-no') + '">' + t.toFixed(1) + '% of hours buying it now</div>' +
-        '<div class="' + (m >= 10 ? 'win-yes' : 'win-no') + '" style="margin-top:4px">' + m.toFixed(1) + '% of hours waiting for your price</div>';
+    var html = '<div class="' + (t >= 10 ? 'win-yes' : 'win-no') + '">' + t.toFixed(1) + '% (market order)</div>';
+    if (m >= 10) {
+      html += '<div class="win-yes" style="margin-top:4px">' + m.toFixed(1) + '% (limit order)</div>';
     }
-    return '<span class="' + (t >= 10 ? 'win-yes' : 'win-no') + '">' + t.toFixed(1) + '% of hours</span>';
+    return html;
+  }
+
+  function moneyFmt(n, symbol){
+    symbol = symbol || 'S$';
+    return symbol + Math.round(n).toLocaleString();
   }
 
   function renderCorridorTable(corridors, COPY, corridorWindow){
     corridorWindow = corridorWindow || {};
     var cols = COPY.corridorTableCols || {};
+    var mxn = corridors.filter(function(c){ return c.corridor === 'USD->MXN'; })[0];
+    var firstLine = (COPY.corridorTableFirstLine || 'The cheapest app wins almost every hour on every route. The exception: US → Mexico with a limit order, cheaper in {maker_pct}% of hours.')
+      .replace('{maker_pct}', mxn ? mxn.win_rate_maker_pct.toFixed(1) : '');
     // Every row states its own window ("typical, N hours since D Mon YYYY"),
     // read from data/corridor_window.json -- the same file the SGD->PHP
     // waterfall above reads its window from -- so a reader is never left to
@@ -334,13 +353,37 @@
         '</tr>';
     }).join('');
     document.getElementById('corridorTableSection').innerHTML =
-      '<div class="waterfall-title">' + esc(COPY.corridorTableTitle || 'Every transfer we check, priced the same way') + '</div>' +
+      '<div class="waterfall-title">' + esc(COPY.corridorTableTitle || 'Stablecoin route vs cheapest app, all-in cost per route') + '</div>' +
+      '<div class="lede">' + esc(firstLine) + '</div>' +
       '<table class="corridor-table"><thead><tr>' +
-      '<th>' + esc(cols.corridor || 'SENDING') + '</th>' +
-      '<th>' + esc(cols.stablecoin || 'STABLECOIN COST') + '</th>' +
-      '<th>' + esc(cols.fiat || 'BEST APP') + '</th>' +
-      '<th>' + esc(cols.winRate || 'STABLECOIN WINS') + '</th>' +
+      '<th>' + esc(cols.corridor || 'ROUTE') + '</th>' +
+      '<th>' + esc(cols.stablecoin || 'STABLECOIN ROUTE') + '</th>' +
+      '<th>' + esc(cols.fiat || 'CHEAPEST APP') + '</th>' +
+      '<th>' + esc(cols.winRate || 'HOURS STABLECOIN WAS CHEAPER') + '</th>' +
       '<th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
+  // The three lines under the corridor table: the fixed window note, the
+  // link to fee-tiers.html's full volume-tier breakdown, and the SGD->PHP
+  // crossover volume -- read live from data/volume_crossover.json (the
+  // maker/limit-order curve, since that is the order type that actually
+  // crosses on this corridor) so the figure can never drift from the file
+  // fee-tiers.html itself states the same number from.
+  function renderCorridorNotes(COPY, windowRow, crossover){
+    var el = document.getElementById('corridorNotesSection');
+    if (!el) return;
+    var sinceShort = windowRow && windowRow.since ? shortDate(windowRow.since) : '';
+    var note = (COPY.corridorNote || 'Stablecoin cost shown is the typical hour since {since} at S$5,000 or equivalent.')
+      .replace('{since}', sinceShort);
+    var html = '<div class="corridor-note">' + esc(note) + '</div>' +
+      '<div class="corridor-note" style="margin-top:6px"><a href="./fee-tiers.html" style="font-weight:600;color:#0B0B0B">' +
+      esc(COPY.corridorMoreLink || 'Where the cost comes from, and at what volume stablecoins win →') + '</a></div>';
+    if (crossover && crossover.status === 'ok' && crossover.maker && crossover.maker.monthly_volume_sgd) {
+      var crossoverLine = (COPY.corridorCrossoverNote || 'On Singapore → Philippines the stablecoin route only wins above about {crossover_amount} a month, when exchange fees drop to volume rates.')
+        .replace('{crossover_amount}', moneyFmt(crossover.maker.monthly_volume_sgd));
+      html += '<div class="corridor-note" style="margin-top:6px">' + esc(crossoverLine) + '</div>';
+    }
+    el.innerHTML = html;
   }
 
   // "Where the line runs": a strip plot put every country's dot on one
@@ -355,154 +398,246 @@
   // needed to fit many-per-pixel and this doesn't. Bar length still uses
   // the strip's own log1p scale so one 1496%-wide entry doesn't flatten
   // everyone else to invisible slivers.
-  var PREMIUM_CAP = 100, PREMIUM_TOP_N = 10;
-  function premiumXFrac(pct){
-    var v = Math.max(pct, 0); v = Math.min(v, PREMIUM_CAP);
-    return Math.log1p(v) / Math.log1p(PREMIUM_CAP);
-  }
-  function renderPremiumStrip(countries, COPY, hourUtc){
+  var GAPS_TOP_N = 10;
+
+  // Section 4, demoted from the lead (see renderAllCountriesStrip below,
+  // now the lead chart): the 10 widest gaps this hour. Pegged currencies
+  // (Gulf riyals/dinars etc, tools/emit_countries.py's PEGGED set) are
+  // excluded entirely -- their gap is the cost of accessing crypto under
+  // capital controls, not a currency read, so it doesn't belong in a
+  // "widest real gaps" ranking at all, not even greyed out. Sudan
+  // (UNMAINTAINED, a frozen official rate) stays in the list but is capped
+  // at the right edge with its own label instead of a real bar length --
+  // charting its nominal +1490% on the same linear axis as everything else
+  // would flatten every other bar to an invisible sliver, and the number
+  // itself is not a market read, so drawing it proportionally would be
+  // its own kind of false precision.
+  function renderGapsChart(countries, COPY, hourUtc){
     var el = document.getElementById('premiumStripSection');
     if (!el || !countries.length) return;
     var W = 800, rowH = 30, top = 6;
     var labelW = 190, valueW = 70, barLeft = labelW, barRight = W - valueW;
     var barW = barRight - barLeft;
 
-    var priced = countries.filter(function(c){ return c.index_pct != null; })
+    var priced = countries.filter(function(c){ return c.index_pct != null && c.denominator_class !== 'pegged'; })
       .sort(function(a,b){ return b.index_pct - a.index_pct; });
-    // "Biggest gap" excludes unmaintained pegs (frozen official rate, an
-    // artifact) and pegged currencies (Gulf riyals/dinars etc -- their gap
-    // is the cost of accessing crypto under capital controls, not currency
-    // weakness), same rule as tools/bake_homepage.py's server-side bake.
-    var managed = priced.filter(function(c){
-      return c.denominator_class !== 'unmaintained' && c.denominator_class !== 'pegged';
-    });
+    var managed = priced.filter(function(c){ return c.denominator_class !== 'unmaintained'; });
     var biggest = (managed.length ? managed : priced)[0];
 
-    var shown = priced.slice(0, PREMIUM_TOP_N);
-    var rest = priced.slice(PREMIUM_TOP_N);
+    var shown = priced.slice(0, GAPS_TOP_N);
+    var rest = priced.slice(GAPS_TOP_N);
     var H = top + shown.length * rowH + 10;
+
+    // Linear scale, per spec -- against the widest REAL (non-frozen) value
+    // shown, so Sudan's capped bar never sets the axis.
+    var maxReal = shown.reduce(function(m,c){
+      return c.denominator_class === 'unmaintained' ? m : Math.max(m, c.index_pct);
+    }, 1);
 
     var rows = shown.map(function(c, i){
       var y = top + i * rowH;
       var isBig = biggest && c.ccy === biggest.ccy;
       var isUnmaintained = c.denominator_class === 'unmaintained';
-      var w = Math.max(2, premiumXFrac(c.index_pct) * barW);
-      var fill = isBig ? '#3F3047' : (isUnmaintained ? '#D3D0CB' : '#817FCC');
+      var w = isUnmaintained ? barW : Math.max(2, Math.min(1, c.index_pct / maxReal) * barW);
+      var fill = isBig ? '#3F3047' : (isUnmaintained ? '#D3D0CB' : '#9A9A9A');
       var textFill = isUnmaintained ? '#9A9A9A' : '#0B0B0B';
       var weight = isBig ? '700' : '500';
       var tip = c.country + ': ' + (c.index_pct>=0?'+':'') + c.index_pct.toFixed(2) + '% vs the official rate';
+      var valueLabel = isUnmaintained
+        ? esc(c.country) + ', official rate frozen, not comparable'
+        : (c.index_pct>=0?'+':'') + c.index_pct.toFixed(1) + '%';
+      var breakMark = isUnmaintained
+        ? '<line x1="' + (barRight-5) + '" y1="' + (y+3).toFixed(1) + '" x2="' + (barRight-1) + '" y2="' + (y+15).toFixed(1) + '" stroke="#fff" stroke-width="2"/>'
+        : '';
       return '<a href="./country.html?ccy=' + esc(c.ccy) + '"><title>' + esc(tip) + '</title>' +
         '<text x="0" y="' + (y+19).toFixed(1) + '" font-family="Archivo,sans-serif" font-size="13" font-weight="' + weight + '" fill="' + textFill + '">' + esc(c.country) + '</text>' +
-        '<rect x="' + barLeft + '" y="' + (y+6).toFixed(1) + '" width="' + w.toFixed(1) + '" height="12" rx="2" fill="' + fill + '"/>' +
-        '<text x="' + (W - 4) + '" y="' + (y+16).toFixed(1) + '" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="' + weight + '" fill="' + textFill + '">' + (c.index_pct>=0?'+':'') + c.index_pct.toFixed(1) + '%</text>' +
+        '<rect x="' + barLeft + '" y="' + (y+6).toFixed(1) + '" width="' + w.toFixed(1) + '" height="12" rx="2" fill="' + fill + '"/>' + breakMark +
+        (isUnmaintained
+          ? '<text x="' + (barLeft + 6) + '" y="' + (y+16).toFixed(1) + '" font-family="Archivo,sans-serif" font-size="10.5" font-weight="500" fill="#6B6B6B">' + valueLabel + '</text>'
+          : '<text x="' + (W - 4) + '" y="' + (y+16).toFixed(1) + '" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" font-weight="' + weight + '" fill="' + textFill + '">' + valueLabel + '</text>') +
         '</a>';
     }).join('');
 
     var restMax = rest.reduce(function(m,c){ return Math.max(m, c.index_pct); }, 0);
-    var note = (COPY.premiumStripNote || '')
-      .replace('{biggest_gap_country}', biggest ? esc(biggest.country) : '')
-      .replace('{biggest_gap_pct}', biggest ? biggest.index_pct.toFixed(1) + '%' : '')
+    var lede = (COPY.premiumStripLede || 'A real gap exists in only a handful of countries. {biggest_gap_country} is by far the widest.')
+      .replace('{biggest_gap_country}', biggest ? esc(biggest.country) : '');
+    var note = (COPY.premiumStripNote || 'The other {rest_count} countries we price have gaps below {rest_max_pct}.')
       .replace('{rest_count}', String(rest.length))
-      .replace('{rest_max_pct}', restMax.toFixed(1) + '%')
-      .replace('{hour}', esc(hourUtc || ''));
+      .replace('{rest_max_pct}', restMax.toFixed(1) + '%');
 
-    el.innerHTML = '<div class="waterfall-title">' + esc(COPY.premiumStripTitle || 'Where the line runs') + '</div>' +
+    el.innerHTML = '<div class="waterfall-title">' + esc(COPY.premiumStripTitle || 'Street dollar vs official rate: the 10 widest gaps this hour') + '</div>' +
+      '<div class="lede">' + lede + '</div>' +
       '<div class="strip-wrap">' + '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:800px;height:auto" class="strip-svg">' + rows + '</svg></div>' +
       '<div class="strip-note">' + note + '</div>';
+  }
+
+  // Section 1, the new lead chart: every priced country, ranked by gap,
+  // grey. Philippines/Mexico (the routes this site prices transfers on)
+  // and Algeria (the site's clearest "banks won't sell dollars" example)
+  // get their own caption instead of a bare number; Sudan is capped at the
+  // edge like the demoted chart above; pegged currencies render lighter
+  // grey with their own caption instead of being excluded, since the whole
+  // point of this lead chart is showing where EVERY tracked country sits,
+  // not just the widest.
+  var ALL_LABEL_CCY = {PHP: 'transferPriced', MXN: 'transferPriced', DZD: 'noDollarsSold'};
+  function renderAllCountriesStrip(countries, COPY){
+    var el = document.getElementById('allCountriesSection');
+    if (!el || !countries.length) return;
+    var labels = COPY.allCountriesLabels || {};
+    var W = 800, rowHPlain = 24, rowHCaption = 38, top = 6;
+    var labelW = 170, valueW = 60, barLeft = labelW, barRight = W - valueW;
+    var barW = barRight - barLeft;
+
+    var priced = countries.filter(function(c){ return c.index_pct != null; })
+      .sort(function(a,b){ return b.index_pct - a.index_pct; });
+    var maxReal = priced.reduce(function(m,c){
+      return c.denominator_class === 'unmaintained' ? m : Math.max(m, c.index_pct);
+    }, 1);
+
+    // Every priced country gets a row; a country with its own caption
+    // (Sudan, the Philippines/Mexico, Algeria, any pegged currency) gets a
+    // taller row so the caption prints on its own full-width line below
+    // the bar instead of being squeezed into the narrow value column and
+    // clipped by the SVG's own viewBox (SEB-reported).
+    var y = top;
+    var rows = priced.map(function(c){
+      var isUnmaintained = c.denominator_class === 'unmaintained';
+      var isPegged = c.denominator_class === 'pegged';
+      var labelKey = ALL_LABEL_CCY[c.ccy];
+      var caption = isUnmaintained ? (labels.frozenRate || 'official rate frozen, not comparable')
+        : isPegged ? (labels.peggedGap || 'pegged, gap is the cost of buying stablecoins')
+        : labelKey ? (labels[labelKey] || '')
+        : '';
+      var rowH = caption ? rowHCaption : rowHPlain;
+      var rowY = y;
+      y += rowH;
+      var w = isUnmaintained ? barW : Math.max(2, Math.min(1, c.index_pct / maxReal) * barW);
+      var fill = isPegged ? '#EDEDED' : (isUnmaintained ? '#D3D0CB' : '#9A9A9A');
+      var textFill = (isPegged || isUnmaintained) ? '#9A9A9A' : '#0B0B0B';
+      var tip = c.country + ': ' + (c.index_pct>=0?'+':'') + c.index_pct.toFixed(2) + '% vs the official rate';
+      var valueText = (c.index_pct>=0?'+':'') + c.index_pct.toFixed(1) + '%';
+      var breakMark = isUnmaintained
+        ? '<line x1="' + (barRight-5) + '" y1="' + (rowY+2).toFixed(1) + '" x2="' + (barRight-1) + '" y2="' + (rowY+12).toFixed(1) + '" stroke="#fff" stroke-width="2"/>'
+        : '';
+      return '<a href="./country.html?ccy=' + esc(c.ccy) + '"><title>' + esc(tip) + '</title>' +
+        '<text x="0" y="' + (rowY+16).toFixed(1) + '" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="' + textFill + '">' + esc(c.country) + '</text>' +
+        '<rect x="' + barLeft + '" y="' + (rowY+4).toFixed(1) + '" width="' + w.toFixed(1) + '" height="10" rx="2" fill="' + fill + '"/>' + breakMark +
+        '<text x="' + (W - 4) + '" y="' + (rowY+13).toFixed(1) + '" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="' + textFill + '">' + valueText + '</text>' +
+        (caption ? '<text x="0" y="' + (rowY+30).toFixed(1) + '" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">' + esc(caption) + '</text>' : '') +
+        '</a>';
+    }).join('');
+    var H = y + 10;
+
+    el.innerHTML = '<div class="waterfall-title">' + esc(COPY.allCountriesTitle || 'What a dollar costs on the street vs the official rate, every country we track') + '</div>' +
+      '<div class="strip-wrap">' + '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:800px;height:auto" class="strip-svg">' + rows + '</svg></div>' +
+      '<div class="strip-note">' + esc(COPY.allCountriesNote || '') + '</div>';
   }
 
   Promise.all([
     fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()),
     fetch('./data/corridor_summary.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
     fetch('./data/corridor_window.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-    fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+    fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    fetch('./data/volume_crossover.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
   ]).then(function(res){
-    var idx = res[0], corridorSummary = res[1], corridorWindow = res[2] || {}, COPY = (res[3] || {}).home || {};
+    var idx = res[0], corridorSummary = res[1], corridorWindow = res[2] || {}, COPY = (res[3] || {}).home || {}, crossover = res[4];
     var countries = idx.countries || [];
     var withheld = idx.withheld || [];
     var hourUtc = (idx.as_of_utc || idx.computed_at || '').slice(11,16);
 
-    // Total live sellers/offers behind this hour's prices -- summed from each
-    // priced country's own evidence count, not idx.n_sources (that field
-    // counts the 3 index SOURCE FILES, a different and much smaller number).
-    var evidenceTotal = countries.reduce(function(sum, c){ return sum + (c.n_sources || 0); }, 0);
-    document.getElementById('passStamp').textContent = 'last check ' + hourUtc + ' UTC';
+    document.getElementById('passStamp').textContent = (COPY.thisHourHeader || 'This hour · updated {hour} UTC')
+      .replace('{hour}', hourUtc);
 
     // ---- The headline is a fixed, plain sentence (copy.json home.headline)
-    // -- it never changes with the data. The sub's two counts (how many
-    // routes we price sending money on, how many countries we price a
-    // street dollar in) are computed live from corridor_summary.json and
-    // index_latest.json -- the SAME files tools/bake_homepage.py reads to
-    // bake the exact same sentence server-side, so the two can never
-    // disagree. ----
+    // -- it never changes with the data. The sub states how many countries
+    // we price a street dollar in, computed live from index_latest.json --
+    // the SAME file tools/bake_homepage.py reads to bake the identical
+    // sentence server-side, so the two can never disagree. ----
     var windowRow = corridorWindow['SGD->PHP'] || {};
     var headlineEl = document.getElementById('heroHeadline');
     var subEl = document.getElementById('heroSub');
     headlineEl.textContent = COPY.headline || COPY.headlineFallback ||
-      'Stablecoins rarely beat the cheapest transfer app. Except where money itself is broken.';
-    var nRoutes = corridorSummary && corridorSummary.corridors ? corridorSummary.corridors.length : null;
+      "Stablecoins rarely beat the cheapest transfer app. But where banks won't sell you dollars, they're how people get one.";
     var nCountries = countries.length;
-    if (nRoutes && nCountries) {
-      subEl.textContent = (COPY.headlineSub || '')
-        .replace('{n_routes}', String(nRoutes))
-        .replace('{n_countries}', String(nCountries));
+    if (nCountries) {
+      subEl.innerHTML = (COPY.headlineSub || '').replace('{n_countries}', String(nCountries));
     } else {
       subEl.textContent = 'This hour’s measurement is unavailable -- showing the standing headline, not this hour’s numbers.';
     }
 
-    // ---- The waterfall: SGD->PHP at the reference size, five real terms. ----
+    // ---- Section 1 (new lead): every priced country, ranked by gap. ----
+    if (countries.length) {
+      renderAllCountriesStrip(countries, COPY);
+    }
+    // ---- Section 2, the waterfall: SGD->PHP at the reference size. ----
     if (corridorSummary && corridorSummary.waterfall) {
       renderWaterfall(corridorSummary.waterfall, COPY, windowRow);
     }
-    // ---- The corridor table: one row per tracked corridor. ----
+    // ---- Section 3, the corridor table: one row per tracked corridor. ----
     if (corridorSummary && corridorSummary.corridors && corridorSummary.corridors.length) {
       renderCorridorTable(corridorSummary.corridors, COPY, corridorWindow);
+      renderCorridorNotes(COPY, windowRow, crossover);
     }
-    // ---- "Where the line runs": one marker per tracked country. ----
+    // ---- Section 4, demoted: the 10 widest gaps this hour. ----
     if (countries.length) {
-      renderPremiumStrip(countries, COPY, hourUtc);
+      renderGapsChart(countries, COPY, hourUtc);
     }
 
-    // Chapter 2, slim: today's story is the only item -- the country whose
-    // gap WIDENED fastest, ranked by the actual change since each
-    // country's own tracked start (spark[0] -> index_pct), never by which
-    // gap happens to be biggest right now -- that is a different question
-    // (see "Where the line runs" above). "unmaintained" denominators (a
-    // frozen official number) produce a huge gap that is an artifact of the
-    // peg, not a market move, and "pegged" currencies (Gulf riyals/dinars
-    // etc, see PEGGED in tools/emit_countries.py) move only with the cost of
-    // accessing crypto under capital controls, not currency weakness -- both
-    // are excluded from "widening fastest" the same way Sudan is excluded
-    // from "biggest gap".
+    // Section 5, the live agent feed. Two countries are named, not
+    // necessarily the same one: the widest gap right now (same "managed"
+    // filter and sort as the demoted gaps chart above) and the country
+    // whose gap WIDENED fastest this month, ranked by the actual change
+    // since each country's own tracked start (spark[0] -> index_pct).
+    // "unmaintained" (a frozen official rate) and "pegged" (Gulf
+    // riyals/dinars etc, tools/emit_countries.py's PEGGED set) denominators
+    // are excluded from both picks -- neither is a real market read.
     var managed = countries.filter(function(c){
       return c.denominator_class !== 'unmaintained' && c.denominator_class !== 'pegged';
     });
+    var widest = managed.length
+      ? managed.slice().sort(function(a,b){ return b.index_pct - a.index_pct; })[0]
+      : null;
     var withDelta = managed.filter(function(c){ return c.spark && c.spark.length > 1 && c.index_pct != null; });
     var top = withDelta.length
       ? withDelta.slice().sort(function(a,b){ return (b.index_pct - b.spark[0]) - (a.index_pct - a.spark[0]); })[0]
       : managed.slice().sort(function(a,b){ return b.index_pct - a.index_pct; })[0];
     var itemsHtml = '';
-    if (top && top.spark && top.spark.length > 1) {
+    if (widest && top && top.spark && top.spark.length > 1) {
       var delta = top.index_pct - top.spark[0];
       var topDates = sparkDates(top);
       var topSince = topDates.length ? shortDate(topDates[0]) : null;
-      itemsHtml += '<div class="item"><div class="stamp num">TODAY '+hourUtc+'</div>' +
-        '<p>' + countries.length + ' countries have a price this hour, ' + withheld.length + ' do not. The move that matters: ' +
-        '<span class="num">' + esc(top.country) + ' is widening fastest, a dollar there now ' +
-        '<a class="indigo num" href="./country.html?ccy=' + esc(top.ccy) + '" title="See how this number was made">' + costPhrase(top.index_pct) + '</a></span>' +
-        (delta > 0 && topSince ? ', up ' + fmtPct(Math.abs(delta)) + ' points since ' + topSince + '.' : '.') + '</p>' +
+      var widestDates = sparkDates(widest);
+      var widestSince = widestDates.length ? shortDate(widestDates[0]) : null;
+      var sentence = (COPY.thisHourLineTemplate ||
+        'Widest gap: {country}. A dollar costs {pct} more on the street than at the official rate, up from {past_pct} on {since}. Rising fastest this month: {fast_country}, up {points} points.')
+        .replace('{country}', esc(widest.country))
+        .replace('{pct}', widest.index_pct.toFixed(1) + '%')
+        .replace('{past_pct}', (widest.spark[0]>=0?'+':'') + widest.spark[0].toFixed(1) + '%')
+        .replace('{since}', widestSince || '')
+        .replace('{fast_country}', esc(top.country))
+        .replace('{points}', fmtPct(Math.abs(delta)));
+      itemsHtml += '<div class="item"><p>' + sentence + '</p>' +
         '<div id="homeChart"></div>' +
-        '<div class="receipt">' + esc(top.evidence_words) + ', ' + esc(top.source_words) + ' · ' +
-        '<a href="./country.html?ccy=' + esc(top.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(top.country) + ' in full →</a></div></div>';
+        '<div class="receipt">' +
+        (COPY.sourceLineTemplate ||
+          'Based on {n} Binance P2P sell ads · <a href="./country.html?ccy={ccy}" style="font-weight:600;color:#0B0B0B">{country} in full →</a>')
+          .replace('{n}', String(top.n_sources || 0))
+          .replace('{ccy}', esc(top.ccy))
+          .replace('{country}', esc(top.country)) +
+        '</div></div>';
     }
 
     document.getElementById('items').innerHTML = itemsHtml || '<div class="item"><p>Nothing checked yet this hour. Next check on the hour.</p></div>';
-    document.getElementById('machineFooterLine').textContent =
-      (COPY.footerMachineRoom || 'how it was built — {priced} priced, {withheld} without enough data, last check {hour} UTC')
-        .replace('{priced}', countries.length).replace('{withheld}', withheld.length).replace('{hour}', hourUtc);
 
     var chartEl = document.getElementById('homeChart');
     if (chartEl && top) {
+      var chartTitle = (COPY.chartTitleTemplate || '{country}: street price over official rate, % · since {since}')
+        .replace('{country}', top.country).replace('{since}', topSince || '');
+      var titleEl = document.createElement('div');
+      titleEl.className = 'stamp';
+      titleEl.style.marginBottom = '6px';
+      titleEl.textContent = chartTitle;
+      chartEl.parentNode.insertBefore(titleEl, chartEl);
       MarginChart.render(chartEl, { spark: top.spark, timestamps: sparkDates(top), valueSuffix: '%' });
     }
   }).catch(function(err){

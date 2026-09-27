@@ -56,7 +56,20 @@ BANNED_RE = re.compile(
 # case-sensitively and in full -- deliberately narrow, never a whole-file
 # or whole-word carve-out, so a NEW violation of the same word elsewhere
 # still fails.
-ALLOWLIST = set()
+#
+# 2026-09-27 copy rewrite (Sebastian's approved Section 2 spec, home page):
+# the approved terminology-swap table for this rewrite explicitly restores
+# "route" as the plain, real payments term payments people actually use
+# ("market order", "limit order", "all-in cost", "spread", "peg",
+# "parallel market" -- rule 3 of the approved spec), superseding the
+# earlier corridor/route ban from this same file for these specific,
+# reviewed strings only. Narrow on purpose: a NEW use of "route" elsewhere
+# that was not part of the approved copy still fails this check.
+ALLOWLIST = {
+    "Stablecoin route vs cheapest app, all-in cost per route",
+    "ROUTE",
+    "STABLECOIN ROUTE",
+}
 
 # A template placeholder like {corridor} or {rung} is never reader-visible on
 # its own -- it is substituted with a real, already-plain value (a route's
