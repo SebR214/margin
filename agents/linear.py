@@ -440,6 +440,7 @@ def cmd_new(a):
       issueCreate(input: $i) { issue { identifier url } }
     }""", {"i": inp})
     i = r["issueCreate"]["issue"]
+    _log_activity("create", i["identifier"], a.role, title=a.title)
     print("%s %s" % (i["identifier"], i["url"]))
 
 
