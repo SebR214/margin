@@ -71,7 +71,21 @@ jobs:
             echo "proceed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # Any other run of THIS workflow still going, excluding this one.
+          # Any other run of THIS workflow still going, excluding this one, ON
+          # MAIN. Scoped to branch=main because a real chain link only ever
+          # runs there -- the restarter fires on the default branch and
+          # "Dispatch successor" below hardcodes --ref main -- so a one-shot
+          # workflow_dispatch test run on a feature branch (someone verifying
+          # a collect.yml change before merging it, say) is not the chain and
+          # must not be read as one. Before this filter it was: SEB-125, live
+          # test dispatches against phase5-app-push-identity sat in_progress
+          # across a chain link's post-sleep recheck (below), that link read
+          # them as "another link already alive" and stood down, and because
+          # only a real link ever forges the next one, nothing continued the
+          # chain from there -- the restarter's own scheduled fires are the
+          # one documented ~26%-unreliable (2026-08-18 measurement) recovery
+          # path, and collection sat dead for over an hour before the gap
+          # crossed the watchdog's threshold.
           #
           # Asked by STATUS, not by scanning the newest N runs. The previous
           # version listed the 50 most recent and filtered them, which fails
@@ -84,7 +98,7 @@ jobs:
           alive=""
           for st in in_progress queued; do
             [ -n "$alive" ] && break
-            alive=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/collect.yml/runs?status=$st&per_page=100" \
+            alive=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/collect.yml/runs?status=$st&branch=main&per_page=100" \
                       --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }}) | .id] | first // \"\"")
           done
           if [ -n "$alive" ]; then
@@ -444,11 +458,12 @@ jobs:
           sleep "$wait"
 
           # Re-check right before forging -- see "THE 2026-09-13/14 GAP" above.
-          # Same status-by-API check as "Am I needed", excluding this run.
+          # Same status-by-API check as "Am I needed", excluding this run, and
+          # same branch=main scope -- see SEB-125 above the "Am I needed" one.
           alive=""
           for st in in_progress queued; do
             [ -n "$alive" ] && break
-            alive=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/collect.yml/runs?status=$st&per_page=100" \
+            alive=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/collect.yml/runs?status=$st&branch=main&per_page=100" \
                       --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }}) | .id] | first // \"\"")
           done
           if [ -n "$alive" ]; then
