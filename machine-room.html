@@ -35,7 +35,7 @@
   .hero h1{color:var(--ink)}
   h1{font-size:28px;font-weight:800;letter-spacing:-0.02em;margin:0}
   .lede{max-width:840px;font-size:16px;color:#6B6B6B;line-height:1.5}
-  .meta{font-size:13px;color:#9A9A9A;letter-spacing:.02em;display:flex;align-items:center;gap:8px;margin:2px 0 0}
+  .meta{font-size:14px;color:#9A9A9A;letter-spacing:.02em;display:flex;align-items:center;gap:8px;margin:2px 0 0}
   .stack{display:flex;flex-direction:column;gap:44px;padding:36px 0 64px}
   .col-hdr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;border-bottom:1px solid #0B0B0B;padding-bottom:8px}
   .col-title{font-size:16px;font-weight:700}
@@ -58,18 +58,20 @@
   .arow li{display:grid;grid-template-columns:110px 150px 1fr;gap:14px;padding:14px 0;border-top:1px solid var(--rule);font-size:15px;align-items:baseline}
   .arow li:first-child{border-top:0}
   .arow b{font-weight:700}
-  .arow .when{white-space:nowrap;font-size:13px;color:var(--indigo);font-weight:700;letter-spacing:.02em}
+  .arow .when{white-space:nowrap;font-size:14px;color:var(--indigo);font-weight:700;letter-spacing:.02em}
   .arow .txt{color:#6B6B6B}
   .list{margin:0;padding:0;list-style:none}
   .list li{padding:12px 0;border-top:1px solid var(--rule);font-size:15px;display:grid;grid-template-columns:70px 1fr auto;gap:12px}
   .list li:first-child{border-top:0}
-  .list .d{color:#9A9A9A;font-size:13px}
-  .list .tag{font-size:12px;color:#9A9A9A;text-align:right;white-space:nowrap}
+  .list .d{color:#9A9A9A;font-size:14px}
+  .list .tag{font-size:14px;color:#9A9A9A;text-align:right;white-space:nowrap}
   .fail li{display:block}
   .fail li b{display:block;font-weight:700;margin-bottom:2px}
   .fail li span{color:#6B6B6B;font-size:14px;display:block}
-  .small{font-size:13px;color:#9A9A9A;margin:14px 0 0}
+  .small{font-size:15px;color:#9A9A9A;margin:14px 0 0}
   .small a,.meta a,.answer a{display:inline-block;padding:6px 0}
+  footer.foot{border-top:1px solid var(--rule);margin-top:56px;padding-top:24px;font-size:15px;color:#6B6B6B}
+  footer.foot a{color:var(--ink);font-weight:500}
   @media(max-width:1000px){.stack{padding:24px 0 48px;gap:36px}header{padding:22px 0}.hero{padding:32px 0 0}}
   @media(max-width:620px){
     .stats{grid-template-columns:1fr 1fr}
@@ -175,6 +177,7 @@
       </div>
     </div>
   </div>
+  <footer class="foot" id="pageFooter">&nbsp;</footer>
 </div>
 
 <script>
@@ -254,6 +257,10 @@
     document.getElementById('lPeople').textContent = M.people || '';
     document.getElementById('mPeople').textContent = M.peopleValue || '';
     document.getElementById('connLabel').textContent = COPY.connecting || '';
+
+    var F = COPY.footer || {};
+    document.getElementById('pageFooter').innerHTML = esc(F.text || '') +
+      (F.linkText ? ' <a href="' + esc(F.linkHref || 'https://github.com/SebR214/margin') + '">' + esc(F.linkText) + '</a>' : '');
 
     var R = COPY.roles || {};
     document.getElementById('rolesHeading').textContent = R.heading || '';
