@@ -18,6 +18,12 @@
   :root[data-theme="dark"]{ --ink:#eee; --mute:#a3a3a3; --faint:#6f6f6f; --line:#2a2a2a; --peri:#9E9CE0; --soft:#5b5853; --grape:#A99BB5; --egg:#221f1a; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
+  /* 2026-09-28 final-mockup typography bump is page-scoped on purpose: the
+     shared style.css body rule (16px) still serves the other 6 pages, whose
+     own mockups haven't been reconciled to the final revision yet. Bumping
+     the shared rule here would change all 7 pages' body text in one PR
+     scoped to sending-money.html only. */
+  body{font-size:17px}
   @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) body{background:#121212} }
   :root[data-theme="dark"] body{background:#121212}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--peri)}
@@ -28,8 +34,8 @@
 
   .page{max-width:760px;margin:0 auto;padding:8px 24px 72px}
   h1{font-size:28px;font-weight:800;letter-spacing:-0.02em;line-height:1.22;margin:20px 0 8px}
-  .lead{font-size:16px;color:var(--mute);line-height:1.5;margin:0}
-  .meta{font-size:13px;color:var(--faint);margin:14px 0 0}
+  .lead{font-size:17px;color:var(--mute);line-height:1.5;margin:0}
+  .meta{font-size:14px;color:var(--faint);margin:14px 0 0}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--peri);display:inline-block;margin-right:6px;vertical-align:1px}
 
   .pills{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 0}
@@ -37,7 +43,7 @@
   :root[data-theme="dark"] .pill, @media (prefers-color-scheme:dark){ .pill{background:transparent} }
   .pill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
   .pills.small{margin-top:10px}
-  .pills.small .pill{font-size:13px;padding:8px 14px;min-height:36px}
+  .pills.small .pill{font-size:14px;padding:8px 14px;min-height:36px}
 
   section{border-top:1px solid var(--line);margin-top:40px;padding-top:32px}
   h2{font-size:21px;line-height:1.3;margin:0 0 8px;font-weight:800;letter-spacing:-0.01em}
@@ -45,9 +51,9 @@
   .answer b{color:var(--ink);font-weight:600}
 
   .prow{display:grid;grid-template-columns:minmax(150px,210px) 1fr 84px 60px;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line);min-height:40px}
-  .prow.head{border-top:0;padding:0 0 8px;font-size:12px;color:var(--faint);font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+  .prow.head{border-top:0;padding:0 0 8px;font-size:14px;color:var(--faint);font-weight:600;letter-spacing:.03em}
   .pname{font-size:15px;font-weight:500;line-height:1.3}
-  .pname small{display:block;font-size:12px;color:var(--faint);font-weight:400;margin-top:2px}
+  .pname small{display:block;font-size:14px;color:var(--faint);font-weight:400;margin-top:2px}
   .track{height:10px;background:var(--line);border-radius:2px;position:relative}
   .track i{position:absolute;left:0;top:0;bottom:0;background:var(--soft);border-radius:2px;min-width:2px}
   .num-cell{text-align:right;font-variant-numeric:tabular-nums;font-size:15px}
@@ -65,8 +71,7 @@
   .venue-combo-row{display:grid;grid-template-columns:1fr 90px;gap:16px;font-size:13px;color:var(--grape);padding:4px 0;min-height:24px;align-items:center}
   .venue-combo-row .num-cell{font-size:13px}
 
-  .small{font-size:13px;color:var(--faint);margin:14px 0 0;line-height:1.5}
-  .note{font-size:14px;color:var(--mute);margin:16px 0 0;padding:12px 16px;border-left:3px solid var(--soft);line-height:1.5}
+  .small{font-size:15px;color:var(--faint);margin:14px 0 0;line-height:1.5}
 
   .curve-title{margin-top:26px;font-size:15px;font-weight:700}
   .curve-wrap{padding-top:10px}
@@ -83,8 +88,11 @@
   .list li{padding:12px 0;border-top:1px solid var(--line);font-size:15px;display:grid;grid-template-columns:1fr auto;gap:12px;min-height:40px}
   .list li>span:last-child{text-align:right;color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}
   .up{color:var(--grape);font-weight:600}
-  .s2{display:block;font-size:12px;color:var(--faint);margin-top:2px}
+  .s2{display:block;font-size:14px;color:var(--faint);margin-top:2px}
   .list.log li .s2[style]{text-align:right}
+
+  footer.foot{border-top:1px solid var(--line);margin-top:56px;padding-top:24px;font-size:15px;color:var(--mute)}
+  footer.foot a{color:var(--ink);font-weight:500}
 
   @media(max-width:900px){
     header{padding:18px 24px;flex-wrap:nowrap} .mcp{display:none}
@@ -94,11 +102,11 @@
   @media(max-width:620px){
     nav{flex-wrap:nowrap;overflow-x:auto;gap:4px;-ms-overflow-style:none;scrollbar-width:none;margin:0 -24px;padding:0 24px 2px;max-width:52vw}
     nav::-webkit-scrollbar{display:none}
-    nav a{padding:11px 8px;font-size:14px;min-height:40px;display:inline-flex;align-items:center}
+    nav a{padding:11px 8px;font-size:15px;min-height:40px;display:inline-flex;align-items:center}
     header{flex-wrap:nowrap}
     .brand{gap:14px;min-width:0;flex-wrap:nowrap}
 
-    .prow{grid-template-columns:1fr 70px 52px;gap:8px;font-size:13px}
+    .prow{grid-template-columns:1fr 70px 52px;gap:8px}
     .prow .track,.prow.head span:nth-child(2){display:none}
     .venue-combo-row{grid-template-columns:1fr 60px;gap:8px;font-size:12px}
 
@@ -137,7 +145,6 @@
       <h2 id="mainHeadline">&nbsp;</h2>
       <p class="answer" id="mainAnswer">&nbsp;</p>
       <div id="mainRows"></div>
-      <p class="note" id="mainNote">&nbsp;</p>
       <p class="small" id="mainSourceLine">&nbsp;</p>
     </section>
 
@@ -146,14 +153,12 @@
       <p class="answer" id="weekendAnswer">&nbsp;</p>
       <div id="weekendBars"></div>
       <p class="zero" id="weekendZero"></p>
-      <p class="small" id="weekendCaption">&nbsp;</p>
     </section>
 
     <section id="patternsSection">
       <h2 id="patternsHeadline">&nbsp;</h2>
       <p class="answer" id="patternsAnswer">&nbsp;</p>
       <ul class="list" id="patternsList"></ul>
-      <p class="small" id="patternsCaption">&nbsp;</p>
     </section>
 
     <section id="changesSection">
@@ -161,6 +166,8 @@
       <ul class="list log" id="changesList"></ul>
       <p class="small" id="changesFooter">&nbsp;</p>
     </section>
+
+    <footer class="foot">Every number on this site comes from a public data file. <a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></footer>
   </div>
 
 <script>
@@ -195,6 +202,20 @@
   var ARROW_PLACE = {SGD:'Singapore', PHP:'Philippines', AUD:'Australia', NZD:'New Zealand', USD:'US', MXN:'Mexico'};
   var HEADLINE_PLACE = {SGD:'Singapore', PHP:'the Philippines', AUD:'Australia', NZD:'New Zealand', USD:'the US', MXN:'Mexico'};
   function arrowWords(route){ return (ARROW_PLACE[route.src]||route.src) + ' → ' + (ARROW_PLACE[route.dst]||route.dst); }
+  // Oxford-style "A, B and C" join for the source-meter sentence's list of
+  // providers that quote us directly -- computed from the real rows every
+  // render, never typed, since which providers are "own"-sourced varies by
+  // corridor and by size (2026-09-28 final-mockup reconciliation: SGD->PHP
+  // and AUD->PHP currently have 3, NZD->PHP has 2, USD->MXN has 1 -- a
+  // hardcoded provider list would already be wrong for two of the four
+  // routes today, and wrong again the next time collector_providers.py's
+  // precedence picks up or drops one).
+  function joinWithAnd(list){
+    if (!list.length) return '';
+    if (list.length === 1) return list[0];
+    if (list.length === 2) return list[0] + ' and ' + list[1];
+    return list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1];
+  }
 
   var SIZE_TIERS = ['200', '1000', '5000', '25000', '50000'];
   function parseSamplesCSV(text) {
@@ -393,18 +414,22 @@
 
       var maxCost = Math.max.apply(null, rows.map(function(r){ return r.cost_pct || 0; })) || 1;
       var pctColHeader = T(COPY.colPctTemplate || '', { amountWords: size.amount_words });
-      var rowsHtml = '<div class="prow head"><span>'+esc(COPY.colProvider||'')+'</span><span></span><span class="num-cell" style="font-size:12px;text-transform:uppercase">'+esc(COPY.colCost||'')+'</span><span class="pct-cell" style="font-size:12px;text-transform:uppercase">'+esc(pctColHeader)+'</span></div>';
+      var rowsHtml = '<div class="prow head"><span>'+esc(COPY.colProvider||'')+'</span><span></span><span class="num-cell" style="font-size:14px">'+esc(COPY.colCost||'')+'</span><span class="pct-cell" style="font-size:14px">'+esc(pctColHeader)+'</span></div>';
       rowsHtml += rows.map(function(r, i){
         var isMissing = r.source === 'missing';
         var isStable = r.provider === 'Sending it with stablecoins';
         var displayName = isStable ? 'Stablecoin route' : r.provider;
         var hasVenues = isStable && r.venues && r.venues.combos && r.venues.combos.length > 1;
+        // 2026-09-28 final mockup: per-row "quoted by the provider"/"from a
+        // public price comparison" captions are dropped for ordinary rows,
+        // and the stablecoin row's caption drops its specific venue names
+        // too -- that detail isn't lost, it still lives in the per-venue
+        // breakdown below (combosHtml) and in how-it-works.html's own
+        // methodology paragraph.
         var sourceLabel = isStable
-          ? (r.venues ? ('buy on '+esc(r.venues.best.buy_venue)+', sell on '+esc(r.venues.best.sell_venue)+', all exchange fees in'
-              + (hasVenues ? ' &middot; <a href="#" class="venue-breakdown-link">'+esc(COPY.breakdownLabel||'breakdown →')+'</a>' : ''))
-             : 'priced on real exchanges this hour, all fees in')
-          : esc(r.source_words||'');
-        var nameCell = '<div><span class="pname">'+esc(displayName)+(hasVenues ? ' <span class="venue-toggle-caret">▸</span>' : '')+'<small>'+sourceLabel+'</small></span></div>';
+          ? ('all fees in' + (hasVenues ? ' &middot; <a href="#" class="venue-breakdown-link">'+esc(COPY.breakdownLabel||'breakdown →')+'</a>' : ''))
+          : '';
+        var nameCell = '<div><span class="pname">'+esc(displayName)+(hasVenues ? ' <span class="venue-toggle-caret">▸</span>' : '')+(sourceLabel ? '<small>'+sourceLabel+'</small>' : '')+'</span></div>';
         var cost = isMissing ? 'no price this hour' : esc(r.costs);
         var pct = isMissing ? '—' : r.cost_pct.toFixed(2)+'%';
         var barWidth = isMissing ? 0 : Math.max(2, (r.cost_pct / maxCost) * 100);
@@ -427,17 +452,20 @@
         '<div class="curve-wrap" id="curve-'+esc(routeKey)+'"></div>' : '';
       document.getElementById('mainRows').innerHTML = rowsHtml;
 
-      document.getElementById('mainNote').textContent = COPY.disclosureNote || '';
-
-      var nOwn = 0, nComparison = 0, nMeasured = 0;
-      rows.forEach(function(r){
-        if (r.source === 'own') nOwn++;
-        else if (r.source === 'comparison') nComparison++;
-        else if (r.source === 'measured') nMeasured++;
-      });
-      document.getElementById('mainSourceLine').textContent = T(COPY.tableSourceTemplate || '', {
-        nOwn: nOwn, nTotal: nOwn + nComparison + nMeasured, nComparison: nComparison
-      });
+      // 2026-09-28 final mockup: the separate boxed disclosure note and the
+      // three-way source-meter sentence merge into one line. Which
+      // providers quote us directly is computed from this render's own
+      // rows (see joinWithAnd's comment) rather than typed, so the
+      // sentence can't go stale as collector_providers.py's precedence
+      // changes provider-by-provider or route-by-route.
+      var ownNames = [];
+      rows.forEach(function(r){ if (r.source === 'own') ownNames.push(r.provider); });
+      document.getElementById('mainSourceLine').textContent = ownNames.length
+        ? T(COPY.tableSourceTemplate || '', {
+            ownNames: joinWithAnd(ownNames),
+            quoteVerb: ownNames.length === 1 ? 'quotes' : 'quote'
+          })
+        : (COPY.tableSourceNoOwnTemplate || '');
 
       document.getElementById('mainRows').querySelectorAll('.venue-row').forEach(function(rowEl){
         rowEl.addEventListener('click', function(e){
@@ -535,7 +563,6 @@
         document.getElementById('weekendZero').textContent = zeros.length
           ? T(COPY.weekendZeroTemplate || '', { list: zeros.map(function(r){ return arrowWords(r.route) + ' (' + r.totalSlots + ' checked)'; }).join(' or ') })
           : '';
-        document.getElementById('weekendCaption').textContent = COPY.weekendChartCaption || '';
       }).catch(function(){
         document.getElementById('weekendHeadline').textContent = 'Could not load this data.';
       });
@@ -549,7 +576,6 @@
         var changes = pc.changes || [];
         document.getElementById('patternsHeadline').textContent = COPY.patternsHeadline || '';
         document.getElementById('patternsAnswer').textContent = COPY.patternsAnswer || '';
-        document.getElementById('patternsCaption').textContent = COPY.patternsCaption || '';
 
         var byFreq = {};
         changes.filter(function(c){ return c.kind === 'change'; }).forEach(function(c){
@@ -585,7 +611,6 @@
     function renderChanges(){
       fetch('./data/price_changes_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(pc){
         document.getElementById('changesHeadline').textContent = COPY.changesTitle || '';
-        document.getElementById('changesFooter').textContent = COPY.changesFooter || '';
 
         var changes = pc.changes || [];
         var seen = {};
@@ -612,14 +637,19 @@
           var shown = expanded ? dedup : dedup.slice(0, VISIBLE);
           listEl.innerHTML = shown.length ? shown.map(cardFor).join('')
             : '<li><span>'+esc(COPY.noChanges||'')+'</span><span></span></li>';
+          // 2026-09-28 final mockup: drops the "a change only counts when a
+          // provider moved against every other provider..." methodology
+          // sentence here (not explained anywhere else on the reader-facing
+          // site today -- flagged in the PR body as a follow-up for
+          // how-it-works.html) but keeps the "Show all N →" control.
           var footer = document.getElementById('changesFooter');
           if (dedup.length > VISIBLE) {
             var label = expanded ? (COPY.showFewerLabel || '') : T(COPY.showAllTemplate || '', { n: dedup.length });
-            footer.innerHTML = esc(COPY.changesFooter||'') + ' <button class="pill" id="showAllBtn" style="margin-top:12px">'+esc(label)+'</button>';
+            footer.innerHTML = '<button class="pill" id="showAllBtn" style="margin-top:12px">'+esc(label)+'</button>';
             var btn = document.getElementById('showAllBtn');
             if (btn) btn.addEventListener('click', function(){ expanded = !expanded; draw(); });
           } else {
-            footer.textContent = COPY.changesFooter || '';
+            footer.textContent = '';
           }
         }
         draw();
