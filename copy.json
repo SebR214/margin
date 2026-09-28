@@ -240,7 +240,8 @@
     }
   },
   "corridor": {
-    "titleTemplate": "{route} by stablecoin: every cost, line by line",
+    "titleTemplate": "Sending {amount} to {place} by stablecoin costs {marketCost}. {provider} costs {appCost}.",
+    "lede": "Every cost of sending it with stablecoins, step by step, checked every hour.",
     "verdict1": "Right now {amount} costs {marketCost} ({marketPct}) all in by stablecoin with a market order, and {appCost} ({appPct}) with the cheapest app, {provider}. The stablecoin route costs {diff} {moreOrLess}.",
     "moreLabel": "more",
     "lessLabel": "less",
@@ -256,17 +257,38 @@
       },
       "waterfall": {
         "titleTemplate": "Where the {amount} cost goes",
+        "buyDominantTemplate": "Most of the {total} goes on buying and selling {stable}, not on sending it",
+        "moveDominantTemplate": "Most of the {total} goes on sending {stable} on chain, not on buying or selling it",
+        "answerTemplate": "Sending it on chain costs {moveCost}. Buying {stable} costs {buyCost}.",
         "capTemplate": "Buying USDT is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
         "gainNote": "A bar to the left of that line means that step paid money back on this sample, not that it cost money.",
         "disclosure": "This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost."
       },
       "ladder": {
-        "titleTemplate": "Cost by amount sent: worst at {smallest}",
-        "capAllTemplate": "The network fee is flat, so it is {smallPct} of a {smallest} transfer and almost nothing at {largest}. The cheapest app wins at every size.",
-        "capMostTemplate": "The network fee is flat, so it is {smallPct} of a {smallest} transfer and almost nothing at {largest}. The cheapest app wins at most sizes."
+        "titleTemplate": "Small transfers cost the most by stablecoin: {smallPct} at {smallest}",
+        "capAllTemplate": "The network fee is flat, so it weighs more on small amounts. The cheapest app wins at every amount.",
+        "capMostTemplate": "The network fee is flat, so it weighs more on small amounts. The cheapest app wins at most amounts."
       },
       "history": {
-        "titleTemplate": "Stablecoin vs cheapest app, every hour since {start} \u00b7 {amount}",
+        "hasNotBeenCheaperTemplate": "The stablecoin has not been cheaper than the cheapest app in any hour since {start}",
+        "wasCheaperTemplate": "The stablecoin was cheaper than the cheapest app in {wins} of {total} hours since {start}",
+        "rangeCapTemplate": "{count} hours checked {rangeLabel}, at {amount}{winsClause}. One bar per {unit}.",
+        "winsClauseTemplate": ", cheaper in {wins}",
+        "rangeLabels": {
+          "24": "in the last 24 hours",
+          "168": "in the last 7 days",
+          "720": "in the last 30 days",
+          "all": "since {start}"
+        },
+        "rangeButtons": {
+          "24": "24 hours",
+          "168": "7 days",
+          "720": "30 days",
+          "all": "All time"
+        },
+        "sumStableLabel": "Stablecoin, typical",
+        "sumAppLabel": "Cheapest app, typical",
+        "sumWinsLabel": "Hours it was cheaper",
         "capTemplate": "Across all four routes and five amounts we've priced it {count} times. The stablecoin route was cheaper {winCount} times ({winPct})."
       }
     },
@@ -276,7 +298,8 @@
       "wholeTransfer": "Total",
       "cheapestProvider": "cheapest app",
       "marketOrder": "market order",
-      "limitOrder": "limit order"
+      "limitOrder": "limit order",
+      "stableExtra": "extra the stablecoin costs on top"
     },
     "numCards": {
       "marketLabel": "Stablecoin, market order",
@@ -315,7 +338,7 @@
       "methodology": "Full method \u2192",
       "board": "the country board \u2192"
     },
-    "sourceTemplate": "Updated {time} UTC \u00b7 buy on {onrampVenue}, sell on {offrampVenue} \u00b7 exchange fees checked {dates}",
+    "sourceTemplate": "Checked {time} UTC · buy on {onrampVenue}, sell on {offrampVenue} · exchange fees last checked {dates}",
     "feeStamp": {
       "reasonTrading": "trading fees",
       "reasonNetwork": "network fee",

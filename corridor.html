@@ -95,9 +95,35 @@
   .legend-row{display:flex; flex-wrap:wrap; gap:14px; font-size:11.5px; color:var(--color-neutral-700); margin-top:10px}
   .legend-row i{width:10px; height:10px; display:inline-block; margin-right:5px; vertical-align:-1px}
 
+  /* Route-breakdown chart's 24h/7d/30d/all-time range toggle (mockup's
+     .rng). Horizontally scrollable rather than wrapping on a phone, same
+     rule the mockup's own v2 revision applies to its range buttons and to
+     .sz/.pill everywhere -- see the min-height rule below. */
+  .rng{display:flex; gap:8px; margin:14px 0 14px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none}
+  .rng::-webkit-scrollbar{display:none}
+  .rng button{font:inherit; font-family:var(--mono); white-space:nowrap; font-size:12.5px; padding:8px 14px; border-radius:999px; border:1px solid var(--color-divider); background:var(--color-bg); color:var(--color-ink); cursor:pointer; min-height:40px}
+  .rng button.on{background:var(--color-ink); color:var(--color-bg); border-color:var(--color-ink); font-weight:700}
+  .histsum{display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid var(--color-divider); border-bottom:1px solid var(--color-divider); margin:0 0 16px}
+  .histsum>div{padding:12px 12px 12px 0}
+  .histsum>div+div{padding-left:12px; border-left:1px solid var(--color-divider)}
+  .histsum .k{font-size:11.5px; color:var(--color-neutral-600); font-weight:600}
+  .histsum .v{font-family:var(--mono); font-size:19px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:2px}
+  .histsum .v.p{color:var(--pos)}
+
   footer{margin-top:22px; padding-top:14px; border-top:1px solid var(--color-divider); color:var(--color-neutral-600); font-size:12px; line-height:1.6}
   footer a{color:var(--color-neutral-700)}
-  @media (max-width:640px){ .nums{grid-template-columns:1fr} }
+  @media (max-width:640px){
+    .nums{grid-template-columns:1fr}
+    .histsum{grid-template-columns:1fr 1fr}
+    .histsum .v{font-size:16px}
+  }
+  /* Every tap target on this page -- corridor pills, size pills, range
+     buttons -- is at least 40px tall on a phone (site mobile rule,
+     2026-09-28: nothing on this page's controls should be smaller than a
+     comfortable thumb target). */
+  @media (max-width:760px){
+    .sz{min-height:40px; display:inline-flex; align-items:center}
+  }
 </style>
 </head>
 <body>
@@ -143,6 +169,7 @@
 
   <div class="card">
     <h2><span id="wfTitle"></span> <span id="wf-size" style="color:var(--color-neutral-600);font-weight:400"></span></h2>
+    <p class="cap" id="wfAnswer"></p>
     <p class="cap" id="wfCap"></p>
     <svg class="wf" id="wf" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet"></svg>
     <div class="legend-row" id="wfLegend"></div>
@@ -156,9 +183,11 @@
   </div>
 
   <div class="card">
-    <h2><span id="histTitle"></span> <span id="hist-size" style="color:var(--color-neutral-600);font-weight:400"></span></h2>
+    <h2 id="histTitle"></h2>
     <p class="cap" id="histCap"></p>
     <p class="cap" id="histCoverage" style="color:var(--color-neutral-600)"></p>
+    <div class="rng" id="rng"></div>
+    <div class="histsum" id="histSum"></div>
     <div style="position:relative">
       <svg class="wf" id="hist" viewBox="0 0 640 220" preserveAspectRatio="xMidYMid meet"></svg>
       <div id="histTip" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:var(--font-body);padding:6px 9px;border-radius:5px;white-space:nowrap;transform:translate(-50%,-130%)"></div>
@@ -232,6 +261,14 @@ let bySize={}, histBySize={}, size=5000, newest="";
 let allRows=[], corrKeys=[], corridor="SGD->PHP", feeChecks=[], withdrawalFees=[], wfBySample={};
 let measureCount=0, winCount=0, historyStart="";
 let providersLatest=null;
+// The 24h/7d/30d/all-time chart's own small sidecar (tools/emit_corridor_history.py,
+// data/corridor_history.json) -- an hourly {ts, stablecoin_cost_pct,
+// cheapest_app_cost_pct} row per corridor+amount actually sampled. Kept
+// separate from allRows/histBySize above: those feed the three-series
+// line chart at full resolution; this feeds the range-toggle bar chart,
+// which regroups client-side (see groupHistRange()) rather than re-reading
+// samples.csv on every button click.
+let corridorHistory=null, histRange="720";
 // The true cheapest APP (never the stablecoin route itself) for this
 // corridor+size, from data/providers_latest.json -- the same file
 // sending-money.html reads, built by tools/emit_providers.py from BOTH
@@ -362,12 +399,16 @@ async function boot(){
     `<span><i style="background:var(--rail)"></i>${L.blockchain||""}</span>`+
     `<span><i style="background:var(--win)"></i>${L.total||""}</span>`+
     `<span><i style="background:transparent;border:1px dashed var(--neg)"></i>${L.cheapestProvider||""}</span>`;
+  // The range chart is two stacked series, not the three-line series above
+  // (that legend is [pos]market/[grey]limit/[neg]cheapest-app -- this one's
+  // bars are [neg] the cheapest app's own cost and [pos] what the
+  // stablecoin route costs on top of it), so it gets its own legend.
   document.getElementById("histLegend").innerHTML=
-    `<span><i style="background:var(--pos)"></i>${L.marketOrder||"market order"}</span>`+
-    `<span><i style="background:var(--color-neutral-700)"></i>${L.limitOrder||"limit order"}</span>`+
-    `<span><i style="background:var(--neg)"></i>${L.cheapestProvider||"cheapest app"}</span>`;
+    `<span><i style="background:var(--neg)"></i>${L.cheapestProvider||"cheapest app"}</span>`+
+    `<span><i style="background:var(--pos)"></i>${L.stableExtra||"extra the stablecoin costs on top"}</span>`;
 
   allRows=parseCSV(await fetch("./data/samples.csv").then(r=>r.text())).filter(r=>r.source_ok==="True");
+  corridorHistory=await fetch("./data/corridor_history.json").then(r=>r.ok?r.json():null).catch(()=>null);
   // The "is it a real dollar" count is a claim about every round trip ever
   // run, not the one corridor on screen -- so it is computed once here, from
   // every row, and does not change when the reader switches corridors.
@@ -411,10 +452,16 @@ function selectCorridor(key){
   srcCcy=(bySize[size].src||"SGD").trim();
   const r5=bySize[size];
   const routeWords=place(srcCcy)+" → "+place(dstOf(r5));
-  document.getElementById("pageTitle").textContent=T(COPY.titleTemplate||"{route} by stablecoin: every cost, line by line",{route:routeWords});
+  // pageTitle/verdict1 (the h1/lede) are set in render() below, once the
+  // selected size's real cost figures are known -- see the comment there.
   const d=new Date(newest.replace(" ","T")), ago=Math.round((Date.now()-d)/6e4);
   const hours=new Set(rows.map(r=>r.ts.slice(0,13))).size;
-  document.title="margin.wiki — "+routeWords+" by stablecoin";
+  // Keeps the "margin.wiki — one transfer, the receipt in full" prefix
+  // tools/check_page.py's PAGE_TITLE map expects for this page's job,
+  // with the corridor appended -- a plain "margin.wiki — {route} by
+  // stablecoin" title used to overwrite that prefix entirely and fail
+  // the gate (startswith(), not ==) the moment JS ran.
+  document.title="margin.wiki — one transfer, the receipt in full — "+routeWords;
   const feeStampR=feeStamp(feeChecks,r5.fees_verified,withdrawalFees,(r5.onramp_venue||"").trim().toLowerCase());
   document.getElementById("stamp").innerHTML=
     // fees_verified carries one date per leg ("ir:2026-08-10|coins:2026-08-10").
@@ -506,17 +553,22 @@ function render(){
       : T(VL.appCheaperTemplate||"The cheapest app is cheaper at this amount by {amount}. A limit order saves {limitAmount}, {closes} the gap.",
           {amount:cashDiff(size,t,base), limitAmount:cashDiff(size,t,m), closes: mw?(VL.closes||"closing"):(VL.doesNotClose||"not enough to close")}))+
     `<div class="split"><span>${VL.blockchainSplit||"Network fee"}: <b>${cash(size,rail)}</b></span><span>${VL.exchangesSplit||"exchange fees"}: <b>${cash(size,doors)}</b></span></div>`;
-  // Generated headline: the site's real, live claim for this route+amount,
-  // never a fixed sentence -- market order vs the true cheapest app (see
-  // cheapestApp() above), whichever actually wins at this amount.
-  document.getElementById("verdict1").textContent=T(COPY.verdict1,{
-    amount: money(size),
-    marketCost: cash(size,t), marketPct: pct(t),
-    appCost: cash(size,base), appPct: pct(base),
-    provider: cheapest.provider,
-    diff: cw?cashDiff(size,base,t):cashDiff(size,t,base),
-    moreOrLess: cw?(COPY.lessLabel||"less"):(COPY.moreLabel||"more"),
+  // The headline states the finding, per DESIGN.md ("headers say the
+  // finding, sub-headers only add supporting detail"): this amount, this
+  // route, the stablecoin's real cost against the cheapest app's real
+  // cost -- both live numbers for the size on screen, never a fixed
+  // sentence. Same shape as the mockup's own h1
+  // ("Sending S$5,000 to the Philippines by stablecoin costs S$63.58.
+  // Airwallex costs S$5.18.").
+  document.getElementById("pageTitle").textContent=T(COPY.titleTemplate||"Sending {amount} to {place} by stablecoin costs {marketCost}. {provider} costs {appCost}.",{
+    amount: money(size), place: place(dstOf(r)),
+    marketCost: cash(size,t), appCost: cash(size,base), provider: cheapest.provider,
   });
+  // The lede stays a generic, size-independent sentence (mockup: "Every
+  // cost of the stablecoin route, step by step, checked every hour.") --
+  // the numeric claim now lives in the h1 above, so this line no longer
+  // needs to repeat it.
+  document.getElementById("verdict1").textContent=COPY.lede||"Every cost of sending it with stablecoins, step by step, checked every hour.";
   renderDepth(r);
   drawWaterfall(r,cheapest); drawLadder(); drawHistory();
 }
@@ -538,9 +590,10 @@ function drawWaterfall(r,cheapest){
   // this exact sample yet (a currency's first hour after this shipped, say)
   // means no invented approximation either -- the section says so.
   const n=+r.notional_src;
-  document.getElementById("wfTitle").textContent=T((COPY.cards||{}).waterfall?.titleTemplate||"Where the {amount} cost goes",{amount:money(n)});
   const wf=wfBySample[r.ts+"|"+r.corridor+"|"+r.notional_src];
   if(!wf){
+    document.getElementById("wfTitle").textContent=T((COPY.cards||{}).waterfall?.titleTemplate||"Where the {amount} cost goes",{amount:money(n)});
+    document.getElementById("wfAnswer").textContent="";
     document.getElementById("wf").innerHTML=`<text x="12" y="30" fill="var(--color-neutral-600)" font-size="13" font-family="var(--font-body)">${esc(COPY.waterfallUnavailable||cmiss("waterfallUnavailable"))}</text>`;
     return;
   }
@@ -552,7 +605,21 @@ function drawWaterfall(r,cheapest){
   const total=+r.cost_bps_taker;
   cheapest=cheapest||cheapestApp(r.corridor,n,r);
   const base=cheapest.bps;
-  document.getElementById("wfCap").textContent=T((COPY.cards||{}).waterfall?.capTemplate||"Buying USDT is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
+  // Header states the finding, computed live from THIS sample's own three
+  // legs: does buying+selling the coin cost more than moving it on chain?
+  // With real data this is true almost every hour (the site's whole thesis
+  // -- trading fees dwarf the network fee), but it is checked, not assumed,
+  // so a corridor where the network fee genuinely dominates still gets an
+  // honest header instead of a wrong one.
+  const WF=(COPY.cards||{}).waterfall||{};
+  const tradeBps=Math.abs(+wf.wf_buy_bps)+Math.abs(+wf.wf_sell_bps), moveBps=Math.abs(+wf.wf_move_bps);
+  document.getElementById("wfTitle").textContent=T(
+    tradeBps>=moveBps ? (WF.buyDominantTemplate||"Most of the {total} goes on buying and selling {stable}, not on sending it")
+                       : (WF.moveDominantTemplate||"Most of the {total} goes on sending {stable} on chain, not on buying or selling it"),
+    {total:cash(n,total), stable:(r.stable||"USDT")});
+  document.getElementById("wfAnswer").textContent=T(WF.answerTemplate||"Sending it on chain costs {moveCost}. Buying {stable} costs {buyCost}.",
+    {moveCost:cash(n,+wf.wf_move_bps), stable:(r.stable||"USDT"), buyCost:cash(n,+wf.wf_buy_bps)});
+  document.getElementById("wfCap").textContent=T(WF.capTemplate||"Buying USDT is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
     {buyCost:cash(n,+wf.wf_buy_bps), totalCost:cash(n,total)});
   let run=0; const cum=[0]; comps.forEach(c=>{run+=c.v; cum.push(run);});
   const all=[0,total,base,...cum], dMin=Math.min(...all), dMax=Math.max(...all);
@@ -616,7 +683,12 @@ function drawLadder(){
   const LT=COPY.ladderTable||{}, cols=LT.columns||{};
   const smallest=rows[0], largest=rows[rows.length-1];
   const smallS=+smallest.notional_src, largeS=+largest.notional_src;
-  document.getElementById("ladderTitle").textContent=T((COPY.cards||{}).ladder?.titleTemplate||"Cost by amount sent: worst at {smallest}",{smallest:money(smallS)});
+  // Header states the finding with the real number: the smallest sampled
+  // amount's own stablecoin market-order cost, not the flat network fee
+  // alone (the mockup's "3.72% at S$200" is the whole stablecoin cost at
+  // that size, network fee included).
+  document.getElementById("ladderTitle").textContent=T((COPY.cards||{}).ladder?.titleTemplate||"Small transfers cost the most by stablecoin: {smallPct} at {smallest}",
+    {smallPct: pct(+smallest.cost_bps_taker), smallest:money(smallS)});
   // "wins at every size" is only printed when it is actually true for the
   // corridor on screen -- computed live from cheapestApp() on each row here,
   // not assumed.
@@ -642,122 +714,176 @@ function drawLadder(){
   document.getElementById("ladder").innerHTML=h;
 }
 
-// ROADMAP.md's chart invariant: every chart hovers, the nearest real point's
-// exact value, no interpolation. Three series on one x-axis, so js/chart.js
-// (one series plus an optional static reference line) doesn't fit directly --
-// same interaction pattern (nearest-point lookup, tooltip, hover dots, a
-// vertical guide), built for three live series instead of one.
-function fmtHistDate(iso){
-  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const d=new Date(iso); if(isNaN(d)) return "";
-  return d.getUTCDate()+" "+MONTHS[d.getUTCMonth()];
-}
-function drawHistory(){
-  const rows=histBySize[size]; const svg=document.getElementById("hist");
-  const tip=document.getElementById("histTip");
-  const startDate=historyStart?historyStart.slice(0,10):"";
-  document.getElementById("histTitle").textContent=T((COPY.cards||{}).history?.titleTemplate||"Stablecoin vs cheapest app, every hour since {start} · {amount}",
-    {start:startDate, amount:money(size)});
-  const winPct=measureCount?Math.round(winCount/measureCount*1000)/10+"%":"—";
-  document.getElementById("histCap").textContent=T((COPY.cards||{}).history?.capTemplate||"Across all four routes and five amounts we've priced it {count} times. The stablecoin route was cheaper {winCount} times ({winPct}).",
-    { count: measureCount.toLocaleString("en-US"), winCount: winCount.toLocaleString("en-US"), winPct });
-  // Real coverage for the corridor on screen, computed live -- replaces
-  // the old flat "checked hourly since we started" claim in histCap, which
-  // was true of the collector's schedule but not of what actually landed.
-  const covEl=document.getElementById("histCoverage");
-  if(covEl){
-    const cov=(COVERAGE.corridors||{})[corridor];
-    covEl.textContent=cov ? cov.sentence : "";
-  }
-  // Same fix as drawWaterfall() above: W is this svg's own real rendered
-  // width, not a hardcoded 640 -- keeps 1 viewBox unit == 1 real px at any
-  // screen size instead of shrinking the axis/tooltip text on mobile.
-  const W=Math.max(240, Math.round(svg.getBoundingClientRect().width)) || 640, H=220, padL=44, padR=12, padT=12, padB=22;
-  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
-  if(rows.length<2){ svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="var(--color-neutral-600)" font-size="12" font-family="var(--font-body)">${T(COPY.buildingTemplate||"history builds as we check — {count} so far",{count:rows.length+(rows.length===1?" sample":" samples")})}</text>`; tip.style.opacity=0; return; }
-  const HL=COPY.legend||{};
-  const series=[["cost_bps_taker","var(--pos)",HL.marketOrder||"market order"],["cost_bps_maker","var(--color-neutral-700)",HL.limitOrder||"limit order"],["baseline_cost_bps","var(--neg)",HL.cheapestProvider||"cheapest app"]];
-  const vals=rows.flatMap(r=>series.map(([k])=>+r[k]));
-  let lo=Math.min(0,...vals), hi=Math.max(0,...vals); const pv=(hi-lo)*.1||5; lo-=pv; hi+=pv;
-  const plotB=H-padB;
-  // Sebastian, chat 2026-09-27: this chart used to space rows by INDEX, so
-  // a 21-hour silence in the collector sat on screen exactly like the
-  // normal ~90-minute gap between checks -- a straight line drew right
-  // through it as if nothing had happened. X now spaces points by their
-  // REAL elapsed time, and any gap wider than data/coverage.json's own
-  // gap_threshold_hours (computed by tools/emit_coverage.py from the same
-  // real gaps, not guessed here) breaks the line instead of joining it --
-  // same idea as this site's "not enough data" convention for a whole
-  // country/provider, applied to a single series' own time axis.
-  const times=rows.map(r=>+new Date(r.ts.replace(" ","T")));
-  const t0=times[0], tSpan=(times[times.length-1]-t0)||1;
-  const X=i=>padL+(times[i]-t0)/tSpan*(W-padL-padR), Y=v=>padT+(hi-v)/(hi-lo)*(plotB-padT);
-  const gapThresholdMs=(COVERAGE.gap_threshold_hours||3)*3600*1000;
-  const gaps=[];
-  for(let i=1;i<rows.length;i++){ if(times[i]-times[i-1]>gapThresholdMs) gaps.push(i); }
-  let s=`<line x1="${padL}" y1="${Y(0).toFixed(1)}" x2="${W-padR}" y2="${Y(0).toFixed(1)}" stroke="var(--color-divider)" stroke-width="1"/>`+
-        `<text x="${padL-6}" y="${Y(0).toFixed(1)+4}" text-anchor="end" fill="var(--color-neutral-600)" font-size="10" font-family="var(--mono)">0%</text>`+
-        `<text x="${padL-6}" y="${(Y(hi)+8).toFixed(1)}" text-anchor="end" fill="var(--color-neutral-600)" font-size="10" font-family="var(--mono)">${pct(hi)}</text>`+
-        `<text x="${padL-6}" y="${(Y(lo)+0).toFixed(1)}" text-anchor="end" fill="var(--color-neutral-600)" font-size="10" font-family="var(--mono)">${pct(lo)}</text>`;
-  // Shade every real gap once (shared across all three series, since they
-  // share one set of timestamps) so a reader sees WHERE checking stopped,
-  // not just that the line has a break somewhere.
-  for(const gi of gaps){
-    const gapHrs=Math.round((times[gi]-times[gi-1])/3600000);
-    s+=`<rect x="${X(gi-1).toFixed(1)}" y="${padT}" width="${(X(gi)-X(gi-1)).toFixed(1)}" height="${(plotB-padT).toFixed(1)}" fill="var(--color-neutral-600)" opacity="0.07"><title>no check for ${gapHrs}h</title></rect>`+
-        `<line x1="${X(gi-1).toFixed(1)}" y1="${padT}" x2="${X(gi-1).toFixed(1)}" y2="${plotB}" stroke="var(--color-neutral-600)" stroke-width="1" stroke-dasharray="2,2" opacity="0.5"/>`+
-        `<line x1="${X(gi).toFixed(1)}" y1="${padT}" x2="${X(gi).toFixed(1)}" y2="${plotB}" stroke="var(--color-neutral-600)" stroke-width="1" stroke-dasharray="2,2" opacity="0.5"/>`;
-  }
-  for(const [k,c] of series){
-    // Break into one <polyline> per run between gaps, instead of one
-    // polyline for the whole series -- the actual honest fix. A dashed
-    // line drawn straight across a gap would still assert a value nobody
-    // measured; leaving the gap empty (just the shaded band above) doesn't.
-    let start=0;
-    const runs=[...gaps, rows.length];
-    for(const end of runs){
-      const seg=rows.slice(start,end);
-      if(seg.length>1){
-        const pts=seg.map((r,j)=>`${X(start+j).toFixed(1)},${Y(+r[k]).toFixed(1)}`).join(" ");
-        s+=`<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.7" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`;
-      } else if(seg.length===1){
-        s+=`<circle cx="${X(start).toFixed(1)}" cy="${Y(+seg[0][k]).toFixed(1)}" r="1.8" fill="${c}"/>`;
-      }
-      start=end;
-    }
-    const last=rows[rows.length-1];
-    s+=`<circle cx="${X(rows.length-1).toFixed(1)}" cy="${Y(+last[k]).toFixed(1)}" r="2.4" fill="${c}"/>`;
-  }
-  const vlineId="hvl"+Math.random().toString(36).slice(2,8);
-  s+=`<line id="${vlineId}" x1="0" y1="${padT}" x2="0" y2="${plotB}" stroke="#0B0B0B" stroke-width="1" opacity="0"/>`;
-  const dotIds=series.map((_,i)=>{ const id="hd"+i+Math.random().toString(36).slice(2,6); s+=`<circle id="${id}" r="4" fill="${series[i][1]}" stroke="#fff" stroke-width="1.5" opacity="0"/>`; return id; });
-  svg.innerHTML=s;
+// The route-breakdown history chart, per docs/mockups/route-breakdown.html:
+// 24h/7d/30d/all-time buttons over one small per-corridor sidecar
+// (data/corridor_history.json, tools/emit_corridor_history.py) rather than
+// samples.csv itself -- see that script's docstring for why the "cheapest
+// app" series there is the comparison feed's own historical figure, not
+// cheapestApp()'s richer current-hour logic. med() matches the mockup's
+// own bucketing exactly: coarser bars (6h, then daily) at wider ranges,
+// hourly at 24h, so a bar always represents a readable number of samples.
+const med=a=>{const s=[...a].sort((x,y)=>x-y);return s.length?s[s.length>>1]:0};
+const parseHourTs=h=>new Date(h+":00:00Z").getTime();
 
-  const vline=document.getElementById(vlineId);
-  const dots=dotIds.map(id=>document.getElementById(id));
-  function nearest(px){
-    let best=0, bestD=Infinity;
-    for(let i=0;i<rows.length;i++){ const d=Math.abs(X(i)-px); if(d<bestD){bestD=d; best=i;} }
-    return best;
+function groupHistRange(rows,r){
+  const bucketH = r==='24'?1 : r==='168'?6 : 24;
+  const hrs = r==='all' ? Infinity : +r;
+  const lastT=parseHourTs(rows[rows.length-1][0]);
+  const sel = hrs===Infinity ? rows : rows.filter(rr=>lastT-parseHourTs(rr[0])<hrs*3600000);
+  const m=new Map();
+  for(const rr of sel){
+    const t=parseHourTs(rr[0]), k=Math.floor(t/(bucketH*3600000));
+    if(!m.has(k)) m.set(k,{t:k*bucketH*3600000,s:[],a:[]});
+    const g=m.get(k); g.s.push(rr[1]); g.a.push(rr[2]);
   }
-  svg.onmousemove=function(ev){
-    const rect=svg.getBoundingClientRect();
-    const px=(ev.clientX-rect.left)*(W/rect.width);
-    const i=nearest(px), r=rows[i];
-    vline.setAttribute("x1",X(i).toFixed(1)); vline.setAttribute("x2",X(i).toFixed(1)); vline.setAttribute("opacity",0.25);
-    let lines="";
-    series.forEach(([k,c,label],si)=>{
-      dots[si].setAttribute("cx",X(i).toFixed(1)); dots[si].setAttribute("cy",Y(+r[k]).toFixed(1)); dots[si].setAttribute("opacity",1);
-      lines+=`<div><span style="color:${c.replace("var(--color-neutral-700)","#6B6B6B").replace("var(--pos)","#817FCC").replace("var(--neg)","#D3D0CB")}">●</span> ${esc(label)}: ${pct(+r[k])}</div>`;
-    });
-    tip.innerHTML=`<div style="font-weight:700;padding-bottom:3px">${esc(fmtHistDate(r.ts))}</div>`+lines;
-    const leftPct=(X(i)/W)*100, topPct=(Y(+r[series[0][0]])/H)*100;
-    tip.style.left=leftPct+"%"; tip.style.top=topPct+"%"; tip.style.opacity=1;
-  };
-  svg.onmouseleave=function(){ vline.setAttribute("opacity",0); dots.forEach(d=>d.setAttribute("opacity",0)); tip.style.opacity=0; };
+  const bars=[...m.values()].sort((x,y)=>x.t-y.t).map(g=>({t:g.t,s:med(g.s),a:med(g.a),n:g.s.length}));
+  return {sel,bucketH,bars};
+}
+
+function fmtHistBarDate(t,bucketH){
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const d=new Date(t), day=d.getUTCDate(), mo=MONTHS[d.getUTCMonth()], h=String(d.getUTCHours()).padStart(2,"0");
+  return bucketH<24 ? `${day} ${mo}, ${h}:00 UTC` : `${day} ${mo}`;
+}
+
+function renderRangeButtons(){
+  const RB=((COPY.cards||{}).history||{}).rangeButtons||{};
+  const bar=document.getElementById("rng");
+  bar.innerHTML="";
+  for(const r of ["24","168","720","all"]){
+    const b=document.createElement("button");
+    b.textContent=RB[r]||r; b.className=r===histRange?"on":"";
+    // Tap target is >=40px tall (.rng button CSS above) -- covered by the
+    // same click handler on mouse and touch, no separate touch listener
+    // needed for a plain button.
+    b.onclick=()=>{ histRange=r; renderRangeButtons(); drawHistory(); };
+    bar.appendChild(b);
+  }
+}
+
+function drawHistory(){
+  const svg=document.getElementById("hist"), tip=document.getElementById("histTip");
+  const HIST=(COPY.cards||{}).history||{};
+  const rowsAll=(corridorHistory && corridorHistory.corridors[corridor] &&
+    corridorHistory.corridors[corridor].sizes &&
+    corridorHistory.corridors[corridor].sizes[String(size)]) || [];
+
+  renderRangeButtons();
+
+  const covEl=document.getElementById("histCoverage");
+  if(covEl){ const cov=(COVERAGE.corridors||{})[corridor]; covEl.textContent=cov?cov.sentence:""; }
+
+  if(rowsAll.length<2){
+    document.getElementById("histTitle").textContent=
+      T(HIST.hasNotBeenCheaperTemplate||"The stablecoin has not been cheaper than the cheapest app in any hour since {start}",
+        {start:historyStart?historyStart.slice(0,10):""});
+    document.getElementById("histCap").textContent=
+      T(COPY.buildingTemplate||"history builds as we check — {count} so far",
+        {count:rowsAll.length+(rowsAll.length===1?" sample":" samples")});
+    document.getElementById("histSum").innerHTML="";
+    svg.innerHTML=""; tip.style.opacity=0;
+    return;
+  }
+
+  // The overall finding (h2): has the stablecoin EVER been cheaper than
+  // the cheapest app, at this amount, on this corridor, across every hour
+  // sampled -- independent of the range toggle below, same as the
+  // mockup's own static h2 vs its per-range #ans paragraph.
+  const startDate=rowsAll[0][0].slice(0,10);
+  const winsAllTime=rowsAll.filter(rr=>rr[1]<rr[2]).length;
+  document.getElementById("histTitle").textContent = winsAllTime
+    ? T(HIST.wasCheaperTemplate||"The stablecoin was cheaper than the cheapest app in {wins} of {total} hours since {start}",
+        {wins:winsAllTime, total:rowsAll.length, start:startDate})
+    : T(HIST.hasNotBeenCheaperTemplate||"The stablecoin has not been cheaper than the cheapest app in any hour since {start}",
+        {start:startDate});
+
+  const {sel,bucketH,bars}=groupHistRange(rowsAll,histRange);
+  const winsInRange=sel.filter(rr=>rr[1]<rr[2]).length;
+  const rangeLabel=T((HIST.rangeLabels||{})[histRange]||"",{start:startDate});
+  const unit=bucketH===1?"hour":bucketH===6?"6 hours":"day";
+  document.getElementById("histCap").textContent=T(
+    HIST.rangeCapTemplate||"{count} hours checked {rangeLabel}, at {amount}{winsClause}. One bar per {unit}.",
+    { count:sel.length, rangeLabel, amount:money(size),
+      winsClause: winsInRange ? T(HIST.winsClauseTemplate||", cheaper in {wins}",{wins:winsInRange}) : "",
+      unit });
+
+  const sumS=med(sel.map(rr=>rr[1])), sumA=med(sel.map(rr=>rr[2]));
+  document.getElementById("histSum").innerHTML=
+    `<div><div class="k">${esc(HIST.sumStableLabel||"Stablecoin, typical")}</div><div class="v p">${pct(sumS*100)}</div></div>`+
+    `<div><div class="k">${esc(HIST.sumAppLabel||"Cheapest app, typical")}</div><div class="v">${pct(sumA*100)}</div></div>`+
+    `<div><div class="k">${esc(HIST.sumWinsLabel||"Hours it was cheaper")}</div><div class="v">${winsInRange} of ${sel.length}</div></div>`;
+
+  drawRangeChart(bars,bucketH,svg,tip);
+}
+
+// Draws the bars into an already-sized <svg>. Split out from drawHistory()
+// so window resize (see the listener near boot(), below) can redraw just
+// the chart at the container's new real width without recomputing the
+// range/summary text above it.
+let _lastHistBars=null, _lastHistBucket=null;
+function drawRangeChart(bars,bucketH,svg,tip){
+  _lastHistBars=bars; _lastHistBucket=bucketH;
+  // Read the container's REAL clientWidth, not a fixed viewBox scaled by
+  // CSS -- a scaled-down fixed viewBox is exactly the bug that shrank
+  // chart text on narrow phones sitewide (fixed 2026-09-27); this chart
+  // must not reintroduce it. Redrawn on resize (see below), so it never
+  // goes stale after a rotate or a window resize either.
+  const box=svg.parentNode.getBoundingClientRect();
+  const W=Math.max(280, Math.round(box.width)) || 640, H=W<500?200:220;
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  const L=8, R=54, Ttop=14, B=28;
+  const top=Math.max(0.5, Math.ceil(Math.max(0.5,...bars.map(b=>b.s))*2)/2);
+  const Y=v=>Ttop+(top-v)/top*(H-Ttop-B);
+  const bw=(W-L-R)/bars.length;
+  let g="";
+  for(let v=0.5; v<=top+1e-9; v+=0.5){
+    g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--color-divider)"/>`+
+       `<text x="${(W-R+6).toFixed(1)}" y="${(Y(v)+3).toFixed(1)}" font-size="11" font-family="var(--mono)" fill="var(--color-neutral-600)">${v.toFixed(1)}%</text>`;
+  }
+  bars.forEach((b,i)=>{
+    const pad=Math.min(1,bw*0.15), x=L+i*bw+pad, w=Math.max(1,bw-2*pad);
+    const app=Math.max(0,b.a), s=Math.max(app,b.s);
+    g+=`<g data-i="${i}">`+
+       `<rect x="${x.toFixed(1)}" y="${Y(app).toFixed(1)}" width="${w.toFixed(1)}" height="${(Y(0)-Y(app)).toFixed(1)}" fill="var(--neg)"/>`+
+       `<rect x="${x.toFixed(1)}" y="${Y(s).toFixed(1)}" width="${w.toFixed(1)}" height="${(Y(app)-Y(s)).toFixed(1)}" fill="var(--pos)"/>`+
+       `<rect x="${(L+i*bw).toFixed(1)}" y="${Ttop}" width="${bw.toFixed(1)}" height="${(H-Ttop-B).toFixed(1)}" fill="transparent"/></g>`;
+  });
+  g+=`<line x1="${L}" x2="${W-R}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="var(--color-ink,#0B0B0B)"/>`+
+     `<text x="${(W-R+6).toFixed(1)}" y="${(Y(0)+3).toFixed(1)}" font-size="11" font-family="var(--mono)" fill="var(--color-neutral-600)">0%</text>`+
+     `<text x="${L}" y="${H-8}" font-size="11" font-family="var(--font-body)" fill="var(--color-neutral-600)">${esc(fmtHistBarDate(bars[0].t,bucketH))}</text>`+
+     `<text x="${(W-R).toFixed(1)}" y="${H-8}" text-anchor="end" font-size="11" font-family="var(--font-body)" fill="var(--color-neutral-600)">${esc(fmtHistBarDate(bars[bars.length-1].t,bucketH))}</text>`;
+  svg.innerHTML=g;
+
+  function showTip(i,clientX,clientY){
+    const b=bars[i], tbox=svg.parentNode.getBoundingClientRect();
+    tip.innerHTML=`<b>${esc(fmtHistBarDate(b.t,bucketH))}</b><br>Stablecoin <b style="color:#817FCC">${pct(b.s*100)}</b><br>Cheapest app <b>${pct(b.a*100)}</b><br>Extra <b>+${Math.max(0,b.s-b.a).toFixed(2)} pts</b>`;
+    let x=clientX-tbox.left+12; if(x>tbox.width-170) x=clientX-tbox.left-170;
+    tip.style.left=x+"px"; tip.style.top=Math.max(0,clientY-tbox.top-10)+"px"; tip.style.opacity=1;
+  }
+  svg.querySelectorAll("g[data-i]").forEach(el=>{
+    const i=+el.dataset.i;
+    // pointer* covers mouse hover AND touch tap in one listener -- nothing
+    // on this chart is hover-only (site mobile rule, 2026-09-28).
+    el.addEventListener("pointermove",ev=>showTip(i,ev.clientX,ev.clientY));
+    el.addEventListener("pointerdown",ev=>showTip(i,ev.clientX,ev.clientY));
+    el.addEventListener("pointerleave",()=>{ tip.style.opacity=0; });
+  });
 }
 
 boot().catch(e=>{document.getElementById("stamp").textContent=(COPY.loadFailed)||"failed to load data"; console.error(e);});
+
+// Every chart on this page reads its container's real width at draw time
+// (drawWaterfall, the old drawHistory, drawRangeChart above) rather than a
+// fixed viewBox scaled by CSS, so a resize or rotate needs a real redraw,
+// not just a re-scale -- site mobile rule, 2026-09-28. render() recomputes
+// everything from the size/corridor already selected, so this is a full
+// redraw, debounced to one per animation frame rather than one per resize
+// event.
+let _resizeRAF=null;
+window.addEventListener("resize",()=>{
+  if(_resizeRAF) return;
+  _resizeRAF=requestAnimationFrame(()=>{ _resizeRAF=null; if(bySize[size]) render(); });
+});
 </script>
 <script>
 (function(){
