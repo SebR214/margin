@@ -70,8 +70,8 @@ EMPTY_STATES = ("could not be read", "no comparison available",
 PAGES = ["index.html", "providers.html", "pricing-history.html",
          "corridor.html", "methodology.html", "status.html", "findings.html",
          "requests.html", "calculator.html", "weekly.html", "data.html",
-         "ask.html", "watch.html", "stress.html", "machine-room.html",
-         "the-index.html", "sending-money.html", "how-it-works.html",
+         "ask.html", "watch.html", "stress.html", "how-it-was-built.html",
+         "countries.html", "sending-money.html", "how-it-works.html",
          "country.html", "fee-tiers.html", "agent-incidents.html"]
 
 # ask.html and watch.html both call a live backend rather than reading a
@@ -266,8 +266,8 @@ PAGE_TITLE = {
     "ask.html": "margin.wiki — ask it a question",
     "watch.html": "margin.wiki — the machine room",
     "stress.html": "margin.wiki — sending money",
-    "machine-room.html": "margin.wiki — the machine room",
-    "the-index.html": "margin.wiki — the index",
+    "how-it-was-built.html": "margin.wiki — how it was built",
+    "countries.html": "margin.wiki — countries",
     "sending-money.html": "margin.wiki — sending money",
     "how-it-works.html": "margin.wiki — how it works",
     "country.html": "margin.wiki — a country's price in full",
