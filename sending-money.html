@@ -126,7 +126,13 @@ header.mwh nav a.active{color:#0B0B0B!important;font-weight:600!important}
 header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
 @media (max-width:620px){header.mwh{height:56px!important;margin-bottom:24px!important}header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}header.mwh nav{gap:16px!important;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}header.mwh nav a{padding:12px 0!important}}
 </style>
-<style id="mwh-offset">header.mwh{margin-bottom:48px!important}@media (max-width:620px){header.mwh{margin-bottom:24px!important}}</style>
+<style id="mw-type">
+h1{font-family:'Archivo',system-ui,sans-serif!important;font-size:28px!important;font-weight:800!important;line-height:1.22!important;letter-spacing:-0.02em!important;color:#0B0B0B!important;margin-top:0!important;margin-bottom:10px!important}
+h2{font-family:'Archivo',system-ui,sans-serif!important;font-size:21px!important;font-weight:700!important;line-height:1.3!important;letter-spacing:-0.01em!important;color:#0B0B0B!important}
+body{font-family:'Archivo',system-ui,sans-serif!important;color:#0B0B0B}
+h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!important;line-height:1.55!important;color:#6B6B6B!important;font-weight:400!important;margin-top:0!important}
+</style>
+<style id="mwh-offset">header.mwh{margin-bottom:68px!important}@media (max-width:620px){header.mwh{margin-bottom:44px!important}}</style>
 </head>
 <body>
   <header class="mwh" style="max-width:760px!important;margin-left:auto!important;margin-right:auto!important;padding:0 24px!important;box-sizing:border-box!important"><a class="mwh-logo" href="./index.html">margin.wiki</a><nav>
@@ -458,7 +464,7 @@ header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
         // breakdown below (combosHtml) and in how-it-works.html's own
         // methodology paragraph.
         var sourceLabel = isStable
-          ? ('all fees in' + (hasVenues ? ' &middot; <a href="#" class="venue-breakdown-link">'+esc(COPY.breakdownLabel||'breakdown →')+'</a>' : ''))
+          ? ('all fees in &middot; <a href="./corridor.html?corridor='+encodeURIComponent(routeKey)+'" class="route-link" style="font-weight:600;color:#0B0B0B">every cost, step by step →</a>')
           : '';
         var nameCell = '<div><span class="pname">'+esc(displayName)+(hasVenues ? ' <span class="venue-toggle-caret">▸</span>' : '')+(sourceLabel ? '<small>'+sourceLabel+'</small>' : '')+'</span></div>';
         if (r.unchecked) {
@@ -484,6 +490,7 @@ header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
       rowsHtml += showCurve ?
         '<div class="curve-title">By size, on this corridor</div>' +
         '<div class="curve-wrap" id="curve-'+esc(routeKey)+'"></div>' : '';
+      rowsHtml += '<p style="margin:18px 0 0;font-size:16px"><a href="./corridor.html?corridor='+encodeURIComponent(routeKey)+'" style="font-weight:600;color:#0B0B0B;display:inline-flex;min-height:40px;align-items:center">The stablecoin route on this corridor, every cost step by step →</a></p>';
       document.getElementById('mainRows').innerHTML = rowsHtml;
 
       // 2026-09-28 final mockup: the separate boxed disclosure note and the
@@ -499,7 +506,7 @@ header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
 
       document.getElementById('mainRows').querySelectorAll('.venue-row').forEach(function(rowEl){
         rowEl.addEventListener('click', function(e){
-          if (e.target && e.target.classList && e.target.classList.contains('venue-breakdown-link')) return;
+          if (e.target && e.target.classList && (e.target.classList.contains('venue-breakdown-link') || e.target.classList.contains('route-link'))) return;
           toggleVenue(rowEl);
         });
       });
