@@ -8,20 +8,13 @@
     "headlineFallback": "Stablecoins rarely beat the cheapest transfer app. But where banks won't sell you dollars, they're how people get one.",
     "headlineSub": "Four AI agents run this site every hour. They track what people pay for a dollar in 60 countries, and what it costs to send money with an app or with stablecoins. <a href=\"./how-it-works.html\">How it was built →</a>",
     "purposeNote": "Built to test one claim: that stablecoins make moving money cheaper.",
-    "liveCheckedTemplate": "Checked {hour} UTC · next check in {mins} min",
-    "thisHourDeltaTemplate": "This hour: {country}'s gap {verb} to {pct}%",
-    "verbRose": "rose",
-    "verbFell": "fell",
-    "verbHeld": "held steady",
-    "runByLine": "Run by four AI agents · <a href=\"./machine-room.html\">How it was built →</a>",
-
     "routesHeaderAllTemplate": "On all {n} sends we check, the cheapest app beats the stablecoin",
     "routesHeaderPartialTemplate": "On {k} of {n} sends we check, the cheapest app beats the stablecoin",
     "routesTableNote": "All-in cost as % of the amount, typical hour.",
     "everyProviderLink": "Every provider, every amount →",
     "cheapestAppNote": "Cheapest app is the true lowest quote across every provider we check, direct and compared, right now. The stablecoin figure is the typical (median) hour.",
-
-    "waterfallLegHeaderTemplate": "Sending it on chain costs {network_pct}. Buying and selling it costs {trade_pct}.",    "waterfallTitle": "Sending S$5,000 to the Philippines by stablecoin costs {stable_pct}. The cheapest app costs {best_pct}.",
+    "waterfallLegHeaderTemplate": "The stablecoin loses on buying and selling the coin. Sending it costs only {network_pct}.",
+    "waterfallTitle": "Sending S$5,000 to the Philippines by stablecoin costs {stable_pct}. The cheapest app costs {best_pct}.",
     "waterfallCap": "Typical hour since {since}. Market orders, all fees in. Buying USDT with SGD costs the most. Sending it on chain costs {network_pct}.",
     "exchangeOnlyDisclosure": "This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.",
     "waterfallLegend": {
@@ -31,39 +24,36 @@
       "total": "Total"
     },
     "corridorTableTitle": "Stablecoin route vs cheapest app, all-in cost per route",
-    "corridorTableFirstLine": "The cheapest app wins almost every hour on every route. The exception: US \u2192 Mexico with a limit order, cheaper in {maker_pct}% of hours.",
+    "corridorTableFirstLine": "The cheapest app wins almost every hour on every route. The exception: US → Mexico with a limit order, cheaper in {maker_pct}% of hours.",
     "corridorTableCols": {
       "corridor": "ROUTE",
       "stablecoin": "STABLECOIN ROUTE",
       "fiat": "CHEAPEST APP",
       "winRate": "HOURS STABLECOIN WAS CHEAPER"
     },
-    "seeCorridor": "full breakdown \u2192",
+    "seeCorridor": "full breakdown →",
     "corridorNote": "Typical hour at S$5,000 or equivalent. Each route since its own start date.",
     "corridorMoreLink": "Where the cost comes from, and at what volume stablecoins win →",
     "corridorCrossoverNote": "On Singapore → Philippines the stablecoin route only wins above about {crossover_amount} a month, when exchange fees drop to volume rates.",
-
     "winCasesHeaderTemplate": "Stablecoins win in {n} case{s}: {list}",
     "winCasesNoneTemplate": "Stablecoins don't win in any case we've measured yet",
     "cardLimitOrderTemplate": "{corridorLabel} with a limit order. Set your price and wait for it to fill, instead of paying the price on offer right now.",
     "cardVolumeTemplate": "{corridorLabel}, at volume. Above about this amount, exchange fees drop enough for stablecoins to beat the cheapest app.",
     "howWeWorkedLink": "How we worked these out →",
-
     "footerMachineRoom": "how it was built — {priced} priced, {withheld} without enough data, last check {hour} UTC",
-    "footerLine": "Prices checked every hour by four AI agents. Every number links to the file it came from. <a href=\"https://github.com/SebR214/margin\">Code and raw data are public on GitHub →</a>",
-
+    "footerLine": "Every number on this site comes from a public data file. <a href=\"https://github.com/SebR214/margin\" style=\"font-weight:600;color:#0B0B0B\">Code and raw data on GitHub →</a>",
     "allCountriesTitle": "What a dollar costs vs the official rate, every country we track",
-    "allCountriesAnswerLine": "What people pay for USDT on Binance P2P and local coin exchanges, compared with the official rate. Not cash at money changers.",
+    "allCountriesAnswerLine": "How much more than the official rate people pay for a dollar. Priced from USDT on Binance P2P and local exchanges.",
     "countryFindingAtParTemplate": "In {places} a dollar costs the official rate.",
     "countryFindingGapTemplate": "In {country} people pay {pct}% more.",
     "countryFindingNoGapTemplate": "Every country we track trades close to its official rate this hour.",
-    "countryWhyBothParTemplate": "In {places}, what people pay and the official rate match, so a normal app already gives you the real rate and a stablecoin has nothing to beat.",
-    "countryWhyGapTemplate": " In {country}, banks sell few dollars, so USDT is how people get them. Right now you can buy about {amount} of USDT there within {pct}% of the best price.",
+    "countryWhyBothParTemplate": "A normal app already gets you the real rate in {places}, so a stablecoin has nothing to beat.",
+    "countryWhyGapTemplate": " In {country}, banks sell few dollars, so USDT is how people get them: about {amount} is on offer right now within {pct}% of the best price.",
     "countryWhyGapNoDepthTemplate": " In {country}, banks sell few dollars, so USDT is how people get them.",
     "allCountriesNote": "Where the gap is near zero, the official rate is real and a normal app is cheaper. Where the gap is big, the official rate isn't what people pay, and stablecoins are how people get dollars at all.",
     "allCountriesMedianNote": "Median of the last 24 hours.",
     "allCountriesPeggedLegend": "Light grey: pegged currency, the gap is the cost of buying stablecoins.",
-    "allCountriesLinkTemplate": "All {n} priced countries →",
+    "allCountriesLinkTemplate": "All countries →",
     "seeAllCountriesLine": "See all 60 countries →",
     "allCountriesLabels": {
       "transferPricedTemplate": "where {n} of the transfers we price land here",
@@ -71,17 +61,22 @@
       "frozenRate": "official rate frozen, not comparable",
       "peggedGap": "pegged, gap is the cost of buying stablecoins"
     },
-
     "premiumStripTitle": "What people pay vs the official rate: the 10 widest gaps this hour",
     "premiumStripLede": "A real gap exists in only a handful of countries. {biggest_gap_country} is by far the widest.",
     "premiumStripAxisLeft": "official rate is real",
     "premiumStripAxisRight": "official rate is fiction (log scale above 10%)",
     "premiumStripNote": "The other {rest_count} countries we price have gaps below {rest_max_pct}. <a href=\"./the-index.html\">See all countries →</a>",
-
     "thisHourHeader": "This hour · updated {hour} UTC",
     "thisHourLineTemplate": "Widest gap: {country}. People pay {pct} more than the official rate for a dollar, up from {past_pct} on {since}. Rising fastest this month: {fast_country}, up {points} points.",
     "chartTitleTemplate": "{country}: what people pay over the official rate, % · since {since}",
-    "sourceLineTemplate": "Based on {n} Binance P2P sell ads · <a href=\"./country.html?ccy={ccy}\" style=\"font-weight:600;color:#0B0B0B\">{country} in full →</a>"  },
+    "sourceLineTemplate": "Based on {n} Binance P2P sell ads · <a href=\"./country.html?ccy={ccy}\" style=\"font-weight:600;color:#0B0B0B\">{country} in full →</a>",
+    "liveMergedTemplate": "Checked {hour} UTC · run by four AI agents · <a href=\"./machine-room.html\">How it was built →</a>",
+    "duelLabelStable": "Stablecoin",
+    "duelLabelApp": "Cheapest app",
+    "duelVs": "vs",
+    "duelCaptionTemplate": "Sending {amount} from {src} to {dest}, all-in cost, typical hour.",
+    "duelSameResultTemplate": "Same result from {others}. <a href=\"./sending-money.html\">All routes and providers →</a>"
+  },
   "nav": [
     {
       "key": "home",
@@ -117,15 +112,15 @@
   },
   "index": {
     "health": {
-      "reading": "reading data/\u2026",
-      "errorPrefix": "collector unreachable \u2014 ",
-      "ok": "collector ok \u00b7 {ok}/{total} sources",
+      "reading": "reading data/…",
+      "errorPrefix": "collector unreachable — ",
+      "ok": "collector ok · {ok}/{total} sources",
       "stale": "no pass since {when}"
     },
     "lastTick": "last tick",
     "hero": {
       "title": "What does a dollar really cost?",
-      "body": "In much of the world the official exchange rate is not the rate anyone gets. This measures what people actually pay for a dollar \u2014 the kind an ordinary person can buy on their phone \u2014 in {count} currencies, every hour. Where there is no price, it says so, and why."
+      "body": "In much of the world the official exchange rate is not the rate anyone gets. This measures what people actually pay for a dollar — the kind an ordinary person can buy on their phone — in {count} currencies, every hour. Where there is no price, it says so, and why."
     },
     "market": {
       "overTime": "one country over time",
@@ -158,7 +153,7 @@
     },
     "board": {
       "title": "What a dollar really costs",
-      "subhead": "measured every hour \u00b7 furthest above the official rate first",
+      "subhead": "measured every hour · furthest above the official rate first",
       "columns": {
         "country": "country",
         "cost": "a dollar costs",
@@ -196,7 +191,7 @@
     "coverage": {
       "title": "Is the data complete?",
       "legendStart": "00h",
-      "legendMid": "small gap \u2192 big gap",
+      "legendMid": "small gap → big gap",
       "legendEnd": "23h UTC",
       "footnote": "Prices from before August 2026 are daily, not hourly, so they appear in the history chart but never in this grid."
     },
@@ -220,7 +215,7 @@
     },
     "ask": {
       "kicker": "Ask the data",
-      "note": "Answered from files already in this repo \u2014 nothing is fetched over the network and nothing is guessed. Free-form questions arrive once the question-answering key is switched on; until then, these are the questions it can answer.",
+      "note": "Answered from files already in this repo — nothing is fetched over the network and nothing is guessed. Free-form questions arrive once the question-answering key is switched on; until then, these are the questions it can answer.",
       "provLabel": "where this comes from",
       "unknownSource": "an internal source",
       "countMissing": "source count not recorded",
@@ -239,9 +234,9 @@
         "data/stable_spread.csv": "the stablecoin price check",
         "data/withdrawal_fees.csv": "stablecoin withdrawal fees"
       },
-      "freeTextPlaceholder": "Ask anything else\u2026",
+      "freeTextPlaceholder": "Ask anything else…",
       "freeTextButton": "ask",
-      "freeTextHonest": "Live answers aren't on yet \u2014 here's what I can answer today, in the questions above.",
+      "freeTextHonest": "Live answers aren't on yet — here's what I can answer today, in the questions above.",
       "questions": [
         "Which country is furthest from the official rate right now?",
         "Which country is closest to the official rate right now?",
@@ -251,20 +246,20 @@
         "Has data collection been running on schedule?"
       ],
       "answers": {
-        "widest": "In {country}, a dollar costs {gap} than the official rate \u2014 the widest gap measured this hour.",
-        "narrowest": "In {country}, a dollar costs {gap} than the official rate \u2014 the closest to it measured this hour.",
+        "widest": "In {country}, a dollar costs {gap} than the official rate — the widest gap measured this hour.",
+        "narrowest": "In {country}, a dollar costs {gap} than the official rate — the closest to it measured this hour.",
         "phpPriced": "A dollar costs {gap} than the official rate in the Philippines.",
-        "phpWithheld": "No price for the Philippines this hour \u2014 {reason}.",
+        "phpWithheld": "No price for the Philippines this hour — {reason}.",
         "phpMissing": "No price collected for the Philippines this hour.",
         "transferMissing": "No transfer has been priced yet.",
         "transferInsufficient": "Not enough data on this route to compare right now.",
-        "transferCheaper": "Yes \u2014 sending {size} on {ladder} right now costs {taker} through the dollar route against {baseline} with {provider}. The dollar route is cheaper by {diff} \u2014 that is rare; on {ladder} it has won {winCount} of {measureCount} measurements since collection began.",
-        "transferPricier": "No \u2014 sending {size} on {ladder} right now costs {taker} through the dollar route against {baseline} with {provider}. {provider} is cheaper by {diff}.",
+        "transferCheaper": "Yes — sending {size} on {ladder} right now costs {taker} through the dollar route against {baseline} with {provider}. The dollar route is cheaper by {diff} — that is rare; on {ladder} it has won {winCount} of {measureCount} measurements since collection began.",
+        "transferPricier": "No — sending {size} on {ladder} right now costs {taker} through the dollar route against {baseline} with {provider}. {provider} is cheaper by {diff}.",
         "currencyCount": "{attempted} currencies are attempted every hour; {priced} carry a published price this hour, and {withheld} are withheld, each with a stated reason.",
         "scheduleMissing": "The machine's health record hasn't loaded this visit.",
         "scheduleSummary": "The last complete day ({date}) captured {hours} of 24 hours. {note}",
         "scheduleOnTime": "That is on schedule.",
-        "scheduleBehind": "That is short of a full day \u2014 collection has been dropping hours."
+        "scheduleBehind": "That is short of a full day — collection has been dropping hours."
       }
     }
   },
@@ -274,7 +269,7 @@
     "verdict1": "Right now {amount} costs {marketCost} ({marketPct}) all in by stablecoin with a market order, and {appCost} ({appPct}) with the cheapest app, {provider}. The stablecoin route costs {diff} {moreOrLess}.",
     "moreLabel": "more",
     "lessLabel": "less",
-    "loading": "loading\u2026",
+    "loading": "loading…",
     "loadFailed": "failed to load data",
     "sizebar": {
       "route": "route",
@@ -364,8 +359,8 @@
     "noSamples": "no completed samples yet.",
     "footerTemplate": "Stablecoin bought on {onrampVenue} in {srcCcy}, sold on {offrampVenue} for {dst}, on each exchange's published fees. App prices are advertised prices, including first-transfer offers where shown. Limit orders assume a fill at the top of the book. Official rate from open.er-api.com. Negotiated corporate rates are not included.",
     "footerLinks": {
-      "methodology": "Full method \u2192",
-      "board": "the country board \u2192"
+      "methodology": "Full method →",
+      "board": "the country board →"
     },
     "dataSourceNote": "Every number on this site comes from a public data file. <a href=\"https://github.com/SebR214/margin\">Code and raw data on GitHub \u2192</a>",
     "sourceTemplate": "Checked {time} UTC · buy on {onrampVenue}, sell on {offrampVenue}",
@@ -373,11 +368,11 @@
       "reasonTrading": "trading fees",
       "reasonNetwork": "network fee",
       "reasonBoth": "trading and network fees",
-      "unverifiedTemplate": "fees UNVERIFIED ({reason}) \u2014 last clean check {lastClean}",
+      "unverifiedTemplate": "fees UNVERIFIED ({reason}) — last clean check {lastClean}",
       "noneOnRecord": "none on record",
       "verifiedTemplate": "fees verified {date}"
     },
-    "waterfallUnavailable": "Not available for this hour yet \u2014 it appears the check after this one shipped.",
+    "waterfallUnavailable": "Not available for this hour yet — it appears the check after this one shipped.",
     "minAgoTemplate": "{n} min ago",
     "hAgoTemplate": "{n} h ago",
     "updatedLabel": "updated"
@@ -392,42 +387,42 @@
     "step4Label": "The verdict",
     "evidenceSentenceTemplate": "{words} put the median price to buy a dollar at {price} {ccy}.",
     "evidenceOffersNote": "Every offer collected that hour is listed below.",
-    "evidenceAggregateNote": "Only the median was stored for this hour \u2014 the individual offers were not kept.",
+    "evidenceAggregateNote": "Only the median was stored for this hour — the individual offers were not kept.",
     "evidenceCollectedTemplate": "Collected {when}.",
     "rateSentenceTemplate": "The official rate captured in the same pass: {value} {ccy} to the dollar, from {source}.",
     "rateManaged": "A rate the government sets and defends.",
     "ratePegged": "A rate this currency is pegged to.",
-    "rateUnmaintained": "A rate that has stopped being updated \u2014 this compares against an average of what banks quote instead.",
+    "rateUnmaintained": "A rate that has stopped being updated — this compares against an average of what banks quote instead.",
     "rateMarket": "A market exchange rate.",
     "rateStalenessNote": "This value is refreshed every hour but the underlying source itself only changes about once a day, so it can be up to 24 hours behind the market.",
     "mathSentenceTemplate": "{numerator} {ccy} divided by {denominator}, minus one, times 100.",
     "mathResultTemplate": "The published figure: {result}.",
-    "verdictPublished": "Published \u2014 the evidence rule was met.",
+    "verdictPublished": "Published — the evidence rule was met.",
     "verdictWithheldTemplate": "Not published: {reason}",
     "verdictRuleDetailTemplate": "{actual} of {required} required buy-side offers.",
     "verdictNoteOrderBook": "The minimum-offer rule applies to peer-to-peer sources only. This price comes from an order book or a broker quote instead, evidenced by how many exchanges quoted it.",
-    "verdictNoteAggregate": "A single aggregated price from an independent source, not a two-sided listing board \u2014 there is no offer count to test.",
+    "verdictNoteAggregate": "A single aggregated price from an independent source, not a two-sided listing board — there is no offer count to test.",
     "rawFilesLabel": "Open the raw files",
-    "loadingLabel": "Loading the receipt\u2026",
+    "loadingLabel": "Loading the receipt…",
     "loadErrorTemplate": "The receipt at {file} could not be read."
   },
   "machineRoom": {
     "title": "Four AI agents run this site, with one person approving what matters",
     "lede": "They collect prices, write the code, review each other's work and decide what to build next. Every change they make is public.",
     "connecting": "",
-    "connected": "connected \u00b7 live",
+    "connected": "connected · live",
     "offline": "live feed offline",
     "columns": {
       "collection": {
-        "checkTemplate": "This hour's check: {priced} of {total} priced \u00b7 next check on the hour",
+        "checkTemplate": "This hour's check: {priced} of {total} priced · next check on the hour",
         "noReason": "no reason given"
       },
       "agents": {
         "title": "What the agents did today",
-        "kicker": "ISSUES \u00b7 REVIEWS \u00b7 COMMITS",
+        "kicker": "ISSUES · REVIEWS · COMMITS",
         "empty": "No agent activity yet today.",
-        "historyLink": "Every change, including the failures \u2192",
-        "transitionTemplate": "{ident} moved {from} \u2192 {to}",
+        "historyLink": "Every change, including the failures →",
+        "transitionTemplate": "{ident} moved {from} → {to}",
         "commentTemplate": "{ident}: {text}",
         "commitTemplate": "committed {message}",
         "loopPassTemplate": "check {result}{seconds}",
@@ -443,11 +438,11 @@
           "agents": "AGENT",
           "person": "SEBASTIAN",
           "linear": "LINEAR",
-          "unknown": "\u2014"
+          "unknown": "—"
         },
         "shippedTitle": "What the agents shipped in the last two days",
         "shippedEmpty": "Nothing shipped in the last two days.",
-        "shippedHistoryLink": "Every change, with the reviewer's notes \u2192"
+        "shippedHistoryLink": "Every change, with the reviewer's notes →"
       },
       "meters": {
         "priced": "COUNTRIES PRICED NOW",
@@ -455,10 +450,10 @@
         "mergedThisWeek": "CHANGES SHIPPED THIS WEEK",
         "people": "PEOPLE",
         "peopleValue": "1",
-        "unknown": "\u2014"
+        "unknown": "—"
       }
     },
-    "metaTemplate": "Last price check {time} UTC \u00b7 next on the hour",
+    "metaTemplate": "Last price check {time} UTC · next on the hour",
     "roles": {
       "heading": "Each agent has one job and cannot do the others'",
       "answer": "The builder cannot merge its own work. The reviewer cannot write features. The planner never writes code.",
@@ -529,15 +524,15 @@
       ],
       "liveItemTitle": "No price is an answer too",
       "liveItemTemplate": "Nobody is offering to sell dollars in {country} right now, so it shows \"not enough data\" and the reason: {reason}.",
-      "liveItemFallback": "Every currency this site tracks has a price this hour \u2014 when one doesn't, it shows \"not enough data\" and the real reason, instead of a guess.",
-      "linkText": "The full story: running agents that can't be trusted \u2192",
+      "liveItemFallback": "Every currency this site tracks has a price this hour — when one doesn't, it shows \"not enough data\" and the real reason, instead of a guess.",
+      "linkText": "The full story: running agents that can't be trusted →",
       "linkHref": "./agent-incidents.html"
     }
   },
   "redirects": {
     "heading": "This page moved",
     "bodyTemplate": "{old} is retired. {reason} is now on {destLabel}.",
-    "linkTemplate": "Continue to {destLabel} \u2192",
+    "linkTemplate": "Continue to {destLabel} →",
     "pages": {
       "calculator.html": {
         "reason": "Typing an amount and seeing what it costs",
