@@ -2,58 +2,92 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>margin.wiki — the machine room</title>
 <meta name="description" content="What the site is checking this hour, and what the programs building this site are doing, unedited, as it happens."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0;
+    box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px) }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
   .num{font-variant-numeric:tabular-nums}
-  .lbl{font-size:11px;letter-spacing:.1em;color:#6B6B6B}
+  .lbl{font-size:11px;letter-spacing:.1em;color:#6B6B6B;font-weight:600}
   .stamp{font-size:11px;color:var(--stamp);letter-spacing:.06em}
   .log{font-size:13px;padding:7px 0;border-bottom:1px solid #F6F6F6;display:flex;gap:12px;align-items:baseline}
   .log>div{min-width:0;overflow-wrap:anywhere}
   .log>div:last-child{flex-grow:1}
   .wrap{max-width:1150px;margin:0 auto}
   header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
-  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
-  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
-  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap;min-width:0}
+  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em;flex:none}
+  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap;min-width:0}
   nav a.active{color:var(--ink);font-weight:700}
   .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
   .header-right{display:flex;align-items:center;gap:16px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
   .dot.off{background:#9A9A9A}
-  .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:12px}
+  .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:10px}
   h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;margin:0}
   .lede{max-width:840px;font-size:16px;color:#6B6B6B;line-height:1.5}
+  .meta{font-size:13px;color:#9A9A9A;letter-spacing:.02em;display:flex;align-items:center;gap:8px;margin:2px 0 0}
   .stack{display:flex;flex-direction:column;gap:44px;padding:36px 48px 64px}
   .col-hdr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;border-bottom:1px solid #0B0B0B;padding-bottom:8px}
   .col-title{font-size:16px;font-weight:700}
   .feed{}
-  .meters{display:flex;flex-wrap:wrap;gap:8px 56px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:18px 0}
-  .meter{display:flex;flex-direction:column;gap:2px;min-width:150px}
-  .meter .v{font-size:30px;font-weight:800;color:var(--indigo)}
-  .meter .v.muted{color:#9A9A9A;font-size:16px;font-weight:700}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:0}
+  .stats>div{padding:14px 14px 14px 0}
+  .stats>div+div{padding-left:14px;border-left:1px solid var(--rule)}
+  .stats .v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink)}
   .empty{padding:20px 0;color:#9A9A9A;font-size:13px}
-  .hourrule{font-size:11px;letter-spacing:.1em;color:var(--stamp);padding:16px 0 6px;border-bottom:1px solid var(--rule)}
   .feed-note{font-size:12px;color:#9A9A9A;padding:14px 0 0}
-  @media(max-width:1000px){.stack{padding:24px 24px 48px;gap:36px}h1{font-size:30px}header{padding:22px 24px}.hero{padding:32px 24px 0}.meters{gap:8px 32px}}
+  section{border-top:1px solid var(--rule);padding-top:0}
+  h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
+  .answer{font-size:16px;color:#6B6B6B;margin:0 0 22px;max-width:760px}
+  .kv{list-style:none;margin:0;padding:0}
+  .kv li{display:grid;grid-template-columns:220px 1fr;gap:16px;padding:14px 0;border-top:1px solid var(--rule);font-size:15px}
+  .kv li:first-child{border-top:0}
+  .kv li b{font-weight:700}
+  .kv li span{color:#6B6B6B}
+  .arow{list-style:none;margin:0;padding:0}
+  .arow li{display:grid;grid-template-columns:110px 150px 1fr;gap:14px;padding:14px 0;border-top:1px solid var(--rule);font-size:15px;align-items:baseline}
+  .arow li:first-child{border-top:0}
+  .arow b{font-weight:700}
+  .arow .when{white-space:nowrap;font-size:13px;color:var(--indigo);font-weight:700;letter-spacing:.02em}
+  .arow .txt{color:#6B6B6B}
+  .list{margin:0;padding:0;list-style:none}
+  .list li{padding:12px 0;border-top:1px solid var(--rule);font-size:15px;display:grid;grid-template-columns:70px 1fr auto;gap:12px}
+  .list li:first-child{border-top:0}
+  .list .d{color:#9A9A9A;font-size:13px}
+  .list .tag{font-size:12px;color:#9A9A9A;text-align:right;white-space:nowrap}
+  .fail li{display:block}
+  .fail li b{display:block;font-weight:700;margin-bottom:2px}
+  .fail li span{color:#6B6B6B;font-size:14px;display:block}
+  .small{font-size:13px;color:#9A9A9A;margin:14px 0 0}
+  .small a,.meta a,.answer a{display:inline-block;padding:6px 0}
+  @media(max-width:1000px){.stack{padding:24px 24px 48px;gap:36px}h1{font-size:30px}header{padding:22px 24px}.hero{padding:32px 24px 0}}
+  @media(max-width:620px){
+    .stats{grid-template-columns:1fr 1fr}
+    .stats>div:nth-child(3){padding-left:0;border-left:0}
+    .stats>div:nth-child(n+3){border-top:1px solid var(--rule);padding-top:14px}
+    .kv li,.arow li{grid-template-columns:1fr;gap:2px}
+    .list li{grid-template-columns:56px 1fr;row-gap:2px}
+    .list li .tag{grid-column:2;text-align:left}
+  }
 
-  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
+  /* Nav: a single swipeable row on phones, never a hamburger dropdown, so
+     it works the same with one thumb as it does with a mouse. Every link
+     keeps a real (>=40px) tap target via its own padding. */
   @media(max-width:760px){
-    header{position:relative;flex-wrap:nowrap!important}
-    .brand{gap:14px}
-    nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column!important;gap:0!important;padding:6px 24px 16px;border-bottom:1px solid #F0F0F0;box-shadow:0 8px 16px rgba(11,11,11,0.06);z-index:30}
-    nav.open{display:flex}
-    nav a{padding:12px 0;border-bottom:1px solid #F6F6F6;font-size:16px}
-    .nav-toggle{display:block}
+    header{flex-wrap:nowrap!important}
+    .brand{gap:14px;min-width:0;flex:1 1 auto}
+    nav{flex-wrap:nowrap;overflow-x:auto;gap:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    nav::-webkit-scrollbar{display:none}
+    nav a{white-space:nowrap;padding:12px 10px;font-size:15px;min-height:40px;display:flex;align-items:center}
     .status{gap:10px}
     .mcp{display:none}
-    .live{max-width:52vw;overflow:hidden}
+    .live{max-width:38vw;overflow:hidden}
     .live .num{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:middle}
   }
 </style>
@@ -73,25 +107,25 @@
     </div>
     <div class="header-right">
       <div class="live"><span class="dot off" id="dot"></span><span class="num" id="connLabel">&nbsp;</span></div>
-      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
   </header>
 
   <div class="hero">
     <h1 id="pageTitle">&nbsp;</h1>
     <div class="lede" id="pageLede">&nbsp;</div>
+    <p class="meta"><span class="dot" id="metaDot"></span><span id="metaLine">&nbsp;</span></p>
   </div>
 
   <div class="stack">
-    <div class="meters">
-      <div class="meter"><div class="v num" id="mPriced">—</div><div class="lbl" id="lPriced">&nbsp;</div></div>
-      <div class="meter"><div class="v num" id="mWithheld">—</div><div class="lbl" id="lWithheld">&nbsp;</div></div>
-      <div class="meter"><div class="v num" id="mMerged">—</div><div class="lbl" id="lMerged">&nbsp;</div></div>
-      <div class="meter"><div class="v num" id="mPeople">—</div><div class="lbl" id="lPeople">&nbsp;</div></div>
+    <div class="stats">
+      <div><div class="lbl" id="lPriced">&nbsp;</div><div class="v num" id="mPriced">—</div></div>
+      <div><div class="lbl" id="lWithheld">&nbsp;</div><div class="v num" id="mWithheld">—</div></div>
+      <div><div class="lbl" id="lMerged">&nbsp;</div><div class="v num" id="mMerged">—</div></div>
+      <div><div class="lbl" id="lPeople">&nbsp;</div><div class="v num" id="mPeople">—</div></div>
     </div>
 
     <div>
-      <div id="hourCheck" style="font-size:15px;color:#333;padding:10px 0">&nbsp;</div>
+      <div id="hourCheck" style="font-size:15px;color:#333;padding:2px 0">&nbsp;</div>
     </div>
 
     <div>
@@ -101,12 +135,37 @@
       <div style="padding-top:10px;font-size:13px;color:#6B6B6B"><a href="https://github.com/SebR214/margin/commits/main" id="col2HistoryLink">&nbsp;</a></div>
     </div>
 
+    <section>
+      <h2 id="rolesHeading" style="padding-top:32px">&nbsp;</h2>
+      <p class="answer" id="rolesAnswer">&nbsp;</p>
+      <ul class="arow" id="rolesList"></ul>
+    </section>
+
+    <section>
+      <h2 id="approvesHeading" style="padding-top:32px">&nbsp;</h2>
+      <ul class="kv" id="approvesList"></ul>
+    </section>
+
+    <section>
+      <div class="col-hdr" style="padding-top:32px;margin-top:-32px;border-bottom:0;padding-bottom:0">
+        <h2 id="shippedHeading" style="border-bottom:1px solid #0B0B0B;padding-bottom:8px;width:100%">&nbsp;</h2>
+      </div>
+      <ul class="list feed" id="shippedFeed"><li class="empty" id="shippedEmpty" style="display:block;grid-template-columns:1fr">&nbsp;</li></ul>
+      <p class="small"><a href="https://github.com/SebR214/margin/commits/main" id="shippedHistoryLink">&nbsp;</a></p>
+    </section>
+
+    <section>
+      <h2 id="incidentsHeading" style="padding-top:32px">&nbsp;</h2>
+      <ul class="list fail" id="incidentsList"></ul>
+      <p class="small"><a href="./agent-incidents.html" id="incidentsLink">&nbsp;</a></p>
+    </section>
+
     <div style="border-top:1px solid var(--rule);padding-top:20px">
       <div class="col-title" style="margin-bottom:10px">Read more</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px 28px;font-size:14px">
-        <a href="./sending-money.html" style="font-weight:600">Where the stablecoin cost comes from →</a>
-        <a href="./how-it-works.html" style="font-weight:600">How prices are checked →</a>
-        <a href="./agent-incidents.html" style="font-weight:600">When the agents got it wrong →</a>
+        <a href="./sending-money.html" style="font-weight:600;display:inline-block;padding:8px 0">Where the stablecoin cost comes from →</a>
+        <a href="./how-it-works.html" style="font-weight:600;display:inline-block;padding:8px 0">How prices are checked →</a>
+        <a href="./agent-incidents.html" style="font-weight:600;display:inline-block;padding:8px 0">When the agents got it wrong →</a>
       </div>
     </div>
   </div>
@@ -127,6 +186,12 @@
     return out;
   }
   function timeOf(iso){ if(!iso) return ''; var d=new Date(iso); if(isNaN(d)) return ''; return d.toISOString().slice(11,19); }
+  function dateOf(iso){
+    if(!iso) return '';
+    var d = new Date(iso); if (isNaN(d)) return '';
+    var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return String(d.getUTCDate()).padStart(2,'0') + ' ' + MONTHS[d.getUTCMonth()];
+  }
   function todayUTC(){ return new Date().toISOString().slice(0,10); }
   // One stream, finite. The page scrolls; this does not. When it reaches the
   // cap the oldest row goes -- the commit log below is the full history, so
@@ -159,6 +224,15 @@
     return B.unknown || '';
   }
 
+  // A commit authored by the hourly collector pass (actions@github.com) is
+  // not a "change the agents shipped" -- it belongs to the hour's price
+  // check, already surfaced in the stats row and hourCheck line above. Both
+  // the "what the agents did today" feed and the "what shipped" feed below
+  // share this one filter so neither ever double-counts or mislabels it.
+  function isShippedCommit(c){
+    return ((c.commit.author||{}).email || '') !== 'actions@github.com';
+  }
+
   function renderStatic(){
     var M = COPY.columns.meters, C2 = COPY.columns.agents;
     document.getElementById('pageTitle').textContent = COPY.title || '';
@@ -174,9 +248,35 @@
     document.getElementById('lPeople').textContent = M.people || '';
     document.getElementById('mPeople').textContent = M.peopleValue || '';
     document.getElementById('connLabel').textContent = COPY.connecting || '';
+
+    var R = COPY.roles || {};
+    document.getElementById('rolesHeading').textContent = R.heading || '';
+    document.getElementById('rolesAnswer').textContent = R.answer || '';
+    document.getElementById('rolesList').innerHTML = (R.items||[]).map(function(it){
+      return '<li><b>'+esc(it.role)+'</b><span class="when">'+esc(it.when)+'</span><span class="txt">'+esc(it.text)+'</span></li>';
+    }).join('');
+
+    var A = COPY.approves || {};
+    document.getElementById('approvesHeading').textContent = A.heading || '';
+    document.getElementById('approvesList').innerHTML = (A.items||[]).map(function(it){
+      return '<li><b>'+esc(it.title)+'</b><span>'+esc(it.text)+'</span></li>';
+    }).join('');
+
+    document.getElementById('shippedHeading').textContent = C2.shippedTitle || '';
+    document.getElementById('shippedEmpty').textContent = C2.shippedEmpty || '';
+    document.getElementById('shippedHistoryLink').textContent = C2.shippedHistoryLink || '';
+
+    var I = COPY.incidents || {};
+    document.getElementById('incidentsHeading').textContent = I.heading || '';
+    document.getElementById('incidentsLink').textContent = I.linkText || '';
+    document.getElementById('incidentsLink').href = I.linkHref || './agent-incidents.html';
+    document.getElementById('incidentsList').innerHTML = (I.items||[]).map(function(it){
+      return '<li><b>'+esc(it.what)+'</b><span>'+esc(it.text)+'</span></li>';
+    }).join('') + '<li id="incidentsLiveItem"><b>'+esc(I.liveItemTitle||'')+'</b><span id="incidentsLiveText">'+esc(I.liveItemFallback||'')+'</span></li>';
   }
 
-  // Redraws the one-line "this hour's check" sentence from STATE. STATE's
+  // Redraws the one-line "this hour's check" sentence from STATE, and the
+  // "countries priced now" stat tile that shares the same live count. STATE's
   // key count is the real live number of currencies the collector has
   // touched so far this pass; TOTAL_CURRENCIES (60, the fixed bounded set
   // this site checks every hour) is the fixed denominator.
@@ -185,7 +285,7 @@
     var C = COPY.columns.collection;
     var priced = 0, withheld = 0;
     Object.keys(STATE).forEach(function(k){ STATE[k] ? priced++ : withheld++; });
-    document.getElementById('mPriced').textContent = priced;
+    document.getElementById('mPriced').textContent = priced + ' of ' + TOTAL_CURRENCIES;
     document.getElementById('mWithheld').textContent = withheld;
     document.getElementById('hourCheck').textContent = T(C.checkTemplate,
       { priced: priced, total: TOTAL_CURRENCIES });
@@ -200,19 +300,31 @@
     countries.forEach(function(c){ STATE[c.ccy] = true; });
     withheldList.forEach(function(w){ STATE[w.ccy] = false; });
     drawHourCheck();
+
+    var I = COPY.incidents || {};
+    var real = withheldList.filter(function(w){ return w && w.country && w.reason; })[0];
+    if (real) {
+      document.getElementById('incidentsLiveText').textContent =
+        T(I.liveItemTemplate, { country: real.country, reason: real.reason });
+    }
+
+    var when = timeOf(d.as_of_utc || d.computed_at);
+    document.getElementById('metaLine').textContent = when
+      ? T(COPY.metaTemplate, { time: when })
+      : '';
   }
 
   // Seed "what the agents are doing" with real recent commits from GitHub's
   // public API (no auth needed, public repo) -- live SSE events (issues,
-  // reviews, further commits) prepend above these as they arrive.
+  // reviews, further commits) prepend above these as they arrive. The same
+  // fetch also drives the curated "what shipped in the last two days" feed
+  // below, so a reader sees one real commit history rendered two ways, not
+  // two independently-fetched (and possibly disagreeing) ones.
   function seedAgents(commits){
     var C = COPY.columns.agents;
-    // The hourly collection commits are the collector's, not the builder's.
-    // They belong to the half of this page above, and labelling them BUILDER
-    // credits one agent with another's work.
-    var html = commits.filter(function(c){
-      return ((c.commit.author||{}).email || '') !== 'actions@github.com';
-    }).slice(0, 8).map(function(c){
+    var shipped = commits.filter(isShippedCommit);
+
+    var html = shipped.slice(0, 8).map(function(c){
       var by = bylineFor((c.commit.author||{}).email);
       var msg = (c.commit.message.split('\n')[0] || '').replace(/\s*\(#\d+\)\s*$/, '');
       var prMatch = c.commit.message.match(/\(#(\d+)\)/);
@@ -222,6 +334,30 @@
     }).join('');
     var feed = document.getElementById('agentFeed');
     if (html) feed.innerHTML = html;
+
+    // "Shipped" here means the same thing tools/emit_changes_merged.py
+    // means by "a change merged" -- a commit on main whose subject ends in
+    // "(#NNN)", i.e. a squash-merged PR. A raw commit with no PR suffix
+    // (an hourly sample, a direct push) is real git history but not a
+    // reviewed change a reader would recognise as "shipped", so it is
+    // excluded here the same way it is excluded from that count.
+    var PR_SUFFIX_RE = /\(#(\d+)\)\s*$/;
+    var SHIPPED_FEED_CAP = 12;
+    var cutoff = Date.now() - 2 * 24 * 60 * 60 * 1000;
+    var recent = shipped.filter(function(c){
+      var t = new Date(c.commit.author.date).getTime();
+      return !isNaN(t) && t >= cutoff && PR_SUFFIX_RE.test(c.commit.message.split('\n')[0] || '');
+    }).slice(0, SHIPPED_FEED_CAP);
+    var shippedFeed = document.getElementById('shippedFeed');
+    if (recent.length) {
+      shippedFeed.innerHTML = recent.map(function(c){
+        var msg = (c.commit.message.split('\n')[0] || '').replace(/\s*\(#\d+\)\s*$/, '');
+        var prMatch = c.commit.message.match(PR_SUFFIX_RE);
+        return '<li><span class="d">' + esc(dateOf(c.commit.author.date)) + '</span>' +
+          '<span>' + esc(msg) + '</span>' +
+          '<span class="tag">' + (prMatch ? '#' + esc(prMatch[1]) : '') + '</span></li>';
+      }).join('');
+    }
   }
 
   async function boot(){
@@ -230,9 +366,12 @@
     renderStatic();
 
     fetch('./data/index_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(seedCollection).catch(function(){});
-    // "Changes merged this week" -- tools/emit_changes_merged.py counts real
+    // "Changes shipped this week" -- tools/emit_changes_merged.py counts real
     // commits on main (each one a squash-merged PR, see its own docstring)
     // in the trailing 7 days from this repo's own git history. Never typed.
+    // The label reads "shipped" (mockup wording); the computation itself is
+    // unchanged from the number this page already published as "changes
+    // merged this week" -- same file, same script, same meaning.
     fetch('./data/changes_merged.json', {cache:'no-store'}).then(function(r){ return r.json(); })
       .then(function(m){ document.getElementById('mMerged').textContent = (m && m.count != null) ? m.count : '—'; })
       .catch(function(){});
@@ -317,19 +456,6 @@
   }
 
   boot();
-})();
-</script>
-
-<script>
-(function(){
-  var btn = document.getElementById('navToggle');
-  var nav = document.querySelector('header nav');
-  if (btn && nav) {
-    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
-    document.addEventListener('click', function(e){
-      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
-    });
-  }
 })();
 </script>
 </body>
