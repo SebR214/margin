@@ -73,24 +73,28 @@
     .ask button{min-width:44px;min-height:44px}
   }
 </style>
+<style id="mwh-style">
+header.mwh{display:flex!important;align-items:center!important;justify-content:flex-start!important;height:64px!important;min-height:0!important;margin:0 0 36px 0!important;padding:0!important;border:0!important;background:transparent!important;position:static!important;flex-wrap:nowrap!important;gap:0!important}
+header.mwh .mwh-logo{font-family:'Archivo',system-ui,sans-serif!important;font-size:19px!important;font-weight:800!important;color:#0B0B0B!important;text-decoration:none!important;margin:0 28px 0 0!important;padding:0!important;letter-spacing:-.01em!important;white-space:nowrap!important;flex:none!important}
+header.mwh nav{display:flex!important;gap:24px!important;align-items:center!important;overflow-x:auto!important;scrollbar-width:none!important;margin:0!important;padding:0!important;flex:1 1 auto!important;min-width:0!important}
+header.mwh nav{position:static!important;inset:auto!important;transform:none!important;width:auto!important;height:auto!important;max-height:none!important;box-shadow:none!important;background:none!important;visibility:visible!important;opacity:1!important;flex-direction:row!important;border:0!important;z-index:auto!important}
+header.mwh nav::-webkit-scrollbar{display:none}
+header.mwh nav a{font-family:'Archivo',system-ui,sans-serif!important;font-size:15px!important;font-weight:500!important;color:#6B6B6B!important;text-decoration:none!important;padding:10px 0!important;margin:0!important;white-space:nowrap!important;border:0!important;background:none!important}
+header.mwh nav a.active{color:#0B0B0B!important;font-weight:600!important}
+header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
+@media (max-width:620px){header.mwh{height:56px!important;margin-bottom:24px!important}header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}header.mwh nav{gap:16px!important;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}header.mwh nav a{padding:12px 0!important}}
+</style>
+<style id="mwh-offset">header.mwh{margin-bottom:32px!important}@media (max-width:620px){header.mwh{margin-bottom:20px!important}}</style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div class="brand">
-      <div class="logo"><a href="./index.html">margin.wiki</a></div>
-      <nav>
+  <header class="mwh"><a class="mwh-logo" href="./index.html">margin.wiki</a><nav>
         <a href="./index.html">Home</a>
         <a href="./sending-money.html">Sending money</a>
         <a href="./the-index.html">Countries</a>
         <a href="./how-it-works.html" class="active">How it works</a>
         <a href="./machine-room.html">How it was built</a>
-      </nav>
-    </div>
-    <div class="header-right">
-      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
-    </div>
-  </header>
+      </nav><button id="navToggle" style="display:none" aria-hidden="true"></button></header>
 
   <main>
     <h1>We measure two things every hour: what a dollar really costs, and what sending money costs</h1>
