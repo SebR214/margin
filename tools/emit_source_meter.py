@@ -29,7 +29,7 @@ from data/, never typed").
 quoted by the provider itself, {n_comparison} from {comparison_feed_words}
 comparison feeds, stablecoins from {n_stable_venues} venues."), built the
 same way tools/bake_homepage.py fills home.headlineSub -- so sending-money.html
-and machine-room.html read one already-filled sentence instead of each
+and how-it-was-built.html read one already-filled sentence instead of each
 re-implementing the substitution.
 
 Usage: python3 tools/emit_source_meter.py

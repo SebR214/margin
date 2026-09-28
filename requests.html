@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki — this page moved</title>
 <meta name="description" content="Every currency this site tracks, and why some have no price moved to The index."/>
-<meta http-equiv="refresh" content="0; url=./the-index.html"/>
-<link rel="canonical" href="./the-index.html"/>
+<meta http-equiv="refresh" content="0; url=./countries.html"/>
+<link rel="canonical" href="./countries.html"/>
 <style>
   body{margin:0;font-family:Archivo,system-ui,'Helvetica Neue',sans-serif;color:#0B0B0B;background:#fff;
        display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;box-sizing:border-box}
@@ -21,7 +21,7 @@
   <div class="card">
     <h1 id="rHeading">&nbsp;</h1>
     <p id="rBody">&nbsp;</p>
-    <a href="./the-index.html" id="rLink">Continue &rarr;</a>
+    <a href="./countries.html" id="rLink">Continue &rarr;</a>
   </div>
 <script>
 fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
@@ -36,7 +36,7 @@ fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).t
   document.getElementById('rBody').textContent = T(R.bodyTemplate, { old: 'requests.html', reason: page.reason || '', destLabel: page.destLabel || '' });
   document.getElementById('rLink').textContent = T(R.linkTemplate, { destLabel: page.destLabel || '' });
 }).catch(function(){
-  document.getElementById('rBody').textContent = 'Continuing to ./the-index.html.';
+  document.getElementById('rBody').textContent = 'Continuing to ./countries.html.';
 });
 </script>
 </body>

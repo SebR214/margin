@@ -29,13 +29,13 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COPY = os.path.join(HERE, "copy.json")
 
 # Every page that carries the shared site nav. A page reachable only by
-# deep link (ask.html, machine-room.html, corridor.html) still gets the
+# deep link (ask.html, how-it-was-built.html, corridor.html) still gets the
 # same generated nav in its header -- DESIGN.md just keeps it out of the
 # nav's own link list.
 NAV_PAGES = [
     "index.html", "agent-incidents.html", "ask.html", "corridor.html",
     "country.html", "fee-tiers.html", "how-it-works.html",
-    "machine-room.html", "sending-money.html", "the-index.html",
+    "how-it-was-built.html", "sending-money.html", "countries.html",
 ]
 # findings.html is a redirect stub as of Phase 4 (FINAL spec) -- its content
 # moved into sending-money.html and it no longer carries its own header, the

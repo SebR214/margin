@@ -233,7 +233,7 @@ def run(base_url, dry_run):
         # ---- Walk the nav, desktop width, each page loads clean ----
         # findings.html is a redirect stub as of Phase 4 (FINAL spec) -- its
         # content lives on sending-money.html now, already in this list.
-        nav_pages = ["the-index.html", "sending-money.html", "machine-room.html"]
+        nav_pages = ["countries.html", "sending-money.html", "how-it-was-built.html"]
         for np in nav_pages:
             p.visit(base_url + "/" + np)
             if p.errors:
