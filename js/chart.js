@@ -152,10 +152,10 @@
       return pts[best];
     }
 
-    svg.addEventListener('mousemove', function (ev) {
+    function showAt(clientX) {
       var rect = svg.getBoundingClientRect();
       var scale = w / rect.width;
-      var px = (ev.clientX - rect.left) * scale;
+      var px = (clientX - rect.left) * scale;
       var p = nearest(px);
       dot.setAttribute('cx', p.x.toFixed(1));
       dot.setAttribute('cy', p.y.toFixed(1));
@@ -169,12 +169,29 @@
       tip.style.opacity = 1;
       tip.style.fontSize = "14px";
       tip.textContent = p.v.toFixed(2) + suffix + (p.label ? ' · ' + p.label : (p.ts ? ' · ' + fmtDate(p.ts) : ''));
-    });
-    svg.addEventListener('mouseleave', function () {
+    }
+    function hide() {
       dot.setAttribute('opacity', 0);
       vline.setAttribute('opacity', 0);
       tip.style.opacity = 0;
-    });
+    }
+    svg.addEventListener('mousemove', function (ev) { showAt(ev.clientX); });
+    svg.addEventListener('mouseleave', hide);
+    // Mobile rule: nothing on this site is hover-only -- a tap has to open
+    // the same tooltip a mouse hover does, not just leave the chart mute on
+    // a phone. A tap on the chart shows the nearest point's real reading;
+    // tapping elsewhere on the page (not this chart) hides it again.
+    svg.addEventListener('touchstart', function (ev) {
+      if (!ev.touches || !ev.touches.length) return;
+      showAt(ev.touches[0].clientX);
+    }, { passive: true });
+    svg.addEventListener('touchmove', function (ev) {
+      if (!ev.touches || !ev.touches.length) return;
+      showAt(ev.touches[0].clientX);
+    }, { passive: true });
+    document.addEventListener('touchstart', function (ev) {
+      if (!svg.contains(ev.target)) hide();
+    }, { passive: true });
   }
 
   global.MarginChart = { render: render };
