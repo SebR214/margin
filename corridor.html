@@ -165,13 +165,14 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
   <div class="hero">
     <div class="wrap" style="padding-top:0; padding-bottom:0;">
-      <h1 id="pageTitle" style="margin:0 0 12px; max-width:24ch;"></h1>
+      <h1 id="pageTitle" style="margin:0 0 12px;"></h1>
       <p class="lede" style="color:inherit; opacity:.92;" id="verdict1"></p>
     </div>
   </div>
 
 <div class="wrap">
   <div class="stamp" id="stamp"></div>
+  <div class="stamp" id="costBridge"></div>
 
   <div class="sizebar" id="corrbar"><span class="lbl" id="routeLbl"></span></div>
   <div class="sizebar" id="sizebar"><span class="lbl" id="sendLbl"></span></div>
@@ -279,6 +280,7 @@ let bySize={}, histBySize={}, size=5000, newest="";
 let allRows=[], corrKeys=[], corridor="SGD->PHP", feeChecks=[], withdrawalFees=[], wfBySample={};
 let measureCount=0, winCount=0, historyStart="";
 let providersLatest=null;
+let corridorSummary={};
 // The 24h/7d/30d/all-time chart's own small sidecar (tools/emit_corridor_history.py,
 // data/corridor_history.json) -- an hourly {ts, stablecoin_cost_pct,
 // cheapest_app_cost_pct} row per corridor+amount actually sampled. Kept
@@ -441,6 +443,12 @@ async function boot(){
   feeChecks=await loadCSVOptional("./data/fee_checks.csv");
   withdrawalFees=await loadCSVOptional("./data/withdrawal_fees.csv");
   providersLatest=await fetch("./data/providers_latest.json").then(r=>r.ok?r.json():null).catch(()=>null);
+  // "Typical hour" cost, per corridor -- the SAME figure the home page's
+  // duel comparison shows (taker_cost_bps_median from this same file), so
+  // the status-line bridge below and the home page never disagree.
+  const summaryDoc=await fetch("./data/corridor_summary.json").then(r=>r.ok?r.json():null).catch(()=>null);
+  corridorSummary={};
+  for(const c of (summaryDoc&&summaryDoc.corridors)||[]) corridorSummary[c.corridor]=c;
   // The waterfall's three bars, computed once in the collector so they
   // reconcile to the total exactly -- not reconstructed here from
   // basis+fee fields, which is what drifted (SEB: corridor waterfall did
@@ -500,6 +508,17 @@ function selectCorridor(key){
     // Under three hours there is no trend to read. Say how thin it is rather
     // than letting a two-point chart imply one.
     (hours<3?` · <b>${hours} capture${hours===1?"":"s"} so far</b> — every point collected is shown, nothing filled in`:"");
+  // Bridges the gap between this page's live "this hour" number and the
+  // "typical hour" figure the home page leads with -- readers arriving
+  // from the home page's 0.87% see a different, live number here first
+  // (SEB brief, 2026-09-28); typicalPct is the SAME field
+  // (taker_cost_bps_median) the home page's duel comparison reads, so the
+  // two never disagree.
+  const summaryRow=corridorSummary[key];
+  document.getElementById("costBridge").textContent = summaryRow
+    ? T(COPY.costBridgeTemplate||"In a typical hour the stablecoin route costs {typicalPct} of the amount. This hour it is {nowPct}.",
+        {typicalPct:pct(summaryRow.taker_cost_bps_median), nowPct:pct(+bySize[size].cost_bps_taker)})
+    : "";
   renderCorridors(); renderSizes(); render();
   const dst=(r5.dst||"").trim();
   document.getElementById("foot").innerHTML=

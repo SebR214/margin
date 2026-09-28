@@ -174,6 +174,10 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   <div id="winCasesSection" class="lead-section sec"></div>
 
   <div class="lead-section sec">
+    <div id="gapOverTimeSection"></div>
+  </div>
+
+  <div class="lead-section sec">
     <div id="allCountriesSection"><!--BAKE:START:allCountriesStrip--><h2>In the Philippines and Mexico a dollar costs the official rate. In Algeria people pay 92% more.</h2><p class="answer">How much more than the official rate people pay for a dollar. Priced from USDT on Binance P2P and local exchanges.</p><div class="cbars"><a class="crow" href="./country.html?ccy=DZD"><span class="cname">Algeria</span><span class="cbar"><i style="width:85.0%"></i><b style="left:85.0%">92%</b></span></a><a class="crow" href="./country.html?ccy=IQD"><span class="cname">Iraq</span><span class="cbar"><i style="width:19.8%"></i><b style="left:19.8%">21%</b></span></a><a class="crow" href="./country.html?ccy=MZN"><span class="cname">Mozambique</span><span class="cbar"><i style="width:16.0%"></i><b style="left:16.0%">17%</b></span></a><a class="crow" href="./country.html?ccy=TND"><span class="cname">Tunisia</span><span class="cbar"><i style="width:14.9%"></i><b style="left:14.9%">16%</b></span></a><a class="crow" href="./country.html?ccy=VES"><span class="cname">Venezuela</span><span class="cbar"><i style="width:13.6%"></i><b style="left:13.6%">15%</b></span></a><div class="cgap"></div><a class="crow low" href="./country.html?ccy=PHP"><span class="cname">Philippines</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 3 of our routes land</b></span></a><a class="crow low" href="./country.html?ccy=MXN"><span class="cname">Mexico</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 1 of our routes lands</b></span></a></div><p class="plainline">A normal app already gets you the real rate in the Philippines and Mexico, so a stablecoin has nothing to beat. In Algeria, banks sell few dollars, so USDT is how people get them: about $5,000 is on offer right now within 1% of the best price.</p><p class="small-note"><a href="./countries.html">All countries →</a></p><!--BAKE:END:allCountriesStrip--></div>
   </div>
 
@@ -559,16 +563,136 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       '<p class="small-note"><a href="./countries.html">All countries →</a></p>';
   }
 
+  function parseCSV(text){
+    const rows=[]; let i=0,field="",row=[],q=false,t=text.trim();
+    const push=()=>{row.push(field);field="";}, eol=()=>{push();rows.push(row);row=[];};
+    while(i<t.length){const ch=t[i];
+      if(q){if(ch==='"'){if(t[i+1]==='"'){field+='"';i++;}else q=false;}else field+=ch;}
+      else if(ch==='"')q=true; else if(ch===',')push();
+      else if(ch==='\n')eol(); else if(ch==='\r'){} else field+=ch; i++;}
+    if(field.length||row.length)eol();
+    const head=rows.shift();
+    return rows.map(r=>Object.fromEntries(head.map((h,j)=>[h,r[j]])));
+  }
+  function median(values){
+    if (!values.length) return null;
+    var s = values.slice().sort(function(a,b){ return a-b; });
+    var mid = Math.floor(s.length/2);
+    return s.length % 2 ? s[mid] : (s[mid-1]+s[mid])/2;
+  }
+
+  // New home section, "the gap over time" (part 3 of the 2026-09-28 copy
+  // brief): daily median cost of the stablecoin route against the cheapest
+  // app, on the same corridor+size the duel comparison above already uses,
+  // so this section can't disagree with it. The streak length in the
+  // header is counted live from samples.csv, not typed in, so it stays
+  // true even if a future hour finally breaks it.
+  function renderGapOverTime(allSampleRows, COPY, rung){
+    var el = document.getElementById('gapOverTimeSection');
+    if (!el) return;
+    var rows = allSampleRows.filter(function(r){
+      return r.corridor === 'SGD->PHP' && +r.notional_src === rung && r.source_ok === 'True' &&
+        r.cost_bps_taker && r.baseline_cost_bps;
+    }).sort(function(a,b){ return a.ts < b.ts ? -1 : 1; });
+    if (rows.length < 2) { el.innerHTML = ''; return; }
+
+    // Longest currently-unbroken streak, counted back from the newest hour --
+    // if the stablecoin has ever lost this comparison, the streak starts
+    // right after the most recent loss, not at the first row in the file.
+    var streakStart = 0, breaks = 0;
+    for (var i = 0; i < rows.length; i++) {
+      if (+rows[i].cost_bps_taker <= +rows[i].baseline_cost_bps) { streakStart = i + 1; breaks++; }
+    }
+    var startDate = shortDate((rows[streakStart] || rows[0]).ts);
+    var headline = breaks
+      ? T(COPY.gapBrokenHeadlineTemplate || '', { startDate: startDate, breaks: breaks, breaksS: breaks === 1 ? '' : 's' })
+      : T(COPY.gapHeadlineTemplate || 'The stablecoin has cost more than the cheapest app in every hour since {startDate}', { startDate: startDate });
+
+    // Daily median per series -- about 50 points, not the ~1,000+ raw
+    // hourly rows, so the chart reads as a trend, not noise.
+    var byDay = {};
+    rows.forEach(function(r){
+      var day = r.ts.slice(0, 10);
+      var b = byDay[day] || (byDay[day] = { stable: [], app: [] });
+      b.stable.push(+r.cost_bps_taker / 100);
+      b.app.push(+r.baseline_cost_bps / 100);
+    });
+    var days = Object.keys(byDay).sort();
+    var stableSeries = days.map(function(d){ return median(byDay[d].stable); });
+    var appSeries = days.map(function(d){ return median(byDay[d].app); });
+
+    var caption = T(COPY.gapSublineTemplate || 'Sending {amount} from {src} to {dest}. Each line is the day’s middle cost.',
+      { amount: moneyFmt(rung, 'S$'), src: SRC_NAME.SGD, dest: DEST_NAME.PHP });
+
+    el.innerHTML = '<h2>' + esc(headline) + '</h2>' +
+      '<p class="answer">' + esc(caption) + '</p>' +
+      '<div id="gapChart"></div>';
+
+    var box = document.getElementById('gapChart');
+    function draw(){
+      var n = days.length;
+      var W = Math.max(280, box.clientWidth);
+      var narrow = W < 480;
+      var H = narrow ? 220 : 240;
+      var L = 44, R = narrow ? 88 : 150, TT = 16, B = 26;
+      var hi = Math.max.apply(null, stableSeries.concat(appSeries)) * 1.15 || 1;
+      var X = function(i){ return n > 1 ? L + i * (W - L - R) / (n - 1) : L; };
+      var Y = function(v){ return TT + (hi - v) / hi * (H - TT - B); };
+
+      var ticks = [0, hi / 2, hi];
+      var grid = ticks.map(function(v){
+        return '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="#F0F0F0"/>' +
+          '<text x="' + (L - 8) + '" y="' + (Y(v) + 4).toFixed(1) + '" font-size="11" fill="#9A9A9A" text-anchor="end">' + v.toFixed(2) + '%</text>';
+      }).join('');
+
+      function linePts(series){ return series.map(function(v, i){ return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' '); }
+      function lineHtml(series, color){
+        return '<polyline points="' + linePts(series) + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round"/>';
+      }
+      // The two end labels can land close together when the lines converge --
+      // nudge them apart vertically instead of letting them overlap.
+      var closeLabels = Math.abs(Y(stableSeries[n-1]) - Y(appSeries[n-1])) < (narrow ? 24 : 16);
+      function endLabel(series, name, color, pushUp){
+        var ex = X(n - 1), ey = Y(series[n - 1]) + (closeLabels ? (pushUp ? -7 : 7) : 0);
+        var value = series[n - 1].toFixed(2) + '%';
+        var lines = narrow ? [name, value] : [name + ' ' + value];
+        var textHtml = lines.map(function(ln, li){
+          return '<text x="' + (ex + 7).toFixed(1) + '" y="' + (ey + 4 + li * 13).toFixed(1) + '" font-size="' + (narrow ? 11 : 13) + '" font-weight="600" fill="' + color + '">' + esc(ln) + '</text>';
+        }).join('');
+        return '<circle cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="3" fill="' + color + '"/>' + textHtml;
+      }
+
+      var xTicks = [0, Math.round((n-1)/2), n-1];
+      var xLabels = xTicks.map(function(i, k){
+        var anchor = k === 0 ? 'start' : (k === xTicks.length - 1 ? 'end' : 'middle');
+        return '<text x="' + X(i).toFixed(1) + '" y="' + (H - 6) + '" font-size="11" fill="#9A9A9A" text-anchor="' + anchor + '">' + esc(shortDate(days[i])) + '</text>';
+      }).join('');
+
+      box.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Stablecoin vs cheapest app cost, day by day" style="display:block">' +
+        grid +
+        lineHtml(appSeries, '#0B0B0B') +
+        lineHtml(stableSeries, '#817FCC') +
+        endLabel(appSeries, COPY.gapLabelApp || 'Cheapest app', '#0B0B0B', true) +
+        endLabel(stableSeries, COPY.gapLabelStable || 'Stablecoin', '#817FCC', false) +
+        '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="#D3D0CB"/>' +
+        xLabels +
+        '</svg>';
+    }
+    draw();
+    onResizeRedraws.push(draw);
+  }
+
   Promise.all([
     fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()),
     fetch('./data/corridor_summary.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
     fetch('./data/corridor_window.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
     fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
     fetch('./data/volume_crossover.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-    fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+    fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    fetch('./data/samples.csv', {cache:'no-store'}).then(r=>r.text()).then(parseCSV).catch(()=>[])
   ]).then(function(res){
     var idx = res[0], corridorSummary = res[1], corridorWindow = res[2] || {}, COPY = (res[3] || {}).home || {}, crossover = res[4];
-    var streetDepth = res[5];
+    var streetDepth = res[5], sampleRows = res[6] || [];
     var countries = idx.countries || [];
     var withheld = idx.withheld || [];
     var hourUtc = (idx.as_of_utc || idx.computed_at || '').slice(11,16);
@@ -606,6 +730,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     if (corridorSummary && corridorSummary.corridors) {
       renderWinCases(corridorSummary.corridors, COPY, crossover);
     }
+    // ---- Section B.5: the gap over time, day by day. ----
+    renderGapOverTime(sampleRows, COPY, rung);
     // ---- Section C: the one country chart, with its own live finding
     // header and why paragraph. ----
     var destCounts = {};
