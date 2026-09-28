@@ -379,6 +379,88 @@ def _venue_entry(r):
     }
 
 
+# SEB, 2026-09-28: the home page's headline numbers, its country chart and
+# its "This hour" line switch from the latest single hourly value to the
+# median of a country's last MEDIAN_WINDOW_HOURS real hourly values --
+# Algeria's P2P buy-side median jumped 256.5 -> 268.6 DZD (sell side flat
+# ~250) overnight while the official rate held, a thin-order-book artifact
+# a rolling median absorbs. index_pct (the single latest hour) is unchanged
+# and keeps feeding every line chart on the site -- only the ranked home
+# chart and headline text read median_24h_pct instead.
+MEDIAN_WINDOW_HOURS = 24
+
+
+def _hour_value(ccy, hour, bh, ph, sides, book):
+    """One hour's index value, same source precedence and evidence rule as
+    latest_by_ccy() below -- order books/brokers first, then a P2P buy-side
+    median that clears the v1.1 evidence bar (>= MIN_BUY_ADS, buy >= sell).
+    Never p2p_fallback: that stands in for one missing ad-board row, and
+    letting it count as a full observation in a 24-value median would let a
+    single thin hour's quote outweigh a real 20-ad reading. Returns None for
+    an hour with no evidence-passing value, so the caller can walk further
+    back rather than let a withheld hour count as a zero.
+    """
+    venues = [_venue_entry(r) for r in bh.get(hour, [])]
+    books = [v for v in venues if v["kind"] == "order_book"]
+    brokers = [v for v in venues if v["kind"] == "broker"]
+    chosen = books or brokers
+    if chosen:
+        prices = [v["buy_price"] for v in chosen]
+        price = statistics.median(prices)
+        row_fx = None
+        for r in bh.get(hour, []):
+            row_fx = num(r, "fx_mid_per_usd") or row_fx
+        fx, _fx_source, _par_rate, _par_source = fx_for(book, ccy, hour, row_fx)
+        return index_pct(price, fx)
+    pr = ph.get(hour) or []
+    r = pr[0] if pr else None
+    if r is None or not flag(r, "source_ok"):
+        return None
+    price, sell = num(r, "buy_median"), num(r, "sell_median")
+    if price is None:
+        return None
+    n_buy = sides.get((ccy, hour))
+    if n_buy is None:
+        total = num(r, "n_ads")
+        n_buy = MIN_BUY_ADS if (total or 0) >= MIN_BUY_ADS * 2 else 0
+    if n_buy < MIN_BUY_ADS:
+        return None
+    if sell is not None and price < sell:
+        return None
+    fx, _fx_source, _par_rate, _par_source = fx_for(book, ccy, hour, num(r, "fx_mid_per_usd"))
+    return index_pct(price, fx)
+
+
+def median_24h_by_ccy(book_hours, p2p_hours, sides, book, newest_hour_by_ccy):
+    """{ccy: (median_pct, n_hours_used)} -- the median of each currency's
+    last MEDIAN_WINDOW_HOURS real, evidence-passing hourly values, walking
+    back hour by hour from that currency's own newest hour. Computed
+    regardless of whether the CURRENT hour itself passed the evidence rule
+    (a thin overnight hour can fail evidence and still leave 23 good hours
+    behind it), so a country stays represented on the home chart by its
+    real trailing day even on an hour its single reading is withheld.
+    Stops as soon as MEDIAN_WINDOW_HOURS real values are found; gives up
+    after looking back 3x that many hours so a long gap in real history
+    doesn't turn into an unbounded loop.
+    """
+    out = {}
+    for ccy, newest in newest_hour_by_ccy.items():
+        bh = book_hours.get(ccy) or {}
+        ph = p2p_hours.get(ccy) or {}
+        vals = []
+        h = newest
+        for _ in range(MEDIAN_WINDOW_HOURS * 3):
+            v = _hour_value(ccy, h, bh, ph, sides, book)
+            if v is not None:
+                vals.append(v)
+            h = h - dt.timedelta(hours=1)
+            if len(vals) >= MEDIAN_WINDOW_HOURS:
+                break
+        if vals:
+            out[ccy] = (round(statistics.median(vals), 4), len(vals))
+    return out
+
+
 def latest_by_ccy():
     """Newest hour per currency across both layers -> the index value for it."""
     book_hours = collections.defaultdict(dict)
@@ -537,6 +619,14 @@ def latest_by_ccy():
         venue_names = {v.get("venue") for v in entry.get("venues", []) if v.get("venue")}
         entry["instrument_check"] = instrument_check(ccy, venue_names, spread_latest)
         out[ccy] = entry
+
+    medians = median_24h_by_ccy(
+        book_hours, p2p_hours, sides, book,
+        {e["ccy"]: parse_ts(e["hour_utc"]) for e in out.values()},
+    )
+    for ccy, (m, n) in medians.items():
+        out[ccy]["median_24h_pct"] = m
+        out[ccy]["median_24h_n"] = n
     return out
 
 
@@ -676,20 +766,26 @@ def build():
             {k: f.get(k) for k in
              ("ccy", "country", "index_pct", "round_trip_pct", "source_class",
               "source_words", "n_sources", "hour_utc", "history_start",
-              "computed_at", "source_file")},
+              "computed_at", "source_file", "median_24h_pct", "median_24h_n")},
             denominator_class=(f.get("denominator") or {}).get("class"),
             evidence_words=evidence_words(f.get("source_class"), f.get("n_sources")),
             spark=[p["index_pct"] for p in (f.get("history") or [])[-30:]],
         ) for f in listed],
         # Withheld countries are named, with the reason, so the board can show
-        # them rather than let them vanish.
+        # them rather than let them vanish. median_24h_pct/median_24h_n ride
+        # along here too -- a country whose SINGLE current hour is withheld
+        # (thin evidence right now) can still have a real trailing-24h median
+        # behind it, which is exactly the home page's ranked chart wants to
+        # show instead of dropping the country for the hour.
         "withheld": [{"ccy": f["ccy"], "country": f.get("country"),
                       "reason": reason_words(f.get("no_value_reason")),
                       "reason_raw": f.get("no_value_reason") or "",
                       "denominator_class": (f.get("denominator") or {}).get("class"),
                       "n_sources": f.get("n_sources"),
                       "computed_at": f.get("computed_at"),
-                      "source_file": f.get("source_file")}
+                      "source_file": f.get("source_file"),
+                      "median_24h_pct": f.get("median_24h_pct"),
+                      "median_24h_n": f.get("median_24h_n")}
                      for f in sorted(files.values(), key=lambda x: x["ccy"])
                      if f.get("index_pct") is None],
         "without_value": sorted(f["ccy"] for f in files.values()
