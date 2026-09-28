@@ -245,6 +245,7 @@ import re
 import sys
 import tempfile
 import time
+import urllib.parse
 
 try:
     import requests
@@ -269,6 +270,37 @@ FIELDS = ["ts_utc", "corridor", "size_src", "provider", "rate", "fee_src",
           "received_dst", "cost_bps", "source", "source_ok", "error"]
 KEY_FIELDS = ["ts_utc", "corridor", "size_src", "provider"]
 PAYOUT_FIELDS = KEY_FIELDS + ["payout_type"]
+
+# Plausibility floor, bps. Found live 2026-09-28: AUD->PHP Airwallex read
+# cost_bps -5.31 every hour (a "provider" that pays the sender, which is
+# not a real thing) -- traced to `mid` (fetch_mids, from FX_URL below)
+# being fetched from open.er-api.com, which updates roughly once every 24h
+# (time_last_update_utc/time_next_update_utc a full day apart), while every
+# provider's own quote in this file is live. On the day this was found,
+# er-api's snapshot mid for AUD->PHP was 43.800, while Wise's own quote
+# (same hour, its `rate` field) put the real mid nearer 43.890 -- a ~0.3%
+# (~30bps) gap, an order of magnitude bigger than most providers' actual
+# margin. Against a stale-low reference, any provider whose margin is
+# thinner than that day's drift (Airwallex's real cost is a 0.5-1% rate
+# markup per its own published FX pricing, baked into `rate` rather than
+# billed as a separate fee -- feePercent=0 in airwallex_url() is correct,
+# Airwallex does not charge a separate fee on local-network payouts) can
+# come out negative with no error in the provider's own numbers at all.
+# Same class of problem MIN_PLAUSIBLE_COST_BPS in
+# collector_stable_venues.py exists for: reject the RESULT, don't clamp it
+# to zero (that would hide a reference-rate problem this file cannot fix
+# without a paid live-FX feed) and don't publish it as a usable "own"
+# quote -- record it, mark source_ok False, and let
+# tools/emit_providers.py fall back to the comparison feed or "no price
+# this hour" the same way it already does for any other failed quote.
+MIN_PLAUSIBLE_PROVIDER_COST_BPS = 0.0
+
+
+def _implausible_note(cb):
+    if cb is None or cb >= MIN_PLAUSIBLE_PROVIDER_COST_BPS:
+        return None
+    return (f"implausible:{cb:.2f}bps < "
+            f"{MIN_PLAUSIBLE_PROVIDER_COST_BPS}bps floor (stale mid vs live quote)")
 
 LADDER = [200, 1000, 5000, 25000, 50000]
 
@@ -623,10 +655,15 @@ def build_rows(ts, corridors, mids, fetch=get_json, render=render_worldremit):
                     rate, fee, recv = parse(fetch(url, *payload_arg), size)
                     if not rate or not recv:
                         raise ValueError("no usable quote")
+                    cb = cost_bps(recv, size, mid)
+                    note = _implausible_note(cb)
                     row.update(rate=round(rate, 8), fee_src=fee,
-                               received_dst=round(recv, 4),
-                               cost_bps=cost_bps(recv, size, mid), source_ok=True)
-                    n_ok += 1
+                               received_dst=round(recv, 4), cost_bps=cb,
+                               source_ok=(note is None))
+                    if note:
+                        row["error"] = note
+                    else:
+                        n_ok += 1
                 except Exception as e:
                     row["error"] = f"{type(e).__name__}:{e}"[:300]
                 rows.append(row)
@@ -642,10 +679,15 @@ def build_rows(ts, corridors, mids, fetch=get_json, render=render_worldremit):
                         raise RuntimeError(err)
                     if not rate or not recv:
                         raise ValueError("no usable quote")
+                    cb = cost_bps(recv, size, mid)
+                    note = _implausible_note(cb)
                     row.update(rate=round(rate, 8), fee_src=fee,
-                               received_dst=round(recv, 4),
-                               cost_bps=cost_bps(recv, size, mid), source_ok=True)
-                    n_ok += 1
+                               received_dst=round(recv, 4), cost_bps=cb,
+                               source_ok=(note is None))
+                    if note:
+                        row["error"] = note
+                    else:
+                        n_ok += 1
                 except Exception as e:
                     row["error"] = f"{type(e).__name__}:{e}"[:300]
                 rows.append(row)
@@ -756,6 +798,94 @@ WR_FIXTURE_LIMIT = {"calc_text": "",
 WR_FIXTURE_PX = {"calc_text": "", "error_text": "PX_CHALLENGE: bot-check shown mid-session"}
 
 
+def _requested_amount(key, url, payload):
+    """Pull the sent amount back out of the request this collector just
+    made, so the fake fetch below can return a fixture that is internally
+    consistent at every ladder size (200..50000) rather than the one fixed
+    number from the 2026-09-10 real capture -- see _scale_fixture."""
+    if key == "wise":
+        return _f((payload or {}).get("sourceAmount"))
+    qs = urllib.parse.urlparse(url).query
+    field = "sellAmount" if key == "airwallex" else "source_amount"
+    vals = urllib.parse.parse_qs(qs).get(field)
+    return _f(vals[0]) if vals else None
+
+
+def _requested_ccy(key, url, payload):
+    """(src, dst) actually asked for -- these fixtures were all captured
+    against SGD->PHP, but the selftest also drives USD->MXN through the
+    same fake fetch, so _scale_fixture needs to know which corridor's mid
+    to rescale the fixture's rate against."""
+    if key == "wise":
+        p = payload or {}
+        return p.get("sourceCurrency"), p.get("targetCurrency")
+    qs = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+    if key == "airwallex":
+        src_f, dst_f = "sellCcy", "buyCcy"
+    else:
+        src_f, dst_f = "source_currency", "destination_currency"
+    src = qs.get(src_f, [None])[0]
+    dst = qs.get(dst_f, [None])[0]
+    return src, dst
+
+
+# The corridor these fixtures were actually captured against -- used as the
+# reference point _scale_fixture rescales a fixture's rate against when the
+# selftest asks for a different corridor (USD->MXN) through the same fake.
+_FIXTURE_NATIVE_MID = MIDS["PHP"] / MIDS["SGD"]
+
+
+def _scale_fixture(key, val, sent, src, dst):
+    """Recompute a canned fixture's rate and amount fields for the size and
+    corridor actually requested, keeping its ORIGINAL MARGIN below mid --
+    (fixture_rate / fixture's-own-mid) -- fixed. The fixtures below are
+    only internally consistent at the one size (1000) and corridor
+    (SGD->PHP) they were captured at; that went unnoticed because nothing
+    checked a row's cost_bps for plausibility. The floor added by
+    MIN_PLAUSIBLE_PROVIDER_COST_BPS now would flag every other ladder size,
+    and every USD->MXN row (mid ~18, fixture rate ~49), as a false
+    positive -- an artifact of reusing one fixture everywhere, not of the
+    collector -- if this rescaling were skipped."""
+    if not sent:
+        return val
+    mid = MIDS.get(dst, 0) / MIDS[src] if (src and dst and MIDS.get(src)) else None
+    scale = (mid / _FIXTURE_NATIVE_MID) if mid else 1.0
+    if key == "airwallex":
+        rate = _f(val.get("clientRate"))
+        if not rate:
+            return val
+        rate *= scale
+        return dict(val, clientRate=round(rate, 8) if scale != 1.0 else rate,
+                    buyAmount=round(rate * sent, 4), sellAmount=sent)
+    if key == "instarem":
+        d = dict(val)
+        inner = dict(d.get("data") or {})
+        rate = _f(inner.get("fx_rate"))
+        fee = _f(inner.get("transaction_fee_amount")) or 0.0
+        if rate:
+            rate *= scale
+            inner["fx_rate"] = round(rate, 8) if scale != 1.0 else rate
+            inner["destination_amount"] = round((sent - fee) * rate, 4)
+        d["data"] = inner
+        return d
+    if key == "wise":
+        d = dict(val)
+        rate = _f(d.get("rate"))
+        if rate:
+            rate *= scale
+            d["rate"] = round(rate, 8) if scale != 1.0 else rate
+        scaled = []
+        for po in d.get("paymentOptions") or []:
+            po2 = dict(po)
+            fee = _f((po.get("fee") or {}).get("total")) or 0.0
+            if rate:
+                po2["targetAmount"] = round((sent - fee) * rate, 4)
+            scaled.append(po2)
+        d["paymentOptions"] = scaled
+        return d
+    return val
+
+
 def _make_fetch(overrides=None):
     overrides = overrides or {}
 
@@ -767,7 +897,9 @@ def _make_fetch(overrides=None):
         val = overrides.get(key, default)
         if isinstance(val, Exception):
             raise val
-        return val
+        sent = _requested_amount(key, url, payload)
+        src, dst = _requested_ccy(key, url, payload)
+        return _scale_fixture(key, val, sent, src, dst)
     return fetch
 
 
@@ -898,6 +1030,26 @@ def selftest():
     assert all(r["payout_type"] == "bank" for r in rows)
     assert set(FIELDS) == set(rows[0]) - {"payout_type"}
     print("  [ok] core schema covers every field but payout_type\n")
+
+    # A provider whose own quote beats `mid` by more than the plausibility
+    # floor (real live 2026-09-28 case: Airwallex reading a small negative
+    # cost against a stale er-api mid) is recorded -- rate, fee, received,
+    # cost_bps all kept -- but never published as a usable "own" quote:
+    # source_ok is False and the row says why, the same treatment a 503 or
+    # a timeout gets, not a silent clamp to zero.
+    awx_rich = dict(AWX_FIXTURE, clientRate=MIDS["PHP"] / MIDS["SGD"] * 1.001)
+    rows_neg, n_neg = build_rows(
+        TS, ["SGD->PHP"], MIDS,
+        fetch=_make_fetch({"airwallex": awx_rich}))
+    awx_neg = [r for r in rows_neg if r["provider"] == "Airwallex"]
+    assert all(r["cost_bps"] is not None and r["cost_bps"] < 0 for r in awx_neg)
+    assert all(not r["source_ok"] and "implausible" in r["error"] for r in awx_neg)
+    others_neg_ok = [r for r in rows_neg if r["provider"] != "Airwallex"]
+    assert all(r["source_ok"] for r in others_neg_ok), \
+        "one implausible provider isolates, same as any other failure"
+    print("  [ok] a provider quote that implies a negative cost is recorded "
+          "(rate/fee/received/cost_bps all kept) but marked not usable, "
+          "never silently clamped to zero")
 
     with tempfile.TemporaryDirectory() as d:
         global QUOTES, PAYOUT_TYPES
