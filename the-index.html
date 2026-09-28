@@ -2,74 +2,83 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>margin.wiki — the index</title>
-<meta name="description" content="What a dollar really costs, country by country, priced every hour with a receipt behind every number."/>
+<meta name="description" content="What people pay for a dollar, country by country, priced every hour with a receipt behind every number."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
-  a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
-  .num{font-variant-numeric:tabular-nums}
-  .lbl{font-size:11px;letter-spacing:.1em;color:#6B6B6B}
-  .stamp{font-size:11px;color:var(--stamp);letter-spacing:.06em}
-  .receipt{font-size:13px;color:var(--sub)}
-  .wrap{max-width:1150px;margin:0 auto}
-  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
-  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
-  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
-  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
-  nav a.active{color:var(--ink);font-weight:700}
-  .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
-  .header-right{display:flex;align-items:center;gap:16px}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
-  .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:14px}
-  h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;margin:0}
-  .lede{max-width:780px;font-size:16px;color:#6B6B6B;line-height:1.5}
-  .search{margin-top:6px;max-width:560px;height:56px;background:#F6F6F6;border-radius:999px;display:flex;align-items:center;gap:14px;padding:0 24px}
-  .search input{border:0;background:none;outline:none;font-size:17px;font-family:inherit;flex:1;color:var(--ink)}
-  .search input::placeholder{color:#9A9A9A;font-weight:500}
-  .featured{padding:36px 48px 0;display:flex;flex-direction:column;border-top:1px solid var(--rule);margin:34px 48px 0;padding-left:0;padding-right:0}
-  .headline{font-size:34px;font-weight:800;letter-spacing:-0.02em}
-  .delta{font-size:14px;color:#6B6B6B;padding-top:4px}
-  .h{font-size:18px;font-weight:700;padding-bottom:8px}
-  .gaps-hdr{display:grid;grid-template-columns:70px 1fr 190px 190px 200px;gap:16px;align-items:center;border-bottom:1px solid #0B0B0B;padding:8px 0}
-  .gap-row{display:grid;grid-template-columns:70px 1fr 190px 190px 200px;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--rule)}
-  .gap-row .code{font-weight:700} .gap-val{text-align:right;font-size:19px;font-weight:700;color:var(--indigo)}
-  .gap-rt{text-align:right;color:#6B6B6B}
-  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:0 48px;border-top:1px solid #0B0B0B;padding-top:4px}
-  .mini{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--rule);font-size:14px;cursor:pointer}
-  .mini .val{color:var(--indigo);font-weight:700}
-  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px}
-  .wrow{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--rule);font-size:14px}
-  .wrow .c{color:#6B6B6B;white-space:nowrap} .wrow .r{color:#9A9A9A;text-align:right}
-  .reaction-hdr{display:grid;grid-template-columns:1fr 180px 130px;gap:16px;align-items:center;border-bottom:1px solid #0B0B0B;padding:8px 0}
-  .reaction-row{display:grid;grid-template-columns:1fr 180px 130px;gap:16px;align-items:center;padding:11px 0;border-bottom:1px solid var(--rule);font-size:14px}
-  .reaction-row .val{color:#817FCC;font-weight:700}
-  .reaction-row .conf{font-size:12px;letter-spacing:.04em;color:#6B6B6B;text-transform:uppercase}
-  section{padding:40px 48px 0}
-  section:last-of-type{padding-bottom:44px}
-  @media(max-width:900px){
-    .gaps-hdr,.gap-row{grid-template-columns:50px 1fr 130px} .gap-rt,.gaps-hdr div:nth-child(4),.gaps-hdr div:nth-child(6){display:none}
-    .grid3{grid-template-columns:1fr 1fr} .grid2{grid-template-columns:1fr}
-    .reaction-hdr,.reaction-row{grid-template-columns:1fr 110px 90px;gap:10px}
-    h1{font-size:30px} .headline{font-size:26px} section{padding:32px 24px 0} header{padding:22px 24px} .hero{padding:32px 24px 0}
+  :root{
+    --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0;
+    --peri:#817FCC; --dust:#D3D0CB; --grape:#3F3047; --egg:#F0EBD8;
   }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:var(--ink);text-decoration:none;font-weight:500} a:hover{color:var(--peri)}
+  .num{font-variant-numeric:tabular-nums}
+  .wrap{max-width:800px;margin:0 auto;padding:0 24px}
 
-  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
+  header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;gap:12px}
+  .brand{display:flex;align-items:center;gap:28px;min-width:0;flex:1}
+  .logo{font-size:18px;font-weight:800;letter-spacing:-0.02em;flex-shrink:0}
+  nav{display:flex;gap:4px;font-size:15px;font-weight:500;color:var(--sub);overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none;white-space:nowrap;min-width:0}
+  nav::-webkit-scrollbar{display:none}
+  nav a{padding:12px 10px;display:inline-flex;align-items:center;min-height:40px;white-space:nowrap}
+  nav a.active{color:var(--ink);font-weight:700}
+  .header-right{display:flex;align-items:center;gap:16px;flex-shrink:0}
+  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:8px 8px;color:var(--ink);line-height:1;min-height:40px;min-width:40px}
+
+  .hero{padding:20px 0 0;display:flex;flex-direction:column;gap:12px}
+  h1{font-size:28px;line-height:1.25;letter-spacing:-.01em;margin:0;font-weight:700}
+  .lead{font-size:17px;color:var(--sub);margin:0;max-width:640px}
+  .meta{font-size:13px;color:var(--stamp);margin:2px 0 0;letter-spacing:.02em}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--peri);display:inline-block;margin-right:6px;vertical-align:1px}
+  .search{margin-top:8px;width:100%;padding:12px 14px;font:inherit;font-size:15px;border:1px solid var(--dust);border-radius:8px;background:#fff;color:var(--ink);min-height:44px}
+  .search:focus{outline:2px solid var(--peri);outline-offset:1px}
+
+  .featured{padding-top:28px;border-top:1px solid var(--rule);margin-top:28px}
+  .headline{font-size:26px;font-weight:800;letter-spacing:-.01em;display:block}
+  .receipt{font-size:13px;color:var(--sub);padding-top:14px}
+
+  section{border-top:1px solid var(--rule);margin-top:36px;padding-top:28px}
+  h2{font-size:20px;line-height:1.3;margin:0 0 6px;font-weight:700}
+  .answer{font-size:15px;color:var(--sub);margin:0 0 16px}
+
+  .trow{display:grid;grid-template-columns:1fr 92px 96px 96px;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--rule);min-height:40px;cursor:pointer}
+  .trow.head{border-top:0;padding:0 0 8px;font-size:11px;color:var(--stamp);font-weight:600;letter-spacing:.06em;align-items:end;cursor:default;min-height:0;text-transform:uppercase}
+  .cn b{font-weight:600;font-size:15px;display:block}
+  .cn small{display:block;font-size:12px;color:var(--stamp);margin-top:2px}
+  .flag{color:var(--grape);font-weight:600}
+  .thn{color:var(--stamp);text-align:right;font-size:13px}
+  .ch{display:block;font-size:11px;font-weight:500;color:var(--sub);margin-top:3px;white-space:nowrap}
+  .ch.up{color:var(--grape);font-weight:600}
+  .gp{text-align:right;line-height:1.2;font-weight:700;font-variant-numeric:tabular-nums;font-size:15px;color:var(--peri)}
+  .rt{text-align:right;color:var(--sub);font-variant-numeric:tabular-nums;font-size:13px}
+  .head .gp,.head .rt,.head .thn{font-weight:600;font-size:11px;color:var(--stamp)}
+  .small{font-size:13px;color:var(--stamp);margin:14px 0 0}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-size:14px;padding:9px 12px;min-height:40px;display:inline-flex;align-items:center;border:1px solid var(--dust);border-radius:999px;color:var(--sub);font-variant-numeric:tabular-nums}
+  .chip b{color:var(--ink);font-weight:500;margin-right:4px}
+
+  .why{list-style:none;margin:0;padding:0}
+  .wrow{padding:12px 0;border-top:1px solid var(--rule);font-size:14px;min-height:40px;display:flex;align-items:center}
+  .wrow span{display:block;font-size:13px;color:var(--stamp)}
+  .frozen-row{padding:12px 0;border-top:1px solid var(--rule);font-size:14px;display:flex;justify-content:space-between;gap:12px;min-height:40px;align-items:center}
+  .frozen-row .r{color:var(--stamp);text-align:right}
+
+  section:last-of-type{padding-bottom:40px}
+
+  @media(max-width:620px){
+    .trow{grid-template-columns:1fr 78px 64px}
+    .thn, .trow.head span:nth-child(2){display:none}
+  }
   @media(max-width:760px){
-    header{position:relative;flex-wrap:nowrap!important}
+    header{padding:16px 0}
     .brand{gap:14px}
-    nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column!important;gap:0!important;padding:6px 24px 16px;border-bottom:1px solid #F0F0F0;box-shadow:0 8px 16px rgba(11,11,11,0.06);z-index:30}
-    nav.open{display:flex}
-    nav a{padding:12px 0;border-bottom:1px solid #F6F6F6;font-size:16px}
-    .nav-toggle{display:block}
-    .status{gap:10px}
-    .mcp{display:none}
-    .live{max-width:52vw;overflow:hidden}
-    .live .num{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:middle}
+    nav{flex-wrap:nowrap!important;margin:0;padding:0}
+    h1{font-size:24px}
+    .headline{font-size:22px}
   }
 </style>
 </head>
@@ -92,78 +101,46 @@
   </header>
 
   <div class="hero">
-    <h1 id="pageTitle">What a dollar costs on the street vs the official rate</h1>
-    <div class="lede" id="ledeText">Loading this hour's prices…</div>
-    <div class="search">
-      <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6.5" stroke="#9A9A9A" stroke-width="2"/><path d="M14 14l4 4" stroke="#9A9A9A" stroke-width="2" stroke-linecap="round"/></svg>
-      <input type="text" id="searchBox" aria-label="Find a country" placeholder="Find a country"/>
-    </div>
+    <h1 id="pageTitle">What a dollar costs, country by country</h1>
+    <p class="lead">Priced from what people pay for USDT, a digital dollar, on Binance P2P and local exchanges. Not cash at money changers.</p>
+    <p class="meta" id="metaLine"><span class="dot"></span>Loading this hour's prices&hellip;</p>
+    <input class="search" type="text" id="searchBox" aria-label="Find a country" placeholder="Find a country"/>
   </div>
 
   <div class="featured" id="featured"></div>
 
-  <section>
-    <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px">
-      <div class="h" style="padding-bottom:0">Widest gaps this hour</div>
-    </div>
-    <div class="gaps-hdr lbl">
-      <div>CODE</div><div>COUNTRY</div><div style="text-align:right">STREET PRICE OVER OFFICIAL</div><div style="text-align:right">ROUND-TRIP COST</div><div>BASED ON</div>
-      <div style="grid-row:2;grid-column:4;text-align:right;text-transform:none;letter-spacing:normal;font-size:12px;color:#9A9A9A;padding-top:4px">Buy a dollar and sell it straight back</div>
-    </div>
-    <div id="gapsBody"></div>
-    <div id="frozenBody"></div>
+  <section id="secBig">
+    <h2 id="bigTitle">Where the government sets the rate</h2>
+    <p class="answer" id="bigAnswer">Loading&hellip;</p>
+    <div class="trow head"><span>Country</span><span class="thn" id="bigThenHdr">Then</span><span class="gp">Now</span><span class="rt">Round trip</span></div>
+    <div id="bigBody"></div>
   </section>
 
-  <section id="priced-list">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px">
-      <div class="h" style="padding-bottom:0" id="pricedTitle">All countries with a price this hour</div>
-      <div class="lbl" id="pricedCount">&nbsp;</div>
-    </div>
-    <div class="grid3" id="pricedGrid"></div>
+  <section id="secModerate">
+    <h2 id="modTitle">More countries with a real gap</h2>
+    <p class="answer" id="modAnswer">Loading&hellip;</p>
+    <div class="trow head"><span>Country</span><span class="thn" id="modThenHdr">Then</span><span class="gp">Now</span><span class="rt">Round trip</span></div>
+    <div id="modBody"></div>
   </section>
 
-  <section id="withheld">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:6px">
-      <div class="h" style="padding-bottom:0;color:#6B6B6B" id="withheldTitle">No price this hour</div>
-    </div>
-    <div style="font-size:13px;color:#6B6B6B;padding-bottom:10px">We only publish a price backed by at least 10 sell ads or a real order book. These fell short:</div>
-    <div class="grid2" id="withheldGrid"></div>
+  <section id="secPegged">
+    <h2>Currencies fixed to the dollar or euro: the gap is the cost of buying stablecoins, not a weak currency</h2>
+    <p class="answer">A pegged currency trades at its official rate. Paying more for USDT there means stablecoins are hard to get, not that the currency is failing.</p>
+    <div class="trow head"><span>Country</span><span class="thn" id="pegThenHdr">Then</span><span class="gp">Now</span><span class="rt">Round trip</span></div>
+    <div id="pegBody"></div>
   </section>
 
-  <!-- "How fast does the street react?" (PR #183) taken off the site
-       2026-09-27, owner-verified: data/fx_rates.csv's official rate from
-       open.er-api.com only actually changes once a day (confirmed live --
-       PHP's fx_mid_per_usd sat at exactly 62.509018 across 17 straight
-       hourly rows, then jumped once and held flat again), despite being
-       polled hourly. Every "official rate move" this feature detects is
-       that once-daily refresh, not a real market move, so every reaction
-       time it reports (e.g. "Australia catches up in about an hour") is
-       measuring how two data feeds happen to line up, not street behavior.
-       tools/emit_response_time.py and data/response_time_latest.json are
-       left in place, not deleted -- this is wrong given the input data,
-       not wrong as a method, and can come back once an hourly-updating
-       official rate exists. Do not re-enable by uncommenting alone; the
-       underlying rate source has to change first.
-
-       Copy-rewrite session (2026-09-27, Section 5 of Sebastian's approved
-       copy rewrite): the rewrite doc's own section 5 content still assumed
-       this section existed and described how its copy should read. That
-       part of the doc is skipped here, deliberately -- this section stays
-       removed, per the above, not re-added and not re-worded. -->
-  <!--
-  <section id="reaction">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px">
-      <div class="h" style="padding-bottom:0">How fast does the street react?</div>
-      <div class="lbl" id="reactionCount">&nbsp;</div>
-    </div>
-    <div class="p" id="reactionLede" style="font-size:14px;color:#6B6B6B;max-width:760px;padding-bottom:14px">Loading…</div>
-    <div class="reaction-hdr lbl"><div>COUNTRY</div><div>CATCHES UP IN</div><div>CONFIDENCE</div></div>
-    <div id="reactionBody"></div>
-    <div class="p" id="reactionSkipped" style="font-size:13px;color:#6B6B6B;padding-top:12px"></div>
-    <div class="p" id="reactionFinding" style="font-size:14px;color:#222;max-width:760px;padding-top:16px"></div>
-    <div style="font-size:13px;color:#6B6B6B;padding-top:8px"><a href="./how-it-works.html#reaction-speed" style="font-weight:600;color:#0B0B0B">How this is measured, and which countries aren't counted yet →</a></div>
+  <section id="secNear">
+    <h2 id="nearTitle">Most countries pay close to the official rate</h2>
+    <div class="chips" id="nearChips"></div>
   </section>
-  -->
+
+  <section id="secWithheld">
+    <h2 id="withheldTitle">No price this hour</h2>
+    <p class="answer">We only publish a price backed by at least 10 sell ads or a real exchange order book.</p>
+    <ul class="why" id="withheldList"></ul>
+    <p class="small" id="frozenNote"></p>
+  </section>
 </div>
 
 <script>
@@ -179,45 +156,44 @@
     if (parseFloat(v) === 0) return (0).toFixed(digits) + '%';
     return (n>0?'+':'') + v + '%';
   }
-  // The widest-gaps table and the lede's own list state a gap as a plain,
-  // unsigned percentage -- the column header ("STREET PRICE OVER OFFICIAL")
-  // and the lede's own wording already carry the direction, so repeating a
-  // "+" or the word "more" on every row would say the same thing twice.
+  // The table and chip lists state a gap as a plain, unsigned percentage --
+  // the section wording already carries the direction ("pay X% more"), so
+  // repeating a "+" on every row would say the same thing twice.
   function fmtGapPct(n, digits){
     digits = digits==null?1:digits;
     var v = Math.abs(n).toFixed(digits);
     if (parseFloat(v) === 0) v = (0).toFixed(digits);
     return v + '%';
   }
-
-  // "the Philippines", "the United Arab Emirates" -- correct as a sentence
-  // subject, but rule 6 of the copy rewrite bans "the" before a country
-  // name inside a list (a comma-separated run of countries, or a table/grid
-  // of them). Strips it only where this page builds that kind of list.
-  function listName(name){ return String(name||'').replace(/^the\s+/i, ''); }
-
-  // Terminology swap (Sebastian, 2026-09-27 copy rewrite): every P2P
-  // sell-ad count reads "Binance P2P sell ads", not "people selling" --
-  // the underlying evidence_words field itself still says "N people
-  // selling" (tools/emit_countries.py writes it), so the reword happens
-  // here, once, before display, rather than touching the data pipeline.
-  // A single-source quote (an order book, a broker quote, or the
-  // independent-price fallback) is exactly one source, one vote, so it
-  // gets "(low confidence)" appended regardless of which of those three it
-  // is -- n_sources === 1 is the one real signal for that, not the words.
-  function evidenceLabel(words, n){
-    var s = String(words||'')
-      .replace(/(\d+)\s+people selling/i, function(_, num){ return num + ' Binance P2P sell ads'; })
-      .replace(/(\d+)\s+person selling/i, function(_, num){ return num + ' Binance P2P sell ad'; });
-    if (n === 1) s += ' (low confidence)';
-    return s;
+  function fmtPts(n){
+    var v = n.toFixed(1);
+    if (parseFloat(v) === 0) return '0.0 pts';
+    return (n>0?'+':'') + v + ' pts';
   }
 
-  // Withheld reasons in plain words, per the copy rewrite -- the data's own
-  // `reason` field (tools/emit_countries.py) already carries one of exactly
-  // three plain-language sentences; this maps each to the shorter phrase
-  // the new Withheld section uses. Anything unmapped falls back to the raw
-  // reason rather than showing nothing.
+  // "the Philippines", "the United Arab Emirates" -- correct as a sentence
+  // subject, but banned before a country name inside a list (a comma-
+  // separated run, or a table/grid of them). Strips it only where this page
+  // builds that kind of list.
+  function listName(name){ return String(name||'').replace(/^the\s+/i, ''); }
+
+  // Every P2P sell-ad count reads "Binance P2P sell ads", not "people
+  // selling" -- the underlying evidence_words field itself still says
+  // "N people selling" (tools/emit_countries.py writes it), so the reword
+  // happens here, once, before display. A single-source quote (an order
+  // book, a broker quote, or the independent-price fallback) is exactly one
+  // source, one vote; a round trip costing more than 5% is the buy and sell
+  // sides sitting far enough apart to trust less. Either makes a row
+  // "low confidence", the same rule the mockup's own captions describe.
+  function evidenceLabel(words){
+    return String(words||'')
+      .replace(/(\d+)\s+people selling/i, function(_, num){ return num + ' Binance P2P sell ads'; })
+      .replace(/(\d+)\s+person selling/i, function(_, num){ return num + ' Binance P2P sell ad'; });
+  }
+  function lowConfidence(c){
+    return c.n_sources === 1 || (c.round_trip_pct != null && c.round_trip_pct > 5);
+  }
+
   var REASON_WORDS = {
     'too few people selling to call it a price': 'too few sellers',
     'nobody is offering to sell dollars here right now': 'no sellers right now',
@@ -231,10 +207,17 @@
     if (isNaN(d)) return '';
     return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()];
   }
+  function shortTime(iso){
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    var h = String(d.getUTCHours()).padStart(2,'0');
+    var m = String(d.getUTCMinutes()).padStart(2,'0');
+    return h + ':' + m;
+  }
 
   // spark points are daily (tools/emit_countries.py), no per-point date
   // stored upstream -- derive real calendar days between history_start and
-  // hour_utc, same approach as Home, so both pages' charts agree.
+  // hour_utc, same approach as the home page, so both pages' charts agree.
   function sparkDates(c){
     if (!c.spark || !c.history_start || !c.hour_utc) return [];
     var end = new Date(c.hour_utc);
@@ -248,119 +231,214 @@
     return out;
   }
 
+  // The live figure this whole page reads everywhere it says "now": the
+  // typical value over the last 24 hours, falling back to this single hour
+  // only for a country whose 24h window hasn't built up yet -- same fallback
+  // rule the home page already uses, so both pages agree on "now".
+  function gapNow(c){ return c.median_24h_pct != null ? c.median_24h_pct : c.index_pct; }
+
+  // "Then": the oldest point this country's own trend chart has, real date
+  // included -- not a single shared date guessed at, since a country priced
+  // for fewer days has a shorter window than one priced from day one.
+  function gapThen(c){
+    var s = c.spark;
+    return (s && s.length > 1) ? s[0] : null;
+  }
+  function thenDate(c){
+    var d = sparkDates(c);
+    return d.length ? d[0] : c.history_start;
+  }
+
+  var chartWidget = null;
   function renderFeatured(c){
     var dates = sparkDates(c);
     var sinceLabel = dates.length ? shortDate(dates[0]) : null;
-    var html = '<div style="padding-top:26px"><div style="padding-bottom:18px">' +
-      '<a class="headline num" href="./country.html?ccy='+esc(c.ccy)+'" style="display:block;color:#0B0B0B" title="See how this number was made">'+esc(listName(c.country))+': street price over official rate, %'+(sinceLabel ? ' · since '+sinceLabel : '')+'</a>' +
-      '</div><div id="featChart"></div></div>' +
-      '<div class="receipt" style="padding-top:16px">Based on '+evidenceLabel(c.evidence_words, c.n_sources)+' · round trip loses '+fmtGapPct(c.round_trip_pct)+' · <a href="./country.html?ccy='+esc(c.ccy)+'" style="font-weight:600;color:#0B0B0B" id="fullLink">'+esc(listName(c.country))+' in full →</a></div>';
+    var html = '<a class="headline num" href="./country.html?ccy='+esc(c.ccy)+'" title="See how this number was made">'+
+      esc(listName(c.country))+': what people pay over the official rate, %'+(sinceLabel ? ' &middot; since '+sinceLabel : '')+
+      '</a><div id="featChart" style="padding-top:14px"></div>'+
+      '<div class="receipt">Based on '+esc(evidenceLabel(c.evidence_words))+(lowConfidence(c) ? ' <span class="flag">(low confidence)</span>' : '')+
+      ' &middot; buying and selling back loses '+fmtGapPct(c.round_trip_pct)+
+      ' &middot; <a href="./country.html?ccy='+esc(c.ccy)+'" style="font-weight:600">'+esc(listName(c.country))+' in full &rarr;</a></div>';
     document.getElementById('featured').innerHTML = html;
+    chartWidget = document.getElementById('featChart');
+    chartWidget._spark = c.spark; chartWidget._dates = sparkDates(c);
     if (c.spark && c.spark.length > 1) {
-      MarginChart.render(document.getElementById('featChart'), { spark: c.spark, timestamps: sparkDates(c), valueSuffix: '%' });
+      MarginChart.render(chartWidget, { spark: c.spark, timestamps: sparkDates(c), valueSuffix: '%' });
     }
   }
+  // Mobile rule: a chart must draw at its container's real width, not a
+  // fixed viewBox scaled down by CSS (js/chart.js already measures
+  // getBoundingClientRect() at render time) -- but that measurement only
+  // happens once, at render(). A phone rotated, or a window resized, needs
+  // the chart rebuilt against the new width so its text never shrinks.
+  var resizeTimer = null;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function(){
+      if (chartWidget && chartWidget._spark && chartWidget._spark.length > 1 && chartWidget.isConnected) {
+        MarginChart.render(chartWidget, { spark: chartWidget._spark, timestamps: chartWidget._dates, valueSuffix: '%' });
+      }
+    }, 150);
+  });
 
-  // A comma list ending "and X" -- "Algeria 90.4%, Nigeria 58.2% and
-  // Argentina 41.0%" -- never a dash or semicolon, and every country name
-  // run through listName so none of them carries a leading "the".
   function joinList(parts){
     if (parts.length <= 1) return parts.join('');
     return parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1];
   }
 
+  // One row of the "trow" grid -- shared by the managed and market-rate
+  // tables, so a fix to one applies to both.
+  function rowHtml(c){
+    var then = gapThen(c), now = gapNow(c);
+    var chg = (then != null) ? (now - then) : null;
+    var chgHtml = chg == null ? '' : '<small class="ch'+(chg>0?' up':'')+'">'+fmtPts(chg)+'</small>';
+    var flag = lowConfidence(c) ? ' <span class="flag">low confidence</span>' : '';
+    return '<div class="trow" data-ccy="'+esc(c.ccy)+'">'+
+      '<span class="cn"><b>'+esc(listName(c.country))+'</b><small>'+esc(c.ccy)+' &middot; '+esc(evidenceLabel(c.evidence_words))+flag+'</small></span>'+
+      '<span class="thn num">'+(then!=null ? fmtGapPct(then) : '&mdash;')+'</span>'+
+      '<span class="gp num">'+fmtGapPct(now)+chgHtml+'</span>'+
+      '<span class="rt num">'+(c.round_trip_pct!=null ? fmtGapPct(c.round_trip_pct) : '&mdash;')+'</span>'+
+      '</div>';
+  }
+
+  function wireRowClicks(container, countries){
+    container.querySelectorAll('.trow[data-ccy]').forEach(function(el){
+      el.addEventListener('click', function(){
+        var c = countries.find(function(x){ return x.ccy === el.getAttribute('data-ccy'); });
+        if (c) { renderFeatured(c); document.getElementById('featured').scrollIntoView({behavior:'smooth', block:'start'}); }
+      });
+    });
+  }
+
+  // A country counts as "the government sets the rate" only when
+  // tools/emit_countries.py's own denominator_class says so (a real,
+  // computed classification, never guessed at here) -- "market" is a
+  // free-floating currency, "pegged" and "unmaintained" have their own
+  // sections below and never enter this one.
+  var SMALL_GAP = 2; // pts: the same "give or take 2%" line the near-official
+                      // section states in its own heading -- one threshold,
+                      // reused everywhere a row needs sorting into "a real
+                      // gap" vs "close enough to the official rate".
+
   fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
     var countries = d.countries || [];
     var withheld = d.withheld || [];
+    var total = countries.length + withheld.length;
 
     document.getElementById('pageTitle').textContent =
-      'What a dollar costs on the street vs the official rate, ' + countries.length + ' countries';
+      'What a dollar costs in ' + countries.length + ' countries, compared with the official rate';
 
-    var byGap = countries.slice().sort(function(a,b){ return b.index_pct - a.index_pct; });
+    var asOf = d.as_of_utc || (countries[0] && countries[0].hour_utc);
+    document.getElementById('metaLine').innerHTML =
+      '<span class="dot"></span>Checked ' + esc(shortTime(asOf)) + ' UTC &middot; ' +
+      countries.length + ' of ' + total + ' countries priced this hour &middot; ' +
+      'each number is the typical value over the last 24 hours';
 
-    // "unmaintained" (Sudan's frozen official rate) and "pegged" (Gulf
-    // riyals/dinars etc, whose gap is the cost of buying crypto under
-    // capital controls, not a currency move) are both real prices, but
-    // neither is the "real gap" this page's opening line and hero chart
-    // are about -- same exclusion Home applies to its own "biggest gap"
-    // pick, preserved here rather than duplicated with different logic.
-    var managed = countries.filter(c => c.denominator_class !== 'unmaintained' && c.denominator_class !== 'pegged');
-    var byRealGap = managed.slice().sort((a,b)=>b.index_pct-a.index_pct);
+    // Sudan's official rate is frozen -- its own "gap" is a data artifact,
+    // not a real one, so it is excluded from every ranking below and
+    // listed on its own, same exclusion the home page applies to its own
+    // "biggest gap" pick.
+    var unmaintained = countries.filter(c => c.denominator_class === 'unmaintained');
+    var ranked = countries.filter(c => c.denominator_class !== 'unmaintained');
 
-    // Featured country: the biggest real mover -- already fixed to be
-    // whichever country that actually is this hour, not hardcoded.
-    var featured = byRealGap[0] || byGap[0];
-    renderFeatured(featured);
+    var byGap = ranked.slice().sort((a,b) => gapNow(b) - gapNow(a));
+    var featured = byGap[0];
+    if (featured) renderFeatured(featured);
 
-    var top5 = byRealGap.slice(0, 5);
-    var otherCount = Math.max(countries.length - top5.length, 0);
-    document.getElementById('ledeText').innerHTML =
-      'A real gap exists in a handful of countries: ' +
-      joinList(top5.map(function(c){ return esc(listName(c.country)) + ' ' + fmtGapPct(c.index_pct); })) +
-      '. In most of the other ' + otherCount + ', the street price is within 2% of the official rate.';
+    // Managed-rate countries: a real gap (>= SMALL_GAP) means the
+    // government-set rate and what people actually pay for a dollar have
+    // come apart. Pegged currencies get their own section below regardless
+    // of size -- their gap means something different (the cost of buying
+    // crypto under capital controls, not currency weakness).
+    var managedBig = ranked.filter(c => c.denominator_class === 'managed' && Math.abs(gapNow(c)) >= SMALL_GAP)
+      .sort((a,b) => gapNow(b) - gapNow(a));
+    var marketBig = ranked.filter(c => c.denominator_class === 'market' && Math.abs(gapNow(c)) >= SMALL_GAP)
+      .sort((a,b) => gapNow(b) - gapNow(a));
+    var pegged = ranked.filter(c => c.denominator_class === 'pegged').sort((a,b) => gapNow(b) - gapNow(a));
+    var near = ranked.filter(c => (c.denominator_class === 'managed' || c.denominator_class === 'market') && Math.abs(gapNow(c)) < SMALL_GAP)
+      .sort((a,b) => gapNow(b) - gapNow(a));
 
-    // Widest gaps table: top 8 real gaps. Unmaintained pegs never enter
-    // this ranking -- Sudan's frozen official rate is listed separately,
-    // below, not as a "widest gap". Pegged currencies stay in the ranking,
-    // per the design, but labeled so the gap isn't mistaken for currency
-    // weakness.
-    var rankable = byGap.filter(c => c.denominator_class !== 'unmaintained');
-    var gapsHtml = rankable.slice(0,8).map(function(c){
-      var tag = c.denominator_class === 'pegged' ? ' <span style="font-size:12px;color:#9A9A9A">· pegged, the gap is the cost of buying stablecoins (digital dollars) there</span>' : '';
-      return '<div class="gap-row">' +
-        '<div class="code">'+esc(c.ccy)+'</div>' +
-        '<div>'+esc(listName(c.country))+tag+'</div>' +
-        '<a class="gap-val num" href="./country.html?ccy='+esc(c.ccy)+'" style="display:block;color:#817FCC" title="See how this number was made">'+fmtGapPct(c.index_pct)+'</a>' +
-        '<div class="gap-rt num">'+fmtGapPct(c.round_trip_pct)+'</div>' +
-        '<div style="font-size:13px;color:#6B6B6B">'+esc(evidenceLabel(c.evidence_words, c.n_sources))+'</div></div>';
+    function rng(list){
+      if (!list.length) return null;
+      var vals = list.map(gapNow);
+      return { lo: Math.round(Math.min.apply(null, vals)), hi: Math.round(Math.max.apply(null, vals)) };
+    }
+
+    var bigRange = rng(managedBig);
+    document.getElementById('bigTitle').textContent = bigRange
+      ? 'Where the government sets the rate, people pay ' + bigRange.lo + '% to ' + bigRange.hi + '% more than it'
+      : 'Where the government sets the rate';
+    document.getElementById('bigAnswer').textContent = managedBig.length
+      ? managedBig.length + ' countr' + (managedBig.length === 1 ? 'y' : 'ies') +
+        '. Low confidence means one source, or the buy and sell prices are more than 5% apart.'
+      : 'No country in this group has a real gap this hour.';
+    document.getElementById('bigThenHdr').textContent = 'On ' + (managedBig[0] ? shortDate(thenDate(managedBig[0])) : '…');
+    document.getElementById('bigBody').innerHTML = managedBig.map(rowHtml).join('');
+    wireRowClicks(document.getElementById('bigBody'), countries);
+
+    var modRange = rng(marketBig);
+    document.getElementById('modTitle').textContent = modRange
+      ? 'In ' + marketBig.length + ' more countries, people pay ' + modRange.lo + '% to ' + modRange.hi + '% more than the official rate'
+      : 'More countries with a real gap';
+    document.getElementById('modAnswer').innerHTML = (function(){
+      var lowConf = marketBig.filter(lowConfidence);
+      if (!lowConf.length) return marketBig.length ? 'Every country here has enough evidence to trust the number.' : 'No country in this group has a real gap this hour.';
+      return 'In ' + joinList(lowConf.map(c => esc(listName(c.country)))) + ' the buy and sell prices are far apart, so treat those numbers with care.';
+    })();
+    document.getElementById('modThenHdr').textContent = 'On ' + (marketBig[0] ? shortDate(thenDate(marketBig[0])) : '…');
+    document.getElementById('modBody').innerHTML = marketBig.map(rowHtml).join('');
+    wireRowClicks(document.getElementById('modBody'), countries);
+
+    document.getElementById('pegThenHdr').textContent = 'On ' + (pegged[0] ? shortDate(thenDate(pegged[0])) : '…');
+    document.getElementById('pegBody').innerHTML = pegged.map(rowHtml).join('');
+    wireRowClicks(document.getElementById('pegBody'), countries);
+
+    document.getElementById('nearTitle').textContent =
+      'In ' + near.length + ' more countries, people pay the official rate, give or take ' + SMALL_GAP + '%';
+    document.getElementById('nearChips').innerHTML = near.map(function(c){
+      return '<span class="chip" data-ccy="'+esc(c.ccy)+'"><b>'+esc(listName(c.country))+'</b> '+fmtPct(gapNow(c))+'</span>';
     }).join('');
-    document.getElementById('gapsBody').innerHTML = gapsHtml;
-
-    // Sudan (and any other unmaintained-peg country) never enters the
-    // widest-gaps ranking above -- its frozen official rate makes its own
-    // "gap" a data artifact, not a real one -- but it still has a page, so
-    // it's listed here, separately, with that said plainly.
-    var frozen = countries.filter(c => c.denominator_class === 'unmaintained');
-    document.getElementById('frozenBody').innerHTML = frozen.map(function(c){
-      return '<div class="wrow"><a class="c" href="./country.html?ccy='+esc(c.ccy)+'" style="color:#6B6B6B" title="See how this number was made">'+esc(listName(c.country))+'</a>' +
-        '<div class="r">official rate frozen, not comparable</div></div>';
-    }).join('');
-
-    // Every priced country, three columns, ranked.
-    document.getElementById('pricedTitle').textContent = 'All ' + countries.length + ' countries with a price this hour';
-    document.getElementById('pricedCount').textContent = 'CLICK ANY FOR ITS CHART AND SOURCES';
-    document.getElementById('pricedGrid').innerHTML = byGap.map(function(c){
-      return '<div class="mini" data-ccy="'+esc(c.ccy)+'"><div><span style="font-weight:700">'+esc(c.ccy)+'</span>&nbsp; '+esc(listName(c.country))+'</div>' +
-        '<a class="val num" href="./country.html?ccy='+esc(c.ccy)+'" style="color:#817FCC" title="See how this number was made">'+fmtPct(c.index_pct)+'</a></div>';
-    }).join('');
-    // The row itself still previews the country up top on click (its own
-    // useful behaviour); the number is now also a real link straight to the
-    // full receipt, so a middle-click, right-click or keyboard tab all work
-    // the way "click any number" actually promises.
-    document.querySelectorAll('.mini').forEach(function(el){
-      el.addEventListener('click', function(e){
-        if (e.target.tagName === 'A') return;
-        var ccy = el.getAttribute('data-ccy');
-        var c = countries.find(x => x.ccy === ccy);
+    document.querySelectorAll('#nearChips .chip').forEach(function(el){
+      el.addEventListener('click', function(){
+        var c = countries.find(function(x){ return x.ccy === el.getAttribute('data-ccy'); });
         if (c) { renderFeatured(c); document.getElementById('featured').scrollIntoView({behavior:'smooth', block:'start'}); }
       });
     });
 
-    // Withheld, two columns, real reasons in plain words, alphabetical.
-    var withheldSorted = withheld.slice().sort((a,b)=> a.country.localeCompare(b.country));
-    document.getElementById('withheldTitle').textContent = 'No price this hour (' + withheld.length + ')';
-    document.getElementById('withheldGrid').innerHTML = withheldSorted.map(function(w){
-      return '<div class="wrow"><a class="c" href="./country.html?ccy='+esc(w.ccy)+'" style="color:#6B6B6B" title="See why, in full">'+esc(listName(w.country))+'</a><div class="r">'+esc(reasonWords(w.reason))+'</div></div>';
+    // Withheld, grouped by reason, alphabetical within each group -- same
+    // three real reasons tools/emit_countries.py already writes.
+    document.getElementById('withheldTitle').textContent =
+      withheld.length + ' countr' + (withheld.length === 1 ? 'y has' : 'ies have') + ' no price this hour';
+    var groups = {};
+    withheld.forEach(function(w){
+      var r = reasonWords(w.reason);
+      (groups[r] = groups[r] || []).push(w);
+    });
+    document.getElementById('withheldList').innerHTML = Object.keys(groups).sort().map(function(reason){
+      var names = groups[reason].slice().sort((a,b) => a.country.localeCompare(b.country));
+      return '<li class="wrow"><span class="wname">' +
+        names.map(function(w){ return '<a href="./country.html?ccy='+esc(w.ccy)+'" title="See why, in full">'+esc(listName(w.country))+'</a>'; }).join(', ') +
+        '<span>'+esc(reason)+'</span></span></li>';
     }).join('');
 
-    // Search: filters both grids live, AND -- since a distant filtered list is
-    // easy to miss -- selects a single unambiguous match into the featured
-    // country up top, the same view a click on it gives.
+    document.getElementById('frozenNote').innerHTML = unmaintained.map(function(c){
+      return esc(listName(c.country)) + ' (' + fmtGapPct(gapNow(c)) + ') is left out of every list above: its official rate is frozen, so the gap means nothing.';
+    }).join(' ') + ' <a href="./how-it-works.html">How we price a country &rarr;</a>';
+
+    // Search: filters every row and chip live, AND -- since a distant
+    // filtered result is easy to miss -- selects a single unambiguous match
+    // into the featured country up top, the same view a click gives.
     var searchBox = document.getElementById('searchBox');
     function runSearch(){
       var q = searchBox.value.trim().toLowerCase();
       var matches = [];
-      document.querySelectorAll('.mini').forEach(function(el){
+      document.querySelectorAll('.trow[data-ccy]').forEach(function(el){
+        var t = el.textContent.toLowerCase();
+        var hit = !q || t.includes(q);
+        el.style.display = hit ? '' : 'none';
+        if (hit && q) matches.push(el.getAttribute('data-ccy'));
+      });
+      document.querySelectorAll('#nearChips .chip').forEach(function(el){
         var t = el.textContent.toLowerCase();
         var hit = !q || t.includes(q);
         el.style.display = hit ? '' : 'none';
@@ -379,7 +457,7 @@
     searchBox.addEventListener('keydown', function(e){
       if (e.key === 'Enter') {
         var q = searchBox.value.trim().toLowerCase();
-        var visible = Array.from(document.querySelectorAll('.mini')).filter(el => el.style.display !== 'none');
+        var visible = Array.from(document.querySelectorAll('.trow[data-ccy]')).filter(el => el.style.display !== 'none');
         if (q && visible.length >= 1) {
           var c = countries.find(x => x.ccy === visible[0].getAttribute('data-ccy'));
           if (c) { renderFeatured(c); document.getElementById('featured').scrollIntoView({behavior:'smooth', block:'start'}); }
@@ -387,72 +465,7 @@
       }
     });
   }).catch(function(){
-    document.getElementById('ledeText').textContent = 'Could not load this hour\'s data. That failure is shown, not hidden.';
-  });
-})();
-</script>
-
-<script>
-(function(){
-  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-  // Plain-language duration, per DESIGN.md: round numbers in headline text,
-  // "about" rather than a false-precision decimal, days once it's really days.
-  function fmtLag(hours) {
-    if (hours < 1.5) return 'about an hour';
-    if (hours < 36) return 'about ' + Math.round(hours) + ' hours';
-    var days = hours / 24;
-    var d = Math.round(days * 10) / 10;
-    if (d >= 3) d = Math.round(d);
-    return 'about ' + (d % 1 === 0 ? d.toFixed(0) : d.toFixed(1)) + (d === 1 ? ' day' : ' days');
-  }
-
-  // Section #reaction was taken off the page 2026-09-27 (see the HTML
-  // comment above it) -- this guard stops the fetch entirely rather than
-  // let it run against elements that no longer exist.
-  if (!document.getElementById('reactionCount')) return;
-
-  fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
-    var countries = d.countries || [];
-    var skipped = d.not_enough_data || [];
-
-    document.getElementById('reactionCount').textContent = countries.length + ' OF ' + d.n_countries_total + ' COUNTRIES';
-
-    if (!countries.length) {
-      document.getElementById('reactionLede').textContent = 'Not enough hourly history yet to measure this for any tracked country.';
-      return;
-    }
-
-    var fastest = countries[0];
-    var slowest = countries[countries.length - 1];
-    document.getElementById('reactionLede').innerHTML =
-      'When a country’s official dollar rate moves, how long until its street price catches up? ' +
-      countries.length + ' countries now have enough hourly history to measure it. The fastest, <b>' + esc(fastest.country) + '</b>, catches up in ' + fmtLag(fastest.median_response_hours) +
-      '. The slowest, <b>' + esc(slowest.country) + '</b>, takes ' + fmtLag(slowest.median_response_hours) + '.';
-
-    document.getElementById('reactionBody').innerHTML = countries.map(function(c){
-      return '<div class="reaction-row">' +
-        '<a href="./country.html?ccy='+esc(c.ccy)+'" style="color:#0B0B0B">'+esc(c.country)+'</a>' +
-        '<div class="val num">'+fmtLag(c.median_response_hours)+'</div>' +
-        '<div class="conf">'+esc(c.confidence)+' &middot; '+c.n_events_resolved+' move'+(c.n_events_resolved===1?'':'s')+' seen</div></div>';
-    }).join('');
-
-    document.getElementById('reactionSkipped').textContent =
-      skipped.length + ' countries don’t have enough hourly history yet to measure this, or their official rate hasn’t moved enough to react to: ' +
-      skipped.slice(0, 8).map(function(s){ return s.country; }).join(', ') + (skipped.length > 8 ? ', and ' + (skipped.length - 8) + ' more' : '') + '.';
-
-    // Honest check against the framing this feature started from: does a
-    // wider premium mean a slower reaction? d.premium_lag_correlation is
-    // computed once in tools/emit_response_time.py from these same rows,
-    // never typed in here.
-    var r = d.premium_lag_correlation;
-    var relStrength = (r == null) ? 'not enough countries to check yet'
-      : (Math.abs(r) < 0.2 ? 'barely related at all (r = ' + r.toFixed(2) + ')'
-        : (Math.abs(r) < 0.5 ? 'weakly related (r = ' + r.toFixed(2) + ')' : 'closely related (r = ' + r.toFixed(2) + ')'));
-    document.getElementById('reactionFinding').textContent =
-      'You might expect the countries with the biggest gap between street and official price to react the slowest. In this data they’re ' + relStrength + ': how wide a country’s premium runs and how fast its street price reacts to an official move don’t reliably move together. See how it’s measured for the full check.';
-  }).catch(function(){
-    document.getElementById('reactionLede').textContent = 'Could not load the reaction-speed data. That failure is shown, not hidden.';
+    document.getElementById('metaLine').textContent = 'Could not load this hour\'s data. That failure is shown, not hidden.';
   });
 })();
 </script>
@@ -461,12 +474,11 @@
 (function(){
   var btn = document.getElementById('navToggle');
   var nav = document.querySelector('header nav');
-  if (btn && nav) {
-    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
-    document.addEventListener('click', function(e){
-      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
-    });
-  }
+  // Mobile rule: nav is a single swipeable row, never a dropdown that
+  // wraps to multiple lines -- the toggle button from the old two-line
+  // mobile header is no longer needed, so it hides itself rather than open
+  // a menu that duplicates the always-visible scrollable row.
+  if (btn) btn.style.display = 'none';
 })();
 </script>
 </body>
