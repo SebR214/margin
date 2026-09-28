@@ -6,7 +6,7 @@
   "home": {
     "headline": "Sending money by stablecoin usually costs more than a transfer app",
     "headlineFallback": "Sending money by stablecoin usually costs more than a transfer app",
-    "headlineSub": "Real prices on 4 routes and in {n_countries} countries, checked every hour.",
+    "headlineSub": "What sending money costs on 4 routes, and what a dollar costs in {n_countries} countries. Checked every hour.",
     "everyProviderLink": "Every provider, every amount →",
     "waterfallLegHeaderTemplate": "The stablecoin loses on buying and selling the coin. Sending it costs only {network_pct}.",
     "waterfallTitle": "Sending S$5,000 to the Philippines by stablecoin costs {stable_pct}. The cheapest app costs {best_pct}.",
@@ -22,6 +22,11 @@
     "cardLimitOrderTemplate": "{corridorLabel} with a limit order. Set your price and wait for it to fill, instead of paying the price on offer right now.",
     "cardVolumeTemplate": "{corridorLabel}, at volume. Above about this amount, exchange fees drop enough for stablecoins to beat the cheapest app.",
     "howWeWorkedLink": "How we worked these out →",
+    "gapHeadlineTemplate": "The stablecoin has cost more than the cheapest app in every hour since {startDate}",
+    "gapBrokenHeadlineTemplate": "The stablecoin has cost more than the cheapest app in every hour since {startDate}, {breaks} time{breaksS} it didn't",
+    "gapSublineTemplate": "Sending {amount} from {src} to {dest}. Each line is the day's middle cost.",
+    "gapLabelStable": "Stablecoin",
+    "gapLabelApp": "Cheapest app",
     "footerMachineRoom": "how it was built — {priced} priced, {withheld} without enough data, last check {hour} UTC",
     "footerLine": "Every number on this site comes from a public data file. <a href=\"https://github.com/SebR214/margin\" style=\"font-weight:600;color:#0B0B0B\">Code and raw data on GitHub →</a>",
     "allCountriesTitle": "What a dollar costs vs the official rate, every country we track",
@@ -246,11 +251,12 @@
     }
   },
   "corridor": {
-    "titleTemplate": "Sending {amount} to {place} by stablecoin costs {marketCost}. The cheapest app costs {appCost}.",
+    "titleTemplate": "Sending {amount} to {place}: the stablecoin costs {marketCost}, the cheapest app costs {appCost}.",
     "lede": "Every cost of sending it with stablecoins, step by step, checked every hour.",
     "verdict1": "Right now {amount} costs {marketCost} ({marketPct}) all in by stablecoin with a market order, and {appCost} ({appPct}) with the cheapest app, {provider}. The stablecoin route costs {diff} {moreOrLess}.",
     "moreLabel": "more",
     "lessLabel": "less",
+    "costBridgeTemplate": "In a typical hour the stablecoin route costs {typicalPct} of the amount. This hour it is {nowPct}.",
     "loading": "loading…",
     "loadFailed": "failed to load data",
     "sizebar": {
@@ -596,7 +602,7 @@
     "colProvider": "Provider",
     "colCost": "Cost",
     "colPctTemplate": "% of {amountWords}",
-    "weekendHeadlineTemplate": "Providers {adj} charge more on Saturdays: {n} times in {m}",
+    "weekendHeadlineTemplate": "Prices went up on {n} of our {m} Saturday checks",
     "weekendAnswerTemplate": "When it happens, the price is {pct}% of the amount higher than on Friday, on average. {named}. The stablecoin route prices the same on weekends.",
     "weekendZeroTemplate": "No Saturday rises at all on {list}.",
     "patternsHeadline": "Providers raise and cut their prices about equally often",

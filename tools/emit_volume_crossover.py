@@ -214,7 +214,14 @@ def cost_curve(rows, ir_sched, coins_sched, aud_per_sgd, lo=LO_VOLUME, hi=HI_VOL
         v = math.exp(lo_l + (hi_l - lo_l) * i / (n - 1))
         c = median_cost_at_volume(rows, ir_sched, coins_sched, aud_per_sgd, v)
         if c is not None:
-            points.append({"monthly_volume_sgd": round(v, -2), "cost_bps": c})
+            # Independent Reserve's own onramp fee at this volume's AUD tier --
+            # the same lookup crossover_for_regime uses at the crossover point
+            # itself, exposed per curve point too so a reader-facing page can
+            # show "amount tier -> exchange fee -> all-in cost" without
+            # re-deriving the AUD conversion client side.
+            fee_on_pct = tier_fee_pct(ir_sched, v * aud_per_sgd)
+            points.append({"monthly_volume_sgd": round(v, -2), "cost_bps": c,
+                            "fee_on_pct_ir": fee_on_pct})
     return points
 
 

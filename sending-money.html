@@ -571,12 +571,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         var avgMove = allMoves.length ? allMoves.reduce(function(a,b){return a+b;},0)/allMoves.length : 0;
         var offenders = Object.keys(hikesByPair).map(function(k){ return hikesByPair[k]; })
           .sort(function(a,b){ return Object.keys(b.days).length - Object.keys(a.days).length; });
-        var rate = totalSlots ? (hikeDays / totalSlots * 100) : 0;
-        // A plain-word frequency label from the real rate, computed here, not
-        // typed: <10% "rarely", <40% "sometimes", otherwise "often".
-        var adj = rate < 10 ? 'rarely' : (rate < 40 ? 'sometimes' : 'often');
-
-        document.getElementById('weekendHeadline').textContent = T(COPY.weekendHeadlineTemplate || '', { adj: adj, n: hikeDays, m: totalSlots });
+        document.getElementById('weekendHeadline').textContent = T(COPY.weekendHeadlineTemplate || '', { n: hikeDays, m: totalSlots });
         // Unique provider names only -- a provider that hiked on more than
         // one corridor (e.g. OFX on both Singapore->Philippines and
         // US->Mexico) is named once, not once per corridor.

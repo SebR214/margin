@@ -34,6 +34,14 @@
   .breakdown-row .lbl{color:#333}
   .breakdown-row .val{font-weight:700}
   .breakdown-note{font-size:12.5px;color:#9A9A9A;padding-top:10px;line-height:1.5}
+  .tier-row{display:flex;justify-content:space-between;gap:16px;padding:9px 0;font-size:15px;border-bottom:1px solid var(--rule);max-width:640px}
+  .tier-row .lbl{color:#333}
+  .tier-row .val{font-weight:700;text-align:right}
+  .tier-row.cross{font-weight:800;border-bottom:none;border-top:1px solid #0B0B0B;margin-top:4px;padding-top:12px}
+  @media(max-width:480px){
+    .tier-row{flex-direction:column;gap:2px}
+    .tier-row .val{text-align:left}
+  }
   .callout{background:#F6F6F6;border-radius:14px;padding:20px 24px;margin-top:22px;max-width:640px;font-size:15px;line-height:1.6;color:#333}
   .callout b{color:#0B0B0B}
   .cite{font-size:13px;color:#9A9A9A;padding-top:6px}
@@ -104,6 +112,7 @@
     <div class="h">So it's really a volume question</div>
     <p class="p">I still think stablecoins can be a good way to move money, but "stablecoins are cheap" is usually said about the rail, and that's not really the question you have when you're sending money — which is whether it beats what you'd pay otherwise — and that mostly comes down to the volume discounts every exchange publishes and almost nobody reads.</p>
     <p class="p" id="crossoverP">For Singapore to the Philippines I measured where it flips, and the stablecoin route only starts winning at payments-company volume: around <b id="coBuyVol">&mdash;</b> a month with a market order, or <b id="coWaitVol">&mdash;</b> a month with a limit order, which is the volume where Independent Reserve drops from the 0.50% base rate everyone starts on to its <b id="coFeePct">&mdash;</b> tiers. Below that it loses, and for a regular sender it isn't the cheaper option yet — at least on this route.</p>
+    <div id="tierRows"></div>
     <div class="sources">Every number here is computed from the data files, not typed in. <a href="https://github.com/SebR214/margin">Raw data →</a></div>
   </main>
 </div>
@@ -147,6 +156,9 @@ Promise.all([
 // rendered here rather than typed in, so the sentence can't quietly drift
 // from a re-run of that script.
 function sgdMillions(v){ return 'S$' + (v/1e6).toFixed(1) + 'M'; }
+function sgdAmount(v){
+  return v >= 1e6 ? sgdMillions(v) : 'S$' + Math.round(v/1000) + 'K';
+}
 fetch('./data/volume_crossover.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(doc){
   if (!doc || doc.status !== 'ok') return;
   var taker = doc.taker, maker = doc.maker;
@@ -155,6 +167,21 @@ fetch('./data/volume_crossover.json', {cache:'no-store'}).then(function(r){ retu
   document.getElementById('coWaitVol').textContent = sgdMillions(maker.monthly_volume_sgd);
   document.getElementById('coFeePct').textContent =
     taker.fee_pct_at_crossover_ir.toFixed(2) + '%/' + maker.fee_pct_at_crossover_ir.toFixed(2) + '%';
+
+  // Step by step, same "amount tier -> fee -> all-in cost" shape as the
+  // breakdown box above, one line per tier, ending on the crossover point --
+  // the limit-order (maker) curve, since that's the regime coBuyVol/coWaitVol
+  // already lead with as the more favourable one. Every figure here is the
+  // real curve tools/emit_volume_crossover.py computed, not a re-derived
+  // client-side guess.
+  var curve = (maker.curve || []).filter(function(pt){ return pt.monthly_volume_sgd <= maker.monthly_volume_sgd; });
+  var rowsHtml = curve.map(function(pt){
+    return '<div class="tier-row"><span class="lbl">' + sgdAmount(pt.monthly_volume_sgd) + ' a month</span>' +
+      '<span class="val">' + pt.fee_on_pct_ir.toFixed(2) + '% exchange fee &rarr; ' + (pt.cost_bps/100).toFixed(2) + '% all in</span></div>';
+  }).join('');
+  rowsHtml += '<div class="tier-row cross"><span class="lbl">' + sgdMillions(maker.monthly_volume_sgd) + ' a month — the crossover</span>' +
+    '<span class="val">' + maker.fee_pct_at_crossover_ir.toFixed(2) + '% exchange fee &rarr; beats the cheapest app</span></div>';
+  document.getElementById('tierRows').innerHTML = rowsHtml;
 }).catch(function(){});
 </script>
 
