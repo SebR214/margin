@@ -97,12 +97,12 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   <header class="mwh"><a class="mwh-logo" href="./index.html">margin.wiki</a><nav>
         <a href="./index.html">Home</a>
         <a href="./sending-money.html">Sending money</a>
-        <a href="./the-index.html">Countries</a>
+        <a href="./countries.html">Countries</a>
         <a href="./how-it-works.html">How it works</a>
-        <a href="./machine-room.html">How it was built</a>
+        <a href="./how-it-was-built.html">How it was built</a>
       </nav></header>
 
-  <a class="back" href="./the-index.html">&larr; All countries</a>
+  <a class="back" href="./countries.html">&larr; All countries</a>
 
   <main id="main">
     <div class="notfound" id="loading">Loading this country's full record&hellip;</div>
@@ -116,7 +116,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   var PAR_EPSILON = 0.05;
 
-  // Same phrasing family as the-index.html/home's headline sentence, but
+  // Same phrasing family as countries.html/home's headline sentence, but
   // built for a heading: "a dollar costs 91.7% more than the official
   // rate" reads as a finding, "the gap is +91.7%" does not (DESIGN.md
   // register rule). Near-zero collapses to "about the same" rather than
@@ -239,7 +239,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
     if (!country && !withheld) {
       main.innerHTML = '<div class="notfound">No country found for code "' + esc(ccy || '(none given)') +
-        '". <a href="./the-index.html">See every country on the index &rarr;</a></div>';
+        '". <a href="./countries.html">See every country on the index &rarr;</a></div>';
       return;
     }
 
@@ -249,13 +249,13 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         '<p class="lead">' + esc(withheld.reason) + '.</p>' +
         '<div class="note">A price is collected and checked every hour. ' + esc(withheld.country) +
         ' will show a number the moment it has enough evidence again. Nothing here is permanent.</div>' +
-        '<p class="small"><a href="./the-index.html">&larr; All countries</a> &middot; ' +
-        '<a href="./the-index.html#withheld">Every country without enough data &rarr;</a></p>';
+        '<p class="small"><a href="./countries.html">&larr; All countries</a> &middot; ' +
+        '<a href="./countries.html#withheld">Every country without enough data &rarr;</a></p>';
       return;
     }
 
     // The headline everywhere on this page is the 24-hour median, the same
-    // convention the home page and the-index.html use, so a reader never
+    // convention the home page and countries.html use, so a reader never
     // sees two different "the gap right now" numbers on two pages. The
     // chart below still plots the raw daily series and its own end badge
     // still says "this hour" -- that is a different, narrower claim

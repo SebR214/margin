@@ -15,7 +15,7 @@ static markup, see index.html's renderWaterfall), a per-page inventory of:
   - charts  (an <svg>/<canvas> with real content, or a JS function that
              builds one as an HTML string and injects it)
   - tables  (a literal <table>, or the site's own "repeating row" idiom --
-             sending-money.html's .prow rows, the-index.html's .gap-row /
+             sending-money.html's .prow rows, countries.html's .gap-row /
              .wrow, fee-tiers.html's .breakdown-row -- none of which use a
              literal <table> tag)
   - interactive elements (a select, a real button that changes what's shown
@@ -155,7 +155,7 @@ def find_charts(src, page):
     # MarginChart -- see index.html's own comment on it), called on a
     # target container rather than built inline. index.html, country.html
     # (twice -- the country's own chart and the independent-reference gap
-    # chart), the-index.html, ask.html each call it once per chart.
+    # chart), countries.html, ask.html each call it once per chart.
     for m in re.finditer(r"MarginChart\.render\(", src):
         # Only look inside this one call's own argument list -- up to its
         # closing ");" -- so a getElementById target belonging to some
@@ -191,8 +191,8 @@ def _table_key(tag_text):
 
 
 # Repeating-row idiom: a class ending "-row" (fee-tiers.html's
-# .breakdown-row, the-index.html's .gap-row), the bare site convention
-# "*row" (the-index.html's .wrow), or the site's own "prow"/"prow-hdr"
+# .breakdown-row, countries.html's .gap-row), the bare site convention
+# "*row" (countries.html's .wrow), or the site's own "prow"/"prow-hdr"
 # (sending-money.html). A "-hdr" variant is the header of the same table,
 # not a second one, so it collapses onto the same base name.
 # No trailing `"` required -- sending-money.html's row class is built as
@@ -265,7 +265,7 @@ def find_tables(src, page):
 SELECT_ID = re.compile(r'<select\b[^>]*id="([\w-]+)"')
 BUTTON_ID = re.compile(r'<button\b[^>]*id="([\w-]+)"')
 # A button whose class marks it as a picker/pill/chip/toggle, in static
-# markup or in a JS string literal building one (machine-room.html's
+# markup or in a JS string literal building one (how-it-was-built.html's
 # per-currency chip, sending-money.html's route-pill / amount pill).
 # nav-toggle is excluded explicitly -- it opens the hamburger nav, which
 # changes the nav, not the page's content.

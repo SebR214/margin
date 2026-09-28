@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """How many changes actually merged into main in the trailing 7 days.
 
-machine-room.html's stat tiles claim a "changes merged this week" figure.
+how-it-was-built.html's stat tiles claim a "changes merged this week" figure.
 Per DESIGN.md ("Numbers are computed from data/, never typed"), that number
 has to come from a real source, not a guess -- this script computes it from
 this repo's own git history and writes data/changes_merged.json, which the

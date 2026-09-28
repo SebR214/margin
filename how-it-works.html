@@ -97,9 +97,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   <header class="mwh"><a class="mwh-logo" href="./index.html">margin.wiki</a><nav>
         <a href="./index.html">Home</a>
         <a href="./sending-money.html">Sending money</a>
-        <a href="./the-index.html">Countries</a>
+        <a href="./countries.html">Countries</a>
         <a href="./how-it-works.html" class="active">How it works</a>
-        <a href="./machine-room.html">How it was built</a>
+        <a href="./how-it-was-built.html">How it was built</a>
       </nav><button id="navToggle" style="display:none" aria-hidden="true"></button></header>
 
   <main>
@@ -162,7 +162,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       <div class="p" id="pegCap" style="font-size:14px;color:#6B6B6B;padding-top:6px"></div>
 
     <!-- "How fast does the street react?" taken off the site 2026-09-27
-         alongside the-index.html's #reaction section -- see the HTML
+         alongside countries.html's #reaction section -- see the HTML
          comment there for the verified reason (the official rate this
          method treats as a "step" only ever moves once a day, at a fixed
          refresh time, so "reaction time" was measuring how soon the next
@@ -171,7 +171,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
          out, pending an hourly-updating official rate. -->
     <!--
     <div class="h" id="reaction-speed">How fast does the street react?</div>
-    <div class="p">When the official rate moves, the street price does not follow instantly. <a href="./the-index.html#reaction">The countries page</a> now measures the gap between the two, in hours, country by country.</div>
+    <div class="p">When the official rate moves, the street price does not follow instantly. <a href="./countries.html#reaction">The countries page</a> now measures the gap between the two, in hours, country by country.</div>
     <div class="p">There is no ready-made hourly history file for this. Each country's history array is daily, going back to 2024, and only carries the premium, not a separate official-rate series. The one place both series exist hour by hour is git itself: since per-country files started (10 September 2026), a scheduled job commits every country's JSON once an hour, and <span style="font-family:monospace">tools/emit_response_time.py</span> replays those commits back into a time series. That also sets a hard ceiling: only as much hourly history exists as days have passed since 10 September 2026, no matter what any other date on the site implies.</div>
     <div class="p" id="reactionMethodP">Loading the current thresholds&hellip;</div>
     <div class="p">The method is an event study, not a correlation, because the official rate in this data does not drift continuously — it holds flat for hours at a time, then steps, because its upstream source only refreshes periodically. For each detected step: take the median premium over the six hours before it as a baseline (what the premium looked like before the move), then walk forward hour by hour until the premium has closed most of the gap the step opened (the exact share and search window are the two figures in the paragraph above). That hour, minus the step's hour, is the reaction time for that one event. A country's headline number is the median across every event it had that resolved, capped at the next detected step so one event's recovery can't be mistaken for another's.</div>
@@ -372,7 +372,7 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
         'Six countries in central Africa peg their currency to the euro at a fixed rate. On paper that should mean the gap to the official rate is zero. It has not been. Every day we have measured it, a dollar has cost between <b class="num">' +
         lo.toFixed(1) + '%</b> and <b class="num">' + hi.toFixed(1) + '%</b> more than the pegged rate says it should, ' +
         (xafNow >= 0 ? '+' : '') + xafNow.toFixed(1) + '% most recently. The peg fixes the official number. It does not fix what people actually pay.' +
-        // Computed, not typed: the-index.html and data/index_latest.json can
+        // Computed, not typed: countries.html and data/index_latest.json can
         // currently be withholding this hour's own CFA franc number (the
         // evidence rule -- buying and selling sides not the same market --
         // failing on a crossed board) even while this daily history array
@@ -381,7 +381,7 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
         // check, not a stale cache -- so it is stated plainly rather than
         // silently smoothed over. Flagged for editorial review (SEB).
         (xaf.index_pct == null
-          ? ' <span style="color:#6B6B6B">A note on that last figure: this hour, our own evidence rule does not currently pass for this currency (the buying and selling sides are not the same market), so it is withheld as a number on <a href="./the-index.html#withheld">the countries page</a> right now. The ' + xafNow.toFixed(1) + '% above is the last daily reading before that, not this hour&rsquo;s. We are leaving this discrepancy visible rather than deleting or smoothing it while it is reviewed.</span>'
+          ? ' <span style="color:#6B6B6B">A note on that last figure: this hour, our own evidence rule does not currently pass for this currency (the buying and selling sides are not the same market), so it is withheld as a number on <a href="./countries.html#withheld">the countries page</a> right now. The ' + xafNow.toFixed(1) + '% above is the last daily reading before that, not this hour&rsquo;s. We are leaving this discrepancy visible rather than deleting or smoothing it while it is reviewed.</span>'
           : '');
       document.getElementById('pegCap').textContent = 'The Central African CFA franc: the gap to its own official euro peg, every day since ' + xafHist[0].date + '.';
       MarginChart.render(document.getElementById('pegChart'), {
@@ -473,7 +473,7 @@ fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ 
   document.getElementById('reactionFindingP').innerHTML =
     'This feature started from a guess: the wider a country’s premium, the slower its street price should react. Checked against every qualified country’s own numbers, the two are ' +
     (r == null ? 'not yet checkable' : 'barely related (r = <b class="num">' + r.toFixed(2) + '</b>)') +
-    '. Algeria (' + 'DZD' + ') has one of the widest premiums measured anywhere on the site and one of the fastest reactions; Turkey trades close to the official rate and reacts far slower. The illustrative "Turkey in about 2 hours, Algeria in about 3 days" framing this feature was scoped from does not hold up against the real numbers — read <a href="./the-index.html#reaction">the countries page</a> for what each one actually measures.';
+    '. Algeria (' + 'DZD' + ') has one of the widest premiums measured anywhere on the site and one of the fastest reactions; Turkey trades close to the official rate and reacts far slower. The illustrative "Turkey in about 2 hours, Algeria in about 3 days" framing this feature was scoped from does not hold up against the real numbers — read <a href="./countries.html#reaction">the countries page</a> for what each one actually measures.';
 }).catch(function(){
   document.getElementById('reactionMethodP').textContent = 'Could not load the current thresholds. That failure is shown, not hidden.';
   document.getElementById('reactionFindingP').textContent = 'Could not load the real numbers. That failure is shown, not hidden.';
@@ -515,7 +515,7 @@ fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ 
         '<div style="margin-top:10px;font-size:14px"><a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(c.country) + '’s full receipt →</a></div>');
     } else {
       show('Every hour the collector takes a real median price, compares it to the official rate from the same pass, and publishes the gap — nothing modelled, nothing forecast. Ten sell offers minimum; under that, a country shows its reason instead of a number. Every published figure traces to a file you can open.' +
-        '<div style="margin-top:10px;font-size:14px"><a href="./the-index.html" style="font-weight:600;color:#0B0B0B">see a real number on the index →</a></div>');
+        '<div style="margin-top:10px;font-size:14px"><a href="./countries.html" style="font-weight:600;color:#0B0B0B">see a real number on the index →</a></div>');
     }
   }
 
@@ -541,13 +541,13 @@ fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ 
     var untracked = mentionedWorld.filter(function(n){ return !tracked[n]; });
     if (untracked.length) {
       return esc(worldNames[untracked[0]]) + ' isn’t one of the countries this site collects prices for — nothing is being hidden, it was simply never collected. ' +
-        '<a href="./the-index.html" style="font-weight:600;color:#0B0B0B">See every tracked country →</a>';
+        '<a href="./countries.html" style="font-weight:600;color:#0B0B0B">See every tracked country →</a>';
     }
     if (mentionedTracked.length) {
       var c = tracked[mentionedTracked[0]];
       return 'That phrasing didn’t resolve, but <b>' + esc(c.country) + '</b> <i>is</i> tracked. <a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">See ' + esc(c.country) + '’s page →</a>';
     }
-    return 'That couldn’t be turned into a query against what’s collected here. <a href="./the-index.html" style="font-weight:600;color:#0B0B0B">See every tracked country →</a>.';
+    return 'That couldn’t be turned into a query against what’s collected here. <a href="./countries.html" style="font-weight:600;color:#0B0B0B">See every tracked country →</a>.';
   }
 
   function submit(){

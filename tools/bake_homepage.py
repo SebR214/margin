@@ -182,7 +182,7 @@ def load_index_latest():
 def count_countries():
     """How many countries have a priced street-dollar rate this hour --
     read from data/index_latest.json's own "countries" list (the priced
-    ones; "withheld" is counted separately), the same file the-index.html
+    ones; "withheld" is counted separately), the same file countries.html
     reads for the identical count.
     """
     doc = load_index_latest()
@@ -364,7 +364,7 @@ def _ordered_rows(priced):
     GAPS_TOP_N non-pegged gaps, a divider, Mexico/Philippines (whichever of
     the two are actually priced this hour, in their own gap order). Sebastian's
     2026-09-28 follow-up to #211: the home chart shows only these rows now --
-    everyone else stays on the-index.html, which the "All {n} priced
+    everyone else stays on countries.html, which the "All {n} priced
     countries ->" link already points to.
     """
     non_pegged = [c for c in priced if c.get("denominator_class") != "pegged"]
@@ -383,7 +383,7 @@ def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth
     as the heading, one answer line, the 5 widest managed-rate gaps as bars,
     then the Philippines and Mexico (where our routes land), one sentence,
     one link. Sudan (frozen rate) and pegged currencies are left out here,
-    they stay on the-index.html. index.html's own script renders the same
+    they stay on countries.html. index.html's own script renders the same
     markup client-side (renderAllCountriesStrip) -- keep the two in sync.
     """
     rows_in = _home_rows(idx_doc)
@@ -426,7 +426,7 @@ def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth
             '<p class="answer">' + answer + '</p>'
             '<div class="cbars">' + rows + '<div class="cgap"></div>' + pin_rows + '</div>'
             + ('<p class="plainline">' + why + '</p>' if why else '')
-            + '<p class="small-note"><a href="./the-index.html">All countries →</a></p>')
+            + '<p class="small-note"><a href="./countries.html">All countries →</a></p>')
 
 
 def pct(bps):
