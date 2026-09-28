@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki — how it works</title>
-<meta name="description" content="How a street price is made, where every price comes from, and what was hard."/>
+<meta name="description" content="What a dollar really costs, what sending money costs, and how what people pay for a dollar is made."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
 <style>
@@ -27,6 +27,14 @@
   .p{font-size:17px;line-height:1.65;color:#222;max-width:760px;padding-top:14px}
   .h{font-size:20px;font-weight:700;padding-top:34px;padding-bottom:8px}
   .b{font-size:16px;line-height:1.6;color:#222;max-width:760px;padding:5px 0 5px 20px;position:relative}
+  .lede{font-size:18px;line-height:1.6;color:#222;max-width:760px;padding-top:16px}
+  .hiw-section{border-top:1px solid var(--rule);margin-top:36px;padding-top:30px}
+  .hiw-section h2{font-size:21px;line-height:1.3;font-weight:700;margin:0 0 8px;max-width:760px}
+  .hiw-section .p{padding-top:0;margin-top:6px}
+  .plain-list{margin:10px 0 0;padding-left:20px;font-size:16px;line-height:1.65;color:#222;max-width:760px}
+  .plain-list li{margin:6px 0}
+  .full-method{border-top:2px solid var(--rule);margin-top:52px;padding-top:6px}
+  .full-method .kicker{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--stamp);padding-top:40px}
   .ask{margin:44px 0 48px;max-width:720px;height:60px;background:#F6F6F6;border-radius:999px;display:flex;align-items:center;justify-content:space-between;padding:0 9px 0 26px}
   .ask input{border:0;background:none;outline:none;font-size:18px;font-family:inherit;flex:1;color:var(--ink)}
   .ask input::placeholder{color:#9A9A9A;font-weight:500}
@@ -36,16 +44,26 @@
 
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
   @media(max-width:760px){
-    header{position:relative;flex-wrap:nowrap!important}
-    .brand{gap:14px}
-    nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column!important;gap:0!important;padding:6px 24px 16px;border-bottom:1px solid #F0F0F0;box-shadow:0 8px 16px rgba(11,11,11,0.06);z-index:30}
-    nav.open{display:flex}
-    nav a{padding:12px 0;border-bottom:1px solid #F6F6F6;font-size:16px}
-    .nav-toggle{display:block}
+    header{position:relative;flex-wrap:nowrap!important;gap:8px}
+    .brand{gap:10px;flex-wrap:nowrap;min-width:0}
+    .logo{flex:0 0 auto}
+    /* Single swipeable row, never wraps to a second line -- a phone reader
+       scrolls sideways to see "How it was built" rather than the nav
+       stacking under the logo (SEB, mobile pass). Hidden scrollbar, real
+       horizontal scroll underneath. */
+    nav{display:flex!important;flex-wrap:nowrap;flex:1 1 auto;min-width:0;overflow-x:auto;gap:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:static;background:none;box-shadow:none;padding:0;border-bottom:0}
+    nav::-webkit-scrollbar{display:none}
+    nav a{padding:0 10px;font-size:15px;white-space:nowrap;border-bottom:0;display:flex;align-items:center;min-height:40px}
+    .nav-toggle{display:none}
     .status{gap:10px}
     .mcp{display:none}
-    .live{max-width:52vw;overflow:hidden}
+    .live{max-width:40vw;overflow:hidden}
     .live .num{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:middle}
+  }
+  @media(max-width:760px){
+    .ask{padding:0 6px 0 20px}
+    .ask input{font-size:16px}
+    .ask button{min-width:44px;min-height:44px}
   }
 </style>
 </head>
@@ -68,39 +86,63 @@
   </header>
 
   <main>
-    <h1>How it works</h1>
-    <div class="p">Official exchange rates hide what people actually pay for a dollar in a lot of countries. We measure the real price every hour in <span id="introCountryCount">Loading…</span> countries, and the all-in cost of sending money on <span id="introRouteCount">Loading…</span> routes.</div>
+    <h1>We measure two things every hour: what a dollar really costs, and what sending money costs</h1>
 
-    <div class="h">How a street price is made</div>
-    <div class="p">Every hour we collect live offers to sell dollars, take the median, and compare it to the official rate captured in the same check. Nothing is modelled or smoothed. A country needs at least 10 sell ads, or a real exchange order book, to get a price.</div>
-    <div class="p" id="thresholdP">Loading today's counts…</div>
+    <section class="hiw-section" id="dollar-cost">
+      <h2>What a dollar costs: the price of USDT, divided by the official rate</h2>
+      <div class="p">Every hour we take the middle price of the 10 cheapest ads selling USDT in each country, on Binance P2P or a local exchange, and divide it by the official rate. The number you see is the median of the last 24 hours. A country with fewer than 10 sellers gets no price, and we say why.</div>
+    </section>
 
-    <div class="h">Where every price comes from</div>
-    <div class="p">All of it is collected directly, every hour, and written to files you can open:</div>
-    <div id="sourceList"><div class="b">Loading the live source list&hellip;</div></div>
-    <div class="p">Every number on the site links back to the file it came from. Nothing is typed in by hand.</div>
-    <div class="p"><a href="./METHODOLOGY.md">The full technical methodology, unabridged →</a></div>
+    <section class="hiw-section" id="sending-cost">
+      <h2>What sending money costs: what arrives, compared with the real exchange rate</h2>
+      <div class="p">For each provider we compare what the recipient gets with what they would get at the mid-market rate, at five amounts. Airwallex, Instarem, Wise and WorldRemit quote us directly. The rest come from a public price comparison. The stablecoin route is priced on real exchange order books, with every fee included.</div>
+    </section>
 
-    <div class="h">Our numbers vs independent ones</div>
-    <div class="p" id="refCheckIntro">Loading…</div>
-    <div id="refCheck" class="p" style="padding-top:14px">Loading the comparison&hellip;</div>
+    <section class="hiw-section" id="not-measured">
+      <h2>What we don't measure yet</h2>
+      <ul class="plain-list">
+        <li>The official rate only updates once a day, so it can be up to 24 hours behind the market.</li>
+        <li>Bank fees for getting money onto and off the exchanges.</li>
+        <li>Prices for repeat senders. Some app prices are first-transfer offers.</li>
+        <li>Cash dollars at money changers.</li>
+      </ul>
+      <div class="p" style="font-size:14px;color:#6B6B6B">Every number links to the file it came from. <a href="#full-method" style="font-weight:600;color:var(--ink)">Full method, every source and our checks against independent numbers →</a></div>
+    </section>
 
-    <div class="h">Three things our data shows</div>
+    <div class="full-method" id="full-method">
+      <div class="kicker">Full method</div>
+      <div class="lede">Everything above is the short version. Below is every source, how what people pay for a dollar is actually made, and the checks that keep this site honest against numbers we don't control.</div>
 
-    <div class="h" style="padding-top:26px">What a float does to the premium</div>
-    <div class="p" id="floatP">Loading…</div>
-    <div id="floatChart"></div>
-    <div class="p" id="floatCap" style="font-size:13px;color:#6B6B6B;padding-top:6px"></div>
+      <div class="h">How what people pay for a dollar is made</div>
+      <div class="p">Every hour we collect live offers to sell dollars, take the median, and compare it to the official rate captured in the same check. Nothing is modelled or smoothed. A country needs at least 10 sell ads, or a real exchange order book, to get a price.</div>
+      <div class="p" id="thresholdP">Loading today's counts…</div>
 
-    <div class="h" style="padding-top:26px">What capital controls do to the premium</div>
-    <div class="p" id="controlsP">Loading…</div>
-    <div id="controlsChart"></div>
-    <div class="p" id="controlsCap" style="font-size:13px;color:#6B6B6B;padding-top:6px"></div>
+      <div class="h">Where every price comes from</div>
+      <div class="p">All of it is collected directly, every hour, and written to files you can open:</div>
+      <div id="sourceList"><div class="b">Loading the live source list&hellip;</div></div>
+      <div class="p">Every number on the site links back to the file it came from. Nothing is typed in by hand.</div>
+      <div class="p"><a href="./METHODOLOGY.md">The full technical methodology, unabridged — every source, the depth behind each price and the round-trip rules →</a></div>
 
-    <div class="h" style="padding-top:26px">What a peg hides</div>
-    <div class="p" id="pegP">Loading…</div>
-    <div id="pegChart"></div>
-    <div class="p" id="pegCap" style="font-size:13px;color:#6B6B6B;padding-top:6px"></div>
+      <div class="h">Our numbers vs independent ones</div>
+      <div class="p" id="refCheckIntro">Loading…</div>
+      <div id="refCheck" class="p" style="padding-top:14px">Loading the comparison&hellip;</div>
+
+      <div class="h">Three things our data shows</div>
+
+      <div class="h" style="padding-top:26px">What a float does to the premium</div>
+      <div class="p" id="floatP">Loading…</div>
+      <div id="floatChart"></div>
+      <div class="p" id="floatCap" style="font-size:13px;color:#6B6B6B;padding-top:6px"></div>
+
+      <div class="h" style="padding-top:26px">What capital controls do to the premium</div>
+      <div class="p" id="controlsP">Loading…</div>
+      <div id="controlsChart"></div>
+      <div class="p" id="controlsCap" style="font-size:13px;color:#6B6B6B;padding-top:6px"></div>
+
+      <div class="h" style="padding-top:26px">What a peg hides</div>
+      <div class="p" id="pegP">Loading…</div>
+      <div id="pegChart"></div>
+      <div class="p" id="pegCap" style="font-size:13px;color:#6B6B6B;padding-top:6px"></div>
 
     <!-- "How fast does the street react?" taken off the site 2026-09-27
          alongside the-index.html's #reaction section -- see the HTML
@@ -197,9 +239,12 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
   var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
   // Same figure the homepage binds its hero line to (countries.length +
   // withheld.length) -- these were two separately typed numbers for the
-  // same fact on different pages (59 here, 60 there) until now.
-  document.getElementById('introCountryCount').textContent =
-    (d.countries||[]).length + (d.withheld||[]).length;
+  // same fact on different pages (59 here, 60 there) until now. The mockup
+  // rebuild dropped the hero's own "Loading… countries" sentence, but this
+  // element is guarded rather than removed outright in case a future
+  // section wants it again.
+  var introCountEl = document.getElementById('introCountryCount');
+  if (introCountEl) introCountEl.textContent = (d.countries||[]).length + (d.withheld||[]).length;
   document.getElementById('thresholdP').textContent =
     'This hour: ' + (d.countries||[]).length + ' priced, ' + (d.withheld||[]).length + ' not.';
 
@@ -241,7 +286,7 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
     var ngnNow = ngn && (ngn.index_pct != null ? ngn.index_pct : (ngn.history && ngn.history.length ? ngn.history[ngn.history.length - 1].index_pct : null));
     if (ngnNow != null) {
       document.getElementById('floatP').innerHTML =
-        'Nigeria used to have two dollar prices, an official one and a much higher street price. The government stopped defending the official rate and let the naira trade freely. Today a dollar on the street costs about what the official rate says it should, <b class="num">' +
+        'Nigeria used to have two dollar prices, an official one and a much higher price people actually paid. The government stopped defending the official rate and let the naira trade freely. Today what people pay for a dollar is about what the official rate says it should be, <b class="num">' +
         (ngnNow >= 0 ? '+' : '') + ngnNow.toFixed(1) + '%</b> apart.';
     } else {
       document.getElementById('floatP').textContent = 'Nigeria has no price from us this hour to show here.';
@@ -263,7 +308,7 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
       var spark = days.map(function(day){ var a = byDay[day]; return a.reduce(function(x,y){ return x+y; }, 0) / a.length; });
       var timestamps = days.map(function(day){ return day + 'T00:00:00Z'; });
       if (spark.length > 1) {
-        document.getElementById('floatCap').textContent = 'Nigeria, the naira: the gap between the street price of a dollar and the official rate, one point per day, ' + days[0] + ' to ' + days[days.length - 1] + '.';
+        document.getElementById('floatCap').textContent = 'Nigeria, the naira: the gap between what people pay for a dollar and the official rate, one point per day, ' + days[0] + ' to ' + days[days.length - 1] + '.';
         MarginChart.render(document.getElementById('floatChart'), { spark: spark, timestamps: timestamps, valueSuffix: '%' });
       } else {
         document.getElementById('floatChart').innerHTML = '<div style="font-size:13px;color:#9A9A9A">Not enough days collected yet to draw this line.</div>';
