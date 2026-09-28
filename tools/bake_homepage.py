@@ -259,20 +259,19 @@ PINNED_CCY = ("MXN", "PHP")
 def _ordered_rows(priced):
     """[(row_or_None_for_divider, is_divider)] in item 3's order: top
     GAPS_TOP_N non-pegged gaps, a divider, Mexico/Philippines (whichever of
-    the two are actually priced this hour, in their own gap order), then
-    the rest -- each real country appearing exactly once.
+    the two are actually priced this hour, in their own gap order). Sebastian's
+    2026-09-28 follow-up to #211: the home chart shows only these rows now --
+    everyone else stays on the-index.html, which the "All {n} priced
+    countries ->" link already points to.
     """
     non_pegged = [c for c in priced if c.get("denominator_class") != "pegged"]
     top = non_pegged[:GAPS_TOP_N]
     top_ccys = {c.get("ccy") for c in top}
     pinned = [c for c in priced if c.get("ccy") in PINNED_CCY and c.get("ccy") not in top_ccys]
-    pinned_ccys = {c.get("ccy") for c in pinned}
-    rest = [c for c in priced if c.get("ccy") not in top_ccys and c.get("ccy") not in pinned_ccys]
     out = [(c, False) for c in top]
     if top:
         out.append((None, True))
     out += [(c, False) for c in pinned]
-    out += [(c, False) for c in rest]
     return out
 
 
@@ -330,10 +329,15 @@ def build_all_countries_strip(idx_doc, home_copy):
         w = bar_w if is_unmaintained else max(2.0, min(1.0, pct / max_real) * bar_w)
         fill = "#EDEDED" if is_pegged else ("#D3D0CB" if is_unmaintained else "#9A9A9A")
         text_fill = "#9A9A9A" if (is_pegged or is_unmaintained) else "#0B0B0B"
-        tip = c.get("country", "") + ": " + ("+" if pct >= 0 else "") + f"{pct:.2f}% vs the official rate, 24h median"
+        tip_rounded = round(pct, 2)
+        tip = c.get("country", "") + ": " + ("+" if tip_rounded > 0 else "") + f"{abs(tip_rounded) if tip_rounded == 0 else tip_rounded:.2f}% vs the official rate, 24h median"
         href = "./country.html?ccy=" + esc(c.get("ccy", ""))
-        sign = "+" if pct >= 0 else ""
-        value_text = f"{sign}{pct:.1f}%"
+        rounded = round(pct, 1)
+        sign = "+" if rounded > 0 else ""
+        value_text = f"{sign}{abs(rounded) if rounded == 0 else rounded:.1f}%"
+        country_label = c.get("country", "")
+        if country_label.lower().startswith("the "):
+            country_label = country_label[4:]
         break_mark = (
             f'<line x1="{bar_right-5}" y1="{row_y+2:.1f}" x2="{bar_right-1}" y2="{row_y+12:.1f}" stroke="#fff" stroke-width="2"/>'
             if is_unmaintained else ""
@@ -344,7 +348,7 @@ def build_all_countries_strip(idx_doc, home_copy):
         )
         rows.append(
             f'<a href="{href}"><title>{esc(tip)}</title>'
-            f'<text x="0" y="{row_y+16:.1f}" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="{text_fill}">{esc(c.get("country", ""))}</text>'
+            f'<text x="0" y="{row_y+16:.1f}" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="{text_fill}">{esc(country_label)}</text>'
             f'<rect x="{bar_left}" y="{row_y+4:.1f}" width="{w:.1f}" height="10" rx="2" fill="{fill}"/>{break_mark}'
             f'<text x="{W-4}" y="{row_y+13:.1f}" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="{text_fill}">{value_text}</text>'
             f'{caption_svg}</a>'
