@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="./js/chart.js"></script>
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; --grape:#3F3047; --dust:#D3D0CB; --eggshell:#F0EBD8; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
@@ -17,36 +17,51 @@
   .receipt{font-size:13px;color:var(--sub)}
   .wrap{max-width:1150px;margin:0 auto}
   header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;max-width:1150px;margin:0 auto}
-  .brand{display:flex;align-items:center;gap:40px}
-  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
+  .brand{display:flex;align-items:center;gap:40px;min-width:0}
+  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em;flex:0 0 auto}
   nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333}
   nav a[aria-current]{color:var(--ink);font-weight:700}
   .status{display:flex;align-items:center;gap:24px}
-  .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
+  .live{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;font-size:13px;color:var(--sub);margin-top:16px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo);display:inline-block;margin-right:6px;box-shadow:0 0 0 3px rgba(129,127,204,.2)}
+  .meta-line{font-size:13px;color:var(--stamp);margin-top:6px}
+  .meta-line a{font-weight:600;color:var(--ink)}
   .mcp{font-size:13px;font-weight:700}
   .hero{padding:40px 48px 28px}
   h1{font-size:32px;font-weight:800;line-height:1.22;letter-spacing:-0.02em;max-width:900px;margin:0}
   .sub{padding-top:14px;font-size:16px;line-height:1.5;color:var(--sub);max-width:680px}
   .purpose{padding-top:8px;font-size:13px;line-height:1.5;color:var(--stamp);max-width:680px}
   .lede{font-size:14px;line-height:1.5;color:var(--sub);margin-bottom:14px;max-width:680px}
-  .lead-section{padding:0 48px}
+  .lead-section{padding:0 48px;max-width:900px}
+  .sec{border-top:1px solid var(--rule);margin-top:48px;padding-top:36px}
+  .sec h2{font-size:22px;line-height:1.32;margin:0 0 8px;font-weight:800;letter-spacing:-0.01em;max-width:720px}
+  .sec .answer{font-size:15px;line-height:1.5;color:var(--sub);margin:0 0 22px;max-width:680px}
   .waterfall-card{border:1px solid var(--rule);border-radius:16px;padding:28px 32px;margin-bottom:40px}
   .waterfall-title{font-size:13px;letter-spacing:.06em;color:var(--sub);text-transform:uppercase;font-weight:700;margin-bottom:4px}
-  .waterfall-cap{font-size:14px;color:var(--sub);margin-bottom:18px;max-width:640px}
   .disclosure-note{font-size:13px;line-height:1.5;color:var(--sub);max-width:640px;margin-top:14px;padding-left:12px;border-left:2px solid var(--rule)}
   .corridor-table{width:100%;border-collapse:collapse;margin-top:10px}
   .corridor-table th{text-align:left;font-size:11px;letter-spacing:.06em;color:#9A9A9A;font-weight:600;padding:0 20px 14px 0;border-bottom:1px solid var(--rule)}
+  .corridor-table th:nth-child(2){color:var(--indigo)}
   .corridor-table td{padding:18px 20px 18px 0;border-bottom:1px solid var(--rule);font-size:15px;vertical-align:top;line-height:1.5}
+  .corridor-table td:nth-child(2){color:var(--indigo);font-weight:700}
   .corridor-table tr:last-child td{border-bottom:none}
   .corridor-table .win-yes{color:#0B0B0B;font-weight:700}
   .corridor-table .win-no{color:#6B6B6B;font-weight:500}
-  .corridor-note{font-size:12.5px;color:#9A9A9A;margin-top:4px;font-weight:400;line-height:1.5}
+  .small-note{font-size:12.5px;color:#9A9A9A;margin-top:8px;font-weight:400;line-height:1.5}
+  .small-note a{font-weight:600;color:#0B0B0B;display:inline-flex;align-items:center;padding:10px 0;min-height:40px;box-sizing:border-box}
   .strip-wrap{margin-top:6px}
   .strip-svg a{cursor:pointer}
   .strip-svg a:hover circle{stroke:var(--indigo);stroke-width:2}
   .strip-svg a:hover text{fill:var(--indigo)}
   .strip-note{font-size:14px;line-height:1.55;color:var(--sub);max-width:700px;margin-top:12px}
+  .strip-note a{display:inline-flex;align-items:center;min-height:40px;box-sizing:border-box}
+  .why{font-size:14.5px;line-height:1.6;color:var(--ink);margin:20px 0 0;padding:14px 16px;border-left:3px solid var(--dust);background:#FAFAF8;max-width:680px}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px;max-width:720px}
+  .card{background:#fff;border:1px solid var(--dust);border-radius:10px;padding:18px;min-height:40px}
+  .card .big{color:var(--indigo);font-size:26px;font-weight:800;letter-spacing:-0.02em;line-height:1.15}
+  .card p{margin:8px 0 0;font-size:14px;line-height:1.5;color:var(--sub)}
+  .card p b{color:var(--ink);font-weight:700}
+  @media(max-width:560px){.cards{grid-template-columns:1fr}}
   .break{border-top:1px solid var(--rule);margin:44px 48px 0}
   .body{padding:40px 48px 48px}
   .feed{display:flex;flex-direction:column}
@@ -58,7 +73,8 @@
   .item p{font-size:18px;font-weight:500;line-height:1.55;margin:0}
   .item .num{font-weight:700} .indigo{color:var(--indigo)}
   .live-strip-note{font-size:15px;line-height:1.6;color:var(--sub);max-width:680px}
-  .live-strip-note a{font-weight:600;color:#0B0B0B}
+  .live-strip-note a{font-weight:600;color:#0B0B0B;display:inline-flex;align-items:center;min-height:40px;box-sizing:border-box}
+  .corridor-table td a{display:inline-flex;align-items:center;min-height:40px;box-sizing:border-box}
   .about{border-top:1px solid #0B0B0B;padding-top:14px;margin-top:44px;font-size:14px;line-height:1.55;color:#0B0B0B;max-width:680px}
   .msdot{width:6px;height:6px;border-radius:50%;background:var(--indigo);display:inline-block}
   @media(max-width:900px){
@@ -68,18 +84,24 @@
     .corridor-table{font-size:12.5px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch} .corridor-table th,.corridor-table td{padding:0 6px 10px 0}
   }
 
-  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
+  /* Mobile: nav is a single swipeable row, never a hamburger dropdown and
+     never wraps to a second line (Sebastian's 2026-09-28 mobile rules).
+     Every tap target below (nav links, card links, table links) gets a
+     real >=40px tall hit area, not just visible text. */
   @media(max-width:760px){
-    header{position:relative;flex-wrap:nowrap!important}
-    .brand{gap:14px}
-    nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column!important;gap:0!important;padding:6px 24px 16px;border-bottom:1px solid #F0F0F0;box-shadow:0 8px 16px rgba(11,11,11,0.06);z-index:30}
-    nav.open{display:flex}
-    nav a{padding:12px 0;border-bottom:1px solid #F6F6F6;font-size:16px}
-    .nav-toggle{display:block}
-    .status{gap:10px}
+    header{position:relative;flex-wrap:nowrap!important;padding:14px 16px 10px;gap:10px}
+    .brand{gap:12px;flex:1;min-width:0}
+    nav{display:flex!important;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:2px;margin:0;padding:0 2px;scrollbar-width:none;flex:1;min-width:0}
+    nav::-webkit-scrollbar{display:none}
+    nav a{white-space:nowrap;padding:0 10px;font-size:14px;min-height:40px;display:flex;align-items:center}
+    .status{gap:8px;flex:0 0 auto}
     .mcp{display:none}
-    .live{max-width:44vw;overflow:hidden}
-    .live .num{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:middle}
+    .live{max-width:none}
+  }
+  @media(max-width:620px){
+    .sec h2{font-size:19px}
+    .card{padding:14px}
+    .card .big{font-size:22px}
   }
 </style>
 </head>
@@ -97,25 +119,31 @@
     </div>
     <div class="status">
       <div class="mcp">MCP · API</div>
-      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
   </header>
 
 <div class="wrap">
   <div class="hero">
     <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Stablecoins rarely beat the cheapest transfer app. But where banks won&#39;t sell you dollars, they&#39;re how people get one.<!--BAKE:END:heroHeadline--></h1>
-    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->Four AI agents run this site every hour. They track what a dollar costs on the street in 60 countries, and what it costs to send money with an app or with stablecoins. <a href="./how-it-works.html">How it was built →</a><!--BAKE:END:heroSub--></div>
+    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->Four AI agents run this site every hour. They track what people pay for a dollar in 60 countries, and what it costs to send money with an app or with stablecoins. <a href="./how-it-works.html">How it was built →</a><!--BAKE:END:heroSub--></div>
+    <div class="live" id="liveLine"><span><span class="dot"></span><span id="liveChecked">Checked —</span></span><span id="liveDelta"></span></div>
+    <div class="meta-line" id="metaLine">Run by four AI agents · <a href="./machine-room.html">How it was built →</a></div>
     <div class="purpose" id="purposeNote">Built to test one claim: that stablecoins make moving money cheaper.</div>
   </div>
 
-  <div class="lead-section"><div id="allCountriesSection" class="waterfall-card"><!--BAKE:START:allCountriesStrip--><div class="waterfall-title">What a dollar costs on the street vs the official rate, every country we track</div><div class="strip-wrap"><svg viewBox="0 0 234 376" style="width:100%;max-width:800px;height:auto" class="strip-svg"><a href="./country.html?ccy=SDG"><title>Sudan: +1500.22% vs the official rate, 24h median</title><text x="0" y="22.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#9A9A9A">Sudan</text><rect x="98" y="10.0" width="101.0" height="10" rx="2" fill="#D3D0CB"/><line x1="194" y1="8.0" x2="198" y2="18.0" stroke="#fff" stroke-width="2"/><text x="230" y="19.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#9A9A9A">+1500.2%</text><text x="0" y="36.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">official rate frozen, not comparable</text></a><a href="./country.html?ccy=DZD"><title>Algeria: +91.66% vs the official rate, 24h median</title><text x="0" y="60.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Algeria</text><rect x="98" y="48.0" width="101.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="57.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+91.7%</text><text x="0" y="74.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">Banks won&#39;t sell dollars here. USDT is the street price.</text></a><a href="./country.html?ccy=IQD"><title>Iraq: +20.12% vs the official rate, 24h median</title><text x="0" y="98.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Iraq</text><rect x="98" y="86.0" width="22.2" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="95.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+20.1%</text></a><a href="./country.html?ccy=MZN"><title>Mozambique: +17.29% vs the official rate, 24h median</title><text x="0" y="122.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Mozambique</text><rect x="98" y="110.0" width="19.1" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="119.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+17.3%</text></a><a href="./country.html?ccy=TND"><title>Tunisia: +15.99% vs the official rate, 24h median</title><text x="0" y="146.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Tunisia</text><rect x="98" y="134.0" width="17.6" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="143.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+16.0%</text></a><a href="./country.html?ccy=SYP"><title>Syria: +14.58% vs the official rate, 24h median</title><text x="0" y="170.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Syria</text><rect x="98" y="158.0" width="16.1" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="167.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+14.6%</text></a><a href="./country.html?ccy=VES"><title>Venezuela: +14.46% vs the official rate, 24h median</title><text x="0" y="194.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Venezuela</text><rect x="98" y="182.0" width="15.9" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="191.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+14.5%</text></a><a href="./country.html?ccy=ZAR"><title>South Africa: +7.67% vs the official rate, 24h median</title><text x="0" y="218.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">South Africa</text><rect x="98" y="206.0" width="8.5" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="215.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+7.7%</text></a><a href="./country.html?ccy=ARS"><title>Argentina: +6.64% vs the official rate, 24h median</title><text x="0" y="242.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Argentina</text><rect x="98" y="230.0" width="7.3" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="239.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+6.6%</text></a><a href="./country.html?ccy=KZT"><title>Kazakhstan: +4.81% vs the official rate, 24h median</title><text x="0" y="266.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Kazakhstan</text><rect x="98" y="254.0" width="5.3" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="263.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+4.8%</text></a><line x1="0" y1="282.0" x2="234" y2="282.0" stroke="#D3D0CB" stroke-width="1" stroke-dasharray="3,3"/><a href="./country.html?ccy=PHP"><title>the Philippines: +0.06% vs the official rate, 24h median</title><text x="0" y="306.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Philippines</text><rect x="98" y="294.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="303.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.1%</text><text x="0" y="320.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">We price transfers here. The app wins.</text></a><a href="./country.html?ccy=MXN"><title>Mexico: -0.07% vs the official rate, 24h median</title><text x="0" y="344.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Mexico</text><rect x="98" y="332.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="341.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">-0.1%</text><text x="0" y="358.0" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">We price transfers here. The app wins.</text></a></svg></div><div class="strip-note">Median of the last 24 hours.</div><div class="strip-note">Light grey: pegged currency, the gap is the cost of buying stablecoins.</div><div class="strip-note">Where the gap is near zero, the official rate is real and a normal app is cheaper. Where the gap is big, the official rate isn&#39;t what people pay, and stablecoins are how people get dollars at all.</div><div class="strip-note"><a href="./the-index.html" style="font-weight:600;color:#0B0B0B">All 51 priced countries →</a></div><!--BAKE:END:allCountriesStrip--></div></div>
+  <div class="lead-section sec" style="margin-top:0;border-top:none;padding-top:0">
+    <div id="corridorTableSection"><!--BAKE:START:corridorTableSection--><h2>On all 4 sends we check, the cheapest app beats the stablecoin</h2><table class="corridor-table"><thead><tr><th>ROUTE</th><th>STABLECOIN ROUTE</th><th>CHEAPEST APP</th><th>HOURS STABLECOIN WAS CHEAPER</th><th></th></tr></thead><tbody><tr><td><b>Singapore → Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">typical hour since 10 August 2026</div></td><td class="num">0.87%</td><td class="num">0.11%</td><td><div class="win-no">0.0% (market order)</div></td><td><a href="./corridor.html?corridor=SGD-&gt;PHP" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr><tr><td><b>Australia → Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">typical hour since 10 September 2026</div></td><td class="num">1.01%</td><td class="num">-0.05%</td><td><div class="win-no">0.0% (market order)</div></td><td><a href="./corridor.html?corridor=AUD-&gt;PHP" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr><tr><td><b>New Zealand → Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">typical hour since 10 September 2026</div></td><td class="num">1.11%</td><td class="num">-0.12%</td><td><div class="win-no">2.7% (market order)</div></td><td><a href="./corridor.html?corridor=NZD-&gt;PHP" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr><tr><td><b>US → Mexico</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">typical hour since 19 August 2026</div></td><td class="num">0.77%</td><td class="num">0.02%</td><td><div class="win-no">0.3% (market order)</div><div class="win-yes" style="margin-top:4px">43.1% (limit order)</div></td><td><a href="./corridor.html?corridor=USD-&gt;MXN" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr></tbody></table><div class="lede" style="margin-top:10px">The cheapest app wins almost every hour on every route. The exception: US → Mexico with a limit order, cheaper in 43.1% of hours.</div><p class="small-note">All-in cost as % of the amount, typical hour. <a href="./sending-money.html">Every provider, every amount →</a></p><p class="small-note">Cheapest app is the true lowest quote across every provider we check, direct and compared, right now. The stablecoin figure is the typical (median) hour.</p><!--BAKE:END:corridorTableSection--></div>
+  </div>
 
-  <div id="waterfallSection" class="lead-section"></div>
+  <div id="waterfallSection" class="lead-section sec"></div>
 
-  <div id="corridorTableSection" class="lead-section" style="padding-bottom:0"><!--BAKE:START:corridorTableSection--><div class="waterfall-title">Stablecoin route vs cheapest app, all-in cost per route</div><div class="lede">The cheapest app wins almost every hour on every route. The exception: US → Mexico with a limit order, cheaper in 43.1% of hours.</div><table class="corridor-table"><thead><tr><th>ROUTE</th><th>STABLECOIN ROUTE</th><th>CHEAPEST APP</th><th>HOURS STABLECOIN WAS CHEAPER</th><th></th></tr></thead><tbody><tr><td><b>Singapore → Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">typical hour since 10 August 2026</div></td><td class="num">0.87%</td><td class="num">0.45%</td><td><div class="win-no">0.0% (market order)</div></td><td><a href="./corridor.html?corridor=SGD-&gt;PHP" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr><tr><td><b>Australia → Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">typical hour since 10 September 2026</div></td><td class="num">1.01%</td><td class="num">0.65%</td><td><div class="win-no">0.0% (market order)</div></td><td><a href="./corridor.html?corridor=AUD-&gt;PHP" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr><tr><td><b>New Zealand → Philippines</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">typical hour since 10 September 2026</div></td><td class="num">1.11%</td><td class="num">0.69%</td><td><div class="win-no">2.7% (market order)</div></td><td><a href="./corridor.html?corridor=NZD-&gt;PHP" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr><tr><td><b>US → Mexico</b><div style="font-size:11px;color:#9A9A9A;font-weight:400">typical hour since 19 August 2026</div></td><td class="num">0.77%</td><td class="num">0.55%</td><td><div class="win-no">0.3% (market order)</div><div class="win-yes" style="margin-top:4px">43.1% (limit order)</div></td><td><a href="./corridor.html?corridor=USD-&gt;MXN" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr></tbody></table><!--BAKE:END:corridorTableSection--></div>
-  <div id="corridorNotesSection" class="lead-section" style="padding-top:0"></div>
+  <div id="winCasesSection" class="lead-section sec"></div>
 
-  <div class="lead-section"><div id="premiumStripSection" class="waterfall-card"><!--BAKE:START:premiumStrip--><div class="strip-note"><a href="./the-index.html" style="font-weight:600;color:#0B0B0B">See all 60 countries →</a></div><!--BAKE:END:premiumStrip--></div></div>
+  <div class="lead-section sec">
+    <div id="allCountriesSection"><!--BAKE:START:allCountriesStrip--><h2>In the Philippines and Mexico a dollar costs the official rate. In Algeria people pay 92% more.</h2><p class="answer">What people pay for USDT on Binance P2P and local coin exchanges, compared with the official rate. Not cash at money changers.</p><div class="strip-wrap"><svg viewBox="0 0 234 376" style="width:100%;max-width:800px;height:auto" class="strip-svg"><a href="./country.html?ccy=SDG"><title>Sudan: +1500.22% vs the official rate, 24h median</title><text x="0" y="22.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#9A9A9A">Sudan</text><rect x="98" y="10.0" width="101.0" height="10" rx="2" fill="#D3D0CB"/><line x1="194" y1="8.0" x2="198" y2="18.0" stroke="#fff" stroke-width="2"/><text x="230" y="19.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#9A9A9A">+1500.2%</text><text x="0" y="37.0" font-family="Archivo,sans-serif" font-size="11" fill="#9A9A9A">official rate frozen, not comparable</text></a><a href="./country.html?ccy=DZD"><title>Algeria: +91.66% vs the official rate, 24h median</title><text x="0" y="60.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Algeria</text><rect x="98" y="48.0" width="101.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="57.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+91.7%</text><text x="0" y="75.0" font-family="Archivo,sans-serif" font-size="11" fill="#9A9A9A">Banks won&#39;t sell dollars here. USDT is what people pay.</text></a><a href="./country.html?ccy=IQD"><title>Iraq: +20.12% vs the official rate, 24h median</title><text x="0" y="98.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Iraq</text><rect x="98" y="86.0" width="22.2" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="95.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+20.1%</text></a><a href="./country.html?ccy=MZN"><title>Mozambique: +17.29% vs the official rate, 24h median</title><text x="0" y="122.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Mozambique</text><rect x="98" y="110.0" width="19.1" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="119.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+17.3%</text></a><a href="./country.html?ccy=TND"><title>Tunisia: +15.99% vs the official rate, 24h median</title><text x="0" y="146.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Tunisia</text><rect x="98" y="134.0" width="17.6" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="143.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+16.0%</text></a><a href="./country.html?ccy=SYP"><title>Syria: +14.58% vs the official rate, 24h median</title><text x="0" y="170.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Syria</text><rect x="98" y="158.0" width="16.1" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="167.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+14.6%</text></a><a href="./country.html?ccy=VES"><title>Venezuela: +14.46% vs the official rate, 24h median</title><text x="0" y="194.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Venezuela</text><rect x="98" y="182.0" width="15.9" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="191.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+14.5%</text></a><a href="./country.html?ccy=ZAR"><title>South Africa: +7.67% vs the official rate, 24h median</title><text x="0" y="218.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">South Africa</text><rect x="98" y="206.0" width="8.5" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="215.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+7.7%</text></a><a href="./country.html?ccy=ARS"><title>Argentina: +6.64% vs the official rate, 24h median</title><text x="0" y="242.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Argentina</text><rect x="98" y="230.0" width="7.3" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="239.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+6.6%</text></a><a href="./country.html?ccy=KZT"><title>Kazakhstan: +4.81% vs the official rate, 24h median</title><text x="0" y="266.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Kazakhstan</text><rect x="98" y="254.0" width="5.3" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="263.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+4.8%</text></a><line x1="0" y1="282.0" x2="234" y2="282.0" stroke="#D3D0CB" stroke-width="1" stroke-dasharray="3,3"/><a href="./country.html?ccy=PHP"><title>the Philippines: +0.06% vs the official rate, 24h median</title><text x="0" y="306.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Philippines</text><rect x="98" y="294.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="303.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">+0.1%</text><text x="0" y="321.0" font-family="Archivo,sans-serif" font-size="11" fill="#9A9A9A">where 3 of the transfers we price land here</text></a><a href="./country.html?ccy=MXN"><title>Mexico: -0.07% vs the official rate, 24h median</title><text x="0" y="344.0" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="#0B0B0B">Mexico</text><rect x="98" y="332.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="341.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="#0B0B0B">-0.1%</text><text x="0" y="359.0" font-family="Archivo,sans-serif" font-size="11" fill="#9A9A9A">where 1 of the transfers we price land here</text></a></svg></div><div class="strip-note">Median of the last 24 hours.</div><div class="strip-note">Light grey: pegged currency, the gap is the cost of buying stablecoins.</div><div class="strip-note">Where the gap is near zero, the official rate is real and a normal app is cheaper. Where the gap is big, the official rate isn&#39;t what people pay, and stablecoins are how people get dollars at all.</div><p class="why">In the Philippines and Mexico, what people pay and the official rate match, so a normal app already gives you the real rate and a stablecoin has nothing to beat. In Algeria, banks sell few dollars, so USDT is how people get them. Right now you can buy about $2,500 of USDT there within 1% of the best price.</p><div class="strip-note"><a href="./the-index.html" style="font-weight:600;color:#0B0B0B">All 51 priced countries →</a></div><!--BAKE:END:allCountriesStrip--></div>
+    <div id="premiumStripSection"><!--BAKE:START:premiumStrip--><div class="strip-note"><a href="./the-index.html" style="font-weight:600;color:#0B0B0B">See all 60 countries →</a></div><!--BAKE:END:premiumStrip--></div>
+  </div>
+
   <div class="break"></div>
 
   <div class="body">
@@ -140,11 +168,31 @@
 (function(){
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function fmtPct(n, digits){ digits = digits==null?1:digits; return (n>=0?'':'') + n.toFixed(digits); }
+  // Generic {token} template filler -- every new dynamic sentence on this
+  // page (the live line, the two finding headers, the win-cases cards)
+  // reads its wording from copy.json and fills in real numbers this way,
+  // instead of a chain of .replace() calls per string.
+  function T(str, vars){
+    str = str || '';
+    return str.replace(/\{(\w+)\}/g, function(_, k){ return (vars && vars[k] != null) ? vars[k] : ''; });
+  }
+  function joinAnd(names){
+    names = names || [];
+    if (!names.length) return '';
+    if (names.length === 1) return names[0];
+    return names.slice(0, -1).join(', ') + ' and ' + names[names.length-1];
+  }
 
   // A negative index_pct means the street price is BELOW the official rate --
   // real, and it happens. "costs -0.35% more" is a false claim from a sign
   // bug, not an edge case to ignore.
   var PAR_EPSILON = 0.05;
+  // Looser epsilon for the plain-language "at the official rate" finding
+  // (section header + why paragraph below) -- a whole-country finding
+  // statement, not a per-hour sign check, so it tolerates noise a single
+  // hour's reading can't average away. Matches tools/bake_homepage.py's
+  // own PAR_EPSILON so the JS re-render can never disagree with the bake.
+  var PAR_EPSILON_HEADER = 0.15;
   function costPhrase(pct, digits) {
     digits = digits == null ? 1 : digits;
     if (Math.abs(pct) < PAR_EPSILON) return 'trades basically at the official rate';
@@ -176,18 +224,6 @@
     return out;
   }
 
-  // D1 waterfall, re-skinned to the site's one chart palette (js/chart.js,
-  // MarginChart -- indigo for cost added, the same soft indigo fill for a
-  // gain, ink for the total) and made genuinely interactive: hovering a bar
-  // shows its exact value in a tooltip, the same visual language as every
-  // other chart on the site, not a static picture.
-  // "bps" is a banned word on reader-facing pages -- every value here
-  // comes in as bps (matching samples.csv's own columns) and is shown as
-  // percent, the same unit costPhrase() and every chip already use.
-  // A COST figure (waterfall legs, corridor table cells, cheapest-app %)
-  // never carries a leading "+" -- Sebastian's 2026-09-28 correction. "+"
-  // is a GAP-figure convention only (street price vs official rate),
-  // handled by separate inline sign logic in the gap-chart renderer below.
   function cashPct(bps){ var pct = bps/100; return pct.toFixed(2) + '%'; }
   // Money over S$100,000 rounds to one decimal in millions ("S$2.7M"),
   // site-wide sign convention scoped to THIS page's own text only
@@ -197,6 +233,49 @@
     if (Math.abs(n) >= 100000) return symbol + (n/1e6).toFixed(1) + 'M';
     return symbol + Math.round(n).toLocaleString();
   }
+  function moneyFmt(n, symbol){
+    symbol = symbol || 'S$';
+    return symbol + Math.round(n).toLocaleString();
+  }
+  // A debounced redraw for the two SVG charts below -- both now size their
+  // viewBox to the container's REAL rendered width (not a fixed 800 units
+  // scaled down by CSS), so a chart's own text stays real px at any width
+  // and has to be rebuilt, not just re-scaled, on rotation/resize
+  // (Sebastian's 2026-09-28 mobile rules; the same fix corridor.html's
+  // drawWaterfall/drawHistory already ship).
+  var resizeTimer = null;
+  var onResizeRedraws = [];
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function(){ onResizeRedraws.forEach(function(fn){ fn(); }); }, 150);
+  });
+
+  // The true cheapest APP for this corridor+size -- direct provider quotes
+  // AND the public comparison feed, both already ranked cheapest-first in
+  // data/providers_latest.json, excluding only the stablecoin's own
+  // "measured" row. Mirrors corridor.html's own cheapestApp() helper
+  // exactly, so this page's "cheapest app" figure can never disagree with
+  // corridor.html's for the same corridor+amount (Sebastian's rule: the
+  // "cheapest app" anywhere on this page is the cheapest of ALL quotes,
+  // not just whichever provider happens to win the Wise comparison feed
+  // alone). Falls back to the historical median baseline
+  // (corridor_summary.json's own baseline_cost_bps_median) only when
+  // providers_latest.json has no entry for this exact corridor+size yet.
+  var providersLatest = null;
+  function cheapestApp(corridorKey, sizeAmount, fallbackBps, fallbackProvider){
+    var rows = providersLatest && providersLatest.corridors &&
+      providersLatest.corridors[corridorKey] &&
+      providersLatest.corridors[corridorKey].sizes &&
+      providersLatest.corridors[corridorKey].sizes[String(sizeAmount)] &&
+      providersLatest.corridors[corridorKey].sizes[String(sizeAmount)].rows;
+    if (rows && rows.length) {
+      for (var i = 0; i < rows.length; i++) {
+        if (rows[i].source !== 'measured') return { provider: rows[i].provider, bps: rows[i].cost_pct * 100 };
+      }
+    }
+    return { provider: fallbackProvider || '', bps: fallbackBps };
+  }
+
   function renderWaterfall(wf, COPY, windowRow){
     var L = COPY.waterfallLegend || {};
     var buy = wf.onramp_basis_bps + wf.onramp_fee_bps;
@@ -206,127 +285,148 @@
       {label: L.moving || 'Moving it', v: wf.network_fee_bps, kind: 'rail'},
       {label: L.selling || 'Selling it', v: sell, kind: 'cost'}
     ];
-    var total = wf.total_cost_bps, base = wf.baseline_cost_bps;
-    var run = 0, cum = [0];
-    steps.forEach(function(s){ run += s.v; cum.push(run); });
-    var all = [0, total, base].concat(cum);
-    var dMin = Math.min.apply(null, all), dMax = Math.max.apply(null, all);
-    var pad = (dMax - dMin) * 0.12 || 10, lo = dMin - pad, hi = dMax + pad;
-    var Lx = 190, Rx = 760, X = function(v){ return Lx + (v - lo) / (hi - lo) * (Rx - Lx); };
-    var rowH = 34, top = 10, W = 800, rows = steps.length + 1, H = top + rows * rowH + 34;
-    // The site's actual chart palette: periwinkle for the first dollar-route
-    // leg, eggshell (bordered so it still reads on white) for the second --
-    // two legs the same color read as "the same number" (SEB, 2026-09-25) --
-    // dust grey for the rail/secondary leg, vintage grape (not pure black)
-    // for the total. One palette, reused verbatim on every cost chart --
-    // index.html, corridor.html, sending-money.html.
-    var col = {cost: '#817FCC', cost2: '#F0EBD8', gain: '#D3D0CB', rail: '#D3D0CB', total: '#3F3047'};
-    var uid = 'wf' + Math.random().toString(36).slice(2,8);
-    var svg = '<line x1="' + X(0).toFixed(1) + '" y1="' + top + '" x2="' + X(0).toFixed(1) + '" y2="' + (top + rows*rowH) + '" stroke="#E5E5EA" stroke-width="1"/>' +
-      '<line x1="' + X(base).toFixed(1) + '" y1="' + (top-4) + '" x2="' + X(base).toFixed(1) + '" y2="' + (top + rows*rowH + 4) + '" stroke="#9A9A9A" stroke-width="1.2" stroke-dasharray="4,3"/>' +
-      '<text x="' + X(base).toFixed(1) + '" y="' + (top + rows*rowH + 18) + '" fill="#6B6B6B" font-family="Archivo,sans-serif" font-size="12" text-anchor="middle">cheapest app, ' + cashPct(base) + '</text>';
-    var bars = [];
-    var costLegsSeen = 0;
-    steps.forEach(function(s, i){
-      var y = top + i * rowH;
-      var a = X(cum[i]), b = X(cum[i+1]);
-      var x0 = Math.min(a,b), w = Math.max(2, Math.abs(b-a));
-      var fill;
-      if (s.kind === 'rail') fill = col.rail;
-      else if (s.v < 0) fill = col.gain;
-      else { fill = costLegsSeen === 0 ? col.cost : col.cost2; costLegsSeen++; }
-      var stroke = fill === col.cost2 ? ' stroke="#D3D0CB" stroke-width="1"' : '';
-      var barId = uid + 'b' + i;
-      svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" fill="#0B0B0B">' + esc(s.label) + '</text>' +
-        '<rect id="' + barId + '" class="wf-bar" data-label="' + esc(s.label) + '" data-value="' + cashPct(s.v) + '" x="' + x0.toFixed(1) + '" y="' + (y+7) + '" width="' + w.toFixed(1) + '" height="' + (rowH-14) + '" rx="2" fill="' + fill + '"' + stroke + ' style="cursor:pointer;transition:opacity .1s"/>' +
-        '<text x="' + (b + (b>=a?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="12.5" fill="#6B6B6B" text-anchor="' + (b>=a?'start':'end') + '">' + cashPct(s.v) + '</text>';
-      bars.push(barId);
-    });
-    var y = top + steps.length * rowH, xt = X(total);
-    var totalBarId = uid + 'btotal';
-    svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + esc(L.total || 'The whole transfer') + '</text>' +
-      '<rect id="' + totalBarId + '" class="wf-bar" data-label="' + esc(L.total || 'The whole transfer') + '" data-value="' + cashPct(total) + '" x="' + Math.min(X(0), xt).toFixed(1) + '" y="' + (y+6) + '" width="' + Math.max(2, Math.abs(xt-X(0))).toFixed(1) + '" height="' + (rowH-12) + '" rx="2" fill="' + col.total + '" style="cursor:pointer;transition:opacity .1s"/>' +
-      '<text x="' + (xt + (total>=0?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="13" font-weight="700" fill="#0B0B0B" text-anchor="' + (total>=0?'start':'end') + '">' + cashPct(total) + '</text>';
-    bars.push(totalBarId);
+    var total = wf.total_cost_bps;
+    var cheapest = cheapestApp(wf.corridor || 'SGD->PHP', (windowRow && windowRow.rung) || 5000, wf.baseline_cost_bps);
+    var base = cheapest.bps;
 
-    // The send amount, the destination and the window all come from
-    // data/corridor_window.json -- the SAME file the hero sub reads its
-    // own numbers from -- so this caption can never state a different
-    // window than the sentence above it.
     windowRow = windowRow || {};
-    var tipId = 'tip' + uid;
-    // This bar chart stops at a balance sitting on the two exchanges (buy
-    // venue, sell venue) -- it never prices getting the sending country's
-    // money into the first exchange, or getting the receiving country's
-    // money out of the last exchange into an actual bank account, both of
-    // which the "Best app" line's price already includes. Nobody has
-    // measured what those two steps would cost, so this note says so
-    // plainly, right under the chart it qualifies (SEB audit, 2026-09-27).
+    var legHeader = T(COPY.waterfallLegHeaderTemplate || 'Sending it on chain costs {network_pct}. Buying and selling it costs {trade_pct}.', {
+      network_pct: cashPct(wf.network_fee_bps),
+      trade_pct: cashPct(buy + sell)
+    });
+    var answerLine = T('{send}, {dest}, typical hour.', {
+      send: (windowRow.route_words || 'Singapore to the Philippines').split(' to ')[0],
+      dest: windowRow.dest || 'the Philippines'
+    });
     var disclosure = COPY.exchangeOnlyDisclosure ||
       'This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.';
-    // The headline names the two live percentages this chart draws (the
-    // stablecoin route's total, the cheapest app's) so it can never state a
-    // number the chart itself disagrees with -- both come straight from
-    // wf.total_cost_bps / wf.baseline_cost_bps, the same figures the bars
-    // and the dashed "cheapest app" line above already use.
-    var titleText = (COPY.waterfallTitle || 'Sending {rung} to {dest} by stablecoin costs {stable_pct}. The cheapest app costs {best_pct}.')
-      .replace('{rung}', windowRow.send_amount || '')
-      .replace('{dest}', windowRow.dest || '')
-      .replace('{stable_pct}', cashPct(total))
-      .replace('{best_pct}', cashPct(base));
-    var sinceShort = windowRow.since ? shortDate(windowRow.since) : '';
-    var capText = (COPY.waterfallCap || 'Typical hour since {since} ({n_hours} hours). Market orders, all fees in. Buying USDT with SGD costs the most. Sending it on chain costs {network_pct}.')
-      .replace('{since}', sinceShort)
-      .replace('{n_hours}', String(wf.n))
-      .replace('{network_pct}', cashPct(wf.network_fee_bps));
-    document.getElementById('waterfallSection').innerHTML =
+
+    var card = document.getElementById('waterfallSection');
+    card.innerHTML =
+      '<h3 style="font-size:16px;margin:0 0 4px;font-weight:700">' + esc(legHeader) + '</h3>' +
+      '<div class="answer" style="margin:0 0 18px">' + esc(answerLine) + '</div>' +
       '<div class="waterfall-card">' +
-      '<div class="waterfall-title">' + esc(titleText) + '</div>' +
-      '<div class="waterfall-cap">' + esc(capText) + '</div>' +
-      '<div style="position:relative">' +
-      '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:760px;height:auto">' + svg + '</svg>' +
-      '<div id="' + tipId + '" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;top:0;left:0"></div>' +
+      '<div style="position:relative"><div id="wfHost" style="width:100%"></div>' +
+      '<div id="wfTip" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;top:0;left:0"></div>' +
       '</div>' +
       '<div class="disclosure-note">' + esc(disclosure) + '</div>' +
       '</div>';
 
-    var card = document.getElementById('waterfallSection');
-    var tip = document.getElementById(tipId);
-    var svgEl = card.querySelector('svg');
-    bars.forEach(function(id){
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.addEventListener('mouseenter', function(ev){
+    function drawWaterfallSvg(){
+      var host = document.getElementById('wfHost');
+      if (!host) return;
+      var W = Math.max(280, Math.round(host.getBoundingClientRect().width)) || 760;
+      var run = 0, cum = [0];
+      steps.forEach(function(s){ run += s.v; cum.push(run); });
+      var all = [0, total, base].concat(cum);
+      var dMin = Math.min.apply(null, all), dMax = Math.max.apply(null, all);
+      var pad = (dMax - dMin) * 0.12 || 10, lo = dMin - pad, hi = dMax + pad;
+      var Lx = Math.min(168, Math.round(W * 0.32)), Rx = W - 76, X = function(v){ return Lx + (v - lo) / (hi - lo) * (Rx - Lx); };
+      var rowH = 34, top = 10, rows = steps.length + 1, H = top + rows * rowH + 34;
+      var col = {cost: '#817FCC', cost2: '#F0EBD8', gain: '#D3D0CB', rail: '#D3D0CB', total: '#3F3047'};
+      var uid = 'wf' + Math.random().toString(36).slice(2,8);
+      var svg = '<line x1="' + X(0).toFixed(1) + '" y1="' + top + '" x2="' + X(0).toFixed(1) + '" y2="' + (top + rows*rowH) + '" stroke="#E5E5EA" stroke-width="1"/>' +
+        '<line x1="' + X(base).toFixed(1) + '" y1="' + (top-4) + '" x2="' + X(base).toFixed(1) + '" y2="' + (top + rows*rowH + 4) + '" stroke="#9A9A9A" stroke-width="1.2" stroke-dasharray="4,3"/>' +
+        '<text x="' + X(base).toFixed(1) + '" y="' + (top + rows*rowH + 18) + '" fill="#6B6B6B" font-family="Archivo,sans-serif" font-size="12" text-anchor="middle">cheapest app, ' + cashPct(base) + '</text>';
+      var bars = [];
+      var costLegsSeen = 0;
+      steps.forEach(function(s, i){
+        var y = top + i * rowH;
+        var a = X(cum[i]), b = X(cum[i+1]);
+        var x0 = Math.min(a,b), w = Math.max(2, Math.abs(b-a));
+        var fill;
+        if (s.kind === 'rail') fill = col.rail;
+        else if (s.v < 0) fill = col.gain;
+        else { fill = costLegsSeen === 0 ? col.cost : col.cost2; costLegsSeen++; }
+        var stroke = fill === col.cost2 ? ' stroke="#D3D0CB" stroke-width="1"' : '';
+        var barId = uid + 'b' + i;
+        svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" fill="#0B0B0B">' + esc(s.label) + '</text>' +
+          '<rect id="' + barId + '" class="wf-bar" data-label="' + esc(s.label) + '" data-value="' + cashPct(s.v) + '" x="' + x0.toFixed(1) + '" y="' + (y+7) + '" width="' + w.toFixed(1) + '" height="' + (rowH-14) + '" rx="2" fill="' + fill + '"' + stroke + ' style="cursor:pointer;transition:opacity .1s"/>' +
+          '<text x="' + (b + (b>=a?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="12.5" fill="#6B6B6B" text-anchor="' + (b>=a?'start':'end') + '">' + cashPct(s.v) + '</text>';
+        bars.push(barId);
+      });
+      var y = top + steps.length * rowH, xt = X(total);
+      var totalBarId = uid + 'btotal';
+      svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + esc(L.total || 'The whole transfer') + '</text>' +
+        '<rect id="' + totalBarId + '" class="wf-bar" data-label="' + esc(L.total || 'The whole transfer') + '" data-value="' + cashPct(total) + '" x="' + Math.min(X(0), xt).toFixed(1) + '" y="' + (y+6) + '" width="' + Math.max(2, Math.abs(xt-X(0))).toFixed(1) + '" height="' + (rowH-12) + '" rx="2" fill="' + col.total + '" style="cursor:pointer;transition:opacity .1s"/>' +
+        '<text x="' + (xt + (total>=0?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="13" font-weight="700" fill="#0B0B0B" text-anchor="' + (total>=0?'start':'end') + '">' + cashPct(total) + '</text>';
+      bars.push(totalBarId);
+
+      host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block">' + svg + '</svg>';
+      var tip = document.getElementById('wfTip');
+      var svgEl = host.querySelector('svg');
+      function showTip(el, clientX, clientY){
         el.style.opacity = 0.82;
         tip.textContent = el.getAttribute('data-label') + ': ' + el.getAttribute('data-value');
         tip.style.opacity = 1;
-      });
-      el.addEventListener('mousemove', function(ev){
         var rect = svgEl.getBoundingClientRect();
-        var leftPct = ((ev.clientX - rect.left) / rect.width) * 100;
-        var topPct = ((ev.clientY - rect.top) / rect.height) * 100;
-        tip.style.left = leftPct + '%';
-        tip.style.top = Math.max(0, topPct - 12) + '%';
+        tip.style.left = (((clientX - rect.left) / rect.width) * 100) + '%';
+        tip.style.top = Math.max(0, ((clientY - rect.top) / rect.height) * 100 - 12) + '%';
+      }
+      bars.forEach(function(id){
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('mouseenter', function(ev){ showTip(el, ev.clientX, ev.clientY); });
+        el.addEventListener('mousemove', function(ev){ showTip(el, ev.clientX, ev.clientY); });
+        el.addEventListener('mouseleave', function(){ el.style.opacity = 1; tip.style.opacity = 0; });
+        // Tap opens the same tooltip a hover does -- nothing on this chart
+        // is hover-only (Sebastian's 2026-09-28 mobile rules).
+        el.addEventListener('touchstart', function(ev){
+          var t = ev.touches[0];
+          showTip(el, t.clientX, t.clientY);
+          setTimeout(function(){ el.style.opacity = 1; tip.style.opacity = 0; }, 1600);
+        }, {passive:true});
       });
-      el.addEventListener('mouseleave', function(){
-        el.style.opacity = 1;
-        tip.style.opacity = 0;
-      });
-    });
+    }
+    drawWaterfallSvg();
+    onResizeRedraws.push(drawWaterfallSvg);
   }
 
-  // Taker and maker win rates are shown both, at equal weight, whenever
-  // they genuinely diverge (5+ points) -- USD->MXN's whole story is a
-  // near-zero taker rate hiding a ~44% maker one, and burying that second
-  // number in a muted footnote undersold the site's most interesting
-  // result. The 5-point gap is a data-driven test, not a hardcoded
-  // corridor name, so any future corridor with the same shape gets the
-  // same treatment automatically.
-  // Cell always states the market-order (taker) win rate -- the real,
-  // almost-always-zero result -- and adds the limit-order (maker) rate as
-  // a second line only where it clears 10%, so a route where waiting for
-  // your own price genuinely changes the answer (USD->MXN) still shows
-  // both numbers instead of one hiding the other.
+  // Section A's h2: how many of the tracked sends the cheapest app beats
+  // the stablecoin on right now, using the SAME cheapestApp() figure the
+  // table below shows -- never a separate, possibly-disagreeing count.
+  function renderCorridorTable(corridors, COPY, corridorWindow, rung){
+    corridorWindow = corridorWindow || {};
+    var cols = COPY.corridorTableCols || {};
+    var mxn = corridors.filter(function(c){ return c.corridor === 'USD->MXN'; })[0];
+    var appByCorridor = {};
+    corridors.forEach(function(c){
+      appByCorridor[c.corridor] = cheapestApp(c.corridor, rung, c.baseline_cost_bps_median);
+    });
+    var n = corridors.length;
+    var k = corridors.filter(function(c){ return c.taker_cost_bps_median > appByCorridor[c.corridor].bps; }).length;
+    var header = (n && k === n)
+      ? T(COPY.routesHeaderAllTemplate || 'On all {n} sends we check, the cheapest app beats the stablecoin', {n: n})
+      : T(COPY.routesHeaderPartialTemplate || 'On {k} of {n} sends we check, the cheapest app beats the stablecoin', {k: k, n: n});
+    var firstLine = (COPY.corridorTableFirstLine || 'The cheapest app wins almost every hour on every route. The exception: US → Mexico with a limit order, cheaper in {maker_pct}% of hours.')
+      .replace('{maker_pct}', mxn ? mxn.win_rate_maker_pct.toFixed(1) : '');
+    var rows = corridors.map(function(c){
+      var winText = (corridorWindow[c.corridor] || {}).window;
+      var winNote = winText ? '<div style="font-size:11px;color:#9A9A9A;font-weight:400">' + esc(winText) + '</div>' : '';
+      var label = ARROW_ROUTE_WORDS[c.corridor] || c.route_words || c.corridor;
+      return '<tr>' +
+        '<td><b>' + esc(label) + '</b>' + winNote + '</td>' +
+        '<td class="num">' + cashPct(c.taker_cost_bps_median) + '</td>' +
+        '<td class="num">' + cashPct(appByCorridor[c.corridor].bps) + '</td>' +
+        '<td>' + winCellHtml(c) + '</td>' +
+        '<td><a href="./corridor.html?corridor=' + encodeURIComponent(c.corridor) + '" style="font-weight:600;color:#0B0B0B">' + esc(COPY.seeCorridor || 'see the receipt →') + '</a></td>' +
+        '</tr>';
+    }).join('');
+    document.getElementById('corridorTableSection').innerHTML =
+      '<h2>' + esc(header) + '</h2>' +
+      '<table class="corridor-table"><thead><tr>' +
+      '<th>' + esc(cols.corridor || 'ROUTE') + '</th>' +
+      '<th>' + esc(cols.stablecoin || 'STABLECOIN ROUTE') + '</th>' +
+      '<th>' + esc(cols.fiat || 'CHEAPEST APP') + '</th>' +
+      '<th>' + esc(cols.winRate || 'HOURS STABLECOIN WAS CHEAPER') + '</th>' +
+      '<th></th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      '<div class="lede" style="margin-top:10px">' + esc(firstLine) + '</div>' +
+      '<p class="small-note">' + esc(COPY.routesTableNote || 'All-in cost as % of the amount, typical hour.') +
+        ' <a href="./sending-money.html">' + esc(COPY.everyProviderLink || 'Every provider, every amount →') + '</a></p>' +
+      '<p class="small-note">' + esc(COPY.cheapestAppNote || '') + '</p>';
+    return appByCorridor;
+  }
+
   function winCellHtml(c){
     var t = c.win_rate_taker_pct, m = c.win_rate_maker_pct;
     var html = '<div class="' + (t >= 10 ? 'win-yes' : 'win-no') + '">' + t.toFixed(1) + '% (market order)</div>';
@@ -336,100 +436,62 @@
     return html;
   }
 
-  function moneyFmt(n, symbol){
-    symbol = symbol || 'S$';
-    return symbol + Math.round(n).toLocaleString();
-  }
-
-  // Arrow notation for this page's own route table, display-only
-  // (Sebastian's 2026-09-28 correction, item 4) -- data/providers_latest.json's
-  // route_words keeps its "Singapore to the Philippines" phrasing for every
-  // other page; this map only changes what index.html itself prints.
   var ARROW_ROUTE_WORDS = {
     'SGD->PHP': 'Singapore → Philippines',
     'AUD->PHP': 'Australia → Philippines',
     'NZD->PHP': 'New Zealand → Philippines',
     'USD->MXN': 'US → Mexico'
   };
+  var DEST_NAME = {PHP: 'the Philippines', MXN: 'Mexico', SGD: 'Singapore', AUD: 'Australia', NZD: 'New Zealand', USD: 'the US'};
 
-  function renderCorridorTable(corridors, COPY, corridorWindow){
-    corridorWindow = corridorWindow || {};
-    var cols = COPY.corridorTableCols || {};
-    var mxn = corridors.filter(function(c){ return c.corridor === 'USD->MXN'; })[0];
-    var firstLine = (COPY.corridorTableFirstLine || 'The cheapest app wins almost every hour on every route. The exception: US → Mexico with a limit order, cheaper in {maker_pct}% of hours.')
-      .replace('{maker_pct}', mxn ? mxn.win_rate_maker_pct.toFixed(1) : '');
-    // Every row states its own window ("typical hour since D Mon YYYY"),
-    // read from data/corridor_window.json -- the same file the SGD->PHP
-    // waterfall above reads its window from -- so a reader is never left to
-    // assume every row shares that one waterfall's window (Day 1's
-    // window-label rule; mirrors tools/bake_homepage.py's server-side bake).
-    var rows = corridors.map(function(c){
-      var winText = (corridorWindow[c.corridor] || {}).window;
-      var winNote = winText ? '<div style="font-size:11px;color:#9A9A9A;font-weight:400">' + esc(winText) + '</div>' : '';
-      var label = ARROW_ROUTE_WORDS[c.corridor] || c.route_words || c.corridor;
-      return '<tr>' +
-        '<td><b>' + esc(label) + '</b>' + winNote + '</td>' +
-        '<td class="num">' + cashPct(c.taker_cost_bps_median) + '</td>' +
-        '<td class="num">' + cashPct(c.baseline_cost_bps_median) + '</td>' +
-        '<td>' + winCellHtml(c) + '</td>' +
-        '<td><a href="./corridor.html?corridor=' + encodeURIComponent(c.corridor) + '" style="font-weight:600;color:#0B0B0B">' + esc(COPY.seeCorridor || 'see the receipt →') + '</a></td>' +
-        '</tr>';
-    }).join('');
-    document.getElementById('corridorTableSection').innerHTML =
-      '<div class="waterfall-title">' + esc(COPY.corridorTableTitle || 'Stablecoin route vs cheapest app, all-in cost per route') + '</div>' +
-      '<div class="lede">' + esc(firstLine) + '</div>' +
-      '<table class="corridor-table"><thead><tr>' +
-      '<th>' + esc(cols.corridor || 'ROUTE') + '</th>' +
-      '<th>' + esc(cols.stablecoin || 'STABLECOIN ROUTE') + '</th>' +
-      '<th>' + esc(cols.fiat || 'CHEAPEST APP') + '</th>' +
-      '<th>' + esc(cols.winRate || 'HOURS STABLECOIN WAS CHEAPER') + '</th>' +
-      '<th></th></tr></thead><tbody>' + rows + '</tbody></table>';
-  }
-
-  // The three lines under the corridor table: the fixed window note, the
-  // link to fee-tiers.html's full volume-tier breakdown, and the SGD->PHP
-  // crossover volume -- read live from data/volume_crossover.json (the
-  // maker/limit-order curve, since that is the order type that actually
-  // crosses on this corridor) so the figure can never drift from the file
-  // fee-tiers.html itself states the same number from.
-  function renderCorridorNotes(COPY, windowRow, crossover){
-    var el = document.getElementById('corridorNotesSection');
-    if (!el) return;
-    // Item 5 (Sebastian's 2026-09-28 correction): one route's {since} no
-    // longer stands in for the note under the whole table -- each row
-    // above already states its own real start date, so this line says so
-    // generically instead of naming one route's date.
-    var note = COPY.corridorNote || 'Typical hour at S$5,000 or equivalent. Each route since its own start date.';
-    var html = '<div class="corridor-note">' + esc(note) + '</div>' +
-      '<div class="corridor-note" style="margin-top:6px"><a href="./fee-tiers.html" style="font-weight:600;color:#0B0B0B">' +
-      esc(COPY.corridorMoreLink || 'Where the cost comes from, and at what volume stablecoins win →') + '</a></div>';
+  // Section B: which cases (if any) actually let stablecoins win right
+  // now, built live from the same win-rate and volume-crossover figures
+  // the corridor table and fee-tiers.html already state -- never a fixed
+  // "Mexico and Singapore" pair, in case that ever stops being true.
+  function renderWinCases(corridors, COPY, crossover){
+    var cases = [];
+    corridors.forEach(function(c){
+      if (c.win_rate_maker_pct >= 10) {
+        var dest = DEST_NAME[(c.corridor||'').split('->')[1]] || '';
+        cases.push({
+          big: c.win_rate_maker_pct.toFixed(1) + '% of hours',
+          short: 'limit orders to ' + dest,
+          cap: T(COPY.cardLimitOrderTemplate || '{corridorLabel} with a limit order. Set your price and wait for it to fill, instead of paying the price on offer right now.',
+            {corridorLabel: ARROW_ROUTE_WORDS[c.corridor] || c.route_words || c.corridor})
+        });
+      }
+    });
     if (crossover && crossover.status === 'ok' && crossover.maker && crossover.maker.monthly_volume_sgd) {
-      // Item 5: money over S$100,000 rounds to one decimal in millions
-      // ("about S$2.7M a month"), not the literal figure.
-      var crossoverLine = (COPY.corridorCrossoverNote || 'On Singapore → Philippines the stablecoin route only wins above about {crossover_amount} a month, when exchange fees drop to volume rates.')
-        .replace('{crossover_amount}', bigMoneyFmt(crossover.maker.monthly_volume_sgd));
-      html += '<div class="corridor-note" style="margin-top:6px">' + esc(crossoverLine) + '</div>';
+      cases.push({
+        big: bigMoneyFmt(crossover.maker.monthly_volume_sgd) + ' a month',
+        short: 'very large volumes',
+        cap: T(COPY.cardVolumeTemplate || '{corridorLabel}, at volume. Above about this amount, exchange fees drop enough for stablecoins to beat the cheapest app.',
+          {corridorLabel: ARROW_ROUTE_WORDS['SGD->PHP']})
+      });
     }
-    el.innerHTML = html;
+    var el = document.getElementById('winCasesSection');
+    if (!cases.length) {
+      el.innerHTML = '<h2>' + esc(COPY.winCasesNoneTemplate || "Stablecoins don't win in any case we've measured yet") + '</h2>';
+      return;
+    }
+    var s = cases.length === 1 ? '' : 's';
+    var header = T(COPY.winCasesHeaderTemplate || 'Stablecoins win in {n} case{s}: {list}', {
+      n: cases.length, s: s, list: joinAnd(cases.map(function(c){ return c.short; }))
+    });
+    el.innerHTML = '<h2>' + esc(header) + '</h2>' +
+      '<div class="cards">' + cases.map(function(c){
+        return '<div class="card"><div class="big">' + esc(c.big) + '</div><p>' + c.cap + '</p></div>';
+      }).join('') + '</div>' +
+      '<p class="small-note"><a href="./fee-tiers.html">' + esc(COPY.howWeWorkedLink || 'How we worked these out →') + '</a></p>';
   }
 
-  // "Where the line runs": a ranked list, one row per country, sidesteps
-  // the packing problem a shared strip axis has (three rounds of trying;
-  // SEB, 2026-09-26). Sebastian's 2026-09-28 correction merged the old
-  // demoted "10 widest gaps" chart into this one, the page's only country
-  // chart now: the top GAPS_TOP_N real gaps first, a divider, Mexico and
-  // the Philippines pulled up regardless of their own rank (the two routes
-  // this site prices transfers on), then everyone else in rank order.
-  // Every value is median_24h_pct (falling back to index_pct only for a
-  // row with no real 24h history yet) -- item 1's fix for a thin overnight
-  // order book spiking a single hour's reading.
+  // "Where the line runs": a ranked list, one row per country. Every value
+  // is median_24h_pct (falling back to index_pct only for a row with no
+  // real 24h history yet).
   var GAPS_TOP_N = 10;
   var PINNED_CCY = ['MXN', 'PHP'];
+  var PINNED_PHRASE_ORDER = {PHP: 0, MXN: 1};
 
-  // idx.countries (this hour's priced ones) plus idx.withheld rows that
-  // still carry a median_24h_pct -- a country whose SINGLE current hour
-  // failed the evidence bar (e.g. Algeria overnight) can still have a real
-  // trailing day behind it, and shouldn't drop off the chart for the hour.
   function homeRows(idx){
     var countries = (idx && idx.countries) || [];
     var withheld = (idx && idx.withheld) || [];
@@ -442,10 +504,17 @@
     }).filter(function(r){ return r != null; });
   }
 
-  // Sebastian's 2026-09-28 follow-up to #211: home chart shows only the top
-  // GAPS_TOP_N gaps plus the pinned Mexico/Philippines rows now -- everyone
-  // else stays on the-index.html, which the "All {n} priced countries ->"
-  // link already points to.
+  function findPinnedAtPar(rows){
+    var out = rows.filter(function(c){ return PINNED_CCY.indexOf(c.ccy) !== -1 && Math.abs(c.gap_pct) < PAR_EPSILON_HEADER; });
+    out.sort(function(a,b){ return (PINNED_PHRASE_ORDER[a.ccy]||99) - (PINNED_PHRASE_ORDER[b.ccy]||99); });
+    return out;
+  }
+  function findWidestManaged(rows){
+    var managed = rows.filter(function(c){ return c.denominator_class !== 'unmaintained' && c.denominator_class !== 'pegged'; });
+    if (!managed.length) return null;
+    return managed.slice().sort(function(a,b){ return b.gap_pct - a.gap_pct; })[0];
+  }
+
   function orderedHomeRows(priced){
     var nonPegged = priced.filter(function(c){ return c.denominator_class !== 'pegged'; });
     var top = nonPegged.slice(0, GAPS_TOP_N);
@@ -457,75 +526,113 @@
     return out;
   }
 
-  // Section 1, the ONE remaining country chart. Pegged currencies render
-  // lighter grey but no longer repeat their caption on every row -- one
-  // legend line under the whole chart says it once (item 3). Mexico/
-  // Philippines and Sudan (frozen official rate, capped at the bar's
-  // right edge) keep their own captions.
   var ALL_LABEL_CCY = {PHP: 'transferPriced', MXN: 'transferPriced', DZD: 'noDollarsSold'};
-  function renderAllCountriesStrip(idx, COPY){
+  function renderAllCountriesStrip(idx, COPY, destCounts, streetDepth){
     var el = document.getElementById('allCountriesSection');
     var rows0 = homeRows(idx);
     if (!el || !rows0.length) return;
     var labels = COPY.allCountriesLabels || {};
-    var W = 800, rowHPlain = 24, rowHCaption = 38, rowHDiv = 20, top = 6;
-    var labelW = 170, valueW = 60, barLeft = labelW, barRight = W - valueW;
-    var barW = barRight - barLeft;
+    destCounts = destCounts || {};
 
     var priced = rows0.slice().sort(function(a,b){ return b.gap_pct - a.gap_pct; });
-    var maxReal = priced.reduce(function(m,c){
-      return c.denominator_class === 'unmaintained' ? m : Math.max(m, c.gap_pct);
-    }, 1);
-    var ordered = orderedHomeRows(priced);
+    var pinned = findPinnedAtPar(priced);
+    var widest = findWidestManaged(priced);
+    var headerParts = [];
+    if (pinned.length) {
+      headerParts.push(T(COPY.countryFindingAtParTemplate || 'In {places} a dollar costs the official rate.',
+        {places: joinAnd(pinned.map(function(c){ return c.country; }))}));
+    }
+    if (widest) {
+      headerParts.push(T(COPY.countryFindingGapTemplate || 'In {country} people pay {pct}% more.',
+        {country: widest.country, pct: Math.round(widest.gap_pct)}));
+    }
+    var header = headerParts.length ? headerParts.join(' ') : (COPY.countryFindingNoGapTemplate || "Every country we track trades close to its official rate this hour.");
 
-    // Every priced country gets a row; a country with its own caption
-    // (Sudan, the Philippines/Mexico) gets a taller row so the caption
-    // prints on its own full-width line below the bar instead of being
-    // squeezed into the narrow value column and clipped by the SVG's own
-    // viewBox (SEB-reported).
-    var y = top;
-    var rows = ordered.map(function(item){
-      if (item.div) {
-        var dy = y; y += rowHDiv;
-        return '<line x1="0" y1="' + (dy+8).toFixed(1) + '" x2="' + W + '" y2="' + (dy+8).toFixed(1) + '" stroke="#D3D0CB" stroke-width="1" stroke-dasharray="3,3"/>';
+    var whyParts = '';
+    if (pinned.length) {
+      whyParts += T(COPY.countryWhyBothParTemplate || 'In {places}, what people pay and the official rate match, so a normal app already gives you the real rate and a stablecoin has nothing to beat.',
+        {places: joinAnd(pinned.map(function(c){ return c.country; }))});
+    }
+    if (widest) {
+      var depth = streetDepth && streetDepth.countries && streetDepth.countries[widest.ccy];
+      if (depth && depth.depth_usd != null && depth.threshold_pct != null) {
+        whyParts += T(COPY.countryWhyGapTemplate || ' In {country}, banks sell few dollars, so USDT is how people get them. Right now you can buy about {amount} of USDT there within {pct}% of the best price.',
+          {country: widest.country, amount: moneyFmt(depth.depth_usd, '$'), pct: depth.threshold_pct});
+      } else {
+        whyParts += T(COPY.countryWhyGapNoDepthTemplate || ' In {country}, banks sell few dollars, so USDT is how people get them.', {country: widest.country});
       }
-      var c = item.row;
-      var isUnmaintained = c.denominator_class === 'unmaintained';
-      var isPegged = c.denominator_class === 'pegged';
-      var labelKey = ALL_LABEL_CCY[c.ccy];
-      var caption = isUnmaintained ? (labels.frozenRate || 'official rate frozen, not comparable')
-        : labelKey ? (labels[labelKey] || '')
-        : '';
-      var rowH = caption ? rowHCaption : rowHPlain;
-      var rowY = y;
-      y += rowH;
-      var w = isUnmaintained ? barW : Math.max(2, Math.min(1, c.gap_pct / maxReal) * barW);
-      var fill = isPegged ? '#EDEDED' : (isUnmaintained ? '#D3D0CB' : '#9A9A9A');
-      var textFill = (isPegged || isUnmaintained) ? '#9A9A9A' : '#0B0B0B';
-      var tipRounded = Math.round(c.gap_pct * 100) / 100;
-      var tip = c.country + ': ' + (tipRounded > 0 ? '+' : '') + (tipRounded === 0 ? Math.abs(tipRounded) : tipRounded).toFixed(2) + '% vs the official rate, 24h median';
-      var valueRounded = Math.round(c.gap_pct * 10) / 10;
-      var valueText = (valueRounded > 0 ? '+' : '') + (valueRounded === 0 ? Math.abs(valueRounded) : valueRounded).toFixed(1) + '%';
-      var countryLabel = /^the /i.test(c.country) ? c.country.slice(4) : c.country;
-      var breakMark = isUnmaintained
-        ? '<line x1="' + (barRight-5) + '" y1="' + (rowY+2).toFixed(1) + '" x2="' + (barRight-1) + '" y2="' + (rowY+12).toFixed(1) + '" stroke="#fff" stroke-width="2"/>'
-        : '';
-      return '<a href="./country.html?ccy=' + esc(c.ccy) + '"><title>' + esc(tip) + '</title>' +
-        '<text x="0" y="' + (rowY+16).toFixed(1) + '" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="' + textFill + '">' + esc(countryLabel) + '</text>' +
-        '<rect x="' + barLeft + '" y="' + (rowY+4).toFixed(1) + '" width="' + w.toFixed(1) + '" height="10" rx="2" fill="' + fill + '"/>' + breakMark +
-        '<text x="' + (W - 4) + '" y="' + (rowY+13).toFixed(1) + '" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="' + textFill + '">' + valueText + '</text>' +
-        (caption ? '<text x="0" y="' + (rowY+30).toFixed(1) + '" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">' + esc(caption) + '</text>' : '') +
-        '</a>';
-    }).join('');
-    var H = y + 10;
+    }
 
-    el.innerHTML = '<div class="waterfall-title">' + esc(COPY.allCountriesTitle || 'What a dollar costs on the street vs the official rate, every country we track') + '</div>' +
-      '<div class="strip-wrap">' + '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:800px;height:auto" class="strip-svg">' + rows + '</svg></div>' +
+    function drawCountryStrip(){
+      var host = el.querySelector('.strip-wrap');
+      var W = Math.max(280, Math.round(el.getBoundingClientRect().width)) || 800;
+      var rowHPlain = 40, rowHCaption = 56, rowHDiv = 20, top = 6;
+      var labelW = Math.min(170, Math.round(W * 0.32)), valueW = Math.min(60, Math.round(W * 0.14));
+      var barLeft = labelW, barRight = W - valueW, barW = barRight - barLeft;
+
+      var maxReal = priced.reduce(function(m,c){
+        return c.denominator_class === 'unmaintained' ? m : Math.max(m, c.gap_pct);
+      }, 1);
+      var ordered = orderedHomeRows(priced);
+
+      var y = top;
+      var rows = ordered.map(function(item){
+        if (item.div) {
+          var dy = y; y += rowHDiv;
+          return '<line x1="0" y1="' + (dy+8).toFixed(1) + '" x2="' + W + '" y2="' + (dy+8).toFixed(1) + '" stroke="#D3D0CB" stroke-width="1" stroke-dasharray="3,3"/>';
+        }
+        var c = item.row;
+        var isUnmaintained = c.denominator_class === 'unmaintained';
+        var isPegged = c.denominator_class === 'pegged';
+        var labelKey = ALL_LABEL_CCY[c.ccy];
+        var caption = isUnmaintained ? (labels.frozenRate || 'official rate frozen, not comparable')
+          : labelKey === 'transferPriced' ? T(labels.transferPricedTemplate || 'where {n} of the transfers we price land here', {n: destCounts[c.ccy] || 0})
+          : labelKey ? (labels[labelKey] || '')
+          : '';
+        var rowH = caption ? rowHCaption : rowHPlain;
+        var rowY = y;
+        y += rowH;
+        var w = isUnmaintained ? barW : Math.max(2, Math.min(1, c.gap_pct / maxReal) * barW);
+        var fill = isPegged ? '#EDEDED' : (isUnmaintained ? '#D3D0CB' : '#9A9A9A');
+        var textFill = (isPegged || isUnmaintained) ? '#9A9A9A' : '#0B0B0B';
+        var tipRounded = Math.round(c.gap_pct * 100) / 100;
+        var tip = c.country + ': ' + (tipRounded > 0 ? '+' : '') + (tipRounded === 0 ? Math.abs(tipRounded) : tipRounded).toFixed(2) + '% vs the official rate, 24h median';
+        var valueRounded = Math.round(c.gap_pct * 10) / 10;
+        var valueText = (valueRounded > 0 ? '+' : '') + (valueRounded === 0 ? Math.abs(valueRounded) : valueRounded).toFixed(1) + '%';
+        var countryLabel = /^the /i.test(c.country) ? c.country.slice(4) : c.country;
+        var barY = rowY + rowH/2 - 5;
+        var breakMark = isUnmaintained
+          ? '<line x1="' + (barRight-5) + '" y1="' + (barY+2).toFixed(1) + '" x2="' + (barRight-1) + '" y2="' + (barY+12).toFixed(1) + '" stroke="#fff" stroke-width="2"/>'
+          : '';
+        // A full-row transparent hit rect so every ranked-country link's
+        // real tap target is the row's whole height, not just its 10px
+        // bar (Sebastian's 2026-09-28 mobile rules: every link >=40px tall).
+        return '<a href="./country.html?ccy=' + esc(c.ccy) + '"><title>' + esc(tip) + '</title>' +
+          '<rect x="0" y="' + rowY.toFixed(1) + '" width="' + W + '" height="' + rowH + '" fill="transparent"/>' +
+          '<text x="0" y="' + (barY+9).toFixed(1) + '" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="' + textFill + '">' + esc(countryLabel) + '</text>' +
+          '<rect x="' + barLeft + '" y="' + barY.toFixed(1) + '" width="' + w.toFixed(1) + '" height="10" rx="2" fill="' + fill + '"/>' + breakMark +
+          '<text x="' + (W - 4) + '" y="' + (barY+9).toFixed(1) + '" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="' + textFill + '">' + valueText + '</text>' +
+          (caption ? '<text x="0" y="' + (barY+27).toFixed(1) + '" font-family="Archivo,sans-serif" font-size="11" fill="#9A9A9A">' + esc(caption) + '</text>' : '') +
+          '</a>';
+      }).join('');
+      var H = y + 10;
+      var host2 = el.querySelector('.strip-wrap');
+      if (host2) {
+        host2.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" class="strip-svg">' + rows + '</svg>';
+      }
+    }
+
+    el.innerHTML = '<h2>' + esc(header) + '</h2>' +
+      '<p class="answer">' + esc(COPY.allCountriesAnswerLine || 'What people pay for USDT on Binance P2P and local coin exchanges, compared with the official rate. Not cash at money changers.') + '</p>' +
+      '<div class="strip-wrap"></div>' +
       '<div class="strip-note">' + esc(COPY.allCountriesMedianNote || 'Median of the last 24 hours.') + '</div>' +
       '<div class="strip-note">' + esc(COPY.allCountriesPeggedLegend || 'Light grey: pegged currency, the gap is the cost of buying stablecoins.') + '</div>' +
       '<div class="strip-note">' + esc(COPY.allCountriesNote || '') + '</div>' +
+      (whyParts ? '<p class="why">' + esc(whyParts) + '</p>' : '') +
       '<div class="strip-note"><a href="./the-index.html" style="font-weight:600;color:#0B0B0B">' +
       esc((COPY.allCountriesLinkTemplate || 'All {n} priced countries →').replace('{n}', String(priced.length))) + '</a></div>';
+    drawCountryStrip();
+    onResizeRedraws.push(drawCountryStrip);
   }
 
   Promise.all([
@@ -533,70 +640,88 @@
     fetch('./data/corridor_summary.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
     fetch('./data/corridor_window.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
     fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-    fetch('./data/volume_crossover.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+    fetch('./data/volume_crossover.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
   ]).then(function(res){
     var idx = res[0], corridorSummary = res[1], corridorWindow = res[2] || {}, COPY = (res[3] || {}).home || {}, crossover = res[4];
+    providersLatest = res[5];
+    var streetDepth = res[6];
     var countries = idx.countries || [];
     var withheld = idx.withheld || [];
     var hourUtc = (idx.as_of_utc || idx.computed_at || '').slice(11,16);
+    var rung = (corridorSummary && corridorSummary.rung) || 5000;
 
     document.getElementById('passStamp').textContent = (COPY.thisHourHeader || 'This hour · updated {hour} UTC')
       .replace('{hour}', hourUtc);
 
-    // ---- The headline is a fixed, plain sentence (copy.json home.headline)
-    // -- it never changes with the data. The sub states how many countries
-    // we price a street dollar in, computed live from index_latest.json --
-    // the SAME file tools/bake_homepage.py reads to bake the identical
-    // sentence server-side, so the two can never disagree. ----
     var windowRow = corridorWindow['SGD->PHP'] || {};
+    windowRow.rung = rung;
     var headlineEl = document.getElementById('heroHeadline');
     var subEl = document.getElementById('heroSub');
     headlineEl.textContent = COPY.headline || COPY.headlineFallback ||
       "Stablecoins rarely beat the cheapest transfer app. But where banks won't sell you dollars, they're how people get one.";
     subEl.innerHTML = (COPY.headlineSub || '').replace('{n_countries}', '60');
+    document.getElementById('metaLine').innerHTML = COPY.runByLine ||
+      'Run by four AI agents · <a href="./machine-room.html">How it was built →</a>';
 
-    // ---- Section 1 (the one country chart): every priced country, ranked
-    // by its 24h median gap. ----
-    renderAllCountriesStrip(idx, COPY);
-    // ---- Section 2, the waterfall: SGD->PHP at the reference size. ----
+    // ---- Live pulse line: real clock, real data, no invented numbers.
+    // "next check in N min" reads the browser's own current time against
+    // the site's fixed hourly cadence -- a real computation, not a typed
+    // countdown, so it can never disagree with when the next hour lands. ----
+    var now = new Date();
+    var minsToNext = 60 - now.getUTCMinutes();
+    document.getElementById('liveChecked').textContent = T(COPY.liveCheckedTemplate || 'Checked {hour} UTC · next check in {mins} min', {hour: hourUtc, mins: minsToNext});
+    function gapNow(c){ return c.median_24h_pct != null ? c.median_24h_pct : c.index_pct; }
+    var managedAll = countries.filter(function(c){
+      return c.denominator_class !== 'unmaintained' && c.denominator_class !== 'pegged' && gapNow(c) != null;
+    });
+    var widestNow = managedAll.length ? managedAll.slice().sort(function(a,b){ return gapNow(b) - gapNow(a); })[0] : null;
+    if (widestNow && widestNow.index_pct != null && widestNow.median_24h_pct != null) {
+      var hourDiff = widestNow.index_pct - widestNow.median_24h_pct;
+      var verb = Math.abs(hourDiff) < 0.3 ? (COPY.verbHeld || 'held steady') : (hourDiff > 0 ? (COPY.verbRose || 'rose') : (COPY.verbFell || 'fell'));
+      document.getElementById('liveDelta').textContent = T(COPY.thisHourDeltaTemplate || "This hour: {country}'s gap {verb} to {pct}%", {
+        country: widestNow.country, verb: verb, pct: widestNow.index_pct.toFixed(1)
+      });
+    }
+
+    // ---- Section A: the 4-route table + SGD->PHP waterfall. ----
+    if (corridorSummary && corridorSummary.corridors && corridorSummary.corridors.length) {
+      renderCorridorTable(corridorSummary.corridors, COPY, corridorWindow, rung);
+    }
     if (corridorSummary && corridorSummary.waterfall) {
       renderWaterfall(corridorSummary.waterfall, COPY, windowRow);
     }
-    // ---- Section 3, the corridor table: one row per tracked corridor. ----
-    if (corridorSummary && corridorSummary.corridors && corridorSummary.corridors.length) {
-      renderCorridorTable(corridorSummary.corridors, COPY, corridorWindow);
-      renderCorridorNotes(COPY, windowRow, crossover);
+    // ---- Section B: the win cases, as cards. ----
+    if (corridorSummary && corridorSummary.corridors) {
+      renderWinCases(corridorSummary.corridors, COPY, crossover);
     }
-
-    // Section 5, the live agent feed. Two countries are named, not
-    // necessarily the same one: the widest gap right now (by 24h median,
-    // same "managed" filter as the country chart above) and the country
-    // whose median gap WIDENED fastest this month, ranked by the change in
-    // that 24h median over the window (item 1's fix: never the latest
-    // single hour's value vs a past single hour). "unmaintained" (a frozen
-    // official rate) and "pegged" (Gulf riyals/dinars etc, tools/
-    // emit_countries.py's PEGGED set) denominators are excluded from both
-    // picks -- neither is a real market read.
-    function gapNow(c){ return c.median_24h_pct != null ? c.median_24h_pct : c.index_pct; }
-    var managed = countries.filter(function(c){
-      return c.denominator_class !== 'unmaintained' && c.denominator_class !== 'pegged' && gapNow(c) != null;
+    // ---- Section C: the one country chart, with its own live finding
+    // header and why paragraph. ----
+    var destCounts = {};
+    (corridorSummary && corridorSummary.corridors || []).forEach(function(c){
+      var destCcy = (c.corridor || '').split('->')[1];
+      if (destCcy) destCounts[destCcy] = (destCounts[destCcy] || 0) + 1;
     });
-    var widest = managed.length
-      ? managed.slice().sort(function(a,b){ return gapNow(b) - gapNow(a); })[0]
-      : null;
+    renderAllCountriesStrip(idx, COPY, destCounts, streetDepth);
+
+    // Section 5, the live agent feed.
+    var managed = managedAll;
+    var widest = widestNow;
     var withDelta = managed.filter(function(c){ return c.spark && c.spark.length > 1; });
     var top = withDelta.length
       ? withDelta.slice().sort(function(a,b){ return (gapNow(b) - b.spark[0]) - (gapNow(a) - a.spark[0]); })[0]
       : managed.slice().sort(function(a,b){ return gapNow(b) - gapNow(a); })[0];
     var itemsHtml = '';
+    var topSince = null;
     if (widest && top && top.spark && top.spark.length > 1) {
       var delta = gapNow(top) - top.spark[0];
       var topDates = sparkDates(top);
-      var topSince = topDates.length ? shortDate(topDates[0]) : null;
+      topSince = topDates.length ? shortDate(topDates[0]) : null;
       var widestDates = sparkDates(widest);
       var widestSince = widestDates.length ? shortDate(widestDates[0]) : null;
       var sentence = (COPY.thisHourLineTemplate ||
-        'Widest gap: {country}. A dollar costs {pct} more on the street than at the official rate, up from {past_pct} on {since}. Rising fastest this month: {fast_country}, up {points} points.')
+        'Widest gap: {country}. People pay {pct} more than the official rate for a dollar, up from {past_pct} on {since}. Rising fastest this month: {fast_country}, up {points} points.')
         .replace('{country}', esc(widest.country))
         .replace('{pct}', gapNow(widest).toFixed(1) + '%')
         .replace('{past_pct}', (widest.spark[0]>=0?'+':'') + widest.spark[0].toFixed(1) + '%')
@@ -618,7 +743,7 @@
 
     var chartEl = document.getElementById('homeChart');
     if (chartEl && top) {
-      var chartTitle = (COPY.chartTitleTemplate || '{country}: street price over official rate, % · since {since}')
+      var chartTitle = (COPY.chartTitleTemplate || '{country}: what people pay over the official rate, % · since {since}')
         .replace('{country}', top.country).replace('{since}', topSince || '');
       var titleEl = document.createElement('div');
       titleEl.className = 'stamp';
@@ -630,19 +755,6 @@
   }).catch(function(err){
     document.getElementById('items').innerHTML = '<div class="item"><p style="color:#0B0B0B">Could not load this hour\'s data. That failure is shown, not hidden.</p></div>';
   });
-})();
-</script>
-
-<script>
-(function(){
-  var btn = document.getElementById('navToggle');
-  var nav = document.querySelector('header nav');
-  if (btn && nav) {
-    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
-    document.addEventListener('click', function(e){
-      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
-    });
-  }
 })();
 </script>
 </body>

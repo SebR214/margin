@@ -45,6 +45,41 @@ SAMPLES = os.path.join(HERE, "data", "samples.csv")
 WINDOW_OUT = os.path.join(HERE, "data", "corridor_window.json")
 INDEX_HTML = os.path.join(HERE, "index.html")
 INDEX_LATEST = os.path.join(HERE, "data", "index_latest.json")
+PROVIDERS_LATEST = os.path.join(HERE, "data", "providers_latest.json")
+STREET_DEPTH_LATEST = os.path.join(HERE, "data", "street_depth_latest.json")
+
+
+def load_json_or_none(path):
+    if not os.path.exists(path):
+        return None
+    with open(path) as f:
+        return json.load(f)
+
+
+def cheapest_app(providers_latest, corridor, size, fallback_bps, fallback_provider=None):
+    """The true cheapest app for this corridor+size: the best-ranked row in
+    data/providers_latest.json that is NOT the stablecoin's own "measured"
+    row -- direct provider quotes (data/provider_quotes.csv) AND the public
+    comparison feed, both already ranked cheapest-first there. Mirrors
+    corridor.html's own cheapestApp() JS helper exactly (same file, same
+    "first row whose source != measured" rule) so this page's "cheapest
+    app" figure can never disagree with corridor.html's for the same
+    corridor+amount. Falls back to the historical median baseline
+    (corridor_summary.json's baseline_cost_bps_median, the Wise-comparison-
+    feed-only figure) only when providers_latest.json has no entry yet for
+    this exact corridor+size -- a gap in the newer file never blanks this
+    number.
+    """
+    rows = None
+    if providers_latest:
+        c = (providers_latest.get("corridors") or {}).get(corridor) or {}
+        sizes = c.get("sizes") or {}
+        rows = (sizes.get(str(size)) or {}).get("rows")
+    if rows:
+        for row in rows:
+            if row.get("source") != "measured":
+                return row.get("provider"), (row.get("cost_pct") or 0.0) * 100
+    return fallback_provider, fallback_bps
 
 # Plain currency symbols for the four routes this site prices at this
 # level of detail. Labels only, never a number -- same rule as every other
@@ -254,6 +289,87 @@ def see_all_countries_line(home_copy):
 ALL_LABEL_CCY = {"PHP": "transferPriced", "MXN": "transferPriced", "DZD": "noDollarsSold"}
 GAPS_TOP_N = 10
 PINNED_CCY = ("MXN", "PHP")
+# Order Philippines before Mexico when the two are named together in a
+# sentence ("In the Philippines and Mexico..."), matching the mockup's own
+# phrasing order -- purely a sentence-building order, not the chart's own
+# pin order above.
+PINNED_PHRASE_ORDER = {"PHP": 0, "MXN": 1}
+# How close to zero counts as "at the official rate" for the finding
+# header/why paragraph -- looser than costPhrase()'s 0.05-point epsilon
+# (index.html's own JS) because this is a plain-language finding about a
+# whole country, not a per-hour sign check.
+PAR_EPSILON = 0.15
+
+
+def join_and(names):
+    if not names:
+        return ""
+    if len(names) == 1:
+        return names[0]
+    return ", ".join(names[:-1]) + " and " + names[-1]
+
+
+def find_pinned_at_par(rows_in):
+    out = [c for c in rows_in if c.get("ccy") in PINNED_CCY and abs(c.get("gap_pct", 0.0)) < PAR_EPSILON]
+    out.sort(key=lambda c: PINNED_PHRASE_ORDER.get(c.get("ccy"), 99))
+    return out
+
+
+def find_widest_managed(rows_in):
+    managed = [c for c in rows_in if c.get("denominator_class") not in ("unmaintained", "pegged")]
+    if not managed:
+        return None
+    return max(managed, key=lambda c: c.get("gap_pct", 0.0))
+
+
+def country_finding_header_html(rows_in, home_copy):
+    """Section C's h2 -- states the actual finding: which priced countries
+    trade at the official rate, and by how much the widest real gap costs,
+    both read live off data/index_latest.json, never typed (the mockup's
+    "Algeria... 92%" is an example string in a design reference file, not a
+    number this page may hardcode).
+    """
+    pinned = find_pinned_at_par(rows_in)
+    widest = find_widest_managed(rows_in)
+    parts = []
+    if pinned:
+        places = join_and([c.get("country", "") for c in pinned])
+        parts.append(home_copy.get("countryFindingAtParTemplate", "").replace("{places}", places))
+    if widest:
+        parts.append(home_copy.get("countryFindingGapTemplate", "")
+                      .replace("{country}", widest.get("country", ""))
+                      .replace("{pct}", str(round(widest.get("gap_pct", 0.0)))))
+    if not parts:
+        return home_copy.get("countryFindingNoGapTemplate", "")
+    return " ".join(parts)
+
+
+def country_why_html(rows_in, home_copy, street_depth):
+    """The "why" callout under the chart -- names the SAME pinned/widest
+    countries the header above states, plus a real depth figure (data/
+    street_depth_latest.json, tools/emit's own per-currency depth-of-book
+    read) for the widest one, when that file has an entry for it.
+    """
+    pinned = find_pinned_at_par(rows_in)
+    widest = find_widest_managed(rows_in)
+    text = ""
+    if pinned:
+        places = join_and([c.get("country", "") for c in pinned])
+        text += home_copy.get("countryWhyBothParTemplate", "").replace("{places}", places)
+    if widest:
+        depth = ((street_depth or {}).get("countries", {}) or {}).get(widest.get("ccy"), {})
+        depth_usd = depth.get("depth_usd")
+        threshold_pct = depth.get("threshold_pct")
+        if depth_usd is not None and threshold_pct is not None:
+            pct_words = str(int(threshold_pct)) if float(threshold_pct).is_integer() else str(threshold_pct)
+            text += (home_copy.get("countryWhyGapTemplate", "")
+                      .replace("{country}", widest.get("country", ""))
+                      .replace("{amount}", "$" + f"{round(depth_usd):,}")
+                      .replace("{pct}", pct_words))
+        else:
+            text += (home_copy.get("countryWhyGapNoDepthTemplate", "")
+                      .replace("{country}", widest.get("country", "")))
+    return text.strip()
 
 
 def _ordered_rows(priced):
@@ -275,11 +391,12 @@ def _ordered_rows(priced):
     return out
 
 
-def build_all_countries_strip(idx_doc, home_copy):
+def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth=None):
     rows_in = _home_rows(idx_doc)
     priced = _priced_sorted(rows_in, exclude_pegged=False)
     if not priced:
         return None
+    dest_counts = dest_counts or {}
 
     labels = home_copy.get("allCountriesLabels", {})
     W, row_h_plain, row_h_caption, row_h_div, top = PREMIUM_BAKE_W, 24, 38, 16, 6
@@ -320,6 +437,9 @@ def build_all_countries_strip(idx_doc, home_copy):
         label_key = ALL_LABEL_CCY.get(c.get("ccy"))
         if is_unmaintained:
             caption = labels.get("frozenRate", "official rate frozen, not comparable")
+        elif label_key == "transferPriced":
+            n_sends = dest_counts.get(c.get("ccy"), 0)
+            caption = labels.get("transferPricedTemplate", "").replace("{n}", str(n_sends))
         elif label_key:
             caption = labels.get(label_key, "")
         else:
@@ -343,7 +463,7 @@ def build_all_countries_strip(idx_doc, home_copy):
             if is_unmaintained else ""
         )
         caption_svg = (
-            f'<text x="0" y="{row_y+30:.1f}" font-family="Archivo,sans-serif" font-size="10" fill="#9A9A9A">{esc(caption)}</text>'
+            f'<text x="0" y="{row_y+31:.1f}" font-family="Archivo,sans-serif" font-size="11" fill="#9A9A9A">{esc(caption)}</text>'
             if caption else ""
         )
         rows.append(
@@ -360,19 +480,23 @@ def build_all_countries_strip(idx_doc, home_copy):
         + "".join(rows)
         + '</svg>'
     )
-    title = esc(home_copy.get("allCountriesTitle", "What a dollar costs on the street vs the official rate, every country we track"))
+    header = esc(country_finding_header_html(rows_in, home_copy))
+    answer = esc(home_copy.get("allCountriesAnswerLine", ""))
     median_note = esc(home_copy.get("allCountriesMedianNote", "Median of the last 24 hours."))
     pegged_legend = esc(home_copy.get("allCountriesPeggedLegend",
         "Light grey: pegged currency, the gap is the cost of buying stablecoins."))
     note = esc(home_copy.get("allCountriesNote", ""))
     link = esc(home_copy.get("allCountriesLinkTemplate", "All {n} priced countries →")
                .replace("{n}", str(n_priced)))
+    why = esc(country_why_html(rows_in, home_copy, street_depth))
     return (
-        '<div class="waterfall-title">' + title + '</div>'
+        "<h2>" + header + "</h2>"
+        '<p class="answer">' + answer + "</p>"
         '<div class="strip-wrap">' + svg_html + '</div>'
         '<div class="strip-note">' + median_note + '</div>'
         '<div class="strip-note">' + pegged_legend + '</div>'
         '<div class="strip-note">' + note + '</div>'
+        '<p class="why">' + why + '</p>'
         '<div class="strip-note"><a href="./the-index.html" style="font-weight:600;color:#0B0B0B">' + link + '</a></div>'
     )
 
@@ -417,7 +541,7 @@ ARROW_ROUTE_WORDS = {
 }
 
 
-def corridor_row_html(c, home_copy, window):
+def corridor_row_html(c, home_copy, window, app_bps, app_provider):
     """One corridor row, with its own window ("typical, N hours since D
     Mon YYYY") printed right under the route name -- Day 1's window-label
     rule: a reader should never have to guess which window a number on this
@@ -426,6 +550,12 @@ def corridor_row_html(c, home_copy, window):
     letting the reader assume every other row shares it. Read from
     data/corridor_window.json, the one file this figure is written to, so
     the label can never say a different window than the number itself.
+
+    The CHEAPEST APP cell is app_bps -- the true cheapest of every quote
+    this page checks (direct + public comparison), computed by
+    cheapest_app() above -- not c["baseline_cost_bps_median"] (the median
+    of samples.csv's own baseline column, which only ever names the winner
+    of the Wise comparison feed alone; see cheapest_app()'s own docstring).
     """
     row = (window or {}).get(c.get("corridor"), {})
     win_note = ""
@@ -437,7 +567,7 @@ def corridor_row_html(c, home_copy, window):
         "<tr>"
         "<td><b>" + esc(label) + "</b>" + win_note + "</td>"
         '<td class="num">' + pct(c["taker_cost_bps_median"]) + "</td>"
-        '<td class="num">' + pct(c["baseline_cost_bps_median"]) + "</td>"
+        '<td class="num">' + (pct(app_bps) if app_bps is not None else "—") + "</td>"
         "<td>" + win_cell_html(c) + "</td>"
         '<td><a href="./corridor.html?corridor=' + esc(c["corridor"]) + '" style="font-weight:600;color:#0B0B0B">'
         + esc(home_copy.get("seeCorridor", "see the receipt →")) + "</a></td>"
@@ -445,21 +575,53 @@ def corridor_row_html(c, home_copy, window):
     )
 
 
-def corridor_table_html(corridors, home_copy, window):
+def routes_header_html(app_bps_by_corridor, corridors, home_copy):
+    """Section A's h2 -- states the finding, not a description: how many
+    of the sends this page checks are cheaper by the cheapest app (market
+    order) right now. Computed from the SAME per-corridor app_bps this
+    table's own CHEAPEST APP column shows, so the header can never
+    disagree with the numbers under it.
+    """
+    n = len(corridors)
+    k = 0
+    for c in corridors:
+        app_bps = app_bps_by_corridor.get(c.get("corridor"))
+        if app_bps is not None and c["taker_cost_bps_median"] > app_bps:
+            k += 1
+    if n and k == n:
+        return home_copy.get("routesHeaderAllTemplate", "").replace("{n}", str(n))
+    return (home_copy.get("routesHeaderPartialTemplate", "")
+            .replace("{k}", str(k)).replace("{n}", str(n)))
+
+
+def corridor_table_html(corridors, home_copy, window, providers_latest, rung):
     cols = home_copy.get("corridorTableCols", {})
-    rows = "".join(corridor_row_html(c, home_copy, window) for c in corridors)
+    app_bps_by_corridor = {}
+    rows_html = []
+    for c in corridors:
+        _provider, app_bps = cheapest_app(
+            providers_latest, c.get("corridor"), rung,
+            c.get("baseline_cost_bps_median"))
+        app_bps_by_corridor[c.get("corridor")] = app_bps
+        rows_html.append(corridor_row_html(c, home_copy, window, app_bps, _provider))
     mxn = next((c for c in corridors if c.get("corridor") == "USD->MXN"), None)
     first_line = (home_copy.get("corridorTableFirstLine", "")
                   .replace("{maker_pct}", ("%.1f" % mxn["win_rate_maker_pct"]) if mxn else ""))
+    header = esc(routes_header_html(app_bps_by_corridor, corridors, home_copy))
+    note = esc(home_copy.get("routesTableNote", ""))
+    every_link = esc(home_copy.get("everyProviderLink", "Every provider, every amount →"))
+    cheapest_note = esc(home_copy.get("cheapestAppNote", ""))
     return (
-        '<div class="waterfall-title">' + esc(home_copy.get("corridorTableTitle", "Stablecoin route vs cheapest app, all-in cost per route")) + "</div>"
-        '<div class="lede">' + esc(first_line) + "</div>"
+        "<h2>" + header + "</h2>"
         '<table class="corridor-table"><thead><tr>'
         "<th>" + esc(cols.get("corridor", "ROUTE")) + "</th>"
         "<th>" + esc(cols.get("stablecoin", "STABLECOIN ROUTE")) + "</th>"
         "<th>" + esc(cols.get("fiat", "CHEAPEST APP")) + "</th>"
         "<th>" + esc(cols.get("winRate", "HOURS STABLECOIN WAS CHEAPER")) + "</th>"
-        "<th></th></tr></thead><tbody>" + rows + "</tbody></table>"
+        "<th></th></tr></thead><tbody>" + "".join(rows_html) + "</tbody></table>"
+        '<div class="lede" style="margin-top:10px">' + esc(first_line) + "</div>"
+        '<p class="small-note">' + note + ' <a href="./sending-money.html">' + every_link + "</a></p>"
+        '<p class="small-note">' + cheapest_note + "</p>"
     )
 
 
@@ -517,7 +679,9 @@ def main():
     html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, n_countries))
     changed = changed or ok2
 
-    table = corridor_table_html(doc["corridors"], home_copy, window)
+    providers_latest = load_json_or_none(PROVIDERS_LATEST)
+    rung = doc.get("rung", 5000)
+    table = corridor_table_html(doc["corridors"], home_copy, window, providers_latest, rung)
     html, ok3 = replace_by_marker(html, "corridorTableSection", table)
     changed = changed or ok3
 
@@ -529,7 +693,18 @@ def main():
     html, ok4 = replace_by_marker(html, "premiumStrip", see_all_countries_line(home_copy))
     changed = changed or ok4
 
-    all_strip = build_all_countries_strip(idx_doc, home_copy)
+    # How many of the tracked sends actually land in each destination
+    # currency ("where {n} of the transfers we price land here") -- read
+    # from the SAME corridor list the table above renders, never a typed
+    # count.
+    dest_counts = {}
+    for c in doc["corridors"]:
+        dest_ccy = (c.get("corridor") or "").split("->")[-1]
+        if dest_ccy:
+            dest_counts[dest_ccy] = dest_counts.get(dest_ccy, 0) + 1
+    street_depth = load_json_or_none(STREET_DEPTH_LATEST)
+
+    all_strip = build_all_countries_strip(idx_doc, home_copy, dest_counts, street_depth)
     if all_strip is not None:
         html, ok5 = replace_by_marker(html, "allCountriesStrip", all_strip)
         changed = changed or ok5
