@@ -252,3 +252,33 @@ and `check_index_consistency.py` all ran clean after rebasing onto a fast-moving
 correct rendering, no console errors, no horizontal overflow, and that VND's near-zero
 gap correctly exercises the "costs about the same on the street" title branch. PR
 #200's own CI check also passed before merge.
+
+## #230 — Reconcile country page template (country.html) with final mockup
+**Merged:** 2026-09-28T08:18:18Z (self-merged)
+**Why self-merged:** a typography/copy refinement of country.html against Sebastian's
+final mockup revision (docs/mockups/country.html, merged in #227), superseding the v2
+mockup country.html was originally rebuilt against (#219). No new published number or
+metric -- body/label font sizes bumped, the muted-text color token changed to match the
+mockup's grape palette, the lead's redundant "Up from X% on Y" clause and two small-print
+link paragraphs were dropped in favor of one shared data-provenance footer (mirroring the
+one index.html already carries), and "Most of the move" became direction-aware
+("rise"/"fall") to match the mockup's own copy. Falls under the same explicit-request
+scope as #219/#200 (owner-approved final mockup reconciliation), not a metric change.
+**Evidence:** read the full final-mockup diff (`git show` on the mockup-update commit,
+not just the working file) rather than trusting the task's own diff summary, since the
+worktree's branch initially predated that commit -- rebased onto origin/main first to
+pick it up. Deliberately preserved, not touched: `country.n_sources`-based ad-count
+consistency (verified `10` renders consistently in the evidence sentence and step 4 for
+both DZD and VND, no reintroduced two-count bug), the existing `is_floor`-aware
+street-depth branching (unchanged logic; both example countries currently have
+`is_floor: true` in live data), and the 24h-median headline convention (raw `spark`
+values stay on the chart only, the tiles/steps use `median_24h_pct`). `check_inventory.py`,
+`check_copy.py`, `check_index_consistency.py`, and `check_page.py country.html` all ran
+clean, including after two further rebases onto a fast-moving main (other reconcile-*
+PRs landing concurrently); screenshots of `country.html?ccy=DZD` and `country.html?ccy=VND`
+reviewed at 1280px, 390px, and 360px against docs/mockups/country.html, confirming
+matching typography/chart color/footer and no horizontal overflow at any width for
+either country, including VND's near-zero gap correctly exercising the "about the same"
+title branch. PR #230's CI run failed only on the pre-existing, unrelated
+`check_wise_share.py` ceiling (confirmed failing on a clean checkout of origin/main
+itself, driven by live data churn, not by this PR's country.html-only diff).
