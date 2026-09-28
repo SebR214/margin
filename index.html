@@ -57,17 +57,21 @@
   .cgap{height:14px}
   @media (max-width:620px){.crow{grid-template-columns:100px 1fr;gap:10px}}
   .plainline{font-size:16px;line-height:1.6;color:var(--ink);margin:22px 0 0;max-width:680px}
-  .site-footer{border-top:1px solid var(--rule);margin-top:24px;padding-top:24px;font-size:15px;color:var(--sub)}
-  .site-footer a{color:var(--ink);font-weight:600}
+  footer.foot{border-top:1px solid var(--rule);margin-top:56px;padding:24px 0 40px;font-size:15px;color:var(--sub)}
+  footer.foot a{display:inline-block;padding:13px 2px;min-height:40px;color:var(--ink);font-weight:600}
   /* The cost bar: a single stacked bar (buy/move/sell segments) with a
      dashed reference line for the cheapest app, matching docs/mockups/
      home.html's final revision exactly -- not the old multi-row waterfall,
-     which on a phone ran its row labels into the bars. */
+     which on a phone ran its row labels into the bars. Each segment gets
+     the same hover-shows-a-tooltip, tap-shows-it-too treatment as every
+     other chart on the site (pointer* events cover both in one listener,
+     see corridor.html's history chart for the pattern this mirrors). */
   .split{position:relative;margin-top:22px}
   .stack{display:flex;height:26px;border-radius:3px;overflow:hidden}
-  .stack div{height:100%}
+  .stack div{height:100%;cursor:pointer}
   .stack div:last-child{box-shadow:inset 0 0 0 1px var(--dust)}
   .appline{position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dashed var(--grape)}
+  #wfTip{position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:14px;font-family:inherit;padding:6px 9px;border-radius:5px;white-space:nowrap;transform:translate(-50%,-130%);z-index:2}
   .applabel{position:absolute;top:34px;font-size:14px;color:var(--sub);transform:translateX(-50%);white-space:nowrap}
   .legend-row{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:14px;margin-top:40px;color:var(--sub)}
   .legend-row span{display:inline-flex;align-items:center;gap:6px}
@@ -161,12 +165,9 @@
 
   <div class="lead-section sec">
     <div id="allCountriesSection"><!--BAKE:START:allCountriesStrip--><h2>In the Philippines and Mexico a dollar costs the official rate. In Algeria people pay 91% more.</h2><p class="answer">How much more than the official rate people pay for a dollar. Priced from USDT on Binance P2P and local exchanges.</p><div class="cbars"><a class="crow" href="./country.html?ccy=DZD"><span class="cname">Algeria</span><span class="cbar"><i style="width:85.0%"></i><b style="left:85.0%">91%</b></span></a><a class="crow" href="./country.html?ccy=IQD"><span class="cname">Iraq</span><span class="cbar"><i style="width:19.6%"></i><b style="left:19.6%">21%</b></span></a><a class="crow" href="./country.html?ccy=MZN"><span class="cname">Mozambique</span><span class="cbar"><i style="width:16.1%"></i><b style="left:16.1%">17%</b></span></a><a class="crow" href="./country.html?ccy=TND"><span class="cname">Tunisia</span><span class="cbar"><i style="width:14.4%"></i><b style="left:14.4%">15%</b></span></a><a class="crow" href="./country.html?ccy=SYP"><span class="cname">Syria</span><span class="cbar"><i style="width:13.7%"></i><b style="left:13.7%">15%</b></span></a><div class="cgap"></div><a class="crow low" href="./country.html?ccy=PHP"><span class="cname">Philippines</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 3 of our routes land</b></span></a><a class="crow low" href="./country.html?ccy=MXN"><span class="cname">Mexico</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 1 of our routes lands</b></span></a></div><p class="plainline">A normal app already gets you the real rate in the Philippines and Mexico, so a stablecoin has nothing to beat. In Algeria, banks sell few dollars, so USDT is how people get them: about $5,000 is on offer right now within 1% of the best price.</p><p class="small-note"><a href="./the-index.html">All countries →</a></p><!--BAKE:END:allCountriesStrip--></div>
-    <div id="premiumStripSection"><!--BAKE:START:premiumStrip--><!--BAKE:END:premiumStrip--></div>
   </div>
 
-  <div class="lead-section sec">
-    <div class="site-footer" id="footerLine">Every number on this site comes from a public data file. <a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></div>
-  </div>
+  <footer class="foot" id="footerLine">Every number on this site comes from a public data file. <a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></footer>
 </div>
 
 <script>
@@ -351,16 +352,22 @@
          '<div class="applabel" style="left:' + appLeft.toFixed(1) + '%">cheapest app ' + cashPct(appBps) + '</div>')
       : '';
 
+    var segLabels = [L.buying || 'Buy USDT with SGD', L.moving || 'Send it on chain', L.selling || 'Sell USDT for PHP'];
+    var segValues = [buy, network, sell];
+    var segColors = ['var(--indigo)', 'var(--dust)', 'var(--eggshell)'];
+    var segPct = [buyPct, networkPct, sellPct];
+
     var card = document.getElementById('waterfallSection');
     card.innerHTML =
       '<h2>' + esc(legHeader) + '</h2>' +
       '<div class="split">' +
         '<div class="stack" style="width:' + stackWidth.toFixed(1) + '%">' +
-          '<div style="width:' + buyPct.toFixed(1) + '%;background:var(--indigo)"></div>' +
-          '<div style="width:' + networkPct.toFixed(1) + '%;background:var(--dust)"></div>' +
-          '<div style="width:' + sellPct.toFixed(1) + '%;background:var(--eggshell)"></div>' +
+          segPct.map(function(p, i){
+            return '<div data-i="' + i + '" style="width:' + p.toFixed(1) + '%;background:' + segColors[i] + '"></div>';
+          }).join('') +
         '</div>' +
         appLine +
+        '<div id="wfTip"></div>' +
       '</div>' +
       '<div class="legend-row">' +
         '<span><i class="sw" style="background:var(--indigo)"></i>' + esc(L.buying || 'Buy USDT with SGD') + ' <b>' + cashPct(buy) + '</b></span>' +
@@ -368,6 +375,27 @@
         '<span><i class="sw" style="background:var(--eggshell)"></i>' + esc(L.selling || 'Sell USDT for PHP') + ' <b>' + cashPct(sell) + '</b></span>' +
         '<span>' + esc(L.total || 'Total') + ' <b>' + cashPct(total) + '</b></span>' +
       '</div>';
+
+    // Hover shows a tooltip, tap shows it too -- pointer* covers mouse
+    // hover AND touch tap in one listener, same pattern as every other
+    // chart on the site (corridor.html's history chart, e.g.), so this
+    // stacked bar isn't the one hover-only chart on the page.
+    var split = card.querySelector('.split');
+    var tip = card.querySelector('#wfTip');
+    split.querySelectorAll('.stack > div[data-i]').forEach(function(el){
+      var i = +el.dataset.i;
+      function show(ev){
+        var box = split.getBoundingClientRect();
+        tip.innerHTML = '<b>' + esc(segLabels[i]) + '</b> ' + cashPct(segValues[i]);
+        var x = ev.clientX - box.left;
+        tip.style.left = x + 'px';
+        tip.style.top = (ev.clientY - box.top) + 'px';
+        tip.style.opacity = 1;
+      }
+      el.addEventListener('pointermove', show);
+      el.addEventListener('pointerdown', show);
+      el.addEventListener('pointerleave', function(){ tip.style.opacity = 0; });
+    });
   }
 
   var ARROW_ROUTE_WORDS = {
