@@ -148,6 +148,85 @@ BLOCKED_VENUES = {
         "a transport failure, the currency itself is not on OKX P2P's board.",
 }
 
+# --------------------------------------------------------------- fee model
+# price_corridor() used to walk raw order books with NO trading fee and NO
+# network fee at all -- it only captured order-book slippage. That is not an
+# executable price: collector.py's decompose() (samples.csv's cost_bps_taker)
+# applies a taker fee on the buy leg, a flat+proportional network fee on the
+# on-chain transfer, and a taker fee on the sell leg, and this file's combos
+# must apply the SAME three deductions or they are not comparable numbers.
+# Bug: SGD->PHP S$5,000 read S$6.82 / 0.14% here vs samples.csv's ~1.27% for
+# the identical hour/venues -- the gap is exactly these three missing fees.
+#
+# Reuse real published numbers already verified elsewhere in this repo
+# (collector.CORRIDORS, data/withdrawal_fees.csv) wherever the venue matches;
+# for a venue with no existing entry, use its own published fee schedule.
+ONRAMP_TAKER_BPS = {
+    # Same flat 0.50% brokerage fee already verified in collector.CORRIDORS
+    # for every corridor that uses IndependentReserve as its on-ramp.
+    "IndependentReserve": 50.0,
+    # Coinbase Advanced USDT-USD stable-pair taker fee, already verified in
+    # collector.CORRIDORS (USD->MXN onramp). Flat, not volume-tiered.
+    "Coinbase": 1.0,
+    # P2P ad boards charge no separate trading fee -- the "fee" is baked into
+    # the ad's quoted price, which walk_buy/walk_sell already reads as-is.
+    # Assumption (stated here and in the PR body): 0 bps taker on OKX P2P.
+    "OKX_P2P": 0.0,
+}
+OFFRAMP_TAKER_BPS = {
+    # VIP0 taker fee, already verified in collector.CORRIDORS.
+    "Coins.ph": 15.0,
+    # Base-tier taker fee, already verified in collector.CORRIDORS (usdt_mxn).
+    "Bitso": 78.0,
+    # Same P2P assumption as OKX_P2P above: 0 bps taker on the ad board.
+    "Binance_P2P": 0.0,
+    "OKX_P2P": 0.0,
+}
+# Network fee for moving USDT off the BUY venue on-chain to the sell venue,
+# same flat + proportional(capped) shape decompose() uses. Keyed by onramp
+# (buy) venue since that is where the USDT sits after the buy leg.
+NETWORK_FEE = {
+    # TRC20, already verified in collector.CORRIDORS / data/withdrawal_fees.csv:
+    # "Tether USD | TRON | 4.0 USDT". Source: independentreserve.com/fees.
+    "IndependentReserve": {"flat": 4.0, "pct": 0.0, "cap": None},
+    # Polygon: 0.01% processing fee capped at 20 USDT, already verified in
+    # collector.CORRIDORS (USD->MXN); gas itself is fractions of a cent and
+    # left unmodelled, same as collector.py does.
+    "Coinbase": {"flat": 0.0, "pct": 0.0001, "cap": 20.0},
+    # OKX does not publish a single fixed USDT-TRC20 withdrawal fee on its own
+    # fee page (it says fees "vary" and to check the withdrawal page at send
+    # time) -- unlike IndependentReserve/Bitso/Coinbase, there is no scrapable
+    # constant to cite. Multiple independent secondary sources (exchange fee
+    # trackers, OKX's own TRC20 withdrawal guides) converge on 1.0 USDT flat
+    # as of 2026, matching Binance's and IndependentReserve's own TRC20 rate
+    # order of magnitude, so that is used here as a stated assumption rather
+    # than 0.0 -- 0.0 would understate every OKX_P2P-onramp combo the same
+    # way the pre-fix bug understated every combo. Flagged in the PR body.
+    "OKX_P2P": {"flat": 1.0, "pct": 0.0, "cap": None},
+}
+
+
+def apply_fees(gross, buy_venue, sell_venue, bids):
+    """Mirror collector.decompose()'s taker chain: buy-leg fee -> network fee
+    (flat + proportional, capped) -> sell leg on the fee-reduced amount.
+    -> (quote_before_sell_fee, off_vwap, off_filled, landed_after_sell_fee).
+    """
+    on_fee = ONRAMP_TAKER_BPS.get(buy_venue, 0.0) / 1e4
+    off_fee = OFFRAMP_TAKER_BPS.get(sell_venue, 0.0) / 1e4
+    net = NETWORK_FEE.get(buy_venue, {"flat": 0.0, "pct": 0.0, "cap": None})
+
+    bought = gross * (1 - on_fee)
+    proc = bought * net["pct"]
+    if net["cap"] is not None:
+        proc = min(proc, net["cap"])
+    netfee = net["flat"] + proc
+    stable = bought - netfee
+    if stable <= 0:
+        return None, None, False, None
+    quote, off_vwap, off_filled = collector.walk_sell(bids, stable)
+    landed = quote * (1 - off_fee)
+    return quote, off_vwap, off_filled, landed
+
 
 # --------------------------------------------------------------- pure core
 def _f(x):
@@ -350,8 +429,9 @@ def price_corridor(corridor_key, cfg, notional=None, fetch_mids=None):
     for buy_venue, asks in asks_by_venue.items():
         gross, on_vwap, on_filled = collector.walk_buy(asks, notional)
         for sell_venue, bids in bids_by_venue.items():
-            quote, off_vwap, off_filled = collector.walk_sell(bids, gross)
-            landed = round(quote, 2) if quote else None
+            quote, off_vwap, off_filled, landed_raw = apply_fees(
+                gross, buy_venue, sell_venue, bids)
+            landed = round(landed_raw, 2) if landed_raw else None
             cost = (collector.bps(1 - landed / (notional * mid))
                     if (landed and mid and notional) else None)
             implausible = cost is not None and cost < MIN_PLAUSIBLE_COST_BPS
