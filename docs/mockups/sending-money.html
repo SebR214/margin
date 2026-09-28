@@ -11,7 +11,7 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121212;--ink:#eee;--mute:#a3a3a3;--faint:#6f6f6f;--line:#2a2a2a;--grape:#A99BB5;--soft:#5b5853;--egg:#221f1a;--peri:#9E9CE0}}
 :root[data-theme="dark"]{--bg:#121212;--ink:#eee;--mute:#a3a3a3;--faint:#6f6f6f;--line:#2a2a2a;--grape:#A99BB5;--soft:#5b5853;--egg:#221f1a;--peri:#9E9CE0}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:'Archivo',system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:16px;line-height:1.5}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Archivo',system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:17px;line-height:1.55}
 .wrap{max-width:760px;margin:0 auto;padding:24px 24px 72px}
 nav{display:flex;gap:24px;align-items:center;font-size:14px;margin-bottom:56px;flex-wrap:wrap}
 nav b{font-size:16px;margin-right:8px}
@@ -20,21 +20,21 @@ nav a.on{color:var(--ink);font-weight:600}
 a{color:var(--ink);text-decoration:none;font-weight:500}
 h1{font-size:28px;line-height:1.25;letter-spacing:-.01em;margin:0 0 8px;font-weight:700}
 .lead{font-size:17px;color:var(--mute);margin:0}
-.meta{font-size:13px;color:var(--faint);margin:14px 0 0}
+.meta{font-size:14px;color:var(--faint);margin:14px 0 0}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--peri);display:inline-block;margin-right:6px;vertical-align:1px}
 .pills{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 0}
 .pill{font-size:14px;padding:7px 14px;border-radius:999px;border:1px solid var(--soft);color:var(--ink);background:var(--bg);white-space:nowrap}
 .pill.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.pills.small .pill{font-size:13px;padding:5px 12px}
+.pills.small .pill{font-size:14px;padding:5px 12px}
 .pills.small{margin-top:10px}
 section{border-top:1px solid var(--line);margin-top:40px;padding-top:32px}
 h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
 .answer{font-size:16px;color:var(--mute);margin:0 0 22px}
 .answer b{color:var(--ink);font-weight:600}
 .prow{display:grid;grid-template-columns:minmax(150px,210px) 1fr 84px 60px;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
-.prow.head{border-top:0;padding:0 0 8px;font-size:12px;color:var(--faint);font-weight:600;letter-spacing:.03em}
+.prow.head{border-top:0;padding:0 0 8px;font-size:14px;color:var(--faint);font-weight:600;letter-spacing:.03em}
 .pname{font-size:15px;font-weight:500;line-height:1.3}
-.pname small{display:block;font-size:12px;color:var(--faint);font-weight:400;margin-top:2px}
+.pname small{display:block;font-size:14px;color:var(--faint);font-weight:400;margin-top:2px}
 .track{height:10px;background:var(--line);border-radius:2px;position:relative}
 .track i{position:absolute;left:0;top:0;bottom:0;background:var(--soft);border-radius:2px;min-width:2px}
 .num{text-align:right;font-variant-numeric:tabular-nums;font-size:15px}
@@ -42,7 +42,7 @@ h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
 .stable .pname,.stable .num,.stable .pct{color:var(--peri);font-weight:600}
 .stable .pname small{color:var(--faint);font-weight:400}
 .stable .track i{background:var(--peri)}
-.small{font-size:13px;color:var(--faint);margin:14px 0 0}
+.small{font-size:15px;color:var(--faint);margin:14px 0 0}
 .note{font-size:14px;color:var(--mute);margin:16px 0 0;padding:12px 16px;border-left:3px solid var(--soft)}
 .brow{display:grid;grid-template-columns:200px 1fr 90px;gap:14px;align-items:center;padding:7px 0;font-size:15px}
 .brow .track{height:14px}
@@ -54,10 +54,10 @@ h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
 .list li span:last-child{color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}
 .up{color:var(--grape);font-weight:600}
 .log li>span:last-child{text-align:right}
-.s2{display:block;font-size:12px;color:var(--faint);margin-top:2px}
+.s2{display:block;font-size:14px;color:var(--faint);margin-top:2px}
 .log li{grid-template-columns:1fr auto}
-.log .d{color:var(--faint);font-size:13px;padding-top:2px}
-.log .s{display:block;font-size:12px;color:var(--faint);margin-top:2px}
+.log .d{color:var(--faint);font-size:14px;padding-top:2px}
+.log .s{display:block;font-size:14px;color:var(--faint);margin-top:2px}
 @media (max-width:620px){
  nav{gap:14px;margin-bottom:36px}
  .prow{grid-template-columns:1fr 70px 52px}.prow .track,.prow.head span:nth-child(2){display:none}
@@ -76,6 +76,8 @@ h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
  .small a,.meta a,p a,.answer a{display:inline-block;padding:6px 0}
  .back{padding:10px 0}
 }
+footer.foot{border-top:1px solid var(--line);margin-top:56px;padding-top:24px;font-size:15px;color:var(--mute)}
+footer.foot a{color:var(--ink);font-weight:500}
 </style>
 </head>
 <body>
@@ -93,18 +95,17 @@ h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
 <h2>Sending S$5,000 to the Philippines: Airwallex is cheapest at S$6.86, the stablecoin route costs S$61.47</h2>
 <p class="answer">The stablecoin route has not beaten the cheapest app in any hour since 10 Aug.</p>
 
-<div class="prow head"><span>Provider</span><span></span><span class="num" style="font-size:12px">Cost</span><span class="pct" style="font-size:12px">% of S$5,000</span></div>
-<div class="prow"><span class="pname">Airwallex<small>quoted by the provider</small></span><span class="track"><i style="width:2.9%"></i></span><span class="num">S$6.86</span><span class="pct">0.14%</span></div>
-<div class="prow"><span class="pname">Wise<small>quoted by the provider</small></span><span class="track"><i style="width:7.4%"></i></span><span class="num">S$17.44</span><span class="pct">0.35%</span></div>
-<div class="prow"><span class="pname">Instarem<small>quoted by the provider</small></span><span class="track"><i style="width:9.6%"></i></span><span class="num">S$22.63</span><span class="pct">0.45%</span></div>
-<div class="prow"><span class="pname">Western Union<small>from a public price comparison</small></span><span class="track"><i style="width:13.8%"></i></span><span class="num">S$32.47</span><span class="pct">0.65%</span></div>
-<div class="prow stable"><span class="pname">Stablecoin route<small>buy on Independent Reserve, sell on Coins.ph, all exchange fees in · <a href="#">breakdown →</a></small></span><span class="track"><i style="width:26.1%"></i></span><span class="num">S$61.47</span><span class="pct">1.23%</span></div>
-<div class="prow"><span class="pname">HSBC Singapore<small>from a public price comparison</small></span><span class="track"><i style="width:29.8%"></i></span><span class="num">S$70.02</span><span class="pct">1.40%</span></div>
-<div class="prow"><span class="pname">OFX<small>from a public price comparison</small></span><span class="track"><i style="width:83.6%"></i></span><span class="num">S$196.46</span><span class="pct">3.93%</span></div>
-<div class="prow"><span class="pname">PayPal<small>from a public price comparison</small></span><span class="track"><i style="width:99%"></i></span><span class="num">S$232.60</span><span class="pct">4.65%</span></div>
+<div class="prow head"><span>Provider</span><span></span><span class="num" style="font-size:14px">Cost</span><span class="pct" style="font-size:14px">% of S$5,000</span></div>
+<div class="prow"><span class="pname">Airwallex</span><span class="track"><i style="width:2.9%"></i></span><span class="num">S$6.86</span><span class="pct">0.14%</span></div>
+<div class="prow"><span class="pname">Wise</span><span class="track"><i style="width:7.4%"></i></span><span class="num">S$17.44</span><span class="pct">0.35%</span></div>
+<div class="prow"><span class="pname">Instarem</span><span class="track"><i style="width:9.6%"></i></span><span class="num">S$22.63</span><span class="pct">0.45%</span></div>
+<div class="prow"><span class="pname">Western Union</span><span class="track"><i style="width:13.8%"></i></span><span class="num">S$32.47</span><span class="pct">0.65%</span></div>
+<div class="prow stable"><span class="pname">Stablecoin route<small>all fees in · <a href="#">breakdown →</a></small></span><span class="track"><i style="width:26.1%"></i></span><span class="num">S$61.47</span><span class="pct">1.23%</span></div>
+<div class="prow"><span class="pname">HSBC Singapore</span><span class="track"><i style="width:29.8%"></i></span><span class="num">S$70.02</span><span class="pct">1.40%</span></div>
+<div class="prow"><span class="pname">OFX</span><span class="track"><i style="width:83.6%"></i></span><span class="num">S$196.46</span><span class="pct">3.93%</span></div>
+<div class="prow"><span class="pname">PayPal</span><span class="track"><i style="width:99%"></i></span><span class="num">S$232.60</span><span class="pct">4.65%</span></div>
 
-<p class="note">Not included yet: the cost of getting money into the first exchange and out to a bank at the end. Also, some app prices here are first-transfer offers that repeat senders won't get.</p>
-<p class="small">3 of 8 prices come straight from the provider, 4 from a public price comparison, the stablecoin row from live exchange order books.</p>
+<p class="small">Airwallex, Wise and Instarem quote us directly, the rest come from a public price comparison. Bank fees to get money on and off the exchanges are not included yet.</p>
 </section>
 
 <section>
@@ -113,7 +114,6 @@ h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
 <div class="brow"><span>Singapore → Philippines</span><span class="track"><i style="width:10.2%"></i></span><span class="num">5 of 49</span></div>
 <div class="brow"><span>US → Mexico</span><span class="track"><i style="width:3.7%"></i></span><span class="num">2 of 54</span></div>
 <p class="zero">No Saturday rises at all on Australia → Philippines (39 checked) or New Zealand → Philippines (27 checked).</p>
-<p class="small">Saturday prices that went up from Friday, all providers, every Saturday checked.</p>
 </section>
 
 <section>
@@ -125,7 +125,6 @@ h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
 <li><span>OFX, Singapore → Philippines<span class="s2">19 price changes since 10 Aug</span></span><span>more expensive <span class="up">11 times</span>, cheaper 8 times</span></li>
 <li><span>ANZ, Australia → Philippines<span class="s2">6 price changes since 10 Sep</span></span><span>more expensive <span class="up">4 times</span>, cheaper 2 times</span></li>
 </ul>
-<p class="small">Cost of sending 5,000, checked daily.</p>
 </section>
 
 <section>
@@ -137,8 +136,8 @@ h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
 <li><span>OFX, US → Mexico<span class="s2">sending US$5,000, 25 Sep vs 26 Sep</span></span><span><span class="up">more expensive</span><span class="s2" style="text-align:right">1.23% → 2.07%</span></span></li>
 <li><span>PayPal, Singapore → Philippines<span class="s2">sending S$5,000, 25 Sep vs 26 Sep</span></span><span><span class="up">more expensive</span><span class="s2" style="text-align:right">4.46% → 4.89%</span></span></li>
 </ul>
-<p class="small">A change only counts when a provider moved against every other provider on that route, so a general exchange rate move is not counted as a price change. <a href="#">Show all 125 →</a></p>
+<p class="small"><a href="#">Show all 125 →</a></p>
 </section>
-</div>
+<footer class="foot">Every number on this site comes from a public data file. <a href="#">Code and raw data on GitHub →</a></footer></div>
 </body>
 </html>

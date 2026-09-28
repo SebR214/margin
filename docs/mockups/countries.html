@@ -11,7 +11,7 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121212;--ink:#eee;--mute:#a3a3a3;--faint:#6f6f6f;--line:#2a2a2a;--grape:#A99BB5;--soft:#5b5853;--egg:#221f1a;--peri:#9E9CE0}}
 :root[data-theme="dark"]{--bg:#121212;--ink:#eee;--mute:#a3a3a3;--faint:#6f6f6f;--line:#2a2a2a;--grape:#A99BB5;--soft:#5b5853;--egg:#221f1a;--peri:#9E9CE0}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:'Archivo',system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:16px;line-height:1.5}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Archivo',system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:17px;line-height:1.55}
 .wrap{max-width:760px;margin:0 auto;padding:24px 24px 72px}
 nav{display:flex;gap:24px;align-items:center;font-size:14px;margin-bottom:56px;flex-wrap:wrap}
 nav b{font-size:16px;margin-right:8px}
@@ -20,32 +20,32 @@ nav a.on{color:var(--ink);font-weight:600}
 a{color:var(--ink);text-decoration:none;font-weight:500}
 h1{font-size:28px;line-height:1.25;letter-spacing:-.01em;margin:0 0 8px;font-weight:700}
 .lead{font-size:17px;color:var(--mute);margin:0}
-.meta{font-size:13px;color:var(--faint);margin:14px 0 0}
+.meta{font-size:14px;color:var(--faint);margin:14px 0 0}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--peri);display:inline-block;margin-right:6px;vertical-align:1px}
 .search{margin-top:24px;width:100%;padding:12px 14px;font:inherit;font-size:15px;border:1px solid var(--soft);border-radius:8px;background:var(--bg);color:var(--ink)}
 section{border-top:1px solid var(--line);margin-top:40px;padding-top:32px}
 h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
 .answer{font-size:16px;color:var(--mute);margin:0 0 20px}
 .trow{display:grid;grid-template-columns:1fr 90px 110px 90px;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
-.trow.head{border-top:0;padding:0 0 8px;font-size:12px;color:var(--faint);font-weight:600;letter-spacing:.03em;align-items:end}
+.trow.head{border-top:0;padding:0 0 8px;font-size:14px;color:var(--faint);font-weight:600;letter-spacing:.03em;align-items:end}
 .cn b{font-weight:600;font-size:15px}
-.cn small{display:block;font-size:12px;color:var(--faint);margin-top:1px}
+.cn small{display:block;font-size:14px;color:var(--faint);margin-top:1px}
 .flag{color:var(--grape);font-weight:600}
-.spk{color:var(--grape);text-align:right}
+.spk{color:var(--mute);text-align:right}
 .sp{display:block;width:110px;height:26px}
 .spl{display:block;font-size:14px;color:var(--mute);font-variant-numeric:tabular-nums}
-.ch{display:block;font-size:11px;font-weight:500;color:var(--mute);margin-top:3px;white-space:nowrap}
+.ch{display:block;font-size:14px;font-weight:500;color:var(--mute);margin-top:3px;white-space:nowrap}
 .ch.up{color:var(--grape);font-weight:600}
 .gp{text-align:right;line-height:1.2;font-weight:700;font-variant-numeric:tabular-nums;font-size:16px}
 .dp{text-align:right;color:var(--mute);font-variant-numeric:tabular-nums;font-size:14px}
-.head .gp,.head .dp{font-weight:600;font-size:12px;color:var(--faint)}
-.small{font-size:13px;color:var(--faint);margin:14px 0 0}
+.head .gp,.head .dp{font-weight:600;font-size:14px;color:var(--faint)}
+.small{font-size:15px;color:var(--faint);margin:14px 0 0}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{font-size:14px;padding:6px 12px;border:1px solid var(--soft);border-radius:999px;color:var(--mute);font-variant-numeric:tabular-nums}
 .chip b{color:var(--ink);font-weight:500;margin-right:4px}
 .why{list-style:none;margin:0;padding:0}
 .why li{padding:10px 0;border-top:1px solid var(--line);font-size:15px}
-.why li span{display:block;font-size:13px;color:var(--faint)}
+.why li span{display:block;font-size:14px;color:var(--faint)}
 @media (max-width:620px){nav{gap:14px;margin-bottom:36px}.trow{grid-template-columns:1fr 104px 64px}.spk,.trow.head span:nth-child(2){display:none}}
 
 @media (max-width:620px){
@@ -58,6 +58,8 @@ h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
  .small a,.meta a,p a,.answer a{display:inline-block;padding:6px 0}
  .back{padding:10px 0}
 }
+footer.foot{border-top:1px solid var(--line);margin-top:56px;padding-top:24px;font-size:15px;color:var(--mute)}
+footer.foot a{color:var(--ink);font-weight:500}
 </style>
 </head>
 <body>
@@ -66,19 +68,19 @@ h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
 
 <h1>What a dollar costs in 60 countries, compared with the official rate</h1>
 <p class="lead">Priced from what people pay for USDT, a digital dollar, on Binance P2P and local crypto exchanges. Not cash at money changers.</p>
-<p class="meta"><span class="dot"></span>Checked 03:00 UTC · 46 of 60 countries priced this hour · each number is the median of the last 24 hours</p>
+<p class="meta"><span class="dot"></span>Checked 03:00 UTC · 46 of 60 priced this hour · median of the last 24 hours</p>
 <input class="search" placeholder="Find a country">
 
 <section>
 <h2>Where the government sets the rate, people pay 6% to 92% more than it</h2>
 <p class="answer">Six countries. Low confidence means one source, or buy and sell prices more than 5% apart.</p>
 <div class="trow head"><span>Country</span><span>On 5 Sep</span><span class="gp">Now</span><span class="dp">You can buy now</span></div>
-<div class="trow"><span class="cn"><b>Algeria</b><small>DZD · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">85.5%</span></span><span class="gp">91.7%<small class="ch up">+6.2 pts</small></span><span class="dp">$2,500</span></div>
-<div class="trow"><span class="cn"><b>Iraq</b><small>IQD · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">18.3%</span></span><span class="gp">20.0%<small class="ch up">+1.7 pts</small></span><span class="dp">$1,000</span></div>
-<div class="trow"><span class="cn"><b>Mozambique</b><small>MZN · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">16.9%</span></span><span class="gp">17.3%<small class="ch up">+0.4 pts</small></span><span class="dp">$2,500</span></div>
-<div class="trow"><span class="cn"><b>Tunisia</b><small>TND · 10 Binance P2P ads <span class="flag">low confidence</span></small></span><span class="spk"><span class="spl">11.7%</span></span><span class="gp">16.0%<small class="ch up">+4.3 pts</small></span><span class="dp">$1,000</span></div>
-<div class="trow"><span class="cn"><b>Venezuela</b><small>VES · 1 broker quote <span class="flag">low confidence</span></small></span><span class="spk"><span class="spl">21.9%</span></span><span class="gp">14.5%<small class="ch down">−7.4 pts</small></span><span class="dp">$5,000+</span></div>
-<div class="trow"><span class="cn"><b>Argentina</b><small>ARS · 25 broker quotes</small></span><span class="spk"><span class="spl">6.1%</span></span><span class="gp">6.6%<small class="ch up">+0.5 pts</small></span><span class="dp">$5,000+</span></div>
+<div class="trow"><span class="cn"><b>Algeria</b><small>DZD</small></span><span class="spk"><span class="spl">85.5%</span></span><span class="gp">91.7%<small class="ch up">+6.2 pts</small></span><span class="dp">$2,500</span></div>
+<div class="trow"><span class="cn"><b>Iraq</b><small>IQD</small></span><span class="spk"><span class="spl">18.3%</span></span><span class="gp">20.0%<small class="ch up">+1.7 pts</small></span><span class="dp">$1,000</span></div>
+<div class="trow"><span class="cn"><b>Mozambique</b><small>MZN</small></span><span class="spk"><span class="spl">16.9%</span></span><span class="gp">17.3%<small class="ch up">+0.4 pts</small></span><span class="dp">$2,500</span></div>
+<div class="trow"><span class="cn"><b>Tunisia</b><small>TND · <span class="flag">low confidence</span></small></span><span class="spk"><span class="spl">11.7%</span></span><span class="gp">16.0%<small class="ch up">+4.3 pts</small></span><span class="dp">$1,000</span></div>
+<div class="trow"><span class="cn"><b>Venezuela</b><small>VES · <span class="flag">low confidence</span></small></span><span class="spk"><span class="spl">21.9%</span></span><span class="gp">14.5%<small class="ch down">−7.4 pts</small></span><span class="dp">$5,000+</span></div>
+<div class="trow"><span class="cn"><b>Argentina</b><small>ARS</small></span><span class="spk"><span class="spl">6.1%</span></span><span class="gp">6.6%<small class="ch up">+0.5 pts</small></span><span class="dp">$5,000+</span></div>
 <p class="small">"You can buy now" is how many dollars you could buy this hour within 1% of the best price. We stop counting at $5,000.</p>
 </section>
 
@@ -86,26 +88,26 @@ h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
 <h2>In 9 more countries, people pay 2% to 8% more than the official rate</h2>
 <p class="answer">In South Africa and Kazakhstan the buy and sell prices are far apart, so treat those numbers with care.</p>
 <div class="trow head"><span>Country</span><span>On 5 Sep</span><span class="gp">Now</span><span class="dp">You can buy now</span></div>
-<div class="trow"><span class="cn"><b>South Africa</b><small>ZAR · 10 Binance P2P ads <span class="flag">low confidence</span></small></span><span class="spk"><span class="spl">5.4%</span></span><span class="gp">7.7%<small class="ch up">+2.3 pts</small></span><span class="dp">$1,000</span></div>
-<div class="trow"><span class="cn"><b>Kazakhstan</b><small>KZT · 10 Binance P2P ads <span class="flag">low confidence</span></small></span><span class="spk"><span class="spl">6.0%</span></span><span class="gp">4.8%<small class="ch down">−1.2 pts</small></span><span class="dp">$2,000</span></div>
-<div class="trow"><span class="cn"><b>Morocco</b><small>MAD · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">5.0%</span></span><span class="gp">4.6%<small class="ch down">−0.4 pts</small></span><span class="dp">$5,000+</span></div>
-<div class="trow"><span class="cn"><b>India</b><small>INR · 2 exchange order books</small></span><span class="spk"><span class="spl">10.1%</span></span><span class="gp">4.3%<small class="ch down">−5.8 pts</small></span><span class="dp">$500</span></div>
-<div class="trow"><span class="cn"><b>Bangladesh</b><small>BDT · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">4.0%</span></span><span class="gp">4.1%<small class="ch up">+0.1 pts</small></span><span class="dp">$5,000+</span></div>
-<div class="trow"><span class="cn"><b>Pakistan</b><small>PKR · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">2.9%</span></span><span class="gp">3.2%<small class="ch up">+0.3 pts</small></span><span class="dp">$5,000+</span></div>
-<div class="trow"><span class="cn"><b>Sri Lanka</b><small>LKR · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">1.2%</span></span><span class="gp">2.5%<small class="ch up">+1.3 pts</small></span><span class="dp">$5,000+</span></div>
-<div class="trow"><span class="cn"><b>Egypt</b><small>EGP · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">0.9%</span></span><span class="gp">2.5%<small class="ch up">+1.6 pts</small></span><span class="dp">$5,000+</span></div>
-<div class="trow"><span class="cn"><b>Laos</b><small>LAK · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">2.0%</span></span><span class="gp">2.1%<small class="ch up">+0.1 pts</small></span><span class="dp">$5,000+</span></div>
+<div class="trow"><span class="cn"><b>South Africa</b><small>ZAR · <span class="flag">low confidence</span></small></span><span class="spk"><span class="spl">5.4%</span></span><span class="gp">7.7%<small class="ch up">+2.3 pts</small></span><span class="dp">$1,000</span></div>
+<div class="trow"><span class="cn"><b>Kazakhstan</b><small>KZT · <span class="flag">low confidence</span></small></span><span class="spk"><span class="spl">6.0%</span></span><span class="gp">4.8%<small class="ch down">−1.2 pts</small></span><span class="dp">$2,000</span></div>
+<div class="trow"><span class="cn"><b>Morocco</b><small>MAD</small></span><span class="spk"><span class="spl">5.0%</span></span><span class="gp">4.6%<small class="ch down">−0.4 pts</small></span><span class="dp">$5,000+</span></div>
+<div class="trow"><span class="cn"><b>India</b><small>INR</small></span><span class="spk"><span class="spl">10.1%</span></span><span class="gp">4.3%<small class="ch down">−5.8 pts</small></span><span class="dp">$500</span></div>
+<div class="trow"><span class="cn"><b>Bangladesh</b><small>BDT</small></span><span class="spk"><span class="spl">4.0%</span></span><span class="gp">4.1%<small class="ch up">+0.1 pts</small></span><span class="dp">$5,000+</span></div>
+<div class="trow"><span class="cn"><b>Pakistan</b><small>PKR</small></span><span class="spk"><span class="spl">2.9%</span></span><span class="gp">3.2%<small class="ch up">+0.3 pts</small></span><span class="dp">$5,000+</span></div>
+<div class="trow"><span class="cn"><b>Sri Lanka</b><small>LKR</small></span><span class="spk"><span class="spl">1.2%</span></span><span class="gp">2.5%<small class="ch up">+1.3 pts</small></span><span class="dp">$5,000+</span></div>
+<div class="trow"><span class="cn"><b>Egypt</b><small>EGP</small></span><span class="spk"><span class="spl">0.9%</span></span><span class="gp">2.5%<small class="ch up">+1.6 pts</small></span><span class="dp">$5,000+</span></div>
+<div class="trow"><span class="cn"><b>Laos</b><small>LAK</small></span><span class="spk"><span class="spl">2.0%</span></span><span class="gp">2.1%<small class="ch up">+0.1 pts</small></span><span class="dp">$5,000+</span></div>
 </section>
 
 <section>
 <h2>Currencies fixed to the dollar or euro: the gap is the cost of buying crypto, not a weak currency</h2>
 <p class="answer">A pegged currency trades at its official rate. Paying more for USDT there means crypto is hard to get, not that the currency is failing.</p>
 <div class="trow head"><span>Country</span><span>On 5 Sep</span><span class="gp">Now</span><span class="dp">You can buy now</span></div>
-<div class="trow"><span class="cn"><b>Central African CFA</b><small>XAF · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">5.4%</span></span><span class="gp">5.9%<small class="ch up">+0.5 pts</small></span><span class="dp">$5,000+</span></div>
-<div class="trow"><span class="cn"><b>Saudi Arabia</b><small>SAR · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">2.3%</span></span><span class="gp">2.9%<small class="ch up">+0.6 pts</small></span><span class="dp">$500</span></div>
-<div class="trow"><span class="cn"><b>United Arab Emirates</b><small>AED · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">0.6%</span></span><span class="gp">1.1%<small class="ch up">+0.5 pts</small></span><span class="dp">$5,000+</span></div>
-<div class="trow"><span class="cn"><b>Kuwait</b><small>KWD · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">0.4%</span></span><span class="gp">0.5%<small class="ch up">+0.1 pts</small></span><span class="dp">$5,000+</span></div>
-<div class="trow"><span class="cn"><b>Jordan</b><small>JOD · 10 Binance P2P ads</small></span><span class="spk"><span class="spl">0.6%</span></span><span class="gp">0.4%<small class="ch down">−0.2 pts</small></span><span class="dp">$4,000</span></div>
+<div class="trow"><span class="cn"><b>Central African CFA</b><small>XAF</small></span><span class="spk"><span class="spl">5.4%</span></span><span class="gp">5.9%<small class="ch up">+0.5 pts</small></span><span class="dp">$5,000+</span></div>
+<div class="trow"><span class="cn"><b>Saudi Arabia</b><small>SAR</small></span><span class="spk"><span class="spl">2.3%</span></span><span class="gp">2.9%<small class="ch up">+0.6 pts</small></span><span class="dp">$500</span></div>
+<div class="trow"><span class="cn"><b>United Arab Emirates</b><small>AED</small></span><span class="spk"><span class="spl">0.6%</span></span><span class="gp">1.1%<small class="ch up">+0.5 pts</small></span><span class="dp">$5,000+</span></div>
+<div class="trow"><span class="cn"><b>Kuwait</b><small>KWD</small></span><span class="spk"><span class="spl">0.4%</span></span><span class="gp">0.5%<small class="ch up">+0.1 pts</small></span><span class="dp">$5,000+</span></div>
+<div class="trow"><span class="cn"><b>Jordan</b><small>JOD</small></span><span class="spk"><span class="spl">0.6%</span></span><span class="gp">0.4%<small class="ch down">−0.2 pts</small></span><span class="dp">$4,000</span></div>
 </section>
 
 <section>
@@ -123,6 +125,6 @@ h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
 </ul>
 <p class="small">Sudan (1,500%) is left out of every list: its official rate is frozen, so the gap means nothing. <a href="#">How we price a country →</a></p>
 </section>
-</div>
+<footer class="foot">Every number on this site comes from a public data file. <a href="#">Code and raw data on GitHub →</a></footer></div>
 </body>
 </html>

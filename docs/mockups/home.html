@@ -12,7 +12,7 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121212;--ink:#eee;--mute:#a3a3a3;--faint:#6f6f6f;--line:#2a2a2a;--bar:#A99BB5;--soft:#5b5853;--card:#221f1a;--peri:#9E9CE0;--live:#9E9CE0;--leg1:#9E9CE0;--leg2:#6f6b66;--leg3:#4a463d}}
 :root[data-theme="dark"]{--bg:#121212;--ink:#eee;--mute:#a3a3a3;--faint:#6f6f6f;--line:#2a2a2a;--bar:#A99BB5;--soft:#5b5853;--card:#221f1a;--peri:#9E9CE0;--live:#9E9CE0;--leg1:#9E9CE0;--leg2:#6f6b66;--leg3:#4a463d}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:'Archivo',system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:16px;line-height:1.5}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Archivo',system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:17px;line-height:1.55}
 .wrap{max-width:760px;margin:0 auto;padding:24px 24px 72px}
 nav{display:flex;gap:24px;align-items:center;font-size:14px;margin-bottom:56px;flex-wrap:wrap}
 nav b{font-size:16px;margin-right:8px}
@@ -20,26 +20,26 @@ nav a{color:var(--mute);text-decoration:none}
 a{color:var(--ink);text-decoration:none;font-weight:500}
 h1{font-size:28px;line-height:1.25;letter-spacing:-.01em;margin:0 0 8px;font-weight:700}
 .lead{font-size:17px;color:var(--mute);margin:0}
-.live{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:13px;color:var(--mute);margin:18px 0 0}
+.live{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:14px;color:var(--mute);margin:18px 0 0}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--live);display:inline-block;margin-right:6px;box-shadow:0 0 0 3px rgba(129,127,204,.2)}
-.meta{font-size:13px;color:var(--faint);margin:6px 0 0}
+.meta{font-size:14px;color:var(--faint);margin:6px 0 0}
 section{border-top:1px solid var(--line);margin-top:48px;padding-top:36px}
 h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
 .answer{font-size:16px;color:var(--mute);margin:0 0 24px}
 table{width:100%;border-collapse:collapse;font-size:15px}
-th{font-size:12px;color:var(--faint);font-weight:600;text-align:right;padding:0 0 10px;letter-spacing:.03em}
+th{font-size:14px;color:var(--faint);font-weight:600;text-align:right;padding:0 0 10px;letter-spacing:.03em}
 th:first-child,td:first-child{text-align:left}
 td{padding:12px 0;border-top:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
 td:nth-child(2){color:var(--peri);font-weight:600}
-.small{font-size:13px;color:var(--faint);margin:14px 0 0}
+.small{font-size:15px;color:var(--faint);margin:14px 0 0}
 h3{font-size:15px;margin:32px 0 4px;font-weight:600}
-.split{position:relative;margin-top:14px}
+.split{position:relative;margin-top:22px}
 .stack{display:flex;height:26px;border-radius:3px;overflow:hidden;width:87%}
 .stack div{height:100%}
 .stack div:last-child{box-shadow:inset 0 0 0 1px #D3D0CB}
 .appline{position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dashed var(--bar)}
-.applabel{position:absolute;top:34px;font-size:12px;color:var(--mute);transform:translateX(-50%);white-space:nowrap}
-.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:13px;margin-top:40px;color:var(--mute)}
+.applabel{position:absolute;top:34px;font-size:14px;color:var(--mute);transform:translateX(-50%);white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:14px;margin-top:40px;color:var(--mute)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .sw{width:10px;height:10px;border-radius:2px;display:inline-block}
 .legend b{color:var(--ink);font-weight:600}
@@ -51,7 +51,7 @@ h3{font-size:15px;margin:32px 0 4px;font-weight:600}
 .row{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:14px;padding:6px 0}
 .bar{position:relative;height:18px}
 .fill{height:100%;border-radius:2px;background:var(--bar)}
-.val{position:absolute;top:0;line-height:18px;font-size:13px;font-weight:600;padding-left:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.val{position:absolute;top:0;line-height:18px;font-size:14px;font-weight:600;padding-left:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .val em{font-style:normal;font-weight:400;color:var(--mute)}
 .low .fill{background:var(--soft);min-width:3px}
 .low .val{color:var(--mute);font-weight:500}
@@ -69,6 +69,16 @@ h3{font-size:15px;margin:32px 0 4px;font-weight:600}
  .small a,.meta a,p a,.answer a{display:inline-block;padding:6px 0}
  .back{padding:10px 0}
 }
+.duel{display:flex;align-items:flex-end;gap:28px;margin:22px 0 6px}
+.duel .big{color:var(--ink);font-size:56px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.duel .big.p{color:var(--peri)}
+.duel .lab{font-size:15px;color:var(--mute);margin-top:6px}
+.duel .vs{font-size:15px;color:var(--faint);padding-bottom:30px}
+.cap{font-size:15px;color:var(--mute);margin:10px 0 0}
+@media (max-width:620px){.duel{gap:18px}.duel .big{font-size:44px}}
+.plainline{font-size:16px;line-height:1.6;margin:22px 0 0;max-width:640px}
+footer.foot{border-top:1px solid var(--line);margin-top:56px;padding-top:24px;font-size:15px;color:var(--mute)}
+footer.foot a{color:var(--ink);font-weight:500}
 </style>
 </head>
 <body>
@@ -77,22 +87,17 @@ h3{font-size:15px;margin:32px 0 4px;font-weight:600}
 
 <h1>Sending money by stablecoin usually costs more than a transfer app</h1>
 <p class="lead">Real prices on 4 routes and in 60 countries, checked every hour.</p>
-<div class="live"><span><span class="dot"></span>Checked 10:00 UTC · next check in 23 min</span><span>This hour: Iraq's gap rose to 21.3%</span></div>
-<p class="meta">Run by four AI agents · <a href="#">How it was built →</a></p>
+<p class="meta"><span class="dot"></span>Checked 10:00 UTC · run by four AI agents · <a href="#">How it was built →</a></p>
 
+<div class="duel" style="margin-top:36px">
+  <div><div class="big p">0.87%</div><div class="lab">Stablecoin</div></div>
+  <div class="vs">vs</div>
+  <div><div class="big">0.46%</div><div class="lab">Cheapest app</div></div>
+</div>
+<p class="cap">Sending S$5,000 from Singapore to the Philippines, all-in cost, typical hour.</p>
+<p class="small">Same result from Australia, New Zealand and the US. <a href="#">All routes and providers →</a></p>
 <section>
-<h2>On all 4 routes we check, the cheapest app beats the stablecoin</h2>
-<table>
-<tr><th>Route, sending 5,000</th><th style="color:var(--peri)">Stablecoin</th><th>Cheapest app</th></tr>
-<tr><td>Singapore → Philippines</td><td>0.87%</td><td>0.46%</td></tr>
-<tr><td>Australia → Philippines</td><td>1.01%</td><td>0.65%</td></tr>
-<tr><td>New Zealand → Philippines</td><td>1.11%</td><td>0.69%</td></tr>
-<tr><td>US → Mexico</td><td>0.77%</td><td>0.55%</td></tr>
-</table>
-<p class="small">All-in cost as % of the amount, typical hour. <a href="#">Every provider, every amount →</a></p>
-
-<h3>Sending USDT costs 0.10%. Buying and selling it costs 0.76%.</h3>
-<p class="answer" style="margin:0">Singapore → Philippines, S$5,000, typical hour.</p>
+<h2>The stablecoin loses on buying and selling the coin. Sending it costs only 0.10%.</h2>
 <div class="split">
   <div class="stack">
     <div style="width:61%;background:var(--leg1)"></div>
@@ -127,7 +132,7 @@ h3{font-size:15px;margin:32px 0 4px;font-weight:600}
 
 <section>
 <h2>In the Philippines and Mexico a dollar costs the official rate. In Algeria people pay 92% more.</h2>
-<p class="answer">What people pay for USDT on Binance P2P and local crypto exchanges, compared with the official rate. Not cash at money changers.</p>
+<p class="answer">How much more than the official rate people pay for a dollar. Priced from USDT on Binance P2P and local exchanges.</p>
 
 <div class="row"><span>Algeria</span><div class="bar"><div class="fill" style="width:91.7%"></div><span class="val" style="left:91.7%">92%</span></div></div>
 <div class="row"><span>Iraq</span><div class="bar"><div class="fill" style="width:19.9%"></div><span class="val" style="left:19.9%">20%</span></div></div>
@@ -138,9 +143,9 @@ h3{font-size:15px;margin:32px 0 4px;font-weight:600}
 <div class="row low"><span>Philippines</span><div class="bar"><div class="fill" style="width:0"></div><span class="val" style="left:4px">0% <em>· where 3 of our routes land</em></span></div></div>
 <div class="row low"><span>Mexico</span><div class="bar"><div class="fill" style="width:0"></div><span class="val" style="left:4px">0% <em>· where 1 of our routes lands</em></span></div></div>
 
-<p class="why">In the Philippines and Mexico, what people pay and the official rate match, so a normal app already gives you the real rate and a stablecoin has nothing to beat. In Algeria, banks sell few dollars, so USDT is how people get them. Right now you can buy about $5,000 of USDT there within 1% of the best price.</p>
-<p class="small">Median of the last 24 hours. <a href="#">All 51 countries →</a></p>
+<p class="plainline">A normal app already gets you the real rate in the Philippines and Mexico, so a stablecoin has nothing to beat. In Algeria, banks sell few dollars, so USDT is how people get them: about $2,500 is on offer right now within 1% of the best price.</p>
+<p class="small"><a href="#">All countries →</a></p>
 </section>
-</div>
+<footer class="foot">Every number on this site comes from a public data file. <a href="#">Code and raw data on GitHub →</a></footer></div>
 </body>
 </html>
