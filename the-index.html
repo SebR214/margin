@@ -7,7 +7,6 @@
 <meta name="description" content="What people pay for a dollar, country by country, priced every hour with a receipt behind every number."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
-<script src="./js/chart.js"></script>
 <style>
   :root{
     --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0;
@@ -22,6 +21,7 @@
   header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;gap:12px}
   .brand{display:flex;align-items:center;gap:28px;min-width:0;flex:1}
   .logo{font-size:18px;font-weight:800;letter-spacing:-0.02em;flex-shrink:0}
+  .logo a{display:inline-flex;align-items:center;min-height:40px}
   nav{display:flex;gap:4px;font-size:15px;font-weight:500;color:var(--sub);overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none;white-space:nowrap;min-width:0}
   nav::-webkit-scrollbar{display:none}
   nav a{padding:12px 10px;display:inline-flex;align-items:center;min-height:40px;white-space:nowrap}
@@ -40,10 +40,6 @@
   .search{margin-top:8px;width:100%;padding:12px 14px;font:inherit;font-size:15px;border:1px solid var(--dust);border-radius:8px;background:#fff;color:var(--ink);min-height:44px}
   .search:focus{outline:2px solid var(--peri);outline-offset:1px}
 
-  .featured{padding-top:28px;border-top:1px solid var(--rule);margin-top:28px}
-  .headline{font-size:26px;font-weight:800;letter-spacing:-.01em;display:block}
-  .receipt{font-size:14px;color:var(--sub);padding-top:14px}
-
   section{border-top:1px solid var(--rule);margin-top:36px;padding-top:28px}
   h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
   .answer{font-size:15px;color:var(--sub);margin:0 0 16px}
@@ -60,6 +56,7 @@
   .rt{text-align:right;color:var(--sub);font-variant-numeric:tabular-nums;font-size:14px}
   .head .gp,.head .rt,.head .thn{font-weight:600;font-size:14px;color:var(--stamp)}
   .small{font-size:15px;color:var(--stamp);margin:14px 0 0}
+  .small a{display:inline-block;padding:13px 2px;min-height:40px}
 
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chip{font-size:14px;padding:9px 12px;min-height:40px;display:inline-flex;align-items:center;border:1px solid var(--dust);border-radius:999px;color:var(--sub);font-variant-numeric:tabular-nums}
@@ -68,11 +65,12 @@
   .why{list-style:none;margin:0;padding:0}
   .wrow{padding:12px 0;border-top:1px solid var(--rule);font-size:14px;min-height:40px;display:flex;align-items:center}
   .wrow span{display:block;font-size:14px;color:var(--stamp)}
+  .wname a{display:inline-block;padding:13px 3px;min-height:40px}
   .frozen-row{padding:12px 0;border-top:1px solid var(--rule);font-size:14px;display:flex;justify-content:space-between;gap:12px;min-height:40px;align-items:center}
   .frozen-row .r{color:var(--stamp);text-align:right}
 
   footer.foot{border-top:1px solid var(--rule);margin-top:56px;padding:24px 0 40px;font-size:15px;color:var(--sub)}
-  footer.foot a{color:var(--ink);font-weight:500}
+  footer.foot a{display:inline-block;padding:13px 2px;min-height:40px;color:var(--ink);font-weight:500}
 
   @media(max-width:620px){
     .trow{grid-template-columns:1fr 88px 64px;gap:8px}
@@ -110,8 +108,6 @@
     <p class="meta" id="metaLine"><span class="dot"></span>Loading this hour's prices&hellip;</p>
     <input class="search" type="text" id="searchBox" aria-label="Find a country" placeholder="Find a country"/>
   </div>
-
-  <div class="featured" id="featured"></div>
 
   <section id="secBig">
     <h2 id="bigTitle">Where the government sets the rate</h2>
@@ -255,38 +251,6 @@
     return d.length ? d[0] : c.history_start;
   }
 
-  var chartWidget = null;
-  function renderFeatured(c){
-    var dates = sparkDates(c);
-    var sinceLabel = dates.length ? shortDate(dates[0]) : null;
-    var html = '<a class="headline num" href="./country.html?ccy='+esc(c.ccy)+'" title="See how this number was made">'+
-      esc(listName(c.country))+': what people pay over the official rate, %'+(sinceLabel ? ' &middot; since '+sinceLabel : '')+
-      '</a><div id="featChart" style="padding-top:14px"></div>'+
-      '<div class="receipt">Based on '+esc(evidenceLabel(c.evidence_words))+(lowConfidence(c) ? ' <span class="flag">(low confidence)</span>' : '')+
-      ' &middot; buying and selling back loses '+fmtGapPct(c.round_trip_pct)+
-      ' &middot; <a href="./country.html?ccy='+esc(c.ccy)+'" style="font-weight:600">'+esc(listName(c.country))+' in full &rarr;</a></div>';
-    document.getElementById('featured').innerHTML = html;
-    chartWidget = document.getElementById('featChart');
-    chartWidget._spark = c.spark; chartWidget._dates = sparkDates(c);
-    if (c.spark && c.spark.length > 1) {
-      MarginChart.render(chartWidget, { spark: c.spark, timestamps: sparkDates(c), valueSuffix: '%' });
-    }
-  }
-  // Mobile rule: a chart must draw at its container's real width, not a
-  // fixed viewBox scaled down by CSS (js/chart.js already measures
-  // getBoundingClientRect() at render time) -- but that measurement only
-  // happens once, at render(). A phone rotated, or a window resized, needs
-  // the chart rebuilt against the new width so its text never shrinks.
-  var resizeTimer = null;
-  window.addEventListener('resize', function(){
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function(){
-      if (chartWidget && chartWidget._spark && chartWidget._spark.length > 1 && chartWidget.isConnected) {
-        MarginChart.render(chartWidget, { spark: chartWidget._spark, timestamps: chartWidget._dates, valueSuffix: '%' });
-      }
-    }, 150);
-  });
-
   function joinList(parts){
     if (parts.length <= 1) return parts.join('');
     return parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1];
@@ -299,21 +263,12 @@
     var chg = (then != null) ? (now - then) : null;
     var chgHtml = chg == null ? '' : '<small class="ch'+(chg>0?' up':'')+'">'+fmtPts(chg)+'</small>';
     var flag = lowConfidence(c) ? ' &middot; <span class="flag">low confidence</span>' : '';
-    return '<div class="trow" data-ccy="'+esc(c.ccy)+'">'+
+    return '<a class="trow" data-ccy="'+esc(c.ccy)+'" href="./country.html?ccy='+esc(c.ccy)+'">'+
       '<span class="cn"><b>'+esc(listName(c.country))+'</b><small>'+esc(c.ccy)+flag+'</small></span>'+
       '<span class="thn num">'+(then!=null ? fmtGapPct(then) : '&mdash;')+'</span>'+
       '<span class="gp num">'+fmtGapPct(now)+chgHtml+'</span>'+
       '<span class="rt num">'+(c.round_trip_pct!=null ? fmtGapPct(c.round_trip_pct) : '&mdash;')+'</span>'+
-      '</div>';
-  }
-
-  function wireRowClicks(container, countries){
-    container.querySelectorAll('.trow[data-ccy]').forEach(function(el){
-      el.addEventListener('click', function(){
-        var c = countries.find(function(x){ return x.ccy === el.getAttribute('data-ccy'); });
-        if (c) { renderFeatured(c); document.getElementById('featured').scrollIntoView({behavior:'smooth', block:'start'}); }
-      });
-    });
+      '</a>';
   }
 
   // A country counts as "the government sets the rate" only when
@@ -347,10 +302,6 @@
     var unmaintained = countries.filter(c => c.denominator_class === 'unmaintained');
     var ranked = countries.filter(c => c.denominator_class !== 'unmaintained');
 
-    var byGap = ranked.slice().sort((a,b) => gapNow(b) - gapNow(a));
-    var featured = byGap[0];
-    if (featured) renderFeatured(featured);
-
     // Managed-rate countries: a real gap (>= SMALL_GAP) means the
     // government-set rate and what people actually pay for a dollar have
     // come apart. Pegged currencies get their own section below regardless
@@ -380,7 +331,6 @@
       : 'No country in this group has a real gap this hour.';
     document.getElementById('bigThenHdr').textContent = 'On ' + (managedBig[0] ? shortDate(thenDate(managedBig[0])) : '…');
     document.getElementById('bigBody').innerHTML = managedBig.map(rowHtml).join('');
-    wireRowClicks(document.getElementById('bigBody'), countries);
 
     var modRange = rng(marketBig);
     document.getElementById('modTitle').textContent = modRange
@@ -393,23 +343,15 @@
     })();
     document.getElementById('modThenHdr').textContent = 'On ' + (marketBig[0] ? shortDate(thenDate(marketBig[0])) : '…');
     document.getElementById('modBody').innerHTML = marketBig.map(rowHtml).join('');
-    wireRowClicks(document.getElementById('modBody'), countries);
 
     document.getElementById('pegThenHdr').textContent = 'On ' + (pegged[0] ? shortDate(thenDate(pegged[0])) : '…');
     document.getElementById('pegBody').innerHTML = pegged.map(rowHtml).join('');
-    wireRowClicks(document.getElementById('pegBody'), countries);
 
     document.getElementById('nearTitle').textContent =
       'In ' + near.length + ' more countries, people pay the official rate, give or take ' + SMALL_GAP + '%';
     document.getElementById('nearChips').innerHTML = near.map(function(c){
-      return '<span class="chip" data-ccy="'+esc(c.ccy)+'"><b>'+esc(listName(c.country))+'</b> '+fmtPct(gapNow(c))+'</span>';
+      return '<a class="chip" data-ccy="'+esc(c.ccy)+'" href="./country.html?ccy='+esc(c.ccy)+'"><b>'+esc(listName(c.country))+'</b> '+fmtPct(gapNow(c))+'</a>';
     }).join('');
-    document.querySelectorAll('#nearChips .chip').forEach(function(el){
-      el.addEventListener('click', function(){
-        var c = countries.find(function(x){ return x.ccy === el.getAttribute('data-ccy'); });
-        if (c) { renderFeatured(c); document.getElementById('featured').scrollIntoView({behavior:'smooth', block:'start'}); }
-      });
-    });
 
     // Withheld, grouped by reason, alphabetical within each group -- same
     // three real reasons tools/emit_countries.py already writes.
@@ -431,42 +373,32 @@
       return esc(listName(c.country)) + ' (' + fmtGapPct(gapNow(c)) + ') is left out of every list above: its official rate is frozen, so the gap means nothing.';
     }).join(' ') + ' <a href="./how-it-works.html">How we price a country &rarr;</a>';
 
-    // Search: filters every row and chip live, AND -- since a distant
-    // filtered result is easy to miss -- selects a single unambiguous match
-    // into the featured country up top, the same view a click gives.
+    // Search: filters every row and chip live. Pressing Enter on a single
+    // unambiguous match goes straight to that country's page, the same
+    // place clicking its row already takes you.
     var searchBox = document.getElementById('searchBox');
     function runSearch(){
       var q = searchBox.value.trim().toLowerCase();
-      var matches = [];
       document.querySelectorAll('.trow[data-ccy]').forEach(function(el){
         var t = el.textContent.toLowerCase();
-        var hit = !q || t.includes(q);
-        el.style.display = hit ? '' : 'none';
-        if (hit && q) matches.push(el.getAttribute('data-ccy'));
+        el.style.display = (!q || t.includes(q)) ? '' : 'none';
       });
       document.querySelectorAll('#nearChips .chip').forEach(function(el){
         var t = el.textContent.toLowerCase();
-        var hit = !q || t.includes(q);
-        el.style.display = hit ? '' : 'none';
-        if (hit && q) matches.push(el.getAttribute('data-ccy'));
+        el.style.display = (!q || t.includes(q)) ? '' : 'none';
       });
       document.querySelectorAll('.wrow').forEach(function(el){
         var t = el.textContent.toLowerCase();
         el.style.display = (!q || t.includes(q)) ? '' : 'none';
       });
-      if (q && matches.length === 1) {
-        var c = countries.find(function(x){ return x.ccy === matches[0]; });
-        if (c) renderFeatured(c);
-      }
     }
     searchBox.addEventListener('input', runSearch);
     searchBox.addEventListener('keydown', function(e){
       if (e.key === 'Enter') {
         var q = searchBox.value.trim().toLowerCase();
         var visible = Array.from(document.querySelectorAll('.trow[data-ccy]')).filter(el => el.style.display !== 'none');
-        if (q && visible.length >= 1) {
-          var c = countries.find(x => x.ccy === visible[0].getAttribute('data-ccy'));
-          if (c) { renderFeatured(c); document.getElementById('featured').scrollIntoView({behavior:'smooth', block:'start'}); }
+        if (q && visible.length === 1) {
+          window.location.href = visible[0].getAttribute('href');
         }
       }
     });
