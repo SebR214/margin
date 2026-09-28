@@ -112,21 +112,22 @@
   <section id="secBig">
     <h2 id="bigTitle">Where the government sets the rate</h2>
     <p class="answer" id="bigAnswer">Loading&hellip;</p>
-    <div class="trow head"><span>Country</span><span class="thn" id="bigThenHdr">Then</span><span class="gp">Now</span><span class="rt">Round trip</span></div>
+    <div class="trow head"><span>Country</span><span class="thn" id="bigThenHdr">Then</span><span class="gp">Now</span><span class="rt">You can buy now</span></div>
     <div id="bigBody"></div>
+    <p class="small" style="font-size:15px;color:#6B6B6B;margin-top:14px">"You can buy now" is how many dollars you could buy this hour within 1% of the best price. We stop counting at $5,000.</p>
   </section>
 
   <section id="secModerate">
     <h2 id="modTitle">More countries with a real gap</h2>
     <p class="answer" id="modAnswer">Loading&hellip;</p>
-    <div class="trow head"><span>Country</span><span class="thn" id="modThenHdr">Then</span><span class="gp">Now</span><span class="rt">Round trip</span></div>
+    <div class="trow head"><span>Country</span><span class="thn" id="modThenHdr">Then</span><span class="gp">Now</span><span class="rt">You can buy now</span></div>
     <div id="modBody"></div>
   </section>
 
   <section id="secPegged">
     <h2>Currencies fixed to the dollar or euro: the gap is the cost of buying stablecoins, not a weak currency</h2>
     <p class="answer">A pegged currency trades at its official rate. Paying more for USDT there means stablecoins are hard to get, not that the currency is failing.</p>
-    <div class="trow head"><span>Country</span><span class="thn" id="pegThenHdr">Then</span><span class="gp">Now</span><span class="rt">Round trip</span></div>
+    <div class="trow head"><span>Country</span><span class="thn" id="pegThenHdr">Then</span><span class="gp">Now</span><span class="rt">You can buy now</span></div>
     <div id="pegBody"></div>
   </section>
 
@@ -267,7 +268,7 @@
       '<span class="cn"><b>'+esc(listName(c.country))+'</b><small>'+esc(c.ccy)+flag+'</small></span>'+
       '<span class="thn num">'+(then!=null ? fmtGapPct(then) : '&mdash;')+'</span>'+
       '<span class="gp num">'+fmtGapPct(now)+chgHtml+'</span>'+
-      '<span class="rt num">'+(c.round_trip_pct!=null ? fmtGapPct(c.round_trip_pct) : '&mdash;')+'</span>'+
+      '<span class="rt num">'+depthWords(c.ccy)+'</span>'+
       '</a>';
   }
 
@@ -281,7 +282,13 @@
                       // reused everywhere a row needs sorting into "a real
                       // gap" vs "close enough to the official rate".
 
-  fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
+  var DEPTH = {};
+  function depthWords(ccy){
+    var v = DEPTH[ccy];
+    if (!v || v.depth_usd == null) return '&mdash;';
+    return v.is_floor ? '$5,000+' : '$' + Math.round(v.depth_usd).toLocaleString('en-US');
+  }
+  fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null).then(function(dep){ DEPTH = (dep && dep.countries) || {}; return fetch('./data/index_latest.json', {cache:'no-store'}); }).then(r=>r.json()).then(function(d){
     var countries = d.countries || [];
     var withheld = d.withheld || [];
     var total = countries.length + withheld.length;

@@ -627,7 +627,7 @@
           var word = up ? (COPY.changeUpWord||'') : (COPY.changeDownWord||'');
           var agree = T(COPY.changeAgreeTemplate || '', { n: c.n_agree, m: c.n_panel });
           return '<li><span>'+esc(c.provider)+', '+esc(arrowWords(PROVIDERS.corridors[c.corridor] || {src:'',dst:''}))+'<span class="s2">'+esc(sub)+'</span></span>' +
-            '<span>'+(up?'<span class="up">'+esc(word)+'</span>':esc(word))+'<span class="s2" style="text-align:right">'+fmt(c.old_cost_pct)+' → '+fmt(c.new_cost_pct)+'</span><span class="s2" style="text-align:right">'+esc(agree)+'</span></span></li>';
+            '<span>'+(up?'<span class="up">'+esc(word)+'</span>':esc(word))+'<span class="s2" style="text-align:right">'+fmt(c.old_cost_pct)+' → '+fmt(c.new_cost_pct)+'</span></span></li>';
         }
 
         var listEl = document.getElementById('changesList');

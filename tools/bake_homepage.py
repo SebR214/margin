@@ -259,8 +259,8 @@ def _priced_sorted(rows, exclude_pegged):
 # 24h median -- so this section is now a single static link line, built
 # from a fixed copy.json string, not from index_latest.json at all.
 def see_all_countries_line(home_copy):
-    return ('<div class="strip-note"><a href="./the-index.html" style="font-weight:600;color:#0B0B0B">'
-            + esc(home_copy.get("seeAllCountriesLine", "See all 60 countries →")) + '</a></div>')
+    return ""
+
 
 
 # Section 1, the ONE remaining country chart (Sebastian's 2026-09-28
@@ -379,116 +379,54 @@ def _ordered_rows(priced):
 
 
 def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth=None):
+    """Home's country section, matching docs/mockups/home.html: the finding
+    as the heading, one answer line, the 5 widest managed-rate gaps as bars,
+    then the Philippines and Mexico (where our routes land), one sentence,
+    one link. Sudan (frozen rate) and pegged currencies are left out here,
+    they stay on the-index.html. index.html's own script renders the same
+    markup client-side (renderAllCountriesStrip) -- keep the two in sync.
+    """
     rows_in = _home_rows(idx_doc)
     priced = _priced_sorted(rows_in, exclude_pegged=False)
     if not priced:
         return None
     dest_counts = dest_counts or {}
+    top = [c for c in priced if c.get("denominator_class") not in ("pegged", "unmaintained")][:5]
+    by_ccy = {c.get("ccy"): c for c in priced}
+    pins = [by_ccy[k] for k in ("PHP", "MXN") if k in by_ccy]
+    mx = max([c.get("gap_pct", 0.0) for c in top] or [1.0]) or 1.0
 
-    labels = home_copy.get("allCountriesLabels", {})
-    W, row_h_plain, row_h_caption, row_h_div, top = PREMIUM_BAKE_W, 24, 38, 16, 6
-    label_w = min(170, round(W * 0.42))
-    value_w = min(60, round(W * 0.15))
-    bar_left = label_w
-    bar_right = W - value_w
-    bar_w = bar_right - bar_left
+    def name(c):
+        n = c.get("country", "")
+        return n[4:] if n.lower().startswith("the ") else n
 
-    max_real = max(
-        [c.get("gap_pct", 0.0) for c in priced if c.get("denominator_class") != "unmaintained"],
-        default=1.0,
-    ) or 1.0
+    def pct_words(v):
+        r = round(v)
+        return f"{abs(r) if r == 0 else r}%"
 
-    ordered = _ordered_rows(priced)
-
-    # Every priced country gets a row; one with its own caption (Sudan, the
-    # Philippines/Mexico) gets a taller row so the caption prints on its own
-    # full-width line below the bar instead of being squeezed into the
-    # narrow value column and clipped by the SVG's own viewBox
-    # (SEB-reported). Pegged rows render lighter grey but carry no caption
-    # of their own -- one legend line under the chart covers all of them.
-    rows = []
-    y = top
-    n_priced = len(priced)
-    for c, is_div in ordered:
-        if is_div:
-            row_y = y
-            y += row_h_div
-            rows.append(
-                f'<line x1="0" y1="{row_y+8:.1f}" x2="{W}" y2="{row_y+8:.1f}" '
-                f'stroke="#D3D0CB" stroke-width="1" stroke-dasharray="3,3"/>'
-            )
-            continue
-        pct = c.get("gap_pct", 0.0)
-        is_unmaintained = c.get("denominator_class") == "unmaintained"
-        is_pegged = c.get("denominator_class") == "pegged"
-        label_key = ALL_LABEL_CCY.get(c.get("ccy"))
-        if is_unmaintained:
-            caption = labels.get("frozenRate", "official rate frozen, not comparable")
-        elif label_key == "transferPriced":
-            n_sends = dest_counts.get(c.get("ccy"), 0)
-            caption = labels.get("transferPricedTemplate", "").replace("{n}", str(n_sends))
-        elif label_key:
-            caption = labels.get(label_key, "")
-        else:
-            caption = ""
-        row_y = y
-        y += row_h_caption if caption else row_h_plain
-        w = bar_w if is_unmaintained else max(2.0, min(1.0, pct / max_real) * bar_w)
-        fill = "#EDEDED" if is_pegged else ("#D3D0CB" if is_unmaintained else "#9A9A9A")
-        text_fill = "#9A9A9A" if (is_pegged or is_unmaintained) else "#0B0B0B"
-        tip_rounded = round(pct, 2)
-        tip = c.get("country", "") + ": " + ("+" if tip_rounded > 0 else "") + f"{abs(tip_rounded) if tip_rounded == 0 else tip_rounded:.2f}% vs the official rate, 24h median"
-        href = "./country.html?ccy=" + esc(c.get("ccy", ""))
-        rounded = round(pct, 1)
-        sign = "+" if rounded > 0 else ""
-        value_text = f"{sign}{abs(rounded) if rounded == 0 else rounded:.1f}%"
-        country_label = c.get("country", "")
-        if country_label.lower().startswith("the "):
-            country_label = country_label[4:]
-        break_mark = (
-            f'<line x1="{bar_right-5}" y1="{row_y+2:.1f}" x2="{bar_right-1}" y2="{row_y+12:.1f}" stroke="#fff" stroke-width="2"/>'
-            if is_unmaintained else ""
-        )
-        caption_svg = (
-            f'<text x="0" y="{row_y+31:.1f}" font-family="Archivo,sans-serif" font-size="14" fill="#9A9A9A">{esc(caption)}</text>'
-            if caption else ""
-        )
-        rows.append(
-            f'<a href="{href}"><title>{esc(tip)}</title>'
-            f'<text x="0" y="{row_y+16:.1f}" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="{text_fill}">{esc(country_label)}</text>'
-            f'<rect x="{bar_left}" y="{row_y+4:.1f}" width="{w:.1f}" height="10" rx="2" fill="{fill}"/>{break_mark}'
-            f'<text x="{W-4}" y="{row_y+13:.1f}" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="{text_fill}">{value_text}</text>'
-            f'{caption_svg}</a>'
-        )
-    H = y + 10
-
-    svg_html = (
-        f'<svg viewBox="0 0 {W} {H}" style="width:100%;max-width:800px;height:auto" class="strip-svg">'
-        + "".join(rows)
-        + '</svg>'
-    )
+    rows = ""
+    for c in top:
+        w = max(0.005, min(1.0, c.get("gap_pct", 0.0) / mx)) * 85
+        rows += ('<a class="crow" href="./country.html?ccy=' + esc(c.get("ccy", "")) + '">'
+                 '<span class="cname">' + esc(name(c)) + '</span>'
+                 '<span class="cbar"><i style="width:' + f"{w:.1f}" + '%"></i>'
+                 '<b style="left:' + f"{w:.1f}" + '%">' + pct_words(c.get("gap_pct", 0.0)) + '</b></span></a>')
+    pin_rows = ""
+    for c in pins:
+        n = dest_counts.get(c.get("ccy"), 0)
+        land = f"where {n} of our routes land" if n != 1 else "where 1 of our routes lands"
+        pin_rows += ('<a class="crow low" href="./country.html?ccy=' + esc(c.get("ccy", "")) + '">'
+                     '<span class="cname">' + esc(name(c)) + '</span>'
+                     '<span class="cbar"><i style="width:0"></i><b style="left:0">'
+                     + pct_words(c.get("gap_pct", 0.0)) + ' · ' + land + '</b></span></a>')
     header = esc(country_finding_header_html(rows_in, home_copy))
     answer = esc(home_copy.get("allCountriesAnswerLine", ""))
-    median_note = esc(home_copy.get("allCountriesMedianNote", "Median of the last 24 hours."))
-    pegged_legend = esc(home_copy.get("allCountriesPeggedLegend",
-        "Light grey: pegged currency, the gap is the cost of buying stablecoins."))
-    note = esc(home_copy.get("allCountriesNote", ""))
-    # Sebastian's 2026-09-28 final mockup, item 6: this one link drops the
-    # live priced-count number ("All 51 priced countries →" -> "All
-    # countries →") -- a simplification of THIS label only, not a general
-    # ban on stating the count elsewhere on the site.
-    link = esc(home_copy.get("allCountriesLinkTemplate", "All countries →"))
     why = esc(country_why_html(rows_in, home_copy, street_depth))
-    return (
-        "<h2>" + header + "</h2>"
-        '<p class="answer">' + answer + "</p>"
-        '<div class="strip-wrap">' + svg_html + '</div>'
-        '<div class="strip-note">' + median_note + '</div>'
-        '<div class="strip-note">' + pegged_legend + '</div>'
-        '<div class="strip-note">' + note + '</div>'
-        '<p class="plainline">' + why + '</p>'
-        '<div class="strip-note"><a href="./the-index.html" style="font-weight:600;color:#0B0B0B">' + link + '</a></div>'
-    )
+    return ('<h2>' + header + '</h2>'
+            '<p class="answer">' + answer + '</p>'
+            '<div class="cbars">' + rows + '<div class="cgap"></div>' + pin_rows + '</div>'
+            + ('<p class="plainline">' + why + '</p>' if why else '')
+            + '<p class="small-note"><a href="./the-index.html">All countries →</a></p>')
 
 
 def pct(bps):
@@ -616,7 +554,7 @@ def main():
         "headline", "Sending money by stablecoin usually costs more than a transfer app")))
     changed = changed or ok1
 
-    n_countries = count_countries()
+    n_countries = (len((idx_doc_for_sub := load_index_latest() or {}).get("countries") or []) + len(idx_doc_for_sub.get("withheld") or [])) or None
     html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, n_countries))
     changed = changed or ok2
 
