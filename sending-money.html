@@ -14,7 +14,6 @@
      max-width/margin here to line up with .page below it. */
   :root{ --ink:#0B0B0B; --mute:#6B6B6B; --faint:#9A9A9A; --line:#F0F0F0; --peri:#817FCC; --soft:#D3D0CB; --grape:#3F3047; --egg:#F0EBD8;
     box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px) }
-  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --ink:#eee; --mute:#a3a3a3; --faint:#6f6f6f; --line:#2a2a2a; --peri:#9E9CE0; --soft:#5b5853; --grape:#A99BB5; --egg:#221f1a; } }
   :root[data-theme="dark"]{ --ink:#eee; --mute:#a3a3a3; --faint:#6f6f6f; --line:#2a2a2a; --peri:#9E9CE0; --soft:#5b5853; --grape:#A99BB5; --egg:#221f1a; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
@@ -24,7 +23,6 @@
      the shared rule here would change all 7 pages' body text in one PR
      scoped to sending-money.html only. */
   body{font-size:17px}
-  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) body{background:#121212} }
   :root[data-theme="dark"] body{background:#121212}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--peri)}
   .num{font-variant-numeric:tabular-nums}
@@ -40,7 +38,6 @@
 
   .pills{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 0}
   .pill{font-size:14px;padding:10px 16px;min-height:40px;display:inline-flex;align-items:center;border-radius:999px;border:1px solid var(--soft);color:var(--ink);background:#fff;white-space:nowrap;cursor:pointer;font-family:inherit}
-  :root[data-theme="dark"] .pill, @media (prefers-color-scheme:dark){ .pill{background:transparent} }
   .pill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
   .pills.small{margin-top:10px}
   .pills.small .pill{font-size:14px;padding:8px 14px;min-height:36px}
@@ -67,7 +64,7 @@
   .prow.venue-row:hover{background:rgba(129,127,204,0.06)}
   .venue-toggle-caret{font-size:11px;color:var(--faint)}
   .venue-breakdown{padding:6px 0 12px 0;border-top:0;border-bottom:1px solid var(--line)}
-  .venue-breakdown-hdr{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.02em;padding-bottom:6px}
+  .venue-breakdown-hdr{font-size:14px;color:var(--faint);padding-bottom:6px}
   .venue-combo-row{display:grid;grid-template-columns:1fr 90px;gap:16px;font-size:13px;color:var(--grape);padding:4px 0;min-height:24px;align-items:center}
   .venue-combo-row .num-cell{font-size:13px}
 

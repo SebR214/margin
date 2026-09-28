@@ -81,7 +81,7 @@
 
   table{width:100%; border-collapse:collapse; font-size:14px; margin-top:4px}
   th,td{text-align:right; padding:8px 6px; border-bottom:1px solid var(--color-divider); font-variant-numeric:tabular-nums; font-family:var(--mono)}
-  th{color:var(--color-neutral-600); font-weight:600; font-family:var(--font-body); font-size:14px; text-transform:uppercase; letter-spacing:.03em}
+  th{color:var(--color-neutral-600); font-weight:600; font-family:var(--font-body); font-size:14px;  }
   th:first-child,td:first-child{text-align:left}
   tr.hl td{background:var(--color-surface)}
   tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--rail)}
@@ -121,6 +121,16 @@
   @media (max-width:760px){
     .sz{min-height:40px; display:inline-flex; align-items:center}
   }
+
+  #receipt{margin-top:14px}
+  .rc{display:grid;grid-template-columns:1fr 96px 64px;gap:12px;padding:10px 0;border-top:1px solid var(--color-divider,#F0F0F0);font-size:16px;align-items:baseline}
+  .rc.leg{display:block;border-top:0;padding:16px 0 4px;font-size:16px;font-weight:600}
+  .rc .a,.rc .b{text-align:right;font-variant-numeric:tabular-nums}
+  .rc .b{color:#6B6B6B;font-size:15px}
+  .rc.neg span:first-child,.rc.neg .a{color:#6B6B6B}
+  .rc.tot{border-top:2px solid #0B0B0B;font-weight:700}
+  .rc.tot .a,.rc.tot .b{color:#817FCC}
+  @media (max-width:620px){.rc{grid-template-columns:1fr 84px 58px;gap:8px;font-size:15px}}
 </style>
 </head>
 <body>
@@ -156,7 +166,7 @@
   <div class="sizebar" id="corrbar"><span class="lbl" id="routeLbl"></span></div>
   <div class="sizebar" id="sizebar"><span class="lbl" id="sendLbl"></span></div>
 
-  <div class="card">
+  <div class="card" style="display:none">
     <div class="nums" id="nums"></div>
     <div class="verdict" id="verdict"></div>
   </div>
@@ -164,9 +174,10 @@
   <div class="card">
     <h2><span id="wfTitle"></span> <span id="wf-size" style="color:var(--color-neutral-600);font-weight:400"></span></h2>
     <p class="cap" id="wfAnswer"></p>
-    <p class="cap" id="wfCap"></p>
-    <svg class="wf" id="wf" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet"></svg>
-    <div class="legend-row" id="wfLegend"></div>
+    <p class="cap" id="wfCap" style="display:none"></p>
+    <div id="receipt"></div>
+    <svg class="wf" id="wf" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet" style="display:none"></svg>
+    <div class="legend-row" id="wfLegend" style="display:none"></div>
     <div class="disclosure-note" id="wfDisclosure"></div>
   </div>
 
@@ -174,6 +185,7 @@
     <h2 id="ladderTitle"></h2>
     <p class="cap"><span id="ladderCap"></span></p>
     <div style="overflow-x:auto"><table id="ladder"></table></div>
+    <p class="cap" style="margin-top:12px">Limit order: set your price and wait for it to fill, instead of paying the price on offer right now. Cheapest app is from a public price comparison.</p>
   </div>
 
   <div class="card">
@@ -197,6 +209,8 @@
 const SIZES=[200,1000,5000,25000,50000];
 let COPY={};
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const VENUE={IndependentReserve:"Independent Reserve",Coins_ph:"Coins.ph","coins.ph":"Coins.ph",CoinsPH:"Coins.ph",OKX_P2P:"OKX P2P",Bitso:"Bitso",Binance_P2P:"Binance P2P"};
+const venueName=v=>VENUE[v]||String(v||"").replace(/_/g," ");
 // Loud, not plausible: a missing copy.json key used to fall back to
 // hardcoded English that reads exactly like real content, so the deck
 // drifting out of sync with this file (a key renamed, a load that quietly
@@ -283,8 +297,14 @@ function cheapestApp(corridorKey, sizeAmount, fallbackRow){
     providersLatest.corridors[corridorKey].sizes[String(sizeAmount)] &&
     providersLatest.corridors[corridorKey].sizes[String(sizeAmount)].rows;
   if(rows && rows.length){
-    const app=rows.find(rr=>rr.source!=="measured");
-    if(app) return { provider: app.provider, bps: app.cost_pct*100 };
+    // Public comparison only, until the direct provider quotes are verified
+    // (Airwallex flat 0.104% at every amount, Instarem ~0.002%: not credible).
+    // Each provider's price as the public comparison quotes it: the row's
+    // own cost for comparison rows, the comparison's figure (also_quoted_pct)
+    // for providers that also quote us directly.
+    const cands=rows.map(rr=>({provider:rr.provider, pct: rr.source==="comparison" ? rr.cost_pct : rr.also_quoted_pct}))
+                    .filter(c=>c.pct!=null && isFinite(c.pct)).sort((a,b)=>a.pct-b.pct);
+    if(cands.length) return { provider: cands[0].provider, bps: cands[0].pct*100 };
   }
   return { provider: fallbackRow.baseline_provider, bps: +fallbackRow.baseline_cost_bps };
 }
@@ -463,7 +483,7 @@ function selectCorridor(key){
     // straight through rendered that as "2026-08-10 · 2026-08-10". Distinct
     // dates only -- if the legs ever diverge, both still show.
     T(COPY.sourceTemplate||"Updated {time} UTC · buy on {onrampVenue}, sell on {offrampVenue} · exchange fees checked {dates}",
-      {time: newest.slice(0,16).replace("T"," "), onrampVenue: r5.onramp_venue, offrampVenue: r5.offramp_venue, dates: feeDates(r5.fees_verified)})+
+      {time: newest.slice(0,16).replace("T"," "), onrampVenue: venueName(r5.onramp_venue), offrampVenue: venueName(r5.offramp_venue), dates: feeDates(r5.fees_verified)})+
     // The dates are already printed above from fees_verified. The watcher stamp
     // only earns its place when it DISAGREES -- i.e. a check has gone red.
     (feeStampR.unverified ? ` · ${feeStampR.text}` : "")+
@@ -473,7 +493,7 @@ function selectCorridor(key){
   renderCorridors(); renderSizes(); render();
   const dst=(r5.dst||"").trim();
   document.getElementById("foot").innerHTML=
-    T(COPY.footerTemplate, { onrampVenue: r5.onramp_venue, srcCcy, offrampVenue: r5.offramp_venue, dst })+" "+
+    T(COPY.footerTemplate, { onrampVenue: venueName(r5.onramp_venue), srcCcy, offrampVenue: venueName(r5.offramp_venue), dst })+" "+
     `<a href="./how-it-works.html">${(COPY.footerLinks||{}).methodology||""}</a> · <a href="./index.html">${(COPY.footerLinks||{}).board||""}</a>`+
     // New shared closing line, per the final route-breakdown mockup
     // (docs/mockups/route-breakdown.html, 2026-09-28): every page's own
@@ -657,6 +677,41 @@ function drawWaterfall(r,cheapest){
      `<rect x="${Math.min(X(0),xt).toFixed(1)}" y="${y+5}" width="${Math.max(2,Math.abs(xt-X(0))).toFixed(1)}" height="${rowH-10}" fill="var(--win)"/>`+
      `<text data-wf-total="1" x="${(xt+(total>=0?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12" font-family="var(--mono)" font-weight="700" text-anchor="${total>=0?"start":"end"}">${cash(n,total)}</text>`;
   svg.innerHTML=s;
+  drawReceipt(r,wf);
+}
+
+function drawReceipt(r,wf){
+  const n=+r.notional_src, stable=(r.stable||"USDT"), dst=dstOf(r);
+  const buy=+wf.wf_buy_bps, move=+wf.wf_move_bps, sell=+wf.wf_sell_bps;
+  const feeOn=+r.fee_on_taker_bps||0, feeOff=+r.fee_off_taker_bps||0;
+  const on=venueName(r.onramp_venue), off=venueName(r.offramp_venue);
+  const netStable=+r.network_fee_stable;
+  const lines=[
+    {leg:`1 · Buy ${stable} with ${srcCcy} on ${on}`},
+    {l:`${stable} priced above the dollar`, v:buy-feeOn},
+    {l:`${on} fee`, v:feeOn},
+    {leg:`2 · Send ${stable} on chain`},
+    {l:`Network fee${isFinite(netStable)&&netStable>0?", "+(+netStable.toFixed(2))+" "+stable:""}`, v:move},
+    {leg:`3 · Sell ${stable} for ${dst} on ${off}`},
+    {l:`${off} fee`, v:feeOff},
+    {l:(sell-feeOff)<0?"Selling price slightly better than the real rate":"Selling price below the real rate", v:sell-feeOff},
+  ];
+  const total=+r.cost_bps_taker;
+  // Cents: every line rounded on its own, last line is the remainder, so the
+  // printed column always adds up to the printed total.
+  const vals=lines.filter(x=>x.v!=null);
+  const totalC=cents(n,total);
+  const cs=vals.map(x=>cents(n,x.v));
+  cs[cs.length-1]=Math.round((totalC-cs.slice(0,-1).reduce((a,b)=>a+b,0))*100)/100;
+  let k=0, h="";
+  for(const x of lines){
+    if(x.leg){ h+=`<div class="rc leg">${esc(x.leg)}</div>`; continue; }
+    const c=cs[k++], neg=c<0;
+    h+=`<div class="rc${neg?" neg":""}"><span>${esc(x.l)}</span><span class="a">${neg?"−":""}${fmtCents(Math.abs(c))}</span><span class="b">${pct(x.v)}</span></div>`;
+  }
+  h+=`<div class="rc tot"><span>Total</span><span class="a">${cash(n,total)}</span><span class="b">${pct(total)}</span></div>`;
+  document.getElementById("receipt").innerHTML=h;
+  document.getElementById("wfDisclosure").textContent=`Not included yet: bank fees to get ${srcCcy} into ${on} and ${dst} out of ${off}.`;
 }
 
 function drawLadder(){
@@ -681,7 +736,7 @@ function drawLadder(){
   document.getElementById("ladderCap").textContent=T(
     appWinsAll?((COPY.cards||{}).ladder?.capAllTemplate):((COPY.cards||{}).ladder?.capMostTemplate),
     { smallPct: pct(smallNet), smallest: money(smallS), largest: money(largeS) });
-  let h=`<tr><th>${cols.send||""}</th><th>${cols.buyingNow||""}</th><th>${cols.waitingOwnPrice||""}</th><th>${cols.cheapestProvider||""}</th><th>${cols.cheaper||""}</th></tr>`;
+  let h=`<tr><th>Amount</th><th>Stablecoin</th><th>Limit order</th><th>Cheapest app</th></tr>`;
   for(const r of rows){
     const s=+r.notional_src, t=+r.cost_bps_taker, m=+r.cost_bps_maker;
     const cheapest=cheapestApp(r.corridor,s,r), b=cheapest.bps, cw=t<b;
@@ -689,8 +744,7 @@ function drawLadder(){
       <td>${money(s)}</td>
       <td>${cash(s,t)}<br><span class="tag">${pct(t)}</span></td>
       <td>${cash(s,m)}<br><span class="tag">${pct(m)}</span></td>
-      <td>${cheapest.provider}<br><span class="tag">${cash(s,b)}</span></td>
-      <td class="winner ${cw?"c":"f"}">${cw?T(LT.dollarRouteByTemplate,{amount:cashDiff(s,b,t)}):T(LT.providerByTemplate,{amount:cashDiff(s,t,b)})}</td></tr>`;
+      <td>${cash(s,b)}<br><span class="tag">${pct(b)}</span></td></tr>`;
   }
   document.getElementById("ladder").innerHTML=h;
 }
@@ -770,7 +824,7 @@ function drawHistory(){
   // the cheapest app, at this amount, on this corridor, across every hour
   // sampled -- independent of the range toggle below, same as the
   // mockup's own static h2 vs its per-range #ans paragraph.
-  const startDate=rowsAll[0][0].slice(0,10);
+  const startDate=(function(d){const M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return (+d.slice(8,10))+" "+M[(+d.slice(5,7))-1];})(rowsAll[0][0].slice(0,10));
   const winsAllTime=rowsAll.filter(rr=>rr[1]<rr[2]).length;
   document.getElementById("histTitle").textContent = winsAllTime
     ? T(HIST.wasCheaperTemplate||"The stablecoin was cheaper than the cheapest app in {wins} of {total} hours since {start}",
