@@ -204,6 +204,12 @@ jobs:
         # never drift stale -- see tools/emit_coverage.py.
         run: python3 tools/emit_coverage.py
 
+      - name: Emit corridor history for the 24h/7d/30d/all-time chart
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Feeds corridor.html's route-breakdown history chart (the
+        # 24h/7d/30d/all-time buttons). See tools/emit_corridor_history.py.
+        run: python3 tools/emit_corridor_history.py
+
       - name: Emit the price-change record
         if: always() && steps.needed.outputs.proceed == 'true'
         # Append-only. A change is recorded only when a provider moved against
