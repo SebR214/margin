@@ -162,11 +162,6 @@
   </div>
 
   <div class="card">
-    <h2 id="depthTitle"></h2>
-    <div class="nums" id="depthNums" style="grid-template-columns:repeat(2,1fr)"></div>
-  </div>
-
-  <div class="card">
     <h2><span id="wfTitle"></span> <span id="wf-size" style="color:var(--color-neutral-600);font-weight:400"></span></h2>
     <p class="cap" id="wfAnswer"></p>
     <p class="cap" id="wfCap"></p>
@@ -514,25 +509,6 @@ function renderSizes(){
 
 function netBps(r){ return (+r.network_fee_stable)/((+r.notional_src)/(+r.onramp_vwap))*1e4; }
 
-// How much the selling side of the route could take right now, in the
-// destination currency rather than a raw coin count. Same run, same row as
-// everything else on the page; both figures convert at the one live price
-// that exchange is actually quoting for this leg (offramp_vwap), not the
-// separate official cross-rate used nowhere else on this page. This has
-// nothing to do with the send-amount pills above -- it is what the market
-// could absorb from anyone selling, not what the reader is sending.
-function renderDepth(r){
-  const dst=dstOf(r), venue=r.offramp_venue||"the exchange", rate=+r.offramp_vwap;
-  const top=+r.offramp_depth_top_level, within1=+r.offramp_depth_1pct;
-  const okTop=r.offramp_depth_top_level!==undefined&&r.offramp_depth_top_level!==""&&isFinite(top)&&isFinite(rate);
-  const ok1=r.offramp_depth_1pct!==undefined&&r.offramp_depth_1pct!==""&&isFinite(within1)&&isFinite(rate);
-  const D=COPY.depth||{};
-  document.getElementById("depthTitle").textContent=T((COPY.cards||{}).depth?.titleTemplate||"How much USDT you could sell into {dst} on {venue} right now",{dst,venue});
-  document.getElementById("depthNums").innerHTML=`
-    <div class="num"><div class="n-l">${T(D.atBestPriceTemplate||"At the best price: {dst} {amount} before the price moves.",{dst,amount:okTop?moneyIn(dst,top*rate):"—"})}</div></div>
-    <div class="num"><div class="n-l">${T(D.before1PctTemplate||"Within 1% of the best price: {dst} {amount}.",{dst,amount:ok1?moneyIn(dst,within1*rate):"—"})}</div></div>`;
-}
-
 function render(){
   const r=bySize[size], t=+r.cost_bps_taker, m=+r.cost_bps_maker;
   // "The cheapest app" is the true cheapest of every quote for this route
@@ -575,7 +551,6 @@ function render(){
   // the numeric claim now lives in the h1 above, so this line no longer
   // needs to repeat it.
   document.getElementById("verdict1").textContent=COPY.lede||"Every cost of sending it with stablecoins, step by step, checked every hour.";
-  renderDepth(r);
   drawWaterfall(r,cheapest); drawLadder(); drawHistory();
 }
 
