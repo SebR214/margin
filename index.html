@@ -31,7 +31,6 @@
   .hero h1{color:var(--ink)}
   h1{font-size:28px;font-weight:800;line-height:1.22;letter-spacing:-0.02em;max-width:900px;margin:0}
   .sub{padding-top:14px;font-size:16px;line-height:1.5;color:var(--sub);max-width:680px}
-  .purpose{padding-top:8px;font-size:14px;line-height:1.5;color:var(--stamp);max-width:680px}
   .lede{font-size:14px;line-height:1.5;color:var(--sub);margin-bottom:14px;max-width:680px}
   .lead-section{padding:0;max-width:900px}
   .sec{border-top:1px solid var(--rule);margin-top:48px;padding-top:36px}
@@ -50,18 +49,20 @@
   .plainline{font-size:16px;line-height:1.6;color:var(--ink);margin:22px 0 0;max-width:680px}
   .site-footer{border-top:1px solid var(--rule);margin-top:24px;padding-top:24px;font-size:15px;color:var(--sub)}
   .site-footer a{color:var(--ink);font-weight:600}
-  .waterfall-card{border:1px solid var(--rule);border-radius:16px;padding:28px 32px;margin-bottom:40px}
-  .waterfall-title{font-size:14px;letter-spacing:.06em;color:var(--sub);text-transform:uppercase;font-weight:700;margin-bottom:4px}
-  .disclosure-note{font-size:14px;line-height:1.5;color:var(--sub);max-width:640px;margin-top:14px;padding-left:12px;border-left:2px solid var(--rule)}
-  .corridor-table{width:100%;border-collapse:collapse;margin-top:10px}
-  .corridor-table th{text-align:left;font-size:14px;letter-spacing:.06em;color:#9A9A9A;font-weight:600;padding:0 20px 14px 0;border-bottom:1px solid var(--rule)}
-  .corridor-table th:nth-child(2){color:var(--indigo)}
-  .corridor-table td{padding:18px 20px 18px 0;border-bottom:1px solid var(--rule);font-size:15px;vertical-align:top;line-height:1.5}
-  .corridor-table td:nth-child(2){color:var(--indigo);font-weight:700}
-  .corridor-table tr:last-child td{border-bottom:none}
-  .corridor-table .win-yes{color:#0B0B0B;font-weight:700}
-  .corridor-table .win-no{color:#6B6B6B;font-weight:500}
-  .detail-label{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--stamp);font-weight:700;margin:0 0 10px}
+  /* The cost bar: a single stacked bar (buy/move/sell segments) with a
+     dashed reference line for the cheapest app, matching docs/mockups/
+     home.html's final revision exactly -- not the old multi-row waterfall,
+     which on a phone ran its row labels into the bars. */
+  .split{position:relative;margin-top:22px}
+  .stack{display:flex;height:26px;border-radius:3px;overflow:hidden}
+  .stack div{height:100%}
+  .stack div:last-child{box-shadow:inset 0 0 0 1px var(--dust)}
+  .appline{position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dashed var(--grape)}
+  .applabel{position:absolute;top:34px;font-size:14px;color:var(--sub);transform:translateX(-50%);white-space:nowrap}
+  .legend-row{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:14px;margin-top:40px;color:var(--sub)}
+  .legend-row span{display:inline-flex;align-items:center;gap:6px}
+  .legend-row .sw{width:10px;height:10px;border-radius:2px;display:inline-block}
+  .legend-row b{color:var(--ink);font-weight:600}
   .small-note{font-size:15px;color:#9A9A9A;margin-top:8px;font-weight:400;line-height:1.5}
   .small-note a{font-weight:600;color:#0B0B0B;display:inline-flex;align-items:center;padding:10px 0;min-height:40px;box-sizing:border-box}
   .strip-wrap{margin-top:6px}
@@ -88,14 +89,12 @@
   .item .num{font-weight:700} .indigo{color:var(--indigo)}
   .live-strip-note{font-size:15px;line-height:1.6;color:var(--sub);max-width:680px}
   .live-strip-note a{font-weight:600;color:#0B0B0B;display:inline-flex;align-items:center;min-height:40px;box-sizing:border-box}
-  .corridor-table td a{display:inline-flex;align-items:center;min-height:40px;box-sizing:border-box}
   .about{border-top:1px solid #0B0B0B;padding-top:14px;margin-top:44px;font-size:14px;line-height:1.55;color:#0B0B0B;max-width:680px}
   .msdot{width:6px;height:6px;border-radius:50%;background:var(--indigo);display:inline-block}
   @media(max-width:900px){
     header{flex-wrap:nowrap;gap:12px;padding:22px 24px} nav{flex-wrap:wrap;gap:16px} .mcp{display:none}
     .body{padding:28px 0 48px} .hero{padding:28px 0 20px}
-    .lead-section{padding:0} .waterfall-card{padding:20px 18px} .break{margin:32px 0 0}
-    .corridor-table{font-size:14px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch} .corridor-table th,.corridor-table td{padding:0 6px 10px 0}
+    .lead-section{padding:0} .break{margin:32px 0 0}
   }
 
   /* Mobile: nav is a single swipeable row, never a hamburger dropdown and
@@ -137,24 +136,18 @@
   </header>
 
   <div class="hero">
-    <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Stablecoins rarely beat the cheapest transfer app. But where banks won&#39;t sell you dollars, they&#39;re how people get one.<!--BAKE:END:heroHeadline--></h1>
-    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->Four AI agents run this site every hour. They track what people pay for a dollar in 60 countries, and what it costs to send money with an app or with stablecoins. <a href="./how-it-works.html">How it was built →</a><!--BAKE:END:heroSub--></div>
+    <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Sending money by stablecoin usually costs more than a transfer app<!--BAKE:END:heroHeadline--></h1>
+    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->Real prices on 4 routes and in 46 countries, checked every hour.<!--BAKE:END:heroSub--></div>
     <div class="live" id="liveLine"><span class="dot"></span><span id="liveChecked">Checked —</span></div>
-    <div class="purpose" id="purposeNote">Built to test one claim: that stablecoins make moving money cheaper.</div>
   </div>
 
   <div class="lead-section sec" style="margin-top:0;border-top:none;padding-top:0">
-    <div id="duelSection"><!--BAKE:START:duelSection--><div class="duel"><div><div class="big p">0.87%</div><div class="lab">Stablecoin</div></div><div class="vs">vs</div><div><div class="big">0.09%</div><div class="lab">Cheapest app</div></div></div><p class="cap">Sending S$5,000 from Singapore to the Philippines, all-in cost, typical hour.</p><p class="small-note">Same result from Australia, New Zealand and the US. <a href="./sending-money.html">All routes and providers →</a></p><!--BAKE:END:duelSection--></div>
+    <div id="duelSection"><!--BAKE:START:duelSection--><div class="duel"><div><div class="big p">0.87%</div><div class="lab">Stablecoin</div></div><div class="vs">vs</div><div><div class="big">0.45%</div><div class="lab">Cheapest app</div></div></div><p class="cap">Sending S$5,000 from Singapore to the Philippines, all-in cost, typical hour.</p><p class="small-note">Same result from Australia, New Zealand and the US. <a href="./sending-money.html">All routes and providers →</a></p><!--BAKE:END:duelSection--></div>
   </div>
 
   <div id="waterfallSection" class="lead-section sec"></div>
 
   <div id="winCasesSection" class="lead-section sec"></div>
-
-  <div class="lead-section sec">
-    <div class="detail-label">All 4 routes, in detail</div>
-    <div id="corridorTableSection"><!--BAKE:START:corridorTableSection--><h3 style="font-size:16px;margin:0 0 10px;font-weight:700">On all 4 sends we check, the cheapest app beats the stablecoin</h3><table class="corridor-table"><thead><tr><th>ROUTE</th><th>STABLECOIN ROUTE</th><th>CHEAPEST APP</th><th>HOURS STABLECOIN WAS CHEAPER</th><th></th></tr></thead><tbody><tr><td><b>Singapore → Philippines</b><div style="font-size:14px;color:#9A9A9A;font-weight:400">typical hour since 10 August 2026</div></td><td class="num">0.87%</td><td class="num">0.09%</td><td><div class="win-no">0.0% (market order)</div></td><td><a href="./corridor.html?corridor=SGD-&gt;PHP" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr><tr><td><b>Australia → Philippines</b><div style="font-size:14px;color:#9A9A9A;font-weight:400">typical hour since 10 September 2026</div></td><td class="num">1.01%</td><td class="num">0.07%</td><td><div class="win-no">0.0% (market order)</div></td><td><a href="./corridor.html?corridor=AUD-&gt;PHP" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr><tr><td><b>New Zealand → Philippines</b><div style="font-size:14px;color:#9A9A9A;font-weight:400">typical hour since 10 September 2026</div></td><td class="num">1.11%</td><td class="num">0.06%</td><td><div class="win-no">2.7% (market order)</div></td><td><a href="./corridor.html?corridor=NZD-&gt;PHP" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr><tr><td><b>US → Mexico</b><div style="font-size:14px;color:#9A9A9A;font-weight:400">typical hour since 19 August 2026</div></td><td class="num">0.77%</td><td class="num">0.30%</td><td><div class="win-no">0.3% (market order)</div><div class="win-yes" style="margin-top:4px">43.4% (limit order)</div></td><td><a href="./corridor.html?corridor=USD-&gt;MXN" style="font-weight:600;color:#0B0B0B">full breakdown →</a></td></tr></tbody></table><div class="lede" style="margin-top:10px">The cheapest app wins almost every hour on every route. The exception: US → Mexico with a limit order, cheaper in 43.4% of hours.</div><p class="small-note">All-in cost as % of the amount, typical hour. <a href="./sending-money.html">Every provider, every amount →</a></p><p class="small-note">Cheapest app is the true lowest quote across every provider we check, direct and compared, right now. The stablecoin figure is the typical (median) hour.</p><!--BAKE:END:corridorTableSection--></div>
-  </div>
 
   <div class="lead-section sec">
     <div id="allCountriesSection"><!--BAKE:START:allCountriesStrip--><h2>In the Philippines and Mexico a dollar costs the official rate. In Algeria people pay 91% more.</h2><p class="answer">How much more than the official rate people pay for a dollar. Priced from USDT on Binance P2P and local exchanges.</p><div class="strip-wrap"><svg viewBox="0 0 234 376" style="width:100%;max-width:800px;height:auto" class="strip-svg"><a href="./country.html?ccy=SDG"><title>Sudan: +1502.71% vs the official rate, 24h median</title><text x="0" y="22.0" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="#9A9A9A">Sudan</text><rect x="98" y="10.0" width="101.0" height="10" rx="2" fill="#D3D0CB"/><line x1="194" y1="8.0" x2="198" y2="18.0" stroke="#fff" stroke-width="2"/><text x="230" y="19.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="#9A9A9A">+1502.7%</text><text x="0" y="37.0" font-family="Archivo,sans-serif" font-size="14" fill="#9A9A9A">official rate frozen, not comparable</text></a><a href="./country.html?ccy=DZD"><title>Algeria: +91.45% vs the official rate, 24h median</title><text x="0" y="60.0" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="#0B0B0B">Algeria</text><rect x="98" y="48.0" width="101.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="57.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="#0B0B0B">+91.4%</text><text x="0" y="75.0" font-family="Archivo,sans-serif" font-size="14" fill="#9A9A9A">Banks won&#39;t sell dollars here. USDT is what people pay.</text></a><a href="./country.html?ccy=IQD"><title>Iraq: +20.86% vs the official rate, 24h median</title><text x="0" y="98.0" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="#0B0B0B">Iraq</text><rect x="98" y="86.0" width="23.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="95.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="#0B0B0B">+20.9%</text></a><a href="./country.html?ccy=MZN"><title>Mozambique: +17.29% vs the official rate, 24h median</title><text x="0" y="122.0" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="#0B0B0B">Mozambique</text><rect x="98" y="110.0" width="19.1" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="119.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="#0B0B0B">+17.3%</text></a><a href="./country.html?ccy=TND"><title>Tunisia: +15.22% vs the official rate, 24h median</title><text x="0" y="146.0" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="#0B0B0B">Tunisia</text><rect x="98" y="134.0" width="16.8" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="143.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="#0B0B0B">+15.2%</text></a><a href="./country.html?ccy=SYP"><title>Syria: +14.88% vs the official rate, 24h median</title><text x="0" y="170.0" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="#0B0B0B">Syria</text><rect x="98" y="158.0" width="16.4" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="167.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="#0B0B0B">+14.9%</text></a><a href="./country.html?ccy=VES"><title>Venezuela: +14.61% vs the official rate, 24h median</title><text x="0" y="194.0" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="#0B0B0B">Venezuela</text><rect x="98" y="182.0" width="16.1" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="191.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="#0B0B0B">+14.6%</text></a><a href="./country.html?ccy=ZAR"><title>South Africa: +7.83% vs the official rate, 24h median</title><text x="0" y="218.0" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="#0B0B0B">South Africa</text><rect x="98" y="206.0" width="8.6" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="215.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="#0B0B0B">+7.8%</text></a><a href="./country.html?ccy=ARS"><title>Argentina: +6.68% vs the official rate, 24h median</title><text x="0" y="242.0" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="#0B0B0B">Argentina</text><rect x="98" y="230.0" width="7.4" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="239.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="#0B0B0B">+6.7%</text></a><a href="./country.html?ccy=MAD"><title>Morocco: +4.63% vs the official rate, 24h median</title><text x="0" y="266.0" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="#0B0B0B">Morocco</text><rect x="98" y="254.0" width="5.1" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="263.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="#0B0B0B">+4.6%</text></a><line x1="0" y1="282.0" x2="234" y2="282.0" stroke="#D3D0CB" stroke-width="1" stroke-dasharray="3,3"/><a href="./country.html?ccy=PHP"><title>the Philippines: +0.06% vs the official rate, 24h median</title><text x="0" y="306.0" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="#0B0B0B">Philippines</text><rect x="98" y="294.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="303.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="#0B0B0B">+0.1%</text><text x="0" y="321.0" font-family="Archivo,sans-serif" font-size="14" fill="#9A9A9A">where 3 of the transfers we price land here</text></a><a href="./country.html?ccy=MXN"><title>Mexico: -0.02% vs the official rate, 24h median</title><text x="0" y="344.0" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="#0B0B0B">Mexico</text><rect x="98" y="332.0" width="2.0" height="10" rx="2" fill="#9A9A9A"/><text x="230" y="341.0" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="#0B0B0B">0.0%</text><text x="0" y="359.0" font-family="Archivo,sans-serif" font-size="14" fill="#9A9A9A">where 1 of the transfers we price land here</text></a></svg></div><div class="strip-note">Median of the last 24 hours.</div><div class="strip-note">Light grey: pegged currency, the gap is the cost of buying stablecoins.</div><div class="strip-note">Where the gap is near zero, the official rate is real and a normal app is cheaper. Where the gap is big, the official rate isn&#39;t what people pay, and stablecoins are how people get dollars at all.</div><p class="plainline">A normal app already gets you the real rate in the Philippines and Mexico, so a stablecoin has nothing to beat. In Algeria, banks sell few dollars, so USDT is how people get them: about $5,000 is on offer right now within 1% of the best price.</p><div class="strip-note"><a href="./the-index.html" style="font-weight:600;color:#0B0B0B">All countries →</a></div><!--BAKE:END:allCountriesStrip--></div>
@@ -267,46 +260,34 @@
     resizeTimer = setTimeout(function(){ onResizeRedraws.forEach(function(fn){ fn(); }); }, 150);
   });
 
-  // The true cheapest APP for this corridor+size -- direct provider quotes
-  // AND the public comparison feed, both already ranked cheapest-first in
-  // data/providers_latest.json, excluding only the stablecoin's own
-  // "measured" row. Mirrors corridor.html's own cheapestApp() helper
-  // exactly, so this page's "cheapest app" figure can never disagree with
-  // corridor.html's for the same corridor+amount (Sebastian's rule: the
-  // "cheapest app" anywhere on this page is the cheapest of ALL quotes,
-  // not just whichever provider happens to win the Wise comparison feed
-  // alone). Falls back to the historical median baseline
-  // (corridor_summary.json's own baseline_cost_bps_median) only when
-  // providers_latest.json has no entry for this exact corridor+size yet.
-  var providersLatest = null;
-  function cheapestApp(corridorKey, sizeAmount, fallbackBps, fallbackProvider){
-    var rows = providersLatest && providersLatest.corridors &&
-      providersLatest.corridors[corridorKey] &&
-      providersLatest.corridors[corridorKey].sizes &&
-      providersLatest.corridors[corridorKey].sizes[String(sizeAmount)] &&
-      providersLatest.corridors[corridorKey].sizes[String(sizeAmount)].rows;
-    if (rows && rows.length) {
-      for (var i = 0; i < rows.length; i++) {
-        if (rows[i].source !== 'measured') return { provider: rows[i].provider, bps: rows[i].cost_pct * 100 };
-      }
-    }
-    return { provider: fallbackProvider || '', bps: fallbackBps };
-  }
-
   var SRC_NAME = {SGD: 'Singapore', AUD: 'Australia', NZD: 'New Zealand', USD: 'the US'};
   var SRC_SYMBOL_JS = {SGD: 'S$', AUD: 'A$', NZD: 'NZ$', USD: 'US$'};
 
   // The duel comparison: two big numbers, live from the SAME
-  // corridor_summary.json + providers_latest.json data the waterfall and
-  // corridor table already read -- never the mockup's literal "0.87% vs
-  // 0.46%". Leads on SGD->PHP (this site's primary corridor); the small
-  // link below names every OTHER corridor where the cheapest app also
-  // beats the stablecoin, computed the same way, never a fixed list.
+  // corridor_summary.json data the cost bar below also reads -- never the
+  // mockup's literal "0.87% vs 0.46%". Leads on SGD->PHP (this site's
+  // primary corridor); the small link below names every OTHER corridor
+  // where the cheapest app also beats the stablecoin, computed the same
+  // way, never a fixed list.
+  //
+  // "Cheapest app" is baseline_cost_bps_median -- the PUBLIC COMPARISON
+  // feed's (Wise's) typical/median-hour cost, the same figure
+  // data/corridor_window.json's own "best_cost" already uses. This used to
+  // be looked up live in data/providers_latest.json (the single cheapest
+  // quote across every provider, direct and compared, for the CURRENT
+  // hour) -- but that lookup could surface a one-hour outlier from a
+  // direct provider quote (a near-zero spot price from Airwallex or
+  // Instarem that is not a real, repeatable typical price), which is
+  // exactly how this figure landed at 0.14% for Singapore->Philippines and
+  // 0.06% for New Zealand->Philippines instead of a genuine ~0.46%.
+  // baseline_cost_bps_median is measured over the SAME typical-hour window
+  // as the stablecoin figure, so this comparison is finally apples-to-
+  // apples (Sebastian's 2026-09-28 correction).
   function renderDuel(corridors, COPY, rung, windowRow){
     var el = document.getElementById('duelSection');
     if (!el || !corridors || !corridors.length) return;
     var primary = corridors.filter(function(c){ return c.corridor === 'SGD->PHP'; })[0] || corridors[0];
-    var app = cheapestApp(primary.corridor, rung, primary.baseline_cost_bps_median);
+    var appBps = primary.baseline_cost_bps_median;
     var stableBps = primary.taker_cost_bps_median;
     var src = (primary.corridor || '').split('->')[0];
     var dest = DEST_NAME[(primary.corridor || '').split('->')[1]] || '';
@@ -316,8 +297,7 @@
     });
     var others = corridors.filter(function(c){ return c.corridor !== primary.corridor; })
       .filter(function(c){
-        var otherApp = cheapestApp(c.corridor, rung, c.baseline_cost_bps_median);
-        return c.taker_cost_bps_median > otherApp.bps;
+        return c.baseline_cost_bps_median != null && c.taker_cost_bps_median > c.baseline_cost_bps_median;
       })
       .map(function(c){ return SRC_NAME[(c.corridor || '').split('->')[0]] || c.corridor; });
     var sameResultHtml = others.length
@@ -327,173 +307,72 @@
       '<div class="duel">' +
         '<div><div class="big p">' + cashPct(stableBps) + '</div><div class="lab">' + esc(COPY.duelLabelStable || 'Stablecoin') + '</div></div>' +
         '<div class="vs">' + esc(COPY.duelVs || 'vs') + '</div>' +
-        '<div><div class="big">' + cashPct(app.bps) + '</div><div class="lab">' + esc(COPY.duelLabelApp || 'Cheapest app') + '</div></div>' +
+        '<div><div class="big">' + (appBps != null ? cashPct(appBps) : '—') + '</div><div class="lab">' + esc(COPY.duelLabelApp || 'Cheapest app') + '</div></div>' +
       '</div>' +
       '<p class="cap">' + esc(caption) + '</p>' +
       '<p class="small-note">' + sameResultHtml + '</p>';
   }
 
+  // The cost bar: a single stacked bar (buy/move/sell segments, each sized
+  // to its share of the total cost) with a dashed reference line for the
+  // cheapest app -- matches docs/mockups/home.html's final revision
+  // exactly. Replaces the old multi-row interactive waterfall, whose row
+  // labels ran into the bars on a phone (SEB-reported: "Buy USDT with SGD"
+  // overlapping its own bar). appBps is baseline_cost_bps_median, the same
+  // public-comparison typical-hour figure the duel comparison above uses
+  // -- see renderDuel()'s own comment for why this is no longer a
+  // providers_latest.json lookup.
   function renderWaterfall(wf, COPY, windowRow){
     var L = COPY.waterfallLegend || {};
     var buy = wf.onramp_basis_bps + wf.onramp_fee_bps;
     var sell = wf.offramp_basis_bps + wf.offramp_fee_bps;
-    var steps = [
-      {label: L.buying || 'Buying the coin', v: buy, kind: 'cost'},
-      {label: L.moving || 'Moving it', v: wf.network_fee_bps, kind: 'rail'},
-      {label: L.selling || 'Selling it', v: sell, kind: 'cost'}
-    ];
+    var network = wf.network_fee_bps;
     var total = wf.total_cost_bps;
-    var cheapest = cheapestApp(wf.corridor || 'SGD->PHP', (windowRow && windowRow.rung) || 5000, wf.baseline_cost_bps);
-    var base = cheapest.bps;
+    var appBps = wf.baseline_cost_bps;
 
-    windowRow = windowRow || {};
     // Sebastian's final mockup (2026-09-28) merges the old h3 + separate
     // route/amount answer line into one section h2, stated as what the
     // stablecoin loses on (buying/selling) vs the one real win (sending it
     // on chain) -- still only the network fee is a filled number.
     var legHeader = T(COPY.waterfallLegHeaderTemplate || 'The stablecoin loses on buying and selling the coin. Sending it costs only {network_pct}.', {
-      network_pct: cashPct(wf.network_fee_bps),
+      network_pct: cashPct(network),
       trade_pct: cashPct(buy + sell)
     });
-    var disclosure = COPY.exchangeOnlyDisclosure ||
-      'This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.';
+
+    // Scale the bar so the larger of the total cost and the cheapest-app
+    // line fills most of the row, with headroom for the dashed line and
+    // its label -- never a fixed "value*100" scale, since a route's total
+    // cost isn't always under 1%.
+    var maxVal = Math.max(total || 0, appBps || 0) * 1.15;
+    var scale = maxVal > 0 ? 100 / maxVal : 0;
+    var stackWidth = Math.max(0, (total || 0) * scale);
+    var appLeft = appBps != null ? Math.max(0, appBps * scale) : null;
+    var buyPct = total ? (buy / total * 100) : 0;
+    var networkPct = total ? (network / total * 100) : 0;
+    var sellPct = Math.max(0, 100 - buyPct - networkPct);
+
+    var appLine = appLeft != null
+      ? ('<div class="appline" style="left:' + appLeft.toFixed(1) + '%"></div>' +
+         '<div class="applabel" style="left:' + appLeft.toFixed(1) + '%">cheapest app ' + cashPct(appBps) + '</div>')
+      : '';
 
     var card = document.getElementById('waterfallSection');
     card.innerHTML =
       '<h2>' + esc(legHeader) + '</h2>' +
-      '<div class="waterfall-card">' +
-      '<div style="position:relative"><div id="wfHost" style="width:100%"></div>' +
-      '<div id="wfTip" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:14px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;top:0;left:0"></div>' +
+      '<div class="split">' +
+        '<div class="stack" style="width:' + stackWidth.toFixed(1) + '%">' +
+          '<div style="width:' + buyPct.toFixed(1) + '%;background:var(--indigo)"></div>' +
+          '<div style="width:' + networkPct.toFixed(1) + '%;background:var(--dust)"></div>' +
+          '<div style="width:' + sellPct.toFixed(1) + '%;background:var(--eggshell)"></div>' +
+        '</div>' +
+        appLine +
       '</div>' +
-      '<div class="disclosure-note">' + esc(disclosure) + '</div>' +
+      '<div class="legend-row">' +
+        '<span><i class="sw" style="background:var(--indigo)"></i>' + esc(L.buying || 'Buy USDT with SGD') + ' <b>' + cashPct(buy) + '</b></span>' +
+        '<span><i class="sw" style="background:var(--dust)"></i>' + esc(L.moving || 'Send it on chain') + ' <b>' + cashPct(network) + '</b></span>' +
+        '<span><i class="sw" style="background:var(--eggshell)"></i>' + esc(L.selling || 'Sell USDT for PHP') + ' <b>' + cashPct(sell) + '</b></span>' +
+        '<span>' + esc(L.total || 'Total') + ' <b>' + cashPct(total) + '</b></span>' +
       '</div>';
-
-    function drawWaterfallSvg(){
-      var host = document.getElementById('wfHost');
-      if (!host) return;
-      var W = Math.max(280, Math.round(host.getBoundingClientRect().width)) || 760;
-      var run = 0, cum = [0];
-      steps.forEach(function(s){ run += s.v; cum.push(run); });
-      var all = [0, total, base].concat(cum);
-      var dMin = Math.min.apply(null, all), dMax = Math.max.apply(null, all);
-      var pad = (dMax - dMin) * 0.12 || 10, lo = dMin - pad, hi = dMax + pad;
-      var Lx = Math.min(168, Math.round(W * 0.32)), Rx = W - 76, X = function(v){ return Lx + (v - lo) / (hi - lo) * (Rx - Lx); };
-      var rowH = 34, top = 10, rows = steps.length + 1, H = top + rows * rowH + 34;
-      var col = {cost: '#817FCC', cost2: '#F0EBD8', gain: '#D3D0CB', rail: '#D3D0CB', total: '#3F3047'};
-      var uid = 'wf' + Math.random().toString(36).slice(2,8);
-      var svg = '<line x1="' + X(0).toFixed(1) + '" y1="' + top + '" x2="' + X(0).toFixed(1) + '" y2="' + (top + rows*rowH) + '" stroke="#E5E5EA" stroke-width="1"/>' +
-        '<line x1="' + X(base).toFixed(1) + '" y1="' + (top-4) + '" x2="' + X(base).toFixed(1) + '" y2="' + (top + rows*rowH + 4) + '" stroke="#9A9A9A" stroke-width="1.2" stroke-dasharray="4,3"/>' +
-        '<text x="' + X(base).toFixed(1) + '" y="' + (top + rows*rowH + 18) + '" fill="#6B6B6B" font-family="Archivo,sans-serif" font-size="14" text-anchor="middle">cheapest app, ' + cashPct(base) + '</text>';
-      var bars = [];
-      var costLegsSeen = 0;
-      steps.forEach(function(s, i){
-        var y = top + i * rowH;
-        var a = X(cum[i]), b = X(cum[i+1]);
-        var x0 = Math.min(a,b), w = Math.max(2, Math.abs(b-a));
-        var fill;
-        if (s.kind === 'rail') fill = col.rail;
-        else if (s.v < 0) fill = col.gain;
-        else { fill = costLegsSeen === 0 ? col.cost : col.cost2; costLegsSeen++; }
-        var stroke = fill === col.cost2 ? ' stroke="#D3D0CB" stroke-width="1"' : '';
-        var barId = uid + 'b' + i;
-        svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" fill="#0B0B0B">' + esc(s.label) + '</text>' +
-          '<rect id="' + barId + '" class="wf-bar" data-label="' + esc(s.label) + '" data-value="' + cashPct(s.v) + '" x="' + x0.toFixed(1) + '" y="' + (y+7) + '" width="' + w.toFixed(1) + '" height="' + (rowH-14) + '" rx="2" fill="' + fill + '"' + stroke + ' style="cursor:pointer;transition:opacity .1s"/>' +
-          '<text x="' + (b + (b>=a?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="14" fill="#6B6B6B" text-anchor="' + (b>=a?'start':'end') + '">' + cashPct(s.v) + '</text>';
-        bars.push(barId);
-      });
-      var y = top + steps.length * rowH, xt = X(total);
-      var totalBarId = uid + 'btotal';
-      svg += '<text x="0" y="' + (y + rowH/2 + 4) + '" font-family="Archivo,sans-serif" font-size="14" font-weight="700" fill="#0B0B0B">' + esc(L.total || 'The whole transfer') + '</text>' +
-        '<rect id="' + totalBarId + '" class="wf-bar" data-label="' + esc(L.total || 'The whole transfer') + '" data-value="' + cashPct(total) + '" x="' + Math.min(X(0), xt).toFixed(1) + '" y="' + (y+6) + '" width="' + Math.max(2, Math.abs(xt-X(0))).toFixed(1) + '" height="' + (rowH-12) + '" rx="2" fill="' + col.total + '" style="cursor:pointer;transition:opacity .1s"/>' +
-        '<text x="' + (xt + (total>=0?6:-6)).toFixed(1) + '" y="' + (y + rowH/2 + 4) + '" font-family="ui-monospace,monospace" font-size="14" font-weight="700" fill="#0B0B0B" text-anchor="' + (total>=0?'start':'end') + '">' + cashPct(total) + '</text>';
-      bars.push(totalBarId);
-
-      host.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block">' + svg + '</svg>';
-      var tip = document.getElementById('wfTip');
-      var svgEl = host.querySelector('svg');
-      function showTip(el, clientX, clientY){
-        el.style.opacity = 0.82;
-        tip.textContent = el.getAttribute('data-label') + ': ' + el.getAttribute('data-value');
-        tip.style.opacity = 1;
-        var rect = svgEl.getBoundingClientRect();
-        tip.style.left = (((clientX - rect.left) / rect.width) * 100) + '%';
-        tip.style.top = Math.max(0, ((clientY - rect.top) / rect.height) * 100 - 12) + '%';
-      }
-      bars.forEach(function(id){
-        var el = document.getElementById(id);
-        if (!el) return;
-        el.addEventListener('mouseenter', function(ev){ showTip(el, ev.clientX, ev.clientY); });
-        el.addEventListener('mousemove', function(ev){ showTip(el, ev.clientX, ev.clientY); });
-        el.addEventListener('mouseleave', function(){ el.style.opacity = 1; tip.style.opacity = 0; });
-        // Tap opens the same tooltip a hover does -- nothing on this chart
-        // is hover-only (Sebastian's 2026-09-28 mobile rules).
-        el.addEventListener('touchstart', function(ev){
-          var t = ev.touches[0];
-          showTip(el, t.clientX, t.clientY);
-          setTimeout(function(){ el.style.opacity = 1; tip.style.opacity = 0; }, 1600);
-        }, {passive:true});
-      });
-    }
-    drawWaterfallSvg();
-    onResizeRedraws.push(drawWaterfallSvg);
-  }
-
-  // The detail table's own label: how many of the tracked sends the
-  // cheapest app beats the stablecoin on right now, using the SAME
-  // cheapestApp() figure the table below shows -- never a separate,
-  // possibly-disagreeing count. Demoted to an h3 (2026-09-28 final mockup):
-  // the page's one real h2 above the waterfall now carries the headline
-  // finding, and this table is real detail a reader opts into, reached
-  // from the duel comparison's "All routes and providers →" link.
-  function renderCorridorTable(corridors, COPY, corridorWindow, rung){
-    corridorWindow = corridorWindow || {};
-    var cols = COPY.corridorTableCols || {};
-    var mxn = corridors.filter(function(c){ return c.corridor === 'USD->MXN'; })[0];
-    var appByCorridor = {};
-    corridors.forEach(function(c){
-      appByCorridor[c.corridor] = cheapestApp(c.corridor, rung, c.baseline_cost_bps_median);
-    });
-    var n = corridors.length;
-    var k = corridors.filter(function(c){ return c.taker_cost_bps_median > appByCorridor[c.corridor].bps; }).length;
-    var header = (n && k === n)
-      ? T(COPY.routesHeaderAllTemplate || 'On all {n} sends we check, the cheapest app beats the stablecoin', {n: n})
-      : T(COPY.routesHeaderPartialTemplate || 'On {k} of {n} sends we check, the cheapest app beats the stablecoin', {k: k, n: n});
-    var firstLine = (COPY.corridorTableFirstLine || 'The cheapest app wins almost every hour on every route. The exception: US → Mexico with a limit order, cheaper in {maker_pct}% of hours.')
-      .replace('{maker_pct}', mxn ? mxn.win_rate_maker_pct.toFixed(1) : '');
-    var rows = corridors.map(function(c){
-      var winText = (corridorWindow[c.corridor] || {}).window;
-      var winNote = winText ? '<div style="font-size:14px;color:#9A9A9A;font-weight:400">' + esc(winText) + '</div>' : '';
-      var label = ARROW_ROUTE_WORDS[c.corridor] || c.route_words || c.corridor;
-      return '<tr>' +
-        '<td><b>' + esc(label) + '</b>' + winNote + '</td>' +
-        '<td class="num">' + cashPct(c.taker_cost_bps_median) + '</td>' +
-        '<td class="num">' + cashPct(appByCorridor[c.corridor].bps) + '</td>' +
-        '<td>' + winCellHtml(c) + '</td>' +
-        '<td><a href="./corridor.html?corridor=' + encodeURIComponent(c.corridor) + '" style="font-weight:600;color:#0B0B0B">' + esc(COPY.seeCorridor || 'see the receipt →') + '</a></td>' +
-        '</tr>';
-    }).join('');
-    document.getElementById('corridorTableSection').innerHTML =
-      '<h3 style="font-size:16px;margin:0 0 10px;font-weight:700">' + esc(header) + '</h3>' +
-      '<table class="corridor-table"><thead><tr>' +
-      '<th>' + esc(cols.corridor || 'ROUTE') + '</th>' +
-      '<th>' + esc(cols.stablecoin || 'STABLECOIN ROUTE') + '</th>' +
-      '<th>' + esc(cols.fiat || 'CHEAPEST APP') + '</th>' +
-      '<th>' + esc(cols.winRate || 'HOURS STABLECOIN WAS CHEAPER') + '</th>' +
-      '<th></th></tr></thead><tbody>' + rows + '</tbody></table>' +
-      '<div class="lede" style="margin-top:10px">' + esc(firstLine) + '</div>' +
-      '<p class="small-note">' + esc(COPY.routesTableNote || 'All-in cost as % of the amount, typical hour.') +
-        ' <a href="./sending-money.html">' + esc(COPY.everyProviderLink || 'Every provider, every amount →') + '</a></p>' +
-      '<p class="small-note">' + esc(COPY.cheapestAppNote || '') + '</p>';
-    return appByCorridor;
-  }
-
-  function winCellHtml(c){
-    var t = c.win_rate_taker_pct, m = c.win_rate_maker_pct;
-    var html = '<div class="' + (t >= 10 ? 'win-yes' : 'win-no') + '">' + t.toFixed(1) + '% (market order)</div>';
-    if (m >= 10) {
-      html += '<div class="win-yes" style="margin-top:4px">' + m.toFixed(1) + '% (limit order)</div>';
-    }
-    return html;
   }
 
   var ARROW_ROUTE_WORDS = {
@@ -701,12 +580,10 @@
     fetch('./data/corridor_window.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
     fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
     fetch('./data/volume_crossover.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-    fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
     fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
   ]).then(function(res){
     var idx = res[0], corridorSummary = res[1], corridorWindow = res[2] || {}, COPY = (res[3] || {}).home || {}, crossover = res[4];
-    providersLatest = res[5];
-    var streetDepth = res[6];
+    var streetDepth = res[5];
     var countries = idx.countries || [];
     var withheld = idx.withheld || [];
     var hourUtc = (idx.as_of_utc || idx.computed_at || '').slice(11,16);
@@ -720,7 +597,7 @@
     var headlineEl = document.getElementById('heroHeadline');
     var subEl = document.getElementById('heroSub');
     headlineEl.textContent = COPY.headline || COPY.headlineFallback ||
-      "Stablecoins rarely beat the cheapest transfer app. But where banks won't sell you dollars, they're how people get one.";
+      "Sending money by stablecoin usually costs more than a transfer app";
     subEl.innerHTML = (COPY.headlineSub || '').replace('{n_countries}', '60');
 
     // ---- Live pulse line: real clock, real data, no invented numbers.
@@ -737,7 +614,6 @@
     // ---- Section A: the duel comparison + SGD->PHP waterfall. ----
     if (corridorSummary && corridorSummary.corridors && corridorSummary.corridors.length) {
       renderDuel(corridorSummary.corridors, COPY, rung, windowRow);
-      renderCorridorTable(corridorSummary.corridors, COPY, corridorWindow, rung);
     }
     if (corridorSummary && corridorSummary.waterfall) {
       renderWaterfall(corridorSummary.waterfall, COPY, windowRow);

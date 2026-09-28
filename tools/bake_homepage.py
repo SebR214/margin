@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D1 (v1 freeze and ship brief): bake the real headline and corridor table
+"""D1 (v1 freeze and ship brief): bake the real headline and duel comparison
 into index.html's own markup at collection time, so a crawler or a visitor
 with JS off sees the actual measurement -- not "Loading this hour's
 measurement...", which is what ships otherwise.
@@ -8,9 +8,21 @@ Runs AFTER tools/emit_corridor_summary.py, every pass. Idempotent: each run
 replaces exactly what the LAST run wrote, using the same id="..." anchors
 the client-side JS already targets, so baking twice in a row (or baking
 then letting JS re-render on load) never duplicates or drifts. The waterfall
-CHART stays client-rendered -- an SVG bar chart is worth building in one
-place (the browser, where MarginChart-style code already exists), not
-twice.
+(now a single stacked cost bar, matching the final mockup) stays
+client-rendered -- worth building in one place (the browser), not twice.
+
+2026-09-28 reconciliation with the final mockup: the "All 4 routes, in
+detail" corridor table (and the functions/copy that built it) is gone --
+docs/mockups/home.html never had it, and on a phone its columns ran off the
+edge. Its "every provider, every amount" link content stays reachable from
+sending-money.html. This pass also fixed the duel comparison's "cheapest
+app" figure: it used to look up data/providers_latest.json's single
+cheapest CURRENT-hour quote (direct provider quotes included), which could
+be a one-hour outlier from a provider like Airwallex or Instarem, not a
+real typical price. It now reads baseline_cost_bps_median straight off
+data/corridor_summary.json -- the public comparison feed's typical/median-
+hour figure, the same one data/corridor_window.json's "best_cost" already
+used. See duel_html()'s own docstring for the full before/after.
 
 Day-1 plain-language pass: the headline and sub are fixed, plain sentences
 (copy.json home.headline / home.headlineSub), not a sentence assembled from
@@ -45,7 +57,6 @@ SAMPLES = os.path.join(HERE, "data", "samples.csv")
 WINDOW_OUT = os.path.join(HERE, "data", "corridor_window.json")
 INDEX_HTML = os.path.join(HERE, "index.html")
 INDEX_LATEST = os.path.join(HERE, "data", "index_latest.json")
-PROVIDERS_LATEST = os.path.join(HERE, "data", "providers_latest.json")
 STREET_DEPTH_LATEST = os.path.join(HERE, "data", "street_depth_latest.json")
 
 
@@ -54,32 +65,6 @@ def load_json_or_none(path):
         return None
     with open(path) as f:
         return json.load(f)
-
-
-def cheapest_app(providers_latest, corridor, size, fallback_bps, fallback_provider=None):
-    """The true cheapest app for this corridor+size: the best-ranked row in
-    data/providers_latest.json that is NOT the stablecoin's own "measured"
-    row -- direct provider quotes (data/provider_quotes.csv) AND the public
-    comparison feed, both already ranked cheapest-first there. Mirrors
-    corridor.html's own cheapestApp() JS helper exactly (same file, same
-    "first row whose source != measured" rule) so this page's "cheapest
-    app" figure can never disagree with corridor.html's for the same
-    corridor+amount. Falls back to the historical median baseline
-    (corridor_summary.json's baseline_cost_bps_median, the Wise-comparison-
-    feed-only figure) only when providers_latest.json has no entry yet for
-    this exact corridor+size -- a gap in the newer file never blanks this
-    number.
-    """
-    rows = None
-    if providers_latest:
-        c = (providers_latest.get("corridors") or {}).get(corridor) or {}
-        sizes = c.get("sizes") or {}
-        rows = (sizes.get(str(size)) or {}).get("rows")
-    if rows:
-        for row in rows:
-            if row.get("source") != "measured":
-                return row.get("provider"), (row.get("cost_pct") or 0.0) * 100
-    return fallback_provider, fallback_bps
 
 # Plain currency symbols for the four routes this site prices at this
 # level of detail. Labels only, never a number -- same rule as every other
@@ -506,23 +491,8 @@ def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth
     )
 
 
-def win_cell_html(c):
-    """The win-rate cell. Always states the market-order (taker) win rate --
-    the real, almost-always-zero result -- and adds the limit-order (maker)
-    rate as a second line only where it clears 10%, so a route where
-    waiting for your own price genuinely changes the answer (USD->MXN)
-    still shows both numbers, at equal visual weight, instead of one
-    hiding the other.
-    """
-    t, m = c["win_rate_taker_pct"], c["win_rate_maker_pct"]
-    html = '<div class="' + ("win-yes" if t >= 10 else "win-no") + '">' + ("%.1f" % t) + "% (market order)</div>"
-    if m >= 10:
-        html += '<div class="win-yes" style="margin-top:4px">' + ("%.1f" % m) + "% (limit order)</div>"
-    return html
-
-
 def pct(bps):
-    """A COST figure (waterfall legs, corridor table cells). Sebastian's
+    """A COST figure (waterfall legs, duel comparison). Sebastian's
     2026-09-28 correction: costs never carry a leading "+" -- "0.87%", not
     "+0.87%" -- the "+" convention belongs to GAP figures only (street price
     vs official rate), which is a different function (see index.html's own
@@ -532,69 +502,36 @@ def pct(bps):
     return ("%.2f" % v) + "%"
 
 
-# Sebastian's 2026-09-28 correction, item 4: the home page's corridor table
-# uses arrow notation for its route labels ("Singapore → Philippines"), not
-# the "Singapore to the Philippines" phrasing data/providers_latest.json's
-# own route_words carries for every other page. Display-only, local to this
-# page's render -- the shared route_words value itself is untouched so
-# corridor.html and fee-tiers.html keep their existing wording.
-ARROW_ROUTE_WORDS = {
-    "SGD->PHP": "Singapore → Philippines",
-    "AUD->PHP": "Australia → Philippines",
-    "NZD->PHP": "New Zealand → Philippines",
-    "USD->MXN": "US → Mexico",
-}
-
-
-def corridor_row_html(c, home_copy, window, app_bps, app_provider):
-    """One corridor row, with its own window ("typical, N hours since D
-    Mon YYYY") printed right under the route name -- Day 1's window-label
-    rule: a reader should never have to guess which window a number on this
-    table covers, and every corridor gets its own real label instead of the
-    page stating one window (SGD->PHP's, in the waterfall above) and
-    letting the reader assume every other row shares it. Read from
-    data/corridor_window.json, the one file this figure is written to, so
-    the label can never say a different window than the number itself.
-
-    The CHEAPEST APP cell is app_bps -- the true cheapest of every quote
-    this page checks (direct + public comparison), computed by
-    cheapest_app() above -- not c["baseline_cost_bps_median"] (the median
-    of samples.csv's own baseline column, which only ever names the winner
-    of the Wise comparison feed alone; see cheapest_app()'s own docstring).
-    """
-    row = (window or {}).get(c.get("corridor"), {})
-    win_note = ""
-    win_text = row.get("window")
-    if win_text:
-        win_note = '<div style="font-size:14px;color:#9A9A9A;font-weight:400">' + esc(win_text) + "</div>"
-    label = ARROW_ROUTE_WORDS.get(c.get("corridor"), c.get("route_words", c["corridor"]))
-    return (
-        "<tr>"
-        "<td><b>" + esc(label) + "</b>" + win_note + "</td>"
-        '<td class="num">' + pct(c["taker_cost_bps_median"]) + "</td>"
-        '<td class="num">' + (pct(app_bps) if app_bps is not None else "—") + "</td>"
-        "<td>" + win_cell_html(c) + "</td>"
-        '<td><a href="./corridor.html?corridor=' + esc(c["corridor"]) + '" style="font-weight:600;color:#0B0B0B">'
-        + esc(home_copy.get("seeCorridor", "see the receipt →")) + "</a></td>"
-        "</tr>"
-    )
-
-
-def duel_html(corridors, home_copy, providers_latest, rung):
+def duel_html(corridors, home_copy, rung):
     """The duel comparison: two big numbers, live from the SAME
-    corridor_summary.json + providers_latest.json data the waterfall and
-    corridor table below already read -- never the mockup's literal
-    "0.87% vs 0.46%". Leads on SGD->PHP; the small link below names every
-    OTHER corridor where the cheapest app also beats the stablecoin,
+    corridor_summary.json data the waterfall reads -- never the mockup's
+    literal "0.87% vs 0.46%". Leads on SGD->PHP; the small link below names
+    every OTHER corridor where the cheapest app also beats the stablecoin,
     computed the same way as here, never a fixed list. Mirrors index.html's
     own renderDuel() JS exactly so the server bake and the client re-render
     can never disagree.
+
+    The "cheapest app" figure is primary["baseline_cost_bps_median"] --
+    the PUBLIC COMPARISON feed's (Wise's) typical/median-hour cost, the
+    same figure data/corridor_window.json's own "best_cost" already uses
+    (see build_window() above) and the same one this table used before a
+    "richer" cheapest_app() lookup into data/providers_latest.json was
+    added here. That lookup picked the single cheapest quote in
+    providers_latest.json's CURRENT hour, direct provider quotes included
+    -- a single-hour outlier from a provider like Airwallex or Instarem
+    (a near-zero spot quote that is not available as a typical, repeatable
+    price) then got reported as "the cheapest app," landing at 0.14% for
+    Singapore->Philippines and 0.06% for New Zealand->Philippines instead
+    of a real, typical figure near 0.46%. baseline_cost_bps_median is a
+    median over the same measurement window the stablecoin figure uses, so
+    the two numbers in this comparison are finally apples-to-apples: same
+    "typical hour," same methodology, one public-comparison price against
+    one exchange-measured price.
     """
     if not corridors:
         return None
     primary = next((c for c in corridors if c.get("corridor") == "SGD->PHP"), corridors[0])
-    app_provider, app_bps = cheapest_app(
-        providers_latest, primary.get("corridor"), rung, primary.get("baseline_cost_bps_median"))
+    app_bps = primary.get("baseline_cost_bps_median")
     stable_bps = primary["taker_cost_bps_median"]
     src, _, dest_ccy = (primary.get("corridor") or "").partition("->")
     dest = DEST_NAME.get(dest_ccy, "")
@@ -605,8 +542,8 @@ def duel_html(corridors, home_copy, providers_latest, rung):
     for c in corridors:
         if c.get("corridor") == primary.get("corridor"):
             continue
-        _p, other_app_bps = cheapest_app(providers_latest, c.get("corridor"), rung, c.get("baseline_cost_bps_median"))
-        if c["taker_cost_bps_median"] > other_app_bps:
+        other_app_bps = c.get("baseline_cost_bps_median")
+        if other_app_bps is not None and c["taker_cost_bps_median"] > other_app_bps:
             other_src = (c.get("corridor") or "").split("->")[0]
             others.append(SRC_NAME.get(other_src, other_src))
     if others:
@@ -621,63 +558,11 @@ def duel_html(corridors, home_copy, providers_latest, rung):
         '<div><div class="big p">' + pct(stable_bps) + '</div><div class="lab">'
         + esc(home_copy.get("duelLabelStable", "Stablecoin")) + "</div></div>"
         '<div class="vs">' + esc(home_copy.get("duelVs", "vs")) + "</div>"
-        '<div><div class="big">' + pct(app_bps) + '</div><div class="lab">'
+        '<div><div class="big">' + (pct(app_bps) if app_bps is not None else "—") + '</div><div class="lab">'
         + esc(home_copy.get("duelLabelApp", "Cheapest app")) + "</div></div>"
         "</div>"
         '<p class="cap">' + esc(caption) + "</p>"
         '<p class="small-note">' + same_result + "</p>"
-    )
-
-
-def routes_header_html(app_bps_by_corridor, corridors, home_copy):
-    """The detail table's own h3 label (demoted from h2, 2026-09-28 final
-    mockup -- the page's one real h2 is now above the waterfall; this table
-    is detail reached from the duel comparison's own link): how many of the
-    sends this page checks are cheaper by the cheapest app (market order)
-    right now. Computed from the SAME per-corridor app_bps this table's own
-    CHEAPEST APP column shows, so the header can never disagree with the
-    numbers under it.
-    """
-    n = len(corridors)
-    k = 0
-    for c in corridors:
-        app_bps = app_bps_by_corridor.get(c.get("corridor"))
-        if app_bps is not None and c["taker_cost_bps_median"] > app_bps:
-            k += 1
-    if n and k == n:
-        return home_copy.get("routesHeaderAllTemplate", "").replace("{n}", str(n))
-    return (home_copy.get("routesHeaderPartialTemplate", "")
-            .replace("{k}", str(k)).replace("{n}", str(n)))
-
-
-def corridor_table_html(corridors, home_copy, window, providers_latest, rung):
-    cols = home_copy.get("corridorTableCols", {})
-    app_bps_by_corridor = {}
-    rows_html = []
-    for c in corridors:
-        _provider, app_bps = cheapest_app(
-            providers_latest, c.get("corridor"), rung,
-            c.get("baseline_cost_bps_median"))
-        app_bps_by_corridor[c.get("corridor")] = app_bps
-        rows_html.append(corridor_row_html(c, home_copy, window, app_bps, _provider))
-    mxn = next((c for c in corridors if c.get("corridor") == "USD->MXN"), None)
-    first_line = (home_copy.get("corridorTableFirstLine", "")
-                  .replace("{maker_pct}", ("%.1f" % mxn["win_rate_maker_pct"]) if mxn else ""))
-    header = esc(routes_header_html(app_bps_by_corridor, corridors, home_copy))
-    note = esc(home_copy.get("routesTableNote", ""))
-    every_link = esc(home_copy.get("everyProviderLink", "Every provider, every amount →"))
-    cheapest_note = esc(home_copy.get("cheapestAppNote", ""))
-    return (
-        '<h3 style="font-size:16px;margin:0 0 10px;font-weight:700">' + header + "</h3>"
-        '<table class="corridor-table"><thead><tr>'
-        "<th>" + esc(cols.get("corridor", "ROUTE")) + "</th>"
-        "<th>" + esc(cols.get("stablecoin", "STABLECOIN ROUTE")) + "</th>"
-        "<th>" + esc(cols.get("fiat", "CHEAPEST APP")) + "</th>"
-        "<th>" + esc(cols.get("winRate", "HOURS STABLECOIN WAS CHEAPER")) + "</th>"
-        "<th></th></tr></thead><tbody>" + "".join(rows_html) + "</tbody></table>"
-        '<div class="lede" style="margin-top:10px">' + esc(first_line) + "</div>"
-        '<p class="small-note">' + note + ' <a href="./sending-money.html">' + every_link + "</a></p>"
-        '<p class="small-note">' + cheapest_note + "</p>"
     )
 
 
@@ -728,24 +613,19 @@ def main():
 
     changed = False
     html, ok1 = replace_by_marker(html, "heroHeadline", esc(home_copy.get(
-        "headline", "Stablecoins rarely beat the cheapest transfer app. But where banks won't sell you dollars, they're how people get one.")))
+        "headline", "Sending money by stablecoin usually costs more than a transfer app")))
     changed = changed or ok1
 
     n_countries = count_countries()
     html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, n_countries))
     changed = changed or ok2
 
-    providers_latest = load_json_or_none(PROVIDERS_LATEST)
     rung = doc.get("rung", 5000)
 
-    duel = duel_html(doc["corridors"], home_copy, providers_latest, rung)
+    duel = duel_html(doc["corridors"], home_copy, rung)
     if duel is not None:
         html, ok3a = replace_by_marker(html, "duelSection", duel)
         changed = changed or ok3a
-
-    table = corridor_table_html(doc["corridors"], home_copy, window, providers_latest, rung)
-    html, ok3 = replace_by_marker(html, "corridorTableSection", table)
-    changed = changed or ok3
 
     idx_doc = load_index_latest()
     # Sebastian's 2026-09-28 correction, item 2: the second chart is gone --
@@ -780,7 +660,7 @@ def main():
 
     with open(INDEX_HTML, "w") as f:
         f.write(html)
-    print("  baked headline + corridor table into index.html from data/corridor_summary.json")
+    print("  baked headline + duel comparison into index.html from data/corridor_summary.json")
     print(f"  wrote data/corridor_window.json ({len(window)} corridors)")
 
 
