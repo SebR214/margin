@@ -23,27 +23,24 @@
   body{font-family:var(--font-body); line-height:1.45; -webkit-font-smoothing:antialiased}
   a{color:var(--color-ink);text-decoration:none} a:hover{color:var(--pos)}
   .hero a{color:inherit}
-  .wrap{max-width:960px; margin:0 auto; padding:0 20px 60px}
+  /* Container width, left edge, header/nav layout and h1/h2/body sizing
+     come from style.css's canonical .wrap/header/.brand/.logo/nav/h1/h2
+     rules (2026-09-28 page-frame unification) -- no local override here. */
 
   /* No black band: matches index.html/sending-money.html, which dropped it
-     from .hero already. style.css's shared .hero is still black -- this
-     page is the only one still linking that stylesheet, so override locally
-     rather than edit the shared rule underneath pages that may still want it. */
-  .hero{background:none!important;color:var(--color-ink)!important}
+     from .hero already. style.css's shared .hero is still black, so
+     override locally rather than edit the shared rule underneath pages
+     that may still want it. */
+  /* Also drops style.css's shared .hero padding (56px 24px 40px): this
+     page's own nested .wrap (below) supplies the real edge padding, so the
+     old padding just double-indented the title at narrow widths. */
+  .hero{background:none!important;color:var(--color-ink)!important;padding:0}
   .hero h1{color:var(--color-ink)!important}
 
-  /* Same header as every other current page -- was the old [data-nav="bar"]
-     system (style.css, uppercase small-caps, sticky), never migrated when
-     the rest of the site moved to this one. */
-  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
-  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
-  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
-  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
-  nav a.active{color:#0B0B0B;font-weight:700}
   .header-right{display:flex;align-items:center;gap:16px}
   .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
   @media(max-width:760px){
-    header{position:relative;flex-wrap:nowrap!important;padding:22px 24px}
+    header{position:relative;flex-wrap:nowrap!important}
     .brand{gap:14px}
     nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;flex-direction:column!important;gap:0!important;padding:6px 24px 16px;border-bottom:1px solid #F0F0F0;box-shadow:0 8px 16px rgba(11,11,11,0.06);z-index:30}
     nav.open{display:flex}
@@ -77,7 +74,7 @@
   .verdict .split b{color:var(--color-ink)}
 
   .card{border-top:2px solid var(--color-ink); padding:16px 0; margin-top:28px}
-  .card h2{font-size:18px; margin:0 0 3px}
+  .card h2{font-size:21px; margin:0 0 3px}
   .card .cap{font-size:12.5px; color:var(--color-neutral-600); margin:0 0 12px; max-width:78ch}
   .disclosure-note{font-size:12.5px; line-height:1.5; color:var(--color-neutral-600); max-width:78ch; margin-top:14px; padding-left:12px; border-left:2px solid var(--color-neutral-200,#F0F0F0)}
   .wf{display:block; width:100%; height:auto}
@@ -128,6 +125,7 @@
 </head>
 <body>
 
+<div class="wrap">
   <header>
     <div class="brand">
       <div class="logo"><a href="./index.html">margin.wiki</a></div>
@@ -143,10 +141,11 @@
       <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
     </div>
   </header>
+</div>
 
   <div class="hero">
     <div class="wrap" style="padding-top:0; padding-bottom:0;">
-      <h1 id="pageTitle" style="font-size:34px; margin:0 0 12px; max-width:24ch;"></h1>
+      <h1 id="pageTitle" style="margin:0 0 12px; max-width:24ch;"></h1>
       <p class="lede" style="color:inherit; opacity:.92;" id="verdict1"></p>
     </div>
   </div>

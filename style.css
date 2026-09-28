@@ -100,15 +100,21 @@
 *, *::before, *::after { box-sizing: border-box; }
 body {
   margin: 0; background: var(--color-bg); color: var(--color-ink);
-  font-family: var(--font-body); font-size: 15px; line-height: 1.55; font-weight: 400;
+  font-family: var(--font-body); font-size: 16px; line-height: 1.55; font-weight: 400;
   font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;
 }
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading); font-weight: var(--font-heading-weight);
   line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 var(--space-2);
 }
-h1 { font-size: 42px; }
-h2 { font-size: 32px; }
+/* h1/28, h2/21, body/16 -- the sizes docs/mockups/*.html agree on across all
+   7 mockups (home, sending-money, route-breakdown, countries, country,
+   how-it-works, how-it-was-built). Each live page still carries its own
+   local h1/h2 rule at a higher or equal specificity, so this value is the
+   fallback; the per-page rebuild fix (2026-09-28) also updated those to
+   match, but this keeps a future page correct by default. */
+h1 { font-size: 28px; }
+h2 { font-size: 21px; }
 h3 { font-size: 25px; }
 h4 { font-size: 20px; }
 h5 { font-size: 16px; }
@@ -122,6 +128,34 @@ figcaption { font-size: 11px; margin-top: var(--space-1); color: color-mix(in sr
 :focus { outline: none; }
 :focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
 ::selection { background: color-mix(in srgb, var(--data-600) 35%, transparent); }
+
+/* ---------------------------------------------------------------- page frame
+   (canonical, shared -- added 2026-09-28)
+   The 7 live pages (index, sending-money, corridor, the-index, country,
+   how-it-works, machine-room) were each rebuilt by a separate agent from
+   docs/mockups/*.html and each hand-rolled its own container width, edge
+   padding and header/logo/nav CSS, so they drifted: measured logo x-position
+   at 1280px ranged from 48 to 264, h1 font-size from 28 to 38px. These
+   values are the ones docs/mockups/*.html agree on (all 7 mockups use the
+   same numbers) or, where the mockups are silent on the live header (they
+   use a simpler nav-in-.wrap layout the site outgrew), the values the
+   majority of the 7 live pages already used. Every page now links this
+   stylesheet and its own inline <style> keeps only page-specific content
+   CSS (charts, tables, cards) -- not container width, header layout or
+   h1/h2/body sizing, which live here only. */
+.wrap {
+  max-width: 760px; margin: 0 auto; padding: 0 24px;
+}
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 0; flex-wrap: wrap; gap: 12px;
+}
+.brand { display: flex; align-items: center; gap: 40px; flex-wrap: wrap; min-width: 0; }
+.logo { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; flex: none; }
+.logo a { color: inherit; text-decoration: none; }
+nav { display: flex; gap: 24px; align-items: center; font-size: 15px; font-weight: 500; color: #333; flex-wrap: wrap; min-width: 0; }
+nav a { text-decoration: none; }
+nav a.active, nav a[aria-current] { color: var(--color-ink); font-weight: 700; }
 
 /* ---------------------------------------------------------------- header
    One shared header, four nav items, identical markup on every page. */
@@ -212,8 +246,10 @@ figcaption { font-size: 11px; margin-top: var(--space-1); color: color-mix(in sr
   }
   [data-nav="bar"] { padding: 0 12px !important; gap: 10px !important; }
   [data-nav="links"] a, [data-nav="links"] button { padding: 12px 9px 10px !important; letter-spacing: 0.04em !important; }
-  h1 { font-size: 30px !important; line-height: 1.1 !important; }
-  h2 { font-size: 19px !important; }
+  /* h1/h2 no longer shrink at mobile here (removed 2026-09-28): the 7 live
+     pages now all link this file, and this !important rule was clobbering
+     their canonical 28px/21px h1/h2 at narrow widths -- docs/mockups/*.html
+     don't shrink h1/h2 on mobile either, so there is nothing to restore. */
 }
 
 /* ---------------------------------------------------------------- thread
