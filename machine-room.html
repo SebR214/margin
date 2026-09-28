@@ -6,6 +6,7 @@
 <title>margin.wiki — the machine room</title>
 <meta name="description" content="What the site is checking this hour, and what the programs building this site are doing, unedited, as it happens."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
 <style>
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0;
     box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px) }
@@ -18,8 +19,8 @@
   .log{font-size:13px;padding:7px 0;border-bottom:1px solid #F6F6F6;display:flex;gap:12px;align-items:baseline}
   .log>div{min-width:0;overflow-wrap:anywhere}
   .log>div:last-child{flex-grow:1}
-  .wrap{max-width:1150px;margin:0 auto}
-  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
+  .wrap{max-width:760px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;padding:22px 0;flex-wrap:wrap;gap:12px}
   .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap;min-width:0}
   .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em;flex:none}
   nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap;min-width:0}
@@ -28,11 +29,14 @@
   .header-right{display:flex;align-items:center;gap:16px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
   .dot.off{background:#9A9A9A}
-  .hero{padding:44px 48px 0;display:flex;flex-direction:column;gap:10px}
-  h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;margin:0}
+  /* Also drops style.css's shared black .hero band/white text -- this page
+     never used it, so neutralize what leaks in now that it links style.css. */
+  .hero{padding:44px 0 0;display:flex;flex-direction:column;gap:10px;background:none;color:var(--ink)}
+  .hero h1{color:var(--ink)}
+  h1{font-size:28px;font-weight:800;letter-spacing:-0.02em;margin:0}
   .lede{max-width:840px;font-size:16px;color:#6B6B6B;line-height:1.5}
   .meta{font-size:13px;color:#9A9A9A;letter-spacing:.02em;display:flex;align-items:center;gap:8px;margin:2px 0 0}
-  .stack{display:flex;flex-direction:column;gap:44px;padding:36px 48px 64px}
+  .stack{display:flex;flex-direction:column;gap:44px;padding:36px 0 64px}
   .col-hdr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;border-bottom:1px solid #0B0B0B;padding-bottom:8px}
   .col-title{font-size:16px;font-weight:700}
   .feed{}
@@ -66,7 +70,7 @@
   .fail li span{color:#6B6B6B;font-size:14px;display:block}
   .small{font-size:13px;color:#9A9A9A;margin:14px 0 0}
   .small a,.meta a,.answer a{display:inline-block;padding:6px 0}
-  @media(max-width:1000px){.stack{padding:24px 24px 48px;gap:36px}h1{font-size:30px}header{padding:22px 24px}.hero{padding:32px 24px 0}}
+  @media(max-width:1000px){.stack{padding:24px 0 48px;gap:36px}header{padding:22px 0}.hero{padding:32px 0 0}}
   @media(max-width:620px){
     .stats{grid-template-columns:1fr 1fr}
     .stats>div:nth-child(3){padding-left:0;border-left:0}

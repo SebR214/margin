@@ -6,8 +6,11 @@
 <title>margin.wiki</title>
 <meta name="description" content="In much of the world the official exchange rate is not the real one. The agent watches real sources in 60 countries, every hour."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
 <script src="./js/chart.js"></script>
 <style>
+  /* Page-specific only: container width, header/nav layout and h1/h2/body
+     sizing now live in style.css (2026-09-28 page-frame unification). */
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; --grape:#3F3047; --dust:#D3D0CB; --eggshell:#F0EBD8; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
@@ -15,11 +18,6 @@
   .num{font-variant-numeric:tabular-nums}
   .stamp{font-size:11px;color:var(--stamp);letter-spacing:.06em}
   .receipt{font-size:13px;color:var(--sub)}
-  .wrap{max-width:1150px;margin:0 auto}
-  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;max-width:1150px;margin:0 auto}
-  .brand{display:flex;align-items:center;gap:40px;min-width:0}
-  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em;flex:0 0 auto}
-  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333}
   nav a[aria-current]{color:var(--ink);font-weight:700}
   .status{display:flex;align-items:center;gap:24px}
   .live{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;font-size:13px;color:var(--sub);margin-top:16px}
@@ -27,14 +25,18 @@
   .meta-line{font-size:13px;color:var(--stamp);margin-top:6px}
   .meta-line a{font-weight:600;color:var(--ink)}
   .mcp{font-size:13px;font-weight:700}
-  .hero{padding:40px 48px 28px}
-  h1{font-size:32px;font-weight:800;line-height:1.22;letter-spacing:-0.02em;max-width:900px;margin:0}
+  /* Also drops style.css's shared black .hero band/white text -- this page
+     never used it (white bg, black text), so neutralize what leaks in now
+     that this page links style.css. */
+  .hero{padding:40px 0 28px;background:none;color:var(--ink)}
+  .hero h1{color:var(--ink)}
+  h1{font-size:28px;font-weight:800;line-height:1.22;letter-spacing:-0.02em;max-width:900px;margin:0}
   .sub{padding-top:14px;font-size:16px;line-height:1.5;color:var(--sub);max-width:680px}
   .purpose{padding-top:8px;font-size:13px;line-height:1.5;color:var(--stamp);max-width:680px}
   .lede{font-size:14px;line-height:1.5;color:var(--sub);margin-bottom:14px;max-width:680px}
-  .lead-section{padding:0 48px;max-width:900px}
+  .lead-section{padding:0;max-width:900px}
   .sec{border-top:1px solid var(--rule);margin-top:48px;padding-top:36px}
-  .sec h2{font-size:22px;line-height:1.32;margin:0 0 8px;font-weight:800;letter-spacing:-0.01em;max-width:720px}
+  .sec h2{font-size:21px;line-height:1.32;margin:0 0 8px;font-weight:800;letter-spacing:-0.01em;max-width:720px}
   .sec .answer{font-size:15px;line-height:1.5;color:var(--sub);margin:0 0 22px;max-width:680px}
   .waterfall-card{border:1px solid var(--rule);border-radius:16px;padding:28px 32px;margin-bottom:40px}
   .waterfall-title{font-size:13px;letter-spacing:.06em;color:var(--sub);text-transform:uppercase;font-weight:700;margin-bottom:4px}
@@ -62,8 +64,8 @@
   .card p{margin:8px 0 0;font-size:14px;line-height:1.5;color:var(--sub)}
   .card p b{color:var(--ink);font-weight:700}
   @media(max-width:560px){.cards{grid-template-columns:1fr}}
-  .break{border-top:1px solid var(--rule);margin:44px 48px 0}
-  .body{padding:40px 48px 48px}
+  .break{border-top:1px solid var(--rule);margin:44px 0 0}
+  .body{padding:40px 0 48px}
   .feed{display:flex;flex-direction:column}
   .agent-hdr{display:flex;align-items:center;gap:10px;padding-bottom:34px}
   .agent-sq{width:10px;height:10px;background:var(--stamp)}
@@ -79,8 +81,8 @@
   .msdot{width:6px;height:6px;border-radius:50%;background:var(--indigo);display:inline-block}
   @media(max-width:900px){
     header{flex-wrap:wrap;gap:12px;padding:22px 24px} nav{flex-wrap:wrap;gap:16px}
-    h1{font-size:26px} .body{padding:28px 24px 48px} .hero{padding:28px 24px 20px}
-    .lead-section{padding:0 24px} .waterfall-card{padding:20px 18px} .break{margin:32px 24px 0}
+    .body{padding:28px 0 48px} .hero{padding:28px 0 20px}
+    .lead-section{padding:0} .waterfall-card{padding:20px 18px} .break{margin:32px 0 0}
     .corridor-table{font-size:12.5px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch} .corridor-table th,.corridor-table td{padding:0 6px 10px 0}
   }
 
@@ -89,7 +91,7 @@
      Every tap target below (nav links, card links, table links) gets a
      real >=40px tall hit area, not just visible text. */
   @media(max-width:760px){
-    header{position:relative;flex-wrap:nowrap!important;padding:14px 16px 10px;gap:10px}
+    header{position:relative;flex-wrap:nowrap!important;padding:14px 0 10px;gap:10px}
     .brand{gap:12px;flex:1;min-width:0}
     nav{display:flex!important;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:2px;margin:0;padding:0 2px;scrollbar-width:none;flex:1;min-width:0}
     nav::-webkit-scrollbar{display:none}
@@ -99,13 +101,13 @@
     .live{max-width:none}
   }
   @media(max-width:620px){
-    .sec h2{font-size:19px}
     .card{padding:14px}
     .card .big{font-size:22px}
   }
 </style>
 </head>
 <body>
+<div class="wrap">
   <header>
     <div class="brand">
       <div class="logo">margin.wiki</div>
@@ -122,7 +124,6 @@
     </div>
   </header>
 
-<div class="wrap">
   <div class="hero">
     <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Stablecoins rarely beat the cheapest transfer app. But where banks won&#39;t sell you dollars, they&#39;re how people get one.<!--BAKE:END:heroHeadline--></h1>
     <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->Four AI agents run this site every hour. They track what people pay for a dollar in 60 countries, and what it costs to send money with an app or with stablecoins. <a href="./how-it-works.html">How it was built →</a><!--BAKE:END:heroSub--></div>

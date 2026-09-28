@@ -6,7 +6,12 @@
 <title>margin.wiki — sending money</title>
 <meta name="description" content="Every provider's all-in cost to send money, fee plus the margin hidden in the exchange rate, re-checked most hours -- real gaps shown, not hidden."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
 <style>
+  /* Page-specific only: container width, header/nav layout and h1/h2/body
+     sizing now live in style.css (2026-09-28 page-frame unification). Header
+     is not inside .wrap in this page's markup, so it gets its own matching
+     max-width/margin here to line up with .page below it. */
   :root{ --ink:#0B0B0B; --mute:#6B6B6B; --faint:#9A9A9A; --line:#F0F0F0; --peri:#817FCC; --soft:#D3D0CB; --grape:#3F3047; --egg:#F0EBD8;
     box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px) }
   @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --ink:#eee; --mute:#a3a3a3; --faint:#6f6f6f; --line:#2a2a2a; --peri:#9E9CE0; --soft:#5b5853; --grape:#A99BB5; --egg:#221f1a; } }
@@ -17,16 +22,12 @@
   :root[data-theme="dark"] body{background:#121212}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--peri)}
   .num{font-variant-numeric:tabular-nums}
-  .wrap{max-width:1150px;margin:0 auto}
-  header{display:flex;align-items:center;justify-content:space-between;padding:22px 48px;flex-wrap:wrap;gap:12px}
-  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap;min-width:0}
-  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em;flex:none}
-  nav{display:flex;gap:24px;align-items:center;font-size:15px;font-weight:500;color:var(--mute);min-width:0}
+  header{max-width:760px;margin:0 auto;padding:22px 24px;flex-wrap:wrap}
   nav a{color:var(--mute);padding:10px 0;white-space:nowrap}
   nav a.active{color:var(--ink);font-weight:700}
 
-  .page{max-width:760px;margin:0 auto;padding:8px 48px 72px}
-  h1{font-size:32px;font-weight:800;letter-spacing:-0.02em;line-height:1.22;margin:20px 0 8px}
+  .page{max-width:760px;margin:0 auto;padding:8px 24px 72px}
+  h1{font-size:28px;font-weight:800;letter-spacing:-0.02em;line-height:1.22;margin:20px 0 8px}
   .lead{font-size:16px;color:var(--mute);line-height:1.5;margin:0}
   .meta{font-size:13px;color:var(--faint);margin:14px 0 0}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--peri);display:inline-block;margin-right:6px;vertical-align:1px}
@@ -39,7 +40,7 @@
   .pills.small .pill{font-size:13px;padding:8px 14px;min-height:36px}
 
   section{border-top:1px solid var(--line);margin-top:40px;padding-top:32px}
-  h2{font-size:22px;line-height:1.3;margin:0 0 8px;font-weight:800;letter-spacing:-0.01em}
+  h2{font-size:21px;line-height:1.3;margin:0 0 8px;font-weight:800;letter-spacing:-0.01em}
   .answer{font-size:16px;color:var(--mute);margin:0 0 22px;line-height:1.5}
   .answer b{color:var(--ink);font-weight:600}
 
@@ -88,7 +89,6 @@
   @media(max-width:900px){
     header{padding:18px 24px}
     .page{padding:8px 24px 56px}
-    h1{font-size:26px}
   }
 
   @media(max-width:620px){
