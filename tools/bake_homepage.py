@@ -85,6 +85,8 @@ def cheapest_app(providers_latest, corridor, size, fallback_bps, fallback_provid
 # level of detail. Labels only, never a number -- same rule as every other
 # display map on this site (tools/emit_countries.py's COUNTRY, for one).
 SRC_SYMBOL = {"SGD": "S$", "AUD": "A$", "NZD": "NZ$", "USD": "US$"}
+SRC_NAME = {"SGD": "Singapore", "AUD": "Australia", "NZD": "New Zealand", "USD": "the US"}
+DEST_NAME = {"PHP": "the Philippines", "MXN": "Mexico"}
 
 MONTHS = ["January", "February", "March", "April", "May", "June", "July",
           "August", "September", "October", "November", "December"]
@@ -463,14 +465,14 @@ def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth
             if is_unmaintained else ""
         )
         caption_svg = (
-            f'<text x="0" y="{row_y+31:.1f}" font-family="Archivo,sans-serif" font-size="11" fill="#9A9A9A">{esc(caption)}</text>'
+            f'<text x="0" y="{row_y+31:.1f}" font-family="Archivo,sans-serif" font-size="14" fill="#9A9A9A">{esc(caption)}</text>'
             if caption else ""
         )
         rows.append(
             f'<a href="{href}"><title>{esc(tip)}</title>'
-            f'<text x="0" y="{row_y+16:.1f}" font-family="Archivo,sans-serif" font-size="12" font-weight="500" fill="{text_fill}">{esc(country_label)}</text>'
+            f'<text x="0" y="{row_y+16:.1f}" font-family="Archivo,sans-serif" font-size="14" font-weight="500" fill="{text_fill}">{esc(country_label)}</text>'
             f'<rect x="{bar_left}" y="{row_y+4:.1f}" width="{w:.1f}" height="10" rx="2" fill="{fill}"/>{break_mark}'
-            f'<text x="{W-4}" y="{row_y+13:.1f}" text-anchor="end" font-family="ui-monospace,monospace" font-size="11" font-weight="500" fill="{text_fill}">{value_text}</text>'
+            f'<text x="{W-4}" y="{row_y+13:.1f}" text-anchor="end" font-family="ui-monospace,monospace" font-size="14" font-weight="500" fill="{text_fill}">{value_text}</text>'
             f'{caption_svg}</a>'
         )
     H = y + 10
@@ -486,8 +488,11 @@ def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth
     pegged_legend = esc(home_copy.get("allCountriesPeggedLegend",
         "Light grey: pegged currency, the gap is the cost of buying stablecoins."))
     note = esc(home_copy.get("allCountriesNote", ""))
-    link = esc(home_copy.get("allCountriesLinkTemplate", "All {n} priced countries →")
-               .replace("{n}", str(n_priced)))
+    # Sebastian's 2026-09-28 final mockup, item 6: this one link drops the
+    # live priced-count number ("All 51 priced countries →" -> "All
+    # countries →") -- a simplification of THIS label only, not a general
+    # ban on stating the count elsewhere on the site.
+    link = esc(home_copy.get("allCountriesLinkTemplate", "All countries →"))
     why = esc(country_why_html(rows_in, home_copy, street_depth))
     return (
         "<h2>" + header + "</h2>"
@@ -496,7 +501,7 @@ def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth
         '<div class="strip-note">' + median_note + '</div>'
         '<div class="strip-note">' + pegged_legend + '</div>'
         '<div class="strip-note">' + note + '</div>'
-        '<p class="why">' + why + '</p>'
+        '<p class="plainline">' + why + '</p>'
         '<div class="strip-note"><a href="./the-index.html" style="font-weight:600;color:#0B0B0B">' + link + '</a></div>'
     )
 
@@ -561,7 +566,7 @@ def corridor_row_html(c, home_copy, window, app_bps, app_provider):
     win_note = ""
     win_text = row.get("window")
     if win_text:
-        win_note = '<div style="font-size:11px;color:#9A9A9A;font-weight:400">' + esc(win_text) + "</div>"
+        win_note = '<div style="font-size:14px;color:#9A9A9A;font-weight:400">' + esc(win_text) + "</div>"
     label = ARROW_ROUTE_WORDS.get(c.get("corridor"), c.get("route_words", c["corridor"]))
     return (
         "<tr>"
@@ -575,12 +580,63 @@ def corridor_row_html(c, home_copy, window, app_bps, app_provider):
     )
 
 
+def duel_html(corridors, home_copy, providers_latest, rung):
+    """The duel comparison: two big numbers, live from the SAME
+    corridor_summary.json + providers_latest.json data the waterfall and
+    corridor table below already read -- never the mockup's literal
+    "0.87% vs 0.46%". Leads on SGD->PHP; the small link below names every
+    OTHER corridor where the cheapest app also beats the stablecoin,
+    computed the same way as here, never a fixed list. Mirrors index.html's
+    own renderDuel() JS exactly so the server bake and the client re-render
+    can never disagree.
+    """
+    if not corridors:
+        return None
+    primary = next((c for c in corridors if c.get("corridor") == "SGD->PHP"), corridors[0])
+    app_provider, app_bps = cheapest_app(
+        providers_latest, primary.get("corridor"), rung, primary.get("baseline_cost_bps_median"))
+    stable_bps = primary["taker_cost_bps_median"]
+    src, _, dest_ccy = (primary.get("corridor") or "").partition("->")
+    dest = DEST_NAME.get(dest_ccy, "")
+    amount = SRC_SYMBOL.get(src, src + " ") + f"{round(rung):,}"
+    caption = (home_copy.get("duelCaptionTemplate", "Sending {amount} from {src} to {dest}, all-in cost, typical hour.")
+               .replace("{amount}", amount).replace("{src}", SRC_NAME.get(src, src)).replace("{dest}", dest))
+    others = []
+    for c in corridors:
+        if c.get("corridor") == primary.get("corridor"):
+            continue
+        _p, other_app_bps = cheapest_app(providers_latest, c.get("corridor"), rung, c.get("baseline_cost_bps_median"))
+        if c["taker_cost_bps_median"] > other_app_bps:
+            other_src = (c.get("corridor") or "").split("->")[0]
+            others.append(SRC_NAME.get(other_src, other_src))
+    if others:
+        same_result = (home_copy.get("duelSameResultTemplate",
+            'Same result from {others}. <a href="./sending-money.html">All routes and providers →</a>')
+            .replace("{others}", esc(join_and(others))))
+    else:
+        same_result = ('<a href="./sending-money.html">'
+                        + esc(home_copy.get("everyProviderLink", "All routes and providers →")) + "</a>")
+    return (
+        '<div class="duel">'
+        '<div><div class="big p">' + pct(stable_bps) + '</div><div class="lab">'
+        + esc(home_copy.get("duelLabelStable", "Stablecoin")) + "</div></div>"
+        '<div class="vs">' + esc(home_copy.get("duelVs", "vs")) + "</div>"
+        '<div><div class="big">' + pct(app_bps) + '</div><div class="lab">'
+        + esc(home_copy.get("duelLabelApp", "Cheapest app")) + "</div></div>"
+        "</div>"
+        '<p class="cap">' + esc(caption) + "</p>"
+        '<p class="small-note">' + same_result + "</p>"
+    )
+
+
 def routes_header_html(app_bps_by_corridor, corridors, home_copy):
-    """Section A's h2 -- states the finding, not a description: how many
-    of the sends this page checks are cheaper by the cheapest app (market
-    order) right now. Computed from the SAME per-corridor app_bps this
-    table's own CHEAPEST APP column shows, so the header can never
-    disagree with the numbers under it.
+    """The detail table's own h3 label (demoted from h2, 2026-09-28 final
+    mockup -- the page's one real h2 is now above the waterfall; this table
+    is detail reached from the duel comparison's own link): how many of the
+    sends this page checks are cheaper by the cheapest app (market order)
+    right now. Computed from the SAME per-corridor app_bps this table's own
+    CHEAPEST APP column shows, so the header can never disagree with the
+    numbers under it.
     """
     n = len(corridors)
     k = 0
@@ -612,7 +668,7 @@ def corridor_table_html(corridors, home_copy, window, providers_latest, rung):
     every_link = esc(home_copy.get("everyProviderLink", "Every provider, every amount →"))
     cheapest_note = esc(home_copy.get("cheapestAppNote", ""))
     return (
-        "<h2>" + header + "</h2>"
+        '<h3 style="font-size:16px;margin:0 0 10px;font-weight:700">' + header + "</h3>"
         '<table class="corridor-table"><thead><tr>'
         "<th>" + esc(cols.get("corridor", "ROUTE")) + "</th>"
         "<th>" + esc(cols.get("stablecoin", "STABLECOIN ROUTE")) + "</th>"
@@ -681,6 +737,12 @@ def main():
 
     providers_latest = load_json_or_none(PROVIDERS_LATEST)
     rung = doc.get("rung", 5000)
+
+    duel = duel_html(doc["corridors"], home_copy, providers_latest, rung)
+    if duel is not None:
+        html, ok3a = replace_by_marker(html, "duelSection", duel)
+        changed = changed or ok3a
+
     table = corridor_table_html(doc["corridors"], home_copy, window, providers_latest, rung)
     html, ok3 = replace_by_marker(html, "corridorTableSection", table)
     changed = changed or ok3

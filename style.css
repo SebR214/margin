@@ -98,9 +98,13 @@
 
 /* ---------------------------------------------------------------- base */
 *, *::before, *::after { box-sizing: border-box; }
+/* body/17px, line-height 1.55 -- the size docs/mockups/*.html's final
+   2026-09-28 revision agrees on across all 7 mockups (up from 16px), same
+   "mockups agree, so this is the shared fallback" rule the comment below
+   documents for h1/h2. */
 body {
   margin: 0; background: var(--color-bg); color: var(--color-ink);
-  font-family: var(--font-body); font-size: 16px; line-height: 1.55; font-weight: 400;
+  font-family: var(--font-body); font-size: 17px; line-height: 1.55; font-weight: 400;
   font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;
 }
 h1, h2, h3, h4, h5, h6 {
