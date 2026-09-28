@@ -192,6 +192,24 @@
     document.addEventListener('touchstart', function (ev) {
       if (!svg.contains(ev.target)) hide();
     }, { passive: true });
+
+    // Re-draw at the container's real width on resize/orientation-change --
+    // a phone rotated, or a window resized after load, must not be left
+    // showing the old width's coordinate system (which is exactly the fixed-
+    // viewBox bug this component exists to avoid at load time). Debounced so
+    // a drag-resize doesn't rebuild the SVG on every intermediate pixel.
+    var resizeTimer = null;
+    function onResize() {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        var newW = Math.round(container.getBoundingClientRect().width);
+        if (newW && newW !== w) {
+          window.removeEventListener('resize', onResize);
+          render(container, opts);
+        }
+      }, 150);
+    }
+    window.addEventListener('resize', onResize);
   }
 
   global.MarginChart = { render: render };
