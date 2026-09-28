@@ -1,12 +1,14 @@
 {
+  "buy_price": 22882.0,
   "ccy": "LAK",
-  "computed_at": "2026-09-28T20:00:00+00:00",
+  "computed_at": "2026-09-28T21:00:00+00:00",
   "country": "Laos",
   "denominator": {
     "class": "market",
     "rate_per_usd": 22248.985644,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 22248.985644,
   "history": [
     {
       "date": "2026-09-05",
@@ -148,14 +150,15 @@
     },
     {
       "date": "2026-09-28",
-      "index_pct": 2.1597,
-      "n": 20,
-      "source": "hourly_buy_p2p"
+      "index_pct": 2.8451,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
   "history_days": 24,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-09-28T20:00:00+00:00",
+  "hour_utc": "2026-09-28T21:00:00+00:00",
+  "index_pct": 2.8451,
   "index_version": "1.1",
   "instrument_check": {
     "checked": false,
@@ -163,11 +166,17 @@
   },
   "median_24h_n": 24,
   "median_24h_pct": 2.2249,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: 9 buy-side ads, 10 required",
-  "round_trip_pct": 2.2905,
-  "source_class": null,
+  "n_sources": 10,
+  "round_trip_pct": 2.0811,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 22888.0
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 22882.0,
+      "index_pct": 2.8451,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    }
+  ]
 }
