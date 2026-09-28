@@ -1,0 +1,110 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>margin.wiki how it works, mockup</title><link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet"><style>
+:root{--bg:#fff;--ink:#0B0B0B;--mute:#6B6B6B;--faint:#9A9A9A;--line:#F0F0F0;--grape:#3F3047;--soft:#D3D0CB;--egg:#F0EBD8;--peri:#817FCC;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121212;--ink:#eee;--mute:#a3a3a3;--faint:#6f6f6f;--line:#2a2a2a;--grape:#A99BB5;--soft:#5b5853;--egg:#221f1a;--peri:#9E9CE0}}
+:root[data-theme="dark"]{--bg:#121212;--ink:#eee;--mute:#a3a3a3;--faint:#6f6f6f;--line:#2a2a2a;--grape:#A99BB5;--soft:#5b5853;--egg:#221f1a;--peri:#9E9CE0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Archivo',system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:24px 24px 72px}
+nav{display:flex;gap:24px;align-items:center;font-size:14px;margin-bottom:56px;flex-wrap:wrap}
+nav b{font-size:16px;margin-right:8px}
+nav a{color:var(--mute);text-decoration:none}
+nav a.on{color:var(--ink);font-weight:600}
+a{color:var(--ink);text-decoration:none;font-weight:500}
+h1{font-size:28px;line-height:1.25;letter-spacing:-.01em;margin:0 0 8px;font-weight:700}
+.lead{font-size:17px;color:var(--mute);margin:0}
+.meta{font-size:13px;color:var(--faint);margin:14px 0 0}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--peri);display:inline-block;margin-right:6px;vertical-align:1px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 0}
+.pill{font-size:14px;padding:7px 14px;border-radius:999px;border:1px solid var(--soft);color:var(--ink);background:var(--bg);white-space:nowrap}
+.pill.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pills.small .pill{font-size:13px;padding:5px 12px}
+.pills.small{margin-top:10px}
+section{border-top:1px solid var(--line);margin-top:40px;padding-top:32px}
+h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
+.answer{font-size:16px;color:var(--mute);margin:0 0 22px}
+.answer b{color:var(--ink);font-weight:600}
+.prow{display:grid;grid-template-columns:minmax(150px,210px) 1fr 84px 60px;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.prow.head{border-top:0;padding:0 0 8px;font-size:12px;color:var(--faint);font-weight:600;letter-spacing:.03em}
+.pname{font-size:15px;font-weight:500;line-height:1.3}
+.pname small{display:block;font-size:12px;color:var(--faint);font-weight:400;margin-top:2px}
+.track{height:10px;background:var(--line);border-radius:2px;position:relative}
+.track i{position:absolute;left:0;top:0;bottom:0;background:var(--soft);border-radius:2px;min-width:2px}
+.num{text-align:right;font-variant-numeric:tabular-nums;font-size:15px}
+.pct{text-align:right;font-variant-numeric:tabular-nums;font-size:14px;color:var(--mute)}
+.stable .pname,.stable .num,.stable .pct{color:var(--peri);font-weight:600}
+.stable .pname small{color:var(--faint);font-weight:400}
+.stable .track i{background:var(--peri)}
+.small{font-size:13px;color:var(--faint);margin:14px 0 0}
+.note{font-size:14px;color:var(--mute);margin:16px 0 0;padding:12px 16px;border-left:3px solid var(--soft)}
+.brow{display:grid;grid-template-columns:200px 1fr 90px;gap:14px;align-items:center;padding:7px 0;font-size:15px}
+.brow .track{height:14px}
+.brow .track i{background:var(--grape)}
+.brow .num{font-size:14px}
+.zero{font-size:14px;color:var(--mute);margin:10px 0 0}
+.list{margin:0;padding:0;list-style:none}
+.list li{padding:12px 0;border-top:1px solid var(--line);font-size:15px;display:grid;grid-template-columns:1fr auto;gap:12px}
+.list li span:last-child{color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}
+.up{color:var(--grape);font-weight:600}
+.log li>span:last-child{text-align:right}
+.s2{display:block;font-size:12px;color:var(--faint);margin-top:2px}
+.log li{grid-template-columns:1fr auto}
+.log .d{color:var(--faint);font-size:13px;padding-top:2px}
+.log .s{display:block;font-size:12px;color:var(--faint);margin-top:2px}
+@media (max-width:620px){
+ nav{gap:14px;margin-bottom:36px}
+ .prow{grid-template-columns:1fr 70px 52px}.prow .track,.prow.head span:nth-child(2){display:none}
+ .list li{grid-template-columns:1fr}.list li>span:last-child{white-space:normal}.list li .s2[style]{text-align:left!important}
+ .brow{grid-template-columns:1fr 70px}.brow .track{grid-column:1/3;order:3}
+ 
+}
+
+.kv{list-style:none;margin:0;padding:0}
+.kv li{display:grid;grid-template-columns:200px 1fr;gap:16px;padding:12px 0;border-top:1px solid var(--line);font-size:15px}
+.kv li b{font-weight:600}
+.kv li span{color:var(--mute)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:28px}
+.stats>div{padding:14px 14px 14px 0}.stats>div+div{padding-left:14px;border-left:1px solid var(--line)}
+.stats .k{font-size:12px;color:var(--faint);font-weight:600}.stats .v{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.agents{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.agent{border:1px solid var(--soft);border-radius:8px;padding:16px}
+.agent b{display:block;font-size:15px}
+.agent .when{font-size:12px;color:var(--peri);font-weight:600;margin:2px 0 8px}
+.agent p{margin:0;font-size:14px;color:var(--mute)}
+.feed li{grid-template-columns:70px 1fr auto!important}
+.feed .d{color:var(--faint);font-size:13px}
+.tag{font-size:12px;color:var(--faint)}
+.fail li{display:block}
+.fail li b{display:block;font-weight:600;margin-bottom:2px}
+.fail li span{color:var(--mute);font-size:14px;white-space:normal!important;display:block}
+.cmp{display:grid;grid-template-columns:1fr 90px 110px 90px;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:15px}
+.cmp.head{border-top:0;font-size:12px;color:var(--faint);font-weight:600}
+.cmp span:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+@media (max-width:620px){.kv li{grid-template-columns:1fr;gap:2px}.stats{grid-template-columns:1fr 1fr}.stats>div:nth-child(3){padding-left:0;border-left:0}.stats>div:nth-child(n+3){border-top:1px solid var(--line)}.agents{grid-template-columns:1fr}.feed li{grid-template-columns:52px 1fr!important}.feed li>span:last-child{grid-column:2}.cmp{grid-template-columns:1fr 70px 80px}.cmp span:nth-child(4){display:none}}
+.plain{font-size:16px;line-height:1.6;margin:0;max-width:660px}
+.plain-list{margin:0;padding-left:20px;font-size:16px;line-height:1.6}
+.plain-list li{margin:4px 0}
+</style></head><body><div class="wrap"><nav><b>margin.wiki</b><a class="">Home</a><a class="">Sending money</a><a class="">Countries</a><a class="on">How it works</a><a class="">How it was built</a></nav>
+<h1>We measure two things every hour: what a dollar really costs, and what sending money costs</h1>
+
+<section>
+<h2>What a dollar costs: the price of USDT, divided by the official rate</h2>
+<p class="plain">Every hour we take the middle price of the 10 cheapest ads selling USDT in each country, on Binance P2P or a local crypto exchange, and divide it by the official rate. The number you see is the median of the last 24 hours. A country with fewer than 10 sellers gets no price, and we say why.</p>
+</section>
+
+<section>
+<h2>What sending money costs: what arrives, compared with the real exchange rate</h2>
+<p class="plain">For each provider we compare what the recipient gets with what they would get at the mid-market rate, at five amounts. Airwallex, Instarem, Wise and WorldRemit quote us directly. The rest come from a public price comparison. The stablecoin route is priced on real exchange order books, with every fee included.</p>
+</section>
+
+<section>
+<h2>What we don't measure yet</h2>
+<ul class="plain-list">
+<li>The official rate only updates once a day, so it can be up to 24 hours behind the market.</li>
+<li>Bank fees for getting money onto and off the exchanges.</li>
+<li>Prices for repeat senders. Some app prices are first-transfer offers.</li>
+<li>Cash dollars at money changers.</li>
+</ul>
+<p class="small">Every number links to the file it came from. <a>Full method, every source and our checks against independent numbers →</a></p>
+</section>
+</div></body></html>

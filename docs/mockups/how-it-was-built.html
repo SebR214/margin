@@ -1,0 +1,140 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>margin.wiki how it was built, mockup</title><link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet"><style>
+:root{--bg:#fff;--ink:#0B0B0B;--mute:#6B6B6B;--faint:#9A9A9A;--line:#F0F0F0;--grape:#3F3047;--soft:#D3D0CB;--egg:#F0EBD8;--peri:#817FCC;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121212;--ink:#eee;--mute:#a3a3a3;--faint:#6f6f6f;--line:#2a2a2a;--grape:#A99BB5;--soft:#5b5853;--egg:#221f1a;--peri:#9E9CE0}}
+:root[data-theme="dark"]{--bg:#121212;--ink:#eee;--mute:#a3a3a3;--faint:#6f6f6f;--line:#2a2a2a;--grape:#A99BB5;--soft:#5b5853;--egg:#221f1a;--peri:#9E9CE0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Archivo',system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:24px 24px 72px}
+nav{display:flex;gap:24px;align-items:center;font-size:14px;margin-bottom:56px;flex-wrap:wrap}
+nav b{font-size:16px;margin-right:8px}
+nav a{color:var(--mute);text-decoration:none}
+nav a.on{color:var(--ink);font-weight:600}
+a{color:var(--ink);text-decoration:none;font-weight:500}
+h1{font-size:28px;line-height:1.25;letter-spacing:-.01em;margin:0 0 8px;font-weight:700}
+.lead{font-size:17px;color:var(--mute);margin:0}
+.meta{font-size:13px;color:var(--faint);margin:14px 0 0}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--peri);display:inline-block;margin-right:6px;vertical-align:1px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 0}
+.pill{font-size:14px;padding:7px 14px;border-radius:999px;border:1px solid var(--soft);color:var(--ink);background:var(--bg);white-space:nowrap}
+.pill.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pills.small .pill{font-size:13px;padding:5px 12px}
+.pills.small{margin-top:10px}
+section{border-top:1px solid var(--line);margin-top:40px;padding-top:32px}
+h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
+.answer{font-size:16px;color:var(--mute);margin:0 0 22px}
+.answer b{color:var(--ink);font-weight:600}
+.prow{display:grid;grid-template-columns:minmax(150px,210px) 1fr 84px 60px;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.prow.head{border-top:0;padding:0 0 8px;font-size:12px;color:var(--faint);font-weight:600;letter-spacing:.03em}
+.pname{font-size:15px;font-weight:500;line-height:1.3}
+.pname small{display:block;font-size:12px;color:var(--faint);font-weight:400;margin-top:2px}
+.track{height:10px;background:var(--line);border-radius:2px;position:relative}
+.track i{position:absolute;left:0;top:0;bottom:0;background:var(--soft);border-radius:2px;min-width:2px}
+.num{text-align:right;font-variant-numeric:tabular-nums;font-size:15px}
+.pct{text-align:right;font-variant-numeric:tabular-nums;font-size:14px;color:var(--mute)}
+.stable .pname,.stable .num,.stable .pct{color:var(--peri);font-weight:600}
+.stable .pname small{color:var(--faint);font-weight:400}
+.stable .track i{background:var(--peri)}
+.small{font-size:13px;color:var(--faint);margin:14px 0 0}
+.note{font-size:14px;color:var(--mute);margin:16px 0 0;padding:12px 16px;border-left:3px solid var(--soft)}
+.brow{display:grid;grid-template-columns:200px 1fr 90px;gap:14px;align-items:center;padding:7px 0;font-size:15px}
+.brow .track{height:14px}
+.brow .track i{background:var(--grape)}
+.brow .num{font-size:14px}
+.zero{font-size:14px;color:var(--mute);margin:10px 0 0}
+.list{margin:0;padding:0;list-style:none}
+.list li{padding:12px 0;border-top:1px solid var(--line);font-size:15px;display:grid;grid-template-columns:1fr auto;gap:12px}
+.list li span:last-child{color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}
+.up{color:var(--grape);font-weight:600}
+.log li>span:last-child{text-align:right}
+.s2{display:block;font-size:12px;color:var(--faint);margin-top:2px}
+.log li{grid-template-columns:1fr auto}
+.log .d{color:var(--faint);font-size:13px;padding-top:2px}
+.log .s{display:block;font-size:12px;color:var(--faint);margin-top:2px}
+@media (max-width:620px){
+ nav{gap:14px;margin-bottom:36px}
+ .prow{grid-template-columns:1fr 70px 52px}.prow .track,.prow.head span:nth-child(2){display:none}
+ .list li{grid-template-columns:1fr}.list li>span:last-child{white-space:normal}.list li .s2[style]{text-align:left!important}
+ .brow{grid-template-columns:1fr 70px}.brow .track{grid-column:1/3;order:3}
+ 
+}
+
+.kv{list-style:none;margin:0;padding:0}
+.kv li{display:grid;grid-template-columns:200px 1fr;gap:16px;padding:12px 0;border-top:1px solid var(--line);font-size:15px}
+.kv li b{font-weight:600}
+.kv li span{color:var(--mute)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:28px}
+.stats>div{padding:14px 14px 14px 0}.stats>div+div{padding-left:14px;border-left:1px solid var(--line)}
+.stats .k{font-size:12px;color:var(--faint);font-weight:600}.stats .v{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.agents{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.agent{border:1px solid var(--soft);border-radius:8px;padding:16px}
+.agent b{display:block;font-size:15px}
+.agent .when{font-size:12px;color:var(--peri);font-weight:600;margin:2px 0 8px}
+.agent p{margin:0;font-size:14px;color:var(--mute)}
+.feed li{grid-template-columns:70px 1fr auto!important}
+.feed .d{color:var(--faint);font-size:13px}
+.tag{font-size:12px;color:var(--faint)}
+.fail li{display:block}
+.fail li b{display:block;font-weight:600;margin-bottom:2px}
+.fail li span{color:var(--mute);font-size:14px;white-space:normal!important;display:block}
+.cmp{display:grid;grid-template-columns:1fr 90px 110px 90px;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:15px}
+.cmp.head{border-top:0;font-size:12px;color:var(--faint);font-weight:600}
+.cmp span:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+@media (max-width:620px){.kv li{grid-template-columns:1fr;gap:2px}.stats{grid-template-columns:1fr 1fr}.stats>div:nth-child(3){padding-left:0;border-left:0}.stats>div:nth-child(n+3){border-top:1px solid var(--line)}.agents{grid-template-columns:1fr}.feed li{grid-template-columns:52px 1fr!important}.feed li>span:last-child{grid-column:2}.cmp{grid-template-columns:1fr 70px 80px}.cmp span:nth-child(4){display:none}}
+.arow{list-style:none;margin:0;padding:0}
+.arow li{display:grid;grid-template-columns:100px 136px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:15px;align-items:baseline}
+.arow b{font-weight:600}
+.arow .when{white-space:nowrap;font-size:13px;color:var(--peri);font-weight:600}
+.arow .txt{color:var(--mute)}
+@media (max-width:620px){.arow li{grid-template-columns:1fr;gap:2px}}
+</style></head><body><div class="wrap"><nav><b>margin.wiki</b><a class="">Home</a><a class="">Sending money</a><a class="">Countries</a><a class="">How it works</a><a class="on">How it was built</a></nav>
+<h1>Four AI agents run this site, with one person approving what matters</h1>
+<p class="lead">They collect prices, write the code, review each other's work and decide what to build next. Every change they make is public.</p>
+<p class="meta"><span class="dot"></span>Last price check 03:05 UTC · next on the hour</p>
+
+<div class="stats">
+<div><div class="k">Price checks this week</div><div class="v">168</div></div>
+<div><div class="k">Changes shipped this week</div><div class="v">66</div></div>
+<div><div class="k">Countries priced now</div><div class="v">46 of 60</div></div>
+<div><div class="k">People</div><div class="v">1</div></div>
+</div>
+
+<section>
+<h2>Each agent has one job and cannot do the others'</h2>
+<p class="answer">The builder cannot merge its own work. The reviewer cannot write features. The planner never writes code.</p>
+<ul class="arow"><li><b>Collector</b><span class="when">Every hour</span><span class="txt">Pulls prices from exchanges, Binance P2P and providers, and writes them to the data files.</span></li><li><b>Builder</b><span class="when">One task per run</span><span class="txt">Builds exactly one task, then stops. If a task would break a rule, it refuses and flags it.</span></li><li><b>Reviewer</b><span class="when">Every change</span><span class="txt">Checks each change against one question: would this survive a payments expert checking one figure by hand?</span></li><li><b>Planner</b><span class="when">Between builds</span><span class="txt">Decides what gets built next, and reports what happened. Never writes code, never merges.</span></li></ul>
+</section>
+
+<section>
+<h2>Seb approves four things. The agents ship everything else on their own.</h2>
+<ul class="kv">
+<li><b>Deleting anything</b><span>A page, chart, table or number cannot disappear without approval.</span></li>
+<li><b>A new published number</b><span>Any new way of measuring something.</span></li>
+<li><b>The site's thesis</b><span>What VISION.md says the site argues.</span></li>
+<li><b>Money and access</b><span>Spending, credentials and identity.</span></li>
+</ul>
+</section>
+
+<section>
+<h2>What the agents shipped in the last two days</h2>
+<ul class="list feed">
+<li><span class="d">28 Sep</span><span>Home chart shows the top 10 countries plus Philippines and Mexico</span><span class="tag">#212</span></li>
+<li><span class="d">28 Sep</span><span>Home numbers use the median of the last 24 hours</span><span class="tag">#211</span></li>
+<li><span class="d">28 Sep</span><span>Plain-language rewrite of How it was built</span><span class="tag">#203</span></li>
+<li><span class="d">27 Sep</span><span>Plain-language rewrite of Home</span><span class="tag">#208</span></li>
+<li><span class="d">27 Sep</span><span>Plain-language rewrite of Sending money</span><span class="tag">#206</span></li>
+</ul>
+<p class="small"><a>Every change, with the reviewer's notes →</a></p>
+</section>
+
+<section>
+<h2>When the agents got it wrong, and the rule each mistake left behind</h2>
+<ul class="list fail">
+<li><b>A collector ran for 34 days and recorded nothing</b><span>It pointed at a hostname that didn't exist. Rule: no collector goes live until it has run once by hand, and silence counts as a failure.</span></li>
+<li><b>A paid key ran the whole system for twenty minutes</b><span>A config change put the metered key where the agents' flat-rate key belonged, and it spent real money before anyone noticed. Rule: the two keys live in separate files that cannot be merged.</span></li>
+<li><b>21 hours of prices were lost for good</b><span>A new data file was not on the list of files to save, and the whole pipeline stopped. Rule: every file is named in the save step, and anything missed is caught and saved with a warning. The gap stays visible in the history.</span></li>
+<li><b>No price is an answer too</b><span>Nobody is selling dollars in Ethiopia right now, so Ethiopia shows "no price" and the reason, instead of a guess.</span></li>
+</ul>
+<p class="small"><a>The full story: running agents that can't be trusted →</a></p>
+</section>
+</div></body></html>

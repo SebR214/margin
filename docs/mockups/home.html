@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>margin.wiki home, mockup v5</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--ink:#0B0B0B;--mute:#6B6B6B;--faint:#9A9A9A;--line:#F0F0F0;--bar:#3F3047;--soft:#D3D0CB;--card:#F0EBD8;--live:#817FCC;--peri:#817FCC;
+--leg1:#817FCC;--leg2:#D3D0CB;--leg3:#F0EBD8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121212;--ink:#eee;--mute:#a3a3a3;--faint:#6f6f6f;--line:#2a2a2a;--bar:#A99BB5;--soft:#5b5853;--card:#221f1a;--peri:#9E9CE0;--live:#9E9CE0;--leg1:#9E9CE0;--leg2:#6f6b66;--leg3:#4a463d}}
+:root[data-theme="dark"]{--bg:#121212;--ink:#eee;--mute:#a3a3a3;--faint:#6f6f6f;--line:#2a2a2a;--bar:#A99BB5;--soft:#5b5853;--card:#221f1a;--peri:#9E9CE0;--live:#9E9CE0;--leg1:#9E9CE0;--leg2:#6f6b66;--leg3:#4a463d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Archivo',system-ui,-apple-system,Segoe UI,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:24px 24px 72px}
+nav{display:flex;gap:24px;align-items:center;font-size:14px;margin-bottom:56px;flex-wrap:wrap}
+nav b{font-size:16px;margin-right:8px}
+nav a{color:var(--mute);text-decoration:none}
+a{color:var(--ink);text-decoration:none;font-weight:500}
+h1{font-size:28px;line-height:1.25;letter-spacing:-.01em;margin:0 0 8px;font-weight:700}
+.lead{font-size:17px;color:var(--mute);margin:0}
+.live{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:13px;color:var(--mute);margin:18px 0 0}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--live);display:inline-block;margin-right:6px;box-shadow:0 0 0 3px rgba(129,127,204,.2)}
+.meta{font-size:13px;color:var(--faint);margin:6px 0 0}
+section{border-top:1px solid var(--line);margin-top:48px;padding-top:36px}
+h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
+.answer{font-size:16px;color:var(--mute);margin:0 0 24px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{font-size:12px;color:var(--faint);font-weight:600;text-align:right;padding:0 0 10px;letter-spacing:.03em}
+th:first-child,td:first-child{text-align:left}
+td{padding:12px 0;border-top:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+td:nth-child(2){color:var(--peri);font-weight:600}
+.small{font-size:13px;color:var(--faint);margin:14px 0 0}
+h3{font-size:15px;margin:32px 0 4px;font-weight:600}
+.split{position:relative;margin-top:14px}
+.stack{display:flex;height:26px;border-radius:3px;overflow:hidden;width:87%}
+.stack div{height:100%}
+.stack div:last-child{box-shadow:inset 0 0 0 1px #D3D0CB}
+.appline{position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dashed var(--bar)}
+.applabel{position:absolute;top:34px;font-size:12px;color:var(--mute);transform:translateX(-50%);white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:13px;margin-top:40px;color:var(--mute)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:2px;display:inline-block}
+.legend b{color:var(--ink);font-weight:600}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{background:var(--bg);border:1px solid var(--soft);border-radius:8px;padding:18px}
+.big{color:var(--peri);font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.card p{margin:8px 0 0;font-size:14px;color:var(--mute)}
+.card p b{color:var(--ink);font-weight:600}
+.row{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:14px;padding:6px 0}
+.bar{position:relative;height:18px}
+.fill{height:100%;border-radius:2px;background:var(--bar)}
+.val{position:absolute;top:0;line-height:18px;font-size:13px;font-weight:600;padding-left:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.val em{font-style:normal;font-weight:400;color:var(--mute)}
+.low .fill{background:var(--soft);min-width:3px}
+.low .val{color:var(--mute);font-weight:500}
+.gap{height:14px}
+.why{font-size:15px;margin:22px 0 0;padding:14px 16px;border-left:3px solid var(--soft);background:var(--bg)}
+@media (max-width:560px){.row{grid-template-columns:90px 1fr}nav{gap:14px;margin-bottom:36px}.cards{grid-template-columns:1fr}.val em{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><b>margin.wiki</b><a>Home</a><a>Sending money</a><a>Countries</a><a>How it works</a><a>How it was built</a></nav>
+
+<h1>Sending money by stablecoin usually costs more than a transfer app</h1>
+<p class="lead">Real prices on 4 routes and in 60 countries, checked every hour.</p>
+<div class="live"><span><span class="dot"></span>Checked 10:00 UTC · next check in 23 min</span><span>This hour: Iraq's gap rose to 21.3%</span></div>
+<p class="meta">Run by four AI agents · <a href="#">How it was built →</a></p>
+
+<section>
+<h2>On all 4 routes we check, the cheapest app beats the stablecoin</h2>
+<table>
+<tr><th>Route, sending 5,000</th><th style="color:var(--peri)">Stablecoin</th><th>Cheapest app</th></tr>
+<tr><td>Singapore → Philippines</td><td>0.87%</td><td>0.46%</td></tr>
+<tr><td>Australia → Philippines</td><td>1.01%</td><td>0.65%</td></tr>
+<tr><td>New Zealand → Philippines</td><td>1.11%</td><td>0.69%</td></tr>
+<tr><td>US → Mexico</td><td>0.77%</td><td>0.55%</td></tr>
+</table>
+<p class="small">All-in cost as % of the amount, typical hour. <a href="#">Every provider, every amount →</a></p>
+
+<h3>Sending USDT costs 0.10%. Buying and selling it costs 0.76%.</h3>
+<p class="answer" style="margin:0">Singapore → Philippines, S$5,000, typical hour.</p>
+<div class="split">
+  <div class="stack">
+    <div style="width:61%;background:var(--leg1)"></div>
+    <div style="width:11.5%;background:var(--leg2)"></div>
+    <div style="width:27.5%;background:var(--leg3)"></div>
+  </div>
+  <div class="appline" style="left:46%"></div>
+  <div class="applabel" style="left:46%">cheapest app 0.46%</div>
+</div>
+<div class="legend">
+  <span><i class="sw" style="background:var(--leg1)"></i>Buy USDT with SGD <b>0.53%</b></span>
+  <span><i class="sw" style="background:var(--leg2)"></i>Send on chain <b>0.10%</b></span>
+  <span><i class="sw" style="background:var(--leg3)"></i>Sell USDT for PHP <b>0.23%</b></span>
+  <span>Total <b>0.87%</b></span>
+</div>
+</section>
+
+<section>
+<h2>Stablecoins win in two cases: limit orders to Mexico, and very large volumes</h2>
+<div class="cards">
+  <div class="card">
+    <div class="big">43% of hours</div>
+    <p><b>US → Mexico with a limit order.</b> Set your price and wait for it to fill, instead of paying the price on offer right now.</p>
+  </div>
+  <div class="card">
+    <div class="big">S$2.7M a month</div>
+    <p><b>Singapore → Philippines, at volume.</b> Above about this amount, exchange fees drop enough for stablecoins to beat the cheapest app.</p>
+  </div>
+</div>
+<p class="small"><a href="#">How we worked these out →</a></p>
+</section>
+
+<section>
+<h2>In the Philippines and Mexico a dollar costs the official rate. In Algeria people pay 92% more.</h2>
+<p class="answer">What people pay for USDT on Binance P2P and local crypto exchanges, compared with the official rate. Not cash at money changers.</p>
+
+<div class="row"><span>Algeria</span><div class="bar"><div class="fill" style="width:91.7%"></div><span class="val" style="left:91.7%">92%</span></div></div>
+<div class="row"><span>Iraq</span><div class="bar"><div class="fill" style="width:19.9%"></div><span class="val" style="left:19.9%">20%</span></div></div>
+<div class="row"><span>Mozambique</span><div class="bar"><div class="fill" style="width:17.2%"></div><span class="val" style="left:17.2%">17%</span></div></div>
+<div class="row"><span>Tunisia</span><div class="bar"><div class="fill" style="width:16%"></div><span class="val" style="left:16%">16%</span></div></div>
+<div class="row"><span>Venezuela</span><div class="bar"><div class="fill" style="width:14.5%"></div><span class="val" style="left:14.5%">15%</span></div></div>
+<div class="gap"></div>
+<div class="row low"><span>Philippines</span><div class="bar"><div class="fill" style="width:0"></div><span class="val" style="left:4px">0% <em>· where 3 of our routes land</em></span></div></div>
+<div class="row low"><span>Mexico</span><div class="bar"><div class="fill" style="width:0"></div><span class="val" style="left:4px">0% <em>· where 1 of our routes lands</em></span></div></div>
+
+<p class="why">In the Philippines and Mexico, what people pay and the official rate match, so a normal app already gives you the real rate and a stablecoin has nothing to beat. In Algeria, banks sell few dollars, so USDT is how people get them. Right now you can buy about $5,000 of USDT there within 1% of the best price.</p>
+<p class="small">Median of the last 24 hours. <a href="#">All 51 countries →</a></p>
+</section>
+</div>
+</body>
+</html>
