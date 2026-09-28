@@ -44,15 +44,16 @@ can live in tables. One number per sentence at most.
 * "apps like Wise" (or "transfer apps like Wise"), never "fiat provider" or "best ordinary way to send money"
 * "stablecoins (digital dollars)" on first use per page, then "stablecoins" or "the stablecoin route" — never "buying crypto" or "the crypto way"
 * "buying it now" (not "taker"), "waiting for your price" (not "maker") in reader-facing text; the technical term is fine in methodology / how-it-works deep sections only
-* "sending X to Y" instead of "corridor" or "route" in headings, captions and labels
+* "corridor" for a sending pair (Singapore→Philippines, US→Mexico) — plain "sending X to Y" is still fine and often clearer, but "corridor" itself is no longer avoided (SEB, 2026-09-29, reversing the 2026-09-27 decision below). "Route" is reserved for the other sense this site already uses it in — the stablecoin *method* of sending money, contrasted with "the cheapest app" ("the stablecoin route costs...") — never for a sending pair.
 * "the typical value" or "usually" instead of "median"; "not enough data" instead of "withheld"
 * Numbers are computed from `data/`, never typed. Gaps stay gaps.
 * Every reader-facing string lives in `copy.json`.
 
 **Banned in headings, subheadings, captions, labels and nav** (fine only in
-methodology / how-it-works deep sections): fiat, rail, corridor, route,
+methodology / how-it-works deep sections): fiat, rail, route,
 basis, bps, venue, on-ramp, off-ramp, P2P, parallel rate, median,
 decomposition, spread, liquidity, maker, taker, VIP tier, measured hours,
 pass, collector, withheld. `tools/check_copy.py` enforces this list
 against copy.json and the baked pages — run it before any reader-facing
-change ships.
+change ships. "Corridor" came off this list 2026-09-29 (SEB) — it is the
+plain accepted term for a sending pair now, not jargon.

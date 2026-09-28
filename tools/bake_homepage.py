@@ -414,7 +414,7 @@ def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth
     pin_rows = ""
     for c in pins:
         n = dest_counts.get(c.get("ccy"), 0)
-        land = f"where {n} of our routes land" if n != 1 else "where 1 of our routes lands"
+        land = f"where {n} of our corridors land" if n != 1 else "where 1 of our corridors lands"
         pin_rows += ('<a class="crow low" href="./country.html?ccy=' + esc(c.get("ccy", "")) + '">'
                      '<span class="cname">' + esc(name(c)) + '</span>'
                      '<span class="cbar"><i style="width:0"></i><b style="left:0">'
@@ -486,11 +486,11 @@ def duel_html(corridors, home_copy, rung):
             others.append(SRC_NAME.get(other_src, other_src))
     if others:
         same_result = (home_copy.get("duelSameResultTemplate",
-            'Same result from {others}. <a href="./sending-money.html">All routes and providers →</a>')
+            'Same result from {others}. <a href="./sending-money.html">All corridors and providers →</a>')
             .replace("{others}", esc(join_and(others))))
     else:
         same_result = ('<a href="./sending-money.html">'
-                        + esc(home_copy.get("everyProviderLink", "All routes and providers →")) + "</a>")
+                        + esc(home_copy.get("everyProviderLink", "All corridors and providers →")) + "</a>")
     return (
         '<div class="duel">'
         '<div><div class="big p">' + pct(stable_bps) + '</div><div class="lab">'
