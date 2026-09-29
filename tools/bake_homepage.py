@@ -292,6 +292,15 @@ PINNED_PHRASE_ORDER = {"PHP": 0, "MXN": 1}
 # (index.html's own JS) because this is a plain-language finding about a
 # whole country, not a per-hour sign check.
 PAR_EPSILON = 0.15
+# The header states "at the official rate" precisely (PAR_EPSILON above);
+# the why-sentence below makes a broader, structural claim about these two
+# corridors -- a normal app already gets a fair rate there, so a stablecoin
+# has nothing to beat -- not a per-hour sign check, so it uses countries.
+# html's own "near official rate" threshold (SMALL_GAP=2) instead. Tying it
+# to the header's tighter epsilon meant an ordinary hour where a pinned
+# country's gap ticked from 0.14% to 0.17% silently deleted the one
+# sentence connecting the two halves of the home page (SEB, 2026-09-29).
+PAR_EPSILON_WHY = 2.0
 
 
 def join_and(names):
@@ -304,6 +313,12 @@ def join_and(names):
 
 def find_pinned_at_par(rows_in):
     out = [c for c in rows_in if c.get("ccy") in PINNED_CCY and abs(c.get("gap_pct", 0.0)) < PAR_EPSILON]
+    out.sort(key=lambda c: PINNED_PHRASE_ORDER.get(c.get("ccy"), 99))
+    return out
+
+
+def find_pinned_near_par(rows_in):
+    out = [c for c in rows_in if c.get("ccy") in PINNED_CCY and abs(c.get("gap_pct", 0.0)) < PAR_EPSILON_WHY]
     out.sort(key=lambda c: PINNED_PHRASE_ORDER.get(c.get("ccy"), 99))
     return out
 
@@ -343,7 +358,7 @@ def country_why_html(rows_in, home_copy, street_depth):
     street_depth_latest.json, tools/emit's own per-currency depth-of-book
     read) for the widest one, when that file has an entry for it.
     """
-    pinned = find_pinned_at_par(rows_in)
+    pinned = find_pinned_near_par(rows_in)
     widest = find_widest_managed(rows_in)
     text = ""
     if pinned:

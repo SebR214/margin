@@ -42,10 +42,16 @@
   .rng::-webkit-scrollbar{display:none}
   .rng button{font:inherit;font-family:'Archivo',system-ui,sans-serif;white-space:nowrap;font-size:14px;padding:8px 14px;border-radius:999px;border:1px solid var(--rule);background:#fff;color:var(--ink);cursor:pointer;min-height:40px}
   .rng button.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:700}
+  /* The gap-over-time chart's own range toggle sits below the chart,
+     centered, in the site's grey "chip" style (matches ask.html's .chip)
+     rather than the bordered .rng pills above -- Seb's 2026-09-29 note. */
+  .gap-rng{display:flex;gap:8px;justify-content:center;margin:14px 0 0}
+  .gap-rng button{font:inherit;font-family:'Archivo',system-ui,sans-serif;font-size:13px;font-weight:500;padding:8px 16px;border-radius:999px;border:0;background:#F6F6F6;color:var(--ink);cursor:pointer;min-height:36px}
+  .gap-rng button.on{background:var(--ink);color:#fff;font-weight:700}
   /* The duel comparison: two big numbers, live-computed from the same
      corridor_summary.json the waterfall reads, matching docs/mockups/
      home.html's final revision (2026-09-28). */
-  .duel{display:flex;align-items:flex-end;gap:28px;margin:36px 0 6px}
+  .duel{display:flex;align-items:flex-end;gap:28px;margin:18px 0 6px}
   .duel .big{color:var(--ink);font-size:56px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
   .duel .big.p{color:var(--indigo)}
   .duel .lab{font-size:15px;color:var(--sub);margin-top:6px}
@@ -167,6 +173,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   <div class="hero">
     <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Sending money by stablecoin usually costs more than a transfer app<!--BAKE:END:heroHeadline--></h1>
     <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->What sending money costs on 7 corridors, and what a dollar costs in 60 countries. Checked every hour.<!--BAKE:END:heroSub--></div>
+    <div class="sub" id="heroWhy"></div>
     <div class="live" id="liveLine"><span class="dot"></span><span id="liveChecked">Checked —</span></div>
   </div>
 
@@ -184,7 +191,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   </div>
 
   <div class="lead-section sec">
-    <div id="allCountriesSection"><!--BAKE:START:allCountriesStrip--><h2>In Algeria people pay 92% more.</h2><p class="answer">How much more than the official rate people pay for a dollar. Priced from USDT on Binance P2P and local exchanges.</p><div class="cbars"><a class="crow" href="./country.html?ccy=DZD"><span class="cname">Algeria</span><span class="cbar"><i style="width:85.0%"></i><b style="left:85.0%">92%</b></span></a><a class="crow" href="./country.html?ccy=IQD"><span class="cname">Iraq</span><span class="cbar"><i style="width:20.5%"></i><b style="left:20.5%">22%</b></span></a><a class="crow" href="./country.html?ccy=MZN"><span class="cname">Mozambique</span><span class="cbar"><i style="width:16.0%"></i><b style="left:16.0%">17%</b></span></a><a class="crow" href="./country.html?ccy=TND"><span class="cname">Tunisia</span><span class="cbar"><i style="width:15.6%"></i><b style="left:15.6%">17%</b></span></a><a class="crow" href="./country.html?ccy=VES"><span class="cname">Venezuela</span><span class="cbar"><i style="width:13.8%"></i><b style="left:13.8%">15%</b></span></a><div class="cgap"></div><a class="crow low" href="./country.html?ccy=PHP"><span class="cname">Philippines</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 3 of our corridors land</b></span></a><a class="crow low" href="./country.html?ccy=MXN"><span class="cname">Mexico</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 1 of our corridors lands</b></span></a></div><p class="plainline">In Algeria, banks sell few dollars, so USDT is how people get them: about $2,500 is on offer right now within 1% of the best price.</p><p class="small-note"><a href="./countries.html">All countries →</a></p><!--BAKE:END:allCountriesStrip--></div>
+    <div id="allCountriesSection"><!--BAKE:START:allCountriesStrip--><h2>In Algeria people pay 92% more.</h2><p class="answer">How much more than the official rate people pay for a dollar. Priced from USDT on Binance P2P and local exchanges.</p><div class="cbars"><a class="crow" href="./country.html?ccy=DZD"><span class="cname">Algeria</span><span class="cbar"><i style="width:85.0%"></i><b style="left:85.0%">92%</b></span></a><a class="crow" href="./country.html?ccy=IQD"><span class="cname">Iraq</span><span class="cbar"><i style="width:20.5%"></i><b style="left:20.5%">22%</b></span></a><a class="crow" href="./country.html?ccy=MZN"><span class="cname">Mozambique</span><span class="cbar"><i style="width:16.0%"></i><b style="left:16.0%">17%</b></span></a><a class="crow" href="./country.html?ccy=TND"><span class="cname">Tunisia</span><span class="cbar"><i style="width:15.6%"></i><b style="left:15.6%">17%</b></span></a><a class="crow" href="./country.html?ccy=VES"><span class="cname">Venezuela</span><span class="cbar"><i style="width:13.8%"></i><b style="left:13.8%">15%</b></span></a><div class="cgap"></div><a class="crow low" href="./country.html?ccy=PHP"><span class="cname">Philippines</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 3 of our corridors land</b></span></a><a class="crow low" href="./country.html?ccy=MXN"><span class="cname">Mexico</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 1 of our corridors lands</b></span></a></div><p class="plainline">A normal app already gets you the real rate in the Philippines and Mexico, so a stablecoin has nothing to beat. In Algeria, banks sell few dollars, so USDT is how people get them: about $2,500 is on offer right now within 1% of the best price.</p><p class="small-note"><a href="./countries.html">All countries →</a></p><!--BAKE:END:allCountriesStrip--></div>
   </div>
 
   <footer class="foot" id="footerLine">Every number on this site comes from a public data file. <a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></footer>
@@ -219,6 +226,15 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   // hour's reading can't average away. Matches tools/bake_homepage.py's
   // own PAR_EPSILON so the JS re-render can never disagree with the bake.
   var PAR_EPSILON_HEADER = 0.15;
+  // The why-sentence below the header makes a broader, structural claim
+  // ("a normal app already gets you the real rate... nothing to beat")
+  // about these two corridors, not a per-hour sign check -- so it uses
+  // countries.html's own "near official rate" threshold (SMALL_GAP=2)
+  // instead of the header's tighter one. Tying it to PAR_EPSILON_HEADER
+  // meant a pinned country's gap ticking from 0.14% to 0.17% silently
+  // deleted the one sentence connecting the two halves of the home page
+  // (SEB, 2026-09-29). Matches tools/bake_homepage.py's own PAR_EPSILON_WHY.
+  var PAR_EPSILON_WHY = 2;
   function costPhrase(pct, digits) {
     digits = digits == null ? 1 : digits;
     if (Math.abs(pct) < PAR_EPSILON) return 'trades basically at the official rate';
@@ -494,6 +510,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     out.sort(function(a,b){ return (PINNED_PHRASE_ORDER[a.ccy]||99) - (PINNED_PHRASE_ORDER[b.ccy]||99); });
     return out;
   }
+  function findPinnedNearPar(rows){
+    var out = rows.filter(function(c){ return PINNED_CCY.indexOf(c.ccy) !== -1 && Math.abs(c.gap_pct) < PAR_EPSILON_WHY; });
+    out.sort(function(a,b){ return (PINNED_PHRASE_ORDER[a.ccy]||99) - (PINNED_PHRASE_ORDER[b.ccy]||99); });
+    return out;
+  }
   function findWidestManaged(rows){
     var managed = rows.filter(function(c){ return c.denominator_class !== 'unmaintained' && c.denominator_class !== 'pegged'; });
     if (!managed.length) return null;
@@ -521,6 +542,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
     var priced = rows0.slice().sort(function(a,b){ return b.gap_pct - a.gap_pct; });
     var pinned = findPinnedAtPar(priced);
+    var pinnedNear = findPinnedNearPar(priced);
     var widest = findWidestManaged(priced);
     var headerParts = [];
     if (pinned.length) {
@@ -534,9 +556,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var header = headerParts.length ? headerParts.join(' ') : (COPY.countryFindingNoGapTemplate || "Every country we track trades close to its official rate this hour.");
 
     var whyParts = '';
-    if (pinned.length) {
+    if (pinnedNear.length) {
       whyParts += T(COPY.countryWhyBothParTemplate || 'A normal app already gets you the real rate in {places}, so a stablecoin has nothing to beat.',
-        {places: joinAnd(pinned.map(function(c){ return c.country; }))});
+        {places: joinAnd(pinnedNear.map(function(c){ return c.country; }))});
     }
     if (widest) {
       var depth = streetDepth && streetDepth.countries && streetDepth.countries[widest.ccy];
@@ -591,7 +613,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   }
 
   var gapRowsAll = [];   // hourly {t, iso, stable, app}, oldest first
-  var gapRange = 'all';  // '24h' | '7d' | 'all'
+  var gapRange = 'all';  // '24h' | '7d' | '30d' | 'all'
   var gapCOPY = {};
   var gapRung = 5000;
 
@@ -600,24 +622,32 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     return String(d.getUTCHours()).padStart(2, '0') + ':00';
   }
 
-  // Points for the selected range. 'all' groups into daily medians (about
-  // 50 points, not the ~1,000+ raw hourly rows, so the trend reads clean);
-  // '24h'/'7d' plot the real hourly rows, per the brief.
+  // Points for the selected range. 'all'/'30d' group into daily medians
+  // (about 50 points at most, not the ~1,000+ raw hourly rows, so the
+  // trend reads clean); '24h'/'7d' plot the real hourly rows, per the
+  // brief. Same 4-bucket shape as corridor.html's own history toggle
+  // (24 hours / 7 days / 30 days / All time), for one range-picker
+  // convention sitewide (SEB, 2026-09-29).
+  function gapDailyMedians(rows){
+    var byDay = {};
+    rows.forEach(function(r){
+      var day = r.iso.slice(0, 10);
+      var b = byDay[day] || (byDay[day] = { stable: [], app: [] });
+      b.stable.push(r.stable); b.app.push(r.app);
+    });
+    var days = Object.keys(byDay).sort();
+    return days.map(function(d){
+      return { t: new Date(d + 'T12:00:00Z').getTime(), iso: d, stable: median(byDay[d].stable), app: median(byDay[d].app) };
+    });
+  }
   function gapPointsForRange(range){
-    if (range === 'all') {
-      var byDay = {};
-      gapRowsAll.forEach(function(r){
-        var day = r.iso.slice(0, 10);
-        var b = byDay[day] || (byDay[day] = { stable: [], app: [] });
-        b.stable.push(r.stable); b.app.push(r.app);
-      });
-      var days = Object.keys(byDay).sort();
-      return days.map(function(d){
-        return { t: new Date(d + 'T12:00:00Z').getTime(), iso: d, stable: median(byDay[d].stable), app: median(byDay[d].app) };
-      });
+    if (range === 'all') return gapDailyMedians(gapRowsAll);
+    var last = gapRowsAll[gapRowsAll.length - 1];
+    if (range === '30d') {
+      var cutoff30 = last.t - 30 * 24 * 3600000;
+      return gapDailyMedians(gapRowsAll.filter(function(r){ return r.t >= cutoff30; }));
     }
     var hrs = range === '24h' ? 24 : 24 * 7;
-    var last = gapRowsAll[gapRowsAll.length - 1];
     var cutoff = last.t - hrs * 3600000;
     return gapRowsAll.filter(function(r){ return r.t >= cutoff; });
   }
@@ -659,8 +689,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
     el.innerHTML = '<h2>' + esc(headline) + '</h2>' +
       '<p class="answer">' + esc(caption) + '</p>' +
-      '<div class="rng" id="gapRng"></div>' +
-      '<div id="gapChart" style="position:relative"></div>';
+      '<div id="gapChart" style="position:relative"></div>' +
+      '<div class="gap-rng" id="gapRng"></div>';
 
     renderGapRangeButtons();
     drawGapChart();
@@ -675,8 +705,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var bar = document.getElementById('gapRng');
     if (!bar) return;
     bar.innerHTML = '';
-    var LABELS = { '24h': '24h', '7d': '7d', 'all': 'All' };
-    ['24h', '7d', 'all'].forEach(function(r){
+    var LABELS = { '24h': '24 hours', '7d': '7 days', '30d': '30 days', 'all': 'All time' };
+    ['24h', '7d', '30d', 'all'].forEach(function(r){
       var b = document.createElement('button');
       b.textContent = LABELS[r];
       b.className = r === gapRange ? 'on' : '';
@@ -705,6 +735,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       var hi = Math.max.apply(null, stableVals.concat(appVals, [nowVal])) * 1.15 || 1;
       var X = function(i){ return n > 1 ? L + i * (W - L - R) / (n - 1) : L; };
       var Y = function(v){ return TT + (hi - v) / hi * (H - TT - B); };
+      var uid = 'gap' + Math.random().toString(36).slice(2, 9);
 
       var ticks = [0, hi / 2, hi];
       var grid = ticks.map(function(v){
@@ -716,19 +747,45 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       function lineHtml(vals, color){
         return '<polyline points="' + linePts(vals) + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round"/>';
       }
+      // Filled area under each line, fading to transparent at the baseline
+      // (a Revolut-style price chart, per Seb's 2026-09-29 note) -- same two
+      // colors as the lines themselves, never a third color. Stablecoin's
+      // fill is drawn first (it's almost always the higher, larger area),
+      // the app's smaller fill sits on top of it so the overlap reads as
+      // one blended band, not two flat colors fighting.
+      var baseY = (H - B).toFixed(1);
+      function areaPath(vals){
+        var top = vals.map(function(v, i){ return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' L');
+        return 'M' + X(0).toFixed(1) + ',' + baseY + ' L' + top + ' L' + X(n - 1).toFixed(1) + ',' + baseY + ' Z';
+      }
+      function areaHtml(vals, gradId){
+        return '<path d="' + areaPath(vals) + '" fill="url(#' + gradId + ')"/>';
+      }
+      var stableGradId = 'gapg-s-' + uid, appGradId = 'gapg-a-' + uid;
+      var gradients = '<defs>' +
+        '<linearGradient id="' + stableGradId + '" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0" stop-color="#817FCC" stop-opacity="0.28"/>' +
+          '<stop offset="1" stop-color="#817FCC" stop-opacity="0.02"/>' +
+        '</linearGradient>' +
+        '<linearGradient id="' + appGradId + '" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0" stop-color="#0B0B0B" stop-opacity="0.22"/>' +
+          '<stop offset="1" stop-color="#0B0B0B" stop-opacity="0.02"/>' +
+        '</linearGradient>' +
+        '</defs>';
       // The two end labels can land close together when the lines converge --
       // nudge them apart vertically instead of letting them overlap.
       var closeLabels = Math.abs(Y(stableVals[n-1]) - Y(appVals[n-1])) < (narrow ? 24 : 16);
       var appEndY = Y(appVals[n-1]) + (closeLabels ? -7 : 0);
       var stableEndY = Y(stableVals[n-1]) + (closeLabels ? 7 : 0);
-      function endLabel(vals, name, color, ey){
+      // Name only, no value -- a third number on screen (the latest point's
+      // own reading) read as the site disagreeing with itself against the
+      // hero's typical figure and the dotted line's live figure (SEB,
+      // 2026-09-29). Exactly one number per concept: hero = typical, the
+      // dotted "now" line = live, these labels just say which line is which.
+      function endLabel(name, color, ey){
         var ex = X(n - 1);
-        var value = vals[n - 1].toFixed(2) + '%';
-        var lines = narrow ? [name, value] : [name + ' ' + value];
-        var textHtml = lines.map(function(ln, li){
-          return '<text x="' + (ex + 7).toFixed(1) + '" y="' + (ey + 4 + li * 13).toFixed(1) + '" font-size="' + (narrow ? 11 : 13) + '" font-weight="600" fill="' + color + '">' + esc(ln) + '</text>';
-        }).join('');
-        return '<circle cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="3" fill="' + color + '"/>' + textHtml;
+        return '<circle cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="3" fill="' + color + '"/>' +
+          '<text x="' + (ex + 7).toFixed(1) + '" y="' + (ey + 4).toFixed(1) + '" font-size="' + (narrow ? 11 : 13) + '" font-weight="600" fill="' + color + '">' + esc(name) + '</text>';
       }
 
       // Dotted "this hour" reference line, full width, brokerage-chart style --
@@ -751,14 +808,14 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
           '<text x="' + (W - R) + '" y="' + (nowTagY - 1).toFixed(1) + '" font-size="11" fill="#6B6B6B" text-anchor="end">now ' + esc(nowTag) + '</text>'
         : '';
 
-      // Weekly labels on All, daily on 7d, every few hours on 24h -- a fixed
-      // target count per range, picked as evenly spaced indices so the axis
-      // never crowds regardless of how many points that range holds. The
-      // last tick always lands exactly on n-1 (today/this hour); if the
-      // regular step would have placed one within half a step of it, that
-      // near-duplicate is replaced rather than both being drawn crowded
-      // together.
-      var targetLabels = narrow ? 4 : (gapRange === 'all' ? 7 : (gapRange === '7d' ? 7 : 6));
+      // Weekly-ish labels on All/30d, daily on 7d, every few hours on 24h --
+      // a fixed target count per range, picked as evenly spaced indices so
+      // the axis never crowds regardless of how many points that range
+      // holds. The last tick always lands exactly on n-1 (today/this
+      // hour); if the regular step would have placed one within half a
+      // step of it, that near-duplicate is replaced rather than both being
+      // drawn crowded together.
+      var targetLabels = narrow ? 4 : (gapRange === '7d' ? 7 : 6);
       var step = Math.max(1, Math.round((n - 1) / (targetLabels - 1)) || 1);
       var xTickIdx = [];
       for (var i = 0; i < n; i += step) xTickIdx.push(i);
@@ -772,15 +829,17 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         return '<text x="' + X(i).toFixed(1) + '" y="' + (H - 6) + '" font-size="11" fill="#9A9A9A" text-anchor="' + anchor + '">' + esc(xLabelText(pts[i])) + '</text>';
       }).join('');
 
-      var uid = 'gap' + Math.random().toString(36).slice(2, 9);
       var svgId = 'svg-' + uid, tipId = 'tip-' + uid, vlineId = 'vl-' + uid, d1 = 'd1-' + uid, d2 = 'd2-' + uid;
 
       box.innerHTML = '<svg id="' + svgId + '" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Stablecoin vs cheapest app cost over time" style="display:block;cursor:crosshair">' +
-        grid + nowLine +
+        gradients + grid +
+        areaHtml(stableVals, stableGradId) +
+        areaHtml(appVals, appGradId) +
+        nowLine +
         lineHtml(appVals, '#0B0B0B') +
         lineHtml(stableVals, '#817FCC') +
-        endLabel(appVals, gapCOPY.gapLabelApp || 'Cheapest app', '#0B0B0B', appEndY) +
-        endLabel(stableVals, gapCOPY.gapLabelStable || 'Stablecoin', '#817FCC', stableEndY) +
+        endLabel(gapCOPY.gapLabelApp || 'Cheapest app', '#0B0B0B', appEndY) +
+        endLabel(gapCOPY.gapLabelStable || 'Stablecoin', '#817FCC', stableEndY) +
         '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="#D3D0CB"/>' +
         xLabels +
         '<line id="' + vlineId + '" x1="0" y1="' + TT + '" x2="0" y2="' + (H - B) + '" stroke="#0B0B0B" stroke-width="1" opacity="0"/>' +
@@ -849,6 +908,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       "Sending money by stablecoin usually costs more than a transfer app";
     var nCorridors = (corridorSummary && corridorSummary.corridors && corridorSummary.corridors.length) || 4;
     subEl.innerHTML = (COPY.headlineSub || '').replace('{n_countries}', '60').replace('{n_corridors}', nCorridors);
+    // The "why" line: the site never used to say why it measures this at
+    // all, which read as measurement for its own sake. One sentence, added
+    // under the sub-line (SEB, 2026-09-29).
+    var whyEl = document.getElementById('heroWhy');
+    if (whyEl) whyEl.textContent = COPY.heroWhyLine || 'People argue about this constantly. Almost nobody measures it. This site measures it, with every fee in.';
 
     // ---- Live pulse line: real clock, real data, no invented numbers.
     // 2026-09-28 final mockup merges the old two-line status (checked-time
