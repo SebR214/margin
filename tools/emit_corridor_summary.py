@@ -37,7 +37,8 @@ RAMP_WATERFALL = os.path.join(DATA, "ramp_waterfall.csv")
 OUT = os.path.join(DATA, "corridor_summary.json")
 
 RUNG = "5000"
-CORRIDORS = ["SGD->PHP", "AUD->PHP", "NZD->PHP", "USD->MXN"]
+CORRIDORS = ["SGD->PHP", "AUD->PHP", "NZD->PHP", "USD->MXN",
+             "USD->NGN", "USD->INR", "SGD->INR"]
 WATERFALL_CORRIDOR = "SGD->PHP"
 
 

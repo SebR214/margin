@@ -155,16 +155,22 @@ def build_window(doc):
     return out
 
 
-def sub_html(home_copy, n_countries):
+def sub_html(home_copy, n_countries, n_corridors=None):
     """The plain, fixed sub sentence (copy.json home.headlineSub), with its
-    one real count -- how many countries we price a street dollar in --
-    filled in live from data/index_latest.json, never typed. The sentence
-    itself carries a real <a> to how-it-works.html, so this is NOT html-
-    escaped as a whole (only the numeric substitution would need it, and a
-    plain digit string never needs escaping).
+    two real counts -- how many corridors are tracked, and how many
+    countries we price a street dollar in -- filled in live from
+    data/corridor_summary.json and data/index_latest.json, never typed.
+    "4 corridors" sat hardcoded in copy.json's own template until the
+    2026-09-29 SOURCES-2 batch took the real count to 7 and the sentence
+    went stale the moment it shipped -- {n_corridors} closes that the same
+    way {n_countries} already worked. The sentence itself carries a real
+    <a> to how-it-works.html, so this is NOT html-escaped as a whole (only
+    the numeric substitutions would need it, and a plain digit string never
+    needs escaping).
     """
     tmpl = home_copy.get("headlineSub", "")
-    return tmpl.replace("{n_countries}", str(n_countries) if n_countries is not None else "")
+    tmpl = tmpl.replace("{n_countries}", str(n_countries) if n_countries is not None else "")
+    return tmpl.replace("{n_corridors}", str(n_corridors) if n_corridors is not None else "")
 
 
 def load_index_latest():
@@ -570,7 +576,8 @@ def main():
     changed = changed or ok1
 
     n_countries = (len((idx_doc_for_sub := load_index_latest() or {}).get("countries") or []) + len(idx_doc_for_sub.get("withheld") or [])) or None
-    html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, n_countries))
+    n_corridors = len(doc["corridors"]) or None
+    html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, n_countries, n_corridors))
     changed = changed or ok2
 
     rung = doc.get("rung", 5000)

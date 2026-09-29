@@ -157,6 +157,27 @@ jobs:
         if: always() && steps.needed.outputs.proceed == 'true'
         run: python3 collector.py --corridor "NZD->PHP"
 
+      - name: Collect corridor sample USD->NGN
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # The premium-country corridor (SOURCES-2, 2026-09-29): Coinbase's
+        # own USD onramp, unchanged, paired with Luno's Nigeria order book
+        # and its own verified fee schedule -- a genuinely new fee source,
+        # not a reused one. always() so this going red never hides the
+        # other corridors, same rule as every step below it.
+        run: python3 collector.py --corridor "USD->NGN"
+
+      - name: Collect corridor sample USD->INR
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Same Coinbase onramp, WazirX's INR order book and its own
+        # verified fee schedule on the offramp.
+        run: python3 collector.py --corridor "USD->INR"
+
+      - name: Collect corridor sample SGD->INR
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Reuses SGD->PHP's Independent Reserve onramp and network fee
+        # unchanged; only the offramp (WazirX) is new.
+        run: python3 collector.py --corridor "SGD->INR"
+
       - name: Collect basis sample
         if: always() && steps.needed.outputs.proceed == 'true'
         # Wide layer: exits non-zero ONLY on a total blackout (all venues down).
@@ -382,7 +403,9 @@ jobs:
           # its first row yet is a normal state, not a failure.
           for f in data/samples.csv data/basis.csv data/providers.csv \
                    data/providers_usdmxn.csv data/providers_audphp.csv \
-                   data/providers_nzdphp.csv data/latest.json \
+                   data/providers_nzdphp.csv \
+                   data/providers_usdngn.csv data/providers_usdinr.csv \
+                   data/providers_sgdinr.csv data/latest.json \
                    data/crosses_latest.json data/stable_spread.csv \
                    data/p2p_basis.csv data/p2p_sides.csv data/p2p_depth.csv \
                    data/p2p_offers.csv data/street_depth_latest.json \

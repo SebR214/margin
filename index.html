@@ -172,7 +172,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
   <div class="hero">
     <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Sending money by stablecoin usually costs more than a transfer app<!--BAKE:END:heroHeadline--></h1>
-    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->What sending money costs on 4 corridors, and what a dollar costs in 60 countries. Checked every hour.<!--BAKE:END:heroSub--></div>
+    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->What sending money costs on 7 corridors, and what a dollar costs in 60 countries. Checked every hour.<!--BAKE:END:heroSub--></div>
     <div class="sub" id="heroWhy"></div>
     <div class="live" id="liveLine"><span class="dot"></span><span id="liveChecked">Checked —</span></div>
   </div>
@@ -451,9 +451,12 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     'SGD->PHP': 'Singapore → Philippines',
     'AUD->PHP': 'Australia → Philippines',
     'NZD->PHP': 'New Zealand → Philippines',
-    'USD->MXN': 'US → Mexico'
+    'USD->MXN': 'US → Mexico',
+    'USD->NGN': 'US → Nigeria',
+    'USD->INR': 'US → India',
+    'SGD->INR': 'Singapore → India'
   };
-  var DEST_NAME = {PHP: 'the Philippines', MXN: 'Mexico', SGD: 'Singapore', AUD: 'Australia', NZD: 'New Zealand', USD: 'the US'};
+  var DEST_NAME = {PHP: 'the Philippines', MXN: 'Mexico', SGD: 'Singapore', AUD: 'Australia', NZD: 'New Zealand', USD: 'the US', NGN: 'Nigeria', INR: 'India'};
 
   // Section B: which cases (if any) actually let stablecoins win right
   // now, built live from the same win-rate and volume-crossover figures
@@ -916,7 +919,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var subEl = document.getElementById('heroSub');
     headlineEl.textContent = COPY.headline || COPY.headlineFallback ||
       "Sending money by stablecoin usually costs more than a transfer app";
-    subEl.innerHTML = (COPY.headlineSub || '').replace('{n_countries}', '60');
+    var nCorridors = (corridorSummary && corridorSummary.corridors && corridorSummary.corridors.length) || 4;
+    subEl.innerHTML = (COPY.headlineSub || '').replace('{n_countries}', '60').replace('{n_corridors}', nCorridors);
     // The "why" line: the site never used to say why it measures this at
     // all, which read as measurement for its own sake. One sentence, added
     // under the sub-line (SEB, 2026-09-29).

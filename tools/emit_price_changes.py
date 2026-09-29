@@ -76,6 +76,9 @@ PANELS = {
     "USD->MXN": "providers_usdmxn.csv",
     "AUD->PHP": "providers_audphp.csv",
     "NZD->PHP": "providers_nzdphp.csv",
+    "USD->NGN": "providers_usdngn.csv",
+    "USD->INR": "providers_usdinr.csv",
+    "SGD->INR": "providers_sgdinr.csv",
 }
 
 ROUTE_WORDS = {
@@ -83,6 +86,9 @@ ROUTE_WORDS = {
     "AUD->PHP": "Australia to the Philippines",
     "NZD->PHP": "New Zealand to the Philippines",
     "USD->MXN": "the United States to Mexico",
+    "USD->NGN": "the United States to Nigeria",
+    "USD->INR": "the United States to India",
+    "SGD->INR": "Singapore to India",
 }
 SYMBOL = {"SGD": "S$", "AUD": "A$", "NZD": "NZ$", "USD": "US$"}
 

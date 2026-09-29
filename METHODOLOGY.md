@@ -44,6 +44,11 @@ For each corridor, hourly, at a set of notional sizes:
 | Network withdrawal fee, SGD→PHP | Independent Reserve, Tron, 4.0 USDT flat | published, read 2026-08-19 |
 | Network withdrawal fee, USD→MXN | Coinbase, Polygon, 0.01% of amount (max 20 USDT) | published, read 2026-08-19 |
 | Network gas, USD→MXN | not published by Coinbase — see below | **not modelled** |
+| Off-ramp book (USDT→NGN) | Luno public order book | measured |
+| Off-ramp book (USDT→INR) | WazirX public depth, 500 levels requested | measured |
+| Exchange fees, USD→NGN / SGD→INR / USD→INR | Luno and WazirX published schedules | published, verified 2026-09-29 |
+| Network withdrawal fee, USD→NGN / USD→INR | Coinbase, Ethereum (ERC20), 0.01% of amount (max 20 USDT) | published, read 2026-08-19 |
+| Network gas, USD→NGN / USD→INR | not published by Coinbase — see below | **not modelled, and material** |
 
 ### The network leg is per corridor, not a constant
 
@@ -70,6 +75,21 @@ will also apply" — gas, estimated at send time and never published as a
 schedule. On Polygon it is fractions of a cent, so it is left at zero rather
 than invented. This is the one term on the site that understates rather than
 overstates, and it is stated here rather than buried.
+
+**USD→NGN and USD→INR (added 2026-09-29) carry the same gap, but it is bigger.**
+Coinbase does not support USDT on Tron, and neither of these corridors' new
+off-ramp venues (Luno for Nigeria, WazirX for India) shares a cheap chain
+with Coinbase the way Bitso does over Polygon — the one chain confirmed on
+both sides is Ethereum itself (ERC20), where gas is not "fractions of a
+cent." Coinbase's own published parts (the 0.01%-capped-at-20-USDT
+processing fee) are still carried; the ERC20 gas component is real, dynamic,
+and not published anywhere scrapeable, so it stays at zero rather than
+invented — which means these two corridors' true cost is understated by
+more than USD→MXN's, and more so at the $200 rung than at $50,000. SGD→INR
+avoids this: it reuses SGD→PHP's Independent Reserve on-ramp unchanged, and
+both Independent Reserve and WazirX confirm USDT over Tron, so its 4.0 USDT
+flat network fee is the same one already verified for SGD→PHP, not a new
+estimate.
 
 Both books are *walked* for the actual notional, so a size that would move the
 price shows up as slippage rather than being priced at top-of-book. Where a book

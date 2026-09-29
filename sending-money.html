@@ -203,14 +203,15 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   }
 
   var AMOUNT_ORDER = ['200','1000','5000','25000','50000'];
-  var ROUTE_ORDER = ['SGD->PHP', 'AUD->PHP', 'NZD->PHP', 'USD->MXN'];
+  var ROUTE_ORDER = ['SGD->PHP', 'AUD->PHP', 'NZD->PHP', 'USD->MXN',
+                      'USD->NGN', 'USD->INR', 'SGD->INR'];
   var CURVE_ROUTES = ['USD->MXN'];
   // Short arrow-style place names for pills, weekend rows, pattern rows and
   // the change log -- the site's own "arrow notation" convention (see
   // corridor.html's route table), distinct from the full "X to Y" sentence
   // phrasing (ROUTE_WORDS-derived) used inside generated headline sentences.
-  var ARROW_PLACE = {SGD:'Singapore', PHP:'Philippines', AUD:'Australia', NZD:'New Zealand', USD:'US', MXN:'Mexico'};
-  var HEADLINE_PLACE = {SGD:'Singapore', PHP:'the Philippines', AUD:'Australia', NZD:'New Zealand', USD:'the US', MXN:'Mexico'};
+  var ARROW_PLACE = {SGD:'Singapore', PHP:'Philippines', AUD:'Australia', NZD:'New Zealand', USD:'US', MXN:'Mexico', NGN:'Nigeria', INR:'India'};
+  var HEADLINE_PLACE = {SGD:'Singapore', PHP:'the Philippines', AUD:'Australia', NZD:'New Zealand', USD:'the US', MXN:'Mexico', NGN:'Nigeria', INR:'India'};
   function arrowWords(route){ return (ARROW_PLACE[route.src]||route.src) + ' → ' + (ARROW_PLACE[route.dst]||route.dst); }
   // Oxford-style "A, B and C" join for the source-meter sentence's list of
   // providers that quote us directly -- computed from the real rows every
