@@ -847,7 +847,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var subEl = document.getElementById('heroSub');
     headlineEl.textContent = COPY.headline || COPY.headlineFallback ||
       "Sending money by stablecoin usually costs more than a transfer app";
-    subEl.innerHTML = (COPY.headlineSub || '').replace('{n_countries}', '60');
+    var nCorridors = (corridorSummary && corridorSummary.corridors && corridorSummary.corridors.length) || 4;
+    subEl.innerHTML = (COPY.headlineSub || '').replace('{n_countries}', '60').replace('{n_corridors}', nCorridors);
 
     // ---- Live pulse line: real clock, real data, no invented numbers.
     // 2026-09-28 final mockup merges the old two-line status (checked-time
