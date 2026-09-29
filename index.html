@@ -626,43 +626,90 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   }
 
   var gapRowsAll = [];   // hourly {t, iso, stable, app}, oldest first
+  var gapDaily = [];     // full daily-median series, partial first day trimmed
   var gapRange = 'all';  // '24h' | '7d' | '30d' | 'all'
   var gapCOPY = {};
   var gapRung = 5000;
+  var GAP_N = 50; // fixed point count for every range -- keeps X positions
+                   // identical across ranges so a range switch can morph the
+                   // line shape smoothly instead of jump-cutting to a
+                   // differently-shaped path (SEB, 2026-09-29).
 
   function shortHour(t){
     var d = new Date(t);
     return String(d.getUTCHours()).padStart(2, '0') + ':00';
   }
 
-  // Points for the selected range. 'all'/'30d' group into daily medians
-  // (about 50 points at most, not the ~1,000+ raw hourly rows, so the
-  // trend reads clean); '24h'/'7d' plot the real hourly rows, per the
-  // brief. Same 4-bucket shape as corridor.html's own history toggle
-  // (24 hours / 7 days / 30 days / All time), for one range-picker
-  // convention sitewide (SEB, 2026-09-29).
+  // Daily medians, oldest first. Collection started mid-morning on 10 Aug,
+  // so that first calendar day only has a handful of hours in it -- not a
+  // real day's median, so it's trimmed rather than plotted as if it were
+  // one (SEB, 2026-09-29).
   function gapDailyMedians(rows){
     var byDay = {};
     rows.forEach(function(r){
       var day = r.iso.slice(0, 10);
-      var b = byDay[day] || (byDay[day] = { stable: [], app: [] });
-      b.stable.push(r.stable); b.app.push(r.app);
+      var b = byDay[day] || (byDay[day] = { stable: [], app: [], hrs: {} });
+      b.stable.push(r.stable); b.app.push(r.app); b.hrs[r.iso.slice(11, 13)] = true;
     });
     var days = Object.keys(byDay).sort();
+    if (days.length && Object.keys(byDay[days[0]].hrs).length < 20) days.shift();
     return days.map(function(d){
       return { t: new Date(d + 'T12:00:00Z').getTime(), iso: d, stable: median(byDay[d].stable), app: median(byDay[d].app) };
     });
   }
-  function gapPointsForRange(range){
-    if (range === 'all') return gapDailyMedians(gapRowsAll);
+  // Real (unevenly-countable) points for a range -- 'all'/'30d' use the
+  // trimmed daily-median series, '24h'/'7d' the raw hourly rows, per the
+  // brief. Same 4-bucket shape as corridor.html's own history toggle
+  // (24 hours / 7 days / 30 days / All time), one range-picker convention
+  // sitewide.
+  function gapRealPointsForRange(range){
+    if (range === 'all') return gapDaily;
     var last = gapRowsAll[gapRowsAll.length - 1];
     if (range === '30d') {
       var cutoff30 = last.t - 30 * 24 * 3600000;
-      return gapDailyMedians(gapRowsAll.filter(function(r){ return r.t >= cutoff30; }));
+      return gapDaily.filter(function(r){ return r.t >= cutoff30; });
     }
     var hrs = range === '24h' ? 24 : 24 * 7;
     var cutoff = last.t - hrs * 3600000;
     return gapRowsAll.filter(function(r){ return r.t >= cutoff; });
+  }
+  // Resample real points (any spacing, any count) to exactly N points, evenly
+  // spaced in TIME -- linearly interpolated between the two real points that
+  // bracket each sample time. Fixed-point resampling: point count (and so X
+  // position) never changes across ranges, only the values at each point,
+  // which is what makes an animated morph between ranges possible.
+  function gapResample(real, n){
+    if (real.length <= 1) return real.slice();
+    var t0 = real[0].t, t1 = real[real.length - 1].t;
+    if (t1 === t0) return [real[0]];
+    var out = [], j = 0;
+    for (var i = 0; i < n; i++){
+      var t = t0 + (t1 - t0) * i / (n - 1);
+      while (j < real.length - 2 && real[j + 1].t < t) j++;
+      var a = real[j], b = real[Math.min(j + 1, real.length - 1)];
+      var f = b.t === a.t ? 0 : Math.max(0, Math.min(1, (t - a.t) / (b.t - a.t)));
+      out.push({ t: t, stable: a.stable + (b.stable - a.stable) * f, app: a.app + (b.app - a.app) * f });
+    }
+    return out;
+  }
+  // Round, human tick values (0, 0.5%, 1.0%, 1.5%...) instead of exact
+  // fractions of whatever the data's max happens to be.
+  function gapNiceTicks(max){
+    if (!(max > 0)) return [0, 1];
+    var raw = max / 3;
+    var mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+    var norm = raw / mag, step;
+    if (norm < 1.5) step = mag; else if (norm < 3.5) step = 2 * mag; else if (norm < 7.5) step = 5 * mag; else step = 10 * mag;
+    // The top tick must be >= max -- rounding max/step down to the nearest
+    // step (then stopping) can leave the last tick below the real max (e.g.
+    // max=1.45, step=0.5 naively stops at 1.0), which is exactly how the
+    // "now" reference line went missing: its value sat above the chart's
+    // own plotted ceiling (SEB, 2026-09-29 bug).
+    var topTick = Math.ceil((max - step * 0.001) / step) * step;
+    var ticks = [];
+    for (var v = 0; v <= topTick + step * 0.01; v += step) ticks.push(Math.round(v * 1000) / 1000);
+    if (ticks.length < 2) ticks.push(step);
+    return ticks;
   }
 
   // New home section, "the gap over time" (part 3 of the 2026-09-28 copy
@@ -683,6 +730,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     gapRowsAll = rows.map(function(r){
       return { t: new Date(r.ts).getTime(), iso: r.ts, stable: +r.cost_bps_taker / 100, app: +r.baseline_cost_bps / 100 };
     });
+    gapDaily = gapDailyMedians(gapRowsAll);
     gapCOPY = COPY; gapRung = rung;
 
     // Longest currently-unbroken streak, counted back from the newest hour --
@@ -723,176 +771,195 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       var b = document.createElement('button');
       b.textContent = LABELS[r];
       b.className = r === gapRange ? 'on' : '';
-      b.onclick = function(){ gapRange = r; renderGapRangeButtons(); drawGapChart(); };
+      b.onclick = function(){ gapRange = r; renderGapRangeButtons(); drawGapChart(true); };
       bar.appendChild(b);
     });
   }
 
-  function drawGapChart(){
+  var gapCurStable = null, gapCurApp = null, gapCurHi = null, gapAnimRAF = null;
+  function gapEase(t){ return 1 - Math.pow(1 - t, 3); } // ease-out cubic
+
+  // Renders one frame at the given (possibly mid-transition) values. labelPts
+  // and nowVal are never animated -- labelPts only supplies x-axis/tooltip
+  // text for the range actually selected, and "this hour" is one true
+  // constant regardless of which range is on screen.
+  function gapRenderFrame(stableVals, appVals, hi, labelPts, nowVal){
     var box = document.getElementById('gapChart');
     if (!box) return;
-    var pts = gapPointsForRange(gapRange);
-    if (pts.length < 2) { box.innerHTML = '<div style="font-size:13px;color:#9A9A9A;padding:20px 0">Not enough points in this window yet.</div>'; return; }
+    var n = GAP_N;
+    var W = Math.max(280, box.clientWidth);
+    var narrow = W < 480;
+    var H = narrow ? 240 : 260;
+    var L = 44, R = narrow ? 88 : 150, TT = 16, B = 26;
+    var X = function(i){ return L + i * (W - L - R) / (n - 1); };
+    var Y = function(v){ return TT + (hi - v) / hi * (H - TT - B); };
+    var uid = 'gap' + Math.random().toString(36).slice(2, 9);
+
+    var ticks = gapNiceTicks(hi);
+    var grid = ticks.map(function(v){
+      return '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="#F0F0F0"/>' +
+        '<text x="' + (L - 8) + '" y="' + (Y(v) + 4).toFixed(1) + '" font-size="11" fill="#9A9A9A" text-anchor="end">' + (v === 0 ? '0' : v.toFixed(1) + '%') + '</text>';
+    }).join('');
+
+    function linePts(vals){ return vals.map(function(v, i){ return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' '); }
+    function lineHtml(vals, color){
+      return '<polyline points="' + linePts(vals) + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round"/>';
+    }
+    // Flat fills, no gradient -- stablecoin periwinkle at 16% opacity,
+    // cheapest-app a flat light grey. Stablecoin drawn first (almost always
+    // the larger area), app's fill on top so the overlap reads as one
+    // blended band (SEB, 2026-09-29 mock).
+    var baseY = (H - B).toFixed(1);
+    function areaPath(vals){
+      var top = vals.map(function(v, i){ return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' L');
+      return 'M' + X(0).toFixed(1) + ',' + baseY + ' L' + top + ' L' + X(n - 1).toFixed(1) + ',' + baseY + ' Z';
+    }
+    var areas = '<path d="' + areaPath(stableVals) + '" fill="rgba(129,127,204,0.16)"/>' +
+      '<path d="' + areaPath(appVals) + '" fill="#F6F6F6"/>';
+
+    // Name only, no value -- a third number on screen (the latest point's
+    // own reading) read as the site disagreeing with itself against the
+    // hero's typical figure and the dotted line's live figure (SEB,
+    // 2026-09-29). Exactly one number per concept: hero = typical, the
+    // dotted "now" line = live, these labels just say which line is which.
+    var closeLabels = Math.abs(Y(stableVals[n-1]) - Y(appVals[n-1])) < (narrow ? 24 : 16);
+    var appEndY = Y(appVals[n-1]) + (closeLabels ? -7 : 0);
+    var stableEndY = Y(stableVals[n-1]) + (closeLabels ? 7 : 0);
+    function endLabel(name, dotColor, textColor, ey){
+      var ex = X(n - 1);
+      return '<circle cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="3" fill="' + dotColor + '"/>' +
+        '<text x="' + (ex + 7).toFixed(1) + '" y="' + (ey + 4).toFixed(1) + '" font-size="' + (narrow ? 11 : 13) + '" font-weight="700" fill="' + textColor + '">' + esc(name) + '</text>';
+    }
+
+    // Dotted "this hour" reference line ending in a rounded tag (a
+    // brokerage-chart current-price line) -- shows at a glance whether the
+    // range on screen is dear or normal against the live number, independent
+    // of which range is toggled. The tag sits INSIDE the plot's right edge,
+    // ending exactly at x=W-R, so it never competes with the end-of-line name
+    // labels which start just past that same boundary (SEB, 2026-09-29 mock).
+    var nowY = Y(nowVal);
+    var nowTagText = 'now ' + nowVal.toFixed(2) + '%';
+    var nowTagW = Math.max(60, nowTagText.length * 7 + 22);
+    var nowTagX = (W - R) - nowTagW;
+    var nowLine = (nowY >= TT && nowY <= H - B)
+      ? '<line x1="' + L + '" y1="' + nowY.toFixed(1) + '" x2="' + (nowTagX - 6).toFixed(1) + '" y2="' + nowY.toFixed(1) + '" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="4,4"/>' +
+        '<rect x="' + nowTagX.toFixed(1) + '" y="' + (nowY - 11).toFixed(1) + '" width="' + nowTagW + '" height="22" rx="11" fill="#D3D0CB"/>' +
+        '<text x="' + (nowTagX + nowTagW / 2).toFixed(1) + '" y="' + (nowY + 4).toFixed(1) + '" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3F3047">' + esc(nowTagText) + '</text>'
+      : '';
+
+    // Weekly-ish labels on All/30d, daily on 7d, every few hours on 24h --
+    // a fixed target count, picked as evenly spaced indices so the axis
+    // never crowds. The last tick always lands exactly on n-1 (today/this
+    // hour); a regular step that would land within half a step of it is
+    // replaced rather than drawing both crowded together.
+    var targetLabels = narrow ? 4 : (gapRange === '7d' ? 7 : 6);
+    var step = Math.max(1, Math.round((n - 1) / (targetLabels - 1)) || 1);
+    var xTickIdx = [];
+    for (var i = 0; i < n; i += step) xTickIdx.push(i);
+    if (xTickIdx[xTickIdx.length - 1] !== n - 1) {
+      if (n - 1 - xTickIdx[xTickIdx.length - 1] < step / 2) xTickIdx[xTickIdx.length - 1] = n - 1;
+      else xTickIdx.push(n - 1);
+    }
+    function xLabelText(p){ return gapRange === '24h' ? shortHour(p.t) : shortDate(p.t); }
+    var xLabels = xTickIdx.map(function(i, k){
+      var anchor = k === 0 ? 'start' : (k === xTickIdx.length - 1 ? 'end' : 'middle');
+      return '<text x="' + X(i).toFixed(1) + '" y="' + (H - 6) + '" font-size="11" fill="#9A9A9A" text-anchor="' + anchor + '">' + esc(xLabelText(labelPts[i])) + '</text>';
+    }).join('');
+
+    var svgId = 'svg-' + uid, tipId = 'tip-' + uid, vlineId = 'vl-' + uid, d1 = 'd1-' + uid, d2 = 'd2-' + uid;
+
+    box.innerHTML = '<svg id="' + svgId + '" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Stablecoin vs cheapest app cost over time" style="display:block;cursor:crosshair">' +
+      grid + areas + nowLine +
+      lineHtml(appVals, '#BFBFBF') +
+      lineHtml(stableVals, '#817FCC') +
+      endLabel(gapCOPY.gapLabelApp || 'Cheapest app', '#BFBFBF', '#6B6B6B', appEndY) +
+      endLabel(gapCOPY.gapLabelStable || 'Stablecoin', '#817FCC', '#817FCC', stableEndY) +
+      '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="#D3D0CB"/>' +
+      xLabels +
+      '<line id="' + vlineId + '" x1="0" y1="' + TT + '" x2="0" y2="' + (H - B) + '" stroke="#0B0B0B" stroke-width="1" opacity="0"/>' +
+      '<circle id="' + d1 + '" r="3.5" fill="#817FCC" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
+      '<circle id="' + d2 + '" r="3.5" fill="#BFBFBF" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
+      '</svg>' +
+      '<div id="' + tipId + '" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;transform:translate(-50%,-130%)"></div>';
+
+    // Hover/tap tooltip, same mechanism as js/chart.js -- a tap does the
+    // same thing a mouse hover does, nothing on this site is hover-only.
+    var svg = document.getElementById(svgId), tip = document.getElementById(tipId);
+    var vline = document.getElementById(vlineId), dotS = document.getElementById(d1), dotA = document.getElementById(d2);
+    function nearestIdx(px){
+      var best = 0, bestD = Infinity;
+      for (var j = 0; j < n; j++) { var dd = Math.abs(X(j) - px); if (dd < bestD) { bestD = dd; best = j; } }
+      return best;
+    }
+    function showAt(clientX){
+      var rect = svg.getBoundingClientRect();
+      var scale = W / rect.width;
+      var px = (clientX - rect.left) * scale;
+      var idx = nearestIdx(px);
+      var x = X(idx);
+      vline.setAttribute('x1', x.toFixed(1)); vline.setAttribute('x2', x.toFixed(1)); vline.setAttribute('opacity', 0.25);
+      dotS.setAttribute('cx', x.toFixed(1)); dotS.setAttribute('cy', Y(stableVals[idx]).toFixed(1)); dotS.setAttribute('opacity', 1);
+      dotA.setAttribute('cx', x.toFixed(1)); dotA.setAttribute('cy', Y(appVals[idx]).toFixed(1)); dotA.setAttribute('opacity', 1);
+      tip.style.left = ((x / W) * 100) + '%';
+      tip.style.top = ((Math.min(Y(stableVals[idx]), Y(appVals[idx])) / H) * 100) + '%';
+      tip.style.opacity = 1;
+      tip.textContent = xLabelText(labelPts[idx]) + ' · stablecoin ' + stableVals[idx].toFixed(2) + '% · app ' + appVals[idx].toFixed(2) + '%';
+    }
+    function hide(){ vline.setAttribute('opacity', 0); dotS.setAttribute('opacity', 0); dotA.setAttribute('opacity', 0); tip.style.opacity = 0; }
+    svg.addEventListener('mousemove', function(ev){ showAt(ev.clientX); });
+    svg.addEventListener('mouseleave', hide);
+    svg.addEventListener('touchstart', function(ev){ if (ev.touches && ev.touches.length) showAt(ev.touches[0].clientX); }, { passive: true });
+    svg.addEventListener('touchmove', function(ev){ if (ev.touches && ev.touches.length) showAt(ev.touches[0].clientX); }, { passive: true });
+    document.addEventListener('touchstart', function(ev){ if (!svg.contains(ev.target)) hide(); }, { passive: true });
+  }
+
+  // animate=true morphs from whatever's currently on screen to the new
+  // range over ~420ms (fixed-point resampling means both are always GAP_N
+  // points long, so every point's Y value can tween independently -- SEB,
+  // 2026-09-29). animate=false (initial paint, window resize) snaps straight
+  // to the target with no transition.
+  function drawGapChart(animate){
+    var box = document.getElementById('gapChart');
+    if (!box) return;
+    var real = gapRealPointsForRange(gapRange);
+    if (real.length < 2) { gapCurStable = gapCurApp = gapCurHi = null; box.innerHTML = '<div style="font-size:13px;color:#9A9A9A;padding:20px 0">Not enough points in this window yet.</div>'; return; }
+    var targetPts = gapResample(real, GAP_N);
+    var targetStable = targetPts.map(function(p){ return p.stable; });
+    var targetApp = targetPts.map(function(p){ return p.app; });
     // "This hour" is always the true live figure, whichever range is on
     // screen -- the brokerage-style reference line a reader checks the
     // current hour against, not something that changes with the toggle.
     var nowVal = gapRowsAll[gapRowsAll.length - 1].stable;
+    var maxVal = Math.max.apply(null, targetStable.concat(targetApp, [nowVal]));
+    var niceTicks = gapNiceTicks(maxVal * 1.1);
+    var targetHi = niceTicks[niceTicks.length - 1];
 
-    function draw(){
-      var n = pts.length;
-      var W = Math.max(280, box.clientWidth);
-      var narrow = W < 480;
-      var H = narrow ? 240 : 260;
-      var L = 44, R = narrow ? 88 : 150, TT = 16, B = 26;
-      var stableVals = pts.map(function(p){ return p.stable; }), appVals = pts.map(function(p){ return p.app; });
-      var hi = Math.max.apply(null, stableVals.concat(appVals, [nowVal])) * 1.15 || 1;
-      var X = function(i){ return n > 1 ? L + i * (W - L - R) / (n - 1) : L; };
-      var Y = function(v){ return TT + (hi - v) / hi * (H - TT - B); };
-      var uid = 'gap' + Math.random().toString(36).slice(2, 9);
+    if (gapAnimRAF) { cancelAnimationFrame(gapAnimRAF); gapAnimRAF = null; }
 
-      var ticks = [0, hi / 2, hi];
-      var grid = ticks.map(function(v){
-        return '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="#F0F0F0"/>' +
-          '<text x="' + (L - 8) + '" y="' + (Y(v) + 4).toFixed(1) + '" font-size="11" fill="#9A9A9A" text-anchor="end">' + v.toFixed(2) + '%</text>';
-      }).join('');
-
-      function linePts(vals){ return vals.map(function(v, i){ return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' '); }
-      function lineHtml(vals, color){
-        return '<polyline points="' + linePts(vals) + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round"/>';
-      }
-      // Filled area under each line, fading to transparent at the baseline
-      // (a Revolut-style price chart, per Seb's 2026-09-29 note) -- same two
-      // colors as the lines themselves, never a third color. Stablecoin's
-      // fill is drawn first (it's almost always the higher, larger area),
-      // the app's smaller fill sits on top of it so the overlap reads as
-      // one blended band, not two flat colors fighting.
-      var baseY = (H - B).toFixed(1);
-      function areaPath(vals){
-        var top = vals.map(function(v, i){ return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' L');
-        return 'M' + X(0).toFixed(1) + ',' + baseY + ' L' + top + ' L' + X(n - 1).toFixed(1) + ',' + baseY + ' Z';
-      }
-      function areaHtml(vals, gradId){
-        return '<path d="' + areaPath(vals) + '" fill="url(#' + gradId + ')"/>';
-      }
-      var stableGradId = 'gapg-s-' + uid, appGradId = 'gapg-a-' + uid;
-      var gradients = '<defs>' +
-        '<linearGradient id="' + stableGradId + '" x1="0" y1="0" x2="0" y2="1">' +
-          '<stop offset="0" stop-color="#817FCC" stop-opacity="0.28"/>' +
-          '<stop offset="1" stop-color="#817FCC" stop-opacity="0.02"/>' +
-        '</linearGradient>' +
-        '<linearGradient id="' + appGradId + '" x1="0" y1="0" x2="0" y2="1">' +
-          '<stop offset="0" stop-color="#0B0B0B" stop-opacity="0.22"/>' +
-          '<stop offset="1" stop-color="#0B0B0B" stop-opacity="0.02"/>' +
-        '</linearGradient>' +
-        '</defs>';
-      // The two end labels can land close together when the lines converge --
-      // nudge them apart vertically instead of letting them overlap.
-      var closeLabels = Math.abs(Y(stableVals[n-1]) - Y(appVals[n-1])) < (narrow ? 24 : 16);
-      var appEndY = Y(appVals[n-1]) + (closeLabels ? -7 : 0);
-      var stableEndY = Y(stableVals[n-1]) + (closeLabels ? 7 : 0);
-      // Name only, no value -- a third number on screen (the latest point's
-      // own reading) read as the site disagreeing with itself against the
-      // hero's typical figure and the dotted line's live figure (SEB,
-      // 2026-09-29). Exactly one number per concept: hero = typical, the
-      // dotted "now" line = live, these labels just say which line is which.
-      function endLabel(name, color, ey){
-        var ex = X(n - 1);
-        return '<circle cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="3" fill="' + color + '"/>' +
-          '<text x="' + (ex + 7).toFixed(1) + '" y="' + (ey + 4).toFixed(1) + '" font-size="' + (narrow ? 11 : 13) + '" font-weight="600" fill="' + color + '">' + esc(name) + '</text>';
-      }
-
-      // Dotted "this hour" reference line, full width, brokerage-chart style --
-      // shows at a glance whether the range on screen is dear or normal
-      // against the live number, independent of which range is toggled. The
-      // tag sits INSIDE the plot's right edge (text-anchor end at x=W-R), on
-      // the opposite side of the axis boundary from the two end-of-line
-      // labels (which start at x=W-R+7) -- and is nudged away from whichever
-      // end label it would otherwise sit on top of.
-      var nowY = Y(nowVal);
-      var nowTagY = nowY;
-      var minGap = narrow ? 12 : 14;
-      [stableEndY, appEndY].forEach(function(otherY){
-        if (Math.abs(nowTagY - otherY) < minGap) nowTagY = otherY + (nowTagY < otherY ? -minGap : minGap);
-      });
-      var nowTag = nowVal.toFixed(2) + '%';
-      var nowLine = (nowY >= TT && nowY <= H - B)
-        ? '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + nowY.toFixed(1) + '" y2="' + nowY.toFixed(1) + '" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="4,3"/>' +
-          '<rect x="' + (W - R - 62) + '" y="' + (nowTagY - 13) + '" width="62" height="16" fill="#fff"/>' +
-          '<text x="' + (W - R) + '" y="' + (nowTagY - 1).toFixed(1) + '" font-size="11" fill="#6B6B6B" text-anchor="end">now ' + esc(nowTag) + '</text>'
-        : '';
-
-      // Weekly-ish labels on All/30d, daily on 7d, every few hours on 24h --
-      // a fixed target count per range, picked as evenly spaced indices so
-      // the axis never crowds regardless of how many points that range
-      // holds. The last tick always lands exactly on n-1 (today/this
-      // hour); if the regular step would have placed one within half a
-      // step of it, that near-duplicate is replaced rather than both being
-      // drawn crowded together.
-      var targetLabels = narrow ? 4 : (gapRange === '7d' ? 7 : 6);
-      var step = Math.max(1, Math.round((n - 1) / (targetLabels - 1)) || 1);
-      var xTickIdx = [];
-      for (var i = 0; i < n; i += step) xTickIdx.push(i);
-      if (xTickIdx[xTickIdx.length - 1] !== n - 1) {
-        if (n - 1 - xTickIdx[xTickIdx.length - 1] < step / 2) xTickIdx[xTickIdx.length - 1] = n - 1;
-        else xTickIdx.push(n - 1);
-      }
-      function xLabelText(p){ return gapRange === '24h' ? shortHour(p.t) : shortDate(p.iso); }
-      var xLabels = xTickIdx.map(function(i, k){
-        var anchor = k === 0 ? 'start' : (k === xTickIdx.length - 1 ? 'end' : 'middle');
-        return '<text x="' + X(i).toFixed(1) + '" y="' + (H - 6) + '" font-size="11" fill="#9A9A9A" text-anchor="' + anchor + '">' + esc(xLabelText(pts[i])) + '</text>';
-      }).join('');
-
-      var svgId = 'svg-' + uid, tipId = 'tip-' + uid, vlineId = 'vl-' + uid, d1 = 'd1-' + uid, d2 = 'd2-' + uid;
-
-      box.innerHTML = '<svg id="' + svgId + '" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Stablecoin vs cheapest app cost over time" style="display:block;cursor:crosshair">' +
-        gradients + grid +
-        areaHtml(stableVals, stableGradId) +
-        areaHtml(appVals, appGradId) +
-        nowLine +
-        lineHtml(appVals, '#0B0B0B') +
-        lineHtml(stableVals, '#817FCC') +
-        endLabel(gapCOPY.gapLabelApp || 'Cheapest app', '#0B0B0B', appEndY) +
-        endLabel(gapCOPY.gapLabelStable || 'Stablecoin', '#817FCC', stableEndY) +
-        '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="#D3D0CB"/>' +
-        xLabels +
-        '<line id="' + vlineId + '" x1="0" y1="' + TT + '" x2="0" y2="' + (H - B) + '" stroke="#0B0B0B" stroke-width="1" opacity="0"/>' +
-        '<circle id="' + d1 + '" r="3.5" fill="#817FCC" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
-        '<circle id="' + d2 + '" r="3.5" fill="#0B0B0B" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
-        '</svg>' +
-        '<div id="' + tipId + '" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;transform:translate(-50%,-130%)"></div>';
-
-      // Hover/tap tooltip, same mechanism as js/chart.js -- a tap does the
-      // same thing a mouse hover does, nothing on this site is hover-only.
-      var svg = document.getElementById(svgId), tip = document.getElementById(tipId);
-      var vline = document.getElementById(vlineId), dotS = document.getElementById(d1), dotA = document.getElementById(d2);
-      function nearestIdx(px){
-        var best = 0, bestD = Infinity;
-        for (var j = 0; j < n; j++) { var dd = Math.abs(X(j) - px); if (dd < bestD) { bestD = dd; best = j; } }
-        return best;
-      }
-      function showAt(clientX){
-        var rect = svg.getBoundingClientRect();
-        var scale = W / rect.width;
-        var px = (clientX - rect.left) * scale;
-        var idx = nearestIdx(px);
-        var p = pts[idx];
-        var x = X(idx);
-        vline.setAttribute('x1', x.toFixed(1)); vline.setAttribute('x2', x.toFixed(1)); vline.setAttribute('opacity', 0.25);
-        dotS.setAttribute('cx', x.toFixed(1)); dotS.setAttribute('cy', Y(p.stable).toFixed(1)); dotS.setAttribute('opacity', 1);
-        dotA.setAttribute('cx', x.toFixed(1)); dotA.setAttribute('cy', Y(p.app).toFixed(1)); dotA.setAttribute('opacity', 1);
-        tip.style.left = ((x / W) * 100) + '%';
-        tip.style.top = ((Math.min(Y(p.stable), Y(p.app)) / H) * 100) + '%';
-        tip.style.opacity = 1;
-        tip.textContent = xLabelText(p) + ' · stablecoin ' + p.stable.toFixed(2) + '% · app ' + p.app.toFixed(2) + '%';
-      }
-      function hide(){ vline.setAttribute('opacity', 0); dotS.setAttribute('opacity', 0); dotA.setAttribute('opacity', 0); tip.style.opacity = 0; }
-      svg.addEventListener('mousemove', function(ev){ showAt(ev.clientX); });
-      svg.addEventListener('mouseleave', hide);
-      svg.addEventListener('touchstart', function(ev){ if (ev.touches && ev.touches.length) showAt(ev.touches[0].clientX); }, { passive: true });
-      svg.addEventListener('touchmove', function(ev){ if (ev.touches && ev.touches.length) showAt(ev.touches[0].clientX); }, { passive: true });
-      document.addEventListener('touchstart', function(ev){ if (!svg.contains(ev.target)) hide(); }, { passive: true });
+    if (!animate || !gapCurStable || gapCurStable.length !== GAP_N) {
+      gapCurStable = targetStable; gapCurApp = targetApp; gapCurHi = targetHi;
+      gapRenderFrame(gapCurStable, gapCurApp, gapCurHi, targetPts, nowVal);
+      return;
     }
-    draw();
+
+    var fromStable = gapCurStable, fromApp = gapCurApp, fromHi = gapCurHi;
+    var start = null, dur = 420;
+    function frame(ts){
+      if (start === null) start = ts;
+      var p = Math.min(1, (ts - start) / dur);
+      var e = gapEase(p);
+      var s = fromStable.map(function(v, i){ return v + (targetStable[i] - v) * e; });
+      var a = fromApp.map(function(v, i){ return v + (targetApp[i] - v) * e; });
+      var h = fromHi + (targetHi - fromHi) * e;
+      gapRenderFrame(s, a, h, targetPts, nowVal);
+      if (p < 1) {
+        gapAnimRAF = requestAnimationFrame(frame);
+      } else {
+        gapCurStable = targetStable; gapCurApp = targetApp; gapCurHi = targetHi;
+        gapAnimRAF = null;
+      }
+    }
+    gapAnimRAF = requestAnimationFrame(frame);
   }
 
   Promise.all([
