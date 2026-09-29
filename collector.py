@@ -98,6 +98,30 @@ CORRIDORS = {
         # "Tether USD | TRON | 4.0 USDT" (and Ethereum 10.0, not used here).
         # Source: https://www.independentreserve.com/fees  read 2026-08-19.
         "network_fee_stable": 4.0,
+        # --- ramp fees: the bank leg on each end, in fiat terms. SGD side:
+        # Independent Reserve's own SGD deposit table lists PayNow as
+        # "Free", no cap stated, and it is the realistic method (not a
+        # generic wire assumption) -- FAST is free too above SGD 1,000 but
+        # PayNow is free at every size on the ladder including S$200.
+        # Source: https://www.independentreserve.com/sg/fees, read 2026-09-29.
+        "deposit": {
+            "venue": "IndependentReserve", "method": "PayNow",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "SGD",
+            "source_url": "https://www.independentreserve.com/sg/fees",
+            "verified": "2026-09-29",
+        },
+        # PHP side: Coins.ph's own cash-out fee table lists PESONet at
+        # PHP 0.00 for individual accounts, no cap stated (InstaPay is the
+        # alternative at a flat PHP 5.00, but PESONet is free and same-day,
+        # so it is the rational choice at every rung).
+        # Source: https://support.coins.ph/hc/en-us/articles/201919230-What-fees-are-charged-on-cash-outs,
+        # read 2026-09-29.
+        "withdrawal": {
+            "venue": "Coins.ph", "method": "PESONet",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "PHP",
+            "source_url": "https://support.coins.ph/hc/en-us/articles/201919230-What-fees-are-charged-on-cash-outs",
+            "verified": "2026-09-29",
+        },
         "ladder": [200, 1000, 5000, 25000, 50000],
         "providers_file": "providers.csv",
     },
@@ -130,6 +154,22 @@ CORRIDORS = {
         # Same on-ramp venue as SGD->PHP, so the same published TRC20
         # withdrawal applies: "Tether USD | TRON | 4.0 USDT".
         "network_fee_stable": 4.0,
+        # AUD side: IR's own AUD deposit table -- "All AUD deposits using
+        # bank transfer are free", no cap stated. Source:
+        # https://www.independentreserve.com/au/fees, read 2026-09-29.
+        "deposit": {
+            "venue": "IndependentReserve", "method": "Bank transfer",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "AUD",
+            "source_url": "https://www.independentreserve.com/au/fees",
+            "verified": "2026-09-29",
+        },
+        # Same PHP off-ramp venue and rail as SGD->PHP.
+        "withdrawal": {
+            "venue": "Coins.ph", "method": "PESONet",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "PHP",
+            "source_url": "https://support.coins.ph/hc/en-us/articles/201919230-What-fees-are-charged-on-cash-outs",
+            "verified": "2026-09-29",
+        },
         "ladder": [200, 1000, 5000, 25000, 50000],
         "providers_file": "providers_audphp.csv",
     },
@@ -149,6 +189,35 @@ CORRIDORS = {
             "verified": "2026-08-10",
         },
         "network_fee_stable": 4.0,
+        # NZD side: IR's own deposit table has NO free bank-transfer or
+        # instant-rail line for NZD at all -- unlike SGD (PayNow) and AUD
+        # (bank transfer), the only NZD deposit methods listed are SWIFT
+        # (minimum NZD 50,000, fee unstated -- it would be the sender's own
+        # bank's outgoing wire fee, not IR's, and is not published) and
+        # "debit & credit cards: 0% for Australian cards" (not usable by an
+        # NZ-resident sender with an NZ-issued card). Below the ladder's top
+        # rung there is genuinely no published free method, so this leg is
+        # left unpriced rather than guessed at -- a "gap", not a zero.
+        # Source: https://www.independentreserve.com/nz/fees, read 2026-09-29
+        # (checked against the SG and AU fee pages too -- the NZD deposit
+        # section is identical on all three, confirming it is not a
+        # per-region rendering quirk).
+        "deposit": {
+            "venue": "IndependentReserve", "method": None,
+            "fee_type": "gap", "fee_value": None, "fee_ccy": "NZD",
+            "source_url": "https://www.independentreserve.com/nz/fees",
+            "verified": "2026-09-29",
+            "note": ("No free NZD deposit method is published below NZD "
+                      "50,000. Only SWIFT (NZD 50,000 minimum, fee "
+                      "unstated) or Australian-issued cards are listed."),
+        },
+        # Same PHP off-ramp venue and rail as SGD->PHP.
+        "withdrawal": {
+            "venue": "Coins.ph", "method": "PESONet",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "PHP",
+            "source_url": "https://support.coins.ph/hc/en-us/articles/201919230-What-fees-are-charged-on-cash-outs",
+            "verified": "2026-09-29",
+        },
         "ladder": [200, 1000, 5000, 25000, 50000],
         "providers_file": "providers_nzdphp.csv",
     },
@@ -202,6 +271,30 @@ CORRIDORS = {
         "network_fee_stable": 0.0,          # unmodelled gas, see above
         "withdraw_pct": 0.0001,             # 0.01%, published
         "withdraw_pct_cap": 20.0,           # USDT, published
+        # USD side: Coinbase Exchange's own help article on ACH deposits
+        # states outright "There is no fee charged by Coinbase for ACH."
+        # ACH is the realistic method (free; wire costs $10 domestic /$25
+        # SWIFT, per a separate Coinbase help article, and is NOT the
+        # cheaper option here). Source:
+        # https://help.coinbase.com/en/exchange/funding/depositing-with-ach,
+        # read 2026-09-29 (public article, not the login-gated trading fee
+        # page the bps constants above cite).
+        "deposit": {
+            "venue": "Coinbase", "method": "ACH",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "USD",
+            "source_url": "https://help.coinbase.com/en/exchange/funding/depositing-with-ach",
+            "verified": "2026-09-29",
+        },
+        # MXN side: Bitso's own fee page lists Bank Transfer (SPEI)
+        # withdrawals at "Free of charge", same as its instant Bitso
+        # Transfer and debit-card payout options. Source:
+        # https://bitso.com/fees/transactions, read 2026-09-29.
+        "withdrawal": {
+            "venue": "Bitso", "method": "SPEI",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "MXN",
+            "source_url": "https://bitso.com/fees/transactions",
+            "verified": "2026-09-29",
+        },
         "ladder": [200, 1000, 5000, 25000, 50000],
         # providers.csv has NO corridor column and its schema is frozen, so it
         # cannot carry a second corridor. This corridor gets its own file with
@@ -459,6 +552,28 @@ def basis_bps_cost(venue_price, usd_mid, side):
     return bps((usd_mid - venue_price) / usd_mid)
 
 
+def ramp_fee_units(leg_cfg, base_amount):
+    """Deposit/withdrawal ramp fee, in that leg's own currency units.
+
+    `base_amount` is what the fee is charged against: the notional being
+    deposited for a deposit leg, the amount that landed for a withdrawal
+    leg. fee_type "free" and "gap" both return 0.0 -- a "gap" is NOT a
+    verified free rail, it means no published fee could be found, and
+    charging 0.0 for it must never be read as "measured, and it's free".
+    Callers that need to tell the two apart use the *_measured flags
+    decompose() also records, and the ramp waterfall sidecar carries the
+    distinction through to the reader-facing pages.
+    """
+    if not leg_cfg:
+        return 0.0
+    ft = leg_cfg.get("fee_type")
+    if ft == "flat":
+        return leg_cfg["fee_value"]
+    if ft == "pct":
+        return base_amount * leg_cfg["fee_value"]
+    return 0.0  # "free" (verified zero) or "gap" (unmeasured, never invented)
+
+
 def decompose(notional, on_book, off_book, mids, cfg):
     """
     Full round trip for one notional under both execution regimes.
@@ -479,6 +594,19 @@ def decompose(notional, on_book, off_book, mids, cfg):
     pct = cfg.get("withdraw_pct", 0.0)
     pct_cap = cfg.get("withdraw_pct_cap")
 
+    # The two ramp legs: the bank fee to get the sender's money ONTO the
+    # on-ramp exchange (src currency, charged against the notional), and the
+    # bank fee to get it OUT of the off-ramp exchange to a bank account (dst
+    # currency, charged against what actually landed). "gap" means no
+    # published free method could be found at retail size -- it costs 0.0
+    # here (never invented) but is flagged, not silently treated as free;
+    # see the ramp waterfall sidecar and CORRIDORS' own citation comments.
+    dep_cfg, wd_cfg = cfg.get("deposit"), cfg.get("withdrawal")
+    dep_measured = bool(dep_cfg) and dep_cfg.get("fee_type") != "gap"
+    wd_measured = bool(wd_cfg) and wd_cfg.get("fee_type") != "gap"
+    deposit_fee_src = ramp_fee_units(dep_cfg, notional)
+    adjusted_notional = max(0.0, notional - deposit_fee_src)
+
     asks, bids = on_book.get("asks", []), off_book.get("bids", [])
     top_ask = asks[0][0] if asks else None
     top_bid = bids[0][0] if bids else None
@@ -491,9 +619,11 @@ def decompose(notional, on_book, off_book, mids, cfg):
         "offramp_basis_bps": basis_bps_cost(top_bid, dst_usd, "sell"),
         "offramp_depth_top_level": bids[0][1] if bids else None,
         "offramp_depth_1pct": round(depth_within_pct(bids), 2) if bids else None,
+        "ramp_deposit_measured": dep_measured,
+        "ramp_withdrawal_measured": wd_measured,
     }
 
-    gross, on_vwap, on_filled = walk_buy(asks, notional)
+    gross, on_vwap, on_filled = walk_buy(asks, adjusted_notional)
     out["onramp_vwap"] = round(on_vwap, 6) if on_vwap else None
     out["onramp_filled"] = on_filled
     out["onramp_slip_bps"] = (bps((on_vwap - top_ask) / top_ask)
@@ -521,7 +651,9 @@ def decompose(notional, on_book, off_book, mids, cfg):
                 out["offramp_filled"] = False
             continue
         quote, off_vwap, off_filled = walk_sell(bids, stable)
-        landed = quote * (1 - fee_off)
+        landed_before_withdrawal = quote * (1 - fee_off)
+        withdrawal_fee_dst = ramp_fee_units(wd_cfg, landed_before_withdrawal)
+        landed = max(0.0, landed_before_withdrawal - withdrawal_fee_dst)
         out[f"landed_{regime}"] = round(landed, 2)
         out[f"cost_bps_{regime}"] = (bps(1 - landed / (notional * mid))
                                      if (mid and notional) else None)
@@ -535,22 +667,31 @@ def decompose(notional, on_book, off_book, mids, cfg):
             # sum to cost_bps_taker (SEB-corridor-reconcile: off by ~1.5bps on
             # a real AUD->PHP row, exactly this drift's known order of
             # magnitude). Fixed by walking the SAME chain decompose() already
-            # computes (gross -> bought -> stable -> quote -> landed) and
-            # taking each step's own delta, in dst-currency terms, against the
-            # fair (zero-friction) target. Telescoping guarantees the parts
-            # sum to cost_bps_taker exactly, to the cent, by construction --
-            # not approximately, and not by adjusting a displayed number.
+            # computes (deposit -> gross -> bought -> stable -> quote ->
+            # landed) and taking each step's own delta, in dst-currency terms,
+            # against the fair (zero-friction) target. Telescoping guarantees
+            # the parts sum to cost_bps_taker exactly, to the cent, by
+            # construction -- not approximately, and not by adjusting a
+            # displayed number.
             target = notional * mid
+            L1 = adjusted_notional * mid
             L2, L3 = bought * dst_usd, stable * dst_usd
-            out["wf_buy_bps"] = round(1e4 * (target - L2) / target, 2)
+            L4 = landed_before_withdrawal
+            out["wf_deposit_bps"] = round(1e4 * (target - L1) / target, 2)
+            out["wf_buy_bps"] = round(1e4 * (L1 - L2) / target, 2)
             out["wf_move_bps"] = round(1e4 * (L2 - L3) / target, 2)
-            # The third leg is the remainder against cost_bps_taker, not its own
-            # independently-rounded value -- summing three numbers each rounded
-            # on their own does not reliably reproduce a fourth, separately
-            # rounded number (classic sum-of-rounded-parts drift). Anchoring the
-            # last leg to what the other two, plus the already-stored total,
-            # require is what actually guarantees the bars sum to the cent.
-            out["wf_sell_bps"] = round(out["cost_bps_taker"] - out["wf_buy_bps"] - out["wf_move_bps"], 2)
+            out["wf_sell_bps"] = round(1e4 * (L3 - L4) / target, 2)
+            # The withdrawal leg is the remainder against cost_bps_taker, not
+            # its own independently-rounded value -- summing four numbers each
+            # rounded on their own does not reliably reproduce a fifth,
+            # separately rounded number (classic sum-of-rounded-parts drift,
+            # same reasoning that used to anchor wf_sell_bps here before this
+            # leg existed). Anchoring the LAST leg to what the other four,
+            # plus the already-stored total, require is what actually
+            # guarantees the bars sum to the cent.
+            out["wf_withdrawal_bps"] = round(
+                out["cost_bps_taker"] - out["wf_deposit_bps"] - out["wf_buy_bps"]
+                - out["wf_move_bps"] - out["wf_sell_bps"], 2)
         if regime == "taker":
             out["offramp_vwap"] = round(off_vwap, 6) if off_vwap else None
             out["offramp_filled"] = off_filled
@@ -879,6 +1020,42 @@ def append_waterfall(rows, path=WATERFALL_SIDECAR):
     return path
 
 
+RAMP_WATERFALL_SIDECAR = os.path.join(HERE, "data", "ramp_waterfall.csv")
+RAMP_WATERFALL_FIELDS = [
+    "ts", "corridor", "notional_src", "wf_deposit_bps", "wf_withdrawal_bps",
+    "deposit_measured", "withdrawal_measured",
+]
+
+
+def append_ramp_waterfall(rows, path=RAMP_WATERFALL_SIDECAR):
+    """The two ramp legs (deposit into the on-ramp exchange, withdrawal out
+    of the off-ramp exchange), same sidecar pattern as WATERFALL_SIDECAR and
+    keyed the same way (ts + corridor + notional_src) so corridor.html can
+    join it against corridor_waterfall.csv's three legs with one lookup.
+
+    deposit_measured / withdrawal_measured carry the difference between "we
+    checked and it's free" and "we could not find a published fee" (a gap
+    contributes 0.0 bps here, same as a genuinely free rail, but the reader
+    -facing pages must say which -- see ramp_fee_units()'s own docstring).
+    """
+    wrows = [{"ts": r["ts"], "corridor": r["corridor"], "notional_src": r["notional_src"],
+              "wf_deposit_bps": r.get("wf_deposit_bps"),
+              "wf_withdrawal_bps": r.get("wf_withdrawal_bps"),
+              "deposit_measured": r.get("ramp_deposit_measured"),
+              "withdrawal_measured": r.get("ramp_withdrawal_measured")}
+             for r in rows if r.get("wf_deposit_bps") is not None]
+    if not wrows:
+        return None
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=RAMP_WATERFALL_FIELDS)
+        if new:
+            w.writeheader()
+        w.writerows(wrows)
+    return path
+
+
 def append_providers(prows, path=PROVIDERS):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     new = not os.path.exists(path)
@@ -1034,18 +1211,26 @@ def selftest():
           f"{d['cost_bps_maker']:.1f} bps -- {gap:.1f} bps apart (Coins "
           f"maker/taker spread); both lose to ~66 bps Wise")
 
-    # The waterfall's three bars must reconcile to the taker total EXACTLY, to
-    # the cent -- not approximately. (This replaces an earlier version of this
-    # test that only checked the independently-summed basis+fee legs landed
-    # within 1.5 bps of the total; that ~1.5 bps gap was real, was the
-    # corridor.html reader-visible bug it looks like, and is the reason
-    # wf_buy_bps/wf_move_bps/wf_sell_bps exist -- a sequential decomposition of
-    # the same chain decompose() already walks, not a second, parallel one.)
-    wf_sum = d["wf_buy_bps"] + d["wf_move_bps"] + d["wf_sell_bps"]
+    # The waterfall's five bars (deposit, buy, move, sell, withdrawal) must
+    # reconcile to the taker total EXACTLY, to the cent -- not approximately.
+    # (This replaces an earlier version of this test that only checked the
+    # independently-summed basis+fee legs landed within 1.5 bps of the total;
+    # that ~1.5 bps gap was real, was the corridor.html reader-visible bug it
+    # looks like, and is the reason wf_buy_bps/wf_move_bps/wf_sell_bps exist --
+    # a sequential decomposition of the same chain decompose() already walks,
+    # not a second, parallel one. wf_deposit_bps/wf_withdrawal_bps extend the
+    # same chain to the two ramp legs; both are 0.00 here because SGD->PHP's
+    # ramp fees are verified-free on both sides -- see the "deposit"/
+    # "withdrawal" configs in CORRIDORS.)
+    assert abs(d["wf_deposit_bps"]) < 0.005, d["wf_deposit_bps"]
+    wf_sum = (d["wf_deposit_bps"] + d["wf_buy_bps"] + d["wf_move_bps"]
+              + d["wf_sell_bps"] + d["wf_withdrawal_bps"])
     assert abs(wf_sum - d["cost_bps_taker"]) < 0.005, (wf_sum, d["cost_bps_taker"])
-    print(f"  [ok] waterfall reconciles exactly: {d['wf_buy_bps']:.2f} + "
-          f"{d['wf_move_bps']:.2f} + {d['wf_sell_bps']:.2f} = {wf_sum:.2f} == "
-          f"{d['cost_bps_taker']:.2f} bps")
+    print(f"  [ok] waterfall reconciles exactly: {d['wf_deposit_bps']:.2f} + "
+          f"{d['wf_buy_bps']:.2f} + {d['wf_move_bps']:.2f} + "
+          f"{d['wf_sell_bps']:.2f} + {d['wf_withdrawal_bps']:.2f} = "
+          f"{wf_sum:.2f} == {d['cost_bps_taker']:.2f} bps")
+    assert d["ramp_deposit_measured"] and d["ramp_withdrawal_measured"], d
 
     # small size: the flat network fee should dominate. At the real 4.0 USDT
     # withdrawal it is no longer merely large at S$200 -- it is the whole story.
@@ -1072,7 +1257,15 @@ def selftest():
     assert dead["landed_taker"] == 0.0 and dead["onramp_top_ask"] is None
     print("  [ok] dead sources degrade to a recorded row, not an exception")
 
-    assert set(FIELDS) >= set(dead) | {"ts", "corridor", "source_ok", "errors"}
+    # wf_* and ramp_*_measured are sidecar-only fields (corridor_waterfall.csv,
+    # ramp_waterfall.csv) -- deliberately absent from FIELDS/samples.csv, whose
+    # header is frozen, so they are excluded here rather than added to it.
+    SIDECAR_ONLY = {
+        "wf_buy_bps", "wf_move_bps", "wf_sell_bps",
+        "wf_deposit_bps", "wf_withdrawal_bps",
+        "ramp_deposit_measured", "ramp_withdrawal_measured",
+    }
+    assert set(FIELDS) >= set(dead) - SIDECAR_ONLY | {"ts", "corridor", "source_ok", "errors"}
     print("  [ok] schema covers every derived field")
 
     # --- corridor 2: USD->MXN (Coinbase -> Bitso), real payloads 2026-08-19 ---
@@ -1118,11 +1311,28 @@ def selftest():
 
     # Same exact reconciliation, second corridor, different size (1,000) and a
     # different fee shape (proportional Coinbase fee, not IR's flat one) --
-    # confirms the fix isn't tuned to one corridor's numbers.
-    wf_sum2 = d2["wf_buy_bps"] + d2["wf_move_bps"] + d2["wf_sell_bps"]
+    # confirms the fix isn't tuned to one corridor's numbers. USD->MXN's ramp
+    # fees are verified-free on both sides too (Coinbase ACH, Bitso SPEI).
+    assert abs(d2["wf_deposit_bps"]) < 0.005, d2["wf_deposit_bps"]
+    wf_sum2 = (d2["wf_deposit_bps"] + d2["wf_buy_bps"] + d2["wf_move_bps"]
+               + d2["wf_sell_bps"] + d2["wf_withdrawal_bps"])
     assert abs(wf_sum2 - d2["cost_bps_taker"]) < 0.005, (wf_sum2, d2["cost_bps_taker"])
     print(f"  [ok] corridor 2 waterfall reconciles exactly: {wf_sum2:.2f} == "
           f"{d2['cost_bps_taker']:.2f} bps")
+    assert d2["ramp_deposit_measured"] and d2["ramp_withdrawal_measured"], d2
+
+    # --- corridor 3: NZD->PHP's deposit leg is a deliberate GAP, not a zero.
+    # No published free NZD deposit method exists on Independent Reserve, so
+    # ramp_deposit_measured must be False and the deposit leg must contribute
+    # exactly 0.0 bps (never a guessed number) while the total cost is
+    # otherwise computed normally.
+    cfg3 = CORRIDORS["NZD->PHP"]
+    d3 = decompose(5000, on, off, MIDS_FIXTURE, cfg3)
+    assert d3["ramp_deposit_measured"] is False, d3["ramp_deposit_measured"]
+    assert d3["ramp_withdrawal_measured"] is True, d3["ramp_withdrawal_measured"]
+    assert abs(d3["wf_deposit_bps"]) < 0.005, d3["wf_deposit_bps"]
+    print("  [ok] NZD->PHP deposit leg recorded as an unmeasured gap (0 bps, "
+          "flagged), not a guessed fee")
 
     assert providers_path(cfg2).endswith("providers_usdmxn.csv")
     assert providers_path(CORRIDORS["SGD->PHP"]).endswith("providers.csv")
@@ -1338,6 +1548,11 @@ def main():
             append_waterfall(rows)
         except Exception as e:
             print(f"  [warn] waterfall sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
+        # Same non-fatal shape: the ramp waterfall sidecar is supplementary too.
+        try:
+            append_ramp_waterfall(rows)
+        except Exception as e:
+            print(f"  [warn] ramp waterfall sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
 
     if a.json:
         print(json.dumps({"corridor": rows, "panel": prows}, indent=2, default=str))

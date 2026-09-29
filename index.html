@@ -356,9 +356,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   // providers_latest.json lookup.
   function renderWaterfall(wf, COPY, windowRow){
     var L = COPY.waterfallLegend || {};
+    var deposit = wf.deposit_fee_bps || 0;
     var buy = wf.onramp_basis_bps + wf.onramp_fee_bps;
     var sell = wf.offramp_basis_bps + wf.offramp_fee_bps;
     var network = wf.network_fee_bps;
+    var withdrawal = wf.withdrawal_fee_bps || 0;
     var total = wf.total_cost_bps;
     var appBps = wf.baseline_cost_bps;
 
@@ -379,19 +381,28 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var scale = maxVal > 0 ? 100 / maxVal : 0;
     var stackWidth = Math.max(0, (total || 0) * scale);
     var appLeft = appBps != null ? Math.max(0, appBps * scale) : null;
+    var depositPct = total ? (deposit / total * 100) : 0;
     var buyPct = total ? (buy / total * 100) : 0;
     var networkPct = total ? (network / total * 100) : 0;
-    var sellPct = Math.max(0, 100 - buyPct - networkPct);
+    var sellPct = total ? (sell / total * 100) : 0;
+    var withdrawalPct = Math.max(0, 100 - depositPct - buyPct - networkPct - sellPct);
 
     var appLine = appLeft != null
       ? ('<div class="appline" style="left:' + appLeft.toFixed(1) + '%"></div>' +
          '<div class="applabel" style="left:' + appLeft.toFixed(1) + '%">cheapest app ' + cashPct(appBps) + '</div>')
       : '';
 
-    var segLabels = [L.buying || 'Buy USDT with SGD', L.moving || 'Send it on chain', L.selling || 'Sell USDT for PHP'];
-    var segValues = [buy, network, sell];
-    var segColors = ['var(--indigo)', 'var(--dust)', 'var(--eggshell)'];
-    var segPct = [buyPct, networkPct, sellPct];
+    // Deposit and withdrawal are the bank-fee legs added once this site
+    // started pricing them (2026-09) -- getting the sender's money onto the
+    // first exchange, and getting it out to a bank account at the end. Both
+    // are shown even when they measure to S$0.00, so a reader can see the
+    // leg was checked, not left out.
+    var segLabels = [L.depositing || 'Get SGD onto the exchange', L.buying || 'Buy USDT with SGD',
+                      L.moving || 'Send it on chain', L.selling || 'Sell USDT for PHP',
+                      L.withdrawing || 'Get PHP into a bank account'];
+    var segValues = [deposit, buy, network, sell, withdrawal];
+    var segColors = ['var(--dust)', 'var(--indigo)', 'var(--dust)', 'var(--eggshell)', 'var(--dust)'];
+    var segPct = [depositPct, buyPct, networkPct, sellPct, withdrawalPct];
 
     var card = document.getElementById('waterfallSection');
     card.innerHTML =
@@ -406,9 +417,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         '<div id="wfTip"></div>' +
       '</div>' +
       '<div class="legend-row">' +
+        '<span><i class="sw" style="background:var(--dust)"></i>' + esc(L.depositing || 'Get SGD onto the exchange') + ' <b>' + cashPct(deposit) + '</b></span>' +
         '<span><i class="sw" style="background:var(--indigo)"></i>' + esc(L.buying || 'Buy USDT with SGD') + ' <b>' + cashPct(buy) + '</b></span>' +
         '<span><i class="sw" style="background:var(--dust)"></i>' + esc(L.moving || 'Send it on chain') + ' <b>' + cashPct(network) + '</b></span>' +
         '<span><i class="sw" style="background:var(--eggshell)"></i>' + esc(L.selling || 'Sell USDT for PHP') + ' <b>' + cashPct(sell) + '</b></span>' +
+        '<span><i class="sw" style="background:var(--dust)"></i>' + esc(L.withdrawing || 'Get PHP into a bank account') + ' <b>' + cashPct(withdrawal) + '</b></span>' +
         '<span>' + esc(L.total || 'Total') + ' <b>' + cashPct(total) + '</b></span>' +
       '</div>';
 
