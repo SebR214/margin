@@ -68,6 +68,9 @@ SAMPLES = os.path.join(DATA, "samples.csv")
 PANELS = [
     ("SGD->PHP", "providers.csv"),
     ("USD->MXN", "providers_usdmxn.csv"),
+    ("USD->NGN", "providers_usdngn.csv"),
+    ("USD->INR", "providers_usdinr.csv"),
+    ("SGD->INR", "providers_sgdinr.csv"),
 ]
 
 
