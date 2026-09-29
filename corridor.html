@@ -635,6 +635,7 @@ function drawWaterfall(r,cheapest){
     return;
   }
   const on=venueName(r.onramp_venue), off=venueName(r.offramp_venue);
+  const WF=(COPY.cards||{}).waterfall||{};
   // Deposit (getting srcCcy onto the first exchange) and withdrawal (getting
   // dstCcy out of the last one to a bank account) -- added 2026-09-29. Both
   // are 0.00 when the leg is a verified-free rail; NZD->PHP's deposit leg is
@@ -642,9 +643,9 @@ function drawWaterfall(r,cheapest){
   // 0.00 but flagged in the caption below rather than silently folded in.
   const comps=[
     {l:"Get "+srcCcy+" onto "+on, v:ramp?+ramp.wf_deposit_bps:0, k:"rail"},
-    {l:"Buy USDT with "+srcCcy, v:+wf.wf_buy_bps, k:"neg"},
+    {l:T(WF.buyBarLabelTemplate||"Buy stablecoin with {ccy}",{ccy:srcCcy}), v:+wf.wf_buy_bps, k:"neg"},
     {l:"Send it on chain", v:+wf.wf_move_bps, k:"rail"},
-    {l:"Sell USDT for "+dstOf(r), v:+wf.wf_sell_bps, k:"neg"},
+    {l:T(WF.sellBarLabelTemplate||"Sell stablecoin for {ccy}",{ccy:dstOf(r)}), v:+wf.wf_sell_bps, k:"neg"},
     {l:"Get "+dstOf(r)+" into a bank account", v:ramp?+ramp.wf_withdrawal_bps:0, k:"rail"},
   ];
   const total=+r.cost_bps_taker;
@@ -656,15 +657,14 @@ function drawWaterfall(r,cheapest){
   // -- trading fees dwarf the network fee), but it is checked, not assumed,
   // so a corridor where the network fee genuinely dominates still gets an
   // honest header instead of a wrong one.
-  const WF=(COPY.cards||{}).waterfall||{};
   const tradeBps=Math.abs(+wf.wf_buy_bps)+Math.abs(+wf.wf_sell_bps), moveBps=Math.abs(+wf.wf_move_bps);
   document.getElementById("wfTitle").textContent=T(
     tradeBps>=moveBps ? (WF.buyDominantTemplate||"Most of the {total} goes on buying and selling {stable}, not on sending it")
                        : (WF.moveDominantTemplate||"Most of the {total} goes on sending {stable} on chain, not on buying or selling it"),
-    {total:cash(n,total), stable:(r.stable||"USDT")});
+    {total:cash(n,total), stable:"stablecoin"});
   document.getElementById("wfAnswer").textContent=T(WF.answerTemplate||"Sending it on chain costs {moveCost}. Buying {stable} costs {buyCost}.",
-    {moveCost:cash(n,+wf.wf_move_bps), stable:(r.stable||"USDT"), buyCost:cash(n,+wf.wf_buy_bps)});
-  document.getElementById("wfCap").textContent=T(WF.capTemplate||"Buying USDT is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
+    {moveCost:cash(n,+wf.wf_move_bps), stable:"stablecoin", buyCost:cash(n,+wf.wf_buy_bps)});
+  document.getElementById("wfCap").textContent=T(WF.capTemplate||"Buying the stablecoin is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
     {buyCost:cash(n,+wf.wf_buy_bps), totalCost:cash(n,total)});
   let run=0; const cum=[0]; comps.forEach(c=>{run+=c.v; cum.push(run);});
   const all=[0,total,base,...cum], dMin=Math.min(...all), dMax=Math.max(...all);
@@ -725,7 +725,8 @@ function drawWaterfall(r,cheapest){
 }
 
 function drawReceipt(r,wf,ramp){
-  const n=+r.notional_src, stable=(r.stable||"USDT"), dst=dstOf(r);
+  const RC=((COPY.cards||{}).waterfall||{}).receipt||{};
+  const n=+r.notional_src, stable="stablecoin", dst=dstOf(r);
   const buy=+wf.wf_buy_bps, move=+wf.wf_move_bps, sell=+wf.wf_sell_bps;
   const deposit=ramp?+ramp.wf_deposit_bps:0, withdrawal=ramp?+ramp.wf_withdrawal_bps:0;
   const feeOn=+r.fee_on_taker_bps||0, feeOff=+r.fee_off_taker_bps||0;
@@ -746,12 +747,14 @@ function drawReceipt(r,wf,ramp){
     {l:depositMeasured===false?`${on} deposit fee (not priced -- see below)`
        :depositMeasured===null?`${on} deposit fee (not available for this sample yet)`
        :`${on} deposit fee`, v:deposit},
-    {leg:`1 · Buy ${stable} with ${srcCcy} on ${on}`},
-    {l:`${stable} priced above the dollar`, v:buy-feeOn},
+    {leg:T(RC.buyLegTemplate||"1 · Buy {stable} with {ccy} on {venue}",{stable,ccy:srcCcy,venue:on})},
+    {l:RC.buyAboveDollar||`${stable} priced above the dollar`, v:buy-feeOn},
     {l:`${on} fee`, v:feeOn},
-    {leg:`2 · Send ${stable} on chain`},
-    {l:`Network fee${isFinite(netStable)&&netStable>0?", "+(+netStable.toFixed(2))+" "+stable:""}`, v:move},
-    {leg:`3 · Sell ${stable} for ${dst} on ${off}`},
+    {leg:T(RC.moveLegTemplate||"2 · Send {stable} on chain",{stable})},
+    {l:isFinite(netStable)&&netStable>0
+       ? T(RC.networkFeeWithAmountTemplate||"Network fee, {amount} in {stable}",{amount:(+netStable.toFixed(2)),stable})
+       : (RC.networkFeeLabel||"Network fee"), v:move},
+    {leg:T(RC.sellLegTemplate||"3 · Sell {stable} for {ccy} on {venue}",{stable,ccy:dst,venue:off})},
     {l:`${off} fee`, v:feeOff},
     {l:(sell-feeOff)<0?"Selling price slightly better than the real rate":"Selling price below the real rate", v:sell-feeOff},
     {leg:`4 · Get ${dst} into a bank account`},

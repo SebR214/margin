@@ -114,6 +114,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 <script>
 (function(){
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function T(s, vals){
+    var out = String(s || '');
+    for (var k in (vals || {})) out = out.split('{' + k + '}').join(vals[k]);
+    return out;
+  }
   var PAR_EPSILON = 0.05;
 
   // Same phrasing family as countries.html/home's headline sentence, but
@@ -229,9 +234,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   Promise.all([
     fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()),
     fetch('./data/latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-    fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+    fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
   ]).then(function(res){
     var idx = res[0], raw = res[1], depthDoc = res[2];
+    var COPY = (res[3] || {}).country || {};
 
     var country = (idx.countries || []).find(function(c){ return c.ccy === ccy; });
     var withheld = (idx.withheld || []).find(function(w){ return w.ccy === ccy; });
@@ -265,8 +272,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var sinceLabel = dates.length ? shortDate(dates[0]) : null;
 
     var html = '<h1 class="num">' + esc(country.country) + ': a dollar ' + gapPhrase(headlinePct) + '</h1>' +
-      '<p class="lead">What people pay for USDT on Binance P2P in ' + esc(country.country) +
-      ', compared with the official rate.</p>' +
+      '<p class="lead">' + esc(T(COPY.leadTemplate || 'What people pay for a stablecoin on Binance P2P in {country}, compared with the official rate.',
+        {country: country.country})) + '</p>' +
       '<p class="meta"><span class="dot"></span>Checked ' + esc(shortTime(country.hour_utc)) + ' &middot; median of the last 24 hours</p>';
 
     var p2p = raw && raw.p2p && raw.p2p[ccy];
@@ -311,7 +318,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       var ratio = (p2p.buy_median / p2p.fx_mid_per_usd);
       html += '<section><h2 class="num">How we get ' + signedPct(headlinePct) + ', in four steps</h2>' +
         '<ol class="steps">' +
-        '<li>We read the ' + nAds + ' cheapest ads selling USDT for ' + esc(ccy) + ' on Binance P2P. The middle price is <b class="num">' +
+        '<li>' + esc(T(COPY.adsStepTemplate || 'We read the {n} cheapest ads selling stablecoin for {ccy} on Binance P2P.',
+          {n: nAds, ccy: ccy})) + ' The middle price is <b class="num">' +
           p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar.<small><code>data/p2p_basis.csv</code></small></li>' +
         '<li>We read ' + esc(country.country) + "'s official rate at the same time: <b class=\"num\">" +
           p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar.<small><code>data/fx_rates.csv</code> &middot; this source updates once a day</small></li>' +
