@@ -790,7 +790,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var W = Math.max(280, box.clientWidth);
     var narrow = W < 480;
     var H = narrow ? 240 : 260;
-    var L = 44, R = narrow ? 88 : 150, TT = 16, B = 26;
+    var L = 44, R = narrow ? 78 : 112, TT = 16, B = 26;
     var X = function(i){ return L + i * (W - L - R) / (n - 1); };
     var Y = function(v){ return TT + (hi - v) / hi * (H - TT - B); };
     var uid = 'gap' + Math.random().toString(36).slice(2, 9);
@@ -837,15 +837,21 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     // of which range is toggled. The tag sits INSIDE the plot's right edge,
     // ending exactly at x=W-R, so it never competes with the end-of-line name
     // labels which start just past that same boundary (SEB, 2026-09-29 mock).
-    var nowY = Y(nowVal);
+    // Clamped to the plot's own vertical bounds regardless of hi -- a defensive
+    // floor under whatever nice-tick edge case might otherwise push it off
+    // the top (the exact bug that shipped once already). Drawn LAST, after
+    // the data lines: the stablecoin line's own tail sits at very nearly
+    // this same value for 24h/7d (it IS "now"), so the tag has to paint over
+    // the line where they coincide, not the other way around, or "now" reads
+    // as a purple line slashed through unreadable text (SEB, 2026-09-29 bug).
+    var nowY = Math.min(Math.max(Y(nowVal), TT + 12), H - B - 12);
     var nowTagText = 'now ' + nowVal.toFixed(2) + '%';
     var nowTagW = Math.max(60, nowTagText.length * 7 + 22);
-    var nowTagX = (W - R) - nowTagW;
-    var nowLine = (nowY >= TT && nowY <= H - B)
-      ? '<line x1="' + L + '" y1="' + nowY.toFixed(1) + '" x2="' + (nowTagX - 6).toFixed(1) + '" y2="' + nowY.toFixed(1) + '" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="4,4"/>' +
-        '<rect x="' + nowTagX.toFixed(1) + '" y="' + (nowY - 11).toFixed(1) + '" width="' + nowTagW + '" height="22" rx="11" fill="#D3D0CB"/>' +
-        '<text x="' + (nowTagX + nowTagW / 2).toFixed(1) + '" y="' + (nowY + 4).toFixed(1) + '" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3F3047">' + esc(nowTagText) + '</text>'
-      : '';
+    var nowTagX = Math.max(L + 4, (W - R) - nowTagW);
+    var nowLine =
+      '<line x1="' + L + '" y1="' + nowY.toFixed(1) + '" x2="' + (nowTagX - 6).toFixed(1) + '" y2="' + nowY.toFixed(1) + '" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="4,4"/>' +
+      '<rect x="' + nowTagX.toFixed(1) + '" y="' + (nowY - 11).toFixed(1) + '" width="' + nowTagW + '" height="22" rx="11" fill="#D3D0CB"/>' +
+      '<text x="' + (nowTagX + nowTagW / 2).toFixed(1) + '" y="' + (nowY + 4).toFixed(1) + '" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3F3047">' + esc(nowTagText) + '</text>';
 
     // Weekly-ish labels on All/30d, daily on 7d, every few hours on 24h --
     // a fixed target count, picked as evenly spaced indices so the axis
@@ -869,11 +875,12 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var svgId = 'svg-' + uid, tipId = 'tip-' + uid, vlineId = 'vl-' + uid, d1 = 'd1-' + uid, d2 = 'd2-' + uid;
 
     box.innerHTML = '<svg id="' + svgId + '" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Stablecoin vs cheapest app cost over time" style="display:block;cursor:crosshair">' +
-      grid + areas + nowLine +
+      grid + areas +
       lineHtml(appVals, '#BFBFBF') +
       lineHtml(stableVals, '#817FCC') +
       endLabel(gapCOPY.gapLabelApp || 'Cheapest app', '#BFBFBF', '#6B6B6B', appEndY) +
       endLabel(gapCOPY.gapLabelStable || 'Stablecoin', '#817FCC', '#817FCC', stableEndY) +
+      nowLine +
       '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="#D3D0CB"/>' +
       xLabels +
       '<line id="' + vlineId + '" x1="0" y1="' + TT + '" x2="0" y2="' + (H - B) + '" stroke="#0B0B0B" stroke-width="1" opacity="0"/>' +
@@ -932,7 +939,10 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var nowVal = gapRowsAll[gapRowsAll.length - 1].stable;
     var maxVal = Math.max.apply(null, targetStable.concat(targetApp, [nowVal]));
     var niceTicks = gapNiceTicks(maxVal * 1.1);
-    var targetHi = niceTicks[niceTicks.length - 1];
+    // Belt and suspenders on top of gapNiceTicks' own ceiling guarantee:
+    // hi must never sit below nowVal, on pain of the "now" line vanishing
+    // off the top of the chart (shipped once already -- SEB, 2026-09-29).
+    var targetHi = Math.max(niceTicks[niceTicks.length - 1], nowVal);
 
     if (gapAnimRAF) { cancelAnimationFrame(gapAnimRAF); gapAnimRAF = null; }
 
