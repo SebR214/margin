@@ -400,7 +400,7 @@ async function boot(){
   try{ COVERAGE=await fetch("./data/coverage.json").then(r=>r.ok?r.json():{}); }catch(e){ COVERAGE={}; }
   const C=await loadCopy();
   COPY=C.corridor||{};
-  document.getElementById("routeLbl").textContent=(COPY.sizebar||{}).route||"route";
+  document.getElementById("routeLbl").textContent=(COPY.sizebar||{}).route||"corridor";
   document.getElementById("sendLbl").textContent=(COPY.sizebar||{}).sendAmount||"send amount";
   // This bars-and-total chart stops at a balance sitting on the two
   // exchanges named in the footer below (buy venue, sell venue). It never

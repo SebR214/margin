@@ -36,6 +36,12 @@
   .sec{border-top:1px solid var(--rule);margin-top:48px;padding-top:36px}
   .sec h2{font-size:21px;line-height:1.32;margin:0 0 8px;font-weight:700;letter-spacing:-0.01em;max-width:720px}
   .sec .answer{font-size:15px;line-height:1.5;color:var(--sub);margin:0 0 22px;max-width:680px}
+  /* Same pill style as corridor.html's route/amount/range toggles (.sz/.rng
+     there) -- one visual language for every tap-to-filter control sitewide. */
+  .rng{display:flex;gap:8px;margin:0 0 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .rng::-webkit-scrollbar{display:none}
+  .rng button{font:inherit;font-family:'Archivo',system-ui,sans-serif;white-space:nowrap;font-size:14px;padding:8px 14px;border-radius:999px;border:1px solid var(--rule);background:#fff;color:var(--ink);cursor:pointer;min-height:40px}
+  .rng button.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:700}
   /* The duel comparison: two big numbers, live-computed from the same
      corridor_summary.json the waterfall reads, matching docs/mockups/
      home.html's final revision (2026-09-28). */
@@ -160,12 +166,12 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
   <div class="hero">
     <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Sending money by stablecoin usually costs more than a transfer app<!--BAKE:END:heroHeadline--></h1>
-    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->What sending money costs on 4 routes, and what a dollar costs in 60 countries. Checked every hour.<!--BAKE:END:heroSub--></div>
+    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->What sending money costs on 4 corridors, and what a dollar costs in 60 countries. Checked every hour.<!--BAKE:END:heroSub--></div>
     <div class="live" id="liveLine"><span class="dot"></span><span id="liveChecked">Checked —</span></div>
   </div>
 
   <div class="lead-section sec" style="margin-top:0;border-top:none;padding-top:0">
-    <div id="duelSection"><!--BAKE:START:duelSection--><div class="duel"><div><div class="big p">0.88%</div><div class="lab">Stablecoin</div></div><div class="vs">vs</div><div><div class="big">0.45%</div><div class="lab">Cheapest app</div></div></div><p class="cap">Sending S$5,000 from Singapore to the Philippines, all-in cost, typical hour.</p><p class="small-note">Same result from Australia, New Zealand and the US. <a href="./sending-money.html">All routes and providers →</a></p><!--BAKE:END:duelSection--></div>
+    <div id="duelSection"><!--BAKE:START:duelSection--><div class="duel"><div><div class="big p">0.88%</div><div class="lab">Stablecoin</div></div><div class="vs">vs</div><div><div class="big">0.45%</div><div class="lab">Cheapest app</div></div></div><p class="cap">Sending S$5,000 from Singapore to the Philippines, all-in cost, typical hour.</p><p class="small-note">Same result from Australia, New Zealand and the US. <a href="./sending-money.html">All corridors and providers →</a></p><!--BAKE:END:duelSection--></div>
   </div>
 
   <div id="waterfallSection" class="lead-section sec"></div>
@@ -178,7 +184,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   </div>
 
   <div class="lead-section sec">
-    <div id="allCountriesSection"><!--BAKE:START:allCountriesStrip--><h2>In Algeria people pay 92% more.</h2><p class="answer">How much more than the official rate people pay for a dollar. Priced from USDT on Binance P2P and local exchanges.</p><div class="cbars"><a class="crow" href="./country.html?ccy=DZD"><span class="cname">Algeria</span><span class="cbar"><i style="width:85.0%"></i><b style="left:85.0%">92%</b></span></a><a class="crow" href="./country.html?ccy=IQD"><span class="cname">Iraq</span><span class="cbar"><i style="width:20.4%"></i><b style="left:20.4%">22%</b></span></a><a class="crow" href="./country.html?ccy=MZN"><span class="cname">Mozambique</span><span class="cbar"><i style="width:15.9%"></i><b style="left:15.9%">17%</b></span></a><a class="crow" href="./country.html?ccy=TND"><span class="cname">Tunisia</span><span class="cbar"><i style="width:15.6%"></i><b style="left:15.6%">17%</b></span></a><a class="crow" href="./country.html?ccy=VES"><span class="cname">Venezuela</span><span class="cbar"><i style="width:13.8%"></i><b style="left:13.8%">15%</b></span></a><div class="cgap"></div><a class="crow low" href="./country.html?ccy=PHP"><span class="cname">Philippines</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 3 of our routes land</b></span></a><a class="crow low" href="./country.html?ccy=MXN"><span class="cname">Mexico</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 1 of our routes lands</b></span></a></div><p class="plainline">In Algeria, banks sell few dollars, so USDT is how people get them: about $1,500 is on offer right now within 1% of the best price.</p><p class="small-note"><a href="./countries.html">All countries →</a></p><!--BAKE:END:allCountriesStrip--></div>
+    <div id="allCountriesSection"><!--BAKE:START:allCountriesStrip--><h2>In Algeria people pay 92% more.</h2><p class="answer">How much more than the official rate people pay for a dollar. Priced from USDT on Binance P2P and local exchanges.</p><div class="cbars"><a class="crow" href="./country.html?ccy=DZD"><span class="cname">Algeria</span><span class="cbar"><i style="width:85.0%"></i><b style="left:85.0%">92%</b></span></a><a class="crow" href="./country.html?ccy=IQD"><span class="cname">Iraq</span><span class="cbar"><i style="width:20.4%"></i><b style="left:20.4%">22%</b></span></a><a class="crow" href="./country.html?ccy=MZN"><span class="cname">Mozambique</span><span class="cbar"><i style="width:15.9%"></i><b style="left:15.9%">17%</b></span></a><a class="crow" href="./country.html?ccy=TND"><span class="cname">Tunisia</span><span class="cbar"><i style="width:15.6%"></i><b style="left:15.6%">17%</b></span></a><a class="crow" href="./country.html?ccy=VES"><span class="cname">Venezuela</span><span class="cbar"><i style="width:13.8%"></i><b style="left:13.8%">15%</b></span></a><div class="cgap"></div><a class="crow low" href="./country.html?ccy=PHP"><span class="cname">Philippines</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 3 of our corridors land</b></span></a><a class="crow low" href="./country.html?ccy=MXN"><span class="cname">Mexico</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 1 of our corridors lands</b></span></a></div><p class="plainline">In Algeria, banks sell few dollars, so USDT is how people get them: about $1,500 is on offer right now within 1% of the best price.</p><p class="small-note"><a href="./countries.html">All countries →</a></p><!--BAKE:END:allCountriesStrip--></div>
   </div>
 
   <footer class="foot" id="footerLine">Every number on this site comes from a public data file. <a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></footer>
@@ -311,8 +317,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       })
       .map(function(c){ return SRC_NAME[(c.corridor || '').split('->')[0]] || c.corridor; });
     var sameResultHtml = others.length
-      ? T(COPY.duelSameResultTemplate || 'Same result from {others}. <a href="./sending-money.html">All routes and providers →</a>', { others: joinAnd(others) })
-      : '<a href="./sending-money.html">' + esc(COPY.everyProviderLink || 'All routes and providers →') + '</a>';
+      ? T(COPY.duelSameResultTemplate || 'Same result from {others}. <a href="./sending-money.html">All corridors and providers →</a>', { others: joinAnd(others) })
+      : '<a href="./sending-money.html">' + esc(COPY.everyProviderLink || 'All corridors and providers →') + '</a>';
     el.innerHTML =
       '<div class="duel">' +
         '<div><div class="big p">' + cashPct(stableBps) + '</div><div class="lab">' + esc(COPY.duelLabelStable || 'Stablecoin') + '</div></div>' +
@@ -552,7 +558,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     }).join('');
     var pinHtml = pins.map(function(c){
       var n = destCounts[c.ccy] || 0;
-      var land = n === 1 ? 'where 1 of our routes lands' : 'where ' + n + ' of our routes land';
+      var land = n === 1 ? 'where 1 of our corridors lands' : 'where ' + n + ' of our corridors land';
       return '<a class="crow low" href="./country.html?ccy=' + esc(c.ccy) + '"><span class="cname">' + esc(nm(c)) + '</span>' +
         '<span class="cbar"><i style="width:0"></i><b style="left:0">' + pw(c.gap_pct) + ' · ' + land + '</b></span></a>';
     }).join('');
@@ -581,12 +587,44 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     return s.length % 2 ? s[mid] : (s[mid-1]+s[mid])/2;
   }
 
+  var gapRowsAll = [];   // hourly {t, iso, stable, app}, oldest first
+  var gapRange = 'all';  // '24h' | '7d' | 'all'
+  var gapCOPY = {};
+  var gapRung = 5000;
+
+  function shortHour(t){
+    var d = new Date(t);
+    return String(d.getUTCHours()).padStart(2, '0') + ':00';
+  }
+
+  // Points for the selected range. 'all' groups into daily medians (about
+  // 50 points, not the ~1,000+ raw hourly rows, so the trend reads clean);
+  // '24h'/'7d' plot the real hourly rows, per the brief.
+  function gapPointsForRange(range){
+    if (range === 'all') {
+      var byDay = {};
+      gapRowsAll.forEach(function(r){
+        var day = r.iso.slice(0, 10);
+        var b = byDay[day] || (byDay[day] = { stable: [], app: [] });
+        b.stable.push(r.stable); b.app.push(r.app);
+      });
+      var days = Object.keys(byDay).sort();
+      return days.map(function(d){
+        return { t: new Date(d + 'T12:00:00Z').getTime(), iso: d, stable: median(byDay[d].stable), app: median(byDay[d].app) };
+      });
+    }
+    var hrs = range === '24h' ? 24 : 24 * 7;
+    var last = gapRowsAll[gapRowsAll.length - 1];
+    var cutoff = last.t - hrs * 3600000;
+    return gapRowsAll.filter(function(r){ return r.t >= cutoff; });
+  }
+
   // New home section, "the gap over time" (part 3 of the 2026-09-28 copy
-  // brief): daily median cost of the stablecoin route against the cheapest
-  // app, on the same corridor+size the duel comparison above already uses,
-  // so this section can't disagree with it. The streak length in the
-  // header is counted live from samples.csv, not typed in, so it stays
-  // true even if a future hour finally breaks it.
+  // brief): median cost of the stablecoin route against the cheapest app,
+  // on the same corridor+size the duel comparison above already uses, so
+  // this section can't disagree with it. The streak length in the header
+  // is counted live from samples.csv, not typed in, so it stays true even
+  // if a future hour finally breaks it.
   function renderGapOverTime(allSampleRows, COPY, rung){
     var el = document.getElementById('gapOverTimeSection');
     if (!el) return;
@@ -595,6 +633,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         r.cost_bps_taker && r.baseline_cost_bps;
     }).sort(function(a,b){ return a.ts < b.ts ? -1 : 1; });
     if (rows.length < 2) { el.innerHTML = ''; return; }
+
+    gapRowsAll = rows.map(function(r){
+      return { t: new Date(r.ts).getTime(), iso: r.ts, stable: +r.cost_bps_taker / 100, app: +r.baseline_cost_bps / 100 };
+    });
+    gapCOPY = COPY; gapRung = rung;
 
     // Longest currently-unbroken streak, counted back from the newest hour --
     // if the stablecoin has ever lost this comparison, the streak starts
@@ -608,34 +651,55 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       ? T(COPY.gapBrokenHeadlineTemplate || '', { startDate: startDate, breaks: breaks, breaksS: breaks === 1 ? '' : 's' })
       : T(COPY.gapHeadlineTemplate || 'The stablecoin has cost more than the cheapest app in every hour since {startDate}', { startDate: startDate });
 
-    // Daily median per series -- about 50 points, not the ~1,000+ raw
-    // hourly rows, so the chart reads as a trend, not noise.
-    var byDay = {};
-    rows.forEach(function(r){
-      var day = r.ts.slice(0, 10);
-      var b = byDay[day] || (byDay[day] = { stable: [], app: [] });
-      b.stable.push(+r.cost_bps_taker / 100);
-      b.app.push(+r.baseline_cost_bps / 100);
-    });
-    var days = Object.keys(byDay).sort();
-    var stableSeries = days.map(function(d){ return median(byDay[d].stable); });
-    var appSeries = days.map(function(d){ return median(byDay[d].app); });
-
     var caption = T(COPY.gapSublineTemplate || 'Sending {amount} from {src} to {dest}. Each line is the day’s middle cost.',
       { amount: moneyFmt(rung, 'S$'), src: SRC_NAME.SGD, dest: DEST_NAME.PHP });
 
     el.innerHTML = '<h2>' + esc(headline) + '</h2>' +
       '<p class="answer">' + esc(caption) + '</p>' +
-      '<div id="gapChart"></div>';
+      '<div class="rng" id="gapRng"></div>' +
+      '<div id="gapChart" style="position:relative"></div>';
 
+    renderGapRangeButtons();
+    drawGapChart();
+    // Registered once, not per-toggle-click: onResizeRedraws is a shared,
+    // page-wide list, and re-pushing on every range-toggle click would
+    // stack duplicate stale-closure listeners (SEB, mobile rules).
+    if (!gapResizeRegistered) { onResizeRedraws.push(drawGapChart); gapResizeRegistered = true; }
+  }
+  var gapResizeRegistered = false;
+
+  function renderGapRangeButtons(){
+    var bar = document.getElementById('gapRng');
+    if (!bar) return;
+    bar.innerHTML = '';
+    var LABELS = { '24h': '24h', '7d': '7d', 'all': 'All' };
+    ['24h', '7d', 'all'].forEach(function(r){
+      var b = document.createElement('button');
+      b.textContent = LABELS[r];
+      b.className = r === gapRange ? 'on' : '';
+      b.onclick = function(){ gapRange = r; renderGapRangeButtons(); drawGapChart(); };
+      bar.appendChild(b);
+    });
+  }
+
+  function drawGapChart(){
     var box = document.getElementById('gapChart');
+    if (!box) return;
+    var pts = gapPointsForRange(gapRange);
+    if (pts.length < 2) { box.innerHTML = '<div style="font-size:13px;color:#9A9A9A;padding:20px 0">Not enough points in this window yet.</div>'; return; }
+    // "This hour" is always the true live figure, whichever range is on
+    // screen -- the brokerage-style reference line a reader checks the
+    // current hour against, not something that changes with the toggle.
+    var nowVal = gapRowsAll[gapRowsAll.length - 1].stable;
+
     function draw(){
-      var n = days.length;
+      var n = pts.length;
       var W = Math.max(280, box.clientWidth);
       var narrow = W < 480;
-      var H = narrow ? 220 : 240;
+      var H = narrow ? 240 : 260;
       var L = 44, R = narrow ? 88 : 150, TT = 16, B = 26;
-      var hi = Math.max.apply(null, stableSeries.concat(appSeries)) * 1.15 || 1;
+      var stableVals = pts.map(function(p){ return p.stable; }), appVals = pts.map(function(p){ return p.app; });
+      var hi = Math.max.apply(null, stableVals.concat(appVals, [nowVal])) * 1.15 || 1;
       var X = function(i){ return n > 1 ? L + i * (W - L - R) / (n - 1) : L; };
       var Y = function(v){ return TT + (hi - v) / hi * (H - TT - B); };
 
@@ -645,16 +709,18 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
           '<text x="' + (L - 8) + '" y="' + (Y(v) + 4).toFixed(1) + '" font-size="11" fill="#9A9A9A" text-anchor="end">' + v.toFixed(2) + '%</text>';
       }).join('');
 
-      function linePts(series){ return series.map(function(v, i){ return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' '); }
-      function lineHtml(series, color){
-        return '<polyline points="' + linePts(series) + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round"/>';
+      function linePts(vals){ return vals.map(function(v, i){ return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' '); }
+      function lineHtml(vals, color){
+        return '<polyline points="' + linePts(vals) + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round"/>';
       }
       // The two end labels can land close together when the lines converge --
       // nudge them apart vertically instead of letting them overlap.
-      var closeLabels = Math.abs(Y(stableSeries[n-1]) - Y(appSeries[n-1])) < (narrow ? 24 : 16);
-      function endLabel(series, name, color, pushUp){
-        var ex = X(n - 1), ey = Y(series[n - 1]) + (closeLabels ? (pushUp ? -7 : 7) : 0);
-        var value = series[n - 1].toFixed(2) + '%';
+      var closeLabels = Math.abs(Y(stableVals[n-1]) - Y(appVals[n-1])) < (narrow ? 24 : 16);
+      var appEndY = Y(appVals[n-1]) + (closeLabels ? -7 : 0);
+      var stableEndY = Y(stableVals[n-1]) + (closeLabels ? 7 : 0);
+      function endLabel(vals, name, color, ey){
+        var ex = X(n - 1);
+        var value = vals[n - 1].toFixed(2) + '%';
         var lines = narrow ? [name, value] : [name + ' ' + value];
         var textHtml = lines.map(function(ln, li){
           return '<text x="' + (ex + 7).toFixed(1) + '" y="' + (ey + 4 + li * 13).toFixed(1) + '" font-size="' + (narrow ? 11 : 13) + '" font-weight="600" fill="' + color + '">' + esc(ln) + '</text>';
@@ -662,24 +728,96 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         return '<circle cx="' + ex.toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="3" fill="' + color + '"/>' + textHtml;
       }
 
-      var xTicks = [0, Math.round((n-1)/2), n-1];
-      var xLabels = xTicks.map(function(i, k){
-        var anchor = k === 0 ? 'start' : (k === xTicks.length - 1 ? 'end' : 'middle');
-        return '<text x="' + X(i).toFixed(1) + '" y="' + (H - 6) + '" font-size="11" fill="#9A9A9A" text-anchor="' + anchor + '">' + esc(shortDate(days[i])) + '</text>';
+      // Dotted "this hour" reference line, full width, brokerage-chart style --
+      // shows at a glance whether the range on screen is dear or normal
+      // against the live number, independent of which range is toggled. The
+      // tag sits INSIDE the plot's right edge (text-anchor end at x=W-R), on
+      // the opposite side of the axis boundary from the two end-of-line
+      // labels (which start at x=W-R+7) -- and is nudged away from whichever
+      // end label it would otherwise sit on top of.
+      var nowY = Y(nowVal);
+      var nowTagY = nowY;
+      var minGap = narrow ? 12 : 14;
+      [stableEndY, appEndY].forEach(function(otherY){
+        if (Math.abs(nowTagY - otherY) < minGap) nowTagY = otherY + (nowTagY < otherY ? -minGap : minGap);
+      });
+      var nowTag = nowVal.toFixed(2) + '%';
+      var nowLine = (nowY >= TT && nowY <= H - B)
+        ? '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + nowY.toFixed(1) + '" y2="' + nowY.toFixed(1) + '" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="4,3"/>' +
+          '<rect x="' + (W - R - 62) + '" y="' + (nowTagY - 13) + '" width="62" height="16" fill="#fff"/>' +
+          '<text x="' + (W - R) + '" y="' + (nowTagY - 1).toFixed(1) + '" font-size="11" fill="#6B6B6B" text-anchor="end">now ' + esc(nowTag) + '</text>'
+        : '';
+
+      // Weekly labels on All, daily on 7d, every few hours on 24h -- a fixed
+      // target count per range, picked as evenly spaced indices so the axis
+      // never crowds regardless of how many points that range holds. The
+      // last tick always lands exactly on n-1 (today/this hour); if the
+      // regular step would have placed one within half a step of it, that
+      // near-duplicate is replaced rather than both being drawn crowded
+      // together.
+      var targetLabels = narrow ? 4 : (gapRange === 'all' ? 7 : (gapRange === '7d' ? 7 : 6));
+      var step = Math.max(1, Math.round((n - 1) / (targetLabels - 1)) || 1);
+      var xTickIdx = [];
+      for (var i = 0; i < n; i += step) xTickIdx.push(i);
+      if (xTickIdx[xTickIdx.length - 1] !== n - 1) {
+        if (n - 1 - xTickIdx[xTickIdx.length - 1] < step / 2) xTickIdx[xTickIdx.length - 1] = n - 1;
+        else xTickIdx.push(n - 1);
+      }
+      function xLabelText(p){ return gapRange === '24h' ? shortHour(p.t) : shortDate(p.iso); }
+      var xLabels = xTickIdx.map(function(i, k){
+        var anchor = k === 0 ? 'start' : (k === xTickIdx.length - 1 ? 'end' : 'middle');
+        return '<text x="' + X(i).toFixed(1) + '" y="' + (H - 6) + '" font-size="11" fill="#9A9A9A" text-anchor="' + anchor + '">' + esc(xLabelText(pts[i])) + '</text>';
       }).join('');
 
-      box.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Stablecoin vs cheapest app cost, day by day" style="display:block">' +
-        grid +
-        lineHtml(appSeries, '#0B0B0B') +
-        lineHtml(stableSeries, '#817FCC') +
-        endLabel(appSeries, COPY.gapLabelApp || 'Cheapest app', '#0B0B0B', true) +
-        endLabel(stableSeries, COPY.gapLabelStable || 'Stablecoin', '#817FCC', false) +
+      var uid = 'gap' + Math.random().toString(36).slice(2, 9);
+      var svgId = 'svg-' + uid, tipId = 'tip-' + uid, vlineId = 'vl-' + uid, d1 = 'd1-' + uid, d2 = 'd2-' + uid;
+
+      box.innerHTML = '<svg id="' + svgId + '" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Stablecoin vs cheapest app cost over time" style="display:block;cursor:crosshair">' +
+        grid + nowLine +
+        lineHtml(appVals, '#0B0B0B') +
+        lineHtml(stableVals, '#817FCC') +
+        endLabel(appVals, gapCOPY.gapLabelApp || 'Cheapest app', '#0B0B0B', appEndY) +
+        endLabel(stableVals, gapCOPY.gapLabelStable || 'Stablecoin', '#817FCC', stableEndY) +
         '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="#D3D0CB"/>' +
         xLabels +
-        '</svg>';
+        '<line id="' + vlineId + '" x1="0" y1="' + TT + '" x2="0" y2="' + (H - B) + '" stroke="#0B0B0B" stroke-width="1" opacity="0"/>' +
+        '<circle id="' + d1 + '" r="3.5" fill="#817FCC" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
+        '<circle id="' + d2 + '" r="3.5" fill="#0B0B0B" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
+        '</svg>' +
+        '<div id="' + tipId + '" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;transform:translate(-50%,-130%)"></div>';
+
+      // Hover/tap tooltip, same mechanism as js/chart.js -- a tap does the
+      // same thing a mouse hover does, nothing on this site is hover-only.
+      var svg = document.getElementById(svgId), tip = document.getElementById(tipId);
+      var vline = document.getElementById(vlineId), dotS = document.getElementById(d1), dotA = document.getElementById(d2);
+      function nearestIdx(px){
+        var best = 0, bestD = Infinity;
+        for (var j = 0; j < n; j++) { var dd = Math.abs(X(j) - px); if (dd < bestD) { bestD = dd; best = j; } }
+        return best;
+      }
+      function showAt(clientX){
+        var rect = svg.getBoundingClientRect();
+        var scale = W / rect.width;
+        var px = (clientX - rect.left) * scale;
+        var idx = nearestIdx(px);
+        var p = pts[idx];
+        var x = X(idx);
+        vline.setAttribute('x1', x.toFixed(1)); vline.setAttribute('x2', x.toFixed(1)); vline.setAttribute('opacity', 0.25);
+        dotS.setAttribute('cx', x.toFixed(1)); dotS.setAttribute('cy', Y(p.stable).toFixed(1)); dotS.setAttribute('opacity', 1);
+        dotA.setAttribute('cx', x.toFixed(1)); dotA.setAttribute('cy', Y(p.app).toFixed(1)); dotA.setAttribute('opacity', 1);
+        tip.style.left = ((x / W) * 100) + '%';
+        tip.style.top = ((Math.min(Y(p.stable), Y(p.app)) / H) * 100) + '%';
+        tip.style.opacity = 1;
+        tip.textContent = xLabelText(p) + ' · stablecoin ' + p.stable.toFixed(2) + '% · app ' + p.app.toFixed(2) + '%';
+      }
+      function hide(){ vline.setAttribute('opacity', 0); dotS.setAttribute('opacity', 0); dotA.setAttribute('opacity', 0); tip.style.opacity = 0; }
+      svg.addEventListener('mousemove', function(ev){ showAt(ev.clientX); });
+      svg.addEventListener('mouseleave', hide);
+      svg.addEventListener('touchstart', function(ev){ if (ev.touches && ev.touches.length) showAt(ev.touches[0].clientX); }, { passive: true });
+      svg.addEventListener('touchmove', function(ev){ if (ev.touches && ev.touches.length) showAt(ev.touches[0].clientX); }, { passive: true });
+      document.addEventListener('touchstart', function(ev){ if (!svg.contains(ev.target)) hide(); }, { passive: true });
     }
     draw();
-    onResizeRedraws.push(draw);
   }
 
   Promise.all([
