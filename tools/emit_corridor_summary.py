@@ -156,6 +156,12 @@ def waterfall(rows, corridor, route_words=None, ramp_by_key=None):
                 withdrawal_measured = rw["withdrawal_measured"] == "True"
     if not terms["cost_bps_taker"]:
         return None
+    # Venue names are constant per corridor in practice (one exchange pairs
+    # with one currency), so the most recent row's venue is as good as any
+    # -- this is only for citing where a real S$0.00 leg is free, not a
+    # figure anything is computed from.
+    onramp_venue = cr[-1].get("onramp_venue") if cr else None
+    offramp_venue = cr[-1].get("offramp_venue") if cr else None
     return {
         "corridor": corridor,
         "route_words": route_words or corridor,
@@ -172,6 +178,8 @@ def waterfall(rows, corridor, route_words=None, ramp_by_key=None):
         "baseline_cost_bps": median(terms["baseline_cost_bps"]),
         "deposit_measured": deposit_measured,
         "withdrawal_measured": withdrawal_measured,
+        "onramp_venue": onramp_venue,
+        "offramp_venue": offramp_venue,
     }
 
 
