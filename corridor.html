@@ -731,15 +731,21 @@ function drawReceipt(r,wf,ramp){
   const feeOn=+r.fee_on_taker_bps||0, feeOff=+r.fee_off_taker_bps||0;
   const on=venueName(r.onramp_venue), off=venueName(r.offramp_venue);
   const netStable=+r.network_fee_stable;
-  // depositMeasured/withdrawalMeasured tell "checked, currently free" apart
-  // from "no published fee could be found" -- decompose() charges a gap
-  // 0.0 too (never a guessed number), so the receipt line and the caption
-  // below must read the flag, not just the bps value, to say which.
-  const depositMeasured=!ramp || ramp.deposit_measured!=="False";
-  const withdrawalMeasured=!ramp || ramp.withdrawal_measured!=="False";
+  // depositMeasured/withdrawalMeasured are tri-state: true (checked,
+  // currently free), false (checked, no published free method exists --
+  // decompose() charges a gap 0.0 too, never a guessed number, so the
+  // caption below must read the flag, not just the bps value), or null
+  // (no ramp_waterfall.csv row for this exact sample yet -- possible for a
+  // brief window right after this shipped, before the next hourly capture).
+  // Only null falls back to a neutral "not available for this sample"
+  // wording; it must never be read as "free".
+  const depositMeasured=ramp ? ramp.deposit_measured!=="False" : null;
+  const withdrawalMeasured=ramp ? ramp.withdrawal_measured!=="False" : null;
   const lines=[
     {leg:`0 · Get ${srcCcy} onto ${on}`},
-    {l:depositMeasured?`${on} deposit fee`:`${on} deposit fee (not priced -- see below)`, v:deposit},
+    {l:depositMeasured===false?`${on} deposit fee (not priced -- see below)`
+       :depositMeasured===null?`${on} deposit fee (not available for this sample yet)`
+       :`${on} deposit fee`, v:deposit},
     {leg:`1 · Buy ${stable} with ${srcCcy} on ${on}`},
     {l:`${stable} priced above the dollar`, v:buy-feeOn},
     {l:`${on} fee`, v:feeOn},
@@ -749,7 +755,9 @@ function drawReceipt(r,wf,ramp){
     {l:`${off} fee`, v:feeOff},
     {l:(sell-feeOff)<0?"Selling price slightly better than the real rate":"Selling price below the real rate", v:sell-feeOff},
     {leg:`4 · Get ${dst} into a bank account`},
-    {l:withdrawalMeasured?`${off} withdrawal fee`:`${off} withdrawal fee (not priced -- see below)`, v:withdrawal},
+    {l:withdrawalMeasured===false?`${off} withdrawal fee (not priced -- see below)`
+       :withdrawalMeasured===null?`${off} withdrawal fee (not available for this sample yet)`
+       :`${off} withdrawal fee`, v:withdrawal},
   ];
   const total=+r.cost_bps_taker;
   // Cents: every line rounded on its own, last line is the remainder, so the
@@ -768,14 +776,20 @@ function drawReceipt(r,wf,ramp){
   document.getElementById("receipt").innerHTML=h;
   // The line this chart used to carry as a blanket disclaimer ("this site
   // has not measured that cost") is now specific to what actually happened
-  // this hour: both legs measured and priced in, or -- on NZD->PHP -- one
-  // leg still genuinely unpriced because no free method is published for it.
-  document.getElementById("wfDisclosure").textContent=
-    (depositMeasured && withdrawalMeasured)
-      ? `Getting ${srcCcy} onto ${on} and getting ${dst} into a bank account are both priced above. Both are free right now.`
-      : !depositMeasured
-        ? `Getting ${dst} into a bank account is priced above and free right now. Getting ${srcCcy} onto ${on} is not priced yet: no free way to do it at this size is published.`
-        : `Getting ${srcCcy} onto ${on} is priced above and free right now. Getting ${dst} into a bank account is not priced yet: no free way to do it at this size is published.`;
+  // this hour: both legs measured and priced in, one leg still genuinely
+  // unpriced (NZD->PHP, no free method published), or -- only in the brief
+  // window right after this shipped -- not captured for this exact sample
+  // yet, which reads as "not available", never as a false "it's free".
+  const wfd=document.getElementById("wfDisclosure");
+  if(depositMeasured===null || withdrawalMeasured===null){
+    wfd.textContent=`Bank fees to get ${srcCcy} onto ${on} and get ${dst} into a bank account are priced from this hour's capture onward. This particular sample predates that.`;
+  } else if(depositMeasured && withdrawalMeasured){
+    wfd.textContent=`Getting ${srcCcy} onto ${on} and getting ${dst} into a bank account are both priced above. Both are free right now.`;
+  } else if(!depositMeasured){
+    wfd.textContent=`Getting ${dst} into a bank account is priced above and free right now. Getting ${srcCcy} onto ${on} is not priced yet: no free way to do it at this size is published.`;
+  } else {
+    wfd.textContent=`Getting ${srcCcy} onto ${on} is priced above and free right now. Getting ${dst} into a bank account is not priced yet: no free way to do it at this size is published.`;
+  }
 }
 
 function drawLadder(){
