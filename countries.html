@@ -61,6 +61,7 @@
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chip{font-size:14px;padding:9px 12px;min-height:40px;display:inline-flex;align-items:center;border:1px solid var(--dust);border-radius:999px;color:var(--sub);font-variant-numeric:tabular-nums}
   .chip b{color:var(--ink);font-weight:500;margin-right:4px}
+  .near-text{display:none;color:var(--sub);font-size:14px;line-height:1.6;margin:0}
 
   .why{list-style:none;margin:0;padding:0}
   .wrow{padding:12px 0;border-top:1px solid var(--rule);font-size:14px;min-height:40px;display:flex;align-items:center}
@@ -75,6 +76,12 @@
   @media(max-width:620px){
     .trow{grid-template-columns:1fr 88px 64px;gap:8px}
     .thn, .trow.head span:nth-child(2){display:none}
+    /* A ~25-country pill list wraps into a wall of rounded boxes on a
+       phone (SEB-reported). One grey sentence reads faster and takes a
+       fraction of the vertical space -- desktop keeps the pills, which
+       fit fine at that width. */
+    .chips{display:none}
+    .near-text{display:block}
   }
   @media(max-width:760px){
     header{padding:16px 0}
@@ -92,7 +99,15 @@ header.mwh nav::-webkit-scrollbar{display:none}
 header.mwh nav a{font-family:'Archivo',system-ui,sans-serif!important;font-size:15px!important;font-weight:500!important;color:#6B6B6B!important;text-decoration:none!important;padding:10px 0!important;margin:0!important;white-space:nowrap!important;border:0!important;background:none!important}
 header.mwh nav a.active{color:#0B0B0B!important;font-weight:600!important}
 header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
-@media (max-width:620px){header.mwh{height:56px!important;margin-bottom:24px!important}header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}header.mwh nav{gap:16px!important;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}header.mwh nav a{padding:12px 0!important}}
+header.mwh .nav-toggle{display:none!important;background:none!important;border:0!important;font-size:20px!important;cursor:pointer!important;padding:6px 8px!important;color:#0B0B0B!important;line-height:1!important;font-family:inherit!important}
+@media (max-width:620px){
+  header.mwh{height:56px!important;margin-bottom:24px!important;position:relative!important}
+  header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}
+  header.mwh nav{display:none!important;position:absolute!important;top:100%!important;left:0!important;right:0!important;flex-direction:column!important;gap:0!important;background:#fff!important;padding:6px 24px 16px!important;border-bottom:1px solid #F0F0F0!important;box-shadow:0 8px 16px rgba(11,11,11,0.06)!important;z-index:30!important;overflow:visible!important;mask-image:none!important;-webkit-mask-image:none!important}
+  header.mwh nav.open{display:flex!important}
+  header.mwh nav a{padding:12px 0!important;border-bottom:1px solid #F6F6F6!important;font-size:16px!important}
+  header.mwh .nav-toggle{display:block!important}
+}
 </style>
 <style id="mw-type">
 h1{font-family:'Archivo',system-ui,sans-serif!important;font-size:28px!important;font-weight:800!important;line-height:1.22!important;letter-spacing:-0.02em!important;color:#0B0B0B!important;margin-top:0!important;margin-bottom:10px!important}
@@ -110,7 +125,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         <a href="./countries.html" class="active">Countries</a>
         <a href="./how-it-works.html">How it works</a>
         <a href="./how-it-was-built.html">How it was built</a>
-      </nav><button id="navToggle" style="display:none" aria-hidden="true"></button></header>
+      </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button></header>
 
   <div class="hero">
     <h1 id="pageTitle">What a dollar costs, country by country</h1>
@@ -144,6 +159,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   <section id="secNear">
     <h2 id="nearTitle">Most countries pay close to the official rate</h2>
     <div class="chips" id="nearChips"></div>
+    <p class="near-text" id="nearText"></p>
   </section>
 
   <section id="secWithheld">
@@ -369,6 +385,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     document.getElementById('nearChips').innerHTML = near.map(function(c){
       return '<a class="chip" data-ccy="'+esc(c.ccy)+'" href="./country.html?ccy='+esc(c.ccy)+'"><b>'+esc(listName(c.country))+'</b> '+fmtPct(gapNow(c))+'</a>';
     }).join('');
+    // Same list, plain-text form for the mobile paragraph (.near-text) --
+    // one sentence instead of ~25 pills.
+    document.getElementById('nearText').textContent = near.map(function(c){
+      return listName(c.country) + ' ' + fmtPct(gapNow(c));
+    }).join(', ');
 
     // Withheld, grouped by reason, alphabetical within each group -- same
     // three real reasons tools/emit_countries.py already writes.
@@ -429,11 +450,12 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 (function(){
   var btn = document.getElementById('navToggle');
   var nav = document.querySelector('header nav');
-  // Mobile rule: nav is a single swipeable row, never a dropdown that
-  // wraps to multiple lines -- the toggle button from the old two-line
-  // mobile header is no longer needed, so it hides itself rather than open
-  // a menu that duplicates the always-visible scrollable row.
-  if (btn) btn.style.display = 'none';
+  if (btn && nav) {
+    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
+    document.addEventListener('click', function(e){
+      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
+    });
+  }
 })();
 </script>
 </body>
