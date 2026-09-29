@@ -847,8 +847,8 @@
    "last_seen_utc": "2026-09-29T01:05:41.523536+00:00",
    "hours_since_ok": 7.0,
    "stale_hours": 3,
-   "expected_silent": null,
-   "broken": true
+   "expected_silent": "buy side has gone from a healthy board (11-12 ads through 2026-09-28T18:05) to zero ads at the USD 500 filter size for 7+ straight hours; confirmed live on 2026-09-29 by querying the same endpoint and filter amount the collector uses -- Binance's own `total` field reports 0 buy-side ads at ~NPR 76,856 (USD 500) while the sell side keeps 13, and the buy side still shows 10 ads at a trivial NPR 500/5,000 ticket. Real thin-liquidity absence at the required transaction size, not a collector or parsing fault.",
+   "broken": false
   },
   {
    "file": "p2p_basis.csv",
@@ -1643,16 +1643,6 @@
  ],
  "sources_broken": [
   {
-   "file": "p2p_basis.csv",
-   "name": "NPR",
-   "last_ok_utc": "2026-09-28T18:05:47.499679+00:00",
-   "last_seen_utc": "2026-09-29T01:05:41.523536+00:00",
-   "hours_since_ok": 7.0,
-   "stale_hours": 3,
-   "expected_silent": null,
-   "broken": true
-  },
-  {
    "file": "provider_quotes.csv",
    "name": "WorldRemit",
    "last_ok_utc": "2026-09-27T14:24:18.839781+00:00",
@@ -1712,6 +1702,16 @@
    "hours_since_ok": -0.0,
    "stale_hours": 3,
    "expected_silent": "polled hourly, returns no ads at ~USD 500 on both sides; kept so the absence is on the record",
+   "broken": false
+  },
+  {
+   "file": "p2p_basis.csv",
+   "name": "NPR",
+   "last_ok_utc": "2026-09-28T18:05:47.499679+00:00",
+   "last_seen_utc": "2026-09-29T01:05:41.523536+00:00",
+   "hours_since_ok": 7.0,
+   "stale_hours": 3,
+   "expected_silent": "buy side has gone from a healthy board (11-12 ads through 2026-09-28T18:05) to zero ads at the USD 500 filter size for 7+ straight hours; confirmed live on 2026-09-29 by querying the same endpoint and filter amount the collector uses -- Binance's own `total` field reports 0 buy-side ads at ~NPR 76,856 (USD 500) while the sell side keeps 13, and the buy side still shows 10 ads at a trivial NPR 500/5,000 ticket. Real thin-liquidity absence at the required transaction size, not a collector or parsing fault.",
    "broken": false
   },
   {
@@ -2030,9 +2030,29 @@
   }
  ],
  "loops": {
-  "builder": null,
-  "reviewer": null,
-  "product": null
+  "builder": {
+   "role": "builder",
+   "finished_utc": "2026-09-29T02:02:42+00:00",
+   "ok": true,
+   "reason": "ok",
+   "seconds": 140.0,
+   "sig_idle": false
+  },
+  "reviewer": {
+   "role": "reviewer",
+   "finished_utc": "2026-09-29T01:11:11+00:00",
+   "ok": true,
+   "reason": "ok",
+   "seconds": 51.0,
+   "sig_idle": true
+  },
+  "product": {
+   "role": "product",
+   "finished_utc": "2026-09-29T02:06:27+00:00",
+   "ok": true,
+   "reason": "ok",
+   "seconds": 521.0
+  }
  },
  "thresholds": {
   "delivery_hours": 23,
