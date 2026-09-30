@@ -4,7 +4,8 @@
     "NGN": "polled hourly, returns no ads at ~USD 500 on both sides; kept so the absence is on the record",
     "GHS": "polled hourly, returns no ads at ~USD 500 on both sides; kept so the absence is on the record",
     "ETB": "polled hourly, returns no ads at ~USD 500 on both sides; kept so the absence is on the record",
-    "BWP": "polled hourly, sell-side ads only and none on the buy side, so no buyer's price exists to publish"
+    "BWP": "polled hourly, sell-side ads only and none on the buy side, so no buyer's price exists to publish",
+    "AFN": "buy side has gone to zero ads at the USD 500 filter size for 5+ straight hours, the second such stretch in 24 hours after an earlier ~6-hour bout on 2026-09-29 that self-resolved; confirmed live on 2026-09-30 by querying the same endpoint and filter amount the collector uses -- Binance's own `total` field reports 0 buy-side ads at ~AFN 32,329 (USD 500) while the sell side keeps 5, and the buy side still shows 1 ad at a trivial AFN 500 ticket (0 at AFN 5,000). Real thin-liquidity absence at the required transaction size, not a collector or parsing fault -- it may clear on its own as it did last time, but the shape is now a recurring one rather than a one-off, so it is recorded here rather than re-filed each time it happens."
   },
   "providers_usdmxn.csv": {
     "Xoom": "Wise's public comparisons API stopped listing Xoom as a USD->MXN competitor on 2026-09-05; confirmed live on 2026-09-11 by querying the same endpoint the collector uses -- Xoom is simply absent from the provider list Wise returns, not a parsing or collector fault"
