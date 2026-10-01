@@ -11,12 +11,12 @@
     "everyProviderLink": "Every provider, every amount →",
     "waterfallLegHeaderTemplate": "The stablecoin loses on buying and selling the coin. Sending it costs only {network_pct}.",
     "waterfallTitle": "Sending S$5,000 to the Philippines by stablecoin costs {stable_pct}. The cheapest app costs {best_pct}.",
-    "waterfallCap": "Typical hour since {since}. Market orders, all fees in. Buying USDT with SGD costs the most. Sending it on chain costs {network_pct}.",
+    "waterfallCap": "Typical hour since {since}. Market orders, all fees in. Buying the stablecoin with SGD costs the most. Sending it on chain costs {network_pct}.",
     "waterfallLegend": {
       "depositing": "Get SGD onto the exchange",
-      "buying": "Buy USDT with SGD",
+      "buying": "Buy stablecoin with SGD",
       "moving": "Send it on chain",
-      "selling": "Sell USDT for PHP",
+      "selling": "Sell stablecoin for PHP",
       "withdrawing": "Get PHP into a bank account",
       "total": "Total",
       "notPricedYet": "not priced yet",
@@ -38,13 +38,13 @@
     "footerMachineRoom": "how it was built — {priced} priced, {withheld} without enough data, last check {hour} UTC",
     "footerLine": "Every number on this site comes from a public data file. <a href=\"https://github.com/SebR214/margin\" style=\"font-weight:600;color:#0B0B0B\">Code and raw data on GitHub →</a>",
     "allCountriesTitle": "What a dollar costs vs the official rate, every country we track",
-    "allCountriesAnswerLine": "How much more than the official rate people pay for a dollar. Priced from USDT on Binance P2P and local exchanges.",
+    "allCountriesAnswerLine": "How much more than the official rate people pay for a dollar. Priced from stablecoins on Binance P2P and local exchanges.",
     "countryFindingAtParTemplate": "In {places} a dollar costs the official rate.",
     "countryFindingGapTemplate": "In {country} people pay {pct}% more.",
     "countryFindingNoGapTemplate": "Every country we track trades close to its official rate this hour.",
     "countryWhyBothParTemplate": "A normal app already gets you the real rate in {places}, so a stablecoin has nothing to beat.",
-    "countryWhyGapTemplate": " In {country}, banks sell few dollars, so USDT is how people get them: about {amount} is on offer right now within {pct}% of the best price.",
-    "countryWhyGapNoDepthTemplate": " In {country}, banks sell few dollars, so USDT is how people get them.",
+    "countryWhyGapTemplate": " In {country}, banks sell few dollars, so stablecoins are how people get them: about {amount} is on offer right now within {pct}% of the best price.",
+    "countryWhyGapNoDepthTemplate": " In {country}, banks sell few dollars, so stablecoins are how people get them.",
     "allCountriesNote": "Where the gap is near zero, the official rate is real and a normal app is cheaper. Where the gap is big, the official rate isn't what people pay, and stablecoins are how people get dollars at all.",
     "allCountriesMedianNote": "Median of the last 24 hours.",
     "allCountriesPeggedLegend": "Light grey: pegged currency, the gap is the cost of buying stablecoins.",
@@ -52,7 +52,7 @@
     "seeAllCountriesLine": "See all 60 countries →",
     "allCountriesLabels": {
       "transferPricedTemplate": "where {n} of the transfers we price land here",
-      "noDollarsSold": "Banks won't sell dollars here. USDT is what people pay.",
+      "noDollarsSold": "Banks won't sell dollars here. A stablecoin is what people pay.",
       "frozenRate": "official rate frozen, not comparable",
       "peggedGap": "pegged, gap is the cost of buying stablecoins"
     },
@@ -276,16 +276,26 @@
     },
     "cards": {
       "depth": {
-        "titleTemplate": "How much USDT you could sell into {dst} on {venue} right now"
+        "titleTemplate": "How much of the stablecoin you could sell into {dst} on {venue} right now"
       },
       "waterfall": {
         "titleTemplate": "Where the {amount} cost goes",
         "buyDominantTemplate": "Most of the {total} goes on buying and selling {stable}, not on sending it",
         "moveDominantTemplate": "Most of the {total} goes on sending {stable} on chain, not on buying or selling it",
         "answerTemplate": "Sending it on chain costs {moveCost}. Buying {stable} costs {buyCost}.",
-        "capTemplate": "Buying USDT is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
+        "capTemplate": "Buying the stablecoin is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
         "gainNote": "A bar to the left of that line means that step paid money back on this sample, not that it cost money.",
-        "disclosure": "This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost."
+        "disclosure": "This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.",
+        "buyBarLabelTemplate": "Buy stablecoin with {ccy}",
+        "sellBarLabelTemplate": "Sell stablecoin for {ccy}",
+        "receipt": {
+          "buyLegTemplate": "1 · Buy {stable} with {ccy} on {venue}",
+          "buyAboveDollar": "stablecoin priced above the dollar",
+          "moveLegTemplate": "2 · Send {stable} on chain",
+          "networkFeeLabel": "Network fee",
+          "networkFeeWithAmountTemplate": "Network fee, {amount} in {stable}",
+          "sellLegTemplate": "3 · Sell {stable} for {ccy} on {venue}"
+        }
       },
       "ladder": {
         "titleTemplate": "Small transfers cost the most by stablecoin: {smallPct} at {smallest}",
@@ -404,6 +414,14 @@
     "rawFilesLabel": "Open the raw files",
     "loadingLabel": "Loading the receipt…",
     "loadErrorTemplate": "The receipt at {file} could not be read."
+  },
+  "country": {
+    "leadTemplate": "What people pay for a stablecoin on Binance P2P in {country}, compared with the official rate.",
+    "adsStepTemplate": "We read the {n} cheapest ads selling stablecoin for {ccy} on Binance P2P."
+  },
+  "howItWorks": {
+    "dollarCostTitle": "What a dollar costs: the price of the stablecoin, divided by the official rate",
+    "dollarCostBody": "Every hour we price the stablecoin in each country on the exchange people there actually use: Upbit in Korea, Bitso in Mexico, Bitkub in Thailand, about 40 in all, plus Binance P2P where no local exchange works. We take the middle price of the 10 cheapest sellers and divide it by the official rate. The number you see is the median of the last 24 hours. A country with fewer than 10 sellers gets no price, and we say why. The official rate comes from open.er-api.com, a free daily currency feed, with frankfurter.app as a backup and a country's own central bank when one publishes its own number, like Argentina's for the peso. We price the stablecoin because it is the digital dollar people in these countries actually buy and sell. Other coins barely trade there."
   },
   "machineRoom": {
     "title": "Four AI agents run this site, with one person approving what matters",
