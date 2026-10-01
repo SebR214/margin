@@ -193,6 +193,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         <a href="./countries.html">Countries</a>
         <a href="./how-it-works.html">How it works</a>
         <a href="./how-it-was-built.html">How it was built</a>
+        <a href="./the-machine-room.html">The machine room</a>
       </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button></header>
 
   <div class="hero">
@@ -200,6 +201,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->What sending money costs on 7 corridors, and what a dollar costs in 60 countries. Checked every hour.<!--BAKE:END:heroSub--></div>
     <div class="sub" id="heroWhy"></div>
     <div class="live" id="liveLine"><span class="dot"></span><span id="liveChecked">Checked —</span></div>
+    <div class="live" id="machineRoomLine">&nbsp;</div>
   </div>
 
   <div class="lead-section sec" style="margin-top:0;border-top:none;padding-top:0">
@@ -1107,6 +1109,15 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     // + delta sentence, run-by line) into ONE line -- checked time, who
     // runs it, and the "how it was built" link, nothing else. ----
     document.getElementById('liveChecked').innerHTML = T(COPY.liveMergedTemplate || 'Checked {hour} UTC · run by four AI agents · <a href="./how-it-was-built.html">How it was built →</a>', {hour: hourUtc});
+    // SEB-174/M2: a one-line pointer to the-machine-room.html. The spec's
+    // own UI-SPEC-2026-09-16 wording ("one line above the ask box") predates
+    // the v1-freeze rebuild that moved the ask box off this page entirely
+    // (tools/check_ask.py) -- index.html has no ask box left to sit above,
+    // so this sits in the same status-line spot as the line just above it,
+    // which is the closest surviving thing to what that line described.
+    document.getElementById('machineRoomLine').innerHTML = T(COPY.machineRoomLineTemplate || '', {
+      priced: countries.length, total: countries.length + withheld.length
+    });
     function gapNow(c){ return c.median_24h_pct != null ? c.median_24h_pct : c.index_pct; }
     var managedAll = countries.filter(function(c){
       return c.denominator_class !== 'unmaintained' && c.denominator_class !== 'pegged' && gapNow(c) != null;

@@ -66,6 +66,7 @@
     "chartTitleTemplate": "{country}: what people pay over the official rate, % · since {since}",
     "sourceLineTemplate": "Based on {n} Binance P2P sell ads · <a href=\"./country.html?ccy={ccy}\" style=\"font-weight:600;color:#0B0B0B\">{country} in full →</a>",
     "liveMergedTemplate": "Checked {hour} UTC · run by four AI agents · <a href=\"./how-it-was-built.html\">How it was built →</a>",
+    "machineRoomLineTemplate": "The machine room · {priced} of {total} countries priced this hour · <a href=\"./the-machine-room.html\">watch it run →</a>",
     "duelLabelStable": "Stablecoin",
     "duelLabelApp": "Cheapest app",
     "duelVs": "vs",
@@ -97,6 +98,11 @@
       "key": "how",
       "label": "How it was built",
       "href": "./how-it-was-built.html"
+    },
+    {
+      "key": "machine",
+      "label": "The machine room",
+      "href": "./the-machine-room.html"
     }
   ],
   "chart": {
@@ -544,6 +550,74 @@
       "liveItemFallback": "Every currency this site tracks has a price this hour — when one doesn't, it shows \"not enough data\" and the real reason, instead of a guess.",
       "linkText": "The full story: running agents that can't be trusted →",
       "linkHref": "./agent-incidents.html"
+    }
+  },
+  "theMachineRoom": {
+    "title": "The machine room",
+    "lede": "What this site is checking right now, what the agents running it are doing, and six numbers on whether any of it is actually working.",
+    "connecting": "connecting…",
+    "connected": "connected · live",
+    "offline": "live feed offline",
+    "metaTemplate": "Last price check {time} UTC · next on the hour",
+    "columns": {
+      "collection": {
+        "title": "This hour's collection",
+        "kicker": "CURRENCY · SOURCE · VERDICT",
+        "idleLabel": "collector idle, next pass on the hour",
+        "activeLabel": "collecting now",
+        "empty": "No collection activity yet this hour.",
+        "pricedTemplate": "Priced {kind} · {count} sources",
+        "withheldTemplate": "Not priced: {reason}",
+        "noReason": "no reason given",
+        "sourceKindLabels": {
+          "order_book_median": "from order books",
+          "order_book_single": "from an order book",
+          "broker_median": "from broker quotes",
+          "broker_single": "from a broker quote",
+          "p2p_buy_median": "from person-to-person ads",
+          "p2p_fallback": "from an independent price source"
+        },
+        "unknownSourceKind": "from an unlisted source"
+      },
+      "agents": {
+        "title": "What the agents are doing",
+        "kicker": "LINEAR · COMMITS · HEALTH",
+        "empty": "No agent activity yet.",
+        "capNote": "The most recent events only. The full history is in Linear and the commit log.",
+        "byline": {
+          "builder": "BUILDER",
+          "reviewer": "REVIEWER",
+          "product": "PRODUCT",
+          "agents": "AGENT",
+          "person": "SEBASTIAN",
+          "linear": "LINEAR",
+          "unknown": "—"
+        },
+        "commitTemplate": "committed {message}",
+        "transitionTemplate": "{ident} moved {from} → {to}",
+        "commentTemplate": "{ident}: {text}",
+        "loopStoppedTemplate": "stopped for repair. Last check {when}",
+        "loopPassTemplate": "check {result}{seconds}",
+        "loopOk": "ok",
+        "loopFailed": "failed",
+        "loopRecovered": "running again"
+      },
+      "meters": {
+        "title": "Where things stand",
+        "priced": "PRICED NOW",
+        "withheld": "WITHHELD, WITH REASONS",
+        "commitsToday": "COLLECTOR COMMITS TODAY",
+        "openPrs": "OPEN PULL REQUESTS",
+        "unbrokenHours": "UNBROKEN HOURS OF HISTORY",
+        "people": "PEOPLE WORKING HERE",
+        "peopleValue": "1",
+        "unknown": "—"
+      }
+    },
+    "footer": {
+      "text": "Every number on this site comes from a public data file.",
+      "linkText": "Code and raw data on GitHub →",
+      "linkHref": "https://github.com/SebR214/margin"
     }
   },
   "redirects": {

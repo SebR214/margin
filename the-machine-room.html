@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>margin.wiki — the machine room</title>
+<meta name="description" content="What this site is checking right now, what the agents that run it are doing, and six numbers about whether it's actually working."/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+<style>
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; --withheld:#B3822D; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff;font-size:17px;line-height:1.55}
+  a{color:var(--ink);text-decoration:none;font-weight:500} a:hover{color:var(--indigo)}
+  .num{font-variant-numeric:tabular-nums}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+  /* Also drops style.css's shared black .hero band/white text -- this page
+     never used it, so neutralize what leaks in now that it links style.css. */
+  .hero{padding:20px 0 0;display:flex;flex-direction:column;gap:10px;background:none;color:var(--ink)}
+  .hero h1{color:var(--ink)}
+  h1{font-size:28px;line-height:1.25;letter-spacing:-.01em;margin:0;font-weight:800}
+  .lede{max-width:760px;font-size:16px;color:var(--sub);margin:0}
+  .meta{font-size:14px;color:var(--stamp);display:flex;align-items:center;gap:8px;margin:2px 0 0;letter-spacing:.02em}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo);display:inline-block}
+  .dot.off{background:var(--stamp)}
+
+  .rooms{display:grid;grid-template-columns:1.2fr 1.2fr 1fr;gap:36px;padding:32px 0 64px;align-items:start}
+  .room h2{font-size:18px;font-weight:700;margin:0 0 2px}
+  .room .kicker{font-size:13px;letter-spacing:.08em;color:var(--stamp);font-weight:600;margin:0 0 12px}
+  .room-status{font-size:14px;color:var(--sub);padding:8px 0 10px;border-bottom:1px solid var(--rule);margin-bottom:4px}
+
+  .log{font-size:14.5px;padding:8px 0;border-bottom:1px solid #F6F6F6;display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:baseline}
+  .log .ccy{font-weight:700;letter-spacing:.02em}
+  .log .detail{color:var(--sub)}
+  .log .detail.withheld{color:var(--withheld)}
+  .log .detail b{color:var(--ink);font-weight:600}
+
+  .afeed .log{grid-template-columns:46px 70px 1fr;gap:10px}
+  .afeed .stamp{color:var(--stamp);font-size:13.5px}
+  .afeed .role{color:var(--stamp);font-size:13px;letter-spacing:.06em;font-weight:700}
+  .afeed .txt{color:var(--sub)}
+  .afeed .txt b{color:var(--ink);font-weight:600}
+
+  .empty{padding:14px 0;color:var(--stamp);font-size:14px}
+  .feed-note{font-size:13.5px;color:var(--stamp);padding:12px 0 0}
+
+  .meters{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--rule)}
+  .meters>div{padding:16px 16px 16px 0;border-bottom:1px solid var(--rule)}
+  .meters>div:nth-child(odd){padding-right:16px}
+  .meters>div:nth-child(even){padding-left:16px;border-left:1px solid var(--rule)}
+  .m-lbl{font-size:12.5px;letter-spacing:.08em;color:var(--stamp);font-weight:600}
+  .m-val{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:4px}
+
+  footer.foot{border-top:1px solid var(--rule);margin-top:0;padding:24px 0 40px;font-size:15px;color:var(--sub)}
+  footer.foot a{display:inline-block;padding:6px 0;color:var(--ink);font-weight:500}
+
+  @media(max-width:900px){
+    .rooms{grid-template-columns:1fr;gap:40px}
+  }
+  @media(max-width:620px){
+    .meters{grid-template-columns:1fr 1fr}
+  }
+</style>
+<style id="mwh-style">
+header.mwh{display:flex!important;align-items:center!important;justify-content:flex-start!important;height:64px!important;min-height:0!important;margin:0 0 36px 0!important;padding:0!important;border:0!important;background:transparent!important;position:static!important;flex-wrap:nowrap!important;gap:0!important}
+header.mwh .mwh-logo{font-family:'Archivo',system-ui,sans-serif!important;font-size:19px!important;font-weight:800!important;color:#0B0B0B!important;text-decoration:none!important;margin:0 28px 0 0!important;padding:0!important;letter-spacing:-.01em!important;white-space:nowrap!important;flex:none!important}
+header.mwh nav{display:flex!important;gap:24px!important;align-items:center!important;overflow-x:auto!important;scrollbar-width:none!important;margin:0!important;padding:0!important;flex:1 1 auto!important;min-width:0!important}
+header.mwh nav{position:static!important;inset:auto!important;transform:none!important;width:auto!important;height:auto!important;max-height:none!important;box-shadow:none!important;background:none!important;visibility:visible!important;opacity:1!important;flex-direction:row!important;border:0!important;z-index:auto!important}
+header.mwh nav::-webkit-scrollbar{display:none}
+header.mwh nav a{font-family:'Archivo',system-ui,sans-serif!important;font-size:15px!important;font-weight:500!important;color:#6B6B6B!important;text-decoration:none!important;padding:10px 0!important;margin:0!important;white-space:nowrap!important;border:0!important;background:none!important}
+header.mwh nav a.active{color:#0B0B0B!important;font-weight:600!important}
+header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
+header.mwh .nav-toggle{display:none!important;background:none!important;border:0!important;font-size:20px!important;cursor:pointer!important;padding:6px 8px!important;color:#0B0B0B!important;line-height:1!important;font-family:inherit!important}
+@media (max-width:620px){
+  header.mwh{height:56px!important;margin-bottom:24px!important;position:relative!important}
+  header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}
+  header.mwh nav{display:none!important;position:absolute!important;top:100%!important;left:0!important;right:0!important;flex-direction:column!important;gap:0!important;background:#fff!important;padding:6px 24px 16px!important;border-bottom:1px solid #F0F0F0!important;box-shadow:0 8px 16px rgba(11,11,11,0.06)!important;z-index:30!important;overflow:visible!important;mask-image:none!important;-webkit-mask-image:none!important}
+  header.mwh nav.open{display:flex!important}
+  header.mwh nav a{padding:12px 0!important;border-bottom:1px solid #F6F6F6!important;font-size:16px!important}
+  header.mwh .nav-toggle{display:block!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mwh"><a class="mwh-logo" href="./index.html">margin.wiki</a><nav>
+        <a href="./index.html">Home</a>
+        <a href="./sending-money.html">Sending money</a>
+        <a href="./countries.html">Countries</a>
+        <a href="./how-it-works.html">How it works</a>
+        <a href="./how-it-was-built.html">How it was built</a>
+        <a href="./the-machine-room.html" class="active">The machine room</a>
+      </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button></header>
+
+  <div class="hero">
+    <h1 id="pageTitle">&nbsp;</h1>
+    <p class="lede" id="pageLede">&nbsp;</p>
+    <p class="meta"><span class="dot" id="metaDot"></span><span id="metaLine">&nbsp;</span><span id="connLabel"></span></p>
+  </div>
+
+  <div class="rooms">
+    <div class="room">
+      <h2 id="collTitle">&nbsp;</h2>
+      <div class="kicker" id="collKicker">&nbsp;</div>
+      <div class="room-status" id="collStatus">&nbsp;</div>
+      <div class="log afeed" id="collFeed"><div class="empty" id="collEmpty">&nbsp;</div></div>
+    </div>
+
+    <div class="room">
+      <h2 id="agentsTitle">&nbsp;</h2>
+      <div class="kicker" id="agentsKicker">&nbsp;</div>
+      <div class="afeed" id="agentFeed"><div class="empty" id="agentsEmpty">&nbsp;</div></div>
+      <p class="feed-note" id="agentsCapNote">&nbsp;</p>
+    </div>
+
+    <div class="room">
+      <h2 id="metersTitle">&nbsp;</h2>
+      <div class="meters">
+        <div><div class="m-lbl" id="lPriced">&nbsp;</div><div class="m-val num" id="mPriced">—</div></div>
+        <div><div class="m-lbl" id="lWithheld">&nbsp;</div><div class="m-val num" id="mWithheld">—</div></div>
+        <div><div class="m-lbl" id="lCommits">&nbsp;</div><div class="m-val num" id="mCommits">—</div></div>
+        <div><div class="m-lbl" id="lPrs">&nbsp;</div><div class="m-val num" id="mPrs">—</div></div>
+        <div><div class="m-lbl" id="lHours">&nbsp;</div><div class="m-val num" id="mHours">—</div></div>
+        <div><div class="m-lbl" id="lPeople">&nbsp;</div><div class="m-val num" id="mPeople">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot" id="pageFooter">&nbsp;</footer>
+</div>
+
+<script>
+(function () {
+  var API_BASE = location.hostname.endsWith("margin.wiki")
+    ? "https://api.margin.wiki" : "http://127.0.0.1:8903";
+
+  var COPY = { columns: { collection: {}, agents: {}, meters: {} } };
+  var STATE = {}; // ccy -> last known {ccy, country, source_kind, evidence_count, priced, reason}
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function T(s, vals){
+    var out = String(s||'');
+    for (var k in (vals||{})) out = out.split('{'+k+'}').join(vals[k]==null?'':vals[k]);
+    return out;
+  }
+  function timeOf(iso){ if(!iso) return ''; var d=new Date(iso); if(isNaN(d)) return ''; return d.toISOString().slice(11,19); }
+
+  // One feed, finite. The page scrolls; this does not. The oldest row goes
+  // at the cap -- the commit log and Linear itself are the full history, so
+  // nothing is lost by saying so plainly rather than scrolling forever.
+  var FEED_CAP = 50;
+  function prepend(el, html, cap){
+    var empty = el.querySelector('.empty'); if (empty) empty.remove();
+    var row = document.createElement('div'); row.className='log'; row.innerHTML = html;
+    el.insertBefore(row, el.firstChild);
+    while (el.children.length > (cap||FEED_CAP)) el.removeChild(el.lastChild);
+  }
+
+  function roleLabel(role){
+    var B = (COPY.columns.agents||{}).byline || {};
+    var r = String(role||'').toLowerCase();
+    return B[r] || B.unknown || '—';
+  }
+
+  // Who actually made a commit, read from the git author rather than assumed
+  // -- the same reasoning how-it-was-built.html's bylineFor applies.
+  function bylineFor(email){
+    var B = (COPY.columns.agents||{}).byline || {}, e = String(email||'');
+    if (e.indexOf('margin-agents') !== -1) return B.agents || B.unknown || '';
+    if (e && e.indexOf('@users.noreply.github.com') === -1 && e !== 'actions@github.com') return B.person || B.unknown || '';
+    return B.unknown || '';
+  }
+
+  // A commit counts as "shipped" here the same way tools/emit_changes_merged.py
+  // and how-it-was-built.html define it: a squash-merged PR, subject ending
+  // "(#NNN)". The hourly "sample .../fee check ..." collector commits belong
+  // to the collection column, not this one -- showing both here would drown
+  // the genuine agent actions in the hourly data pull.
+  var PR_SUFFIX_RE = /\(#(\d+)\)\s*$/;
+  function isShipped(c){ return PR_SUFFIX_RE.test((c.commit.message||'').split('\n')[0] || ''); }
+
+  function sourceKindLabel(kind){
+    var L = (COPY.columns.collection||{}).sourceKindLabels || {};
+    return L[kind] || (COPY.columns.collection||{}).unknownSourceKind || '';
+  }
+
+  function collectionRowHtml(p){
+    var C = COPY.columns.collection;
+    var detail;
+    if (p.priced) {
+      detail = '<div class="detail">' + esc(T(C.pricedTemplate, {
+        kind: sourceKindLabel(p.source_kind), count: p.evidence_count
+      })) + '</div>';
+    } else {
+      detail = '<div class="detail withheld">' + esc(T(C.withheldTemplate, {
+        reason: p.reason || C.noReason || ''
+      })) + '</div>';
+    }
+    return '<div class="ccy">' + esc(p.ccy) + '</div>' + detail;
+  }
+
+  function renderStatic(){
+    var C = COPY.columns.collection, A = COPY.columns.agents, M = COPY.columns.meters;
+    document.getElementById('pageTitle').textContent = COPY.title || '';
+    document.getElementById('pageLede').textContent = COPY.lede || '';
+    document.getElementById('connLabel').textContent = COPY.connecting || '';
+
+    document.getElementById('collTitle').textContent = C.title || '';
+    document.getElementById('collKicker').textContent = C.kicker || '';
+    document.getElementById('collStatus').textContent = C.idleLabel || '';
+    document.getElementById('collEmpty').textContent = C.empty || '';
+
+    document.getElementById('agentsTitle').textContent = A.title || '';
+    document.getElementById('agentsKicker').textContent = A.kicker || '';
+    document.getElementById('agentsEmpty').textContent = A.empty || '';
+    document.getElementById('agentsCapNote').textContent = A.capNote || '';
+
+    document.getElementById('metersTitle').textContent = M.title || '';
+    document.getElementById('lPriced').textContent = M.priced || '';
+    document.getElementById('lWithheld').textContent = M.withheld || '';
+    document.getElementById('lCommits').textContent = M.commitsToday || '';
+    document.getElementById('lPrs').textContent = M.openPrs || '';
+    document.getElementById('lHours').textContent = M.unbrokenHours || '';
+    document.getElementById('lPeople').textContent = M.people || '';
+    document.getElementById('mPeople').textContent = M.peopleValue || '';
+
+    var F = COPY.footer || {};
+    document.getElementById('pageFooter').innerHTML = esc(F.text || '') +
+      (F.linkText ? ' <a href="' + esc(F.linkHref || 'https://github.com/SebR214/margin') + '">' + esc(F.linkText) + '</a>' : '');
+  }
+
+  function drawMeters(){
+    var priced = 0, withheld = 0;
+    Object.keys(STATE).forEach(function(k){ STATE[k].priced ? priced++ : withheld++; });
+    document.getElementById('mPriced').textContent = priced;
+    document.getElementById('mWithheld').textContent = withheld;
+  }
+
+  // A live page must never open empty -- seed the collection room and the
+  // priced/withheld meters from the real last completed pass before any
+  // live SSE event arrives. Rendered oldest-looking-first (withheld after
+  // priced) so the first screenful matches what a reader scanning top to
+  // bottom expects: most of the board priced, the exceptions named after.
+  function seedCollection(d){
+    var countries = d.countries || [], withheldList = d.withheld || [];
+    var feed = document.getElementById('collFeed');
+    var rows = countries.map(function(c){
+      return { ccy: c.ccy, country: c.country, source_kind: c.source_class,
+               evidence_count: c.n_sources, priced: true };
+    }).concat(withheldList.map(function(w){
+      return { ccy: w.ccy, country: w.country, source_kind: null,
+               evidence_count: w.n_sources, priced: false, reason: w.reason };
+    }));
+    rows.forEach(function(p){ STATE[p.ccy] = p; });
+    drawMeters();
+
+    if (rows.length) {
+      var empty = feed.querySelector('.empty'); if (empty) empty.remove();
+      feed.innerHTML = rows.map(function(p){
+        return '<div class="log">' + collectionRowHtml(p) + '</div>';
+      }).join('');
+    }
+
+    var when = timeOf(d.as_of_utc || d.computed_at);
+    document.getElementById('metaLine').textContent = when
+      ? T(COPY.metaTemplate, { time: when }) : '';
+  }
+
+  // Seed "what the agents are doing" with real recent shipped commits from
+  // GitHub's public API (no auth needed, public repo) -- live SSE events
+  // (Linear moves, further commits, loop health) prepend above these as
+  // they arrive. Same source how-it-was-built.html already reads.
+  function seedAgents(commits){
+    var A = COPY.columns.agents;
+    var shipped = commits.filter(isShipped);
+    var html = shipped.slice(0, 10).map(function(c){
+      var by = bylineFor((c.commit.author||{}).email);
+      var msg = (c.commit.message.split('\n')[0] || '').replace(/\s*\(#\d+\)\s*$/, '');
+      var prMatch = c.commit.message.match(PR_SUFFIX_RE);
+      var text = esc(T(A.commitTemplate, { message: msg })) + (prMatch ? ' (#' + esc(prMatch[1]) + ')' : '');
+      return '<div class="log"><div class="stamp num">' + esc(timeOf(c.commit.author.date)) + '</div>' +
+        '<div class="role">' + esc(by) + '</div>' +
+        '<div class="txt">' + text + '</div></div>';
+    }).join('');
+    var feed = document.getElementById('agentFeed');
+    if (html) feed.innerHTML = html;
+  }
+
+  function drawFileMeters(m){
+    var M = COPY.columns.meters, unk = M.unknown || '—';
+    document.getElementById('mCommits').textContent = (m && m.collector_commits_today != null) ? m.collector_commits_today : unk;
+    document.getElementById('mPrs').textContent = (m && m.open_pull_requests != null) ? m.open_pull_requests : unk;
+    document.getElementById('mHours').textContent = (m && m.unbroken_hours != null) ? m.unbroken_hours : unk;
+  }
+
+  async function boot(){
+    var copyDoc = await fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return {}; });
+    COPY = copyDoc.theMachineRoom || { columns: { collection:{}, agents:{}, meters:{} } };
+    renderStatic();
+
+    fetch('./data/index_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(seedCollection).catch(function(){});
+    fetch('./data/machine_room_meters.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(drawFileMeters).catch(function(){ drawFileMeters(null); });
+    fetch('https://api.github.com/repos/SebR214/margin/commits?per_page=60', {headers:{'Accept':'application/vnd.github+json'}})
+      .then(function(r){ return r.ok ? r.json() : []; }).then(seedAgents).catch(function(){});
+
+    var es = new EventSource(API_BASE + '/v1/events');
+    // Retrying, quietly, is normal for a live feed and should not read as
+    // broken -- so an error shows nothing at first. Only a failure that
+    // persists past OFFLINE_AFTER_MS is "genuinely failed", same rule
+    // how-it-was-built.html's own connection indicator already uses.
+    var OFFLINE_AFTER_MS = 15000;
+    var offlineTimer = null;
+    es.onopen = function(){
+      if (offlineTimer) { clearTimeout(offlineTimer); offlineTimer = null; }
+      document.getElementById('metaDot').classList.remove('off');
+      document.getElementById('connLabel').textContent = COPY.connected || '';
+    };
+    es.onerror = function(){
+      document.getElementById('metaDot').classList.add('off');
+      if (!offlineTimer) {
+        offlineTimer = setTimeout(function(){
+          document.getElementById('connLabel').textContent = COPY.offline || '';
+          offlineTimer = null;
+        }, OFFLINE_AFTER_MS);
+      }
+    };
+
+    es.onmessage = function(ev){
+      var e; try { e = JSON.parse(ev.data); } catch(err){ return; }
+      var C = COPY.columns.collection, A = COPY.columns.agents;
+
+      if (e.kind === 'collector_pass') {
+        document.getElementById('collStatus').textContent =
+          e.phase === 'start' ? (C.activeLabel || '') : (C.idleLabel || '');
+        return;
+      }
+      if (e.kind === 'collector_source') {
+        var p = { ccy: e.ccy, country: e.country, source_kind: e.source_kind,
+                  evidence_count: e.evidence_count, priced: !!e.priced, reason: e.reason };
+        STATE[e.ccy] = p;
+        drawMeters();
+        prepend(document.getElementById('collFeed'), collectionRowHtml(p));
+        return;
+      }
+      if (e.kind === 'linear') {
+        var what = e.event === 'transition'
+          ? T(A.transitionTemplate, { ident: esc(e.ident), from: esc(e.from_state), to: esc(e.to_state) })
+          : T(A.commentTemplate, { ident: esc(e.ident), text: esc((e.text||'').slice(0,120)) });
+        prepend(document.getElementById('agentFeed'),
+          '<div class="stamp num">'+esc(timeOf(e.ts))+'</div><div class="role">'+esc((A.byline||{}).linear || 'LINEAR')+'</div><div class="txt">'+what+'</div>');
+        return;
+      }
+      if (e.kind === 'commit') {
+        if (!e.pr_number) return; // a collector pass commit -- belongs to the left column, not here
+        var message = T(A.commitTemplate, { message: '<b>'+esc((e.message||'').replace(/\s*\(#\d+\)\s*$/,''))+'</b>' });
+        prepend(document.getElementById('agentFeed'),
+          '<div class="stamp num">'+esc(timeOf(e.ts))+'</div><div class="role">'+esc((A.byline||{}).builder || 'BUILDER')+'</div><div class="txt">'+message+' (#'+esc(e.pr_number)+')</div>');
+        return;
+      }
+      if (e.kind === 'loop_health') {
+        var label = e.event === 'stopped'
+          ? T(A.loopStoppedTemplate, { when: esc(timeOf(e.last_finished_utc)) })
+          : e.event === 'pass'
+            ? T(A.loopPassTemplate, { result: e.ok ? A.loopOk : A.loopFailed, seconds: e.seconds!=null ? ', '+Math.round(e.seconds)+'s' : '' })
+            : A.loopRecovered;
+        prepend(document.getElementById('agentFeed'),
+          '<div class="stamp num">'+esc(timeOf(e.ts))+'</div><div class="role">'+esc(roleLabel(e.role))+'</div><div class="txt">'+esc(label)+'</div>');
+        return;
+      }
+    };
+  }
+
+  boot();
+})();
+</script>
+<script>
+(function(){
+  var btn = document.getElementById('navToggle');
+  var nav = document.querySelector('header nav');
+  if (btn && nav) {
+    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
+    document.addEventListener('click', function(e){
+      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
+    });
+  }
+})();
+</script>
+</body>
+</html>
