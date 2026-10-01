@@ -845,10 +845,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var bar = document.getElementById('gapRng');
     if (!bar) return;
     bar.innerHTML = '';
-    var LABELS = { '24h': '24 hours', '7d': '7 days', '30d': '30 days', 'all': 'All time' };
+    var FALLBACK_LABELS = { '24h': '24 hours', '7d': '7 days', '30d': '30 days', 'all': 'All time' };
+    var LABELS = (gapCOPY && gapCOPY.gapRangeLabels) || FALLBACK_LABELS;
     ['24h', '7d', '30d', 'all'].forEach(function(r){
       var b = document.createElement('button');
-      b.textContent = LABELS[r];
+      b.textContent = LABELS[r] || FALLBACK_LABELS[r];
       b.className = r === gapRange ? 'on' : '';
       b.onclick = function(){ gapRange = r; renderGapRangeButtons(); drawGapChart(true); };
       bar.appendChild(b);
