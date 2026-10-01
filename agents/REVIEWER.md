@@ -73,12 +73,14 @@ and what you concluded. Not a log dump.
 python3 agents/linear.py say SEB-8 reviewer "<verdict>"
 ```
 
-**Pass, and nothing reader-facing changed (OPS-3).** Backend, data, `agents/`,
-`tools/`, ops. **Merge it yourself** on your own verification plus green checks.
-Sebastian is not involved and must not be asked:
+**Pass.** Verify, screenshot anything reader-facing, and **merge it yourself**
+on your own verification plus green checks — true for backend, data,
+`agents/`, `tools/`, ops, and anything a reader sees. Sebastian is not involved
+in routine work and must not be asked (RULES.md, 2026-10-01):
 
 ```bash
-gh pr review P --comment --body "<what you verified, and what it printed>"
+python3 tools/shot.py <changed pages>     # if anything reader-facing changed; writes PNGs under /tmp/shots
+gh pr review P --comment --body "<what you verified, and what it printed/shows>"
 gh pr merge P --squash --delete-branch
 python3 agents/linear.py state SEB-8 "Done"
 ```
@@ -93,19 +95,39 @@ approving review, so the merge above goes through on the comment alone. If
 that ever changes, this path breaks and the fix is a second GitHub App
 installation — provisioning only Sebastian can do.
 
-**Pass, and anything reader-facing changed — DO NOT MERGE.** Sebastian approves
-every change to what a person sees, before it ships:
+**Unless it's big — then run the Opus check before merging (RULES.md).** "Big"
+is defined there: changes what a published number means or how it's computed,
+removes or restructures a page/chart/data detail instead of adding to one, or
+restructures most of the site at once. A second, independent model pass, run
+from inside your own review:
 
 ```bash
-python3 tools/shot.py <changed pages>     # writes PNGs under /tmp/shots
-python3 agents/linear.py say SEB-8 reviewer "<verdict, plus what each page now shows>"
+claude -p "Second-opinion review before this merges. Diff:
+$(git diff main...P)
+
+PR description:
+$(gh pr view P --json body -q .body)
+
+Does this correctly do what it claims, with no factual, safety, or methodology
+problem a reader or the site's owner would object to if they saw it live?
+Answer 'go' or 'no-go' and why, in under 150 words." \
+    --model claude-opus-5-5 --allowedTools Read,Bash --max-turns 20
+```
+
+**Go:** merge as above, and say in the Linear verdict that the Opus check ran
+and what it said.
+
+**No-go, or it raised a real concern** (not a stylistic preference — a
+genuine factual, safety, or methodology problem): do not merge. Say exactly
+what it flagged on the issue, leave the issue **In Review** and the PR
+**open**, and:
+
+```bash
 python3 agents/linear.py label SEB-8 needs-sebastian
 ```
 
-Leave the issue **In Review** and the pull request **open**. Say in your verdict
-what the rendered page actually shows — the headline, the first row, the
-figures — and attach or describe the screenshots, so the decision is a look
-rather than an investigation.
+This is now the only thing that label means for reader-facing work — the
+narrow case, not the default.
 
 **Review from the rendered page, not the diff (Q3, SPEC-AGENT-2026-09-21).**
 Reading a diff tells you what the code says; it does not tell you what a
@@ -118,19 +140,19 @@ answer text in your verdict. A page that merely loads is not the same claim
 as a page that answers correctly; only the second one is what's being
 approved.
 
-**Keep one stack, not a scatter (OPS-3).** Every reader-facing pull request
-waiting on him lives in a single Linear document, `Awaiting your eyes`,
-refreshed every brief: one numbered line each, with the PR link, the pages it
-changes, what they now show, and how long it has waited. He clears the stack in
-one reply, approving or rejecting by number. Do not chase him per pull request
--- the brief is the only channel (RULES.md).
+**Keep one stack, not a scatter (OPS-3).** This now applies only to the narrow
+case above — a big change whose Opus check came back no-go or raised a real
+concern. Every such pull request waiting on him lives in a single Linear
+document, `Awaiting your eyes`, refreshed every brief: one numbered line each,
+with the PR link, what Opus flagged, and how long it has waited. He clears the
+stack in one reply, approving or rejecting by number. Do not chase him per
+pull request -- the brief is the only channel (RULES.md).
 
-Merge only after Sebastian has said yes, in his own words. A label, a reaction,
-or your own reading of his intent is not approval. If he asks for a
-change, that is a rejection: put the issue back in Todo with what he asked for.
-
-This applies to any page, any copy, any chart, any layout — not only `.html`
-diffs. If a reader would notice it, it waits.
+For that narrow case, merge only after Sebastian has said yes, in his own
+words. A label, a reaction, or your own reading of his intent is not approval.
+If he asks for a change, that is a rejection: put the issue back in Todo with
+what he asked for. Everything else — the great majority of reader-facing work
+— merges on the Pass path above, with no stack and no wait.
 
 If the failure is something only Sebastian can clear — a missing credential, a
 scope the token does not have, a decision nobody has made — also label it
