@@ -51,6 +51,8 @@ import os
 import re
 import sys
 
+import emit_receipts
+
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SUMMARY = os.path.join(HERE, "data", "corridor_summary.json")
 SAMPLES = os.path.join(HERE, "data", "samples.csv")
@@ -58,6 +60,18 @@ WINDOW_OUT = os.path.join(HERE, "data", "corridor_window.json")
 INDEX_HTML = os.path.join(HERE, "index.html")
 INDEX_LATEST = os.path.join(HERE, "data", "index_latest.json")
 STREET_DEPTH_LATEST = os.path.join(HERE, "data", "street_depth_latest.json")
+RECEIPTS_DIR = os.path.join(HERE, "data", "receipts")
+
+
+def load_receipt(ccy):
+    """data/receipts/<CCY>.json, or None if emit_receipts.py hasn't run yet
+    this pass -- a missing receipt means no no-JS fallback for that row, not
+    a guessed-at one (SEB-173)."""
+    path = os.path.join(RECEIPTS_DIR, f"{ccy}.json")
+    if not os.path.exists(path):
+        return None
+    with open(path) as f:
+        return json.load(f)
 
 
 def load_json_or_none(path):
@@ -425,21 +439,40 @@ def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth
         r = round(v)
         return f"{abs(r) if r == 0 else r}%"
 
+    # Every gap number here is a receipt's own result_pct (SEB-173): the
+    # <b> that shows it gets the same data-receipt-ccy/value attributes
+    # js/receipt_replay.js listens for, clickable once JS runs. A no-JS
+    # reader gets the identical four steps instead, from the receipt file
+    # already on disk by the time this bakes (emit_receipts.py runs first
+    # in collect.yml) -- never a second, guessed-at description.
+    def receipt_attrs(ccy, display_value):
+        return ' data-receipt-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(display_value) + '" tabindex="0"'
+
+    def receipt_fallback(ccy):
+        receipt = load_receipt(ccy)
+        return emit_receipts.render_noscript(receipt) if receipt else ""
+
     rows = ""
     for c in top:
         w = max(0.005, min(1.0, c.get("gap_pct", 0.0) / mx)) * 85
-        rows += ('<a class="crow" href="./country.html?ccy=' + esc(c.get("ccy", "")) + '">'
+        ccy = c.get("ccy", "")
+        value = pct_words(c.get("gap_pct", 0.0))
+        rows += ('<a class="crow" href="./country.html?ccy=' + esc(ccy) + '">'
                  '<span class="cname">' + esc(name(c)) + '</span>'
                  '<span class="cbar"><i style="width:' + f"{w:.1f}" + '%"></i>'
-                 '<b style="left:' + f"{w:.1f}" + '%">' + pct_words(c.get("gap_pct", 0.0)) + '</b></span></a>')
+                 '<b style="left:' + f"{w:.1f}" + '%"' + receipt_attrs(ccy, value) + '>' + value + '</b></span></a>'
+                 + receipt_fallback(ccy))
     pin_rows = ""
     for c in pins:
-        n = dest_counts.get(c.get("ccy"), 0)
+        ccy = c.get("ccy", "")
+        n = dest_counts.get(ccy, 0)
         land = f"where {n} of our corridors land" if n != 1 else "where 1 of our corridors lands"
-        pin_rows += ('<a class="crow low" href="./country.html?ccy=' + esc(c.get("ccy", "")) + '">'
+        value = pct_words(c.get("gap_pct", 0.0))
+        pin_rows += ('<a class="crow low" href="./country.html?ccy=' + esc(ccy) + '">'
                      '<span class="cname">' + esc(name(c)) + '</span>'
-                     '<span class="cbar"><i style="width:0"></i><b style="left:0">'
-                     + pct_words(c.get("gap_pct", 0.0)) + ' · ' + land + '</b></span></a>')
+                     '<span class="cbar"><i style="width:0"></i><b style="left:0"' + receipt_attrs(ccy, value) + '>'
+                     + value + ' · ' + land + '</b></span></a>'
+                     + receipt_fallback(ccy))
     header = esc(country_finding_header_html(rows_in, home_copy))
     answer = esc(home_copy.get("allCountriesAnswerLine", ""))
     why = esc(country_why_html(rows_in, home_copy, street_depth))
