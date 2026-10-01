@@ -14,10 +14,34 @@ asks providers directly, where they publish a public quote.
     data/provider_quotes_payout_type.csv   (sidecar, added SEB-124)
     ts_utc,corridor,size_src,provider,payout_type
 
+    data/provider_delivery.csv   (sidecar, added SEB-176)
+    ts_utc,corridor,provider,size_src,delivery_stated,source
+
 THE PRECEDENCE RULE. Where a provider publishes its own rate, that is the number
 used. Where it does not, the comparison API stands in. A provider quoting itself
 is the more direct evidence, and every published row says which it is, so no
 reader has to wonder and no source is being called wrong.
+
+HOW FAST THE MONEY ARRIVES (SEB-176). WorldRemit's own calc_text (read below by
+parse_worldremit) already carries a "Transfer time" line -- no new request, just
+a second regex over text already in hand. Before writing any parser change for
+Wise/Instarem/Airwallex, each live endpoint was called from this runner and its
+raw JSON body read by hand, 2026-10-01, per this repo's own established method
+(see ROADMAP's APAC sprint):
+  Wise       YES. Each entry in `paymentOptions` carries its own
+             `formattedEstimatedDelivery` (e.g. "in seconds"), already plain
+             language, no reformatting needed. Read off the same BANK_TRANSFER
+             option parse_wise() already selects (see wise_delivery()).
+  Instarem   NO. The live `computed-value` response (checked against SGD->PHP)
+             has no delivery/ETA field anywhere in its payload -- not
+             `transaction_config`, not the top-level object. Not wired.
+  Airwallex  NO. The live `indicativeQuote` response (checked against SGD->PHP)
+             is five fields -- ccyPair, clientRate, awxRate, buyAmount,
+             sellAmount -- and a createdAt stamp. No delivery field. Not wired.
+A sidecar entry present means a provider's own page stated a delivery time and
+it was read verbatim; absent means either it wasn't checked (Instarem,
+Airwallex) or the check ran and found nothing to read that hour -- never
+invented either way.
 
 Cost is measured the same way as everywhere else in this repo: how far below the
 mid-market rate the recipient ends up, in bps of the amount sent. Fees and rate
@@ -264,12 +288,15 @@ UA = {"User-Agent": "margin.wiki provider-collector/1.0 (+https://margin.wiki)",
 HERE = os.path.dirname(os.path.abspath(__file__))
 QUOTES = os.path.join(HERE, "data", "provider_quotes.csv")
 PAYOUT_TYPES = os.path.join(HERE, "data", "provider_quotes_payout_type.csv")
+DELIVERY = os.path.join(HERE, "data", "provider_delivery.csv")
 FX_URL = "https://open.er-api.com/v6/latest/USD"
 
 FIELDS = ["ts_utc", "corridor", "size_src", "provider", "rate", "fee_src",
           "received_dst", "cost_bps", "source", "source_ok", "error"]
 KEY_FIELDS = ["ts_utc", "corridor", "size_src", "provider"]
 PAYOUT_FIELDS = KEY_FIELDS + ["payout_type"]
+DELIVERY_FIELDS = ["ts_utc", "corridor", "provider", "size_src",
+                    "delivery_stated", "source"]
 
 # Plausibility floor, bps. Found live 2026-09-28: AUD->PHP Airwallex read
 # cost_bps -5.31 every hour (a "provider" that pays the sender, which is
@@ -402,6 +429,18 @@ def parse_wise(d, sent):
     return (rate, 0.0, None)
 
 
+def wise_delivery(d):
+    """Wise's own stated delivery time for the same BANK_TRANSFER option
+    parse_wise() reads above -- its `formattedEstimatedDelivery` field,
+    already plain language (e.g. "in seconds"), read live 2026-10-01 -- or
+    None if that option isn't present/enabled on this quote."""
+    for po in (d.get("paymentOptions") or []):
+        if po.get("payIn") == "BANK_TRANSFER" and not po.get("disabled"):
+            val = (po.get("formattedEstimatedDelivery") or "").strip()
+            return val or None
+    return None
+
+
 _WR_RATE_RE = re.compile(r"=\s*\n*\s*([\d,]+\.?\d*)")
 _WR_FEE_RE = re.compile(r"Fee\s*\n*\s*([\d,]+\.?\d*)")
 
@@ -433,6 +472,18 @@ def parse_worldremit(snapshot, sent):
         return (None, fee, None, "no rate displayed")
     recv = round(rate * sent, 4)
     return (rate, 0.0 if fee is None else fee, recv, None)
+
+
+_WR_SPEED_RE = re.compile(r"Transfer time\s*\n+\s*([^\n]+)")
+
+
+def wr_delivery(calc_text):
+    """WorldRemit's own stated transfer-time line, read off the same
+    already-captured calc_text the rate/fee regexes above read (e.g.
+    "...Transfer time\\nSame day\\nTotal to pay..." -> "Same day") -- or
+    None if this render's widget text carried no such line."""
+    m = _WR_SPEED_RE.search(calc_text or "")
+    return m.group(1).strip() if m else None
 
 
 # ------------------------------------------- second comparison feed (task 1)
@@ -609,7 +660,8 @@ def _row(ts, corridor, size, provider, source):
     return {"ts_utc": ts, "corridor": corridor, "size_src": size,
             "provider": provider, "rate": None, "fee_src": None,
             "received_dst": None, "cost_bps": None, "source": source,
-            "source_ok": False, "error": "", "payout_type": "bank"}
+            "source_ok": False, "error": "", "payout_type": "bank",
+            "delivery_stated": None, "delivery_source": None}
 
 
 def build_rows(ts, corridors, mids, fetch=get_json, render=render_worldremit):
@@ -658,7 +710,13 @@ def build_rows(ts, corridors, mids, fetch=get_json, render=render_worldremit):
                     if mid is None:
                         raise ValueError(f"no mid for {src}->{dst}")
                     payload_arg = () if payload is None else (payload,)
-                    rate, fee, recv = parse(fetch(url, *payload_arg), size)
+                    raw = fetch(url, *payload_arg)
+                    rate, fee, recv = parse(raw, size)
+                    if provider == "Wise":
+                        delivery = wise_delivery(raw)
+                        if delivery:
+                            row["delivery_stated"] = delivery
+                            row["delivery_source"] = "wise_formattedEstimatedDelivery"
                     if not rate or not recv:
                         raise ValueError("no usable quote")
                     cb = cost_bps(recv, size, mid)
@@ -677,9 +735,13 @@ def build_rows(ts, corridors, mids, fetch=get_json, render=render_worldremit):
             if corridor in WORLDREMIT_URLS:
                 row = _row(ts, corridor, size, "WorldRemit", "worldremit.com")
                 try:
+                    snap = wr_snapshots.get(size) or {"error_text": "no render"}
+                    delivery = wr_delivery(snap.get("calc_text"))
+                    if delivery:
+                        row["delivery_stated"] = delivery
+                        row["delivery_source"] = "worldremit_calc_text"
                     if mid is None:
                         raise ValueError(f"no mid for {src}->{dst}")
-                    snap = wr_snapshots.get(size) or {"error_text": "no render"}
                     rate, fee, recv, err = parse_worldremit(snap, size)
                     if err:
                         raise RuntimeError(err)
@@ -724,9 +786,13 @@ def captured_this_hour(path, ts_field, now=None):
 
 
 def append(rows):
-    """Core fields to the frozen QUOTES header; payout_type to its own
-    sidecar, keyed by KEY_FIELDS, so QUOTES never gains a column and no row
-    collected before payout_type existed gets one invented for it."""
+    """Core fields to the frozen QUOTES header; payout_type and
+    delivery_stated to their own sidecars, keyed by KEY_FIELDS, so QUOTES
+    never gains a column and no row collected before either sidecar existed
+    gets one invented for it. Unlike payout_type (always "bank", written
+    for every row), a delivery row is only written when this hour's render
+    actually carried a stated delivery time -- a sidecar entry present
+    means it was measured, absent means it wasn't, never inferred."""
     os.makedirs(os.path.dirname(QUOTES), exist_ok=True)
     new = not os.path.exists(QUOTES)
     with open(QUOTES, "a", newline="") as f:
@@ -741,6 +807,20 @@ def append(rows):
         if new_payout:
             w.writeheader()
         w.writerows(rows)
+
+    delivery_rows = [
+        {"ts_utc": r["ts_utc"], "corridor": r["corridor"],
+         "provider": r["provider"], "size_src": r["size_src"],
+         "delivery_stated": r["delivery_stated"], "source": r["delivery_source"]}
+        for r in rows if r.get("delivery_stated")
+    ]
+    if delivery_rows:
+        new_delivery = not os.path.exists(DELIVERY)
+        with open(DELIVERY, "a", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=DELIVERY_FIELDS, extrasaction="ignore")
+            if new_delivery:
+                w.writeheader()
+            w.writerows(delivery_rows)
     return QUOTES
 
 
@@ -777,7 +857,8 @@ WISE_FIXTURE = {"rate": 48.9321, "paymentOptions": [
     {"payIn": "BALANCE", "disabled": True,
      "fee": {"total": 4.60}, "targetAmount": 48708.10},
     {"payIn": "BANK_TRANSFER", "disabled": False,
-     "fee": {"total": 4.63}, "targetAmount": 48705.54},
+     "fee": {"total": 4.63}, "targetAmount": 48705.54,
+     "formattedEstimatedDelivery": "in seconds"},
     {"payIn": "DEBIT", "disabled": False,
      "fee": {"total": 45.90}, "targetAmount": 46479.13},
 ]}
@@ -948,6 +1029,17 @@ def selftest():
           "WorldRemit's own limit message comes back as a labelled error, "
           "never a silently missing quote")
 
+    assert wr_delivery(WR_CALC_TEXT_OK) == "Same day"
+    assert wr_delivery("") is None
+    assert wr_delivery("You send\n\nUSD\n\nFirst Transfer Rate\n\n1 USD =\n\n17 MXN") is None
+    assert wise_delivery(WISE_FIXTURE) == "in seconds"
+    assert wise_delivery({}) is None
+    assert wise_delivery({"paymentOptions": [{"payIn": "BANK_TRANSFER", "disabled": True,
+                                               "formattedEstimatedDelivery": "in seconds"}]}) is None
+    print("  [ok] wr_delivery/wise_delivery read a provider's own stated "
+          "delivery time verbatim off text/fields already fetched; absent "
+          "or a disabled option -> None, never invented")
+
     mid = MIDS["PHP"] / MIDS["SGD"]
     assert abs(cost_bps(49414.4, 1000, mid) - 8.25) < 3.0
     assert cost_bps(None, 1000, mid) is None and cost_bps(1.0, 0, mid) is None
@@ -1034,8 +1126,17 @@ def selftest():
           "provider, never blocks Airwallex or Wise on the same corridor")
 
     assert all(r["payout_type"] == "bank" for r in rows)
-    assert set(FIELDS) == set(rows[0]) - {"payout_type"}
-    print("  [ok] core schema covers every field but payout_type\n")
+    assert set(FIELDS) == set(rows[0]) - {"payout_type", "delivery_stated", "delivery_source"}
+    print("  [ok] core schema covers every field but payout_type/delivery\n")
+
+    wr_wise = [r for r in rows if r["provider"] == "Wise"]
+    assert all(r["delivery_stated"] == "in seconds" for r in wr_wise)
+    wr_worldremit = [r for r in rows if r["provider"] == "WorldRemit"]
+    assert wr_worldremit and all(r["delivery_stated"] == "Same day" for r in wr_worldremit)
+    assert all(r["delivery_stated"] is None
+               for r in rows if r["provider"] in ("Airwallex", "Instarem"))
+    print("  [ok] build_rows carries Wise's and WorldRemit's own stated "
+          "delivery time; Airwallex/Instarem (no field, probed live) carry none\n")
 
     # A provider whose own quote beats `mid` by more than the plausibility
     # floor (real live 2026-09-28 case: Airwallex reading a small negative
@@ -1058,24 +1159,45 @@ def selftest():
           "never silently clamped to zero")
 
     with tempfile.TemporaryDirectory() as d:
-        global QUOTES, PAYOUT_TYPES
-        real_quotes, real_payout = QUOTES, PAYOUT_TYPES
+        global QUOTES, PAYOUT_TYPES, DELIVERY
+        real_quotes, real_payout, real_delivery = QUOTES, PAYOUT_TYPES, DELIVERY
         QUOTES = os.path.join(d, "provider_quotes.csv")
         PAYOUT_TYPES = os.path.join(d, "provider_quotes_payout_type.csv")
+        DELIVERY = os.path.join(d, "provider_delivery.csv")
         try:
-            append(rows[:2])
+            two = [r for r in rows if r["provider"] in ("Airwallex", "Wise")][:2]
+            append(two)
             with open(QUOTES, newline="") as f:
                 q = list(csv.DictReader(f))
             with open(PAYOUT_TYPES, newline="") as f:
                 p = list(csv.DictReader(f))
             assert list(q[0]) == FIELDS, "QUOTES header never widens past FIELDS"
             assert "payout_type" not in q[0]
+            assert "delivery_stated" not in q[0]
             assert list(p[0]) == PAYOUT_FIELDS
             assert p[0]["payout_type"] == "bank"
+            with open(DELIVERY, newline="") as f:
+                dl = list(csv.DictReader(f))
+            assert list(dl[0]) == DELIVERY_FIELDS
+            assert len(dl) == 1, "only Wise's row (the one with a stated delivery) is sidecared"
+            assert dl[0]["provider"] == "Wise"
+            assert dl[0]["delivery_stated"] == "in seconds"
+            assert dl[0]["source"] == "wise_formattedEstimatedDelivery"
+
+            # append() a batch with no stated delivery at all (e.g. a down
+            # WorldRemit hour) must not create the sidecar file -- a sidecar
+            # entry present means it was measured, so a file that exists but
+            # is empty-of-rows would be indistinguishable from "measured,
+            # found nothing" rather than "nothing in this batch had one".
+            os.remove(DELIVERY)
+            append([r for r in rows if r["provider"] == "Airwallex"][:1])
+            assert not os.path.exists(DELIVERY)
         finally:
-            QUOTES, PAYOUT_TYPES = real_quotes, real_payout
-    print("  [ok] append() splits payout_type into its own sidecar, "
-          "keyed by ts_utc/corridor/size_src/provider\n")
+            QUOTES, PAYOUT_TYPES, DELIVERY = real_quotes, real_payout, real_delivery
+    print("  [ok] append() splits payout_type into its own sidecar (every "
+          "row) and delivery_stated into its own sidecar (only rows that "
+          "actually carried one), both keyed by ts_utc/corridor/size_src/"
+          "provider\n")
 
     # -- second comparison feed (task 1): combine_feed_quotes(). Synthetic
     # fixtures -- no live feed B exists yet (see module docstring), so

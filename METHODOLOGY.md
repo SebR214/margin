@@ -735,6 +735,24 @@ One thing the data shows plainly and the site states without comment: a
 company's own quote and a third-party comparison of it are **not always the same
 number**. Both are recorded. Neither is called wrong.
 
+### How fast the money arrives (`data/provider_delivery.csv`)
+
+Where a provider's own page states a delivery time, that exact phrase is read
+and shown verbatim next to its row on sending-money.html — "Same day", "in
+seconds", "by Friday" — never reworded, never estimated for a provider that
+doesn't state one.
+
+| Company | Own delivery time | Notes |
+|---|---|---|
+| WorldRemit | yes | read off the same rendered calculator widget `parse_worldremit` already reads for rate and fee — no new request |
+| Wise | yes | its own quote API already returns `formattedEstimatedDelivery` per payment option, already plain language |
+| Instarem | **no** | its public quote API's response carries no delivery/ETA field (checked live, 2026-10-01) |
+| Airwallex | **no** | its public indicative-quote response carries no delivery field (checked live, 2026-10-01) |
+
+A row is sidecared only when a provider's own page actually stated a time that
+hour. Absent means it wasn't measured — never shown as "not stated" in its
+place.
+
 ## When a company has changed its price (`data/price_changes.csv`)
 
 A provider's cost is measured against a mid-market rate. Our snapshot of that
