@@ -53,7 +53,10 @@ python3 agents/linear.py respec SEB-39 --body-file spec.md --role product
 - Loud failure. A thing that cannot run says so; it never degrades quietly.
 - Existing CSV headers are frozen. New columns go in a sidecar.
 - Every reader-facing string lives in `copy.json`.
-- **Nothing reader-facing merges without Sebastian's screenshot approval.**
+- Reader-facing changes merge on the reviewer's own verification, same as
+  anything else. Only a genuinely big change gets a second opinion from Opus
+  before merging — not a stop-and-wait for Sebastian (`agents/RULES.md`,
+  2026-10-01).
 - No new running cost without the monthly figure and its arithmetic stated first.
 - Never backfill. Gaps stay gaps.
 

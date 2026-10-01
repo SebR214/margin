@@ -1154,10 +1154,15 @@ never backfill the live layer," no approval clause, no exception. The existing
 rule stands; this file does not grant an approval path around it until
 Sebastian says so in his own words, in this file.
 
-**Not re-added — already structurally enforced:** "no self-merge." The same
-draft listed it as a new invariant; it already holds, by construction — see
-`agents/RULES.md`, "The reviewer that can't approve itself," and "nothing
-reader-facing merges without Sebastian's approval" above.
+**Not re-added — already structurally enforced:** "no self-merge," in the
+sense of no agent being able to rubber-stamp its own work unreviewed. The
+same draft listed it as a new invariant; it already holds, by construction —
+builder, reviewer and product share one GitHub App identity, so GitHub itself
+refuses `gh pr review --approve` on a PR that identity opened (`agent-
+incidents.html`, "The reviewer that can't approve itself"; `agents/RULES.md`).
+**Updated 2026-10-01:** this is about review happening, not about Sebastian
+personally signing off — see `agents/RULES.md`'s current reader-facing-merge
+rule, which he loosened that day.
 
 ## Known-invisible (stated, never estimated)
 
