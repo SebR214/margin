@@ -117,9 +117,12 @@ Fixed format. Three sections, in this order, always:
    - **how long it has been waiting**
 
    "Needs Sebastian" without an exact action is not an item, it is a shrug.
-   Only things clearing the escalation bar in RULES.md belong here: a credential
-   or account only he holds, a payment, or approval of something reader-facing.
-   **When there is nothing, write "nothing".** An empty section is information.
+   Only things clearing the escalation bar in RULES.md belong here: a
+   credential or account only he holds, a payment, or a big change whose Opus
+   check came back no-go or raised a real concern. Routine reader-facing work
+   is off this bar (2026-10-01) — it merges on review alone and shows up in
+   section 2 below, not here. **When there is nothing, write "nothing".** An
+   empty section is information.
 
 **2. SHIPPED.** Merged or published since the last brief. One line each, linked.
 

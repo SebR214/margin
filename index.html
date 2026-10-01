@@ -48,6 +48,15 @@
   .gap-rng{display:flex;gap:8px;justify-content:center;margin:14px 0 0}
   .gap-rng button{font:inherit;font-family:'Archivo',system-ui,sans-serif;font-size:13px;font-weight:500;padding:8px 16px;border-radius:999px;border:0;background:#F6F6F6;color:var(--ink);cursor:pointer;min-height:36px}
   .gap-rng button.on{background:var(--ink);color:#fff;font-weight:700}
+  /* Small screens only (drawn conditionally in JS, keyed off the same
+     `narrow` check the chart itself uses): the end-of-line "Stablecoin" /
+     "Cheapest app" labels bleed past the chart's own right edge at phone
+     width (SEB-reported, measured: text right edge at 352px against a
+     351px container). A legend under the chart replaces them instead of
+     shrinking them further. */
+  .gap-legend{display:flex;gap:18px;justify-content:center;margin-top:10px;font-size:13px;color:var(--sub)}
+  .gap-legend span{display:inline-flex;align-items:center;gap:6px}
+  .gap-legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
   /* The duel comparison: two big numbers, live-computed from the same
      corridor_summary.json the waterfall reads, matching docs/mockups/
      home.html's final revision (2026-09-28). */
@@ -81,7 +90,7 @@
   .split{position:relative;margin-top:22px}
   .stack{display:flex;height:26px;border-radius:3px;overflow:hidden}
   .stack div{height:100%;cursor:pointer}
-  .stack div:last-child{box-shadow:inset 0 0 0 1px var(--dust)}
+  .stack div.light{box-shadow:inset 0 0 0 1px var(--dust)}
   .appline{position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dashed var(--grape)}
   #wfTip{position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:14px;font-family:inherit;padding:6px 9px;border-radius:5px;white-space:nowrap;transform:translate(-50%,-130%);z-index:2}
   .applabel{position:absolute;top:34px;font-size:14px;color:var(--sub);transform:translateX(-50%);white-space:nowrap}
@@ -89,6 +98,7 @@
   .legend-row span{display:inline-flex;align-items:center;gap:6px}
   .legend-row .sw{width:10px;height:10px;border-radius:2px;display:inline-block}
   .legend-row b{color:var(--ink);font-weight:600}
+  .legend-row small{color:var(--stamp);font-weight:400}
   .small-note{font-size:15px;color:#9A9A9A;margin-top:8px;font-weight:400;line-height:1.5}
   .small-note a{font-weight:600;color:#0B0B0B;display:inline-flex;align-items:center;padding:10px 0;min-height:40px;box-sizing:border-box}
   .strip-wrap{margin-top:6px}
@@ -151,7 +161,22 @@ header.mwh nav::-webkit-scrollbar{display:none}
 header.mwh nav a{font-family:'Archivo',system-ui,sans-serif!important;font-size:15px!important;font-weight:500!important;color:#6B6B6B!important;text-decoration:none!important;padding:10px 0!important;margin:0!important;white-space:nowrap!important;border:0!important;background:none!important}
 header.mwh nav a.active{color:#0B0B0B!important;font-weight:600!important}
 header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
-@media (max-width:620px){header.mwh{height:56px!important;margin-bottom:24px!important}header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}header.mwh nav{gap:16px!important;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}header.mwh nav a{padding:12px 0!important}}
+header.mwh .nav-toggle{display:none!important;background:none!important;border:0!important;font-size:20px!important;cursor:pointer!important;padding:6px 8px!important;color:#0B0B0B!important;line-height:1!important;font-family:inherit!important}
+/* Small screens: the link row used to just fade out past the right edge
+   (mask-image scroll hint), which still left later links unreachable
+   without knowing to scroll (SEB-reported: "links run off screen"). A
+   burger toggle replaces it -- desktop is untouched, this block only
+   fires under the same 620px breakpoint the rest of this header already
+   uses. Same collapse/open pattern as ask.html's own nav, which already
+   had this solved. */
+@media (max-width:620px){
+  header.mwh{height:56px!important;margin-bottom:24px!important;position:relative!important}
+  header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}
+  header.mwh nav{display:none!important;position:absolute!important;top:100%!important;left:0!important;right:0!important;flex-direction:column!important;gap:0!important;background:#fff!important;padding:6px 24px 16px!important;border-bottom:1px solid #F0F0F0!important;box-shadow:0 8px 16px rgba(11,11,11,0.06)!important;z-index:30!important;overflow:visible!important;mask-image:none!important;-webkit-mask-image:none!important}
+  header.mwh nav.open{display:flex!important}
+  header.mwh nav a{padding:12px 0!important;border-bottom:1px solid #F6F6F6!important;font-size:16px!important}
+  header.mwh .nav-toggle{display:block!important}
+}
 </style>
 <style id="mw-type">
 h1{font-family:'Archivo',system-ui,sans-serif!important;font-size:28px!important;font-weight:700!important;line-height:1.22!important;letter-spacing:-0.02em!important;color:#0B0B0B!important;margin-top:0!important;margin-bottom:10px!important}
@@ -168,7 +193,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         <a href="./countries.html">Countries</a>
         <a href="./how-it-works.html">How it works</a>
         <a href="./how-it-was-built.html">How it was built</a>
-      </nav></header>
+      </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button></header>
 
   <div class="hero">
     <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Sending money by stablecoin usually costs more than a transfer app<!--BAKE:END:heroHeadline--></h1>
@@ -178,7 +203,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   </div>
 
   <div class="lead-section sec" style="margin-top:0;border-top:none;padding-top:0">
-    <div id="duelSection"><!--BAKE:START:duelSection--><div class="duel"><div><div class="big p">0.88%</div><div class="lab">Stablecoin</div></div><div class="vs">vs</div><div><div class="big">0.45%</div><div class="lab">Cheapest app</div></div></div><p class="cap">Sending S$5,000 from Singapore to the Philippines, all-in cost, typical hour.</p><p class="small-note">Same result from Australia, New Zealand and the US. <a href="./sending-money.html">All corridors and providers →</a></p><!--BAKE:END:duelSection--></div>
+    <div id="duelSection"><!--BAKE:START:duelSection--><div class="duel"><div><div class="big p">0.89%</div><div class="lab">Stablecoin</div></div><div class="vs">vs</div><div><div class="big">0.45%</div><div class="lab">Cheapest app</div></div></div><p class="cap">Sending S$5,000 from Singapore to the Philippines, all-in cost, typical hour.</p><p class="small-note">Same result from Australia, New Zealand and the US. <a href="./sending-money.html">All corridors and providers →</a></p><!--BAKE:END:duelSection--></div>
   </div>
 
   <div id="waterfallSection" class="lead-section sec"></div>
@@ -191,7 +216,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   </div>
 
   <div class="lead-section sec">
-    <div id="allCountriesSection"><!--BAKE:START:allCountriesStrip--><h2>In Algeria people pay 92% more.</h2><p class="answer">How much more than the official rate people pay for a dollar. Priced from stablecoins on Binance P2P and local exchanges.</p><div class="cbars"><a class="crow" href="./country.html?ccy=DZD"><span class="cname">Algeria</span><span class="cbar"><i style="width:85.0%"></i><b style="left:85.0%">92%</b></span></a><a class="crow" href="./country.html?ccy=IQD"><span class="cname">Iraq</span><span class="cbar"><i style="width:20.5%"></i><b style="left:20.5%">22%</b></span></a><a class="crow" href="./country.html?ccy=MZN"><span class="cname">Mozambique</span><span class="cbar"><i style="width:15.9%"></i><b style="left:15.9%">17%</b></span></a><a class="crow" href="./country.html?ccy=TND"><span class="cname">Tunisia</span><span class="cbar"><i style="width:15.6%"></i><b style="left:15.6%">17%</b></span></a><a class="crow" href="./country.html?ccy=VES"><span class="cname">Venezuela</span><span class="cbar"><i style="width:13.8%"></i><b style="left:13.8%">15%</b></span></a><div class="cgap"></div><a class="crow low" href="./country.html?ccy=PHP"><span class="cname">Philippines</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 3 of our corridors land</b></span></a><a class="crow low" href="./country.html?ccy=MXN"><span class="cname">Mexico</span><span class="cbar"><i style="width:0"></i><b style="left:0">1% · where 1 of our corridors lands</b></span></a></div><p class="plainline">A normal app already gets you the real rate in the Philippines and Mexico, so a stablecoin has nothing to beat. In Algeria, banks sell few dollars, so stablecoins are how people get them: about $2,500 is on offer right now within 1% of the best price.</p><p class="small-note"><a href="./countries.html">All countries →</a></p><!--BAKE:END:allCountriesStrip--></div>
+    <div id="allCountriesSection"><!--BAKE:START:allCountriesStrip--><h2>In the Philippines and Mexico a dollar costs the official rate. In Algeria people pay 91% more.</h2><p class="answer">How much more than the official rate people pay for a dollar. Priced from USDT on Binance P2P and local exchanges.</p><div class="cbars"><a class="crow" href="./country.html?ccy=DZD"><span class="cname">Algeria</span><span class="cbar"><i style="width:85.0%"></i><b style="left:85.0%">91%</b></span></a><a class="crow" href="./country.html?ccy=IQD"><span class="cname">Iraq</span><span class="cbar"><i style="width:20.5%"></i><b style="left:20.5%">22%</b></span></a><a class="crow" href="./country.html?ccy=MZN"><span class="cname">Mozambique</span><span class="cbar"><i style="width:16.3%"></i><b style="left:16.3%">17%</b></span></a><a class="crow" href="./country.html?ccy=TND"><span class="cname">Tunisia</span><span class="cbar"><i style="width:14.5%"></i><b style="left:14.5%">16%</b></span></a><a class="crow" href="./country.html?ccy=SYP"><span class="cname">Syria</span><span class="cbar"><i style="width:13.8%"></i><b style="left:13.8%">15%</b></span></a><div class="cgap"></div><a class="crow low" href="./country.html?ccy=PHP"><span class="cname">Philippines</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 3 of our corridors land</b></span></a><a class="crow low" href="./country.html?ccy=MXN"><span class="cname">Mexico</span><span class="cbar"><i style="width:0"></i><b style="left:0">0% · where 1 of our corridors lands</b></span></a></div><p class="plainline">A normal app already gets you the real rate in the Philippines and Mexico, so a stablecoin has nothing to beat. In Algeria, banks sell few dollars, so USDT is how people get them: about $5,000 is on offer right now within 1% of the best price.</p><p class="small-note"><a href="./countries.html">All countries →</a></p><!--BAKE:END:allCountriesStrip--></div>
   </div>
 
   <footer class="foot" id="footerLine">Every number on this site comes from a public data file. <a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></footer>
@@ -200,6 +225,10 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 <script>
 (function(){
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  // Same display-name table as corridor.html's venueName() -- one venue
+  // vocabulary, not two pages disagreeing on how to spell "Coins.ph".
+  var VENUE = {IndependentReserve: 'Independent Reserve', Coins_ph: 'Coins.ph', 'coins.ph': 'Coins.ph', CoinsPH: 'Coins.ph', OKX_P2P: 'OKX P2P', Bitso: 'Bitso', Binance_P2P: 'Binance P2P'};
+  function venueName(v){ return VENUE[v] || String(v || '').replace(/_/g, ' '); }
   function fmtPct(n, digits){ digits = digits==null?1:digits; return (n>=0?'':'') + n.toFixed(digits); }
   // Generic {token} template filler -- every new dynamic sentence on this
   // page (the live line, the two finding headers, the win-cases cards)
@@ -363,6 +392,21 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var withdrawal = wf.withdrawal_fee_bps || 0;
     var total = wf.total_cost_bps;
     var appBps = wf.baseline_cost_bps;
+    // Tri-state, same as corridor.html's own ramp disclosure: true (checked,
+    // free right now), false (checked, no free method published -- a real
+    // gap, never shown as a plain 0.00%), or null (no ramp_waterfall.csv row
+    // for this sample yet). Only `true` gets a real percent figure.
+    var depositMeasured = wf.deposit_measured;
+    var withdrawalMeasured = wf.withdrawal_measured;
+    var onrampVenue = wf.onramp_venue, offrampVenue = wf.offramp_venue;
+    function legValue(measured, bps){ return measured === true ? cashPct(bps) : '—'; }
+    function legDetail(measured, venue, bps){
+      if (measured === false) return ' <small>' + esc(L.notPricedYet || 'not priced yet') + '</small>';
+      if (measured == null) return ' <small>' + esc(L.notAvailableYet || 'not available for this sample yet') + '</small>';
+      if (!venue) return '';
+      var tpl = bps === 0 ? (L.freeViaTemplate || 'free via {venue}') : (L.pricedViaTemplate || 'via {venue}');
+      return ' <small>' + esc(T(tpl, {venue: venueName(venue)})) + '</small>';
+    }
 
     // Sebastian's final mockup (2026-09-28) merges the old h3 + separate
     // route/amount answer line into one section h2, stated as what the
@@ -401,7 +445,12 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
                       L.moving || 'Send it on chain', L.selling || 'Sell stablecoin for PHP',
                       L.withdrawing || 'Get PHP into a bank account'];
     var segValues = [deposit, buy, network, sell, withdrawal];
-    var segColors = ['var(--dust)', 'var(--indigo)', 'var(--dust)', 'var(--eggshell)', 'var(--dust)'];
+    // Five steps, five distinct colors from the site palette (DESIGN.md) --
+    // three of these used to share --dust, which read as one step (SEB:
+    // "same grey for three different steps"). --eggshell is pale enough on
+    // white to need the same inset border the last segment always had, so
+    // that border now follows the color (.light), not just bar position.
+    var segColors = ['var(--dust)', 'var(--indigo)', 'var(--grape)', 'var(--eggshell)', 'var(--stamp)'];
     var segPct = [depositPct, buyPct, networkPct, sellPct, withdrawalPct];
 
     var card = document.getElementById('waterfallSection');
@@ -410,18 +459,18 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       '<div class="split">' +
         '<div class="stack" style="width:' + stackWidth.toFixed(1) + '%">' +
           segPct.map(function(p, i){
-            return '<div data-i="' + i + '" style="width:' + p.toFixed(1) + '%;background:' + segColors[i] + '"></div>';
+            return '<div data-i="' + i + '" class="' + (segColors[i] === 'var(--eggshell)' ? 'light' : '') + '" style="width:' + p.toFixed(1) + '%;background:' + segColors[i] + '"></div>';
           }).join('') +
         '</div>' +
         appLine +
         '<div id="wfTip"></div>' +
       '</div>' +
       '<div class="legend-row">' +
-        '<span><i class="sw" style="background:var(--dust)"></i>' + esc(L.depositing || 'Get SGD onto the exchange') + ' <b>' + cashPct(deposit) + '</b></span>' +
-        '<span><i class="sw" style="background:var(--indigo)"></i>' + esc(L.buying || 'Buy stablecoin with SGD') + ' <b>' + cashPct(buy) + '</b></span>' +
-        '<span><i class="sw" style="background:var(--dust)"></i>' + esc(L.moving || 'Send it on chain') + ' <b>' + cashPct(network) + '</b></span>' +
-        '<span><i class="sw" style="background:var(--eggshell)"></i>' + esc(L.selling || 'Sell stablecoin for PHP') + ' <b>' + cashPct(sell) + '</b></span>' +
-        '<span><i class="sw" style="background:var(--dust)"></i>' + esc(L.withdrawing || 'Get PHP into a bank account') + ' <b>' + cashPct(withdrawal) + '</b></span>' +
+        '<span><i class="sw" style="background:' + segColors[0] + '"></i>' + esc(L.depositing || 'Get SGD onto the exchange') + ' <b>' + legValue(depositMeasured, deposit) + '</b>' + legDetail(depositMeasured, onrampVenue, deposit) + '</span>' +
+        '<span><i class="sw" style="background:' + segColors[1] + '"></i>' + esc(L.buying || 'Buy stablecoin with SGD') + ' <b>' + cashPct(buy) + '</b></span>' +
+        '<span><i class="sw" style="background:' + segColors[2] + '"></i>' + esc(L.moving || 'Send it on chain') + ' <b>' + cashPct(network) + '</b></span>' +
+        '<span><i class="sw" style="background:' + segColors[3] + '"></i>' + esc(L.selling || 'Sell stablecoin for PHP') + ' <b>' + cashPct(sell) + '</b></span>' +
+        '<span><i class="sw" style="background:' + segColors[4] + '"></i>' + esc(L.withdrawing || 'Get PHP into a bank account') + ' <b>' + legValue(withdrawalMeasured, withdrawal) + '</b>' + legDetail(withdrawalMeasured, offrampVenue, withdrawal) + '</span>' +
         '<span>' + esc(L.total || 'Total') + ' <b>' + cashPct(total) + '</b></span>' +
       '</div>';
 
@@ -435,7 +484,10 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       var i = +el.dataset.i;
       function show(ev){
         var box = split.getBoundingClientRect();
-        tip.innerHTML = '<b>' + esc(segLabels[i]) + '</b> ' + cashPct(segValues[i]);
+        var detail = i === 0 ? (legValue(depositMeasured, deposit) + legDetail(depositMeasured, onrampVenue, deposit))
+                   : i === 4 ? (legValue(withdrawalMeasured, withdrawal) + legDetail(withdrawalMeasured, offrampVenue, withdrawal))
+                   : cashPct(segValues[i]);
+        tip.innerHTML = '<b>' + esc(segLabels[i]) + '</b> ' + detail;
         var x = ev.clientX - box.left;
         tip.style.left = x + 'px';
         tip.style.top = (ev.clientY - box.top) + 'px';
@@ -464,17 +516,31 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   // "Mexico and Singapore" pair, in case that ever stops being true.
   function renderWinCases(corridors, COPY, crossover){
     var cases = [];
+    // Every corridor with a competitive limit-order win rate used to get
+    // its own card -- once two India corridors (USD->INR and SGD->INR)
+    // both qualified, that read as four near-identical purple cards with
+    // "limit orders to India" listed twice (SEB-reported). One way, one
+    // card: dedupe by destination country (a corridor to the same place
+    // from two source currencies is still one place a limit order wins),
+    // then merge into a single card that states each dest's own number.
+    var byDest = {};
     corridors.forEach(function(c){
       if (c.win_rate_maker_pct >= 10) {
-        var dest = DEST_NAME[(c.corridor||'').split('->')[1]] || '';
-        cases.push({
-          big: c.win_rate_maker_pct.toFixed(1) + '% of hours',
-          short: 'limit orders to ' + dest,
-          cap: T(COPY.cardLimitOrderTemplate || '{corridorLabel} with a limit order. Set your price and wait for it to fill, instead of paying the price on offer right now.',
-            {corridorLabel: ARROW_ROUTE_WORDS[c.corridor] || c.route_words || c.corridor})
-        });
+        var dest = DEST_NAME[(c.corridor||'').split('->')[1]] || c.corridor;
+        if (!byDest[dest] || c.win_rate_maker_pct > byDest[dest]) byDest[dest] = c.win_rate_maker_pct;
       }
     });
+    var destPcts = Object.keys(byDest).map(function(d){ return {dest: d, pct: byDest[d]}; });
+    destPcts.sort(function(a, b){ return b.pct - a.pct; });
+    if (destPcts.length) {
+      var breakdown = destPcts.map(function(d){ return d.dest + ' ' + d.pct.toFixed(0) + '%'; }).join(', ');
+      cases.push({
+        big: destPcts[0].pct.toFixed(0) + '% of hours',
+        short: 'limit orders',
+        cap: T(COPY.cardLimitOrderTemplate || "Set your price and wait for it to fill, instead of paying what's on offer right now. {breakdown}.",
+          {breakdown: breakdown})
+      });
+    }
     if (crossover && crossover.status === 'ok' && crossover.maker && crossover.maker.monthly_volume_sgd) {
       cases.push({
         big: bigMoneyFmt(crossover.maker.monthly_volume_sgd) + ' a month',
@@ -488,10 +554,17 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       el.innerHTML = '<h2>' + esc(COPY.winCasesNoneTemplate || "Stablecoins don't win in any case we've measured yet") + '</h2>';
       return;
     }
-    var s = cases.length === 1 ? '' : 's';
-    var header = T(COPY.winCasesHeaderTemplate || 'Stablecoins win in {n} case{s}: {list}', {
-      n: cases.length, s: s, list: joinAnd(cases.map(function(c){ return c.short; }))
-    });
+    var header;
+    if (cases.length === 2) {
+      header = T(COPY.winCasesHeaderTemplate2 || 'Stablecoins win in {n} ways: {a}, and {b}', {
+        n: 2, a: cases[0].short, b: cases[1].short
+      });
+    } else {
+      var s = cases.length === 1 ? '' : 's';
+      header = T(COPY.winCasesHeaderTemplate || 'Stablecoins win in {n} way{s}: {list}', {
+        n: cases.length, s: s, list: joinAnd(cases.map(function(c){ return c.short; }))
+      });
+    }
     el.innerHTML = '<h2>' + esc(header) + '</h2>' +
       '<div class="cards">' + cases.map(function(c){
         return '<div class="card"><div class="big">' + esc(c.big) + '</div><p>' + c.cap + '</p></div>';
@@ -694,21 +767,27 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   }
   // Round, human tick values (0, 0.5%, 1.0%, 1.5%...) instead of exact
   // fractions of whatever the data's max happens to be.
-  function gapNiceTicks(max){
-    if (!(max > 0)) return [0, 1];
-    var raw = max / 3;
+  function gapNiceTicks(lo, hi){
+    var span = hi - lo;
+    if (!(span > 0)) return [0, 1];
+    var raw = span / 3;
     var mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
     var norm = raw / mag, step;
     if (norm < 1.5) step = mag; else if (norm < 3.5) step = 2 * mag; else if (norm < 7.5) step = 5 * mag; else step = 10 * mag;
-    // The top tick must be >= max -- rounding max/step down to the nearest
-    // step (then stopping) can leave the last tick below the real max (e.g.
-    // max=1.45, step=0.5 naively stops at 1.0), which is exactly how the
-    // "now" reference line went missing: its value sat above the chart's
-    // own plotted ceiling (SEB, 2026-09-29 bug).
-    var topTick = Math.ceil((max - step * 0.001) / step) * step;
+    // The top tick must be >= hi and the bottom tick must be <= lo --
+    // rounding to the nearest step then stopping can leave the last tick
+    // short of the real edge (e.g. hi=1.45, step=0.5 naively stops at 1.0),
+    // which is exactly how the "now" reference line went missing once
+    // already (SEB, 2026-09-29 bug). lo is usually 0 (most hours the
+    // cheapest app never beats mid-market), but a real negative reading
+    // needs the same treatment on the way down, or that point gets pinned
+    // to the axis line instead of dipping below it (SEB-reported,
+    // 2026-09-29: "-0.09% still dipping below the chart").
+    var topTick = Math.ceil((hi - step * 0.001) / step) * step;
+    var bottomTick = Math.floor((lo + step * 0.001) / step) * step;
     var ticks = [];
-    for (var v = 0; v <= topTick + step * 0.01; v += step) ticks.push(Math.round(v * 1000) / 1000);
-    if (ticks.length < 2) ticks.push(step);
+    for (var v = bottomTick; v <= topTick + step * 0.01; v += step) ticks.push(Math.round(v * 1000) / 1000);
+    if (ticks.length < 2) ticks.push(topTick + step);
     return ticks;
   }
 
@@ -750,7 +829,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
     el.innerHTML = '<h2>' + esc(headline) + '</h2>' +
       '<p class="answer">' + esc(caption) + '</p>' +
-      '<div id="gapChart" style="position:relative"></div>' +
+      '<div id="gapChart" style="position:relative;overflow-x:hidden"></div>' +
       '<div class="gap-rng" id="gapRng"></div>';
 
     renderGapRangeButtons();
@@ -776,26 +855,27 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     });
   }
 
-  var gapCurStable = null, gapCurApp = null, gapCurHi = null, gapAnimRAF = null;
+  var gapCurStable = null, gapCurApp = null, gapCurHi = null, gapCurLo = null, gapAnimRAF = null;
   function gapEase(t){ return 1 - Math.pow(1 - t, 3); } // ease-out cubic
 
   // Renders one frame at the given (possibly mid-transition) values. labelPts
   // and nowVal are never animated -- labelPts only supplies x-axis/tooltip
   // text for the range actually selected, and "this hour" is one true
   // constant regardless of which range is on screen.
-  function gapRenderFrame(stableVals, appVals, hi, labelPts, nowVal){
+  function gapRenderFrame(stableVals, appVals, hi, labelPts, nowVal, lo){
     var box = document.getElementById('gapChart');
     if (!box) return;
+    lo = lo || 0;
     var n = GAP_N;
     var W = Math.max(280, box.clientWidth);
     var narrow = W < 480;
     var H = narrow ? 240 : 260;
     var L = 44, R = narrow ? 78 : 112, TT = 16, B = 26;
     var X = function(i){ return L + i * (W - L - R) / (n - 1); };
-    var Y = function(v){ return TT + (hi - v) / hi * (H - TT - B); };
+    var Y = function(v){ return TT + (hi - v) / (hi - lo) * (H - TT - B); };
     var uid = 'gap' + Math.random().toString(36).slice(2, 9);
 
-    var ticks = gapNiceTicks(hi);
+    var ticks = gapNiceTicks(lo, hi);
     var grid = ticks.map(function(v){
       return '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="#F0F0F0"/>' +
         '<text x="' + (L - 8) + '" y="' + (Y(v) + 4).toFixed(1) + '" font-size="11" fill="#9A9A9A" text-anchor="end">' + (v === 0 ? '0' : v.toFixed(1) + '%') + '</text>';
@@ -808,8 +888,12 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     // Flat fills, no gradient -- stablecoin periwinkle at 16% opacity,
     // cheapest-app a flat light grey. Stablecoin drawn first (almost always
     // the larger area), app's fill on top so the overlap reads as one
-    // blended band (SEB, 2026-09-29 mock).
-    var baseY = (H - B).toFixed(1);
+    // blended band (SEB, 2026-09-29 mock). Fills sit on the zero line, not
+    // the plot's bottom edge -- those only coincide when nothing in the
+    // window ever dipped negative; when the domain extends below zero
+    // (a real reading beats mid-market), the fill for an all-positive
+    // series must stop at Y(0), not bleed on down into that headroom.
+    var baseY = Y(0).toFixed(1);
     function areaPath(vals){
       var top = vals.map(function(v, i){ return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' L');
       return 'M' + X(0).toFixed(1) + ',' + baseY + ' L' + top + ' L' + X(n - 1).toFixed(1) + ',' + baseY + ' Z';
@@ -878,8 +962,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       grid + areas +
       lineHtml(appVals, '#BFBFBF') +
       lineHtml(stableVals, '#817FCC') +
-      endLabel(gapCOPY.gapLabelApp || 'Cheapest app', '#BFBFBF', '#6B6B6B', appEndY) +
-      endLabel(gapCOPY.gapLabelStable || 'Stablecoin', '#817FCC', '#817FCC', stableEndY) +
+      (narrow ? '' :
+        endLabel(gapCOPY.gapLabelApp || 'Cheapest app', '#BFBFBF', '#6B6B6B', appEndY) +
+        endLabel(gapCOPY.gapLabelStable || 'Stablecoin', '#817FCC', '#817FCC', stableEndY)) +
       nowLine +
       '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="#D3D0CB"/>' +
       xLabels +
@@ -887,6 +972,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       '<circle id="' + d1 + '" r="3.5" fill="#817FCC" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
       '<circle id="' + d2 + '" r="3.5" fill="#BFBFBF" stroke="#fff" stroke-width="1.5" opacity="0"/>' +
       '</svg>' +
+      (narrow ?
+        '<div class="gap-legend"><span><i style="background:#817FCC"></i>' + esc(gapCOPY.gapLabelStable || 'Stablecoin') + '</span><span><i style="background:#BFBFBF"></i>' + esc(gapCOPY.gapLabelApp || 'Cheapest app') + '</span></div>'
+        : '') +
       '<div id="' + tipId + '" style="position:absolute;pointer-events:none;opacity:0;transition:opacity .08s;background:#0B0B0B;color:#fff;font-size:12px;font-family:Archivo,sans-serif;padding:6px 9px;border-radius:5px;white-space:nowrap;transform:translate(-50%,-130%)"></div>';
 
     // Hover/tap tooltip, same mechanism as js/chart.js -- a tap does the
@@ -929,7 +1017,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var box = document.getElementById('gapChart');
     if (!box) return;
     var real = gapRealPointsForRange(gapRange);
-    if (real.length < 2) { gapCurStable = gapCurApp = gapCurHi = null; box.innerHTML = '<div style="font-size:13px;color:#9A9A9A;padding:20px 0">Not enough points in this window yet.</div>'; return; }
+    if (real.length < 2) { gapCurStable = gapCurApp = gapCurHi = gapCurLo = null; box.innerHTML = '<div style="font-size:13px;color:#9A9A9A;padding:20px 0">Not enough points in this window yet.</div>'; return; }
     var targetPts = gapResample(real, GAP_N);
     var targetStable = targetPts.map(function(p){ return p.stable; });
     var targetApp = targetPts.map(function(p){ return p.app; });
@@ -938,21 +1026,30 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     // current hour against, not something that changes with the toggle.
     var nowVal = gapRowsAll[gapRowsAll.length - 1].stable;
     var maxVal = Math.max.apply(null, targetStable.concat(targetApp, [nowVal]));
-    var niceTicks = gapNiceTicks(maxVal * 1.1);
-    // Belt and suspenders on top of gapNiceTicks' own ceiling guarantee:
-    // hi must never sit below nowVal, on pain of the "now" line vanishing
-    // off the top of the chart (shipped once already -- SEB, 2026-09-29).
+    // 0 is always a candidate floor -- most hours the cheapest app never
+    // beats mid-market, and the chart should read as 0-based then, exactly
+    // as before. Only a real negative reading (the app genuinely landed
+    // below the real rate) pulls the floor down, and only as far as that
+    // reading actually goes (SEB-reported: a -0.09% point was pinned to the
+    // axis line instead of dipping below it).
+    var minVal = Math.min.apply(null, targetStable.concat(targetApp, [nowVal, 0]));
+    var niceTicks = gapNiceTicks(minVal < 0 ? minVal * 1.1 : 0, maxVal * 1.1);
+    // Belt and suspenders on top of gapNiceTicks' own ceiling/floor
+    // guarantee: hi must never sit below nowVal (the "now" line vanishing
+    // off the top shipped once already), and lo must never sit above the
+    // real minimum (the exact bug this change fixes).
     var targetHi = Math.max(niceTicks[niceTicks.length - 1], nowVal);
+    var targetLo = Math.min(niceTicks[0], minVal, 0);
 
     if (gapAnimRAF) { cancelAnimationFrame(gapAnimRAF); gapAnimRAF = null; }
 
     if (!animate || !gapCurStable || gapCurStable.length !== GAP_N) {
-      gapCurStable = targetStable; gapCurApp = targetApp; gapCurHi = targetHi;
-      gapRenderFrame(gapCurStable, gapCurApp, gapCurHi, targetPts, nowVal);
+      gapCurStable = targetStable; gapCurApp = targetApp; gapCurHi = targetHi; gapCurLo = targetLo;
+      gapRenderFrame(gapCurStable, gapCurApp, gapCurHi, targetPts, nowVal, gapCurLo);
       return;
     }
 
-    var fromStable = gapCurStable, fromApp = gapCurApp, fromHi = gapCurHi;
+    var fromStable = gapCurStable, fromApp = gapCurApp, fromHi = gapCurHi, fromLo = gapCurLo || 0;
     var start = null, dur = 420;
     function frame(ts){
       if (start === null) start = ts;
@@ -961,11 +1058,12 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       var s = fromStable.map(function(v, i){ return v + (targetStable[i] - v) * e; });
       var a = fromApp.map(function(v, i){ return v + (targetApp[i] - v) * e; });
       var h = fromHi + (targetHi - fromHi) * e;
-      gapRenderFrame(s, a, h, targetPts, nowVal);
+      var l = fromLo + (targetLo - fromLo) * e;
+      gapRenderFrame(s, a, h, targetPts, nowVal, l);
       if (p < 1) {
         gapAnimRAF = requestAnimationFrame(frame);
       } else {
-        gapCurStable = targetStable; gapCurApp = targetApp; gapCurHi = targetHi;
+        gapCurStable = targetStable; gapCurApp = targetApp; gapCurHi = targetHi; gapCurLo = targetLo;
         gapAnimRAF = null;
       }
     }
@@ -1087,6 +1185,18 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   }).catch(function(err){
     var itemsEl2 = document.getElementById('items'); if (itemsEl2) itemsEl2.innerHTML = '<div class="item"><p style="color:#0B0B0B">Could not load this hour\'s data. That failure is shown, not hidden.</p></div>';
   });
+})();
+</script>
+<script>
+(function(){
+  var btn = document.getElementById('navToggle');
+  var nav = document.querySelector('header nav');
+  if (btn && nav) {
+    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
+    document.addEventListener('click', function(e){
+      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
+    });
+  }
 })();
 </script>
 </body>

@@ -192,6 +192,23 @@ The product agent keeps exactly three of these open as issues at a time,
 written up using `agents/SPEC-TEMPLATE.md`, **in this order**. Nothing here is
 started before the thing above it ships.
 
+**0. Collection breadth — permanent, this item never closes.** A second,
+independent price source per country where one genuinely exists; order-book
+depth captured at all five ladder sizes, not only the rung already shown;
+provider-stated delivery times alongside provider-stated price. All append-only
+— new columns in a sidecar file next to the CSV that already has history, never
+by widening it. Ahead of 1–6 below: see "collection breadth and reliability
+beat new features" in `## Invariants`. Acceptance: a new field shows up in the
+relevant hourly sample within a week of being specified on an issue.
+
+**0.5. Evidence infrastructure — before any research feature below.** Every
+number the site publishes traces, automatically, from the rendered page to its
+JSON to the calculation to the source observations behind it — not just "the
+file it came from" (already true for Ask) but the full chain, machine-checkable.
+Nothing under items 7–9 below starts before this exists. Acceptance: 10
+published numbers, picked at random, trace end to end with no human filling a
+gap by hand.
+
 **1. Serve — MCP and API over the data that already exists.** No new
 collection. Wraps `data/` as it stands. This is the item that makes the claim
 true fastest, and everything else is built on its engine.
@@ -211,7 +228,9 @@ rejects published with their reasons.
 
 **5. Showcase queries.** The stress-signal backtest and its board, the weekly
 snapshot, and the findings pages. These demonstrate the engine; they are not
-the engine, which is why they sit last.
+the engine, which is why they sit last. *The weekly snapshot and findings
+pages named here are specified in full as items 7 and 9 below (added
+2026-10-01) — this entry is the one that named them first.*
 
 **6. E — depth, surfaced.** `collector.py` already reads the full order book on
 every sample and already writes `offramp_depth_top_level` and
@@ -224,6 +243,36 @@ number, sitting unread in a file that already has history. Scope: `corridor.html
 only, since the wide-layer board (`index.html`, 43 countries) has no depth
 column to draw from and none should be invented for it. No new CSV, no changed
 header — this reads two columns that already exist.
+
+**7. Weekly diff — what changed.** A deterministic job picks the biggest
+mover per corridor and per country over a stated comparison window, with the
+minimum sample count stated alongside the figure, and an honest "not enough
+comparable history yet" for a corridor too young to have one. An agent writes
+up to three cited sentences on top of the computed diff; it does not pick the
+mover. Gated on 0.5 above. This is item 5's "weekly snapshot," specified.
+
+**8. Win conditions per corridor — deterministic arithmetic only.** A stated
+threshold in the shape "stablecoins beat the cheapest app on this corridor if
+the off-ramp spread falls from X to below Y, holding every other observed cost
+constant." The number is arithmetic; an agent may only state it in words. See
+"a counterfactual states what it holds constant" in `## Invariants`.
+
+**9. Research page — extends Ask (see `## Vision`) past one question.**
+Question in; a read-only agent investigates using a whitelisted toolset
+(`query_history`, `get_samples`, `compare_routes`, `compare_periods`,
+`calculate_cost`, `create_chart`, `save_finding`) and publishes an observation,
+its evidence, a conclusion and its limitations. Gated on 0.5 above — nothing
+here starts before every number it could cite is independently traceable.
+Acceptance: of five test questions, the one genuinely unanswerable from the
+data is answered "not enough evidence," not guessed at; ships only after two
+findings survive Sebastian reading them. This is item 5's "findings pages,"
+specified.
+
+**Reserved, not built: findings as a graph.** Once item 9 is shipped and has
+real findings on it, give findings relations to each other — supports,
+contradicts, follow-up — so a future planning pass can ask what the site
+doesn't understand yet, not only what changed. Not scoped, not queued; written
+down here so it is not re-invented from nothing later.
 
 Already shipped and not listed again: **K** (pricing history,
 [#50](https://github.com/SebR214/margin/pull/50)). In flight when this vision
@@ -282,6 +331,14 @@ browser by a person. Do not research venues and do not draft a collector.
 
 **The time layer.** Needs roughly sixty days of hourly history. Nothing to
 build before then.
+
+**Anomaly detection that proposes investigations (added 2026-10-01).** Gate:
+six months of hourly history on all seven corridors. The three youngest
+(USD→NGN, USD→INR, SGD→INR, started 2026-09-29) set the clock — this is a 2027
+item. When unblocked, the flow is **detect → rank → propose → investigate →
+review → publish**, in that order; detection never goes straight to publish.
+Depends on item 9 (Research page) existing first, since "investigate" and
+"publish" reuse that machinery.
 
 ---
 
@@ -1050,6 +1107,62 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
   (`fbac138`).
 - **Every row carries its fee regime**, so history stays interpretable when a
   venue changes its schedule.
+
+### System invariants — agent governance (added 2026-10-01, Sebastian)
+
+These generalize rules the sections above already state for one feature at a
+time. Where one below restates an existing rule more broadly, the existing one
+is not replaced — both hold, and the narrower one is the specific case.
+
+- **Collection breadth and reliability beat new features.** When the queue
+  below and a new idea compete for the same cycle, breadth wins. This is why
+  items 0 and 0.5 sit ahead of 1–6 in `## Queue`.
+- **Deterministic code owns numbers; agents own interpretation.** A broader
+  form of "the model writes SQL, the model never writes a number" above — it
+  applies to every computed figure on the site, not only Ask's.
+- **Every agent factual claim carries machine-readable evidence down to
+  source observations and the query that produced it.** A broader form of
+  "every answer cites the file it came from" above. This is item 0.5 below,
+  made into a rule rather than left as a nice-to-have.
+- **Research agents are read-only against source data and application code.**
+  A broader form of "SQL is read-only" above — it covers a research agent's
+  access generally, not only its SQL.
+- **Agents may propose roadmap changes by PR, but never silently change
+  priorities, acceptance tests, gates or invariants.** A PR that touches this
+  file states what it changed and why in its own description; it does not
+  change this file's meaning as a side effect of some other change.
+- **No agent weakens a test, reviewer gate or integrity check to make its own
+  work pass.** Not previously stated outright; stating it because it is the
+  one failure mode none of the incidents on `agent-incidents.html` were, yet.
+- **Insufficient evidence is a valid answer, and the required one, when the
+  data can't support a claim.** Governs the research page (item 9 below) the
+  way "nothing is published that failed verification" above already governs
+  a rejected source.
+- **A counterfactual states what it holds constant and is never presented as
+  a forecast.** Relevant to item 8 below — a win condition is a conditional
+  statement about today's costs, not a prediction about tomorrow's.
+- **Every autonomous PR states its own acceptance-test result and known
+  limitations**, not only the screenshots the reviewer already posts per
+  `agents/RULES.md`.
+
+**Not merged above — flagged instead, per the rule just added that this file's
+meaning does not change silently:** a 2026-10-01 draft of these invariants
+included "historical observations are append-only, never rewrite, interpolate
+or backfill *without explicit human approval*." That is a weaker rule than the
+one already in force two sections up — "gaps stay gaps... never interpolate,
+never backfill the live layer," no approval clause, no exception. The existing
+rule stands; this file does not grant an approval path around it until
+Sebastian says so in his own words, in this file.
+
+**Not re-added — already structurally enforced:** "no self-merge," in the
+sense of no agent being able to rubber-stamp its own work unreviewed. The
+same draft listed it as a new invariant; it already holds, by construction —
+builder, reviewer and product share one GitHub App identity, so GitHub itself
+refuses `gh pr review --approve` on a PR that identity opened (`agent-
+incidents.html`, "The reviewer that can't approve itself"; `agents/RULES.md`).
+**Updated 2026-10-01:** this is about review happening, not about Sebastian
+personally signing off — see `agents/RULES.md`'s current reader-facing-merge
+rule, which he loosened that day.
 
 ## Known-invisible (stated, never estimated)
 

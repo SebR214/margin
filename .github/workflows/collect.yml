@@ -581,10 +581,28 @@ jobs:
             exit 0
           fi
 
-          # A failed dispatch breaks the chain, so it must be LOUD: the run goes
-          # red, and the schedule's next fire finds no link alive and restarts.
-          # That is the whole recovery path, so it must never be swallowed.
-          gh workflow run collect.yml --ref main -f chain=true
+          # A failed dispatch breaks the chain, so it must be LOUD if every
+          # attempt below fails: the run goes red, and the schedule's next
+          # fire finds no link alive and restarts. That recovery path is
+          # real but slow and documented as unreliable (the schedule comment
+          # above measured ~26-74% delivery), so it is worth a few retries
+          # first rather than handing off on the first try. SEB-168: this
+          # exact call failed with "HTTP 504: We couldn't respond to your
+          # request in time" at 2026-09-30 03:05:12Z, killed the chain
+          # outright, and the restarter did not fire for 5+ hours after --
+          # the same transient-504 shape PR #271's body already flagged from
+          # 2026-09-29. A GitHub-side timeout, not a real block, so retrying
+          # before giving up costs nothing and fixes most of these in place.
+          attempt=1
+          until gh workflow run collect.yml --ref main -f chain=true; do
+            if [ "$attempt" -ge 3 ]; then
+              echo "::error::dispatch failed $attempt times in a row -- giving up, chain ends here"
+              exit 1
+            fi
+            echo "dispatch attempt $attempt failed, retrying in 10s"
+            attempt=$((attempt + 1))
+            sleep 10
+          done
           # `gh workflow run` prints no id, so read it back. Best effort only --
           # the dispatch is what matters and a slow-to-appear run must not fail
           # a step that already succeeded.
