@@ -221,6 +221,21 @@ by widening it. Ahead of 1–6 below: see "collection breadth and reliability
 beat new features" in `## Invariants`. Acceptance: a new field shows up in the
 relevant hourly sample within a week of being specified on an issue.
 
+**0.1. Route variants per corridor (added 2026-10-02).** A corridor today
+prices one stablecoin path. Price every variant that genuinely exists instead:
+every chain both venues actually support (Tron, Polygon, Solana, where real —
+never invented), USDC beside USDT wherever both books exist, and a second
+on/off-ramp venue wherever a real book exists for it. Each variant is its own
+append-only series at the five ladder amounts — a new row shape, never a
+rewrite of history. `corridor.html`'s headline becomes the cheapest variant
+this hour, stated as "cheapest of N stablecoin routes we price," with every
+variant listed below it — the headline changing is downstream of the pricing
+existing, not a separate redesign. One variant ships per day, same cadence as
+the rest of this item's breadth work, starting from SGD→PHP. Acceptance: a
+new variant appears, fully priced at all five amounts, in the relevant
+corridor's hourly sample within a day of being specified; the headline cites
+the correct N and cheapest variant for that hour.
+
 **0.5. Evidence infrastructure — before any research feature below.** Every
 number the site publishes traces, automatically, from the rendered page to its
 JSON to the calculation to the source observations behind it — not just "the
