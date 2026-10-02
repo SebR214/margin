@@ -10,5 +10,21 @@
   "corridor.html": {
     "errors": ["data/corridor_waterfall.csv"],
     "_errors_why": "New sidecar (collector.py's append_waterfall) that the current samples.csv rows have no matching entry for yet -- it only exists from the next real collection pass onward, 'never backfill'. The waterfall renders an explicit 'not available yet' state for that sample rather than the old, non-reconciling approximation. The 404 disappears on its own once collection has run at least once past this change; this entry should be deleted then."
+  },
+  "how-it-was-built.html": {
+    "errors": ["data/machine_room_meters.json"],
+    "_errors_why": "SEB-174/M2. tools/emit_machine_room_meters.py is a new collect.yml step; data/machine_room_meters.json does not exist until that workflow runs once past this merge -- 'never backfill'. The three tiles it feeds keep their seeded '—' on this 404 rather than showing a fabricated number. Disappears on its own after the next successful collect.yml run; delete this entry then."
+  },
+  "status.html": {
+    "errors": ["data/machine_room_meters.json"],
+    "_errors_why": "status.html is a retired redirect stub (0-second meta-refresh) to how-it-was-built.html -- the client-side redirect fires inside this check's settle window, so how-it-was-built.html's own pending 404 (see that page's entry above) gets logged against this page name instead. Same cause, same fix timeline: delete once collect.yml has written data/machine_room_meters.json at least once."
+  },
+  "data.html": {
+    "errors": ["data/machine_room_meters.json"],
+    "_errors_why": "data.html is a retired redirect stub (0-second meta-refresh) to how-it-was-built.html -- same bleed as status.html's entry above, same fix timeline."
+  },
+  "watch.html": {
+    "errors": ["data/machine_room_meters.json"],
+    "_errors_why": "watch.html is a retired redirect stub (0-second meta-refresh) to how-it-was-built.html -- same bleed as status.html's entry above, same fix timeline."
   }
 }
