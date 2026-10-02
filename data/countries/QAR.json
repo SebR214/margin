@@ -1,12 +1,14 @@
 {
+  "buy_price": 3.9255,
   "ccy": "QAR",
-  "computed_at": "2026-09-29T01:00:00+00:00",
+  "computed_at": "2026-10-01T23:00:00+00:00",
   "country": "Qatar",
   "denominator": {
     "class": "pegged",
     "rate_per_usd": 3.64,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 3.64,
   "history": [
     {
       "date": "2026-09-05",
@@ -151,23 +153,48 @@
       "index_pct": 7.239,
       "n": 9,
       "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-09-29",
+      "index_pct": 7.342,
+      "n": 20,
+      "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-09-30",
+      "index_pct": 5.7486,
+      "n": 22,
+      "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-10-01",
+      "index_pct": 7.8434,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
-  "history_days": 24,
+  "history_days": 27,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-09-29T01:00:00+00:00",
+  "hour_utc": "2026-10-01T23:00:00+00:00",
+  "index_pct": 7.8434,
   "index_version": "1.1",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": 6.0371,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: 7 buy-side ads, 10 required",
-  "round_trip_pct": 7.2432,
-  "source_class": null,
+  "median_24h_pct": 5.9615,
+  "n_sources": 10,
+  "round_trip_pct": 6.6422,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 3.931
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 3.9255,
+      "index_pct": 7.8434,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    }
+  ]
 }

@@ -113,6 +113,14 @@
     .nums{grid-template-columns:1fr}
     .histsum{grid-template-columns:1fr 1fr}
     .histsum .v{font-size:16px}
+    /* Corridor and amount pills: 7 corridors and 5 amounts wrap into
+       several rows on a phone (SEB-reported). One row that scrolls
+       sideways instead, the same treatment this page's own .rng chart
+       toggle already has. */
+    .sizebar{flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none}
+    .sizebar::-webkit-scrollbar{display:none}
+    .sizebar .lbl{flex:none}
+    .sz{flex:none}
   }
   /* Every tap target on this page -- corridor pills, size pills, range
      buttons -- is at least 40px tall on a phone (site mobile rule,
@@ -141,7 +149,15 @@ header.mwh nav::-webkit-scrollbar{display:none}
 header.mwh nav a{font-family:'Archivo',system-ui,sans-serif!important;font-size:15px!important;font-weight:500!important;color:#6B6B6B!important;text-decoration:none!important;padding:10px 0!important;margin:0!important;white-space:nowrap!important;border:0!important;background:none!important}
 header.mwh nav a.active{color:#0B0B0B!important;font-weight:600!important}
 header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
-@media (max-width:620px){header.mwh{height:56px!important;margin-bottom:24px!important}header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}header.mwh nav{gap:16px!important;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}header.mwh nav a{padding:12px 0!important}}
+header.mwh .nav-toggle{display:none!important;background:none!important;border:0!important;font-size:20px!important;cursor:pointer!important;padding:6px 8px!important;color:#0B0B0B!important;line-height:1!important;font-family:inherit!important}
+@media (max-width:620px){
+  header.mwh{height:56px!important;margin-bottom:24px!important;position:relative!important}
+  header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}
+  header.mwh nav{display:none!important;position:absolute!important;top:100%!important;left:0!important;right:0!important;flex-direction:column!important;gap:0!important;background:#fff!important;padding:6px 24px 16px!important;border-bottom:1px solid #F0F0F0!important;box-shadow:0 8px 16px rgba(11,11,11,0.06)!important;z-index:30!important;overflow:visible!important;mask-image:none!important;-webkit-mask-image:none!important}
+  header.mwh nav.open{display:flex!important}
+  header.mwh nav a{padding:12px 0!important;border-bottom:1px solid #F6F6F6!important;font-size:16px!important}
+  header.mwh .nav-toggle{display:block!important}
+}
 </style>
 <style id="mw-type">
 h1{font-family:'Archivo',system-ui,sans-serif!important;font-size:28px!important;font-weight:800!important;line-height:1.22!important;letter-spacing:-0.02em!important;color:#0B0B0B!important;margin-top:0!important;margin-bottom:10px!important}
@@ -160,7 +176,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         <a href="./countries.html">Countries</a>
         <a href="./how-it-works.html">How it works</a>
         <a href="./how-it-was-built.html">How it was built</a>
-      </nav><button id="navToggle" style="display:none" aria-hidden="true"></button></header>
+      </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button></header>
 </div>
 
   <div class="hero">
@@ -277,7 +293,7 @@ function parseCSV(text){
 let bySize={}, histBySize={}, size=5000, newest="";
 // Corridor 1 is the default and stays first. allRows holds every corridor so
 // switching regroups in place rather than refetching samples.csv.
-let allRows=[], corrKeys=[], corridor="SGD->PHP", feeChecks=[], withdrawalFees=[], wfBySample={};
+let allRows=[], corrKeys=[], corridor="SGD->PHP", feeChecks=[], withdrawalFees=[], wfBySample={}, rampBySample={};
 let measureCount=0, winCount=0, historyStart="";
 let providersLatest=null;
 let corridorSummary={};
@@ -323,7 +339,7 @@ function cheapestApp(corridorKey, sizeAmount, fallbackRow){
 // Real coverage per corridor, from data/coverage.json (tools/emit_coverage.py,
 // computed from data/samples.csv -- never typed). {} until boot() loads it.
 let COVERAGE={};
-const PLACE={SGD:"Singapore",PHP:"the Philippines",USD:"the US",MXN:"Mexico",AUD:"Australia",NZD:"New Zealand"};
+const PLACE={SGD:"Singapore",PHP:"the Philippines",USD:"the US",MXN:"Mexico",AUD:"Australia",NZD:"New Zealand",NGN:"Nigeria",INR:"India"};
 const place=c=>PLACE[c]||c;
 const dstOf=r=>((r&&r.dst)||"").trim();
 
@@ -400,22 +416,22 @@ async function boot(){
   try{ COVERAGE=await fetch("./data/coverage.json").then(r=>r.ok?r.json():{}); }catch(e){ COVERAGE={}; }
   const C=await loadCopy();
   COPY=C.corridor||{};
-  document.getElementById("routeLbl").textContent=(COPY.sizebar||{}).route||"route";
+  document.getElementById("routeLbl").textContent=(COPY.sizebar||{}).route||"corridor";
   document.getElementById("sendLbl").textContent=(COPY.sizebar||{}).sendAmount||"send amount";
-  // This bars-and-total chart stops at a balance sitting on the two
-  // exchanges named in the footer below (buy venue, sell venue). It never
-  // prices getting the sending country's money into the first exchange, or
-  // getting the receiving country's money out to a bank account at the end
-  // -- both of which the cheapest-app price it's compared against already
-  // includes. Said here, next to the chart, not only in the footer few
-  // people read (SEB audit, 2026-09-27).
+  // This chart used to stop at a balance sitting on the two exchanges named
+  // in the footer below, and said so next to the chart (SEB audit,
+  // 2026-09-27: "getting money into the first exchange, and getting it out
+  // to a bank account at the end, may cost more. This site has not measured
+  // that cost."). As of 2026-09-29 it does measure that cost -- the real
+  // per-corridor line is set by drawReceipt() below, which knows whether
+  // both legs came back free or one is still an unpriced gap (NZD->PHP).
+  // This is only the placeholder shown before the first render() call.
   // Kept rather than cut: the buy/sell legs genuinely can land negative
   // (data/corridor_waterfall.csv has buy-leg bps < 0 on ~25% of rows and
   // sell-leg bps < 0 on ~11%), so a bar left of the zero line is a real,
   // recurring case on this chart, not a hypothetical -- see PR notes.
   document.getElementById("wfDisclosure").textContent=
-    ((COPY.cards||{}).waterfall?.disclosure||"This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.")
-    +" "+((COPY.cards||{}).waterfall?.gainNote||"A bar to the left of that line means that step paid money back on this sample, not that it cost money.");
+    ((COPY.cards||{}).waterfall?.gainNote||"A bar to the left of that line means that step paid money back on this sample, not that it cost money.");
   document.getElementById("stamp").textContent=COPY.loading||"loading…";
 
   const L=COPY.legend||{};
@@ -456,6 +472,12 @@ async function boot(){
   const wfRows=await loadCSVOptional("./data/corridor_waterfall.csv");
   wfBySample={};
   for(const w of wfRows) wfBySample[w.ts+"|"+w.corridor+"|"+w.notional_src]=w;
+  // Same join key, the two ramp legs (deposit into the first exchange,
+  // withdrawal out of the last one) -- a separate sidecar because
+  // corridor_waterfall.csv's header is frozen.
+  const rampRows=await loadCSVOptional("./data/ramp_waterfall.csv");
+  rampBySample={};
+  for(const w of rampRows) rampBySample[w.ts+"|"+w.corridor+"|"+w.notional_src]=w;
   // samples.csv carries every corridor interleaved. Group by the corridor
   // column: without it one corridor's rows land in another's waterfall.
   corrKeys=[...new Set(allRows.map(r=>(r.corridor||"").trim()).filter(Boolean))]
@@ -621,16 +643,26 @@ function drawWaterfall(r,cheapest){
   // means no invented approximation either -- the section says so.
   const n=+r.notional_src;
   const wf=wfBySample[r.ts+"|"+r.corridor+"|"+r.notional_src];
+  const ramp=rampBySample[r.ts+"|"+r.corridor+"|"+r.notional_src];
   if(!wf){
     document.getElementById("wfTitle").textContent=T((COPY.cards||{}).waterfall?.titleTemplate||"Where the {amount} cost goes",{amount:money(n)});
     document.getElementById("wfAnswer").textContent="";
     document.getElementById("wf").innerHTML=`<text x="12" y="30" fill="var(--color-neutral-600)" font-size="13" font-family="var(--font-body)">${esc(COPY.waterfallUnavailable||cmiss("waterfallUnavailable"))}</text>`;
     return;
   }
+  const on=venueName(r.onramp_venue), off=venueName(r.offramp_venue);
+  const WF=(COPY.cards||{}).waterfall||{};
+  // Deposit (getting srcCcy onto the first exchange) and withdrawal (getting
+  // dstCcy out of the last one to a bank account) -- added 2026-09-29. Both
+  // are 0.00 when the leg is a verified-free rail; NZD->PHP's deposit leg is
+  // a genuine unpriced gap (no published free NZD method), also rendered as
+  // 0.00 but flagged in the caption below rather than silently folded in.
   const comps=[
-    {l:"Buy USDT with "+srcCcy, v:+wf.wf_buy_bps, k:"neg"},
+    {l:"Get "+srcCcy+" onto "+on, v:ramp?+ramp.wf_deposit_bps:0, k:"rail"},
+    {l:T(WF.buyBarLabelTemplate||"Buy stablecoin with {ccy}",{ccy:srcCcy}), v:+wf.wf_buy_bps, k:"neg"},
     {l:"Send it on chain", v:+wf.wf_move_bps, k:"rail"},
-    {l:"Sell USDT for "+dstOf(r), v:+wf.wf_sell_bps, k:"neg"},
+    {l:T(WF.sellBarLabelTemplate||"Sell stablecoin for {ccy}",{ccy:dstOf(r)}), v:+wf.wf_sell_bps, k:"neg"},
+    {l:"Get "+dstOf(r)+" into a bank account", v:ramp?+ramp.wf_withdrawal_bps:0, k:"rail"},
   ];
   const total=+r.cost_bps_taker;
   cheapest=cheapest||cheapestApp(r.corridor,n,r);
@@ -641,15 +673,14 @@ function drawWaterfall(r,cheapest){
   // -- trading fees dwarf the network fee), but it is checked, not assumed,
   // so a corridor where the network fee genuinely dominates still gets an
   // honest header instead of a wrong one.
-  const WF=(COPY.cards||{}).waterfall||{};
   const tradeBps=Math.abs(+wf.wf_buy_bps)+Math.abs(+wf.wf_sell_bps), moveBps=Math.abs(+wf.wf_move_bps);
   document.getElementById("wfTitle").textContent=T(
     tradeBps>=moveBps ? (WF.buyDominantTemplate||"Most of the {total} goes on buying and selling {stable}, not on sending it")
                        : (WF.moveDominantTemplate||"Most of the {total} goes on sending {stable} on chain, not on buying or selling it"),
-    {total:cash(n,total), stable:(r.stable||"USDT")});
+    {total:cash(n,total), stable:"stablecoin"});
   document.getElementById("wfAnswer").textContent=T(WF.answerTemplate||"Sending it on chain costs {moveCost}. Buying {stable} costs {buyCost}.",
-    {moveCost:cash(n,+wf.wf_move_bps), stable:(r.stable||"USDT"), buyCost:cash(n,+wf.wf_buy_bps)});
-  document.getElementById("wfCap").textContent=T(WF.capTemplate||"Buying USDT is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
+    {moveCost:cash(n,+wf.wf_move_bps), stable:"stablecoin", buyCost:cash(n,+wf.wf_buy_bps)});
+  document.getElementById("wfCap").textContent=T(WF.capTemplate||"Buying the stablecoin is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
     {buyCost:cash(n,+wf.wf_buy_bps), totalCost:cash(n,total)});
   let run=0; const cum=[0]; comps.forEach(c=>{run+=c.v; cum.push(run);});
   const all=[0,total,base,...cum], dMin=Math.min(...all), dMax=Math.max(...all);
@@ -706,24 +737,46 @@ function drawWaterfall(r,cheapest){
      `<rect x="${Math.min(X(0),xt).toFixed(1)}" y="${y+5}" width="${Math.max(2,Math.abs(xt-X(0))).toFixed(1)}" height="${rowH-10}" fill="var(--win)"/>`+
      `<text data-wf-total="1" x="${(xt+(total>=0?4:-4)).toFixed(1)}" y="${y+rowH/2+4}" fill="var(--color-ink)" font-size="12" font-family="var(--mono)" font-weight="700" text-anchor="${total>=0?"start":"end"}">${cash(n,total)}</text>`;
   svg.innerHTML=s;
-  drawReceipt(r,wf);
+  drawReceipt(r,wf,ramp);
 }
 
-function drawReceipt(r,wf){
-  const n=+r.notional_src, stable=(r.stable||"USDT"), dst=dstOf(r);
+function drawReceipt(r,wf,ramp){
+  const RC=((COPY.cards||{}).waterfall||{}).receipt||{};
+  const n=+r.notional_src, stable="stablecoin", dst=dstOf(r);
   const buy=+wf.wf_buy_bps, move=+wf.wf_move_bps, sell=+wf.wf_sell_bps;
+  const deposit=ramp?+ramp.wf_deposit_bps:0, withdrawal=ramp?+ramp.wf_withdrawal_bps:0;
   const feeOn=+r.fee_on_taker_bps||0, feeOff=+r.fee_off_taker_bps||0;
   const on=venueName(r.onramp_venue), off=venueName(r.offramp_venue);
   const netStable=+r.network_fee_stable;
+  // depositMeasured/withdrawalMeasured are tri-state: true (checked,
+  // currently free), false (checked, no published free method exists --
+  // decompose() charges a gap 0.0 too, never a guessed number, so the
+  // caption below must read the flag, not just the bps value), or null
+  // (no ramp_waterfall.csv row for this exact sample yet -- possible for a
+  // brief window right after this shipped, before the next hourly capture).
+  // Only null falls back to a neutral "not available for this sample"
+  // wording; it must never be read as "free".
+  const depositMeasured=ramp ? ramp.deposit_measured!=="False" : null;
+  const withdrawalMeasured=ramp ? ramp.withdrawal_measured!=="False" : null;
   const lines=[
-    {leg:`1 · Buy ${stable} with ${srcCcy} on ${on}`},
-    {l:`${stable} priced above the dollar`, v:buy-feeOn},
+    {leg:`0 · Get ${srcCcy} onto ${on}`},
+    {l:depositMeasured===false?`${on} deposit fee (not priced -- see below)`
+       :depositMeasured===null?`${on} deposit fee (not available for this sample yet)`
+       :`${on} deposit fee`, v:deposit},
+    {leg:T(RC.buyLegTemplate||"1 · Buy {stable} with {ccy} on {venue}",{stable,ccy:srcCcy,venue:on})},
+    {l:RC.buyAboveDollar||`${stable} priced above the dollar`, v:buy-feeOn},
     {l:`${on} fee`, v:feeOn},
-    {leg:`2 · Send ${stable} on chain`},
-    {l:`Network fee${isFinite(netStable)&&netStable>0?", "+(+netStable.toFixed(2))+" "+stable:""}`, v:move},
-    {leg:`3 · Sell ${stable} for ${dst} on ${off}`},
+    {leg:T(RC.moveLegTemplate||"2 · Send {stable} on chain",{stable})},
+    {l:isFinite(netStable)&&netStable>0
+       ? T(RC.networkFeeWithAmountTemplate||"Network fee, {amount} in {stable}",{amount:(+netStable.toFixed(2)),stable})
+       : (RC.networkFeeLabel||"Network fee"), v:move},
+    {leg:T(RC.sellLegTemplate||"3 · Sell {stable} for {ccy} on {venue}",{stable,ccy:dst,venue:off})},
     {l:`${off} fee`, v:feeOff},
     {l:(sell-feeOff)<0?"Selling price slightly better than the real rate":"Selling price below the real rate", v:sell-feeOff},
+    {leg:`4 · Get ${dst} into a bank account`},
+    {l:withdrawalMeasured===false?`${off} withdrawal fee (not priced -- see below)`
+       :withdrawalMeasured===null?`${off} withdrawal fee (not available for this sample yet)`
+       :`${off} withdrawal fee`, v:withdrawal},
   ];
   const total=+r.cost_bps_taker;
   // Cents: every line rounded on its own, last line is the remainder, so the
@@ -740,7 +793,22 @@ function drawReceipt(r,wf){
   }
   h+=`<div class="rc tot"><span>Total</span><span class="a">${cash(n,total)}</span><span class="b">${pct(total)}</span></div>`;
   document.getElementById("receipt").innerHTML=h;
-  document.getElementById("wfDisclosure").textContent=`Not included yet: bank fees to get ${srcCcy} into ${on} and ${dst} out of ${off}.`;
+  // The line this chart used to carry as a blanket disclaimer ("this site
+  // has not measured that cost") is now specific to what actually happened
+  // this hour: both legs measured and priced in, one leg still genuinely
+  // unpriced (NZD->PHP, no free method published), or -- only in the brief
+  // window right after this shipped -- not captured for this exact sample
+  // yet, which reads as "not available", never as a false "it's free".
+  const wfd=document.getElementById("wfDisclosure");
+  if(depositMeasured===null || withdrawalMeasured===null){
+    wfd.textContent=`Bank fees to get ${srcCcy} onto ${on} and get ${dst} into a bank account are priced from this hour's capture onward. This particular sample predates that.`;
+  } else if(depositMeasured && withdrawalMeasured){
+    wfd.textContent=`Getting ${srcCcy} onto ${on} and getting ${dst} into a bank account are both priced above. Both are free right now.`;
+  } else if(!depositMeasured){
+    wfd.textContent=`Getting ${dst} into a bank account is priced above and free right now. Getting ${srcCcy} onto ${on} is not priced yet: no free way to do it at this size is published.`;
+  } else {
+    wfd.textContent=`Getting ${srcCcy} onto ${on} is priced above and free right now. Getting ${dst} into a bank account is not priced yet: no free way to do it at this size is published.`;
+  }
 }
 
 function drawLadder(){

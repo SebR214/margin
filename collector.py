@@ -98,6 +98,30 @@ CORRIDORS = {
         # "Tether USD | TRON | 4.0 USDT" (and Ethereum 10.0, not used here).
         # Source: https://www.independentreserve.com/fees  read 2026-08-19.
         "network_fee_stable": 4.0,
+        # --- ramp fees: the bank leg on each end, in fiat terms. SGD side:
+        # Independent Reserve's own SGD deposit table lists PayNow as
+        # "Free", no cap stated, and it is the realistic method (not a
+        # generic wire assumption) -- FAST is free too above SGD 1,000 but
+        # PayNow is free at every size on the ladder including S$200.
+        # Source: https://www.independentreserve.com/sg/fees, read 2026-09-29.
+        "deposit": {
+            "venue": "IndependentReserve", "method": "PayNow",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "SGD",
+            "source_url": "https://www.independentreserve.com/sg/fees",
+            "verified": "2026-09-29",
+        },
+        # PHP side: Coins.ph's own cash-out fee table lists PESONet at
+        # PHP 0.00 for individual accounts, no cap stated (InstaPay is the
+        # alternative at a flat PHP 5.00, but PESONet is free and same-day,
+        # so it is the rational choice at every rung).
+        # Source: https://support.coins.ph/hc/en-us/articles/201919230-What-fees-are-charged-on-cash-outs,
+        # read 2026-09-29.
+        "withdrawal": {
+            "venue": "Coins.ph", "method": "PESONet",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "PHP",
+            "source_url": "https://support.coins.ph/hc/en-us/articles/201919230-What-fees-are-charged-on-cash-outs",
+            "verified": "2026-09-29",
+        },
         "ladder": [200, 1000, 5000, 25000, 50000],
         "providers_file": "providers.csv",
     },
@@ -130,6 +154,22 @@ CORRIDORS = {
         # Same on-ramp venue as SGD->PHP, so the same published TRC20
         # withdrawal applies: "Tether USD | TRON | 4.0 USDT".
         "network_fee_stable": 4.0,
+        # AUD side: IR's own AUD deposit table -- "All AUD deposits using
+        # bank transfer are free", no cap stated. Source:
+        # https://www.independentreserve.com/au/fees, read 2026-09-29.
+        "deposit": {
+            "venue": "IndependentReserve", "method": "Bank transfer",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "AUD",
+            "source_url": "https://www.independentreserve.com/au/fees",
+            "verified": "2026-09-29",
+        },
+        # Same PHP off-ramp venue and rail as SGD->PHP.
+        "withdrawal": {
+            "venue": "Coins.ph", "method": "PESONet",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "PHP",
+            "source_url": "https://support.coins.ph/hc/en-us/articles/201919230-What-fees-are-charged-on-cash-outs",
+            "verified": "2026-09-29",
+        },
         "ladder": [200, 1000, 5000, 25000, 50000],
         "providers_file": "providers_audphp.csv",
     },
@@ -149,6 +189,35 @@ CORRIDORS = {
             "verified": "2026-08-10",
         },
         "network_fee_stable": 4.0,
+        # NZD side: IR's own deposit table has NO free bank-transfer or
+        # instant-rail line for NZD at all -- unlike SGD (PayNow) and AUD
+        # (bank transfer), the only NZD deposit methods listed are SWIFT
+        # (minimum NZD 50,000, fee unstated -- it would be the sender's own
+        # bank's outgoing wire fee, not IR's, and is not published) and
+        # "debit & credit cards: 0% for Australian cards" (not usable by an
+        # NZ-resident sender with an NZ-issued card). Below the ladder's top
+        # rung there is genuinely no published free method, so this leg is
+        # left unpriced rather than guessed at -- a "gap", not a zero.
+        # Source: https://www.independentreserve.com/nz/fees, read 2026-09-29
+        # (checked against the SG and AU fee pages too -- the NZD deposit
+        # section is identical on all three, confirming it is not a
+        # per-region rendering quirk).
+        "deposit": {
+            "venue": "IndependentReserve", "method": None,
+            "fee_type": "gap", "fee_value": None, "fee_ccy": "NZD",
+            "source_url": "https://www.independentreserve.com/nz/fees",
+            "verified": "2026-09-29",
+            "note": ("No free NZD deposit method is published below NZD "
+                      "50,000. Only SWIFT (NZD 50,000 minimum, fee "
+                      "unstated) or Australian-issued cards are listed."),
+        },
+        # Same PHP off-ramp venue and rail as SGD->PHP.
+        "withdrawal": {
+            "venue": "Coins.ph", "method": "PESONet",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "PHP",
+            "source_url": "https://support.coins.ph/hc/en-us/articles/201919230-What-fees-are-charged-on-cash-outs",
+            "verified": "2026-09-29",
+        },
         "ladder": [200, 1000, 5000, 25000, 50000],
         "providers_file": "providers_nzdphp.csv",
     },
@@ -202,11 +271,171 @@ CORRIDORS = {
         "network_fee_stable": 0.0,          # unmodelled gas, see above
         "withdraw_pct": 0.0001,             # 0.01%, published
         "withdraw_pct_cap": 20.0,           # USDT, published
+        # USD side: Coinbase Exchange's own help article on ACH deposits
+        # states outright "There is no fee charged by Coinbase for ACH."
+        # ACH is the realistic method (free; wire costs $10 domestic /$25
+        # SWIFT, per a separate Coinbase help article, and is NOT the
+        # cheaper option here). Source:
+        # https://help.coinbase.com/en/exchange/funding/depositing-with-ach,
+        # read 2026-09-29 (public article, not the login-gated trading fee
+        # page the bps constants above cite).
+        "deposit": {
+            "venue": "Coinbase", "method": "ACH",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "USD",
+            "source_url": "https://help.coinbase.com/en/exchange/funding/depositing-with-ach",
+            "verified": "2026-09-29",
+        },
+        # MXN side: Bitso's own fee page lists Bank Transfer (SPEI)
+        # withdrawals at "Free of charge", same as its instant Bitso
+        # Transfer and debit-card payout options. Source:
+        # https://bitso.com/fees/transactions, read 2026-09-29.
+        "withdrawal": {
+            "venue": "Bitso", "method": "SPEI",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "MXN",
+            "source_url": "https://bitso.com/fees/transactions",
+            "verified": "2026-09-29",
+        },
         "ladder": [200, 1000, 5000, 25000, 50000],
         # providers.csv has NO corridor column and its schema is frozen, so it
         # cannot carry a second corridor. This corridor gets its own file with
         # exactly the same header.
         "providers_file": "providers_usdmxn.csv",
+    },
+    # --- 2026-09-29, SOURCES-2 (4->7 corridors). Nigeria was picked over
+    # Argentina for the premium-country slot after live probing both:
+    # Argentina's on-shore venues (Buenbit, Ripio, Lemon) have no reachable
+    # public API from a plain client -- be.buenbit.com answers 530, the
+    # documented Ripio Trade host resolves to a different product, and
+    # api.satoshitango.com answers 403 -- while Nigeria's Luno book
+    # (api.luno.com, verified live 2026-09-29) is a real, public,
+    # unauthenticated order book with a published fee schedule. This is the
+    # corridor the site's own thesis has been missing: Nigeria's banks will
+    # not sell dollars at the official rate, which is exactly the case for
+    # a dollar stablecoin -- unlike the other six corridors, all of which are
+    # managed/floating currencies where an ordinary app already competes.
+    "USD->NGN": {
+        "src": "USD", "dst": "NGN", "stable": "USDT",
+        "onramp": {
+            "venue": "Coinbase",
+            # Same USDT-USD stable pair schedule as USD->MXN: flat, not
+            # volume-tiered. Re-verify manually if that corridor's own
+            # onramp fee is ever re-verified -- this is the same account,
+            # same pair, same number, not a second source.
+            "taker_bps": 1.0,
+            "maker_bps": 0.5,
+            "verified": "2026-08-19",
+        },
+        "offramp": {
+            "venue": "Luno",
+            "symbol": "USDTNGN",
+            # Luno runs a SPECIAL stablecoin-pair schedule on USDT/NGN and
+            # USDC/NGN, distinct from its normal per-pair table: base tier
+            # (NGN 0-1,500,000 30-day volume) taker 0.10%, and a MAKER
+            # REBATE of -0.01% (Luno pays the maker, not the other way
+            # round) rather than the 0.10% maker fee every other pair on
+            # the exchange charges at this tier. Read live from Luno's own
+            # published fee table for Nigeria-verified accounts:
+            # https://guide.luno.com/hc/en-gb/articles/14962563616157-Luno-fees-and-limits-in-Nigeria
+            # ("We have special fees and rebates for USDT/NGN and USDC/NGN
+            # pairs... Maker Fee rebate for USDC/NGN and USDT/NGN: -0.01%"),
+            # read 2026-09-29. decompose()'s maker leg already handles a
+            # negative fee correctly (landed = quote * (1 - fee_off), and a
+            # negative fee_off makes that a multiply-up) -- no code change
+            # needed to model a rebate, only this number.
+            "taker_bps": 10.0,
+            "maker_bps": -1.0,
+            "verified": "2026-09-29",
+        },
+        # Coinbase does not support USDT on Tron (see USD->MXN above), and
+        # Luno's Nigeria-verified accounts support USDT on Tron (TRC-20)
+        # ONLY at app version 8.77.0+ as of this reading -- Ethereum (ERC-20)
+        # is the one chain confirmed to work on BOTH sides without that
+        # version gate (guide.luno.com, "Which transfer network should I
+        # choose when sending or receiving USDT?", read 2026-09-29). So this
+        # corridor is modelled on Ethereum, not Polygon like USD->MXN --
+        # and Ethereum mainnet gas is NOT the "fractions of a cent" USD->MXN
+        # could reasonably leave at zero. Coinbase's own published parts are
+        # carried (0.01% processing fee, capped 20 USDT); the ERC20 gas
+        # component is real, dynamic, and NOT published anywhere scrapeable,
+        # so it stays modelled at 0 rather than invented -- which means this
+        # corridor's cost is a real UNDERSTATEMENT at every size, more so
+        # than USD->MXN's, and more so at S$200 than at S$50,000. Flagged
+        # here rather than hidden; see METHODOLOGY.
+        "network_fee_stable": 0.0,           # unmodelled ERC20 gas, see above
+        "withdraw_pct": 0.0001,              # 0.01%, published (Coinbase)
+        "withdraw_pct_cap": 20.0,             # USDT, published (Coinbase)
+        "ladder": [200, 1000, 5000, 25000, 50000],
+        "providers_file": "providers_usdngn.csv",
+    },
+    # USD->INR: the world's single biggest real-world remittance corridor.
+    # The USD leg is the exact Coinbase wiring USD->MXN already verified --
+    # nothing new to check there. The INR leg is WazirX, NOT CoinDCX: both
+    # expose a public, unauthenticated order book (CoinDCX's
+    # public.coindcx.com/market_data/orderbook is real and live too), but
+    # CoinDCX's own fee page (coindcx.com/fees) sits behind a Cloudflare
+    # bot-check that blocks a plain client -- the same class of block that
+    # ruled out Quidax for the Nigeria leg -- so there is no reachable
+    # published number to cite for CoinDCX's fee. WazirX's fee page
+    # (wazirx.com/fees) renders live and lists USDT/INR as an INR MARKET
+    # (not a USDT-quoted market, a different tab on the same page): base
+    # tier (0-500 WRX held, <=INR 5 lacs 30-day volume) is a FLAT 0.40% on
+    # every buy/sell trade under its "Pay Per Trade" plan, no maker/taker
+    # split (same shape as Independent Reserve's own flat schedule) --
+    # read live 2026-09-29, https://wazirx.com/fees?tab=spot_fees.
+    "USD->INR": {
+        "src": "USD", "dst": "INR", "stable": "USDT",
+        "onramp": {
+            "venue": "Coinbase",
+            "taker_bps": 1.0,
+            "maker_bps": 0.5,
+            "verified": "2026-08-19",
+        },
+        "offramp": {
+            "venue": "WazirX",
+            "symbol": "usdtinr",
+            "taker_bps": 40.0,
+            "maker_bps": 40.0,
+            "verified": "2026-09-29",
+        },
+        # Same chain constraint as USD->NGN: Coinbase does not withdraw USDT
+        # over Tron, and WazirX's own deposit/withdrawal table lists USDT
+        # deposits enabled on BOTH Ethereum (ERC20) and Tron (TRC20)
+        # (wazirx.com/fees?tab=deposit_withdrawal_fees, read 2026-09-29), so
+        # Ethereum is the common chain here too -- same unmodelled-gas
+        # caveat as USD->NGN applies.
+        "network_fee_stable": 0.0,           # unmodelled ERC20 gas, see above
+        "withdraw_pct": 0.0001,
+        "withdraw_pct_cap": 20.0,
+        "ladder": [200, 1000, 5000, 25000, 50000],
+        "providers_file": "providers_usdinr.csv",
+    },
+    # SGD->INR: reuses the SGD on-ramp SGD->PHP already built (Independent
+    # Reserve) untouched, and the same WazirX INR off-ramp as USD->INR.
+    # Independent Reserve's own USDT withdrawal is TRC20/Tron, flat 4.0 USDT
+    # (already verified for SGD->PHP above) -- and WazirX's deposit table
+    # (read for USD->INR, same table) lists Tron (TRC20) USDT deposits as
+    # Enabled, so this corridor reuses SGD->PHP's exact network-fee config
+    # unchanged, on the chain IR already uses. No new fee source anywhere
+    # in this corridor: every number is one already verified for a corridor
+    # above, pointed at a new off-ramp venue.
+    "SGD->INR": {
+        "src": "SGD", "dst": "INR", "stable": "USDT",
+        "onramp": {
+            "venue": "IndependentReserve",
+            "taker_bps": 50.0,
+            "maker_bps": 50.0,
+            "verified": "2026-08-10",
+        },
+        "offramp": {
+            "venue": "WazirX",
+            "symbol": "usdtinr",
+            "taker_bps": 40.0,
+            "maker_bps": 40.0,
+            "verified": "2026-09-29",
+        },
+        "network_fee_stable": 4.0,
+        "ladder": [200, 1000, 5000, 25000, 50000],
+        "providers_file": "providers_sgdinr.csv",
     },
 }
 
@@ -323,6 +552,28 @@ def basis_bps_cost(venue_price, usd_mid, side):
     return bps((usd_mid - venue_price) / usd_mid)
 
 
+def ramp_fee_units(leg_cfg, base_amount):
+    """Deposit/withdrawal ramp fee, in that leg's own currency units.
+
+    `base_amount` is what the fee is charged against: the notional being
+    deposited for a deposit leg, the amount that landed for a withdrawal
+    leg. fee_type "free" and "gap" both return 0.0 -- a "gap" is NOT a
+    verified free rail, it means no published fee could be found, and
+    charging 0.0 for it must never be read as "measured, and it's free".
+    Callers that need to tell the two apart use the *_measured flags
+    decompose() also records, and the ramp waterfall sidecar carries the
+    distinction through to the reader-facing pages.
+    """
+    if not leg_cfg:
+        return 0.0
+    ft = leg_cfg.get("fee_type")
+    if ft == "flat":
+        return leg_cfg["fee_value"]
+    if ft == "pct":
+        return base_amount * leg_cfg["fee_value"]
+    return 0.0  # "free" (verified zero) or "gap" (unmeasured, never invented)
+
+
 def decompose(notional, on_book, off_book, mids, cfg):
     """
     Full round trip for one notional under both execution regimes.
@@ -343,6 +594,19 @@ def decompose(notional, on_book, off_book, mids, cfg):
     pct = cfg.get("withdraw_pct", 0.0)
     pct_cap = cfg.get("withdraw_pct_cap")
 
+    # The two ramp legs: the bank fee to get the sender's money ONTO the
+    # on-ramp exchange (src currency, charged against the notional), and the
+    # bank fee to get it OUT of the off-ramp exchange to a bank account (dst
+    # currency, charged against what actually landed). "gap" means no
+    # published free method could be found at retail size -- it costs 0.0
+    # here (never invented) but is flagged, not silently treated as free;
+    # see the ramp waterfall sidecar and CORRIDORS' own citation comments.
+    dep_cfg, wd_cfg = cfg.get("deposit"), cfg.get("withdrawal")
+    dep_measured = bool(dep_cfg) and dep_cfg.get("fee_type") != "gap"
+    wd_measured = bool(wd_cfg) and wd_cfg.get("fee_type") != "gap"
+    deposit_fee_src = ramp_fee_units(dep_cfg, notional)
+    adjusted_notional = max(0.0, notional - deposit_fee_src)
+
     asks, bids = on_book.get("asks", []), off_book.get("bids", [])
     top_ask = asks[0][0] if asks else None
     top_bid = bids[0][0] if bids else None
@@ -355,9 +619,11 @@ def decompose(notional, on_book, off_book, mids, cfg):
         "offramp_basis_bps": basis_bps_cost(top_bid, dst_usd, "sell"),
         "offramp_depth_top_level": bids[0][1] if bids else None,
         "offramp_depth_1pct": round(depth_within_pct(bids), 2) if bids else None,
+        "ramp_deposit_measured": dep_measured,
+        "ramp_withdrawal_measured": wd_measured,
     }
 
-    gross, on_vwap, on_filled = walk_buy(asks, notional)
+    gross, on_vwap, on_filled = walk_buy(asks, adjusted_notional)
     out["onramp_vwap"] = round(on_vwap, 6) if on_vwap else None
     out["onramp_filled"] = on_filled
     out["onramp_slip_bps"] = (bps((on_vwap - top_ask) / top_ask)
@@ -385,7 +651,9 @@ def decompose(notional, on_book, off_book, mids, cfg):
                 out["offramp_filled"] = False
             continue
         quote, off_vwap, off_filled = walk_sell(bids, stable)
-        landed = quote * (1 - fee_off)
+        landed_before_withdrawal = quote * (1 - fee_off)
+        withdrawal_fee_dst = ramp_fee_units(wd_cfg, landed_before_withdrawal)
+        landed = max(0.0, landed_before_withdrawal - withdrawal_fee_dst)
         out[f"landed_{regime}"] = round(landed, 2)
         out[f"cost_bps_{regime}"] = (bps(1 - landed / (notional * mid))
                                      if (mid and notional) else None)
@@ -399,22 +667,31 @@ def decompose(notional, on_book, off_book, mids, cfg):
             # sum to cost_bps_taker (SEB-corridor-reconcile: off by ~1.5bps on
             # a real AUD->PHP row, exactly this drift's known order of
             # magnitude). Fixed by walking the SAME chain decompose() already
-            # computes (gross -> bought -> stable -> quote -> landed) and
-            # taking each step's own delta, in dst-currency terms, against the
-            # fair (zero-friction) target. Telescoping guarantees the parts
-            # sum to cost_bps_taker exactly, to the cent, by construction --
-            # not approximately, and not by adjusting a displayed number.
+            # computes (deposit -> gross -> bought -> stable -> quote ->
+            # landed) and taking each step's own delta, in dst-currency terms,
+            # against the fair (zero-friction) target. Telescoping guarantees
+            # the parts sum to cost_bps_taker exactly, to the cent, by
+            # construction -- not approximately, and not by adjusting a
+            # displayed number.
             target = notional * mid
+            L1 = adjusted_notional * mid
             L2, L3 = bought * dst_usd, stable * dst_usd
-            out["wf_buy_bps"] = round(1e4 * (target - L2) / target, 2)
+            L4 = landed_before_withdrawal
+            out["wf_deposit_bps"] = round(1e4 * (target - L1) / target, 2)
+            out["wf_buy_bps"] = round(1e4 * (L1 - L2) / target, 2)
             out["wf_move_bps"] = round(1e4 * (L2 - L3) / target, 2)
-            # The third leg is the remainder against cost_bps_taker, not its own
-            # independently-rounded value -- summing three numbers each rounded
-            # on their own does not reliably reproduce a fourth, separately
-            # rounded number (classic sum-of-rounded-parts drift). Anchoring the
-            # last leg to what the other two, plus the already-stored total,
-            # require is what actually guarantees the bars sum to the cent.
-            out["wf_sell_bps"] = round(out["cost_bps_taker"] - out["wf_buy_bps"] - out["wf_move_bps"], 2)
+            out["wf_sell_bps"] = round(1e4 * (L3 - L4) / target, 2)
+            # The withdrawal leg is the remainder against cost_bps_taker, not
+            # its own independently-rounded value -- summing four numbers each
+            # rounded on their own does not reliably reproduce a fifth,
+            # separately rounded number (classic sum-of-rounded-parts drift,
+            # same reasoning that used to anchor wf_sell_bps here before this
+            # leg existed). Anchoring the LAST leg to what the other four,
+            # plus the already-stored total, require is what actually
+            # guarantees the bars sum to the cent.
+            out["wf_withdrawal_bps"] = round(
+                out["cost_bps_taker"] - out["wf_deposit_bps"] - out["wf_buy_bps"]
+                - out["wf_move_bps"] - out["wf_sell_bps"], 2)
         if regime == "taker":
             out["offramp_vwap"] = round(off_vwap, 6) if off_vwap else None
             out["offramp_filled"] = off_filled
@@ -519,12 +796,48 @@ def fetch_onramp_coinbase(cfg, src):
 
 def fetch_offramp(cfg):
     # Dispatch on the configured venue. Coins.ph stays the default path.
-    if cfg["offramp"]["venue"] == "Bitso":
+    venue = cfg["offramp"]["venue"]
+    if venue == "Bitso":
         return fetch_offramp_bitso(cfg)
+    if venue == "Luno":
+        return fetch_offramp_luno(cfg)
+    if venue == "WazirX":
+        return fetch_offramp_wazirx(cfg)
     # NOTE: api.pro.coins.ph -- `api.coins.ph` is NXDOMAIN and silently killed
     # 34 days of collection. Do not "simplify" this hostname.
     sym = cfg["offramp"]["symbol"]
     d = get_json(f"https://api.pro.coins.ph/openapi/quote/v1/depth?symbol={sym}&limit=200")
+    bids = sorted(norm_levels(d.get("bids")), key=lambda x: x[0], reverse=True)
+    return {"bids": bids}
+
+
+def fetch_offramp_luno(cfg):
+    """Luno public order book. Verified live 2026-09-29, no auth.
+
+    api.luno.com/api/1/orderbook returns bids/asks as lists of
+    {"price": "...", "volume": "..."} dicts -- exactly the two keys
+    norm_levels already recognises ("price"/"Price", "volume"/"Volume"/
+    "qty"/"quantity"), so this needs no reshaping at all, unlike Bitso's
+    "amount" key.
+    """
+    sym = cfg["offramp"]["symbol"]
+    d = get_json(f"https://api.luno.com/api/1/orderbook?pair={sym}")
+    bids = sorted(norm_levels(d.get("bids")), key=lambda x: x[0], reverse=True)
+    return {"bids": bids}
+
+
+def fetch_offramp_wazirx(cfg):
+    """WazirX public order book. Verified live 2026-09-29, no auth.
+
+    api.wazirx.com/sapi/v1/depth returns bids/asks as [price, quantity]
+    string-array pairs -- norm_levels's other native shape, same as
+    Independent Reserve's array-of-arrays. limit=500 comfortably covers the
+    largest ladder rung (S$50,000-equivalent); the live book measured at
+    ~500 levels deep carries INR 1.8 trillion of notional on the ask side
+    alone, so 500 never truncates a real walk at this corridor's sizes.
+    """
+    sym = cfg["offramp"]["symbol"]
+    d = get_json(f"https://api.wazirx.com/sapi/v1/depth?symbol={sym}&limit=500")
     bids = sorted(norm_levels(d.get("bids")), key=lambda x: x[0], reverse=True)
     return {"bids": bids}
 
@@ -707,6 +1020,42 @@ def append_waterfall(rows, path=WATERFALL_SIDECAR):
     return path
 
 
+RAMP_WATERFALL_SIDECAR = os.path.join(HERE, "data", "ramp_waterfall.csv")
+RAMP_WATERFALL_FIELDS = [
+    "ts", "corridor", "notional_src", "wf_deposit_bps", "wf_withdrawal_bps",
+    "deposit_measured", "withdrawal_measured",
+]
+
+
+def append_ramp_waterfall(rows, path=RAMP_WATERFALL_SIDECAR):
+    """The two ramp legs (deposit into the on-ramp exchange, withdrawal out
+    of the off-ramp exchange), same sidecar pattern as WATERFALL_SIDECAR and
+    keyed the same way (ts + corridor + notional_src) so corridor.html can
+    join it against corridor_waterfall.csv's three legs with one lookup.
+
+    deposit_measured / withdrawal_measured carry the difference between "we
+    checked and it's free" and "we could not find a published fee" (a gap
+    contributes 0.0 bps here, same as a genuinely free rail, but the reader
+    -facing pages must say which -- see ramp_fee_units()'s own docstring).
+    """
+    wrows = [{"ts": r["ts"], "corridor": r["corridor"], "notional_src": r["notional_src"],
+              "wf_deposit_bps": r.get("wf_deposit_bps"),
+              "wf_withdrawal_bps": r.get("wf_withdrawal_bps"),
+              "deposit_measured": r.get("ramp_deposit_measured"),
+              "withdrawal_measured": r.get("ramp_withdrawal_measured")}
+             for r in rows if r.get("wf_deposit_bps") is not None]
+    if not wrows:
+        return None
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=RAMP_WATERFALL_FIELDS)
+        if new:
+            w.writeheader()
+        w.writerows(wrows)
+    return path
+
+
 def append_providers(prows, path=PROVIDERS):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     new = not os.path.exists(path)
@@ -805,6 +1154,29 @@ BITSO_FIXTURE = {"payload": {"bids": [
     {"book": "usdt_mxn", "price": "17.047", "amount": "9642.67"}]}}
 MIDS_FIXTURE_MXN = {"src_per_usd": 1.0, "dst_per_usd": 17.060644}
 
+# Corridors 5/6/7 (2026-09-29, SOURCES-2): Luno (Nigeria) and WazirX (India)
+# payloads, captured live 2026-09-29. Luno's levels are {"price","volume"}
+# dicts -- norm_levels's native dict shape, no reshaping needed, unlike
+# Bitso's "amount" key above. WazirX's are [price, quantity] string-array
+# pairs -- norm_levels's other native shape, same as Independent Reserve's.
+LUNO_FIXTURE = {"asks": [
+    {"price": "1373.0001", "volume": "6002.34"},
+    {"price": "1373.0001", "volume": "374.40"},
+    {"price": "1373.0001", "volume": "3000.00"}],
+    "bids": [
+    {"price": "1373.0000", "volume": "8550.09"},
+    {"price": "1373.0000", "volume": "3000.00"},
+    {"price": "1372.0339", "volume": "5655.01"}]}
+WAZIRX_DEPTH_FIXTURE = {"asks": [
+    ["101.00", "1622.91"], ["101.07", "93.1"], ["101.1", "49.0"],
+    ["101.25", "15.49"], ["101.56", "10.08"]],
+    "bids": [
+    ["100.26", "36.2"], ["100.23", "598.62"], ["100.22", "1147.98"],
+    ["100.21", "48.45"], ["100.20", "1500.0"]]}
+MIDS_FIXTURE_NGN = {"src_per_usd": 1.0, "dst_per_usd": 1329.375909}
+MIDS_FIXTURE_INR = {"src_per_usd": 1.0, "dst_per_usd": 96.069945}
+MIDS_FIXTURE_SGD_INR = {"src_per_usd": 1.277664, "dst_per_usd": 96.069945}
+
 
 def selftest():
     cfg = CORRIDORS["SGD->PHP"]
@@ -839,18 +1211,26 @@ def selftest():
           f"{d['cost_bps_maker']:.1f} bps -- {gap:.1f} bps apart (Coins "
           f"maker/taker spread); both lose to ~66 bps Wise")
 
-    # The waterfall's three bars must reconcile to the taker total EXACTLY, to
-    # the cent -- not approximately. (This replaces an earlier version of this
-    # test that only checked the independently-summed basis+fee legs landed
-    # within 1.5 bps of the total; that ~1.5 bps gap was real, was the
-    # corridor.html reader-visible bug it looks like, and is the reason
-    # wf_buy_bps/wf_move_bps/wf_sell_bps exist -- a sequential decomposition of
-    # the same chain decompose() already walks, not a second, parallel one.)
-    wf_sum = d["wf_buy_bps"] + d["wf_move_bps"] + d["wf_sell_bps"]
+    # The waterfall's five bars (deposit, buy, move, sell, withdrawal) must
+    # reconcile to the taker total EXACTLY, to the cent -- not approximately.
+    # (This replaces an earlier version of this test that only checked the
+    # independently-summed basis+fee legs landed within 1.5 bps of the total;
+    # that ~1.5 bps gap was real, was the corridor.html reader-visible bug it
+    # looks like, and is the reason wf_buy_bps/wf_move_bps/wf_sell_bps exist --
+    # a sequential decomposition of the same chain decompose() already walks,
+    # not a second, parallel one. wf_deposit_bps/wf_withdrawal_bps extend the
+    # same chain to the two ramp legs; both are 0.00 here because SGD->PHP's
+    # ramp fees are verified-free on both sides -- see the "deposit"/
+    # "withdrawal" configs in CORRIDORS.)
+    assert abs(d["wf_deposit_bps"]) < 0.005, d["wf_deposit_bps"]
+    wf_sum = (d["wf_deposit_bps"] + d["wf_buy_bps"] + d["wf_move_bps"]
+              + d["wf_sell_bps"] + d["wf_withdrawal_bps"])
     assert abs(wf_sum - d["cost_bps_taker"]) < 0.005, (wf_sum, d["cost_bps_taker"])
-    print(f"  [ok] waterfall reconciles exactly: {d['wf_buy_bps']:.2f} + "
-          f"{d['wf_move_bps']:.2f} + {d['wf_sell_bps']:.2f} = {wf_sum:.2f} == "
-          f"{d['cost_bps_taker']:.2f} bps")
+    print(f"  [ok] waterfall reconciles exactly: {d['wf_deposit_bps']:.2f} + "
+          f"{d['wf_buy_bps']:.2f} + {d['wf_move_bps']:.2f} + "
+          f"{d['wf_sell_bps']:.2f} + {d['wf_withdrawal_bps']:.2f} = "
+          f"{wf_sum:.2f} == {d['cost_bps_taker']:.2f} bps")
+    assert d["ramp_deposit_measured"] and d["ramp_withdrawal_measured"], d
 
     # small size: the flat network fee should dominate. At the real 4.0 USDT
     # withdrawal it is no longer merely large at S$200 -- it is the whole story.
@@ -877,7 +1257,15 @@ def selftest():
     assert dead["landed_taker"] == 0.0 and dead["onramp_top_ask"] is None
     print("  [ok] dead sources degrade to a recorded row, not an exception")
 
-    assert set(FIELDS) >= set(dead) | {"ts", "corridor", "source_ok", "errors"}
+    # wf_* and ramp_*_measured are sidecar-only fields (corridor_waterfall.csv,
+    # ramp_waterfall.csv) -- deliberately absent from FIELDS/samples.csv, whose
+    # header is frozen, so they are excluded here rather than added to it.
+    SIDECAR_ONLY = {
+        "wf_buy_bps", "wf_move_bps", "wf_sell_bps",
+        "wf_deposit_bps", "wf_withdrawal_bps",
+        "ramp_deposit_measured", "ramp_withdrawal_measured",
+    }
+    assert set(FIELDS) >= set(dead) - SIDECAR_ONLY | {"ts", "corridor", "source_ok", "errors"}
     print("  [ok] schema covers every derived field")
 
     # --- corridor 2: USD->MXN (Coinbase -> Bitso), real payloads 2026-08-19 ---
@@ -923,16 +1311,100 @@ def selftest():
 
     # Same exact reconciliation, second corridor, different size (1,000) and a
     # different fee shape (proportional Coinbase fee, not IR's flat one) --
-    # confirms the fix isn't tuned to one corridor's numbers.
-    wf_sum2 = d2["wf_buy_bps"] + d2["wf_move_bps"] + d2["wf_sell_bps"]
+    # confirms the fix isn't tuned to one corridor's numbers. USD->MXN's ramp
+    # fees are verified-free on both sides too (Coinbase ACH, Bitso SPEI).
+    assert abs(d2["wf_deposit_bps"]) < 0.005, d2["wf_deposit_bps"]
+    wf_sum2 = (d2["wf_deposit_bps"] + d2["wf_buy_bps"] + d2["wf_move_bps"]
+               + d2["wf_sell_bps"] + d2["wf_withdrawal_bps"])
     assert abs(wf_sum2 - d2["cost_bps_taker"]) < 0.005, (wf_sum2, d2["cost_bps_taker"])
     print(f"  [ok] corridor 2 waterfall reconciles exactly: {wf_sum2:.2f} == "
           f"{d2['cost_bps_taker']:.2f} bps")
+    assert d2["ramp_deposit_measured"] and d2["ramp_withdrawal_measured"], d2
+
+    # --- corridor 3: NZD->PHP's deposit leg is a deliberate GAP, not a zero.
+    # No published free NZD deposit method exists on Independent Reserve, so
+    # ramp_deposit_measured must be False and the deposit leg must contribute
+    # exactly 0.0 bps (never a guessed number) while the total cost is
+    # otherwise computed normally.
+    cfg3 = CORRIDORS["NZD->PHP"]
+    d3 = decompose(5000, on, off, MIDS_FIXTURE, cfg3)
+    assert d3["ramp_deposit_measured"] is False, d3["ramp_deposit_measured"]
+    assert d3["ramp_withdrawal_measured"] is True, d3["ramp_withdrawal_measured"]
+    assert abs(d3["wf_deposit_bps"]) < 0.005, d3["wf_deposit_bps"]
+    print("  [ok] NZD->PHP deposit leg recorded as an unmeasured gap (0 bps, "
+          "flagged), not a guessed fee")
 
     assert providers_path(cfg2).endswith("providers_usdmxn.csv")
     assert providers_path(CORRIDORS["SGD->PHP"]).endswith("providers.csv")
     print("  [ok] panel routing: corridor 2 -> providers_usdmxn.csv, "
           "corridor 1 -> providers.csv")
+
+    # --- corridors 5-7 (2026-09-29, SOURCES-2): USD->NGN, USD->INR,
+    # SGD->INR. Luno's payload is {"price","volume"} dicts -- norm_levels's
+    # native dict shape, the exact test Bitso's "amount" key exists to
+    # prove does NOT work by accident; WazirX's is [price, qty] arrays,
+    # the same shape Independent Reserve already uses. Neither venue needed
+    # a new parser -- this proves it, the same way corridor 2's test proved
+    # Coinbase/Bitso needed the reshaping they got.
+    on_cb = {"asks": sorted(norm_levels(COINBASE_FIXTURE["asks"]), key=lambda x: x[0])}
+    off_luno = {"bids": sorted(norm_levels(LUNO_FIXTURE["bids"]),
+                               key=lambda x: x[0], reverse=True)}
+    off_wazirx = {"bids": sorted(norm_levels(WAZIRX_DEPTH_FIXTURE["bids"]),
+                                 key=lambda x: x[0], reverse=True)}
+    assert off_luno["bids"][0] == (1373.0, 8550.09), off_luno["bids"][:1]
+    assert off_wazirx["bids"][0] == (100.26, 36.2), off_wazirx["bids"][:1]
+    print("  [ok] corridors 5-7 parsers: Luno {price,volume} dicts, WazirX "
+          "[price,qty] arrays -- both native norm_levels shapes, no reshaping")
+
+    cfg_ngn = CORRIDORS["USD->NGN"]
+    d_ngn = decompose(1000, on_cb, off_luno, MIDS_FIXTURE_NGN, cfg_ngn)
+    assert abs(d_ngn["mid_src_dst"] - 1329.3759) < 0.1, d_ngn["mid_src_dst"]
+    # USDT trades RICH to the official NGN rate on Luno in this fixture
+    # (1373 vs an official mid of 1329.38, a ~3.3% premium) -- Nigeria's
+    # banks will not sell dollars at the official rate, so a real premium
+    # here is the expected shape of the finding this corridor exists to
+    # show, not a bug. basis_bps_cost's sign convention makes that premium
+    # a GAIN (negative cost) on the sell leg, which is why cost_bps_taker
+    # comes out negative on this fixture -- a real, if fixture-sized, taste
+    # of the market this corridor was added to expose.
+    assert d_ngn["offramp_basis_bps"] < -300, d_ngn["offramp_basis_bps"]
+    # Luno's maker REBATE (-0.01%) must make maker cost_bps a touch BETTER
+    # (more negative / less positive) than taker, not worse -- the opposite
+    # of every other venue in this file, which is the whole point of
+    # modelling it as a negative fee instead of clamping it to zero.
+    assert d_ngn["cost_bps_maker"] < d_ngn["cost_bps_taker"], \
+        (d_ngn["cost_bps_maker"], d_ngn["cost_bps_taker"])
+    print(f"  [ok] corridor 5 (USD->NGN): mid {d_ngn['mid_src_dst']:.2f}, "
+          f"taker {d_ngn['cost_bps_taker']:.1f} bps, maker rebate makes "
+          f"maker {d_ngn['cost_bps_maker']:.1f} bps cheaper still")
+
+    cfg_inr = CORRIDORS["USD->INR"]
+    d_inr = decompose(1000, on_cb, off_wazirx, MIDS_FIXTURE_INR, cfg_inr)
+    assert abs(d_inr["mid_src_dst"] - 96.0699) < 0.01, d_inr["mid_src_dst"]
+    # WazirX's INR-market fee is flat (0.40% both regimes, no maker/taker
+    # split, same shape as Independent Reserve) -- taker and maker must
+    # differ ONLY by Coinbase's own 0.5bps onramp spread, not by anything
+    # on the offramp leg.
+    assert 0.4 < (d_inr["cost_bps_taker"] - d_inr["cost_bps_maker"]) < 0.6, \
+        (d_inr["cost_bps_taker"], d_inr["cost_bps_maker"])
+    print(f"  [ok] corridor 6 (USD->INR): mid {d_inr['mid_src_dst']:.2f}, "
+          f"taker {d_inr['cost_bps_taker']:.1f} bps, flat WazirX fee leaves "
+          f"only Coinbase's {d_inr['cost_bps_taker']-d_inr['cost_bps_maker']:.2f}"
+          f"bps taker/maker gap")
+
+    cfg_sgdinr = CORRIDORS["SGD->INR"]
+    on_ir = {"asks": sorted(norm_levels(IR_FIXTURE["SellOrders"]), key=lambda x: x[0])}
+    d_sgdinr = decompose(1000, on_ir, off_wazirx, MIDS_FIXTURE_SGD_INR, cfg_sgdinr)
+    assert cfg_sgdinr["network_fee_stable"] == CORRIDORS["SGD->PHP"]["network_fee_stable"] == 4.0
+    print(f"  [ok] corridor 7 (SGD->INR): mid {d_sgdinr['mid_src_dst']:.2f}, "
+          f"taker {d_sgdinr['cost_bps_taker']:.1f} bps -- reuses SGD->PHP's "
+          f"Independent Reserve onramp and its 4.0 USDT TRC20 network fee "
+          f"unchanged, only the offramp venue is new")
+
+    assert providers_path(cfg_ngn).endswith("providers_usdngn.csv")
+    assert providers_path(cfg_inr).endswith("providers_usdinr.csv")
+    assert providers_path(cfg_sgdinr).endswith("providers_sgdinr.csv")
+    print("  [ok] panel routing: corridors 5-7 each get their own providers_*.csv\n")
 
     # --- incumbent panel (data/providers.csv) ---
     WISE_FIXTURE = {"providers": [
@@ -1076,6 +1548,11 @@ def main():
             append_waterfall(rows)
         except Exception as e:
             print(f"  [warn] waterfall sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
+        # Same non-fatal shape: the ramp waterfall sidecar is supplementary too.
+        try:
+            append_ramp_waterfall(rows)
+        except Exception as e:
+            print(f"  [warn] ramp waterfall sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
 
     if a.json:
         print(json.dumps({"corridor": rows, "panel": prows}, indent=2, default=str))

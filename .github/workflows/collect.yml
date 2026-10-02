@@ -130,6 +130,19 @@ jobs:
         if: steps.needed.outputs.proceed == 'true'
         run: pip install -r requirements.txt
 
+      # SEB-139. `pip install` above only installs the playwright PYTHON
+      # PACKAGE (requirements.txt's own comment says so) -- it does not fetch
+      # the browser binary that package drives. Without this step every run
+      # since 2026-09-27 15:06 failed identically on WorldRemit's render path
+      # ("Executable doesn't exist at .../chrome-headless-shell..."), because
+      # collector_providers.py's ONE NARROW EXCEPTION (a headless render of
+      # WorldRemit's own calculator, see that file's HARD RULES) had nothing
+      # to launch. --with-deps also installs the OS libraries Chromium needs
+      # on a bare ubuntu-latest runner, not just the browser itself.
+      - name: Install Playwright browser (WorldRemit render path)
+        if: steps.needed.outputs.proceed == 'true'
+        run: playwright install --with-deps chromium
+
       # Two collectors, two layers, INDEPENDENT pass/fail. The basis step runs
       # even if the corridor step failed (always()), so one layer breaking never
       # hides the other -- but either one going red fails the whole job.
@@ -156,6 +169,27 @@ jobs:
       - name: Collect corridor sample NZD->PHP
         if: always() && steps.needed.outputs.proceed == 'true'
         run: python3 collector.py --corridor "NZD->PHP"
+
+      - name: Collect corridor sample USD->NGN
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # The premium-country corridor (SOURCES-2, 2026-09-29): Coinbase's
+        # own USD onramp, unchanged, paired with Luno's Nigeria order book
+        # and its own verified fee schedule -- a genuinely new fee source,
+        # not a reused one. always() so this going red never hides the
+        # other corridors, same rule as every step below it.
+        run: python3 collector.py --corridor "USD->NGN"
+
+      - name: Collect corridor sample USD->INR
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Same Coinbase onramp, WazirX's INR order book and its own
+        # verified fee schedule on the offramp.
+        run: python3 collector.py --corridor "USD->INR"
+
+      - name: Collect corridor sample SGD->INR
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Reuses SGD->PHP's Independent Reserve onramp and network fee
+        # unchanged; only the offramp (WazirX) is new.
+        run: python3 collector.py --corridor "SGD->INR"
 
       - name: Collect basis sample
         if: always() && steps.needed.outputs.proceed == 'true'
@@ -382,7 +416,9 @@ jobs:
           # its first row yet is a normal state, not a failure.
           for f in data/samples.csv data/basis.csv data/providers.csv \
                    data/providers_usdmxn.csv data/providers_audphp.csv \
-                   data/providers_nzdphp.csv data/latest.json \
+                   data/providers_nzdphp.csv \
+                   data/providers_usdngn.csv data/providers_usdinr.csv \
+                   data/providers_sgdinr.csv data/latest.json \
                    data/crosses_latest.json data/stable_spread.csv \
                    data/p2p_basis.csv data/p2p_sides.csv data/p2p_depth.csv \
                    data/p2p_offers.csv data/street_depth_latest.json \
@@ -558,10 +594,28 @@ jobs:
             exit 0
           fi
 
-          # A failed dispatch breaks the chain, so it must be LOUD: the run goes
-          # red, and the schedule's next fire finds no link alive and restarts.
-          # That is the whole recovery path, so it must never be swallowed.
-          gh workflow run collect.yml --ref main -f chain=true
+          # A failed dispatch breaks the chain, so it must be LOUD if every
+          # attempt below fails: the run goes red, and the schedule's next
+          # fire finds no link alive and restarts. That recovery path is
+          # real but slow and documented as unreliable (the schedule comment
+          # above measured ~26-74% delivery), so it is worth a few retries
+          # first rather than handing off on the first try. SEB-168: this
+          # exact call failed with "HTTP 504: We couldn't respond to your
+          # request in time" at 2026-09-30 03:05:12Z, killed the chain
+          # outright, and the restarter did not fire for 5+ hours after --
+          # the same transient-504 shape PR #271's body already flagged from
+          # 2026-09-29. A GitHub-side timeout, not a real block, so retrying
+          # before giving up costs nothing and fixes most of these in place.
+          attempt=1
+          until gh workflow run collect.yml --ref main -f chain=true; do
+            if [ "$attempt" -ge 3 ]; then
+              echo "::error::dispatch failed $attempt times in a row -- giving up, chain ends here"
+              exit 1
+            fi
+            echo "dispatch attempt $attempt failed, retrying in 10s"
+            attempt=$((attempt + 1))
+            sleep 10
+          done
           # `gh workflow run` prints no id, so read it back. Best effort only --
           # the dispatch is what matters and a slow-to-appear run must not fail
           # a step that already succeeded.

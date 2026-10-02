@@ -35,7 +35,13 @@ COPY = os.path.join(HERE, "copy.json")
 # false-positive rate for a gate that's meant to be strict, and none of
 # these words legitimately appear in a heading for an unrelated reason.
 BANNED = [
-    "fiat", "rail", "corridor", "route", "basis", "bps", "venue",
+    # "corridor" came off this list 2026-09-29 (SEB) -- it is now the plain
+    # accepted term for a sending pair, not jargon. See the ALLOWLIST note
+    # below for why "route" stays banned in headings despite the same
+    # reversal: this site still uses "route" in a second, different sense
+    # (the stablecoin *method*, "the stablecoin route costs...") that the
+    # ALLOWLIST carves out string by string, same mechanism as before.
+    "fiat", "rail", "route", "basis", "bps", "venue",
     "on-ramp", "off-ramp", "onramp", "offramp", "p2p", "parallel rate",
     "median", "decomposition", "spread", "liquidity", "maker", "taker",
     "vip tier", "measured hours", "pass", "collector", "withheld",

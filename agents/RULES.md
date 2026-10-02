@@ -21,11 +21,24 @@ These hold in every run, above anything else in this file or anywhere else.
 - **Every reader-facing string lives in the copy deck.** No visible text is
   written inline in a page. If a string is not in `copy.json`, it does not
   ship, and the reviewer fails the PR.
-- **Nothing reader-facing merges without Sebastian's approval.** When a change
-  alters what a person sees, the reviewer posts screenshots on the Linear issue
-  and **stops**. It does not merge. Sebastian says yes, in his own words, or it
-  waits. This overrides the older behaviour of merging page changes and
-  labelling them for a morning look.
+- **Reader-facing changes merge on the reviewer's own verification**, the same
+  as backend changes. Sebastian is not in this loop for routine work and must
+  not be asked (2026-10-01, Sebastian: "I am not gonna sit and review your
+  code... I am greenlighting everything and trust the agents"). This replaces
+  the older rule that every visible change waited for him.
+- **A genuinely big change gets a second opinion from Opus before it merges,
+  not a stop-and-wait for Sebastian.** "Big" means the change does one of
+  these, not merely that a pixel moved:
+  - changes what a published number means or how it is computed (touches
+    `METHODOLOGY.md` or an invariant in `ROADMAP.md`'s `## Invariants`)
+  - removes or restructures a page, chart, or data detail, rather than adding
+    to one (see `VISION.md` — this was already the bar for deletion)
+  - touches money, a credential, or an account only Sebastian holds (already
+    covered below, unchanged)
+  - restructures most of the site at once, rather than one page or feature
+  A color, a copy fix, a layout bug, a new corridor built the established way,
+  or a normal feature off the roadmap is not big. See `REVIEWER.md`, "The Opus
+  check," for exactly how to run it.
 - **No new running cost without a number stated first.** Anything that spends
   money — a model call, storage, bandwidth, a paid source — states in the PR
   what it will cost per month, how that was calculated, and what the ceiling is,
@@ -96,11 +109,16 @@ of waiting.
 1. **A credential or account only he holds** — an API key, a DNS record, a
    payment method, an account he must create.
 2. **A payment** — anything that spends money.
-3. **Approval of something reader-facing** — a page a person sees.
+3. **The Opus check on a big change came back no-go, or raised something a
+   reviewer can't resolve itself** — not routine disagreement, a genuine
+   factual, safety, or methodology concern (RULES.md above, `REVIEWER.md`).
+
+Routine reader-facing approval is off this bar (2026-10-01) — a reader-facing
+PR that passes review, and the Opus check if it's big, merges without him.
 
 **It must name the exact action and what it unblocks.** "Needs Sebastian" on its
 own is not an escalation, it is a shrug. Write the command to run, the link to
-click, or the screenshot to approve, and say what starts moving once he does it.
+click, or what the Opus check said, and say what starts moving once he does it.
 
 **Everything else the product agent decides itself** and records the decision on
 the issue, in its own name, so the reasoning is readable six weeks later.

@@ -155,16 +155,22 @@ def build_window(doc):
     return out
 
 
-def sub_html(home_copy, n_countries):
+def sub_html(home_copy, n_countries, n_corridors=None):
     """The plain, fixed sub sentence (copy.json home.headlineSub), with its
-    one real count -- how many countries we price a street dollar in --
-    filled in live from data/index_latest.json, never typed. The sentence
-    itself carries a real <a> to how-it-works.html, so this is NOT html-
-    escaped as a whole (only the numeric substitution would need it, and a
-    plain digit string never needs escaping).
+    two real counts -- how many corridors are tracked, and how many
+    countries we price a street dollar in -- filled in live from
+    data/corridor_summary.json and data/index_latest.json, never typed.
+    "4 corridors" sat hardcoded in copy.json's own template until the
+    2026-09-29 SOURCES-2 batch took the real count to 7 and the sentence
+    went stale the moment it shipped -- {n_corridors} closes that the same
+    way {n_countries} already worked. The sentence itself carries a real
+    <a> to how-it-works.html, so this is NOT html-escaped as a whole (only
+    the numeric substitutions would need it, and a plain digit string never
+    needs escaping).
     """
     tmpl = home_copy.get("headlineSub", "")
-    return tmpl.replace("{n_countries}", str(n_countries) if n_countries is not None else "")
+    tmpl = tmpl.replace("{n_countries}", str(n_countries) if n_countries is not None else "")
+    return tmpl.replace("{n_corridors}", str(n_corridors) if n_corridors is not None else "")
 
 
 def load_index_latest():
@@ -286,6 +292,15 @@ PINNED_PHRASE_ORDER = {"PHP": 0, "MXN": 1}
 # (index.html's own JS) because this is a plain-language finding about a
 # whole country, not a per-hour sign check.
 PAR_EPSILON = 0.15
+# The header states "at the official rate" precisely (PAR_EPSILON above);
+# the why-sentence below makes a broader, structural claim about these two
+# corridors -- a normal app already gets a fair rate there, so a stablecoin
+# has nothing to beat -- not a per-hour sign check, so it uses countries.
+# html's own "near official rate" threshold (SMALL_GAP=2) instead. Tying it
+# to the header's tighter epsilon meant an ordinary hour where a pinned
+# country's gap ticked from 0.14% to 0.17% silently deleted the one
+# sentence connecting the two halves of the home page (SEB, 2026-09-29).
+PAR_EPSILON_WHY = 2.0
 
 
 def join_and(names):
@@ -298,6 +313,12 @@ def join_and(names):
 
 def find_pinned_at_par(rows_in):
     out = [c for c in rows_in if c.get("ccy") in PINNED_CCY and abs(c.get("gap_pct", 0.0)) < PAR_EPSILON]
+    out.sort(key=lambda c: PINNED_PHRASE_ORDER.get(c.get("ccy"), 99))
+    return out
+
+
+def find_pinned_near_par(rows_in):
+    out = [c for c in rows_in if c.get("ccy") in PINNED_CCY and abs(c.get("gap_pct", 0.0)) < PAR_EPSILON_WHY]
     out.sort(key=lambda c: PINNED_PHRASE_ORDER.get(c.get("ccy"), 99))
     return out
 
@@ -337,7 +358,7 @@ def country_why_html(rows_in, home_copy, street_depth):
     street_depth_latest.json, tools/emit's own per-currency depth-of-book
     read) for the widest one, when that file has an entry for it.
     """
-    pinned = find_pinned_at_par(rows_in)
+    pinned = find_pinned_near_par(rows_in)
     widest = find_widest_managed(rows_in)
     text = ""
     if pinned:
@@ -414,7 +435,7 @@ def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth
     pin_rows = ""
     for c in pins:
         n = dest_counts.get(c.get("ccy"), 0)
-        land = f"where {n} of our routes land" if n != 1 else "where 1 of our routes lands"
+        land = f"where {n} of our corridors land" if n != 1 else "where 1 of our corridors lands"
         pin_rows += ('<a class="crow low" href="./country.html?ccy=' + esc(c.get("ccy", "")) + '">'
                      '<span class="cname">' + esc(name(c)) + '</span>'
                      '<span class="cbar"><i style="width:0"></i><b style="left:0">'
@@ -486,11 +507,11 @@ def duel_html(corridors, home_copy, rung):
             others.append(SRC_NAME.get(other_src, other_src))
     if others:
         same_result = (home_copy.get("duelSameResultTemplate",
-            'Same result from {others}. <a href="./sending-money.html">All routes and providers →</a>')
+            'Same result from {others}. <a href="./sending-money.html">All corridors and providers →</a>')
             .replace("{others}", esc(join_and(others))))
     else:
         same_result = ('<a href="./sending-money.html">'
-                        + esc(home_copy.get("everyProviderLink", "All routes and providers →")) + "</a>")
+                        + esc(home_copy.get("everyProviderLink", "All corridors and providers →")) + "</a>")
     return (
         '<div class="duel">'
         '<div><div class="big p">' + pct(stable_bps) + '</div><div class="lab">'
@@ -555,7 +576,8 @@ def main():
     changed = changed or ok1
 
     n_countries = (len((idx_doc_for_sub := load_index_latest() or {}).get("countries") or []) + len(idx_doc_for_sub.get("withheld") or [])) or None
-    html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, n_countries))
+    n_corridors = len(doc["corridors"]) or None
+    html, ok2 = replace_by_marker(html, "heroSub", sub_html(home_copy, n_countries, n_corridors))
     changed = changed or ok2
 
     rung = doc.get("rung", 5000)

@@ -33,10 +33,12 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
 SAMPLES = os.path.join(DATA, "samples.csv")
 PROVIDERS_LATEST = os.path.join(DATA, "providers_latest.json")
+RAMP_WATERFALL = os.path.join(DATA, "ramp_waterfall.csv")
 OUT = os.path.join(DATA, "corridor_summary.json")
 
 RUNG = "5000"
-CORRIDORS = ["SGD->PHP", "AUD->PHP", "NZD->PHP", "USD->MXN"]
+CORRIDORS = ["SGD->PHP", "AUD->PHP", "NZD->PHP", "USD->MXN",
+             "USD->NGN", "USD->INR", "SGD->INR"]
 WATERFALL_CORRIDOR = "SGD->PHP"
 
 
@@ -87,18 +89,37 @@ def corridor_stats(rows, corridor):
     }
 
 
-def waterfall(rows, corridor, route_words=None):
-    """Median of each real decomposition term, at the RUNG size, taker
-    regime -- the same five-term arithmetic README.md's headline cites,
-    not re-derived, just reported as the historical median.
+def load_ramp_waterfall():
+    """ts+corridor+notional_src -> ramp_waterfall.csv row, same join key
+    corridor.html already uses for corridor_waterfall.csv. Missing file (a
+    corridor's first hour after this shipped) is not fatal -- the ramp
+    fields just stay at 0/unmeasured below, same as any other sidecar this
+    site treats as optional.
     """
+    if not os.path.exists(RAMP_WATERFALL):
+        return {}
+    by_key = {}
+    with open(RAMP_WATERFALL) as f:
+        for r in csv.DictReader(f):
+            by_key[(r["ts"], r["corridor"], r["notional_src"])] = r
+    return by_key
+
+
+def waterfall(rows, corridor, route_words=None, ramp_by_key=None):
+    """Median of each real decomposition term, at the RUNG size, taker
+    regime -- the same seven-term arithmetic README.md's headline cites
+    (the five exchange-side legs plus the two ramp legs), not re-derived,
+    just reported as the historical median.
+    """
+    ramp_by_key = ramp_by_key or {}
     cr = [r for r in rows if r["corridor"] == corridor and r["source_ok"] == "True"
           and r.get("notional_src") == RUNG]
     terms = {
         "onramp_basis_bps": [], "fee_on_taker_bps": [], "network_fee_bps": [],
         "offramp_basis_bps": [], "fee_off_taker_bps": [], "cost_bps_taker": [],
-        "baseline_cost_bps": [],
+        "baseline_cost_bps": [], "deposit_fee_bps": [], "withdrawal_fee_bps": [],
     }
+    deposit_measured = withdrawal_measured = None
     for r in cr:
         for key in ("onramp_basis_bps", "fee_on_taker_bps", "offramp_basis_bps",
                     "fee_off_taker_bps", "cost_bps_taker", "baseline_cost_bps"):
@@ -117,20 +138,48 @@ def waterfall(rows, corridor, route_words=None):
             gross = notional / on_vwap
             if gross:
                 terms["network_fee_bps"].append(round(netfee / gross * 1e4, 4))
+        # The ramp legs join on the exact same key corridor.html already uses
+        # for corridor_waterfall.csv -- ts + corridor + notional_src.
+        rw = ramp_by_key.get((r.get("ts"), r.get("corridor"), r.get("notional_src")))
+        if rw:
+            dep, wd = _float(rw, "wf_deposit_bps"), _float(rw, "wf_withdrawal_bps")
+            if dep is not None:
+                terms["deposit_fee_bps"].append(dep)
+            if wd is not None:
+                terms["withdrawal_fee_bps"].append(wd)
+            # Measured/gap is a property of the CORRIDOR's config, constant
+            # across every row -- so the last row read decides it, same as
+            # any other constant-per-corridor field here.
+            if rw.get("deposit_measured") is not None:
+                deposit_measured = rw["deposit_measured"] == "True"
+            if rw.get("withdrawal_measured") is not None:
+                withdrawal_measured = rw["withdrawal_measured"] == "True"
     if not terms["cost_bps_taker"]:
         return None
+    # Venue names are constant per corridor in practice (one exchange pairs
+    # with one currency), so the most recent row's venue is as good as any
+    # -- this is only for citing where a real S$0.00 leg is free, not a
+    # figure anything is computed from.
+    onramp_venue = cr[-1].get("onramp_venue") if cr else None
+    offramp_venue = cr[-1].get("offramp_venue") if cr else None
     return {
         "corridor": corridor,
         "route_words": route_words or corridor,
         "rung_src": int(RUNG),
         "n": len(terms["cost_bps_taker"]),
+        "deposit_fee_bps": median(terms["deposit_fee_bps"]) or 0.0,
         "onramp_basis_bps": median(terms["onramp_basis_bps"]),
         "onramp_fee_bps": median(terms["fee_on_taker_bps"]),
         "network_fee_bps": median(terms["network_fee_bps"]),
         "offramp_basis_bps": median(terms["offramp_basis_bps"]),
         "offramp_fee_bps": median(terms["fee_off_taker_bps"]),
+        "withdrawal_fee_bps": median(terms["withdrawal_fee_bps"]) or 0.0,
         "total_cost_bps": median(terms["cost_bps_taker"]),
         "baseline_cost_bps": median(terms["baseline_cost_bps"]),
+        "deposit_measured": deposit_measured,
+        "withdrawal_measured": withdrawal_measured,
+        "onramp_venue": onramp_venue,
+        "offramp_venue": offramp_venue,
     }
 
 
@@ -189,7 +238,8 @@ def build():
             "corridors_losing_almost_always": len(losing),
             "corridors_competitive": [c["corridor"] for c in competitive],
         },
-        "waterfall": waterfall(rows, WATERFALL_CORRIDOR, route_words.get(WATERFALL_CORRIDOR)),
+        "waterfall": waterfall(rows, WATERFALL_CORRIDOR, route_words.get(WATERFALL_CORRIDOR),
+                                load_ramp_waterfall()),
         "corridors": corridor_rows,
         "source": ["data/samples.csv", "data/providers_latest.json"],
     }

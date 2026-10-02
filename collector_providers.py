@@ -311,10 +311,16 @@ INSTAREM_ACCOUNT = {
     "SGD->PHP": ("SG", "93"),
     "AUD->PHP": ("AU", "135"),
 }
+# USD->NGN, USD->INR, SGD->INR (2026-09-29, SOURCES-2 corridors) have no
+# entry here -- the account id is per SOURCE country, and neither the US nor
+# a second SG account has been read from Instarem's own pages the way SG/AU
+# were. Left blank rather than guessed, same rule as NZ/US above.
 
 CORRIDOR_CCY = {
     "SGD->PHP": ("SGD", "PHP"), "AUD->PHP": ("AUD", "PHP"),
     "NZD->PHP": ("NZD", "PHP"), "USD->MXN": ("USD", "MXN"),
+    "USD->NGN": ("USD", "NGN"), "USD->INR": ("USD", "INR"),
+    "SGD->INR": ("SGD", "INR"),
 }
 
 # WorldRemit's own per-country calculator page, checked live 2026-09-27 --

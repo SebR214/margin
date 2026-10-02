@@ -1,56 +1,89 @@
 {
   "corridors": [
     {
-      "baseline_cost_bps_median": 45.06,
+      "baseline_cost_bps_median": 44.87,
       "corridor": "SGD->PHP",
-      "maker_cost_bps_median": 82.6,
-      "n": 981,
+      "maker_cost_bps_median": 84.42,
+      "n": 1050,
       "route_words": "Singapore to the Philippines",
-      "taker_cost_bps_median": 87.56,
+      "taker_cost_bps_median": 89.38,
       "win_rate_maker_pct": 0.0,
       "win_rate_taker_pct": 0.0
     },
     {
-      "baseline_cost_bps_median": 62.91,
+      "baseline_cost_bps_median": 64.77,
       "corridor": "AUD->PHP",
-      "maker_cost_bps_median": 96.62,
-      "n": 422,
+      "maker_cost_bps_median": 102.31,
+      "n": 491,
       "route_words": "Australia to the Philippines",
-      "taker_cost_bps_median": 101.57,
+      "taker_cost_bps_median": 107.26,
       "win_rate_maker_pct": 0.0,
       "win_rate_taker_pct": 0.0
     },
     {
-      "baseline_cost_bps_median": 67.87,
+      "baseline_cost_bps_median": 67.23,
       "corridor": "NZD->PHP",
-      "maker_cost_bps_median": 105.66,
-      "n": 422,
+      "maker_cost_bps_median": 110.43,
+      "n": 491,
       "route_words": "New Zealand to the Philippines",
-      "taker_cost_bps_median": 110.61,
-      "win_rate_maker_pct": 4.0,
-      "win_rate_taker_pct": 2.6
+      "taker_cost_bps_median": 115.38,
+      "win_rate_maker_pct": 3.5,
+      "win_rate_taker_pct": 2.2
     },
     {
-      "baseline_cost_bps_median": 54.48,
+      "baseline_cost_bps_median": 54.27,
       "corridor": "USD->MXN",
-      "maker_cost_bps_median": 57.95,
-      "n": 812,
+      "maker_cost_bps_median": 56.91,
+      "n": 881,
       "route_words": "the United States to Mexico",
-      "taker_cost_bps_median": 76.45,
-      "win_rate_maker_pct": 42.9,
+      "taker_cost_bps_median": 75.41,
+      "win_rate_maker_pct": 40.9,
       "win_rate_taker_pct": 0.2
+    },
+    {
+      "baseline_cost_bps_median": -210.19,
+      "corridor": "USD->NGN",
+      "maker_cost_bps_median": -305.9,
+      "n": 66,
+      "route_words": "the United States to Nigeria",
+      "taker_cost_bps_median": -294.05,
+      "win_rate_maker_pct": 100.0,
+      "win_rate_taker_pct": 100.0
+    },
+    {
+      "baseline_cost_bps_median": 32.34,
+      "corridor": "USD->INR",
+      "maker_cost_bps_median": -351.25,
+      "n": 66,
+      "route_words": "the United States to India",
+      "taker_cost_bps_median": -350.73,
+      "win_rate_maker_pct": 100.0,
+      "win_rate_taker_pct": 100.0
+    },
+    {
+      "baseline_cost_bps_median": 42.52,
+      "corridor": "SGD->INR",
+      "maker_cost_bps_median": -234.29,
+      "n": 66,
+      "route_words": "Singapore to India",
+      "taker_cost_bps_median": -234.29,
+      "win_rate_maker_pct": 100.0,
+      "win_rate_taker_pct": 100.0
     }
   ],
   "headline": {
     "corridors_competitive": [
-      "USD->MXN"
+      "USD->MXN",
+      "USD->NGN",
+      "USD->INR",
+      "SGD->INR"
     ],
     "corridors_losing_almost_always": 3,
-    "corridors_measured": 4,
-    "loss_rate_pct": 99.4,
-    "n_hours_measured": 1825,
+    "corridors_measured": 7,
+    "loss_rate_pct": 99.5,
+    "n_hours_measured": 2032,
     "n_hours_stablecoin_won": 11,
-    "text": "Stablecoins lost to the best fiat provider in 99.4% of measured hours on 3 of 4 routes. The rail is nearly free. The doors are not."
+    "text": "Stablecoins lost to the best fiat provider in 99.5% of measured hours on 3 of 7 routes. The rail is nearly free. The doors are not."
   },
   "rung": 5000,
   "source": [
@@ -59,16 +92,22 @@
   ],
   "status": "ok",
   "waterfall": {
-    "baseline_cost_bps": 45.06,
+    "baseline_cost_bps": 44.87,
     "corridor": "SGD->PHP",
-    "n": 981,
-    "network_fee_bps": 10.1639,
-    "offramp_basis_bps": 7.79,
+    "deposit_fee_bps": 0.0,
+    "deposit_measured": true,
+    "n": 1050,
+    "network_fee_bps": 10.1664,
+    "offramp_basis_bps": 6.7,
     "offramp_fee_bps": 15.0,
-    "onramp_basis_bps": 3.15,
+    "offramp_venue": "Coins.ph",
+    "onramp_basis_bps": 4.85,
     "onramp_fee_bps": 50.0,
+    "onramp_venue": "IndependentReserve",
     "route_words": "Singapore to the Philippines",
     "rung_src": 5000,
-    "total_cost_bps": 87.56
+    "total_cost_bps": 89.38,
+    "withdrawal_fee_bps": 0.0,
+    "withdrawal_measured": true
   }
 }

@@ -83,7 +83,15 @@ header.mwh nav::-webkit-scrollbar{display:none}
 header.mwh nav a{font-family:'Archivo',system-ui,sans-serif!important;font-size:15px!important;font-weight:500!important;color:#6B6B6B!important;text-decoration:none!important;padding:10px 0!important;margin:0!important;white-space:nowrap!important;border:0!important;background:none!important}
 header.mwh nav a.active{color:#0B0B0B!important;font-weight:600!important}
 header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
-@media (max-width:620px){header.mwh{height:56px!important;margin-bottom:24px!important}header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}header.mwh nav{gap:16px!important;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}header.mwh nav a{padding:12px 0!important}}
+header.mwh .nav-toggle{display:none!important;background:none!important;border:0!important;font-size:20px!important;cursor:pointer!important;padding:6px 8px!important;color:#0B0B0B!important;line-height:1!important;font-family:inherit!important}
+@media (max-width:620px){
+  header.mwh{height:56px!important;margin-bottom:24px!important;position:relative!important}
+  header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}
+  header.mwh nav{display:none!important;position:absolute!important;top:100%!important;left:0!important;right:0!important;flex-direction:column!important;gap:0!important;background:#fff!important;padding:6px 24px 16px!important;border-bottom:1px solid #F0F0F0!important;box-shadow:0 8px 16px rgba(11,11,11,0.06)!important;z-index:30!important;overflow:visible!important;mask-image:none!important;-webkit-mask-image:none!important}
+  header.mwh nav.open{display:flex!important}
+  header.mwh nav a{padding:12px 0!important;border-bottom:1px solid #F6F6F6!important;font-size:16px!important}
+  header.mwh .nav-toggle{display:block!important}
+}
 </style>
 <style id="mw-type">
 h1{font-family:'Archivo',system-ui,sans-serif!important;font-size:28px!important;font-weight:800!important;line-height:1.22!important;letter-spacing:-0.02em!important;color:#0B0B0B!important;margin-top:0!important;margin-bottom:10px!important}
@@ -100,7 +108,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         <a href="./countries.html">Countries</a>
         <a href="./how-it-works.html">How it works</a>
         <a href="./how-it-was-built.html">How it was built</a>
-      </nav></header>
+      </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button></header>
 
   <a class="back" href="./countries.html">&larr; All countries</a>
 
@@ -114,6 +122,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 <script>
 (function(){
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function T(s, vals){
+    var out = String(s || '');
+    for (var k in (vals || {})) out = out.split('{' + k + '}').join(vals[k]);
+    return out;
+  }
   var PAR_EPSILON = 0.05;
 
   // Same phrasing family as countries.html/home's headline sentence, but
@@ -229,9 +242,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   Promise.all([
     fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()),
     fetch('./data/latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-    fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+    fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
   ]).then(function(res){
     var idx = res[0], raw = res[1], depthDoc = res[2];
+    var COPY = (res[3] || {}).country || {};
 
     var country = (idx.countries || []).find(function(c){ return c.ccy === ccy; });
     var withheld = (idx.withheld || []).find(function(w){ return w.ccy === ccy; });
@@ -265,8 +280,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var sinceLabel = dates.length ? shortDate(dates[0]) : null;
 
     var html = '<h1 class="num">' + esc(country.country) + ': a dollar ' + gapPhrase(headlinePct) + '</h1>' +
-      '<p class="lead">What people pay for USDT on Binance P2P in ' + esc(country.country) +
-      ', compared with the official rate.</p>' +
+      '<p class="lead">' + esc(T(COPY.leadTemplate || 'What people pay for a stablecoin on Binance P2P in {country}, compared with the official rate.',
+        {country: country.country})) + '</p>' +
       '<p class="meta"><span class="dot"></span>Checked ' + esc(shortTime(country.hour_utc)) + ' &middot; median of the last 24 hours</p>';
 
     var p2p = raw && raw.p2p && raw.p2p[ccy];
@@ -311,7 +326,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       var ratio = (p2p.buy_median / p2p.fx_mid_per_usd);
       html += '<section><h2 class="num">How we get ' + signedPct(headlinePct) + ', in four steps</h2>' +
         '<ol class="steps">' +
-        '<li>We read the ' + nAds + ' cheapest ads selling USDT for ' + esc(ccy) + ' on Binance P2P. The middle price is <b class="num">' +
+        '<li>' + esc(T(COPY.adsStepTemplate || 'We read the {n} cheapest ads selling stablecoin for {ccy} on Binance P2P.',
+          {n: nAds, ccy: ccy})) + ' The middle price is <b class="num">' +
           p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar.<small><code>data/p2p_basis.csv</code></small></li>' +
         '<li>We read ' + esc(country.country) + "'s official rate at the same time: <b class=\"num\">" +
           p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar.<small><code>data/fx_rates.csv</code> &middot; this source updates once a day</small></li>' +
@@ -341,6 +357,18 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   }).catch(function(){
     document.getElementById('main').innerHTML = '<div class="notfound" style="color:var(--ink)">Could not load this country\'s data. That failure is shown, not hidden.</div>';
   });
+})();
+</script>
+<script>
+(function(){
+  var btn = document.getElementById('navToggle');
+  var nav = document.querySelector('header nav');
+  if (btn && nav) {
+    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
+    document.addEventListener('click', function(e){
+      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
+    });
+  }
 })();
 </script>
 </body>
