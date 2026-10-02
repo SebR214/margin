@@ -221,6 +221,21 @@ by widening it. Ahead of 1–6 below: see "collection breadth and reliability
 beat new features" in `## Invariants`. Acceptance: a new field shows up in the
 relevant hourly sample within a week of being specified on an issue.
 
+**0.1. Route variants per corridor (added 2026-10-02).** A corridor today
+prices one stablecoin path. Price every variant that genuinely exists instead:
+every chain both venues actually support (Tron, Polygon, Solana, where real —
+never invented), USDC beside USDT wherever both books exist, and a second
+on/off-ramp venue wherever a real book exists for it. Each variant is its own
+append-only series at the five ladder amounts — a new row shape, never a
+rewrite of history. `corridor.html`'s headline becomes the cheapest variant
+this hour, stated as "cheapest of N stablecoin routes we price," with every
+variant listed below it — the headline changing is downstream of the pricing
+existing, not a separate redesign. One variant ships per day, same cadence as
+the rest of this item's breadth work, starting from SGD→PHP. Acceptance: a
+new variant appears, fully priced at all five amounts, in the relevant
+corridor's hourly sample within a day of being specified; the headline cites
+the correct N and cheapest variant for that hour.
+
 **0.5. Evidence infrastructure — before any research feature below.** Every
 number the site publishes traces, automatically, from the rendered page to its
 JSON to the calculation to the source observations behind it — not just "the
@@ -284,15 +299,37 @@ Question in; a read-only agent investigates using a whitelisted toolset
 its evidence, a conclusion and its limitations. Gated on 0.5 above — nothing
 here starts before every number it could cite is independently traceable.
 Acceptance: of five test questions, the one genuinely unanswerable from the
-data is answered "not enough evidence," not guessed at; ships only after two
-findings survive Sebastian reading them. This is item 5's "findings pages,"
-specified.
+data is answered "not enough evidence," not guessed at. **Ships only once two
+findings survive human review, are stored as durable objects, and a later,
+separate investigation retrieves and uses at least one of them as prior
+evidence (gate changed 2026-10-02)** — the test is the system compounding,
+not the agent writing well twice. This is item 5's "findings pages," specified.
 
 **Reserved, not built: findings as a graph.** Once item 9 is shipped and has
 real findings on it, give findings relations to each other — supports,
 contradicts, follow-up — so a future planning pass can ask what the site
 doesn't understand yet, not only what changed. Not scoped, not queued; written
 down here so it is not re-invented from nothing later.
+
+**10. The feedback loop — research tells the collector what to gather next
+(added 2026-10-02).** Gated on item 9 above; nothing here runs before there
+are real investigations to draw from. When an investigation concludes "can't
+explain without data X" — a named field, source or corridor the item-9
+toolset doesn't have — that gap becomes a collection-queue item (item 0's
+kind of work) automatically, not a note someone has to notice and re-type by
+hand. Acceptance: a logged "insufficient evidence, missing X" finding
+produces a corresponding queue entry in the same run, naming X and the
+finding that raised it, with no human step in between.
+
+**11. Machine room — the research-corpus block (added 2026-10-02).** Gated on
+item 9 above. `how-it-was-built.html` gains a block alongside its existing
+collection meters: observations, routes and countries covered, findings,
+hypotheses tested and rejected, active investigations, unresolved questions,
+and evidence chains. Every count is derived live from the actual stored
+objects at render time — never a tallied figure kept separately — so a count
+can never disagree with the corpus it describes, the same rule
+`agent_status.json`'s other meters already follow. No new collector; this
+reads what items 9 and 10 already write.
 
 Already shipped and not listed again: **K** (pricing history,
 [#50](https://github.com/SebR214/margin/pull/50)). In flight when this vision
@@ -1066,6 +1103,16 @@ All five merged the same day. SHAs are the squashed merge commits on `main`.
 ---
 
 ## Invariants — do not regress these
+
+**Research compounding is the primary objective (added 2026-10-02).** Every
+feature either grows the quality, breadth, depth or persistence of the
+research corpus — the observations, routes, countries, findings, hypotheses
+and evidence chains this site accumulates — or improves the system's own
+ability to generate, verify, retrieve or build on that corpus. Presentation
+and interaction features are secondary unless they serve one of those. This
+is the standard everything below answers to; "collection breadth and
+reliability beat new features," further down in this section, is the specific
+case of it that governs collection work, not a separate rule.
 
 ### The tool's own invariants (Serve, Ask, Commission)
 
