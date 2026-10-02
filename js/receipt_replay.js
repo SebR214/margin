@@ -1,4 +1,4 @@
-/* The receipt replay (SEB-57 / R2 / SEB-173).
+/* The receipt replay (SEB-57 / R2 / SEB-173 / SEB-178).
  *
  * Every published index/country number is clickable. Clicking one fetches
  * data/receipts/<CCY>.json (built by tools/emit_receipts.py, SEB-56) and
@@ -8,16 +8,24 @@
  * echoed back verbatim, so the overlay cannot disagree with the page it was
  * opened from.
  *
+ * corridor.html's own cost-in-bps figures (SEB-178) replay the same way, from
+ * data/corridor_receipts/<corridor>_<notional>_<hour>.json (built by
+ * tools/emit_corridor_receipts.py) -- the same four-step SHELL (the dialog,
+ * the numbered steps, the timers, the raw-file footer) rendered by the same
+ * render()/open-close machinery below, just fed a differently-shaped receipt
+ * and a second, corridor-specific set of copy.json templates
+ * (copy.json's "receiptCorridor" key) rather than a second component.
+ *
  * Wired once, on document, by delegation -- so it survives a full re-render
  * of index.html's innerHTML-driven sections as well as a plain DOM page
- * (country.html, countries.html), the same reason index.html already
- * delegates its own search box.
+ * (country.html, countries.html, corridor.html), the same reason index.html
+ * already delegates its own search box.
  *
- * Paths below (copy.json, data/receipts/<CCY>.json, and every source file a
- * step links to) are resolved against the HOST PAGE, not this script's own
- * location in js/ -- every page that includes this file (index.html,
- * countries.html, country.html) lives at the repo root alongside copy.json
- * and data/, same as every other fetch those pages already make.
+ * Paths below (copy.json, data/receipts/<CCY>.json,
+ * data/corridor_receipts/....json, and every source file a step links to)
+ * are resolved against the HOST PAGE, not this script's own location in
+ * js/ -- every page that includes this file lives at the repo root alongside
+ * copy.json and data/, same as every other fetch those pages already make.
  *
  * copy.json is fetched by this file directly, rather than relying on the
  * host page to have already loaded it, since not every page that shows a
@@ -30,15 +38,20 @@
 (function () {
   "use strict";
 
-  var copyPromise = null;
-  function getCopy() {
-    if (!copyPromise) {
-      copyPromise = fetch("copy.json", { cache: "no-store" })
+  var copyDocPromise = null;
+  function getCopyDoc() {
+    if (!copyDocPromise) {
+      copyDocPromise = fetch("copy.json", { cache: "no-store" })
         .then(function (r) { return r.ok ? r.json() : {}; })
-        .then(function (c) { return (c && c.receipt) || {}; })
         .catch(function () { return {}; });
     }
-    return copyPromise;
+    return copyDocPromise;
+  }
+  function getCopy() {
+    return getCopyDoc().then(function (c) { return (c && c.receipt) || {}; });
+  }
+  function getCorridorCopy() {
+    return getCopyDoc().then(function (c) { return (c && c.receiptCorridor) || {}; });
   }
 
   function T(s, vals) {
@@ -155,6 +168,73 @@
     ];
   }
 
+  // Same tiered rounding as corridor.html's own pct(): a bps figure (one
+  // hundredth of a percent) shown as a percent, with more decimal places
+  // for a smaller number so a real cost like 0.004% never prints as 0.00%,
+  // which would read as "not measured". bps itself never reaches this text.
+  function pctFromBps(b) {
+    if (b === null || b === undefined || !isFinite(b)) return "—";
+    var p = b / 100, a = Math.abs(p), dp = a >= 10 ? 1 : a >= 0.1 ? 2 : 3;
+    return a.toFixed(dp) + "%";
+  }
+
+  // corridor.html's cost-in-bps receipt (SEB-178): the same four-step shell
+  // buildSteps() fills for index/country numbers, fed from a differently-
+  // shaped receipt (tools/emit_corridor_receipts.py) and copy.json's
+  // "receiptCorridor" templates instead of "receipt" -- a corridor's cost
+  // has order-book evidence and fee legs, not a single official rate, so
+  // step 2 names the fees instead of a rate.
+  function buildCorridorSteps(receipt, copy, regime) {
+    var ev = receipt.evidence || {}, fees = receipt.fees || {};
+    var files = (receipt.source_files || []);
+    var on = ev.onramp || {}, off = ev.offramp || {};
+
+    var buyText = T(copy.evidenceBuySentenceTemplate, {
+      venue: on.venue_display || on.venue, topPrice: fmtNum(on.top_price), avgPrice: fmtNum(on.average_price_paid),
+      ccy: receipt.src_ccy
+    });
+    var sellText = T(copy.evidenceSellSentenceTemplate, {
+      venue: off.venue_display || off.venue, topPrice: fmtNum(off.top_price), avgPrice: fmtNum(off.average_price_received),
+      ccy: receipt.dst_ccy
+    });
+    var collected = T(copy.evidenceCollectedTemplate, { when: fmtWhen(ev.collected_at) });
+    var evidenceText = [buyText, sellText, copy.evidenceBookNote, collected].filter(Boolean).join(" ");
+
+    function feeLine(status, label, pctValue) {
+      if (status === "not_priced") return T(copy.feeNotPricedTemplate, { label: label });
+      if (status === "not_modeled") return T(copy.feeNotModeledTemplate, { label: label });
+      if (status === "not_available") return T(copy.feeNotAvailableTemplate, { label: label });
+      return T(copy.feeLineTemplate, { label: label, pct: pctFromBps(pctValue) });
+    }
+    var onFee = fees.onramp || {}, offFee = fees.offramp || {}, net = fees.network || {};
+    var dep = fees.deposit || {}, wd = fees.withdrawal || {};
+    var onBps = regime === "maker" ? onFee.maker_bps : onFee.taker_bps;
+    var offBps = regime === "maker" ? offFee.maker_bps : offFee.taker_bps;
+    var feeLines = [
+      feeLine("priced", T(copy.onrampFeeLabelTemplate, { venue: onFee.venue_display || onFee.venue }), onBps),
+      feeLine("priced", T(copy.offrampFeeLabelTemplate, { venue: offFee.venue_display || offFee.venue }), offBps),
+      net.value_stable !== null && net.value_stable !== undefined
+        ? T(copy.networkFeeAmountTemplate, { amount: fmtNum(net.value_stable) }) : "",
+      feeLine(dep.status, T(copy.depositLabelTemplate, { ccy: receipt.src_ccy, venue: dep.venue_display || dep.venue }), dep.value_bps),
+      feeLine(wd.status, copy.withdrawalLabel, wd.value_bps)
+    ];
+    var feesText = feeLines.filter(Boolean).join(" ");
+
+    var comp = (receipt.computation || {})[regime] || {};
+    var mathText = [copy.mathSentence, T(copy.mathResultTemplate, { result: pctFromBps(comp.result_pct) })]
+      .filter(Boolean).join(" ");
+
+    var regimeNote = regime === "maker" ? copy.regimeLimit : copy.regimeMarket;
+    var noteText = [regimeNote, !comp.legs_available ? copy.noLegsNote : ""].filter(Boolean).join(" ");
+
+    return [
+      { label: copy.step1Label, text: evidenceText, files: ["data/samples.csv"] },
+      { label: copy.step2Label, text: feesText, files: files },
+      { label: copy.step3Label, text: mathText, files: files },
+      { label: copy.step4Label, text: noteText, files: files }
+    ];
+  }
+
   var STYLE = [
     ".receipt-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;}",
     ".receipt-backdrop{position:absolute;inset:0;background:rgba(32,30,29,.55);}",
@@ -182,7 +262,7 @@
     ".receipt-raw-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d7979;margin-bottom:6px;}",
     ".receipt-raw-links{font-size:12px;line-height:1.8;}",
     ".receipt-loading{font-size:13px;color:#7d7979;padding:12px 0;}",
-    "[data-receipt-ccy]{cursor:pointer;}"
+    "[data-receipt-ccy],[data-receipt-corridor-file]{cursor:pointer;}"
   ].join("\n");
 
   function ensureStyle() {
@@ -226,9 +306,13 @@
     if (e.key === "Escape") close();
   }
 
-  function render(receipt, copy) {
+  // The shared shell both receipt kinds paint into: the numbered steps list
+  // and the raw-file footer. Takes already-built steps (label/text/files)
+  // rather than a receipt, so it has no opinion on what shape of receipt
+  // produced them -- buildSteps() (index/country) and buildCorridorSteps()
+  // (corridor.html) are the only two places that know that.
+  function paintSteps(steps, sourceFiles, rawFilesLabel) {
     if (!overlayEl) return;
-    var steps = buildSteps(receipt, copy);
     var ol = overlayEl.querySelector(".receipt-steps");
     ol.innerHTML = "";
     var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -266,13 +350,17 @@
     });
 
     var rawLabel = overlayEl.querySelector(".receipt-raw-label");
-    rawLabel.textContent = copy.rawFilesLabel || "";
+    rawLabel.textContent = rawFilesLabel || "";
     var rawLinks = overlayEl.querySelector(".receipt-raw-links");
     rawLinks.innerHTML = "";
-    (receipt.source_files || []).forEach(function (f, j) {
+    (sourceFiles || []).forEach(function (f, j) {
       if (j) rawLinks.appendChild(document.createTextNode(" · "));
       rawLinks.appendChild(fileLink(f));
     });
+  }
+
+  function render(receipt, copy) {
+    paintSteps(buildSteps(receipt, copy), receipt.source_files, copy.rawFilesLabel);
   }
 
   function renderLoading(copy) {
@@ -281,22 +369,25 @@
       '<li class="receipt-loading is-visible">' + escHtml(copy.loadingLabel || "") + "</li>";
   }
 
-  function renderError(copy, ccy) {
+  function renderError(copy, file) {
     if (!overlayEl) return;
     overlayEl.querySelector(".receipt-steps").innerHTML =
       '<li class="receipt-loading is-visible">'
-      + escHtml(T(copy.loadErrorTemplate, { file: "data/receipts/" + ccy + ".json" })) + "</li>";
+      + escHtml(T(copy.loadErrorTemplate, { file: file })) + "</li>";
   }
 
-  function open(ccy, displayValue, triggerEl) {
-    if (!ccy) return;
+  // Builds the dialog shell common to both receipt kinds and wires its
+  // close behaviour -- what every receipt, index/country or corridor,
+  // shares. Returns the close button so the caller can finish wiring its
+  // own copy-specific title/aria-label once copy.json resolves.
+  function openShell(ariaLabel, displayValue, triggerEl) {
     ensureStyle();
     lastFocus = triggerEl;
     overlayEl = document.createElement("div");
     overlayEl.className = "receipt-overlay";
     overlayEl.innerHTML =
       '<div class="receipt-backdrop"></div>'
-      + '<div class="receipt-dialog" role="dialog" aria-modal="true" aria-label="' + escAttr(ccy) + '">'
+      + '<div class="receipt-dialog" role="dialog" aria-modal="true" aria-label="' + escAttr(ariaLabel) + '">'
       + '<button type="button" class="receipt-close">×</button>'
       + '<div class="receipt-title"></div>'
       + '<div class="receipt-value">' + escHtml(displayValue) + "</div>"
@@ -308,6 +399,12 @@
     var closeBtn = overlayEl.querySelector(".receipt-close");
     closeBtn.addEventListener("click", close);
     document.addEventListener("keydown", onKeydown, true);
+    return closeBtn;
+  }
+
+  function open(ccy, displayValue, triggerEl) {
+    if (!ccy) return;
+    var closeBtn = openShell(ccy, displayValue, triggerEl);
 
     getCopy().then(function (copy) {
       if (!overlayEl) return;
@@ -315,18 +412,50 @@
       closeBtn.setAttribute("aria-label", copy.close || "");
       renderLoading(copy);
       closeBtn.focus();
-      fetch("data/receipts/" + ccy + ".json", { cache: "no-store" })
+      var file = "data/receipts/" + ccy + ".json";
+      fetch(file, { cache: "no-store" })
         .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
         .then(function (receipt) { render(receipt, copy); })
-        .catch(function () { renderError(copy, ccy); });
+        .catch(function () { renderError(copy, file); });
+    });
+  }
+
+  // corridor.html's cost-in-bps figures (SEB-178): same shell, a receipt
+  // keyed by (corridor, notional, hour) instead of by currency, and its own
+  // copy.json templates (receiptCorridor) rather than the index/country
+  // ones -- see buildCorridorSteps() for why the two can't share templates
+  // (a corridor cost has fee legs, not an official rate).
+  function openCorridor(file, regime, displayValue, triggerEl) {
+    if (!file) return;
+    var closeBtn = openShell(file, displayValue, triggerEl);
+
+    getCorridorCopy().then(function (copy) {
+      if (!overlayEl) return;
+      overlayEl.querySelector(".receipt-title").textContent = copy.title || "";
+      closeBtn.setAttribute("aria-label", copy.close || "");
+      renderLoading(copy);
+      closeBtn.focus();
+      var path = "data/corridor_receipts/" + file + ".json";
+      fetch(path, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .then(function (receipt) {
+          paintSteps(buildCorridorSteps(receipt, copy, regime), receipt.source_files, copy.rawFilesLabel);
+        })
+        .catch(function () { renderError(copy, path); });
     });
   }
 
   document.addEventListener("click", function (e) {
-    var t = e.target.closest && e.target.closest("[data-receipt-ccy]");
+    var t = e.target.closest && e.target.closest("[data-receipt-ccy],[data-receipt-corridor-file]");
     if (!t) return;
     e.preventDefault();
-    open(t.getAttribute("data-receipt-ccy"), t.getAttribute("data-receipt-value") || t.textContent, t);
+    var displayValue = t.getAttribute("data-receipt-value") || t.textContent;
+    if (t.hasAttribute("data-receipt-corridor-file")) {
+      openCorridor(t.getAttribute("data-receipt-corridor-file"),
+        t.getAttribute("data-receipt-regime") || "taker", displayValue, t);
+    } else {
+      open(t.getAttribute("data-receipt-ccy"), displayValue, t);
+    }
   });
 
   window.Receipt = { close: close };
