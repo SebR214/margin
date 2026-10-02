@@ -472,8 +472,31 @@ CORRIDORS = {
 # article "How do I receive USDC through the Arbitrum Network?"
 # (support.coins.ph), so that is the pairing modelled, not Solana or Base,
 # which tie it on fee but are unconfirmed on the receiving end.
+#
+# SEB-189, queue item 0.1, second slice (AUD->PHP). Re-probed live rather than
+# carried over from SGD->PHP: api.independentreserve.com/Public/GetOrderBook
+# ?primaryCurrencyCode=Usdc&secondaryCurrencyCode=Aud answered with a real,
+# live, two-sided USDC/AUD book (read 2026-10-02). Coins.ph's own USDCPHP
+# depth book and exchangeInfo "trading" status are the same ones SGD->PHP's
+# variant already confirmed live -- one shared off-ramp book, not re-fetched
+# per corridor. IR's withdrawal-fee table (read again 2026-10-02 through the
+# same rendering-proxy workaround -- the Cloudflare block on /fees had not
+# cleared) still lists "USD Coin | Arbitrum One | 1.0 USDC", unchanged from
+# the SGD->PHP read: it is one venue-wide table, not quoted per trading pair,
+# so it carries over correctly rather than by assumption. IR's own fee page
+# already states its brokerage tier is 30-day-volume based, not per-pair,
+# which is why AUD->PHP's own CORRIDORS entry above already reuses the same
+# 50.0/50.0 bps -- that reasoning extends unchanged to the USDC variant.
 CORRIDOR_VARIANTS = {
     "SGD->PHP": [
+        {
+            "stable": "USDC", "network": "ArbitrumOne",
+            "offramp_symbol": "USDCPHP",
+            "network_fee_stable": 1.0,
+            "verified": "2026-10-02",
+        },
+    ],
+    "AUD->PHP": [
         {
             "stable": "USDC", "network": "ArbitrumOne",
             "offramp_symbol": "USDCPHP",
