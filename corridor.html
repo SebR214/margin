@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <link rel="stylesheet" href="./style.css"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<script src="./js/receipt_replay.js"></script>
 <title>margin.wiki — one transfer, the receipt in full</title>
 <meta name="description" content="Is a digital dollar a real dollar? We buy one in Singapore, move it, and sell it in the Philippines, paying every fee on the way, checked most hours against the cheapest app quoting the same amount -- real gaps shown, not hidden."/>
 <style>
@@ -238,6 +239,10 @@ const SIZES=[200,1000,5000,25000,50000];
 let COPY={};
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const VENUE={IndependentReserve:"Independent Reserve",Coins_ph:"Coins.ph","coins.ph":"Coins.ph",CoinsPH:"Coins.ph",OKX_P2P:"OKX P2P",Bitso:"Bitso",Binance_P2P:"Binance P2P"};
+// Same filename-safe slug tools/emit_corridor_receipts.py's corridor_slug()
+// writes with -- "SGD->PHP" -> "SGD-PHP" -- so the file this clicks for is
+// the exact one that script wrote, never a second, divergent naming rule.
+const corridorSlug=c=>String(c||"").replace("->","-");
 const venueName=v=>VENUE[v]||String(v||"").replace(/_/g," ");
 // Loud, not plausible: a missing copy.json key used to fall back to
 // hardcoded English that reads exactly like real content, so the deck
@@ -860,10 +865,17 @@ function drawLadder(){
   for(const r of rows){
     const s=+r.notional_src, t=+r.cost_bps_taker, m=+r.cost_bps_maker;
     const cheapest=cheapestApp(r.corridor,s,r), b=cheapest.bps, cw=t<b;
+    // Clickable via js/receipt_replay.js's delegated handler (SEB-178): the
+    // same receipt-replay overlay R2 built for index/country numbers, fed
+    // from data/corridor_receipts/<corridor>_<notional>_<hour>.json --
+    // tools/emit_corridor_receipts.py writes one per (corridor, notional)
+    // pair for the latest sampled hour, keyed the same way this row's own
+    // ts/corridor/notional_src already key wfBySample/rampBySample above.
+    const receiptFile=`${corridorSlug(r.corridor)}_${s}_${r.ts.slice(0,13)}`;
     h+=`<tr class="${s===size?"hl":""}${s===200?" hl":""}">
       <td>${money(s)}</td>
-      <td>${cash(s,t)}<br><span class="tag">${pct(t)}</span></td>
-      <td>${cash(s,m)}<br><span class="tag">${pct(m)}</span></td>
+      <td><span data-receipt-corridor-file="${receiptFile}" data-receipt-regime="taker" data-receipt-value="${esc(cash(s,t))}" tabindex="0">${cash(s,t)}</span><br><span class="tag">${pct(t)}</span></td>
+      <td><span data-receipt-corridor-file="${receiptFile}" data-receipt-regime="maker" data-receipt-value="${esc(cash(s,m))}" tabindex="0">${cash(s,m)}</span><br><span class="tag">${pct(m)}</span></td>
       <td>${cash(s,b)}<br><span class="tag">${pct(b)}</span></td></tr>`;
   }
   document.getElementById("ladder").innerHTML=h;
