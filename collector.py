@@ -521,6 +521,20 @@ def depth_within_pct(bids, pct=0.01):
     return sum(q for p, q in bids if p >= floor)
 
 
+def remaining_after_sell(bids, amount):
+    """The unconsumed remainder of `bids` after selling `amount` of base into
+    them, consumed descending in the same order walk_sell already uses.
+    Does not mutate `bids`. -> [(p, q), ...], possibly empty.
+    """
+    sold = 0.0
+    for i, (p, q) in enumerate(bids):
+        if sold + q <= amount:
+            sold += q
+            continue
+        return [(p, q - (amount - sold))] + list(bids[i + 1:])
+    return []
+
+
 def bitso_bids(payload):
     """Bitso payload.bids ({book, price, amount} dicts) -> [(p, q)].
 
@@ -651,6 +665,17 @@ def decompose(notional, on_book, off_book, mids, cfg):
                 out["offramp_filled"] = False
             continue
         quote, off_vwap, off_filled = walk_sell(bids, stable)
+        if regime == "taker":
+            # How much is left in the book AFTER this rung's own trade, not
+            # the untouched-book figure offramp_depth_top_level/
+            # offramp_depth_1pct above already carry (SEB-181). None, not an
+            # invented zero, when there was no book to walk in the first
+            # place -- same rule those two columns already follow.
+            remainder = remaining_after_sell(bids, stable) if bids else []
+            out["offramp_depth_top_level_after"] = (
+                remainder[0][1] if remainder else (0.0 if bids else None))
+            out["offramp_depth_1pct_after"] = (
+                round(depth_within_pct(remainder), 2) if bids else None)
         landed_before_withdrawal = quote * (1 - fee_off)
         withdrawal_fee_dst = ramp_fee_units(wd_cfg, landed_before_withdrawal)
         landed = max(0.0, landed_before_withdrawal - withdrawal_fee_dst)
@@ -1056,6 +1081,44 @@ def append_ramp_waterfall(rows, path=RAMP_WATERFALL_SIDECAR):
     return path
 
 
+DEPTH_SIDECAR = os.path.join(HERE, "data", "samples_depth.csv")
+DEPTH_SIDECAR_FIELDS = [
+    "ts", "corridor", "notional_src",
+    "offramp_depth_top_level_after", "offramp_depth_1pct_after",
+]
+# Same two deep-layer corridors ROADMAP item 6 already restricted the
+# pre-trade depth line to (corridor.html's DEPTH_CORRIDORS) -- the wide-layer
+# board has no order book to walk, so this sidecar must not carry a row for
+# it, same limit item 6 already stated.
+DEPTH_SIDECAR_CORRIDORS = {"SGD->PHP", "USD->MXN"}
+
+
+def append_depth_sidecar(rows, path=DEPTH_SIDECAR):
+    """Per-ladder-size remaining depth after that rung's own trade (SEB-181),
+    keyed the same way as the other sidecars (ts + corridor + notional_src)
+    so corridor.html can join it against the row the reader has selected.
+    samples.csv's own offramp_depth_top_level/offramp_depth_1pct columns stay
+    the pre-trade, corridor-wide figures they always were -- this is a
+    separate file, not a widened header.
+    """
+    wrows = [{"ts": r["ts"], "corridor": r["corridor"], "notional_src": r["notional_src"],
+              "offramp_depth_top_level_after": r.get("offramp_depth_top_level_after"),
+              "offramp_depth_1pct_after": r.get("offramp_depth_1pct_after")}
+             for r in rows
+             if r["corridor"] in DEPTH_SIDECAR_CORRIDORS
+             and r.get("offramp_depth_top_level_after") is not None]
+    if not wrows:
+        return None
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=DEPTH_SIDECAR_FIELDS)
+        if new:
+            w.writeheader()
+        w.writerows(wrows)
+    return path
+
+
 def append_providers(prows, path=PROVIDERS):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     new = not os.path.exists(path)
@@ -1247,6 +1310,27 @@ def selftest():
     print(f"  [ok] depth: 0.0 bps slippage at S$5k; top level holds "
           f"{d['offramp_depth_top_level']:,.0f} USDT")
 
+    # per-size remaining depth (SEB-181): a bigger ladder rung eats into the
+    # book, so what is left afterward must shrink (or at least hold, never
+    # grow) as size grows -- never the pre-trade, corridor-wide figure
+    # repeated unchanged at every size.
+    big = decompose(50000, on, off, MIDS_FIXTURE, cfg)
+    assert small["offramp_depth_top_level_after"] is not None
+    assert (big["offramp_depth_top_level_after"]
+            <= small["offramp_depth_top_level_after"]), (
+        big["offramp_depth_top_level_after"], small["offramp_depth_top_level_after"])
+    assert big["offramp_depth_1pct_after"] <= small["offramp_depth_1pct_after"]
+    assert big["offramp_depth_top_level_after"] <= d["offramp_depth_top_level"]
+    print(f"  [ok] per-size depth: after S$200 {small['offramp_depth_top_level_after']:,.0f} "
+          f"USDT still at the best price; after S$50,000 only "
+          f"{big['offramp_depth_top_level_after']:,.0f} USDT is")
+
+    # no book to walk (the wide-layer shape) -> None, never an invented zero
+    nobook = decompose(5000, on, {"bids": []}, MIDS_FIXTURE, cfg)
+    assert nobook["offramp_depth_top_level_after"] is None
+    assert nobook["offramp_depth_1pct_after"] is None
+    print("  [ok] no order book -> remaining depth is None, not an invented zero")
+
     # thin book must be flagged, never silently truncated
     thin = decompose(5000, on, {"bids": [(60.68, 10.0)]}, MIDS_FIXTURE, cfg)
     assert thin["offramp_filled"] is False
@@ -1257,13 +1341,15 @@ def selftest():
     assert dead["landed_taker"] == 0.0 and dead["onramp_top_ask"] is None
     print("  [ok] dead sources degrade to a recorded row, not an exception")
 
-    # wf_* and ramp_*_measured are sidecar-only fields (corridor_waterfall.csv,
-    # ramp_waterfall.csv) -- deliberately absent from FIELDS/samples.csv, whose
-    # header is frozen, so they are excluded here rather than added to it.
+    # wf_*, ramp_*_measured and offramp_depth_*_after are sidecar-only fields
+    # (corridor_waterfall.csv, ramp_waterfall.csv, samples_depth.csv) --
+    # deliberately absent from FIELDS/samples.csv, whose header is frozen, so
+    # they are excluded here rather than added to it.
     SIDECAR_ONLY = {
         "wf_buy_bps", "wf_move_bps", "wf_sell_bps",
         "wf_deposit_bps", "wf_withdrawal_bps",
         "ramp_deposit_measured", "ramp_withdrawal_measured",
+        "offramp_depth_top_level_after", "offramp_depth_1pct_after",
     }
     assert set(FIELDS) >= set(dead) - SIDECAR_ONLY | {"ts", "corridor", "source_ok", "errors"}
     print("  [ok] schema covers every derived field")
@@ -1496,6 +1582,25 @@ def selftest():
         assert captured_this_hour(p, "ts", now) is True
     print("  [ok] per-corridor gate: each corridor claims the hour independently\n")
 
+    # samples_depth.csv: deep-layer corridors get a row, the wide-layer board
+    # does not -- never an invented remaining-depth figure for a corridor
+    # with no order book to walk (same limit item 6 already stated).
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, "samples_depth.csv")
+        rows_mixed = [
+            {"ts": "2026-10-01T00:00:00+00:00", "corridor": "SGD->PHP",
+             "notional_src": 200, "offramp_depth_top_level_after": 900.0,
+             "offramp_depth_1pct_after": 2000.0},
+            {"ts": "2026-10-01T00:00:00+00:00", "corridor": "AUD->PHP",
+             "notional_src": 200, "offramp_depth_top_level_after": 900.0,
+             "offramp_depth_1pct_after": 2000.0},
+        ]
+        assert append_depth_sidecar(rows_mixed, path=p) == p
+        with open(p, newline="") as f:
+            written = list(csv.DictReader(f))
+        assert len(written) == 1 and written[0]["corridor"] == "SGD->PHP", written
+    print("  [ok] samples_depth.csv: only the deep-layer corridors get a row\n")
+
     print("  ALL SELFTESTS PASSED\n")
 
 
@@ -1553,6 +1658,11 @@ def main():
             append_ramp_waterfall(rows)
         except Exception as e:
             print(f"  [warn] ramp waterfall sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
+        # Same non-fatal shape: the per-size depth sidecar is supplementary too.
+        try:
+            append_depth_sidecar(rows)
+        except Exception as e:
+            print(f"  [warn] depth sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
 
     if a.json:
         print(json.dumps({"corridor": rows, "panel": prows}, indent=2, default=str))

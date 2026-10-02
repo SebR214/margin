@@ -299,7 +299,7 @@ function parseCSV(text){
 let bySize={}, histBySize={}, size=5000, newest="";
 // Corridor 1 is the default and stays first. allRows holds every corridor so
 // switching regroups in place rather than refetching samples.csv.
-let allRows=[], corrKeys=[], corridor="SGD->PHP", feeChecks=[], withdrawalFees=[], wfBySample={}, rampBySample={};
+let allRows=[], corrKeys=[], corridor="SGD->PHP", feeChecks=[], withdrawalFees=[], wfBySample={}, rampBySample={}, depthBySample={};
 let measureCount=0, winCount=0, historyStart="";
 let providersLatest=null;
 let corridorSummary={};
@@ -484,6 +484,13 @@ async function boot(){
   const rampRows=await loadCSVOptional("./data/ramp_waterfall.csv");
   rampBySample={};
   for(const w of rampRows) rampBySample[w.ts+"|"+w.corridor+"|"+w.notional_src]=w;
+  // How much of the book is left after THIS ladder rung's own trade (SEB-181)
+  // -- a separate sidecar because samples.csv's offramp_depth_top_level/
+  // offramp_depth_1pct columns are frozen as the pre-trade, corridor-wide
+  // figures. Same join key as the other two sidecars.
+  const depthRows=await loadCSVOptional("./data/samples_depth.csv");
+  depthBySample={};
+  for(const w of depthRows) depthBySample[w.ts+"|"+w.corridor+"|"+w.notional_src]=w;
   // samples.csv carries every corridor interleaved. Group by the corridor
   // column: without it one corridor's rows land in another's waterfall.
   corrKeys=[...new Set(allRows.map(r=>(r.corridor||"").trim()).filter(Boolean))]
@@ -646,11 +653,23 @@ function renderDepth(r){
   }
   const D=(COPY.cards||{}).depth||{}, DD=COPY.depth||{};
   el.style.display="";
-  el.textContent=
+  let text=
     T(D.titleTemplate||"How much of the stablecoin you could sell into {dst} on {venue} right now",
       {dst:dstOf(r), venue:venueName(r.offramp_venue)})+": "+
     T(DD.atBestPriceTemplate||"At the best price: {amount} before the price moves.",{amount:moneyIn("USD",top)})+" "+
     T(DD.before1PctTemplate||"Within 1% of the best price: {amount}.",{amount:moneyIn("USD",within)});
+  // Per-ladder-size remaining depth (SEB-181): how much is left in the book
+  // AFTER this rung's own trade, not the fixed pre-trade figure above shown
+  // unchanged at every size. Missing when the sidecar has no row yet for
+  // this exact sample (a currency's first hour after this shipped) -- no
+  // invented number stands in for that gap.
+  const depthRow=depthBySample[r.ts+"|"+r.corridor+"|"+r.notional_src];
+  const after=depthRow?+depthRow.offramp_depth_top_level_after:NaN;
+  if(isFinite(after)){
+    text+=" "+T(DD.afterSizeTemplate||"After selling {size}, {amount} is still available at the best price.",
+      {size:money(+r.notional_src), amount:moneyIn("USD",after)});
+  }
+  el.textContent=text;
 }
 
 function numCard(label,val,win,n){
