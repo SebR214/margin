@@ -439,6 +439,57 @@ CORRIDORS = {
     },
 }
 
+# Priced alternates to a corridor's one modelled stablecoin/network path --
+# SEB-182, queue item 0.1, first slice only (SGD->PHP). A reader who already
+# holds a different stablecoin, or whose wallet is cheaper to move on a
+# different chain, has no way to see whether that path beats the one shown
+# unless it is actually priced, never invented.
+#
+# Found by live probe 2026-10-02: Independent Reserve's own order-book API
+# (api.independentreserve.com/Public/GetOrderBook?primaryCurrencyCode=Usdc)
+# answers with a real, live, two-sided USDC/SGD book -- same venue, same
+# account, same 0.50% flat brokerage schedule as USDT/SGD (IR's own fee
+# page states the brokerage tier is based on 30-day AUD-equivalent volume,
+# not quoted per pair). Coins.ph's own depth endpoint
+# (api.pro.coins.ph/openapi/quote/v1/depth?symbol=USDCPHP) answers with a
+# real, live, two-sided book too, and its exchangeInfo lists USDCPHP as
+# "trading" -- and Coins.ph's own fee article ("Understanding Spot Trade
+# (Coins Pro) Trading Fees") describes its maker/taker schedule as tiered by
+# account-wide rolling volume, not per-pair, so SGD->PHP's own verified
+# 15/10 bps carries over unchanged.
+#
+# The one genuinely new number is the network fee: independentreserve.com/fees
+# (read live 2026-10-02 -- the page itself Cloudflare-blocks this box on
+# every path tried, fees/sg/au/robots.txt and its Zendesk mirror alike, so
+# read through a plain rendering proxy rather than assumed from a cache or a
+# competitor) lists USDC withdrawals over TRON at all -- only Ethereum
+# (10.0 USDC), Solana (1.0 USDC), Base (1.0 USDC) and Arbitrum One
+# (1.0 USDC). No Polygon or Solana USDT network exists on IR's own table
+# (USDT lists ONLY Ethereum at 10.0 USDT and TRON at 4.0 USDT) -- so the
+# "second USDT network" half of this probe found nothing, and only the
+# second-stablecoin half shipped. Of USDC's four networks, Arbitrum One is
+# the one independently confirmed on the Coins.ph side too, by its own help
+# article "How do I receive USDC through the Arbitrum Network?"
+# (support.coins.ph), so that is the pairing modelled, not Solana or Base,
+# which tie it on fee but are unconfirmed on the receiving end.
+CORRIDOR_VARIANTS = {
+    "SGD->PHP": [
+        {
+            "stable": "USDC", "network": "ArbitrumOne",
+            "offramp_symbol": "USDCPHP",
+            "network_fee_stable": 1.0,
+            "verified": "2026-10-02",
+        },
+    ],
+}
+
+VARIANTS_SIDECAR = os.path.join(HERE, "data", "corridor_variants.csv")
+VARIANT_FIELDS = [
+    "ts", "corridor", "stable", "network", "notional_src",
+    "network_fee_stable", "landed_taker", "cost_bps_taker",
+    "landed_maker", "cost_bps_maker", "source_ok", "errors",
+]
+
 FIELDS = [
     "ts", "corridor", "src", "dst", "stable", "notional_src",
     # benchmark
@@ -961,6 +1012,52 @@ def collect(corridor_key, cfg):
     return rows, prows
 
 
+def collect_variants(corridor_key, cfg):
+    """One sample across the ladder for every priced alternate path this
+    corridor has (CORRIDOR_VARIANTS) -- a different stablecoin and/or network
+    than the corridor's own modelled path, run through the SAME decompose()
+    against its own live books. Independent fetches, same shape as collect():
+    never raises, records failures in the row instead.
+    """
+    out = []
+    for variant in CORRIDOR_VARIANTS.get(corridor_key, []):
+        ts = dt.datetime.now(dt.timezone.utc).isoformat()
+        src = cfg["src"]
+        vcfg = {**cfg, "stable": variant["stable"],
+                "network_fee_stable": variant["network_fee_stable"],
+                "offramp": {**cfg["offramp"], "symbol": variant["offramp_symbol"]}}
+        errors, ok = [], True
+        try:
+            mids = fetch_mids(src, cfg["dst"])
+        except Exception as e:
+            errors.append(f"mid:{type(e).__name__}:{e}")
+            mids, ok = {"src_per_usd": None, "dst_per_usd": None}, False
+        try:
+            on_book = fetch_onramp(vcfg, src)
+        except Exception as e:
+            errors.append(f"onramp:{type(e).__name__}:{e}")
+            on_book, ok = {"asks": []}, False
+        try:
+            off_book = fetch_offramp(vcfg)
+        except Exception as e:
+            errors.append(f"offramp:{type(e).__name__}:{e}")
+            off_book, ok = {"bids": []}, False
+
+        for notional in cfg["ladder"]:
+            d = decompose(notional, on_book, off_book, mids, vcfg)
+            out.append({
+                "ts": ts, "corridor": corridor_key, "stable": variant["stable"],
+                "network": variant["network"], "notional_src": notional,
+                "network_fee_stable": d.get("network_fee_stable"),
+                "landed_taker": d.get("landed_taker"),
+                "cost_bps_taker": d.get("cost_bps_taker"),
+                "landed_maker": d.get("landed_maker"),
+                "cost_bps_maker": d.get("cost_bps_maker"),
+                "source_ok": ok, "errors": "; ".join(errors)[:500],
+            })
+    return out
+
+
 def utc_hour(now=None):
     """The current UTC hour, truncated -- the idempotency key for a capture."""
     return (now or dt.datetime.now(dt.timezone.utc)).replace(
@@ -1130,6 +1227,23 @@ def append_providers(prows, path=PROVIDERS):
     return path
 
 
+def append_variants(vrows, path=VARIANTS_SIDECAR):
+    """Priced alternate stablecoin/network paths (SEB-182) -- own file, own
+    header, keyed by (ts, corridor, stable, network, notional_src). Never
+    widens samples.csv, which carries only each corridor's own modelled path.
+    """
+    if not vrows:
+        return None
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=VARIANT_FIELDS, extrasaction="ignore")
+        if new:
+            w.writeheader()
+        w.writerows(vrows)
+    return path
+
+
 def print_panel(prows, src=None):
     """Print the incumbent panel grouped by size (for --verify).
 
@@ -1189,6 +1303,18 @@ def print_waterfall(rows):
     print("  " + "-" * 74)
     print("  cost = bps below mid-market. maker = posts at top-of-book, pays "
           "maker fee, assumes fill.\n")
+
+
+def print_variants(vrows):
+    if not vrows:
+        return
+    fmt = lambda v: f"{v:.0f}bps" if v is not None else "--"
+    print("  variants:")
+    for r in vrows:
+        status = "ok" if r["source_ok"] else f"FAIL: {r['errors']}"
+        print(f"    {r['stable']}/{r['network']} @ {r['notional_src']:>6,}: "
+              f"taker {fmt(r['cost_bps_taker'])}   ({status})")
+    print()
 
 
 # -------------------------------------------------------------- selftest
@@ -1633,6 +1759,7 @@ def main():
     cfg = CORRIDORS[a.corridor]
     panel_path = providers_path(cfg)
     rows, prows = collect(a.corridor, cfg)
+    vrows = collect_variants(a.corridor, cfg)
 
     # PERSIST FIRST, DISPLAY SECOND. Display is decoration; the sample is the
     # product. Anything downstream of append() can crash without costing a row
@@ -1663,12 +1790,19 @@ def main():
             append_depth_sidecar(rows)
         except Exception as e:
             print(f"  [warn] depth sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
+        # Same non-fatal shape: priced variants are supplementary too.
+        try:
+            append_variants(vrows)
+        except Exception as e:
+            print(f"  [warn] variants sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
 
     if a.json:
-        print(json.dumps({"corridor": rows, "panel": prows}, indent=2, default=str))
+        print(json.dumps({"corridor": rows, "panel": prows, "variants": vrows},
+                          indent=2, default=str))
     else:
         print_waterfall(rows)
         print_panel(prows, cfg["src"])
+        print_variants(vrows)
 
     if wrote:
         print(f"  appended -> {wrote}")
