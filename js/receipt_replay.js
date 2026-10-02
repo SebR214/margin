@@ -53,6 +53,9 @@
   function getCorridorCopy() {
     return getCopyDoc().then(function (c) { return (c && c.receiptCorridor) || {}; });
   }
+  function getCrossoverCopy() {
+    return getCopyDoc().then(function (c) { return (c && c.receiptCrossover) || {}; });
+  }
 
   function T(s, vals) {
     if (!s) return "";
@@ -178,6 +181,17 @@
     return a.toFixed(dp) + "%";
   }
 
+  // fee-tiers.html's crossover receipt (SEB-192) reports amounts in whole
+  // currency, not hundredths of a percent, so it gets its own formatter
+  // rather than pctFromBps's tiered rounding.
+  function fmtSgd(v) {
+    return v === null || v === undefined || !isFinite(v) ? "—"
+      : "S$" + Math.round(v).toLocaleString("en-US");
+  }
+  function fmtPct2(v) {
+    return v === null || v === undefined || !isFinite(v) ? "—" : Number(v).toFixed(2) + "%";
+  }
+
   // corridor.html's cost-in-bps receipt (SEB-178): the same four-step shell
   // buildSteps() fills for index/country numbers, fed from a differently-
   // shaped receipt (tools/emit_corridor_receipts.py) and copy.json's
@@ -235,6 +249,45 @@
     ];
   }
 
+  // fee-tiers.html's volume-tier crossover (SEB-192): same shell again, a
+  // receipt keyed by (regime, the fee schedule's own timestamp) instead of
+  // currency or corridor, from tools/emit_crossover_receipts.py and copy.json's
+  // "receiptCrossover" templates. Unlike a corridor's cost this number is not
+  // itself a direct measurement -- it is the real samples re-costed at a
+  // hypothetical fee tier, so every step here says "rebuilt", never "measured".
+  function buildCrossoverSteps(receipt, copy) {
+    var ev = receipt.evidence || {}, ts = receipt.tier_schedule || {},
+      recon = receipt.reconstruction || {}, search = receipt.search || {};
+
+    var evidenceText = T(copy.evidenceSentenceTemplate, {
+      n: receipt.n_samples, first: fmtWhen(ev.first_ts), last: fmtWhen(ev.last_ts),
+      baseline: pctFromBps(receipt.baseline_cost_bps_median)
+    });
+
+    var feesText = T(copy.feeSentenceTemplate, {
+      volume: fmtSgd(recon.crossover_volume_sgd),
+      feeIr: fmtPct2(recon.fee_pct_at_crossover_ir),
+      feeCoins: fmtPct2(recon.fee_pct_at_crossover_coins_ph_median)
+    });
+
+    var reconText = [copy.reconstructionNote, T(copy.reconstructionSentenceTemplate, {
+      result: pctFromBps(recon.reconstructed_cost_bps_median)
+    })].filter(Boolean).join(" ");
+
+    var searchText = T(copy.searchSentenceTemplate, {
+      lo: fmtSgd(search.lo_volume_sgd), hi: fmtSgd(search.hi_volume_sgd),
+      volume: fmtSgd(search.converged_volume_sgd)
+    });
+    var regimeNote = receipt.regime === "maker" ? copy.regimeLimit : copy.regimeMarket;
+
+    return [
+      { label: copy.step1Label, text: evidenceText, files: ["data/samples.csv"] },
+      { label: copy.step2Label, text: feesText, files: ["data/fee_tier_schedule.csv"] },
+      { label: copy.step3Label, text: reconText, files: receipt.source_files || [] },
+      { label: copy.step4Label, text: [searchText, regimeNote].filter(Boolean).join(" "), files: ["data/volume_crossover.json"] }
+    ];
+  }
+
   var STYLE = [
     ".receipt-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;}",
     ".receipt-backdrop{position:absolute;inset:0;background:rgba(32,30,29,.55);}",
@@ -262,7 +315,7 @@
     ".receipt-raw-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d7979;margin-bottom:6px;}",
     ".receipt-raw-links{font-size:12px;line-height:1.8;}",
     ".receipt-loading{font-size:13px;color:#7d7979;padding:12px 0;}",
-    "[data-receipt-ccy],[data-receipt-corridor-file]{cursor:pointer;}"
+    "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file]{cursor:pointer;}"
   ].join("\n");
 
   function ensureStyle() {
@@ -445,14 +498,40 @@
     });
   }
 
+  // fee-tiers.html's crossover paragraph and tier rows (SEB-192): same
+  // shell, fed from data/crossover_receipts/<regime>_<hour>.json and
+  // copy.json's "receiptCrossover" templates -- see buildCrossoverSteps().
+  function openCrossover(file, displayValue, triggerEl) {
+    if (!file) return;
+    var closeBtn = openShell(file, displayValue, triggerEl);
+
+    getCrossoverCopy().then(function (copy) {
+      if (!overlayEl) return;
+      overlayEl.querySelector(".receipt-title").textContent = copy.title || "";
+      closeBtn.setAttribute("aria-label", copy.close || "");
+      renderLoading(copy);
+      closeBtn.focus();
+      var path = "data/crossover_receipts/" + file + ".json";
+      fetch(path, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .then(function (receipt) {
+          paintSteps(buildCrossoverSteps(receipt, copy), receipt.source_files, copy.rawFilesLabel);
+        })
+        .catch(function () { renderError(copy, path); });
+    });
+  }
+
   document.addEventListener("click", function (e) {
-    var t = e.target.closest && e.target.closest("[data-receipt-ccy],[data-receipt-corridor-file]");
+    var t = e.target.closest && e.target.closest(
+      "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file]");
     if (!t) return;
     e.preventDefault();
     var displayValue = t.getAttribute("data-receipt-value") || t.textContent;
     if (t.hasAttribute("data-receipt-corridor-file")) {
       openCorridor(t.getAttribute("data-receipt-corridor-file"),
         t.getAttribute("data-receipt-regime") || "taker", displayValue, t);
+    } else if (t.hasAttribute("data-receipt-crossover-file")) {
+      openCrossover(t.getAttribute("data-receipt-crossover-file"), displayValue, t);
     } else {
       open(t.getAttribute("data-receipt-ccy"), displayValue, t);
     }
