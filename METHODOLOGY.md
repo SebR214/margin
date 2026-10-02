@@ -423,7 +423,7 @@ step none of this site's other sources need — left for Sebastian to decide,
 not switched in unilaterally. Until one of those changes, the receipt shown
 for every published number now says so directly: the "official rate" step
 carries a line stating the value can be up to 24 hours behind the market
-(`copy.json`'s `rateStalenessNote`, rendered by `receipt.js`).
+(`copy.json`'s `rateStalenessNote`, rendered by `js/receipt_replay.js`).
 
 ### History start, per country, honestly
 

@@ -63,7 +63,7 @@ daily on its free tier, one needs a signup key even on its free tier:
 
 Until/unless a genuinely intraday, no-key source turns up, the denominator
 stays daily and that fact is now surfaced on every published number, not just
-in this docstring: receipt.js's "official rate" step appends
+in this docstring: js/receipt_replay.js's "official rate" step appends
 copy.json's `rateStalenessNote` to every receipt, sitewide.
 
 What DOES improve the denominator is a central bank where one publishes

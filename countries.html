@@ -7,6 +7,7 @@
 <meta name="description" content="What people pay for a dollar, country by country, priced every hour with a receipt behind every number."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
+<script src="./js/receipt_replay.js"></script>
 <style>
   :root{
     --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0;
@@ -283,6 +284,14 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     return parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1];
   }
 
+  // The gap figure here is a receipt's own result_pct (SEB-173) -- wrapped
+  // in a span carrying data-receipt-ccy/value so receipt_replay.js's
+  // delegated click handler opens that country's four-step receipt without
+  // also triggering this row's own link to country.html.
+  function receiptSpan(ccy, text){
+    return '<span data-receipt-ccy="'+esc(ccy)+'" data-receipt-value="'+esc(text)+'" tabindex="0">'+text+'</span>';
+  }
+
   // One row of the "trow" grid -- shared by the managed and market-rate
   // tables, so a fix to one applies to both.
   function rowHtml(c){
@@ -293,7 +302,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     return '<a class="trow" data-ccy="'+esc(c.ccy)+'" href="./country.html?ccy='+esc(c.ccy)+'">'+
       '<span class="cn"><b>'+esc(listName(c.country))+'</b><small>'+esc(c.ccy)+flag+'</small></span>'+
       '<span class="thn num">'+(then!=null ? fmtGapPct(then) : '&mdash;')+'</span>'+
-      '<span class="gp num">'+fmtGapPct(now)+chgHtml+'</span>'+
+      '<span class="gp num">'+receiptSpan(c.ccy, fmtGapPct(now))+chgHtml+'</span>'+
       '<span class="rt num">'+depthWords(c.ccy)+'</span>'+
       '</a>';
   }
@@ -383,7 +392,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     document.getElementById('nearTitle').textContent =
       'In ' + near.length + ' more countries, people pay the official rate, give or take ' + SMALL_GAP + '%';
     document.getElementById('nearChips').innerHTML = near.map(function(c){
-      return '<a class="chip" data-ccy="'+esc(c.ccy)+'" href="./country.html?ccy='+esc(c.ccy)+'"><b>'+esc(listName(c.country))+'</b> '+fmtPct(gapNow(c))+'</a>';
+      return '<a class="chip" data-ccy="'+esc(c.ccy)+'" href="./country.html?ccy='+esc(c.ccy)+'"><b>'+esc(listName(c.country))+'</b> '+receiptSpan(c.ccy, fmtPct(gapNow(c)))+'</a>';
     }).join('');
     // Same list, plain-text form for the mobile paragraph (.near-text) --
     // one sentence instead of ~25 pills.

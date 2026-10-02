@@ -203,6 +203,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     <p class="cap" id="wfAnswer"></p>
     <p class="cap" id="wfCap" style="display:none"></p>
     <div id="receipt"></div>
+    <p class="cap" id="depthNote" style="display:none"></p>
     <svg class="wf" id="wf" viewBox="0 0 640 250" preserveAspectRatio="xMidYMid meet" style="display:none"></svg>
     <div class="legend-row" id="wfLegend" style="display:none"></div>
     <div class="disclosure-note" id="wfDisclosure"></div>
@@ -622,7 +623,29 @@ function render(){
   // the numeric claim now lives in the h1 above, so this line no longer
   // needs to repeat it.
   document.getElementById("verdict1").textContent=COPY.lede||"Every cost of sending it with stablecoins, step by step, checked every hour.";
-  drawWaterfall(r,cheapest); drawLadder(); drawHistory();
+  drawWaterfall(r,cheapest); drawLadder(); drawHistory(); renderDepth(r);
+}
+
+// ROADMAP item 6 (added 2026-10-01): offramp_depth_top_level/offramp_depth_1pct
+// are collected every hour for the two deep-layer corridors only (SGD->PHP,
+// USD->MXN) -- read straight off this row, no new fetch, no computation
+// beyond formatting. Any other corridor, or a row predating this column,
+// hides the line rather than showing a guessed figure.
+const DEPTH_CORRIDORS=new Set(["SGD->PHP","USD->MXN"]);
+function renderDepth(r){
+  const el=document.getElementById("depthNote");
+  const top=+r.offramp_depth_top_level, within=+r.offramp_depth_1pct;
+  if(!DEPTH_CORRIDORS.has(r.corridor) || !isFinite(top) || !isFinite(within)){
+    el.style.display="none"; el.textContent="";
+    return;
+  }
+  const D=(COPY.cards||{}).depth||{}, DD=COPY.depth||{};
+  el.style.display="";
+  el.textContent=
+    T(D.titleTemplate||"How much of the stablecoin you could sell into {dst} on {venue} right now",
+      {dst:dstOf(r), venue:venueName(r.offramp_venue)})+": "+
+    T(DD.atBestPriceTemplate||"At the best price: {amount} before the price moves.",{amount:moneyIn("USD",top)})+" "+
+    T(DD.before1PctTemplate||"Within 1% of the best price: {amount}.",{amount:moneyIn("USD",within)});
 }
 
 function numCard(label,val,win,n){

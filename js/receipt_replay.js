@@ -1,6 +1,6 @@
-/* The receipt replay (SEB-57 / R2).
+/* The receipt replay (SEB-57 / R2 / SEB-173).
  *
- * Every published index number on the site is clickable. Clicking one fetches
+ * Every published index/country number is clickable. Clicking one fetches
  * data/receipts/<CCY>.json (built by tools/emit_receipts.py, SEB-56) and
  * replays it as four steps: the evidence, the official rate, the math, the
  * verdict. Nothing here recomputes or reformats the number that was clicked --
@@ -8,9 +8,16 @@
  * echoed back verbatim, so the overlay cannot disagree with the page it was
  * opened from.
  *
- * Wired once, on document, by delegation -- so it survives a full repaint of
- * a React-rendered page (index.html) as well as a plain DOM page (c/*.html),
- * the same reason index.html already delegates its own search box.
+ * Wired once, on document, by delegation -- so it survives a full re-render
+ * of index.html's innerHTML-driven sections as well as a plain DOM page
+ * (country.html, countries.html), the same reason index.html already
+ * delegates its own search box.
+ *
+ * Paths below (copy.json, data/receipts/<CCY>.json, and every source file a
+ * step links to) are resolved against the HOST PAGE, not this script's own
+ * location in js/ -- every page that includes this file (index.html,
+ * countries.html, country.html) lives at the repo root alongside copy.json
+ * and data/, same as every other fetch those pages already make.
  *
  * copy.json is fetched by this file directly, rather than relying on the
  * host page to have already loaded it, since not every page that shows a
@@ -22,13 +29,11 @@
  */
 (function () {
   "use strict";
-  var SCRIPT_SRC = document.currentScript && document.currentScript.src;
-  function assetUrl(path) { return new URL(path, SCRIPT_SRC).toString(); }
 
   var copyPromise = null;
   function getCopy() {
     if (!copyPromise) {
-      copyPromise = fetch(assetUrl("copy.json"), { cache: "no-store" })
+      copyPromise = fetch("copy.json", { cache: "no-store" })
         .then(function (r) { return r.ok ? r.json() : {}; })
         .then(function (c) { return (c && c.receipt) || {}; })
         .catch(function () { return {}; });
@@ -95,7 +100,7 @@
     single_source_aggregate: "verdictNoteAggregate"
   };
 
-  function buildSteps(receipt, copy, displayValue) {
+  function buildSteps(receipt, copy) {
     var files = stepFiles(receipt);
     var ev = receipt.evidence || {}, rate = receipt.official_rate || {},
       comp = receipt.computation || {}, rule = receipt.evidence_rule || {};
@@ -118,7 +123,15 @@
     var mathText = T(copy.mathSentenceTemplate, {
       numerator: fmtNum(comp.numerator), ccy: receipt.ccy, denominator: fmtNum(comp.denominator)
     });
-    var mathResult = T(copy.mathResultTemplate, { result: displayValue || fmtNum(comp.result_pct) });
+    // Always the receipt's own stored result_pct, never the page's own
+    // displayed value (data-receipt-value) -- a page can show a different,
+    // smoothed figure next to this number (the 24-hour median, say) than
+    // what this hour's own receipt computed, and this step is specifically
+    // narrating THIS division, so it states only what that division
+    // actually produced (SEB-173, caught by the 10-country spot check: the
+    // page's displayed figure and computation.result_pct disagreed for most
+    // countries once median_24h_pct became the "now" convention).
+    var mathResult = T(copy.mathResultTemplate, { result: fmtNum(comp.result_pct) });
 
     var verdictText, verdictDetail = "";
     if (receipt.published) {
@@ -187,7 +200,7 @@
 
   function fileLink(path) {
     var a = document.createElement("a");
-    a.href = assetUrl(path);
+    a.href = path;
     a.textContent = path;
     return a;
   }
@@ -213,9 +226,9 @@
     if (e.key === "Escape") close();
   }
 
-  function render(receipt, copy, displayValue) {
+  function render(receipt, copy) {
     if (!overlayEl) return;
-    var steps = buildSteps(receipt, copy, displayValue);
+    var steps = buildSteps(receipt, copy);
     var ol = overlayEl.querySelector(".receipt-steps");
     ol.innerHTML = "";
     var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -302,9 +315,9 @@
       closeBtn.setAttribute("aria-label", copy.close || "");
       renderLoading(copy);
       closeBtn.focus();
-      fetch(assetUrl("data/receipts/" + ccy + ".json"), { cache: "no-store" })
+      fetch("data/receipts/" + ccy + ".json", { cache: "no-store" })
         .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
-        .then(function (receipt) { render(receipt, copy, displayValue); })
+        .then(function (receipt) { render(receipt, copy); })
         .catch(function () { renderError(copy, ccy); });
     });
   }

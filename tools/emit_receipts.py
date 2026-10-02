@@ -372,12 +372,12 @@ def build_receipt(ccy, doc):
 
 
 # ------------------------------------------------- no-JS / reduced-motion
-# SEB-57's overlay (receipt.js) is one implementation of this receipt; a
-# reader with no JavaScript needs the same four steps with no interaction at
-# all. Rather than a second, divergent description of the receipt, this
-# mirrors receipt.js's own buildSteps() field-for-field -- same copy.json
-# keys, same wording rules -- so the no-JS rendering and the JS overlay can
-# never say something different about the same number.
+# SEB-57's overlay (js/receipt_replay.js) is one implementation of this
+# receipt; a reader with no JavaScript needs the same four steps with no
+# interaction at all. Rather than a second, divergent description of the
+# receipt, this mirrors js/receipt_replay.js's own buildSteps() field-for-
+# field -- same copy.json keys, same wording rules -- so the no-JS rendering
+# and the JS overlay can never say something different about the same number.
 _copy_cache = None
 
 
@@ -418,9 +418,9 @@ def _fmt_when(iso):
 
 
 def _evidence_count_words(kind, n):
-    """Mirrors receipt.js's evidenceCountWords() -- word choice only, the
-    same kind of small presentational duplication chart.js already carries
-    for chart.py's geometry."""
+    """Mirrors js/receipt_replay.js's evidenceCountWords() -- word choice
+    only, the same kind of small presentational duplication chart.js already
+    carries for chart.py's geometry."""
     n = n or 0
     if kind in ("order_book_median", "order_book_single"):
         return f"{n} order book" + ("" if n == 1 else "s")
@@ -436,11 +436,109 @@ def _evidence_count_words(kind, n):
 # The only two `evidence_rule.reason_code` values a not-applicable rule can
 # carry, each mapped to its own copy.json sentence -- never the rule's own
 # free-text `reason`/internal note, so nothing but reviewed reader copy ever
-# reaches a page. Mirrored in receipt.js's REASON_CODE_COPY_KEYS.
+# reaches a page. Mirrored in js/receipt_replay.js's REASON_CODE_COPY_KEYS.
 VERDICT_NOTE_COPY_KEYS = {
     "order_book": "verdictNoteOrderBook",
     "single_source_aggregate": "verdictNoteAggregate",
 }
+
+
+def _step_files(receipt):
+    """Which real file backs each step, derived from the receipt's own
+    source_files list -- never a second, invented path. Mirrors
+    js/receipt_replay.js's stepFiles()."""
+    rate_file = (receipt.get("official_rate") or {}).get("source_file")
+    files = receipt.get("source_files") or []
+    country_file = next((f for f in files if f.startswith("data/countries/")), None)
+    evidence_files = [f for f in files if f != rate_file and f != country_file]
+    verdict_file = (next((f for f in evidence_files if "p2p_sides" in f), None)
+                    or (evidence_files[0] if evidence_files else country_file))
+    return {
+        "evidence": evidence_files if evidence_files else ([country_file] if country_file else []),
+        "rate": [rate_file] if rate_file else [],
+        "math": [country_file] if country_file else [],
+        "verdict": [verdict_file] if verdict_file else [],
+    }
+
+
+def build_steps(receipt):
+    """The same four-step replay js/receipt_replay.js's buildSteps() renders
+    in the browser, built here field-for-field from the same copy.json
+    `receipt` templates and the same receipt dict -- so a no-JS reader sees
+    the identical facts, not a second description of them. The math step
+    always states the receipt's own stored result_pct, never a page's own
+    display text for the number clicked -- a page can show a different,
+    smoothed figure (the 24-hour median, say) next to the same country, and
+    this step narrates THIS receipt's own division, so it states only what
+    that division actually produced.
+    """
+    copy = _copy()
+    files = _step_files(receipt)
+    ev = receipt.get("evidence") or {}
+    rate = receipt.get("official_rate") or {}
+    comp = receipt.get("computation") or {}
+    rule = receipt.get("evidence_rule") or {}
+
+    words = _evidence_count_words(ev.get("source_kind"), ev.get("n_offers")) or ev.get("source_words") or ""
+    evidence_text = _template(copy.get("evidenceSentenceTemplate"),
+                               {"words": words, "price": _fmt_num(ev.get("buy_median")), "ccy": receipt.get("ccy")})
+    evidence_note = (copy.get("evidenceOffersNote") if ev.get("offer_detail") == "per_offer"
+                      else copy.get("evidenceAggregateNote"))
+    collected = _template(copy.get("evidenceCollectedTemplate"), {"when": _fmt_when(ev.get("collected_at"))})
+
+    rate_word = {
+        "managed": copy.get("rateManaged"),
+        "pegged": copy.get("ratePegged"),
+        "unmaintained": copy.get("rateUnmaintained"),
+    }.get(rate.get("class"), copy.get("rateMarket"))
+    rate_text = _template(copy.get("rateSentenceTemplate"),
+                           {"value": _fmt_num(rate.get("value")), "ccy": receipt.get("ccy"), "source": rate.get("source") or ""})
+
+    math_text = _template(copy.get("mathSentenceTemplate"),
+                           {"numerator": _fmt_num(comp.get("numerator")), "ccy": receipt.get("ccy"),
+                            "denominator": _fmt_num(comp.get("denominator"))})
+    math_result = _template(copy.get("mathResultTemplate"),
+                             {"result": _fmt_num(comp.get("result_pct"))})
+
+    verdict_detail = ""
+    if receipt.get("published"):
+        verdict_text = copy.get("verdictPublished")
+        if rule.get("applies"):
+            verdict_detail = _template(copy.get("verdictRuleDetailTemplate"),
+                                        {"actual": rule.get("buy_ads_actual"), "required": rule.get("min_buy_ads_required")})
+        elif rule.get("reason_code") in VERDICT_NOTE_COPY_KEYS:
+            verdict_detail = copy.get(VERDICT_NOTE_COPY_KEYS[rule["reason_code"]], "")
+    else:
+        verdict_text = _template(copy.get("verdictWithheldTemplate"), {"reason": receipt.get("not_published_reason") or ""})
+
+    def join(*parts):
+        return " ".join(p for p in parts if p)
+
+    return [
+        {"label": copy.get("step1Label"), "text": join(evidence_text, evidence_note, collected), "files": files["evidence"]},
+        {"label": copy.get("step2Label"), "text": join(rate_text, rate_word, copy.get("rateStalenessNote")), "files": files["rate"]},
+        {"label": copy.get("step3Label"), "text": join(math_text, math_result), "files": files["math"]},
+        {"label": copy.get("step4Label"), "text": join(verdict_text, verdict_detail), "files": files["verdict"]},
+    ]
+
+
+def render_noscript(receipt):
+    """A <noscript> block carrying the same four steps js/receipt_replay.js's
+    overlay shows -- the only way a reader with JavaScript off reaches the
+    receipt at all, since the overlay itself is a click handler. Plain
+    HTML, no animation, no interaction; each step names its own source file
+    same as the JS version's footer links."""
+    title = html.escape(_copy().get("title") or "")
+    items = []
+    for step in build_steps(receipt):
+        label = html.escape(step["label"] or "")
+        text = html.escape(step["text"] or "")
+        file_links = "".join(
+            " <code>" + html.escape(f) + "</code>" for f in (step["files"] or [])
+        )
+        items.append(f"<li><b>{label}:</b> {text}{file_links}</li>")
+    return (f'<noscript><div class="receipt-noscript"><p>{title}</p>'
+            f'<ol>{"".join(items)}</ol></div></noscript>')
 
 
 def build():
