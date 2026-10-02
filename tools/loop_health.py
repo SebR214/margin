@@ -26,6 +26,41 @@ LOGDIR = "/var/log/margin"
 IDLE_SECONDS = 45          # run.sh's own threshold for "this pass did nothing"
 WASTE_ALARM = 0.60         # 60% of wakes idle is worth filing
 THRASH_ALARM = 20          # identical consecutive no-op passes
+ACTIVITY_LOG_PATH = os.environ.get(
+    "LINEAR_ACTIVITY_LOG_PATH", "/var/log/margin/linear_activity.jsonl")
+
+
+def issue_creates(role, day):
+    """UTC timestamps (as ISO strings) of every Linear issue `role` filed on
+    `day`, read from agents/linear.py's own activity log.
+
+    SEB-138: agents/run.sh's before/after signature check for the reviewer
+    role only compares reviewer_work.py's pending-PR list, which does not
+    move when a pass's real output is a brand new Linear issue rather than a
+    finished review -- exactly the shape of the SEB-130..SEB-137 self-merge
+    escalations. That scores a pass idle (sig_idle) even though it produced
+    real, valuable output. `agents/linear.py cmd_new` now stamps a "create"
+    line here so this file can tell the two apart instead of trusting the
+    signature alone.
+    """
+    out = []
+    try:
+        for line in io.open(ACTIVITY_LOG_PATH, encoding="utf-8", errors="replace"):
+            line = line.strip()
+            if not line.startswith("linear_activity "):
+                continue
+            try:
+                d = json.loads(line[len("linear_activity "):])
+            except ValueError:
+                continue
+            if d.get("kind") != "create" or d.get("role") != role:
+                continue
+            ts = d.get("ts", "")
+            if ts.startswith(day):
+                out.append(ts)
+    except OSError:
+        pass
+    return sorted(out)
 
 
 def rows(role, day):
@@ -44,7 +79,7 @@ def rows(role, day):
     return out
 
 
-def _idle(r):
+def _idle(r, creates=()):
     """A pass counts as idle if it was fast (booted, found nothing, exited) OR
     if agents/run.sh's own before/after signature compare says the
     buildable/reviewable world it looked at didn't move -- SEB-93: 24 passes
@@ -53,8 +88,31 @@ def _idle(r):
     conclusion. Wall-clock alone called every one of those "not idle"; the
     signature flag, recorded by run.sh since SEB-93, catches what the clock
     can't.
+
+    Exception (SEB-138): a pass that filed a Linear issue during its own
+    window did real, valuable work, even when the pending-review list the
+    signature is built from didn't change. `creates` holds that day's
+    "create" timestamps for this role, sorted; if one falls between this
+    pass's start (finished_utc minus its own seconds) and its finish, the
+    signature's "idle" verdict is overruled.
     """
-    return (r.get("seconds") or 0) < IDLE_SECONDS or bool(r.get("sig_idle"))
+    fast_or_sig_idle = (r.get("seconds") or 0) < IDLE_SECONDS or bool(r.get("sig_idle"))
+    if not fast_or_sig_idle or not creates:
+        return fast_or_sig_idle
+    end = r.get("finished_utc", "")
+    try:
+        end_dt = datetime.datetime.fromisoformat(end)
+    except ValueError:
+        return fast_or_sig_idle
+    start_dt = end_dt - datetime.timedelta(seconds=r.get("seconds") or 0)
+    for ts in creates:
+        try:
+            c_dt = datetime.datetime.fromisoformat(ts)
+        except ValueError:
+            continue
+        if start_dt <= c_dt <= end_dt:
+            return False
+    return fast_or_sig_idle
 
 
 def main():
@@ -69,7 +127,8 @@ def main():
             print("  %-9s no passes recorded" % role)
             continue
         wakes = [r for r in rs if (r.get("seconds") or 0) > 0]
-        idle = [r for r in wakes if _idle(r)]
+        creates = issue_creates(role, day)
+        idle = [r for r in wakes if _idle(r, creates)]
         reasons = collections.Counter(r.get("reason", "?") for r in rs)
         share = (len(idle) / len(wakes)) if wakes else 0.0
         print("  %-9s passes %-5d model wakes %-5d  woke-and-found-nothing %-5d (%.0f%%)"
@@ -107,7 +166,7 @@ def main():
         streak = 0
         worst = 0
         for r in rs:
-            if (r.get("seconds") or 0) > 0 and _idle(r):
+            if (r.get("seconds") or 0) > 0 and _idle(r, creates):
                 streak += 1
                 worst = max(worst, streak)
             else:
