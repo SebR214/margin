@@ -1,12 +1,14 @@
 {
+  "buy_price": 4089.0,
   "ccy": "KHR",
-  "computed_at": "2026-10-01T23:00:00+00:00",
+  "computed_at": "2026-10-02T00:00:00+00:00",
   "country": "Cambodia",
   "denominator": {
     "class": "market",
-    "rate_per_usd": 4053.6449,
+    "rate_per_usd": 4053.412814,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 4053.412814,
   "history": [
     {
       "date": "2026-09-05",
@@ -169,23 +171,36 @@
       "index_pct": 0.7612,
       "n": 10,
       "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-10-02",
+      "index_pct": 0.878,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
-  "history_days": 27,
+  "history_days": 28,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-01T23:00:00+00:00",
+  "hour_utc": "2026-10-02T00:00:00+00:00",
+  "index_pct": 0.878,
   "index_version": "1.1",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "median_24h_n": 17,
-  "median_24h_pct": 1.0564,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: 8 buy-side ads, 10 required",
-  "round_trip_pct": 7.9974,
-  "source_class": null,
+  "median_24h_n": 18,
+  "median_24h_pct": 1.0383,
+  "n_sources": 10,
+  "round_trip_pct": 1.8431,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 4233.5
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 4089.0,
+      "index_pct": 0.878,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    }
+  ]
 }
