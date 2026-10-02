@@ -808,7 +808,34 @@ def pick_baseline(quotes):
 
 
 def parse_wise(payload):
-    """Wise comparison API -> [(provider, landed), ...]."""
+    """Wise comparison API -> [(provider, landed), ...].
+
+    DELIVERY FIELD, PROBED AND NOT FOUND (SEB-191, 2026-10-02). SEB-176 added
+    a stated-delivery-time sidecar fed by providers' own direct APIs; this
+    comparison feed (this function's own `payload`, from fetch_baseline()
+    calling api.wise.com/v3/comparisons) is a different, unchecked payload
+    for the four rails that have no direct API call anywhere in this repo --
+    PayPal, Western Union, HSBC Singapore, OFX -- plus Instarem, which does
+    have a direct call (collector_providers.py) but no delivery field on it
+    either (see that file's module docstring).
+
+    Live-probed sourceCurrency=SGD&targetCurrency=PHP at every ladder size
+    (200/1000/5000/25000/50000) -- the exact call fetch_baseline() makes.
+    Every quote object carries a `deliveryEstimation` dict
+    ({"deliveryDate", "duration", "durationType", "providerGivesEstimate"}).
+    For Instarem, PayPal, HSBC Singapore, Western Union and OFX, at every
+    size, `providerGivesEstimate` was the only populated field (always
+    `true`) -- `deliveryDate`, `duration` and `durationType` were `null`
+    every time, for all five. That is the feed saying "this provider
+    supports giving an estimate" with no estimate attached, not a delivery
+    time with nothing to read -- nothing to wire. (The feed's own Wise
+    entry DOES carry a real duration -- e.g. "PT1S" at S$200, "PT65H46M..."
+    at S$50,000 -- but Wise already has a direct, narrower delivery read
+    from its own quote API, SEB-176's wise_delivery(); out of scope here.)
+    No parser or sidecar change follows from this probe: there is no field
+    to extend parse_wise() with for any of the five rails this issue asked
+    about.
+    """
     out = []
     for p in payload.get("providers", []):
         name = p.get("name") or p.get("alias")
