@@ -264,6 +264,17 @@ jobs:
         # See the docstring in tools/emit_price_changes.py.
         run: python3 tools/emit_price_changes.py
 
+      - name: Emit the price-change receipts
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-187. Runs right after the step above so it reads what that step
+        # just wrote (data/price_changes.csv and data/price_changes_latest.json)
+        # alongside the raw panel CSVs underneath them, and writes one receipt
+        # per confirmed row to data/pricechange_receipts/ -- the hourly
+        # readings, the pairwise comparison and the arithmetic behind a
+        # "moved by X" claim on sending-money.html. Append-only, same as the
+        # row it explains. Exits non-zero only if it cannot write.
+        run: python3 tools/emit_pricechange_receipts.py
+
       - name: Emit the status of the machine
         if: always() && steps.needed.outputs.proceed == 'true'
         # Feeds /status.html. Derived entirely from files already in data/, so
@@ -492,12 +503,14 @@ jobs:
           if [ -f index.html ]; then git add index.html; fi
           # Directories: one file per country, a page per country, one
           # receipt per country, one receipt per corridor+amount
-          # (data/corridor_receipts, SEB-178), and the bundle's parquet
-          # files + manifest. A country (or a table emit_bundle.py starts
-          # writing, or a new corridor+amount pair's first receipt) appears
-          # here on its first run with no edit to this list -- which is the
-          # point of staging the directory rather than naming the files.
-          for d in data/countries data/receipts data/corridor_receipts data/bundle; do
+          # (data/corridor_receipts, SEB-178), one receipt per confirmed
+          # price change (data/pricechange_receipts, SEB-187), and the
+          # bundle's parquet files + manifest. A country (or a table
+          # emit_bundle.py starts writing, or a new corridor+amount pair's
+          # or price-change's first receipt) appears here on its first run
+          # with no edit to this list -- which is the point of staging the
+          # directory rather than naming the files.
+          for d in data/countries data/receipts data/corridor_receipts data/pricechange_receipts data/bundle; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Anything TRACKED that an emitter rewrote but the list above forgot.

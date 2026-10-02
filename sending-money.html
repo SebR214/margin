@@ -7,6 +7,7 @@
 <meta name="description" content="Every provider's all-in cost to send money, fee plus the margin hidden in the exchange rate, re-checked most hours -- real gaps shown, not hidden."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
+<script src="./js/receipt_replay.js"></script>
 <style>
   /* Page-specific only: container width, header/nav layout and h1/h2/body
      sizing now live in style.css (2026-09-28 page-frame unification). Header
@@ -229,6 +230,14 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   var ARROW_PLACE = {SGD:'Singapore', PHP:'Philippines', AUD:'Australia', NZD:'New Zealand', USD:'US', MXN:'Mexico', NGN:'Nigeria', INR:'India'};
   var HEADLINE_PLACE = {SGD:'Singapore', PHP:'the Philippines', AUD:'Australia', NZD:'New Zealand', USD:'the US', MXN:'Mexico', NGN:'Nigeria', INR:'India'};
   function arrowWords(route){ return (ARROW_PLACE[route.src]||route.src) + ' → ' + (ARROW_PLACE[route.dst]||route.dst); }
+  // The same corridor_size_provider_day key tools/emit_pricechange_receipts.py
+  // names its file by (SEB-187) -- built here from the same change row the
+  // card itself is drawn from, never a second lookup.
+  function pcKey(c){
+    var corridor = c.corridor.replace('->', '-');
+    var provider = c.provider.replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'unknown';
+    return corridor + '_' + c.size + '_' + provider + '_' + c.day;
+  }
   // Oxford-style "A, B and C" join for the source-meter sentence's list of
   // providers that quote us directly -- computed from the real rows every
   // render, never typed, since which providers are "own"-sourced varies by
@@ -683,8 +692,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
           var sub = T(COPY.changeLogSubTemplate || '', { amountWords: c.amount_words, oldDay: fmtDay(c.old_day), newDay: fmtDay(c.day) });
           var word = up ? (COPY.changeUpWord||'') : (COPY.changeDownWord||'');
           var agree = T(COPY.changeAgreeTemplate || '', { n: c.n_agree, m: c.n_panel });
+          var valueText = fmt(c.old_cost_pct)+' → '+fmt(c.new_cost_pct);
           return '<li><span>'+esc(c.provider)+', '+esc(arrowWords(PROVIDERS.corridors[c.corridor] || {src:'',dst:''}))+'<span class="s2">'+esc(sub)+'</span></span>' +
-            '<span>'+(up?'<span class="up">'+esc(word)+'</span>':esc(word))+'<span class="s2" style="text-align:right">'+fmt(c.old_cost_pct)+' → '+fmt(c.new_cost_pct)+'</span></span></li>';
+            '<span>'+(up?'<span class="up">'+esc(word)+'</span>':esc(word))+'<span class="s2" style="text-align:right" data-pricechange-key="'+esc(pcKey(c))+'" data-receipt-value="'+esc(valueText)+'" tabindex="0">'+esc(valueText)+'</span></span></li>';
         }
 
         var listEl = document.getElementById('changesList');
