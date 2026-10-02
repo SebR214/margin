@@ -243,6 +243,16 @@ jobs:
         if: always() && steps.needed.outputs.proceed == 'true'
         run: python3 tools/emit_providers.py
 
+      - name: Emit provider receipts
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-186. Runs right after the provider ranking so it reads what that
+        # step just wrote (data/providers_latest.json) alongside the raw CSVs
+        # underneath it, and writes data/provider_receipts/<corridor>_<size>_
+        # <hour>.json: the evidence and the arithmetic behind every provider's
+        # ranked cost on sending-money.html, one file per corridor and size.
+        # Exits non-zero only if it cannot write.
+        run: python3 tools/emit_provider_receipts.py
+
       - name: Emit real hourly coverage (sending-money series)
         if: always() && steps.needed.outputs.proceed == 'true'
         # Recomputed every run from data/samples.csv, so the coverage % and
@@ -492,12 +502,15 @@ jobs:
           if [ -f index.html ]; then git add index.html; fi
           # Directories: one file per country, a page per country, one
           # receipt per country, one receipt per corridor+amount
-          # (data/corridor_receipts, SEB-178), and the bundle's parquet
+          # (data/corridor_receipts, SEB-178), one receipt per
+          # corridor-and-size on sending-money.html's provider ranking
+          # (data/provider_receipts, SEB-186), and the bundle's parquet
           # files + manifest. A country (or a table emit_bundle.py starts
-          # writing, or a new corridor+amount pair's first receipt) appears
-          # here on its first run with no edit to this list -- which is the
-          # point of staging the directory rather than naming the files.
-          for d in data/countries data/receipts data/corridor_receipts data/bundle; do
+          # writing, or a new corridor+amount/corridor+size pair's first
+          # receipt) appears here on its first run with no edit to this
+          # list -- which is the point of staging the directory rather than
+          # naming the files.
+          for d in data/countries data/receipts data/corridor_receipts data/provider_receipts data/bundle; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Anything TRACKED that an emitter rewrote but the list above forgot.

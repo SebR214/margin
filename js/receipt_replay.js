@@ -1,4 +1,4 @@
-/* The receipt replay (SEB-57 / R2 / SEB-173 / SEB-178).
+/* The receipt replay (SEB-57 / R2 / SEB-173 / SEB-178 / SEB-186).
  *
  * Every published index/country number is clickable. Clicking one fetches
  * data/receipts/<CCY>.json (built by tools/emit_receipts.py, SEB-56) and
@@ -10,19 +10,26 @@
  *
  * corridor.html's own cost-in-bps figures (SEB-178) replay the same way, from
  * data/corridor_receipts/<corridor>_<notional>_<hour>.json (built by
- * tools/emit_corridor_receipts.py) -- the same four-step SHELL (the dialog,
+ * tools/emit_corridor_receipts.py), and sending-money.html's own
+ * provider-ranking cost figures (SEB-186) replay the same way too, from
+ * data/provider_receipts/<corridor>_<size>_<hour>.json (built by
+ * tools/emit_provider_receipts.py) -- the same four-step SHELL (the dialog,
  * the numbered steps, the timers, the raw-file footer) rendered by the same
  * render()/open-close machinery below, just fed a differently-shaped receipt
- * and a second, corridor-specific set of copy.json templates
- * (copy.json's "receiptCorridor" key) rather than a second component.
+ * and their own set of copy.json templates (copy.json's "receiptCorridor"
+ * and "receiptProvider" keys) rather than a second component. See
+ * buildProviderSteps()'s own comment for why a wired row's math always
+ * matches the comparison figure the page itself is showing, never the
+ * provider's own number underneath it.
  *
  * Wired once, on document, by delegation -- so it survives a full re-render
  * of index.html's innerHTML-driven sections as well as a plain DOM page
- * (country.html, countries.html, corridor.html), the same reason index.html
- * already delegates its own search box.
+ * (country.html, countries.html, corridor.html, sending-money.html), the
+ * same reason index.html already delegates its own search box.
  *
  * Paths below (copy.json, data/receipts/<CCY>.json,
- * data/corridor_receipts/....json, and every source file a step links to)
+ * data/corridor_receipts/....json, data/provider_receipts/....json, and
+ * every source file a step links to)
  * are resolved against the HOST PAGE, not this script's own location in
  * js/ -- every page that includes this file lives at the repo root alongside
  * copy.json and data/, same as every other fetch those pages already make.
@@ -56,6 +63,9 @@
   function getCrossoverCopy() {
     return getCopyDoc().then(function (c) { return (c && c.receiptCrossover) || {}; });
   }
+  function getProviderCopy() {
+    return getCopyDoc().then(function (c) { return (c && c.receiptProvider) || {}; });
+  }
 
   function T(s, vals) {
     if (!s) return "";
@@ -67,6 +77,15 @@
   function fmtNum(v) {
     return v === null || v === undefined || !isFinite(v) ? "—"
       : Number(v).toLocaleString("en-US", { maximumFractionDigits: 6 });
+  }
+
+  // Same tiered precision as sending-money.html's own r.cost_pct.toFixed(2) --
+  // more decimal places for a smaller number so a real cost like 0.04% never
+  // prints as 0.00%, which would read as "not measured".
+  function fmtPct(v) {
+    if (v === null || v === undefined || !isFinite(v)) return "—";
+    var a = Math.abs(v), dp = a >= 10 ? 1 : a >= 0.1 ? 2 : 3;
+    return v.toFixed(dp) + "%";
   }
 
   function fmtWhen(iso) {
@@ -288,6 +307,59 @@
     ];
   }
 
+  // sending-money.html's provider-ranking cost figures (SEB-186): the same
+  // step shell buildSteps() fills for index/country numbers, fed from a
+  // differently-shaped receipt (tools/emit_provider_receipts.py) and
+  // copy.json's "receiptProvider" templates.
+  //
+  // `row` is ALREADY the one entry from data/provider_receipts/....json that
+  // matches the provider clicked (openProvider() below picks it out of the
+  // file's own `rows` list). Its computation.result_pct is, by construction,
+  // always the number sending-money.html itself is showing for that row --
+  // for a provider with its own published quote AND a public comparison
+  // figure, that is the COMPARISON figure, never the provider's own number,
+  // because that is which one the page displays (see
+  // tools/emit_provider_receipts.py's own docstring, "THE WIRING DECISION").
+  // The provider's own quote still appears, in evidence.own_quote, as
+  // supporting context underneath -- never as the number this step's math
+  // claims to explain.
+  function buildProviderSteps(row, copy) {
+    var ev = row.evidence || {}, comp = row.computation || {};
+    var provider = row.provider, files = row.source_files || [];
+
+    if (!comp) {
+      var fallbackText = ev.status === "missing"
+        ? T(copy.evidenceMissingTemplate, { provider: provider })
+        : copy.evidenceUnavailableTemplate;
+      return [{ label: copy.step1Label, text: fallbackText || "", files: files }];
+    }
+
+    var evidenceText;
+    if (ev.status === "comparison") {
+      evidenceText = T(copy.evidenceComparisonSentenceTemplate, { provider: provider, landed: fmtNum(ev.landed) });
+      if (ev.own_quote) {
+        evidenceText += " " + T(copy.evidenceOwnNoteTemplate, {
+          provider: provider, rate: fmtNum(ev.own_quote.rate), fee: fmtNum(ev.own_quote.fee)
+        });
+      }
+    } else {
+      evidenceText = T(copy.evidenceOwnSentenceTemplate, {
+        provider: provider, rate: fmtNum(ev.rate), fee: fmtNum(ev.fee), received: fmtNum(ev.received)
+      });
+    }
+    var collected = T(copy.evidenceCollectedTemplate, { when: fmtWhen(ev.collected_at) });
+
+    var mathText = [copy.mathSentence, T(copy.mathResultTemplate, { result: fmtPct(comp.result_pct) })]
+      .filter(Boolean).join(" ");
+
+    var steps = [
+      { label: copy.step1Label, text: [evidenceText, collected].filter(Boolean).join(" "), files: files },
+      { label: copy.step2Label, text: mathText, files: files }
+    ];
+    if (comp.note) steps.push({ label: copy.step3Label, text: comp.note, files: files });
+    return steps;
+  }
+
   var STYLE = [
     ".receipt-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;}",
     ".receipt-backdrop{position:absolute;inset:0;background:rgba(32,30,29,.55);}",
@@ -315,7 +387,7 @@
     ".receipt-raw-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d7979;margin-bottom:6px;}",
     ".receipt-raw-links{font-size:12px;line-height:1.8;}",
     ".receipt-loading{font-size:13px;color:#7d7979;padding:12px 0;}",
-    "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file]{cursor:pointer;}"
+    "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file]{cursor:pointer;}"
   ].join("\n");
 
   function ensureStyle() {
@@ -362,8 +434,9 @@
   // The shared shell both receipt kinds paint into: the numbered steps list
   // and the raw-file footer. Takes already-built steps (label/text/files)
   // rather than a receipt, so it has no opinion on what shape of receipt
-  // produced them -- buildSteps() (index/country) and buildCorridorSteps()
-  // (corridor.html) are the only two places that know that.
+  // produced them -- buildSteps() (index/country), buildCorridorSteps()
+  // (corridor.html) and buildProviderSteps() (sending-money.html) are the
+  // only places that know that.
   function paintSteps(steps, sourceFiles, rawFilesLabel) {
     if (!overlayEl) return;
     var ol = overlayEl.querySelector(".receipt-steps");
@@ -429,10 +502,11 @@
       + escHtml(T(copy.loadErrorTemplate, { file: file })) + "</li>";
   }
 
-  // Builds the dialog shell common to both receipt kinds and wires its
-  // close behaviour -- what every receipt, index/country or corridor,
-  // shares. Returns the close button so the caller can finish wiring its
-  // own copy-specific title/aria-label once copy.json resolves.
+  // Builds the dialog shell common to every receipt kind and wires its
+  // close behaviour -- what every receipt, index/country, corridor,
+  // crossover or provider, shares. Returns the close button so the caller
+  // can finish wiring its own copy-specific title/aria-label once
+  // copy.json resolves.
   function openShell(ariaLabel, displayValue, triggerEl) {
     ensureStyle();
     lastFocus = triggerEl;
@@ -521,9 +595,35 @@
     });
   }
 
+  // sending-money.html's provider-ranking cost figures (SEB-186): same
+  // shell, a receipt file keyed by (corridor, size, hour) holding one row
+  // per provider, and its own copy.json templates (receiptProvider) rather
+  // than the index/country ones -- see buildProviderSteps() for why.
+  function openProvider(file, providerName, displayValue, triggerEl) {
+    if (!file || !providerName) return;
+    var closeBtn = openShell(providerName, displayValue, triggerEl);
+
+    getProviderCopy().then(function (copy) {
+      if (!overlayEl) return;
+      overlayEl.querySelector(".receipt-title").textContent = copy.title || "";
+      closeBtn.setAttribute("aria-label", copy.close || "");
+      renderLoading(copy);
+      closeBtn.focus();
+      var path = "data/provider_receipts/" + file + ".json";
+      fetch(path, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .then(function (receipt) {
+          var row = (receipt.rows || []).filter(function (x) { return x.provider === providerName; })[0];
+          if (!row) throw new Error("no such provider in this receipt");
+          paintSteps(buildProviderSteps(row, copy), row.source_files, copy.rawFilesLabel);
+        })
+        .catch(function () { renderError(copy, path); });
+    });
+  }
+
   document.addEventListener("click", function (e) {
     var t = e.target.closest && e.target.closest(
-      "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file]");
+      "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file]");
     if (!t) return;
     e.preventDefault();
     var displayValue = t.getAttribute("data-receipt-value") || t.textContent;
@@ -532,6 +632,9 @@
         t.getAttribute("data-receipt-regime") || "taker", displayValue, t);
     } else if (t.hasAttribute("data-receipt-crossover-file")) {
       openCrossover(t.getAttribute("data-receipt-crossover-file"), displayValue, t);
+    } else if (t.hasAttribute("data-receipt-provider-file")) {
+      openProvider(t.getAttribute("data-receipt-provider-file"),
+        t.getAttribute("data-receipt-provider-name"), displayValue, t);
     } else {
       open(t.getAttribute("data-receipt-ccy"), displayValue, t);
     }
