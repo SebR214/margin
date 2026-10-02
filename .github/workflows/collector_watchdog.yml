@@ -14,6 +14,16 @@ name: collector-watchdog
 #
 # Cheap by design: no LLM anywhere in this workflow, so running it every 30
 # minutes costs nothing but a few seconds of a free GitHub-hosted runner.
+#
+# SEB-166: this used to file `gh issue create`/`comment`/`close` -- a GitHub
+# issue, which RULES.md forbids ("Do not open GitHub issues; do not
+# coordinate in PR comments... GitHub holds code and pull requests only.").
+# Linear's GitHub sync mirrored that issue back in with no project set, which
+# made it invisible to next/stranded/issues -- every command any role
+# actually looks at -- for ~10 hours during a real outage (SEB-165). It now
+# talks to agents/linear.py directly instead, the same as every other
+# automated write in this repo, so the alert always lands in the margin.wiki
+# project and stays visible.
 
 on:
   schedule:
@@ -22,7 +32,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   watchdog:
@@ -50,37 +59,50 @@ jobs:
           fi
           cat health_output.txt
 
-      # One issue, reused across outages rather than one per incident --
-      # a pinned, reopened issue is what a human (or a scheduled agent)
-      # actually watches; a pile of one-off issues is not.
+      # One issue, reused across outages rather than one per incident -- a
+      # pinned, reopened issue is what a human (or a scheduled agent)
+      # actually watches; a pile of one-off issues is not. `linear.py issues`
+      # lists every issue in the project with its state and labels; grep for
+      # one still open (not Done/Canceled/Duplicate) carrying the
+      # collector-down label -- the same role `gh issue list --label` played
+      # before SEB-166.
       - name: File or update the alert
         if: steps.health.outputs.healthy == 'false'
         env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
         run: |
-          BODY="Collector chain looks down as of $(date -u +%Y-%m-%dT%H:%MZ).
-
-          \`\`\`
-          $(cat health_output.txt)
-          \`\`\`
-
-          See [collect.yml runs](https://github.com/${GH_REPO}/actions/workflows/collect.yml) and \`tools/check_collector_health.py\` for the check that raised this."
-          existing=$(gh issue list --label collector-down --state open --json number --jq '.[0].number // empty')
+          {
+            echo "Collector chain looks down as of $(date -u +%Y-%m-%dT%H:%MZ)."
+            echo
+            echo '```'
+            cat health_output.txt
+            echo '```'
+            echo
+            echo "See [collect.yml runs](https://github.com/${{ github.repository }}/actions/workflows/collect.yml) and \`tools/check_collector_health.py\` for the check that raised this."
+          } > "$RUNNER_TEMP/alert_body.md"
+          existing=$(python3 agents/linear.py issues \
+            | grep -E '<([^>]*,)?collector-down(,[^>]*)?>$' \
+            | grep -Ev '^\S+\s+\[(Done|Canceled|Duplicate)' \
+            | awk '{print $1}' | head -1)
           if [ -n "$existing" ]; then
-            gh issue comment "$existing" --body "$BODY"
+            python3 agents/linear.py say "$existing" product --body-file "$RUNNER_TEMP/alert_body.md"
           else
-            gh issue create --title "Collector chain down" --label collector-down --body "$BODY"
+            python3 agents/linear.py new "Collector chain down" \
+              --body-file "$RUNNER_TEMP/alert_body.md" \
+              --label collector-down --priority 1 --role product
           fi
 
       - name: Close the alert if recovered
         if: steps.health.outputs.healthy == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
         run: |
-          existing=$(gh issue list --label collector-down --state open --json number --jq '.[0].number // empty')
+          existing=$(python3 agents/linear.py issues \
+            | grep -E '<([^>]*,)?collector-down(,[^>]*)?>$' \
+            | grep -Ev '^\S+\s+\[(Done|Canceled|Duplicate)' \
+            | awk '{print $1}' | head -1)
           if [ -n "$existing" ]; then
-            gh issue comment "$existing" --body "Recovered as of $(date -u +%Y-%m-%dT%H:%MZ)."
-            gh issue close "$existing"
+            echo "Recovered as of $(date -u +%Y-%m-%dT%H:%MZ)." > "$RUNNER_TEMP/recovery_body.md"
+            python3 agents/linear.py say "$existing" product --body-file "$RUNNER_TEMP/recovery_body.md"
+            python3 agents/linear.py state "$existing" "Done"
           fi
