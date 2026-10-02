@@ -483,9 +483,17 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         var sourceLabel = isStable
           ? ('all fees in &middot; <a href="./corridor.html?corridor='+encodeURIComponent(routeKey)+'" class="route-link" style="font-weight:600;color:#0B0B0B">every cost, step by step →</a>')
           : '';
-        var nameCell = '<div><span class="pname">'+esc(displayName)+(hasVenues ? ' <span class="venue-toggle-caret">▸</span>' : '')+(sourceLabel ? '<small>'+sourceLabel+'</small>' : '')+'</span></div>';
+        // SEB-176: the provider's own stated delivery time, read straight off
+        // its own page/API (data/provider_delivery.csv via providers_latest.json)
+        // -- shown verbatim, escaped since it's text from outside this site, and
+        // only when a row for this provider/size/hour actually exists. Absent
+        // means it wasn't measured, never "not stated" invented in its place.
+        var deliveryLabel = (!isStable && r.delivery_stated)
+          ? esc(T(COPY.deliveryTemplate || '', { delivery: r.delivery_stated })) : '';
+        var nameCell = '<div><span class="pname">'+esc(displayName)+(hasVenues ? ' <span class="venue-toggle-caret">▸</span>' : '')+(sourceLabel ? '<small>'+sourceLabel+'</small>' : (deliveryLabel ? '<small>'+deliveryLabel+'</small>' : ''))+'</span></div>';
         if (r.unchecked) {
-          return '<div class="prow missing"><div><span class="pname">'+esc(r.provider)+'<small>direct quote, not checked yet</small></span></div><div class="track"></div><div class="num-cell">—</div><div class="pct-cell">—</div></div>';
+          var uDelivery = deliveryLabel ? (' &middot; ' + deliveryLabel) : '';
+          return '<div class="prow missing"><div><span class="pname">'+esc(r.provider)+'<small>direct quote, not checked yet'+uDelivery+'</small></span></div><div class="track"></div><div class="num-cell">—</div><div class="pct-cell">—</div></div>';
         }
         var cost = isMissing ? 'no price this hour' : esc(r.costs);
         var pct = isMissing ? '—' : r.cost_pct.toFixed(2)+'%';

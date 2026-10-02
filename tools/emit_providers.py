@@ -31,6 +31,7 @@ DATA = os.path.join(HERE, "data")
 QUOTES = os.path.join(DATA, "provider_quotes.csv")
 SAMPLES = os.path.join(DATA, "samples.csv")
 STABLE_VENUES = os.path.join(DATA, "stable_venues.csv")
+DELIVERY = os.path.join(DATA, "provider_delivery.csv")
 OUT = os.path.join(DATA, "providers_latest.json")
 
 # Each corridor's comparison panel lives in its own file, because providers.csv
@@ -144,6 +145,28 @@ def own_quotes():
             continue
         out[(r["corridor"], int(size), r["provider"])] = r
     return out, hour
+
+
+def delivery_stated():
+    """{(corridor, size, provider): delivery_stated} from
+    data/provider_delivery.csv's newest hour (SEB-176) -- empty if that
+    sidecar has no rows yet (collector_providers.py wrote nothing, or
+    Playwright isn't installed on this runner for WorldRemit's render).
+    A provider absent from this dict never means "not stated"; it means no
+    delivery time was measured for it this hour -- the page shows nothing
+    for that row, not a placeholder."""
+    rs = rows(DELIVERY)
+    hour = newest_hour(rs)
+    if hour is None:
+        return {}
+    out = {}
+    for r in in_hour(rs, hour):
+        size = num(r, "size_src")
+        stated = (r.get("delivery_stated") or "").strip()
+        if size is None or not stated:
+            continue
+        out[(r["corridor"], int(size), r["provider"])] = stated
+    return out
 
 
 def panel_quotes(corridor):
@@ -273,6 +296,7 @@ def money(cur, v, dp=2):
 
 def build(now=None):
     own, own_hour = own_quotes()
+    delivery = delivery_stated()
     corridors = {}
     for corridor in sorted(PANELS):
         panel, panel_hour = panel_quotes(corridor)
@@ -300,6 +324,7 @@ def build(now=None):
                                   else money(src, num(r, "fee_src")) + " fee"),
                     "also_quoted_pct": (round(panel[(size, prov)] / 100, 4)
                                         if (size, prov) in panel else None),
+                    "delivery_stated": delivery.get((corridor, size, prov)),
                 })
                 seen.add(prov)
             # 2. the comparison API fills in everyone else
