@@ -7,6 +7,7 @@
 <meta name="description" content="One country's price, its full history, and the receipt behind the number, in one place."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
+<script src="./js/receipt_replay.js"></script>
 <style>
   :root{
     --ink:#0B0B0B; --sub:#3F3047; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; --soft:#D3D0CB; --bg:#fff;
@@ -279,7 +280,13 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var dates = country.spark ? sparkDates(country.hour_utc, country.spark.length) : [];
     var sinceLabel = dates.length ? shortDate(dates[0]) : null;
 
-    var html = '<h1 class="num">' + esc(country.country) + ': a dollar ' + gapPhrase(headlinePct) + '</h1>' +
+    // The headline's own gap phrase is this country's receipt result_pct
+    // (SEB-173) -- clickable via receipt_replay.js's delegated handler,
+    // same data-receipt-ccy/value attributes every other page's gap number
+    // carries.
+    var gapPhraseText = gapPhrase(headlinePct);
+    var html = '<h1 class="num">' + esc(country.country) + ': a dollar <span data-receipt-ccy="' + esc(ccy) +
+      '" data-receipt-value="' + esc(gapPhraseText) + '" tabindex="0">' + esc(gapPhraseText) + '</span></h1>' +
       '<p class="lead">' + esc(T(COPY.leadTemplate || 'What people pay for a stablecoin on Binance P2P in {country}, compared with the official rate.',
         {country: country.country})) + '</p>' +
       '<p class="meta"><span class="dot"></span>Checked ' + esc(shortTime(country.hour_utc)) + ' &middot; median of the last 24 hours</p>';
