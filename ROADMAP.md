@@ -188,13 +188,17 @@ agent-activity feed were real, shipped features that got silently dropped or
 absorbed along the way, confirmed by checking the live site directly
 (2026-10-01): no `receipt_replay` anywhere in `index.html`/`country.html`/
 `countries.html`, and `how-it-was-built.html` already runs its own live SSE
-feed covering most of what M2 originally specified.
+feed covering most of what M2 originally specified. **Update (2026-10-02):**
+PR #278 (SEB-173) shipped the receipt-replay overlay into exactly those three
+files a few hours after the sentence above was drafted. `receipt_replay` is
+live on `main` now, confirmed by `grep -rl receipt_replay index.html
+country.html countries.html`, and SEB-173 shows Done in Linear. R2 is
+finished, not outstanding.
 
-**So: treat R2/M2 as regression-fix work, not queue work**, ranked the same
-as any other bug — below items 0/0.5, not above them. **SEB-173 (R2) is a
-real gap and worth finishing** — the overlay genuinely doesn't exist
-anywhere today. **SEB-174 (M2) needs a product-role sanity check before it
-goes further**: its own spec text already notices `how-it-was-built.html` is
+**So: treat M2 as regression-fix work, not queue work**, ranked the same
+as any other bug — below items 0/0.5, not above them. **SEB-174 (M2) needs a
+product-role sanity check before it goes further**: its own spec text already
+notices `how-it-was-built.html` is
 where the old machine-room content moved, then proposes a *second*,
 separate live-feed page (`the-machine-room.html`) anyway, without checking
 whether `how-it-was-built.html`'s existing feed already covers the same
