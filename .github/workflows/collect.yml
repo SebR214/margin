@@ -284,6 +284,20 @@ jobs:
         # file at all.
         run: python3 tools/emit_machine_room_meters.py
 
+      - name: Emit meter receipts
+        if: always() && steps.needed.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # SEB-190. Feeds how-it-was-built.html's receipt overlay for the three
+        # meter tiles above: the literal git log entries, the gh pr list
+        # response, and the delivery-streak boundaries each number was counted
+        # from, written to data/meter_receipts/<meter>_<day>.json. Recomputed
+        # independently of the step above rather than reading its output back
+        # -- see the script's own docstring for why a small by-one drift
+        # between the two is expected, not a bug. Never fabricates one it
+        # can't compute, so this step only fails if it can't write the file.
+        run: python3 tools/emit_meter_receipts.py
+
       - name: Emit per-country index files
         if: always() && steps.needed.outputs.proceed == 'true'
         # Derived from the CSVs the collectors just wrote. Implements
@@ -471,7 +485,7 @@ jobs:
           # country (or a table emit_bundle.py starts writing) appears here
           # on its first run with no edit to this list -- which is the point
           # of staging the directory rather than naming the files.
-          for d in data/countries data/receipts data/bundle; do
+          for d in data/countries data/receipts data/meter_receipts data/bundle; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Anything TRACKED that an emitter rewrote but the list above forgot.
