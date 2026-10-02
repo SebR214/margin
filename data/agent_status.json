@@ -1347,8 +1347,8 @@
    "last_seen_utc": "2026-09-28T21:05:22.865749+00:00",
    "hours_since_ok": 74.0,
    "stale_hours": 3,
-   "expected_silent": null,
-   "broken": true
+   "expected_silent": "Wise's public comparisons API stopped listing ASB NZ as a NZD->PHP competitor after the 2026-09-28T21:05:22 run; confirmed live on 2026-09-29 by querying the same endpoint the collector uses at every ladder size (200/1000/5000/25000/50000) -- ASB NZ is simply absent from the provider list Wise returns, not a parsing or collector fault",
+   "broken": false
   },
   {
    "file": "providers_nzdphp.csv",
@@ -1681,16 +1681,6 @@
    "stale_hours": 3,
    "expected_silent": null,
    "broken": true
-  },
-  {
-   "file": "providers_nzdphp.csv",
-   "name": "ASB NZ",
-   "last_ok_utc": "2026-09-28T21:05:22.865749+00:00",
-   "last_seen_utc": "2026-09-28T21:05:22.865749+00:00",
-   "hours_since_ok": 74.0,
-   "stale_hours": 3,
-   "expected_silent": null,
-   "broken": true
   }
  ],
  "sources_expected_silent": [
@@ -1762,6 +1752,16 @@
    "hours_since_ok": 195.0,
    "stale_hours": 3,
    "expected_silent": "Wise's public comparisons API stopped listing Westpac as an AUD->PHP competitor after the 2026-09-23T20:05 run; confirmed live on 2026-09-24 by querying the same endpoint the collector uses at every ladder size (200/1000/5000/25000/50000) -- Westpac is simply absent from the provider list Wise returns, not a parsing or collector fault",
+   "broken": false
+  },
+  {
+   "file": "providers_nzdphp.csv",
+   "name": "ASB NZ",
+   "last_ok_utc": "2026-09-28T21:05:22.865749+00:00",
+   "last_seen_utc": "2026-09-28T21:05:22.865749+00:00",
+   "hours_since_ok": 74.0,
+   "stale_hours": 3,
+   "expected_silent": "Wise's public comparisons API stopped listing ASB NZ as a NZD->PHP competitor after the 2026-09-28T21:05:22 run; confirmed live on 2026-09-29 by querying the same endpoint the collector uses at every ladder size (200/1000/5000/25000/50000) -- ASB NZ is simply absent from the provider list Wise returns, not a parsing or collector fault",
    "broken": false
   },
   {
@@ -2034,9 +2034,29 @@
  "moves_unexplained": [],
  "moves_denominator_explained": [],
  "loops": {
-  "builder": null,
-  "reviewer": null,
-  "product": null
+  "builder": {
+   "role": "builder",
+   "finished_utc": "2026-10-01T20:10:40+00:00",
+   "ok": true,
+   "reason": "ok",
+   "seconds": 240.0,
+   "sig_idle": false
+  },
+  "reviewer": {
+   "role": "reviewer",
+   "finished_utc": "2026-10-01T14:27:44+00:00",
+   "ok": false,
+   "reason": "daily ceiling",
+   "seconds": 0.0,
+   "sig_idle": false
+  },
+  "product": {
+   "role": "product",
+   "finished_utc": "2026-10-01T20:07:11+00:00",
+   "ok": true,
+   "reason": "ok",
+   "seconds": 858.0
+  }
  },
  "thresholds": {
   "delivery_hours": 23,
