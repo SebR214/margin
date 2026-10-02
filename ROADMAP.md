@@ -174,13 +174,33 @@ loud failure, verified fees.
 
 ## Queue — in order, top first
 
-**Current queue: `docs/UI-SPEC-2026-09-16.md`.** Sebastian wrote it and it is
-committed to this repo, which is what makes it authorized work rather than
-scope an agent invented for itself. It carries D1, U6, U7, R1, R2, M1 and M2,
-in that order, and it outranks anything below in this section until it is done.
+**`docs/UI-SPEC-2026-09-16.md` is done — updated 2026-10-01, do not re-read this**
+**note as "still outranks everything below."** All seven items (D1, U6, U7, R1,
+R2, M1, M2) show `Done` in Linear (SEB-56/57/58/59/62 and the two D1/U6
+issues). This note said otherwise for two weeks after it stopped being true,
+which is exactly why the product agent re-queued R2 and M2 today (SEB-173,
+SEB-174) as if they were still outstanding original work, instead of what
+they actually are: **regressions.** The two weeks of unreviewed self-merges
+between 09-17 and 10-01 (SEB-131–171) rewrote `index.html`, `country.html`
+and the machine-room page's whole identity (renamed to `how-it-was-built.html`
+by PR #253) more than once each — R2's receipt-replay overlay and M2's live
+agent-activity feed were real, shipped features that got silently dropped or
+absorbed along the way, confirmed by checking the live site directly
+(2026-10-01): no `receipt_replay` anywhere in `index.html`/`country.html`/
+`countries.html`, and `how-it-was-built.html` already runs its own live SSE
+feed covering most of what M2 originally specified.
 
-D1, U6 and R1 have shipped. **U7 is in progress on branch `seb-62-u7-index`**,
-four of its seven parts built and pushed; the rest are listed on SEB-62.
+**So: treat R2/M2 as regression-fix work, not queue work**, ranked the same
+as any other bug — below items 0/0.5, not above them. **SEB-173 (R2) is a
+real gap and worth finishing** — the overlay genuinely doesn't exist
+anywhere today. **SEB-174 (M2) needs a product-role sanity check before it
+goes further**: its own spec text already notices `how-it-was-built.html` is
+where the old machine-room content moved, then proposes a *second*,
+separate live-feed page (`the-machine-room.html`) anyway, without checking
+whether `how-it-was-built.html`'s existing feed already covers the same
+ground. It likely does (it already streams `collector_pass` events and has
+a "what the agents are doing" column) — worth confirming before PR #277
+ships 730 lines nobody asked for twice.
 
 A note for the product role, because holding the queue at zero was the right
 instinct applied to the wrong issue: an issue whose spec is a file in this repo
