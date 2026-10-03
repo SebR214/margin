@@ -22,6 +22,11 @@
  * matches the comparison figure the page itself is showing, never the
  * provider's own number underneath it.
  *
+ * sending-money.html's price-change list (SEB-187) replays the same shell
+ * again, from data/pricechange_receipts/<key>.json (built by
+ * tools/emit_pricechange_receipts.py) and copy.json's "receiptPriceChange"
+ * templates -- see buildPriceChangeSteps().
+ *
  * Wired once, on document, by delegation -- so it survives a full re-render
  * of index.html's innerHTML-driven sections as well as a plain DOM page
  * (country.html, countries.html, corridor.html, sending-money.html), the
@@ -63,6 +68,9 @@
   function getCrossoverCopy() {
     return getCopyDoc().then(function (c) { return (c && c.receiptCrossover) || {}; });
   }
+  function getPriceChangeCopy() {
+    return getCopyDoc().then(function (c) { return (c && c.receiptPriceChange) || {}; });
+  }
   function getMeterCopy() {
     return getCopyDoc().then(function (c) { return (c && c.receiptMeter) || {}; });
   }
@@ -95,6 +103,14 @@
     if (!iso) return "—";
     var d = new Date(iso);
     return isNaN(d.getTime()) ? iso : d.toISOString().slice(0, 16).replace("T", " ") + " UTC";
+  }
+
+  // "2026-09-27" -> "27 Sep" -- same no-year, same-window convention
+  // sending-money.html's own fmtDay() uses for these dates.
+  var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  function fmtDay(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || "");
+    return m ? (String(+m[3]) + " " + MONTHS[+m[2] - 1]) : (iso || "—");
   }
 
   // A meter receipt's streak boundary ({date, hour}) as "YYYY-MM-DD HH:00" --
@@ -319,6 +335,51 @@
     ];
   }
 
+  // The fourth receipt shape (SEB-187): a confirmed price change from
+  // data/pricechange_receipts/<key>.json, built by
+  // tools/emit_pricechange_receipts.py. No official-rate step -- the whole
+  // point of the pairwise-unanimity test this explains is that the exchange
+  // rate cancels out of the comparison, so this shape never mentions one.
+  function buildPriceChangeSteps(receipt, copy) {
+    var stored = receipt.stored || {}, comp = receipt.computation || {}, ev = receipt.evidence || {};
+    var files = receipt.source_files || [];
+    var panelFile = ev.source_file ? [ev.source_file] : [];
+    var recordFile = files.filter(function (f) { return f.indexOf("price_changes.csv") >= 0; });
+    recordFile = recordFile.length ? recordFile : ["data/price_changes.csv"];
+
+    var up = Number(stored.move_pct) > 0;
+    var whatChanged = T(copy.whatChangedTemplate, {
+      provider: receipt.provider, direction: up ? copy.directionUpWord : copy.directionDownWord,
+      amountWords: receipt.amount_words, routeWords: receipt.route_words,
+      oldDay: fmtDay(receipt.old_day), newDay: fmtDay(receipt.day)
+    });
+
+    var nOther = comp.per_peer_move_pct ? Object.keys(comp.per_peer_move_pct).length : null;
+    var checkSentence = T(copy.checkSentenceTemplate, {
+      nAgree: stored.n_agree, nOther: nOther, thresholdPts: fmtNum(comp.threshold_pct)
+    });
+
+    var mathSentence = T(copy.mathSentenceTemplate, {
+      provider: receipt.provider, newDay: fmtDay(receipt.day), newCostPct: fmtNum(stored.new_cost_pct),
+      movePct: fmtNum(stored.move_pct), oldDay: fmtDay(receipt.old_day), oldCostPct: fmtNum(stored.old_cost_pct)
+    });
+    var mathPrevNote = T(copy.mathPrevNoteTemplate, {
+      oldDay: fmtDay(receipt.old_day), prevCostPct: fmtNum(stored.prev_day_cost_pct), oldCostPct: fmtNum(stored.old_cost_pct)
+    });
+
+    var verdictText;
+    if (receipt.kind === "weekend_up") verdictText = copy.verdictWeekendUpTemplate;
+    else if (receipt.kind === "weekend_back") verdictText = copy.verdictWeekendBackTemplate;
+    else verdictText = T(copy.verdictChangeTemplate, { provider: receipt.provider });
+
+    return [
+      { label: copy.step1Label, text: whatChanged, files: panelFile },
+      { label: copy.step2Label, text: [checkSentence, copy.checkNote].filter(Boolean).join(" "), files: panelFile },
+      { label: copy.step3Label, text: [mathSentence, mathPrevNote].filter(Boolean).join(" "), files: recordFile },
+      { label: copy.step4Label, text: verdictText, files: recordFile }
+    ];
+  }
+
   // sending-money.html's provider-ranking cost figures (SEB-186): the same
   // step shell buildSteps() fills for index/country numbers, fed from a
   // differently-shaped receipt (tools/emit_provider_receipts.py) and
@@ -429,7 +490,7 @@
     ".receipt-raw-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d7979;margin-bottom:6px;}",
     ".receipt-raw-links{font-size:12px;line-height:1.8;}",
     ".receipt-loading{font-size:13px;color:#7d7979;padding:12px 0;}",
-    "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-receipt-meter-file]{cursor:pointer;}"
+    "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key],[data-receipt-meter-file]{cursor:pointer;}"
   ].join("\n");
 
   function ensureStyle() {
@@ -473,12 +534,13 @@
     if (e.key === "Escape") close();
   }
 
-  // The shared shell both receipt kinds paint into: the numbered steps list
+  // The shared shell every receipt kind paints into: the numbered steps list
   // and the raw-file footer. Takes already-built steps (label/text/files)
   // rather than a receipt, so it has no opinion on what shape of receipt
   // produced them -- buildSteps() (index/country), buildCorridorSteps()
-  // (corridor.html) and buildProviderSteps() (sending-money.html) are the
-  // only places that know that.
+  // (corridor.html), buildCrossoverSteps() (fee-tiers.html),
+  // buildProviderSteps() and buildPriceChangeSteps() (sending-money.html)
+  // are the only places that know that.
   function paintSteps(steps, sourceFiles, rawFilesLabel) {
     if (!overlayEl) return;
     var ol = overlayEl.querySelector(".receipt-steps");
@@ -546,8 +608,8 @@
 
   // Builds the dialog shell common to every receipt kind and wires its
   // close behaviour -- what every receipt, index/country, corridor,
-  // crossover or provider, shares. Returns the close button so the caller
-  // can finish wiring its own copy-specific title/aria-label once
+  // crossover, provider or price-change, shares. Returns the close button so the
+  // caller can finish wiring its own copy-specific title/aria-label once
   // copy.json resolves.
   function openShell(ariaLabel, displayValue, triggerEl) {
     ensureStyle();
@@ -637,6 +699,29 @@
     });
   }
 
+  // sending-money.html's "every price change" list (SEB-187): same shell,
+  // fed from data/pricechange_receipts/<key>.json and copy.json's
+  // "receiptPriceChange" templates -- see buildPriceChangeSteps().
+  function openPriceChange(key, displayValue, triggerEl) {
+    if (!key) return;
+    var closeBtn = openShell(key, displayValue, triggerEl);
+
+    getPriceChangeCopy().then(function (copy) {
+      if (!overlayEl) return;
+      overlayEl.querySelector(".receipt-title").textContent = copy.title || "";
+      closeBtn.setAttribute("aria-label", copy.close || "");
+      renderLoading(copy);
+      closeBtn.focus();
+      var path = "data/pricechange_receipts/" + key + ".json";
+      fetch(path, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .then(function (receipt) {
+          paintSteps(buildPriceChangeSteps(receipt, copy), receipt.source_files, copy.rawFilesLabel);
+        })
+        .catch(function () { renderError(copy, path); });
+    });
+  }
+
   // sending-money.html's provider-ranking cost figures (SEB-186): same
   // shell, a receipt file keyed by (corridor, size, hour) holding one row
   // per provider, and its own copy.json templates (receiptProvider) rather
@@ -689,7 +774,7 @@
 
   document.addEventListener("click", function (e) {
     var t = e.target.closest && e.target.closest(
-      "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-receipt-meter-file]");
+      "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key],[data-receipt-meter-file]");
     if (!t) return;
     e.preventDefault();
     var displayValue = t.getAttribute("data-receipt-value") || t.textContent;
@@ -700,6 +785,8 @@
         t.getAttribute("data-receipt-regime") || "taker", displayValue, t);
     } else if (t.hasAttribute("data-receipt-crossover-file")) {
       openCrossover(t.getAttribute("data-receipt-crossover-file"), displayValue, t);
+    } else if (t.hasAttribute("data-pricechange-key")) {
+      openPriceChange(t.getAttribute("data-pricechange-key"), displayValue, t);
     } else if (t.hasAttribute("data-receipt-provider-file")) {
       openProvider(t.getAttribute("data-receipt-provider-file"),
         t.getAttribute("data-receipt-provider-name"), displayValue, t);
