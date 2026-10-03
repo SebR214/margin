@@ -71,6 +71,9 @@
   function getPriceChangeCopy() {
     return getCopyDoc().then(function (c) { return (c && c.receiptPriceChange) || {}; });
   }
+  function getMeterCopy() {
+    return getCopyDoc().then(function (c) { return (c && c.receiptMeter) || {}; });
+  }
   function getProviderCopy() {
     return getCopyDoc().then(function (c) { return (c && c.receiptProvider) || {}; });
   }
@@ -108,6 +111,15 @@
   function fmtDay(iso) {
     var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || "");
     return m ? (String(+m[3]) + " " + MONTHS[+m[2] - 1]) : (iso || "—");
+  }
+
+  // A meter receipt's streak boundary ({date, hour}) as "YYYY-MM-DD HH:00" --
+  // not an ISO string, since the boundary is a whole UTC hour tools/
+  // emit_meter_receipts.py already split into those two fields, not a single
+  // timestamp to re-parse.
+  function fmtHour(b) {
+    if (!b || b.date == null || b.hour == null) return "—";
+    return b.date + " " + String(b.hour).padStart(2, "0") + ":00";
   }
 
   // Mirrors emit_countries.py's evidence_words() -- word choice only, not the
@@ -421,6 +433,36 @@
     return steps;
   }
 
+  // how-it-was-built.html's two JSON-backed meter tiles (SEB-190): the same
+  // step shell buildSteps() fills for index/country numbers, fed from a
+  // differently-shaped receipt per meter (tools/emit_meter_receipts.py) and
+  // copy.json's "receiptMeter" templates. One function, not two, because
+  // both meters share the same two-step shape (the evidence, the
+  // count) -- only the sentence naming that evidence differs per meter.
+  function buildMeterSteps(receipt, copy) {
+    var files = receipt.source_files || [];
+    var when = T(copy.evidenceCollectedTemplate, { when: fmtWhen(receipt.computed_at) });
+    var evidenceText = "", countText = "";
+
+    if (receipt.meter === "commits_today") {
+      var total = (receipt.entries || []).length;
+      evidenceText = T(copy.commitsEvidenceTemplate, {
+        total: total, excluded: total - receipt.value, day: receipt.day
+      });
+      countText = T(copy.commitsCountTemplate, { value: receipt.value });
+    } else if (receipt.meter === "unbroken_hours") {
+      evidenceText = T(copy.hoursEvidenceTemplate, {
+        start: fmtHour(receipt.streak_start), end: fmtHour(receipt.streak_end)
+      });
+      countText = T(copy.hoursCountTemplate, { value: receipt.value });
+    }
+
+    return [
+      { label: copy.step1Label, text: [evidenceText, when].filter(Boolean).join(" "), files: files },
+      { label: copy.step2Label, text: countText, files: files }
+    ];
+  }
+
   var STYLE = [
     ".receipt-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;}",
     ".receipt-backdrop{position:absolute;inset:0;background:rgba(32,30,29,.55);}",
@@ -448,7 +490,7 @@
     ".receipt-raw-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d7979;margin-bottom:6px;}",
     ".receipt-raw-links{font-size:12px;line-height:1.8;}",
     ".receipt-loading{font-size:13px;color:#7d7979;padding:12px 0;}",
-    "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key]{cursor:pointer;}"
+    "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key],[data-receipt-meter-file]{cursor:pointer;}"
   ].join("\n");
 
   function ensureStyle() {
@@ -706,13 +748,39 @@
     });
   }
 
+  // how-it-was-built.html's two JSON-backed meter tiles (SEB-190): same
+  // shell, a receipt file keyed by (meter, day), and its own copy.json
+  // templates (receiptMeter) rather than the index/country ones -- see
+  // buildMeterSteps() for why.
+  function openMeter(file, displayValue, triggerEl) {
+    if (!file) return;
+    var closeBtn = openShell(file, displayValue, triggerEl);
+
+    getMeterCopy().then(function (copy) {
+      if (!overlayEl) return;
+      overlayEl.querySelector(".receipt-title").textContent = copy.title || "";
+      closeBtn.setAttribute("aria-label", copy.close || "");
+      renderLoading(copy);
+      closeBtn.focus();
+      var path = "data/meter_receipts/" + file + ".json";
+      fetch(path, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .then(function (receipt) {
+          paintSteps(buildMeterSteps(receipt, copy), receipt.source_files, copy.rawFilesLabel);
+        })
+        .catch(function () { renderError(copy, path); });
+    });
+  }
+
   document.addEventListener("click", function (e) {
     var t = e.target.closest && e.target.closest(
-      "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key]");
+      "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key],[data-receipt-meter-file]");
     if (!t) return;
     e.preventDefault();
     var displayValue = t.getAttribute("data-receipt-value") || t.textContent;
-    if (t.hasAttribute("data-receipt-corridor-file")) {
+    if (t.hasAttribute("data-receipt-meter-file")) {
+      openMeter(t.getAttribute("data-receipt-meter-file"), displayValue, t);
+    } else if (t.hasAttribute("data-receipt-corridor-file")) {
       openCorridor(t.getAttribute("data-receipt-corridor-file"),
         t.getAttribute("data-receipt-regime") || "taker", displayValue, t);
     } else if (t.hasAttribute("data-receipt-crossover-file")) {

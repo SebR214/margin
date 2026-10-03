@@ -532,7 +532,7 @@ jobs:
           # appears here on its first run with no edit to this list --
           # which is the point of staging the directory rather than naming
           # the files.
-          for d in data/countries data/receipts data/corridor_receipts data/provider_receipts data/pricechange_receipts data/bundle; do
+          for d in data/countries data/receipts data/corridor_receipts data/provider_receipts data/pricechange_receipts data/meter_receipts data/bundle; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Anything TRACKED that an emitter rewrote but the list above forgot.
