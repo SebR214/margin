@@ -7,6 +7,7 @@
 <meta name="description" content="Every provider's all-in cost to send money, fee plus the margin hidden in the exchange rate, re-checked most hours -- real gaps shown, not hidden."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
+<script src="./js/receipt_replay.js"></script>
 <style>
   /* Page-specific only: container width, header/nav layout and h1/h2/body
      sizing now live in style.css (2026-09-28 page-frame unification). Header
@@ -216,6 +217,15 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   function fmtTime(iso){
     var m = /T(\d{2}):(\d{2})/.exec(iso||'');
     return m ? (m[1]+':'+m[2]) : '';
+  }
+  // The filename tools/emit_provider_receipts.py wrote this route's and
+  // size's receipt under -- same corridor-slug + hour truncation the
+  // corridor receipt (SEB-178) already uses, same panel_hour_utc-first
+  // fallback this page's own meta line already reads (line below with
+  // "cov" -- route.panel_hour_utc || route.crypto_hour_utc).
+  function providerReceiptFile(route, size){
+    var hourIso = route.panel_hour_utc || route.crypto_hour_utc || '';
+    return route.route.replace(/->/g, '-') + '_' + size + '_' + hourIso.slice(0, 13);
   }
 
   var AMOUNT_ORDER = ['200','1000','5000','25000','50000'];
@@ -468,6 +478,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
       var maxCost = Math.max.apply(null, rows.map(function(r){ return r.unchecked ? 0 : (r.cost_pct || 0); })) || 1;
       var pctColHeader = T(COPY.colPctTemplate || '', { amountWords: size.amount_words });
+      var receiptFile = providerReceiptFile(route, selectedSize);
       var rowsHtml = '<div class="prow head"><span>'+esc(COPY.colProvider||'')+'</span><span></span><span class="num-cell" style="font-size:14px">'+esc(COPY.colCost||'')+'</span><span class="pct-cell" style="font-size:14px">'+esc(pctColHeader)+'</span></div>';
       rowsHtml += rows.map(function(r, i){
         var isMissing = r.source === 'missing';
@@ -499,7 +510,20 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         var pct = isMissing ? '—' : r.cost_pct.toFixed(2)+'%';
         var barWidth = isMissing ? 0 : Math.max(2, (r.cost_pct / maxCost) * 100);
         var vid = 'venue-breakdown-'+routeKey+'-'+selectedSize+'-'+i;
-        var rowHtml = '<div class="prow'+(isMissing?' missing':'')+(isStable?' stable':'')+(hasVenues?' venue-row':'')+'"'+(hasVenues?' data-venue-target="'+vid+'"':'')+'>'+nameCell+'<div class="track"><i style="width:'+barWidth.toFixed(1)+'%"></i></div><div class="num-cell">'+cost+'</div><div class="pct-cell">'+pct+'</div></div>';
+        // The receipt behind this row's cost (SEB-186) -- same R2 overlay
+        // the index/country numbers and corridor.html's own figures already
+        // open. Only wired where a real, independently-checked number is
+        // actually on screen: not the stablecoin row (that already links to
+        // corridor.html's own full receipt above), not a missing price, and
+        // not an unchecked direct quote (handled in the branch above, never
+        // reaches here). See tools/emit_provider_receipts.py's own docstring
+        // for why that is exactly the same set of rows this page already
+        // treats as "a real number", own-quoted-with-a-comparison-fallback
+        // included.
+        var costCell = (!isMissing && !isStable)
+          ? '<span data-receipt-provider-file="'+esc(receiptFile)+'" data-receipt-provider-name="'+esc(r.provider)+'" data-receipt-value="'+cost+'" tabindex="0">'+cost+'</span>'
+          : cost;
+        var rowHtml = '<div class="prow'+(isMissing?' missing':'')+(isStable?' stable':'')+(hasVenues?' venue-row':'')+'"'+(hasVenues?' data-venue-target="'+vid+'"':'')+'>'+nameCell+'<div class="track"><i style="width:'+barWidth.toFixed(1)+'%"></i></div><div class="num-cell">'+costCell+'</div><div class="pct-cell">'+pct+'</div></div>';
         if (!hasVenues) return rowHtml;
         var combosHtml = r.venues.combos.map(function(c){
           var star = c.is_default_pair ? ' <span style="color:var(--faint)">(the one this site has always shown)</span>' : '';
