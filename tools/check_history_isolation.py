@@ -41,6 +41,16 @@ LABEL = "reported, not observed"
 
 # Only these may mention the history layer.
 HISTORY_WRITERS = {"tools/backfill_history.py", "tools/check_history_isolation.py"}
+
+# The analyst (SEB-210, ROADMAP item 20) is the first and only reader: it
+# compares a live venue reading against the matching "reported, not observed"
+# candle to find where the two layers disagree, and stores the comparison as
+# a private finding nothing on the site reads. It never writes a history row,
+# and it is not the index, a published price, the observed series or the
+# unbroken-hours count -- the four things this check exists to keep history
+# out of (see the module docstring) -- so reading it here does not weaken the
+# isolation being proved.
+HISTORY_READERS = {"tools/analyst.py"}
 HISTORY_TOKENS = [
     re.compile(r"data/history"),
     re.compile(r"""(DATA|["']data["'])\s*,\s*["']history["']"""),   # os.path.join(DATA, "history")
@@ -88,7 +98,7 @@ def py_files():
 def static_checks():
     for rel in py_files():
         src = open(os.path.join(ROOT, rel), encoding="utf-8", errors="replace").read()
-        if rel not in HISTORY_WRITERS:
+        if rel not in HISTORY_WRITERS and rel not in HISTORY_READERS:
             for pat in HISTORY_TOKENS:
                 if pat.search(src):
                     fail(f"STATIC {rel}: names the history layer ({pat.pattern})")
