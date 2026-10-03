@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>margin.wiki — how it was built (final mockup)</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0; --indigo:#817FCC }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff;padding:0 24px}
+  a{color:var(--ink);text-decoration:none}
+  .num{font-variant-numeric:tabular-nums}
+  .wrap{max-width:760px;margin:0 auto}
+  header{display:flex;align-items:center;gap:40px;padding:22px 0;flex-wrap:wrap}
+  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
+  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
+  nav a.active{font-weight:700}
+  .hero{padding:44px 0 0;display:flex;flex-direction:column;gap:10px}
+  h1{font-size:28px;font-weight:800;letter-spacing:-0.02em;margin:0}
+  .lede{font-size:16px;color:var(--sub);line-height:1.5;margin:0}
+  .meta{font-size:14px;color:var(--stamp);margin:2px 0 0}
+  .stack{display:flex;flex-direction:column;gap:44px;padding:36px 0 64px}
+  h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
+  .answer{font-size:16px;color:var(--sub);margin:0 0 18px;max-width:640px;line-height:1.5}
+  section{border-top:1px solid var(--rule);padding-top:22px}
+
+  /* the top row: plain figures, one weight */
+  .facts{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+  .facts>div{padding:14px 14px 14px 0}
+  .facts>div+div{padding-left:14px;border-left:1px solid var(--rule)}
+  .facts .k{font-size:14px;color:var(--sub)}
+  .facts .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+
+  /* quiet list used for every block of figures */
+  .rows{border-top:1px solid var(--rule)}
+  .rr{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr) minmax(0,2.4fr);gap:4px 20px;padding:12px 0;border-bottom:1px solid var(--rule);align-items:baseline}
+  .rl{font-size:15px;font-weight:500}
+  .rv{font-size:15px;font-weight:500;font-variant-numeric:tabular-nums}
+  .rn{font-size:14px;color:var(--sub);line-height:1.45}
+  .rs{color:var(--ink);font-weight:500}
+  .foot-note{font-size:13px;color:var(--sub);padding:10px 0 0}
+
+  .kv{list-style:none;margin:0;padding:0}
+  .kv li{display:grid;grid-template-columns:220px 1fr;gap:16px;padding:14px 0;border-top:1px solid var(--rule);font-size:15px}
+  .kv li:first-child{border-top:0}
+  .kv b{font-weight:600}
+  .kv span{color:var(--sub)}
+  .list{margin:0;padding:0;list-style:none}
+  .list li{padding:12px 0;border-top:1px solid var(--rule);font-size:15px;display:grid;grid-template-columns:70px 1fr;gap:12px}
+  .list li:first-child{border-top:0}
+  .list .d{color:var(--stamp);font-size:14px}
+  .fail{list-style:none;margin:0;padding:0}
+  .fail li{padding:14px 0;border-top:1px solid var(--rule)}
+  .fail li:first-child{border-top:0}
+  .fail b{display:block;font-weight:600;margin-bottom:2px;font-size:15px}
+  .fail span{color:var(--sub);font-size:14px;line-height:1.45}
+  .small{font-size:15px;color:var(--sub);margin:14px 0 0}
+  .small a{border-bottom:1px solid var(--rule)}
+  footer{border-top:1px solid var(--rule);margin-top:20px;padding-top:24px;font-size:15px;color:var(--sub)}
+  footer a{color:var(--ink);font-weight:500}
+  .tag-new{font-size:13px;color:var(--sub);margin-left:6px;font-weight:400}
+  @media(max-width:620px){
+    .facts{grid-template-columns:1fr 1fr}
+    .facts>div:nth-child(odd){padding-left:0;border-left:0}
+    .facts>div:nth-child(n+3){border-top:1px solid var(--rule)}
+    .rr{grid-template-columns:1fr auto}.rn{grid-column:1/-1}
+    .kv li{grid-template-columns:1fr;gap:2px}
+    .list li{grid-template-columns:56px 1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo">margin.wiki</div>
+  <nav><a href="#">Home</a><a href="#">Sending money</a><a href="#">Countries</a><a href="#">How it works</a><a class="active" href="#">How it was built</a></nav>
+</header>
+
+<div class="hero">
+  <h1>Four programs run this site</h1>
+  <p class="lede">They collect prices, write the code, review each other's work and decide what to build next. Every change they make is public.</p>
+  <p class="meta">Last price check 06:00 UTC · next on the hour</p>
+</div>
+
+<div class="stack">
+
+  <div class="facts">
+    <div><div class="k">Countries priced now</div><div class="v">43 of 60</div></div>
+    <div><div class="k">Prices checked today</div><div class="v">23</div></div>
+    <div><div class="k">Hours without a gap</div><div class="v">73</div></div>
+    <div><div class="k">People involved</div><div class="v">1</div></div>
+  </div>
+
+  <section>
+    <h2>Does it run by itself?</h2>
+    <p class="answer">Almost. Prices were collected on time for 98.8% of hours this week, just under the 99% target.</p>
+    <div class="rows">
+      <div class="rr"><div class="rl">Prices collected on time</div><div class="rv">98.8%</div><div class="rn"><span class="rs">Missed the target.</span> Target 99% of hours. 166 of 168 hours, 26 Sep to 2 Oct. Worst day 30 Sep: 22 of 24.</div></div>
+      <div class="rr"><div class="rl">Sources answering</div><div class="rv">156 of 156</div><div class="rn"><span class="rs">Met the target.</span> 9 more are silent on purpose.</div></div>
+      <div class="rr"><div class="rl">Numbers re-checked today</div><div class="rv">50 of 50</div><div class="rn">A script re-works 50 published numbers from the raw data each hour and publishes the score.</div></div>
+      <div class="rr"><div class="rl">Size of the data</div><div class="rv">90 MB</div><div class="rn">Disk use on the server is not published.</div></div>
+    </div>
+    <p class="foot-note">Each figure comes from a public data file, named on the page it is read from.</p>
+  </section>
+
+  <section>
+    <h2>What the research has so far <span class="tag-new">(arrives with the analyst)</span></h2>
+    <p class="answer">Every count below is worked out live from the stored findings, so it can never disagree with them.</p>
+    <div class="rows">
+      <div class="rr"><div class="rl">Prices recorded</div><div class="rv">1.4 million</div><div class="rn">Every ad and every order book we have read since 10 August.</div></div>
+      <div class="rr"><div class="rl">Years of history</div><div class="rv">up to 8</div><div class="rn">Reported by exchanges, not seen by us. Labelled that way wherever it appears.</div></div>
+      <div class="rr"><div class="rl">Findings</div><div class="rv">0</div><div class="rn">None yet. A finding is published only after a person reads it and a later one builds on it.</div></div>
+      <div class="rr"><div class="rl">Ideas tested and dropped</div><div class="rv">0</div><div class="rn">Dropped ideas stay listed with the reason.</div></div>
+      <div class="rr"><div class="rl">Questions we cannot answer yet</div><div class="rv">0</div><div class="rn">Each one becomes a new thing to collect.</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Each agent has one job and cannot do the others'</h2>
+    <p class="answer">The builder cannot merge its own work. The reviewer cannot write features. The planner never writes code.</p>
+    <ul class="kv">
+      <li><b>Collector</b><span>Every hour. Pulls prices from exchanges, peer-to-peer boards and providers, and writes them to the data files.</span></li>
+      <li><b>Builder</b><span>One task per run. Builds exactly one task, then stops. If a task would break a rule, it refuses and says so.</span></li>
+      <li><b>Reviewer</b><span>Every change. Asks one question: would this survive a payments expert checking one figure by hand?</span></li>
+      <li><b>Planner</b><span>Between builds. Decides what gets built next and reports what happened. Never writes code.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>What one person decides</h2>
+    <p class="answer">The agents ship on their own, and the reviewer checks every change. One person sets the direction and keeps the keys.</p>
+    <ul class="kv">
+      <li><b>What the site argues</b><span>The thesis stays fixed unless he changes it.</span></li>
+      <li><b>Money and access</b><span>Spending, passwords and accounts are never the agents' to touch.</span></li>
+      <li><b>The look of the site</b><span>Changes to a page are checked on desktop and phone, with before and after pictures attached.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>What the agents shipped in the last two days</h2>
+    <ul class="list">
+      <li><span class="d">3 Oct</span><span>Second stablecoin route priced for Singapore to the Philippines, and the page headline now follows the cheapest one</span></li>
+      <li><span class="d">3 Oct</span><span>A second peer-to-peer price board wired in</span></li>
+      <li><span class="d">3 Oct</span><span>Receipts added to the provider rankings and the fee-tier numbers</span></li>
+      <li><span class="d">3 Oct</span><span>Hourly history from 11 exchanges, kept apart and labelled</span></li>
+      <li><span class="d">2 Oct</span><span>A script that re-checks published numbers against the raw data</span></li>
+      <li><span class="d">2 Oct</span><span>Click any number to see the offers, the official rate and the arithmetic behind it</span></li>
+    </ul>
+    <p class="small"><a href="#">Every change, with the reviewer's notes →</a></p>
+  </section>
+
+  <section>
+    <h2>When the agents got it wrong, and the rule each mistake left behind</h2>
+    <ul class="fail">
+      <li><b>A collector ran for 34 days and recorded nothing</b><span>It pointed at a hostname that did not exist. Rule: no collector goes live until it has run once by hand, and silence counts as a failure.</span></li>
+      <li><b>A paid key ran the whole system for twenty minutes</b><span>A config change put the metered key where the flat-rate key belonged. Rule: the two keys live in separate files that cannot be merged.</span></li>
+      <li><b>21 hours of prices were lost for good</b><span>A new data file was not on the list of files to save. Rule: every file is named in the save step, and the gap stays visible in the history.</span></li>
+      <li><b>No price is an answer too</b><span>Nobody is offering to sell dollars in Afghanistan right now, so it shows "not enough data" and the reason.</span></li>
+    </ul>
+    <p class="small"><a href="#">The full story: running agents that can't be trusted →</a></p>
+  </section>
+
+  <footer>Every number on this site comes from a public data file. <a href="#">Code and raw data on GitHub →</a></footer>
+</div>
+</div>
+</body>
+</html>
