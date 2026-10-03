@@ -397,7 +397,8 @@ def country_close_html(rows_in, home_copy):
     if not pinned:
         return ""
     places = join_and([c.get("country", "") for c in pinned])
-    return home_copy.get("countryCloseTemplate", "").replace("{places}", places)
+    return (home_copy.get("countryCloseTemplate", "").replace("{places}", places)
+            + " " + home_copy.get("countryCloseNote", ""))
 
 
 def _ordered_rows(priced):
@@ -535,6 +536,12 @@ def duel_html(corridors, home_copy, rung):
     caption = (cap_tpl.replace("{amount}", amount).replace("{origin}", SRC_NAME.get(src, src))
                .replace("{destination}", dest).replace("{app_cost}", pct(app_bps) if app_bps is not None else "")
                .replace("{stable_cost}", pct(stable_bps)))
+    sym = SRC_SYMBOL.get(src, src + " ")
+    if app_bps is not None:
+        caption += " " + (home_copy.get("duelMoneyTemplate", "")
+                          .replace("{app_money}", money(rung * app_bps / 10000, sym))
+                          .replace("{stable_money}", money(rung * stable_bps / 10000, sym)))
+    caption += " " + home_copy.get("duelStablecoinNote", "")
     others = []
     for c in corridors:
         if c.get("corridor") == primary.get("corridor"):
