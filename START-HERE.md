@@ -58,7 +58,8 @@ python3 agents/linear.py respec SEB-39 --body-file spec.md --role product
   before merging — not a stop-and-wait for Sebastian (`agents/RULES.md`,
   2026-10-01).
 - No new running cost without the monthly figure and its arithmetic stated first.
-- Never backfill. Gaps stay gaps.
+- Never backfill the live layer. Gaps stay gaps. (History is its own labelled layer,
+  "reported, not observed", `data/history/` -- see `agents/RULES.md`.)
 
 ## State
 

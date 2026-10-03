@@ -209,7 +209,6 @@ def main():
     day = today_utc()
     receipts = {
         "commits_today": build_commits_receipt(day),
-        "open_prs": build_prs_receipt(day),
         "unbroken_hours": build_hours_receipt(day),
     }
 

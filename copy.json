@@ -269,11 +269,13 @@
   },
   "corridor": {
     "titleTemplate": "Sending {amount} to {place}: the stablecoin costs {marketCost}, the cheapest app costs {appCost}.",
+    "titleManyTemplate": "Sending {amount} to {place}: stablecoins cost {marketCost} at best, the cheapest app {appCost}.",
     "lede": "Every cost of sending it with stablecoins, step by step, checked every hour.",
     "verdict1": "Right now {amount} costs {marketCost} ({marketPct}) all in by stablecoin with a market order, and {appCost} ({appPct}) with the cheapest app, {provider}. The stablecoin route costs {diff} {moreOrLess}.",
     "moreLabel": "more",
     "lessLabel": "less",
     "costBridgeTemplate": "In a typical hour the stablecoin route costs {typicalPct} of the amount. This hour it is {nowPct}.",
+    "costBridgeManyTemplate": "In a typical hour {baseRoute} costs {typicalPct} of the amount. This hour the cheapest route, {route}, costs {nowPct}.",
     "loading": "loading…",
     "loadFailed": "failed to load data",
     "sizebar": {
@@ -350,7 +352,8 @@
     },
     "depth": {
       "atBestPriceTemplate": "At the best price: {amount} before the price moves.",
-      "before1PctTemplate": "Within 1% of the best price: {amount}."
+      "before1PctTemplate": "Within 1% of the best price: {amount}.",
+      "afterSizeTemplate": "After selling {size}, {amount} is still available at the best price."
     },
     "ladderTable": {
       "columns": {
@@ -377,7 +380,7 @@
       "methodology": "Full method →",
       "board": "the country board →"
     },
-    "dataSourceNote": "Every number on this site comes from a public data file. <a href=\"https://github.com/SebR214/margin\">Code and raw data on GitHub \u2192</a>",
+    "dataSourceNote": "Every number on this site comes from a public data file. <a href=\"https://github.com/SebR214/margin\">Code and raw data on GitHub →</a>",
     "sourceTemplate": "Checked {time} UTC · buy on {onrampVenue}, sell on {offrampVenue}",
     "feeStamp": {
       "reasonTrading": "trading fees",
@@ -390,7 +393,18 @@
     "waterfallUnavailable": "Not available for this hour yet — it appears the check after this one shipped.",
     "minAgoTemplate": "{n} min ago",
     "hAgoTemplate": "{n} h ago",
-    "updatedLabel": "updated"
+    "updatedLabel": "updated",
+    "routes": {
+      "headlineManyTemplate": "Cheapest of {n} stablecoin routes we price: {route}",
+      "headlineOneTemplate": "We price one stablecoin path here: {route}",
+      "subTemplate": "Every path below is priced for {amount} from this hour's live prices.",
+      "cheapestTag": "cheapest",
+      "moreThanCheapestTemplate": "{diff} more than the cheapest",
+      "notPricedThisHour": "not priced this hour",
+      "labelWithNetworkTemplate": "{stable} over {network}",
+      "labelPlainTemplate": "{stable}",
+      "breakdownNoteTemplate": "Step by step for our base route, {route}, which costs {cost} this hour."
+    }
   },
   "receipt": {
     "title": "The receipt behind this number",
@@ -421,6 +435,35 @@
     "loadingLabel": "Loading the receipt…",
     "loadErrorTemplate": "The receipt at {file} could not be read."
   },
+  "receiptCorridor": {
+    "title": "The receipt behind this cost",
+    "close": "Close",
+    "step1Label": "The evidence",
+    "step2Label": "The fees",
+    "step3Label": "The math",
+    "step4Label": "The note",
+    "evidenceBuySentenceTemplate": "Buying the stablecoin on {venue}: the best price on offer was {topPrice} {ccy}, the average price actually paid was {avgPrice} {ccy}.",
+    "evidenceSellSentenceTemplate": "Selling the stablecoin on {venue}: the best price on offer was {topPrice} {ccy}, the average price actually received was {avgPrice} {ccy}.",
+    "evidenceBookNote": "The individual order book levels used for this are not saved — only the prices and amount filled that they produced.",
+    "evidenceCollectedTemplate": "Collected {when}.",
+    "feeLineTemplate": "{label}: {pct}.",
+    "feeNotPricedTemplate": "{label}: not priced yet — no published free method was found.",
+    "feeNotModeledTemplate": "{label}: not priced for this corridor yet.",
+    "feeNotAvailableTemplate": "{label}: not available for this sample yet.",
+    "depositLabelTemplate": "Getting {ccy} onto {venue}",
+    "withdrawalLabel": "Getting it into a bank account",
+    "onrampFeeLabelTemplate": "{venue}'s fee to buy the stablecoin",
+    "offrampFeeLabelTemplate": "{venue}'s fee to sell the stablecoin",
+    "networkFeeAmountTemplate": "The fee to move the stablecoin itself: {amount} in stablecoin.",
+    "mathSentence": "Every fee above, added together, as a share of the amount sent.",
+    "mathResultTemplate": "The total: {result}.",
+    "regimeMarket": "This is the market order price — paying whatever is on offer right now.",
+    "regimeLimit": "This is the limit order price — setting your own price and waiting for it to fill.",
+    "noLegsNote": "This site only breaks the market-order cost into step-by-step fees. The limit-order total is real but shown as one number, not a breakdown.",
+    "rawFilesLabel": "Open the raw files",
+    "loadingLabel": "Loading the receipt…",
+    "loadErrorTemplate": "The receipt at {file} could not be read."
+  },
   "receiptMeter": {
     "title": "Where this count comes from",
     "close": "Close",
@@ -428,8 +471,6 @@
     "step2Label": "The count",
     "commitsEvidenceTemplate": "{total} changes landed in the site's code today ({day}); {excluded} of those were merged pull requests, not a fresh price check.",
     "commitsCountTemplate": "Price checks counted today: {value}.",
-    "prsEvidenceTemplate": "{value} pull requests are open right now, listed below.",
-    "prsCountTemplate": "Open pull requests: {value}.",
     "hoursEvidenceTemplate": "Every hour from {start} to {end} UTC has at least one price landing in both of the files the site checks for delivery.",
     "hoursCountTemplate": "Unbroken hours: {value}.",
     "evidenceCollectedTemplate": "Computed {when}.",
@@ -437,16 +478,41 @@
     "loadingLabel": "Loading the receipt…",
     "loadErrorTemplate": "The receipt at {file} could not be read."
   },
+  "receiptProvider": {
+    "title": "The receipt behind this cost",
+    "close": "Close",
+    "step1Label": "The evidence",
+    "step2Label": "The math",
+    "step3Label": "The note",
+    "evidenceComparisonSentenceTemplate": "A public price comparison service quotes {provider}: sending this amount lands {landed} after every fee.",
+    "evidenceOwnSentenceTemplate": "{provider}'s own published quote: at a rate of {rate}, with a stated fee of {fee}, sending this amount lands {received}.",
+    "evidenceOwnNoteTemplate": "{provider} also publishes its own quote directly, at a rate of {rate} and a fee of {fee}. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+    "evidenceCollectedTemplate": "Collected {when}.",
+    "evidenceMissingTemplate": "{provider} has not quoted this corridor and size this particular hour.",
+    "evidenceUnavailableTemplate": "The receipt behind this figure could not be found.",
+    "mathSentence": "The share of the amount sent this costs, measured against the mid-market exchange rate at the time.",
+    "mathResultTemplate": "The total: {result}.",
+    "rawFilesLabel": "Open the raw files",
+    "loadingLabel": "Loading the receipt…",
+    "loadErrorTemplate": "The receipt at {file} could not be read."
+  },
   "country": {
     "leadTemplate": "What people pay for a stablecoin on Binance P2P in {country}, compared with the official rate.",
-    "adsStepTemplate": "We read the {n} cheapest ads selling stablecoin for {ccy} on Binance P2P."
+    "adsStepTemplate": "We read the {n} cheapest ads selling stablecoin for {ccy} on Binance P2P.",
+    "historySegmentLabel": "reported, not observed",
+    "historySegmentSourceTemplate": "The dashed line before {since} is an earlier record: {venue}'s own history, compared with {fxSource}, from {first} to {last}. It is {label}, not something we watched happen, and it is never counted in the published number above.",
+    "historySegmentMovesTemplate": "Its largest day-over-day moves: {moves}.",
+    "historySegmentMoveItemTemplate": "{delta} on {date}",
+    "historyStartTemplate": "There is no earlier record for {country}: history starts on {date}, the first day we collected a price for it.",
+    "historyShowTemplate": "Show the earlier record, {first} to {last}",
+    "historyHide": "Hide the earlier record"
   },
   "howItWorks": {
     "dollarCostTitle": "What a dollar costs: the price of the stablecoin, divided by the official rate",
     "dollarCostBody": "Every hour we price the stablecoin in each country on the exchange people there actually use: Upbit in Korea, Bitso in Mexico, Bitkub in Thailand, about 40 in all, plus Binance P2P where no local exchange works. We take the middle price of the 10 cheapest sellers and divide it by the official rate. The number you see is the median of the last 24 hours. A country with fewer than 10 sellers gets no price, and we say why. The official rate comes from open.er-api.com, a free daily currency feed, with frankfurter.app as a backup and a country's own central bank when one publishes its own number, like Argentina's for the peso. We price the stablecoin because it is the digital dollar people in these countries actually buy and sell. Other coins barely trade there."
   },
   "machineRoom": {
-    "title": "Four AI agents run this site, with one person approving what matters",
+    "title": "Four programs run this site",
     "lede": "They collect prices, write the code, review each other's work and decide what to build next. Every change they make is public.",
     "connecting": "",
     "connected": "connected · live",
@@ -484,16 +550,48 @@
         "shippedHistoryLink": "Every change, with the reviewer's notes →"
       },
       "meters": {
-        "priced": "COUNTRIES PRICED NOW",
+        "priced": "Countries priced now",
         "withheld": "NOT ENOUGH DATA, WITH REASONS",
-        "commitsToday": "PRICE CHECKS TODAY",
+        "commitsToday": "Prices checked today",
         "openPRs": "OPEN PULL REQUESTS",
-        "unbrokenHours": "UNBROKEN HOURS",
+        "unbrokenHours": "Hours without a gap",
         "mergedThisWeek": "CHANGES SHIPPED THIS WEEK",
-        "people": "PEOPLE",
+        "people": "People involved",
         "peopleValue": "1",
         "unknown": "—"
       }
+    },
+    "run": {
+      "title": "Does it run by itself?",
+      "labels": {
+        "delivery": "Prices collected on time",
+        "fresh": "Sources answering",
+        "audit": "Numbers re-checked",
+        "disk": "Size of the data",
+        "basis": "Exchange prices",
+        "p2p": "Street prices",
+        "quotes": "Provider quotes",
+        "stable": "Stablecoin routes"
+      },
+      "deliverySub": "Target {target}% of hours. {hours} of {expected} hours, {from} to {to}. Worst day {worst_date}: {worst_hours} of 24.",
+      "freshValue": "{fresh} of {live}",
+      "freshSub": "Every source expected to answer did. {n_silent} more are silent on purpose.",
+      "diskSub": "Size of the data folder. Disk use on the server is not published.",
+      "met": "Met the target.",
+      "missed": "Missed the target.",
+      "mb": "MB",
+      "layerNames": {
+        "basis": "exchange prices",
+        "p2p": "street prices",
+        "quotes": "provider quotes",
+        "stable": "stablecoin routes"
+      },
+      "deliveryLayers": "Same for {names}.",
+      "foot": "Each figure comes from a public data file, named on the page it is read from.",
+      "verdictMissed": "Almost. Prices were collected on time for {pct}% of hours, just under the {target}% target.",
+      "verdictMet": "Yes. Prices were collected on time for {pct}% of hours, above the {target}% target.",
+      "auditSub": "A script re-works up to 50 published numbers from the raw data every hour and publishes the score.",
+      "auditValue": "{passed} of {drawn}"
     },
     "metaTemplate": "Last price check {time} UTC · next on the hour",
     "roles": {
@@ -523,23 +621,20 @@
       ]
     },
     "approves": {
-      "heading": "Seb approves four things. The agents ship everything else on their own.",
+      "heading": "What one person decides",
+      "lede": "The agents ship on their own, and the reviewer checks every change. One person sets the direction and keeps the keys.",
       "items": [
         {
-          "title": "Deleting anything",
-          "text": "A page, chart, table or number cannot disappear without approval."
-        },
-        {
-          "title": "A new published number",
-          "text": "Any new way of measuring something."
-        },
-        {
-          "title": "The site's thesis",
-          "text": "What VISION.md says the site argues."
+          "title": "What the site argues",
+          "text": "The thesis stays fixed unless he changes it."
         },
         {
           "title": "Money and access",
-          "text": "Spending, credentials and identity."
+          "text": "Spending, passwords and accounts are never the agents' to touch."
+        },
+        {
+          "title": "The look of the site",
+          "text": "Changes to a page are checked on desktop and phone, with before and after pictures attached."
         }
       ]
     },
@@ -569,6 +664,50 @@
       "liveItemFallback": "Every currency this site tracks has a price this hour — when one doesn't, it shows \"not enough data\" and the real reason, instead of a guess.",
       "linkText": "The full story: running agents that can't be trusted →",
       "linkHref": "./agent-incidents.html"
+    },
+    "research": {
+      "title": "What the research has so far",
+      "lede": "Every count below is worked out live from the stored files, so it can never disagree with them.",
+      "labels": {
+        "observations": "Prices recorded",
+        "routes": "Routes priced",
+        "countries": "Countries covered",
+        "history": "History",
+        "findings": "Findings",
+        "dropped": "Hypotheses tested and rejected",
+        "activeInvestigations": "Investigations open tonight",
+        "questions": "Questions we cannot answer yet",
+        "evidenceChains": "Findings that cite an earlier one",
+        "auditorScore": "Auditor's score"
+      },
+      "observationsSub": "Rows across the price files we collect, since 10 August.",
+      "routesSub": "Corridors with a current cost figure.",
+      "countriesSub": "Currencies we have ever priced.",
+      "historyValue": "Back to {year}",
+      "historySub": "From {n} exchanges. Reported by them, not seen by us, and labelled that way wherever it appears.",
+      "historyNone": "None yet",
+      "findingsSub": "Every nightly investigation that cleared its notability bar and was stored, each with its own evidence chain.",
+      "droppedSub": "A model's written explanation is checked against the numbers it was given; one that invents a figure is rejected, though the finding's own numbers stay stored either way.",
+      "activeInvestigationsSub": "Distinct findings from the analyst's most recent night.",
+      "questionsSub": "Each one becomes a new thing to collect.",
+      "evidenceChainsSub": "A later finding reusing an earlier one, not a fresh claim standing alone.",
+      "auditorScoreValue": "{pct}%",
+      "auditorScoreSub": "50 published numbers re-worked from the raw data each hour. This is the latest score.",
+      "auditorScoreNone": "Not run yet",
+      "months": [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
+      ]
     }
   },
   "redirects": {
@@ -673,5 +812,23 @@
     "showAllTemplate": "Show all {n} →",
     "showFewerLabel": "Show fewer",
     "noChanges": "No verified price changes in the current window."
+  },
+  "receiptCrossover": {
+    "title": "The receipt behind this number",
+    "close": "Close",
+    "step1Label": "The evidence",
+    "step2Label": "The fee tiers",
+    "step3Label": "The rebuild",
+    "step4Label": "The search",
+    "evidenceSentenceTemplate": "{n} real samples at this size, collected between {first} and {last}. The best other app's typical cost across those same hours was {baseline}.",
+    "feeSentenceTemplate": "At {volume} a month, Independent Reserve's own published tier table drops its fee to {feeIr}, and Coins.ph's drops to about {feeCoins} — it varies slightly sample to sample, since it's based on each sample's own real prices.",
+    "reconstructionNote": "This number was never watched happening — it is rebuilt from every real sample's own real prices, swapping in only the fee this volume would unlock.",
+    "reconstructionSentenceTemplate": "The typical rebuilt cost at this volume: {result}.",
+    "searchSentenceTemplate": "We tested monthly amounts from {lo} to {hi} and narrowed in on the exact point where that rebuilt cost first drops below the best other app's typical cost: {volume} a month.",
+    "regimeMarket": "This is the market order version — paying whatever price is on offer right now.",
+    "regimeLimit": "This is the limit order version — setting your own price and waiting for it to fill.",
+    "rawFilesLabel": "Open the raw files",
+    "loadingLabel": "Loading the receipt…",
+    "loadErrorTemplate": "The receipt at {file} could not be read."
   }
 }

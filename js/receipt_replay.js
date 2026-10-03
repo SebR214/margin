@@ -1,4 +1,4 @@
-/* The receipt replay (SEB-57 / R2 / SEB-173 / SEB-190).
+/* The receipt replay (SEB-57 / R2 / SEB-173 / SEB-178 / SEB-186).
  *
  * Every published index/country number is clickable. Clicking one fetches
  * data/receipts/<CCY>.json (built by tools/emit_receipts.py, SEB-56) and
@@ -8,24 +8,30 @@
  * echoed back verbatim, so the overlay cannot disagree with the page it was
  * opened from.
  *
- * how-it-was-built.html's three JSON-backed meter tiles (commits today, open
- * pull requests, unbroken hours -- SEB-190) replay the same way, from
- * data/meter_receipts/<meter>_<day>.json (built by
- * tools/emit_meter_receipts.py) -- the same SHELL (the dialog, the numbered
- * steps, the timers, the raw-file footer) rendered by the same
+ * corridor.html's own cost-in-bps figures (SEB-178) replay the same way, from
+ * data/corridor_receipts/<corridor>_<notional>_<hour>.json (built by
+ * tools/emit_corridor_receipts.py), and sending-money.html's own
+ * provider-ranking cost figures (SEB-186) replay the same way too, from
+ * data/provider_receipts/<corridor>_<size>_<hour>.json (built by
+ * tools/emit_provider_receipts.py) -- the same four-step SHELL (the dialog,
+ * the numbered steps, the timers, the raw-file footer) rendered by the same
  * render()/open-close machinery below, just fed a differently-shaped receipt
- * and its own set of copy.json templates (copy.json's "receiptMeter" key)
- * rather than a second component.
+ * and their own set of copy.json templates (copy.json's "receiptCorridor"
+ * and "receiptProvider" keys) rather than a second component. See
+ * buildProviderSteps()'s own comment for why a wired row's math always
+ * matches the comparison figure the page itself is showing, never the
+ * provider's own number underneath it.
  *
  * Wired once, on document, by delegation -- so it survives a full re-render
  * of index.html's innerHTML-driven sections as well as a plain DOM page
- * (country.html, countries.html, how-it-was-built.html), the same reason
- * index.html already delegates its own search box.
+ * (country.html, countries.html, corridor.html, sending-money.html), the
+ * same reason index.html already delegates its own search box.
  *
  * Paths below (copy.json, data/receipts/<CCY>.json,
- * data/meter_receipts/....json, and every source file a step links to) are
- * resolved against the HOST PAGE, not this script's own location in js/ --
- * every page that includes this file lives at the repo root alongside
+ * data/corridor_receipts/....json, data/provider_receipts/....json, and
+ * every source file a step links to)
+ * are resolved against the HOST PAGE, not this script's own location in
+ * js/ -- every page that includes this file lives at the repo root alongside
  * copy.json and data/, same as every other fetch those pages already make.
  *
  * copy.json is fetched by this file directly, rather than relying on the
@@ -51,8 +57,17 @@
   function getCopy() {
     return getCopyDoc().then(function (c) { return (c && c.receipt) || {}; });
   }
+  function getCorridorCopy() {
+    return getCopyDoc().then(function (c) { return (c && c.receiptCorridor) || {}; });
+  }
+  function getCrossoverCopy() {
+    return getCopyDoc().then(function (c) { return (c && c.receiptCrossover) || {}; });
+  }
   function getMeterCopy() {
     return getCopyDoc().then(function (c) { return (c && c.receiptMeter) || {}; });
+  }
+  function getProviderCopy() {
+    return getCopyDoc().then(function (c) { return (c && c.receiptProvider) || {}; });
   }
 
   function T(s, vals) {
@@ -65,6 +80,15 @@
   function fmtNum(v) {
     return v === null || v === undefined || !isFinite(v) ? "—"
       : Number(v).toLocaleString("en-US", { maximumFractionDigits: 6 });
+  }
+
+  // Same tiered precision as sending-money.html's own r.cost_pct.toFixed(2) --
+  // more decimal places for a smaller number so a real cost like 0.04% never
+  // prints as 0.00%, which would read as "not measured".
+  function fmtPct(v) {
+    if (v === null || v === undefined || !isFinite(v)) return "—";
+    var a = Math.abs(v), dp = a >= 10 ? 1 : a >= 0.1 ? 2 : 3;
+    return v.toFixed(dp) + "%";
   }
 
   function fmtWhen(iso) {
@@ -178,11 +202,181 @@
     ];
   }
 
-  // how-it-was-built.html's three JSON-backed meter tiles (SEB-190): the same
+  // Same tiered rounding as corridor.html's own pct(): a bps figure (one
+  // hundredth of a percent) shown as a percent, with more decimal places
+  // for a smaller number so a real cost like 0.004% never prints as 0.00%,
+  // which would read as "not measured". bps itself never reaches this text.
+  function pctFromBps(b) {
+    if (b === null || b === undefined || !isFinite(b)) return "—";
+    var p = b / 100, a = Math.abs(p), dp = a >= 10 ? 1 : a >= 0.1 ? 2 : 3;
+    return a.toFixed(dp) + "%";
+  }
+
+  // fee-tiers.html's crossover receipt (SEB-192) reports amounts in whole
+  // currency, not hundredths of a percent, so it gets its own formatter
+  // rather than pctFromBps's tiered rounding.
+  function fmtSgd(v) {
+    return v === null || v === undefined || !isFinite(v) ? "—"
+      : "S$" + Math.round(v).toLocaleString("en-US");
+  }
+  function fmtPct2(v) {
+    return v === null || v === undefined || !isFinite(v) ? "—" : Number(v).toFixed(2) + "%";
+  }
+
+  // corridor.html's cost-in-bps receipt (SEB-178): the same four-step shell
+  // buildSteps() fills for index/country numbers, fed from a differently-
+  // shaped receipt (tools/emit_corridor_receipts.py) and copy.json's
+  // "receiptCorridor" templates instead of "receipt" -- a corridor's cost
+  // has order-book evidence and fee legs, not a single official rate, so
+  // step 2 names the fees instead of a rate.
+  function buildCorridorSteps(receipt, copy, regime) {
+    var ev = receipt.evidence || {}, fees = receipt.fees || {};
+    var files = (receipt.source_files || []);
+    var on = ev.onramp || {}, off = ev.offramp || {};
+
+    var buyText = T(copy.evidenceBuySentenceTemplate, {
+      venue: on.venue_display || on.venue, topPrice: fmtNum(on.top_price), avgPrice: fmtNum(on.average_price_paid),
+      ccy: receipt.src_ccy
+    });
+    var sellText = T(copy.evidenceSellSentenceTemplate, {
+      venue: off.venue_display || off.venue, topPrice: fmtNum(off.top_price), avgPrice: fmtNum(off.average_price_received),
+      ccy: receipt.dst_ccy
+    });
+    var collected = T(copy.evidenceCollectedTemplate, { when: fmtWhen(ev.collected_at) });
+    var evidenceText = [buyText, sellText, copy.evidenceBookNote, collected].filter(Boolean).join(" ");
+
+    function feeLine(status, label, pctValue) {
+      if (status === "not_priced") return T(copy.feeNotPricedTemplate, { label: label });
+      if (status === "not_modeled") return T(copy.feeNotModeledTemplate, { label: label });
+      if (status === "not_available") return T(copy.feeNotAvailableTemplate, { label: label });
+      return T(copy.feeLineTemplate, { label: label, pct: pctFromBps(pctValue) });
+    }
+    var onFee = fees.onramp || {}, offFee = fees.offramp || {}, net = fees.network || {};
+    var dep = fees.deposit || {}, wd = fees.withdrawal || {};
+    var onBps = regime === "maker" ? onFee.maker_bps : onFee.taker_bps;
+    var offBps = regime === "maker" ? offFee.maker_bps : offFee.taker_bps;
+    var feeLines = [
+      feeLine("priced", T(copy.onrampFeeLabelTemplate, { venue: onFee.venue_display || onFee.venue }), onBps),
+      feeLine("priced", T(copy.offrampFeeLabelTemplate, { venue: offFee.venue_display || offFee.venue }), offBps),
+      net.value_stable !== null && net.value_stable !== undefined
+        ? T(copy.networkFeeAmountTemplate, { amount: fmtNum(net.value_stable) }) : "",
+      feeLine(dep.status, T(copy.depositLabelTemplate, { ccy: receipt.src_ccy, venue: dep.venue_display || dep.venue }), dep.value_bps),
+      feeLine(wd.status, copy.withdrawalLabel, wd.value_bps)
+    ];
+    var feesText = feeLines.filter(Boolean).join(" ");
+
+    var comp = (receipt.computation || {})[regime] || {};
+    var mathText = [copy.mathSentence, T(copy.mathResultTemplate, { result: pctFromBps(comp.result_pct) })]
+      .filter(Boolean).join(" ");
+
+    var regimeNote = regime === "maker" ? copy.regimeLimit : copy.regimeMarket;
+    var noteText = [regimeNote, !comp.legs_available ? copy.noLegsNote : ""].filter(Boolean).join(" ");
+
+    return [
+      { label: copy.step1Label, text: evidenceText, files: ["data/samples.csv"] },
+      { label: copy.step2Label, text: feesText, files: files },
+      { label: copy.step3Label, text: mathText, files: files },
+      { label: copy.step4Label, text: noteText, files: files }
+    ];
+  }
+
+  // fee-tiers.html's volume-tier crossover (SEB-192): same shell again, a
+  // receipt keyed by (regime, the fee schedule's own timestamp) instead of
+  // currency or corridor, from tools/emit_crossover_receipts.py and copy.json's
+  // "receiptCrossover" templates. Unlike a corridor's cost this number is not
+  // itself a direct measurement -- it is the real samples re-costed at a
+  // hypothetical fee tier, so every step here says "rebuilt", never "measured".
+  function buildCrossoverSteps(receipt, copy) {
+    var ev = receipt.evidence || {}, ts = receipt.tier_schedule || {},
+      recon = receipt.reconstruction || {}, search = receipt.search || {};
+
+    var evidenceText = T(copy.evidenceSentenceTemplate, {
+      n: receipt.n_samples, first: fmtWhen(ev.first_ts), last: fmtWhen(ev.last_ts),
+      baseline: pctFromBps(receipt.baseline_cost_bps_median)
+    });
+
+    var feesText = T(copy.feeSentenceTemplate, {
+      volume: fmtSgd(recon.crossover_volume_sgd),
+      feeIr: fmtPct2(recon.fee_pct_at_crossover_ir),
+      feeCoins: fmtPct2(recon.fee_pct_at_crossover_coins_ph_median)
+    });
+
+    var reconText = [copy.reconstructionNote, T(copy.reconstructionSentenceTemplate, {
+      result: pctFromBps(recon.reconstructed_cost_bps_median)
+    })].filter(Boolean).join(" ");
+
+    var searchText = T(copy.searchSentenceTemplate, {
+      lo: fmtSgd(search.lo_volume_sgd), hi: fmtSgd(search.hi_volume_sgd),
+      volume: fmtSgd(search.converged_volume_sgd)
+    });
+    var regimeNote = receipt.regime === "maker" ? copy.regimeLimit : copy.regimeMarket;
+
+    return [
+      { label: copy.step1Label, text: evidenceText, files: ["data/samples.csv"] },
+      { label: copy.step2Label, text: feesText, files: ["data/fee_tier_schedule.csv"] },
+      { label: copy.step3Label, text: reconText, files: receipt.source_files || [] },
+      { label: copy.step4Label, text: [searchText, regimeNote].filter(Boolean).join(" "), files: ["data/volume_crossover.json"] }
+    ];
+  }
+
+  // sending-money.html's provider-ranking cost figures (SEB-186): the same
+  // step shell buildSteps() fills for index/country numbers, fed from a
+  // differently-shaped receipt (tools/emit_provider_receipts.py) and
+  // copy.json's "receiptProvider" templates.
+  //
+  // `row` is ALREADY the one entry from data/provider_receipts/....json that
+  // matches the provider clicked (openProvider() below picks it out of the
+  // file's own `rows` list). Its computation.result_pct is, by construction,
+  // always the number sending-money.html itself is showing for that row --
+  // for a provider with its own published quote AND a public comparison
+  // figure, that is the COMPARISON figure, never the provider's own number,
+  // because that is which one the page displays (see
+  // tools/emit_provider_receipts.py's own docstring, "THE WIRING DECISION").
+  // The provider's own quote still appears, in evidence.own_quote, as
+  // supporting context underneath -- never as the number this step's math
+  // claims to explain.
+  function buildProviderSteps(row, copy) {
+    var ev = row.evidence || {}, comp = row.computation || {};
+    var provider = row.provider, files = row.source_files || [];
+
+    if (!comp) {
+      var fallbackText = ev.status === "missing"
+        ? T(copy.evidenceMissingTemplate, { provider: provider })
+        : copy.evidenceUnavailableTemplate;
+      return [{ label: copy.step1Label, text: fallbackText || "", files: files }];
+    }
+
+    var evidenceText;
+    if (ev.status === "comparison") {
+      evidenceText = T(copy.evidenceComparisonSentenceTemplate, { provider: provider, landed: fmtNum(ev.landed) });
+      if (ev.own_quote) {
+        evidenceText += " " + T(copy.evidenceOwnNoteTemplate, {
+          provider: provider, rate: fmtNum(ev.own_quote.rate), fee: fmtNum(ev.own_quote.fee)
+        });
+      }
+    } else {
+      evidenceText = T(copy.evidenceOwnSentenceTemplate, {
+        provider: provider, rate: fmtNum(ev.rate), fee: fmtNum(ev.fee), received: fmtNum(ev.received)
+      });
+    }
+    var collected = T(copy.evidenceCollectedTemplate, { when: fmtWhen(ev.collected_at) });
+
+    var mathText = [copy.mathSentence, T(copy.mathResultTemplate, { result: fmtPct(comp.result_pct) })]
+      .filter(Boolean).join(" ");
+
+    var steps = [
+      { label: copy.step1Label, text: [evidenceText, collected].filter(Boolean).join(" "), files: files },
+      { label: copy.step2Label, text: mathText, files: files }
+    ];
+    if (comp.note) steps.push({ label: copy.step3Label, text: comp.note, files: files });
+    return steps;
+  }
+
+  // how-it-was-built.html's two JSON-backed meter tiles (SEB-190): the same
   // step shell buildSteps() fills for index/country numbers, fed from a
   // differently-shaped receipt per meter (tools/emit_meter_receipts.py) and
-  // copy.json's "receiptMeter" templates. One function, not three, because
-  // all three meters share the same two-step shape (the evidence, the
+  // copy.json's "receiptMeter" templates. One function, not two, because
+  // both meters share the same two-step shape (the evidence, the
   // count) -- only the sentence naming that evidence differs per meter.
   function buildMeterSteps(receipt, copy) {
     var files = receipt.source_files || [];
@@ -195,9 +389,6 @@
         total: total, excluded: total - receipt.value, day: receipt.day
       });
       countText = T(copy.commitsCountTemplate, { value: receipt.value });
-    } else if (receipt.meter === "open_prs") {
-      evidenceText = T(copy.prsEvidenceTemplate, { value: receipt.value });
-      countText = T(copy.prsCountTemplate, { value: receipt.value });
     } else if (receipt.meter === "unbroken_hours") {
       evidenceText = T(copy.hoursEvidenceTemplate, {
         start: fmtHour(receipt.streak_start), end: fmtHour(receipt.streak_end)
@@ -238,7 +429,7 @@
     ".receipt-raw-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d7979;margin-bottom:6px;}",
     ".receipt-raw-links{font-size:12px;line-height:1.8;}",
     ".receipt-loading{font-size:13px;color:#7d7979;padding:12px 0;}",
-    "[data-receipt-ccy],[data-receipt-meter-file]{cursor:pointer;}"
+    "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-receipt-meter-file]{cursor:pointer;}"
   ].join("\n");
 
   function ensureStyle() {
@@ -285,8 +476,9 @@
   // The shared shell both receipt kinds paint into: the numbered steps list
   // and the raw-file footer. Takes already-built steps (label/text/files)
   // rather than a receipt, so it has no opinion on what shape of receipt
-  // produced them -- buildSteps() (index/country) and buildMeterSteps()
-  // (how-it-was-built.html) are the only two places that know that.
+  // produced them -- buildSteps() (index/country), buildCorridorSteps()
+  // (corridor.html) and buildProviderSteps() (sending-money.html) are the
+  // only places that know that.
   function paintSteps(steps, sourceFiles, rawFilesLabel) {
     if (!overlayEl) return;
     var ol = overlayEl.querySelector(".receipt-steps");
@@ -352,10 +544,11 @@
       + escHtml(T(copy.loadErrorTemplate, { file: file })) + "</li>";
   }
 
-  // Builds the dialog shell common to both receipt kinds and wires its close
-  // behaviour -- what every receipt, index/country or meter, shares. Returns
-  // the close button so the caller can finish wiring its own copy-specific
-  // title/aria-label once copy.json resolves.
+  // Builds the dialog shell common to every receipt kind and wires its
+  // close behaviour -- what every receipt, index/country, corridor,
+  // crossover or provider, shares. Returns the close button so the caller
+  // can finish wiring its own copy-specific title/aria-label once
+  // copy.json resolves.
   function openShell(ariaLabel, displayValue, triggerEl) {
     ensureStyle();
     lastFocus = triggerEl;
@@ -396,7 +589,81 @@
     });
   }
 
-  // how-it-was-built.html's three JSON-backed meter tiles (SEB-190): same
+  // corridor.html's cost-in-bps figures (SEB-178): same shell, a receipt
+  // keyed by (corridor, notional, hour) instead of by currency, and its own
+  // copy.json templates (receiptCorridor) rather than the index/country
+  // ones -- see buildCorridorSteps() for why the two can't share templates
+  // (a corridor cost has fee legs, not an official rate).
+  function openCorridor(file, regime, displayValue, triggerEl) {
+    if (!file) return;
+    var closeBtn = openShell(file, displayValue, triggerEl);
+
+    getCorridorCopy().then(function (copy) {
+      if (!overlayEl) return;
+      overlayEl.querySelector(".receipt-title").textContent = copy.title || "";
+      closeBtn.setAttribute("aria-label", copy.close || "");
+      renderLoading(copy);
+      closeBtn.focus();
+      var path = "data/corridor_receipts/" + file + ".json";
+      fetch(path, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .then(function (receipt) {
+          paintSteps(buildCorridorSteps(receipt, copy, regime), receipt.source_files, copy.rawFilesLabel);
+        })
+        .catch(function () { renderError(copy, path); });
+    });
+  }
+
+  // fee-tiers.html's crossover paragraph and tier rows (SEB-192): same
+  // shell, fed from data/crossover_receipts/<regime>_<hour>.json and
+  // copy.json's "receiptCrossover" templates -- see buildCrossoverSteps().
+  function openCrossover(file, displayValue, triggerEl) {
+    if (!file) return;
+    var closeBtn = openShell(file, displayValue, triggerEl);
+
+    getCrossoverCopy().then(function (copy) {
+      if (!overlayEl) return;
+      overlayEl.querySelector(".receipt-title").textContent = copy.title || "";
+      closeBtn.setAttribute("aria-label", copy.close || "");
+      renderLoading(copy);
+      closeBtn.focus();
+      var path = "data/crossover_receipts/" + file + ".json";
+      fetch(path, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .then(function (receipt) {
+          paintSteps(buildCrossoverSteps(receipt, copy), receipt.source_files, copy.rawFilesLabel);
+        })
+        .catch(function () { renderError(copy, path); });
+    });
+  }
+
+  // sending-money.html's provider-ranking cost figures (SEB-186): same
+  // shell, a receipt file keyed by (corridor, size, hour) holding one row
+  // per provider, and its own copy.json templates (receiptProvider) rather
+  // than the index/country ones -- see buildProviderSteps() for why.
+  function openProvider(file, providerName, displayValue, triggerEl) {
+    if (!file || !providerName) return;
+    var closeBtn = openShell(providerName, displayValue, triggerEl);
+
+    getProviderCopy().then(function (copy) {
+      if (!overlayEl) return;
+      overlayEl.querySelector(".receipt-title").textContent = copy.title || "";
+      closeBtn.setAttribute("aria-label", copy.close || "");
+      renderLoading(copy);
+      closeBtn.focus();
+      var path = "data/provider_receipts/" + file + ".json";
+      fetch(path, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .then(function (receipt) {
+          var row = (receipt.rows || []).filter(function (x) { return x.provider === providerName; })[0];
+          if (!row) throw new Error("no such provider in this receipt");
+          paintSteps(buildProviderSteps(row, copy), row.source_files, copy.rawFilesLabel);
+        })
+        .catch(function () { renderError(copy, path); });
+    });
+  }
+
+  // how-it-was-built.html's two JSON-backed meter tiles (SEB-190): same
   // shell, a receipt file keyed by (meter, day), and its own copy.json
   // templates (receiptMeter) rather than the index/country ones -- see
   // buildMeterSteps() for why.
@@ -421,12 +688,21 @@
   }
 
   document.addEventListener("click", function (e) {
-    var t = e.target.closest && e.target.closest("[data-receipt-ccy],[data-receipt-meter-file]");
+    var t = e.target.closest && e.target.closest(
+      "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-receipt-meter-file]");
     if (!t) return;
     e.preventDefault();
     var displayValue = t.getAttribute("data-receipt-value") || t.textContent;
     if (t.hasAttribute("data-receipt-meter-file")) {
       openMeter(t.getAttribute("data-receipt-meter-file"), displayValue, t);
+    } else if (t.hasAttribute("data-receipt-corridor-file")) {
+      openCorridor(t.getAttribute("data-receipt-corridor-file"),
+        t.getAttribute("data-receipt-regime") || "taker", displayValue, t);
+    } else if (t.hasAttribute("data-receipt-crossover-file")) {
+      openCrossover(t.getAttribute("data-receipt-crossover-file"), displayValue, t);
+    } else if (t.hasAttribute("data-receipt-provider-file")) {
+      openProvider(t.getAttribute("data-receipt-provider-file"),
+        t.getAttribute("data-receipt-provider-name"), displayValue, t);
     } else {
       open(t.getAttribute("data-receipt-ccy"), displayValue, t);
     }

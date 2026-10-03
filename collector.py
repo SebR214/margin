@@ -439,6 +439,80 @@ CORRIDORS = {
     },
 }
 
+# Priced alternates to a corridor's one modelled stablecoin/network path --
+# SEB-182, queue item 0.1, first slice only (SGD->PHP). A reader who already
+# holds a different stablecoin, or whose wallet is cheaper to move on a
+# different chain, has no way to see whether that path beats the one shown
+# unless it is actually priced, never invented.
+#
+# Found by live probe 2026-10-02: Independent Reserve's own order-book API
+# (api.independentreserve.com/Public/GetOrderBook?primaryCurrencyCode=Usdc)
+# answers with a real, live, two-sided USDC/SGD book -- same venue, same
+# account, same 0.50% flat brokerage schedule as USDT/SGD (IR's own fee
+# page states the brokerage tier is based on 30-day AUD-equivalent volume,
+# not quoted per pair). Coins.ph's own depth endpoint
+# (api.pro.coins.ph/openapi/quote/v1/depth?symbol=USDCPHP) answers with a
+# real, live, two-sided book too, and its exchangeInfo lists USDCPHP as
+# "trading" -- and Coins.ph's own fee article ("Understanding Spot Trade
+# (Coins Pro) Trading Fees") describes its maker/taker schedule as tiered by
+# account-wide rolling volume, not per-pair, so SGD->PHP's own verified
+# 15/10 bps carries over unchanged.
+#
+# The one genuinely new number is the network fee: independentreserve.com/fees
+# (read live 2026-10-02 -- the page itself Cloudflare-blocks this box on
+# every path tried, fees/sg/au/robots.txt and its Zendesk mirror alike, so
+# read through a plain rendering proxy rather than assumed from a cache or a
+# competitor) lists USDC withdrawals over TRON at all -- only Ethereum
+# (10.0 USDC), Solana (1.0 USDC), Base (1.0 USDC) and Arbitrum One
+# (1.0 USDC). No Polygon or Solana USDT network exists on IR's own table
+# (USDT lists ONLY Ethereum at 10.0 USDT and TRON at 4.0 USDT) -- so the
+# "second USDT network" half of this probe found nothing, and only the
+# second-stablecoin half shipped. Of USDC's four networks, Arbitrum One is
+# the one independently confirmed on the Coins.ph side too, by its own help
+# article "How do I receive USDC through the Arbitrum Network?"
+# (support.coins.ph), so that is the pairing modelled, not Solana or Base,
+# which tie it on fee but are unconfirmed on the receiving end.
+#
+# SEB-193, queue item 0.1, third slice (NZD->PHP). Re-probed live, not carried
+# over: api.independentreserve.com/Public/GetOrderBook?primaryCurrencyCode=
+# Usdc&secondaryCurrencyCode=Nzd answered with a real, live, two-sided
+# USDC/NZD book (104 bids, 59 asks, read 2026-10-02). Coins.ph's USDCPHP
+# depth book and exchangeInfo "trading" status are the same shared off-ramp
+# book SGD->PHP's variant already confirmed live. IR's own nz/fees page --
+# Cloudflare-blocked direct (HTTP 403) same as every prior read, fetched
+# through the same r.jina.ai rendering-proxy workaround -- still lists
+# "USD Coin | Arbitrum One | 1.0 USDC", confirming (not assuming) the
+# withdrawal table is the one venue-wide schedule, identical on the NZ page
+# too. This is the withdrawal fee only: NZD->PHP's base CORRIDORS entry
+# separately records that IR has no free NZD deposit method below NZD 50,000
+# (SWIFT-only, unpriced gap) -- that gap belongs to the deposit leg, which
+# this variant does not touch or fix.
+CORRIDOR_VARIANTS = {
+    "SGD->PHP": [
+        {
+            "stable": "USDC", "network": "ArbitrumOne",
+            "offramp_symbol": "USDCPHP",
+            "network_fee_stable": 1.0,
+            "verified": "2026-10-02",
+        },
+    ],
+    "NZD->PHP": [
+        {
+            "stable": "USDC", "network": "ArbitrumOne",
+            "offramp_symbol": "USDCPHP",
+            "network_fee_stable": 1.0,
+            "verified": "2026-10-02",
+        },
+    ],
+}
+
+VARIANTS_SIDECAR = os.path.join(HERE, "data", "corridor_variants.csv")
+VARIANT_FIELDS = [
+    "ts", "corridor", "stable", "network", "notional_src",
+    "network_fee_stable", "landed_taker", "cost_bps_taker",
+    "landed_maker", "cost_bps_maker", "source_ok", "errors",
+]
+
 FIELDS = [
     "ts", "corridor", "src", "dst", "stable", "notional_src",
     # benchmark
@@ -519,6 +593,20 @@ def depth_within_pct(bids, pct=0.01):
         return 0.0
     floor = bids[0][0] * (1 - pct)
     return sum(q for p, q in bids if p >= floor)
+
+
+def remaining_after_sell(bids, amount):
+    """The unconsumed remainder of `bids` after selling `amount` of base into
+    them, consumed descending in the same order walk_sell already uses.
+    Does not mutate `bids`. -> [(p, q), ...], possibly empty.
+    """
+    sold = 0.0
+    for i, (p, q) in enumerate(bids):
+        if sold + q <= amount:
+            sold += q
+            continue
+        return [(p, q - (amount - sold))] + list(bids[i + 1:])
+    return []
 
 
 def bitso_bids(payload):
@@ -651,6 +739,17 @@ def decompose(notional, on_book, off_book, mids, cfg):
                 out["offramp_filled"] = False
             continue
         quote, off_vwap, off_filled = walk_sell(bids, stable)
+        if regime == "taker":
+            # How much is left in the book AFTER this rung's own trade, not
+            # the untouched-book figure offramp_depth_top_level/
+            # offramp_depth_1pct above already carry (SEB-181). None, not an
+            # invented zero, when there was no book to walk in the first
+            # place -- same rule those two columns already follow.
+            remainder = remaining_after_sell(bids, stable) if bids else []
+            out["offramp_depth_top_level_after"] = (
+                remainder[0][1] if remainder else (0.0 if bids else None))
+            out["offramp_depth_1pct_after"] = (
+                round(depth_within_pct(remainder), 2) if bids else None)
         landed_before_withdrawal = quote * (1 - fee_off)
         withdrawal_fee_dst = ramp_fee_units(wd_cfg, landed_before_withdrawal)
         landed = max(0.0, landed_before_withdrawal - withdrawal_fee_dst)
@@ -709,7 +808,34 @@ def pick_baseline(quotes):
 
 
 def parse_wise(payload):
-    """Wise comparison API -> [(provider, landed), ...]."""
+    """Wise comparison API -> [(provider, landed), ...].
+
+    DELIVERY FIELD, PROBED AND NOT FOUND (SEB-191, 2026-10-02). SEB-176 added
+    a stated-delivery-time sidecar fed by providers' own direct APIs; this
+    comparison feed (this function's own `payload`, from fetch_baseline()
+    calling api.wise.com/v3/comparisons) is a different, unchecked payload
+    for the four rails that have no direct API call anywhere in this repo --
+    PayPal, Western Union, HSBC Singapore, OFX -- plus Instarem, which does
+    have a direct call (collector_providers.py) but no delivery field on it
+    either (see that file's module docstring).
+
+    Live-probed sourceCurrency=SGD&targetCurrency=PHP at every ladder size
+    (200/1000/5000/25000/50000) -- the exact call fetch_baseline() makes.
+    Every quote object carries a `deliveryEstimation` dict
+    ({"deliveryDate", "duration", "durationType", "providerGivesEstimate"}).
+    For Instarem, PayPal, HSBC Singapore, Western Union and OFX, at every
+    size, `providerGivesEstimate` was the only populated field (always
+    `true`) -- `deliveryDate`, `duration` and `durationType` were `null`
+    every time, for all five. That is the feed saying "this provider
+    supports giving an estimate" with no estimate attached, not a delivery
+    time with nothing to read -- nothing to wire. (The feed's own Wise
+    entry DOES carry a real duration -- e.g. "PT1S" at S$200, "PT65H46M..."
+    at S$50,000 -- but Wise already has a direct, narrower delivery read
+    from its own quote API, SEB-176's wise_delivery(); out of scope here.)
+    No parser or sidecar change follows from this probe: there is no field
+    to extend parse_wise() with for any of the five rails this issue asked
+    about.
+    """
     out = []
     for p in payload.get("providers", []):
         name = p.get("name") or p.get("alias")
@@ -936,6 +1062,52 @@ def collect(corridor_key, cfg):
     return rows, prows
 
 
+def collect_variants(corridor_key, cfg):
+    """One sample across the ladder for every priced alternate path this
+    corridor has (CORRIDOR_VARIANTS) -- a different stablecoin and/or network
+    than the corridor's own modelled path, run through the SAME decompose()
+    against its own live books. Independent fetches, same shape as collect():
+    never raises, records failures in the row instead.
+    """
+    out = []
+    for variant in CORRIDOR_VARIANTS.get(corridor_key, []):
+        ts = dt.datetime.now(dt.timezone.utc).isoformat()
+        src = cfg["src"]
+        vcfg = {**cfg, "stable": variant["stable"],
+                "network_fee_stable": variant["network_fee_stable"],
+                "offramp": {**cfg["offramp"], "symbol": variant["offramp_symbol"]}}
+        errors, ok = [], True
+        try:
+            mids = fetch_mids(src, cfg["dst"])
+        except Exception as e:
+            errors.append(f"mid:{type(e).__name__}:{e}")
+            mids, ok = {"src_per_usd": None, "dst_per_usd": None}, False
+        try:
+            on_book = fetch_onramp(vcfg, src)
+        except Exception as e:
+            errors.append(f"onramp:{type(e).__name__}:{e}")
+            on_book, ok = {"asks": []}, False
+        try:
+            off_book = fetch_offramp(vcfg)
+        except Exception as e:
+            errors.append(f"offramp:{type(e).__name__}:{e}")
+            off_book, ok = {"bids": []}, False
+
+        for notional in cfg["ladder"]:
+            d = decompose(notional, on_book, off_book, mids, vcfg)
+            out.append({
+                "ts": ts, "corridor": corridor_key, "stable": variant["stable"],
+                "network": variant["network"], "notional_src": notional,
+                "network_fee_stable": d.get("network_fee_stable"),
+                "landed_taker": d.get("landed_taker"),
+                "cost_bps_taker": d.get("cost_bps_taker"),
+                "landed_maker": d.get("landed_maker"),
+                "cost_bps_maker": d.get("cost_bps_maker"),
+                "source_ok": ok, "errors": "; ".join(errors)[:500],
+            })
+    return out
+
+
 def utc_hour(now=None):
     """The current UTC hour, truncated -- the idempotency key for a capture."""
     return (now or dt.datetime.now(dt.timezone.utc)).replace(
@@ -1056,6 +1228,44 @@ def append_ramp_waterfall(rows, path=RAMP_WATERFALL_SIDECAR):
     return path
 
 
+DEPTH_SIDECAR = os.path.join(HERE, "data", "samples_depth.csv")
+DEPTH_SIDECAR_FIELDS = [
+    "ts", "corridor", "notional_src",
+    "offramp_depth_top_level_after", "offramp_depth_1pct_after",
+]
+# Same two deep-layer corridors ROADMAP item 6 already restricted the
+# pre-trade depth line to (corridor.html's DEPTH_CORRIDORS) -- the wide-layer
+# board has no order book to walk, so this sidecar must not carry a row for
+# it, same limit item 6 already stated.
+DEPTH_SIDECAR_CORRIDORS = {"SGD->PHP", "USD->MXN"}
+
+
+def append_depth_sidecar(rows, path=DEPTH_SIDECAR):
+    """Per-ladder-size remaining depth after that rung's own trade (SEB-181),
+    keyed the same way as the other sidecars (ts + corridor + notional_src)
+    so corridor.html can join it against the row the reader has selected.
+    samples.csv's own offramp_depth_top_level/offramp_depth_1pct columns stay
+    the pre-trade, corridor-wide figures they always were -- this is a
+    separate file, not a widened header.
+    """
+    wrows = [{"ts": r["ts"], "corridor": r["corridor"], "notional_src": r["notional_src"],
+              "offramp_depth_top_level_after": r.get("offramp_depth_top_level_after"),
+              "offramp_depth_1pct_after": r.get("offramp_depth_1pct_after")}
+             for r in rows
+             if r["corridor"] in DEPTH_SIDECAR_CORRIDORS
+             and r.get("offramp_depth_top_level_after") is not None]
+    if not wrows:
+        return None
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=DEPTH_SIDECAR_FIELDS)
+        if new:
+            w.writeheader()
+        w.writerows(wrows)
+    return path
+
+
 def append_providers(prows, path=PROVIDERS):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     new = not os.path.exists(path)
@@ -1064,6 +1274,23 @@ def append_providers(prows, path=PROVIDERS):
         if new:
             w.writeheader()
         w.writerows(prows)
+    return path
+
+
+def append_variants(vrows, path=VARIANTS_SIDECAR):
+    """Priced alternate stablecoin/network paths (SEB-182) -- own file, own
+    header, keyed by (ts, corridor, stable, network, notional_src). Never
+    widens samples.csv, which carries only each corridor's own modelled path.
+    """
+    if not vrows:
+        return None
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=VARIANT_FIELDS, extrasaction="ignore")
+        if new:
+            w.writeheader()
+        w.writerows(vrows)
     return path
 
 
@@ -1126,6 +1353,18 @@ def print_waterfall(rows):
     print("  " + "-" * 74)
     print("  cost = bps below mid-market. maker = posts at top-of-book, pays "
           "maker fee, assumes fill.\n")
+
+
+def print_variants(vrows):
+    if not vrows:
+        return
+    fmt = lambda v: f"{v:.0f}bps" if v is not None else "--"
+    print("  variants:")
+    for r in vrows:
+        status = "ok" if r["source_ok"] else f"FAIL: {r['errors']}"
+        print(f"    {r['stable']}/{r['network']} @ {r['notional_src']:>6,}: "
+              f"taker {fmt(r['cost_bps_taker'])}   ({status})")
+    print()
 
 
 # -------------------------------------------------------------- selftest
@@ -1247,6 +1486,27 @@ def selftest():
     print(f"  [ok] depth: 0.0 bps slippage at S$5k; top level holds "
           f"{d['offramp_depth_top_level']:,.0f} USDT")
 
+    # per-size remaining depth (SEB-181): a bigger ladder rung eats into the
+    # book, so what is left afterward must shrink (or at least hold, never
+    # grow) as size grows -- never the pre-trade, corridor-wide figure
+    # repeated unchanged at every size.
+    big = decompose(50000, on, off, MIDS_FIXTURE, cfg)
+    assert small["offramp_depth_top_level_after"] is not None
+    assert (big["offramp_depth_top_level_after"]
+            <= small["offramp_depth_top_level_after"]), (
+        big["offramp_depth_top_level_after"], small["offramp_depth_top_level_after"])
+    assert big["offramp_depth_1pct_after"] <= small["offramp_depth_1pct_after"]
+    assert big["offramp_depth_top_level_after"] <= d["offramp_depth_top_level"]
+    print(f"  [ok] per-size depth: after S$200 {small['offramp_depth_top_level_after']:,.0f} "
+          f"USDT still at the best price; after S$50,000 only "
+          f"{big['offramp_depth_top_level_after']:,.0f} USDT is")
+
+    # no book to walk (the wide-layer shape) -> None, never an invented zero
+    nobook = decompose(5000, on, {"bids": []}, MIDS_FIXTURE, cfg)
+    assert nobook["offramp_depth_top_level_after"] is None
+    assert nobook["offramp_depth_1pct_after"] is None
+    print("  [ok] no order book -> remaining depth is None, not an invented zero")
+
     # thin book must be flagged, never silently truncated
     thin = decompose(5000, on, {"bids": [(60.68, 10.0)]}, MIDS_FIXTURE, cfg)
     assert thin["offramp_filled"] is False
@@ -1257,13 +1517,15 @@ def selftest():
     assert dead["landed_taker"] == 0.0 and dead["onramp_top_ask"] is None
     print("  [ok] dead sources degrade to a recorded row, not an exception")
 
-    # wf_* and ramp_*_measured are sidecar-only fields (corridor_waterfall.csv,
-    # ramp_waterfall.csv) -- deliberately absent from FIELDS/samples.csv, whose
-    # header is frozen, so they are excluded here rather than added to it.
+    # wf_*, ramp_*_measured and offramp_depth_*_after are sidecar-only fields
+    # (corridor_waterfall.csv, ramp_waterfall.csv, samples_depth.csv) --
+    # deliberately absent from FIELDS/samples.csv, whose header is frozen, so
+    # they are excluded here rather than added to it.
     SIDECAR_ONLY = {
         "wf_buy_bps", "wf_move_bps", "wf_sell_bps",
         "wf_deposit_bps", "wf_withdrawal_bps",
         "ramp_deposit_measured", "ramp_withdrawal_measured",
+        "offramp_depth_top_level_after", "offramp_depth_1pct_after",
     }
     assert set(FIELDS) >= set(dead) - SIDECAR_ONLY | {"ts", "corridor", "source_ok", "errors"}
     print("  [ok] schema covers every derived field")
@@ -1496,6 +1758,25 @@ def selftest():
         assert captured_this_hour(p, "ts", now) is True
     print("  [ok] per-corridor gate: each corridor claims the hour independently\n")
 
+    # samples_depth.csv: deep-layer corridors get a row, the wide-layer board
+    # does not -- never an invented remaining-depth figure for a corridor
+    # with no order book to walk (same limit item 6 already stated).
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, "samples_depth.csv")
+        rows_mixed = [
+            {"ts": "2026-10-01T00:00:00+00:00", "corridor": "SGD->PHP",
+             "notional_src": 200, "offramp_depth_top_level_after": 900.0,
+             "offramp_depth_1pct_after": 2000.0},
+            {"ts": "2026-10-01T00:00:00+00:00", "corridor": "AUD->PHP",
+             "notional_src": 200, "offramp_depth_top_level_after": 900.0,
+             "offramp_depth_1pct_after": 2000.0},
+        ]
+        assert append_depth_sidecar(rows_mixed, path=p) == p
+        with open(p, newline="") as f:
+            written = list(csv.DictReader(f))
+        assert len(written) == 1 and written[0]["corridor"] == "SGD->PHP", written
+    print("  [ok] samples_depth.csv: only the deep-layer corridors get a row\n")
+
     print("  ALL SELFTESTS PASSED\n")
 
 
@@ -1528,6 +1809,7 @@ def main():
     cfg = CORRIDORS[a.corridor]
     panel_path = providers_path(cfg)
     rows, prows = collect(a.corridor, cfg)
+    vrows = collect_variants(a.corridor, cfg)
 
     # PERSIST FIRST, DISPLAY SECOND. Display is decoration; the sample is the
     # product. Anything downstream of append() can crash without costing a row
@@ -1553,12 +1835,24 @@ def main():
             append_ramp_waterfall(rows)
         except Exception as e:
             print(f"  [warn] ramp waterfall sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
+        # Same non-fatal shape: the per-size depth sidecar is supplementary too.
+        try:
+            append_depth_sidecar(rows)
+        except Exception as e:
+            print(f"  [warn] depth sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
+        # Same non-fatal shape: priced variants are supplementary too.
+        try:
+            append_variants(vrows)
+        except Exception as e:
+            print(f"  [warn] variants sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
 
     if a.json:
-        print(json.dumps({"corridor": rows, "panel": prows}, indent=2, default=str))
+        print(json.dumps({"corridor": rows, "panel": prows, "variants": vrows},
+                          indent=2, default=str))
     else:
         print_waterfall(rows)
         print_panel(prows, cfg["src"])
+        print_variants(vrows)
 
     if wrote:
         print(f"  appended -> {wrote}")

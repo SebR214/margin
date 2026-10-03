@@ -39,6 +39,15 @@ done
 systemctl enable --now margin-serve
 systemctl enable --now margin-serve-sync.timer
 
+# Box collector (ROADMAP item 12, SEB-202). Owns /var/lib/margin/p2p_box --
+# nothing else writes there, and this collector writes nowhere else (see
+# collector_p2p_box.py's module docstring). Needs a 72-hour run before
+# tools/publish_p2p_box.py has anything real to publish; that script is run
+# separately, by hand or by a later builder pass, never by this install step.
+install -d -m 755 /var/lib/margin/p2p_box
+systemctl enable --now margin-p2p-box.timer
+
 sleep 3
 systemctl --no-pager --lines=3 status \
-  margin-builder margin-reviewer margin-product margin-serve margin-serve-sync.timer || true
+  margin-builder margin-reviewer margin-product margin-serve margin-serve-sync.timer \
+  margin-p2p-box.timer || true

@@ -217,6 +217,16 @@ jobs:
         # source_ok=False row, which is a finding about that market.
         run: python3 collector_p2p.py
 
+      - name: Collect P2P sample -- OKX (SEB-204)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Second P2P board, confirmed live 2026-10-03 (tools/probe_p2p_boards.py):
+        # Bybit bot-walls every path, HTX publishes no currency-id->ISO mapping, OKX
+        # is the one survivor. Own file (data/p2p_okx.csv), own header -- nothing
+        # reads it yet, so this only keeps it collecting alongside item 12's
+        # baseline rather than waiting for that cutover. Same contract as every
+        # other collector: exits non-zero ONLY on a total blackout.
+        run: python3 collector_p2p_okx.py
+
       - name: Collect provider quotes
         if: always() && steps.needed.outputs.proceed == 'true'
         # Quotes asked of the providers themselves, where they publish one, so
@@ -242,6 +252,16 @@ jobs:
       - name: Emit the provider ranking
         if: always() && steps.needed.outputs.proceed == 'true'
         run: python3 tools/emit_providers.py
+
+      - name: Emit provider receipts
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-186. Runs right after the provider ranking so it reads what that
+        # step just wrote (data/providers_latest.json) alongside the raw CSVs
+        # underneath it, and writes data/provider_receipts/<corridor>_<size>_
+        # <hour>.json: the evidence and the arithmetic behind every provider's
+        # ranked cost on sending-money.html, one file per corridor and size.
+        # Exits non-zero only if it cannot write.
+        run: python3 tools/emit_provider_receipts.py
 
       - name: Emit real hourly coverage (sending-money series)
         if: always() && steps.needed.outputs.proceed == 'true'
@@ -288,7 +308,7 @@ jobs:
         if: always() && steps.needed.outputs.proceed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        # SEB-190. Feeds how-it-was-built.html's receipt overlay for the three
+        # SEB-190. Feeds how-it-was-built.html's receipt overlay for the two
         # meter tiles above: the literal git log entries, the gh pr list
         # response, and the delivery-streak boundaries each number was counted
         # from, written to data/meter_receipts/<meter>_<day>.json. Recomputed
@@ -329,6 +349,28 @@ jobs:
         # every currency, published or withheld. Exits non-zero only if it
         # cannot write.
         run: python3 tools/emit_receipts.py
+
+      - name: Emit corridor receipts
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-178, R2 for corridor.html. Reads data/samples.csv alongside
+        # data/corridor_waterfall.csv and data/ramp_waterfall.csv (all
+        # already written by the collector steps above) and collector.py's
+        # own CORRIDORS fee constants, and writes one
+        # data/corridor_receipts/<corridor>_<notional>_<hour>.json per
+        # (corridor, notional) pair at this hour -- the same evidence/fees/
+        # math replay emit_receipts.py gives index/country numbers, for
+        # corridor.html's cost-in-bps figures. Exits non-zero only if it
+        # cannot write.
+        run: python3 tools/emit_corridor_receipts.py
+
+      - name: Audit published numbers
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-209 / ROADMAP item 19. Deterministic, no model call: re-derives
+        # up to 50 published numbers per run from the raw CSVs and writes
+        # data/audit_latest.json plus one append-only line in
+        # data/audit_history.csv. A failed number is reported in the file, not
+        # by a red run -- the failures are the point.
+        run: python3 tools/audit_numbers.py
 
       - name: Emit the stress signal
         if: always() && steps.needed.outputs.proceed == 'true'
@@ -471,7 +513,9 @@ jobs:
                    data/requests_latest.json data/stable_spread_summary.json \
                    data/p2p_spread_signal.csv data/p2p_spread_signal_latest.json \
                    data/corridor_summary.json data/corridor_waterfall.csv \
-                   data/corridor_window.json data/machine_room_meters.json; do
+                   data/corridor_window.json data/machine_room_meters.json \
+                   data/provider_delivery.csv data/audit_latest.json \
+                   data/audit_history.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # index.html itself -- D1's bake_homepage.py rewrites it in place
@@ -481,11 +525,16 @@ jobs:
           # instead of widening that fallback's pathspec for one file.
           if [ -f index.html ]; then git add index.html; fi
           # Directories: one file per country, a page per country, one
-          # receipt per country, and the bundle's parquet files + manifest. A
-          # country (or a table emit_bundle.py starts writing) appears here
-          # on its first run with no edit to this list -- which is the point
-          # of staging the directory rather than naming the files.
-          for d in data/countries data/receipts data/meter_receipts data/bundle; do
+          # receipt per country, one receipt per corridor+amount
+          # (data/corridor_receipts, SEB-178), one receipt per
+          # corridor-and-size on sending-money.html's provider ranking
+          # (data/provider_receipts, SEB-186), and the bundle's parquet
+          # files + manifest. A country (or a table emit_bundle.py starts
+          # writing, or a new corridor+amount/corridor+size pair's first
+          # receipt) appears here on its first run with no edit to this
+          # list -- which is the point of staging the directory rather than
+          # naming the files.
+          for d in data/countries data/receipts data/corridor_receipts data/provider_receipts data/meter_receipts data/bundle; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Anything TRACKED that an emitter rewrote but the list above forgot.

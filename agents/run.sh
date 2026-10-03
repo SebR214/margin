@@ -363,11 +363,18 @@ while true; do
   fi
   bump_wakes
 
-  # Sonnet, not the default. These loops are the largest single consumer of the
-  # subscription and most of their work is mechanical -- read an issue, follow a
-  # spec, run the checks. Override per role with MARGIN_MODEL if one of them
-  # ever needs more.
-  MODEL="${MARGIN_MODEL:-claude-sonnet-5}"
+  # Model assignment, stated once (SEB-203 / ROADMAP item 13). Builder and
+  # reviewer stay on Sonnet -- their work is mechanical: read an issue, follow
+  # a spec, run the checks. The product loop runs Fable (claude-fable-5-1),
+  # the model used where something is interpreted rather than mechanically
+  # applied -- later joined by the analyst's written sentences (item 20).
+  # Override per role with MARGIN_MODEL if one of them ever needs something
+  # else.
+  case "$ROLE" in
+    product) DEFAULT_MODEL="claude-fable-5-1" ;;
+    *)       DEFAULT_MODEL="claude-sonnet-5" ;;
+  esac
+  MODEL="${MARGIN_MODEL:-$DEFAULT_MODEL}"
 
   OUT=$(mktemp)
   claude -p "$(cat "$REPO/agents/RULES.md" "$REPO/agents/${ROLE^^}.md")" \
