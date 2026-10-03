@@ -269,11 +269,13 @@
   },
   "corridor": {
     "titleTemplate": "Sending {amount} to {place}: the stablecoin costs {marketCost}, the cheapest app costs {appCost}.",
+    "titleManyTemplate": "Sending {amount} to {place}: the cheapest of {n} stablecoin routes we price ({route}) costs {marketCost}, the cheapest app costs {appCost}.",
     "lede": "Every cost of sending it with stablecoins, step by step, checked every hour.",
     "verdict1": "Right now {amount} costs {marketCost} ({marketPct}) all in by stablecoin with a market order, and {appCost} ({appPct}) with the cheapest app, {provider}. The stablecoin route costs {diff} {moreOrLess}.",
     "moreLabel": "more",
     "lessLabel": "less",
     "costBridgeTemplate": "In a typical hour the stablecoin route costs {typicalPct} of the amount. This hour it is {nowPct}.",
+    "costBridgeManyTemplate": "In a typical hour {baseRoute} costs {typicalPct} of the amount. This hour the cheapest route, {route}, costs {nowPct}.",
     "loading": "loading…",
     "loadFailed": "failed to load data",
     "sizebar": {
@@ -400,7 +402,8 @@
       "moreThanCheapestTemplate": "{diff} more than the cheapest",
       "notPricedThisHour": "not priced this hour",
       "labelWithNetworkTemplate": "{stable} over {network}",
-      "labelPlainTemplate": "{stable}"
+      "labelPlainTemplate": "{stable}",
+      "breakdownNoteTemplate": "Step by step for our base route, {route}, which costs {cost} this hour."
     }
   },
   "receipt": {
