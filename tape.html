@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>margin.wiki — street prices as they arrive</title>
+<meta name="description" content="The street price of a US dollar in each country, shown as it is checked, about every ten minutes."/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0 }
+  *{box-sizing:border-box}
+  body{margin:0;padding:0 24px env(safe-area-inset-bottom,0px);font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
+  a{color:var(--ink);text-decoration:none} a:hover{color:var(--sub)}
+  .wrap{max-width:760px;margin:0 auto}
+  header{display:flex;align-items:center;height:64px;margin:0 0 24px;gap:28px}
+  .logo{font-size:19px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;flex:none}
+  nav{display:flex;gap:24px;align-items:center;overflow-x:auto;scrollbar-width:none;min-width:0;flex:1 1 auto}
+  nav::-webkit-scrollbar{display:none}
+  nav a{font-size:15px;font-weight:500;color:var(--sub);padding:10px 0;white-space:nowrap}
+  nav a:hover{color:var(--ink)}
+  h1{font-size:28px;font-weight:700;line-height:1.22;letter-spacing:-.02em;margin:24px 0 10px}
+  h2{font-size:21px;font-weight:600;line-height:1.3;margin:0 0 6px}
+  .lede{font-size:17px;line-height:1.55;color:var(--sub);margin:0;max-width:640px}
+  .status{font-size:14px;line-height:1.5;color:var(--stamp);margin:14px 0 0;min-height:21px}
+  .meta{font-size:14px;line-height:1.5;color:var(--stamp);margin:2px 0 0;min-height:21px}
+  section{border-top:1px solid var(--rule);margin-top:32px;padding-top:28px}
+  .num{font-variant-numeric:tabular-nums}
+  .head,.row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr);gap:4px 20px;align-items:baseline}
+  .head{padding:10px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);font-size:14px;color:var(--sub);font-weight:400}
+  .head span+span,.row .v{text-align:right}
+  .row{padding:12px 0;border-bottom:1px solid var(--rule);font-size:15px}
+  .row .c{font-weight:500}
+  .row .t{display:block;font-size:13px;font-weight:400;color:var(--stamp);margin-top:2px}
+  .row .v{font-weight:500}
+  .row .b{text-align:right;color:var(--sub);font-weight:400}
+  .row .unit{font-size:13px;font-weight:400;color:var(--stamp);margin-left:4px}
+  .row.new .t{color:var(--ink);font-weight:500}
+  .empty{padding:20px 0;font-size:15px;color:var(--sub)}
+  .note{font-size:14px;color:var(--sub);line-height:1.5;margin:18px 0 0;max-width:640px}
+  .more{font-size:15px;margin:14px 0 0}
+  .more a{display:inline-block;padding:6px 0;font-weight:500}
+  footer{border-top:1px solid var(--rule);margin-top:48px;padding:24px 0 48px;font-size:15px;color:var(--sub)}
+  @media(max-width:620px){
+    body{padding:0 16px}
+    header{height:56px;gap:16px}
+    .logo{font-size:17px}
+    nav{gap:16px}
+    h1{font-size:24px}
+    .head,.row{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,.9fr);gap:4px 12px}
+    .row .unit{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><a class="logo" href="./index.html">margin.wiki</a><nav>
+        <a href="./index.html">Home</a>
+        <a href="./sending-money.html">Sending money</a>
+        <a href="./countries.html">Countries</a>
+        <a href="./how-it-works.html">How it works</a>
+        <a href="./how-it-was-built.html">How it was built</a>
+      </nav></header>
+
+  <h1 id="title">&nbsp;</h1>
+  <p class="lede" id="lede">&nbsp;</p>
+  <p class="status" id="status" aria-live="polite">&nbsp;</p>
+  <p class="meta num" id="meta">&nbsp;</p>
+
+  <section>
+    <h2 id="listTitle">&nbsp;</h2>
+    <div class="head"><span id="colCountry">&nbsp;</span><span id="colStreet">&nbsp;</span><span id="colBank">&nbsp;</span></div>
+    <div id="rows"></div>
+    <p class="note" id="note">&nbsp;</p>
+    <p class="more"><a id="more" href="./countries.html">&nbsp;</a></p>
+  </section>
+
+  <footer id="foot">&nbsp;</footer>
+</div>
+
+<script>
+(function () {
+  var API_BASE = location.hostname.endsWith("margin.wiki")
+    ? "https://api.margin.wiki" : "http://127.0.0.1:8903";
+  // Enough of the end of the file to hold the last few ten-minute slots.
+  // Servers that ignore Range send the whole file, which parses the same.
+  var TAIL_BYTES = 40000;
+  var STALE_MS = 6 * 3600 * 1000;
+
+  var COPY = {};
+  var NAMES = {};   // ccy -> country name, from data/index_latest.json
+  var ROWS = {};    // ccy -> { ts, mid, fx, fresh }
+  var live = false;
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function T(s, vals){
+    var out = String(s || '');
+    for (var k in (vals || {})) out = out.split('{' + k + '}').join(vals[k] == null ? '' : vals[k]);
+    return out;
+  }
+  function $(id){ return document.getElementById(id); }
+  function hhmm(iso){ var d = new Date(iso); return isNaN(d) ? '' : d.toISOString().slice(11, 16); }
+  function minute(iso){ return String(iso || '').slice(0, 16); }
+  function fmt(v){
+    if (v == null || isNaN(v)) return '';
+    var dp = v >= 1000 ? 0 : v >= 100 ? 1 : v >= 1 ? 2 : 4;
+    return Number(v).toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  }
+
+  function setStatus(key){ $('status').textContent = COPY[key] || ''; }
+
+  function draw(){
+    var ccys = Object.keys(ROWS);
+    var el = $('rows');
+    if (!ccys.length) { el.innerHTML = '<div class="empty">' + esc(COPY.unavailable) + '</div>'; $('meta').textContent = ''; return; }
+    var latest = ccys.reduce(function(a, k){ return ROWS[k].ts > a ? ROWS[k].ts : a; }, '');
+    ccys.sort(function(a, b){
+      var ma = minute(ROWS[a].ts), mb = minute(ROWS[b].ts);
+      if (ma !== mb) return ma < mb ? 1 : -1;
+      return String(NAMES[a] || a).localeCompare(String(NAMES[b] || b));
+    });
+    el.innerHTML = ccys.map(function(k){
+      var r = ROWS[k];
+      var when = r.fresh ? COPY.justArrived : T(COPY.checkedTemplate, { time: hhmm(r.ts) });
+      return '<div class="row' + (r.fresh ? ' new' : '') + '"><div class="c">' + esc(NAMES[k] || k) +
+        '<span class="t num">' + esc(when) + '</span></div>' +
+        '<div class="v num">' + esc(fmt(r.mid)) + '<span class="unit">' + esc(k) + '</span></div>' +
+        '<div class="b num">' + esc(r.fx ? fmt(r.fx) : COPY.noBankRate) + '</div></div>';
+    }).join('');
+    $('meta').textContent = T(COPY.metaTemplate, { time: hhmm(latest), n: ccys.length });
+  }
+
+  function renderStatic(){
+    $('title').textContent = COPY.title || '';
+    $('lede').textContent = COPY.lede || '';
+    $('listTitle').textContent = COPY.listTitle || '';
+    $('colCountry').textContent = COPY.colCountry || '';
+    $('colStreet').textContent = COPY.colStreet || '';
+    $('colBank').textContent = COPY.colBank || '';
+    $('note').textContent = COPY.note || '';
+    $('more').textContent = COPY.linkText || '';
+    $('more').href = COPY.linkHref || './countries.html';
+    $('foot').textContent = COPY.footer || '';
+    setStatus('statusStatic');
+  }
+
+  // The newest slot is at the end of data/p2p_basis.csv. Take the latest row
+  // per country from the tail, binance rows that were priced, nothing older
+  // than STALE_MS behind the newest row.
+  function seedFromCsv(text){
+    var lines = text.split('\n');
+    var parsed = [];
+    for (var i = 0; i < lines.length; i++) {
+      var f = lines[i].split(',');
+      if (f.length < 10 || f[0] === 'ts_utc' || f[1] !== 'binance_p2p' || f[9] !== 'True') continue;
+      var mid = parseFloat(f[5]);
+      if (!(mid > 0) || isNaN(Date.parse(f[0]))) continue;
+      parsed.push({ ts: f[0], ccy: f[2], mid: mid, fx: parseFloat(f[6]) > 0 ? parseFloat(f[6]) : null });
+    }
+    if (!parsed.length) return;
+    var newest = Date.parse(parsed[parsed.length - 1].ts);
+    parsed.forEach(function(p){
+      if (newest - Date.parse(p.ts) > STALE_MS) return;
+      var cur = ROWS[p.ccy];
+      if (!cur || p.ts >= cur.ts) ROWS[p.ccy] = { ts: p.ts, mid: p.mid, fx: p.fx, fresh: false };
+    });
+  }
+
+  function listen(){
+    if (!window.EventSource) return;
+    var es = new EventSource(API_BASE + '/v1/events');
+    var offlineTimer = null;
+    es.onopen = function(){
+      if (offlineTimer) { clearTimeout(offlineTimer); offlineTimer = null; }
+      live = true; setStatus('statusLive');
+    };
+    // Reconnecting quietly is normal. Only a failure that lasts says so.
+    es.onerror = function(){
+      if (offlineTimer) return;
+      offlineTimer = setTimeout(function(){ live = false; offlineTimer = null; setStatus('statusOffline'); }, 8000);
+    };
+    es.onmessage = function(ev){
+      var e; try { e = JSON.parse(ev.data); } catch (err) { return; }
+      if (e.kind !== 'p2p_row' || !(e.mid > 0) || !e.ccy) return;
+      var cur = ROWS[e.ccy];
+      if (cur && e.ts <= cur.ts) return;
+      ROWS[e.ccy] = { ts: e.ts, mid: e.mid, fx: e.fx_mid_per_usd > 0 ? e.fx_mid_per_usd : null, fresh: true };
+      draw();
+    };
+  }
+
+  async function boot(){
+    var copyDoc = await fetch('./copy.json', { cache: 'no-store' }).then(function(r){ return r.json(); }).catch(function(){ return {}; });
+    COPY = copyDoc.tape || {};
+    renderStatic();
+    var idx = await fetch('./data/index_latest.json', { cache: 'no-store' }).then(function(r){ return r.json(); }).catch(function(){ return {}; });
+    (idx.countries || []).concat(idx.withheld || []).forEach(function(c){ if (c.ccy && c.country) NAMES[c.ccy] = c.country; });
+    var text = await fetch('./data/p2p_basis.csv', { cache: 'no-store', headers: { Range: 'bytes=-' + TAIL_BYTES } })
+      .then(function(r){ return r.ok ? r.text() : ''; }).catch(function(){ return ''; });
+    seedFromCsv(text);
+    draw();
+    listen();
+  }
+  boot();
+})();
+</script>
+</body>
+</html>

@@ -19,6 +19,9 @@ New kinds, alongside the three B3 already streams (`collection_pass`,
                      `withheld` (unpriced) lists: ccy, source kind, evidence
                      count, priced or withheld with its plain-language
                      reason.
+  p2p_row            one per priced row appended to data/p2p_basis.csv by
+                     the box collector (SEB-211, tools-free: a plain tail):
+                     ccy, mid price per US dollar, the bank rate, ad count.
   linear             one per line agents/linear.py's `_log_activity()`
                      appends when a builder/reviewer/product pass changes an
                      issue's state or posts a comment -- the only local
@@ -69,6 +72,7 @@ Stdlib only.
 """
 
 import collections
+import csv
 import datetime
 import http.server
 import itertools
@@ -87,6 +91,7 @@ ROOT = os.path.dirname(HERE)
 DATA = os.path.join(ROOT, "data")
 AGENT_STATUS_PATH = os.path.join(DATA, "agent_status.json")
 INDEX_LATEST_PATH = os.path.join(DATA, "index_latest.json")
+P2P_BASIS_PATH = os.path.join(DATA, "p2p_basis.csv")
 CALL_LOG_PATH = os.environ.get(
     "SERVE_EVENTS_LOG_PATH", "/var/log/margin/serve.systemd.log")
 COMMISSION_LOG_PATH = os.environ.get(
@@ -131,6 +136,7 @@ KIND_HISTORY_MAX = {
     "collector_source": 70,   # one hourly pass, ~60 countries, with slack
     "collection_pass":  20,
     "collector_pass":   10,
+    "p2p_row":          60,   # one ten-minute slot, ~54 currencies, with slack
     "loop_health":      25,
     "linear":           30,
     "commit":           30,
@@ -272,6 +278,36 @@ def _collector_pass_events(state):
     for payload in changed:
         yield dict(payload, kind="collector_source", ts=computed_at)
     yield {"kind": "collector_pass", "phase": "complete", "ts": computed_at}
+
+
+P2P_COLUMNS = ["ts_utc", "source", "ccy", "buy_median", "sell_median", "mid",
+               "fx_mid_per_usd", "basis_bps", "n_ads", "source_ok", "error"]
+
+
+def _parse_p2p_row_event(line):
+    """One `p2p_row` event per new priced row the box collector appends to
+    data/p2p_basis.csv (SEB-211, the tape). Only the figures the page shows
+    are carried, each copied from the row, none computed here."""
+    try:
+        row = dict(zip(P2P_COLUMNS, next(csv.reader([line]))))
+        mid = float(row["mid"])
+        fx = float(row["fx_mid_per_usd"]) if row.get("fx_mid_per_usd") else None
+        n_ads = int(float(row["n_ads"])) if row.get("n_ads") else None
+    except (StopIteration, KeyError, ValueError):
+        return None
+    if row.get("source") != "binance_p2p" or row.get("source_ok") != "True" or not row.get("ccy"):
+        return None
+    return {"kind": "p2p_row", "ts": row["ts_utc"], "ccy": row["ccy"],
+            "mid": mid, "fx_mid_per_usd": fx, "n_ads": n_ads}
+
+
+def _p2p_row_events(state):
+    for line in _tail_new_lines(P2P_BASIS_PATH, state):
+        if line.startswith("ts_utc,") or not line.endswith("\n"):
+            continue
+        event = _parse_p2p_row_event(line)
+        if event is not None:
+            yield event
 
 
 def _parse_call_event(line):
@@ -505,6 +541,7 @@ def _poll_forever():
     seen_sources = {}
     collector_state = {}
     call_state = _seed_tail_state(CALL_LOG_PATH)
+    p2p_state = _seed_tail_state(P2P_BASIS_PATH)
     commission_state = _seed_tail_state(COMMISSION_LOG_PATH)
     linear_state = _seed_tail_state(LINEAR_ACTIVITY_LOG_PATH)
     commit_state = {}
@@ -513,6 +550,8 @@ def _poll_forever():
         for event in _collection_pass_events(seen_sources):
             _publish(event)
         for event in _collector_pass_events(collector_state):
+            _publish(event)
+        for event in _p2p_row_events(p2p_state):
             _publish(event)
         for event in _call_events(call_state):
             _publish(event)

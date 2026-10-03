@@ -72,7 +72,7 @@ PAGES = ["index.html", "providers.html", "pricing-history.html",
          "requests.html", "calculator.html", "weekly.html", "data.html",
          "ask.html", "watch.html", "stress.html", "how-it-was-built.html",
          "countries.html", "sending-money.html", "how-it-works.html",
-         "country.html", "fee-tiers.html", "agent-incidents.html"]
+         "country.html", "fee-tiers.html", "agent-incidents.html", "tape.html"]
 
 # ask.html and watch.html both call a live backend rather than reading a
 # static file, so a check of the static shell alone would never touch the
@@ -273,6 +273,7 @@ PAGE_TITLE = {
     "country.html": "margin.wiki — a country's price in full",
     "fee-tiers.html": "margin.wiki — Stablecoins are cheap, kind of",
     "agent-incidents.html": "margin.wiki — Running a site on agents I don't fully trust",
+    "tape.html": "margin.wiki — street prices as they arrive",
 }
 
 
