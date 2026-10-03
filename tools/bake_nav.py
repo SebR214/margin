@@ -36,6 +36,7 @@ NAV_PAGES = [
     "index.html", "agent-incidents.html", "ask.html", "corridor.html",
     "country.html", "fee-tiers.html", "how-it-works.html",
     "how-it-was-built.html", "sending-money.html", "countries.html",
+    "tape.html",
 ]
 # findings.html is a redirect stub as of Phase 4 (FINAL spec) -- its content
 # moved into sending-money.html and it no longer carries its own header, the
