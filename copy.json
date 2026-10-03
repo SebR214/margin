@@ -6,10 +6,9 @@
   "home": {
     "headline": "Sending money by stablecoin usually costs more than a transfer app",
     "headlineFallback": "Sending money by stablecoin usually costs more than a transfer app",
-    "headlineSub": "What sending money costs on {n_corridors} corridors, and what a dollar costs in {n_countries} countries. Checked every hour.",
-    "heroWhyLine": "People argue about this constantly. Almost nobody measures it. This site measures it, with every fee in.",
-    "everyProviderLink": "Every provider, every amount →",
-    "waterfallLegHeaderTemplate": "The stablecoin loses on buying and selling the coin. Sending it costs only {network_pct}.",
+    "headlineSub": "People argue about this constantly. Almost nobody measures it. We check it every hour, with every fee counted.",
+    "everyProviderLink": "Every route and provider →",
+    "waterfallLineTemplate": "Most of the stablecoin cost is buying and selling the coin. Moving it costs {network_pct}.",
     "waterfallTitle": "Sending S$5,000 to the Philippines by stablecoin costs {stable_pct}. The cheapest app costs {best_pct}.",
     "waterfallCap": "Typical hour since {since}. Market orders, all fees in. Buying the stablecoin with SGD costs the most. Sending it on chain costs {network_pct}.",
     "waterfallLegend": {
@@ -24,15 +23,9 @@
       "freeViaTemplate": "free via {venue}",
       "pricedViaTemplate": "via {venue}"
     },
-    "winCasesHeaderTemplate": "Stablecoins win in {n} way{s}: {list}",
-    "winCasesHeaderTemplate2": "Stablecoins win in {n} ways: {a}, and {b}",
-    "winCasesNoneTemplate": "Stablecoins don't win in any case we've measured yet",
-    "cardLimitOrderTemplate": "Set your price and wait for it to fill, instead of paying what's on offer right now. {breakdown}.",
-    "cardVolumeTemplate": "{corridorLabel}, at volume. Above about this amount, exchange fees drop enough for stablecoins to beat the cheapest app.",
-    "howWeWorkedLink": "How we worked these out →",
-    "gapHeadlineTemplate": "The stablecoin has cost more than the cheapest app in every hour since {startDate}",
-    "gapBrokenHeadlineTemplate": "The stablecoin has cost more than the cheapest app in every hour since {startDate}, {breaks} time{breaksS} it didn't",
-    "gapSublineTemplate": "Sending {amount} from {src} to {dest}. Each line is the day's middle cost.",
+    "gapHeadlineTemplate": "It has not been cheaper in any hour since {startDate}",
+    "gapBrokenHeadlineTemplate": "It has been cheaper in only {breaks} hour{breaksS} since {startDate}",
+    "gapSublineTemplate": "The stablecoin against the cheapest app, sending {amount} from {src} to {dest}. Each line is the day's middle cost. The tag marked now is the stablecoin's cost this hour, which can differ from a typical day.",
     "gapLabelStable": "Stablecoin",
     "gapLabelApp": "Cheapest app",
     "gapRangeLabels": {
@@ -44,13 +37,8 @@
     "footerMachineRoom": "how it was built — {priced} priced, {withheld} without enough data, last check {hour} UTC",
     "footerLine": "Every number on this site comes from a public data file. <a href=\"https://github.com/SebR214/margin\" style=\"font-weight:600;color:#0B0B0B\">Code and raw data on GitHub →</a>",
     "allCountriesTitle": "What a dollar costs vs the official rate, every country we track",
-    "allCountriesAnswerLine": "How much more than the official rate people pay for a dollar. Priced from stablecoins on Binance P2P and local exchanges.",
-    "countryFindingAtParTemplate": "In {places} a dollar costs the official rate.",
-    "countryFindingGapTemplate": "In {country} people pay {pct}% more.",
+    "countryFindingGapTemplate": "In {country} people pay {pct}% more for a dollar than the official rate",
     "countryFindingNoGapTemplate": "Every country we track trades close to its official rate this hour.",
-    "countryWhyBothParTemplate": "A normal app already gets you the real rate in {places}, so a stablecoin has nothing to beat.",
-    "countryWhyGapTemplate": " In {country}, banks sell few dollars, so stablecoins are how people get them: about {amount} is on offer right now within {pct}% of the best price.",
-    "countryWhyGapNoDepthTemplate": " In {country}, banks sell few dollars, so stablecoins are how people get them.",
     "allCountriesNote": "Where the gap is near zero, the official rate is real and a normal app is cheaper. Where the gap is big, the official rate isn't what people pay, and stablecoins are how people get dollars at all.",
     "allCountriesMedianNote": "Median of the last 24 hours.",
     "allCountriesPeggedLegend": "Light grey: pegged currency, the gap is the cost of buying stablecoins.",
@@ -71,12 +59,22 @@
     "thisHourLineTemplate": "Widest gap: {country}. People pay {pct} more than the official rate for a dollar, up from {past_pct} on {since}. Rising fastest this month: {fast_country}, up {points} points.",
     "chartTitleTemplate": "{country}: what people pay over the official rate, % · since {since}",
     "sourceLineTemplate": "Based on {n} Binance P2P sell ads · <a href=\"./country.html?ccy={ccy}\" style=\"font-weight:600;color:#0B0B0B\">{country} in full →</a>",
-    "liveMergedTemplate": "Checked {hour} UTC · run by four AI agents · <a href=\"./how-it-was-built.html\">How it was built →</a>",
+    "liveMergedTemplate": "Checked {hour} UTC · AI agents collect this data, and every number comes from a public file · <a href=\"./how-it-was-built.html\">How it was built →</a>",
     "duelLabelStable": "Stablecoin",
     "duelLabelApp": "Cheapest app",
     "duelVs": "vs",
-    "duelCaptionTemplate": "Sending {amount} from {src} to {dest}, all-in cost, typical hour.",
-    "duelSameResultTemplate": "Same result from {others}. <a href=\"./sending-money.html\">All corridors and providers →</a>"
+    "duelCaptionTemplate": "Sending {amount} from {origin} to {destination} costs {app_cost} with the cheapest app and {stable_cost} by stablecoin.",
+    "duelSameResultTemplate": "Same result from {others}. <a href=\"./sending-money.html\">Every route and provider →</a>",
+    "countryExplainByClass": {
+      "managed": "The official rate is what banks and governments quote. In {country} banks sell few dollars, so people buy them from each other and pay {street_price} {currency} where the official rate says {official_rate}.",
+      "market": "The official rate is what banks and governments quote. In {country} that rate follows the market, but people buying a dollar from each other pay {street_price} {currency} where it says {official_rate}.",
+      "pegged": "The official rate is what banks and governments quote. In {country} the currency is fixed to the dollar, so the gap is mostly what it costs to buy a stablecoin. People pay {street_price} {currency} where the official rate says {official_rate}.",
+      "unmaintained": "The official rate is what banks and governments quote. In {country} that rate has stopped being updated, so the gap is not a fair comparison. People pay {street_price} {currency} where the old rate says {official_rate}.",
+      "default": "The official rate is what banks and governments quote. In {country} people pay {street_price} {currency} for a dollar where the official rate says {official_rate}."
+    },
+    "countryExplainNoPriceTemplate": "The official rate is what banks and governments quote. In {country} people pay more than that for a dollar.",
+    "countryCloseTemplate": "In {places} people pay the official rate, which is why an app already gives you a fair price there and a stablecoin has nothing to beat.",
+    "duelCaptionNoAppTemplate": "Sending {amount} from {origin} to {destination} costs {stable_cost} by stablecoin."
   },
   "nav": [
     {
