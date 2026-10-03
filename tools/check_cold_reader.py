@@ -66,6 +66,10 @@ def page_text(page, url):
 def ask(text):
     env = {k: v for k, v in os.environ.items()
            if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_BASE_URL")}
+    # A secret pasted into a settings page often carries a trailing newline,
+    # which makes the Authorization header invalid. Whitespace is never part of a token.
+    if env.get("CLAUDE_CODE_OAUTH_TOKEN"):
+        env["CLAUDE_CODE_OAUTH_TOKEN"] = re.sub(r"\s+", "", env["CLAUDE_CODE_OAUTH_TOKEN"])
     with tempfile.TemporaryDirectory(prefix="cold-reader-") as empty:
         p = subprocess.run(
             ["claude", "-p", INSTRUCTION + FORMAT + text, "--model", MODEL,
