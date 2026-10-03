@@ -509,6 +509,31 @@
         "unknown": "—"
       }
     },
+    "run": {
+      "title": "Does it run by itself? Targets, and what was measured",
+      "labels": {
+        "basis": "EXCHANGE PRICES DELIVERED",
+        "p2p": "STREET PRICES DELIVERED",
+        "quotes": "PROVIDER QUOTES DELIVERED",
+        "stable": "STABLECOIN ROUTES DELIVERED",
+        "fresh": "SOURCES FRESH",
+        "wakes": "AGENT WAKES PER DAY",
+        "bytes": "BYTES PER ROW",
+        "disk": "DATA SIZE"
+      },
+      "deliverySub": "Target {target}% of hours. {hours} of {expected} hours, {from} to {to}. Worst day {worst_date}: {worst_hours} of 24. From {file}.",
+      "freshValue": "{fresh} of {live}",
+      "freshSub": "Target: every source expected live is fresh. {n_silent} more are declared silent and not counted. Measured {date}. From {file}.",
+      "wakesValue": "Not published",
+      "wakesSub": "The count is kept on the server only, and no published file carries it, so no figure is shown.",
+      "bytesSub": "{bytes} bytes over {rows} rows. No target set. Measured {date}. From {file}.",
+      "diskSub": "Size of {path} in the repository. Collection on the server stops loudly at {stop}% disk; that reading is not published, so no percentage is claimed. Measured {date}.",
+      "met": "TARGET MET",
+      "missed": "TARGET MISSED",
+      "noTarget": "NO TARGET SET",
+      "unmeasured": "BOX DISK NOT PUBLISHED",
+      "mb": "MB"
+    },
     "metaTemplate": "Last price check {time} UTC · next on the hour",
     "roles": {
       "heading": "Each agent has one job and cannot do the others'",
