@@ -54,6 +54,12 @@ jobs:
       - name: Plain-language gate (no payments jargon in headings/nav/labels)
         run: python3 tools/check_copy.py
 
+      - name: Design ratchet (a page may not get louder - caps, heavy weights, off-palette colours)
+        run: python3 tools/check_design.py
+
+      - name: History isolation (labelled history never feeds the index or a published price)
+        run: python3 tools/check_history_isolation.py
+
       - name: Index consistency (published figures match their own charts)
         run: python3 tools/check_index_consistency.py
 
