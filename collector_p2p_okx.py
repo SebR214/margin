@@ -47,10 +47,14 @@ market.
 CURRENCIES is collector_p2p.py's own list, duplicated rather than imported --
 same reasoning as that file's `captured_this_hour`: the two boards' layers
 stay independent, so a change or a break in one cannot take down the other.
-Four of these (AED, AFN, ETB, SYP) come back `{"code":17007}` from OKX --
-OKX's own "unsupported currency" answer, confirmed live 2026-10-03 -- and are
-recorded every run as source_ok=False with that reason, same as a currency
-with no ads: a real finding about that market, not an omission.
+41 of these 53 price on a live run, confirmed 2026-10-03. Twelve do not, for
+two distinct reasons, both recorded every run as source_ok=False with the
+reason named, not folded into a single omission:
+  - Four (AED, AFN, ETB, SYP) come back `{"code":17007}` from OKX -- OKX's
+    own "unsupported currency" answer.
+  - Eight (AOA, BDT, BND, DZD, INR, MNT, NPR, SDG) answer, but have no ask
+    side at all within the FILTER_USD=500 order-size band at the moment of
+    the pull -- a real, currently-empty book, not a parsing failure.
 
 Per-currency failure isolation, one shared FX snapshot per run, exits
 non-zero only on a total blackout -- the same contract as every collector in

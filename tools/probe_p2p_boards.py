@@ -34,18 +34,24 @@ in collector_p2p.py as blocked from GitHub's US-hosted runners):
 
   OKX     www.okx.com/v3/c2c/tradingOrders/books (GET, side=sell|buy,
           baseCurrency=usdt, quoteCurrency=<ccy>) -- no login, no API key, no
-          challenge. Live for 45 of the 49 currencies collector_p2p.py already
-          tracks that OKX's own market even lists (AED, AFN, ETB and SYP come
-          back `{"code":17007}`, OKX's own "unsupported currency" answer, not
-          a transport failure); every other currency returns a real
-          `data.sell`/`data.buy` list of ads with price, min/max order size
-          and available quantity. Cross-checked for NGN: side=sell median
-          ~1353.5, side=buy median ~1330-1346, both within a few percent of
-          the same-hour open.er-api.com USD/NGN mid (~1330.6) -- the shape and
-          size of premium this file's own `basis_bps` already expects to see.
-          This endpoint is also the one collector_stable_venues.py already
-          uses for the corridor on/off-ramp legs (SOURCES 3-4, 2026-09-27),
-          so this is a second, independent live confirmation of the same
+          challenge. Live for 41 of the 53 currencies collector_p2p.py already
+          tracks, confirmed 2026-10-03, for two distinct and separately named
+          reasons on the other 12, neither a transport failure:
+            - Four (AED, AFN, ETB, SYP) come back `{"code":17007}`, OKX's own
+              "unsupported currency" answer -- the market doesn't list them.
+            - Eight (AOA, BDT, BND, DZD, INR, MNT, NPR, SDG) answer, but have
+              no ask side at all within the $500 order-size band at probe
+              time -- a real, currently-empty book, confirmed against OKX's
+              raw endpoint directly, not a parsing gap.
+          Every other currency returns a real `data.sell`/`data.buy` list of
+          ads with price, min/max order size and available quantity.
+          Cross-checked for NGN: side=sell median ~1353.5, side=buy median
+          ~1330-1346, both within a few percent of the same-hour
+          open.er-api.com USD/NGN mid (~1330.6) -- the shape and size of
+          premium this file's own `basis_bps` already expects to see. This
+          endpoint is also the one collector_stable_venues.py already uses
+          for the corridor on/off-ramp legs (SOURCES 3-4, 2026-09-27), so
+          this is a second, independent live confirmation of the same
           source, now for the wide capital-controlled layer. WIRED: see
           collector_p2p_okx.py.
 
