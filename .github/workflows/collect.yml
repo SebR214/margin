@@ -217,6 +217,16 @@ jobs:
         # source_ok=False row, which is a finding about that market.
         run: python3 collector_p2p.py
 
+      - name: Collect P2P sample -- OKX (SEB-204)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Second P2P board, confirmed live 2026-10-03 (tools/probe_p2p_boards.py):
+        # Bybit bot-walls every path, HTX publishes no currency-id->ISO mapping, OKX
+        # is the one survivor. Own file (data/p2p_okx.csv), own header -- nothing
+        # reads it yet, so this only keeps it collecting alongside item 12's
+        # baseline rather than waiting for that cutover. Same contract as every
+        # other collector: exits non-zero ONLY on a total blackout.
+        run: python3 collector_p2p_okx.py
+
       - name: Collect provider quotes
         if: always() && steps.needed.outputs.proceed == 'true'
         # Quotes asked of the providers themselves, where they publish one, so
