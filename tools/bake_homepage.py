@@ -398,11 +398,7 @@ def country_close_html(rows_in, home_copy):
         return ""
     places = join_and([c.get("country", "") for c in pinned])
     out = home_copy.get("countryCloseTemplate", "").replace("{places}", places)
-    widest = find_widest_managed(rows_in)
-    if has_gap(widest):
-        out += " " + (home_copy.get("countryCloseNote", "")
-                      .replace("{country}", widest.get("country", ""))
-                      .replace("{pct}", str(round(widest.get("gap_pct", 0.0)))))
+    out += " " + home_copy.get("countryCloseNote", "")
     return out
 
 
