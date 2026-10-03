@@ -137,7 +137,7 @@ def added_fragments(base):
         val = m.group(1).replace('\\"', '"')
         for part in re.split(r"\{[^}]*\}", re.sub(r"<[^>]+>", " ", val)):
             part = norm(part)
-            if len(part) >= 14:
+            if len(part) >= 28:
                 frags.add(part)
     return frags
 
