@@ -1,0 +1,16 @@
+[Unit]
+Description=Run the margin.wiki P2P box collector every 10 minutes
+
+[Timer]
+# :02, :12, :22, ... -- offset two minutes from the top of the hour/half-hour,
+# where GitHub Actions' collect.yml restarter (cron "17,47 * * * *") and this
+# box's own margin-pull.timer (every 5 min from boot) are least likely to both
+# be mid-request at once. Not an engineered guarantee, just a deliberate,
+# modest stagger rather than every box-side job sharing one clock edge.
+OnCalendar=*:2/10
+AccuracySec=15s
+RandomizedDelaySec=20s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

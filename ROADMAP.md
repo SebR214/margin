@@ -69,6 +69,20 @@ verification is on a 90-day clock instead, and goes `stale` (red) past it.
 1. **Cadence verification** — waiting on a week of `:17`/`:47` data to confirm
    the drop rate actually fell. No action until then (see P0-1).
 
+2. **Item 12, box collector — built, not yet deployed (SEB-202).**
+   `collector_p2p_box.py` (10-minute cadence, live currency enumeration off the
+   FX snapshot, full 20-ad first page, depth at the five ladder amounts, raw
+   parquet + disk-stop + resource caps) and `tools/publish_p2p_box.py` (the
+   seam that copies staged rows into `data/p2p_box_depth.csv` and computes the
+   dated baseline) exist and pass `--selftest` and a live `--verify`. Not yet
+   running: `agents/systemd/margin-p2p-box.{service,timer}` still need
+   `agents/install.sh` run on the box, same as any other new unit, which has
+   not happened in this PR (see its own commit for why: standing up the first
+   process on this box that would push straight to `main` is explicitly out of
+   scope here — this collector stages locally only, and a human or a later
+   reviewed pass runs the publish step). The 72-hour measured baseline starts
+   counting from whenever that install happens, not from this PR's merge.
+
 ## Vision — locked 2026-09-12, sharpened 2026-09-13
 
 **margin.wiki prices a dollar in 59 currencies, every hour, using the only

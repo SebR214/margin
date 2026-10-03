@@ -1,0 +1,37 @@
+[Unit]
+Description=margin.wiki P2P box collector (10-minute cadence, ROADMAP item 12)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+# Runs from the served checkout, which margin-pull.timer already keeps
+# fast-forwarded to origin/main every five minutes -- this process never
+# writes into it (everything it writes goes to /var/lib/margin/p2p_box, see
+# collector_p2p_box.py's own module docstring), so a hard reset racing a
+# running pass cannot corrupt anything this collector owns.
+WorkingDirectory=/srv/margin
+ExecStart=/usr/bin/python3 /srv/margin/collector_p2p_box.py
+StandardOutput=append:/var/log/margin/p2p-box.systemd.log
+StandardError=append:/var/log/margin/p2p-box.systemd.log
+
+# Deliberately low relative to the three agent-loop services (margin-builder,
+# margin-reviewer, margin-product), which carry no explicit weight and so sit
+# at the cgroup default (100) -- this is a ten-minute HTTP-and-small-file pass,
+# not a model turn, and it must never compete for the box's CPU against one.
+# MemoryMax is safe to set hard here (unlike for the agent loops, see the PR
+# this unit shipped in for why those are NOT given a new hard ceiling in the
+# same change): this process is plain Python + requests + duckdb, writing one
+# fetched page at a time, with a known, small, bounded footprint.
+CPUWeight=20
+IOWeight=10
+MemoryMax=512M
+
+# This process only reads the served checkout and writes its own state dir --
+# it has no reason to touch anything else on the box.
+ProtectSystem=strict
+ReadOnlyPaths=/srv/margin
+ReadWritePaths=/var/lib/margin/p2p_box /var/log/margin
+PrivateTmp=true
+NoNewPrivileges=true
