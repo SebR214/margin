@@ -334,6 +334,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var recent = shipped.filter(function(c){
       var t = new Date(c.commit.author.date).getTime();
       return !isNaN(t) && t >= cutoff && PR_SUFFIX_RE.test(c.commit.message.split('\n')[0] || '');
+    }).filter(function(c){
+      return plainLine((c.commit.message.split('\n')[0] || '').replace(PR_SUFFIX_RE, ''));
     }).slice(0, S.maxLines || 5);
     var shippedFeed = document.getElementById('shippedFeed');
     if (recent.length) {
@@ -348,7 +350,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   // Turns a commit title into a plain line for the "shipped" list. Strips the
   // ticket id and the trailing full stop. If what is left still carries jargon,
   // a file name, a symbol, a dash, a number or is long, or does not start with a plain verb from the list, it cannot be made plain by rule,
-  // so a generic line keyed by the title's first word (copy.json) is shown.
+  // so it is left out of the list (copy.json's generic keys are the plain verbs).
   function plainLine(title){
     var S = COPY.shipped || {};
     var t = String(title || '').replace(/^\s*SEB-\d+\s*[:\-]?\s*/i, '').replace(/\.\s*$/, '').trim();
@@ -358,7 +360,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var plain = t && G[verb] && verb !== 'other' && t.split(/\s+/).length <= 14 &&
       /^[A-Za-z' ,]+$/.test(t) && !jargon.test(t);
     if (plain) return t.charAt(0).toUpperCase() + t.slice(1) + '.';
-    return G[verb] || G.other || '';
+    return '';
   }
 
   // One sentence of what has been collected. Every figure is a field the
