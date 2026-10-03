@@ -14,7 +14,8 @@ token (CLAUDE_CODE_OAUTH_TOKEN). ANTHROPIC_API_KEY and friends are stripped
 from the child's environment, so this can never fall onto the metered key.
 
 A failure is only counted if the text the model quotes really appears on the
-page, so a hallucinated quote cannot block a PR.
+page (a hallucinated quote cannot block a PR) and is flagged again by a second
+independent read (the model's one-off nitpicks differ run to run).
 
 Usage:
   python3 tools/check_cold_reader.py                      # pages changed vs origin/main
@@ -100,20 +101,41 @@ def existed_in(base, name):
                           capture_output=True).returncode == 0
 
 
+READS = int(os.environ.get("COLD_READER_READS", "2"))
+
+
+def _quotes(raw, hay):
+    """Failures from one model read whose quoted text really is on the page."""
+    out = []
+    for f in (parse(raw).get("failures") or []):
+        q = norm(f.get("exact_text"))
+        if q and q in hay:
+            out.append(f)
+    return out
+
+
+def _same(a, b):
+    qa, qb = norm(a.get("exact_text")), norm(b.get("exact_text"))
+    short, long_ = (qa, qb) if len(qa) <= len(qb) else (qb, qa)
+    return bool(short) and (short[:40] in long_ or long_[:40] in short)
+
+
 def judge(text, name):
-    """Send one page's text to the model; keep only failures whose quote is really on the page."""
+    """Read the page cold READS times. A failure blocks only if the same quoted
+    text is flagged in every read: the model's one-off nitpicks differ run to
+    run and must not decide a merge. Only quotes really on the page count."""
     if len(text) < 80:
         return {"page": name, "failures": [{"section": "(whole page)", "reason": "the page rendered almost no visible text",
                                             "exact_text": text}], "sections": []}
-    out = parse(ask(text))
     hay = norm(text)
-    real = []
-    for f in out.get("failures") or []:
-        quote = norm(f.get("exact_text"))
-        if quote and quote in hay:
-            real.append(f)
-    return {"page": name, "failures": real, "sections": out.get("sections") or [],
-            "dropped_unquotable": len(out.get("failures") or []) - len(real)}
+    first_raw = ask(text)
+    first = _quotes(first_raw, hay)
+    agreed = first
+    for _ in range(READS - 1):
+        again = _quotes(ask(text), hay)
+        agreed = [f for f in agreed if any(_same(f, g) for g in again)]
+    return {"page": name, "failures": agreed, "sections": parse(first_raw).get("sections") or [],
+            "single_read_failures": len(first), "agreed_failures": len(agreed)}
 
 
 def review(page, base_url, name):
