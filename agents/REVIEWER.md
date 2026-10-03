@@ -85,6 +85,12 @@ gh pr merge P --squash --delete-branch
 python3 agents/linear.py state SEB-8 "Done"
 ```
 
+**A red `reader-facing` check is a hard stop.** It is the rendered-style gate and
+the cold-reader gate (`tools/check_rendered.py`, `tools/check_cold_reader.py`).
+Never merge over it, even though the shared App identity could. Read the failure
+list the check posted on the PR, send it back to the builder, and do not merge
+until the check is green.
+
 Use `--comment`, not `--approve`. Builder, reviewer and product all authenticate
 as one shared `margin-agents` GitHub App installation, not one per role, so to
 GitHub's API the reviewer is the same account that opened the pull request, and

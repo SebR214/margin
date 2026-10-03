@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deliberately bad page</title>
+<!-- tools/check_rendered.py --self-test renders this and must FAIL it. If it
+     ever passes, the gate has stopped working. -->
+<style>
+  body{margin:0;font-family:sans-serif;color:#201e1d;background:#fff}
+  .bad{color:#B3261E;text-transform:uppercase;font-weight:800;font-size:40px}
+  .huge{font-size:36px}
+  .wide{width:900px;background:#7B1FA2;color:#fff}
+</style>
+</head>
+<body>
+  <p class="bad">TARGET MISSED</p>
+  <p class="huge">A second big headline</p>
+  <p style="font-weight:500">STATUS FAILING NOW</p>
+  <div class="wide">This block is wider than a phone.</div>
+</body>
+</html>
