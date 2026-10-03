@@ -268,14 +268,16 @@
     }
   },
   "corridor": {
-    "titleTemplate": "Sending {amount} to {place}: the stablecoin costs {marketCost}, the cheapest app costs {appCost}.",
-    "titleManyTemplate": "Sending {amount} to {place}: stablecoins cost {marketCost} at best, the cheapest app {appCost}.",
-    "lede": "Every cost of sending it with stablecoins, step by step, checked every hour.",
+    "titleTemplate": "Sending {amount} to {place} by stablecoin {marketPhrase}. The cheapest app {appPhrase}.",
+    "costPhraseTemplate": "costs {amount}",
+    "gainPhraseTemplate": "gains {amount} against the official rate",
+    "gainOfTemplate": "a gain of {amount}",
+    "ledeTemplate": "A stablecoin is a digital coin that stays near one dollar, such as USDT or USDC. We price buying one, sending it, and selling it, every hour. Today the cheapest app is {provider}, by its advertised price.",
     "verdict1": "Right now {amount} costs {marketCost} ({marketPct}) all in by stablecoin with a market order, and {appCost} ({appPct}) with the cheapest app, {provider}. The stablecoin route costs {diff} {moreOrLess}.",
     "moreLabel": "more",
     "lessLabel": "less",
-    "costBridgeTemplate": "In a typical hour the stablecoin route costs {typicalPct} of the amount. This hour it is {nowPct}.",
-    "costBridgeManyTemplate": "In a typical hour {baseRoute} costs {typicalPct} of the amount. This hour the cheapest route, {route}, costs {nowPct}.",
+    "costBridgeTemplate": "Across all the hours we have checked, the stablecoin path typically costs {typicalPct} of the amount. This hour it costs {nowPct}.",
+    "costBridgeManyTemplate": "Across all the hours we have checked, {baseRoute} typically costs {typicalPct} of the amount. This hour the cheapest path, {route}, costs {nowPct}.",
     "loading": "loading…",
     "loadFailed": "failed to load data",
     "sizebar": {
@@ -287,10 +289,14 @@
         "titleTemplate": "How much of the stablecoin you could sell into {dst} on {venue} right now"
       },
       "waterfall": {
-        "titleTemplate": "Where the {amount} cost goes",
-        "buyDominantTemplate": "Most of the {total} goes on buying and selling {stable}, not on sending it",
-        "moveDominantTemplate": "Most of the {total} goes on sending {stable} on chain, not on buying or selling it",
-        "answerTemplate": "Sending it on chain costs {moveCost}. Buying {stable} costs {buyCost}.",
+        "titleTemplate": "Where the {total} goes",
+        "gainTitleTemplate": "Where the {total} gain comes from",
+        "answerTemplate": "Buying the coin {buy}, moving it {chain}, selling it for {ccy} {sell}.",
+        "legCostsTemplate": "costs {amount}",
+        "legPaysBackTemplate": "pays back {amount}",
+        "rampsFreeClause": "Getting money onto and off the exchanges is free on this route.",
+        "endsDominantClause": "The expensive parts are the two ends, not the transfer.",
+        "moveDominantClause": "The expensive part is the transfer on chain, not the two ends.",
         "capTemplate": "Buying the stablecoin is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
         "gainNote": "A bar to the left of that line means that step paid money back on this sample, not that it cost money.",
         "disclosure": "This chart only counts what happens on the exchanges. Getting money into the first exchange, and getting it out to a bank account at the end, may cost more. This site has not measured that cost.",
@@ -298,22 +304,26 @@
         "sellBarLabelTemplate": "Sell stablecoin for {ccy}",
         "receipt": {
           "buyLegTemplate": "1 · Buy {stable} with {ccy} on {venue}",
-          "buyAboveDollar": "stablecoin priced above the dollar",
+          "buyAboveDollar": "Coin costs more than its dollar value",
+          "buyBelowDollar": "Coin costs less than its dollar value",
+          "sellBelowDollar": "Coin sells for less than its dollar value",
+          "sellAboveDollar": "Coin sells for more than its dollar value",
           "moveLegTemplate": "2 · Send {stable} on chain",
           "networkFeeLabel": "Network fee",
-          "networkFeeWithAmountTemplate": "Network fee, {amount} in {stable}",
+          "networkFeeWithAmountTemplate": "Network fee, paid as {amount} {coin}",
           "sellLegTemplate": "3 · Sell {stable} for {ccy} on {venue}"
         }
       },
       "ladder": {
-        "titleTemplate": "Small transfers cost the most by stablecoin: {smallPct} at {smallest}",
-        "capAllTemplate": "The network fee is flat, so it weighs more on small amounts. The cheapest app wins at every amount.",
-        "capMostTemplate": "The network fee is flat, so it weighs more on small amounts. The cheapest app wins at most amounts."
+        "titleTemplate": "What it costs at each amount",
+        "itemTemplate": "{amount} costs {pct}",
+        "itemGainTemplate": "{amount} gains {pct}",
+        "appCheaperEverywhere": "The cheapest app is cheaper at every amount."
       },
       "history": {
         "hasNotBeenCheaperTemplate": "The stablecoin has not been cheaper than the cheapest app in any hour since {start}",
         "wasCheaperTemplate": "The stablecoin was cheaper than the cheapest app in {wins} of {total} hours since {start}",
-        "rangeCapTemplate": "{count} hours checked {rangeLabel}, at {amount}{winsClause}. One bar per {unit}.",
+        "rangeCapTemplate": "{count} hours checked {rangeLabel}, at {amount}{winsClause}. One bar per {unit}. The heading counts every hour since {start}.",
         "winsClauseTemplate": ", cheaper in {wins}",
         "rangeLabels": {
           "24": "in the last 24 hours",
@@ -327,8 +337,8 @@
           "720": "30 days",
           "all": "All time"
         },
-        "sumStableLabel": "Stablecoin, typical",
-        "sumAppLabel": "Cheapest app, typical",
+        "sumStableLabel": "Stablecoin, typical in this range",
+        "sumAppLabel": "Cheapest app, typical in this range",
         "sumWinsLabel": "Hours it was cheaper",
         "capTemplate": "Across all four corridors and five amounts we've priced it {count} times. The stablecoin route was cheaper {winCount} times ({winPct})."
       }
@@ -344,7 +354,6 @@
     },
     "numCards": {
       "marketLabel": "Stablecoin, market order",
-      "limitLabel": "Stablecoin, limit order",
       "cheapestLabelTemplate": "Cheapest app ({provider})",
       "subTemplate": "{pct} of the amount",
       "cheaper": "cheaper",
@@ -353,7 +362,8 @@
     "depth": {
       "atBestPriceTemplate": "At the best price: {amount} before the price moves.",
       "before1PctTemplate": "Within 1% of the best price: {amount}.",
-      "afterSizeTemplate": "After selling {size}, {amount} is still available at the best price."
+      "afterSizeTemplate": "After selling {size}, {amount} is still available at the best price.",
+      "meaningTemplate": "Buyers on {venue} list the prices they will pay for the coin. Selling more than the best price covers pushes the price down and raises your cost."
     },
     "ladderTable": {
       "columns": {
@@ -367,15 +377,13 @@
       "providerByTemplate": "app cheaper by {amount}"
     },
     "verdictLine": {
-      "appCheaperTemplate": "The cheapest app is cheaper at this amount by {amount}. A limit order saves {limitAmount}, {closes} the gap.",
+      "appCheaperTemplate": "The cheapest app is cheaper at this amount by {amount}.",
       "stableCheaperTemplate": "Sending it with stablecoins is cheaper at this amount by {amount}.",
-      "closes": "closing",
-      "doesNotClose": "not enough to close",
       "blockchainSplit": "Network fee",
       "exchangesSplit": "exchange fees"
     },
     "noSamples": "no completed samples yet.",
-    "footerTemplate": "Stablecoin bought on {onrampVenue} in {srcCcy}, sold on {offrampVenue} for {dst}, on each exchange's published fees. App prices are advertised prices, including first-transfer offers where shown. Limit orders assume a fill at the top of the book. Official rate from open.er-api.com. Negotiated corporate rates are not included.",
+    "footerTemplate": "Stablecoin bought on {onrampVenue} in {srcCcy}, sold on {offrampVenue} for {dst}, on each exchange's published fees. App prices are advertised prices, including first-transfer offers where shown. A limit order is an offer at a price you pick. We assume it fills at the best price on the exchange's order book, its list of open offers. Official rate from open.er-api.com. Negotiated corporate rates are not included.",
     "footerLinks": {
       "methodology": "Full method →",
       "board": "the country board →"
@@ -395,15 +403,17 @@
     "hAgoTemplate": "{n} h ago",
     "updatedLabel": "updated",
     "routes": {
-      "headlineManyTemplate": "Cheapest of {n} stablecoin routes we price: {route}",
-      "headlineOneTemplate": "We price one stablecoin path here: {route}",
-      "subTemplate": "Every path below is priced for {amount} from this hour's live prices.",
+      "headlineManyTemplate": "We price {n} stablecoin paths and quote the cheapest.",
+      "headlineOneTemplate": "We price one stablecoin path for this corridor.",
+      "subManyTemplate": "Today that is {route} at {cost}. A path is a coin sent over a blockchain network, priced for {amount}.",
+      "subOneTemplate": "Today that is {route} at {cost}, priced for {amount}.",
       "cheapestTag": "cheapest",
       "moreThanCheapestTemplate": "{diff} more than the cheapest",
       "notPricedThisHour": "not priced this hour",
       "labelWithNetworkTemplate": "{stable} over {network}",
       "labelPlainTemplate": "{stable}",
-      "breakdownNoteTemplate": "Step by step for our base route, {route}, which costs {cost} this hour."
+      "breakdownNoteTemplate": "These steps describe {route}, priced at {cost} this hour.",
+      "breakdownNotCheapestTemplate": "These steps describe {route}, priced at {cost} this hour. The cheapest path, {best}, is priced at {bestCost}, but we only split {route} into steps."
     }
   },
   "receipt": {
