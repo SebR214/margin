@@ -40,12 +40,13 @@
   .col-hdr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;border-bottom:1px solid #0B0B0B;padding-bottom:8px}
   .col-title{font-size:16px;font-weight:700}
   .feed{}
-  .stats{display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:0}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:0}
   .stats>div{padding:14px 14px 14px 0}
   .stats>div+div{padding-left:14px;border-left:1px solid var(--rule)}
-  .stats .v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .stats .lbl{font-size:14px;letter-spacing:0;font-weight:400;color:#6B6B6B}
+  .stats .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);margin-top:2px}
   /* runs-by-itself: a quiet list, not tiles. Plain weight, ink and one grey. */
-  .runs{display:block;margin-top:-16px;border-top:1px solid var(--rule)}
+  .runs{display:block;border-top:1px solid var(--rule)}
   .runs .rr{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr) minmax(0,2.4fr);gap:4px 20px;padding:12px 0;border-bottom:1px solid var(--rule);align-items:baseline}
   .runs .rl{font-size:15px;font-weight:500;color:var(--ink)}
   .runs .rv{font-size:15px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink)}
@@ -155,16 +156,25 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   <div class="stack">
     <div class="stats">
       <div><div class="lbl" id="lPriced">&nbsp;</div><div class="v num" id="mPriced">—</div></div>
-      <div><div class="lbl" id="lWithheld">&nbsp;</div><div class="v num" id="mWithheld">—</div></div>
       <div><div class="lbl" id="lCommitsToday">&nbsp;</div><div class="v num" id="mCommitsToday">—</div></div>
-      <div><div class="lbl" id="lOpenPRs">&nbsp;</div><div class="v num" id="mOpenPRs">—</div></div>
       <div><div class="lbl" id="lUnbrokenHours">&nbsp;</div><div class="v num" id="mUnbrokenHours">—</div></div>
       <div><div class="lbl" id="lPeople">&nbsp;</div><div class="v num" id="mPeople">—</div></div>
+      <div style="display:none"><div class="lbl" id="lWithheld">&nbsp;</div><div class="v num" id="mWithheld">—</div></div>
+      <div style="display:none"><div class="lbl" id="lOpenPRs">&nbsp;</div><div class="v num" id="mOpenPRs">—</div></div>
       <div style="display:none"><div class="lbl" id="lMerged">&nbsp;</div><div class="v num" id="mMerged">—</div></div>
     </div>
 
-    <div class="col-hdr"><span class="col-title" id="runsTitle">&nbsp;</span></div>
-    <div class="runs" id="runsStats"></div>
+    <section>
+      <h2 id="runsTitle" style="padding-top:22px">&nbsp;</h2>
+      <p class="answer" id="runsVerdict"></p>
+      <div class="runs" id="runsStats"></div>
+    </section>
+
+    <section>
+      <h2 id="researchTitle" style="padding-top:22px">&nbsp;</h2>
+      <p class="answer" id="researchLede"></p>
+      <div class="runs" id="researchRows"></div>
+    </section>
 
     <div style="display:none">
       <div id="hourCheck" style="font-size:15px;color:#333;padding:2px 0">&nbsp;</div>
@@ -185,6 +195,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
     <section>
       <h2 id="approvesHeading" style="padding-top:32px">&nbsp;</h2>
+      <p class="answer" id="approvesLede"></p>
       <ul class="kv" id="approvesList"></ul>
     </section>
 
@@ -308,6 +319,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
     var A = COPY.approves || {};
     document.getElementById('approvesHeading').textContent = A.heading || '';
+    document.getElementById('approvesLede').textContent = A.lede || '';
     document.getElementById('approvesList').innerHTML = (A.items||[]).map(function(it){
       return '<li><b>'+esc(it.title)+'</b><span>'+esc(it.text)+'</span></li>';
     }).join('');
@@ -419,31 +431,50 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     return '<div class="rr"><div class="rl">' + esc(label) + '</div><div class="rv num">' + esc(value) + '</div>' +
       '<div class="rn">' + (st ? '<span class="rs">' + esc(st) + '</span> ' : '') + esc(sub) + '</div></div>';
   }
-  function drawRuns(r, computedAt){
+  function fmtDay(iso){
+    var m = ((COPY.research || {}).months) || [];
+    var d = new Date(String(iso).slice(0, 10) + 'T00:00:00Z');
+    return isNaN(d) ? String(iso) : d.getUTCDate() + ' ' + (m[d.getUTCMonth()] || '');
+  }
+  function drawRuns(r, computedAt, audit, research){
     var R = COPY.run || {}, L = R.labels || {}, rows = '';
     document.getElementById('runsTitle').textContent = R.title || '';
     var D = r.delivery || {}, layers = D.layers || [];
     var same = layers.length > 1 && layers.every(function(l){
       return l.pct === layers[0].pct && l.hours === layers[0].hours && l.worst_date === layers[0].worst_date; });
     var shown = same ? [layers[0]] : layers;
+    if (shown.length) {
+      var low = shown.reduce(function(a, l){ return l.pct < a.pct ? l : a; }, shown[0]);
+      document.getElementById('runsVerdict').textContent = T(low.met ? R.verdictMet : R.verdictMissed, { pct: low.pct.toFixed(1), target: D.target_pct });
+    }
     shown.forEach(function(l){
-      var names = same ? layers.map(function(x){ return (R.layerNames || {})[x.key] || x.key; }).join(', ') : '';
+      var names = same ? layers.map(function(x){ return ((L[x.key] || x.key) + '').toLowerCase(); }).join(', ') : '';
       rows += runRow(same ? L.delivery : (L[l.key] || l.key), l.pct.toFixed(1) + '%', l.met ? 'met' : 'missed',
         T(R.deliverySub, { target: D.target_pct, hours: l.hours, expected: l.hours_expected,
-          from: D.from, to: D.to, worst_date: l.worst_date, worst_hours: l.worst_hours }) +
+          from: fmtDay(D.from), to: fmtDay(D.to), worst_date: fmtDay(l.worst_date), worst_hours: l.worst_hours }) +
         (names ? ' ' + T(R.deliveryLayers, { names: names }) : ''));
     });
     var F = r.freshness;
     if (F) rows += runRow(L.fresh, T(R.freshValue, { fresh: F.n_fresh, live: F.n_live }), F.met ? 'met' : 'missed',
       T(R.freshSub, { n_silent: F.n_declared_silent }));
+    if (audit && audit.drawn) rows += runRow(L.audit, T(R.auditValue, { passed: audit.passed, drawn: audit.drawn }), '', R.auditSub || '');
     var K = r.disk;
     if (K) rows += runRow(L.disk, Math.round(K.bytes / 1e6) + ' ' + (R.mb || ''), '', R.diskSub || '');
-    var B = r.bytes_per_row;
-    if (B) rows += runRow(L.bytes, B.bytes_per_row.toFixed(1) + ' ' + (R.bytesUnit || ''), '',
-      T(R.bytesSub, { bytes: B.bytes.toLocaleString('en-US'), rows: B.rows.toLocaleString('en-US') }));
-    var W = r.wakes || {};
-    rows += runRow(L.wakes, W.per_day != null ? W.per_day : (R.wakesValue || ''), '', R.wakesSub || '');
     document.getElementById('runsStats').innerHTML = rows + (R.foot ? '<div class="rf">' + esc(R.foot) + '</div>' : '');
+    drawResearch(research || {});
+  }
+  function drawResearch(x){
+    var Z = COPY.research || {}, L = Z.labels || {}, rows = '';
+    document.getElementById('researchTitle').textContent = Z.title || '';
+    document.getElementById('researchLede').textContent = Z.lede || '';
+    var nf = function(n){ return Number(n || 0).toLocaleString('en-US'); };
+    rows += runRow(L.observations, nf(x.observations), '', Z.observationsSub || '');
+    rows += runRow(L.history, x.history_first_year ? T(Z.historyValue, { year: x.history_first_year }) : (Z.historyNone || ''), '',
+      x.history_first_year ? T(Z.historySub, { n: x.history_sources }) : '');
+    rows += runRow(L.findings, nf(x.findings), '', Z.findingsSub || '');
+    rows += runRow(L.dropped, nf(x.tested_and_dropped), '', Z.droppedSub || '');
+    rows += runRow(L.questions, nf(x.open_questions), '', Z.questionsSub || '');
+    document.getElementById('researchRows').innerHTML = rows;
   }
 
   async function boot(){
@@ -470,7 +501,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         if (m.collector_commits_today != null) document.getElementById('mCommitsToday').textContent = m.collector_commits_today;
         if (m.open_pull_requests != null) document.getElementById('mOpenPRs').textContent = m.open_pull_requests;
         if (m.unbroken_hours != null) document.getElementById('mUnbrokenHours').textContent = m.unbroken_hours;
-        drawRuns(m.runs_by_itself || {}, m.computed_at);
+        fetch('./data/audit_latest.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
+          .then(function(au){ drawRuns(m.runs_by_itself || {}, m.computed_at, au, m.research); });
       })
       .catch(function(){});
     fetch('https://api.github.com/repos/SebR214/margin/commits?per_page=60', {headers:{'Accept':'application/vnd.github+json'}})
