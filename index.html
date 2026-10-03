@@ -203,7 +203,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   </div>
 
   <div class="lead-section sec" style="margin-top:0;border-top:none;padding-top:0">
-    <div id="duelSection"><!--BAKE:START:duelSection--><div class="duel"><div><div class="big p">0.91%</div><div class="lab">Stablecoin</div></div><div class="vs">vs</div><div><div class="big">0.46%</div><div class="lab">Cheapest app</div></div></div><p class="cap">Sending S$5,000 from Singapore to the Philippines costs 0.46% with the cheapest app and 0.91% by stablecoin. In money, that is about S$23 against about S$45. A stablecoin is a digital coin worth one US dollar that people use to send money across borders.</p><p class="small-note">Same result from Australia, New Zealand and the US. The cheapest app costs less there too, and the link shows every price. <a href="./sending-money.html">Every route and provider →</a></p><!--BAKE:END:duelSection--></div>
+    <div id="duelSection"><!--BAKE:START:duelSection--><div class="duel"><div><div class="big p">0.91%</div><div class="lab">Stablecoin</div></div><div class="vs">vs</div><div><div class="big">0.46%</div><div class="lab">Cheapest app</div></div></div><p class="cap">Sending S$5,000 from Singapore to the Philippines costs 0.46% with the cheapest app and 0.91% by stablecoin. In money, that is about S$23 against about S$45. A stablecoin is a digital coin worth one US dollar that people use to send money across borders.</p><p class="small-note">Same result for Australia to the Philippines, New Zealand to the Philippines and the United States to Mexico. <a href="./sending-money.html">Every route and provider →</a></p><!--BAKE:END:duelSection--></div>
   </div>
 
   <div id="waterfallSection" class="lead-section sec"></div>
@@ -358,9 +358,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       .filter(function(c){
         return c.baseline_cost_bps_median != null && c.taker_cost_bps_median > c.baseline_cost_bps_median;
       });
-    var others = otherRows.map(function(c){ return SRC_NAME[(c.corridor || '').split('->')[0]] || c.corridor; });
+    var others = otherRows.map(function(c){ return c.route_words || SRC_NAME[(c.corridor || '').split('->')[0]] || c.corridor; });
     var sameResultHtml = others.length
-      ? T(COPY.duelSameResultTemplate, { others: joinAnd(others) })
+      ? T(COPY.duelSameResultTemplate, { routes: joinAnd(others) })
       : '<a href="./sending-money.html">' + esc(COPY.everyProviderLink) + '</a>';
     el.innerHTML =
       '<div class="duel">' +

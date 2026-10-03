@@ -549,10 +549,10 @@ def duel_html(corridors, home_copy, rung):
         other_app_bps = c.get("baseline_cost_bps_median")
         if other_app_bps is not None and c["taker_cost_bps_median"] > other_app_bps:
             other_src = (c.get("corridor") or "").split("->")[0]
-            others.append(SRC_NAME.get(other_src, other_src))
+            others.append(c.get("route_words") or SRC_NAME.get(other_src, other_src))
     if others:
         same_result = (home_copy.get("duelSameResultTemplate", "")
-            .replace("{others}", esc(join_and(others))))
+            .replace("{routes}", esc(join_and(others))))
     else:
         same_result = ('<a href="./sending-money.html">'
                         + esc(home_copy.get("everyProviderLink", "")) + "</a>")
