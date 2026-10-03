@@ -163,7 +163,7 @@
         '<div class="b num">' + (r.fx ? receiptSpan(k, esc(fmt(r.fx))) + '<span class="unit">' + esc(k) + '</span>' : esc(COPY.noBankRate)) + '</div>' +
         '<div class="d num">' + (r.fx ? esc(fmtPct((r.mid / r.fx - 1) * 100)) : esc(COPY.noBankRate)) + '</div></div>';
     }).join('');
-    $('meta').textContent = T(COPY.metaTemplate, { time: hhmm(latest), n: ccys.length });
+    $('meta').textContent = T(COPY.metaTemplate, { date: latest.slice(0, 10), time: hhmm(latest), n: ccys.length });
   }
 
   function renderStatic(){
