@@ -9,9 +9,12 @@ into the live layer: the index, a published price, the observed series
 Exit 0 = isolated. Exit 1 = any finding, each printed on stderr.
 
 Four proofs:
-  1. STATIC  no python file other than the history tool and this check names
-             the history directory, its files or its collector module (grep +
-             AST import analysis).
+  1. STATIC  no python file other than the history tool, this check, and
+             tools/emit_country_history.py (SEB-208, the one allowed reader --
+             it turns data/history/ into a display-only sidecar, never into
+             anything the index, a price or the unbroken-hours count reads)
+             names the history directory, its files or its collector module
+             (grep + AST import analysis).
   2. GLOBS   no emitter/collector walks data/ recursively, and the plain
              `data/*.csv` globs the emitters use (manifest, bundle) cannot
              match a history file.
@@ -41,6 +44,13 @@ LABEL = "reported, not observed"
 
 # Only these may mention the history layer.
 HISTORY_WRITERS = {"tools/backfill_history.py", "tools/check_history_isolation.py"}
+# tools/emit_country_history.py (SEB-208) is the one reader: it only reads
+# data/history/ to build data/country_history_segment/, a new sidecar
+# country.html shows as a separate, labelled earlier segment on its chart. It
+# never writes into data/history/ itself, and (being a plain read of named
+# files from a manifest, not a directory walk) it cannot pick up a file the
+# backfill tool hasn't already named there.
+HISTORY_READERS = {"tools/emit_country_history.py"}
 HISTORY_TOKENS = [
     re.compile(r"data/history"),
     re.compile(r"""(DATA|["']data["'])\s*,\s*["']history["']"""),   # os.path.join(DATA, "history")
@@ -88,7 +98,7 @@ def py_files():
 def static_checks():
     for rel in py_files():
         src = open(os.path.join(ROOT, rel), encoding="utf-8", errors="replace").read()
-        if rel not in HISTORY_WRITERS:
+        if rel not in HISTORY_WRITERS and rel not in HISTORY_READERS:
             for pat in HISTORY_TOKENS:
                 if pat.search(src):
                     fail(f"STATIC {rel}: names the history layer ({pat.pattern})")
