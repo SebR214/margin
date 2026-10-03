@@ -109,12 +109,15 @@
 
   function setStatus(key){ $('status').textContent = COPY[key] || ''; }
 
-  // Same data-receipt-ccy/data-receipt-value wrapper countries.html's own
-  // receiptSpan() uses, so receipt_replay.js's delegated click handler opens
-  // that currency's four-step receipt (SEB-219) -- no bank rate to show means
-  // no receipt to open, so that cell stays a plain placeholder instead.
+  // data-receipt-basis-ccy, not countries.html's own data-receipt-ccy: that
+  // attribute opens data/receipts/<CCY>.json, the premium-index receipt --
+  // a different number from the raw street price and bank rate this page
+  // shows. This opens data/basis_receipts/<CCY>.json instead (SEB-219),
+  // which replays the exact row both of this row's cells came from. No bank
+  // rate to show means no receipt to open, so that cell stays a plain
+  // placeholder instead.
   function receiptSpan(ccy, text){
-    return '<span data-receipt-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(text) + '" tabindex="0">' + text + '</span>';
+    return '<span data-receipt-basis-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(text) + '" tabindex="0">' + text + '</span>';
   }
 
   function draw(){

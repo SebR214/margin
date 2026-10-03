@@ -217,6 +217,15 @@ jobs:
         # source_ok=False row, which is a finding about that market.
         run: python3 collector_p2p.py
 
+      - name: Emit basis receipts
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-219. Runs right after the step above so it reads what that step
+        # just wrote (data/p2p_basis.csv), and writes
+        # data/basis_receipts/<CCY>.json: the one raw row behind tape.html's
+        # street-price and bank-rate cells for every currency priced this
+        # pass. Exits non-zero only if it cannot write.
+        run: python3 tools/emit_basis_receipts.py
+
       - name: Collect P2P sample -- OKX (SEB-204)
         if: always() && steps.needed.outputs.proceed == 'true'
         # Second P2P board, confirmed live 2026-10-03 (tools/probe_p2p_boards.py):
