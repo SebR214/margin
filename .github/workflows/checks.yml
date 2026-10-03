@@ -36,6 +36,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   checks:
@@ -65,3 +66,68 @@ jobs:
 
       - name: Single-company dependency ceiling (Wise share must not rise)
         run: python3 tools/check_wise_share.py
+
+  # The two reader-facing merge gates (tools/check_rendered.py and
+  # tools/check_cold_reader.py). They run for PRs that touch html, css, js or the
+  # copy deck, and their self-tests also run when the gates themselves change.
+  reader-facing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: What does this PR touch?
+        id: scope
+        run: |
+          touched=false; gates=false
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            files=$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD)
+            if echo "$files" | grep -vE '^(docs|tests)/' | grep -qE '(^|/)[^/]+\.(html|css|js)$|^copy\.json$'; then touched=true; fi
+            if echo "$files" | grep -qE '^tools/(check_rendered|check_cold_reader|gate_common)\.py$|^tests/(bad|jargon)_page\.html$|^tools/rendered_baseline\.json$'; then gates=true; fi
+          fi
+          echo "touched=$touched" >> "$GITHUB_OUTPUT"
+          echo "gates=$gates" >> "$GITHUB_OUTPUT"
+          if [ "$touched" = true ] || [ "$gates" = true ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Gate 1 self-test (the rendered check must fail tests/bad_page.html)
+        if: steps.scope.outputs.run == 'true'
+        run: python3 tools/check_rendered.py --self-test
+
+      - name: Gate 1 - rendered style check (390px and 1280px)
+        if: steps.scope.outputs.touched == 'true'
+        run: python3 tools/check_rendered.py --base "origin/${{ github.base_ref }}"
+
+      - name: Install the Claude CLI
+        if: steps.scope.outputs.run == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Gate 2 self-test (the cold reader must flag tests/jargon_page.html)
+        if: steps.scope.outputs.run == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: python3 tools/check_cold_reader.py --self-test
+
+      - name: Gate 2 - cold reader check
+        id: cold
+        if: steps.scope.outputs.touched == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          # The agents' flat-rate subscription token. Never the metered key.
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          set +e
+          python3 tools/check_cold_reader.py --changed-only --base "origin/${{ github.base_ref }}" | tee cold_reader.txt
+          exit ${PIPESTATUS[0]}
+
+      - name: Post the cold reader's list to the PR
+        if: failure() && steps.cold.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          { echo "### Cold reader check failed"; echo; echo '```'; cat cold_reader.txt; echo '```'; } > comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file comment.md
