@@ -54,6 +54,27 @@ here, applied to a meter about the collectors instead of about a price.
 
 Stdlib only (gh, if present, is invoked as a subprocess; no library needs it).
 
+SEB-214 (Queue item 24, "runs by itself, shown") adds a `runs_by_itself`
+block to the same file -- extended here rather than a parallel tool. Each
+figure is stated with its target, measured, dated, and carries the file or
+command it came from; a miss is written as met=false, never dropped:
+
+  delivery -- per layer (data/basis.csv, p2p_basis.csv, provider_quotes.csv,
+    stable_spread.csv), distinct UTC hours with a row per day, over the last
+    7 complete UTC days. Target 99% of hours. Same count as check_delivery.py.
+  freshness -- data/agent_status.json `sources`: sources whose newest ok row
+    is inside that source's own stale_hours, against sources not declared
+    silent. Target: all of them.
+  wakes_per_day -- null. agents/run.sh keeps the count in
+    /var/log/margin/<role>.wakes on the server only; no file in this repo
+    carries it (data/agent_status.json `loops` is empty), so none is shown.
+    Used only if a role's `loops` entry ever publishes `wakes_today`.
+  bytes_per_row -- data/bundle/*.parquet file sizes (os.path.getsize) over
+    the row counts in data/bundle/manifest.json. No target set.
+  disk -- bytes under data/ in this checkout. Collection stops loudly at 80%
+    disk on the box; the box's own reading is not published, so no
+    percentage is claimed.
+
 Usage: python3 tools/emit_machine_room_meters.py
 """
 
@@ -191,12 +212,108 @@ def unbroken_hours():
     return streak
 
 
+DELIVERY_TARGET_PCT = 99
+DISK_STOP_PCT = 80  # collection stops loudly here on the box (not measurable here)
+DELIVERY_DAYS = 7
+LAYERS = [("basis", "basis.csv"), ("p2p", "p2p_basis.csv"),
+          ("quotes", "provider_quotes.csv"), ("stable", "stable_spread.csv")]
+
+
+def _read_json(path):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def delivery_block():
+    today = dt.datetime.now(dt.timezone.utc).date()
+    days = [today - dt.timedelta(days=n) for n in range(DELIVERY_DAYS, 0, -1)]
+    layers = []
+    for key, name in LAYERS:
+        path = os.path.join(DATA, name)
+        if not os.path.exists(path):
+            print(f"emit_machine_room_meters: {name} missing", file=sys.stderr)
+            continue
+        seen = {}
+        for d, h in hours_with_rows(path):
+            seen.setdefault(d, set()).add(h)
+        per_day = [{"date": d.isoformat(), "hours": len(seen.get(d.isoformat(), ()))} for d in days]
+        got = sum(x["hours"] for x in per_day)
+        want = 24 * len(days)
+        worst = min(per_day, key=lambda x: (x["hours"], x["date"]))
+        pct = got * 100.0 / want
+        layers.append({
+            "key": key, "file": "data/" + name, "days": per_day,
+            "hours": got, "hours_expected": want, "pct": round(pct, 1),
+            "worst_date": worst["date"], "worst_hours": worst["hours"],
+            "days_under_target": sum(1 for x in per_day if x["hours"] * 100.0 / 24 < DELIVERY_TARGET_PCT),
+            "met": pct >= DELIVERY_TARGET_PCT,
+        })
+    return {"target_pct": DELIVERY_TARGET_PCT, "from": days[0].isoformat(),
+            "to": days[-1].isoformat(), "layers": layers}
+
+
+def freshness_block():
+    st = _read_json(os.path.join(DATA, "agent_status.json"))
+    if not st or not st.get("sources"):
+        return None
+    srcs = st["sources"]
+    silent = [s for s in srcs if s.get("expected_silent")]
+    live = [s for s in srcs if not s.get("expected_silent")]
+    fresh = [s for s in live if s.get("hours_since_ok") is not None
+             and s["hours_since_ok"] <= (s.get("stale_hours") or 0)]
+    return {"file": "data/agent_status.json", "as_of_utc": st.get("as_of_utc"),
+            "n_live": len(live), "n_fresh": len(fresh),
+            "n_declared_silent": len(silent), "met": len(fresh) == len(live)}
+
+
+def wakes_block():
+    st = _read_json(os.path.join(DATA, "agent_status.json")) or {}
+    vals = [v.get("wakes_today") for v in (st.get("loops") or {}).values()
+            if isinstance(v, dict) and v.get("wakes_today") is not None]
+    return {"per_day": sum(vals) if vals else None, "published": bool(vals)}
+
+
+def bytes_block():
+    man = _read_json(os.path.join(DATA, "bundle", "manifest.json"))
+    if not man:
+        return None
+    size = rows = 0
+    for t in man.get("tables", {}).values():
+        p = os.path.join(DATA, "bundle", t.get("file", ""))
+        if os.path.exists(p) and t.get("rows"):
+            size += os.path.getsize(p)
+            rows += t["rows"]
+    if not rows:
+        return None
+    return {"file": "data/bundle/*.parquet", "bytes": size, "rows": rows,
+            "bytes_per_row": round(size / rows, 1), "as_of_utc": man.get("as_of_utc")}
+
+
+def disk_block():
+    total = 0
+    for root, _, files in os.walk(DATA):
+        for n in files:
+            try:
+                total += os.path.getsize(os.path.join(root, n))
+            except OSError:
+                pass
+    return {"path": "data/", "bytes": total, "stop_pct": DISK_STOP_PCT, "box_pct": None}
+
+
 def main():
     doc = {
         "computed_at": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat(),
         "collector_commits_today": collector_commits_today(),
         "open_pull_requests": open_pull_requests(),
         "unbroken_hours": unbroken_hours(),
+        "runs_by_itself": {
+            "delivery": delivery_block(), "freshness": freshness_block(),
+            "wakes": wakes_block(), "bytes_per_row": bytes_block(),
+            "disk": disk_block(),
+        },
     }
 
     os.makedirs(DATA, exist_ok=True)
@@ -205,7 +322,7 @@ def main():
         f.write("\n")
 
     print("emit_machine_room_meters: " + ", ".join(
-        f"{k}={v}" for k, v in doc.items() if k != "computed_at"))
+        f"{k}={v}" for k, v in doc.items() if k not in ("computed_at", "runs_by_itself")))
     return 0
 
 
