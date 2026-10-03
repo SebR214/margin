@@ -75,6 +75,8 @@
     .small a,.meta a,p a,.answer a{display:inline-block;padding:6px 0;min-height:16px}
     .back{padding:10px 0}
   }
+  .linkbtn{font:inherit;font-size:15px;color:var(--ink,#0B0B0B);background:none;border:0;border-bottom:1px solid #D3D0CB;padding:6px 0;cursor:pointer}
+  .linkbtn:hover{border-bottom-color:#0B0B0B}
 </style>
 <style id="mwh-style">
 header.mwh{display:flex!important;align-items:center!important;justify-content:flex-start!important;height:64px!important;min-height:0!important;margin:0 0 36px 0!important;padding:0!important;border:0!important;background:transparent!important;position:static!important;flex-wrap:nowrap!important;gap:0!important}
@@ -296,6 +298,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
           '<div class="chartbox" id="gapChart"></div>';
 
         if (hasPoints) {
+          html += '<p class="small"><button type="button" class="linkbtn" id="histToggle" aria-expanded="false">' +
+            esc(T(COPY.historyShowTemplate || 'Show the earlier record, {first} to {last}', {first: segment.first.slice(0,4), last: segment.last.slice(0,4)})) +
+            '</button></p><div id="histNote" hidden>';
           var moves = (segment.largest_moves || []).map(function(m){
             return T(COPY.historySegmentMoveItemTemplate || '{delta} on {date}', {
               delta: (m.delta_pct > 0 ? '+' : '') + m.delta_pct.toFixed(1) + ' points',
@@ -310,7 +315,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
           if (moves) {
             html += '<p class="small">' + esc(T(COPY.historySegmentMovesTemplate || 'Its largest day-over-day moves: {moves}.', {moves: moves})) + '</p>';
           }
-          html += '<p class="small"><small><code>data/country_history_segment/' + esc(ccy) + '.json</code></small></p>';
+          html += '<p class="small"><small><code>data/country_history_segment/' + esc(ccy) + '.json</code></small></p></div>';
         } else {
           html += '<p class="small">' + esc(T(COPY.historyStartTemplate ||
             'There is no earlier record for {country}: history starts on {date}, the first day we collected a price for it.',
@@ -363,7 +368,21 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
             return acc;
           }, []);
         }
-        MarginChart.render(document.getElementById('gapChart'), chartOpts);
+        var baseOpts = { spark: country.spark, timestamps: dates, valueSuffix: '%' };
+        MarginChart.render(document.getElementById('gapChart'), baseOpts);
+        var tg = document.getElementById('histToggle');
+        if (tg && hasPoints) {
+          var shown = false;
+          tg.addEventListener('click', function(){
+            shown = !shown;
+            MarginChart.render(document.getElementById('gapChart'), shown ? chartOpts : baseOpts);
+            document.getElementById('histNote').hidden = !shown;
+            tg.setAttribute('aria-expanded', shown ? 'true' : 'false');
+            tg.textContent = shown
+              ? (COPY.historyHide || 'Hide the earlier record')
+              : T(COPY.historyShowTemplate || 'Show the earlier record, {first} to {last}', {first: segment.first.slice(0,4), last: segment.last.slice(0,4)});
+          });
+        }
       }
     });
   }).catch(function(){
