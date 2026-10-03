@@ -487,6 +487,18 @@ CORRIDORS = {
 # separately records that IR has no free NZD deposit method below NZD 50,000
 # (SWIFT-only, unpriced gap) -- that gap belongs to the deposit leg, which
 # this variant does not touch or fix.
+#
+# SEB-189, queue item 0.1, second slice (AUD->PHP). Re-probed live, not
+# carried over: api.independentreserve.com/Public/GetOrderBook?primaryCurrencyCode=
+# Usdc&secondaryCurrencyCode=Aud answered with a real, live, two-sided
+# USDC/AUD book (103 bids, 58 asks, read 2026-10-03). Coins.ph's USDCPHP
+# depth book and exchangeInfo "trading" status are the same shared off-ramp
+# book the SGD->PHP and NZD->PHP variants already confirmed live -- re-checked
+# here, still trading. IR's own au/fees page -- Cloudflare-blocked direct
+# (HTTP 403) same as every prior read, fetched through the same r.jina.ai
+# rendering-proxy workaround -- still lists "USD Coin | Arbitrum One | 1.0
+# USDC", confirming (not assuming) the withdrawal table is the one venue-wide
+# schedule, identical on the AU page too.
 CORRIDOR_VARIANTS = {
     "SGD->PHP": [
         {
@@ -502,6 +514,14 @@ CORRIDOR_VARIANTS = {
             "offramp_symbol": "USDCPHP",
             "network_fee_stable": 1.0,
             "verified": "2026-10-02",
+        },
+    ],
+    "AUD->PHP": [
+        {
+            "stable": "USDC", "network": "ArbitrumOne",
+            "offramp_symbol": "USDCPHP",
+            "network_fee_stable": 1.0,
+            "verified": "2026-10-03",
         },
     ],
 }
