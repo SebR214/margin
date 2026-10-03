@@ -329,6 +329,15 @@ jobs:
         # cannot write.
         run: python3 tools/emit_corridor_receipts.py
 
+      - name: Audit published numbers
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-209 / ROADMAP item 19. Deterministic, no model call: re-derives
+        # up to 50 published numbers per run from the raw CSVs and writes
+        # data/audit_latest.json plus one append-only line in
+        # data/audit_history.csv. A failed number is reported in the file, not
+        # by a red run -- the failures are the point.
+        run: python3 tools/audit_numbers.py
+
       - name: Emit the stress signal
         if: always() && steps.needed.outputs.proceed == 'true'
         # Append-only. Checks data/countries/*.json (just written above)
@@ -471,7 +480,8 @@ jobs:
                    data/p2p_spread_signal.csv data/p2p_spread_signal_latest.json \
                    data/corridor_summary.json data/corridor_waterfall.csv \
                    data/corridor_window.json data/machine_room_meters.json \
-                   data/provider_delivery.csv; do
+                   data/provider_delivery.csv data/audit_latest.json \
+                   data/audit_history.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # index.html itself -- D1's bake_homepage.py rewrites it in place
