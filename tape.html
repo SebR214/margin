@@ -127,7 +127,7 @@
     var next = nextCheckMs();
     var ok = !isNaN(next) && next > Date.now();
     if (ok) setStatus(offline ? 'statusOffline' : 'statusIdle', { time: hhmm(new Date(next).toISOString()) });
-    else setStatus(offline ? 'statusOfflineLate' : 'statusIdleLate');
+    else setStatus(offline ? 'statusOfflineLate' : 'statusIdleLate', { minutes: COLLECTOR_INTERVAL_MIN });
   }
   function fmtPct(p){
     var s = Number(Math.abs(p).toFixed(1)).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
