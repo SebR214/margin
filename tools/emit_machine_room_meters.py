@@ -293,13 +293,14 @@ def bytes_block():
 
 
 def disk_block():
-    total = 0
-    for root, _, files in os.walk(DATA):
-        for n in files:
-            try:
-                total += os.path.getsize(os.path.join(root, n))
-            except OSError:
-                pass
+    # `du` rather than a Python directory walk: this is only a size, and a
+    # walk in a live-layer module is exactly what check_history_isolation.py
+    # forbids (it could pick up data/history/ as input).
+    try:
+        out = subprocess.run(["du", "-sk", DATA], capture_output=True, text=True, timeout=60).stdout
+        total = int(out.split()[0]) * 1024
+    except (OSError, ValueError, IndexError, subprocess.SubprocessError):
+        total = None
     return {"path": "data/", "bytes": total, "stop_pct": DISK_STOP_PCT, "box_pct": None}
 
 

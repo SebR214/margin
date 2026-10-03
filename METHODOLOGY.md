@@ -1305,6 +1305,22 @@ different kind of thing, and it is kept as a different kind of thing:
 - **Depth.** Daily candles are taken at each venue's full offered depth; hourly
   candles from 2025-01-01 (`--hourly-since`), a size cap, not an endpoint limit,
   except where noted. Hourly runs through the latest closed hour.
+- **On the country page (SEB-208).** `tools/emit_country_history.py` is the one
+  other reader of `data/history/` (`tools/check_history_isolation.py` names it
+  as the exception). For a currency with both a venue candle series and an
+  official rate series, it computes the same index formula the live chart uses
+  -- price to buy one stablecoin divided by the official rate, minus one -- for
+  every day the two overlap and that falls strictly before the country's own
+  live `history_start`, so the result, `data/country_history_segment/<CCY>.json`,
+  never overlaps what the live chart already shows. When a currency has more
+  than one venue (Korea: Bithumb, Coinone, Upbit), the venue with the earliest
+  first candle wins. A currency with no venue series (Argentina) or no official
+  rate (Taiwan) gets no file. `country.html` draws this as a second, dashed,
+  unfilled line on the same `js/chart.js` component -- never a second chart
+  type -- marks the three largest day-over-day moves (found by sorting, not
+  chosen), and states the venue, the rate source and the date range on the
+  page. A currency with no file instead states its live history's own start
+  date, per the rule above.
 
 **Probe verdicts, 2026-10-03** (public, login-free endpoints, real requests; none
 needed a key). None of these endpoints states a data licence; the use here is

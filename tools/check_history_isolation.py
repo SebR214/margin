@@ -9,9 +9,12 @@ into the live layer: the index, a published price, the observed series
 Exit 0 = isolated. Exit 1 = any finding, each printed on stderr.
 
 Four proofs:
-  1. STATIC  no python file other than the history tool and this check names
-             the history directory, its files or its collector module (grep +
-             AST import analysis).
+  1. STATIC  no python file other than the history tool, this check, and
+             tools/emit_country_history.py (SEB-208, the one allowed reader --
+             it turns data/history/ into a display-only sidecar, never into
+             anything the index, a price or the unbroken-hours count reads)
+             names the history directory, its files or its collector module
+             (grep + AST import analysis).
   2. GLOBS   no emitter/collector walks data/ recursively, and the plain
              `data/*.csv` globs the emitters use (manifest, bundle) cannot
              match a history file.
@@ -41,6 +44,12 @@ LABEL = "reported, not observed"
 
 # Only these may mention the history layer.
 HISTORY_WRITERS = {"tools/backfill_history.py", "tools/check_history_isolation.py"}
+# tools/emit_country_history.py (SEB-208) is the one reader: it only reads
+# data/history/ to build data/country_history_segment/, a new sidecar
+# country.html shows as a separate, labelled earlier segment on its chart. It
+# never writes into data/history/ itself, and (being a plain read of named
+# files from a manifest, not a directory walk) it cannot pick up a file the
+# backfill tool hasn't already named there.
 
 # The analyst (SEB-210, ROADMAP item 20) is the first and only reader: it
 # compares a live venue reading against the matching "reported, not observed"
@@ -50,7 +59,14 @@ HISTORY_WRITERS = {"tools/backfill_history.py", "tools/check_history_isolation.p
 # unbroken-hours count -- the four things this check exists to keep history
 # out of (see the module docstring) -- so reading it here does not weaken the
 # isolation being proved.
-HISTORY_READERS = {"tools/analyst.py"}
+# The machine room's meters (tools/emit_machine_room_meters.py) read the
+# history manifest only to print how far back the labelled history goes and
+# how many exchanges it covers, and walk data/ to report its size on disk.
+# Neither number feeds the index, a published price, the observed series or
+# the unbroken-hours count; the page labels the history "reported, not
+# observed".
+HISTORY_READERS = {"tools/analyst.py", "tools/emit_country_history.py",
+                   "tools/emit_machine_room_meters.py"}
 HISTORY_TOKENS = [
     re.compile(r"data/history"),
     re.compile(r"""(DATA|["']data["'])\s*,\s*["']history["']"""),   # os.path.join(DATA, "history")
