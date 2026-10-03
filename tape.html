@@ -6,6 +6,7 @@
 <title>margin.wiki — street prices as they arrive</title>
 <meta name="description" content="The street price of a US dollar in each country, shown as it is checked, about every ten minutes."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="./js/receipt_replay.js"></script>
 <style>
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0 }
   *{box-sizing:border-box}
@@ -108,6 +109,14 @@
 
   function setStatus(key){ $('status').textContent = COPY[key] || ''; }
 
+  // Same data-receipt-ccy/data-receipt-value wrapper countries.html's own
+  // receiptSpan() uses, so receipt_replay.js's delegated click handler opens
+  // that currency's four-step receipt (SEB-219) -- no bank rate to show means
+  // no receipt to open, so that cell stays a plain placeholder instead.
+  function receiptSpan(ccy, text){
+    return '<span data-receipt-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(text) + '" tabindex="0">' + text + '</span>';
+  }
+
   function draw(){
     var ccys = Object.keys(ROWS);
     var el = $('rows');
@@ -123,8 +132,8 @@
       var when = r.fresh ? COPY.justArrived : T(COPY.checkedTemplate, { time: hhmm(r.ts) });
       return '<div class="row' + (r.fresh ? ' new' : '') + '"><div class="c">' + esc(NAMES[k] || k) +
         '<span class="t num">' + esc(when) + '</span></div>' +
-        '<div class="v num">' + esc(fmt(r.mid)) + '<span class="unit">' + esc(k) + '</span></div>' +
-        '<div class="b num">' + esc(r.fx ? fmt(r.fx) : COPY.noBankRate) + '</div></div>';
+        '<div class="v num">' + receiptSpan(k, esc(fmt(r.mid))) + '<span class="unit">' + esc(k) + '</span></div>' +
+        '<div class="b num">' + (r.fx ? receiptSpan(k, esc(fmt(r.fx))) : esc(COPY.noBankRate)) + '</div></div>';
     }).join('');
     $('meta').textContent = T(COPY.metaTemplate, { time: hhmm(latest), n: ccys.length });
   }
