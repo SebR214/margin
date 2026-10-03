@@ -44,14 +44,14 @@
   .stats>div{padding:14px 14px 14px 0}
   .stats>div+div{padding-left:14px;border-left:1px solid var(--rule)}
   .stats .v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink)}
-  /* SEB-214: the "runs by itself" row -- same .stats meter styling, four across */
-  .stats.runs{grid-template-columns:repeat(4,1fr);margin-top:-16px}
-  .stats.runs>div:nth-child(n+5){border-top:1px solid var(--rule);padding-top:14px}
-  .stats.runs>div:nth-child(4n+1){padding-left:0;border-left:0}
-  .stats.runs .v{font-size:26px}
-  .stats.runs .st{font-size:14px;font-weight:700;letter-spacing:.06em;color:var(--sub);margin-top:2px}
-  .stats.runs .st.missed{color:#B3261E}
-  .stats.runs .sub{font-size:14px;color:#6B6B6B;line-height:1.4;margin-top:4px}
+  /* runs-by-itself: a quiet list, not tiles. Plain weight, ink and one grey. */
+  .runs{display:block;margin-top:-16px;border-top:1px solid var(--rule)}
+  .runs .rr{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr) minmax(0,2.4fr);gap:4px 20px;padding:12px 0;border-bottom:1px solid var(--rule);align-items:baseline}
+  .runs .rl{font-size:15px;font-weight:500;color:var(--ink)}
+  .runs .rv{font-size:15px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .runs .rn{font-size:14px;color:#6B6B6B;line-height:1.45}
+  .runs .rf{font-size:13px;color:#6B6B6B;padding:10px 0 0}
+  .runs .rs{color:var(--ink);font-weight:500}
   .empty{padding:20px 0;color:#9A9A9A;font-size:14px}
   .feed-note{font-size:14px;color:#9A9A9A;padding:14px 0 0}
   section{border-top:1px solid var(--rule);padding-top:0}
@@ -85,9 +85,8 @@
     .stats{grid-template-columns:1fr 1fr}
     .stats>div:nth-child(odd){padding-left:0;border-left:0}
     .stats>div:nth-child(n+3){border-top:1px solid var(--rule);padding-top:14px}
-    .stats.runs{grid-template-columns:1fr}
-    .stats.runs>div,.stats.runs>div+div{padding-left:0;border-left:0}
-    .stats.runs>div:nth-child(n+2){border-top:1px solid var(--rule);padding-top:14px}
+    .runs .rr{grid-template-columns:1fr auto}
+    .runs .rn{grid-column:1 / -1}
     .kv li,.arow li{grid-template-columns:1fr;gap:2px}
     .list li{grid-template-columns:56px 1fr;row-gap:2px}
     .list li .tag{grid-column:2;text-align:left}
@@ -165,7 +164,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     </div>
 
     <div class="col-hdr"><span class="col-title" id="runsTitle">&nbsp;</span></div>
-    <div class="stats runs" id="runsStats"></div>
+    <div class="runs" id="runsStats"></div>
 
     <div style="display:none">
       <div id="hourCheck" style="font-size:15px;color:#333;padding:2px 0">&nbsp;</div>
@@ -414,35 +413,37 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   // SEB-214: the "runs by itself" row. Every figure is read from
   // data/machine_room_meters.json (tools/emit_machine_room_meters.py), which
   // names the file or command behind it. A missed target is drawn as missed.
-  function runTile(label, value, status, sub){
+  function runRow(label, value, status, sub){
     var R = COPY.run || {};
-    var st = status === 'met' ? R.met : status === 'missed' ? R.missed : status === 'none' ? R.noTarget : R.unmeasured;
-    return '<div><div class="lbl">' + esc(label) + '</div><div class="v num">' + esc(value) + '</div>' +
-      '<div class="st' + (status === 'missed' ? ' missed' : '') + '">' + esc(st || '') + '</div>' +
-      '<div class="sub">' + esc(sub) + '</div></div>';
+    var st = status === 'met' ? R.met : status === 'missed' ? R.missed : '';
+    return '<div class="rr"><div class="rl">' + esc(label) + '</div><div class="rv num">' + esc(value) + '</div>' +
+      '<div class="rn">' + (st ? '<span class="rs">' + esc(st) + '</span> ' : '') + esc(sub) + '</div></div>';
   }
   function drawRuns(r, computedAt){
-    var R = COPY.run || {}, L = R.labels || {}, tiles = '';
+    var R = COPY.run || {}, L = R.labels || {}, rows = '';
     document.getElementById('runsTitle').textContent = R.title || '';
-    var D = r.delivery || {};
-    (D.layers || []).forEach(function(l){
-      tiles += runTile(L[l.key] || l.key, l.pct.toFixed(1) + '%', l.met ? 'met' : 'missed',
+    var D = r.delivery || {}, layers = D.layers || [];
+    var same = layers.length > 1 && layers.every(function(l){
+      return l.pct === layers[0].pct && l.hours === layers[0].hours && l.worst_date === layers[0].worst_date; });
+    var shown = same ? [layers[0]] : layers;
+    shown.forEach(function(l){
+      var names = same ? layers.map(function(x){ return (R.layerNames || {})[x.key] || x.key; }).join(', ') : '';
+      rows += runRow(same ? L.delivery : (L[l.key] || l.key), l.pct.toFixed(1) + '%', l.met ? 'met' : 'missed',
         T(R.deliverySub, { target: D.target_pct, hours: l.hours, expected: l.hours_expected,
-          from: D.from, to: D.to, worst_date: l.worst_date, worst_hours: l.worst_hours, file: l.file }));
+          from: D.from, to: D.to, worst_date: l.worst_date, worst_hours: l.worst_hours }) +
+        (names ? ' ' + T(R.deliveryLayers, { names: names }) : ''));
     });
     var F = r.freshness;
-    if (F) tiles += runTile(L.fresh, T(R.freshValue, { fresh: F.n_fresh, live: F.n_live }), F.met ? 'met' : 'missed',
-      T(R.freshSub, { n_silent: F.n_declared_silent, date: dateOf(F.as_of_utc), file: F.file }));
-    var W = r.wakes || {};
-    tiles += runTile(L.wakes, W.per_day != null ? W.per_day : (R.wakesValue || ''), 'none', R.wakesSub || '');
-    var B = r.bytes_per_row;
-    if (B) tiles += runTile(L.bytes, B.bytes_per_row.toFixed(1), 'none',
-      T(R.bytesSub, { bytes: B.bytes.toLocaleString('en-US'), rows: B.rows.toLocaleString('en-US'),
-        date: dateOf(B.as_of_utc), file: B.file }));
+    if (F) rows += runRow(L.fresh, T(R.freshValue, { fresh: F.n_fresh, live: F.n_live }), F.met ? 'met' : 'missed',
+      T(R.freshSub, { n_silent: F.n_declared_silent }));
     var K = r.disk;
-    if (K) tiles += runTile(L.disk, (K.bytes / 1e6).toFixed(1) + ' ' + (R.mb || ''), 'unmeasured',
-      T(R.diskSub, { path: K.path, stop: K.stop_pct, date: dateOf(computedAt || '') }));
-    document.getElementById('runsStats').innerHTML = tiles;
+    if (K) rows += runRow(L.disk, Math.round(K.bytes / 1e6) + ' ' + (R.mb || ''), '', R.diskSub || '');
+    var B = r.bytes_per_row;
+    if (B) rows += runRow(L.bytes, B.bytes_per_row.toFixed(1) + ' ' + (R.bytesUnit || ''), '',
+      T(R.bytesSub, { bytes: B.bytes.toLocaleString('en-US'), rows: B.rows.toLocaleString('en-US') }));
+    var W = r.wakes || {};
+    rows += runRow(L.wakes, W.per_day != null ? W.per_day : (R.wakesValue || ''), '', R.wakesSub || '');
+    document.getElementById('runsStats').innerHTML = rows + (R.foot ? '<div class="rf">' + esc(R.foot) + '</div>' : '');
   }
 
   async function boot(){

@@ -378,7 +378,7 @@
       "methodology": "Full method →",
       "board": "the country board →"
     },
-    "dataSourceNote": "Every number on this site comes from a public data file. <a href=\"https://github.com/SebR214/margin\">Code and raw data on GitHub \u2192</a>",
+    "dataSourceNote": "Every number on this site comes from a public data file. <a href=\"https://github.com/SebR214/margin\">Code and raw data on GitHub →</a>",
     "sourceTemplate": "Checked {time} UTC · buy on {onrampVenue}, sell on {offrampVenue}",
     "feeStamp": {
       "reasonTrading": "trading fees",
@@ -538,29 +538,33 @@
       }
     },
     "run": {
-      "title": "Does it run by itself? Targets, and what was measured",
+      "title": "Does it run by itself?",
       "labels": {
-        "basis": "EXCHANGE PRICES DELIVERED",
-        "p2p": "STREET PRICES DELIVERED",
-        "quotes": "PROVIDER QUOTES DELIVERED",
-        "stable": "STABLECOIN ROUTES DELIVERED",
-        "fresh": "SOURCES FRESH",
-        "wakes": "AGENT WAKES PER DAY",
-        "bytes": "BYTES PER ROW",
-        "disk": "DATA SIZE"
+        "delivery": "Prices collected on time",
+        "fresh": "Sources answering",
+        "disk": "Size of the data",
+        "bytes": "Space per row",
+        "wakes": "Agent runs per day"
       },
-      "deliverySub": "Target {target}% of hours. {hours} of {expected} hours, {from} to {to}. Worst day {worst_date}: {worst_hours} of 24. From {file}.",
+      "deliverySub": "Target {target}% of hours. {hours} of {expected} hours, {from} to {to}. Worst day {worst_date}: {worst_hours} of 24.",
       "freshValue": "{fresh} of {live}",
-      "freshSub": "Target: every source expected live is fresh. {n_silent} more are declared silent and not counted. Measured {date}. From {file}.",
+      "freshSub": "Every source expected to answer did. {n_silent} more are silent on purpose.",
       "wakesValue": "Not published",
-      "wakesSub": "The count is kept on the server only, and no published file carries it, so no figure is shown.",
-      "bytesSub": "{bytes} bytes over {rows} rows. No target set. Measured {date}. From {file}.",
-      "diskSub": "Size of {path} in the repository. Collection on the server stops loudly at {stop}% disk; that reading is not published, so no percentage is claimed. Measured {date}.",
-      "met": "TARGET MET",
-      "missed": "TARGET MISSED",
-      "noTarget": "NO TARGET SET",
-      "unmeasured": "BOX DISK NOT PUBLISHED",
-      "mb": "MB"
+      "wakesSub": "The count stays on the server.",
+      "bytesSub": "{bytes} bytes over {rows} rows.",
+      "diskSub": "Size of the data folder. Disk use on the server is not published.",
+      "met": "Met the target.",
+      "missed": "Missed the target.",
+      "mb": "MB",
+      "layerNames": {
+        "basis": "exchange prices",
+        "p2p": "street prices",
+        "quotes": "provider quotes",
+        "stable": "stablecoin routes"
+      },
+      "deliveryLayers": "Same for {names}.",
+      "bytesUnit": "bytes",
+      "foot": "Each figure comes from data/machine_room_meters.json, which names the data file behind it."
     },
     "metaTemplate": "Last price check {time} UTC · next on the hour",
     "roles": {
