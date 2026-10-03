@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>margin.wiki — street prices as they arrive</title>
-<meta name="description" content="The street price of a US dollar in each country, shown as it is checked, about every ten minutes."/>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>margin.wiki — what people pay for a dollar</title>
+<meta name="description" content="What people pay for a US dollar in each country compared with the official rate, shown as each price is checked."/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&display=swap" rel="stylesheet">
 <script src="./js/receipt_replay.js"></script>
 <style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0 }
+  :root{ --ink:#201E1D; --sub:#7D7979; --stamp:#7D7979; --rule:rgba(32,30,29,.1) }
   *{box-sizing:border-box}
   body{margin:0;padding:0 24px env(safe-area-inset-bottom,0px);font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff}
   a{color:var(--ink);text-decoration:none} a:hover{color:var(--sub)}
@@ -17,29 +17,29 @@
   .logo{font-size:19px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;flex:none}
   nav{display:flex;gap:24px;align-items:center;overflow-x:auto;scrollbar-width:none;min-width:0;flex:1 1 auto}
   nav::-webkit-scrollbar{display:none}
-  nav a{font-size:15px;font-weight:500;color:var(--sub);padding:10px 0;white-space:nowrap}
+  nav a{font-size:15px;font-weight:600;color:var(--sub);padding:10px 0;white-space:nowrap}
   nav a:hover{color:var(--ink)}
-  h1{font-size:28px;font-weight:700;line-height:1.22;letter-spacing:-.02em;margin:24px 0 10px}
+  h1{font-size:28px;font-weight:600;line-height:1.22;letter-spacing:-.02em;margin:24px 0 10px}
   h2{font-size:21px;font-weight:600;line-height:1.3;margin:0 0 6px}
   .lede{font-size:17px;line-height:1.55;color:var(--sub);margin:0;max-width:640px}
   .status{font-size:14px;line-height:1.5;color:var(--stamp);margin:14px 0 0;min-height:21px}
   .meta{font-size:14px;line-height:1.5;color:var(--stamp);margin:2px 0 0;min-height:21px}
   section{border-top:1px solid var(--rule);margin-top:32px;padding-top:28px}
   .num{font-variant-numeric:tabular-nums}
-  .head,.row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr);gap:4px 20px;align-items:baseline}
+  .head,.row{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr));gap:4px 16px;align-items:baseline}
   .head{padding:10px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);font-size:14px;color:var(--sub);font-weight:400}
   .head span+span,.row .v{text-align:right}
   .row{padding:12px 0;border-bottom:1px solid var(--rule);font-size:15px}
-  .row .c{font-weight:500}
+  .row .c{font-weight:600}
   .row .t{display:block;font-size:13px;font-weight:400;color:var(--stamp);margin-top:2px}
-  .row .v{font-weight:500}
-  .row .b{text-align:right;color:var(--sub);font-weight:400}
+  .row .v{font-weight:600}
+  .row .b,.row .d{text-align:right;color:var(--sub);font-weight:400}
   .row .unit{font-size:13px;font-weight:400;color:var(--stamp);margin-left:4px}
-  .row.new .t{color:var(--ink);font-weight:500}
+  .row.new .t{color:var(--ink);font-weight:600}
   .empty{padding:20px 0;font-size:15px;color:var(--sub)}
   .note{font-size:14px;color:var(--sub);line-height:1.5;margin:18px 0 0;max-width:640px}
   .more{font-size:15px;margin:14px 0 0}
-  .more a{display:inline-block;padding:6px 0;font-weight:500}
+  .more a{display:inline-block;padding:6px 0;font-weight:600}
   footer{border-top:1px solid var(--rule);margin-top:48px;padding:24px 0 48px;font-size:15px;color:var(--sub)}
   @media(max-width:620px){
     body{padding:0 16px}
@@ -47,8 +47,8 @@
     .logo{font-size:17px}
     nav{gap:16px}
     h1{font-size:24px}
-    .head,.row{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,.9fr);gap:4px 12px}
-    .row .unit{display:none}
+    .head,.row{grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr));gap:4px 8px}
+    .row .unit{display:block;margin:0}
   }
 </style>
 </head>
@@ -69,7 +69,7 @@
 
   <section>
     <h2 id="listTitle">&nbsp;</h2>
-    <div class="head"><span id="colCountry">&nbsp;</span><span id="colStreet">&nbsp;</span><span id="colBank">&nbsp;</span></div>
+    <div class="head"><span id="colCountry">&nbsp;</span><span id="colStreet">&nbsp;</span><span id="colBank">&nbsp;</span><span id="colDiff">&nbsp;</span></div>
     <div id="rows"></div>
     <p class="note" id="note">&nbsp;</p>
     <p class="more"><a id="more" href="./countries.html">&nbsp;</a></p>
@@ -86,6 +86,10 @@
   // Servers that ignore Range send the whole file, which parses the same.
   var TAIL_BYTES = 40000;
   var STALE_MS = 6 * 3600 * 1000;
+  // Minutes between collector runs. The events stream and the data files do
+  // not carry the cadence, so it is named here once. It matches the ten-minute
+  // timer in collector_p2p_box.py. Change both together.
+  var COLLECTOR_INTERVAL_MIN = 10;
 
   var COPY = {};
   var NAMES = {};   // ccy -> country name, from data/index_latest.json
@@ -107,7 +111,28 @@
     return Number(v).toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
   }
 
-  function setStatus(key){ $('status').textContent = COPY[key] || ''; }
+  function setStatus(key, vals){ $('status').textContent = T(COPY[key], vals); }
+
+  // Newest check on screen, and the next one: that time plus the interval.
+  function newestTs(){
+    return Object.keys(ROWS).reduce(function(a, k){ return ROWS[k].ts > a ? ROWS[k].ts : a; }, '');
+  }
+  function nextCheckMs(){
+    var last = Date.parse(newestTs());
+    return isNaN(last) ? NaN : last + COLLECTOR_INTERVAL_MIN * 60000;
+  }
+  // Shown only while the live stream is not connected.
+  function showIdle(offline){
+    if (live) return;
+    var next = nextCheckMs();
+    var ok = !isNaN(next) && next > Date.now();
+    if (ok) setStatus(offline ? 'statusOffline' : 'statusIdle', { time: hhmm(new Date(next).toISOString()) });
+    else setStatus(offline ? 'statusOfflineLate' : 'statusIdleLate');
+  }
+  function fmtPct(p){
+    var s = Number(Math.abs(p).toFixed(1)).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    return (p > 0 && s !== '0.0' ? '+' : p < 0 && s !== '0.0' ? '-' : '') + s + '%';
+  }
 
   // data-receipt-basis-ccy, not countries.html's own data-receipt-ccy: that
   // attribute opens data/receipts/<CCY>.json, the premium-index receipt --
@@ -124,7 +149,7 @@
     var ccys = Object.keys(ROWS);
     var el = $('rows');
     if (!ccys.length) { el.innerHTML = '<div class="empty">' + esc(COPY.unavailable) + '</div>'; $('meta').textContent = ''; return; }
-    var latest = ccys.reduce(function(a, k){ return ROWS[k].ts > a ? ROWS[k].ts : a; }, '');
+    var latest = newestTs();
     ccys.sort(function(a, b){
       var ma = minute(ROWS[a].ts), mb = minute(ROWS[b].ts);
       if (ma !== mb) return ma < mb ? 1 : -1;
@@ -132,27 +157,27 @@
     });
     el.innerHTML = ccys.map(function(k){
       var r = ROWS[k];
-      var when = r.fresh ? COPY.justArrived : T(COPY.checkedTemplate, { time: hhmm(r.ts) });
-      return '<div class="row' + (r.fresh ? ' new' : '') + '"><div class="c">' + esc(NAMES[k] || k) +
-        '<span class="t num">' + esc(when) + '</span></div>' +
+      var tag = r.fresh ? '<span class="t num">' + esc(COPY.justArrived) + '</span>' : '';
+      return '<div class="row' + (r.fresh ? ' new' : '') + '"><div class="c">' + esc(NAMES[k] || k) + tag + '</div>' +
         '<div class="v num">' + receiptSpan(k, esc(fmt(r.mid))) + '<span class="unit">' + esc(k) + '</span></div>' +
-        '<div class="b num">' + (r.fx ? receiptSpan(k, esc(fmt(r.fx))) : esc(COPY.noBankRate)) + '</div></div>';
+        '<div class="b num">' + (r.fx ? receiptSpan(k, esc(fmt(r.fx))) + '<span class="unit">' + esc(k) + '</span>' : esc(COPY.noBankRate)) + '</div>' +
+        '<div class="d num">' + (r.fx ? esc(fmtPct((r.mid / r.fx - 1) * 100)) : esc(COPY.noBankRate)) + '</div></div>';
     }).join('');
     $('meta').textContent = T(COPY.metaTemplate, { time: hhmm(latest), n: ccys.length });
   }
 
   function renderStatic(){
-    $('title').textContent = COPY.title || '';
+    $('title').textContent = T(COPY.title, { minutes: COLLECTOR_INTERVAL_MIN });
     $('lede').textContent = COPY.lede || '';
     $('listTitle').textContent = COPY.listTitle || '';
     $('colCountry').textContent = COPY.colCountry || '';
     $('colStreet').textContent = COPY.colStreet || '';
     $('colBank').textContent = COPY.colBank || '';
+    $('colDiff').textContent = COPY.colDiff || '';
     $('note').textContent = COPY.note || '';
     $('more').textContent = COPY.linkText || '';
     $('more').href = COPY.linkHref || './countries.html';
     $('foot').textContent = COPY.footer || '';
-    setStatus('statusStatic');
   }
 
   // The newest slot is at the end of data/p2p_basis.csv. Take the latest row
@@ -188,7 +213,7 @@
     // Reconnecting quietly is normal. Only a failure that lasts says so.
     es.onerror = function(){
       if (offlineTimer) return;
-      offlineTimer = setTimeout(function(){ live = false; offlineTimer = null; setStatus('statusOffline'); }, 8000);
+      offlineTimer = setTimeout(function(){ live = false; offlineTimer = null; showIdle(true); }, 8000);
     };
     es.onmessage = function(ev){
       var e; try { e = JSON.parse(ev.data); } catch (err) { return; }
@@ -206,10 +231,14 @@
     renderStatic();
     var idx = await fetch('./data/index_latest.json', { cache: 'no-store' }).then(function(r){ return r.json(); }).catch(function(){ return {}; });
     (idx.countries || []).concat(idx.withheld || []).forEach(function(c){ if (c.ccy && c.country) NAMES[c.ccy] = c.country; });
+    // Currencies shared by several countries get a plain region name from copy.
+    var shared = COPY.sharedCurrencyNames || {};
+    for (var s in shared) NAMES[s] = shared[s];
     var text = await fetch('./data/p2p_basis.csv', { cache: 'no-store', headers: { Range: 'bytes=-' + TAIL_BYTES } })
       .then(function(r){ return r.ok ? r.text() : ''; }).catch(function(){ return ''; });
     seedFromCsv(text);
     draw();
+    showIdle(false);
     listen();
   }
   boot();

@@ -854,24 +854,30 @@
     "loadErrorTemplate": "The receipt at {file} could not be read."
   },
   "tape": {
-    "title": "Street dollar prices as they arrive",
-    "lede": "In many countries a US dollar costs more on the street than at the bank. This page shows the street price each time it is checked, about every ten minutes.",
-    "statusStatic": "Showing the latest checked prices.",
-    "statusLive": "Live. New prices appear here as they are checked.",
-    "statusOffline": "Live updates are not reaching this page right now. These are the latest checked prices.",
+    "title": "What people pay for a dollar, updating every {minutes} minutes",
+    "lede": "Each row shows what people pay, the official rate, and the difference. The difference is how much more people pay than the official rate, as a percentage. A minus sign means they pay less.",
+    "statusIdle": "Next check at {time} UTC.",
+    "statusIdleLate": "A new check is due. Reload the page to see it.",
+    "statusLive": "Connected. New prices appear here as each check finishes.",
+    "statusOffline": "Not connected, so prices may be out of date. Next check at {time} UTC.",
+    "statusOfflineLate": "Not connected, so prices may be out of date. Reload the page to try again.",
     "metaTemplate": "Last checked {time} UTC. {n} countries priced.",
-    "listTitle": "Latest price of one US dollar",
+    "listTitle": "Latest checked prices",
     "colCountry": "Country",
-    "colStreet": "Street price",
-    "colBank": "Bank rate",
-    "checkedTemplate": "Checked {time} UTC",
+    "colStreet": "What people pay",
+    "colBank": "Official rate",
+    "colDiff": "Difference",
     "justArrived": "Just arrived",
     "noBankRate": "Not available",
+    "sharedCurrencyNames": {
+      "XAF": "Central Africa",
+      "XOF": "West Africa"
+    },
     "unavailable": "The latest prices could not be loaded. Try again in a few minutes.",
-    "note": "The street price is the typical price in offers people post to buy and sell US dollar stablecoins. The bank rate is the official exchange rate at the same moment.",
+    "note": "What people pay is the typical price in offers posted to buy and sell US dollar stablecoins. A stablecoin is a digital token built to hold the value of a US dollar. The official rate is the bank exchange rate at the same moment. Central Africa and West Africa each use one currency shared by several countries.",
     "linkText": "See each country's price over time →",
     "linkHref": "./countries.html",
-    "footer": "Every number on this page comes from a public data file."
+    "footer": "Every number on this page comes from the site's price log, a table of every check that anyone can download."
   },
   "receiptBasis": {
     "title": "Where this price comes from",
