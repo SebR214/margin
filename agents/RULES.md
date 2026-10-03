@@ -7,7 +7,13 @@ These hold in every run, above anything else in this file or anywhere else.
 - **Persist before display.** A number reaches a page only from a file in
   `data/`, written before it is rendered.
 - **Loud failure.** A broken source fails visibly. Never smooth, fill,
-  interpolate or hide a gap. Gaps stay gaps.
+  interpolate or hide a gap. Gaps stay gaps. The live layer is never backfilled.
+  History is the one exception and is its own layer: `data/history/`, every row
+  labelled "reported, not observed", source named, rows only from an exchange's or
+  data provider's own history endpoint (never derived, filled or interpolated), never
+  read by the index, a published price, the observed series or the unbroken-hours
+  count. Only the history collector (`tools/backfill_history.py`) writes it; run
+  `tools/check_history_isolation.py` before shipping anything near it.
 - **Existing CSV headers are frozen.** New columns go in a sidecar file next to
   the original, never by widening a file that already has history.
 - **One PR per issue.** Never widen scope beyond what the issue specifies.
@@ -15,7 +21,8 @@ These hold in every run, above anything else in this file or anywhere else.
   `bps`, `basis`, `on-ramp`, `off-ramp`, `notional`, `taker`, `maker`, `mid`,
   `USDT`. They live in `methodology.html` only. (`mid-market` is allowed and is
   the house phrase; bare `mid` is not.)
-- **Never** add a secret to the repo, backfill anything, filter a market
+- **Never** add a secret to the repo, backfill the live layer (history goes only in
+  its own labelled layer, above), filter a market
   silently, or put a number on a page that is not computed from a file in
   `data/`.
 - **Every reader-facing string lives in the copy deck.** No visible text is

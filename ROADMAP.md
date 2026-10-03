@@ -31,6 +31,7 @@ actually exists rather than the other way round.
 | Panel | `collector.py` → `providers.csv` | every rail the Wise comparison API returns, per size (SGD→PHP) | 2026-08-11 | 3,427 |
 | Panel | `collector.py` → `providers_usdmxn.csv` | same, USD→MXN | 2026-08-19 | 66 |
 | Backfill | `tools/backfill_basis.py` | daily basis, 5 venues (TRY, KRW, IDR, THB, MXN) | 2024-03-02 → 2026-08-10 | 4,198 |
+| History layer | `tools/backfill_history.py` | "reported, not observed": venue-reported USDT candles (11 venues), ECB daily rates, Argentina blue dollar; `data/history/` | 2018 → 2026-10-03 (varies by venue) | see `data/history/manifest.json` |
 
 Venues live: Independent Reserve (SGD, AUD, NZD), Coins.ph (PHP), BitoPro + MAX
 (TWD), WazirX + CoinDCX (INR), BTCTurk + Paribu (TRY),
@@ -167,8 +168,11 @@ the live demonstration of the dataset growing on demand.
 **Standing asks (later).** `watch(condition)`: the same engine, subscribed,
 notifying by RSS or email.
 
-Collection integrity sits above all of it: no backfill, no invented numbers,
-loud failure, verified fees.
+Collection integrity sits above all of it: the live layer is never backfilled,
+no invented numbers, loud failure, verified fees. History is its own layer --
+`data/history/`, every row "reported, not observed" with its source, taken only
+from an exchange's or data provider's own history endpoint, never feeding the
+index, a price, the observed series or the unbroken-hours count.
 
 ---
 
@@ -326,12 +330,12 @@ the index, a published price, the observed series or the unbroken-hours count.
 A page may compare today against it ("widest since 2023 in Upbit's own
 history") as long as the label and source are on the page. Event pages (Turkey
 2023, Argentina 2023, Korea) only for countries with real backfilled data
-behind them. **Invariant amendment, carried by this item's PR and not before:**
+behind them. **Invariant amendment, carried by this item's PR (SEB-207):**
 the PR that adds the history layer also rewrites the no-backfill lines in
 `VISION.md`, this file (`## Vision` and `## Invariants`), `agents/RULES.md`,
 `agents/BUILDER.md`, `agents/COMMISSION.md` and `METHODOLOGY.md` to the rule in
-this paragraph — until that PR merges, "gaps stay gaps / no backfill" stands
-unmodified. Acceptance: fewer than five venues past a year ships small and says
+this paragraph — from the merge of that PR the rule is "the live layer is never
+backfilled; history is its own labelled layer", and not before. Acceptance: fewer than five venues past a year ships small and says
 so; every history row carries the label and source; a check proves no history
 row is read by the index, a published price or the unbroken-hours count.
 
@@ -1283,6 +1287,15 @@ case of it that governs collection work, not a separate rule.
   construction; do not "fix" a run that commits nothing.
 - **Gaps stay gaps.** Failed pulls are written as rows with `source_ok=false` and
   the error string. Never interpolate, never backfill the live layer.
+- **History is its own layer, "reported, not observed" (amended 2026-10-03,
+  SEB-207, on Sebastian's instruction).** Backfilled history lives in `data/history/`
+  and nowhere else; every row carries the label and the source; rows come only from
+  an exchange's or data provider's own history endpoint, never derived, filled or
+  interpolated; it never feeds the index, a published price, the observed series or
+  the unbroken-hours count (`tools/check_history_isolation.py`). A page may compare
+  today against it only with the label and source on the page. Binance P2P has no
+  history, so P2P-only countries get none and say history starts on their first
+  collection date.
 - **The front page speaks money and percent.** No bps, basis, on-ramp, off-ramp,
   notional, taker, maker, corridor, mid or USDT in anything a reader sees on
   `index.html` — those words live in `methodology.html` only. Country names, not
@@ -1351,14 +1364,16 @@ is not replaced — both hold, and the narrower one is the specific case.
   limitations**, not only the screenshots the reviewer already posts per
   `agents/RULES.md`.
 
-**Not merged above — flagged instead, per the rule just added that this file's
-meaning does not change silently:** a 2026-10-01 draft of these invariants
-included "historical observations are append-only, never rewrite, interpolate
-or backfill *without explicit human approval*." That is a weaker rule than the
-one already in force two sections up — "gaps stay gaps... never interpolate,
-never backfill the live layer," no approval clause, no exception. The existing
-rule stands; this file does not grant an approval path around it until
-Sebastian says so in his own words, in this file.
+**Resolved 2026-10-03 (SEB-207) — was "Not merged above".** A 2026-10-01 draft of
+these invariants included "historical observations are append-only, never
+rewrite, interpolate or backfill *without explicit human approval*," and was
+held back because it was weaker than "gaps stay gaps... never backfill." Sebastian
+has now said it in his own words (SEB-207, 2026-10-03: amend the rule "in the same
+PR that adds the backfill"). What changed is exactly this and no more: history may
+exist as a separate layer, "reported, not observed", source on every row, taken only
+from a venue's or provider's own history endpoint, never feeding the live layer. There
+is still no approval clause: the live layer is never backfilled or interpolated, with
+or without approval, and historical observations in it stay append-only.
 
 **Not re-added — already structurally enforced:** "no self-merge," in the
 sense of no agent being able to rubber-stamp its own work unreviewed. The
@@ -1387,6 +1402,8 @@ which is recorded hourly rather than assumed.
 collector.py            deep layer — SGD→PHP + USD→MXN decomposition + Wise panel
 collector_basis.py      wide layer — 10-venue basis
 tools/backfill_basis.py one-time daily history (not re-run)
+tools/backfill_history.py history layer collector, idempotent, --dry-run ("reported, not observed")
+tools/check_history_isolation.py proves history never reaches the index, a price or unbroken hours
 tools/check_freshness.py rot guard, runs every fire of collect.yml
 tools/check_delivery.py  hours captured per day, last 14 days (measurement, never red)
 .github/workflows/collect.yml   the clock
@@ -1400,6 +1417,7 @@ data/providers.csv      full incumbent panel, hourly (SGD→PHP)
 data/providers_usdmxn.csv    full incumbent panel, hourly (USD→MXN)
 data/providers_audphp.csv full incumbent panel, hourly (AUD->PHP)
 data/providers_nzdphp.csv full incumbent panel, hourly (NZD->PHP)
+data/history/          the history layer, "reported, not observed" (own files, never read by the live layer)
 data/basis_history.csv  daily backfill, 5 venues, 2024-03 →
 data/offramp_snapshots.csv   v1 wreckage, kept as history
 data/latest.json        machine-readable snapshot, regenerated each run
