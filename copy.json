@@ -423,7 +423,7 @@
     "ratePegged": "A rate this currency is pegged to.",
     "rateUnmaintained": "A rate that has stopped being updated — this compares against an average of what banks quote instead.",
     "rateMarket": "A market exchange rate.",
-    "rateStalenessNote": "This value is refreshed every hour but the underlying source itself only changes about once a day, so it can be up to 24 hours behind the market. Our gap can miss a sudden move.",
+    "rateStalenessNote": "This value is refreshed every hour but the underlying source itself only changes about once a day, so it can be up to 24 hours behind the market. A sudden official move can show up in our gap a day late.",
     "mathSentenceTemplate": "{numerator} {ccy} divided by {denominator}, minus one, times 100.",
     "mathResultTemplate": "The published figure: {result}.",
     "verdictPublished": "Published — the evidence rule was met.",
@@ -530,22 +530,22 @@
   },
   "howItWorks": {
       "h1": "Where the numbers come from, and how to check one",
-      "sub": "Click any number on the site and you get the offers behind it, the official rate used, the division, and the file. Nothing is typed in by hand. A missed hour stays missing instead of being filled in, so a gap in a chart means we did not collect that hour. A digital dollar is a coin that stays worth one US dollar.",
+      "sub": "Click any number on the site and you get the offers behind it, the official rate used, the division of the middle price by that rate, and the file. Nothing is typed in by hand. A missed hour stays missing instead of being filled in, so a gap in a chart means we did not collect that hour. A digital dollar is a coin that stays worth one US dollar.",
       "dollarCostTitle": "What people pay for a dollar",
-      "dollarCostBody": "Every hour we take the {minAds} cheapest offers to sell a digital dollar in each country, on the exchange people there use, and divide their middle price by the official rate at that moment. The result is how much more or less than the official rate people really pay. Fewer than {minAds} sellers and we publish no price, so thin markets show a gap, not a guess.",
+      "dollarCostBody": "Every hour we take the {minAds} cheapest offers to sell a digital dollar in each country, on the exchange people there use, and divide their middle price, the one with as many offers cheaper as dearer, by the official rate at that moment. The result is how much more or less than the official rate people really pay. Fewer than {minAds} sellers and we publish no price, so thin markets show a gap, not a guess.",
       "sendingCostTitle": "What sending money costs",
       "sendingCostBody": "What the recipient gets, against the real exchange rate, at {amounts} amounts, every fee counted. The amounts run from {minAmount} to {maxAmount} in the sender's currency.",
       "notMeasuredTitle": "What we don't measure yet",
       "notMeasured": [
-          "The official rate only updates once a day, so it can be up to 24 hours behind the market. Our gap can miss a sudden move.",
-          "Bank fees for moving money onto an exchange, where the exchange publishes none. We leave them out, so sending with digital dollars may cost more than shown.",
+          "The official rate only updates once a day, so it can be up to 24 hours behind the market. A sudden official move can show up in our gap a day late.",
+          "Bank fees for putting money onto an exchange. Where an exchange publishes none, we leave them out, so sending with digital dollars may cost more than shown.",
           "Prices for repeat senders. Some app prices are first-transfer offers, so repeat senders may pay more.",
           "Cash dollars at money changers."
       ],
       "notMeasuredNote": "Every number links to the file it came from. {fullMethodLink}",
       "fullMethodLink": "Full method, every source and our checks against independent numbers →",
       "sourcesTitle": "Sources",
-      "sourcesBody": "Binance P2P is a marketplace where people sell digital dollars to each other. Prices come hourly from Binance P2P and about {n} local exchanges including {top}. A local exchange is the one people in a single country use to buy digital dollars. Official rates are the exchange rates banks publish. They come from open.er-api.com. We use frankfurter.app as backup, and central banks where they publish their own. Provider prices come from direct quotes from {providers}, plus Wise's public price comparison, which lists many other providers.",
+      "sourcesBody": "Binance P2P is a marketplace where people sell digital dollars to each other. Prices come hourly from Binance P2P and about {n} local exchanges including {top}. A local exchange is the one people in a single country use to buy digital dollars. Official rates are the exchange rates banks publish. They come from open.er-api.com. frankfurter.app is the backup if open.er-api.com has no rate. Central banks are used where they publish their own, as Argentina's does. Provider prices come from direct quotes from {providers}, plus Wise's public price comparison, which lists many other providers.",
       "methodMadeBody": "Every hour we collect live offers to sell dollars, take the middle price, and compare it to the official rate from the same check. Nothing is modelled or smoothed. A country needs at least {minAds} sell offers, or a real exchange order book, to get a price."
   },
   "machineRoom": {
