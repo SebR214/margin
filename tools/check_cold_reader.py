@@ -35,7 +35,7 @@ import tempfile
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(HERE, "tools"))
-from gate_common import PAGE_QUERY, all_pages, changed_files, pages_for_change, serve  # noqa: E402
+from gate_common import PAGE_QUERY, all_pages, changed_files, open_page, pages_for_change, serve  # noqa: E402
 from headless import Page  # noqa: E402
 
 MODEL = os.environ.get("COLD_READER_MODEL", "claude-sonnet-5-5")
@@ -176,7 +176,7 @@ def self_test():
     """Render tests/jargon_page.html and require the model to flag it."""
     base, stop = serve(HERE)
     try:
-        with Page(settle=2.0) as page:
+        with open_page(settle=2.0) as page:
             rep = review(page, base, "tests/jargon_page.html")
     finally:
         stop()
@@ -227,7 +227,7 @@ def main():
     try:
         html_changed = {f for f in changed_files(a.base) if "/" not in f and f.endswith(".html")} if a.changed_only else set()
         frags = added_fragments(a.base) if a.changed_only else set()
-        with Page(settle=4.0) as page:
+        with open_page(settle=4.0) as page:
             for name in names:
                 try:
                     text = page_text(page, "%s/%s%s" % (base_url, name, PAGE_QUERY.get(name, "")))
