@@ -741,6 +741,56 @@ def selftest():
 
 
 # ------------------------------------------------------------------- cli
+# ------------------------------------------------------- hourly Actions-equivalent
+# The comparison that gates the switch off GitHub Actions (ROADMAP item 16) must
+# compare like with like. The ten-minute pass above reads the whole first page
+# with no amount filter, so its numbers are not the published index's numbers.
+# Once an hour, on the first pass inside the hour, the box therefore ALSO runs
+# collector_p2p.py's own collect() unchanged -- same currency list, same
+# ~USD 500 server-side filter, same ten ads a side, same arithmetic -- from this
+# box's own IP. The rows land in BOX_STATE_DIR/basis_actions_equiv.csv in
+# p2p_basis.csv's own shape (plus the buy/sell ad counts the evidence rule
+# reads), outside every git checkout. tools/compare_p2p_box.py compares that file
+# with data/p2p_basis.csv, so a difference can only come from the box, the time
+# or the board, never from a different query.
+BASIS_EQUIV_FIELDS = ["ts_utc", "source", "ccy", "buy_median", "sell_median", "mid", "fx_mid_per_usd",
+                      "basis_bps", "n_ads", "source_ok", "error", "n_buy", "n_sell"]
+
+
+def basis_equiv_path(state_dir=BOX_STATE_DIR):
+    return os.path.join(state_dir, "basis_actions_equiv.csv")
+
+
+def hourly_basis_pass(state_dir=BOX_STATE_DIR, now=None):
+    """Run the hourly layer's own collector once per UTC hour. Returns the
+    number of rows written (0 when this hour already has its pass)."""
+    now = now or dt.datetime.now(dt.timezone.utc)
+    path = basis_equiv_path(state_dir)
+    if os.path.exists(path):
+        with open(path, newline="") as f:
+            last = None
+            for last in csv.DictReader(f):
+                pass
+        if last and last["ts_utc"][:13] == now.strftime("%Y-%m-%dT%H"):
+            return 0
+    import collector_p2p  # the hourly collector, unchanged
+    rows, _n_ok = collector_p2p.collect()
+    out = []
+    for r in rows:
+        d = {k: r.get(k) for k in BASIS_EQUIV_FIELDS}
+        d["source"] = "binance_p2p_box_equiv"
+        d["n_buy"], d["n_sell"] = r.get("_n_buy"), r.get("_n_sell")
+        out.append(d)
+    os.makedirs(state_dir, exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=BASIS_EQUIV_FIELDS)
+        if new:
+            w.writeheader()
+        w.writerows(out)
+    return len(out)
+
+
 def main():
     ap = argparse.ArgumentParser(description="margin.wiki P2P collector -- box layer (10-min)")
     ap.add_argument("--verify", action="store_true",
@@ -787,6 +837,13 @@ def main():
 
         if a.verify:
             return
+
+        try:
+            n_eq = hourly_basis_pass()
+            if n_eq:
+                print(f"  hourly Actions-equivalent pass -> {basis_equiv_path()} ({n_eq} rows)")
+        except Exception as e:  # never lets the equivalence pass cost the ten-minute pass its exit code
+            print(f"  [warn] hourly Actions-equivalent pass failed: {type(e).__name__}: {e}", file=sys.stderr)
 
         print(f"  staged -> {published_stage_path()}")
         print(f"  raw    -> {raw_path or '(no ads this pass)'}\n")
