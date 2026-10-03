@@ -749,11 +749,11 @@ function render(){
 }
 
 // ROADMAP item 6 (added 2026-10-01): offramp_depth_top_level/offramp_depth_1pct
-// are collected every hour for the two deep-layer corridors only (SGD->PHP,
-// USD->MXN) -- read straight off this row, no new fetch, no computation
-// beyond formatting. Any other corridor, or a row predating this column,
-// hides the line rather than showing a guessed figure.
-const DEPTH_CORRIDORS=new Set(["SGD->PHP","USD->MXN"]);
+// are collected every hour for every corridor this page prices -- read
+// straight off this row, no new fetch, no computation beyond formatting. A
+// row predating this column still hides the line rather than showing a
+// guessed figure.
+const DEPTH_CORRIDORS=new Set(["SGD->PHP","AUD->PHP","NZD->PHP","USD->MXN","USD->NGN","USD->INR","SGD->INR"]);
 function renderDepth(r){
   const el=document.getElementById("depthNote");
   const top=+r.offramp_depth_top_level, within=+r.offramp_depth_1pct;

@@ -1233,11 +1233,13 @@ DEPTH_SIDECAR_FIELDS = [
     "ts", "corridor", "notional_src",
     "offramp_depth_top_level_after", "offramp_depth_1pct_after",
 ]
-# Same two deep-layer corridors ROADMAP item 6 already restricted the
-# pre-trade depth line to (corridor.html's DEPTH_CORRIDORS) -- the wide-layer
-# board has no order book to walk, so this sidecar must not carry a row for
-# it, same limit item 6 already stated.
-DEPTH_SIDECAR_CORRIDORS = {"SGD->PHP", "USD->MXN"}
+# Every corridor corridor.html prices (ROADMAP item 6 scoped depth to
+# corridor.html, never index.html's wide-layer board, which has no order
+# book to walk) -- decompose() already computes this for all of them.
+DEPTH_SIDECAR_CORRIDORS = {
+    "SGD->PHP", "AUD->PHP", "NZD->PHP", "USD->MXN",
+    "USD->NGN", "USD->INR", "SGD->INR",
+}
 
 
 def append_depth_sidecar(rows, path=DEPTH_SIDECAR):
@@ -1758,7 +1760,7 @@ def selftest():
         assert captured_this_hour(p, "ts", now) is True
     print("  [ok] per-corridor gate: each corridor claims the hour independently\n")
 
-    # samples_depth.csv: deep-layer corridors get a row, the wide-layer board
+    # samples_depth.csv: every priced corridor gets a row, an unpriced one
     # does not -- never an invented remaining-depth figure for a corridor
     # with no order book to walk (same limit item 6 already stated).
     with tempfile.TemporaryDirectory() as d:
@@ -1767,7 +1769,7 @@ def selftest():
             {"ts": "2026-10-01T00:00:00+00:00", "corridor": "SGD->PHP",
              "notional_src": 200, "offramp_depth_top_level_after": 900.0,
              "offramp_depth_1pct_after": 2000.0},
-            {"ts": "2026-10-01T00:00:00+00:00", "corridor": "AUD->PHP",
+            {"ts": "2026-10-01T00:00:00+00:00", "corridor": "EUR->ZAR",
              "notional_src": 200, "offramp_depth_top_level_after": 900.0,
              "offramp_depth_1pct_after": 2000.0},
         ]
@@ -1775,7 +1777,7 @@ def selftest():
         with open(p, newline="") as f:
             written = list(csv.DictReader(f))
         assert len(written) == 1 and written[0]["corridor"] == "SGD->PHP", written
-    print("  [ok] samples_depth.csv: only the deep-layer corridors get a row\n")
+    print("  [ok] samples_depth.csv: only priced corridors get a row\n")
 
     print("  ALL SELFTESTS PASSED\n")
 
