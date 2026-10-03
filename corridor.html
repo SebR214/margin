@@ -137,6 +137,15 @@
   .rc .a,.rc .b{text-align:right;font-variant-numeric:tabular-nums}
   .rc .b{color:#6B6B6B;font-size:15px}
   .rc.neg span:first-child,.rc.neg .a{color:#6B6B6B}
+  .rv-sub{color:var(--color-neutral-600);margin:0 0 10px}
+  .rv-row{display:grid;grid-template-columns:1fr auto auto;gap:6px 14px;align-items:baseline;padding:9px 0;border-top:1px solid var(--color-divider)}
+  .rv-row .rv-n{font-weight:600}
+  .rv-row .rv-t{font-size:13px;font-weight:700;color:#817FCC;margin-left:8px}
+  .rv-row .rv-c,.rv-row .rv-p{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .rv-row .rv-p{color:var(--color-neutral-600);min-width:60px}
+  .rv-row.gap{color:var(--color-neutral-600)}
+  .rv-row.gap .rv-g{grid-column:2 / 4;text-align:right}
+  @media (max-width:620px){.rv-row{grid-template-columns:1fr auto}.rv-row .rv-p{grid-column:2}.rv-row.gap .rv-g{grid-column:2}}
   .rc.tot{border-top:2px solid #0B0B0B;font-weight:700}
   .rc.tot .a,.rc.tot .b{color:#817FCC}
   @media (max-width:620px){.rc{grid-template-columns:1fr 84px 58px;gap:8px;font-size:15px}}
@@ -193,6 +202,12 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
   <div class="sizebar" id="corrbar"><span class="lbl" id="routeLbl"></span></div>
   <div class="sizebar" id="sizebar"><span class="lbl" id="sendLbl"></span></div>
+
+  <div class="card" id="routesCard" style="display:none">
+    <h2 id="routesHead"></h2>
+    <p class="rv-sub" id="routesSub"></p>
+    <div id="routesList"></div>
+  </div>
 
   <div class="card" style="display:none">
     <div class="nums" id="nums"></div>
@@ -303,6 +318,10 @@ let allRows=[], corrKeys=[], corridor="SGD->PHP", feeChecks=[], withdrawalFees=[
 let measureCount=0, winCount=0, historyStart="";
 let providersLatest=null;
 let corridorSummary={};
+// Every stablecoin path priced for a corridor beyond the base route in
+// samples.csv, from data/corridor_variants.csv (own header, never widened).
+// Read once in boot(); regrouped per corridor/size in renderRoutes().
+let variantRows=[];
 // The 24h/7d/30d/all-time chart's own small sidecar (tools/emit_corridor_history.py,
 // data/corridor_history.json) -- an hourly {ts, stablecoin_cost_pct,
 // cheapest_app_cost_pct} row per corridor+amount actually sampled. Kept
@@ -456,6 +475,7 @@ async function boot(){
     `<span><i style="background:var(--pos)"></i>${L.stableExtra||"extra the stablecoin costs on top"}</span>`;
 
   allRows=parseCSV(await fetch("./data/samples.csv").then(r=>r.text())).filter(r=>r.source_ok==="True");
+  variantRows=await loadCSVOptional("./data/corridor_variants.csv");
   corridorHistory=await fetch("./data/corridor_history.json").then(r=>r.ok?r.json():null).catch(()=>null);
   // The "is it a real dollar" count is a claim about every round trip ever
   // run, not the one corridor on screen -- so it is computed once here, from
@@ -554,7 +574,7 @@ function selectCorridor(key){
     ? T(COPY.costBridgeTemplate||"In a typical hour the stablecoin route costs {typicalPct} of the amount. This hour it is {nowPct}.",
         {typicalPct:pct(summaryRow.taker_cost_bps_median), nowPct:pct(+bySize[size].cost_bps_taker)})
     : "";
-  renderCorridors(); renderSizes(); render();
+  renderCorridors(); renderSizes(); render(); renderRoutes();
   const dst=(r5.dst||"").trim();
   document.getElementById("foot").innerHTML=
     T(COPY.footerTemplate, { onrampVenue: venueName(r5.onramp_venue), srcCcy, offrampVenue: venueName(r5.offramp_venue), dst })+" "+
@@ -586,9 +606,62 @@ function renderSizes(){
   for(const s of SIZES){
     if(!bySize[s]) continue;            // never sampled at this size -> no pill
     const b=document.createElement("button");
-    b.className="sz pill-input"+(s===size?" on is-active":""); b.textContent=money(s); b.onclick=()=>{size=s;renderSizes();render();};
+    b.className="sz pill-input"+(s===size?" on is-active":""); b.textContent=money(s); b.onclick=()=>{size=s;renderSizes();render();renderRoutes();};
     bar.appendChild(b);
   }
+}
+
+// ROADMAP items 0.1 and 15: a corridor no longer pretends there is one
+// stablecoin path. Every path priced THIS hour at the selected amount is
+// listed, the cheapest is named in the headline, and N is the count of paths
+// actually priced (base route from samples.csv plus every corridor_variants.csv
+// row with source_ok=True), never a typed number. A path that was priced
+// before but has no good row this hour stays visible as a gap, not dropped,
+// not filled. One path says so instead of "cheapest of 1".
+const hourOf=ts=>String(ts||"").slice(0,13);
+const prettyNet=n=>String(n||"").replace(/([a-z])([A-Z])/g,"$1 $2").replace(/_/g," ");
+function routeLabel(stable,network){
+  const R=COPY.routes||{};
+  return network ? T(R.labelWithNetworkTemplate||cmiss("routes.labelWithNetworkTemplate"),{stable,network:prettyNet(network)})
+                 : T(R.labelPlainTemplate||cmiss("routes.labelPlainTemplate"),{stable});
+}
+function renderRoutes(){
+  const card=document.getElementById("routesCard");
+  const R=COPY.routes||{};
+  const vrows=variantRows.filter(v=>(v.corridor||"").trim()===corridor);
+  const base=bySize[size];
+  const hour=[newest,...vrows.map(v=>v.ts)].reduce((m,t)=>hourOf(t)>m?hourOf(t):m,"");
+  if(!base||!hour){ card.style.display="none"; return; }
+  const routes=[];
+  const bOk=hourOf(base.ts)===hour && isFinite(+base.cost_bps_taker);
+  routes.push({label:routeLabel((base.stable||"").trim(),""), bps:bOk?+base.cost_bps_taker:null});
+  const known=[...new Set(vrows.map(v=>(v.stable||"").trim()+"|"+(v.network||"").trim()))];
+  for(const k of known){
+    const [st,nw]=k.split("|");
+    const hit=vrows.filter(v=>(v.stable||"").trim()===st&&(v.network||"").trim()===nw&&
+      hourOf(v.ts)===hour&&+v.notional_src===size&&(v.source_ok||"").trim()==="True"&&isFinite(+v.cost_bps_taker))
+      .sort((a,b)=>a.ts<b.ts?1:-1)[0];
+    routes.push({label:routeLabel(st,nw), bps:hit?+hit.cost_bps_taker:null});
+  }
+  const priced=routes.filter(r=>r.bps!==null).sort((a,b)=>a.bps-b.bps);
+  const gaps=routes.filter(r=>r.bps===null);
+  if(!priced.length){ card.style.display="none"; return; }
+  const n=priced.length, best=priced[0];
+  card.style.display="";
+  document.getElementById("routesHead").textContent= n>1
+    ? T(R.headlineManyTemplate||cmiss("routes.headlineManyTemplate"),{n,route:best.label})
+    : T(R.headlineOneTemplate||cmiss("routes.headlineOneTemplate"),{route:best.label});
+  document.getElementById("routesSub").textContent=T(R.subTemplate||cmiss("routes.subTemplate"),{amount:money(size)});
+  let h="";
+  for(const r of priced){
+    const more=r===best?"":T(R.moreThanCheapestTemplate||cmiss("routes.moreThanCheapestTemplate"),{diff:cashDiff(size,r.bps,best.bps)});
+    h+=`<div class="rv-row"><div><span class="rv-n">${esc(r.label)}</span>${r===best&&n>1?`<span class="rv-t">${esc(R.cheapestTag||cmiss("routes.cheapestTag"))}</span>`:""}${more?`<div style="font-size:13px;color:var(--color-neutral-600)">${esc(more)}</div>`:""}</div>`+
+       `<div class="rv-c">${cash(size,r.bps)}</div><div class="rv-p">${pct(r.bps)}</div></div>`;
+  }
+  for(const r of gaps){
+    h+=`<div class="rv-row gap"><div><span class="rv-n">${esc(r.label)}</span></div><div class="rv-g">${esc(R.notPricedThisHour||cmiss("routes.notPricedThisHour"))}</div></div>`;
+  }
+  document.getElementById("routesList").innerHTML=h;
 }
 
 function netBps(r){ return (+r.network_fee_stable)/((+r.notional_src)/(+r.onramp_vwap))*1e4; }
