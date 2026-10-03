@@ -100,10 +100,8 @@ def existed_in(base, name):
                           capture_output=True).returncode == 0
 
 
-def review(page, base_url, name):
-    q = PAGE_QUERY.get(name, "")
-    url = "%s/%s%s" % (base_url, name, q)
-    text = page_text(page, url)
+def judge(text, name):
+    """Send one page's text to the model; keep only failures whose quote is really on the page."""
     if len(text) < 80:
         return {"page": name, "failures": [{"section": "(whole page)", "reason": "the page rendered almost no visible text",
                                             "exact_text": text}], "sections": []}
@@ -116,6 +114,40 @@ def review(page, base_url, name):
             real.append(f)
     return {"page": name, "failures": real, "sections": out.get("sections") or [],
             "dropped_unquotable": len(out.get("failures") or []) - len(real)}
+
+
+def review(page, base_url, name):
+    q = PAGE_QUERY.get(name, "")
+    return judge(page_text(page, "%s/%s%s" % (base_url, name, q)), name)
+
+
+def added_fragments(base):
+    """Literal text this PR adds to copy.json (string values), split at template
+    placeholders into fragments long enough to recognise on a rendered page."""
+    r = subprocess.run(["git", "diff", "-U0", base + "...HEAD", "--", "copy.json"],
+                       cwd=HERE, capture_output=True, text=True)
+    frags = set()
+    for line in r.stdout.splitlines():
+        if not line.startswith("+") or line.startswith("+++"):
+            continue
+        body = line[1:]
+        m = re.match(r'\s*"[^"]+"\s*:\s*"(.*)",?\s*$', body) or re.match(r'\s*"(.*)",?\s*$', body)
+        if not m:
+            continue
+        val = m.group(1).replace('\\"', '"')
+        for part in re.split(r"\{[^}]*\}", re.sub(r"<[^>]+>", " ", val)):
+            part = norm(part)
+            if len(part) >= 14:
+                frags.add(part)
+    return frags
+
+
+def page_is_affected(name, text, base, frags, html_changed):
+    """A page needs reading only if its own html changed or it shows text this PR added."""
+    if not existed_in(base, name) or name in html_changed:
+        return True
+    hay = norm(text)
+    return any(f in hay for f in frags)
 
 
 def self_test():
@@ -143,6 +175,7 @@ def main():
     ap.add_argument("--base-url")
     ap.add_argument("--json-out")
     ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--list-affected", action="store_true", help="print which pages a PR would have read; no model call")
     ap.add_argument("--changed-only", action="store_true",
                     help="only failures on text this PR adds block; failures on pre-existing text are listed, not blocking")
     a = ap.parse_args()
@@ -170,10 +203,19 @@ def main():
         base_url, stop = serve(HERE)
     reports = []
     try:
+        html_changed = {f for f in changed_files(a.base) if "/" not in f and f.endswith(".html")} if a.changed_only else set()
+        frags = added_fragments(a.base) if a.changed_only else set()
         with Page(settle=4.0) as page:
             for name in names:
                 try:
-                    rep = review(page, base_url, name)
+                    text = page_text(page, "%s/%s%s" % (base_url, name, PAGE_QUERY.get(name, "")))
+                    if a.changed_only and not page_is_affected(name, text, a.base, frags, html_changed):
+                        sys.stderr.write("  skip %s: shows none of the text this PR added\n" % name)
+                        continue
+                    if a.list_affected:
+                        print("would read: " + name)
+                        continue
+                    rep = judge(text, name)
                 except Exception as e:  # a gate that cannot run must say so, not pass
                     print("COLD READER COULD NOT RUN on %s: %s" % (name, e))
                     return 2
@@ -188,13 +230,15 @@ def main():
 
     if a.changed_only:
         added = added_text(a.base)
+        frags = added_fragments(a.base)
         for r in reports:
             if not existed_in(a.base, r["page"]):
                 continue  # a new page is read in full
             keep, old = [], []
             for f in r["failures"]:
-                q = norm(f.get("exact_text"))[:50]
-                (keep if q and q in added else old).append(f)
+                q = norm(f.get("exact_text"))
+                hit = bool(q) and (q[:50] in added or any(fr in q for fr in frags) or (len(q) >= 14 and any(q in fr for fr in frags)))
+                (keep if hit else old).append(f)
             r["failures"], r["preexisting"] = keep, old
         for r in reports:
             if r.get("preexisting"):
