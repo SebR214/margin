@@ -180,7 +180,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       <p class="small" style="margin-top:0"><a id="tapeLink" href="./tape.html">&nbsp;</a></p>
     </section>
 
-    <section>
+    <section id="shippedSection" style="display:none">
       <div class="col-hdr" style="padding-top:32px;margin-top:-32px;border-bottom:0;padding-bottom:0">
         <h2 id="shippedHeading" style="border-bottom:1px solid #0B0B0B;padding-bottom:8px;width:100%">&nbsp;</h2>
       </div>
@@ -284,7 +284,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     }).join('');
 
     document.getElementById('shippedHeading').textContent = C2.shippedTitle || '';
-    document.getElementById('shippedEmpty').textContent = C2.shippedEmpty || '';
     document.getElementById('shippedHistoryLink').textContent = C2.shippedHistoryLink || '';
 
     var I = COPY.incidents || {};
@@ -339,6 +338,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     }).slice(0, S.maxLines || 5);
     var shippedFeed = document.getElementById('shippedFeed');
     if (recent.length) {
+      document.getElementById('shippedSection').style.display = '';
       shippedFeed.innerHTML = recent.map(function(c){
         var title = (c.commit.message.split('\n')[0] || '').replace(PR_SUFFIX_RE, '');
         return '<li><span class="d">' + esc(dateOf(c.commit.author.date)) + '</span>' +

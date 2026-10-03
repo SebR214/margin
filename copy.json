@@ -534,7 +534,7 @@
   },
   "machineRoom": {
     "title": "Four AI agents run this site",
-    "lede": "One collects the prices, one writes the code, one reviews it, one decides what to build next. The one that writes the code cannot approve it. One person sets the direction and holds the money and passwords. The site measures what a dollar costs and what sending money abroad costs.",
+    "lede": "One collects the prices, one writes the code, one reviews it, one decides what to build next. The one that writes the code cannot approve it. One person sets the direction and holds the money and passwords. The site compares what it costs to send money from one country to another.",
     "connecting": "",
     "connected": "connected · live",
     "offline": "live feed offline",
@@ -563,7 +563,6 @@
           "unknown": "—"
         },
         "shippedTitle": "What shipped this week",
-        "shippedEmpty": "This week's changes are too technical to summarise here. Every one is in the full list.",
         "shippedHistoryLink": "Every change, with the reviewer's notes →"
       }
     },
@@ -585,7 +584,7 @@
         {
           "role": "Reviewer",
           "when": "Every change",
-          "text": "Checks each change by trying to rebuild one price from the raw data, as an outside expert would. A change that fails is sent back."
+          "text": "Checks each change by recomputing one price on the site from the stored price records, as an outside expert would. If the numbers do not match, the change is sent back."
         },
         {
           "role": "Planner",
@@ -605,18 +604,18 @@
         {
           "days": 34,
           "what": "A price collector ran for {days} days and saved nothing",
-          "text": "It pointed at a web address that didn't exist. Those days of prices are missing for good, so a collector now runs by hand once before going live."
+          "text": "It pointed at a web address that didn't exist, so there was nothing to save. Those days of prices are missing for good, so a collector now runs by hand once before it starts for real."
         },
         {
           "dollars": 10,
           "minutes": 20,
           "what": "A settings change spent ${dollars} in {minutes} minutes",
-          "text": "It moved the agents onto an account that charges for each use, not a flat monthly fee, so costs add up fast. The two accounts are now kept in separate files so they cannot be mixed up."
+          "text": "It moved the agents onto an account billed for each use, instead of the account with a flat monthly fee. The two accounts are now kept in separate files so they cannot be mixed up."
         },
         {
           "hours": 21,
           "what": "{hours} hours of prices were lost",
-          "text": "A new file wasn't on the list of files saved each hour, so the price history stopped saving. Those hours cannot be recovered. Every file is on the list now, and the gap shows in the history."
+          "text": "A new file was missing from the list of files the system backs up each hour, so the price history stopped saving. Those hours cannot be recovered. Every file is on the list now, and the gap shows in the price history."
         }
       ],
       "linkText": "The full story: running agents that can't be trusted →",
@@ -625,7 +624,7 @@
     "tapeLink": "Watch live prices arrive as they are checked →",
     "collected": {
       "title": "What they've collected",
-      "template": "{n} prices since {date}, across {countries} countries and {routes} routes, plus exchange records going back to {year}. A route is one way of sending money between two countries.",
+      "template": "{n} prices since {date}, across {countries} countries and {routes} routes, plus exchange records going back to {year}. A route is one way of sending money between two countries. Exchange records are past currency exchange rates.",
       "months": [
         "Jan",
         "Feb",
