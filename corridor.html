@@ -845,13 +845,17 @@ function drawWaterfall(r,cheapest,rp){
   document.getElementById("wfRoute").textContent=notCheapest
     ? T(RT.breakdownNotCheapestTemplate||cmiss("routes.breakdownNotCheapestTemplate"),{route:baseLabel,cost:costOrGain(n,total),best:rp.best.label,bestCost:costOrGain(n,rp.best.bps)})
     : T(RT.breakdownNoteTemplate||cmiss("routes.breakdownNoteTemplate"),{route:baseLabel,cost:costOrGain(n,total)});
-  const leg=b=>T(+b<0?(WF.legPaysBackTemplate||cmiss("legPaysBackTemplate")):(WF.legCostsTemplate||cmiss("legCostsTemplate")),{amount:cashAbs(n,+b)});
+  // Whole cents, the last leg being the remainder against the total, so the
+  // three figures add to the printed total and match the receipt below.
+  const buyC=cents(n,+wf.wf_buy_bps), moveC=cents(n,+wf.wf_move_bps);
+  const sellC=Math.round((cents(n,total)-buyC-moveC)*100)/100;
+  const leg=c=>T(c<0?(WF.legPaysBackTemplate||cmiss("legPaysBackTemplate")):(WF.legCostsTemplate||cmiss("legCostsTemplate")),{amount:fmtCents(Math.abs(c))});
   // "Free on and off the exchanges" is only said when the data says both ramp
   // legs were measured and are zero (never for an unpriced gap).
   const rampZero=ramp&&ramp.deposit_measured!=="False"&&ramp.withdrawal_measured!=="False"&&
     Math.abs(+ramp.wf_deposit_bps)<0.005&&Math.abs(+ramp.wf_withdrawal_bps)<0.005;
   document.getElementById("wfAnswer").textContent=
-    T(WF.answerTemplate||cmiss("waterfall.answerTemplate"),{buy:leg(wf.wf_buy_bps),chain:leg(wf.wf_move_bps),ccy:dstOf(r),sell:leg(wf.wf_sell_bps)})+
+    T(WF.answerTemplate||cmiss("waterfall.answerTemplate"),{buy:leg(buyC),chain:leg(moveC),ccy:dstOf(r),sell:leg(sellC)})+
     (rampZero?" "+(WF.rampsFreeClause||cmiss("rampsFreeClause")):"")+
     // The closing line is only said when it is true of the three legs: both
     // ends cost money and together outweigh the transfer, or the transfer
@@ -962,7 +966,10 @@ function drawReceipt(r,wf,ramp){
   const vals=lines.filter(x=>x.v!=null);
   const totalC=cents(n,total);
   const cs=vals.map(x=>cents(n,x.v));
-  cs[cs.length-1]=Math.round((totalC-cs.slice(0,-1).reduce((a,b)=>a+b,0))*100)/100;
+  // The cent remainder goes on the last line that actually carries a cost,
+  // so a free ramp leg never shows a stray S$0.01 next to a "free" claim.
+  let big=0; vals.forEach((x,i)=>{ if(Math.abs(x.v)>=0.005) big=i; });
+  cs[big]=Math.round((totalC-cs.reduce((a,b,i)=>i===big?a:a+b,0))*100)/100;
   let k=0, h="";
   for(const x of lines){
     if(x.leg){ h+=`<div class="rc leg">${esc(x.leg)}</div>`; continue; }
