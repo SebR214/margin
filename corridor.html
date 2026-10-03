@@ -1007,7 +1007,7 @@ function drawLadder(){
   const picks=[...new Set([0,rows.length>>1,rows.length-1])].map(i=>rows[i]);
   document.getElementById("ladderCap").textContent=
     picks.map(r=>{const b=best(r).t; return T((b<0?LD.itemGainTemplate:LD.itemTemplate)||cmiss("ladder.itemTemplate"),{amount:money(+r.notional_src),pct:pct(Math.abs(b))});}).join(", ")+"."+
-    (appWinsAll?" "+(LD.appCheaperEverywhere||cmiss("ladder.appCheaperEverywhere")):"");
+    (appWinsAll?" "+(LD.appCheaperEverywhere||cmiss("ladder.appCheaperEverywhere")):"")+" "+(LD.limitNote||cmiss("ladder.limitNote"));
   let h=`<tr><th>Amount</th><th>Stablecoin</th><th>Limit order</th><th>Cheapest app</th></tr>`;
   for(const r of rows){
     const s=+r.notional_src, bst=best(r), t=bst.t, m=bst.m;
