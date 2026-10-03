@@ -27,6 +27,14 @@
  * tools/emit_pricechange_receipts.py) and copy.json's "receiptPriceChange"
  * templates -- see buildPriceChangeSteps().
  *
+ * tape.html's street-price and bank-rate cells (SEB-219) replay the same
+ * shell again, from data/basis_receipts/<CCY>.json (built by
+ * tools/emit_basis_receipts.py) and copy.json's "receiptBasis" templates --
+ * see buildBasisSteps(). Deliberately its own receipt kind, not
+ * data/receipts/<CCY>.json: that file replays the premium-index arithmetic
+ * (evidence vs. official rate vs. result_pct), a different, unrelated
+ * number from the raw street price and bank rate tape.html actually shows.
+ *
  * Wired once, on document, by delegation -- so it survives a full re-render
  * of index.html's innerHTML-driven sections as well as a plain DOM page
  * (country.html, countries.html, corridor.html, sending-money.html), the
@@ -73,6 +81,9 @@
   }
   function getMeterCopy() {
     return getCopyDoc().then(function (c) { return (c && c.receiptMeter) || {}; });
+  }
+  function getBasisCopy() {
+    return getCopyDoc().then(function (c) { return (c && c.receiptBasis) || {}; });
   }
   function getProviderCopy() {
     return getCopyDoc().then(function (c) { return (c && c.receiptProvider) || {}; });
@@ -463,6 +474,35 @@
     ];
   }
 
+  // tape.html's street-price and bank-rate cells (SEB-219): the same shell
+  // again, fed from data/basis_receipts/<CCY>.json (built by
+  // tools/emit_basis_receipts.py) and copy.json's "receiptBasis" templates.
+  // Both cells for a currency open the same receipt -- one row of
+  // data/p2p_basis.csv already carries both numbers -- so this never
+  // recomputes anything, it only narrates the row that produced them.
+  function buildBasisSteps(receipt, copy) {
+    var files = receipt.source_files || [];
+    var buy = fmtNum(receipt.buy_median), sell = fmtNum(receipt.sell_median),
+      mid = fmtNum(receipt.mid), rate = fmtNum(receipt.fx_mid_per_usd);
+
+    var evidenceText = T(copy.evidenceSentenceTemplate, {
+      n: receipt.n_ads, ccy: receipt.ccy, buy: buy, sell: sell
+    });
+    var collected = T(copy.evidenceCollectedTemplate, { when: fmtWhen(receipt.ts_utc) });
+
+    var rateText = receipt.fx_mid_per_usd != null
+      ? T(copy.rateSentenceTemplate, { ccy: receipt.ccy, rate: rate })
+      : T(copy.rateUnavailable, { ccy: receipt.ccy });
+
+    var mathText = T(copy.mathSentenceTemplate, { buy: buy, sell: sell, mid: mid, ccy: receipt.ccy });
+
+    return [
+      { label: copy.step1Label, text: [evidenceText, collected].filter(Boolean).join(" "), files: files },
+      { label: copy.step2Label, text: rateText, files: files },
+      { label: copy.step3Label, text: mathText, files: files }
+    ];
+  }
+
   var STYLE = [
     ".receipt-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;}",
     ".receipt-backdrop{position:absolute;inset:0;background:rgba(32,30,29,.55);}",
@@ -490,7 +530,7 @@
     ".receipt-raw-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d7979;margin-bottom:6px;}",
     ".receipt-raw-links{font-size:12px;line-height:1.8;}",
     ".receipt-loading{font-size:13px;color:#7d7979;padding:12px 0;}",
-    "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key],[data-receipt-meter-file]{cursor:pointer;}"
+    "[data-receipt-ccy],[data-receipt-basis-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key],[data-receipt-meter-file]{cursor:pointer;}"
   ].join("\n");
 
   function ensureStyle() {
@@ -772,14 +812,40 @@
     });
   }
 
+  // tape.html's street-price and bank-rate cells (SEB-219): same shell, a
+  // receipt file keyed by currency, and its own copy.json templates
+  // (receiptBasis) rather than the index/country ones -- see
+  // buildBasisSteps() for why.
+  function openBasis(ccy, displayValue, triggerEl) {
+    if (!ccy) return;
+    var closeBtn = openShell(ccy, displayValue, triggerEl);
+
+    getBasisCopy().then(function (copy) {
+      if (!overlayEl) return;
+      overlayEl.querySelector(".receipt-title").textContent = copy.title || "";
+      closeBtn.setAttribute("aria-label", copy.close || "");
+      renderLoading(copy);
+      closeBtn.focus();
+      var path = "data/basis_receipts/" + ccy + ".json";
+      fetch(path, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .then(function (receipt) {
+          paintSteps(buildBasisSteps(receipt, copy), receipt.source_files, copy.rawFilesLabel);
+        })
+        .catch(function () { renderError(copy, path); });
+    });
+  }
+
   document.addEventListener("click", function (e) {
     var t = e.target.closest && e.target.closest(
-      "[data-receipt-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key],[data-receipt-meter-file]");
+      "[data-receipt-ccy],[data-receipt-basis-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key],[data-receipt-meter-file]");
     if (!t) return;
     e.preventDefault();
     var displayValue = t.getAttribute("data-receipt-value") || t.textContent;
     if (t.hasAttribute("data-receipt-meter-file")) {
       openMeter(t.getAttribute("data-receipt-meter-file"), displayValue, t);
+    } else if (t.hasAttribute("data-receipt-basis-ccy")) {
+      openBasis(t.getAttribute("data-receipt-basis-ccy"), displayValue, t);
     } else if (t.hasAttribute("data-receipt-corridor-file")) {
       openCorridor(t.getAttribute("data-receipt-corridor-file"),
         t.getAttribute("data-receipt-regime") || "taker", displayValue, t);
