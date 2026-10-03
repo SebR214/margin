@@ -839,8 +839,10 @@ instead of overwriting it hourly:
 
 **Not backtested.** `data/fx_rates.csv` — the official rate this signal checks
 a street price against — starts on 2026-09-10, with nothing before it to
-compare against. Rather than backfill it, which the project never does, the
-record starts on that date and runs forward. `/stress.html` states the
+compare against. Rather than backfill it into the live layer, which the project
+never does, the record starts on that date and runs forward. (The separate
+"reported, not observed" history layer below holds official-rate history of its
+own; this signal does not read it.) `/stress.html` states the
 record's start date and its length in days on every load, so a four-day record
 reads as four days, not as an established track record.
 
@@ -1249,6 +1251,74 @@ fawazahmed0 to remove the seam is noted as a future upgrade. Also note history
 is one daily *close* per venue while live is hourly — the history line is a daily
 series, the live point is the latest hour.
 
+## The history layer ("reported, not observed")
+
+Added 2026-10-03 (SEB-207). Everything this site publishes as a measurement was
+observed by its own collector, hour by hour. History from before that is a
+different kind of thing, and it is kept as a different kind of thing:
+
+- **Its own files.** `data/history/` only. `tools/backfill_history.py` is the
+  only writer; it is idempotent, never overwrites a stored row, and has a
+  `--dry-run`. Existing files are untouched: `data/basis_history.csv` keeps its
+  header, and new series go in new files.
+- **Every row labelled `reported, not observed`, source named.** Candle files:
+  `ts_utc, venue, ccy, pair, interval, close, label, source`; official rates:
+  `date, ccy, per_usd, label, source`; parallel dollar:
+  `date, market, ccy, buy, sell, label, source`.
+- **Rows come only from an exchange's or data provider's own history endpoint.**
+  Never derived, filled, interpolated or crossed against another series: a row is
+  the number the venue or provider reported for that hour or day. If the endpoint
+  has no candle for an hour, there is no row. A candle still open when fetched is
+  skipped, so a stored row never changes.
+- **It never feeds the live layer.** Not the index, not a published price, not
+  the observed series (`data/basis.csv`, `samples.csv`, `p2p_basis.csv`, ...), not
+  the unbroken-hours count. `tools/check_history_isolation.py` proves it: no code
+  outside the history tool names the directory, no emitter walks `data/`
+  recursively, `unbroken_hours()` is run with every file open recorded, and the
+  label appears in no observed file. A page may compare today against history
+  ("widest since 2023 in Upbit's own history") only with the label and the source
+  on the page.
+- **P2P-only countries have none.** Binance P2P has no history endpoint. Their
+  pages say history starts on our first collection date.
+- **Depth.** Daily candles are taken at each venue's full offered depth; hourly
+  candles from 2025-01-01 (`--hourly-since`), a size cap, not an endpoint limit,
+  except where noted. Hourly runs through the latest closed hour.
+
+**Probe verdicts, 2026-10-03** (public, login-free endpoints, real requests; none
+needed a key). None of these endpoints states a data licence; the use here is
+prices as reported by the venue, named on every row, and nothing is resold.
+
+| Candidate | Endpoint | Result | Verdict |
+|---|---|---|---|
+| Upbit KRW-USDT | `api.upbit.com/v1/candles` | hourly and daily; the endpoint stops at 2024-06-07 | accepted |
+| Bithumb KRW-USDT | `api.bithumb.com/v1/candles` | hourly from 2025 as collected (the daily goes to 2023-12-06); `to` is read as KST | accepted |
+| Coinone KRW/USDT | `api.coinone.co.kr/public/v2/chart` | hourly and daily; daily from 2023-11-29 | accepted |
+| BTCTurk USDTTRY | `graph-api.btcturk.com/v1/klines/history`, `api.btcturk.com/api/v2/ohlc` | hourly and daily; daily from 2018-07-10 | accepted |
+| Paribu | `v4.paribu.com/market/usdt-tl/ohlc` | answers with a Cloudflare Access sign-in page; the web chart route 404s | rejected: login wall |
+| Indodax USDTIDR | `indodax.com/tradingview/history_v2` | hourly (7-day windows) and daily; daily only the last 2 years | accepted |
+| Bitkub USDT_THB | `api.bitkub.com/tradingview/history` | hourly and daily; daily from 2018-11-12 | accepted |
+| Bitso usdt_mxn | `api.bitso.com/api/v3/ohlc` | hourly from 2026-03-21, daily from 2024-10-02 (shallow public window) | accepted, shallow |
+| Mercado Bitcoin USDT-BRL | `mercadobitcoin.net/api`, `mobile.mercadobitcoin.com.br/v4` | HTTP 403 Cloudflare bot challenge | rejected: bot challenge, not evaded |
+| Foxbit usdtbrl | `api.foxbit.com.br/rest/v3/markets/usdtbrl/candlesticks` | hourly and daily; daily from 2021-04-07 | accepted |
+| BitoPro usdt_twd | `api.bitopro.com/v3/trading-history` | hourly and daily; daily from 2018-09-11 | accepted |
+| MAX usdttwd | `max-api.maicoin.com/api/v2/k` | hourly and daily; daily from 2018-04-25 | accepted |
+| Independent Reserve Usdt/Aud | `api.independentreserve.com/Public` | market summary and recent trades only, no candle or history endpoint (candle URLs 404). Building candles from trades would be derived | rejected: no history endpoint |
+| Coins.ph USDTPHP | `api.pro.coins.ph/openapi/quote/v1/klines` | hourly and daily; daily from 2022-10-29 | accepted |
+| Official rates | Frankfurter (`api.frankfurter.dev`, ECB reference rates) | daily per USD for KRW, TRY, IDR, THB, MXN, BRL, PHP, SGD, AUD, NZD, INR from 2017-12-29 | accepted |
+| Parallel dollar, Argentina | ArgentinaDatos `api.argentinadatos.com/v1/cotizaciones/dolares/blue` | daily buy and sell from 2011-01-03; MIT licence | accepted |
+| Parallel dollar, Argentina (second) | Bluelytics `api.bluelytics.com.ar/v2/evolution.json` | answers; code is AGPL-3.0, no data licence stated | rejected: licence unclear, and a second source would only duplicate |
+
+**Gaps, stated.** No ECB series for TWD (the two Taiwan venues), ARS, NGN, VES,
+EGP or DZD; official-rate history there is a gap, not an estimate. No history for
+any currency priced only through Binance P2P. Parallel-dollar series exist here for
+Argentina only; no public series was found and accepted for the other street
+markets this site tracks, so they have none. Coinone/Upbit/Bithumb depth is the
+endpoints' own limit. Bithumb's daily bucket opens at 15:00 UTC (midnight Korea);
+each row's `ts_utc` is the bucket's open exactly as the venue reports it.
+
+**Spot check.** Rows picked at random from the files were matched to the venue's
+own endpoint response, one fresh request per row; all matched exactly.
+
 ## The incumbent panel
 
 `data/samples.csv` keeps only the *winning* incumbent (the cheapest provider) for
@@ -1379,4 +1449,5 @@ newest row in either CSV is more than 3 hours old, whether or not that run had
 anything to write.
 
 Gaps remain visible in the data: a missing hour is a missing hour, never
-interpolated or back-filled.
+interpolated or back-filled. This is the live layer's rule and it has no
+exception. History held in its own layer (next sections) never fills a live gap.

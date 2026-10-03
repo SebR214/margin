@@ -29,3 +29,10 @@ file it came from, and the failures stay published.
     naming it in his own words in the session.
 - Plain words everywhere, but plain means reworded, never deleted.
 - Nothing ships without Sebastian seeing the rendered page.
+- No backfill of the live layer, ever: gaps stay gaps, nothing is interpolated.
+    History is the one exception, and only as its own layer: files of its own,
+    every row labelled "reported, not observed" with the source named, rows taken
+    only from an exchange's or data provider's own history endpoint (never derived
+    or filled), and never feeding the index, a published price, the observed series
+    or the unbroken-hours count. A page may compare today against it if the label
+    and source are on the page. Amended 2026-10-03 on Sebastian's instruction (SEB-207).

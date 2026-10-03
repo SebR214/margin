@@ -187,5 +187,9 @@ run.
 - Never push to `main`, never merge your own PR, never edit a label other than
   the ones named here.
 - Never remove the `commission` label -- `/requests` finds issues by it alone.
-- Never change an existing CSV header, backfill a row, or add a secret.
+- Never change an existing CSV header, backfill a row into the live layer, or add a
+  secret. History is the one exception, in its own labelled layer
+  (`data/history/`, "reported, not observed", see `agents/RULES.md`); a commission
+  never writes it and never lets it feed the index, a price, the observed series or
+  the unbroken-hours count.
 - Never widen scope. The issue is the contract.

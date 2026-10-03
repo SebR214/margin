@@ -189,5 +189,9 @@ run.
 - Never work two issues in one run.
 - Never push to `main`, never merge your own PR.
 - Never open a GitHub issue. Linear is where work is managed.
-- Never change an existing CSV header, backfill a row, or add a secret.
+- Never change an existing CSV header, backfill a row into the live layer, or add a
+  secret. History is the one exception, in its own labelled layer
+  (`data/history/`, "reported, not observed", see `agents/RULES.md`); never write it
+  except by `tools/backfill_history.py`, and never let it feed the index, a price,
+  the observed series or the unbroken-hours count.
 - Never widen scope. The issue is the contract.
