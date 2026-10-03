@@ -469,11 +469,16 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     document.getElementById('researchLede').textContent = Z.lede || '';
     var nf = function(n){ return Number(n || 0).toLocaleString('en-US'); };
     rows += runRow(L.observations, nf(x.observations), '', Z.observationsSub || '');
+    rows += runRow(L.routes, nf(x.routes), '', Z.routesSub || '');
+    rows += runRow(L.countries, nf(x.countries), '', Z.countriesSub || '');
     rows += runRow(L.history, x.history_first_year ? T(Z.historyValue, { year: x.history_first_year }) : (Z.historyNone || ''), '',
       x.history_first_year ? T(Z.historySub, { n: x.history_sources }) : '');
     rows += runRow(L.findings, nf(x.findings), '', Z.findingsSub || '');
     rows += runRow(L.dropped, nf(x.tested_and_dropped), '', Z.droppedSub || '');
+    rows += runRow(L.activeInvestigations, nf(x.active_investigations), '', Z.activeInvestigationsSub || '');
     rows += runRow(L.questions, nf(x.open_questions), '', Z.questionsSub || '');
+    rows += runRow(L.evidenceChains, nf(x.evidence_chains), '', Z.evidenceChainsSub || '');
+    rows += runRow(L.auditorScore, x.auditor_score_pct != null ? T(Z.auditorScoreValue, { pct: x.auditor_score_pct }) : (Z.auditorScoreNone || ''), '', Z.auditorScoreSub || '');
     document.getElementById('researchRows').innerHTML = rows;
   }
 

@@ -91,6 +91,10 @@ import urllib.request
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
 OUT = os.path.join(DATA, "machine_room_meters.json")
+ANALYST_FINDINGS = os.path.join(DATA, "analyst_findings.json")
+AUDIT_LATEST = os.path.join(DATA, "audit_latest.json")
+CORRIDOR_SUMMARY = os.path.join(DATA, "corridor_summary.json")
+COUNTRIES_DIR = os.path.join(DATA, "countries")
 
 REPO = "SebR214/margin"
 PR_SUFFIX_RE = re.compile(r"\(#\d+\)\s*$")
@@ -319,23 +323,14 @@ def _data_rows(path):
     return max(n - 1, 0)
 
 
-def _objects(sub):
-    d = os.path.join(DATA, sub)
-    out = []
-    if os.path.isdir(d):
-        for n in sorted(os.listdir(d)):
-            if n.endswith(".json"):
-                doc = _read_json(os.path.join(d, n))
-                if isinstance(doc, dict):
-                    out.append(doc)
-    return out
-
-
 def research_block():
-    """Every count is worked out from files on disk when this runs, never kept
-    as a tally: observation rows from the price CSVs, history span from the
-    history manifest, findings/questions from the stored objects (none exist
-    until the analyst writes them, so they read 0 honestly)."""
+    """Every count is worked out from files on disk when this runs, never
+    kept as a tally. SEB-212 (ROADMAP item 22): reads what item 19 (the
+    auditor, tools/audit_numbers.py, data/audit_latest.json) and item 20
+    (the analyst, tools/analyst.py, data/analyst_findings.json) already
+    wrote -- no new collector, nothing computed here that those scripts
+    don't already compute. Both files read 0/None honestly until those
+    scripts have run at least once on this box."""
     obs = {n: _data_rows(os.path.join(DATA, n)) for n in OBSERVED_FILES}
     man = _read_json(os.path.join(DATA, "history", "manifest.json")) or {}
     # Exchange candles only: the official-rate and parallel-dollar series are
@@ -343,15 +338,35 @@ def research_block():
     mine = {k: v for k, v in (man.get("files") or {}).items()
             if k.rsplit("_", 1)[-1] in ("1d", "1h")}
     firsts = [v.get("first") for v in mine.values() if v.get("first")]
-    findings = _objects("findings")
+
+    store = _read_json(ANALYST_FINDINGS) or {}
+    findings = store.get("findings") or []
+    # "Active tonight": the analyst's most recent run only, not the whole
+    # historical ledger -- a standing win-condition gap gets a fresh finding
+    # most nights it's checked, so counting every stored row ever would grow
+    # without bound and say nothing about what is live right now.
+    latest_date = max((f["as_of_date"] for f in findings), default=None)
+    active = {(f["kind"], f["subject"]) for f in findings if f["as_of_date"] == latest_date}
+
+    corridors = (_read_json(CORRIDOR_SUMMARY) or {}).get("corridors") or []
+    countries = [n for n in os.listdir(COUNTRIES_DIR) if n.endswith(".json")] \
+        if os.path.isdir(COUNTRIES_DIR) else []
+
+    audit = _read_json(AUDIT_LATEST) or {}
+
     return {
         "observations": sum(obs.values()),
         "observation_files": list(OBSERVED_FILES),
         "history_first_year": int(min(firsts)[:4]) if firsts else None,
         "history_sources": len({k.rsplit("_", 1)[0] for k in mine}),
-        "findings": len([f for f in findings if f.get("status") != "rejected"]),
-        "tested_and_dropped": len([f for f in findings if f.get("status") == "rejected"]),
-        "open_questions": len(_objects("questions")),
+        "routes": len(corridors),
+        "countries": len(countries),
+        "findings": len(findings),
+        "tested_and_dropped": len([f for f in findings if f.get("interpretation_rejected")]),
+        "active_investigations": len(active),
+        "open_questions": len(store.get("collection_tasks_filed") or {}),
+        "evidence_chains": len([f for f in findings if f.get("cites")]),
+        "auditor_score_pct": audit.get("score_pct"),
     }
 
 
