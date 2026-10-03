@@ -42,7 +42,7 @@ import sys
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(HERE, "tools"))
-from gate_common import PAGE_QUERY, all_pages, changed_files, pages_for_change, serve  # noqa: E402
+from gate_common import PAGE_QUERY, all_pages, changed_files, open_page, pages_for_change, serve  # noqa: E402
 from headless import Page  # noqa: E402
 
 BASELINE = os.path.join(HERE, "tools", "rendered_baseline.json")
@@ -201,7 +201,7 @@ def load_baseline():
 
 def run(base_url, names, quiet=False):
     results = {}
-    with Page(settle=4.0) as page:
+    with open_page(settle=4.0) as page:
         for name in names:
             url = base_url + "/" + name.split("?")[0] + (PAGE_QUERY.get(name, "") if "?" not in name else "?" + name.split("?", 1)[1])
             results[name] = check_page(page, url, name)
