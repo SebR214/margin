@@ -74,3 +74,18 @@ def serve(root=HERE):
     t = threading.Thread(target=httpd.serve_forever, daemon=True)
     t.start()
     return "http://127.0.0.1:%d" % port, httpd.shutdown
+
+
+def open_page(settle=4.0, tries=3):
+    """A headless Page that survives the CI runner occasionally failing to open
+    Chrome's debug port ("browser never opened a debug port"): retry the launch."""
+    import time
+    from headless import Page
+    last = None
+    for i in range(tries):
+        try:
+            return Page(settle=settle)
+        except Exception as e:  # noqa: BLE001
+            last = e
+            time.sleep(2 + 3 * i)
+    raise last

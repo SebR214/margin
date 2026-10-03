@@ -295,6 +295,8 @@ const moneyIn=(c,n)=>(n===null||n===undefined||!isFinite(n))?"—":symIn(c)+Math
 const cents=(n,b)=>(n===null||b===null||!isFinite(n)||!isFinite(b))?null:Math.round(n*b/1e4*100)/100;
 const fmtCents=v=>v===null?"—":(v<0?"−":"")+sym()+Math.abs(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const cash=(n,b)=>fmtCents(cents(n,b));
+// Same figure as cash() with the minus sign dropped, so "a gain of X" matches the "-X" printed elsewhere to the cent.
+const cashAbs=(n,b)=>cash(n,b).replace("\u2212","");
 const cashDiff=(n,a,b)=>{
   const x=cents(n,a), y=cents(n,b);
   return (x===null||y===null)?"—":fmtCents(Math.round((x-y)*100)/100);
@@ -627,9 +629,14 @@ function routeLabel(stable,network){
 // typical-hour line and the comparison against the cheapest app all read it
 // (SEB-217), so no two figures on the page can name different "stablecoin
 // costs". Returns null when nothing is priced this hour.
-function routePricing(){
+// A cost as money, or "a gain of ..." when it is negative.
+function costOrGain(n,b){
+  return b<0 ? T(COPY.gainOfTemplate||cmiss("gainOfTemplate"),{amount:cashAbs(n,b)}) : cash(n,b);
+}
+function routePricing(sz){
+  sz=(sz===undefined)?size:sz;
   const vrows=variantRows.filter(v=>(v.corridor||"").trim()===corridor);
-  const base=bySize[size];
+  const base=bySize[sz];
   const hour=[newest,...vrows.map(v=>v.ts)].reduce((m,t)=>hourOf(t)>m?hourOf(t):m,"");
   if(!base||!hour) return null;
   const routes=[];
@@ -639,7 +646,7 @@ function routePricing(){
   for(const k of known){
     const [st,nw]=k.split("|");
     const hit=vrows.filter(v=>(v.stable||"").trim()===st&&(v.network||"").trim()===nw&&
-      hourOf(v.ts)===hour&&+v.notional_src===size&&(v.source_ok||"").trim()==="True"&&isFinite(+v.cost_bps_taker))
+      hourOf(v.ts)===hour&&+v.notional_src===sz&&(v.source_ok||"").trim()==="True"&&isFinite(+v.cost_bps_taker))
       .sort((a,b)=>a.ts<b.ts?1:-1)[0];
     routes.push({label:routeLabel(st,nw), bps:hit?+hit.cost_bps_taker:null, maker:hit?+hit.cost_bps_maker:null});
   }
@@ -656,9 +663,11 @@ function renderRoutes(){
   const {priced, gaps, n, best}=rp;
   card.style.display="";
   document.getElementById("routesHead").textContent= n>1
-    ? T(R.headlineManyTemplate||cmiss("routes.headlineManyTemplate"),{n,route:best.label})
-    : T(R.headlineOneTemplate||cmiss("routes.headlineOneTemplate"),{route:best.label});
-  document.getElementById("routesSub").textContent=T(R.subTemplate||cmiss("routes.subTemplate"),{amount:money(size)});
+    ? T(R.headlineManyTemplate||cmiss("routes.headlineManyTemplate"),{n})
+    : T(R.headlineOneTemplate||cmiss("routes.headlineOneTemplate"),{});
+  document.getElementById("routesSub").textContent=n>1
+    ? T(R.subManyTemplate||cmiss("routes.subManyTemplate"),{route:best.label,cost:costOrGain(size,best.bps),amount:money(size)})
+    : T(R.subOneTemplate||cmiss("routes.subOneTemplate"),{route:best.label,cost:costOrGain(size,best.bps),amount:money(size)});
   let h="";
   for(const r of priced){
     const more=r===best?"":T(R.moreThanCheapestTemplate||cmiss("routes.moreThanCheapestTemplate"),{diff:cashDiff(size,r.bps,best.bps)});
@@ -680,7 +689,7 @@ function renderBridge(rp){
   const typicalPct=pct(summaryRow.taker_cost_bps_median);
   el.textContent = rp&&rp.n>1
     ? T(COPY.costBridgeManyTemplate||cmiss("costBridgeManyTemplate"),{baseRoute:rp.baseLabel, typicalPct, route:rp.best.label, nowPct:pct(rp.best.bps)})
-    : T(COPY.costBridgeTemplate||"In a typical hour the stablecoin route costs {typicalPct} of the amount. This hour it is {nowPct}.",
+    : T(COPY.costBridgeTemplate||cmiss("costBridgeTemplate"),
         {typicalPct, nowPct:pct(rp?rp.best.bps:+bySize[size].cost_bps_taker)});
 }
 
@@ -698,11 +707,10 @@ function render(){
   // (direct provider quotes plus the comparison feed), not just whoever
   // wins the Wise comparison feed alone -- see cheapestApp() above.
   const cheapest=cheapestApp(r.corridor,size,r), base=cheapest.bps;
-  const cw=t<base, mw=m<base;
+  const cw=t<base;
   const N=COPY.numCards||{};
   document.getElementById("nums").innerHTML=`
     ${numCard(N.marketLabel||"Stablecoin, market order",t,cw,size)}
-    ${numCard(N.limitLabel||"Stablecoin, limit order",m,mw,size)}
     ${numCard(T(N.cheapestLabelTemplate||"Cheapest app ({provider})",{provider:cheapest.provider}),base,null,size)}`;
   // Same figure the waterfall's "Moving it" bar shows a few lines down --
   // reads from the same sidecar so this line and that bar never disagree.
@@ -718,8 +726,7 @@ function render(){
   document.getElementById("verdict").innerHTML=
     (cw
       ? T(VL.stableCheaperTemplate||"The stablecoin route is cheaper at this amount by {amount}.",{amount:cashDiff(size,base,t)})
-      : T(VL.appCheaperTemplate||"The cheapest app is cheaper at this amount by {amount}. A limit order saves {limitAmount}, {closes} the gap.",
-          {amount:cashDiff(size,t,base), limitAmount:cashDiff(size,t,m), closes: mw?(VL.closes||"closing"):(VL.doesNotClose||"not enough to close")}))+
+      : T(VL.appCheaperTemplate||cmiss("verdictLine.appCheaperTemplate"),{amount:cashDiff(size,t,base)}))+
     (baseOnly?`<div class="split"><span>${VL.blockchainSplit||"Network fee"}: <b>${cash(size,rail)}</b></span><span>${VL.exchangesSplit||"exchange fees"}: <b>${cash(size,doors)}</b></span></div>`:"");
   // The headline states the finding, per DESIGN.md ("headers say the
   // finding, sub-headers only add supporting detail"): this amount, this
@@ -730,22 +737,18 @@ function render(){
   // Airwallex costs S$5.18.").
   // Names the route the figure belongs to once there is more than one priced
   // route; with a single priced route the plain sentence is already exact.
-  const manyRoutes=rp&&rp.n>1;
-  document.getElementById("pageTitle").textContent=manyRoutes
-    ? T(COPY.titleManyTemplate||cmiss("titleManyTemplate"),{
-        amount: money(size), place: place(dstOf(r)), n: rp.n, route: hr.label,
-        marketCost: cash(size,t), appCost: cash(size,base)})
-    : T(COPY.titleTemplate||"Sending {amount} to {place} by stablecoin costs {marketCost}. {provider} costs {appCost}.",{
-        amount: money(size), place: place(dstOf(r)),
-        marketCost: cash(size,t), appCost: cash(size,base), provider: cheapest.provider,
-      });
+  // A negative cost is a gain against the official rate (parallel-market
+  // corridors); say so rather than printing "costs -US$52".
+  const phrase=b=>T(b<0?(COPY.gainPhraseTemplate||cmiss("gainPhraseTemplate")):(COPY.costPhraseTemplate||cmiss("costPhraseTemplate")),{amount:cashAbs(size,b)});
+  document.getElementById("pageTitle").textContent=T(COPY.titleTemplate||cmiss("titleTemplate"),{
+    amount: money(size), place: place(dstOf(r)), marketPhrase: phrase(t), appPhrase: phrase(base)});
   renderBridge(rp);
   // The lede stays a generic, size-independent sentence (mockup: "Every
   // cost of the stablecoin route, step by step, checked every hour.") --
   // the numeric claim now lives in the h1 above, so this line no longer
   // needs to repeat it.
-  document.getElementById("verdict1").textContent=COPY.lede||"Every cost of sending it with stablecoins, step by step, checked every hour.";
-  drawWaterfall(r,cheapest); drawLadder(); drawHistory(); renderDepth(r);
+  document.getElementById("verdict1").textContent=T(COPY.ledeTemplate||cmiss("ledeTemplate"),{provider:cheapest.provider});
+  drawWaterfall(r,cheapest,rp); drawLadder(); drawHistory(); renderDepth(r);
 }
 
 // ROADMAP item 6 (added 2026-10-01): offramp_depth_top_level/offramp_depth_1pct
@@ -768,6 +771,7 @@ function renderDepth(r){
       {dst:dstOf(r), venue:venueName(r.offramp_venue)})+": "+
     T(DD.atBestPriceTemplate||"At the best price: {amount} before the price moves.",{amount:moneyIn("USD",top)})+" "+
     T(DD.before1PctTemplate||"Within 1% of the best price: {amount}.",{amount:moneyIn("USD",within)});
+  text+=" "+T(DD.meaningTemplate||cmiss("depth.meaningTemplate"),{venue:venueName(r.offramp_venue)});
   // Per-ladder-size remaining depth (SEB-181): how much is left in the book
   // AFTER this rung's own trade, not the fixed pre-trade figure above shown
   // unchanged at every size. Missing when the sidecar has no row yet for
@@ -790,7 +794,7 @@ function numCard(label,val,win,n){
     <div class="n-v">${cash(n,val)}</div><div class="n-s">${T(NC.subTemplate||"{pct} of the amount",{pct:pct(val)})}</div></div>`;
 }
 
-function drawWaterfall(r,cheapest){
+function drawWaterfall(r,cheapest,rp){
   // Buy the coin, move it, sell it -- computed once in the collector as a
   // sequential chain (decompose()'s own gross->bought->stable->quote->landed
   // steps), not reconstructed here as independent basis+fee sums, which is
@@ -802,7 +806,7 @@ function drawWaterfall(r,cheapest){
   const wf=wfBySample[r.ts+"|"+r.corridor+"|"+r.notional_src];
   const ramp=rampBySample[r.ts+"|"+r.corridor+"|"+r.notional_src];
   if(!wf){
-    document.getElementById("wfTitle").textContent=T((COPY.cards||{}).waterfall?.titleTemplate||"Where the {amount} cost goes",{amount:money(n)});
+    document.getElementById("wfTitle").textContent=T(((COPY.cards||{}).waterfall||{})[+r.cost_bps_taker<0?"gainTitleTemplate":"titleTemplate"]||cmiss("waterfall.titleTemplate"),{total:cashAbs(n,+r.cost_bps_taker)});
     document.getElementById("wfAnswer").textContent="";
     document.getElementById("wfRoute").textContent="";
     document.getElementById("wf").innerHTML=`<text x="12" y="30" fill="var(--color-neutral-600)" font-size="13" font-family="var(--font-body)">${esc(COPY.waterfallUnavailable||cmiss("waterfallUnavailable"))}</text>`;
@@ -832,15 +836,33 @@ function drawWaterfall(r,cheapest){
   // so a corridor where the network fee genuinely dominates still gets an
   // honest header instead of a wrong one.
   const tradeBps=Math.abs(+wf.wf_buy_bps)+Math.abs(+wf.wf_sell_bps), moveBps=Math.abs(+wf.wf_move_bps);
-  document.getElementById("wfTitle").textContent=T(
-    tradeBps>=moveBps ? (WF.buyDominantTemplate||"Most of the {total} goes on buying and selling {stable}, not on sending it")
-                       : (WF.moveDominantTemplate||"Most of the {total} goes on sending {stable} on chain, not on buying or selling it"),
-    {total:cash(n,total), stable:"stablecoin"});
-  document.getElementById("wfRoute").textContent=T(((COPY.routes||{}).breakdownNoteTemplate)||cmiss("routes.breakdownLabelTemplate"),
-    {route:routeLabel((r.stable||"").trim(),""), cost:cash(n,total)});
-  document.getElementById("wfAnswer").textContent=T(WF.answerTemplate||"Sending it on chain costs {moveCost}. Buying {stable} costs {buyCost}.",
-    {moveCost:cash(n,+wf.wf_move_bps), stable:"stablecoin", buyCost:cash(n,+wf.wf_buy_bps)});
-  document.getElementById("wfCap").textContent=T(WF.capTemplate||"Buying the stablecoin is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",
+  document.getElementById("wfTitle").textContent=T((total<0?WF.gainTitleTemplate:WF.titleTemplate)||cmiss("waterfall.titleTemplate"),{total:cashAbs(n,total)});
+  // The steps are always the base route's own legs: corridor_variants.csv
+  // carries a total per path, no per-leg split. Say which path they describe,
+  // and when a cheaper path exists, say that too (SEB-225).
+  const RT=COPY.routes||{}, baseLabel=routeLabel((r.stable||"").trim(),"");
+  const notCheapest=rp&&!rp.best.isBase;
+  document.getElementById("wfRoute").textContent=notCheapest
+    ? T(RT.breakdownNotCheapestTemplate||cmiss("routes.breakdownNotCheapestTemplate"),{route:baseLabel,cost:costOrGain(n,total),best:rp.best.label,bestCost:costOrGain(n,rp.best.bps)})
+    : T(RT.breakdownNoteTemplate||cmiss("routes.breakdownNoteTemplate"),{route:baseLabel,cost:costOrGain(n,total)});
+  // Whole cents, the last leg being the remainder against the total, so the
+  // three figures add to the printed total and match the receipt below.
+  const buyC=cents(n,+wf.wf_buy_bps), moveC=cents(n,+wf.wf_move_bps);
+  const sellC=Math.round((cents(n,total)-buyC-moveC)*100)/100;
+  const leg=c=>T(c<0?(WF.legPaysBackTemplate||cmiss("legPaysBackTemplate")):(WF.legCostsTemplate||cmiss("legCostsTemplate")),{amount:fmtCents(Math.abs(c))});
+  // "Free on and off the exchanges" is only said when the data says both ramp
+  // legs were measured and are zero (never for an unpriced gap).
+  const rampZero=ramp&&ramp.deposit_measured!=="False"&&ramp.withdrawal_measured!=="False"&&
+    Math.abs(+ramp.wf_deposit_bps)<0.005&&Math.abs(+ramp.wf_withdrawal_bps)<0.005;
+  document.getElementById("wfAnswer").textContent=
+    T(WF.answerTemplate||cmiss("waterfall.answerTemplate"),{buy:leg(buyC),chain:leg(moveC),ccy:dstOf(r),sell:leg(sellC)})+
+    (rampZero?" "+(WF.rampsFreeClause||cmiss("rampsFreeClause")):"")+
+    // The closing line is only said when it is true of the three legs: both
+    // ends cost money and together outweigh the transfer, or the transfer
+    // outweighs them. A leg that pays back, or a net gain, gets no closing line.
+    (total>0&&+wf.wf_buy_bps>0&&+wf.wf_sell_bps>0
+      ? " "+(tradeBps>=moveBps?(WF.endsDominantClause||cmiss("endsDominantClause")):(WF.moveDominantClause||cmiss("moveDominantClause"))):"");
+  document.getElementById("wfCap").textContent=T(WF.capTemplate||"",
     {buyCost:cash(n,+wf.wf_buy_bps), totalCost:cash(n,total)});
   let run=0; const cum=[0]; comps.forEach(c=>{run+=c.v; cum.push(run);});
   const all=[0,total,base,...cum], dMin=Math.min(...all), dMax=Math.max(...all);
@@ -924,15 +946,15 @@ function drawReceipt(r,wf,ramp){
        :depositMeasured===null?`${on} deposit fee (not available for this sample yet)`
        :`${on} deposit fee`, v:deposit},
     {leg:T(RC.buyLegTemplate||"1 · Buy {stable} with {ccy} on {venue}",{stable,ccy:srcCcy,venue:on})},
-    {l:RC.buyAboveDollar||`${stable} priced above the dollar`, v:buy-feeOn},
+    {l:(buy-feeOn)<0?(RC.buyBelowDollar||cmiss("buyBelowDollar")):(RC.buyAboveDollar||cmiss("buyAboveDollar")), v:buy-feeOn},
     {l:`${on} fee`, v:feeOn},
     {leg:T(RC.moveLegTemplate||"2 · Send {stable} on chain",{stable})},
     {l:isFinite(netStable)&&netStable>0
-       ? T(RC.networkFeeWithAmountTemplate||"Network fee, {amount} in {stable}",{amount:(+netStable.toFixed(2)),stable})
+       ? T(RC.networkFeeWithAmountTemplate||cmiss("networkFeeWithAmountTemplate"),{amount:(+netStable.toFixed(2)),coin:(r.stable||"").trim()})
        : (RC.networkFeeLabel||"Network fee"), v:move},
     {leg:T(RC.sellLegTemplate||"3 · Sell {stable} for {ccy} on {venue}",{stable,ccy:dst,venue:off})},
     {l:`${off} fee`, v:feeOff},
-    {l:(sell-feeOff)<0?"Selling price slightly better than the real rate":"Selling price below the real rate", v:sell-feeOff},
+    {l:(sell-feeOff)<0?(RC.sellAboveDollar||cmiss("sellAboveDollar")):(RC.sellBelowDollar||cmiss("sellBelowDollar")), v:sell-feeOff},
     {leg:`4 · Get ${dst} into a bank account`},
     {l:withdrawalMeasured===false?`${off} withdrawal fee (not priced -- see below)`
        :withdrawalMeasured===null?`${off} withdrawal fee (not available for this sample yet)`
@@ -944,7 +966,10 @@ function drawReceipt(r,wf,ramp){
   const vals=lines.filter(x=>x.v!=null);
   const totalC=cents(n,total);
   const cs=vals.map(x=>cents(n,x.v));
-  cs[cs.length-1]=Math.round((totalC-cs.slice(0,-1).reduce((a,b)=>a+b,0))*100)/100;
+  // The cent remainder goes on the last line that actually carries a cost,
+  // so a free ramp leg never shows a stray S$0.01 next to a "free" claim.
+  let big=0; vals.forEach((x,i)=>{ if(Math.abs(x.v)>=0.005) big=i; });
+  cs[big]=Math.round((totalC-cs.reduce((a,b,i)=>i===big?a:a+b,0))*100)/100;
   let k=0, h="";
   for(const x of lines){
     if(x.leg){ h+=`<div class="rc leg">${esc(x.leg)}</div>`; continue; }
@@ -963,7 +988,7 @@ function drawReceipt(r,wf,ramp){
   if(depositMeasured===null || withdrawalMeasured===null){
     wfd.textContent=`Bank fees to get ${srcCcy} onto ${on} and get ${dst} into a bank account are priced from this hour's capture onward. This particular sample predates that.`;
   } else if(depositMeasured && withdrawalMeasured){
-    wfd.textContent=`Getting ${srcCcy} onto ${on} and getting ${dst} into a bank account are both priced above. Both are free right now.`;
+    wfd.textContent="";  // the breakdown sentence above already says both are free
   } else if(!depositMeasured){
     wfd.textContent=`Getting ${dst} into a bank account is priced above and free right now. Getting ${srcCcy} onto ${on} is not priced yet: no free way to do it at this size is published.`;
   } else {
@@ -974,28 +999,25 @@ function drawReceipt(r,wf,ramp){
 function drawLadder(){
   const rows=SIZES.map(s=>bySize[s]).filter(Boolean);
   const LT=COPY.ladderTable||{}, cols=LT.columns||{};
-  const smallest=rows[0], largest=rows[rows.length-1];
-  const smallS=+smallest.notional_src, largeS=+largest.notional_src;
-  // Header states the finding with the real number: the smallest sampled
-  // amount's own stablecoin market-order cost, not the flat network fee
-  // alone (the mockup's "3.72% at S$200" is the whole stablecoin cost at
-  // that size, network fee included).
-  document.getElementById("ladderTitle").textContent=T((COPY.cards||{}).ladder?.titleTemplate||"Small transfers cost the most by stablecoin: {smallPct} at {smallest}",
-    {smallPct: pct(+smallest.cost_bps_taker), smallest:money(smallS)});
-  // "wins at every size" is only printed when it is actually true for the
-  // corridor on screen -- computed live from cheapestApp() on each row here,
-  // not assumed.
-  const appWinsAll=rows.every(r=>{
-    const s=+r.notional_src, t=+r.cost_bps_taker, b=cheapestApp(r.corridor,s,r).bps;
-    return t>=b;
-  });
-  const smallNet=netBps(smallest);
-  document.getElementById("ladderCap").textContent=T(
-    appWinsAll?((COPY.cards||{}).ladder?.capAllTemplate):((COPY.cards||{}).ladder?.capMostTemplate),
-    { smallPct: pct(smallNet), smallest: money(smallS), largest: money(largeS) });
+  // Each amount's stablecoin figure is the cheapest priced path at that
+  // amount (routePricing), the same one the headline reads, so the table, the
+  // sentence and the headline never name different costs.
+  const best=r=>{
+    const rp=routePricing(+r.notional_src);
+    return rp?{t:rp.best.bps, m:isFinite(rp.best.maker)?rp.best.maker:+r.cost_bps_maker, isBase:!!rp.best.isBase}:{t:+r.cost_bps_taker, m:+r.cost_bps_maker, isBase:true};
+  };
+  const LD=(COPY.cards||{}).ladder||{};
+  document.getElementById("ladderTitle").textContent=LD.titleTemplate||cmiss("ladder.titleTemplate");
+  // "The cheapest app is cheaper at every amount" is only printed when it is
+  // true of the data, computed live from cheapestApp() on each row.
+  const appWinsAll=rows.every(r=>best(r).t>=cheapestApp(r.corridor,+r.notional_src,r).bps);
+  const picks=[...new Set([0,rows.length>>1,rows.length-1])].map(i=>rows[i]);
+  document.getElementById("ladderCap").textContent=
+    picks.map(r=>{const b=best(r).t; return T((b<0?LD.itemGainTemplate:LD.itemTemplate)||cmiss("ladder.itemTemplate"),{amount:money(+r.notional_src),pct:pct(Math.abs(b))});}).join(", ")+"."+
+    (appWinsAll?" "+(LD.appCheaperEverywhere||cmiss("ladder.appCheaperEverywhere")):"")+" "+(LD.limitNote||cmiss("ladder.limitNote"));
   let h=`<tr><th>Amount</th><th>Stablecoin</th><th>Limit order</th><th>Cheapest app</th></tr>`;
   for(const r of rows){
-    const s=+r.notional_src, t=+r.cost_bps_taker, m=+r.cost_bps_maker;
+    const s=+r.notional_src, bst=best(r), t=bst.t, m=bst.m;
     const cheapest=cheapestApp(r.corridor,s,r), b=cheapest.bps, cw=t<b;
     // Clickable via js/receipt_replay.js's delegated handler (SEB-178): the
     // same receipt-replay overlay R2 built for index/country numbers, fed
@@ -1006,8 +1028,8 @@ function drawLadder(){
     const receiptFile=`${corridorSlug(r.corridor)}_${s}_${r.ts.slice(0,13)}`;
     h+=`<tr class="${s===size?"hl":""}${s===200?" hl":""}">
       <td>${money(s)}</td>
-      <td><span data-receipt-corridor-file="${receiptFile}" data-receipt-regime="taker" data-receipt-value="${esc(cash(s,t))}" tabindex="0">${cash(s,t)}</span><br><span class="tag">${pct(t)}</span></td>
-      <td><span data-receipt-corridor-file="${receiptFile}" data-receipt-regime="maker" data-receipt-value="${esc(cash(s,m))}" tabindex="0">${cash(s,m)}</span><br><span class="tag">${pct(m)}</span></td>
+      <td>${bst.isBase?`<span data-receipt-corridor-file="${receiptFile}" data-receipt-regime="taker" data-receipt-value="${esc(cash(s,t))}" tabindex="0">${cash(s,t)}</span>`:cash(s,t)}<br><span class="tag">${pct(t)}</span></td>
+      <td>${bst.isBase?`<span data-receipt-corridor-file="${receiptFile}" data-receipt-regime="maker" data-receipt-value="${esc(cash(s,m))}" tabindex="0">${cash(s,m)}</span>`:cash(s,m)}<br><span class="tag">${pct(m)}</span></td>
       <td>${cash(s,b)}<br><span class="tag">${pct(b)}</span></td></tr>`;
   }
   document.getElementById("ladder").innerHTML=h;
@@ -1102,7 +1124,7 @@ function drawHistory(){
   const unit=bucketH===1?"hour":bucketH===6?"6 hours":"day";
   document.getElementById("histCap").textContent=T(
     HIST.rangeCapTemplate||"{count} hours checked {rangeLabel}, at {amount}{winsClause}. One bar per {unit}.",
-    { count:sel.length, rangeLabel, amount:money(size),
+    { count:sel.length, rangeLabel, amount:money(size), start:startDate,
       winsClause: winsInRange ? T(HIST.winsClauseTemplate||", cheaper in {wins}",{wins:winsInRange}) : "",
       unit });
 
