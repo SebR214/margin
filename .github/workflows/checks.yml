@@ -100,8 +100,13 @@ jobs:
         run: python3 tools/check_rendered.py --self-test
 
       - name: Gate 1 - rendered style check (390px and 1280px)
+        id: render
         if: steps.scope.outputs.touched == 'true'
-        run: python3 tools/check_rendered.py --base "origin/${{ github.base_ref }}"
+        continue-on-error: true
+        run: |
+          set +e
+          python3 tools/check_rendered.py --base "origin/${{ github.base_ref }}" | tee rendered.txt
+          exit ${PIPESTATUS[0]}
 
       - name: Install the Claude CLI
         if: steps.scope.outputs.run == 'true' && github.event.pull_request.head.repo.full_name == github.repository
@@ -116,6 +121,7 @@ jobs:
       - name: Gate 2 - cold reader check
         id: cold
         if: steps.scope.outputs.touched == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
         env:
           # The agents' flat-rate subscription token. Never the metered key.
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -124,10 +130,21 @@ jobs:
           python3 tools/check_cold_reader.py --changed-only --base "origin/${{ github.base_ref }}" | tee cold_reader.txt
           exit ${PIPESTATUS[0]}
 
-      - name: Post the cold reader's list to the PR
-        if: failure() && steps.cold.outcome == 'failure'
+      - name: Post both gates' lists to the PR
+        if: steps.render.outcome == 'failure' || steps.cold.outcome == 'failure'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          { echo "### Cold reader check failed"; echo; echo '```'; cat cold_reader.txt; echo '```'; } > comment.md
+          {
+            echo "### Reader-facing gates failed"
+            if [ "${{ steps.render.outcome }}" = "failure" ]; then echo; echo "**Rendered style check**"; echo '```'; cat rendered.txt; echo '```'; fi
+            if [ "${{ steps.cold.outcome }}" = "failure" ]; then echo; echo "**Cold reader check**"; echo '```'; cat cold_reader.txt; echo '```'; fi
+          } > comment.md
           gh pr comment "${{ github.event.pull_request.number }}" --body-file comment.md
+
+      - name: Fail the merge if either gate failed
+        if: steps.render.outcome == 'failure' || steps.cold.outcome == 'failure'
+        run: |
+          echo "Rendered style check: ${{ steps.render.outcome }}"
+          echo "Cold reader check: ${{ steps.cold.outcome }}"
+          exit 1
