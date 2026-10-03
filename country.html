@@ -139,27 +139,20 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   // register rule). Near-zero collapses to "about the same" rather than
   // manufacturing a "-0.0% less" sentence from a rounding artifact (the
   // same -0.0% bug fixed on the home page, #212).
-  function gapPhrase(pct){
-    if (Math.abs(pct) < PAR_EPSILON) return 'costs about the same as the official rate';
-    if (pct > 0) return 'costs ' + pct.toFixed(1) + '% more than the official rate';
-    return 'costs ' + Math.abs(pct).toFixed(1) + '% less than the official rate';
-  }
-  // Same comparison, without repeating "than the official rate" -- used
-  // inside the four-step receipt, where that comparison is already the
-  // sentence's own subject (dividing by the official rate), so restating
-  // it would just repeat itself.
-  function gapPhraseShort(pct){
-    if (Math.abs(pct) < PAR_EPSILON) return 'costs about the same';
-    if (pct > 0) return 'costs ' + pct.toFixed(1) + '% more';
-    return 'costs ' + Math.abs(pct).toFixed(1) + '% less';
-  }
-  function signedPct(pct){
-    var v = Math.abs(pct) < PAR_EPSILON ? 0 : pct;
-    return v.toFixed(1) + '%';
-  }
-  function pointsPhrase(delta){
-    if (Math.abs(delta) < 0.05) return 'has held steady';
-    return (delta > 0 ? 'is up ' : 'is down ') + Math.abs(delta).toFixed(1) + ' points';
+  // All sentences come from copy.json; this code only picks which template
+  // the sign of the data calls for and fills in the numbers.
+  // Smallest gap, in percent over the official rate, at which the sub-heading
+  // goes on to say how much value someone at the official rate loses. Below
+  // it the loss is too small to be worth stating, so the clause is dropped.
+  var LOSS_CLAUSE_MIN_GAP_PCT = 10;
+  // The share lost is rounded to this many percentage points ("close to 50%").
+  var LOSS_SHARE_ROUND_TO = 5;
+  function gapAbs(pct){ return Math.abs(pct) < PAR_EPSILON ? 0 : Math.abs(pct); }
+  function fmtGap(pct){ return gapAbs(pct).toFixed(1); }
+  // A dollar costs (1 + g) official units, so the official rate buys only
+  // 1 / (1 + g) of what a dollar really goes for.
+  function lossShare(pct){
+    return Math.round(pct / (100 + pct) * 100 / LOSS_SHARE_ROUND_TO) * LOSS_SHARE_ROUND_TO;
   }
 
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -245,32 +238,42 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     // (SEB-173) -- clickable via receipt_replay.js's delegated handler,
     // same data-receipt-ccy/value attributes every other page's gap number
     // carries.
-    var gapPhraseText = gapPhrase(headlinePct);
-    var html = '<h1 class="num">' + esc(country.country) + ': a dollar <span data-receipt-ccy="' + esc(ccy) +
-      '" data-receipt-value="' + esc(gapPhraseText) + '" tabindex="0">' + esc(gapPhraseText) + '</span></h1>' +
-      '<p class="lead">' + esc(T(COPY.leadTemplate || 'What people pay for a stablecoin on Binance P2P in {country}, compared with the official rate.',
-        {country: country.country})) + '</p>' +
-      '<p class="meta"><span class="dot"></span>Checked ' + esc(shortTime(country.hour_utc)) + ' &middot; median of the last 24 hours</p>';
-
     var p2p = raw && raw.p2p && raw.p2p[ccy];
+    var h1Key = gapAbs(headlinePct) === 0 ? 'h1SameTemplate' : (headlinePct > 0 ? 'h1MoreTemplate' : 'h1LessTemplate');
+    var gapSpan = '<span data-receipt-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(fmtGap(headlinePct) + '%') +
+      '" tabindex="0">' + esc(fmtGap(headlinePct)) + '</span>';
+    var SLOT = '\u0001';
+    var h1Html = esc(T(COPY[h1Key], {country: country.country, gap: SLOT})).split(SLOT).join(gapSpan);
+    var subText;
+    if (p2p) {
+      subText = T(COPY.subRateTemplate, {rate: fmtRate(p2p.fx_mid_per_usd), ccy: ccy, street: fmtRate(p2p.buy_median) + ' ' + ccy});
+      if (headlinePct >= LOSS_CLAUSE_MIN_GAP_PCT) subText += T(COPY.subLossTemplate, {share: lossShare(headlinePct)});
+    } else {
+      subText = T(COPY.leadTemplate, {country: country.country});
+    }
+    var html = '<h1 class="num">' + h1Html + '</h1>' +
+      '<p class="lead">' + esc(subText) + '</p>' +
+      '<p class="meta"><span class="dot"></span>' + esc(T(COPY.metaTemplate, {time: shortTime(country.hour_utc)})) + '</p>';
+
+
     var isP2pSourced = (country.source_class || '').indexOf('p2p') === 0;
     var depth = isP2pSourced && depthDoc && depthDoc.countries && depthDoc.countries[ccy];
 
     html += '<div class="tiles">';
     if (p2p) {
-      html += '<div class="tile"><div class="k">What people pay</div><div class="v num">' + fmtRate(p2p.buy_median) + ' ' + esc(ccy) + '</div><div class="s">per dollar, this hour</div></div>';
-      html += '<div class="tile"><div class="k">Official rate</div><div class="v num">' + fmtRate(p2p.fx_mid_per_usd) + ' ' + esc(ccy) + '</div><div class="s">per dollar</div></div>';
+      html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelPay) + '</div><div class="v num">' + fmtRate(p2p.buy_median) + ' ' + esc(ccy) + '</div><div class="s">' + esc(COPY.tilePaySubTemplate) + '</div></div>';
+      html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelRate) + '</div><div class="v num">' + fmtRate(p2p.fx_mid_per_usd) + ' ' + esc(ccy) + '</div><div class="s">' + esc(COPY.tileRateSubTemplate) + '</div></div>';
     } else {
-      html += '<div class="tile"><div class="k">What people pay</div><div class="v">not shown</div><div class="s">priced from an exchange, not person-to-person ads</div></div>';
-      html += '<div class="tile"><div class="k">Official rate</div><div class="v">not shown</div><div class="s">not published for this source yet</div></div>';
+      html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelPay) + '</div><div class="v">not shown</div><div class="s">' + esc(COPY.tilePayNone) + '</div></div>';
+      html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelRate) + '</div><div class="v">not shown</div><div class="s">' + esc(COPY.tileRateNone) + '</div></div>';
     }
     if (depth) {
-      html += '<div class="tile"><div class="k">You can buy now</div><div class="v p num">' + fmtMoney(depth.depth_usd) + '</div><div class="s">' +
-        (depth.is_floor ? 'within ' + depth.threshold_pct + '% of the best price' : 'then the price moved') + '</div></div>';
+      html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelDepth) + '</div><div class="v p num">' + fmtMoney(depth.depth_usd) + '</div><div class="s">' +
+        esc(depth.is_floor ? T(COPY.tileDepthSubTemplate, {pct: depth.threshold_pct}) : COPY.tileDepthMovedSub) + '</div></div>';
     } else {
-      html += '<div class="tile"><div class="k">You can buy now</div><div class="v">not enough data</div><div class="s">no order-book depth published for this source yet</div></div>';
+      html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelDepth) + '</div><div class="v">not enough data</div><div class="s">' + esc(COPY.tileDepthNone) + '</div></div>';
     }
-    html += '<div class="tile"><div class="k">Round trip</div><div class="v num">' + country.round_trip_pct.toFixed(1) + '%</div><div class="s">lost buying a dollar and selling it straight back</div></div>';
+    html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelRoundTrip) + '</div><div class="v num">' + country.round_trip_pct.toFixed(1) + '%</div><div class="s">' + esc(COPY.tileRoundTripSubTemplate) + '</div></div>';
     html += '</div>';
 
     // The segment is per-currency and most currencies don't have one --
@@ -288,13 +291,16 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       if (country.spark && country.spark.length > 1) {
         var total = headlinePct - country.spark[0];
         var moveDate = mostOfMoveDate(country.spark, dates, total);
-        // "rise"/"fall" mirrors pointsPhrase's own up/down language instead of
-        // a direction-blind "move", matching the final mockup's copy (SEB).
-        var moveNoun = total > 0.05 ? 'rise' : (total < -0.05 ? 'fall' : 'move');
-        var moveVerb = moveNoun === 'rise' ? 'rose' : (moveNoun === 'fall' ? 'fell' : 'moved');
-        html += '<section><h2 class="num">' + esc(country.country) + "'s gap " + pointsPhrase(total) +
-          (sinceLabel ? ' since we started tracking it on ' + sinceLabel : '') + '</h2>' +
-          '<p class="answer">' + (moveDate ? 'Most of the ' + moveNoun + ' came after ' + esc(shortDate(moveDate)) + '.' : 'It ' + moveVerb + ' gradually across the full period.') + '</p>' +
+        // Direction words come from the sign of the data (rise, fall, or flat).
+        var startLabel = sinceLabel || shortDate(country.history_start);
+        var chartHeading = gapAbs(total) < 0.05
+          ? T(COPY.chartHeadingFlatTemplate, {start: startLabel})
+          : T(COPY.chartHeadingMoveTemplate, {direction: total > 0 ? COPY.directionUp : COPY.directionDown, points: Math.abs(total).toFixed(1), start: startLabel});
+        var moveSentence = moveDate
+          ? T(total > 0 ? COPY.moveAfterRiseTemplate : COPY.moveAfterFallTemplate, {date: shortDate(moveDate)})
+          : COPY.moveGradualTemplate;
+        html += '<section><h2 class="num">' + esc(chartHeading) + '</h2>' +
+          '<p class="answer">' + esc(moveSentence) + ' ' + esc(COPY.chartNoteTemplate) + '</p>' +
           '<div class="chartbox" id="gapChart"></div>';
 
         if (hasPoints) {
@@ -318,8 +324,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
           html += '<p class="small"><small><code>data/country_history_segment/' + esc(ccy) + '.json</code></small></p></div>';
         } else {
           html += '<p class="small">' + esc(T(COPY.historyStartTemplate ||
-            'There is no earlier record for {country}: history starts on {date}, the first day we collected a price for it.',
-            {country: country.country, date: shortDate(country.history_start)})) + '</p>';
+            'History starts {date}, the first day we collected a price here.',
+            {date: shortDate(country.history_start)})) + '</p>';
         }
         html += '</section>';
       }
@@ -327,29 +333,32 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       // ---- How we get the number, in four steps ----
       if (p2p) {
         var nAds = country.n_sources != null ? Math.round(country.n_sources) : Math.round(p2p.n_ads || 0);
-        var ratio = (p2p.buy_median / p2p.fx_mid_per_usd);
-        html += '<section><h2 class="num">How we get ' + signedPct(headlinePct) + ', in four steps</h2>' +
+        var fmt4 = function(v){ return v.toLocaleString(undefined,{maximumFractionDigits:4}); };
+        var bold = function(v){ return '<b class="num">' + esc(v) + '</b>'; };
+        var medianTxt = fmt4(p2p.buy_median), rateTxt = fmt4(p2p.fx_mid_per_usd);
+        var hourSame = gapAbs(country.index_pct) === 0;
+        var divideTpl = hourSame ? COPY.stepDivideSameTemplate : COPY.stepDivideTemplate;
+        html += '<section><h2 class="num">' + esc(T(COPY.stepsHeadingTemplate, {gap: fmtGap(headlinePct)})) + '</h2>' +
+          '<p class="answer">' + esc(T(COPY.stepsIntroTemplate, {country: country.country})) + '</p>' +
           '<ol class="steps">' +
-          '<li>' + esc(T(COPY.adsStepTemplate || 'We read the {n} cheapest ads selling stablecoin for {ccy} on Binance P2P.',
-            {n: nAds, ccy: ccy})) + ' The middle price is <b class="num">' +
-            p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar.<small><code>data/p2p_basis.csv</code></small></li>' +
-          '<li>We read ' + esc(country.country) + "'s official rate at the same time: <b class=\"num\">" +
-            p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar.<small><code>data/fx_rates.csv</code> &middot; this source updates once a day</small></li>' +
-          '<li>' + p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' &divide; ' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) +
-            ' = ' + ratio.toFixed(3) + ', so a dollar <b class="num">' + gapPhraseShort(country.index_pct) + '</b> this hour. The headline is the median of the last 24 hours: <b class="num">' +
-            signedPct(headlinePct) + '</b>.<small><code>data/index_latest.json</code></small></li>' +
+          '<li>' + T(esc(COPY.stepOfferTemplate), {n: nAds, median: bold(medianTxt), ccy: esc(ccy)}) +
+            '<small><code>data/p2p_basis.csv</code></small></li>' +
+          '<li>' + T(esc(COPY.stepRateTemplate), {rate: bold(rateTxt), ccy: esc(ccy)}) +
+            '<small><code>data/fx_rates.csv</code> &middot; ' + esc(COPY.stepRateNote) + '</small></li>' +
+          '<li>' + T(esc(divideTpl), {median: medianTxt, rate: rateTxt, hourGap: bold(fmtGap(country.index_pct)),
+              dir: esc(country.index_pct > 0 ? COPY.dirMore : COPY.dirLess)}) + ' ' +
+            T(esc(COPY.stepHeadlineTemplate), {gap: bold(fmtGap(headlinePct))}) +
+            '<small><code>data/index_latest.json</code></small></li>' +
           (depth
-            ? '<li>We check how many dollars are on offer near the best price: <b class="num">' + depth.n_ads_held + ' of the ' + depth.n_ads_priced +
-              ' sellers</b>, about <b class="num">' + fmtMoney(depth.depth_usd) + '</b>, are within ' + depth.threshold_pct + '% of the best price' +
-              (depth.is_floor ? '.' : '. Beyond that, the price moves.') + '<small><code>data/street_depth_latest.json</code></small></li>'
+            ? '<li>' + T(esc(depth.is_floor ? COPY.stepDepthTemplate : COPY.stepDepthMovedTemplate),
+                {held: bold(depth.n_ads_held), priced: depth.n_ads_priced, amount: bold(fmtMoney(depth.depth_usd)), pct: depth.threshold_pct}) +
+              '<small><code>data/street_depth_latest.json</code></small></li>'
             : '') +
           '</ol>' +
           '</section>';
       } else {
-        html += '<section><h2 class="num">How we get ' + signedPct(headlinePct) + '</h2>' +
-          '<p class="answer">Priced from an exchange order book (' + esc(country.source_class || '') +
-          '), not person-to-person ads. The published figure is real, from ' + esc(country.source_file) +
-          ', but the raw per-venue price and official rate this page shows for other countries are not in a published file yet for this source type.</p>' +
+        html += '<section><h2 class="num">' + esc(T(COPY.stepsHeadingTemplate, {gap: fmtGap(headlinePct)})) + '</h2>' +
+          '<p class="answer">' + esc(T(COPY.stepsNoRateBodyTemplate, {source: country.source_class || '', file: country.source_file})) + '</p>' +
           '</section>';
       }
 
