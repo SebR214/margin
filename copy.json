@@ -423,7 +423,7 @@
     "ratePegged": "A rate this currency is pegged to.",
     "rateUnmaintained": "A rate that has stopped being updated — this compares against an average of what banks quote instead.",
     "rateMarket": "A market exchange rate.",
-    "rateStalenessNote": "This value is refreshed every hour but the underlying source itself only changes about once a day, so it can be up to 24 hours behind the market. A sudden move can take a day to show in our gap.",
+    "rateStalenessNote": "This value is refreshed every hour but the underlying source itself only changes about once a day, so it can be up to 24 hours behind the market. When a currency moves fast, our gap can look too small or too large for up to a day.",
     "mathSentenceTemplate": "{numerator} {ccy} divided by {denominator}, minus one, times 100.",
     "mathResultTemplate": "The published figure: {result}.",
     "verdictPublished": "Published — the evidence rule was met.",
@@ -530,15 +530,15 @@
   },
   "howItWorks": {
       "h1": "Where the numbers come from, and how to check one",
-      "sub": "Click any number on the site and you get the offers behind it, the official rate used, the division, and the file. Nothing is typed in by hand. A missed hour stays missing instead of being filled in, so a gap in a chart means we did not collect that hour. The division is the price divided by the official rate. The file is the public data file the number came from.",
+      "sub": "Click any number on the site and you get the offers behind it, the official rate used, the division, and the file. Nothing is typed in by hand. A missed hour stays missing instead of being filled in, so a gap in a chart means we did not collect that hour. The division is the middle price of those offers divided by the official rate. The file is the public data file on this site that holds the offers.",
       "dollarCostTitle": "What people pay for a dollar",
-      "dollarCostBody": "Every hour we take the {minAds} cheapest offers to sell a digital dollar in each country, on the exchange people there use, and divide the middle price of those offers by the official rate at that moment. Cheap offers are the ones a buyer can actually take. The result is how much more or less than the official rate people really pay. Fewer than {minAds} sellers and we publish no price.",
+      "dollarCostBody": "Every hour we take the {minAds} cheapest offers to sell a digital dollar in each country, on the exchange people there use, and divide their middle price by the official rate at that moment. The middle price has as many offers below it as above it. The result is how much more or less than the official rate people really pay. Fewer than {minAds} sellers and we publish no price.",
       "sendingCostTitle": "What sending money costs",
       "sendingCostBody": "What the recipient gets, against the real exchange rate, at {amounts} amounts, every fee counted. The amounts run from {minAmount} to {maxAmount} in the sender's currency.",
       "notMeasuredTitle": "What we don't measure yet",
       "notMeasured": [
-          "The official rate only updates once a day, so it can be up to 24 hours behind the market. A sudden move can take a day to show in our gap.",
-          "Bank fees where an exchange lists no free way to pay in, as for New Zealand dollars. We leave that fee as a gap, not a guess, so the stablecoin cost there may be higher.",
+          "The official rate only updates once a day, so it can be up to 24 hours behind the market. When a currency moves fast, our gap can look too small or too large for up to a day.",
+          "Bank fees where an exchange lists no free way to pay in, such as Independent Reserve for New Zealand dollars. We leave that fee as a gap, so sending by digital dollar there may cost more than we show.",
           "Prices for repeat senders. Some app prices are first-transfer offers, so repeat senders may pay more.",
           "Cash dollars at money changers."
       ],
