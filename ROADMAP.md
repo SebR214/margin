@@ -248,22 +248,157 @@ Nothing under items 7–9 below starts before this exists. Acceptance: 10
 published numbers, picked at random, trace end to end with no human filling a
 gap by hand.
 
+**The next eight weeks — items 12–25, added 2026-10-03 on Sebastian's
+instruction.** Ordered, ranking directly after 0/0.1/0.5 and ahead of 1–11. The
+product agent's "exactly three open at a time" rule does not apply to this
+block: Sebastian filed all of it in Linear at once, in this order, and items
+marked *gated* carry `blocked` until their gate is met. Items 7–10 are absorbed
+by 19–20 and 22; items 3 and 4 are cut (see their entries). The honest-data
+rule does not move: every number is **observed by us**, **reported by an
+exchange** (history we did not watch), or **absent, with the reason**.
+Nothing is smoothed, filled or invented. Models: builder and reviewer stay on
+Sonnet; Fable is used only for the analyst's written sentences and the product
+loop.
+
+**12. Collector on the Hetzner box, 10-minute cadence, run in parallel.** The
+box (Germany) collects Binance P2P every 10 minutes: every fiat currency the
+board actually lists, enumerated live rather than the hand-written 53, every ad
+on the first page rather than ten, order-book depth stored at the five ladder
+amounts only. A source that returns nothing is recorded as absent with its
+reason, never skipped. Raw rows go to monthly Parquet files on the box (DuckDB
+over them); only published outputs enter git — raw ads never do. The GitHub
+Actions chain keeps running unchanged. First deliverable is a 72-hour measured
+baseline (currencies that answer, ads per page, success rate, rows per day,
+bytes per row), published dated; until it exists only today's measured floor
+(about 130,000 ad prices a day) is claimed. Collectors and agent loops get
+separate CPU and memory caps and staggered windows. Collection stops loudly at
+80% disk. Acceptance: the box writes a pass on every 10-minute slot for 72
+hours with a published baseline, and a daily comparison script runs (item 16).
+
+**13. Models, stated once.** Builder and reviewer stay on Sonnet. The product
+loop and the analyst's written sentences (item 20) run on Fable
+(`claude-fable-5-1`); nothing else changes model. Night work (items 19–20) runs
+on the subscription token, never the metered key, and any metered spend is
+stated in the PR first. Acceptance: `agents/run.sh` names exactly that
+assignment, and the machine room shows wakes per day.
+
+**14. Second and third P2P boards: Bybit, OKX, HTX.** Probe each from the German
+IP, public login-free endpoints only. A board that needs a login or shows a bot
+challenge is rejected in public with the reason; a weekly re-probe marks a board
+unusable the day that changes. No session pools, cookie rotation or disguised
+user agents. Serial pacing with jitter and backoff under the collector's own
+named User-Agent; a note on each board's terms in its probe report. Wired or
+rejected, each in public. Acceptance: three probe reports on the site; every
+surviving board writes rows per country, and "no price today" becomes "no price
+on N boards." If no second board survives, the site says one board.
+
+**15. Route variants stay in — the route headline is the cheapest of N.** Reverses
+the cut that was proposed for item 0.1. Every route prices every real
+stablecoin path (chain, USDC beside USDT, a second venue where a real book
+exists), each its own append-only series at all five amounts, and a route's
+headline becomes "cheapest of N stablecoin routes we price" with every variant
+listed below it. Variants keep rolling one per day as item 0.1 says. What is cut
+instead: the "every currency by source by hour" coverage wall. Acceptance: for
+SGD→PHP and every corridor with 2+ priced variants, the headline names the
+cheapest variant this hour and the correct N, computed from the files.
+
+**16. Cutover of collection to the box — gated on 7 clean days.** Each day, for
+seven days, compare the on-the-hour box pass with the Actions pass: same
+currencies priced, same currencies withheld, same index values. Switch only
+after 7 consecutive days with no mismatch; any mismatch resets the count. After
+the switch, disable the Actions workflow — do not delete it. If the box cannot
+hold 99% delivery for 7 straight days by 16 Oct, collection stays hourly on the
+box and the 10-minute cadence is dropped, not fudged. Acceptance: a published
+daily comparison log, then the switch, then `collect.yml` disabled and present.
+
+**17. The history layer — "reported, not observed".** Amends the no-backfill
+invariant (see below, same PR). Hourly USDT-versus-local candles from every
+venue we price that publishes them, daily where hourly is not offered; daily
+official rates from a source with history (ECB/Frankfurter for majors, central
+banks where they publish); parallel-dollar series only where a public series
+exists, each probed and accepted or rejected in public with a licence note.
+**Rows come only from an exchange's or data provider's own history endpoint —
+never derived, filled or interpolated.** Binance P2P has no history, so
+P2P-only countries get none and their pages say history starts on our first
+collection date. Backfilled history lives in its own layer and its own files,
+labelled "reported, not observed", source named on every row. It never feeds
+the index, a published price, the observed series or the unbroken-hours count.
+A page may compare today against it ("widest since 2023 in Upbit's own
+history") as long as the label and source are on the page. Event pages (Turkey
+2023, Argentina 2023, Korea) only for countries with real backfilled data
+behind them. **Invariant amendment, carried by this item's PR and not before:**
+the PR that adds the history layer also rewrites the no-backfill lines in
+`VISION.md`, this file (`## Vision` and `## Invariants`), `agents/RULES.md`,
+`agents/BUILDER.md`, `agents/COMMISSION.md` and `METHODOLOGY.md` to the rule in
+this paragraph — until that PR merges, "gaps stay gaps / no backfill" stands
+unmodified. Acceptance: fewer than five venues past a year ships small and says
+so; every history row carries the label and source; a check proves no history
+row is read by the index, a published price or the unbroken-hours count.
+
+**18. History on the country charts.** Backfilled history shows on the existing
+country-page charts (`js/chart.js`) as a visually distinct earlier segment,
+labelled "reported, not observed" with the source on the page. No new chart
+type. Markers for the largest moves are placed by code; an agent may add three
+cited sentences underneath. Gated on 17. Acceptance: a country with backfilled
+data shows the segment, label and source; a P2P-only country shows none and
+says history starts on its first collection date.
+
+**19. The auditor — a deterministic script, no model call.** Re-derives 50
+random published numbers per day from raw observations with no human help and
+publishes its score. First targets are the receipts in progress (SEB-187 and
+the other receipt issues). Day one it will fail some; the failures are the
+point. Finishes item 0.5 as a live check instead of a one-time one. Acceptance:
+a daily score on the machine room, a failing number named with its trace, and
+zero model calls in the script.
+
+**20. The analyst — deterministic investigations, a model only for the words.**
+A fixed set of nightly investigations over the whole corpus (biggest movers, win
+conditions per corridor, where boards disagree, which countries went silent,
+where the live and history layers disagree), all computed by scripts. A model is
+called only to write the short interpretation after the numbers exist, and
+only when a result clears a stated notability threshold; nothing clears it,
+nothing is published. At most three cited sentences per finding; each finding is
+a stored object with an evidence chain that later findings cite; "can't explain
+without data X" becomes a collection task automatically; a hard check rejects
+any output containing a number the code did not compute and pass in; every
+finding carries the model id that wrote it. Absorbs items 7, 8, 9 and 10.
+Findings stay private until the auditor (19) has scored 95% or better for seven
+straight days. Gated on 19. Acceptance: the item-9 gate stands — no findings page
+until two findings survive human review and a later investigation reuses one.
+
+**21. The tape.** A live page over the existing event stream where ad prices land
+every ten minutes as collected. Gated on 12.
+
+**22. The research desk.** Findings, the auditor's score, open questions and
+evidence chains, every count derived live from the stored finding objects
+(item 11, now specified here). Gated on 20.
+
+**23. The API on.** `api.margin.wiki` live after a one-week canary; not
+marketed, just on. Needs Sebastian once: the DNS record.
+
+**24. Runs by itself, shown.** The machine room shows delivery per layer per day
+(target 99%), source freshness, wakes per day, measured bytes per row, and disk
+use.
+
+**25. Rewrite VISION.md and this file to match what exists.** Last, after the
+rest. Acceptance: no line in either describes a thing that has not shipped.
+
 **1. Serve — MCP and API over the data that already exists.** No new
 collection. Wraps `data/` as it stands. This is the item that makes the claim
 true fastest, and everything else is built on its engine.
 *Needs Sebastian once: a DNS A record for `api.margin.wiki` → `78.47.61.109`.*
 
-**2. Ask — `/ask` on the same tools.** Question in; sentence, chart, table,
+**2. Ask — `/ask` on the same tools.** *Stays up as built; no further work and not a product (2026-10-03). The analyst, item 20, is the successor.* Question in; sentence, chart, table,
 SQL and source file out. The model writes SQL only and never writes a number.
 *Settled 2026-09-12: the Anthropic API, key already installed on the server as
 `ANTHROPIC_API_KEY`. Nothing further is needed to start this.*
 
-**3. Commission — `request_series` end to end**, plus the public `/requests`
+**3. CUT 2026-10-03 (Sebastian: nobody knows what to request; not built, `/requests` not built).** Commission — `request_series` end to end, plus the public `/requests`
 page. An issue labelled `commission`, sources probed and verified against an
 independent reference, the survivor wired into hourly collection, and the
 rejects published with their reasons.
 
-**4. Standing asks — `watch(condition)`**, subscribed, over RSS or email.
+**4. CUT 2026-10-03 (he is the only reader; no alerts, RSS or email).** Standing asks — `watch(condition)`, subscribed, over RSS or email.
 
 **5. Showcase queries.** The stress-signal backtest and its board, the weekly
 snapshot, and the findings pages. These demonstrate the engine; they are not
@@ -283,20 +418,20 @@ only, since the wide-layer board (`index.html`, 43 countries) has no depth
 column to draw from and none should be invented for it. No new CSV, no changed
 header — this reads two columns that already exist.
 
-**7. Weekly diff — what changed.** A deterministic job picks the biggest
+**7. Weekly diff — what changed.** *Absorbed by item 20 (2026-10-03).* A deterministic job picks the biggest
 mover per corridor and per country over a stated comparison window, with the
 minimum sample count stated alongside the figure, and an honest "not enough
 comparable history yet" for a corridor too young to have one. An agent writes
 up to three cited sentences on top of the computed diff; it does not pick the
 mover. Gated on 0.5 above. This is item 5's "weekly snapshot," specified.
 
-**8. Win conditions per corridor — deterministic arithmetic only.** A stated
+**8. Win conditions per corridor — deterministic arithmetic only.** *Absorbed by item 20 (2026-10-03).* A stated
 threshold in the shape "stablecoins beat the cheapest app on this corridor if
 the off-ramp spread falls from X to below Y, holding every other observed cost
 constant." The number is arithmetic; an agent may only state it in words. See
 "a counterfactual states what it holds constant" in `## Invariants`.
 
-**9. Research page — extends Ask (see `## Vision`) past one question.**
+**9. Research page — extends Ask (see `## Vision`) past one question.** *Absorbed by item 20; its gate stands (2026-10-03).*
 Question in; a read-only agent investigates using a whitelisted toolset
 (`query_history`, `get_samples`, `compare_routes`, `compare_periods`,
 `calculate_cost`, `create_chart`, `save_finding`) and publishes an observation,
@@ -316,7 +451,7 @@ doesn't understand yet, not only what changed. Not scoped, not queued; written
 down here so it is not re-invented from nothing later.
 
 **10. The feedback loop — research tells the collector what to gather next
-(added 2026-10-02).** Gated on item 9 above; nothing here runs before there
+(added 2026-10-02; absorbed by item 20 on 2026-10-03).** Gated on item 9 above; nothing here runs before there
 are real investigations to draw from. When an investigation concludes "can't
 explain without data X" — a named field, source or corridor the item-9
 toolset doesn't have — that gap becomes a collection-queue item (item 0's
@@ -325,7 +460,7 @@ hand. Acceptance: a logged "insufficient evidence, missing X" finding
 produces a corresponding queue entry in the same run, naming X and the
 finding that raised it, with no human step in between.
 
-**11. Machine room — the research-corpus block (added 2026-10-02).** Gated on
+**11. Machine room — the research-corpus block (added 2026-10-02; built as item 22).** Gated on
 item 9 above. `how-it-was-built.html` gains a block alongside its existing
 collection meters: observations, routes and countries covered, findings,
 hypotheses tested and rejected, active investigations, unresolved questions,
