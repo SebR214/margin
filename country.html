@@ -247,7 +247,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var subText;
     if (p2p) {
       subText = T(COPY.subRateTemplate, {rate: fmtRate(p2p.fx_mid_per_usd), ccy: ccy, street: fmtRate(p2p.buy_median) + ' ' + ccy});
-      if (headlinePct >= LOSS_CLAUSE_MIN_GAP_PCT) subText += T(COPY.subLossTemplate, {share: lossShare(headlinePct)});
+      if (headlinePct >= LOSS_CLAUSE_MIN_GAP_PCT) subText += T(COPY.subLossTemplate, {share: lossShare(headlinePct), buys: 100 - lossShare(headlinePct),
+        rate: fmtRate(p2p.fx_mid_per_usd), ccy: ccy, street: fmtRate(p2p.buy_median) + ' ' + ccy});
     } else {
       subText = T(COPY.leadTemplate, {country: country.country});
     }
