@@ -59,7 +59,14 @@ HISTORY_WRITERS = {"tools/backfill_history.py", "tools/check_history_isolation.p
 # unbroken-hours count -- the four things this check exists to keep history
 # out of (see the module docstring) -- so reading it here does not weaken the
 # isolation being proved.
-HISTORY_READERS = {"tools/analyst.py", "tools/emit_country_history.py"}
+# The machine room's meters (tools/emit_machine_room_meters.py) read the
+# history manifest only to print how far back the labelled history goes and
+# how many exchanges it covers, and walk data/ to report its size on disk.
+# Neither number feeds the index, a published price, the observed series or
+# the unbroken-hours count; the page labels the history "reported, not
+# observed".
+HISTORY_READERS = {"tools/analyst.py", "tools/emit_country_history.py",
+                   "tools/emit_machine_room_meters.py"}
 HISTORY_TOKENS = [
     re.compile(r"data/history"),
     re.compile(r"""(DATA|["']data["'])\s*,\s*["']history["']"""),   # os.path.join(DATA, "history")
