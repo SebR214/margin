@@ -472,8 +472,31 @@ CORRIDORS = {
 # article "How do I receive USDC through the Arbitrum Network?"
 # (support.coins.ph), so that is the pairing modelled, not Solana or Base,
 # which tie it on fee but are unconfirmed on the receiving end.
+#
+# SEB-193, queue item 0.1, third slice (NZD->PHP). Re-probed live, not carried
+# over: api.independentreserve.com/Public/GetOrderBook?primaryCurrencyCode=
+# Usdc&secondaryCurrencyCode=Nzd answered with a real, live, two-sided
+# USDC/NZD book (104 bids, 59 asks, read 2026-10-02). Coins.ph's USDCPHP
+# depth book and exchangeInfo "trading" status are the same shared off-ramp
+# book SGD->PHP's variant already confirmed live. IR's own nz/fees page --
+# Cloudflare-blocked direct (HTTP 403) same as every prior read, fetched
+# through the same r.jina.ai rendering-proxy workaround -- still lists
+# "USD Coin | Arbitrum One | 1.0 USDC", confirming (not assuming) the
+# withdrawal table is the one venue-wide schedule, identical on the NZ page
+# too. This is the withdrawal fee only: NZD->PHP's base CORRIDORS entry
+# separately records that IR has no free NZD deposit method below NZD 50,000
+# (SWIFT-only, unpriced gap) -- that gap belongs to the deposit leg, which
+# this variant does not touch or fix.
 CORRIDOR_VARIANTS = {
     "SGD->PHP": [
+        {
+            "stable": "USDC", "network": "ArbitrumOne",
+            "offramp_symbol": "USDCPHP",
+            "network_fee_stable": 1.0,
+            "verified": "2026-10-02",
+        },
+    ],
+    "NZD->PHP": [
         {
             "stable": "USDC", "network": "ArbitrumOne",
             "offramp_symbol": "USDCPHP",

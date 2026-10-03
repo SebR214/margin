@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
 <script src="./js/receipt_replay.js"></script>
+<script src="./js/chart.js"></script>
 <style>
   :root{
     --ink:#0B0B0B; --sub:#3F3047; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; --soft:#D3D0CB; --bg:#fff;
@@ -74,6 +75,8 @@
     .small a,.meta a,p a,.answer a{display:inline-block;padding:6px 0;min-height:16px}
     .back{padding:10px 0}
   }
+  .linkbtn{font:inherit;font-size:15px;color:var(--ink,#0B0B0B);background:none;border:0;border-bottom:1px solid #D3D0CB;padding:6px 0;cursor:pointer}
+  .linkbtn:hover{border-bottom-color:#0B0B0B}
 </style>
 <style id="mwh-style">
 header.mwh{display:flex!important;align-items:center!important;justify-content:flex-start!important;height:64px!important;min-height:0!important;margin:0 0 36px 0!important;padding:0!important;border:0!important;background:transparent!important;position:static!important;flex-wrap:nowrap!important;gap:0!important}
@@ -161,6 +164,10 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function shortDate(iso){ var d=new Date(iso); return isNaN(d)?'':d.getUTCDate()+' '+MONTHS[d.getUTCMonth()]; }
+  // The backfilled segment can run back years, not days -- "29 Nov to 6 Jun"
+  // reads as one short window when the real span is 2023 to 2024, so its
+  // dates carry the year, unlike the live chart's own short labels above.
+  function longDate(iso){ var d=new Date(iso); return isNaN(d)?'':d.getUTCDate()+' '+MONTHS[d.getUTCMonth()]+' '+d.getUTCFullYear(); }
   function shortTime(iso){ var d=new Date(iso); return isNaN(d)?'':String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')+' UTC'; }
   function sparkDates(hourUtc, n){
     var end = new Date(hourUtc), out = [];
@@ -184,59 +191,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     return bestI != null ? dates[bestI] : null;
   }
 
-  function niceTicks(min, max, target){
-    var range = (max - min) || 1;
-    var rawStep = range / target;
-    var mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
-    var cand = [1,2,5,10], step = 10*mag;
-    for (var i=0;i<cand.length;i++){ if (cand[i]*mag >= rawStep){ step = cand[i]*mag; break; } }
-    var lo = Math.floor(min/step)*step, hi = Math.ceil(max/step)*step;
-    var out = [];
-    for (var v = lo; v <= hi + step/1000; v += step) out.push(Math.round(v*1000)/1000);
-    return out;
-  }
-
-  // The gap-history chart: reads the container's REAL rendered width and
-  // redraws on resize, so a narrow phone gets real 11px+ text, not a fixed
-  // viewBox squeezed down by CSS (the sitewide mobile-chart bug fixed for
-  // every page). No hover-only affordance -- the start point and the
-  // current value are both drawn as permanent labels, so there is nothing
-  // that only reveals itself on a mouseover a touch screen can't do.
-  function drawGapChart(box, spark, dates){
-    function draw(){
-      var W = Math.max(280, box.clientWidth), H = W < 480 ? 200 : 230;
-      var L = 4, R = 46, T = 26, B = 28;
-      var ticks = niceTicks(Math.min.apply(null, spark), Math.max.apply(null, spark), 5);
-      var lo = ticks[0], hi = ticks[ticks.length-1];
-      var X = function(i){ return L + i*(W-L-R)/(spark.length-1); };
-      var Y = function(v){ return T + (hi-v)/((hi-lo)||1)*(H-T-B); };
-      var pts = spark.map(function(v,i){ return X(i).toFixed(1)+','+Y(v).toFixed(1); }).join(' ');
-      var grid = '';
-      ticks.forEach(function(v){
-        grid += '<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v).toFixed(1)+'" y2="'+Y(v).toFixed(1)+'" stroke="#F0F0F0"/>' +
-          '<text x="'+(W-R+8)+'" y="'+(Y(v)+4).toFixed(1)+'" font-size="12" fill="#9A9A9A">'+v.toFixed(1)+'%</text>';
-      });
-      var ex = X(spark.length-1), ey = Y(spark[spark.length-1]);
-      var lastText = spark[spark.length-1].toFixed(1) + '% this hour';
-      var badgeW = Math.max(80, lastText.length*6.5 + 16);
-      var startText = spark[0].toFixed(1) + '%';
-      box.innerHTML = '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Gap history chart" style="display:block">' + grid +
-        '<polygon points="'+X(0).toFixed(1)+','+(H-B)+' '+pts+' '+ex.toFixed(1)+','+(H-B)+'" fill="#D3D0CB" fill-opacity=".45"/>' +
-        '<polyline points="'+pts+'" fill="none" stroke="#3F3047" stroke-width="2" stroke-linejoin="round"/>' +
-        '<circle cx="'+X(0).toFixed(1)+'" cy="'+Y(spark[0]).toFixed(1)+'" r="3" fill="#3F3047"/>' +
-        '<text x="'+(X(0)+2).toFixed(1)+'" y="'+(Y(spark[0])+18).toFixed(1)+'" font-size="12" fill="#3F3047">'+esc(startText)+'</text>' +
-        '<circle cx="'+ex.toFixed(1)+'" cy="'+ey.toFixed(1)+'" r="4" fill="#0B0B0B"/>' +
-        '<rect x="'+(ex-badgeW+4).toFixed(1)+'" y="'+(ey-26).toFixed(1)+'" width="'+badgeW+'" height="20" rx="4" fill="#EDEDED"/>' +
-        '<text x="'+(ex-badgeW/2+4).toFixed(1)+'" y="'+(ey-12).toFixed(1)+'" text-anchor="middle" font-size="12" font-weight="600" fill="#0B0B0B">'+esc(lastText)+'</text>' +
-        '<line x1="'+L+'" x2="'+(W-R)+'" y1="'+(H-B)+'" y2="'+(H-B)+'" stroke="#D3D0CB"/>' +
-        '<text x="'+L+'" y="'+(H-8)+'" font-size="12" fill="#9A9A9A">'+esc(shortDate(dates[0]))+'</text>' +
-        '<text x="'+(W-R)+'" y="'+(H-8)+'" text-anchor="end" font-size="12" fill="#9A9A9A">'+esc(shortDate(dates[dates.length-1]))+'</text>' +
-        '</svg>';
-    }
-    draw();
-    window.addEventListener('resize', draw);
-  }
-
   var params = new URLSearchParams(location.search);
   var ccy = (params.get('ccy') || '').toUpperCase();
 
@@ -244,10 +198,17 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()),
     fetch('./data/latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
     fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-    fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+    fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+    // The manifest always exists (tools/emit_country_history.py writes it
+    // every run) and names exactly the currencies that have an earlier,
+    // backfilled segment -- read this first so the per-currency file below
+    // is only ever fetched when it is known to exist, not fired as a 404
+    // for the much more common case of no segment.
+    fetch('./data/country_history_segment/manifest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
   ]).then(function(res){
     var idx = res[0], raw = res[1], depthDoc = res[2];
     var COPY = (res[3] || {}).country || {};
+    var historyManifest = res[4];
 
     var country = (idx.countries || []).find(function(c){ return c.ccy === ccy; });
     var withheld = (idx.withheld || []).find(function(w){ return w.ccy === ccy; });
@@ -312,55 +273,118 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     html += '<div class="tile"><div class="k">Round trip</div><div class="v num">' + country.round_trip_pct.toFixed(1) + '%</div><div class="s">lost buying a dollar and selling it straight back</div></div>';
     html += '</div>';
 
-    // ---- Gap over time ----
-    if (country.spark && country.spark.length > 1) {
-      var total = headlinePct - country.spark[0];
-      var moveDate = mostOfMoveDate(country.spark, dates, total);
-      // "rise"/"fall" mirrors pointsPhrase's own up/down language instead of
-      // a direction-blind "move", matching the final mockup's copy (SEB).
-      var moveNoun = total > 0.05 ? 'rise' : (total < -0.05 ? 'fall' : 'move');
-      var moveVerb = moveNoun === 'rise' ? 'rose' : (moveNoun === 'fall' ? 'fell' : 'moved');
-      html += '<section><h2 class="num">' + esc(country.country) + "'s gap " + pointsPhrase(total) +
-        (sinceLabel ? ' since we started tracking it on ' + sinceLabel : '') + '</h2>' +
-        '<p class="answer">' + (moveDate ? 'Most of the ' + moveNoun + ' came after ' + esc(shortDate(moveDate)) + '.' : 'It ' + moveVerb + ' gradually across the full period.') + '</p>' +
-        '<div class="chartbox" id="gapChart"></div>' +
-        '</section>';
-    }
+    // The segment is per-currency and most currencies don't have one --
+    // the manifest (always present) says which ones do, so this only ever
+    // fetches a file known to exist (SEB-208).
+    var hasSegment = !!(historyManifest && Array.isArray(historyManifest.ccys) && historyManifest.ccys.indexOf(ccy) >= 0);
+    var segmentPromise = hasSegment
+      ? fetch('./data/country_history_segment/' + ccy + '.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+      : Promise.resolve(null);
 
-    // ---- How we get the number, in four steps ----
-    if (p2p) {
-      var nAds = country.n_sources != null ? Math.round(country.n_sources) : Math.round(p2p.n_ads || 0);
-      var ratio = (p2p.buy_median / p2p.fx_mid_per_usd);
-      html += '<section><h2 class="num">How we get ' + signedPct(headlinePct) + ', in four steps</h2>' +
-        '<ol class="steps">' +
-        '<li>' + esc(T(COPY.adsStepTemplate || 'We read the {n} cheapest ads selling stablecoin for {ccy} on Binance P2P.',
-          {n: nAds, ccy: ccy})) + ' The middle price is <b class="num">' +
-          p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar.<small><code>data/p2p_basis.csv</code></small></li>' +
-        '<li>We read ' + esc(country.country) + "'s official rate at the same time: <b class=\"num\">" +
-          p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar.<small><code>data/fx_rates.csv</code> &middot; this source updates once a day</small></li>' +
-        '<li>' + p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' &divide; ' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) +
-          ' = ' + ratio.toFixed(3) + ', so a dollar <b class="num">' + gapPhraseShort(country.index_pct) + '</b> this hour. The headline is the median of the last 24 hours: <b class="num">' +
-          signedPct(headlinePct) + '</b>.<small><code>data/index_latest.json</code></small></li>' +
-        (depth
-          ? '<li>We check how many dollars are on offer near the best price: <b class="num">' + depth.n_ads_held + ' of the ' + depth.n_ads_priced +
-            ' sellers</b>, about <b class="num">' + fmtMoney(depth.depth_usd) + '</b>, are within ' + depth.threshold_pct + '% of the best price' +
-            (depth.is_floor ? '.' : '. Beyond that, the price moves.') + '<small><code>data/street_depth_latest.json</code></small></li>'
-          : '') +
-        '</ol>' +
-        '</section>';
-    } else {
-      html += '<section><h2 class="num">How we get ' + signedPct(headlinePct) + '</h2>' +
-        '<p class="answer">Priced from an exchange order book (' + esc(country.source_class || '') +
-        '), not person-to-person ads. The published figure is real, from ' + esc(country.source_file) +
-        ', but the raw per-venue price and official rate this page shows for other countries are not in a published file yet for this source type.</p>' +
-        '</section>';
-    }
+    segmentPromise.then(function(segment){
+      var hasPoints = segment && segment.points && segment.points.length > 1;
 
-    main.innerHTML = html;
+      // ---- Gap over time ----
+      if (country.spark && country.spark.length > 1) {
+        var total = headlinePct - country.spark[0];
+        var moveDate = mostOfMoveDate(country.spark, dates, total);
+        // "rise"/"fall" mirrors pointsPhrase's own up/down language instead of
+        // a direction-blind "move", matching the final mockup's copy (SEB).
+        var moveNoun = total > 0.05 ? 'rise' : (total < -0.05 ? 'fall' : 'move');
+        var moveVerb = moveNoun === 'rise' ? 'rose' : (moveNoun === 'fall' ? 'fell' : 'moved');
+        html += '<section><h2 class="num">' + esc(country.country) + "'s gap " + pointsPhrase(total) +
+          (sinceLabel ? ' since we started tracking it on ' + sinceLabel : '') + '</h2>' +
+          '<p class="answer">' + (moveDate ? 'Most of the ' + moveNoun + ' came after ' + esc(shortDate(moveDate)) + '.' : 'It ' + moveVerb + ' gradually across the full period.') + '</p>' +
+          '<div class="chartbox" id="gapChart"></div>';
 
-    if (country.spark && country.spark.length > 1) {
-      drawGapChart(document.getElementById('gapChart'), country.spark, dates);
-    }
+        if (hasPoints) {
+          html += '<p class="small"><button type="button" class="linkbtn" id="histToggle" aria-expanded="false">' +
+            esc(T(COPY.historyShowTemplate || 'Show the earlier record, {first} to {last}', {first: segment.first.slice(0,4), last: segment.last.slice(0,4)})) +
+            '</button></p><div id="histNote" hidden>';
+          var moves = (segment.largest_moves || []).map(function(m){
+            return T(COPY.historySegmentMoveItemTemplate || '{delta} on {date}', {
+              delta: (m.delta_pct > 0 ? '+' : '') + m.delta_pct.toFixed(1) + ' points',
+              date: longDate(m.date)
+            });
+          }).join('; ');
+          html += '<p class="small">' + esc(T(COPY.historySegmentSourceTemplate ||
+            'The dashed line before {since} is an earlier record: {venue}’s own history, compared with {fxSource}, from {first} to {last}. It is {label}, not something we watched happen, and it is never counted in the published number above.', {
+              since: sinceLabel || shortDate(country.history_start), venue: segment.venue, fxSource: segment.fx_source,
+              first: longDate(segment.first), last: longDate(segment.last), label: segment.label
+            })) + '</p>';
+          if (moves) {
+            html += '<p class="small">' + esc(T(COPY.historySegmentMovesTemplate || 'Its largest day-over-day moves: {moves}.', {moves: moves})) + '</p>';
+          }
+          html += '<p class="small"><small><code>data/country_history_segment/' + esc(ccy) + '.json</code></small></p></div>';
+        } else {
+          html += '<p class="small">' + esc(T(COPY.historyStartTemplate ||
+            'There is no earlier record for {country}: history starts on {date}, the first day we collected a price for it.',
+            {country: country.country, date: shortDate(country.history_start)})) + '</p>';
+        }
+        html += '</section>';
+      }
+
+      // ---- How we get the number, in four steps ----
+      if (p2p) {
+        var nAds = country.n_sources != null ? Math.round(country.n_sources) : Math.round(p2p.n_ads || 0);
+        var ratio = (p2p.buy_median / p2p.fx_mid_per_usd);
+        html += '<section><h2 class="num">How we get ' + signedPct(headlinePct) + ', in four steps</h2>' +
+          '<ol class="steps">' +
+          '<li>' + esc(T(COPY.adsStepTemplate || 'We read the {n} cheapest ads selling stablecoin for {ccy} on Binance P2P.',
+            {n: nAds, ccy: ccy})) + ' The middle price is <b class="num">' +
+            p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar.<small><code>data/p2p_basis.csv</code></small></li>' +
+          '<li>We read ' + esc(country.country) + "'s official rate at the same time: <b class=\"num\">" +
+            p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) + ' ' + esc(ccy) + '</b> per dollar.<small><code>data/fx_rates.csv</code> &middot; this source updates once a day</small></li>' +
+          '<li>' + p2p.buy_median.toLocaleString(undefined,{maximumFractionDigits:4}) + ' &divide; ' + p2p.fx_mid_per_usd.toLocaleString(undefined,{maximumFractionDigits:4}) +
+            ' = ' + ratio.toFixed(3) + ', so a dollar <b class="num">' + gapPhraseShort(country.index_pct) + '</b> this hour. The headline is the median of the last 24 hours: <b class="num">' +
+            signedPct(headlinePct) + '</b>.<small><code>data/index_latest.json</code></small></li>' +
+          (depth
+            ? '<li>We check how many dollars are on offer near the best price: <b class="num">' + depth.n_ads_held + ' of the ' + depth.n_ads_priced +
+              ' sellers</b>, about <b class="num">' + fmtMoney(depth.depth_usd) + '</b>, are within ' + depth.threshold_pct + '% of the best price' +
+              (depth.is_floor ? '.' : '. Beyond that, the price moves.') + '<small><code>data/street_depth_latest.json</code></small></li>'
+            : '') +
+          '</ol>' +
+          '</section>';
+      } else {
+        html += '<section><h2 class="num">How we get ' + signedPct(headlinePct) + '</h2>' +
+          '<p class="answer">Priced from an exchange order book (' + esc(country.source_class || '') +
+          '), not person-to-person ads. The published figure is real, from ' + esc(country.source_file) +
+          ', but the raw per-venue price and official rate this page shows for other countries are not in a published file yet for this source type.</p>' +
+          '</section>';
+      }
+
+      main.innerHTML = html;
+
+      if (country.spark && country.spark.length > 1) {
+        var chartOpts = { spark: country.spark, timestamps: dates, valueSuffix: '%' };
+        if (hasPoints) {
+          chartOpts.priorSpark = segment.points.map(function(p){ return p.index_pct; });
+          chartOpts.priorTimestamps = segment.points.map(function(p){ return p.date; });
+          chartOpts.priorNote = (COPY.historySegmentLabel || segment.label) + ' (' + segment.venue + ')';
+          var movedAt = {};
+          (segment.largest_moves || []).forEach(function(m){ movedAt[m.date] = true; });
+          chartOpts.priorMarkIdx = segment.points.reduce(function(acc, p, i){
+            if (movedAt[p.date]) acc.push(i);
+            return acc;
+          }, []);
+        }
+        var baseOpts = { spark: country.spark, timestamps: dates, valueSuffix: '%' };
+        MarginChart.render(document.getElementById('gapChart'), baseOpts);
+        var tg = document.getElementById('histToggle');
+        if (tg && hasPoints) {
+          var shown = false;
+          tg.addEventListener('click', function(){
+            shown = !shown;
+            MarginChart.render(document.getElementById('gapChart'), shown ? chartOpts : baseOpts);
+            document.getElementById('histNote').hidden = !shown;
+            tg.setAttribute('aria-expanded', shown ? 'true' : 'false');
+            tg.textContent = shown
+              ? (COPY.historyHide || 'Hide the earlier record')
+              : T(COPY.historyShowTemplate || 'Show the earlier record, {first} to {last}', {first: segment.first.slice(0,4), last: segment.last.slice(0,4)});
+          });
+        }
+      }
+    });
   }).catch(function(){
     document.getElementById('main').innerHTML = '<div class="notfound" style="color:var(--ink)">Could not load this country\'s data. That failure is shown, not hidden.</div>';
   });

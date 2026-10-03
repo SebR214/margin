@@ -8,6 +8,19 @@
 //   timestamps: array of ISO strings, same length as spark (optional but
 //               required for the hover tooltip and x-axis labels to be real)
 //   valueSuffix: e.g. "%"
+//
+// Optional earlier segment (SEB-208): a second, visually distinct run of
+// points that comes BEFORE spark on the same time axis -- a backfilled
+// record, not something this site observed itself.
+//   priorSpark:      array of numbers, oldest first (no overlap with spark)
+//   priorTimestamps: array of ISO strings, same length as priorSpark
+//   priorNote:       short string appended to that segment's hover tooltip
+//                     (e.g. "reported, not observed (Coinone)")
+//   priorMarkIdx:    indices into priorSpark to mark with a dot (e.g. the
+//                     largest day-over-day moves, chosen by code elsewhere)
+// Drawn dashed, unfilled, no badge -- so it reads as a different kind of
+// line from the one solid filled series this component otherwise draws,
+// never as a second "current" value.
 (function (global) {
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -25,6 +38,15 @@
     if (isNaN(d)) return '';
     return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()];
   }
+  // A backfilled earlier segment can run back years, not days -- "29 Nov"
+  // reads as this window, not 2023, so a prior-segment point carries its
+  // year in the tooltip even though a live, same-year point does not.
+  function fmtDateYear(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+  }
 
   function render(container, opts) {
     var spark = opts.spark || [];
@@ -35,6 +57,12 @@
     // one non-time axis rather than a second chart to keep in sync with U6.
     var xLabels = opts.xLabels || null;
     var suffix = opts.valueSuffix == null ? '%' : opts.valueSuffix;
+    var priorSpark = opts.priorSpark || [];
+    var priorTimestamps = opts.priorTimestamps || [];
+    var priorCount = priorSpark.length;
+    var priorMarkIdx = opts.priorMarkIdx || [];
+    var fullSpark = priorSpark.concat(spark);
+    var fullTimestamps = priorTimestamps.concat(timestamps);
     // viewBox width = the container's real rendered width, not a fixed 1240.
     // width="100%" scales the whole coordinate system (text included) to fit
     // the container, so a fixed viewBox shrinks every label on a narrow
@@ -50,15 +78,17 @@
       return;
     }
 
-    var min = Math.min.apply(null, spark), max = Math.max.apply(null, spark);
+    var min = Math.min.apply(null, fullSpark), max = Math.max.apply(null, fullSpark);
     var range = (max - min) || 1;
     var plotW = w - rightGutter;
     var plotH = h - pad * 2 - bottomAxis;
-    var stepX = plotW / (spark.length - 1);
+    var stepX = plotW / (fullSpark.length - 1);
 
-    var pts = spark.map(function (v, i) {
-      return { x: i * stepX, y: pad + (1 - (v - min) / range) * plotH, v: v, ts: timestamps[i], label: xLabels ? xLabels[i] : null };
+    var pts = fullSpark.map(function (v, i) {
+      return { x: i * stepX, y: pad + (1 - (v - min) / range) * plotH, v: v, ts: fullTimestamps[i],
+        label: xLabels ? xLabels[i] : null, isPrior: i < priorCount };
     });
+    var priorPts = pts.slice(0, priorCount), livePts = pts.slice(priorCount);
     var lastX = pts[pts.length - 1].x, lastY = pts[pts.length - 1].y, lastV = pts[pts.length - 1].v;
     // A tiny negative rounds to "-0.0" at one decimal -- true but reads as a
     // typo. Zero it explicitly rather than let toFixed manufacture a minus
@@ -70,8 +100,19 @@
     // ~7.5px/char at 14px bold is a safe estimate for this font; padded.
     var badgeWidth = Math.max(50, badgeText.length * 8 + 16);
 
-    var areaPath = 'M0,' + (h - bottomAxis) + ' L' + pts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ') + ' L' + lastX.toFixed(1) + ',' + (h - bottomAxis) + ' Z';
-    var linePoly = pts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
+    // The fill and the solid line are the live series only -- the earlier
+    // segment (if any) is drawn separately, dashed and unfilled, so a
+    // backfilled record never looks like "the current observed value" the
+    // badge and the gradient fill are reserved for.
+    var firstLiveX = livePts[0].x;
+    var areaPath = 'M' + firstLiveX.toFixed(1) + ',' + (h - bottomAxis) + ' L' + livePts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ') + ' L' + lastX.toFixed(1) + ',' + (h - bottomAxis) + ' Z';
+    var linePoly = livePts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ');
+    var priorPoly = priorPts.length > 1 ? priorPts.map(function (p) { return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' ') : '';
+    var priorLine = priorPoly ?
+      '<polyline points="' + priorPoly + '" fill="none" stroke="#9A9A9A" stroke-width="1.6" stroke-dasharray="5,4" stroke-linejoin="round" stroke-linecap="round"/>' : '';
+    var priorMarks = priorPts.length ? priorMarkIdx.filter(function (i) { return priorPts[i]; }).map(function (i) {
+      return '<circle cx="' + priorPts[i].x.toFixed(1) + '" cy="' + priorPts[i].y.toFixed(1) + '" r="3.5" fill="#3F3047" stroke="#fff" stroke-width="1"/>';
+    }).join('') : '';
 
     // Skip any axis label that would sit at the same height as the current-
     // value badge -- when the latest point IS the max (or min), that axis
@@ -92,9 +133,9 @@
     }).join('');
 
     var xFirst = xLabels ? (xLabels[0] || '') :
-      (timestamps[0] ? fmtDate(timestamps[0]) : 'earliest in window');
+      (fullTimestamps[0] ? (priorCount ? fmtDateYear(fullTimestamps[0]) : fmtDate(fullTimestamps[0])) : 'earliest in window');
     var xLast = xLabels ? (xLabels[xLabels.length - 1] || '') :
-      (timestamps[timestamps.length - 1] ? fmtDate(timestamps[timestamps.length - 1]) : 'now');
+      (fullTimestamps[fullTimestamps.length - 1] ? fmtDate(fullTimestamps[fullTimestamps.length - 1]) : 'now');
 
     var uid = 'mc' + Math.random().toString(36).slice(2, 9);
     var svgId = 'svg-' + uid, tipId = 'tip-' + uid, dotId = 'dot-' + uid, vlineId = 'vl-' + uid;
@@ -122,6 +163,7 @@
       '<stop offset="1" stop-color="#9A9A9A" stop-opacity="0.02"/></linearGradient></defs>' +
       '<path d="' + areaPath + '" fill="url(#g-' + uid + ')"/>' +
       refLine +
+      priorLine + priorMarks +
       '<polyline points="' + linePoly + '" fill="none" stroke="#6B6B6B" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' +
       '<line x1="0" y1="' + lastY.toFixed(1) + '" x2="' + lastX.toFixed(1) + '" y2="' + lastY.toFixed(1) + '" stroke="#9A9A9A" stroke-width="1" stroke-dasharray="1.5,3.5" opacity="0.6"/>' +
       // Badge rect starts at lastX+14; text starts at lastX+22 (8px inside).
@@ -168,7 +210,8 @@
       tip.style.top = ((p.y / h) * 100) + '%';
       tip.style.opacity = 1;
       tip.style.fontSize = "14px";
-      tip.textContent = p.v.toFixed(2) + suffix + (p.label ? ' · ' + p.label : (p.ts ? ' · ' + fmtDate(p.ts) : ''));
+      var dateText = p.label ? ' · ' + p.label : (p.ts ? ' · ' + (p.isPrior ? fmtDateYear(p.ts) : fmtDate(p.ts)) : '');
+      tip.textContent = p.v.toFixed(2) + suffix + dateText + (p.isPrior && opts.priorNote ? ' · ' + opts.priorNote : '');
     }
     function hide() {
       dot.setAttribute('opacity', 0);

@@ -91,6 +91,10 @@ import urllib.request
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
 OUT = os.path.join(DATA, "machine_room_meters.json")
+ANALYST_FINDINGS = os.path.join(DATA, "analyst_findings.json")
+AUDIT_LATEST = os.path.join(DATA, "audit_latest.json")
+CORRIDOR_SUMMARY = os.path.join(DATA, "corridor_summary.json")
+COUNTRIES_DIR = os.path.join(DATA, "countries")
 
 REPO = "SebR214/margin"
 PR_SUFFIX_RE = re.compile(r"\(#\d+\)\s*$")
@@ -293,14 +297,77 @@ def bytes_block():
 
 
 def disk_block():
-    total = 0
-    for root, _, files in os.walk(DATA):
-        for n in files:
-            try:
-                total += os.path.getsize(os.path.join(root, n))
-            except OSError:
-                pass
+    # `du` rather than a Python directory walk: this is only a size, and a
+    # walk in a live-layer module is exactly what check_history_isolation.py
+    # forbids (it could pick up data/history/ as input).
+    try:
+        out = subprocess.run(["du", "-sk", DATA], capture_output=True, text=True, timeout=60).stdout
+        total = int(out.split()[0]) * 1024
+    except (OSError, ValueError, IndexError, subprocess.SubprocessError):
+        total = None
     return {"path": "data/", "bytes": total, "stop_pct": DISK_STOP_PCT, "box_pct": None}
+
+
+OBSERVED_FILES = ("samples.csv", "basis.csv", "p2p_basis.csv", "p2p_offers.csv", "p2p_sides.csv",
+                  "fx_rates.csv", "provider_quotes.csv", "corridor_variants.csv", "stable_spread.csv")
+
+
+def _data_rows(path):
+    n = 0
+    try:
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(1 << 20), b""):
+                n += chunk.count(b"\n")
+    except OSError:
+        return 0
+    return max(n - 1, 0)
+
+
+def research_block():
+    """Every count is worked out from files on disk when this runs, never
+    kept as a tally. SEB-212 (ROADMAP item 22): reads what item 19 (the
+    auditor, tools/audit_numbers.py, data/audit_latest.json) and item 20
+    (the analyst, tools/analyst.py, data/analyst_findings.json) already
+    wrote -- no new collector, nothing computed here that those scripts
+    don't already compute. Both files read 0/None honestly until those
+    scripts have run at least once on this box."""
+    obs = {n: _data_rows(os.path.join(DATA, n)) for n in OBSERVED_FILES}
+    man = _read_json(os.path.join(DATA, "history", "manifest.json")) or {}
+    # Exchange candles only: the official-rate and parallel-dollar series are
+    # not "history from exchanges" and must not set that span.
+    mine = {k: v for k, v in (man.get("files") or {}).items()
+            if k.rsplit("_", 1)[-1] in ("1d", "1h")}
+    firsts = [v.get("first") for v in mine.values() if v.get("first")]
+
+    store = _read_json(ANALYST_FINDINGS) or {}
+    findings = store.get("findings") or []
+    # "Active tonight": the analyst's most recent run only, not the whole
+    # historical ledger -- a standing win-condition gap gets a fresh finding
+    # most nights it's checked, so counting every stored row ever would grow
+    # without bound and say nothing about what is live right now.
+    latest_date = max((f["as_of_date"] for f in findings), default=None)
+    active = {(f["kind"], f["subject"]) for f in findings if f["as_of_date"] == latest_date}
+
+    corridors = (_read_json(CORRIDOR_SUMMARY) or {}).get("corridors") or []
+    countries = [n for n in os.listdir(COUNTRIES_DIR) if n.endswith(".json")] \
+        if os.path.isdir(COUNTRIES_DIR) else []
+
+    audit = _read_json(AUDIT_LATEST) or {}
+
+    return {
+        "observations": sum(obs.values()),
+        "observation_files": list(OBSERVED_FILES),
+        "history_first_year": int(min(firsts)[:4]) if firsts else None,
+        "history_sources": len({k.rsplit("_", 1)[0] for k in mine}),
+        "routes": len(corridors),
+        "countries": len(countries),
+        "findings": len(findings),
+        "tested_and_dropped": len([f for f in findings if f.get("interpretation_rejected")]),
+        "active_investigations": len(active),
+        "open_questions": len(store.get("collection_tasks_filed") or {}),
+        "evidence_chains": len([f for f in findings if f.get("cites")]),
+        "auditor_score_pct": audit.get("score_pct"),
+    }
 
 
 def main():
@@ -309,6 +376,7 @@ def main():
         "collector_commits_today": collector_commits_today(),
         "open_pull_requests": open_pull_requests(),
         "unbroken_hours": unbroken_hours(),
+        "research": research_block(),
         "runs_by_itself": {
             "delivery": delivery_block(), "freshness": freshness_block(),
             "wakes": wakes_block(), "bytes_per_row": bytes_block(),
@@ -322,7 +390,7 @@ def main():
         f.write("\n")
 
     print("emit_machine_room_meters: " + ", ".join(
-        f"{k}={v}" for k, v in doc.items() if k not in ("computed_at", "runs_by_itself")))
+        f"{k}={v}" for k, v in doc.items() if k not in ("computed_at", "runs_by_itself", "research")))
     return 0
 
 

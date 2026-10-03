@@ -1,0 +1,82 @@
+name: p2p-board-probe
+
+on:
+  schedule:
+    # Weekly, Sunday 03:11 UTC. ROADMAP item 14: "a weekly re-probe marks a
+    # board unusable the day that changes" -- Bybit and HTX were rejected on
+    # 2026-10-03 (bot wall; no public currency-id mapping), and this is what
+    # catches either of those changing without anyone going back to check by
+    # hand. Minute 11 on purpose, same reasoning as fees.yml's minute 23:
+    # GitHub drops top-of-hour scheduled jobs under load, and this fires only
+    # 52 times a year.
+    - cron: "11 3 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: p2p-board-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Phase 5: see collect.yml's checkout step for why.
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Probe Bybit, OKX and HTX P2P
+        # Three requests, once a week -- no new running cost worth stating a
+        # ceiling for (RULES.md). Never fails the job: a changed verdict is
+        # exactly the row this is for, not a reason to go red.
+        run: python3 tools/probe_p2p_boards.py
+
+      # Phase 5 pattern, same as collect.yml and fees.yml -- see collect.yml's
+      # "Mint GitHub App token" step for why.
+      - name: Mint GitHub App token
+        if: always()
+        id: app_token
+        env:
+          MARGIN_GH_APP_ID: ${{ secrets.MARGIN_GH_APP_ID }}
+          MARGIN_GH_INSTALL_ID: ${{ secrets.MARGIN_GH_INSTALL_ID }}
+          MARGIN_GH_APP_KEY_CONTENT: ${{ secrets.MARGIN_GH_APP_KEY }}
+        run: |
+          set +x
+          key_file="$RUNNER_TEMP/margin-app-key.pem"
+          umask 077
+          printf '%s\n' "$MARGIN_GH_APP_KEY_CONTENT" > "$key_file"
+          export MARGIN_GH_APP_KEY="$key_file"
+          token="$(agents/gh_token.sh)"
+          rm -f "$key_file"
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Commit probe report
+        if: always()
+        env:
+          APP_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          set +x
+          git config user.name "margin-agents[bot]"
+          git config user.email "329969015+margin-agents[bot]@users.noreply.github.com"
+          git add data/p2p_board_probes.csv
+          if git diff --cached --quiet; then
+            echo "nothing staged -- probe wrote no new rows"
+            exit 0
+          fi
+          git commit -m "p2p board probe $(date -u +%Y-%m-%dT%H:%MZ)"
+          git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)" \
+            pull --rebase origin "${GITHUB_REF_NAME}"
+          git -c http.https://github.com/.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)" \
+            push origin "${GITHUB_REF_NAME}"
