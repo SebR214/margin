@@ -499,6 +499,14 @@ def pct(bps):
     return ("%.2f" % v) + "%"
 
 
+def _bps_range(rows, key):
+    """"0.54% to 0.67%": the spread of those routes' own typical costs.
+    Mirrors range() in index.html's renderDuel."""
+    v = [c[key] for c in rows]
+    lo, hi = min(v), max(v)
+    return pct(lo) if lo == hi else pct(lo) + " to " + pct(hi)
+
+
 def duel_html(corridors, home_copy, rung):
     """The duel comparison: two big numbers, live from the SAME
     corridor_summary.json data the waterfall reads -- never the mockup's
@@ -544,6 +552,7 @@ def duel_html(corridors, home_copy, rung):
                           .replace("{stable_money}", money(rung * stable_bps / 10000, sym)))
     caption += " " + home_copy.get("duelStablecoinNote", "")
     others = []
+    other_rows = []
     for c in corridors:
         if c.get("corridor") == primary.get("corridor"):
             continue
@@ -551,9 +560,12 @@ def duel_html(corridors, home_copy, rung):
         if other_app_bps is not None and c["taker_cost_bps_median"] > other_app_bps:
             other_src = (c.get("corridor") or "").split("->")[0]
             others.append(SRC_NAME.get(other_src, other_src))
+            other_rows.append(c)
     if others:
         same_result = (home_copy.get("duelSameResultTemplate", "")
-            .replace("{others}", esc(join_and(others))))
+            .replace("{others}", esc(join_and(others)))
+            .replace("{app_range}", _bps_range(other_rows, "baseline_cost_bps_median"))
+            .replace("{stable_range}", _bps_range(other_rows, "taker_cost_bps_median")))
     else:
         same_result = ('<a href="./sending-money.html">'
                         + esc(home_copy.get("everyProviderLink", "")) + "</a>")
