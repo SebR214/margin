@@ -397,8 +397,13 @@ def country_close_html(rows_in, home_copy):
     if not pinned:
         return ""
     places = join_and([c.get("country", "") for c in pinned])
-    return (home_copy.get("countryCloseTemplate", "").replace("{places}", places)
-            + " " + home_copy.get("countryCloseNote", ""))
+    out = home_copy.get("countryCloseTemplate", "").replace("{places}", places)
+    widest = find_widest_managed(rows_in)
+    if has_gap(widest):
+        out += " " + (home_copy.get("countryCloseNote", "")
+                      .replace("{country}", widest.get("country", ""))
+                      .replace("{pct}", str(round(widest.get("gap_pct", 0.0)))))
+    return out
 
 
 def _ordered_rows(priced):
