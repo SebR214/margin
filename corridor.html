@@ -216,6 +216,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
   <div class="card">
     <h2><span id="wfTitle"></span> <span id="wf-size" style="color:var(--color-neutral-600);font-weight:400"></span></h2>
+    <p class="cap" id="wfRoute"></p>
     <p class="cap" id="wfAnswer"></p>
     <p class="cap" id="wfCap" style="display:none"></p>
     <div id="receipt"></div>
@@ -569,11 +570,7 @@ function selectCorridor(key){
   // (SEB brief, 2026-09-28); typicalPct is the SAME field
   // (taker_cost_bps_median) the home page's duel comparison reads, so the
   // two never disagree.
-  const summaryRow=corridorSummary[key];
-  document.getElementById("costBridge").textContent = summaryRow
-    ? T(COPY.costBridgeTemplate||"In a typical hour the stablecoin route costs {typicalPct} of the amount. This hour it is {nowPct}.",
-        {typicalPct:pct(summaryRow.taker_cost_bps_median), nowPct:pct(+bySize[size].cost_bps_taker)})
-    : "";
+  // The typical-hour line is set by renderBridge(), called from render().
   renderCorridors(); renderSizes(); render(); renderRoutes();
   const dst=(r5.dst||"").trim();
   document.getElementById("foot").innerHTML=
@@ -625,28 +622,38 @@ function routeLabel(stable,network){
   return network ? T(R.labelWithNetworkTemplate||cmiss("routes.labelWithNetworkTemplate"),{stable,network:prettyNet(network)})
                  : T(R.labelPlainTemplate||cmiss("routes.labelPlainTemplate"),{stable});
 }
-function renderRoutes(){
-  const card=document.getElementById("routesCard");
-  const R=COPY.routes||{};
+// The ONE computation of "which stablecoin routes are priced this hour at
+// this amount, and which is cheapest". The card below, the page headline, the
+// typical-hour line and the comparison against the cheapest app all read it
+// (SEB-217), so no two figures on the page can name different "stablecoin
+// costs". Returns null when nothing is priced this hour.
+function routePricing(){
   const vrows=variantRows.filter(v=>(v.corridor||"").trim()===corridor);
   const base=bySize[size];
   const hour=[newest,...vrows.map(v=>v.ts)].reduce((m,t)=>hourOf(t)>m?hourOf(t):m,"");
-  if(!base||!hour){ card.style.display="none"; return; }
+  if(!base||!hour) return null;
   const routes=[];
   const bOk=hourOf(base.ts)===hour && isFinite(+base.cost_bps_taker);
-  routes.push({label:routeLabel((base.stable||"").trim(),""), bps:bOk?+base.cost_bps_taker:null});
+  routes.push({label:routeLabel((base.stable||"").trim(),""), bps:bOk?+base.cost_bps_taker:null, maker:bOk?+base.cost_bps_maker:null, isBase:true});
   const known=[...new Set(vrows.map(v=>(v.stable||"").trim()+"|"+(v.network||"").trim()))];
   for(const k of known){
     const [st,nw]=k.split("|");
     const hit=vrows.filter(v=>(v.stable||"").trim()===st&&(v.network||"").trim()===nw&&
       hourOf(v.ts)===hour&&+v.notional_src===size&&(v.source_ok||"").trim()==="True"&&isFinite(+v.cost_bps_taker))
       .sort((a,b)=>a.ts<b.ts?1:-1)[0];
-    routes.push({label:routeLabel(st,nw), bps:hit?+hit.cost_bps_taker:null});
+    routes.push({label:routeLabel(st,nw), bps:hit?+hit.cost_bps_taker:null, maker:hit?+hit.cost_bps_maker:null});
   }
   const priced=routes.filter(r=>r.bps!==null).sort((a,b)=>a.bps-b.bps);
   const gaps=routes.filter(r=>r.bps===null);
-  if(!priced.length){ card.style.display="none"; return; }
-  const n=priced.length, best=priced[0];
+  if(!priced.length) return null;
+  return {priced, gaps, n:priced.length, best:priced[0], baseLabel:routes[0].label};
+}
+function renderRoutes(){
+  const card=document.getElementById("routesCard");
+  const R=COPY.routes||{};
+  const rp=routePricing();
+  if(!rp){ card.style.display="none"; return; }
+  const {priced, gaps, n, best}=rp;
   card.style.display="";
   document.getElementById("routesHead").textContent= n>1
     ? T(R.headlineManyTemplate||cmiss("routes.headlineManyTemplate"),{n,route:best.label})
@@ -664,10 +671,29 @@ function renderRoutes(){
   document.getElementById("routesList").innerHTML=h;
 }
 
+// "Typical hour" is the base route's median (corridor_summary.json, the
+// figure the home page leads with); "this hour" is the cheapest priced
+// route's, from routePricing() -- the same figure as the headline.
+function renderBridge(rp){
+  const summaryRow=corridorSummary[corridor], el=document.getElementById("costBridge");
+  if(!summaryRow){ el.textContent=""; return; }
+  const typicalPct=pct(summaryRow.taker_cost_bps_median);
+  el.textContent = rp&&rp.n>1
+    ? T(COPY.costBridgeManyTemplate||cmiss("costBridgeManyTemplate"),{baseRoute:rp.baseLabel, typicalPct, route:rp.best.label, nowPct:pct(rp.best.bps)})
+    : T(COPY.costBridgeTemplate||"In a typical hour the stablecoin route costs {typicalPct} of the amount. This hour it is {nowPct}.",
+        {typicalPct, nowPct:pct(rp?rp.best.bps:+bySize[size].cost_bps_taker)});
+}
+
 function netBps(r){ return (+r.network_fee_stable)/((+r.notional_src)/(+r.onramp_vwap))*1e4; }
 
 function render(){
-  const r=bySize[size], t=+r.cost_bps_taker, m=+r.cost_bps_maker;
+  const r=bySize[size];
+  // The stablecoin figure everywhere above the waterfall is the cheapest
+  // priced route's (routePricing(), same as the card); the base row r stays
+  // the source for the waterfall, ladder, depth and receipt below it.
+  const rp=routePricing();
+  const hr=rp?rp.best:null;
+  const t=hr?hr.bps:+r.cost_bps_taker, m=hr&&isFinite(hr.maker)?hr.maker:+r.cost_bps_maker;
   // "The cheapest app" is the true cheapest of every quote for this route
   // (direct provider quotes plus the comparison feed), not just whoever
   // wins the Wise comparison feed alone -- see cheapestApp() above.
@@ -683,7 +709,10 @@ function render(){
   // Falls back to the old approximation only when the sidecar has no row
   // for this exact sample yet.
   const wfSum=wfBySample[r.ts+"|"+r.corridor+"|"+r.notional_src];
-  const rail=wfSum?+wfSum.wf_move_bps:netBps(r), doors=t-rail;
+  // The rail/exchange split is the base route's (the waterfall's own); the
+  // variant rows carry no per-leg split, so it is shown only for that route.
+  const baseOnly=!hr||hr.isBase;
+  const rail=wfSum?+wfSum.wf_move_bps:netBps(r), doors=(+r.cost_bps_taker)-rail;
   // The worked example, in the currency being sent, at the amount selected.
   const VL=COPY.verdictLine||{};
   document.getElementById("verdict").innerHTML=
@@ -691,7 +720,7 @@ function render(){
       ? T(VL.stableCheaperTemplate||"The stablecoin route is cheaper at this amount by {amount}.",{amount:cashDiff(size,base,t)})
       : T(VL.appCheaperTemplate||"The cheapest app is cheaper at this amount by {amount}. A limit order saves {limitAmount}, {closes} the gap.",
           {amount:cashDiff(size,t,base), limitAmount:cashDiff(size,t,m), closes: mw?(VL.closes||"closing"):(VL.doesNotClose||"not enough to close")}))+
-    `<div class="split"><span>${VL.blockchainSplit||"Network fee"}: <b>${cash(size,rail)}</b></span><span>${VL.exchangesSplit||"exchange fees"}: <b>${cash(size,doors)}</b></span></div>`;
+    (baseOnly?`<div class="split"><span>${VL.blockchainSplit||"Network fee"}: <b>${cash(size,rail)}</b></span><span>${VL.exchangesSplit||"exchange fees"}: <b>${cash(size,doors)}</b></span></div>`:"");
   // The headline states the finding, per DESIGN.md ("headers say the
   // finding, sub-headers only add supporting detail"): this amount, this
   // route, the stablecoin's real cost against the cheapest app's real
@@ -699,10 +728,18 @@ function render(){
   // sentence. Same shape as the mockup's own h1
   // ("Sending S$5,000 to the Philippines by stablecoin costs S$63.58.
   // Airwallex costs S$5.18.").
-  document.getElementById("pageTitle").textContent=T(COPY.titleTemplate||"Sending {amount} to {place} by stablecoin costs {marketCost}. {provider} costs {appCost}.",{
-    amount: money(size), place: place(dstOf(r)),
-    marketCost: cash(size,t), appCost: cash(size,base), provider: cheapest.provider,
-  });
+  // Names the route the figure belongs to once there is more than one priced
+  // route; with a single priced route the plain sentence is already exact.
+  const manyRoutes=rp&&rp.n>1;
+  document.getElementById("pageTitle").textContent=manyRoutes
+    ? T(COPY.titleManyTemplate||cmiss("titleManyTemplate"),{
+        amount: money(size), place: place(dstOf(r)), n: rp.n, route: hr.label,
+        marketCost: cash(size,t), appCost: cash(size,base)})
+    : T(COPY.titleTemplate||"Sending {amount} to {place} by stablecoin costs {marketCost}. {provider} costs {appCost}.",{
+        amount: money(size), place: place(dstOf(r)),
+        marketCost: cash(size,t), appCost: cash(size,base), provider: cheapest.provider,
+      });
+  renderBridge(rp);
   // The lede stays a generic, size-independent sentence (mockup: "Every
   // cost of the stablecoin route, step by step, checked every hour.") --
   // the numeric claim now lives in the h1 above, so this line no longer
@@ -767,6 +804,7 @@ function drawWaterfall(r,cheapest){
   if(!wf){
     document.getElementById("wfTitle").textContent=T((COPY.cards||{}).waterfall?.titleTemplate||"Where the {amount} cost goes",{amount:money(n)});
     document.getElementById("wfAnswer").textContent="";
+    document.getElementById("wfRoute").textContent="";
     document.getElementById("wf").innerHTML=`<text x="12" y="30" fill="var(--color-neutral-600)" font-size="13" font-family="var(--font-body)">${esc(COPY.waterfallUnavailable||cmiss("waterfallUnavailable"))}</text>`;
     return;
   }
@@ -798,6 +836,8 @@ function drawWaterfall(r,cheapest){
     tradeBps>=moveBps ? (WF.buyDominantTemplate||"Most of the {total} goes on buying and selling {stable}, not on sending it")
                        : (WF.moveDominantTemplate||"Most of the {total} goes on sending {stable} on chain, not on buying or selling it"),
     {total:cash(n,total), stable:"stablecoin"});
+  document.getElementById("wfRoute").textContent=T(((COPY.routes||{}).breakdownNoteTemplate)||cmiss("routes.breakdownLabelTemplate"),
+    {route:routeLabel((r.stable||"").trim(),""), cost:cash(n,total)});
   document.getElementById("wfAnswer").textContent=T(WF.answerTemplate||"Sending it on chain costs {moveCost}. Buying {stable} costs {buyCost}.",
     {moveCost:cash(n,+wf.wf_move_bps), stable:"stablecoin", buyCost:cash(n,+wf.wf_buy_bps)});
   document.getElementById("wfCap").textContent=T(WF.capTemplate||"Buying the stablecoin is {buyCost} of the {totalCost}. The dashed line is the cheapest app.",

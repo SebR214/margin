@@ -50,7 +50,16 @@ HISTORY_WRITERS = {"tools/backfill_history.py", "tools/check_history_isolation.p
 # never writes into data/history/ itself, and (being a plain read of named
 # files from a manifest, not a directory walk) it cannot pick up a file the
 # backfill tool hasn't already named there.
-HISTORY_READERS = {"tools/emit_country_history.py"}
+
+# The analyst (SEB-210, ROADMAP item 20) is the first and only reader: it
+# compares a live venue reading against the matching "reported, not observed"
+# candle to find where the two layers disagree, and stores the comparison as
+# a private finding nothing on the site reads. It never writes a history row,
+# and it is not the index, a published price, the observed series or the
+# unbroken-hours count -- the four things this check exists to keep history
+# out of (see the module docstring) -- so reading it here does not weaken the
+# isolation being proved.
+HISTORY_READERS = {"tools/analyst.py", "tools/emit_country_history.py"}
 HISTORY_TOKENS = [
     re.compile(r"data/history"),
     re.compile(r"""(DATA|["']data["'])\s*,\s*["']history["']"""),   # os.path.join(DATA, "history")

@@ -28,7 +28,13 @@ file it came from, and the failures stay published.
 - Additive only. Removing any chart, table, page or data detail requires Sebastian
     naming it in his own words in the session.
 - Plain words everywhere, but plain means reworded, never deleted.
-- Nothing ships without Sebastian seeing the rendered page.
+- Changes ship without Sebastian's sign-off, but never at the cost of the UI. Before
+    merge, anything that changes a page is checked rendered, at desktop and mobile
+    width, against what the page looked like before: no overflow, no broken layout,
+    nothing removed. The PR carries before-and-after screenshots so he can look
+    whenever he wants. Updated 2026-10-03: this replaces "nothing ships without
+    Sebastian seeing the rendered page"; the point was never approval, it was not
+    breaking the UI.
 - No backfill of the live layer, ever: gaps stay gaps, nothing is interpolated.
     History is the one exception, and only as its own layer: files of its own,
     every row labelled "reported, not observed" with the source named, rows taken
