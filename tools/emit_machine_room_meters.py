@@ -303,12 +303,64 @@ def disk_block():
     return {"path": "data/", "bytes": total, "stop_pct": DISK_STOP_PCT, "box_pct": None}
 
 
+OBSERVED_FILES = ("samples.csv", "basis.csv", "p2p_basis.csv", "p2p_offers.csv", "p2p_sides.csv",
+                  "fx_rates.csv", "provider_quotes.csv", "corridor_variants.csv", "stable_spread.csv")
+
+
+def _data_rows(path):
+    n = 0
+    try:
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(1 << 20), b""):
+                n += chunk.count(b"\n")
+    except OSError:
+        return 0
+    return max(n - 1, 0)
+
+
+def _objects(sub):
+    d = os.path.join(DATA, sub)
+    out = []
+    if os.path.isdir(d):
+        for n in sorted(os.listdir(d)):
+            if n.endswith(".json"):
+                doc = _read_json(os.path.join(d, n))
+                if isinstance(doc, dict):
+                    out.append(doc)
+    return out
+
+
+def research_block():
+    """Every count is worked out from files on disk when this runs, never kept
+    as a tally: observation rows from the price CSVs, history span from the
+    history manifest, findings/questions from the stored objects (none exist
+    until the analyst writes them, so they read 0 honestly)."""
+    obs = {n: _data_rows(os.path.join(DATA, n)) for n in OBSERVED_FILES}
+    man = _read_json(os.path.join(DATA, "history", "manifest.json")) or {}
+    # Exchange candles only: the official-rate and parallel-dollar series are
+    # not "history from exchanges" and must not set that span.
+    mine = {k: v for k, v in (man.get("files") or {}).items()
+            if k.rsplit("_", 1)[-1] in ("1d", "1h")}
+    firsts = [v.get("first") for v in mine.values() if v.get("first")]
+    findings = _objects("findings")
+    return {
+        "observations": sum(obs.values()),
+        "observation_files": list(OBSERVED_FILES),
+        "history_first_year": int(min(firsts)[:4]) if firsts else None,
+        "history_sources": len({k.rsplit("_", 1)[0] for k in mine}),
+        "findings": len([f for f in findings if f.get("status") != "rejected"]),
+        "tested_and_dropped": len([f for f in findings if f.get("status") == "rejected"]),
+        "open_questions": len(_objects("questions")),
+    }
+
+
 def main():
     doc = {
         "computed_at": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat(),
         "collector_commits_today": collector_commits_today(),
         "open_pull_requests": open_pull_requests(),
         "unbroken_hours": unbroken_hours(),
+        "research": research_block(),
         "runs_by_itself": {
             "delivery": delivery_block(), "freshness": freshness_block(),
             "wakes": wakes_block(), "bytes_per_row": bytes_block(),
@@ -322,7 +374,7 @@ def main():
         f.write("\n")
 
     print("emit_machine_room_meters: " + ", ".join(
-        f"{k}={v}" for k, v in doc.items() if k not in ("computed_at", "runs_by_itself")))
+        f"{k}={v}" for k, v in doc.items() if k not in ("computed_at", "runs_by_itself", "research")))
     return 0
 
 

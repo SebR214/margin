@@ -491,7 +491,7 @@
     "dollarCostBody": "Every hour we price the stablecoin in each country on the exchange people there actually use: Upbit in Korea, Bitso in Mexico, Bitkub in Thailand, about 40 in all, plus Binance P2P where no local exchange works. We take the middle price of the 10 cheapest sellers and divide it by the official rate. The number you see is the median of the last 24 hours. A country with fewer than 10 sellers gets no price, and we say why. The official rate comes from open.er-api.com, a free daily currency feed, with frankfurter.app as a backup and a country's own central bank when one publishes its own number, like Argentina's for the peso. We price the stablecoin because it is the digital dollar people in these countries actually buy and sell. Other coins barely trade there."
   },
   "machineRoom": {
-    "title": "Four AI agents run this site, with one person approving what matters",
+    "title": "Four programs run this site",
     "lede": "They collect prices, write the code, review each other's work and decide what to build next. Every change they make is public.",
     "connecting": "",
     "connected": "connected · live",
@@ -529,13 +529,13 @@
         "shippedHistoryLink": "Every change, with the reviewer's notes →"
       },
       "meters": {
-        "priced": "COUNTRIES PRICED NOW",
+        "priced": "Countries priced now",
         "withheld": "NOT ENOUGH DATA, WITH REASONS",
-        "commitsToday": "PRICE CHECKS TODAY",
+        "commitsToday": "Prices checked today",
         "openPRs": "OPEN PULL REQUESTS",
-        "unbrokenHours": "UNBROKEN HOURS",
+        "unbrokenHours": "Hours without a gap",
         "mergedThisWeek": "CHANGES SHIPPED THIS WEEK",
-        "people": "PEOPLE",
+        "people": "People involved",
         "peopleValue": "1",
         "unknown": "—"
       }
@@ -545,16 +545,16 @@
       "labels": {
         "delivery": "Prices collected on time",
         "fresh": "Sources answering",
+        "audit": "Numbers re-checked",
         "disk": "Size of the data",
-        "bytes": "Space per row",
-        "wakes": "Agent runs per day"
+        "basis": "Exchange prices",
+        "p2p": "Street prices",
+        "quotes": "Provider quotes",
+        "stable": "Stablecoin routes"
       },
       "deliverySub": "Target {target}% of hours. {hours} of {expected} hours, {from} to {to}. Worst day {worst_date}: {worst_hours} of 24.",
       "freshValue": "{fresh} of {live}",
       "freshSub": "Every source expected to answer did. {n_silent} more are silent on purpose.",
-      "wakesValue": "Not published",
-      "wakesSub": "The count stays on the server.",
-      "bytesSub": "{bytes} bytes over {rows} rows.",
       "diskSub": "Size of the data folder. Disk use on the server is not published.",
       "met": "Met the target.",
       "missed": "Missed the target.",
@@ -566,8 +566,11 @@
         "stable": "stablecoin routes"
       },
       "deliveryLayers": "Same for {names}.",
-      "bytesUnit": "bytes",
-      "foot": "Each figure comes from data/machine_room_meters.json, which names the data file behind it."
+      "foot": "Each figure comes from a public data file, named on the page it is read from.",
+      "verdictMissed": "Almost. Prices were collected on time for {pct}% of hours, just under the {target}% target.",
+      "verdictMet": "Yes. Prices were collected on time for {pct}% of hours, above the {target}% target.",
+      "auditSub": "A script re-works up to 50 published numbers from the raw data every hour and publishes the score.",
+      "auditValue": "{passed} of {drawn}"
     },
     "metaTemplate": "Last price check {time} UTC · next on the hour",
     "roles": {
@@ -597,23 +600,20 @@
       ]
     },
     "approves": {
-      "heading": "Seb approves four things. The agents ship everything else on their own.",
+      "heading": "What one person decides",
+      "lede": "The agents ship on their own, and the reviewer checks every change. One person sets the direction and keeps the keys.",
       "items": [
         {
-          "title": "Deleting anything",
-          "text": "A page, chart, table or number cannot disappear without approval."
-        },
-        {
-          "title": "A new published number",
-          "text": "Any new way of measuring something."
-        },
-        {
-          "title": "The site's thesis",
-          "text": "What VISION.md says the site argues."
+          "title": "What the site argues",
+          "text": "The thesis stays fixed unless he changes it."
         },
         {
           "title": "Money and access",
-          "text": "Spending, credentials and identity."
+          "text": "Spending, passwords and accounts are never the agents' to touch."
+        },
+        {
+          "title": "The look of the site",
+          "text": "Changes to a page are checked on desktop and phone, with before and after pictures attached."
         }
       ]
     },
@@ -643,6 +643,38 @@
       "liveItemFallback": "Every currency this site tracks has a price this hour — when one doesn't, it shows \"not enough data\" and the real reason, instead of a guess.",
       "linkText": "The full story: running agents that can't be trusted →",
       "linkHref": "./agent-incidents.html"
+    },
+    "research": {
+      "title": "What the research has so far",
+      "lede": "Every count below is worked out live from the stored files, so it can never disagree with them.",
+      "labels": {
+        "observations": "Prices recorded",
+        "history": "History",
+        "findings": "Findings",
+        "dropped": "Ideas tested and dropped",
+        "questions": "Questions we cannot answer yet"
+      },
+      "observationsSub": "Rows across the price files we collect, since 10 August.",
+      "historyValue": "Back to {year}",
+      "historySub": "From {n} exchanges. Reported by them, not seen by us, and labelled that way wherever it appears.",
+      "historyNone": "None yet",
+      "findingsSub": "A finding is published only after a person reads it and a later one builds on it.",
+      "droppedSub": "Dropped ideas stay listed with the reason.",
+      "questionsSub": "Each one becomes a new thing to collect.",
+      "months": [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
+      ]
     }
   },
   "redirects": {
