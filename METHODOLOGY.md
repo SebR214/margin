@@ -642,7 +642,7 @@ First run, 2026-09-10: ARS parallel +1.09%, BOB −2.01%, VES **+14.03%**.
 
 ## Corridors priced
 
-Four routes, each priced hourly across a five-amount ladder against every
+Seven routes, each priced hourly across a five-amount ladder against every
 provider the Wise comparison API returns for it.
 
 | Route | Buy the coin | Sell it | Fees verified |
@@ -651,20 +651,30 @@ provider the Wise comparison API returns for it.
 | Australia → Philippines | Independent Reserve | Coins.ph | 2026-08-10 |
 | New Zealand → Philippines | Independent Reserve | Coins.ph | 2026-08-10 |
 | United States → Mexico | Coinbase | Bitso | 2026-08-19 |
+| United States → Nigeria | Coinbase | Luno | 2026-09-29 |
+| United States → India | Coinbase | WazirX | 2026-09-29 |
+| Singapore → India | Independent Reserve | WazirX | 2026-09-29 |
+
+The last three were added by the 2026-09-29 pass that grew this site from
+four corridors to seven (4→7); see the re-check below for why SGD→INR, in
+particular, had been ruled out two days earlier and what changed.
 
 The two APAC routes added on 2026-09-10 introduce **no new fee source**:
 Independent Reserve publishes one flat 0.50% brokerage across its markets — its
 volume tiers are denominated in AUD, not per currency — and Coins.ph VIP0 is
 0.15/0.10 on every book. That is the whole reason they could be built.
 
-**Three APAC routes were probed and deliberately not built.** The comparison
-side is not the constraint: all 19 APAC pairs tested return providers with Wise
-present. The crypto leg is. Indodax 404s on both its fee API and its help page;
-WazirX's fee API returns 403 and its fee page is a JavaScript shell with no fee
-text; CoinDCX's `markets_details` is readable but its `maker_fee` and
-`taker_fee` are both `null`. A cost built on a fee nobody can check is not a
-measurement, so SGD→IDR, SGD→INR and SGD→MYR are absent and this paragraph is
-why.
+**Three APAC routes were probed and, at this point, not built.** The
+comparison side is not the constraint: all 19 APAC pairs tested return
+providers with Wise present. The crypto leg is. Indodax 404s on both its fee
+API and its help page; WazirX's fee *API* returns 403 and its fee page looked,
+at this reading, like a JavaScript shell with no fee text; CoinDCX's
+`markets_details` is readable but its `maker_fee` and `taker_fee` are both
+`null`. A cost built on a fee nobody can check is not a measurement, so at
+this point SGD→IDR, SGD→INR and SGD→MYR were absent and this paragraph was
+why. (SGD→INR was later built — WazirX's fee *page*, as opposed to its fee
+API, turned out to be readable; see the correction after the 2026-09-27
+re-check below. SGD→IDR and SGD→MYR remain unbuilt.)
 
 **Re-checked 2026-09-27, specifically to test whether SGD→INR could carry the
 route where India's street premium (about 4.5% over official, see the index)
@@ -694,14 +704,26 @@ holds, and two more venues were added to the search:
   check because it is not an order book with a maker/taker table; it is
   individuals naming their own price.
 
-The conclusion is stronger than the 2026-09-10 version of it: this is not one
-exchange's bad page, it is every venue with an INR, BDT or PKR order book
-failing the same check, for four different reasons (403, `null`, "onwards",
-bot-blocked). SGD→INR, and any corridor into BDT or PKR, stay unbuilt for the
-same reason SGD→IDR does. The site would rather publish nothing for these
-routes than publish a stablecoin cost built on a guessed fee — which is the
+The conclusion at the time was stronger than the 2026-09-10 version of it:
+this looked like not one exchange's bad page, but every venue with an INR,
+BDT or PKR order book failing the same check, for four different reasons
+(403, `null`, "onwards", bot-blocked). Any corridor into BDT or PKR stays
+unbuilt for that reason today. The site would rather publish nothing for a
+route than publish a stablecoin cost built on a guessed fee — which is the
 one number that would decide whether stablecoins beat apps here, so guessing
 it is exactly the guess this file cannot make.
+
+**Corrected two days later, 2026-09-29: SGD→INR was built after all, on a
+check this re-check didn't run.** Everything above checked WazirX's fee
+*API* (`api.wazirx.com/sapi/v1/fees`, 403; `exchangeInfo`, no fee field) —
+not its fee *page*. `wazirx.com/fees?tab=spot_fees` renders live and lists
+USDT/INR as an INR market under WazirX's "Pay Per Trade" plan: base tier
+(0–500 WRX held, ≤ INR 5 lacs 30-day volume) is a flat 0.40% on every trade,
+no maker/taker split, read live 2026-09-29. That is a published, checkable
+schedule the same way Independent Reserve's flat schedule is, so SGD→INR
+and USD→INR were built on it, in the same pass that added USD→NGN on Luno.
+SGD→IDR and SGD→MYR were not re-checked and remain absent for the reasons
+above.
 
 ## Where a provider's price comes from
 
@@ -1327,9 +1349,16 @@ it was written, so history stays interpretable if a venue changes its schedule.
 |---|---|---|---|
 | Independent Reserve | 0.50% | 0.50% (no maker discount) | 2026-08-10 |
 | Coins.ph Pro | 0.15% | 0.10% (VIP0, effective 2025-08-08) | 2026-08-10 |
+| Coinbase | 0.01% | 0.005% | 2026-08-19 |
+| Bitso | 0.78% | 0.60% | 2026-08-19 |
+| Luno | 0.10% | −0.01% (rebate, USDT/NGN & USDC/NGN specifically) | 2026-09-29 |
+| WazirX | 0.40% | 0.40% (flat "Pay Per Trade", no maker/taker split) | 2026-09-29 |
 
-Both are default/base tier (Independent Reserve 30-day volume < AUD 50k;
-Coins.ph VIP0). Each row records the full fee regime in force —
+All six are default/base tier: Independent Reserve 30-day volume < AUD 50k;
+Coins.ph VIP0; Coinbase's USDT-USD stable pair is flat, not volume-tiered;
+Bitso 30-day volume < MXN 20,000; Luno NGN 0–1,500,000 30-day volume; WazirX
+0–500 WRX held and ≤ INR 5 lacs 30-day volume. Each row records the full fee
+regime in force —
 `fee_on_taker_bps`, `fee_on_maker_bps`, `fee_off_taker_bps`, `fee_off_maker_bps`.
 Two corrections landed on 2026-08-10:
 
