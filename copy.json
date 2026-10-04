@@ -592,8 +592,24 @@
     "historyHide": "Hide the earlier record"
   },
   "howItWorks": {
-    "dollarCostTitle": "What a dollar costs: the price of the stablecoin, divided by the official rate",
-    "dollarCostBody": "Every hour we price the stablecoin in each country on the exchange people there actually use: Upbit in Korea, Bitso in Mexico, Bitkub in Thailand, about 40 in all, plus Binance P2P where no local exchange works. We take the middle price of the 10 cheapest sellers and divide it by the official rate. The number you see is the median of the last 24 hours. A country with fewer than 10 sellers gets no price, and we say why. The official rate comes from open.er-api.com, a free daily currency feed, with frankfurter.app as a backup and a country's own central bank when one publishes its own number, like Argentina's for the peso. We price the stablecoin because it is the digital dollar people in these countries actually buy and sell. Other coins barely trade there."
+      "h1": "Where the numbers come from, and how to check one",
+      "sub": "Click any number on the site and you get the offers behind it, the official rate used, the middle price divided by the official rate, and the public data file linked under the number. Nothing is typed in by hand. A missed hour stays missing instead of being filled in, so a gap in a chart means we did not collect that hour.",
+      "dollarCostTitle": "What people pay for a dollar",
+      "dollarCostBody": "Every hour we take the {minAds} cheapest offers to sell a digital dollar in each country, on the exchange people there use, and use the middle one of those. We divide that middle price by the official rate at that moment and show the difference as a percentage. A digital dollar, or stablecoin, is a coin that stays worth one US dollar. A positive percentage means people pay more than the official rate says a dollar costs. A negative one means they pay less. Fewer than {minAds} sellers and we publish no price, so thin markets show a gap, not a guess.",
+      "sendingCostTitle": "What sending money costs",
+      "sendingCostBody": "What the recipient gets, against the real exchange rate, at {amounts} amounts, every fee counted. The amounts are {amountList}, in the sender's currency. The real exchange rate is the rate banks trade at between themselves. The shortfall against it is what sending costs you, for each provider and for sending with digital dollars.",
+      "notMeasuredTitle": "What we don't measure yet",
+      "notMeasured": [
+        "The official rate only updates once a day, so it can be up to 24 hours behind the market. It matters on days a currency moves fast: on those days the gap we show can lag the real one by up to a day.",
+        "Bank fees for moving money onto an exchange are not counted where the exchange does not publish them, so a sender could pay a bank fee that our figure leaves out. Check your own bank's fee before you compare.",
+        "Prices for repeat senders are not measured. Some app prices are first-transfer offers, so repeat senders may pay more than we show.",
+        "Cash dollars at money changers are not measured, so our numbers cover digital dollars only."
+      ],
+      "notMeasuredNote": "Every number links to the file it came from. {fullMethodLink}",
+      "fullMethodLink": "Full method, every source and our checks against independent numbers →",
+      "sourcesTitle": "Sources",
+      "sourcesBody": "Binance P2P (peer to peer) is a marketplace where people sell digital dollars directly to each other. Prices come hourly from Binance P2P and about {n} local exchanges including {top}. A local exchange is the one people in a single country use to buy digital dollars. Official rates are the exchange rates banks publish. They come from open.er-api.com. frankfurter.app is the backup if open.er-api.com has no rate. A central bank is a country's official money authority. Argentina's central bank publishes its own dollar rate, so we use that one for Argentina, as it is the official source there. Provider prices come from direct quotes from {providers}, plus Wise's public price comparison, which lists the prices of many other providers in one place.",
+      "methodMadeBody": "Every hour we collect live offers to sell dollars, take the middle price, and compare it to the official rate from the same check. Nothing is modelled or smoothed. A country needs at least {minAds} sell offers, or a real exchange order book, to get a price."
   },
   "machineRoom": {
     "title": "Four AI agents run this site",
