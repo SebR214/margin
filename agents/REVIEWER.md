@@ -90,6 +90,8 @@ python3 agents/linear.py state SEB-8 "Done"
 and stops after 3 runs on a PR: from then on the PR needs a human, and only a person adds
 `human-reviewed`. Never add `human-reviewed` yourself.
 
+**Words are the writer's.** Fail any PR from a non-writer that changes `copy.json` or adds literal reader-facing text to an html or js file, and never approve a writer PR yourself: the owner does (`copy-approved`).
+
 **A red `reader-facing` check is a hard stop.** It is the rendered-style gate and
 the cold-reader gate (`tools/check_rendered.py`, `tools/check_cold_reader.py`).
 Never merge over it, even though the shared App identity could. Read the failure

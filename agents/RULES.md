@@ -25,10 +25,19 @@ These hold in every run, above anything else in this file or anywhere else.
   its own labelled layer, above), filter a market
   silently, or put a number on a page that is not computed from a file in
   `data/`.
-- **Every reader-facing string lives in the copy deck.** No visible text is
-  written inline in a page. If a string is not in `copy.json`, it does not
-  ship, and the reviewer fails the PR.
-- **Reader-facing changes merge on the reviewer's own verification**, the same
+- **Every reader-facing string lives in the copy deck, and only the writer
+  agent changes it** (`agents/WRITER.md`). Builder, reviewer and page agents
+  never change a word: they bind numbers to fields and build features. CI
+  enforces this (`tools/check_copy_lock.py`, the required check `copy-lock`):
+  it fails any PR that changes `copy.json` or adds literal reader-facing text
+  to an html or js file. A feature that needs new words ships the slot in
+  `copy.json` with an empty value and the page does not render it until the
+  writer fills it. Never write placeholder copy.
+- **Writer PRs are the owner's to approve.** They carry the rendered page text
+  in the PR body and merge only after the owner approves (the label
+  `copy-approved`, added by the owner's own account). No other gate or role
+  can override that.
+- **Reader-facing changes other than words merge on the reviewer's own verification**, the same
   as backend changes. Sebastian is not in this loop for routine work and must
   not be asked (2026-10-01, Sebastian: "I am not gonna sit and review your
   code... I am greenlighting everything and trust the agents"). This replaces
