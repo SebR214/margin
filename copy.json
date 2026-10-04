@@ -595,16 +595,12 @@
     "dollarCostBody": "Every hour we price the stablecoin in each country on the exchange people there actually use: Upbit in Korea, Bitso in Mexico, Bitkub in Thailand, about 40 in all, plus Binance P2P where no local exchange works. We take the middle price of the 10 cheapest sellers and divide it by the official rate. The number you see is the median of the last 24 hours. A country with fewer than 10 sellers gets no price, and we say why. The official rate comes from open.er-api.com, a free daily currency feed, with frankfurter.app as a backup and a country's own central bank when one publishes its own number, like Argentina's for the peso. We price the stablecoin because it is the digital dollar people in these countries actually buy and sell. Other coins barely trade there."
   },
   "machineRoom": {
-    "title": "Four programs run this site",
-    "lede": "They collect prices, write the code, review each other's work and decide what to build next. Every change they make is public.",
+    "title": "Four AI agents run this site",
+    "lede": "One collects the prices, one writes the code, one reviews it, one decides what to build next. The one that writes the code cannot approve it. One person sets the direction and holds the money and passwords, so no agent can spend money or change accounts. The site compares what it costs to send money from one country to another, so people can choose the cheapest way to send it.",
     "connecting": "",
     "connected": "connected · live",
     "offline": "live feed offline",
     "columns": {
-      "collection": {
-        "checkTemplate": "This hour's check: {priced} of {total} priced · next check on the hour",
-        "noReason": "no reason given"
-      },
       "agents": {
         "title": "What the agents did today",
         "kicker": "ISSUES · REVIEWS · COMMITS",
@@ -628,53 +624,9 @@
           "linear": "LINEAR",
           "unknown": "—"
         },
-        "shippedTitle": "What the agents shipped in the last two days",
-        "shippedEmpty": "Nothing shipped in the last two days.",
+        "shippedTitle": "What shipped this week",
         "shippedHistoryLink": "Every change, with the reviewer's notes →"
-      },
-      "meters": {
-        "priced": "Countries priced now",
-        "withheld": "NOT ENOUGH DATA, WITH REASONS",
-        "commitsToday": "Prices checked today",
-        "openPRs": "OPEN PULL REQUESTS",
-        "unbrokenHours": "Hours without a gap",
-        "mergedThisWeek": "CHANGES SHIPPED THIS WEEK",
-        "people": "People involved",
-        "peopleValue": "1",
-        "unknown": "—"
       }
-    },
-    "run": {
-      "title": "Does it run by itself?",
-      "labels": {
-        "delivery": "Prices collected on time",
-        "fresh": "Sources answering",
-        "audit": "Numbers re-checked",
-        "disk": "Size of the data",
-        "basis": "Exchange prices",
-        "p2p": "Street prices",
-        "quotes": "Provider quotes",
-        "stable": "Stablecoin routes"
-      },
-      "deliverySub": "Target {target}% of hours. {hours} of {expected} hours, {from} to {to}. Worst day {worst_date}: {worst_hours} of 24.",
-      "freshValue": "{fresh} of {live}",
-      "freshSub": "Every source expected to answer did. {n_silent} more are silent on purpose.",
-      "diskSub": "Size of the data folder. Disk use on the server is not published.",
-      "met": "Met the target.",
-      "missed": "Missed the target.",
-      "mb": "MB",
-      "layerNames": {
-        "basis": "exchange prices",
-        "p2p": "street prices",
-        "quotes": "provider quotes",
-        "stable": "stablecoin routes"
-      },
-      "deliveryLayers": "Same for {names}.",
-      "foot": "Each figure comes from a public data file, named on the page it is read from.",
-      "verdictMissed": "Almost. Prices were collected on time for {pct}% of hours, just under the {target}% target.",
-      "verdictMet": "Yes. Prices were collected on time for {pct}% of hours, above the {target}% target.",
-      "auditSub": "A script re-works up to 50 published numbers from the raw data every hour and publishes the score.",
-      "auditValue": "{passed} of {drawn}"
     },
     "metaTemplate": "Last price check {time} UTC · next on the hour",
     "roles": {
@@ -684,40 +636,22 @@
         {
           "role": "Collector",
           "when": "Every hour",
-          "text": "Pulls prices from exchanges, Binance P2P and providers, and writes them to the data files."
+          "text": "Pulls prices from exchanges and money transfer providers and saves them to the data files."
         },
         {
           "role": "Builder",
           "when": "One task per run",
-          "text": "Builds exactly one task, then stops. If a task would break a rule, it refuses and flags it."
+          "text": "Builds one task, then stops. If a task would break a rule, it refuses and says so."
         },
         {
           "role": "Reviewer",
           "when": "Every change",
-          "text": "Checks each change against one question: would this survive a payments expert checking one figure by hand?"
+          "text": "Checks each change by recalculating one price shown on the site by hand from the raw records. If the result differs, the change is sent back."
         },
         {
           "role": "Planner",
           "when": "Between builds",
           "text": "Decides what gets built next, and reports what happened. Never writes code, never merges."
-        }
-      ]
-    },
-    "approves": {
-      "heading": "What one person decides",
-      "lede": "The agents ship on their own, and the reviewer checks every change. One person sets the direction and keeps the keys.",
-      "items": [
-        {
-          "title": "What the site argues",
-          "text": "The thesis stays fixed unless he changes it."
-        },
-        {
-          "title": "Money and access",
-          "text": "Spending, passwords and accounts are never the agents' to touch."
-        },
-        {
-          "title": "The look of the site",
-          "text": "Changes to a page are checked on desktop and phone, with before and after pictures attached."
         }
       ]
     },
@@ -727,56 +661,32 @@
       "linkHref": "https://github.com/SebR214/margin"
     },
     "incidents": {
-      "heading": "When the agents got it wrong, and the rule each mistake left behind",
+      "heading": "What we've learned running them",
       "items": [
         {
-          "text": "It pointed at a hostname that didn't exist. Rule: no collector goes live until it has run once by hand, and silence counts as a failure.",
-          "what": "A collector ran for 34 days and recorded nothing"
+          "days": 34,
+          "what": "A price collector ran for {days} days and saved nothing",
+          "text": "It pointed at a web address that didn't exist, so there was nothing to save. Those days of prices are missing for good and show as a gap in the price history shown on the site, never filled in. A collector now runs by hand once before it starts for real."
         },
         {
-          "text": "A config change put the metered key where the agents' flat-rate key belonged, and it spent real money before anyone noticed. Rule: the two keys live in separate files that cannot be merged.",
-          "what": "A paid key ran the whole system for twenty minutes"
+          "dollars": 10,
+          "minutes": 20,
+          "what": "A settings change spent ${dollars} in {minutes} minutes",
+          "text": "It moved the agents onto an account billed for each use, instead of the account with a flat monthly fee. The two accounts are now kept in separate files so they cannot be mixed up."
         },
         {
-          "text": "A new data file was not on the list of files to save, and the whole pipeline stopped. Rule: every file is named in the save step, and anything missed is caught and saved with a warning. The gap stays visible in the history.",
-          "what": "21 hours of prices were lost for good"
+          "hours": 21,
+          "what": "{hours} hours of prices were lost",
+          "text": "A new file was not on the list of data files saved each hour. The data files are the public files that hold every price we record. Those hours cannot be recovered. Every file is on the list now, and the lost hours show as a gap in the price history shown on the site, never filled in."
         }
       ],
-      "liveItemTitle": "No price is an answer too",
-      "liveItemTemplate": "Nobody is offering to sell dollars in {country} right now, so it shows \"not enough data\" and the reason: {reason}.",
-      "liveItemFallback": "Every currency this site tracks has a price this hour — when one doesn't, it shows \"not enough data\" and the real reason, instead of a guess.",
       "linkText": "The full story: running agents that can't be trusted →",
       "linkHref": "./agent-incidents.html"
     },
-    "research": {
-      "title": "What the research has so far",
-      "lede": "Every count below is worked out live from the stored files, so it can never disagree with them.",
-      "labels": {
-        "observations": "Prices recorded",
-        "routes": "Routes priced",
-        "countries": "Countries covered",
-        "history": "History",
-        "findings": "Findings",
-        "dropped": "Hypotheses tested and rejected",
-        "activeInvestigations": "Investigations open tonight",
-        "questions": "Questions we cannot answer yet",
-        "evidenceChains": "Findings that cite an earlier one",
-        "auditorScore": "Auditor's score"
-      },
-      "observationsSub": "Rows across the price files we collect, since 10 August.",
-      "routesSub": "Corridors with a current cost figure.",
-      "countriesSub": "Currencies we have ever priced.",
-      "historyValue": "Back to {year}",
-      "historySub": "From {n} exchanges. Reported by them, not seen by us, and labelled that way wherever it appears.",
-      "historyNone": "None yet",
-      "findingsSub": "Every nightly investigation that cleared its notability bar and was stored, each with its own evidence chain.",
-      "droppedSub": "A model's written explanation is checked against the numbers it was given; one that invents a figure is rejected, though the finding's own numbers stay stored either way.",
-      "activeInvestigationsSub": "Distinct findings from the analyst's most recent night.",
-      "questionsSub": "Each one becomes a new thing to collect.",
-      "evidenceChainsSub": "A later finding reusing an earlier one, not a fresh claim standing alone.",
-      "auditorScoreValue": "{pct}%",
-      "auditorScoreSub": "50 published numbers re-worked from the raw data each hour. This is the latest score.",
-      "auditorScoreNone": "Not run yet",
+    "tapeLink": "Watch live prices arrive as they are checked →",
+    "collected": {
+      "title": "What they've collected",
+      "template": "{n} prices since {date}, across {countries} countries and {routes} routes, plus exchange records going back to {year}. Each price is one recorded quote for sending money. A route is one way of sending money between two countries. Exchange records are past currency exchange rates, which show how costs have moved over time.",
       "months": [
         "Jan",
         "Feb",
@@ -792,7 +702,72 @@
         "Dec"
       ]
     },
-    "tapeLink": "Watch street prices arrive as they are checked →"
+    "shipped": {
+      "maxLines": 5,
+      "jargon": [
+        "p2p",
+        "ladder",
+        "chips",
+        "crossover",
+        "receipts",
+        "receipt",
+        "collector",
+        "sidecar",
+        "emit",
+        "depth",
+        "cadence",
+        "enumeration",
+        "stablecoin",
+        "usdc",
+        "usdt",
+        "basis",
+        "spread",
+        "corridor",
+        "corridors",
+        "ci",
+        "gate",
+        "gates",
+        "json",
+        "csv",
+        "api",
+        "sse",
+        "parquet",
+        "refactor",
+        "bake",
+        "baseline",
+        "token",
+        "tokens",
+        "oauth",
+        "merge",
+        "pr",
+        "hotfix",
+        "regression",
+        "schema",
+        "endpoint",
+        "hourly",
+        "variant",
+        "variants",
+        "tape",
+        "bps",
+        "fx",
+        "kpi"
+      ],
+      "generic": {
+        "add": "Added a new feature. The link shows what changed.",
+        "extend": "Improved an existing feature. The link shows what changed.",
+        "fix": "Fixed a problem. The link shows what changed.",
+        "update": "Updated part of the site. The link shows what changed.",
+        "remove": "Removed something. The link shows what changed.",
+        "drop": "Removed something. The link shows what changed.",
+        "show": "Changed what the site shows. The link shows what changed.",
+        "make": "Improved part of the site. The link shows what changed.",
+        "move": "Moved part of the site. The link shows what changed.",
+        "build": "Built something new. The link shows what changed.",
+        "replace": "Replaced part of the site. The link shows what changed.",
+        "improve": "Improved part of the site. The link shows what changed.",
+        "other": "Changed part of the site. The link shows what changed."
+      }
+    }
   },
   "redirects": {
     "heading": "This page moved",
