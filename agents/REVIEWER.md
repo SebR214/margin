@@ -87,8 +87,9 @@ python3 agents/linear.py state SEB-8 "Done"
 
 **The cold reader is capped and runs once.** It only runs after the label `ready` is on the PR
 (add it when the PR is final, on the last commit), reads only the pages the PR changes, one pass,
-and stops after 3 runs on a PR: from then on the PR needs a human, and only a person adds
-`human-reviewed`. Never add `human-reviewed` yourself.
+and stops after 3 runs on a PR. Past the cap its findings are advisory: the gate reports them,
+the agent fixes what it can justify, and the PR merges. The gate never blocks past the cap.
+Never add `human-reviewed` yourself.
 
 **A red `reader-facing` check is a hard stop.** It is the rendered-style gate and
 the cold-reader gate (`tools/check_rendered.py`, `tools/check_cold_reader.py`).

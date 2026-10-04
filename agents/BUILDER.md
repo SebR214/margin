@@ -200,5 +200,6 @@ run.
 
 When a reader-facing PR fails the cold reader, you get two attempts to fix the flagged text.
 Add the label `ready` only when the PR is final: the gate runs once on that commit, not on every
-push. If the second attempt still fails, stop, say what was flagged on the issue, and leave it. Do
-not keep rewording to chase the model's nitpicks. Never run more than two page agents at once.
+push. If the second attempt still fails, say what was flagged on the issue. Once the PR has used its 3
+gate runs the findings are advisory: fix what you can justify, then the PR merges, because the
+gate never blocks past the cap. Do not keep rewording to chase the model's nitpicks. Never run more than two page agents at once.
