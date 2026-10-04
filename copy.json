@@ -206,7 +206,7 @@
     "correction": {
       "label": "Correction on the record",
       "title": "I published a wrong number once",
-      "body": "My first version said the dollar route beat Wise by 3x. Then I checked the exchanges' real fees, and it didn't. {makerProse}. The mistake stays on the page so you can see the numbers here get checked, including mine."
+      "body": "My first version said the dollar route beat the sending apps by 3x. Then I checked the exchanges' real fees, and it didn't. {makerProse}. The mistake stays on the page so you can see the numbers here get checked, including mine."
     },
     "findings": {
       "title": "What the data has shown so far"
@@ -601,11 +601,31 @@
   },
   "howItWorks": {
       "h1": "Where the numbers come from, and how to check one",
-      "sub": "Click any number on the site and you get the offers behind it, the official rate used, the middle price divided by the official rate, and the public data file linked under the number. Nothing is typed in by hand. A missed hour stays missing instead of being filled in, so a gap in a chart means we did not collect that hour.",
+      "sub": "Click any number on the site and you see what is behind it.",
+      "subPoints": [
+        "You see the offers behind it.",
+        "You see the official rate used.",
+        "You see the middle price divided by the official rate.",
+        "You get the public data file, linked under the number."
+      ],
+      "subNote": "Nothing is typed in by hand. A missed hour stays missing instead of being filled in. A gap in a chart means we did not collect that hour.",
       "dollarCostTitle": "What people pay for a dollar",
-      "dollarCostBody": "Every hour we take the {minAds} cheapest offers to sell a digital dollar in each country, on the exchange people there use, and use the middle one of those. We divide that middle price by the official rate at that moment and show the difference as a percentage. A digital dollar, or stablecoin, is a coin that stays worth one US dollar. A positive percentage means people pay more than the official rate says a dollar costs. A negative one means they pay less. Fewer than {minAds} sellers and we publish no price, so thin markets show a gap, not a guess.",
+      "dollarCostLead": "Each country gets one price for a digital dollar every hour.",
+      "dollarCostPoints": [
+        "Method: we take the {minAds} cheapest offers to sell a digital dollar, on the exchange people there use, and use the middle one of those.",
+        "We show the middle price divided by the official rate at that moment, as a percentage.",
+        "A digital dollar, or stablecoin, is a coin that stays worth one US dollar.",
+        "A positive percentage means people pay more than the official rate says a dollar costs. A negative one means they pay less.",
+        "Fewer than {minAds} sellers and we publish no price, so thin markets show a gap, not a guess."
+      ],
       "sendingCostTitle": "What sending money costs",
-      "sendingCostBody": "What the recipient gets, against the real exchange rate, at {amounts} amounts, every fee counted. The amounts are {amountList}, in the sender's currency. The real exchange rate is the rate banks trade at between themselves. The shortfall against it is what sending costs you, for each provider and for sending with digital dollars.",
+      "sendingCostLead": "What the recipient gets, against the real exchange rate, at {amounts} amounts, every fee counted.",
+      "sendingCostAmounts": "Amounts, in the sender's currency: {amountList}",
+      "sendingCostPoints": [
+        "The real exchange rate is the rate banks trade at between themselves.",
+        "The shortfall against it is what sending costs you, for each provider and for sending with digital dollars.",
+        "The bigger the shortfall, the more the transfer costs you."
+      ],
       "notMeasuredTitle": "What we don't measure yet",
       "notMeasured": [
         "The official rate only updates once a day, so it can be up to 24 hours behind the market. It matters on days a currency moves fast: on those days the gap we show can lag the real one by up to a day.",
@@ -616,7 +636,12 @@
       "notMeasuredNote": "Every number links to the file it came from. {fullMethodLink}",
       "fullMethodLink": "Full method, every source and our checks against independent numbers →",
       "sourcesTitle": "Sources",
-      "sourcesBody": "Binance P2P (peer to peer) is a marketplace where people sell digital dollars directly to each other. Prices come hourly from Binance P2P and about {n} local exchanges including {top}. A local exchange is the one people in a single country use to buy digital dollars. Official rates are the exchange rates banks publish. They come from open.er-api.com. frankfurter.app is the backup if open.er-api.com has no rate. A central bank is a country's official money authority. Argentina's central bank publishes its own dollar rate, so we use that one for Argentina, as it is the official source there. Provider prices come from direct quotes from {providers}, plus Wise's public price comparison, which lists the prices of many other providers in one place.",
+      "sourcesPoints": [
+        "Prices for a digital dollar: Binance P2P and about {n} local exchanges including {top}.",
+        "Official rates: open.er-api.com, with frankfurter.app as backup, and Argentina's central bank for Argentina.",
+        "Provider prices: {ownWord} providers quote us directly."
+      ],
+      "sourcesNote": "Binance P2P is a marketplace where people sell digital dollars directly to each other. A local exchange is the one people in a single country use to buy them. A central bank is a country's official money authority.",
       "methodMadeBody": "Every hour we collect live offers to sell dollars, take the middle price, and compare it to the official rate from the same check. Nothing is modelled or smoothed. A country needs at least {minAds} sell offers, or a real exchange order book, to get a price."
   },
   "machineRoom": {
