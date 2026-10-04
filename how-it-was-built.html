@@ -155,34 +155,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   </div>
 
   <div class="stack">
-    <div class="stats">
-      <div><div class="lbl" id="lPriced">&nbsp;</div><div class="v num" id="mPriced">—</div></div>
-      <div><div class="lbl" id="lCommitsToday">&nbsp;</div><div class="v num" id="mCommitsToday">—</div></div>
-      <div><div class="lbl" id="lUnbrokenHours">&nbsp;</div><div class="v num" id="mUnbrokenHours">—</div></div>
-      <div><div class="lbl" id="lPeople">&nbsp;</div><div class="v num" id="mPeople">—</div></div>
-      <div style="display:none"><div class="lbl" id="lWithheld">&nbsp;</div><div class="v num" id="mWithheld">—</div></div>
-      <div style="display:none"><div class="lbl" id="lOpenPRs">&nbsp;</div><div class="v num" id="mOpenPRs">—</div></div>
-      <div style="display:none"><div class="lbl" id="lMerged">&nbsp;</div><div class="v num" id="mMerged">—</div></div>
-    </div>
-
-    <section>
-      <h2 id="runsTitle" style="padding-top:22px">&nbsp;</h2>
-      <p class="answer" id="runsVerdict"></p>
-      <div class="runs" id="runsStats"></div>
-    </section>
-
-    <p class="small" style="margin-top:-24px"><a id="tapeLink" href="./tape.html">&nbsp;</a></p>
-
-    <section>
-      <h2 id="researchTitle" style="padding-top:22px">&nbsp;</h2>
-      <p class="answer" id="researchLede"></p>
-      <div class="runs" id="researchRows"></div>
-    </section>
-
-    <div style="display:none">
-      <div id="hourCheck" style="font-size:15px;color:#333;padding:2px 0">&nbsp;</div>
-    </div>
-
     <div style="display:none">
       <div class="col-hdr"><div class="col-title" id="col2Title">&nbsp;</div><div class="lbl" id="col2Kicker">&nbsp;</div></div>
       <div class="feed" id="agentFeed"><div class="empty" id="col2Empty">&nbsp;</div></div>
@@ -197,23 +169,23 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     </section>
 
     <section>
-      <h2 id="approvesHeading" style="padding-top:32px">&nbsp;</h2>
-      <p class="answer" id="approvesLede"></p>
-      <ul class="kv" id="approvesList"></ul>
+      <h2 id="incidentsHeading" style="padding-top:32px">&nbsp;</h2>
+      <ul class="list fail" id="incidentsList"></ul>
+      <p class="small"><a href="./agent-incidents.html" id="incidentsLink">&nbsp;</a></p>
     </section>
 
     <section>
+      <h2 id="collectedTitle" style="padding-top:22px">&nbsp;</h2>
+      <p class="answer" id="collectedLine"></p>
+      <p class="small" style="margin-top:0"><a id="tapeLink" href="./tape.html">&nbsp;</a></p>
+    </section>
+
+    <section id="shippedSection" style="display:none">
       <div class="col-hdr" style="padding-top:32px;margin-top:-32px;border-bottom:0;padding-bottom:0">
         <h2 id="shippedHeading" style="border-bottom:1px solid #0B0B0B;padding-bottom:8px;width:100%">&nbsp;</h2>
       </div>
       <ul class="list feed" id="shippedFeed"><li class="empty" id="shippedEmpty" style="display:block;grid-template-columns:1fr">&nbsp;</li></ul>
       <p class="small"><a href="https://github.com/SebR214/margin/commits/main" id="shippedHistoryLink">&nbsp;</a></p>
-    </section>
-
-    <section>
-      <h2 id="incidentsHeading" style="padding-top:32px">&nbsp;</h2>
-      <ul class="list fail" id="incidentsList"></ul>
-      <p class="small"><a href="./agent-incidents.html" id="incidentsLink">&nbsp;</a></p>
     </section>
 
     <div style="display:none">
@@ -234,7 +206,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     ? "https://api.margin.wiki" : "http://127.0.0.1:8903";
 
   var COPY = {}; // filled from copy.json's "machineRoom" key before anything renders
-  var STATE = {};      // ccy -> whether the collector priced it this pass
 
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function T(s, vals){
@@ -249,7 +220,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return String(d.getUTCDate()).padStart(2,'0') + ' ' + MONTHS[d.getUTCMonth()];
   }
-  function todayUTC(){ return new Date().toISOString().slice(0,10); }
   // One stream, finite. The page scrolls; this does not. When it reaches the
   // cap the oldest row goes -- the commit log below is the full history, so
   // nothing is lost by saying so plainly rather than scrolling forever.
@@ -291,7 +261,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   }
 
   function renderStatic(){
-    var M = COPY.columns.meters, C2 = COPY.columns.agents;
+    var C2 = COPY.columns.agents;
     document.getElementById('pageTitle').textContent = COPY.title || '';
     document.getElementById('pageLede').textContent = COPY.lede || '';
     document.getElementById('feedCap').textContent = C2.capNote || '';
@@ -300,14 +270,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     document.getElementById('col2Empty').textContent = C2.empty || '';
     document.getElementById('col2HistoryLink').textContent = C2.historyLink || '';
     document.getElementById('tapeLink').textContent = COPY.tapeLink || '';
-    document.getElementById('lPriced').textContent = M.priced || '';
-    document.getElementById('lWithheld').textContent = M.withheld || '';
-    document.getElementById('lCommitsToday').textContent = M.commitsToday || '';
-    document.getElementById('lOpenPRs').textContent = M.openPRs || '';
-    document.getElementById('lUnbrokenHours').textContent = M.unbrokenHours || '';
-    document.getElementById('lMerged').textContent = M.mergedThisWeek || '';
-    document.getElementById('lPeople').textContent = M.people || '';
-    document.getElementById('mPeople').textContent = M.peopleValue || '';
     document.getElementById('connLabel').textContent = COPY.connecting || '';
 
     var F = COPY.footer || {};
@@ -321,59 +283,23 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       return '<li><b>'+esc(it.role)+'</b><span class="when">'+esc(it.when)+'</span><span class="txt">'+esc(it.text)+'</span></li>';
     }).join('');
 
-    var A = COPY.approves || {};
-    document.getElementById('approvesHeading').textContent = A.heading || '';
-    document.getElementById('approvesLede').textContent = A.lede || '';
-    document.getElementById('approvesList').innerHTML = (A.items||[]).map(function(it){
-      return '<li><b>'+esc(it.title)+'</b><span>'+esc(it.text)+'</span></li>';
-    }).join('');
-
     document.getElementById('shippedHeading').textContent = C2.shippedTitle || '';
-    document.getElementById('shippedEmpty').textContent = C2.shippedEmpty || '';
     document.getElementById('shippedHistoryLink').textContent = C2.shippedHistoryLink || '';
 
     var I = COPY.incidents || {};
     document.getElementById('incidentsHeading').textContent = I.heading || '';
     document.getElementById('incidentsLink').textContent = I.linkText || '';
     document.getElementById('incidentsLink').href = I.linkHref || './agent-incidents.html';
+    // Each incident's figures (days, dollars, minutes, hours) are named
+    // fields on its own item, so the sentence is a template, never typed.
     document.getElementById('incidentsList').innerHTML = (I.items||[]).map(function(it){
-      return '<li><b>'+esc(it.what)+'</b><span>'+esc(it.text)+'</span></li>';
-    }).join('') + '<li id="incidentsLiveItem"><b>'+esc(I.liveItemTitle||'')+'</b><span id="incidentsLiveText">'+esc(I.liveItemFallback||'')+'</span></li>';
+      return '<li><b>'+esc(T(it.what, it))+'</b><span>'+esc(T(it.text, it))+'</span></li>';
+    }).join('');
+    document.getElementById('collectedTitle').textContent = (COPY.collected || {}).title || '';
   }
 
-  // Redraws the one-line "this hour's check" sentence from STATE, and the
-  // "countries priced now" stat tile that shares the same live count. STATE's
-  // key count is the real live number of currencies the collector has
-  // touched so far this pass; TOTAL_CURRENCIES (60, the fixed bounded set
-  // this site checks every hour) is the fixed denominator.
-  var TOTAL_CURRENCIES = 60;
-  function drawHourCheck(){
-    var C = COPY.columns.collection;
-    var priced = 0, withheld = 0;
-    Object.keys(STATE).forEach(function(k){ STATE[k] ? priced++ : withheld++; });
-    document.getElementById('mPriced').textContent = priced + ' of ' + TOTAL_CURRENCIES;
-    document.getElementById('mWithheld').textContent = withheld;
-    document.getElementById('hourCheck').textContent = T(C.checkTemplate,
-      { priced: priced, total: TOTAL_CURRENCIES });
-  }
-
-  // A live page must never open empty -- an empty live page reads as broken
-  // or fake. Seed the collection stat with the real last completed pass
-  // before any live SSE event has arrived; live events update STATE in
-  // place as they arrive.
+  // The meta line under the title: when the last hourly price check ran.
   function seedCollection(d){
-    var countries = d.countries || [], withheldList = d.withheld || [];
-    countries.forEach(function(c){ STATE[c.ccy] = true; });
-    withheldList.forEach(function(w){ STATE[w.ccy] = false; });
-    drawHourCheck();
-
-    var I = COPY.incidents || {};
-    var real = withheldList.filter(function(w){ return w && w.country && w.reason; })[0];
-    if (real) {
-      document.getElementById('incidentsLiveText').textContent =
-        T(I.liveItemTemplate, { country: real.country, reason: real.reason });
-    }
-
     var when = timeOf(d.as_of_utc || d.computed_at);
     document.getElementById('metaLine').textContent = when
       ? T(COPY.metaTemplate, { time: when })
@@ -401,89 +327,60 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var feed = document.getElementById('agentFeed');
     if (html) feed.innerHTML = html;
 
-    // "Shipped" here means the same thing tools/emit_changes_merged.py
-    // means by "a change merged" -- a commit on main whose subject ends in
-    // "(#NNN)", i.e. a squash-merged PR. A raw commit with no PR suffix
-    // (an hourly sample, a direct push) is real git history but not a
-    // reviewed change a reader would recognise as "shipped", so it is
-    // excluded here the same way it is excluded from that count.
     var PR_SUFFIX_RE = /\(#(\d+)\)\s*$/;
-    var SHIPPED_FEED_CAP = 12;
-    var cutoff = Date.now() - 2 * 24 * 60 * 60 * 1000;
+    var S = COPY.shipped || {};
+    var cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
     var recent = shipped.filter(function(c){
       var t = new Date(c.commit.author.date).getTime();
       return !isNaN(t) && t >= cutoff && PR_SUFFIX_RE.test(c.commit.message.split('\n')[0] || '');
-    }).slice(0, SHIPPED_FEED_CAP);
+    }).filter(function(c){
+      return plainLine((c.commit.message.split('\n')[0] || '').replace(PR_SUFFIX_RE, ''));
+    }).slice(0, S.maxLines || 5);
     var shippedFeed = document.getElementById('shippedFeed');
     if (recent.length) {
+      document.getElementById('shippedSection').style.display = '';
       shippedFeed.innerHTML = recent.map(function(c){
-        var msg = (c.commit.message.split('\n')[0] || '').replace(/\s*\(#\d+\)\s*$/, '');
-        var prMatch = c.commit.message.match(PR_SUFFIX_RE);
+        var title = (c.commit.message.split('\n')[0] || '').replace(PR_SUFFIX_RE, '');
         return '<li><span class="d">' + esc(dateOf(c.commit.author.date)) + '</span>' +
-          '<span>' + esc(msg) + '</span>' +
-          '<span class="tag">' + (prMatch ? '#' + esc(prMatch[1]) : '') + '</span></li>';
+          '<span><a href="' + esc(c.html_url || '') + '">' + esc(plainLine(title)) + '</a></span></li>';
       }).join('');
     }
   }
 
-  // SEB-214: the "runs by itself" row. Every figure is read from
-  // data/machine_room_meters.json (tools/emit_machine_room_meters.py), which
-  // names the file or command behind it. A missed target is drawn as missed.
-  function runRow(label, value, status, sub){
-    var R = COPY.run || {};
-    var st = status === 'met' ? R.met : status === 'missed' ? R.missed : '';
-    return '<div class="rr"><div class="rl">' + esc(label) + '</div><div class="rv num">' + esc(value) + '</div>' +
-      '<div class="rn">' + (st ? '<span class="rs">' + esc(st) + '</span> ' : '') + esc(sub) + '</div></div>';
+  // Turns a commit title into a plain line for the "shipped" list. Strips the
+  // ticket id and the trailing full stop. If what is left still carries jargon,
+  // a file name, a symbol, a dash, a number or is long, or does not start with a plain verb from the list, it cannot be made plain by rule,
+  // so it is left out of the list (copy.json's generic keys are the plain verbs).
+  function plainLine(title){
+    var S = COPY.shipped || {};
+    var t = String(title || '').replace(/^\s*SEB-\d+\s*[:\-]?\s*/i, '').replace(/\.\s*$/, '').trim();
+    var jargon = new RegExp('\\b(' + (S.jargon || []).join('|') + ')\\b', 'i');
+    var G = S.generic || {};
+    var verb = (t.split(/\s+/)[0] || '').toLowerCase().replace(/[^a-z]/g, '');
+    var plain = t && G[verb] && verb !== 'other' && t.split(/\s+/).length <= 14 &&
+      /^[A-Za-z' ,]+$/.test(t) && !jargon.test(t);
+    if (plain) return t.charAt(0).toUpperCase() + t.slice(1) + '.';
+    return '';
   }
-  function fmtDay(iso){
-    var m = ((COPY.research || {}).months) || [];
-    var d = new Date(String(iso).slice(0, 10) + 'T00:00:00Z');
-    return isNaN(d) ? String(iso) : d.getUTCDate() + ' ' + (m[d.getUTCMonth()] || '');
-  }
-  function drawRuns(r, computedAt, audit, research){
-    var R = COPY.run || {}, L = R.labels || {}, rows = '';
-    document.getElementById('runsTitle').textContent = R.title || '';
-    var D = r.delivery || {}, layers = D.layers || [];
-    var same = layers.length > 1 && layers.every(function(l){
-      return l.pct === layers[0].pct && l.hours === layers[0].hours && l.worst_date === layers[0].worst_date; });
-    var shown = same ? [layers[0]] : layers;
-    if (shown.length) {
-      var low = shown.reduce(function(a, l){ return l.pct < a.pct ? l : a; }, shown[0]);
-      document.getElementById('runsVerdict').textContent = T(low.met ? R.verdictMet : R.verdictMissed, { pct: low.pct.toFixed(1), target: D.target_pct });
-    }
-    shown.forEach(function(l){
-      var names = same ? layers.map(function(x){ return ((L[x.key] || x.key) + '').toLowerCase(); }).join(', ') : '';
-      rows += runRow(same ? L.delivery : (L[l.key] || l.key), l.pct.toFixed(1) + '%', l.met ? 'met' : 'missed',
-        T(R.deliverySub, { target: D.target_pct, hours: l.hours, expected: l.hours_expected,
-          from: fmtDay(D.from), to: fmtDay(D.to), worst_date: fmtDay(l.worst_date), worst_hours: l.worst_hours }) +
-        (names ? ' ' + T(R.deliveryLayers, { names: names }) : ''));
+
+  // One sentence of what has been collected. Every figure is a field the
+  // page already reads: data/machine_room_meters.json's research block for the
+  // counts, and data/manifest_latest.json's date range for the earliest row in
+  // the price files that research block names.
+  function drawCollected(x, manifest){
+    var Z = COPY.collected || {};
+    var first = '';
+    ((manifest || {}).files || []).forEach(function(f){
+      if ((x.observation_files || []).indexOf((f.path || '').replace(/^data\//, '')) === -1) return;
+      var d = ((f.date_range || {}).from || '').slice(0, 10);
+      if (d && (!first || d < first)) first = d;
     });
-    var F = r.freshness;
-    if (F) rows += runRow(L.fresh, T(R.freshValue, { fresh: F.n_fresh, live: F.n_live }), F.met ? 'met' : 'missed',
-      T(R.freshSub, { n_silent: F.n_declared_silent }));
-    if (audit && audit.drawn) rows += runRow(L.audit, T(R.auditValue, { passed: audit.passed, drawn: audit.drawn }), '', R.auditSub || '');
-    var K = r.disk;
-    if (K) rows += runRow(L.disk, Math.round(K.bytes / 1e6) + ' ' + (R.mb || ''), '', R.diskSub || '');
-    document.getElementById('runsStats').innerHTML = rows + (R.foot ? '<div class="rf">' + esc(R.foot) + '</div>' : '');
-    drawResearch(research || {});
-  }
-  function drawResearch(x){
-    var Z = COPY.research || {}, L = Z.labels || {}, rows = '';
-    document.getElementById('researchTitle').textContent = Z.title || '';
-    document.getElementById('researchLede').textContent = Z.lede || '';
+    var m = Z.months || [], d0 = new Date(first + 'T00:00:00Z');
+    var date = isNaN(d0) ? '' : d0.getUTCDate() + ' ' + (m[d0.getUTCMonth()] || '');
     var nf = function(n){ return Number(n || 0).toLocaleString('en-US'); };
-    rows += runRow(L.observations, nf(x.observations), '', Z.observationsSub || '');
-    rows += runRow(L.routes, nf(x.routes), '', Z.routesSub || '');
-    rows += runRow(L.countries, nf(x.countries), '', Z.countriesSub || '');
-    rows += runRow(L.history, x.history_first_year ? T(Z.historyValue, { year: x.history_first_year }) : (Z.historyNone || ''), '',
-      x.history_first_year ? T(Z.historySub, { n: x.history_sources }) : '');
-    rows += runRow(L.findings, nf(x.findings), '', Z.findingsSub || '');
-    rows += runRow(L.dropped, nf(x.tested_and_dropped), '', Z.droppedSub || '');
-    rows += runRow(L.activeInvestigations, nf(x.active_investigations), '', Z.activeInvestigationsSub || '');
-    rows += runRow(L.questions, nf(x.open_questions), '', Z.questionsSub || '');
-    rows += runRow(L.evidenceChains, nf(x.evidence_chains), '', Z.evidenceChainsSub || '');
-    rows += runRow(L.auditorScore, x.auditor_score_pct != null ? T(Z.auditorScoreValue, { pct: x.auditor_score_pct }) : (Z.auditorScoreNone || ''), '', Z.auditorScoreSub || '');
-    document.getElementById('researchRows').innerHTML = rows;
+    if (!date || x.observations == null) return;
+    document.getElementById('collectedLine').textContent = T(Z.template, {
+      n: nf(x.observations), date: date, countries: nf(x.countries), routes: nf(x.routes), year: x.history_first_year || '' });
   }
 
   async function boot(){
@@ -492,40 +389,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     renderStatic();
 
     fetch('./data/index_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(seedCollection).catch(function(){});
-    // "Changes shipped this week" -- tools/emit_changes_merged.py counts real
-    // commits on main (each one a squash-merged PR, see its own docstring)
-    // in the trailing 7 days from this repo's own git history. Never typed.
-    // The label reads "shipped" (mockup wording); the computation itself is
-    // unchanged from the number this page already published as "changes
-    // merged this week" -- same file, same script, same meaning.
-    fetch('./data/changes_merged.json', {cache:'no-store'}).then(function(r){ return r.json(); })
-      .then(function(m){ document.getElementById('mMerged').textContent = (m && m.count != null) ? m.count : '—'; })
-      .catch(function(){});
-    // SEB-174/M2. tools/emit_machine_room_meters.py writes a null field when
-    // it genuinely could not compute that number -- leave the tile's seeded
-    // '—' in place rather than printing a fabricated zero.
-    //
-    // SEB-190: each tile that has one also gets the data-receipt-meter-file
-    // attribute js/receipt_replay.js's click handler looks for, pointing at
-    // tools/emit_meter_receipts.py's own data/meter_receipts/<meter>_<day>.json
-    // -- the same file naming that script uses, built from this response's own
-    // computed_at date so the two always agree on which day's file to open.
     fetch('./data/machine_room_meters.json', {cache:'no-store'}).then(function(r){ return r.json(); })
       .then(function(m){
-        if (!m) return;
-        var day = (m.computed_at || '').slice(0, 10) || todayUTC();
-        function wireMeter(elId, meter, value){
-          var el = document.getElementById(elId);
-          el.textContent = value;
-          el.setAttribute('data-receipt-meter-file', meter + '_' + day);
-          el.setAttribute('data-receipt-value', String(value));
-          el.tabIndex = 0;
-        }
-        if (m.collector_commits_today != null) wireMeter('mCommitsToday', 'commits_today', m.collector_commits_today);
-        if (m.unbroken_hours != null) wireMeter('mUnbrokenHours', 'unbroken_hours', m.unbroken_hours);
-        if (m.open_pull_requests != null) document.getElementById('mOpenPRs').textContent = m.open_pull_requests;
-        fetch('./data/audit_latest.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
-          .then(function(au){ drawRuns(m.runs_by_itself || {}, m.computed_at, au, m.research); });
+        if (!m || !m.research) return;
+        fetch('./data/manifest_latest.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
+          .then(function(mf){ drawCollected(m.research, mf); });
       })
       .catch(function(){});
     fetch('https://api.github.com/repos/SebR214/margin/commits?per_page=60', {headers:{'Accept':'application/vnd.github+json'}})
@@ -561,13 +429,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       if (e.kind === 'collector_pass') {
         return; // no separate active/idle state is shown any more
       }
-      if (e.kind === 'collector_source') {
-        // A pass revises the set, it does not append to it: update this
-        // currency in place and leave the other 59 alone.
-        STATE[e.ccy] = !!e.priced;
-        drawHourCheck();
-        return;
-      }
       if (e.kind === 'linear') {
         var what = e.event === 'transition'
           ? T(C2.transitionTemplate, { ident: esc(e.ident), from: esc(e.from_state), to: esc(e.to_state) })
@@ -580,15 +441,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         return;
       }
       if (e.kind === 'commit') {
-        // A live commit that carries a PR number is a change merging right
-        // now -- the same definition tools/emit_changes_merged.py used to
-        // compute the seeded count, so bump it in place rather than waiting
-        // for the next page load to catch up.
-        if (e.pr_number) {
-          var mergedEl = document.getElementById('mMerged');
-          var cur = parseInt(mergedEl.textContent, 10);
-          mergedEl.textContent = isNaN(cur) ? 1 : cur + 1;
-        }
         var pr = e.pr_number ? ' (#'+e.pr_number+')' : '';
         var message = T(C2.commitTemplate, { message: '<span style="font-weight:600">'+esc((e.message||'').replace(/\s*\(#\d+\)\s*$/,''))+'</span>' });
         prepend(document.getElementById('agentFeed'),
