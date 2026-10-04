@@ -75,6 +75,8 @@ ALLOWLIST = {
     "Stablecoin route vs cheapest app, all-in cost per route",
     "ROUTE",
     "STABLECOIN ROUTE",
+    # SEB-224: sending-money.html table heading, owner-specified wording.
+    "Sending {amountWords} to {destWords}: the cheapest app costs {cheapestCost}, the stablecoin route costs {stablecoinCost}",
 }
 
 # A template placeholder like {corridor} or {rung} is never reader-visible on
