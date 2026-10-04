@@ -14,7 +14,8 @@ token (CLAUDE_CODE_OAUTH_TOKEN). ANTHROPIC_API_KEY and friends are stripped
 from the child's environment, so this can never fall onto the metered key.
 
 A failure is only counted if the text the model quotes really appears on the
-page, so a hallucinated quote cannot block a PR.
+page (a hallucinated quote cannot block a PR) and is flagged again by a second
+independent read (the model's one-off nitpicks differ run to run).
 
 Usage:
   python3 tools/check_cold_reader.py                      # pages changed vs origin/main
@@ -34,7 +35,7 @@ import tempfile
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(HERE, "tools"))
-from gate_common import PAGE_QUERY, all_pages, changed_files, pages_for_change, serve  # noqa: E402
+from gate_common import PAGE_QUERY, all_pages, changed_files, open_page, pages_for_change, serve  # noqa: E402
 from headless import Page  # noqa: E402
 
 MODEL = os.environ.get("COLD_READER_MODEL", "claude-sonnet-5-5")
@@ -100,29 +101,82 @@ def existed_in(base, name):
                           capture_output=True).returncode == 0
 
 
-def review(page, base_url, name):
-    q = PAGE_QUERY.get(name, "")
-    url = "%s/%s%s" % (base_url, name, q)
-    text = page_text(page, url)
+READS = int(os.environ.get("COLD_READER_READS", "2"))
+
+
+def _quotes(raw, hay):
+    """Failures from one model read whose quoted text really is on the page."""
+    out = []
+    for f in (parse(raw).get("failures") or []):
+        q = norm(f.get("exact_text"))
+        if q and q in hay:
+            out.append(f)
+    return out
+
+
+def _same(a, b):
+    qa, qb = norm(a.get("exact_text")), norm(b.get("exact_text"))
+    short, long_ = (qa, qb) if len(qa) <= len(qb) else (qb, qa)
+    return bool(short) and (short[:40] in long_ or long_[:40] in short)
+
+
+def judge(text, name):
+    """Read the page cold READS times. A failure blocks only if the same quoted
+    text is flagged in every read: the model's one-off nitpicks differ run to
+    run and must not decide a merge. Only quotes really on the page count."""
     if len(text) < 80:
         return {"page": name, "failures": [{"section": "(whole page)", "reason": "the page rendered almost no visible text",
                                             "exact_text": text}], "sections": []}
-    out = parse(ask(text))
     hay = norm(text)
-    real = []
-    for f in out.get("failures") or []:
-        quote = norm(f.get("exact_text"))
-        if quote and quote in hay:
-            real.append(f)
-    return {"page": name, "failures": real, "sections": out.get("sections") or [],
-            "dropped_unquotable": len(out.get("failures") or []) - len(real)}
+    first_raw = ask(text)
+    first = _quotes(first_raw, hay)
+    agreed = first
+    for _ in range(READS - 1):
+        again = _quotes(ask(text), hay)
+        agreed = [f for f in agreed if any(_same(f, g) for g in again)]
+    return {"page": name, "failures": agreed, "sections": parse(first_raw).get("sections") or [],
+            "single_read_failures": len(first), "agreed_failures": len(agreed)}
+
+
+def review(page, base_url, name):
+    q = PAGE_QUERY.get(name, "")
+    return judge(page_text(page, "%s/%s%s" % (base_url, name, q)), name)
+
+
+def added_fragments(base):
+    """Literal text this PR adds to copy.json (string values), split at template
+    placeholders into fragments long enough to recognise on a rendered page."""
+    r = subprocess.run(["git", "diff", "-U0", base + "...HEAD", "--", "copy.json"],
+                       cwd=HERE, capture_output=True, text=True)
+    frags = set()
+    for line in r.stdout.splitlines():
+        if not line.startswith("+") or line.startswith("+++"):
+            continue
+        body = line[1:]
+        m = re.match(r'\s*"[^"]+"\s*:\s*"(.*)",?\s*$', body) or re.match(r'\s*"(.*)",?\s*$', body)
+        if not m:
+            continue
+        val = m.group(1).replace('\\"', '"')
+        for part in re.split(r"\{[^}]*\}", re.sub(r"<[^>]+>", " ", val)):
+            part = norm(part)
+            if len(part) >= 28:
+                frags.add(part)
+    return frags
+
+
+def page_is_affected(name, text, base, frags, html_changed):
+    """A page needs reading only if its own html changed or it shows text this PR added."""
+    if not existed_in(base, name) or name in html_changed:
+        return True
+    hay = norm(text)
+    return any(f in hay for f in frags)
 
 
 def self_test():
     """Render tests/jargon_page.html and require the model to flag it."""
     base, stop = serve(HERE)
     try:
-        with Page(settle=2.0) as page:
+        with open_page(settle=2.0) as page:
             rep = review(page, base, "tests/jargon_page.html")
     finally:
         stop()
@@ -143,6 +197,7 @@ def main():
     ap.add_argument("--base-url")
     ap.add_argument("--json-out")
     ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--list-affected", action="store_true", help="print which pages a PR would have read; no model call")
     ap.add_argument("--changed-only", action="store_true",
                     help="only failures on text this PR adds block; failures on pre-existing text are listed, not blocking")
     a = ap.parse_args()
@@ -170,10 +225,19 @@ def main():
         base_url, stop = serve(HERE)
     reports = []
     try:
-        with Page(settle=4.0) as page:
+        html_changed = {f for f in changed_files(a.base) if "/" not in f and f.endswith(".html")} if a.changed_only else set()
+        frags = added_fragments(a.base) if a.changed_only else set()
+        with open_page(settle=4.0) as page:
             for name in names:
                 try:
-                    rep = review(page, base_url, name)
+                    text = page_text(page, "%s/%s%s" % (base_url, name, PAGE_QUERY.get(name, "")))
+                    if a.changed_only and not page_is_affected(name, text, a.base, frags, html_changed):
+                        sys.stderr.write("  skip %s: shows none of the text this PR added\n" % name)
+                        continue
+                    if a.list_affected:
+                        print("would read: " + name)
+                        continue
+                    rep = judge(text, name)
                 except Exception as e:  # a gate that cannot run must say so, not pass
                     print("COLD READER COULD NOT RUN on %s: %s" % (name, e))
                     return 2
@@ -188,13 +252,15 @@ def main():
 
     if a.changed_only:
         added = added_text(a.base)
+        frags = added_fragments(a.base)
         for r in reports:
             if not existed_in(a.base, r["page"]):
                 continue  # a new page is read in full
             keep, old = [], []
             for f in r["failures"]:
-                q = norm(f.get("exact_text"))[:50]
-                (keep if q and q in added else old).append(f)
+                q = norm(f.get("exact_text"))
+                hit = bool(q) and (q[:50] in added or any(fr in q for fr in frags) or (len(q) >= 14 and any(q in fr for fr in frags)))
+                (keep if hit else old).append(f)
             r["failures"], r["preexisting"] = keep, old
         for r in reports:
             if r.get("preexisting"):
