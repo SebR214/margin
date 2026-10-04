@@ -15,7 +15,7 @@ from the child's environment, so this can never fall onto the metered key.
 
 A failure is only counted if the text the model quotes really appears on the
 page (a hallucinated quote cannot block a PR) and is flagged again by a second
-independent read (the model's one-off nitpicks differ run to run).
+further independent reads (the model's one-off nitpicks differ run to run; all 3 reads must flag it).
 
 Usage:
   python3 tools/check_cold_reader.py                      # pages changed vs origin/main
@@ -101,7 +101,7 @@ def existed_in(base, name):
                           capture_output=True).returncode == 0
 
 
-READS = int(os.environ.get("COLD_READER_READS", "2"))
+READS = int(os.environ.get("COLD_READER_READS", "3"))
 
 
 def _quotes(raw, hay):
