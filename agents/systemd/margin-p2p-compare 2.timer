@@ -1,0 +1,11 @@
+[Unit]
+Description=Compare yesterday's box and Actions P2P passes once a day
+
+[Timer]
+# 01:30 UTC: the previous UTC day is complete and the served checkout has pulled
+# the Actions rows for its last hour.
+OnCalendar=*-*-* 01:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

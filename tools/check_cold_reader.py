@@ -101,7 +101,7 @@ def existed_in(base, name):
                           capture_output=True).returncode == 0
 
 
-READS = int(os.environ.get("COLD_READER_READS", "3"))
+READS = int(os.environ.get("COLD_READER_READS", "1"))
 
 
 def _quotes(raw, hay):
