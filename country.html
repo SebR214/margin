@@ -157,7 +157,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var max = Math.max.apply(null, vals), min = Math.min.apply(null, vals);
     var key = a >= max ? 'recordWidest' : a <= min ? 'recordNarrowest'
       : below >= 0.9 ? 'recordNearWidest' : below <= 0.1 ? 'recordNearNarrowest' : 'recordNormal';
-    return T(COPY[key] || '', {first: (hasPrior ? longDate : shortDate)(first), scope: hasPrior ? (COPY.recordScopeFull || 'the full record') : (COPY.recordScopeOwn || 'our own record')});
+    var sorted = vals.slice().sort(function(x, y){ return x - y; });
+    var q = function(p){ return sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]; };
+    return T((COPY[key] || '') + ' ' + (COPY.recordRange || ''), {lo: q(0.1).toFixed(1), hi: q(0.9).toFixed(1), first: (hasPrior ? longDate : shortDate)(first), scope: hasPrior ? (COPY.recordScopeFull || 'the full record') : (COPY.recordScopeOwn || 'our own record')});
   }
   function gapAbs(pct){ return Math.abs(pct) < PAR_EPSILON ? 0 : Math.abs(pct); }
   function fmtGap(pct){ return gapAbs(pct).toFixed(1); }
