@@ -392,8 +392,8 @@ def country_explain_html(rows_in, home_copy):
                 .replace("{official_rate}", fmt_rate(cdoc["fx_mid_per_usd"])))
     second = (home_copy.get("countryConsequenceTemplate", "")
               .replace("{currency}", widest.get("ccy", ""))
-              .replace("{street_100}", f"{round(street * 100):,}")
-              .replace("{official_100}", f"{round(cdoc['fx_mid_per_usd'] * 100):,}"))
+              .replace("{street_100}", f"{round(float(fmt_rate(street).replace(',', '')) * 100):,}")
+              .replace("{official_100}", f"{round(float(fmt_rate(cdoc['fx_mid_per_usd']).replace(',', '')) * 100):,}"))
     return first + " " + second
 
 
