@@ -150,8 +150,16 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   // Where today's gap sits in the record we hold for this country, computed
   // from the numbers only: the share of past days with a smaller gap.
   // Needs at least 20 days, otherwise there is nothing fair to say.
-  function recordPosition(COPY, now, prior, own, first, hasPrior){
-    var vals = (prior || []).concat(own || []).map(function(v){ return Math.abs(v); });
+  // Ranked against ONE series, never both at once (SEB-233 / Opus review of
+  // #344): the backfilled segment is one venue's own history against its own
+  // fx source, our spark is a cross-exchange median against a different
+  // official rate, and Math.abs() would merge premiums with discounts -- so
+  // mixing them into one combined percentile is not apples-to-apples. When
+  // the history segment is showing, rank only against it and name the venue
+  // and its "reported, not observed" label in the sentence; otherwise rank
+  // only against our own observed spark.
+  function recordPosition(COPY, now, prior, own, first, hasPrior, venue, label){
+    var vals = (hasPrior ? (prior || []) : (own || [])).map(function(v){ return Math.abs(v); });
     if (vals.length < 20 || now == null) return null;
     var a = gapAbs(now), below = vals.filter(function(v){ return v < a; }).length / vals.length;
     var max = Math.max.apply(null, vals), min = Math.min.apply(null, vals);
@@ -159,7 +167,10 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       : below >= 0.9 ? 'recordNearWidest' : below <= 0.1 ? 'recordNearNarrowest' : 'recordNormal';
     var sorted = vals.slice().sort(function(x, y){ return x - y; });
     var q = function(p){ return sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]; };
-    return T((COPY[key] || '') + ' ' + (COPY.recordRange || ''), {lo: q(0.1).toFixed(1), hi: q(0.9).toFixed(1), first: (hasPrior ? longDate : shortDate)(first), scope: hasPrior ? (COPY.recordScopeFull || 'the full record') : (COPY.recordScopeOwn || 'our own record')});
+    var scope = hasPrior
+      ? T(COPY.recordScopeVenue || "{venue}'s own history ({label})", {venue: venue, label: label})
+      : (COPY.recordScopeOwn || 'our own record');
+    return T((COPY[key] || '') + ' ' + (COPY.recordRange || ''), {lo: q(0.1).toFixed(1), hi: q(0.9).toFixed(1), first: (hasPrior ? longDate : shortDate)(first), scope: scope});
   }
   function gapAbs(pct){ return Math.abs(pct) < PAR_EPSILON ? 0 : Math.abs(pct); }
   function fmtGap(pct){ return gapAbs(pct).toFixed(1); }
@@ -318,7 +329,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
           '<p class="answer">' + esc(moveSentence) + ' ' + esc(COPY.chartNoteTemplate) + '</p>' +
           '<div class="chartbox" id="gapChart"></div>';
         var posLine = recordPosition(COPY, headlinePct, hasPoints ? segment.points.map(function(p){ return p.index_pct; }) : [], country.spark,
-          hasPoints ? segment.first : (dates[0] || country.history_start), hasPoints);
+          hasPoints ? segment.first : (dates[0] || country.history_start), hasPoints,
+          hasPoints ? segment.venue : null, hasPoints ? (segment.label || COPY.historySegmentLabel) : null);
         if (posLine) html += '<p class="answer" id="recordPos">' + esc(posLine) + '</p>';
 
         if (hasPoints) {
@@ -406,7 +418,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
             document.getElementById('histNote').hidden = !shown;
             var rp = document.getElementById('recordPos');
             var line = recordPosition(COPY, headlinePct, shown ? segment.points.map(function(p){ return p.index_pct; }) : [], country.spark,
-              shown ? segment.first : (dates[0] || country.history_start), shown);
+              shown ? segment.first : (dates[0] || country.history_start), shown,
+              shown ? segment.venue : null, shown ? (segment.label || COPY.historySegmentLabel) : null);
             if (rp) { rp.textContent = line || ''; rp.hidden = !line; }
             tg.setAttribute('aria-expanded', shown ? 'true' : 'false');
             tg.textContent = shown
