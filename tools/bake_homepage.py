@@ -382,15 +382,17 @@ def country_explain_html(rows_in, home_copy):
     cdoc = load_json_or_none(os.path.join(HERE, "data", "countries", f"{widest.get('ccy')}.json")) or {}
     if cdoc.get("buy_price") is None or cdoc.get("fx_mid_per_usd") is None:
         return home_copy.get("countryExplainNoPriceTemplate", "").replace("{country}", widest.get("country", ""))
+    # Same 24 hour median gap as the heading, applied to the official rate.
+    street = cdoc["fx_mid_per_usd"] * (1 + widest.get("gap_pct", 0.0) / 100)
     by_class = home_copy.get("countryExplainByClass", {})
     tpl = by_class.get(widest.get("denominator_class")) or by_class.get("default", "")
     first = (tpl.replace("{country}", widest.get("country", ""))
                 .replace("{currency}", widest.get("ccy", ""))
-                .replace("{street_price}", fmt_rate(cdoc["buy_price"]))
+                .replace("{street_price}", fmt_rate(street))
                 .replace("{official_rate}", fmt_rate(cdoc["fx_mid_per_usd"])))
     second = (home_copy.get("countryConsequenceTemplate", "")
               .replace("{currency}", widest.get("ccy", ""))
-              .replace("{street_100}", f"{round(cdoc['buy_price'] * 100):,}")
+              .replace("{street_100}", f"{round(street * 100):,}")
               .replace("{official_100}", f"{round(cdoc['fx_mid_per_usd'] * 100):,}"))
     return first + " " + second
 
