@@ -114,15 +114,20 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   <main>
     <h1 id="hiwH1"></h1>
     <p class="lede" id="hiwSub"></p>
+    <ul class="plain-list" id="hiwSubList"></ul>
+    <div class="p" id="hiwSubNote"></div>
 
     <section class="hiw-section" id="dollar-cost">
       <h2 id="dollarCostH2"></h2>
       <div class="p" id="dollarCostP"></div>
+      <ul class="plain-list" id="dollarCostList"></ul>
     </section>
 
     <section class="hiw-section" id="sending-cost">
       <h2 id="sendingCostH2"></h2>
       <div class="p" id="sendingCostP"></div>
+      <div class="p" id="sendingCostAmounts"></div>
+      <ul class="plain-list" id="sendingCostList"></ul>
     </section>
 
     <section class="hiw-section" id="not-measured">
@@ -133,7 +138,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
     <section class="hiw-section" id="sources">
       <h2 id="sourcesH2"></h2>
-      <div class="p" id="sourcesP"></div>
+      <ul class="plain-list" id="sourcesList"></ul>
+      <div class="p" style="font-size:15px;color:#6B6B6B" id="sourcesP"></div>
     </section>
 
     <details class="full-method" id="full-method"><summary>Full method, every source and our checks against independent numbers</summary><div>
@@ -189,7 +195,8 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&am
 //   amounts    data/providers_latest.json  the quoted sizes per corridor
 //   n, top     data/sources_latest.json "Order books" countries, then each
 //              of those data/countries/<CCY>.json "venues" lists
-//   providers  data/providers_latest.json rows whose source is "own"
+//   ownWord    data/providers_latest.json count of providers whose rows have
+//              source "own" (their names appear only in the provider tables)
 // A sentence whose figure cannot be read is left out, not guessed.
 function getJson(u){ return fetch(u, {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; }); }
 var NUM_WORDS = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
@@ -203,6 +210,15 @@ function fillCopy(tpl, vals){
     var out = sent.replace(/\{(\w+)\}/g, function(m, k){ if (vals[k] == null || vals[k] === '') { bad = true; return m; } return vals[k]; });
     return bad ? '' : out;
   }).filter(Boolean).join(' ');
+}
+// Fill each template and render the survivors as list items.
+function setList(id, items, vals){
+  var ul = document.getElementById(id); if (!ul) return;
+  ul.textContent = '';
+  (items || []).forEach(function(t){
+    var f = fillCopy(t, vals); if (!f) return;
+    var li = document.createElement('li'); li.textContent = f; ul.appendChild(li);
+  });
 }
 function setText(id, txt){ var el = document.getElementById(id); if (el) el.textContent = txt; }
 
@@ -229,15 +245,21 @@ Promise.all([
     minAmount: sizes.length ? sizes[0].toLocaleString('en-US') : null,
     maxAmount: sizes.length ? sizes[sizes.length - 1].toLocaleString('en-US') : null,
     amountList: sizes.length ? joinNames(sizes.map(function(n){ return n.toLocaleString('en-US'); })) : null,
-    providers: Object.keys(own).sort().length ? joinNames(Object.keys(own).sort()) : null
+    ownWord: Object.keys(own).length ? numWord(Object.keys(own).length) : null
   };
 
   setText('hiwH1', hiw.h1 || '');
   setText('hiwSub', hiw.sub || '');
+  setList('hiwSubList', hiw.subPoints, vals);
+  setText('hiwSubNote', hiw.subNote || '');
   setText('dollarCostH2', hiw.dollarCostTitle || '');
-  setText('dollarCostP', fillCopy(hiw.dollarCostBody, vals));
+  setText('dollarCostP', fillCopy(hiw.dollarCostLead, vals));
+  setList('dollarCostList', hiw.dollarCostPoints, vals);
   setText('sendingCostH2', hiw.sendingCostTitle || '');
-  setText('sendingCostP', fillCopy(hiw.sendingCostBody, vals));
+  setText('sendingCostP', fillCopy(hiw.sendingCostLead, vals));
+  setText('sendingCostAmounts', fillCopy(hiw.sendingCostAmounts, vals));
+  setList('sendingCostList', hiw.sendingCostPoints, vals);
+  setText('sourcesP', fillCopy(hiw.sourcesNote, vals));
   setText('methodMadeP', fillCopy(hiw.methodMadeBody, vals));
   setText('notMeasuredH2', hiw.notMeasuredTitle || '');
   setText('sourcesH2', hiw.sourcesTitle || '');
@@ -267,7 +289,7 @@ Promise.all([
     var names = Object.keys(cover).sort(function(x, y){ return cover[y] - cover[x] || x.localeCompare(y); });
     vals.n = names.length || null;
     vals.top = names.length ? joinNames(names.slice(0, 4)) : null;
-    setText('sourcesP', fillCopy(hiw.sourcesBody, vals));
+    setList('sourcesList', hiw.sourcesPoints, vals);
   });
 }).catch(function(){});
 
