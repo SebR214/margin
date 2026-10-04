@@ -1,0 +1,19 @@
+[Unit]
+Description=margin.wiki daily comparison: P2P box collector vs GitHub Actions (ROADMAP item 16)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/srv/margin
+ExecStart=/usr/bin/python3 /srv/margin/tools/compare_p2p_box.py
+StandardOutput=append:/var/log/margin/p2p-box-compare.log
+StandardError=append:/var/log/margin/p2p-box-compare.log
+CPUWeight=20
+IOWeight=10
+MemoryMax=512M
+ProtectSystem=strict
+ReadOnlyPaths=/srv/margin
+ReadWritePaths=/var/lib/margin/p2p_box /var/log/margin
+PrivateTmp=true
+NoNewPrivileges=true

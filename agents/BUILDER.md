@@ -195,3 +195,10 @@ run.
   except by `tools/backfill_history.py`, and never let it feed the index, a price,
   the observed series or the unbroken-hours count.
 - Never widen scope. The issue is the contract.
+
+## Cold-reader failures: two attempts, then stop
+
+When a reader-facing PR fails the cold reader, you get two attempts to fix the flagged text.
+Add the label `ready` only when the PR is final: the gate runs once on that commit, not on every
+push. If the second attempt still fails, stop, say what was flagged on the issue, and leave it. Do
+not keep rewording to chase the model's nitpicks. Never run more than two page agents at once.
