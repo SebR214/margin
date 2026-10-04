@@ -228,6 +228,7 @@ Promise.all([
     amounts: sizes.length ? numWord(sizes.length) : null,
     minAmount: sizes.length ? sizes[0].toLocaleString('en-US') : null,
     maxAmount: sizes.length ? sizes[sizes.length - 1].toLocaleString('en-US') : null,
+    amountList: sizes.length ? joinNames(sizes.map(function(n){ return n.toLocaleString('en-US'); })) : null,
     providers: Object.keys(own).sort().length ? joinNames(Object.keys(own).sort()) : null
   };
 
