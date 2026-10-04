@@ -139,20 +139,19 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     <section class="hiw-section" id="sources">
       <h2 id="sourcesH2"></h2>
       <ul class="plain-list" id="sourcesList"></ul>
-      <div class="p" style="font-size:15px;color:#6B6B6B" id="sourcesP"></div>
     </section>
 
-    <details class="full-method" id="full-method"><summary>Full method, every source and our checks against independent numbers</summary><div>
-      <div class="kicker">Full method</div>
-      <div class="lede">Everything above is the short version. Below is every source, how what people pay for a dollar is actually made, and the checks that keep this site honest against numbers we don't control.</div>
+    <details class="full-method" id="full-method"><summary>How a price is made, and how we check it</summary><div>
+      <div class="kicker">Method and checks</div>
+      <div class="lede">Everything above is the short version. Below is how a price is made, and how we check our numbers against ones we do not control.</div>
 
-      <div class="h">How what people pay for a dollar is made</div>
+      <div class="h">How we work out each price</div>
       <div class="p" id="methodMadeP"></div>
       <div class="p" id="thresholdP">Loading today's counts…</div>
 
-      <div class="p"><a href="./METHODOLOGY.md">The full technical methodology, unabridged — every source, the depth behind each price and the round-trip rules →</a></div>
+      <div class="p"><a href="./METHODOLOGY.md">The full technical method, with the depth behind each price and the round-trip rules →</a></div>
 
-      <div class="h">Our numbers vs independent ones</div>
+      <div class="h">Checking our prices against other sites</div>
       <div class="p" id="refCheckIntro">Loading…</div>
       <div id="refCheck" class="p" style="padding-top:14px">Loading the comparison&hellip;</div>
 
@@ -259,7 +258,6 @@ Promise.all([
   setText('sendingCostP', fillCopy(hiw.sendingCostLead, vals));
   setText('sendingCostAmounts', fillCopy(hiw.sendingCostAmounts, vals));
   setList('sendingCostList', hiw.sendingCostPoints, vals);
-  setText('sourcesP', fillCopy(hiw.sourcesNote, vals));
   setText('methodMadeP', fillCopy(hiw.methodMadeBody, vals));
   setText('notMeasuredH2', hiw.notMeasuredTitle || '');
   setText('sourcesH2', hiw.sourcesTitle || '');
@@ -288,7 +286,11 @@ Promise.all([
     });
     var names = Object.keys(cover).sort(function(x, y){ return cover[y] - cover[x] || x.localeCompare(y); });
     vals.n = names.length || null;
-    vals.top = names.length ? joinNames(names.slice(0, 4)) : null;
+    // Every other price source the file lists (the parallel-dollar markets) follows the exchanges.
+    ((src && src.sources) || []).forEach(function(s){
+      if (/parallel-dollar/.test(s.detail || '') && names.indexOf(s.name) < 0) names.push(s.name);
+    });
+    vals.top = names.length ? names.join(', ') : null;
     setList('sourcesList', hiw.sourcesPoints, vals);
   });
 }).catch(function(){});
