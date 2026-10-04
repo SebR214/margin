@@ -124,9 +124,8 @@ jobs:
   # The model-backed gate. Capped on purpose (it spends the subscription):
   #   - only the pages this PR changes, one model call per page, one pass
   #   - it runs only once the PR carries the label `ready` (the final commit)
-  #   - after 3 runs on one PR it stops running and is advisory only: the
-  #     findings already posted are for the agent to fix where it can justify
-  #     it, and the gate never blocks a PR past the cap
+  #   - after 3 runs on one PR it stops and the PR needs a human look
+  #     (a person adds the label `human-reviewed` to waive it)
   cold-reader:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -174,8 +173,8 @@ jobs:
       - name: Cap reached
         if: steps.gate.outputs.mode == 'capped'
         run: |
-          echo "The cold reader has already run 3 times on this PR. Past the cap its findings are advisory: see the earlier run comments, fix what you can justify, and merge. It does not block."
-          exit 0
+          echo "The cold reader has already run 3 times on this PR. It stops here: a person needs to read this PR. A person adds the label 'human-reviewed' to pass it."
+          exit 1
 
       - name: Install the Claude CLI
         if: (steps.gate.outputs.mode == 'run' || steps.gate.outputs.gates == 'true') && github.event.pull_request.head.repo.full_name == github.repository
