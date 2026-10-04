@@ -27,7 +27,15 @@ to say nothing rather than guess.
 
 When one currency has more than one venue (KRW: Bithumb, Coinone, Upbit), the
 venue with the earliest first-candle date wins, so the segment reaches back
-as far as a real reported price exists.
+as far as a real reported price exists. Two guards keep a broken series off
+the page without altering a row: only a venue's newest stretch with no hole
+longer than 31 days is used (India: WazirX was halted for 15 months, so its
+segment starts after the halt), and a venue with any print further than 50%
+from the official rate in that stretch (CoinDCX's illiquid 2019-2020 prints,
+one stray MAX print) is passed over for the next venue.
+
+Taiwan's official rate is the Taiwan central bank's own series (CBC, via the
+same Frankfurter host), since the ECB publishes none.
 
 Largest moves are the biggest day-over-day index_pct changes, found by
 sorting -- not chosen by a person or a model.
@@ -39,6 +47,7 @@ Usage: python3 tools/emit_country_history.py
 """
 
 import csv
+import datetime
 import json
 import os
 
@@ -52,6 +61,8 @@ OUT_DIR = os.path.join(DATA, "country_history_segment")
 
 LABEL = "reported, not observed"
 MIN_POINTS = 2
+MAX_GAP_DAYS = 31
+MAX_ABS_PCT = 50.0
 N_LARGEST_MOVES = 3
 
 
@@ -105,15 +116,23 @@ def history_start(ccy):
         return (json.load(f) or {}).get("history_start")
 
 
-def pick_candle_file(manifest, ccy):
-    """The daily-candle venue for this currency with the deepest history."""
-    best = None
-    for entry in manifest.get("files", {}).values():
-        if entry.get("ccy") != ccy or not entry.get("file", "").endswith("_1d.csv"):
-            continue
-        if best is None or entry["first"] < best["first"]:
-            best = entry
-    return best
+def candle_entries(manifest, ccy):
+    """Daily-candle venues for this currency, deepest history first."""
+    found = [e for e in manifest.get("files", {}).values()
+             if e.get("ccy") == ccy and e.get("file", "").endswith("_1d.csv")]
+    return sorted(found, key=lambda e: e["first"])
+
+
+def latest_run(dates):
+    """The newest stretch of dates with no hole longer than MAX_GAP_DAYS -- the
+    stretch that abuts the live chart. Dates before a longer hole are dropped,
+    never bridged."""
+    ds = [datetime.date.fromisoformat(d) for d in dates]
+    start = 0
+    for i in range(1, len(ds)):
+        if (ds[i] - ds[i - 1]).days > MAX_GAP_DAYS:
+            start = i
+    return dates[start:]
 
 
 def largest_moves(points, n=N_LARGEST_MOVES):
@@ -125,20 +144,29 @@ def largest_moves(points, n=N_LARGEST_MOVES):
 
 
 def build_one(manifest, ccy):
-    candle_entry = pick_candle_file(manifest, ccy)
-    if not candle_entry:
-        return None
     fx, fx_source = fx_series(ccy)
     if not fx:
         return None
-    candles, venue, venue_source = candle_series(os.path.join(HERE, candle_entry["file"]))
-    if not candles:
-        return None
     cutoff = history_start(ccy)
-    dates = sorted(d for d in candles if d in fx and (cutoff is None or d < cutoff))
-    if len(dates) < MIN_POINTS:
+    # One candidate per venue: its newest unbroken stretch (an exchange halt is
+    # a hole, not something to draw a line across). A venue with any print
+    # further than MAX_ABS_PCT from the official rate is a broken series in this
+    # window (a stray order, an illiquid early market) and is passed over, not
+    # trimmed. Among what is left the deepest stretch wins.
+    best = None
+    for candle_entry in candle_entries(manifest, ccy):
+        candles, venue, venue_source = candle_series(os.path.join(HERE, candle_entry["file"]))
+        dates = latest_run(sorted(d for d in candles
+                                  if d in fx and (cutoff is None or d < cutoff)))
+        pts = [{"date": d, "index_pct": round((candles[d] / fx[d] - 1) * 100, 4)}
+               for d in dates]
+        if len(pts) < MIN_POINTS or any(abs(p["index_pct"]) > MAX_ABS_PCT for p in pts):
+            continue
+        if best is None or pts[0]["date"] < best[0][0]["date"]:
+            best = (pts, venue, venue_source)
+    if best is None:
         return None
-    points = [{"date": d, "index_pct": round((candles[d] / fx[d] - 1) * 100, 4)} for d in dates]
+    points, venue, venue_source = best
     return {
         "ccy": ccy,
         "label": LABEL,
