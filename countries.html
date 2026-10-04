@@ -317,11 +317,12 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var countries = d.countries || [];
     var withheld = d.withheld || [];
     var total = countries.length + withheld.length;
+    var rankedCount = countries.filter(c => c.denominator_class !== 'unmaintained').length;
 
     document.getElementById('pageTitle').textContent = T(COPY.title, {count: total});
     var asOf = d.as_of_utc || (countries[0] && countries[0].hour_utc);
     document.getElementById('metaText').textContent =
-      T(COPY.metaTemplate, {time: shortTime(asOf), n: countries.length, total: total});
+      T(COPY.metaTemplate, {time: shortTime(asOf), n: rankedCount, total: total});
     var minAds = d.min_buy_ads;
 
     // Sudan's official rate is frozen -- its own "gap" is a data artifact,
@@ -402,7 +403,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
     var frozenNames = unmaintained.map(function(c){ return esc(listName(c.country)); });
     document.getElementById('frozenNote').innerHTML =
-      (frozenNames.length ? T(frozenNames.length === 1 ? COPY.frozenOneTemplate : COPY.frozenManyTemplate, {names: joinList(frozenNames), count: frozenNames.length === 1 ? 'one' : frozenNames.length}) + ' ' : '') +
+      (frozenNames.length ? T(frozenNames.length === 1 ? COPY.frozenOneTemplate : COPY.frozenManyTemplate, {names: joinList(frozenNames)}) + ' ' : '') +
       '<a href="./how-it-works.html">' + esc(COPY.howLink || '').replace('\u2192', '&rarr;') + '</a>';
 
     // Search: filters every row and chip live. Pressing Enter on a single
