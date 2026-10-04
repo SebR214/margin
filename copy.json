@@ -528,6 +528,19 @@
     "loadingLabel": "Loading the receipt…",
     "loadErrorTemplate": "The receipt at {file} could not be read."
   },
+  "receiptDelivery": {
+    "title": "Where this delivery time comes from",
+    "close": "Close",
+    "step1Label": "The evidence",
+    "step2Label": "The note",
+    "evidenceSentenceTemplate": "{provider} states this delivery time: \"{delivery}\".",
+    "evidenceCollectedTemplate": "Read {when}.",
+    "evidenceUnavailableTemplate": "The receipt behind this delivery time could not be found.",
+    "computationNoteTemplate": "Stated by {provider}, read directly, not calculated.",
+    "rawFilesLabel": "Open the raw file",
+    "loadingLabel": "Loading the receipt…",
+    "loadErrorTemplate": "The receipt at {file} could not be read."
+  },
   "country": {
     "h1MoreTemplate": "In {country} a dollar costs {gap}% more than the official rate",
     "h1LessTemplate": "In {country} a dollar costs {gap}% less than the official rate",
@@ -903,24 +916,30 @@
     "loadErrorTemplate": "The receipt at {file} could not be read."
   },
   "tape": {
-    "title": "Street dollar prices as they arrive",
-    "lede": "In many countries a US dollar costs more on the street than at the bank. This page shows the street price each time it is checked, about every ten minutes.",
-    "statusStatic": "Showing the latest checked prices.",
-    "statusLive": "Live. New prices appear here as they are checked.",
-    "statusOffline": "Live updates are not reaching this page right now. These are the latest checked prices.",
-    "metaTemplate": "Last checked {time} UTC. {n} countries priced.",
-    "listTitle": "Latest price of one US dollar",
+    "title": "What people pay for a dollar, updating every {minutes} minutes",
+    "lede": "Each row shows what people pay, the official rate, and the difference. Prices are in each country's own currency per US dollar, marked by its three letter code, such as AFN for the Afghan afghani. Central Africa and West Africa are groups of countries that share one currency. The difference is how much more people pay than the official rate, as a percentage. A minus sign means they pay less.",
+    "statusIdle": "Next check at {time} UTC.",
+    "statusIdleLate": "The last check is older than {minutes} minutes. This is not a fault. A check may be running or late. The prices shown are from the last check, at the time above.",
+    "statusLive": "Connected. New prices appear here as each check finishes.",
+    "statusOffline": "Not connected, so prices may be out of date. Next check at {time} UTC.",
+    "statusOfflineLate": "Not connected. The last check is older than {minutes} minutes. A check may be running or late. The prices shown are from the last check, at the time above. Reload to try again.",
+    "metaTemplate": "Last checked on {date} at {time} UTC. {n} countries priced.",
+    "listTitle": "Latest checked prices",
     "colCountry": "Country",
-    "colStreet": "Street price",
-    "colBank": "Bank rate",
-    "checkedTemplate": "Checked {time} UTC",
+    "colStreet": "What people pay",
+    "colBank": "Official rate",
+    "colDiff": "Difference",
     "justArrived": "Just arrived",
     "noBankRate": "Not available",
+    "sharedCurrencyNames": {
+      "XAF": "Central Africa (one currency, several countries)",
+      "XOF": "West Africa (one currency, several countries)"
+    },
     "unavailable": "The latest prices could not be loaded. Try again in a few minutes.",
-    "note": "The street price is the typical price in offers people post to buy and sell US dollar stablecoins. The bank rate is the official exchange rate at the same moment.",
+    "note": "A stablecoin is a digital token built to hold the value of a US dollar. What people pay comes from offers on Binance, a large online marketplace where people trade stablecoins. We line up the offers to sell a digital dollar from lowest to highest and take the one in the middle, so a few odd offers do not move the price. We compare it with the official rate, which is the bank exchange rate at the same moment. Stablecoins can be swapped for cash dollars at close to one for one, so their price is a good guide to what a dollar costs on the street. Cash prices can differ a little. If people pay more than the official rate, a dollar is hard to get at the bank price.",
     "linkText": "See each country's price over time →",
     "linkHref": "./countries.html",
-    "footer": "Every number on this page comes from a public data file."
+    "footer": "The first two numbers in each row come from the latest check. The difference is worked out from those two."
   },
   "receiptBasis": {
     "title": "Where this price comes from",

@@ -286,6 +286,85 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     return byKey;
   }
 
+  // SEB-230: data/provider_delivery.csv, parsed quote-aware -- unlike
+  // samples.csv above, delivery_stated itself can hold a comma ("by
+  // Monday, October 5"), so a plain split(',') would cut a reading in two.
+  function parseCsvLine(line) {
+    var out = [], cur = '', inQuotes = false;
+    for (var i = 0; i < line.length; i++) {
+      var c = line[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (line[i + 1] === '"') { cur += '"'; i++; }
+          else { inQuotes = false; }
+        } else cur += c;
+      } else if (c === '"') {
+        inQuotes = true;
+      } else if (c === ',') {
+        out.push(cur); cur = '';
+      } else {
+        cur += c;
+      }
+    }
+    out.push(cur);
+    return out;
+  }
+  function parseDeliveryCSV(text) {
+    var lines = text.split('\n');
+    if (!lines[0]) return [];
+    var header = parseCsvLine(lines[0]);
+    var idx = {};
+    header.forEach(function(h, i){ idx[h] = i; });
+    var out = [];
+    for (var i = 1; i < lines.length; i++) {
+      if (!lines[i]) continue;
+      var cols = parseCsvLine(lines[i]);
+      if (!cols[idx.corridor]) continue;
+      out.push({
+        ts_utc: cols[idx.ts_utc], corridor: cols[idx.corridor], provider: cols[idx.provider],
+        size_src: cols[idx.size_src], delivery_stated: cols[idx.delivery_stated]
+      });
+    }
+    return out;
+  }
+  // The newest whole UTC hour across the ENTIRE file -- mirrors
+  // tools/emit_providers.py's own delivery_stated()/newest_hour(), the exact
+  // selection that decided which row's delivery_stated reached
+  // providers_latest.json and is showing on this page right now. A single
+  // global hour, not a per-corridor one, same as that function.
+  function deliveryNewestHourMs(rows) {
+    var maxTs = null;
+    rows.forEach(function(r){
+      var t = Date.parse(r.ts_utc);
+      if (!isNaN(t) && (maxTs === null || t > maxTs)) maxTs = t;
+    });
+    if (maxTs === null) return null;
+    var d = new Date(maxTs);
+    d.setUTCMinutes(0, 0, 0);
+    return d.getTime();
+  }
+  function sameHour(tsIso, hourMs) {
+    var t = Date.parse(tsIso);
+    if (isNaN(t)) return false;
+    var d = new Date(t);
+    d.setUTCMinutes(0, 0, 0);
+    return d.getTime() === hourMs;
+  }
+  // The filename tools/emit_delivery_receipts.py wrote this corridor's and
+  // provider's day under, plus the exact row that fed the delivery time
+  // this page is showing -- found by replaying emit_providers.py's own
+  // newest-hour selection against the raw CSV, never a second, looser match.
+  function deliveryReceiptFile(route, provider, size) {
+    if (DELIVERY_HOUR_MS === null) return null;
+    var row = DELIVERY_ROWS.filter(function(r){
+      return r.corridor === route.route && r.provider === provider
+        && String(r.size_src) === String(size) && sameHour(r.ts_utc, DELIVERY_HOUR_MS);
+    })[0];
+    if (!row) return null;
+    var provSlug = provider.replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'unknown';
+    return route.route.replace(/->/g, '-') + '_' + provSlug + '_' + row.ts_utc.slice(0, 10);
+  }
+
   // ---- Cost-by-size curve. Redraws at the container's own real width, both
   // on first render and on every resize -- a fixed viewBox scaled down by
   // CSS is what shrank chart text on narrow phones before (fixed sitewide,
@@ -350,6 +429,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   var PROVIDERS = null;
   var SAMPLES_BY_KEY = null;
   var currentRouteKey = null;
+  var DELIVERY_ROWS = [];
+  var DELIVERY_HOUR_MS = null;
 
   window.addEventListener('resize', debounce(function(){
     if (curveState) renderCostCurve(curveState.el, curveState.key, curveState.byKey);
@@ -367,12 +448,15 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     fetch('./data/providers_latest.json', {cache:'no-store'}).then(r=>r.json()),
     fetch('./data/samples.csv', {cache:'no-store'}).then(r=>r.text()),
     fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(function(){ return {}; }),
-    fetch('./data/coverage.json', {cache:'no-store'}).then(r=>r.json()).catch(function(){ return {}; })
+    fetch('./data/coverage.json', {cache:'no-store'}).then(r=>r.json()).catch(function(){ return {}; }),
+    fetch('./data/provider_delivery.csv', {cache:'no-store'}).then(r=>r.ok ? r.text() : '').catch(function(){ return ''; })
   ]).then(function(res){
     PROVIDERS = res[0];
     SAMPLES_BY_KEY = parseSamplesCSV(res[1]);
     COPY = res[2].sendingMoney || {};
     COVERAGE = (res[3] || {}).corridors || {};
+    DELIVERY_ROWS = parseDeliveryCSV(res[4]);
+    DELIVERY_HOUR_MS = deliveryNewestHourMs(DELIVERY_ROWS);
 
     document.getElementById('pageH1').textContent = COPY.pageTitle || document.getElementById('pageH1').textContent;
     document.getElementById('pageLead').textContent = COPY.lead || '';
@@ -507,8 +591,20 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         // -- shown verbatim, escaped since it's text from outside this site, and
         // only when a row for this provider/size/hour actually exists. Absent
         // means it wasn't measured, never "not stated" invented in its place.
+        //
+        // SEB-230: the receipt behind this string -- same R2 overlay the cost
+        // figure next to it already opens. Wired only when
+        // deliveryReceiptFile() actually finds the row that fed r.delivery_stated
+        // (same global newest-hour selection as tools/emit_providers.py's own
+        // delivery_stated()); a reading the receipt can't locate still shows
+        // the text, just not clickable, rather than linking to a guess.
+        var deliveryText = esc(r.delivery_stated || '');
+        var deliveryFile = (!isStable && r.delivery_stated) ? deliveryReceiptFile(route, r.provider, selectedSize) : null;
+        var deliveryValueHtml = deliveryFile
+          ? '<span data-receipt-delivery-file="'+esc(deliveryFile)+'" data-receipt-delivery-size="'+esc(selectedSize)+'" data-receipt-delivery-provider="'+esc(r.provider)+'" data-receipt-value="'+deliveryText+'" tabindex="0">'+deliveryText+'</span>'
+          : deliveryText;
         var deliveryLabel = (!isStable && r.delivery_stated)
-          ? esc(T(COPY.deliveryTemplate || '', { delivery: r.delivery_stated })) : '';
+          ? T(COPY.deliveryTemplate || '', { delivery: deliveryValueHtml }) : '';
         var nameCell = '<div><span class="pname">'+esc(displayName)+(hasVenues ? ' <span class="venue-toggle-caret">▸</span>' : '')+(sourceLabel ? '<small>'+sourceLabel+'</small>' : (deliveryLabel ? '<small>'+deliveryLabel+'</small>' : ''))+'</span></div>';
         if (r.unchecked) {
           var uDelivery = deliveryLabel ? (' &middot; ' + deliveryLabel) : '';

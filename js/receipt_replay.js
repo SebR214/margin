@@ -1,4 +1,4 @@
-/* The receipt replay (SEB-57 / R2 / SEB-173 / SEB-178 / SEB-186).
+/* The receipt replay (SEB-57 / R2 / SEB-173 / SEB-178 / SEB-186 / SEB-230).
  *
  * Every published index/country number is clickable. Clicking one fetches
  * data/receipts/<CCY>.json (built by tools/emit_receipts.py, SEB-56) and
@@ -34,6 +34,14 @@
  * data/receipts/<CCY>.json: that file replays the premium-index arithmetic
  * (evidence vs. official rate vs. result_pct), a different, unrelated
  * number from the raw street price and bank rate tape.html actually shows.
+ *
+ * sending-money.html's delivery-time strings (SEB-230) replay the same
+ * shell again, from data/delivery_receipts/<corridor>_<provider>_<day>.json
+ * (built by tools/emit_delivery_receipts.py) and copy.json's
+ * "receiptDelivery" templates -- see buildDeliverySteps(). No math step: a
+ * delivery time is a provider's own stated claim, read off its own site,
+ * never an arithmetic result -- the receipt says that plainly rather than
+ * invent a formula where there is none.
  *
  * Wired once, on document, by delegation -- so it survives a full re-render
  * of index.html's innerHTML-driven sections as well as a plain DOM page
@@ -87,6 +95,9 @@
   }
   function getProviderCopy() {
     return getCopyDoc().then(function (c) { return (c && c.receiptProvider) || {}; });
+  }
+  function getDeliveryCopy() {
+    return getCopyDoc().then(function (c) { return (c && c.receiptDelivery) || {}; });
   }
 
   function T(s, vals) {
@@ -444,6 +455,29 @@
     return steps;
   }
 
+  // sending-money.html's delivery-time strings (SEB-230): same shell, a
+  // receipt file keyed by (corridor, provider, day) holding every row
+  // data/provider_delivery.csv has for that day, and its own copy.json
+  // templates (receiptDelivery) rather than the index/country ones. `row`
+  // is the one row matching the size actually shown (openDelivery() below
+  // picks it out of the file's own `rows` list, newest reading for that
+  // size first -- the same row sending-money.html's own render is showing).
+  // There is no math step: a provider's stated delivery time is not an
+  // arithmetic result, so this names that plainly rather than inventing a
+  // formula where there is none.
+  function buildDeliverySteps(row, provider, copy) {
+    if (!row) {
+      return [{ label: copy.step1Label, text: copy.evidenceUnavailableTemplate || "", files: [] }];
+    }
+    var evidenceText = T(copy.evidenceSentenceTemplate, { provider: provider, delivery: row.delivery_stated });
+    var collected = T(copy.evidenceCollectedTemplate, { when: fmtWhen(row.ts_utc) });
+    var noteText = T(copy.computationNoteTemplate, { provider: provider });
+    return [
+      { label: copy.step1Label, text: [evidenceText, collected].filter(Boolean).join(" "), files: ["data/provider_delivery.csv"] },
+      { label: copy.step2Label, text: noteText, files: ["data/provider_delivery.csv"] }
+    ];
+  }
+
   // how-it-was-built.html's two JSON-backed meter tiles (SEB-190): the same
   // step shell buildSteps() fills for index/country numbers, fed from a
   // differently-shaped receipt per meter (tools/emit_meter_receipts.py) and
@@ -530,7 +564,7 @@
     ".receipt-raw-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d7979;margin-bottom:6px;}",
     ".receipt-raw-links{font-size:12px;line-height:1.8;}",
     ".receipt-loading{font-size:13px;color:#7d7979;padding:12px 0;}",
-    "[data-receipt-ccy],[data-receipt-basis-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key],[data-receipt-meter-file]{cursor:pointer;}"
+    "[data-receipt-ccy],[data-receipt-basis-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key],[data-receipt-meter-file],[data-receipt-delivery-file]{cursor:pointer;}"
   ].join("\n");
 
   function ensureStyle() {
@@ -788,6 +822,36 @@
     });
   }
 
+  // sending-money.html's delivery-time strings (SEB-230): same shell, a
+  // receipt file keyed by (corridor, provider, day) -- see
+  // deliveryReceiptFile() in sending-money.html for how that key and the
+  // size actually shown are found. The file can hold several readings for
+  // the same size on the same day (a provider's own estimate can move hour
+  // to hour); the newest one is the row the page is actually showing, so
+  // that is the one replayed here, never an average or a pick dressed up
+  // as the page's number.
+  function openDelivery(file, size, providerName, displayValue, triggerEl) {
+    if (!file || !providerName) return;
+    var closeBtn = openShell(providerName, displayValue, triggerEl);
+
+    getDeliveryCopy().then(function (copy) {
+      if (!overlayEl) return;
+      overlayEl.querySelector(".receipt-title").textContent = copy.title || "";
+      closeBtn.setAttribute("aria-label", copy.close || "");
+      renderLoading(copy);
+      closeBtn.focus();
+      var path = "data/delivery_receipts/" + file + ".json";
+      fetch(path, { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .then(function (receipt) {
+          var matches = (receipt.rows || []).filter(function (x) { return String(x.size_src) === String(size); });
+          var row = matches.length ? matches[matches.length - 1] : null;
+          paintSteps(buildDeliverySteps(row, providerName, copy), receipt.source_files, copy.rawFilesLabel);
+        })
+        .catch(function () { renderError(copy, path); });
+    });
+  }
+
   // how-it-was-built.html's two JSON-backed meter tiles (SEB-190): same
   // shell, a receipt file keyed by (meter, day), and its own copy.json
   // templates (receiptMeter) rather than the index/country ones -- see
@@ -838,7 +902,7 @@
 
   document.addEventListener("click", function (e) {
     var t = e.target.closest && e.target.closest(
-      "[data-receipt-ccy],[data-receipt-basis-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key],[data-receipt-meter-file]");
+      "[data-receipt-ccy],[data-receipt-basis-ccy],[data-receipt-corridor-file],[data-receipt-crossover-file],[data-receipt-provider-file],[data-pricechange-key],[data-receipt-meter-file],[data-receipt-delivery-file]");
     if (!t) return;
     e.preventDefault();
     var displayValue = t.getAttribute("data-receipt-value") || t.textContent;
@@ -856,6 +920,10 @@
     } else if (t.hasAttribute("data-receipt-provider-file")) {
       openProvider(t.getAttribute("data-receipt-provider-file"),
         t.getAttribute("data-receipt-provider-name"), displayValue, t);
+    } else if (t.hasAttribute("data-receipt-delivery-file")) {
+      openDelivery(t.getAttribute("data-receipt-delivery-file"),
+        t.getAttribute("data-receipt-delivery-size"),
+        t.getAttribute("data-receipt-delivery-provider"), displayValue, t);
     } else {
       open(t.getAttribute("data-receipt-ccy"), displayValue, t);
     }
