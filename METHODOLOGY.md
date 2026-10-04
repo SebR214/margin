@@ -1314,8 +1314,10 @@ different kind of thing, and it is kept as a different kind of thing:
   live `history_start`, so the result, `data/country_history_segment/<CCY>.json`,
   never overlaps what the live chart already shows. When a currency has more
   than one venue (Korea: Bithumb, Coinone, Upbit), the venue with the earliest
-  first candle wins. A currency with no venue series (Argentina) or no official
-  rate (Taiwan) gets no file. `country.html` draws this as a second, dashed,
+  first candle wins. A currency with no venue series (Argentina, Nigeria) or no official
+  rate gets no file. Only a venue's newest stretch with no hole over 31 days is
+  used, and a venue with any print more than 50% from the official rate is passed
+  over (rows themselves are never altered). `country.html` draws this as a second, dashed,
   unfilled line on the same `js/chart.js` component -- never a second chart
   type -- marks the three largest day-over-day moves (found by sorting, not
   chosen), and states the venue, the rate source and the date range on the
@@ -1333,20 +1335,27 @@ prices as reported by the venue, named on every row, and nothing is resold.
 | Coinone KRW/USDT | `api.coinone.co.kr/public/v2/chart` | hourly and daily; daily from 2023-11-29 | accepted |
 | BTCTurk USDTTRY | `graph-api.btcturk.com/v1/klines/history`, `api.btcturk.com/api/v2/ohlc` | hourly and daily; daily from 2018-07-10 | accepted |
 | Paribu | `v4.paribu.com/market/usdt-tl/ohlc` | answers with a Cloudflare Access sign-in page; the web chart route 404s | rejected: login wall |
-| Indodax USDTIDR | `indodax.com/tradingview/history_v2` | hourly (7-day windows) and daily; daily only the last 2 years | accepted |
+| Indodax USDTIDR | `indodax.com/tradingview/history_v2` | hourly (7-day windows) and daily; the endpoint returns at most ~731 candles per call, so daily is paged in 700-day windows, from 2018-08-24 | accepted |
 | Bitkub USDT_THB | `api.bitkub.com/tradingview/history` | hourly and daily; daily from 2018-11-12 | accepted |
-| Bitso usdt_mxn | `api.bitso.com/api/v3/ohlc` | hourly from 2026-03-21, daily from 2024-10-02 (shallow public window) | accepted, shallow |
+| Bitso usdt_mxn | `api.bitso.com/api/v3/ohlc` | with `start`/`end` (epoch ms) windows: hourly from 2025-01-01, daily from 2023-03-21 (the default call returns only the latest ~730) | accepted |
 | Mercado Bitcoin USDT-BRL | `mercadobitcoin.net/api`, `mobile.mercadobitcoin.com.br/v4` | HTTP 403 Cloudflare bot challenge | rejected: bot challenge, not evaded |
 | Foxbit usdtbrl | `api.foxbit.com.br/rest/v3/markets/usdtbrl/candlesticks` | hourly and daily; daily from 2021-04-07 | accepted |
 | BitoPro usdt_twd | `api.bitopro.com/v3/trading-history` | hourly and daily; daily from 2018-09-11 | accepted |
 | MAX usdttwd | `max-api.maicoin.com/api/v2/k` | hourly and daily; daily from 2018-04-25 | accepted |
 | Independent Reserve Usdt/Aud | `api.independentreserve.com/Public` | market summary and recent trades only, no candle or history endpoint (candle URLs 404). Building candles from trades would be derived | rejected: no history endpoint |
 | Coins.ph USDTPHP | `api.pro.coins.ph/openapi/quote/v1/klines` | hourly and daily; daily from 2022-10-29 | accepted |
+| BTC Markets USDT-AUD | `api.btcmarkets.net/v3/markets/USDT-AUD/candles` | hourly and daily; daily from 2020-12-01 | accepted |
+| WazirX usdtinr | `api.wazirx.com/sapi/v1/klines` | hourly and daily; daily from 2018-07-10. Zero-volume candles (carried-forward prices during the 2024-07 to 2025-10 halt) are not stored: a candle with no trade is a gap | accepted |
+| CoinDCX I-USDT_INR | `public.coindcx.com/market_data/candles` | hourly and daily; daily from 2019-02-05. Early (2019-2020) closes are illiquid and erratic; stored as reported, passed over by the segment emitter | accepted |
+| Luno USDTNGN, USDTZAR | `api.luno.com/api/exchange/1/candles` | HTTP 401, candles need an API key | rejected: not public |
+| Pintu usdt/idr | `api.pintu.co.id/v2/trade/price-changes` | latest price and percentage changes only; candle and chart routes 404 | rejected: no history endpoint |
+| Coinbase | login-gated | never scraped | not collected |
+| Taiwan official rate | Frankfurter v2 `providers=CBC` (Central Bank of the Republic of China (Taiwan), interbank spot closing, per 1 USD) | daily from 2017-12-29, published monthly; one central bank's own series, not Frankfurter's blended rate | accepted |
 | Official rates | Frankfurter (`api.frankfurter.dev`, ECB reference rates) | daily per USD for KRW, TRY, IDR, THB, MXN, BRL, PHP, SGD, AUD, NZD, INR from 2017-12-29 | accepted |
 | Parallel dollar, Argentina | ArgentinaDatos `api.argentinadatos.com/v1/cotizaciones/dolares/blue` | daily buy and sell from 2011-01-03; MIT licence | accepted |
 | Parallel dollar, Argentina (second) | Bluelytics `api.bluelytics.com.ar/v2/evolution.json` | answers; code is AGPL-3.0, no data licence stated | rejected: licence unclear, and a second source would only duplicate |
 
-**Gaps, stated.** No ECB series for TWD (the two Taiwan venues), ARS, NGN, VES,
+**Gaps, stated.** No ECB series for ARS, NGN, VES (Taiwan uses its own central bank, above),
 EGP or DZD; official-rate history there is a gap, not an estimate. No history for
 any currency priced only through Binance P2P. Parallel-dollar series exist here for
 Argentina only; no public series was found and accepted for the other street

@@ -64,7 +64,11 @@ STEP = {"1h": 3600, "1d": 86400}
 
 # ------------------------------------------------------------------ I/O
 def get_json(url):
-    r = requests.get(url, timeout=HTTP_TIMEOUT, headers=UA)
+    for wait in (2, 6, 15, None):      # a venue saying "slow down" gets a pause, not a hammer
+        r = requests.get(url, timeout=HTTP_TIMEOUT, headers=UA)
+        if r.status_code != 429 or wait is None:
+            break
+        time.sleep(wait)
     r.raise_for_status()
     return r.json()
 
@@ -168,14 +172,14 @@ def f_btcturk(interval, start, fetch=get_json, now=None):
 
 def f_indodax(interval, start, fetch=get_json, now=None):
     now = now or int(time.time())
-    if interval == "1d":
-        d = fetch(f"https://indodax.com/tradingview/history_v2?symbol=USDTIDR&tf=1D"
-                  f"&from=1500000000&to={now}")
-        return [(int(c["Time"]), _num(c["Close"])) for c in d if c.get("Close")]
+    # the endpoint returns at most ~731 candles per call (the NEWEST ones in the
+    # window), so both intervals page forward in windows that fit under the cap
+    span = 700 * 86400 if interval == "1d" else 7 * 86400
+    tf = "1D" if interval == "1d" else "60"
     out, t = [], start
-    while t < now:       # the endpoint caps a call at ~169 hourly candles (7 days)
-        e = min(t + 7 * 86400, now)
-        d = fetch(f"https://indodax.com/tradingview/history_v2?symbol=USDTIDR&tf=60"
+    while t < now:
+        e = min(t + span, now)
+        d = fetch(f"https://indodax.com/tradingview/history_v2?symbol=USDTIDR&tf={tf}"
                   f"&from={t}&to={e}")
         out += [(int(c["Time"]), _num(c["Close"])) for c in d if c.get("Close")]
         t = e
@@ -194,10 +198,19 @@ def f_bitkub(interval, start, fetch=get_json, now=None):
 
 
 def f_bitso(interval, start, fetch=get_json, now=None):
+    now = now or int(time.time())
     b = 3600 if interval == "1h" else 86400
-    d = fetch(f"https://api.bitso.com/api/v3/ohlc?book=usdt_mxn&time_bucket={b}")
-    return [(int(c["bucket_start_time"]) // 1000, _num(c["last_rate"]))
-            for c in d.get("payload", []) if c.get("last_rate")]
+    span = (365 if interval == "1d" else 30) * 86400   # `start`/`end` are epoch ms
+    out, t = [], start
+    while t < now:
+        e = min(t + span, now)
+        d = fetch(f"https://api.bitso.com/api/v3/ohlc?book=usdt_mxn&time_bucket={b}"
+                  f"&start={t * 1000}&end={e * 1000}")
+        out += [(int(c["bucket_start_time"]) // 1000, _num(c["last_rate"]))
+                for c in d.get("payload", []) if c.get("last_rate")]
+        t = e
+        time.sleep(0.3)
+    return out
 
 
 def f_foxbit(interval, start, fetch=get_json, now=None):
@@ -280,6 +293,60 @@ def f_coinsph(interval, start, fetch=get_json, now=None):
     return out
 
 
+def f_btcmarkets(interval, start, fetch=get_json, now=None):
+    now = now or int(time.time())
+    step = STEP[interval]
+    win = "1h" if interval == "1h" else "1d"
+    out, t = [], start
+    for _ in range(100):
+        d = fetch("https://api.btcmarkets.net/v3/markets/USDT-AUD/candles"
+                  f"?timeWindow={win}&from={iso(t)}&to={iso(now)}&limit=1000")
+        if not isinstance(d, list) or not d:
+            break
+        out += [(epoch_dt(c[0]), _num(c[4])) for c in d if _num(c[5]) > 0]  # no trade = no candle
+        last = max(epoch_dt(c[0]) for c in d)
+        if last + step >= now or last + step <= t:
+            break
+        t = last + step
+        time.sleep(0.2)
+    return out
+
+
+def f_wazirx(interval, start, fetch=get_json, now=None):
+    now = now or int(time.time())
+    step = STEP[interval]
+    span = 1900 * step                  # the endpoint caps a call at 2000 candles
+    iv = "1h" if interval == "1h" else "1d"
+    out, t = [], start
+    while t < now:
+        e = min(t + span, now)
+        d = fetch(f"https://api.wazirx.com/sapi/v1/klines?symbol=usdtinr&interval={iv}"
+                  f"&limit=2000&startTime={t}&endTime={e}")
+        if isinstance(d, list):
+            out += [(int(c[0]), _num(c[4])) for c in d if _num(c[5]) > 0]  # no trade = no candle
+        t = e
+        time.sleep(0.6)
+    return out
+
+
+def f_coindcx(interval, start, fetch=get_json, now=None):
+    now = now or int(time.time())
+    step = STEP[interval]
+    span = 900 * step                   # the endpoint caps a call at 1000 candles
+    iv = "1h" if interval == "1h" else "1d"
+    out, t = [], start
+    while t < now:
+        e = min(t + span, now)
+        d = fetch("https://public.coindcx.com/market_data/candles?pair=I-USDT_INR"
+                  f"&interval={iv}&limit=1000&startTime={t * 1000}&endTime={e * 1000}")
+        if isinstance(d, list):
+            out += [(int(c["time"]) // 1000, _num(c["close"])) for c in d
+                    if _num(c.get("volume") or 0) > 0]  # no trade = no candle
+        t = e
+        time.sleep(0.4)
+    return out
+
+
 # name, ccy, pair, fetcher, source host/path (named on every row)
 VENUES = [
     ("Upbit", "KRW", "KRW-USDT", f_upbit, "api.upbit.com/v1/candles"),
@@ -293,14 +360,19 @@ VENUES = [
     ("BitoPro", "TWD", "usdt_twd", f_bitopro, "api.bitopro.com/v3/trading-history"),
     ("MAX", "TWD", "usdttwd", f_max, "max-api.maicoin.com/api/v2/k"),
     ("Coins.ph", "PHP", "USDTPHP", f_coinsph, "api.pro.coins.ph/openapi/quote/v1/klines"),
+    ("BTC Markets", "AUD", "USDT-AUD", f_btcmarkets, "api.btcmarkets.net/v3/markets/USDT-AUD/candles"),
+    ("WazirX", "INR", "usdtinr", f_wazirx, "api.wazirx.com/sapi/v1/klines"),
+    ("CoinDCX", "INR", "I-USDT_INR", f_coindcx, "public.coindcx.com/market_data/candles"),
 ]
 # Probed and not collected: Paribu (login wall), Mercado Bitcoin (bot challenge),
-# Independent Reserve (no candle/history endpoint). See METHODOLOGY.
+# Independent Reserve (no candle/history endpoint), Luno (candles need an API
+# key, HTTP 401), Pintu (price-changes only, no candles), Coinbase (login-gated,
+# never scraped). See METHODOLOGY.
 
 
 # ----------------------------------------------------------- file merging
 def fname(venue, interval):
-    return os.path.join(OUT_DIR, f"candles_{venue.lower().replace('.', '')}_{interval}.csv")
+    return os.path.join(OUT_DIR, f"candles_{venue.lower().replace('.', '').replace(' ', '')}_{interval}.csv")
 
 
 def read_rows(path, key):
@@ -402,6 +474,26 @@ def fx_rows(payload):
     return rows
 
 
+# Taiwan: the ECB publishes no TWD. The same Frankfurter host serves the Central
+# Bank of the Republic of China (Taiwan)'s own interbank spot closing rate
+# (v2 `providers=CBC`, quoted per 1 USD): one named central bank's published
+# series, not Frankfurter's blended rate, so nothing is averaged or crossed.
+CBC_SOURCE = ("api.frankfurter.dev/v2 providers=CBC (Central Bank of the Republic "
+              "of China (Taiwan), interbank spot closing, per 1 USD)")
+
+
+def cbc_rows(payload):
+    """Frankfurter v2 [{date, base:USD, quote:TWD, rate}] -> rows, as published."""
+    rows = []
+    for c in payload:
+        if c.get("base") != "USD" or c.get("quote") != "TWD" or not c.get("rate"):
+            continue
+        rows.append({"date": c["date"], "ccy": "TWD", "per_usd": repr(float(c["rate"])),
+                     "label": LABEL, "source": CBC_SOURCE})
+    rows.sort(key=lambda r: r["date"])
+    return rows
+
+
 def run_fx(dry, now):
     path = os.path.join(OUT_DIR, "official_fx_daily.csv")
     ex = read_rows(path, lambda r: (r["date"], r["ccy"]))
@@ -411,6 +503,10 @@ def run_fx(dry, now):
     end = dt.datetime.fromtimestamp(now, dt.timezone.utc).strftime("%Y-%m-%d")
     d = get_json(f"https://api.frankfurter.dev/v1/{start}..{end}?base=USD&symbols={FX_SYMBOLS}")
     rows = fx_rows(d)
+    twd_dates = [k[0] for k in ex if k[1] == "TWD"]
+    twd_start = max(twd_dates) if twd_dates else "2018-01-01"
+    rows += cbc_rows(get_json("https://api.frankfurter.dev/v2/rates?base=USD&quotes=TWD"
+                              f"&providers=CBC&from={twd_start}&to={end}"))
     merged, added, conf = merge(ex, rows, lambda r: (r["date"], r["ccy"]))
     print(f"  [fx] official_fx_daily {len(merged):>6} rows (+{added}, {conf} conflicts)  "
           f"{merged[0]['date']}..{merged[-1]['date']}")
@@ -419,7 +515,7 @@ def run_fx(dry, now):
     return {"official_fx_daily": {"file": os.path.relpath(path, ROOT), "rows": len(merged),
             "first": merged[0]["date"], "last": merged[-1]["date"],
             "ccys": FX_SYMBOLS, "source": FX_SOURCE,
-            "gap": "no ECB series for TWD, ARS, NGN, VES, EGP, DZD"}}
+            "gap": "no ECB series for ARS, NGN, VES, EGP, DZD; TWD is the Taiwan central bank's own series (CBC)"}}
 
 
 # ------------------------------------------ parallel dollar (Argentina blue)
@@ -513,6 +609,22 @@ def selftest():
                    {"casa": "oficial", "compra": 1, "venta": 1, "fecha": "2011-01-03"}])
     assert len(pr) == 1 and pr[0]["sell"] == "11.0"
     assert set(CANDLE_FIELDS) >= {"label", "source"} and "label" in FX_FIELDS and "label" in PAR_FIELDS
+    # new venues: parse each venue's payload shape exactly as reported
+    bm = f_btcmarkets("1d", 0, fetch=lambda u: [
+        ["2026-09-21T00:00:00.000000Z", "1.4", "1.5", "1.3", "1.44", "10"]], now=now)
+    assert bm == [(1789948800, 1.44)], bm
+    wz = f_wazirx("1d", 1789900000, fetch=lambda u: [[1789948800, 100, 101, 99, 100.03, 5], [1790035200, 100, 100, 100, 100, 0]], now=now)
+    assert wz == [(1789948800, 100.03)], wz
+    dc = f_coindcx("1d", 1789900000, fetch=lambda u: [{"close": 99.5, "volume": 7, "time": 1789948800000},
+                                                {"close": 99.5, "volume": 0, "time": 1790035200000}], now=now)
+    assert dc == [(1789948800, 99.5)], dc
+    ib = f_indodax("1d", 1789900000, fetch=lambda u: [{"Time": 1789948800, "Close": 16000}], now=now)
+    assert ib == [(1789948800, 16000.0)], ib
+    bs = f_bitso("1d", 1789900000, fetch=lambda u: {"payload": [
+        {"bucket_start_time": 1789948800000, "last_rate": "18.5"}]}, now=now)
+    assert bs == [(1789948800, 18.5)], bs
+    cb = cbc_rows([{"date": "2024-01-02", "base": "USD", "quote": "TWD", "rate": 30.866}])
+    assert cb[0]["per_usd"] == "30.866" and cb[0]["ccy"] == "TWD" and cb[0]["label"] == LABEL
     print("  ALL SELFTESTS PASSED")
 
 
