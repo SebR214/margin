@@ -236,6 +236,14 @@ def writer_approved():
     m = re.search(r"##\s*Rendered text\s*\n(.+)", body, re.S | re.I)
     if not m or len(words(m.group(1))) < 20:
         return False, "the PR description needs a '## Rendered text' section with the page text as it renders"
+    ok, why = owner_label()
+    return ok, why
+
+
+def owner_label():
+    """(ok, why): the owner's own account added `copy-approved` after the last push."""
+    n = os.environ["PR_NUMBER"]
+    pr = api("/pulls/%s" % n)
     head_date = api("/commits/%s" % pr["head"]["sha"])["commit"]["committer"]["date"]
     ev = [e for e in api("/issues/%s/events?per_page=100" % n)
           if e.get("event") == "labeled" and (e.get("label") or {}).get("name") == "copy-approved"]
@@ -273,6 +281,11 @@ def run(base):
             for v in copy_violations(show(base, "copy.json"), open(os.path.join(HERE, "copy.json")).read()):
                 problems.append("copy.json: " + v)
         problems += ["literal text added to " + b for b in added_prose(base, files)]
+    if problems and not is_writer and os.environ.get("PR_NUMBER") and not any("only in a PR opened by" in p for p in problems):
+        ok, why = owner_label()  # the owner can approve any copy change, e.g. a revert, the same way
+        if ok:
+            print("copy lock: words changed outside a writer PR, " + why)
+            return 0
     if problems:
         print("COPY LOCK FAILED. Words belong to the writer agent, not to this PR.")
         for p in problems[:40]:
