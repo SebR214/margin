@@ -112,28 +112,28 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button></header>
 
   <main>
-    <h1>We measure two things every hour: what a dollar really costs, and what sending money costs</h1>
-    <p class="lede">Stablecoin people say the apps are a rip-off. The apps say stablecoins cost more once you count every fee. Both sides argue with examples, so we built the numbers instead.</p>
+    <h1 id="hiwH1"></h1>
+    <p class="lede" id="hiwSub"></p>
 
     <section class="hiw-section" id="dollar-cost">
-      <h2 id="dollarCostH2">What a dollar costs: the price of the stablecoin, divided by the official rate</h2>
-      <div class="p" id="dollarCostP">Every hour we price the stablecoin in each country on the exchange people there actually use: Upbit in Korea, Bitso in Mexico, Bitkub in Thailand, about 40 in all, plus Binance P2P where no local exchange works. We take the middle price of the 10 cheapest sellers and divide it by the official rate. The number you see is the median of the last 24 hours. A country with fewer than 10 sellers gets no price, and we say why. The official rate comes from open.er-api.com, a free daily currency feed, with frankfurter.app as a backup and a country's own central bank when one publishes its own number, like Argentina's for the peso. We price the stablecoin because it is the digital dollar people in these countries actually buy and sell. Other coins barely trade there.</div>
+      <h2 id="dollarCostH2"></h2>
+      <div class="p" id="dollarCostP"></div>
     </section>
 
     <section class="hiw-section" id="sending-cost">
-      <h2>What sending money costs: what arrives, compared with the real exchange rate</h2>
-      <div class="p">For each provider we compare what the recipient gets with what they would get at the mid-market rate, at five amounts. Four providers quote us directly. The rest come from a public price comparison. The stablecoin route is priced on real exchange order books, with every fee included, plus the bank fees to get money onto and off the exchanges, checked against each exchange's own published fee page for the country and payment method on this site. On three of our four corridors both bank fees came back free (Singapore's PayNow, Australia's bank transfer, the Philippines' PESONet, the US's ACH, and Mexico's SPEI all charge nothing at retail size), so the total did not move. On the fourth, sending from New Zealand, the bank fee to get NZD onto Independent Reserve is still missing: the exchange publishes no free way to do it below NZD 50,000, so we have not priced it rather than guess. That one gap only makes the stablecoin route dearer, never cheaper.</div>
+      <h2 id="sendingCostH2"></h2>
+      <div class="p" id="sendingCostP"></div>
     </section>
 
     <section class="hiw-section" id="not-measured">
-      <h2>What we don't measure yet</h2>
-      <ul class="plain-list">
-        <li>The official rate only updates once a day, so it can be up to 24 hours behind the market.</li>
-        <li>Bank fees for getting money onto and off the exchanges.</li>
-        <li>Prices for repeat senders. Some app prices are first-transfer offers.</li>
-        <li>Cash dollars at money changers.</li>
-      </ul>
-      <div class="p" style="font-size:15px;color:#6B6B6B">Every number links to the file it came from. <a href="#full-method" style="font-weight:600;color:var(--ink)">Full method, every source and our checks against independent numbers →</a></div>
+      <h2 id="notMeasuredH2"></h2>
+      <ul class="plain-list" id="notMeasuredList"></ul>
+      <div class="p" style="font-size:15px;color:#6B6B6B" id="notMeasuredNote"></div>
+    </section>
+
+    <section class="hiw-section" id="sources">
+      <h2 id="sourcesH2"></h2>
+      <div class="p" id="sourcesP"></div>
     </section>
 
     <details class="full-method" id="full-method"><summary>Full method, every source and our checks against independent numbers</summary><div>
@@ -141,35 +141,14 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       <div class="lede">Everything above is the short version. Below is every source, how what people pay for a dollar is actually made, and the checks that keep this site honest against numbers we don't control.</div>
 
       <div class="h">How what people pay for a dollar is made</div>
-      <div class="p">Every hour we collect live offers to sell dollars, take the median, and compare it to the official rate captured in the same check. Nothing is modelled or smoothed. A country needs at least 10 sell ads, or a real exchange order book, to get a price.</div>
+      <div class="p" id="methodMadeP"></div>
       <div class="p" id="thresholdP">Loading today's counts…</div>
 
-      <div class="h">Where every price comes from</div>
-      <div class="p">All of it is collected directly, every hour, and written to files you can open:</div>
-      <div id="sourceList"><div class="b">Loading the live source list&hellip;</div></div>
-      <div class="p">Every number on the site links back to the file it came from. Nothing is typed in by hand.</div>
       <div class="p"><a href="./METHODOLOGY.md">The full technical methodology, unabridged — every source, the depth behind each price and the round-trip rules →</a></div>
 
       <div class="h">Our numbers vs independent ones</div>
       <div class="p" id="refCheckIntro">Loading…</div>
       <div id="refCheck" class="p" style="padding-top:14px">Loading the comparison&hellip;</div>
-
-      <div class="h">Three things our data shows</div>
-
-      <div class="h" style="padding-top:26px">What a float does to the premium</div>
-      <div class="p" id="floatP">Loading…</div>
-      <div id="floatChart"></div>
-      <div class="p" id="floatCap" style="font-size:14px;color:#6B6B6B;padding-top:6px"></div>
-
-      <div class="h" style="padding-top:26px">What capital controls do to the premium</div>
-      <div class="p" id="controlsP">Loading…</div>
-      <div id="controlsChart"></div>
-      <div class="p" id="controlsCap" style="font-size:14px;color:#6B6B6B;padding-top:6px"></div>
-
-      <div class="h" style="padding-top:26px">What a peg hides</div>
-      <div class="p" id="pegP">Loading…</div>
-      <div id="pegChart"></div>
-      <div class="p" id="pegCap" style="font-size:14px;color:#6B6B6B;padding-top:6px"></div>
 
     <!-- "How fast does the street react?" taken off the site 2026-09-27
          alongside countries.html's #reaction section -- see the HTML
@@ -190,11 +169,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     <div class="p"><a href="./data/response_time_latest.json">The full per-country output, every detected event, every resolved and unresolved one →</a></div>
     -->
 
-    <div class="h">What was hard</div>
-    <div class="p">Fees. They hide inside the exchange rate and they change with how much you send, so one headline fee number is almost always wrong. Everything here is all-in, measured at five different amounts, which is the only way the comparison means anything.</div>
-    <div class="p">History. An hour that does not get collected is gone, you cannot go back and fill it in. So keeping collection running has mattered more than shipping any feature.</div>
-    <div class="p">Made-up numbers. An automated pipeline will happily produce a plausible figure when the data is missing, and that would kill the whole point of this. So nothing gets published unless it traces to a file that was actually collected, and the attempts that failed stay up.</div>
-
     <div class="ask">
       <input type="text" placeholder="Ask the agent how any number was made" id="hiwAskInput"/>
       <button aria-label="ask" id="hiwAskBtn"><svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M4 10h11M11 5l5 5-5 5" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -209,63 +183,92 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 <script>
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-// This page's own plain-language read of data/sources_latest.json (the
-// same generated file methodology.html reads) -- rebuilt here as a
-// deduplicated, human-named list rather than rendered straight from the
-// generator's "name — role, detail" strings, and joined with copy.json's
-// own staleness note for the official rate rather than repeating that
-// text a second time by hand.
+// Every sentence here is a template in copy.json's "howItWorks" block.
+// Each figure is read from a file the site already publishes, never typed:
+//   minAds     data/index_latest.json  min_buy_ads (the evidence rule)
+//   amounts    data/providers_latest.json  the quoted sizes per corridor
+//   n, top     data/sources_latest.json "Order books" countries, then each
+//              of those data/countries/<CCY>.json "venues" lists
+//   providers  data/providers_latest.json rows whose source is "own"
+// A sentence whose figure cannot be read is left out, not guessed.
+function getJson(u){ return fetch(u, {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; }); }
+var NUM_WORDS = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
+function numWord(n){ return NUM_WORDS[n] != null ? NUM_WORDS[n] : String(n); }
+function joinNames(a){ return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
+// Fill {placeholders}; drop any sentence that still has an unfilled one.
+function fillCopy(tpl, vals){
+  if (!tpl) return '';
+  return tpl.split(/(?<=\.)\s+/).map(function(sent){
+    var bad = false;
+    var out = sent.replace(/\{(\w+)\}/g, function(m, k){ if (vals[k] == null || vals[k] === '') { bad = true; return m; } return vals[k]; });
+    return bad ? '' : out;
+  }).filter(Boolean).join(' ');
+}
+function setText(id, txt){ var el = document.getElementById(id); if (el) el.textContent = txt; }
+
 Promise.all([
-  fetch('./data/sources_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; }),
-  fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; })
+  getJson('./copy.json'),
+  getJson('./data/index_latest.json'),
+  getJson('./data/providers_latest.json'),
+  getJson('./data/sources_latest.json')
 ]).then(function(res){
-  var doc = res[0], copy = res[1];
-  var hiwCopy = (copy && copy.howItWorks) || {};
-  if (hiwCopy.dollarCostTitle) document.getElementById('dollarCostH2').textContent = hiwCopy.dollarCostTitle;
-  if (hiwCopy.dollarCostBody) document.getElementById('dollarCostP').textContent = hiwCopy.dollarCostBody;
-  var sources = (doc && doc.sources) || [];
-  var byName = {};
-  sources.forEach(function(s){ byName[s.name] = s; });
+  var hiw = (res[0] && res[0].howItWorks) || {};
+  var idx = res[1], prov = res[2], src = res[3];
+  var minAds = idx && idx.min_buy_ads != null ? idx.min_buy_ads : null;
 
-  function n(name) { var s = byName[name]; return (s && s.countries) ? s.countries.length : 0; }
-  function plural(n) { return n === 1 ? 'country' : 'countries'; }
+  var sizes = [], own = {};
+  Object.keys((prov && prov.corridors) || {}).forEach(function(k){
+    var szs = prov.corridors[k].sizes || {};
+    var ks = Object.keys(szs);
+    if (ks.length > sizes.length) sizes = ks.map(Number).sort(function(a, b){ return a - b; });
+    ks.forEach(function(z){ (szs[z].rows || []).forEach(function(r){ if (r.source === 'own') own[r.provider] = 1; }); });
+  });
+  var vals = {
+    minAds: minAds,
+    amounts: sizes.length ? numWord(sizes.length) : null,
+    minAmount: sizes.length ? sizes[0].toLocaleString('en-US') : null,
+    maxAmount: sizes.length ? sizes[sizes.length - 1].toLocaleString('en-US') : null,
+    providers: Object.keys(own).sort().length ? joinNames(Object.keys(own).sort()) : null
+  };
 
-  // Order-book venue names come as one comma-joined role string, with the
-  // same exchange repeated per currency it prices (IndependentReserve
-  // appears once for AUD and once again for NZD) -- deduplicated to one
-  // name each here rather than shipping that repetition to a reader.
-  var obRole = (byName['Order books'] && byName['Order books'].role) || '';
-  var obVenues = obRole.replace(/^on\s+/, '').split(',').map(function(v){
-    return v.trim().replace(/\s*\([^)]*\)\s*$/, '');
-  }).filter(Boolean);
-  var obVenuesUnique = obVenues.filter(function(v, i){ return obVenues.indexOf(v) === i; });
+  setText('hiwH1', hiw.h1 || '');
+  setText('hiwSub', hiw.sub || '');
+  setText('dollarCostH2', hiw.dollarCostTitle || '');
+  setText('dollarCostP', fillCopy(hiw.dollarCostBody, vals));
+  setText('sendingCostH2', hiw.sendingCostTitle || '');
+  setText('sendingCostP', fillCopy(hiw.sendingCostBody, vals));
+  setText('methodMadeP', fillCopy(hiw.methodMadeBody, vals));
+  setText('notMeasuredH2', hiw.notMeasuredTitle || '');
+  setText('sourcesH2', hiw.sourcesTitle || '');
+  var list = document.getElementById('notMeasuredList');
+  (hiw.notMeasured || []).forEach(function(t){ var li = document.createElement('li'); li.textContent = t; list.appendChild(li); });
+  var note = document.getElementById('notMeasuredNote');
+  var parts = (hiw.notMeasuredNote || '').split('{fullMethodLink}');
+  note.appendChild(document.createTextNode(parts[0]));
+  var a = document.createElement('a');
+  a.href = '#full-method'; a.style.cssText = 'font-weight:600;color:var(--ink)';
+  a.textContent = hiw.fullMethodLink || '';
+  note.appendChild(a);
+  if (parts[1]) note.appendChild(document.createTextNode(parts[1]));
 
-  var staleNote = (copy && copy.receipt && copy.receipt.rateStalenessNote) || '';
-
-  var lines = [
-    'Binance P2P sell ads: main source for ' + n('Binance P2P') + ' ' + plural(n('Binance P2P')) + '.',
-    'Exchange order books: ' + n('Order books') + ' ' + plural(n('Order books')) + '. ' + esc(obVenuesUnique.join(', ')) + '.',
-    'CriptoYa broker quotes: Argentina and Venezuela parallel dollar.',
-    'BCRA: Argentina’s published parallel rate.',
-    'CoinGecko: backup for Nigeria when its P2P board is empty.',
-    'open.er-api.com: official rates.' + (staleNote ? ' ' + esc(staleNote) : ''),
-    'Airwallex, Instarem, Wise, WorldRemit: their own live quotes, at five amounts.',
-    'A public price comparison: all other transfer providers.'
-  ];
-  var html = lines.map(function(l){ return '<div class="b">· ' + l + '</div>'; }).join('');
-  document.getElementById('sourceList').innerHTML = doc ? html : '<div class="b">Source list could not be read from data/sources_latest.json.</div>';
-}).catch(function(){
-  document.getElementById('sourceList').innerHTML = '<div class="b">Could not load the live source list. That failure is shown, not hidden.</div>';
-});
-
-fetch('./data/providers_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
-  var n = Object.keys(d.corridors || {}).length;
-  var el = document.getElementById('introRouteCount');
-  if (el) el.textContent = n;
-}).catch(function(){
-  var el = document.getElementById('introRouteCount');
-  if (el) el.textContent = 'several';
-});
+  // Local exchanges: the venues named in each order-book country's own file,
+  // folded to one name per exchange (IndependentReserve prices AUD, NZD and
+  // SGD under three labels), ranked by how many countries each one prices.
+  var ob = ((src && src.sources) || []).filter(function(s){ return s.name === 'Order books'; })[0];
+  var ccys = (ob && ob.countries) || [];
+  Promise.all(ccys.map(function(c){ return getJson('./data/countries/' + c + '.json'); })).then(function(files){
+    var cover = {};
+    files.forEach(function(f){
+      var seen = {};
+      ((f && f.venues) || []).forEach(function(v){ seen[String(v.venue).replace(/\s*\([^)]*\)\s*$/, '')] = 1; });
+      Object.keys(seen).forEach(function(v){ cover[v] = (cover[v] || 0) + 1; });
+    });
+    var names = Object.keys(cover).sort(function(x, y){ return cover[y] - cover[x] || x.localeCompare(y); });
+    vals.n = names.length || null;
+    vals.top = names.length ? joinNames(names.slice(0, 4)) : null;
+    setText('sourcesP', fillCopy(hiw.sourcesBody, vals));
+  });
+}).catch(function(){});
 
 fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
   var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
@@ -294,121 +297,6 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
   // can answer with real evidence rather than generic prose.
   window.hiwTrackedByName = {};
   (d.countries || []).forEach(function(c){ window.hiwTrackedByName[c.country.toLowerCase()] = c; });
-
-  // ---- Three real case studies, read straight from each currency's own
-  // data/countries/<CCY>.json rather than from index_latest.json's
-  // "countries" list. That list only carries currencies priced THIS hour --
-  // a currency briefly withheld (e.g. a crossed market) drops out of it
-  // entirely, which would blank a whole case study over a one-hour hiccup.
-  // Each country file keeps its full daily "history" array (with real
-  // dates, not reconstructed ones) regardless of whether the current hour
-  // itself cleared the evidence bar, so these examples stay stable.
-  function loadCountryFile(ccy) {
-    return fetch('./data/countries/' + ccy + '.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; });
-  }
-
-  Promise.all([loadCountryFile('NGN'), loadCountryFile('DZD'), loadCountryFile('XAF')]).then(function(res){
-    var ngn = res[0], dzd = res[1], xaf = res[2];
-
-    // 1. FLOAT -- Nigeria let the naira trade freely instead of defending
-    // an official peg. Its own history array only started accumulating
-    // daily points recently, so the day-by-day chart is built straight from
-    // data/p2p_basis.csv's raw hourly rows (the same file this country's
-    // own number is computed from) instead.
-    var ngnNow = ngn && (ngn.index_pct != null ? ngn.index_pct : (ngn.history && ngn.history.length ? ngn.history[ngn.history.length - 1].index_pct : null));
-    if (ngnNow != null) {
-      var ngnStr = (ngnNow >= 0 ? '+' : '') + ngnNow.toFixed(1) + '%';
-      document.getElementById('floatP').innerHTML =
-        'Nigeria used to have two dollar prices, an official one and a much higher price people actually paid. The government stopped defending the official rate and let the naira trade freely. Today what people pay for a dollar is about what the official rate says it should be, <b class="num" data-receipt-ccy="NGN" data-receipt-value="' + esc(ngnStr) + '" tabindex="0">' +
-        ngnStr + '</b> apart.';
-    } else {
-      document.getElementById('floatP').textContent = 'Nigeria has no price from us this hour to show here.';
-    }
-    fetch('./data/p2p_basis.csv', {cache:'no-store'}).then(function(r){ return r.text(); }).then(function(text){
-      var lines = text.replace(/\r/g, '').split('\n');
-      var header = lines[0].split(',');
-      var iTs = header.indexOf('ts_utc'), iCcy = header.indexOf('ccy'), iSrc = header.indexOf('source'),
-          iBps = header.indexOf('basis_bps'), iOk = header.indexOf('source_ok');
-      var byDay = {};
-      for (var i = 1; i < lines.length; i++) {
-        if (!lines[i]) continue;
-        var cols = lines[i].split(',');
-        if (cols[iCcy] !== 'NGN' || cols[iSrc] !== 'coingecko' || cols[iOk] !== 'True' || !cols[iBps]) continue;
-        var day = cols[iTs].slice(0, 10);
-        (byDay[day] = byDay[day] || []).push(parseFloat(cols[iBps]) / 100);
-      }
-      var days = Object.keys(byDay).sort();
-      var spark = days.map(function(day){ var a = byDay[day]; return a.reduce(function(x,y){ return x+y; }, 0) / a.length; });
-      var timestamps = days.map(function(day){ return day + 'T00:00:00Z'; });
-      if (spark.length > 1) {
-        document.getElementById('floatCap').textContent = 'Nigeria, the naira: the gap between what people pay for a dollar and the official rate, one point per day, ' + days[0] + ' to ' + days[days.length - 1] + '.';
-        MarginChart.render(document.getElementById('floatChart'), { spark: spark, timestamps: timestamps, valueSuffix: '%' });
-      } else {
-        document.getElementById('floatChart').innerHTML = '<div style="font-size:14px;color:#9A9A9A">Not enough days collected yet to draw this line.</div>';
-      }
-    }).catch(function(){
-      document.getElementById('floatChart').innerHTML = '<div style="font-size:14px;color:#9A9A9A">Could not load Nigeria’s daily history. That failure is shown, not hidden.</div>';
-    });
-
-    // 2. CAPITAL CONTROLS -- Algeria restricts legal access to dollars.
-    // Its own history array is real dates paired with real daily figures,
-    // going back to when collection for it began.
-    var dzdHist = dzd && dzd.history;
-    if (dzdHist && dzdHist.length > 1) {
-      var dzdN = dzdHist.length;
-      var threeWeeksAgoIdx = Math.max(0, dzdN - 1 - 21);
-      var startV = dzdHist[threeWeeksAgoIdx].index_pct, endV = dzdHist[dzdN - 1].index_pct;
-      var climb = endV - startV;
-      var endVStr = endV.toFixed(1) + '%';
-      document.getElementById('controlsP').innerHTML =
-        'Algeria makes it hard to legally buy dollars. That scarcity has a price. Three weeks ago a dollar cost <b class="num">' +
-        startV.toFixed(1) + '%</b> more than the official rate on the street. Today it costs <b class="num" data-receipt-ccy="DZD" data-receipt-value="' + esc(endVStr) + '" tabindex="0">' +
-        endVStr + '</b> more, a climb of about <b class="num">' + Math.abs(climb).toFixed(1) + ' points</b> in three weeks.';
-      document.getElementById('controlsCap').textContent = 'Algeria, the dinar: the same gap, every day since ' + dzdHist[0].date + '.';
-      MarginChart.render(document.getElementById('controlsChart'), {
-        spark: dzdHist.map(function(p){ return p.index_pct; }),
-        timestamps: dzdHist.map(function(p){ return p.date + 'T00:00:00Z'; }),
-        valueSuffix: '%'
-      });
-    } else {
-      document.getElementById('controlsP').textContent = 'Algeria has no price from us this hour to show here.';
-    }
-
-    // 3. PEG -- six central African countries peg their currency to the
-    // euro at a fixed official rate. A peg fixes the OFFICIAL number; it
-    // says nothing about what people actually pay, which is exactly what
-    // this site measures independently of that peg.
-    var xafHist = xaf && xaf.history;
-    if (xafHist && xafHist.length > 1) {
-      var xafVals = xafHist.map(function(p){ return p.index_pct; });
-      var lo = Math.min.apply(null, xafVals), hi = Math.max.apply(null, xafVals);
-      var xafNow = xaf.index_pct != null ? xaf.index_pct : xafVals[xafVals.length - 1];
-      var xafNowStr = (xafNow >= 0 ? '+' : '') + xafNow.toFixed(1) + '%';
-      document.getElementById('pegP').innerHTML =
-        'Six countries in central Africa peg their currency to the euro at a fixed rate. On paper that should mean the gap to the official rate is zero. It has not been. Every day we have measured it, a dollar has cost between <b class="num">' +
-        lo.toFixed(1) + '%</b> and <b class="num">' + hi.toFixed(1) + '%</b> more than the pegged rate says it should, ' +
-        '<b class="num" data-receipt-ccy="XAF" data-receipt-value="' + esc(xafNowStr) + '" tabindex="0">' + xafNowStr + '</b> most recently. The peg fixes the official number. It does not fix what people actually pay.' +
-        // Computed, not typed: countries.html and data/index_latest.json can
-        // currently be withholding this hour's own CFA franc number (the
-        // evidence rule -- buying and selling sides not the same market --
-        // failing on a crossed board) even while this daily history array
-        // still shows a recent reading. That is a real, live disagreement
-        // between this case study's daily rollup and the hourly evidence
-        // check, not a stale cache -- so it is stated plainly rather than
-        // silently smoothed over. Flagged for editorial review (SEB).
-        (xaf.index_pct == null
-          ? ' <span style="color:#6B6B6B">A note on that last figure: this hour, our own evidence rule does not currently pass for this currency (the buying and selling sides are not the same market), so it is withheld as a number on <a href="./countries.html#withheld">the countries page</a> right now. The ' + xafNow.toFixed(1) + '% above is the last daily reading before that, not this hour&rsquo;s. We are leaving this discrepancy visible rather than deleting or smoothing it while it is reviewed.</span>'
-          : '');
-      document.getElementById('pegCap').textContent = 'The Central African CFA franc: the gap to its own official euro peg, every day since ' + xafHist[0].date + '.';
-      MarginChart.render(document.getElementById('pegChart'), {
-        spark: xafVals,
-        timestamps: xafHist.map(function(p){ return p.date + 'T00:00:00Z'; }),
-        valueSuffix: '%'
-      });
-    } else {
-      document.getElementById('pegP').textContent = 'The Central African CFA franc has no price from us this hour to show here.';
-    }
-  });
 
   fetch('./data/fx_rates.csv', {cache:'no-store'}).then(function(r){ return r.text(); }).then(function(text){
     var lines = text.replace(/\r/g, '').split('\n');
