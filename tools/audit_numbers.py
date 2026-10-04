@@ -17,6 +17,16 @@ the published JSON being checked, which are the thing under test:
             and the five taker legs must add up to the total.
   variant   data/corridor_variants.csv rows, re-derived the same way against
             the matching data/samples.csv row for the same sample.
+  pricechange  data/pricechange_receipts/*.json `computation.move_pct`,
+            re-derived from the receipt's own `evidence.own_readings` and
+            `evidence.peer_readings` (the raw hourly cost_bps rows the move
+            was computed from) -- never from the receipt's own `computation`
+            block, which is the thing under test.
+  provider_ranking  data/provider_receipts/*.json row `computation.result_pct`
+            (only rows whose evidence names a "comparison" quote -- the only
+            rows sending-money.html actually shows a clickable figure for),
+            re-derived from the named panel CSV's own `cost_bps` column for
+            that provider/timestamp/size.
 
 A number that cannot be traced to a raw row is a FAILURE, not a skip: "cannot
 trace" is exactly what this exists to say out loud.
@@ -57,7 +67,40 @@ PCT_TOL = 0.001      # index_pct is published to 4 dp
 BPS_TOL = 0.02       # cost_bps is published to 2 dp
 LEG_TOL = 0.011      # five 2-dp legs may drift by rounding only
 
-FAMILIES = ("country", "corridor", "variant")
+# Mirrors tools/emit_pricechange_receipts.py's own MIN_READINGS -- read-only,
+# the same policy constant restated here rather than imported.
+PRICECHANGE_MIN_READINGS = 6
+
+# Mirrors tools/emit_providers.py's own PANELS -- each corridor's comparison
+# panel lives in its own file, since providers.csv has no corridor column.
+PROVIDER_PANELS = {
+    "SGD->PHP": "providers.csv",
+    "USD->MXN": "providers_usdmxn.csv",
+    "AUD->PHP": "providers_audphp.csv",
+    "NZD->PHP": "providers_nzdphp.csv",
+    "USD->NGN": "providers_usdngn.csv",
+    "USD->INR": "providers_usdinr.csv",
+    "SGD->INR": "providers_sgdinr.csv",
+}
+
+FAMILIES = ("country", "corridor", "variant", "pricechange", "provider_ranking")
+
+# Every other kind of number the site publishes, in reader-plain words, keyed
+# by the FAMILIES name it will get once a population function exists for it.
+# A key missing from FAMILIES, or present with zero population today, is not
+# yet audited -- see families_not_yet_audited() below. "provider_delivery"
+# has no population function (no receipts exist yet, a separate issue), so
+# it never leaves this list on its own.
+OTHER_NUMBER_KINDS = {
+    "pricechange": "price changes",
+    "provider_ranking": "provider rankings",
+    "provider_delivery": "provider delivery times",
+}
+
+
+def not_yet_audited(by_family):
+    return [label for key, label in OTHER_NUMBER_KINDS.items()
+            if key not in FAMILIES or by_family.get(key, {}).get("population", 0) == 0]
 
 
 def rows(path):
@@ -135,6 +178,39 @@ def variant_items(variants):
         if r["ts"] in last and ok(r.get("source_ok")):
             items.append({"id": "variant:%s:%s:%s:%s" % (r["corridor"], r["stable"], r["network"], r["notional_src"]),
                           "family": "variant", "row": r, "file": "data/corridor_variants.csv"})
+    return items
+
+
+def pricechange_items():
+    items = []
+    for f in sorted(glob.glob(os.path.join(DATA, "pricechange_receipts", "*.json"))):
+        d = json.load(open(f))
+        if d.get("computation", {}).get("move_pct") is None:
+            continue
+        name = os.path.basename(f)[:-5]
+        items.append({"id": "pricechange:%s" % name, "family": "pricechange", "doc": d,
+                      "file": "data/pricechange_receipts/%s.json" % name})
+    return items
+
+
+def providerranking_items():
+    """Only rows whose evidence names a "comparison" quote -- the only shape
+    of row sending-money.html actually shows a clickable number for (see
+    tools/emit_provider_receipts.py's own "THE WIRING DECISION"). One file
+    per corridor+size is written every hour; only the newest is still the
+    receipt behind today's published figure, same reasoning as corridor_items."""
+    newest = {}
+    for f in sorted(glob.glob(os.path.join(DATA, "provider_receipts", "*.json"))):
+        newest[os.path.basename(f)[:-5].rsplit("_", 1)[0]] = f
+    items = []
+    for f in sorted(newest.values()):
+        d = json.load(open(f))
+        name = os.path.basename(f)[:-5]
+        for row in d.get("rows", []):
+            if row.get("computation") is not None and row.get("evidence", {}).get("status") == "comparison":
+                items.append({"id": "provider_ranking:%s:%s" % (name, row["provider"]),
+                              "family": "provider_ranking", "doc": d, "row": row,
+                              "file": "data/provider_receipts/%s.json" % name})
     return items
 
 
@@ -287,6 +363,73 @@ def check_variant(item, samples_by):
                   "; ".join("%s %s vs %s" % o for o in out), files)
 
 
+def check_pricechange(item):
+    """Re-derives move_pct from evidence.own_readings and evidence.peer_readings
+    -- the raw hourly cost_bps rows -- never from computation.move_pct or
+    computation.per_peer_move_pct, which are the receipt's own stored answer
+    and the thing under test. Mirrors try_reconstruct() in
+    tools/emit_pricechange_receipts.py, restated here rather than imported."""
+    d = item["doc"]
+    ev = d["evidence"]
+    pub = d["computation"]["move_pct"]
+    files = [item["file"]]
+    own_new = ev.get("own_readings", {}).get("new_day") or []
+    own_old = ev.get("own_readings", {}).get("old_day") or []
+    peers = ev.get("peer_readings") or {}
+    if len(own_new) < PRICECHANGE_MIN_READINGS or len(own_old) < PRICECHANGE_MIN_READINGS or not peers:
+        return fail(item, "evidence has too few own or peer readings to re-derive a move", files)
+    own_new_by_ts = {r["ts_utc"]: r["cost_bps"] for r in own_new}
+    own_old_by_ts = {r["ts_utc"]: r["cost_bps"] for r in own_old}
+    peer_moves = []
+    for peer, pr in peers.items():
+        diffs_new = [own_new_by_ts[ts] - r["cost_bps"] for r in (pr.get("new_day") or [])
+                     if (ts := r["ts_utc"]) in own_new_by_ts]
+        diffs_old = [own_old_by_ts[ts] - r["cost_bps"] for r in (pr.get("old_day") or [])
+                     if (ts := r["ts_utc"]) in own_old_by_ts]
+        if len(diffs_new) < PRICECHANGE_MIN_READINGS or len(diffs_old) < PRICECHANGE_MIN_READINGS:
+            continue
+        peer_moves.append(statistics.median(diffs_new) - statistics.median(diffs_old))
+    if not peer_moves:
+        return fail(item, "no peer in evidence.peer_readings had enough matching timestamps", files)
+    move = round(statistics.median(peer_moves) / 100.0, 4)
+    passed = abs(move - pub) <= PCT_TOL
+    return result(item, passed, pub, move,
+                  "median across %d peers of (median pairwise new-day cost_bps diff - median pairwise "
+                  "old-day diff) / 100, from evidence.own_readings and evidence.peer_readings" % len(peer_moves),
+                  files)
+
+
+def check_providerranking(item):
+    """Re-derives result_pct from the named comparison panel CSV's own
+    cost_bps column for this provider/timestamp/size -- never from
+    computation.result_pct, the receipt's own stored answer."""
+    row = item["row"]
+    d = item["doc"]
+    corridor = d["corridor"]
+    size = d["size"]
+    pub = row["computation"]["result_pct"]
+    panel_file = PROVIDER_PANELS.get(corridor)
+    files = [item["file"]]
+    if not panel_file:
+        return fail(item, "corridor %r has no known comparison panel file" % corridor, files)
+    files.append("data/%s" % panel_file)
+    ts = row["evidence"].get("collected_at")
+    cand = [r for r in rows(os.path.join(DATA, panel_file))
+            if r["provider"] == row["provider"] and r["ts_utc"] == ts and num(r["notional_src"]) == num(size)]
+    if not cand:
+        return fail(item, "no %s row for %s at %s, size %s" % (panel_file, row["provider"], ts, size), files)
+    if len(cand) > 1:
+        return fail(item, "%d %s rows match %s at %s, size %s; cannot tell which one this receipt is"
+                     % (len(cand), panel_file, row["provider"], ts, size), files)
+    bps = num(cand[0]["cost_bps"])
+    if bps is None:
+        return fail(item, "raw panel row has no cost_bps", files)
+    v = round(bps / 100.0, 4)
+    passed = abs(v - pub) <= PCT_TOL
+    return result(item, passed, pub, v,
+                  "%s / 100 from %s row for %s at %s" % (bps, panel_file, row["provider"], ts), files)
+
+
 def stratified(items, n, rng):
     """Even shares per family so one big family cannot crowd out the others;
     a family smaller than its share gives the slack to the rest."""
@@ -329,7 +472,8 @@ def main():
         if ok(r.get("source_ok")):
             samples_by.setdefault(r["corridor"], []).append(r)
 
-    items = country_items() + corridor_items() + variant_items(variants)
+    items = (country_items() + corridor_items() + variant_items(variants)
+             + pricechange_items() + providerranking_items())
     items.sort(key=lambda i: i["id"])
     drawn = stratified(items, a.n, random.Random(seed))
 
@@ -360,8 +504,12 @@ def main():
             results.append(check_country(it, p2p_by, basis_by, offers_by, fx_by))
         elif it["family"] == "corridor":
             results.append(check_corridor(it, samples_by))
-        else:
+        elif it["family"] == "variant":
             results.append(check_variant(it, samples_by))
+        elif it["family"] == "pricechange":
+            results.append(check_pricechange(it))
+        else:
+            results.append(check_providerranking(it))
 
     passed = sum(1 for r in results if r["passed"])
     by_family = {}
@@ -379,7 +527,7 @@ def main():
         "failed": len(results) - passed,
         "score_pct": round(100.0 * passed / len(results), 1) if results else None,
         "by_family": by_family,
-        "families_not_yet_audited": ["price changes", "provider rankings", "provider delivery times"],
+        "families_not_yet_audited": not_yet_audited(by_family),
         "failures": [r for r in results if not r["passed"]],
         "passes": [{k: r[k] for k in ("id", "family", "published", "rederived")} for r in results if r["passed"]],
     }
