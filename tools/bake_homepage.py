@@ -384,10 +384,15 @@ def country_explain_html(rows_in, home_copy):
         return home_copy.get("countryExplainNoPriceTemplate", "").replace("{country}", widest.get("country", ""))
     by_class = home_copy.get("countryExplainByClass", {})
     tpl = by_class.get(widest.get("denominator_class")) or by_class.get("default", "")
-    return (tpl.replace("{country}", widest.get("country", ""))
-               .replace("{currency}", widest.get("ccy", ""))
-               .replace("{street_price}", fmt_rate(cdoc["buy_price"]))
-               .replace("{official_rate}", fmt_rate(cdoc["fx_mid_per_usd"])))
+    first = (tpl.replace("{country}", widest.get("country", ""))
+                .replace("{currency}", widest.get("ccy", ""))
+                .replace("{street_price}", fmt_rate(cdoc["buy_price"]))
+                .replace("{official_rate}", fmt_rate(cdoc["fx_mid_per_usd"])))
+    second = (home_copy.get("countryConsequenceTemplate", "")
+              .replace("{currency}", widest.get("ccy", ""))
+              .replace("{street_100}", f"{round(cdoc['buy_price'] * 100):,}")
+              .replace("{official_100}", f"{round(cdoc['fx_mid_per_usd'] * 100):,}"))
+    return first + " " + second
 
 
 def country_close_html(rows_in, home_copy):
