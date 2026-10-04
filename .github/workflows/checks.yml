@@ -31,6 +31,7 @@ name: checks
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
   push:
     branches: [main]
 
@@ -108,19 +109,86 @@ jobs:
           python3 tools/check_rendered.py --base "origin/${{ github.base_ref }}" | tee rendered.txt
           exit ${PIPESTATUS[0]}
 
+      - name: Post the rendered check's list to the PR
+        if: steps.render.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          { echo "### Rendered style check failed"; echo; echo '```'; cat rendered.txt; echo '```'; } > comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file comment.md
+
+      - name: Fail the merge if the rendered check failed
+        if: steps.render.outcome == 'failure'
+        run: exit 1
+
+  # The model-backed gate. Capped on purpose (it spends the subscription):
+  #   - only the pages this PR changes, one model call per page, one pass
+  #   - it runs only once the PR carries the label `ready` (the final commit)
+  #   - after 3 runs on one PR it stops and the PR needs a human look
+  #     (a person adds the label `human-reviewed` to waive it)
+  cold-reader:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: What does this PR touch, and may the cold reader run?
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          touched=false; gates=false
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            files=$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD)
+            if echo "$files" | grep -vE '^(docs|tests)/' | grep -qE '(^|/)[^/]+\.(html|css|js)$|^copy\.json$'; then touched=true; fi
+            if echo "$files" | grep -qE '^tools/(check_rendered|check_cold_reader|gate_common)\.py$|^tests/(bad|jargon)_page\.html$|^tools/rendered_baseline\.json$'; then gates=true; fi
+          fi
+          echo "gates=$gates" >> "$GITHUB_OUTPUT"
+          mode=skip
+          if [ "$touched" = true ]; then
+            runs=$(gh api "repos/${{ github.repository }}/issues/$PR/comments" --paginate -q '[.[]|select(.body|contains("cold-reader-run:"))]|length' | paste -sd+ | bc)
+            if echo ",$LABELS," | grep -q ",human-reviewed,"; then mode=waived
+            elif ! echo ",$LABELS," | grep -q ",ready,"; then mode=wait
+            elif [ "${runs:-0}" -ge 3 ]; then mode=capped
+            else mode=run; fi
+          fi
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "runs=${runs:-0}" >> "$GITHUB_OUTPUT"
+          echo "cold reader mode: $mode (runs so far: ${runs:-0}, touches pages: $touched, gate files changed: $gates)"
+
+      - name: Wait for the final commit
+        if: steps.gate.outputs.mode == 'wait'
+        run: |
+          echo "The cold reader runs once, on the final commit, so it is not run on every push. Add the label 'ready' to this PR when it is final."
+          exit 1
+
+      - name: Cap reached
+        if: steps.gate.outputs.mode == 'capped'
+        run: |
+          echo "The cold reader has already run 3 times on this PR. It stops here: a person needs to read this PR. A person adds the label 'human-reviewed' to pass it."
+          exit 1
+
       - name: Install the Claude CLI
-        if: steps.scope.outputs.run == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        if: (steps.gate.outputs.mode == 'run' || steps.gate.outputs.gates == 'true') && github.event.pull_request.head.repo.full_name == github.repository
         run: npm install -g @anthropic-ai/claude-code
 
       - name: Gate 2 self-test (the cold reader must flag tests/jargon_page.html)
-        if: steps.scope.outputs.run == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        if: steps.gate.outputs.gates == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: python3 tools/check_cold_reader.py --self-test
 
-      - name: Gate 2 - cold reader check
+      - name: Gate 2 - cold reader check (changed pages only, one read each)
         id: cold
-        if: steps.scope.outputs.touched == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        if: steps.gate.outputs.mode == 'run' && github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
         env:
           # The agents' flat-rate subscription token. Never the metered key.
@@ -130,21 +198,16 @@ jobs:
           python3 tools/check_cold_reader.py --changed-only --base "origin/${{ github.base_ref }}" | tee cold_reader.txt
           exit ${PIPESTATUS[0]}
 
-      - name: Post both gates' lists to the PR
-        if: steps.render.outcome == 'failure' || steps.cold.outcome == 'failure'
+      - name: Record the run on the PR
+        if: steps.gate.outputs.mode == 'run'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          {
-            echo "### Reader-facing gates failed"
-            if [ "${{ steps.render.outcome }}" = "failure" ]; then echo; echo "**Rendered style check**"; echo '```'; cat rendered.txt; echo '```'; fi
-            if [ "${{ steps.cold.outcome }}" = "failure" ]; then echo; echo "**Cold reader check**"; echo '```'; cat cold_reader.txt; echo '```'; fi
-          } > comment.md
+          n=$(( ${{ steps.gate.outputs.runs }} + 1 ))
+          verdict=passed; [ "${{ steps.cold.outcome }}" = "failure" ] && verdict=FAILED
+          { echo "<!-- cold-reader-run: $n -->"; echo "### Cold reader $verdict (run $n of 3)"; echo '```'; cat cold_reader.txt; echo '```'; } > comment.md
           gh pr comment "${{ github.event.pull_request.number }}" --body-file comment.md
 
-      - name: Fail the merge if either gate failed
-        if: steps.render.outcome == 'failure' || steps.cold.outcome == 'failure'
-        run: |
-          echo "Rendered style check: ${{ steps.render.outcome }}"
-          echo "Cold reader check: ${{ steps.cold.outcome }}"
-          exit 1
+      - name: Fail the merge if the cold reader failed
+        if: steps.cold.outcome == 'failure'
+        run: exit 1

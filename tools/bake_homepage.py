@@ -59,7 +59,6 @@ SAMPLES = os.path.join(HERE, "data", "samples.csv")
 WINDOW_OUT = os.path.join(HERE, "data", "corridor_window.json")
 INDEX_HTML = os.path.join(HERE, "index.html")
 INDEX_LATEST = os.path.join(HERE, "data", "index_latest.json")
-STREET_DEPTH_LATEST = os.path.join(HERE, "data", "street_depth_latest.json")
 RECEIPTS_DIR = os.path.join(HERE, "data", "receipts")
 
 
@@ -344,54 +343,69 @@ def find_widest_managed(rows_in):
     return max(managed, key=lambda c: c.get("gap_pct", 0.0))
 
 
+def fmt_rate(v):
+    """A price per dollar for a sentence: one decimal from 100 up, two from 1
+    up, four below that. Mirrors fmtRate() in index.html's own script."""
+    digits = 1 if v >= 100 else (2 if v >= 1 else 4)
+    return f"{v:,.{digits}f}"
+
+
+def has_gap(widest):
+    """A gap that rounds to 0% is not "people pay 0% more". Mirrors
+    index.html's hasGap check."""
+    return bool(widest) and round(widest.get("gap_pct", 0.0)) >= 1
+
+
 def country_finding_header_html(rows_in, home_copy):
-    """Section C's h2 -- states the actual finding: which priced countries
-    trade at the official rate, and by how much the widest real gap costs,
-    both read live off data/index_latest.json, never typed (the mockup's
-    "Algeria... 92%" is an example string in a design reference file, not a
-    number this page may hardcode).
+    """Section C's h2 -- states the finding for the widest real gap, read
+    live off data/index_latest.json, never typed (SEB-221: "In {country}
+    people pay {pct}% more for a dollar than the official rate").
     """
-    pinned = find_pinned_at_par(rows_in)
     widest = find_widest_managed(rows_in)
-    parts = []
-    if pinned:
-        places = join_and([c.get("country", "") for c in pinned])
-        parts.append(home_copy.get("countryFindingAtParTemplate", "").replace("{places}", places))
-    if widest:
-        parts.append(home_copy.get("countryFindingGapTemplate", "")
-                      .replace("{country}", widest.get("country", ""))
-                      .replace("{pct}", str(round(widest.get("gap_pct", 0.0)))))
-    if not parts:
+    if not has_gap(widest):
         return home_copy.get("countryFindingNoGapTemplate", "")
-    return " ".join(parts)
+    return (home_copy.get("countryFindingGapTemplate", "")
+            .replace("{country}", widest.get("country", ""))
+            .replace("{pct}", str(round(widest.get("gap_pct", 0.0)))))
 
 
-def country_why_html(rows_in, home_copy, street_depth):
-    """The "why" callout under the chart -- names the SAME pinned/widest
-    countries the header above states, plus a real depth figure (data/
-    street_depth_latest.json, tools/emit's own per-currency depth-of-book
-    read) for the widest one, when that file has an entry for it.
+def country_explain_html(rows_in, home_copy):
+    """The paragraph under the heading. Wording is chosen by the widest
+    country's own denominator_class (copy.json home.countryExplainByClass),
+    never written for one named country. Street price and official rate are
+    data/countries/<CCY>.json's buy_price and fx_mid_per_usd. Mirrors
+    countryExplain() in index.html's own script.
     """
-    pinned = find_pinned_near_par(rows_in)
     widest = find_widest_managed(rows_in)
-    text = ""
-    if pinned:
-        places = join_and([c.get("country", "") for c in pinned])
-        text += home_copy.get("countryWhyBothParTemplate", "").replace("{places}", places)
-    if widest:
-        depth = ((street_depth or {}).get("countries", {}) or {}).get(widest.get("ccy"), {})
-        depth_usd = depth.get("depth_usd")
-        threshold_pct = depth.get("threshold_pct")
-        if depth_usd is not None and threshold_pct is not None:
-            pct_words = str(int(threshold_pct)) if float(threshold_pct).is_integer() else str(threshold_pct)
-            text += (home_copy.get("countryWhyGapTemplate", "")
-                      .replace("{country}", widest.get("country", ""))
-                      .replace("{amount}", "$" + f"{round(depth_usd):,}")
-                      .replace("{pct}", pct_words))
-        else:
-            text += (home_copy.get("countryWhyGapNoDepthTemplate", "")
-                      .replace("{country}", widest.get("country", "")))
-    return text.strip()
+    if not has_gap(widest):
+        return ""
+    cdoc = load_json_or_none(os.path.join(HERE, "data", "countries", f"{widest.get('ccy')}.json")) or {}
+    if cdoc.get("buy_price") is None or cdoc.get("fx_mid_per_usd") is None:
+        return home_copy.get("countryExplainNoPriceTemplate", "").replace("{country}", widest.get("country", ""))
+    # Same 24 hour median gap as the heading, applied to the official rate.
+    street = cdoc["fx_mid_per_usd"] * (1 + widest.get("gap_pct", 0.0) / 100)
+    by_class = home_copy.get("countryExplainByClass", {})
+    tpl = by_class.get(widest.get("denominator_class")) or by_class.get("default", "")
+    first = (tpl.replace("{country}", widest.get("country", ""))
+                .replace("{currency}", widest.get("ccy", ""))
+                .replace("{street_price}", fmt_rate(street))
+                .replace("{official_rate}", fmt_rate(cdoc["fx_mid_per_usd"])))
+    second = (home_copy.get("countryConsequenceTemplate", "")
+              .replace("{currency}", widest.get("ccy", ""))
+              .replace("{street_100}", f"{round(float(fmt_rate(street).replace(',', '')) * 100):,}")
+              .replace("{official_100}", f"{round(float(fmt_rate(cdoc['fx_mid_per_usd']).replace(',', '')) * 100):,}"))
+    return first + " " + second
+
+
+def country_close_html(rows_in, home_copy):
+    """The closing line: names whichever of the Philippines and Mexico sit
+    near the official rate this hour, read from the data, never typed."""
+    pinned = find_pinned_near_par(rows_in)
+    if not pinned:
+        return ""
+    places = join_and([c.get("country", "") for c in pinned])
+    out = home_copy.get("countryCloseTemplate", "").replace("{places}", places)
+    return out
 
 
 def _ordered_rows(priced):
@@ -413,7 +427,7 @@ def _ordered_rows(priced):
     return out
 
 
-def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth=None):
+def build_all_countries_strip(idx_doc, home_copy):
     """Home's country section, matching docs/mockups/home.html: the finding
     as the heading, one answer line, the 5 widest managed-rate gaps as bars,
     then the Philippines and Mexico (where our routes land), one sentence,
@@ -425,7 +439,6 @@ def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth
     priced = _priced_sorted(rows_in, exclude_pegged=False)
     if not priced:
         return None
-    dest_counts = dest_counts or {}
     top = [c for c in priced if c.get("denominator_class") not in ("pegged", "unmaintained")][:5]
     by_ccy = {c.get("ccy"): c for c in priced}
     pins = [by_ccy[k] for k in ("PHP", "MXN") if k in by_ccy]
@@ -465,21 +478,19 @@ def build_all_countries_strip(idx_doc, home_copy, dest_counts=None, street_depth
     pin_rows = ""
     for c in pins:
         ccy = c.get("ccy", "")
-        n = dest_counts.get(ccy, 0)
-        land = f"where {n} of our corridors land" if n != 1 else "where 1 of our corridors lands"
         value = pct_words(c.get("gap_pct", 0.0))
         pin_rows += ('<a class="crow low" href="./country.html?ccy=' + esc(ccy) + '">'
                      '<span class="cname">' + esc(name(c)) + '</span>'
                      '<span class="cbar"><i style="width:0"></i><b style="left:0"' + receipt_attrs(ccy, value) + '>'
-                     + value + ' · ' + land + '</b></span></a>'
+                     + value + '</b></span></a>'
                      + receipt_fallback(ccy))
     header = esc(country_finding_header_html(rows_in, home_copy))
-    answer = esc(home_copy.get("allCountriesAnswerLine", ""))
-    why = esc(country_why_html(rows_in, home_copy, street_depth))
+    explain = esc(country_explain_html(rows_in, home_copy))
+    closing = esc(country_close_html(rows_in, home_copy))
     return ('<h2>' + header + '</h2>'
-            '<p class="answer">' + answer + '</p>'
-            '<div class="cbars">' + rows + '<div class="cgap"></div>' + pin_rows + '</div>'
-            + ('<p class="plainline">' + why + '</p>' if why else '')
+            + ('<p class="answer">' + explain + '</p>' if explain else '')
+            + '<div class="cbars">' + rows + '<div class="cgap"></div>' + pin_rows + '</div>'
+            + ('<p class="plainline">' + closing + '</p>' if closing else '')
             + '<p class="small-note"><a href="./countries.html">All countries →</a></p>')
 
 
@@ -528,8 +539,16 @@ def duel_html(corridors, home_copy, rung):
     src, _, dest_ccy = (primary.get("corridor") or "").partition("->")
     dest = DEST_NAME.get(dest_ccy, "")
     amount = SRC_SYMBOL.get(src, src + " ") + f"{round(rung):,}"
-    caption = (home_copy.get("duelCaptionTemplate", "Sending {amount} from {src} to {dest}, all-in cost, typical hour.")
-               .replace("{amount}", amount).replace("{src}", SRC_NAME.get(src, src)).replace("{dest}", dest))
+    cap_tpl = home_copy.get("duelCaptionTemplate", "") if app_bps is not None else home_copy.get("duelCaptionNoAppTemplate", "")
+    caption = (cap_tpl.replace("{amount}", amount).replace("{origin}", SRC_NAME.get(src, src))
+               .replace("{destination}", dest).replace("{app_cost}", pct(app_bps) if app_bps is not None else "")
+               .replace("{stable_cost}", pct(stable_bps)))
+    sym = SRC_SYMBOL.get(src, src + " ")
+    if app_bps is not None:
+        caption += " " + (home_copy.get("duelMoneyTemplate", "")
+                          .replace("{app_money}", money(rung * app_bps / 10000, sym))
+                          .replace("{stable_money}", money(rung * stable_bps / 10000, sym)))
+    caption += " " + home_copy.get("duelStablecoinNote", "")
     others = []
     for c in corridors:
         if c.get("corridor") == primary.get("corridor"):
@@ -537,14 +556,13 @@ def duel_html(corridors, home_copy, rung):
         other_app_bps = c.get("baseline_cost_bps_median")
         if other_app_bps is not None and c["taker_cost_bps_median"] > other_app_bps:
             other_src = (c.get("corridor") or "").split("->")[0]
-            others.append(SRC_NAME.get(other_src, other_src))
+            others.append(c.get("route_words") or SRC_NAME.get(other_src, other_src))
     if others:
-        same_result = (home_copy.get("duelSameResultTemplate",
-            'Same result from {others}. <a href="./sending-money.html">All corridors and providers →</a>')
-            .replace("{others}", esc(join_and(others))))
+        same_result = (home_copy.get("duelSameResultTemplate", "")
+            .replace("{routes}", esc(join_and(others))))
     else:
         same_result = ('<a href="./sending-money.html">'
-                        + esc(home_copy.get("everyProviderLink", "All corridors and providers →")) + "</a>")
+                        + esc(home_copy.get("everyProviderLink", "")) + "</a>")
     return (
         '<div class="duel">'
         '<div><div class="big p">' + pct(stable_bps) + '</div><div class="lab">'
@@ -628,18 +646,7 @@ def main():
     html, ok4 = replace_by_marker(html, "premiumStrip", see_all_countries_line(home_copy))
     changed = changed or ok4
 
-    # How many of the tracked sends actually land in each destination
-    # currency ("where {n} of the transfers we price land here") -- read
-    # from the SAME corridor list the table above renders, never a typed
-    # count.
-    dest_counts = {}
-    for c in doc["corridors"]:
-        dest_ccy = (c.get("corridor") or "").split("->")[-1]
-        if dest_ccy:
-            dest_counts[dest_ccy] = dest_counts.get(dest_ccy, 0) + 1
-    street_depth = load_json_or_none(STREET_DEPTH_LATEST)
-
-    all_strip = build_all_countries_strip(idx_doc, home_copy, dest_counts, street_depth)
+    all_strip = build_all_countries_strip(idx_doc, home_copy)
     if all_strip is not None:
         html, ok5 = replace_by_marker(html, "allCountriesStrip", all_strip)
         changed = changed or ok5
