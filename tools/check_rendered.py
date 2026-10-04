@@ -50,7 +50,10 @@ VIEWPORTS = ((390, 844, True), (1280, 900, False))
 ALLOWED_WEIGHTS = ("400", "600")
 MAX_BIG_TEXT_PX = 24
 ACRONYMS = {"UTC", "USD", "USDT", "USDC", "API", "MCP", "SQL", "CSV", "JSON", "ECB", "ISO", "URL",
-            "HTML", "AI", "FAQ", "SGD", "AUD", "NZD", "PHP", "MXN", "INR", "NGN", "THB", "KRW"}
+            "HTML", "AI", "FAQ", "SGD", "AUD", "NZD", "PHP", "MXN", "INR", "NGN", "THB", "KRW",
+            # provider and venue names, and unit names, that are written in capitals by their owners
+            "BNZ", "ANZ", "HSBC", "OFX", "ACH", "BCRA", "BTC", "CFA", "SPEI", "ETH", "OKX", "HTX", "MAX", "NAB",
+            "ASB", "WBC", "BOQ", "CBA", "DBS", "OCBC", "UOB", "WISE", "XAF", "XOF", "XDR", "IMF", "ECB", "SEB"}
 
 
 def token_colors():
