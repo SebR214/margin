@@ -143,14 +143,10 @@ def review(page, base_url, name):
     return judge(page_text(page, "%s/%s%s" % (base_url, name, q)), name)
 
 
-def added_fragments(base):
-    """Literal text this PR adds to copy.json (string values), split at template
-    placeholders into fragments long enough to recognise on a rendered page."""
-    r = subprocess.run(["git", "diff", "-U0", base + "...HEAD", "--", "copy.json"],
-                       cwd=HERE, capture_output=True, text=True)
+def _copy_fragments(diff_text, sign):
     frags = set()
-    for line in r.stdout.splitlines():
-        if not line.startswith("+") or line.startswith("+++"):
+    for line in diff_text.splitlines():
+        if not line.startswith(sign) or line.startswith(sign * 3):
             continue
         body = line[1:]
         m = re.match(r'\s*"[^"]+"\s*:\s*"(.*)",?\s*$', body) or re.match(r'\s*"(.*)",?\s*$', body)
@@ -162,6 +158,15 @@ def added_fragments(base):
             if len(part) >= 28:
                 frags.add(part)
     return frags
+
+
+def added_fragments(base):
+    """Literal text this PR really adds to copy.json: string fragments present
+    in the new file and absent from the old one. A line merely re-indented,
+    reordered or re-escaped is in both and is not an addition."""
+    r = subprocess.run(["git", "diff", "-U0", base + "...HEAD", "--", "copy.json"],
+                       cwd=HERE, capture_output=True, text=True)
+    return _copy_fragments(r.stdout, "+") - _copy_fragments(r.stdout, "-")
 
 
 def page_is_affected(name, text, base, frags, html_changed):
@@ -228,21 +233,33 @@ def main():
         html_changed = {f for f in changed_files(a.base) if "/" not in f and f.endswith(".html")} if a.changed_only else set()
         frags = added_fragments(a.base) if a.changed_only else set()
         with open_page(settle=4.0) as page:
+            texts = {}
             for name in names:
                 try:
-                    text = page_text(page, "%s/%s%s" % (base_url, name, PAGE_QUERY.get(name, "")))
-                    if a.changed_only and not page_is_affected(name, text, a.base, frags, html_changed):
-                        sys.stderr.write("  skip %s: shows none of the text this PR added\n" % name)
-                        continue
-                    if a.list_affected:
-                        print("would read: " + name)
-                        continue
-                    rep = judge(text, name)
+                    texts[name] = page_text(page, "%s/%s%s" % (base_url, name, PAGE_QUERY.get(name, "")))
                 except Exception as e:  # a gate that cannot run must say so, not pass
                     print("COLD READER COULD NOT RUN on %s: %s" % (name, e))
                     return 2
-                reports.append(rep)
-                sys.stderr.write("  read %s: %d failure(s)\n" % (name, len(rep["failures"])))
+        if a.changed_only:
+            # Text shown on more than 3 pages is shared chrome (footer, nav): a change to it
+            # is not a change to any one page, so it never selects pages by itself.
+            hays = {n: norm(t) for n, t in texts.items()}
+            frags = {f for f in frags if sum(1 for h in hays.values() if f in h) <= 3}
+        for name in names:
+            text = texts[name]
+            if a.changed_only and not page_is_affected(name, text, a.base, frags, html_changed):
+                sys.stderr.write("  skip %s: shows none of the text this PR added\n" % name)
+                continue
+            if a.list_affected:
+                print("would read: " + name)
+                continue
+            try:
+                rep = judge(text, name)
+            except Exception as e:
+                print("COLD READER COULD NOT RUN on %s: %s" % (name, e))
+                return 2
+            reports.append(rep)
+            sys.stderr.write("  read %s: %d failure(s)\n" % (name, len(rep["failures"])))
     finally:
         if stop:
             stop()
@@ -252,7 +269,7 @@ def main():
 
     if a.changed_only:
         added = added_text(a.base)
-        frags = added_fragments(a.base)
+        frags = {f for f in added_fragments(a.base) if sum(1 for t in texts.values() if f in norm(t)) <= 3}
         for r in reports:
             if not existed_in(a.base, r["page"]):
                 continue  # a new page is read in full
