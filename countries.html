@@ -402,7 +402,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
     var frozenNames = unmaintained.map(function(c){ return esc(listName(c.country)); });
     document.getElementById('frozenNote').innerHTML =
-      (frozenNames.length ? T(frozenNames.length === 1 ? COPY.frozenOneTemplate : COPY.frozenManyTemplate, {names: joinList(frozenNames)}) + ' ' : '') +
+      (frozenNames.length ? T(frozenNames.length === 1 ? COPY.frozenOneTemplate : COPY.frozenManyTemplate, {names: joinList(frozenNames), count: frozenNames.length === 1 ? 'one' : frozenNames.length}) + ' ' : '') +
       '<a href="./how-it-works.html">' + esc(COPY.howLink || '').replace('\u2192', '&rarr;') + '</a>';
 
     // Search: filters every row and chip live. Pressing Enter on a single
