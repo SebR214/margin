@@ -68,6 +68,39 @@ jobs:
       - name: Single-company dependency ceiling (Wise share must not rise)
         run: python3 tools/check_wise_share.py
 
+  # Words belong to the writer agent. Fails a PR that changes copy.json or adds
+  # reader-facing text to html/js unless it is a writer PR the owner approved.
+  # Runs the check from the BASE branch so the PR cannot edit its own judge.
+  copy-lock:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Copy lock (base-branch copy of the check)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          LOCK_ROOT: ${{ github.workspace }}
+        run: |
+          git show "origin/${{ github.base_ref }}:tools/check_copy_lock.py" > "$RUNNER_TEMP/check_copy_lock.py" 2>/dev/null \
+            || cp tools/check_copy_lock.py "$RUNNER_TEMP/check_copy_lock.py"
+          python3 "$RUNNER_TEMP/check_copy_lock.py" --self-test
+          python3 "$RUNNER_TEMP/check_copy_lock.py" --base "origin/${{ github.base_ref }}"
+
   # The two reader-facing merge gates (tools/check_rendered.py and
   # tools/check_cold_reader.py). They run for PRs that touch html, css, js or the
   # copy deck, and their self-tests also run when the gates themselves change.
@@ -124,9 +157,8 @@ jobs:
   # The model-backed gate. Capped on purpose (it spends the subscription):
   #   - only the pages this PR changes, one model call per page, one pass
   #   - it runs only once the PR carries the label `ready` (the final commit)
-  #   - after 3 runs on one PR it stops running and is advisory only: the
-  #     findings already posted are for the agent to fix where it can justify
-  #     it, and the gate never blocks a PR past the cap
+  #   - after 3 runs on one PR it stops and the PR needs a human look
+  #     (a person adds the label `human-reviewed` to waive it)
   cold-reader:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -174,8 +206,8 @@ jobs:
       - name: Cap reached
         if: steps.gate.outputs.mode == 'capped'
         run: |
-          echo "The cold reader has already run 3 times on this PR. Past the cap its findings are advisory: see the earlier run comments, fix what you can justify, and merge. It does not block."
-          exit 0
+          echo "The cold reader has already run 3 times on this PR. It stops here: a person needs to read this PR. A person adds the label 'human-reviewed' to pass it."
+          exit 1
 
       - name: Install the Claude CLI
         if: (steps.gate.outputs.mode == 'run' || steps.gate.outputs.gates == 'true') && github.event.pull_request.head.repo.full_name == github.repository
