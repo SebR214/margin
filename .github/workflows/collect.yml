@@ -272,6 +272,17 @@ jobs:
         # Exits non-zero only if it cannot write.
         run: python3 tools/emit_provider_receipts.py
 
+      - name: Emit delivery receipts
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-230. Reads data/provider_delivery.csv (SEB-176's sidecar,
+        # already collected above) directly -- not providers_latest.json,
+        # since a delivery claim has no arithmetic to replay, only the raw
+        # row to show -- and writes data/delivery_receipts/<corridor>_
+        # <provider>_<day>.json: the receipt behind every delivery-time
+        # string on sending-money.html. Exits non-zero only if it cannot
+        # write.
+        run: python3 tools/emit_delivery_receipts.py
+
       - name: Emit real hourly coverage (sending-money series)
         if: always() && steps.needed.outputs.proceed == 'true'
         # Recomputed every run from data/samples.csv, so the coverage % and
@@ -535,13 +546,15 @@ jobs:
           # (data/corridor_receipts, SEB-178), one receipt per
           # corridor-and-size on sending-money.html's provider ranking
           # (data/provider_receipts, SEB-186), one receipt per confirmed
-          # price change (data/pricechange_receipts, SEB-187), and the
+          # price change (data/pricechange_receipts, SEB-187), one receipt
+          # per corridor+provider+day behind a delivery-time string
+          # (data/delivery_receipts, SEB-230), and the
           # bundle's parquet files + manifest. A country (or a table
           # emit_bundle.py starts writing, or a new receipt's first file)
           # appears here on its first run with no edit to this list --
           # which is the point of staging the directory rather than naming
           # the files.
-          for d in data/countries data/receipts data/corridor_receipts data/provider_receipts data/pricechange_receipts data/meter_receipts data/bundle; do
+          for d in data/countries data/receipts data/corridor_receipts data/provider_receipts data/pricechange_receipts data/meter_receipts data/delivery_receipts data/bundle; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Anything TRACKED that an emitter rewrote but the list above forgot.
