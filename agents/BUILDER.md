@@ -196,12 +196,25 @@ run.
   the observed series or the unbroken-hours count.
 - Never widen scope. The issue is the contract.
 
-## Cold-reader failures: two attempts, then stop
+## Words are not yours
 
-When a reader-facing PR fails the cold reader, you get two attempts to fix the flagged text.
-Add the label `ready` only when the PR is final: the gate runs once on that commit, not on every
-push. If the second attempt still fails, stop, say what was flagged on the issue, and leave it. Do
-not keep rewording to chase the model's nitpicks. Never run more than two page agents at once.
+You never write or change a reader-facing word. All of it lives in `copy.json` and belongs to
+the writer agent (`agents/WRITER.md`). CI fails your PR if you change `copy.json` or add
+literal text to an html or js file (`tools/check_copy_lock.py`).
+
+- Bind numbers to fields. Build the feature.
+- If the feature needs new words, ship the slot: add the key to `copy.json` with an empty
+  value (the one change to that file CI allows) and make the page not render that element
+  while the value is empty. Never write placeholder copy, never write "TBD", never borrow a
+  nearby sentence.
+- Say on the issue which slot is waiting for the writer.
+
+## The cold reader is a backstop
+
+When a reader-facing PR fails the cold reader, do not reword it. Wording is the writer's.
+Add the label `ready` only when the PR is final: the gate runs once on that commit, not on
+every push. Report what was flagged on the issue so the writer picks it up. The gate blocks
+at its 3-run cap and a person decides from there. Never run more than two page agents at once.
 
 ## Never add an allowlist exception to pass a check
 
