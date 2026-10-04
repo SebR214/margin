@@ -129,50 +129,45 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button></header>
 
   <div class="hero">
-    <h1 id="pageTitle">What a dollar costs, country by country</h1>
-    <p class="lead">Priced from what people pay for USDT, a digital dollar, on Binance P2P and about 40 local exchanges. Not cash at money changers.</p>
-    <p class="meta" id="metaLine"><span class="dot"></span>Loading this hour's prices&hellip;</p>
-    <input class="search" type="text" id="searchBox" aria-label="Find a country" placeholder="Find a country"/>
+    <h1 id="pageTitle"></h1>
+    <p class="lead" id="pageLede"></p>
+    <p class="meta" id="metaLine"><span class="dot"></span><span id="metaText"></span></p>
+    <input class="search" type="text" id="searchBox"/>
   </div>
-
   <section id="secBig">
-    <h2 id="bigTitle">Where the government sets the rate</h2>
-    <p class="answer" id="bigAnswer">Loading&hellip;</p>
-    <div class="trow head"><span>Country</span><span class="thn" id="bigThenHdr">Then</span><span class="gp">Now</span><span class="rt">You can buy now</span></div>
+    <h2 id="bigTitle"></h2>
+    <p class="answer" id="bigAnswer" hidden></p>
+    <div class="trow head"><span data-c="colCountry"></span><span class="thn" id="bigThenHdr"></span><span class="gp" data-c="colNow"></span><span class="rt" data-c="colDepth"></span></div>
     <div id="bigBody"></div>
-    <p class="small" style="font-size:15px;color:#6B6B6B;margin-top:14px">"You can buy now" is how many dollars you could buy this hour within 1% of the best price. We stop counting at $5,000.</p>
+    <p class="small" id="depthNote" style="font-size:15px;color:#6B6B6B;margin-top:14px"></p>
   </section>
-
   <section id="secModerate">
-    <h2 id="modTitle">More countries with a real gap</h2>
-    <p class="answer" id="modAnswer">Loading&hellip;</p>
-    <div class="trow head"><span>Country</span><span class="thn" id="modThenHdr">Then</span><span class="gp">Now</span><span class="rt">You can buy now</span></div>
+    <h2 id="modTitle"></h2>
+    <p class="answer" id="modAnswer" hidden></p>
+    <div class="trow head"><span data-c="colCountry"></span><span class="thn" id="modThenHdr"></span><span class="gp" data-c="colNow"></span><span class="rt" data-c="colDepth"></span></div>
     <div id="modBody"></div>
   </section>
-
   <section id="secPegged">
-    <h2>Currencies fixed to the dollar or euro: the gap is the cost of buying stablecoins, not a weak currency</h2>
-    <p class="answer">A pegged currency trades at its official rate. Paying more for USDT there means stablecoins are hard to get, not that the currency is failing.</p>
-    <div class="trow head"><span>Country</span><span class="thn" id="pegThenHdr">Then</span><span class="gp">Now</span><span class="rt">You can buy now</span></div>
+    <h2 data-c="pegTitle"></h2>
+    <p class="answer" data-c="pegNote"></p>
+    <div class="trow head"><span data-c="colCountry"></span><span class="thn" id="pegThenHdr"></span><span class="gp" data-c="colNow"></span><span class="rt" data-c="colDepth"></span></div>
     <div id="pegBody"></div>
   </section>
-
   <section id="secNear">
-    <h2 id="nearTitle">Most countries pay close to the official rate</h2>
+    <h2 id="nearTitle"></h2>
+    <p class="answer" data-c="nearNote"></p>
     <div class="chips" id="nearChips"></div>
     <p class="near-text" id="nearText"></p>
   </section>
-
   <section id="secWithheld">
-    <h2 id="withheldTitle">No price this hour</h2>
-    <p class="answer">We only publish a price backed by at least 10 sell ads or a real exchange order book.</p>
+    <h2 id="withheldTitle"></h2>
+    <p class="answer" id="withheldNote"></p>
     <ul class="why" id="withheldList"></ul>
+    <p class="small" id="cfaNote"></p>
     <p class="small" id="frozenNote"></p>
   </section>
-
-  <footer class="foot">Every number on this site comes from a public data file. <a href="https://github.com/SebR214/margin">Code and raw data on GitHub &rarr;</a></footer>
+  <footer class="foot"><span id="footText"></span> <a href="https://github.com/SebR214/margin" id="footLink"></a></footer>
 </div>
-
 <script>
 (function(){
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -195,11 +190,17 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     if (parseFloat(v) === 0) v = (0).toFixed(digits);
     return v + '%';
   }
+  var COPY = {};
+  function T(tpl, vars){
+    return String(tpl||'').replace(/\{(\w+)\}/g, function(_, k){ return vars && vars[k] != null ? vars[k] : ''; });
+  }
   function fmtPts(n){
     var v = n.toFixed(1);
-    if (parseFloat(v) === 0) return '0.0 pts';
-    return (n>0?'+':'') + v + ' pts';
+    if (parseFloat(v) === 0) v = '0.0';
+    else if (n > 0) v = '+' + v;
+    return T(COPY.changeTemplate, {delta: v});
   }
+  function nouns(n){ return n === 1 ? COPY.countryOne : COPY.countryMany; }
 
   // "the Philippines", "the United Arab Emirates" -- correct as a sentence
   // subject, but banned before a country name inside a list (a comma-
@@ -207,30 +208,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   // builds that kind of list.
   function listName(name){ return String(name||'').replace(/^the\s+/i, ''); }
 
-  // Every P2P sell-ad count reads "Binance P2P sell ads", not "people
-  // selling" -- the underlying evidence_words field itself still says
-  // "N people selling" (tools/emit_countries.py writes it), so the reword
-  // happens here, once, before display. A single-source quote (an order
-  // book, a broker quote, or the independent-price fallback) is exactly one
-  // source, one vote; a round trip costing more than 5% is the buy and sell
-  // sides sitting far enough apart to trust less. Either makes a row
-  // "low confidence", the same rule the mockup's own captions describe.
-  function evidenceLabel(words){
-    return String(words||'')
-      .replace(/(\d+)\s+people selling/i, function(_, num){ return num + ' Binance P2P sell ads'; })
-      .replace(/(\d+)\s+person selling/i, function(_, num){ return num + ' Binance P2P sell ad'; });
-  }
-  function lowConfidence(c){
-    return c.n_sources === 1 || (c.round_trip_pct != null && c.round_trip_pct > 5);
-  }
-
-  var REASON_WORDS = {
-    'too few people selling to call it a price': 'too few sellers',
-    'nobody is offering to sell dollars here right now': 'no sellers right now',
-    'the buying and selling sides are not the same market here': 'buy and sell prices too far apart to trust'
-  };
-  function reasonWords(reason){ return REASON_WORDS[reason] || reason; }
-
+  function reasonWords(reason){ return (COPY.withheldReasons || {})[reason] || reason; }
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function shortDate(iso) {
     var d = new Date(iso);
@@ -298,7 +276,10 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var then = gapThen(c), now = gapNow(c);
     var chg = (then != null) ? (now - then) : null;
     var chgHtml = chg == null ? '' : '<small class="ch'+(chg>0?' up':'')+'">'+fmtPts(chg)+'</small>';
-    var flag = lowConfidence(c) ? ' &middot; <span class="flag">low confidence</span>' : '';
+    var reasons = [];
+    if (c.n_sources === 1) reasons.push(COPY.reasonOneSource);
+    if (c.round_trip_pct != null && c.round_trip_pct > 5) reasons.push(COPY.reasonFarApart);
+    var flag = reasons.length ? ' &middot; <span class="flag">' + esc(reasons.join(COPY.reasonJoin)) + '</span>' : '';
     return '<a class="trow" data-ccy="'+esc(c.ccy)+'" href="./country.html?ccy='+esc(c.ccy)+'">'+
       '<span class="cn"><b>'+esc(listName(c.country))+'</b><small>'+esc(c.ccy)+flag+'</small></span>'+
       '<span class="thn num">'+(then!=null ? fmtGapPct(then) : '&mdash;')+'</span>'+
@@ -321,21 +302,27 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   function depthWords(ccy){
     var v = DEPTH[ccy];
     if (!v || v.depth_usd == null) return '&mdash;';
-    return v.is_floor ? '$5,000+' : '$' + Math.round(v.depth_usd).toLocaleString('en-US');
+    return '$' + Math.round(v.depth_usd).toLocaleString('en-US') + (v.is_floor ? '+' : '');
   }
-  fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null).then(function(dep){ DEPTH = (dep && dep.countries) || {}; return fetch('./data/index_latest.json', {cache:'no-store'}); }).then(r=>r.json()).then(function(d){
+  fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>({})).then(function(cd){ COPY = (cd && cd.countries) || {};
+    document.querySelectorAll('[data-c]').forEach(function(el){ el.textContent = COPY[el.getAttribute('data-c')] || ''; });
+    document.getElementById('pageLede').textContent = COPY.lede || '';
+    document.getElementById('metaText').textContent = COPY.loading || '';
+    document.getElementById('searchBox').placeholder = COPY.searchLabel || '';
+    document.getElementById('searchBox').setAttribute('aria-label', COPY.searchLabel || '');
+    document.getElementById('depthNote').textContent = COPY.depthNoteTemplate || '';
+    document.getElementById('footText').textContent = COPY.footer || '';
+    document.getElementById('footLink').innerHTML = esc(COPY.footerLink || '').replace('\u2192','&rarr;');
+  }).then(function(){ return fetch('./data/street_depth_latest.json', {cache:'no-store'}); }).then(r=>r.json()).catch(()=>null).then(function(dep){ DEPTH = (dep && dep.countries) || {}; return fetch('./data/index_latest.json', {cache:'no-store'}); }).then(r=>r.json()).then(function(d){
     var countries = d.countries || [];
     var withheld = d.withheld || [];
     var total = countries.length + withheld.length;
 
-    document.getElementById('pageTitle').textContent =
-      'What a dollar costs in 60 countries, compared with the official rate';
-
+    document.getElementById('pageTitle').textContent = T(COPY.title, {count: total});
     var asOf = d.as_of_utc || (countries[0] && countries[0].hour_utc);
-    document.getElementById('metaLine').innerHTML =
-      '<span class="dot"></span>Checked ' + esc(shortTime(asOf)) + ' UTC &middot; ' +
-      countries.length + ' of ' + total + ' priced this hour &middot; ' +
-      'median of the last 24 hours';
+    document.getElementById('metaText').textContent =
+      T(COPY.metaTemplate, {time: shortTime(asOf), n: countries.length, total: total});
+    var minAds = d.min_buy_ads;
 
     // Sudan's official rate is frozen -- its own "gap" is a data artifact,
     // not a real one, so it is excluded from every ranking below and
@@ -357,40 +344,34 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var near = ranked.filter(c => (c.denominator_class === 'managed' || c.denominator_class === 'market') && Math.abs(gapNow(c)) < SMALL_GAP)
       .sort((a,b) => gapNow(b) - gapNow(a));
 
-    function rng(list){
-      if (!list.length) return null;
-      var vals = list.map(gapNow);
-      return { lo: Math.round(Math.min.apply(null, vals)), hi: Math.round(Math.max.apply(null, vals)) };
+    function gapRange(list){
+      var vals = list.map(function(c){ return Math.abs(gapNow(c)); });
+      return { lo: Math.min.apply(null, vals).toFixed(1), hi: Math.max.apply(null, vals).toFixed(1) };
     }
-
-    var bigRange = rng(managedBig);
-    document.getElementById('bigTitle').textContent = bigRange
-      ? 'Where the government sets the rate, people pay ' + bigRange.lo + '% to ' + bigRange.hi + '% more than it'
-      : 'Where the government sets the rate';
-    document.getElementById('bigAnswer').textContent = managedBig.length
-      ? managedBig.length + ' countr' + (managedBig.length === 1 ? 'y' : 'ies') +
-        '. Low confidence means one source, or the buy and sell prices are more than 5% apart.'
-      : 'No country in this group has a real gap this hour.';
-    document.getElementById('bigThenHdr').textContent = 'On ' + (managedBig[0] ? shortDate(thenDate(managedBig[0])) : '…');
+    // The range is printed to one decimal, the same precision the table
+    // rows use, so a heading never says 2% when the table says 2.2%.
+    function setGroup(titleId, answerId, list, titleKey, emptyKey){
+      var r = list.length ? gapRange(list) : null;
+      document.getElementById(titleId).textContent = r
+        ? T(COPY[titleKey], {n: list.length, countries: nouns(list.length), min: r.lo, max: r.hi})
+        : COPY[emptyKey];
+      var ans = document.getElementById(answerId);
+      ans.hidden = !!list.length;
+      ans.textContent = list.length ? '' : COPY.emptyGroup;
+    }
+    setGroup('bigTitle', 'bigAnswer', managedBig, 'bigTitleTemplate', 'bigTitleEmpty');
+    document.getElementById('bigThenHdr').textContent = managedBig[0] ? T(COPY.colThenTemplate, {date: shortDate(thenDate(managedBig[0]))}) : COPY.colThen;
     document.getElementById('bigBody').innerHTML = managedBig.map(rowHtml).join('');
 
-    var modRange = rng(marketBig);
-    document.getElementById('modTitle').textContent = modRange
-      ? 'In ' + marketBig.length + ' more countries, people pay ' + modRange.lo + '% to ' + modRange.hi + '% more than the official rate'
-      : 'More countries with a real gap';
-    document.getElementById('modAnswer').innerHTML = (function(){
-      var lowConf = marketBig.filter(lowConfidence);
-      if (!lowConf.length) return marketBig.length ? 'Every country here has enough evidence to trust the number.' : 'No country in this group has a real gap this hour.';
-      return 'In ' + joinList(lowConf.map(c => esc(listName(c.country)))) + ' the buy and sell prices are far apart, so treat those numbers with care.';
-    })();
-    document.getElementById('modThenHdr').textContent = 'On ' + (marketBig[0] ? shortDate(thenDate(marketBig[0])) : '…');
+    setGroup('modTitle', 'modAnswer', marketBig, 'modTitleTemplate', 'modTitleEmpty');
+    document.getElementById('modThenHdr').textContent = marketBig[0] ? T(COPY.colThenTemplate, {date: shortDate(thenDate(marketBig[0]))}) : COPY.colThen;
     document.getElementById('modBody').innerHTML = marketBig.map(rowHtml).join('');
 
-    document.getElementById('pegThenHdr').textContent = 'On ' + (pegged[0] ? shortDate(thenDate(pegged[0])) : '…');
+    document.getElementById('pegThenHdr').textContent = pegged[0] ? T(COPY.colThenTemplate, {date: shortDate(thenDate(pegged[0]))}) : COPY.colThen;
     document.getElementById('pegBody').innerHTML = pegged.map(rowHtml).join('');
 
     document.getElementById('nearTitle').textContent =
-      'In ' + near.length + ' more countries, people pay the official rate, give or take ' + SMALL_GAP + '%';
+      T(COPY.nearTitleTemplate, {n: near.length, countries: nouns(near.length), gap: SMALL_GAP});
     document.getElementById('nearChips').innerHTML = near.map(function(c){
       return '<a class="chip" data-ccy="'+esc(c.ccy)+'" href="./country.html?ccy='+esc(c.ccy)+'"><b>'+esc(listName(c.country))+'</b> '+receiptSpan(c.ccy, fmtPct(gapNow(c)))+'</a>';
     }).join('');
@@ -403,7 +384,10 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     // Withheld, grouped by reason, alphabetical within each group -- same
     // three real reasons tools/emit_countries.py already writes.
     document.getElementById('withheldTitle').textContent =
-      withheld.length + ' countr' + (withheld.length === 1 ? 'y has' : 'ies have') + ' no price this hour';
+      T(COPY.withheldTitleTemplate, {n: withheld.length, countries: nouns(withheld.length)});
+    document.getElementById('withheldNote').textContent = T(COPY.withheldNoteTemplate, {min: minAds});
+    document.getElementById('cfaNote').textContent =
+      withheld.some(function(w){ return /\bCFA\b/.test(w.country); }) ? COPY.cfaNote : '';
     var groups = {};
     withheld.forEach(function(w){
       var r = reasonWords(w.reason);
@@ -412,13 +396,14 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     document.getElementById('withheldList').innerHTML = Object.keys(groups).sort().map(function(reason){
       var names = groups[reason].slice().sort((a,b) => a.country.localeCompare(b.country));
       return '<li class="wrow"><span class="wname">' +
-        names.map(function(w){ return '<a href="./country.html?ccy='+esc(w.ccy)+'" title="See why, in full">'+esc(listName(w.country))+'</a>'; }).join(', ') +
+        names.map(function(w){ return '<a href="./country.html?ccy='+esc(w.ccy)+'" title="'+esc(COPY.seeWhy)+'">'+esc(listName(w.country))+'</a>'; }).join(', ') +
         '<span>'+esc(reason)+'</span></span></li>';
     }).join('');
 
-    document.getElementById('frozenNote').innerHTML = unmaintained.map(function(c){
-      return esc(listName(c.country)) + ' (' + fmtGapPct(gapNow(c)) + ') is left out of every list above: its official rate is frozen, so the gap means nothing.';
-    }).join(' ') + ' <a href="./how-it-works.html">How we price a country &rarr;</a>';
+    var frozenNames = unmaintained.map(function(c){ return esc(listName(c.country)); });
+    document.getElementById('frozenNote').innerHTML =
+      (frozenNames.length ? T(frozenNames.length === 1 ? COPY.frozenOneTemplate : COPY.frozenManyTemplate, {names: joinList(frozenNames)}) + ' ' : '') +
+      '<a href="./how-it-works.html">' + esc(COPY.howLink || '').replace('\u2192', '&rarr;') + '</a>';
 
     // Search: filters every row and chip live. Pressing Enter on a single
     // unambiguous match goes straight to that country's page, the same
@@ -450,7 +435,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       }
     });
   }).catch(function(){
-    document.getElementById('metaLine').textContent = 'Could not load this hour\'s data. That failure is shown, not hidden.';
+    document.getElementById('metaText').textContent = COPY.loadFailed || '';
   });
 })();
 </script>
