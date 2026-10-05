@@ -376,8 +376,21 @@ while true; do
   esac
   MODEL="${MARGIN_MODEL:-$DEFAULT_MODEL}"
 
+  # Cheaper coding model through OpenRouter (owner request, 2026-10-05): set
+  # BUILDER_BACKEND=openrouter (or REVIEWER_BACKEND=...) and OPENROUTER_API_KEY in
+  # /etc/margin/env, and optionally BUILDER_OR_MODEL (default deepseek/deepseek-v4-pro).
+  # Claude Code talks to OpenRouter's Anthropic-compatible endpoint; the subscription
+  # token is blanked for that process so nothing falls back to it by accident.
+  BACKEND_VAR="${ROLE^^}_BACKEND"; OR_MODEL_VAR="${ROLE^^}_OR_MODEL"
+  CLAUDE_ENV=()
+  if [ "${!BACKEND_VAR:-}" = "openrouter" ] && [ -n "${OPENROUTER_API_KEY:-}" ]; then
+    MODEL="${!OR_MODEL_VAR:-deepseek/deepseek-v4-pro}"
+    CLAUDE_ENV=(ANTHROPIC_BASE_URL=https://openrouter.ai/api "ANTHROPIC_AUTH_TOKEN=$OPENROUTER_API_KEY" ANTHROPIC_API_KEY= CLAUDE_CODE_OAUTH_TOKEN=)
+    say "$ROLE running on OpenRouter model $MODEL"
+  fi
+
   OUT=$(mktemp)
-  claude -p "$(cat "$REPO/agents/RULES.md" "$REPO/agents/${ROLE^^}.md")" \
+  env "${CLAUDE_ENV[@]}" claude -p "$(cat "$REPO/agents/RULES.md" "$REPO/agents/${ROLE^^}.md")" \
       --model "$MODEL" \
       --allowedTools Bash,Read,Edit,Write,Glob,Grep \
       --max-turns 200 \
