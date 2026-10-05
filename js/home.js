@@ -156,7 +156,7 @@
     }
     word(s, 'p', ['soft', 'hp-lede'], 'headlineSub', totalsVars);
     var cs = D.cycles && D.cycles.steps && D.cycles.steps.currencies;
-    if (cs) { word(s, 'p', ['muted', 'hp-body'], 'updatedLine', function () { return { collected: num(cs.collected), of: num(cs.of) }; }); }
+    if (cs && claimOk('homeData.updatedLine')) { word(s, 'p', ['muted', 'hp-body'], 'updatedLine', function () { return { collected: num(cs.collected), of: num(cs.of) }; }); }
     if (s.childNodes.length) { wrap.appendChild(s); }
   }
   /* ---------------------------------------------------------------- heatmap */

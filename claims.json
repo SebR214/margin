@@ -4,7 +4,9 @@
   "claims": [
     {
       "key": "homeData.stableLine",
-      "guards": ["homeData.stableLink"],
+      "guards": [
+        "homeData.stableLink"
+      ],
       "type": "stable_never_cheapest",
       "route": "SGD->PHP",
       "note": "Sentence: a stablecoin has not beaten the cheapest app in any of the {hours} hours priced since the record began. True only if there is at least one priced hour and zero hours with the stablecoin cheapest, at any quoted amount, and the published hour count the sentence prints equals the fresh count."
@@ -15,6 +17,57 @@
       "pct": 2,
       "min_share": 0.5,
       "note": "Sentence: most currencies sit near the official rate. True only if at least half of the ranked currencies with a reading in the last 24 hours are within 2 percent of the official rate."
+    },
+    {
+      "key": "homeData.updatedLine",
+      "type": "updated_hourly",
+      "window_hours": 24,
+      "note": "Sentence: updated every hour. True only if the newest 24 clock hours each have a stored reading."
+    },
+    {
+      "key": "homeData.updatedCount",
+      "type": "coverage_matches_index",
+      "note": "The 'N of 60 currencies priced' figure equals a recount of the country files that carry a price. (Same measure on home and how it works.)",
+      "guards": [
+        "homeData.updatedLine"
+      ]
+    },
+    {
+      "key": "howItWorks.thresholdCounts",
+      "type": "coverage_matches_index",
+      "note": "Same measure as the home page: a currency is priced when the index publishes a price for it."
+    },
+    {
+      "key": "howItWorks.stepCurrencies",
+      "type": "coverage_matches_index",
+      "note": "Same measure as the home page."
+    },
+    {
+      "key": "sourcesData.headlineSub",
+      "type": "sources_counts",
+      "guards": [
+        "sourcesData.statWithHistory",
+        "sourcesData.statNoHistory",
+        "sourcesData.shown",
+        "sourcesData.historyOnlyHeading"
+      ],
+      "note": "The opening counts of the Sources page add up."
+    },
+    {
+      "key": "routeData.bigCaption",
+      "type": "routes_published_equal_fresh",
+      "note": "Hours a stablecoin path was cheapest, of the hours priced: published counts equal the re-derived counts for every route."
+    },
+    {
+      "key": "findingData.claim_sgd_php_never_cheapest",
+      "type": "stable_never_cheapest",
+      "route": "SGD->PHP",
+      "guards": [
+        "findingData.title_sgd_php_never_cheapest",
+        "findingData.method_sgd_php_never_cheapest",
+        "findingData.limits_sgd_php_never_cheapest"
+      ],
+      "note": "Singapore to the Philippines: zero priced hours with the stablecoin cheapest, same query as the home line."
     }
   ]
 }
