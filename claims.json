@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "doc": "Every reader-facing sentence that states a count or uses never, always, every, none or 'since [date]' has a claim here, stored next to the copy key it guards (the key is a path into copy.json). tools/audit_claims.py re-derives each claim from the raw CSVs every hour. A claim that is not true writes ok:false to data/claims_status.json and the page does not render that copy key until the claim is true again. Claims are per route (or per currency), never site-wide, except where the sentence's own subject is the set of currencies.",
+  "claims": [
+    {
+      "key": "homeData.stableLine",
+      "guards": ["homeData.stableLink"],
+      "type": "stable_never_cheapest",
+      "route": "SGD->PHP",
+      "note": "Sentence: a stablecoin has not beaten the cheapest app in any of the {hours} hours priced since the record began. True only if there is at least one priced hour and zero hours with the stablecoin cheapest, at any quoted amount, and the published hour count the sentence prints equals the fresh count."
+    },
+    {
+      "key": "homeData.heatTitle",
+      "type": "currency_majority_within",
+      "pct": 2,
+      "min_share": 0.5,
+      "note": "Sentence: most currencies sit near the official rate. True only if at least half of the ranked currencies with a reading in the last 24 hours are within 2 percent of the official rate."
+    }
+  ]
+}
