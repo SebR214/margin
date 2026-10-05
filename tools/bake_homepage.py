@@ -621,6 +621,14 @@ def main():
     with open(INDEX_HTML) as f:
         html = f.read()
 
+    # SEB-240: the home page is rebuilt in the browser from stored files and
+    # carries no BAKE markers. Nothing to bake into it; data/corridor_window.json
+    # (written above, read by other pages) is still this tool's job.
+    if "<!--BAKE:START:" not in html:
+        print("  index.html has no BAKE markers (home reads stored files in the browser) -- nothing to bake")
+        print(f"  wrote data/corridor_window.json ({len(window)} corridors)")
+        return
+
     changed = False
     html, ok1 = replace_by_marker(html, "heroHeadline", esc(home_copy.get(
         "headline", "Sending money by stablecoin usually costs more than a transfer app")))
