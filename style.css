@@ -52,6 +52,13 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+/* ---------------------------------------------------------------- IBM Plex,
+   self-hosted, latin, 400 and 600 only: the data pages (body.data). */
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url("./vendor/fonts/ibm-plex-sans-latin-400-normal.woff2") format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 600; font-display: swap; src: url("./vendor/fonts/ibm-plex-sans-latin-600-normal.woff2") format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url("./vendor/fonts/ibm-plex-mono-latin-400-normal.woff2") format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url("./vendor/fonts/ibm-plex-mono-latin-600-normal.woff2") format('woff2'); }
+
 /* ---------------------------------------------------------------- tokens */
 :root {
   --color-ink: #201e1d;        /* the hero band, headings, body text */
@@ -94,6 +101,34 @@
   --space-8: 32px;
 
   --shadow-card: 0 1px 2px color-mix(in srgb, var(--color-ink) 14%, transparent);
+
+  /* Data pages (body.data): a dark ground, amber for the real price and the
+     stablecoin, blue for the official rate and the apps. Every value below
+     is taken from the owner's layout references (SEB-240 home and route
+     references). Used only by pages rebuilt around the collected data. */
+  --dk-bg: #0D1015;
+  --dk-panel: #11151B;
+  --dk-line: #222934;
+  --dk-text: #ECEAE4;
+  --dk-soft: #B3B9C2;
+  --dk-muted: #9AA1AB;
+  --dk-amber: #F0A23B;
+  --dk-blue: #6AA6E0;
+  --dk-border: #2A313C;      /* chip and button borders, tooltips */
+  --dk-raised: #151A21;      /* buttons, selected rows */
+  --dk-track: #1A2029;       /* bar and strip tracks, empty heat cells */
+  --dk-grid: #1E242D;        /* chart gridlines */
+  --dk-mark: #3A4250;        /* timeline marker lines */
+  --dk-unranked: #20252D;    /* unranked heat cells */
+  --dk-blue-deep: #2B4A68;   /* a source missed */
+  --dk-heat-1: #2F2D27;
+  --dk-heat-2: #5A4626;
+  --dk-heat-3: #9A6A2B;
+  --dk-leg-1: #F7C77F;       /* buying the stablecoin */
+  --dk-leg-3: #B9782A;       /* converting */
+  --dk-leg-4: #7A5122;       /* cashing out */
+  --font-data: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
 /* ---------------------------------------------------------------- base */
@@ -334,3 +369,17 @@ nav a.active, nav a[aria-current] { color: var(--color-ink); font-weight: 700; }
 }
 [data-ask="pill"]:hover, [data-ask="pill"][aria-pressed="true"] { background: var(--color-bg); color: var(--color-ink); border-color: var(--color-bg); }
 [data-ask="answer"] { background: color-mix(in srgb, var(--color-bg) 8%, transparent); border-top: 1px solid color-mix(in srgb, var(--color-bg) 25%, transparent); }
+
+/* ---------------------------------------------------------------- data pages
+   body.data: the dark ground. Everything else in a data page reads these
+   tokens; nothing outside body.data changes. */
+body.data { background: var(--dk-bg); color: var(--dk-text); font: 400 16px/1.5 var(--font-data); }
+body.data h1, body.data h2, body.data h3 { font-family: var(--font-data); font-weight: 600; color: var(--dk-text); }
+body.data a { color: var(--dk-text); }
+body.data .mono, body.data .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+body.data .muted { color: var(--dk-muted); }
+body.data .soft { color: var(--dk-soft); }
+body.data .panel { background: var(--dk-panel); border: 1px solid var(--dk-line); border-radius: 8px; }
+body.data .real, body.data .stable { color: var(--dk-amber); }
+body.data .official, body.data .app { color: var(--dk-blue); }
+body.data :focus-visible { outline: 2px solid var(--dk-amber); outline-offset: 2px; }

@@ -65,8 +65,14 @@ HISTORY_WRITERS = {"tools/backfill_history.py", "tools/check_history_isolation.p
 # Neither number feeds the index, a published price, the observed series or
 # the unbroken-hours count; the page labels the history "reported, not
 # observed".
+# tools/emit_record_milestones.py and tools/emit_sources_daily.py (SEB-240) read
+# the same manifest for first dates, row counts and intervals only: the record
+# page's milestones list and the sources page's "before 10 Aug" column. Neither
+# number feeds the index, a published price, the observed series or the
+# unbroken-hours count, and both label it reported, not observed.
 HISTORY_READERS = {"tools/analyst.py", "tools/emit_country_history.py",
-                   "tools/emit_machine_room_meters.py"}
+                   "tools/emit_machine_room_meters.py",
+                   "tools/emit_record_milestones.py", "tools/emit_sources_daily.py"}
 HISTORY_TOKENS = [
     re.compile(r"data/history"),
     re.compile(r"""(DATA|["']data["'])\s*,\s*["']history["']"""),   # os.path.join(DATA, "history")

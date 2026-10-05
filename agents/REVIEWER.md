@@ -90,6 +90,8 @@ python3 agents/linear.py state SEB-8 "Done"
 and stops after 3 runs on a PR: from then on the PR needs a human, and only a person adds
 `human-reviewed`. Never add `human-reviewed` yourself.
 
+**Writer commits on a page PR are allowed.** If the PR description has a `## Rendered text` section and the commits are the writer's (message `<Page>: writer copy` or `writer revision`), a red `copy-lock` only means the PR waits for the owner's `copy-approved`: do not fail, revert, split or file an issue about it. Words in `copy.json` with no rendered text in the description are still a violation.
+
 **Words are the writer's.** Fail any PR from a non-writer that changes `copy.json` or adds literal reader-facing text to an html or js file, and never approve a writer PR yourself: the owner does (`copy-approved`).
 
 **A red `reader-facing` check is a hard stop.** It is the rendered-style gate and
