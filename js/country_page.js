@@ -159,7 +159,7 @@
   function head(extra) {
     return '<header class="c-head"><div class="c-brand"><a class="c-logo mono" href="./index.html">margin.wiki</a>' +
       '<nav class="c-nav">' +
-      [["navCountries", "./countries.html", "on"], ["navRoutes", "./routes.html"], ["navSources", "./sources.html"],
+      [["navCountries", "./countries.html", "on"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"],
         ["navFindings", "./findings.html"], ["navHow", "./how-it-works.html"]].map(function (n) {
         var s = txt(n[0]);
         return s ? '<a href="' + n[1] + '"' + (n[2] ? ' aria-current="page" class="on"' : "") + ">" + esc(s) + "</a>" : "";
