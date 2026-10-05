@@ -72,7 +72,8 @@ PAGES = ["index.html", "providers.html", "pricing-history.html",
          "requests.html", "calculator.html", "weekly.html", "data.html",
          "ask.html", "watch.html", "stress.html", "how-it-was-built.html",
          "countries.html", "sending-money.html", "how-it-works.html",
-         "country.html", "fee-tiers.html", "agent-incidents.html", "tape.html"]
+         "country.html", "fee-tiers.html", "agent-incidents.html", "tape.html",
+         "finding.html"]
 
 # ask.html and watch.html both call a live backend rather than reading a
 # static file, so a check of the static shell alone would never touch the
@@ -98,7 +99,7 @@ PAGES = ["index.html", "providers.html", "pricing-history.html",
 # looking specifically at an ask.html change already does this real check by
 # hand (agents/REVIEWER.md "Review from the rendered page").
 LIVE_ASK = os.environ.get("CHECK_PAGE_LIVE_ASK") == "1"
-PAGE_VISIT_SUFFIX = {"country.html": "?ccy=DZD"}
+PAGE_VISIT_SUFFIX = {"country.html": "?ccy=DZD", "finding.html": "?id=price_changes"}
 # watch.html used to need "?verify=0" here to headlessly trigger its live
 # backend condition-setting flow -- it's a redirect stub now (SESSIONS.md
 # Session 2), that flow doesn't exist on this page anymore.
@@ -258,7 +259,8 @@ PAGE_TITLE = {
     "corridor.html": "margin.wiki — one transfer, the receipt in full",
     "methodology.html": "margin.wiki — how it works",
     "status.html": "margin.wiki — how it was built",
-    "findings.html": "margin.wiki — sending money",
+    "findings.html": "margin.wiki",
+    "finding.html": "margin.wiki",
     "requests.html": "margin.wiki — countries",
     "calculator.html": "margin.wiki — sending money",
     "weekly.html": "margin.wiki — sending money",
