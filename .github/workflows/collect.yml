@@ -361,6 +361,25 @@ jobs:
         # for the country chart. See tools/emit_country_readings.py.
         run: python3 tools/emit_country_readings.py
 
+      - name: Emit the record, cycle log, milestones, movers, sources and findings
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-240 data for the home, sources and findings pages. Stored
+        # files only, no new fetch and no clock: record_daily.json (what has
+        # been collected, per day), cycle_log.json (the last 48 hourly
+        # cycles and the header countdown), record_milestones.json (when each
+        # source, route and backfill series first appeared),
+        # movers_week.json (reads the heatmap just written),
+        # sources_daily.json (a status per source per day) and
+        # findings.json with findings_hours_<id>.csv. Each is a tool of its
+        # own; see the docstrings in tools/emit_record_daily.py,
+        # emit_cycle_log.py, emit_record_milestones.py, emit_movers_week.py,
+        # emit_sources_daily.py and emit_findings.py. One failing must not
+        # block the rest.
+        run: |
+          for t in record_daily cycle_log record_milestones movers_week sources_daily findings; do
+            python3 tools/emit_$t.py || echo "emit_$t failed"
+          done
+
       - name: Emit street depth
         if: always() && steps.needed.outputs.proceed == 'true'
         # How much volume a country's premium holds before the price would
@@ -557,7 +576,14 @@ jobs:
                    data/provider_delivery.csv data/audit_latest.json \
                    data/audit_history.csv data/routes_hourly.json \
                    data/routes_summary.json data/routes_breakdown.json \
-                   data/routes_whatif.json; do
+                   data/routes_whatif.json data/heatmap_daily.json \
+                   data/record_daily.json data/cycle_log.json \
+                   data/record_milestones.json data/movers_week.json \
+                   data/sources_daily.json data/findings.json \
+                   data/findings_hours_price_changes.csv \
+                   data/findings_hours_weekend_penalty.csv \
+                   data/findings_hours_volume_crossover.csv \
+                   data/findings_hours_stress_signal.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # index.html itself -- D1's bake_homepage.py rewrites it in place
