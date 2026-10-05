@@ -7,7 +7,7 @@
  *   data/country_history_segment/...    the backfilled history, where it exists
  *   data/street_depth_latest.json       the latest dollar depth
  *   data/heatmap_daily.json             the ranked flag
- *   data/receipts, data/basis_receipts  the receipt replay (js/receipt_replay.js)
+ *   data/latest.json                    the latest street price (and its receipt, js/receipt_replay.js)
  *
  * Words: none live here. Every word the page shows comes from copy.json,
  * block "countryData". A key that is empty renders no element. Numbers, dates,
@@ -21,9 +21,10 @@
   var LATEST_ROWS = 12;
   var BAND_LO = 0.1, BAND_HI = 0.9; // the usual range: 10th to 90th percentile of the daily record
   var MIN_RECORD_DAYS = 20; // the record-position line needs this many days
-  // One look per source layer: token colour and dot shape. Blue is reserved for the official rate.
-  var LOOKS = [["--dk-amber", "round"], ["--dk-text", "round"], ["--dk-leg-1", "square"],
-    ["--dk-soft", "square"], ["--dk-heat-3", "round"], ["--dk-leg-3", "square"]];
+  // One look per source layer: a token colour and a dot shape. Blue is reserved for the official rate.
+  // Past twelve sources the looks repeat; the tooltip and the chip name each source.
+  var COLORS = ["--dk-amber", "--dk-text", "--dk-leg-1", "--dk-soft", "--dk-heat-3", "--dk-leg-3"];
+  function look(i) { return [COLORS[i % COLORS.length], Math.floor(i / COLORS.length) % 2 ? "square" : "round"]; }
 
   var COPY = {};
   var app = document.getElementById("app");
@@ -112,8 +113,7 @@
     if (period === "7") t0 = t1 - 7 * DAY;
     else if (period === "30") t0 = t1 - 30 * DAY;
     else {
-      var cands = [monthSpan(S.idx.months[0])[0]];
-      if (S.idx.official.length) cands.push(S.idx.official[0][0]);
+      var cands = [S.firstRead];
       if (S.daily && S.history.length) cands.push(isoEpoch(S.history[0].date));
       if (S.seg && S.segment) cands.push(isoEpoch(S.segment.points[0].date));
       t0 = Math.min.apply(null, cands);
@@ -218,7 +218,8 @@
     return '<i class="c-sw' + (look[1] === "round" ? " r" : "") + '" style="background:var(' + look[0] + ')"></i>';
   }
   function chip(on, attrs, inner) {
-    return '<button type="button" class="' + cls("c-chip", on && "on") + '" aria-pressed="' + (on ? "true" : "false") + '" ' + attrs + ">" + inner + "</button>";
+    var layer = attrs.indexOf("data-layer") === 0;
+    return '<button type="button" class="' + cls("c-chip", layer ? "lay" : "", on && "on") + '" aria-pressed="' + (on ? "true" : "false") + '" ' + attrs + ">" + inner + "</button>";
   }
 
   function drawControls() {
@@ -229,7 +230,7 @@
     if (bd && S.bandLo != null) legend += '<span class="c-leg"><i class="c-band"></i>' + esc(bd) + "</span>";
     var chips = "";
     S.idx.sources.forEach(function (s, i) {
-      chips += chip(!S.hidden[i], 'data-layer="s' + i + '"', swatch(LOOKS[i % LOOKS.length]) + esc(s.id));
+      chips += chip(!S.hidden[i], 'data-layer="s' + i + '"', swatch(look(i)) + esc(s.id));
     });
     if (S.unit === "gap" && S.history.length > 1 && txt("layerDaily")) {
       chips += chip(S.daily, 'data-layer="daily"', '<i class="c-line" style="background:var(--dk-soft)"></i>' + esc(txt("layerDaily")));
@@ -266,8 +267,8 @@
       var model = {
         t0: t0, t1: t1, includeZero: !price,
         sources: S.idx.sources.map(function (s, i) {
-          var look = LOOKS[i % LOOKS.length];
-          return { color: look[0], cap: look[1], pts: S.hidden[i] ? [] : src[i].map(function (r) { return [r.t, price ? r.price : r.gap]; }) };
+          var lk = look(i);
+          return { color: lk[0], cap: lk[1], pts: S.hidden[i] ? [] : src[i].map(function (r) { return [r.t, price ? r.price : r.gap]; }) };
         }),
         official: price ? off.map(function (o) { return [o[0], o[1]]; }) : [[t0, 0], [t1, 0]],
         band: [], daily: [], segment: [],
@@ -285,7 +286,7 @@
       chart.update(model);
       var empty = !model.sources.some(function (s) { return s.pts.length; }) && !model.daily.length && !model.segment.length;
       document.getElementById("cAxis").innerHTML =
-        "<span>" + esc(dayShort(t0)) + "</span>" + w("chartCaption", null, "span") + "<span>" + esc(dayShort(t1)) + "</span>";
+        "<span>" + esc((t1 - t0 > 300 * DAY ? dayLong : dayShort)(t0)) + "</span>" + w("chartCaption", null, "span") + "<span>" + esc((t1 - t0 > 300 * DAY ? dayLong : dayShort)(t1)) + "</span>";
       document.getElementById("cSel").innerHTML = "";
       S.sel = null;
       if (empty) document.getElementById("cSel").innerHTML = w("chartEmpty", null, "p", ["muted", "c-small"]);
@@ -325,8 +326,8 @@
       var j = nearest(arr, t, "t"), r = arr[j], d = Math.abs(r.t - t);
       if (d > TIP_WINDOW) return;
       if (d < best) { best = d; stampT = r.t; }
-      var look = LOOKS[i % LOOKS.length];
-      rows += '<div class="c-trow">' + swatch(look) + '<span class="c-tname">' + esc(S.idx.sources[i].id) + '</span><span class="mono">' +
+      var lk = look(i);
+      rows += '<div class="c-trow">' + swatch(lk) + '<span class="c-tname">' + esc(S.idx.sources[i].id) + '</span><span class="mono">' +
         esc(price_(r.price) + " " + ccy) + "</span><span class=\"mono muted\">" + esc(pct(r.gap)) + "</span></div>";
     });
     if (stampT != null && view.off.length) {
@@ -413,12 +414,12 @@
       var s = S.idx.sources[r.s] || { id: "", raw_file: "" };
       var priceText = price(r.price) + " " + ccy;
       var cell = esc(priceText);
-      if (!basisDone && s.raw_file === "data/p2p_basis.csv") {
+      if (!basisDone && S.hasBasis && s.raw_file === "data/p2p_basis.csv") {
         basisDone = true;
         cell = '<span data-receipt-basis-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(priceText) + '" tabindex="0">' + esc(priceText) + "</span>";
       }
       var depth = r.n != null ? esc(txt("depthAds", { n: r.n, total: r.total != null ? num(r.total, 0) : "" })) : esc(txt("depthNone"));
-      out += '<div class="c-row"><span class="mono muted c-ct">' + esc(stamp(r.t)) + '</span><span class="c-cs">' + swatch(LOOKS[r.s % LOOKS.length]) + esc(s.id) +
+      out += '<div class="c-row"><span class="mono muted c-ct">' + esc(stamp(r.t)) + '</span><span class="c-cs">' + swatch(look(r.s)) + esc(s.id) +
         '</span><span class="mono c-cp">' + cell + '</span><span class="mono c-cg">' + esc(pct(r.gap)) + '</span><span class="mono c-cd">' + depth +
         '</span><span class="mono c-cr"><a href="' + RAW + esc(s.raw_file) + '">' + esc(s.raw_file) + "</a></span></div>";
     });
@@ -428,7 +429,7 @@
   // ---------------------------------------------------------------- start
   function start(res) {
     var idxDoc = res[0], copyDoc = res[1], countryDoc = res[2], readIdx = res[3], manifest = res[4],
-      depthDoc = res[5], heat = res[6];
+      depthDoc = res[5], heat = res[6], latest = res[7];
     COPY = (copyDoc && copyDoc.countryData) || {};
     if (!ccy) { notice("notFound", { code: "" }); return; }
     var country = (idxDoc.countries || []).filter(function (c) { return c.ccy === ccy; })[0];
@@ -447,16 +448,27 @@
     S.ranked = !(hm && hm.ranked === false);
     var hasSeg = !!(manifest && manifest.ccys && manifest.ccys.indexOf(ccy) >= 0);
 
+    if (!readIdx.months || !readIdx.months.length) {
+      // No stored reading yet for this currency: the headline and the row only, no chart, no receipts.
+      var offs0 = readIdx.official || [];
+      S.asOf = offs0.length ? offs0[offs0.length - 1][0] : Date.now() / 1000;
+      app.innerHTML = '<div class="c-wrap">' + head() + buildHero() + buildStats() + "</div>";
+      return null;
+    }
     // The newest month tells us when the last reading was; the window of every period hangs off it.
     var lastMonth = readIdx.months[readIdx.months.length - 1];
-    var prep = [loadMonth(lastMonth), hasSeg ? maybeJSON("data/country_history_segment/" + ccy + ".json") : Promise.resolve(null),
-      (String(country.source_class || "").indexOf("p2p") === 0) ? maybeJSON("data/basis_receipts/" + ccy + ".json") : Promise.resolve(null)];
+    var prep = [loadMonth(lastMonth), loadMonth(readIdx.months[0]), hasSeg ? maybeJSON("data/country_history_segment/" + ccy + ".json") : Promise.resolve(null),
+      Promise.resolve(latest && latest.p2p && latest.p2p[ccy] || null)];
     return Promise.all(prep).then(function (r) {
+      var all = r.splice(1, 1)[0];
+      S.firstRead = all.reduce(function (m, x) { return Math.min(m, x.t); }, Infinity);
+      if (!isFinite(S.firstRead)) S.firstRead = Date.now() / 1000 - 30 * DAY;
       var last = r[0].reduce(function (m, x) { return Math.max(m, x.t); }, 0);
       var offs = readIdx.official;
       S.asOf = Math.max(last, offs.length ? offs[offs.length - 1][0] : 0);
       S.segment = r[1] && r[1].points && r[1].points.length > 1 ? r[1] : null;
-      if (r[2] && r[2].fx_mid_per_usd) S.p2p = r[2];
+      if (r[2] && typeof r[2].fx_mid_per_usd === "number" && typeof r[2].buy_median === "number") S.p2p = r[2];
+      S.hasBasis = !!S.p2p;
       var vals = S.history.map(function (h) { return h.index_pct; });
       if (vals.length >= 10) {
         var sorted = vals.slice().sort(function (a, b) { return a - b; });
@@ -502,8 +514,9 @@
     getJSON("data/index_latest.json"), maybeJSON("copy.json"),
     ccy ? maybeJSON("data/countries/" + ccy + ".json") : Promise.resolve(null),
     ccy ? maybeJSON("data/country_readings/" + ccy + "/index.json") : Promise.resolve(null),
-    C("data/country_history_segment/manifest.json"), C("data/street_depth_latest.json"), C("data/heatmap_daily.json")
-  ]).then(start).catch(function () {
+    C("data/country_history_segment/manifest.json"), C("data/street_depth_latest.json"), C("data/heatmap_daily.json"), C("data/latest.json")
+  ]).then(start).catch(function (err) {
+    if (window.console) console.error(err);
     COPY = COPY || {};
     maybeJSON("copy.json").then(function (d) {
       COPY = (d && d.countryData) || {};
