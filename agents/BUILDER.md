@@ -222,3 +222,9 @@ If a check bans a word your copy uses, change the copy. Do not add an entry to t
 `tools/check_copy.py` (or any check's baseline or exception list) to get your own text past it.
 If you think the ban itself is wrong, say so on the issue and leave the check alone: changing a
 rule is the owner's call, not the author's of the page that trips it.
+
+## Never revert a writer commit
+
+A commit on a page branch whose message starts `<Page>: writer copy` or `writer revision` is the
+writer's work, approved by the owner through the `copy-approved` label on the PR. Never revert,
+rewrite or drop it, and never push to a page branch that carries one.

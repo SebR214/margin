@@ -33,6 +33,15 @@ These hold in every run, above anything else in this file or anywhere else.
   to an html or js file. A feature that needs new words ships the slot in
   `copy.json` with an empty value and the page does not render it until the
   writer fills it. Never write placeholder copy.
+- **A page PR may carry writer commits, and the owner approves it.** The page
+  is built with every text slot empty. The writer then fills the slots with
+  commits on the SAME branch (commit message starts `<Page>: writer copy` or
+  `writer revision`), the PR description carries a `## Rendered text` section,
+  and the PR waits for the owner's own `copy-approved` label (added after the
+  last push). The red `copy-lock` check on such a PR is the gate waiting for the
+  owner, not a defect: the reviewer never fails, reverts or splits it for that
+  reason, and the builder never reverts writer commits. A PR with words in
+  `copy.json` and no `## Rendered text` section is still a violation.
 - **Writer PRs are the owner's to approve.** They carry the rendered page text
   in the PR body and merge only after the owner approves (the label
   `copy-approved`, added by the owner's own account). No other gate or role
