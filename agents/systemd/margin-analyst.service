@@ -1,0 +1,35 @@
+[Unit]
+Description=margin.wiki nightly analyst: deterministic investigations over the collectors' own data (ROADMAP item 20, SEB-210/SEB-238)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/srv/margin
+ExecStart=/usr/bin/python3 /srv/margin/tools/analyst.py
+StandardOutput=append:/var/log/margin/analyst.systemd.log
+StandardError=append:/var/log/margin/analyst.systemd.log
+
+# Not an agent loop and not a model session -- one `claude -p --max-turns 1`
+# completion per finding that clears its threshold (see analyst.py's module
+# docstring, "THE MODEL CALL"), so it must never compete for the box's CPU
+# against margin-builder/margin-reviewer/margin-product, which carry no
+# explicit weight and sit at the cgroup default (100). Same values as
+# margin-p2p-box/margin-p2p-compare.
+CPUWeight=20
+IOWeight=10
+MemoryMax=512M
+
+# Unlike margin-p2p-box/margin-p2p-compare, which keep /srv/margin read-only
+# and stage everything under /var/lib/margin instead, this script writes
+# straight into the served checkout's data/ directory: analyst.py's own
+# module docstring names data/analyst_findings.json and data/analyst_log.csv
+# as its only outputs, and that is out of scope to change here (SEB-238).
+# It also shells out to the `claude` CLI under this same root account, the
+# one already logged in for margin-builder.service/margin-reviewer.service,
+# so ProtectSystem is "full" here, the same as those two, not "strict" like
+# the /var/lib-only box units -- "strict" would hide that CLI's own OAuth
+# session (under /root) from it.
+ProtectSystem=full
+ReadWritePaths=/srv/margin /var/log/margin
+NoNewPrivileges=true
