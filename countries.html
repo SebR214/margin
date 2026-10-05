@@ -7,26 +7,26 @@
 <meta name="description" content=""/>
 <link rel="stylesheet" href="./style.css">
 <style>
-  /* Countries (SEB-240). Colours are the --dk-* tokens in style.css, nothing else. */
-  body.data { margin: 0; }
+  /* Countries (SEB-240). Colours are the style.css tokens, nothing else. */
+  { margin: 0; }
   .hp-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 64px; }
   .hp-wrap p { margin: 0; }
-  .hp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--dk-line); }
+  .hp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--color-neutral-300); }
   .hp-headleft { display: flex; flex-wrap: wrap; align-items: center; gap: 0 28px; }
-  .hp-logo { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 18px; color: var(--dk-text); text-decoration: none; }
-  .hp-nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--dk-muted); }
-  .hp-navlink { display: inline-flex; align-items: center; min-height: 44px; color: var(--dk-muted); text-decoration: none; }
+  .hp-logo { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 18px; color: var(--color-ink); text-decoration: none; }
+  .hp-nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); }
+  .hp-navlink { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-neutral-600); text-decoration: none; }
   .hp-clock { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-  .hp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dk-amber); display: inline-block; flex: none; }
+  .hp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--data-700); display: inline-block; flex: none; }
   @media (prefers-reduced-motion: no-preference) {
     .hp-dot { animation: hp-pulse 1.6s ease-in-out infinite; }
     .hp-dot.still { animation: none; }
   }
   @keyframes hp-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
-  .hp-dot.still { background: var(--dk-blue-deep); }
-  body.data h1, body.data h2 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0; text-transform: none; }
-  body.data h1 { line-height: 1.15; }
-  body.data h2 { line-height: 1.25; }
+  .hp-dot.still { background: var(--data-500); }
+  h1, h2 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+  h1 { line-height: 1.15; }
+  h2 { line-height: 1.25; }
   .hp-hero { display: flex; flex-direction: column; gap: 20px; max-width: 900px; }
   .hp-lede { font-size: 18px; }
   .hp-body { font-size: 15px; }
@@ -37,31 +37,31 @@
   .hp-sechead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; }
   .hp-intro { display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
   .hp-bigbox { display: flex; flex-direction: column; gap: 8px; }
-  .hp-big { display: inline-flex; align-items: center; min-height: 88px; font-size: 88px; font-weight: 600; line-height: 1; color: var(--dk-amber); text-decoration: none; }
-  body.data a.hp-big, body.data a.hp-biglink { color: var(--dk-amber); }
-  .hp-biglink { display: inline-flex; align-items: center; min-height: 44px; color: var(--dk-amber); }
+  .hp-big { display: inline-flex; align-items: center; min-height: 88px; font-size: 88px; font-weight: 600; line-height: 1; color: var(--data-700); text-decoration: none; }
+  a.hp-big, a.hp-biglink { color: var(--data-700); }
+  .hp-biglink { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-ink); text-decoration: underline; text-underline-offset: 3px; }
   /* countries list */
   .cr-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
-  .cr-search { flex: 1 1 260px; min-width: 0; max-width: 420px; min-height: 44px; padding: 0 14px; background: var(--dk-panel); color: var(--dk-text); border: 1px solid var(--dk-border); border-radius: 6px; font: inherit; font-weight: 400; }
+  .cr-search { flex: 1 1 260px; min-width: 0; max-width: 420px; min-height: 44px; padding: 0 14px; background: var(--color-surface); color: var(--color-ink); border: 1px solid var(--color-neutral-400); border-radius: 6px; font: inherit; font-weight: 400; }
   .cr-filters { display: flex; flex-wrap: wrap; gap: 8px; }
-  .cr-chip { min-height: 44px; padding: 0 16px; background: var(--dk-raised); color: var(--dk-soft); border: 1px solid var(--dk-border); border-radius: 6px; font: inherit; font-weight: 400; cursor: pointer; }
-  .cr-chip[aria-pressed="true"] { color: var(--dk-text); border-color: var(--dk-amber); }
-  .cr-list { border-top: 1px solid var(--dk-line); }
-  .cr-head, .cr-row { display: grid; grid-template-columns: 36px minmax(0, 1.4fr) 96px minmax(0, 2fr); gap: 16px; align-items: center; padding: 0; border-bottom: 1px solid var(--dk-line); font-size: 14px; }
-  .cr-head { min-height: 36px; color: var(--dk-muted); font-size: 13px; }
-  .cr-row { min-height: 52px; color: var(--dk-text); text-decoration: none; }
-  .cr-row:hover { background: var(--dk-panel); }
+  .cr-chip { min-height: 44px; padding: 0 16px; background: var(--color-surface); color: var(--color-neutral-700); border: 1px solid var(--color-neutral-400); border-radius: 6px; font: inherit; font-weight: 400; cursor: pointer; }
+  .cr-chip[aria-pressed="true"] { color: var(--color-ink); border-color: var(--data-700); }
+  .cr-list { border-top: 1px solid var(--color-neutral-300); }
+  .cr-head, .cr-row { display: grid; grid-template-columns: 36px minmax(0, 1.4fr) 96px minmax(0, 2fr); gap: 16px; align-items: center; padding: 0; border-bottom: 1px solid var(--color-neutral-300); font-size: 14px; }
+  .cr-head { min-height: 36px; color: var(--color-neutral-600); font-size: 13px; }
+  .cr-row { min-height: 52px; color: var(--color-ink); text-decoration: none; }
+  .cr-row:hover { background: var(--color-surface); }
   .cr-row[hidden] { display: none; }
-  .cr-rank { color: var(--dk-muted); text-align: right; font-size: 13px; }
+  .cr-rank { color: var(--color-neutral-600); text-align: right; font-size: 13px; }
   .cr-name { display: flex; flex-direction: column; min-width: 0; }
-  .cr-code { color: var(--dk-muted); font-size: 12px; }
-  .cr-gap { text-align: right; color: var(--dk-amber); }
-  .cr-gap.neg { color: var(--dk-blue); }
-  .cr-gap.none { color: var(--dk-muted); }
+  .cr-code { color: var(--color-neutral-600); font-size: 12px; }
+  .cr-gap { text-align: right; color: var(--data-700); }
+  .cr-gap.neg { color: var(--color-ink); }
+  .cr-gap.none { color: var(--color-neutral-600); }
   .cr-line { width: 100%; height: 28px; display: block; }
-  .cr-line polyline { fill: none; stroke: var(--dk-amber); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-  .cr-line.neg polyline { stroke: var(--dk-blue); }
-  .cr-line line { stroke: var(--dk-line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .cr-line polyline { fill: none; stroke: var(--data-700); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  .cr-line.neg polyline { stroke: var(--color-ink); }
+  .cr-line line { stroke: var(--color-neutral-300); stroke-width: 1; vector-effect: non-scaling-stroke; }
   .cr-note { max-width: 760px; }
   @media (max-width: 620px) {
     .hp-wrap { padding: 0 16px 64px; }
@@ -71,7 +71,7 @@
 
 </style>
 </head>
-<body class="data">
+<body>
 <div id="app"></div>
 <template id="crHeadTpl"><div class="trow cr-head"><span></span><span data-k="colCountry"></span><span class="cr-gap" data-k="colNow"></span><span class="cr-hline"></span></div></template>
 <script src="./js/claims.js"></script>

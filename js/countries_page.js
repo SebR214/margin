@@ -151,7 +151,7 @@
 
   /* ---------------------------------------------------------------- page */
   function hero(wrap, rows, ranked) {
-    var s = el('section', 'hp-hero');
+    var s = el('section', ['hp-hero', 'hero', 'bleed']);
     var cc = D.record && D.record.totals ? D.record.totals.currencies : rows.length;
     put(s, 'h1', null, t('title', { count: num(cc) }));
     put(s, 'p', ['soft', 'hp-lede'], t('lede'));
