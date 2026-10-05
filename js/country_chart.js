@@ -70,7 +70,7 @@
       var g = "";
       niceTicks(lo, hi, 3).forEach(function (v) {
         var y = Y(v).toFixed(1);
-        g += '<line x1="0" x2="' + W + '" y1="' + y + '" y2="' + y + '" style="stroke:var(--dk-grid)"></line>' +
+        g += '<line x1="0" x2="' + W + '" y1="' + y + '" y2="' + y + '" style="stroke:var(--color-neutral-200)"></line>' +
           '<text x="2" y="' + (y - 4) + '" class="cc-ax">' + model.yfmt(v) + "</text>";
       });
       var inW = function (a) { return (a || []).filter(function (p) { return p[0] >= t0 - 864000 && p[0] <= t1 + 864000; }); };
@@ -79,17 +79,17 @@
       if (band.length > 1) {
         var up = path(band, xs, function (p) { return Y(p[2]); });
         var dn = band.slice().reverse().map(function (p) { return "L" + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1); }).join("");
-        g += '<path d="' + up + dn + 'Z" style="fill:var(--dk-blue);fill-opacity:.13"></path>';
+        g += '<path d="' + up + dn + 'Z" style="fill:var(--color-ink);fill-opacity:.13"></path>';
       }
       var seg = inW(model.segment);
       if (seg.length > 1) g += '<path d="' + path(seg, xs, function (p) { return Y(p[1]); }) +
-        '" fill="none" stroke-width="1.2" stroke-dasharray="4 3" style="stroke:var(--dk-amber)" vector-effect="non-scaling-stroke"></path>';
+        '" fill="none" stroke-width="1.2" stroke-dasharray="4 3" style="stroke:var(--data-700)" vector-effect="non-scaling-stroke"></path>';
       var dly = inW(model.daily);
       if (dly.length > 1) g += '<path d="' + path(dly, xs, function (p) { return Y(p[1]); }) +
-        '" fill="none" stroke-width="1.2" style="stroke:var(--dk-soft)"></path>';
+        '" fill="none" stroke-width="1.2" style="stroke:var(--color-neutral-700)"></path>';
       var off = inW(model.official);
       if (off.length > 1) g += '<path d="' + path(off, xs, function (p) { return Y(p[1]); }) +
-        '" fill="none" stroke-width="1.4" style="stroke:var(--dk-blue)"></path>';
+        '" fill="none" stroke-width="1.4" style="stroke:var(--color-ink)"></path>';
       model.sources.forEach(function (s) {
         var d = "";
         s.pts.forEach(function (p) { if (p[0] >= t0 && p[0] <= t1) d += "M" + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1) + "h0"; });

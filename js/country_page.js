@@ -23,7 +23,7 @@
   var MIN_RECORD_DAYS = 20; // the record-position line needs this many days
   // One look per source layer: a token colour and a dot shape. Blue is reserved for the official rate.
   // Past twelve sources the looks repeat; the tooltip and the chip name each source.
-  var COLORS = ["--dk-amber", "--dk-text", "--dk-leg-1", "--dk-soft", "--dk-heat-3", "--dk-leg-3"];
+  var COLORS = ["--data-700", "--color-ink", "--data-400", "--color-neutral-700", "--data-600", "--data-600"];
   function look(i) { return [COLORS[i % COLORS.length], Math.floor(i / COLORS.length) % 2 ? "square" : "round"]; }
 
   var COPY = {};
@@ -201,7 +201,7 @@
     var lead = p2p && S.cdoc.source_class === "p2p_buy_median"
       ? txt("leadP2p", { country: c.country, ccy: ccy, rate: num(p2p.fx_mid_per_usd, 0), street: num(p2p.buy_median, 0) + " " + ccy })
       : txt("leadBook", { country: c.country, ccy: ccy, rate: num(S.cdoc.fx_mid_per_usd, 0), street: num(S.cdoc.buy_price, 0) + " " + ccy });
-    return '<section class="c-hero"><div class="c-herotext">' + w(key, { country: c.country, gap: pct(Math.abs(S.headline)) }, "h1") +
+    return '<section class="c-hero hero bleed"><div class="c-herotext">' + w(key, { country: c.country, gap: pct(Math.abs(S.headline)) }, "h1") +
       (lead ? '<p class="soft c-lead">' + esc(lead) + "</p>" : "") +
       (!S.ranked ? w("unrankedNote", { country: c.country }, "p", ["muted", "c-small"]) : "") + "</div>" +
       '<div class="c-bigbox"><span class="c-big mono" data-receipt-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(gapText) +
@@ -229,14 +229,14 @@
     var left = "";
     var legend = "";
     var lo = txt("legendOfficial"), bd = txt("legendBand");
-    if (lo) legend += '<span class="c-leg"><i class="c-line" style="background:var(--dk-blue)"></i>' + esc(lo) + "</span>";
+    if (lo) legend += '<span class="c-leg"><i class="c-line" style="background:var(--color-ink)"></i>' + esc(lo) + "</span>";
     if (bd && S.bandLo != null) legend += '<span class="c-leg"><i class="c-band"></i>' + esc(bd) + "</span>";
     var chips = "";
     S.idx.sources.forEach(function (s, i) {
       chips += chip(!S.hidden[i], 'data-layer="s' + i + '"', swatch(look(i)) + esc(s.id));
     });
     if (S.unit === "gap" && S.history.length > 1 && txt("layerDaily")) {
-      chips += chip(S.daily, 'data-layer="daily"', '<i class="c-line" style="background:var(--dk-soft)"></i>' + esc(txt("layerDaily")));
+      chips += chip(S.daily, 'data-layer="daily"', '<i class="c-line" style="background:var(--color-neutral-700)"></i>' + esc(txt("layerDaily")));
     }
     if (S.unit === "gap" && S.segment && txt("layerBackfill", { venue: S.segment.venue, label: S.segment.label })) {
       chips += chip(S.seg, 'data-layer="seg"', '<i class="c-line dashed"></i>' + esc(txt("layerBackfill", { venue: S.segment.venue, label: S.segment.label })));
@@ -336,14 +336,14 @@
     if (stampT != null && view.off.length) {
       var oj = nearest(view.off, stampT, 0);
       var ov = view.off[oj];
-      rows += '<div class="c-trow"><i class="c-line" style="background:var(--dk-blue)"></i>' + w("tipOfficial", null, "span", "c-tname") +
+      rows += '<div class="c-trow"><i class="c-line" style="background:var(--color-ink)"></i>' + w("tipOfficial", null, "span", "c-tname") +
         '<span class="mono">' + esc(price_(ov[1]) + " " + ccy) + "</span></div>";
     }
     if (!view.price) {
       if (S.daily && view.daily.length) {
         var dj = nearest(view.daily, t, 0);
         if (Math.abs(view.daily[dj][0] - t) <= DAY) {
-          rows += '<div class="c-trow"><i class="c-line" style="background:var(--dk-soft)"></i>' + w("tipDaily", null, "span", "c-tname") +
+          rows += '<div class="c-trow"><i class="c-line" style="background:var(--color-neutral-700)"></i>' + w("tipDaily", null, "span", "c-tname") +
             '<span class="mono muted">' + esc(pct(view.daily[dj][1])) + "</span></div>";
           if (stampT == null) stampT = view.daily[dj][0];
         }
