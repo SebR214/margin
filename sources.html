@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki</title>
+<link rel="stylesheet" href="./style.css">
+<style>
+  /* The Sources page. Layout from the owner's home and route references (SEB-240):
+     header, h1 and one line, the big number, the stats row, chips, list rows, the
+     square strip. Colours are the --dk-* tokens in style.css, fonts --font-data and
+     --font-mono; no colour is written here. Every word is a key in copy.json
+     (sourcesData) and an element whose key is empty is not rendered. */
+  body.data .s-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 56px; }
+  body.data .s-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--dk-line); }
+  body.data .s-brand { display: flex; flex-wrap: wrap; align-items: center; gap: 0 28px; }
+  body.data .s-logo { font-weight: 600; font-size: 18px; color: var(--dk-text); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+  body.data .s-nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--dk-muted); overflow: visible; }
+  body.data .s-nav a { color: var(--dk-muted); text-decoration: none; font-weight: 400; display: inline-flex; align-items: center; min-height: 44px; }
+  body.data .s-nav a[aria-current] { color: var(--dk-text); font-weight: 400; }
+  body.data .s-asof { font-size: 13px; overflow-wrap: anywhere; }
+
+  body.data .s-hero { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-end; }
+  body.data .s-hero-text { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+  body.data .s-hero-num { flex: 1 1 260px; display: flex; flex-direction: column; gap: 6px; }
+  body.data h1 { margin: 0; font-size: 24px; line-height: 1.15; letter-spacing: 0; }
+  body.data h2 { margin: 0; font-size: 24px; line-height: 1.25; letter-spacing: 0; }
+  body.data p { margin: 0; }
+  body.data .s-lede { font-size: 17px; }
+  body.data .s-big { font-size: 88px; font-weight: 600; line-height: 1; color: var(--dk-amber); }
+  body.data .s-bigl { font-size: 15px; }
+
+  body.data .s-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--dk-line); border: 1px solid var(--dk-line); border-radius: 8px; overflow: hidden; margin-top: -24px; }
+  body.data .s-stat { background: var(--dk-panel); padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; }
+  body.data .s-stat .num { font-size: 24px; font-weight: 600; }
+  body.data .s-stat .lab { font-size: 14px; }
+
+  body.data .s-controls { display: flex; flex-direction: column; gap: 16px; }
+  body.data .s-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  body.data .s-chip { min-height: 44px; padding: 0 16px; border-radius: 6px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid var(--dk-border); background: var(--dk-panel); color: var(--dk-soft); }
+  body.data .s-chip.on { background: var(--dk-text); color: var(--dk-bg); border-color: var(--dk-text); }
+  body.data .s-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
+  body.data .s-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 12px; }
+  body.data .s-legend .head { font-size: 14px; }
+  body.data .s-key { display: inline-flex; align-items: center; gap: 6px; }
+  body.data .sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; flex: none; }
+  body.data .s-count { font-size: 13px; }
+
+  body.data .s-sec { display: flex; flex-direction: column; gap: 16px; }
+  body.data .s-list { border-top: 1px solid var(--dk-line); }
+  body.data .s-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px 32px; padding: 16px 0; border-bottom: 1px solid var(--dk-line); font-size: 14px; }
+  body.data .s-info { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  body.data .s-id { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+  body.data .s-kind { align-self: flex-start; font-size: 12px; padding: 2px 8px; border: 1px solid var(--dk-border); border-radius: 6px; background: var(--dk-panel); }
+  body.data .s-small { font-size: 13px; overflow-wrap: anywhere; }
+  body.data .s-stripcol { flex: 2 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  body.data .s-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(14px, 1fr)); gap: 3px; }
+  body.data .s-strip span { aspect-ratio: 1 / 1; border-radius: 3px; background: var(--dk-track); }
+  body.data .s-strip .s-ans { background: var(--dk-blue); }
+  body.data .s-strip .s-some { background: var(--dk-blue-deep); }
+  body.data .s-strip .s-all { background: var(--dk-amber); }
+  body.data .s-strip .s-not { background: var(--dk-track); }
+  body.data .sw.s-ans { background: var(--dk-blue); }
+  body.data .sw.s-some { background: var(--dk-blue-deep); }
+  body.data .sw.s-all { background: var(--dk-amber); }
+  body.data .sw.s-not { background: var(--dk-track); }
+  body.data .s-ends { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  body.data .s-histcol { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  body.data .s-cur { flex: 1 1 100%; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+  body.data .s-togs { display: flex; flex-wrap: wrap; gap: 8px; }
+  body.data .s-tog { min-height: 44px; padding: 0 16px; border-radius: 6px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid var(--dk-border); background: var(--dk-raised); color: var(--dk-text); }
+  body.data .s-codes { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; }
+  body.data .s-codes[hidden] { display: none; }
+  body.data .s-fail { font-size: 15px; }
+
+  body.data [hidden] { display: none !important; }
+  @media (max-width: 480px) {
+    body.data .s-wrap { padding: 0 16px 72px; gap: 40px; }
+  }
+</style>
+</head>
+<body class="data">
+<div class="s-wrap">
+  <header class="s-head">
+    <div class="s-brand">
+      <a class="s-logo mono" id="logo" href="./index.html" hidden></a>
+      <nav class="s-nav" id="nav"></nav>
+    </div>
+    <span class="s-asof mono muted" id="asof" hidden></span>
+  </header>
+
+  <section class="s-hero">
+    <div class="s-hero-text">
+      <h1 id="headline" hidden></h1>
+      <p class="s-lede soft" id="lede" hidden></p>
+    </div>
+    <div class="s-hero-num">
+      <span class="s-big mono" id="big"></span>
+      <span class="s-bigl soft" id="bigl" hidden></span>
+    </div>
+  </section>
+
+  <div class="s-stats" id="stats"></div>
+
+  <section class="s-controls">
+    <div class="s-chips" id="chips" role="group"></div>
+    <div class="s-bar">
+      <div class="s-legend soft" id="legend"></div>
+      <span class="s-count mono muted" id="count" hidden></span>
+    </div>
+  </section>
+
+  <section class="s-sec" id="liveSec">
+    <h2 id="liveHead" hidden></h2>
+    <div class="s-list" id="liveList"></div>
+  </section>
+
+  <section class="s-sec" id="histSec">
+    <h2 id="histHead" hidden></h2>
+    <div class="s-list" id="histList"></div>
+  </section>
+  <p class="s-fail soft" id="fail" hidden></p>
+</div>
+<script src="./js/sources_page.js"></script>
+</body>
+</html>
