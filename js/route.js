@@ -311,7 +311,7 @@
 
   function buildChartSection() {
     return '<section class="r-sec" id="rChartSec"><div id="rChartCtl"></div><div id="rChartSlot"></div>' +
-      '<div class="mono muted r-axis" id="rAxis"></div><div class="r-stats" id="rStats"></div></section>';
+      '<div class="mono muted r-axis" id="rAxis"></div>' + (comparable(S.route) ? '<div class="r-stats" id="rStats"></div>' : '') + '</section>';
   }
 
   function buildBreakdownSection() {
@@ -362,6 +362,7 @@
   // The selection stats, computed here from the stored hours inside the window.
   function drawStats() {
     var rows = rowsFor(S.route, S.amount), el = document.getElementById("rStats");
+    if (!el) return;
     if (!rows.length) { el.innerHTML = ""; return; }
     var win = S.sel || windowFor(rows);
     var inW = inWindow(rows, win[0], win[1]);
@@ -395,7 +396,7 @@
   function drawChart(reset) {
     var rows = rowsFor(S.route, S.amount);
     drawAxis();
-    if (!rows.length) { document.getElementById("rStats").innerHTML = ""; return; }
+    if (!rows.length) { if (document.getElementById("rStats")) document.getElementById("rStats").innerHTML = ""; return; }
     var m = chartModel(rows);
     if (reset) { S.sel = null; chart.update(m); } else chart.redraw(m);
     drawStats();
@@ -443,6 +444,7 @@
 
   function buildBreakdown() {
     var el = document.getElementById("rBrk");
+    if (!el) return;
     if (brkState === "failed") { el.innerHTML = w("breakdownFailed", null, "p", "muted"); return; }
     if (!BRK) { el.innerHTML = w("breakdownLoading", null, "p", "muted"); return; }
     var days = brkDays();
@@ -514,6 +516,7 @@
     return a[S.unit === "abs" ? f[0] : f[1]];
   }
   function drawCompare() {
+    if (!document.getElementById("rCompare")) return;
     var chips = METRICS.map(function (m) { return chip("metric", m[0], S.metric === m[0], txt(m[1])); }).join("");
     var shown = HOURLY.routes.filter(function (r) { return comparable(r.id); });
     var left = HOURLY.routes.filter(function (r) { return !comparable(r.id); });
@@ -537,6 +540,7 @@
     return r && r.amounts.filter(function (a) { return a.amount === S.amount; })[0];
   }
   function drawWhat() {
+    if (!document.getElementById("rWhat")) return;
     var left = HOURLY.routes.filter(function (r) { return !comparable(r.id); });
     var pathNote = "";
     var out = HOURLY.routes.filter(function (r) { return comparable(r.id); }).map(function (r) {
@@ -585,7 +589,7 @@
   function renderAll() {
     S.sel = null;
     app.innerHTML = '<div class="r-wrap">' + head() + '<div class="r-top">' + routeChips() + amountChips() + "</div>" + buildHero() + buildChartSection() +
-      buildBreakdownSection() + buildLower() + "</div>";
+      (comparable(S.route) ? buildBreakdownSection() + buildLower() : "") + "</div>";
     mountChart();
     drawControls();
     drawChart(true);
