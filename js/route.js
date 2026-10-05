@@ -290,9 +290,9 @@
     var vals = { route: routeLabel(r), send: r.send_ccy, recv: r.recv_ccy, amount: whole(S.amount) + " " + r.send_ccy,
       hours: whole(s.total_hours_stable_cheapest), priced: whole(s.hours_priced_any_amount) };
     return '<section class="r-hero r-pull"><div class="r-herotext">' + w("headline", vals, "h1") + w("lead", vals, "p", "slead") +
-      '</div><div class="r-bigbox"><span class="r-big mono">' + esc(whole(s.total_hours_stable_cheapest)) + "</span>" +
-      w("bigCaption", vals, "span", "soft") +
-      (comparable(S.route) ? "" : w("routeNotComparable", vals, "span", "msm")) + "</div></section>";
+      '</div><div class="r-bigbox">' + (comparable(S.route)
+        ? '<span class="r-big mono">' + esc(whole(s.total_hours_stable_cheapest)) + "</span>" + w("bigCaption", vals, "span", "soft")
+        : w("routeNotComparable", vals, "span", "msm")) + "</div></section>";
   }
 
   function chartControls() {
