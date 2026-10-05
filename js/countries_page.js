@@ -73,6 +73,7 @@
     H2.currencies.forEach(function (c) { byCcy[c.ccy] = c; });
     var withheld = {};
     (D.index.withheld || []).forEach(function (w) { withheld[w.ccy] = w; });
+    (D.index.unverified || []).forEach(function (u) { var k = typeof u === 'string' ? u : u.ccy; if (k && !withheld[k]) { withheld[k] = { ccy: k, reason: null }; } });
     var names = {};
     (D.index.countries || []).concat(D.index.withheld || [], D.index.unverified || []).forEach(function (c) {
       if (c && c.ccy) { names[c.ccy] = c.country || names[c.ccy]; }
@@ -168,7 +169,7 @@
     var st = D.cycles && D.cycles.steps && D.cycles.steps.currencies;
     if (st && claimOk('homeData.updatedCount')) {
       put(s, 'p', ['muted', 'hp-body'], t('metaTemplate', {
-        time: (D.index.as_of_utc || '').slice(11, 16), n: num(st.collected), total: num(cc)
+        time: ((D.cycles && D.cycles.last_reading_utc) || D.index.as_of_utc || '').slice(11, 16), n: num(st.collected), total: num(cc)
       }));
     }
     if (s.childNodes.length) { wrap.appendChild(s); }

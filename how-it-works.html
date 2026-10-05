@@ -296,9 +296,9 @@ Promise.all([copyP, fetch('./data/index_latest.json', {cache:'no-store'}).then(r
   // element is guarded rather than removed outright in case a future
   // section wants it again.
   var introCountEl = document.getElementById('introCountryCount');
-  if (introCountEl) introCountEl.textContent = (d.countries||[]).length + (d.withheld||[]).length;
+  if (introCountEl) introCountEl.textContent = (d.countries||[]).length + (d.withheld||[]).length + (d.unverified||[]).length;
   document.getElementById('thresholdP').textContent =
-    fillTpl(HIW.thresholdCounts, { priced: (d.countries||[]).length, notPriced: (d.withheld||[]).length });
+    fillTpl(HIW.thresholdCounts, { priced: (d.countries||[]).length, notPriced: (d.withheld||[]).length + (d.unverified||[]).length });
 
 }).catch(function(){});
 

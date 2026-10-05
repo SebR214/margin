@@ -40,6 +40,13 @@ def main():
     countries = {c["ccy"]: c for c in idx["countries"]}
     for w in idx["withheld"]:
         countries.setdefault(w["ccy"], w)
+    # a currency the index lists as unverified is still one we cover: a row with whatever readings it has
+    for u in idx.get("unverified") or []:
+        ccy = u if isinstance(u, str) else u.get("ccy")
+        if ccy and ccy not in countries:
+            fp = os.path.join(DATA, "countries", ccy + ".json")
+            name = json.load(open(fp)).get("country", ccy) if os.path.exists(fp) else ccy
+            countries[ccy] = {"ccy": ccy, "country": name}
     # raw order-book rows, per currency and day
     raw = {}
     first_ts = None
