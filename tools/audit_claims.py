@@ -185,13 +185,24 @@ def claim_coverage_matches_index(c):
         printed = json.load(open(os.path.join(DATA, "cycle_log.json")))["steps"]["currencies"]
     except (OSError, ValueError, KeyError):
         pass
+    # A currency is priced when its country file carries a price for the index's own hour and the index publishes it.
+    # A file left over from an earlier hour (a currency the index lists as unverified) is not priced.
+    hour, unverified = None, set()
+    try:
+        idx = json.load(open(os.path.join(DATA, "index_latest.json")))
+        hour = idx["as_of_utc"][:13]
+        unverified = {u if isinstance(u, str) else u.get("ccy") for u in idx.get("unverified") or []}
+    except (OSError, ValueError, KeyError):
+        pass
     priced = total = 0
     for f in sorted(os.listdir(os.path.join(DATA, "countries"))):
         if not f.endswith(".json") or " " in f:
             continue
         d = json.load(open(os.path.join(DATA, "countries", f)))
         total += 1
-        if isinstance(d.get("index_pct"), (int, float)):
+        if f[:-5] in unverified:
+            continue  # the index does not publish a price for an unverified currency
+        if isinstance(d.get("index_pct"), (int, float)) and hour and str(d.get("hour_utc", ""))[:13] == hour:
             priced += 1
     ok = bool(printed) and printed["collected"] == priced and printed["of"] == total
     return ok, {"printed_priced": printed and printed["collected"], "printed_of": printed and printed["of"],

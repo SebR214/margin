@@ -20,7 +20,7 @@ Schema
       ],
       "steps": {   (the NEWEST cycle only)
         "hour_utc": ...,
-        "currencies": {"collected": n, "of": 60},   currencies the index prices (published price), of its priced + withheld;
+        "currencies": {"collected": n, "of": 60},   currencies the index prices (published price), of its priced + withheld + unverified;
                                                     "with_a_reading" = any stored row this hour
         "routes":     {"priced": n, "of": 7},       routes with a samples.csv reading this hour
         "auditor":    {"rebuilt": drawn, "matched": passed, "sample_ts": ..., "same_hour": bool},
@@ -126,7 +126,8 @@ def build():
     last_dt = dt.datetime.fromisoformat(last_ts).astimezone(dt.timezone.utc).replace(tzinfo=None)
     nxt = (last_dt + dt.timedelta(seconds=cadence)).strftime("%Y-%m-%dT%H:%M:%SZ") if cadence else None
     idx = json.load(open(os.path.join(rc.DATA, "index_latest.json")))
-    n_ccy = len(idx["countries"]) + len(idx["withheld"])
+    # every currency the site covers: priced, withheld, and the ones the index lists as unverified
+    n_ccy = len(idx["countries"]) + len(idx["withheld"]) + len(idx.get("unverified") or [])
     n_routes = len({r["route"] for r in rows if r["file"] == "samples.csv" and r["route"]})
     nh = last_hours[-1]
     steps = {

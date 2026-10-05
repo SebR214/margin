@@ -139,7 +139,8 @@
 
   // The record-position line: where today's gap sits in the record, ranked against ONE series.
   function recordLine() {
-    var useSeg = !!(S.segment && S.seg);
+    // Records count our own readings only: the older history is measured against a once-a-day official rate.
+    var useSeg = false;
     var vals = (useSeg ? S.segment.points.map(function (p) { return p.index_pct; }) : S.history.map(function (h) { return h.index_pct; }))
       .map(Math.abs);
     var now = S.headline;
@@ -185,7 +186,7 @@
       cells += statCell("statRange30", pct(Math.min.apply(null, recent)) + " – " + pct(Math.max.apply(null, recent)));
     }
     if (S.history.length > 1) {
-      var useSeg = !!(S.segment && S.seg);
+      var useSeg = false;
       var pool = S.history.map(function (h) { return { date: h.date, v: h.index_pct }; });
       if (useSeg) pool = S.segment.points.map(function (q) { return { date: q.date, v: q.index_pct }; }).concat(pool);
       var wide = pool.reduce(function (m, h) { return Math.abs(h.v) > Math.abs(m.v) ? h : m; });
@@ -308,10 +309,6 @@
       var sg = S.segment, first = dayLong(isoEpoch(sg.first)), last = dayLong(isoEpoch(sg.last));
       if (S.seg) {
         out += w("historySegmentSource", { since: dayShort(isoEpoch(S.history[0].date)), venue: sg.venue, fxSource: sg.fx_source, first: first, last: last, label: sg.label }, "p", ["muted", "c-small"]);
-        var moves = (sg.largest_moves || []).map(function (m) {
-          return txt("historySegmentMoveItem", { delta: (m.delta_pct > 0 ? "+" : "") + num(m.delta_pct, 1), date: dayLong(isoEpoch(m.date)) });
-        }).filter(Boolean).join(", ");
-        if (moves) out += w("historySegmentMoves", { moves: moves }, "p", ["muted", "c-small"]);
         out += '<p class="mono muted c-small"><a href="' + RAW + "data/country_history_segment/" + esc(ccy) + '.json">data/country_history_segment/' + esc(ccy) + ".json</a></p>";
       }
     } else {
