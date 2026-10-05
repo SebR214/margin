@@ -5,13 +5,14 @@
  * is not rendered. No word is written in this file.
  *
  * Reads: data/heatmap_daily.json, record_daily.json, cycle_log.json,
- * record_milestones.json, movers_week.json, findings.json, copy.json.
+ * movers_week.json, routes_summary.json, copy.json.
+ * The "This hour" and "The record grew" blocks live in js/cycle_block.js and
+ * js/record_block.js (used by other pages).
  */
 (function () {
 
   var HEAT_STEPS = [2, 8, 25, 50]; // gap thresholds in percent; the legend shows these numbers
   var BIG_CCY = 'DZD';             // the page's one big number
-  var LAST_N = 48;
   var SVGNS = 'http://www.w3.org/2000/svg';
   var C = {};
   var D = {};
@@ -57,7 +58,6 @@
   function dLong(day) {
     return new Date(day + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
   }
-  function hhmm(iso) { return iso ? iso.slice(11, 16) : ''; }
   function ccyLink(parent, ccy, cls) {
     var a = el('a', cls, ccy);
     a.href = 'country.html?ccy=' + encodeURIComponent(ccy);
@@ -130,101 +130,35 @@
       gap: big ? num(big.value, 0) : '', country: big ? big.country : ''
     };
   }
+  function currencyCount() {
+    var R = D.record, st = D.cycles && D.cycles.steps;
+    if (R && R.totals && R.totals.currencies != null) { return R.totals.currencies; }
+    return st && st.currencies ? st.currencies.of : null;
+  }
+  /* headline, what the site is, the one big number, subhead, updated line */
   function hero(wrap) {
-    if (!has('headline') && !has('headlineSub')) { return; }
     var s = el('section', 'hp-hero');
     word(s, 'h1', null, 'headline', totalsVars);
+    var cc = currencyCount();
+    if (cc != null) { word(s, 'p', ['soft', 'hp-lede'], 'whatLine', function () { return { currencies: num(cc) }; }); }
+    if (D.big) {
+      var bigBox = el('div', 'hp-bigbox');
+      var href = 'country.html?ccy=' + encodeURIComponent(BIG_CCY);
+      var a = el('a', ['mono', 'hp-big']);
+      a.href = href;
+      a.textContent = num(D.big.value, 0) + '%';
+      bigBox.appendChild(a);
+      var bv = function () { return { country: D.big.country, ccy: BIG_CCY, date: dShort(D.days[D.days.length - 1]), gap: num(D.big.value, 1) }; };
+      word(bigBox, 'span', 'soft', 'bigCaption', bv);
+      var ln = word(bigBox, 'a', 'hp-biglink', 'bigLink', bv);
+      if (ln) { ln.href = href; }
+      s.appendChild(bigBox);
+    }
     word(s, 'p', ['soft', 'hp-lede'], 'headlineSub', totalsVars);
-    wrap.appendChild(s);
+    var cs = D.cycles && D.cycles.steps && D.cycles.steps.currencies;
+    if (cs) { word(s, 'p', ['muted', 'hp-body'], 'updatedLine', function () { return { collected: num(cs.collected), of: num(cs.of) }; }); }
+    if (s.childNodes.length) { wrap.appendChild(s); }
   }
-  function counters(wrap) {
-    var R = D.record;
-    if (!R) { return; }
-    var box = el('div', 'hp-counterbox');
-    var grid = el('div', 'hp-counters');
-    var recAt = function () { return R.byDay[D.days[S.i]] || {}; };
-    [['counterReadings', 'readings_cumulative'], ['counterSources', 'sources_cumulative'],
-     ['counterCurrencies', 'currencies_cumulative'], ['counterRoutes', 'routes_cumulative'],
-     ['counterHours', 'hours_cumulative']].forEach(function (c) {
-      var cell = el('div');
-      var v = el('span', ['mono', 'hp-count']);
-      var run = function () { var d = recAt(); v.textContent = d[c[1]] == null ? '' : num(d[c[1]]); };
-      run(); updaters.push(run);
-      cell.appendChild(v);
-      word(cell, 'span', ['muted', 'hp-small'], c[0]);
-      grid.appendChild(cell);
-    });
-    box.appendChild(grid);
-    word(box, 'span', ['mono', 'muted', 'hp-tiny'], 'countersNote', function () { return { date: dayLabel(S.i) }; });
-    wrap.appendChild(box);
-  }
-
-  /* ---------------------------------------------------------------- this hour */
-  function cycleSection(wrap) {
-    var CL = D.cycles;
-    if (!CL || !CL.steps) { return; }
-    var st = CL.steps;
-    var sec = el('section', 'hp-sec');
-    var head = el('div', 'hp-sechead');
-    word(head, 'h2', null, 'cycleTitle');
-    word(head, 'span', ['muted', 'hp-small'], 'cycleLine');
-    sec.appendChild(head);
-    var row = el('div', 'hp-row');
-    var list = el('div', ['hp-main', 'hp-list']);
-    var hour = hhmm(st.hour_utc);
-    var last = CL.cycles && CL.cycles.length ? CL.cycles[CL.cycles.length - 1] : null;
-    var steps = [];
-    if (st.currencies) { steps.push({ time: hour, key: 'stepCurrencies', vars: { collected: num(st.currencies.collected), of: num(st.currencies.of) } }); }
-    if (st.routes) { steps.push({ time: hour, key: 'stepRoutes', vars: { priced: num(st.routes.priced), of: num(st.routes.of) } }); }
-    if (st.auditor) {
-      steps.push({ time: hhmm(st.auditor.sample_ts) || hour, key: 'stepAuditor', vars: { rebuilt: num(st.auditor.rebuilt) },
-        vkey: 'stepAuditorResult', vvars: { matched: num(st.auditor.matched), rebuilt: num(st.auditor.rebuilt) } });
-    }
-    if (st.analyst != null && typeof st.analyst === 'object') { // null: the analyst has not run, so no row
-      var av = {};
-      Object.keys(st.analyst).forEach(function (k) { if (typeof st.analyst[k] !== 'object') { av[k] = st.analyst[k]; } });
-      steps.push({ time: hour, key: 'stepAnalyst', vars: av });
-    }
-    if (last) {
-      var rk = last.status === 'clean' ? 'resultClean' : last.status === 'source_missed' ? 'resultSourceMissed' : 'resultCheckFailed';
-      steps.push({ time: hhmm(last.last_reading_utc) || hour, key: rk, vars: { sources: (last.reasons || []).join(', '), n: (last.reasons || []).length }, final: true });
-    }
-    steps.forEach(function (s) {
-      if (!has(s.key)) { return; }
-      var r = el('div', 'hp-step');
-      r.appendChild(el('span', ['mono', 'muted', 'hp-time'], s.time));
-      r.appendChild(el('span', s.final ? 'hp-sdot-amber' : 'hp-sdot'));
-      var tx = el('span', s.final ? 'hp-steptext' : ['soft', 'hp-steptext'], t(s.key, s.vars));
-      r.appendChild(tx);
-      if (s.vkey && has(s.vkey)) { r.appendChild(el('span', 'mono', t(s.vkey, s.vvars))); }
-      list.appendChild(r);
-    });
-    row.appendChild(list);
-
-    var side = el('div', ['hp-side', 'hp-tight']);
-    var cycles = (CL.cycles || []).slice(-LAST_N);
-    word(side, 'span', ['muted', 'hp-small'], 'stripTitle', function () { return { n: cycles.length }; });
-    var strip = el('div', 'hp-strip');
-    cycles.forEach(function (c) {
-      var s = el('span', c.status === 'check_failed' ? 'sf' : c.status === 'source_missed' ? 'sm' : 'sc');
-      s.title = c.hour_utc.slice(0, 10) + ' ' + hhmm(c.hour_utc);
-      strip.appendChild(s);
-    });
-    side.appendChild(strip);
-    var leg = el('div', ['soft', 'hp-tiny', 'hp-legend']);
-    [['stripClean', 'sc'], ['stripMissed', 'sm'], ['stripFailed', 'sf']].forEach(function (l) {
-      if (!has(l[0])) { return; }
-      var s = el('span');
-      s.appendChild(el('i', ['hp-sw', 'k' + l[1]]));
-      s.appendChild(document.createTextNode(' ' + t(l[0])));
-      leg.appendChild(s);
-    });
-    side.appendChild(leg);
-    row.appendChild(side);
-    sec.appendChild(row);
-    wrap.appendChild(sec);
-  }
-
   /* ---------------------------------------------------------------- heatmap */
   function heatSection(wrap) {
     var H = D.heat;
@@ -308,19 +242,6 @@
     row.appendChild(main);
 
     var side = el('aside', 'hp-side');
-    // the one big number
-    var bigBox = el('div', 'hp-bigbox');
-    if (D.big) {
-      var a = el('a', ['mono', 'hp-big']);
-      a.href = 'country.html?ccy=' + encodeURIComponent(BIG_CCY);
-      a.textContent = num(D.big.value, 0) + '%';
-      bigBox.appendChild(a);
-      var bv = function () { return { country: D.big.country, ccy: BIG_CCY, date: dShort(D.days[n - 1]), gap: num(D.big.value, 1) }; };
-      word(bigBox, 'span', 'soft', 'bigLabel', bv);
-      var ln = word(bigBox, 'a', 'hp-biglink', 'bigLink', bv);
-      if (ln) { ln.href = 'country.html?ccy=' + encodeURIComponent(BIG_CCY); }
-      side.appendChild(bigBox);
-    }
     // widest gaps on the selected day
     var topBox = el('div', 'hp-topbox');
     word(topBox, 'span', ['muted', 'hp-small'], 'topTitle', function () { return { date: dayLabel(S.i) }; });
@@ -392,7 +313,6 @@
     S.i = i;
     paintHeat();
     updaters.forEach(function (u) { u(); });
-    if (D.moveLine) { D.moveLine(); }
   }
   function stop() { if (timer) { clearInterval(timer); timer = null; } S.playing = false; }
   function toggle(relabel) {
@@ -406,120 +326,7 @@
     }, 160);
   }
 
-  /* ---------------------------------------------------------------- record timeline */
-  function recordSection(wrap) {
-    var R = D.record;
-    if (!R || !R.days || R.days.length < 2) { return; }
-    var rd = R.days;
-    var n = rd.length;
-    var sec = el('section', 'hp-sec');
-    var head = el('div', 'hp-sechead');
-    word(head, 'h2', null, 'recordTitle');
-    word(head, 'span', ['mono', 'muted', 'hp-small'], 'recordCount', function () {
-      var d = R.byDay[D.days[S.i]] || rd[rd.length - 1];
-      return { n: num(d.readings_cumulative) };
-    });
-    sec.appendChild(head);
-    var box = el('div', 'hp-record');
-    var max = rd[n - 1].readings_cumulative || 1;
-    var X = function (k) { return (k * 560 / (n - 1)).toFixed(1); };
-    var pts = rd.map(function (d, k) { return X(k) + ',' + (118 - d.readings_cumulative / max * 108).toFixed(1); });
-    var line = 'M' + pts.join(' L');
-    var svg = sv('svg', { viewBox: '0 0 560 120', preserveAspectRatio: 'none' }, 'hp-recsvg');
-    svg.appendChild(sv('path', { d: line + ' L560,120 L0,120 Z' }, 'hp-area'));
-    svg.appendChild(sv('path', { d: line, 'vector-effect': 'non-scaling-stroke' }, 'hp-line'));
-    var cur = sv('line', { y1: '0', y2: '120', 'vector-effect': 'non-scaling-stroke' }, 'hp-cursor');
-    svg.appendChild(cur);
-    var moveCursor = function () {
-      var k = Math.max(0, rd.findIndex(function (d) { return d.day === D.days[S.i]; }));
-      cur.setAttribute('x1', X(k)); cur.setAttribute('x2', X(k));
-    };
-    moveCursor(); D.moveLine = moveCursor;
-    box.appendChild(svg);
-
-    // markers: backfill and route days first, then source days by how many sources began
-    var cands = [];
-    var byDay = {};
-    var back = [];
-    (D.milestones || []).forEach(function (m) {
-      if (m.kind === 'backfill') { back.push(m); return; }
-      var o = byDay[m.first_day] || (byDay[m.first_day] = { route: [], source: [] });
-      (o[m.kind] || o.source).push(m.id);
-    });
-    if (back.length) {
-      back.sort(function (a, b) { return a.first_day < b.first_day ? -1 : 1; });
-      cands.push({ prio: 0, k: 0, ids: back.map(function (m) { return m.id; }),
-        parts: [t('markBackfill', { n: back.length, date: dLong(back[0].first_day), id: back[0].id })] });
-    }
-    var dayKeys = Object.keys(byDay).sort();
-    var idx = {};
-    rd.forEach(function (d, k) { idx[d.day] = k; });
-    dayKeys.forEach(function (day) {
-      if (idx[day] == null) { return; }
-      var o = byDay[day], parts = [], ids = o.route.concat(o.source);
-      if (o.route.length) { parts.push(t('markRoute', { date: dShort(day), n: o.route.length, ids: o.route.join(', ') })); }
-      if (o.source.length) {
-        parts.push(o.source.length === 1
-          ? t('markSource', { date: dShort(day), id: o.source[0] })
-          : t('markSources', { date: dShort(day), n: o.source.length }));
-      }
-      cands.push({ prio: o.route.length ? 1 : 2 + (1 - Math.min(o.source.length, 1000) / 1000), k: idx[day], ids: ids, parts: parts, day: day });
-    });
-    cands.sort(function (a, b) { return a.prio - b.prio || a.k - b.k; });
-    var marks = cands.filter(function (c) { return c.parts.some(Boolean); }).map(function (c) {
-      var m = el('div', 'hp-mark');
-      m.title = c.ids.join(', ');
-      var lab = el('span', ['soft', 'hp-marklabel']);
-      c.parts.filter(Boolean).forEach(function (p, q) { lab.appendChild(el('span', 'hp-markpart', p)); });
-      m.appendChild(lab);
-      m.appendChild(el('span', 'hp-markline'));
-      m.style.visibility = 'hidden';
-      box.appendChild(m);
-      return { c: c, m: m, lab: lab };
-    });
-    var place = function () {
-      var W = box.clientWidth;
-      var placed = [];
-      marks.forEach(function (o) { o.m.style.display = ''; o.m.style.visibility = 'hidden'; });
-      marks.forEach(function (o) {
-        var p = o.c.k / (n - 1);
-        var right = p > 0.6;
-        var w = o.lab.offsetWidth;
-        var x = p * W;
-        var fits = function (r) { return r ? x - w >= -1 : x + w <= W + 1; };
-        if (!fits(right)) { right = !right; }
-        if (!fits(right)) { o.m.style.display = 'none'; return; }
-        var a = right ? x - w : x, b = right ? x : x + w;
-        var ok = -1;
-        for (var lane = 0; lane < 3 && ok < 0; lane++) {
-          var clash = placed.some(function (q) {
-            if (q.lane === lane) { return a < q.b + 10 && b > q.a - 10; }                // same row
-            if (q.lane < lane) { return q.x > a - 6 && q.x < b + 6; }                    // its line crosses this row
-            return x > q.a - 6 && x < q.b + 6;                                           // our line crosses its row
-          });
-          if (!clash) { ok = lane; }
-        }
-        if (ok < 0) { o.m.style.display = 'none'; return; }
-        o.m.style.display = '';
-        o.m.style.visibility = 'visible';
-        o.m.style.top = (ok * 22) + 'px';
-        o.m.style.left = right ? 'auto' : (p * 100).toFixed(2) + '%';
-        o.m.style.right = right ? ((1 - p) * 100).toFixed(2) + '%' : 'auto';
-        o.m.classList.toggle('end', right);
-        o.m.lastChild.style.height = (176 - ok * 22) + 'px';
-        placed.push({ lane: ok, a: a, b: b, x: x });
-      });
-    };
-    D.placeMarks = place;
-    sec.appendChild(box);
-    var foot = el('div', ['mono', 'muted', 'hp-axis']);
-    foot.appendChild(el('span', null, dShort(rd[0].day)));
-    word(foot, 'span', null, 'axisToday');
-    sec.appendChild(foot);
-    wrap.appendChild(sec);
-  }
-
-  /* ---------------------------------------------------------------- what moved + findings */
+  /* ---------------------------------------------------------------- what moved + stablecoin line */
   function spark(values) {
     var svg = sv('svg', { viewBox: '0 0 70 20', width: '70', height: '20' }, 'hp-spark');
     var nums = values.filter(function (v) { return v != null; });
@@ -553,7 +360,21 @@
         var a = el('a', 'hp-mover');
         a.href = 'country.html?ccy=' + encodeURIComponent(m.ccy);
         a.appendChild(el('span', ['mono', 'hp-movercode'], m.ccy));
-        var line = t('moverLine', { country: m.country, ccy: m.ccy, from: num(m.earlier_median_pct, 1), to: num(m.recent_median_pct, 1), change: (m.change_pp > 0 ? '+' : '\u2212') + num(Math.abs(m.change_pp), 1), abs: num(Math.abs(m.change_pp), 1) });
+        // baseline window: every day before the last 7 (movers_week.json "definition")
+        var n = D.days ? D.days.length : 0;
+        var li = D.days ? D.days.indexOf(M.last_day) : -1;
+        if (li < 0) { li = n - 1; }
+        var hrow = (D.rows || []).filter(function (r) { return r.ccy === m.ccy; })[0];
+        var since = '', until = '';
+        if (hrow && li - 7 >= 0) {
+          for (var q = 0; q <= li - 7; q++) { if (hrow.cells[q] != null) { since = dShort(D.days[q]); break; } }
+          until = dShort(D.days[li - 7]);
+        }
+        var dir = function (v) { return t(v < 0 ? 'dirBelow' : 'dirAbove'); };
+        var line = t('moverLine', {
+          country: m.country, baseline: num(Math.abs(m.earlier_median_pct), 1) + '%', baselineDir: dir(m.earlier_median_pct),
+          recent: num(Math.abs(m.recent_median_pct), 1) + '%', recentDir: dir(m.recent_median_pct), since: since, until: until
+        });
         if (line) { a.appendChild(el('span', ['soft', 'hp-moverline'], line)); } else { a.appendChild(el('span', 'hp-moverline')); }
         a.appendChild(spark(m.spark || []));
         list.appendChild(a);
@@ -561,27 +382,22 @@
       sec.appendChild(list);
       both.appendChild(sec);
     }
-    var F = D.findings;
-    if (F) {
-      var pub = F.filter(function (f) { return f.published; });
-      var fs = el('section', 'hp-half');
-      fs.id = 'findings';
-      word(fs, 'h2', null, 'findingsTitle');
-      var n = 0;
-      pub.forEach(function (f) {
-        var key = 'finding_' + f.id;
-        if (!has(key)) { return; }
-        n++;
-        var a = el('a', 'hp-card');
-        a.href = 'finding.html?id=' + encodeURIComponent(f.id);
-        a.appendChild(el('span', ['mono', 'hp-cardnum'], (n < 10 ? '0' : '') + n));
-        var hv = f.headline ? f.headline.value : null;
-        a.appendChild(el('span', null, t(key, { value: num(hv, hv != null && Math.abs(hv) < 100 && hv % 1 ? 1 : 0), n: n })));
-        fs.appendChild(a);
-      });
-      if (n) { both.appendChild(fs); }
-    }
     if (both.childNodes.length) { wrap.appendChild(both); }
+  }
+
+  /* One stablecoin statement, for SGD->PHP only, and only while the stored claim is true:
+     total_hours_stable_cheapest must be 0. Any other value renders nothing. */
+  function stableSection(wrap) {
+    var RS = D.routes;
+    if (!RS || !RS.routes) { return; }
+    var r = RS.routes.filter(function (x) { return x.id === 'SGD->PHP'; })[0];
+    if (!r || r.total_hours_stable_cheapest !== 0 || typeof r.hours_priced_any_amount !== 'number' || !RS.start) { return; }
+    var sec = el('section', 'hp-sec');
+    var vars = function () { return { hours: num(r.hours_priced_any_amount), since: dLong(RS.start) }; };
+    word(sec, 'p', ['soft', 'hp-lede'], 'stableLine', vars);
+    var a = word(sec, 'a', 'hp-biglink', 'stableLink', vars);
+    if (a) { a.href = './sending-money.html'; }
+    if (sec.childNodes.length) { wrap.appendChild(sec); }
   }
 
   /* ---------------------------------------------------------------- start */
@@ -612,8 +428,6 @@
       R.days.forEach(function (d) { R.byDay[d.day] = d; });
       if (!D.days) { D.days = R.days.map(function (d) { return d.day; }); S.i = D.days.length - 1; }
     }
-    if (D.milestones) { D.milestones = D.milestones.milestones || []; }
-    if (D.findings) { D.findings = D.findings.findings || []; }
   }
 
   function build() {
@@ -622,27 +436,19 @@
     var wrap = el('div', 'hp-wrap');
     header(wrap);
     hero(wrap);
-    if (D.days) { counters(wrap); }
-    cycleSection(wrap);
     if (D.days) { heatSection(wrap); }
-    if (D.days) { recordSection(wrap); }
     lowerSections(wrap);
+    stableSection(wrap);
     if (D.failed.length && has('loadError')) {
       wrap.appendChild(el('p', ['muted', 'hp-note'], t('loadError', { n: D.failed.length })));
     }
     app.appendChild(wrap);
     if (D.days) { set(S.i); }
-    if (D.placeMarks) {
-      D.placeMarks();
-      var rt = null;
-      window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(D.placeMarks, 120); });
-      if (document.fonts && document.fonts.ready) { document.fonts.ready.then(D.placeMarks); }
-    }
   }
 
   var jobs = {
     heat: 'data/heatmap_daily.json', record: 'data/record_daily.json', cycles: 'data/cycle_log.json',
-    milestones: 'data/record_milestones.json', movers: 'data/movers_week.json', findings: 'data/findings.json'
+    movers: 'data/movers_week.json', routes: 'data/routes_summary.json'
   };
   D.failed = [];
   Promise.all([getJSON('copy.json').catch(function () { return {}; })].concat(Object.keys(jobs).map(function (k) {

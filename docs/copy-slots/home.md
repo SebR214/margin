@@ -1,5 +1,7 @@
 # Copy slots: home (index.html)
 
+Home v2 (SEB-240): page order is header, headline, whatLine, big number (bigCaption, bigLink), headlineSub, updatedLine, heatmap, what moved, stablecoin statement. Sections marked REMOVED are no longer rendered on home; their keys stay in copy.json untouched.
+
 Every key lives in `copy.json` under `homeData`. All values start empty. The page does not render an element whose key is empty, so the page fills in as the words arrive.
 
 Placeholders are written `{name}` inside the words; the page replaces each with the stored value. Numbers carry no `%`, `S$` or unit words: write them. A placeholder not listed for a key is not available there. Max words is per key.
@@ -31,26 +33,23 @@ Numbers, dates (day and month), currency codes and stored ids on the page are da
 | Key | What it labels | Placeholders | Max words |
 | --- | --- | --- | --- |
 | `headline` | The page headline (the page's h1). | {readings} {sources} {currencies} {routes} {hours} = latest totals; {gap} = Algeria's gap today in %, {country} = Algeria. Numbers carry no % sign: write it in the words. | 16 |
-| `headlineSub` | One line under the headline. | Same as headline. | 30 |
+| `whatLine` | NEW. One line directly under the headline saying what the site is. | {currencies} = number of currencies priced (record_daily.json totals.currencies; falls back to cycle_log steps.currencies.of). | 25 |
+| `bigCaption` | NEW. Caption under the page's one big number (Algeria's gap on the last day, always the last day, not the slider; the number is rounded and shows its own % sign). Replaces `bigLabel`. | {country}, {ccy}, {date}, {gap} = the gap with one decimal. | 14 |
+| `bigLink` | Link text under the caption to country.html?ccy=DZD. | {country}, {ccy}, {date}, {gap} as bigCaption. | 6 |
+| `headlineSub` | The subhead, now under the big number block (key unchanged, writer rewrites). | Same as headline. | 30 |
+| `updatedLine` | NEW. One line under the subhead: how current the data is. The only remains of the old "This hour" section on home. | {collected} = currencies with a reading this hour, {of} = currencies expected (cycle_log.json steps.currencies). | 20 |
+## Counters (REMOVED)
 
-## Counters
-
-| Key | What it labels | Placeholders | Max words |
-| --- | --- | --- | --- |
-| `counterReadings` | Label under the readings-stored number. The number follows the replay date. | none (the number is shown above the label) | 4 |
-| `counterSources` | Label under the sources number. | none | 5 |
-| `counterCurrencies` | Label under the currencies number. | none | 4 |
-| `counterRoutes` | Label under the routes number. | none | 4 |
-| `counterHours` | Label under the hours-collected number. | none | 4 |
-| `countersNote` | Small line under the counters saying which day they are as of. | {date} = the replay day (e.g. 5 Oct) or the dayToday word on the last day. | 14 |
-
+The five counters, their replay-date logic and `countersNote` are gone from home. Keys `counterReadings`, `counterSources`, `counterCurrencies`, `counterRoutes`, `counterHours`, `countersNote` are unused.
 ## Shared
 
 | Key | What it labels | Placeholders | Max words |
 | --- | --- | --- | --- |
 | `dayToday` | The word shown instead of a date when the replay is on the last day (heatmap day label, counters note, widest-gaps title). If empty the date is shown. | none | 2 |
 
-## This hour
+## This hour (REMOVED from home, now js/cycle_block.js)
+
+Moved off home; another agent renders it on how-it-works.html with `renderCycleBlock(containerEl, cycleLog, copyBlock)` from `js/cycle_block.js`. The caller passes a copyBlock object with these keys (same names and placeholders as before, unchanged below): `cycleTitle`, `cycleLine`, `stepCurrencies`, `stepRoutes`, `stepAuditor`, `stepAuditorResult`, `stepAnalyst`, `resultClean`, `resultSourceMissed`, `resultCheckFailed`, `stripTitle`, `stripClean`, `stripMissed`, `stripFailed`. The `homeData` keys of those names are no longer used by home.
 
 | Key | What it labels | Placeholders | Max words |
 | --- | --- | --- | --- |
@@ -84,19 +83,20 @@ Numbers, dates (day and month), currency codes and stored ids on the page are da
 
 ## Heatmap side panel
 
+The big number moved out of the side panel to the top of the page (see Hero: `bigCaption`, `bigLink`). `bigLabel` is unused.
+
 | Key | What it labels | Placeholders | Max words |
 | --- | --- | --- | --- |
-| `bigLabel` | Under the page's one big number (Algeria's gap today, always the last day, not the slider). | {country}, {ccy}, {date}, {gap} = the gap with one decimal (the big number is rounded and shows a % sign by itself). | 14 |
-| `bigLink` | Link text under it to country.html?ccy=DZD. | {country} | 6 |
-| `topTitle` | Title over the 6 widest-gap bars for the selected day. | {date} | 8 |
+| `topTitle` | Title over the 6 widest-gap rows for the selected day. Rows are ranked strictly by the percentage, largest first, and each row shows its number (for example 90%) beside the code and bar. | {date} | 8 |
 | `legendTitle` | Title of the colour legend. | none | 6 |
 | `legendUnder` | Legend row for the lowest colour step. | {max} = 2 (a number; add the % sign in the words). | 5 |
 | `legendBetween` | Legend row used for the three middle colour steps (8 to 25 and so on). | {min}, {max} = the step's two limits, e.g. 2 and 8, 8 and 25, 25 and 50. | 5 |
 | `legendOver` | Legend row for the top colour step. | {min} = 50. | 5 |
 | `legendNone` | Legend row for a cell with no reading. | none | 5 |
 | `legendUnranked` | Legend row for an unranked currency (only shown when one is drawn). | none | 5 |
+## Record timeline (REMOVED from home, now js/record_block.js)
 
-## Record timeline
+Moved off home; another agent renders it on how-it-was-built.html with `renderRecordBlock(containerEl, recordDaily, milestones, copyBlock)` from `js/record_block.js`. The caller passes a copyBlock with these keys (unchanged): `recordTitle`, `recordCount` ({n} = total readings stored), `axisToday`, `markBackfill`, `markRoute`, `markSource`, `markSources`. The block no longer follows a replay day (no cursor). The `homeData` keys of those names are no longer used by home.
 
 | Key | What it labels | Placeholders | Max words |
 | --- | --- | --- | --- |
@@ -113,19 +113,19 @@ Numbers, dates (day and month), currency codes and stored ids on the page are da
 | Key | What it labels | Placeholders | Max words |
 | --- | --- | --- | --- |
 | `moversTitle` | Heading of the biggest-movers list. | none | 8 |
-| `moverLine` | One line per currency (4 rows) next to its 30-day sparkline. The row links to its country page. | {country}, {ccy}, {from} = median gap before the last 7 days (%), {to} = median of the last 7 days (%), {change} = signed change in percentage points, {abs} = unsigned. | 16 |
+| `moverLine` | CHANGED (emptied; the writer refills). One line per currency (4 rows) next to its 30-day sparkline. The row links to its country page. | {country}; {baseline} = the median gap before the last 7 days, absolute value with a % sign; {baselineDir} = the dirAbove or dirBelow word by the sign of the baseline; {recent} = median of the last 7 days, absolute with a % sign; {recentDir} = dirAbove or dirBelow by its sign; {since} = first day of the baseline window (first day with a reading, e.g. 5 Sept); {until} = last day of the baseline window (the day before the last 7 days). Baseline per data/movers_week.json `definition`: the median of all days before the last 7. | 24 |
+| `dirAbove` | NEW. The word for a positive gap (people pay more than the official rate), slotted into {baselineDir} and {recentDir}. | none | 3 |
+| `dirBelow` | NEW. The word for a negative gap (people pay less than the official rate). | none | 3 |
+## Findings (REMOVED from home)
 
-## Findings
+The numbered findings cards and their data (data/findings.json) are gone from home. Keys `findingsTitle` and every `finding_*` key are unused.
+
+## Stablecoin statement
 
 | Key | What it labels | Placeholders | Max words |
 | --- | --- | --- | --- |
-| `findingsTitle` | Heading of the findings list. | none | 5 |
-| `finding_price_changes` | One line for the finding price_changes (card number 01 etc is added by the page). A finding with an empty line is not shown. | {value} = number of confirmed price changes since the record began (a provider's price for a route and amount moved and every other provider measured against it did not move the same way). A count of changes, not of days. | 20 |
-| `finding_weekend_penalty` | One line for weekend_penalty. | {value} = number of Saturday checks on which a provider charged more than the day before and then came back down within two days. | 20 |
-| `finding_volume_crossover` | One line for volume_crossover. | {value} = monthly sending volume in SGD above which, for S$5,000 from Singapore to the Philippines with a market order, the stablecoin route's cost (rebuilt from real samples with the fee tier that volume unlocks at Independent Reserve and Coins.ph) drops below the best other app's typical cost. Never watched happening: rebuilt, for that one route and amount. | 20 |
-| `finding_stress_signal` | One line for stress_signal (not published yet, so not shown yet). | {value} = triggers on record. | 20 |
-| `finding_p2p_spread_signal` | One line for p2p_spread_signal (not published yet). | {value} = widest buy-sell spread against the currency's average. | 20 |
-
+| `stableLine` | NEW. The one stablecoin statement at the bottom, for SGD to PHP only. Rendered only while data/routes_summary.json route SGD->PHP has total_hours_stable_cheapest equal to 0; otherwise nothing is rendered (the claim would be false). | {hours} = hours_priced_any_amount for SGD->PHP, with thousands separator; {since} = the record start date (`start`, with year, e.g. 10 Aug 2026). | 30 |
+| `stableLink` | NEW. Link under it to sending-money.html. | {hours}, {since} | 6 |
 ## Page
 
 | Key | What it labels | Placeholders | Max words |
