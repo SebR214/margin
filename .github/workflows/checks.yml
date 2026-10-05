@@ -165,6 +165,17 @@ jobs:
   cold-reader:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Serialize per PR. Without this, two workflow runs for the same PR
+    # (opened+synchronize, a push landing close to the 'ready' label, two
+    # quick pushes) can both read the "runs so far" comment count before
+    # either has posted its own, so both decide the same run number and both
+    # post a comment -- inflating the counter past the real number of passes
+    # and tripping the 3-run cap early (SEB-244). cancel-in-progress drops the
+    # now-stale run for an old commit rather than letting it finish and post
+    # a comment the next trigger would have to out-count anyway.
+    concurrency:
+      group: cold-reader-${{ github.event.pull_request.number || github.sha }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
         with:
