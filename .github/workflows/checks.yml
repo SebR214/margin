@@ -220,6 +220,9 @@ jobs:
         if: steps.gate.outputs.gates == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          COLD_READER_BACKEND: ${{ vars.COLD_READER_BACKEND }}
+          COLD_READER_OPENROUTER_MODEL: ${{ vars.COLD_READER_OPENROUTER_MODEL }}
         run: python3 tools/check_cold_reader.py --self-test
 
       - name: Gate 2 - cold reader check (changed pages only, one read each)
@@ -229,6 +232,9 @@ jobs:
         env:
           # The agents' flat-rate subscription token. Never the metered key.
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          COLD_READER_BACKEND: ${{ vars.COLD_READER_BACKEND }}
+          COLD_READER_OPENROUTER_MODEL: ${{ vars.COLD_READER_OPENROUTER_MODEL }}
         run: |
           set +e
           python3 tools/check_cold_reader.py --changed-only --base "origin/${{ github.base_ref }}" | tee cold_reader.txt

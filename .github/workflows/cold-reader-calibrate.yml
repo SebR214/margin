@@ -1,0 +1,53 @@
+name: cold-reader-calibrate
+
+# Manual only. Reads the same pages with the subscription model and with an OpenRouter
+# model and prints how many failures each flags and how many quotes they share, so a
+# cheaper model is not switched on blind. Changes nothing.
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "OpenRouter model id, e.g. qwen/qwen3-235b-a22b-2507"
+        required: true
+      pages:
+        description: "Pages to read, space separated"
+        default: "how-it-works.html countries.html index.html tests/jargon_page.html"
+
+permissions:
+  contents: read
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: npm install -g @anthropic-ai/claude-code
+      - name: Read with the subscription model
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: python3 tools/check_cold_reader.py --pages ${{ inputs.pages }} --json-out claude.json || true
+      - name: Read with the OpenRouter model
+        env:
+          COLD_READER_BACKEND: openrouter
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          COLD_READER_OPENROUTER_MODEL: ${{ inputs.model }}
+        run: python3 tools/check_cold_reader.py --pages ${{ inputs.pages }} --json-out other.json || true
+      - name: Compare
+        run: |
+          python3 - <<'PY'
+          import json,re
+          norm=lambda s: re.sub(r"\s+"," ",(s or "")).strip().lower()[:50]
+          a={r["page"]:r for r in json.load(open("claude.json"))}
+          b={r["page"]:r for r in json.load(open("other.json"))}
+          print("page | subscription flags | openrouter flags | shared quotes")
+          for p in a:
+              qa={norm(f.get("exact_text")) for f in a[p]["failures"]}
+              qb={norm(f.get("exact_text")) for f in b.get(p,{}).get("failures",[])}
+              print("%s | %d | %d | %d" % (p,len(qa),len(qb),len(qa&qb)))
+              for f in b.get(p,{}).get("failures",[]): print("   OR:", f.get("exact_text","")[:110])
+              for f in a[p]["failures"]: print("   SUB:", f.get("exact_text","")[:110])
+          PY
