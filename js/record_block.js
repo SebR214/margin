@@ -158,9 +158,5 @@
 
   root.renderRecordBlock = renderRecordBlock;
   if (typeof module !== 'undefined' && module.exports) { module.exports = { renderRecordBlock: renderRecordBlock }; }
-<<<<<<< HEAD
+if (typeof window !== 'undefined') { window.renderRecordBlock = renderRecordBlock; }
 })(typeof window !== 'undefined' ? window : this);
-=======
-  if (typeof window !== 'undefined') { window.renderRecordBlock = renderRecordBlock; }
-})(typeof window !== 'undefined' ? window : this);
->>>>>>> origin/main
