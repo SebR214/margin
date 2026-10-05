@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki — how it works</title>
-<meta name="description" content="What a dollar really costs, what sending money costs, and how what people pay for a dollar is made."/>
+<title></title>
+<meta name="description" content=""/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
 <script src="./js/chart.js"></script>
@@ -141,19 +141,19 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       <ul class="plain-list" id="sourcesList"></ul>
     </section>
 
-    <details class="full-method" id="full-method"><summary>How a price is made, and how we check it</summary><div>
-      <div class="kicker">Method and checks</div>
-      <div class="lede">Everything above is the short version. Below is how a price is made, and how we check our numbers against ones we do not control.</div>
+    <details class="full-method" id="full-method"><summary id="methodSummary"></summary><div>
+      <div class="kicker" id="methodKicker"></div>
+      <div class="lede" id="methodLede"></div>
 
-      <div class="h">How we work out each price</div>
+      <div class="h" id="methodMadeTitle"></div>
       <div class="p" id="methodMadeP"></div>
-      <div class="p" id="thresholdP">Loading today's counts…</div>
+      <div class="p" id="thresholdP"></div>
 
-      <div class="p"><a href="./METHODOLOGY.md">The full technical method, with the depth behind each price and the round-trip rules →</a></div>
+      <div class="p"><a href="./METHODOLOGY.md" id="methodLink"></a></div>
 
-      <div class="h">Checking our prices against other sites</div>
-      <div class="p" id="refCheckIntro">Loading…</div>
-      <div id="refCheck" class="p" style="padding-top:14px">Loading the comparison&hellip;</div>
+      <div class="h" id="refCheckTitle"></div>
+      <div class="p" id="refCheckIntro"></div>
+      <div id="refCheck" class="p" style="padding-top:14px"></div>
 
     <!-- "How fast does the street react?" taken off the site 2026-09-27
          alongside countries.html's #reaction section -- see the HTML
@@ -175,11 +175,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     -->
 
     <div class="ask">
-      <input type="text" placeholder="Ask the agent how any number was made" id="hiwAskInput"/>
-      <button aria-label="ask" id="hiwAskBtn"><svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M4 10h11M11 5l5 5-5 5" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <input type="text" placeholder="" id="hiwAskInput"/>
+      <button aria-label="" id="hiwAskBtn"><svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M4 10h11M11 5l5 5-5 5" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
     <div id="hiwAnswer" style="display:none;max-width:720px;margin-top:16px;padding:16px 20px;background:#F6F6F6;border-radius:14px;font-size:15px;line-height:1.55;color:#0B0B0B"></div>
-    <div class="askNote">The code and every data file are public. Your AI can ask the same questions over MCP or the API.</div>
+    <div class="askNote" id="askNote"></div>
     </div></details>
     <footer class="foot">Every number on this site comes from a public data file. <a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></footer>
   </main>
@@ -200,7 +200,14 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&am
 function getJson(u){ return fetch(u, {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; }); }
 var NUM_WORDS = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
 function numWord(n){ return NUM_WORDS[n] != null ? NUM_WORDS[n] : String(n); }
-function joinNames(a){ return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
+// Every reader-facing word on this page, including the loading, failure and
+// ask-box sentences, is a key of copy.json's "howItWorks" block (HIW).
+var HIW = {};
+var copyP = getJson('./copy.json').then(function(c){ HIW = (c && c.howItWorks) || {}; return HIW; });
+// Fill {placeholders} in a template. A missing key or value leaves nothing.
+// In an html context the values arrive already escaped.
+function fillTpl(tpl, vals){ return (tpl || '').replace(/\{(\w+)\}/g, function(m, k){ return vals && vals[k] != null ? vals[k] : ''; }); }
+function joinNames(a){ return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' ' + HIW.listAnd + ' ' + a[a.length - 1]; }
 // Fill {placeholders}; drop any sentence that still has an unfilled one.
 function fillCopy(tpl, vals){
   if (!tpl) return '';
@@ -221,13 +228,32 @@ function setList(id, items, vals){
 }
 function setText(id, txt){ var el = document.getElementById(id); if (el) el.textContent = txt; }
 
+// The page's own fixed text, set as soon as the copy arrives.
+copyP.then(function(h){
+  document.title = h.pageTitle || '';
+  var md = document.querySelector('meta[name="description"]');
+  if (md) md.setAttribute('content', h.pageDescription || '');
+  setText('methodSummary', h.methodSummary || '');
+  setText('methodKicker', h.methodKicker || '');
+  setText('methodLede', h.methodLede || '');
+  setText('methodMadeTitle', h.methodMadeTitle || '');
+  setText('thresholdP', h.thresholdLoading || '');
+  setText('methodLink', h.methodLink || '');
+  setText('refCheckTitle', h.refCheckTitle || '');
+  setText('refCheckIntro', h.refCheckIntroLoading || '');
+  setText('refCheck', h.refCheckLoading || '');
+  setText('askNote', h.askNote || '');
+  var ai = document.getElementById('hiwAskInput'); if (ai) ai.placeholder = h.askPlaceholder || '';
+  var ab = document.getElementById('hiwAskBtn'); if (ab) ab.setAttribute('aria-label', h.askLabel || '');
+});
+
 Promise.all([
-  getJson('./copy.json'),
+  copyP,
   getJson('./data/index_latest.json'),
   getJson('./data/providers_latest.json'),
   getJson('./data/sources_latest.json')
 ]).then(function(res){
-  var hiw = (res[0] && res[0].howItWorks) || {};
+  var hiw = res[0] || {};
   var idx = res[1], prov = res[2], src = res[3];
   var minAds = idx && idx.min_buy_ads != null ? idx.min_buy_ads : null;
 
@@ -295,7 +321,8 @@ Promise.all([
   });
 }).catch(function(){});
 
-fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(function(d){
+Promise.all([copyP, fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json())]).then(function(res){
+  var d = res[1];
   var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
   // Same figure the homepage binds its hero line to (countries.length +
   // withheld.length) -- these were two separately typed numbers for the
@@ -306,7 +333,7 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
   var introCountEl = document.getElementById('introCountryCount');
   if (introCountEl) introCountEl.textContent = (d.countries||[]).length + (d.withheld||[]).length;
   document.getElementById('thresholdP').textContent =
-    'This hour: ' + (d.countries||[]).length + ' priced, ' + (d.withheld||[]).length + ' not.';
+    fillTpl(HIW.thresholdCounts, { priced: (d.countries||[]).length, notPriced: (d.withheld||[]).length });
 
   // ---- Checking ourselves against a reference ----
   // data/fx_rates.csv already carries an independently published parallel
@@ -345,35 +372,35 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
       var ref = latest[ccy];
       var ours = byCcy[ccy];
       var country = CCY_COUNTRY[ccy] || ccy;
-      if (!ref) return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' + esc(country) + ': no reference reading available.</div>';
+      if (!ref) return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' + fillTpl(HIW.refNoReading, { country: esc(country) }) + '</div>';
       var refPremium = (ref.par / ref.fx - 1) * 100;
       if (!ours) {
         return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' +
-          esc(country) + ': ' + esc(ref.src) + ' publishes ' +
-          (refPremium >= 0 ? '+' : '') + refPremium.toFixed(1) + '%, we have no price this hour to set beside it.</div>';
+          fillTpl(HIW.refNoOurs, { country: esc(country), src: esc(ref.src), premium: (refPremium >= 0 ? '+' : '') + refPremium.toFixed(1) + '%' }) + '</div>';
       }
       var diff = ours.index_pct - refPremium;
       var group = Math.abs(diff) < 1 ? 'match' : (diff > 0 ? 'higher' : 'lower');
       groups[group].push({ country: country, diff: diff });
       var oursStr = (ours.index_pct>=0?'+':'') + ours.index_pct.toFixed(1) + '%';
-      return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' +
-        esc(country) + ': us <b class="num" data-receipt-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(oursStr) + '" tabindex="0">' + oursStr + '</b>, ' +
-        esc(ref.src) + ' <b class="num">' + (refPremium>=0?'+':'') + refPremium.toFixed(1) + '%</b> &middot; ' +
-        '<a href="./country.html?ccy=' + esc(ccy) + '" style="font-weight:600;color:#0B0B0B">the gap over time →</a></div>';
+      return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' + fillTpl(HIW.refRow, {
+        country: esc(country),
+        ours: '<b class="num" data-receipt-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(oursStr) + '" tabindex="0">' + oursStr + '</b>',
+        src: esc(ref.src),
+        theirs: '<b class="num">' + (refPremium>=0?'+':'') + refPremium.toFixed(1) + '%</b>',
+        link: '<a href="./country.html?ccy=' + esc(ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(HIW.refGapLink || '') + '</a>'
+      }) + '</div>';
     }).join('');
 
     function nameList(items) {
-      var names = items.map(function(i){ return i.country + ' (' + Math.abs(i.diff).toFixed(1) + ' points)'; });
-      if (names.length < 2) return names.join('');
-      return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+      return joinNames(items.map(function(i){ return fillTpl(HIW.refPoints, { country: i.country, points: Math.abs(i.diff).toFixed(1) }); }));
     }
     var parts = [];
-    if (groups.higher.length) parts.push('run higher in ' + nameList(groups.higher));
-    if (groups.lower.length) parts.push('run lower in ' + nameList(groups.lower));
-    if (groups.match.length) parts.push('match in ' + nameList(groups.match));
-    var summary = 'Where someone else publishes the same number, we show both.';
+    if (groups.higher.length) parts.push(fillTpl(HIW.refRunHigher, { names: nameList(groups.higher) }));
+    if (groups.lower.length) parts.push(fillTpl(HIW.refRunLower, { names: nameList(groups.lower) }));
+    if (groups.match.length) parts.push(fillTpl(HIW.refMatch, { names: nameList(groups.match) }));
+    var summary = HIW.refSummaryLead || '';
     if (parts.length) {
-      summary += ' We ' + parts.slice(0, -1).join(', ') + (parts.length > 1 ? ', and ' : '') + parts[parts.length - 1] + '.';
+      summary += ' ' + fillTpl(HIW.refSummaryCompare, { parts: parts.slice(0, -1).join(', ') + (parts.length > 1 ? ', ' + HIW.listAnd + ' ' : '') + parts[parts.length - 1] });
     }
     document.getElementById('refCheckIntro').textContent = summary;
 
@@ -383,11 +410,11 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
     // separate cash rate -- so "we price USDT, they publish cash" does not
     // hold for all three countries, and is left unstated rather than
     // asserted (SEB, plain-language rewrite, 2026-09-27).
-    var why = '<div class="mini" style="padding:8px 0;font-size:15px">Why we differ: we haven’t found why yet.</div>';
+    var why = '<div class="mini" style="padding:8px 0;font-size:15px">' + esc(HIW.refWhy || '') + '</div>';
 
     document.getElementById('refCheck').outerHTML = '<div id="refCheck">' + rows + why + '</div>';
   }).catch(function(){
-    document.getElementById('refCheckIntro').textContent = 'Could not load the reference comparison. That failure is shown, not hidden.';
+    document.getElementById('refCheckIntro').textContent = HIW.refFail || '';
     document.getElementById('refCheck').textContent = '';
   });
 }).catch(function(){});
@@ -395,18 +422,17 @@ fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()).then(fun
 // Section commented out above 2026-09-27 -- guard stops this fetch from
 // running against elements that no longer exist.
 if (document.getElementById('reactionMethodP')) {
-fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }); }).then(function(d){
   document.getElementById('reactionMethodP').innerHTML =
-    'Right now that is <b class="num">' + d.n_countries_qualified + ' of ' + d.n_countries_total + '</b> tracked countries, each with at least <b class="num">' + d.min_hours_required + ' hours</b> of continuous hourly history. ' +
-    'A step counts as an official-rate move once it exceeds <b class="num">' + d.event_threshold_pct + '%</b>, and a reaction counts as "caught up" once the premium has closed at least <b class="num">' + Math.round((1 - d.reversion_fraction) * 100) + '%</b> of the gap the step opened, searched for up to <b class="num">' + Math.round(d.max_window_hours / 24) + ' days</b> after the step.';
+    fillTpl(HIW.reactionCounts, { qualified: d.n_countries_qualified, total: d.n_countries_total, hours: d.min_hours_required }) + ' ' +
+    fillTpl(HIW.reactionStep, { threshold: d.event_threshold_pct, closed: Math.round((1 - d.reversion_fraction) * 100), days: Math.round(d.max_window_hours / 24) });
   var r = d.premium_lag_correlation;
   document.getElementById('reactionFindingP').innerHTML =
-    'This feature started from a guess: the wider a country’s premium, the slower its street price should react. Checked against every qualified country’s own numbers, the two are ' +
-    (r == null ? 'not yet checkable' : 'barely related (r = <b class="num">' + r.toFixed(2) + '</b>)') +
-    '. Algeria (' + 'DZD' + ') has one of the widest premiums measured anywhere on the site and one of the fastest reactions; Turkey trades close to the official rate and reacts far slower. The illustrative "Turkey in about 2 hours, Algeria in about 3 days" framing this feature was scoped from does not hold up against the real numbers — read <a href="./countries.html#reaction">the countries page</a> for what each one actually measures.';
+    fillTpl(HIW.reactionFindingLead, { relation: r == null ? fillTpl(HIW.reactionRelationNone) : fillTpl(HIW.reactionRelationWeak, { r: r.toFixed(2) }) }) + ' ' +
+    fillTpl(HIW.reactionFindingBody, { ccy: 'DZD', countriesPage: '<a href="./countries.html#reaction">' + esc(HIW.reactionCountriesLink || '') + '</a>' });
 }).catch(function(){
-  document.getElementById('reactionMethodP').textContent = 'Could not load the current thresholds. That failure is shown, not hidden.';
-  document.getElementById('reactionFindingP').textContent = 'Could not load the real numbers. That failure is shown, not hidden.';
+  document.getElementById('reactionMethodP').textContent = HIW.reactionMethodFail || '';
+  document.getElementById('reactionFindingP').textContent = HIW.reactionFindingFail || '';
 });
 }
 
@@ -441,11 +467,11 @@ fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ 
     var mentioned = Object.keys(tracked).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
     if (mentioned.length) {
       var c = tracked[mentioned[0]];
-      show('Every hour the collector takes the real median price, ' + esc(c.evidence_words) + ' (' + esc(c.source_words) + '), compares it to the official rate captured in the same pass, and that gap is the number — nothing modelled, nothing smoothed.' +
-        '<div style="margin-top:10px;font-size:14px"><a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(c.country) + '’s full receipt →</a></div>');
+      show(fillTpl(HIW.askMethodTracked, { evidence: esc(c.evidence_words), source: esc(c.source_words) }) +
+        '<div style="margin-top:10px;font-size:14px"><a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">' + fillTpl(HIW.askReceiptLink, { country: esc(c.country) }) + '</a></div>');
     } else {
-      show('Every hour the collector takes a real median price, compares it to the official rate from the same pass, and publishes the gap — nothing modelled, nothing forecast. Ten sell offers minimum; under that, a country shows its reason instead of a number. Every published figure traces to a file you can open.' +
-        '<div style="margin-top:10px;font-size:14px"><a href="./countries.html" style="font-weight:600;color:#0B0B0B">see a real number on the index →</a></div>');
+      show(esc(HIW.askMethodGeneric || '') +
+        '<div style="margin-top:10px;font-size:14px"><a href="./countries.html" style="font-weight:600;color:#0B0B0B">' + esc(HIW.askIndexLink || '') + '</a></div>');
     }
   }
 
@@ -469,15 +495,15 @@ fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ 
     var mentionedTracked = Object.keys(tracked).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
     var mentionedWorld = Object.keys(worldNames).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
     var untracked = mentionedWorld.filter(function(n){ return !tracked[n]; });
+    var allLink = '<a href="./countries.html" style="font-weight:600;color:#0B0B0B">' + esc(HIW.askAllCountriesLink || '') + '</a>';
     if (untracked.length) {
-      return esc(worldNames[untracked[0]]) + ' isn’t one of the countries this site collects prices for — nothing is being hidden, it was simply never collected. ' +
-        '<a href="./countries.html" style="font-weight:600;color:#0B0B0B">See every tracked country →</a>';
+      return fillTpl(HIW.askUntracked, { country: esc(worldNames[untracked[0]]), link: allLink });
     }
     if (mentionedTracked.length) {
       var c = tracked[mentionedTracked[0]];
-      return 'That phrasing didn’t resolve, but <b>' + esc(c.country) + '</b> <i>is</i> tracked. <a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">See ' + esc(c.country) + '’s page →</a>';
+      return fillTpl(HIW.askTracked, { country: esc(c.country), link: '<a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">' + fillTpl(HIW.askTrackedLink, { country: esc(c.country) }) + '</a>' });
     }
-    return 'That couldn’t be turned into a query against what’s collected here. <a href="./countries.html" style="font-weight:600;color:#0B0B0B">See every tracked country →</a>.';
+    return fillTpl(HIW.askUnparsed, { link: allLink });
   }
 
   function submit(){
@@ -487,7 +513,7 @@ fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ 
     // premise is "how it works", so free-form SQL is never the right tool
     // for that shape of question, only for a genuinely open data question.
     if (METHOD_RE.test(q)) { methodologyAnswer(q); return; }
-    show('<span style="color:#9A9A9A">Asking…</span>');
+    show('<span style="color:#9A9A9A">' + esc(HIW.askWaiting || '') + '</span>');
     fetch(API_BASE + '/ask', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -500,11 +526,11 @@ fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ 
           show(isRateLimit ? esc(err) : diagnose(q));
           return;
         }
-        var sentence = esc(res.body.sentence || 'No plain answer came back for that.');
+        var sentence = esc(res.body.sentence || HIW.askNoAnswer || '');
         var sqlId = 'sql' + Math.random().toString(36).slice(2,8);
         var html = '<div>' + sentence + '</div>';
         if (res.body.sql) {
-          html += '<div style="margin-top:10px"><a href="#" id="' + sqlId + '-toggle" style="font-size:14px;color:#6B6B6B;font-weight:600">See the actual database query →</a>' +
+          html += '<div style="margin-top:10px"><a href="#" id="' + sqlId + '-toggle" style="font-size:14px;color:#6B6B6B;font-weight:600">' + esc(HIW.askSqlLink || '') + '</a>' +
             '<div id="' + sqlId + '" style="display:none;margin-top:6px;font-size:14px;color:#9A9A9A;font-family:ui-monospace,monospace;word-break:break-all">' + esc(res.body.sql) + '</div></div>';
         }
         show(html);
@@ -516,7 +542,7 @@ fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ 
         });
       })
       .catch(function(){
-        show('The live ask service is not reachable right now. That failure is shown, not hidden.');
+        show(esc(HIW.askUnreachable || ''));
       });
   }
   btn.addEventListener('click', submit);
