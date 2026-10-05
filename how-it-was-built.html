@@ -27,6 +27,28 @@
   nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap;min-width:0}
   nav a.active{color:var(--ink);font-weight:700}
   .live{display:flex;align-items:center;gap:8px;font-size:14px;letter-spacing:.08em;color:#6B6B6B}
+
+  /* Record growth section styles */
+  .dkpanel { background: var(--dk-bg); color: var(--dk-text); border-radius: 8px; padding: 20px 24px; font-family: var(--font-data); }
+  .dkpanel h2 { font-size: 24px; font-weight: 600; margin: 0 0 16px; }
+
+  /* hp-* styles from home-v2, wrapped for the record block */
+  .dkpanel .hp-sec { display: flex; flex-direction: column; gap: 16px; }
+  .dkpanel .hp-sechead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .dkpanel .hp-small { font-size: 14px; }
+  .dkpanel .mono { font-family: 'Archivo', system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  .dkpanel .muted { color: var(--dk-muted); }
+  .dkpanel .soft { color: var(--dk-soft); }
+  .dkpanel .hp-record { position: relative; height: 210px; border-bottom: 1px solid var(--dk-line); }
+  .dkpanel .hp-recsvg { position: absolute; left: 0; bottom: 0; width: 100%; height: 150px; overflow: visible; }
+  .dkpanel .hp-area { fill: var(--dk-amber); fill-opacity: .14; }
+  .dkpanel .hp-line { fill: none; stroke: var(--dk-amber); stroke-width: 1.5; }
+  .dkpanel .hp-mark { position: absolute; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+  .dkpanel .hp-mark.end { align-items: flex-end; }
+  .dkpanel .hp-marklabel { font-size: 12px; white-space: nowrap; }
+  .dkpanel .hp-markpart + .hp-markpart { margin-left: 10px; }
+  .dkpanel .hp-markline { width: 1px; background: var(--dk-mark); display: block; }
+  .dkpanel .hp-axis { display: flex; justify-content: space-between; font-size: 12px; margin-top: -8px; }
   .header-right{display:flex;align-items:center;gap:16px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
   .dot.off{background:#9A9A9A}
@@ -141,11 +163,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 <body>
 <div class="wrap">
   <header class="mwh"><a class="mwh-logo" href="./index.html">margin.wiki</a><nav>
-        <a href="./index.html">Home</a>
-        <a href="./sending-money.html">Sending money</a>
         <a href="./countries.html">Countries</a>
+        <a href="./sending-money.html">Routes</a>
+        <a href="./sources.html">Sources</a>
+        <a href="./findings.html">Findings</a>
         <a href="./how-it-works.html">How it works</a>
-        <a href="./how-it-was-built.html" class="active">How it was built</a>
       </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button><span id="dot" style="display:none"></span><span id="connLabel" style="display:none"></span></header>
 
   <div class="hero">
@@ -174,9 +196,10 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       <p class="small"><a href="./agent-incidents.html" id="incidentsLink">&nbsp;</a></p>
     </section>
 
+    <section id="recordBlock" class="dkpanel" style="display:none">
+      <!-- Record block will be rendered here by JavaScript -->
+    </section>
     <section>
-      <h2 id="collectedTitle" style="padding-top:22px">&nbsp;</h2>
-      <p class="answer" id="collectedLine"></p>
       <p class="small" style="margin-top:0"><a id="tapeLink" href="./tape.html">&nbsp;</a></p>
     </section>
 
@@ -295,7 +318,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     document.getElementById('incidentsList').innerHTML = (I.items||[]).map(function(it){
       return '<li><b>'+esc(T(it.what, it))+'</b><span>'+esc(T(it.text, it))+'</span></li>';
     }).join('');
-    var ct = document.getElementById('collectedTitle'); ct.textContent = (COPY.collected || {}).title || ''; ct.hidden = !ct.textContent;
   }
 
   // The meta line under the title: when the last hourly price check ran.
@@ -379,8 +401,36 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var date = isNaN(d0) ? '' : d0.getUTCDate() + ' ' + (m[d0.getUTCMonth()] || '');
     var nf = function(n){ return Number(n || 0).toLocaleString('en-US'); };
     if (!date || x.observations == null) return;
-    document.getElementById('collectedLine').textContent = T(Z.template, {
-      n: nf(x.observations), date: date, countries: nf(x.countries), routes: nf(x.routes), year: x.history_first_year || '' });
+  }
+
+  // Render the record growth section
+  async function renderRecordBlockSection() {
+    try {
+      // Fetch the required data files
+      const [recordDaily, recordMilestones, copyJson] = await Promise.all([
+        fetch('./data/record_daily.json', {cache: 'no-store'}).then(r => r.json()),
+        fetch('./data/record_milestones.json', {cache: 'no-store'}).then(r => r.json()),
+        fetch('./copy.json', {cache: 'no-store'}).then(r => r.json())
+      ]);
+
+      // Get the copy block for the record section
+      const machineRoomCopy = copyJson.machineRoom || {};
+
+      // Import the renderRecordBlock function
+      const script = document.createElement('script');
+      script.src = './js/record_block.js';
+      script.onload = function() {
+        // Render the record block
+        const recordBlockContainer = document.getElementById('recordBlock');
+        if (recordBlockContainer) {
+          recordBlockContainer.style.display = '';
+          window.renderRecordBlock(recordBlockContainer, recordDaily, recordMilestones, machineRoomCopy);
+        }
+      };
+      document.head.appendChild(script);
+    } catch (error) {
+      /* the section stays hidden */
+    }
   }
 
   async function boot(){
@@ -398,6 +448,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       .catch(function(){});
     fetch('https://api.github.com/repos/SebR214/margin/commits?per_page=60', {headers:{'Accept':'application/vnd.github+json'}})
       .then(function(r){ return r.ok ? r.json() : []; }).then(seedAgents).catch(function(){});
+
+    // Render the record block section
+    renderRecordBlockSection();
 
     var es = new EventSource(API_BASE + '/v1/events');
     // Retrying, quietly, is normal for a live feed and should not read as
