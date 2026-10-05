@@ -456,6 +456,15 @@ jobs:
         # and per-route table, computed fresh every pass, never typed.
         run: python3 tools/emit_corridor_summary.py
 
+      - name: Emit the routes page data
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-240. Reads stored files only (samples, variants, provider
+        # quotes and panels, waterfall and ramp legs) and writes
+        # data/routes_hourly.json, routes_summary.json, routes_breakdown.json
+        # and routes_whatif.json for the routes page. No new service or
+        # cost. See tools/emit_routes.py; `--self-test` checks it offline.
+        run: python3 tools/emit_routes.py
+
       - name: Bake the homepage
         if: always() && steps.needed.outputs.proceed == 'true'
         # D1. Writes the real headline and corridor table straight into
@@ -546,7 +555,9 @@ jobs:
                    data/corridor_summary.json data/corridor_waterfall.csv \
                    data/corridor_window.json data/machine_room_meters.json \
                    data/provider_delivery.csv data/audit_latest.json \
-                   data/audit_history.csv; do
+                   data/audit_history.csv data/routes_hourly.json \
+                   data/routes_summary.json data/routes_breakdown.json \
+                   data/routes_whatif.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # index.html itself -- D1's bake_homepage.py rewrites it in place
