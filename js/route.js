@@ -284,7 +284,7 @@
     var r = cur(), s = sumRoute(S.route);
     var vals = { route: routeLabel(r), send: r.send_ccy, recv: r.recv_ccy, amount: whole(S.amount) + " " + r.send_ccy,
       hours: whole(s.total_hours_stable_cheapest), priced: whole(s.hours_priced_any_amount) };
-    return '<section class="r-hero"><div class="r-herotext">' + w("headline", vals, "h1") + w("lead", vals, "p", "soft r-lead") +
+    return '<section class="r-hero r-pull"><div class="r-herotext">' + w("headline", vals, "h1") + w("lead", vals, "p", "slead") +
       '</div><div class="r-bigbox"><span class="r-big mono">' + esc(whole(s.total_hours_stable_cheapest)) + "</span>" +
       w("bigCaption", vals, "span", "soft") + "</div></section>";
   }
@@ -314,9 +314,9 @@
   }
 
   function buildLower() {
-    return '<div class="r-two"><section class="r-sec a">' + w("compareHeading", null, "h2") + w("compareLead", null, "p", "muted r-small") +
+    return '<div class="r-two"><section class="r-sec a">' + w("compareHeading", null, "h2") + w("compareLead", null, "p", "msm") +
       '<div id="rCompare"></div></section><section class="r-sec b">' + w("whatHeading", null, "h2") +
-      w("whatLead", { amount: whole(S.amount) + " " + ccy(), ccy: ccy() }, "p", "muted r-small") + '<div id="rWhat"></div></section></div>';
+      w("whatLead", { amount: whole(S.amount) + " " + ccy(), ccy: ccy() }, "p", "msm") + '<div id="rWhat"></div></section></div>';
   }
 
   // ---------------------------------------------------------------- the chart section
@@ -492,8 +492,8 @@
     var missing = vals.inn == null || vals.chain == null || vals.out == null;
     var unmeasured = d.row[BCOL.deposit_measured] === false || d.row[BCOL.withdrawal_measured] === false;
     document.getElementById("rBNote").innerHTML =
-      (missing ? w("legsMissing", { date: dayShort(ep(d.row[BCOL.hour_utc])) }, "p", "muted r-small") : "") +
-      (unmeasured ? w("legsUnmeasured", { date: dayShort(ep(d.row[BCOL.hour_utc])) }, "p", "muted r-small") : "");
+      (missing ? w("legsMissing", { date: dayShort(ep(d.row[BCOL.hour_utc])) }, "p", "msm") : "") +
+      (unmeasured ? w("legsUnmeasured", { date: dayShort(ep(d.row[BCOL.hour_utc])) }, "p", "msm") : "");
   }
 
   // ---------------------------------------------------------------- all routes compared
@@ -537,12 +537,12 @@
         if (line) body += '<span class="mono">' + esc(line) + "</span>";
         body += w("whatNeeded", { route: routeLabel(r), units: units, pp: pp, ccy: r.send_ccy }, "span", "soft");
         var share = m.cheaper_needed_pct_of_in_out;
-        if (share != null) body += w("whatShare", { pct: dec(share, 0) + "%" }, "span", "muted r-small");
+        if (share != null) body += w("whatShare", { pct: dec(share, 0) + "%" }, "span", "msm");
       }
       if (l && l.already_wins === false) {
         var lu = money(l, "cheaper_needed"), lp = ppv(l, "cheaper_needed_pp");
-        if (lu || lp) body += '<span class="mono muted r-small">' + esc([lu, lp].filter(Boolean).join(" · ")) + "</span>" + w("whatLatest", { units: lu, pp: lp }, "span", "muted r-small");
-      } else if (l && l.already_wins) body += w("whatLatestWins", null, "span", "muted r-small");
+        if (lu || lp) body += '<span class="r-lat"><span class="mono muted r-small">' + esc([lu, lp].filter(Boolean).join(" · ")) + "</span>" + w("whatLatest", { units: lu, pp: lp }, "span", "msm") + "</span>";
+      } else if (l && l.already_wins) body += w("whatLatestWins", null, "span", "msm");
       return '<div class="r-what"><span class="mono c' + (r.id === S.route ? " on" : " muted") + '">' + esc(routeLabel(r)) + '</span><span class="t">' + body + "</span></div>";
     }).join("");
     document.getElementById("rWhat").innerHTML = out;
@@ -564,7 +564,7 @@
 
   function renderAll() {
     S.sel = null;
-    app.innerHTML = '<div class="r-wrap">' + head() + routeChips() + amountChips() + buildHero() + buildChartSection() +
+    app.innerHTML = '<div class="r-wrap">' + head() + '<div class="r-top">' + routeChips() + amountChips() + "</div>" + buildHero() + buildChartSection() +
       buildBreakdownSection() + buildLower() + "</div>";
     mountChart();
     drawControls();
