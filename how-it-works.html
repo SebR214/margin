@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="./style.css">
 <script src="./js/chart.js"></script>
 <script src="./js/receipt_replay.js"></script>
+<script src="./js/cycle_block.js"></script>
 <style>
   :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
   *{box-sizing:border-box}
@@ -73,6 +74,43 @@
     .ask input{font-size:16px}
     .ask button{min-width:44px;min-height:44px}
   }
+
+  /* Dark panel styles for the cycle block */
+  .dkpanel {
+    background: #0D1015; /* --dk-bg from style.css */
+    color: #ECEAE4; /* --dk-text from style.css */
+    border-radius: 8px;
+    padding: 20px 24px;
+    font-family: "IBM Plex Sans", system-ui, sans-serif; /* --font-data from style.css */
+  }
+
+  /* Minimal hp-* styles needed for the cycle block */
+  .dkpanel .hp-sec { display: flex; flex-direction: column; gap: 16px; }
+  .dkpanel .hp-sechead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .dkpanel .hp-row { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start; }
+  .dkpanel .hp-main { flex: 999 1 600px; min-width: 0; }
+  .dkpanel .hp-side { flex: 1 1 300px; min-width: 260px; display: flex; flex-direction: column; gap: 28px; }
+  .dkpanel .hp-tight { gap: 10px; }
+  .dkpanel .hp-list { border-top: 1px solid #222934; } /* --dk-line */
+  .dkpanel .hp-step { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #222934; font-size: 14px; } /* --dk-line */
+  .dkpanel .hp-time { width: 64px; }
+  .dkpanel .hp-sdot, .dkpanel .hp-sdot-amber { width: 6px; height: 6px; border-radius: 50%; display: inline-block; background: #6AA6E0; flex: none; } /* --dk-blue */
+  .dkpanel .hp-sdot-amber { background: #F0A23B; } /* --dk-amber */
+  .dkpanel .hp-steptext { flex: 1; min-width: 180px; }
+  .dkpanel .hp-strip { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; }
+  .dkpanel .hp-strip span { height: 22px; border-radius: 3px; }
+  .dkpanel .hp-strip .sc, .dkpanel .ksc { background: #6AA6E0; } /* --dk-blue */
+  .dkpanel .hp-strip .sm, .dkpanel .ksm { background: #2B4A68; } /* --dk-blue-deep */
+  .dkpanel .hp-strip .sf, .dkpanel .ksf { background: #F0A23B; } /* --dk-amber */
+  .dkpanel .hp-legend { display: flex; flex-wrap: wrap; gap: 16px; }
+  .dkpanel .hp-sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; vertical-align: -1px; }
+  .dkpanel .hp-small { font-size: 14px; }
+  .dkpanel .hp-tiny { font-size: 12px; }
+
+  /* Soft and muted text colors for the dark panel */
+  .dkpanel .soft { color: #B3B9C2; } /* --dk-soft */
+  .dkpanel .muted { color: #9AA1AB; } /* --dk-muted */
+  .dkpanel .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 </style>
 <style id="mwh-style">
 header.mwh{display:flex!important;align-items:center!important;justify-content:flex-start!important;height:64px!important;min-height:0!important;margin:0 0 36px 0!important;padding:0!important;border:0!important;background:transparent!important;position:static!important;flex-wrap:nowrap!important;gap:0!important}
@@ -135,6 +173,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       <ul class="plain-list" id="notMeasuredList"></ul>
       <div class="p" style="font-size:15px;color:#6B6B6B" id="notMeasuredNote"></div>
     </section>
+
+    <!-- Hourly collection section ("This hour") -->
+    <div id="cycleBlock" class="dkpanel" style="display: none;">
+      <!-- The cycle block will be rendered here by JavaScript -->
+    </div>
 
     <section class="hiw-section" id="sources">
       <h2 id="sourcesH2"></h2>
@@ -476,6 +519,44 @@ copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'
 </script>
 <script>
 (function(){var d=document.getElementById("full-method");if(!d)return;d.addEventListener("toggle",function(){window.dispatchEvent(new Event("resize"))});function openIfHash(){if(location.hash==="#full-method"){d.open=true}}openIfHash();window.addEventListener("hashchange",openIfHash);document.querySelectorAll('a[href="#full-method"]').forEach(function(a){a.addEventListener("click",function(){d.open=true})})})();
+</script>
+
+<!-- Script to fetch data and render the cycle block -->
+<script>
+Promise.all([copyP, fetch('./data/cycle_log.json', {cache:'no-store'}).then(r=>r.json())]).then(function(res){
+  var hiw = res[0] || {};
+  var cycleLog = res[1];
+
+  // Define the copy keys for the cycle block
+  var copyBlock = {
+    cycleTitle: hiw.cycleTitle || '',
+    cycleLine: hiw.cycleLine || '',
+    stepCurrencies: hiw.stepCurrencies || '',
+    stepRoutes: hiw.stepRoutes || '',
+    stepAuditor: hiw.stepAuditor || '',
+    stepAuditorResult: hiw.stepAuditorResult || '',
+    stepAnalyst: hiw.stepAnalyst || '',
+    resultClean: hiw.resultClean || '',
+    resultSourceMissed: hiw.resultSourceMissed || '',
+    resultCheckFailed: hiw.resultCheckFailed || '',
+    stripTitle: hiw.stripTitle || '',
+    stripClean: hiw.stripClean || '',
+    stripMissed: hiw.stripMissed || '',
+    stripFailed: hiw.stripFailed || ''
+  };
+
+  // Render the cycle block
+  var container = document.getElementById('cycleBlock');
+  if (container && typeof renderCycleBlock === 'function') {
+    renderCycleBlock(container, cycleLog, copyBlock);
+    // Show the container if cycleTitle is not empty
+    if (copyBlock.cycleTitle) {
+      container.style.display = 'block';
+    }
+  }
+}).catch(function(err){
+  console.error('Failed to load cycle data:', err);
+});
 </script>
 </body>
 </html>
