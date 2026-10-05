@@ -4,8 +4,8 @@
    is not rendered. Hand-written DOM, no library. */
 (function () {
   var GH = 'https://github.com/SebR214/margin/blob/main/';
-  var NON_FIELDS = { route: 1, ccy: 1, side: 1 };
-  var PRIMARY = { price_changes: 'changes', weekend_penalty: 'weekend_up', volume_crossover: 'monthly_volume_sgd' };
+  var NON_FIELDS = { route: 1, ccy: 1, side: 1, amount: 1 };
+  var PRIMARY = { price_changes: 'changes', weekend_penalty: 'weekend_up', volume_crossover: 'monthly_volume_sgd', sgd_php_never_cheapest: 'hours_priced' };
   var app = document.getElementById('app');
   var mode = document.body.getAttribute('data-page');
   var C = {};
@@ -21,6 +21,14 @@
   function T(key) { var v = C[key]; return typeof v === 'string' ? v : ''; }
   // A node holding a copy key's text, or null when the key is empty.
   function word(tag, cls, key) { var t = T(key); return t ? el(tag, cls, t) : null; }
+  // A finding's title with {approx} filled from its own headline number (4,444,700 -> "S$4.4M"): the figure
+  // in a headline is always the stored number, never typed.
+  function titleOf(f) {
+    var t = T('title_' + f.id);
+    var v = (f.headline || {}).value;
+    return t.replace(/\{approx\}/g, typeof v === 'number' ? 'S$' + (v / 1e6).toFixed(1) + 'M' : '');
+  }
+  function niceRoute(r) { return String(r || '').replace('->', ' \u2192 '); }
 
   function fmt(v) {
     if (typeof v !== 'number') return String(v);
@@ -99,7 +107,7 @@
     var list = kid(s, el('div', 'fp-list'));
     rows.forEach(function (r) {
       var leg = kid(list, el('div', 'fp-leg'));
-      var lab = kid(leg, el('span', ['fp-lab', 'mono'], r.route || r.ccy || ''));
+      var lab = kid(leg, el('span', ['fp-lab', 'mono'], (r.route ? niceRoute(r.route) : (r.ccy || '')) + (r.amount != null ? ' \u00b7 ' + fmt(r.amount) : '')));
       if (r.side) kid(lab, word('span', 'muted', 'side_' + r.side));
       var track = kid(leg, el('span', 'fp-track'));
       var bar = kid(track, document.createElement('i'));
@@ -171,7 +179,7 @@
     a.href = './finding.html?id=' + encodeURIComponent(f.id);
     a.appendChild(el('span', ['fp-no', 'mono'], two(i)));
     var body = kid(a, el('div', 'fp-card-body'));
-    kid(body, word('span', '', 'title_' + f.id));
+    kid(body, titleOf(f) ? el('span', '', titleOf(f)) : null);
     var h = f.headline || {};
     if (typeof h.value === 'number') {
       body.appendChild(el('span', ['fp-card-val', 'mono'], fmt(h.value)));
@@ -213,7 +221,7 @@
 
     var hero = el('section', 'fp-hero');
     var text = kid(hero, el('div', 'fp-hero-text'));
-    kid(text, word('h1', '', 'title_' + f.id));
+    kid(text, titleOf(f) ? el('h1', '', titleOf(f)) : null);
     kid(text, word('p', ['soft', 'fp-line'], 'claim_' + f.id));
     if (!text.firstChild) hero.removeChild(text);
     var h = f.headline || {};
@@ -247,7 +255,7 @@
       others.forEach(function (p) { cards.appendChild(card(p[0], p[1])); });
       keep(wrap, rel);
     }
-    var t = T('title_' + f.id);
+    var t = titleOf(f);
     if (t) document.title = 'margin.wiki — ' + t;
   }
 

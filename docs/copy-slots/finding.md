@@ -67,3 +67,8 @@ Shown as "number label" under each row. Max 5 words each. The bar and its right-
 - Download: `data/findings_hours_<id>.csv` with its stored row count and size read from the file.
 - Related findings are cards for the other two published findings.
 - Last recheck is the stored `last_recheck_utc`, shown in UTC.
+
+## Added after the owner's review (SEB-240)
+
+- A new finding, `sgd_php_never_cheapest`: Singapore to the Philippines, hours in which a stablecoin was the cheapest way to send (0 of the hours priced). Keys: title_, claim_, evidenceBasis_, method_, limits_, unit_hours_stablecoin_cheapest, field_hours_priced, field_hours_stablecoin_cheapest. Its number is the same query as the home line and the routes page (claims.json, tools/audit_claims.py).
+- `title_volume_crossover` takes `{approx}` (the finding's own number rounded to millions with S$, for example S$4.4M). The headline carries the limit: only above that volume, rebuilt from fee tiers.
