@@ -3,19 +3,21 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki</title>
+<title>margin.wiki — countries</title>
 <meta name="description" content=""/>
 <link rel="stylesheet" href="./style.css">
 <style>
   /* Countries (SEB-240). Colours are the style.css tokens, nothing else. */
   { margin: 0; }
   .hp-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 64px; }
+  #app { display: flex; flex-direction: column; gap: 64px; }
   .hp-wrap p { margin: 0; }
   .hp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--color-neutral-300); }
   .hp-headleft { display: flex; flex-wrap: wrap; align-items: center; gap: 0 28px; }
   .hp-logo { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 18px; color: var(--color-ink); text-decoration: none; }
-  .hp-nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); }
-  .hp-navlink { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-neutral-600); text-decoration: none; }
+  .hp-headleft nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); }
+  .hp-headleft nav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-neutral-600); text-decoration: none; }
+  .hp-headleft nav a.active { color: var(--color-ink); }
   .hp-clock { display: flex; align-items: center; gap: 10px; font-size: 13px; }
   .hp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--data-700); display: inline-block; flex: none; }
   @media (prefers-reduced-motion: no-preference) {
@@ -72,7 +74,21 @@
 </style>
 </head>
 <body>
-<div id="app"></div>
+<div class="hp-wrap">
+  <div class="hp-head">
+    <div class="hp-headleft">
+      <a class="hp-logo mono" href="./index.html">margin.wiki</a>
+      <nav>
+        <a href="./countries.html" class="active">Countries</a>
+        <a href="./sending-money.html">Routes</a>
+        <a href="./sources.html">Sources</a>
+        <a href="./findings.html">Findings</a>
+        <a href="./how-it-works.html">How it works</a>
+      </nav>
+    </div>
+  </div>
+  <div id="app"></div>
+</div>
 <template id="crHeadTpl"><div class="trow cr-head"><span></span><span data-k="colCountry"></span><span class="cr-gap" data-k="colNow"></span><span class="cr-hline"></span></div></template>
 <script src="./js/claims.js"></script>
 <script src="./js/countries_page.js"></script>

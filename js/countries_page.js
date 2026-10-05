@@ -47,23 +47,6 @@
   function claimOk(key) { return !!(window.Claims && window.Claims.blocked && !window.Claims.blocked(key)); }
   function countryHref(ccy) { return 'country.html?ccy=' + encodeURIComponent(ccy); }
 
-  /* ---------------------------------------------------------------- header */
-  function header(wrap) {
-    var h = el('div', 'hp-head');
-    var left = el('div', 'hp-headleft');
-    var logo = put(left, 'a', ['hp-logo', 'mono'], th('brand'));
-    if (logo) { logo.href = './index.html'; }
-    var nav = el('nav', 'hp-nav');
-    [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'],
-     ['navFindings', 'findings.html'], ['navHow', 'how-it-works.html']].forEach(function (n) {
-      var a = put(nav, 'a', 'hp-navlink', th(n[0]));
-      if (a) { a.href = './' + n[1]; }
-    });
-    if (nav.childNodes.length) { left.appendChild(nav); }
-    h.appendChild(left);
-    wrap.appendChild(h);
-  }
-
   /* ---------------------------------------------------------------- rows */
   // One row per currency. gap is the latest day's value from the daily heat file;
   // a currency with no value that day has gap == null and is listed as having no price.
@@ -213,16 +196,15 @@
   }
 
   function page() {
-    var wrap = el('div', 'hp-wrap');
-    header(wrap);
+    app.innerHTML = '';
     var rows = buildRows();
     var ranked = rows.filter(function (r) { return r.gap != null && !r.unranked; })
       .sort(function (a, b) { return b.gap - a.gap; });
     var frozen = rows.filter(function (r) { return r.gap != null && r.unranked; });
     var none = rows.filter(function (r) { return r.gap == null; })
       .sort(function (a, b) { return a.country < b.country ? -1 : 1; });
-    hero(wrap, rows, ranked);
-    tools(wrap);
+    hero(app, rows, ranked);
+    tools(app);
 
     var sec = el('section', ['hp-sec', 'hp-gap24']);
     var list = el('div', 'cr-list');
@@ -234,7 +216,7 @@
       var names = frozen.map(function (r) { return r.country; }).join(', ');
       put(sec, 'p', ['muted', 'hp-small', 'cr-note'], t(frozen.length === 1 ? 'frozenOneTemplate' : 'frozenManyTemplate', { names: names }));
     }
-    wrap.appendChild(sec);
+    app.appendChild(sec);
 
     if (none.length) {
       var s2 = el('section', ['hp-sec', 'hp-gap24']);
@@ -248,7 +230,7 @@
         l2.appendChild(row);
       });
       s2.appendChild(l2);
-      wrap.appendChild(s2);
+      app.appendChild(s2);
     }
 
     var foot = el('section', ['hp-sec']);
@@ -257,10 +239,8 @@
     put(foot, 'p', ['muted', 'hp-small'], t('footer'));
     var gh = put(foot, 'a', ['hp-biglink', 'hp-small'], t('footerLink'));
     if (gh) { gh.href = 'https://github.com/SebR214/margin'; }
-    if (foot.childNodes.length) { wrap.appendChild(foot); }
+    if (foot.childNodes.length) { app.appendChild(foot); }
 
-    app.innerHTML = '';
-    app.appendChild(wrap);
     apply();
   }
 
@@ -286,11 +266,9 @@
     D = { index: r[2], record: r[3], cycles: r[4], extraNames: r[6] };
     page();
   }).catch(function () {
-    var wrap = el('div', 'hp-wrap');
     app.innerHTML = '';
     fetch('copy.json').then(function (x) { return x.json(); }).then(function (c) {
-      put(wrap, 'p', 'soft', c.countries && c.countries.loadFailed);
-      app.appendChild(wrap);
+      put(app, 'p', 'soft', c.countries && c.countries.loadFailed);
     }).catch(function () { /* nothing to say without copy */ });
   });
 })();

@@ -157,18 +157,13 @@
   }
 
   // ---------------------------------------------------------------- the page
-  function head(extra) {
-    return '<header class="c-head"><div class="c-brand"><a class="c-logo mono" href="./index.html">margin.wiki</a>' +
-      '<nav class="c-nav">' +
-      [["navCountries", "./countries.html", "on"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"],
-        ["navFindings", "./findings.html"], ["navHow", "./how-it-works.html"]].map(function (n) {
-        var s = txt(n[0]);
-        return s ? '<a href="' + n[1] + '"' + (n[2] ? ' aria-current="page" class="on"' : "") + ">" + esc(s) + "</a>" : "";
-      }).join("") + "</nav></div>" + (extra || "") + "</header>";
+  function setMeta(extra) {
+    var el = document.getElementById("cMeta");
+    if (el && extra) { el.innerHTML = extra; }
   }
   function notice(keys, vals) {
-    app.innerHTML = '<div class="c-wrap">' + head() + '<section class="c-herotext">' +
-      [].concat(keys).map(function (k, i) { return w(k, vals, i ? "p" : "h1", i ? "soft" : ""); }).join("") + "</section></div>";
+    app.innerHTML = '<section class="c-herotext">' +
+      [].concat(keys).map(function (k, i) { return w(k, vals, i ? "p" : "h1", i ? "soft" : ""); }).join("") + "</section>";
   }
 
   function statCell(labelKey, value, sub) {
@@ -453,7 +448,7 @@
       // No stored reading yet for this currency: the headline and the row only, no chart, no receipts.
       var offs0 = readIdx.official || [];
       S.asOf = offs0.length ? offs0[offs0.length - 1][0] : Date.now() / 1000;
-      app.innerHTML = '<div class="c-wrap">' + head() + buildHero() + buildStats() + "</div>";
+      app.innerHTML = buildHero() + buildStats();
       return null;
     }
     // The newest month tells us when the last reading was; the window of every period hangs off it.
@@ -477,8 +472,9 @@
       }
       var minutes = Math.max(0, Math.round((Date.now() / 1000 - S.asOf) / 60));
       var meta = '<span class="mono muted c-small">' + esc(txt("lastReading", { time: clock(S.asOf), date: dayShort(S.asOf), minutes: minutes })) + "</span>";
-      app.innerHTML = '<div class="c-wrap">' + head(txt("lastReading") ? meta : "") + buildHero() + buildStats() +
-        buildChartSection() + buildReceiptsSection() + "</div>";
+      setMeta(txt("lastReading") ? meta : "");
+      app.innerHTML = buildHero() + buildStats() +
+        buildChartSection() + buildReceiptsSection();
       var slot = document.getElementById("cChartSlot");
       slot.parentNode.replaceChild(document.getElementById("cChartTpl").content.cloneNode(true), slot);
       chart = CountryChart.create(document.getElementById("cChart"), { tip: tipHtml, onSelect: onSelect, aria: txt("chartAria") });
