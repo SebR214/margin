@@ -26,7 +26,7 @@ Numbers, dates (day and month), currency codes and stored ids on the page are da
 | `navHow` | Nav link to how-it-works.html. | none | 3 |
 | `headerLast` | Top right: when the last reading was stored. Shown only when cycle_log.json has the timestamps. | {time} = HH:MM:SS in UTC (from last_reading_utc). Add "UTC" in the words. | 6 |
 | `headerNext` | Top right, after headerLast: the live countdown to the next reading, while it is not yet due. | {countdown} = mm:ss (h:mm:ss over an hour), counts down against the visitor's clock. | 6 |
-| `headerOverdue` | Same place, used instead of headerNext once the next reading is late. | {countdown} = how long it is overdue, mm:ss. | 8 |
+| `headerOverdue` | Same place, used instead of headerNext once the next reading is late (`headerOverdueOne` for one minute). | {minutes} = whole minutes overdue. | 8 |
 
 ## Hero
 

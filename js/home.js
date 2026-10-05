@@ -110,7 +110,8 @@
         var hh = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60), ss = s % 60;
         var pad = function (x) { return (x < 10 ? '0' : '') + x; };
         var cd = (hh > 0 ? hh + ':' : '') + pad(mm) + ':' + pad(ss);
-        b.textContent = t(over ? 'headerOverdue' : 'headerNext', { countdown: cd });
+        var late = Math.max(1, Math.round(s / 60));
+        b.textContent = over ? t(late === 1 ? 'headerOverdueOne' : 'headerOverdue', { minutes: late }) : t('headerNext', { countdown: cd });
         dot.classList.toggle('still', over);
       };
       tick();
