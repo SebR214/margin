@@ -38,7 +38,7 @@
 
   function el(tag, cls, text) {
     var n = document.createElement(tag);
-    if (cls) n.className = cls;
+    if (cls) n.className = Array.isArray(cls) ? cls.join(String.fromCharCode(32)) : cls;
     if (text != null && text !== '') n.textContent = text;
     return n;
   }
@@ -47,6 +47,23 @@
   function word(tag, cls, key, vars) {
     var t = tpl(key, vars);
     return t ? el(tag, cls, t) : null;
+  }
+
+  /* A template whose stored-text placeholders (names in `raw`) go into a code element, so the
+     text is shown exactly as stored. */
+  function rich(tag, cls, key, vars, raw) {
+    var t = tpl(key);
+    if (!t) return null;
+    var n = el(tag, cls);
+    t.split(/(\{\w+\})/).forEach(function (part) {
+      var m = /^\{(\w+)\}$/.exec(part);
+      if (!m) { if (part) n.appendChild(document.createTextNode(part)); return; }
+      var v = vars[m[1]];
+      if (v == null || v === '') return;
+      if (raw.indexOf(m[1]) >= 0) n.appendChild(el('code', '', String(v)));
+      else n.appendChild(document.createTextNode(String(v)));
+    });
+    return n;
   }
 
   function add(parent, child) { if (child) parent.appendChild(child); return child; }
@@ -99,8 +116,8 @@
     var stats = $('stats');
     [['statLive', live], ['statWithHistory', withHist], ['statNoHistory', noHist]].forEach(function (s) {
       var cell = el('div', 's-stat');
-      cell.appendChild(el('span', 'num mono', String(s[1])));
-      add(cell, word('span', 'lab muted', s[0], { n: s[1] }));
+      cell.appendChild(el('span', ['num', 'mono'], String(s[1])));
+      add(cell, word('span', ['lab', 'muted'], s[0], { n: s[1] }));
       stats.appendChild(cell);
     });
   }
@@ -127,7 +144,7 @@
 
   function buildLegend() {
     var box = $('legend');
-    add(box, word('span', 'head muted', 'legendHeading'));
+    add(box, word('span', ['head', 'muted'], 'legendHeading'));
     STATUS.forEach(function (s) {
       var txt = tpl(s[1]);
       if (!txt) return;
@@ -142,7 +159,7 @@
   function strip(s) {
     var wrap = el('div', 's-stripcol');
     var cap = tpl('stripCaption', { first: DATA.first_day, last: DATA.last_day, days: DATA.days.length });
-    if (cap) wrap.appendChild(el('span', 'muted s-small', cap));
+    if (cap) wrap.appendChild(el('span', ['muted', 's-small'], cap));
     var grid = el('div', 's-strip');
     s.status.forEach(function (st, i) {
       var def = STATUS_BY[st] || STATUS_BY.not_yet_a_source;
@@ -152,7 +169,7 @@
       grid.appendChild(sq);
     });
     wrap.appendChild(grid);
-    var ends = el('div', 's-ends mono muted');
+    var ends = el('div', ['s-ends', 'mono', 'muted']);
     ends.appendChild(el('span', '', DATA.first_day));
     ends.appendChild(el('span', '', DATA.last_day));
     wrap.appendChild(ends);
@@ -161,22 +178,22 @@
 
   function history(s) {
     var col = el('div', 's-histcol');
-    add(col, word('span', 'muted s-small', 'historyHeading'));
+    add(col, word('span', ['muted', 's-small'], 'historyHeading'));
     if (s.history && s.history.length) {
       s.history.forEach(function (h) {
-        add(col, word('span', 'mono soft s-small', 'historyLine', {
+        add(col, word('span', ['mono', 'soft', 's-small'], 'historyLine', {
           series: h.series, ccy: h.ccy || '', interval: h.interval,
           first: day(h.first), last: day(h.last), rows: groupDigits(h.rows)
         }));
       });
     } else {
-      add(col, word('span', 'soft s-small', 'historyNone'));
+      add(col, word('span', ['soft', 's-small'], 'historyNone'));
     }
-    if (s.history_reason) add(col, word('span', 'soft s-small', 'historyReason', { reason: s.history_reason }));
+    if (s.history_reason) add(col, rich('span', ['soft', 's-small'], 'historyReason', { reason: s.history_reason }, ['reason']));
     if (s.history_verdict || s.history_endpoint) {
-      add(col, word('span', 'mono muted s-small', 'historyVerdict', {
+      add(col, rich('span', ['mono', 'muted', 's-small'], 'historyVerdict', {
         verdict: s.history_verdict || '', endpoint: s.history_endpoint || ''
-      }));
+      }, ['verdict', 'endpoint']));
     }
     return col;
   }
@@ -192,7 +209,7 @@
       var btn = el('button', 's-tog', label);
       btn.type = 'button';
       btn.setAttribute('aria-expanded', 'false');
-      var codes = el('div', 's-codes mono soft');
+      var codes = el('div', ['s-codes', 'mono', 'soft']);
       codes.hidden = true;
       g[1].forEach(function (c) { codes.appendChild(el('span', '', c)); });
       btn.addEventListener('click', function () {
@@ -212,19 +229,19 @@
   function row(s) {
     var r = el('div', 's-row');
     var info = el('div', 's-info');
-    info.appendChild(el('span', 's-id mono', s.id));
-    add(info, word('span', 's-kind mono soft', KIND_KEY[s.kind] || 'kindOther'));
+    info.appendChild(el('span', ['s-id', 'mono'], s.id));
+    add(info, word('span', ['s-kind', 'mono', 'soft'], KIND_KEY[s.kind] || 'kindOther'));
     if (s.last_answered_utc) {
-      add(info, word('span', 'mono soft s-small', 'lastAnswered', {
+      add(info, word('span', ['mono', 'soft', 's-small'], 'lastAnswered', {
         time: s.last_answered_utc, day: day(s.last_answered_utc), clock: clock(s.last_answered_utc)
       }));
-      add(info, el('span', 'mono muted s-small', ageText(s.last_answered_utc)));
+      add(info, el('span', ['mono', 'muted', 's-small'], ageText(s.last_answered_utc)));
     } else {
-      add(info, word('span', 'muted s-small', 'neverAnswered'));
+      add(info, word('span', ['muted', 's-small'], 'neverAnswered'));
     }
     var first = s.first_utc ? day(s.first_utc) : FIRST_DAY[s.id];
-    if (first) add(info, word('span', 'mono muted s-small', 'firstSeen', { date: first }));
-    if (s.live) add(info, word('span', 'mono muted s-small', 'hoursAnswered', { answered: groupDigits(s.hours_answered), expected: groupDigits(s.hours_expected) }));
+    if (first) add(info, word('span', ['mono', 'muted', 's-small'], 'firstSeen', { date: first }));
+    if (s.live) add(info, word('span', ['mono', 'muted', 's-small'], 'hoursAnswered', { answered: groupDigits(s.hours_answered), expected: groupDigits(s.hours_expected) }));
     r.appendChild(info);
     r.appendChild(strip(s));
     r.appendChild(history(s));
