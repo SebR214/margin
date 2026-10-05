@@ -25,7 +25,8 @@ Schema
                         backfill manifest (reported, not observed),
          "history_reason": null, or the reason no history exists, copied from METHODOLOGY.md,
          "history_verdict": null, or the probe verdict beside it (METHODOLOGY.md probe table),
-         "history_endpoint": null, or the endpoint that probe row names}
+         "history_endpoint": null, or the endpoint that probe row names,
+         "history_reason_kind": null | snapshot_only | needs_key | blocked | login_only | no_endpoint | other}
       ]
     }
 Statuses: not_yet_a_source (the day is before the source's first successful reading, or it has
@@ -61,6 +62,25 @@ DEFINITION = (
     "successful reading, or no live reading stored."
 )
 
+
+
+def reason_kind(reason, verdict):
+    """A small fixed set of kinds for the stored reason, so a page can say it in plain words
+    without printing HTTP codes, endpoints or file names. None when no reason is stored."""
+    if not reason:
+        return None
+    t = ((reason or "") + " " + (verdict or "")).lower()
+    if "snapshot-only" in t:
+        return "snapshot_only"
+    if "api key" in t or "401" in t:
+        return "needs_key"
+    if "bot challenge" in t or "403" in t:
+        return "blocked"
+    if "login" in t or "sign-in" in t or "never scraped" in t:
+        return "login_only"
+    if "no history endpoint" in t or "no candle" in t or "candles 404" in t or "404" in t:
+        return "no_endpoint"
+    return "other"
 
 def _manifest():
     return json.load(open(MANIFEST))["files"]
@@ -148,6 +168,7 @@ def build():
             elif sid == "binance_p2p":
                 reason = p2p_reason
         out.append({
+            "history_reason_kind": reason_kind(reason, verdict),
             "id": sid, "kind": s["kind"], "live": True, "currencies": sorted(s["ccys"]),
             "routes": sorted(s["routes"]), "files": sorted(s["files"]),
             "first_utc": rc.iso_z(s["first_ts"]), "last_answered_utc": rc.iso_z(s["last_ts"]),

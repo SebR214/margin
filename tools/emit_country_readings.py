@@ -16,7 +16,8 @@ Files (months keep each file small and mean only the current month rewrites):
 Sources read: data/basis.csv (order books and brokers, one row per venue and
 hour, ask where there is one, else last price), data/p2p_basis.csv (Binance P2P
 buy median) and data/p2p_okx.csv (OKX P2P buy median). n_ads is the number of
-ads behind a P2P median. buy_ads_total is the number of buy-side ads on the
+BUY-side ads behind a Binance P2P median (p2p_sides.csv n_buy; null for OKX, whose file only
+stores both sides added together). buy_ads_total is the number of buy-side ads on the
 whole board that hour (data/p2p_depth.csv buy_total at the same timestamp), the
 only per-reading depth the collector stores: it is a count of ads, not dollars.
 It is null for order books, which store no size at all (dollar depth exists only
@@ -64,6 +65,14 @@ def rows(name):
 
 
 def main():
+    # p2p_basis.csv's n_ads is the two sides added together (10 buy + 10 sell = 20). The buy side alone is
+    # in p2p_sides.csv (n_buy). The page prints "priced buy ads of buy ads on the board", so both numbers
+    # must be buy-side: this is what "20 of 19 ads" got wrong.
+    sides = {}
+    for r in rows("p2p_sides.csv"):
+        v = num(r.get("n_buy"))
+        if v is not None:
+            sides[(r["ccy"], r["ts_utc"][:16])] = int(v)
     depth = {}
     for r in rows("p2p_depth.csv"):
         v = num(r.get("buy_total"))
@@ -92,9 +101,9 @@ def main():
         for r in rows(name):
             if (r.get("source_ok") or "").strip().lower() != "true":
                 continue
-            n = num(r.get("n_ads"))
+            nb = sides.get((r["ccy"], r["ts_utc"][:16])) if label == "Binance P2P" else None
             add(r["ccy"], r["ts_utc"], label, "p2p", "data/" + name, num(r.get("buy_median")),
-                num(r.get("fx_mid_per_usd")), int(n) if n is not None else None,
+                num(r.get("fx_mid_per_usd")), nb,
                 depth.get((r["ccy"], r["ts_utc"][:16])) if label == "Binance P2P" else None)
     official = {}
     for r in rows("fx_rates.csv"):

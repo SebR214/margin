@@ -223,7 +223,7 @@ def crypto_route(corridor):
     return out, hour
 
 
-def stable_venues_this_hour(corridor, size):
+def stable_venues_this_hour(corridor, size, hour_ref=None):
     """SOURCES task 3: every buy-venue/sell-venue combination
     collector_stable_venues.py priced for `corridor` at `size`, in its
     newest captured hour -- or None if that file has nothing for this
@@ -237,6 +237,12 @@ def stable_venues_this_hour(corridor, size):
           and num(r, "notional_src") == size]
     hour = newest_hour(rs, "ts_utc")
     if hour is None:
+        return None
+    # Never label an old snapshot "this hour": the multi-venue collector is not
+    # on the hourly schedule (its newest rows were a month-old snapshot), so its
+    # combos only count when they are from the same hour as the hourly samples.
+    # Otherwise the caller falls back to samples.csv's own cost for this hour.
+    if hour_ref is not None and hour != hour_ref:
         return None
     this_hour = in_hour(rs, hour, "ts_utc")
     combos = []
@@ -341,7 +347,7 @@ def build(now=None):
                 })
             if size in crypto:
                 c = crypto[size]
-                venues = stable_venues_this_hour(corridor, size)
+                venues = stable_venues_this_hour(corridor, size, crypto_hour)
                 if venues:
                     # Publish the cheapest EXECUTABLE combination this hour
                     # (SOURCES task 3), not the single default-venue pair

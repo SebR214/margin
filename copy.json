@@ -6,7 +6,7 @@
   "home": {
     "headline": "Sending money by stablecoin usually costs more than a transfer app",
     "headlineFallback": "Sending money by stablecoin usually costs more than a transfer app",
-    "headlineSub": "Older prices are an exchange's own earlier history. They compare today's gap with years before we started. Without them, a chart starts when we did.",
+    "headlineSub": "People argue about this constantly. We check it every hour.",
     "everyProviderLink": "Every route and provider →",
     "waterfallLineTemplate": "Most of the stablecoin cost is buying and selling the coin. Moving it costs {network_pct}.",
     "waterfallTitle": "Sending S$5,000 to the Philippines by stablecoin costs {stable_pct}. The cheapest app costs {best_pct}.",
@@ -81,29 +81,29 @@
   },
   "nav": [
     {
-      "key": "home",
-      "label": "Home",
-      "href": "./index.html"
-    },
-    {
-      "key": "money",
-      "label": "Sending money",
-      "href": "./sending-money.html"
-    },
-    {
       "key": "countries",
       "label": "Countries",
       "href": "./countries.html"
     },
     {
+      "key": "routes",
+      "label": "Routes",
+      "href": "./sending-money.html"
+    },
+    {
+      "key": "sources",
+      "label": "Sources",
+      "href": "./sources.html"
+    },
+    {
+      "key": "findings",
+      "label": "Findings",
+      "href": "./findings.html"
+    },
+    {
       "key": "howworks",
       "label": "How it works",
       "href": "./how-it-works.html"
-    },
-    {
-      "key": "how",
-      "label": "How it was built",
-      "href": "./how-it-was-built.html"
     }
   ],
   "chart": {
@@ -713,20 +713,10 @@
       "heading": "What we've learned running them",
       "items": [
         {
-          "days": 34,
-          "what": "A price collector ran for {days} days and saved nothing",
-          "text": "It pointed at a web address that didn't exist, so there was nothing to save. Those days of prices are missing for good and show as a gap in the price history shown on the site, never filled in. A collector now runs by hand once before it starts for real."
-        },
-        {
           "dollars": 10,
           "minutes": 20,
           "what": "A settings change spent ${dollars} in {minutes} minutes",
           "text": "It moved the agents onto an account billed for each use, instead of the account with a flat monthly fee. The two accounts are now kept in separate files so they cannot be mixed up."
-        },
-        {
-          "hours": 21,
-          "what": "{hours} hours of prices were lost",
-          "text": "A new file was not on the list of data files saved each hour. The data files are the public files that hold every price we record. Those hours cannot be recovered. Every file is on the list now, and the lost hours show as a gap in the price history shown on the site, never filled in."
         }
       ],
       "linkText": "The full story: running agents that can't be trusted →",
@@ -734,8 +724,8 @@
     },
     "tapeLink": "Watch live prices arrive as they are checked →",
     "collected": {
-      "title": "What they've collected",
-      "template": "{n} prices since {date}, across {countries} countries and {routes} routes, plus exchange records going back to {year}. Each price is one recorded quote for sending money. A route is one way of sending money between two countries. Exchange records are past currency exchange rates, which show how costs have moved over time.",
+      "title": "",
+      "template": "",
       "months": [
         "Jan",
         "Feb",
@@ -751,6 +741,13 @@
         "Dec"
       ]
     },
+    "recordTitle": "The record grew as new sources and routes came in",
+    "recordCount": "{n} prices stored",
+    "axisToday": "Today",
+    "markBackfill": "Exchanges' own earlier prices reach back to {date}, so some charts predate our record.",
+    "markRoute": "{date}: started pricing {ids}",
+    "markSource": "{date}: new source {id}",
+    "markSources": "{date}: {n} new sources",
     "shipped": {
       "maxLines": 5,
       "jargon": [

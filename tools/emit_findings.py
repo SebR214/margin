@@ -31,6 +31,8 @@ Findings and what backs them:
     volume_crossover   data/volume_crossover.json, data/samples.csv, data/crossover_receipts/
                        value = monthly SGD volume at which the stablecoin route's cost
                        crosses the cheapest provider's (taker)
+    sgd_php_never_cheapest  data/routes_hourly.json, data/routes_summary.json
+                       value = hours the stablecoin path was cheapest on SGD to PHP (0); evidence per amount
     stress_signal      data/stress_signal.csv, data/stress_signal_latest.json
                        value = triggers on record; evidence per country
     p2p_spread_signal  data/p2p_spread_signal.csv, data/p2p_spread_signal_latest.json
@@ -213,8 +215,39 @@ def spread_finding():
                     ev, as_of, hours, "data/p2p_spread_signal.csv")
 
 
+def sgd_php_finding():
+    """Singapore to the Philippines: the stablecoin path was cheaper than the cheapest app in 0 of the
+    priced hours. The same figure the home page and the routes page print (data/routes_summary.json
+    hours_priced_any_amount and total_hours_stable_cheapest), re-derived by tools/audit_claims.py."""
+    summ = _json("routes_summary.json")
+    r = next(x for x in summ["routes"] if x["id"] == "SGD->PHP")
+    hourly = _json("routes_hourly.json")
+    cols = hourly["hour_columns"]
+    ci = {c: i for i, c in enumerate(cols)}
+    route = next(x for x in hourly["routes"] if x["id"] == "SGD->PHP")
+    ev, last = [], ""
+    for a in route["amounts"]:
+        hs = a["hours"]
+        ev.append({"route": "SGD->PHP", "amount": a["amount"], "hours_priced": len(hs),
+                   "hours_stablecoin_cheapest": sum(1 for h in hs if h[ci["stable_cheaper"]])})
+        if hs:
+            last = max(last, max(h[ci["hour_utc"]] for h in hs))
+    amt = summ["routes"][0].get("default_amount") or 5000
+    rows = next(a["hours"] for a in route["amounts"] if a["amount"] == amt)
+    hdr = ["hour_utc", "amount_sgd", "stable_cost_pct", "app_cost_pct", "cheapest_app", "stable_path", "stable_cheaper"]
+    hrs = [[h[ci["hour_utc"]], amt, h[ci["stable_cost_pct"]], h[ci["app_cost_pct"]], h[ci["cheapest_app"]],
+            h[ci["stable_path"]], str(bool(h[ci["stable_cheaper"]])).lower()] for h in rows]
+    meth = ["tools/emit_routes.py", "tools/audit_claims.py", "tools/emit_findings.py"]
+    return _finding("sgd_php_never_cheapest",
+                    ["data/routes_hourly.json", "data/routes_summary.json", "data/samples.csv", "data/provider_quotes.csv"],
+                    meth,
+                    {"value": r["total_hours_stable_cheapest"], "unit": "hours_stablecoin_cheapest", "as_of_utc": last},
+                    ev, last, _hours_csv("sgd_php_never_cheapest", hdr, hrs), "data/routes_hourly.json",
+                    ["data/routes_hourly.json", "data/routes_summary.json"])
+
+
 def build():
-    fs = price_changes_findings() + [volume_crossover_finding(), stress_finding(), spread_finding()]
+    fs = price_changes_findings() + [volume_crossover_finding(), sgd_php_finding(), stress_finding(), spread_finding()]
     return {"as_of_utc": max(f["last_recheck_utc"] for f in fs), "findings": fs}
 
 
