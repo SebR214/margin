@@ -185,8 +185,11 @@
       cells += statCell("statRange30", pct(Math.min.apply(null, recent)) + " – " + pct(Math.max.apply(null, recent)));
     }
     if (S.history.length > 1) {
-      var wide = S.history.reduce(function (m, h) { return Math.abs(h.index_pct) > Math.abs(m.index_pct) ? h : m; });
-      cells += statCell("statWidest", pct(wide.index_pct), dayLong(isoEpoch(wide.date)));
+      var useSeg = !!(S.segment && S.seg);
+      var pool = S.history.map(function (h) { return { date: h.date, v: h.index_pct }; });
+      if (useSeg) pool = S.segment.points.map(function (q) { return { date: q.date, v: q.index_pct }; }).concat(pool);
+      var wide = pool.reduce(function (m, h) { return Math.abs(h.v) > Math.abs(m.v) ? h : m; });
+      cells += statCell(useSeg ? "statWidestAll" : "statWidest", pct(wide.v), dayLong(isoEpoch(wide.date)));
     }
     return cells ? '<div class="c-stats">' + cells + "</div>" : "";
   }
@@ -195,9 +198,9 @@
     var c = S.country, p2p = S.p2p;
     var gapText = pct(S.headline);
     var key = Math.abs(S.headline) < 0.05 ? "headlineSame" : S.headline > 0 ? "headlineMore" : "headlineLess";
-    var lead = p2p
+    var lead = p2p && S.cdoc.source_class === "p2p_buy_median"
       ? txt("leadP2p", { country: c.country, ccy: ccy, rate: num(p2p.fx_mid_per_usd, 0), street: num(p2p.buy_median, 0) + " " + ccy })
-      : txt("leadBook", { country: c.country });
+      : txt("leadBook", { country: c.country, ccy: ccy, rate: num(S.cdoc.fx_mid_per_usd, 0), street: num(S.cdoc.buy_price, 0) + " " + ccy });
     return '<section class="c-hero"><div class="c-herotext">' + w(key, { country: c.country, gap: pct(Math.abs(S.headline)) }, "h1") +
       (lead ? '<p class="soft c-lead">' + esc(lead) + "</p>" : "") +
       (!S.ranked ? w("unrankedNote", { country: c.country }, "p", ["muted", "c-small"]) : "") + "</div>" +
@@ -441,6 +444,7 @@
     S.country = country;
     S.idx = readIdx;
     S.history = countryDoc.history || [];
+    S.cdoc = countryDoc;
     S.headline = country.median_24h_pct != null ? country.median_24h_pct : country.index_pct;
     S.p2p = null;
     S.depth = depthDoc && depthDoc.countries && depthDoc.countries[ccy] || null;

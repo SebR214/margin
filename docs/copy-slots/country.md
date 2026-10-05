@@ -25,7 +25,7 @@ Dates look like `5 Oct` or `5 Oct 2026`, times like `05:06 UTC`, gaps like `90.3
 | headlineLess | The h1 when it costs less | {country}, {gap} | 14 |
 | headlineSame | The h1 when the gap rounds to zero | {country} | 14 |
 | leadP2p | One line under the h1, for countries priced from person-to-person ads | {country}, {ccy}, {rate} official rate per dollar, {street} street price with code | 25 |
-| leadBook | The same line for countries priced from order books | {country} | 20 |
+| leadBook | The same line for countries priced from order books | {country}, {ccy}, {rate}, {street} | 20 |
 | bigCaption | Under the 88px number (today's gap, the 24-hour median) | {country} | 10 |
 | unrankedNote | Shown only for a country whose official rate is frozen so it is not ranked (Sudan) | {country} | 25 |
 | withheldTitle | The h1 for a country with no price this hour | {country}, {reason} | 12 |
@@ -40,7 +40,8 @@ Dates look like `5 Oct` or `5 Oct 2026`, times like `05:06 UTC`, gaps like `90.3
 | statToday | The latest hourly gap | none | 4 |
 | statMedian30 | Median of the last 30 daily values | none | 4 |
 | statRange30 | Lowest to highest of the last 30 daily values | none | 4 |
-| statWidest | Largest gap in the stored record (its date shows under the number) | none | 5 |
+| statWidest | Largest daily median in our own readings (its date shows under the number) | none | 12 |
+| statWidestAll | The same, when the reported history before our record is included | none | 12 |
 
 ## Chart section
 
