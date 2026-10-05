@@ -120,9 +120,9 @@ Numbers, dates (day and month), currency codes and stored ids on the page are da
 | Key | What it labels | Placeholders | Max words |
 | --- | --- | --- | --- |
 | `findingsTitle` | Heading of the findings list. | none | 5 |
-| `finding_price_changes` | One line for the finding price_changes (card number 01 etc is added by the page). A finding with an empty line is not shown. | {value} = number of confirmed price changes since the record began (a provider's price for a route and amount moved and every other provider measured against it did not move the same way). A count of changes, not of days. | 20 |
-| `finding_weekend_penalty` | One line for weekend_penalty. | {value} = number of Saturday checks on which a provider charged more than the day before and then came back down within two days. | 20 |
-| `finding_volume_crossover` | One line for volume_crossover. | {value} = monthly sending volume in SGD above which, for S$5,000 from Singapore to the Philippines with a market order, the stablecoin route's cost (rebuilt from real samples with the fee tier that volume unlocks at Independent Reserve and Coins.ph) drops below the best other app's typical cost. Never watched happening: rebuilt, for that one route and amount. | 20 |
+| `finding_price_changes` | One line for the finding price_changes (card number 01 etc is added by the page). A finding with an empty line is not shown. | {value} = days on which a provider's cost changed. | 20 |
+| `finding_weekend_penalty` | One line for weekend_penalty. | {value} = weekend increases. | 20 |
+| `finding_volume_crossover` | One line for volume_crossover. | {value} = monthly SGD volume where the stablecoin route crosses the cheapest provider. | 20 |
 | `finding_stress_signal` | One line for stress_signal (not published yet, so not shown yet). | {value} = triggers on record. | 20 |
 | `finding_p2p_spread_signal` | One line for p2p_spread_signal (not published yet). | {value} = widest buy-sell spread against the currency's average. | 20 |
 
