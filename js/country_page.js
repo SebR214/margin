@@ -198,7 +198,7 @@
     var lead = p2p
       ? txt("leadP2p", { country: c.country, ccy: ccy, rate: num(p2p.fx_mid_per_usd, 0), street: num(p2p.buy_median, 0) + " " + ccy })
       : txt("leadBook", { country: c.country });
-    return '<section class="c-hero"><div class="c-herotext">' + w(key, { country: c.country, gap: pct(Math.abs(S.headline)) }, "h1") +
+    return '<section class="c-hero"><div class="c-herotext">' + w(key, { country: c.country, gap: gapText }, "h1") +
       (lead ? '<p class="soft c-lead">' + esc(lead) + "</p>" : "") +
       (!S.ranked ? w("unrankedNote", { country: c.country }, "p", ["muted", "c-small"]) : "") + "</div>" +
       '<div class="c-bigbox"><span class="c-big mono" data-receipt-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(gapText) +
@@ -307,7 +307,7 @@
         out += w("historySegmentSource", { since: dayShort(isoEpoch(S.history[0].date)), venue: sg.venue, fxSource: sg.fx_source, first: first, last: last, label: sg.label }, "p", ["muted", "c-small"]);
         var moves = (sg.largest_moves || []).map(function (m) {
           return txt("historySegmentMoveItem", { delta: (m.delta_pct > 0 ? "+" : "") + num(m.delta_pct, 1), date: dayLong(isoEpoch(m.date)) });
-        }).filter(Boolean).join(", ");
+        }).filter(Boolean).join("; ");
         if (moves) out += w("historySegmentMoves", { moves: moves }, "p", ["muted", "c-small"]);
         out += '<p class="mono muted c-small"><a href="' + RAW + "data/country_history_segment/" + esc(ccy) + '.json">data/country_history_segment/' + esc(ccy) + ".json</a></p>";
       }
