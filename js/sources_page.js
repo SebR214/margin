@@ -76,10 +76,11 @@
     var asOf = Date.parse(DATA.as_of_utc), last = Date.parse(lastUtc);
     if (isNaN(asOf) || isNaN(last)) return '';
     var mins = Math.max(0, Math.floor((asOf - last) / 60000));
-    if (mins < 60) return tpl('ageMinutes', { n: mins });
+    if (mins < 60) return tpl(mins === 1 ? 'ageMinuteOne' : 'ageMinutes', { n: mins });
     var hrs = Math.floor(mins / 60);
-    if (hrs < 48) return tpl('ageHours', { n: hrs });
-    return tpl('ageDays', { n: Math.floor(hrs / 24) });
+    if (hrs < 48) return tpl(hrs === 1 ? 'ageHourOne' : 'ageHours', { n: hrs });
+    var days = Math.floor(hrs / 24);
+    return tpl(days === 1 ? 'ageDayOne' : 'ageDays', { n: days });
   }
 
   /* ---------------------------------------------------------------- header, hero, stats */
@@ -190,7 +191,7 @@
       add(col, word('span', ['soft', 's-small'], 'historyNone'));
     }
     if (s.history_reason) add(col, rich('span', ['soft', 's-small'], 'historyReason', { reason: s.history_reason }, ['reason']));
-    if (s.history_verdict || s.history_endpoint) {
+    if (s.history_verdict && s.history_endpoint) {
       add(col, rich('span', ['mono', 'muted', 's-small'], 'historyVerdict', {
         verdict: s.history_verdict || '', endpoint: s.history_endpoint || ''
       }, ['verdict', 'endpoint']));
@@ -204,7 +205,7 @@
     var panels = [];
     [['currenciesToggle', s.currencies || []], ['routesToggle', s.routes || []]].forEach(function (g) {
       if (!g[1].length) return;
-      var label = tpl(g[0], { n: g[1].length });
+      var label = tpl(g[1].length === 1 ? g[0] + 'One' : g[0], { n: g[1].length });
       if (!label) return;
       var btn = el('button', 's-tog', label);
       btn.type = 'button';

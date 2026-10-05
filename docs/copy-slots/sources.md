@@ -67,3 +67,5 @@ Sentence case, no capitals for emphasis, no jargon. Word limits are maxima.
 | Key | Labels | Placeholders | Max words |
 |---|---|---|---|
 | loadFailed | shown if data/sources_daily.json cannot be loaded | none | 12 |
+| ageMinuteOne / ageHourOne / ageDayOne | The age line when the count is exactly one (singular). | {n} | 10 |
+| currenciesToggleOne / routesToggleOne | The coverage button when a source covers exactly one currency or one route (singular). | {n} | 8 |
