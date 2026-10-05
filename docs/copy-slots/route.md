@@ -114,3 +114,14 @@ One line per route at the chosen amount, from `data/routes_whatif.json`. The mai
 | whatWins | Shown instead of a figure when the 7-day median already has the stablecoin path at or below the app | {route} | 8 |
 | whatLatest | Words after the latest hour's figure | {units}, {pp} | 6 |
 | whatLatestWins | Shown when the latest hour already has the path at or below the app | none | 8 |
+
+## Added after the owner's review (SEB-240)
+
+| Key | Labels | Placeholders | Max words |
+|---|---|---|---|
+| notComparable | One line under the compare list and the what-would-have-to-change list saying which routes are left out and why | {routes} | 30 |
+| routeNotComparable | Shown under the big number when the selected route is one of those left out | none | 25 |
+| whatAppChanged | Shown when the cheapest app changed during the week: names the app that was cheapest most hours | {app} {hours} {of} | 25 |
+| whatPathNote | Shown when the what-would-have-to-change figures use a different stablecoin path from the steps shown above | {path} {base} {hour} | 40 |
+| whatNeeded (changed) | Now names the cheapest app of the week | {route} {units} {pp} {ccy} {app} | 20 |
+| whatLatest (changed) | Names the hour and the cheapest app in it | {units} {pp} {app} {hour} | 20 |
