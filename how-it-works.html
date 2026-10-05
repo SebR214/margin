@@ -40,7 +40,7 @@
   .full-method>summary::-webkit-details-marker{display:none}
   .full-method>summary::after{content:" +";color:var(--stamp)}
   .full-method[open]>summary::after{content:" −"}
-  .full-method .kicker{font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--stamp);padding-top:40px}
+  .full-method .kicker{font-size:14px;font-weight:700;letter-spacing:.06em;color:var(--stamp);padding-top:40px}
   .ask{margin:44px 0 48px;max-width:720px;height:60px;background:#F6F6F6;border-radius:999px;display:flex;align-items:center;justify-content:space-between;padding:0 9px 0 26px}
   .ask input{border:0;background:none;outline:none;font-size:18px;font-family:inherit;flex:1;color:var(--ink)}
   .ask input::placeholder{color:#9A9A9A;font-weight:500}
@@ -151,9 +151,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
       <div class="p"><a href="./METHODOLOGY.md" id="methodLink"></a></div>
 
-      <div class="h" id="refCheckTitle"></div>
-      <div class="p" id="refCheckIntro"></div>
-      <div id="refCheck" class="p" style="padding-top:14px"></div>
 
     <!-- "How fast does the street react?" taken off the site 2026-09-27
          alongside countries.html's #reaction section -- see the HTML
@@ -181,7 +178,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     <div id="hiwAnswer" style="display:none;max-width:720px;margin-top:16px;padding:16px 20px;background:#F6F6F6;border-radius:14px;font-size:15px;line-height:1.55;color:#0B0B0B"></div>
     <div class="askNote" id="askNote"></div>
     </div></details>
-    <footer class="foot">Every number on this site comes from a public data file. <a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></footer>
+    <footer class="foot"><a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></footer>
   </main>
 </div>
 
@@ -226,7 +223,7 @@ function setList(id, items, vals){
     var li = document.createElement('li'); li.textContent = f; ul.appendChild(li);
   });
 }
-function setText(id, txt){ var el = document.getElementById(id); if (el) el.textContent = txt; }
+function setText(id, txt){ var el = document.getElementById(id); if (el) { el.textContent = txt; el.hidden = !txt; } }
 
 // The page's own fixed text, set as soon as the copy arrives.
 copyP.then(function(h){
@@ -239,9 +236,6 @@ copyP.then(function(h){
   setText('methodMadeTitle', h.methodMadeTitle || '');
   setText('thresholdP', h.thresholdLoading || '');
   setText('methodLink', h.methodLink || '');
-  setText('refCheckTitle', h.refCheckTitle || '');
-  setText('refCheckIntro', h.refCheckIntroLoading || '');
-  setText('refCheck', h.refCheckLoading || '');
   setText('askNote', h.askNote || '');
   var ai = document.getElementById('hiwAskInput'); if (ai) ai.placeholder = h.askPlaceholder || '';
   var ab = document.getElementById('hiwAskBtn'); if (ab) ab.setAttribute('aria-label', h.askLabel || '');
@@ -316,7 +310,7 @@ Promise.all([
     ((src && src.sources) || []).forEach(function(s){
       if (/parallel-dollar/.test(s.detail || '') && names.indexOf(s.name) < 0) names.push(s.name);
     });
-    vals.top = names.length ? names.join(', ') : null;
+    vals.top = names.length ? names.map(function(n){ return (hiw.venueNames || {})[n] || n; }).join(', ') : null;
     setList('sourcesList', hiw.sourcesPoints, vals);
   });
 }).catch(function(){});
@@ -335,88 +329,6 @@ Promise.all([copyP, fetch('./data/index_latest.json', {cache:'no-store'}).then(r
   document.getElementById('thresholdP').textContent =
     fillTpl(HIW.thresholdCounts, { priced: (d.countries||[]).length, notPriced: (d.withheld||[]).length });
 
-  // ---- Checking ourselves against a reference ----
-  // data/fx_rates.csv already carries an independently published parallel
-  // rate for 3 currencies (ARS, BOB, VES -- from dolarapi.ar/bo/ve, a real
-  // third party, not us). Computed fresh from the live CSV on every load,
-  // not a precomputed snapshot, so this can never go stale the way a
-  // one-time-generated stat would.
-  var REF_CCY = { ARS: 'dolarapi.ar', BOB: 'dolarapi.bo', VES: 'dolarapi.ve' };
-  var byCcy = {};
-  (d.countries || []).forEach(function(c){ byCcy[c.ccy] = c; });
-  // Exposed for the ask box's own methodology routing (A4) below --
-  // country-name -> full record, so "how was Argentina's number made"
-  // can answer with real evidence rather than generic prose.
-  window.hiwTrackedByName = {};
-  (d.countries || []).forEach(function(c){ window.hiwTrackedByName[c.country.toLowerCase()] = c; });
-
-  fetch('./data/fx_rates.csv', {cache:'no-store'}).then(function(r){ return r.text(); }).then(function(text){
-    var lines = text.replace(/\r/g, '').split('\n');
-    var header = lines[0].split(',');
-    var iCcy = header.indexOf('ccy'), iFx = header.indexOf('fx_mid_per_usd'),
-        iPar = header.indexOf('parallel_rate_per_usd'), iSrc = header.indexOf('parallel_source'),
-        iTs = header.indexOf('ts_utc');
-    var latest = {};
-    for (var i = lines.length - 1; i >= 1 && Object.keys(latest).length < 3; i--) {
-      if (!lines[i]) continue;
-      var cols = lines[i].split(',');
-      var ccy = cols[iCcy];
-      if (REF_CCY[ccy] && cols[iPar] && !latest[ccy]) {
-        latest[ccy] = { fx: parseFloat(cols[iFx]), par: parseFloat(cols[iPar]), ts: cols[iTs], src: cols[iSrc] };
-      }
-    }
-
-    var CCY_COUNTRY = { ARS: 'Argentina', BOB: 'Bolivia', VES: 'Venezuela' };
-    var groups = { higher: [], lower: [], match: [] };
-    var rows = Object.keys(REF_CCY).map(function(ccy){
-      var ref = latest[ccy];
-      var ours = byCcy[ccy];
-      var country = CCY_COUNTRY[ccy] || ccy;
-      if (!ref) return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' + fillTpl(HIW.refNoReading, { country: esc(country) }) + '</div>';
-      var refPremium = (ref.par / ref.fx - 1) * 100;
-      if (!ours) {
-        return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' +
-          fillTpl(HIW.refNoOurs, { country: esc(country), src: esc(ref.src), premium: (refPremium >= 0 ? '+' : '') + refPremium.toFixed(1) + '%' }) + '</div>';
-      }
-      var diff = ours.index_pct - refPremium;
-      var group = Math.abs(diff) < 1 ? 'match' : (diff > 0 ? 'higher' : 'lower');
-      groups[group].push({ country: country, diff: diff });
-      var oursStr = (ours.index_pct>=0?'+':'') + ours.index_pct.toFixed(1) + '%';
-      return '<div class="mini" style="padding:8px 0;border-bottom:1px solid #F0F0F0;font-size:15px">' + fillTpl(HIW.refRow, {
-        country: esc(country),
-        ours: '<b class="num" data-receipt-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(oursStr) + '" tabindex="0">' + oursStr + '</b>',
-        src: esc(ref.src),
-        theirs: '<b class="num">' + (refPremium>=0?'+':'') + refPremium.toFixed(1) + '%</b>',
-        link: '<a href="./country.html?ccy=' + esc(ccy) + '" style="font-weight:600;color:#0B0B0B">' + esc(HIW.refGapLink || '') + '</a>'
-      }) + '</div>';
-    }).join('');
-
-    function nameList(items) {
-      return joinNames(items.map(function(i){ return fillTpl(HIW.refPoints, { country: i.country, points: Math.abs(i.diff).toFixed(1) }); }));
-    }
-    var parts = [];
-    if (groups.higher.length) parts.push(fillTpl(HIW.refRunHigher, { names: nameList(groups.higher) }));
-    if (groups.lower.length) parts.push(fillTpl(HIW.refRunLower, { names: nameList(groups.lower) }));
-    if (groups.match.length) parts.push(fillTpl(HIW.refMatch, { names: nameList(groups.match) }));
-    var summary = HIW.refSummaryLead || '';
-    if (parts.length) {
-      summary += ' ' + fillTpl(HIW.refSummaryCompare, { parts: parts.slice(0, -1).join(', ') + (parts.length > 1 ? ', ' + HIW.listAnd + ' ' : '') + parts[parts.length - 1] });
-    }
-    document.getElementById('refCheckIntro').textContent = summary;
-
-    // Whether the gap has a real, checkable cause: dolarapi.bo's own feed
-    // (the reference this page compares Bolivia against) is itself sourced
-    // from Binance, the same kind of market this site prices from, not a
-    // separate cash rate -- so "we price USDT, they publish cash" does not
-    // hold for all three countries, and is left unstated rather than
-    // asserted (SEB, plain-language rewrite, 2026-09-27).
-    var why = '<div class="mini" style="padding:8px 0;font-size:15px">' + esc(HIW.refWhy || '') + '</div>';
-
-    document.getElementById('refCheck').outerHTML = '<div id="refCheck">' + rows + why + '</div>';
-  }).catch(function(){
-    document.getElementById('refCheckIntro').textContent = HIW.refFail || '';
-    document.getElementById('refCheck').textContent = '';
-  });
 }).catch(function(){});
 
 // Section commented out above 2026-09-27 -- guard stops this fetch from
