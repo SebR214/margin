@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>margin.wiki</title>
-<meta name="description" content="Sending money by stablecoin usually costs more than a transfer app. We check it every hour, with every fee counted."/>
+<meta name="description" content="Sending money by stablecoin usually costs more than a transfer app. We check it every hour."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
 <script src="./js/chart.js"></script>
@@ -198,7 +198,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
   <div class="hero">
     <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Sending money by stablecoin usually costs more than a transfer app<!--BAKE:END:heroHeadline--></h1>
-    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->People argue about this constantly. Almost nobody measures it. We check it every hour, with every fee counted.<!--BAKE:END:heroSub--></div>
+    <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->People argue about this constantly. We check it every hour.<!--BAKE:END:heroSub--></div>
     <div class="live" id="liveLine"><span class="dot"></span><span id="liveChecked">Checked —</span></div>
   </div>
 
@@ -359,9 +359,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         return c.baseline_cost_bps_median != null && c.taker_cost_bps_median > c.baseline_cost_bps_median;
       });
     var others = otherRows.map(function(c){ return c.route_words || SRC_NAME[(c.corridor || '').split('->')[0]] || c.corridor; });
-    var sameResultHtml = others.length
-      ? T(COPY.duelSameResultTemplate, { routes: joinAnd(others) })
-      : '<a href="./sending-money.html">' + esc(COPY.everyProviderLink) + '</a>';
+    var sameResultHtml = '<a href="./sending-money.html">' + esc(COPY.everyProviderLink) + '</a>';
     el.innerHTML =
       '<div class="duel">' +
         '<div><div class="big p">' + cashPct(stableBps) + '</div><div class="lab">' + esc(COPY.duelLabelStable || 'Stablecoin') + '</div></div>' +
