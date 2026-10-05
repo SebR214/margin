@@ -219,7 +219,7 @@
     wrap.appendChild(header());
     wrap.appendChild(chips(published, f.id));
 
-    var hero = el('section', 'fp-hero');
+    var hero = el('section', ['fp-hero', 'hero', 'bleed']);
     var text = kid(hero, el('div', 'fp-hero-text'));
     kid(text, titleOf(f) ? el('h1', '', titleOf(f)) : null);
     kid(text, word('p', ['soft', 'fp-line'], 'claim_' + f.id));
