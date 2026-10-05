@@ -22,7 +22,6 @@
  *          yfmt: function (v) { return text } }
  */
 (function () {
-  "use strict";
   var NS = "http://www.w3.org/2000/svg";
 
   function niceTicks(lo, hi, n) {

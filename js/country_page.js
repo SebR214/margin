@@ -14,7 +14,6 @@
  * percentages and currency codes are formatted in code.
  */
 (function () {
-  "use strict";
 
   var DAY = 86400;
   var RAW = "https://github.com/SebR214/margin/blob/main/";
