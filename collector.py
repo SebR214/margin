@@ -524,6 +524,46 @@ CORRIDOR_VARIANTS = {
             "verified": "2026-10-03",
         },
     ],
+    # USD->INR and SGD->INR USDC variant (SEB-248). Probe 2026-10-05: WazirX's
+    # public order-book endpoint (api.wazirx.com/sapi/v1/depth?symbol=usdcinr)
+    # answered with a real, two-sided book (23 bids, 26 asks, ~INR 121k bid and
+    # ~INR 658k ask cumulative notional in the top 50 levels). The book is thin
+    # -- decompose() will faithfully record partial fills at the larger ladder
+    # rungs -- but genuinely two-sided and priced within 2% of USDTINR's own
+    # spread the same hour.  WazirX's own deposit/withdrawal table
+    # (wazirx.com/fees?tab=deposit_withdrawal_fees) was read for USDT in the
+    # USD->INR corridor (2026-09-29); the page is React-rendered and cannot be
+    # scraped for a USDC network list from this box, so the network choice rests
+    # on the onramp-side published fee tables below.  Independent Reserve's own
+    # fee page (independentreserve.com/fees, read 2026-10-02 via rendering
+    # proxy, cited at SEB-182 line 461-467) lists four USDC withdrawal networks:
+    # Ethereum 10.0, Solana 1.0, Base 1.0, Arbitrum One 1.0.  WazirX is not
+    # independently confirmed to accept USDC deposits on Arbitrum One, Solana or
+    # Base (Coins.ph was for those corridors, but WazirX's own help centre and
+    # API do not publish a network list for USDC).  Ethereum is the one network
+    # every exchange that lists USDC supports; it is the network modelled here.
+    # Coinbase's USDC-USD book and IR's USDC-SGD book are both independently
+    # confirmed live by the onramp fetch paths above.
+    "USD->INR": [
+        {
+            "stable": "USDC", "network": "Ethereum",
+            "offramp_symbol": "usdcinr",
+            "network_fee_stable": 0.0,         # unmodelled ERC20 gas; Coinbase's
+                                                # 0.0001% processing fee (capped at
+                                                # 20 USDC) carries from base config
+            "verified": "2026-10-05",
+        },
+    ],
+    "SGD->INR": [
+        {
+            "stable": "USDC", "network": "Ethereum",
+            "offramp_symbol": "usdcinr",
+            "network_fee_stable": 10.0,        # IR's published USDC Ethereum
+                                                # withdrawal fee (same fee page as
+                                                # the per-corridor cites above)
+            "verified": "2026-10-05",
+        },
+    ],
 }
 
 VARIANTS_SIDECAR = os.path.join(HERE, "data", "corridor_variants.csv")
