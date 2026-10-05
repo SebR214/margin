@@ -105,17 +105,17 @@
     if (title) document.title = title;
   }
 
-  function buildHero(live, withHist, noHist) {
+  function buildHero(total, live, gone, withHist, noHist) {
     var h1 = tpl('headline');
     if (h1) { var h = $('headline'); h.textContent = h1; h.hidden = false; }
     var lede = tpl('headlineSub');
     if (lede) { var p = $('lede'); p.textContent = lede; p.hidden = false; }
-    $('big').textContent = String(live);
-    var bl = tpl('bigLabel', { n: live });
+    $('big').textContent = String(total);
+    var bl = tpl('bigLabel', { n: total });
     if (bl) { var b = $('bigl'); b.textContent = bl; b.hidden = false; }
 
     var stats = $('stats');
-    [['statLive', live], ['statWithHistory', withHist], ['statNoHistory', noHist]].forEach(function (s) {
+    [['statLive', live], ['statHistoryOnly', gone], ['statWithHistory', withHist], ['statNoHistory', noHist]].forEach(function (s) {
       var cell = el('div', 's-stat');
       cell.appendChild(el('span', ['num', 'mono'], String(s[1])));
       add(cell, word('span', ['lab', 'muted'], s[0], { n: s[1] }));
@@ -190,47 +190,34 @@
     } else {
       add(col, word('span', ['soft', 's-small'], 'historyNone'));
     }
-    if (s.history_reason) add(col, rich('span', ['soft', 's-small'], 'historyReason', { reason: s.history_reason }, ['reason']));
-    if (s.history_verdict && s.history_endpoint) {
-      add(col, rich('span', ['mono', 'muted', 's-small'], 'historyVerdict', {
-        verdict: s.history_verdict || '', endpoint: s.history_endpoint || ''
-      }, ['verdict', 'endpoint']));
-    }
+    // Why there is no older history, in plain words by kind (tools/emit_sources_daily.py reason_kind).
+    // The stored reason text, endpoint and HTTP code stay in the data file and are not shown.
+    if (s.history_reason_kind) add(col, word('span', ['soft', 's-small'], 'reason_' + s.history_reason_kind));
     return col;
   }
 
+  // A stored source id made readable: the names live in copy.json (sourceNames); CriptoYa sub-venues
+  // read "CriptoYa · name". Anything else shows as stored.
+  function displayName(id) {
+    var m = (COPY.sourceNames || {})[id];
+    if (m) return m;
+    return String(id).replace(/^CriptoYa:/, 'CriptoYa · ');
+  }
+
   function coverage(s) {
+    // How many currencies and routes the source covers, as plain counts: no internal codes.
     var box = el('div', 's-cur');
-    var togs = el('div', 's-togs');
-    var panels = [];
-    [['currenciesToggle', s.currencies || []], ['routesToggle', s.routes || []]].forEach(function (g) {
+    [['coverageCurrencies', s.currencies || []], ['coverageRoutes', s.routes || []]].forEach(function (g) {
       if (!g[1].length) return;
-      var label = tpl(g[1].length === 1 ? g[0] + 'One' : g[0], { n: g[1].length });
-      if (!label) return;
-      var btn = el('button', 's-tog', label);
-      btn.type = 'button';
-      btn.setAttribute('aria-expanded', 'false');
-      var codes = el('div', ['s-codes', 'mono', 'soft']);
-      codes.hidden = true;
-      g[1].forEach(function (c) { codes.appendChild(el('span', '', c)); });
-      btn.addEventListener('click', function () {
-        var open = codes.hidden;
-        codes.hidden = !open;
-        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      });
-      togs.appendChild(btn);
-      panels.push(codes);
+      add(box, word('span', ['soft', 's-small'], g[1].length === 1 ? g[0] + 'One' : g[0], { n: g[1].length }));
     });
-    if (!panels.length) return null;
-    box.appendChild(togs);
-    panels.forEach(function (p) { box.appendChild(p); });
-    return box;
+    return box.childNodes.length ? box : null;
   }
 
   function row(s) {
     var r = el('div', 's-row');
     var info = el('div', 's-info');
-    info.appendChild(el('span', ['s-id', 'mono'], s.id));
+    info.appendChild(el('span', ['s-id', 'mono'], displayName(s.id)));
     add(info, word('span', ['s-kind', 'mono', 'soft'], KIND_KEY[s.kind] || 'kindOther'));
     if (s.last_answered_utc) {
       add(info, word('span', ['mono', 'soft', 's-small'], 'lastAnswered', {
@@ -301,11 +288,11 @@
       if (m.kind === 'source') FIRST_DAY[m.id] = m.first_day;
     });
     var liveCount = DATA.sources.filter(function (s) { return s.live; }).length;
-    var total = record && record.totals && record.totals.sources != null ? record.totals.sources : liveCount;
+    var total = DATA.sources.length;
     var withHist = DATA.sources.filter(function (s) { return s.history && s.history.length; }).length;
     var noHist = DATA.sources.length - withHist;
     buildHeader();
-    buildHero(total, withHist, noHist);
+    buildHero(total, liveCount, total - liveCount, withHist, noHist);
     buildLegend();
     buildChips(DATA.sources);
     buildLists();

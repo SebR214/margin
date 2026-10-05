@@ -70,3 +70,13 @@ Sentence case, no capitals for emphasis, no jargon. Word limits are maxima.
 | ageMinuteOne / ageHourOne / ageDayOne | The age line when the count is exactly one (singular). | {n} | 10 |
 | currenciesToggleOne / routesToggleOne | The coverage button when a source covers exactly one currency or one route (singular). | {n} | 8 |
 | historyLineNoCcy | A history series line when the series has no single currency (for example a set of markets). | {series}, {first}, {last}, {rows} | 12 |
+
+## Added after the owner's review (SEB-240)
+
+| Key | Labels | Placeholders | Max words |
+|---|---|---|---|
+| statHistoryOnly | Count of sources that gave older prices only (not read every hour) | {n} | 8 |
+| reason_snapshot_only, reason_needs_key, reason_blocked, reason_login_only, reason_no_endpoint, reason_other | Why a source has no older prices, in plain words, by kind (no codes, no endpoints) | none | 25 |
+| coverageCurrencies, coverageCurrenciesOne, coverageRoutes, coverageRoutesOne | How many currencies or sending routes a source covers (plain count, no code list) | {n} | 8 |
+| sourceNames (object) | A readable name for a stored source id | n/a | n/a |
+| bigLabel (changed) | Now labels the count of ALL sources | {n} | 6 |
