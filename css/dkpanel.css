@@ -1,0 +1,39 @@
+/* The dark data panel for pages that do not load style.css. Token values are style.css's --dk-* values. */
+.dkpanel {
+  --dk-bg: #0D1015; --dk-line: #222934; --dk-text: #ECEAE4; --dk-soft: #B3B9C2; --dk-muted: #9AA1AB;
+  --dk-amber: #F0A23B; --dk-blue: #6AA6E0; --dk-blue-deep: #2B4A68;
+  --font-data: "IBM Plex Sans", system-ui, sans-serif; --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+.dkpanel {
+    background: var(--dk-bg);
+    color: var(--dk-text);
+    border-radius: 8px;
+    padding: 20px 24px;
+    font-family: var(--font-data);
+  }
+
+  /* Minimal hp-* styles needed for the cycle block */
+  .dkpanel .hp-sec { display: flex; flex-direction: column; gap: 16px; }
+  .dkpanel .hp-sechead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .dkpanel .hp-row { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start; }
+  .dkpanel .hp-main { flex: 999 1 600px; min-width: 0; }
+  .dkpanel .hp-side { flex: 1 1 300px; min-width: 260px; display: flex; flex-direction: column; gap: 28px; }
+  .dkpanel .hp-tight { gap: 10px; }
+  .dkpanel .hp-list { border-top: 1px solid var(--dk-line); }
+  .dkpanel .hp-step { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--dk-line); font-size: 14px; }
+  .dkpanel .hp-time { width: 64px; }
+  .dkpanel .hp-sdot, .dkpanel .hp-sdot-amber { width: 6px; height: 6px; border-radius: 50%; display: inline-block; background: var(--dk-blue); flex: none; }
+  .dkpanel .hp-sdot-amber { background: var(--dk-amber); }
+  .dkpanel .hp-steptext { flex: 1; min-width: 180px; }
+  .dkpanel .hp-strip { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; }
+  .dkpanel .hp-strip span { height: 22px; border-radius: 3px; }
+  .dkpanel .hp-strip .sc, .dkpanel .ksc { background: var(--dk-blue); }
+  .dkpanel .hp-strip .sm, .dkpanel .ksm { background: var(--dk-blue-deep); }
+  .dkpanel .hp-strip .sf, .dkpanel .ksf { background: var(--dk-amber); }
+  .dkpanel .hp-legend { display: flex; flex-wrap: wrap; gap: 16px; }
+  .dkpanel .hp-sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; vertical-align: -1px; }
+  .dkpanel .hp-small { font-size: 14px; }
+  .dkpanel .hp-tiny { font-size: 12px; }
+  .dkpanel .soft { color: var(--dk-soft); }
+  .dkpanel .muted { color: var(--dk-muted); }
+  .dkpanel .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
