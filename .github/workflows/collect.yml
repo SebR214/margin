@@ -347,6 +347,14 @@ jobs:
         # only if it cannot write.
         run: python3 tools/emit_countries.py
 
+      - name: Emit heatmap
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Every currency by every day since the first reading, from the
+        # country files just written and data/basis.csv. See the docstring in
+        # tools/emit_heatmap.py. Stored values only, a day with no reading is
+        # null.
+        run: python3 tools/emit_heatmap.py
+
       - name: Emit street depth
         if: always() && steps.needed.outputs.proceed == 'true'
         # How much volume a country's premium holds before the price would
