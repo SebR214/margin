@@ -600,48 +600,48 @@
     "recordNormal": "Today's gap is in its normal range for {scope} since {first}."
   },
   "howItWorks": {
-    "h1": "Where the numbers come from, and how to check one",
-    "sub": "Click any number on the site and you see what is behind it.",
-    "subPoints": [
-      "You see the offers behind it.",
-      "You see the official rate used.",
-      "You see the middle price divided by the official rate.",
-      "You get the public data file, linked under the number."
-    ],
-    "subNote": "Nothing is typed in by hand. A missed hour stays missing instead of being filled in. A gap in a chart means we did not collect that hour.",
-    "dollarCostTitle": "What people pay for a dollar",
-    "dollarCostLead": "Each country gets one price for a digital dollar every hour.",
-    "dollarCostPoints": [
-      "Method: we take the {minAds} cheapest offers to sell a digital dollar, on the exchange people there use, and use the middle one of those.",
-      "We show the middle price divided by the official rate at that moment, as a percentage.",
-      "A digital dollar, or stablecoin, is a coin that stays worth one US dollar.",
-      "A positive percentage means people pay more than the official rate says a dollar costs. A negative one means they pay less.",
-      "Fewer than {minAds} sellers and we publish no price, so thin markets show a gap, not a guess."
-    ],
-    "sendingCostTitle": "What sending money costs",
-    "sendingCostLead": "What the recipient gets, against the real exchange rate, at {amounts} amounts, every fee counted.",
-    "sendingCostAmounts": "Amounts: {amountList}, in the currency you are sending from.",
-    "sendingCostPoints": [
-      "The real exchange rate is the rate banks trade at between themselves.",
-      "The shortfall against it is what sending costs you, for each provider and for sending with digital dollars.",
-      "The bigger the shortfall, the more the transfer costs you."
-    ],
-    "notMeasuredTitle": "What we don't measure yet",
-    "notMeasured": [
-      "The official rate only updates once a day, so it can be up to 24 hours behind the market. It matters on days a currency moves fast: on those days the gap we show can lag the real one by up to a day.",
-      "Bank fees for moving money onto an exchange are not counted where the exchange does not publish them, so a sender could pay a bank fee that our figure leaves out. Check your own bank's fee before you compare.",
-      "Prices for repeat senders are not measured. Some app prices are first-transfer offers, so repeat senders may pay more than we show.",
-      "Cash dollars at money changers are not measured, so our numbers cover digital dollars only."
-    ],
-    "notMeasuredNote": "Every number links to the file it came from. {fullMethodLink}",
-    "fullMethodLink": "How a price is made and how we check it →",
-    "sourcesTitle": "Sources",
-    "sourcesPoints": [
-      "Prices for a digital dollar: Binance P2P, {top}.",
-      "Official rates: open.er-api.com, with frankfurter.app as backup, and Argentina's central bank for Argentina.",
-      "Provider prices: {ownWord} providers quote us directly. The rest come from a public price comparison."
-    ],
-    "methodMadeBody": "Every hour we collect live offers to sell dollars, take the middle price, and compare it to the official rate from the same check. Nothing is modelled or smoothed. A country needs at least {minAds} sell offers, or a real exchange order book, to get a price."
+      "h1": "Where the numbers come from, and how to check one",
+      "sub": "Click any number on the site and you see what is behind it.",
+      "subPoints": [
+        "You see the offers behind it.",
+        "You see the official rate used.",
+        "You see the middle price divided by the official rate.",
+        "You get the public data file, linked under the number."
+      ],
+      "subNote": "Nothing is typed in by hand. A missed hour stays missing instead of being filled in. A gap in a chart means we did not collect that hour.",
+      "dollarCostTitle": "What people pay for a dollar",
+      "dollarCostLead": "Each country gets one price for a digital dollar every hour.",
+      "dollarCostPoints": [
+        "Method: we take the {minAds} cheapest offers to sell a digital dollar, on the exchange people there use, and use the middle one of those.",
+        "We show the middle price divided by the official rate at that moment, as a percentage.",
+        "A digital dollar, or stablecoin, is a coin that stays worth one US dollar.",
+        "A positive percentage means people pay more than the official rate says a dollar costs. A negative one means they pay less.",
+        "Fewer than {minAds} sellers and we publish no price, so thin markets show a gap, not a guess."
+      ],
+      "sendingCostTitle": "What sending money costs",
+      "sendingCostLead": "What the recipient gets, against the real exchange rate, at {amounts} amounts, every fee counted.",
+      "sendingCostAmounts": "Amounts: {amountList}, in the currency you are sending from.",
+      "sendingCostPoints": [
+        "The real exchange rate is the rate banks trade at between themselves.",
+        "The shortfall against it is what sending costs you, for each provider and for sending with digital dollars.",
+        "The bigger the shortfall, the more the transfer costs you."
+      ],
+      "notMeasuredTitle": "What we don't measure yet",
+      "notMeasured": [
+        "The official rate only updates once a day, so it can be up to 24 hours behind the market. It matters on days a currency moves fast: on those days the gap we show can lag the real one by up to a day.",
+        "Bank fees for moving money onto an exchange are not counted where the exchange does not publish them, so a sender could pay a bank fee that our figure leaves out. Check your own bank's fee before you compare.",
+        "Prices for repeat senders are not measured. Some app prices are first-transfer offers, so repeat senders may pay more than we show.",
+        "Cash dollars at money changers are not measured, so our numbers cover digital dollars only."
+      ],
+      "notMeasuredNote": "Every number links to the file it came from. {fullMethodLink}",
+      "fullMethodLink": "How a price is made and how we check it →",
+      "sourcesTitle": "Sources",
+      "sourcesPoints": [
+        "Prices for a digital dollar: Binance P2P, {top}.",
+        "Official rates: open.er-api.com, with frankfurter.app as backup, and Argentina's central bank for Argentina.",
+        "Provider prices: {ownWord} providers quote us directly. The rest come from a public price comparison."
+      ],
+      "methodMadeBody": "Every hour we collect live offers to sell dollars, take the middle price, and compare it to the official rate from the same check. Nothing is modelled or smoothed. A country needs at least {minAds} sell offers, or a real exchange order book, to get a price."
   },
   "machineRoom": {
     "title": "Four AI agents run this site",
@@ -1023,6 +1023,67 @@
     "footer": "Every number on this site comes from a public data file, and the raw files are on GitHub.",
     "footerLink": "Code and raw data on GitHub →",
     "seeWhy": "See why, in full"
+  },
+  "routeData": {
+    "navCountries": "Countries",
+    "navRoutes": "Sending money",
+    "navSources": "Sources",
+    "navFindings": "Findings",
+    "navHow": "How it works",
+    "lastReading": "Last reading {date}, {time}",
+    "amountLabel": "Amount sent",
+    "headline": "Every hour we test a stablecoin against apps on {route}",
+    "lead": "Cost is what the recipient loses against the mid-market rate, the middle price banks trade at with each other. A stablecoin is a coin that stays worth one US dollar.",
+    "bigCaption": "Hours in which a stablecoin was cheapest at any amount, out of {priced} priced",
+    "loadFailed": "The route prices did not load. Reload to try again.",
+    "legendStable": "Stablecoin",
+    "legendApp": "Cheapest app",
+    "legendGap": "Stablecoin's extra cost",
+    "unitAbs": "",
+    "unitRel": "",
+    "period7": "Last week",
+    "period30": "Last month",
+    "periodAll": "Since {date}",
+    "chartAria": "Hourly cost of the cheapest stablecoin path against the cheapest app",
+    "chartCaptionAbs": "In {ccy}, as a loss against the mid-market rate.",
+    "chartCaptionRel": "In percent, as a loss against the mid-market rate.",
+    "tipStable": "Stablecoin",
+    "tipApp": "Cheapest app",
+    "tipExtra": "Extra cost",
+    "statWindow": "",
+    "statCheapest": "Hours cheaper than every app",
+    "statTypical": "Typical extra cost",
+    "statClosest": "Closest to the app",
+    "statWidest": "Widest gap",
+    "breakdownHeading": "Three steps make up the stablecoin's cost",
+    "breakdownLead": "Pick a day to see each step next to the cheapest app.",
+    "breakdownLoading": "Loading the steps",
+    "breakdownFailed": "The cost steps did not load. Reload to try again.",
+    "sliderLabel": "Day shown",
+    "legGettingIn": "Deposit and buy",
+    "legOnChain": "Network fee",
+    "legCashingOut": "Sell and withdraw",
+    "legTotal": "Stablecoin, all in",
+    "legApp": "Cheapest app, all in",
+    "legsMissing": "Steps without a bar were not recorded on {date}.",
+    "legsUnmeasured": "A bank fee to pay in or take out was not measured on {date}. The real cost may be higher.",
+    "compareHeading": "Every way of sending, compared at your amount",
+    "compareLead": "Each row uses the amount chosen above.",
+    "metricWin": "Share of hours cheaper",
+    "metricTypical": "Typical extra cost",
+    "metricSwing": "How much it swings",
+    "metricChange": "Change over the week",
+    "whatHeading": "Each line shows what matching the app takes",
+    "whatLead": "Each figure is the usual cut needed at {amount} over the past week. The latest hour shows today's.",
+    "whatNeeded": "less to buy and cash out stablecoins and match {app}, the cheapest app this week",
+    "whatShare": "That is {pct} of what buying and cashing out costs now.",
+    "whatWins": "{route} needs no cut to match the app",
+    "whatLatest": "needed in the latest hour, {hour}, against {app}",
+    "whatLatestWins": "The latest hour needs no cut",
+    "routeNotComparable": "This route is not comparable yet. Against the mid-market rate its stablecoin cost comes out negative, which would make it look free.",
+    "notComparable": "{routes} are left out. Against the mid-market rate their stablecoin cost comes out negative, which would make it look free, so it is not comparable yet.",
+    "whatPathNote": "These cuts are measured against {path}, the cheapest stablecoin path in the latest hour. The steps above use {base}, so the two totals can differ.",
+    "whatAppChanged": "The cheapest app changed during the week. {app} was cheapest in {hours} of {of} hours."
   },
   "homeData": {
     "metaDescription": "What a dollar really costs in dozens of countries, compared with the official rate and checked every hour.",
