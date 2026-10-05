@@ -355,6 +355,12 @@ jobs:
         # null.
         run: python3 tools/emit_heatmap.py
 
+      - name: Emit country readings
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Every stored reading per country (one file per currency and month)
+        # for the country chart. See tools/emit_country_readings.py.
+        run: python3 tools/emit_country_readings.py
+
       - name: Emit street depth
         if: always() && steps.needed.outputs.proceed == 'true'
         # How much volume a country's premium holds before the price would
