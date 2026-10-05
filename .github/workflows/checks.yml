@@ -62,6 +62,9 @@ jobs:
       - name: History isolation (labelled history never feeds the index or a published price)
         run: python3 tools/check_history_isolation.py
 
+      - name: Home, sources and findings emitters (invariants on the stored data, offline)
+        run: python3 tests/check_home_emitters.py
+
       - name: Index consistency (published figures match their own charts)
         run: python3 tools/check_index_consistency.py
 
