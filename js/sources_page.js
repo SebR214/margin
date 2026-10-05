@@ -223,6 +223,7 @@
 
   function row(s) {
     var r = el('div', 's-row');
+    r.id = 's-' + String(s.id).toLowerCase().replace(/[^a-z0-9]/g, '');
     var info = el('div', 's-info');
     info.appendChild(el('span', ['s-id', 'mono'], displayName(s.id)));
     add(info, word('span', ['s-kind', 'mono', 'soft'], KIND_KEY[s.kind] || 'kindOther'));
@@ -280,6 +281,18 @@
     });
   }
 
+  // A link such as sources.html#s-bithumb opens the page at that source's row.
+  function jumpToHash() {
+    var h = (location.hash || '').replace(/^#/, '');
+    if (!h) return;
+    var target = document.getElementById(h);
+    if (!target) {
+      var rows = document.querySelectorAll('.s-row[id]');
+      for (var i = 0; i < rows.length; i++) { if (rows[i].id.indexOf(h) === 0) { target = rows[i]; break; } }
+    }
+    if (target) { target.classList.add('s-target'); target.scrollIntoView(); }
+  }
+
   function start(copy, sources, record, milestones) {
     COPY = (copy && copy.sourcesData) || {};
     if (!sources || !sources.sources) {
@@ -303,6 +316,7 @@
     buildLegend();
     buildChips(DATA.sources);
     buildLists();
+    jumpToHash();
   }
 
   Promise.all([

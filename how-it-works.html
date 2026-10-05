@@ -5,151 +5,99 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title></title>
 <meta name="description" content=""/>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
 <script src="./js/chart.js"></script>
 <script src="./js/receipt_replay.js"></script>
 <script src="./js/cycle_block.js"></script>
-<style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff;font-size:17px}
-  a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
-  .num{font-variant-numeric:tabular-nums}
-  .wrap{max-width:760px;margin:0 auto}
-  header{display:flex;align-items:center;justify-content:space-between;padding:22px 0;flex-wrap:wrap;gap:12px}
-  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
-  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
-  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap}
-  nav a.active{color:var(--ink);font-weight:700}
-  .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:#6B6B6B}
-  .header-right{display:flex;align-items:center;gap:16px}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
-  main{padding:44px 0 0;max-width:900px}
-  h1{font-size:28px;font-weight:800;letter-spacing:-0.02em;max-width:900px;margin:0}
-  .p{font-size:17px;line-height:1.65;color:#222;max-width:760px;padding-top:14px}
-  .h{font-size:20px;font-weight:700;padding-top:34px;padding-bottom:8px}
-  .b{font-size:16px;line-height:1.6;color:#222;max-width:760px;padding:5px 0 5px 20px;position:relative}
-  .lede{font-size:18px;line-height:1.6;color:#222;max-width:760px;padding-top:16px}
-  .hiw-section{border-top:1px solid var(--rule);margin-top:36px;padding-top:30px}
-  .hiw-section h2{font-size:21px;line-height:1.3;font-weight:700;margin:0 0 8px;max-width:760px}
-  .hiw-section .p{padding-top:0;margin-top:6px}
-  .plain-list{margin:10px 0 0;padding-left:20px;font-size:16px;line-height:1.65;color:#222;max-width:760px}
-  .plain-list li{margin:6px 0}
-  .full-method{border-top:1px solid var(--rule);margin-top:40px;padding-top:6px}
-  .full-method>summary{cursor:pointer;font-size:17px;font-weight:600;padding:18px 0;min-height:40px;list-style:none}
-  .full-method>summary::-webkit-details-marker{display:none}
-  .full-method>summary::after{content:" +";color:var(--stamp)}
-  .full-method[open]>summary::after{content:" −"}
-  .full-method .kicker{font-size:14px;font-weight:700;letter-spacing:.06em;color:var(--stamp);padding-top:40px}
-  .ask{margin:44px 0 48px;max-width:720px;height:60px;background:#F6F6F6;border-radius:999px;display:flex;align-items:center;justify-content:space-between;padding:0 9px 0 26px}
-  .ask input{border:0;background:none;outline:none;font-size:18px;font-family:inherit;flex:1;color:var(--ink)}
-  .ask input::placeholder{color:#9A9A9A;font-weight:500}
-  .ask button{width:44px;height:44px;border-radius:50%;background:#0B0B0B;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
-  .askNote{font-size:14px;color:#6B6B6B;padding-bottom:48px}
-  footer.foot{border-top:1px solid var(--rule);margin-top:56px;padding-top:24px;padding-bottom:44px;font-size:15px;color:#6B6B6B}
-  footer.foot a{color:var(--ink);font-weight:500}
-  @media(max-width:900px){header{padding:22px 0;flex-wrap:nowrap} main{padding:32px 0 0} .mcp{display:none}}
-
-  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:#0B0B0B;line-height:1}
-  @media(max-width:760px){
-    header{position:relative;flex-wrap:nowrap!important;gap:8px}
-    .brand{gap:10px;flex-wrap:nowrap;min-width:0}
-    .logo{flex:0 0 auto}
-    /* Single swipeable row, never wraps to a second line -- a phone reader
-       scrolls sideways to see "How it was built" rather than the nav
-       stacking under the logo (SEB, mobile pass). Hidden scrollbar, real
-       horizontal scroll underneath. */
-    nav{display:flex!important;flex-wrap:nowrap;flex:1 1 auto;min-width:0;overflow-x:auto;gap:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:static;background:none;box-shadow:none;padding:0;border-bottom:0}
-    nav::-webkit-scrollbar{display:none}
-    nav a{padding:0 10px;font-size:15px;white-space:nowrap;border-bottom:0;display:flex;align-items:center;min-height:40px}
-    .nav-toggle{display:none}
-    .status{gap:10px}
-    .mcp{display:none}
-    .live{max-width:40vw;overflow:hidden}
-    .live .num{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:middle}
-  }
-  @media(max-width:760px){
-    .ask{padding:0 6px 0 20px}
-    .ask input{font-size:16px}
-    .ask button{min-width:44px;min-height:44px}
-  }
-
-</style>
 <link rel="stylesheet" href="./css/dkpanel.css">
-<style id="mwh-style">
-header.mwh{display:flex!important;align-items:center!important;justify-content:flex-start!important;height:64px!important;min-height:0!important;margin:0 0 36px 0!important;padding:0!important;border:0!important;background:transparent!important;position:static!important;flex-wrap:nowrap!important;gap:0!important}
-header.mwh .mwh-logo{font-family:'Archivo',system-ui,sans-serif!important;font-size:19px!important;font-weight:800!important;color:#0B0B0B!important;text-decoration:none!important;margin:0 28px 0 0!important;padding:0!important;letter-spacing:-.01em!important;white-space:nowrap!important;flex:none!important}
-header.mwh nav{display:flex!important;gap:24px!important;align-items:center!important;overflow-x:auto!important;scrollbar-width:none!important;margin:0!important;padding:0!important;flex:1 1 auto!important;min-width:0!important}
-header.mwh nav{position:static!important;inset:auto!important;transform:none!important;width:auto!important;height:auto!important;max-height:none!important;box-shadow:none!important;background:none!important;visibility:visible!important;opacity:1!important;flex-direction:row!important;border:0!important;z-index:auto!important}
-header.mwh nav::-webkit-scrollbar{display:none}
-header.mwh nav a{font-family:'Archivo',system-ui,sans-serif!important;font-size:15px!important;font-weight:500!important;color:#6B6B6B!important;text-decoration:none!important;padding:10px 0!important;margin:0!important;white-space:nowrap!important;border:0!important;background:none!important}
-header.mwh nav a.active{color:#0B0B0B!important;font-weight:600!important}
-header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
-header.mwh .nav-toggle{display:none!important;background:none!important;border:0!important;font-size:20px!important;cursor:pointer!important;padding:6px 8px!important;color:#0B0B0B!important;line-height:1!important;font-family:inherit!important}
-@media (max-width:620px){
-  header.mwh{height:56px!important;margin-bottom:24px!important;position:relative!important}
-  header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}
-  header.mwh nav{display:none!important;position:absolute!important;top:100%!important;left:0!important;right:0!important;flex-direction:column!important;gap:0!important;background:#fff!important;padding:6px 24px 16px!important;border-bottom:1px solid #F0F0F0!important;box-shadow:0 8px 16px rgba(11,11,11,0.06)!important;z-index:30!important;overflow:visible!important;mask-image:none!important;-webkit-mask-image:none!important}
-  header.mwh nav.open{display:flex!important}
-  header.mwh nav a{padding:12px 0!important;border-bottom:1px solid #F6F6F6!important;font-size:16px!important}
-  header.mwh .nav-toggle{display:block!important}
-}
+<style>
+  /* How it works (SEB-240). Colours are the --dk-* tokens in style.css, nothing else. */
+  body.data { margin: 0; }
+  .hw-wrap { max-width: 1000px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 32px; }
+  .hp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--dk-line); }
+  .hp-headleft { display: flex; flex-wrap: wrap; align-items: center; gap: 0 28px; }
+  .hp-logo { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 18px; color: var(--dk-text); text-decoration: none; }
+  .hp-nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--dk-muted); }
+  .hp-navlink { display: inline-flex; align-items: center; min-height: 44px; color: var(--dk-muted); text-decoration: none; }
+  .hp-navlink.on { color: var(--dk-text); }
+  .hw-main { display: flex; flex-direction: column; gap: 24px; }
+  .hw-panel { background: var(--dk-panel); border: 1px solid var(--dk-line); border-radius: 8px; padding: 28px; display: flex; flex-direction: column; gap: 16px; }
+  .hw-panel[hidden], .hw-main [hidden] { display: none; }
+  body.data h1, body.data h2 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+  body.data h1 { line-height: 1.15; }
+  body.data h2 { line-height: 1.25; }
+  .hw-main .lede { margin: 0; font-size: 18px; color: var(--dk-soft); }
+  .hw-main .p { margin: 0; font-size: 15px; color: var(--dk-soft); max-width: 760px; }
+  .hw-main .plain-list { margin: 0; padding-left: 20px; font-size: 15px; color: var(--dk-soft); max-width: 760px; display: flex; flex-direction: column; gap: 8px; }
+  .hw-main .plain-list:empty { display: none; }
+  .hw-main a { color: var(--dk-amber); }
+  .hw-rows { border-top: 1px solid var(--dk-line); }
+  .hw-rows:empty { display: none; }
+  .hw-row { display: flex; align-items: center; min-height: 44px; border-bottom: 1px solid var(--dk-line); font-size: 14px; color: var(--dk-text); text-decoration: none; }
+  .hw-row:hover { background: var(--dk-panel-2, var(--dk-raised)); }
+  .full-method > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--dk-text); }
+  .full-method > div { display: flex; flex-direction: column; gap: 16px; padding-top: 12px; }
+  .full-method .kicker { font-size: 13px; color: var(--dk-muted); }
+  .full-method .h { font-size: 18px; font-weight: 600; color: var(--dk-text); }
+  .ask { display: flex; gap: 8px; max-width: 760px; }
+  .ask input { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; background: var(--dk-bg); color: var(--dk-text); border: 1px solid var(--dk-border); border-radius: 6px; font: inherit; font-weight: 400; }
+  .ask button { min-width: 44px; min-height: 44px; background: var(--dk-amber); color: var(--dk-bg); border: 0; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .askNote { font-size: 13px; color: var(--dk-muted); max-width: 760px; }
+  #hiwAnswer { max-width: 760px; margin-top: 8px; padding: 16px 20px; background: var(--dk-bg); border: 1px solid var(--dk-line); border-radius: 8px; font-size: 15px; line-height: 1.55; color: var(--dk-text); }
+  #cycleBlock { border: 1px solid var(--dk-line); background: var(--dk-panel); }
+  .foot { font-size: 14px; }
+  @media (max-width: 620px) { .hw-wrap { padding: 0 16px 64px; } .hw-panel { padding: 20px; } }
 </style>
-<style id="mw-type">
-h1{font-family:'Archivo',system-ui,sans-serif!important;font-size:28px!important;font-weight:800!important;line-height:1.22!important;letter-spacing:-0.02em!important;color:#0B0B0B!important;margin-top:0!important;margin-bottom:10px!important}
-h2{font-family:'Archivo',system-ui,sans-serif!important;font-size:21px!important;font-weight:700!important;line-height:1.3!important;letter-spacing:-0.01em!important;color:#0B0B0B!important}
-body{font-family:'Archivo',system-ui,sans-serif!important;color:#0B0B0B}
-h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!important;line-height:1.55!important;color:#6B6B6B!important;font-weight:400!important;margin-top:0!important}
-</style>
-<style id="mwh-offset">header.mwh{margin-bottom:32px!important}@media (max-width:620px){header.mwh{margin-bottom:20px!important}}</style>
-</head>
-<body>
-<div class="wrap">
-  <header class="mwh"><a class="mwh-logo" href="./index.html">margin.wiki</a><nav>
-        <a href="./countries.html">Countries</a>
-        <a href="./sending-money.html">Routes</a>
-        <a href="./sources.html">Sources</a>
-        <a href="./findings.html">Findings</a>
-        <a href="./how-it-works.html" class="active">How it works</a>
-      </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button></header>
 
-  <main>
+<body class="data">
+<div class="hw-wrap">
+  <div class="hp-head"><div class="hp-headleft"><a class="hp-logo mono" href="./index.html">margin.wiki</a><nav class="hp-nav">
+        <a class="hp-navlink" href="./countries.html">Countries</a>
+        <a class="hp-navlink" href="./sending-money.html">Routes</a>
+        <a class="hp-navlink" href="./sources.html">Sources</a>
+        <a class="hp-navlink" href="./findings.html">Findings</a>
+        <a class="hp-navlink on" href="./how-it-works.html">How it works</a>
+      </nav></div></div>
+
+  <main class="hw-main">
+    <section class="hw-panel" id="hiwIntro">
     <h1 id="hiwH1"></h1>
     <p class="lede" id="hiwSub"></p>
     <ul class="plain-list" id="hiwSubList"></ul>
     <div class="p" id="hiwSubNote"></div>
+    </section>
 
-    <section class="hiw-section" id="dollar-cost">
+    <section class="hiw-section hw-panel" id="dollar-cost">
       <h2 id="dollarCostH2"></h2>
       <div class="p" id="dollarCostP"></div>
       <ul class="plain-list" id="dollarCostList"></ul>
     </section>
 
-    <section class="hiw-section" id="sending-cost">
+    <section class="hiw-section hw-panel" id="sending-cost">
       <h2 id="sendingCostH2"></h2>
       <div class="p" id="sendingCostP"></div>
       <div class="p" id="sendingCostAmounts"></div>
       <ul class="plain-list" id="sendingCostList"></ul>
     </section>
 
-    <section class="hiw-section" id="not-measured">
+    <section class="hiw-section hw-panel" id="not-measured">
       <h2 id="notMeasuredH2"></h2>
       <ul class="plain-list" id="notMeasuredList"></ul>
-      <div class="p" style="font-size:15px;color:#6B6B6B" id="notMeasuredNote"></div>
+      <div class="p" id="notMeasuredNote"></div>
     </section>
 
     <!-- Hourly collection section ("This hour") -->
-    <div id="cycleBlock" class="dkpanel" style="display: none;">
+    <div id="cycleBlock" class="dkpanel hw-panel" style="display: none;">
       <!-- The cycle block will be rendered here by JavaScript -->
     </div>
 
-    <section class="hiw-section" id="sources">
+    <section class="hiw-section hw-panel" id="sources">
       <h2 id="sourcesH2"></h2>
       <ul class="plain-list" id="sourcesList"></ul>
+      <div class="hw-rows" id="sourceRows"></div>
     </section>
 
-    <details class="full-method" id="full-method"><summary id="methodSummary"></summary><div>
+    <details class="full-method hw-panel" id="full-method"><summary id="methodSummary"></summary><div>
       <div class="kicker" id="methodKicker"></div>
       <div class="lede" id="methodLede"></div>
 
@@ -181,9 +129,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 
     <div class="ask">
       <input type="text" placeholder="" id="hiwAskInput"/>
-      <button aria-label="" id="hiwAskBtn"><svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M4 10h11M11 5l5 5-5 5" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button aria-label="" id="hiwAskBtn"><svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M4 10h11M11 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
-    <div id="hiwAnswer" style="display:none;max-width:720px;margin-top:16px;padding:16px 20px;background:#F6F6F6;border-radius:14px;font-size:15px;line-height:1.55;color:#0B0B0B"></div>
+    <div id="hiwAnswer" style="display:none"></div>
     <div class="askNote" id="askNote"></div>
     </div></details>
     <footer class="foot"><a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></footer>
@@ -295,7 +243,7 @@ Promise.all([
   var parts = (hiw.notMeasuredNote || '').split('{fullMethodLink}');
   note.appendChild(document.createTextNode(parts[0]));
   var a = document.createElement('a');
-  a.href = '#full-method'; a.style.cssText = 'font-weight:600;color:var(--ink)';
+  a.href = '#full-method'; a.style.cssText = 'font-weight:600;color:var(--dk-text)';
   a.textContent = hiw.fullMethodLink || '';
   note.appendChild(a);
   if (parts[1]) note.appendChild(document.createTextNode(parts[1]));
@@ -320,6 +268,19 @@ Promise.all([
     });
     vals.top = names.length ? names.map(function(n){ return (hiw.venueNames || {})[n] || n; }).join(', ') : null;
     setList('sourcesList', hiw.sourcesPoints, vals);
+    // Each source named above is also a row that opens its entry on the sources page.
+    var rowsBox = document.getElementById('sourceRows');
+    if (rowsBox) {
+      rowsBox.textContent = '';
+      var mainSrc = ((src && src.sources) || []).filter(function(x){ return /main source/.test(x.detail || ''); }).map(function(x){ return x.name; });
+      mainSrc.concat(names).forEach(function(n){
+        var a = document.createElement('a');
+        a.className = 'hw-row mono';
+        a.href = './sources.html#s-' + String(n).toLowerCase().replace(/[^a-z0-9]/g, '');
+        a.textContent = (hiw.venueNames || {})[n] || n;
+        rowsBox.appendChild(a);
+      });
+    }
   });
 }).catch(function(){});
 
@@ -388,10 +349,10 @@ copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'
     if (mentioned.length) {
       var c = tracked[mentioned[0]];
       show(fillTpl(HIW.askMethodTracked, { evidence: esc(c.evidence_words), source: esc(c.source_words) }) +
-        '<div style="margin-top:10px;font-size:14px"><a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">' + fillTpl(HIW.askReceiptLink, { country: esc(c.country) }) + '</a></div>');
+        '<div style="margin-top:10px;font-size:14px"><a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:var(--dk-text)">' + fillTpl(HIW.askReceiptLink, { country: esc(c.country) }) + '</a></div>');
     } else {
       show(esc(HIW.askMethodGeneric || '') +
-        '<div style="margin-top:10px;font-size:14px"><a href="./countries.html" style="font-weight:600;color:#0B0B0B">' + esc(HIW.askIndexLink || '') + '</a></div>');
+        '<div style="margin-top:10px;font-size:14px"><a href="./countries.html" style="font-weight:600;color:var(--dk-text)">' + esc(HIW.askIndexLink || '') + '</a></div>');
     }
   }
 
@@ -415,13 +376,13 @@ copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'
     var mentionedTracked = Object.keys(tracked).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
     var mentionedWorld = Object.keys(worldNames).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
     var untracked = mentionedWorld.filter(function(n){ return !tracked[n]; });
-    var allLink = '<a href="./countries.html" style="font-weight:600;color:#0B0B0B">' + esc(HIW.askAllCountriesLink || '') + '</a>';
+    var allLink = '<a href="./countries.html" style="font-weight:600;color:var(--dk-text)">' + esc(HIW.askAllCountriesLink || '') + '</a>';
     if (untracked.length) {
       return fillTpl(HIW.askUntracked, { country: esc(worldNames[untracked[0]]), link: allLink });
     }
     if (mentionedTracked.length) {
       var c = tracked[mentionedTracked[0]];
-      return fillTpl(HIW.askTracked, { country: esc(c.country), link: '<a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:#0B0B0B">' + fillTpl(HIW.askTrackedLink, { country: esc(c.country) }) + '</a>' });
+      return fillTpl(HIW.askTracked, { country: esc(c.country), link: '<a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:var(--dk-text)">' + fillTpl(HIW.askTrackedLink, { country: esc(c.country) }) + '</a>' });
     }
     return fillTpl(HIW.askUnparsed, { link: allLink });
   }
@@ -433,7 +394,7 @@ copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'
     // premise is "how it works", so free-form SQL is never the right tool
     // for that shape of question, only for a genuinely open data question.
     if (METHOD_RE.test(q)) { methodologyAnswer(q); return; }
-    show('<span style="color:#9A9A9A">' + esc(HIW.askWaiting || '') + '</span>');
+    show('<span style="color:var(--dk-muted)">' + esc(HIW.askWaiting || '') + '</span>');
     fetch(API_BASE + '/ask', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -450,8 +411,8 @@ copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'
         var sqlId = 'sql' + Math.random().toString(36).slice(2,8);
         var html = '<div>' + sentence + '</div>';
         if (res.body.sql) {
-          html += '<div style="margin-top:10px"><a href="#" id="' + sqlId + '-toggle" style="font-size:14px;color:#6B6B6B;font-weight:600">' + esc(HIW.askSqlLink || '') + '</a>' +
-            '<div id="' + sqlId + '" style="display:none;margin-top:6px;font-size:14px;color:#9A9A9A;font-family:ui-monospace,monospace;word-break:break-all">' + esc(res.body.sql) + '</div></div>';
+          html += '<div style="margin-top:10px"><a href="#" id="' + sqlId + '-toggle" style="font-size:14px;color:var(--dk-muted);font-weight:600">' + esc(HIW.askSqlLink || '') + '</a>' +
+            '<div id="' + sqlId + '" style="display:none;margin-top:6px;font-size:14px;color:var(--dk-muted);font-family:ui-monospace,monospace;word-break:break-all">' + esc(res.body.sql) + '</div></div>';
         }
         show(html);
         var toggle = document.getElementById(sqlId + '-toggle');
