@@ -20,8 +20,8 @@ Schema
       ],
       "steps": {   (the NEWEST cycle only)
         "hour_utc": ...,
-        "currencies": {"collected": n, "of": 60},   currencies with a reading in basis, p2p_basis
-                                                    this hour, of the index's 47 + 13 withheld
+        "currencies": {"collected": n, "of": 60},   currencies the index prices (published price), of its priced + withheld;
+                                                    "with_a_reading" = any stored row this hour
         "routes":     {"priced": n, "of": 7},       routes with a samples.csv reading this hour
         "auditor":    {"rebuilt": drawn, "matched": passed, "sample_ts": ..., "same_hour": bool},
         "analyst":    null,                         the analyst has never run (SEB-238)
@@ -131,7 +131,10 @@ def build():
     nh = last_hours[-1]
     steps = {
         "hour_utc": rc.hour_floor_iso(nh),
-        "currencies": {"collected": len(per[nh]["ccy"]), "of": n_ccy},
+        # ONE coverage measure site-wide: a currency counts as priced when the index publishes a price
+        # for it (data/index_latest.json countries: at least 10 sellers, or a live exchange book).
+        # "with_a_reading" is the looser count (any row stored this hour), kept for reference.
+        "currencies": {"collected": len(idx["countries"]), "of": n_ccy, "with_a_reading": len(per[nh]["ccy"])},
         "routes": {"priced": len(per[nh]["route"]), "of": n_routes},
         "auditor": {"rebuilt": latest["drawn"], "matched": latest["passed"],
                     "sample_ts": rc.iso_z(latest["sample_ts"]), "same_hour": latest_hour == nh},
