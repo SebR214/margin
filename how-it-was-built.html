@@ -295,7 +295,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     document.getElementById('incidentsList').innerHTML = (I.items||[]).map(function(it){
       return '<li><b>'+esc(T(it.what, it))+'</b><span>'+esc(T(it.text, it))+'</span></li>';
     }).join('');
-    document.getElementById('collectedTitle').textContent = (COPY.collected || {}).title || '';
+    var ct = document.getElementById('collectedTitle'); ct.textContent = (COPY.collected || {}).title || ''; ct.hidden = !ct.textContent;
   }
 
   // The meta line under the title: when the last hourly price check ran.
