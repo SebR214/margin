@@ -199,6 +199,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     <section id="recordBlock" class="dkpanel" style="display:none">
       <!-- Record block will be rendered here by JavaScript -->
     </section>
+    <section>
+      <p class="small" style="margin-top:0"><a id="tapeLink" href="./tape.html">&nbsp;</a></p>
+    </section>
 
     <section id="shippedSection" style="display:none">
       <div class="col-hdr" style="padding-top:32px;margin-top:-32px;border-bottom:0;padding-bottom:0">
@@ -315,7 +318,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     document.getElementById('incidentsList').innerHTML = (I.items||[]).map(function(it){
       return '<li><b>'+esc(T(it.what, it))+'</b><span>'+esc(T(it.text, it))+'</span></li>';
     }).join('');
-    var ct = document.getElementById('collectedTitle'); ct.textContent = (COPY.collected || {}).title || ''; ct.hidden = !ct.textContent;
   }
 
   // The meta line under the title: when the last hourly price check ran.
@@ -399,8 +401,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var date = isNaN(d0) ? '' : d0.getUTCDate() + ' ' + (m[d0.getUTCMonth()] || '');
     var nf = function(n){ return Number(n || 0).toLocaleString('en-US'); };
     if (!date || x.observations == null) return;
-    document.getElementById('collectedLine').textContent = T(Z.template, {
-      n: nf(x.observations), date: date, countries: nf(x.countries), routes: nf(x.routes), year: x.history_first_year || '' });
   }
 
   // Render the record growth section
