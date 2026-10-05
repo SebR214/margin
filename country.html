@@ -5,446 +5,83 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>margin.wiki — a country's price in full</title>
 <meta name="description" content="One country's price, its full history, and the receipt behind the number, in one place."/>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
-<script src="./js/receipt_replay.js"></script>
-<script src="./js/chart.js"></script>
 <style>
-  :root{
-    --ink:#0B0B0B; --sub:#3F3047; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0; --soft:#D3D0CB; --bg:#fff;
-    box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  /* Layout follows the owner's layout references (SEB-240): the route reference's
+     chips, chart box, stats row and list rows, the home reference's header and big number.
+     Colours are style.css tokens only. */
+  body.data .c-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 56px; }
+  body.data .c-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--dk-line); margin: 0; }
+  body.data .c-brand { display: flex; flex-wrap: wrap; align-items: center; gap: 28px; }
+  body.data .c-logo { font-weight: 600; font-size: 18px; color: var(--dk-text); text-decoration: none; }
+  body.data .c-nav { display: flex; flex-wrap: wrap; gap: 22px; font-size: 15px; font-weight: 400; color: var(--dk-muted); }
+  body.data .c-nav a { color: var(--dk-muted); text-decoration: none; font-weight: 400; display: inline-flex; align-items: center; min-height: 44px; }
+  body.data .c-nav a.on { color: var(--dk-text); }
+  body.data h1 { margin: 0; font-size: 24px; line-height: 1.25; font-weight: 600; }
+  body.data h2 { margin: 0; font-size: 24px; line-height: 1.25; font-weight: 600; }
+  body.data p { margin: 0; }
+  body.data .c-small { font-size: 14px; }
+  body.data .c-lead { font-size: 17px; }
+  body.data .c-hero { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-end; }
+  body.data .c-herotext { flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+  body.data .c-bigbox { flex: 1 0 auto; max-width: 100%; display: flex; flex-direction: column; gap: 6px; }
+  body.data .c-big { font-size: clamp(48px, 15vw, 88px); font-weight: 600; line-height: 1; color: var(--dk-amber); }
+  body.data .c-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--dk-line); border: 1px solid var(--dk-line); border-radius: 8px; overflow: hidden; }
+  body.data .c-stats > div { background: var(--dk-panel); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  body.data .c-k { font-size: 13px; color: var(--dk-muted); }
+  body.data .c-v { font-size: 16px; }
+  body.data .c-sub { font-size: 12px; }
+  body.data .c-sec { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  body.data .c-sechead { display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
+  body.data .c-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+  body.data .c-left { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+  body.data .c-legend { display: flex; flex-wrap: wrap; gap: 20px; font-size: 14px; }
+  body.data .c-leg { display: flex; align-items: center; gap: 8px; }
+  body.data .c-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  body.data .c-gapx { width: 12px; }
+  body.data .c-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 6px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid var(--dk-border); background: var(--dk-panel); color: var(--dk-soft); }
+  body.data .c-chip.on { background: var(--dk-text); color: var(--dk-bg); border-color: var(--dk-text); }
+  body.data .c-chip.lay.on { background: var(--dk-raised); color: var(--dk-text); border-color: var(--dk-text); }
+  body.data .c-chip.lay { opacity: .6; }
+  body.data .c-chip.lay.on { opacity: 1; }
+  body.data .c-sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+  body.data .c-sw.r { border-radius: 50%; }
+  body.data .c-line { width: 18px; height: 3px; display: inline-block; flex: none; }
+  body.data .c-line.dashed { background: repeating-linear-gradient(90deg, var(--dk-amber) 0 5px, transparent 5px 8px); }
+  body.data .c-band { width: 14px; height: 10px; display: inline-block; background: var(--dk-blue); opacity: .2; }
+  body.data .c-chart { position: relative; background: var(--dk-panel); border: 1px solid var(--dk-line); border-radius: 8px; padding: 16px 16px 8px; cursor: crosshair; user-select: none; touch-action: pan-y; min-height: 300px; }
+  body.data .c-chart.busy { opacity: .6; }
+  body.data .cc-svg { display: block; max-width: 100%; }
+  body.data .cc-ax { fill: var(--dk-muted); font: 400 11px var(--font-mono); }
+  body.data .cc-sel { fill: var(--dk-text); fill-opacity: .07; }
+  body.data .cc-cross { stroke: var(--dk-text); }
+  body.data .cc-tip { position: absolute; top: 16px; background: var(--dk-bg); border: 1px solid var(--dk-border); border-radius: 6px; padding: 10px 12px; font-size: 13px; pointer-events: none; display: flex; flex-direction: column; gap: 4px; max-width: 80%; z-index: 2; }
+  body.data .c-tstamp { color: var(--dk-muted); }
+  body.data .c-trow { display: flex; align-items: center; gap: 8px; }
+  body.data .c-tname { flex: 1; color: var(--dk-soft); min-width: 0; }
+  body.data .c-axis { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+  body.data .c-list { border-top: 1px solid var(--dk-line); }
+  body.data .c-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 12px 0; border-bottom: 1px solid var(--dk-line); font-size: 14px; }
+  body.data .c-rhead { font-size: 13px; padding: 8px 0; }
+  body.data .c-ct { width: 150px; }
+  body.data .c-cs { flex: 1 1 140px; min-width: 120px; display: flex; align-items: center; gap: 8px; }
+  body.data .c-cp { width: 120px; }
+  body.data .c-cg { width: 80px; }
+  body.data .c-cd { width: 130px; }
+  body.data .c-cr { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
+  body.data .c-cr a { color: var(--dk-amber); }
+  @media (max-width: 620px) {
+    body.data .c-wrap { padding: 0 16px 64px; gap: 40px; }
+    body.data .c-rhead { display: none; }
+    body.data .c-ct, body.data .c-cp, body.data .c-cg, body.data .c-cd { width: auto; }
   }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:var(--bg);font-size:17px;line-height:1.55}
-  a{color:var(--ink);text-decoration:none;font-weight:500} a:hover{color:var(--indigo)}
-  .num{font-variant-numeric:tabular-nums}
-  .wrap{max-width:760px;margin:0 auto}
-  header{display:flex;align-items:center;padding:22px 0;flex-wrap:wrap;gap:12px}
-  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
-  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em}
-  nav{display:flex;gap:28px;font-size:15px;font-weight:500}
-  nav a{color:var(--sub)}
-  nav a.active{color:var(--ink);font-weight:600}
-  .back{padding:20px 0 0;font-size:14px;display:inline-block;color:var(--sub)}
-  main{padding:28px 0 60px;max-width:760px}
-  h1{font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1.25;margin:8px 0 8px;max-width:820px}
-  .lead{font-size:17px;color:var(--sub);margin:0;line-height:1.5}
-  .meta{font-size:14px;color:var(--stamp);margin:14px 0 0}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo);display:inline-block;margin-right:6px;vertical-align:1px}
-  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:28px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
-  .tile{padding:16px 16px 16px 0}
-  .tile+.tile{padding-left:16px;border-left:1px solid var(--rule)}
-  .tile .k{font-size:14px;color:var(--stamp);font-weight:600}
-  .tile .v{font-size:22px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
-  .tile .v.p{color:var(--indigo)}
-  .tile .s{font-size:14px;color:var(--sub);margin-top:2px}
-  section{border-top:1px solid var(--rule);margin-top:40px;padding-top:32px}
-  h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
-  .answer{font-size:16px;color:var(--sub);margin:0 0 22px}
-  .chartbox{width:100%}
-  .chartbox svg{width:100%;height:auto;display:block;font-family:inherit}
-  .small{font-size:15px;color:var(--stamp);margin:14px 0 0}
-  .note{font-size:14px;color:var(--sub);margin:16px 0 0;padding:12px 16px;border-left:3px solid var(--soft)}
-  .steps{list-style:none;margin:0;padding:0;counter-reset:s}
-  .steps li{padding:12px 0 12px 34px;border-top:1px solid var(--rule);position:relative;font-size:15px;line-height:1.55}
-  .steps li:before{counter-increment:s;content:counter(s);position:absolute;left:0;top:12px;width:22px;height:22px;border-radius:50%;border:1px solid var(--soft);font-size:14px;text-align:center;line-height:21px;color:var(--sub)}
-  .steps small{display:block;font-size:14px;color:var(--stamp);margin-top:4px}
-  .steps code{font-size:14px;color:var(--sub)}
-  .notfound{padding:60px 0;font-size:18px;color:var(--sub)}
-  footer.foot{border-top:1px solid var(--rule);margin-top:56px;padding-top:24px;padding-bottom:40px;font-size:15px;color:var(--sub)}
-  footer.foot a{color:var(--ink);font-weight:500}
-  @media(max-width:760px){
-    header{padding:16px 0} main{padding:24px 0 48px} .back{padding:16px 0 0}
-    /* Logo + nav must fit one row with nowhere to overflow the viewport --
-       nav is the flexible member (min-width:0 lets a flex item shrink
-       below its content size, which is what makes overflow-x:auto on it
-       actually clip instead of pushing the whole page wider) and scrolls
-       internally as one swipeable row rather than wrapping to a second
-       line or blowing out the page's own width (SEB mobile rules). */
-    header{flex-wrap:nowrap}
-    .brand{flex-wrap:nowrap;gap:14px;min-width:0;flex:1 1 auto}
-    .logo{white-space:nowrap;flex:0 0 auto}
-    nav{flex:1 1 auto;min-width:0;flex-wrap:nowrap;overflow-x:auto;gap:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-    nav::-webkit-scrollbar{display:none}
-    nav a{white-space:nowrap;padding:12px 8px;font-size:15px;min-height:40px;display:flex;align-items:center}
-  }
-  @media(max-width:620px){
-    .tiles{grid-template-columns:1fr 1fr}
-    .tile:nth-child(3){padding-left:0;border-left:0}
-    .tile:nth-child(n+3){border-top:1px solid var(--rule)}
-    .small a,.meta a,p a,.answer a{display:inline-block;padding:6px 0;min-height:16px}
-    .back{padding:10px 0}
-  }
-  .linkbtn{font:inherit;font-size:15px;color:var(--ink,#0B0B0B);background:none;border:0;border-bottom:1px solid #D3D0CB;padding:6px 0;cursor:pointer}
-  .linkbtn:hover{border-bottom-color:#0B0B0B}
 </style>
-<style id="mwh-style">
-header.mwh{display:flex!important;align-items:center!important;justify-content:flex-start!important;height:64px!important;min-height:0!important;margin:0 0 36px 0!important;padding:0!important;border:0!important;background:transparent!important;position:static!important;flex-wrap:nowrap!important;gap:0!important}
-header.mwh .mwh-logo{font-family:'Archivo',system-ui,sans-serif!important;font-size:19px!important;font-weight:800!important;color:#0B0B0B!important;text-decoration:none!important;margin:0 28px 0 0!important;padding:0!important;letter-spacing:-.01em!important;white-space:nowrap!important;flex:none!important}
-header.mwh nav{display:flex!important;gap:24px!important;align-items:center!important;overflow-x:auto!important;scrollbar-width:none!important;margin:0!important;padding:0!important;flex:1 1 auto!important;min-width:0!important}
-header.mwh nav{position:static!important;inset:auto!important;transform:none!important;width:auto!important;height:auto!important;max-height:none!important;box-shadow:none!important;background:none!important;visibility:visible!important;opacity:1!important;flex-direction:row!important;border:0!important;z-index:auto!important}
-header.mwh nav::-webkit-scrollbar{display:none}
-header.mwh nav a{font-family:'Archivo',system-ui,sans-serif!important;font-size:15px!important;font-weight:500!important;color:#6B6B6B!important;text-decoration:none!important;padding:10px 0!important;margin:0!important;white-space:nowrap!important;border:0!important;background:none!important}
-header.mwh nav a.active{color:#0B0B0B!important;font-weight:600!important}
-header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
-header.mwh .nav-toggle{display:none!important;background:none!important;border:0!important;font-size:20px!important;cursor:pointer!important;padding:6px 8px!important;color:#0B0B0B!important;line-height:1!important;font-family:inherit!important}
-@media (max-width:620px){
-  header.mwh{height:56px!important;margin-bottom:24px!important;position:relative!important}
-  header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}
-  header.mwh nav{display:none!important;position:absolute!important;top:100%!important;left:0!important;right:0!important;flex-direction:column!important;gap:0!important;background:#fff!important;padding:6px 24px 16px!important;border-bottom:1px solid #F0F0F0!important;box-shadow:0 8px 16px rgba(11,11,11,0.06)!important;z-index:30!important;overflow:visible!important;mask-image:none!important;-webkit-mask-image:none!important}
-  header.mwh nav.open{display:flex!important}
-  header.mwh nav a{padding:12px 0!important;border-bottom:1px solid #F6F6F6!important;font-size:16px!important}
-  header.mwh .nav-toggle{display:block!important}
-}
-</style>
-<style id="mw-type">
-h1{font-family:'Archivo',system-ui,sans-serif!important;font-size:28px!important;font-weight:800!important;line-height:1.22!important;letter-spacing:-0.02em!important;color:#0B0B0B!important;margin-top:0!important;margin-bottom:10px!important}
-h2{font-family:'Archivo',system-ui,sans-serif!important;font-size:21px!important;font-weight:700!important;line-height:1.3!important;letter-spacing:-0.01em!important;color:#0B0B0B!important}
-body{font-family:'Archivo',system-ui,sans-serif!important;color:#0B0B0B}
-h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!important;line-height:1.55!important;color:#6B6B6B!important;font-weight:400!important;margin-top:0!important}
-</style>
+<script src="./js/receipt_replay.js"></script>
+<script src="./js/country_chart.js"></script>
 </head>
-<body>
-<div class="wrap">
-  <header class="mwh"><a class="mwh-logo" href="./index.html">margin.wiki</a><nav>
-        <a href="./countries.html">Countries</a>
-        <a href="./sending-money.html">Routes</a>
-        <a href="./sources.html">Sources</a>
-        <a href="./findings.html">Findings</a>
-        <a href="./how-it-works.html">How it works</a>
-      </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button></header>
-
-  <a class="back" href="./countries.html">&larr; All countries</a>
-
-  <main id="main">
-    <div class="notfound" id="loading">Loading this country's full record&hellip;</div>
-  </main>
-
-  <footer class="foot">Every number on this site comes from a public data file. <a href="https://github.com/SebR214/margin">Code and raw data on GitHub &rarr;</a></footer>
-</div>
-
-<script>
-(function(){
-  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function T(s, vals){
-    var out = String(s || '');
-    for (var k in (vals || {})) out = out.split('{' + k + '}').join(vals[k]);
-    return out;
-  }
-  var PAR_EPSILON = 0.05;
-
-  // Same phrasing family as countries.html/home's headline sentence, but
-  // built for a heading: "a dollar costs 91.7% more than the official
-  // rate" reads as a finding, "the gap is +91.7%" does not (DESIGN.md
-  // register rule). Near-zero collapses to "about the same" rather than
-  // manufacturing a "-0.0% less" sentence from a rounding artifact (the
-  // same -0.0% bug fixed on the home page, #212).
-  // All sentences come from copy.json; this code only picks which template
-  // the sign of the data calls for and fills in the numbers.
-  // Smallest gap, in percent over the official rate, at which the sub-heading
-  // goes on to say how much value someone at the official rate loses. Below
-  // it the loss is too small to be worth stating, so the clause is dropped.
-  var LOSS_CLAUSE_MIN_GAP_PCT = 10;
-  // The share lost is rounded to this many percentage points ("close to 50%").
-  var LOSS_SHARE_ROUND_TO = 1;
-  // Where today's gap sits in the record we hold for this country, computed
-  // from the numbers only: the share of past days with a smaller gap.
-  // Needs at least 20 days, otherwise there is nothing fair to say.
-  // Ranked against ONE series, never both at once (SEB-233 / Opus review of
-  // #344): the backfilled segment is one venue's own history against its own
-  // fx source, our spark is a cross-exchange median against a different
-  // official rate, and Math.abs() would merge premiums with discounts -- so
-  // mixing them into one combined percentile is not apples-to-apples. When
-  // the history segment is showing, rank only against it and name the venue
-  // and its "reported, not observed" label in the sentence; otherwise rank
-  // only against our own observed spark.
-  function recordPosition(COPY, now, prior, own, first, hasPrior, venue, label){
-    var vals = (hasPrior ? (prior || []) : (own || [])).map(function(v){ return Math.abs(v); });
-    if (vals.length < 20 || now == null) return null;
-    var a = gapAbs(now), below = vals.filter(function(v){ return v < a; }).length / vals.length;
-    var max = Math.max.apply(null, vals), min = Math.min.apply(null, vals);
-    var key = a >= max ? 'recordWidest' : a <= min ? 'recordNarrowest'
-      : below >= 0.9 ? 'recordNearWidest' : below <= 0.1 ? 'recordNearNarrowest' : 'recordNormal';
-    var sorted = vals.slice().sort(function(x, y){ return x - y; });
-    var q = function(p){ return sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]; };
-    var scope = hasPrior
-      ? T(COPY.recordScopeVenue || "{venue}'s own history ({label})", {venue: venue, label: label})
-      : (COPY.recordScopeOwn || 'our own record');
-    return T((COPY[key] || '') + ' ' + (COPY.recordRange || ''), {lo: q(0.1).toFixed(1), hi: q(0.9).toFixed(1), first: (hasPrior ? longDate : shortDate)(first), scope: scope});
-  }
-  function gapAbs(pct){ return Math.abs(pct) < PAR_EPSILON ? 0 : Math.abs(pct); }
-  function fmtGap(pct){ return gapAbs(pct).toFixed(1); }
-  // A dollar costs (1 + g) official units, so the official rate buys only
-  // 1 / (1 + g) of what a dollar really goes for.
-  function lossShare(pct){
-    return Math.round(pct / (100 + pct) * 100 / LOSS_SHARE_ROUND_TO) * LOSS_SHARE_ROUND_TO;
-  }
-
-  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  function shortDate(iso){ var d=new Date(iso); return isNaN(d)?'':d.getUTCDate()+' '+MONTHS[d.getUTCMonth()]; }
-  // The backfilled segment can run back years, not days -- "29 Nov to 6 Jun"
-  // reads as one short window when the real span is 2023 to 2024, so its
-  // dates carry the year, unlike the live chart's own short labels above.
-  function longDate(iso){ var d=new Date(iso); return isNaN(d)?'':d.getUTCDate()+' '+MONTHS[d.getUTCMonth()]+' '+d.getUTCFullYear(); }
-  function shortTime(iso){ var d=new Date(iso); return isNaN(d)?'':String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')+' UTC'; }
-  function sparkDates(hourUtc, n){
-    var end = new Date(hourUtc), out = [];
-    for (var i=0;i<n;i++){ var d=new Date(end); d.setUTCDate(d.getUTCDate()-(n-1-i)); out.push(d.toISOString()); }
-    return out;
-  }
-  function fmtMoney(usd){ return '$' + Math.round(usd).toLocaleString('en-US'); }
-  function fmtRate(v){ return Math.round(v).toLocaleString('en-US'); }
-
-  // Where "most of the move" happened: the latest point from which at
-  // least half of the total change to today is still ahead. Computed from
-  // the real daily history each time, never written by hand -- this is a
-  // sub-header adding supporting detail to the h2's finding, per DESIGN.md
-  // ("headers say the finding, sub-headers only add supporting detail").
-  function mostOfMoveDate(spark, dates, total){
-    if (Math.abs(total) < 0.5 || spark.length < 3) return null;
-    var last = spark[spark.length-1], bestI = null;
-    for (var i=1;i<spark.length-1;i++){
-      if (Math.abs(last - spark[i]) >= Math.abs(total) * 0.5) bestI = i;
-    }
-    return bestI != null ? dates[bestI] : null;
-  }
-
-  var params = new URLSearchParams(location.search);
-  var ccy = (params.get('ccy') || '').toUpperCase();
-
-  Promise.all([
-    fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json()),
-    fetch('./data/latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-    fetch('./data/street_depth_latest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-    fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null),
-    // The manifest always exists (tools/emit_country_history.py writes it
-    // every run) and names exactly the currencies that have an earlier,
-    // backfilled segment -- read this first so the per-currency file below
-    // is only ever fetched when it is known to exist, not fired as a 404
-    // for the much more common case of no segment.
-    fetch('./data/country_history_segment/manifest.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
-  ]).then(function(res){
-    var idx = res[0], raw = res[1], depthDoc = res[2];
-    var COPY = (res[3] || {}).country || {};
-    var historyManifest = res[4];
-
-    var country = (idx.countries || []).find(function(c){ return c.ccy === ccy; });
-    var withheld = (idx.withheld || []).find(function(w){ return w.ccy === ccy; });
-    var main = document.getElementById('main');
-
-    if (!country && !withheld) {
-      main.innerHTML = '<div class="notfound">No country found for code "' + esc(ccy || '(none given)') +
-        '". <a href="./countries.html">See every country on the index &rarr;</a></div>';
-      return;
-    }
-
-    if (withheld && !country) {
-      main.innerHTML =
-        '<h1>' + esc(withheld.country) + ': no price this hour</h1>' +
-        '<p class="lead">' + esc(withheld.reason) + '.</p>' +
-        '<div class="note">A price is collected and checked every hour. ' + esc(withheld.country) +
-        ' will show a number the moment it has enough evidence again. Nothing here is permanent.</div>' +
-        '<p class="small"><a href="./countries.html">&larr; All countries</a> &middot; ' +
-        '<a href="./countries.html#withheld">Every country without enough data &rarr;</a></p>';
-      return;
-    }
-
-    // The headline everywhere on this page is the 24-hour median, the same
-    // convention the home page and countries.html use, so a reader never
-    // sees two different "the gap right now" numbers on two pages. The
-    // chart below still plots the raw daily series and its own end badge
-    // still says "this hour" -- that is a different, narrower claim
-    // (SEB: preserve the median convention for headlines, raw for charts).
-    var headlinePct = country.median_24h_pct != null ? country.median_24h_pct : country.index_pct;
-    var dates = country.spark ? sparkDates(country.hour_utc, country.spark.length) : [];
-    var sinceLabel = dates.length ? shortDate(dates[0]) : null;
-
-    // The headline's own gap phrase is this country's receipt result_pct
-    // (SEB-173) -- clickable via receipt_replay.js's delegated handler,
-    // same data-receipt-ccy/value attributes every other page's gap number
-    // carries.
-    var p2p = raw && raw.p2p && raw.p2p[ccy];
-    var h1Key = gapAbs(headlinePct) === 0 ? 'h1SameTemplate' : (headlinePct > 0 ? 'h1MoreTemplate' : 'h1LessTemplate');
-    var gapSpan = '<span data-receipt-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(fmtGap(headlinePct) + '%') +
-      '" tabindex="0">' + esc(fmtGap(headlinePct)) + '</span>';
-    var SLOT = '\u0001';
-    var h1Html = esc(T(COPY[h1Key], {country: country.country, gap: SLOT})).split(SLOT).join(gapSpan);
-    var subText;
-    if (p2p) {
-      subText = T(COPY.subRateTemplate, {rate: fmtRate(p2p.fx_mid_per_usd), ccy: ccy, street: fmtRate(p2p.buy_median) + ' ' + ccy});
-      if (headlinePct >= LOSS_CLAUSE_MIN_GAP_PCT) subText += T(COPY.subLossTemplate, {share: lossShare(country.index_pct), buys: 100 - lossShare(country.index_pct),
-        rate: fmtRate(p2p.fx_mid_per_usd), ccy: ccy, street: fmtRate(p2p.buy_median) + ' ' + ccy, gap: fmtGap(country.index_pct)});
-    } else {
-      subText = T(COPY.leadTemplate, {country: country.country});
-    }
-    var html = '<h1 class="num">' + h1Html + '</h1>' +
-      '<p class="lead">' + esc(subText) + '</p>' +
-      '<p class="meta"><span class="dot"></span>' + esc(T(COPY.metaTemplate, {time: shortTime(country.hour_utc)})) + '</p>';
-
-
-    var isP2pSourced = (country.source_class || '').indexOf('p2p') === 0;
-    var depth = isP2pSourced && depthDoc && depthDoc.countries && depthDoc.countries[ccy];
-
-    html += '<div class="tiles">';
-    if (p2p) {
-      html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelPay) + '</div><div class="v num">' + fmtRate(p2p.buy_median) + ' ' + esc(ccy) + '</div><div class="s">' + esc(COPY.tilePaySubTemplate) + '</div></div>';
-      html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelRate) + '</div><div class="v num">' + fmtRate(p2p.fx_mid_per_usd) + ' ' + esc(ccy) + '</div><div class="s">' + esc(COPY.tileRateSubTemplate) + '</div></div>';
-    } else {
-      html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelPay) + '</div><div class="v">not shown</div><div class="s">' + esc(COPY.tilePayNone) + '</div></div>';
-      html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelRate) + '</div><div class="v">not shown</div><div class="s">' + esc(COPY.tileRateNone) + '</div></div>';
-    }
-    if (depth) {
-      html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelDepth) + '</div><div class="v p num">' + fmtMoney(depth.depth_usd) + '</div><div class="s">' +
-        esc(depth.is_floor ? T(COPY.tileDepthSubTemplate, {pct: depth.threshold_pct}) : COPY.tileDepthMovedSub) + '</div></div>';
-    } else {
-      html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelDepth) + '</div><div class="v">not enough data</div><div class="s">' + esc(COPY.tileDepthNone) + '</div></div>';
-    }
-    html += '<div class="tile"><div class="k">' + esc(COPY.tileLabelRoundTrip) + '</div><div class="v num">' + country.round_trip_pct.toFixed(1) + '%</div><div class="s">' + esc(COPY.tileRoundTripSubTemplate) + '</div></div>';
-    html += '</div>';
-
-    // The segment is per-currency and most currencies don't have one --
-    // the manifest (always present) says which ones do, so this only ever
-    // fetches a file known to exist (SEB-208).
-    var hasSegment = !!(historyManifest && Array.isArray(historyManifest.ccys) && historyManifest.ccys.indexOf(ccy) >= 0);
-    var segmentPromise = hasSegment
-      ? fetch('./data/country_history_segment/' + ccy + '.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>null)
-      : Promise.resolve(null);
-
-    segmentPromise.then(function(segment){
-      var hasPoints = segment && segment.points && segment.points.length > 1;
-
-      // ---- Gap over time ----
-      if (country.spark && country.spark.length > 1) {
-        var total = country.spark[country.spark.length-1] - country.spark[0];
-        var moveDate = mostOfMoveDate(country.spark, dates, total);
-        // Direction words come from the sign of the data (rise, fall, or flat).
-        var startLabel = sinceLabel || shortDate(country.history_start);
-        var chartHeading = gapAbs(total) < 0.05
-          ? T(COPY.chartHeadingFlatTemplate, {start: startLabel})
-          : T(COPY.chartHeadingMoveTemplate, {direction: total > 0 ? COPY.directionUp : COPY.directionDown, points: Math.abs(total).toFixed(1), start: startLabel});
-        var moveSentence = moveDate
-          ? T(total > 0 ? COPY.moveAfterRiseTemplate : COPY.moveAfterFallTemplate, {date: shortDate(moveDate)})
-          : COPY.moveGradualTemplate;
-        html += '<section><h2 class="num">' + esc(chartHeading) + '</h2>' +
-          '<p class="answer">' + esc(moveSentence) + ' ' + esc(COPY.chartNoteTemplate) + '</p>' +
-          '<div class="chartbox" id="gapChart"></div>';
-        var posLine = recordPosition(COPY, headlinePct, hasPoints ? segment.points.map(function(p){ return p.index_pct; }) : [], country.spark,
-          hasPoints ? segment.first : (dates[0] || country.history_start), hasPoints,
-          hasPoints ? segment.venue : null, hasPoints ? (segment.label || COPY.historySegmentLabel) : null);
-        if (posLine) html += '<p class="answer" id="recordPos">' + esc(posLine) + '</p>';
-
-        if (hasPoints) {
-          html += '<p class="small"><button type="button" class="linkbtn" id="histToggle" aria-expanded="true">' +
-            esc(COPY.historyOwnOnly || 'Show only the period we collected ourselves') +
-            '</button></p><div id="histNote">';
-          var moves = (segment.largest_moves || []).map(function(m){
-            return T(COPY.historySegmentMoveItemTemplate || '{delta} on {date}', {
-              delta: (m.delta_pct > 0 ? '+' : '') + m.delta_pct.toFixed(1) + ' points',
-              date: longDate(m.date)
-            });
-          }).join('; ');
-          html += '<p class="small">' + esc(T(COPY.historySegmentSourceTemplate ||
-            'The dashed line before {since} is an earlier record: {venue}’s own history, compared with {fxSource}, from {first} to {last}. It is {label}, not something we watched happen, and it is never counted in the published number above.', {
-              since: sinceLabel || shortDate(country.history_start), venue: segment.venue, fxSource: segment.fx_source,
-              first: longDate(segment.first), last: longDate(segment.last), label: segment.label
-            })) + '</p>';
-          if (moves) {
-            html += '<p class="small">' + esc(T(COPY.historySegmentMovesTemplate || 'Its largest day-over-day moves: {moves}.', {moves: moves})) + '</p>';
-          }
-          html += '<p class="small"><small><code>data/country_history_segment/' + esc(ccy) + '.json</code></small></p></div>';
-        } else {
-          html += '<p class="small">' + esc(T(COPY.historyStartTemplate ||
-            'History starts {date}, the first day we collected a price here.',
-            {date: shortDate(country.history_start)})) + '</p>';
-        }
-        html += '</section>';
-      }
-
-      // ---- How we get the number, in four steps ----
-      if (p2p) {
-        var nAds = country.n_sources != null ? Math.round(country.n_sources) : Math.round(p2p.n_ads || 0);
-        var fmt4 = function(v){ return v.toLocaleString(undefined,{maximumFractionDigits:4}); };
-        var bold = function(v){ return '<b class="num">' + esc(v) + '</b>'; };
-        var medianTxt = fmt4(p2p.buy_median), rateTxt = fmt4(p2p.fx_mid_per_usd);
-        var hourSame = gapAbs(country.index_pct) === 0;
-        var divideTpl = hourSame ? COPY.stepDivideSameTemplate : COPY.stepDivideTemplate;
-        html += '<section><h2 class="num">' + esc(T(COPY.stepsHeadingTemplate, {gap: fmtGap(headlinePct)})) + '</h2>' +
-          '<p class="answer">' + esc(T(COPY.stepsIntroTemplate, {country: country.country})) + '</p>' +
-          '<ol class="steps">' +
-          '<li>' + T(esc(COPY.stepOfferTemplate), {n: nAds, median: bold(medianTxt), ccy: esc(ccy)}) +
-            '<small><code>data/p2p_basis.csv</code></small></li>' +
-          '<li>' + T(esc(COPY.stepRateTemplate), {rate: bold(rateTxt), ccy: esc(ccy)}) +
-            '<small><code>data/fx_rates.csv</code> &middot; ' + esc(COPY.stepRateNote) + '</small></li>' +
-          '<li>' + T(esc(divideTpl), {median: medianTxt, rate: rateTxt, hourGap: bold(fmtGap(country.index_pct)),
-              dir: esc(country.index_pct > 0 ? COPY.dirMore : COPY.dirLess)}) + ' ' +
-            T(esc(COPY.stepHeadlineTemplate), {gap: bold(fmtGap(headlinePct))}) +
-            '<small><code>data/index_latest.json</code></small></li>' +
-          (depth
-            ? '<li>' + T(esc(depth.is_floor ? COPY.stepDepthTemplate : COPY.stepDepthMovedTemplate),
-                {held: bold(depth.n_ads_held), priced: depth.n_ads_priced, amount: bold(fmtMoney(depth.depth_usd)), pct: depth.threshold_pct}) +
-              '<small><code>data/street_depth_latest.json</code></small></li>'
-            : '') +
-          '</ol>' +
-          '</section>';
-      } else {
-        html += '<section><h2 class="num">' + esc(T(COPY.stepsHeadingTemplate, {gap: fmtGap(headlinePct)})) + '</h2>' +
-          '<p class="answer">' + esc(T(COPY.stepsNoRateBodyTemplate, {source: country.source_class || '', file: country.source_file})) + '</p>' +
-          '</section>';
-      }
-
-      main.innerHTML = html;
-
-      if (country.spark && country.spark.length > 1) {
-        var chartOpts = { spark: country.spark, timestamps: dates, valueSuffix: '%' };
-        if (hasPoints) {
-          chartOpts.priorSpark = segment.points.map(function(p){ return p.index_pct; });
-          chartOpts.priorTimestamps = segment.points.map(function(p){ return p.date; });
-          chartOpts.priorNote = (COPY.historySegmentLabel || segment.label) + ' (' + segment.venue + ')';
-          var movedAt = {};
-          (segment.largest_moves || []).forEach(function(m){ movedAt[m.date] = true; });
-          chartOpts.priorMarkIdx = segment.points.reduce(function(acc, p, i){
-            if (movedAt[p.date]) acc.push(i);
-            return acc;
-          }, []);
-        }
-        var baseOpts = { spark: country.spark, timestamps: dates, valueSuffix: '%' };
-        var tg = document.getElementById('histToggle');
-        MarginChart.render(document.getElementById('gapChart'), hasPoints ? chartOpts : baseOpts);
-        if (tg && hasPoints) {
-          var shown = true;
-          tg.addEventListener('click', function(){
-            shown = !shown;
-            MarginChart.render(document.getElementById('gapChart'), shown ? chartOpts : baseOpts);
-            document.getElementById('histNote').hidden = !shown;
-            var rp = document.getElementById('recordPos');
-            var line = recordPosition(COPY, headlinePct, shown ? segment.points.map(function(p){ return p.index_pct; }) : [], country.spark,
-              shown ? segment.first : (dates[0] || country.history_start), shown,
-              shown ? segment.venue : null, shown ? (segment.label || COPY.historySegmentLabel) : null);
-            if (rp) { rp.textContent = line || ''; rp.hidden = !line; }
-            tg.setAttribute('aria-expanded', shown ? 'true' : 'false');
-            tg.textContent = shown
-              ? (COPY.historyOwnOnly || 'Show only the period we collected ourselves')
-              : T(COPY.historyShowTemplate || 'Show the full record, {first} to {last}', {first: segment.first.slice(0,4)});
-          });
-        }
-      }
-    });
-  }).catch(function(){
-    document.getElementById('main').innerHTML = '<div class="notfound" style="color:var(--ink)">Could not load this country\'s data. That failure is shown, not hidden.</div>';
-  });
-})();
-</script>
-<script>
-(function(){
-  var btn = document.getElementById('navToggle');
-  var nav = document.querySelector('header nav');
-  if (btn && nav) {
-    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
-    document.addEventListener('click', function(e){
-      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
-    });
-  }
-})();
-</script>
+<body class="data">
+<div id="app"></div>
+<template id="cChartTpl"><div class="c-chart" id="cChart"><svg id="cSvg" class="cc-svg" role="img"><g class="cc-base"></g><rect class="cc-sel" y="0" width="0" height="0"></rect><line class="cc-cross" y1="0" stroke-dasharray="3 3" style="display:none"></line></svg><div class="cc-tip" style="display:none"></div></div></template>
+<script src="./js/country_page.js"></script>
 </body>
 </html>
