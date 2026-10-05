@@ -277,7 +277,7 @@ Promise.all([
       var mainSrc = ((src && src.sources) || []).filter(function(x){ return /main source/.test(x.detail || ''); }).map(function(x){ return x.name; });
       mainSrc.concat(names).forEach(function(n){
         var a = document.createElement('a');
-        a.className = 'hw-row mono';
+        a.classList.add('hw-row', 'mono');
         a.href = './sources.html#s-' + String(n).toLowerCase().replace(/[^a-z0-9]/g, '');
         a.textContent = (hiw.venueNames || {})[n] || n;
         rowsBox.appendChild(a);
