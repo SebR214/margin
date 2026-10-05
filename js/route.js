@@ -79,6 +79,11 @@
     return r && r.amounts.filter(function (a) { return a.amount === amount; })[0];
   }
   function cur() { return routeById(S.route); }
+  // A route is comparable unless the stablecoin cost is measured below zero at some amount
+  // (data/routes_summary.json `comparable`, written by tools/emit_routes.py).
+  function comparable(id) { var s = sumRoute(id); return !s || s.comparable !== false; }
+  // "USDC:ArbitrumOne" -> "USDC · Arbitrum One": a stored path id made readable, no words added.
+  function pathName(id) { return id ? String(id).replace(":", " · ").replace(/([a-z])([A-Z])/g, "$1 $2") : ""; }
   function ccy() { return cur().send_ccy; }
 
   // A cost: in the sending currency, or as a share of the amount.
@@ -286,7 +291,8 @@
       hours: whole(s.total_hours_stable_cheapest), priced: whole(s.hours_priced_any_amount) };
     return '<section class="r-hero r-pull"><div class="r-herotext">' + w("headline", vals, "h1") + w("lead", vals, "p", "slead") +
       '</div><div class="r-bigbox"><span class="r-big mono">' + esc(whole(s.total_hours_stable_cheapest)) + "</span>" +
-      w("bigCaption", vals, "span", "soft") + "</div></section>";
+      w("bigCaption", vals, "span", "soft") +
+      (comparable(S.route) ? "" : w("routeNotComparable", vals, "span", "msm")) + "</div></section>";
   }
 
   function chartControls() {
@@ -451,7 +457,8 @@
     function extraRow(key, id, colour, alt) {
       return '<div class="r-leg-row"><span class="r-legname"><i class="r-sw" style="background:var(' + colour + ')"></i>' + esc(txt(key)) +
         '</span><span class="r-track' + (alt ? " alt" : "") + '"><i data-leg="' + id + '" style="background:var(' + colour + ');width:0"></i></span>' +
-        '<span class="mono r-legval" data-val="' + id + '"></span></div>';
+        '<span class="mono r-legval" data-val="' + id + '"></span>' +
+        (id === "app" ? '<span class="mono muted r-prov" data-name="app"></span>' : "") + "</div>";
     }
     el.innerHTML =
       '<label class="muted r-slider"><span>' + esc(txt("sliderLabel")) + ' <span class="mono" id="rBDay" style="color:var(--dk-text)"></span></span>' +
@@ -488,6 +495,8 @@
     document.getElementById("rStack").innerHTML = all ? LEG_ROWS.map(function (l) {
       return '<div class="r-seg" style="background:var(' + l[2] + ');width:' + (vals[l[1]] / max * 100).toFixed(2) + '%"></div>';
     }).join("") : "";
+    var nm = el.querySelector('[data-name="app"]');
+    if (nm) nm.textContent = d.row[BCOL.cheapest_app] || "";
     document.getElementById("rBDay").textContent = stamp(ep(d.row[BCOL.hour_utc]));
     var missing = vals.inn == null || vals.chain == null || vals.out == null;
     var unmeasured = d.row[BCOL.deposit_measured] === false || d.row[BCOL.withdrawal_measured] === false;
@@ -506,17 +515,20 @@
   }
   function drawCompare() {
     var chips = METRICS.map(function (m) { return chip("metric", m[0], S.metric === m[0], txt(m[1])); }).join("");
-    var vs = HOURLY.routes.map(function (r) { return metricValue(sumAmount(r.id, S.amount), S.metric); });
+    var shown = HOURLY.routes.filter(function (r) { return comparable(r.id); });
+    var left = HOURLY.routes.filter(function (r) { return !comparable(r.id); });
+    var vs = shown.map(function (r) { return metricValue(sumAmount(r.id, S.amount), S.metric); });
     var max = 0;
     vs.forEach(function (v) { if (v != null && Math.abs(v) > max) max = Math.abs(v); });
-    var rows = HOURLY.routes.map(function (r, i) {
+    var rows = shown.map(function (r, i) {
       var v = vs[i], width = v == null || !max ? 0 : S.metric === "win" ? v : Math.abs(v) / max * 100;
       var text = v == null ? "" : S.metric === "win" ? dec(v, 1) + "%" : S.unit === "abs" ? dec(v, 2) + " " + r.send_ccy : pc(v);
       return '<button class="r-mrow' + (r.id === S.route ? " sel" : "") + '" data-route="' + esc(r.id) + '"><span class="mono r-mcode">' +
         esc(routeLabel(r)) + '</span><span class="r-track alt"><i style="background:var(' + (v != null && v < 0 ? "--dk-soft" : "--dk-amber") +
         ");width:" + width.toFixed(1) + '%"></i></span><span class="mono r-mval">' + esc(text) + "</span></button>";
     }).join("");
-    document.getElementById("rCompare").innerHTML = (chips ? '<div class="r-chips">' + chips + "</div>" : "") + '<div class="r-list">' + rows + "</div>";
+    document.getElementById("rCompare").innerHTML = (chips ? '<div class="r-chips">' + chips + "</div>" : "") + '<div class="r-list">' + rows + "</div>" +
+      (left.length ? w("notComparable", { routes: left.map(routeLabel).join(", ") }, "p", "msm") : "");
   }
 
   // ---------------------------------------------------------------- what would have to change
@@ -525,7 +537,9 @@
     return r && r.amounts.filter(function (a) { return a.amount === S.amount; })[0];
   }
   function drawWhat() {
-    var out = HOURLY.routes.map(function (r) {
+    var left = HOURLY.routes.filter(function (r) { return !comparable(r.id); });
+    var pathNote = "";
+    var out = HOURLY.routes.filter(function (r) { return comparable(r.id); }).map(function (r) {
       var a = whatFor(r.id), m = a && a.median_7d, l = a && a.latest_hour;
       function money(o, key) { return o && o[key] != null ? dec(o[key], 2) + " " + r.send_ccy : ""; }
       function ppv(o, key) { return o && o[key] != null ? dec(o[key], 2) + "%" : ""; }
@@ -535,17 +549,23 @@
         var units = money(m, "cheaper_needed"), pp = ppv(m, "cheaper_needed_pp");
         var line = [units, pp].filter(Boolean).join(" · ");
         if (line) body += '<span class="mono">' + esc(line) + "</span>";
-        body += w("whatNeeded", { route: routeLabel(r), units: units, pp: pp, ccy: r.send_ccy }, "span", "soft");
+        body += w("whatNeeded", { route: routeLabel(r), units: units, pp: pp, ccy: r.send_ccy, app: m.cheapest_app_week || "" }, "span", "soft");
+        if (m.cheapest_app_changed) body += w("whatAppChanged", { app: m.cheapest_app_week || "", hours: whole(m.cheapest_app_week_hours), of: whole(m.n_hours) }, "span", "msm");
         var share = m.cheaper_needed_pct_of_in_out;
         if (share != null) body += w("whatShare", { pct: dec(share, 0) + "%" }, "span", "msm");
       }
       if (l && l.already_wins === false) {
         var lu = money(l, "cheaper_needed"), lp = ppv(l, "cheaper_needed_pp");
-        if (lu || lp) body += '<span class="r-lat"><span class="mono muted r-small">' + esc([lu, lp].filter(Boolean).join(" · ")) + "</span>" + w("whatLatest", { units: lu, pp: lp }, "span", "msm") + "</span>";
+        if (lu || lp) body += '<span class="r-lat"><span class="mono muted r-small">' + esc([lu, lp].filter(Boolean).join(" · ")) + "</span>" +
+          w("whatLatest", { units: lu, pp: lp, app: l.cheapest_app || "", hour: stamp(ep(l.hour_utc)) }, "span", "msm") + "</span>";
+        if (!pathNote && l.stable_path && l.base_path && l.stable_path !== l.base_path) {
+          pathNote = w("whatPathNote", { path: pathName(l.stable_path), base: pathName(l.base_path), hour: stamp(ep(l.hour_utc)) }, "p", "msm");
+        }
       } else if (l && l.already_wins) body += w("whatLatestWins", null, "span", "msm");
       return '<div class="r-what"><span class="mono c' + (r.id === S.route ? " on" : " muted") + '">' + esc(routeLabel(r)) + '</span><span class="t">' + body + "</span></div>";
     }).join("");
-    document.getElementById("rWhat").innerHTML = out;
+    document.getElementById("rWhat").innerHTML = out + pathNote +
+      (left.length ? w("notComparable", { routes: left.map(routeLabel).join(", ") }, "p", "msm") : "");
   }
 
   // ---------------------------------------------------------------- state and wiring
