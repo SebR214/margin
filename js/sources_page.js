@@ -183,7 +183,7 @@
     if (s.history && s.history.length) {
       s.history.forEach(function (h) {
         add(col, word('span', ['mono', 'soft', 's-small'], h.ccy ? 'historyLine' : 'historyLineNoCcy', {
-          series: h.series, ccy: h.ccy || '', interval: h.interval,
+          series: seriesName(h.series), ccy: h.ccy || '', interval: h.interval,
           first: day(h.first), last: day(h.last), rows: groupDigits(h.rows)
         }));
       });
@@ -202,6 +202,13 @@
     var m = (COPY.sourceNames || {})[id];
     if (m) return m;
     return String(id).replace(/^CriptoYa:/, 'CriptoYa · ');
+  }
+
+  // A stored series id made readable: names in copy.json (seriesNames), else the venue name without the
+  // interval suffix (_1d, _1h), because the interval is printed on its own.
+  function seriesName(id) {
+    var m = (COPY.seriesNames || {})[id];
+    return m || String(id).replace(/_(1d|1h)$/, '');
   }
 
   function coverage(s) {
