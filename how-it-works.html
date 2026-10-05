@@ -12,44 +12,46 @@
 <link rel="stylesheet" href="./css/dkpanel.css">
 <style>
   /* How it works (SEB-240). Colours are the --dk-* tokens in style.css, nothing else. */
-  body.data { margin: 0; }
+  { margin: 0; }
   .hw-wrap { max-width: 1000px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 32px; }
-  .hp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--dk-line); }
+  .hp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--color-neutral-300); }
   .hp-headleft { display: flex; flex-wrap: wrap; align-items: center; gap: 0 28px; }
-  .hp-logo { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 18px; color: var(--dk-text); text-decoration: none; }
-  .hp-nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--dk-muted); }
-  .hp-navlink { display: inline-flex; align-items: center; min-height: 44px; color: var(--dk-muted); text-decoration: none; }
-  .hp-navlink.on { color: var(--dk-text); }
+  .hp-logo { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 18px; color: var(--color-ink); text-decoration: none; }
+  .hp-nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); }
+  .hp-navlink { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-neutral-600); text-decoration: none; }
+  .hp-navlink.on { color: var(--color-ink); }
   .hw-main { display: flex; flex-direction: column; gap: 24px; }
-  .hw-panel { background: var(--dk-panel); border: 1px solid var(--dk-line); border-radius: 8px; padding: 28px; display: flex; flex-direction: column; gap: 16px; }
+  .hw-panel { background: var(--color-surface); border: 1px solid var(--color-neutral-300); border-radius: 8px; padding: 28px; display: flex; flex-direction: column; gap: 16px; }
   .hw-panel[hidden], .hw-main [hidden] { display: none; }
-  body.data h1, body.data h2 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0; text-transform: none; }
-  body.data h1 { line-height: 1.15; }
-  body.data h2 { line-height: 1.25; }
-  .hw-main .lede { margin: 0; font-size: 18px; color: var(--dk-soft); }
-  .hw-main .p { margin: 0; font-size: 15px; color: var(--dk-soft); max-width: 760px; }
-  .hw-main .plain-list { margin: 0; padding-left: 20px; font-size: 15px; color: var(--dk-soft); max-width: 760px; display: flex; flex-direction: column; gap: 8px; }
+  h1, h2 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+  h1 { line-height: 1.15; }
+  h2 { line-height: 1.25; }
+  .hw-main .lede { margin: 0; font-size: 18px; color: inherit; }
+  .hw-main .p { margin: 0; font-size: 15px; color: var(--color-neutral-700); max-width: 760px; }
+  .hw-main .plain-list { margin: 0; padding-left: 20px; font-size: 15px; color: var(--color-neutral-700); max-width: 760px; display: flex; flex-direction: column; gap: 8px; }
   .hw-main .plain-list:empty { display: none; }
-  .hw-main a { color: var(--dk-amber); }
-  .hw-rows { border-top: 1px solid var(--dk-line); }
+  .hw-main a { color: var(--color-ink); text-decoration: underline; text-underline-offset: 3px; }
+  .hero.bleed { display: flex; flex-direction: column; gap: 16px; }
+  .hero.bleed .plain-list, .hero.bleed .p { color: inherit; }
+  .hw-rows { border-top: 1px solid var(--color-neutral-300); }
   .hw-rows:empty { display: none; }
-  .hw-row { display: flex; align-items: center; min-height: 44px; border-bottom: 1px solid var(--dk-line); font-size: 14px; color: var(--dk-text); text-decoration: none; }
-  .hw-row:hover { background: var(--dk-panel-2, var(--dk-raised)); }
-  .full-method > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--dk-text); }
+  .hw-row { display: flex; align-items: center; min-height: 44px; border-bottom: 1px solid var(--color-neutral-300); font-size: 14px; color: var(--color-ink); text-decoration: none; }
+  .hw-row:hover { background: var(--dk-panel-2, var(--color-surface)); }
+  .full-method > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--color-ink); }
   .full-method > div { display: flex; flex-direction: column; gap: 16px; padding-top: 12px; }
-  .full-method .kicker { font-size: 13px; color: var(--dk-muted); }
-  .full-method .h { font-size: 18px; font-weight: 600; color: var(--dk-text); }
+  .full-method .kicker { font-size: 13px; color: var(--color-neutral-600); }
+  .full-method .h { font-size: 18px; font-weight: 600; color: var(--color-ink); }
   .ask { display: flex; gap: 8px; max-width: 760px; }
-  .ask input { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; background: var(--dk-bg); color: var(--dk-text); border: 1px solid var(--dk-border); border-radius: 6px; font: inherit; font-weight: 400; }
-  .ask button { min-width: 44px; min-height: 44px; background: var(--dk-amber); color: var(--dk-bg); border: 0; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-  .askNote { font-size: 13px; color: var(--dk-muted); max-width: 760px; }
-  #hiwAnswer { max-width: 760px; margin-top: 8px; padding: 16px 20px; background: var(--dk-bg); border: 1px solid var(--dk-line); border-radius: 8px; font-size: 15px; line-height: 1.55; color: var(--dk-text); }
-  #cycleBlock { border: 1px solid var(--dk-line); background: var(--dk-panel); }
+  .ask input { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; background: var(--color-bg); color: var(--color-ink); border: 1px solid var(--color-neutral-400); border-radius: 6px; font: inherit; font-weight: 400; }
+  .ask button { min-width: 44px; min-height: 44px; background: var(--data-700); color: var(--color-bg); border: 0; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .askNote { font-size: 13px; color: var(--color-neutral-600); max-width: 760px; }
+  #hiwAnswer { max-width: 760px; margin-top: 8px; padding: 16px 20px; background: var(--color-bg); border: 1px solid var(--color-neutral-300); border-radius: 8px; font-size: 15px; line-height: 1.55; color: var(--color-ink); }
+  #cycleBlock { border: 1px solid var(--color-neutral-300); background: var(--color-surface); }
   .foot { font-size: 14px; }
   @media (max-width: 620px) { .hw-wrap { padding: 0 16px 64px; } .hw-panel { padding: 20px; } }
 </style>
 
-<body class="data">
+<body>
 <div class="hw-wrap">
   <div class="hp-head"><div class="hp-headleft"><a class="hp-logo mono" href="./index.html">margin.wiki</a><nav class="hp-nav">
         <a class="hp-navlink" href="./countries.html">Countries</a>
@@ -60,7 +62,7 @@
       </nav></div></div>
 
   <main class="hw-main">
-    <section class="hw-panel" id="hiwIntro">
+    <section class="hero bleed" id="hiwIntro">
     <h1 id="hiwH1"></h1>
     <p class="lede" id="hiwSub"></p>
     <ul class="plain-list" id="hiwSubList"></ul>
@@ -243,7 +245,7 @@ Promise.all([
   var parts = (hiw.notMeasuredNote || '').split('{fullMethodLink}');
   note.appendChild(document.createTextNode(parts[0]));
   var a = document.createElement('a');
-  a.href = '#full-method'; a.style.cssText = 'font-weight:600;color:var(--dk-text)';
+  a.href = '#full-method'; a.style.cssText = 'font-weight:600;color:var(--color-ink)';
   a.textContent = hiw.fullMethodLink || '';
   note.appendChild(a);
   if (parts[1]) note.appendChild(document.createTextNode(parts[1]));
@@ -349,10 +351,10 @@ copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'
     if (mentioned.length) {
       var c = tracked[mentioned[0]];
       show(fillTpl(HIW.askMethodTracked, { evidence: esc(c.evidence_words), source: esc(c.source_words) }) +
-        '<div style="margin-top:10px;font-size:14px"><a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:var(--dk-text)">' + fillTpl(HIW.askReceiptLink, { country: esc(c.country) }) + '</a></div>');
+        '<div style="margin-top:10px;font-size:14px"><a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:var(--color-ink)">' + fillTpl(HIW.askReceiptLink, { country: esc(c.country) }) + '</a></div>');
     } else {
       show(esc(HIW.askMethodGeneric || '') +
-        '<div style="margin-top:10px;font-size:14px"><a href="./countries.html" style="font-weight:600;color:var(--dk-text)">' + esc(HIW.askIndexLink || '') + '</a></div>');
+        '<div style="margin-top:10px;font-size:14px"><a href="./countries.html" style="font-weight:600;color:var(--color-ink)">' + esc(HIW.askIndexLink || '') + '</a></div>');
     }
   }
 
@@ -376,13 +378,13 @@ copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'
     var mentionedTracked = Object.keys(tracked).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
     var mentionedWorld = Object.keys(worldNames).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
     var untracked = mentionedWorld.filter(function(n){ return !tracked[n]; });
-    var allLink = '<a href="./countries.html" style="font-weight:600;color:var(--dk-text)">' + esc(HIW.askAllCountriesLink || '') + '</a>';
+    var allLink = '<a href="./countries.html" style="font-weight:600;color:var(--color-ink)">' + esc(HIW.askAllCountriesLink || '') + '</a>';
     if (untracked.length) {
       return fillTpl(HIW.askUntracked, { country: esc(worldNames[untracked[0]]), link: allLink });
     }
     if (mentionedTracked.length) {
       var c = tracked[mentionedTracked[0]];
-      return fillTpl(HIW.askTracked, { country: esc(c.country), link: '<a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:var(--dk-text)">' + fillTpl(HIW.askTrackedLink, { country: esc(c.country) }) + '</a>' });
+      return fillTpl(HIW.askTracked, { country: esc(c.country), link: '<a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:var(--color-ink)">' + fillTpl(HIW.askTrackedLink, { country: esc(c.country) }) + '</a>' });
     }
     return fillTpl(HIW.askUnparsed, { link: allLink });
   }
@@ -394,7 +396,7 @@ copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'
     // premise is "how it works", so free-form SQL is never the right tool
     // for that shape of question, only for a genuinely open data question.
     if (METHOD_RE.test(q)) { methodologyAnswer(q); return; }
-    show('<span style="color:var(--dk-muted)">' + esc(HIW.askWaiting || '') + '</span>');
+    show('<span style="color:var(--color-neutral-600)">' + esc(HIW.askWaiting || '') + '</span>');
     fetch(API_BASE + '/ask', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -411,8 +413,8 @@ copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'
         var sqlId = 'sql' + Math.random().toString(36).slice(2,8);
         var html = '<div>' + sentence + '</div>';
         if (res.body.sql) {
-          html += '<div style="margin-top:10px"><a href="#" id="' + sqlId + '-toggle" style="font-size:14px;color:var(--dk-muted);font-weight:600">' + esc(HIW.askSqlLink || '') + '</a>' +
-            '<div id="' + sqlId + '" style="display:none;margin-top:6px;font-size:14px;color:var(--dk-muted);font-family:ui-monospace,monospace;word-break:break-all">' + esc(res.body.sql) + '</div></div>';
+          html += '<div style="margin-top:10px"><a href="#" id="' + sqlId + '-toggle" style="font-size:14px;color:var(--color-neutral-600);font-weight:600">' + esc(HIW.askSqlLink || '') + '</a>' +
+            '<div id="' + sqlId + '" style="display:none;margin-top:6px;font-size:14px;color:var(--color-neutral-600);font-family:ui-monospace,monospace;word-break:break-all">' + esc(res.body.sql) + '</div></div>';
         }
         show(html);
         var toggle = document.getElementById(sqlId + '-toggle');
