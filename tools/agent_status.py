@@ -31,6 +31,13 @@ STALE_HOURS = 3
 # The fee watcher runs monthly (cron `23 3 1 * *`), so 3h means nothing to it --
 # it gets its own clock, sized the same way check_freshness.py's is (SEB-36).
 FEE_STALE_HOURS = 35 * 24
+# publish_p2p_box.py is a manual/builder-run tool, not a scheduled job
+# (tools/publish_p2p_box.py's own docstring: a credential that pushes to main
+# from the box's always-on loop is a Sebastian-only call) -- so it has no
+# hourly cadence to measure against. 24h is how long it can go unrun before
+# this stops being "nobody's gotten to it yet" and starts being the SEB-235
+# gap again: 35,145 rows sat uncopied for 2 days before anything noticed.
+P2P_BOX_STALE_HOURS = 24
 # A published country moving this far in a day is either a story or a bug.
 BIG_MOVE_PT = 5.0
 # ...unless its official rate moved too, in which case it is just the currency.
@@ -108,6 +115,7 @@ def sources(newest):
         "stable_spread.csv": ("venue", "source_ok", STALE_HOURS),
         "fee_checks.csv": ("venue", "status", FEE_STALE_HOURS),
         "withdrawal_fees.csv": ("venue", "source_ok", FEE_STALE_HOURS),
+        "p2p_box_depth.csv": ("ccy", "source_ok", P2P_BOX_STALE_HOURS),
     }
     known = exceptions()
     out = []
@@ -289,6 +297,7 @@ def main():
         "loops": loops(),
         "thresholds": {"delivery_hours": 23, "stale_hours": STALE_HOURS,
                        "fee_stale_hours": FEE_STALE_HOURS,
+                       "p2p_box_stale_hours": P2P_BOX_STALE_HOURS,
                        "big_move_pt": BIG_MOVE_PT,
                        "fx_explains_pct": FX_EXPLAINS_PCT},
         # SEB-38: computed_at is as_of_utc under the uniform name -- the
