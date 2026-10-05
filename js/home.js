@@ -138,7 +138,7 @@
   }
   /* headline, what the site is, the one big number, subhead, updated line */
   function hero(wrap) {
-    var s = el('section', 'hp-hero');
+    var s = el('section', ['hp-hero', 'hero', 'bleed']);
     word(s, 'h1', null, 'headline', totalsVars);
     var cc = currencyCount();
     if (cc != null) { word(s, 'p', ['soft', 'hp-lede'], 'whatLine', function () { return { currencies: num(cc) }; }); }

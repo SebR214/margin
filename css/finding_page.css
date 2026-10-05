@@ -1,64 +1,64 @@
 /* Finding pages and the findings index (SEB-240). Dark data theme: tokens only
-   (--dk-*, --font-data, --font-mono from style.css), weights 400 and 600, no
+   (colour and font tokens from style.css), weights 400 and 600, no
    uppercase, one text above 24px (the big number). Rules are scoped under
-   body.data so they beat style.css's global element rules. */
-body.data .fp-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 56px; }
-body.data .fp-wrap p { margin: 0; }
-body.data .fp-wrap h1, body.data .fp-wrap h2 { margin: 0; font-size: 24px; line-height: 1.25; letter-spacing: 0; font-weight: 600; }
-body.data .fp-wrap h1 { line-height: 1.2; }
-body.data .fp-wrap a { text-decoration: none; }
+   so they beat style.css's global element rules. */
+.fp-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 56px; }
+.fp-wrap p { margin: 0; }
+.fp-wrap h1, .fp-wrap h2 { margin: 0; font-size: 24px; line-height: 1.25; letter-spacing: 0; font-weight: 600; }
+.fp-wrap h1 { line-height: 1.2; }
+.fp-wrap a { text-decoration: none; }
 
-body.data .fp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--dk-line); }
-body.data .fp-brand { display: flex; flex-wrap: wrap; align-items: center; gap: 28px; }
-body.data .fp-logo { font-weight: 600; font-size: 18px; color: var(--dk-text); min-height: 44px; display: inline-flex; align-items: center; }
-body.data .fp-nav { display: flex; flex-wrap: wrap; gap: 22px; font-size: 15px; font-weight: 400; color: var(--dk-muted); }
-body.data .fp-nav a { color: var(--dk-muted); font-weight: 400; min-height: 44px; display: inline-flex; align-items: center; }
-body.data .fp-nav a[aria-current] { color: var(--dk-text); font-weight: 400; }
+.fp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--color-neutral-300); }
+.fp-brand { display: flex; flex-wrap: wrap; align-items: center; gap: 28px; }
+.fp-logo { font-weight: 600; font-size: 18px; color: var(--color-ink); min-height: 44px; display: inline-flex; align-items: center; }
+.fp-nav { display: flex; flex-wrap: wrap; gap: 22px; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); }
+.fp-nav a { color: var(--color-neutral-600); font-weight: 400; min-height: 44px; display: inline-flex; align-items: center; }
+.fp-nav a[aria-current] { color: var(--color-ink); font-weight: 400; }
 
-body.data .fp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-body.data .fp-chip { min-height: 44px; padding: 0 16px; border-radius: 6px; font-size: 14px; display: inline-flex; align-items: center; border: 1px solid var(--dk-border); background: var(--dk-panel); color: var(--dk-soft); }
-body.data .fp-chip[aria-current] { background: var(--dk-text); color: var(--dk-bg); border-color: var(--dk-text); }
+.fp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.fp-chip { min-height: 44px; padding: 0 16px; border-radius: 6px; font-size: 14px; display: inline-flex; align-items: center; border: 1px solid var(--color-neutral-400); background: var(--color-surface); color: var(--color-neutral-700); }
+.fp-chip[aria-current] { background: var(--color-ink); color: var(--color-bg); border-color: var(--color-ink); }
 
-body.data .fp-hero { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-end; margin-top: -24px; }
-body.data .fp-hero-text { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
-body.data .fp-line { font-size: 17px; max-width: 760px; }
-body.data .fp-hero-num { flex: 1 1 260px; display: flex; flex-direction: column; gap: 6px; }
-body.data .fp-big { font-size: min(88px, calc((100vw - 64px) / (var(--digits, 8) * 0.62))); font-weight: 600; line-height: 1; color: var(--dk-amber); white-space: nowrap; }
-body.data .fp-unit { font-size: 15px; }
+.fp-hero { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-end; margin-top: -24px; }
+.fp-hero-text { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.fp-line { font-size: 17px; max-width: 760px; }
+.fp-hero-num { flex: 1 1 260px; display: flex; flex-direction: column; gap: 6px; }
+.fp-big { font-size: min(88px, calc((100vw - 64px) / (var(--digits, 8) * 0.62))); font-weight: 600; line-height: 1; color: var(--data-700); white-space: nowrap; }
+.fp-unit { font-size: 15px; }
 
-body.data .fp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--dk-line); border: 1px solid var(--dk-line); border-radius: 8px; overflow: hidden; }
-body.data .fp-stats > div { background: var(--dk-panel); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
-body.data .fp-stats .fp-k { font-size: 13px; color: var(--dk-muted); }
-body.data .fp-stats .fp-v { font-size: 14px; }
+.fp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--color-neutral-300); border: 1px solid var(--color-neutral-300); border-radius: 8px; overflow: hidden; }
+.fp-stats > div { background: var(--color-surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.fp-stats .fp-k { font-size: 13px; color: var(--color-neutral-600); }
+.fp-stats .fp-v { font-size: 14px; }
 
-body.data .fp-sec { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-body.data .fp-sec-head { display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
-body.data .fp-note { font-size: 15px; }
-body.data .fp-block { font-size: 16px; max-width: 760px; color: var(--dk-soft); }
+.fp-sec { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.fp-sec-head { display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
+.fp-note { font-size: 15px; }
+.fp-block { font-size: 16px; max-width: 760px; color: var(--color-neutral-700); }
 
-body.data .fp-list { border-top: 1px solid var(--dk-line); }
-body.data .fp-leg { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--dk-line); }
-body.data .fp-leg .fp-lab { width: 120px; flex: none; font-size: 14px; display: flex; flex-direction: column; }
-body.data .fp-track { flex: 1; min-width: 160px; height: 10px; background: var(--dk-track); border-radius: 5px; overflow: hidden; }
-body.data .fp-track i { display: block; height: 10px; border-radius: 5px; background: var(--dk-amber); transition: width .35s; }
-body.data .fp-leg .fp-num { min-width: 70px; text-align: right; font-size: 14px; }
-body.data .fp-extra { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 13px; }
-body.data .fp-extra > span { display: inline-flex; gap: 6px; }
+.fp-list { border-top: 1px solid var(--color-neutral-300); }
+.fp-leg { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--color-neutral-300); }
+.fp-leg .fp-lab { width: 120px; flex: none; font-size: 14px; display: flex; flex-direction: column; }
+.fp-track { flex: 1; min-width: 160px; height: 10px; background: var(--grid-empty); border-radius: 5px; overflow: hidden; }
+.fp-track i { display: block; height: 10px; border-radius: 5px; background: var(--data-700); transition: width .35s; }
+.fp-leg .fp-num { min-width: 70px; text-align: right; font-size: 14px; }
+.fp-extra { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 13px; }
+.fp-extra > span { display: inline-flex; gap: 6px; }
 
-body.data .fp-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; min-height: 48px; padding: 8px 0; border-bottom: 1px solid var(--dk-line); font-size: 14px; color: var(--dk-text); }
-body.data a.fp-row:hover { background: var(--dk-raised); }
-body.data .fp-row .fp-path { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.fp-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; min-height: 48px; padding: 8px 0; border-bottom: 1px solid var(--color-neutral-300); font-size: 14px; color: var(--color-ink); }
+a.fp-row:hover { background: var(--color-surface); }
+.fp-row .fp-path { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 
-body.data .fp-cards { display: flex; flex-wrap: wrap; gap: 16px; }
-body.data .fp-card { flex: 1 1 320px; min-width: 0; min-height: 44px; display: flex; flex-wrap: wrap; gap: 18px; padding: 18px 20px; border: 1px solid var(--dk-line); border-radius: 8px; background: var(--dk-panel); color: var(--dk-text); }
-body.data a.fp-card:hover { background: var(--dk-raised); }
-body.data .fp-card .fp-no { font-weight: 600; color: var(--dk-amber); }
-body.data .fp-card .fp-card-body { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-body.data .fp-card .fp-card-val { font-size: 24px; font-weight: 600; color: var(--dk-amber); line-height: 1.2; }
-body.data .fp-card .fp-card-meta { font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px; }
-body.data .fp-back { color: var(--dk-amber); min-height: 44px; display: inline-flex; align-items: center; }
+.fp-cards { display: flex; flex-wrap: wrap; gap: 16px; }
+.fp-card { flex: 1 1 320px; min-width: 0; min-height: 44px; display: flex; flex-wrap: wrap; gap: 18px; padding: 18px 20px; border: 1px solid var(--color-neutral-300); border-radius: 8px; background: var(--color-surface); color: var(--color-ink); }
+a.fp-card:hover { background: var(--color-surface); }
+.fp-card .fp-no { font-weight: 600; color: var(--data-700); }
+.fp-card .fp-card-body { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.fp-card .fp-card-val { font-size: 24px; font-weight: 600; color: var(--data-700); line-height: 1.2; }
+.fp-card .fp-card-meta { font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px; }
+.fp-back { color: var(--data-700); min-height: 44px; display: inline-flex; align-items: center; }
 
 @media (max-width: 480px) {
-  body.data .fp-wrap { padding: 0 16px 64px; gap: 40px; }
-  body.data .fp-big { font-size: min(88px, calc((100vw - 32px) / (var(--digits, 8) * 0.62))); }
+  .fp-wrap { padding: 0 16px 64px; gap: 40px; }
+  .fp-big { font-size: min(88px, calc((100vw - 32px) / (var(--digits, 8) * 0.62))); }
 }

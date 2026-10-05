@@ -157,7 +157,7 @@
       var g = "";
       niceTicks(lo, hi, 3).forEach(function (v) {
         var y = Y(v).toFixed(1);
-        g += '<line x1="0" x2="' + W + '" y1="' + y + '" y2="' + y + '" style="stroke:var(--dk-grid)"></line>' +
+        g += '<line x1="0" x2="' + W + '" y1="' + y + '" y2="' + y + '" style="stroke:var(--color-neutral-200)"></line>' +
           '<text x="2" y="' + (y - 4) + '" class="rc-ax">' + esc(model.yfmt(v)) + "</text>";
       });
       // Segments: runs of hours with no hole longer than BREAK_GAP and both prices stored.
@@ -188,9 +188,9 @@
         fill += ps + back + "Z";
         la += pa; ls += ps;
       });
-      g += '<path d="' + fill + '" style="fill:var(--dk-amber);fill-opacity:.16"></path>';
-      g += '<path d="' + la + '" fill="none" stroke-width="1.2" stroke-linecap="round" style="stroke:var(--dk-blue)"></path>';
-      g += '<path d="' + ls + '" fill="none" stroke-width="1.2" stroke-linecap="round" style="stroke:var(--dk-amber)"></path>';
+      g += '<path d="' + fill + '" style="fill:var(--data-700);fill-opacity:.16"></path>';
+      g += '<path d="' + la + '" fill="none" stroke-width="1.2" stroke-linecap="round" style="stroke:var(--color-ink)"></path>';
+      g += '<path d="' + ls + '" fill="none" stroke-width="1.2" stroke-linecap="round" style="stroke:var(--data-700)"></path>';
       base.innerHTML = g;
       selEl.setAttribute("height", H);
       cross.setAttribute("y2", H);
@@ -289,7 +289,7 @@
     var r = cur(), s = sumRoute(S.route);
     var vals = { route: routeLabel(r), send: r.send_ccy, recv: r.recv_ccy, amount: whole(S.amount) + " " + r.send_ccy,
       hours: whole(s.total_hours_stable_cheapest), priced: whole(s.hours_priced_any_amount) };
-    return '<section class="r-hero r-pull"><div class="r-herotext">' + w("headline", vals, "h1") + w("lead", vals, "p", "slead") +
+    return '<section class="r-hero r-pull hero bleed"><div class="r-herotext">' + w("headline", vals, "h1") + w("lead", vals, "p", "slead") +
       '</div><div class="r-bigbox">' + (comparable(S.route)
         ? '<span class="r-big mono">' + esc(whole(s.total_hours_stable_cheapest)) + "</span>" + w("bigCaption", vals, "span", "soft")
         : w("routeNotComparable", vals, "span", "msm")) + "</div></section>";
@@ -440,7 +440,7 @@
   }
   function legUnit(v) { return v == null ? null : S.unit === "abs" ? v : v / S.amount * 100; }
 
-  var LEG_ROWS = [["legGettingIn", "inn", "--dk-leg-1"], ["legOnChain", "chain", "--dk-amber"], ["legCashingOut", "out", "--dk-leg-4"]];
+  var LEG_ROWS = [["legGettingIn", "inn", "--data-400"], ["legOnChain", "chain", "--data-700"], ["legCashingOut", "out", "--data-700"]];
 
   function buildBreakdown() {
     var el = document.getElementById("rBrk");
@@ -463,10 +463,10 @@
         (id === "app" ? '<span class="mono muted r-prov" data-name="app"></span>' : "") + "</div>";
     }
     el.innerHTML =
-      '<label class="muted r-slider"><span>' + esc(txt("sliderLabel")) + ' <span class="mono" id="rBDay" style="color:var(--dk-text)"></span></span>' +
+      '<label class="muted r-slider"><span>' + esc(txt("sliderLabel")) + ' <span class="mono" id="rBDay" style="color:var(--color-ink)"></span></span>' +
       '<input type="range" id="rBSlider" min="0" max="' + (days.length - 1) + '" value="' + S.bday + '"></label>' +
       '<div class="r-stack" id="rStack"></div>' +
-      '<div class="r-list">' + rowsHtml + extraRow("legTotal", "total", "--dk-soft") + extraRow("legApp", "app", "--dk-blue") + "</div>" +
+      '<div class="r-list">' + rowsHtml + extraRow("legTotal", "total", "--color-neutral-700") + extraRow("legApp", "app", "--color-ink") + "</div>" +
       '<div id="rBNote"></div>';
     updateBreakdown();
   }
@@ -527,7 +527,7 @@
       var v = vs[i], width = v == null || !max ? 0 : S.metric === "win" ? v : Math.abs(v) / max * 100;
       var text = v == null ? "" : S.metric === "win" ? dec(v, 1) + "%" : S.unit === "abs" ? dec(v, 2) + " " + r.send_ccy : pc(v);
       return '<button class="r-mrow' + (r.id === S.route ? " sel" : "") + '" data-route="' + esc(r.id) + '"><span class="mono r-mcode">' +
-        esc(routeLabel(r)) + '</span><span class="r-track alt"><i style="background:var(' + (v != null && v < 0 ? "--dk-soft" : "--dk-amber") +
+        esc(routeLabel(r)) + '</span><span class="r-track alt"><i style="background:var(' + (v != null && v < 0 ? "--color-neutral-700" : "--data-700") +
         ");width:" + width.toFixed(1) + '%"></i></span><span class="mono r-mval">' + esc(text) + "</span></button>";
     }).join("");
     document.getElementById("rCompare").innerHTML = (chips ? '<div class="r-chips">' + chips + "</div>" : "") + '<div class="r-list">' + rows + "</div>" +
