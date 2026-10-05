@@ -524,6 +524,32 @@ CORRIDOR_VARIANTS = {
             "verified": "2026-10-03",
         },
     ],
+    # SEB-248: WazirX USDCINR depth probe passed (26 asks, 23 bids, 1.75%
+    # spread, live 2026-10-05). USDC/INR is listed active under INR Markets
+    # on wazirx.com/fees, same 0.40% base-tier flat fee as USDT/INR. WazirX
+    # only supports USDC deposits on Ethereum (ERC20) -- no Arbitrum, Solana
+    # or Base -- so Ethereum is the only common chain with both Coinbase and
+    # Independent Reserve.
+    #
+    # USD->INR USDC variant NOT WIRED: Coinbase Exchange has no USDC-USD pair
+    # (confirmed live 2026-10-05, api.exchange.coinbase.com/products -- USDC
+    # lists as base only against SGD, EUR, BRL, GBP, AUD, CAD, INR, never
+    # USD). A USDC onramp from USD would need a two-hop USD->USDT->USDC path
+    # that fetch_onramp_coinbase does not support, and the issue spec says
+    # "reuse decompose() unchanged", which rules out adding it here.
+    #
+    # SGD->INR: Independent Reserve lists USDC/SGD with a real, live two-sided
+    # book (60 ask levels, confirmed live 2026-10-05 -- same book already
+    # verified for SGD->PHP's USDC variant). IR USDC/ETH withdrawal: 10.0 USDC
+    # (independentreserve.com/fees, read 2026-10-05).
+    "SGD->INR": [
+        {
+            "stable": "USDC", "network": "Ethereum",
+            "offramp_symbol": "usdcinr",
+            "network_fee_stable": 10.0,
+            "verified": "2026-10-05",
+        },
+    ],
 }
 
 VARIANTS_SIDECAR = os.path.join(HERE, "data", "corridor_variants.csv")
