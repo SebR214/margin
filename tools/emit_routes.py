@@ -435,8 +435,16 @@ def build_summary(D, S):
         allst = stats(pooled_sorted, None)
         # the 7-day windows of the pooled set must anchor on the pooled latest
         route_default = DEFAULT_AMOUNT if DEFAULT_AMOUNT in S[c] else None
+        # A route is comparable only if the stablecoin cost is not negative at any quoted amount:
+        # a negative cost means it is measured against a mid-market rate below the street price,
+        # so "cheaper than the app" says nothing about a sender's real saving.
+        med_cost = {amt: st.median(p["stable_bps"] for p in S[c][amt]) for amt in S[c]}
+        comparable = all(v >= 0 for v in med_cost.values())
         routes.append({
             "id": c,
+            "comparable": comparable,
+            "comparable_reason": None if comparable else "stable_cost_negative",
+            "stable_cost_median_pct_min": r4(min(med_cost.values()) / 100),
             "default_amount": route_default,
             "hours_priced_any_amount": len(per_hour),
             "total_hours_stable_cheapest": route_hours,
@@ -449,6 +457,7 @@ def build_summary(D, S):
         "start": START,
         "windows": {"change_days": WINDOW_DAYS, "swing": "p90 minus p10 of hourly extra cost, linear interpolation"},
         "definition": {
+            "comparable": "false when the median stablecoin cost is below zero at any quoted amount: the cost is measured against a mid-market rate below the street price, so the comparison with the app is not like for like",
             "total_hours_stable_cheapest": "route-hours since start in which the stablecoin path was cheaper than the cheapest app at one or more quoted amounts",
             "amount_hours_stable_cheapest": "route-hour-amount observations where the stablecoin path was cheaper",
             "median_extra": "median over priced hours of stable minus app, cost units; negative when stablecoin cheaper",
@@ -645,7 +654,7 @@ def build_whatif(D, S):
             latest = whatif_block(
                 amt, last["stable_bps"] - last["app_bps"], legs_now, 1,
                 {"hour_utc": hour_utc(last["hour"]), "stable_path": last["stable_path"],
-                 "cheapest_app": last["app"],
+                 "base_path": last["base_path"], "cheapest_app": last["app"],
                  "legs_all_measured": (bool(lg.get("deposit_measured")) and bool(lg.get("withdrawal_measured")))
                  if legs_now is not None else None})
             win, _ = window_split(rows)
@@ -662,9 +671,17 @@ def build_whatif(D, S):
                     l = in_out_bps(D["legs"].get((c, amt, p["hour"])) or {})
                     if l is not None:
                         sub.append((p["stable_bps"] - p["app_bps"], l))
+                # who was cheapest, so the page can name the app: the one that was cheapest
+                # in most of the week's hours (ties: the name that sorts first)
+                counts = {}
+                for p in win:
+                    counts[p["app"]] = counts.get(p["app"], 0) + 1
+                top_app = min(counts, key=lambda k: (-counts[k], k))
                 med7 = whatif_block(
                     amt, ex, None, len(win),
-                    {"from_hour_utc": hour_utc(win[0]["hour"]), "to_hour_utc": hour_utc(win[-1]["hour"])})
+                    {"from_hour_utc": hour_utc(win[0]["hour"]), "to_hour_utc": hour_utc(win[-1]["hour"]),
+                     "cheapest_app_week": top_app, "cheapest_app_week_hours": counts[top_app],
+                     "cheapest_app_changed": len(counts) > 1})
                 if sub:
                     sex = st.median(a for a, _ in sub)
                     sl = st.median(b for _, b in sub)

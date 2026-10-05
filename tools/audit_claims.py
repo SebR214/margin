@@ -161,8 +161,70 @@ def claim_currency_majority_within(c):
                                      "share": round(share, 3), "pct": c["pct"], "min_share": c["min_share"]}
 
 
+def claim_updated_hourly(c):
+    """'Updated every hour': in the newest `window_hours` clock hours the collectors stored a reading in every hour."""
+    hrs = set()
+    for name in ("basis.csv", "p2p_basis.csv"):
+        for r in rows(name):
+            if (r.get("source_ok") or "").strip().lower() == "true":
+                hrs.add(r["ts_utc"][:13])
+    if not hrs:
+        return False, {"reason": "no readings"}
+    newest = max(hrs)
+    t = dt.datetime.fromisoformat(newest + ":00")
+    n = c.get("window_hours", 24)
+    want = [(t - dt.timedelta(hours=i)).strftime("%Y-%m-%dT%H") for i in range(n)]
+    missing = [h for h in want if h not in hrs]
+    return not missing, {"window_hours": n, "newest_hour": newest, "hours_missing": len(missing)}
+
+
+def claim_coverage_matches_index(c):
+    """The 'N of 60 currencies priced' figure on the pages equals a recount of the country files with a price."""
+    printed = None
+    try:
+        printed = json.load(open(os.path.join(DATA, "cycle_log.json")))["steps"]["currencies"]
+    except (OSError, ValueError, KeyError):
+        pass
+    priced = total = 0
+    for f in sorted(os.listdir(os.path.join(DATA, "countries"))):
+        if not f.endswith(".json") or " " in f:
+            continue
+        d = json.load(open(os.path.join(DATA, "countries", f)))
+        total += 1
+        if isinstance(d.get("index_pct"), (int, float)):
+            priced += 1
+    ok = bool(printed) and printed["collected"] == priced and printed["of"] == total
+    return ok, {"printed_priced": printed and printed["collected"], "printed_of": printed and printed["of"],
+                "recount_priced": priced, "recount_of": total}
+
+
+def claim_sources_counts(c):
+    """The opening counts of the Sources page add up: live + history-only = all, with + without history = all."""
+    d = json.load(open(os.path.join(DATA, "sources_daily.json")))["sources"]
+    total = len(d)
+    live = sum(1 for s in d if s["live"])
+    hist = sum(1 for s in d if s["history"])
+    ok = live + (total - live) == total and hist + (total - hist) == total and total > 0
+    return ok, {"sources": total, "read_every_hour_or_live": live, "history_only": total - live,
+                "with_history": hist, "without_history": total - hist}
+
+
+def claim_routes_published_equal_fresh(c):
+    """Every route's published hour counts equal the counts re-derived from the raw CSVs."""
+    routes, _ = fresh_routes()
+    pub = json.load(open(os.path.join(DATA, "routes_summary.json")))["routes"]
+    bad = [x["id"] for x in pub
+           if x["id"] not in routes or x["hours_priced_any_amount"] != routes[x["id"]]["any_hours"]
+           or x["total_hours_stable_cheapest"] != routes[x["id"]]["any_wins"]]
+    return not bad and bool(pub), {"routes": len(pub), "differ": bad}
+
+
 TYPES = {"stable_never_cheapest": claim_stable_never_cheapest,
-         "currency_majority_within": claim_currency_majority_within}
+         "currency_majority_within": claim_currency_majority_within,
+         "updated_hourly": claim_updated_hourly,
+         "coverage_matches_index": claim_coverage_matches_index,
+         "sources_counts": claim_sources_counts,
+         "routes_published_equal_fresh": claim_routes_published_equal_fresh}
 
 
 def run():
