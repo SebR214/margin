@@ -119,4 +119,5 @@
 
   root.renderCycleBlock = renderCycleBlock;
   if (typeof module !== 'undefined' && module.exports) { module.exports = { renderCycleBlock: renderCycleBlock }; }
+  if (typeof window !== 'undefined') { window.renderCycleBlock = renderCycleBlock; }
 })(typeof window !== 'undefined' ? window : this);
