@@ -2,456 +2,79 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>margin.wiki — countries</title>
-<meta name="description" content="What people pay for a dollar, country by country, priced every hour with a receipt behind every number."/>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>margin.wiki</title>
+<meta name="description" content=""/>
 <link rel="stylesheet" href="./style.css">
-<script src="./js/receipt_replay.js"></script>
 <style>
-  :root{
-    --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0;
-    --peri:#817FCC; --dust:#D3D0CB; --grape:#3F3047; --egg:#F0EBD8;
+  /* Countries (SEB-240). Colours are the --dk-* tokens in style.css, nothing else. */
+  body.data { margin: 0; }
+  .hp-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 64px; }
+  .hp-wrap p { margin: 0; }
+  .hp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--dk-line); }
+  .hp-headleft { display: flex; flex-wrap: wrap; align-items: center; gap: 0 28px; }
+  .hp-logo { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 18px; color: var(--dk-text); text-decoration: none; }
+  .hp-nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--dk-muted); }
+  .hp-navlink { display: inline-flex; align-items: center; min-height: 44px; color: var(--dk-muted); text-decoration: none; }
+  .hp-clock { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .hp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dk-amber); display: inline-block; flex: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .hp-dot { animation: hp-pulse 1.6s ease-in-out infinite; }
+    .hp-dot.still { animation: none; }
   }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:#fff;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
-  a{color:var(--ink);text-decoration:none;font-weight:500} a:hover{color:var(--peri)}
-  .num{font-variant-numeric:tabular-nums}
-  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
-
-  header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;gap:12px}
-  .brand{display:flex;align-items:center;gap:28px;min-width:0;flex:1}
-  .logo{font-size:18px;font-weight:800;letter-spacing:-0.02em;flex-shrink:0}
-  .logo a{display:inline-flex;align-items:center;min-height:40px}
-  nav{display:flex;gap:4px;font-size:15px;font-weight:500;color:var(--sub);overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none;white-space:nowrap;min-width:0}
-  nav::-webkit-scrollbar{display:none}
-  nav a{padding:12px 10px;display:inline-flex;align-items:center;min-height:40px;white-space:nowrap}
-  nav a.active{color:var(--ink);font-weight:700}
-  .header-right{display:flex;align-items:center;gap:16px;flex-shrink:0}
-  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:8px 8px;color:var(--ink);line-height:1;min-height:40px;min-width:40px}
-
-  /* Also drops style.css's shared black .hero band/white text -- this page
-     never used it, so neutralize what leaks in now that it links style.css. */
-  .hero{padding:20px 0 0;display:flex;flex-direction:column;gap:12px;background:none;color:var(--ink)}
-  .hero h1{color:var(--ink)}
-  h1{font-size:28px;line-height:1.25;letter-spacing:-.01em;margin:0;font-weight:700}
-  .lead{font-size:17px;color:var(--sub);margin:0;max-width:640px}
-  .meta{font-size:14px;color:var(--stamp);margin:2px 0 0;letter-spacing:.02em}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--peri);display:inline-block;margin-right:6px;vertical-align:1px}
-  .search{margin-top:8px;width:100%;padding:12px 14px;font:inherit;font-size:15px;border:1px solid var(--dust);border-radius:8px;background:#fff;color:var(--ink);min-height:44px}
-  .search:focus{outline:2px solid var(--peri);outline-offset:1px}
-
-  section{border-top:1px solid var(--rule);margin-top:36px;padding-top:28px}
-  h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
-  .answer{font-size:15px;color:var(--sub);margin:0 0 16px}
-
-  .trow{display:grid;grid-template-columns:1fr 92px 96px 96px;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--rule);min-height:40px;cursor:pointer}
-  .trow.head{border-top:0;padding:0 0 8px;font-size:14px;color:var(--stamp);font-weight:600;align-items:end;cursor:default;min-height:0}
-  .cn b{font-weight:600;font-size:15px;display:block}
-  .cn small{display:block;font-size:14px;color:var(--stamp);margin-top:2px}
-  .flag{color:var(--grape);font-weight:600}
-  .thn{color:var(--stamp);text-align:right;font-size:14px}
-  .ch{display:block;font-size:14px;font-weight:500;color:var(--sub);margin-top:3px;white-space:nowrap}
-  .ch.up{color:var(--grape);font-weight:600}
-  .gp{text-align:right;line-height:1.2;font-weight:700;font-variant-numeric:tabular-nums;font-size:15px;color:var(--ink)}
-  .rt{text-align:right;color:var(--sub);font-variant-numeric:tabular-nums;font-size:14px}
-  .head .gp,.head .rt,.head .thn{font-weight:600;font-size:14px;color:var(--stamp)}
-  .small{font-size:15px;color:var(--stamp);margin:14px 0 0}
-  .small a{display:inline-block;padding:13px 2px;min-height:40px}
-
-  .chips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{font-size:14px;padding:9px 12px;min-height:40px;display:inline-flex;align-items:center;border:1px solid var(--dust);border-radius:999px;color:var(--sub);font-variant-numeric:tabular-nums}
-  .chip b{color:var(--ink);font-weight:500;margin-right:4px}
-  .near-text{display:none;color:var(--sub);font-size:14px;line-height:1.6;margin:0}
-
-  .why{list-style:none;margin:0;padding:0}
-  .wrow{padding:12px 0;border-top:1px solid var(--rule);font-size:14px;min-height:40px;display:flex;align-items:center}
-  .wrow span{display:block;font-size:14px;color:var(--stamp)}
-  .wname a{display:inline-block;padding:13px 3px;min-height:40px}
-  .frozen-row{padding:12px 0;border-top:1px solid var(--rule);font-size:14px;display:flex;justify-content:space-between;gap:12px;min-height:40px;align-items:center}
-  .frozen-row .r{color:var(--stamp);text-align:right}
-
-  footer.foot{border-top:1px solid var(--rule);margin-top:56px;padding:24px 0 40px;font-size:15px;color:var(--sub)}
-  footer.foot a{display:inline-block;padding:13px 2px;min-height:40px;color:var(--ink);font-weight:500}
-
-  @media(max-width:620px){
-    .trow{grid-template-columns:1fr 88px 64px;gap:8px}
-    .thn, .trow.head span:nth-child(2){display:none}
-    /* A ~25-country pill list wraps into a wall of rounded boxes on a
-       phone (SEB-reported). One grey sentence reads faster and takes a
-       fraction of the vertical space -- desktop keeps the pills, which
-       fit fine at that width. */
-    .chips{display:none}
-    .near-text{display:block}
+  @keyframes hp-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  .hp-dot.still { background: var(--dk-blue-deep); }
+  body.data h1, body.data h2 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+  body.data h1 { line-height: 1.15; }
+  body.data h2 { line-height: 1.25; }
+  .hp-hero { display: flex; flex-direction: column; gap: 20px; max-width: 900px; }
+  .hp-lede { font-size: 18px; }
+  .hp-body { font-size: 15px; }
+  .hp-small { font-size: 14px; }
+  .hp-tiny { font-size: 12px; }
+  .hp-sec { display: flex; flex-direction: column; gap: 16px; }
+  .hp-gap24 { gap: 24px; }
+  .hp-sechead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .hp-intro { display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
+  .hp-bigbox { display: flex; flex-direction: column; gap: 8px; }
+  .hp-big { display: inline-flex; align-items: center; min-height: 88px; font-size: 88px; font-weight: 600; line-height: 1; color: var(--dk-amber); text-decoration: none; }
+  body.data a.hp-big, body.data a.hp-biglink { color: var(--dk-amber); }
+  .hp-biglink { display: inline-flex; align-items: center; min-height: 44px; color: var(--dk-amber); }
+  /* countries list */
+  .cr-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+  .cr-search { flex: 1 1 260px; min-width: 0; max-width: 420px; min-height: 44px; padding: 0 14px; background: var(--dk-panel); color: var(--dk-text); border: 1px solid var(--dk-border); border-radius: 6px; font: inherit; font-weight: 400; }
+  .cr-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cr-chip { min-height: 44px; padding: 0 16px; background: var(--dk-raised); color: var(--dk-soft); border: 1px solid var(--dk-border); border-radius: 6px; font: inherit; font-weight: 400; cursor: pointer; }
+  .cr-chip[aria-pressed="true"] { color: var(--dk-text); border-color: var(--dk-amber); }
+  .cr-list { border-top: 1px solid var(--dk-line); }
+  .cr-head, .cr-row { display: grid; grid-template-columns: 36px minmax(0, 1.4fr) 96px minmax(0, 2fr); gap: 16px; align-items: center; padding: 0; border-bottom: 1px solid var(--dk-line); font-size: 14px; }
+  .cr-head { min-height: 36px; color: var(--dk-muted); font-size: 13px; }
+  .cr-row { min-height: 52px; color: var(--dk-text); text-decoration: none; }
+  .cr-row:hover { background: var(--dk-panel); }
+  .cr-row[hidden] { display: none; }
+  .cr-rank { color: var(--dk-muted); text-align: right; font-size: 13px; }
+  .cr-name { display: flex; flex-direction: column; min-width: 0; }
+  .cr-code { color: var(--dk-muted); font-size: 12px; }
+  .cr-gap { text-align: right; color: var(--dk-amber); }
+  .cr-gap.neg { color: var(--dk-blue); }
+  .cr-gap.none { color: var(--dk-muted); }
+  .cr-line { width: 100%; height: 28px; display: block; }
+  .cr-line polyline { fill: none; stroke: var(--dk-amber); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  .cr-line.neg polyline { stroke: var(--dk-blue); }
+  .cr-line line { stroke: var(--dk-line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .cr-note { max-width: 760px; }
+  @media (max-width: 620px) {
+    .hp-wrap { padding: 0 16px 64px; }
+    .cr-head, .cr-row { grid-template-columns: 28px minmax(0, 1fr) 76px; }
+    .cr-line, .cr-head .cr-hline { display: none; }
   }
-  @media(max-width:760px){
-    header{padding:16px 0}
-    .brand{gap:14px}
-    nav{flex-wrap:nowrap!important;margin:0;padding:0}
-    .headline{font-size:22px}
-  }
+
 </style>
-<style id="mwh-style">
-header.mwh{display:flex!important;align-items:center!important;justify-content:flex-start!important;height:64px!important;min-height:0!important;margin:0 0 36px 0!important;padding:0!important;border:0!important;background:transparent!important;position:static!important;flex-wrap:nowrap!important;gap:0!important}
-header.mwh .mwh-logo{font-family:'Archivo',system-ui,sans-serif!important;font-size:19px!important;font-weight:800!important;color:#0B0B0B!important;text-decoration:none!important;margin:0 28px 0 0!important;padding:0!important;letter-spacing:-.01em!important;white-space:nowrap!important;flex:none!important}
-header.mwh nav{display:flex!important;gap:24px!important;align-items:center!important;overflow-x:auto!important;scrollbar-width:none!important;margin:0!important;padding:0!important;flex:1 1 auto!important;min-width:0!important}
-header.mwh nav{position:static!important;inset:auto!important;transform:none!important;width:auto!important;height:auto!important;max-height:none!important;box-shadow:none!important;background:none!important;visibility:visible!important;opacity:1!important;flex-direction:row!important;border:0!important;z-index:auto!important}
-header.mwh nav::-webkit-scrollbar{display:none}
-header.mwh nav a{font-family:'Archivo',system-ui,sans-serif!important;font-size:15px!important;font-weight:500!important;color:#6B6B6B!important;text-decoration:none!important;padding:10px 0!important;margin:0!important;white-space:nowrap!important;border:0!important;background:none!important}
-header.mwh nav a.active{color:#0B0B0B!important;font-weight:600!important}
-header.mwh nav a:hover,header.mwh .mwh-logo:hover{color:#0B0B0B!important}
-header.mwh .nav-toggle{display:none!important;background:none!important;border:0!important;font-size:20px!important;cursor:pointer!important;padding:6px 8px!important;color:#0B0B0B!important;line-height:1!important;font-family:inherit!important}
-@media (max-width:620px){
-  header.mwh{height:56px!important;margin-bottom:24px!important;position:relative!important}
-  header.mwh .mwh-logo{margin-right:16px!important;font-size:17px!important}
-  header.mwh nav{display:none!important;position:absolute!important;top:100%!important;left:0!important;right:0!important;flex-direction:column!important;gap:0!important;background:#fff!important;padding:6px 24px 16px!important;border-bottom:1px solid #F0F0F0!important;box-shadow:0 8px 16px rgba(11,11,11,0.06)!important;z-index:30!important;overflow:visible!important;mask-image:none!important;-webkit-mask-image:none!important}
-  header.mwh nav.open{display:flex!important}
-  header.mwh nav a{padding:12px 0!important;border-bottom:1px solid #F6F6F6!important;font-size:16px!important}
-  header.mwh .nav-toggle{display:block!important}
-}
-</style>
-<style id="mw-type">
-h1{font-family:'Archivo',system-ui,sans-serif!important;font-size:28px!important;font-weight:800!important;line-height:1.22!important;letter-spacing:-0.02em!important;color:#0B0B0B!important;margin-top:0!important;margin-bottom:10px!important}
-h2{font-family:'Archivo',system-ui,sans-serif!important;font-size:21px!important;font-weight:700!important;line-height:1.3!important;letter-spacing:-0.01em!important;color:#0B0B0B!important}
-body{font-family:'Archivo',system-ui,sans-serif!important;color:#0B0B0B}
-h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!important;line-height:1.55!important;color:#6B6B6B!important;font-weight:400!important;margin-top:0!important}
-</style>
-<style id="mwh-offset">header.mwh{margin-bottom:56px!important}@media (max-width:620px){header.mwh{margin-bottom:32px!important}}</style>
 </head>
-<body>
-<div class="wrap">
-  <header class="mwh"><a class="mwh-logo" href="./index.html">margin.wiki</a><nav>
-        <a href="./countries.html" class="active">Countries</a>
-        <a href="./sending-money.html">Routes</a>
-        <a href="./sources.html">Sources</a>
-        <a href="./findings.html">Findings</a>
-        <a href="./how-it-works.html">How it works</a>
-      </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button></header>
-
-  <div class="hero">
-    <h1 id="pageTitle"></h1>
-    <p class="lead" id="pageLede"></p>
-    <p class="meta" id="metaLine"><span class="dot"></span><span id="metaText"></span></p>
-    <input class="search" type="text" id="searchBox"/>
-  </div>
-  <section id="secBig">
-    <h2 id="bigTitle"></h2>
-    <p class="answer" id="bigAnswer" hidden></p>
-    <div class="trow head"><span data-c="colCountry"></span><span class="thn" id="bigThenHdr"></span><span class="gp" data-c="colNow"></span><span class="rt" data-c="colDepth"></span></div>
-    <div id="bigBody"></div>
-    <p class="small" id="depthNote" style="font-size:15px;color:#6B6B6B;margin-top:14px"></p>
-  </section>
-  <section id="secModerate">
-    <h2 id="modTitle"></h2>
-    <p class="answer" id="modAnswer" hidden></p>
-    <div class="trow head"><span data-c="colCountry"></span><span class="thn" id="modThenHdr"></span><span class="gp" data-c="colNow"></span><span class="rt" data-c="colDepth"></span></div>
-    <div id="modBody"></div>
-  </section>
-  <section id="secPegged">
-    <h2 data-c="pegTitle"></h2>
-    <p class="answer" data-c="pegNote"></p>
-    <div class="trow head"><span data-c="colCountry"></span><span class="thn" id="pegThenHdr"></span><span class="gp" data-c="colNow"></span><span class="rt" data-c="colDepth"></span></div>
-    <div id="pegBody"></div>
-  </section>
-  <section id="secNear">
-    <h2 id="nearTitle"></h2>
-    <p class="answer" data-c="nearNote"></p>
-    <div class="chips" id="nearChips"></div>
-    <p class="near-text" id="nearText"></p>
-  </section>
-  <section id="secWithheld">
-    <h2 id="withheldTitle"></h2>
-    <p class="answer" id="withheldNote"></p>
-    <ul class="why" id="withheldList"></ul>
-    <p class="small" id="cfaNote"></p>
-    <p class="small" id="frozenNote"></p>
-  </section>
-  <footer class="foot"><span id="footText"></span> <a href="https://github.com/SebR214/margin" id="footLink"></a></footer>
-</div>
-<script>
-(function(){
-  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-  // One decimal place everywhere on this page. A tiny negative rounds to
-  // "-0.0" at one decimal -- true but reads as a typo -- so a value that
-  // rounds to zero always prints as a plain "0.0%", never "-0.0%".
-  function fmtPct(n, digits){
-    digits = digits==null?1:digits;
-    var v = n.toFixed(digits);
-    if (parseFloat(v) === 0) return (0).toFixed(digits) + '%';
-    return (n>0?'+':'') + v + '%';
-  }
-  // The table and chip lists state a gap as a plain, unsigned percentage --
-  // the section wording already carries the direction ("pay X% more"), so
-  // repeating a "+" on every row would say the same thing twice.
-  function fmtGapPct(n, digits){
-    digits = digits==null?1:digits;
-    var v = Math.abs(n).toFixed(digits);
-    if (parseFloat(v) === 0) v = (0).toFixed(digits);
-    return v + '%';
-  }
-  var COPY = {};
-  function T(tpl, vars){
-    return String(tpl||'').replace(/\{(\w+)\}/g, function(_, k){ return vars && vars[k] != null ? vars[k] : ''; });
-  }
-  function fmtPts(n){
-    var v = n.toFixed(1);
-    if (parseFloat(v) === 0) v = '0.0';
-    else if (n > 0) v = '+' + v;
-    return T(COPY.changeTemplate, {delta: v});
-  }
-  function nouns(n){ return n === 1 ? COPY.countryOne : COPY.countryMany; }
-
-  // "the Philippines", "the United Arab Emirates" -- correct as a sentence
-  // subject, but banned before a country name inside a list (a comma-
-  // separated run, or a table/grid of them). Strips it only where this page
-  // builds that kind of list.
-  function listName(name){ return String(name||'').replace(/^the\s+/i, ''); }
-
-  function reasonWords(reason){ return (COPY.withheldReasons || {})[reason] || reason; }
-  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  function shortDate(iso) {
-    var d = new Date(iso);
-    if (isNaN(d)) return '';
-    return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()];
-  }
-  function shortTime(iso){
-    var d = new Date(iso);
-    if (isNaN(d)) return '';
-    var h = String(d.getUTCHours()).padStart(2,'0');
-    var m = String(d.getUTCMinutes()).padStart(2,'0');
-    return h + ':' + m;
-  }
-
-  // spark points are daily (tools/emit_countries.py), no per-point date
-  // stored upstream -- derive real calendar days between history_start and
-  // hour_utc, same approach as the home page, so both pages' charts agree.
-  function sparkDates(c){
-    if (!c.spark || !c.history_start || !c.hour_utc) return [];
-    var end = new Date(c.hour_utc);
-    var n = c.spark.length;
-    var out = [];
-    for (var i = 0; i < n; i++) {
-      var d = new Date(end);
-      d.setUTCDate(d.getUTCDate() - (n - 1 - i));
-      out.push(d.toISOString());
-    }
-    return out;
-  }
-
-  // The live figure this whole page reads everywhere it says "now": the
-  // typical value over the last 24 hours, falling back to this single hour
-  // only for a country whose 24h window hasn't built up yet -- same fallback
-  // rule the home page already uses, so both pages agree on "now".
-  function gapNow(c){ return c.median_24h_pct != null ? c.median_24h_pct : c.index_pct; }
-
-  // "Then": the oldest point this country's own trend chart has, real date
-  // included -- not a single shared date guessed at, since a country priced
-  // for fewer days has a shorter window than one priced from day one.
-  function gapThen(c){
-    var s = c.spark;
-    return (s && s.length > 1) ? s[0] : null;
-  }
-  function thenDate(c){
-    var d = sparkDates(c);
-    return d.length ? d[0] : c.history_start;
-  }
-
-  function joinList(parts){
-    if (parts.length <= 1) return parts.join('');
-    return parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1];
-  }
-
-  // The gap figure here is a receipt's own result_pct (SEB-173) -- wrapped
-  // in a span carrying data-receipt-ccy/value so receipt_replay.js's
-  // delegated click handler opens that country's four-step receipt without
-  // also triggering this row's own link to country.html.
-  function receiptSpan(ccy, text){
-    return '<span data-receipt-ccy="'+esc(ccy)+'" data-receipt-value="'+esc(text)+'" tabindex="0">'+text+'</span>';
-  }
-
-  // One row of the "trow" grid -- shared by the managed and market-rate
-  // tables, so a fix to one applies to both.
-  function rowHtml(c){
-    var then = gapThen(c), now = gapNow(c);
-    var chg = (then != null) ? (now - then) : null;
-    var chgHtml = chg == null ? '' : '<small class="ch'+(chg>0?' up':'')+'">'+fmtPts(chg)+'</small>';
-    var reasons = [];
-    if (c.n_sources === 1) reasons.push(COPY.reasonOneSource);
-    if (c.round_trip_pct != null && c.round_trip_pct > 5) reasons.push(COPY.reasonFarApart);
-    var flag = reasons.length ? ' &middot; <span class="flag">' + esc(reasons.join(COPY.reasonJoin)) + '</span>' : '';
-    return '<a class="trow" data-ccy="'+esc(c.ccy)+'" href="./country.html?ccy='+esc(c.ccy)+'">'+
-      '<span class="cn"><b>'+esc(listName(c.country))+'</b><small>'+esc(c.ccy)+flag+'</small></span>'+
-      '<span class="thn num">'+(then!=null ? fmtGapPct(then) : '&mdash;')+'</span>'+
-      '<span class="gp num">'+receiptSpan(c.ccy, fmtGapPct(now))+chgHtml+'</span>'+
-      '<span class="rt num">'+depthWords(c.ccy)+'</span>'+
-      '</a>';
-  }
-
-  // A country counts as "the government sets the rate" only when
-  // tools/emit_countries.py's own denominator_class says so (a real,
-  // computed classification, never guessed at here) -- "market" is a
-  // free-floating currency, "pegged" and "unmaintained" have their own
-  // sections below and never enter this one.
-  var SMALL_GAP = 2; // pts: the same "give or take 2%" line the near-official
-                      // section states in its own heading -- one threshold,
-                      // reused everywhere a row needs sorting into "a real
-                      // gap" vs "close enough to the official rate".
-
-  var DEPTH = {};
-  function depthWords(ccy){
-    var v = DEPTH[ccy];
-    if (!v || v.depth_usd == null) return '&mdash;';
-    return '$' + Math.round(v.depth_usd).toLocaleString('en-US') + (v.is_floor ? '+' : '');
-  }
-  fetch('./copy.json', {cache:'no-store'}).then(r=>r.json()).catch(()=>({})).then(function(cd){ COPY = (cd && cd.countries) || {};
-    document.querySelectorAll('[data-c]').forEach(function(el){ el.textContent = COPY[el.getAttribute('data-c')] || ''; });
-    document.getElementById('pageLede').textContent = COPY.lede || '';
-    document.getElementById('metaText').textContent = COPY.loading || '';
-    document.getElementById('searchBox').placeholder = COPY.searchLabel || '';
-    document.getElementById('searchBox').setAttribute('aria-label', COPY.searchLabel || '');
-    document.getElementById('depthNote').textContent = COPY.depthNoteTemplate || '';
-    document.getElementById('footText').textContent = COPY.footer || '';
-    document.getElementById('footLink').innerHTML = esc(COPY.footerLink || '').replace('\u2192','&rarr;');
-  }).then(function(){ return fetch('./data/street_depth_latest.json', {cache:'no-store'}); }).then(r=>r.json()).catch(()=>null).then(function(dep){ DEPTH = (dep && dep.countries) || {}; return fetch('./data/index_latest.json', {cache:'no-store'}); }).then(r=>r.json()).then(function(d){
-    var countries = d.countries || [];
-    var withheld = d.withheld || [];
-    var total = countries.length + withheld.length;
-    var rankedCount = countries.filter(c => c.denominator_class !== 'unmaintained').length;
-
-    document.getElementById('pageTitle').textContent = T(COPY.title, {count: total});
-    var asOf = d.as_of_utc || (countries[0] && countries[0].hour_utc);
-    document.getElementById('metaText').textContent =
-      T(COPY.metaTemplate, {time: shortTime(asOf), n: rankedCount, total: total});
-    var minAds = d.min_buy_ads;
-
-    // Sudan's official rate is frozen -- its own "gap" is a data artifact,
-    // not a real one, so it is excluded from every ranking below and
-    // listed on its own, same exclusion the home page applies to its own
-    // "biggest gap" pick.
-    var unmaintained = countries.filter(c => c.denominator_class === 'unmaintained');
-    var ranked = countries.filter(c => c.denominator_class !== 'unmaintained');
-
-    // Managed-rate countries: a real gap (>= SMALL_GAP) means the
-    // government-set rate and what people actually pay for a dollar have
-    // come apart. Pegged currencies get their own section below regardless
-    // of size -- their gap means something different (the cost of buying
-    // crypto under capital controls, not currency weakness).
-    var managedBig = ranked.filter(c => c.denominator_class === 'managed' && Math.abs(gapNow(c)) >= SMALL_GAP)
-      .sort((a,b) => gapNow(b) - gapNow(a));
-    var marketBig = ranked.filter(c => c.denominator_class === 'market' && Math.abs(gapNow(c)) >= SMALL_GAP)
-      .sort((a,b) => gapNow(b) - gapNow(a));
-    var pegged = ranked.filter(c => c.denominator_class === 'pegged').sort((a,b) => gapNow(b) - gapNow(a));
-    var near = ranked.filter(c => (c.denominator_class === 'managed' || c.denominator_class === 'market') && Math.abs(gapNow(c)) < SMALL_GAP)
-      .sort((a,b) => gapNow(b) - gapNow(a));
-
-    function gapRange(list){
-      var vals = list.map(function(c){ return Math.abs(gapNow(c)); });
-      return { lo: Math.min.apply(null, vals).toFixed(1), hi: Math.max.apply(null, vals).toFixed(1) };
-    }
-    // The range is printed to one decimal, the same precision the table
-    // rows use, so a heading never says 2% when the table says 2.2%.
-    function setGroup(titleId, answerId, list, titleKey, emptyKey){
-      var r = list.length ? gapRange(list) : null;
-      document.getElementById(titleId).textContent = r
-        ? T(COPY[titleKey], {n: list.length, countries: nouns(list.length), min: r.lo, max: r.hi})
-        : COPY[emptyKey];
-      var ans = document.getElementById(answerId);
-      ans.hidden = !!list.length;
-      ans.textContent = list.length ? '' : COPY.emptyGroup;
-    }
-    setGroup('bigTitle', 'bigAnswer', managedBig, 'bigTitleTemplate', 'bigTitleEmpty');
-    document.getElementById('bigThenHdr').textContent = managedBig[0] ? T(COPY.colThenTemplate, {date: shortDate(thenDate(managedBig[0]))}) : COPY.colThen;
-    document.getElementById('bigBody').innerHTML = managedBig.map(rowHtml).join('');
-
-    setGroup('modTitle', 'modAnswer', marketBig, 'modTitleTemplate', 'modTitleEmpty');
-    document.getElementById('modThenHdr').textContent = marketBig[0] ? T(COPY.colThenTemplate, {date: shortDate(thenDate(marketBig[0]))}) : COPY.colThen;
-    document.getElementById('modBody').innerHTML = marketBig.map(rowHtml).join('');
-
-    document.getElementById('pegThenHdr').textContent = pegged[0] ? T(COPY.colThenTemplate, {date: shortDate(thenDate(pegged[0]))}) : COPY.colThen;
-    document.getElementById('pegBody').innerHTML = pegged.map(rowHtml).join('');
-
-    document.getElementById('nearTitle').textContent =
-      T(COPY.nearTitleTemplate, {n: near.length, countries: nouns(near.length), gap: SMALL_GAP});
-    document.getElementById('nearChips').innerHTML = near.map(function(c){
-      return '<a class="chip" data-ccy="'+esc(c.ccy)+'" href="./country.html?ccy='+esc(c.ccy)+'"><b>'+esc(listName(c.country))+'</b> '+receiptSpan(c.ccy, fmtPct(gapNow(c)))+'</a>';
-    }).join('');
-    // Same list, plain-text form for the mobile paragraph (.near-text) --
-    // one sentence instead of ~25 pills.
-    document.getElementById('nearText').textContent = near.map(function(c){
-      return listName(c.country) + ' ' + fmtPct(gapNow(c));
-    }).join(', ');
-
-    // Withheld, grouped by reason, alphabetical within each group -- same
-    // three real reasons tools/emit_countries.py already writes.
-    document.getElementById('withheldTitle').textContent =
-      T(COPY.withheldTitleTemplate, {n: withheld.length, countries: nouns(withheld.length)});
-    document.getElementById('withheldNote').textContent = T(COPY.withheldNoteTemplate, {min: minAds});
-    document.getElementById('cfaNote').textContent =
-      withheld.some(function(w){ return /\bCFA\b/.test(w.country); }) ? COPY.cfaNote : '';
-    var groups = {};
-    withheld.forEach(function(w){
-      var r = reasonWords(w.reason);
-      (groups[r] = groups[r] || []).push(w);
-    });
-    document.getElementById('withheldList').innerHTML = Object.keys(groups).sort().map(function(reason){
-      var names = groups[reason].slice().sort((a,b) => a.country.localeCompare(b.country));
-      return '<li class="wrow"><span class="wname">' +
-        names.map(function(w){ return '<a href="./country.html?ccy='+esc(w.ccy)+'" title="'+esc(COPY.seeWhy)+'">'+esc(listName(w.country))+'</a>'; }).join(', ') +
-        '<span>'+esc(reason)+'</span></span></li>';
-    }).join('');
-
-    var frozenNames = unmaintained.map(function(c){ return esc(listName(c.country)); });
-    document.getElementById('frozenNote').innerHTML =
-      (frozenNames.length ? T(frozenNames.length === 1 ? COPY.frozenOneTemplate : COPY.frozenManyTemplate, {names: joinList(frozenNames)}) + ' ' : '') +
-      '<a href="./how-it-works.html">' + esc(COPY.howLink || '').replace('\u2192', '&rarr;') + '</a>';
-
-    // Search: filters every row and chip live. Pressing Enter on a single
-    // unambiguous match goes straight to that country's page, the same
-    // place clicking its row already takes you.
-    var searchBox = document.getElementById('searchBox');
-    function runSearch(){
-      var q = searchBox.value.trim().toLowerCase();
-      document.querySelectorAll('.trow[data-ccy]').forEach(function(el){
-        var t = el.textContent.toLowerCase();
-        el.style.display = (!q || t.includes(q)) ? '' : 'none';
-      });
-      document.querySelectorAll('#nearChips .chip').forEach(function(el){
-        var t = el.textContent.toLowerCase();
-        el.style.display = (!q || t.includes(q)) ? '' : 'none';
-      });
-      document.querySelectorAll('.wrow').forEach(function(el){
-        var t = el.textContent.toLowerCase();
-        el.style.display = (!q || t.includes(q)) ? '' : 'none';
-      });
-    }
-    searchBox.addEventListener('input', runSearch);
-    searchBox.addEventListener('keydown', function(e){
-      if (e.key === 'Enter') {
-        var q = searchBox.value.trim().toLowerCase();
-        var visible = Array.from(document.querySelectorAll('.trow[data-ccy]')).filter(el => el.style.display !== 'none');
-        if (q && visible.length === 1) {
-          window.location.href = visible[0].getAttribute('href');
-        }
-      }
-    });
-  }).catch(function(){
-    document.getElementById('metaText').textContent = COPY.loadFailed || '';
-  });
-})();
-</script>
-
-<script>
-(function(){
-  var btn = document.getElementById('navToggle');
-  var nav = document.querySelector('header nav');
-  if (btn && nav) {
-    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
-    document.addEventListener('click', function(e){
-      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
-    });
-  }
-})();
-</script>
+<body class="data">
+<div id="app"></div>
+<template id="crHeadTpl"><div class="trow cr-head"><span></span><span data-k="colCountry"></span><span class="cr-gap" data-k="colNow"></span><span class="cr-hline"></span></div></template>
+<script src="./js/claims.js"></script>
+<script src="./js/countries_page.js"></script>
 </body>
 </html>
