@@ -27,6 +27,11 @@ the published JSON being checked, which are the thing under test:
             rows sending-money.html actually shows a clickable figure for),
             re-derived from the named panel CSV's own `cost_bps` column for
             that provider/timestamp/size.
+  provider_delivery  data/provider_delivery.csv `delivery_stated`, a
+            pass-through field the site never computes or rephrases (it only
+            carries what the provider's own API returned, see SEB-176) --
+            re-derived by re-reading the exact row back from the same CSV and
+            asserting the string is unchanged.
 
 A number that cannot be traced to a raw row is a FAILURE, not a skip: "cannot
 trace" is exactly what this exists to say out loud.
@@ -60,6 +65,7 @@ OFFERS = os.path.join(DATA, "p2p_offers.csv")
 SAMPLES = os.path.join(DATA, "samples.csv")
 VARIANTS = os.path.join(DATA, "corridor_variants.csv")
 FX = os.path.join(DATA, "fx_rates.csv")
+DELIVERY = os.path.join(DATA, "provider_delivery.csv")
 OUT = os.path.join(DATA, "audit_latest.json")
 HISTORY = os.path.join(DATA, "audit_history.csv")
 
@@ -83,14 +89,13 @@ PROVIDER_PANELS = {
     "SGD->INR": "providers_sgdinr.csv",
 }
 
-FAMILIES = ("country", "corridor", "variant", "pricechange", "provider_ranking")
+FAMILIES = ("country", "corridor", "variant", "pricechange", "provider_ranking",
+            "provider_delivery")
 
 # Every other kind of number the site publishes, in reader-plain words, keyed
 # by the FAMILIES name it will get once a population function exists for it.
 # A key missing from FAMILIES, or present with zero population today, is not
-# yet audited -- see families_not_yet_audited() below. "provider_delivery"
-# has no population function (no receipts exist yet, a separate issue), so
-# it never leaves this list on its own.
+# yet audited -- see families_not_yet_audited() below.
 OTHER_NUMBER_KINDS = {
     "pricechange": "price changes",
     "provider_ranking": "provider rankings",
@@ -126,11 +131,18 @@ def hour_of(ts):
 
 
 def result(item, passed, published, rederived, trace, files, note=""):
+    mismatch = None
+    if not passed and published is not None and rederived is not None:
+        try:
+            mismatch = round(published - rederived, 6)
+        except TypeError:
+            # A pass-through string family (provider_delivery): there is no
+            # numeric difference to show, only the two strings that disagree.
+            mismatch = "%r != %r" % (published, rederived)
     return {
         "id": item["id"], "family": item["family"], "passed": bool(passed),
         "published": published, "rederived": rederived,
-        "mismatch": None if passed or published is None or rederived is None
-        else round(published - rederived, 6),
+        "mismatch": mismatch,
         "trace": trace, "files": files, "note": note,
     }
 
@@ -211,6 +223,30 @@ def providerranking_items():
                 items.append({"id": "provider_ranking:%s:%s" % (name, row["provider"]),
                               "family": "provider_ranking", "doc": d, "row": row,
                               "file": "data/provider_receipts/%s.json" % name})
+    return items
+
+
+def providerdelivery_items():
+    """One item per (corridor, provider, ts_utc) -- data/provider_delivery.csv
+    has no receipt file of its own (delivery_stated is a pass-through, never
+    computed), so the "published" value is just the row itself. A handful of
+    these triples carry more than one data/provider_delivery.csv row (one per
+    size_src, and the courier's stated ETA can differ by size); the first row
+    for a triple, in file order, is this family's representative, and the
+    check below re-reads that exact row (ts_utc + corridor + provider +
+    size_src) back from the CSV, never a different size's row."""
+    seen = {}
+    for r in rows(DELIVERY):
+        if not (r.get("delivery_stated") or "").strip():
+            continue
+        key = (r["corridor"], r["provider"], r["ts_utc"])
+        if key not in seen:
+            seen[key] = r
+    items = []
+    for (corridor, provider, ts), r in seen.items():
+        items.append({"id": "provider_delivery:%s:%s:%s" % (corridor, provider, ts),
+                      "family": "provider_delivery", "row": r,
+                      "file": "data/provider_delivery.csv"})
     return items
 
 
@@ -430,6 +466,28 @@ def check_providerranking(item):
                   "%s / 100 from %s row for %s at %s" % (bps, panel_file, row["provider"], ts), files)
 
 
+def check_providerdelivery(item):
+    """delivery_stated is a pass-through field -- the site never computes or
+    rephrases it, only carries what the provider's own API returned (SEB-176)
+    -- so there is nothing to re-derive, only to re-read: find the exact row
+    this item pinned (ts_utc, corridor, provider, size_src) back in
+    data/provider_delivery.csv and assert the string is byte-identical."""
+    r = item["row"]
+    pub = r["delivery_stated"]
+    files = [item["file"]]
+    cand = [x for x in rows(DELIVERY)
+            if x["ts_utc"] == r["ts_utc"] and x["corridor"] == r["corridor"]
+            and x["provider"] == r["provider"] and x["size_src"] == r["size_src"]]
+    if not cand:
+        return fail(item, "no data/provider_delivery.csv row for %s/%s at %s, size %s"
+                     % (r["corridor"], r["provider"], r["ts_utc"], r["size_src"]), files)
+    rederived = cand[0]["delivery_stated"]
+    passed = rederived == pub
+    return result(item, passed, pub, rederived,
+                  "data/provider_delivery.csv row for %s/%s at %s, size %s, re-read verbatim"
+                  % (r["corridor"], r["provider"], r["ts_utc"], r["size_src"]), files)
+
+
 def stratified(items, n, rng):
     """Even shares per family so one big family cannot crowd out the others;
     a family smaller than its share gives the slack to the rest."""
@@ -473,7 +531,8 @@ def main():
             samples_by.setdefault(r["corridor"], []).append(r)
 
     items = (country_items() + corridor_items() + variant_items(variants)
-             + pricechange_items() + providerranking_items())
+             + pricechange_items() + providerranking_items()
+             + providerdelivery_items())
     items.sort(key=lambda i: i["id"])
     drawn = stratified(items, a.n, random.Random(seed))
 
@@ -508,8 +567,10 @@ def main():
             results.append(check_variant(it, samples_by))
         elif it["family"] == "pricechange":
             results.append(check_pricechange(it))
-        else:
+        elif it["family"] == "provider_ranking":
             results.append(check_providerranking(it))
+        else:
+            results.append(check_providerdelivery(it))
 
     passed = sum(1 for r in results if r["passed"])
     by_family = {}
