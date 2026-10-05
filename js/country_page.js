@@ -209,7 +209,7 @@
     return '<section class="c-sec"><div class="c-sechead">' +
       w("chartHeading", { country: S.country.country }, "h2") + w("chartLead", { country: S.country.country }, "p", ["muted", "c-small"]) + "</div>" +
       '<div class="c-controls"><div class="c-left" id="cLeft"></div><div class="c-right" id="cRight"></div></div>' +
-      '<div class="c-chart" id="cChart"></div>' +
+      '<div id="cChartSlot"></div>' +
       '<div class="mono muted c-axis" id="cAxis"></div>' +
       '<div id="cSel"></div><div id="cNotes"></div></section>';
   }
@@ -478,6 +478,8 @@
       var meta = '<span class="mono muted c-small">' + esc(txt("lastReading", { time: clock(S.asOf), date: dayShort(S.asOf), minutes: minutes })) + "</span>";
       app.innerHTML = '<div class="c-wrap">' + head(txt("lastReading") ? meta : "") + buildHero() + buildStats() +
         buildChartSection() + buildReceiptsSection() + "</div>";
+      var slot = document.getElementById("cChartSlot");
+      slot.parentNode.replaceChild(document.getElementById("cChartTpl").content.cloneNode(true), slot);
       chart = CountryChart.create(document.getElementById("cChart"), { tip: tipHtml, onSelect: onSelect, aria: txt("chartAria") });
       drawControls();
       drawDepth();

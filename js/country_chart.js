@@ -35,10 +35,7 @@
 
   function create(box, opts) {
     var model = null, W = 0, H = 380, selA = null, selB = null, drag = false, fx = null;
-    box.innerHTML = '<svg class="cc-svg" role="img"><g class="cc-base"></g>' +
-      '<rect class="cc-sel" y="0" width="0" height="0"></rect>' +
-      '<line class="cc-cross" y1="0" stroke-dasharray="3 3" style="display:none"></line></svg>' +
-      '<div class="cc-tip" style="display:none"></div>';
+    // The svg and the tip are real markup in country.html (template cChartTpl).
     var svg = box.querySelector("svg"), base = box.querySelector(".cc-base"),
       selEl = box.querySelector(".cc-sel"), cross = box.querySelector(".cc-cross"), tip = box.querySelector(".cc-tip");
     if (opts.aria) svg.setAttribute("aria-label", opts.aria);
