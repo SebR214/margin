@@ -103,22 +103,30 @@
   --shadow-card: 0 1px 2px color-mix(in srgb, var(--color-ink) 14%, transparent);
 
   /* Data pages (body.data): a dark ground, amber for the real price and the
-     stablecoin, blue for the official rate and the apps. Used only by the
-     pages rebuilt around the collected data (SEB-240). */
-  --dk-bg: #0d0f12;
-  --dk-surface: #151920;
-  --dk-surface-2: #1c222b;
-  --dk-rule: #2a313c;
-  --dk-text: #e6e9ee;
-  --dk-muted: #8b93a1;
-  --dk-amber: #f5a623;
-  --dk-amber-dim: #8a5d14;
-  --dk-blue: #4d94ff;
-  --dk-blue-dim: #24467a;
-  --dk-empty: #161a20;
-  --dk-ok: #6fbf8b;
-  --dk-warn: #f5a623;
-  --dk-fail: #ff6b6b;
+     stablecoin, blue for the official rate and the apps. Every value below
+     is taken from the owner's layout references (SEB-240 home and route
+     references). Used only by pages rebuilt around the collected data. */
+  --dk-bg: #0D1015;
+  --dk-panel: #11151B;
+  --dk-line: #222934;
+  --dk-text: #ECEAE4;
+  --dk-soft: #B3B9C2;
+  --dk-muted: #9AA1AB;
+  --dk-amber: #F0A23B;
+  --dk-blue: #6AA6E0;
+  --dk-border: #2A313C;      /* chip and button borders, tooltips */
+  --dk-raised: #151A21;      /* buttons, selected rows */
+  --dk-track: #1A2029;       /* bar and strip tracks, empty heat cells */
+  --dk-grid: #1E242D;        /* chart gridlines */
+  --dk-mark: #3A4250;        /* timeline marker lines */
+  --dk-unranked: #20252D;    /* unranked heat cells */
+  --dk-blue-deep: #2B4A68;   /* a source missed */
+  --dk-heat-1: #2F2D27;
+  --dk-heat-2: #5A4626;
+  --dk-heat-3: #9A6A2B;
+  --dk-leg-1: #F7C77F;       /* buying the stablecoin */
+  --dk-leg-3: #B9782A;       /* converting */
+  --dk-leg-4: #7A5122;       /* cashing out */
   --font-data: "IBM Plex Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
@@ -365,12 +373,13 @@ nav a.active, nav a[aria-current] { color: var(--color-ink); font-weight: 700; }
 /* ---------------------------------------------------------------- data pages
    body.data: the dark ground. Everything else in a data page reads these
    tokens; nothing outside body.data changes. */
-body.data { background: var(--dk-bg); color: var(--dk-text); font-family: var(--font-data); }
+body.data { background: var(--dk-bg); color: var(--dk-text); font: 400 16px/1.5 var(--font-data); }
 body.data h1, body.data h2, body.data h3 { font-family: var(--font-data); font-weight: 600; color: var(--dk-text); }
 body.data a { color: var(--dk-text); }
 body.data .mono, body.data .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 body.data .muted { color: var(--dk-muted); }
-body.data .panel { background: var(--dk-surface); border: 1px solid var(--dk-rule); border-radius: 8px; }
+body.data .soft { color: var(--dk-soft); }
+body.data .panel { background: var(--dk-panel); border: 1px solid var(--dk-line); border-radius: 8px; }
 body.data .real, body.data .stable { color: var(--dk-amber); }
 body.data .official, body.data .app { color: var(--dk-blue); }
 body.data :focus-visible { outline: 2px solid var(--dk-amber); outline-offset: 2px; }
