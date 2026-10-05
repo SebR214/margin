@@ -52,7 +52,7 @@
   /* A template whose stored-text placeholders (names in `raw`) go into a code element, so the
      text is shown exactly as stored. */
   function rich(tag, cls, key, vars, raw) {
-    var t = tpl(key);
+    var t = COPY[key];
     if (!t) return null;
     var n = el(tag, cls);
     t.split(/(\{\w+\})/).forEach(function (part) {
@@ -182,7 +182,7 @@
     add(col, word('span', ['muted', 's-small'], 'historyHeading'));
     if (s.history && s.history.length) {
       s.history.forEach(function (h) {
-        add(col, word('span', ['mono', 'soft', 's-small'], 'historyLine', {
+        add(col, word('span', ['mono', 'soft', 's-small'], h.ccy ? 'historyLine' : 'historyLineNoCcy', {
           series: h.series, ccy: h.ccy || '', interval: h.interval,
           first: day(h.first), last: day(h.last), rows: groupDigits(h.rows)
         }));
