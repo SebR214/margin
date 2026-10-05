@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="./style.css">
 <script src="./js/chart.js"></script>
 <script src="./js/receipt_replay.js"></script>
+<script src="./js/heatmap.js"></script>
 <style>
   /* Page-specific only: container width, header/nav layout and h1/h2/body
      sizing now live in style.css (2026-09-28 page-frame unification). */
@@ -152,6 +153,37 @@
     .card{padding:14px}
     .card .big{font-size:22px}
   }
+
+  /* SEB-240 step 0: the heatmap. Dark ground per the issue's "Look" section
+     (Sebastian approved the direction 2026-10-05); the rest of the page
+     keeps its existing white background until the later home-page pieces
+     move it. Amber is the new second data accent (style.css, --amber-*);
+     the dark background is the existing --color-ink token, already always
+     allowed by tools/check_rendered.py regardless of page. */
+  .dark-sec{background:var(--color-ink);color:#fff;border-radius:10px;padding:28px 24px;margin-top:48px;border-top:none}
+  .dark-sec h2{color:#fff}
+  .dark-sec .answer{color:rgba(255,255,255,.65)}
+  .heatmap-wrap{display:flex;gap:28px;flex-wrap:wrap;margin-top:18px}
+  .heatmap-main{flex:2;min-width:280px}
+  .heatmap-panel{flex:1;min-width:200px}
+  .heatmap-controls{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .heatmap-controls button{width:32px;height:32px;min-height:32px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;cursor:pointer;font-size:12px;line-height:1}
+  .heatmap-controls input[type=range]{flex:1}
+  .heatmap-date{font-size:14px;font-weight:400;color:rgba(255,255,255,.65);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .heatmap-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+  .heatmap-cell{aspect-ratio:1;border-radius:2px;background:var(--grid-empty);display:block}
+  .heatmap-bignum .big{font-size:24px;font-weight:600;color:var(--amber-500);font-variant-numeric:tabular-nums}
+  .heatmap-bignum .lab{font-size:14px;font-weight:400;color:rgba(255,255,255,.65);margin-top:4px}
+  .heatmap-subhead{font-size:15px;font-weight:600;color:#fff;margin:18px 0 8px}
+  #heatmapTop6List{margin:0;padding-left:1.2em;font-size:14px;font-weight:400;color:#fff;line-height:1.6}
+  .heatmap-legend{display:flex;align-items:center;gap:6px;margin-top:18px;font-size:13px;font-weight:400;color:rgba(255,255,255,.65)}
+  .heatmap-legend i{width:12px;height:12px;border-radius:2px;display:inline-block}
+  .heatmap-legend .sw-empty{background:var(--grid-empty)}
+  .heatmap-legend .sw-100{background:var(--amber-100)}
+  .heatmap-legend .sw-300{background:var(--amber-300)}
+  .heatmap-legend .sw-500{background:var(--amber-500)}
+  .heatmap-legend .sw-700{background:var(--amber-700)}
+  @media(max-width:620px){.heatmap-grid{grid-template-columns:repeat(6,1fr)}}
 </style>
 <style id="mwh-style">
 header.mwh{display:flex!important;align-items:center!important;justify-content:flex-start!important;height:64px!important;min-height:0!important;margin:0 0 36px 0!important;padding:0!important;border:0!important;background:transparent!important;position:static!important;flex-wrap:nowrap!important;gap:0!important}
@@ -200,6 +232,40 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     <h1 id="heroHeadline"><!--BAKE:START:heroHeadline-->Sending money by stablecoin usually costs more than a transfer app<!--BAKE:END:heroHeadline--></h1>
     <div class="sub" id="heroSub"><!--BAKE:START:heroSub-->People argue about this constantly. Almost nobody measures it. We check it every hour, with every fee counted.<!--BAKE:END:heroSub--></div>
     <div class="live" id="liveLine"><span class="dot"></span><span id="liveChecked">Checked —</span></div>
+  </div>
+
+  <!-- SEB-240 step 0: the heatmap. Final position in the home-page order
+       (piece 1e, between "this hour" and the record timeline) lands when
+       those pieces ship; today it renders right after the hero so it's
+       visible on its own. -->
+  <div class="lead-section sec dark-sec" id="heatmapSection">
+    <h2 id="heatmapTitle" hidden></h2>
+    <p class="answer" id="heatmapSub" hidden></p>
+    <div class="heatmap-wrap">
+      <div class="heatmap-main">
+        <div class="heatmap-controls">
+          <button type="button" id="heatmapPlay"></button>
+          <input type="range" id="heatmapSlider" min="0" max="0" value="0" step="1">
+          <span class="heatmap-date" id="heatmapDateLabel"></span>
+        </div>
+        <div class="heatmap-grid" id="heatmapGrid"></div>
+      </div>
+      <div class="heatmap-panel">
+        <div class="heatmap-bignum">
+          <div class="big" id="heatmapBigNumber">—</div>
+          <div class="lab" id="heatmapBigLabel" hidden></div>
+        </div>
+        <div class="heatmap-subhead" id="heatmapTop6Title" hidden></div>
+        <ol id="heatmapTop6List"></ol>
+        <div class="heatmap-legend">
+          <span><i class="sw-empty"></i><b id="heatmapLegendLowLab" hidden></b></span>
+          <span><i class="sw-100"></i></span>
+          <span><i class="sw-300"></i></span>
+          <span><i class="sw-500"></i></span>
+          <span><i class="sw-700"></i><b id="heatmapLegendHighLab" hidden></b></span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="lead-section sec" style="margin-top:0;border-top:none;padding-top:0">

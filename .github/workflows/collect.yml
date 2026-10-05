@@ -347,6 +347,15 @@ jobs:
         # only if it cannot write.
         run: python3 tools/emit_countries.py
 
+      - name: Emit the heatmap
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-240 step 0. Reuses emit_countries.py's daily_history(), run
+        # above, with the backfill layer and anything before 2026-08-10
+        # filtered out -- see tools/emit_heatmap.py's docstring. Writes
+        # data/heatmap.json, read by index.html's heatmap section. Exits
+        # non-zero only if it cannot write.
+        run: python3 tools/emit_heatmap.py
+
       - name: Emit street depth
         if: always() && steps.needed.outputs.proceed == 'true'
         # How much volume a country's premium holds before the price would
