@@ -166,7 +166,10 @@
     var n = D.days.length;
     var sec = el('section', ['hp-sec', 'hp-gap24']);
     var head = el('div', 'hp-intro');
-    word(head, 'h2', null, 'heatTitle');
+    // Only render heatTitle if claims are loaded and it's not blocked
+    if (!window.Claims || !window.Claims.blocked || !window.Claims.blocked('homeData.heatTitle')) {
+      word(head, 'h2', null, 'heatTitle');
+    }
     word(head, 'p', ['muted', 'hp-body'], 'heatLine');
     if (head.childNodes.length) { sec.appendChild(head); }
     var row = el('div', 'hp-row');
@@ -394,9 +397,15 @@
     if (!r || r.total_hours_stable_cheapest !== 0 || typeof r.hours_priced_any_amount !== 'number' || !RS.start) { return; }
     var sec = el('section', 'hp-sec');
     var vars = function () { return { hours: num(r.hours_priced_any_amount), since: dLong(RS.start) }; };
-    word(sec, 'p', ['soft', 'hp-lede'], 'stableLine', vars);
-    var a = word(sec, 'a', 'hp-biglink', 'stableLink', vars);
-    if (a) { a.href = './sending-money.html'; }
+    // Only render stableLine if claims are loaded and it's not blocked
+    if (!window.Claims || !window.Claims.blocked || !window.Claims.blocked('homeData.stableLine')) {
+      word(sec, 'p', ['soft', 'hp-lede'], 'stableLine', vars);
+    }
+    // Only render stableLink if claims are loaded and it's not blocked
+    if (!window.Claims || !window.Claims.blocked || !window.Claims.blocked('homeData.stableLink')) {
+      var a = word(sec, 'a', 'hp-biglink', 'stableLink', vars);
+      if (a) { a.href = './sending-money.html'; }
+    }
     if (sec.childNodes.length) { wrap.appendChild(sec); }
   }
 
@@ -430,7 +439,7 @@
     }
   }
 
-  function build() {
+  function build(claimsLoaded) {
     var app = document.getElementById('app');
     app.textContent = '';
     var wrap = el('div', 'hp-wrap');
@@ -438,7 +447,10 @@
     hero(wrap);
     if (D.days) { heatSection(wrap); }
     lowerSections(wrap);
-    stableSection(wrap);
+    // Only render stable section if claims are loaded and the stableLine is not blocked
+    if (claimsLoaded !== false && (!window.Claims || !window.Claims.blocked || !window.Claims.blocked('homeData.stableLine'))) {
+      stableSection(wrap);
+    }
     if (D.failed.length && has('loadError')) {
       wrap.appendChild(el('p', ['muted', 'hp-note'], t('loadError', { n: D.failed.length })));
     }
@@ -451,16 +463,23 @@
     movers: 'data/movers_week.json', routes: 'data/routes_summary.json'
   };
   D.failed = [];
-  Promise.all([getJSON('copy.json').catch(function () { return {}; })].concat(Object.keys(jobs).map(function (k) {
+  // Load claims and data in parallel
+  Promise.all([
+    getJSON('copy.json').catch(function () { return {}; }),
+    window.Claims && typeof window.Claims.load === 'function' ? window.Claims.load().catch(function () { return null; }) : Promise.resolve(null)
+  ].concat(Object.keys(jobs).map(function (k) {
     return getJSON(jobs[k]).catch(function () { D.failed.push(k); return null; });
   }))).then(function (res) {
     C = (res[0] && res[0].homeData) || {};
-    Object.keys(jobs).forEach(function (k, q) { D[k] = res[q + 1]; });
+    var claimsData = res[1]; // claims data is the second item
+    var dataOffset = 2; // data files start at index 2
+    Object.keys(jobs).forEach(function (k, q) { D[k] = res[q + dataOffset]; });
     if (has('metaDescription')) {
       var m = document.querySelector('meta[name="description"]');
       if (m) { m.setAttribute('content', C.metaDescription); }
     }
     prepare();
-    build();
+    // Pass whether claims loaded successfully to build function
+    build(claimsData !== null);
   });
 })();
