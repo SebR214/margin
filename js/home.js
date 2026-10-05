@@ -167,7 +167,7 @@
     var sec = el('section', ['hp-sec', 'hp-gap24']);
     var head = el('div', 'hp-intro');
     // Only render heatTitle if claims are loaded and it's not blocked
-    if (!window.Claims || !window.Claims.blocked || !window.Claims.blocked('homeData.heatTitle')) {
+    if (claimOk('homeData.heatTitle')) {
       word(head, 'h2', null, 'heatTitle');
     }
     word(head, 'p', ['muted', 'hp-body'], 'heatLine');
@@ -390,6 +390,9 @@
 
   /* One stablecoin statement, for SGD->PHP only, and only while the stored claim is true:
      total_hours_stable_cheapest must be 0. Any other value renders nothing. */
+  // A claim-guarded line renders only when the claims gate loaded and says the claim holds.
+  function claimOk(key) { return !!(window.Claims && window.Claims.blocked && !window.Claims.blocked(key)); }
+
   function stableSection(wrap) {
     var RS = D.routes;
     if (!RS || !RS.routes) { return; }
@@ -398,11 +401,11 @@
     var sec = el('section', 'hp-sec');
     var vars = function () { return { hours: num(r.hours_priced_any_amount), since: dLong(RS.start) }; };
     // Only render stableLine if claims are loaded and it's not blocked
-    if (!window.Claims || !window.Claims.blocked || !window.Claims.blocked('homeData.stableLine')) {
+    if (claimOk('homeData.stableLine')) {
       word(sec, 'p', ['soft', 'hp-lede'], 'stableLine', vars);
     }
     // Only render stableLink if claims are loaded and it's not blocked
-    if (!window.Claims || !window.Claims.blocked || !window.Claims.blocked('homeData.stableLink')) {
+    if (claimOk('homeData.stableLink')) {
       var a = word(sec, 'a', 'hp-biglink', 'stableLink', vars);
       if (a) { a.href = './sending-money.html'; }
     }
@@ -448,7 +451,7 @@
     if (D.days) { heatSection(wrap); }
     lowerSections(wrap);
     // Only render stable section if claims are loaded and the stableLine is not blocked
-    if (claimsLoaded !== false && (!window.Claims || !window.Claims.blocked || !window.Claims.blocked('homeData.stableLine'))) {
+    if (claimsLoaded !== false && claimOk('homeData.stableLine')) {
       stableSection(wrap);
     }
     if (D.failed.length && has('loadError')) {
