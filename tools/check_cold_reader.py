@@ -64,7 +64,27 @@ def page_text(page, url):
     return re.sub(r"\n{3,}", "\n\n", r.text or "").strip()
 
 
+def ask_openrouter(text):
+    """The same instruction through OpenRouter (COLD_READER_BACKEND=openrouter), for a cheaper
+    model such as a Qwen or DeepSeek one. Needs OPENROUTER_API_KEY; the model comes from
+    COLD_READER_OPENROUTER_MODEL. Only the rendered page text is sent: it is public."""
+    import urllib.request
+    key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    model = os.environ.get("COLD_READER_OPENROUTER_MODEL", "").strip()
+    if not key or not model:
+        raise RuntimeError("COLD_READER_BACKEND=openrouter needs OPENROUTER_API_KEY and COLD_READER_OPENROUTER_MODEL")
+    body = json.dumps({"model": model, "temperature": 0,
+                       "messages": [{"role": "user", "content": INSTRUCTION + FORMAT + text}]}).encode()
+    req = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=body, headers={
+        "Authorization": "Bearer " + key, "Content-Type": "application/json",
+        "X-Title": "margin.wiki cold reader"})
+    with urllib.request.urlopen(req, timeout=300) as r:
+        return json.load(r)["choices"][0]["message"]["content"]
+
+
 def ask(text):
+    if os.environ.get("COLD_READER_BACKEND", "").strip().lower() == "openrouter":
+        return ask_openrouter(text)
     env = {k: v for k, v in os.environ.items()
            if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_BASE_URL")}
     with tempfile.TemporaryDirectory(prefix="cold-reader-") as empty:
