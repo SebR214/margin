@@ -1,0 +1,14 @@
+[Unit]
+Description=Run the margin.wiki nightly analyst once a night
+
+[Timer]
+# 02:00 UTC: well clear of the UTC day boundary every investigation keys off,
+# with two hours for that day's last collect.yml link and the P2P box's own
+# comparison pass (margin-p2p-compare.timer, 01:30) to land, and for
+# margin-pull.timer (five-minute cadence) to have fast-forwarded this served
+# checkout to all of it.
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
