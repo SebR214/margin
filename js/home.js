@@ -8,7 +8,6 @@
  * record_milestones.json, movers_week.json, findings.json, copy.json.
  */
 (function () {
-  'use strict';
 
   var HEAT_STEPS = [2, 8, 25, 50]; // gap thresholds in percent; the legend shows these numbers
   var BIG_CCY = 'DZD';             // the page's one big number
