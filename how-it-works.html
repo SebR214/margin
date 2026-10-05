@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title></title>
+<title>margin.wiki — how it works</title>
 <meta name="description" content=""/>
 <link rel="stylesheet" href="./style.css">
 <script src="./js/chart.js"></script>
@@ -17,9 +17,9 @@
   .hp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--color-neutral-300); }
   .hp-headleft { display: flex; flex-wrap: wrap; align-items: center; gap: 0 28px; }
   .hp-logo { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 18px; color: var(--color-ink); text-decoration: none; }
-  .hp-nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); }
-  .hp-navlink { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-neutral-600); text-decoration: none; }
-  .hp-navlink.on { color: var(--color-ink); }
+  .hp-head nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); }
+  .hp-head nav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-neutral-600); text-decoration: none; }
+  .hp-head nav a.active { color: var(--color-ink); }
   .hw-main { display: flex; flex-direction: column; gap: 24px; }
   .hw-panel { background: var(--color-surface); border: 1px solid var(--color-neutral-300); border-radius: 8px; padding: 28px; display: flex; flex-direction: column; gap: 16px; }
   .hw-panel[hidden], .hw-main [hidden] { display: none; }
@@ -53,12 +53,12 @@
 
 <body>
 <div class="hw-wrap">
-  <div class="hp-head"><div class="hp-headleft"><a class="hp-logo mono" href="./index.html">margin.wiki</a><nav class="hp-nav">
-        <a class="hp-navlink" href="./countries.html">Countries</a>
-        <a class="hp-navlink" href="./sending-money.html">Routes</a>
-        <a class="hp-navlink" href="./sources.html">Sources</a>
-        <a class="hp-navlink" href="./findings.html">Findings</a>
-        <a class="hp-navlink on" href="./how-it-works.html">How it works</a>
+  <div class="hp-head"><div class="hp-headleft"><a class="hp-logo mono" href="./index.html">margin.wiki</a><nav>
+        <a href="./countries.html">Countries</a>
+        <a href="./sending-money.html">Routes</a>
+        <a href="./sources.html">Sources</a>
+        <a href="./findings.html">Findings</a>
+        <a href="./how-it-works.html" class="active">How it works</a>
       </nav></div></div>
 
   <main class="hw-main">
@@ -185,7 +185,7 @@ function setText(id, txt){ var el = document.getElementById(id); if (el) { el.te
 
 // The page's own fixed text, set as soon as the copy arrives.
 copyP.then(function(h){
-  document.title = h.pageTitle || '';
+  // page title is in the static <title> tag; copy.json's pageTitle key is a heading, not the page title
   var md = document.querySelector('meta[name="description"]');
   if (md) md.setAttribute('content', h.pageDescription || '');
   setText('methodSummary', h.methodSummary || '');

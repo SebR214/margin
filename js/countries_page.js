@@ -10,7 +10,7 @@
  * data/cycle_log.json, copy.json.
  */
 (function () {
-  var C = {}, H = {}, D = {};
+  var NAV = [], C = {}, H = {}, D = {};
   var S = { filter: 'all', q: '' };
   var app = document.getElementById('app');
 
@@ -53,13 +53,17 @@
     var left = el('div', 'hp-headleft');
     var logo = put(left, 'a', ['hp-logo', 'mono'], th('brand'));
     if (logo) { logo.href = './index.html'; }
-    var nav = el('nav', 'hp-nav');
-    [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'],
-     ['navFindings', 'findings.html'], ['navHow', 'how-it-works.html']].forEach(function (n) {
-      var a = put(nav, 'a', 'hp-navlink', th(n[0]));
-      if (a) { a.href = './' + n[1]; }
+    var nav = el('nav');
+    nav.appendChild(document.createTextNode('\n        '));
+    (NAV || []).forEach(function (item, i) {
+      var a = el('a', null, item.label);
+      a.href = item.href;
+      if (item.href === './countries.html') { a.classList.add('active'); }
+      nav.appendChild(a);
+      if (i < NAV.length - 1) { nav.appendChild(document.createTextNode('\n        ')); }
     });
-    if (nav.childNodes.length) { left.appendChild(nav); }
+    nav.appendChild(document.createTextNode('\n      '));
+    left.appendChild(nav);
     h.appendChild(left);
     wrap.appendChild(h);
   }
@@ -279,6 +283,7 @@
       return r;
     });
   }).then(function (r) {
+    NAV = r[0].nav || [];
     C = r[0].countries || {};
     H = r[0].homeData || {};
     H2 = r[1];

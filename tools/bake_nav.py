@@ -73,9 +73,9 @@ def main():
         with open(path) as f:
             html = f.read()
         if not NAV_RE.search(html):
-            print(f"  WARNING: {page} has no <nav>...</nav> to replace -- "
-                  f"header structure moved, this script needs updating", file=sys.stderr)
-            sys.exit(1)
+            print(f"  WARNING: {page} has no <nav>...</nav> in its source -- skipping "
+                  f"(JS-rendered page, nav is generated client-side)", file=sys.stderr)
+            continue
         new_html, n = NAV_RE.subn(lambda m: nav_html(nav_items, page), html, count=1)
         if new_html != html:
             with open(path, "w") as f:

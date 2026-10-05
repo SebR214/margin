@@ -26,6 +26,7 @@
   var COLORS = ["--data-700", "--color-ink", "--data-400", "--color-neutral-700", "--data-600", "--data-600"];
   function look(i) { return [COLORS[i % COLORS.length], Math.floor(i / COLORS.length) % 2 ? "square" : "round"]; }
 
+  var NAV = [];
   var COPY = {};
   var app = document.getElementById("app");
   var ccy = (new URLSearchParams(location.search).get("ccy") || "").toUpperCase();
@@ -158,12 +159,11 @@
   // ---------------------------------------------------------------- the page
   function head(extra) {
     return '<header class="c-head"><div class="c-brand"><a class="c-logo mono" href="./index.html">margin.wiki</a>' +
-      '<nav class="c-nav">' +
-      [["navCountries", "./countries.html", "on"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"],
-        ["navFindings", "./findings.html"], ["navHow", "./how-it-works.html"]].map(function (n) {
-        var s = txt(n[0]);
-        return s ? '<a href="' + n[1] + '"' + (n[2] ? ' aria-current="page" class="on"' : "") + ">" + esc(s) + "</a>" : "";
-      }).join("") + "</nav></div>" + (extra || "") + "</header>";
+      '<nav>\n' +
+      NAV.map(function (item) {
+        var active = item.href === './country.html';
+        return '        <a href="' + item.href + '"' + (active ? ' class="active"' : "") + ">" + esc(item.label) + "</a>";
+      }).join("\n") + "\n      </nav></div>" + (extra || "") + "</header>";
   }
   function notice(keys, vals) {
     app.innerHTML = '<div class="c-wrap">' + head() + '<section class="c-herotext">' +
@@ -433,6 +433,7 @@
   function start(res) {
     var idxDoc = res[0], copyDoc = res[1], countryDoc = res[2], readIdx = res[3], manifest = res[4],
       depthDoc = res[5], heat = res[6], latest = res[7];
+    NAV = (copyDoc && copyDoc.nav) || [];
     COPY = (copyDoc && copyDoc.countryData) || {};
     if (!ccy) { notice("notFound", { code: "" }); return; }
     var country = (idxDoc.countries || []).filter(function (c) { return c.ccy === ccy; })[0];
@@ -525,6 +526,7 @@
     if (window.console) console.error(err);
     COPY = COPY || {};
     maybeJSON("copy.json").then(function (d) {
+      NAV = (d && d.nav) || [];
       COPY = (d && d.countryData) || {};
       notice("loadFailed");
     });
