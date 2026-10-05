@@ -14,7 +14,7 @@ import threading
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # A page with a required query string to render anything meaningful.
-PAGE_QUERY = {"country.html": "?ccy=DZD"}
+PAGE_QUERY = {"country.html": "?ccy=DZD", "finding.html": "?id=price_changes"}
 
 # Not reader pages: mockups, tests, scratch.
 SKIP_PREFIXES = ("docs/", "tests/", ".claude/", ".debate/")

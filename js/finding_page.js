@@ -13,7 +13,7 @@
 
   function el(tag, cls, text) {
     var n = document.createElement(tag);
-    if (cls) n.className = cls;
+    if (cls) n.className = Array.isArray(cls) ? cls.join(String.fromCharCode(32)) : cls;
     if (text !== undefined && text !== null && text !== '') n.textContent = text;
     return n;
   }
@@ -36,7 +36,7 @@
   function header() {
     var head = el('header', 'fp-head');
     var brand = kid(head, el('div', 'fp-brand'));
-    var logo = kid(brand, el('a', 'fp-logo mono', BRAND));
+    var logo = kid(brand, el('a', ['fp-logo', 'mono'], BRAND));
     logo.href = './index.html';
     var links = [['navCountries', './countries.html'], ['navRoutes', './sending-money.html'], ['navSources', './sources.html'],
                  ['navFindings', './findings.html'], ['navHowItWorks', './how-it-works.html']];
@@ -55,7 +55,7 @@
   function chips(published, currentId) {
     var box = el('div', 'fp-chips');
     published.forEach(function (f, i) {
-      var a = el('a', 'fp-chip mono', two(i));
+      var a = el('a', ['fp-chip', 'mono'], two(i));
       a.href = './finding.html?id=' + encodeURIComponent(f.id);
       if (f.id === currentId) a.setAttribute('aria-current', 'page');
       box.appendChild(a);
@@ -67,7 +67,7 @@
     var s = el('section', 'fp-sec');
     var h = el('div', 'fp-sec-head');
     kid(h, heading ? word('h2', '', heading) : null);
-    kid(h, note ? word('p', 'muted fp-note', note) : null);
+    kid(h, note ? word('p', ['muted', 'fp-note'], note) : null);
     if (h.firstChild) s.appendChild(h);
     return s;
   }
@@ -78,7 +78,7 @@
     if (value === null || value === undefined || value === '' || !T(labelKey)) return null;
     var d = el('div');
     d.appendChild(el('span', 'fp-k', T(labelKey)));
-    d.appendChild(el('span', 'fp-v mono', String(value)));
+    d.appendChild(el('span', ['fp-v', 'mono'], String(value)));
     return d;
   }
 
@@ -95,17 +95,17 @@
     var max = 0;
     rows.forEach(function (r) { if (typeof r[pk] === 'number' && r[pk] > max) max = r[pk]; });
     var s = section('evidenceHeading', 'evidenceBasis_' + f.id);
-    kid(s, T('field_' + pk) ? el('p', 'muted fp-note', T('field_' + pk)) : null);
+    kid(s, T('field_' + pk) ? el('p', ['muted', 'fp-note'], T('field_' + pk)) : null);
     var list = kid(s, el('div', 'fp-list'));
     rows.forEach(function (r) {
       var leg = kid(list, el('div', 'fp-leg'));
-      var lab = kid(leg, el('span', 'fp-lab mono', r.route || r.ccy || ''));
+      var lab = kid(leg, el('span', ['fp-lab', 'mono'], r.route || r.ccy || ''));
       if (r.side) kid(lab, word('span', 'muted', 'side_' + r.side));
       var track = kid(leg, el('span', 'fp-track'));
       var bar = kid(track, document.createElement('i'));
       var pct = (max > 0 && typeof r[pk] === 'number') ? Math.max(r[pk] > 0 ? 2 : 0, r[pk] / max * 100) : 0;
       bar.style.width = pct.toFixed(1) + '%';
-      kid(leg, el('span', 'fp-num mono', typeof r[pk] === 'number' ? fmt(r[pk]) : ''));
+      kid(leg, el('span', ['fp-num', 'mono'], typeof r[pk] === 'number' ? fmt(r[pk]) : ''));
       var extra = el('div', 'fp-extra');
       Object.keys(r).forEach(function (k) {
         if (NON_FIELDS[k] || k === pk || !T('field_' + k)) return;
@@ -123,14 +123,14 @@
     kid(s, word('p', 'fp-block', 'method_' + f.id));
     var files = f.method_files || [];
     if (files.length) {
-      kid(s, word('p', 'muted fp-note', 'methodFilesLabel'));
+      kid(s, word('p', ['muted', 'fp-note'], 'methodFilesLabel'));
       var list = kid(s, el('div', 'fp-list'));
       files.forEach(function (p) {
         var a = kid(list, el('a', 'fp-row'));
         a.href = GH + p;
         a.target = '_blank';
         a.rel = 'noopener';
-        a.appendChild(el('span', 'fp-path mono', p));
+        a.appendChild(el('span', ['fp-path', 'mono'], p));
       });
     }
     return s;
@@ -150,7 +150,7 @@
     var a = kid(list, el('a', 'fp-row'));
     a.href = './' + file;
     a.setAttribute('download', '');
-    a.appendChild(el('span', 'fp-path mono', file));
+    a.appendChild(el('span', ['fp-path', 'mono'], file));
     if (f.hours_file === file && typeof f.hours_rows === 'number' && T('downloadRows')) {
       var r = kid(a, el('span', 'muted'));
       r.appendChild(el('span', 'mono', fmt(f.hours_rows)));
@@ -169,16 +169,16 @@
   function card(f, i) {
     var a = el('a', 'fp-card');
     a.href = './finding.html?id=' + encodeURIComponent(f.id);
-    a.appendChild(el('span', 'fp-no mono', two(i)));
+    a.appendChild(el('span', ['fp-no', 'mono'], two(i)));
     var body = kid(a, el('div', 'fp-card-body'));
     kid(body, word('span', '', 'title_' + f.id));
     var h = f.headline || {};
     if (typeof h.value === 'number') {
-      body.appendChild(el('span', 'fp-card-val mono', fmt(h.value)));
-      kid(body, word('span', 'soft fp-note', 'unit_' + h.unit));
+      body.appendChild(el('span', ['fp-card-val', 'mono'], fmt(h.value)));
+      kid(body, word('span', ['soft', 'fp-note'], 'unit_' + h.unit));
     }
     if (f.last_recheck_utc && T('lastRecheck')) {
-      var m = kid(body, el('span', 'fp-card-meta muted'));
+      var m = kid(body, el('span', ['fp-card-meta', 'muted']));
       m.appendChild(el('span', '', T('lastRecheck')));
       m.appendChild(el('span', 'mono', fmtTime(f.last_recheck_utc)));
     }
@@ -189,7 +189,7 @@
     wrap.appendChild(header());
     var top = el('section', 'fp-sec');
     kid(top, word('h1', '', 'indexHeading'));
-    kid(top, word('p', 'soft fp-line', 'indexLine'));
+    kid(top, word('p', ['soft', 'fp-line'], 'indexLine'));
     if (top.firstChild) wrap.appendChild(top);
     var cards = el('div', 'fp-cards');
     published.forEach(function (f, i) { cards.appendChild(card(f, i)); });
@@ -201,7 +201,7 @@
     wrap.appendChild(header());
     wrap.appendChild(chips(published, null));
     var s = el('section', 'fp-sec');
-    kid(s, word('p', 'soft fp-line', 'notFound'));
+    kid(s, word('p', ['soft', 'fp-line'], 'notFound'));
     var back = kid(s, word('a', 'fp-back', 'notFoundLink'));
     if (back) back.href = './findings.html';
     if (s.firstChild) wrap.appendChild(s);
@@ -214,15 +214,15 @@
     var hero = el('section', 'fp-hero');
     var text = kid(hero, el('div', 'fp-hero-text'));
     kid(text, word('h1', '', 'title_' + f.id));
-    kid(text, word('p', 'soft fp-line', 'claim_' + f.id));
+    kid(text, word('p', ['soft', 'fp-line'], 'claim_' + f.id));
     if (!text.firstChild) hero.removeChild(text);
     var h = f.headline || {};
     if (typeof h.value === 'number') {
       var num = kid(hero, el('div', 'fp-hero-num'));
       var shown = fmt(h.value);
-      var big = kid(num, el('span', 'fp-big mono', shown));
+      var big = kid(num, el('span', ['fp-big', 'mono'], shown));
       big.style.setProperty('--digits', String(shown.length));
-      kid(num, word('span', 'soft fp-unit', 'unit_' + h.unit));
+      kid(num, word('span', ['soft', 'fp-unit'], 'unit_' + h.unit));
     }
     if (hero.firstChild) wrap.appendChild(hero);
 
