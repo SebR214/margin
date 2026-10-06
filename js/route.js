@@ -24,7 +24,7 @@
   var SUM = null, HOURLY = null, WHAT = null, BRK = null, brkState = "idle";
   var COL = {};          // hourly column name -> index
   var BCOL = {};         // breakdown column name -> index
-  var S = { route: null, amount: null, unit: "abs", period: "all", metric: "typical", sel: null, bday: null }; // Default to typical
+  var S = { route: null, amount: null, unit: "abs", period: "all", metric: "typical", sel: null, bday: null };
   var rowCache = {};
   var chart = null;
 
@@ -121,106 +121,93 @@
   function inWindow(rows, t0, t1) { return rows.filter(function (r) { return r.t >= t0 && r.t <= t1; }); }
 
   // ---------------------------------------------------------------- the chart
+  // Ticks at round steps. Returns { ticks, step } so labels can print no decimals on round values.
   function niceTicks(lo, hi, n) {
     var span = hi - lo || 1, step = Math.pow(10, Math.floor(Math.log10(span / n)));
     var err = span / n / step;
     step *= err >= 5 ? 5 : err >= 2 ? 2 : 1;
-    var out = [], v = Math.ceil(lo / step) * step;
-    for (; v <= hi + step * 1e-6; v += step) {
-      // Round to appropriate decimal places based on step size
-      var decimals = Math.max(0, -Math.floor(Math.log10(step)));
-      out.push(parseFloat(v.toFixed(decimals)));
+    var out = [], k = Math.ceil(lo / step - 1e-9);
+    for (; k * step <= hi + step * 1e-6; k++) out.push(Math.round(k * step * 1e9) / 1e9 + 0);
+    return { ticks: out, step: step };
+  }
+  // A tick label: whole numbers carry no decimals, other values the decimals the step needs.
+  function tickLabel(v, step, pct) {
+    var d = step >= 1 ? 0 : Math.min(3, Math.ceil(-Math.log10(step) - 1e-9));
+    return num(v, Math.abs(v - Math.round(v)) < 1e-9 ? 0 : d) + (pct ? "%" : "");
+  }
+  // X ticks: weekly (Mondays, UTC) on long windows, daily on short ones, every six hours inside two days.
+  function xTicks(t0, t1) {
+    var span = t1 - t0, out = [], t;
+    if (span <= 2 * DAY) {
+      for (t = Math.ceil(t0 / (6 * HOUR)) * 6 * HOUR; t <= t1; t += 6 * HOUR) out.push({ t: t, label: clock(t).slice(0, 5) });
+    } else if (span <= 14 * DAY) {
+      for (t = Math.ceil(t0 / DAY) * DAY; t <= t1; t += DAY) out.push({ t: t, label: dayShort(t) });
+    } else {
+      t = Math.ceil(t0 / DAY) * DAY;
+      while (new Date(t * 1000).getUTCDay() !== 1) t += DAY;
+      for (; t <= t1; t += 7 * DAY) out.push({ t: t, label: dayShort(t) });
     }
     return out;
   }
 
-  // Hand-written SVG. Draws the model it is handed: { t0, t1, rows, yfmt }.
+  // Hand-written SVG. Draws the model it is handed: { t0, t1, rows, gap, pct }.
   function createChart(box, opts) {
-    var model = null, W = 0, H = 380, selA = null, selB = null, drag = false, fx = null;
+    var ML = 52, MR = 10, TOP = 14, BOT = 26; // left margin holds the y labels, outside the plot
+    var model = null, W = 0, H = 380, PW = 0, selA = null, selB = null, drag = false, fx = null;
     var svg = box.querySelector("svg"), base = box.querySelector(".rc-base"),
       selEl = box.querySelector(".rc-sel"), cross = box.querySelector(".rc-cross"), tip = box.querySelector(".rc-tip");
     if (opts.aria) svg.setAttribute("aria-label", opts.aria);
 
-    function X(t) { return (t - model.t0) / (model.t1 - model.t0) * W; }
+    function X(t) { return ML + (t - model.t0) / (model.t1 - model.t0) * PW; }
 
     function draw() {
       if (!model) return;
       W = Math.max(200, Math.round(box.clientWidth - 32));
+      PW = W - ML - MR;
       H = box.clientWidth < 560 ? 280 : 380;
       svg.setAttribute("viewBox", "0 0 " + W + " " + H);
       svg.setAttribute("width", W);
       svg.setAttribute("height", H);
-      var top = 20, bot = 30, lo = Infinity, hi = -Infinity;
+      var lo = 0, hi = -Infinity; // zero is always in view: the zero line is labelled
       model.rows.forEach(function (r) {
         [r.s, r.a].forEach(function (v) { if (v != null) { if (v < lo) lo = v; if (v > hi) hi = v; } });
       });
-      if (!isFinite(lo)) { lo = 0; hi = 1; }
+      if (!isFinite(hi)) hi = 1;
       var pad = (hi - lo || 1) * 0.06;
-      lo -= pad; hi += pad;
-      function Y(v) { return top + (1 - (v - lo) / (hi - lo)) * (H - top - bot); }
+      hi += pad; if (lo < 0) lo -= pad;
+      function Y(v) { return TOP + (1 - (v - lo) / (hi - lo)) * (H - TOP - BOT); }
 
-      // Draw horizontal grid lines and Y-axis labels outside the plot area
-      var g = "";
-      var yAxisTicks = niceTicks(lo, hi, 5);
-      yAxisTicks.forEach(function (v) {
-        var y = Y(v).toFixed(1);
-        // Grid line across entire width
-        g += '<line x1="0" x2="' + W + '" y1="' + y + '" y2="' + y + '" style="stroke:var(--color-neutral-200);stroke-dasharray:2,2"></line>';
-        // Y-axis label outside plot area
-        g += '<text x="-10" y="' + (parseFloat(y) + 4) + '" class="rc-ax" text-anchor="end">' + esc(model.yfmt(v)) + "</text>";
+      var g = "", nt = niceTicks(lo, hi, 4);
+      nt.ticks.forEach(function (v) {
+        var y = Y(v).toFixed(1), zero = v === 0;
+        g += '<line x1="' + ML + '" x2="' + (W - MR) + '" y1="' + y + '" y2="' + y + '" style="stroke:' +
+          (zero ? "var(--color-ink)" : "var(--color-neutral-200)") + (zero ? ";stroke-width:1" : "") + '"></line>' +
+          '<text x="' + (ML - 8) + '" y="' + (+y + 4) + '" class="rc-ax" text-anchor="end"' + (zero ? ' style="fill:var(--color-ink)"' : "") + ">" +
+          esc(tickLabel(v, nt.step, !model.abs)) + "</text>";
+      });
+      var lastX = -1e9;
+      xTicks(model.t0, model.t1).forEach(function (tk) {
+        var x = X(tk.t);
+        if (x - lastX < 52 || x < ML + 14 || x > W - MR - 14) return;
+        lastX = x;
+        g += '<line x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="' + (H - BOT) + '" y2="' + (H - BOT + 4) + '" style="stroke:var(--color-neutral-400)"></line>' +
+          '<text x="' + x.toFixed(1) + '" y="' + (H - 6) + '" class="rc-ax" text-anchor="middle">' + esc(tk.label) + "</text>";
       });
 
-      // Draw zero line if it's within range
-      if (lo <= 0 && hi >= 0) {
-        var zeroY = Y(0).toFixed(1);
-        g += '<line x1="0" x2="' + W + '" y1="' + zeroY + '" y2="' + zeroY + '" style="stroke:var(--color-ink);stroke-width:1"></line>';
-        g += '<text x="-10" y="' + (parseFloat(zeroY) + 4) + '" class="rc-ax" text-anchor="end" font-weight="bold">0</text>';
-      }
-
-      // Draw X-axis labels with weekly date ticks
-      var dateTicks = [];
-      var startDate = new Date(model.t0 * 1000);
-      var endDate = new Date(model.t1 * 1000);
-      var weeks = Math.ceil((endDate - startDate) / (7 * 24 * 60 * 60 * 1000));
-
-      // Generate weekly ticks
-      for (var i = 0; i <= weeks; i++) {
-        var tickDate = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
-        if (tickDate <= endDate) {
-          var tickTime = tickDate.getTime() / 1000;
-          if (tickTime >= model.t0 && tickTime <= model.t1) {
-            dateTicks.push({
-              time: tickTime,
-              label: tickDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-            });
-          }
-        }
-      }
-
-      // Draw X-axis labels
-      dateTicks.forEach(function (tick) {
-        var x = X(tick.time).toFixed(1);
-        g += '<text x="' + x + '" y="' + (H - 5) + '" class="rc-ax" text-anchor="middle">' + esc(tick.label) + "</text>";
-      });
-
-      // Segments: runs of hours with no hole longer than BREAK_GAP and both prices stored.
+      // Segments: runs with no hole longer than model.gap and both prices stored. A run of one point is
+      // not drawn: no stray dots in the gaps.
       var segs = [], run = [];
-      model.rows.forEach(function (r, i) {
+      model.rows.forEach(function (r) {
         var ok = r.s != null && r.a != null;
         var prev = run.length ? run[run.length - 1] : null;
-        if (ok && prev && r.t - prev.t > BREAK_GAP) { segs.push(run); run = []; }
+        if (ok && prev && r.t - prev.t > model.gap) { segs.push(run); run = []; }
         if (ok) run.push(r);
         else if (run.length) { segs.push(run); run = []; }
       });
       if (run.length) segs.push(run);
       var fill = "", la = "", ls = "";
       segs.forEach(function (sg) {
-        if (sg.length === 1) {
-          var x = X(sg[0].t).toFixed(1);
-          la += "M" + x + " " + Y(sg[0].a).toFixed(1) + "h0";
-          ls += "M" + x + " " + Y(sg[0].s).toFixed(1) + "h0";
-          return;
-        }
+        if (sg.length < 2) return;
         var pa = "", ps = "", back = "";
         sg.forEach(function (r, i) {
           var x = X(r.t).toFixed(1);
@@ -232,11 +219,13 @@
         la += pa; ls += ps;
       });
       g += '<path d="' + fill + '" style="fill:var(--data-700);fill-opacity:.16"></path>';
-      g += '<path d="' + la + '" fill="none" stroke-width="1.2" stroke-linecap="round" style="stroke:var(--color-ink)"></path>';
-      g += '<path d="' + ls + '" fill="none" stroke-width="1.2" stroke-linecap="round" style="stroke:var(--data-700)"></path>';
+      g += '<path d="' + la + '" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--color-ink)"></path>';
+      g += '<path d="' + ls + '" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--data-700)"></path>';
       base.innerHTML = g;
-      selEl.setAttribute("height", H);
-      cross.setAttribute("y2", H);
+      selEl.setAttribute("y", TOP);
+      selEl.setAttribute("height", H - TOP - BOT);
+      cross.setAttribute("y1", TOP);
+      cross.setAttribute("y2", H - BOT);
       paintSel();
       paintCross();
     }
@@ -244,13 +233,13 @@
     function paintSel() {
       var has = selA != null && selB != null && Math.abs(selB - selA) > 0.005;
       var a = has ? Math.min(selA, selB) : 0, b = has ? Math.max(selA, selB) : 0;
-      selEl.setAttribute("x", (a * W).toFixed(1));
-      selEl.setAttribute("width", ((b - a) * W).toFixed(1));
+      selEl.setAttribute("x", (ML + a * PW).toFixed(1));
+      selEl.setAttribute("width", ((b - a) * PW).toFixed(1));
       selEl.style.display = has ? "" : "none";
     }
     function paintCross() {
       if (fx == null || !model) { cross.style.display = "none"; tip.style.display = "none"; return; }
-      var x = (fx * W).toFixed(1);
+      var x = (ML + fx * PW).toFixed(1);
       cross.setAttribute("x1", x); cross.setAttribute("x2", x);
       cross.style.display = "";
       var html = opts.tip(model.t0 + fx * (model.t1 - model.t0));
@@ -258,12 +247,13 @@
       tip.innerHTML = html;
       tip.style.display = "";
       tip.style.left = tip.style.right = "";
-      if (fx > 0.7) tip.style.right = ((1 - fx) * 100 + 2).toFixed(1) + "%";
-      else tip.style.left = (fx * 100 + 2).toFixed(1) + "%";
+      var px = 16 + ML + fx * PW; // box padding + plot offset
+      if (fx > 0.6) tip.style.right = Math.max(0, box.clientWidth - px + 12).toFixed(0) + "px";
+      else tip.style.left = (px + 12).toFixed(0) + "px";
     }
     function fOf(e) {
       var b = svg.getBoundingClientRect();
-      return Math.min(1, Math.max(0, (e.clientX - b.left) / (b.width || 1)));
+      return Math.min(1, Math.max(0, (e.clientX - b.left - ML) / (PW || 1)));
     }
     function span() { return model.t1 - model.t0; }
     box.addEventListener("pointerdown", function (e) {
@@ -293,7 +283,7 @@
 
     return {
       update: function (m) { model = m; selA = selB = null; draw(); },
-      redraw: function (m) { model = m; draw(); },
+      redraw: function (m) { model = m; selA = selB = null; draw(); },
       clearSelection: function () { selA = selB = null; paintSel(); }
     };
   }
@@ -309,7 +299,7 @@
       '<nav class="r-nav">' +
       [["navCountries", "./countries.html"], ["navRoutes", "./sending-money.html", "on"], ["navSources", "./sources.html"],
         ["navFindings", "./findings.html"], ["navHow", "./how-it-works.html"]].map(function (n) {
-        var s = (n[0] === "navRoutes") ? "Routes" : txt(n[0]); // Force "Routes" for navRoutes
+        var s = txt(n[0]);
         return s ? '<a href="' + n[1] + '"' + (n[2] ? ' aria-current="page" class="on"' : "") + ">" + esc(s) + "</a>" : "";
       }).join("") + "</nav></div>" + meta + "</header>";
   }
@@ -318,21 +308,29 @@
     return text ? '<button class="r-chip' + (on ? " on" : "") + '" data-' + attr + '="' + esc(value) + '">' + esc(text) + "</button>" : "";
   }
   function routeChips() {
-    return '<div class="r-route-chips-container"><div class="r-chips r-route-chips-scroll" id="rRoutes">' + HOURLY.routes.map(function (r) {
+    return '<div class="r-chips r-scrollrow" id="rRoutes">' + HOURLY.routes.map(function (r) {
       return chip("route", r.id, r.id === S.route, routeLabel(r));
-    }).join("") + "</div></div>";
+    }).join("") + "</div>";
   }
   function amountChips() {
     var r = sumRoute(S.route), label = txt("amountLabel", { ccy: ccy() });
-    return '<div class="r-route-chips-container"><div class="r-chips r-amount-chips-scroll" id="rAmounts">' + (label ? '<span class="soft r-small">' + esc(label) + "</span>" : "") +
-      r.amounts.map(function (a) { return chip("amount", a.amount, a.amount === S.amount, whole(a.amount) + " " + ccy()); }).join("") + "</div></div>";
+    return '<div class="r-chips r-scrollrow" id="rAmounts">' + (label ? '<span class="soft r-small">' + esc(label) + "</span>" : "") +
+      r.amounts.map(function (a) { return chip("amount", a.amount, a.amount === S.amount, whole(a.amount) + " " + ccy()); }).join("") + "</div>";
+  }
+
+  // The headline, with the route name kept on one line (a no-break span around it).
+  function headline(vals) {
+    var t = txt("headline", vals);
+    if (!t) return "";
+    var h = esc(t), name = esc(vals.route);
+    return "<h1>" + (name && h.indexOf(name) >= 0 ? h.replace(name, '<span class="r-nobreak">' + name + "</span>") : h) + "</h1>";
   }
 
   function buildHero() {
     var r = cur(), s = sumRoute(S.route);
     var vals = { route: routeLabel(r), send: r.send_ccy, recv: r.recv_ccy, amount: whole(S.amount) + " " + r.send_ccy,
       hours: whole(s.total_hours_stable_cheapest), priced: whole(s.hours_priced_any_amount) };
-    return '<section class="r-hero r-pull hero bleed"><div class="r-herotext">' + w("headline", vals, "h1", "r-headline r-hero-nowrap") + w("lead", vals, "p", "slead") +
+    return '<section class="r-hero r-pull hero bleed"><div class="r-herotext">' + headline(vals) + w("lead", vals, "p", "slead") +
       '</div><div class="r-bigbox">' + (comparable(S.route)
         ? '<span class="r-big mono">' + esc(whole(s.total_hours_stable_cheapest)) + "</span>" + w("bigCaption", vals, "span", "soft")
         : w("routeNotComparable", vals, "span", "msm")) + "</div></section>";
@@ -353,8 +351,9 @@
   }
 
   function buildChartSection() {
+    if (!comparable(S.route)) return ""; // a route that is not comparable shows its note, not a chart that implies a comparison
     return '<section class="r-sec" id="rChartSec"><div id="rChartCtl"></div><div id="rChartSlot"></div>' +
-      '<div class="mono muted r-axis" id="rAxis"></div>' + (comparable(S.route) ? '<div class="r-stats" id="rStats"></div>' : '') + '</section>';
+      '<div class="mono muted r-axis" id="rAxis"></div><div class="msm" id="rMissing"></div><div class="r-stats" id="rStats"></div></section>';
   }
 
   function buildBreakdownSection() {
@@ -363,17 +362,33 @@
   }
 
   function buildLower() {
-    return '<div class="r-single-column"><section class="r-sec a">' + w("compareHeading", null, "h2") + w("compareLead", null, "p", "msm") +
-      '<div id="rCompare"></div></section><section class="r-sec b">' + w("whatHeading", null, "h2") +
+    return '<div class="r-lower"><section class="r-sec">' + w("compareHeading", null, "h2") + w("compareLead", null, "p", "msm") +
+      '<div id="rCompare"></div></section><section class="r-sec">' + w("whatHeading", null, "h2") +
       w("whatLead", { amount: whole(S.amount) + " " + ccy(), ccy: ccy() }, "p", "msm") + '<div id="rWhat"></div></section></div>';
   }
 
   // ---------------------------------------------------------------- the chart section
+  // The window on screen: the zoomed selection when there is one, else the chosen period.
+  function curWin(rows) { return S.sel || windowFor(rows); }
+  // Daily line by default (the median of each day's stored hours); the hours themselves once the
+  // window is a week or less (a period of a week, or a zoom to a week). The tooltip is always hourly.
   function chartModel(rows) {
-    var win = windowFor(rows);
-    var inW = inWindow(rows, win[0], win[1]);
-    return { t0: win[0], t1: win[1], rows: inW.map(function (r) { return { t: r.t, s: sv(r), a: av(r) }; }),
-      yfmt: function (v) { return S.unit === "abs" ? num(v, Math.abs(v) >= 100 ? 0 : 2) : num(v, 2) + "%"; } };
+    var win = curWin(rows), inW = inWindow(rows, win[0], win[1]), hourly = win[1] - win[0] <= 7 * DAY + HOUR, pts;
+    if (hourly) pts = inW.map(function (r) { return { t: r.t, s: sv(r), a: av(r) }; });
+    else {
+      var days = {}, order = [];
+      inW.forEach(function (r) {
+        var s = sv(r), a = av(r), k = dayKey(r.t);
+        if (s == null || a == null) return;
+        if (!days[k]) { days[k] = { t: Math.floor(r.t / DAY) * DAY + DAY / 2, s: [], a: [] }; order.push(k); }
+        days[k].s.push(s); days[k].a.push(a);
+      });
+      pts = order.map(function (k) {
+        var d = days[k];
+        return { t: Math.min(win[1], Math.max(win[0], d.t)), s: median(d.s), a: median(d.a) };
+      });
+    }
+    return { t0: win[0], t1: win[1], rows: pts, abs: S.unit === "abs", gap: hourly ? BREAK_GAP : 1.5 * DAY };
   }
 
   function nearestRow(rows, t) {
@@ -407,7 +422,7 @@
     var rows = rowsFor(S.route, S.amount), el = document.getElementById("rStats");
     if (!el) return;
     if (!rows.length) { el.innerHTML = ""; return; }
-    var win = S.sel || windowFor(rows);
+    var win = curWin(rows);
     var inW = inWindow(rows, win[0], win[1]);
     var priced = inW.filter(function (r) { return extra(r) != null; });
     var first = inW.length ? inW[0].t : win[0], last = inW.length ? inW[inW.length - 1].t : win[1];
@@ -427,21 +442,28 @@
   }
 
   function drawAxis() {
-    var rows = rowsFor(S.route, S.amount), el = document.getElementById("rAxis");
-    if (!rows.length) { el.innerHTML = ""; return; }
-    var win = windowFor(rows);
+    var rows = rowsFor(S.route, S.amount), el = document.getElementById("rAxis"), miss = document.getElementById("rMissing");
+    if (!el) return;
+    if (!rows.length) { el.innerHTML = ""; if (miss) miss.innerHTML = ""; return; }
+    var win = curWin(rows);
     el.innerHTML = "<span>" + esc(dayShort(win[0])) + "</span><span>" +
       esc(txt(S.unit === "abs" ? "chartCaptionAbs" : "chartCaptionRel", { ccy: ccy() })) + "</span><span>" + esc(dayShort(win[1])) + "</span>";
+    // Hours in the window with no stored pair of prices, counted from the stored hours.
+    var priced = inWindow(rows, win[0], win[1]).filter(function (r) { return r.sc != null && r.ac != null; }).length;
+    var missing = Math.max(0, Math.floor((win[1] - win[0]) / HOUR) + 1 - priced);
+    if (miss) miss.innerHTML = missing > 0 ? w("chartMissing", { missing: whole(missing), priced: whole(priced) }, "p", "msm") : "";
   }
 
-  function drawControls() { document.getElementById("rChartCtl").innerHTML = chartControls(); }
+  function drawControls() { var el = document.getElementById("rChartCtl"); if (el) el.innerHTML = chartControls(); }
 
   function drawChart(reset) {
     var rows = rowsFor(S.route, S.amount);
+    if (!chart) return;
+    if (reset) S.sel = null;
     drawAxis();
     if (!rows.length) { if (document.getElementById("rStats")) document.getElementById("rStats").innerHTML = ""; return; }
     var m = chartModel(rows);
-    if (reset) { S.sel = null; chart.update(m); } else chart.redraw(m);
+    if (reset) chart.update(m); else chart.redraw(m);
     drawStats();
   }
 
@@ -450,7 +472,11 @@
     slot.parentNode.replaceChild(document.getElementById("rChartTpl").content.cloneNode(true), slot);
     chart = createChart(document.getElementById("rChart"), {
       tip: tipHtml, aria: txt("chartAria"),
-      onSelect: function (a, b) { S.sel = a == null ? null : [a, b]; drawStats(); }
+      onSelect: function (a, b) {
+        if (a != null && b - a < 6 * HOUR) { var c = (a + b) / 2; a = c - 3 * HOUR; b = c + 3 * HOUR; }
+        S.sel = a == null ? null : [a, b];
+        drawChart(false);
+      }
     });
   }
 
@@ -483,7 +509,9 @@
   }
   function legUnit(v) { return v == null ? null : S.unit === "abs" ? v : v / S.amount * 100; }
 
-  var LEG_ROWS = [["legGettingIn", "inn", "--data-400"], ["legOnChain", "chain", "--data-700"], ["legCashingOut", "out", "--data-700"]];
+  // Three steps, three colours; the all-in stablecoin row wears the stablecoin colour of the chart line.
+  var LEG_ROWS = [["legGettingIn", "inn", "--data-400"], ["legOnChain", "chain", "--data-600"], ["legCashingOut", "out", "--data-500"]];
+  var COLOUR = { inn: "--data-400", chain: "--data-600", out: "--data-500", total: "--data-700", app: "--color-ink" };
 
   function buildBreakdown() {
     var el = document.getElementById("rBrk");
@@ -496,35 +524,42 @@
     var rowsHtml = LEG_ROWS.map(function (l) {
       var name = txt(l[0]);
       return '<div class="r-leg-row"><span class="r-legname"><i class="r-sw" style="background:var(' + l[2] + ')"></i>' + esc(name) +
-        '</span><span class="r-track r-steps-full-width"><i data-leg="' + l[1] + '" style="background:var(' + l[2] + ');width:0" class="r-steps-stablecoin-track"></i></span>' +
+        '</span><span class="r-track"><i data-leg="' + l[1] + '" style="background:var(' + l[2] + ');width:0"></i></span>' +
         '<span class="mono r-legval" data-val="' + l[1] + '"></span></div>';
     }).join("");
     function extraRow(key, id, colour, alt) {
-      return '<div class="r-leg-row"><span class="r-legname"><i class="r-sw" style="background:var(' + colour + ')"></i>' + esc(txt(key)) +
-        '</span><span class="r-track r-steps-full-width' + (alt ? " alt" : "") + '"><i data-leg="' + id + '" style="background:var(' + colour + ');width:0" class="r-cheapest-track-equal"></i></span>' +
-        '<span class="mono r-legval" data-val="' + id + '"></span>' +
-        (id === "app" ? '<span class="mono muted r-prov" data-name="app"></span>' : "") + "</div>";
+      return '<div class="r-leg-row"><span class="r-legname"><i class="r-sw" style="background:var(' + colour + ')"></i><span class="r-legtxt">' + esc(txt(key)) +
+        (id === "app" ? '<span class="mono muted r-prov" data-name="app"></span>' : "") + '</span>' +
+        '</span><span class="r-track' + (alt ? " alt" : "") + '"><i data-leg="' + id + '" style="background:var(' + colour + ');width:0"></i></span>' +
+        '<span class="mono r-legval" data-val="' + id + '"></span></div>';
     }
     el.innerHTML =
       '<label class="muted r-slider"><span>' + esc(txt("sliderLabel")) + ' <span class="mono" id="rBDay" style="color:var(--color-ink)"></span></span>' +
       '<input type="range" id="rBSlider" min="0" max="' + (days.length - 1) + '" value="' + S.bday + '"></label>' +
       '<div class="r-stack" id="rStack"></div>' +
-      '<div class="r-list">' + rowsHtml + extraRow("legTotal", "total", "--color-neutral-700") + extraRow("legApp", "app", "--color-ink") + "</div>" +
+      '<div class="r-list">' + rowsHtml + extraRow("legTotal", "total", COLOUR.total) + extraRow("legApp", "app", COLOUR.app) + "</div>" +
       '<div id="rBNote"></div>';
     updateBreakdown();
   }
 
+  function hourRow(t) {
+    var rows = rowsFor(S.route, S.amount), i = nearestRow(rows, t);
+    return i && i.t === t ? i : null;
+  }
   function updateBreakdown() {
     var days = brkDays(), el = document.getElementById("rBrk");
     if (!days.length || !document.getElementById("rBSlider")) return;
     var d = days[S.bday], L = legs(d.row);
-    var vals = { inn: legUnit(L.inn), chain: legUnit(L.chain), out: legUnit(L.out),
-      total: S.unit === "abs" ? L.total : L.totalPct, app: S.unit === "abs" ? L.app : L.appPct };
+    // The total is the cheapest stablecoin path of that hour, the same one the hour count uses. The
+    // legs are stored for the base path only, so in an hour another path was cheapest they are empty.
+    var hr = hourRow(ep(d.row[BCOL.hour_utc])), onBase = !hr || hr.path === d.row[BCOL.path];
+    var vals = { inn: onBase ? legUnit(L.inn) : null, chain: onBase ? legUnit(L.chain) : null, out: onBase ? legUnit(L.out) : null,
+      total: hr ? (S.unit === "abs" ? hr.sc : hr.scp) : (S.unit === "abs" ? L.total : L.totalPct), app: S.unit === "abs" ? L.app : L.appPct };
     // One scale for every day, so the bars read against each other as the slider moves.
     var max = 0;
     days.forEach(function (x) {
-      var l = legs(x.row);
-      [S.unit === "abs" ? l.total : l.totalPct, S.unit === "abs" ? l.app : l.appPct, legUnit(l.inn), legUnit(l.chain), legUnit(l.out)]
+      var l = legs(x.row), h = hourRow(ep(x.row[BCOL.hour_utc]));
+      [h ? (S.unit === "abs" ? h.sc : h.scp) : S.unit === "abs" ? l.total : l.totalPct, S.unit === "abs" ? l.app : l.appPct, legUnit(l.inn), legUnit(l.chain), legUnit(l.out)]
         .forEach(function (v) { if (v != null && Math.abs(v) > max) max = Math.abs(v); });
     });
     max = max * 1.05 || 1;
@@ -535,20 +570,13 @@
       if (bar) {
         bar.style.width = v == null ? "0" : (Math.abs(v) / max * 100).toFixed(2) + "%";
         bar.style.opacity = v != null && v < 0 ? ".5" : "";
-        // Apply distinct colors for each leg
-        if (k === "inn") bar.style.background = "var(--data-700)";
-        else if (k === "chain") bar.style.background = "var(--data-500)";
-        else if (k === "out") bar.style.background = "var(--data-300)";
-        else if (k === "total") bar.style.background = "var(--color-neutral-700)";
-        else if (k === "app") bar.style.background = "var(--color-ink)";
       }
       if (out) out.textContent = fmt(v);
     });
     // The stacked bar: the stored legs side by side, only while every leg is stored and none is negative.
     var all = vals.inn != null && vals.chain != null && vals.out != null && vals.inn >= 0 && vals.chain >= 0 && vals.out >= 0;
-    document.getElementById("rStack").innerHTML = all ? LEG_ROWS.map(function (l, index) {
-      var colors = ["var(--data-700)", "var(--data-500)", "var(--data-300)"];
-      return '<div class="r-seg" style="background:' + colors[index] + ';width:' + (vals[l[1]] / max * 100).toFixed(2) + '%"></div>';
+    document.getElementById("rStack").innerHTML = all ? LEG_ROWS.map(function (l) {
+      return '<div class="r-seg" style="background:var(' + l[2] + ');width:' + (vals[l[1]] / max * 100).toFixed(2) + '%"></div>';
     }).join("") : "";
     var nm = el.querySelector('[data-name="app"]');
     if (nm) nm.textContent = d.row[BCOL.cheapest_app] || "";
@@ -561,49 +589,30 @@
   }
 
   // ---------------------------------------------------------------- all routes compared
-  var METRICS = [["typical", "metricTypical"], ["win", "metricWin"], ["swing", "metricSwing"], ["change", "metricChange"]]; // Make typical the default
-  function metricValue(a, m) { // [value in the chosen unit, null when not stored]
+  var METRICS = [["win", "metricWin"], ["typical", "metricTypical"], ["swing", "metricSwing"], ["change", "metricChange"]];
+  // Always in percent of the amount, so routes in different currencies compare.
+  function metricValue(a, m) { // [value, null when not stored]
     if (!a) return null;
     if (m === "win") return a.win_rate_pct;
-    var f = { typical: ["median_extra", "median_extra_pp"], swing: ["swing", "swing_pp"], change: ["change_7d", "change_7d_pp"] }[m];
-    return a[S.unit === "abs" ? f[0] : f[1]];
+    return a[{ typical: "median_extra_pp", swing: "swing_pp", change: "change_7d_pp" }[m]];
   }
   function drawCompare() {
     if (!document.getElementById("rCompare")) return;
     var chips = METRICS.map(function (m) { return chip("metric", m[0], S.metric === m[0], txt(m[1])); }).join("");
     var shown = HOURLY.routes.filter(function (r) { return comparable(r.id); });
     var left = HOURLY.routes.filter(function (r) { return !comparable(r.id); });
-    var vs = shown.map(function (r) { return metricValue(sumAmount(r.id, S.amount), S.metric); });
-
-    // Filter out routes with no data
-    var validRoutes = [];
-    var validValues = [];
-    vs.forEach(function (v, i) {
-      if (v != null) {
-        validRoutes.push(shown[i]);
-        validValues.push(v);
-      }
-    });
-
-    if (validRoutes.length === 0) {
-      // Show a default message when no routes have data
-      document.getElementById("rCompare").innerHTML = (chips ? '<div class="r-chips">' + chips + "</div>" : "") +
-        '<div class="r-comparison-chart-default">No comparison data available</div>' +
-        (left.length ? w("notComparable", { routes: left.map(routeLabel).join(", ") }, "p", "msm") : "");
-      return;
-    }
-
+    // A route with no stored value has no row: no empty bars.
+    var rowsIn = shown.map(function (r) { return { r: r, v: metricValue(sumAmount(r.id, S.amount), S.metric) }; })
+      .filter(function (x) { return x.v != null; });
     var max = 0;
-    validValues.forEach(function (v) { if (Math.abs(v) > max) max = Math.abs(v); });
-
-    var rows = validRoutes.map(function (r, i) {
-      var v = validValues[i], width = !max ? 0 : S.metric === "win" ? v : Math.abs(v) / max * 100;
-      var text = S.metric === "win" ? dec(v, 1) + "%" : S.unit === "abs" ? dec(v, 2) + " " + r.send_ccy : pc(v);
+    rowsIn.forEach(function (x) { if (Math.abs(x.v) > max) max = Math.abs(x.v); });
+    var rows = rowsIn.map(function (x) {
+      var r = x.r, v = x.v, width = !max ? 0 : S.metric === "win" ? v : Math.abs(v) / max * 100;
       return '<button class="r-mrow' + (r.id === S.route ? " sel" : "") + '" data-route="' + esc(r.id) + '"><span class="mono r-mcode">' +
         esc(routeLabel(r)) + '</span><span class="r-track alt"><i style="background:var(' + (v < 0 ? "--color-neutral-700" : "--data-700") +
-        ");width:" + width.toFixed(1) + '%"></i></span><span class="mono r-mval">' + esc(text) + "</span></button>";
+        ");width:" + width.toFixed(1) + '%"></i></span><span class="mono r-mval">' + esc(dec(v, S.metric === "win" ? 1 : 2) + "%") + "</span></button>";
     }).join("");
-
+    // The left-out note prints here, once.
     document.getElementById("rCompare").innerHTML = (chips ? '<div class="r-chips">' + chips + "</div>" : "") + '<div class="r-list">' + rows + "</div>" +
       (left.length ? w("notComparable", { routes: left.map(routeLabel).join(", ") }, "p", "msm") : "");
   }
@@ -613,59 +622,31 @@
     var r = WHAT && WHAT.routes.filter(function (x) { return x.id === id; })[0];
     return r && r.amounts.filter(function (a) { return a.amount === S.amount; })[0];
   }
+  // One compact table: a row per route, each figure in its own sending currency. Shared words (the
+  // column heads, the notes) are said once. Heads come from copy slots; an empty slot prints no head.
   function drawWhat() {
-    if (!document.getElementById("rWhat")) return;
-    var left = HOURLY.routes.filter(function (r) { return !comparable(r.id); });
-    var pathNote = "";
-
-    // Create a compact table structure
-    var out = '<div class="r-what-compact-table">';
-    out += '<div><span>Route</span><span>Median needed</span><span>Latest needed</span></div>'; // Header row
-
-    HOURLY.routes.filter(function (r) { return comparable(r.id); }).forEach(function (r) {
+    var el = document.getElementById("rWhat");
+    if (!el) return;
+    var showShare = !!txt("whatColShare"), changed = [], shares = [];
+    var body = HOURLY.routes.filter(function (r) { return comparable(r.id); }).map(function (r) {
       var a = whatFor(r.id), m = a && a.median_7d, l = a && a.latest_hour;
       function money(o, key) { return o && o[key] != null ? dec(o[key], 2) + " " + r.send_ccy : ""; }
       function ppv(o, key) { return o && o[key] != null ? dec(o[key], 2) + "%" : ""; }
-
-      var medianText = "";
-      var latestText = "";
-
-      if (m && m.already_wins) {
-        medianText = "Already wins";
-      } else if (m) {
-        var units = money(m, "cheaper_needed"), pp = ppv(m, "cheaper_needed_pp");
-        medianText = [units, pp].filter(Boolean).join(" · ");
+      function both(o) { return [money(o, "cheaper_needed"), ppv(o, "cheaper_needed_pp")].filter(Boolean).join(" · "); }
+      var med = m ? (m.already_wins ? txt("whatWins", { route: routeLabel(r) }) : both(m)) : "";
+      var lat = l ? (l.already_wins ? txt("whatLatestWins") : both(l)) : "";
+      if (r.id === S.route && m && !m.already_wins && m.cheapest_app_changed) { // said once, for the route shown
+        var note = txt("whatAppChanged", { app: m.cheapest_app_week || "", hours: whole(m.cheapest_app_week_hours), of: whole(m.n_hours) });
+        if (note && changed.indexOf(note) < 0) changed.push(note);
       }
-
-      if (l && l.already_wins === false) {
-        var lu = money(l, "cheaper_needed"), lp = ppv(l, "cheaper_needed_pp");
-        latestText = [lu, lp].filter(Boolean).join(" · ");
-      } else if (l && l.already_wins) {
-        latestText = "Already wins";
-      }
-
-      out += '<div><span>' + esc(routeLabel(r)) + '</span><span>' + esc(medianText) + '</span><span>' + esc(latestText) + '</span></div>';
-
-      // Handle notes separately
-      if (m && !m.already_wins) {
-        if (m.cheapest_app_changed) {
-          out += '<div><span colspan="3" class="msm">' + esc(w("whatAppChanged", { app: m.cheapest_app_week || "", hours: whole(m.cheapest_app_week_hours), of: whole(m.n_hours) })) + '</span></div>';
-        }
-        var share = m.cheaper_needed_pct_of_in_out;
-        if (share != null) {
-          out += '<div><span colspan="3" class="msm">' + esc(w("whatShare", { pct: dec(share, 0) + "%" })) + '</span></div>';
-        }
-      }
-
-      if (l && l.already_wins === false && !pathNote && l.stable_path && l.base_path && l.stable_path !== l.base_path) {
-        pathNote = w("whatPathNote", { path: pathName(l.stable_path), base: pathName(l.base_path), hour: stamp(ep(l.hour_utc)) });
-      }
-    });
-
-    out += '</div>'; // Close table
-
-    document.getElementById("rWhat").innerHTML = out + (pathNote ? '<p class="msm">' + esc(pathNote) + '</p>' : '') +
-      (left.length ? '<p class="msm">' + esc(w("notComparable", { routes: left.map(routeLabel).join(", ") })) + '</p>' : '');
+      var share = m && !m.already_wins ? m.cheaper_needed_pct_of_in_out : null;
+      return "<tr><th scope=\"row\" class=\"mono" + (r.id === S.route ? "" : " muted") + "\">" + esc(routeLabel(r)) + '</th><td class="mono">' + esc(med) +
+        '</td><td class="mono">' + esc(lat) + "</td>" + (showShare ? '<td class="mono">' + (share != null ? esc(dec(share, 0) + "%") : "") + "</td>" : "") + "</tr>";
+    }).join("");
+    var heads = [txt("whatColRoute"), txt("whatColMedian"), txt("whatColLatest")].concat(showShare ? [txt("whatColShare")] : []);
+    var thead = heads.some(Boolean) ? "<thead><tr>" + heads.map(function (h) { return "<th scope=\"col\">" + esc(h) + "</th>"; }).join("") + "</tr></thead>" : "";
+    el.innerHTML = '<div class="r-tablewrap"><table class="r-whattbl">' + thead + "<tbody>" + body + "</tbody></table></div>" +
+      changed.map(function (n) { return '<p class="msm">' + esc(n) + "</p>"; }).join("");
   }
 
   // ---------------------------------------------------------------- state and wiring
@@ -683,12 +664,10 @@
   }
 
   function renderAll() {
-    S.sel = null;
-    app.innerHTML = '<div class="r-wrap">' + head() + '<div class="r-top">' + routeChips() + amountChips() + "</div>" + buildHero() + buildChartSection() +
+    S.sel = null; chart = null;
+    app.innerHTML = '<div class="r-wrap">' + head() + buildHero() + '<div class="r-top">' + routeChips() + amountChips() + "</div>" + buildChartSection() +
       (comparable(S.route) ? buildBreakdownSection() + buildLower() : "") + "</div>";
-    mountChart();
-    drawControls();
-    drawChart(true);
+    if (document.getElementById("rChartSec")) { mountChart(); drawControls(); drawChart(true); }
     buildBreakdown();
     drawCompare();
     drawWhat();
@@ -703,8 +682,8 @@
       return;
     }
     if (b.hasAttribute("data-amount")) { S.amount = +b.getAttribute("data-amount"); S.bday = null; renderAll(); return; }
-    if (b.hasAttribute("data-unit")) { S.unit = b.getAttribute("data-unit"); drawControls(); drawChart(false); updateBreakdown(); drawCompare(); return; }
-    if (b.hasAttribute("data-period")) { S.period = b.getAttribute("data-period"); drawControls(); drawChart(true); return; }
+    if (b.hasAttribute("data-unit")) { S.unit = b.getAttribute("data-unit"); drawControls(); if (chart) drawChart(false); updateBreakdown(); drawCompare(); return; }
+    if (b.hasAttribute("data-period")) { S.period = b.getAttribute("data-period"); drawControls(); if (chart) drawChart(true); return; }
     if (b.hasAttribute("data-metric")) { S.metric = b.getAttribute("data-metric"); drawCompare(); }
   }
   function onInput(e) {

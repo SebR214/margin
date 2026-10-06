@@ -1,128 +1,41 @@
-/* Routes page specific styles */
-.r-headline {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+/* Routes page layout (SEB-265, SEB-268 items 32-40, 46-48). Colours are style.css tokens only. */
 
-.r-steps-full-width {
-  width: 100%;
-}
+/* The route name never breaks across lines. */
+.r-wrap .r-nobreak { white-space: nowrap; }
 
-.r-steps-stablecoin-track {
-  background: var(--data-700);
-}
+/* Chips sit under the hero. */
+.r-wrap .r-top { display: flex; flex-direction: column; gap: 12px; }
 
-.r-comparison-chart-default {
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* The cost steps span the full width; every track is the same length. */
+.r-wrap .r-slider { max-width: none; width: 100%; }
+.r-wrap .r-leg-row { flex-wrap: nowrap; }
+.r-wrap .r-legname { width: 240px; flex: none; align-items: center; }
+.r-wrap .r-legtxt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.r-wrap .r-prov { font-size: 12px; }
+.r-wrap .r-leg-row .r-track { flex: 1 1 0; min-width: 0; }
+.r-wrap .r-legval { width: 130px; flex: none; }
 
-.r-comparison-chart-default:empty::before {
-  content: "No data available";
-  color: var(--color-neutral-600);
-}
+/* One column, full width: the compare block and the what-matching block stack. */
+.r-wrap .r-lower { display: flex; flex-direction: column; gap: 56px; }
 
-.r-what-compact-table {
-  display: table;
-  width: 100%;
-  border-collapse: collapse;
-}
+/* What matching the app takes: one compact table. */
+.r-wrap .r-tablewrap { overflow-x: auto; }
+.r-wrap .r-whattbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.r-wrap .r-whattbl th, .r-wrap .r-whattbl td { text-align: left; font-weight: 400; padding: 10px 16px 10px 0; border-bottom: 1px solid var(--color-neutral-300); vertical-align: top; }
+.r-wrap .r-whattbl thead th { color: var(--color-neutral-600); font-size: 13px; }
+.r-wrap .r-whattbl tbody th { white-space: nowrap; }
 
-.r-what-compact-table > div {
-  display: table-row;
-}
-
-.r-what-compact-table > div > span {
-  display: table-cell;
-  padding: 4px 8px;
-  border-bottom: 1px solid var(--color-neutral-300);
-}
-
-.r-what-compact-table > div > span:first-child {
-  font-weight: bold;
-}
-
-.r-single-column {
-  display: block;
-  width: 100%;
-}
-
-.r-route-chips-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.r-route-chips-scroll {
-  display: flex;
-  overflow-x: auto;
-  gap: 8px;
-  padding: 4px 0;
-  scrollbar-width: none;
-}
-
-.r-route-chips-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.r-amount-chips-scroll {
-  display: flex;
-  overflow-x: auto;
-  gap: 8px;
-  padding: 4px 0;
-  scrollbar-width: none;
-}
-
-.r-amount-chips-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.r-hero-nowrap {
-  white-space: nowrap;
-}
-
-.r-cost-steps-colors {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.r-cost-steps-colors > div:nth-child(1) {
-  background-color: var(--data-100);
-}
-
-.r-cost-steps-colors > div:nth-child(2) {
-  background-color: var(--data-300);
-}
-
-.r-cost-steps-colors > div:nth-child(3) {
-  background-color: var(--data-500);
-}
-
-.r-cheapest-track-equal {
-  width: 100%;
-}
-
-.r-not-comparable-section {
-  display: none;
-}
-
-.r-not-comparable-section.visible {
-  display: block;
-}
-
-/* Mobile styles for 390px width */
-@media (max-width: 390px) {
-  .r-route-chips-scroll,
-  .r-amount-chips-scroll {
-    flex-wrap: nowrap;
-  }
-
-  .r-route-chips-scroll > .r-chip,
-  .r-amount-chips-scroll > .r-chip {
-    flex: 0 0 auto;
-  }
+/* Mobile, 390px: nav on one scrollable row; route and amount chips one scrollable row each. */
+@media (max-width: 620px) {
+  .r-wrap .r-head { gap: 0; padding: 4px 0 8px; }
+  .r-wrap .r-brand { gap: 0; }
+  .r-wrap .r-nav { flex-wrap: nowrap; gap: 10px; font-size: 14px; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+  .r-wrap .r-nav a { white-space: nowrap; flex: none; }
+  .r-wrap .r-scrollrow { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .r-wrap .r-scrollrow > * { flex: none; white-space: nowrap; }
+  .r-wrap .r-leg-row { flex-wrap: wrap; }
+  .r-wrap .r-leg-row .r-track { flex: 1 1 120px; }
+  .r-wrap .r-legname { width: 100%; }
+  .r-wrap .r-bigbox { max-width: 100%; }
+  .r-wrap .r-bigbox span { overflow-wrap: anywhere; }
 }
