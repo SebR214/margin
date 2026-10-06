@@ -4,29 +4,112 @@
     "denominator": 872.3927,
     "denominator_meaning": "the official rate, local currency per dollar",
     "formula": "(numerator / denominator - 1) * 100",
-    "numerator": 1008.0803,
+    "numerator": 990.2995,
     "numerator_meaning": "price to buy one dollar locally",
-    "result_pct": 15.5535
+    "result_pct": 13.5153
   },
   "computed_at": "2026-10-06T03:00:00+00:00",
   "country": "Venezuela",
   "evidence": {
-    "buy_median": 1008.0803,
-    "collected_at": "2026-10-06T03:06:14.180666+00:00",
-    "n_offers": 1,
-    "offer_detail": "aggregates_only",
-    "offers": null,
-    "sell_median": 981.9265,
-    "source_kind": "broker_single",
-    "source_words": "from a broker quote"
+    "buy_median": 990.2995,
+    "collected_at": "2026-10-06T03:06:31.738853+00:00",
+    "n_offers": 10,
+    "offer_detail": "per_offer",
+    "offers": [
+      {
+        "price": 989.5,
+        "side": "buy"
+      },
+      {
+        "price": 989.99,
+        "side": "buy"
+      },
+      {
+        "price": 990.0,
+        "side": "buy"
+      },
+      {
+        "price": 990.2,
+        "side": "buy"
+      },
+      {
+        "price": 990.29,
+        "side": "buy"
+      },
+      {
+        "price": 990.309,
+        "side": "buy"
+      },
+      {
+        "price": 990.4,
+        "side": "buy"
+      },
+      {
+        "price": 990.699,
+        "side": "buy"
+      },
+      {
+        "price": 990.799,
+        "side": "buy"
+      },
+      {
+        "price": 990.8,
+        "side": "buy"
+      },
+      {
+        "price": 986.26,
+        "side": "sell"
+      },
+      {
+        "price": 986.1,
+        "side": "sell"
+      },
+      {
+        "price": 986.001,
+        "side": "sell"
+      },
+      {
+        "price": 986.0,
+        "side": "sell"
+      },
+      {
+        "price": 986.0,
+        "side": "sell"
+      },
+      {
+        "price": 985.8,
+        "side": "sell"
+      },
+      {
+        "price": 985.67,
+        "side": "sell"
+      },
+      {
+        "price": 985.665,
+        "side": "sell"
+      },
+      {
+        "price": 985.66,
+        "side": "sell"
+      },
+      {
+        "price": 985.601,
+        "side": "sell"
+      }
+    ],
+    "sell_median": 985.9,
+    "source_kind": "p2p_buy_median",
+    "source_words": "from person-to-person ads"
   },
   "evidence_rule": {
-    "applies": false,
-    "n_venues_actual": 1,
-    "n_venues_required": 1,
+    "applies": true,
+    "buy_ads_actual": 10,
+    "buy_ads_estimated": false,
+    "buy_at_or_above_sell": true,
+    "min_buy_ads_required": 10,
     "passed": true,
     "reason": null,
-    "reason_code": "order_book"
+    "reason_code": null
   },
   "hour_utc": "2026-10-06T03:00:00+00:00",
   "index_version": "1.1",
@@ -41,9 +124,11 @@
   "outlier_checked": null,
   "published": true,
   "source_files": [
-    "data/basis.csv",
     "data/countries/VES.json",
-    "data/fx_rates.csv"
+    "data/fx_rates.csv",
+    "data/p2p_basis.csv",
+    "data/p2p_offers.csv",
+    "data/p2p_sides.csv"
   ],
   "unverified": false,
   "unverified_reason": null

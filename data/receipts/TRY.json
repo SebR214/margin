@@ -4,29 +4,112 @@
     "denominator": 49.164125,
     "denominator_meaning": "the official rate, local currency per dollar",
     "formula": "(numerator / denominator - 1) * 100",
-    "numerator": 49.124,
+    "numerator": 52.605,
     "numerator_meaning": "price to buy one dollar locally",
-    "result_pct": -0.0816
+    "result_pct": 6.9988
   },
   "computed_at": "2026-10-06T03:00:00+00:00",
   "country": "Turkey",
   "evidence": {
-    "buy_median": 49.124,
-    "collected_at": "2026-10-06T03:06:14.180666+00:00",
-    "n_offers": 2,
-    "offer_detail": "aggregates_only",
-    "offers": null,
-    "sell_median": 49.123,
-    "source_kind": "order_book_median",
-    "source_words": "from order books"
+    "buy_median": 52.605,
+    "collected_at": "2026-10-06T03:06:31.738853+00:00",
+    "n_offers": 10,
+    "offer_detail": "per_offer",
+    "offers": [
+      {
+        "price": 50.95,
+        "side": "buy"
+      },
+      {
+        "price": 52.0,
+        "side": "buy"
+      },
+      {
+        "price": 52.18,
+        "side": "buy"
+      },
+      {
+        "price": 52.3,
+        "side": "buy"
+      },
+      {
+        "price": 52.6,
+        "side": "buy"
+      },
+      {
+        "price": 52.61,
+        "side": "buy"
+      },
+      {
+        "price": 52.74,
+        "side": "buy"
+      },
+      {
+        "price": 53.5,
+        "side": "buy"
+      },
+      {
+        "price": 54.48,
+        "side": "buy"
+      },
+      {
+        "price": 54.48,
+        "side": "buy"
+      },
+      {
+        "price": 50.22,
+        "side": "sell"
+      },
+      {
+        "price": 50.11,
+        "side": "sell"
+      },
+      {
+        "price": 50.03,
+        "side": "sell"
+      },
+      {
+        "price": 50.0,
+        "side": "sell"
+      },
+      {
+        "price": 49.83,
+        "side": "sell"
+      },
+      {
+        "price": 49.83,
+        "side": "sell"
+      },
+      {
+        "price": 49.82,
+        "side": "sell"
+      },
+      {
+        "price": 49.8,
+        "side": "sell"
+      },
+      {
+        "price": 49.75,
+        "side": "sell"
+      },
+      {
+        "price": 49.51,
+        "side": "sell"
+      }
+    ],
+    "sell_median": 49.83,
+    "source_kind": "p2p_buy_median",
+    "source_words": "from person-to-person ads"
   },
   "evidence_rule": {
-    "applies": false,
-    "n_venues_actual": 2,
-    "n_venues_required": 1,
+    "applies": true,
+    "buy_ads_actual": 10,
+    "buy_ads_estimated": false,
+    "buy_at_or_above_sell": true,
+    "min_buy_ads_required": 10,
     "passed": true,
     "reason": null,
-    "reason_code": "order_book"
+    "reason_code": null
   },
   "hour_utc": "2026-10-06T03:00:00+00:00",
   "index_version": "1.1",
@@ -41,9 +124,11 @@
   "outlier_checked": null,
   "published": true,
   "source_files": [
-    "data/basis.csv",
     "data/countries/TRY.json",
-    "data/fx_rates.csv"
+    "data/fx_rates.csv",
+    "data/p2p_basis.csv",
+    "data/p2p_offers.csv",
+    "data/p2p_sides.csv"
   ],
   "unverified": false,
   "unverified_reason": null
