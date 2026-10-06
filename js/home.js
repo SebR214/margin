@@ -7,7 +7,7 @@
  * Reads: data/heatmap_daily.json, record_daily.json, cycle_log.json,
  * movers_week.json, routes_summary.json, copy.json.
  * The "This hour" and "The record grew" blocks live in js/cycle_block.js and
- * js/record_block.js (used by other pages).
+ * js/record_block.js.
  */
 (function () {
 
@@ -70,8 +70,7 @@
   }
   function colourClass(g) {
     if (g == null) { return 'hn'; }
-    // Handle negative values (below the official rate)
-    if (g < 0) { return 'h0'; } // Use the lightest color for below official rate
+    if (g < 0 && has('legendBelowOfficial')) { return 'hb'; }
     for (var k = 0; k < HEAT_STEPS.length; k++) { if (g < HEAT_STEPS[k]) { return 'h' + k; } }
     return 'h' + HEAT_STEPS.length;
   }
@@ -178,16 +177,28 @@
 
     var row = el('div', 'hp-row');
     var main = el('div', ['hp-main', 'hp-rel']);
-    var grid = el('div', 'hp-heat');
-    var cols = [];
-    for (var d = 0; d < n; d++) { cols.push([]); }
     var tip = el('div', ['hp-tip', 'mono']);
     tip.hidden = true;
     var unranked = [];
     var LIMIT = has('heatShowAll') ? 20 : D.rows.length;
     var hidden = [];
+    var cols = [];
+    for (var d = 0; d < n; d++) { cols.push([]); }
+    D.cols = cols;
 
-    // Create play controls above heatmap
+    /* The grid starts at the first day most currencies have a price; earlier days sit behind a toggle
+       (only when the toggle has words, otherwise every day shows). */
+    var FIRST = 0;
+    if (has('heatEarlier')) {
+      for (var dd = 0; dd < n; dd++) {
+        var cnt = D.rows.filter(function (r) { return r.cells[dd] != null; }).length;
+        if (cnt * 2 >= D.rows.length) { FIRST = dd; break; }
+      }
+    }
+    D.first = FIRST;
+    D.view = FIRST;
+
+    /* controls: Play and slider above the map */
     var ctlAbove = el('div', 'hp-controls-above');
     if (has('heatPlay')) {
       var btn = el('button', 'hp-btn');
@@ -199,27 +210,34 @@
     }
     var lab = el('label', ['muted', 'hp-slider']);
     var cap = el('span');
-    var run = function () {
-      cap.textContent = '';
-      var pre = t('heatDay', { date: dayLabel(S.i) });
-      if (pre) { cap.textContent = pre; }
-    };
+    var run = function () { cap.textContent = t('heatDay', { date: dayLabel(S.i) }); };
     run(); updaters.push(run);
     if (has('heatDay')) { lab.appendChild(cap); }
     var rg = el('input');
-    rg.type = 'range'; rg.min = '0'; rg.max = String(n - 1); rg.value = String(S.i);
+    rg.type = 'range'; rg.min = String(FIRST); rg.max = String(n - 1); rg.value = String(S.i);
     if (has('heatSlider')) { rg.setAttribute('aria-label', t('heatSlider')); }
     rg.addEventListener('input', function () { stop(); set(+rg.value); });
     D.range = rg;
     lab.appendChild(rg);
     ctlAbove.appendChild(lab);
+    if (FIRST > 0) {
+      var earlier = el('button', 'hp-btn', t('heatEarlier', { n: num(FIRST) }));
+      earlier.type = 'button';
+      earlier.addEventListener('click', function () {
+        D.view = D.view === 0 ? FIRST : 0;
+        applyView();
+      });
+      ctlAbove.appendChild(earlier);
+    }
     main.appendChild(ctlAbove);
 
-    // Create marker above heatmap
+    var scroller = el('div', 'hp-scroll');
+    var gridwrap = el('div', 'hp-gridwrap');
+    var grid = el('div', 'hp-heat');
     var marker = el('div', 'hp-marker');
-    marker.style.width = '2px';
-    marker.style.left = '0px';
-    main.appendChild(marker);
+    D.marker = marker;
+    D.scroller = scroller;
+    D.gridwrap = gridwrap;
 
     D.rows.forEach(function (cur, ri) {
       var r = el('div', 'hp-hmrow');
@@ -229,9 +247,6 @@
       cells.setAttribute('data-ccy', cur.ccy);
       for (var k = 0; k < n; k++) {
         var s = el('span', cur.ranked ? colourClass(cur.cells[k]) : 'hu');
-        if (cur.ranked && cur.cells[k] == null) {
-          s.className = 'hn no-price';
-        }
         cells.appendChild(s);
         cols[k].push(s);
       }
@@ -240,7 +255,8 @@
       if (!cur.ranked) { unranked.push(cur); }
       cells.addEventListener('mousemove', function (ev) {
         var b = cells.getBoundingClientRect();
-        var k2 = Math.max(0, Math.min(n - 1, Math.floor((ev.clientX - b.left) / b.width * n)));
+        var vis = n - D.view;
+        var k2 = D.view + Math.max(0, Math.min(vis - 1, Math.floor((ev.clientX - b.left) / b.width * vis)));
         var v = cur.cells[k2];
         var text = v == null ? t('tipNone') : num(v, 1) + '%';
         if (!text) { tip.hidden = true; return; }
@@ -252,19 +268,21 @@
       });
       cells.addEventListener('mouseleave', function () { tip.hidden = true; });
     });
-    D.cols = cols;
-    main.appendChild(grid);
+    gridwrap.appendChild(marker);
+    gridwrap.appendChild(grid);
+    scroller.appendChild(gridwrap);
+    main.appendChild(scroller);
     if (hidden.length) {
       var more = el('button', ['hp-btn', 'hp-more'], t('heatShowAll', { n: num(D.rows.length) }));
       more.type = 'button';
-      more.addEventListener('click', function () { hidden.forEach(function (h) { h.hidden = false; }); more.hidden = true; });
+      more.addEventListener('click', function () { hidden.forEach(function (h) { h.hidden = false; }); more.hidden = true; placeMarker(); });
       main.appendChild(more);
     }
     main.appendChild(tip);
     unranked.forEach(function (cur) {
-      var note = word(main, 'p', ['muted', 'hp-note'], 'unrankedNote', function () { return { ccy: cur.ccy, country: cur.country }; });
-      return note;
+      word(main, 'p', ['muted', 'hp-note'], 'unrankedNote', function () { return { ccy: cur.ccy, country: cur.country }; });
     });
+    window.addEventListener('resize', placeMarker);
 
     row.appendChild(main);
 
@@ -278,9 +296,12 @@
       var code = el('a', ['mono', 'hp-topcode']);
       var val = el('span', ['mono', 'hp-topval']);
       var pl = el('span', ['soft', 'hp-small', 'hp-topprice']);
-      tr.appendChild(code); tr.appendChild(val); tr.appendChild(pl);
+      var track = el('span', 'hp-bar');
+      var fill = el('i');
+      track.appendChild(fill);
+      tr.appendChild(code); tr.appendChild(track); tr.appendChild(val); tr.appendChild(pl);
       topBox.appendChild(tr);
-      tops.push({ row: tr, code: code, val: val, price: pl });
+      tops.push({ row: tr, code: code, val: val, price: pl, fill: fill });
     }
     D.tops = tops;
     side.appendChild(topBox);
@@ -293,9 +314,8 @@
       var key = lo == null ? 'legendUnder' : hi == null ? 'legendOver' : 'legendBetween';
       items.push({ cls: 'k' + 'h' + s2, key: key, vars: { min: lo, max: hi } });
     }
+    items.unshift({ cls: 'khb', key: 'legendBelowOfficial', vars: {} });
     items.push({ cls: 'khn', key: 'legendNone', vars: {} });
-    // Add "below the official rate" bucket
-    items.push({ cls: 'kh0', key: 'legendBelowOfficial', vars: {} });
     if (unranked.length) { items.push({ cls: 'khu', key: 'legendUnranked', vars: {} }); }
     items.forEach(function (it) {
       if (!has(it.key)) { return; }
@@ -318,13 +338,29 @@
     getJSON('data/countries/' + encodeURIComponent(ccy) + '.json').then(function (d) { D.cfile[ccy] = d; paintHeat(); }).catch(function () {});
   }
 
+  /* Shows the days from D.view on; the slider and the marker follow. */
+  function applyView() {
+    D.cols.forEach(function (col, k) { col.forEach(function (c) { c.hidden = k < D.view; }); });
+    if (D.range) { D.range.min = String(D.view); }
+    set(Math.max(S.i, D.view));
+  }
+  /* One thin vertical line across the grid at the selected day, with a short tick above the first row. */
+  function placeMarker() {
+    var m = D.marker, first = D.cols && D.cols[S.i] && D.cols[S.i][0];
+    if (!m || !first || first.hidden) { if (m) { m.hidden = true; } return; }
+    var w = D.gridwrap.getBoundingClientRect(), c = first.getBoundingClientRect();
+    if (!c.width) { return; }
+    m.hidden = false;
+    m.style.left = (c.left - w.left + c.width / 2 - 0.5) + 'px';
+    var sc = D.scroller;
+    if (sc && sc.scrollWidth > sc.clientWidth) {
+      var x = c.left - sc.getBoundingClientRect().left + sc.scrollLeft;
+      if (x < sc.scrollLeft + 60 || x > sc.scrollLeft + sc.clientWidth - 20) { sc.scrollLeft = Math.max(0, x - sc.clientWidth / 2); }
+    }
+  }
+
   function paintHeat() {
     var i = S.i;
-    if (D.cols) {
-      D.cols.forEach(function (col, k) {
-        col.forEach(function (s) { s.classList.toggle('sel', k === i); });
-      });
-    }
     if (D.tops) {
       var list = D.rows.filter(function (c) { return c.ranked && c.cells[i] != null && c.cells[i] > 0; })
         .sort(function (a, b) { return b.cells[i] - a.cells[i] || (a.ccy < b.ccy ? -1 : 1); }).slice(0, 6);
@@ -337,22 +373,15 @@
         tp.code.href = 'country.html?ccy=' + encodeURIComponent(c.ccy);
         tp.code.setAttribute('data-ccy', c.ccy);
         tp.val.textContent = num(c.cells[i], 0) + '%';
+        // square-root scale: one very wide gap no longer flattens the other five into stubs
+        tp.fill.style.width = Math.max(4, Math.sqrt(c.cells[i] / max) * 100).toFixed(1) + '%';
         var pr = D.cfile && D.cfile[c.ccy];
         if (has('topPriceLine') && !pr && i === lastIndex()) { loadCountry(c.ccy); }
-        tp.price.textContent = (pr && has('topPriceLine') && i === lastIndex()) ? t('topPriceLine', { price: num(pr.buy_price, pr.buy_price >= 100 ? 0 : 2), ccy: c.ccy, rate: num(pr.fx_mid_per_usd, pr.fx_mid_per_usd >= 100 ? 0 : 2) }) : '';
+        tp.price.textContent = (pr && pr.buy_price != null && pr.fx_mid_per_usd != null && has('topPriceLine') && i === lastIndex()) ? t('topPriceLine', { price: num(pr.buy_price, pr.buy_price >= 100 ? 0 : 2), ccy: c.ccy, rate: num(pr.fx_mid_per_usd, pr.fx_mid_per_usd >= 100 ? 0 : 2) }) : '';
       });
     }
     if (D.range) { D.range.value = String(i); }
-
-    // Update marker position
-    var marker = document.querySelector('.hp-marker');
-    if (marker && D.days && D.days.length > 0) {
-      var gridWidth = document.querySelector('.hp-cells') ? document.querySelector('.hp-cells').offsetWidth : 0;
-      if (gridWidth > 0) {
-        var cellWidth = gridWidth / D.days.length;
-        marker.style.left = (i * cellWidth + cellWidth / 2 - 1) + 'px';
-      }
-    }
+    placeMarker();
   }
 
   /* ---------------------------------------------------------------- replay */
@@ -364,7 +393,7 @@
   function stop() { if (timer) { clearInterval(timer); timer = null; } S.playing = false; }
   function toggle(relabel) {
     if (timer) { stop(); relabel(); return; }
-    if (S.i >= lastIndex()) { set(0); }
+    if (S.i >= lastIndex()) { set(D.view || 0); }
     S.playing = true; relabel();
     timer = setInterval(function () {
       if (S.i >= lastIndex()) { stop(); relabel(); return; }
@@ -373,141 +402,103 @@
     }, 160);
   }
 
-  /* ---------------------------------------------------------------- what moved + stablecoin line */
-  function spark(values) {
-    var svg = sv('svg', { viewBox: '0 0 70 20', width: '70', height: '20' }, 'hp-spark');
-    var nums = values.filter(function (v) { return v != null; });
-    if (!nums.length) { return svg; }
-    var lo = Math.min.apply(null, nums), hi = Math.max.apply(null, nums);
-    var Y = function (v) { return hi === lo ? 10 : 18 - (v - lo) / (hi - lo) * 16; };
-    var seg = [];
-    var flush = function () {
-      if (seg.length > 1) { svg.appendChild(sv('polyline', { points: seg.join(' ') }, 'hp-sline')); }
-      else if (seg.length === 1) {
-        var p = seg[0].split(',');
-        svg.appendChild(sv('circle', { cx: p[0], cy: p[1], r: '1' }, 'hp-sdotc'));
-      }
-      seg = [];
-    };
-    values.forEach(function (v, k) {
-      if (v == null) { flush(); return; }
-      seg.push((k * 70 / (values.length - 1)).toFixed(1) + ',' + Y(v).toFixed(1));
-    });
-    flush();
-    return svg;
-  }
+  /* ---------------------------------------------------------------- findings strip + Singapore to the Philippines */
+  // A claim-guarded line renders only when the claims gate loaded and says the claim holds.
+  function claimOk(key) { return !!(window.Claims && window.Claims.blocked && !window.Claims.blocked(key)); }
 
-  /* ---------------------------------------------------------------- findings strip */
+  // Each published finding's number is read from data/findings.json (headline.value); a finding whose copy slot is empty is not shown.
+  function findingValue(f) {
+    var v = f.headline && f.headline.value;
+    if (v == null) { return ''; }
+    return v >= 1e6 ? num(v / 1e6, 1) + 'M' : num(v, 0);
+  }
   function findingsStrip(wrap) {
     var F = D.findings;
-    if (!F || !F.findings || !F.findings.length) { return; }
-
-    var sec = el('section', 'hp-findings-sec');
-    word(sec, 'h2', null, 'findingsTitle');
-
-    var findingsBox = el('div', 'hp-findings');
-    F.findings.slice(0, 5).forEach(function (f) {
-      var div = el('div', 'hp-finding');
-      var text = t('finding_' + f.key, f.vars);
-      if (text) {
-        div.textContent = text;
-        findingsBox.appendChild(div);
-      }
-    });
-
-    sec.appendChild(findingsBox);
-    wrap.appendChild(sec);
-  }
-
-  /* ---------------------------------------------------------------- SG-PHP section */
-  function sgPhSection(wrap) {
-    var RS = D.routes;
-    if (!RS || !RS.routes) { return; }
-    var r = RS.routes.filter(function (x) { return x.id === 'SGD->PHP'; })[0];
-    if (!r || r.total_hours_stable_cheapest !== 0 || typeof r.hours_priced_any_amount !== 'number' || !RS.start) { return; }
-
-    var sec = el('section', ['hp-sec', 'hp-sg-ph-section']);
-    word(sec, 'h2', null, 'sgPhTitle'); // Add this to copy.json
-
-    var vars = function () { return { hours: num(r.hours_priced_any_amount), since: dLong(RS.start) }; };
-    // Only render stableLine if claims are loaded and it's not blocked
-    if (claimOk('homeData.stableLine')) {
-      word(sec, 'p', ['soft', 'hp-lede'], 'stableLine', vars);
-    }
-    // Only render stableLink if claims are loaded and it's not blocked
-    if (claimOk('homeData.stableLink')) {
-      var a = word(sec, 'a', 'hp-biglink', 'stableLink', vars);
-      if (a) { a.href = './sending-money.html'; }
-    }
-
-    wrap.appendChild(sec);
-  }
-
-  /* ---------------------------------------------------------------- what moved + stablecoin line */
-  function lowerSections(wrap) {
-    var both = el('div', 'hp-two');
-    var M = D.movers;
-    if (M && M.top && M.top.length) {
-      var sec = el('section', 'hp-half');
-      word(sec, 'h2', null, 'moversTitle');
-      var list = el('div', 'hp-listbox');
-      M.top.slice(0, 4).forEach(function (m) {
-        var a = el('a', 'hp-mover');
-        a.href = 'country.html?ccy=' + encodeURIComponent(m.ccy);
-        a.appendChild(el('span', ['mono', 'hp-movercode'], m.ccy));
-        // baseline window: every day before the last 7 (movers_week.json "definition")
-        var n = D.days ? D.days.length : 0;
-        var li = D.days ? D.days.indexOf(M.last_day) : -1;
-        if (li < 0) { li = n - 1; }
-        var hrow = (D.rows || []).filter(function (r) { return r.ccy === m.ccy; })[0];
-        var since = '', until = '';
-        if (hrow && li - 7 >= 0) {
-          for (var q = 0; q <= li - 7; q++) { if (hrow.cells[q] != null) { since = dShort(D.days[q]); break; } }
-          until = dShort(D.days[li - 7]);
-        }
-        var dir = function (v) { return t(v < 0 ? 'dirBelow' : 'dirAbove'); };
-        var line = t('moverLine', {
-          country: m.country, baseline: num(Math.abs(m.earlier_median_pct), 1) + '%', baselineDir: dir(m.earlier_median_pct),
-          recent: num(Math.abs(m.recent_median_pct), 1) + '%', recentDir: dir(m.recent_median_pct), since: since, until: until
-        });
-        if (line) { a.appendChild(el('span', ['soft', 'hp-moverline'], line)); } else { a.appendChild(el('span', 'hp-moverline')); }
-        a.appendChild(spark(m.spark || []));
-        list.appendChild(a);
+    var lines = [];
+    if (F && F.findings) {
+      F.findings.forEach(function (f) {
+        if (f.published === false) { return; }
+        var text = t('finding_' + f.id, { value: findingValue(f) });
+        if (text) { lines.push(text); }
       });
-      sec.appendChild(list);
-      both.appendChild(sec);
     }
-    if (both.childNodes.length) { wrap.appendChild(both); }
-
-    // Add findings strip
-    findingsStrip(wrap);
-
-    // Add SG-PHP section
-    sgPhSection(wrap);
+    var sg = sgPhLines();
+    if (!lines.length && !sg) { return; }
+    var sec = el('section', ['hp-sec', 'hp-findings-sec']);
+    word(sec, 'h2', null, 'findingsTitle');
+    if (lines.length) {
+      var box = el('div', 'hp-findings');
+      lines.forEach(function (x) { box.appendChild(el('p', 'hp-finding', x)); });
+      sec.appendChild(box);
+    }
+    if (sg) {
+      var sub = el('div', 'hp-sgph');
+      word(sub, 'h3', 'hp-subhead', 'sgPhTitle');
+      sub.appendChild(sg);
+      sec.appendChild(sub);
+    }
+    wrap.appendChild(sec);
   }
 
   /* One stablecoin statement, for SGD->PHP only, and only while the stored claim is true:
      total_hours_stable_cheapest must be 0. Any other value renders nothing. */
-  // A claim-guarded line renders only when the claims gate loaded and says the claim holds.
-  function claimOk(key) { return !!(window.Claims && window.Claims.blocked && !window.Claims.blocked(key)); }
-
-  function stableSection(wrap) {
+  function sgPhLines() {
     var RS = D.routes;
-    if (!RS || !RS.routes) { return; }
+    if (!RS || !RS.routes) { return null; }
     var r = RS.routes.filter(function (x) { return x.id === 'SGD->PHP'; })[0];
-    if (!r || r.total_hours_stable_cheapest !== 0 || typeof r.hours_priced_any_amount !== 'number' || !RS.start) { return; }
-    var sec = el('section', 'hp-sec');
+    if (!r || r.total_hours_stable_cheapest !== 0 || typeof r.hours_priced_any_amount !== 'number' || !RS.start) { return null; }
+    var box = el('div', 'hp-sgline');
     var vars = function () { return { hours: num(r.hours_priced_any_amount), since: dLong(RS.start) }; };
-    // Only render stableLine if claims are loaded and it's not blocked
-    if (claimOk('homeData.stableLine')) {
-      word(sec, 'p', ['soft', 'hp-lede'], 'stableLine', vars);
-    }
-    // Only render stableLink if claims are loaded and it's not blocked
+    if (claimOk('homeData.stableLine')) { word(box, 'p', ['soft', 'hp-body'], 'stableLine', vars); }
     if (claimOk('homeData.stableLink')) {
-      var a = word(sec, 'a', 'hp-biglink', 'stableLink', vars);
+      var a = word(box, 'a', 'hp-biglink', 'stableLink', vars);
       if (a) { a.href = './sending-money.html'; }
     }
-    if (sec.childNodes.length) { wrap.appendChild(sec); }
+    return box.childNodes.length ? box : null;
+  }
+
+  /* ---------------------------------------------------------------- what moved */
+  function moversSection(wrap) {
+    var M = D.movers;
+    if (!M || !M.top || !M.top.length) { return; }
+    var sec = el('section', 'hp-sec');
+    word(sec, 'h2', null, 'moversTitle');
+    var list = el('div', 'hp-listbox');
+    M.top.slice(0, 4).forEach(function (m) {
+      var a = el('a', 'hp-mover');
+      a.href = 'country.html?ccy=' + encodeURIComponent(m.ccy);
+      a.appendChild(el('span', ['mono', 'hp-movercode'], m.ccy));
+      // baseline window: every day before the last 7 (movers_week.json "definition")
+      var n = D.days ? D.days.length : 0;
+      var li = D.days ? D.days.indexOf(M.last_day) : -1;
+      if (li < 0) { li = n - 1; }
+      var hrow = (D.rows || []).filter(function (r) { return r.ccy === m.ccy; })[0];
+      var since = '', until = '';
+      if (hrow && li - 7 >= 0) {
+        for (var q = 0; q <= li - 7; q++) { if (hrow.cells[q] != null) { since = dShort(D.days[q]); break; } }
+        until = dShort(D.days[li - 7]);
+      }
+      var dir = function (v) { return t(v < 0 ? 'dirBelow' : 'dirAbove'); };
+      var line = t('moverLine', {
+        country: m.country, baseline: num(Math.abs(m.earlier_median_pct), 1) + '%', baselineDir: dir(m.earlier_median_pct),
+        recent: num(Math.abs(m.recent_median_pct), 1) + '%', recentDir: dir(m.recent_median_pct), since: since, until: until
+      });
+      a.appendChild(el('span', ['soft', 'hp-moverline'], line));
+      var diff = Math.round(m.recent_median_pct * 10) / 10 - Math.round(m.earlier_median_pct * 10) / 10;
+      a.appendChild(el('span', ['mono', 'hp-moverdiff'], (diff < 0 ? '-' : '+') + num(Math.abs(diff), 1)));
+      list.appendChild(a);
+    });
+    sec.appendChild(list);
+    wrap.appendChild(sec);
+  }
+
+  /* ---------------------------------------------------------------- the record so far */
+  function recordSection(wrap) {
+    if (!D.record || !D.record.days || typeof window.renderRecordBlock !== 'function') { return; }
+    var box = el('div', 'hp-recordwrap');
+    wrap.appendChild(box);
+    window.renderRecordBlock(box, D.record, D.milestones, C);
+    if (!box.childNodes.length) { box.remove(); }
   }
 
   /* ---------------------------------------------------------------- start */
@@ -548,28 +539,28 @@
     }
   }
 
-  function build(claimsLoaded) {
+  function build() {
     var app = document.getElementById('app');
     app.textContent = '';
     var wrap = el('div', 'hp-wrap');
     header(wrap);
     hero(wrap);
     if (D.days) { heatSection(wrap); }
-    lowerSections(wrap);
-    // Only render stable section if claims are loaded and the stableLine is not blocked
-    if (claimsLoaded !== false && claimOk('homeData.stableLine')) {
-      stableSection(wrap);
-    }
+    moversSection(wrap);
+    findingsStrip(wrap);
+    recordSection(wrap);
     if (D.failed.length && has('loadError')) {
       wrap.appendChild(el('p', ['muted', 'hp-note'], t('loadError', { n: D.failed.length })));
     }
     app.appendChild(wrap);
-    if (D.days) { set(S.i); }
+    if (D.days) { if (D.view > 0) { applyView(); } else { set(S.i); } }
+    if (D.heat && D.scroller) { D.scroller.scrollLeft = D.scroller.scrollWidth; placeMarker(); }
   }
 
   var jobs = {
     heat: 'data/heatmap_daily.json', record: 'data/record_daily.json', cycles: 'data/cycle_log.json',
-    movers: 'data/movers_week.json', routes: 'data/routes_summary.json', findings: 'data/findings_summary.json'
+    movers: 'data/movers_week.json', routes: 'data/routes_summary.json', findings: 'data/findings.json',
+    milestones: 'data/record_milestones.json'
   };
   D.failed = [];
   // Load claims and data in parallel
@@ -589,6 +580,6 @@
     }
     prepare();
     // Pass whether claims loaded successfully to build function
-    build(claimsData !== null);
+    build();
   });
 })();

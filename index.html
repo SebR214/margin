@@ -61,32 +61,16 @@
   .hp-code { position: relative; width: 44px; flex: none; display: inline-flex; align-items: center; min-height: 44px; margin: -16px 0; font-size: 12px; color: var(--color-neutral-700); text-decoration: none; }
   .hp-cells { flex: 1; display: flex; gap: 2px; min-width: 0; }
   .hp-cells span { flex: 1; height: 11px; border-radius: 2px; }
-  .hp-cells .h0, .kh0 { background: var(--data-300); }
-  .hp-cells .h1, .kh1 { background: var(--data-400); }
-  .hp-cells .h2, .kh2 { background: var(--data-500); }
-  .hp-cells .h3, .kh3 { background: var(--data-600); }
-  .hp-cells .h4, .kh4 { background: var(--data-700); }
-  /* 14 real colour steps between under-2% and 2-8% */
-  .hp-cells .h0-5 { background: #f0f2fd; } /* Lighter than h0 */
-  .hp-cells .h1-5 { background: #e0e4fb; } /* Between h0 and h1 */
-  .hp-cells .h2-5 { background: #d0d6f9; } /* Between h1 and h2 */
-  .hp-cells .h3-5 { background: #c0c8f7; } /* Between h2 and h3 */
-  .hp-cells .h4-5 { background: #b0baf5; } /* Between h3 and h4 */
-  .hp-cells .h5 { background: #a0acf3; } /* Darker than h4 */
-  .hp-cells .h6 { background: #909ef1; } /* Even darker */
-  .hp-cells .h7 { background: #8090ef; } /* Even darker */
-  .hp-cells .h8 { background: #7082ed; } /* Even darker */
-  .hp-cells .h9 { background: #6074eb; } /* Even darker */
-  .hp-cells .h10 { background: #5066e9; } /* Even darker */
-  .hp-cells .h11 { background: #4058e7; } /* Even darker */
-  .hp-cells .h12 { background: #304ae5; } /* Even darker */
-  .hp-cells .h13 { background: #203ce3; } /* Even darker */
-  .hp-cells .hn, .khn { background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-neutral-500); }
-  /* 13 no-price cells flat pale fill, no border, quieter than "under 2%" */
-  .hp-cells .hn.no-price { background: #f8f8f8; box-shadow: none; }
+  .hp-cells .h0, .kh0 { background: var(--data-400); }
+  .hp-cells .h1, .kh1 { background: var(--data-600); }
+  .hp-cells .h2, .kh2 { background: var(--data-700); }
+  .hp-cells .h3, .kh3 { background: color-mix(in srgb, var(--data-700) 70%, var(--color-ink)); }
+  .hp-cells .h4, .kh4 { background: color-mix(in srgb, var(--data-700) 35%, var(--color-ink)); }
+  /* below the official rate: diagonal hatch, shown only when the legend has words for it */
+  .hp-cells .hb, .khb { background: repeating-linear-gradient(135deg, var(--color-neutral-400) 0 1px, var(--color-bg) 1px 4px); }
+  /* no price: flat pale fill, no border, quieter than "under 2%" */
+  .hp-cells .hn, .khn { background: var(--color-neutral-100); }
   .hp-cells .hu, .khu { background: var(--color-neutral-300); }
-  .hp-cells span.sel { box-shadow: 0 0 0 1px var(--color-ink); }
-  .hp-sw.khn { box-shadow: inset 0 0 0 1px var(--color-neutral-300); }
   .hp-note { padding-left: 54px; margin-top: 8px; font-size: 13px; }
   .hp-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 12px; padding-left: 54px; }
   .hp-btn { background: var(--color-surface); color: var(--color-ink); border: 1px solid var(--color-neutral-400); border-radius: 6px; min-height: 44px; padding: 0 18px; font: inherit; font-weight: 400; cursor: pointer; }
@@ -130,34 +114,42 @@
   .hp-sline { fill: none; stroke: var(--data-700); stroke-width: 1.5; }
   .hp-sdotc { fill: var(--data-700); }
 
-  /* Play and slider above heatmap */
+  /* Play and slider above the map */
   .hp-controls-above { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 16px; }
-  .hp-controls-above .hp-btn { margin-right: 16px; }
   .hp-controls-above .hp-slider { flex: 1; min-width: 220px; display: flex; flex-direction: column; font-size: 13px; }
+  .hp-cells span[hidden] { display: none; }
+  .hp-scroll { overflow-x: auto; overflow-y: hidden; padding: 16px 0; margin: -16px 0; }
+  .hp-gridwrap { position: relative; padding-top: 10px; }
+  /* selected day: one thin vertical line across the grid, a little taller than it at the top */
+  .hp-marker { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--color-ink); pointer-events: none; z-index: 1; }
+  .hp-marker[hidden] { display: none; }
+  /* ranking rows: code, bar, value, price line under */
+  .hp-toprow { flex-wrap: wrap; gap: 4px 10px; padding: 6px 0; border-bottom: 1px solid var(--color-neutral-300); }
+  .hp-topcode { min-height: 32px; }
+  .hp-topprice { flex: 1 0 100%; padding-left: 54px; }
+  .hp-topprice:empty { display: none; }
+  .hp-topbox { gap: 4px; }
+  .hp-bar { min-width: 60px; }
+  .hp-movercode { color: var(--color-ink); }
+  .hp-moverdiff { margin-left: auto; font-size: 14px; }
+  .hp-sline, .hp-sdotc { display: none; }
+  .hp-findings { display: flex; flex-direction: column; border-top: 1px solid var(--color-neutral-300); }
+  .hp-finding { font-size: 14px; padding: 10px 0; border-bottom: 1px solid var(--color-neutral-300); }
+  .hp-sgph { display: flex; flex-direction: column; gap: 10px; }
+  .hp-subhead { margin: 0; font-size: 18px; font-weight: 600; }
 
-  /* Heatmap marker above */
-  .hp-marker { position: absolute; top: -20px; height: 2px; background: var(--color-ink); z-index: 10; }
-
-  /* Findings strip */
-  .hp-findings { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
-  .hp-finding { font-size: 14px; padding: 8px 0; border-bottom: 1px solid var(--color-neutral-300); }
-
-  /* SG-PHP section */
-  .hp-sg-ph-section { margin-top: 32px; }
-
-  /* Mobile adjustments */
-  @media (max-width: 390px) {
-    .hp-cells { overflow-x: auto; }
-    .hp-cells::-webkit-scrollbar { display: none; }
-    /* Show last 14 days with the full grid scrollable sideways inside its own box */
-    .hp-hmrow { min-width: 390px; }
-    .hp-cells { min-width: 390px; }
+  /* phones: the grid scrolls sideways inside its own box; code column stays put */
+  @media (max-width: 600px) {
+    .hp-heat { min-width: 560px; }
+    .hp-code { position: sticky; left: 0; background: var(--color-bg); z-index: 2; min-height: 0; height: 14px; margin: 0; }
+    .hp-wrap { padding-left: 16px; padding-right: 16px; }
   }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script src="./js/claims.js"></script>
+<script src="./js/record_block.js"></script>
 <script src="./js/home.js"></script>
 </body>
 </html>
