@@ -100,26 +100,6 @@
   }
   var H2 = null;
 
-  function lineSvg(series, neg) {
-    var NS = 'http://www.w3.org/2000/svg';
-    var svg = document.createElementNS(NS, 'svg');
-    svg.setAttribute('class', 'cr-line' + (neg ? ' neg' : ''));
-    svg.setAttribute('viewBox', '0 0 100 28');
-    svg.setAttribute('preserveAspectRatio', 'none');
-    svg.setAttribute('aria-hidden', 'true');
-    if (series.length < 2) { return svg; }
-    var lo = Math.min.apply(null, series.concat([0])), hi = Math.max.apply(null, series.concat([0]));
-    if (hi === lo) { hi = lo + 1; }
-    var y = function (v) { return 26 - ((v - lo) / (hi - lo)) * 24; };
-    var zero = document.createElementNS(NS, 'line');
-    zero.setAttribute('x1', 0); zero.setAttribute('x2', 100); zero.setAttribute('y1', y(0)); zero.setAttribute('y2', y(0));
-    svg.appendChild(zero);
-    var pl = document.createElementNS(NS, 'polyline');
-    pl.setAttribute('points', series.map(function (v, i) { return (i / (series.length - 1) * 100).toFixed(2) + ',' + y(v).toFixed(2); }).join(' '));
-    svg.appendChild(pl);
-    return svg;
-  }
-
   // Stored names keep a leading "the" for use in sentences; a list shows the bare name.
   function plainName(n) { return String(n).replace(/^the /i, ''); }
 
@@ -136,9 +116,6 @@
     a.appendChild(nm);
     var showGap = r.gap != null && !r.unranked;
     a.appendChild(el('span', ['mono', 'cr-gap', showGap ? (r.gap < 0 ? 'neg' : 'pos') : 'none'], showGap ? pct(r.gap) : ''));
-    var cell = el('span');
-    cell.appendChild(lineSvg(r.series, r.gap != null && r.gap < 0));
-    a.appendChild(cell);
     return a;
   }
 
@@ -161,18 +138,24 @@
       var bigBox = el('div', 'hp-bigbox');
       var a = el('a', ['mono', 'hp-big']);
       a.href = countryHref(top.ccy);
-      a.textContent = num(top.gap, 0) + '%';
+      a.textContent = num(top.gap, 2) + '%';
       bigBox.appendChild(a);
       put(bigBox, 'span', 'soft', th('bigCaption', { country: top.country, ccy: top.ccy, date: dShort(H2.last_day), gap: num(top.gap, 1) }));
       s.appendChild(bigBox);
     }
-    var st = D.cycles && D.cycles.steps && D.cycles.steps.currencies;
-    if (st && claimOk('homeData.updatedCount')) {
-      put(s, 'p', ['muted', 'hp-body'], t('metaTemplate', {
-        time: ((D.cycles && D.cycles.last_reading_utc) || D.index.as_of_utc || '').slice(11, 16), n: num(st.collected), total: num(cc)
-      }));
-    }
     if (s.childNodes.length) { wrap.appendChild(s); }
+  }
+
+  // The long note on how the prices are made sits under the table, not above it.
+  function metaNote(wrap, rows) {
+    var cc = D.record && D.record.totals ? D.record.totals.currencies : rows.length;
+    var st = D.cycles && D.cycles.steps && D.cycles.steps.currencies;
+    if (!(st && claimOk('homeData.updatedCount'))) { return; }
+    var p = el('section', 'hp-sec');
+    put(p, 'p', ['muted', 'hp-body', 'cr-note'], t('metaTemplate', {
+      time: ((D.cycles && D.cycles.last_reading_utc) || D.index.as_of_utc || '').slice(11, 16), n: num(st.collected), total: num(cc)
+    }));
+    if (p.childNodes.length) { wrap.appendChild(p); }
   }
 
   function tools(wrap) {
@@ -228,9 +211,12 @@
     var list = el('div', 'cr-list');
     listHead(list);
     ranked.forEach(function (r, i) { list.appendChild(rowEl(r, i + 1)); });
-    frozen.forEach(function (r) { list.appendChild(rowEl(r, null)); });
     sec.appendChild(list);
     if (frozen.length) {
+      // A country with a price that is not ranked stands on its own line under the table.
+      var fl = el('div', ['cr-list', 'cr-frozen']);
+      frozen.forEach(function (r) { fl.appendChild(rowEl(r, null)); });
+      sec.appendChild(fl);
       var names = frozen.map(function (r) { return r.country; }).join(', ');
       put(sec, 'p', ['muted', 'hp-small', 'cr-note'], t(frozen.length === 1 ? 'frozenOneTemplate' : 'frozenManyTemplate', { names: names }));
     }
@@ -251,6 +237,7 @@
       wrap.appendChild(s2);
     }
 
+    metaNote(wrap, rows);
     var foot = el('section', ['hp-sec']);
     var how = put(foot, 'a', ['hp-biglink', 'hp-small'], t('howLink'));
     if (how) { how.href = 'how-it-works.html'; }

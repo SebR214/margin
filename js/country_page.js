@@ -18,12 +18,13 @@
   var DAY = 86400;
   var RAW = "https://github.com/SebR214/margin/blob/main/";
   var TIP_WINDOW = 5400; // a tooltip row shows a reading at most 1.5 hours from the pointer
-  var LATEST_ROWS = 12;
+  var LATEST_ROWS = 60;
+  var SHOWN_ROWS = 12; // rows visible before the show-more control
   var BAND_LO = 0.1, BAND_HI = 0.9; // the usual range: 10th to 90th percentile of the daily record
   var MIN_RECORD_DAYS = 20; // the record-position line needs this many days
   // One look per source layer: a token colour and a dot shape. Blue is reserved for the official rate.
   // Past twelve sources the looks repeat; the tooltip and the chip name each source.
-  var COLORS = ["--data-700", "--color-ink", "--data-400", "--color-neutral-700", "--data-600", "--data-600"];
+  var COLORS = ["--data-700", "--color-ink", "--color-neutral-500", "--color-neutral-700", "--data-600", "--data-600"];
   function look(i) { return [COLORS[i % COLORS.length], Math.floor(i / COLORS.length) % 2 ? "square" : "round"]; }
 
   var COPY = {};
@@ -59,12 +60,19 @@
   function maybeJSON(url) { return getJSON(url).catch(function () { return null; }); }
 
   function num(v, d) { return v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function pct2(v) { // the hero figure: two decimals
+    if (v == null || !isFinite(v)) return "";
+    if (Math.abs(v) < 0.005) return "0.00%";
+    return (v < 0 ? "-" : "") + num(Math.abs(v), 2) + "%";
+  }
   function pct(v) { // a gap: one decimal, none once it is past 100
     if (v == null || !isFinite(v)) return "";
     if (Math.abs(v) < 0.05) return "0.0%";
     return (v < 0 ? "-" : "") + num(Math.abs(v), Math.abs(v) >= 100 ? 0 : 1) + "%";
   }
   function price(v) { return num(v, v >= 100 ? 2 : v >= 1 ? 3 : 4); }
+  // Stored names keep a leading "the" for use in sentences; a list or a heading shows the bare name.
+  function plainName(n) { return String(n).replace(/^the /i, ""); }
   function money(v) { return "$" + Math.round(v).toLocaleString("en-US"); }
   function dayShort(t) { return new Date(t * 1000).toLocaleDateString("en-US", { day: "numeric", month: "short", timeZone: "UTC" }); }
   function dayLong(t) { return new Date(t * 1000).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }); }
@@ -91,7 +99,7 @@
   var S = {
     country: null, idx: null, history: [], segment: null, ranked: true,
     period: "all", unit: "gap", hidden: {}, daily: true, seg: true,
-    sel: null, asOf: 0, bandLo: null, bandHi: null
+    sel: null, off: true, band: true, asOf: 0, bandLo: null, bandHi: null
   };
   var monthCache = {};
   var chart = null;
@@ -197,13 +205,13 @@
 
   function buildHero() {
     var c = S.country, p2p = S.p2p;
-    var gapText = pct(S.headline);
+    var gapText = pct2(S.headline);
     var key = Math.abs(S.headline) < 0.05 ? "headlineSame" : S.headline > 0 ? "headlineMore" : "headlineLess";
     var lead = p2p && S.cdoc.source_class === "p2p_buy_median"
-      ? txt("leadP2p", { country: c.country, ccy: ccy, rate: num(p2p.fx_mid_per_usd, 0), street: num(p2p.buy_median, 0) + " " + ccy })
-      : txt("leadBook", { country: c.country, ccy: ccy, rate: num(S.cdoc.fx_mid_per_usd, 0), street: num(S.cdoc.buy_price, 0) + " " + ccy });
-    return '<section class="c-hero hero bleed"><div class="c-herotext">' + w(key, { country: c.country, gap: pct(Math.abs(S.headline)) }, "h1") +
-      (lead ? '<p class="soft c-lead">' + esc(lead) + "</p>" : "") +
+      ? txt("leadP2p", { country: c.country, ccy: ccy, rate: num(p2p.fx_mid_per_usd, 2), street: num(p2p.buy_median, 2) + " " + ccy })
+      : txt("leadBook", { country: c.country, ccy: ccy, rate: num(S.cdoc.fx_mid_per_usd, 2), street: num(S.cdoc.buy_price, 2) + " " + ccy });
+    return '<section class="c-hero hero bleed"><div class="c-herotext">' + w(key, { country: c.country, gap: pct2(Math.abs(S.headline)) }, "h1") +
+      (lead ? '<p class="soft c-lead">' + esc(lead) + "</p>" : "") + '<div id="cDepth"></div>' +
       (!S.ranked ? w("unrankedNote", { country: c.country }, "p", ["muted", "c-small"]) : "") + "</div>" +
       '<div class="c-bigbox"><span class="c-big mono" data-receipt-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(gapText) +
       '" tabindex="0">' + esc(gapText) + "</span>" + w("bigCaption", { country: c.country }, "span", ["soft", "c-small"]) + "</div></section>";
@@ -228,10 +236,7 @@
 
   function drawControls() {
     var left = "";
-    var legend = "";
     var lo = txt("legendOfficial"), bd = txt("legendBand");
-    if (lo) legend += '<span class="c-leg"><i class="c-line" style="background:var(--color-ink)"></i>' + esc(lo) + "</span>";
-    if (bd && S.bandLo != null) legend += '<span class="c-leg"><i class="c-band"></i>' + esc(bd) + "</span>";
     var chips = "";
     S.idx.sources.forEach(function (s, i) {
       chips += chip(!S.hidden[i], 'data-layer="s' + i + '"', swatch(look(i)) + esc(s.id));
@@ -242,7 +247,10 @@
     if (S.unit === "gap" && S.segment && txt("layerBackfill", { venue: S.segment.venue, label: S.segment.label })) {
       chips += chip(S.seg, 'data-layer="seg"', '<i class="c-line dashed"></i>' + esc(txt("layerBackfill", { venue: S.segment.venue, label: S.segment.label })));
     }
-    left = '<div class="c-chips">' + chips + "</div>" + '<div class="soft c-legend">' + legend + "</div>";
+    // One legend: every line, dot and band is a chip that switches it on or off.
+    if (lo) chips += chip(S.off, 'data-layer="off"', '<i class="c-line" style="background:var(--color-ink)"></i>' + esc(lo));
+    if (bd && S.bandLo != null) chips += chip(S.band, 'data-layer="band"', '<i class="c-band"></i>' + esc(bd));
+    left = '<div class="c-chips">' + chips + "</div>";
     document.getElementById("cLeft").innerHTML = left;
     var right = "";
     [["gap", "unitGap"], ["price", "unitPrice"]].forEach(function (u) {
@@ -274,11 +282,12 @@
           var lk = look(i);
           return { color: lk[0], cap: lk[1], pts: S.hidden[i] ? [] : src[i].map(function (r) { return [r.t, price ? r.price : r.gap]; }) };
         }),
-        official: price ? off.map(function (o) { return [o[0], o[1]]; }) : [[t0, 0], [t1, 0]],
+        official: !S.off ? [] : price ? off.map(function (o) { return [o[0], o[1]]; }) : [[t0, 0], [t1, 0]],
+        officialLabel: txt("legendOfficial"),
         band: [], daily: [], segment: [],
         yfmt: function (v) { return price ? num(v, v >= 100 ? 0 : v >= 10 ? 1 : 2) : pct(v); }
       };
-      if (S.bandLo != null) {
+      if (S.bandLo != null && S.band) {
         model.band = price
           ? off.map(function (o) { return [o[0], o[1] * (1 + S.bandLo / 100), o[1] * (1 + S.bandHi / 100)]; })
           : [[t0, S.bandLo, S.bandHi], [t1, S.bandLo, S.bandHi]];
@@ -383,15 +392,17 @@
 
   // ---------------------------------------------------------------- receipts
   function buildReceiptsSection() {
-    return '<section class="c-sec"><div class="c-sechead">' + w("receiptsHeading", { country: S.country.country }, "h2") +
-      w("receiptsLead", { country: S.country.country }, "p", ["muted", "c-small"]) + "</div>" +
-      '<div id="cDepth"></div><div class="c-list" id="cReceipts"></div></section>';
+    var name = plainName(S.country.country);
+    return '<section class="c-sec"><div class="c-sechead">' + w("receiptsHeading", { country: name }, "h2") +
+      w("receiptsLead", { country: name }, "p", ["muted", "c-small"]) + "</div>" +
+      '<div class="c-list" id="cReceipts"></div></section>';
   }
   function drawDepth() {
     var d = S.depth, box = document.getElementById("cDepth");
+    if (!box) return;
     if (!d) { box.innerHTML = ""; return; }
     var key = d.is_floor ? "depthNowFloor" : "depthNowMoved";
-    box.innerHTML = w(key, { amount: money(d.depth_usd), pct: d.threshold_pct, held: d.n_ads_held, priced: d.n_ads_priced }, "p", ["soft", "c-small"]);
+    box.innerHTML = w(key, { amount: money(d.depth_usd), pct: d.threshold_pct, held: d.n_ads_held, priced: d.n_ads_priced }, "p", ["soft", "c-small", "c-depth"]);
   }
   function loadLatest() {
     var months = S.idx.months.slice().reverse(), got = [], i = 0;
@@ -407,10 +418,14 @@
     var box = document.getElementById("cReceipts");
     if (!rows.length) { box.innerHTML = w("receiptsEmpty", null, "p", ["muted", "c-small"]); return; }
     var basisDone = false;
-    var out = '<div class="c-row c-rhead">' + w("rcolTime", null, "span", ["c-ct", "muted"]) + w("rcolSource", null, "span", ["c-cs", "muted"]) +
-      w("rcolPrice", null, "span", ["c-cp", "muted"]) + w("rcolGap", null, "span", ["c-cg", "muted"]) + w("rcolDepth", null, "span", ["c-cd", "muted"]) +
-      w("rcolRaw", null, "span", ["c-cr", "muted"]) + "</div>";
-    rows.forEach(function (r) {
+    var hasDepth = rows.some(function (r) { return r.n != null && txt("depthAds", { n: r.n, total: "" }); });
+    var hasSource = rows.some(function (r) { return S.idx.sources[r.s] && S.idx.sources[r.s].id; });
+    var hasRaw = rows.some(function (r) { return S.idx.sources[r.s] && S.idx.sources[r.s].raw_file; });
+    // A column with nothing in it is not drawn, heading included.
+    var out = '<div class="c-row c-rhead">' + w("rcolTime", null, "span", ["c-ct", "muted"]) + (hasSource ? w("rcolSource", null, "span", ["c-cs", "muted"]) : "") +
+      w("rcolPrice", null, "span", ["c-cp", "muted"]) + w("rcolGap", null, "span", ["c-cg", "muted"]) + (hasDepth ? w("rcolDepth", null, "span", ["c-cd", "muted"]) : "") +
+      (hasRaw ? w("rcolRaw", null, "span", ["c-cr", "muted"]) : "") + "</div>";
+    rows.forEach(function (r, i) {
       var s = S.idx.sources[r.s] || { id: "", raw_file: "" };
       var priceText = price(r.price) + " " + ccy;
       var cell = esc(priceText);
@@ -418,12 +433,25 @@
         basisDone = true;
         cell = '<span data-receipt-basis-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(priceText) + '" tabindex="0">' + esc(priceText) + "</span>";
       }
-      var depth = r.n != null ? esc(txt("depthAds", { n: r.n, total: r.total != null ? num(r.total, 0) : "" })) : esc(txt("depthNone"));
-      out += '<div class="c-row"><span class="mono muted c-ct">' + esc(stamp(r.t)) + '</span><span class="c-cs">' + swatch(look(r.s)) + esc(s.id) +
-        '</span><span class="mono c-cp">' + cell + '</span><span class="mono c-cg">' + esc(pct(r.gap)) + '</span><span class="mono c-cd">' + depth +
-        '</span><span class="mono c-cr"><a href="' + RAW + esc(s.raw_file) + '">' + esc(s.raw_file) + "</a></span></div>";
+      var depth = r.n != null ? esc(txt("depthAds", { n: r.n, total: r.total != null ? num(r.total, 0) : "" })) : "";
+      out += '<div class="c-row' + (i >= SHOWN_ROWS ? " more" : "") + '"' + (i >= SHOWN_ROWS ? " hidden" : "") + '><span class="mono muted c-ct">' + esc(stamp(r.t)) + "</span>" +
+        (hasSource ? '<span class="c-cs">' + swatch(look(r.s)) + esc(s.id) + "</span>" : "") +
+        '<span class="mono c-cp">' + cell + '</span><span class="mono c-cg">' + esc(pct(r.gap)) + "</span>" +
+        (hasDepth ? '<span class="mono c-cd">' + depth + "</span>" : "") +
+        (hasRaw ? '<span class="mono c-cr"><a href="' + RAW + esc(s.raw_file) + '">' + esc(s.raw_file) + "</a></span>" : "") + "</div>";
     });
+    if (rows.length > SHOWN_ROWS) {
+      // The label is a copy slot (receiptsMore); until it is written the control shows only how many rows it reveals.
+      var lbl = txt("receiptsMore", { n: num(rows.length - SHOWN_ROWS, 0) }) || "+" + num(rows.length - SHOWN_ROWS, 0);
+      out += '<button type="button" class="c-chip c-more mono" id="cMore" aria-expanded="false">' + esc(lbl) + "</button>";
+    }
     box.innerHTML = out;
+    var more = document.getElementById("cMore");
+    if (more) more.addEventListener("click", function () {
+      [].forEach.call(box.querySelectorAll(".c-row.more"), function (r) { r.hidden = false; });
+      more.hidden = true;
+      more.setAttribute("aria-expanded", "true");
+    });
   }
 
   // ---------------------------------------------------------------- start
@@ -497,7 +525,9 @@
     var b = e.target.closest("[data-layer]");
     if (!b) return;
     var k = b.getAttribute("data-layer");
-    if (k === "daily") S.daily = !S.daily;
+    if (k === "off") S.off = !S.off;
+    else if (k === "band") S.band = !S.band;
+    else if (k === "daily") S.daily = !S.daily;
     else if (k === "seg") S.seg = !S.seg;
     else S.hidden[+k.slice(1)] = !S.hidden[+k.slice(1)];
     drawControls();

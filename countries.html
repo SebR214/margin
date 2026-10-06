@@ -47,7 +47,7 @@
   .cr-chip { min-height: 44px; padding: 0 16px; background: var(--color-surface); color: var(--color-neutral-700); border: 1px solid var(--color-neutral-400); border-radius: 6px; font: inherit; font-weight: 400; cursor: pointer; }
   .cr-chip[aria-pressed="true"] { color: var(--color-ink); border-color: var(--data-700); }
   .cr-list { border-top: 1px solid var(--color-neutral-300); }
-  .cr-head, .cr-row { display: grid; grid-template-columns: 36px minmax(0, 1.4fr) 96px minmax(0, 2fr); gap: 16px; align-items: center; padding: 0; border-bottom: 1px solid var(--color-neutral-300); font-size: 14px; }
+  .cr-head, .cr-row { display: grid; grid-template-columns: 36px minmax(0, 1.4fr) 96px; gap: 16px; align-items: center; padding: 0; border-bottom: 1px solid var(--color-neutral-300); font-size: 14px; }
   .cr-head { min-height: 36px; color: var(--color-neutral-600); font-size: 13px; }
   .cr-row { min-height: 52px; color: var(--color-ink); text-decoration: none; }
   .cr-row:hover { background: var(--color-surface); }
@@ -58,22 +58,22 @@
   .cr-gap { text-align: right; color: var(--data-700); }
   .cr-gap.neg { color: var(--color-ink); }
   .cr-gap.none { color: var(--color-neutral-600); }
-  .cr-line { width: 100%; height: 28px; display: block; }
-  .cr-line polyline { fill: none; stroke: var(--data-700); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-  .cr-line.neg polyline { stroke: var(--color-ink); }
-  .cr-line line { stroke: var(--color-neutral-300); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .cr-head .cr-gap { color: var(--color-neutral-600); }
+  .cr-frozen { border-top: 0; }
   .cr-note { max-width: 760px; }
   @media (max-width: 620px) {
     .hp-wrap { padding: 0 16px 64px; }
+    .hp-headleft { gap: 0 20px; }
+    .hp-nav { gap: 0 12px; font-size: 14px; }
+    .hp-head { padding: 8px 0; }
     .cr-head, .cr-row { grid-template-columns: 28px minmax(0, 1fr) 76px; }
-    .cr-line, .cr-head .cr-hline { display: none; }
   }
 
 </style>
 </head>
 <body>
 <div id="app"></div>
-<template id="crHeadTpl"><div class="trow cr-head"><span></span><span data-k="colCountry"></span><span class="cr-gap" data-k="colNow"></span><span class="cr-hline"></span></div></template>
+<template id="crHeadTpl"><div class="trow cr-head"><span></span><span data-k="colCountry"></span><span class="cr-gap" data-k="colNow"></span></div></template>
 <script src="./js/claims.js"></script>
 <script src="./js/countries_page.js"></script>
 </body>
