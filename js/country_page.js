@@ -204,7 +204,7 @@
       : txt("leadBook", { country: c.country, ccy: ccy, rate: num(S.cdoc.fx_mid_per_usd, 0), street: num(S.cdoc.buy_price, 0) + " " + ccy });
     return '<section class="c-hero hero bleed"><div class="c-herotext">' + w(key, { country: c.country, gap: pct(Math.abs(S.headline)) }, "h1") +
       (lead ? '<p class="soft c-lead">' + esc(lead) + "</p>" : "") +
-      (S.cdoc && S.cdoc.source_words ? w("sourceLine", { sourceWords: S.cdoc.source_words }, "p", ["soft", "c-small"]) : "") +
+      (S.cdoc && S.cdoc.source_words ? w("sourceLine", { sourceWords: S.cdoc.source_words }, "p", ["soft", "c-small"]) + w("sourceRule", null, "p", ["soft", "c-small"]) : "") +
       (!S.ranked ? w("unrankedNote", { country: c.country }, "p", ["muted", "c-small"]) : "") + "</div>" +
       '<div class="c-bigbox"><span class="c-big mono" data-receipt-ccy="' + esc(ccy) + '" data-receipt-value="' + esc(gapText) +
       '" tabindex="0">' + esc(gapText) + "</span>" + w("bigCaption", { country: c.country }, "span", ["soft", "c-small"]) + "</div></section>";

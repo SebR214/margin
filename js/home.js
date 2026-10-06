@@ -194,8 +194,11 @@
     var tip = el('div', ['hp-tip', 'mono']);
     tip.hidden = true;
     var unranked = [];
-    D.rows.forEach(function (cur) {
+    var LIMIT = has('heatShowAll') ? 20 : D.rows.length;
+    var hidden = [];
+    D.rows.forEach(function (cur, ri) {
       var r = el('div', 'hp-hmrow');
+      if (ri >= LIMIT) { r.hidden = true; hidden.push(r); }
       ccyLink(r, cur.ccy, ['hp-code', 'mono']);
       var cells = el('div', 'hp-cells');
       cells.setAttribute('data-ccy', cur.ccy);
@@ -224,6 +227,12 @@
     });
     D.cols = cols;
     main.appendChild(grid);
+    if (hidden.length) {
+      var more = el('button', ['hp-btn', 'hp-more'], t('heatShowAll', { n: num(D.rows.length) }));
+      more.type = 'button';
+      more.addEventListener('click', function () { hidden.forEach(function (h) { h.hidden = false; }); more.hidden = true; });
+      main.appendChild(more);
+    }
     main.appendChild(tip);
     unranked.forEach(function (cur) {
       var note = word(main, 'p', ['muted', 'hp-note'], 'unrankedNote', function () { return { ccy: cur.ccy, country: cur.country }; });
@@ -255,7 +264,7 @@
     D.range = rg;
     lab.appendChild(rg);
     ctl.appendChild(lab);
-    main.appendChild(ctl);
+    main.insertBefore(ctl, grid);
     row.appendChild(main);
 
     var side = el('aside', 'hp-side');
@@ -266,13 +275,11 @@
     for (var q = 0; q < 6; q++) {
       var tr = el('div', 'hp-toprow');
       var code = el('a', ['mono', 'hp-topcode']);
-      var bar = el('span', 'hp-bar');
-      var fill = el('i');
-      bar.appendChild(fill);
       var val = el('span', ['mono', 'hp-topval']);
-      tr.appendChild(code); tr.appendChild(bar); tr.appendChild(val);
+      var pl = el('span', ['soft', 'hp-small', 'hp-topprice']);
+      tr.appendChild(code); tr.appendChild(val); tr.appendChild(pl);
       topBox.appendChild(tr);
-      tops.push({ row: tr, code: code, fill: fill, val: val });
+      tops.push({ row: tr, code: code, val: val, price: pl });
     }
     D.tops = tops;
     side.appendChild(topBox);
@@ -300,6 +307,14 @@
     wrap.appendChild(sec);
   }
 
+  // The price line under a ranking row needs the country's own file; fetched once, then the rows repaint.
+  function loadCountry(ccy) {
+    D.cfile = D.cfile || {};
+    if (D.cfile[ccy] !== undefined) { return; }
+    D.cfile[ccy] = null;
+    getJSON('data/countries/' + encodeURIComponent(ccy) + '.json').then(function (d) { D.cfile[ccy] = d; paintHeat(); }).catch(function () {});
+  }
+
   function paintHeat() {
     var i = S.i;
     if (D.cols) {
@@ -318,8 +333,10 @@
         tp.code.textContent = c.ccy;
         tp.code.href = 'country.html?ccy=' + encodeURIComponent(c.ccy);
         tp.code.setAttribute('data-ccy', c.ccy);
-        tp.fill.style.width = Math.max(4, c.cells[i] / max * 100).toFixed(1) + '%';
         tp.val.textContent = num(c.cells[i], 0) + '%';
+        var pr = D.cfile && D.cfile[c.ccy];
+        if (has('topPriceLine') && !pr && i === lastIndex()) { loadCountry(c.ccy); }
+        tp.price.textContent = (pr && has('topPriceLine') && i === lastIndex()) ? t('topPriceLine', { price: num(pr.buy_price, pr.buy_price >= 100 ? 0 : 2), ccy: c.ccy, rate: num(pr.fx_mid_per_usd, pr.fx_mid_per_usd >= 100 ? 0 : 2) }) : '';
       });
     }
     if (D.range) { D.range.value = String(i); }

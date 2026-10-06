@@ -4,46 +4,131 @@
     "denominator": 17892.583535,
     "denominator_meaning": "the official rate, local currency per dollar",
     "formula": "(numerator / denominator - 1) * 100",
-    "numerator": 17879.5,
+    "numerator": 17883.5,
     "numerator_meaning": "price to buy one dollar locally",
-    "result_pct": -0.0731
+    "result_pct": -0.0508
   },
-  "computed_at": "2026-10-06T02:00:00+00:00",
+  "computed_at": "2026-10-06T08:00:00+00:00",
   "country": "Indonesia",
   "evidence": {
-    "buy_median": 17879.5,
-    "collected_at": "2026-10-06T02:06:16.737790+00:00",
-    "n_offers": 2,
-    "offer_detail": "aggregates_only",
-    "offers": null,
-    "sell_median": 17857.0,
-    "source_kind": "order_book_median",
-    "source_words": "from order books"
+    "buy_median": 17883.5,
+    "collected_at": "2026-10-06T08:06:32.126096+00:00",
+    "n_offers": 10,
+    "offer_detail": "per_offer",
+    "offers": [
+      {
+        "price": 17876.0,
+        "side": "buy"
+      },
+      {
+        "price": 17878.0,
+        "side": "buy"
+      },
+      {
+        "price": 17882.0,
+        "side": "buy"
+      },
+      {
+        "price": 17883.0,
+        "side": "buy"
+      },
+      {
+        "price": 17883.0,
+        "side": "buy"
+      },
+      {
+        "price": 17884.0,
+        "side": "buy"
+      },
+      {
+        "price": 17884.0,
+        "side": "buy"
+      },
+      {
+        "price": 17885.0,
+        "side": "buy"
+      },
+      {
+        "price": 17885.0,
+        "side": "buy"
+      },
+      {
+        "price": 17885.0,
+        "side": "buy"
+      },
+      {
+        "price": 17860.0,
+        "side": "sell"
+      },
+      {
+        "price": 17856.0,
+        "side": "sell"
+      },
+      {
+        "price": 17855.0,
+        "side": "sell"
+      },
+      {
+        "price": 17848.0,
+        "side": "sell"
+      },
+      {
+        "price": 17848.0,
+        "side": "sell"
+      },
+      {
+        "price": 17847.0,
+        "side": "sell"
+      },
+      {
+        "price": 17844.0,
+        "side": "sell"
+      },
+      {
+        "price": 17843.0,
+        "side": "sell"
+      },
+      {
+        "price": 17842.0,
+        "side": "sell"
+      },
+      {
+        "price": 17839.0,
+        "side": "sell"
+      }
+    ],
+    "sell_median": 17847.5,
+    "source_kind": "p2p_buy_median",
+    "source_words": "from person-to-person ads"
   },
   "evidence_rule": {
-    "applies": false,
-    "n_venues_actual": 2,
-    "n_venues_required": 1,
+    "applies": true,
+    "buy_ads_actual": 10,
+    "buy_ads_estimated": false,
+    "buy_at_or_above_sell": true,
+    "min_buy_ads_required": 10,
     "passed": true,
     "reason": null,
-    "reason_code": "order_book"
+    "reason_code": null
   },
-  "hour_utc": "2026-10-06T02:00:00+00:00",
+  "hour_utc": "2026-10-06T08:00:00+00:00",
   "index_version": "1.1",
   "not_published_reason": null,
   "official_rate": {
     "class": "market",
     "source": "open.er-api",
     "source_file": "data/fx_rates.csv",
-    "timestamp": "2026-10-06T02:10:34.693329+00:00",
+    "timestamp": "2026-10-06T08:10:32.181697+00:00",
     "value": 17892.583535
   },
   "outlier_checked": null,
   "published": true,
   "source_files": [
-    "data/basis.csv",
     "data/countries/IDR.json",
-    "data/fx_rates.csv"
+    "data/fx_rates.csv",
+    "data/p2p_basis.csv",
+    "data/p2p_offers.csv",
+    "data/p2p_sides.csv"
   ],
   "unverified": false,
   "unverified_reason": null

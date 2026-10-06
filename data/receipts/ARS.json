@@ -4,46 +4,131 @@
     "denominator": 1520.0,
     "denominator_meaning": "the official rate, local currency per dollar",
     "formula": "(numerator / denominator - 1) * 100",
-    "numerator": 1615.4891,
+    "numerator": 1609.06,
     "numerator_meaning": "price to buy one dollar locally",
-    "result_pct": 6.2822
+    "result_pct": 5.8592
   },
-  "computed_at": "2026-10-06T02:00:00+00:00",
+  "computed_at": "2026-10-06T08:00:00+00:00",
   "country": "Argentina",
   "evidence": {
-    "buy_median": 1615.4891,
-    "collected_at": "2026-10-06T02:06:16.737790+00:00",
-    "n_offers": 25,
-    "offer_detail": "aggregates_only",
-    "offers": null,
-    "sell_median": 1590.0,
-    "source_kind": "broker_median",
-    "source_words": "from broker quotes"
+    "buy_median": 1609.06,
+    "collected_at": "2026-10-06T08:06:32.126096+00:00",
+    "n_offers": 10,
+    "offer_detail": "per_offer",
+    "offers": [
+      {
+        "price": 1605.0,
+        "side": "buy"
+      },
+      {
+        "price": 1605.0,
+        "side": "buy"
+      },
+      {
+        "price": 1606.85,
+        "side": "buy"
+      },
+      {
+        "price": 1607.39,
+        "side": "buy"
+      },
+      {
+        "price": 1608.38,
+        "side": "buy"
+      },
+      {
+        "price": 1609.74,
+        "side": "buy"
+      },
+      {
+        "price": 1609.75,
+        "side": "buy"
+      },
+      {
+        "price": 1612.2,
+        "side": "buy"
+      },
+      {
+        "price": 1613.0,
+        "side": "buy"
+      },
+      {
+        "price": 1613.99,
+        "side": "buy"
+      },
+      {
+        "price": 1593.52,
+        "side": "sell"
+      },
+      {
+        "price": 1593.5,
+        "side": "sell"
+      },
+      {
+        "price": 1592.88,
+        "side": "sell"
+      },
+      {
+        "price": 1592.86,
+        "side": "sell"
+      },
+      {
+        "price": 1592.85,
+        "side": "sell"
+      },
+      {
+        "price": 1592.12,
+        "side": "sell"
+      },
+      {
+        "price": 1592.0,
+        "side": "sell"
+      },
+      {
+        "price": 1591.27,
+        "side": "sell"
+      },
+      {
+        "price": 1591.11,
+        "side": "sell"
+      },
+      {
+        "price": 1590.76,
+        "side": "sell"
+      }
+    ],
+    "sell_median": 1592.485,
+    "source_kind": "p2p_buy_median",
+    "source_words": "from person-to-person ads"
   },
   "evidence_rule": {
-    "applies": false,
-    "n_venues_actual": 25,
-    "n_venues_required": 1,
+    "applies": true,
+    "buy_ads_actual": 10,
+    "buy_ads_estimated": false,
+    "buy_at_or_above_sell": true,
+    "min_buy_ads_required": 10,
     "passed": true,
     "reason": null,
-    "reason_code": "order_book"
+    "reason_code": null
   },
-  "hour_utc": "2026-10-06T02:00:00+00:00",
+  "hour_utc": "2026-10-06T08:00:00+00:00",
   "index_version": "1.1",
   "not_published_reason": null,
   "official_rate": {
     "class": "managed",
     "source": "bcra",
     "source_file": "data/fx_rates.csv",
-    "timestamp": "2026-10-06T02:10:34.693329+00:00",
+    "timestamp": "2026-10-06T08:10:32.181697+00:00",
     "value": 1520.0
   },
   "outlier_checked": null,
   "published": true,
   "source_files": [
-    "data/basis.csv",
     "data/countries/ARS.json",
-    "data/fx_rates.csv"
+    "data/fx_rates.csv",
+    "data/p2p_basis.csv",
+    "data/p2p_offers.csv",
+    "data/p2p_sides.csv"
   ],
   "unverified": false,
   "unverified_reason": null

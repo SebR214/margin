@@ -135,3 +135,5 @@ The numbered findings cards and their data (data/findings.json) are gone from ho
 | `runLine` | Under the first line: how long the record has run. | {since}, {hours}, {readings} | 22 |
 | `sourcesLine` | Next line, links to the Sources page. | {sources} | 8 |
 | `agentsLine` | Next line, links to How it was built. | {agents} | 16 |
+| `heatShowAll` | Button under the first 20 heatmap rows; shows the rest. Empty: all rows show. | {n} = number of currencies | 6 |
+| `topPriceLine` | Under each "paying most" row: the real price against the official rate. | {price}, {ccy}, {rate} | 12 |

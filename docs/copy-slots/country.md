@@ -109,3 +109,4 @@ The page picks one of the five sentences from the numbers, then appends `recordR
 | depthNowMoved | Same line when the price moved before reaching the full size | {amount}, {pct}, {held}, {priced} | 20 |
 
 | `sourceLine` | Under the lead: which kind of source sets this country's price. | {sourceWords} | 22 |
+| `sourceRule` | Under the source line: the rule that picks a country's source. | none | 28 |
