@@ -107,3 +107,6 @@ The page picks one of the five sentences from the numbers, then appends `recordR
 | depthNone | Depth cell for an order-book reading, which stores no size. Leave empty to show nothing; the page never makes up a depth | none | 4 |
 | depthNowFloor | Line above the list: latest dollar depth, when the depth is a floor | {amount} like $5,000, {pct} price move allowed, {held}, {priced} | 20 |
 | depthNowMoved | Same line when the price moved before reaching the full size | {amount}, {pct}, {held}, {priced} | 20 |
+
+| `sourceLine` | Under the lead: which kind of source sets this country's price. | {sourceWords} | 22 |
+| `sourceRule` | Under the source line: the rule that picks a country's source. | none | 28 |
