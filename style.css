@@ -200,13 +200,13 @@ nav a.active, nav a[aria-current] { color: var(--color-ink); font-weight: 700; }
 }
 
 /* ---------------------------------------------------------------- hero
-   Black band, white below -- the one place on a page that inverts. */
+   White, black text -- the hero is no longer an inverted band. */
 .hero {
-  background: var(--color-ink); color: var(--color-bg);
+  background: none; color: var(--color-ink);
   padding: 56px 24px 40px;
 }
-.hero h1 { color: var(--color-bg); }
-.hero .text-muted { color: color-mix(in srgb, var(--color-bg) 65%, transparent); }
+.hero h1 { color: var(--color-ink); }
+.hero .text-muted { color: color-mix(in srgb, var(--color-ink) 55%, transparent); }
 
 /* ---------------------------------------------------------------- pills
    Pills only on input -- a pill shape means "you can act on this". A
@@ -346,9 +346,9 @@ nav a.active, nav a[aria-current] { color: var(--color-ink); font-weight: 700; }
 .official, .app { color: var(--color-ink); }
 /* A hero band that runs the full width of the screen from inside a centred column. */
 .hero.bleed { margin-inline: calc(50% - 50vw); padding-inline: calc(50vw - 50%); padding-block: 40px 32px; }
-.hero .soft, .hero .muted { color: color-mix(in srgb, var(--color-bg) 85%, transparent); }
-.hero a { color: var(--color-bg); }
+.hero .soft, .hero .muted { color: color-mix(in srgb, var(--color-ink) 70%, transparent); }
+.hero a { color: var(--color-ink); }
 html, body { overflow-x: clip; }
 .hero.bleed { max-width: none; }
 .hero.bleed > * { max-width: 1200px; }
-.hero.bleed [class*="big"] { color: var(--color-bg); }
+.hero.bleed [class*="big"] { color: var(--color-ink); }
