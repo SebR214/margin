@@ -74,7 +74,11 @@ python3 agents/linear.py say SEB-8 reviewer "<verdict>"
 ```
 
 **Pass.** Verify, screenshot anything reader-facing, and **merge it yourself**
-on your own verification plus green checks — true for backend, data,
+on your own verification plus green checks -- never on green checks alone,
+and never while another review of the same PR is still in flight (RULES.md,
+SEB-262: PR #406 merged 2 minutes before its own CHANGES_REQUESTED verdict
+posted, so the fail had nowhere to go). The verdict that clears a merge is
+the one you post in this same pass — true for backend, data,
 `agents/`, `tools/`, ops, and anything a reader sees. Sebastian is not involved
 in routine work and must not be asked (RULES.md, 2026-10-01):
 
