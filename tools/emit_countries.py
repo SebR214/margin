@@ -392,11 +392,8 @@ MEDIAN_WINDOW_HOURS = 24
 
 def _hour_value(ccy, hour, bh, ph, sides, book):
     """One hour's index value, same source precedence and evidence rule as
-    latest_by_ccy() below -- NEW RULE:
-    1. Person-to-person offers (p2p_buy_median) when evidence rules pass
-    2. Order books
-    3. Broker quotes
-    4. P2P fallback
+    latest_by_ccy() below -- order books/brokers first, then a P2P buy-side
+    median that clears the v1.1 evidence bar (>= MIN_BUY_ADS, buy >= sell).
     Never p2p_fallback: that stands in for one missing ad-board row, and
     letting it count as a full observation in a 24-value median would let a
     single thin hour's quote outweigh a real 20-ad reading. Returns None for
@@ -406,43 +403,17 @@ def _hour_value(ccy, hour, bh, ph, sides, book):
     venues = [_venue_entry(r) for r in bh.get(hour, [])]
     books = [v for v in venues if v["kind"] == "order_book"]
     brokers = [v for v in venues if v["kind"] == "broker"]
-
-    # 1. Person-to-person offers (p2p_buy_median) when evidence rules pass
+    chosen = books or brokers
+    if chosen:
+        prices = [v["buy_price"] for v in chosen]
+        price = statistics.median(prices)
+        row_fx = None
+        for r in bh.get(hour, []):
+            row_fx = num(r, "fx_mid_per_usd") or row_fx
+        fx, _fx_source, _par_rate, _par_source = fx_for(book, ccy, hour, row_fx)
+        return index_pct(price, fx)
     pr = ph.get(hour) or []
     r = pr[0] if pr else None
-    if r is not None and flag(r, "source_ok") and num(r, "buy_median") is not None:
-        price, sell = num(r, "buy_median"), num(r, "sell_median")
-        n_buy = sides.get((ccy, hour))
-        if n_buy is None:
-            total = num(r, "n_ads")
-            n_buy = MIN_BUY_ADS if (total or 0) >= MIN_BUY_ADS * 2 else 0
-        # P2P buy median wins when it passes evidence rules
-        if (n_buy >= MIN_BUY_ADS and
-            not (sell is not None and price < sell)):
-            fx, _fx_source, _par_rate, _par_source = fx_for(book, ccy, hour, num(r, "fx_mid_per_usd"))
-            return index_pct(price, fx)
-
-    # 2. Order books
-    if books:
-        prices = [v["buy_price"] for v in books]
-        price = statistics.median(prices)
-        row_fx = None
-        for r in bh.get(hour, []):
-            row_fx = num(r, "fx_mid_per_usd") or row_fx
-        fx, _fx_source, _par_rate, _par_source = fx_for(book, ccy, hour, row_fx)
-        return index_pct(price, fx)
-
-    # 3. Broker quotes
-    if brokers:
-        prices = [v["buy_price"] for v in brokers]
-        price = statistics.median(prices)
-        row_fx = None
-        for r in bh.get(hour, []):
-            row_fx = num(r, "fx_mid_per_usd") or row_fx
-        fx, _fx_source, _par_rate, _par_source = fx_for(book, ccy, hour, row_fx)
-        return index_pct(price, fx)
-
-    # 4. P2P buy-side median that clears the v1.1 evidence bar (fallback path)
     if r is None or not flag(r, "source_ok"):
         return None
     price, sell = num(r, "buy_median"), num(r, "sell_median")
@@ -532,36 +503,10 @@ def latest_by_ccy():
             row_fx = num(r, "fx_mid_per_usd") or row_fx
         fx, fx_source, par_rate, par_source = fx_for(book, ccy, hour, row_fx)
 
-        # NEW RULE: Check P2P first with evidence rules
-        pr = ph.get(hour) or []
-        r = pr[0] if pr else None
-        p2p_chosen = False
-        if r is not None and flag(r, "source_ok") and num(r, "buy_median") is not None:
-            price = num(r, "buy_median")
-            sell = num(r, "sell_median")
-            n_buy = sides.get((ccy, hour))
-            if n_buy is None:
-                # Rows predating the sidecar carry only the two sides added
-                # together. Both sides full is the only combination that
-                # guarantees a full buy side, so it is the conservative stand-in
-                # and it is recorded as such rather than assumed exact.
-                total = num(r, "n_ads")
-                n_buy = MIN_BUY_ADS if (total or 0) >= MIN_BUY_ADS * 2 else 0
-            # P2P buy median wins when it passes evidence rules
-            if (n_buy >= MIN_BUY_ADS and
-                not (sell is not None and price < sell)):
-                p2p_chosen = True
-
         chosen, cls = None, None
-        # 1. Person-to-person offers (p2p_buy_median) when evidence rules pass
-        if p2p_chosen:
-            # Will be handled in the P2P section below
-            pass
-        # 2. Order books
-        elif books:
+        if books:
             chosen = books
             cls = "order_book_median" if len(books) >= 2 else "order_book_single"
-        # 3. Broker quotes
         elif brokers:
             chosen = brokers
             cls = "broker_median" if len(brokers) >= 2 else "broker_single"
@@ -582,38 +527,7 @@ def latest_by_ccy():
             if bids:
                 sell = statistics.median(bids)
                 entry["round_trip_pct"] = round((price / sell - 1) * 100, 4) if sell else None
-        elif p2p_chosen:
-            # Handle P2P case when it passes evidence rules (priority #1)
-            if fx is None:
-                fx, fx_source, par_rate, par_source = fx_for(
-                    book, ccy, hour, num(r, "fx_mid_per_usd") if r is not None else None)
-            n_buy = sides.get((ccy, hour))
-            if n_buy is None:
-                # Rows predating the sidecar carry only the two sides added
-                # together. Both sides full is the only combination that
-                # guarantees a full buy side, so it is the conservative stand-in
-                # and it is recorded as such rather than assumed exact.
-                total = num(r, "n_ads") if r is not None else None
-                n_buy = MIN_BUY_ADS if (total or 0) >= MIN_BUY_ADS * 2 else 0
-                entry["buy_ads_estimated"] = True
-            price = num(r, "buy_median") if r is not None else None
-            sell = num(r, "sell_median") if r is not None else None
-            fx = fx if fx else num(r, "fx_mid_per_usd")
-            entry.update(
-                source_class="p2p_buy_median",
-                source_words=CLASS_WORDS["p2p_buy_median"],
-                n_sources=n_buy,
-                source_file=SOURCE_FILE_BY_CLASS["p2p_buy_median"],
-                buy_price=price,
-                fx_mid_per_usd=fx, index_pct=index_pct(price, fx),
-                venues=[{"venue": r.get("source"), "buy_price": price,
-                         "index_pct": index_pct(price, fx),
-                         "last_price_used": False}],
-            )
-            if sell:
-                entry["round_trip_pct"] = round((price / sell - 1) * 100, 4)
         else:
-            # Fallback cases: order books -> brokers -> P2P fallback -> no value
             pr = ph.get(hour) or []
             r = pr[0] if pr else None
             if fx is None:
