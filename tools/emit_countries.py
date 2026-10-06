@@ -16,8 +16,9 @@ changing anything here. The rules it fixes, in one place:
   hour, and the row carries the reason.
 
 Derived, never authoritative. Every value is computed from a row in
-data/basis.csv or data/p2p_basis.csv; nothing is interpolated and a missing
-input produces an absent key rather than a placeholder.
+data/basis.csv, data/p2p_basis.csv, or data/p2p_okx.csv; nothing is
+interpolated and a missing input produces an absent key rather than a
+placeholder.
 
 No wall clock in the output, so an unchanged dataset regenerates byte-identical
 files and the collector's "nothing staged" branch stays reachable.
@@ -39,6 +40,7 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
 BASIS = os.path.join(DATA, "basis.csv")
 P2P = os.path.join(DATA, "p2p_basis.csv")
+P2P_OKX = os.path.join(DATA, "p2p_okx.csv")
 SIDES = os.path.join(DATA, "p2p_sides.csv")
 FX = os.path.join(DATA, "fx_rates.csv")
 HIST = os.path.join(DATA, "basis_history.csv")
@@ -479,6 +481,15 @@ def latest_by_ccy():
             continue
         p2p_hours[ccy].setdefault(t.replace(minute=0, second=0, microsecond=0), []).append(r)
 
+    okx_hours = collections.defaultdict(dict)
+    for r in rows(P2P_OKX):
+        ccy, t = r.get("ccy"), parse_ts(r.get("ts_utc"))
+        if not ccy or t is None or not flag(r, "source_ok"):
+            continue
+        if num(r, "buy_median") is None:
+            continue
+        okx_hours[ccy].setdefault(t.replace(minute=0, second=0, microsecond=0), []).append(r)
+
     sides = buy_side_counts()
     book = fx_book()
     spread_latest = stable_spread_latest()
@@ -601,6 +612,26 @@ def latest_by_ccy():
                     if sell is not None and price is not None:
                         entry["round_trip_pct"] = round((price / sell - 1) * 100, 4)
                         entry["withheld_buy_price"] = price
+
+        # SEB-256: a second, independent P2P board (OKX). If this currency
+        # already has a price from p2p_basis and OKX also has a buy_median for
+        # the same hour, combine the two into a median of independent sources.
+        # The source_class stays whatever p2p_basis assigned; n_sources reflects
+        # the combined count.
+        okr_list = okx_hours.get(ccy, {}).get(hour, [])
+        okr = okr_list[0] if okr_list else None
+        if okr is not None and entry.get("buy_price") is not None:
+            okx_price = num(okr, "buy_median")
+            if okx_price is not None:
+                entry["buy_price"] = round(
+                    statistics.median([entry["buy_price"], okx_price]), 8)
+                entry["n_sources"] = 2
+                entry["index_pct"] = index_pct(entry["buy_price"], fx)
+                entry["venues"].append({
+                    "venue": okr.get("source"), "buy_price": okx_price,
+                    "index_pct": index_pct(okx_price, fx),
+                    "last_price_used": False,
+                })
 
         entry["denominator"] = {
             "source": fx_source,
@@ -793,7 +824,7 @@ def build():
         "unverified": sorted(f["ccy"] for f in files.values() if f.get("unverified")),
         "sanity_band": {"low_pct": BAND_LOW, "high_pct": BAND_HIGH},
         "min_buy_ads": MIN_BUY_ADS,
-        "sources": ["data/basis.csv", "data/p2p_basis.csv", "data/basis_history.csv"],
+        "sources": ["data/basis.csv", "data/p2p_basis.csv", "data/p2p_okx.csv", "data/basis_history.csv"],
     }
     # SEB-38: the file-as-a-whole's own provenance, distinct from any one
     # country's row above. n_sources/source_file here describe the snapshot
