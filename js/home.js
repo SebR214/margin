@@ -155,6 +155,19 @@
       if (ln) { ln.href = href; }
       s.appendChild(bigBox);
     }
+    // How long it has run, where the prices come from, who runs it: every figure from a stored file.
+    var RT = D.record && D.record.totals;
+    if (RT && claimOk('homeData.runLine')) {
+      word(s, 'p', ['muted', 'hp-body'], 'runLine', function () {
+        return { since: dShort(D.record.first_day), hours: num(RT.hours_collected), readings: num(RT.readings) };
+      });
+      var srcLine = word(s, 'a', ['muted', 'hp-body', 'hp-facelink'], 'sourcesLine', function () { return { sources: num(RT.sources) }; });
+      if (srcLine) { srcLine.href = 'sources.html'; }
+    }
+    if (D.facts && D.facts.agents && claimOk('homeData.runLine')) {
+      var agLine = word(s, 'a', ['muted', 'hp-body', 'hp-facelink'], 'agentsLine', function () { return { agents: num(D.facts.agents) }; });
+      if (agLine) { agLine.href = 'how-it-was-built.html'; }
+    }
     word(s, 'p', ['soft', 'hp-lede'], 'headlineSub', totalsVars);
     var cs = D.cycles && D.cycles.steps && D.cycles.steps.currencies;
     if (cs && claimOk('homeData.updatedLine')) { word(s, 'p', ['muted', 'hp-body'], 'updatedLine', function () { return { collected: num(cs.collected), of: num(cs.of) }; }); }
@@ -464,7 +477,7 @@
 
   var jobs = {
     heat: 'data/heatmap_daily.json', record: 'data/record_daily.json', cycles: 'data/cycle_log.json',
-    movers: 'data/movers_week.json', routes: 'data/routes_summary.json'
+    movers: 'data/movers_week.json', routes: 'data/routes_summary.json', facts: 'data/site_facts.json'
   };
   D.failed = [];
   // Load claims and data in parallel

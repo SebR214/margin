@@ -131,3 +131,7 @@ The numbered findings cards and their data (data/findings.json) are gone from ho
 | Key | What it labels | Placeholders | Max words |
 | --- | --- | --- | --- |
 | `loadError` | Shown once at the bottom if any data file failed to load. | {n} = how many files failed. | 16 |
+
+| `runLine` | Under the first line: how long the record has run. | {since}, {hours}, {readings} | 22 |
+| `sourcesLine` | Next line, links to the Sources page. | {sources} | 8 |
+| `agentsLine` | Next line, links to How it was built. | {agents} | 16 |

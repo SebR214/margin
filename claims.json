@@ -68,6 +68,15 @@
         "findingData.limits_sgd_php_never_cheapest"
       ],
       "note": "Singapore to the Philippines: zero priced hours with the stablecoin cheapest, same query as the home line."
+    },
+    {
+      "key": "homeData.runLine",
+      "type": "site_facts_match",
+      "note": "Hours, readings, sources and the first day on home equal a recount: hours and readings from data/record_daily.json days, sources from sources_daily.json (live), the first day from the heatmap, and the agent count from the agents/ role files.",
+      "guards": [
+        "homeData.sourcesLine",
+        "homeData.agentsLine"
+      ]
     }
   ]
 }

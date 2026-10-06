@@ -209,6 +209,22 @@ def claim_coverage_matches_index(c):
                 "recount_priced": priced, "recount_of": total}
 
 
+def claim_site_facts_match(c):
+    """The home page's run line: every figure equals a recount from a different file than the one it is printed from."""
+    rd = json.load(open(os.path.join(DATA, "record_daily.json")))
+    days = rd["days"]
+    hm = json.load(open(os.path.join(DATA, "heatmap_daily.json")))
+    sd = json.load(open(os.path.join(DATA, "sources_daily.json")))["sources"]
+    facts = json.load(open(os.path.join(DATA, "site_facts.json")))
+    roles = [f for f in ("BUILDER.md", "REVIEWER.md", "WRITER.md") if os.path.exists(os.path.join(HERE, "agents", f))]
+    t = rd["totals"]
+    recount = {"hours": sum(x["hours_collected"] for x in days), "readings": sum(x["readings"] for x in days),
+               "first_day": hm["first_day"], "live_sources": sum(1 for s in sd if s["live"]), "agents": len(roles)}
+    ok = (t["hours_collected"] == recount["hours"] and t["readings"] == recount["readings"] and rd["first_day"] == recount["first_day"]
+          and t["sources"] == recount["live_sources"] and facts["agents"] == recount["agents"])
+    return ok, {"printed": {"hours": t["hours_collected"], "readings": t["readings"], "first_day": rd["first_day"], "sources": t["sources"], "agents": facts["agents"]}, "recount": recount}
+
+
 def claim_sources_counts(c):
     """The opening counts of the Sources page add up: live + history-only = all, with + without history = all."""
     d = json.load(open(os.path.join(DATA, "sources_daily.json")))["sources"]
@@ -235,6 +251,7 @@ TYPES = {"stable_never_cheapest": claim_stable_never_cheapest,
          "updated_hourly": claim_updated_hourly,
          "coverage_matches_index": claim_coverage_matches_index,
          "sources_counts": claim_sources_counts,
+         "site_facts_match": claim_site_facts_match,
          "routes_published_equal_fresh": claim_routes_published_equal_fresh}
 
 
