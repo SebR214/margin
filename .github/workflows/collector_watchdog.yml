@@ -24,30 +24,92 @@ name: collector-watchdog
 # talks to agents/linear.py directly instead, the same as every other
 # automated write in this repo, so the alert always lands in the margin.wiki
 # project and stays visible.
+#
+# SEB-258: this workflow is now SELF-DISPATCHING, the same pattern collect.yml
+# uses. Every run (whether fired by schedule or by the chain itself) dispatches
+# the next one ~15 minutes later, so a single successful fire keeps the chain
+# alive without depending purely on cron. The schedule below is the RESTARTER,
+# not the clock: a scheduled fire that finds the chain already alive exits
+# immediately without running the health check. The chain dispatches at a
+# 15-minute offset from the cron (:15/:45 vs :00/:30), giving four chances per
+# hour to get a fire through instead of two -- the same fix that made the
+# collect.yml chain reliable against GitHub's scheduled-fire dropping, applied
+# one level up so the watchdog's own clock cannot fail silently for hours the
+# way it did on 2026-10-05 (5h50m gap that fully contained the collect.yml
+# outage it was built to catch).
 
 on:
   schedule:
+    # RESTARTER. GitHub drops scheduled fires under load; this cannot be the
+    # only thing keeping the watchdog alive. The self-dispatching chain (see
+    # "Dispatch successor" below) is the real clock; this is the fallback that
+    # revives it if every link of the chain dies at once.
     - cron: "*/30 * * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      chain:
+        description: "true only when this run is the next link of a running chain"
+        required: false
+        default: "false"
 
 permissions:
   contents: read
+  # actions: write is what lets a run dispatch its successor.
+  actions: write
 
 jobs:
   watchdog:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Room for the health check (seconds) plus up to ~30 minutes of sleep in
+    # the dispatch-successor step before it forges the next link.
+    timeout-minutes: 40
     steps:
+      # THE GATE. A scheduled fire is a restarter, not a health check: if any
+      # link of the chain is already running or queued, this run has nothing to
+      # do and says so. Only a schedule can be redundant this way -- a dispatch
+      # was asked for explicitly (by the chain itself or by a person) and always
+      # proceeds.
+      #
+      # Runs BEFORE checkout: deciding whether to work needs no working tree,
+      # and a redundant restarter should cost seconds, not a checkout.
+      - name: Am I needed
+        id: needed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "dispatched (${{ github.event_name }}) -- always proceeds"
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          alive=""
+          for st in in_progress queued; do
+            [ -n "$alive" ] && break
+            alive=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/collector_watchdog.yml/runs?status=$st&branch=main&per_page=100" \
+                      --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }}) | .id] | first // \"\"")
+          done
+          if [ -n "$alive" ]; then
+            echo "chain alive, run $alive"
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "chain dead, restarting"
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.needed.outputs.proceed == 'true'
         with:
           fetch-depth: 200
 
       - uses: actions/setup-python@v5
+        if: steps.needed.outputs.proceed == 'true'
         with:
           python-version: "3.12"
 
       - name: Check collector health
         id: health
+        if: steps.needed.outputs.proceed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -106,3 +168,71 @@ jobs:
             python3 agents/linear.py say "$existing" product --body-file "$RUNNER_TEMP/recovery_body.md"
             python3 agents/linear.py state "$existing" "Done"
           fi
+
+      # Self-dispatching chain: forges the next run so a single successful
+      # fire keeps the watchdog alive without depending purely on cron.
+      #
+      # Uses always() so the chain continues even if the health check step
+      # itself failed (e.g. a script bug) -- a dead chain with a known bug is
+      # better than a dead chain nobody knows about. The re-check immediately
+      # before dispatching prevents two independent chains from forking
+      # permanently: by the time a link reaches this line it has been alive
+      # for the run's full duration (including the sleep), so any sibling
+      # chain is visible and both stand down.
+      - name: Dispatch successor
+        if: >-
+          always() && steps.needed.outputs.proceed == 'true'
+          && (github.event_name == 'schedule' || github.event.inputs.chain == 'true')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # Seconds until the next :15 or :45 UTC. Offsetting from the
+          # schedule's :00/:30 by 15 minutes gives four chances per hour
+          # instead of two.
+          now_m=$(date -u +%M); now_s=$(date -u +%S)
+          now_m=$((10#$now_m)); now_s=$((10#$now_s))
+          if   [ "$now_m" -lt 15 ]; then target=15
+          elif [ "$now_m" -lt 45 ]; then target=45
+          else target=75; fi          # 75 == :15 of the next hour
+          wait=$(( (target - now_m) * 60 - now_s ))
+          [ "$wait" -lt 5 ] && wait=5   # never dispatch into the slot just left
+          echo "now $(date -u +%H:%M:%SZ), next slot :$(printf '%02d' $((target % 60))), sleeping ${wait}s"
+          sleep "$wait"
+
+          # Re-check right before forging: another run may have started while
+          # this one slept. Same status-by-API check as "Am I needed",
+          # excluding this run, scoped to branch=main.
+          alive=""
+          for st in in_progress queued; do
+            [ -n "$alive" ] && break
+            alive=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/collector_watchdog.yml/runs?status=$st&branch=main&per_page=100" \
+                      --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }}) | .id] | first // \"\"")
+          done
+          if [ -n "$alive" ]; then
+            echo "another link already alive (run $alive) -- standing down instead of forking a second chain"
+            exit 0
+          fi
+
+          # Retry on transient GitHub API failures -- a single 504 must not
+          # kill the chain when a second or third attempt would likely succeed.
+          attempt=1
+          until gh workflow run collector_watchdog.yml --ref main -f chain=true; do
+            if [ "$attempt" -ge 3 ]; then
+              echo "::error::dispatch failed $attempt times in a row -- giving up, chain ends here"
+              exit 1
+            fi
+            echo "dispatch attempt $attempt failed, retrying in 10s"
+            attempt=$((attempt + 1))
+            sleep 10
+          done
+          # `gh workflow run` prints no id, so read it back. Best effort only --
+          # the dispatch is what matters and a slow-to-appear run must not fail
+          # a step that already succeeded.
+          sleep 5
+          new_id=$(gh run list --workflow=collector_watchdog.yml --limit 10 \
+                     --json databaseId,event,status \
+                     --jq '[.[] | select(.event == "workflow_dispatch")
+                                | select(.status == "in_progress" or .status == "queued")
+                                | .databaseId] | first // ""' || true)
+          echo "successor dispatched: run ${new_id:-<id not yet visible>}"
