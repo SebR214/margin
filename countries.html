@@ -58,13 +58,17 @@
   .cr-gap { text-align: right; color: var(--data-700); }
   .cr-gap.neg { color: var(--color-ink); }
   .cr-gap.none { color: var(--color-neutral-600); }
+  .cr-head .cr-gap { color: var(--color-neutral-600); }
+  .cr-frozen { border-top: 0; }
   .cr-line { width: 100%; height: 28px; display: block; }
   .cr-line polyline { fill: none; stroke: var(--data-700); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-  .cr-line.neg polyline { stroke: var(--color-ink); }
   .cr-line line { stroke: var(--color-neutral-300); stroke-width: 1; vector-effect: non-scaling-stroke; }
   .cr-note { max-width: 760px; }
   @media (max-width: 620px) {
     .hp-wrap { padding: 0 16px 64px; }
+    .hp-headleft { gap: 0 20px; }
+    .hp-nav { gap: 0 12px; font-size: 14px; }
+    .hp-head { padding: 8px 0; }
     .cr-head, .cr-row { grid-template-columns: 28px minmax(0, 1fr) 76px; }
     .cr-line, .cr-head .cr-hline { display: none; }
   }

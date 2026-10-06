@@ -123,7 +123,7 @@
   // Stored names keep a leading "the" for use in sentences; a list shows the bare name.
   function plainName(n) { return String(n).replace(/^the /i, ''); }
 
-  function rowEl(r, rank) {
+  function rowEl(r, rank, noLine) {
     var a = el('a', ['cr-row', 'trow']);
     a.href = countryHref(r.ccy);
     a.setAttribute('data-ccy', r.ccy);
@@ -137,7 +137,7 @@
     var showGap = r.gap != null && !r.unranked;
     a.appendChild(el('span', ['mono', 'cr-gap', showGap ? (r.gap < 0 ? 'neg' : 'pos') : 'none'], showGap ? pct(r.gap) : ''));
     var cell = el('span');
-    cell.appendChild(lineSvg(r.series, r.gap != null && r.gap < 0));
+    if (!noLine) { cell.appendChild(lineSvg(r.series, false)); }
     a.appendChild(cell);
     return a;
   }
@@ -161,18 +161,24 @@
       var bigBox = el('div', 'hp-bigbox');
       var a = el('a', ['mono', 'hp-big']);
       a.href = countryHref(top.ccy);
-      a.textContent = num(top.gap, 0) + '%';
+      a.textContent = num(top.gap, 2) + '%';
       bigBox.appendChild(a);
       put(bigBox, 'span', 'soft', th('bigCaption', { country: top.country, ccy: top.ccy, date: dShort(H2.last_day), gap: num(top.gap, 1) }));
       s.appendChild(bigBox);
     }
-    var st = D.cycles && D.cycles.steps && D.cycles.steps.currencies;
-    if (st && claimOk('homeData.updatedCount')) {
-      put(s, 'p', ['muted', 'hp-body'], t('metaTemplate', {
-        time: ((D.cycles && D.cycles.last_reading_utc) || D.index.as_of_utc || '').slice(11, 16), n: num(st.collected), total: num(cc)
-      }));
-    }
     if (s.childNodes.length) { wrap.appendChild(s); }
+  }
+
+  // The long note on how the prices are made sits under the table, not above it.
+  function metaNote(wrap, rows) {
+    var cc = D.record && D.record.totals ? D.record.totals.currencies : rows.length;
+    var st = D.cycles && D.cycles.steps && D.cycles.steps.currencies;
+    if (!(st && claimOk('homeData.updatedCount'))) { return; }
+    var p = el('section', 'hp-sec');
+    put(p, 'p', ['muted', 'hp-body', 'cr-note'], t('metaTemplate', {
+      time: ((D.cycles && D.cycles.last_reading_utc) || D.index.as_of_utc || '').slice(11, 16), n: num(st.collected), total: num(cc)
+    }));
+    if (p.childNodes.length) { wrap.appendChild(p); }
   }
 
   function tools(wrap) {
@@ -228,9 +234,12 @@
     var list = el('div', 'cr-list');
     listHead(list);
     ranked.forEach(function (r, i) { list.appendChild(rowEl(r, i + 1)); });
-    frozen.forEach(function (r) { list.appendChild(rowEl(r, null)); });
     sec.appendChild(list);
     if (frozen.length) {
+      // A country with a price that is not ranked stands on its own line under the table.
+      var fl = el('div', ['cr-list', 'cr-frozen']);
+      frozen.forEach(function (r) { fl.appendChild(rowEl(r, null, true)); });
+      sec.appendChild(fl);
       var names = frozen.map(function (r) { return r.country; }).join(', ');
       put(sec, 'p', ['muted', 'hp-small', 'cr-note'], t(frozen.length === 1 ? 'frozenOneTemplate' : 'frozenManyTemplate', { names: names }));
     }
@@ -242,7 +251,7 @@
       put(s2, 'p', ['muted', 'hp-small', 'cr-note'], t('withheldNoteTemplate', { min: num(D.index.min_buy_ads) }));
       var l2 = el('div', 'cr-list');
       none.forEach(function (r) {
-        var row = rowEl(r, null);
+        var row = rowEl(r, null, true);
         var why = (C.withheldReasons || {})[r.reason];
         if (why) { row.querySelector('.cr-code').textContent = r.ccy + ' · ' + why; }
         l2.appendChild(row);
@@ -251,6 +260,7 @@
       wrap.appendChild(s2);
     }
 
+    metaNote(wrap, rows);
     var foot = el('section', ['hp-sec']);
     var how = put(foot, 'a', ['hp-biglink', 'hp-small'], t('howLink'));
     if (how) { how.href = 'how-it-works.html'; }

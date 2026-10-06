@@ -23,21 +23,28 @@
   function word(tag, cls, key) { var t = T(key); return t ? el(tag, cls, t) : null; }
   // A finding's title with {approx} filled from its own headline number (4,444,700 -> "S$4.4M"): the figure
   // in a headline is always the stored number, never typed.
+  function approxSgd(v) { return 'S$' + (v / 1e6).toFixed(1) + 'M'; }
   function titleOf(f) {
     var t = T('title_' + f.id);
     var v = (f.headline || {}).value;
-    return t.replace(/\{approx\}/g, typeof v === 'number' ? 'S$' + (v / 1e6).toFixed(1) + 'M' : '');
+    return t.replace(/\{approx\}/g, typeof v === 'number' ? approxSgd(v) : '');
   }
+  // The headline as shown: a monthly volume in Singapore dollars reads "S$4.5M", everything else its stored number.
+  function shownHeadline(h) { return h.unit === 'sgd_per_month' ? approxSgd(h.value) : fmt(h.value); }
   function niceRoute(r) { return String(r || '').replace('->', ' \u2192 '); }
 
   function fmt(v) {
     if (typeof v !== 'number') return String(v);
     return v.toLocaleString('en-US', { maximumFractionDigits: 2 });
   }
+  // "5 Oct, 00:00". The label beside it says UTC, so the time itself does not.
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   function fmtTime(s) {
-    var m = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.exec(s || '');
-    return m ? m[1] + ' ' + m[2] + ' UTC' : (s || '');
+    var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(s || '');
+    return m ? (+m[3]) + ' ' + MONTHS[+m[2] - 1] + ', ' + m[4] : (s || '');
   }
+  // The currency a route's amount is sent in: "SGD->PHP" -> "SGD".
+  function fromCcy(route) { var m = /^([A-Z]{3})\s*(?:->|\u2192)/.exec(route || ''); return m ? m[1] : ''; }
   function fmtBytes(n) { return n < 1000 ? n + ' B' : (n / 1000).toFixed(1) + ' kB'; }
   function two(i) { return (i < 9 ? '0' : '') + (i + 1); }
 
@@ -100,19 +107,27 @@
         return false;
       });
     }
+    // A count of zero is drawn against what it could have been: the hours priced.
+    if (f.id === 'sgd_php_never_cheapest') pk = 'hours_stablecoin_cheapest';
     var max = 0;
-    rows.forEach(function (r) { if (typeof r[pk] === 'number' && r[pk] > max) max = r[pk]; });
+    rows.forEach(function (r) {
+      var cap = f.id === 'sgd_php_never_cheapest' && typeof r.hours_priced === 'number' ? r.hours_priced : r[pk];
+      if (typeof cap === 'number' && cap > max) max = cap;
+    });
     var s = section('evidenceHeading', 'evidenceBasis_' + f.id);
     kid(s, T('field_' + pk) ? el('p', ['muted', 'fp-note'], T('field_' + pk)) : null);
     var list = kid(s, el('div', 'fp-list'));
     rows.forEach(function (r) {
       var leg = kid(list, el('div', 'fp-leg'));
-      var lab = kid(leg, el('span', ['fp-lab', 'mono'], (r.route ? niceRoute(r.route) : (r.ccy || '')) + (r.amount != null ? ' \u00b7 ' + fmt(r.amount) : '')));
+      var lab = kid(leg, el('span', ['fp-lab', 'mono']));
+      lab.appendChild(el('span', 'fp-labmain', (r.route ? niceRoute(r.route) : (r.ccy || '')) +
+        (r.amount != null ? ' \u00b7 ' + fmt(r.amount) + (fromCcy(r.route) ? ' ' + fromCcy(r.route) : '') : '')));
       if (r.side) kid(lab, word('span', 'muted', 'side_' + r.side));
       var track = kid(leg, el('span', 'fp-track'));
       var bar = kid(track, document.createElement('i'));
       var pct = (max > 0 && typeof r[pk] === 'number') ? Math.max(r[pk] > 0 ? 2 : 0, r[pk] / max * 100) : 0;
       bar.style.width = pct.toFixed(1) + '%';
+      if (r[pk] === 0) track.classList.add('zero');
       kid(leg, el('span', ['fp-num', 'mono'], typeof r[pk] === 'number' ? fmt(r[pk]) : ''));
       var extra = el('div', 'fp-extra');
       Object.keys(r).forEach(function (k) {
@@ -193,15 +208,36 @@
     return a;
   }
 
+  // One row per finding: its number, its title, the headline figure, and when it was last rechecked.
+  function indexRow(f, i) {
+    var li = el('li', 'fp-irow');
+    var a = kid(li, el('a', 'fp-ilink'));
+    a.href = './finding.html?id=' + encodeURIComponent(f.id);
+    a.appendChild(el('span', ['fp-no', 'mono'], two(i)));
+    a.appendChild(el('span', 'fp-ititle', titleOf(f)));
+    var h = f.headline || {};
+    if (typeof h.value === 'number') {
+      var v = kid(a, el('span', 'fp-ival'));
+      v.appendChild(el('span', ['mono', 'fp-ibig'], shownHeadline(h)));
+      kid(v, word('span', ['soft', 'fp-note'], 'unit_' + h.unit));
+    }
+    if (f.last_recheck_utc && T('lastRecheck')) {
+      var m = kid(a, el('span', ['fp-card-meta', 'muted']));
+      m.appendChild(el('span', '', T('lastRecheck')));
+      m.appendChild(el('span', 'mono', fmtTime(f.last_recheck_utc)));
+    }
+    return li;
+  }
+
   function renderIndex(wrap, published) {
     wrap.appendChild(header());
     var top = el('section', 'fp-sec');
     kid(top, word('h1', '', 'indexHeading'));
     kid(top, word('p', ['soft', 'fp-line'], 'indexLine'));
     if (top.firstChild) wrap.appendChild(top);
-    var cards = el('div', 'fp-cards');
-    published.forEach(function (f, i) { cards.appendChild(card(f, i)); });
-    if (cards.firstChild) wrap.appendChild(cards);
+    var list = el('ol', 'fp-index');
+    published.forEach(function (f, i) { list.appendChild(indexRow(f, i)); });
+    if (list.firstChild) wrap.appendChild(list);
     if (T('indexTitle')) document.title = 'margin.wiki — ' + T('indexTitle');
   }
 
@@ -227,7 +263,7 @@
     var h = f.headline || {};
     if (typeof h.value === 'number') {
       var num = kid(hero, el('div', 'fp-hero-num'));
-      var shown = fmt(h.value);
+      var shown = shownHeadline(h);
       var big = kid(num, el('span', ['fp-big', 'mono'], shown));
       big.style.setProperty('--digits', String(shown.length));
       kid(num, word('span', ['soft', 'fp-unit'], 'unit_' + h.unit));
@@ -235,10 +271,11 @@
     if (hero.firstChild) wrap.appendChild(hero);
 
     var stats = el('div', 'fp-stats');
+    // What backs the number first, then when it was checked; the download's size and row count come last.
+    kid(stats, stat('statEvidence', (f.evidence || []).length ? fmt(f.evidence.length) : ''));
     kid(stats, stat('lastRecheck', fmtTime(f.last_recheck_utc)));
     kid(stats, stat('statRows', typeof f.hours_rows === 'number' ? fmt(f.hours_rows) : ''));
     kid(stats, stat('statSize', size === null ? '' : fmtBytes(size)));
-    kid(stats, stat('statEvidence', (f.evidence || []).length ? fmt(f.evidence.length) : ''));
     if (stats.firstChild) wrap.appendChild(stats);
 
     var ev = evidenceSection(f);
