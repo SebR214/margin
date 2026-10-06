@@ -63,6 +63,20 @@ idle_streak=0
 quiet_polls=0
 ERROR_WAIT=300          # something went wrong that is not a usage limit
 
+# Payment-backend 402 (SEB-257): when OpenRouter runs out of credit, the API
+# returns 402 and Claude Code exits 1. This is not a transient error -- retrying
+# every ERROR_WAIT seconds burns a cycle for nothing, and the builder alone hit
+# ~50 dead passes in 4 hours on 2026-10-06. Track consecutive occurrences in a
+# file (survives restarts) and escalate the backoff sharply.
+PAYMENT_402_FILE="$LOGDIR/$ROLE.payment_402"
+payment_402_count() {
+  [ -r "$PAYMENT_402_FILE" ] || { echo 0; return; }
+  local n
+  read -r n <"$PAYMENT_402_FILE" 2>/dev/null || { echo 0; return; }
+  case "$n" in ''|*[!0-9]*) echo 0; return ;; esac
+  echo "$n"
+}
+
 # The backoff above is a heuristic, and heuristics fail open: every previous
 # cost incident here was the guard becoming convinced there was work when there
 # was not. So the backoff is not the only thing standing between a logic bug
@@ -424,6 +438,26 @@ while true; do
     rm -f "$OUT"; sleep "$WAIT"; continue
   fi
 
+  # A payment-backend 402 (OpenRouter credit exhausted) is not a transient error
+  # and must not retry every ERROR_WAIT seconds. SEB-257: the builder burned ~50
+  # cycles in 4 hours hitting the same 402 wall. Detect the 402 in the JSON
+  # output and escalate the backoff sharply -- double from the ERROR_WAIT baseline
+  # on each consecutive hit, capped at 4 hours. A successful pass resets the counter.
+  if grep -qE '"api_error_status" *: *402|requires more credits' "$OUT" 2>/dev/null; then
+    CONSECUTIVE=$(payment_402_count)
+    CONSECUTIVE=$((CONSECUTIVE + 1))
+    echo "$CONSECUTIVE" > "$PAYMENT_402_FILE"
+    WAIT=$ERROR_WAIT
+    n=$CONSECUTIVE
+    while [ "$n" -gt 1 ] && [ "$WAIT" -lt 14400 ]; do
+      WAIT=$((WAIT * 2)); n=$((n - 1))
+    done
+    [ "$WAIT" -gt 14400 ] && WAIT=14400
+    say "[$ROLE] payment backend 402 (credit exhausted, x${CONSECUTIVE}); sleeping ${WAIT}s"
+    record 0 "402 payment" "$ELAPSED"
+    rm -f "$OUT"; sleep "$WAIT"; continue
+  fi
+
   if [ "$CODE" -ne 0 ]; then
     say "[$ROLE] exited $CODE; retrying in ${ERROR_WAIT}s"
     record 0 "exit $CODE" "$ELAPSED"
@@ -466,6 +500,8 @@ while true; do
   fi
   record 1 "ok" "$ELAPSED" "$SIG_IDLE"
   rm -f "$OUT"
+  # Reset the 402 counter on any successful pass -- the payment backend is healthy.
+  rm -f "$PAYMENT_402_FILE" 2>/dev/null || true
 
   # Wait out the backoff, but keep asking. The backoff exists to stop the model
   # being woken over and over for an empty queue -- it was never meant to make
