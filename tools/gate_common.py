@@ -50,7 +50,7 @@ def pages_for_change(files):
         if "/" not in f and f.endswith(".html"):
             if not re.search(r" \d\.", f):
                 pages.add(f)
-        elif f == "style.css" or f == "copy.json" or (f.startswith("js/") and f.endswith(".js")) \
+        elif f == "style.css" or f == "copy.json" or (f.startswith("copy/") and f.endswith(".json")) or (f.startswith("js/") and f.endswith(".js")) \
                 or (f.endswith(".css") or f.endswith(".js")) and "/" not in f:
             shared = True
     if shared:

@@ -1,0 +1,174 @@
+{
+  "machineRoom": {
+    "title": "Four AI agents run this site",
+    "lede": "One collects the prices, one writes the code, one reviews it, one decides what to build next. The one that writes the code cannot approve it. One person sets the direction and holds the money and passwords, so no agent can spend money or change accounts. The site compares what it costs to send money from one country to another, so people can choose the cheapest way to send it.",
+    "connecting": "",
+    "connected": "connected · live",
+    "offline": "live feed offline",
+    "columns": {
+      "agents": {
+        "title": "What the agents did today",
+        "kicker": "ISSUES · REVIEWS · COMMITS",
+        "empty": "No agent activity yet today.",
+        "historyLink": "Every change, including the failures →",
+        "transitionTemplate": "{ident} moved {from} → {to}",
+        "commentTemplate": "{ident}: {text}",
+        "commitTemplate": "committed {message}",
+        "loopPassTemplate": "check {result}{seconds}",
+        "loopOk": "ok",
+        "loopFailed": "failed",
+        "loopStoppedTemplate": "stopped for repair. Last check {when}",
+        "loopRecovered": "running again",
+        "capNote": "The most recent events only. The full history, including every failure, is in the commit log.",
+        "byline": {
+          "builder": "BUILDER",
+          "reviewer": "REVIEWER",
+          "product": "PRODUCT",
+          "agents": "AGENT",
+          "person": "SEBASTIAN",
+          "linear": "LINEAR",
+          "unknown": "—"
+        },
+        "shippedTitle": "What shipped this week",
+        "shippedHistoryLink": "Every change, with the reviewer's notes →"
+      }
+    },
+    "metaTemplate": "Last price check {time} UTC · next on the hour",
+    "roles": {
+      "heading": "Each agent has one job and cannot do the others'",
+      "answer": "The builder cannot merge its own work. The reviewer cannot write features. The planner never writes code.",
+      "items": [
+        {
+          "role": "Collector",
+          "when": "Every hour",
+          "text": "Pulls prices from exchanges and money transfer providers and saves them to the data files."
+        },
+        {
+          "role": "Builder",
+          "when": "One task per run",
+          "text": "Builds one task, then stops. If a task would break a rule, it refuses and says so."
+        },
+        {
+          "role": "Reviewer",
+          "when": "Every change",
+          "text": "Reads every change before it goes live and sends it back if it could make a price on the site wrong. It also recalculates a sample price from the saved files to confirm it still matches."
+        },
+        {
+          "role": "Planner",
+          "when": "Between builds",
+          "text": "Decides what gets built next, and reports what happened. Never writes code, never merges."
+        }
+      ]
+    },
+    "footer": {
+      "text": "Every number on this site comes from a public data file.",
+      "linkText": "Code and raw data on GitHub →",
+      "linkHref": "https://github.com/SebR214/margin"
+    },
+    "incidents": {
+      "heading": "What we've learned running them",
+      "items": [
+        {
+          "dollars": 10,
+          "minutes": 20,
+          "what": "A settings change spent ${dollars} in {minutes} minutes",
+          "text": "It moved the agents onto an account billed for each use, instead of the account with a flat monthly fee. The two accounts are now kept in separate files so they cannot be mixed up."
+        }
+      ],
+      "linkText": "The full story: running agents that can't be trusted →",
+      "linkHref": "./agent-incidents.html"
+    },
+    "tapeLink": "Watch live prices arrive as they are checked →",
+    "collected": {
+      "title": "",
+      "template": "",
+      "months": [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
+      ]
+    },
+    "recordTitle": "The record grew as new sources and routes came in",
+    "recordCount": "{n} prices stored",
+    "axisToday": "Today",
+    "markBackfill": "Exchanges' own earlier prices reach back to {date}, so some charts predate our record.",
+    "markRoute": "{date}: started pricing {ids}",
+    "markSource": "{date}: new source {id}",
+    "markSources": "{date}: {n} new sources",
+    "shipped": {
+      "maxLines": 5,
+      "jargon": [
+        "p2p",
+        "ladder",
+        "chips",
+        "crossover",
+        "receipts",
+        "receipt",
+        "collector",
+        "sidecar",
+        "emit",
+        "depth",
+        "cadence",
+        "enumeration",
+        "stablecoin",
+        "usdc",
+        "usdt",
+        "basis",
+        "spread",
+        "corridor",
+        "corridors",
+        "ci",
+        "gate",
+        "gates",
+        "json",
+        "csv",
+        "api",
+        "sse",
+        "parquet",
+        "refactor",
+        "bake",
+        "baseline",
+        "token",
+        "tokens",
+        "oauth",
+        "merge",
+        "pr",
+        "hotfix",
+        "regression",
+        "schema",
+        "endpoint",
+        "hourly",
+        "variant",
+        "variants",
+        "tape",
+        "bps",
+        "fx",
+        "kpi"
+      ],
+      "generic": {
+        "add": "Added a new feature. The link shows what changed.",
+        "extend": "Improved an existing feature. The link shows what changed.",
+        "fix": "Fixed a problem. The link shows what changed.",
+        "update": "Updated part of the site. The link shows what changed.",
+        "remove": "Removed something. The link shows what changed.",
+        "drop": "Removed something. The link shows what changed.",
+        "show": "Changed what the site shows. The link shows what changed.",
+        "make": "Improved part of the site. The link shows what changed.",
+        "move": "Moved part of the site. The link shows what changed.",
+        "build": "Built something new. The link shows what changed.",
+        "replace": "Replaced part of the site. The link shows what changed.",
+        "improve": "Improved part of the site. The link shows what changed.",
+        "other": "Changed part of the site. The link shows what changed."
+      }
+    }
+  }
+}

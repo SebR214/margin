@@ -1,0 +1,158 @@
+{
+  "index": {
+    "health": {
+      "reading": "reading data/…",
+      "errorPrefix": "collector unreachable — ",
+      "ok": "collector ok · {ok}/{total} sources",
+      "stale": "no pass since {when}"
+    },
+    "lastTick": "last tick",
+    "hero": {
+      "title": "What does a dollar really cost?",
+      "body": "In much of the world the official exchange rate is not the rate anyone gets. This measures what people actually pay for a dollar — the kind an ordinary person can buy on their phone — in {count} currencies, every hour. Where there is no price, it says so, and why."
+    },
+    "market": {
+      "overTime": "one country over time",
+      "theBoard": "the board",
+      "hint": "Click any country on the board to see its history here. Hover the chart to read a point, click to pin it.",
+      "months": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ],
+      "ranges": {
+        "1h": "1h",
+        "6h": "6h",
+        "1d": "1d",
+        "1w": "1w",
+        "1m": "1m",
+        "3m": "3m",
+        "1y": "1y",
+        "all": "All"
+      }
+    },
+    "board": {
+      "title": "What a dollar really costs",
+      "subhead": "measured every hour · furthest above the official rate first",
+      "columns": {
+        "country": "country",
+        "cost": "a dollar costs",
+        "roundTrip": "round trip",
+        "evidence": "evidence",
+        "sparkline": "last 30 days"
+      },
+      "withheldTitle": "Not published this hour",
+      "withheldNote": "A price was collected for these and stored, but it does not meet the evidence rule, so it is not shown as a number. Each country keeps its page and its reason, and returns as soon as its market does.",
+      "footnote": "Each row is one country. \"A dollar costs\" is what you pay to buy one dollar there, against the official exchange rate captured in the same second. \"Round trip\" is what it costs to buy and then sell again. Click any country for every source behind its number.",
+      "searchLabel": "Find a country",
+      "searchNone": "No country matches that.",
+      "gapsTitle": "The biggest gaps this hour",
+      "gapsNote": "The eight countries where a dollar costs the most above the official rate.",
+      "pricedTitle": "Every country priced this hour",
+      "pricedNote": "Each one links to its own page, with the full history and the receipt behind the number.",
+      "colCode": "code",
+      "colCountry": "country",
+      "colCost": "a dollar costs",
+      "colTrip": "buy then sell back",
+      "colBasis": "based on"
+    },
+    "cross": {
+      "title": "If you moved money through stablecoins, what rate would you get?",
+      "intro": "Turn {baseCode} into a digital dollar on a {baseCountry} exchange, then turn that dollar into the other country's money on an exchange there. This is the rate that round trip works out to, next to the official rate for the same moment.",
+      "oneBuys": "one {baseCode} buys",
+      "columns": {
+        "official": "official rate",
+        "crypto": "through stablecoins",
+        "difference": "difference"
+      },
+      "footnote": "A plus means the dollar route works out to more of the other country's money than the official rate would give you, before any fees.",
+      "empty": "No pair has both currencies priced in the same hour yet."
+    },
+    "coverage": {
+      "title": "Is the data complete?",
+      "legendStart": "00h",
+      "legendMid": "small gap → big gap",
+      "legendEnd": "23h UTC",
+      "footnote": "Prices from before August 2026 are daily, not hourly, so they appear in the history chart but never in this grid."
+    },
+    "sending": {
+      "kicker": "what the transfer costs, hourly",
+      "detailButton": "See one transfer in detail",
+      "methodButton": "How it's measured",
+      "tooltipLabel": "sending it with stablecoins"
+    },
+    "correction": {
+      "label": "Correction on the record",
+      "title": "I published a wrong number once",
+      "body": "My first version said the dollar route beat the sending apps by 3x. Then I checked the exchanges' real fees, and it didn't. {makerProse}. The mistake stays on the page so you can see the numbers here get checked, including mine."
+    },
+    "findings": {
+      "title": "What the data has shown so far"
+    },
+    "footer": {
+      "kicker": "who made this",
+      "body": "Built by Sebastian Roervig. I work in cross-border payments. Everyone says stablecoins made moving money cheap. I couldn't find anyone who had measured it, so I did. Raw data and code: github.com/SebR214/margin"
+    },
+    "ask": {
+      "kicker": "Ask the data",
+      "note": "Answered from files already in this repo — nothing is fetched over the network and nothing is guessed. Free-form questions arrive once the question-answering key is switched on; until then, these are the questions it can answer.",
+      "provLabel": "where this comes from",
+      "unknownSource": "an internal source",
+      "countMissing": "source count not recorded",
+      "defaultProvider": "the cheapest app",
+      "sourceLabels": {
+        "data/basis.csv": "the board",
+        "data/basis_history.csv": "the daily history archive",
+        "data/fee_checks.csv": "a fee verification check",
+        "data/p2p_basis.csv": "the person-to-person board",
+        "data/provider_quotes.csv": "a money-transfer company's raw quote",
+        "data/providers.csv": "the Singapore-to-Philippines ranking",
+        "data/providers_audphp.csv": "the Australia-to-Philippines ranking",
+        "data/providers_nzdphp.csv": "the New Zealand-to-Philippines ranking",
+        "data/providers_usdmxn.csv": "the US-to-Mexico ranking",
+        "data/samples.csv": "the sending-money comparison",
+        "data/stable_spread.csv": "the stablecoin price check",
+        "data/withdrawal_fees.csv": "stablecoin withdrawal fees",
+        "data/providers_usdngn.csv": "the US-to-Nigeria ranking",
+        "data/providers_usdinr.csv": "the US-to-India ranking",
+        "data/providers_sgdinr.csv": "the Singapore-to-India ranking"
+      },
+      "freeTextPlaceholder": "Ask anything else…",
+      "freeTextButton": "ask",
+      "freeTextHonest": "Live answers aren't on yet — here's what I can answer today, in the questions above.",
+      "questions": [
+        "Which country is furthest from the official rate right now?",
+        "Which country is closest to the official rate right now?",
+        "What does a dollar cost in the Philippines right now?",
+        "Is sending money by the dollar route cheaper than a bank right now?",
+        "How many currencies are tracked, and how many have a price this hour?",
+        "Has data collection been running on schedule?"
+      ],
+      "answers": {
+        "widest": "In {country}, a dollar costs {gap} than the official rate — the widest gap measured this hour.",
+        "narrowest": "In {country}, a dollar costs {gap} than the official rate — the closest to it measured this hour.",
+        "phpPriced": "A dollar costs {gap} than the official rate in the Philippines.",
+        "phpWithheld": "No price for the Philippines this hour — {reason}.",
+        "phpMissing": "No price collected for the Philippines this hour.",
+        "transferMissing": "No transfer has been priced yet.",
+        "transferInsufficient": "Not enough data on this corridor to compare right now.",
+        "transferCheaper": "Yes — sending {size} on {ladder} right now costs {taker} through the dollar route against {baseline} with {provider}. The dollar route is cheaper by {diff} — that is rare; on {ladder} it has won {winCount} of {measureCount} measurements since collection began.",
+        "transferPricier": "No — sending {size} on {ladder} right now costs {taker} through the dollar route against {baseline} with {provider}. {provider} is cheaper by {diff}.",
+        "currencyCount": "{attempted} currencies are attempted every hour; {priced} carry a published price this hour, and {withheld} are withheld, each with a stated reason.",
+        "scheduleMissing": "The machine's health record hasn't loaded this visit.",
+        "scheduleSummary": "The last complete day ({date}) captured {hours} of 24 hours. {note}",
+        "scheduleOnTime": "That is on schedule.",
+        "scheduleBehind": "That is short of a full day — collection has been dropping hours."
+      }
+    }
+  }
+}

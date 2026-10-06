@@ -198,12 +198,12 @@ run.
 
 ## Words are not yours
 
-You never write or change a reader-facing word. All of it lives in `copy.json` and belongs to
-the writer agent (`agents/WRITER.md`). CI fails your PR if you change `copy.json` or add
+You never write or change a reader-facing word. All of it lives in `copy/*.json` and belongs to
+the writer agent (`agents/WRITER.md`). CI fails your PR if you change `copy/*.json` or add
 literal text to an html or js file (`tools/check_copy_lock.py`).
 
 - Bind numbers to fields. Build the feature.
-- If the feature needs new words, ship the slot: add the key to `copy.json` with an empty
+- If the feature needs new words, ship the slot: add the key to `copy/<page>.json` with an empty
   value (the one change to that file CI allows) and make the page not render that element
   while the value is empty. Never write placeholder copy, never write "TBD", never borrow a
   nearby sentence.

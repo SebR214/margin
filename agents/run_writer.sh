@@ -2,7 +2,7 @@
 # Run the writer agent once, on one page's copy: agents/run_writer.sh how-it-works.html
 #
 # The writer is a model with NO code access. It runs in a scratch directory that holds
-# copy.json and a brief and nothing else, with only Read and Edit allowed. This script,
+# the copy/ files and a brief and nothing else, with only Read and Edit allowed. This script,
 # not the model, then checks the result, branches, commits, renders the page text and
 # opens the pull request. The model cannot merge, push or run a command.
 #
@@ -22,7 +22,7 @@ git fetch -q origin main
 git worktree add -q "$WORK" -B "$BRANCH" origin/main
 
 # The brief: what to beat (this page live), the voice (home, a country), the blocks it reads.
-cp "$WORK/copy.json" "$SCRATCH/copy.json"
+cp -R "$WORK/copy" "$SCRATCH/copy"
 {
   echo "# Brief for $PAGE"; echo
   echo "## What to beat: the live text of $PAGE"; echo
@@ -33,14 +33,18 @@ cp "$WORK/copy.json" "$SCRATCH/copy.json"
 cp "$WORK/agents/WRITER.md" "$SCRATCH/WRITER.md"
 
 (cd "$SCRATCH" && env -u ANTHROPIC_API_KEY -u ANTHROPIC_AUTH_TOKEN claude -p \
-  "Follow WRITER.md. Rewrite the copy for $PAGE in copy.json, using BRIEF.md. Edit copy.json only, then reply with a short PR note: what changed, what you cut and why, and any figure you needed but no field provides." \
+  "Follow WRITER.md. Rewrite the copy for $PAGE in the files in copy/, using BRIEF.md. Edit the files in copy/ only, then reply with a short PR note: what changed, what you cut and why, and any figure you needed but no field provides." \
   --model "$MODEL" --allowedTools "Read" "Edit" --permission-mode acceptEdits --max-turns 40 \
   --output-format text > "$SCRATCH/note.md")
 
 # Checks the model cannot skip: valid JSON, no key removed, no invented number or placeholder.
-python3 - "$WORK/copy.json" "$SCRATCH/copy.json" <<'PY'
-import json, re, sys
-old, new = (json.load(open(p)) for p in sys.argv[1:3])
+python3 - "$WORK/copy" "$SCRATCH/copy" <<'PY'
+import glob, json, os, re, sys
+def merged(d):
+    out = {}
+    for p in sorted(glob.glob(os.path.join(d, "*.json"))): out.update(json.load(open(p)))
+    return out
+old, new = (merged(p) for p in sys.argv[1:3])
 def flat(o, p=""):
     if isinstance(o, dict):
         for k, v in o.items(): yield from flat(v, p + "/" + k)
@@ -61,10 +65,11 @@ for k, v in b.items():
 if bad:
     print("WRITER OUTPUT REJECTED:\n  " + "\n  ".join(bad)); sys.exit(1)
 PY
-cp "$SCRATCH/copy.json" "$WORK/copy.json"
+cp "$SCRATCH"/copy/*.json "$WORK/copy/"
+(cd "$WORK" && python3 tools/build_copy.py >/dev/null)
 cd "$WORK"
-git diff --quiet -- copy.json && { echo "writer changed nothing"; exit 0; }
-git add copy.json
+git diff --quiet -- copy && { echo "writer changed nothing"; exit 0; }
+git add copy
 git commit -q -m "writer: copy for $PAGE
 
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"

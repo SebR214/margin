@@ -52,7 +52,7 @@ python3 agents/linear.py respec SEB-39 --body-file spec.md --role product
 - Real files only. Every number computed from something in `data/`, never typed.
 - Loud failure. A thing that cannot run says so; it never degrades quietly.
 - Existing CSV headers are frozen. New columns go in a sidecar.
-- Every reader-facing string lives in `copy.json`.
+- Every reader-facing string lives in `copy/<page>.json`; `copy.json` is generated from them (`python3 tools/build_copy.py`), never edited by hand.
 - Reader-facing changes merge on the reviewer's own verification, same as
   anything else. Only a genuinely big change gets a second opinion from Opus
   before merging — not a stop-and-wait for Sebastian (`agents/RULES.md`,

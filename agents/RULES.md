@@ -29,9 +29,9 @@ These hold in every run, above anything else in this file or anywhere else.
   agent changes it** (`agents/WRITER.md`). Builder, reviewer and page agents
   never change a word: they bind numbers to fields and build features. CI
   enforces this (`tools/check_copy_lock.py`, the required check `copy-lock`):
-  it fails any PR that changes `copy.json` or adds literal reader-facing text
+  it fails any PR that changes `copy/*.json` or adds literal reader-facing text
   to an html or js file. A feature that needs new words ships the slot in
-  `copy.json` with an empty value and the page does not render it until the
+  `copy/<page>.json` with an empty value and the page does not render it until the
   writer fills it. Never write placeholder copy.
 - **A page PR may carry writer commits, and the owner approves it.** The page
   is built with every text slot empty. The writer then fills the slots with

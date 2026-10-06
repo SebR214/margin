@@ -50,8 +50,14 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Build copy.json from copy/*.json (the pages and tools read the merged deck)
+        run: python3 tools/build_copy.py
+
       - name: Inventory gate (no page may lose charts, tables or interactive elements)
         run: python3 tools/check_inventory.py
+
+      - name: Copy split (copy.json is the merge of copy/*.json; edits to different pages merge cleanly)
+        run: python3 tests/check_copy_split.py
 
       - name: Plain-language gate (no payments jargon in headings/nav/labels)
         run: python3 tools/check_copy.py
@@ -71,7 +77,7 @@ jobs:
       - name: Single-company dependency ceiling (Wise share must not rise)
         run: python3 tools/check_wise_share.py
 
-  # Words belong to the writer agent. Fails a PR that changes copy.json or adds
+  # Words belong to the writer agent. Fails a PR that changes copy/*.json or adds
   # reader-facing text to html/js unless it is a writer PR the owner approved.
   # Runs the check from the BASE branch so the PR cannot edit its own judge.
   copy-lock:
@@ -119,13 +125,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Build copy.json from copy/*.json (the pages and tools read the merged deck)
+        run: python3 tools/build_copy.py
+
       - name: What does this PR touch?
         id: scope
         run: |
           touched=false; gates=false
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             files=$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD)
-            if echo "$files" | grep -vE '^(docs|tests)/' | grep -qE '(^|/)[^/]+\.(html|css|js)$|^copy\.json$'; then touched=true; fi
+            if echo "$files" | grep -vE '^(docs|tests)/' | grep -qE '(^|/)[^/]+\.(html|css|js)$|^copy(\.json|/[^/]+\.json)$'; then touched=true; fi
             if echo "$files" | grep -qE '^tools/(check_rendered|check_cold_reader|gate_common)\.py$|^tests/(bad|jargon)_page\.html$|^tools/rendered_baseline\.json$'; then gates=true; fi
           fi
           echo "touched=$touched" >> "$GITHUB_OUTPUT"
@@ -174,6 +183,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Build copy.json from copy/*.json (the pages and tools read the merged deck)
+        run: python3 tools/build_copy.py
+
       - name: What does this PR touch, and may the cold reader run?
         id: gate
         env:
@@ -184,7 +196,7 @@ jobs:
           touched=false; gates=false
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             files=$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD)
-            if echo "$files" | grep -vE '^(docs|tests)/' | grep -qE '(^|/)[^/]+\.(html|css|js)$|^copy\.json$'; then touched=true; fi
+            if echo "$files" | grep -vE '^(docs|tests)/' | grep -qE '(^|/)[^/]+\.(html|css|js)$|^copy(\.json|/[^/]+\.json)$'; then touched=true; fi
             if echo "$files" | grep -qE '^tools/(check_rendered|check_cold_reader|gate_common)\.py$|^tests/(bad|jargon)_page\.html$|^tools/rendered_baseline\.json$'; then gates=true; fi
           fi
           echo "gates=$gates" >> "$GITHUB_OUTPUT"

@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""CI gate: reader-facing words live in copy.json and only the writer agent changes them.
+"""CI gate: reader-facing words live in copy/*.json and only the writer agent changes them.
+
+The words are one file per page, copy/<page>.json. copy.json (what the pages
+fetch) is generated from them by tools/build_copy.py, so this gate reads the
+merged result of copy/*.json, on the base and on the PR, and compares words,
+not files. A base that predates copy/ is read from its copy.json.
 
 Builder, reviewer and page agents bind numbers to fields and build features.
 They do not change words. This check fails a pull request that
 
-  1. changes copy.json (other than adding a new key whose value is the empty
+  1. changes the copy deck (other than adding a new key whose value is the empty
      string: the slot a feature needs, shipped empty, which the page must not
      render until the writer fills it), or
   2. adds literal reader-facing text to an html or js file (a text node, an
@@ -12,7 +17,7 @@ They do not change words. This check fails a pull request that
      reads as prose, compared with the same file on the base branch).
 
 The one exception is a WRITER pull request: head branch `writer/<anything>`.
-It may change copy.json and nothing else, its description must carry the
+It may change copy/*.json (and the generated copy.json) and nothing else, its description must carry the
 rendered text of the page under a "## Rendered text" heading, and it passes
 only after the owner has approved it: the label `copy-approved` added by the
 owner's own account after the last push. No other gate changes that.
@@ -185,13 +190,49 @@ def flatten(o, prefix=""):
         yield prefix, o
 
 
+def is_copy(f):
+    return f == "copy.json" or (f.startswith("copy/") and f.endswith(".json"))
+
+
+def merge_parts(parts):
+    """Merge per-page copy files (a list of JSON texts) into one JSON text. Order is irrelevant here:
+    words are compared, not bytes."""
+    merged = {}
+    for t in parts:
+        doc = json.loads(t)
+        for k in doc:
+            if k in merged:
+                raise ValueError("top-level key %r is in two copy files" % k)
+        merged.update(doc)
+    return json.dumps(merged)
+
+
+def copy_at(ref):
+    """The merged copy deck as JSON text: at git ref REF, or in the working tree when REF is None.
+    Reads copy/*.json; falls back to copy.json where copy/ does not exist (a base before the split)."""
+    try:
+        if ref is None:
+            d = os.path.join(HERE, "copy")
+            names = sorted(n for n in os.listdir(d) if n.endswith(".json")) if os.path.isdir(d) else []
+            parts = [open(os.path.join(d, n), encoding="utf-8").read() for n in names]
+            fallback = lambda: open(os.path.join(HERE, "copy.json"), encoding="utf-8").read()
+        else:
+            rc, out = git("ls-tree", "--name-only", ref, "copy/")
+            names = sorted(l.strip() for l in out.splitlines() if l.strip().endswith(".json")) if rc == 0 else []
+            parts = [show(ref, n) for n in names]
+            fallback = lambda: show(ref, "copy.json")
+        return merge_parts(parts) if parts else fallback()
+    except (OSError, ValueError) as e:
+        return "invalid: %s" % e
+
+
 def copy_violations(old_text, new_text):
-    """Changes to copy.json that are not an empty new slot."""
+    """Changes to the copy deck that are not an empty new slot."""
     try:
         old = dict(flatten(json.loads(old_text))) if old_text.strip() else {}
         new = dict(flatten(json.loads(new_text)))
     except ValueError as e:
-        return ["copy.json is not valid JSON: %s" % e]
+        return ["the copy deck is not valid JSON: %s" % e]
     bad = []
     for k, v in old.items():
         if k not in new:
@@ -241,7 +282,7 @@ def writer_approved():
 
 
 def copy_text_equal(old_text, new_text):
-    """copy.json content, ignoring formatting: same keys, same values."""
+    """Copy deck content, ignoring formatting: same keys, same values."""
     try:
         return json.loads(old_text or "{}") == json.loads(new_text or "{}")
     except ValueError:
@@ -255,11 +296,11 @@ def commit_before(commits, when):
 
 
 def owner_label():
-    """(ok, why): the owner's own account approved copy.json's current words.
+    """(ok, why): the owner's own account approved the copy deck's current words.
 
     The usual case is the label was added after the last push. But approval
     follows the words, not the commit: a push after the label that left
-    copy.json's text exactly as it was when approved (a merge from main, a
+    the deck's words exactly as they were when approved (a merge from main, a
     layout or js-only commit) does not need re-approval. Only a push that
     actually changes the approved text does."""
     n = os.environ["PR_NUMBER"]
@@ -279,11 +320,11 @@ def owner_label():
     if approved_sha is None:
         return False, ("waiting for %s to approve: the label 'copy-approved', added by their own account after the "
                        "last push" % OWNER)
-    approved_copy = show(approved_sha, "copy.json")
-    current_copy = open(os.path.join(HERE, "copy.json")).read()
+    approved_copy = copy_at(approved_sha)
+    current_copy = copy_at(None)
     if copy_text_equal(approved_copy, current_copy):
         return True, "approved by %s (words unchanged since approval; a later push touched other files)" % OWNER
-    return False, ("waiting for %s to re-approve: copy.json's words changed since the 'copy-approved' label was "
+    return False, ("waiting for %s to re-approve: the copy words changed since the 'copy-approved' label was "
                    "added" % OWNER)
 
 
@@ -298,21 +339,28 @@ def run(base):
             if f in PROTECTED:
                 problems.append("%s changes only in a PR opened by %s" % (f, OWNER))
     if is_writer:
-        extra = [f for f in files if f != "copy.json"]
+        extra = [f for f in files if not is_copy(f)]
         if extra:
-            problems.append("a writer PR may change copy.json only, it also changes: " + ", ".join(extra[:6]))
-        if "copy.json" in files and not os.environ.get("PR_NUMBER"):
+            problems.append("a writer PR may change copy/*.json only, it also changes: " + ", ".join(extra[:6]))
+        if any(is_copy(f) for f in files) and not os.environ.get("PR_NUMBER"):
             print("copy lock: writer PR, approval step skipped (no PR_NUMBER)")
-        elif "copy.json" in files:
+        elif any(is_copy(f) for f in files):
             ok, why = writer_approved()
             if not ok:
                 problems.append(why)
             else:
                 print("copy lock: writer PR " + why)
     else:
-        if "copy.json" in files:
-            for v in copy_violations(show(base, "copy.json"), open(os.path.join(HERE, "copy.json")).read()):
-                problems.append("copy.json: " + v)
+        if any(is_copy(f) for f in files):
+            for v in copy_violations(copy_at(base), copy_at(None)):
+                problems.append("copy: " + v)
+        if "copy.json" in files and os.path.isdir(os.path.join(HERE, "copy")):
+            try:
+                same = json.loads(open(os.path.join(HERE, "copy.json"), encoding="utf-8").read()) == json.loads(copy_at(None))
+            except (OSError, ValueError):
+                same = False
+            if not same:
+                problems.append("copy.json is generated from copy/*.json: edit copy/<page>.json and run tools/build_copy.py")
         problems += ["literal text added to " + b for b in added_prose(base, files)]
     if problems and not is_writer and os.environ.get("PR_NUMBER") and not any("only in a PR opened by" in p for p in problems):
         ok, why = owner_label()  # the owner can approve any copy change, e.g. a revert, the same way
@@ -323,7 +371,7 @@ def run(base):
         print("COPY LOCK FAILED. Words belong to the writer agent, not to this PR.")
         for p in problems[:40]:
             print("  - " + p)
-        print("Bind numbers to fields and build the feature. If it needs new words, ship the slot in copy.json "
+        print("Bind numbers to fields and build the feature. If it needs new words, ship the slot in copy/<page>.json "
               "with an empty value and make the page not render it until the writer fills it.")
         return 1
     print("copy lock ok: no reader-facing words changed outside a writer PR")
@@ -358,6 +406,13 @@ def self_test():
     chk("copy new words", copy_violations(old, json.dumps({"a": {"x": "words here", "y": "new words"}})))
     chk("copy empty slot ok", not copy_violations(old, json.dumps({"a": {"x": "words here", "y": ""}})))
     chk("copy remove", copy_violations(old, json.dumps({"a": {}})))
+    chk("merge parts", json.loads(merge_parts(['{"a": 1}', '{"b": 2}'])) == {"a": 1, "b": 2})
+    try:
+        merge_parts(['{"a": 1}', '{"a": 2}'])
+        chk("merge duplicate key refused", False)
+    except ValueError:
+        pass
+    chk("copy files recognised", is_copy("copy/home.json") and is_copy("copy.json") and not is_copy("tools/x.json"))
     chk("approval text equal, reformatted", copy_text_equal('{"a": "x"}', '{\n  "a": "x"\n}'))
     chk("approval text differs", not copy_text_equal('{"a": "x"}', '{"a": "y"}'))
     commits = [{"sha": "c1", "commit": {"committer": {"date": "2026-01-01T00:00:00Z"}}},

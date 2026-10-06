@@ -47,7 +47,7 @@ can live in tables. One number per sentence at most.
 * "corridor" for a sending pair (Singapore→Philippines, US→Mexico) — plain "sending X to Y" is still fine and often clearer, but "corridor" itself is no longer avoided (SEB, 2026-09-29, reversing the 2026-09-27 decision below). "Route" is reserved for the other sense this site already uses it in — the stablecoin *method* of sending money, contrasted with "the cheapest app" ("the stablecoin route costs...") — never for a sending pair.
 * "the typical value" or "usually" instead of "median"; "not enough data" instead of "withheld"
 * Numbers are computed from `data/`, never typed. Gaps stay gaps.
-* Every reader-facing string lives in `copy.json`.
+* Every reader-facing string lives in `copy/<page>.json`; `copy.json` (what pages fetch) is generated from them by `tools/build_copy.py`, never edited by hand.
 
 **Banned in headings, subheadings, captions, labels and nav** (fine only in
 methodology / how-it-works deep sections): fiat, rail, route,

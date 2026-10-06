@@ -110,7 +110,7 @@ def norm(s):
 
 def added_text(base):
     """Text this PR adds to pages, scripts and the copy deck, tags stripped."""
-    r = subprocess.run(["git", "diff", "-U0", base + "...HEAD", "--", "*.html", "copy.json", "js/*.js"],
+    r = subprocess.run(["git", "diff", "-U0", base + "...HEAD", "--", "*.html", "copy.json", "copy/*.json", "js/*.js"],
                        cwd=HERE, capture_output=True, text=True)
     lines = [l[1:] for l in r.stdout.splitlines() if l.startswith("+") and not l.startswith("+++")]
     return norm(re.sub(r"<[^>]+>", " ", " ".join(lines)).replace("\\u2192", "").replace("\\\"", '"'))
@@ -181,10 +181,11 @@ def _copy_fragments(diff_text, sign):
 
 
 def added_fragments(base):
-    """Literal text this PR really adds to copy.json: string fragments present
+    """Literal text this PR really adds to the copy deck (copy/*.json, or copy.json
+    on a base before the split): string fragments present
     in the new file and absent from the old one. A line merely re-indented,
     reordered or re-escaped is in both and is not an addition."""
-    r = subprocess.run(["git", "diff", "-U0", base + "...HEAD", "--", "copy.json"],
+    r = subprocess.run(["git", "diff", "-U0", base + "...HEAD", "--", "copy.json", "copy/*.json"],
                        cwd=HERE, capture_output=True, text=True)
     return _copy_fragments(r.stdout, "+") - _copy_fragments(r.stdout, "-")
 
