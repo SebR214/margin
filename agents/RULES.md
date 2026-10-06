@@ -51,6 +51,15 @@ These hold in every run, above anything else in this file or anywhere else.
   not be asked (2026-10-01, Sebastian: "I am not gonna sit and review your
   code... I am greenlighting everything and trust the agents"). This replaces
   the older rule that every visible change waited for him.
+- **No PR merges while a reviewer verdict is pending on it.** A merge waits
+  for an actual posted verdict (yours, in the same pass that merges, or
+  another reviewer run's), never for green checks alone. Green checks mean
+  the gates did not fail; they are not a verdict. PR #406 merged in the
+  2-minute gap before its own reviewer's CHANGES_REQUESTED verdict posted --
+  the verdict existed, it was a no-go, and it had nowhere to go because the
+  merge did not wait for it (SEB-262). Never merge a PR whose review you did
+  not do yourself in this same action, and never merge one you know another
+  review is still running on.
 - **A genuinely big change gets a second opinion from Opus before it merges,
   not a stop-and-wait for Sebastian.** "Big" means the change does one of
   these, not merely that a pixel moved:
