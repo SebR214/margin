@@ -1,0 +1,128 @@
+/* Routes page specific styles */
+.r-headline {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.r-steps-full-width {
+  width: 100%;
+}
+
+.r-steps-stablecoin-track {
+  background: var(--data-700);
+}
+
+.r-comparison-chart-default {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.r-comparison-chart-default:empty::before {
+  content: "No data available";
+  color: var(--color-neutral-600);
+}
+
+.r-what-compact-table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.r-what-compact-table > div {
+  display: table-row;
+}
+
+.r-what-compact-table > div > span {
+  display: table-cell;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-neutral-300);
+}
+
+.r-what-compact-table > div > span:first-child {
+  font-weight: bold;
+}
+
+.r-single-column {
+  display: block;
+  width: 100%;
+}
+
+.r-route-chips-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.r-route-chips-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  padding: 4px 0;
+  scrollbar-width: none;
+}
+
+.r-route-chips-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.r-amount-chips-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  padding: 4px 0;
+  scrollbar-width: none;
+}
+
+.r-amount-chips-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.r-hero-nowrap {
+  white-space: nowrap;
+}
+
+.r-cost-steps-colors {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.r-cost-steps-colors > div:nth-child(1) {
+  background-color: var(--data-100);
+}
+
+.r-cost-steps-colors > div:nth-child(2) {
+  background-color: var(--data-300);
+}
+
+.r-cost-steps-colors > div:nth-child(3) {
+  background-color: var(--data-500);
+}
+
+.r-cheapest-track-equal {
+  width: 100%;
+}
+
+.r-not-comparable-section {
+  display: none;
+}
+
+.r-not-comparable-section.visible {
+  display: block;
+}
+
+/* Mobile styles for 390px width */
+@media (max-width: 390px) {
+  .r-route-chips-scroll,
+  .r-amount-chips-scroll {
+    flex-wrap: nowrap;
+  }
+
+  .r-route-chips-scroll > .r-chip,
+  .r-amount-chips-scroll > .r-chip {
+    flex: 0 0 auto;
+  }
+}

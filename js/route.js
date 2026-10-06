@@ -24,7 +24,7 @@
   var SUM = null, HOURLY = null, WHAT = null, BRK = null, brkState = "idle";
   var COL = {};          // hourly column name -> index
   var BCOL = {};         // breakdown column name -> index
-  var S = { route: null, amount: null, unit: "abs", period: "all", metric: "win", sel: null, bday: null };
+  var S = { route: null, amount: null, unit: "abs", period: "all", metric: "typical", sel: null, bday: null }; // Default to typical
   var rowCache = {};
   var chart = null;
 
@@ -126,7 +126,11 @@
     var err = span / n / step;
     step *= err >= 5 ? 5 : err >= 2 ? 2 : 1;
     var out = [], v = Math.ceil(lo / step) * step;
-    for (; v <= hi + step * 1e-6; v += step) out.push(Math.abs(v) < step * 1e-6 ? 0 : v);
+    for (; v <= hi + step * 1e-6; v += step) {
+      // Round to appropriate decimal places based on step size
+      var decimals = Math.max(0, -Math.floor(Math.log10(step)));
+      out.push(parseFloat(v.toFixed(decimals)));
+    }
     return out;
   }
 
@@ -146,7 +150,7 @@
       svg.setAttribute("viewBox", "0 0 " + W + " " + H);
       svg.setAttribute("width", W);
       svg.setAttribute("height", H);
-      var top = 14, bot = 10, lo = Infinity, hi = -Infinity;
+      var top = 20, bot = 30, lo = Infinity, hi = -Infinity;
       model.rows.forEach(function (r) {
         [r.s, r.a].forEach(function (v) { if (v != null) { if (v < lo) lo = v; if (v > hi) hi = v; } });
       });
@@ -154,12 +158,51 @@
       var pad = (hi - lo || 1) * 0.06;
       lo -= pad; hi += pad;
       function Y(v) { return top + (1 - (v - lo) / (hi - lo)) * (H - top - bot); }
+
+      // Draw horizontal grid lines and Y-axis labels outside the plot area
       var g = "";
-      niceTicks(lo, hi, 3).forEach(function (v) {
+      var yAxisTicks = niceTicks(lo, hi, 5);
+      yAxisTicks.forEach(function (v) {
         var y = Y(v).toFixed(1);
-        g += '<line x1="0" x2="' + W + '" y1="' + y + '" y2="' + y + '" style="stroke:var(--color-neutral-200)"></line>' +
-          '<text x="2" y="' + (y - 4) + '" class="rc-ax">' + esc(model.yfmt(v)) + "</text>";
+        // Grid line across entire width
+        g += '<line x1="0" x2="' + W + '" y1="' + y + '" y2="' + y + '" style="stroke:var(--color-neutral-200);stroke-dasharray:2,2"></line>';
+        // Y-axis label outside plot area
+        g += '<text x="-10" y="' + (parseFloat(y) + 4) + '" class="rc-ax" text-anchor="end">' + esc(model.yfmt(v)) + "</text>";
       });
+
+      // Draw zero line if it's within range
+      if (lo <= 0 && hi >= 0) {
+        var zeroY = Y(0).toFixed(1);
+        g += '<line x1="0" x2="' + W + '" y1="' + zeroY + '" y2="' + zeroY + '" style="stroke:var(--color-ink);stroke-width:1"></line>';
+        g += '<text x="-10" y="' + (parseFloat(zeroY) + 4) + '" class="rc-ax" text-anchor="end" font-weight="bold">0</text>';
+      }
+
+      // Draw X-axis labels with weekly date ticks
+      var dateTicks = [];
+      var startDate = new Date(model.t0 * 1000);
+      var endDate = new Date(model.t1 * 1000);
+      var weeks = Math.ceil((endDate - startDate) / (7 * 24 * 60 * 60 * 1000));
+
+      // Generate weekly ticks
+      for (var i = 0; i <= weeks; i++) {
+        var tickDate = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+        if (tickDate <= endDate) {
+          var tickTime = tickDate.getTime() / 1000;
+          if (tickTime >= model.t0 && tickTime <= model.t1) {
+            dateTicks.push({
+              time: tickTime,
+              label: tickDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+            });
+          }
+        }
+      }
+
+      // Draw X-axis labels
+      dateTicks.forEach(function (tick) {
+        var x = X(tick.time).toFixed(1);
+        g += '<text x="' + x + '" y="' + (H - 5) + '" class="rc-ax" text-anchor="middle">' + esc(tick.label) + "</text>";
+      });
+
       // Segments: runs of hours with no hole longer than BREAK_GAP and both prices stored.
       var segs = [], run = [];
       model.rows.forEach(function (r, i) {
@@ -266,7 +309,7 @@
       '<nav class="r-nav">' +
       [["navCountries", "./countries.html"], ["navRoutes", "./sending-money.html", "on"], ["navSources", "./sources.html"],
         ["navFindings", "./findings.html"], ["navHow", "./how-it-works.html"]].map(function (n) {
-        var s = txt(n[0]);
+        var s = (n[0] === "navRoutes") ? "Routes" : txt(n[0]); // Force "Routes" for navRoutes
         return s ? '<a href="' + n[1] + '"' + (n[2] ? ' aria-current="page" class="on"' : "") + ">" + esc(s) + "</a>" : "";
       }).join("") + "</nav></div>" + meta + "</header>";
   }
@@ -275,21 +318,21 @@
     return text ? '<button class="r-chip' + (on ? " on" : "") + '" data-' + attr + '="' + esc(value) + '">' + esc(text) + "</button>" : "";
   }
   function routeChips() {
-    return '<div class="r-chips" id="rRoutes">' + HOURLY.routes.map(function (r) {
+    return '<div class="r-route-chips-container"><div class="r-chips r-route-chips-scroll" id="rRoutes">' + HOURLY.routes.map(function (r) {
       return chip("route", r.id, r.id === S.route, routeLabel(r));
-    }).join("") + "</div>";
+    }).join("") + "</div></div>";
   }
   function amountChips() {
     var r = sumRoute(S.route), label = txt("amountLabel", { ccy: ccy() });
-    return '<div class="r-chips" id="rAmounts">' + (label ? '<span class="soft r-small">' + esc(label) + "</span>" : "") +
-      r.amounts.map(function (a) { return chip("amount", a.amount, a.amount === S.amount, whole(a.amount) + " " + ccy()); }).join("") + "</div>";
+    return '<div class="r-route-chips-container"><div class="r-chips r-amount-chips-scroll" id="rAmounts">' + (label ? '<span class="soft r-small">' + esc(label) + "</span>" : "") +
+      r.amounts.map(function (a) { return chip("amount", a.amount, a.amount === S.amount, whole(a.amount) + " " + ccy()); }).join("") + "</div></div>";
   }
 
   function buildHero() {
     var r = cur(), s = sumRoute(S.route);
     var vals = { route: routeLabel(r), send: r.send_ccy, recv: r.recv_ccy, amount: whole(S.amount) + " " + r.send_ccy,
       hours: whole(s.total_hours_stable_cheapest), priced: whole(s.hours_priced_any_amount) };
-    return '<section class="r-hero r-pull hero bleed"><div class="r-herotext">' + w("headline", vals, "h1") + w("lead", vals, "p", "slead") +
+    return '<section class="r-hero r-pull hero bleed"><div class="r-herotext">' + w("headline", vals, "h1", "r-headline r-hero-nowrap") + w("lead", vals, "p", "slead") +
       '</div><div class="r-bigbox">' + (comparable(S.route)
         ? '<span class="r-big mono">' + esc(whole(s.total_hours_stable_cheapest)) + "</span>" + w("bigCaption", vals, "span", "soft")
         : w("routeNotComparable", vals, "span", "msm")) + "</div></section>";
@@ -320,7 +363,7 @@
   }
 
   function buildLower() {
-    return '<div class="r-two"><section class="r-sec a">' + w("compareHeading", null, "h2") + w("compareLead", null, "p", "msm") +
+    return '<div class="r-single-column"><section class="r-sec a">' + w("compareHeading", null, "h2") + w("compareLead", null, "p", "msm") +
       '<div id="rCompare"></div></section><section class="r-sec b">' + w("whatHeading", null, "h2") +
       w("whatLead", { amount: whole(S.amount) + " " + ccy(), ccy: ccy() }, "p", "msm") + '<div id="rWhat"></div></section></div>';
   }
@@ -453,12 +496,12 @@
     var rowsHtml = LEG_ROWS.map(function (l) {
       var name = txt(l[0]);
       return '<div class="r-leg-row"><span class="r-legname"><i class="r-sw" style="background:var(' + l[2] + ')"></i>' + esc(name) +
-        '</span><span class="r-track"><i data-leg="' + l[1] + '" style="background:var(' + l[2] + ');width:0"></i></span>' +
+        '</span><span class="r-track r-steps-full-width"><i data-leg="' + l[1] + '" style="background:var(' + l[2] + ');width:0" class="r-steps-stablecoin-track"></i></span>' +
         '<span class="mono r-legval" data-val="' + l[1] + '"></span></div>';
     }).join("");
     function extraRow(key, id, colour, alt) {
       return '<div class="r-leg-row"><span class="r-legname"><i class="r-sw" style="background:var(' + colour + ')"></i>' + esc(txt(key)) +
-        '</span><span class="r-track' + (alt ? " alt" : "") + '"><i data-leg="' + id + '" style="background:var(' + colour + ');width:0"></i></span>' +
+        '</span><span class="r-track r-steps-full-width' + (alt ? " alt" : "") + '"><i data-leg="' + id + '" style="background:var(' + colour + ');width:0" class="r-cheapest-track-equal"></i></span>' +
         '<span class="mono r-legval" data-val="' + id + '"></span>' +
         (id === "app" ? '<span class="mono muted r-prov" data-name="app"></span>' : "") + "</div>";
     }
@@ -489,13 +532,23 @@
     Object.keys(vals).forEach(function (k) {
       var bar = el.querySelector('[data-leg="' + k + '"]'), out = el.querySelector('[data-val="' + k + '"]');
       var v = vals[k];
-      if (bar) { bar.style.width = v == null ? "0" : (Math.abs(v) / max * 100).toFixed(2) + "%"; bar.style.opacity = v != null && v < 0 ? ".5" : ""; }
+      if (bar) {
+        bar.style.width = v == null ? "0" : (Math.abs(v) / max * 100).toFixed(2) + "%";
+        bar.style.opacity = v != null && v < 0 ? ".5" : "";
+        // Apply distinct colors for each leg
+        if (k === "inn") bar.style.background = "var(--data-700)";
+        else if (k === "chain") bar.style.background = "var(--data-500)";
+        else if (k === "out") bar.style.background = "var(--data-300)";
+        else if (k === "total") bar.style.background = "var(--color-neutral-700)";
+        else if (k === "app") bar.style.background = "var(--color-ink)";
+      }
       if (out) out.textContent = fmt(v);
     });
     // The stacked bar: the stored legs side by side, only while every leg is stored and none is negative.
     var all = vals.inn != null && vals.chain != null && vals.out != null && vals.inn >= 0 && vals.chain >= 0 && vals.out >= 0;
-    document.getElementById("rStack").innerHTML = all ? LEG_ROWS.map(function (l) {
-      return '<div class="r-seg" style="background:var(' + l[2] + ');width:' + (vals[l[1]] / max * 100).toFixed(2) + '%"></div>';
+    document.getElementById("rStack").innerHTML = all ? LEG_ROWS.map(function (l, index) {
+      var colors = ["var(--data-700)", "var(--data-500)", "var(--data-300)"];
+      return '<div class="r-seg" style="background:' + colors[index] + ';width:' + (vals[l[1]] / max * 100).toFixed(2) + '%"></div>';
     }).join("") : "";
     var nm = el.querySelector('[data-name="app"]');
     if (nm) nm.textContent = d.row[BCOL.cheapest_app] || "";
@@ -508,7 +561,7 @@
   }
 
   // ---------------------------------------------------------------- all routes compared
-  var METRICS = [["win", "metricWin"], ["typical", "metricTypical"], ["swing", "metricSwing"], ["change", "metricChange"]];
+  var METRICS = [["typical", "metricTypical"], ["win", "metricWin"], ["swing", "metricSwing"], ["change", "metricChange"]]; // Make typical the default
   function metricValue(a, m) { // [value in the chosen unit, null when not stored]
     if (!a) return null;
     if (m === "win") return a.win_rate_pct;
@@ -521,15 +574,36 @@
     var shown = HOURLY.routes.filter(function (r) { return comparable(r.id); });
     var left = HOURLY.routes.filter(function (r) { return !comparable(r.id); });
     var vs = shown.map(function (r) { return metricValue(sumAmount(r.id, S.amount), S.metric); });
+
+    // Filter out routes with no data
+    var validRoutes = [];
+    var validValues = [];
+    vs.forEach(function (v, i) {
+      if (v != null) {
+        validRoutes.push(shown[i]);
+        validValues.push(v);
+      }
+    });
+
+    if (validRoutes.length === 0) {
+      // Show a default message when no routes have data
+      document.getElementById("rCompare").innerHTML = (chips ? '<div class="r-chips">' + chips + "</div>" : "") +
+        '<div class="r-comparison-chart-default">No comparison data available</div>' +
+        (left.length ? w("notComparable", { routes: left.map(routeLabel).join(", ") }, "p", "msm") : "");
+      return;
+    }
+
     var max = 0;
-    vs.forEach(function (v) { if (v != null && Math.abs(v) > max) max = Math.abs(v); });
-    var rows = shown.map(function (r, i) {
-      var v = vs[i], width = v == null || !max ? 0 : S.metric === "win" ? v : Math.abs(v) / max * 100;
-      var text = v == null ? "" : S.metric === "win" ? dec(v, 1) + "%" : S.unit === "abs" ? dec(v, 2) + " " + r.send_ccy : pc(v);
+    validValues.forEach(function (v) { if (Math.abs(v) > max) max = Math.abs(v); });
+
+    var rows = validRoutes.map(function (r, i) {
+      var v = validValues[i], width = !max ? 0 : S.metric === "win" ? v : Math.abs(v) / max * 100;
+      var text = S.metric === "win" ? dec(v, 1) + "%" : S.unit === "abs" ? dec(v, 2) + " " + r.send_ccy : pc(v);
       return '<button class="r-mrow' + (r.id === S.route ? " sel" : "") + '" data-route="' + esc(r.id) + '"><span class="mono r-mcode">' +
-        esc(routeLabel(r)) + '</span><span class="r-track alt"><i style="background:var(' + (v != null && v < 0 ? "--color-neutral-700" : "--data-700") +
+        esc(routeLabel(r)) + '</span><span class="r-track alt"><i style="background:var(' + (v < 0 ? "--color-neutral-700" : "--data-700") +
         ");width:" + width.toFixed(1) + '%"></i></span><span class="mono r-mval">' + esc(text) + "</span></button>";
     }).join("");
+
     document.getElementById("rCompare").innerHTML = (chips ? '<div class="r-chips">' + chips + "</div>" : "") + '<div class="r-list">' + rows + "</div>" +
       (left.length ? w("notComparable", { routes: left.map(routeLabel).join(", ") }, "p", "msm") : "");
   }
@@ -543,33 +617,55 @@
     if (!document.getElementById("rWhat")) return;
     var left = HOURLY.routes.filter(function (r) { return !comparable(r.id); });
     var pathNote = "";
-    var out = HOURLY.routes.filter(function (r) { return comparable(r.id); }).map(function (r) {
+
+    // Create a compact table structure
+    var out = '<div class="r-what-compact-table">';
+    out += '<div><span>Route</span><span>Median needed</span><span>Latest needed</span></div>'; // Header row
+
+    HOURLY.routes.filter(function (r) { return comparable(r.id); }).forEach(function (r) {
       var a = whatFor(r.id), m = a && a.median_7d, l = a && a.latest_hour;
       function money(o, key) { return o && o[key] != null ? dec(o[key], 2) + " " + r.send_ccy : ""; }
       function ppv(o, key) { return o && o[key] != null ? dec(o[key], 2) + "%" : ""; }
-      var body = "";
-      if (m && m.already_wins) body += w("whatWins", { route: routeLabel(r) }, "span", "soft");
-      else if (m) {
+
+      var medianText = "";
+      var latestText = "";
+
+      if (m && m.already_wins) {
+        medianText = "Already wins";
+      } else if (m) {
         var units = money(m, "cheaper_needed"), pp = ppv(m, "cheaper_needed_pp");
-        var line = [units, pp].filter(Boolean).join(" · ");
-        if (line) body += '<span class="mono">' + esc(line) + "</span>";
-        body += w("whatNeeded", { route: routeLabel(r), units: units, pp: pp, ccy: r.send_ccy, app: m.cheapest_app_week || "" }, "span", "soft");
-        if (m.cheapest_app_changed) body += w("whatAppChanged", { app: m.cheapest_app_week || "", hours: whole(m.cheapest_app_week_hours), of: whole(m.n_hours) }, "span", "msm");
-        var share = m.cheaper_needed_pct_of_in_out;
-        if (share != null) body += w("whatShare", { pct: dec(share, 0) + "%" }, "span", "msm");
+        medianText = [units, pp].filter(Boolean).join(" · ");
       }
+
       if (l && l.already_wins === false) {
         var lu = money(l, "cheaper_needed"), lp = ppv(l, "cheaper_needed_pp");
-        if (lu || lp) body += '<span class="r-lat"><span class="mono muted r-small">' + esc([lu, lp].filter(Boolean).join(" · ")) + "</span>" +
-          w("whatLatest", { units: lu, pp: lp, app: l.cheapest_app || "", hour: stamp(ep(l.hour_utc)) }, "span", "msm") + "</span>";
-        if (!pathNote && l.stable_path && l.base_path && l.stable_path !== l.base_path) {
-          pathNote = w("whatPathNote", { path: pathName(l.stable_path), base: pathName(l.base_path), hour: stamp(ep(l.hour_utc)) }, "p", "msm");
+        latestText = [lu, lp].filter(Boolean).join(" · ");
+      } else if (l && l.already_wins) {
+        latestText = "Already wins";
+      }
+
+      out += '<div><span>' + esc(routeLabel(r)) + '</span><span>' + esc(medianText) + '</span><span>' + esc(latestText) + '</span></div>';
+
+      // Handle notes separately
+      if (m && !m.already_wins) {
+        if (m.cheapest_app_changed) {
+          out += '<div><span colspan="3" class="msm">' + esc(w("whatAppChanged", { app: m.cheapest_app_week || "", hours: whole(m.cheapest_app_week_hours), of: whole(m.n_hours) })) + '</span></div>';
         }
-      } else if (l && l.already_wins) body += w("whatLatestWins", null, "span", "msm");
-      return '<div class="r-what"><span class="mono c' + (r.id === S.route ? " on" : " muted") + '">' + esc(routeLabel(r)) + '</span><span class="t">' + body + "</span></div>";
-    }).join("");
-    document.getElementById("rWhat").innerHTML = out + pathNote +
-      (left.length ? w("notComparable", { routes: left.map(routeLabel).join(", ") }, "p", "msm") : "");
+        var share = m.cheaper_needed_pct_of_in_out;
+        if (share != null) {
+          out += '<div><span colspan="3" class="msm">' + esc(w("whatShare", { pct: dec(share, 0) + "%" })) + '</span></div>';
+        }
+      }
+
+      if (l && l.already_wins === false && !pathNote && l.stable_path && l.base_path && l.stable_path !== l.base_path) {
+        pathNote = w("whatPathNote", { path: pathName(l.stable_path), base: pathName(l.base_path), hour: stamp(ep(l.hour_utc)) });
+      }
+    });
+
+    out += '</div>'; // Close table
+
+    document.getElementById("rWhat").innerHTML = out + (pathNote ? '<p class="msm">' + esc(pathNote) + '</p>' : '') +
+      (left.length ? '<p class="msm">' + esc(w("notComparable", { routes: left.map(routeLabel).join(", ") })) + '</p>' : '');
   }
 
   // ---------------------------------------------------------------- state and wiring
