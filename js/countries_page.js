@@ -243,8 +243,6 @@
       var l2 = el('div', 'cr-list');
       none.forEach(function (r) {
         var row = rowEl(r, null);
-        var why = (C.withheldReasons || {})[r.reason];
-        if (why) { row.querySelector('.cr-code').textContent = r.ccy + ' · ' + why; }
         l2.appendChild(row);
       });
       s2.appendChild(l2);

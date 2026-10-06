@@ -302,8 +302,11 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var R = COPY.roles || {};
     document.getElementById('rolesHeading').textContent = R.heading || '';
     document.getElementById('rolesAnswer').textContent = R.answer || '';
+    var lastGroup = null;
     document.getElementById('rolesList').innerHTML = (R.items||[]).map(function(it){
-      return '<li><b>'+esc(it.role)+'</b><span class="when">'+esc(it.when)+'</span><span class="txt">'+esc(it.text)+'</span></li>';
+      var head = (it.group && it.group !== lastGroup) ? '<li class="rolegroup"><b>'+esc(it.group)+'</b></li>' : '';
+      lastGroup = it.group || lastGroup;
+      return head + '<li><b>'+esc(it.role)+'</b><span class="when">'+esc(it.when)+'</span><span class="txt">'+esc(it.text)+'</span></li>';
     }).join('');
 
     document.getElementById('shippedHeading').textContent = C2.shippedTitle || '';

@@ -145,8 +145,8 @@ def evidence_words(cls, n):
 
 
 CLASS_WORDS = {
-    "order_book_median": "from order books",
-    "order_book_single": "from an order book",
+    "order_book_median": "from exchange prices",
+    "order_book_single": "from an exchange price",
     "broker_median": "from broker quotes",
     "broker_single": "from a broker quote",
     "p2p_buy_median": "from person-to-person ads",

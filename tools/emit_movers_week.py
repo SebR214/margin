@@ -71,10 +71,14 @@ def build():
                     "recent_values": [_r(v) for v in recent], "spark": [_r(v) for v in cells[-SPARK:]]})
     out.sort(key=lambda x: (-abs(x["change_pp"]), x["ccy"]))
     top = [{"rank": i, **t} for i, t in enumerate(out[:TOP], 1)]
+    # the baseline period: the days before the last WINDOW days on which any ranked currency has a value
+    early = [d for d, i in zip(days[:-WINDOW], range(len(days) - WINDOW))
+             if any(c.get("ranked") and c["cells"][i] is not None for c in hm["currencies"])]
     return {
         "as_of_utc": hm["as_of_utc"], "last_day": hm["last_day"], "definition": DEFINITION,
         "window_days": WINDOW, "min_earlier_days": MIN_EARLIER, "min_recent_days": MIN_RECENT,
-        "spark_days": SPARK, "days": days[-SPARK:], "eligible": len(out), "top": top,
+        "spark_days": SPARK, "baseline_from": early[0] if early else None, "baseline_to": early[-1] if early else None,
+        "days": days[-SPARK:], "eligible": len(out), "top": top,
     }
 
 

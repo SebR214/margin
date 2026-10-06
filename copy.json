@@ -2,7 +2,7 @@
   "brand": "margin.wiki",
   "shared": {
     "sourceMeterTemplate": "This hour: {n_own} of {n_total_quoted} prices came straight from the provider, {n_comparison} from a public price comparison. Stablecoin prices from {n_stable_venues} exchanges.",
-    "footerLine": "margin.wiki prices a dollar in every currency it covers, against the official rate, every hour. We have been collecting since {since}.",
+    "footerLine": "margin.wiki checks the real price of a dollar against the official rate, every hour, in every currency it covers. Collecting since {since}.",
     "footerLink": "Code and raw data on GitHub →"
   },
   "home": {
@@ -443,7 +443,7 @@
     "verdictPublished": "Published — the evidence rule was met.",
     "verdictWithheldTemplate": "Not published: {reason}",
     "verdictRuleDetailTemplate": "{actual} of {required} required buy-side offers.",
-    "verdictNoteOrderBook": "The minimum-offer rule applies to peer-to-peer sources only. This price comes from an order book or a broker quote instead, evidenced by how many exchanges quoted it.",
+    "verdictNoteOrderBook": "The minimum-offer rule applies to peer-to-peer sources only. This price comes from exchange prices or a broker quote instead, evidenced by how many exchanges quoted it.",
     "verdictNoteAggregate": "A single aggregated price from an independent source, not a two-sided listing board — there is no offer count to test.",
     "rawFilesLabel": "Open the raw files",
     "loadingLabel": "Loading the receipt…",
@@ -458,7 +458,7 @@
     "step4Label": "The note",
     "evidenceBuySentenceTemplate": "Buying the stablecoin on {venue}: the best price on offer was {topPrice} {ccy}, the average price actually paid was {avgPrice} {ccy}.",
     "evidenceSellSentenceTemplate": "Selling the stablecoin on {venue}: the best price on offer was {topPrice} {ccy}, the average price actually received was {avgPrice} {ccy}.",
-    "evidenceBookNote": "The individual order book levels used for this are not saved — only the prices and amount filled that they produced.",
+    "evidenceBookNote": "The individual exchange price levels used for this are not saved — only the prices and amount filled that they produced.",
     "evidenceCollectedTemplate": "Collected {when}.",
     "feeLineTemplate": "{label}: {pct}.",
     "feeNotPricedTemplate": "{label}: not priced yet — no published free method was found.",
@@ -573,7 +573,7 @@
     "moveAfterFallTemplate": "Most of the fall came after {date}.",
     "moveGradualTemplate": "It changed gradually across the full period.",
     "stepsHeadingTemplate": "Where the {gap}% comes from",
-    "stepsNoRateBodyTemplate": "This price comes from an exchange order book ({source}), not person to person offers. The figure is real, from {file}. The raw price and official rate are not in a published file yet.",
+    "stepsNoRateBodyTemplate": "This price comes from an exchange price ({source}), not person to person offers. The figure is real, from {file}. The raw price and official rate are not in a published file yet.",
     "stepsIntroTemplate": "In {country}, people buy stablecoins, digital coins meant to stay worth one dollar, from each other on Binance P2P, an app where people trade directly. Each coin is worth one dollar, so what people pay for it is what a dollar really costs there. Under each step is the public data file it comes from.",
     "stepOfferTemplate": "The {n} cheapest offers to sell a dollar, middle price {median} {ccy}. The middle price is the one in the middle when the offers are ranked from cheapest to dearest.",
     "stepRateTemplate": "The official rate at the same moment, {rate} {ccy}.",
@@ -614,8 +614,8 @@
       "dollarCostTitle": "A dollar's price is the middle of real offers, every hour",
       "dollarCostLead": "Each country gets one price for a dollar every hour, built like this.",
       "dollarCostPoints": [
-        "A stablecoin is a coin that stays worth one US dollar.",
-        "Each country's price comes from one kind of source, named on its page: person-to-person offers, exchange order books or broker quotes. Where people trade directly, we take the {minAds} cheapest offers to sell one. The middle offer is that hour's price, so one odd seller cannot move it. The gap on a country page is the middle of the last 24 hourly prices.",
+        "A stablecoin is a coin designed to stay worth one US dollar.",
+        "Each country's price comes from one kind of source, named on its page: person-to-person offers, exchange prices or broker quotes. Where people trade directly, we take the {minAds} cheapest offers to sell one. The median of those {minAds} offers is that hour's price, so one odd seller cannot move it. The gap on a country page is the middle of the last 24 hourly prices.",
         "We set that price against the official rate at the same moment. The percentage is how much more a dollar really costs than that rate says.",
         "A positive percentage means people pay more than the official rate. A negative one means they pay less.",
         "With fewer than {minAds} sellers we publish no price. You see a gap, never a guess."
@@ -696,7 +696,7 @@
   },
   "machineRoom": {
     "title": "AI agents run this site",
-    "lede": "AI agents work on this site. One writes the code, one reviews it before it goes live, and one writes the words. Scheduled jobs collect the prices every hour and recalculate the numbers from the saved files. The agent that writes the code cannot approve it. One person approves the words, sets the direction and holds the money and passwords, so no agent can spend money or change accounts. The site prices a dollar in every currency it covers against the official rate, and compares what it costs to send money between countries.",
+    "lede": "One AI agent writes the code, one reviews it before it goes live, and one writes the words. Scheduled jobs collect prices every hour. One person approves the words and holds the money and passwords.",
     "connecting": "",
     "connected": "connected · live",
     "offline": "live feed offline",
@@ -731,37 +731,37 @@
     "metaTemplate": "Prices are collected every hour. Last check {time} UTC.",
     "roles": {
       "heading": "Each agent has one job and cannot do the others'",
-      "answer": "The builder cannot merge its own work. The reviewer cannot write features. The planner never writes code.",
+      "answer": "The builder cannot merge its own work. The reviewer cannot write features.",
       "items": [
         {
-          "role": "Collector",
-          "when": "Every hour",
-          "text": "Pulls prices from exchanges and money transfer providers and saves them to the data files."
-        },
-        {
+          "group": "AI agents",
           "role": "Builder",
           "when": "One task per run",
           "text": "Builds one task, then stops. If a task would break a rule, it refuses and says so."
         },
         {
+          "group": "AI agents",
           "role": "Reviewer",
           "when": "Every change",
           "text": "Reads every change before it goes live and sends it back if it could make a price on the site wrong. It also recalculates a sample price from the saved files to confirm it still matches."
         },
         {
+          "group": "AI agents",
           "role": "Writer",
           "when": "When a page's words change",
           "text": "Writes every word on the site. It cannot touch code or data, and one person approves what it writes."
         },
         {
+          "group": "Scheduled jobs",
+          "role": "Collector",
+          "when": "Every hour",
+          "text": "Pulls prices from exchanges and money transfer providers and saves them to the data files."
+        },
+        {
+          "group": "Scheduled jobs",
           "role": "Auditor",
           "when": "Every hour",
           "text": "Recalculates figures from the saved files and drops any line whose number no longer matches."
-        },
-        {
-          "role": "Planner",
-          "when": "Between builds",
-          "text": "Decides what gets built next, and reports what happened. Never writes code, never merges."
         }
       ]
     },
@@ -1022,7 +1022,7 @@
       "XOF": "West Africa (one currency, several countries)"
     },
     "unavailable": "The latest prices could not be loaded. Try again in a few minutes.",
-    "note": "A stablecoin is a coin that stays worth one US dollar. What people pay comes from offers on Binance, a large online marketplace where people trade stablecoins. We line up the offers to sell a stablecoin from lowest to highest and take the one in the middle, so a few odd offers do not move the price. We compare it with the official rate, which is the bank exchange rate at the same moment. Stablecoins can be swapped for cash dollars at close to one for one, so their price is a good guide to what a dollar costs on the street. Cash prices can differ a little. If people pay more than the official rate, a dollar is hard to get at the bank price.",
+    "note": "A stablecoin is a coin designed to stay worth one US dollar. What people pay comes from offers on Binance, a large online marketplace where people trade stablecoins. We line up the offers to sell a stablecoin from lowest to highest and take the one in the middle, so a few odd offers do not move the price. We compare it with the official rate, which is the bank exchange rate at the same moment. Stablecoins can be swapped for cash dollars at close to one for one, so their price is a good guide to what a dollar costs on the street. Cash prices can differ a little. If people pay more than the official rate, a dollar is hard to get at the bank price.",
     "linkText": "See each country's price over time →",
     "linkHref": "./countries.html",
     "footer": "The first two numbers in each row come from the latest check. The difference is worked out from those two."
@@ -1047,7 +1047,7 @@
     "lede": "The official rate is the one banks and governments quote. We compare it with what people actually pay each other for a dollar, every hour.",
     "loading": "Loading this hour's prices",
     "loadFailed": "Could not load this hour's prices. Try again in a few minutes.",
-    "metaTemplate": "Checked {time} UTC. {n} of {total} currencies have a price this hour. A currency is priced when at least ten people are selling or an exchange gives a live price. Each hourly price is the middle of the cheapest offers to sell a stablecoin, and the gap shown is the middle of the last 24 hourly prices. A stablecoin is a coin that stays worth one US dollar.",
+    "metaTemplate": "Checked {time} UTC. {n} of {total} currencies have a price this hour. A currency is priced when at least ten people are selling or an exchange gives a live price. Each hourly price is the middle of the cheapest offers to sell a stablecoin, and the gap shown is the middle of the last 24 hourly prices. A stablecoin is a coin designed to stay worth one US dollar.",
     "searchLabel": "Find a country",
     "colCountry": "Country",
     "colThenTemplate": "Gap on {date}",
@@ -1060,11 +1060,11 @@
     "modTitleEmpty": "No more countries have a large gap this hour",
     "emptyGroup": "No country in this group has a gap this hour.",
     "pegTitle": "Currencies fixed to the dollar or euro",
-    "pegNote": "These currencies hold their official rate, so paying more is the cost of getting hold of a stablecoin, not a currency losing value. A stablecoin is a coin that stays worth one US dollar.",
+    "pegNote": "These currencies hold their official rate, so paying more is the cost of getting hold of a stablecoin, not a currency losing value. A stablecoin is a coin designed to stay worth one US dollar.",
     "nearTitleTemplate": "{n} {countries} where people pay the official rate, give or take {gap}%",
     "nearNote": "A plus sign means people pay more than the official rate and a minus sign means less.",
     "withheldTitleTemplate": "{n} {countries} with no price this hour",
-    "withheldNoteTemplate": "A currency is priced when at least {min} people are selling or an exchange gives a live price. Without that we say so instead of guessing.",
+    "withheldNoteTemplate": "",
     "cfaNote": "Each CFA entry is a currency shared by several countries. We count it once, as one price.",
     "countryOne": "currency",
     "countryMany": "currencies",
@@ -1097,7 +1097,7 @@
     "lastReading": "Last reading {date}, {time}",
     "amountLabel": "Amount sent",
     "headline": "Every hour we test a stablecoin against apps on {route}",
-    "lead": "Cost is what the recipient loses against the mid-market rate, the middle price banks trade at with each other. Some routes are measured against the official rate instead, and say so. A stablecoin is a coin that stays worth one US dollar.",
+    "lead": "Cost is what the recipient loses against the mid-market rate, the middle price banks trade at with each other. Some routes are measured against the official rate instead, and say so. A stablecoin is a coin designed to stay worth one US dollar.",
     "bigCaption": "Hours in which a stablecoin was cheapest at any amount, out of {priced} priced",
     "loadFailed": "The route prices did not load. Reload to try again.",
     "legendStable": "Stablecoin",
@@ -1163,7 +1163,7 @@
     "headerOverdueOne": "Next reading is 1 minute late",
     "headline": "People do not always pay the official rate for a dollar",
     "whatLine": "Every hour we price a dollar in {currencies} currencies and compare it with the official rate.",
-    "runLine": "We have collected prices every hour since {since}: {hours} hours, {readings} prices stored.",
+    "runLine": "Since {since} we have collected prices in {hours} hours and stored {readings} prices.",
     "sourcesLine": "The prices come from {sources} sources.",
     "agentsLine": "{agents} AI agents run the site, each with one job. See how it was built.",
     "headlineSub": "",
@@ -1214,7 +1214,7 @@
     "markRoute": "{date}: started pricing {ids}",
     "markSource": "{date}: new source {id}",
     "markSources": "{date}: {n} new sources",
-    "moversTitle": "Where the gap moved most this week, against the middle of the days before it",
+    "moversTitle": "Where the gap moved most this week, compared with {from} to {to}",
     "moverLine": "{country} paid {baseline} {baselineDir} the official rate from {since} to {until}, and {recent} {recentDir} this week.",
     "dirAbove": "above",
     "dirBelow": "below",
@@ -1224,7 +1224,7 @@
     "finding_volume_crossover": "Sending five thousand Singapore dollars to the Philippines, a stablecoin beats the cheapest app above S${value} a month. Worked out from real fees.",
     "finding_stress_signal": "",
     "finding_p2p_spread_signal": "",
-    "stableLine": "From Singapore to the Philippines, a stablecoin has not beaten the cheapest app at any amount we price, in any of the {hours} hours we priced since {since}. A stablecoin is a coin that stays worth one US dollar.",
+    "stableLine": "From Singapore to the Philippines, a stablecoin has not beaten the cheapest app at any amount we price, in any of the {hours} hours we priced since {since}. A stablecoin is a coin designed to stay worth one US dollar.",
     "stableLink": "See every route",
     "loadError": "{n} data files did not load, so parts of this page are missing. Reload to try again."
   },
@@ -1366,8 +1366,8 @@
     "lastReading": "Last reading {time}",
     "layerBackfill": "{venue} history",
     "layerDaily": "Daily record",
-    "leadBook": "The official rate is {rate} {ccy} per dollar. On the exchanges where people in {country} trade stablecoins, one costs {street}. A stablecoin is a coin that stays worth one US dollar.",
-    "leadP2p": "The official rate is {rate} {ccy} per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs {street}. A stablecoin is a coin that stays worth one US dollar.",
+    "leadBook": "The official rate is {rate} {ccy} per dollar. On the exchanges where people in {country} trade stablecoins, one costs {street}. A stablecoin is a coin designed to stay worth one US dollar.",
+    "leadP2p": "The official rate is {rate} {ccy} per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs {street}. A stablecoin is a coin designed to stay worth one US dollar.",
     "sourceLine": "This price is set {sourceWords}. Other sources on the chart are for comparison and do not change it.",
     "legendBand": "Usual range",
     "legendOfficial": "Official rate",
@@ -1474,7 +1474,7 @@
     "method_weekend_penalty": "We start from the confirmed price changes. A rise counts when an app raised its price on a Saturday. The same app must then cut its price on the same route by the Tuesday after. Both moves must be in our data. We never assume a return from the rise alone.",
     "limits_weekend_penalty": "Each amount sent counts on its own. One Saturday rise counts once for each amount it showed up at. The number does not say how much more a Saturday cost. A route with few Saturdays checked has had little chance to show this.",
     "title_volume_crossover": "Stablecoins beat the cheapest app only above about {approx} a month, a figure worked out from the exchanges' published fee tiers",
-    "claim_volume_crossover": "Sending five thousand Singapore dollars to the Philippines, a stablecoin would beat the cheapest app only above this monthly volume. Nobody in our data traded that much, and we never saw it happen: the figure is rebuilt from the exchanges' fee tiers. A stablecoin is a coin that stays worth one US dollar.",
+    "claim_volume_crossover": "Sending five thousand Singapore dollars to the Philippines, a stablecoin would beat the cheapest app only above this monthly volume. Nobody in our data traded that much, and we never saw it happen: the figure is rebuilt from the exchanges' fee tiers. A stablecoin is a coin designed to stay worth one US dollar.",
     "evidenceBasis_volume_crossover": "Both rows are the same transfer, priced for two ways of buying on the exchange. Costs are in hundredths of a percent.",
     "method_volume_crossover": "We take every real check of sending five thousand Singapore dollars to the Philippines by stablecoin. For a given monthly volume, we look up the lower fee each exchange would charge. We rebuild each check's cost with those fees, from its own recorded prices. The number is the lowest volume where its usual cost drops below the cheapest app's usual cost. Both come from the same hours.",
     "limits_volume_crossover": "It covers one route and one amount. The number is rebuilt from real prices, never seen happening. Nobody in our data traded at that volume. It does not mean stablecoins are cheaper for most senders. Below that volume, the cheapest app costs less for this transfer.",
@@ -1485,7 +1485,7 @@
     "method_sgd_php_never_cheapest": "Every hour we price a stablecoin path and each app for this route. A stablecoin counts as cheapest when its cost is below every app's cost in that hour. The count is the same one the home page and the routes page print.",
     "evidenceBasis_sgd_php_never_cheapest": "Each row is one amount sent from Singapore to the Philippines: the hours we priced, and the hours in which a stablecoin was cheapest.",
     "unit_hours_stablecoin_cheapest": "hours in which a stablecoin was the cheapest way to send",
-    "claim_sgd_php_never_cheapest": "In no hour we priced did a stablecoin beat the cheapest app, at any of the five amounts. A stablecoin is a coin that stays worth one US dollar.",
+    "claim_sgd_php_never_cheapest": "In no hour we priced did a stablecoin beat the cheapest app, at any of the five amounts. A stablecoin is a coin designed to stay worth one US dollar.",
     "title_sgd_php_never_cheapest": "Singapore to the Philippines: a stablecoin was never the cheapest way to send"
   }
 }
