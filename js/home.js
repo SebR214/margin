@@ -371,7 +371,7 @@
     var M = D.movers;
     if (M && M.top && M.top.length) {
       var sec = el('section', 'hp-half');
-      word(sec, 'h2', null, 'moversTitle', function () { return { from: D.movers && D.movers.baseline_from ? dShort(D.movers.baseline_from) : '', to: D.movers && D.movers.baseline_to ? dShort(D.movers.baseline_to) : '' }; });
+      if (D.movers && D.movers.baseline_from && D.movers.baseline_to) word(sec, 'h2', null, 'moversTitle', function () { return { from: D.movers && D.movers.baseline_from ? dShort(D.movers.baseline_from) : '', to: D.movers && D.movers.baseline_to ? dShort(D.movers.baseline_to) : '' }; });
       var list = el('div', 'hp-listbox');
       M.top.slice(0, 4).forEach(function (m) {
         var a = el('a', 'hp-mover');
