@@ -1,5 +1,5 @@
 {
- "as_of_utc": "2026-10-06T21:00:00Z",
+ "as_of_utc": "2026-10-06T22:00:00Z",
  "claims": {
   "findingData.claim_sgd_php_never_cheapest": {
    "guards": [
@@ -7,12 +7,12 @@
     "findingData.method_sgd_php_never_cheapest",
     "findingData.limits_sgd_php_never_cheapest"
    ],
-   "ok": true,
+   "ok": false,
    "value": {
-    "hours_priced": 1127,
-    "hours_stablecoin_cheapest": 0,
+    "hours_priced": 1128,
+    "hours_stablecoin_cheapest": 1,
     "published_hours": 1127,
-    "published_matches_fresh": true,
+    "published_matches_fresh": false,
     "published_wins": 0,
     "route": "SGD->PHP"
    }
@@ -32,12 +32,12 @@
    "guards": [
     "homeData.stableLink"
    ],
-   "ok": true,
+   "ok": false,
    "value": {
-    "hours_priced": 1127,
-    "hours_stablecoin_cheapest": 0,
+    "hours_priced": 1128,
+    "hours_stablecoin_cheapest": 1,
     "published_hours": 1127,
-    "published_matches_fresh": true,
+    "published_matches_fresh": false,
     "published_wins": 0,
     "route": "SGD->PHP"
    }
@@ -49,17 +49,17 @@
    "ok": true,
    "value": {
     "printed_of": 60,
-    "printed_priced": 50,
+    "printed_priced": 48,
     "recount_of": 60,
-    "recount_priced": 50
+    "recount_priced": 48
    }
   },
   "homeData.updatedLine": {
    "guards": [],
    "ok": false,
    "value": {
-    "hours_missing": 3,
-    "newest_hour": "2026-10-06T21",
+    "hours_missing": 2,
+    "newest_hour": "2026-10-06T22",
     "window_hours": 24
    }
   },
@@ -68,9 +68,9 @@
    "ok": true,
    "value": {
     "printed_of": 60,
-    "printed_priced": 50,
+    "printed_priced": 48,
     "recount_of": 60,
-    "recount_priced": 50
+    "recount_priced": 48
    }
   },
   "howItWorks.thresholdCounts": {
@@ -78,16 +78,24 @@
    "ok": true,
    "value": {
     "printed_of": 60,
-    "printed_priced": 50,
+    "printed_priced": 48,
     "recount_of": 60,
-    "recount_priced": 50
+    "recount_priced": 48
    }
   },
   "routeData.bigCaption": {
    "guards": [],
-   "ok": true,
+   "ok": false,
    "value": {
-    "differ": [],
+    "differ": [
+     "SGD->PHP",
+     "AUD->PHP",
+     "NZD->PHP",
+     "USD->MXN",
+     "USD->NGN",
+     "USD->INR",
+     "SGD->INR"
+    ],
     "routes": 7
    }
   },
