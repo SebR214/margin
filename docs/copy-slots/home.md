@@ -131,3 +131,6 @@ The numbered findings cards and their data (data/findings.json) are gone from ho
 | Key | What it labels | Placeholders | Max words |
 | --- | --- | --- | --- |
 | `loadError` | Shown once at the bottom if any data file failed to load. | {n} = how many files failed. | 16 |
+
+| `heatShowAll` | Button under the first 20 heatmap rows; shows the rest. Empty: all rows show. | {n} = number of currencies | 6 |
+| `topPriceLine` | Under each "paying most" row: the real price against the official rate. | {price}, {ccy}, {rate} | 12 |
