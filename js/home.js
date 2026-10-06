@@ -70,6 +70,8 @@
   }
   function colourClass(g) {
     if (g == null) { return 'hn'; }
+    // Handle negative values (below the official rate)
+    if (g < 0) { return 'h0'; } // Use the lightest color for below official rate
     for (var k = 0; k < HEAT_STEPS.length; k++) { if (g < HEAT_STEPS[k]) { return 'h' + k; } }
     return 'h' + HEAT_STEPS.length;
   }
@@ -173,6 +175,7 @@
     }
     word(head, 'p', ['muted', 'hp-body'], 'heatLine');
     if (head.childNodes.length) { sec.appendChild(head); }
+
     var row = el('div', 'hp-row');
     var main = el('div', ['hp-main', 'hp-rel']);
     var grid = el('div', 'hp-heat');
@@ -183,6 +186,41 @@
     var unranked = [];
     var LIMIT = has('heatShowAll') ? 20 : D.rows.length;
     var hidden = [];
+
+    // Create play controls above heatmap
+    var ctlAbove = el('div', 'hp-controls-above');
+    if (has('heatPlay')) {
+      var btn = el('button', 'hp-btn');
+      btn.type = 'button';
+      var label = function () { btn.textContent = S.playing ? (t('heatPause') || t('heatPlay')) : t('heatPlay'); };
+      label();
+      btn.addEventListener('click', function () { toggle(label); });
+      ctlAbove.appendChild(btn);
+    }
+    var lab = el('label', ['muted', 'hp-slider']);
+    var cap = el('span');
+    var run = function () {
+      cap.textContent = '';
+      var pre = t('heatDay', { date: dayLabel(S.i) });
+      if (pre) { cap.textContent = pre; }
+    };
+    run(); updaters.push(run);
+    if (has('heatDay')) { lab.appendChild(cap); }
+    var rg = el('input');
+    rg.type = 'range'; rg.min = '0'; rg.max = String(n - 1); rg.value = String(S.i);
+    if (has('heatSlider')) { rg.setAttribute('aria-label', t('heatSlider')); }
+    rg.addEventListener('input', function () { stop(); set(+rg.value); });
+    D.range = rg;
+    lab.appendChild(rg);
+    ctlAbove.appendChild(lab);
+    main.appendChild(ctlAbove);
+
+    // Create marker above heatmap
+    var marker = el('div', 'hp-marker');
+    marker.style.width = '2px';
+    marker.style.left = '0px';
+    main.appendChild(marker);
+
     D.rows.forEach(function (cur, ri) {
       var r = el('div', 'hp-hmrow');
       if (ri >= LIMIT) { r.hidden = true; hidden.push(r); }
@@ -191,7 +229,9 @@
       cells.setAttribute('data-ccy', cur.ccy);
       for (var k = 0; k < n; k++) {
         var s = el('span', cur.ranked ? colourClass(cur.cells[k]) : 'hu');
-        if (cur.ranked && cur.cells[k] == null) { s.className = 'hn'; }
+        if (cur.ranked && cur.cells[k] == null) {
+          s.className = 'hn no-price';
+        }
         cells.appendChild(s);
         cols[k].push(s);
       }
@@ -226,32 +266,6 @@
       return note;
     });
 
-    var ctl = el('div', 'hp-controls');
-    if (has('heatPlay')) {
-      var btn = el('button', 'hp-btn');
-      btn.type = 'button';
-      var label = function () { btn.textContent = S.playing ? (t('heatPause') || t('heatPlay')) : t('heatPlay'); };
-      label();
-      btn.addEventListener('click', function () { toggle(label); });
-      ctl.appendChild(btn);
-    }
-    var lab = el('label', ['muted', 'hp-slider']);
-    var cap = el('span');
-    var run = function () {
-      cap.textContent = '';
-      var pre = t('heatDay', { date: dayLabel(S.i) });
-      if (pre) { cap.textContent = pre; }
-    };
-    run(); updaters.push(run);
-    if (has('heatDay')) { lab.appendChild(cap); }
-    var rg = el('input');
-    rg.type = 'range'; rg.min = '0'; rg.max = String(n - 1); rg.value = String(S.i);
-    if (has('heatSlider')) { rg.setAttribute('aria-label', t('heatSlider')); }
-    rg.addEventListener('input', function () { stop(); set(+rg.value); });
-    D.range = rg;
-    lab.appendChild(rg);
-    ctl.appendChild(lab);
-    main.insertBefore(ctl, grid);
     row.appendChild(main);
 
     var side = el('aside', 'hp-side');
@@ -280,6 +294,8 @@
       items.push({ cls: 'k' + 'h' + s2, key: key, vars: { min: lo, max: hi } });
     }
     items.push({ cls: 'khn', key: 'legendNone', vars: {} });
+    // Add "below the official rate" bucket
+    items.push({ cls: 'kh0', key: 'legendBelowOfficial', vars: {} });
     if (unranked.length) { items.push({ cls: 'khu', key: 'legendUnranked', vars: {} }); }
     items.forEach(function (it) {
       if (!has(it.key)) { return; }
@@ -327,6 +343,16 @@
       });
     }
     if (D.range) { D.range.value = String(i); }
+
+    // Update marker position
+    var marker = document.querySelector('.hp-marker');
+    if (marker && D.days && D.days.length > 0) {
+      var gridWidth = document.querySelector('.hp-cells') ? document.querySelector('.hp-cells').offsetWidth : 0;
+      if (gridWidth > 0) {
+        var cellWidth = gridWidth / D.days.length;
+        marker.style.left = (i * cellWidth + cellWidth / 2 - 1) + 'px';
+      }
+    }
   }
 
   /* ---------------------------------------------------------------- replay */
@@ -370,6 +396,54 @@
     flush();
     return svg;
   }
+
+  /* ---------------------------------------------------------------- findings strip */
+  function findingsStrip(wrap) {
+    var F = D.findings;
+    if (!F || !F.findings || !F.findings.length) { return; }
+
+    var sec = el('section', 'hp-findings-sec');
+    word(sec, 'h2', null, 'findingsTitle');
+
+    var findingsBox = el('div', 'hp-findings');
+    F.findings.slice(0, 5).forEach(function (f) {
+      var div = el('div', 'hp-finding');
+      var text = t('finding_' + f.key, f.vars);
+      if (text) {
+        div.textContent = text;
+        findingsBox.appendChild(div);
+      }
+    });
+
+    sec.appendChild(findingsBox);
+    wrap.appendChild(sec);
+  }
+
+  /* ---------------------------------------------------------------- SG-PHP section */
+  function sgPhSection(wrap) {
+    var RS = D.routes;
+    if (!RS || !RS.routes) { return; }
+    var r = RS.routes.filter(function (x) { return x.id === 'SGD->PHP'; })[0];
+    if (!r || r.total_hours_stable_cheapest !== 0 || typeof r.hours_priced_any_amount !== 'number' || !RS.start) { return; }
+
+    var sec = el('section', ['hp-sec', 'hp-sg-ph-section']);
+    word(sec, 'h2', null, 'sgPhTitle'); // Add this to copy.json
+
+    var vars = function () { return { hours: num(r.hours_priced_any_amount), since: dLong(RS.start) }; };
+    // Only render stableLine if claims are loaded and it's not blocked
+    if (claimOk('homeData.stableLine')) {
+      word(sec, 'p', ['soft', 'hp-lede'], 'stableLine', vars);
+    }
+    // Only render stableLink if claims are loaded and it's not blocked
+    if (claimOk('homeData.stableLink')) {
+      var a = word(sec, 'a', 'hp-biglink', 'stableLink', vars);
+      if (a) { a.href = './sending-money.html'; }
+    }
+
+    wrap.appendChild(sec);
+  }
+
+  /* ---------------------------------------------------------------- what moved + stablecoin line */
   function lowerSections(wrap) {
     var both = el('div', 'hp-two');
     var M = D.movers;
@@ -404,6 +478,12 @@
       both.appendChild(sec);
     }
     if (both.childNodes.length) { wrap.appendChild(both); }
+
+    // Add findings strip
+    findingsStrip(wrap);
+
+    // Add SG-PHP section
+    sgPhSection(wrap);
   }
 
   /* One stablecoin statement, for SGD->PHP only, and only while the stored claim is true:
@@ -440,6 +520,14 @@
         for (var k = c.cells.length - 1; k >= 0; k--) { if (c.cells[k] != null) { lastv = c.cells[k]; break; } }
         return { ccy: c.ccy, country: c.country, ranked: c.ranked !== false, cells: c.cells, last: lastv };
       });
+
+      // Filter out currencies with no readings on any day (AFN, AOA, BWP, ETB, GHS, NPR, XOF)
+      rows = rows.filter(function (r) {
+        // Check if currency has any non-null values
+        var hasReading = r.cells.some(function (cell) { return cell != null; });
+        return hasReading;
+      });
+
       var rank = function (r) { return r.last == null ? 2 : r.ranked ? 0 : 1; };
       rows.sort(function (a, b) {
         return rank(a) - rank(b) || (b.last || 0) - (a.last || 0) || (a.ccy < b.ccy ? -1 : 1);
@@ -481,7 +569,7 @@
 
   var jobs = {
     heat: 'data/heatmap_daily.json', record: 'data/record_daily.json', cycles: 'data/cycle_log.json',
-    movers: 'data/movers_week.json', routes: 'data/routes_summary.json'
+    movers: 'data/movers_week.json', routes: 'data/routes_summary.json', findings: 'data/findings_summary.json'
   };
   D.failed = [];
   // Load claims and data in parallel
