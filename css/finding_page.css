@@ -1,7 +1,188 @@
-/* Finding pages and the findings index (SEB-240). Dark data theme: tokens only
-   (colour and font tokens from style.css), weights 400 and 600, no
-   uppercase, one text above 24px (the big number). Rules are scoped under
-   so they beat style.css's global element rules. */
+/* Reference styles from the approved design */
+:root{
+  --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0;
+  --peri:#817FCC; --dust:#D3D0CB; --grape:#3F3047; --egg:#F0EBD8;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  color: var(--ink);
+  font-family: 'Archivo',system-ui,'Helvetica Neue',Arial,sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 20px 0;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  flex: none;
+}
+
+nav {
+  display: flex;
+  gap: 4px;
+  font-size: 15px;
+  font-weight: 500;
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+nav::-webkit-scrollbar {
+  display: none;
+}
+
+nav a {
+  padding: 10px;
+  color: var(--sub);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+nav a[aria-current] {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.hero {
+  padding: 20px 0 0;
+}
+
+h1 {
+  font-size: 28px;
+  line-height: 1.25;
+  letter-spacing: -.01em;
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+
+.lead {
+  font-size: 17px;
+  color: var(--sub);
+  margin: 0;
+  max-width: 640px;
+}
+
+.list {
+  margin-top: 32px;
+  border-top: 1px solid var(--rule);
+}
+
+.f {
+  display: grid;
+  grid-template-columns: 36px 1fr 180px;
+  gap: 4px 16px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--rule);
+  align-items: start;
+}
+
+.f:hover h2 {
+  color: var(--peri);
+}
+
+.f .id {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--stamp);
+  line-height: 1.6;
+}
+
+.f h2 {
+  font-size: 19px;
+  line-height: 1.35;
+  margin: 0;
+  font-weight: 700;
+  transition: color .15s;
+}
+
+.f .cap {
+  font-size: 15px;
+  color: var(--sub);
+  margin: 6px 0 0;
+}
+
+.f .when {
+  font-size: 14px;
+  color: var(--stamp);
+  margin: 6px 0 0;
+}
+
+.f .big {
+  text-align: right;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  color: var(--peri);
+  line-height: 1.15;
+}
+
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 56px;
+  padding: 24px 0 40px;
+  font-size: 15px;
+  color: var(--sub);
+}
+
+@media (max-width: 620px) {
+  .f {
+    grid-template-columns: 28px 1fr;
+  }
+  
+  .f .big {
+    grid-column: 2;
+    grid-row: 2;
+    text-align: left;
+    font-size: 26px;
+    margin-top: 6px;
+  }
+  
+  .f .txt {
+    display: contents;
+  }
+  
+  .f h2 {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  
+  .f .cap {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  
+  .f .when {
+    grid-column: 2;
+    grid-row: 4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+
+/* Original styles for individual finding pages - kept for backward compatibility */
 .fp-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 56px; }
 .fp-wrap p { margin: 0; }
 .fp-wrap h1, .fp-wrap h2 { margin: 0; font-size: 24px; line-height: 1.25; letter-spacing: 0; font-weight: 600; }
