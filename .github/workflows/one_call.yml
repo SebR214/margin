@@ -1,0 +1,67 @@
+name: one-call runner
+
+# SEB-274. Every 15 minutes a plain script asks Linear for a ready issue
+# (Todo, label one-call, not needs-claude). Nothing ready costs a few seconds
+# and no model call. A ready issue gets one cheap model call, at most two,
+# capped at $1 a job and DAILY_CAP_USD a day. See tools/one_call.py.
+#
+# Watched by watchdog.yml: silent for 2 hours, or 3 failures in a row, fails
+# that workflow and GitHub emails the repo owner.
+
+on:
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "Run one issue by hand, e.g. SEB-273"
+        required: false
+        default: ""
+
+concurrency:
+  group: one-call
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Mint the app token (PRs it opens run CI)
+        id: app_token
+        env:
+          MARGIN_GH_APP_ID: ${{ secrets.MARGIN_GH_APP_ID }}
+          MARGIN_GH_INSTALL_ID: ${{ secrets.MARGIN_GH_INSTALL_ID }}
+          MARGIN_GH_APP_KEY_CONTENT: ${{ secrets.MARGIN_GH_APP_KEY }}
+        run: |
+          set +x
+          key_file="$RUNNER_TEMP/margin-app-key.pem"
+          umask 077
+          printf '%s\n' "$MARGIN_GH_APP_KEY_CONTENT" > "$key_file"
+          export MARGIN_GH_APP_KEY="$key_file"
+          token="$(agents/gh_token.sh)"
+          rm -f "$key_file"
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Run
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          GH_PUSH_TOKEN: ${{ steps.app_token.outputs.token }}
+          DAILY_CAP_USD: "3.00"
+          LINEAR_ACTIVITY_LOG_PATH: ${{ runner.temp }}/linear_activity.jsonl
+        run: |
+          git config user.name "margin-agents[bot]"
+          git config user.email "329969015+margin-agents[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GH_PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}"
+          python3 tools/one_call.py ${{ github.event.inputs.issue }}
