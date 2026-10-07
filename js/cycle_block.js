@@ -94,11 +94,29 @@
     row.appendChild(list);
 
     var side = el('div', ['hp-side', 'hp-tight']);
-    var cycles = (CL.cycles || []).slice(-LAST_N);
-    wordT(side, 'span', ['muted', 'hp-small'], 'stripTitle', { n: cycles.length });
+    // The last 48 *clock* hours, not the last 48 recorded cycles -- a cycle
+    // that never ran (the job missed entirely, not just a source inside it)
+    // leaves no row in CL.cycles at all, which used to make that hour
+    // vanish from the strip instead of showing a gap. Build every hourly
+    // slot back from the current cycle's own hour and fill any slot with
+    // no matching recorded cycle as a gap (see the .sg rule in dkpanel.css).
+    var byHour = {};
+    (CL.cycles || []).forEach(function (c) { byHour[c.hour_utc.slice(0, 13)] = c; });
+    var anchor = Date.parse(st.hour_utc);
+    var slots = [];
+    if (!isNaN(anchor)) {
+      for (var i = LAST_N - 1; i >= 0; i--) {
+        var iso = new Date(anchor - i * 3600000).toISOString().slice(0, 13) + ':00:00Z';
+        slots.push(byHour[iso.slice(0, 13)] || { hour_utc: iso, status: 'gap' });
+      }
+    } else {
+      slots = (CL.cycles || []).slice(-LAST_N); // anchor missing: fall back to the recorded cycles
+    }
+    wordT(side, 'span', ['muted', 'hp-small'], 'stripTitle', { n: slots.length });
     var strip = el('div', 'hp-strip');
-    cycles.forEach(function (c) {
-      var s = el('span', c.status === 'check_failed' ? 'sf' : c.status === 'source_missed' ? 'sm' : 'sc');
+    slots.forEach(function (c) {
+      var cls = c.status === 'check_failed' ? 'sf' : c.status === 'source_missed' ? 'sm' : c.status === 'gap' ? 'sg' : 'sc';
+      var s = el('span', cls);
       s.title = c.hour_utc.slice(0, 10) + ' ' + hhmm(c.hour_utc);
       strip.appendChild(s);
     });

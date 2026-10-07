@@ -11,44 +11,52 @@
 <script src="./js/cycle_block.js"></script>
 <link rel="stylesheet" href="./css/dkpanel.css">
 <style>
-  /* How it works (SEB-240). Colours are the --dk-* tokens in style.css, nothing else. */
+  /* How it works (SEB-271 layout rebuild to match the reference, wording
+     unchanged -- replaces the SEB-240/SEB-226 card layout). No black band,
+     no grey boxes: the hero sits on white like every other section, and
+     every section below it is separated by a thin rule instead of a card.
+     Colours are the --color-* tokens in style.css; the cycle-strip colours
+     live in css/dkpanel.css (see the comment there). */
   { margin: 0; }
-  .hw-wrap { max-width: 1000px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 32px; }
+  .hw-wrap { max-width: 760px; margin: 0 auto; padding: 0 24px 56px; }
   .hp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--color-neutral-300); }
   .hp-headleft { display: flex; flex-wrap: wrap; align-items: center; gap: 0 28px; }
   .hp-logo { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 18px; color: var(--color-ink); text-decoration: none; }
   .hp-nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); }
   .hp-navlink { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-neutral-600); text-decoration: none; }
   .hp-navlink.on { color: var(--color-ink); }
-  .hw-main { display: flex; flex-direction: column; gap: 24px; }
-  .hw-panel { background: var(--color-surface); border: 1px solid var(--color-neutral-300); border-radius: 8px; padding: 28px; display: flex; flex-direction: column; gap: 16px; }
-  .hw-panel[hidden], .hw-main [hidden] { display: none; }
-  h1, h2 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0; text-transform: none; }
-  h1 { line-height: 1.15; }
-  h2 { line-height: 1.25; }
-  .hw-main .lede { margin: 0; font-size: 18px; color: inherit; }
-  .hw-main .p { margin: 0; font-size: 15px; color: var(--color-neutral-700); max-width: 760px; }
-  .hw-main .plain-list { margin: 0; padding-left: 20px; font-size: 15px; color: var(--color-neutral-700); max-width: 760px; display: flex; flex-direction: column; gap: 8px; }
+  .hw-main { display: flex; flex-direction: column; }
+  .hw-hero { padding: 24px 0 0; display: flex; flex-direction: column; gap: 8px; }
+  .hw-main [hidden] { display: none; }
+  h1, h2 { margin: 0; font-weight: 600; letter-spacing: 0; text-transform: none; }
+  h1 { font-size: 24px; line-height: 1.2; }
+  h2 { font-size: 20px; line-height: 1.25; }
+  .hw-main .lede { margin: 0; font-size: 17px; color: var(--color-neutral-600); }
+  .hw-main .p { margin: 0; font-size: 15px; color: var(--color-neutral-700); max-width: 680px; }
+  .hw-main .plain-list { margin: 8px 0 0; padding: 0; list-style: none; font-size: 15px; color: var(--color-neutral-700); max-width: 680px; }
   .hw-main .plain-list:empty { display: none; }
+  .hw-main .plain-list li { padding: 12px 0; border-top: 1px solid var(--color-neutral-300); }
+  .hw-main .plain-list li:first-child { border-top: 0; }
   .hw-main a { color: var(--color-ink); text-decoration: underline; text-underline-offset: 3px; }
-  .hero.bleed { display: flex; flex-direction: column; gap: 16px; }
-  .hero.bleed .plain-list, .hero.bleed .p { color: inherit; }
-  .hw-rows { border-top: 1px solid var(--color-neutral-300); }
+  /* Every section (and the hourly-run block and the full method) is a plain
+     region separated from the one above it by a thin rule, never a card. */
+  .hiw-section, #cycleBlock, .full-method { border-top: 1px solid var(--color-neutral-300); margin-top: 32px; padding-top: 24px; }
+  .hiw-section { display: flex; flex-direction: column; gap: 4px; }
+  .hw-rows { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--color-neutral-300); font-size: 15px; }
   .hw-rows:empty { display: none; }
-  .hw-row { display: flex; align-items: center; min-height: 44px; border-bottom: 1px solid var(--color-neutral-300); font-size: 14px; color: var(--color-ink); text-decoration: none; }
-  .hw-row:hover { background: var(--dk-panel-2, var(--color-surface)); }
+  .hw-rows a { color: var(--color-neutral-700); text-decoration: none; }
+  .hw-rows a:hover { color: var(--color-ink); text-decoration: underline; }
   .full-method > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--color-ink); }
   .full-method > div { display: flex; flex-direction: column; gap: 16px; padding-top: 12px; }
   .full-method .kicker { font-size: 13px; color: var(--color-neutral-600); }
   .full-method .h { font-size: 18px; font-weight: 600; color: var(--color-ink); }
-  .ask { display: flex; gap: 8px; max-width: 760px; }
+  .ask { display: flex; gap: 8px; max-width: 680px; }
   .ask input { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; background: var(--color-bg); color: var(--color-ink); border: 1px solid var(--color-neutral-400); border-radius: 6px; font: inherit; font-weight: 400; }
-  .ask button { min-width: 44px; min-height: 44px; background: var(--data-700); color: var(--color-bg); border: 0; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-  .askNote { font-size: 13px; color: var(--color-neutral-600); max-width: 760px; }
-  #hiwAnswer { max-width: 760px; margin-top: 8px; padding: 16px 20px; background: var(--color-bg); border: 1px solid var(--color-neutral-300); border-radius: 8px; font-size: 15px; line-height: 1.55; color: var(--color-ink); }
-  #cycleBlock { border: 1px solid var(--color-neutral-300); background: var(--color-surface); }
-  .foot { font-size: 14px; }
-  @media (max-width: 620px) { .hw-wrap { padding: 0 16px 64px; } .hw-panel { padding: 20px; } }
+  .ask button { min-width: 44px; min-height: 44px; background: var(--color-ink); color: var(--color-bg); border: 0; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .askNote { font-size: 13px; color: var(--color-neutral-600); max-width: 680px; }
+  #hiwAnswer { max-width: 680px; margin-top: 8px; padding: 16px 20px; background: var(--color-surface); border: 1px solid var(--color-neutral-300); border-radius: 8px; font-size: 15px; line-height: 1.55; color: var(--color-ink); }
+  .foot { font-size: 14px; color: var(--color-neutral-600); border-top: 1px solid var(--color-neutral-300); margin-top: 48px; padding-top: 20px; }
+  @media (max-width: 620px) { .hw-wrap { padding: 0 16px 40px; } }
 </style>
 
 <body>
@@ -62,44 +70,44 @@
       </nav></div></div>
 
   <main class="hw-main">
-    <section class="hero bleed" id="hiwIntro">
+    <section class="hw-hero" id="hiwIntro">
     <h1 id="hiwH1"></h1>
     <p class="lede" id="hiwSub"></p>
     <ul class="plain-list" id="hiwSubList"></ul>
     <div class="p" id="hiwSubNote"></div>
     </section>
 
-    <section class="hiw-section hw-panel" id="dollar-cost">
+    <section class="hiw-section" id="dollar-cost">
       <h2 id="dollarCostH2"></h2>
       <div class="p" id="dollarCostP"></div>
       <ul class="plain-list" id="dollarCostList"></ul>
     </section>
 
-    <section class="hiw-section hw-panel" id="sending-cost">
+    <section class="hiw-section" id="sending-cost">
       <h2 id="sendingCostH2"></h2>
       <div class="p" id="sendingCostP"></div>
       <div class="p" id="sendingCostAmounts"></div>
       <ul class="plain-list" id="sendingCostList"></ul>
     </section>
 
-    <section class="hiw-section hw-panel" id="not-measured">
+    <section class="hiw-section" id="not-measured">
       <h2 id="notMeasuredH2"></h2>
       <ul class="plain-list" id="notMeasuredList"></ul>
       <div class="p" id="notMeasuredNote"></div>
     </section>
 
     <!-- Hourly collection section ("This hour") -->
-    <div id="cycleBlock" class="dkpanel hw-panel" style="display: none;">
+    <div id="cycleBlock" class="dkpanel" style="display: none;">
       <!-- The cycle block will be rendered here by JavaScript -->
     </div>
 
-    <section class="hiw-section hw-panel" id="sources">
+    <section class="hiw-section" id="sources">
       <h2 id="sourcesH2"></h2>
       <ul class="plain-list" id="sourcesList"></ul>
       <div class="hw-rows" id="sourceRows"></div>
     </section>
 
-    <details class="full-method hw-panel" id="full-method"><summary id="methodSummary"></summary><div>
+    <details class="full-method" id="full-method"><summary id="methodSummary"></summary><div>
       <div class="kicker" id="methodKicker"></div>
       <div class="lede" id="methodLede"></div>
 
