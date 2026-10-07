@@ -62,14 +62,15 @@
   .hp-cells { flex: 1; display: flex; gap: 2px; min-width: 0; }
   .hp-cells span { flex: 1; height: 11px; border-radius: 2px; }
   .hp-cells .h0, .kh0 { background: var(--data-300); }
-  .hp-cells .h1, .kh1 { background: var(--data-400); }
-  .hp-cells .h2, .kh2 { background: var(--data-500); }
-  .hp-cells .h3, .kh3 { background: var(--data-600); }
-  .hp-cells .h4, .kh4 { background: var(--data-700); }
-  .hp-cells .hn, .khn { background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-neutral-500); }
+  .hp-cells .h1, .kh1 { background: var(--data-500); }
+  .hp-cells .h2, .kh2 { background: var(--data-600); }
+  .hp-cells .h3, .kh3 { background: var(--data-700); }
+  .hp-cells .h4, .kh4 { background: var(--color-ink); }
+  /* below the official rate: diagonal hatch, shown only when the legend has words for it */
+  .hp-cells .hb, .khb { background: repeating-linear-gradient(135deg, var(--color-neutral-400) 0 1px, var(--color-bg) 1px 4px); }
+  /* no price: flat pale fill, no border, quieter than "under 2%" */
+  .hp-cells .hn, .khn { background: var(--color-neutral-100); }
   .hp-cells .hu, .khu { background: var(--color-neutral-300); }
-  .hp-cells span.sel { box-shadow: 0 0 0 1px var(--color-ink); }
-  .hp-sw.khn { box-shadow: inset 0 0 0 1px var(--color-neutral-300); }
   .hp-note { padding-left: 54px; margin-top: 8px; font-size: 13px; }
   .hp-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 12px; padding-left: 54px; }
   .hp-btn { background: var(--color-surface); color: var(--color-ink); border: 1px solid var(--color-neutral-400); border-radius: 6px; min-height: 44px; padding: 0 18px; font: inherit; font-weight: 400; cursor: pointer; }
@@ -112,11 +113,43 @@
   .hp-moverline { flex: 1; min-width: 200px; }
   .hp-sline { fill: none; stroke: var(--data-700); stroke-width: 1.5; }
   .hp-sdotc { fill: var(--data-700); }
+
+  /* Play and slider above the map */
+  .hp-controls-above { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .hp-controls-above .hp-slider { flex: 1; min-width: 220px; display: flex; flex-direction: column; font-size: 13px; }
+  .hp-cells span[hidden] { display: none; }
+  .hp-scroll { overflow-x: auto; overflow-y: hidden; padding: 16px 0; margin: -16px 0; }
+  .hp-gridwrap { position: relative; padding-top: 10px; }
+  /* selected day: one thin vertical line across the grid, a little taller than it at the top */
+  .hp-marker { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--color-ink); pointer-events: none; z-index: 1; }
+  .hp-marker[hidden] { display: none; }
+  /* ranking rows: code, bar, value, price line under */
+  .hp-toprow { flex-wrap: wrap; gap: 4px 10px; padding: 6px 0; border-bottom: 1px solid var(--color-neutral-300); }
+  .hp-topcode { min-height: 32px; }
+  .hp-topprice { flex: 1 0 100%; padding-left: 54px; }
+  .hp-topprice:empty { display: none; }
+  .hp-topbox { gap: 4px; }
+  .hp-bar { min-width: 60px; }
+  .hp-movercode { color: var(--color-ink); }
+  .hp-moverdiff { margin-left: auto; font-size: 14px; }
+  .hp-sline, .hp-sdotc { display: none; }
+  .hp-findings { display: flex; flex-direction: column; border-top: 1px solid var(--color-neutral-300); }
+  .hp-finding { font-size: 14px; padding: 10px 0; border-bottom: 1px solid var(--color-neutral-300); }
+  .hp-sgph { display: flex; flex-direction: column; gap: 10px; }
+  .hp-subhead { margin: 0; font-size: 18px; font-weight: 600; }
+
+  /* phones: the grid scrolls sideways inside its own box; code column stays put */
+  @media (max-width: 600px) {
+    .hp-heat { min-width: 560px; }
+    .hp-code { position: sticky; left: 0; background: var(--color-bg); z-index: 2; min-height: 0; height: 14px; margin: 0; }
+    .hp-wrap { padding-left: 16px; padding-right: 16px; }
+  }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script src="./js/claims.js"></script>
+<script src="./js/record_block.js"></script>
 <script src="./js/home.js"></script>
 </body>
 </html>

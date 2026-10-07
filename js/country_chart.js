@@ -58,8 +58,12 @@
       function ext(v) { if (v < lo) lo = v; if (v > hi) hi = v; }
       var t0 = model.t0, t1 = model.t1;
       model.sources.forEach(function (s) { s.pts.forEach(function (p) { if (p[0] >= t0 && p[0] <= t1) ext(p[1]); }); });
-      [model.daily, model.segment, model.official].forEach(function (a) {
-        (a || []).forEach(function (p) { if (p[0] >= t0 && p[0] <= t1) ext(p[1]); });
+      (model.official || []).forEach(function (p) { if (p[0] >= t0 && p[0] <= t1) ext(p[1]); });
+      // The long history is fitted by its 2nd to 98th percentile, so one spike far from the readings does not set the scale.
+      [model.daily, model.segment].forEach(function (a) {
+        var v = (a || []).filter(function (p) { return p[0] >= t0 && p[0] <= t1; }).map(function (p) { return p[1]; }).sort(function (x, y) { return x - y; });
+        if (v.length > 1) { ext(v[Math.floor(0.02 * (v.length - 1))]); ext(v[Math.ceil(0.98 * (v.length - 1))]); }
+        else if (v.length) ext(v[0]);
       });
       (model.band || []).forEach(function (p) { if (p[0] >= t0 && p[0] <= t1) { ext(p[1]); ext(p[2]); } });
       if (model.includeZero) ext(0);
@@ -88,8 +92,15 @@
       if (dly.length > 1) g += '<path d="' + path(dly, xs, function (p) { return Y(p[1]); }) +
         '" fill="none" stroke-width="1.2" style="stroke:var(--color-neutral-700)"></path>';
       var off = inW(model.official);
-      if (off.length > 1) g += '<path d="' + path(off, xs, function (p) { return Y(p[1]); }) +
-        '" fill="none" stroke-width="1.4" style="stroke:var(--color-ink)"></path>';
+      if (off.length > 1) {
+        g += '<path d="' + path(off, xs, function (p) { return Y(p[1]); }) +
+          '" fill="none" stroke-width="1.4" style="stroke:var(--color-ink)"></path>';
+        // The line carries its own name, at its right end, above the line.
+        if (model.officialLabel) {
+          var last = off[off.length - 1], ly = Y(last[1]);
+          g += '<text x="' + (W - 4) + '" y="' + (ly - 6).toFixed(1) + '" text-anchor="end" class="cc-ax" style="fill:var(--color-ink)">' + String(model.officialLabel).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }) + "</text>";
+        }
+      }
       model.sources.forEach(function (s) {
         var d = "";
         s.pts.forEach(function (p) { if (p[0] >= t0 && p[0] <= t1) d += "M" + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1) + "h0"; });

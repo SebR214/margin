@@ -240,51 +240,18 @@ def writer_approved():
     return ok, why
 
 
-def copy_text_equal(old_text, new_text):
-    """copy.json content, ignoring formatting: same keys, same values."""
-    try:
-        return json.loads(old_text or "{}") == json.loads(new_text or "{}")
-    except ValueError:
-        return old_text == new_text
-
-
-def commit_before(commits, when):
-    """The last of COMMITS (GitHub API order: oldest first) committed at or before WHEN."""
-    before = [c for c in commits if c["commit"]["committer"]["date"] <= when]
-    return before[-1]["sha"] if before else None
-
-
 def owner_label():
-    """(ok, why): the owner's own account approved copy.json's current words.
-
-    The usual case is the label was added after the last push. But approval
-    follows the words, not the commit: a push after the label that left
-    copy.json's text exactly as it was when approved (a merge from main, a
-    layout or js-only commit) does not need re-approval. Only a push that
-    actually changes the approved text does."""
+    """(ok, why): the owner's own account added `copy-approved` after the last push."""
     n = os.environ["PR_NUMBER"]
     pr = api("/pulls/%s" % n)
     head_date = api("/commits/%s" % pr["head"]["sha"])["commit"]["committer"]["date"]
     ev = [e for e in api("/issues/%s/events?per_page=100" % n)
           if e.get("event") == "labeled" and (e.get("label") or {}).get("name") == "copy-approved"]
-    ev = [e for e in ev if (e.get("actor") or {}).get("login") == OWNER]
-    if not ev:
+    ok = [e for e in ev if (e.get("actor") or {}).get("login") == OWNER and e["created_at"] >= head_date]
+    if not ok:
         return False, ("waiting for %s to approve: the label 'copy-approved', added by their own account after the "
                        "last push" % OWNER)
-    latest = max(ev, key=lambda e: e["created_at"])
-    if latest["created_at"] >= head_date:
-        return True, "approved by %s" % OWNER
-    commits = api("/pulls/%s/commits?per_page=100" % n)
-    approved_sha = commit_before(commits, latest["created_at"])
-    if approved_sha is None:
-        return False, ("waiting for %s to approve: the label 'copy-approved', added by their own account after the "
-                       "last push" % OWNER)
-    approved_copy = show(approved_sha, "copy.json")
-    current_copy = open(os.path.join(HERE, "copy.json")).read()
-    if copy_text_equal(approved_copy, current_copy):
-        return True, "approved by %s (words unchanged since approval; a later push touched other files)" % OWNER
-    return False, ("waiting for %s to re-approve: copy.json's words changed since the 'copy-approved' label was "
-                   "added" % OWNER)
+    return True, "approved by %s" % OWNER
 
 
 def run(base):
@@ -358,13 +325,6 @@ def self_test():
     chk("copy new words", copy_violations(old, json.dumps({"a": {"x": "words here", "y": "new words"}})))
     chk("copy empty slot ok", not copy_violations(old, json.dumps({"a": {"x": "words here", "y": ""}})))
     chk("copy remove", copy_violations(old, json.dumps({"a": {}})))
-    chk("approval text equal, reformatted", copy_text_equal('{"a": "x"}', '{\n  "a": "x"\n}'))
-    chk("approval text differs", not copy_text_equal('{"a": "x"}', '{"a": "y"}'))
-    commits = [{"sha": "c1", "commit": {"committer": {"date": "2026-01-01T00:00:00Z"}}},
-               {"sha": "c2", "commit": {"committer": {"date": "2026-01-02T00:00:00Z"}}},
-               {"sha": "c3", "commit": {"committer": {"date": "2026-01-03T00:00:00Z"}}}]
-    chk("commit at label time", commit_before(commits, "2026-01-02T00:00:00Z") == "c2")
-    chk("commit before any push", commit_before(commits, "2025-12-31T00:00:00Z") is None)
     if fails:
         print("SELF-TEST FAILED: " + ", ".join(fails))
         return 1
