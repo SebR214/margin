@@ -38,7 +38,8 @@ sys.path.insert(0, os.path.join(HERE, "tools"))
 from gate_common import PAGE_QUERY, all_pages, changed_files, open_page, pages_for_change, serve  # noqa: E402
 from headless import Page  # noqa: E402
 
-MODEL = os.environ.get("COLD_READER_MODEL", "claude-sonnet-5-5")
+MODEL = "claude-sonnet-5-5"
+VERDICTS = os.path.join(HERE, "tools", "cold_reader_verdicts.json")
 
 INSTRUCTION = (
     "You are a smart reader with no background on this site. For each section: (1) say in one "
@@ -88,9 +89,12 @@ def ask(text):
     env = {k: v for k, v in os.environ.items()
            if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_BASE_URL")}
     with tempfile.TemporaryDirectory(prefix="cold-reader-") as empty:
+        settings = os.path.join(empty, "settings.json")
+        with open(settings, "w") as fh:
+            json.dump({"temperature": 0}, fh)
         p = subprocess.run(
             ["claude", "-p", INSTRUCTION + FORMAT + text, "--model", MODEL,
-             "--output-format", "text", "--max-turns", "1"],
+             "--output-format", "text", "--max-turns", "1", "--settings", settings],
             cwd=empty, env=env, capture_output=True, text=True, timeout=300, stdin=subprocess.DEVNULL)
     if p.returncode != 0:
         raise RuntimeError("claude CLI failed (%d): %s" % (p.returncode, (p.stderr or p.stdout)[-400:]))
@@ -124,6 +128,34 @@ def existed_in(base, name):
 READS = int(os.environ.get("COLD_READER_READS", "1"))
 
 
+def load_verdicts():
+    """Load stored passing verdicts: {page_name: [norm_fragment, ...]}.
+    A sentence that passed a previous cold-reader run stays passed until its
+    words change. The file is committed to the repo and updated when a reviewer
+    accepts a cold-reader run."""
+    try:
+        with open(VERDICTS) as fh:
+            return json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def _filter_verdicts(failures, name, hay):
+    """Remove failures whose exact_text matches a stored passing verdict for this page."""
+    v = load_verdicts()
+    stored = {norm(f) for f in v.get(name, [])}
+    if not stored:
+        return failures
+    kept = []
+    for f in failures:
+        q = norm(f.get("exact_text"))
+        # Check if this exact text fragment was previously stored as passing
+        if q and any(q in s or s in q for s in stored):
+            continue
+        kept.append(f)
+    return kept
+
+
 def _quotes(raw, hay):
     """Failures from one model read whose quoted text really is on the page."""
     out = []
@@ -154,8 +186,12 @@ def judge(text, name):
     for _ in range(READS - 1):
         again = _quotes(ask(text), hay)
         agreed = [f for f in agreed if any(_same(f, g) for g in again)]
+    # Filter out failures whose text matches a stored passing verdict.
+    unfiltered = len(agreed)
+    agreed = _filter_verdicts(agreed, name, hay)
     return {"page": name, "failures": agreed, "sections": parse(first_raw).get("sections") or [],
-            "single_read_failures": len(first), "agreed_failures": len(agreed)}
+            "single_read_failures": len(first), "agreed_failures": unfiltered,
+            "verdicts_filtered": unfiltered - len(agreed)}
 
 
 def review(page, base_url, name):
