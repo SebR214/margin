@@ -75,12 +75,13 @@ python3 agents/linear.py say SEB-8 reviewer "<verdict>"
 
 **Pass.** Verify, screenshot anything reader-facing, and **merge it yourself**
 on your own verification plus green checks -- never on green checks alone,
-and never while another review of the same PR is still in flight (RULES.md,
-SEB-262: PR #406 merged 2 minutes before its own CHANGES_REQUESTED verdict
-posted, so the fail had nowhere to go). The verdict that clears a merge is
-the one you post in this same pass — true for backend, data,
-`agents/`, `tools/`, ops, and anything a reader sees. Sebastian is not involved
-in routine work and must not be asked (RULES.md, 2026-10-01):
+and never while another review of the same PR is still in flight. A merge
+waits for an actual posted verdict (yours, in the same pass that merges, or
+another reviewer run's), never for green checks alone. Green checks mean
+the gates did not fail; they are not a verdict. See RULES.md, SEB-262:
+PR #406 merged in the 2-minute gap before its own reviewer's CHANGES_REQUESTED
+verdict posted — the verdict existed, it was a no-go, and it had nowhere to
+go because the merge did not wait for it.
 
 ```bash
 python3 tools/shot.py <changed pages>     # if anything reader-facing changed; writes PNGs under /tmp/shots
@@ -89,10 +90,12 @@ gh pr merge P --squash --delete-branch
 python3 agents/linear.py state SEB-8 "Done"
 ```
 
-**The cold reader is capped and runs once.** It only runs after the label `ready` is on the PR
-(add it when the PR is final, on the last commit), reads only the pages the PR changes, one pass,
-and stops after 3 runs on a PR: from then on the PR needs a human, and only a person adds
-`human-reviewed`. Never add `human-reviewed` yourself.
+**The cold reader is deterministic and advisory.** It runs after the label `ready` is on the PR
+(add it when the PR is final, on the last commit), reads only the pages the PR changes, with a
+fixed model at temperature 0. A sentence that passed once stays passed until its words change
+(stored in `tools/cold_reader_verdicts.json`). The cold reader no longer has a run cap: it re-runs
+on every `ready` push. A person can still add `human-reviewed` to waive it. Never add
+`human-reviewed` yourself.
 
 **Writer commits on a page PR are allowed.** If the PR description has a `## Rendered text` section and the commits are the writer's (message `<Page>: writer copy` or `writer revision`), a red `copy-lock` only means the PR waits for the owner's `copy-approved`: do not fail, revert, split or file an issue about it. Words in `copy.json` with no rendered text in the description are still a violation.
 
