@@ -9,8 +9,8 @@
 <style>
 :root{
   color-scheme: light;
-  --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0;
-  --peri:#817FCC; --dust:#D3D0CB; --grape:#3F3047; --egg:#F0EBD8;
+  --ink:#0B0B0B; --sub:#6B6B6B; --stamp:var(--color-neutral-500); --rule:#F0F0F0;
+  --peri:#817FCC; --dust:var(--color-neutral-300); --grape:var(--color-neutral-900); --egg:#F0EBD8;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -225,7 +225,7 @@ function renderHoursStrip(cycles, asOfUtc) {
       hoursHtml.push(`<i class="${statusClass}" title="${cycle.status}"></i>`);
     } else {
       // No reading - show empty square (gap)
-      hoursHtml.push('<i style="background:transparent;border:1px solid #eee"></i>');
+      hoursHtml.push('<i style="background:transparent;border:1px solid var(--color-neutral-200)"></i>');
     }
   }
   
