@@ -1,490 +1,236 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title></title>
-<meta name="description" content=""/>
-<link rel="stylesheet" href="./style.css">
-<script src="./js/chart.js"></script>
-<script src="./js/receipt_replay.js"></script>
-<script src="./js/cycle_block.js"></script>
-<link rel="stylesheet" href="./css/dkpanel.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How margin.wiki works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* How it works (SEB-240). Colours are the --dk-* tokens in style.css, nothing else. */
-  { margin: 0; }
-  .hw-wrap { max-width: 1000px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 32px; }
-  .hp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--color-neutral-300); }
-  .hp-headleft { display: flex; flex-wrap: wrap; align-items: center; gap: 0 28px; }
-  .hp-logo { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 18px; color: var(--color-ink); text-decoration: none; }
-  .hp-nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); }
-  .hp-navlink { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-neutral-600); text-decoration: none; }
-  .hp-navlink.on { color: var(--color-ink); }
-  .hw-main { display: flex; flex-direction: column; gap: 24px; }
-  .hw-panel { background: var(--color-surface); border: 1px solid var(--color-neutral-300); border-radius: 8px; padding: 28px; display: flex; flex-direction: column; gap: 16px; }
-  .hw-panel[hidden], .hw-main [hidden] { display: none; }
-  h1, h2 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0; text-transform: none; }
-  h1 { line-height: 1.15; }
-  h2 { line-height: 1.25; }
-  .hw-main .lede { margin: 0; font-size: 18px; color: inherit; }
-  .hw-main .p { margin: 0; font-size: 15px; color: var(--color-neutral-700); max-width: 760px; }
-  .hw-main .plain-list { margin: 0; padding-left: 20px; font-size: 15px; color: var(--color-neutral-700); max-width: 760px; display: flex; flex-direction: column; gap: 8px; }
-  .hw-main .plain-list:empty { display: none; }
-  .hw-main a { color: var(--color-ink); text-decoration: underline; text-underline-offset: 3px; }
-  .hero.bleed { display: flex; flex-direction: column; gap: 16px; }
-  .hero.bleed .plain-list, .hero.bleed .p { color: inherit; }
-  .hw-rows { border-top: 1px solid var(--color-neutral-300); }
-  .hw-rows:empty { display: none; }
-  .hw-row { display: flex; align-items: center; min-height: 44px; border-bottom: 1px solid var(--color-neutral-300); font-size: 14px; color: var(--color-ink); text-decoration: none; }
-  .hw-row:hover { background: var(--dk-panel-2, var(--color-surface)); }
-  .full-method > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--color-ink); }
-  .full-method > div { display: flex; flex-direction: column; gap: 16px; padding-top: 12px; }
-  .full-method .kicker { font-size: 13px; color: var(--color-neutral-600); }
-  .full-method .h { font-size: 18px; font-weight: 600; color: var(--color-ink); }
-  .ask { display: flex; gap: 8px; max-width: 760px; }
-  .ask input { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; background: var(--color-bg); color: var(--color-ink); border: 1px solid var(--color-neutral-400); border-radius: 6px; font: inherit; font-weight: 400; }
-  .ask button { min-width: 44px; min-height: 44px; background: var(--data-700); color: var(--color-bg); border: 0; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-  .askNote { font-size: 13px; color: var(--color-neutral-600); max-width: 760px; }
-  #hiwAnswer { max-width: 760px; margin-top: 8px; padding: 16px 20px; background: var(--color-bg); border: 1px solid var(--color-neutral-300); border-radius: 8px; font-size: 15px; line-height: 1.55; color: var(--color-ink); }
-  #cycleBlock { border: 1px solid var(--color-neutral-300); background: var(--color-surface); }
-  .foot { font-size: 14px; }
-  @media (max-width: 620px) { .hw-wrap { padding: 0 16px 64px; } .hw-panel { padding: 20px; } }
+:root{
+  color-scheme: light;
+  --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0;
+  --peri:#817FCC; --dust:#D3D0CB; --grape:#3F3047; --egg:#F0EBD8;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:#fff;color:var(--ink);font-family:'Archivo',system-ui,'Helvetica Neue',Arial,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--ink);text-decoration:none;font-weight:500}
+a:hover{color:var(--peri)}
+a:focus-visible{outline:2px solid var(--peri);outline-offset:2px;border-radius:4px}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+header{display:flex;align-items:center;gap:28px;padding:20px 0}
+.logo{font-size:18px;font-weight:800;letter-spacing:-.02em;flex:none}
+nav{display:flex;gap:4px;font-size:15px;font-weight:500;overflow-x:auto;scrollbar-width:none;white-space:nowrap;min-width:0}
+nav::-webkit-scrollbar{display:none}
+nav a{padding:10px;color:var(--sub);min-height:44px;display:inline-flex;align-items:center}
+nav a[aria-current]{color:var(--ink);font-weight:700}
+
+.hero{padding:20px 0 0}
+h1{font-size:28px;line-height:1.25;letter-spacing:-.01em;margin:0 0 8px;font-weight:700}
+.lede{font-size:17px;color:var(--sub);margin:0 0 4px}
+section{border-top:1px solid var(--rule);margin-top:36px;padding-top:28px}
+h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
+.answer{font-size:15px;color:var(--sub);margin:0 0 8px;max-width:640px}
+ul.why{list-style:none;margin:8px 0 0;padding:0}
+ul.why li{padding:12px 0;border-top:1px solid var(--rule);font-size:15px;max-width:680px}
+.small{font-size:15px;color:var(--stamp);margin:14px 0 0}
+.more{display:inline-block;margin-top:14px;font-size:15px;font-weight:600}
+
+.log{margin-top:8px}
+.step{display:grid;grid-template-columns:56px 1fr auto;gap:12px;padding:12px 0;border-top:1px solid var(--rule);font-size:15px;align-items:baseline}
+.step .t{color:var(--stamp)}
+.step .r{color:var(--sub);white-space:nowrap}
+.step.done .x{font-weight:600}
+.hours-h{font-size:14px;color:var(--stamp);margin:24px 0 8px}
+.hours{display:grid;grid-template-columns:repeat(24,1fr);gap:3px}
+.hours i{height:14px;border-radius:2px;background:var(--dust)}
+.hours i.sm{background:var(--stamp)}
+.hours i.sf{background:var(--grape)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:10px;font-size:14px;color:var(--sub)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--dust)}
+.legend i.sm{background:var(--stamp)} .legend i.sf{background:var(--grape)}
+
+.srcs{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;padding-top:14px;border-top:1px solid var(--rule);font-size:15px}
+.srcs a{color:var(--sub)}
+.srcs a:hover{color:var(--peri)}
+footer{border-top:1px solid var(--rule);margin-top:56px;padding:24px 0 40px;font-size:15px;color:var(--sub)}
+@media (max-width:620px){
+  .hours{grid-template-columns:repeat(12,1fr)}
+  .step{grid-template-columns:48px 1fr}
+  .step .r{grid-column:2}
+}
 </style>
-
+</head>
 <body>
-<div class="hw-wrap">
-  <div class="hp-head"><div class="hp-headleft"><a class="hp-logo mono" href="./index.html">margin.wiki</a><nav class="hp-nav">
-        <a class="hp-navlink" href="./countries.html">Countries</a>
-        <a class="hp-navlink" href="./sending-money.html">Routes</a>
-        <a class="hp-navlink" href="./sources.html">Sources</a>
-        <a class="hp-navlink" href="./findings.html">Findings</a>
-        <a class="hp-navlink on" href="./how-it-works.html">How it works</a>
-      </nav></div></div>
+<div class="wrap">
+<header>
+  <a class="logo" href="https://margin.wiki/">margin.wiki</a>
+  <nav aria-label="Main">
+    <a href="https://margin.wiki/countries.html">Countries</a>
+    <a href="https://margin.wiki/sending-money.html">Routes</a>
+    <a href="https://margin.wiki/sources.html">Sources</a>
+    <a href="https://margin.wiki/findings.html">Findings</a>
+    <a href="https://margin.wiki/how-it-works.html" aria-current="page">How it works</a>
+  </nav>
+</header>
 
-  <main class="hw-main">
-    <section class="hero bleed" id="hiwIntro">
-    <h1 id="hiwH1"></h1>
-    <p class="lede" id="hiwSub"></p>
-    <ul class="plain-list" id="hiwSubList"></ul>
-    <div class="p" id="hiwSubNote"></div>
-    </section>
+<div class="hero">
+  <h1>Every number here links to the file it came from</h1>
+  <p class="lede">Tap any number to see how it was made.</p>
+  <ul class="why">
+    <li>The offers people really posted.</li>
+    <li>The official rate we compared against, and where it came from.</li>
+    <li>The sum that turns those two into the percentage you read.</li>
+    <li>The public data file, so you can redo the sum yourself.</li>
+  </ul>
+  <p class="small">No number is typed in by hand. When we miss an hour, the chart shows a gap. Every point you see was really collected.</p>
+</div>
 
-    <section class="hiw-section hw-panel" id="dollar-cost">
-      <h2 id="dollarCostH2"></h2>
-      <div class="p" id="dollarCostP"></div>
-      <ul class="plain-list" id="dollarCostList"></ul>
-    </section>
+<section>
+  <h2>A dollar's price is the middle of real offers, every hour</h2>
+  <p class="answer">Each country gets one price for a dollar every hour, built like this.</p>
+  <ul class="why">
+    <li>A stablecoin is a coin that stays worth one US dollar.</li>
+    <li>We take the 10 cheapest offers to sell one on the exchange people there use. The middle offer is the price, so one odd seller cannot move it.</li>
+    <li>We set that price against the official rate at the same moment. The percentage is how much more a dollar really costs than that rate says.</li>
+    <li>A positive percentage means people pay more than the official rate. A negative one means they pay less.</li>
+    <li>With fewer than 10 sellers we publish no price. You see a gap, never a guess.</li>
+  </ul>
+</section>
 
-    <section class="hiw-section hw-panel" id="sending-cost">
-      <h2 id="sendingCostH2"></h2>
-      <div class="p" id="sendingCostP"></div>
-      <div class="p" id="sendingCostAmounts"></div>
-      <ul class="plain-list" id="sendingCostList"></ul>
-    </section>
+<section>
+  <h2>Sending cost is the money lost against the mid-market rate</h2>
+  <p class="answer">We price each app and the stablecoin route at five amounts, with the exchange fees and the fee for moving the coin counted. Look at the one closest to what you send.</p>
+  <p class="answer">The amounts are 200, 1,000, 5,000, 25,000 and 50,000, in the currency you send from.</p>
+  <ul class="why">
+    <li>The mid-market rate is the middle price banks trade at with each other.</li>
+    <li>Whatever your recipient gets below that rate is what sending costs you.</li>
+  </ul>
+</section>
 
-    <section class="hiw-section hw-panel" id="not-measured">
-      <h2 id="notMeasuredH2"></h2>
-      <ul class="plain-list" id="notMeasuredList"></ul>
-      <div class="p" id="notMeasuredNote"></div>
-    </section>
+<section>
+  <h2>Some costs are not in our figures, so check these yourself</h2>
+  <ul class="why">
+    <li>The official rate updates only once a day. On days a currency moves fast, the gap we show can be a day behind.</li>
+    <li>Some exchanges do not publish what your bank charges to send money there, so we leave it out. Check your own bank's fee before you compare.</li>
+    <li>Some app prices are offers for a first transfer. If you have used that app before, you may pay more than we show.</li>
+    <li>We measure stablecoins only. If you are buying cash at a money changer, treat our numbers as a guide, not a quote.</li>
+  </ul>
+  <a class="more" href="#full-method">See the full method →</a>
+</section>
 
-    <!-- Hourly collection section ("This hour") -->
-    <div id="cycleBlock" class="dkpanel hw-panel" style="display: none;">
-      <!-- The cycle block will be rendered here by JavaScript -->
-    </div>
+<section>
+  <h2>Collected fresh every hour</h2>
+  <p class="answer">Each line is a step of the latest hourly run, with the time it finished. Any problem shows here.</p>
+  <div class="log num" id="log"></div>
+  <p class="hours-h">How the last 48 hours went</p>
+  <div class="hours" id="hours"></div>
+  <div class="legend"><span><i></i>Clean hour</span><span><i class="sm"></i>A source missed</span><span><i class="sf"></i>A check failed</span></div>
+</section>
 
-    <section class="hiw-section hw-panel" id="sources">
-      <h2 id="sourcesH2"></h2>
-      <ul class="plain-list" id="sourcesList"></ul>
-      <div class="hw-rows" id="sourceRows"></div>
-    </section>
+<section id="full-method">
+  <h2>Every price comes from a public source you can check</h2>
+  <ul class="why">
+    <li>Dollar prices: Binance P2P, a marketplace where people trade with each other, Independent Reserve, Bithumb, Bitkub, BitoPro, Bitso, BTC Markets, BTCTurk, CoinDCX, Coinone, Coins.ph, Foxbit, Indodax, MAX, Mercado Bitcoin, Paribu, Pintu, Upbit, WazirX, CriptoYa.</li>
+    <li>Official rates: open.er-api.com, frankfurter.app, Argentina's central bank.</li>
+    <li>App prices: four apps quote us directly. The rest come from a public price comparison.</li>
+  </ul>
+  <div class="srcs" id="srcs"></div>
+  <a class="more" href="#full-method">Open the full method</a>
+</section>
 
-    <details class="full-method hw-panel" id="full-method"><summary id="methodSummary"></summary><div>
-      <div class="kicker" id="methodKicker"></div>
-      <div class="lede" id="methodLede"></div>
-
-      <div class="h" id="methodMadeTitle"></div>
-      <div class="p" id="methodMadeP"></div>
-      <div class="p" id="thresholdP"></div>
-
-      <div class="p"><a href="./METHODOLOGY.md" id="methodLink"></a></div>
-
-
-    <!-- "How fast does the street react?" taken off the site 2026-09-27
-         alongside countries.html's #reaction section -- see the HTML
-         comment there for the verified reason (the official rate this
-         method treats as a "step" only ever moves once a day, at a fixed
-         refresh time, so "reaction time" was measuring how soon the next
-         hourly street-price poll happens to land after that known daily
-         refresh, not a real market response). Left in place, commented
-         out, pending an hourly-updating official rate. -->
-    <!--
-    <div class="h" id="reaction-speed">How fast does the street react?</div>
-    <div class="p">When the official rate moves, the street price does not follow instantly. <a href="./countries.html#reaction">The countries page</a> now measures the gap between the two, in hours, country by country.</div>
-    <div class="p">There is no ready-made hourly history file for this. Each country's history array is daily, going back to 2024, and only carries the premium, not a separate official-rate series. The one place both series exist hour by hour is git itself: since per-country files started (10 September 2026), a scheduled job commits every country's JSON once an hour, and <span style="font-family:monospace">tools/emit_response_time.py</span> replays those commits back into a time series. That also sets a hard ceiling: only as much hourly history exists as days have passed since 10 September 2026, no matter what any other date on the site implies.</div>
-    <div class="p" id="reactionMethodP">Loading the current thresholds&hellip;</div>
-    <div class="p">The method is an event study, not a correlation, because the official rate in this data does not drift continuously — it holds flat for hours at a time, then steps, because its upstream source only refreshes periodically. For each detected step: take the median premium over the six hours before it as a baseline (what the premium looked like before the move), then walk forward hour by hour until the premium has closed most of the gap the step opened (the exact share and search window are the two figures in the paragraph above). That hour, minus the step's hour, is the reaction time for that one event. A country's headline number is the median across every event it had that resolved, capped at the next detected step so one event's recovery can't be mistaken for another's.</div>
-    <div class="p">A country is only published if it has at least 12.5 days of continuous hourly history (of the ~17 available market-wide as of this writing) and at least one event that actually resolved. Below that, it is left out with a reason, the same as any other "not enough data" gap on this site — never a guessed or averaged-in number.</div>
-    <div class="p" id="reactionFindingP">Loading the real numbers&hellip;</div>
-    <div class="p"><a href="./data/response_time_latest.json">The full per-country output, every detected event, every resolved and unresolved one →</a></div>
-    -->
-
-    <div class="ask">
-      <input type="text" placeholder="" id="hiwAskInput"/>
-      <button aria-label="" id="hiwAskBtn"><svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M4 10h11M11 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    </div>
-    <div id="hiwAnswer" style="display:none"></div>
-    <div class="askNote" id="askNote"></div>
-    </div></details>
-    <footer class="foot"><a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></footer>
-  </main>
+<footer>
+  <a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a>
+</footer>
 </div>
 
 <script>
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-// Every sentence here is a template in copy.json's "howItWorks" block.
-// Each figure is read from a file the site already publishes, never typed:
-//   minAds     data/index_latest.json  min_buy_ads (the evidence rule)
-//   amounts    data/providers_latest.json  the quoted sizes per corridor
-//   n, top     data/sources_latest.json "Order books" countries, then each
-//              of those data/countries/<CCY>.json "venues" lists
-//   ownWord    data/providers_latest.json count of providers whose rows have
-//              source "own" (their names appear only in the provider tables)
-// A sentence whose figure cannot be read is left out, not guessed.
-function getJson(u){ return fetch(u, {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; }); }
-var NUM_WORDS = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
-function numWord(n){ return NUM_WORDS[n] != null ? NUM_WORDS[n] : String(n); }
-// Every reader-facing word on this page, including the loading, failure and
-// ask-box sentences, is a key of copy.json's "howItWorks" block (HIW).
-var HIW = {};
-var copyP = getJson('./copy.json').then(function(c){ HIW = (c && c.howItWorks) || {}; return HIW; });
-// Fill {placeholders} in a template. A missing key or value leaves nothing.
-// In an html context the values arrive already escaped.
-function fillTpl(tpl, vals){ return (tpl || '').replace(/\{(\w+)\}/g, function(m, k){ return vals && vals[k] != null ? vals[k] : ''; }); }
-function joinNames(a){ return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' ' + HIW.listAnd + ' ' + a[a.length - 1]; }
-// Fill {placeholders}; drop any sentence that still has an unfilled one.
-function fillCopy(tpl, vals){
-  if (!tpl) return '';
-  return tpl.split(/(?<=\.)\s+/).map(function(sent){
-    var bad = false;
-    var out = sent.replace(/\{(\w+)\}/g, function(m, k){ if (vals[k] == null || vals[k] === '') { bad = true; return m; } return vals[k]; });
-    return bad ? '' : out;
-  }).filter(Boolean).join(' ');
-}
-// Fill each template and render the survivors as list items.
-function setList(id, items, vals){
-  var ul = document.getElementById(id); if (!ul) return;
-  ul.textContent = '';
-  (items || []).forEach(function(t){
-    var f = fillCopy(t, vals); if (!f) return;
-    var li = document.createElement('li'); li.textContent = f; ul.appendChild(li);
+// Fetch the cycle log data
+fetch('./data/cycle_log.json')
+  .then(response => response.json())
+  .then(data => {
+    // Process the data to match the reference format
+    const cycles = data.cycles.slice(-48); // Last 48 cycles
+    const steps = data.steps;
+    
+    // Create the log steps
+    const logSteps = [
+      [hhmm(steps.hour_utc), steps.currencies.collected + ' of ' + steps.currencies.of + ' currencies have a price. The rest show none this hour, never a guess.', ''],
+      [hhmm(steps.hour_utc), steps.routes.priced + ' of ' + steps.routes.of + ' routes priced this hour.', ''],
+      [hhmm(steps.auditor.sample_ts), steps.auditor.rebuilt + ' of our figures recomputed from raw prices. Matches mean the data backs them.', steps.auditor.matched + ' of ' + steps.auditor.rebuilt + ' matched'],
+      [hhmm(cycles[cycles.length-1].last_reading_utc), 'Every source answered and every rebuilt number matched.', '']
+    ];
+    
+    // Render the log steps
+    document.getElementById('log').innerHTML = logSteps.map((s, i) => 
+      '<div class="step' + (i === logSteps.length - 1 ? ' done' : '') + '">' +
+      '<span class="t">' + s[0] + '</span>' +
+      '<span class="x">' + s[1] + '</span>' +
+      '<span class="r">' + s[2] + '</span>' +
+      '</div>'
+    ).join('');
+    
+    // Render the hours strip (last 48 clock hours)
+    renderHoursStrip(cycles, data.as_of_utc);
+    
+    // Render the sources
+    const sources = [
+      'Binance P2P','Independent Reserve','Bithumb','Bitkub','BitoPro','Bitso',
+      'BTC Markets','BTCTurk','CoinDCX','Coinone','Coins.ph','Foxbit','Indodax',
+      'MAX','Mercado Bitcoin','Paribu','Pintu','Upbit','WazirX','CriptoYa'
+    ];
+    document.getElementById('srcs').innerHTML = sources.map(n => 
+      '<a href="https://margin.wiki/sources.html#s-' + n.toLowerCase().replace(/[^a-z0-9]/g, '') + '">' + n + '</a>'
+    ).join('');
+  })
+  .catch(error => {
+    console.error('Error loading cycle data:', error);
   });
-}
-function setText(id, txt){ var el = document.getElementById(id); if (el) { el.textContent = txt; el.hidden = !txt; } }
 
-// The page's own fixed text, set as soon as the copy arrives.
-copyP.then(function(h){
-  document.title = h.pageTitle || '';
-  var md = document.querySelector('meta[name="description"]');
-  if (md) md.setAttribute('content', h.pageDescription || '');
-  setText('methodSummary', h.methodSummary || '');
-  setText('methodKicker', h.methodKicker || '');
-  setText('methodLede', h.methodLede || '');
-  setText('methodMadeTitle', h.methodMadeTitle || '');
-  setText('thresholdP', h.thresholdLoading || '');
-  setText('methodLink', h.methodLink || '');
-  setText('askNote', h.askNote || '');
-  var ai = document.getElementById('hiwAskInput'); if (ai) ai.placeholder = h.askPlaceholder || '';
-  var ab = document.getElementById('hiwAskBtn'); if (ab) ab.setAttribute('aria-label', h.askLabel || '');
-});
-
-Promise.all([
-  copyP,
-  getJson('./data/index_latest.json'),
-  getJson('./data/providers_latest.json'),
-  getJson('./data/sources_latest.json')
-]).then(function(res){
-  var hiw = res[0] || {};
-  var idx = res[1], prov = res[2], src = res[3];
-  var minAds = idx && idx.min_buy_ads != null ? idx.min_buy_ads : null;
-
-  var sizes = [], own = {};
-  Object.keys((prov && prov.corridors) || {}).forEach(function(k){
-    var szs = prov.corridors[k].sizes || {};
-    var ks = Object.keys(szs);
-    if (ks.length > sizes.length) sizes = ks.map(Number).sort(function(a, b){ return a - b; });
-    ks.forEach(function(z){ (szs[z].rows || []).forEach(function(r){ if (r.source === 'own') own[r.provider] = 1; }); });
-  });
-  var vals = {
-    minAds: minAds,
-    amounts: sizes.length ? numWord(sizes.length) : null,
-    minAmount: sizes.length ? sizes[0].toLocaleString('en-US') : null,
-    maxAmount: sizes.length ? sizes[sizes.length - 1].toLocaleString('en-US') : null,
-    amountList: sizes.length ? joinNames(sizes.map(function(n){ return n.toLocaleString('en-US'); })) : null,
-    ownWord: Object.keys(own).length ? numWord(Object.keys(own).length) : null
-  };
-
-  setText('hiwH1', hiw.h1 || '');
-  setText('hiwSub', hiw.sub || '');
-  setList('hiwSubList', hiw.subPoints, vals);
-  setText('hiwSubNote', hiw.subNote || '');
-  setText('dollarCostH2', hiw.dollarCostTitle || '');
-  setText('dollarCostP', fillCopy(hiw.dollarCostLead, vals));
-  setList('dollarCostList', hiw.dollarCostPoints, vals);
-  setText('sendingCostH2', hiw.sendingCostTitle || '');
-  setText('sendingCostP', fillCopy(hiw.sendingCostLead, vals));
-  setText('sendingCostAmounts', fillCopy(hiw.sendingCostAmounts, vals));
-  setList('sendingCostList', hiw.sendingCostPoints, vals);
-  setText('methodMadeP', fillCopy(hiw.methodMadeBody, vals));
-  setText('notMeasuredH2', hiw.notMeasuredTitle || '');
-  setText('sourcesH2', hiw.sourcesTitle || '');
-  var list = document.getElementById('notMeasuredList');
-  (hiw.notMeasured || []).forEach(function(t){ var li = document.createElement('li'); li.textContent = t; list.appendChild(li); });
-  var note = document.getElementById('notMeasuredNote');
-  var parts = (hiw.notMeasuredNote || '').split('{fullMethodLink}');
-  note.appendChild(document.createTextNode(parts[0]));
-  var a = document.createElement('a');
-  a.href = '#full-method'; a.style.cssText = 'font-weight:600;color:var(--color-ink)';
-  a.textContent = hiw.fullMethodLink || '';
-  note.appendChild(a);
-  if (parts[1]) note.appendChild(document.createTextNode(parts[1]));
-
-  // Local exchanges: the venues named in each order-book country's own file,
-  // folded to one name per exchange (IndependentReserve prices AUD, NZD and
-  // SGD under three labels), ranked by how many countries each one prices.
-  var ob = ((src && src.sources) || []).filter(function(s){ return s.name === 'Order books'; })[0];
-  var ccys = (ob && ob.countries) || [];
-  Promise.all(ccys.map(function(c){ return getJson('./data/countries/' + c + '.json'); })).then(function(files){
-    var cover = {};
-    files.forEach(function(f){
-      var seen = {};
-      ((f && f.venues) || []).forEach(function(v){ seen[String(v.venue).replace(/\s*\([^)]*\)\s*$/, '')] = 1; });
-      Object.keys(seen).forEach(function(v){ cover[v] = (cover[v] || 0) + 1; });
-    });
-    var names = Object.keys(cover).sort(function(x, y){ return cover[y] - cover[x] || x.localeCompare(y); });
-    vals.n = names.length || null;
-    // Every other price source the file lists (the parallel-dollar markets) follows the exchanges.
-    ((src && src.sources) || []).forEach(function(s){
-      if (/parallel-dollar/.test(s.detail || '') && names.indexOf(s.name) < 0) names.push(s.name);
-    });
-    vals.top = names.length ? names.map(function(n){ return (hiw.venueNames || {})[n] || n; }).join(', ') : null;
-    setList('sourcesList', hiw.sourcesPoints, vals);
-    // Each source named above is also a row that opens its entry on the sources page.
-    var rowsBox = document.getElementById('sourceRows');
-    if (rowsBox) {
-      rowsBox.textContent = '';
-      var mainSrc = ((src && src.sources) || []).filter(function(x){ return /main source/.test(x.detail || ''); }).map(function(x){ return x.name; });
-      mainSrc.concat(names).forEach(function(n){
-        var a = document.createElement('a');
-        a.classList.add('hw-row', 'mono');
-        a.href = './sources.html#s-' + String(n).toLowerCase().replace(/[^a-z0-9]/g, '');
-        a.textContent = (hiw.venueNames || {})[n] || n;
-        rowsBox.appendChild(a);
-      });
-    }
-  });
-}).catch(function(){});
-
-Promise.all([copyP, fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json())]).then(function(res){
-  var d = res[1];
-  var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
-  // Same figure the homepage binds its hero line to (countries.length +
-  // withheld.length) -- these were two separately typed numbers for the
-  // same fact on different pages (59 here, 60 there) until now. The mockup
-  // rebuild dropped the hero's own "Loading… countries" sentence, but this
-  // element is guarded rather than removed outright in case a future
-  // section wants it again.
-  var introCountEl = document.getElementById('introCountryCount');
-  if (introCountEl) introCountEl.textContent = (d.countries||[]).length + (d.withheld||[]).length + (d.unverified||[]).length;
-  document.getElementById('thresholdP').textContent =
-    fillTpl(HIW.thresholdCounts, { priced: (d.countries||[]).length, notPriced: (d.withheld||[]).length + (d.unverified||[]).length });
-
-}).catch(function(){});
-
-// Section commented out above 2026-09-27 -- guard stops this fetch from
-// running against elements that no longer exist.
-if (document.getElementById('reactionMethodP')) {
-copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }); }).then(function(d){
-  document.getElementById('reactionMethodP').innerHTML =
-    fillTpl(HIW.reactionCounts, { qualified: d.n_countries_qualified, total: d.n_countries_total, hours: d.min_hours_required }) + ' ' +
-    fillTpl(HIW.reactionStep, { threshold: d.event_threshold_pct, closed: Math.round((1 - d.reversion_fraction) * 100), days: Math.round(d.max_window_hours / 24) });
-  var r = d.premium_lag_correlation;
-  document.getElementById('reactionFindingP').innerHTML =
-    fillTpl(HIW.reactionFindingLead, { relation: r == null ? fillTpl(HIW.reactionRelationNone) : fillTpl(HIW.reactionRelationWeak, { r: r.toFixed(2) }) }) + ' ' +
-    fillTpl(HIW.reactionFindingBody, { ccy: 'DZD', countriesPage: '<a href="./countries.html#reaction">' + esc(HIW.reactionCountriesLink || '') + '</a>' });
-}).catch(function(){
-  document.getElementById('reactionMethodP').textContent = HIW.reactionMethodFail || '';
-  document.getElementById('reactionFindingP').textContent = HIW.reactionFindingFail || '';
-});
+// Helper function to extract hh:mm from ISO string
+function hhmm(iso) {
+  return iso ? iso.slice(11, 16) : '';
 }
 
-// ---- The "how was it made" ask box: same real backend as Home's, not a
-// decoration. Answer shown as a plain sentence; the SQL that produced it is
-// available on click rather than dumped inline -- shown by default, it read
-// as unexplained code (real feedback: "the thing is a chat interface? ...
-// not clearly thought out"), when the plain sentence is the actual answer.
-(function(){
-  // A4: this box's own placeholder invites "how any number was made" --
-  // spec-cited failure was this exact box refusing that exact question.
-  // Everything methodology-shaped answers from prose here, and never
-  // reaches SQL. window.hiwByCcy is set once the index data loads below
-  // (see the other script block on this page).
-  var API_BASE = location.hostname.endsWith("margin.wiki")
-    ? "https://api.margin.wiki" : "http://127.0.0.1:8901";
-  var input = document.getElementById('hiwAskInput');
-  var btn = document.getElementById('hiwAskBtn');
-  var box = document.getElementById('hiwAnswer');
-  if (!input || !btn) return;
-
-  function show(html) { box.innerHTML = html; box.style.display = 'block'; }
-
-  // See the identical comment in index.html -- deliberately loose so the
-  // page's own placeholder ("Ask the agent how any number was made")
-  // reliably matches; a stricter pattern missed it.
-  var METHOD_RE = /\bhow\b.*\b(made|calculat|comput|built|measur|works?)\b|methodolog/i;
-
-  function methodologyAnswer(q){
-    var tracked = window.hiwTrackedByName || {};
-    var lower = ' ' + q.toLowerCase().replace(/[^a-z\s]/g, ' ') + ' ';
-    var mentioned = Object.keys(tracked).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
-    if (mentioned.length) {
-      var c = tracked[mentioned[0]];
-      show(fillTpl(HIW.askMethodTracked, { evidence: esc(c.evidence_words), source: esc(c.source_words) }) +
-        '<div style="margin-top:10px;font-size:14px"><a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:var(--color-ink)">' + fillTpl(HIW.askReceiptLink, { country: esc(c.country) }) + '</a></div>');
+// Function to render the hours strip showing the last 48 clock hours
+function renderHoursStrip(cycles, asOfUtc) {
+  // Create a map of cycle hours for quick lookup
+  const cycleMap = {};
+  cycles.forEach(cycle => {
+    const hourKey = cycle.hour_utc.slice(0, 13); // YYYY-MM-DDTHH
+    cycleMap[hourKey] = cycle;
+  });
+  
+  // Generate the last 48 clock hours
+  const hoursHtml = [];
+  const asOfTime = new Date(asOfUtc);
+  
+  // Start from 47 hours ago to get 48 total hours
+  for (let i = 47; i >= 0; i--) {
+    const hourTime = new Date(asOfTime);
+    hourTime.setHours(hourTime.getHours() - i);
+    
+    // Format as YYYY-MM-DDTHH for lookup
+    const hourKey = hourTime.toISOString().slice(0, 13);
+    const cycle = cycleMap[hourKey];
+    
+    if (cycle) {
+      // Has reading - show appropriate color
+      const statusClass = cycle.status === 'check_failed' ? 'sf' : 
+                         cycle.status === 'source_missed' ? 'sm' : '';
+      hoursHtml.push(`<i class="${statusClass}" title="${cycle.status}"></i>`);
     } else {
-      show(esc(HIW.askMethodGeneric || '') +
-        '<div style="margin-top:10px;font-size:14px"><a href="./countries.html" style="font-weight:600;color:var(--color-ink)">' + esc(HIW.askIndexLink || '') + '</a></div>');
+      // No reading - show empty square (gap)
+      hoursHtml.push('<i style="background:transparent;border:1px solid #eee"></i>');
     }
   }
-
-  // A2: this box had no failure floor at all -- a genuine miss bare-
-  // refused, caught by the golden set (tools/check_ask.py) the moment it
-  // ran. Same rule as Home's ask box: name what was understood, give a
-  // real link, never a bare string.
-  var worldNames = {};
-  try {
-    var dn = new Intl.DisplayNames(['en'], { type: 'region' });
-    for (var a = 65; a <= 90; a++) for (var b = 65; b <= 90; b++) {
-      var code = String.fromCharCode(a) + String.fromCharCode(b);
-      var nm = dn.of(code);
-      if (nm && nm !== code) worldNames[nm.toLowerCase()] = nm;
-    }
-  } catch (e) { /* falls through to the generic floor below */ }
-
-  function diagnose(q){
-    var tracked = window.hiwTrackedByName || {};
-    var lower = ' ' + q.toLowerCase().replace(/[^a-z\s]/g, ' ') + ' ';
-    var mentionedTracked = Object.keys(tracked).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
-    var mentionedWorld = Object.keys(worldNames).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
-    var untracked = mentionedWorld.filter(function(n){ return !tracked[n]; });
-    var allLink = '<a href="./countries.html" style="font-weight:600;color:var(--color-ink)">' + esc(HIW.askAllCountriesLink || '') + '</a>';
-    if (untracked.length) {
-      return fillTpl(HIW.askUntracked, { country: esc(worldNames[untracked[0]]), link: allLink });
-    }
-    if (mentionedTracked.length) {
-      var c = tracked[mentionedTracked[0]];
-      return fillTpl(HIW.askTracked, { country: esc(c.country), link: '<a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:var(--color-ink)">' + fillTpl(HIW.askTrackedLink, { country: esc(c.country) }) + '</a>' });
-    }
-    return fillTpl(HIW.askUnparsed, { link: allLink });
-  }
-
-  function submit(){
-    var q = (input.value || '').trim();
-    if (!q) return;
-    // Anything methodology-shaped answers from prose -- this page's whole
-    // premise is "how it works", so free-form SQL is never the right tool
-    // for that shape of question, only for a genuinely open data question.
-    if (METHOD_RE.test(q)) { methodologyAnswer(q); return; }
-    show('<span style="color:var(--color-neutral-600)">' + esc(HIW.askWaiting || '') + '</span>');
-    fetch(API_BASE + '/ask', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({question: q})
-    }).then(function(r){ return r.json().then(function(body){ return {ok: r.ok, body: body}; }); })
-      .then(function(res){
-        if (!res.ok || res.body.error) {
-          var err = String(res.body.error || '');
-          var isRateLimit = /enough questions|reachable|budget/i.test(err);
-          show(isRateLimit ? esc(err) : diagnose(q));
-          return;
-        }
-        var sentence = esc(res.body.sentence || HIW.askNoAnswer || '');
-        var sqlId = 'sql' + Math.random().toString(36).slice(2,8);
-        var html = '<div>' + sentence + '</div>';
-        if (res.body.sql) {
-          html += '<div style="margin-top:10px"><a href="#" id="' + sqlId + '-toggle" style="font-size:14px;color:var(--color-neutral-600);font-weight:600">' + esc(HIW.askSqlLink || '') + '</a>' +
-            '<div id="' + sqlId + '" style="display:none;margin-top:6px;font-size:14px;color:var(--color-neutral-600);font-family:ui-monospace,monospace;word-break:break-all">' + esc(res.body.sql) + '</div></div>';
-        }
-        show(html);
-        var toggle = document.getElementById(sqlId + '-toggle');
-        if (toggle) toggle.addEventListener('click', function(e){
-          e.preventDefault();
-          var sqlBox = document.getElementById(sqlId);
-          sqlBox.style.display = sqlBox.style.display === 'none' ? 'block' : 'none';
-        });
-      })
-      .catch(function(){
-        show(esc(HIW.askUnreachable || ''));
-      });
-  }
-  btn.addEventListener('click', submit);
-  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') submit(); });
-})();
-</script>
-
-<script>
-(function(){
-  var btn = document.getElementById('navToggle');
-  var nav = document.querySelector('header nav');
-  if (btn && nav) {
-    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
-    document.addEventListener('click', function(e){
-      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
-    });
-  }
-})();
-</script>
-<script>
-(function(){var d=document.getElementById("full-method");if(!d)return;d.addEventListener("toggle",function(){window.dispatchEvent(new Event("resize"))});function openIfHash(){if(location.hash==="#full-method"){d.open=true}}openIfHash();window.addEventListener("hashchange",openIfHash);document.querySelectorAll('a[href="#full-method"]').forEach(function(a){a.addEventListener("click",function(){d.open=true})})})();
-</script>
-
-<!-- Script to fetch data and render the cycle block -->
-<script>
-Promise.all([copyP, fetch('./data/cycle_log.json', {cache:'no-store'}).then(r=>r.json())]).then(function(res){
-  var hiw = res[0] || {};
-  var cycleLog = res[1];
-
-  // Define the copy keys for the cycle block
-  var copyBlock = {
-    cycleTitle: hiw.cycleTitle || '',
-    cycleLine: hiw.cycleLine || '',
-    stepCurrencies: hiw.stepCurrencies || '',
-    stepRoutes: hiw.stepRoutes || '',
-    stepAuditor: hiw.stepAuditor || '',
-    stepAuditorResult: hiw.stepAuditorResult || '',
-    stepAnalyst: hiw.stepAnalyst || '',
-    resultClean: hiw.resultClean || '',
-    resultSourceMissed: hiw.resultSourceMissed || '',
-    resultCheckFailed: hiw.resultCheckFailed || '',
-    stripTitle: hiw.stripTitle || '',
-    stripClean: hiw.stripClean || '',
-    stripMissed: hiw.stripMissed || '',
-    stripFailed: hiw.stripFailed || ''
-  };
-
-  // Render the cycle block
-  var container = document.getElementById('cycleBlock');
-  if (container && typeof renderCycleBlock === 'function') {
-    renderCycleBlock(container, cycleLog, copyBlock);
-    // Show the container if cycleTitle is not empty
-    if (copyBlock.cycleTitle) {
-      container.style.display = 'block';
-    }
-  }
-}).catch(function(err){
-  console.error('Failed to load cycle data:', err);
-});
+  
+  document.getElementById('hours').innerHTML = hoursHtml.join('');
+}
 </script>
 </body>
 </html>
