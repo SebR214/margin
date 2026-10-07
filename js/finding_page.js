@@ -246,7 +246,7 @@
     if (hero.firstChild) wrap.appendChild(hero);
     
     // Findings list
-    var list = el('div', 'list num');
+    var list = el('div', ['list', 'num']);
     published.forEach(function (f, i) { 
       // Add finding number to the object for indexRow
       var findingWithNumber = { ...f, n: two(i) };
