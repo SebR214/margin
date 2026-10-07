@@ -1,0 +1,55 @@
+name: watchdog
+
+# The alarm that reaches Seb. No model call. Every 30 minutes it checks:
+#   - the one-call runner (tools/check_runner_health.py): a completed run in
+#     the last 2 hours, and not 3 failures in a row
+#   - the collector (tools/check_collector_health.py)
+# If either is down, this run FAILS. A failed scheduled run makes GitHub email
+# the person who last changed this file's schedule, which is Seb's account.
+# collector_watchdog.yml still files the collector alert to Linear; this one
+# exists because a Linear issue filed with Seb's own key never notifies him.
+#
+# Run it by hand with test_alarm=true to check the email arrives.
+
+on:
+  schedule:
+    - cron: "11,41 * * * *"
+  workflow_dispatch:
+    inputs:
+      test_alarm:
+        description: "Fail on purpose, to check the email arrives"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 200
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check the runner and the collector
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          down=0
+          echo "## Runner"
+          python3 tools/check_runner_health.py || down=1
+          echo "## Collector"
+          python3 tools/check_collector_health.py || down=1
+          if [ "${{ github.event.inputs.test_alarm }}" = "true" ]; then
+            echo "TEST ALARM: failing on purpose so the failure email can be checked"
+            down=1
+          fi
+          exit $down
