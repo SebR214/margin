@@ -41,12 +41,13 @@
     if (typeof v !== 'number') return String(v);
     return v.toLocaleString('en-US', { maximumFractionDigits: 2 });
   }
-  // "5 Oct, 00:00". The label beside it says UTC, so the time itself does not.
+  // "5 Oct, 00:00", then the word UTC once from copy.json (findingData.utc), so a time is never printed without its zone.
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   function fmtTime(s) {
     var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(s || '');
     return m ? (+m[3]) + ' ' + MONTHS[+m[2] - 1] + ', ' + m[4] : (s || '');
   }
+  function fmtWhen(s) { var z = T('utc'); return fmtTime(s) + (z && s ? ' ' + z : ''); }
   // The currency a route's amount is sent in: "SGD->PHP" -> "SGD".
   function fromCcy(route) { var m = /^([A-Z]{3})\s*(?:->|\u2192)/.exec(route || ''); return m ? m[1] : ''; }
   function fmtBytes(n) { return n < 1000 ? n + ' B' : (n / 1000).toFixed(1) + ' kB'; }
@@ -201,7 +202,7 @@
     if (f.last_recheck_utc && T('lastRecheck')) {
       var m = kid(body, el('span', ['fp-card-meta', 'muted']));
       m.appendChild(el('span', '', T('lastRecheck')));
-      m.appendChild(el('span', 'mono', fmtTime(f.last_recheck_utc)));
+      m.appendChild(el('span', 'mono', fmtWhen(f.last_recheck_utc)));
     }
     return a;
   }
@@ -222,7 +223,7 @@
     
     // Recheck time
     if (f.last_recheck_utc && T('lastRecheck')) {
-      var whenText = T('lastRecheck') + ' ' + fmtTime(f.last_recheck_utc);
+      var whenText = T('lastRecheck') + ' ' + fmtWhen(f.last_recheck_utc);
       txt.appendChild(el('p', 'when', whenText));
     }
     
@@ -298,7 +299,7 @@
     var stats = el('div', 'fp-stats');
     // What backs the number first, then when it was checked; the download's size and row count come last.
     kid(stats, stat('statEvidence', (f.evidence || []).length ? fmt(f.evidence.length) : ''));
-    kid(stats, stat('lastRecheck', fmtTime(f.last_recheck_utc)));
+    kid(stats, stat('lastRecheck', fmtWhen(f.last_recheck_utc)));
     kid(stats, stat('statRows', typeof f.hours_rows === 'number' ? fmt(f.hours_rows) : ''));
     kid(stats, stat('statSize', size === null ? '' : fmtBytes(size)));
     if (stats.firstChild) wrap.appendChild(stats);
