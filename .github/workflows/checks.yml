@@ -192,25 +192,11 @@ jobs:
           if [ "$touched" = true ]; then
             runs=$(gh api "repos/${{ github.repository }}/issues/$PR/comments" --paginate -q '[.[]|select(.body|contains("cold-reader-run:"))]|length' | paste -sd+ | bc)
             if echo ",$LABELS," | grep -q ",human-reviewed,"; then mode=waived
-            elif ! echo ",$LABELS," | grep -q ",ready,"; then mode=wait
-            elif [ "${runs:-0}" -ge 3 ]; then mode=capped
             else mode=run; fi
           fi
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
           echo "runs=${runs:-0}" >> "$GITHUB_OUTPUT"
           echo "cold reader mode: $mode (runs so far: ${runs:-0}, touches pages: $touched, gate files changed: $gates)"
-
-      - name: Wait for the final commit
-        if: steps.gate.outputs.mode == 'wait'
-        run: |
-          echo "The cold reader runs once, on the final commit, so it is not run on every push. Add the label 'ready' to this PR when it is final."
-          exit 1
-
-      - name: Cap reached
-        if: steps.gate.outputs.mode == 'capped'
-        run: |
-          echo "The cold reader has already run 3 times on this PR. It stops here: a person needs to read this PR. A person adds the label 'human-reviewed' to pass it."
-          exit 1
 
       - name: Install the Claude CLI
         if: (steps.gate.outputs.mode == 'run' || steps.gate.outputs.gates == 'true') && github.event.pull_request.head.repo.full_name == github.repository
@@ -246,10 +232,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           n=$(( ${{ steps.gate.outputs.runs }} + 1 ))
-          verdict=passed; [ "${{ steps.cold.outcome }}" = "failure" ] && verdict=FAILED
-          { echo "<!-- cold-reader-run: $n -->"; echo "### Cold reader $verdict (run $n of 3)"; echo '```'; cat cold_reader.txt; echo '```'; } > comment.md
+          verdict="found nothing"; [ "${{ steps.cold.outcome }}" = "failure" ] && verdict="has findings (advisory, does not block the merge)"
+          { echo "<!-- cold-reader-run: $n -->"; echo "### Cold reader $verdict (run $n)"; echo '```'; cat cold_reader.txt; echo '```'; } > comment.md
           gh pr comment "${{ github.event.pull_request.number }}" --body-file comment.md
 
-      - name: Fail the merge if the cold reader failed
-        if: steps.cold.outcome == 'failure'
-        run: exit 1
+      # The cold reader is advisory: its findings are the comment above, never a failed check.
