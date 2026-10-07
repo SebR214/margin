@@ -77,6 +77,47 @@ payment_402_count() {
   echo "$n"
 }
 
+# Fast-fail wake cap (SEB-275): a pass that exits non-zero in under
+# FAST_FAIL_THRESHOLD seconds is a "fast fail" and does not count against the
+# daily ceiling -- the model never got to do real work, and the pass burned
+# nothing meaningful. Without this guard, an outage that kills every pass in
+# <10s can consume the entire day's budget before anyone is awake to notice
+# (measured: 34 of 40 sessions on 2026-10-06, all sub-10s, all 402s from an
+# OpenRouter credit outage). Each consecutive fast fail increments a counter;
+# once it reaches MAX_CONSECUTIVE_FAST_FAILS, further fast fails DO count as
+# wakes, so a persistent error mode cannot spin the model forever for free.
+FAST_FAIL_THRESHOLD=15
+MAX_CONSECUTIVE_FAST_FAILS=8
+FAST_FAIL_FILE="$LOGDIR/$ROLE.fast_fails"
+
+fast_fail_count() {
+  [ -r "$FAST_FAIL_FILE" ] || { echo 0; return; }
+  local n
+  read -r n <"$FAST_FAIL_FILE" 2>/dev/null || { echo 0; return; }
+  case "$n" in ''|*[!0-9]*) echo 0; return ;; esac
+  echo "$n"
+}
+
+bump_fast_fail() {
+  local n
+  n=$(fast_fail_count)
+  printf '%s\n' "$((n + 1))" >"$FAST_FAIL_FILE"
+}
+
+# Credit-back (SEB-275): a one-shot file that subtracts from today's wake
+# count on the next pass, then deletes itself. Writing "34" to
+# /var/log/margin/builder.credit gives back 34 sessions once. Use when a
+# confirmed outage wasted quota on passes that never had a chance.
+CREDIT_FILE="$LOGDIR/$ROLE.credit"
+
+credit_today() {
+  [ -r "$CREDIT_FILE" ] || { echo 0; return; }
+  local n
+  read -r n <"$CREDIT_FILE" 2>/dev/null || { echo 0; return; }
+  case "$n" in ''|*[!0-9]*) echo 0; return ;; esac
+  echo "$n"
+}
+
 # The backoff above is a heuristic, and heuristics fail open: every previous
 # cost incident here was the guard becoming convinced there was work when there
 # was not. So the backoff is not the only thing standing between a logic bug
@@ -366,6 +407,18 @@ while true; do
     continue
   fi
 
+  # ---- Credit-back (SEB-275): one-shot, deletes itself after applying. ----
+  CREDIT=$(credit_today)
+  if [ "$CREDIT" -gt 0 ] 2>/dev/null; then
+    say "[$ROLE] applying one-shot credit of $CREDIT sessions"
+    TODAY=$(date -u +%Y-%m-%d)
+    CURRENT=$(wakes_today)
+    NEW=$((CURRENT > CREDIT ? CURRENT - CREDIT : 0))
+    printf '%s %s\n' "$TODAY" "$NEW" >"$WAKES_FILE"
+    rm -f "$CREDIT_FILE"
+    WAKES=$NEW
+  fi
+
   # ---- Hard daily ceiling, checked after the work guard and before paying. ----
   WAKES=$(wakes_today)
   if [ "$WAKES" -ge "$MAX_WAKES_PER_DAY" ]; then
@@ -375,7 +428,10 @@ while true; do
     sleep "$SLEEP_FOR"
     continue
   fi
-  bump_wakes
+  # Wake counting moved to after the pass (SEB-275): a fast-fail pass that
+  # exits non-zero in under FAST_FAIL_THRESHOLD seconds does not count
+  # against the daily ceiling -- the model never got to do real work.
+  # The call is now in each post-pass branch below.
 
   # Model assignment, stated once (SEB-203 / ROADMAP item 13). Builder and
   # reviewer stay on Sonnet -- their work is mechanical: read an issue, follow
@@ -434,6 +490,7 @@ while true; do
       WAIT=$LIMIT_FALLBACK
     fi
     say "[$ROLE] usage limit; sleeping ${WAIT}s until it resets"
+    bump_wakes  # model was called, counts against the ceiling
     record 0 "usage limit" "$ELAPSED"
     rm -f "$OUT"; sleep "$WAIT"; continue
   fi
@@ -454,12 +511,36 @@ while true; do
     done
     [ "$WAIT" -gt 14400 ] && WAIT=14400
     say "[$ROLE] payment backend 402 (credit exhausted, x${CONSECUTIVE}); sleeping ${WAIT}s"
+    # SEB-275: a fast fail doesn't count against the daily ceiling.
+    # The model never got to do real work. After MAX_CONSECUTIVE_FAST_FAILS
+    # consecutive fast fails, they start counting -- a backstop against
+    # a persistent error mode spinning the model forever for free.
+    FF=$(fast_fail_count)
+    if [ "$ELAPSED" -lt "$FAST_FAIL_THRESHOLD" ] && [ "$FF" -lt "$MAX_CONSECUTIVE_FAST_FAILS" ]; then
+      bump_fast_fail
+      say "[$ROLE] fast fail (${ELAPSED}s < ${FAST_FAIL_THRESHOLD}s threshold, x$((FF + 1)) consecutive); not counted against daily ceiling"
+    else
+      bump_wakes
+      rm -f "$FAST_FAIL_FILE" 2>/dev/null || true
+    fi
     record 0 "402 payment" "$ELAPSED"
     rm -f "$OUT"; sleep "$WAIT"; continue
   fi
 
   if [ "$CODE" -ne 0 ]; then
     say "[$ROLE] exited $CODE; retrying in ${ERROR_WAIT}s"
+    # SEB-275: fast-fail guard (same logic as the 402 branch above).
+    FF=$(fast_fail_count)
+    if [ "$ELAPSED" -lt "$FAST_FAIL_THRESHOLD" ] && [ "$FF" -lt "$MAX_CONSECUTIVE_FAST_FAILS" ]; then
+      bump_fast_fail
+      say "[$ROLE] fast fail (${ELAPSED}s < ${FAST_FAIL_THRESHOLD}s threshold, x$((FF + 1)) consecutive); not counted against daily ceiling"
+    else
+      bump_wakes
+      rm -f "$FAST_FAIL_FILE" 2>/dev/null || true
+      if [ "$ELAPSED" -lt "$FAST_FAIL_THRESHOLD" ]; then
+        say "[$ROLE] fast-fail cap reached (x$FF consecutive); counting this one against the daily ceiling"
+      fi
+    fi
     record 0 "exit $CODE" "$ELAPSED"
     rm -f "$OUT"; sleep "$ERROR_WAIT"; continue
   fi
@@ -498,6 +579,8 @@ while true; do
   else
     say "[$ROLE] pass finished in ${ELAPSED}s; next in ${WAIT}s"
   fi
+  bump_wakes
+  rm -f "$FAST_FAIL_FILE" 2>/dev/null || true
   record 1 "ok" "$ELAPSED" "$SIG_IDLE"
   rm -f "$OUT"
   # Reset the 402 counter on any successful pass -- the payment backend is healthy.
