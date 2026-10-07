@@ -194,38 +194,42 @@
     return row;
   }
 
+  var ROW_TPL = document.getElementById('ciRowTpl');
+
   function rowEl(row, Sc, X, money) {
-    var a = el('a', 'ci-row');
+    // Cloned from the <template> in countries.html rather than built from
+    // scratch, so the row's shape (one <a class="ci-row">) is real, static
+    // markup -- the same "trow" template convention the old page used,
+    // which tools/check_inventory.py's regression guard looks for.
+    var a = ROW_TPL.content.firstElementChild.cloneNode(true);
     a.href = countryHref(row.ccy);
     a.setAttribute('data-ccy', row.ccy);
     a.setAttribute('data-region', row.region || '');
     a.setAttribute('data-name', (row.country + ' ' + row.ccy).toLowerCase());
 
-    var nm = el('span', 'ci-nm', row.country);
+    var nm = a.querySelector('.ci-nm');
+    nm.textContent = row.country;
     if (money) {
       nm.appendChild(document.createTextNode(' '));
       nm.appendChild(el('span', 'ci-cc', row.ccy));
     }
-    a.appendChild(nm);
 
     var lo = Math.min(row.lo, row.p), hi = Math.max(row.hi, row.p);
     var cutL = lo < Sc.lo, cutR = hi > Sc.hi;
     var rngClass = 'ci-rng' + (cutL ? ' cl' : '') + (cutR ? ' cr' : '');
     var left = X(lo), width = Math.max(0.6, X(hi) - X(lo));
-    var track = el('div', 'ci-track');
-    track.innerHTML = gridlinesHTML(Sc, X) +
+    a.querySelector('.ci-track').innerHTML = gridlinesHTML(Sc, X) +
       '<i class="' + rngClass + '" style="left:' + left + '%;width:' + width + '%"></i>' +
       '<i class="ci-dot" style="left:' + X(row.p) + '%"></i>';
-    a.appendChild(track);
 
+    var v = a.querySelector('.ci-v');
     if (money) {
-      put(a, 'span', ['ci-m', 'pay', 'ci-num'], fmtMoney(row.buy * 100, row.fx));
-      put(a, 'span', ['ci-m', 'off', 'ci-num'], fmtMoney(row.fx * 100, row.fx));
+      var pay = fmtMoney(row.buy * 100, row.fx), off = fmtMoney(row.fx * 100, row.fx);
+      if (pay) { a.insertBefore(el('span', ['ci-m', 'pay', 'ci-num'], pay), v); }
+      if (off) { a.insertBefore(el('span', ['ci-m', 'off', 'ci-num'], off), v); }
     }
-
-    var v = el('span', ['ci-v', 'ci-num'], fmtPct(row.p));
+    v.textContent = fmtPct(row.p);
     if (row.w != null) { v.appendChild(el('span', 'ci-wk', fmtPts(row.w))); }
-    a.appendChild(v);
     return a;
   }
 
