@@ -1,0 +1,41 @@
+/* Routes page layout (SEB-265, SEB-268 items 32-40, 46-48). Colours are style.css tokens only. */
+
+/* The route name never breaks across lines. */
+.r-wrap .r-nobreak { white-space: nowrap; }
+
+/* Chips sit under the hero. */
+.r-wrap .r-top { display: flex; flex-direction: column; gap: 12px; }
+
+/* The cost steps span the full width; every track is the same length. */
+.r-wrap .r-slider { max-width: none; width: 100%; }
+.r-wrap .r-leg-row { flex-wrap: nowrap; }
+.r-wrap .r-legname { width: 240px; flex: none; align-items: center; }
+.r-wrap .r-legtxt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.r-wrap .r-prov { font-size: 12px; }
+.r-wrap .r-leg-row .r-track { flex: 1 1 0; min-width: 0; }
+.r-wrap .r-legval { width: 130px; flex: none; }
+
+/* One column, full width: the compare block and the what-matching block stack. */
+.r-wrap .r-lower { display: flex; flex-direction: column; gap: 56px; }
+
+/* What matching the app takes: one compact table. */
+.r-wrap .r-tablewrap { overflow-x: auto; }
+.r-wrap .r-whattbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.r-wrap .r-whattbl th, .r-wrap .r-whattbl td { text-align: left; font-weight: 400; padding: 10px 16px 10px 0; border-bottom: 1px solid var(--color-neutral-300); vertical-align: top; }
+.r-wrap .r-whattbl thead th { color: var(--color-neutral-600); font-size: 13px; }
+.r-wrap .r-whattbl tbody th { white-space: nowrap; }
+
+/* Mobile, 390px: nav on one scrollable row; route and amount chips one scrollable row each. */
+@media (max-width: 620px) {
+  .r-wrap .r-head { gap: 0; padding: 4px 0 8px; }
+  .r-wrap .r-brand { gap: 0; }
+  .r-wrap .r-nav { flex-wrap: nowrap; gap: 10px; font-size: 14px; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+  .r-wrap .r-nav a { white-space: nowrap; flex: none; }
+  .r-wrap .r-scrollrow { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .r-wrap .r-scrollrow > * { flex: none; white-space: nowrap; }
+  .r-wrap .r-leg-row { flex-wrap: wrap; }
+  .r-wrap .r-leg-row .r-track { flex: 1 1 120px; }
+  .r-wrap .r-legname { width: 100%; }
+  .r-wrap .r-bigbox { max-width: 100%; }
+  .r-wrap .r-bigbox span { overflow-wrap: anywhere; }
+}
