@@ -264,6 +264,21 @@ have_work_now() {
 
 while true; do
   check_self_updated
+  # Off switch (2026-10-07, Seb): while agents/LOOPS_OFF exists next to this
+  # script, no role calls a model. The loop keeps checking every 10 minutes,
+  # so it picks up a new run.sh or the file's removal on its own. The model
+  # loops are replaced by the one-call runner on GitHub Actions (SEB-274).
+  # Recorded once as "daily ceiling", the reason agents/watchdog.sh already
+  # reads as "silent on purpose", so the box watchdog doesn't alarm on it.
+  if [ -f "$(dirname "$SELF")/LOOPS_OFF" ]; then
+    if [ -z "${OFF_SAID:-}" ]; then
+      say "[$ROLE] agents/LOOPS_OFF exists: no model calls until it is removed"
+      record 1 "daily ceiling" 0
+      OFF_SAID=1
+    fi
+    sleep 600
+    continue
+  fi
   START=$(date +%s)
   say "[$ROLE] pass starting"
 
