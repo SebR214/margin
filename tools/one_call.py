@@ -69,6 +69,7 @@ Rules:
 <<<FILE path/to/file>>>
 full file contents
 <<<END>>>
+No code fences, no other tags, nothing before or after the blocks.
 """
 
 
@@ -236,12 +237,25 @@ def call_model(messages, ident):
     raise Broken("both models failed: %s" % last_err)
 
 
+def clean(body):
+    """Strip wrappers some models add around a file: a ``` fence at either
+    end, or a stray </file> tag. qwen added `</file>` on 7 Oct (SEB-273),
+    which made node --check fail on a file that was otherwise fine."""
+    lines = body.split("\n")
+    while lines and (lines[-1].strip() == "" or lines[-1].strip().lower() in ("</file>", "```")):
+        lines.pop()
+    while lines and (lines[0].strip() == "" or lines[0].strip().startswith("```")):
+        lines.pop(0)
+    return "\n".join(lines)
+
+
 def apply(text, allowed):
     blocks = re.findall(r"<<<FILE ([^>\s]+)>>>\n(.*?)\n<<<END>>>", text, re.S)
     written = []
     for path, body in blocks:
         if path not in allowed:
             continue
+        body = clean(body)
         with open(os.path.join(ROOT, path), "w") as f:
             f.write(body if body.endswith("\n") else body + "\n")
         written.append(path)
