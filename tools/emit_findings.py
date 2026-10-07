@@ -114,6 +114,22 @@ def _finding(fid, source_files, method_files, headline, evidence, last, hours, f
             "hours_file": hours_file, "hours_rows": n, "download_file": hours_file or fallback_download}
 
 
+def _panel_newest(files):
+    """Newest ts_utc (as ...Z) in the hourly CSVs a daily judgment reads (the price panels, fx_rates.csv).
+    Appended in time order, so the last row is the newest; stored files only, no wall clock."""
+    best = ""
+    for rel in files:
+        with open(os.path.join(HERE, rel), encoding="utf-8") as f:
+            last = ""
+            for line in f:
+                if line.strip():
+                    last = line
+        ts = last.split(",", 1)[0]
+        if ts and ts != "ts_utc":
+            best = max(best, rc.iso_z(ts))
+    return best
+
+
 def price_changes_findings():
     rows = rc.read_csv("price_changes.csv")
     latest = _json("price_changes_latest.json")
@@ -121,8 +137,10 @@ def price_changes_findings():
     routes = sorted({r["corridor"] for r in rows})
     src = ["data/price_changes.csv", "data/price_changes_latest.json"]
     meth = ["tools/emit_price_changes.py", "tools/emit_pricechange_receipts.py", "tools/emit_findings.py"]
-    last = _z(max(r["ts_utc"] for r in rows))
-    last = max(last, as_of)
+    # SEB-279: the recheck time is the newest hourly reading the judgment was made against, not
+    # the newest change row or the judged day. Only complete days are judged and changes are rare,
+    # so those stamps sit at midnight of a past day and made findings 01 and 02 look unchecked.
+    last = max(_z(max(r["ts_utc"] for r in rows)), as_of, _panel_newest(latest.get("source_file") or []))
     hdr = ["ts_utc", "corridor", "size", "provider", "old_cost_pct", "new_cost_pct", "move_pct", "kind"]
 
     def sel(kinds):
@@ -194,7 +212,8 @@ def stress_finding():
     hdr = ["ts_utc", "ccy", "index_pct", "gap_widened_pt", "official_move_pct", "triggered_on"]
     return _finding("stress_signal", ["data/stress_signal.csv", "data/stress_signal_latest.json"],
                     ["tools/emit_stress_signal.py", "tools/emit_findings.py"],
-                    {"value": len(rows), "unit": "triggers", "as_of_utc": as_of}, ev, as_of,
+                    {"value": len(rows), "unit": "triggers", "as_of_utc": as_of}, ev,
+                    max(as_of, _panel_newest(["data/fx_rates.csv"])),  # SEB-279: newest reading judged against
                     _hours_csv("stress_signal", hdr, [[r[c] for c in hdr] for r in rows]),
                     "data/stress_signal.csv")
 
