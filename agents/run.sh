@@ -77,15 +77,19 @@ payment_402_count() {
   echo "$n"
 }
 
-# Fast-fail wake cap (SEB-275): a pass that exits non-zero in under
-# FAST_FAIL_THRESHOLD seconds is a "fast fail" and does not count against the
-# daily ceiling -- the model never got to do real work, and the pass burned
-# nothing meaningful. Without this guard, an outage that kills every pass in
-# <10s can consume the entire day's budget before anyone is awake to notice
-# (measured: 34 of 40 sessions on 2026-10-06, all sub-10s, all 402s from an
-# OpenRouter credit outage). Each consecutive fast fail increments a counter;
-# once it reaches MAX_CONSECUTIVE_FAST_FAILS, further fast fails DO count as
-# wakes, so a persistent error mode cannot spin the model forever for free.
+# Fast-fail wake cap (SEB-275): a payment-backend 402 pass that exits in
+# under FAST_FAIL_THRESHOLD seconds is a "fast fail" and does not count
+# against the daily ceiling -- the model never got to do real work. Without
+# this guard, an outage that kills every pass in <10s can consume the entire
+# day's budget before anyone is awake to notice (measured: 34 of 40 sessions
+# on 2026-10-06, all sub-10s, all 402s from an OpenRouter credit outage).
+# The 402 branch has an escalating backoff (SEB-257) that limits the rate;
+# generic non-zero exits still count as wakes -- they have a flat 300s retry
+# with no escalation, and exempting them would let a persistent config error
+# burn 32 of 40 daily sessions in a 24-hour duty cycle. Each consecutive
+# fast fail increments a counter; once it reaches MAX_CONSECUTIVE_FAST_FAILS,
+# further fast fails DO count as wakes, so a persistent error mode cannot
+# spin the model forever for free.
 FAST_FAIL_THRESHOLD=15
 MAX_CONSECUTIVE_FAST_FAILS=8
 FAST_FAIL_FILE="$LOGDIR/$ROLE.fast_fails"
@@ -428,7 +432,7 @@ while true; do
     sleep "$SLEEP_FOR"
     continue
   fi
-  # Wake counting moved to after the pass (SEB-275): a fast-fail pass that
+  # Wake counting moved to after the pass (SEB-275): a 402 fast-fail pass that
   # exits non-zero in under FAST_FAIL_THRESHOLD seconds does not count
   # against the daily ceiling -- the model never got to do real work.
   # The call is now in each post-pass branch below.
@@ -529,18 +533,7 @@ while true; do
 
   if [ "$CODE" -ne 0 ]; then
     say "[$ROLE] exited $CODE; retrying in ${ERROR_WAIT}s"
-    # SEB-275: fast-fail guard (same logic as the 402 branch above).
-    FF=$(fast_fail_count)
-    if [ "$ELAPSED" -lt "$FAST_FAIL_THRESHOLD" ] && [ "$FF" -lt "$MAX_CONSECUTIVE_FAST_FAILS" ]; then
-      bump_fast_fail
-      say "[$ROLE] fast fail (${ELAPSED}s < ${FAST_FAIL_THRESHOLD}s threshold, x$((FF + 1)) consecutive); not counted against daily ceiling"
-    else
-      bump_wakes
-      rm -f "$FAST_FAIL_FILE" 2>/dev/null || true
-      if [ "$ELAPSED" -lt "$FAST_FAIL_THRESHOLD" ]; then
-        say "[$ROLE] fast-fail cap reached (x$FF consecutive); counting this one against the daily ceiling"
-      fi
-    fi
+    bump_wakes
     record 0 "exit $CODE" "$ELAPSED"
     rm -f "$OUT"; sleep "$ERROR_WAIT"; continue
   fi
