@@ -32,6 +32,7 @@ import os
 import re
 import subprocess
 import sys
+import urllib.error
 import urllib.request
 from html.parser import HTMLParser
 
@@ -240,18 +241,66 @@ def writer_approved():
     return ok, why
 
 
+def copy_at_sha(sha):
+    """Return the content of copy.json at a given commit, or '' if not present."""
+    url = "https://api.github.com/repos/%s/contents/copy.json?ref=%s" % (os.environ["GITHUB_REPOSITORY"], sha)
+    try:
+        req = urllib.request.Request(url, headers={"Authorization": "Bearer " + os.environ["GITHUB_TOKEN"],
+                                                    "Accept": "application/vnd.github.raw"})
+        return urllib.request.urlopen(req, timeout=30).read().decode("utf-8")
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return ""
+        raise
+
+
 def owner_label():
-    """(ok, why): the owner's own account added `copy-approved` after the last push."""
+    """(ok, why): the owner's own account added `copy-approved`, and the approved
+    text in copy.json has not changed since then. A merge from main or a layout
+    push after approval does not invalidate the label as long as the approved
+    keys still carry the same text."""
     n = os.environ["PR_NUMBER"]
     pr = api("/pulls/%s" % n)
-    head_date = api("/commits/%s" % pr["head"]["sha"])["commit"]["committer"]["date"]
     ev = [e for e in api("/issues/%s/events?per_page=100" % n)
           if e.get("event") == "labeled" and (e.get("label") or {}).get("name") == "copy-approved"]
-    ok = [e for e in ev if (e.get("actor") or {}).get("login") == OWNER and e["created_at"] >= head_date]
-    if not ok:
-        return False, ("waiting for %s to approve: the label 'copy-approved', added by their own account after the "
-                       "last push" % OWNER)
-    return True, "approved by %s" % OWNER
+    ok_events = [e for e in ev if (e.get("actor") or {}).get("login") == OWNER]
+    if not ok_events:
+        return False, ("waiting for %s to approve: the label 'copy-approved', added by their own account"
+                       % OWNER)
+    # Find the commit that was HEAD when the label was added.
+    label_date = ok_events[-1]["created_at"]
+    branch = pr["head"]["ref"]
+    commits = api("/pulls/%s/commits?per_page=250" % n)
+    approved_sha = None
+    for c in commits:
+        if (c.get("commit") or {}).get("committer") or {}:
+            if c["commit"]["committer"]["date"] <= label_date:
+                approved_sha = c["sha"]
+                break
+    if not approved_sha:
+        return False, ("could not find the approved commit for %s on branch %s" % (OWNER, branch))
+    # Compare the approved copy.json text with the current one.
+    try:
+        approved_raw = copy_at_sha(approved_sha)
+        current_raw = open(os.path.join(HERE, "copy.json")).read()
+    except Exception as e:
+        return False, "could not read copy.json: %s" % e
+    if approved_raw == current_raw:
+        return True, "approved by %s (text unchanged)" % OWNER
+    # If copy.json has changed, check whether any approved key's value changed.
+    try:
+        old = dict(flatten(json.loads(approved_raw))) if approved_raw.strip() else {}
+        new = dict(flatten(json.loads(current_raw)))
+    except ValueError as e:
+        return False, "copy.json is not valid JSON: %s" % e
+    for k, v in old.items():
+        if k not in new:
+            return False, ("approved key %s was removed since %s's approval" % (k, OWNER))
+        if str(new[k]) != str(v):
+            return False, ("approved text for %s changed since %s's approval" % (k, OWNER))
+    # Only new keys were added; the approved text is unchanged.
+    new_keys = [k for k in new if k not in old]
+    return True, "approved by %s (text unchanged; %d new key(s) since approval)" % (OWNER, len(new_keys))
 
 
 def run(base):
