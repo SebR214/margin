@@ -8,6 +8,9 @@ name: one-call runner
 # Watched by watchdog.yml: silent for 2 hours, or 3 failures in a row, fails
 # that workflow and GitHub emails the repo owner.
 
+# The schedule is the restarter. The real clock is the `next` job at the
+# bottom, which starts the following run, because GitHub's cron fired this
+# only twice on the night of 7 Oct.
 on:
   schedule:
     - cron: "7,22,37,52 * * * *"
@@ -18,17 +21,17 @@ on:
         required: false
         default: ""
 
-concurrency:
-  group: one-call
-  cancel-in-progress: false
-
 permissions:
   contents: write
+  actions: write
 
 jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    concurrency:
+      group: one-call
+      cancel-in-progress: false
     steps:
       # persist-credentials: false, so git pushes as the app (set on the
       # remote below) and not as GITHUB_TOKEN. checkout's stored header wins
@@ -71,3 +74,18 @@ jobs:
           git config user.email "329969015+margin-agents[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${GH_PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}"
           python3 tools/one_call.py ${{ github.event.inputs.issue }}
+
+  # Starts the next run in 15 minutes. Not in the concurrency group, so its
+  # sleep never blocks a run started by hand.
+  next:
+    needs: run
+    if: always() && github.event.inputs.issue == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/actions-next.sh one_call.yml 15

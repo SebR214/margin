@@ -23,7 +23,7 @@ on:
 
 permissions:
   contents: read
-  actions: read
+  actions: write
 
 jobs:
   watch:
@@ -53,3 +53,18 @@ jobs:
             down=1
           fi
           exit $down
+
+  # Starts the next check in 30 minutes, since GitHub's cron ran this only
+  # once on the night of 7 Oct. Runs even when the check fails.
+  next:
+    needs: watch
+    if: always() && github.event.inputs.test_alarm != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/actions-next.sh watchdog.yml 30
