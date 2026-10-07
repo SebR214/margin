@@ -1,6 +1,6 @@
 /* Reference styles from the approved design */
 :root{
-  --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0;
+  --ink:var(--color-ink); --sub:#6B6B6B; --stamp:#9A9A9A; --rule:#F0F0F0;
   --peri:#817FCC; --dust:#D3D0CB; --grape:#3F3047; --egg:#F0EBD8;
 }
 
@@ -29,7 +29,7 @@ header {
 
 .logo {
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -.02em;
   flex: none;
 }
@@ -59,7 +59,7 @@ nav a {
 
 nav a[aria-current] {
   color: var(--ink);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .hero {
@@ -67,11 +67,11 @@ nav a[aria-current] {
 }
 
 h1 {
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1.25;
   letter-spacing: -.01em;
   margin: 0 0 8px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lead {
@@ -110,7 +110,7 @@ h1 {
   font-size: 19px;
   line-height: 1.35;
   margin: 0;
-  font-weight: 700;
+  font-weight: 600;
   transition: color .15s;
 }
 
@@ -128,8 +128,8 @@ h1 {
 
 .f .big {
   text-align: right;
-  font-size: 28px;
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 600;
   letter-spacing: -.01em;
   color: var(--peri);
   line-height: 1.15;
@@ -152,7 +152,7 @@ footer {
     grid-column: 2;
     grid-row: 2;
     text-align: left;
-    font-size: 26px;
+    font-size: 24px;
     margin-top: 6px;
   }
   
@@ -261,3 +261,5 @@ a.fp-ilink:hover { background: var(--color-surface); }
   .fp-head { padding: 8px 0; }
   .fp-big { font-size: min(88px, calc((100vw - 32px) / (var(--digits, 8) * 0.62))); }
 }
+
+.fp-sec-head h2 { font-weight: 600; }
