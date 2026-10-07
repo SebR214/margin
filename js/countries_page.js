@@ -1,283 +1,174 @@
-/* The countries page, built from stored files only (SEB-240).
+/* The countries page (SEB-270), built from stored files only.
  *
- * Numbers, dates, currency codes and country names come from data/*.json.
- * Every word comes from copy.json: "countries" for this page, "homeData" for the
- * nav, the brand and the big-number caption. A key that is empty (or missing) is
- * not rendered, so a control whose words are not written yet stays hidden.
- * No word is written in this file.
- *
- * Reads: data/heatmap_daily.json, data/index_latest.json, data/record_daily.json,
- * data/cycle_log.json, copy.json.
+ * Numbers come from data/*.json: today's figure from index_latest.json, the 30-day
+ * range and the money columns from data/countries/{ccy}.json, the weekly change from
+ * movers_week.json, the region of each currency from country_regions.json.
+ * Every word comes from copy.json ("countries" for this page, "homeData" for the
+ * brand and the nav). No word is written in this file, and every count is computed.
  */
 (function () {
-  var C = {}, H = {}, D = {};
-  var S = { filter: 'all', q: '' };
+  var C = {}, H = {};
   var app = document.getElementById('app');
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var MINUS = '−';
 
-  /* ---------------------------------------------------------------- helpers */
-  function fmt(s, vars) {
-    return s.replace(/\{(\w+)\}/g, function (m, k) { return vars && vars[k] != null ? vars[k] : ''; });
-  }
-  function has(o, key) { return typeof o[key] === 'string' && o[key].length > 0; }
-  function t(key, vars) { return has(C, key) ? fmt(C[key], vars) : ''; }
-  function th(key, vars) { return has(H, key) ? fmt(H[key], vars) : ''; }
-  function el(tag, cls, text) {
-    var e = document.createElement(tag);
-    if (cls) { [].concat(cls).forEach(function (c) { e.classList.add(c); }); }
-    if (text != null) { e.textContent = text; }
-    return e;
-  }
-  function put(parent, tag, cls, text) {
-    if (!text) { return null; }
-    var e = el(tag, cls, text);
-    parent.appendChild(e);
-    return e;
-  }
-  function num(n, d) {
-    if (n == null || isNaN(n)) { return ''; }
-    return Number(n).toLocaleString('en-US', { maximumFractionDigits: d || 0, minimumFractionDigits: d || 0 });
-  }
-  function pct(n) { return (n > 0 ? '+' : '') + num(n, 1) + '%'; }
-  function dShort(day) {
-    return new Date(day + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-  }
-  function getJSON(url) {
-    return fetch(url).then(function (r) { if (!r.ok) { throw new Error(url); } return r.json(); });
-  }
-  function claimOk(key) { return !!(window.Claims && window.Claims.blocked && !window.Claims.blocked(key)); }
-  function countryHref(ccy) { return 'country.html?ccy=' + encodeURIComponent(ccy); }
-
-  /* ---------------------------------------------------------------- header */
-  function header(wrap) {
-    var h = el('div', 'hp-head');
-    var left = el('div', 'hp-headleft');
-    var logo = put(left, 'a', ['hp-logo', 'mono'], th('brand'));
-    if (logo) { logo.href = './index.html'; }
-    var nav = el('nav', 'hp-nav');
-    [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'],
-     ['navFindings', 'findings.html'], ['navHow', 'how-it-works.html']].forEach(function (n) {
-      var a = put(nav, 'a', 'hp-navlink', th(n[0]));
-      if (a) { a.href = './' + n[1]; }
-    });
-    if (nav.childNodes.length) { left.appendChild(nav); }
-    h.appendChild(left);
-    wrap.appendChild(h);
-  }
-
-  /* ---------------------------------------------------------------- rows */
-  // One row per currency. gap is the latest day's value from the daily heat file;
-  // a currency with no value that day has gap == null and is listed as having no price.
-  function buildRows() {
-    var days = H2.days;
-    var byCcy = {};
-    H2.currencies.forEach(function (c) { byCcy[c.ccy] = c; });
-    var withheld = {};
-    (D.index.withheld || []).forEach(function (w) { withheld[w.ccy] = w; });
-    (D.index.unverified || []).forEach(function (u) { var k = typeof u === 'string' ? u : u.ccy; if (k && !withheld[k]) { withheld[k] = { ccy: k, reason: null }; } });
-    var names = {};
-    (D.index.countries || []).concat(D.index.withheld || [], D.index.unverified || []).forEach(function (c) {
-      if (c && c.ccy) { names[c.ccy] = c.country || names[c.ccy]; }
-      else if (typeof c === 'string') { names[c] = names[c] || null; }
-    });
-    Object.keys(D.extraNames || {}).forEach(function (k) { if (D.extraNames[k]) { names[k] = D.extraNames[k]; } });
-    var all = {};
-    Object.keys(names).forEach(function (k) { all[k] = true; });
-    Object.keys(byCcy).forEach(function (k) { all[k] = true; });
-    return Object.keys(all).map(function (ccy) {
-      var c = byCcy[ccy];
-      var cells = c ? c.cells : [];
-      var first = -1;
-      for (var i = 0; i < cells.length; i++) { if (cells[i] != null) { first = i; break; } }
-      var last = cells.length && !withheld[ccy] ? cells[cells.length - 1] : null;
-      var series = first >= 0 ? cells.slice(first).filter(function (v) { return v != null; }) : [];
-      return {
-        ccy: ccy, country: plainName((c && c.country) || names[ccy] || ccy),
-        gap: last, series: series, firstDay: first >= 0 ? days[first] : null,
-        unranked: !!(c && c.ranked === false),
-        reason: withheld[ccy] ? withheld[ccy].reason : null
-      };
-    });
-  }
-  var H2 = null;
-
-  // Stored names keep a leading "the" for use in sentences; a list shows the bare name.
+  function fmt(s, vars) { return String(s || '').replace(/\{(\w+)\}/g, function (m, k) { return vars && vars[k] != null ? vars[k] : ''; }); }
+  function t(key, vars) { return typeof C[key] === 'string' && C[key] ? fmt(C[key], vars) : ''; }
+  function getJSON(url) { return fetch(url).then(function (r) { if (!r.ok) { throw new Error(url); } return r.json(); }); }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function plainName(n) { return String(n).replace(/^the /i, ''); }
-
-  function rowEl(r, rank) {
-    var a = el('a', ['cr-row', 'trow']);
-    a.href = countryHref(r.ccy);
-    a.setAttribute('data-ccy', r.ccy);
-    a.setAttribute('data-name', (r.country + ' ' + r.ccy).toLowerCase());
-    a.setAttribute('data-sign', r.gap == null ? 'none' : (r.gap >= 0 ? 'above' : 'below'));
-    a.appendChild(el('span', ['mono', 'cr-rank'], rank != null ? String(rank) : ''));
-    var nm = el('span', 'cr-name');
-    nm.appendChild(el('span', null, r.country));
-    nm.appendChild(el('span', ['mono', 'cr-code'], r.ccy));
-    a.appendChild(nm);
-    var showGap = r.gap != null && !r.unranked;
-    a.appendChild(el('span', ['mono', 'cr-gap', showGap ? (r.gap < 0 ? 'neg' : 'pos') : 'none'], showGap ? pct(r.gap) : ''));
-    return a;
+  function r1(v) { return Math.round(v * 10) / 10; }
+  function pct(v) { var x = r1(v); return (x > 0 ? '+' : x < 0 ? MINUS : '') + Math.abs(x).toFixed(1) + '%'; }
+  function signed(v) { return (v > 0 ? '+' : MINUS) + Math.abs(v).toFixed(1); }
+  /* 100 dollars in local money: whole numbers at 100 or more per dollar, else two decimals. */
+  function money(v, official) {
+    return official >= 100
+      ? Math.round(v).toLocaleString('en-US')
+      : v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
+  /* The group a country sits in is chosen from the figure the reader sees (one decimal). */
+  function band(v) { var p = r1(v); return p > 8 ? 'far' : p > 2 ? 'above' : p >= -2 ? 'near' : 'below'; }
 
-  function listHead(parent) {
-    var tpl = document.getElementById('crHeadTpl');
-    if (!tpl) { return; }
-    var h = tpl.content.firstElementChild.cloneNode(true);
-    [].forEach.call(h.querySelectorAll('[data-k]'), function (n) { n.textContent = t(n.getAttribute('data-k')); });
-    parent.appendChild(h);
-  }
+  var GROUPS = [['far', 'rbGroupFar'], ['above', 'rbGroupAbove'], ['near', 'rbGroupNear'], ['below', 'rbGroupBelow']];
 
-  /* ---------------------------------------------------------------- page */
-  function hero(wrap, rows, ranked) {
-    var s = el('section', ['hp-hero', 'hero', 'bleed']);
-    var cc = D.record && D.record.totals ? D.record.totals.currencies : rows.length;
-    put(s, 'h1', null, t('title', { count: num(cc) }));
-    put(s, 'p', ['soft', 'hp-lede'], t('lede'));
-    var top = ranked[0];
-    if (top) {
-      var bigBox = el('div', 'hp-bigbox');
-      var a = el('a', ['mono', 'hp-big']);
-      a.href = countryHref(top.ccy);
-      a.textContent = num(top.gap, 2) + '%';
-      bigBox.appendChild(a);
-      put(bigBox, 'span', 'soft', th('bigCaption', { country: top.country, ccy: top.ccy, date: dShort(H2.last_day), gap: num(top.gap, 1) }));
-      s.appendChild(bigBox);
+  /* Each group gets its own scale because the groups sit far apart. The official-rate line (0) is always drawn. */
+  function scaleFor(k, list) {
+    if (k === 'far') {
+      var top = Math.max.apply(null, list.map(function (c) { return Math.max(c.hi, c.p); }));
+      var hi = Math.max(25, Math.ceil(top / 25) * 25), ticks = [];
+      for (var v = 0; v <= hi; v += 25) { ticks.push(v); }
+      return { lo: 0, hi: hi, ticks: ticks };
     }
-    if (s.childNodes.length) { wrap.appendChild(s); }
+    if (k === 'above') { return { lo: 0, hi: 10, ticks: [0, 2, 4, 6, 8, 10] }; }
+    if (k === 'near') { return { lo: -4, hi: 4, ticks: [-4, -2, 0, 2, 4] }; }
+    return { lo: -6, hi: 2, ticks: [-6, -4, -2, 0, 2] };
+  }
+  function mkX(S) { return function (v) { return (Math.max(S.lo, Math.min(S.hi, v)) - S.lo) / (S.hi - S.lo) * 100; }; }
+  function lines(S, X) {
+    return S.ticks.map(function (k) { return '<i class="grid-l' + (k === 0 ? ' zero' : '') + '" style="left:' + X(k) + '%"></i>'; }).join('');
+  }
+  function axisRow(S, X, withMoney) {
+    var ticks = S.ticks.map(function (k) {
+      return '<span class="tk num' + (k === 0 ? ' z' : '') + '" style="left:' + X(k) + '%">' + (k === 0 ? '0%' : (k > 0 ? '+' : MINUS) + Math.abs(k) + '%') + '</span>';
+    }).join('');
+    return '<div class="axisrow"><span></span><div class="track">' + lines(S, X) + ticks + '</div>' +
+      (withMoney ? '<span class="sup">' + esc(t('rbColMoney')) + '</span><span class="mh pay">' + esc(t('rbColPay')) + '</span><span class="mh off">' + esc(t('rbColOfficial')) + '</span>' : '') +
+      '<span></span></div>';
   }
 
-  // The long note on how the prices are made sits under the table, not above it.
-  function metaNote(wrap, rows) {
-    var cc = D.record && D.record.totals ? D.record.totals.currencies : rows.length;
-    var st = D.cycles && D.cycles.steps && D.cycles.steps.currencies;
-    if (!(st && claimOk('homeData.updatedCount'))) { return; }
-    var p = el('section', 'hp-sec');
-    put(p, 'p', ['muted', 'hp-body', 'cr-note'], t('metaTemplate', {
-      time: ((D.cycles && D.cycles.last_reading_utc) || D.index.as_of_utc || '').slice(11, 16), n: num(st.collected), total: num(cc)
-    }));
-    if (p.childNodes.length) { wrap.appendChild(p); }
-  }
+  function render(d) {
+    var ranked = d.rows.filter(function (c) { return !c.frozen; });
+    var frozen = d.rows.filter(function (c) { return c.frozen; });
+    var count = function (k) { return ranked.filter(function (c) { return band(c.p) === k; }).length; };
+    var topC = ranked.reduce(function (a, b) { return b.p > a.p ? b : a; });
+    var asof = new Date(d.asof);
+    var when = String(asof.getUTCHours()).padStart(2, '0') + ':00 UTC, ' + asof.getUTCDate() + ' ' + MON[asof.getUTCMonth()];
+    var total = d.rows.length + d.withheld.length;
 
-  function tools(wrap) {
-    var box = el('div', 'cr-tools');
-    if (has(C, 'searchLabel')) {
-      var inp = el('input', 'cr-search');
-      inp.type = 'search';
-      inp.setAttribute('aria-label', t('searchLabel'));
-      inp.placeholder = t('searchLabel');
-      inp.addEventListener('input', function () { S.q = inp.value.trim().toLowerCase(); apply(); });
-      box.appendChild(inp);
-    }
-    var opts = [['all', 'filterAll'], ['above', 'filterAbove'], ['below', 'filterBelow']].filter(function (o) { return has(C, o[1]); });
-    if (opts.length === 3) {
-      var f = el('div', 'cr-filters');
-      opts.forEach(function (o) {
-        var b = el('button', 'cr-chip', t(o[1]));
-        b.type = 'button';
-        b.setAttribute('aria-pressed', o[0] === S.filter ? 'true' : 'false');
-        b.addEventListener('click', function () {
-          S.filter = o[0];
-          [].forEach.call(f.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-          apply();
+    var h = '';
+    h += '<header class="hd"><a class="logo" href="./index.html">' + esc(H.brand || '') + '</a><nav class="nv" aria-label="Main">' +
+      [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navHow', 'how-it-works.html']]
+        .map(function (n) { return '<a href="./' + n[1] + '"' + (n[1] === 'countries.html' ? ' aria-current="page"' : '') + '>' + esc(H[n[0]] || '') + '</a>'; }).join('') +
+      '</nav></header>';
+    h += '<div class="hero"><h1>' + esc(t('rbHeadline', { n: count('near'), N: ranked.length })) + '</h1>' +
+      '<p class="lead">' + esc(t('rbLead', { n: count('far'), country: topC.n, x: r1(topC.p).toFixed(1) })) + '</p>' +
+      '<p class="meta num"><span class="live" aria-hidden="true"></span>' + esc(t('rbChecked', { when: when, n: d.rows.length, total: total })) + '</p></div>';
+
+    h += '<div class="tools"><label for="q" class="vh">' + esc(t('searchLabel')) + '</label>' +
+      '<input id="q" class="search" type="search" placeholder="' + esc(t('searchLabel')) + '" autocomplete="off">' +
+      '<div class="pills" id="regions" role="group" aria-label="' + esc(t('rbRegionAll')) + '"></div></div>';
+
+    var sample = d.sampleWeek != null ? '<i class="kw">' + signed(d.sampleWeek) + '</i>' : '';
+    h += '<p class="key"><span><i class="kd"></i>' + esc(t('rbKeyToday')) + '</span><span><i class="kr"></i>' + esc(t('rbKeyRange')) +
+      '</span><span><i class="kl"></i>' + esc(t('rbKeyOfficial')) + '</span><span>' + sample + esc(t('rbKeyWeek')) + '</span></p>';
+
+    h += '<div id="bands"></div>';
+    h += '<div class="np"><h2>' + esc(t('rbNoPrice', { n: d.withheld.length })) + '</h2>' +
+      '<p class="names">' + esc(d.withheld.map(function (w) { return plainName(w.country); }).join(', ')) + '.</p>' +
+      '<details><summary>' + esc(t('rbShowWhy')) + '</summary><ul class="why">' +
+      d.withheld.map(function (w) { var r = String(w.reason || ''); return '<li>' + esc(plainName(w.country)) + '<span>' + esc(r.charAt(0).toUpperCase() + r.slice(1)) + '.</span></li>'; }).join('') +
+      '</ul></details>' +
+      frozen.map(function (f) { return '<p class="aside">' + esc(t('rbSudan', { country: f.n })) + '</p>'; }).join('') + '</div>';
+    h += '<footer class="ft"><p><a href="https://github.com/SebR214/margin">' + esc(t('rbSource')) + '</a></p></footer>';
+    app.innerHTML = h;
+
+    var bandsEl = document.getElementById('bands');
+    GROUPS.forEach(function (g) {
+      var list = ranked.filter(function (c) { return band(c.p) === g[0]; }).sort(function (a, b) { return b.p - a.p; });
+      if (!list.length) { return; }
+      var S = scaleFor(g[0], list), X = mkX(S), withMoney = g[0] !== 'near';
+      var sec = document.createElement('section');
+      if (withMoney) { sec.className = 'money'; }
+      var s = '<h2>' + esc(t(g[1])) + ' <span class="n num">(' + list.length + ')</span></h2>' + axisRow(S, X, withMoney);
+      s += list.map(function (c) {
+        var a = Math.min(c.lo, c.p), z = Math.max(c.hi, c.p);
+        var wk = c.w != null ? '<small class="wk">' + signed(c.w) + '</small>' : '';
+        var cells = withMoney ? '<span class="m pay num">' + money(c.b * 100, c.f) + '</span><span class="m off num">' + money(c.f * 100, c.f) + '</span>' : '';
+        var tip = t('rbTip', { country: c.n, today: pct(c.p), lo: pct(c.lo), hi: pct(c.hi) });
+        return '<a class="row" data-c="' + esc(c.c) + '" href="./country.html?ccy=' + encodeURIComponent(c.c) + '" title="' + esc(tip) + '">' +
+          '<span class="nm">' + esc(c.n) + (withMoney ? ' <span class="cc">' + esc(c.c) + '</span>' : '') + '</span>' +
+          '<span class="track">' + lines(S, X) + '<i class="rng' + (a < S.lo ? ' cl' : '') + (z > S.hi ? ' cr' : '') + '" style="left:' + X(a) + '%;width:' + Math.max(0.6, X(z) - X(a)) + '%"></i><i class="dot" style="left:' + X(c.p) + '%"></i></span>' +
+          cells + '<span class="v num">' + pct(c.p) + wk + '</span></a>';
+      }).join('');
+      s += '<p class="empty" hidden>' + esc(t('rbNoMatch')) + '</p>';
+      sec.innerHTML = s;
+      bandsEl.appendChild(sec);
+    });
+
+    /* region buttons and search */
+    var ids = Object.keys(C.rbRegions || {}).filter(function (k) { return ranked.some(function (c) { return d.region[c.c] === k; }); });
+    var pillsEl = document.getElementById('regions');
+    var reg = '', q = '';
+    pillsEl.innerHTML = [['', t('rbRegionAll')]].concat(ids.map(function (k) { return [k, C.rbRegions[k]]; })).map(function (r) {
+      return '<button class="pill" type="button" data-r="' + esc(r[0]) + '" aria-pressed="' + (r[0] === '') + '">' + esc(r[1]) + '</button>';
+    }).join('');
+    function apply() {
+      bandsEl.querySelectorAll('section').forEach(function (sec) {
+        var shown = 0;
+        sec.querySelectorAll('.row').forEach(function (el) {
+          var c = ranked.filter(function (x) { return x.c === el.getAttribute('data-c'); })[0];
+          var m = (!reg || d.region[c.c] === reg) && (!q || c.n.toLowerCase().indexOf(q) >= 0 || c.c.toLowerCase().indexOf(q) >= 0);
+          el.classList.toggle('hide', !m);
+          if (m) { shown++; }
         });
-        f.appendChild(b);
+        sec.hidden = shown === 0;
       });
-      box.appendChild(f);
     }
-    if (box.childNodes.length) { wrap.appendChild(box); }
-  }
-
-  function apply() {
-    [].forEach.call(document.querySelectorAll('.cr-row'), function (r) {
-      var okQ = !S.q || r.getAttribute('data-name').indexOf(S.q) >= 0;
-      var okF = S.filter === 'all' || r.getAttribute('data-sign') === S.filter;
-      r.hidden = !(okQ && okF);
+    pillsEl.addEventListener('click', function (e) {
+      var b = e.target.closest('.pill'); if (!b) { return; }
+      reg = b.getAttribute('data-r');
+      pillsEl.querySelectorAll('.pill').forEach(function (p) { p.setAttribute('aria-pressed', p === b ? 'true' : 'false'); });
+      apply();
     });
+    document.getElementById('q').addEventListener('input', function (e) { q = e.target.value.trim().toLowerCase(); apply(); });
   }
 
-  function page() {
-    var wrap = el('div', 'hp-wrap');
-    header(wrap);
-    var rows = buildRows();
-    var ranked = rows.filter(function (r) { return r.gap != null && !r.unranked; })
-      .sort(function (a, b) { return b.gap - a.gap; });
-    var frozen = rows.filter(function (r) { return r.gap != null && r.unranked; });
-    var none = rows.filter(function (r) { return r.gap == null; })
-      .sort(function (a, b) { return a.country < b.country ? -1 : 1; });
-    hero(wrap, rows, ranked);
-    tools(wrap);
-
-    var sec = el('section', ['hp-sec', 'hp-gap24']);
-    var list = el('div', 'cr-list');
-    listHead(list);
-    ranked.forEach(function (r, i) { list.appendChild(rowEl(r, i + 1)); });
-    sec.appendChild(list);
-    if (frozen.length) {
-      // A country with a price that is not ranked stands on its own line under the table.
-      var fl = el('div', ['cr-list', 'cr-frozen']);
-      frozen.forEach(function (r) { fl.appendChild(rowEl(r, null)); });
-      sec.appendChild(fl);
-      var names = frozen.map(function (r) { return r.country; }).join(', ');
-      put(sec, 'p', ['muted', 'hp-small', 'cr-note'], t(frozen.length === 1 ? 'frozenOneTemplate' : 'frozenManyTemplate', { names: names }));
-    }
-    wrap.appendChild(sec);
-
-    if (none.length) {
-      var s2 = el('section', ['hp-sec', 'hp-gap24']);
-      put(s2, 'h2', null, t('withheldTitleTemplate', { n: num(none.length), countries: t(none.length === 1 ? 'countryOne' : 'countryMany') }));
-      put(s2, 'p', ['muted', 'hp-small', 'cr-note'], t('withheldNoteTemplate', { min: num(D.index.min_buy_ads) }));
-      var l2 = el('div', 'cr-list');
-      none.forEach(function (r) {
-        var row = rowEl(r, null);
-        var why = (C.withheldReasons || {})[r.reason];
-        if (why) { row.querySelector('.cr-code').textContent = r.ccy + ' · ' + why; }
-        l2.appendChild(row);
-      });
-      s2.appendChild(l2);
-      wrap.appendChild(s2);
-    }
-
-    metaNote(wrap, rows);
-    var foot = el('section', ['hp-sec']);
-    var how = put(foot, 'a', ['hp-biglink', 'hp-small'], t('howLink'));
-    if (how) { how.href = 'how-it-works.html'; }
-    put(foot, 'p', ['muted', 'hp-small'], t('footer'));
-    var gh = put(foot, 'a', ['hp-biglink', 'hp-small'], t('footerLink'));
-    if (gh) { gh.href = 'https://github.com/SebR214/margin'; }
-    if (foot.childNodes.length) { wrap.appendChild(foot); }
-
-    app.innerHTML = '';
-    app.appendChild(wrap);
-    apply();
-  }
-
-  Promise.all([
-    getJSON('copy.json'), getJSON('data/heatmap_daily.json'), getJSON('data/index_latest.json'),
-    getJSON('data/record_daily.json').catch(function () { return null; }),
-    getJSON('data/cycle_log.json').catch(function () { return null; }),
-    window.Claims ? window.Claims.load() : null
-  ]).then(function (r) {
-    var extra = (r[2].unverified || []).filter(function (x) { return typeof x === 'string'; });
-    return Promise.all(extra.map(function (k) {
-      return getJSON('data/countries/' + encodeURIComponent(k) + '.json').then(function (d) { return [k, d.country]; }).catch(function () { return [k, null]; });
-    })).then(function (pairs) {
-      var m = {};
-      pairs.forEach(function (p) { m[p[0]] = p[1]; });
-      r.push(m);
-      return r;
-    });
-  }).then(function (r) {
+  Promise.all([getJSON('copy.json'), getJSON('data/index_latest.json'), getJSON('data/movers_week.json'), getJSON('data/country_regions.json')]).then(function (r) {
     C = r[0].countries || {};
     H = r[0].homeData || {};
-    H2 = r[1];
-    D = { index: r[2], record: r[3], cycles: r[4], extraNames: r[6] };
-    page();
-  }).catch(function () {
-    var wrap = el('div', 'hp-wrap');
-    app.innerHTML = '';
-    fetch('copy.json').then(function (x) { return x.json(); }).then(function (c) {
-      put(wrap, 'p', 'soft', c.countries && c.countries.loadFailed);
-      app.appendChild(wrap);
+    var idx = r[1], weekly = {}, first = null;
+    (r[2].top || []).forEach(function (m, i) { weekly[m.ccy] = m.change_pp; if (i === 0) { first = m.change_pp; } });
+    return Promise.all(idx.countries.map(function (c) {
+      return getJSON('data/countries/' + encodeURIComponent(c.ccy) + '.json').then(function (f) {
+        var days = (f.history || []).slice(-30).map(function (x) { return x.index_pct; }).filter(function (v) { return v != null; });
+        var p = c.index_pct;
+        return {
+          c: c.ccy, n: plainName(c.country), p: p,
+          b: f.buy_price, f: f.denominator && f.denominator.rate_per_usd,
+          lo: days.length ? Math.min.apply(null, days.concat([p])) : p, hi: days.length ? Math.max.apply(null, days.concat([p])) : p,
+          w: weekly[c.ccy] != null ? weekly[c.ccy] : null,
+          frozen: c.denominator_class === 'unmaintained'
+        };
+      });
+    })).then(function (rows) {
+      return { rows: rows, withheld: idx.withheld || [], asof: idx.as_of_utc, region: r[3], sampleWeek: first };
+    });
+  }).then(render).catch(function () {
+    getJSON('copy.json').then(function (c) {
+      var p = document.createElement('p');
+      p.textContent = (c.countries && c.countries.loadFailed) || '';
+      app.innerHTML = '';
+      app.appendChild(p);
     }).catch(function () { /* nothing to say without copy */ });
   });
 })();
