@@ -1,5 +1,12 @@
 name: collect
 
+# A run that cannot continue the chain (a manual dispatch, a repository_dispatch)
+# says so in its title, so the two "is a link alive?" checks below can ignore it.
+# 2026-10-06: a manual run at 10:32 was read as "another link already alive", the
+# real link stood down at 10:35, and the manual run ended without a successor:
+# collection stopped for 2h20m until a restarter fire landed at 12:54.
+run-name: ${{ (github.event_name == 'schedule' || github.event.inputs.chain == 'true') && 'collect' || 'collect one-shot' }}
+
 on:
   # THIS WORKFLOW STARTS ITSELF. Every run ends by sleeping to the next :05 or
   # :35 and dispatching the next one with the built-in GITHUB_TOKEN, so the
@@ -104,7 +111,7 @@ jobs:
           for st in in_progress queued; do
             [ -n "$alive" ] && break
             alive=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/collect.yml/runs?status=$st&branch=main&per_page=100" \
-                      --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }}) | .id] | first // \"\"")
+                      --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }} and .display_title != \"collect one-shot\") | .id] | first // \"\"")
           done
           if [ -n "$alive" ]; then
             echo "chain alive, run $alive"
@@ -757,7 +764,7 @@ jobs:
           for st in in_progress queued; do
             [ -n "$alive" ] && break
             alive=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/collect.yml/runs?status=$st&branch=main&per_page=100" \
-                      --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }}) | .id] | first // \"\"")
+                      --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }} and .display_title != \"collect one-shot\") | .id] | first // \"\"")
           done
           if [ -n "$alive" ]; then
             echo "another link already alive (run $alive) -- standing down instead of forking a second chain"
