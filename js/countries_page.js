@@ -111,9 +111,6 @@
     var metaTxt = t('metaLine', { time: ctx.time, n: num(ctx.pricedCount), total: num(ctx.total) });
     if (metaTxt) {
       var m = el('p', ['ci-meta', 'ci-num']);
-      var dot = el('span', 'ci-live');
-      dot.setAttribute('aria-hidden', 'true');
-      m.appendChild(dot);
       m.appendChild(document.createTextNode(metaTxt));
       s.appendChild(m);
     }
@@ -341,7 +338,7 @@
 
     var asof = D.as_of_utc ? new Date(D.as_of_utc) : null;
     var time = asof
-      ? String(asof.getUTCHours()).padStart(2, '0') + ':00 UTC, ' + asof.getUTCDate() + ' ' + MON[asof.getUTCMonth()]
+      ? String(asof.getUTCHours()).padStart(2, '0') + ':00'
       : '';
 
     var topMover = Mv && Mv.top && Mv.top[0];

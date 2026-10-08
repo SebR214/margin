@@ -37,12 +37,16 @@
   var MONL = ["January", "February", "March", "April", "May", "June", "July",
     "August", "September", "October", "November", "December"];
   var ORDER = ["SGD->PHP", "AUD->PHP", "NZD->PHP", "USD->MXN"];
+  // the three routes measured against the official rate stay out of the charts; their button shows the "left out" text
+  var ALL = ORDER.concat(["USD->NGN", "USD->INR", "SGD->INR"]);
+  function plainRoute(s) { return String(s || "").replace(/^the /i, "").replace(/^./, function (c) { return c.toUpperCase(); }); }
 
   var COPY = {};
   var app = document.getElementById("app");
   var HOURLY = null, BRK = null;
   var COL = {}, BCOL = {};
   var S = { route: null, amount: null };
+  var TIP_WHEN = "";
   var chart = null;
 
   // ---------------------------------------------------------------- helpers
@@ -231,9 +235,10 @@
   }
   function barRow(S, o) {
     var x0 = S.X(0), x1 = S.X(o.v == null ? 0 : o.v);
-    return '<div class="sm-row' + (o.cls ? " " + o.cls : "") + '"><span class="sm-nm">' + esc(o.name) +
+    var tipText = o.name + (o.sub ? " (" + o.sub + ")" : "") + ": " + (o.val || "") + (o.vsub ? ", " + o.vsub : "") + (TIP_WHEN ? ", " + TIP_WHEN : "");
+    return '<div class="sm-row' + (o.cls ? " " + o.cls : "") + '" data-tip="' + esc(tipText) + '"><span class="sm-nm">' + esc(o.name) +
       (o.sub ? "<small>" + esc(o.sub) + "</small>" : "") + "</span>" +
-      '<span class="sm-bar">' + (S.lo < 0 ? '<i class="sm-z" style="left:' + x0 + '%"></i>' : "") +
+      '<span class="sm-bar">' + (S.ticks ? gridLines(S) : "") + (S.lo < 0 ? '<i class="sm-z" style="left:' + x0 + '%"></i>' : "") +
       (o.v != null ? '<b style="left:' + Math.min(x0, x1) + '%;width:' + Math.max(0.4, Math.abs(x1 - x0)) + '%"></b>' : "") + "</span>" +
       '<span class="sm-v sm-num">' + (o.val || "") + (o.vsub ? "<small>" + esc(o.vsub) + "</small>" : "") + "</span></div>";
   }
@@ -311,16 +316,16 @@
   }
   function pillsHtml() {
     var r = routeObj(S.route);
-    var routes = ORDER.map(function (id) {
+    var routes = ALL.map(function (id) {
       var ro = routeObj(id);
-      return '<button class="sm-pill" type="button" data-r="' + esc(id) + '" aria-pressed="' + (id === S.route) + '">' + esc(ro.route_words) + "</button>";
+      return ro ? '<button class="sm-pill" type="button" data-r="' + esc(id) + '" aria-pressed="' + (id === S.route) + '">' + esc(plainRoute(ro.route_words)) + "</button>" : "";
     }).join("");
-    var amounts = r.amounts.map(function (a) {
+    var amounts = ORDER.indexOf(S.route) < 0 ? "" : r.amounts.map(function (a) {
       return '<button class="sm-pill sm-num" type="button" data-a="' + a.amount + '" aria-pressed="' + (a.amount === S.amount) + '">' +
         esc(r.send_symbol) + whole(a.amount) + "</button>";
     }).join("");
     return '<div class="sm-tools"><div class="sm-pills" role="group" id="smRoutes">' + routes + '</div>' +
-      '<div class="sm-pills" role="group" id="smAmounts">' + amounts + "</div></div>";
+      (amounts ? '<div class="sm-pills" role="group" id="smAmounts">' + amounts + "</div>" : "") + "</div>";
   }
 
   function heroHtml(A) {
@@ -331,13 +336,15 @@
       : txt("leadSome", { n: whole(A.n), wins: whole(A.wins), first: dayLong(A.first) });
     return '<div class="sm-hero">' + w("headline", vals, "h1") +
       (lead ? '<p class="sm-lead">' + esc(lead) + "</p>" : "") +
-      '<p class="sm-meta sm-num"><span class="sm-live" aria-hidden="true"></span>' +
-      esc(txt("meta", { time: clock(A.t), date: dayShort(A.t) })) + "</p></div>";
+      '<p class="sm-meta sm-num">' + esc(txt("meta", { time: clock(A.t).replace(/\s*UTC$/, ""), date: dayShort(A.t) })) + "</p></div>";
   }
 
   function nowSectionHtml(A) {
     var legVals = [A.ac, A.sc].concat(["inn", "chain", "out", "tot"].map(function (k) { return A.leg[k]; }).filter(function (v) { return v != null; }));
-    var SC = plainScale(legVals);
+    var SC = niceScale(legVals);
+    TIP_WHEN = dayShort(A.t) + ", " + clock(A.t) + " UTC";
+    var moneyAxis = axisRow(SC, function (t) { return (t < 0 ? MINUS : "") + A.sym + whole(Math.abs(t)); });
+    var negative = legVals.some(function (v) { return v < 0; });
     var share = function (v) { return v == null ? "" : pctPlain(v / S.amount * 100); };
     var now = barRow(SC, { cls: "sm-app", name: txt("rowApp"), sub: txt("rowAppSub", { app: A.app }), v: A.ac, val: money(A.ac, A.sym), vsub: pctPlain(A.ap) }) +
       barRow(SC, { name: txt("rowStable"), sub: txt("rowStableSub", { path: pathName(A.path) }), v: A.sc, val: money(A.sc, A.sym), vsub: pctPlain(A.sp) });
@@ -348,9 +355,9 @@
     var stepsNote = A.legPath ? txt(A.legPath === A.path ? "stepsNoteSame" : "stepsNoteDiff", { legPath: pathName(A.legPath), path: pathName(A.path) }) : "";
     var stepsGap = (A.depM === false || A.wdM === false) ? txt("stepsGap") : "";
     return '<section class="sm-first">' + w("nowHeading", { amount: esc(A.sym) + whole(S.amount) }, "h2") +
-      w("nowNote", null, "p", "sm-note") + '<div>' + now + "</div>" +
+      w("nowNote", null, "p", "sm-note") + '<div>' + moneyAxis + now + "</div>" +
       w("stepsHeading", null, "h3") + (stepsNote ? '<p class="sm-note">' + esc(stepsNote) + "</p>" : "") +
-      '<div>' + steps + "</div>" + (stepsGap ? '<p class="sm-small">' + esc(stepsGap) + "</p>" : "") + "</section>";
+      '<div>' + moneyAxis + steps + "</div>" + (negative ? w("negNote", null, "p", "sm-small") : "") + (stepsGap ? '<p class="sm-small">' + esc(stepsGap) + "</p>" : "") + "</section>";
   }
 
   function weekSectionHtml() {
@@ -396,6 +403,11 @@
   }
 
   function renderAll() {
+    if (ORDER.indexOf(S.route) < 0) {
+      app.innerHTML = '<div class="sm-wrap">' + headHtml() + pillsHtml() + leftOutSectionHtml() + footerHtml() + "</div>";
+      pushUrl();
+      return;
+    }
     var A = computeA(S.route, S.amount);
     app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml(A) + pillsHtml() +
       nowSectionHtml(A) + weekSectionHtml() + cmpSectionHtml(A) + leftOutSectionHtml() + footerHtml() + "</div>";
@@ -432,7 +444,7 @@
   function parseRoute(s) {
     if (!s) return null;
     var k = s.replace(/^#?(route=)?/, "").toUpperCase().replace(/[^A-Z]+/g, "-");
-    var hit = ORDER.filter(function (id) { return routeKey(id) === k; })[0];
+    var hit = ALL.filter(function (id) { return routeKey(id) === k; })[0];
     return hit || null;
   }
 

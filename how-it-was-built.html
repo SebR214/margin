@@ -157,7 +157,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   <div class="hero">
     <h1 id="pageTitle">&nbsp;</h1>
     <div class="lede" id="pageLede">&nbsp;</div>
-    <p class="meta"><span class="dot" id="metaDot"></span><span id="metaLine">&nbsp;</span></p>
   </div>
 
   <div class="stack">
@@ -306,13 +305,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     }).join('');
   }
 
-  // The meta line under the title: when the last hourly price check ran.
-  function seedCollection(d){
-    var when = timeOf(d.as_of_utc || d.computed_at);
-    document.getElementById('metaLine').textContent = when
-      ? T(COPY.metaTemplate, { time: when })
-      : '';
-  }
 
   // Seed "what the agents are doing" with real recent commits from GitHub's
   // public API (no auth needed, public repo) -- live SSE events (issues,
@@ -427,7 +419,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     COPY = copyDoc.machineRoom || { columns: { collection:{}, agents:{}, meters:{} } };
     renderStatic();
 
-    fetch('./data/index_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(seedCollection).catch(function(){});
     fetch('./data/machine_room_meters.json', {cache:'no-store'}).then(function(r){ return r.json(); })
       .then(function(m){
         if (!m || !m.research) return;
