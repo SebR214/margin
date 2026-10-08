@@ -31,7 +31,7 @@ Never say something is running, built or watching unless you checked it just now
 - The instrument is a dollar stablecoin (USDT). Say "stablecoin" or "a dollar", never "crypto".
 - Money first, percent second. No jargon a smart outsider wouldn't know: no bps, basis, on-ramp, off-ramp, taker, maker, corridor, mid.
 - Every reader-facing string lives in `copy.json`.
-- New reader-facing words go to Seb for approval. Code-only changes merge on green checks.
+- Seb approves a page once, in its Linear spec. A PR whose title names its SEB issue merges by itself when every check passes (`automerge.yml`). Never wait on Seb for a PR, and never ask him to label one.
 - `DESIGN.md` holds the page rules. Read it when your job touches a page.
 
 ## Working rules

@@ -241,9 +241,18 @@ def writer_approved():
 
 
 def owner_label():
-    """(ok, why): the owner's own account added `copy-approved` after the last push."""
+    """(ok, why): the words are approved.
+
+    Since 8 Oct (Seb): a PR built from a Linear issue is approved by that
+    issue. Seb approves pages once, in the spec, not again on every PR. A PR
+    whose title names a SEB-<n> issue passes. Otherwise the old way still
+    works: the owner's own account added `copy-approved` after the last push.
+    """
     n = os.environ["PR_NUMBER"]
     pr = api("/pulls/%s" % n)
+    m = re.search(r"\bSEB-\d+\b", pr.get("title") or "")
+    if m:
+        return True, "approved by the spec in %s" % m.group(0)
     head_date = api("/commits/%s" % pr["head"]["sha"])["commit"]["committer"]["date"]
     ev = [e for e in api("/issues/%s/events?per_page=100" % n)
           if e.get("event") == "labeled" and (e.get("label") or {}).get("name") == "copy-approved"]
