@@ -3,10 +3,10 @@
    Column: the home page's, 1280px wide with 32px side padding, centred, on every page. */
 .hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh {
   box-sizing: border-box !important; width: 100% !important; max-width: none !important;
-  margin: 0 auto !important; padding: 0 !important; min-height: 64px !important;
+  margin: 0 auto !important; padding: 20px 0 !important; min-height: 0 !important;
   display: flex !important; flex-wrap: wrap !important; align-items: center !important;
   justify-content: space-between !important; gap: 4px 16px !important;
-  position: static !important; background: none !important; border: 0 !important; box-shadow: none !important;
+  position: static !important; background: none !important; border: 0 !important; border-bottom: 1px solid var(--color-neutral-300, #d7d3d3) !important; box-shadow: none !important;
 }
 .hp-headleft, .c-brand, .s-brand, .fp-brand { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: 4px 28px !important; }
 .hp-logo, .ci-logo, .c-logo, .sm-logo, .s-logo, .fp-logo, .mwh-logo {
@@ -25,12 +25,13 @@
   min-height: 44px !important; padding: 0 !important; margin: 0 !important; display: inline-flex !important; align-items: center !important; line-height: 1.2 !important;
 }
 .hp-nav a:hover, .ci-nav a:hover, .c-nav a:hover, .sm-nav a:hover, .s-nav a:hover, .fp-nav a:hover, .mwh nav a:hover { color: var(--color-ink, #201e1d) !important; }
-.hp-nav a[aria-current], .ci-nav a[aria-current], .c-nav a[aria-current], .sm-nav a[aria-current], .s-nav a[aria-current], .fp-nav a[aria-current], .mwh nav a[aria-current] {
-  color: var(--color-ink, #201e1d) !important; font-weight: 600 !important;
-}
 .mwh .nav-toggle { display: none !important; }
+/* the status on the right is home's, on every page: a dot, 'Last reading', 'Next in' */
+.c-head > .c-small, .s-asof { display: none !important; }
+.hp-clock { display: flex !important; align-items: center !important; gap: 10px !important; font-size: 13px !important; margin-left: auto !important; }
+.hp-clock .hp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--data-700); display: inline-block; flex: 0 0 auto; }
+.hp-clock .hp-dot.still { background: var(--data-500); }
 /* the status text on the right of some headers (last reading) keeps its place and size */
-.hp-clock, .s-asof, .c-head > .c-small { font-size: 13px !important; }
 @media (max-width: 520px) {
   /* one scrollable row for the nav, so the header is two rows at most, not a wrapped stack */
   .hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav {
@@ -55,3 +56,9 @@
 .ci-head, .sm-head { justify-content: flex-start !important; gap: 4px 28px !important; }
 .hp-head { justify-content: space-between !important; }
 .mwh { justify-content: flex-start !important; gap: 4px 28px !important; }
+@media (max-width: 520px) {
+  .hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh { padding: 6px 0 !important; row-gap: 0 !important; }
+  .hp-logo, .ci-logo, .c-logo, .sm-logo, .s-logo, .fp-logo, .mwh-logo { height: 40px !important; min-height: 40px !important; }
+  .hp-nav a, .ci-nav a, .c-nav a, .sm-nav a, .s-nav a, .fp-nav a, .mwh nav a { height: 40px !important; min-height: 40px !important; }
+  .hp-clock { flex: 1 0 100% !important; margin: 0 !important; padding: 0 0 4px !important; font-size: 12px !important; }
+}
