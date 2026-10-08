@@ -172,6 +172,7 @@
   function strip(s) {
     var wrap = el('div', 's-stripcol');
     var grid = el('div', 's-strip');
+    grid.style.setProperty('--days', String(s.status.length));
     s.status.forEach(function (st, i) {
       var def = STATUS_BY[st] || STATUS_BY.not_yet_a_source;
       var sq = el('span', def[2]);
@@ -190,7 +191,7 @@
       s.history.forEach(function (h) {
         add(col, word('span', ['mono', 'soft', 's-small'], h.ccy ? 'historyLine' : 'historyLineNoCcy', {
           series: seriesName(h.series), ccy: h.ccy || '', interval: h.interval,
-          first: day(h.first), last: day(h.last), rows: groupDigits(h.rows)
+          first: friendlyDay(day(h.first)), last: friendlyDay(day(h.last)), rows: groupDigits(h.rows)
         }));
       });
     }
@@ -241,7 +242,7 @@
       add(info, word('span', ['muted', 's-small'], 'neverAnswered'));
     }
     var first = s.first_utc ? day(s.first_utc) : FIRST_DAY[s.id];
-    if (first) add(info, word('span', ['mono', 'muted', 's-small'], 'firstSeen', { date: first }));
+    if (first) add(info, word('span', ['mono', 'muted', 's-small'], 'firstSeen', { date: friendlyDay(first) }));
     if (s.live) add(info, word('span', ['mono', 'muted', 's-small'], 'hoursAnswered', { answered: groupDigits(s.hours_answered), expected: groupDigits(s.hours_expected) }));
     r.appendChild(info);
     r.appendChild(strip(s));
