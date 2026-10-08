@@ -96,8 +96,14 @@
 
   function axis() {
     var n = days.length, X = function (i) { return (i + 0.5) / n * 100; };
-    var h = '<span class="l" style="left:0">' + dd(D.first_day) + '</span><span class="r" style="left:100%">' + dd(D.last_day) + '</span>';
-    days.forEach(function (d, i) { if (d.slice(8) === '01' && i > 5 && i < n - 5) { h += '<i style="left:' + X(i) + '%"></i><span style="left:' + X(i) + '%">' + dd(d) + '</span>'; } });
+    // the picked day's label wins: a label within 14% of it (or of the ends, when it is near one) is left out so none overlap
+    var near = function (pct) { return sel != null && Math.abs(pct - X(sel)) < 14; };
+    var h = '';
+    h += near(0) ? '' : '<span class="l" style="left:0">' + dd(D.first_day) + '</span>';
+    h += near(100) ? '' : '<span class="r" style="left:100%">' + dd(D.last_day) + '</span>';
+    days.forEach(function (d, i) {
+      if (d.slice(8) === '01' && i > 5 && i < n - 5 && !near(X(i))) { h += '<i style="left:' + X(i) + '%"></i><span style="left:' + X(i) + '%">' + dd(d) + '</span>'; }
+    });
     if (sel != null) { h += '<span class="sel" style="left:' + X(sel) + '%">' + dd(days[sel]) + '</span>'; }
     return '<div class="axisrow"><span></span><div class="ax num">' + h + '</div><span></span></div>';
   }
