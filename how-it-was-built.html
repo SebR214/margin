@@ -407,11 +407,14 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   async function renderRecordBlockSection() {
     try {
       // Fetch the required data files
-      const [recordDaily, recordMilestones, copyJson] = await Promise.all([
+      const [recordDaily, recordMilestones, copyJson, corridorWindow] = await Promise.all([
         fetch('./data/record_daily.json', {cache: 'no-store'}).then(r => r.json()),
         fetch('./data/record_milestones.json', {cache: 'no-store'}).then(r => r.json()),
-        fetch('./copy.json', {cache: 'no-store'}).then(r => r.json())
+        fetch('./copy.json', {cache: 'no-store'}).then(r => r.json()),
+        fetch('./data/corridor_window.json', {cache: 'no-store'}).then(r => r.json()).catch(() => ({}))
       ]);
+      const routeNames = {};
+      Object.keys(corridorWindow || {}).forEach(k => { if (corridorWindow[k] && corridorWindow[k].route_words) routeNames[k] = corridorWindow[k].route_words; });
 
       // Get the copy block for the record section
       const machineRoomCopy = copyJson.machineRoom || {};
@@ -424,7 +427,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         const recordBlockContainer = document.getElementById('recordBlock');
         if (recordBlockContainer) {
           recordBlockContainer.style.display = '';
-          window.renderRecordBlock(recordBlockContainer, recordDaily, recordMilestones, machineRoomCopy);
+          window.renderRecordBlock(recordBlockContainer, recordDaily, recordMilestones, machineRoomCopy, routeNames);
         }
       };
       document.head.appendChild(script);
