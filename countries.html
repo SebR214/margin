@@ -16,9 +16,9 @@
      things" case DESIGN.md reserves the accent colours for. Font is the
      site's self-hosted Archivo from style.css, not a Google Fonts link. */
   :root {
-    --ci-ink: #0B0B0B; --ci-sub: #6B6B6B; --ci-stamp: #8A8A8A; --ci-rule: #ECECEC;
-    --ci-peri: #817FCC; --ci-peri-deep: #5E5CB0; --ci-peri-soft: #D9D8F1;
-    --ci-dust: #D3D0CB; --ci-grape: #3F3047;
+    --ci-ink: var(--color-ink); --ci-sub: var(--color-neutral-700); --ci-stamp: var(--color-neutral-600); --ci-rule: var(--color-neutral-200);
+    --ci-peri: var(--data-600); --ci-peri-deep: var(--data-700); --ci-peri-soft: var(--data-400);
+    --ci-dust: var(--color-neutral-300); --ci-grape: var(--color-neutral-900);
   }
   .ci-wrap { max-width: 760px; margin: 0 auto; padding: 0 24px 64px; color: var(--ci-ink); }
   .ci-wrap p { margin: 0; }
@@ -58,7 +58,7 @@
   .ci-row, .ci-axisrow { display: grid; grid-template-columns: 150px 1fr 64px; gap: 0 14px; align-items: center; }
   .ci-axisrow { height: 26px; font-size: 12px; color: var(--ci-stamp); }
   .ci-row { min-height: 34px; border-top: 1px solid var(--ci-rule); text-decoration: none; color: inherit; }
-  .ci-row:hover { background: #FAFAFC; }
+  .ci-row:hover { background: var(--color-neutral-100); }
   .ci-row .ci-nm { font-size: 15px; font-weight: 600; line-height: 1.25; padding: 6px 0; }
   .ci-row .ci-v { text-align: right; font-weight: 700; font-size: 15px; color: var(--ci-peri-deep); line-height: 1.2; }
   .ci-row .ci-v .ci-wk { display: block; font-size: 12.5px; font-weight: 600; color: var(--ci-grape); }
