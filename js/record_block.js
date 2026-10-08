@@ -52,7 +52,7 @@
     '.rb-y{position:absolute;left:-44px;width:38px;text-align:right;font-size:11px;transform:translateY(50%)}',
     '.rb-grid{position:absolute;left:0;right:0;height:1px;background:var(--color-neutral-200)}',
     '.rb-dot{position:absolute;width:7px;height:7px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--color-bg);border:1.5px solid var(--data-700);pointer-events:none}',
-    '.rb-dot.route{width:9px;height:9px;margin:-4px 0 0 -4px;background:var(--data-700)}',
+    '.rb-dot.route{width:9px;height:9px;margin:-4px 0 0 -4px;background:var(--color-neutral-900);border-color:var(--color-bg)}',
     '.rb-cross{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed var(--color-neutral-600);pointer-events:none;display:none}',
     '.rb-card{position:absolute;top:6px;z-index:3;width:max-content;max-width:min(260px,calc(100vw - 32px));padding:10px 12px;background:var(--color-bg);border:1px solid var(--color-neutral-300);font-size:13px;line-height:1.4;pointer-events:none;display:none}',
     '.rb-card .d{font-weight:600;margin-bottom:4px}',
@@ -87,6 +87,7 @@
       sec.appendChild(el('p', ['soft', 'rb-note'], t('markBackfill', { n: back.length, date: dLong(back[0].first_day), id: back[0].id })));
     }
 
+    if (has('recordDotNote')) { sec.appendChild(el('p', ['soft', 'rb-note'], t('recordDotNote'))); }
     var max = rd[n - 1].readings_cumulative || 1;
     var plot = el('div', 'rb-plot');
     plot.tabIndex = 0;
@@ -131,8 +132,8 @@
       return out.filter(Boolean);
     };
 
-    // markers sit on the line: a dot per day something started; only route days print a label
-    var labels = [];
+    // markers sit on the line: a dark dot for a day a route started, an open dot for a day sources started. No labels:
+    // the day's card names everything that started.
     Object.keys(byDay).sort().forEach(function (day) {
       var k = idx[day]; if (k == null) { return; }
       var isRoute = byDay[day].route.length > 0;
@@ -140,27 +141,7 @@
       dot.style.left = xp(k).toFixed(2) + '%';
       dot.style.top = yp(rd[k].readings_cumulative) + 'px';
       plot.appendChild(dot);
-      if (isRoute && has('markRoute')) {
-        var lab = el('div', ['soft', 'hp-marklabel']);
-        lab.textContent = t('markRoute', { date: dShort(day), n: byDay[day].route.length, ids: byDay[day].route.map(rn).join(', ') });
-        lab.style.cssText = 'position:absolute;white-space:nowrap;font-size:12px;visibility:hidden';
-        plot.appendChild(lab);
-        labels.push({ lab: lab, k: k, y: yp(rd[k].readings_cumulative) });
-      }
     });
-    var placeLabels = function () {
-      var W = plot.clientWidth, placed = [];
-      if (W < 520) { labels.forEach(function (o) { o.lab.style.display = 'none'; }); return; }   // narrow: the card names what started
-      labels.forEach(function (o) { o.lab.style.display = ''; });
-      labels.forEach(function (o) {
-        var w = o.lab.offsetWidth, x = xp(o.k) / 100 * W;
-        var left = x + 8 + w <= W ? x + 8 : Math.max(0, x - 8 - w);
-        var top = 0, tries = 0;   // lanes from the top of the plot, so a label never sits on the line
-        while (tries++ < 8 && placed.some(function (q) { return left < q.r + 6 && left + w > q.l - 6 && Math.abs(top - q.t) < 16; })) { top += 16; }
-        placed.push({ l: left, r: left + w, t: top });
-        o.lab.style.left = left + 'px'; o.lab.style.top = top + 'px'; o.lab.style.visibility = 'visible';
-      });
-    };
 
     // hover, touch and keyboard: a dashed line snaps to the nearest day; a card says what that day was
     var cross = el('div', 'rb-cross'), card = el('div', 'rb-card');
@@ -209,10 +190,6 @@
     if (has('axisToday')) { foot.appendChild(el('span', null, t('axisToday'))); }
     sec.appendChild(foot);
     containerEl.appendChild(sec);
-    placeLabels();
-    var rt = null;
-    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(placeLabels, 120); });
-    if (document.fonts && document.fonts.ready) { document.fonts.ready.then(placeLabels); }
   }
 
   root.renderRecordBlock = renderRecordBlock;
