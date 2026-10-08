@@ -32,6 +32,15 @@
 /* the status text on the right of some headers (last reading) keeps its place and size */
 .hp-clock, .s-asof, .c-head > .c-small { font-size: 13px !important; }
 @media (max-width: 520px) {
+  /* one scrollable row for the nav, so the header is two rows at most, not a wrapped stack */
+  .hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav {
+    flex-wrap: nowrap !important; overflow-x: auto !important; max-width: 100% !important; scrollbar-width: none !important; white-space: nowrap !important;
+  }
+  .hp-nav::-webkit-scrollbar, .ci-nav::-webkit-scrollbar, .c-nav::-webkit-scrollbar, .sm-nav::-webkit-scrollbar, .s-nav::-webkit-scrollbar, .fp-nav::-webkit-scrollbar, .mwh nav::-webkit-scrollbar { display: none; }
+  .hp-headleft, .c-brand, .s-brand, .fp-brand { flex: 1 0 100% !important; min-width: 0 !important; row-gap: 0 !important; }
+  .ci-head, .sm-head, .mwh, .hp-head, .c-head, .s-head, .fp-head { row-gap: 0 !important; }
+  .ci-nav, .sm-nav, .mwh nav { flex: 1 0 100% !important; }
+  .hp-clock, .s-asof, .c-head > .c-small { flex: 1 0 100% !important; padding-bottom: 8px !important; }
   .hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav { gap: 0 16px !important; }
   .hp-nav a, .ci-nav a, .c-nav a, .sm-nav a, .s-nav a, .fp-nav a, .mwh nav a { font-size: 14px !important; }
 }
