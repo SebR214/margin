@@ -100,7 +100,7 @@
       var right = el('div', ['mono', 'muted', 'hp-clock']);
       var dot = el('span', 'hp-dot');
       right.appendChild(dot);
-      var a = word(right, 'span', null, 'headerLast', function () { return { time: CL.last_reading_utc.slice(11, 19) }; });
+      var a = word(right, 'span', null, 'headerLast', function () { return { time: dShort(CL.last_reading_utc.slice(0, 10)) + ', ' + CL.last_reading_utc.slice(11, 16) }; });
       var b = el('span');
       right.appendChild(b);
       var next = Date.parse(CL.next_reading_utc);

@@ -74,8 +74,8 @@
   // Stored names keep a leading "the" for use in sentences; a list or a heading shows the bare name.
   function plainName(n) { return String(n).replace(/^the /i, ""); }
   function money(v) { return "$" + Math.round(v).toLocaleString("en-US"); }
-  function dayShort(t) { return new Date(t * 1000).toLocaleDateString("en-US", { day: "numeric", month: "short", timeZone: "UTC" }); }
-  function dayLong(t) { return new Date(t * 1000).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }); }
+  function dayShort(t) { return new Date(t * 1000).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).replace("Sept", "Sep"); }
+  function dayLong(t) { return new Date(t * 1000).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).replace("Sept", "Sep"); }
   function clock(t) { return new Date(t * 1000).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC", timeZoneName: "short" }); }
   function stamp(t) { return dayShort(t) + ", " + clock(t); }
   function isoEpoch(d) { return Date.parse(d + (d.length <= 10 ? "T00:00:00Z" : "")) / 1000; }
@@ -504,7 +504,7 @@
         S.bandLo = quantile(sorted, BAND_LO); S.bandHi = quantile(sorted, BAND_HI);
       }
       var minutes = Math.max(0, Math.round((Date.now() / 1000 - S.asOf) / 60));
-      var meta = '<span class="mono muted c-small">' + esc(txt("lastReading", { time: clock(S.asOf), date: dayShort(S.asOf), minutes: minutes })) + "</span>";
+      var meta = '<span class="mono muted c-small">' + esc(txt("lastReading", { time: dayShort(S.asOf) + ", " + clock(S.asOf), date: dayShort(S.asOf), minutes: minutes })) + "</span>";
       app.innerHTML = '<div class="c-wrap">' + head(txt("lastReading") ? meta : "") + buildHero() + buildStats() +
         buildChartSection() + buildReceiptsSection() + "</div>";
       var slot = document.getElementById("cChartSlot");
