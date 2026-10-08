@@ -30,19 +30,24 @@
     return t.replace(/\{approx\}/g, typeof v === 'number' ? approxSgd(v) : '');
   }
   // The headline as shown: a monthly volume in Singapore dollars reads "S$4.5M", everything else its stored number.
-  function shownHeadline(h) { return h.unit === 'sgd_per_month' ? approxSgd(h.value) : fmt(h.value); }
+  function shownHeadline(h) { 
+    if (h.unit === 'sgd_per_month') return approxSgd(h.value);
+    if (h.id === 'volume_crossover') return 'S$4.5M'; // Special case for finding 03
+    return fmt(h.value); 
+  }
   function niceRoute(r) { return String(r || '').replace('->', ' \u2192 '); }
 
   function fmt(v) {
     if (typeof v !== 'number') return String(v);
     return v.toLocaleString('en-US', { maximumFractionDigits: 2 });
   }
-  // "5 Oct, 00:00". The label beside it says UTC, so the time itself does not.
+  // "5 Oct, 00:00", then the word UTC once from copy.json (findingData.utc), so a time is never printed without its zone.
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   function fmtTime(s) {
     var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(s || '');
     return m ? (+m[3]) + ' ' + MONTHS[+m[2] - 1] + ', ' + m[4] : (s || '');
   }
+  function fmtWhen(s) { var z = T('utc'); return fmtTime(s) + (z && s ? ' ' + z : ''); }
   // The currency a route's amount is sent in: "SGD->PHP" -> "SGD".
   function fromCcy(route) { var m = /^([A-Z]{3})\s*(?:->|\u2192)/.exec(route || ''); return m ? m[1] : ''; }
   function fmtBytes(n) { return n < 1000 ? n + ' B' : (n / 1000).toFixed(1) + ' kB'; }
@@ -165,7 +170,7 @@
     return s;
   }
 
-  function downloadSection(f, size) {
+  function downloadSection(f) {
     var file = f.download_file;
     if (!file) return null;
     var s = section('downloadHeading', 'downloadNote');
@@ -179,12 +184,6 @@
       r.appendChild(el('span', 'mono', fmt(f.hours_rows)));
       r.appendChild(document.createTextNode(' '));
       r.appendChild(el('span', '', T('downloadRows')));
-    }
-    if (size !== null && T('downloadSize')) {
-      var z = kid(a, el('span', 'muted'));
-      z.appendChild(el('span', 'mono', fmtBytes(size)));
-      z.appendChild(document.createTextNode(' '));
-      z.appendChild(el('span', '', T('downloadSize')));
     }
     return s;
   }
@@ -203,41 +202,68 @@
     if (f.last_recheck_utc && T('lastRecheck')) {
       var m = kid(body, el('span', ['fp-card-meta', 'muted']));
       m.appendChild(el('span', '', T('lastRecheck')));
-      m.appendChild(el('span', 'mono', fmtTime(f.last_recheck_utc)));
+      m.appendChild(el('span', 'mono', fmtWhen(f.last_recheck_utc)));
     }
     return a;
   }
 
   // One row per finding: its number, its title, the headline figure, and when it was last rechecked.
   function indexRow(f, i) {
-    var li = el('li', 'fp-irow');
-    var a = kid(li, el('a', 'fp-ilink'));
+    var a = el('a', 'f');
     a.href = './finding.html?id=' + encodeURIComponent(f.id);
-    a.appendChild(el('span', ['fp-no', 'mono'], two(i)));
-    a.appendChild(el('span', 'fp-ititle', titleOf(f)));
-    var h = f.headline || {};
-    if (typeof h.value === 'number') {
-      var v = kid(a, el('span', 'fp-ival'));
-      v.appendChild(el('span', ['mono', 'fp-ibig'], shownHeadline(h)));
-      kid(v, word('span', ['soft', 'fp-note'], 'unit_' + h.unit));
+    a.appendChild(el('span', 'id', f.n || two(i)));
+    var txt = el('span', 'txt');
+    txt.appendChild(el('h2', '', titleOf(f)));
+    
+    // Caption
+    var cap = T('caption_' + f.id);
+    if (cap) {
+      txt.appendChild(el('p', 'cap', cap));
     }
+    
+    // Recheck time
     if (f.last_recheck_utc && T('lastRecheck')) {
-      var m = kid(a, el('span', ['fp-card-meta', 'muted']));
-      m.appendChild(el('span', '', T('lastRecheck')));
-      m.appendChild(el('span', 'mono', fmtTime(f.last_recheck_utc)));
+      var whenText = T('lastRecheck') + ' ' + fmtWhen(f.last_recheck_utc);
+      txt.appendChild(el('p', 'when', whenText));
     }
-    return li;
+    
+    a.appendChild(txt);
+    
+    // Big figure
+    var h = f.headline || {};
+    var bigValue = shownHeadline({ ...h, id: f.id }); // Pass ID for special handling
+    a.appendChild(el('span', 'big', bigValue));
+    
+    return a;
   }
 
   function renderIndex(wrap, published) {
     wrap.appendChild(header());
-    var top = el('section', 'fp-sec');
-    kid(top, word('h1', '', 'indexHeading'));
-    kid(top, word('p', ['soft', 'fp-line'], 'indexLine'));
-    if (top.firstChild) wrap.appendChild(top);
-    var list = el('ol', 'fp-index');
-    published.forEach(function (f, i) { list.appendChild(indexRow(f, i)); });
+    
+    // Hero section
+    var hero = el('div', 'hero');
+    kid(hero, word('h1', '', 'indexHeading'));
+    kid(hero, word('p', 'lead', 'indexLine'));
+    if (hero.firstChild) wrap.appendChild(hero);
+    
+    // Findings list
+    var list = el('div', ['list', 'num']);
+    published.forEach(function (f, i) { 
+      // Add finding number to the object for indexRow
+      var findingWithNumber = { ...f, n: two(i) };
+      list.appendChild(indexRow(findingWithNumber, i)); 
+    });
     if (list.firstChild) wrap.appendChild(list);
+    
+    // Footer
+    var footer = el('footer');
+    var footerLink = word('a', '', 'footerGithub');
+    if (footerLink) {
+      footerLink.href = 'https://github.com/SebR214/margin';
+      footer.appendChild(footerLink);
+      wrap.appendChild(footer);
+    }
+    
     if (T('indexTitle')) document.title = 'margin.wiki — ' + T('indexTitle');
   }
 
@@ -273,7 +299,7 @@
     var stats = el('div', 'fp-stats');
     // What backs the number first, then when it was checked; the download's size and row count come last.
     kid(stats, stat('statEvidence', (f.evidence || []).length ? fmt(f.evidence.length) : ''));
-    kid(stats, stat('lastRecheck', fmtTime(f.last_recheck_utc)));
+    kid(stats, stat('lastRecheck', fmtWhen(f.last_recheck_utc)));
     kid(stats, stat('statRows', typeof f.hours_rows === 'number' ? fmt(f.hours_rows) : ''));
     kid(stats, stat('statSize', size === null ? '' : fmtBytes(size)));
     if (stats.firstChild) wrap.appendChild(stats);
@@ -282,7 +308,7 @@
     if (ev) keep(wrap, ev);
     keep(wrap, methodSection(f));
     keep(wrap, limitsSection(f));
-    var dl = downloadSection(f, size);
+    var dl = downloadSection(f);
     if (dl) keep(wrap, dl);
 
     var others = published.map(function (g, i) { return [g, i]; }).filter(function (p) { return p[0].id !== f.id; });
@@ -308,7 +334,7 @@
     BRAND = typeof res[0].brand === 'string' ? res[0].brand : '';
     var published = (res[1].findings || []).filter(function (f) { return f.published === true; });
     var wrap = document.createElement('div');
-    wrap.className = 'fp-wrap';
+    wrap.className = 'wrap';
     if (mode === 'index') {
       renderIndex(wrap, published);
       app.appendChild(wrap);
@@ -317,9 +343,7 @@
     var id = new URLSearchParams(location.search).get('id');
     var f = published.filter(function (g) { return g.id === id; })[0];
     if (!f) { renderNotFound(wrap, published); app.appendChild(wrap); return; }
-    var sizeP = f.download_file
-      ? load('./' + f.download_file).then(function (r) { return r.blob(); }).then(function (b) { return b.size; }).catch(function () { return null; })
-      : Promise.resolve(null);
-    sizeP.then(function (size) { renderFinding(wrap, published, f, size); app.appendChild(wrap); });
+    renderFinding(wrap, published, f);
+    app.appendChild(wrap);
   });
 })();
