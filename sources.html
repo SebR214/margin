@@ -6,125 +6,128 @@
 <title>margin.wiki</title>
 <link rel="stylesheet" href="./style.css">
 <style>
-  /* The Sources page. Layout from the owner's home and route references (SEB-240):
-     header, h1 and one line, the big number, the stats row, chips, list rows, the
-     square strip. Colours are the --dk-* tokens in style.css, fonts --font-data and
-     --font-mono; no colour is written here. Every word is a key in copy.json
-     (sourcesData) and an element whose key is empty is not rendered. */
-  .s-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 56px; }
-  .s-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--color-neutral-300); }
-  .s-brand { display: flex; flex-wrap: wrap; align-items: center; gap: 0 28px; }
-  .s-logo { font-weight: 600; font-size: 18px; color: var(--color-ink); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
-  .s-nav { display: flex; flex-wrap: wrap; gap: 0 22px; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); overflow: visible; }
-  .s-nav a { color: var(--color-neutral-600); text-decoration: none; font-weight: 400; display: inline-flex; align-items: center; min-height: 44px; }
-  .s-nav a[aria-current] { color: var(--color-ink); font-weight: 400; }
-  .s-asof { font-size: 13px; overflow-wrap: anywhere; }
+  /* The Sources page, rebuilt to the reference (SEB-266). The header is the home page's (css/site_head.css,
+     js/site_head.js); the column is the home page's 1280px with 32px sides. Colours are the site tokens in
+     style.css; every word is a key in copy.json, block sourcesData. */
+  .num { font-variant-numeric: tabular-nums; }
+  .wrap { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; box-sizing: border-box; }
+  .hero { padding: 40px 0 0; display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
+  h1 { font-size: 24px; line-height: 1.15; margin: 0; font-weight: 600; }
+  .lead { margin: 0; color: var(--color-neutral-700); font-size: 18px; }
+  .counts { margin: 4px 0 0; font-size: 15px; color: var(--color-neutral-700); }
+  .counts b { color: var(--color-ink); font-weight: 600; }
 
-  .s-hero { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-end; }
-  .s-hero-text { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
-  .s-hero-num { flex: 1 1 260px; display: flex; flex-direction: column; gap: 6px; }
-  h1 { margin: 0; font-size: 24px; font-weight: 600; line-height: 1.15; letter-spacing: 0; }
-  h2 { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.25; letter-spacing: 0; }
-  p { margin: 0; }
-  .s-lede { font-size: 17px; }
-  .s-big { font-size: 88px; font-weight: 600; line-height: 1; color: var(--data-700); }
-  .s-bigl { font-size: 15px; }
+  .tools { margin-top: 32px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { font: inherit; font-size: 14px; font-weight: 600; padding: 0 14px; min-height: 40px; border: 1px solid var(--color-neutral-300); border-radius: 999px; background: var(--color-bg); color: var(--color-neutral-700); cursor: pointer; }
+  .pill[aria-pressed="true"] { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-bg); }
 
-  .s-stats { display: flex; flex-wrap: wrap; gap: 8px 48px; border-top: 1px solid var(--color-neutral-300); border-bottom: 1px solid var(--color-neutral-300); padding: 16px 0; margin-top: -8px; }
-  .s-stat { display: flex; flex-direction: column; gap: 4px; min-width: 140px; }
-  .s-stat .num { font-size: 24px; font-weight: 600; }
-  .s-stat .lab { font-size: 14px; }
+  .key { display: flex; flex-wrap: wrap; gap: 6px 20px; align-items: center; margin: 24px 0 0; padding-top: 20px; border-top: 1px solid var(--color-neutral-200); font-size: 14px; color: var(--color-neutral-700); }
+  .key i, .day i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 8px; }
+  .s-a { background: var(--data-400); } .s-s { background: var(--data-700); } .s-x { background: var(--color-neutral-900); } .s-n { background: var(--color-neutral-200); }
+  .gapnote { margin: 10px 0 0; font-size: 14px; color: var(--color-neutral-700); }
 
-  .s-controls { display: flex; flex-direction: column; gap: 16px; }
-  .s-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .s-chip { min-height: 44px; padding: 0 16px; border-radius: 6px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid var(--color-neutral-400); background: var(--color-surface); color: var(--color-neutral-700); }
-  .s-chip.on { background: var(--color-ink); color: var(--color-bg); border-color: var(--color-ink); }
-  .s-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
-  .s-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 12px; }
-  .s-legend .head { font-size: 14px; }
-  .s-key { display: inline-flex; align-items: center; gap: 6px; }
-  .sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; flex: none; }
-  .s-count { font-size: 13px; }
+  .day { position: sticky; top: 0; z-index: 3; background: var(--color-bg); margin-top: 16px; padding: 12px 0; border-bottom: 1px solid var(--color-neutral-200); font-size: 14px; color: var(--color-neutral-700); display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; }
+  .day[hidden] { display: none; }
+  .day .d { font-size: 17px; font-weight: 600; color: var(--color-ink); margin-right: 16px; }
+  .day .c { display: flex; flex-wrap: wrap; gap: 4px 20px; align-items: center; }
+  .day .c b { color: var(--color-ink); font-weight: 600; margin-left: 6px; }
+  .day .who { grid-column: 1 / -1; margin: 0; }
+  .day .who a { color: var(--color-ink); font-weight: 500; border-bottom: 1px solid var(--color-neutral-300); text-decoration: none; }
+  .day .x { font: inherit; font-size: 20px; line-height: 1; border: 0; background: none; color: var(--color-neutral-600); cursor: pointer; min-width: 44px; min-height: 44px; align-self: start; }
 
-  .s-sec { display: flex; flex-direction: column; gap: 16px; }
-  .s-list { border-top: 1px solid var(--color-neutral-300); }
-  .s-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px 32px; padding: 16px 0; border-bottom: 1px solid var(--color-neutral-300); font-size: 14px; }
-  .s-info { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-  .s-id { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
-  .s-kind { align-self: flex-start; font-size: 12px; color: var(--color-neutral-600); }
-  .s-axis { display: flex; justify-content: space-between; gap: 16px; font-size: 13px; padding: 8px 0; border-bottom: 1px solid var(--color-neutral-300); }
-  .s-small { font-size: 13px; overflow-wrap: anywhere; }
-  .s-stripcol { flex: 2 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-  .s-strip { display: grid; grid-template-columns: repeat(var(--days, 60), minmax(0, 1fr)); gap: 2px; }
-  .s-strip span { height: 16px; border-radius: 2px; background: var(--grid-empty); }
-  .s-strip .s-ans { background: var(--color-ink); }
-  .s-strip .s-some { background: var(--data-500); }
-  .s-strip .s-all { background: var(--data-700); }
-  .s-strip .s-not { background: var(--grid-empty); }
-  .sw.s-ans { background: var(--color-ink); }
-  .sw.s-some { background: var(--data-500); }
-  .sw.s-all { background: var(--data-700); }
-  .sw.s-not { background: var(--grid-empty); }
-  .s-ends { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
-  .s-histcol { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-  .s-cur { flex: 1 1 100%; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
-  .s-togs { display: flex; flex-wrap: wrap; gap: 8px; }
-  .s-tog { min-height: 44px; padding: 0 16px; border-radius: 6px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid var(--color-neutral-400); background: var(--color-surface); color: var(--color-ink); }
-  .s-codes { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; }
-  .s-codes[hidden] { display: none; }
-  .s-histcol code { font-family: var(--font-body); font-size: inherit; font-weight: 400; color: inherit; overflow-wrap: anywhere; }
-  .s-fail { font-size: 15px; }
+  section { margin-top: 32px; }
+  h2 { font-size: 20px; line-height: 1.25; margin: 0 0 12px; font-weight: 600; }
 
-  [hidden] { display: none !important; }
-  @media (max-width: 480px) {
-    .s-wrap { padding: 0 16px 72px; gap: 40px; }
+  .row, .axisrow { display: grid; grid-template-columns: 260px 1fr 150px; gap: 0 24px; align-items: center; }
+  .axisrow { height: 24px; font-size: 12px; color: var(--color-neutral-600); }
+  .axisrow .ax { position: relative; height: 24px; }
+  .axisrow .ax span { position: absolute; bottom: 4px; transform: translateX(-50%); white-space: nowrap; line-height: 1; }
+  .axisrow .ax span.l { transform: none; } .axisrow .ax span.r { transform: translateX(-100%); }
+  .axisrow .ax span.sel { color: var(--color-ink); font-weight: 600; background: var(--color-bg); padding: 0 4px; }
+  .axisrow .ax i { position: absolute; bottom: 0; width: 1px; height: 4px; background: var(--color-neutral-300); }
+  .rowwrap { border-top: 1px solid var(--color-neutral-200); }
+  .row { min-height: 56px; }
+  .row:hover { background: var(--color-neutral-100); }
+  .nm { font: inherit; color: inherit; text-align: left; background: none; border: 0; padding: 9px 0; cursor: pointer; line-height: 1.25; }
+  .nm b { font-size: 15px; font-weight: 600; }
+  .nm .chev { display: inline-block; color: var(--color-neutral-600); margin-left: 6px; transition: transform .15s; }
+  .rowwrap.open .chev { transform: rotate(90deg); }
+  .nm small { display: block; font-size: 13px; color: var(--color-neutral-600); margin-top: 2px; }
+  .strip { display: flex; gap: 2px; height: 18px; cursor: pointer; padding: 2px 0; touch-action: manipulation; }
+  .strip span { flex: 1 1 0; min-width: 0; border-radius: 2px; }
+  .strip span.on { outline: 2px solid var(--color-ink); outline-offset: 1px; }
+  .v { text-align: right; line-height: 1.2; }
+  .v b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; }
+  .v b.low { color: var(--data-700); }
+  .v small { font-size: 13px; color: var(--color-neutral-600); }
+  .more { display: none; padding: 2px 0 16px; font-size: 14px; color: var(--color-neutral-700); }
+  .rowwrap.open .more { display: block; }
+  .more p { margin: 0 0 4px; max-width: 640px; }
+  .more .h { color: var(--color-ink); font-weight: 600; margin-top: 8px; }
+  .feeds { list-style: none; margin: 6px 0 0; padding: 0; columns: 3; column-gap: 32px; max-width: 900px; }
+  .feeds li { break-inside: avoid; padding: 3px 0; display: flex; justify-content: space-between; gap: 12px; }
+  .feeds li span { color: var(--color-neutral-600); }
+  .tip { position: fixed; z-index: 5; background: var(--color-bg); border: 1px solid var(--color-neutral-300); border-radius: 6px; padding: 5px 9px; font-size: 13px; pointer-events: none; white-space: nowrap; }
+  .tip[hidden] { display: none; }
+  .hrow { display: grid; grid-template-columns: 260px 1fr; gap: 0 24px; padding: 10px 0; border-top: 1px solid var(--color-neutral-200); font-size: 15px; }
+  .hrow b { font-weight: 600; }
+  .hrow small { display: block; font-size: 13px; color: var(--color-neutral-600); }
+  .hrow p { margin: 0; color: var(--color-neutral-700); font-size: 14px; }
+  .fail { margin-top: 24px; color: var(--color-neutral-700); }
+
+  @media (max-width: 700px) { .wrap { padding: 0 24px 64px; } }
+  @media (max-width: 620px) {
+    .row, .axisrow { grid-template-columns: 1fr 132px; }
+    .row .strip, .axisrow .ax { grid-column: 1 / -1; grid-row: 2; }
+    .row .strip { margin-bottom: 12px; height: 22px; }
+    .axisrow { grid-template-columns: 1fr; height: 22px; }
+    .axisrow > span { display: none; }
+    .axisrow .ax { grid-row: 1; }
+    .strip { gap: 1px; }
+    .v { align-self: start; padding-top: 9px; }
+    .feeds { columns: 1; }
+    .hrow { grid-template-columns: 1fr; }
+    .pills { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .pills::-webkit-scrollbar { display: none; }
+    .pill { flex: none; }
   }
-  .s-row.s-target { box-shadow: 0 0 0 1px var(--data-700); }
 </style>
 <link rel="stylesheet" href="./css/site_head.css?v=3">
 </head>
 <body>
-<div class="s-wrap">
-  <header class="s-head">
-    <div class="s-brand">
-      <a class="s-logo mono" id="logo" href="./index.html" hidden></a>
-      <nav class="s-nav" id="nav"></nav>
+<div class="wrap">
+  <div class="hp-head">
+    <div class="hp-headleft">
+      <a class="hp-logo" href="./index.html">margin.wiki</a>
+      <nav class="hp-nav" aria-label="Main" id="nav"></nav>
     </div>
-    <span class="s-asof mono muted" id="asof" hidden></span>
-  </header>
+  </div>
 
-  <section class="s-hero hero bleed">
-    <div class="s-hero-text">
-      <h1 id="headline" hidden></h1>
-      <p class="s-lede soft" id="lede" hidden></p>
-    </div>
-    <div class="s-hero-num">
-      <span class="s-big mono" id="big"></span>
-      <span class="s-bigl soft" id="bigl" hidden></span>
-    </div>
+  <div class="hero">
+    <h1 id="h1" hidden></h1>
+    <p class="lead" id="lead" hidden></p>
+    <p class="counts num" id="counts"></p>
+  </div>
+
+  <div class="tools"><div class="pills" id="kinds" role="group"></div></div>
+
+  <p class="key" id="key"></p>
+  <p class="gapnote" id="gapnote"></p>
+  <div class="day num" id="day" hidden aria-live="polite"></div>
+  <p class="fail" id="fail" hidden></p>
+
+  <section id="liveSec" hidden>
+    <h2 id="liveH"></h2>
+    <div id="liveList"></div>
   </section>
 
-  <div class="s-stats" id="stats"></div>
-
-  <section class="s-controls">
-    <div class="s-chips" id="chips" role="group"></div>
-    <div class="s-bar">
-      <div class="s-legend soft" id="legend"></div>
-      <span class="s-count mono muted" id="count" hidden></span>
-    </div>
+  <section id="histSec" hidden>
+    <h2 id="histH"></h2>
+    <div id="histList"></div>
   </section>
-
-  <section class="s-sec" id="liveSec">
-    <h2 id="liveHead" hidden></h2>
-    <div class="s-list" id="liveList"></div>
-  </section>
-
-  <section class="s-sec" id="histSec">
-    <h2 id="histHead" hidden></h2>
-    <div class="s-list" id="histList"></div>
-  </section>
-  <p class="s-fail soft" id="fail" hidden></p>
 </div>
+<div class="tip num" id="tip" hidden></div>
 <script src="./js/sources_page.js"></script>
 <script src="./js/footer.js"></script>
 <script src="./js/site_head.js?v=3"></script>

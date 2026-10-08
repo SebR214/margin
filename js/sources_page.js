@@ -1,372 +1,240 @@
-/* The Sources page. Reads data/sources_daily.json (every source, a status per day, history),
-   data/record_daily.json (totals) and data/record_milestones.json (first date each source
-   appears), and builds the DOM by hand. No library, no network call beyond the stored files.
-   Every word comes from copy.json -> sourcesData. An element whose key is empty is not
-   rendered. Numbers, dates, source ids, currency codes, route ids, timestamps and the stored
-   history_reason text are data and are shown as stored. Ages are measured against the data's
-   own as_of_utc, never the browser clock. */
+/* Sources page (SEB-266), built to the reference. Reads data/sources_daily.json and copy.json (sourcesData).
+   The header status is js/site_head.js's. Every word is a copy.json key; numbers, dates and names are formatted here.
+   A source is a row; CriptoYa's live feeds are one row. Clicking a strip picks a day across every row. */
 (function () {
+  var C = {}, D = null;
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var CODE = { answered_every_hour: 'a', missed_some: 's', missed_all: 'x', not_yet_a_source: 'n' };
+  var STAT = { a: 'statusAnsweredEveryHour', s: 'statusMissedSome', x: 'statusMissedAll', n: 'statusNotYetASource' };
+  var RANK = { n: 0, a: 1, s: 2, x: 3 };
+  var KIND = { p2p: 'kindP2p', order_book: 'kindOrderBook', broker: 'kindBroker', fx: 'kindFx', provider_quote: 'kindProviderQuote', other: 'kindOther' };
+  var KORDER = ['order_book', 'broker', 'fx', 'provider_quote', 'p2p', 'other'];
+  var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navHowItWorks', 'how-it-works.html']];
 
-  var COPY = {};
-  var DATA = null, RECORD = null, FIRST_DAY = {};
-  var state = { kind: 'all' };
-
-  var KIND_KEYS = [
-    ['p2p', 'kindP2p'], ['order_book', 'kindOrderBook'], ['broker', 'kindBroker'],
-    ['fx', 'kindFx'], ['provider_quote', 'kindProviderQuote'], ['other', 'kindOther']
-  ];
-  var KIND_KEY = {};
-  KIND_KEYS.forEach(function (k) { KIND_KEY[k[0]] = k[1]; });
-  var STATUS = [
-    ['answered_every_hour', 'statusAnsweredEveryHour', 's-ans'],
-    ['missed_some', 'statusMissedSome', 's-some'],
-    ['missed_all', 'statusMissedAll', 's-all'],
-    ['not_yet_a_source', 'statusNotYetASource', 's-not']
-  ];
-  var STATUS_BY = {};
-  STATUS.forEach(function (s) { STATUS_BY[s[0]] = s; });
+  var live = [], hist = [], days = [], kind = 'all', sel = null, collectorDays = [], gapText = '';
 
   function $(id) { return document.getElementById(id); }
+  function T(k, v) { var s = C[k]; return typeof s === 'string' && s ? s.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : ''; }) : ''; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function g(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function dd(s) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ''); return m ? (+m[3]) + ' ' + MON[+m[2] - 1] : ''; }
+  function ddY(s) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ''); return m ? (+m[3]) + ' ' + MON[+m[2] - 1] + ' ' + m[1] : ''; }
+  function clockT(s) { return s ? dd(s) + ', ' + s.slice(11, 16) + ' UTC' : ''; }
+  function name(id) { var m = (C.sourceNames || {})[id]; return m || String(id).replace(/^CriptoYa:/, 'CriptoYa · '); }
+  function seriesName(id) { var m = (C.seriesNames || {})[id]; return m || String(id).replace(/_(1d|1h)$/, ''); }
+  function every(iv) { return iv === '1d' ? 'day' : iv === '1h' ? 'hour' : iv; }
+  function slug(id) { return 's-' + String(id).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+  function share(s) { return s.he ? s.ha / s.he : 1; }
+  function isCY(s) { return /^CriptoYa/.test(s.id); }
+  // "1,175 of 1,176 hours priced" -> the figure up front, the rest on a second line
+  function split(s) { var m = /^(.*?)(\s+\S+\s+\S+)$/.exec(s); return m ? [m[1], m[2].trim()] : [s, '']; }
+  function getJSON(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) { throw new Error(r.status); } return r.json(); }); }
 
-  function tpl(key, vars) {
-    var s = COPY[key];
-    if (!s) return '';
-    return s.replace(/\{(\w+)\}/g, function (m, k) {
-      return vars && vars[k] != null ? String(vars[k]) : '';
+  function model(raw) {
+    days = raw.days || [];
+    var all = (raw.sources || []).map(function (s) {
+      return {
+        id: s.id, k: s.kind, live: !!s.live, cur: (s.currencies || []).length, rt: (s.routes || []).length,
+        first: s.first_utc || '', last: s.last_answered_utc || '', ha: s.hours_answered || 0, he: s.hours_expected || 0,
+        st: (s.status || []).map(function (x) { return CODE[x] || 'n'; }).join(''),
+        h: s.history || [], why: s.history_reason_kind || null
+      };
     });
-  }
-
-  function el(tag, cls, text) {
-    var n = document.createElement(tag);
-    if (cls) n.className = Array.isArray(cls) ? cls.join(String.fromCharCode(32)) : cls;
-    if (text != null && text !== '') n.textContent = text;
-    return n;
-  }
-
-  /* An element that carries words: null when its key is empty. */
-  function word(tag, cls, key, vars) {
-    var t = tpl(key, vars);
-    return t ? el(tag, cls, t) : null;
-  }
-
-  /* A template whose stored-text placeholders (names in `raw`) go into a code element, so the
-     text is shown exactly as stored. */
-  function rich(tag, cls, key, vars, raw) {
-    var t = COPY[key];
-    if (!t) return null;
-    var n = el(tag, cls);
-    t.split(/(\{\w+\})/).forEach(function (part) {
-      var m = /^\{(\w+)\}$/.exec(part);
-      if (!m) { if (part) n.appendChild(document.createTextNode(part)); return; }
-      var v = vars[m[1]];
-      if (v == null || v === '') return;
-      if (raw.indexOf(m[1]) >= 0) n.appendChild(el('code', '', String(v)));
-      else n.appendChild(document.createTextNode(String(v)));
+    var cy = all.filter(function (s) { return s.live && isCY(s); });
+    var group = cy.length > 1 ? {
+      id: 'CriptoYa', k: 'broker', live: true, feeds: cy,
+      ha: cy.reduce(function (a, s) { return a + s.ha; }, 0), he: cy.reduce(function (a, s) { return a + s.he; }, 0),
+      cur: 0, rt: 0, first: cy.map(function (s) { return s.first; }).filter(Boolean).sort()[0] || '',
+      last: cy.map(function (s) { return s.last; }).sort().pop(),
+      st: days.map(function (_, i) { return cy.map(function (s) { return s.st[i]; }).reduce(function (w, c) { return RANK[c] > RANK[w] ? c : w; }, 'n'); }).join(''),
+      h: [], why: 'snapshot_only'
+    } : null;
+    live = all.filter(function (s) { return s.live && !(group && isCY(s)); }).concat(group ? [group] : []);
+    hist = all.filter(function (s) { return !s.live; });
+    live.sort(function (a, b) { return share(a) - share(b) || name(a.id).localeCompare(name(b.id)); });
+    // a day on which every source live that day missed hours: that was the collector, not the sources
+    collectorDays = days.filter(function (_, i) {
+      var on = all.filter(function (s) { return s.live && s.st[i] !== 'n'; });
+      return on.length > 5 && on.every(function (s) { return s.st[i] === 's' || s.st[i] === 'x'; });
     });
-    return n;
+    gapText = collectorDays.length ? T('collectorGap', { days: collectorDays.map(dd).join(' and ') }) : '';
+    return all;
   }
 
-  function add(parent, child) { if (child) parent.appendChild(child); return child; }
-
-  function groupDigits(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-  function day(s) { return s ? String(s).slice(0, 10) : ''; }
-  function clock(s) { return s ? String(s).slice(11, 19) : ''; }
-
-  // "2026-10-08T06:10:31Z" -> "8 Oct, 06:10 UTC": no ISO timestamps in reader text.
-  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  function friendly(iso) {
-    var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(iso || '');
-    return m ? (+m[3]) + ' ' + MON[+m[2] - 1] + ', ' + m[4] + ' UTC' : String(iso || '');
-  }
-
-  function friendlyDay(d) {
-    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || '');
-    return m ? (+m[3]) + ' ' + MON[+m[2] - 1] : String(d || '');
-  }
-
-  function ageText(lastUtc) {
-    var asOf = Date.parse(DATA.as_of_utc), last = Date.parse(lastUtc);
-    if (isNaN(asOf) || isNaN(last)) return '';
-    var mins = Math.max(0, Math.floor((asOf - last) / 60000));
-    if (mins < 60) return tpl(mins === 1 ? 'ageMinuteOne' : 'ageMinutes', { n: mins });
-    var hrs = Math.floor(mins / 60);
-    if (hrs < 48) return tpl(hrs === 1 ? 'ageHourOne' : 'ageHours', { n: hrs });
-    var days = Math.floor(hrs / 24);
-    return tpl(days === 1 ? 'ageDayOne' : 'ageDays', { n: days });
-  }
-
-  /* ---------------------------------------------------------------- header, hero, stats */
-  function buildHeader() {
-    var logo = $('logo');
-    var t = tpl('logo');
-    if (t) { logo.textContent = t; logo.hidden = false; }
+  function header() {
     var nav = $('nav');
-    [['navCountries', './countries.html'], ['navRoutes', './sending-money.html'],
-     ['navSources', './sources.html'], ['navFindings', './findings.html'],
-     ['navHowItWorks', './how-it-works.html']].forEach(function (n) {
-      var txt = tpl(n[0]);
-      if (!txt) return;
-      var a = el('a', '', txt);
-      a.href = n[1];
-      if (n[0] === 'navSources') a.setAttribute('aria-current', 'page');
+    NAV.forEach(function (n) {
+      var t = T(n[0]); if (!t) { return; }
+      var a = document.createElement('a'); a.textContent = t; a.href = './' + n[1];
+      if (n[1] === 'sources.html') { a.setAttribute('aria-current', 'page'); }
       nav.appendChild(a);
     });
-    var asof = tpl('headerAsOf', { time: friendly(DATA.as_of_utc), day: day(DATA.as_of_utc), clock: clock(DATA.as_of_utc) });
-    if (asof) { var h = $('asof'); h.textContent = asof; h.hidden = false; }
-    var title = tpl('pageTitle');
-    if (title) document.title = title;
+    if (T('pageTitle')) { document.title = T('pageTitle'); }
+    var h1 = $('h1'), lead = $('lead');
+    if (T('headline')) { h1.textContent = T('headline'); h1.hidden = false; }
+    if (T('headlineSub')) { lead.textContent = T('headlineSub'); lead.hidden = false; }
   }
 
-  function buildHero(total, live, gone, withHist, noHist) {
-    var h1 = tpl('headline');
-    if (h1) { var h = $('headline'); h.textContent = h1; h.hidden = false; }
-    var lede = tpl('headlineSub');
-    if (lede) { var p = $('lede'); p.textContent = lede; p.hidden = false; }
-    $('big').textContent = String(total);
-    var bl = tpl('bigLabel', { n: total });
-    if (bl) { var b = $('bigl'); b.textContent = bl; b.hidden = false; }
-
-    var stats = $('stats');
-    [['statLive', live], ['statHistoryOnly', gone], ['statWithHistory', withHist], ['statNoHistory', noHist]].forEach(function (s) {
-      var cell = el('div', 's-stat');
-      cell.appendChild(el('span', ['num', 'mono'], String(s[1])));
-      add(cell, word('span', ['lab', 'muted'], s[0], { n: s[1] }));
-      stats.appendChild(cell);
-    });
+  function counts(all) {
+    var total = all.length, nLive = all.filter(function (s) { return s.live; }).length, withH = all.filter(function (s) { return s.h.length; }).length;
+    var b = function (n) { return '<b>' + n + '</b> '; };
+    $('counts').innerHTML = b(total) + esc(T('bigLabel')) + '. ' + b(nLive) + esc(T('statLive')) + '. ' + b(total - nLive) + esc(T('statHistoryOnly')) + '.<br>' +
+      b(withH) + esc(T('statWithHistory')) + ', ' + b(total - withH) + esc(T('statNoHistory')) + '.';
+    $('key').innerHTML = '<span>' + esc(T('legendHeading')) + '</span>' +
+      ['a', 's', 'x', 'n'].map(function (k) { return '<span><i class="s-' + k + '"></i>' + esc(T(STAT[k])) + '</span>'; }).join('');
+    $('gapnote').textContent = gapText;
   }
 
-  /* ---------------------------------------------------------------- chips, legend */
-  function buildChips(sources) {
-    var box = $('chips');
-    box.textContent = '';
-    var label = tpl('filterLabel');
-    if (label) box.setAttribute('aria-label', label);
-    var present = {};
-    sources.forEach(function (s) { present[s.kind] = true; });
-    var items = [['all', 'kindAll']].concat(KIND_KEYS.filter(function (k) { return present[k[0]]; }));
-    items.forEach(function (it) {
-      var txt = tpl(it[1]);
-      if (!txt) return;
-      var b = el('button', 's-chip' + (state.kind === it[0] ? ' on' : ''), txt);
-      b.type = 'button';
-      b.setAttribute('aria-pressed', state.kind === it[0] ? 'true' : 'false');
-      b.addEventListener('click', function () { state.kind = it[0]; buildChips(sources); buildLists(); });
-      box.appendChild(b);
-    });
+  function pills(all) {
+    var present = KORDER.filter(function (k) { return all.some(function (s) { return s.k === k; }); });
+    var box = $('kinds');
+    box.setAttribute('aria-label', T('filterLabel'));
+    box.innerHTML = ['all'].concat(present).map(function (k) {
+      return '<button class="pill" type="button" data-k="' + k + '" aria-pressed="' + (k === kind) + '">' + esc(T(k === 'all' ? 'kindAll' : KIND[k])) + '</button>';
+    }).join('');
   }
 
-  function buildLegend() {
-    var box = $('legend');
-    add(box, word('span', ['head', 'muted'], 'legendHeading'));
-    STATUS.forEach(function (s) {
-      var txt = tpl(s[1]);
-      if (!txt) return;
-      var k = el('span', 's-key');
-      k.appendChild(el('i', 'sw ' + s[2]));
-      k.appendChild(el('span', '', txt));
-      box.appendChild(k);
-    });
-  }
-
-  /* ---------------------------------------------------------------- one row */
-  function strip(s) {
-    var wrap = el('div', 's-stripcol');
-    var grid = el('div', 's-strip');
-    grid.style.setProperty('--days', String(s.status.length));
-    s.status.forEach(function (st, i) {
-      var def = STATUS_BY[st] || STATUS_BY.not_yet_a_source;
-      var sq = el('span', def[2]);
-      var tip = tpl('stripDay', { day: DATA.days[i], status: tpl(def[1]) });
-      if (tip) { sq.title = tip; sq.setAttribute('aria-label', tip); }
-      grid.appendChild(sq);
-    });
-    wrap.appendChild(grid);
-    return wrap;
-  }
-
-  function history(s) {
-    var col = el('div', 's-histcol');
-    if (s.history && s.history.length) {
-      add(col, word('span', ['muted', 's-small'], 'historyHeading'));
-      s.history.forEach(function (h) {
-        add(col, word('span', ['mono', 'soft', 's-small'], h.ccy ? 'historyLine' : 'historyLineNoCcy', {
-          series: seriesName(h.series), ccy: h.ccy || '', interval: h.interval,
-          first: friendlyDay(day(h.first)), last: friendlyDay(day(h.last)), rows: groupDigits(h.rows)
-        }));
-      });
-    }
-    // Why there is no older history, in plain words by kind (tools/emit_sources_daily.py reason_kind).
-    // The stored reason text, endpoint and HTTP code stay in the data file and are not shown.
-    if (s.history_reason_kind) add(col, word('span', ['soft', 's-small'], 'reason_' + s.history_reason_kind));
-    return col;
-  }
-
-  // A stored source id made readable: the names live in copy.json (sourceNames); CriptoYa sub-venues
-  // read "CriptoYa · name". Anything else shows as stored.
-  function displayName(id) {
-    var m = (COPY.sourceNames || {})[id];
-    if (m) return m;
-    return String(id).replace(/^CriptoYa:/, 'CriptoYa · ');
-  }
-
-  // A stored series id made readable: names in copy.json (seriesNames), else the venue name without the
-  // interval suffix (_1d, _1h), because the interval is printed on its own.
-  function seriesName(id) {
-    var m = (COPY.seriesNames || {})[id];
-    return m || String(id).replace(/_(1d|1h)$/, '');
-  }
-
-  function coverage(s) {
-    // How many currencies and routes the source covers, as plain counts: no internal codes.
-    var box = el('div', 's-cur');
-    [['coverageCurrencies', s.currencies || []], ['coverageRoutes', s.routes || []]].forEach(function (g) {
-      if (!g[1].length) return;
-      add(box, word('span', ['soft', 's-small'], g[1].length === 1 ? g[0] + 'One' : g[0], { n: g[1].length }));
-    });
-    return box.childNodes.length ? box : null;
-  }
-
-  function row(s) {
-    var r = el('div', 's-row');
-    r.id = 's-' + String(s.id).toLowerCase().replace(/[^a-z0-9]/g, '');
-    var info = el('div', 's-info');
-    info.appendChild(el('span', ['s-id', 'mono'], displayName(s.id)));
-    if (s.feeds) add(info, word('span', ['mono', 'muted', 's-small'], 'feedsCount', { n: s.feeds }));
-    add(info, word('span', ['s-kind', 'mono', 'soft'], KIND_KEY[s.kind] || 'kindOther'));
-    if (s.last_answered_utc) {
-      add(info, word('span', ['mono', 'soft', 's-small'], 'lastAnswered', {
-        time: friendly(s.last_answered_utc), day: day(s.last_answered_utc), clock: clock(s.last_answered_utc)
-      }));
-      if (Date.parse(DATA.as_of_utc) - Date.parse(s.last_answered_utc) >= 3600000) add(info, el('span', ['mono', 'muted', 's-small'], ageText(s.last_answered_utc)));
-    } else {
-      add(info, word('span', ['muted', 's-small'], 'neverAnswered'));
-    }
-    var first = s.first_utc ? day(s.first_utc) : FIRST_DAY[s.id];
-    if (first) add(info, word('span', ['mono', 'muted', 's-small'], 'firstSeen', { date: friendlyDay(first) }));
-    if (s.live) add(info, word('span', ['mono', 'muted', 's-small'], 'hoursAnswered', { answered: groupDigits(s.hours_answered), expected: groupDigits(s.hours_expected) }));
-    r.appendChild(info);
-    r.appendChild(strip(s));
-    r.appendChild(history(s));
-    add(r, coverage(s));
-    return r;
-  }
-
-  /* ---------------------------------------------------------------- lists */
-  function buildLists() {
-    var all = DATA.sources.filter(function (s) { return state.kind === 'all' || s.kind === state.kind; });
-    var live = all.filter(function (s) { return s.live; }).sort(function (a, b) {
-      if (a.last_answered_utc !== b.last_answered_utc) return a.last_answered_utc < b.last_answered_utc ? 1 : -1;
-      return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
-    });
-    var gone = all.filter(function (s) { return !s.live; }).sort(function (a, b) {
-      return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
-    });
-    live = collapseFeeds(live);
-    fill('liveSec', 'liveHead', 'liveList', 'liveHeading', live);
-    axis();
-    fill('histSec', 'histHead', 'histList', 'historyOnlyHeading', gone);
-    var c = $('count');
-    var ct = tpl('shown', { n: all.length, total: DATA.sources.length });
-    c.hidden = !ct;
-    c.textContent = ct;
-  }
-
-  // CriptoYa feeds that report identical status are one row ("CriptoYa", n feeds), not a wall of copies.
-  function collapseFeeds(rows) {
-    var groups = {}, out = [];
-    rows.forEach(function (s) {
-      if (!/^CriptoYa:/.test(String(s.id))) { out.push(s); return; }
-      var key = s.status.join('') + '|' + s.hours_answered + '|' + s.hours_expected;
-      (groups[key] = groups[key] || []).push(s);
-    });
-    Object.keys(groups).forEach(function (k) {
-      var g = groups[k];
-      if (g.length === 1) { out.push(g[0]); return; }
-      var m = {}; Object.keys(g[0]).forEach(function (f) { m[f] = g[0][f]; });
-      m.id = 'CriptoYa'; m.feeds = g.length; m.history = []; m.history_reason_kind = null;
-      m.last_answered_utc = g.map(function (x) { return x.last_answered_utc; }).sort().pop();
-      var cur = {}, rt = {};
-      g.forEach(function (x) { (x.currencies || []).forEach(function (c) { cur[c] = 1; }); (x.routes || []).forEach(function (c) { rt[c] = 1; }); });
-      m.currencies = Object.keys(cur); m.routes = Object.keys(rt);
-      out.push(m);
-    });
-    return out.sort(function (a, b) {
-      if (a.last_answered_utc !== b.last_answered_utc) return a.last_answered_utc < b.last_answered_utc ? 1 : -1;
-      return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
-    });
-  }
-
-  // The date axis, once, above the list: first day on the left, last on the right.
   function axis() {
-    var old = $('axis'); if (old) old.remove();
-    var list = $('liveList'); if (!list || !DATA) return;
-    var ax = el('div', ['s-axis', 'mono', 'muted']);
-    ax.id = 'axis';
-    var cap = tpl('stripCaption', { first: friendlyDay(DATA.first_day), last: friendlyDay(DATA.last_day), days: DATA.days.length });
-    if (cap) ax.appendChild(el('span', '', cap));
-    list.parentNode.insertBefore(ax, list);
+    var n = days.length, X = function (i) { return (i + 0.5) / n * 100; };
+    var h = '<span class="l" style="left:0">' + dd(D.first_day) + '</span><span class="r" style="left:100%">' + dd(D.last_day) + '</span>';
+    days.forEach(function (d, i) { if (d.slice(8) === '01' && i > 5 && i < n - 5) { h += '<i style="left:' + X(i) + '%"></i><span style="left:' + X(i) + '%">' + dd(d) + '</span>'; } });
+    if (sel != null) { h += '<span class="sel" style="left:' + X(sel) + '%">' + dd(days[sel]) + '</span>'; }
+    return '<div class="axisrow"><span></span><div class="ax num">' + h + '</div><span></span></div>';
+  }
+  function cover(s) {
+    var out = [];
+    if (s.cur) { out.push(T(s.cur === 1 ? 'coverageCurrenciesOne' : 'coverageCurrencies', { n: s.cur })); }
+    if (s.rt) { out.push(T(s.rt === 1 ? 'coverageRoutesOne' : 'coverageRoutes', { n: s.rt })); }
+    return out;
+  }
+  function details(s) {
+    var h = '';
+    if (s.first) { h += '<p>' + esc(T('firstSeen', { date: ddY(s.first) })) + '</p>'; }
+    if (s.last && Date.parse(D.as_of_utc) - Date.parse(s.last) >= 3600e3) { h += '<p>' + esc(T('lastAnswered', { time: clockT(s.last) })) + '</p>'; }
+    if (s.h.length) {
+      h += '<p class="h">' + esc(T('historyHeading')) + '</p>';
+      s.h.forEach(function (x) {
+        h += '<p class="num">' + esc(T(x.ccy && x.ccy.indexOf(',') < 0 ? 'historyLine' : 'historyLineNoCcy', {
+          series: seriesName(x.series), ccy: x.ccy, interval: every(x.interval), rows: g(x.rows), first: ddY(x.first), last: ddY(x.last) })) + '</p>';
+      });
+    } else if (s.why && T('reason_' + s.why)) { h += '<p>' + esc(T('reason_' + s.why)) + '</p>'; }
+    if (s.feeds) {
+      h += '<ul class="feeds num">' + s.feeds.slice().sort(function (a, b) { return name(a.id).localeCompare(name(b.id)); }).map(function (f) {
+        return '<li>' + esc(name(f.id).replace(/^CriptoYa · /, '')) + '<span>' + esc(split(T('hoursAnswered', { answered: g(f.ha), expected: g(f.he) }))[0]) + '</span></li>';
+      }).join('') + '</ul>';
+    }
+    return h;
+  }
+  function row(s) {
+    var sub = [T(KIND[s.k] || 'kindOther')].concat(s.feeds ? [T('feedsCount', { n: s.feeds.length })] : []).concat(cover(s)).filter(Boolean).join(' · ');
+    var sp = split(T('hoursAnswered', { answered: g(s.ha), expected: g(s.he) }));
+    var low = share(s) < 0.99;
+    return '<div class="rowwrap" id="' + slug(s.id) + '" data-id="' + esc(s.id) + '"><div class="row">' +
+      '<button class="nm" type="button" aria-expanded="false"><b>' + esc(name(s.id)) + '<span class="chev" aria-hidden="true">›</span></b><small>' + esc(sub) + '</small></button>' +
+      '<div class="strip" tabindex="0" role="group" aria-label="' + esc(name(s.id)) + '">' +
+      s.st.split('').map(function (c, i) { return '<span class="s-' + c + (i === sel ? ' on' : '') + '" data-i="' + i + '"></span>'; }).join('') + '</div>' +
+      '<div class="v num"><b' + (low ? ' class="low"' : '') + '>' + esc(sp[0]) + '</b><small>' + esc(sp[1]) + '</small></div>' +
+      '</div><div class="more">' + details(s) + '</div></div>';
+  }
+  function hrow(s) {
+    return '<div class="hrow"><div><b>' + esc(name(s.id)) + '</b><small>' + esc(T(KIND[s.k] || 'kindOther')) + '</small></div><div>' +
+      s.h.map(function (x) {
+        return '<p class="num">' + esc(T('historyLineNoCcy', { series: seriesName(x.series), interval: every(x.interval), rows: g(x.rows), first: ddY(x.first), last: ddY(x.last) })) + '</p>';
+      }).join('') + '</div></div>';
+  }
+  function render() {
+    var L = live.filter(function (s) { return kind === 'all' || s.k === kind; });
+    var H = hist.filter(function (s) { return kind === 'all' || s.k === kind; });
+    var feeds = L.reduce(function (a, s) { return a + (s.feeds ? s.feeds.length : 1); }, 0);
+    $('liveSec').hidden = !L.length;
+    $('liveH').textContent = T('liveHeading', { n: feeds });
+    $('liveList').innerHTML = axis() + L.map(row).join('');
+    $('histSec').hidden = !H.length;
+    $('histH').textContent = T('historyOnlyHeading', { n: H.length });
+    $('histList').innerHTML = H.map(hrow).join('');
   }
 
-  function fill(secId, headId, listId, headKey, rows) {
-    var sec = $(secId), head = $(headId), list = $(listId);
-    list.textContent = '';
-    sec.hidden = rows.length === 0;
-    var t = tpl(headKey, { n: rows.reduce(function (a, r) { return a + (r.feeds || 1); }, 0) });
-    head.hidden = !t;
-    head.textContent = t;
-    rows.forEach(function (s) { list.appendChild(row(s)); });
+  // a day in a strip: from where the pointer is along the strip, so a 5px square is still easy to hit
+  function dayAt(strip, x) { var r = strip.getBoundingClientRect(); return Math.max(0, Math.min(days.length - 1, Math.floor((x - r.left) / r.width * days.length))); }
+  function pick(i) {
+    sel = i;
+    [].forEach.call(document.querySelectorAll('.strip span.on'), function (x) { x.classList.remove('on'); });
+    var day = $('day');
+    var reAxis = function () { [].forEach.call(document.querySelectorAll('.axisrow'), function (a) { a.outerHTML = axis(); }); };
+    if (i == null) { day.hidden = true; reAxis(); return; }
+    [].forEach.call(document.querySelectorAll('.strip span[data-i="' + i + '"]'), function (x) { x.classList.add('on'); });
+    reAxis();
+    var cnt = { a: 0, s: 0, x: 0 };
+    var feeds = live.reduce(function (a, s) { return a.concat(s.feeds || [s]); }, []);
+    feeds.forEach(function (s) { if (s.st[i] !== 'n') { cnt[s.st[i]]++; } });
+    var who = function (k) {
+      return live.filter(function (s) { return s.st[i] === k; }).map(function (s) {
+        return '<a href="#' + slug(s.id) + '" data-go="' + esc(s.id) + '">' + esc(name(s.id)) +
+          (s.feeds ? ' (' + esc(T('feedsCount', { n: s.feeds.filter(function (f) { return f.st[i] === k; }).length })) + ')' : '') + '</a>';
+      });
+    };
+    var w = '';
+    if (collectorDays.indexOf(days[i]) >= 0) { w = '<p class="who">' + esc(gapText) + '</p>'; }
+    else { ['x', 's'].forEach(function (k) { var l = who(k); if (l.length) { w += '<p class="who">' + esc(T(STAT[k])) + ': ' + l.join(', ') + '</p>'; } }); }
+    day.innerHTML = '<div class="c"><span class="d">' + ddY(days[i]) + '</span>' +
+      ['a', 's', 'x'].map(function (k) { return '<span><i class="s-' + k + '"></i>' + esc(T(STAT[k])) + '<b>' + cnt[k] + '</b></span>'; }).join('') + '</div>' +
+      '<button class="x" type="button" aria-label="' + esc(T('clearDay')) + '">×</button>' + w;
+    day.hidden = false;
+  }
+  function openRow(id) {
+    var w = null;
+    [].forEach.call(document.querySelectorAll('.rowwrap'), function (x) { if (x.dataset.id === id || x.id === id) { w = x; } });
+    if (!w) { return; }
+    w.classList.add('open'); w.querySelector('.nm').setAttribute('aria-expanded', 'true');
+    window.scrollTo({ top: w.getBoundingClientRect().top + window.scrollY - $('day').offsetHeight - 8, behavior: 'smooth' });
   }
 
-  /* ---------------------------------------------------------------- start */
-  function getJSON(url) {
-    return fetch(url, { cache: 'no-store' }).then(function (r) {
-      if (!r.ok) throw new Error(String(r.status));
-      return r.json();
+  function wire() {
+    document.addEventListener('click', function (e) {
+      var p = e.target.closest('[data-k]');
+      if (p) { kind = p.dataset.k; pills(live.concat(hist)); render(); return; }
+      var st = e.target.closest('.strip');
+      if (st) { var i = dayAt(st, e.clientX); pick(i === sel ? null : i); return; }
+      if (e.target.closest('.day .x')) { pick(null); return; }
+      var go = e.target.closest('[data-go]');
+      if (go) { e.preventDefault(); openRow(go.dataset.go); return; }
+      var r = e.target.closest('button.nm');
+      if (r) { var w = r.closest('.rowwrap'); w.classList.toggle('open'); r.setAttribute('aria-expanded', w.classList.contains('open')); }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && sel != null) { pick(null); return; }
+      if (!e.target.closest || !e.target.closest('.strip')) { return; }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        pick(Math.max(0, Math.min(days.length - 1, sel == null ? days.length - 1 : sel + (e.key === 'ArrowRight' ? 1 : -1))));
+      }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(sel == null ? days.length - 1 : null); }
+    });
+    var tip = $('tip');
+    document.addEventListener('pointermove', function (e) {
+      var st = e.target.closest && e.target.closest('.strip');
+      if (!st || e.pointerType === 'touch') { tip.hidden = true; return; }
+      var i = dayAt(st, e.clientX), id = st.closest('.rowwrap').dataset.id;
+      var s = live.filter(function (x) { return x.id === id; })[0];
+      if (!s) { tip.hidden = true; return; }
+      tip.textContent = T('stripDay', { day: dd(days[i]), status: T(STAT[s.st[i]]) });
+      tip.hidden = false;
+      var w = tip.offsetWidth, x = Math.min(window.innerWidth - w - 8, Math.max(8, e.clientX - w / 2));
+      tip.style.left = x + 'px'; tip.style.top = (e.clientY - 40) + 'px';
     });
   }
 
-  // A link such as sources.html#s-bithumb opens the page at that source's row.
-  function jumpToHash() {
+  Promise.all([getJSON('./copy.json').catch(function () { return {}; }), getJSON('./data/sources_daily.json').catch(function () { return null; })]).then(function (r) {
+    C = (r[0] && r[0].sourcesData) || {};
+    D = r[1];
+    if (!D || !D.sources) { var f = $('fail'); f.textContent = T('loadFailed'); f.hidden = !f.textContent; return; }
+    header();
+    var all = model(D);
+    counts(all);
+    pills(all);
+    render();
+    wire();
     var h = (location.hash || '').replace(/^#/, '');
-    if (!h) return;
-    var target = document.getElementById(h);
-    if (!target) {
-      var rows = document.querySelectorAll('.s-row[id]');
-      for (var i = 0; i < rows.length; i++) { if (rows[i].id.indexOf(h) === 0) { target = rows[i]; break; } }
-    }
-    if (target) { target.classList.add('s-target'); target.scrollIntoView(); }
-  }
-
-  function start(copy, sources, record, milestones) {
-    COPY = (copy && copy.sourcesData) || {};
-    if (!sources || !sources.sources) {
-      var f = $('fail');
-      var msg = tpl('loadFailed');
-      f.textContent = msg;
-      f.hidden = !msg;
-      return;
-    }
-    DATA = sources;
-    RECORD = record;
-    ((milestones && milestones.milestones) || []).forEach(function (m) {
-      if (m.kind === 'source') FIRST_DAY[m.id] = m.first_day;
-    });
-    var liveCount = DATA.sources.filter(function (s) { return s.live; }).length;
-    var total = DATA.sources.length;
-    var withHist = DATA.sources.filter(function (s) { return s.history && s.history.length; }).length;
-    var noHist = DATA.sources.length - withHist;
-    buildHeader();
-    buildHero(total, liveCount, total - liveCount, withHist, noHist);
-    buildLegend();
-    buildChips(DATA.sources);
-    buildLists();
-    jumpToHash();
-  }
-
-  Promise.all([
-    getJSON('./copy.json').catch(function () { return {}; }),
-    getJSON('./data/sources_daily.json').catch(function () { return null; }),
-    getJSON('./data/record_daily.json').catch(function () { return null; }),
-    getJSON('./data/record_milestones.json').catch(function () { return null; })
-  ]).then(function (r) { start(r[0], r[1], r[2], r[3]); });
+    if (h) { openRow(h); }
+  });
 })();
