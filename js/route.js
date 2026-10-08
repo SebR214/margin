@@ -383,12 +383,6 @@
       w("leftOutNames", null, "p", "sm-names") + w("leftOutBody", null, "p") + "</section>";
   }
 
-  function footerHtml() {
-    var text = w("footerText", null, "p");
-    var link = txt("footerLinkText");
-    return "<footer>" + text + (link ? '<a href="https://github.com/SebR214/margin">' + esc(link) + "</a>" : "") + "</footer>";
-  }
-
   function pushUrl() {
     try {
       history.replaceState(null, "", location.pathname + "?route=" + routeKey(S.route) + "&amount=" + S.amount);
@@ -398,7 +392,7 @@
   function renderAll() {
     var A = computeA(S.route, S.amount);
     app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml(A) + pillsHtml() +
-      nowSectionHtml(A) + weekSectionHtml() + cmpSectionHtml(A) + leftOutSectionHtml() + footerHtml() + "</div>";
+      nowSectionHtml(A) + weekSectionHtml() + cmpSectionHtml(A) + leftOutSectionHtml() + "</div>";
     chart = { A: A, sym: A.sym };
     drawChart();
     var box = document.getElementById("smChart");

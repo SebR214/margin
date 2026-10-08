@@ -206,7 +206,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       </div>
     </div>
   </div>
-  <footer class="foot" id="pageFooter">&nbsp;</footer>
 </div>
 
 <script>
@@ -280,10 +279,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     document.getElementById('col2HistoryLink').textContent = C2.historyLink || '';
     document.getElementById('tapeLink').textContent = COPY.tapeLink || '';
     document.getElementById('connLabel').textContent = COPY.connecting || '';
-
-    var F = COPY.footer || {};
-    document.getElementById('pageFooter').innerHTML = esc(F.text || '') +
-      (F.linkText ? ' <a href="' + esc(F.linkHref || 'https://github.com/SebR214/margin') + '">' + esc(F.linkText) + '</a>' : '');
 
     var R = COPY.roles || {};
     document.getElementById('rolesHeading').textContent = R.heading || '';
@@ -535,6 +530,7 @@ Promise.all([
   }
 }).catch(function(){});
 </script>
+<script src="./js/footer.js"></script>
 <script src="./js/site_head.js?v=3"></script>
 </body>
 </html>
