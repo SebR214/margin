@@ -30,8 +30,8 @@
   .s-big { font-size: 88px; font-weight: 600; line-height: 1; color: var(--data-700); }
   .s-bigl { font-size: 15px; }
 
-  .s-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--color-neutral-300); border: 1px solid var(--color-neutral-300); border-radius: 8px; overflow: hidden; margin-top: -24px; }
-  .s-stat { background: var(--color-surface); padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; }
+  .s-stats { display: flex; flex-wrap: wrap; gap: 8px 48px; border-top: 1px solid var(--color-neutral-300); border-bottom: 1px solid var(--color-neutral-300); padding: 16px 0; margin-top: -8px; }
+  .s-stat { display: flex; flex-direction: column; gap: 4px; min-width: 140px; }
   .s-stat .num { font-size: 24px; font-weight: 600; }
   .s-stat .lab { font-size: 14px; }
 
@@ -55,8 +55,8 @@
   .s-axis { display: flex; justify-content: space-between; gap: 16px; font-size: 13px; padding: 8px 0; border-bottom: 1px solid var(--color-neutral-300); }
   .s-small { font-size: 13px; overflow-wrap: anywhere; }
   .s-stripcol { flex: 2 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-  .s-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(14px, 1fr)); gap: 3px; }
-  .s-strip span { aspect-ratio: 1 / 1; border-radius: 3px; background: var(--grid-empty); }
+  .s-strip { display: grid; grid-template-columns: repeat(var(--days, 60), minmax(0, 1fr)); gap: 2px; }
+  .s-strip span { height: 16px; border-radius: 2px; background: var(--grid-empty); }
   .s-strip .s-ans { background: var(--color-ink); }
   .s-strip .s-some { background: var(--data-500); }
   .s-strip .s-all { background: var(--data-700); }
