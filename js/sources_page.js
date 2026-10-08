@@ -72,6 +72,18 @@
   function day(s) { return s ? String(s).slice(0, 10) : ''; }
   function clock(s) { return s ? String(s).slice(11, 19) : ''; }
 
+  // "2026-10-08T06:10:31Z" -> "8 Oct, 06:10 UTC": no ISO timestamps in reader text.
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function friendly(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(iso || '');
+    return m ? (+m[3]) + ' ' + MON[+m[2] - 1] + ', ' + m[4] + ' UTC' : String(iso || '');
+  }
+
+  function friendlyDay(d) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || '');
+    return m ? (+m[3]) + ' ' + MON[+m[2] - 1] : String(d || '');
+  }
+
   function ageText(lastUtc) {
     var asOf = Date.parse(DATA.as_of_utc), last = Date.parse(lastUtc);
     if (isNaN(asOf) || isNaN(last)) return '';
@@ -99,7 +111,7 @@
       if (n[0] === 'navSources') a.setAttribute('aria-current', 'page');
       nav.appendChild(a);
     });
-    var asof = tpl('headerAsOf', { time: DATA.as_of_utc, day: day(DATA.as_of_utc), clock: clock(DATA.as_of_utc) });
+    var asof = tpl('headerAsOf', { time: friendly(DATA.as_of_utc), day: day(DATA.as_of_utc), clock: clock(DATA.as_of_utc) });
     if (asof) { var h = $('asof'); h.textContent = asof; h.hidden = false; }
     var title = tpl('pageTitle');
     if (title) document.title = title;
@@ -159,8 +171,6 @@
   /* ---------------------------------------------------------------- one row */
   function strip(s) {
     var wrap = el('div', 's-stripcol');
-    var cap = tpl('stripCaption', { first: DATA.first_day, last: DATA.last_day, days: DATA.days.length });
-    if (cap) wrap.appendChild(el('span', ['muted', 's-small'], cap));
     var grid = el('div', 's-strip');
     s.status.forEach(function (st, i) {
       var def = STATUS_BY[st] || STATUS_BY.not_yet_a_source;
@@ -170,25 +180,19 @@
       grid.appendChild(sq);
     });
     wrap.appendChild(grid);
-    var ends = el('div', ['s-ends', 'mono', 'muted']);
-    ends.appendChild(el('span', '', DATA.first_day));
-    ends.appendChild(el('span', '', DATA.last_day));
-    wrap.appendChild(ends);
     return wrap;
   }
 
   function history(s) {
     var col = el('div', 's-histcol');
-    add(col, word('span', ['muted', 's-small'], 'historyHeading'));
     if (s.history && s.history.length) {
+      add(col, word('span', ['muted', 's-small'], 'historyHeading'));
       s.history.forEach(function (h) {
         add(col, word('span', ['mono', 'soft', 's-small'], h.ccy ? 'historyLine' : 'historyLineNoCcy', {
           series: seriesName(h.series), ccy: h.ccy || '', interval: h.interval,
           first: day(h.first), last: day(h.last), rows: groupDigits(h.rows)
         }));
       });
-    } else {
-      add(col, word('span', ['soft', 's-small'], 'historyNone'));
     }
     // Why there is no older history, in plain words by kind (tools/emit_sources_daily.py reason_kind).
     // The stored reason text, endpoint and HTTP code stay in the data file and are not shown.
@@ -226,12 +230,13 @@
     r.id = 's-' + String(s.id).toLowerCase().replace(/[^a-z0-9]/g, '');
     var info = el('div', 's-info');
     info.appendChild(el('span', ['s-id', 'mono'], displayName(s.id)));
+    if (s.feeds) add(info, word('span', ['mono', 'muted', 's-small'], 'feedsCount', { n: s.feeds }));
     add(info, word('span', ['s-kind', 'mono', 'soft'], KIND_KEY[s.kind] || 'kindOther'));
     if (s.last_answered_utc) {
       add(info, word('span', ['mono', 'soft', 's-small'], 'lastAnswered', {
-        time: s.last_answered_utc, day: day(s.last_answered_utc), clock: clock(s.last_answered_utc)
+        time: friendly(s.last_answered_utc), day: day(s.last_answered_utc), clock: clock(s.last_answered_utc)
       }));
-      add(info, el('span', ['mono', 'muted', 's-small'], ageText(s.last_answered_utc)));
+      if (Date.parse(DATA.as_of_utc) - Date.parse(s.last_answered_utc) >= 3600000) add(info, el('span', ['mono', 'muted', 's-small'], ageText(s.last_answered_utc)));
     } else {
       add(info, word('span', ['muted', 's-small'], 'neverAnswered'));
     }
@@ -255,7 +260,9 @@
     var gone = all.filter(function (s) { return !s.live; }).sort(function (a, b) {
       return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
     });
+    live = collapseFeeds(live);
     fill('liveSec', 'liveHead', 'liveList', 'liveHeading', live);
+    axis();
     fill('histSec', 'histHead', 'histList', 'historyOnlyHeading', gone);
     var c = $('count');
     var ct = tpl('shown', { n: all.length, total: DATA.sources.length });
@@ -263,11 +270,47 @@
     c.textContent = ct;
   }
 
+  // CriptoYa feeds that report identical status are one row ("CriptoYa", n feeds), not a wall of copies.
+  function collapseFeeds(rows) {
+    var groups = {}, out = [];
+    rows.forEach(function (s) {
+      if (!/^CriptoYa:/.test(String(s.id))) { out.push(s); return; }
+      var key = s.status.join('') + '|' + s.hours_answered + '|' + s.hours_expected;
+      (groups[key] = groups[key] || []).push(s);
+    });
+    Object.keys(groups).forEach(function (k) {
+      var g = groups[k];
+      if (g.length === 1) { out.push(g[0]); return; }
+      var m = {}; Object.keys(g[0]).forEach(function (f) { m[f] = g[0][f]; });
+      m.id = 'CriptoYa'; m.feeds = g.length; m.history = []; m.history_reason_kind = null;
+      m.last_answered_utc = g.map(function (x) { return x.last_answered_utc; }).sort().pop();
+      var cur = {}, rt = {};
+      g.forEach(function (x) { (x.currencies || []).forEach(function (c) { cur[c] = 1; }); (x.routes || []).forEach(function (c) { rt[c] = 1; }); });
+      m.currencies = Object.keys(cur); m.routes = Object.keys(rt);
+      out.push(m);
+    });
+    return out.sort(function (a, b) {
+      if (a.last_answered_utc !== b.last_answered_utc) return a.last_answered_utc < b.last_answered_utc ? 1 : -1;
+      return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+    });
+  }
+
+  // The date axis, once, above the list: first day on the left, last on the right.
+  function axis() {
+    var old = $('axis'); if (old) old.remove();
+    var list = $('liveList'); if (!list || !DATA) return;
+    var ax = el('div', ['s-axis', 'mono', 'muted']);
+    ax.id = 'axis';
+    var cap = tpl('stripCaption', { first: friendlyDay(DATA.first_day), last: friendlyDay(DATA.last_day), days: DATA.days.length });
+    if (cap) ax.appendChild(el('span', '', cap));
+    list.parentNode.insertBefore(ax, list);
+  }
+
   function fill(secId, headId, listId, headKey, rows) {
     var sec = $(secId), head = $(headId), list = $(listId);
     list.textContent = '';
     sec.hidden = rows.length === 0;
-    var t = tpl(headKey, { n: rows.length });
+    var t = tpl(headKey, { n: rows.reduce(function (a, r) { return a + (r.feeds || 1); }, 0) });
     head.hidden = !t;
     head.textContent = t;
     rows.forEach(function (s) { list.appendChild(row(s)); });
