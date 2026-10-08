@@ -325,7 +325,16 @@ def real_pages():
 
 def inventory_for(path):
     with open(path, encoding="utf-8") as f:
-        src = _strip_noise(f.read())
+        raw = f.read()
+    # A page's charts and tables are often built by its own script (sending-money.html's
+    # js/route.js), which the markup alone cannot show. Read the local scripts the page
+    # loads too, so a chart moved into JS counts and a chart deleted from JS is still caught.
+    for rel in re.findall(r'<script[^>]*\ssrc="\./(js/[^"?#]+)', raw):
+        sp = os.path.join(os.path.dirname(path), rel)
+        if os.path.isfile(sp):
+            with open(sp, encoding="utf-8") as sf:
+                raw += "\n" + sf.read()
+    src = _strip_noise(raw)
     page = os.path.basename(path)
     out = {}
     all_items = []

@@ -91,6 +91,31 @@ START = "2026-08-10"          # the first stored hour of any route
 DEFAULT_AMOUNT = 5000         # tools/emit_corridor_summary.py RUNG
 WINDOW_DAYS = 7
 
+# Display words for a route, so the page (sending-money.html, SEB-272) never
+# builds a country name out of JS string fragments -- it reads this field
+# straight off the emitted JSON. Same values tools/emit_providers.py's own
+# ROUTE_WORDS/SYMBOL already use elsewhere on the site; duplicated here
+# rather than imported because tools/emit_providers.py is a script, not a
+# module meant to be imported. "dest" is the destination-only phrase the
+# headline needs ("Sending {amount} to {dest} costs..."); data/corridor_window.json
+# already stores the same "the Philippines"/"Mexico" wording under its own
+# "dest" field, so this matches that existing convention.
+ROUTE_WORDS = {
+    "SGD->PHP": "Singapore to the Philippines",
+    "AUD->PHP": "Australia to the Philippines",
+    "NZD->PHP": "New Zealand to the Philippines",
+    "USD->MXN": "the United States to Mexico",
+    "USD->NGN": "the United States to Nigeria",
+    "USD->INR": "the United States to India",
+    "SGD->INR": "Singapore to India",
+}
+ROUTE_DEST = {
+    "SGD->PHP": "the Philippines", "AUD->PHP": "the Philippines",
+    "NZD->PHP": "the Philippines", "USD->MXN": "Mexico",
+    "USD->NGN": "Nigeria", "USD->INR": "India", "SGD->INR": "India",
+}
+SYMBOL = {"SGD": "S$", "AUD": "A$", "NZD": "NZ$", "USD": "US$"}
+
 OUT = {
     "hourly": os.path.join(DATA, "routes_hourly.json"),
     "summary": os.path.join(DATA, "routes_summary.json"),
@@ -320,7 +345,10 @@ def build_hourly(D, S):
             amounts.append({"amount": amt, "hours": hours})
         m = D["meta"].get(c, {})
         routes.append({"id": c, "send_ccy": m.get("send_ccy"),
-                       "recv_ccy": m.get("recv_ccy"), "amounts": amounts})
+                       "recv_ccy": m.get("recv_ccy"), "amounts": amounts,
+                       "route_words": ROUTE_WORDS.get(c, c),
+                       "dest": ROUTE_DEST.get(c),
+                       "send_symbol": SYMBOL.get(m.get("send_ccy"), m.get("send_ccy"))})
     return {
         "as_of_utc": D["newest"][:13] and hour_utc(D["newest"][:13]),
         "start": START,
