@@ -58,6 +58,7 @@
   .hp-sw14 { width: 14px; height: 14px; vertical-align: -2px; }
   /* heatmap */
   .hp-hmrow { display: flex; align-items: center; gap: 10px; margin-bottom: 3px; }
+  .hp-hmrow[hidden] { display: none; }   /* the 'hidden' attribute loses to display:flex above; top 20 depends on it */
   .hp-code { position: relative; width: 44px; flex: none; display: inline-flex; align-items: center; min-height: 44px; margin: -16px 0; font-size: 12px; color: var(--color-neutral-700); text-decoration: none; }
   .hp-cells { flex: 1; display: flex; gap: 2px; min-width: 0; }
   .hp-cells span { flex: 1; height: 11px; border-radius: 2px; }
