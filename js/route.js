@@ -98,6 +98,7 @@
   // "USDC:ArbitrumOne" -> "USDC on Arbitrum One": a stored path id made
   // readable, no words added.
   function pathName(id) {
+    if (id === "USDT" && txt("pathBase")) return txt("pathBase"); // USDT is not a reader word; the words come from copy.json
     return id ? String(id).replace(":", " on ").replace(/([a-z])([A-Z])/g, "$1 $2") : "";
   }
   function routeKey(id) { return id.replace("->", "-"); }
