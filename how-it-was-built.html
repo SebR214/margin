@@ -140,6 +140,7 @@ body{font-family:'Archivo',system-ui,sans-serif!important;color:#0B0B0B}
 h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!important;line-height:1.55!important;color:#6B6B6B!important;font-weight:400!important;margin-top:0!important}
 </style>
 <style id="mwh-offset">header.mwh{margin-bottom:32px!important}@media (max-width:620px){header.mwh{margin-bottom:20px!important}}</style>
+<link rel="stylesheet" href="./css/dkpanel.css">
 <link rel="stylesheet" href="./css/site_head.css?v=3">
 <link rel="stylesheet" href="./css/site_page.css?v=1">
 </head>
@@ -178,6 +179,8 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       <ul class="list fail" id="incidentsList"></ul>
       <p class="small"><a href="./agent-incidents.html" id="incidentsLink">&nbsp;</a></p>
     </section>
+
+    <section id="cycleBlock" class="dkpanel" style="display:none"></section>
 
     <section id="recordBlock" class="dkpanel" style="display:none">
       <!-- Record block will be rendered here by JavaScript -->
@@ -513,6 +516,24 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     });
   }
 })();
+</script>
+
+<script src="./js/cycle_block.js"></script>
+<script>
+// "Collected fresh every hour": the last collection cycle's steps and the last 48 clock hours (moved here from how-it-works.html).
+Promise.all([
+  fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }),
+  fetch('./data/cycle_log.json', {cache:'no-store'}).then(function(r){ return r.json(); })
+]).then(function(res){
+  var hiw = (res[0] && res[0].howItWorks) || {};
+  var keys = ['cycleTitle','cycleLine','stepCurrencies','stepRoutes','stepAuditor','stepAuditorResult','stepAnalyst','resultClean','resultSourceMissed','resultCheckFailed','stripTitle','stripClean','stripMissed','stripFailed'];
+  var copyBlock = {}; keys.forEach(function(k){ copyBlock[k] = hiw[k] || ''; });
+  var box = document.getElementById('cycleBlock');
+  if (box && typeof renderCycleBlock === 'function') {
+    renderCycleBlock(box, res[1], copyBlock);
+    if (copyBlock.cycleTitle) { box.style.display = 'block'; }
+  }
+}).catch(function(){});
 </script>
 <script src="./js/site_head.js?v=3"></script>
 </body>
