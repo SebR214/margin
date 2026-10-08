@@ -145,6 +145,10 @@ jobs:
           python3 tools/check_rendered.py --base "origin/${{ github.base_ref }}" | tee rendered.txt
           exit ${PIPESTATUS[0]}
 
+      - name: Page style, every page matches home
+        if: steps.scope.outputs.touched == 'true'
+        run: python3 tools/check_design.py --style
+
       - name: Post the rendered check's list to the PR
         if: steps.render.outcome == 'failure'
         env:

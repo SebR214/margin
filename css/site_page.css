@@ -1,0 +1,50 @@
+/* One page style on every page, with the home page as the standard (SEB-268, owner's spec 8 Oct).
+   Loaded after each page's own CSS. This file is the only place these values live; pages no longer set their own.
+     page title          24px, weight 600
+     text under it       18px at 70% ink
+     section headings    20px, weight 600
+     space above title   40px below the header
+     filter buttons      white pill, 999px, 1px border, 40px tall, 14px weight 600; selected = ink with white text
+     links               thin underline in running text; none on row titles, dates and numbers (they show on hover)  */
+h1 {
+  font-size: 24px !important; font-weight: 600 !important; line-height: 1.15 !important; letter-spacing: 0 !important; margin: 0 !important;
+  color: var(--color-ink, #201e1d) !important; text-transform: none !important;
+}
+.hp-lede, .c-lead, .ci-lead, .sm-lead, .lead, .lede, .fp-lead {
+  font-size: 18px !important; font-weight: 400 !important; line-height: 1.5 !important;
+  color: color-mix(in srgb, var(--color-ink, #201e1d) 70%, transparent) !important;
+}
+h2 { font-size: 20px !important; font-weight: 600 !important; line-height: 1.25 !important; letter-spacing: 0 !important; text-transform: none !important; }
+
+/* the same space between the header and the title on every page */
+.hp-head { margin-bottom: 0 !important; }
+/* home and country space their sections with a 56px flex gap: take it back at the header so the title sits 40px below it */
+.hp-wrap > .hp-head, .c-wrap > .c-head { margin-bottom: -56px !important; }
+.hp-wrap > .hp-hero { margin-top: -8px !important; }
+.c-herotext { padding-top: 0 !important; margin-top: 0 !important; }
+.hp-hero, .ci-hero, .c-hero, .sm-hero, .hero, .hw-hero, .fp-hero {
+  margin-top: 0 !important; padding-top: 40px !important;
+}
+
+/* filter buttons: the white rounded pill, everywhere */
+.hp-btn, .c-chip, .ci-pill, .sm-pill, .pill, .fp-chip, .s-chip {
+  font: inherit !important; font-size: 14px !important; font-weight: 600 !important; line-height: 1.2 !important;
+  min-height: 40px !important; padding: 0 14px !important; border: 1px solid var(--color-neutral-300, #d7d3d3) !important;
+  border-radius: 999px !important; background: var(--color-bg, #fff) !important; color: var(--color-neutral-700, #605d5d) !important;
+  cursor: pointer; display: inline-flex !important; align-items: center !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+.hp-btn:hover, .c-chip:hover, .ci-pill:hover, .sm-pill:hover, .pill:hover, .fp-chip:hover, .s-chip:hover { color: var(--color-ink, #201e1d) !important; }
+.hp-btn[aria-pressed="true"], .hp-btn.on, .c-chip.on, .c-chip[aria-pressed="true"], .ci-pill[aria-pressed="true"], .ci-pill.on, .sm-pill[aria-pressed="true"], .sm-pill.on,
+.pill[aria-pressed="true"], .fp-chip[aria-current], .fp-chip[aria-pressed="true"], .s-chip.on {
+  background: var(--color-ink, #201e1d) !important; border-color: var(--color-ink, #201e1d) !important; color: var(--color-bg, #fff) !important;
+}
+
+/* links: a thin underline in running text; none on row titles, dates and numbers, which show as links on hover */
+p a, li a, .hp-biglink, .hp-body a, .more a, .who a {
+  text-decoration: underline !important; text-decoration-color: var(--color-neutral-300, #d7d3d3) !important;
+  text-decoration-thickness: 1px !important; text-underline-offset: 3px !important;
+}
+.f, .f *, .fp-ilink, .fp-ilink *, .ci-row, .ci-row *, .cr-row, .cr-row *, .hp-nav a, .hp-logo, .site-footer a { text-decoration: none !important; }
+.f:hover, .f:hover *, .fp-ilink:hover, .fp-ilink:hover *, .ci-row:hover .ci-nm, .cr-row:hover .cr-nm { text-decoration: underline !important; text-decoration-color: var(--color-neutral-300, #d7d3d3) !important; text-underline-offset: 3px !important; }
+@media (max-width: 700px) { h1 { font-size: 24px !important; } }
+@media (max-width: 700px) { .c-wrap > .c-head { margin-bottom: -40px !important; } }

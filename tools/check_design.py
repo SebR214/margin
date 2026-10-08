@@ -14,7 +14,13 @@ tools/design_baseline.json:
 
 Counts going down is fine (and `--update` lowers the baseline). Stdlib only.
 
-Usage: python3 tools/check_design.py [--update]
+A second mode, --style, renders the seven reader pages (home, countries, sending money, sources, findings,
+how it works, country) at 1300px and 390px and measures the page title, the text under it, the section
+headings, the filter pills, the running-text link underline and the gap between the header and the title.
+It fails if any page differs from the home page (css/site_page.css is where those values live).
+--perturb adds a deliberate change first, to prove the check can fail.
+
+Usage: python3 tools/check_design.py [--update] [--style [--perturb]]
 """
 import glob
 import json
@@ -73,7 +79,67 @@ def measure():
     return counts
 
 
+STYLE_PAGES = ["index.html", "countries.html", "country.html?ccy=PHP", "sending-money.html?route=SGD-PHP&amount=5000",
+               "sources.html", "findings.html", "how-it-works.html"]
+STYLE_PROBE = r"""
+(function () {
+  var cs = function (e) { return getComputedStyle(e); };
+  var h1 = document.querySelector('h1');
+  var head = document.querySelector('.hp-head,.ci-head,.c-head,.sm-head,.s-head,.fp-head,.mwh');
+  var lead = h1 && h1.nextElementSibling;
+  var h2 = document.querySelector('h2');
+  var pill = [].filter.call(document.querySelectorAll('button.hp-btn,button.c-chip,button.ci-pill,button.sm-pill,button.pill'), function (x) { return x.getAttribute('aria-pressed') !== 'true' && !x.classList.contains('on'); })[0];
+  var lk = [].filter.call(document.querySelectorAll('p a, li a'), function (x) { return !x.closest('header,nav,.hp-head,footer') && x.innerText.trim().length > 3; })[0];
+  var o = {};
+  o.title = h1 ? cs(h1).fontSize + ' ' + cs(h1).fontWeight : 'none';
+  o.lead = lead ? cs(lead).fontSize + ' ' + cs(lead).color : 'none';
+  o.h2 = h2 ? cs(h2).fontSize + ' ' + cs(h2).fontWeight : 'none';
+  o.gap = h1 && head ? Math.round(h1.getBoundingClientRect().top - head.getBoundingClientRect().bottom) + 'px' : 'none';
+  if (pill) { o.pill = [cs(pill).borderTopLeftRadius, cs(pill).minHeight, cs(pill).fontWeight, cs(pill).fontSize, cs(pill).borderTopWidth, cs(pill).borderTopColor].join(' '); }
+  if (lk) { o.link = cs(lk).textDecorationLine + ' ' + cs(lk).textDecorationThickness + ' ' + cs(lk).textDecorationColor; }
+  return JSON.stringify(o);
+})()
+"""
+
+
+def style_check(perturb=False):
+    sys.path.insert(0, os.path.join(HERE, "tools"))
+    from gate_common import open_page, serve  # noqa: E402
+    base, stop = serve(HERE)
+    seen = {}
+    try:
+        with open_page(settle=4.0) as page:
+            page.visit("about:blank")
+            for width, height, mobile in ((1300, 900, False), (390, 844, True)):
+                page.set_viewport(width, height, mobile=mobile)
+                for name in STYLE_PAGES:
+                    page.visit(base + "/" + name)
+                    if perturb and name.startswith("sources"):
+                        page.eval_js("document.querySelector('h1').style.setProperty('font-size','30px','important');'ok'")
+                    seen[(width, name)] = json.loads(page.eval_js(STYLE_PROBE) or "{}")
+            page.clear_viewport()
+    finally:
+        stop()
+    bad = []
+    for width in (1300, 390):
+        std = seen[(width, STYLE_PAGES[0])]
+        for name in STYLE_PAGES[1:]:
+            got = seen[(width, name)]
+            for k, v in std.items():
+                if k in got and got[k] != v:
+                    bad.append("%dpx %s: %s is %r, home has %r" % (width, name.split("?")[0], k, got[k], v))
+    if bad:
+        print("style check FAILED (a page differs from the home page):")
+        for line in bad:
+            print("  " + line)
+        return 1
+    print("style check ok (%d pages at 1300px and 390px match the home page)" % len(STYLE_PAGES))
+    return 0
+
+
 def main():
+    if "--style" in sys.argv:
+        return style_check("--perturb" in sys.argv)
     now = measure()
     if "--update" in sys.argv:
         json.dump(now, open(BASELINE, "w"), indent=1, sort_keys=True)
