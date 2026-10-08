@@ -94,6 +94,7 @@ STYLE_PROBE = r"""
   o.title = h1 ? cs(h1).fontSize + ' ' + cs(h1).fontWeight : 'none';
   o.lead = lead ? cs(lead).fontSize + ' ' + cs(lead).color : 'none';
   o.h2 = h2 ? cs(h2).fontSize + ' ' + cs(h2).fontWeight : 'none';
+  o.leadgap = h1 && lead ? Math.round(lead.getBoundingClientRect().top - h1.getBoundingClientRect().bottom) + 'px' : 'none';
   o.gap = h1 && head ? Math.round(h1.getBoundingClientRect().top - head.getBoundingClientRect().bottom) + 'px' : 'none';
   if (pill) { o.pill = [cs(pill).borderTopLeftRadius, cs(pill).minHeight, cs(pill).fontWeight, cs(pill).fontSize, cs(pill).borderTopWidth, cs(pill).borderTopColor].join(' '); }
   if (lk) { o.link = cs(lk).textDecorationLine + ' ' + cs(lk).textDecorationThickness + ' ' + cs(lk).textDecorationColor; }
