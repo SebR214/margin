@@ -1,10 +1,17 @@
-/* The panel block for the hourly cycle section. Colours are style.css tokens. */
+/* The panel block for the hourly cycle section (SEB-271: plain section, no
+   card -- a thin top rule separates it like every other section, rows are
+   separated by thin rules, nothing is boxed). Colours are style.css tokens,
+   except the three cycle-strip states below, which are DESIGN.md's own
+   chart palette (dust grey #D3D0CB, stamp grey #9A9A9A, vintage grape
+   #3F3047 -- the same three literal values check_design.py's ALLOWED set
+   already names) rather than the retired indigo ramp. style.css's :root
+   has not absorbed this palette as named tokens yet, so these are written
+   as the literal hex DESIGN.md specifies; that is a wider migration this
+   issue does not take on. */
 
 .dkpanel {
-    background: var(--color-bg);
+    background: none;
     color: var(--color-ink);
-    border-radius: 8px;
-    padding: 20px 24px;
     font-family: var(--font-body);
   }
 
@@ -19,14 +26,21 @@
   .dkpanel .hp-step { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--color-neutral-300); font-size: 14px; }
   .dkpanel .hp-time { width: 64px; }
   .dkpanel .hp-sdot, .dkpanel .hp-sdot-amber { width: 6px; height: 6px; border-radius: 50%; display: inline-block; background: var(--color-ink); flex: none; }
-  .dkpanel .hp-sdot-amber { background: var(--data-700); }
+  .dkpanel .hp-sdot-amber { background: var(--color-ink); }
   .dkpanel .hp-steptext { flex: 1; min-width: 180px; }
-  .dkpanel .hp-strip { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; }
+  .dkpanel .hp-strip { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 3px; }
   .dkpanel .hp-strip span { height: 22px; border-radius: 3px; }
-  .dkpanel .hp-strip .sc, .dkpanel .ksc { background: var(--data-700); }
-  .dkpanel .hp-strip .sm, .dkpanel .ksm { background: var(--data-500); }
-  .dkpanel .hp-strip .sf, .dkpanel .ksf { background: var(--color-ink); }
+  .dkpanel .hp-strip .sc, .dkpanel .ksc { background: #D3D0CB; }
+  .dkpanel .hp-strip .sm, .dkpanel .ksm { background: #9A9A9A; }
+  .dkpanel .hp-strip .sf, .dkpanel .ksf { background: #3F3047; }
+  /* Gap: no reading at all for this clock hour. No fill of any kind -- "the
+     chart shows a gap" is the page's own existing copy (subNote). A hollow,
+     dashed square reads as empty without adding any new legend word. */
+  .dkpanel .hp-strip .sg { background: none; border: 1px dashed var(--color-neutral-400); }
   .dkpanel .hp-legend { display: flex; flex-wrap: wrap; gap: 16px; }
+  @media (max-width: 620px) {
+    .dkpanel .hp-strip { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  }
   .dkpanel .hp-sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; vertical-align: -1px; }
   .dkpanel .hp-small { font-size: 14px; }
   .dkpanel .hp-tiny { font-size: 12px; }
