@@ -17,9 +17,9 @@
      on this site self-hosts it instead (style.css's own @font-face), so
      this page does too -- same typeface, no new external request. */
   :root{
-    --sm-ink:#0B0B0B; --sm-sub:#6B6B6B; --sm-stamp:#8A8A8A; --sm-rule:#ECECEC;
-    --sm-peri:#817FCC; --sm-peri-deep:#5E5CB0; --sm-peri-soft:#D9D8F1;
-    --sm-dust:#D3D0CB; --sm-grape:#3F3047;
+    --sm-ink:var(--color-ink); --sm-sub:var(--color-neutral-700); --sm-stamp:var(--color-neutral-600); --sm-rule:var(--color-neutral-200);
+    --sm-peri:var(--data-600); --sm-peri-deep:var(--data-700); --sm-peri-soft:var(--data-400);
+    --sm-dust:var(--color-neutral-300); --sm-grape:var(--color-neutral-900);
   }
   body.sm-body{ background:#fff; color:var(--sm-ink); font-size:17px; line-height:1.55; }
   .sm-wrap{ max-width:760px; margin:0 auto; padding:0 24px 64px; }
@@ -60,8 +60,8 @@
   .sm-axisrow{ height:26px; font-size:12px; color:var(--sm-stamp); }
   .sm-row{ min-height:40px; border-top:1px solid var(--sm-rule); color:var(--sm-ink); font-weight:400; }
   button.sm-row{ width:100%; font:inherit; text-align:left; background:none; border:0; border-top:1px solid var(--sm-rule); padding:0; cursor:pointer; }
-  .sm-row:hover{ background:#FAFAFC; }
-  .sm-row.sm-on{ background:#F6F6FB; }
+  .sm-row:hover{ background:var(--color-neutral-100); }
+  .sm-row.sm-on{ background:var(--data-100); }
   .sm-row.sm-on .sm-nm{ font-weight:700; }
   .sm-row .sm-nm{ font-size:15px; font-weight:600; line-height:1.25; padding:7px 0; }
   .sm-row .sm-nm small{ display:block; font-size:12.5px; font-weight:500; color:var(--sm-stamp); }
