@@ -86,7 +86,7 @@ STYLE_PROBE = r"""
   var cs = function (e) { return getComputedStyle(e); };
   var h1 = document.querySelector('h1');
   var head = document.querySelector('.hp-head,.ci-head,.c-head,.sm-head,.s-head,.fp-head,.mwh');
-  var lead = h1 && h1.nextElementSibling;
+  var lead = h1 && h1.nextElementSibling && h1.nextElementSibling.tagName === 'P' ? h1.nextElementSibling : null;   // a page with no text under its title has none to measure
   var h2 = document.querySelector('h2');
   var pill = [].filter.call(document.querySelectorAll('button.hp-btn,button.c-chip,button.ci-pill,button.sm-pill,button.pill'), function (x) { return x.getAttribute('aria-pressed') !== 'true' && !x.classList.contains('on'); })[0];
   var lk = [].filter.call(document.querySelectorAll('p a, li a'), function (x) { return !x.closest('header,nav,.hp-head,footer') && x.innerText.trim().length > 3; })[0];
@@ -127,6 +127,8 @@ def style_check(perturb=False):
         for name in STYLE_PAGES[1:]:
             got = seen[(width, name)]
             for k, v in std.items():
+                if k in ('lead', 'leadgap') and got.get(k) == 'none':
+                    continue    # a page may have no text under its title (how it works, after its subtitle was removed)
                 if k in got and got[k] != v:
                     bad.append("%dpx %s: %s is %r, home has %r" % (width, name.split("?")[0], k, got[k], v))
     if bad:

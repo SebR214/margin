@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="./style.css">
 <script src="./js/chart.js"></script>
 <script src="./js/receipt_replay.js"></script>
-<script src="./js/cycle_block.js"></script>
 <link rel="stylesheet" href="./css/dkpanel.css">
 <link rel="stylesheet" href="./css/site_head.css?v=3">
 <link rel="stylesheet" href="./css/site_page.css?v=1">
@@ -40,20 +39,12 @@
   .hw-main a { color: var(--color-ink); text-underline-offset: 3px; }
   /* Every section (and the hourly-run block and the full method) is a plain
      region separated from the one above it by a thin rule, never a card. */
-  .hiw-section, #cycleBlock, .full-method { border-top: 1px solid var(--color-neutral-300); margin-top: 32px; padding-top: 24px; }
+  .hiw-section { border-top: 1px solid var(--color-neutral-300); margin-top: 32px; padding-top: 24px; }
   .hiw-section { display: flex; flex-direction: column; gap: 4px; }
   .hw-rows { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--color-neutral-300); font-size: 15px; }
   .hw-rows:empty { display: none; }
   .hw-rows a { color: var(--color-neutral-700); text-decoration: none; }
   .hw-rows a:hover { color: var(--color-ink); }
-  .full-method > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--color-ink); }
-  .full-method > div { display: flex; flex-direction: column; gap: 16px; padding-top: 12px; }
-  .full-method .kicker { font-size: 13px; color: var(--color-neutral-600); }
-  .full-method .h { font-size: 18px; font-weight: 600; color: var(--color-ink); }
-  .ask { display: flex; gap: 8px; max-width: 680px; }
-  .ask input { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; background: var(--color-bg); color: var(--color-ink); border: 1px solid var(--color-neutral-400); border-radius: 6px; font: inherit; font-weight: 400; }
-  .ask button { min-width: 44px; min-height: 44px; background: var(--color-ink); color: var(--color-bg); border: 0; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-  .askNote { font-size: 13px; color: var(--color-neutral-600); max-width: 680px; }
   #hiwAnswer { max-width: 680px; margin-top: 8px; padding: 16px 20px; background: var(--color-surface); border: 1px solid var(--color-neutral-300); border-radius: 8px; font-size: 15px; line-height: 1.55; color: var(--color-ink); }
   .foot { font-size: 14px; color: var(--color-neutral-600); border-top: 1px solid var(--color-neutral-300); margin-top: 48px; padding-top: 20px; }
   @media (max-width: 620px) { .hw-wrap { padding: 0 16px 40px; } }
@@ -72,7 +63,6 @@
   <main class="hw-main">
     <section class="hw-hero" id="hiwIntro">
     <h1 id="hiwH1"></h1>
-    <p class="lede" id="hiwSub"></p>
     <ul class="plain-list" id="hiwSubList"></ul>
     <div class="p" id="hiwSubNote"></div>
     </section>
@@ -93,13 +83,8 @@
     <section class="hiw-section" id="not-measured">
       <h2 id="notMeasuredH2"></h2>
       <ul class="plain-list" id="notMeasuredList"></ul>
-      <div class="p" id="notMeasuredNote"></div>
     </section>
 
-    <!-- Hourly collection section ("This hour") -->
-    <div id="cycleBlock" class="dkpanel" style="display: none;">
-      <!-- The cycle block will be rendered here by JavaScript -->
-    </div>
 
     <section class="hiw-section" id="sources">
       <h2 id="sourcesH2"></h2>
@@ -107,43 +92,6 @@
       <div class="hw-rows" id="sourceRows"></div>
     </section>
 
-    <details class="full-method" id="full-method"><summary id="methodSummary"></summary><div>
-      <div class="kicker" id="methodKicker"></div>
-      <div class="lede" id="methodLede"></div>
-
-      <div class="h" id="methodMadeTitle"></div>
-      <div class="p" id="methodMadeP"></div>
-      <div class="p" id="thresholdP"></div>
-
-      <div class="p"><a href="./METHODOLOGY.md" id="methodLink"></a></div>
-
-
-    <!-- "How fast does the street react?" taken off the site 2026-09-27
-         alongside countries.html's #reaction section -- see the HTML
-         comment there for the verified reason (the official rate this
-         method treats as a "step" only ever moves once a day, at a fixed
-         refresh time, so "reaction time" was measuring how soon the next
-         hourly street-price poll happens to land after that known daily
-         refresh, not a real market response). Left in place, commented
-         out, pending an hourly-updating official rate. -->
-    <!--
-    <div class="h" id="reaction-speed">How fast does the street react?</div>
-    <div class="p">When the official rate moves, the street price does not follow instantly. <a href="./countries.html#reaction">The countries page</a> now measures the gap between the two, in hours, country by country.</div>
-    <div class="p">There is no ready-made hourly history file for this. Each country's history array is daily, going back to 2024, and only carries the premium, not a separate official-rate series. The one place both series exist hour by hour is git itself: since per-country files started (10 September 2026), a scheduled job commits every country's JSON once an hour, and <span style="font-family:monospace">tools/emit_response_time.py</span> replays those commits back into a time series. That also sets a hard ceiling: only as much hourly history exists as days have passed since 10 September 2026, no matter what any other date on the site implies.</div>
-    <div class="p" id="reactionMethodP">Loading the current thresholds&hellip;</div>
-    <div class="p">The method is an event study, not a correlation, because the official rate in this data does not drift continuously — it holds flat for hours at a time, then steps, because its upstream source only refreshes periodically. For each detected step: take the median premium over the six hours before it as a baseline (what the premium looked like before the move), then walk forward hour by hour until the premium has closed most of the gap the step opened (the exact share and search window are the two figures in the paragraph above). That hour, minus the step's hour, is the reaction time for that one event. A country's headline number is the median across every event it had that resolved, capped at the next detected step so one event's recovery can't be mistaken for another's.</div>
-    <div class="p">A country is only published if it has at least 12.5 days of continuous hourly history (of the ~17 available market-wide as of this writing) and at least one event that actually resolved. Below that, it is left out with a reason, the same as any other "not enough data" gap on this site — never a guessed or averaged-in number.</div>
-    <div class="p" id="reactionFindingP">Loading the real numbers&hellip;</div>
-    <div class="p"><a href="./data/response_time_latest.json">The full per-country output, every detected event, every resolved and unresolved one →</a></div>
-    -->
-
-    <div class="ask">
-      <input type="text" placeholder="" id="hiwAskInput"/>
-      <button aria-label="" id="hiwAskBtn"><svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M4 10h11M11 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    </div>
-    <div id="hiwAnswer" style="display:none"></div>
-    <div class="askNote" id="askNote"></div>
-    </div></details>
     <footer class="foot"><a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></footer>
   </main>
 </div>
@@ -196,15 +144,7 @@ copyP.then(function(h){
   document.title = h.pageTitle || '';
   var md = document.querySelector('meta[name="description"]');
   if (md) md.setAttribute('content', h.pageDescription || '');
-  setText('methodSummary', h.methodSummary || '');
-  setText('methodKicker', h.methodKicker || '');
-  setText('methodLede', h.methodLede || '');
-  setText('methodMadeTitle', h.methodMadeTitle || '');
-  setText('thresholdP', h.thresholdLoading || '');
   setText('methodLink', h.methodLink || '');
-  setText('askNote', h.askNote || '');
-  var ai = document.getElementById('hiwAskInput'); if (ai) ai.placeholder = h.askPlaceholder || '';
-  var ab = document.getElementById('hiwAskBtn'); if (ab) ab.setAttribute('aria-label', h.askLabel || '');
 });
 
 Promise.all([
@@ -234,7 +174,6 @@ Promise.all([
   };
 
   setText('hiwH1', hiw.h1 || '');
-  setText('hiwSub', hiw.sub || '');
   setList('hiwSubList', hiw.subPoints, vals);
   setText('hiwSubNote', hiw.subNote || '');
   setText('dollarCostH2', hiw.dollarCostTitle || '');
@@ -244,19 +183,10 @@ Promise.all([
   setText('sendingCostP', fillCopy(hiw.sendingCostLead, vals));
   setText('sendingCostAmounts', fillCopy(hiw.sendingCostAmounts, vals));
   setList('sendingCostList', hiw.sendingCostPoints, vals);
-  setText('methodMadeP', fillCopy(hiw.methodMadeBody, vals));
   setText('notMeasuredH2', hiw.notMeasuredTitle || '');
   setText('sourcesH2', hiw.sourcesTitle || '');
   var list = document.getElementById('notMeasuredList');
   (hiw.notMeasured || []).forEach(function(t){ var li = document.createElement('li'); li.textContent = t; list.appendChild(li); });
-  var note = document.getElementById('notMeasuredNote');
-  var parts = (hiw.notMeasuredNote || '').split('{fullMethodLink}');
-  note.appendChild(document.createTextNode(parts[0]));
-  var a = document.createElement('a');
-  a.href = '#full-method'; a.style.cssText = 'font-weight:600;color:var(--color-ink)';
-  a.textContent = hiw.fullMethodLink || '';
-  note.appendChild(a);
-  if (parts[1]) note.appendChild(document.createTextNode(parts[1]));
 
   // Local exchanges: the venues named in each order-book country's own file,
   // folded to one name per exchange (IndependentReserve prices AUD, NZD and
@@ -277,7 +207,7 @@ Promise.all([
       if (/parallel-dollar/.test(s.detail || '') && names.indexOf(s.name) < 0) names.push(s.name);
     });
     vals.top = names.length ? names.map(function(n){ return (hiw.venueNames || {})[n] || n; }).join(', ') : null;
-    setList('sourcesList', hiw.sourcesPoints, vals);
+    setList('sourcesList', (hiw.sourcesPoints || []).slice(1), vals);   // point 0 names the exchanges; the row of names below says the same
     // Each source named above is also a row that opens its entry on the sources page.
     var rowsBox = document.getElementById('sourceRows');
     if (rowsBox) {
@@ -305,8 +235,6 @@ Promise.all([copyP, fetch('./data/index_latest.json', {cache:'no-store'}).then(r
   // section wants it again.
   var introCountEl = document.getElementById('introCountryCount');
   if (introCountEl) introCountEl.textContent = (d.countries||[]).length + (d.withheld||[]).length + (d.unverified||[]).length;
-  document.getElementById('thresholdP').textContent =
-    fillTpl(HIW.thresholdCounts, { priced: (d.countries||[]).length, notPriced: (d.withheld||[]).length + (d.unverified||[]).length });
 
 }).catch(function(){});
 
@@ -327,118 +255,6 @@ copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'
 });
 }
 
-// ---- The "how was it made" ask box: same real backend as Home's, not a
-// decoration. Answer shown as a plain sentence; the SQL that produced it is
-// available on click rather than dumped inline -- shown by default, it read
-// as unexplained code (real feedback: "the thing is a chat interface? ...
-// not clearly thought out"), when the plain sentence is the actual answer.
-(function(){
-  // A4: this box's own placeholder invites "how any number was made" --
-  // spec-cited failure was this exact box refusing that exact question.
-  // Everything methodology-shaped answers from prose here, and never
-  // reaches SQL. window.hiwByCcy is set once the index data loads below
-  // (see the other script block on this page).
-  var API_BASE = location.hostname.endsWith("margin.wiki")
-    ? "https://api.margin.wiki" : "http://127.0.0.1:8901";
-  var input = document.getElementById('hiwAskInput');
-  var btn = document.getElementById('hiwAskBtn');
-  var box = document.getElementById('hiwAnswer');
-  if (!input || !btn) return;
-
-  function show(html) { box.innerHTML = html; box.style.display = 'block'; }
-
-  // See the identical comment in index.html -- deliberately loose so the
-  // page's own placeholder ("Ask the agent how any number was made")
-  // reliably matches; a stricter pattern missed it.
-  var METHOD_RE = /\bhow\b.*\b(made|calculat|comput|built|measur|works?)\b|methodolog/i;
-
-  function methodologyAnswer(q){
-    var tracked = window.hiwTrackedByName || {};
-    var lower = ' ' + q.toLowerCase().replace(/[^a-z\s]/g, ' ') + ' ';
-    var mentioned = Object.keys(tracked).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
-    if (mentioned.length) {
-      var c = tracked[mentioned[0]];
-      show(fillTpl(HIW.askMethodTracked, { evidence: esc(c.evidence_words), source: esc(c.source_words) }) +
-        '<div style="margin-top:10px;font-size:14px"><a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:var(--color-ink)">' + fillTpl(HIW.askReceiptLink, { country: esc(c.country) }) + '</a></div>');
-    } else {
-      show(esc(HIW.askMethodGeneric || '') +
-        '<div style="margin-top:10px;font-size:14px"><a href="./countries.html" style="font-weight:600;color:var(--color-ink)">' + esc(HIW.askIndexLink || '') + '</a></div>');
-    }
-  }
-
-  // A2: this box had no failure floor at all -- a genuine miss bare-
-  // refused, caught by the golden set (tools/check_ask.py) the moment it
-  // ran. Same rule as Home's ask box: name what was understood, give a
-  // real link, never a bare string.
-  var worldNames = {};
-  try {
-    var dn = new Intl.DisplayNames(['en'], { type: 'region' });
-    for (var a = 65; a <= 90; a++) for (var b = 65; b <= 90; b++) {
-      var code = String.fromCharCode(a) + String.fromCharCode(b);
-      var nm = dn.of(code);
-      if (nm && nm !== code) worldNames[nm.toLowerCase()] = nm;
-    }
-  } catch (e) { /* falls through to the generic floor below */ }
-
-  function diagnose(q){
-    var tracked = window.hiwTrackedByName || {};
-    var lower = ' ' + q.toLowerCase().replace(/[^a-z\s]/g, ' ') + ' ';
-    var mentionedTracked = Object.keys(tracked).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
-    var mentionedWorld = Object.keys(worldNames).filter(function(n){ return lower.indexOf(' ' + n + ' ') !== -1; });
-    var untracked = mentionedWorld.filter(function(n){ return !tracked[n]; });
-    var allLink = '<a href="./countries.html" style="font-weight:600;color:var(--color-ink)">' + esc(HIW.askAllCountriesLink || '') + '</a>';
-    if (untracked.length) {
-      return fillTpl(HIW.askUntracked, { country: esc(worldNames[untracked[0]]), link: allLink });
-    }
-    if (mentionedTracked.length) {
-      var c = tracked[mentionedTracked[0]];
-      return fillTpl(HIW.askTracked, { country: esc(c.country), link: '<a href="./country.html?ccy=' + esc(c.ccy) + '" style="font-weight:600;color:var(--color-ink)">' + fillTpl(HIW.askTrackedLink, { country: esc(c.country) }) + '</a>' });
-    }
-    return fillTpl(HIW.askUnparsed, { link: allLink });
-  }
-
-  function submit(){
-    var q = (input.value || '').trim();
-    if (!q) return;
-    // Anything methodology-shaped answers from prose -- this page's whole
-    // premise is "how it works", so free-form SQL is never the right tool
-    // for that shape of question, only for a genuinely open data question.
-    if (METHOD_RE.test(q)) { methodologyAnswer(q); return; }
-    show('<span style="color:var(--color-neutral-600)">' + esc(HIW.askWaiting || '') + '</span>');
-    fetch(API_BASE + '/ask', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({question: q})
-    }).then(function(r){ return r.json().then(function(body){ return {ok: r.ok, body: body}; }); })
-      .then(function(res){
-        if (!res.ok || res.body.error) {
-          var err = String(res.body.error || '');
-          var isRateLimit = /enough questions|reachable|budget/i.test(err);
-          show(isRateLimit ? esc(err) : diagnose(q));
-          return;
-        }
-        var sentence = esc(res.body.sentence || HIW.askNoAnswer || '');
-        var sqlId = 'sql' + Math.random().toString(36).slice(2,8);
-        var html = '<div>' + sentence + '</div>';
-        if (res.body.sql) {
-          html += '<div style="margin-top:10px"><a href="#" id="' + sqlId + '-toggle" style="font-size:14px;color:var(--color-neutral-600);font-weight:600">' + esc(HIW.askSqlLink || '') + '</a>' +
-            '<div id="' + sqlId + '" style="display:none;margin-top:6px;font-size:14px;color:var(--color-neutral-600);font-family:ui-monospace,monospace;word-break:break-all">' + esc(res.body.sql) + '</div></div>';
-        }
-        show(html);
-        var toggle = document.getElementById(sqlId + '-toggle');
-        if (toggle) toggle.addEventListener('click', function(e){
-          e.preventDefault();
-          var sqlBox = document.getElementById(sqlId);
-          sqlBox.style.display = sqlBox.style.display === 'none' ? 'block' : 'none';
-        });
-      })
-      .catch(function(){
-        show(esc(HIW.askUnreachable || ''));
-      });
-  }
-  btn.addEventListener('click', submit);
-  input.addEventListener('keydown', function(e){ if (e.key === 'Enter') submit(); });
-})();
 </script>
 
 <script>
@@ -453,47 +269,7 @@ copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'
   }
 })();
 </script>
-<script>
-(function(){var d=document.getElementById("full-method");if(!d)return;d.addEventListener("toggle",function(){window.dispatchEvent(new Event("resize"))});function openIfHash(){if(location.hash==="#full-method"){d.open=true}}openIfHash();window.addEventListener("hashchange",openIfHash);document.querySelectorAll('a[href="#full-method"]').forEach(function(a){a.addEventListener("click",function(){d.open=true})})})();
-</script>
 
-<!-- Script to fetch data and render the cycle block -->
-<script>
-Promise.all([copyP, fetch('./data/cycle_log.json', {cache:'no-store'}).then(r=>r.json())]).then(function(res){
-  var hiw = res[0] || {};
-  var cycleLog = res[1];
-
-  // Define the copy keys for the cycle block
-  var copyBlock = {
-    cycleTitle: hiw.cycleTitle || '',
-    cycleLine: hiw.cycleLine || '',
-    stepCurrencies: hiw.stepCurrencies || '',
-    stepRoutes: hiw.stepRoutes || '',
-    stepAuditor: hiw.stepAuditor || '',
-    stepAuditorResult: hiw.stepAuditorResult || '',
-    stepAnalyst: hiw.stepAnalyst || '',
-    resultClean: hiw.resultClean || '',
-    resultSourceMissed: hiw.resultSourceMissed || '',
-    resultCheckFailed: hiw.resultCheckFailed || '',
-    stripTitle: hiw.stripTitle || '',
-    stripClean: hiw.stripClean || '',
-    stripMissed: hiw.stripMissed || '',
-    stripFailed: hiw.stripFailed || ''
-  };
-
-  // Render the cycle block
-  var container = document.getElementById('cycleBlock');
-  if (container && typeof renderCycleBlock === 'function') {
-    renderCycleBlock(container, cycleLog, copyBlock);
-    // Show the container if cycleTitle is not empty
-    if (copyBlock.cycleTitle) {
-      container.style.display = 'block';
-    }
-  }
-}).catch(function(err){
-  console.error('Failed to load cycle data:', err);
-});
-</script>
 <script src="./js/site_head.js?v=3"></script>
 </body>
 </html>
