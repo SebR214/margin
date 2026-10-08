@@ -81,6 +81,50 @@ MANAGED = {"ARS", "VES", "LBP", "DZD", "SYP", "IQD", "AFN", "MZN",
 PEGGED = {"AED", "SAR", "QAR", "KWD", "JOD", "BND", "XAF", "XOF"}
 UNMAINTAINED = {"SDG"}
 
+# Region, for the countries page's region filter (SEB-270). A geographic
+# fact about a currency's country, same kind of label as COUNTRY above --
+# not a styling choice, so it lives here rather than in copy.json (RULES.md's
+# copy lock governs reader-facing WORDING, not a country's place on a map).
+# REGION_ORDER is the canonical display order the countries page's region
+# buttons follow; the names themselves are the six the issue approved.
+REGION_ORDER = (
+    "Middle East and North Africa", "Africa south of the Sahara",
+    "Latin America", "Asia", "Europe and the Caucasus", "Oceania",
+)
+REGION = {
+    # Middle East and North Africa
+    "DZD": "Middle East and North Africa", "IQD": "Middle East and North Africa",
+    "SYP": "Middle East and North Africa", "TND": "Middle East and North Africa",
+    "QAR": "Middle East and North Africa", "MAD": "Middle East and North Africa",
+    "SAR": "Middle East and North Africa", "KWD": "Middle East and North Africa",
+    "EGP": "Middle East and North Africa", "AED": "Middle East and North Africa",
+    "LBP": "Middle East and North Africa", "JOD": "Middle East and North Africa",
+    "SDG": "Middle East and North Africa",
+    # Africa south of the Sahara
+    "ZAR": "Africa south of the Sahara", "RWF": "Africa south of the Sahara",
+    "TZS": "Africa south of the Sahara", "KES": "Africa south of the Sahara",
+    "NGN": "Africa south of the Sahara", "MZN": "Africa south of the Sahara",
+    "UGX": "Africa south of the Sahara", "AOA": "Africa south of the Sahara",
+    "BWP": "Africa south of the Sahara", "ETB": "Africa south of the Sahara",
+    "GHS": "Africa south of the Sahara", "XAF": "Africa south of the Sahara",
+    "XOF": "Africa south of the Sahara", "ZMW": "Africa south of the Sahara",
+    # Latin America
+    "VES": "Latin America", "ARS": "Latin America", "BRL": "Latin America",
+    "PEN": "Latin America", "BOB": "Latin America", "MXN": "Latin America",
+    "CLP": "Latin America", "COP": "Latin America",
+    # Asia
+    "KZT": "Asia", "BDT": "Asia", "INR": "Asia", "MNT": "Asia", "PKR": "Asia",
+    "LKR": "Asia", "LAK": "Asia", "KHR": "Asia", "KRW": "Asia", "VND": "Asia",
+    "TWD": "Asia", "PHP": "Asia", "IDR": "Asia", "SGD": "Asia", "THB": "Asia",
+    "AFN": "Asia", "BND": "Asia", "NPR": "Asia",
+    # Europe and the Caucasus
+    "TRY": "Europe and the Caucasus", "GEL": "Europe and the Caucasus",
+    "AZN": "Europe and the Caucasus", "AMD": "Europe and the Caucasus",
+    "UAH": "Europe and the Caucasus",
+    # Oceania
+    "AUD": "Oceania", "NZD": "Oceania",
+}
+
 # v1.1 evidence rule, per METHODOLOGY. A P2P value is published only with at
 # least MIN_BUY_ADS ads on the buy side AND a buyer's price at or above the
 # seller's. Both are about whether a price is evidence, not about whether it is
@@ -766,8 +810,11 @@ def build():
             {k: f.get(k) for k in
              ("ccy", "country", "index_pct", "round_trip_pct", "source_class",
               "source_words", "n_sources", "hour_utc", "history_start",
-              "computed_at", "source_file", "median_24h_pct", "median_24h_n")},
+              "computed_at", "source_file", "median_24h_pct", "median_24h_n",
+              "buy_price")},
             denominator_class=(f.get("denominator") or {}).get("class"),
+            fx_mid_per_usd=(f.get("denominator") or {}).get("rate_per_usd"),
+            region=REGION.get(f["ccy"]),
             evidence_words=evidence_words(f.get("source_class"), f.get("n_sources")),
             spark=[p["index_pct"] for p in (f.get("history") or [])[-30:]],
         ) for f in listed],
@@ -794,6 +841,10 @@ def build():
         "sanity_band": {"low_pct": BAND_LOW, "high_pct": BAND_HIGH},
         "min_buy_ads": MIN_BUY_ADS,
         "sources": ["data/basis.csv", "data/p2p_basis.csv", "data/basis_history.csv"],
+        # SEB-270: the countries page's region filter buttons, in the order
+        # they should appear. The region names are the same kind of real-world
+        # label as COUNTRY above, not reader-facing wording, so they live here.
+        "region_order": list(REGION_ORDER),
     }
     # SEB-38: the file-as-a-whole's own provenance, distinct from any one
     # country's row above. n_sources/source_file here describe the snapshot
