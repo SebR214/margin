@@ -1,0 +1,161 @@
+{
+  "corridor": "USD->NGN",
+  "crypto_hour_utc": "2026-10-08T22:00:00+00:00",
+  "hour_utc": "2026-10-08T22",
+  "panel_hour_utc": "2026-10-08T22:00:00+00:00",
+  "rows": [
+    {
+      "computation": {
+        "formula": null,
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": "This route has its own full step-by-step receipt -- see the link next to it on the page.",
+        "result_pct": -2.2716
+      },
+      "cost_pct": -2.2716,
+      "costs": "US$-4.54",
+      "evidence": {
+        "collected_at": "2026-10-08T22:06:06.400755+00:00",
+        "meaning": "Priced on real exchanges this hour, every fee included.",
+        "status": "measured",
+        "venues_summary": null
+      },
+      "provider": "Sending it with stablecoins",
+      "rank": 1,
+      "source": "measured",
+      "source_files": [
+        "data/samples.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": -0.1832
+      },
+      "cost_pct": -0.1832,
+      "costs": "US$-0.37",
+      "evidence": {
+        "collected_at": "2026-10-08T22:06:06.400755+00:00",
+        "landed": 266528.74,
+        "meaning": "A public price comparison service quotes Western Union: this amount lands 266528.74 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Western Union",
+      "rank": 2,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdngn.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 0.1181
+      },
+      "cost_pct": 0.1181,
+      "costs": "US$0.24",
+      "evidence": {
+        "collected_at": "2026-10-08T22:06:06.400755+00:00",
+        "landed": 265727.19,
+        "meaning": "A public price comparison service quotes Xoom: this amount lands 265727.19 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Xoom",
+      "rank": 3,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdngn.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
+        "note": "This is Airwallex's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
+        "result_pct": 0.3465
+      },
+      "cost_pct": 0.3465,
+      "costs": "US$0.69",
+      "evidence": {
+        "collected_at": "2026-10-08T22:08:57.368871+00:00",
+        "fee": 0.0,
+        "meaning": "Airwallex's own published quote: at a rate of 1325.5984, with a stated fee of 0.0, sending this amount lands 265119.68.",
+        "provider_site": "airwallex.com",
+        "rate": 1325.5984,
+        "received": 265119.68,
+        "status": "own"
+      },
+      "provider": "Airwallex",
+      "rank": 4,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 0.6994
+      },
+      "cost_pct": 0.6994,
+      "costs": "US$1.40",
+      "evidence": {
+        "collected_at": "2026-10-08T22:06:06.400755+00:00",
+        "landed": 264180.63,
+        "meaning": "A public price comparison service quotes Instarem: this amount lands 264180.63 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Instarem",
+      "rank": 5,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdngn.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 1.8571
+      },
+      "cost_pct": 1.8751,
+      "costs": "US$3.75",
+      "evidence": {
+        "collected_at": "2026-10-08T22:06:06.400755+00:00",
+        "landed": 261100.71,
+        "meaning": "A public price comparison service quotes Wise: this amount lands 261100.71 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-10-08T22:08:57.368871+00:00",
+          "fee": 8.12,
+          "meaning": "Wise's own published quote: at a rate of 1360.5, with a stated fee of 8.12, sending this amount lands 261052.74.",
+          "provider_site": "wise.com",
+          "rate": 1360.5,
+          "received": 261052.74
+        },
+        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Wise",
+      "rank": 6,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers_usdngn.csv"
+      ]
+    }
+  ],
+  "size": 200,
+  "size_words": "US$200",
+  "source_files": [
+    "data/provider_quotes.csv",
+    "data/providers_latest.json",
+    "data/providers_usdngn.csv",
+    "data/samples.csv"
+  ]
+}
