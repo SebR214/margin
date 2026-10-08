@@ -1,0 +1,48 @@
+/* One header on every page: the same logo, the same nav, the same place on the screen.
+   Each page still builds its own header markup, so this file normalises all of them.
+   Column: the home page's, 1280px wide with 32px side padding, centred, on every page. */
+.hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh {
+  box-sizing: border-box !important; width: 100% !important; max-width: none !important;
+  margin: 0 auto !important; padding: 0 !important; min-height: 64px !important;
+  display: flex !important; flex-wrap: wrap !important; align-items: center !important;
+  justify-content: space-between !important; gap: 4px 16px !important;
+  position: static !important; background: none !important; border: 0 !important; box-shadow: none !important;
+}
+.hp-headleft, .c-brand, .s-brand, .fp-brand { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: 4px 28px !important; }
+.hp-logo, .ci-logo, .c-logo, .sm-logo, .s-logo, .fp-logo, .mwh-logo {
+  font-family: var(--font-heading, "Archivo", system-ui, sans-serif) !important; font-size: 18px !important; font-weight: 600 !important;
+  letter-spacing: 0 !important; text-transform: none !important; text-decoration: none !important;
+  color: var(--color-ink, #201e1d) !important; line-height: 1.2 !important; min-height: 44px !important;
+  display: inline-flex !important; align-items: center !important; margin: 0 !important; padding: 0 !important;
+}
+.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav {
+  display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: 0 22px !important; margin: 0 !important; padding: 0 !important;
+}
+.hp-nav a, .ci-nav a, .c-nav a, .sm-nav a, .s-nav a, .fp-nav a, .mwh nav a {
+  font-family: var(--font-body, "Archivo", system-ui, sans-serif) !important; font-size: 15px !important; font-weight: 400 !important;
+  letter-spacing: 0 !important; text-transform: none !important; text-decoration: none !important;
+  color: var(--color-neutral-600, #7d7979) !important; background: none !important; border: 0 !important; border-radius: 0 !important;
+  min-height: 44px !important; padding: 0 !important; margin: 0 !important; display: inline-flex !important; align-items: center !important; line-height: 1.2 !important;
+}
+.hp-nav a:hover, .ci-nav a:hover, .c-nav a:hover, .sm-nav a:hover, .s-nav a:hover, .fp-nav a:hover, .mwh nav a:hover { color: var(--color-ink, #201e1d) !important; }
+.hp-nav a[aria-current], .ci-nav a[aria-current], .c-nav a[aria-current], .sm-nav a[aria-current], .s-nav a[aria-current], .fp-nav a[aria-current], .mwh nav a[aria-current] {
+  color: var(--color-ink, #201e1d) !important; font-weight: 600 !important;
+}
+.mwh .nav-toggle { display: none !important; }
+/* the status text on the right of some headers (last reading) keeps its place and size */
+.hp-clock, .s-asof, .c-head > .c-small { font-size: 13px !important; }
+@media (max-width: 520px) {
+  .hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav { gap: 0 16px !important; }
+  .hp-nav a, .ci-nav a, .c-nav a, .sm-nav a, .s-nav a, .fp-nav a, .mwh nav a { font-size: 14px !important; }
+}
+/* every page's wrapper is the home page's: 1280px wide, 32px side padding (24px on a phone) */
+.hp-wrap, .c-wrap, .s-wrap, .ci-wrap, .sm-wrap, .hw-wrap, .wrap, .fp-wrap {
+  box-sizing: border-box !important; width: 100% !important; max-width: 1280px !important;
+  margin-left: auto !important; margin-right: auto !important; padding-left: 32px !important; padding-right: 32px !important;
+}
+@media (max-width: 700px) { .hp-wrap, .c-wrap, .s-wrap, .ci-wrap, .sm-wrap, .hw-wrap, .wrap, .fp-wrap { padding-left: 24px !important; padding-right: 24px !important; } }
+
+/* countries and sending money put the nav as a sibling of the logo: keep it next to the logo, like the rest */
+.ci-head, .sm-head { justify-content: flex-start !important; gap: 4px 28px !important; }
+.hp-head { justify-content: space-between !important; }
+.mwh { justify-content: flex-start !important; gap: 4px 28px !important; }
