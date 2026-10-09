@@ -9,7 +9,7 @@
   "country": {
    "drawn": 9,
    "passed": 4,
-   "population": 45
+   "population": 46
   },
   "pricechange": {
    "drawn": 9,
@@ -19,7 +19,7 @@
   "provider_delivery": {
    "drawn": 9,
    "passed": 9,
-   "population": 1618
+   "population": 1628
   },
   "provider_ranking": {
    "drawn": 9,
@@ -38,18 +38,34 @@
   {
    "family": "country",
    "files": [
+    "data/countries/PEN.json",
+    "data/fx_rates.csv",
+    "data/p2p_basis.csv",
+    "data/p2p_offers.csv"
+   ],
+   "id": "country:PEN",
+   "mismatch": 0.0727,
+   "note": "",
+   "passed": false,
+   "published": 0.2189,
+   "rederived": 0.1462,
+   "trace": "(3.445 / 3.43997 - 1) * 100; price from binance_p2p row 2026-10-09T17:06:37.157776+00:00, official rate from data/fx_rates.csv row 2026-10-09T17:10:46.813436+00:00"
+  },
+  {
+   "family": "country",
+   "files": [
     "data/countries/BOB.json",
     "data/fx_rates.csv",
     "data/p2p_basis.csv",
     "data/p2p_offers.csv"
    ],
    "id": "country:BOB",
-   "mismatch": 0.7951,
+   "mismatch": 0.837,
    "note": "",
    "passed": false,
-   "published": 0.4792,
-   "rederived": -0.3159,
-   "trace": "(11.91 / 11.947745 - 1) * 100; price from binance_p2p row 2026-10-09T16:06:51.384249+00:00, official rate from data/fx_rates.csv row 2026-10-09T16:11:09.341760+00:00"
+   "published": 0.4374,
+   "rederived": -0.3996,
+   "trace": "(11.9 / 11.947745 - 1) * 100; price from binance_p2p row 2026-10-09T17:06:37.157776+00:00, official rate from data/fx_rates.csv row 2026-10-09T17:10:46.813436+00:00"
   },
   {
    "family": "country",
@@ -60,28 +76,12 @@
     "data/p2p_offers.csv"
    ],
    "id": "country:KWD",
-   "mismatch": 0.2418,
+   "mismatch": 0.3223,
    "note": "",
    "passed": false,
-   "published": 1.1337,
+   "published": 1.2142,
    "rederived": 0.8919,
-   "trace": "(0.313 / 0.310233 - 1) * 100; price from binance_p2p row 2026-10-09T16:06:51.384249+00:00, official rate from data/fx_rates.csv row 2026-10-09T16:11:09.341760+00:00"
-  },
-  {
-   "family": "country",
-   "files": [
-    "data/countries/UGX.json",
-    "data/fx_rates.csv",
-    "data/p2p_basis.csv",
-    "data/p2p_offers.csv"
-   ],
-   "id": "country:UGX",
-   "mismatch": 1.3438,
-   "note": "",
-   "passed": false,
-   "published": 3.6496,
-   "rederived": 2.3058,
-   "trace": "(4073.0 / 3981.202747 - 1) * 100; price from binance_p2p row 2026-10-09T16:06:51.384249+00:00, official rate from data/fx_rates.csv row 2026-10-09T16:11:09.341760+00:00"
+   "trace": "(0.313 / 0.310233 - 1) * 100; price from binance_p2p row 2026-10-09T17:06:37.157776+00:00, official rate from data/fx_rates.csv row 2026-10-09T17:10:46.813436+00:00"
   },
   {
    "family": "country",
@@ -92,12 +92,12 @@
     "data/p2p_offers.csv"
    ],
    "id": "country:VND",
-   "mismatch": -0.0174,
+   "mismatch": -0.0135,
    "note": "",
    "passed": false,
-   "published": 0.9282,
-   "rederived": 0.9456,
-   "trace": "(26113.0 / 25868.38327 - 1) * 100; price from binance_p2p row 2026-10-09T16:06:51.384249+00:00, official rate from data/fx_rates.csv row 2026-10-09T16:11:09.341760+00:00"
+   "published": 0.9534,
+   "rederived": 0.9669,
+   "trace": "(26118.5 / 25868.38327 - 1) * 100; price from binance_p2p row 2026-10-09T17:06:37.157776+00:00, official rate from data/fx_rates.csv row 2026-10-09T17:10:46.813436+00:00"
   },
   {
    "family": "country",
@@ -108,12 +108,12 @@
     "data/p2p_offers.csv"
    ],
    "id": "country:MAD",
-   "mismatch": 0.0755,
+   "mismatch": 0.0503,
    "note": "",
    "passed": false,
-   "published": 3.0207,
+   "published": 2.9955,
    "rederived": 2.9452,
-   "trace": "(10.23 / 9.937326 - 1) * 100; price from binance_p2p row 2026-10-09T16:06:51.384249+00:00, official rate from data/fx_rates.csv row 2026-10-09T16:11:09.341760+00:00"
+   "trace": "(10.23 / 9.937326 - 1) * 100; price from binance_p2p row 2026-10-09T17:06:37.157776+00:00, official rate from data/fx_rates.csv row 2026-10-09T17:10:46.813436+00:00"
   }
  ],
  "families_not_yet_audited": [],
@@ -121,81 +121,81 @@
  "passes": [
   {
    "family": "corridor",
-   "id": "corridor:USD-MXN_25000_2026-10-09T16:taker",
-   "published": -92.0,
-   "rederived": -92.0
+   "id": "corridor:USD-MXN_25000_2026-10-09T17:taker",
+   "published": -105.45,
+   "rederived": -105.45
   },
   {
    "family": "corridor",
-   "id": "corridor:USD-NGN_25000_2026-10-09T16:taker",
-   "published": -133.14,
-   "rederived": -133.14
+   "id": "corridor:USD-NGN_25000_2026-10-09T17:taker",
+   "published": -54.16,
+   "rederived": -54.16
   },
   {
    "family": "corridor",
-   "id": "corridor:NZD-PHP_5000_2026-10-09T16:maker",
-   "published": 144.43,
-   "rederived": 144.43
+   "id": "corridor:NZD-PHP_5000_2026-10-09T17:maker",
+   "published": 144.82,
+   "rederived": 144.82
   },
   {
    "family": "corridor",
-   "id": "corridor:SGD-INR_5000_2026-10-09T16:taker",
-   "published": -95.95,
-   "rederived": -95.95
+   "id": "corridor:SGD-INR_5000_2026-10-09T17:taker",
+   "published": -126.94,
+   "rederived": -126.94
   },
   {
    "family": "corridor",
-   "id": "corridor:AUD-PHP_5000_2026-10-09T16:maker",
-   "published": 109.75,
-   "rederived": 109.75
+   "id": "corridor:AUD-PHP_5000_2026-10-09T17:maker",
+   "published": 99.38,
+   "rederived": 99.38
   },
   {
    "family": "corridor",
-   "id": "corridor:USD-MXN_5000_2026-10-09T16:maker",
-   "published": -110.92,
-   "rederived": -110.92
+   "id": "corridor:USD-MXN_5000_2026-10-09T17:maker",
+   "published": -124.32,
+   "rederived": -124.32
   },
   {
    "family": "corridor",
-   "id": "corridor:USD-MXN_200_2026-10-09T16:maker",
-   "published": -110.93,
-   "rederived": -110.94
+   "id": "corridor:USD-MXN_200_2026-10-09T17:maker",
+   "published": -124.32,
+   "rederived": -124.34
   },
   {
    "family": "corridor",
-   "id": "corridor:NZD-PHP_200_2026-10-09T16:taker",
-   "published": 490.41,
-   "rederived": 490.42
+   "id": "corridor:NZD-PHP_200_2026-10-09T17:taker",
+   "published": 490.8,
+   "rederived": 490.8
   },
   {
    "family": "corridor",
-   "id": "corridor:USD-NGN_25000_2026-10-09T16:maker",
-   "published": -144.78,
-   "rederived": -144.78
+   "id": "corridor:USD-NGN_25000_2026-10-09T17:maker",
+   "published": -65.72,
+   "rederived": -65.72
   },
   {
    "family": "country",
-   "id": "country:PHP",
-   "published": -0.3493,
-   "rederived": -0.3493
-  },
-  {
-   "family": "country",
-   "id": "country:TRY",
-   "published": -0.1395,
-   "rederived": -0.1395
+   "id": "country:TND",
+   "published": 16.0747,
+   "rederived": 16.0747
   },
   {
    "family": "country",
    "id": "country:LAK",
-   "published": 2.3981,
-   "rederived": 2.3981
+   "published": 2.8021,
+   "rederived": 2.8021
+  },
+  {
+   "family": "country",
+   "id": "country:UGX",
+   "published": 2.2423,
+   "rederived": 2.2423
   },
   {
    "family": "country",
    "id": "country:ZMW",
-   "published": 4.2994,
-   "rederived": 4.2994
+   "published": 4.2741,
+   "rederived": 4.2741
   },
   {
    "family": "pricechange",
@@ -253,37 +253,37 @@
   },
   {
    "family": "provider_delivery",
-   "id": "provider_delivery:USD->MXN:Wise:2026-10-09T15:09:05.704830+00:00",
-   "published": "in 2 hours",
-   "rederived": "in 2 hours"
+   "id": "provider_delivery:USD->MXN:Wise:2026-10-09T08:09:00.544599+00:00",
+   "published": "in 7 hours",
+   "rederived": "in 7 hours"
   },
   {
    "family": "provider_delivery",
-   "id": "provider_delivery:SGD->INR:Wise:2026-10-06T02:08:59.296994+00:00",
+   "id": "provider_delivery:SGD->INR:Wise:2026-10-05T19:09:09.329502+00:00",
    "published": "in seconds",
    "rederived": "in seconds"
   },
   {
    "family": "provider_delivery",
-   "id": "provider_delivery:NZD->PHP:WorldRemit:2026-10-04T13:08:54.606170+00:00",
+   "id": "provider_delivery:NZD->PHP:WorldRemit:2026-10-04T10:08:59.064157+00:00",
    "published": "Same day",
    "rederived": "Same day"
   },
   {
    "family": "provider_delivery",
-   "id": "provider_delivery:USD->MXN:Wise:2026-10-06T17:09:16.712703+00:00",
-   "published": "in 2 hours",
-   "rederived": "in 2 hours"
+   "id": "provider_delivery:USD->MXN:Wise:2026-10-06T09:09:06.143860+00:00",
+   "published": "in 6 hours",
+   "rederived": "in 6 hours"
   },
   {
    "family": "provider_delivery",
-   "id": "provider_delivery:USD->MXN:WorldRemit:2026-10-07T18:09:08.984500+00:00",
+   "id": "provider_delivery:USD->MXN:WorldRemit:2026-10-07T09:09:37.765526+00:00",
    "published": "Same day",
    "rederived": "Same day"
   },
   {
    "family": "provider_delivery",
-   "id": "provider_delivery:USD->MXN:Wise:2026-10-04T07:09:21.583579+00:00",
+   "id": "provider_delivery:USD->MXN:Wise:2026-10-04T00:08:56.182908+00:00",
    "published": "by Monday",
    "rederived": "by Monday"
   },
@@ -295,69 +295,69 @@
   },
   {
    "family": "provider_delivery",
-   "id": "provider_delivery:USD->INR:Wise:2026-10-06T17:09:16.712703+00:00",
-   "published": "in 2 hours",
-   "rederived": "in 2 hours"
+   "id": "provider_delivery:USD->INR:Wise:2026-10-06T10:09:33.944270+00:00",
+   "published": "in 5 hours",
+   "rederived": "in 5 hours"
   },
   {
    "family": "provider_delivery",
-   "id": "provider_delivery:NZD->PHP:Wise:2026-10-06T21:09:06.732281+00:00",
-   "published": "in 3 hours",
-   "rederived": "in 3 hours"
+   "id": "provider_delivery:NZD->PHP:Wise:2026-10-06T19:08:59.741201+00:00",
+   "published": "in 5 hours",
+   "rederived": "in 5 hours"
   },
   {
    "family": "provider_ranking",
-   "id": "provider_ranking:AUD-PHP_200_2026-10-09T16:HSBC Australia",
-   "published": 2.1178,
-   "rederived": 2.1178
+   "id": "provider_ranking:AUD-PHP_200_2026-10-09T17:HSBC Australia",
+   "published": 2.1475,
+   "rederived": 2.1475
   },
   {
    "family": "provider_ranking",
-   "id": "provider_ranking:SGD-PHP_50000_2026-10-09T16:Western Union",
-   "published": 0.8054,
-   "rederived": 0.8054
+   "id": "provider_ranking:SGD-PHP_50000_2026-10-09T17:Western Union",
+   "published": 0.7985,
+   "rederived": 0.7985
   },
   {
    "family": "provider_ranking",
-   "id": "provider_ranking:AUD-PHP_5000_2026-10-09T16:ANZ",
-   "published": 3.9966,
-   "rederived": 3.9966
+   "id": "provider_ranking:AUD-PHP_5000_2026-10-09T17:ANZ",
+   "published": 4.0258,
+   "rederived": 4.0258
   },
   {
    "family": "provider_ranking",
-   "id": "provider_ranking:USD-MXN_5000_2026-10-09T16:Western Union",
-   "published": 0.6695,
-   "rederived": 0.6695
+   "id": "provider_ranking:USD-MXN_5000_2026-10-09T17:Western Union",
+   "published": 0.3995,
+   "rederived": 0.3995
   },
   {
    "family": "provider_ranking",
-   "id": "provider_ranking:USD-MXN_200_2026-10-09T16:Remitly",
-   "published": 2.7802,
-   "rederived": 2.7802
+   "id": "provider_ranking:USD-MXN_200_2026-10-09T17:Remitly",
+   "published": 2.3125,
+   "rederived": 2.3125
   },
   {
    "family": "provider_ranking",
-   "id": "provider_ranking:AUD-PHP_25000_2026-10-09T16:ANZ",
-   "published": 3.9966,
-   "rederived": 3.9966
+   "id": "provider_ranking:AUD-PHP_25000_2026-10-09T17:ANZ",
+   "published": 4.0258,
+   "rederived": 4.0258
   },
   {
    "family": "provider_ranking",
-   "id": "provider_ranking:AUD-PHP_5000_2026-10-09T16:Wise",
-   "published": 0.4976,
-   "rederived": 0.4976
+   "id": "provider_ranking:AUD-PHP_5000_2026-10-09T17:Wise",
+   "published": 0.5264,
+   "rederived": 0.5264
   },
   {
    "family": "provider_ranking",
-   "id": "provider_ranking:SGD-INR_200_2026-10-09T16:Wise",
-   "published": 0.8151,
-   "rederived": 0.8151
+   "id": "provider_ranking:SGD-INR_200_2026-10-09T17:Wise",
+   "published": 0.8009,
+   "rederived": 0.8009
   },
   {
    "family": "provider_ranking",
-   "id": "provider_ranking:SGD-PHP_25000_2026-10-09T16:Western Union",
-   "published": 0.8113,
-   "rederived": 0.8113
+   "id": "provider_ranking:SGD-PHP_25000_2026-10-09T17:Western Union",
+   "published": 0.8044,
+   "rederived": 0.8044
   },
   {
    "family": "variant",
@@ -374,24 +374,24 @@
   {
    "family": "variant",
    "id": "variant:SGD->INR:USDC:Ethereum:200",
-   "published": 589.18,
-   "rederived": 589.18
+   "published": 592.7,
+   "rederived": 592.71
   },
   {
    "family": "variant",
    "id": "variant:SGD->INR:USDC:Ethereum:1000",
-   "published": 368.96,
-   "rederived": 368.96
+   "published": 369.38,
+   "rederived": 369.38
   },
   {
    "family": "variant",
    "id": "variant:SGD->INR:USDC:Ethereum:5000",
-   "published": 7834.13,
-   "rederived": 7834.13
+   "published": 7834.17,
+   "rederived": 7834.17
   }
  ],
- "population": 3037,
- "sample_ts": "2026-10-09T16:06:24.567361+00:00",
+ "population": 3048,
+ "sample_ts": "2026-10-09T17:06:11.533118+00:00",
  "score_pct": 90.0,
  "seed": "2026-10-09"
 }
