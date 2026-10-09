@@ -27,6 +27,7 @@ import json
 import os
 import re
 import sys
+import time
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASELINE = os.path.join(HERE, "tools", "design_baseline.json")
@@ -104,6 +105,18 @@ STYLE_PROBE = r"""
 """
 
 
+# The record chart (js/record_block.js, css/record_block.css) on the two pages that draw it: a missing style shows as a solid black area.
+RECORD_PAGES = ["index.html", "how-it-was-built.html"]
+RECORD_PROBE = r"""
+(function () {
+  var a = document.querySelector('.hp-area'), l = document.querySelector('.hp-line'), x = document.querySelector('.hp-axis');
+  if (!a || !l || !x) { return JSON.stringify({chart: 'missing'}); }
+  var ca = getComputedStyle(a), cl = getComputedStyle(l), cx = getComputedStyle(x);
+  return JSON.stringify({areaOpacity: ca.fillOpacity, lineFill: cl.fill, lineWidth: cl.strokeWidth, axis: cx.display});
+})()
+"""
+
+
 def style_check(perturb=False):
     sys.path.insert(0, os.path.join(HERE, "tools"))
     from gate_common import open_page, serve  # noqa: E402
@@ -119,10 +132,25 @@ def style_check(perturb=False):
                     if perturb and name.startswith("sources"):
                         page.eval_js("document.querySelector('h1').style.setProperty('font-size','30px','important');'ok'")
                     seen[(width, name)] = json.loads(page.eval_js(STYLE_PROBE) or "{}")
+                for name in RECORD_PAGES:
+                    page.visit(base + "/" + name)
+                    if perturb and name == "index.html":
+                        page.eval_js("document.querySelector('.hp-area').style.setProperty('fill-opacity','1');'ok'")
+                    got = json.loads(page.eval_js(RECORD_PROBE) or "{}")
+                    for _ in range(10):           # the chart draws after its data loads; a slow runner needs a few more seconds
+                        if got.get("chart") != "missing":
+                            break
+                        time.sleep(1.5)
+                        got = json.loads(page.eval_js(RECORD_PROBE) or "{}")
+                    seen[(width, "record:" + name)] = got
             page.clear_viewport()
     finally:
         stop()
     bad = []
+    want = {"areaOpacity": "0.14", "lineFill": "none", "lineWidth": "1.5px", "axis": "flex"}
+    for (width, name), got in sorted(seen.items(), key=lambda kv: str(kv[0])):
+        if name.startswith("record:") and got != want:
+            bad.append("%dpx %s: the record chart reads %r, expected %r" % (width, name[7:], got, want))
     for width in (1300, 390):
         std = seen[(width, STYLE_PAGES[0])]
         for name in STYLE_PAGES[1:]:
