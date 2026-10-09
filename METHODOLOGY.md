@@ -1127,7 +1127,7 @@ its own layer, not yet built.
 | KRW | Upbit, Bithumb, Coinone | yes, 3 |
 | TWD | BitoPro, MAX | yes, 2 |
 | INR | WazirX, CoinDCX | yes, 2 |
-| AUD | Independent Reserve | no — one only |
+| AUD | Independent Reserve, BTC Markets (added 2026-10-02, SEB-188) | yes, 2 |
 | NZD | Independent Reserve | no — one only |
 | BRL | Foxbit, Mercado Bitcoin (+ CriptoYa aggregate) | yes, 2 |
 | TRY | BTCTurk, Paribu | yes, 2 |
@@ -1154,7 +1154,8 @@ Pintu publishes a last price and no order book, so its `usdt_bid` and
 **APAC additions, 2026-09-10.** Taiwan and India each gained two independent
 order books, so both carry a median rather than one venue's opinion, and the two
 books agree closely on the first reading — Taiwan within 1.6 bps, India within
-0.6 bps. Australia and New Zealand have one book each and say so.
+0.6 bps. Australia and New Zealand had one book each and said so; Australia gained
+a second, BTC Markets, on 2026-10-02, so only New Zealand still has one.
 
 Called and rejected, with the reason: **Coinhako (SGD)** 403 behind Cloudflare,
 unchanged since 2026-09-02; **Luno (MYR)** answers `ErrMarketUnavailable` — it
