@@ -1,0 +1,110 @@
+{
+  "computation": {
+    "maker": {
+      "legs": null,
+      "legs_available": false,
+      "legs_note": "This site only breaks the market-order total into step-by-step legs. The limit-order total above is a real, separately computed number, just not decomposed the same way.",
+      "result_pct": 144.03,
+      "result_pct_meaning": "The limit-order total cost of the whole transfer, in hundredths of a percent of the amount sent. Matches data/samples.csv row's own cost_bps_maker for this exact sample."
+    },
+    "taker": {
+      "legs": {
+        "buy_bps": 94.38,
+        "deposit_bps": 0.0,
+        "legs_meaning": "The market-order total, split into the five real steps money moves through: getting the sending currency onto the first exchange, buying the stablecoin, sending it on its own network, selling the stablecoin, and getting the receiving currency into a bank account. These five numbers add up to result_pct exactly, to the cent, by construction -- not approximately.",
+        "move_bps": 2.05,
+        "sell_bps": 52.54,
+        "withdrawal_bps": -0.01
+      },
+      "legs_available": true,
+      "result_pct": 148.96,
+      "result_pct_meaning": "The market-order total cost of the whole transfer, in hundredths of a percent of the amount sent, every fee above already added in. Matches data/samples.csv row's own cost_bps_taker for this exact sample."
+    }
+  },
+  "corridor": "SGD->PHP",
+  "dst_ccy": "PHP",
+  "evidence": {
+    "book_detail": "aggregates_only",
+    "book_detail_meaning": "The individual order book levels this calculation actually walked through are not saved -- only the prices and the amount filled that they produced. Full order book detail is a separate, later item.",
+    "collected_at": "2026-10-09T15:05:52.988341+00:00",
+    "offramp": {
+      "average_price_received": 62.76,
+      "average_price_received_meaning": "The real average price received after selling through the order book at this amount, walking down from the best price.",
+      "filled": true,
+      "slippage_bps": 0.0,
+      "slippage_bps_meaning": "How much worse the average price received was than the best price on offer, in hundredths of a percent.",
+      "top_price": 62.76,
+      "top_price_meaning": "The best price on offer to sell the stablecoin when this hour's sample was taken.",
+      "venue": "Coins.ph",
+      "venue_display": "Coins.ph"
+    },
+    "onramp": {
+      "average_price_paid": 1.28676,
+      "average_price_paid_meaning": "The real average price paid after buying through the order book at this amount, walking down from the best price.",
+      "filled": true,
+      "slippage_bps": 0.0,
+      "slippage_bps_meaning": "How much worse the average price paid was than the best price on offer, in hundredths of a percent.",
+      "top_price": 1.28676,
+      "top_price_meaning": "The best price on offer to buy the stablecoin when this hour's sample was taken.",
+      "venue": "IndependentReserve",
+      "venue_display": "Independent Reserve"
+    }
+  },
+  "fees": {
+    "deposit": {
+      "meaning": "The bank fee for getting SGD onto Independent Reserve. Checked this hour and currently free.",
+      "method": "PayNow",
+      "source_url": "https://www.independentreserve.com/sg/fees",
+      "status": "priced",
+      "value_bps": 0.0,
+      "value_bps_meaning": "This leg's share of the total cost, in hundredths of a percent of the amount sent. Zero means either genuinely free or not priced -- see status.",
+      "venue": "IndependentReserve",
+      "venue_display": "Independent Reserve",
+      "verified": "2026-09-29"
+    },
+    "network": {
+      "value_stable": 4.0,
+      "value_stable_meaning": "The fee actually paid to move the stablecoin itself on its own network, in units of the stablecoin, at this amount.",
+      "venue": "IndependentReserve",
+      "venue_display": "Independent Reserve"
+    },
+    "offramp": {
+      "maker_bps": 10.0,
+      "maker_bps_meaning": "This exchange's fee for selling the stablecoin with a limit order.",
+      "taker_bps": 15.0,
+      "taker_bps_meaning": "This exchange's fee for selling the stablecoin with a market order.",
+      "venue": "Coins.ph",
+      "venue_display": "Coins.ph",
+      "verified": "2026-08-10"
+    },
+    "onramp": {
+      "maker_bps": 50.0,
+      "maker_bps_meaning": "This exchange's fee for buying the stablecoin with a limit order (set a price and wait for it to fill).",
+      "taker_bps": 50.0,
+      "taker_bps_meaning": "This exchange's fee for buying the stablecoin with a market order (take whatever price is on offer right now).",
+      "venue": "IndependentReserve",
+      "venue_display": "Independent Reserve",
+      "verified": "2026-08-10"
+    },
+    "withdrawal": {
+      "meaning": "The bank fee for getting PHP into a bank account. Checked this hour and currently free.",
+      "method": "PESONet",
+      "source_url": "https://support.coins.ph/hc/en-us/articles/201919230-What-fees-are-charged-on-cash-outs",
+      "status": "priced",
+      "value_bps": -0.01,
+      "value_bps_meaning": "This leg's share of the total cost, in hundredths of a percent of the amount sent. Zero means either genuinely free or not priced -- see status.",
+      "venue": "Coins.ph",
+      "venue_display": "Coins.ph",
+      "verified": "2026-09-29"
+    }
+  },
+  "hour_utc": "2026-10-09T15",
+  "notional_src": "25000",
+  "source_files": [
+    "data/corridor_waterfall.csv",
+    "data/ramp_waterfall.csv",
+    "data/samples.csv"
+  ],
+  "src_ccy": "SGD",
+  "ts": "2026-10-09T15:05:52.988341+00:00"
+}
