@@ -30,6 +30,9 @@
   h1, h2 {margin: 0;}
   .hw-main .lede {margin: 0;}
   .hw-main .p { margin: 0; font-size: 15px; color: var(--color-neutral-700); max-width: 680px; }
+  .hw-main .lead-b { margin: 0; font-size: 17px; font-weight: 600; color: var(--color-ink); max-width: 680px; }
+  .hw-main .lead-b:empty { display: none; }
+  .hw-main .plain-list b { font-weight: 600; color: var(--color-ink); }
   .hw-main .plain-list { margin: 8px 0 0; padding: 0; list-style: none; font-size: 15px; color: var(--color-neutral-700); max-width: 680px; }
   .hw-main .plain-list:empty { display: none; }
   .hw-main .plain-list li { padding: 12px 0; border-top: 1px solid var(--color-neutral-300); }
@@ -61,11 +64,13 @@
   <main class="hw-main">
     <section class="hw-hero" id="hiwIntro">
       <h1 id="hiwH1"></h1>
+      <div class="lead-b" id="hiwIntroLead"></div>
       <div class="p" id="hiwIntroP"></div>
     </section>
 
     <section class="hiw-section" id="percentage">
       <h2 id="pctH2"></h2>
+      <div class="lead-b" id="pctLead"></div>
       <div class="p" id="pctBody"></div>
       <div class="p" id="pctZero"></div>
       <div class="p" id="pctOfficial"></div>
@@ -74,6 +79,7 @@
 
     <section class="hiw-section" id="price-source">
       <h2 id="fromH2"></h2>
+      <div class="lead-b" id="fromLead"></div>
       <div class="p" id="fromFirst"></div>
       <div class="p" id="fromThen"></div>
       <div class="p" id="fromNone"></div>
@@ -81,6 +87,7 @@
 
     <section class="hiw-section" id="sending-cost">
       <h2 id="costH2"></h2>
+      <div class="lead-b" id="costLead"></div>
       <div class="p" id="costBody"></div>
       <div class="p" id="costAmounts"></div>
     </section>
@@ -92,9 +99,9 @@
 
     <section class="hiw-section" id="check">
       <h2 id="checkH2"></h2>
+      <div class="lead-b" id="checkLead"></div>
       <div class="p" id="checkBody"></div>
       <div class="p" id="checkSources"></div>
-      <div class="p" id="checkCode"></div>
     </section>
   </main>
 </div>
@@ -155,26 +162,35 @@ Promise.all([getJson('./copy.json'), getJson('./data/index_latest.json'), getJso
   if (five && row && row.cost_pct >= 0) { vals.amount = five.amount_words; vals.cost = row.costs; vals.app = row.provider; }
 
   setText('hiwH1', H.h1 || '');
-  setText('hiwIntroP', fillCopy(H.intro, vals));
+  setText('hiwIntroLead', fillCopy(H.introLead, vals));
+  setText('hiwIntroP', H.introRest || '');
   setText('pctH2', H.pctTitle || '');
+  setText('pctLead', fillCopy(H.pctLead, vals));
   setText('pctBody', fillCopy(H.pctBody, vals));
   setText('pctZero', H.pctZero || '');
   setText('pctOfficial', H.pctOfficial || '');
   setText('pctStable', H.pctStable || '');
   setText('fromH2', H.fromTitle || '');
+  setText('fromLead', H.fromLead || '');
   setText('fromFirst', fillCopy(H.fromFirst, vals));
   setText('fromThen', fillCopy(H.fromThen, vals));
   setText('fromNone', H.fromNone || '');
   setText('costH2', H.costTitle || '');
+  setText('costLead', H.costLead || '');
   setText('costBody', fillCopy(H.costBody, vals));
   setText('costAmounts', fillCopy(H.costAmounts, vals));
   setText('notMeasuredH2', H.leaveOutTitle || '');
   var list = document.getElementById('notMeasuredList');
-  (H.notMeasured || []).forEach(function(t){ var li = document.createElement('li'); li.textContent = t; list.appendChild(li); });
+  (H.notMeasured || []).forEach(function(t, i){
+    var li = document.createElement('li'), label = (H.notMeasuredLabels || [])[i];
+    if (label) { var b = document.createElement('b'); b.textContent = label; li.appendChild(b); li.appendChild(document.createTextNode(' ')); }
+    li.appendChild(document.createTextNode(t));
+    list.appendChild(li);
+  });
   setText('checkH2', H.checkTitle || '');
+  setText('checkLead', H.checkLead || '');
   setText('checkBody', H.checkBody || '');
   setLink('checkSources', H.checkSources, H.checkSourcesLink, './sources.html');
-  setLink('checkCode', H.checkCode, H.checkCodeLink, 'https://github.com/SebR214/margin');
 });
 </script>
 

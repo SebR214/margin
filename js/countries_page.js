@@ -288,15 +288,6 @@
     if (np.childNodes.length) { wrap.appendChild(np); }
   }
 
-  /* ---------------------------------------------------------------- footer */
-  function footer(wrap) {
-    if (!has(C, 'footerLink')) { return; }
-    var f = el('div', 'ci-foot');
-    var a = put(f, 'a', null, t('footerLink'));
-    if (a) { a.href = 'https://github.com/SebR214/margin'; }
-    if (f.childNodes.length) { wrap.appendChild(f); }
-  }
-
   /* ---------------------------------------------------------------- filter */
   function apply() {
     [].forEach.call(document.querySelectorAll('.ci-row'), function (r) {
@@ -368,7 +359,6 @@
     keyRow(wrap, ctx);
     bandsSection(wrap, ctx);
     noPriceSection(wrap, ctx);
-    footer(wrap);
     app.innerHTML = '';
     app.appendChild(wrap);
     apply();

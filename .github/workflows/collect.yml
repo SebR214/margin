@@ -398,6 +398,15 @@ jobs:
             python3 tools/emit_$t.py || echo "emit_$t failed"
           done
 
+      - name: Emit recent commits
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # The agents list on how-it-was-built.html. The browser used to ask api.github.com itself, without
+        # logging in, and was refused (403). This asks with the run's own token and stores the answer.
+        # See the docstring in tools/emit_commits.py. A failure leaves the stored file as it was.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 tools/emit_commits.py || echo "emit_commits failed"
+
       - name: Emit street depth
         if: always() && steps.needed.outputs.proceed == 'true'
         # How much volume a country's premium holds before the price would
@@ -606,7 +615,7 @@ jobs:
                    data/routes_summary.json data/routes_breakdown.json \
                    data/routes_whatif.json data/heatmap_daily.json \
                    data/record_daily.json data/cycle_log.json \
-                   data/record_milestones.json data/movers_week.json data/stable_venues.csv \
+                   data/record_milestones.json data/movers_week.json data/stable_venues.csv data/commits_recent.json \
                    data/sources_daily.json data/findings.json \
                    data/findings_hours_price_changes.csv \
                    data/findings_hours_weekend_penalty.csv \

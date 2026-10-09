@@ -417,8 +417,12 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
           .then(function(mf){ drawCollected(m.research, mf); });
       })
       .catch(function(){});
-    fetch('https://api.github.com/repos/SebR214/margin/commits?per_page=60', {headers:{'Accept':'application/vnd.github+json'}})
-      .then(function(r){ return r.ok ? r.json() : []; }).then(seedAgents).catch(function(){});
+    // the commit list is built each hour into data/commits_recent.json (tools/emit_commits.py); the browser no longer asks GitHub itself
+    fetch('./data/commits_recent.json', {cache:'no-store'})
+      .then(function(r){ return r.ok ? r.json() : {commits: []}; })
+      .then(function(d){
+        return (d.commits || []).map(function(c){ return {html_url: c.html_url, commit: {message: c.message, author: {email: c.email, date: c.date}}}; });
+      }).then(seedAgents).catch(function(){});
 
     // Render the record block section
     renderRecordBlockSection();

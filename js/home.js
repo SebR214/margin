@@ -89,9 +89,10 @@
       '<p class="key">' + BUCKETS.map(function (b) { return '<span><i class="' + b[2] + '"></i>' + esc(T(b[3], b[4])) + '</span>'; }).join('') + '<span><i class="b-none"></i>' + esc(T('legendNone')) + '</span></p>' +
       '<div class="hax"><span></span><div class="ax num">' + ax + '</div><span class="axh">' + esc(T('dayToday')) + '</span></div>' +
       rows.map(function (c) { return row(c); }).join('') +
-      '<div class="pills hb">' + (showAll ? '' : '<button class="pill" type="button" id="all">' + esc(T('heatShowAll', { n: D.ranked.length })) + '</button>') +
-      (early ? '' : '<button class="pill" type="button" id="early">' + esc(T('heatEarlier')) + '</button>') + '</div>' +
+      // the unranked country closes the full list as a grey row, so "Show all" counts every country tracked
       (showAll ? D.unranked.map(function (c) { return row(c, ' frozen'); }).join('') : '') +
+      '<div class="pills hb">' + (showAll ? '' : '<button class="pill" type="button" id="all">' + esc(T('heatShowAll', { n: D.cur.length })) + '</button>') +
+      (early ? '' : '<button class="pill" type="button" id="early">' + esc(T('heatEarlier')) + '</button>') + '</div>' +
       D.unranked.map(function (c) { return '<p class="note sm">' + esc(T('unrankedNote', { country: c.country, ccy: c.ccy })) + '</p>'; }).join('');
   }
 
