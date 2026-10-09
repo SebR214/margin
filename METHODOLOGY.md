@@ -453,7 +453,7 @@ would be inventing its own past.
 ### What a version bump means
 
 Every published file carries `index_version`. **Version 1.2 is in force from
-2026-10-09** (second person-to-person board, below). Version 1.1 ran from
+2026-10-09** (a second person-to-person board and Luno for Nigeria, below). Version 1.1 ran from
 2026-09-10; v1.0 was superseded that day by the evidence rule below, after
 a verification sprint found that ten P2P boards were crossed. It is incremented when **any
 change alters what a published number means**, specifically:
@@ -479,58 +479,89 @@ That is also why collection went wide to 53 currencies before this definition
 was settled: a raw row not captured in a given hour is gone permanently, while a
 definition can be changed and applied backwards at any time.
 
-### A second person-to-person board (v1.2, 2026-10-09)
+### A second person-to-person board and Luno for Nigeria (v1.2, 2026-10-09)
 
-Where a country is priced from person-to-person ads (class `p2p_buy_median`) and
-OKX's own board (`data/p2p_okx.csv`, written by `collector_p2p_okx.py` with the
-same USD 500 ticket and the same top-of-book median) also has a price **in the same
-hour**, the published buy price is the **median of the two boards' medians**. Both
-boards are listed in the country's `venues` and the file carries `n_boards: 2`
-(`1` where only Binance qualifies). OKX has to meet the same evidence bar in its own
-row: `source_ok` true and at least 10 ads (`MIN_BUY_ADS`). Where OKX does not
-qualify, or the Binance board fails the v1.1 evidence rule, nothing changes: a
-country that is withheld stays withheld, and the CoinGecko stand-in
-(`p2p_fallback`) is not blended with OKX. `n_sources` keeps its meaning (the
-buy-side ads behind the Binance board). Order-book and broker countries are not
-touched. `p2p_basis.csv`, `p2p_okx.csv` and every CSV header are unchanged.
+Two additions of a second source behind a published price, made together as one
+version bump. Both are venue-set changes that move numbers, so both are listed here
+with the countries they move.
 
-Why this bumps the version: it adds a venue to the set behind a country and
-moves the number. Applied to the stored rows of 2026-10-09 05:00 UTC, 27
-countries change:
+**1. OKX's person-to-person board (SEB-256).** Where a country is priced from
+person-to-person ads (class `p2p_buy_median`) and OKX's own board
+(`data/p2p_okx.csv`, same USD 500 ticket and the same top-of-book median, written by
+`collector_p2p_okx.py`) also has a price in the same hour, the published buy price is
+the **median of the two boards' medians**, but only when all of these hold:
 
-| Country | v1.1 | v1.2 |
-|---|---|---|
-| AMD | -0.0% | +2.2% |
-| AZN | +0.1% | +1.3% |
-| BOB | -0.2% | +0.5% |
-| CLP | +0.7% | +1.2% |
-| COP | -0.4% | -0.1% |
-| GEL | +0.1% | +0.5% |
-| IQD | +18.8% | +18.8% |
-| JOD | +1.2% | +0.8% |
-| KES | +0.0% | +0.7% |
-| KHR | +2.4% | +2.8% |
-| KWD | +1.1% | +1.5% |
-| KZT | +8.2% | +7.7% |
-| LAK | +2.6% | +4.2% |
-| LBP | +0.5% | +2.2% |
-| LKR | +3.0% | +7.2% |
-| MAD | +3.3% | +3.5% |
-| PEN | +0.1% | +0.6% |
-| PKR | +2.9% | +3.2% |
-| QAR | +5.5% | +14.6% |
-| RWF | +0.4% | +1.0% |
-| SAR | +3.1% | +4.9% |
-| TND | +16.1% | +26.6% |
-| TZS | +1.4% | +2.9% |
-| UGX | +2.5% | +7.5% |
-| VND | +0.9% | +0.9% |
-| ZAR | +9.4% | +9.9% |
-| ZMW | +4.4% | +7.7% |
+- OKX's row has `source_ok` true and at least 10 ads (`MIN_BUY_ADS`), the bar the
+  Binance board already meets;
+- OKX's buy median is **within 3%** of Binance's (`SECOND_BOARD_MAX_GAP`). Further
+  apart, the boards are not combined, the country stays on Binance alone, and the OKX
+  price is kept in the country file under `second_board` with the reason;
+- OKX's buy price has **not stood still for 24 hours** (`unchanged_24h`: at least 20
+  hourly readings in the last 24 and all the same price). A live book does not stand
+  still for a day; a flat price is a stale ad.
 
-The two boards sometimes disagree widely (Tunisia: Binance +16.1%, OKX +37.1%), and
-the median of two is their midpoint, so a wide gap moves the figure a long way. Both
-prices stay visible on the country page.
+The file carries `n_boards` (2 where combined, otherwise 1). `n_sources` keeps meaning
+the buy-side ads behind the Binance board. A country that fails the v1.1 evidence rule
+stays withheld, and the CoinGecko stand-in (`p2p_fallback`) is never blended with OKX.
+Order-book and broker countries are not touched.
+
+Why 3%: on the 2026-10-09 05:00 UTC rows the boards agreed within 1.5% in 16 countries
+and within 2.4% in a seventeenth, and every country where OKX sat further above Binance
+(Tunisia +18.2%, Qatar +17.2%, Uganda +9.6%, Sri Lanka +8.1%, Zambia +6.4%, and five
+more up to +3.1%) was one where OKX's buy side was thin or jumpy: Qatar's OKX buy
+price swung between 3.98 and 4.70 in a day with its sell side pinned at the 3.64 peg,
+and Tunisia's read 4.10 in every hourly row for 24 hours.
+
+**Countries whose number moves, computed on the 2026-10-09 05:00 UTC rows (17):** the two boards are combined.
+
+| Code | Country | v1.1 (Binance only) | v1.2 (median of two) | Move |
+|---|---|---|---|---|
+| AZN | Azerbaijan | +0.1% | +1.3% | +1.2 pt |
+| BOB | Bolivia | -0.2% | +0.5% | +0.7 pt |
+| CLP | Chile | +0.7% | +1.2% | +0.5 pt |
+| COP | Colombia | -0.4% | -0.1% | +0.2 pt |
+| GEL | Georgia | +0.1% | +0.5% | +0.4 pt |
+| IQD | Iraq | +18.8% | +18.8% | +0.1 pt |
+| JOD | Jordan | +1.2% | +0.8% | -0.4 pt |
+| KES | Kenya | +0.0% | +0.7% | +0.7 pt |
+| KHR | Cambodia | +2.4% | +2.8% | +0.4 pt |
+| KWD | Kuwait | +1.1% | +1.5% | +0.5 pt |
+| KZT | Kazakhstan | +8.2% | +7.7% | -0.4 pt |
+| MAD | Morocco | +3.3% | +3.5% | +0.1 pt |
+| PEN | Peru | +0.1% | +0.6% | +0.5 pt |
+| PKR | Pakistan | +2.9% | +3.2% | +0.3 pt |
+| RWF | Rwanda | +0.4% | +1.0% | +0.6 pt |
+| VND | Vietnam | +0.9% | +0.9% | +0.0 pt |
+| ZAR | South Africa | +9.4% | +9.9% | +0.5 pt |
+
+**Countries where OKX has a price but is not combined (10), so their number does not
+change:**
+
+| Code | Country | Published (Binance only) | Why OKX is left out |
+|---|---|---|---|
+| AMD | Armenia | -0.0% | more than 3% from the first board (OKX 377.75 against Binance 361.47) |
+| LAK | Laos | +2.6% | more than 3% from the first board (OKX 23601 against Binance 22849.5) |
+| LBP | Lebanon | +0.5% | more than 3% from the first board (OKX 93000 against Binance 89960) |
+| LKR | Sri Lanka | +3.0% | more than 3% from the first board (OKX 368 against Binance 340.38) |
+| QAR | Qatar | +5.5% | more than 3% from the first board (OKX 4.5 against Binance 3.8395) |
+| SAR | Saudi Arabia | +3.1% | more than 3% from the first board (OKX 4 against Binance 3.865) |
+| TND | Tunisia | +16.1% | its price has not changed for 24 hours (OKX 4.1 against Binance 3.47) |
+| TZS | Tanzania | +1.4% | more than 3% from the first board (OKX 2734.97 against Binance 2653.9) |
+| UGX | Uganda | +2.5% | more than 3% from the first board (OKX 4475 against Binance 4081.39) |
+| ZMW | Zambia | +4.4% | more than 3% from the first board (OKX 21.935 against Binance 20.615) |
+
+**2. Luno's own NGN book (SEB-254).** `collector_basis.py` now reads Luno's public
+USDT/NGN ticker (`api.luno.com/api/1/ticker?pair=USDTNGN`, a real two-sided book). Order
+books come before person-to-person prices in the class precedence, so once Luno rows
+exist Nigeria moves from the CoinGecko stand-in (class `p2p_fallback`, -0.2% on the
+2026-10-09 05:00 UTC row) to Luno's book (class `order_book_single`, about +2.3% on the
+live quote of the same day, bid 1,361.10 and ask 1,362.00 against an official 1,331.01). That is
+the one country this part moves. Luno gets the same standing-still check: if its price has
+not changed for 24 hours it is left out of that hour and Nigeria falls back to the
+stand-in. Its first rows arrive with the next hourly collection after this version
+ships; the figure above is what the live quote implies, not a stored published number.
+
+`p2p_basis.csv`, `p2p_okx.csv`, `basis.csv` and every CSV header are unchanged.
 
 ### The evidence rule (v1.1)
 

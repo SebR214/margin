@@ -35,6 +35,18 @@ import sys
 
 INDEX_VERSION = "1.2"
 
+# v1.2: a second source is used only when it looks alive and agrees with the first.
+SECOND_BOARD_MAX_GAP = 0.03     # OKX's buy median must be within 3% of Binance's to be combined with it
+STALE_HOURS = 24                # a second source whose price has not changed for this many hours is ignored
+STALE_MIN_ROWS = 20             # ...judged only when it has at least this many hourly readings in the window
+
+
+def unchanged_24h(series, hour):
+    """True when `series` ({hour: price}) holds at least STALE_MIN_ROWS readings in the STALE_HOURS up to and
+    including `hour` and every one of them is the same price: a live book does not stand still for a day."""
+    window = [series[h] for h in (hour - dt.timedelta(hours=k) for k in range(STALE_HOURS)) if h in series]
+    return len(window) >= STALE_MIN_ROWS and len(set(window)) == 1
+
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
 BASIS = os.path.join(DATA, "basis.csv")
@@ -526,13 +538,23 @@ def latest_by_ccy():
 
     # SEB-256: OKX's own person-to-person board, a second independent source for the same ticket (v1.2).
     okx_hours = collections.defaultdict(dict)
+    okx_series = collections.defaultdict(dict)       # every reading, for the 24-hour standing-still check
     for r in rows(P2P_OKX):
         ccy, t = r.get("ccy"), parse_ts(r.get("ts_utc"))
         if not ccy or t is None or not flag(r, "source_ok") or num(r, "buy_median") is None:
             continue
+        okx_series[ccy][t.replace(minute=0, second=0, microsecond=0)] = num(r, "buy_median")
         if (num(r, "n_ads") or 0) < MIN_BUY_ADS:
             continue          # the same evidence bar the Binance board has to meet
         okx_hours[ccy].setdefault(t.replace(minute=0, second=0, microsecond=0), []).append(r)
+
+    # SEB-254: Luno's own NGN book gets the same standing-still check.
+    luno_series = collections.defaultdict(dict)
+    for r in rows(BASIS):
+        if (r.get("venue") or "") == "Luno" and flag(r, "source_ok") and buy_price(r)[0] is not None:
+            t = parse_ts(r.get("ts_utc"))
+            if t is not None:
+                luno_series[r.get("ccy")][t.replace(minute=0, second=0, microsecond=0)] = buy_price(r)[0]
 
     sides = buy_side_counts()
     book = fx_book()
@@ -550,7 +572,8 @@ def latest_by_ccy():
         # regenerates a byte-identical file (see ROADMAP, "nothing staged").
         entry["computed_at"] = entry["hour_utc"]
 
-        venues = [_venue_entry(r) for r in bh.get(hour, [])]
+        venues = [_venue_entry(r) for r in bh.get(hour, [])
+                  if not ((r.get("venue") or "") == "Luno" and unchanged_24h(luno_series.get(ccy, {}), hour))]
         books = [v for v in venues if v["kind"] == "order_book"]
         brokers = [v for v in venues if v["kind"] == "broker"]
         row_fx = None
@@ -627,14 +650,21 @@ def latest_by_ccy():
                 # median of the two boards' medians, and both boards are listed. n_sources keeps meaning the buy-side
                 # ads behind the Binance board; n_boards says how many boards stand behind the price.
                 okr = (okx_hours.get(ccy, {}).get(hour) or [None])[0]
+                entry["n_boards"] = 1
                 if okr is not None:
                     okx_price = num(okr, "buy_median")
-                    both = statistics.median([price, okx_price])
-                    entry["venues"].append({"venue": okr.get("source"), "buy_price": okx_price,
-                                            "index_pct": index_pct(okx_price, fx), "last_price_used": False})
-                    entry.update(buy_price=round(both, 8), index_pct=index_pct(both, fx), n_boards=2)
-                else:
-                    entry["n_boards"] = 1
+                    gap = abs(okx_price / price - 1)
+                    if unchanged_24h(okx_series.get(ccy, {}), hour):
+                        entry["second_board"] = {"venue": okr.get("source"), "buy_price": okx_price, "combined": False,
+                                                 "why": "its price has not changed for 24 hours"}
+                    elif gap > SECOND_BOARD_MAX_GAP:
+                        entry["second_board"] = {"venue": okr.get("source"), "buy_price": okx_price, "combined": False,
+                                                 "why": "more than 3% from the first board"}
+                    else:
+                        both = statistics.median([price, okx_price])
+                        entry["venues"].append({"venue": okr.get("source"), "buy_price": okx_price,
+                                                "index_pct": index_pct(okx_price, fx), "last_price_used": False})
+                        entry.update(buy_price=round(both, 8), index_pct=index_pct(both, fx), n_boards=2)
             else:
                 # A second, independent row for this hour (SEB-8: today only
                 # NGN's collector ever writes one, on the hours its own board
