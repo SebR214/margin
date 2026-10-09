@@ -27,6 +27,7 @@ import json
 import os
 import re
 import sys
+import time
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASELINE = os.path.join(HERE, "tools", "design_baseline.json")
@@ -135,7 +136,13 @@ def style_check(perturb=False):
                     page.visit(base + "/" + name)
                     if perturb and name == "index.html":
                         page.eval_js("document.querySelector('.hp-area').style.setProperty('fill-opacity','1');'ok'")
-                    seen[(width, "record:" + name)] = json.loads(page.eval_js(RECORD_PROBE) or "{}")
+                    got = json.loads(page.eval_js(RECORD_PROBE) or "{}")
+                    for _ in range(10):           # the chart draws after its data loads; a slow runner needs a few more seconds
+                        if got.get("chart") != "missing":
+                            break
+                        time.sleep(1.5)
+                        got = json.loads(page.eval_js(RECORD_PROBE) or "{}")
+                    seen[(width, "record:" + name)] = got
             page.clear_viewport()
     finally:
         stop()
