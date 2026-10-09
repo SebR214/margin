@@ -8,7 +8,7 @@
   tip.setAttribute('role', 'tooltip');
   var st = document.createElement('style');
   st.textContent = '.site-tip{position:fixed;z-index:50;max-width:min(320px,calc(100vw - 16px));padding:6px 10px;background:var(--color-bg,#fff);color:var(--color-ink,#201e1d);' +
-    'border:1px solid var(--color-neutral-300,#d7d3d3);border-radius:6px;font-size:13px;line-height:1.35;pointer-events:none;font-variant-numeric:tabular-nums}.site-tip[hidden]{display:none}';
+    'border:1px solid var(--color-neutral-300,#d7d3d3);border-radius:6px;font-size:13px;line-height:1.35;pointer-events:none;font-variant-numeric:tabular-nums;white-space:pre-line}.site-tip[hidden]{display:none}';
   function ready() { document.head.appendChild(st); document.body.appendChild(tip); }
   if (document.body) { ready(); } else { document.addEventListener('DOMContentLoaded', ready); }
 
@@ -22,9 +22,11 @@
   }
   function hide() { tip.hidden = true; }
   function target(e) { return e.target && e.target.closest ? e.target.closest('[data-tip]') : null; }
+  // a chart or a row of squares works out its own text: the document-level handler must not hide what they just showed
+  function zone(e) { return e.target && e.target.closest ? e.target.closest('.chart, .cells, [data-tipzone]') : null; }
 
-  document.addEventListener('pointermove', function (e) { var el = target(e); if (el) { show(el.getAttribute('data-tip'), e.clientX, e.clientY); } else if (e.pointerType !== 'touch') { hide(); } });
-  document.addEventListener('pointerdown', function (e) { var el = target(e); if (el) { show(el.getAttribute('data-tip'), e.clientX, e.clientY); } else { hide(); } });
+  document.addEventListener('pointermove', function (e) { var el = target(e); if (el) { show(el.getAttribute('data-tip'), e.clientX, e.clientY); } else if (e.pointerType !== 'touch' && !zone(e)) { hide(); } });
+  document.addEventListener('pointerdown', function (e) { var el = target(e); if (el) { show(el.getAttribute('data-tip'), e.clientX, e.clientY); } else if (!zone(e)) { hide(); } });
   document.addEventListener('scroll', hide, true);
   window.siteTip = { show: show, hide: hide };
 })();
