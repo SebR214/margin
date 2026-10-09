@@ -365,6 +365,16 @@ jobs:
         # only if it cannot write.
         run: python3 tools/emit_countries.py
 
+      - name: Emit the hourly published numbers and the source-switch log
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # data/index_hourly.csv keeps the number each country published this hour (append only), so a past hour's
+        # published number never has to be recomputed. data/source_switches.csv logs each hour a country's number
+        # started coming from a different class of source. Both are read by the exchange-versus-people finding and the
+        # country page. See the docstrings in tools/emit_index_hourly.py and tools/emit_source_switches.py.
+        run: |
+          python3 tools/emit_index_hourly.py
+          python3 tools/emit_source_switches.py
+
       - name: Emit heatmap
         if: always() && steps.needed.outputs.proceed == 'true'
         # Every currency by every day since the first reading, from the
@@ -615,7 +625,7 @@ jobs:
                    data/routes_summary.json data/routes_breakdown.json \
                    data/routes_whatif.json data/heatmap_daily.json \
                    data/record_daily.json data/cycle_log.json \
-                   data/record_milestones.json data/movers_week.json data/stable_venues.csv data/commits_recent.json \
+                   data/record_milestones.json data/movers_week.json data/stable_venues.csv data/commits_recent.json data/index_hourly.csv data/source_switches.csv data/findings_hours_exchange_vs_p2p.csv \
                    data/sources_daily.json data/findings.json \
                    data/findings_hours_price_changes.csv \
                    data/findings_hours_weekend_penalty.csv \

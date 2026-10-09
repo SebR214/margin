@@ -78,7 +78,8 @@
     var head = '<h2>' + esc(T('chartHeading')) + '</h2><p class="note">' + esc(T('chartNote')) + '</p><div class="pills">' +
       [['30', 'period30'], ['all', 'periodAll']].map(function (p) { return '<button class="pill" type="button" data-p="' + p[0] + '" aria-pressed="' + (period === p[0]) + '">' + esc(T(p[1])) + '</button>'; }).join('') + '</div>' +
       (hasBack && period === 'all' ? '<p class="key"><span><i class="ln"></i>' + esc(T('layerDaily')) + '</span><span><i class="ln dash"></i>' + esc(T('layerReported', { venue: venue })) + '</span></p>' : '');
-    $('chart').innerHTML = head + '<div class="chart" id="cv"><svg id="svg"></svg></div><p class="note" id="rec"></p>';
+    $('chart').innerHTML = head + '<div class="chart" id="cv"><svg id="svg"></svg></div><p class="note" id="rec"></p><p class="note" id="swl"></p>';
+    switchLine();
     var box = $('cv'), W = Math.max(320, box.clientWidth), H = W < 560 ? 240 : 300, L = 56, Tp = 10, B = 26, R = 8, pw = W - L - R, ph = H - Tp - B;
     var t = all.map(function (h) { return Date.parse(h.date); }), t0 = t[0], t1 = t[t.length - 1];
     function X(v) { return L + (t1 > t0 ? (v - t0) / (t1 - t0) : 0.5) * pw; }
@@ -123,6 +124,20 @@
     }
   }
 
+  // the kind of source behind a published number: order books, broker quotes, person-to-person ads, a stand-in
+  function family(cls) { return String(cls).replace(/_(median|single)$/, ''); }
+  // one grey line when the number started coming from a different kind of source in the last 30 days (data/source_switches.csv)
+  function switchLine() {
+    var el = $('swl'), rows = S.switches || [];
+    if (!el) { return; }
+    var now = Date.parse(S.c.hour_utc), hit = null;
+    rows.forEach(function (r) {
+      if (r.ccy === S.c.ccy && family(r.old_class) !== family(r.new_class) && now - Date.parse(r.hour_utc) <= 30 * 864e5 && now >= Date.parse(r.hour_utc)) { hit = r; }
+    });
+    el.textContent = hit && T('classNoun_' + hit.new_class) && T('classNoun_' + hit.old_class)
+      ? T('sourceSwitched', { date: dd(hit.hour_utc.slice(0, 10)), now: T('classNoun_' + hit.new_class), was: T('classNoun_' + hit.old_class) }) : '';
+  }
+
   function source() {
     if (S.withheld) { $('src').innerHTML = ''; return; }
     var vs = S.c.venues.slice().sort(function (a, b) { return a.index_pct - b.index_pct; });
@@ -165,6 +180,7 @@
     if (!res[1] || !res[2]) { return fail(ccy && !res[1] ? 'notFound' : 'loadFailed', { code: ccy }); }
     S.c = res[1]; S.withheld = (res[2].withheld || []).filter(function (w) { return w.ccy === ccy; })[0] || null;
     S.idx = res[3]; S.seg = res[4]; S.depth = res[5] && res[5].countries && res[5].countries[ccy] || null;
+    S.switches = res[6] || [];
     S.own = S.c.history.filter(function (h) { return !isBack(h); });
     document.title = 'margin.wiki: ' + S.c.country;
     hero(); chart(); source();
@@ -189,6 +205,10 @@
     ccy ? maybe('data/countries/' + ccy + '.json') : Promise.resolve(null),
     maybe('data/index_latest.json'),
     ccy ? maybe('data/country_readings/' + ccy + '/index.json') : Promise.resolve(null),
-    seg, maybe('data/street_depth_latest.json')
+    seg, maybe('data/street_depth_latest.json'),
+    fetch('data/source_switches.csv', { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
+      var l = t.trim().split(/\r?\n/), h = (l[0] || '').split(',');
+      return l.slice(1).map(function (x) { var p = x.split(','), o = {}; h.forEach(function (k, i) { o[k] = p[i]; }); return o; });
+    }).catch(function () { return []; })
   ]).then(start).catch(function () { fail('loadFailed'); });
 })();

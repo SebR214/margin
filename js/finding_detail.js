@@ -8,7 +8,7 @@
   var PLACE = { SGD: 'Singapore', AUD: 'Australia', NZD: 'New Zealand', USD: 'the United States' };
   var TO = { PHP: 'the Philippines', MXN: 'Mexico', INR: 'India', NGN: 'Nigeria' };
   var SYM = { SGD: 'S$', AUD: 'A$', NZD: 'NZ$', USD: 'US$' };
-  var ORDER = ['price_changes', 'weekend_penalty', 'volume_crossover', 'sgd_php_never_cheapest'];
+  var ORDER = ['price_changes', 'weekend_penalty', 'volume_crossover', 'sgd_php_never_cheapest', 'exchange_vs_p2p'];
   var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navHowItWorks', 'how-it-works.html']];
   var C = {}, FIN = {}, DATA = {}, AS_OF = '';
   var id = 'price_changes', route = 'ALL', side = 'taker';
@@ -22,7 +22,13 @@
   function sgd(v) { return (v < 0 ? MINUS : '') + 'S$' + Math.abs(v).toFixed(2); }
   function routeName(rid) { var p = rid.split('->'); return ((PLACE[p[0]] || p[0]) + ' to ' + (TO[p[1]] || p[1])).replace(/^the /, '').replace(/^./, function (c) { return c.toUpperCase(); }); }
   function approx(v) { return v >= 1e6 ? 'S$' + (v / 1e6).toFixed(1) + 'M' : 'S$' + g(v); }
-  function title(k) { var f = FIN[k]; return T('title_' + k, { approx: f ? approx(f.headline.value) : '' }); }
+  function title(k) { var f = FIN[k]; return T('title_' + k, { approx: f ? approx(f.headline.value) : '', n: f ? g(f.headline.value) : '' }); }
+  // the claim of the exchange-versus-people finding names the persistent country with the largest median gap
+  function claim(k) {
+    if (k !== 'exchange_vs_p2p') { return T('claim_' + k); }
+    var top = (FIN[k].evidence || []).filter(function (e) { return e.persists; })[0];
+    return top ? T('claim_' + k, { country: top.country, gap: top.median_gap_pts.toFixed(1), share: Math.round(top.share_gap_2pts * 100) + '%' }) : T('claimNone_' + k);
+  }
   function getJSON(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) { throw new Error(u); } return r.json(); }); }
   function getCSV(u) {
     return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) { throw new Error(u); } return r.text(); }).then(function (t) {
@@ -60,7 +66,7 @@
     $('fnav').innerHTML = '<a class="back" href="./findings.html">' + esc(T('indexTitle')) + '</a><div class="pills">' +
       ORDER.map(function (k, i) { return '<a class="pill num" href="?id=' + k + '"' + (k === id ? ' aria-current="page"' : '') + ' data-id="' + k + '">0' + (i + 1) + '</a>'; }).join('') + '</div>';
     var big = id === 'volume_crossover' ? 'S$' + g(f.headline.value) : g(f.headline.value);
-    $('hero').innerHTML = '<h1>' + esc(title(id)) + '</h1><p class="lead">' + esc(T('claim_' + id)) + '</p>' +
+    $('hero').innerHTML = '<h1>' + esc(title(id)) + '</h1><p class="lead">' + esc(claim(id)) + '</p>' +
       '<p class="numline"><b class="num">' + big + '</b><span>' + esc(T('unit_' + f.headline.unit)) + '</span></p>' +
       '<p class="stamp num">' + esc(T('lastRecheck')) + ' ' + esc(stampT(f.last_recheck_utc)) + ' ' + esc(T('utc')) + '</p>';
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
@@ -105,6 +111,13 @@
           sgd(e.cost_bps_at_floor / 2) + ' ' + L('cost_bps_at_floor') + ', ' + sgd(e.cost_bps_at_ceiling / 2) + ' ' + L('cost_bps_at_ceiling') + ', ' + e.fee_pct_at_crossover_ir + ' ' + L('fee_pct_at_crossover_ir') +
           ', ' + sgd(e.baseline_cost_bps_median / 2) + ' ' + L('baseline_cost_bps_median') + ', ' + g(e.n_samples) + ' ' + L('n_samples') + '.</span>' +
           '<span class="v num">S$' + g(e.monthly_volume_sgd) + '<small>' + L('monthly_volume_sgd') + '</small></span></div>';
+      }).join('');
+    } else if (id === 'exchange_vs_p2p') {
+      rows = f.evidence.map(function (e) {
+        return '<div class="r"><b>' + esc(e.country) + '</b><span class="m num">' + Math.round(e.share_gap_2pts * 100) + '% ' + L('share_gap_2pts') + ', ' + g(e.hours_checked) + ' ' + (e.hours_checked === 1 ? L('hour_checked') : L('hours_checked')) +
+          ', ' + L('since') + ' ' + dd(e.first_day) + ', ' + esc(e.exchanges.map(function (x) { return x.replace(/^(.*) \(.*\)$/, '$1'); }).filter(function (x, i, a) { return a.indexOf(x) === i; }).join(', ')) + ' ' + L('against') + ' ' + esc(e.boards.map(function (b) { return T('board_' + b); }).join(' ' + T('and') + ' ')) +
+          '. ' + (e.persists ? L('persists') : L('not_persist')) + '</span>' +
+          '<span class="v num">' + (e.median_gap_pts > 0 ? '+' : e.median_gap_pts < 0 ? MINUS : '') + Math.abs(e.median_gap_pts).toFixed(1) + '<small>' + L('median_gap_pts') + '</small></span></div>';
       }).join('');
     } else if (id === 'sgd_php_never_cheapest') {
       rows = f.evidence.map(function (e) {
@@ -160,6 +173,46 @@
       var k = Math.max(0, Math.min(n - 1, Math.floor((fx * W - F.L) / F.pw * n))), v = vals[k];
       cr.setAttribute('x1', X(k)); cr.setAttribute('x2', X(k)); cr.setAttribute('visibility', 'visible');
       return dd(days[k]) + ': ' + v[0] + ' ' + T('field_up') + ', ' + v[1] + ' ' + T('field_down') + (v[2].length ? '\n' + v[2].join(', ') : '');
+    });
+  };
+
+  CHARTS.exchange_vs_p2p = function () {
+    var rows = DATA.exchange_vs_p2p || [], ev = FIN.exchange_vs_p2p.evidence, names = {}, pers = {};
+    ev.forEach(function (e) { names[e.ccy] = e.country; pers[e.ccy] = e.persists; });
+    var byDay = {}, ccys = {};
+    rows.forEach(function (r) {
+      var d = r.hour_utc.slice(0, 10), o = byDay[d] = byDay[d] || {};
+      (o[r.ccy] = o[r.ccy] || []).push(parseFloat(r.gap_pts)); ccys[r.ccy] = 1;
+    });
+    var days = Object.keys(byDay).sort(), series = {};
+    Object.keys(ccys).forEach(function (c) {
+      series[c] = days.map(function (d) { var a = (byDay[d][c] || []).slice().sort(function (x, y) { return x - y; }); return a.length ? a[Math.floor(a.length / 2)] : null; });
+    });
+    var box = mount(T('chart_exchange_vs_p2p_title'), T('chart_exchange_vs_p2p_note'));
+    var all = []; Object.keys(series).forEach(function (c) { series[c].forEach(function (v) { if (v != null) { all.push(v); } }); });
+    var lo = Math.min.apply(null, all.concat([0])), hi = Math.max.apply(null, all.concat([2]));
+    var W = Math.max(320, box.clientWidth), H = W < 560 ? 240 : 300, F = frame(W, H, 44, 10, 26, 8), n = days.length;
+    var ticks = niceTicks(lo, hi, 4), y0 = ticks[0], y1 = ticks[ticks.length - 1];
+    var X = function (k) { return F.L + (n > 1 ? k / (n - 1) : 0.5) * F.pw; }, Y = function (v) { return F.T + F.ph - (v - y0) / (y1 - y0) * F.ph; };
+    var s = '';
+    ticks.forEach(function (t) { s += '<line class="gl' + (t === 0 ? ' z' : '') + '" x1="' + F.L + '" x2="' + (W - F.R) + '" y1="' + Y(t) + '" y2="' + Y(t) + '" stroke="' + (t === 0 ? 'var(--color-ink)' : 'var(--color-neutral-200)') + '"/><text class="ax' + (t === 0 ? ' z' : '') + '" x="' + (F.L - 8) + '" y="' + (Y(t) + 4) + '" text-anchor="end">' + (t > 0 ? '+' : t < 0 ? MINUS : '') + Math.abs(t) + '</text>'; });
+    s += '<line x1="' + F.L + '" x2="' + (W - F.R) + '" y1="' + Y(2) + '" y2="' + Y(2) + '" stroke="var(--color-neutral-600)" stroke-dasharray="4 3"/>';
+    Object.keys(series).sort(function (a, b) { return (pers[a] ? 1 : 0) - (pers[b] ? 1 : 0); }).forEach(function (c) {
+      var d = '', pen = false;
+      series[c].forEach(function (v, k) { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(k).toFixed(1) + ' ' + Y(v).toFixed(1); pen = true; });
+      s += '<path d="' + d + '" fill="none" stroke="' + (pers[c] ? 'var(--data-700)' : 'var(--color-neutral-400)') + '" stroke-width="' + (pers[c] ? 2 : 1.2) + '"/>';
+    });
+    var step = Math.max(1, Math.round(n / 5));
+    days.forEach(function (d, k) { if (k % step === 0 && n - 1 - k > 2) { s += '<text class="ax" x="' + X(k) + '" y="' + (H - 6) + '" text-anchor="middle">' + dd(d) + '</text>'; } });
+    s += '<text class="ax" x="' + (W - F.R) + '" y="' + (H - 6) + '" text-anchor="end">' + dd(days[n - 1]) + '</text><line id="cr" y1="' + F.T + '" y2="' + (F.T + F.ph) + '" stroke="var(--color-ink)" stroke-dasharray="3 3" visibility="hidden"/>';
+    var svg = box.querySelector('svg'); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('role', 'img'); svg.innerHTML = s;
+    bind(box, function (fx) {
+      var cr = svg.querySelector('#cr');
+      if (fx == null) { cr.setAttribute('visibility', 'hidden'); return null; }
+      var k = Math.max(0, Math.min(n - 1, Math.round((fx * W - F.L) / F.pw * (n - 1))));
+      cr.setAttribute('x1', X(k)); cr.setAttribute('x2', X(k)); cr.setAttribute('visibility', 'visible');
+      var list = Object.keys(series).filter(function (c) { return series[c][k] != null; }).sort(function (a, b) { return series[b][k] - series[a][k]; });
+      return dd(days[k]) + '\n' + list.slice(0, 6).map(function (c) { var v = series[c][k]; return names[c] + ': ' + (v > 0 ? '+' : v < 0 ? MINUS : '') + Math.abs(v).toFixed(1); }).join('\n') + (list.length > 7 ? '\n' + T('tipMoreCountries', { n: list.length - 6 }) : list.length === 7 ? '\n' + T('tipMoreCountriesOne') : '');
     });
   };
 
@@ -260,7 +313,7 @@
 
   /* ---------------------------------------------------------------- loading */
   function loadFor(k) {
-    if (k === 'price_changes' || k === 'weekend_penalty' || k === 'sgd_php_never_cheapest') {
+    if (k === 'price_changes' || k === 'weekend_penalty' || k === 'sgd_php_never_cheapest' || k === 'exchange_vs_p2p') {
       return DATA[k] ? Promise.resolve() : getCSV('data/findings_hours_' + k + '.csv').then(function (r) { DATA[k] = r; });
     }
     return DATA[k] ? Promise.resolve() : getJSON('data/volume_crossover.json').then(function (r) { DATA[k] = r; });

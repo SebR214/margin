@@ -1002,6 +1002,64 @@ This is a record, not a rule. Nothing reads this file yet, and nothing
 withholds or marks an hour because of it — what to do when it fires is a
 separate, reader-facing decision (SEB-52).
 
+## Exchanges and people disagree (`data/findings_hours_exchange_vs_p2p.csv`)
+
+In most countries the exchanges and the person-to-person boards agree. In a few
+they do not. The site publishes the exchange number and does not show the gap; the
+gap is the finding (finding 05, "In {n} countries, people pay more for a dollar from
+each other than on an exchange"). No published number changes, so `index_version`
+does not move.
+
+**Which hours count (a "checked hour").** The country's published number for the hour
+came from order books or brokers (classes 1 to 4 in "Composition"), **and** at least
+one person-to-person board had 10 or more buy ads in the same hour: Binance
+(`data/p2p_basis.csv`, from 2 Sep, with the buy-side count from `data/p2p_sides.csv`
+or, before that existed, the same stand-in the evidence rule uses) or OKX
+(`data/p2p_okx.csv`, from 3 Oct, at least 10 ads). Where both answered, the board
+price is the middle of the two.
+
+**The gap.** The board's buy premium over the official rate, in percent, minus the
+premium that hour published, in percentage points. A positive gap means people
+buying from each other paid more. The published premium of a past hour is read from
+`data/index_hourly.csv`, which stores each country's published number every hour;
+it is never recomputed. (That file was filled once on 9 Oct 2026 from the hourly
+data commits, which hold each hour's `index_latest.json`, and is appended to every
+hour after.) The board's own premium uses the official rate stored in the board's
+row for that hour.
+
+**When a gap persists.** Over the last 30 days, the country has **at least 7 days**
+with checked hours, and the gap is **2 points or more in at least 75%** of its
+checked hours in that window. A country that does not meet both is not counted; the
+rule is not loosened to get a result. The headline is the number of countries where
+the gap persists, and the finding says so if there are none.
+
+**What is published.** One evidence row per country with checked hours: its median
+gap over all checked hours, the share of hours with a gap of 2 points or more, the
+hours checked, the first day, the exchanges and boards used, and whether the gap
+persists. `data/findings_hours_exchange_vs_p2p.csv` has one row per country and
+checked hour; if it would pass 1 MB, the oldest days are dropped first and never
+below the 30 days the rule reads.
+
+**Limits.** Offers between people are prices asked, not trades done. Buying on an
+exchange needs an account there. Binance's board was first checked on 2 Sep and
+OKX's on 3 Oct, and the published number is stored from 10 Sep, so no country has
+checked hours before 10 Sep.
+
+## The source-switch log (`data/source_switches.csv`)
+
+A country's published number can change the kind of source it comes from (from
+order books to person-to-person ads, say, because a board went quiet or a venue was
+added). Each hour, `tools/emit_source_switches.py` appends one row when a country's
+source class differs from its previous priced hour: `hour_utc`, `ccy`, `old_class`,
+`new_class`, `old_premium_pct`, `new_premium_pct`, `backfilled`. It reads
+`data/index_hourly.csv` and recomputes nothing. The file is append only. The rows
+written on 9 Oct 2026, when it was created, were filled in one pass from the stored
+history and carry `backfilled=true`; later rows say `false`. A switch between a
+class and its single-venue twin (`order_book_median` and `order_book_single`) is
+logged, but the country page only says "this number started coming from ..." when
+the kind of source changes (order books, broker quotes, person-to-person ads, an
+independent price source) in the last 30 days.
+
 ## The volume-tier crossover (`data/volume_crossover.json`)
 
 At the published BASE-tier fees every venue publishes for a brand-new
