@@ -550,6 +550,42 @@ CORRIDOR_VARIANTS = {
             "verified": "2026-10-05",
         },
     ],
+    # SEB-255, 2026-10-09: a second USD on-ramp that can send USDT over Tron, which Coinbase cannot.
+    # Candidates tried, with the outcome (all live-checked 2026-10-09):
+    #   Kraken   QUALIFIES. Public book api.kraken.com/0/public/Depth?pair=USDTUSD answers (asks 0.99914,
+    #            9.9M deep). Kraken's own withdrawal table (support.kraken.com/articles/360000767986,
+    #            read 2026-10-09) lists "Tether USD (Tron, USDT - Tron)" with a flat fee of 1.00 USDT
+    #            and a 6.00 minimum. Its fee schedule for stablecoin pairs in the base currency
+    #            (kraken.com/features/fee-schedule, same date) is 0.20% maker and 0.20% taker at the
+    #            base tier ($0+ 30-day volume).
+    #   Coinbase already answered: no Tron (see USD->NGN above). Not re-probed.
+    # Modelled exactly like the existing Coinbase path: the book walk, the on-ramp trading fee and the
+    # network withdrawal fee. Funding the account in USD (ACH or wire) is not modelled for either
+    # on-ramp. Kraken's fee is far higher than Coinbase's 1 bp (20 bps against 1 bp), so this variant is
+    # NOT cheaper on the numbers modelled here; what it removes is the unmodelled Ethereum gas the
+    # Coinbase path leaves at zero. It is published beside the existing path, not in place of it.
+    "USD->NGN": [
+        {
+            "stable": "USDT", "network": "Tron",
+            "offramp_symbol": "USDTNGN",
+            "network_fee_stable": 1.0,
+            "onramp": {"venue": "Kraken", "pair": "USDTUSD", "taker_bps": 20.0, "maker_bps": 20.0,
+                       "verified": "2026-10-09"},
+            "withdraw_pct": 0.0, "withdraw_pct_cap": None,
+            "verified": "2026-10-09",
+        },
+    ],
+    "USD->INR": [
+        {
+            "stable": "USDT", "network": "Tron",
+            "offramp_symbol": "usdtinr",
+            "network_fee_stable": 1.0,
+            "onramp": {"venue": "Kraken", "pair": "USDTUSD", "taker_bps": 20.0, "maker_bps": 20.0,
+                       "verified": "2026-10-09"},
+            "withdraw_pct": 0.0, "withdraw_pct_cap": None,
+            "verified": "2026-10-09",
+        },
+    ],
 }
 
 VARIANTS_SIDECAR = os.path.join(HERE, "data", "corridor_variants.csv")
@@ -946,6 +982,8 @@ def fetch_onramp(cfg, src):
     # path, unchanged -- a new corridor must not be able to break corridor 1.
     if cfg["onramp"]["venue"] == "Coinbase":
         return fetch_onramp_coinbase(cfg, src)
+    if cfg["onramp"]["venue"] == "Kraken":
+        return fetch_onramp_kraken(cfg)
     stable = cfg["stable"].capitalize()
     d = get_json("https://api.independentreserve.com/Public/GetOrderBook"
                  f"?primaryCurrencyCode={stable}&secondaryCurrencyCode={src.capitalize()}")
@@ -963,6 +1001,19 @@ def fetch_onramp_coinbase(cfg, src):
     pair = f"{cfg['stable']}-{src}"
     d = get_json(f"https://api.exchange.coinbase.com/products/{pair}/book?level=2")
     asks = sorted(norm_levels(d.get("asks")), key=lambda x: x[0])
+    return {"asks": asks}
+
+
+def fetch_onramp_kraken(cfg):
+    """Kraken public book (SEB-255), no auth. Depth answers {"error": [], "result": {"USDTZUSD":
+    {"asks": [[price, volume, timestamp], ...], "bids": [...]}}}; the pair's key is not the name asked
+    for, so the one result is taken whatever it is called. norm_levels reads [0] and [1] and ignores the
+    timestamp."""
+    d = get_json(f"https://api.kraken.com/0/public/Depth?pair={cfg['onramp']['pair']}&count=500")
+    if d.get("error"):
+        raise ValueError("kraken:" + ";".join(d["error"]))
+    book = next(iter((d.get("result") or {}).values()), {})
+    asks = sorted(norm_levels(book.get("asks")), key=lambda x: x[0])
     return {"asks": asks}
 
 
@@ -1122,6 +1173,10 @@ def collect_variants(corridor_key, cfg):
         vcfg = {**cfg, "stable": variant["stable"],
                 "network_fee_stable": variant["network_fee_stable"],
                 "offramp": {**cfg["offramp"], "symbol": variant["offramp_symbol"]}}
+        if variant.get("onramp"):        # a different on-ramp venue, with its own published fees (SEB-255)
+            vcfg["onramp"] = variant["onramp"]
+            vcfg["withdraw_pct"] = variant.get("withdraw_pct", 0.0)
+            vcfg["withdraw_pct_cap"] = variant.get("withdraw_pct_cap")
         errors, ok = [], True
         try:
             mids = fetch_mids(src, cfg["dst"])
@@ -1825,6 +1880,25 @@ def selftest():
         assert len(written) == 1 and written[0]["corridor"] == "SGD->PHP", written
     print("  [ok] samples_depth.csv: only priced corridors get a row\n")
 
+    # SEB-255: Kraken's book answers under a key that is not the pair asked for; the one result is read,
+    # sorted cheapest ask first, and an error answer raises instead of returning an empty book.
+    _real_get = globals()["get_json"]
+    try:
+        globals()["get_json"] = lambda url, *a, **k: {"error": [], "result": {"USDTZUSD": {
+            "asks": [["0.99920", "10.0", 1], ["0.99914", "5.0", 2]], "bids": [["0.99913", "7.0", 3]]}}}
+        assert fetch_onramp_kraken({"onramp": {"pair": "USDTUSD"}}) == {"asks": [(0.99914, 5.0), (0.99920, 10.0)]}
+        globals()["get_json"] = lambda url, *a, **k: {"error": ["EQuery:Unknown asset pair"], "result": {}}
+        try:
+            fetch_onramp_kraken({"onramp": {"pair": "NOPE"}})
+            raise AssertionError("an error answer must raise")
+        except ValueError:
+            pass
+    finally:
+        globals()["get_json"] = _real_get
+    for _k in ("USD->NGN", "USD->INR"):
+        _v = CORRIDOR_VARIANTS[_k][0]
+        assert _v["onramp"]["venue"] == "Kraken" and _v["network"] == "Tron" and _v["network_fee_stable"] == 1.0, _k
+    print("  [ok] Kraken on-ramp: book parsed, error answer raises; USD->NGN and USD->INR carry the Tron variant")
     print("  ALL SELFTESTS PASSED\n")
 
 
