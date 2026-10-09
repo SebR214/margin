@@ -62,3 +62,11 @@
   .hp-nav a, .ci-nav a, .c-nav a, .sm-nav a, .s-nav a, .fp-nav a, .mwh nav a { height: 40px !important; min-height: 40px !important; }
   .hp-clock { flex: 1 0 100% !important; margin: 0 !important; padding: 0 0 4px !important; font-size: 12px !important; }
 }
+/* the scrolling nav on a phone fades at its right edge, so it reads as scrollable and never cuts a word mid-letter (SEB-268 item 7) */
+@media (max-width: 520px) {
+  .hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent) !important;
+    mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent) !important;
+    padding-right: 28px !important;
+  }
+}
