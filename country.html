@@ -3,90 +3,91 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>margin.wiki — a country's price in full</title>
-<meta name="description" content="One country's price, its full history, and the receipt behind the number, in one place."/>
+<title>margin.wiki</title>
 <link rel="stylesheet" href="./style.css">
 <style>
-  /* Layout follows the owner's layout references (SEB-240): the route reference's
-     chips, chart box, stats row and list rows, the home reference's header and big number.
-     Colours are style.css tokens only. */
-  .c-wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; display: flex; flex-direction: column; gap: 56px; }
-  .c-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--color-neutral-300); margin: 0; }
-  .c-brand { display: flex; flex-wrap: wrap; align-items: center; gap: 28px; }
-  .c-logo { font-weight: 600; font-size: 18px; color: var(--color-ink); text-decoration: none; }
-  .c-nav { display: flex; flex-wrap: wrap; gap: 22px; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); }
-  .c-nav a { color: var(--color-neutral-600); text-decoration: none; font-weight: 400; display: inline-flex; align-items: center; min-height: 44px; }
-  .c-nav a.on { color: var(--color-ink); }
-  h1 {margin: 0;}
-  h2 {margin: 0;}
-  p { margin: 0; }
-  .c-small { font-size: 14px; }
-  .c-hero { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-end; }
-  .c-herotext { flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
-  .c-bigbox { flex: 1 0 auto; max-width: 100%; display: flex; flex-direction: column; gap: 6px; }
-  .c-big { font-size: clamp(48px, 15vw, 88px); font-weight: 600; line-height: 1; color: var(--data-700); }
-  .c-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--color-neutral-300); border: 1px solid var(--color-neutral-300); border-radius: 8px; overflow: hidden; }
-  .c-stats > div { background: var(--color-surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-  .c-k { font-size: 13px; color: var(--color-neutral-600); }
-  .c-v { font-size: 16px; }
-  .c-sub { font-size: 12px; }
-  .c-sec { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-  .c-sechead { display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
-  .c-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
-  .c-left { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
-  .c-legend { display: flex; flex-wrap: wrap; gap: 20px; font-size: 14px; }
-  .c-leg { display: flex; align-items: center; gap: 8px; }
-  .c-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .c-gapx { width: 12px; }
-  .c-chip {display: inline-flex;align-items: center;gap: 8px;}
-  .c-chip.lay {opacity: .6;}
-  .c-chip.lay.on {opacity: 1;}
-  .c-sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
-  .c-sw.r { border-radius: 50%; }
-  .c-line { width: 18px; height: 3px; display: inline-block; flex: none; }
-  .c-line.dashed { background: repeating-linear-gradient(90deg, var(--data-700) 0 5px, transparent 5px 8px); }
-  .c-band { width: 14px; height: 10px; display: inline-block; background: var(--color-ink); opacity: .2; }
-  .c-chart { position: relative; background: var(--color-surface); border: 1px solid var(--color-neutral-300); border-radius: 8px; padding: 16px 16px 8px; cursor: crosshair; user-select: none; touch-action: pan-y; min-height: 300px; }
-  .c-chart.busy { opacity: .6; }
-  .cc-svg { display: block; max-width: 100%; }
-  .cc-ax { fill: var(--color-neutral-600); font: 400 11px var(--font-body); }
-  .cc-sel { fill: var(--color-ink); fill-opacity: .07; }
-  .cc-cross { stroke: var(--color-ink); }
-  .cc-tip { position: absolute; top: 16px; background: var(--color-bg); border: 1px solid var(--color-neutral-400); border-radius: 6px; padding: 10px 12px; font-size: 13px; pointer-events: none; display: flex; flex-direction: column; gap: 4px; max-width: 80%; z-index: 2; }
-  .c-tstamp { color: var(--color-neutral-600); }
-  .c-trow { display: flex; align-items: center; gap: 8px; }
-  .c-tname { flex: 1; color: var(--color-neutral-700); min-width: 0; }
-  .c-axis { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
-  .c-list { border-top: 1px solid var(--color-neutral-300); }
-  .c-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 12px 0; border-bottom: 1px solid var(--color-neutral-300); font-size: 14px; }
-  .c-rhead { font-size: 13px; padding: 8px 0; }
-  .c-ct { width: 150px; }
-  .c-cs { flex: 1 1 140px; min-width: 120px; display: flex; align-items: center; gap: 8px; }
-  .c-cp { width: 120px; }
-  .c-cg { width: 80px; }
-  .c-cd { width: 130px; }
-  .c-cr { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
-  .c-cr a { color: var(--data-700); }
-  .c-row[hidden] { display: none; }
-  .c-more { align-self: flex-start; margin-top: 16px; }
-  .c-chip.lay.on {opacity: 1;}
+  /* One country (SEB-268), rebuilt to the approved reference. Header, column, title and pill styles are the shared ones
+     (css/site_head.css, css/site_page.css); colours are the style.css tokens; every word is in copy.json, countryData. */
+  .num { font-variant-numeric: tabular-nums; }
+  .wrap { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; box-sizing: border-box; }
+  .cnav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 40px; }
+  .cnav .back { font-size: 15px; color: var(--color-neutral-600); text-decoration: none; }
+  .cnav .back::before { content: "\2190  "; }
+  .cnav .back:hover { color: var(--color-ink); }
+  #hero.hero { padding-top: 24px !important; }
+  .hero { padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 0 !important; max-width: 760px; }
+  .stamp { margin: 0; font-size: 14px; color: var(--color-neutral-600); }
+  .money { margin: 0; font-size: 16px; }
+  .money b { font-weight: 600; }
+  .flag { margin: 0; font-size: 15px; color: var(--color-neutral-700); padding-left: 12px; border-left: 2px solid var(--color-neutral-300); }
+  .body { margin: 0; max-width: 680px; font-size: 16px; }
+  section { margin-top: 48px; }
+  #depth { margin-top: 20px; }
+  h2 { margin: 0 0 8px; }
+  .note { margin: 0 0 16px; font-size: 15px; color: var(--color-neutral-700); max-width: 680px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  #chart .pills { margin: 0 0 12px; }
+  .key { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 14px; color: var(--color-neutral-700); margin: 0 0 8px; }
+  .key i.ln { display: inline-block; width: 22px; height: 0; border-top: 2px solid var(--data-700); vertical-align: 4px; margin-right: 8px; }
+  .key i.ln.dash { border-top: 2px dashed var(--color-neutral-500); }
+  .chart { position: relative; touch-action: pan-y; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .ax { fill: var(--color-neutral-600); font-size: 12px; }
+  .ax.z { fill: var(--color-ink); font-weight: 600; }
+  .gl { stroke: var(--color-neutral-200); }
+  .gl.z { stroke: var(--color-ink); }
+  .ln-own { fill: none; stroke: var(--data-700); stroke-width: 2; }
+  .ln-back { fill: none; stroke: var(--color-neutral-500); stroke-width: 1.3; stroke-dasharray: 4 3; }
+  .pt { fill: var(--data-700); }
+  .cr { stroke: var(--color-ink); stroke-dasharray: 3 3; }
+  .cd { fill: var(--color-ink); }
+  #rec { margin-top: 12px; }
+  .rows { border-top: 1px solid var(--color-neutral-200); }
+  .r { display: grid; grid-template-columns: 260px 1fr 140px; gap: 0 24px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--color-neutral-200); }
+  .r b { font-weight: 600; font-size: 15px; }
+  .r .v { text-align: right; font-weight: 600; font-size: 15px; white-space: nowrap; }
+  .r .v small { display: block; font-size: 13px; color: var(--color-neutral-600); font-weight: 400; }
+  .tbl { font-size: 14px; border-top: 1px solid var(--color-neutral-200); }
+  .th, .tr { display: grid; grid-template-columns: 150px 1fr 140px 90px 150px 150px; gap: 0 16px; padding: 10px 0; border-bottom: 1px solid var(--color-neutral-200); align-items: center; }
+  .th { color: var(--color-neutral-600); font-size: 13px; }
+  .tr span:nth-child(3), .tr span:nth-child(4), .th span:nth-child(3), .th span:nth-child(4) { text-align: right; }
+  .tr a { color: var(--color-neutral-700); text-decoration: underline; text-decoration-color: var(--color-neutral-300); text-underline-offset: 3px; }
+  .more { margin-top: 16px; }
+  .nf { margin-top: 48px; }
+  @media (max-width: 700px) { .wrap { padding: 0 24px 64px; } }
+  @media (max-width: 760px) {
+    .th { display: none; }
+    .tr { grid-template-columns: 1fr auto; }
+    .tr span:nth-child(2) { grid-column: 1; grid-row: 2; color: var(--color-neutral-600); }
+    .tr span:nth-child(3) { grid-column: 2; grid-row: 1; }
+    .tr span:nth-child(4) { grid-column: 2; grid-row: 2; }
+    .tr span:nth-child(5), .tr span:nth-child(6) { grid-column: 1 / -1; color: var(--color-neutral-600); font-size: 13px; }
+  }
   @media (max-width: 620px) {
-    .c-wrap { padding: 0 16px 64px; gap: 40px; }
-    .c-brand { gap: 0 20px; }
-    .c-nav { gap: 0 12px; font-size: 14px; }
-    .c-head { padding: 8px 0; }
-    .c-rhead { display: none; }
-    .c-ct, .c-cp, .c-cg, .c-cd { width: auto; }
+    .r { grid-template-columns: 1fr auto; }
   }
 </style>
-<script src="./js/receipt_replay.js"></script>
-<script src="./js/country_chart.js"></script>
 <link rel="stylesheet" href="./css/site_head.css?v=3">
 <link rel="stylesheet" href="./css/site_page.css?v=1">
 </head>
 <body>
-<div id="app"></div>
-<template id="cChartTpl"><div class="c-chart" id="cChart"><svg id="cSvg" class="cc-svg" role="img"><g class="cc-base"></g><rect class="cc-sel" y="0" width="0" height="0"></rect><line class="cc-cross" y1="0" stroke-dasharray="3 3" style="display:none"></line></svg><div class="cc-tip" style="display:none"></div></div></template>
+<div class="wrap">
+  <div class="hp-head">
+    <div class="hp-headleft">
+      <a class="hp-logo" href="./index.html">margin.wiki</a>
+      <nav class="hp-nav" aria-label="Main" id="nav"></nav>
+    </div>
+  </div>
+
+  <div class="cnav" id="cnav"></div>
+  <div class="hero" id="hero"></div>
+  <div id="depth"></div>
+  <section id="chart"></section>
+  <section id="src"></section>
+  <section id="rcp"></section>
+  <p class="nf note" id="nf" hidden></p>
+</div>
+<script src="./js/tooltip.js"></script>
 <script src="./js/country_page.js"></script>
 <script src="./js/footer.js"></script>
 <script src="./js/site_head.js?v=3"></script>
