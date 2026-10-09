@@ -42,6 +42,10 @@ P2P_BOX_STALE_HOURS = 24
 BIG_MOVE_PT = 5.0
 # ...unless its official rate moved too, in which case it is just the currency.
 FX_EXPLAINS_PCT = 2.0
+# ...or unless a second, independent person-to-person board (OKX, data/p2p_okx.csv) moved the same way by at
+# least this share of the move: two boards stepping together is the street price moving, not one board's fault
+# (SEB-277: Iraq's Binance and OKX boards both rose about 7% on 7 Oct with the official rate flat).
+SECOND_BOARD_SHARE = 0.5
 
 
 def exceptions():
@@ -186,6 +190,17 @@ def fx_daily():
             {k: st.median(v) for k, v in par.items()})
 
 
+def okx_daily():
+    """{(ccy, date): median OKX buy-side price that UTC day}, from the stored rows that answered."""
+    by = {}
+    for r in rows("p2p_okx.csv"):
+        s_, c = stamp(r), (r.get("ccy") or "").strip()
+        v = num(r.get("buy_median"))
+        if len(s_) >= 10 and c and v and str(r.get("source_ok")).strip().lower() == "true":
+            by.setdefault((c, s_[:10]), []).append(v)
+    return {k: st.median(v) for k, v in by.items()}
+
+
 def moves():
     """Published countries whose price jumped without their currency moving.
 
@@ -194,6 +209,7 @@ def moves():
     only way to tell them apart is to put the two side by side.
     """
     official, parallel = fx_daily()
+    okx = okx_daily()
     out = []
     for path in sorted(glob.glob(os.path.join(DATA, "countries", "*.json"))):
         try:
@@ -218,16 +234,24 @@ def moves():
             par_move = round((p1 - p0) / p0 * 100, 3)
         explained = any(m is not None and abs(m) >= FX_EXPLAINS_PCT
                         for m in (fx_move, par_move))
+        # The second board's own move in the same points as the index: its price over the official rate, each day.
+        board_move = None
+        o0, o1 = okx.get((ccy, a["date"])), okx.get((ccy, b["date"]))
+        if o0 and o1 and f0 and f1:
+            board_move = round((o1 / f1 - o0 / f0) * 100, 3)
+        corroborated = (board_move is not None and board_move * move > 0
+                        and abs(board_move) >= SECOND_BOARD_SHARE * abs(move))
         # A currency whose denominator is `unmaintained` moves on its own --
         # that IS the explanation, so it is reported on its own line rather
         # than flagged as a mystery every day (SEB-31).
         den_class = (c.get("denominator") or {}).get("class")
-        big = abs(move) > BIG_MOVE_PT and not explained
+        big = abs(move) > BIG_MOVE_PT and not explained and not corroborated
         out.append({
             "ccy": ccy, "country": c.get("country"),
             "from_date": a["date"], "to_date": b["date"],
             "index_move_pt": round(move, 3),
             "official_move_pct": fx_move, "parallel_move_pct": par_move,
+            "second_board_move_pt": board_move, "second_board_agrees": corroborated,
             "denominator_class": den_class,
             "unexplained": big and den_class != "unmaintained",
             "denominator_explained": big and den_class == "unmaintained",
