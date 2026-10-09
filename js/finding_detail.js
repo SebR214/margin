@@ -76,7 +76,11 @@
       '<span class="v num">' + g(f.hours_rows) + ' ' + esc(T('downloadRows')) + (kb ? '<small>' + kb + '</small>' : '') + '</span></div></div>';
     $('related').innerHTML = '<h2>' + esc(T('relatedHeading')) + '</h2><div class="rows">' + ORDER.filter(function (k) { return k !== id && FIN[k]; }).map(function (k) {
       var o = FIN[k], n = k === 'volume_crossover' ? approx(o.headline.value) : g(o.headline.value);
-      return '<a class="r rel" href="?id=' + k + '" data-id="' + k + '"><span class="no num">0' + (ORDER.indexOf(k) + 1) + '</span><b>' + esc(title(k)) + '</b><span class="v num">' + n + '</span></a>';
+      var five = (o.evidence || []).filter(function (e) { return e.amount === 5000; })[0];
+      if (k === 'sgd_php_never_cheapest' && five && typeof five.hours_priced === 'number') { n = T('short_value_' + k, { value: n, hours: g(five.hours_priced) }) || n; }
+      var days = k === 'price_changes' ? (o.evidence || []).map(function (e) { return e.first_day; }).filter(Boolean).sort() : [];
+      var unit = T('short_unit_' + k, { first: days.length ? dd(days[0]) : '' });
+      return '<a class="r rel" href="?id=' + k + '" data-id="' + k + '"><span class="no num">0' + (ORDER.indexOf(k) + 1) + '</span><b>' + esc(title(k)) + '</b><span class="v num">' + esc(n) + (unit ? '<small>' + esc(unit) + '</small>' : '') + '</span></a>';
     }).join('') + '</div>';
     try { history.replaceState(null, '', location.pathname + '?id=' + id); } catch (e) { /* not available */ }
   }
@@ -92,7 +96,7 @@
       }).join('');
     } else if (id === 'weekend_penalty') {
       rows = f.evidence.slice().sort(function (a, b) { return b.weekend_up - a.weekend_up || b.saturdays_judged - a.saturdays_judged; }).map(function (e) {
-        return '<div class="r"><b>' + esc(routeName(e.route)) + '</b><span class="m num">' + e.weekend_back + ' ' + L('weekend_back') + ', ' + e.saturdays_judged + ' ' + L('saturdays_judged') + '.</span>' +
+        return '<div class="r"><b>' + esc(routeName(e.route)) + '</b><span class="m num">' + e.weekend_back + ' ' + L('weekend_back') + ', ' + e.saturdays_judged + ' ' + (e.saturdays_judged === 1 ? L('saturdays_judged_one') : L('saturdays_judged')) + '.</span>' +
           '<span class="v num">' + e.weekend_up + '<small>' + L('weekend_up') + '</small></span></div>';
       }).join('');
     } else if (id === 'volume_crossover') {

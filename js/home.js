@@ -20,6 +20,7 @@
   function $(id) { return document.getElementById(id); }
   function T(k, v) { var s = C[k]; return typeof s === 'string' && s ? s.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : ''; }) : ''; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function approx(v) { return v >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : g(v); }   // the template carries the S$
   function g(n) { return Math.round(n).toLocaleString('en-US'); }
   function dd(s) { return (+s.slice(8, 10)) + ' ' + MON[+s.slice(5, 7) - 1]; }
   function pct1(v) { return (Math.abs(v) >= 100 ? g(Math.abs(v)) : Math.abs(v).toFixed(1)) + '%'; }
@@ -117,7 +118,7 @@
     var lines = [];
     if (val('price_changes') != null) { lines.push(['price_changes', T('finding_price_changes', { value: g(val('price_changes')) })]); }
     if (val('weekend_penalty') != null) { lines.push(['weekend_penalty', T('finding_weekend_penalty', { value: g(val('weekend_penalty')) })]); }
-    if (val('volume_crossover') != null) { lines.push(['volume_crossover', T('finding_volume_crossover', { value: g(val('volume_crossover')) })]); }
+    if (val('volume_crossover') != null) { lines.push(['volume_crossover', T('finding_volume_crossover', { value: approx(val('volume_crossover')) })]); }
     var sg = F.sgd_php_never_cheapest;
     if (sg && sg.headline && sg.hours_rows != null) { lines.push(['sgd_php_never_cheapest', T('finding_sgd_php', { n: g(sg.headline.value), hours: g(sg.hours_rows) })]); }
     lines = lines.filter(function (l) { return l[1]; });
