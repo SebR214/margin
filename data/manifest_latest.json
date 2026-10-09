@@ -94,7 +94,7 @@
       },
       "kind": "csv",
       "path": "data/claims_history.csv",
-      "rows": 1422
+      "rows": 1431
     },
     {
       "columns": [
@@ -183,6 +183,24 @@
     },
     {
       "columns": [
+        "hour_utc",
+        "ccy",
+        "published_pct",
+        "board_pct",
+        "gap_pts",
+        "boards"
+      ],
+      "date_column": "hour_utc",
+      "date_range": {
+        "from": "2026-09-10T07:00:00Z",
+        "to": "2026-10-09T07:00:00Z"
+      },
+      "kind": "csv",
+      "path": "data/findings_hours_exchange_vs_p2p.csv",
+      "rows": 4598
+    },
+    {
+      "columns": [
         "ts_utc",
         "corridor",
         "size",
@@ -214,11 +232,11 @@
       "date_column": "hour_utc",
       "date_range": {
         "from": "2026-08-11T13:00:00Z",
-        "to": "2026-10-09T06:00:00Z"
+        "to": "2026-10-09T07:00:00Z"
       },
       "kind": "csv",
       "path": "data/findings_hours_sgd_php_never_cheapest.csv",
-      "rows": 1178
+      "rows": 1179
     },
     {
       "columns": [
@@ -294,6 +312,23 @@
       "kind": "csv",
       "path": "data/fx_rates.csv",
       "rows": 39597
+    },
+    {
+      "columns": [
+        "hour_utc",
+        "ccy",
+        "source_class",
+        "index_pct",
+        "n_sources"
+      ],
+      "date_column": "hour_utc",
+      "date_range": {
+        "from": "2026-09-10T07:00:00+00:00",
+        "to": "2026-10-09T07:00:00+00:00"
+      },
+      "kind": "csv",
+      "path": "data/index_hourly.csv",
+      "rows": 30531
     },
     {
       "columns": [
@@ -831,6 +866,25 @@
     },
     {
       "columns": [
+        "hour_utc",
+        "ccy",
+        "old_class",
+        "new_class",
+        "old_premium_pct",
+        "new_premium_pct",
+        "backfilled"
+      ],
+      "date_column": "hour_utc",
+      "date_range": {
+        "from": "2026-09-10T10:00:00+00:00",
+        "to": "2026-10-09T06:00:00+00:00"
+      },
+      "kind": "csv",
+      "path": "data/source_switches.csv",
+      "rows": 31
+    },
+    {
+      "columns": [
         "ts_utc",
         "venue",
         "ccy",
@@ -993,7 +1047,7 @@
       "path": "data/price_changes_latest.json"
     },
     {
-      "bytes": 142764,
+      "bytes": 142702,
       "columns": [
         "as_of_utc",
         "computed_at",
@@ -1045,6 +1099,6 @@
       "path": "data/countries/"
     }
   ],
-  "n_sources": 50,
+  "n_sources": 53,
   "source_file": "data/"
 }
