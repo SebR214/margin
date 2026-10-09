@@ -117,7 +117,7 @@
     slots.forEach(function (c) {
       var cls = c.status === 'check_failed' ? 'sf' : c.status === 'source_missed' ? 'sm' : c.status === 'gap' ? 'sg' : 'sc';
       var s = el('span', cls);
-      s.title = c.hour_utc.slice(0, 10) + ' ' + hhmm(c.hour_utc);
+      s.setAttribute('data-tip', c.hour_utc.slice(0, 10) + ' ' + hhmm(c.hour_utc) + ' UTC');
       strip.appendChild(s);
     });
     side.appendChild(strip);
