@@ -243,6 +243,17 @@ jobs:
         # other collector: exits non-zero ONLY on a total blackout.
         run: python3 collector_p2p_okx.py
 
+      - name: Collect multi-venue stablecoin prices (SEB-243)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # collector_stable_venues.py prices every venue the repo can read for each
+        # corridor's two legs and stores each buy-venue and sell-venue pair in
+        # data/stable_venues.csv. It was never scheduled, so the file ended on 28 Sep and the
+        # "cheapest of N pairs" figure had to be ignored. Scheduled hourly, ahead of the
+        # provider step, so emit_providers.py can use it for the same hour. No new cost: the
+        # repo is public and Actions minutes are free. A venue that fails (Binance blocks some
+        # runners) drops out of that hour's pairs; the step exits non-zero only on a total blackout.
+        run: python3 collector_stable_venues.py
+
       - name: Collect provider quotes
         if: always() && steps.needed.outputs.proceed == 'true'
         # Quotes asked of the providers themselves, where they publish one, so
@@ -595,7 +606,7 @@ jobs:
                    data/routes_summary.json data/routes_breakdown.json \
                    data/routes_whatif.json data/heatmap_daily.json \
                    data/record_daily.json data/cycle_log.json \
-                   data/record_milestones.json data/movers_week.json \
+                   data/record_milestones.json data/movers_week.json data/stable_venues.csv \
                    data/sources_daily.json data/findings.json \
                    data/findings_hours_price_changes.csv \
                    data/findings_hours_weekend_penalty.csv \
