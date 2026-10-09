@@ -261,6 +261,12 @@ def parse_coindcx(d):
     return (None, None, None)
 
 
+def parse_luno(d):
+    # api.luno.com/api/1/ticker: {"pair":"USDTNGN","bid":"1361.10","ask":"1362.00","last_trade":"1361.10",...}.
+    # Prices are strings; a pair that is not listed answers with an error object and no price fields.
+    return (_f(d.get("bid")), _f(d.get("ask")), _f(d.get("last_trade")))
+
+
 def parse_btcmarkets(d):
     # v3/markets/USDT-AUD/ticker: {"bestBid","bestAsk","lastPrice",...}. String-priced.
     if not isinstance(d, dict):
@@ -490,6 +496,17 @@ VENUES = [
     # this box the same day -- a real two-sided USDT-AUD order book, the same
     # bar every existing venue met. NZD got no second venue this pass (see the
     # issue's comment log for the full candidate list); it stays one venue.
+    # --- SEB-254, 2026-10-09: NGN's own exchange book. Luno's public ticker answers
+    # a real two-sided USDT-NGN book (bid 1361.10, ask 1362.00 when checked live). The host is api.luno.com;
+    # www.luno.com serves a web page, not the API. Same pair and venue the USD->NGN corridor already prices.
+    {
+        "name": "Luno",
+        "fiat_ccy": "NGN",
+        "ticker_url": "https://api.luno.com/api/1/ticker?pair=USDTNGN",
+        "parse_fn": parse_luno,
+        "candles_fn": None,
+        "enabled": True,
+    },
     {
         "name": "BTC Markets",
         "fiat_ccy": "AUD",
@@ -938,6 +955,8 @@ IR_NZD_FIXTURE = {"CurrentHighestBidPrice": 1.6902, "CurrentLowestOfferPrice": 1
 # SEB-188, captured live 2026-10-02.
 BTCMARKETS_FIXTURE = {"marketId": "USDT-AUD", "bestBid": "1.4337", "bestAsk": "1.4353",
                       "lastPrice": "1.437"}
+LUNO_FIXTURE = {"pair": "USDTNGN", "timestamp": 1791524790483, "bid": "1361.10", "ask": "1362.00",
+                "last_trade": "1361.10", "rolling_24_hour_volume": "160394.59", "status": "ACTIVE"}
 WAZIRX_FIXTURE = {"at": 1789031794, "ticker": {"buy": "99.41", "sell": "100.14",
                                                "low": "99.11", "high": "100.15",
                                                "last": "100.14", "vol": "271946.72"}}
@@ -985,6 +1004,7 @@ MALFORMED = {
     "Bitkub": {"THB_USDT": {}},
     "Bitso": {"success": False, "payload": {}},
     "BTC Markets": {"marketId": "USDT-AUD"},
+    "Luno": {"error_code": "ErrInvalidArguments", "error": "pair not found"},
 }
 
 # er-api-style snapshot covering every registered venue's currency. For ARS/VES
@@ -992,7 +1012,7 @@ MALFORMED = {
 FX_FIXTURE = {"SGD": 1.2796, "PHP": 60.86, "TRY": 47.706, "KRW": 1409.64,
               "IDR": 17862.19, "THB": 33.024, "MXN": 17.141,
               "ARS": 1500.0, "VES": 760.0, "BRL": 5.09,
-              "TWD": 31.60, "AUD": 1.528, "NZD": 1.690, "INR": 99.2}
+              "TWD": 31.60, "AUD": 1.528, "NZD": 1.690, "INR": 99.2, "NGN": 1331.0}
 TS_FIXTURE = "2026-08-10T00:00:00+00:00"
 
 # route a fake fetch by URL substring; override a venue with a payload or an
@@ -1014,7 +1034,7 @@ _ROUTES = {
     "wazirx": WAZIRX_FIXTURE, "coindcx": COINDCX_FIXTURE,
     "secondarycurrencycode=aud": IR_AUD_FIXTURE,
     "secondarycurrencycode=nzd": IR_NZD_FIXTURE,
-    "btcmarkets": BTCMARKETS_FIXTURE,
+    "btcmarkets": BTCMARKETS_FIXTURE, "luno.com": LUNO_FIXTURE,
     "paribu": PARIBU_FIXTURE, "foxbit": FOXBIT_FIXTURE,
     "mercadobitcoin": MERCADO_FIXTURE, "pintu": PINTU_FIXTURE,
     "usdt/ars": CRIPTOYA_ARS_FIXTURE, "usdt/ves": CRIPTOYA_VES_FIXTURE,
@@ -1065,7 +1085,8 @@ def selftest():
     assert parse_coindcx(COINDCX_FIXTURE) == (99.20, 99.45, 99.30)
     assert parse_independent_reserve(IR_AUD_FIXTURE) == (1.5281, 1.5289, 1.5285)
     assert parse_btcmarkets(BTCMARKETS_FIXTURE) == (1.4337, 1.4353, 1.437)
-    print("  [ok] all 19 parsers extract quotes from real payload shapes "
+    assert parse_luno(LUNO_FIXTURE) == (1361.10, 1362.00, 1361.10)
+    print("  [ok] all 20 parsers extract quotes from real payload shapes "
           "(CriptoYa = median across exchanges)")
 
     # 2. every parser degrades a malformed payload to all-None, never raises
@@ -1077,12 +1098,12 @@ def selftest():
         "Foxbit": parse_foxbit, "MercadoBitcoin": parse_mercadobitcoin,
         "Pintu": parse_pintu, "BitoPro": parse_bitopro, "MAX": parse_max,
         "WazirX": parse_wazirx, "CoinDCX": parse_coindcx,
-        "BTC Markets": parse_btcmarkets,
+        "BTC Markets": parse_btcmarkets, "Luno": parse_luno,
     }
     for name, pf in _parsers.items():
         assert pf(MALFORMED[name]) == (None, None, None), (name, pf(MALFORMED[name]))
     assert parse_criptoya([]) == (None, None, None)  # non-dict envelope
-    print("  [ok] all 19 parsers turn a malformed payload into (None, None, None)")
+    print("  [ok] all 20 parsers turn a malformed payload into (None, None, None)")
 
     # 2b. the expander drops P2P books and survives a malformed payload
     ves = expand_criptoya(CRIPTOYA_VES_FIXTURE)
@@ -1103,16 +1124,16 @@ def selftest():
     # 4. FX snapshot must carry every registered venue's currency
     ccys = {v["fiat_ccy"] for v in VENUES}
     assert ccys <= set(FX_FIXTURE), ccys - set(FX_FIXTURE)
-    assert len(VENUES) == 23, len(VENUES)
+    assert len(VENUES) == 24, len(VENUES)
     assert {"TRY", "KRW", "IDR", "THB", "MXN"} <= ccys, "the 5 new currencies"
     assert {"ARS", "VES", "BRL"} <= ccys, "the CriptoYa currencies"
     print(f"  [ok] FX snapshot covers all {len(ccys)} venue currencies "
           f"({', '.join(sorted(ccys))})")
 
-    # 5. full happy path: 23 registered venues + 5 CriptoYa expansion rows
+    # 5. full happy path: 24 registered venues + 5 CriptoYa expansion rows
     #    (ARS lists 3 exchanges, VES lists 3 of which one is P2P), all source_ok
     rows, n_ok = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=_make_fetch())
-    assert len(rows) == 28 and n_ok == 28, (len(rows), n_ok)
+    assert len(rows) == 29 and n_ok == 29, (len(rows), n_ok)
     by = {r["venue"]: r for r in rows}
     assert abs(by["IndependentReserve"]["basis_bps"] - 10.94) < 0.2
     assert abs(by["Bitso"]["basis_bps"] - (-4.96)) < 0.2          # MXN near zero
@@ -1126,7 +1147,7 @@ def selftest():
     assert abs(ars["basis_bps"] - 433.33) < 1.0, ars           # bid, not midpoint
     assert by["CriptoYa (VES)"]["basis_bps"] > 1000, by["CriptoYa (VES)"]  # strong
     assert ars["source"] == "criptoya"                         # snapshot-only tag
-    print("  [ok] 28/28 rows price; CriptoYa on bid rule (ARS +433, not +500 midpoint)")
+    print("  [ok] 29/29 rows price; CriptoYa on bid rule (ARS +433, not +500 midpoint)")
 
     # 5b. the point of the whole change: how many venues answer per currency.
     #     KRW/BRL gain real venues; ARS gains them through the expansion; and
@@ -1139,6 +1160,7 @@ def selftest():
     assert per_ccy["INR"] == 2, per_ccy          # WazirX, CoinDCX
     assert per_ccy["AUD"] == 2, per_ccy          # IndependentReserve (AUD), BTC Markets
     assert per_ccy["NZD"] == 1, per_ccy          # still one venue, see SEB-188
+    assert per_ccy["NGN"] == 1, per_ccy          # Luno
     assert per_ccy["BRL"] == 2, per_ccy          # Foxbit, MercadoBitcoin
     assert per_ccy["TRY"] == 2 and per_ccy["IDR"] == 2, per_ccy
     assert per_ccy["ARS"] == 3, per_ccy          # expansion rows only
@@ -1162,7 +1184,7 @@ def selftest():
     rows_m, n_ok_m = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=fetch)
     co = next(r for r in rows_m if r["venue"] == "Coins.ph")
     bk = next(r for r in rows_m if r["venue"] == "Bitkub")
-    assert n_ok_m == 26, n_ok_m  # 28 - coins(outage) - bitkub(malformed)
+    assert n_ok_m == 27, n_ok_m  # 29 - coins(outage) - bitkub(malformed)
     assert co["source_ok"] is False and "simulated 503" in co["error"]
     assert bk["source_ok"] is False and bk["basis_bps"] is None
     assert run_exit_code(n_ok_m) == 0  # 5 good venues -> the run SUCCEEDS
