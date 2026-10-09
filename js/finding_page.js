@@ -32,8 +32,25 @@
   // The headline as shown: a monthly volume in Singapore dollars reads "S$4.5M", everything else its stored number.
   function shownHeadline(h) { 
     if (h.unit === 'sgd_per_month') return approxSgd(h.value);
-    if (h.id === 'volume_crossover') return 'S$4.5M'; // Special case for finding 03
     return fmt(h.value); 
+  }
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  // The short label under a number so it reads on its own. 01: the earliest first day in its evidence; 04: the stablecoin's hours
+  // are "of" the hours priced at S$5,000. Every value comes from findings.json.
+  function shortUnit(f) {
+    var ev = f.evidence || [], label = T('short_unit_' + f.id);
+    if (!label) return '';
+    if (f.id === 'price_changes') {
+      var days = ev.map(function (e) { return e.first_day; }).filter(Boolean).sort();
+      if (!days.length) return '';
+      label = label.replace('{first}', (+days[0].slice(8, 10)) + ' ' + MON[+days[0].slice(5, 7) - 1]);
+    }
+    return label;
+  }
+  function shortValue(f, value) {
+    if (f.id !== 'sgd_php_never_cheapest') return value;
+    var row = (f.evidence || []).filter(function (e) { return e.amount === 5000; })[0];
+    return row && typeof row.hours_priced === 'number' ? T('short_value_sgd_php_never_cheapest').replace('{value}', value).replace('{hours}', fmt(row.hours_priced)) || value : value;
   }
   function niceRoute(r) { return String(r || '').replace('->', ' \u2192 '); }
 
@@ -232,7 +249,10 @@
     // Big figure
     var h = f.headline || {};
     var bigValue = shownHeadline({ ...h, id: f.id }); // Pass ID for special handling
-    a.appendChild(el('span', 'big', bigValue));
+    var big = el('span', 'big', shortValue(f, bigValue));
+    var unit = shortUnit(f);
+    if (unit) { big.appendChild(el('small', '', unit)); }
+    a.appendChild(big);
     
     return a;
   }
