@@ -95,7 +95,8 @@ STYLE_PROBE = r"""
   o.lead = lead ? cs(lead).fontSize + ' ' + cs(lead).color : 'none';
   o.h2 = h2 ? cs(h2).fontSize + ' ' + cs(h2).fontWeight : 'none';
   o.leadgap = h1 && lead ? Math.round(lead.getBoundingClientRect().top - h1.getBoundingClientRect().bottom) + 'px' : 'none';
-  o.gap = h1 && head ? Math.round(h1.getBoundingClientRect().top - head.getBoundingClientRect().bottom) + 'px' : 'none';
+  var first = document.querySelector('.cnav,.fnav') || h1;   // a page with a back link above its title keeps the 40px above that row
+  o.gap = first && head ? Math.round(first.getBoundingClientRect().top - head.getBoundingClientRect().bottom) + 'px' : 'none';
   if (pill) { o.pill = [cs(pill).borderTopLeftRadius, cs(pill).minHeight, cs(pill).fontWeight, cs(pill).fontSize, cs(pill).borderTopWidth, cs(pill).borderTopColor].join(' '); }
   if (lk) { o.link = cs(lk).textDecorationLine + ' ' + cs(lk).textDecorationThickness + ' ' + cs(lk).textDecorationColor; }
   return JSON.stringify(o);
