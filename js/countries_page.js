@@ -215,7 +215,11 @@
     var cutL = lo < Sc.lo, cutR = hi > Sc.hi;
     var rngClass = 'ci-rng' + (cutL ? ' cl' : '') + (cutR ? ' cr' : '');
     var left = X(lo), width = Math.max(0.6, X(hi) - X(lo));
-    a.querySelector('.ci-track').innerHTML = gridlinesHTML(Sc, X) +
+    var track = a.querySelector('.ci-track');
+    // on a phone a tap on the bar shows its figures; the row's link is the name
+    track.addEventListener('click', function (e) { if (e.pointerType === 'touch' || window.matchMedia('(pointer: coarse)').matches) { e.preventDefault(); } });
+    if (t('tipRange')) { track.setAttribute('data-tip', t('tipRange', { country: row.country, now: fmtPct(row.p), lo: fmtPct(lo), hi: fmtPct(hi) })); }
+    track.innerHTML = gridlinesHTML(Sc, X) +
       '<i class="' + rngClass + '" style="left:' + left + '%;width:' + width + '%"></i>' +
       '<i class="ci-dot" style="left:' + X(row.p) + '%"></i>';
 
