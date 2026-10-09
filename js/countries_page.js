@@ -108,7 +108,9 @@
     var s = el('div', 'ci-hero');
     put(s, 'h1', null, t('h1Template', { n: num(ctx.nearCount), N: num(ctx.rankedLen) }));
     put(s, 'p', 'ci-lead', t('leadTemplate', { n: num(ctx.farCount), country: ctx.topName, x: ctx.topX }));
-    var metaTxt = t('metaLine', { time: ctx.time, n: num(ctx.pricedCount), total: num(ctx.total) });
+    var metaVars = { time: ctx.time, n: num(ctx.pricedCount), total: num(ctx.total), N: num(ctx.rankedLen) };
+    // the headline counts ranked countries only; say so when the priced count is higher (a country whose official rate is frozen is shown, not ranked)
+    var metaTxt = ctx.rankedLen < ctx.pricedCount && t('metaLineUnranked') ? t('metaLineUnranked', metaVars) : t('metaLine', metaVars);
     if (metaTxt) {
       var m = el('p', ['ci-meta', 'ci-num']);
       m.appendChild(document.createTextNode(metaTxt));

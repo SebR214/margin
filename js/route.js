@@ -103,7 +103,7 @@
   // readable, no words added.
   function pathName(id) {
     if (id === "USDT" && txt("pathBase")) return txt("pathBase"); // USDT is not a reader word; the words come from copy.json
-    return id ? String(id).replace(":", " on ").replace(/([a-z])([A-Z])/g, "$1 $2") : "";
+    return id ? txt("pathOther") : ""; // no coin or network names in reader text
   }
   function routeKey(id) { return id.replace("->", "-"); }
   function routeObj(id) { return HOURLY.routes.filter(function (r) { return r.id === id; })[0]; }
@@ -330,11 +330,13 @@
 
   function heroHtml(A) {
     var amt = esc(A.sym) + whole(S.amount);
-    var vals = { amount: amt, dest: A.dest, appCost: money(A.ac, A.sym), app: A.app, stableCost: money(A.sc, A.sym) };
+    // a cost below zero is said in words, with no minus sign: the app paid out more than the official rate
+    var vals = { amount: amt, dest: A.dest, appCost: money(Math.abs(A.ac), A.sym), app: A.app, stableCost: money(Math.abs(A.sc), A.sym) };
+    var hkey = A.ac < 0 ? (A.sc < 0 ? "headlineBothBack" : "headlineAppBack") : (A.sc < 0 ? "headlineStableBack" : "headline");
     var lead = A.wins === 0
       ? txt("leadNever", { n: whole(A.n), first: dayLong(A.first) })
       : txt("leadSome", { n: whole(A.n), wins: whole(A.wins), first: dayLong(A.first) });
-    return '<div class="sm-hero">' + w("headline", vals, "h1") +
+    return '<div class="sm-hero">' + w(hkey, vals, "h1") +
       (lead ? '<p class="sm-lead">' + esc(lead) + "</p>" : "") +
       '<p class="sm-meta sm-num">' + esc(txt("meta", { time: clock(A.t).replace(/\s*UTC$/, ""), date: dayShort(A.t) })) + "</p></div>";
   }
@@ -351,12 +353,13 @@
     function step(k, label) {
       return barRow(SC, { cls: k === "tot" ? "sm-tot" : "sm-step", name: label, v: A.leg[k], val: A.leg[k] == null ? txt("notStored") : money(A.leg[k], A.sym), vsub: share(A.leg[k]) });
     }
-    var steps = step("inn", txt("rowDeposit")) + step("chain", txt("rowNetwork")) + step("out", txt("rowSell")) + step("tot", txt("rowAllIn"));
+    var diff = A.legPath && A.legPath !== A.path;   // the steps are stored for a different route than the one priced above
+    var steps = step("inn", txt("rowDeposit")) + step("chain", txt("rowNetwork")) + step("out", txt("rowSell")) + step("tot", diff ? txt("rowAllInDiff", { legPath: pathName(A.legPath) }) : txt("rowAllIn"));
     var stepsNote = A.legPath ? txt(A.legPath === A.path ? "stepsNoteSame" : "stepsNoteDiff", { legPath: pathName(A.legPath), path: pathName(A.path) }) : "";
     var stepsGap = (A.depM === false || A.wdM === false) ? txt("stepsGap") : "";
     return '<section class="sm-first">' + w("nowHeading", { amount: esc(A.sym) + whole(S.amount) }, "h2") +
       w("nowNote", null, "p", "sm-note") + '<div>' + moneyAxis + now + "</div>" +
-      w("stepsHeading", null, "h3") + (stepsNote ? '<p class="sm-note">' + esc(stepsNote) + "</p>" : "") +
+      (diff ? w("stepsHeadingDiff", { legPath: pathName(A.legPath) }, "h3") : w("stepsHeading", null, "h3")) + (stepsNote ? '<p class="sm-note">' + esc(stepsNote) + "</p>" : "") +
       '<div>' + moneyAxis + steps + "</div>" + (negative ? w("negNote", null, "p", "sm-small") : "") + (stepsGap ? '<p class="sm-small">' + esc(stepsGap) + "</p>" : "") + "</section>";
   }
 
@@ -375,7 +378,7 @@
       var r = b[0], a = b[1];
       var sub = a.wins === 0 ? txt("neverCheaper", { n: whole(a.n) }) : txt("cheaperInSome", { wins: whole(a.wins), n: whole(a.n) });
       var vsub = txt(a.ep < 0 ? "lessThan" : "moreThan", { app: a.app });
-      return rangeRow(SC, { btn: r.id, cls: r.id === S.route ? "sm-on" : "", name: r.route_words, sub: sub, v: a.ep, rg: a.e30, val: pctPlain(Math.abs(a.ep)), vsub: vsub });
+      return rangeRow(SC, { btn: r.id, cls: r.id === S.route ? "sm-on" : "", name: plainRoute(r.route_words), sub: sub, v: a.ep, rg: a.e30, val: pctPlain(Math.abs(a.ep)), vsub: vsub });
     }).join("");
     return '<section>' + w("cmpHeading", { amount: whole(S.amount) }, "h2") + w("cmpNote", null, "p", "sm-note") +
       '<p class="sm-key">' +
@@ -385,9 +388,11 @@
       "</p><div>" + html + "</div></section>";
   }
 
-  function leftOutSectionHtml() {
-    return '<section class="sm-np">' + w("leftOutHeading", null, "h2") +
-      w("leftOutNames", null, "p", "sm-names") + w("leftOutBody", null, "p") + "</section>";
+  // a route measured against the official rate is not compared yet: its name, and one line why
+  function notComparedHtml() {
+    var ro = routeObj(S.route);
+    var name = ro ? plainRoute(ro.route_words) : "";
+    return '<div class="sm-hero"><h1>' + esc(name) + '</h1><p class="sm-lead">' + esc(txt("notCompared", { route: name })) + "</p></div>";
   }
 
   function footerHtml() {
@@ -404,13 +409,13 @@
 
   function renderAll() {
     if (ORDER.indexOf(S.route) < 0) {
-      app.innerHTML = '<div class="sm-wrap">' + headHtml() + pillsHtml() + leftOutSectionHtml() + footerHtml() + "</div>";
+      app.innerHTML = '<div class="sm-wrap">' + headHtml() + notComparedHtml() + pillsHtml() + footerHtml() + "</div>";
       pushUrl();
       return;
     }
     var A = computeA(S.route, S.amount);
     app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml(A) + pillsHtml() +
-      nowSectionHtml(A) + weekSectionHtml() + cmpSectionHtml(A) + leftOutSectionHtml() + footerHtml() + "</div>";
+      nowSectionHtml(A) + weekSectionHtml() + cmpSectionHtml(A) + footerHtml() + "</div>";
     chart = { A: A, sym: A.sym };
     drawChart();
     var box = document.getElementById("smChart");
