@@ -4,20 +4,24 @@
     "denominator": 63.794896,
     "denominator_meaning": "the official rate, local currency per dollar",
     "formula": "(numerator / denominator - 1) * 100",
-    "numerator": 74.885,
+    "numerator": 74.765,
     "numerator_meaning": "price to buy one dollar locally",
-    "result_pct": 17.384
+    "result_pct": 17.1959
   },
-  "computed_at": "2026-10-09T10:00:00+00:00",
+  "computed_at": "2026-10-09T11:00:00+00:00",
   "country": "Mozambique",
   "evidence": {
-    "buy_median": 74.885,
-    "collected_at": "2026-10-09T10:06:34.761115+00:00",
+    "buy_median": 74.765,
+    "collected_at": "2026-10-09T11:09:28.214568+00:00",
     "n_offers": 10,
     "offer_detail": "per_offer",
     "offers": [
       {
-        "price": 74.64,
+        "price": 74.54,
+        "side": "buy"
+      },
+      {
+        "price": 74.69,
         "side": "buy"
       },
       {
@@ -37,24 +41,28 @@
         "side": "buy"
       },
       {
+        "price": 74.8,
+        "side": "buy"
+      },
+      {
+        "price": 74.97,
+        "side": "buy"
+      },
+      {
+        "price": 74.98,
+        "side": "buy"
+      },
+      {
         "price": 74.99,
         "side": "buy"
       },
       {
-        "price": 75.01,
-        "side": "buy"
+        "price": 74.89,
+        "side": "sell"
       },
       {
-        "price": 75.09,
-        "side": "buy"
-      },
-      {
-        "price": 75.13,
-        "side": "buy"
-      },
-      {
-        "price": 75.14,
-        "side": "buy"
+        "price": 74.88,
+        "side": "sell"
       },
       {
         "price": 74.87,
@@ -69,23 +77,11 @@
         "side": "sell"
       },
       {
-        "price": 74.85,
+        "price": 74.84,
         "side": "sell"
       },
       {
-        "price": 74.85,
-        "side": "sell"
-      },
-      {
-        "price": 74.81,
-        "side": "sell"
-      },
-      {
-        "price": 74.8,
-        "side": "sell"
-      },
-      {
-        "price": 74.72,
+        "price": 74.79,
         "side": "sell"
       },
       {
@@ -95,34 +91,38 @@
       {
         "price": 74.7,
         "side": "sell"
+      },
+      {
+        "price": 74.7,
+        "side": "sell"
       }
     ],
-    "sell_median": 74.83,
-    "source_kind": "p2p_buy_median",
-    "source_words": "from person-to-person ads"
+    "sell_median": 74.85,
+    "source_kind": null,
+    "source_words": "no price this hour"
   },
   "evidence_rule": {
     "applies": true,
     "buy_ads_actual": 10,
     "buy_ads_estimated": false,
-    "buy_at_or_above_sell": true,
+    "buy_at_or_above_sell": false,
     "min_buy_ads_required": 10,
-    "passed": true,
-    "reason": null,
+    "passed": false,
+    "reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market",
     "reason_code": null
   },
-  "hour_utc": "2026-10-09T10:00:00+00:00",
+  "hour_utc": "2026-10-09T11:00:00+00:00",
   "index_version": "1.2",
-  "not_published_reason": null,
+  "not_published_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market",
   "official_rate": {
     "class": "managed",
     "source": "open.er-api",
     "source_file": "data/fx_rates.csv",
-    "timestamp": "2026-10-09T10:10:42.014549+00:00",
+    "timestamp": "2026-10-09T11:13:38.794915+00:00",
     "value": 63.794896
   },
   "outlier_checked": null,
-  "published": true,
+  "published": false,
   "source_files": [
     "data/countries/MZN.json",
     "data/fx_rates.csv",
