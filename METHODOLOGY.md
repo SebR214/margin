@@ -825,6 +825,15 @@ one company, one route, one day — not on each amount separately, because a
 company raises its price, not its price-at-S$200. Both legs must be present in
 the data; nothing is inferred from one leg alone.
 
+The pairing is done when the findings file is built (tools/emit_findings.py), from
+the stored rows, not when a row is written. data/price_changes.csv is append-only:
+a Saturday rise is written as a plain change, because its Monday cut does not exist
+yet, and it is never relabelled. Counting the stored `kind` column would leave most
+rises unpaired (on 9 Oct, 104 cuts against 25 rises, with 88 of the matching Saturday
+rises still stored as changes). The build applies the same rule to the stored rows
+and counts the result. The file itself is not touched. This changes only findings 01
+and 02. No published country number changes, so `index_version` does not move.
+
 **What is judged.** Only complete days: the first day in a panel has nothing
 before it, and the last is today, still filling. The file is append-only and
 never rewrites a row, so a call made on half a day could not be corrected.

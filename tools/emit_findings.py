@@ -130,8 +130,26 @@ def _panel_newest(files):
     return best
 
 
+def _pair_weekends(rows):
+    """Work the weekend labels out from the stored rows, every time the findings are built.
+
+    data/price_changes.csv is append-only: a Saturday rise is written as "change" because its Monday
+    cut does not exist yet, and the cut is written later as "weekend_back". The rise row is never
+    rewritten, so the stored labels leave most rises unpaired. Pairing here uses the same rule
+    (tools/emit_price_changes.py label_weekends) on the stored rows and leaves the file as it is."""
+    import emit_price_changes as epc
+    ev = []
+    for r in rows:
+        e = dict(r)
+        e["new_day"] = r["ts_utc"][:10]
+        e["move_pct"] = float(r["move_pct"])
+        ev.append(e)
+    epc.label_weekends(ev)
+    return [dict(r, kind=e["kind"]) for r, e in zip(rows, ev)]
+
+
 def price_changes_findings():
-    rows = rc.read_csv("price_changes.csv")
+    rows = _pair_weekends(rc.read_csv("price_changes.csv"))
     latest = _json("price_changes_latest.json")
     as_of = _z(latest["computed_at"])
     routes = sorted({r["corridor"] for r in rows})
