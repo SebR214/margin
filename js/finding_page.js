@@ -5,7 +5,7 @@
 (function () {
   var GH = 'https://github.com/SebR214/margin/blob/main/';
   var NON_FIELDS = { route: 1, ccy: 1, side: 1, amount: 1 };
-  var PRIMARY = { price_changes: 'changes', weekend_penalty: 'weekend_up', volume_crossover: 'monthly_volume_sgd', sgd_php_never_cheapest: 'hours_priced' };
+  var PRIMARY = { price_changes: 'changes', weekend_penalty: 'weekend_up', volume_crossover: 'monthly_volume_sgd', sgd_php_never_cheapest: 'hours_priced', exchange_vs_p2p: 'median_gap_pts' };
   var app = document.getElementById('app');
   var mode = document.body.getAttribute('data-page');
   var C = {};
@@ -27,7 +27,7 @@
   function titleOf(f) {
     var t = T('title_' + f.id);
     var v = (f.headline || {}).value;
-    return t.replace(/\{approx\}/g, typeof v === 'number' ? approxSgd(v) : '');
+    return t.replace(/\{approx\}/g, typeof v === 'number' ? approxSgd(v) : '').replace(/\{n\}/g, typeof v === 'number' ? fmt(v) : '');
   }
   // The headline as shown: a monthly volume in Singapore dollars reads "S$4.5M", everything else its stored number.
   function shownHeadline(h) { 

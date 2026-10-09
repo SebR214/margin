@@ -43,9 +43,12 @@ Usage: python3 tools/emit_findings.py [--self-test]
 """
 
 import csv
+import datetime as dt
 import glob
 import json
 import os
+import re
+import statistics
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -283,8 +286,102 @@ def sgd_php_finding():
                     ["data/routes_hourly.json", "data/routes_summary.json"])
 
 
+
+EXCH_GAP_PTS = 2.0          # a gap of this many points or more counts as a disagreement
+EXCH_PERSIST_DAYS = 7       # days with checked hours, in the last 30
+EXCH_PERSIST_SHARE = 0.75   # share of checked hours with a disagreement
+EXCH_WINDOW_DAYS = 30
+EXCH_FAMILIES = ("order_book_median", "order_book_single", "broker_median", "broker_single")
+
+
+def exchange_vs_p2p_hours():
+    """One entry per country and hour in which the published number came from order books or brokers and at least one
+    person-to-person board had 10 or more buy ads. gap = the board's premium over the official rate minus the number
+    that hour published (data/index_hourly.csv, never recomputed). Two boards answering: the middle of the two prices."""
+    import emit_countries as ec
+    pub = {}
+    for r in ec.rows(os.path.join(DATA, "index_hourly.csv")):
+        if r["source_class"] in EXCH_FAMILIES:
+            pub[(r["ccy"], r["hour_utc"][:13])] = (r["source_class"], float(r["index_pct"]))
+    sides = ec.buy_side_counts()
+    board = {}      # (ccy, hour) -> {"binance": (price, fx), "okx": (price, fx)}
+
+    def hour_of(ts):
+        t = ec.parse_ts(ts)
+        return t.replace(minute=0, second=0, microsecond=0) if t else None
+    for r in ec.rows(ec.P2P):
+        t = hour_of(r.get("ts_utc"))
+        price, fx = ec.num(r, "buy_median"), ec.num(r, "fx_mid_per_usd")
+        if t is None or not r.get("ccy") or not ec.flag(r, "source_ok") or not price or not fx:
+            continue
+        n_buy = sides.get((r["ccy"], t))
+        if n_buy is None:
+            n_buy = ec.MIN_BUY_ADS if (ec.num(r, "n_ads") or 0) >= ec.MIN_BUY_ADS * 2 else 0
+        if n_buy >= ec.MIN_BUY_ADS:
+            board.setdefault((r["ccy"], t), {})["binance"] = (price, fx)
+    for r in ec.rows(ec.P2P_OKX):
+        t = hour_of(r.get("ts_utc"))
+        price, fx = ec.num(r, "buy_median"), ec.num(r, "fx_mid_per_usd")
+        if t is None or not r.get("ccy") or not ec.flag(r, "source_ok") or not price or not fx:
+            continue
+        if (ec.num(r, "n_ads") or 0) >= ec.MIN_BUY_ADS:
+            board.setdefault((r["ccy"], t), {})["okx"] = (price, fx)
+    out = []
+    for (ccy, t), b in sorted(board.items(), key=lambda kv: (kv[0][1], kv[0][0])):
+        key = (ccy, t.strftime("%Y-%m-%dT%H"))
+        if key not in pub:
+            continue
+        prices = [v[0] for v in b.values()]
+        fx = (b.get("binance") or b.get("okx"))[1]
+        premium = (statistics.median(prices) / fx - 1) * 100
+        out.append({"hour": t.strftime("%Y-%m-%dT%H:00:00Z"), "ccy": ccy, "published": pub[key][1], "board": premium,
+                    "gap": premium - pub[key][1], "boards": sorted(b), "class": pub[key][0]})
+    return out
+
+
+def exchange_vs_p2p_finding():
+    hrs = exchange_vs_p2p_hours()
+    assert hrs, "no hour with both an exchange number and a person-to-person board"
+    last = max(h["hour"] for h in hrs)
+    cutoff = (dt.datetime.strptime(last, "%Y-%m-%dT%H:%M:%SZ") - dt.timedelta(days=EXCH_WINDOW_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    names = {}
+    for ccy in {h["ccy"] for h in hrs}:
+        try:
+            names[ccy] = [v["venue"] for v in json.load(open(os.path.join(DATA, "countries", ccy + ".json"))).get("venues", [])]
+        except (OSError, ValueError):
+            names[ccy] = []
+    ev = []
+    for ccy in sorted({h["ccy"] for h in hrs}):
+        all_h = [h for h in hrs if h["ccy"] == ccy]
+        recent = [h for h in all_h if h["hour"] > cutoff]
+        days = {h["hour"][:10] for h in recent}
+        share_recent = (sum(1 for h in recent if h["gap"] >= EXCH_GAP_PTS) / len(recent)) if recent else 0.0
+        persists = len(days) >= EXCH_PERSIST_DAYS and share_recent >= EXCH_PERSIST_SHARE
+        ev.append({"ccy": ccy, "country": re.sub(r"^the ", "", __import__("emit_countries").COUNTRY.get(ccy, ccy)), "median_gap_pts": round(statistics.median(h["gap"] for h in all_h), 2),
+                   "share_gap_2pts": round(sum(1 for h in all_h if h["gap"] >= EXCH_GAP_PTS) / len(all_h), 3),
+                   "hours_checked": len(all_h), "first_day": min(h["hour"] for h in all_h)[:10],
+                   "exchanges": names.get(ccy, []), "boards": sorted({b for h in all_h for b in h["boards"]}),
+                   "share_gap_2pts_30d": round(share_recent, 3), "days_30d": len(days), "persists": persists})
+    ev.sort(key=lambda e: (not e["persists"], -e["median_gap_pts"]))
+    hdr = ["hour_utc", "ccy", "published_pct", "board_pct", "gap_pts", "boards"]
+    lines = [[h["hour"], h["ccy"], round(h["published"], 4), round(h["board"], 4), round(h["gap"], 4), "+".join(h["boards"])] for h in hrs]
+    # the file stays under the size limit: oldest days drop first, never below the 30 days the rule reads
+    while len(lines) > 1 and len((",".join(hdr) + "\n" + "\n".join(",".join(str(v) for v in r) for r in lines)).encode()) > MAX_HOURS_BYTES - 1000:
+        day = lines[0][0][:10]
+        if lines[0][0] <= cutoff:
+            lines = [r for r in lines if r[0][:10] != day]
+        else:
+            break
+    n = sum(1 for e in ev if e["persists"])
+    meth = ["tools/emit_findings.py", "tools/emit_index_hourly.py", "tools/emit_countries.py"]
+    return _finding("exchange_vs_p2p",
+                    ["data/index_hourly.csv", "data/p2p_basis.csv", "data/p2p_okx.csv", "data/p2p_sides.csv"], meth,
+                    {"value": n, "unit": "countries_exchange_vs_p2p", "as_of_utc": last},
+                    ev, last, _hours_csv("exchange_vs_p2p", hdr, lines), "data/index_hourly.csv", ["data/findings.json"])
+
+
 def build():
-    fs = price_changes_findings() + [volume_crossover_finding(), sgd_php_finding(), stress_finding(), spread_finding()]
+    fs = price_changes_findings() + [volume_crossover_finding(), sgd_php_finding(), exchange_vs_p2p_finding(), stress_finding(), spread_finding()]
     return {"as_of_utc": max(f["last_recheck_utc"] for f in fs), "findings": fs}
 
 
