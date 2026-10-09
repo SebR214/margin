@@ -35,7 +35,10 @@
   }
   // a stored venue id, in words a reader knows
   function vname(v) {
-    if (/p2p/i.test(v)) { return T('venuePerson', { venue: String(v).replace(/[ _]?p2p/i, '').replace(/^./, function (c) { return c.toUpperCase(); }) }); }
+    if (/p2p/i.test(v)) {
+      var n = String(v).replace(/[ _]?p2p/i, '');
+      return T('venuePerson', { venue: /^okx$/i.test(n) ? 'OKX' : n.replace(/^./, function (c) { return c.toUpperCase(); }) });
+    }
     return String(v).replace(/^CriptoYa:(.)/, function (m, c) { return 'CriptoYa · ' + c.toUpperCase(); });
   }
 
@@ -56,7 +59,7 @@
       var key = c.index_pct > 0.05 ? 'headlineMore' : c.index_pct < -0.05 ? 'headlineLess' : 'headlineSame';
       var rate = c.fx_mid_per_usd;
       h += '<h1>' + esc(T(key, { country: c.country, gap: pct1(c.index_pct) })) + '</h1>' +
-        '<p class="lead">' + esc(T(c.source_class === 'p2p_buy_median' ? 'leadP2p' : 'leadBook', { rate: rate.toLocaleString('en-US', { maximumFractionDigits: 2 }), ccy: c.ccy, country: c.country, street: money(c.buy_price, c.ccy) })) + '</p>' +
+        '<p class="lead">' + esc(T(c.source_class === 'p2p_buy_median' ? (c.n_boards === 2 ? 'leadP2pTwo' : 'leadP2p') : 'leadBook', { rate: rate.toLocaleString('en-US', { maximumFractionDigits: 2 }), ccy: c.ccy, country: c.country, street: money(c.buy_price, c.ccy) })) + '</p>' +
         '<p class="money num">' + T('usd100Line', { street: esc(money(c.buy_price * 100, c.ccy)), rate: esc(money(rate * 100, c.ccy)) }) + '</p>';
       if (c.denominator && c.denominator.class === 'unmaintained') { h += '<p class="flag">' + esc(T('unrankedNote', { country: c.country })) + '</p>'; }
     }

@@ -50,7 +50,7 @@ OUT_MANIFEST = os.path.join(DATA, "weekly_latest.json")
 OUT_RSS = os.path.join(HERE, "weekly.xml")
 PAGE_DIR = os.path.join(HERE, "w")
 
-INDEX_VERSION = "1.1"
+INDEX_VERSION = "1.2"
 MIN_BUY_ADS = 10
 # Same bands as emit_countries.py, "The index, version 1". A value outside them
 # is not wrong by definition, but it does not go in a ranked snapshot until a
