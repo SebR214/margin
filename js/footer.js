@@ -10,6 +10,6 @@
     f.className = 'site-footer';
     if (R.footerText) { var p = document.createElement('p'); p.textContent = R.footerText; f.appendChild(p); }
     if (R.footerLinkText) { var a = document.createElement('a'); a.href = 'https://github.com/SebR214/margin'; a.textContent = R.footerLinkText; f.appendChild(a); }
-    document.body.appendChild(f);
+    (document.querySelector('.wrap, .hp-wrap, .hw-wrap') || document.body).appendChild(f);   // inside the page column, so it lines up with the content
   }).catch(function () {});
 })();

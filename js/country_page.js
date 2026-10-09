@@ -177,7 +177,10 @@
   });
   var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (S.c) { chart(); } }, 150); });
 
-  var seg = ccy ? maybe('data/country_history_segment/' + ccy + '.json') : Promise.resolve(null);
+  // the file naming who reported the older prices exists only for the currencies the manifest lists; asking for any other is a 404
+  var seg = ccy ? maybe('data/country_history_segment/manifest.json').then(function (m) {
+    return m && m.ccys && m.ccys.indexOf(ccy) >= 0 ? maybe('data/country_history_segment/' + ccy + '.json') : null;
+  }) : Promise.resolve(null);
   Promise.all([
     maybe('copy.json'),
     ccy ? maybe('data/countries/' + ccy + '.json') : Promise.resolve(null),

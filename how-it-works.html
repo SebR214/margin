@@ -6,8 +6,6 @@
 <title></title>
 <meta name="description" content=""/>
 <link rel="stylesheet" href="./style.css">
-<script src="./js/chart.js"></script>
-<script src="./js/receipt_replay.js"></script>
 <link rel="stylesheet" href="./css/dkpanel.css">
 <link rel="stylesheet" href="./css/site_head.css?v=3">
 <link rel="stylesheet" href="./css/site_page.css?v=1">
@@ -62,22 +60,29 @@
 
   <main class="hw-main">
     <section class="hw-hero" id="hiwIntro">
-    <h1 id="hiwH1"></h1>
-    <ul class="plain-list" id="hiwSubList"></ul>
-    <div class="p" id="hiwSubNote"></div>
+      <h1 id="hiwH1"></h1>
+      <div class="p" id="hiwIntroP"></div>
     </section>
 
-    <section class="hiw-section" id="dollar-cost">
-      <h2 id="dollarCostH2"></h2>
-      <div class="p" id="dollarCostP"></div>
-      <ul class="plain-list" id="dollarCostList"></ul>
+    <section class="hiw-section" id="percentage">
+      <h2 id="pctH2"></h2>
+      <div class="p" id="pctBody"></div>
+      <div class="p" id="pctZero"></div>
+      <div class="p" id="pctOfficial"></div>
+      <div class="p" id="pctStable"></div>
+    </section>
+
+    <section class="hiw-section" id="price-source">
+      <h2 id="fromH2"></h2>
+      <div class="p" id="fromFirst"></div>
+      <div class="p" id="fromThen"></div>
+      <div class="p" id="fromNone"></div>
     </section>
 
     <section class="hiw-section" id="sending-cost">
-      <h2 id="sendingCostH2"></h2>
-      <div class="p" id="sendingCostP"></div>
-      <div class="p" id="sendingCostAmounts"></div>
-      <ul class="plain-list" id="sendingCostList"></ul>
+      <h2 id="costH2"></h2>
+      <div class="p" id="costBody"></div>
+      <div class="p" id="costAmounts"></div>
     </section>
 
     <section class="hiw-section" id="not-measured">
@@ -85,41 +90,23 @@
       <ul class="plain-list" id="notMeasuredList"></ul>
     </section>
 
-
-    <section class="hiw-section" id="sources">
-      <h2 id="sourcesH2"></h2>
-      <ul class="plain-list" id="sourcesList"></ul>
-      <div class="hw-rows" id="sourceRows"></div>
+    <section class="hiw-section" id="check">
+      <h2 id="checkH2"></h2>
+      <div class="p" id="checkBody"></div>
+      <div class="p" id="checkSources"></div>
+      <div class="p" id="checkCode"></div>
     </section>
-
-    <footer class="foot"><a href="https://github.com/SebR214/margin">Code and raw data on GitHub →</a></footer>
   </main>
 </div>
 
 <script>
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-// Every sentence here is a template in copy.json's "howItWorks" block.
-// Each figure is read from a file the site already publishes, never typed:
-//   minAds     data/index_latest.json  min_buy_ads (the evidence rule)
-//   amounts    data/providers_latest.json  the quoted sizes per corridor
-//   n, top     data/sources_latest.json "Order books" countries, then each
-//              of those data/countries/<CCY>.json "venues" lists
-//   ownWord    data/providers_latest.json count of providers whose rows have
-//              source "own" (their names appear only in the provider tables)
+// Every sentence here is a key of copy.json's "howItWorks" block. Each figure is read from a file the site publishes, never typed:
+//   sources         data/sources_daily.json   how many sources are read every hour
+//   minAds          data/index_latest.json    min_buy_ads (the evidence rule)
+//   country, rate   data/index_latest.json    the ranked country with the largest figure this hour
+//   amounts, cost   data/providers_latest.json  the quoted sizes, and the cheapest app for S$5,000 to the Philippines
 // A sentence whose figure cannot be read is left out, not guessed.
 function getJson(u){ return fetch(u, {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; }); }
-var NUM_WORDS = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
-function numWord(n){ return NUM_WORDS[n] != null ? NUM_WORDS[n] : String(n); }
-// Every reader-facing word on this page, including the loading, failure and
-// ask-box sentences, is a key of copy.json's "howItWorks" block (HIW).
-var HIW = {};
-var copyP = getJson('./copy.json').then(function(c){ HIW = (c && c.howItWorks) || {}; return HIW; });
-// Fill {placeholders} in a template. A missing key or value leaves nothing.
-// In an html context the values arrive already escaped.
-function fillTpl(tpl, vals){ return (tpl || '').replace(/\{(\w+)\}/g, function(m, k){ return vals && vals[k] != null ? vals[k] : ''; }); }
-function joinNames(a){ return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' ' + HIW.listAnd + ' ' + a[a.length - 1]; }
-// Fill {placeholders}; drop any sentence that still has an unfilled one.
 function fillCopy(tpl, vals){
   if (!tpl) return '';
   return tpl.split(/(?<=\.)\s+/).map(function(sent){
@@ -128,133 +115,67 @@ function fillCopy(tpl, vals){
     return bad ? '' : out;
   }).filter(Boolean).join(' ');
 }
-// Fill each template and render the survivors as list items.
-function setList(id, items, vals){
-  var ul = document.getElementById(id); if (!ul) return;
-  ul.textContent = '';
-  (items || []).forEach(function(t){
-    var f = fillCopy(t, vals); if (!f) return;
-    var li = document.createElement('li'); li.textContent = f; ul.appendChild(li);
-  });
-}
 function setText(id, txt){ var el = document.getElementById(id); if (el) { el.textContent = txt; el.hidden = !txt; } }
-
-// The page's own fixed text, set as soon as the copy arrives.
-copyP.then(function(h){
-  document.title = h.pageTitle || '';
-  var md = document.querySelector('meta[name="description"]');
-  if (md) md.setAttribute('content', h.pageDescription || '');
-  setText('methodLink', h.methodLink || '');
-});
-
-Promise.all([
-  copyP,
-  getJson('./data/index_latest.json'),
-  getJson('./data/providers_latest.json'),
-  getJson('./data/sources_latest.json')
-]).then(function(res){
-  var hiw = res[0] || {};
-  var idx = res[1], prov = res[2], src = res[3];
-  var minAds = idx && idx.min_buy_ads != null ? idx.min_buy_ads : null;
-
-  var sizes = [], own = {};
-  Object.keys((prov && prov.corridors) || {}).forEach(function(k){
-    var szs = prov.corridors[k].sizes || {};
-    var ks = Object.keys(szs);
-    if (ks.length > sizes.length) sizes = ks.map(Number).sort(function(a, b){ return a - b; });
-    ks.forEach(function(z){ (szs[z].rows || []).forEach(function(r){ if (r.source === 'own') own[r.provider] = 1; }); });
-  });
-  var vals = {
-    minAds: minAds,
-    amounts: sizes.length ? numWord(sizes.length) : null,
-    minAmount: sizes.length ? sizes[0].toLocaleString('en-US') : null,
-    maxAmount: sizes.length ? sizes[sizes.length - 1].toLocaleString('en-US') : null,
-    amountList: sizes.length ? joinNames(sizes.map(function(n){ return n.toLocaleString('en-US'); })) : null,
-    ownWord: Object.keys(own).length ? numWord(Object.keys(own).length) : null
-  };
-
-  setText('hiwH1', hiw.h1 || '');
-  setList('hiwSubList', hiw.subPoints, vals);
-  setText('hiwSubNote', hiw.subNote || '');
-  setText('dollarCostH2', hiw.dollarCostTitle || '');
-  setText('dollarCostP', fillCopy(hiw.dollarCostLead, vals));
-  setList('dollarCostList', hiw.dollarCostPoints, vals);
-  setText('sendingCostH2', hiw.sendingCostTitle || '');
-  setText('sendingCostP', fillCopy(hiw.sendingCostLead, vals));
-  setText('sendingCostAmounts', fillCopy(hiw.sendingCostAmounts, vals));
-  setList('sendingCostList', hiw.sendingCostPoints, vals);
-  setText('notMeasuredH2', hiw.notMeasuredTitle || '');
-  setText('sourcesH2', hiw.sourcesTitle || '');
-  var list = document.getElementById('notMeasuredList');
-  (hiw.notMeasured || []).forEach(function(t){ var li = document.createElement('li'); li.textContent = t; list.appendChild(li); });
-
-  // Local exchanges: the venues named in each order-book country's own file,
-  // folded to one name per exchange (IndependentReserve prices AUD, NZD and
-  // SGD under three labels), ranked by how many countries each one prices.
-  var ob = ((src && src.sources) || []).filter(function(s){ return s.name === 'Order books'; })[0];
-  var ccys = (ob && ob.countries) || [];
-  Promise.all(ccys.map(function(c){ return getJson('./data/countries/' + c + '.json'); })).then(function(files){
-    var cover = {};
-    files.forEach(function(f){
-      var seen = {};
-      ((f && f.venues) || []).forEach(function(v){ seen[String(v.venue).replace(/\s*\([^)]*\)\s*$/, '')] = 1; });
-      Object.keys(seen).forEach(function(v){ cover[v] = (cover[v] || 0) + 1; });
-    });
-    var names = Object.keys(cover).sort(function(x, y){ return cover[y] - cover[x] || x.localeCompare(y); });
-    vals.n = names.length || null;
-    // Every other price source the file lists (the parallel-dollar markets) follows the exchanges.
-    ((src && src.sources) || []).forEach(function(s){
-      if (/parallel-dollar/.test(s.detail || '') && names.indexOf(s.name) < 0) names.push(s.name);
-    });
-    vals.top = names.length ? names.map(function(n){ return (hiw.venueNames || {})[n] || n; }).join(', ') : null;
-    setList('sourcesList', (hiw.sourcesPoints || []).slice(1), vals);   // point 0 names the exchanges; the row of names below says the same
-    // Each source named above is also a row that opens its entry on the sources page.
-    var rowsBox = document.getElementById('sourceRows');
-    if (rowsBox) {
-      rowsBox.textContent = '';
-      var mainSrc = ((src && src.sources) || []).filter(function(x){ return /main source/.test(x.detail || ''); }).map(function(x){ return x.name; });
-      mainSrc.concat(names).forEach(function(n){
-        var a = document.createElement('a');
-        a.classList.add('hw-row', 'mono');
-        a.href = './sources.html#s-' + String(n).toLowerCase().replace(/[^a-z0-9]/g, '');
-        a.textContent = (hiw.venueNames || {})[n] || n;
-        rowsBox.appendChild(a);
-      });
-    }
-  });
-}).catch(function(){});
-
-Promise.all([copyP, fetch('./data/index_latest.json', {cache:'no-store'}).then(r=>r.json())]).then(function(res){
-  var d = res[1];
-  var hourUtc = (d.as_of_utc||d.computed_at||'').replace('T',' ').slice(0,16);
-  // Same figure the homepage binds its hero line to (countries.length +
-  // withheld.length) -- these were two separately typed numbers for the
-  // same fact on different pages (59 here, 60 there) until now. The mockup
-  // rebuild dropped the hero's own "Loading… countries" sentence, but this
-  // element is guarded rather than removed outright in case a future
-  // section wants it again.
-  var introCountEl = document.getElementById('introCountryCount');
-  if (introCountEl) introCountEl.textContent = (d.countries||[]).length + (d.withheld||[]).length + (d.unverified||[]).length;
-
-}).catch(function(){});
-
-// Section commented out above 2026-09-27 -- guard stops this fetch from
-// running against elements that no longer exist.
-if (document.getElementById('reactionMethodP')) {
-copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'no-store'}).then(function(r){ return r.json(); }); }).then(function(d){
-  document.getElementById('reactionMethodP').innerHTML =
-    fillTpl(HIW.reactionCounts, { qualified: d.n_countries_qualified, total: d.n_countries_total, hours: d.min_hours_required }) + ' ' +
-    fillTpl(HIW.reactionStep, { threshold: d.event_threshold_pct, closed: Math.round((1 - d.reversion_fraction) * 100), days: Math.round(d.max_window_hours / 24) });
-  var r = d.premium_lag_correlation;
-  document.getElementById('reactionFindingP').innerHTML =
-    fillTpl(HIW.reactionFindingLead, { relation: r == null ? fillTpl(HIW.reactionRelationNone) : fillTpl(HIW.reactionRelationWeak, { r: r.toFixed(2) }) }) + ' ' +
-    fillTpl(HIW.reactionFindingBody, { ccy: 'DZD', countriesPage: '<a href="./countries.html#reaction">' + esc(HIW.reactionCountriesLink || '') + '</a>' });
-}).catch(function(){
-  document.getElementById('reactionMethodP').textContent = HIW.reactionMethodFail || '';
-  document.getElementById('reactionFindingP').textContent = HIW.reactionFindingFail || '';
-});
+function setLink(id, tpl, label, href){
+  var el = document.getElementById(id); if (!el || !tpl) return;
+  var parts = tpl.split('{link}');
+  el.textContent = parts[0];
+  var a = document.createElement('a'); a.href = href; a.textContent = label; el.appendChild(a);
+  el.appendChild(document.createTextNode(parts[1] || ''));
 }
+function whole(n){ return Math.round(n).toLocaleString('en-US'); }
 
+Promise.all([getJson('./copy.json'), getJson('./data/index_latest.json'), getJson('./data/providers_latest.json'), getJson('./data/sources_daily.json')]).then(function(res){
+  var H = (res[0] && res[0].howItWorks) || {}, idx = res[1], prov = res[2], src = res[3];
+  document.title = H.pageTitle || '';
+  var md = document.querySelector('meta[name="description"]');
+  if (md) md.setAttribute('content', H.pageDescription || '');
+  var vals = { minAds: idx && idx.min_buy_ads != null ? idx.min_buy_ads : null };
+  vals.sources = src && src.sources ? src.sources.filter(function(s){ return s.live; }).length || null : null;
+
+  // the country with the largest ranked figure this hour, worked through
+  var ranked = ((idx && idx.countries) || []).filter(function(c){ return c.denominator_class !== 'unmaintained' && c.index_pct != null; });
+  var top = ranked.length ? ranked.reduce(function(a, b){ return b.index_pct > a.index_pct ? b : a; }) : null;
+  if (top) {
+    vals.country = top.country;
+    vals.rate = whole(top.fx_mid_per_usd); vals.unit = top.ccy;
+    vals.street = whole(top.buy_price) + ' ' + top.ccy;
+    vals.pct = (Math.round(top.index_pct * 10) / 10).toFixed(1);
+  }
+
+  // the cost of sending S$5,000 to the Philippines this hour, and the amounts we price
+  var cor = prov && prov.corridors && prov.corridors['SGD->PHP'], sizes = [];
+  Object.keys((prov && prov.corridors) || {}).forEach(function(k){
+    var ks = Object.keys(prov.corridors[k].sizes || {}).map(Number).sort(function(a, b){ return a - b; });
+    if (ks.length > sizes.length) sizes = ks;
+  });
+  var and = H.listAnd || 'and', nums = sizes.map(function(n){ return n.toLocaleString('en-US'); });
+  vals.amountList = nums.length ? (nums.length < 2 ? nums.join('') : nums.slice(0, -1).join(', ') + ' ' + and + ' ' + nums[nums.length - 1]) : null;
+  var five = cor && cor.sizes && cor.sizes['5000'], row = five && five.rows && five.rows[0];
+  if (five && row && row.cost_pct >= 0) { vals.amount = five.amount_words; vals.cost = row.costs; vals.app = row.provider; }
+
+  setText('hiwH1', H.h1 || '');
+  setText('hiwIntroP', fillCopy(H.intro, vals));
+  setText('pctH2', H.pctTitle || '');
+  setText('pctBody', fillCopy(H.pctBody, vals));
+  setText('pctZero', H.pctZero || '');
+  setText('pctOfficial', H.pctOfficial || '');
+  setText('pctStable', H.pctStable || '');
+  setText('fromH2', H.fromTitle || '');
+  setText('fromFirst', fillCopy(H.fromFirst, vals));
+  setText('fromThen', fillCopy(H.fromThen, vals));
+  setText('fromNone', H.fromNone || '');
+  setText('costH2', H.costTitle || '');
+  setText('costBody', fillCopy(H.costBody, vals));
+  setText('costAmounts', fillCopy(H.costAmounts, vals));
+  setText('notMeasuredH2', H.leaveOutTitle || '');
+  var list = document.getElementById('notMeasuredList');
+  (H.notMeasured || []).forEach(function(t){ var li = document.createElement('li'); li.textContent = t; list.appendChild(li); });
+  setText('checkH2', H.checkTitle || '');
+  setText('checkBody', H.checkBody || '');
+  setLink('checkSources', H.checkSources, H.checkSourcesLink, './sources.html');
+  setLink('checkCode', H.checkCode, H.checkCodeLink, 'https://github.com/SebR214/margin');
+});
 </script>
 
 <script>
@@ -270,6 +191,7 @@ copyP.then(function(){ return fetch('./data/response_time_latest.json', {cache:'
 })();
 </script>
 
+<script src="./js/footer.js"></script>
 <script src="./js/site_head.js?v=3"></script>
 </body>
 </html>
