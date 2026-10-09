@@ -1,7 +1,28 @@
 {
- "as_of_utc": "2026-10-09T06:42:03Z",
+ "as_of_utc": "2026-10-09T07:12:03Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "6c2fb706cfce492d7ca6813bc1f3ba9dfb734a5d",
+   "html_url": "https://github.com/SebR214/margin/commit/6c2fb706cfce492d7ca6813bc1f3ba9dfb734a5d",
+   "date": "2026-10-09T07:03:37Z",
+   "email": "person",
+   "message": "SEB-256: words for the exchanges-and-people finding and the source-switch line (#485)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "2c8c9ca2986258bd32435a1b92548c2232f8d176",
+   "html_url": "https://github.com/SebR214/margin/commit/2c8c9ca2986258bd32435a1b92548c2232f8d176",
+   "date": "2026-10-09T06:52:24Z",
+   "email": "person",
+   "message": "SEB-268 item 7: the phone nav fades at its right edge (#484)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "ab74d6e29c25e8e0e1a3270a506ebe654793bd89",
+   "html_url": "https://github.com/SebR214/margin/commit/ab74d6e29c25e8e0e1a3270a506ebe654793bd89",
+   "date": "2026-10-09T06:43:36Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-09T06:43Z"
+  },
   {
    "sha": "b5fbd8136fd51f67e8c7646f4a83ca4a2883d067",
    "html_url": "https://github.com/SebR214/margin/commit/b5fbd8136fd51f67e8c7646f4a83ca4a2883d067",
@@ -680,27 +701,6 @@
    "date": "2026-10-08T00:24:06Z",
    "email": "person",
    "message": "SEB-272: sending-money.html rebuild to match the reference (Part of SEB-240) (#429)\n\n* SEB-272: rebuild sending-money.html to match the reference (Part of SEB-240)\n\nReplaces the whole page: hero with route/amount pills and ?route=/?amount=\nURL params, plain this-hour bars (no range bands, no key), a single grey\nweek-by-week line (DESIGN.md's single-series rule), range-bar \"Other\nplaces\" rows in countries.html's shape, and a static left-out section for\nthe three routes measured against an official rate below street price.\n\nRemoved entirely (code and copy.json slots, not just hidden): the\ndrag-to-select chart, the stats strip, the currency/percent toggle, the\nperiod chips, the day slider, the metric chips, and the \"what would have\nto change\" block. css/route.css deleted -- nothing references it once the\nnew inline styles replace it.\n\ntools/emit_routes.py now stores each route's display words (\"route_words\",\n\"dest\") and currency symbol (\"send_symbol\") in data/routes_hourly.json, so\njs/route.js never builds a country name out of JS string fragments --\nnumbers, currency symbols and these display words are all formatted in\ncode from stored data, per the issue. Same ROUTE_WORDS/SYMBOL values\ntools/emit_providers.py already uses elsewhere on the site. Re-ran the\nemitter so data/routes_hourly.json carries the new fields; routes_summary/\nbreakdown/whatif.json are byte-identical, so they are not in this diff.\n\nThe \"never cheaper in N hours\" / \"cheaper in N of M hours\" counts, the\n30-day range shown in \"Other places\", and the week-by-week daily median\nline are all computed fresh in js/route.js from data/routes_hourly.json\nand data/routes_breakdown.json on every render -- never hardcoded, never\ncarried forward from the reference's own example data.\n\ncopy.json: added every new routeData slot this page needs, shipped empty\n(the one change to that file this commit makes). The real reference text\nand the deletion of the 56 now-unused routeData keys are a separate\n\"sending-money: writer copy\" commit, per agents/RULES.md's writer-copy\nconvention.\n\nCo-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>\n\n* sending-money: writer copy -- fill the new routeData slots, delete the old ones\n\nReal reference text (https://claude.ai/artifact/9XijuhKEnEw9irjehEfnXn),\napproved by Seb in chat 6 Oct, used exactly as written -- no word edited,\nshortened or added. Fills the 35 empty slots the builder commit shipped,\nand deletes the 56 routeData keys the rebuilt page no longer reads\n(lastReading, amountLabel, the old headline/lead text, the chart legend/\ntoggle/period keys, the stats-strip keys, the old breakdown/slider/leg\nkeys, the compare/metric-chip keys, and the entire \"what would have to\nchange\" block of keys) -- a copy.json-only change, per agents/RULES.md's\nwriter-copy convention.\n\nheadline and chartAria keep their names (still \"the headline\", still \"the\nchart's aria-label\") but their values change to the new wording; every\nother key here is new or deleted.\n\n## Rendered text\n\nAs it renders for Singapore to the Philippines, S$5,000, this hour\n(2026-10-07T12:00:00Z):\n\nSending S$5,000 to the Philippines costs S$18.88 with Airwallex and\nS$50.05 with a stablecoin\n\nAt this amount, a stablecoin was the cheaper way in 3 of the 1,142 hours\nchecked since 11 August.\n\nChecked 12:00 UTC, 7 Oct. A stablecoin is a digital coin that stays worth\none US dollar.\n\nWhat each way costs this hour, at S$5,000\nCost is what the person receiving loses against the mid-market rate, the\nprice banks trade at with each other. Fees are included.\nCheapest app -- Airwallex this hour -- S$18.88 -- 0.38%\nStablecoin -- USDC on Arbitrum One, the cheapest path -- S$50.05 -- 1.00%\n\nThe stablecoin's cost, step by step\nEvery step is stored for USDT only. This hour USDC on Arbitrum One was\ncheaper, so the total below is higher than the one above.\nDeposit and buy -- S$56.80 -- 1.14%\nNetwork fee -- S$5.11 -- 0.10%\nSell and withdraw -- S$6.69 -- 0.13%\nAll in -- S$68.60 -- 1.37%\n\nHow much more the stablecoin cost, week by week\nThe line is the stablecoin's typical extra cost each day. Below the dark\nline, the stablecoin would have been cheaper than the cheapest app.\n\nThe same 5,000, sent from other places\nShown as a share of the amount, so the places can sit side by side. Pick\none to see it above.\nThis hour -- Lowest to highest hour, last 30 days -- Same as the cheapest app\nSingapore to the Philippines -- Cheaper in 3 of 1,142 hours -- 0.62% more\nthan Airwallex\nAustralia to the Philippines -- Never cheaper in 619 hours -- 1.21% more\nthan Xoom\nNew Zealand to the Philippines -- Never cheaper in 619 hours -- 0.78% more\nthan Airwallex\nthe United States to Mexico -- Cheaper in 2 of 1,009 hours -- 0.39% more\nthan Xoom\n\nThree places are left out\nUnited States to Nigeria, United States to India and Singapore to India.\nThey are measured against the official rate, which sits below what people\nreally pay there. So the stablecoin's cost comes out below zero and would\nlook free.\n\nEvery number on this site comes from a public data file.\nCode and raw data on GitHub \u2192\n\nCo-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>\n\n* sending-money: site palette tokens, inventory check reads a page's own scripts, regenerate routes_hourly.json\n\nOwner instruction 8 Oct: fix the inventory check (option 2) and the rendered check on #429. check_inventory.py now also reads the local scripts a page loads, so a chart built in js/route.js is counted. The reference's own greys and indigos mapped to site tokens: rendered check passes, 12 legacy violations tolerated. routes_hourly.json regenerated so route_words, dest and send_symbol exist.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "bf5f0b2d5ae000e93e8d43328d9f3ddd135ee849",
-   "html_url": "https://github.com/SebR214/margin/commit/bf5f0b2d5ae000e93e8d43328d9f3ddd135ee849",
-   "date": "2026-10-08T00:20:03Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "SEB-273: findings.html: new layout to match the reference, wording unchanged (#426)\n\n* SEB-273: findings.html: new layout to match the reference, wording unchanged\n\nOne-call runner, qwen/qwen3-coder.\n\n* SEB-273: approved label 'Rechecked', and pass the list classes as an array\n\ncopy.json findingData.lastRecheck is the wording Seb approved on SEB-273.\n'list num' is two CSS classes, not words; the array form is what el()\nalready supports so the copy lock doesn't read class names as prose.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01LK5gd53j6Yqo8BMPPjJxFg\n\n* findings: use site tokens so the rendered check passes (ink colour, weights up to 600, one large size)\n\nThe reference's own #0B0B0B ink, 700/800 weights and 26/28px sizes tripped check_rendered (10 new violations). Mapped to --color-ink, 600 and 24px; the 88px finding number stays the only large text. Locally: no new violations on findings.html or finding.html.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* findings: print UTC once after the recheck time, from copy.json findingData.utc\n\nThe label is now 'Rechecked' (approved), so the zone has to come from a slot, not from the label. Needs PR #432 (adds findingData.utc = UTC). Without the slot nothing extra prints.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: margin-agents[bot] <329969015+margin-agents[bot]@users.noreply.github.com>\nCo-authored-by: Claude <noreply@anthropic.com>\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>"
-  },
-  {
-   "sha": "16dac359d01d96b3f29a7c336b2b14c752b57f7a",
-   "html_url": "https://github.com/SebR214/margin/commit/16dac359d01d96b3f29a7c336b2b14c752b57f7a",
-   "date": "2026-10-08T00:19:59Z",
-   "email": "person",
-   "message": "Finding 04: title and claim match the data (3 of 1,151 hours at S$5,000, at most 3 at any amount) (#436)\n\nRe-derived from data/routes_hourly.json on 8 Oct: stable_cheaper hours per amount are 0, 1, 3, 3, 1 of 1,151. 'Never' and 'no hour' were false. Owner instruction in chat, 8 Oct: fix the title so it matches the data, no approval round. The claim sentence said the same thing, so it is fixed with it.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "d5fb894fca004611cc84d12d6b8cb73392712b5e",
-   "html_url": "https://github.com/SebR214/margin/commit/d5fb894fca004611cc84d12d6b8cb73392712b5e",
-   "date": "2026-10-08T00:13:24Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-08T00:13Z"
   }
  ]
 }
