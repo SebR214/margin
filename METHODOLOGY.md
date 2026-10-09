@@ -452,8 +452,9 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. **Version 1.1 is in force from
-2026-09-10**; v1.0 was superseded the same day by the evidence rule below, after
+Every published file carries `index_version`. **Version 1.2 is in force from
+2026-10-09** (second person-to-person board, below). Version 1.1 ran from
+2026-09-10; v1.0 was superseded that day by the evidence rule below, after
 a verification sprint found that ten P2P boards were crossed. It is incremented when **any
 change alters what a published number means**, specifically:
 
@@ -477,6 +478,59 @@ trust the change.
 That is also why collection went wide to 53 currencies before this definition
 was settled: a raw row not captured in a given hour is gone permanently, while a
 definition can be changed and applied backwards at any time.
+
+### A second person-to-person board (v1.2, 2026-10-09)
+
+Where a country is priced from person-to-person ads (class `p2p_buy_median`) and
+OKX's own board (`data/p2p_okx.csv`, written by `collector_p2p_okx.py` with the
+same USD 500 ticket and the same top-of-book median) also has a price **in the same
+hour**, the published buy price is the **median of the two boards' medians**. Both
+boards are listed in the country's `venues` and the file carries `n_boards: 2`
+(`1` where only Binance qualifies). OKX has to meet the same evidence bar in its own
+row: `source_ok` true and at least 10 ads (`MIN_BUY_ADS`). Where OKX does not
+qualify, or the Binance board fails the v1.1 evidence rule, nothing changes: a
+country that is withheld stays withheld, and the CoinGecko stand-in
+(`p2p_fallback`) is not blended with OKX. `n_sources` keeps its meaning (the
+buy-side ads behind the Binance board). Order-book and broker countries are not
+touched. `p2p_basis.csv`, `p2p_okx.csv` and every CSV header are unchanged.
+
+Why this bumps the version: it adds a venue to the set behind a country and
+moves the number. Applied to the stored rows of 2026-10-09 05:00 UTC, 27
+countries change:
+
+| Country | v1.1 | v1.2 |
+|---|---|---|
+| AMD | -0.0% | +2.2% |
+| AZN | +0.1% | +1.3% |
+| BOB | -0.2% | +0.5% |
+| CLP | +0.7% | +1.2% |
+| COP | -0.4% | -0.1% |
+| GEL | +0.1% | +0.5% |
+| IQD | +18.8% | +18.8% |
+| JOD | +1.2% | +0.8% |
+| KES | +0.0% | +0.7% |
+| KHR | +2.4% | +2.8% |
+| KWD | +1.1% | +1.5% |
+| KZT | +8.2% | +7.7% |
+| LAK | +2.6% | +4.2% |
+| LBP | +0.5% | +2.2% |
+| LKR | +3.0% | +7.2% |
+| MAD | +3.3% | +3.5% |
+| PEN | +0.1% | +0.6% |
+| PKR | +2.9% | +3.2% |
+| QAR | +5.5% | +14.6% |
+| RWF | +0.4% | +1.0% |
+| SAR | +3.1% | +4.9% |
+| TND | +16.1% | +26.6% |
+| TZS | +1.4% | +2.9% |
+| UGX | +2.5% | +7.5% |
+| VND | +0.9% | +0.9% |
+| ZAR | +9.4% | +9.9% |
+| ZMW | +4.4% | +7.7% |
+
+The two boards sometimes disagree widely (Tunisia: Binance +16.1%, OKX +37.1%), and
+the median of two is their midpoint, so a wide gap moves the figure a long way. Both
+prices stay visible on the country page.
 
 ### The evidence rule (v1.1)
 
