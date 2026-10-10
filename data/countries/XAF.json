@@ -1,12 +1,14 @@
 {
+  "buy_price": 620.335,
   "ccy": "XAF",
-  "computed_at": "2026-10-10T20:00:00+00:00",
+  "computed_at": "2026-10-10T21:00:00+00:00",
   "country": "Central African CFA",
   "denominator": {
     "class": "pegged",
     "rate_per_usd": 585.282813,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 585.282813,
   "history": [
     {
       "date": "2026-09-05",
@@ -220,26 +222,40 @@
     },
     {
       "date": "2026-10-10",
-      "index_pct": 5.5654,
-      "n": 4,
-      "source": "hourly_buy_p2p"
+      "index_pct": 5.9889,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
   "history_days": 36,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-10T20:00:00+00:00",
+  "hour_utc": "2026-10-10T21:00:00+00:00",
+  "index_pct": 5.9889,
   "index_version": "1.2",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "median_24h_n": 17,
-  "median_24h_pct": 5.6379,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market",
-  "round_trip_pct": -0.1552,
-  "source_class": null,
+  "median_24h_n": 18,
+  "median_24h_pct": 5.649,
+  "n_boards": 2,
+  "n_sources": 10,
+  "round_trip_pct": 0.1169,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 617.485
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 620.725,
+      "index_pct": 6.0556,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    },
+    {
+      "buy_price": 619.945,
+      "index_pct": 5.9223,
+      "last_price_used": false,
+      "venue": "okx_p2p"
+    }
+  ]
 }
