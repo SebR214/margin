@@ -4,40 +4,44 @@
     "denominator": 123.223082,
     "denominator_meaning": "the official rate, local currency per dollar",
     "formula": "(numerator / denominator - 1) * 100",
-    "numerator": 127.88,
+    "numerator": 127.81,
     "numerator_meaning": "price to buy one dollar locally",
-    "result_pct": 3.7793
+    "result_pct": 3.7225
   },
-  "computed_at": "2026-10-10T03:00:00+00:00",
+  "computed_at": "2026-10-10T04:00:00+00:00",
   "country": "Bangladesh",
   "evidence": {
-    "buy_median": 127.88,
-    "collected_at": "2026-10-10T03:06:36.050210+00:00",
+    "buy_median": 127.81,
+    "collected_at": "2026-10-10T04:06:42.550766+00:00",
     "n_offers": 10,
     "offer_detail": "per_offer",
     "offers": [
+      {
+        "price": 127.2,
+        "side": "buy"
+      },
+      {
+        "price": 127.75,
+        "side": "buy"
+      },
+      {
+        "price": 127.77,
+        "side": "buy"
+      },
       {
         "price": 127.79,
         "side": "buy"
       },
       {
-        "price": 127.8,
+        "price": 127.81,
         "side": "buy"
       },
       {
-        "price": 127.85,
+        "price": 127.81,
         "side": "buy"
       },
       {
-        "price": 127.85,
-        "side": "buy"
-      },
-      {
-        "price": 127.86,
-        "side": "buy"
-      },
-      {
-        "price": 127.9,
+        "price": 127.89,
         "side": "buy"
       },
       {
@@ -45,7 +49,7 @@
         "side": "buy"
       },
       {
-        "price": 127.92,
+        "price": 128.0,
         "side": "buy"
       },
       {
@@ -53,31 +57,31 @@
         "side": "buy"
       },
       {
-        "price": 128.1,
-        "side": "buy"
-      },
-      {
         "price": 128.2,
         "side": "sell"
       },
       {
-        "price": 128.0,
+        "price": 128.15,
         "side": "sell"
       },
       {
-        "price": 127.8,
+        "price": 128.12,
         "side": "sell"
       },
       {
-        "price": 127.76,
+        "price": 128.11,
         "side": "sell"
       },
       {
-        "price": 127.75,
+        "price": 128.06,
         "side": "sell"
       },
       {
-        "price": 127.75,
+        "price": 128.06,
+        "side": "sell"
+      },
+      {
+        "price": 128.05,
         "side": "sell"
       },
       {
@@ -85,44 +89,40 @@
         "side": "sell"
       },
       {
+        "price": 127.6,
+        "side": "sell"
+      },
+      {
         "price": 127.55,
-        "side": "sell"
-      },
-      {
-        "price": 127.43,
-        "side": "sell"
-      },
-      {
-        "price": 127.41,
         "side": "sell"
       }
     ],
-    "sell_median": 127.75,
-    "source_kind": "p2p_buy_median",
-    "source_words": "from person-to-person ads"
+    "sell_median": 128.06,
+    "source_kind": null,
+    "source_words": "no price this hour"
   },
   "evidence_rule": {
     "applies": true,
     "buy_ads_actual": 10,
     "buy_ads_estimated": false,
-    "buy_at_or_above_sell": true,
+    "buy_at_or_above_sell": false,
     "min_buy_ads_required": 10,
-    "passed": true,
-    "reason": null,
+    "passed": false,
+    "reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market",
     "reason_code": null
   },
-  "hour_utc": "2026-10-10T03:00:00+00:00",
+  "hour_utc": "2026-10-10T04:00:00+00:00",
   "index_version": "1.2",
-  "not_published_reason": null,
+  "not_published_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market",
   "official_rate": {
     "class": "market",
     "source": "open.er-api",
     "source_file": "data/fx_rates.csv",
-    "timestamp": "2026-10-10T03:10:47.856618+00:00",
+    "timestamp": "2026-10-10T04:10:52.363820+00:00",
     "value": 123.223082
   },
   "outlier_checked": null,
-  "published": true,
+  "published": false,
   "source_files": [
     "data/countries/BDT.json",
     "data/fx_rates.csv",
