@@ -638,7 +638,7 @@ def build_breakdown(D, S):
                  "first_hour_utc": None, "cadence": None,
                  "file": "data/" + SAMPLES,
                  "detail_columns": ["onramp_basis_bps", "offramp_basis_bps"]})
-    gaps.append({"leg": "all", "route": None, "reason": "variant_path_total_only_before_steps_were_stored",
+    gaps.append({"leg": "all", "route": None, "reason": "variant_path_total_only",
                  "first_hour_utc": hour_utc("2026-10-02T14"), "cadence": "hourly",
                  "file": "data/" + VARIANTS})
     gaps.append({"leg": "all", "route": None, "reason": "offramp_snapshots_ended",
