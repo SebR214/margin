@@ -43,6 +43,38 @@ def rows_from_snapshot(doc):
     return out
 
 
+HELD_PATH = os.path.join(HERE, "data", "index_held.csv")
+HELD_HEADER = ["hour_utc", "ccy", "index_pct", "baseline_pct", "reason"]
+
+
+def held_rows_from_snapshot(doc):
+    """Numbers tools/emit_countries.py computed but held back as a sudden flip (index v1.4). Kept so a later hour
+    can see that the same move has lasted. Never published; the file is a record, not a price."""
+    out = []
+    for w in doc.get("withheld") or []:
+        if w.get("held_value") is None or not w.get("computed_at") or not w.get("ccy"):
+            continue
+        out.append([hour_key(w["computed_at"]) + ":00:00+00:00", w["ccy"], w["held_value"], w.get("baseline_pct"),
+                    w.get("reason_raw") or ""])
+    return out
+
+
+def append_held(rows):
+    have = set()
+    if os.path.exists(HELD_PATH):
+        with open(HELD_PATH, newline="") as f:
+            have = {(r["ccy"], hour_key(r["hour_utc"])) for r in csv.DictReader(f)}
+    fresh = [r for r in rows if (r[1], hour_key(r[0])) not in have]
+    new_file = not os.path.exists(HELD_PATH)
+    if fresh or new_file:
+        with open(HELD_PATH, "a", newline="") as f:
+            w = csv.writer(f)
+            if new_file:
+                w.writerow(HELD_HEADER)
+            w.writerows(fresh)
+    return len(fresh)
+
+
 def existing():
     if not os.path.exists(PATH):
         return set()
@@ -85,8 +117,11 @@ def main():
         print(f"  index_hourly.csv: backfilled {n} rows from {s} stored snapshots")
         return 0
     with open(os.path.join(HERE, "data", "index_latest.json")) as f:
-        n = append(rows_from_snapshot(json.load(f)))
+        doc = json.load(f)
+    n = append(rows_from_snapshot(doc))
     print(f"  index_hourly.csv: {n} rows appended")
+    h = append_held(held_rows_from_snapshot(doc))
+    print(f"  index_held.csv: {h} held rows appended")
     return 0
 
 

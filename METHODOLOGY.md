@@ -455,9 +455,9 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. **Version 1.3 is in force from
-2026-10-11** (a believable-row test at collection, below). Version 1.2 ran from 2026-10-09
-(a second person-to-person board and Luno for Nigeria, below). Version 1.1 ran from
+Every published file carries `index_version`. **Version 1.4 is in force from
+2026-10-11** (a sudden flip is held back, below). Version 1.3 added a believable-row test at
+collection. Version 1.2 ran from 2026-10-09 (a second person-to-person board and Luno for Nigeria, below). Version 1.1 ran from
 2026-09-10; v1.0 was superseded that day by the evidence rule below, after
 a verification sprint found that ten P2P boards were crossed. It is incremented when **any
 change alters what a published number means**, specifically:
@@ -566,6 +566,35 @@ stand-in. Its first rows arrive with the next hourly collection after this versi
 ships; the figure above is what the live quote implies, not a stored published number.
 
 `p2p_basis.csv`, `p2p_okx.csv`, `basis.csv` and every CSV header are unchanged.
+
+### A sudden flip is held back (v1.4, 2026-10-11)
+
+A single odd hour should not become a published number. `tools/emit_countries.py` now compares each
+country's number for the hour with that country's own last 7 days of **published** numbers
+(`data/index_hourly.csv`; at least 48 hours of them, otherwise there is nothing to compare with and the
+number stands). The bar is **3 points or 25% of the usual level, whichever is larger**, so a market that
+sits near zero is held to 3 points and one that sits near +90% to about 22. A number further than that from the
+7-day median, on either side of zero, is not published for that hour. It is held back with the reason
+"held back: {x}% is {n} points from this country's usual {y}% over the last 7 days, and no second source or
+earlier hour confirms it yet", and the country is listed with the other withheld countries.
+
+It is published as soon as either of these is true:
+- **a second source agrees.** Every source behind the hour's number (both boards, or each order book or
+  broker) is also more than half the bar away from the 7-day median, in the same direction; or
+- **the move has lasted.** Each of the 3 hours before it was also more than the bar away, in the same
+  direction, whether that hour was published or held. A real shift is therefore held for 3 hours and then published.
+
+Held numbers are kept in `data/index_held.csv` (append-only, written by `tools/emit_index_hourly.py`), so
+a later hour can see that the move lasted. A held number is a record, never a price. Nothing already stored is
+rewritten. The daily medians that feed a country's history still use every hourly reading, held or not.
+
+Checked on the stored data: over the month of published hours, 143 country-hours (0.5% of the 30,091 that
+could be judged) would have been held, in ZAR, QAR, TND, BOB, IQD, KZT, SYP and a few others. At the latest hour
+(2026-10-11 08:00 UTC) **no country is held and no published number moves.** The words a reader sees for a held
+country are the generic "no price collected this hour"; the stated reason is in `reason_raw` on the country file
+and in `index_latest.json`.
+
+`p2p_basis.csv`, `p2p_okx.csv`, `basis.csv` and every CSV header are unchanged. `index_held.csv` is new.
 
 ### A row must be believable before it is priced (v1.3, 2026-10-11)
 
