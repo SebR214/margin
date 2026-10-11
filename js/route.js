@@ -228,6 +228,7 @@
     var rng = o.rg ? '<i class="sm-rng" style="left:' + S.X(o.rg[0]) + '%;width:' + Math.max(0.6, S.X(o.rg[1]) - S.X(o.rg[0])) + '%"></i>' : "";
     var dot = o.v != null ? '<i class="sm-dot" style="left:' + S.X(o.v) + '%"></i>' : "";
     return "<" + tag + ' class="sm-row' + (o.cls ? " " + o.cls : "") + '"' +
+      (o.tip ? ' data-tip="' + esc(o.tip) + '"' : "") +
       (o.btn ? ' type="button" data-r="' + esc(o.btn) + '"' : "") + ">" +
       '<span class="sm-nm">' + esc(o.name) + (o.sub ? "<small>" + esc(o.sub) + "</small>" : "") + "</span>" +
       '<span class="sm-track">' + gridLines(S) + rng + dot + "</span>" +
@@ -393,11 +394,14 @@
     var blocks = rows.map(function (r) { return [r, computeA(r.id, S.amount)]; });
     var SC = niceScale(blocks.reduce(function (acc, b) { return acc.concat(b[1].e30, [b[1].ep]); }, []));
     var fmt = function (v) { return v === 0 ? "0%" : (v > 0 ? "+" : MINUS) + Math.abs(v) + "%"; };
+    // the tooltip's figures: one decimal, never a minus sign on a zero
+    var sgPct = function (v) { return Math.abs(v) < 0.05 ? pctPlain(0) : (v > 0 ? "+" : MINUS) + pctPlain(Math.abs(v)); };
     var html = axisRow(SC, fmt) + blocks.map(function (b) {
       var r = b[0], a = b[1];
       var sub = a.wins === 0 ? txt("neverCheaper", { n: whole(a.n) }) : txt("cheaperInSome", { wins: whole(a.wins), n: whole(a.n) });
       var vsub = txt(a.ep < 0 ? "lessThan" : "moreThan", { app: a.app });
-      return rangeRow(SC, { btn: r.id, cls: r.id === S.route ? "sm-on" : "", name: plainRoute(r.route_words), sub: sub, v: a.ep, rg: a.e30, val: pctPlain(Math.abs(a.ep)), vsub: vsub });
+      var tip = txt("cmpTip", { route: plainRoute(r.route_words), now: sgPct(a.ep), lo: sgPct(a.e30[0]), hi: sgPct(a.e30[1]), app: a.app });
+      return rangeRow(SC, { btn: r.id, cls: r.id === S.route ? "sm-on" : "", name: plainRoute(r.route_words), sub: sub, v: a.ep, rg: a.e30, val: pctPlain(Math.abs(a.ep)), vsub: vsub, tip: tip });
     }).join("");
     return '<section>' + w("cmpHeading", { amount: whole(S.amount) }, "h2") + w("cmpNote", null, "p", "sm-note") +
       '<p class="sm-key">' +

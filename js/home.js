@@ -67,7 +67,10 @@
         now: i && i.index_pct != null ? Math.round(i.index_pct * 10) / 10 : null,
         buy: i ? i.buy_price : null, rate: i ? i.fx_mid_per_usd : null };
     });
+    // priced countries first, by this hour's figure; countries with no price this hour sit below them (SEB-268, 11 Oct),
+    // ordered by their last stored day so the order does not jump
     D.ranked = D.cur.filter(function (c) { return c.ranked; }).sort(function (a, b) {
+      if ((a.now != null) !== (b.now != null)) { return a.now != null ? -1 : 1; }
       var av = a.now != null ? a.now : (lastValue(a) != null ? lastValue(a) : -1e9), bv = b.now != null ? b.now : (lastValue(b) != null ? lastValue(b) : -1e9);
       return bv - av;
     });
