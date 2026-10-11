@@ -454,15 +454,11 @@ while true; do
 
   # Model assignment, stated once (SEB-203 / ROADMAP item 13). Builder and
   # reviewer stay on Sonnet -- their work is mechanical: read an issue, follow
-  # a spec, run the checks. The product loop runs Fable (claude-fable-5-1),
-  # the model used where something is interpreted rather than mechanically
-  # applied -- later joined by the analyst's written sentences (item 20).
+  # a spec, run the checks. Every role is on Sonnet (SEB-301): no Opus or Fable
+  # anywhere, and tools/check_models.py fails a change that names one.
   # Override per role with MARGIN_MODEL if one of them ever needs something
   # else.
-  case "$ROLE" in
-    product) DEFAULT_MODEL="claude-fable-5-1" ;;
-    *)       DEFAULT_MODEL="claude-sonnet-5" ;;
-  esac
+  DEFAULT_MODEL="claude-sonnet-5"
   MODEL="${MARGIN_MODEL:-$DEFAULT_MODEL}"
 
   # Cheaper coding model through OpenRouter (owner request, 2026-10-05): set

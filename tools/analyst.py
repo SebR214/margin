@@ -1,32 +1,21 @@
 #!/usr/bin/env python3
 """The analyst (SEB-210, ROADMAP Queue item 20): deterministic nightly
-investigations, a model only for the words. Absorbs ROADMAP items 7, 8, 9
-and 10.
+investigations. Absorbs ROADMAP items 7, 8, 9 and 10.
 
 Every investigation below is a plain function over the CSVs and JSON the
 collectors and emitters already wrote -- no model call, no network, stdlib
 only. It computes numbers, decides whether they clear a stated notability
-threshold, and only then -- never before the numbers exist -- asks Fable
-(`claude-fable-5-1`) for at most three cited sentences of interpretation.
-If nothing clears the threshold on a given night, no finding is stored and no
-model is called: "nothing clears it, nothing is published."
+threshold and stores the finding. If nothing clears the threshold on a given
+night, no finding is stored: "nothing clears it, nothing is published."
 
-THE MODEL CALL, AND WHY IT IS SHAPED THIS WAY: night work runs on the
-subscription token, never the metered key (ROADMAP item 13). `tools/critic.py`
-and `tools/ask_backend.py` call `api.anthropic.com` directly with
-`ANTHROPIC_API_KEY` -- the metered key, billed per token. This script instead
-shells out to the `claude` CLI binary itself, the same one `agents/run.sh`
-already runs the builder/reviewer/product loops through on this box,
-authenticated via whatever OAuth session is already logged in there. No new
-credential, no new spend line: it is the existing subscription, used for a
-single narrow completion instead of an agentic session (no tools, one turn).
+NO MODEL (SEB-301): the nightly model call that used to write three sentences
+per finding is gone. Nothing here calls a model. The number check below stays:
+`tools/scout.py` reuses `allowed_reprs` and `untraced_numbers` to hold a
+model-written spec to the same rule.
 
-THE HARD CHECK: before an interpretation is stored, `check_interpretation`
-re-scans its text for every numeral and refuses to store the interpretation if
-any numeral does not trace to a number this script itself computed and handed
-the model in the prompt. A model that invents a number fails here, loudly --
-the finding is kept (its numbers are real, code-computed), but it carries no
-words that night.
+THE HARD CHECK: `check_interpretation` re-scans a text for every numeral and
+refuses it if any numeral does not trace to a number this script itself
+computed. A text that invents a number fails here, loudly.
 
 EVIDENCE CHAINS: every finding records the files it was computed from and the
 exact selection/arithmetic that produced it (`evidence.query`), in the same
@@ -53,9 +42,9 @@ below only reports the gate's state so a future page knows when it may open.
 Usage:
     python3 tools/analyst.py                       # a real night
     python3 tools/analyst.py --dry-run              # print, write nothing
-    python3 tools/analyst.py --no-model              # skip the Fable call (numbers only)
+    python3 tools/analyst.py --no-model              # accepted and ignored: there is no model call any more
     python3 tools/analyst.py --threshold-scale 1000  # raise every bar near-impossibly high
-    python3 tools/analyst.py --selftest              # exercise the hard check with no I/O, no model, no network
+    python3 tools/analyst.py --selftest              # exercise the hard check with no I/O, no network
 """
 
 import argparse
@@ -82,8 +71,6 @@ AUDIT_HISTORY = os.path.join(DATA, "audit_history.csv")
 OUT = os.path.join(DATA, "analyst_findings.json")
 LOG = os.path.join(DATA, "analyst_log.csv")
 LINEAR = os.path.join(HERE, "agents", "linear.py")
-
-MODEL_ID = "claude-fable-5-1"
 
 # ---------------------------------------------------------- stated thresholds
 # Every bar here is a deliberate choice, not a tuned secret, and every one of
@@ -153,9 +140,6 @@ def make_finding(fid, kind, subject, as_of, numbers, files, query, cites=None):
         "numbers": numbers,
         "evidence": {"files": files, "query": query},
         "cites": cites or [],
-        "model_id": None,
-        "interpretation": None,
-        "interpretation_rejected": None,
     }
 
 
@@ -426,6 +410,21 @@ def allowed_reprs(numbers):
     return reps
 
 
+def untraced_numbers(text, numbers):
+    """The numerals in `text` that do not trace to a computed value in `numbers`.
+    Dates and timestamps are labels, not statistics, and are stripped first."""
+    allowed = allowed_reprs(numbers)
+    out = []
+    for tok in NUM_RE.findall(DATE_RE.sub(" ", text)):
+        try:
+            val = float(tok.replace(",", ""))
+        except ValueError:
+            continue
+        if not any(abs(val - a) < 0.05 for a in allowed):
+            out.append(tok)
+    return out
+
+
 def check_interpretation(text, numbers, evidence_files):
     """Returns (ok, reasons). Two independent failures: a numeral that does
     not trace to a code-computed number, or a shape violation (too many
@@ -444,75 +443,12 @@ def check_interpretation(text, numbers, evidence_files):
         return False, reasons
     if len(sentences) > 3:
         reasons.append("%d sentences, more than the three-sentence limit" % len(sentences))
-    allowed = allowed_reprs(numbers)
-    scan_text = DATE_RE.sub(" ", text)
-    for tok in NUM_RE.findall(scan_text):
-        clean = tok.replace(",", "")
-        try:
-            val = float(clean)
-        except ValueError:
-            continue
-        if not any(abs(val - a) < 0.05 for a in allowed):
-            reasons.append("number %s in the interpretation does not trace to a computed value" % tok)
+    for tok in untraced_numbers(text, numbers):
+        reasons.append("number %s in the interpretation does not trace to a computed value" % tok)
     cited = any(os.path.basename(fp) in text or fp in text for fp in evidence_files)
     if not cited:
         reasons.append("no evidence file named in the text")
     return (len(reasons) == 0), reasons
-
-
-# ------------------------------------------------------------- the model call
-def call_fable(prompt, timeout=120):
-    """Shells out to the `claude` CLI -- the subscription token, never
-    ANTHROPIC_API_KEY. See the module docstring."""
-    try:
-        r = subprocess.run(
-            ["claude", "-p", prompt, "--model", MODEL_ID,
-             "--allowedTools", "", "--max-turns", "1", "--output-format", "json"],
-            capture_output=True, text=True, timeout=timeout)
-    except FileNotFoundError:
-        return None, "the claude CLI is not on PATH"
-    except subprocess.TimeoutExpired:
-        return None, "the claude CLI timed out after %ss" % timeout
-    if r.returncode != 0:
-        return None, "claude CLI exited %s: %s" % (r.returncode, r.stderr.strip()[:300])
-    try:
-        payload = json.loads(r.stdout)
-    except json.JSONDecodeError:
-        return None, "claude CLI did not return JSON"
-    if payload.get("is_error"):
-        return None, "claude CLI reported an error: %s" % str(payload.get("result"))[:300]
-    text = (payload.get("result") or "").strip()
-    if not text:
-        return None, "claude CLI returned no text"
-    return text, None
-
-
-def build_prompt(f):
-    return (
-        "You are writing a private research note, not a public page. Here is one "
-        "fully-computed finding from tonight's run. Every number below was computed "
-        "by code; you may not introduce any other number, estimate, or forecast.\n\n"
-        "kind: %s\nsubject: %s\nas_of_date: %s\ncomputed numbers: %s\nhow these numbers "
-        "were derived: %s\nsource file(s): %s\n\n"
-        "Write at most three sentences interpreting this finding for a colleague who has "
-        "not seen the numbers. Use only the numbers given above, in the units given. End "
-        "each sentence by naming, in parentheses, the source file it draws on. Do not "
-        "speculate about cause, and do not predict what happens next." %
-        (f["kind"], f["subject"], f["as_of_date"], json.dumps(f["numbers"], sort_keys=True),
-         f["evidence"]["query"], ", ".join(f["evidence"]["files"])))
-
-
-def interpret(f):
-    text, err = call_fable(build_prompt(f))
-    if err:
-        f["interpretation_rejected"] = [err]
-        return
-    okc, reasons = check_interpretation(text, f["numbers"], f["evidence"]["files"])
-    if not okc:
-        f["interpretation_rejected"] = reasons
-        return
-    f["model_id"] = MODEL_ID
-    f["interpretation"] = text
 
 
 # ------------------------------------------------------- the collection queue
@@ -604,7 +540,7 @@ def selftest():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="print the result, write nothing")
-    ap.add_argument("--no-model", action="store_true", help="skip the Fable call; numbers only")
+    ap.add_argument("--no-model", action="store_true", help="accepted and ignored: there is no model call any more")
     ap.add_argument("--threshold-scale", type=float, default=1.0,
                      help="multiply every notability threshold (use a large value to prove nothing publishes)")
     ap.add_argument("--selftest", action="store_true", help="exercise the hard check, no I/O, no model")
@@ -646,15 +582,6 @@ def main():
             f["cites"].append(prior["id"])
         seen_by_subject[f["subject"]] = f
 
-    interpreted, rejected = 0, 0
-    if not a.no_model:
-        for f in new_findings:
-            interpret(f)
-            if f["interpretation"]:
-                interpreted += 1
-            elif f["interpretation_rejected"]:
-                rejected += 1
-
     gate_met, gate_detail = auditor_gate_met()
     by_kind = {}
     for f in new_findings:
@@ -663,11 +590,11 @@ def main():
 
     print("analyst %s: %d new findings (%d country movers, %d route movers, %d win conditions, "
           "%d board disagreements, %d gone silent, %d live/history disagreements); %d already stored "
-          "from an earlier run today; %d too-young-to-compare; %d interpreted, %d rejected; "
+          "from an earlier run today; %d too-young-to-compare; "
           "auditor gate: %s (%s)" %
           (as_of_date, len(new_findings), by_kind.get("country_mover", 0), by_kind.get("route_mover", 0),
            by_kind.get("win_condition", 0), by_kind.get("boards_disagree", 0), by_kind.get("country_silent", 0),
-           by_kind.get("live_history_disagree", 0), already_stored, too_young, interpreted, rejected,
+           by_kind.get("live_history_disagree", 0), already_stored, too_young,
            "met" if gate_met else "not met", gate_detail))
 
     if a.dry_run:
@@ -684,8 +611,8 @@ def main():
     with open(LOG, "a", newline="") as f:
         w = csv.writer(f)
         if is_new:
-            w.writerow(["date", "candidates", "interpreted", "rejected", "collection_tasks_filed", "auditor_gate_met"])
-        w.writerow([as_of_date, len(new_findings), interpreted, rejected, len(collection_tasks), gate_met])
+            w.writerow(["date", "candidates", "interpreted", "rejected", "collection_tasks_filed", "auditor_gate_met"])  # header frozen
+        w.writerow([as_of_date, len(new_findings), 0, 0, len(collection_tasks), gate_met])
 
     return 0
 

@@ -10,9 +10,8 @@ ExecStart=/usr/bin/python3 /srv/margin/tools/analyst.py
 StandardOutput=append:/var/log/margin/analyst.systemd.log
 StandardError=append:/var/log/margin/analyst.systemd.log
 
-# Not an agent loop and not a model session -- one `claude -p --max-turns 1`
-# completion per finding that clears its threshold (see analyst.py's module
-# docstring, "THE MODEL CALL"), so it must never compete for the box's CPU
+# Not an agent loop and not a model session -- analyst.py calls no model
+# (SEB-301), it only reads the CSVs. It must still never compete for the box's CPU
 # against margin-builder/margin-reviewer/margin-product, which carry no
 # explicit weight and sit at the cgroup default (100). Same values as
 # margin-p2p-box/margin-p2p-compare.
@@ -25,11 +24,8 @@ MemoryMax=512M
 # straight into the served checkout's data/ directory: analyst.py's own
 # module docstring names data/analyst_findings.json and data/analyst_log.csv
 # as its only outputs, and that is out of scope to change here (SEB-238).
-# It also shells out to the `claude` CLI under this same root account, the
-# one already logged in for margin-builder.service/margin-reviewer.service,
-# so ProtectSystem is "full" here, the same as those two, not "strict" like
-# the /var/lib-only box units -- "strict" would hide that CLI's own OAuth
-# session (under /root) from it.
+# ProtectSystem stays "full" as it was when this unit also used the logged-in
+# `claude` CLI; it no longer does.
 ProtectSystem=full
 ReadWritePaths=/srv/margin /var/log/margin
 NoNewPrivileges=true
