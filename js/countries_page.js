@@ -270,7 +270,7 @@
     if (!showWithheld && !showFrozen) { return; }
     var np = el('div', 'ci-np');
     if (showWithheld) {
-      put(np, 'h2', null, t('noPriceTemplate', { n: num(ctx.withheld.length) }));
+      put(np, 'h2', null, t('noPriceTemplate', { n: num(ctx.withheld.length), time: ctx.time }));
       var names = ctx.withheld.map(function (w) { return plainName(w.country || w.ccy); }).join(', ') + '.';
       put(np, 'p', 'ci-note', names);
       if (has(C, 'showWhy')) {
@@ -278,9 +278,10 @@
         det.appendChild(el('summary', null, t('showWhy')));
         var ul = el('ul', 'ci-why');
         ctx.withheld.forEach(function (w) {
-          var li = el('li', null, plainName(w.country || w.ccy));
-          var reason = w.reason ? w.reason.charAt(0).toUpperCase() + w.reason.slice(1) + '.' : '';
-          if (reason) { li.appendChild(el('span', null, reason)); }
+          // one line each: the country and the reason index_latest.json gives for it (SEB-268, 11 Oct)
+          var li = el('li', null, has(C, 'withheldWhyTemplate')
+            ? t('withheldWhyTemplate', { country: plainName(w.country || w.ccy), reason: w.reason || '' })
+            : plainName(w.country || w.ccy));
           ul.appendChild(li);
         });
         det.appendChild(ul);
