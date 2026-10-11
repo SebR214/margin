@@ -19,8 +19,8 @@ tools/llm.py; it fails loudly if there is none) picks one item and writes a
 spec with a `## Files` section. The spec is posted only if every check passes:
   - every number in it traces to a number the analyst computed (the analyst's
     own number check, tools/analyst.py untraced_numbers);
-  - every listed file exists, is a file the builder may change, and is small;
-  - the files together stay under the size limit.
+  - every listed file exists and is a file the builder may change;
+  - the files together stay under the size limit (80,000 characters).
 If a check fails nothing is posted and the reason goes in data/scout_log.csv.
 If SEB-300 is not Done, the week is skipped.
 
@@ -44,8 +44,7 @@ LABEL = "one-call"
 LOG = os.path.join(ROOT, "data", "scout_log.csv")
 LOG_HEADER = ["ts_utc", "mode", "status", "detail", "item", "cost_usd"]
 INDEX_LATEST = os.path.join(ROOT, "data", "index_latest.json")
-MAX_FILE_BYTES = 40_000          # one file the builder may change
-MAX_FILES_CHARS = 80_000         # all listed files together; the builder's prompt limit is 100,000
+MAX_FILES_CHARS = 80_000         # all listed files together; the builder sends them whole and its prompt limit is 100,000
 MAX_TOKENS = 2500
 # Files the builder may never be asked to change: agent code, checks, workflows,
 # and the words (copy.json goes through the writer and Seb's approval).
@@ -67,6 +66,8 @@ Rules:
 - Use no number except those in the data you were given. Do not estimate, round up or invent any.
 - Write the spec in markdown: a title line starting with '# ', then '## Why' (two to four sentences), '## What to build', '## Files', '## Context' (optional), '## Done when'.
 - '## Files' lists, one per line, each in backticks, the files the builder may change. '## Context' lists read-only files the same way.
+- The builder is sent every listed file whole, and all of them together must stay under 80,000 characters. List only small files. Never list a data/*.csv or any large data file.
+- Do not count, add, subtract or round anything yourself. Quote a number from the data exactly as given, or use none.
 - Name only real files. Where things live:
 %s
 - Never list anything under .github/ or agents/, any tools/check_*.py, llm.py, scout.py, one_call.py, analyst.py, audit_numbers.py, copy.json, METHODOLOGY.md or CLAUDE.md.
@@ -150,10 +151,7 @@ def validate(spec, numbers, root=ROOT):
         elif not os.path.isfile(full):
             reasons.append("file does not exist: %s" % p)
         elif os.path.isfile(full):
-            size = os.path.getsize(full)
-            total += size
-            if size > MAX_FILE_BYTES:
-                reasons.append("%s is %d bytes, over the %d limit" % (p, size, MAX_FILE_BYTES))
+            total += os.path.getsize(full)
     for p in files:
         if any(p.startswith(x) or p == x for x in FORBIDDEN):
             reasons.append("the builder may not change %s" % p)
@@ -233,7 +231,7 @@ def self_test():
     with tempfile.TemporaryDirectory() as d:
         os.makedirs(os.path.join(d, "tools"))
         open(os.path.join(d, "a.py"), "w").write("x = 1\n")
-        open(os.path.join(d, "big.py"), "w").write("x" * (MAX_FILE_BYTES + 1))
+        open(os.path.join(d, "big.py"), "w").write("x" * (MAX_FILES_CHARS + 1))
         open(os.path.join(d, "ctx.csv"), "w").write("a\n")
         good = "# Add a source\n\n## Why\n13 countries have no price.\n\n## Files\n`a.py`\n\n## Context\n`ctx.csv`\n\n## Done when\nIt works.\n"
         assert validate(good, numbers, d) == [], validate(good, numbers, d)
