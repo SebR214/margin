@@ -699,6 +699,26 @@ def latest_by_ccy():
                         entry["round_trip_pct"] = round((price / sell - 1) * 100, 4)
                         entry["withheld_buy_price"] = price
 
+        # SEB-268 (9 Oct): where the published number comes from exchanges, show what the person-to-person boards say
+        # for the same hour beside it. Only a board with at least MIN_BUY_ADS buy ads counts; both boards: the middle.
+        # This is shown on the country page and changes no published number.
+        if entry.get("source_class") in ("order_book_median", "order_book_single", "broker_median", "broker_single") and fx:
+            beside = []
+            pr_ = (ph.get(hour) or [None])[0]
+            if pr_ is not None and flag(pr_, "source_ok") and num(pr_, "buy_median"):
+                nb = sides.get((ccy, hour))
+                if nb is None:
+                    nb = MIN_BUY_ADS if (num(pr_, "n_ads") or 0) >= MIN_BUY_ADS * 2 else 0
+                if nb >= MIN_BUY_ADS:
+                    beside.append(("binance_p2p", num(pr_, "buy_median")))
+            ox_ = (okx_hours.get(ccy, {}).get(hour) or [None])[0]
+            if ox_ is not None:
+                beside.append(("okx_p2p", num(ox_, "buy_median")))
+            if beside:
+                mid = statistics.median([p for _, p in beside])
+                entry["p2p_beside"] = {"boards": [b for b, _ in beside], "buy_price": round(mid, 8),
+                                       "index_pct": index_pct(mid, fx)}
+
         entry["denominator"] = {
             "source": fx_source,
             "rate_per_usd": fx,

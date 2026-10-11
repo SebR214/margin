@@ -218,8 +218,14 @@
 
   CHARTS.weekend_penalty = function () {
     var box = mount(T('chart_weekend_penalty_title'), T('chart_weekend_penalty_note'));
-    var rows = (DATA.weekend_penalty || []).filter(function (r) { return r.kind === 'weekend_up'; }), wk = {};
-    rows.forEach(function (r) { var d = r.ts_utc.slice(0, 10); (wk[d] = wk[d] || []).push([r.corridor, +r.size, r.provider, parseFloat(r.move_pct)]); });
+    // a rise counts once, however many amounts it showed up at: the rows are folded by rise_id
+    var rows = (DATA.weekend_penalty || []).filter(function (r) { return r.kind === 'weekend_up'; }), wk = {}, seen = {};
+    rows.forEach(function (r) {
+      var d = r.ts_utc.slice(0, 10), hit = seen[r.rise_id];
+      if (hit) { hit[3] = Math.max(hit[3], parseFloat(r.move_pct)); return; }
+      seen[r.rise_id] = [r.corridor, +r.size, r.provider, parseFloat(r.move_pct)];
+      (wk[d] = wk[d] || []).push(seen[r.rise_id]);
+    });
     var keys = Object.keys(wk).sort(), first = keys[0], lastData = FIN.weekend_penalty.headline.as_of_utc.slice(0, 10), sats = [];
     // every Saturday from the first counted one to the last one whose Tuesday is already in our data
     for (var t = Date.parse(first); t + 3 * 864e5 <= Date.parse(lastData); t += 7 * 864e5) { sats.push(new Date(t).toISOString().slice(0, 10)); }
@@ -238,7 +244,7 @@
       if (fx == null) { return null; }
       var k = Math.max(0, Math.min(n - 1, Math.floor((fx * W - F.L) / slot))), v = vals[k];
       return dd(sats[k]) + ': ' + v.length + ' ' + T('field_weekend_up') + v.slice(0, 8).map(function (r) {
-        return '\n' + routeName(r[0]) + ', ' + r[2] + ', ' + (SYM[r[0].slice(0, 3)] || '') + g(r[1]) + ', +' + r[3].toFixed(2) + '%';
+        return '\n' + routeName(r[0]) + ', ' + r[2] + ', +' + r[3].toFixed(2) + '%';
       }).join('') + (v.length > 8 ? '\n' + T('tipMore', { n: v.length - 8 }) : '');
     });
   };

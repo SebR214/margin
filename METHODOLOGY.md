@@ -49,6 +49,9 @@ For each corridor, hourly, at a set of notional sizes:
 | Exchange fees, USD→NGN / SGD→INR / USD→INR | Luno and WazirX published schedules | published, verified 2026-09-29 |
 | Network withdrawal fee, USD→NGN / USD→INR | Coinbase, Ethereum (ERC20), 0.01% of amount (max 20 USDT) | published, read 2026-08-19 |
 | Network gas, USD→NGN / USD→INR | not published by Coinbase — see below | **not modelled, and material** |
+| Trading fee, USD→NGN / USD→INR Kraken variant (USDT/USD) | Kraken stablecoin-pair schedule, 0.20% maker and 0.20% taker at the base tier (kraken.com/features/fee-schedule) | published, read 2026-10-09 |
+| Network withdrawal fee, USD→NGN / USD→INR Kraken variant | Kraken, Tron, 1.00 USDT flat (support.kraken.com/articles/360000767986) | published, read 2026-10-09 |
+| Network gas, Kraken Tron paths | the flat Tron withdrawal fee is the whole network charge | modelled (no separate gas) |
 
 ### The network leg is per corridor, not a constant
 
@@ -918,6 +921,15 @@ rises unpaired (on 9 Oct, 104 cuts against 25 rises, with 88 of the matching Sat
 rises still stored as changes). The build applies the same rule to the stored rows
 and counts the result. The file itself is not touched. This changes only findings 01
 and 02. No published country number changes, so `index_version` does not move.
+
+**A rise counts once, however many amounts it showed up at.** The pairing works on
+the event, but the stored file has one row per amount sent, so a single rise by one
+app on one Saturday appears at four or five amounts. Finding 02 counts distinct rises:
+one per (app, route, Saturday), and cuts the same way, once per matched cut day. On
+11 Oct 2026 that is 28 rises and 28 cuts, against 105 and 104 when every amount was
+counted on its own. The per-amount rows stay in `data/findings_hours_weekend_penalty.csv`,
+with a `rise_id` column (`route|app|Saturday`) naming which rise each row, rise or cut,
+belongs to.
 
 **What is judged.** Only complete days: the first day in a panel has nothing
 before it, and the last is today, still filling. The file is append-only and

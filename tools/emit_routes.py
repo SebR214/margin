@@ -63,6 +63,9 @@ import re
 import statistics as st
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from collector import CORRIDORS as COLLECTOR_CORRIDORS  # noqa: E402  the corridor config is the one place that says what is modelled
+
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
 
@@ -348,7 +351,10 @@ def build_hourly(D, S):
                        "recv_ccy": m.get("recv_ccy"), "amounts": amounts,
                        "route_words": ROUTE_WORDS.get(c, c),
                        "dest": ROUTE_DEST.get(c),
-                       "send_symbol": SYMBOL.get(m.get("send_ccy"), m.get("send_ccy"))})
+                       "send_symbol": SYMBOL.get(m.get("send_ccy"), m.get("send_ccy")),
+                       # stored path ids whose network gas is not in the cost (collector.CORRIDORS gas_modelled False,
+                       # the "not modelled" rows of METHODOLOGY's network table); only the corridor's own base path
+                       "gas_not_modelled_paths": [COLLECTOR_CORRIDORS[c]["stable"]] if COLLECTOR_CORRIDORS.get(c, {}).get("gas_modelled") is False else []})
     return {
         "as_of_utc": D["newest"][:13] and hour_utc(D["newest"][:13]),
         "start": START,
