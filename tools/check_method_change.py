@@ -35,7 +35,8 @@ EMITTERS = {
 }
 VERSION_FILE = "tools/emit_countries.py"
 VERSION_RE = re.compile(r'^INDEX_VERSION\s*=\s*"([^"]+)"', re.M)
-VOLATILE = {"computed_at", "as_of_utc", "generated_at", "last_recheck_utc"}
+# stamps and descriptive text are not published numbers: a reworded definition is not a method change
+VOLATILE = {"computed_at", "as_of_utc", "generated_at", "last_recheck_utc", "definition", "definitions", "notes"}
 
 
 def strip(x):
@@ -157,6 +158,11 @@ def self_test():
             json.dump({"index_pct": pct, "computed_at": stamp}, open(os.path.join(t, side, "data", "countries", "XAF.json"), "w"))
         g = ["data/countries/*.json"]
         assert diff_outputs(os.path.join(t, "a"), os.path.join(t, "b"), g) == [], "a new timestamp is not a method change"
+        for side, text in (("a", "legs exist only for the base path"), ("b", "legs exist for every path priced")):
+            json.dump({"index_pct": 5.4, "definition": {"path": text}}, open(os.path.join(t, side, "data", "countries", "ZZZ.json"), "w"))
+        assert diff_outputs(os.path.join(t, "a"), os.path.join(t, "b"), g) == [], "reworded definition text is not a method change"
+        for side in ("a", "b"):
+            os.remove(os.path.join(t, side, "data", "countries", "ZZZ.json"))
         assert diff_outputs(os.path.join(t, "a"), os.path.join(t, "c"), g) == ["data/countries/XAF.json"]
     # c. version_of() reads the real file
     assert version_of(open(os.path.join(ROOT, VERSION_FILE)).read())
