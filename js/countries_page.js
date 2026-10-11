@@ -11,7 +11,7 @@
  * Reads: data/index_latest.json, data/movers_week.json, copy.json.
  */
 (function () {
-  var C = {}, H = {}, D = {}, Mv = null;
+  var C = {}, H = {}, D = {}, Mv = null, SP = null;
   var S = { q: '', region: '__ALL__' };
   var app = document.getElementById('app');
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -212,6 +212,11 @@
       nm.appendChild(document.createTextNode(' '));
       nm.appendChild(el('span', 'ci-cc', row.ccy));
     }
+    // a price that rests on one source says so (SEB-302); the words are in copy.json
+    if (row.one && t('oneSource')) {
+      nm.appendChild(document.createTextNode(' '));
+      nm.appendChild(el('span', 'ci-cc', t('oneSource')));
+    }
 
     var lo = Math.min(row.lo, row.p), hi = Math.max(row.hi, row.p);
     var cutL = lo < Sc.lo, cutR = hi > Sc.hi;
@@ -265,7 +270,7 @@
     if (!showWithheld && !showFrozen) { return; }
     var np = el('div', 'ci-np');
     if (showWithheld) {
-      put(np, 'h2', null, t('noPriceTemplate', { n: num(ctx.withheld.length) }));
+      put(np, 'h2', null, t('noPriceTemplate', { n: num(ctx.withheld.length), time: ctx.time }));
       var names = ctx.withheld.map(function (w) { return plainName(w.country || w.ccy); }).join(', ') + '.';
       put(np, 'p', 'ci-note', names);
       if (has(C, 'showWhy')) {
@@ -273,9 +278,10 @@
         det.appendChild(el('summary', null, t('showWhy')));
         var ul = el('ul', 'ci-why');
         ctx.withheld.forEach(function (w) {
-          var li = el('li', null, plainName(w.country || w.ccy));
-          var reason = w.reason ? w.reason.charAt(0).toUpperCase() + w.reason.slice(1) + '.' : '';
-          if (reason) { li.appendChild(el('span', null, reason)); }
+          // one line each: the country and the reason index_latest.json gives for it (SEB-268, 11 Oct)
+          var li = el('li', null, has(C, 'withheldWhyTemplate')
+            ? t('withheldWhyTemplate', { country: plainName(w.country || w.ccy), reason: w.reason || '' })
+            : plainName(w.country || w.ccy));
           ul.appendChild(li);
         });
         det.appendChild(ul);
@@ -317,6 +323,7 @@
         ccy: c.ccy, country: plainName(c.country || c.ccy), p: c.index_pct,
         buy: c.buy_price, fx: c.fx_mid_per_usd, region: c.region,
         unranked: c.denominator_class === 'unmaintained',
+        one: !!(SP && SP.markets && SP.markets[c.ccy] && SP.markets[c.ccy].one_source),
         lo: lo, hi: hi,
         w: Object.prototype.hasOwnProperty.call(moversByCcy, c.ccy) ? moversByCcy[c.ccy] : null
       };
@@ -366,12 +373,14 @@
 
   Promise.all([
     getJSON('copy.json'), getJSON('data/index_latest.json'),
-    getJSON('data/movers_week.json').catch(function () { return null; })
+    getJSON('data/movers_week.json').catch(function () { return null; }),
+    getJSON('data/source_pairs.json').catch(function () { return null; })   // which markets rest on one source
   ]).then(function (r) {
     C = r[0].countries || {};
     H = r[0].homeData || {};
     D = r[1];
     Mv = r[2];
+    SP = r[3];
     page();
   }).catch(function () {
     var wrap = el('div', 'ci-wrap');

@@ -74,6 +74,7 @@ VARIANTS = "corridor_variants.csv"
 QUOTES = "provider_quotes.csv"
 WATERFALL = "corridor_waterfall.csv"
 RAMP_WATERFALL = "ramp_waterfall.csv"
+VARIANT_LEGS = "corridor_variant_legs.csv"       # SEB-268 item 3: the steps of every priced variant path, from the hour they are stored
 RAMP_FEES = "ramp_fees.csv"
 WITHDRAWAL_FEES = "withdrawal_fees.csv"
 # Each route's comparison panel lives in its own file (providers.csv has no
@@ -264,8 +265,20 @@ def load():
             withdrawal=num(r, "wf_withdrawal_bps"),
             deposit_measured=(r.get("deposit_measured") or "").strip() == "True",
             withdrawal_measured=(r.get("withdrawal_measured") or "").strip() == "True")
+    vlegs = {}
+    for r in read_csv(VARIANT_LEGS):
+        c, amt = (r.get("corridor") or "").strip(), num(r, "notional_src")
+        if not c or amt is None or not r.get("ts"):
+            continue
+        path = (r.get("stable") or "").strip() + ":" + (r.get("network") or "").strip()
+        vlegs.setdefault((c, amount_key(amt), hour_of(r["ts"])), {})[path] = {
+            "ts": r["ts"], "deposit": num(r, "wf_deposit_bps"), "buy": num(r, "wf_buy_bps"), "move": num(r, "wf_move_bps"),
+            "sell": num(r, "wf_sell_bps"), "withdrawal": num(r, "wf_withdrawal_bps"), "bps": num(r, "cost_bps_taker"),
+            "netfee": num(r, "network_fee_stable"),
+            "deposit_measured": (r.get("deposit_measured") or "").strip() == "True",
+            "withdrawal_measured": (r.get("withdrawal_measured") or "").strip() == "True"}
     return {"base": base, "variants": variants, "own": own, "panel": panel,
-            "legs": legs, "meta": meta, "newest": newest}
+            "legs": legs, "vlegs": vlegs, "meta": meta, "newest": newest}
 
 
 def price_hour(D, c, amt, h):
@@ -565,13 +578,22 @@ def build_breakdown(D, S):
                 key = (c, amt, p["hour"])
                 b = D["base"].get(key)
                 lg = D["legs"].get(key) or {}
-                # legs belong to the base path only: they are the telescoped
-                # steps of that path's own cost_bps_taker (collector.py).
+                # The steps shown are those of the path that was PRICED that hour: the base route's own legs
+                # (cost_bps_taker telescoped), or, when a variant path was cheaper and its steps are stored
+                # (corridor_variant_legs.csv, from SEB-268 item 3), that variant's. Never another path's steps.
+                vl = (D["vlegs"].get(key) or {}).get(p["stable_path"]) if (b and p["stable_path"] != b["path"]) else None
                 if not b:
                     continue
 
                 def u(x):
                     return None if x is None else r4(amt * x / 1e4)
+                if vl:
+                    lg = {"ts": vl["ts"], "rts": vl["ts"], "buy": vl["buy"], "move": vl["move"], "sell": vl["sell"],
+                          "deposit": vl["deposit"], "withdrawal": vl["withdrawal"],
+                          "deposit_measured": vl["deposit_measured"], "withdrawal_measured": vl["withdrawal_measured"]}
+                    path, total_bps, netfee, on_basis, off_basis = p["stable_path"], vl["bps"] if vl["bps"] is not None else p["stable_bps"], vl["netfee"], None, None
+                else:
+                    path, total_bps, netfee, on_basis, off_basis = b["path"], b["bps"], b["netfee"], b["on_basis"], b["off_basis"]
                 have_wf = lg.get("buy") is not None
                 have_rw = lg.get("deposit") is not None
                 if have_wf and (first_leg["waterfall"] is None or p["hour"] < first_leg["waterfall"]):
@@ -580,12 +602,12 @@ def build_breakdown(D, S):
                     first_leg["ramp"] = p["hour"]
                 legs_ts = lg.get("ts") or lg.get("rts")
                 rows.append([
-                    hour_utc(p["hour"]), b["path"],
+                    hour_utc(p["hour"]), path,
                     u(lg.get("deposit")), u(lg.get("buy")), u(lg.get("move")),
                     u(lg.get("sell")), u(lg.get("withdrawal")),
-                    r4(amt * b["bps"] / 1e4), r4(b["bps"] / 100),
+                    r4(amt * total_bps / 1e4), r4(total_bps / 100),
                     r4(amt * p["app_bps"] / 1e4), r4(p["app_bps"] / 100), p["app"],
-                    b["netfee"], b["on_basis"], b["off_basis"],
+                    netfee, on_basis, off_basis,
                     lg.get("deposit_measured") if have_rw else None,
                     lg.get("withdrawal_measured") if have_rw else None,
                     hour_utc(hour_of(legs_ts)) if (have_wf or have_rw) else None,
@@ -626,7 +648,7 @@ def build_breakdown(D, S):
         "as_of_utc": D["newest"][:13] and hour_utc(D["newest"][:13]),
         "unit": "legs, total, app_cost: sending-currency units; total_pct, app_cost_pct: percent of the amount; *_bps: basis points of the amount as stored",
         "definition": {
-            "path": "the base route's stablecoin; legs exist only for it",
+            "path": "the stablecoin path priced that hour. Its legs are stored for the base route always, and for a variant path from the hour its steps were first stored (corridor_variant_legs.csv); before that the row is the base route's, and the page says the priced path was another",
             "legs": "the five telescoped steps of cost_bps_taker (deposit, buy, on-chain move, sell, withdrawal); they sum to total",
             "getting_in": "deposit + buy", "cashing_out": "sell + withdrawal",
             "on_chain": "network fee leg (move)",
@@ -787,8 +809,39 @@ def _median_indep(vals):
     return v[m] if n % 2 else (v[m - 1] + v[m]) / 2
 
 
+def _variant_legs_case():
+    """Feed build_breakdown a cheaper variant path with stored steps, and one without."""
+    c, amt, h = "SGD->PHP", 5000, "2026-10-11T08"
+    D = {"base": {(c, amt, h): {"ts": h, "bps": 150.0, "path": "USDT", "feed_bps": None, "feed_app": None,
+                                 "netfee": 1.0, "on_basis": 1.0, "off_basis": 2.0},
+                  (c, amt, "2026-10-11T07"): {"ts": h, "bps": 150.0, "path": "USDT", "feed_bps": None, "feed_app": None,
+                                              "netfee": 1.0, "on_basis": 1.0, "off_basis": 2.0}},
+         "legs": {(c, amt, h): {"ts": h, "rts": h, "buy": 40.0, "move": 20.0, "sell": 60.0, "deposit": 10.0, "withdrawal": 20.0,
+                                "deposit_measured": True, "withdrawal_measured": True},
+                  (c, amt, "2026-10-11T07"): {"ts": h, "rts": h, "buy": 40.0, "move": 20.0, "sell": 60.0, "deposit": 10.0, "withdrawal": 20.0,
+                                              "deposit_measured": True, "withdrawal_measured": True}},
+         "vlegs": {(c, amt, h): {"USDC:ArbitrumOne": {"ts": h, "deposit": 5.0, "buy": 30.0, "move": 2.0, "sell": 40.0, "withdrawal": 20.0,
+                                                     "bps": 97.0, "netfee": 1.0, "deposit_measured": True, "withdrawal_measured": True}}},
+         "variants": {}, "own": {}, "panel": {}, "meta": {}, "newest": h}
+    mk = lambda hour, path, bps: {"hour": hour, "stable_bps": bps, "stable_path": path, "base_path": "USDT",
+                                  "app_bps": 90.0, "app": "Wise", "app_source": "own", "feed_bps": None, "feed_app": None}
+    S = {c: {amt: [mk("2026-10-11T07", "USDC:ArbitrumOne", 97.0), mk(h, "USDC:ArbitrumOne", 97.0)]}}
+    doc = build_breakdown(D, S)
+    rows = {r[0]: dict(zip(BREAKDOWN_COLUMNS, r)) for r in doc["routes"][0]["amounts"][0]["rows"]}
+    have = rows[hour_utc(h)]
+    assert have["path"] == "USDC:ArbitrumOne" and abs(have["total"] - 48.5) < 1e-6, have
+    legs = [have[k] for k in ("getting_in_deposit", "getting_in_buy", "on_chain", "cashing_out_sell", "cashing_out_withdrawal")]
+    assert abs(sum(legs) - have["total"]) < 0.01, ("the steps of the priced path must add up to its total", legs, have["total"])
+    old = rows[hour_utc("2026-10-11T07")]
+    assert old["path"] == "USDT" and old["getting_in_buy"] is not None, "an hour before the variant's steps were stored keeps the base row"
+
+
 def self_test():
     fails, notes = [], []
+    try:
+        _variant_legs_case()
+    except AssertionError as e:
+        fails.append("variant legs: %s" % (e,))
 
     def check(cond, msg):
         if not cond:
