@@ -15,9 +15,9 @@ then the offline checks run. Pass: open a PR and comment on the issue. Fail:
 one retry with the check output. Fail again: label `needs-claude`, put the
 issue back in Todo, and stop.
 
-Caps: 2 calls and $1 per job, DAILY_CAP_USD (default $3) per UTC day, summed
-from data/agent_spend.csv. Every call is logged there with the cost OpenRouter
-reports in the response.
+Caps: 2 calls and $1 per job, DAILY_CAP_USD (default $3) per UTC day, and the
+$20 month for all agents together, enforced by tools/llm.py, which also makes
+the call and logs it to data/agent_spend.csv with the cost OpenRouter reports.
 
 Exit codes: 0 for a clean pass, including "nothing to do" and "daily cap
 reached". 1 when something is broken that a person must see (no credit, no
@@ -40,6 +40,8 @@ import urllib.request
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "agents"))
 import linear  # noqa: E402
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import llm  # noqa: E402
 
 LABEL = "one-call"
 STUCK_LABEL = "needs-claude"
@@ -48,9 +50,6 @@ MAX_CALLS = 2
 JOB_CAP_USD = 1.00
 DAILY_CAP_USD = float(os.environ.get("DAILY_CAP_USD", "3.00"))
 MAX_TOKENS = 32000
-SPEND_PATH = os.path.join(ROOT, "data", "agent_spend.csv")
-SPEND_HEADER = ["ts_utc", "issue", "model", "tokens_in", "tokens_out",
-                "cost_usd", "result"]
 CHECKS = [
     ["python3", "tools/check_inventory.py"],
     ["python3", "tools/check_copy.py"],
@@ -73,9 +72,6 @@ No code fences, no other tags, nothing before or after the blocks.
 """
 
 
-ROWS = []  # every call this process made, logged even if the run breaks
-
-
 class Broken(Exception):
     """Something a person must see. Fails the run."""
 
@@ -91,44 +87,24 @@ def sh(cmd, check=True, **kw):
     return r
 
 
-# ---------- spend log ----------
+# ---------- spend log (the rows themselves are written by tools/llm.py) ----------
 
 def spent_today():
-    if not os.path.exists(SPEND_PATH):
-        return 0.0
-    today = now().date().isoformat()
-    total = 0.0
-    with open(SPEND_PATH, newline="") as f:
-        for row in csv.DictReader(f):
-            if row["ts_utc"].startswith(today):
-                try:
-                    total += float(row["cost_usd"] or 0)
-                except ValueError:
-                    pass
-    return total
+    return llm.spent_today()
 
 
-def write_spend(rows):
-    if not rows:
-        return
-    new = not os.path.exists(SPEND_PATH)
-    with open(SPEND_PATH, "a", newline="") as f:
-        w = csv.writer(f)
-        if new:
-            w.writerow(SPEND_HEADER)
-        for r in rows:
-            w.writerow([r[k] for k in SPEND_HEADER])
-
-
-def commit_spend(rows):
-    """Append the rows on main and push. Retries a rebase, like collect.yml."""
+def commit_spend():
+    """Put this run's rows on main and push. The runner may be on a PR branch,
+    so: drop the working-tree copy of the file, go to origin/main, write the
+    rows again, commit, push. Retries a rebase, like collect.yml."""
+    rows = list(llm.LOGGED)
     if not rows or os.environ.get("ONE_CALL_DRY_RUN"):
-        write_spend(rows)
         return
     for attempt in range(3):
         sh(["git", "fetch", "-q", "origin", "main"])
+        sh(["git", "checkout", "-q", "--", "data/agent_spend.csv"], check=False)
         sh(["git", "checkout", "-q", "-B", "main", "origin/main"])
-        write_spend(rows)
+        llm.write_rows(rows)
         sh(["git", "add", "data/agent_spend.csv"])
         sh(["git", "commit", "-q", "-m", "one-call spend %s" % now().isoformat()])
         if sh(["git", "push", "-q", "origin", "main"], check=False).returncode == 0:
@@ -204,37 +180,10 @@ def build_prompt(i, files, context):
 
 
 def call_model(messages, ident):
-    key = os.environ.get("OPENROUTER_API_KEY")
-    if not key:
-        raise Broken("OPENROUTER_API_KEY is not set")
-    last_err = None
-    for model in MODELS:
-        body = json.dumps({"model": model, "messages": messages,
-                           "max_tokens": MAX_TOKENS, "temperature": 0.2,
-                           "usage": {"include": True}}).encode()
-        req = urllib.request.Request(
-            "https://openrouter.ai/api/v1/chat/completions", data=body,
-            headers={"Authorization": "Bearer " + key,
-                     "Content-Type": "application/json"})
-        try:
-            with urllib.request.urlopen(req, timeout=600) as r:
-                out = json.loads(r.read())
-        except urllib.error.HTTPError as e:
-            if e.code == 402:
-                raise Broken("OpenRouter says the key is out of credit (402)")
-            last_err = "%s %s: %s" % (model, e.code, e.read().decode()[:300])
-            continue
-        except (urllib.error.URLError, TimeoutError) as e:
-            last_err = "%s: %s" % (model, e)
-            continue
-        u = out.get("usage") or {}
-        text = (out.get("choices") or [{}])[0].get("message", {}).get("content") or ""
-        row = {"ts_utc": now().isoformat(), "issue": ident, "model": model,
-               "tokens_in": u.get("prompt_tokens", ""),
-               "tokens_out": u.get("completion_tokens", ""),
-               "cost_usd": "%.6f" % float(u.get("cost") or 0), "result": ""}
-        return text, row
-    raise Broken("both models failed: %s" % last_err)
+    try:
+        return llm.complete(messages, models_to_try=MODELS, issue=ident, max_tokens=MAX_TOKENS)
+    except llm.LLMError as e:
+        raise Broken(str(e))
 
 
 def clean(body):
@@ -318,9 +267,9 @@ def run(ident):
     comment(i, "Starting. Files: %s." % ", ".join(files))
     messages = [{"role": "system", "content": SYSTEM},
                 {"role": "user", "content": build_prompt(i, files, context)}]
-    rows, failures, written = ROWS, [], []
+    rows, failures, written = [], [], []
     for attempt in range(MAX_CALLS):
-        if spent_today() + sum(float(r["cost_usd"]) for r in rows) >= DAILY_CAP_USD:
+        if spent_today() >= DAILY_CAP_USD:   # the file already holds this run's calls
             failures = ["daily cap of $%.2f reached" % DAILY_CAP_USD]
             break
         if sum(float(r["cost_usd"]) for r in rows) >= JOB_CAP_USD:
@@ -331,7 +280,6 @@ def run(ident):
         sh(["git", "checkout", "-q", "--"] + [p for p in files if os.path.exists(os.path.join(ROOT, p))], check=False)
         written = apply(text, set(files))
         failures = run_checks(written) if written else ["the model returned no files in the agreed form"]
-        row["result"] = "pass" if not failures else "fail"
         if not failures:
             break
         messages += [{"role": "assistant", "content": text},
@@ -370,10 +318,10 @@ def main():
             comment(i, "Runner stopped: %s. Put back in Todo." % e)
         except SystemExit:
             pass
-        commit_spend(ROWS)
+        commit_spend()
         return 1
-    commit_spend(ROWS)
-    print("done: %d call(s), $%.4f" % (len(ROWS), sum(float(r["cost_usd"]) for r in ROWS)))
+    commit_spend()
+    print("done: %d call(s), $%.4f" % (len(llm.LOGGED), sum(float(r["cost_usd"]) for r in llm.LOGGED)))
     return 0
 
 
