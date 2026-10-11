@@ -67,6 +67,8 @@
       h += '<h1>' + esc(T(key, { country: c.country, gap: pct1(c.index_pct) })) + '</h1>' +
         '<p class="lead">' + esc(T(c.source_class === 'p2p_buy_median' ? (c.n_boards === 2 ? 'leadP2pTwo' : 'leadP2p') : 'leadBook', { rate: rate.toLocaleString('en-US', { maximumFractionDigits: 2 }), ccy: c.ccy, country: c.country, street: money(c.buy_price, c.ccy) })) + '</p>' + pbLine +
         '<p class="money num">' + T('usd100Line', { street: esc(money(c.buy_price * 100, c.ccy)), rate: esc(money(rate * 100, c.ccy)) }) + '</p>';
+      // the price rests on one source only: say so (SEB-302)
+      if ((c.venues || []).length === 1 && T('oneSource')) { h += '<p class="stamp num">' + esc(T('oneSource')) + '</p>'; }
       if (c.denominator && c.denominator.class === 'unmaintained') { h += '<p class="flag">' + esc(T('unrankedNote', { country: c.country })) + '</p>'; }
     }
     h += '<p class="stamp num">' + esc(T('pricesFrom', { time: c.hour_utc.slice(11, 16), date: dd(c.hour_utc) })) + '</p>';
