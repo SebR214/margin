@@ -59,6 +59,9 @@ jobs:
       - name: No Opus or Fable model in code (SEB-301)
         run: python3 tools/check_models.py
 
+      - name: The model caller refuses what it must (SEB-301)
+        run: python3 tools/llm.py --self-test
+
       - name: Design ratchet (a page may not get louder - caps, heavy weights, off-palette colours)
         run: python3 tools/check_design.py
 
