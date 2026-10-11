@@ -513,7 +513,7 @@ Promise.all([
   fetch('./data/cycle_log.json', {cache:'no-store'}).then(function(r){ return r.json(); })
 ]).then(function(res){
   var hiw = (res[0] && res[0].howItWorks) || {};
-  var keys = ['cycleTitle','cycleLine','stepCurrencies','stepRoutes','stepAuditor','stepAuditorResult','stepAnalyst','resultClean','resultSourceMissed','resultCheckFailed','stripTitle','stripClean','stripMissed','stripFailed'];
+  var keys = ['cycleTitle','cycleLine','stepCurrencies','stepRoutes','stepAuditor','stepAuditorResult','stepAnalyst','resultClean','resultAuditFailed','resultSourceMissed','resultCheckFailed','stripTitle','stripClean','stripMissed','stripFailed'];
   var copyBlock = {}; keys.forEach(function(k){ copyBlock[k] = hiw[k] || ''; });
   var box = document.getElementById('cycleBlock');
   if (box && typeof renderCycleBlock === 'function') {
