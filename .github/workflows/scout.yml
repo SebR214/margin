@@ -37,6 +37,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install requests (the source probe uses it)
+        run: pip install 'requests>=2.31'
+
       - name: Mint the app token
         id: app_token
         env:
