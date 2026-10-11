@@ -75,6 +75,8 @@ import statistics
 import sys
 import time
 
+import board_guard
+
 try:
     import requests
 except ImportError:
@@ -265,7 +267,12 @@ def build_rows(ts, currencies, fx, get=None):
             row.update(buy_median=round(b, 8), sell_median=round(s, 8),
                        mid=round(mid, 8), basis_bps=basis_bps(mid, fx_mid),
                        source_ok=True)
-            n_ok += 1
+            bad = board_guard.problem(b, s, fx_mid)
+            if bad:
+                # SEB-302: a crossed or upside-down board is kept as evidence but never priced.
+                row.update(source_ok=False, error=bad[:300])
+            else:
+                n_ok += 1
         except Exception as e:
             row["error"] = f"{type(e).__name__}:{e}"[:300]
         rows.append(row)
@@ -367,9 +374,10 @@ FX_FIXTURE = {
 TS_FIXTURE = "2026-10-03T00:00:00+00:00"
 
 
-def _make_get(overrides=None, unsupported=()):
+def _make_get(overrides=None, unsupported=(), crossed=(), inverted=()):
     """Fake books: sell (ask) 1% over the official rate, buy (bid) 1% under,
-    every ad's own range wide enough to always qualify."""
+    every ad's own range wide enough to always qualify. `crossed` currencies get
+    the ask 5% under and the bid 5% over; `inverted` ones price upside down (SEB-302)."""
     overrides = overrides or {}
 
     def get(url):
@@ -385,6 +393,10 @@ def _make_get(overrides=None, unsupported=()):
             return UNSUPPORTED_PAYLOAD
         fx = FX_FIXTURE[ccy]
         base = fx * (1.01 if side == "sell" else 0.99)
+        if ccy in crossed:
+            base = fx * (0.95 if side == "sell" else 1.05)
+        if ccy in inverted:
+            base = 1.0 / fx
         # ROWS prices symmetric around `base`, so slicing to the first ROWS
         # (as build_rows does) keeps the median exactly `base`.
         offsets = [i - (ROWS - 1) / 2 for i in range(ROWS)]
@@ -438,6 +450,19 @@ def selftest():
     build_rows(TS_FIXTURE, ["VND"], FX_FIXTURE, get=spy)
     assert any("quoteCurrency=vnd" in u for u in seen), seen
     print("  [ok] request targets the right OKX quoteCurrency per call")
+
+    # 4g. SEB-302: a crossed book and an upside-down book are written source_ok=False with the
+    #     reason, keep their medians as evidence, and are never priced.
+    rows_g, n_ok_g = build_rows(TS_FIXTURE, CURRENCIES, FX_FIXTURE,
+                                get=_make_get(crossed=("UAH", "XOF"), inverted=("PKR",)))
+    for c in ("UAH", "XOF"):
+        r = next(x for x in rows_g if x["ccy"] == c)
+        assert r["source_ok"] is False and board_guard.is_guard_error(r["error"]) and "below the sell side" in r["error"], r
+        assert r["buy_median"] < r["sell_median"], "the crossed medians are kept as evidence"
+    pkr = next(x for x in rows_g if x["ccy"] == "PKR")
+    assert pkr["source_ok"] is False and pkr["error"].startswith("guard:") and "outside" in pkr["error"], pkr
+    assert n_ok_g == 53 - 3, n_ok_g
+    print("  [ok] a crossed book and an upside-down book are written source_ok=False with the reason, never priced")
 
     # 5. OKX's own unsupported-currency code isolates to that currency, with
     #    the real reason, not a generic transport error.

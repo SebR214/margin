@@ -33,7 +33,7 @@ import os
 import statistics
 import sys
 
-INDEX_VERSION = "1.2"
+INDEX_VERSION = "1.3"
 
 # v1.2: a second source is used only when it looks alive and agrees with the first.
 SECOND_BOARD_MAX_GAP = 0.03     # OKX's buy median must be within 3% of Binance's to be combined with it
