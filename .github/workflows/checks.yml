@@ -65,6 +65,8 @@ jobs:
       - name: Source pairs, one source and lasting gaps (SEB-302)
         run: python3 tools/emit_source_pairs.py --self-test
 
+      - name: Route steps add up to the path that was priced (SEB-268)
+        run: python3 tools/emit_routes.py --self-test
       - name: A sudden flip is held back (SEB-302)
         run: python3 tools/check_flip_hold.py
 

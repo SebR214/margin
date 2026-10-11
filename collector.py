@@ -1208,6 +1208,12 @@ def collect_variants(corridor_key, cfg):
                 "landed_maker": d.get("landed_maker"),
                 "cost_bps_maker": d.get("cost_bps_maker"),
                 "source_ok": ok, "errors": "; ".join(errors)[:500],
+                # per-step costs of this path (SEB-268): written to VARIANT_LEGS_SIDECAR
+                "wf_deposit_bps": d.get("wf_deposit_bps"), "wf_buy_bps": d.get("wf_buy_bps"),
+                "wf_move_bps": d.get("wf_move_bps"), "wf_sell_bps": d.get("wf_sell_bps"),
+                "wf_withdrawal_bps": d.get("wf_withdrawal_bps"),
+                "ramp_deposit_measured": d.get("ramp_deposit_measured"),
+                "ramp_withdrawal_measured": d.get("ramp_withdrawal_measured"),
             })
     return out
 
@@ -1380,6 +1386,40 @@ def append_providers(prows, path=PROVIDERS):
         if new:
             w.writeheader()
         w.writerows(prows)
+    return path
+
+
+VARIANT_LEGS_SIDECAR = os.path.join(HERE, "data", "corridor_variant_legs.csv")
+VARIANT_LEGS_FIELDS = [
+    "ts", "corridor", "stable", "network", "notional_src", "network_fee_stable",
+    "cost_bps_taker", "wf_deposit_bps", "wf_buy_bps", "wf_move_bps", "wf_sell_bps",
+    "wf_withdrawal_bps", "deposit_measured", "withdrawal_measured",
+]
+
+
+def append_variant_legs(vrows, path=VARIANT_LEGS_SIDECAR):
+    """The per-step costs (deposit, buy, network fee, sell, withdrawal) of every
+    priced alternate path, hour by hour, so the Routes page can show the steps
+    of the path that was priced. Own file: corridor_variants.csv keeps its
+    header. Only rows whose steps were all worked out are written; there is no
+    backfill, and an hour without a row is a gap.
+    """
+    wrows = [{**{k: r.get(k) for k in VARIANT_LEGS_FIELDS if k in r},
+              "deposit_measured": r.get("ramp_deposit_measured"),
+              "withdrawal_measured": r.get("ramp_withdrawal_measured")}
+             for r in vrows
+             if r.get("source_ok") and None not in (
+                 r.get("wf_deposit_bps"), r.get("wf_buy_bps"), r.get("wf_move_bps"),
+                 r.get("wf_sell_bps"), r.get("wf_withdrawal_bps"))]
+    if not wrows:
+        return None
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=VARIANT_LEGS_FIELDS, extrasaction="ignore")
+        if new:
+            w.writeheader()
+        w.writerows(wrows)
     return path
 
 
@@ -1970,6 +2010,10 @@ def main():
             append_variants(vrows)
         except Exception as e:
             print(f"  [warn] variants sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
+        try:
+            append_variant_legs(vrows)
+        except Exception as e:
+            print(f"  [warn] variant legs sidecar write failed (non-fatal): {e}\n", file=sys.stderr)
 
     if a.json:
         print(json.dumps({"corridor": rows, "panel": prows, "variants": vrows},
