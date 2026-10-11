@@ -1,51 +1,63 @@
 # Roadmap
 
-Rewritten 2026-10-07 to one page, and checked against what is live on 2026-10-11 (SEB-215). The full old version is `docs/archive/ROADMAP-to-2026-10-07.md`. The work queue is Linear, not this file.
+Updated 11 Oct 2026. Seb owns this file. Agents change it only from a spec Seb approved.
 
-## What the site is
+## What margin.wiki is
 
-margin.wiki prices a dollar in about 60 currencies every hour, using the dollar a person can actually buy there: a dollar stablecoin, on person-to-person boards and order books, against the official rate. Currencies with no price this hour say why, in plain words. It also prices sending money on 7 routes, all fees in.
+Every hour it prices a dollar in 60 countries against the official rate, and prices sending money on 7 routes with every fee we can measure.
 
-Sending money with a stablecoin was tested against apps and banks. It is published as evidence that the stablecoin is a real dollar, not as a cheaper way to send money.
+## In six months (April 2027)
 
-## Three surfaces, one set of files
+The same site, plus three things it doesn't have today.
 
-- The site, built from the CSVs and JSON in `data/`.
-- The API (`margin-serve` on the box): `/dollar_cost`, `/compare_routes`, `/series`, `/query`, `/request_series`, plus `/ask` and `/mcp`. Built, but not switched on at api.margin.wiki: the DNS record is not set, so nothing public points at it.
-- Ask: a question in, the SQL, the answer and the source file out. Built, but the account behind it has no credit and the site has no ask box, so it answers nobody today.
+1. **Findings that age honestly.** Each finding is retested by code. It shows whether it still holds, got weaker or is no longer true. The original claim and its evidence stay up with their date.
+2. **Sources checked against each other.** Every pair of sources measuring the same market is compared hour by hour. A gap that lasts is flagged as a possible finding.
+3. **A depth record.** What a dollar costs at several amounts, not just at the best price, collected from the day it starts.
 
-Collection runs on GitHub Actions every hour (`collect.yml`). The box also runs a 10-minute person-to-person collector, kept as a second record; moving collection onto the box is parked.
+## Order
 
-## Invariants
+1. SEB-268, items 1 to 11. Data checks and fixes come first.
+2. Write down how a finding is tested (below) before building anything else, so new comparisons are stored in a form that can be retested.
+3. Source comparisons. Only compare sources that are comparable: same kind of market, same amount, same hour. A gap must last past a set threshold before it counts. Use each source's own history where both have one.
+4. Depth collection.
+5. Finding statuses on the site.
 
-Collection integrity comes first. History can't be rebuilt, so collection breadth and reliability beat new features.
+## How a finding is tested
 
-Data:
-- Every number is computed from `data/`. Deterministic code owns numbers. A model never writes a number.
-- Loud failure. Persistence before display. One capture per UTC hour.
-- Gaps stay gaps. The live layer is never backfilled or interpolated.
-- History is its own layer in `data/history/`, "reported, not observed", source on every row, never feeding the index, a price or unbroken hours (`tools/check_history_isolation.py`).
-- Every row carries its fee regime.
-- The stablecoin is checked against a dollar. Where a venue lists both, the USDT to USDC spread is measured and published.
-- METHODOLOGY.md says whether each shown number is measured, assumed or invisible. Method changes bump `index_version`.
+Each finding has a test file that sets out:
+- the exact calculation
+- the data window
+- the minimum number of observations
+- what makes the test invalid
+- the thresholds for holding, weaker and no longer true
 
-API and Ask:
-- SQL is read-only, capped at 5,000 rows, with a 10-second timeout.
-- Every query is logged. No personal data is stored.
-- Every answer cites the file it came from.
-- A new series starts at zero history and says so.
-- A rejected source is shown as rejected, with what was probed and why.
+Each finding has its own trigger: new hourly rows for price findings, a changed fee table for fee findings. "Rechecked" shows when the test actually ran. Each retest adds a row. Nothing earlier is overwritten.
 
-Pages:
-- Money first, percent second. No jargon on the front page. "Stablecoin", never "crypto".
-- Every chart hovers to the nearest real point. `js/chart.js` is the reference.
-- No hand-written copy that can go stale against the data.
+## Publication gate
 
-Agents:
-- No agent weakens a test, check or gate to make its own work pass.
-- Insufficient evidence is a valid answer.
-- Agents propose changes to this file by PR and say what changed.
+A number or finding goes live only when its test passes and these checks pass: sign direction, currency direction, source selection, stale prices, and at least one case with a known answer. Running without errors is not enough.
 
-## Out of scope
+## What gets built
 
-Enterprise payout pricing, OTC desks, local cash-out fees and KYC limits. Stated, never estimated.
+Anything new must do at least one of these:
+- create a comparison that didn't exist
+- start a history that can't be filled in later
+- retest a claim the site already makes
+
+Fixes that keep collection running or make existing numbers right always qualify.
+
+## Never
+
+- No model runs on a timer. No new agents or loops.
+- No model calculates a published number.
+- Nothing goes live without a passing test and words Seb approved.
+- Prices a source reports from before we started stay labelled "reported, not seen by us" and never mix into our hourly series.
+- Stored CSVs are never rewritten.
+
+## Parked
+
+- "Under investigation" page.
+- Linking country prices to route costs. Only the Philippines and Mexico overlap.
+- Ask and the public API (SEB-213).
+- Agent payments.
+- Bringing back the Routes research controls.
