@@ -62,6 +62,9 @@ jobs:
           python3 collector_p2p.py --selftest
           python3 collector_p2p_okx.py --selftest
 
+      - name: Source pairs, one source and lasting gaps (SEB-302)
+        run: python3 tools/emit_source_pairs.py --self-test
+
       - name: No Opus or Fable model in code (SEB-301)
         run: python3 tools/check_models.py
 
@@ -72,6 +75,7 @@ jobs:
         run: |
           python3 tools/daily_status.py --self-test
           python3 tools/check_scout_health.py --self-test
+          python3 tools/check_audit_health.py --self-test
 
       - name: The Scout's checks reject what they must (SEB-301)
         run: python3 tools/scout.py --self-test
@@ -90,6 +94,30 @@ jobs:
 
       - name: Single-company dependency ceiling (Wise share must not rise)
         run: python3 tools/check_wise_share.py
+
+  # SEB-302. A PR that changes an emitter may not change a published number in
+  # silence: it must also change METHODOLOGY.md and bump INDEX_VERSION. The check
+  # runs the emitter on the same data with the base code and the PR's code, and
+  # runs from the BASE branch's copy so a PR cannot edit its own judge.
+  method-change:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Method changes are documented
+        run: |
+          git show "origin/${{ github.base_ref }}:tools/check_method_change.py" > "$RUNNER_TEMP/check_method_change.py" 2>/dev/null \
+            || cp tools/check_method_change.py "$RUNNER_TEMP/check_method_change.py"
+          # use the base branch's judge, in place, so its ROOT is this checkout
+          cp "$RUNNER_TEMP/check_method_change.py" tools/check_method_change.py
+          python3 tools/check_method_change.py --self-test
+          python3 tools/check_method_change.py --base "origin/${{ github.base_ref }}"
 
   # Words belong to the writer agent. Fails a PR that changes copy.json or adds
   # reader-facing text to html/js unless it is a writer PR the owner approved.
