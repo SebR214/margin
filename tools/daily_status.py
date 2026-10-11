@@ -107,6 +107,11 @@ def build(now=None):
         elif p.get("draft"):
             note = " (draft)"
         lines.append("  - [#%d](%s) %s%s" % (p["number"], p["html_url"], p["title"], note))
+    import check_audit_health
+    bad_numbers, bad_claims = check_audit_health.summary()
+    lines.append("- **Audits:** %s" % ("all numbers matched, all claims true" if not (bad_numbers or bad_claims) else
+                 "%d number(s) did not match their raw rows (%s); %d claim(s) false (%s)" % (
+                     len(bad_numbers), ", ".join(bad_numbers) or "none", len(bad_claims), ", ".join(bad_claims) or "none")))
     lines.append("- **Spend this month:** $%.2f of $%.2f (%d%%)" % (month, llm.MONTHLY_CAP_USD, round(month / llm.MONTHLY_CAP_USD * 100)))
     return "\n".join(lines)
 

@@ -5,6 +5,7 @@ name: watchdog
 #     the last 2 hours, and not 3 failures in a row
 #   - the collector (tools/check_collector_health.py)
 #   - the Scout (tools/check_scout_health.py): a successful run in the last 8 days
+#   - the audits (tools/check_audit_health.py): a number or claim wrong for 3 runs in a row
 # If any is down, this run FAILS. A failed scheduled run makes GitHub email
 # the person who last changed this file's schedule, which is Seb's account.
 # collector_watchdog.yml still files the collector alert to Linear; this one
@@ -51,6 +52,8 @@ jobs:
           python3 tools/check_collector_health.py || down=1
           echo "## Scout"
           python3 tools/check_scout_health.py || down=1
+          echo "## Audits"
+          python3 tools/check_audit_health.py || down=1
           if [ "${{ github.event.inputs.test_alarm }}" = "true" ]; then
             echo "TEST ALARM: failing on purpose so the failure email can be checked"
             down=1
