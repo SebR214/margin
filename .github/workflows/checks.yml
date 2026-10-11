@@ -56,6 +56,12 @@ jobs:
       - name: Plain-language gate (no payments jargon in headings/nav/labels)
         run: python3 tools/check_copy.py
 
+      - name: A bad board row is refused at collection (SEB-302)
+        run: |
+          python3 board_guard.py --self-test
+          python3 collector_p2p.py --selftest
+          python3 collector_p2p_okx.py --selftest
+
       - name: Source pairs, one source and lasting gaps (SEB-302)
         run: python3 tools/emit_source_pairs.py --self-test
 

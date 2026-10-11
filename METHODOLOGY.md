@@ -455,8 +455,9 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. **Version 1.2 is in force from
-2026-10-09** (a second person-to-person board and Luno for Nigeria, below). Version 1.1 ran from
+Every published file carries `index_version`. **Version 1.3 is in force from
+2026-10-11** (a believable-row test at collection, below). Version 1.2 ran from 2026-10-09
+(a second person-to-person board and Luno for Nigeria, below). Version 1.1 ran from
 2026-09-10; v1.0 was superseded that day by the evidence rule below, after
 a verification sprint found that ten P2P boards were crossed. It is incremented when **any
 change alters what a published number means**, specifically:
@@ -565,6 +566,36 @@ stand-in. Its first rows arrive with the next hourly collection after this versi
 ships; the figure above is what the live quote implies, not a stored published number.
 
 `p2p_basis.csv`, `p2p_okx.csv`, `basis.csv` and every CSV header are unchanged.
+
+### A row must be believable before it is priced (v1.3, 2026-10-11)
+
+`audit_numbers.py` and `audit_claims.py` work a number out again from the same raw row it came
+from, so a wrong raw row passes both. The collectors now test each person-to-person row
+(`collector_p2p.py` for Binance, `collector_p2p_okx.py` for OKX) with one shared function,
+`board_guard.py`, before it can be priced. A row fails if:
+
+- **it is crossed**: the buy price is below the sell price on the same board; or
+- **a price is out of band**: buy or sell is not between 0.5 and 30 times the official rate for
+  the same moment. That is an upside-down or wrong-currency price. Across the 49,000 stored rows the
+  honest range is 0.88 (Bolivia, 16 Sep) to 20.3 (Sudan, 7 Oct), so the band does not touch a real row.
+
+A failing row is written with `source_ok=false` and the reason in `error`. It keeps its medians as
+evidence. It is never priced. The crossed reason is the same sentence the site has always shown for a
+withheld crossed board, with the two prices added to it. Nothing already stored is rewritten.
+
+**What changes, and for which countries.** Before this version a crossed Binance row was dropped later
+by `tools/emit_countries.py`, so no country's price moves. What moves is OKX: v1.2 combined OKX's board
+without testing it for crossing, so a country with a crossed OKX board could have been priced from the
+median of two boards, one of them crossed. From v1.3 a crossed or out-of-band OKX row is left out like a
+failed pull, and the country stays on Binance alone for that hour. Checked on the stored rows of
+2026-10-11 08:00 UTC by running the emitter on the same data with and without the test: **no country's
+published number moves.** The rows that fail in that hour are 11 Binance rows (AOA, BND, EGP, INR, MZN,
+PKR, UAH, UGX, XAF, XOF, ZMW) and 3 OKX rows (EGP, UAH, XOF). Three displayed things change: the
+withheld reason for those countries now carries the two prices; Angola and Brunei now say the sides are
+not the same market (they were also short of ads); and India's "between people on Binance" line is not
+shown while Binance's board is crossed.
+
+`p2p_basis.csv`, `p2p_okx.csv` and every CSV header are unchanged.
 
 ### The evidence rule (v1.1)
 
