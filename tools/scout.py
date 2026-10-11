@@ -4,23 +4,30 @@ the spec into the standing issue SEB-300, where the builder (tools/one_call.py)
 picks it up.
 
     python3 tools/scout.py              # a real run
-    python3 tools/scout.py --dry-run    # one model call, prints the spec and the checks, writes nothing to Linear
+    python3 tools/scout.py --dry-run    # one model call and the probes, prints the spec, writes nothing to Linear
     python3 tools/scout.py --self-test  # no network, no model
 
-Inputs, and nothing else:
-  - the output of `tools/analyst.py --dry-run --no-model` (numbers the analyst
-    computed from the CSVs), and
-  - the countries with no price this hour, from data/index_latest.json.
-The prompt is built only from those two, plus a fixed instruction. No .md file
-is ever sent to a model.
+Inputs come only from code, computed from the CSVs:
+  1. the coverage list: markets priced from a single source (one exchange order
+     book, one broker, or one person-to-person board);
+  2. source pairs that disagree: the analyst's board disagreements, and the
+     countries where exchange prices and person-to-person prices sit apart;
+  3. findings whose recheck says they no longer hold: claims that
+     tools/audit_claims.py (data/claims_status.json) marks ok:false.
+No .md file is ever sent to a model, and the prompt is built from these three only.
 
 One Sonnet call (the newest anthropic/claude-sonnet on OpenRouter, resolved by
-tools/llm.py; it fails loudly if there is none) picks one item and writes a
-spec with a `## Files` section. The spec is posted only if every check passes:
-  - every number in it traces to a number the analyst computed (the analyst's
-    own number check, tools/analyst.py untraced_numbers);
+tools/llm.py; it fails loudly if there is none) picks the top item and writes a
+build spec with a `## Files` section. It never writes reader-facing words: a
+spec may not list a page, a stylesheet, a script or copy.json. For a new source
+it only suggests venues, in a `## Venues` section, and each one must pass the
+existing source probe (tools/probe_source.py) before the spec is posted.
+
+The spec is posted only if every check passes:
+  - every number in it traces to a number the analyst's number check allows;
   - every listed file exists and is a file the builder may change;
-  - the files together stay under the size limit (80,000 characters).
+  - the files together stay under the size limit (80,000 characters);
+  - every suggested venue is for a single-source market and passes the probe.
 If a check fails nothing is posted and the reason goes in data/scout_log.csv.
 If SEB-300 is not Done, the week is skipped.
 
@@ -30,7 +37,7 @@ import csv
 import json
 import os
 import re
-import subprocess
+import glob
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -43,14 +50,18 @@ JOB = "SEB-300"
 LABEL = "one-call"
 LOG = os.path.join(ROOT, "data", "scout_log.csv")
 LOG_HEADER = ["ts_utc", "mode", "status", "detail", "item", "cost_usd"]
-INDEX_LATEST = os.path.join(ROOT, "data", "index_latest.json")
+DATA = os.path.join(ROOT, "data")
+INDEX_LATEST = os.path.join(DATA, "index_latest.json")
+CLAIMS_STATUS = os.path.join(DATA, "claims_status.json")
+EXCHANGE_P2P_GAP_PTS = 2.0      # an exchange price and a person-to-person price this far apart (points) count as a disagreement
 MAX_FILES_CHARS = 80_000         # all listed files together; the builder sends them whole and its prompt limit is 100,000
 MAX_TOKENS = 2500
 # Files the builder may never be asked to change: agent code, checks, workflows,
 # and the words (copy.json goes through the writer and Seb's approval).
 FORBIDDEN = (".github/", "agents/", "tools/check_", "tools/llm.py", "tools/scout.py",
-             "tools/one_call.py", "tools/analyst.py", "tools/audit_numbers.py", "copy.json",
-             "METHODOLOGY.md", "CLAUDE.md")
+             "tools/one_call.py", "tools/analyst.py", "tools/audit_numbers.py", "tools/audit_claims.py",
+             "copy.json", "claims.json", "METHODOLOGY.md", "CLAUDE.md", "js/", "css/")
+FORBIDDEN_SUFFIX = (".html", ".css")      # reader-facing pages: the Scout never touches them
 # Where things live, so a spec can name real files. Checked against the repo in --self-test.
 WHERE = {
     "collector_basis.py": "exchange order books and broker quotes, written to data/basis.csv",
@@ -59,19 +70,19 @@ WHERE = {
     "tools/emit_countries.py": "builds each country's price and the reason a country has none",
 }
 
-SYSTEM = """You write one job spec for a small static website that prices a dollar in about 60 countries.
-You get numbers computed by code from the site's data files, and the list of countries with no price this hour.
-Pick ONE item: a country with no price that needs a source, or a finding worth publishing. Write the spec for it.
+SYSTEM = """You write one build spec for a small static website that prices a dollar in about 60 countries.
+You get three lists computed by code from the site's data files: markets priced from a single source, source pairs that disagree, and claims that no longer hold.
+Pick the ONE item most worth building this week and write the spec for it.
 Rules:
-- Use no number except those in the data you were given. Do not estimate, round up or invent any.
-- Write the spec in markdown: a title line starting with '# ', then '## Why' (two to four sentences), '## What to build', '## Files', '## Context' (optional), '## Done when'.
+- Use no number except those in the data you were given. Do not count, add, subtract or round anything yourself. Quote a number exactly as given, or use none.
+- You never write reader-facing words. Never list a page, a stylesheet, a script or copy.json. If the job needs words, say they go through the writer.
+- Write the spec in markdown: a title line starting with '# ', then '## Why' (two to four sentences), '## What to build', '## Files', '## Context' (optional), '## Done when', and '## Venues' only if the job is a new source.
 - '## Files' lists, one per line, each in backticks, the files the builder may change. '## Context' lists read-only files the same way.
 - The builder is sent every listed file whole, and all of them together must stay under 80,000 characters. List only small files. Never list a data/*.csv or any large data file.
-- Do not count, add, subtract or round anything yourself. Quote a number from the data exactly as given, or use none.
+- For a new source, only suggest venues. In '## Venues', one per line: `CCY` | `https://full-api-url` | `dotted.path.to.the.price.field`. The URL must return JSON with the price of one US dollar (or one dollar stablecoin) in that currency. The CCY must be one of the single-source markets you were given. Each venue is checked by a probe against an independent rate, and the spec is dropped if any fails. Suggest only venues you are sure exist.
 - Name only real files. Where things live:
 %s
-- Never list anything under .github/ or agents/, any tools/check_*.py, llm.py, scout.py, one_call.py, analyst.py, audit_numbers.py, copy.json, METHODOLOGY.md or CLAUDE.md.
-- Write no words for the site. If the job needs reader-facing words, say they go through the writer.
+- Never list anything under .github/, agents/, js/ or css/, any tools/check_*.py, llm.py, scout.py, one_call.py, analyst.py, audit_numbers.py, audit_claims.py, claims.json, METHODOLOGY.md or CLAUDE.md.
 - Say what is NOT to be done if it matters. Short sentences, plain words, no em-dashes.
 """ % "\n".join("  - `%s`: %s" % kv for kv in WHERE.items())
 
@@ -85,48 +96,89 @@ def log_row(mode, status, detail, item="", cost=0.0):
         w.writerow([llm.now().isoformat(), mode, status, detail[:500].replace("\n", " "), item, "%.6f" % cost])
 
 
-# ---------- inputs ----------
+# ---------- inputs: all computed by code from the CSVs ----------
 
-def analyst_findings():
-    """The analyst's new findings, from its own dry run. No model, no writes."""
-    r = subprocess.run([sys.executable, os.path.join(ROOT, "tools", "analyst.py"), "--dry-run", "--no-model"],
-                       cwd=ROOT, capture_output=True, text=True, timeout=600)
-    if r.returncode != 0:
-        raise SystemExit("analyst.py --dry-run failed: %s" % (r.stderr or r.stdout)[-400:])
-    out = r.stdout
-    i = out.find("\n[")
-    return json.loads(out[i + 1:]) if i >= 0 else []
-
-
-def no_price_countries(path=INDEX_LATEST):
+def _load(path):
     with open(path) as f:
-        return json.load(f).get("withheld") or []
+        return json.load(f)
 
 
-def numbers_for(findings, withheld):
-    """Every number the prompt contains, as one dict, so the spec can be held to it."""
-    nums = {"no_price_count": len(withheld)}
-    for f in findings:
-        for k, v in (f.get("numbers") or {}).items():
-            nums["%s.%s" % (f["id"], k)] = v
-    for w in withheld:
-        for j, tok in enumerate(re.findall(r"\d[\d,]*(?:\.\d+)?", w.get("reason_raw") or "")):
-            nums["%s.n%d" % (w["ccy"], j)] = float(tok.replace(",", ""))
-    return nums
+def single_source_markets(data=DATA):
+    """Markets that have a price now, from one source only."""
+    out = []
+    idx = _load(os.path.join(data, "index_latest.json"))["countries"]
+    for c in idx:
+        cls = c.get("source_class")
+        n = c.get("n_sources")
+        if cls == "p2p_buy_median":
+            doc_path = os.path.join(data, "countries", "%s.json" % c["ccy"])
+            n = (_load(doc_path).get("n_boards") if os.path.exists(doc_path) else None) or 1
+            if n != 1:
+                continue
+        elif cls == "p2p_fallback":
+            n = 1
+        elif cls in ("order_book_single", "broker_single"):
+            n = 1
+        else:
+            continue
+        out.append({"ccy": c["ccy"], "country": c["country"], "source_class": cls,
+                    "sources": n, "source_file": c.get("source_file")})
+    return sorted(out, key=lambda x: x["ccy"])
 
 
-def build_prompt(findings, withheld):
-    parts = ["FINDINGS FROM THE ANALYST (numbers computed by code):"]
-    if findings:
-        for f in findings:
-            parts.append(json.dumps({"id": f["id"], "kind": f["kind"], "subject": f["subject"],
-                                     "numbers": f["numbers"], "files": f["evidence"]["files"]}, sort_keys=True))
-    else:
-        parts.append("(none this week)")
-    parts.append("COUNTRIES WITH NO PRICE THIS HOUR (%d):" % len(withheld))
-    for w in withheld:
-        parts.append("%s | %s | %s | %s" % (w["ccy"], w["country"], w.get("reason_raw") or w.get("reason"),
-                                           w.get("source_file") or ""))
+def disagreeing_pairs(data=DATA):
+    """Source pairs that disagree: the analyst's two-board gaps, and countries where
+    exchange prices and person-to-person prices sit apart by EXCHANGE_P2P_GAP_PTS or more."""
+    out = []
+    country_files = sorted(f for f in glob.glob(os.path.join(data, "countries", "*.json")) if " " not in os.path.basename(f))
+    as_of = max(_load(f)["history"][-1]["date"] for f in country_files if _load(f).get("history"))
+    for f in analyst.investigate_boards_disagree(as_of, 1.0):
+        out.append({"pair": "binance_vs_okx", "ccy": f["subject"], **f["numbers"]})
+    for f in country_files:
+        d = _load(f)
+        b = d.get("p2p_beside")
+        if b and d.get("index_pct") is not None and b.get("index_pct") is not None:
+            gap = round(abs(b["index_pct"] - d["index_pct"]), 2)
+            if gap >= EXCHANGE_P2P_GAP_PTS:
+                out.append({"pair": "exchange_vs_p2p", "ccy": d["ccy"], "exchange_pct": round(d["index_pct"], 2),
+                            "p2p_pct": round(b["index_pct"], 2), "gap_points": gap})
+    return out
+
+
+def failing_claims(data=DATA):
+    """Claims the hourly recheck (tools/audit_claims.py) says no longer hold."""
+    doc = _load(os.path.join(data, "claims_status.json"))
+    return [{"claim": k, "value": v.get("value")} for k, v in sorted(doc["claims"].items()) if not v.get("ok")]
+
+
+def gather():
+    return {"single_source_markets": single_source_markets(),
+            "disagreeing_pairs": disagreeing_pairs(),
+            "failing_claims": failing_claims()}
+
+
+def numeric_leaves(x, prefix="n"):
+    """Every number in the inputs, as a flat dict, so the spec can be held to it. Counts included."""
+    out = {}
+    if isinstance(x, bool) or x is None:
+        return out
+    if isinstance(x, (int, float)):
+        out[prefix] = x
+    elif isinstance(x, dict):
+        for k, v in x.items():
+            out.update(numeric_leaves(v, "%s.%s" % (prefix, k)))
+    elif isinstance(x, list):
+        out["%s.count" % prefix] = len(x)
+        for i, v in enumerate(x):
+            out.update(numeric_leaves(v, "%s[%d]" % (prefix, i)))
+    return out
+
+
+def build_prompt(inputs):
+    parts = []
+    for name, items in inputs.items():
+        parts.append("%s (%d):" % (name.upper(), len(items)))
+        parts.extend(json.dumps(i, sort_keys=True) for i in items) if items else parts.append("(none)")
     return "\n".join(parts)
 
 
@@ -137,7 +189,7 @@ def listed(spec, heading):
     return re.findall(r"`([^`\s]+)`", m.group(1)) if m else []
 
 
-def validate(spec, numbers, root=ROOT):
+def validate(spec, numbers, root=ROOT, markets=None, probe_fn=None):
     """Reasons the spec may not be posted. Empty means it may."""
     reasons = []
     files, context = listed(spec, "Files"), listed(spec, "Context")
@@ -153,13 +205,56 @@ def validate(spec, numbers, root=ROOT):
         elif os.path.isfile(full):
             total += os.path.getsize(full)
     for p in files:
-        if any(p.startswith(x) or p == x for x in FORBIDDEN):
+        if p.endswith(FORBIDDEN_SUFFIX):
+            reasons.append("the Scout never touches reader-facing pages: %s" % p)
+        elif any(p.startswith(x) or p == x for x in FORBIDDEN):
             reasons.append("the builder may not change %s" % p)
     if total > MAX_FILES_CHARS:
         reasons.append("listed files total %d bytes, over the %d limit" % (total, MAX_FILES_CHARS))
     text = re.sub(r"`[^`]*`", " ", spec)            # paths and code are labels, not statistics
     for tok in analyst.untraced_numbers(text, numbers):
         reasons.append("number %s does not trace to a number the analyst computed" % tok)
+    reasons += check_venues(spec, markets, probe_fn)
+    return reasons
+
+
+def venues(spec):
+    """(ccy, url, field) from the `## Venues` section: CCY | URL | field, each in backticks."""
+    m = re.search(r"^##\s*Venues\s*$(.*?)(?=^##\s|\Z)", spec, re.M | re.S | re.I)
+    out = []
+    for line in (m.group(1).splitlines() if m else []):
+        parts = re.findall(r"`([^`]+)`", line)
+        if len(parts) == 3:
+            out.append(tuple(p.strip() for p in parts))
+        elif line.strip(" -*"):
+            out.append((line.strip(),))       # malformed: rejected below
+    return out
+
+
+def check_venues(spec, markets, probe_fn=None):
+    """Every suggested venue is for a single-source market and passes tools/probe_source.py."""
+    reasons = []
+    vs = venues(spec)
+    if not vs:
+        return reasons
+    ccys = {m["ccy"] for m in (markets or [])}
+    if probe_fn is None:
+        import probe_source   # needs `requests`; scout.yml installs it
+        probe_fn = probe_source.probe
+    for v in vs:
+        if len(v) != 3:
+            reasons.append("venue line is not `CCY` | `url` | `field`: %s" % v[0][:80])
+            continue
+        ccy, url, field = v
+        if ccy not in ccys:
+            reasons.append("venue for %s, which is not a single-source market" % ccy)
+            continue
+        if not url.startswith("https://"):
+            reasons.append("venue url for %s is not https: %s" % (ccy, url[:80]))
+            continue
+        r = probe_fn(ccy, url, field)
+        if not r.get("accepted"):
+            reasons.append("probe rejected %s %s: %s" % (ccy, url, (r.get("check") or "")[:200]))
     return reasons
 
 
@@ -192,13 +287,13 @@ def run(dry):
         log_row(mode, "skipped", "%s is %s, not Done" % (JOB, name))
         print("skipped: %s is %s, not Done" % (JOB, name))
         return 0
-    findings, withheld = analyst_findings(), no_price_countries()
-    if not findings and not withheld:
-        log_row(mode, "nothing", "no analyst findings and no country without a price")
+    inputs = gather()
+    if not any(inputs.values()):
+        log_row(mode, "nothing", "no single-source market, no disagreement, no failing claim")
         print("nothing to pick from")
         return 0
-    prompt = build_prompt(findings, withheld)
-    numbers = numbers_for(findings, withheld)
+    prompt = build_prompt(inputs)
+    numbers = numeric_leaves(inputs)
     model = llm.resolve_sonnet()
     before = len(llm.LOGGED)
     text, row = llm.complete([{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}],
@@ -206,7 +301,7 @@ def run(dry):
     cost = sum(float(r["cost_usd"]) for r in llm.LOGGED[before:])
     spec = text.strip()
     title = next((l[2:].strip() for l in spec.splitlines() if l.startswith("# ")), "")
-    reasons = validate(spec, numbers)
+    reasons = validate(spec, numbers, markets=inputs["single_source_markets"])
     print("model: %s | prompt: %d characters | cost: $%.4f" % (model, len(prompt), cost))
     print("\n----- SPEC -----\n%s\n----- END -----" % spec)
     if reasons:
@@ -217,7 +312,7 @@ def run(dry):
         log_row(mode, "dry-run-pass", "all checks passed, nothing posted", title, cost)
         print("All checks passed. Dry run: nothing posted.")
         return 0
-    post_spec(spec + "\n\n*Written by the Scout on %s. Every number traces to the analyst's output.*\n" % llm.now().date().isoformat())
+    post_spec(spec + "\n\n*Written by the Scout on %s. Every number traces to the code-computed inputs; every venue passed the source probe.*\n" % llm.now().date().isoformat())
     log_row(mode, "posted", "spec written into %s, set to Todo, labelled %s" % (JOB, LABEL), title, cost)
     print("posted into %s" % JOB)
     return 0
@@ -227,31 +322,47 @@ def self_test():
     import tempfile
     for rel in WHERE:
         assert os.path.isfile(os.path.join(ROOT, rel)), "WHERE names a file that is not in the repo: " + rel
-    numbers = {"no_price_count": 13, "TRY.n0": 3.0}
+    numbers = numeric_leaves({"single_source_markets": [{"ccy": "TRY", "sources": 1}], "x": [3]})
+    markets = [{"ccy": "TRY"}]
+    accepted = lambda ccy, url, field: {"accepted": True}
+    rejected = lambda ccy, url, field: {"accepted": False, "check": "off by 4%"}
     with tempfile.TemporaryDirectory() as d:
-        os.makedirs(os.path.join(d, "tools"))
         open(os.path.join(d, "a.py"), "w").write("x = 1\n")
         open(os.path.join(d, "big.py"), "w").write("x" * (MAX_FILES_CHARS + 1))
         open(os.path.join(d, "ctx.csv"), "w").write("a\n")
-        good = "# Add a source\n\n## Why\n13 countries have no price.\n\n## Files\n`a.py`\n\n## Context\n`ctx.csv`\n\n## Done when\nIt works.\n"
-        assert validate(good, numbers, d) == [], validate(good, numbers, d)
+        good = ("# Add a source\n\n## Why\n1 market has one source.\n\n## Files\n`a.py`\n\n## Context\n`ctx.csv`\n\n"
+                "## Venues\n`TRY` | `https://example.com/api` | `ticker.last`\n\n## Done when\nIt works.\n")
+        ok = lambda spec, probe=accepted: validate(spec, numbers, d, markets, probe)
+        assert ok(good) == [], ok(good)
         cases = {
-            "invented number": good.replace("13 countries", "14 countries"),
+            "invented number": good.replace("1 market", "7 markets"),
             "no Files section": good.replace("## Files\n`a.py`", "## Files\nnone"),
             "missing file": good.replace("`a.py`", "`nope.py`"),
-            "oversize file": good.replace("`a.py`", "`big.py`"),
+            "oversize files": good.replace("`a.py`", "`big.py`"),
             "forbidden file": good.replace("`a.py`", "`copy.json`"),
+            "a page": good.replace("`a.py`", "`index.html`"),
+            "a script folder": good.replace("`a.py`", "`js/route.js`"),
             "path escape": good.replace("`a.py`", "`../x.py`"),
             "missing context": good.replace("`ctx.csv`", "`gone.csv`"),
+            "venue for a market with two sources": good.replace("`TRY` |", "`EUR` |"),
+            "venue not https": good.replace("https://example.com", "http://example.com"),
+            "malformed venue": good.replace("`TRY` | `https://example.com/api` | `ticker.last`", "somewhere on the web"),
         }
         for name, spec in cases.items():
-            r = validate(spec, numbers, d)
-            assert r, "%s was not rejected" % name
-        open(os.path.join(d, "copy.json"), "w").write("{}")
-        assert any("may not change" in x for x in validate(cases["forbidden file"], numbers, d))
-    p = build_prompt([], [{"ccy": "TRY", "country": "Turkey", "reason_raw": "3 ads, 10 required", "source_file": "data/p2p_basis.csv"}])
-    assert "TRY | Turkey" in p and ".md" not in p
-    assert numbers_for([], [{"ccy": "TRY", "reason_raw": "3 ads, 10 required"}]) == {"no_price_count": 1, "TRY.n0": 3.0, "TRY.n1": 10.0}
+            for f in ("copy.json", "index.html", "js/route.js"):
+                os.makedirs(os.path.dirname(os.path.join(d, f)) or d, exist_ok=True)
+                open(os.path.join(d, f), "a").close()
+            assert ok(spec), "%s was not rejected" % name
+        assert any("probe rejected" in r for r in ok(good, rejected)), "a failing probe must stop the spec"
+        assert any("may not change" in r for r in ok(cases["forbidden file"]))
+    # the inputs, built from the repo's own data
+    ins = gather()
+    assert set(ins) == {"single_source_markets", "disagreeing_pairs", "failing_claims"}
+    p = build_prompt(ins)
+    assert ".md" not in p.replace("\n", " ").split("SINGLE_SOURCE_MARKETS")[0]
+    assert all(m["ccy"] and m["sources"] == 1 for m in ins["single_source_markets"])
+    assert all(not c["claim"].endswith(".md") for c in ins["failing_claims"])
+    assert len(p) < llm.MAX_PROMPT_CHARS // 2, "the prompt must stay far below the limit"
     print("scout self-test: ok")
 
 
