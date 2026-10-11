@@ -33,6 +33,9 @@ import os
 import statistics
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import source_gate  # SEB-302: only an approved source can feed a number
+
 INDEX_VERSION = "1.4"
 
 # v1.2: a second source is used only when it looks alive and agrees with the first.
@@ -566,19 +569,32 @@ def median_24h_by_ccy(book_hours, p2p_hours, sides, book, newest_hour_by_ccy):
     return out
 
 
+_REGISTRY = []
+
+
+def usable(source):
+    """True when `source` is approved in data/source_registry.json. A missing or empty registry is a loud failure:
+    refusing every source quietly would publish nothing and say nothing."""
+    if not _REGISTRY:
+        _REGISTRY.append(source_gate.load_registry())
+        if not _REGISTRY[0].get("sources"):
+            raise SystemExit("data/source_registry.json is missing or empty: run tools/source_gate.py --init and review it")
+    return source_gate.approved(source, _REGISTRY[0])
+
+
 def latest_by_ccy():
     """Newest hour per currency across both layers -> the index value for it."""
     book_hours = collections.defaultdict(dict)
     for r in rows(BASIS):
         ccy, venue, t = r.get("ccy"), r.get("venue") or "", parse_ts(r.get("ts_utc"))
-        if not ccy or t is None or not flag(r, "source_ok") or is_aggregate(venue):
+        if not ccy or t is None or not flag(r, "source_ok") or is_aggregate(venue) or not usable(venue):
             continue
         if buy_price(r)[0] is None or not num(r, "fx_mid_per_usd"):
             continue
         book_hours[ccy].setdefault(t.replace(minute=0, second=0, microsecond=0), []).append(r)
 
     p2p_hours = collections.defaultdict(dict)
-    for r in rows(P2P):
+    for r in (rows(P2P) if usable("binance_p2p") else []):
         ccy, t = r.get("ccy"), parse_ts(r.get("ts_utc"))
         if not ccy or t is None:
             continue
@@ -587,7 +603,7 @@ def latest_by_ccy():
     # SEB-256: OKX's own person-to-person board, a second independent source for the same ticket (v1.2).
     okx_hours = collections.defaultdict(dict)
     okx_series = collections.defaultdict(dict)       # every reading, for the 24-hour standing-still check
-    for r in rows(P2P_OKX):
+    for r in (rows(P2P_OKX) if usable("okx_p2p") else []):
         ccy, t = r.get("ccy"), parse_ts(r.get("ts_utc"))
         if not ccy or t is None or not flag(r, "source_ok") or num(r, "buy_median") is None:
             continue
@@ -599,7 +615,7 @@ def latest_by_ccy():
     # SEB-254: Luno's own NGN book gets the same standing-still check.
     luno_series = collections.defaultdict(dict)
     for r in rows(BASIS):
-        if (r.get("venue") or "") == "Luno" and flag(r, "source_ok") and buy_price(r)[0] is not None:
+        if (r.get("venue") or "") == "Luno" and usable("Luno") and flag(r, "source_ok") and buy_price(r)[0] is not None:
             t = parse_ts(r.get("ts_utc"))
             if t is not None:
                 luno_series[r.get("ccy")][t.replace(minute=0, second=0, microsecond=0)] = buy_price(r)[0]
@@ -816,7 +832,7 @@ def daily_history():
     book_days = set()
     for r in rows(BASIS):
         ccy, venue, t = r.get("ccy"), r.get("venue") or "", parse_ts(r.get("ts_utc"))
-        if not ccy or t is None or not flag(r, "source_ok") or is_aggregate(venue):
+        if not ccy or t is None or not flag(r, "source_ok") or is_aggregate(venue) or not usable(venue):
             continue
         price, _ = buy_price(r)
         v = index_pct(price, num(r, "fx_mid_per_usd"))
@@ -825,7 +841,7 @@ def daily_history():
             kind[(ccy, t.date())] = "hourly_buy"
             book_days.add((ccy, t.date()))
     sides = buy_side_counts()
-    for r in rows(P2P):
+    for r in (rows(P2P) if usable("binance_p2p") else []):
         ccy, t = r.get("ccy"), parse_ts(r.get("ts_utc"))
         if not ccy or t is None or not flag(r, "source_ok"):
             continue
