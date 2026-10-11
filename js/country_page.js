@@ -18,6 +18,8 @@
   function dd(s) { return (+s.slice(8, 10)) + ' ' + MON[+s.slice(5, 7) - 1]; }
   function ddY(s) { return dd(s) + ' ' + s.slice(0, 4); }
   function pct1(v) { return (Math.abs(v) >= 100 ? Math.round(Math.abs(v)).toLocaleString('en-US') : Math.abs(v).toFixed(1)) + '%'; }
+  // a rounded figure never prints as -0.0: anything that rounds to zero is 0.0
+  function z1(v) { var x = v.toFixed(1); return parseFloat(x) === 0 ? '0.0' : x.replace('-', MINUS); }
   function sgn(v) { var z = Math.abs(v) < 0.05; return (z ? '' : v > 0 ? '+' : MINUS) + pct1(v); }
   function money(v, c) { return (v >= 1000 ? Math.round(v).toLocaleString('en-US') : v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) + ' ' + c; }
   function getJSON(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) { throw new Error(u); } return r.json(); }); }
@@ -67,6 +69,8 @@
       h += '<h1>' + esc(T(key, { country: c.country, gap: pct1(c.index_pct) })) + '</h1>' +
         '<p class="lead">' + esc(T(c.source_class === 'p2p_buy_median' ? (c.n_boards === 2 ? 'leadP2pTwo' : 'leadP2p') : 'leadBook', { rate: rate.toLocaleString('en-US', { maximumFractionDigits: 2 }), ccy: c.ccy, country: c.country, street: money(c.buy_price, c.ccy) })) + '</p>' + pbLine +
         '<p class="money num">' + T('usd100Line', { street: esc(money(c.buy_price * 100, c.ccy)), rate: esc(money(rate * 100, c.ccy)) }) + '</p>';
+      // the price rests on one source only: say so (SEB-302)
+      if ((c.venues || []).length === 1 && T('oneSource')) { h += '<p class="stamp num">' + esc(T('oneSource')) + '</p>'; }
       if (c.denominator && c.denominator.class === 'unmaintained') { h += '<p class="flag">' + esc(T('unrankedNote', { country: c.country })) + '</p>'; }
     }
     h += '<p class="stamp num">' + esc(T('pricesFrom', { time: c.hour_utc.slice(11, 16), date: dd(c.hour_utc) })) + '</p>';
@@ -100,7 +104,7 @@
     s += '<path class="ln-own" d="' + path(mine) + '"/>';
     if (mine.length < 60) { mine.forEach(function (h) { s += '<circle class="pt" cx="' + X(Date.parse(h.date)) + '" cy="' + Y(h.index_pct) + '" r="2.5"/>'; }); }
     var step = Math.max(1, Math.round(all.length / 5)), yearly = period === 'all' && t1 - t0 > 400 * 864e5;
-    all.forEach(function (h, i) { if (i % step === 0 && X(t1) - X(t[i]) > (W < 560 ? 56 : 70)) { s += '<text class="ax" x="' + X(t[i]) + '" y="' + (H - 6) + '" text-anchor="middle">' + (yearly ? MON[+h.date.slice(5, 7) - 1] + ' ' + h.date.slice(2, 4) : dd(h.date)) + '</text>'; } });
+    all.forEach(function (h, i) { if (i % step === 0 && X(t1) - X(t[i]) > (W < 560 ? 56 : 70)) { s += '<text class="ax" x="' + X(t[i]) + '" y="' + (H - 6) + '" text-anchor="middle">' + (yearly ? MON[+h.date.slice(5, 7) - 1] + ' ' + h.date.slice(0, 4) : dd(h.date)) + '</text>'; } });
     s += '<text class="ax" x="' + (W - R) + '" y="' + (H - 6) + '" text-anchor="end">' + dd(all[all.length - 1].date) + '</text>';
     s += '<line class="cr" id="cr" y1="' + Tp + '" y2="' + (Tp + ph) + '" visibility="hidden"/><circle class="cd" id="cd" r="4.5" visibility="hidden"/>';
     var svg = box.querySelector('svg'); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.innerHTML = s;
@@ -126,7 +130,7 @@
       var q = function (p) { return sorted[Math.round(p * (sorted.length - 1))]; };
       var mn = sorted[0], mx = sorted[sorted.length - 1], band = (mx - mn) * 0.1;
       var key = today > mx ? 'recordWidest' : today < mn ? 'recordNarrowest' : today > mx - band ? 'recordNearWidest' : today < mn + band ? 'recordNearNarrowest' : 'recordNormal';
-      $('rec').textContent = T(key, { first: ddY(own[0].date), scope: T('recordScopeOwn') }) + ' ' + T('recordRange', { lo: q(0.1).toFixed(1).replace('-', MINUS), hi: q(0.9).toFixed(1).replace('-', MINUS) });
+      $('rec').textContent = T(key, { first: ddY(own[0].date), scope: T('recordScopeOwn') }) + ' ' + T('recordRange', { lo: z1(q(0.1)), hi: z1(q(0.9)) });
     }
   }
 
