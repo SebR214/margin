@@ -374,6 +374,8 @@ jobs:
         run: |
           python3 tools/emit_index_hourly.py
           python3 tools/emit_source_switches.py
+          # SEB-302: every pair of sources measuring the same market, compared hour by hour; one-source markets
+          python3 tools/emit_source_pairs.py
 
       - name: Emit heatmap
         if: always() && steps.needed.outputs.proceed == 'true'
