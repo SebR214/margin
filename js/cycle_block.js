@@ -6,7 +6,7 @@
  *     copyBlock = an object holding these keys (same names and placeholders as
  *                 docs/copy-slots/home.md "This hour"): cycleTitle, cycleLine,
  *                 stepCurrencies, stepRoutes, stepAuditor, stepAuditorResult,
- *                 stepAnalyst, resultClean, resultSourceMissed, resultCheckFailed,
+ *                 stepAnalyst, resultClean, resultAuditFailed, resultSourceMissed, resultCheckFailed,
  *                 stripTitle, stripClean, stripMissed, stripFailed.
  *   A key that is empty or missing is not rendered. No word is written here.
  *   Classes are the hp-* classes (hp-sec, hp-row, hp-step, hp-strip, ...) from the home
@@ -78,8 +78,9 @@
       steps.push({ time: hour, key: 'stepAnalyst', vars: av });
     }
     if (last) {
-      var rk = last.status === 'clean' ? 'resultClean' : last.status === 'source_missed' ? 'resultSourceMissed' : 'resultCheckFailed';
-      steps.push({ time: hhmm(last.last_reading_utc) || hour, key: rk, vars: { sources: (last.reasons || []).join(', '), n: (last.reasons || []).length }, final: true });
+      var failed = st.auditor ? Number(st.auditor.rebuilt) - Number(st.auditor.matched) : 0;
+      var rk = last.status === 'clean' ? (failed > 0 ? 'resultAuditFailed' : 'resultClean') : last.status === 'source_missed' ? 'resultSourceMissed' : 'resultCheckFailed';
+      steps.push({ time: hhmm(last.last_reading_utc) || hour, key: rk, vars: { sources: (last.reasons || []).join(', '), n: (last.reasons || []).length, failed: num(failed), rebuilt: st.auditor ? num(st.auditor.rebuilt) : 0 }, final: true });
     }
     steps.forEach(function (s) {
       if (!has(s.key)) { return; }
