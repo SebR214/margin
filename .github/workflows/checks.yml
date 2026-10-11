@@ -56,7 +56,7 @@ jobs:
       - name: Plain-language gate (no payments jargon in headings/nav/labels)
         run: python3 tools/check_copy.py
 
-      - name: Source pairs: one source, lasting gaps (SEB-302)
+      - name: Source pairs, one source and lasting gaps (SEB-302)
         run: python3 tools/emit_source_pairs.py --self-test
 
       - name: No Opus or Fable model in code (SEB-301)
