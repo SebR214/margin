@@ -102,7 +102,7 @@
       }).join('');
     } else if (id === 'weekend_penalty') {
       rows = f.evidence.slice().sort(function (a, b) { return b.weekend_up - a.weekend_up || b.saturdays_judged - a.saturdays_judged; }).map(function (e) {
-        return '<div class="r"><b>' + esc(routeName(e.route)) + '</b><span class="m num">' + e.weekend_back + ' ' + L('weekend_back') + ', ' + e.saturdays_judged + ' ' + (e.saturdays_judged === 1 ? L('saturdays_judged_one') : L('saturdays_judged')) + '.</span>' +
+        return '<div class="r"><b>' + esc(routeName(e.route)) + '</b><span class="m num">' + e.weekend_back + ' ' + (e.weekend_back === 1 ? L('weekend_back_one') : L('weekend_back')) + ', ' + e.saturdays_judged + ' ' + (e.saturdays_judged === 1 ? L('saturdays_judged_one') : L('saturdays_judged')) + '.</span>' +
           '<span class="v num">' + e.weekend_up + '<small>' + L('weekend_up') + '</small></span></div>';
       }).join('');
     } else if (id === 'volume_crossover') {
