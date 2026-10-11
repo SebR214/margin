@@ -36,7 +36,8 @@ Never say something is running, built or watching unless you checked it just now
 
 ## Working rules
 
-- One Linear issue per job. Comment on the issue when you start and when you finish. If you're stuck, move it to Blocked with one line saying what you need.
+- One Linear issue per job. Comment on the issue when you start and when you finish.
+- If something needs Seb (root on the box, DNS, a decision), park it: say so in one line on the issue and move straight on to the next thing. Never list parked items as blockers, and don't ask about them again. Parked items don't count toward any gate.
 - No new running cost without the monthly number stated to Seb first.
 - Never add an agent, a loop or a machine to fix a problem with an existing one. Fix or remove the existing one.
 - Writing: short sentences, plain words, no em-dashes.
