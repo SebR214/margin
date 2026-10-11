@@ -52,6 +52,13 @@ jobs:
           head=$(echo "$pr" | jq -r .head.sha)
           [ "$head" = "$SHA" ] || { echo "#$n has a newer push, its own checks will decide"; exit 0; }
           echo "$title" | grep -qE '\bSEB-[0-9]+\b' || { echo "#$n names no SEB issue, left for Seb"; exit 0; }
+          # Collection history cannot be refilled, so a PR that changes collection code
+          # (collector*.py or collect.yml) is never merged by this workflow. It stays open
+          # and the daily status on SEB-301 lists it (SEB-301).
+          if gh api "repos/$GITHUB_REPOSITORY/pulls/$n/files" --paginate --jq '.[].filename' \
+               | grep -qE '^collector[^/]*\.py$|^\.github/workflows/collect\.yml$'; then
+            echo "#$n changes collection code, left open for a person"; exit 0
+          fi
           bad=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/check-runs?per_page=100" \
                   --jq '[.check_runs[] | select(.conclusion != "success" and .conclusion != "skipped" and .conclusion != "neutral")] | length')
           [ "$bad" = "0" ] || { echo "#$n has $bad check(s) not green"; exit 0; }

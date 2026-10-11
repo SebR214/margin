@@ -8,9 +8,16 @@ Read this file and the Linear issue you were given. Load nothing else unless the
 
 - Site: margin.wiki, GitHub Pages, served from `main`.
 - Collection: GitHub Actions, `collect.yml`, self-chaining about every 30 minutes. `collector_watchdog.yml` watches it.
-- Hetzner box: the public API at api.margin.wiki (`margin-serve`), the P2P collector (`margin-p2p-box`) and the nightly analyst. None of these call a model.
+- Hetzner box: the public API at api.margin.wiki (`margin-serve`), the P2P collector (`margin-p2p-box`) and the nightly analyst. None of these call a model. The analyst reads the CSVs, checks numbers and stores findings (SEB-301). Its number check feeds the Scout.
 - Work queue: Linear, project `margin.wiki`, team `SEB`. Not GitHub issues.
-- Agents: being cut to one cheap runner on GitHub Actions (SEB-274). The model loops on the box (`margin-builder`, `margin-reviewer`, `margin-product`) are being switched off.
+- Agents (SEB-301), all on GitHub Actions, no loops, nothing on the box or on Seb's Mac:
+  - Collector: `collect.yml`, no model.
+  - Scout: `scout.yml`, Mondays 01:00 UTC, one Sonnet call through `tools/llm.py`. It writes one spec into SEB-300.
+  - Builder: `one_call.yml` and `tools/one_call.py`, builds any `one-call` issue in one call, $1 a job.
+  - Reviewer: the checks plus `automerge.yml`, no model. A PR that changes `collector*.py` or `collect.yml` is never merged by it.
+- Money: $20 a month for all agents together, enforced by `tools/llm.py` from `data/agent_spend.csv`. Sonnet only for the Scout, cheap models for the builder, never Opus or Fable (`tools/check_models.py`).
+- Daily status on SEB-301 comes from `tools/daily_status.py`, written from the logs. The watchdog fails if the Scout has not run in 8 days.
+- The model loops on the box (`margin-builder`, `margin-reviewer`, `margin-product`) are off. Their rulebooks are in `docs/archive/`. No `.md` file other than a Linear issue's reference doc goes to a model.
 
 Never say something is running, built or watching unless you checked it just now. Say where you checked.
 
@@ -38,6 +45,7 @@ Never say something is running, built or watching unless you checked it just now
 
 - One Linear issue per job. Comment on the issue when you start and when you finish.
 - If something needs Seb (root on the box, DNS, a decision), park it: say so in one line on the issue and move straight on to the next thing. Never list parked items as blockers, and don't ask about them again. Parked items don't count toward any gate.
+- One Claude chat session at a time. Chat sessions never take `one-call` issues: the builder does.
 - No new running cost without the monthly number stated to Seb first.
 - Never add an agent, a loop or a machine to fix a problem with an existing one. Fix or remove the existing one.
 - Writing: short sentences, plain words, no em-dashes.
