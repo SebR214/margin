@@ -57,6 +57,8 @@ import statistics
 import sys
 import time
 
+import board_guard
+
 try:
     import requests
 except ImportError:
@@ -342,12 +344,17 @@ def build_rows(ts, currencies, fx, post=post_json, ngn_fallback=fetch_ngn_fallba
             row.update(buy_median=round(b, 8), sell_median=round(s, 8),
                        mid=round(mid, 8), basis_bps=basis_bps(mid, fx_mid),
                        source_ok=True)
-            n_ok += 1
+            bad = board_guard.problem(b, s, fx_mid)
+            if bad:
+                # SEB-302: a crossed or upside-down board is kept as evidence but never priced.
+                row.update(source_ok=False, error=bad[:300])
+            else:
+                n_ok += 1
         except Exception as e:
             row["error"] = f"{type(e).__name__}:{e}"[:300]
         rows.append(row)
 
-        if ccy == "NGN" and not row["source_ok"]:
+        if ccy == "NGN" and not row["source_ok"] and not board_guard.is_guard_error(row["error"]):
             fb = _base_row(ts, "NGN")
             fb["source"] = NGN_FALLBACK_SOURCE
             fb["fx_mid_per_usd"] = row["fx_mid_per_usd"]
@@ -526,8 +533,10 @@ FX_FIXTURE = {
 TS_FIXTURE = "2026-09-02T00:00:00+00:00"
 
 
-def _make_post(overrides=None, empty=()):
-    """Fake board: BUY 1% over the official rate, SELL 1% under, per currency."""
+def _make_post(overrides=None, empty=(), crossed=(), inverted=()):
+    """Fake board: BUY 1% over the official rate, SELL 1% under, per currency.
+    `crossed` currencies get BUY 5% under and SELL 5% over (the Angola shape);
+    `inverted` ones price a dollar as local-per-dollar upside down (SEB-302)."""
     overrides = overrides or {}
 
     def post(url, body):
@@ -541,6 +550,10 @@ def _make_post(overrides=None, empty=()):
             return EMPTY_BOARD
         fx = FX_FIXTURE[ccy]
         base = fx * (1.01 if body["tradeType"] == "BUY" else 0.99)
+        if ccy in crossed:
+            base = fx * (0.95 if body["tradeType"] == "BUY" else 1.05)
+        if ccy in inverted:
+            base = 1.0 / fx
         # Five ads either side of the level, so the median is exactly `base`.
         return _board([round(base * (1 + (i - 5) * 0.001), 4) for i in range(11)])
     return post
@@ -648,6 +661,23 @@ def selftest():
                              post=_make_post({"VND": no_total_board}))
     assert rows_nt[0]["_buy_total"] is None and rows_nt[0]["_sell_total"] is None
     print("  [ok] a response with no `total` field records depth as unknown, not 0")
+
+    # 4g. SEB-302: a crossed board and an upside-down board are written source_ok=False with the
+    #     reason, keep their medians as evidence, and are never priced. A normal board beside them is
+    #     untouched, and the NGN stand-in is NOT summoned for a crossed NGN board.
+    rows_g, n_ok_g = build_rows(TS_FIXTURE, CURRENCIES, FX_FIXTURE,
+                                post=_make_post(crossed=("VND", "NGN"), inverted=("PKR",)),
+                                ngn_fallback=lambda: 1500.0)
+    for c in ("VND", "NGN"):
+        r = next(x for x in rows_g if x["ccy"] == c and x["source"] == SOURCE)
+        assert r["source_ok"] is False and board_guard.is_guard_error(r["error"]) and "below the sell side" in r["error"], r
+        assert r["buy_median"] < r["sell_median"] and r["mid"] is not None, "the crossed medians are kept as evidence"
+    assert not [x for x in rows_g if x["ccy"] == "NGN" and x["source"] != SOURCE], "a crossed NGN board must not trigger the stand-in"
+    pkr = next(x for x in rows_g if x["ccy"] == "PKR")
+    assert pkr["source_ok"] is False and pkr["error"].startswith("guard:") and "outside" in pkr["error"], pkr
+    assert next(x for x in rows_g if x["ccy"] == "EGP")["source_ok"] is True
+    assert n_ok_g == 53 - 3, n_ok_g
+    print("  [ok] a crossed board and an upside-down board are written source_ok=False with the reason, never priced")
 
     # 5. an empty board is a FINDING, recorded, and does not kill the run.
     #    ngn_fallback is stubbed to None here so this stays the "board empty,

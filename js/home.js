@@ -67,7 +67,10 @@
         now: i && i.index_pct != null ? Math.round(i.index_pct * 10) / 10 : null,
         buy: i ? i.buy_price : null, rate: i ? i.fx_mid_per_usd : null };
     });
+    // priced countries first, by this hour's figure; countries with no price this hour sit below them (SEB-268, 11 Oct),
+    // ordered by their last stored day so the order does not jump
     D.ranked = D.cur.filter(function (c) { return c.ranked; }).sort(function (a, b) {
+      if ((a.now != null) !== (b.now != null)) { return a.now != null ? -1 : 1; }
       var av = a.now != null ? a.now : (lastValue(a) != null ? lastValue(a) : -1e9), bv = b.now != null ? b.now : (lastValue(b) != null ? lastValue(b) : -1e9);
       return bv - av;
     });
@@ -103,10 +106,10 @@
     if (!list.length || !T('moversTitle')) { $('movers').innerHTML = ''; return; }
     var days = D.days, L = days.length;
     $('movers').innerHTML = '<h2>' + esc(T('moversTitle')) + '</h2><div class="rows">' + list.slice(0, 5).map(function (m) {
-      var bd = m.earlier_median_pct >= 0 ? T('dirAbove') : T('dirBelow'), rd = m.recent_median_pct >= 0 ? T('dirAbove') : T('dirBelow');
-      var since = days[L - 1 - 6 - m.earlier_days] || days[0], until = days[L - 8] || days[L - 1];
+      // SEB-268 (11 Oct): this hour's figure against the figure published for the same hour 7 days ago
+      var thenTxt = pct1(m.then_pct) + ' ' + (m.then_pct >= 0 ? T('dirAbove') : T('dirBelow')), nowTxt = pct1(m.now_pct) + ' ' + (m.now_pct >= 0 ? T('dirAbove') : T('dirBelow'));
       return '<a class="r" href="' + ctry(m.ccy) + '"><b>' + esc(plain(m.country)) + '</b><span class="m">' +
-        esc(T('moverLine', { country: plain(m.country), baseline: pct1(m.earlier_median_pct), baselineDir: bd, since: dd(since), until: dd(until), recent: pct1(m.recent_median_pct), recentDir: rd })) +
+        esc(T('moverLine', { country: plain(m.country), then: thenTxt, date: dd(m.then_hour_utc.slice(0, 10)), now: nowTxt })) +
         '</span><span class="v num">' + (m.change_pp > 0 ? '+' : MINUS) + Math.abs(m.change_pp).toFixed(1) + '<small>' + esc(T('moverUnit')) + '</small></span></a>';
     }).join('') + '</div>';
   }
