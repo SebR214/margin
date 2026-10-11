@@ -340,7 +340,7 @@ def main():
     routes = {c: ROUTE_WORDS[c] for c in PANELS
               if any(r["corridor"] == c for r in allrows)}
     payload = {
-        "index_version": "1.3",
+        "index_version": "1.4",
         "saturdays_judged": saturdays,
         "threshold_pct": THRESHOLD_PCT,
         "min_readings": MIN_READINGS,
