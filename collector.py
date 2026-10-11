@@ -269,6 +269,7 @@ CORRIDORS = {
         # assumption copied across, on a chain Coinbase does not even support
         # for USDT. At USD 200 it read 50 bps; the published fee is 1 bp.
         "network_fee_stable": 0.0,          # unmodelled gas, see above
+        "gas_modelled": False,               # METHODOLOGY, network table: gas is not published, so it is not in the cost
         "withdraw_pct": 0.0001,             # 0.01%, published
         "withdraw_pct_cap": 20.0,           # USDT, published
         # USD side: Coinbase Exchange's own help article on ACH deposits
@@ -362,6 +363,7 @@ CORRIDORS = {
         # than USD->MXN's, and more so at S$200 than at S$50,000. Flagged
         # here rather than hidden; see METHODOLOGY.
         "network_fee_stable": 0.0,           # unmodelled ERC20 gas, see above
+        "gas_modelled": False,               # METHODOLOGY, network table: gas is not published, so it is not in the cost
         "withdraw_pct": 0.0001,              # 0.01%, published (Coinbase)
         "withdraw_pct_cap": 20.0,             # USDT, published (Coinbase)
         "ladder": [200, 1000, 5000, 25000, 50000],
@@ -404,6 +406,7 @@ CORRIDORS = {
         # Ethereum is the common chain here too -- same unmodelled-gas
         # caveat as USD->NGN applies.
         "network_fee_stable": 0.0,           # unmodelled ERC20 gas, see above
+        "gas_modelled": False,               # METHODOLOGY, network table: gas is not published, so it is not in the cost
         "withdraw_pct": 0.0001,
         "withdraw_pct_cap": 20.0,
         "ladder": [200, 1000, 5000, 25000, 50000],

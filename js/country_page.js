@@ -58,8 +58,14 @@
     } else {
       var key = c.index_pct > 0.05 ? 'headlineMore' : c.index_pct < -0.05 ? 'headlineLess' : 'headlineSame';
       var rate = c.fx_mid_per_usd;
+      // a number taken from exchanges: say what the person-to-person boards read for the same hour (the published number does not change)
+      var pb = c.p2p_beside, pbLine = '';
+      if (pb && c.source_class !== 'p2p_buy_median') {
+        var names = pb.boards.map(function (b) { return b === 'okx_p2p' ? 'OKX' : 'Binance'; });
+        pbLine = '<p class="money num">' + esc(T(pb.index_pct < 0 ? 'p2pBesideUnder' : 'p2pBeside', { boards: names.length > 1 ? T('boardsAnd', { a: names[0], b: names[1] }) : names[0], price: money(pb.buy_price, c.ccy).replace(/ [A-Z]{3}$/, ''), ccy: c.ccy, pct: pct1(pb.index_pct) })) + '</p>';
+      }
       h += '<h1>' + esc(T(key, { country: c.country, gap: pct1(c.index_pct) })) + '</h1>' +
-        '<p class="lead">' + esc(T(c.source_class === 'p2p_buy_median' ? (c.n_boards === 2 ? 'leadP2pTwo' : 'leadP2p') : 'leadBook', { rate: rate.toLocaleString('en-US', { maximumFractionDigits: 2 }), ccy: c.ccy, country: c.country, street: money(c.buy_price, c.ccy) })) + '</p>' +
+        '<p class="lead">' + esc(T(c.source_class === 'p2p_buy_median' ? (c.n_boards === 2 ? 'leadP2pTwo' : 'leadP2p') : 'leadBook', { rate: rate.toLocaleString('en-US', { maximumFractionDigits: 2 }), ccy: c.ccy, country: c.country, street: money(c.buy_price, c.ccy) })) + '</p>' + pbLine +
         '<p class="money num">' + T('usd100Line', { street: esc(money(c.buy_price * 100, c.ccy)), rate: esc(money(rate * 100, c.ccy)) }) + '</p>';
       if (c.denominator && c.denominator.class === 'unmaintained') { h += '<p class="flag">' + esc(T('unrankedNote', { country: c.country })) + '</p>'; }
     }

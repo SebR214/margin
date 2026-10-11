@@ -134,21 +134,40 @@ def _panel_newest(files):
 
 
 def _pair_weekends(rows):
-    """Work the weekend labels out from the stored rows, every time the findings are built.
+    """Work the weekend labels out from the stored rows, every time the findings are built, and say which rise
+    each weekend row belongs to.
 
     data/price_changes.csv is append-only: a Saturday rise is written as "change" because its Monday
     cut does not exist yet, and the cut is written later as "weekend_back". The rise row is never
-    rewritten, so the stored labels leave most rises unpaired. Pairing here uses the same rule
-    (tools/emit_price_changes.py label_weekends) on the stored rows and leaves the file as it is."""
-    import emit_price_changes as epc
-    ev = []
-    for r in rows:
-        e = dict(r)
-        e["new_day"] = r["ts_utc"][:10]
-        e["move_pct"] = float(r["move_pct"])
-        ev.append(e)
-    epc.label_weekends(ev)
-    return [dict(r, kind=e["kind"]) for r, e in zip(rows, ev)]
+    rewritten, so the stored labels leave most rises unpaired. The rule is tools/emit_price_changes.py's
+    label_weekends, applied here to the stored rows: matched on the event (one company, one route, one day),
+    a Saturday rise that comes back on the Monday or Tuesday after. A rise is identified by
+    "corridor|provider|Saturday"; its cuts carry the same id (the file's per-amount rows all keep it), so a
+    rise that showed up at five amounts is one rise with five rows. Returns the rows with `kind` and `rise_id`."""
+    by = {}
+    for k, r in enumerate(rows):
+        by.setdefault((r["corridor"], r["provider"], r["ts_utc"][:10]), []).append(k)
+    kind = ["change"] * len(rows)
+    rise = [""] * len(rows)
+
+    def med(ix):
+        return statistics.median(float(rows[k]["move_pct"]) for k in ix)
+    for (corridor, provider, day), ix in by.items():
+        d = dt.date.fromisoformat(day)
+        if d.weekday() != 5 or med(ix) <= 0:
+            continue
+        for back in (2, 3):
+            other = by.get((corridor, provider, (d + dt.timedelta(days=back)).isoformat()))
+            if other and med(other) < 0:
+                rid = "%s|%s|%s" % (corridor, provider, day)
+                for k in ix:
+                    if float(rows[k]["move_pct"]) > 0:
+                        kind[k], rise[k] = "weekend_up", rid
+                for k in other:
+                    if float(rows[k]["move_pct"]) < 0:
+                        kind[k], rise[k] = "weekend_back", rid
+                break
+    return [dict(r, kind=kind[k], rise_id=rise[k]) for k, r in enumerate(rows)]
 
 
 def price_changes_findings():
@@ -180,15 +199,20 @@ def price_changes_findings():
                   ev_c, last, _hours_csv("price_changes", hdr, sel({"change"})), "data/price_changes.csv", src)
     sat = latest["saturdays_judged"]
     wk = [r for r in rows if r["kind"] in ("weekend_up", "weekend_back")]
+    # a rise counts once, however many amounts it showed up at (SEB-268, 9 Oct): one per (app, route, Saturday);
+    # cuts are counted the same way, once per rise's matched cut day
     ev_w = []
     for rt in routes:
-        ev_w.append({"route": rt, "weekend_up": sum(1 for r in wk if r["corridor"] == rt and r["kind"] == "weekend_up"),
-                     "weekend_back": sum(1 for r in wk if r["corridor"] == rt and r["kind"] == "weekend_back"),
+        mine = [r for r in wk if r["corridor"] == rt]
+        ev_w.append({"route": rt,
+                     "weekend_up": len({r["rise_id"] for r in mine if r["kind"] == "weekend_up"}),
+                     "weekend_back": len({r["rise_id"] for r in mine if r["kind"] == "weekend_back"}),
                      "saturdays_judged": sat.get(rt)})
+    hdr_w = hdr + ["rise_id"]
+    wk_rows = [[r[c] for c in hdr_w] for r in wk]
     f2 = _finding("weekend_penalty", src, meth,
                   {"value": sum(e["weekend_up"] for e in ev_w), "unit": "weekend_increases", "as_of_utc": as_of},
-                  ev_w, last, _hours_csv("weekend_penalty", hdr, sel({"weekend_up", "weekend_back"})),
-                  "data/price_changes.csv", src)
+                  ev_w, last, _hours_csv("weekend_penalty", hdr_w, wk_rows), "data/price_changes.csv", src)
     return [f1, f2]
 
 
@@ -405,8 +429,12 @@ def self_test(doc):
     pc = {f["id"]: f for f in doc["findings"]}
     latest = _json("price_changes_latest.json")
     assert sum(e["changes"] for e in pc["price_changes"]["evidence"]) == pc["price_changes"]["headline"]["value"]
-    assert pc["price_changes"]["headline"]["value"] + sum(
-        e["weekend_up"] + e["weekend_back"] for e in pc["weekend_penalty"]["evidence"]) == latest["counts"]["total"]
+    # every stored row is a plain change or a weekend row, and each weekend row names the rise it belongs to
+    wk_body = PENDING.get(os.path.join(DATA, "findings_hours_weekend_penalty.csv")) or ""
+    wk_rows = list(csv.DictReader(wk_body.splitlines()))
+    assert pc["price_changes"]["headline"]["value"] + len(wk_rows) == latest["counts"]["total"]
+    assert all(r["rise_id"] for r in wk_rows)
+    assert pc["weekend_penalty"]["headline"]["value"] == len({r["rise_id"] for r in wk_rows if r["kind"] == "weekend_up"})
     print("findings self-test ok: " + ", ".join("%s=%s" % (f["id"], f["headline"]["value"]) for f in doc["findings"]))
 
 

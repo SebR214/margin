@@ -350,15 +350,34 @@
     var share = function (v) { return v == null ? "" : pctPlain(v / S.amount * 100); };
     var now = barRow(SC, { cls: "sm-app", name: txt("rowApp"), sub: txt("rowAppSub", { app: A.app }), v: A.ac, val: money(A.ac, A.sym), vsub: pctPlain(A.ap) }) +
       barRow(SC, { name: txt("rowStable"), sub: txt("rowStableSub", { path: pathName(A.path) }), v: A.sc, val: money(A.sc, A.sym), vsub: pctPlain(A.sp) });
+    // the three steps are shown rounded so they add up to the rounded total (largest remainder), never 1 cent off.
+    // Cents show on all four rows when any of them is under 100; if all are 100 or more they show whole, and the rounding is to whole units.
+    var wholeMode = ["inn", "chain", "out", "tot"].every(function (k) { return A.leg[k] != null && Math.abs(A.leg[k]) >= 100; });
+    var unit = wholeMode ? 1 : 0.01;
+    var shownLeg = (function () {
+      var ks = ["inn", "chain", "out"], vs = ks.map(function (k) { return A.leg[k]; }), out = { tot: A.leg.tot };
+      if (A.leg.tot == null || vs.some(function (v) { return v == null; })) { ks.forEach(function (k) { out[k] = A.leg[k]; }); return out; }
+      var u = vs.map(function (v) { return v / unit; }), fl = u.map(Math.floor), need = Math.round(A.leg.tot / unit) - fl.reduce(function (a, b) { return a + b; }, 0);
+      var order = u.map(function (c, i) { return [c - fl[i], i]; }).sort(function (a, b) { return b[0] - a[0]; });
+      for (var i = 0; i < order.length && need > 0; i++, need--) { fl[order[i][1]] += 1; }
+      for (var j = order.length - 1; need < 0 && j >= 0; j--, need++) { fl[order[j][1]] -= 1; }
+      ks.forEach(function (k, i) { out[k] = fl[i] * unit; });
+      out.tot = Math.round(A.leg.tot / unit) * unit;
+      return out;
+    })();
+    function stepMoney(v) { return v == null ? "" : (v < 0 ? MINUS : "") + A.sym + (wholeMode ? whole(Math.abs(v)) : num(Math.abs(v), 2)); }
     function step(k, label) {
-      return barRow(SC, { cls: k === "tot" ? "sm-tot" : "sm-step", name: label, v: A.leg[k], val: A.leg[k] == null ? txt("notStored") : money(A.leg[k], A.sym), vsub: share(A.leg[k]) });
+      return barRow(SC, { cls: k === "tot" ? "sm-tot" : "sm-step", name: label, v: A.leg[k], val: A.leg[k] == null ? txt("notStored") : stepMoney(shownLeg[k]), vsub: share(A.leg[k]) });
     }
     var diff = A.legPath && A.legPath !== A.path;   // the steps are stored for a different route than the one priced above
     var steps = step("inn", txt("rowDeposit")) + step("chain", txt("rowNetwork")) + step("out", txt("rowSell")) + step("tot", diff ? txt("rowAllInDiff", { legPath: pathName(A.legPath) }) : txt("rowAllIn"));
     var stepsNote = A.legPath ? txt(A.legPath === A.path ? "stepsNoteSame" : "stepsNoteDiff", { legPath: pathName(A.legPath), path: pathName(A.path) }) : "";
     var stepsGap = (A.depM === false || A.wdM === false) ? txt("stepsGap") : "";
+    // when the path priced is one whose network gas is not in the cost, say so under it (the path list comes from the data)
+    var gasNo = (routeObj(S.route).gas_not_modelled_paths || []).indexOf(A.path) >= 0;
+    var gasLine = gasNo ? w("gasNote", null, "p", "sm-small") : "";
     return '<section class="sm-first">' + w("nowHeading", { amount: esc(A.sym) + whole(S.amount) }, "h2") +
-      w("nowNote", null, "p", "sm-note") + '<div>' + moneyAxis + now + "</div>" +
+      w("nowNote", null, "p", "sm-note") + '<div>' + moneyAxis + now + "</div>" + gasLine +
       (diff ? w("stepsHeadingDiff", { legPath: pathName(A.legPath) }, "h3") : w("stepsHeading", null, "h3")) + (stepsNote ? '<p class="sm-note">' + esc(stepsNote) + "</p>" : "") +
       '<div>' + moneyAxis + steps + "</div>" + (negative ? w("negNote", null, "p", "sm-small") : "") + (stepsGap ? '<p class="sm-small">' + esc(stepsGap) + "</p>" : "") + "</section>";
   }
