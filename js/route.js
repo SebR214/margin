@@ -350,7 +350,7 @@
     var negative = legVals.some(function (v) { return v < 0; });
     var share = function (v) { return v == null ? "" : pctPlain(v / S.amount * 100); };
     var now = barRow(SC, { cls: "sm-app", name: txt("rowApp"), sub: txt("rowAppSub", { app: A.app }), v: A.ac, val: money(A.ac, A.sym), vsub: pctPlain(A.ap) }) +
-      barRow(SC, { name: txt("rowStable"), sub: txt("rowStableSub", { path: pathName(A.path) }), v: A.sc, val: money(A.sc, A.sym), vsub: pctPlain(A.sp) });
+      barRow(SC, { name: txt("rowStable"), sub: (A.path !== "USDT" && txt("rowStableSubOther")) ? txt("rowStableSubOther") : txt("rowStableSub", { path: pathName(A.path) }), v: A.sc, val: money(A.sc, A.sym), vsub: pctPlain(A.sp) });
     // the three steps are shown rounded so they add up to the rounded total (largest remainder), never 1 cent off.
     // Cents show on all four rows when any of them is under 100; if all are 100 or more they show whole, and the rounding is to whole units.
     var wholeMode = ["inn", "chain", "out", "tot"].every(function (k) { return A.leg[k] != null && Math.abs(A.leg[k]) >= 100; });

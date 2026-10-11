@@ -59,6 +59,9 @@ jobs:
       - name: Source pairs, one source and lasting gaps (SEB-302)
         run: python3 tools/emit_source_pairs.py --self-test
 
+      - name: Route steps add up to the path that was priced (SEB-268)
+        run: python3 tools/emit_routes.py --self-test
+
       - name: No Opus or Fable model in code (SEB-301)
         run: python3 tools/check_models.py
 
