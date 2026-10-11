@@ -456,7 +456,7 @@ would be inventing its own past.
 ### What a version bump means
 
 Every published file carries `index_version`. **Version 1.4 is in force from
-2026-10-11** (a sudden flip is held back, below). Version 1.3 added a believable-row test at
+2026-10-11** (a sudden flip is held back, and a new source waits in quarantine, below). Version 1.3 added a believable-row test at
 collection. Version 1.2 ran from 2026-10-09 (a second person-to-person board and Luno for Nigeria, below). Version 1.1 ran from
 2026-09-10; v1.0 was superseded that day by the evidence rule below, after
 a verification sprint found that ten P2P boards were crossed. It is incremented when **any
@@ -595,6 +595,17 @@ country are the generic "no price collected this hour"; the stated reason is in 
 and in `index_latest.json`.
 
 `p2p_basis.csv`, `p2p_okx.csv`, `basis.csv` and every CSV header are unchanged. `index_held.csv` is new.
+
+**A new source waits in quarantine (also v1.4).** A source can feed a published price only if it is listed as
+`approved` in `data/source_registry.json`. `tools/emit_countries.py` ignores every other source (an unlisted
+exchange, broker or board, or one listed as `quarantine`) exactly as if its rows were not there; the rows are still
+collected and stored. A source may leave quarantine only after `tools/source_gate.py --evaluate NAME` passes: at least
+7 distinct days of its own rows, at least 100 hours in which approved sources priced the same market, and a median
+gap to those sources of at most 3% (the bar the second person-to-person board already has to meet). A source with no
+approved neighbour in its market has nothing to be compared with and stays in quarantine. Changing its status is a
+change to the registry in a PR. The 48 sources in use on 2026-10-11 (every venue in `basis.csv`, Binance and OKX) are
+listed as approved, 'in use before the 7-day rule', so **nothing that feeds a number today stops.** A missing registry
+stops the emitter loudly. `tools/source_gate.py --status` names any source that has rows but no entry.
 
 ### A row must be believable before it is priced (v1.3, 2026-10-11)
 

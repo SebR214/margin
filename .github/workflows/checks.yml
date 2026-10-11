@@ -65,6 +65,11 @@ jobs:
       - name: Source pairs, one source and lasting gaps (SEB-302)
         run: python3 tools/emit_source_pairs.py --self-test
 
+      - name: A new source waits in quarantine (SEB-302)
+        run: |
+          python3 tools/source_gate.py --self-test
+          python3 tools/check_source_gate.py
+
       - name: Route steps add up to the path that was priced (SEB-268)
         run: python3 tools/emit_routes.py --self-test
       - name: A sudden flip is held back (SEB-302)

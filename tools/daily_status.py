@@ -112,6 +112,11 @@ def build(now=None):
     lines.append("- **Audits:** %s" % ("all numbers matched, all claims true" if not (bad_numbers or bad_claims) else
                  "%d number(s) did not match their raw rows (%s); %d claim(s) false (%s)" % (
                      len(bad_numbers), ", ".join(bad_numbers) or "none", len(bad_claims), ", ".join(bad_claims) or "none")))
+    import source_gate
+    st = source_gate.status()
+    lines.append("- **Sources:** %d approved; %s in quarantine; %s" % (
+        len(st["approved"]), ", ".join(st["quarantine"]) or "none",
+        ("NOT LISTED but collecting rows (ignored by the index): " + ", ".join(st["unlisted_with_rows"])) if st["unlisted_with_rows"] else "none unlisted"))
     lines.append("- **Spend this month:** $%.2f of $%.2f (%d%%)" % (month, llm.MONTHLY_CAP_USD, round(month / llm.MONTHLY_CAP_USD * 100)))
     return "\n".join(lines)
 
