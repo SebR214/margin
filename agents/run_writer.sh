@@ -11,7 +11,7 @@
 set -euo pipefail
 PAGE="${1:?usage: run_writer.sh <page.html>}"
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-MODEL="${WRITER_MODEL:-claude-opus-5-5}"
+MODEL="${WRITER_MODEL:-claude-sonnet-5}"
 STAMP="$(date -u +%Y%m%d-%H%M)"
 BRANCH="writer/${PAGE%.html}-$STAMP"
 WORK="$(mktemp -d)"; SCRATCH="$(mktemp -d)"

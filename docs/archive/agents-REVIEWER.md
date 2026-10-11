@@ -130,7 +130,7 @@ $(gh pr view P --json body -q .body)
 Does this correctly do what it claims, with no factual, safety, or methodology
 problem a reader or the site's owner would object to if they saw it live?
 Answer 'go' or 'no-go' and why, in under 150 words." \
-    --model claude-opus-5-5 --allowedTools Read,Bash --max-turns 20
+    --model claude-sonnet-5 --allowedTools Read,Bash --max-turns 20
 ```
 
 **Go:** merge as above, and say in the Linear verdict that the Opus check ran

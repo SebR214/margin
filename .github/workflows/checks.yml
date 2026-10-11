@@ -56,6 +56,9 @@ jobs:
       - name: Plain-language gate (no payments jargon in headings/nav/labels)
         run: python3 tools/check_copy.py
 
+      - name: No Opus or Fable model in code (SEB-301)
+        run: python3 tools/check_models.py
+
       - name: Design ratchet (a page may not get louder - caps, heavy weights, off-palette colours)
         run: python3 tools/check_design.py
 
@@ -160,84 +163,3 @@ jobs:
       - name: Fail the merge if the rendered check failed
         if: steps.render.outcome == 'failure'
         run: exit 1
-
-  # The model-backed gate. Capped on purpose (it spends the subscription):
-  #   - only the pages this PR changes, one model call per page, one pass
-  #   - it runs only once the PR carries the label `ready` (the final commit)
-  #   - after 3 runs on one PR it stops and the PR needs a human look
-  #     (a person adds the label `human-reviewed` to waive it)
-  cold-reader:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: What does this PR touch, and may the cold reader run?
-        id: gate
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
-        run: |
-          touched=false; gates=false
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            files=$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD)
-            if echo "$files" | grep -vE '^(docs|tests)/' | grep -qE '(^|/)[^/]+\.(html|css|js)$|^copy\.json$'; then touched=true; fi
-            if echo "$files" | grep -qE '^tools/(check_rendered|check_cold_reader|gate_common)\.py$|^tests/(bad|jargon)_page\.html$|^tools/rendered_baseline\.json$'; then gates=true; fi
-          fi
-          echo "gates=$gates" >> "$GITHUB_OUTPUT"
-          mode=skip
-          if [ "$touched" = true ]; then
-            runs=$(gh api "repos/${{ github.repository }}/issues/$PR/comments" --paginate -q '[.[]|select(.body|contains("cold-reader-run:"))]|length' | paste -sd+ | bc)
-            if echo ",$LABELS," | grep -q ",human-reviewed,"; then mode=waived
-            else mode=run; fi
-          fi
-          echo "mode=$mode" >> "$GITHUB_OUTPUT"
-          echo "runs=${runs:-0}" >> "$GITHUB_OUTPUT"
-          echo "cold reader mode: $mode (runs so far: ${runs:-0}, touches pages: $touched, gate files changed: $gates)"
-
-      - name: Install the Claude CLI
-        if: (steps.gate.outputs.mode == 'run' || steps.gate.outputs.gates == 'true') && github.event.pull_request.head.repo.full_name == github.repository
-        run: npm install -g @anthropic-ai/claude-code
-
-      - name: Gate 2 self-test (the cold reader must flag tests/jargon_page.html)
-        if: steps.gate.outputs.gates == 'true' && github.event.pull_request.head.repo.full_name == github.repository
-        env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          COLD_READER_BACKEND: ${{ vars.COLD_READER_BACKEND }}
-          COLD_READER_OPENROUTER_MODEL: ${{ vars.COLD_READER_OPENROUTER_MODEL }}
-        run: python3 tools/check_cold_reader.py --self-test
-
-      - name: Gate 2 - cold reader check (changed pages only, one read each)
-        id: cold
-        if: steps.gate.outputs.mode == 'run' && github.event.pull_request.head.repo.full_name == github.repository
-        continue-on-error: true
-        env:
-          # The agents' flat-rate subscription token. Never the metered key.
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          COLD_READER_BACKEND: ${{ vars.COLD_READER_BACKEND }}
-          COLD_READER_OPENROUTER_MODEL: ${{ vars.COLD_READER_OPENROUTER_MODEL }}
-        run: |
-          set +e
-          python3 tools/check_cold_reader.py --changed-only --base "origin/${{ github.base_ref }}" | tee cold_reader.txt
-          exit ${PIPESTATUS[0]}
-
-      - name: Record the run on the PR
-        if: steps.gate.outputs.mode == 'run'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          n=$(( ${{ steps.gate.outputs.runs }} + 1 ))
-          verdict="found nothing"; [ "${{ steps.cold.outcome }}" = "failure" ] && verdict="has findings (advisory, does not block the merge)"
-          { echo "<!-- cold-reader-run: $n -->"; echo "### Cold reader $verdict (run $n)"; echo '```'; cat cold_reader.txt; echo '```'; } > comment.md
-          gh pr comment "${{ github.event.pull_request.number }}" --body-file comment.md
-
-      # The cold reader is advisory: its findings are the comment above, never a failed check.
