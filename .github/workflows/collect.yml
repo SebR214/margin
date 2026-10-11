@@ -633,7 +633,8 @@ jobs:
                    data/findings_hours_weekend_penalty.csv \
                    data/findings_hours_volume_crossover.csv \
                    data/findings_hours_sgd_php_never_cheapest.csv \
-                   data/findings_hours_stress_signal.csv; do
+                   data/findings_hours_stress_signal.csv \
+                   data/corridor_variant_legs.csv data/index_held.csv data/source_pairs.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # index.html itself -- D1's bake_homepage.py rewrites it in place
