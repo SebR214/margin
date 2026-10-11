@@ -60,6 +60,7 @@ import sys
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
 P2P = os.path.join(DATA, "p2p_basis.csv")
+P2P_OKX = os.path.join(DATA, "p2p_okx.csv")
 BASIS = os.path.join(DATA, "basis.csv")
 OFFERS = os.path.join(DATA, "p2p_offers.csv")
 SAMPLES = os.path.join(DATA, "samples.csv")
@@ -269,6 +270,33 @@ def official_rate(fx_by, ccy, hour, fallback):
     return fallback, "the price row's own fx column"
 
 
+OKX_BY = {}          # {ccy: [rows of data/p2p_okx.csv]}, filled by main() for the countries drawn
+
+
+def second_board_price(ccy, hour, binance_buy):
+    """The v1.2 rule (METHODOLOGY.md, 'A second person-to-person board'), restated here from the text and not
+    imported from the emitter under test: OKX's first source_ok row of the hour with at least 10 ads is used if its
+    buy median is within 3% of Binance's and its price has not stood still for 24 hours (at least 20 hourly
+    readings in the 24 hours up to this one, all the same). Then the price is the median of the two. Else Binance alone."""
+    okx = OKX_BY.get(ccy) or []
+    cand = next((r for r in okx if hour_of(r["ts_utc"]) == hour and ok(r["source_ok"]) and (num(r.get("n_ads")) or 0) >= 10
+                 and num(r.get("buy_median")) is not None), None)
+    if cand is None:
+        return binance_buy, None
+    op = num(cand["buy_median"])
+    series = {}
+    for r in okx:
+        if ok(r["source_ok"]) and num(r.get("buy_median")) is not None:
+            series[hour_of(r["ts_utc"])] = num(r["buy_median"])
+    h0 = dt.datetime.strptime(hour, "%Y-%m-%dT%H")
+    window = [series[k] for k in ((h0 - dt.timedelta(hours=i)).strftime("%Y-%m-%dT%H") for i in range(24)) if k in series]
+    if len(window) >= 20 and len(set(window)) == 1:
+        return binance_buy, "okx price stood still for 24 hours"
+    if abs(op / binance_buy - 1) > 0.03:
+        return binance_buy, "okx more than 3% from binance"
+    return statistics.median([binance_buy, op]), "median of binance %s and okx %s" % (binance_buy, op)
+
+
 def check_country(item, p2p_by, basis_by, offers_by, fx_by):
     d = item["doc"]
     ccy = d["ccy"]
@@ -297,6 +325,7 @@ def check_country(item, p2p_by, basis_by, offers_by, fx_by):
                                   "median of %d raw buy offers at %s disagrees with the row's buy_median" % (len(offs), r["ts_utc"]),
                                   files)
             price, src_row = buy, r
+            price, board_note = second_board_price(ccy, hour, buy)
         else:
             fb = next((x for x in hr[1:] if ok(x["source_ok"]) and num(x["mid"]) is not None), None)
             if fb is None:
@@ -308,7 +337,7 @@ def check_country(item, p2p_by, basis_by, offers_by, fx_by):
         v = (price / fx - 1) * 100
         passed = abs(v - pub) <= PCT_TOL
         return result(item, passed, pub, round(v, 4),
-                      "(%s / %s - 1) * 100; price from %s row %s, official rate from %s" % (price, fx, src_row["source"], src_row["ts_utc"], fx_src), files)
+                      "(%s / %s - 1) * 100; price from %s row %s%s, official rate from %s" % (price, fx, src_row["source"], src_row["ts_utc"], (" (" + board_note + ")") if cls == "p2p_buy_median" and board_note else "", fx_src), files)
 
     if cls in ("order_book_median", "order_book_single", "broker_median", "broker_single"):
         files += ["data/basis.csv"]
@@ -546,6 +575,9 @@ def main():
     for r in rows(P2P):
         if r["ccy"] in need_p2p:
             p2p_by.setdefault(r["ccy"], []).append(r)
+    for r in rows(P2P_OKX):
+        if r["ccy"] in need_p2p:
+            OKX_BY.setdefault(r["ccy"], []).append(r)
     for r in rows(BASIS):
         if r["ccy"] in need_book:
             basis_by.setdefault(r["ccy"], []).append(r)
