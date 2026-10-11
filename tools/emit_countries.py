@@ -33,12 +33,58 @@ import os
 import statistics
 import sys
 
-INDEX_VERSION = "1.3"
+INDEX_VERSION = "1.4"
 
 # v1.2: a second source is used only when it looks alive and agrees with the first.
 SECOND_BOARD_MAX_GAP = 0.03     # OKX's buy median must be within 3% of Binance's to be combined with it
 STALE_HOURS = 24                # a second source whose price has not changed for this many hours is ignored
 STALE_MIN_ROWS = 20             # ...judged only when it has at least this many hourly readings in the window
+
+# v1.4: a sudden flip is held back (SEB-302). A country is compared with its own last 7 days of PUBLISHED numbers
+# (data/index_hourly.csv). A number that lands more than HOLD_MIN_POINTS points, or HOLD_RELATIVE of the usual level,
+# away from the 7-day median is not published until a second source agrees or HOLD_CONFIRM_HOURS earlier hours
+# in a row were already that far away in the same direction (held hours are kept in data/index_held.csv).
+HOLD_WINDOW_DAYS = 7
+HOLD_MIN_ROWS = 48              # fewer published hours than this in the window and there is nothing to compare with
+HOLD_MIN_POINTS = 3.0
+HOLD_RELATIVE = 0.25
+HOLD_CONFIRM_HOURS = 3
+
+
+def hold_decision(value, hour, published, held, venue_values):
+    """Is `value`, this country's number for `hour`, a sudden flip nobody has confirmed?
+
+    published, held: {hour datetime: index_pct} from index_hourly.csv and index_held.csv.
+    venue_values: the index_pct of each source behind this hour's number.
+    Returns (state, base, threshold) with state one of: no_judgement, ok, confirmed_by_source,
+    confirmed_by_time, hold. Pure, so the test can feed it every case."""
+    prior = [v for h, v in published.items() if 0 < (hour - h).total_seconds() <= HOLD_WINDOW_DAYS * 86400]
+    if len(prior) < HOLD_MIN_ROWS:
+        return "no_judgement", None, None
+    base = statistics.median(prior)
+    thr = max(HOLD_MIN_POINTS, HOLD_RELATIVE * abs(base))
+    d = value - base
+    if abs(d) <= thr:
+        return "ok", base, thr
+    sign = 1 if d > 0 else -1
+    if len(venue_values) >= 2 and all((x - base) * sign > thr / 2 for x in venue_values):
+        return "confirmed_by_source", base, thr
+    seen = dict(held)
+    seen.update(published)
+    earlier = [seen.get(hour - dt.timedelta(hours=k)) for k in range(1, HOLD_CONFIRM_HOURS + 1)]
+    if all(v is not None and (v - base) * sign > thr for v in earlier):
+        return "confirmed_by_time", base, thr
+    return "hold", base, thr
+
+
+def _hour_series(path, value_col):
+    out = collections.defaultdict(dict)
+    for r in rows(path):
+        t = parse_ts(r.get("hour_utc"))
+        v = num(r, value_col)
+        if t is not None and v is not None and r.get("ccy"):
+            out[r["ccy"]][t.replace(minute=0, second=0, microsecond=0)] = v
+    return out
 
 
 def unchanged_24h(series, hour):
@@ -55,6 +101,8 @@ P2P_OKX = os.path.join(DATA, "p2p_okx.csv")
 SIDES = os.path.join(DATA, "p2p_sides.csv")
 FX = os.path.join(DATA, "fx_rates.csv")
 HIST = os.path.join(DATA, "basis_history.csv")
+INDEX_HOURLY = os.path.join(DATA, "index_hourly.csv")      # v1.4: what each country published, hour by hour
+INDEX_HELD = os.path.join(DATA, "index_held.csv")          # v1.4: numbers held back as a sudden flip
 STABLE_SPREAD = os.path.join(DATA, "stable_spread.csv")
 OUT_DIR = os.path.join(DATA, "countries")
 OUT_INDEX = os.path.join(DATA, "index_latest.json")
@@ -823,8 +871,28 @@ def daily_history():
 
 # ------------------------------------------------------------------ I/O
 
+def apply_holds(latest):
+    """Hold back any number that is a sudden flip nobody has confirmed (v1.4). Mutates `latest`."""
+    published, held = _hour_series(INDEX_HOURLY, "index_pct"), _hour_series(INDEX_HELD, "index_pct")
+    for ccy, entry in latest.items():
+        v, hour = entry.get("index_pct"), parse_ts(entry.get("hour_utc"))
+        if v is None or hour is None or not entry.get("source_class"):
+            continue
+        venue_values = [x["index_pct"] for x in entry.get("venues") or [] if isinstance(x, dict) and x.get("index_pct") is not None]
+        state, base, thr = hold_decision(v, hour, published.get(ccy, {}), held.get(ccy, {}), venue_values)
+        if state != "hold":
+            continue
+        entry.update(
+            held_value=v, baseline_pct=round(base, 4), withheld_buy_price=entry.get("buy_price"),
+            index_pct=None, source_class=None, source_words="no price this hour", n_sources=None,
+            source_file=SOURCE_FILE_BY_CLASS[None],
+            no_value_reason=(f"held back: {v:+.1f}% is {abs(v - base):.1f} points from this country's usual {base:+.1f}% "
+                             f"over the last 7 days, and no second source or earlier hour confirms it yet"))
+
+
 def build():
     latest = latest_by_ccy()
+    apply_holds(latest)
     hist = daily_history()
     files = {}
     for ccy, entry in latest.items():
@@ -905,7 +973,8 @@ def build():
                       "computed_at": f.get("computed_at"),
                       "source_file": f.get("source_file"),
                       "median_24h_pct": f.get("median_24h_pct"),
-                      "median_24h_n": f.get("median_24h_n")}
+                      "median_24h_n": f.get("median_24h_n"),
+                      **({"held_value": f["held_value"], "baseline_pct": f["baseline_pct"]} if "held_value" in f else {})}
                      for f in sorted(files.values(), key=lambda x: x["ccy"])
                      if f.get("index_pct") is None],
         "without_value": sorted(f["ccy"] for f in files.values()
