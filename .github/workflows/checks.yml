@@ -62,6 +62,11 @@ jobs:
       - name: The model caller refuses what it must (SEB-301)
         run: python3 tools/llm.py --self-test
 
+      - name: Status and watchdog helpers (SEB-301)
+        run: |
+          python3 tools/daily_status.py --self-test
+          python3 tools/check_scout_health.py --self-test
+
       - name: Design ratchet (a page may not get louder - caps, heavy weights, off-palette colours)
         run: python3 tools/check_design.py
 
