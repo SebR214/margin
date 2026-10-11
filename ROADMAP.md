@@ -1,6 +1,6 @@
 # Roadmap
 
-Rewritten 2026-10-07 to one page. The full old version is `docs/archive/ROADMAP-to-2026-10-07.md`. The work queue is Linear, not this file.
+Rewritten 2026-10-07 to one page, and checked against what is live on 2026-10-11 (SEB-215). The full old version is `docs/archive/ROADMAP-to-2026-10-07.md`. The work queue is Linear, not this file.
 
 ## What the site is
 
@@ -11,8 +11,10 @@ Sending money with a stablecoin was tested against apps and banks. It is publish
 ## Three surfaces, one set of files
 
 - The site, built from the CSVs and JSON in `data/`.
-- The API at api.margin.wiki: `/dollar_cost`, `/compare_routes`, `/series`, `/query`, `/request_series`, plus `/ask` and `/mcp`.
-- Ask: a question in, the SQL, the answer and the source file out.
+- The API (`margin-serve` on the box): `/dollar_cost`, `/compare_routes`, `/series`, `/query`, `/request_series`, plus `/ask` and `/mcp`. Built, but not switched on at api.margin.wiki: the DNS record is not set, so nothing public points at it.
+- Ask: a question in, the SQL, the answer and the source file out. Built, but the account behind it has no credit and the site has no ask box, so it answers nobody today.
+
+Collection runs on GitHub Actions every hour (`collect.yml`). The box also runs a 10-minute person-to-person collector, kept as a second record; moving collection onto the box is parked.
 
 ## Invariants
 
