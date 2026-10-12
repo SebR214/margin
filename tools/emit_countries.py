@@ -236,6 +236,8 @@ def reason_words(raw):
         return "nobody is offering to sell dollars here right now"
     if "no FX mid" in r:
         return "no official exchange rate published for this currency this hour"
+    if "p2p_sources_apart" in r:
+        return "has a second person-to-person source kept apart on purpose"
     return "no price collected this hour"
 
 
@@ -724,6 +726,15 @@ def latest_by_ccy():
                     elif gap > SECOND_BOARD_MAX_GAP:
                         entry["second_board"] = {"venue": okr.get("source"), "buy_price": okx_price, "combined": False,
                                                  "why": "more than 3% from the first board"}
+                        # Add reason code for markets where OKX is kept apart on purpose
+                        binance_median = price
+                        okx_median = okx_price
+                        relative_gap = gap
+                        entry["p2p_sources_apart"] = {
+                            "binance_median": round(binance_median, 8),
+                            "okx_median": round(okx_median, 8),
+                            "relative_gap": round(relative_gap, 2)
+                        }
                     else:
                         both = statistics.median([price, okx_price])
                         entry["venues"].append({"venue": okr.get("source"), "buy_price": okx_price,
@@ -990,7 +1001,8 @@ def build():
                       "source_file": f.get("source_file"),
                       "median_24h_pct": f.get("median_24h_pct"),
                       "median_24h_n": f.get("median_24h_n"),
-                      **({"held_value": f["held_value"], "baseline_pct": f["baseline_pct"]} if "held_value" in f else {})}
+                      **({"held_value": f["held_value"], "baseline_pct": f["baseline_pct"]} if "held_value" in f else {}),
+                      **({"p2p_sources_apart": f["p2p_sources_apart"]} if "p2p_sources_apart" in f else {})}
                      for f in sorted(files.values(), key=lambda x: x["ccy"])
                      if f.get("index_pct") is None],
         "without_value": sorted(f["ccy"] for f in files.values()
