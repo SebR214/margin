@@ -55,7 +55,7 @@
     var c = S.c, held = !!S.withheld, own = S.own, h = '';
     if (held) {
       var last = own.filter(function (x) { return x.source !== 'current_hour'; }).pop() || own[own.length - 1];
-      h += '<h1>' + esc(T('withheldTitle', { country: c.country })) + '</h1><p class="lead">' + esc(T('withheldBody', { reason: S.withheld.reason })) + '</p>' +
+      h += '<h1>' + esc(T('withheldTitle', { country: c.country })) + '</h1><p class="lead">' + esc(/^held back:/.test(S.withheld.reason_raw || '') && T('heldBackBody') ? T('heldBackBody') : T('withheldBody', { reason: S.withheld.reason })) + '</p>' +
         (last ? '<p class="money num">' + esc(T('lastPublished', { gap: sgn(last.index_pct), date: dd(last.date) })) + '</p>' : '');
     } else {
       var key = c.index_pct > 0.05 ? 'headlineMore' : c.index_pct < -0.05 ? 'headlineLess' : 'headlineSame';
