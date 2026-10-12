@@ -82,6 +82,8 @@
 
   function chart() {
     var hist = S.c.history, all = period === 'all' ? hist : hist.slice(-30);
+    // a country that has never had a price has nothing to draw
+    if (!hist.length) { $('chart').innerHTML = ''; return; }
     var back = all.filter(isBack), mine = all.filter(function (h) { return !isBack(h); });
     var hasBack = hist.length !== S.own.length;
     var venue = S.seg && S.seg.venue || T('venueOther');
