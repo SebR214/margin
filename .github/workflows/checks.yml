@@ -91,6 +91,9 @@ jobs:
       - name: The Scout's checks reject what they must (SEB-301)
         run: python3 tools/scout.py --self-test
 
+      - name: The watchdog posts once per outage (SEB-301)
+        run: python3 tools/watchdog_post.py --self-test
+
       - name: Design ratchet (a page may not get louder - caps, heavy weights, off-palette colours)
         run: python3 tools/check_design.py
 

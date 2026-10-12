@@ -12,8 +12,9 @@ reference page) are sent too. Nothing else is loaded.
 
 Flow: one call to qwen (kimi if qwen errors). The returned files are written,
 then the offline checks run. Pass: open a PR and comment on the issue. Fail:
-one retry with the check output. Fail again: label `needs-claude`, put the
-issue back in Todo, and stop.
+one retry with the check output, unless the retry prompt is over the size
+limit (then no retry). Fail, or break: label `needs-claude` and stop. The
+issue is never put back in Todo, so the runner cannot pick it up again.
 
 Caps: 2 calls and $1 per job, DAILY_CAP_USD (default $3) per UTC day, and the
 $20 month for all agents together, enforced by tools/llm.py, which also makes
@@ -275,6 +276,10 @@ def run(ident):
         if sum(float(r["cost_usd"]) for r in rows) >= JOB_CAP_USD:
             failures = ["job cap of $%.2f reached" % JOB_CAP_USD]
             break
+        chars = sum(len(m["content"]) for m in messages)
+        if attempt and chars > llm.MAX_PROMPT_CHARS:
+            failures.append("no retry: the retry prompt is %d characters, over the %d limit" % (chars, llm.MAX_PROMPT_CHARS))
+            break
         text, row = call_model(messages, i["identifier"])
         rows.append(row)
         sh(["git", "checkout", "-q", "--"] + [p for p in files if os.path.exists(os.path.join(ROOT, p))], check=False)
@@ -293,7 +298,6 @@ def run(ident):
     else:
         sh(["git", "checkout", "-q", "--", "."], check=False)
         add_label(i, STUCK_LABEL)
-        set_state(i, "Todo")
         comment(i, "Stopped after %d call(s), $%.4f. Labelled `needs-claude`.\n\n```\n%s\n```"
                 % (len(rows), cost, "\n\n".join(failures)[-2500:]))
     return rows
@@ -314,8 +318,8 @@ def main():
         print("BROKEN: %s" % e, file=sys.stderr)
         try:
             i = linear.find(ident)
-            set_state(i, "Todo")
-            comment(i, "Runner stopped: %s. Put back in Todo." % e)
+            add_label(i, STUCK_LABEL)
+            comment(i, "Runner stopped: %s. Labelled `needs-claude`." % e)
         except SystemExit:
             pass
         commit_spend()
