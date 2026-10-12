@@ -288,7 +288,7 @@
         ctx.withheld.forEach(function (w) {
           // one line each: the country and the reason index_latest.json gives for it (SEB-268, 11 Oct)
           var li = el('li', null, has(C, 'withheldWhyTemplate')
-            ? t('withheldWhyTemplate', { country: plainName(w.country || w.ccy), reason: w.reason || '' })
+            ? t('withheldWhyTemplate', { country: plainName(w.country || w.ccy), reason: /^held back:/.test(w.reason_raw || '') && has(C, 'heldBackReason') ? t('heldBackReason') : (w.reason || '') })
             : plainName(w.country || w.ccy));
           ul.appendChild(li);
         });
