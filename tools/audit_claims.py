@@ -3,7 +3,7 @@
 query, and the hourly auditor re-runs it.
 
 claims.json (next to copy.json) lists claims: {key, type, route|..., guards}.
-`key` is a path into copy.json ("homeData.stableLine"). For each claim this
+`key` is a path into copy.json ("homeData.heatTitle"). For each claim this
 script re-derives the fact from the RAW CSVs (it re-runs tools/emit_routes'
 own build from the collectors' files, and reads data/basis.csv and
 data/p2p_basis.csv directly), never from the published JSON being guarded,
@@ -110,6 +110,57 @@ def claim_stable_never_cheapest(c):
     ok = hours > 0 and wins == 0 and consistent
     return ok, {"route": c["route"], "hours_priced": hours, "hours_stablecoin_cheapest": wins,
                 "published_hours": printed_hours, "published_wins": printed_wins, "published_matches_fresh": consistent}
+
+
+def ranked_priced_counts(pct, data=None):
+    """(n, N): of the ranked countries with a price this hour (the count in the Countries page title), how many sit within
+    `pct` of the official rate. Counted from the country files themselves, for the index's own hour; a currency the index
+    lists as unverified, or whose official rate is unmaintained, is not ranked."""
+    data = data or DATA
+    idx = json.load(open(os.path.join(data, "index_latest.json")))
+    hour = idx["as_of_utc"][:13]
+    unverified = {u if isinstance(u, str) else u.get("ccy") for u in idx.get("unverified") or []}
+    n = N = 0
+    for f in sorted(os.listdir(os.path.join(data, "countries"))):
+        if not f.endswith(".json") or " " in f or f[:-5] in unverified:
+            continue
+        d = json.load(open(os.path.join(data, "countries", f)))
+        v = d.get("index_pct")
+        if not isinstance(v, (int, float)) or str(d.get("hour_utc", ""))[:13] != hour:
+            continue
+        if (d.get("denominator") or {}).get("class") == "unmaintained":
+            continue
+        N += 1
+        n += 1 if abs(v) <= pct else 0
+    return n, N
+
+
+def claim_within_of_ranked(c):
+    """'In {n} of {N} countries we priced this hour, a dollar costs within 2% of the official rate.' True when {n} and {N}
+    recounted from the country files equal the figures index_latest.json publishes for the same hour (the Countries page
+    counts ranked countries with a price the same way). The sentence states a count, so the count is the claim."""
+    n, N = ranked_priced_counts(c["pct"])
+    pub = json.load(open(os.path.join(DATA, "index_latest.json")))["countries"]
+    pub_N = sum(1 for x in pub if x.get("index_pct") is not None and x.get("denominator_class") != "unmaintained")
+    pub_n = sum(1 for x in pub if x.get("index_pct") is not None and x.get("denominator_class") != "unmaintained"
+                and abs(x["index_pct"]) <= c["pct"])
+    ok = N > 0 and n <= N and (n, N) == (pub_n, pub_N)
+    return ok, {"n": n, "N": N, "published_n": pub_n, "published_N": pub_N, "pct": c["pct"]}
+
+
+def claim_stable_rarely_cheapest(c):
+    """'In {n} of the {hours} hours we priced, a stablecoin did not beat the cheapest app at any of the five amounts.'
+    True while, at every amount, the stablecoin was cheapest in under `max_share` of the hours priced. {hours} is the
+    number of distinct hours priced at any amount; {n} is those hours in which it was cheapest at none."""
+    routes, _ = fresh_routes()
+    r = routes.get(c["route"])
+    if not r:
+        return False, {"reason": "route not in the data"}
+    per = {str(a): v for a, v in r["amounts"].items()}
+    rare = bool(per) and all(v["hours"] > 0 and v["wins"] / v["hours"] < c["max_share"] for v in per.values())
+    hours, wins = r["any_hours"], r["any_wins"]
+    return rare, {"route": c["route"], "hours": hours, "n": hours - wins, "hours_stablecoin_cheapest_any_amount": wins,
+                  "max_share": c["max_share"], "per_amount": per}
 
 
 # ------------------------------------------------------------- currency facts
@@ -231,6 +282,8 @@ def claim_routes_published_equal_fresh(c):
 
 
 TYPES = {"stable_never_cheapest": claim_stable_never_cheapest,
+         "stable_rarely_cheapest": claim_stable_rarely_cheapest,
+         "within_of_ranked": claim_within_of_ranked,
          "currency_majority_within": claim_currency_majority_within,
          "updated_hourly": claim_updated_hourly,
          "coverage_matches_index": claim_coverage_matches_index,
@@ -297,6 +350,22 @@ def self_test():
     ok, v = claim_currency_majority_within({"pct": 1e9, "min_share": 0.5})
     if not ok:
         fails.append("a trivially true majority failed")
+    # SEB-268 (Seb's words, 12 Oct): the two counted claims
+    ok, v = claim_within_of_ranked({"pct": 2})
+    if not ok or not (0 < v["n"] <= v["N"]) or (v["n"], v["N"]) != (v["published_n"], v["published_N"]):
+        fails.append("within_of_ranked does not match the published count: %s" % (v,))
+    ok, v = claim_within_of_ranked({"pct": 1e9})
+    if not ok or v["n"] != v["N"]:
+        fails.append("everyone is within an enormous bar")
+    ok, v = claim_stable_rarely_cheapest({"route": "SGD->PHP", "max_share": 1.01})
+    if not ok:
+        fails.append("rarely-cheapest failed under a share bar of 101%")
+    ok, v = claim_stable_rarely_cheapest({"route": "SGD->PHP", "max_share": 0.0000001})
+    if v.get("hours_stablecoin_cheapest_any_amount", 0) > 0 and ok:
+        fails.append("rarely-cheapest passed though the stablecoin was cheapest at some hour and the bar was tiny")
+    ok, v = claim_stable_rarely_cheapest({"route": "NO->WHERE", "max_share": 0.01})
+    if ok:
+        fails.append("unknown route passed rarely-cheapest")
     if fails:
         print("SELF-TEST FAILED: " + "; ".join(fails))
         return 1

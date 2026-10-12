@@ -3,7 +3,7 @@
    claim guards) must not be rendered. If the status file cannot be read, a guarded
    key is treated as blocked: a line that cannot be checked is not shown.
 
-     Claims.load().then(function(){ if (!Claims.blocked('homeData.stableLine')) ... });
+     Claims.load().then(function(){ if (!Claims.blocked('some.copy.key')) ... });
 */
 (function (w) {
   var status = null, loaded = false;
