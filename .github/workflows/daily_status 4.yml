@@ -1,0 +1,42 @@
+name: daily status
+
+# SEB-301. Once a day a script posts a status comment on SEB-301, written from
+# the logs and GitHub's own records. No model call. Start it by hand with
+# print_only=true to see the text in the run log without posting.
+
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+    inputs:
+      print_only:
+        description: "Print the status in the run log, do not post it"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 200
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Self-test
+        run: python3 tools/daily_status.py --self-test
+      - name: Post the status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          LINEAR_ACTIVITY_LOG_PATH: ${{ runner.temp }}/linear_activity.jsonl
+          PRINT_ONLY: ${{ github.event.inputs.print_only == 'true' && '--print' || '' }}
+        run: python3 tools/daily_status.py $PRINT_ONLY

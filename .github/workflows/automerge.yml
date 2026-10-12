@@ -44,6 +44,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           SHA: ${{ github.event.workflow_run.head_sha }}
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
         run: |
           pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/pulls" \
                  --jq '[.[] | select(.state=="open" and .base.ref=="main" and (.draft|not))][0]')
@@ -63,3 +64,38 @@ jobs:
                   --jq '[.check_runs[] | select(.conclusion != "success" and .conclusion != "skipped" and .conclusion != "neutral")] | length')
           [ "$bad" = "0" ] || { echo "#$n has $bad check(s) not green"; exit 0; }
           gh api -X PUT "repos/$GITHUB_REPOSITORY/pulls/$n/merge" -f merge_method=squash -f sha="$SHA" --jq '"merged #'$n': \(.merged)"'
+          # a builder PR (branch one-call/<issue>) that merged: its Linear issue is Done (SEB-301)
+          ref=$(echo "$pr" | jq -r .head.ref)
+          case "$ref" in one-call/*)
+            key=$(echo "$title" | grep -oE '\bSEB-[0-9]+\b' | head -1)
+            LINEAR_API_KEY="$LINEAR_API_KEY" python3 agents/linear_sync.py merged "$key" "$n" || echo "could not update $key in Linear" ;;
+          esac
+
+  # A builder PR whose checks failed: its Linear issue gets `needs-claude`, so the
+  # runner leaves it and the Scout does not wait on it (SEB-301). Other PRs are untouched.
+  failed:
+    if: github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: agents
+
+      - name: Label the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+        run: |
+          pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/pulls" \
+                 --jq '[.[] | select(.state=="open" and .base.ref=="main")][0]')
+          [ -z "$pr" ] || [ "$pr" = "null" ] && { echo "no open PR for $SHA"; exit 0; }
+          ref=$(echo "$pr" | jq -r .head.ref)
+          case "$ref" in one-call/*) ;; *) echo "not a builder PR"; exit 0 ;; esac
+          n=$(echo "$pr" | jq -r .number); title=$(echo "$pr" | jq -r .title)
+          key=$(echo "$title" | grep -oE '\bSEB-[0-9]+\b' | head -1)
+          [ -n "$key" ] || { echo "no issue named"; exit 0; }
+          what=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/check-runs?per_page=100" \
+                   --jq '[.check_runs[] | select(.conclusion=="failure") | .name] | join(", ")')
+          python3 agents/linear_sync.py failed "$key" "$n" "$what"

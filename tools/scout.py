@@ -29,7 +29,11 @@ The spec is posted only if every check passes:
   - the files together stay under the size limit (120,000 characters);
   - every suggested venue is for a single-source market and passes the probe.
 If a check fails nothing is posted and the reason goes in data/scout_log.csv.
-If SEB-300 is not Done, the week is skipped.
+The Scout never hands the builder a job that changes how a published number is
+computed (a spec that lists an emitter in tools/check_method_change.py or a
+collector, or says "Method change: yes"). That spec goes into SEB-300 labelled
+`needs-claude` instead of `one-call`, for a chat session to do with METHODOLOGY.md.
+The week is skipped only if SEB-300 is still open and not labelled `needs-claude`.
 
 Env: OPENROUTER_API_KEY, LINEAR_API_KEY.
 """
@@ -48,11 +52,14 @@ import llm  # noqa: E402
 
 JOB = "SEB-300"
 LABEL = "one-call"
+STUCK_LABEL = "needs-claude"
 LOG = os.path.join(ROOT, "data", "scout_log.csv")
 LOG_HEADER = ["ts_utc", "mode", "status", "detail", "item", "cost_usd"]
 DATA = os.path.join(ROOT, "data")
 INDEX_LATEST = os.path.join(DATA, "index_latest.json")
 CLAIMS_STATUS = os.path.join(DATA, "claims_status.json")
+EMITTERS_FILE = os.path.join(ROOT, "tools", "check_method_change.py")
+EMITTER_FILE = os.path.join(ROOT, "tools", "emit_countries.py")
 EXCHANGE_P2P_GAP_PTS = 2.0      # an exchange price and a person-to-person price this far apart (points) count as a disagreement
 MAX_FILES_CHARS = 120_000        # all listed files together (120 KB); the builder sends them whole, and its prompt limit (tools/llm.py) is 130,000 so the spec and instructions fit beside them
 MAX_TOKENS = 2500
@@ -76,6 +83,7 @@ Pick the ONE item most worth building this week and write the spec for it.
 Rules:
 - Use no number except those in the data you were given. Do not count, add, subtract or round anything yourself. Quote a number exactly as given, or use none. Write any other quantity in words ("two decimals", "one file", "the five amounts"), never in digits: every digit in the spec is checked against the data.
 - Binance and OKX person-to-person prices are combined only where they are within 3 percent of each other (METHODOLOGY.md, v1.2). Where they differ by more, they are kept apart on purpose. A pair that disagrees by more than that is NOT a missing second source: never propose combining them, averaging them or lowering that bar. Propose a venue to probe, a check, or a fix to a claim instead.
+- Never pick a job that changes how a published number is computed (how a country's price, a route's cost or a finding's number is built, or which sources feed it). If the best item is one, still write the spec, and put the line `Method change: yes` under '## Why'. It then goes to a person, not the builder.
 - You never write reader-facing words. Never list a page, a stylesheet, a script or copy.json. If the job needs words, say they go through the writer.
 - Write the spec in markdown: a title line starting with '# ', then '## Why' (two to four sentences), '## What to build', '## Files', '## Context' (optional), '## Done when', and '## Venues' only if the job is a new source.
 - '## Files' lists, one per line, each in backticks, the files the builder may change. '## Context' lists read-only files the same way.
@@ -152,10 +160,18 @@ def failing_claims(data=DATA):
     return [{"claim": k, "value": v.get("value")} for k, v in sorted(doc["claims"].items()) if not v.get("ok")]
 
 
+def standing_rules(path=EMITTER_FILE):
+    """The rules the method already has, read from the code that applies them, so the Scout can quote them."""
+    m = re.search(r"^SECOND_BOARD_MAX_GAP\s*=\s*([0-9.]+)", open(path).read(), re.M)
+    assert m, "SECOND_BOARD_MAX_GAP not found in " + path
+    return [{"rule": "binance_and_okx_boards_are_combined_only_within_this_many_percent", "percent": round(float(m.group(1)) * 100, 6)}]
+
+
 def gather():
     return {"single_source_markets": single_source_markets(),
             "disagreeing_pairs": disagreeing_pairs(),
-            "failing_claims": failing_claims()}
+            "failing_claims": failing_claims(),
+            "standing_rules": standing_rules()}
 
 
 def numeric_leaves(x, prefix="n"):
@@ -259,24 +275,51 @@ def check_venues(spec, markets, probe_fn=None):
     return reasons
 
 
+def method_emitters(path=EMITTERS_FILE):
+    """The files whose output is a published number, read from the method-change check."""
+    block = re.search(r"^EMITTERS\s*=\s*\{(.*?)^\}", open(path).read(), re.M | re.S)
+    return set(re.findall(r'^\s*"([^"]+)"\s*:', block.group(1), re.M)) if block else set()
+
+
+def changes_method(spec, emitters=None):
+    """True if the job changes how a published number is computed: it lists an emitter or a collector, or says so."""
+    emitters = method_emitters() if emitters is None else emitters
+    files = listed(spec, "Files")
+    return (any(p in emitters or re.match(r"collector[^/]*\.py$", p) for p in files)
+            or bool(re.search(r"^\W*method change:\s*yes", spec, re.M | re.I)))
+
+
 # ---------- Linear ----------
 
-def post_spec(spec):
+def post_spec(spec, method=False):
+    """Write the spec into SEB-300. A method job gets `needs-claude`, never `one-call`; any other gets `one-call`."""
     import linear
     i = linear.find(JOB)
     st = linear.states()
     linear.call("""mutation($id: String!, $d: String!, $s: String!) {
       issueUpdate(id: $id, input: { description: $d, stateId: $s }) { success }
     }""", {"id": i["id"], "d": spec, "s": st["Todo"]["id"]})
-    linear.call("""mutation($id: String!, $l: String!) {
-      issueAddLabel(id: $id, labelId: $l) { success }
-    }""", {"id": i["id"], "l": linear._label_id(LABEL)})
+    have = {l["name"].lower() for l in i["labels"]["nodes"]}
+    want, drop = (STUCK_LABEL, LABEL) if method else (LABEL, STUCK_LABEL)
+    if drop in have:
+        linear.call("""mutation($id: String!, $l: String!) {
+          issueRemoveLabel(id: $id, labelId: $l) { success }
+        }""", {"id": i["id"], "l": linear._label_id(drop)})
+    if want not in have:
+        linear.call("""mutation($id: String!, $l: String!) {
+          issueAddLabel(id: $id, labelId: $l) { success }
+        }""", {"id": i["id"], "l": linear._label_id(want)})
+
+
+def may_write(state_type, label_names):
+    """The Scout writes a new spec when SEB-300 is Done, or when it is stuck and labelled needs-claude (so it never stalls on it)."""
+    return state_type == "completed" or STUCK_LABEL in {l.lower() for l in label_names}
 
 
 def job_state():
     import linear
     i = linear.find(JOB)
-    return i["state"]["name"], i["state"]["type"]
+    return i["state"]["name"], may_write(i["state"]["type"], [l["name"] for l in i["labels"]["nodes"]])
 
 
 # ---------- main ----------
@@ -297,13 +340,13 @@ def run(dry, force=False):
     if not dry and not force and ran_this_week():
         print("already ran this week, nothing to do")
         return 0
-    name, typ = job_state()
-    if typ != "completed":
-        log_row(mode, "skipped", "%s is %s, not Done" % (JOB, name))
-        print("skipped: %s is %s, not Done" % (JOB, name))
+    name, free = job_state()
+    if not free:
+        log_row(mode, "skipped", "%s is %s, not Done and not labelled %s" % (JOB, name, STUCK_LABEL))
+        print("skipped: %s is %s, not Done and not labelled %s" % (JOB, name, STUCK_LABEL))
         return 0
     inputs = gather()
-    if not any(inputs.values()):
+    if not any(v for k, v in inputs.items() if k != "standing_rules"):
         log_row(mode, "nothing", "no single-source market, no disagreement, no failing claim")
         print("nothing to pick from")
         return 0
@@ -327,10 +370,16 @@ def run(dry, force=False):
         log_row(mode, "dry-run-pass", "all checks passed, nothing posted", title, cost)
         print("All checks passed. Dry run: nothing posted.")
         return 0
-    post_spec(spec + "\n\n*Written by the Scout on %s. Every number traces to the code-computed inputs; every venue passed the source probe.*\n" % llm.now().date().isoformat())
-    log_row(mode, "posted", "spec written into %s, set to Todo, labelled %s" % (JOB, LABEL), title, cost)
-    print("posted into %s" % JOB)
+    method = changes_method(spec)
+    post_spec(spec + "\n\n*Written by the Scout on %s. Every number traces to the code-computed inputs; every venue passed the source probe.*\n" % llm.now().date().isoformat(), method)
+    label = STUCK_LABEL if method else LABEL
+    log_row(mode, "posted", "spec written into %s, set to Todo, labelled %s%s" % (JOB, label, " (it changes how a published number is computed)" if method else ""), title, cost)
+    print("posted into %s, labelled %s" % (JOB, label))
     return 0
+
+
+def untraced_ok(text, numbers):
+    return not analyst.untraced_numbers(text, numbers)
 
 
 def self_test():
@@ -372,7 +421,20 @@ def self_test():
         assert any("may not change" in r for r in ok(cases["forbidden file"]))
     # the inputs, built from the repo's own data
     ins = gather()
-    assert set(ins) == {"single_source_markets", "disagreeing_pairs", "failing_claims"}
+    assert set(ins) == {"single_source_markets", "disagreeing_pairs", "failing_claims", "standing_rules"}
+    assert ins["standing_rules"][0]["percent"] == 3.0, "the 3% rule must come from emit_countries.py"
+    assert untraced_ok("a 3 percent gap", numeric_leaves(ins))
+    # a job that changes how a number is computed never goes to the builder
+    em = method_emitters()
+    assert "tools/emit_countries.py" in em and "tools/emit_routes.py" in em and "tools/emit_findings.py" in em, em
+    plain = "# x\n\n## Why\nA venue.\n\n## Files\n`tools/probe_source.py`\n"
+    assert not changes_method(plain, em)
+    assert changes_method(plain.replace("tools/probe_source.py", "tools/emit_countries.py"), em)
+    assert changes_method(plain.replace("tools/probe_source.py", "collector_p2p.py"), em)
+    assert changes_method(plain.replace("A venue.", "Method change: yes\nA venue."), em)
+    # the Scout waits on SEB-300 only while it is open and not labelled needs-claude
+    assert may_write("completed", []) and may_write("started", ["Needs-Claude"]) and may_write("unstarted", ["needs-claude", "one-call"])
+    assert not may_write("started", ["one-call"]) and not may_write("unstarted", [])
     p = build_prompt(ins)
     assert ".md" not in p.replace("\n", " ").split("SINGLE_SOURCE_MARKETS")[0]
     assert all(m["ccy"] and m["sources"] == 1 for m in ins["single_source_markets"])
