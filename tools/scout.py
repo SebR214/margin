@@ -75,6 +75,7 @@ You get three lists computed by code from the site's data files: markets priced 
 Pick the ONE item most worth building this week and write the spec for it.
 Rules:
 - Use no number except those in the data you were given. Do not count, add, subtract or round anything yourself. Quote a number exactly as given, or use none. Write any other quantity in words ("two decimals", "one file", "the five amounts"), never in digits: every digit in the spec is checked against the data.
+- Binance and OKX person-to-person prices are combined only where they are within 3 percent of each other (METHODOLOGY.md, v1.2). Where they differ by more, they are kept apart on purpose. A pair that disagrees by more than that is NOT a missing second source: never propose combining them, averaging them or lowering that bar. Propose a venue to probe, a check, or a fix to a claim instead.
 - You never write reader-facing words. Never list a page, a stylesheet, a script or copy.json. If the job needs words, say they go through the writer.
 - Write the spec in markdown: a title line starting with '# ', then '## Why' (two to four sentences), '## What to build', '## Files', '## Context' (optional), '## Done when', and '## Venues' only if the job is a new source.
 - '## Files' lists, one per line, each in backticks, the files the builder may change. '## Context' lists read-only files the same way.
