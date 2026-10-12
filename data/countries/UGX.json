@@ -1,12 +1,14 @@
 {
+  "buy_price": 4164.9625,
   "ccy": "UGX",
-  "computed_at": "2026-10-12T15:00:00+00:00",
+  "computed_at": "2026-10-12T16:00:00+00:00",
   "country": "Uganda",
   "denominator": {
     "class": "market",
     "rate_per_usd": 4027.13515,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 4027.13515,
   "history": [
     {
       "date": "2026-09-05",
@@ -232,26 +234,40 @@
     },
     {
       "date": "2026-10-12",
-      "index_pct": 1.6805,
-      "n": 6,
-      "source": "hourly_buy_p2p"
+      "index_pct": 3.4225,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
   "history_days": 38,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-12T15:00:00+00:00",
+  "hour_utc": "2026-10-12T16:00:00+00:00",
+  "index_pct": 3.4225,
   "index_version": "1.4",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": 2.1494,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market (buy 4123.925, sell 4126.01)",
-  "round_trip_pct": -0.0505,
-  "source_class": null,
+  "median_24h_pct": 2.2149,
+  "n_boards": 2,
+  "n_sources": 10,
+  "round_trip_pct": 0.4123,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 4123.925
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 4139.925,
+      "index_pct": 2.8007,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    },
+    {
+      "buy_price": 4190.0,
+      "index_pct": 4.0442,
+      "last_price_used": false,
+      "venue": "okx_p2p"
+    }
+  ]
 }
