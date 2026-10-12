@@ -10,7 +10,7 @@ Schema
       "definition": the status rule in words,
       "sources": [
         {"id":          the name as stored (venue, source column, or the feed's endpoint),
-         "kind":        "p2p" | "order_book" | "broker" | "fx" | "provider_quote" | "other",
+         "kind":        "p2p" | "order_book" | "broker" | "fx" | "street" | "provider_quote" | "other",
          "live":        true if any reading is stored, false for a history-only series,
          "currencies":  currency codes the readings carry (empty where the file has none),
          "routes":      corridors the readings carry (empty where the file has none),
@@ -183,7 +183,7 @@ def build():
             continue
         sid = v["source"].split(" ")[0].split("/")[0]
         out.append({
-            "id": sid, "kind": "fx", "live": False, "currencies": sorted(v["ccys"].split(",")) if v.get("ccys") else [],
+            "id": sid, "kind": "street" if sid == "api.argentinadatos.com" else "fx", "live": False, "currencies": sorted(v["ccys"].split(",")) if v.get("ccys") else [],
             "routes": [], "files": [], "first_utc": None, "last_answered_utc": None, "cadence_hours": None,
             "hours_answered": 0, "hours_expected": 0, "status": ["not_yet_a_source"] * len(days),
             "history": [{"series": key, "ccy": v.get("ccys"), "interval": "1d", "first": v["first"],
@@ -211,7 +211,7 @@ def self_test(doc):
                 assert not (seen and st == "not_yet_a_source"), s["id"]
             assert s["first_utc"] <= s["last_answered_utc"]
             assert s["hours_answered"] <= s["hours_expected"]
-        assert s["kind"] in ("p2p", "order_book", "broker", "fx", "provider_quote", "other")
+        assert s["kind"] in ("p2p", "order_book", "broker", "fx", "street", "provider_quote", "other")
         assert s["history"] is None or s["history"], s["id"]
         assert not (s["history"] and s["history_reason"]), "reason only where no series"
     assert {"Binance P2P".lower().replace(" ", "_")} <= {i for i in ids}, "binance_p2p present"

@@ -44,11 +44,16 @@
   /* ---------------------------------------------------------------- hero: what the site is, with the totals from record_daily.json */
   function hero() {
     var tt = D.rec.totals || {};
+    // same counts as the Countries page, from index_latest.json: tracked = priced + held back + unverified
+    var ix = D.idx || {}, nPriced = (ix.countries || []).length;
+    var idxCount = { priced: g(nPriced), tracked: g(nPriced + (ix.withheld || []).length + (ix.unverified || []).length) };
+    // one per row, as the Sources page lists them: the CriptoYa feeds count once
+    var sr = (D.src && D.src.sources) || null, nSources = sr ? sr.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (sr.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null;
     var h = '<h1>' + esc(T('headline')) + '</h1>' +
-      '<p class="lead">' + esc(T('whatLine', { currencies: tt.currencies })) + ' ' + esc(T('routesLine', { routes: tt.routes })) + '</p>' +
+      '<p class="lead">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
       '<p class="body">' + esc(T('agentsLine')) + ' <a href="./how-it-was-built.html">' + esc(T('agentsLink')) + '</a></p>' +
-      '<p class="counts num">' + [['counterReadings', g(tt.readings)], ['counterSources', tt.sources], ['counterCurrencies', tt.currencies], ['counterRoutes', tt.routes], ['counterHours', g(tt.hours_collected)]].map(function (c) {
-        return T(c[0]) ? '<span><b>' + c[1] + '</b> ' + esc(T(c[0]).toLowerCase()) + '</span>' : '';
+      '<p class="counts num">' + [['counterReadings', g(tt.readings)], ['counterSources', nSources], ['counterCurrencies', tt.currencies], ['counterRoutes', tt.routes], ['counterHours', g(tt.hours_collected)]].map(function (c) {
+        return T(c[0]) && c[1] != null ? '<span><b>' + c[1] + '</b> ' + esc(T(c[0]).toLowerCase()) + '</span>' : '';
       }).join('') + '</p>';
     $('hero').innerHTML = h;
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
@@ -169,7 +174,7 @@
     });
   }
 
-  var jobs = { copy: 'copy.json', heat: 'data/heatmap_daily.json', idx: 'data/index_latest.json', mov: 'data/movers_week.json', fin: 'data/findings.json', rec: 'data/record_daily.json', mil: 'data/record_milestones.json' };
+  var jobs = { copy: 'copy.json', heat: 'data/heatmap_daily.json', idx: 'data/index_latest.json', mov: 'data/movers_week.json', fin: 'data/findings.json', rec: 'data/record_daily.json', src: 'data/sources_daily.json', mil: 'data/record_milestones.json' };
   // loading is a function so a tab left open can load again when a newer hour is published (siteLive, js/site_head.js)
   var wired = false;
   function load() {
@@ -184,7 +189,7 @@
     hero();
     // counted like the Countries page title: ranked countries with a price this hour, and how many sit within 2% (SEB-268, 12 Oct)
     var rk = ((got.idx && got.idx.countries) || []).filter(function (c) { return c.index_pct != null && c.denominator_class !== 'unmaintained'; });
-    $('heatT').textContent = rk.length ? T('heatTitle', { n: g(rk.filter(function (c) { return c.index_pct >= -2 && c.index_pct <= 2; }).length), N: g(rk.length) }) : '';
+    $('heatT').textContent = rk.length ? T('heatTitle', { n: g(rk.filter(function (c) { var v = Math.round(c.index_pct * 10) / 10; return v >= -2 && v <= 2; }).length), N: g(rk.length) }) : '';
     $('heatL').textContent = T('heatLine') + (T('heatTapNote') ? ' ' + T('heatTapNote') : '');
     build();
     heat();

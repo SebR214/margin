@@ -7,8 +7,8 @@
   var CODE = { answered_every_hour: 'a', missed_some: 's', missed_all: 'x', not_yet_a_source: 'n' };
   var STAT = { a: 'statusAnsweredEveryHour', s: 'statusMissedSome', x: 'statusMissedAll', n: 'statusNotYetASource' };
   var RANK = { n: 0, a: 1, s: 2, x: 3 };
-  var KIND = { p2p: 'kindP2p', order_book: 'kindOrderBook', broker: 'kindBroker', fx: 'kindFx', provider_quote: 'kindProviderQuote', other: 'kindOther' };
-  var KORDER = ['order_book', 'broker', 'fx', 'provider_quote', 'p2p', 'other'];
+  var KIND = { p2p: 'kindP2p', order_book: 'kindOrderBook', broker: 'kindBroker', fx: 'kindFx', street: 'kindStreet', provider_quote: 'kindProviderQuote', other: 'kindOther' };
+  var KORDER = ['order_book', 'broker', 'fx', 'street', 'provider_quote', 'p2p', 'other'];
   var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navHowItWorks', 'how-it-works.html']];
 
   var live = [], hist = [], days = [], kind = 'all', sel = null, collectorDays = [], gapText = '';
@@ -76,7 +76,9 @@
   }
 
   function counts(all) {
-    var total = all.length, nLive = all.filter(function (s) { return s.live; }).length, withH = all.filter(function (s) { return s.h.length; }).length;
+    // one per row, as the list shows them: the CriptoYa feeds count once
+    var rows = live.concat(hist);
+    var total = rows.length, nLive = live.length, withH = rows.filter(function (s) { return s.h.length; }).length;
     var b = function (n) { return '<b>' + n + '</b> '; };
     $('counts').innerHTML = b(total) + esc(T('bigLabel')) + '. ' + b(nLive) + esc(T('statLive')) + '. ' + b(total - nLive) + esc(T('statHistoryOnly')) + '.<br>' +
       b(withH) + esc(T('statWithHistory')) + ', ' + b(total - withH) + esc(T('statNoHistory')) + '.';
@@ -143,7 +145,8 @@
       '</div><div class="more">' + details(s) + '</div></div>';
   }
   function hrow(s) {
-    return '<div class="hrow"><div><b>' + esc(name(s.id)) + '</b><small>' + esc(T(KIND[s.k] || 'kindOther')) + '</small></div><div>' +
+    return '<div class="hrow"><div><b>' + esc(name(s.id)) + '</b><small>' + esc(T(KIND[s.k] || 'kindOther')) + '</small>' +
+      (((C.sourceDescriptions || {})[s.id]) ? '<small>' + esc(C.sourceDescriptions[s.id]) + '</small>' : '') + '</div><div>' +
       s.h.map(function (x) {
         return '<p class="num">' + esc(T('historyLineNoCcy', { series: seriesName(x.series), interval: every(x.interval), rows: g(x.rows), first: ddY(x.first), last: ddY(x.last) })) + '</p>';
       }).join('') + '</div></div>';
@@ -151,9 +154,8 @@
   function render() {
     var L = live.filter(function (s) { return kind === 'all' || s.k === kind; });
     var H = hist.filter(function (s) { return kind === 'all' || s.k === kind; });
-    var feeds = L.reduce(function (a, s) { return a + (s.feeds ? s.feeds.length : 1); }, 0);
     $('liveSec').hidden = !L.length;
-    $('liveH').textContent = T('liveHeading', { n: feeds });
+    $('liveH').textContent = T('liveHeading', { n: L.length });
     $('liveList').innerHTML = axis() + L.map(row).join('');
     $('histSec').hidden = !H.length;
     $('histH').textContent = T('historyOnlyHeading', { n: H.length });
