@@ -8,12 +8,24 @@ name: scout
 # Watched by watchdog.yml: no successful run in 8 days fails that workflow.
 
 on:
+  # GitHub's scheduler is not a clock: it delays or drops runs (the one-call runner was dropped on 7 Oct, and this
+  # workflow did not fire at all at 01:00 UTC on Monday 12 Oct, its first scheduled slot; there is no scheduled run in
+  # its history). So Monday has several slots and Tuesday has one, and tools/scout.py does nothing when the week's
+  # real run has already happened.
   schedule:
     - cron: "0 1 * * 1"
+    - cron: "17 1 * * 1"
+    - cron: "47 2 * * 1"
+    - cron: "17 5 * * 1"
+    - cron: "17 1 * * 2"
   workflow_dispatch:
     inputs:
       dry_run:
         description: "Dry run: one model call, print the spec and the checks, post nothing"
+        type: boolean
+        default: false
+      force:
+        description: "Run even if this week's run has already happened"
         type: boolean
         default: false
 
@@ -66,7 +78,8 @@ jobs:
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
           LINEAR_ACTIVITY_LOG_PATH: ${{ runner.temp }}/linear_activity.jsonl
           DRY: ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
-        run: python3 tools/scout.py $DRY | tee "$RUNNER_TEMP/scout_out.txt"
+          FORCE: ${{ (github.event.inputs.force == 'true' || github.event_name == 'workflow_dispatch') && '--force' || '' }}
+        run: python3 tools/scout.py $DRY $FORCE | tee "$RUNNER_TEMP/scout_out.txt"
 
       # The log and the spend rows are committed even when the Scout failed.
       - name: Commit the log and the spend

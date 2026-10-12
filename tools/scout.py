@@ -26,7 +26,7 @@ existing source probe (tools/probe_source.py) before the spec is posted.
 The spec is posted only if every check passes:
   - every number in it traces to a number the analyst's number check allows;
   - every listed file exists and is a file the builder may change;
-  - the files together stay under the size limit (80,000 characters);
+  - the files together stay under the size limit (110,000 characters);
   - every suggested venue is for a single-source market and passes the probe.
 If a check fails nothing is posted and the reason goes in data/scout_log.csv.
 If SEB-300 is not Done, the week is skipped.
@@ -54,7 +54,7 @@ DATA = os.path.join(ROOT, "data")
 INDEX_LATEST = os.path.join(DATA, "index_latest.json")
 CLAIMS_STATUS = os.path.join(DATA, "claims_status.json")
 EXCHANGE_P2P_GAP_PTS = 2.0      # an exchange price and a person-to-person price this far apart (points) count as a disagreement
-MAX_FILES_CHARS = 80_000         # all listed files together; the builder sends them whole and its prompt limit is 100,000
+MAX_FILES_CHARS = 110_000        # all listed files together; the builder sends them whole and its prompt limit (tools/llm.py) is 120,000
 MAX_TOKENS = 2500
 # Files the builder may never be asked to change: agent code, checks, workflows,
 # and the words (copy.json goes through the writer and Seb's approval).
@@ -78,7 +78,7 @@ Rules:
 - You never write reader-facing words. Never list a page, a stylesheet, a script or copy.json. If the job needs words, say they go through the writer.
 - Write the spec in markdown: a title line starting with '# ', then '## Why' (two to four sentences), '## What to build', '## Files', '## Context' (optional), '## Done when', and '## Venues' only if the job is a new source.
 - '## Files' lists, one per line, each in backticks, the files the builder may change. '## Context' lists read-only files the same way.
-- The builder is sent every listed file whole, and all of them together must stay under 80,000 characters. List only small files. Never list a data/*.csv or any large data file.
+- The builder is sent every listed file whole, and all of them together must stay under 110,000 characters. List only small files. Never list a data/*.csv or any large data file.
 - For a new source, only suggest venues. In '## Venues', one per line: `CCY` | `https://full-api-url` | `dotted.path.to.the.price.field`. The URL must return JSON with the price of one US dollar (or one dollar stablecoin) in that currency. The CCY must be one of the single-source markets you were given. Each venue is checked by a probe against an independent rate, and the spec is dropped if any fails. Suggest only venues you are sure exist.
 - Name only real files. Where things live:
 %s
@@ -280,8 +280,22 @@ def job_state():
 
 # ---------- main ----------
 
-def run(dry):
+def ran_this_week(path=LOG, now=None):
+    """True if a real (not dry) run already finished this ISO week: a log row with mode 'run' and a status other than
+    'failed'. The schedule has several slots because GitHub drops cron runs; only the first one that works does anything."""
+    if not os.path.exists(path):
+        return False
+    now = now or llm.now()
+    monday = (now - __import__("datetime").timedelta(days=now.weekday())).date().isoformat()
+    with open(path, newline="") as f:
+        return any(r["mode"] == "run" and r["status"] != "failed" and r["ts_utc"][:10] >= monday for r in csv.DictReader(f))
+
+
+def run(dry, force=False):
     mode = "dry-run" if dry else "run"
+    if not dry and not force and ran_this_week():
+        print("already ran this week, nothing to do")
+        return 0
     name, typ = job_state()
     if typ != "completed":
         log_row(mode, "skipped", "%s is %s, not Done" % (JOB, name))
@@ -363,6 +377,17 @@ def self_test():
     assert all(m["ccy"] and m["sources"] == 1 for m in ins["single_source_markets"])
     assert all(not c["claim"].endswith(".md") for c in ins["failing_claims"])
     assert len(p) < llm.MAX_PROMPT_CHARS // 2, "the prompt must stay far below the limit"
+    # one real run a week: a 'run' row this ISO week stops later slots; a dry run, a failure, or last week's row does not
+    import datetime as _dt
+    with tempfile.TemporaryDirectory() as d:
+        lg = os.path.join(d, "scout_log.csv")
+        now = _dt.datetime(2026, 10, 13, 1, 17, tzinfo=_dt.timezone.utc)      # a Tuesday; the week began Mon 12 Oct
+        assert not ran_this_week(lg, now)
+        for mode, status, ts, want in (("dry-run", "rejected", "2026-10-12T01:00:00", False), ("run", "failed", "2026-10-12T01:00:00", False),
+                                       ("run", "posted", "2026-10-05T01:00:00", False), ("run", "rejected", "2026-10-12T01:00:00", True)):
+            with open(lg, "w", newline="") as f:
+                w = csv.writer(f); w.writerow(LOG_HEADER); w.writerow([ts, mode, status, "", "", "0"])
+            assert ran_this_week(lg, now) is want, (mode, status, ts)
     print("scout self-test: ok")
 
 
@@ -371,7 +396,7 @@ if __name__ == "__main__":
         self_test()
         sys.exit(0)
     try:
-        code = run("--dry-run" in sys.argv)
+        code = run("--dry-run" in sys.argv, "--force" in sys.argv)
     except llm.LLMError as e:
         print("SCOUT FAILED: %s" % e, file=sys.stderr)
         log_row("dry-run" if "--dry-run" in sys.argv else "run", "failed", str(e))
