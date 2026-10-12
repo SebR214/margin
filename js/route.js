@@ -488,6 +488,22 @@
     S.amount = amountObj(routeObj(S.route), amt) ? amt : 5000;
     app.addEventListener("click", onClick);
     renderAll();
+    (window.siteLive = window.siteLive || { handlers: [], onNewHour: function (fn) { this.handlers.push(fn); } }).onNewHour(refresh);
+  }
+
+  // a tab left open loads the newer hour when it is published (siteLive, js/site_head.js); the picked route and amount stay
+  function refresh() {
+    return Promise.all([maybeJSON("copy.json"), getJSON("data/routes_hourly.json"), maybeJSON("data/routes_breakdown.json")]).then(function (res) {
+      if (!res[1]) return;
+      COPY = (res[0] && res[0].routeData) || COPY;
+      HOURLY = res[1]; BRK = res[2];
+      HOURLY.hour_columns.forEach(function (c, i) { COL[c] = i; });
+      if (BRK) BRK.columns.forEach(function (c, i) { BCOL[c] = i; });
+      if (!amountObj(routeObj(S.route), S.amount)) { S.amount = 5000; }
+      var y = window.scrollY;
+      renderAll();
+      window.scrollTo(0, y);
+    }).catch(function () { /* a failed refresh leaves what the reader already has */ });
   }
 
   Promise.all([maybeJSON("copy.json"), getJSON("data/routes_hourly.json"), maybeJSON("data/routes_breakdown.json")])

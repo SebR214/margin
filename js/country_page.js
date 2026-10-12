@@ -183,17 +183,21 @@
     $('nf').hidden = true;
   }
 
+  var started = false;
   function start(res) {
     C = (res[0] && res[0].countryData) || {};
-    nav();
+    if (!started) { nav(); }
     $('cnav').innerHTML = '<a class="back" href="./countries.html">' + esc(T('navCountries')) + '</a>';
-    if (!res[1] || !res[2]) { return fail(ccy && !res[1] ? 'notFound' : 'loadFailed', { code: ccy }); }
+    if (!res[1] || !res[2]) { if (started) { return; } return fail(ccy && !res[1] ? 'notFound' : 'loadFailed', { code: ccy }); }
     S.c = res[1]; S.withheld = (res[2].withheld || []).filter(function (w) { return w.ccy === ccy; })[0] || null;
     S.idx = res[3]; S.seg = res[4]; S.depth = res[5] && res[5].countries && res[5].countries[ccy] || null;
     S.switches = res[6] || [];
     S.own = S.c.history.filter(function (h) { return !isBack(h); });
+    var again = started, y = window.scrollY;
+    started = true;
     document.title = 'margin.wiki: ' + S.c.country;
     hero(); chart(); source();
+    if (again) { window.scrollTo(0, y); }
     if (S.idx && S.idx.months && S.idx.months.length) {
       loadRows(shown).then(function (rows) { S.rows = rows; receipts(); }).catch(function () { $('rcp').innerHTML = '<p class="note">' + esc(T('receiptsFailed')) + '</p>'; });
     } else { S.rows = []; receipts(); }
@@ -210,15 +214,21 @@
   var seg = ccy ? maybe('data/country_history_segment/manifest.json').then(function (m) {
     return m && m.ccys && m.ccys.indexOf(ccy) >= 0 ? maybe('data/country_history_segment/' + ccy + '.json') : null;
   }) : Promise.resolve(null);
-  Promise.all([
-    maybe('copy.json'),
-    ccy ? maybe('data/countries/' + ccy + '.json') : Promise.resolve(null),
-    maybe('data/index_latest.json'),
-    ccy ? maybe('data/country_readings/' + ccy + '/index.json') : Promise.resolve(null),
-    seg, maybe('data/street_depth_latest.json'),
-    fetch('data/source_switches.csv', { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
-      var l = t.trim().split(/\r?\n/), h = (l[0] || '').split(',');
-      return l.slice(1).map(function (x) { var p = x.split(','), o = {}; h.forEach(function (k, i) { o[k] = p[i]; }); return o; });
-    }).catch(function () { return []; })
-  ]).then(start).catch(function () { fail('loadFailed'); });
+  // loading is a function so a tab left open can load again when a newer hour is published (siteLive, js/site_head.js);
+  // the picked period and how many readings are shown stay
+  function load(again) {
+    return Promise.all([
+      maybe('copy.json'),
+      ccy ? maybe('data/countries/' + ccy + '.json') : Promise.resolve(null),
+      maybe('data/index_latest.json'),
+      ccy ? maybe('data/country_readings/' + ccy + '/index.json') : Promise.resolve(null),
+      seg, maybe('data/street_depth_latest.json'),
+      fetch('data/source_switches.csv', { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
+        var l = t.trim().split(/\r?\n/), h = (l[0] || '').split(',');
+        return l.slice(1).map(function (x) { var p = x.split(','), o = {}; h.forEach(function (k, i) { o[k] = p[i]; }); return o; });
+      }).catch(function () { return []; })
+    ]).then(start).catch(function () { if (!again) { fail('loadFailed'); } });
+  }
+  load(false);
+  (window.siteLive = window.siteLive || { handlers: [], onNewHour: function (fn) { this.handlers.push(fn); } }).onNewHour(function () { return load(true); });
 })();
