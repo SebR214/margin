@@ -406,7 +406,18 @@ def exchange_vs_p2p_finding():
 
 def build():
     fs = price_changes_findings() + [volume_crossover_finding(), sgd_php_finding(), exchange_vs_p2p_finding(), stress_finding(), spread_finding()]
-    return {"as_of_utc": max(f["last_recheck_utc"] for f in fs), "findings": fs}
+    as_of = max(f["last_recheck_utc"] for f in fs)
+    # the day each finding first went live in git, read once from the history into the sidecar; a new finding gets the day it first appears here
+    path = os.path.join(DATA, "findings_first_published.json")
+    first = json.load(open(path)) if os.path.exists(path) else {}
+    added = False
+    for f in fs:
+        if f["id"] not in first:
+            first[f["id"]] = as_of[:10]
+            added = True
+    if added:
+        PENDING[path] = json.dumps(first, indent=1, sort_keys=True) + "\n"
+    return {"as_of_utc": as_of, "findings": fs}
 
 
 def self_test(doc):

@@ -72,6 +72,7 @@
     var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(s || '');
     return m ? (+m[3]) + ' ' + MONTHS[+m[2] - 1] + ', ' + m[4] : (s || '');
   }
+  function dayY(s) { return s ? (+s.slice(8, 10)) + ' ' + MON[+s.slice(5, 7) - 1] + ' ' + s.slice(0, 4) : ''; }
   function fmtWhen(s) { var z = T('utc'); return fmtTime(s) + (z && s ? ' ' + z : ''); }
   // The currency a route's amount is sent in: "SGD->PHP" -> "SGD".
   function fromCcy(route) { var m = /^([A-Z]{3})\s*(?:->|\u2192)/.exec(route || ''); return m ? m[1] : ''; }
@@ -224,10 +225,8 @@
       body.appendChild(el('span', ['fp-card-val', 'mono'], fmt(h.value)));
       kid(body, word('span', ['soft', 'fp-note'], 'unit_' + h.unit));
     }
-    if (f.last_recheck_utc && T('lastRecheck')) {
-      var m = kid(body, el('span', ['fp-card-meta', 'muted']));
-      m.appendChild(el('span', '', T('lastRecheck')));
-      m.appendChild(el('span', 'mono', fmtWhen(f.last_recheck_utc)));
+    if (f.first_published && T('firstPublished')) {
+      kid(body, el('span', ['fp-card-meta', 'muted'], T('firstPublished').replace('{date}', dayY(f.first_published))));
     }
     return a;
   }
@@ -247,9 +246,8 @@
     }
     
     // Recheck time
-    if (f.last_recheck_utc && T('lastRecheck')) {
-      var whenText = T('lastRecheck') + ' ' + fmtWhen(f.last_recheck_utc);
-      txt.appendChild(el('p', 'when', whenText));
+    if (f.first_published && T('firstPublished')) {
+      txt.appendChild(el('p', 'when', T('firstPublished').replace('{date}', dayY(f.first_published))));
     }
     
     a.appendChild(txt);
@@ -326,8 +324,8 @@
 
     var stats = el('div', 'fp-stats');
     // What backs the number first, then when it was checked; the download's size and row count come last.
+    if (f.first_published && T('firstPublished')) { kid(stats, el('p', ['fp-first', 'muted'], T('firstPublished').replace('{date}', dayY(f.first_published)))); }
     kid(stats, stat('statEvidence', (f.evidence || []).length ? fmt(f.evidence.length) : ''));
-    kid(stats, stat('lastRecheck', fmtWhen(f.last_recheck_utc)));
     kid(stats, stat('statRows', typeof f.hours_rows === 'number' ? fmt(f.hours_rows) : ''));
     kid(stats, stat('statSize', size === null ? '' : fmtBytes(size)));
     if (stats.firstChild) wrap.appendChild(stats);
@@ -357,8 +355,10 @@
   Promise.all([
     load('./copy.json').then(function (r) { return r.json(); }).catch(function () { return {}; }),
     load('./data/findings.json').then(function (r) { return r.json(); }).catch(function () { return { findings: [] }; }),
-    load('./data/claims_status.json').then(function (r) { return r.json(); }).catch(function () { return null; })
+    load('./data/claims_status.json').then(function (r) { return r.json(); }).catch(function () { return null; }),
+    load('./data/findings_first_published.json').then(function (r) { return r.json(); }).catch(function () { return {}; })
   ]).then(function (res) {
+    (res[1].findings || []).forEach(function (f) { f.first_published = res[3][f.id] || ''; });
     C = res[0].findingData || {};
     CLAIMS = res[2];
     BRAND = typeof res[0].brand === 'string' ? res[0].brand : '';

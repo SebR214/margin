@@ -18,6 +18,7 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function g(n) { return Math.round(n).toLocaleString('en-US'); }
   function dd(s) { return (+s.slice(8, 10)) + ' ' + MON[+s.slice(5, 7) - 1]; }
+  function dayY(s) { return dd(s) + ' ' + s.slice(0, 4); }
   function stampT(s) { return dd(s) + ', ' + s.slice(11, 16); }
   function sgd(v) { return (v < 0 ? MINUS : '') + 'S$' + Math.abs(v).toFixed(2); }
   function routeName(rid) { var p = rid.split('->'); return ((PLACE[p[0]] || p[0]) + ' to ' + (TO[p[1]] || p[1])).replace(/^the /, '').replace(/^./, function (c) { return c.toUpperCase(); }); }
@@ -74,7 +75,7 @@
     var big = id === 'volume_crossover' ? 'S$' + g(f.headline.value) : g(f.headline.value);
     $('hero').innerHTML = '<h1>' + esc(title(id)) + '</h1><p class="lead">' + esc(claim(id)) + '</p>' +
       '<p class="numline"><b class="num">' + big + '</b><span>' + esc(T('unit_' + f.headline.unit)) + '</span></p>' +
-      '<p class="stamp num">' + esc(T('lastRecheck')) + ' ' + esc(stampT(f.last_recheck_utc)) + ' ' + esc(T('utc')) + '</p>';
+      '<p class="stamp num">' + esc(f.first_published ? T('firstPublished', { date: dayY(f.first_published) }) : '') + '</p>';
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
     $('chart').innerHTML = '';
     CHARTS[id]();
@@ -345,12 +346,12 @@
   });
   var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (CHARTS[id] && DATA[id]) { CHARTS[id](); } }, 150); });
 
-  Promise.all([getJSON('copy.json').catch(function () { return {}; }), getJSON('data/findings.json').catch(function () { return null; }), getJSON('data/claims_status.json').catch(function () { return null; })]).then(function (r) {
+  Promise.all([getJSON('copy.json').catch(function () { return {}; }), getJSON('data/findings.json').catch(function () { return null; }), getJSON('data/claims_status.json').catch(function () { return null; }), getJSON('data/findings_first_published.json').catch(function () { return {}; })]).then(function (r) {
     C = (r[0] && r[0].findingData) || {};
     CLAIMS = r[2];
     var nav = $('nav');
     NAV.forEach(function (x) { var t = C[x[0]]; if (!t) { return; } var a = document.createElement('a'); a.textContent = t; a.href = './' + x[1]; nav.appendChild(a); });
-    ((r[1] && r[1].findings) || []).forEach(function (f) { FIN[f.id] = f; });
+    ((r[1] && r[1].findings) || []).forEach(function (f) { f.first_published = r[3][f.id] || ''; FIN[f.id] = f; });
     AS_OF = (r[1] && r[1].as_of_utc) || '';
     var want = new URLSearchParams(location.search).get('id');
     if (!want || ORDER.indexOf(want) < 0 || !FIN[want]) {
