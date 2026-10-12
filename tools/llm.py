@@ -5,8 +5,8 @@ three refusals that are enforced here and nowhere else:
   1. Money. Before every call it adds up this month's rows in
      data/agent_spend.csv and refuses any call whose worst-case cost would take
      the month past MONTHLY_CAP_USD ($20, all agents together).
-  2. Size. It refuses a prompt over MAX_PROMPT_CHARS (120,000 characters, about
-     30,000 tokens).
+  2. Size. It refuses a prompt over MAX_PROMPT_CHARS (130,000 characters, about
+     32,000 tokens).
   3. Model. It refuses any Opus or Fable model. The Scout resolves the newest
      `anthropic/claude-sonnet` model from OpenRouter's own list and fails loudly
      if there is none; the builder names its own cheap models.
@@ -34,7 +34,7 @@ SPEND_PATH = os.path.join(ROOT, "data", "agent_spend.csv")
 SPEND_HEADER = ["ts_utc", "issue", "model", "tokens_in", "tokens_out",
                 "cost_usd", "result"]
 MONTHLY_CAP_USD = 20.00
-MAX_PROMPT_CHARS = 120_000
+MAX_PROMPT_CHARS = 130_000
 CHARS_PER_TOKEN = 4          # a deliberately rough upper-ish estimate for the pre-call cost check
 API = "https://openrouter.ai/api/v1"
 SONNET_PREFIX = "anthropic/claude-sonnet"
