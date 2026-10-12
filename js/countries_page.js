@@ -108,9 +108,16 @@
     var s = el('div', 'ci-hero');
     put(s, 'h1', null, t('h1Template', { n: num(ctx.nearCount), N: num(ctx.rankedLen) }));
     put(s, 'p', 'ci-lead', t('leadTemplate', { n: num(ctx.farCount), country: ctx.topName, x: ctx.topX }));
-    var metaVars = { time: ctx.time, n: num(ctx.pricedCount), total: num(ctx.total), N: num(ctx.rankedLen) };
+    var unranked = ctx.unrankedRows || [];
+    var metaVars = {
+      time: ctx.time, n: num(ctx.pricedCount), total: num(ctx.total), N: num(ctx.rankedLen),
+      priced: num(ctx.pricedCount), tracked: num(ctx.total), missing: num(ctx.total - ctx.pricedCount),
+      country: unranked.length ? unranked[0].country : '', unranked: num(unranked.length),
+      countries: unranked.map(function (r) { return r.country; }).join(', ')
+    };
     // the headline counts ranked countries only; say so when the priced count is higher (a country whose official rate is frozen is shown, not ranked)
-    var metaTxt = ctx.rankedLen < ctx.pricedCount && t('metaLineUnranked') ? t('metaLineUnranked', metaVars) : t('metaLine', metaVars);
+    var metaTxt = unranked.length > 1 && t('metaLineUnrankedMany') ? t('metaLineUnrankedMany', metaVars)
+      : unranked.length === 1 && t('metaLineUnranked') ? t('metaLineUnranked', metaVars) : t('metaLine', metaVars);
     if (metaTxt) {
       var m = el('p', ['ci-meta', 'ci-num']);
       m.appendChild(document.createTextNode(metaTxt));
@@ -354,7 +361,7 @@
       topName: topRow ? topRow.country : '', topX: topRow ? Math.abs(r1(topRow.p)).toFixed(1) : '',
       time: time, pricedCount: countries.length, total: total,
       regionOrder: D.region_order || [], rankedRegions: rankedRegions,
-      grouped: grouped, withheld: withheld, frozenRow: frozenRow, weeklySample: weeklySample
+      grouped: grouped, withheld: withheld, frozenRow: frozenRow, unrankedRows: allRows.filter(function (r) { return r.unranked; }), weeklySample: weeklySample
     };
   }
 
