@@ -415,7 +415,6 @@ def build():
         if f["id"] not in first:
             first[f["id"]] = as_of[:10]
             added = True
-        f["first_published"] = first[f["id"]]
     if added:
         PENDING[path] = json.dumps(first, indent=1, sort_keys=True) + "\n"
     return {"as_of_utc": as_of, "findings": fs}
@@ -429,7 +428,6 @@ def self_test(doc):
         h = f["headline"]
         assert isinstance(h["value"], (int, float)) and h["unit"] and h["as_of_utc"]
         assert f["evidence"] and f["source_files"] and f["method_files"]
-        assert len(f["first_published"]) == 10 and f["first_published"] <= doc["as_of_utc"][:10]
         assert f["last_recheck_utc"] >= h["as_of_utc"] or h["as_of_utc"] <= doc["as_of_utc"]
         full = os.path.join(HERE, f["download_file"])
         assert f["download_file"] and (os.path.exists(full) or PENDING.get(full)), f["id"]

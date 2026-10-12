@@ -355,8 +355,10 @@
   Promise.all([
     load('./copy.json').then(function (r) { return r.json(); }).catch(function () { return {}; }),
     load('./data/findings.json').then(function (r) { return r.json(); }).catch(function () { return { findings: [] }; }),
-    load('./data/claims_status.json').then(function (r) { return r.json(); }).catch(function () { return null; })
+    load('./data/claims_status.json').then(function (r) { return r.json(); }).catch(function () { return null; }),
+    load('./data/findings_first_published.json').then(function (r) { return r.json(); }).catch(function () { return {}; })
   ]).then(function (res) {
+    (res[1].findings || []).forEach(function (f) { f.first_published = res[3][f.id] || ''; });
     C = res[0].findingData || {};
     CLAIMS = res[2];
     BRAND = typeof res[0].brand === 'string' ? res[0].brand : '';
