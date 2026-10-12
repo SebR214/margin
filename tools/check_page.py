@@ -21,12 +21,6 @@ Stdlib only. Exit status 0 only if every page passed.
 Usage:
   python3 tools/check_page.py                 # every reader-facing page
   python3 tools/check_page.py providers.html  # only these
-
-ask.html's static shell is always checked. Its live answer -- a real question
-asked of the real backend -- only runs under CHECK_PAGE_LIVE_ASK=1, since a
-live model call makes the result depend on what the model returns today, not
-on the code under review (SEB-110):
-  CHECK_PAGE_LIVE_ASK=1 python3 tools/check_page.py ask.html
 """
 
 import glob
@@ -70,7 +64,7 @@ EMPTY_STATES = ("could not be read", "no comparison available",
 PAGES = ["index.html", "providers.html", "pricing-history.html",
          "corridor.html", "methodology.html", "status.html", "findings.html",
          "requests.html", "calculator.html", "weekly.html", "data.html",
-         "ask.html", "watch.html", "stress.html", "how-it-was-built.html",
+         "watch.html", "stress.html", "how-it-was-built.html",
          "countries.html", "sending-money.html", "how-it-works.html",
          "country.html", "fee-tiers.html", "agent-incidents.html", "tape.html",
          "finding.html"]
@@ -103,8 +97,6 @@ PAGE_VISIT_SUFFIX = {"country.html": "?ccy=DZD", "finding.html": "?id=price_chan
 # watch.html used to need "?verify=0" here to headlessly trigger its live
 # backend condition-setting flow -- it's a redirect stub now (SESSIONS.md
 # Session 2), that flow doesn't exist on this page anymore.
-if LIVE_ASK:
-    PAGE_VISIT_SUFFIX["ask.html"] = "?verify=0"
 
 # The site ships no favicon, so every page logs one 404 that means nothing.
 IGNORED_ERRORS = ("favicon.ico",)
@@ -265,7 +257,6 @@ PAGE_TITLE = {
     "calculator.html": "margin.wiki — sending money",
     "weekly.html": "margin.wiki — sending money",
     "data.html": "margin.wiki — how it was built",
-    "ask.html": "margin.wiki — ask it a question",
     "watch.html": "margin.wiki — how it was built",
     "stress.html": "margin.wiki — sending money",
     "how-it-was-built.html": "margin.wiki — how it was built",
@@ -397,7 +388,7 @@ def main():
     # watch.html's is one model call plus a query -- slower than any static
     # page's fetch, so both get a longer settle. ask.html only fires its live
     # call under CHECK_PAGE_LIVE_ASK=1 (see PAGE_VISIT_SUFFIX above).
-    settle = 8 if (("ask.html" in pages and LIVE_ASK) or "watch.html" in pages) else 2.5
+    settle = 8 if "watch.html" in pages else 2.5
     try:
         with Page(settle=settle) as browser:
             for p in pages:
