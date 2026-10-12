@@ -117,6 +117,9 @@ def build(now=None):
     lines.append("- **Sources:** %d approved; %s in quarantine; %s" % (
         len(st["approved"]), ", ".join(st["quarantine"]) or "none",
         ("NOT LISTED but collecting rows (ignored by the index): " + ", ".join(st["unlisted_with_rows"])) if st["unlisted_with_rows"] else "none unlisted"))
+    ack = check_audit_health.acknowledged()
+    if ack:
+        lines.append("  - parked for Seb, not alarming until the date: " + "; ".join("%s (until %s)" % (k, v["until"]) for k, v in sorted(ack.items())))
     lines.append("- **Spend this month:** $%.2f of $%.2f (%d%%)" % (month, llm.MONTHLY_CAP_USD, round(month / llm.MONTHLY_CAP_USD * 100)))
     return "\n".join(lines)
 
