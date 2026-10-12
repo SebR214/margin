@@ -425,31 +425,6 @@ def instrument_check(ccy, venue_names, spread_latest):
     }
 
 
-def stable_spread_summary(spread_latest):
-    """What methodology.html shows: the dataset's own current shape.
-
-    Every figure here is read straight from stable_spread.csv's most recent
-    source_ok rows -- nothing here is the per-currency instrument_check, and
-    nothing here decides whether a country page shows a note.
-    """
-    if not spread_latest:
-        return None
-    widest_key = max(spread_latest, key=lambda k: abs(spread_latest[k][1]))
-    widest_ccy, widest_venue = widest_key
-    widest_ts, widest_bps = spread_latest[widest_key]
-    pcts = [spread / 100 for _, spread in spread_latest.values()]
-    return {
-        "venues": len({venue for _, venue in spread_latest}),
-        "readings": len(spread_latest),
-        "rows": len(rows(STABLE_SPREAD)),
-        "range_pct": {"low": round(min(pcts), 4), "high": round(max(pcts), 4)},
-        "widest_pct": round(widest_bps / 100, 4),
-        "widest_venue": widest_venue,
-        "widest_ccy": widest_ccy,
-        "as_of": max(ts for ts, _ in spread_latest.values()).isoformat(),
-    }
-
-
 def is_broker(venue):
     """CriptoYa reports brokers and fintechs quoting a retail spread, not books."""
     return venue.startswith("CriptoYa:")
