@@ -48,7 +48,7 @@ Fixes that keep collection running or make existing numbers right always qualify
 
 ## Never
 
-- No model runs on a timer. No new agents or loops.
+- Only the four agents in SEB-301, within their caps. No new agents or loops.
 - No model calculates a published number.
 - Nothing goes live without a passing test and words Seb approved.
 - Prices a source reports from before we started stay labelled "reported, not seen by us" and never mix into our hourly series.
