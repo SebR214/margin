@@ -20,6 +20,20 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 RUNS = 3
+ACK = os.path.join(DATA, "claims_acknowledged.json")
+
+
+def acknowledged(today=None, path=ACK):
+    """Claims someone has looked at and parked for a decision, with an end date. Still false, still listed in
+    the daily status, but they do not fail the watchdog until the date passes: an alarm that rings all night about
+    something that is already waiting on a person only teaches people to ignore it."""
+    import datetime
+    if not os.path.exists(path):
+        return {}
+    today = today or datetime.date.today().isoformat()
+    with open(path) as f:
+        doc = json.load(f)
+    return {k: v for k, v in (doc.get("claims") or {}).items() if v.get("until", "") >= today}
 
 
 def last_runs(rows, key, n):
@@ -87,6 +101,13 @@ def self_test():
     assert persistent_audit_failure(latest, bad_hist) == (True, ["country:MAD"])
     assert persistent_audit_failure(latest, ok_hist)[0] is False
     assert persistent_audit_failure({"failed": 0, "failures": []}, bad_hist)[0] is False
+    # an acknowledged claim is listed but does not fail; once its date passes it fails again
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, "ack.json")
+        json.dump({"claims": {"b.bad": {"until": "2026-10-19", "reason": "waiting on words"}}}, open(p, "w"))
+        assert "b.bad" in acknowledged("2026-10-15", p) and "b.bad" not in acknowledged("2026-10-20", p)
+        assert acknowledged("2026-10-15", os.path.join(d, "none.json")) == {}
     print("check_audit_health self-test: ok")
 
 
@@ -97,6 +118,10 @@ def main():
     latest, ah, status, ch = load()
     audit_bad, ids = persistent_audit_failure(latest, ah)
     claims = persistent_false_claims(status, ch)
+    ack = acknowledged()
+    for k in [k for k in claims if k in ack]:
+        print("ACKNOWLEDGED until %s: claim %s is false. %s" % (ack[k]["until"], k, ack[k].get("reason", "")))
+        del claims[k]
     for i in ids:
         print("DOWN: number %s has not matched its raw rows for %d runs" % (i, RUNS))
     for k in claims:
