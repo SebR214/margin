@@ -52,7 +52,7 @@ def add_fake_row(work, factor=1.4):
 
 
 def approve_fake(work):
-    add_fake_row(work, 1.06)       # small enough not to be a sudden flip, so only the gate decides
+    add_fake_row(work, 1.03)       # small enough not to be a sudden flip, so only the gate decides
     p = os.path.join(work, "data", "source_registry.json")
     reg = json.load(open(p))
     reg["sources"]["FakeEx"] = {"status": "approved", "basis": "test control"}
@@ -79,7 +79,7 @@ def main():
     r3, _ = run(lambda w: os.remove(os.path.join(w, "data", "source_registry.json")))
     assert r3.returncode != 0 and "source_registry" in (r3.stderr + r3.stdout), "no registry must fail loudly"
     print("source gate, bad row: %s %+.2f%% (%s source) unchanged with an unlisted FakeEx 40%% high; "
-          "approved (at 6%% high) it moves to %+.2f%%; no registry fails loudly: ok" % (CCY, base["index_pct"], base["n_sources"], moved["index_pct"]))
+          "approved (at 3%% high) it moves to %+.2f%%; no registry fails loudly: ok" % (CCY, base["index_pct"], base["n_sources"], moved["index_pct"]))
     return 0
 
 
