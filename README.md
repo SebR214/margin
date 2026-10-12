@@ -1,88 +1,54 @@
 # margin.wiki
 
-**What a cross-border transfer actually costs, decomposed — and when the
-stablecoin rail wins.**
+Every hour, margin.wiki prices a dollar in 60 countries against the official exchange rate, and prices sending money on 7 routes with every fee we can measure. The site is at [margin.wiki](https://margin.wiki), served from this repository's `main` branch by GitHub Pages.
 
-The public argument about stablecoin payments measures the wrong thing. Moving
-value between two wallets is genuinely near-free. But a transfer that starts in a
-bank account and ends in one has to pass through two doors — an on-ramp and an
-off-ramp — and that is where essentially all of the cost sits.
+Every figure on this page was counted from the files on `main` on 12 Oct 2026, around 03:07 UTC. The counts change every hour.
 
-Measured live on the SGD→PHP corridor, S$5,000:
+## What it measures
 
-```
-on-ramp basis (USDT vs USD mid, SG)   −12.0 bps   ← a gain
-on-ramp taker fee                     +50.0
-network fee (1 USDT)                   +2.6       ← the entire public narrative
-off-ramp basis (USDT vs USD mid, PH)  +29.2
-off-ramp taker fee                    +15.0
-                                      ───────
-                                       84.8 bps   vs Wise at 65.9 bps
-```
+**A dollar in 60 countries.** For each country we take the price people pay for a dollar stablecoin in local money, and compare it with the official rate. The gap is the number. A country shows no price for an hour when there is not enough evidence, and the page says why. At the 02:00 UTC hour on 12 Oct, 47 of the 60 had a price and 13 did not.
 
-(Fees verified against both venues' published schedules 2026-08-10 — IR 0.50%
-default tier, Coins.ph Pro 0.15% VIP0.)
+Where the price comes from, in this order: exchange order books, then broker quotes, then offers between people on Binance and OKX. The rules are in [METHODOLOGY.md](METHODOLOGY.md). The index is at version 1.4 (`index_version` in `data/index_latest.json`).
 
-The rail costs 2.6 bps. The doors cost 82. Execution barely helps at the base
-tier: priced as a maker instead of a taker — same books, same second — the cost
-falls only to **~79.6 bps**, because a posted order still pays Independent
-Reserve's flat 0.50% and Coins.ph's 0.10% maker fee. Maker is not free
-execution, and the ~5 bps it saves does not close the gap: **at published
-base-tier fees the stablecoin route loses to Wise in _both_ regimes**, across
-every size on the ladder. It turns favourable only once volume-tier fee
-discounts kick in — a crossover this repo is built to *measure* from history,
-not assume. (An earlier draft claimed maker was ~19.8 bps and beat Wise 3×; that
-was an artefact of modelling maker trading as free. See METHODOLOGY.md.)
+**Sending money on 7 routes.** Australia to the Philippines, New Zealand to the Philippines, Singapore to the Philippines, Singapore to India, United States to India, United States to Mexico and United States to Nigeria, each at five amounts in the sending currency: 200, 1,000, 5,000, 25,000 and 50,000. For each we price the transfer apps and sending it by stablecoin, and show how much less the person receiving gets than at the official rate.
 
-This repo collects the data behind that argument, hourly. See
-[METHODOLOGY.md](METHODOLOGY.md) for what is measured, what is assumed, and what
-cannot be seen.
+## Where the data is
 
-## Run order — do not skip step 1
+Everything the site shows is read from files in [`data/`](data/). It held 90 files and 14 folders on 12 Oct 2026. The main ones:
+
+| File | What it holds | Rows on 12 Oct | First row |
+|---|---|---|---|
+| `data/basis.csv` | exchange order books and broker quotes | 46,237 | 10 Aug 2026 |
+| `data/p2p_basis.csv` | Binance offers between people | 46,331 | 2 Sep 2026 |
+| `data/p2p_okx.csv` | OKX offers between people | 10,865 | 3 Oct 2026 |
+| `data/fx_rates.csv` | official exchange rates | 43,617 | 10 Sep 2026 |
+| `data/samples.csv` | the stablecoin route, priced step by step | 23,770 | 10 Aug 2026 |
+| `data/provider_quotes.csv` | transfer app quotes | 46,400 | 10 Sep 2026 |
+| `data/index_hourly.csv` | the figure each country published, hour by hour | 33,622 | 10 Sep 2026 |
+
+The published results are in `data/index_latest.json`, `data/countries/<CODE>.json` (one per country), `data/routes_hourly.json` and `data/findings.json`. The Sources page counts 65 sources.
+
+CSV files are only ever appended to. A failed pull is a row with `source_ok=false`, never a filled-in guess. Prices a source reports from before we started are kept apart in `data/history/` and never feed a price.
+
+## How collection runs
+
+On GitHub Actions. [`collect.yml`](.github/workflows/collect.yml) runs about every 30 minutes: each run waits for the next slot and starts the next one itself, and a schedule at 17 and 47 minutes past the hour restarts the chain if it has died. Each hour it pulls prices, writes the rows, then builds the published files and commits them to `main`. [`collector_watchdog.yml`](.github/workflows/collector_watchdog.yml) and [`watchdog.yml`](.github/workflows/watchdog.yml) check it from outside. A missed hour cannot be refilled, so nothing in `collector*.py` or `collect.yml` merges without a person.
+
+Checks run on every pull request ([`checks.yml`](.github/workflows/checks.yml)). Work is tracked in Linear, not in GitHub issues.
+
+## Check a number
+
+Each price on a country page links to the file it came from. [METHODOLOGY.md](METHODOLOGY.md) says what is measured, what is assumed and what cannot be seen. The Sources page lists every source and the days it answered.
+
+## Run it yourself
 
 ```bash
 pip install -r requirements.txt
-
-python3 collector.py --selftest   # offline; validates the math against real captured payloads
-python3 collector.py --verify     # ONE LIVE PULL. prints the waterfall, writes nothing.
+python3 collector.py --selftest   # offline checks against captured payloads
+python3 collector.py --verify     # one live pull, prints the result, writes nothing
 python3 collector.py              # appends a sample to data/samples.csv
 ```
 
-`--verify` is the step that matters. A previous version of this collector was
-pushed to a scheduled job without it and pointed at `api.coins.ph`, a hostname
-that does not resolve. It ran hourly for 34 days and recorded nothing but DNS
-errors, because nothing ever went red. Run `--verify`, read the numbers, confirm
-they are sane, *then* enable the schedule.
+Run `--verify` and read the numbers before you schedule anything: a collector once ran for 34 days against a hostname that did not resolve and recorded only errors.
 
-## Then start the clock
-
-```bash
-git init && git add -A && git commit -m "collector"
-gh repo create margin-wiki --public --source=. --push
-```
-
-Actions → enable workflows → run **collect** manually once → confirm a new row
-lands in `data/samples.csv`. After that the workflow keeps itself running: every
-run sleeps until the next :05 or :35 UTC and starts the next one with the
-built-in `GITHUB_TOKEN`, so collection needs no cron, no personal access token
-and nothing outside GitHub — and the `17,47` schedule stays on as a restarter
-that only collects if it finds the chain dead.
-
-History is the only part of this that cannot be rebuilt. The site can be ugly for
-months; the collector cannot be down for a week.
-
-## What accumulates
-
-One row per (hour × corridor × notional), carrying the full decomposition —
-both bases, both execution regimes, book depth, the incumbent baseline at the
-same instant, and the fee configuration in force when the row was written, so
-history stays interpretable when a venue changes its schedule.
-
-## Status
-
-- [x] SGD→PHP collector, size ladder S$200 → S$50,000
-- [x] Verify taker fee schedules against venue fee pages (2026-08-10: IR 50 bps confirmed; Coins.ph corrected 25 → 15 bps)
-- [ ] One week of history
-- [ ] Write-up: the taker/maker crossover
-- [ ] Write-up: why stablecoins are worst at remittance sizes (~156 bps at S$200)
-- [ ] Front end
+Not switched on: a public API in the server folder (it needs a DNS record, SEB-213).
