@@ -29,11 +29,11 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COPY = os.path.join(HERE, "copy.json")
 
 # Every page that carries the shared site nav. A page reachable only by
-# deep link (ask.html, how-it-was-built.html, corridor.html) still gets the
+# deep link (how-it-was-built.html, corridor.html) still gets the
 # same generated nav in its header -- DESIGN.md just keeps it out of the
 # nav's own link list.
 NAV_PAGES = [
-    "agent-incidents.html", "ask.html", "corridor.html",
+    "agent-incidents.html", "corridor.html",
     "country.html", "fee-tiers.html", "how-it-works.html",
     "how-it-was-built.html", "countries.html",
     "tape.html",
