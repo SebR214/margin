@@ -3,20 +3,10 @@
   "doc": "Every reader-facing sentence that states a count or uses never, always, every, none or 'since [date]' has a claim here, stored next to the copy key it guards (the key is a path into copy.json). tools/audit_claims.py re-derives each claim from the raw CSVs every hour. A claim that is not true writes ok:false to data/claims_status.json and the page does not render that copy key until the claim is true again. Claims are per route (or per currency), never site-wide, except where the sentence's own subject is the set of currencies.",
   "claims": [
     {
-      "key": "homeData.stableLine",
-      "guards": [
-        "homeData.stableLink"
-      ],
-      "type": "stable_never_cheapest",
-      "route": "SGD->PHP",
-      "note": "Sentence: a stablecoin has not beaten the cheapest app in any of the {hours} hours priced since the record began. True only if there is at least one priced hour and zero hours with the stablecoin cheapest, at any quoted amount, and the published hour count the sentence prints equals the fresh count."
-    },
-    {
       "key": "homeData.heatTitle",
-      "type": "currency_majority_within",
+      "type": "within_of_ranked",
       "pct": 2,
-      "min_share": 0.5,
-      "note": "Sentence: most currencies sit near the official rate. True only if at least half of the ranked currencies with a reading in the last 24 hours are within 2 percent of the official rate."
+      "note": "Sentence: in {n} of {N} countries we priced this hour, a dollar costs within 2% of the official rate. N is the ranked countries with a price this hour, counted the same way as the Countries page title. True when n and N recounted from the country files equal the published counts."
     },
     {
       "key": "homeData.updatedLine",
@@ -60,14 +50,15 @@
     },
     {
       "key": "findingData.claim_sgd_php_never_cheapest",
-      "type": "stable_never_cheapest",
+      "type": "stable_rarely_cheapest",
       "route": "SGD->PHP",
       "guards": [
         "findingData.title_sgd_php_never_cheapest",
         "findingData.method_sgd_php_never_cheapest",
         "findingData.limits_sgd_php_never_cheapest"
       ],
-      "note": "Singapore to the Philippines: zero priced hours with the stablecoin cheapest, same query as the home line."
+      "note": "Singapore to the Philippines: at every one of the five amounts the stablecoin was cheapest in under 1% of the hours priced. {hours} is the distinct hours priced at any amount, {n} those where it was cheapest at none.",
+      "max_share": 0.01
     }
   ]
 }

@@ -22,9 +22,15 @@
   function sgd(v) { return (v < 0 ? MINUS : '') + 'S$' + Math.abs(v).toFixed(2); }
   function routeName(rid) { var p = rid.split('->'); return ((PLACE[p[0]] || p[0]) + ' to ' + (TO[p[1]] || p[1])).replace(/^the /, '').replace(/^./, function (c) { return c.toUpperCase(); }); }
   function approx(v) { return v >= 1e6 ? 'S$' + (v / 1e6).toFixed(1) + 'M' : 'S$' + g(v); }
+  var CLAIMS = null;
   function title(k) { var f = FIN[k]; return T('title_' + k, { approx: f ? approx(f.headline.value) : '', n: f ? g(f.headline.value) : '' }); }
   // the claim of the exchange-versus-people finding names the persistent country with the largest median gap
   function claim(k) {
+    if (k === 'sgd_php_never_cheapest') {
+      // the sentence states a count, so it shows only while data/claims_status.json says the count holds (SEB-268, 12 Oct)
+      var cl = CLAIMS && CLAIMS.claims && CLAIMS.claims['findingData.claim_sgd_php_never_cheapest'];
+      return cl && cl.ok === true ? T('claim_' + k, { n: g(cl.value.n), hours: g(cl.value.hours) }) : '';
+    }
     if (k !== 'exchange_vs_p2p') { return T('claim_' + k); }
     var top = (FIN[k].evidence || []).filter(function (e) { return e.persists; })[0];
     return top ? T('claim_' + k, { country: top.country, gap: top.median_gap_pts.toFixed(1), share: Math.round(top.share_gap_2pts * 100) + '%' }) : T('claimNone_' + k);
@@ -339,8 +345,9 @@
   });
   var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (CHARTS[id] && DATA[id]) { CHARTS[id](); } }, 150); });
 
-  Promise.all([getJSON('copy.json').catch(function () { return {}; }), getJSON('data/findings.json').catch(function () { return null; })]).then(function (r) {
+  Promise.all([getJSON('copy.json').catch(function () { return {}; }), getJSON('data/findings.json').catch(function () { return null; }), getJSON('data/claims_status.json').catch(function () { return null; })]).then(function (r) {
     C = (r[0] && r[0].findingData) || {};
+    CLAIMS = r[2];
     var nav = $('nav');
     NAV.forEach(function (x) { var t = C[x[0]]; if (!t) { return; } var a = document.createElement('a'); a.textContent = t; a.href = './' + x[1]; nav.appendChild(a); });
     ((r[1] && r[1].findings) || []).forEach(function (f) { FIN[f.id] = f; });

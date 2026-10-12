@@ -20,6 +20,14 @@
   function kid(parent, child) { if (child) parent.appendChild(child); return child; }
   function T(key) { var v = C[key]; return typeof v === 'string' ? v : ''; }
   // A node holding a copy key's text, or null when the key is empty.
+  var CLAIMS = null;
+  // a finding's claim line: the one that states a count shows only while claims_status.json says the count holds
+  function claimLine(f) {
+    if (f.id !== 'sgd_php_never_cheapest') { return word('p', ['soft', 'fp-line'], 'claim_' + f.id); }
+    var cl = CLAIMS && CLAIMS.claims && CLAIMS.claims['findingData.claim_sgd_php_never_cheapest'];
+    var t = cl && cl.ok === true ? T('claim_' + f.id).replace(/\{n\}/g, fmt(cl.value.n)).replace(/\{hours\}/g, fmt(cl.value.hours)) : '';
+    return t ? el('p', ['soft', 'fp-line'], t) : null;
+  }
   function word(tag, cls, key) { var t = T(key); return t ? el(tag, cls, t) : null; }
   // A finding's title with {approx} filled from its own headline number (4,444,700 -> "S$4.4M"): the figure
   // in a headline is always the stored number, never typed.
@@ -304,7 +312,7 @@
     var hero = el('section', ['fp-hero', 'hero', 'bleed']);
     var text = kid(hero, el('div', 'fp-hero-text'));
     kid(text, titleOf(f) ? el('h1', '', titleOf(f)) : null);
-    kid(text, word('p', ['soft', 'fp-line'], 'claim_' + f.id));
+    kid(text, claimLine(f));
     if (!text.firstChild) hero.removeChild(text);
     var h = f.headline || {};
     if (typeof h.value === 'number') {
@@ -348,9 +356,11 @@
 
   Promise.all([
     load('./copy.json').then(function (r) { return r.json(); }).catch(function () { return {}; }),
-    load('./data/findings.json').then(function (r) { return r.json(); }).catch(function () { return { findings: [] }; })
+    load('./data/findings.json').then(function (r) { return r.json(); }).catch(function () { return { findings: [] }; }),
+    load('./data/claims_status.json').then(function (r) { return r.json(); }).catch(function () { return null; })
   ]).then(function (res) {
     C = res[0].findingData || {};
+    CLAIMS = res[2];
     BRAND = typeof res[0].brand === 'string' ? res[0].brand : '';
     var published = (res[1].findings || []).filter(function (f) { return f.published === true; });
     var wrap = document.createElement('div');

@@ -179,7 +179,9 @@
     nav();
     if (!got.heat || !got.rec) { var e = $('loaderr'); e.textContent = T('loadError', { n: failed.length }); e.hidden = !e.textContent; return; }
     hero();
-    $('heatT').textContent = T('heatTitle');
+    // counted like the Countries page title: ranked countries with a price this hour, and how many sit within 2% (SEB-268, 12 Oct)
+    var rk = ((got.idx && got.idx.countries) || []).filter(function (c) { return c.index_pct != null && c.denominator_class !== 'unmaintained'; });
+    $('heatT').textContent = rk.length ? T('heatTitle', { n: g(rk.filter(function (c) { return c.index_pct >= -2 && c.index_pct <= 2; }).length), N: g(rk.length) }) : '';
     $('heatL').textContent = T('heatLine') + (T('heatTapNote') ? ' ' + T('heatTapNote') : '');
     build();
     heat();
