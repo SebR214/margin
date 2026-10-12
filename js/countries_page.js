@@ -145,6 +145,7 @@
       inp.id = 'ciSearch';
       inp.autocomplete = 'off';
       inp.placeholder = t('searchLabel');
+      inp.value = S.q;          // a refresh keeps what the reader typed
       inp.addEventListener('input', function () { S.q = inp.value.trim().toLowerCase(); apply(); });
       box.appendChild(inp);
     }
@@ -371,23 +372,32 @@
     apply();
   }
 
-  Promise.all([
-    getJSON('copy.json'), getJSON('data/index_latest.json'),
-    getJSON('data/movers_week.json').catch(function () { return null; }),
-    getJSON('data/source_pairs.json').catch(function () { return null; })   // which markets rest on one source
-  ]).then(function (r) {
-    C = r[0].countries || {};
-    H = r[0].homeData || {};
-    D = r[1];
-    Mv = r[2];
-    SP = r[3];
-    page();
-  }).catch(function () {
-    var wrap = el('div', 'ci-wrap');
-    app.innerHTML = '';
-    fetch('copy.json').then(function (x) { return x.json(); }).then(function (c) {
-      put(wrap, 'p', null, c.countries && c.countries.loadFailed);
-      app.appendChild(wrap);
-    }).catch(function () { /* nothing to say without copy */ });
-  });
+  // loading is a function so a tab left open can load again when a newer hour is published (siteLive, js/site_head.js)
+  function load() {
+    return Promise.all([
+      getJSON('copy.json'), getJSON('data/index_latest.json'),
+      getJSON('data/movers_week.json').catch(function () { return null; }),
+      getJSON('data/source_pairs.json').catch(function () { return null; })   // which markets rest on one source
+    ]).then(function (r) {
+      C = r[0].countries || {};
+      H = r[0].homeData || {};
+      D = r[1];
+      Mv = r[2];
+      SP = r[3];
+      var det = document.querySelector('.ci-np details'), wasOpen = !!(det && det.open), y = window.scrollY;   // keep the reader's place
+      page();
+      window.scrollTo(0, y);
+      var det2 = document.querySelector('.ci-np details'); if (det2 && wasOpen) { det2.open = true; }
+    }).catch(function () {
+      if (D && D.countries) { return; }      // a refresh that fails leaves what the reader already has
+      var wrap = el('div', 'ci-wrap');
+      app.innerHTML = '';
+      fetch('copy.json').then(function (x) { return x.json(); }).then(function (c) {
+        put(wrap, 'p', null, c.countries && c.countries.loadFailed);
+        app.appendChild(wrap);
+      }).catch(function () { /* nothing to say without copy */ });
+    });
+  }
+  load();
+  (window.siteLive = window.siteLive || { handlers: [], onNewHour: function (fn) { this.handlers.push(fn); } }).onNewHour(load);
 })();

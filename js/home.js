@@ -170,8 +170,11 @@
   }
 
   var jobs = { copy: 'copy.json', heat: 'data/heatmap_daily.json', idx: 'data/index_latest.json', mov: 'data/movers_week.json', fin: 'data/findings.json', rec: 'data/record_daily.json', mil: 'data/record_milestones.json' };
-  var failed = [];
-  Promise.all(Object.keys(jobs).map(function (k) { return getJSON(jobs[k]).catch(function () { failed.push(k); return null; }); })).then(function (r) {
+  // loading is a function so a tab left open can load again when a newer hour is published (siteLive, js/site_head.js)
+  var wired = false;
+  function load() {
+  var failed = [], y0 = window.scrollY;
+  return Promise.all(Object.keys(jobs).map(function (k) { return getJSON(jobs[k]).catch(function () { failed.push(k); return null; }); })).then(function (r) {
     var keys = Object.keys(jobs), got = {};
     keys.forEach(function (k, i) { got[k] = r[i]; });
     C = (got.copy && got.copy.homeData) || {};
@@ -188,7 +191,11 @@
     movers();
     findings();
     record();
-    wire();
+    if (wired) { window.scrollTo(0, y0); }
+    if (!wired) { wired = true; wire(); }
     if (failed.length) { var er = $('loaderr'); er.textContent = T('loadError', { n: failed.length }); er.hidden = !er.textContent; }
   });
+  }
+  load();
+  (window.siteLive = window.siteLive || { handlers: [], onNewHour: function (fn) { this.handlers.push(fn); } }).onNewHour(load);
 })();
