@@ -26,7 +26,7 @@ existing source probe (tools/probe_source.py) before the spec is posted.
 The spec is posted only if every check passes:
   - every number in it traces to a number the analyst's number check allows;
   - every listed file exists and is a file the builder may change;
-  - the files together stay under the size limit (110,000 characters);
+  - the files together stay under the size limit (120,000 characters);
   - every suggested venue is for a single-source market and passes the probe.
 If a check fails nothing is posted and the reason goes in data/scout_log.csv.
 If SEB-300 is not Done, the week is skipped.
@@ -54,7 +54,7 @@ DATA = os.path.join(ROOT, "data")
 INDEX_LATEST = os.path.join(DATA, "index_latest.json")
 CLAIMS_STATUS = os.path.join(DATA, "claims_status.json")
 EXCHANGE_P2P_GAP_PTS = 2.0      # an exchange price and a person-to-person price this far apart (points) count as a disagreement
-MAX_FILES_CHARS = 110_000        # all listed files together; the builder sends them whole and its prompt limit (tools/llm.py) is 120,000
+MAX_FILES_CHARS = 120_000        # all listed files together (120 KB); the builder sends them whole, and its prompt limit (tools/llm.py) is 130,000 so the spec and instructions fit beside them
 MAX_TOKENS = 2500
 # Files the builder may never be asked to change: agent code, checks, workflows,
 # and the words (copy.json goes through the writer and Seb's approval).
@@ -74,11 +74,11 @@ SYSTEM = """You write one build spec for a small static website that prices a do
 You get three lists computed by code from the site's data files: markets priced from a single source, source pairs that disagree, and claims that no longer hold.
 Pick the ONE item most worth building this week and write the spec for it.
 Rules:
-- Use no number except those in the data you were given. Do not count, add, subtract or round anything yourself. Quote a number exactly as given, or use none.
+- Use no number except those in the data you were given. Do not count, add, subtract or round anything yourself. Quote a number exactly as given, or use none. Write any other quantity in words ("two decimals", "one file", "the five amounts"), never in digits: every digit in the spec is checked against the data.
 - You never write reader-facing words. Never list a page, a stylesheet, a script or copy.json. If the job needs words, say they go through the writer.
 - Write the spec in markdown: a title line starting with '# ', then '## Why' (two to four sentences), '## What to build', '## Files', '## Context' (optional), '## Done when', and '## Venues' only if the job is a new source.
 - '## Files' lists, one per line, each in backticks, the files the builder may change. '## Context' lists read-only files the same way.
-- The builder is sent every listed file whole, and all of them together must stay under 110,000 characters. List only small files. Never list a data/*.csv or any large data file.
+- The builder is sent every listed file whole, and all of them together must stay under 120,000 characters. List only small files. Never list a data/*.csv or any large data file.
 - For a new source, only suggest venues. In '## Venues', one per line: `CCY` | `https://full-api-url` | `dotted.path.to.the.price.field`. The URL must return JSON with the price of one US dollar (or one dollar stablecoin) in that currency. The CCY must be one of the single-source markets you were given. Each venue is checked by a probe against an independent rate, and the spec is dropped if any fails. Suggest only venues you are sure exist.
 - Name only real files. Where things live:
 %s
