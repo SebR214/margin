@@ -406,7 +406,19 @@ def exchange_vs_p2p_finding():
 
 def build():
     fs = price_changes_findings() + [volume_crossover_finding(), sgd_php_finding(), exchange_vs_p2p_finding(), stress_finding(), spread_finding()]
-    return {"as_of_utc": max(f["last_recheck_utc"] for f in fs), "findings": fs}
+    as_of = max(f["last_recheck_utc"] for f in fs)
+    # the day each finding first went live in git, read once from the history into the sidecar; a new finding gets the day it first appears here
+    path = os.path.join(DATA, "findings_first_published.json")
+    first = json.load(open(path)) if os.path.exists(path) else {}
+    added = False
+    for f in fs:
+        if f["id"] not in first:
+            first[f["id"]] = as_of[:10]
+            added = True
+        f["first_published"] = first[f["id"]]
+    if added:
+        PENDING[path] = json.dumps(first, indent=1, sort_keys=True) + "\n"
+    return {"as_of_utc": as_of, "findings": fs}
 
 
 def self_test(doc):
@@ -417,6 +429,7 @@ def self_test(doc):
         h = f["headline"]
         assert isinstance(h["value"], (int, float)) and h["unit"] and h["as_of_utc"]
         assert f["evidence"] and f["source_files"] and f["method_files"]
+        assert len(f["first_published"]) == 10 and f["first_published"] <= doc["as_of_utc"][:10]
         assert f["last_recheck_utc"] >= h["as_of_utc"] or h["as_of_utc"] <= doc["as_of_utc"]
         full = os.path.join(HERE, f["download_file"])
         assert f["download_file"] and (os.path.exists(full) or PENDING.get(full)), f["id"]

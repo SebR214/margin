@@ -18,6 +18,7 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function g(n) { return Math.round(n).toLocaleString('en-US'); }
   function dd(s) { return (+s.slice(8, 10)) + ' ' + MON[+s.slice(5, 7) - 1]; }
+  function dayY(s) { return dd(s) + ' ' + s.slice(0, 4); }
   function stampT(s) { return dd(s) + ', ' + s.slice(11, 16); }
   function sgd(v) { return (v < 0 ? MINUS : '') + 'S$' + Math.abs(v).toFixed(2); }
   function routeName(rid) { var p = rid.split('->'); return ((PLACE[p[0]] || p[0]) + ' to ' + (TO[p[1]] || p[1])).replace(/^the /, '').replace(/^./, function (c) { return c.toUpperCase(); }); }
@@ -74,7 +75,7 @@
     var big = id === 'volume_crossover' ? 'S$' + g(f.headline.value) : g(f.headline.value);
     $('hero').innerHTML = '<h1>' + esc(title(id)) + '</h1><p class="lead">' + esc(claim(id)) + '</p>' +
       '<p class="numline"><b class="num">' + big + '</b><span>' + esc(T('unit_' + f.headline.unit)) + '</span></p>' +
-      '<p class="stamp num">' + esc(T('lastRecheck')) + ' ' + esc(stampT(f.last_recheck_utc)) + ' ' + esc(T('utc')) + '</p>';
+      '<p class="stamp num">' + esc(T('firstPublished', { date: dayY(f.first_published) })) + '</p>';
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
     $('chart').innerHTML = '';
     CHARTS[id]();
