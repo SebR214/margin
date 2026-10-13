@@ -1,12 +1,14 @@
 {
+  "buy_price": 90724.74,
   "ccy": "LBP",
-  "computed_at": "2026-10-13T03:00:00+00:00",
+  "computed_at": "2026-10-13T04:00:00+00:00",
   "country": "Lebanon",
   "denominator": {
     "class": "managed",
     "rate_per_usd": 89500.0,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 89500.0,
   "history": [
     {
       "date": "2026-09-02",
@@ -253,23 +255,43 @@
       "index_pct": 0.9076,
       "n": 18,
       "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-10-13",
+      "index_pct": 1.3684,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
-  "history_days": 41,
+  "history_days": 42,
   "history_start": "2026-09-02",
-  "hour_utc": "2026-10-13T03:00:00+00:00",
+  "hour_utc": "2026-10-13T04:00:00+00:00",
+  "index_pct": 1.3684,
   "index_version": "1.4",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": 0.8098,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: 9 buy-side ads, 10 required",
-  "round_trip_pct": 4.8433,
-  "source_class": null,
+  "median_24h_pct": 0.9079,
+  "n_boards": 2,
+  "n_sources": 10,
+  "round_trip_pct": 1.2305,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 92000.0
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 90449.48,
+      "index_pct": 1.0609,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    },
+    {
+      "buy_price": 91000.0,
+      "index_pct": 1.676,
+      "last_price_used": false,
+      "venue": "okx_p2p"
+    }
+  ]
 }
