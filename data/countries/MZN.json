@@ -1,12 +1,14 @@
 {
+  "buy_price": 74.865,
   "ccy": "MZN",
-  "computed_at": "2026-10-13T13:00:00+00:00",
+  "computed_at": "2026-10-13T14:00:00+00:00",
   "country": "Mozambique",
   "denominator": {
     "class": "managed",
     "rate_per_usd": 63.723629,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 63.723629,
   "history": [
     {
       "date": "2026-09-05",
@@ -238,26 +240,40 @@
     },
     {
       "date": "2026-10-13",
-      "index_pct": 17.5388,
-      "n": 9,
-      "source": "hourly_buy_p2p"
+      "index_pct": 17.4839,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
   "history_days": 39,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-13T13:00:00+00:00",
+  "hour_utc": "2026-10-13T14:00:00+00:00",
+  "index_pct": 17.4839,
   "index_version": "1.4",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": 16.9299,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market (buy 74.995, sell 75.01)",
-  "round_trip_pct": -0.02,
-  "source_class": null,
+  "median_24h_pct": 17.0216,
+  "n_boards": 1,
+  "n_sources": 10,
+  "round_trip_pct": 0.0067,
+  "second_board": {
+    "buy_price": 78.0,
+    "combined": false,
+    "venue": "okx_p2p",
+    "why": "more than 3% from the first board"
+  },
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 74.995
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 74.865,
+      "index_pct": 17.4839,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    }
+  ]
 }
