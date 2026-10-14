@@ -66,8 +66,10 @@
         var names = pb.boards.map(function (b) { return b === 'okx_p2p' ? 'OKX' : 'Binance'; });
         pbLine = '<p class="money num">' + esc(T(pb.index_pct < 0 ? 'p2pBesideUnder' : 'p2pBeside', { boards: names.length > 1 ? T('boardsAnd', { a: names[0], b: names[1] }) : names[0], price: money(pb.buy_price, c.ccy).replace(/ [A-Z]{3}$/, ''), ccy: c.ccy, pct: pct1(pb.index_pct) })) + '</p>';
       }
+      // v1.5: priced although a board is crossed, because both boards' sellers agree: one grey line says so
+      var crossedLine = c.crossed_boards_agree && T('crossedBoardsAgree') ? '<p class="stamp">' + esc(T('crossedBoardsAgree')) + '</p>' : '';
       h += '<h1>' + esc(T(key, { country: c.country, gap: pct1(c.index_pct) })) + '</h1>' +
-        '<p class="lead">' + esc(T(c.source_class === 'p2p_buy_median' ? (c.n_boards === 2 ? 'leadP2pTwo' : 'leadP2p') : 'leadBook', { rate: rate.toLocaleString('en-US', { maximumFractionDigits: 2 }), ccy: c.ccy, country: c.country, street: money(c.buy_price, c.ccy) })) + '</p>' + pbLine +
+        '<p class="lead">' + esc(T(c.source_class === 'p2p_buy_median' ? (c.n_boards === 2 ? 'leadP2pTwo' : 'leadP2p') : 'leadBook', { rate: rate.toLocaleString('en-US', { maximumFractionDigits: 2 }), ccy: c.ccy, country: c.country, street: money(c.buy_price, c.ccy) })) + '</p>' + crossedLine + pbLine +
         '<p class="money num">' + T('usd100Line', { street: esc(money(c.buy_price * 100, c.ccy)), rate: esc(money(rate * 100, c.ccy)) }) + '</p>';
       // the price rests on one source only: say so (SEB-302)
       if ((c.venues || []).length === 1 && T('oneSource')) { h += '<p class="stamp num">' + esc(T('oneSource')) + '</p>'; }

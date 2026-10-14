@@ -455,8 +455,8 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. **Version 1.4.1 is in force from
-2026-10-14** (a second board kept apart is recorded, below). Version 1.4 ran from
+Every published file carries `index_version`. **Version 1.5 is in force from
+2026-10-14** (crossed boards, below). Version 1.4.1, the same day, recorded a second board kept apart. Version 1.4 ran from
 2026-10-11 (a sudden flip is held back, and a new source waits in quarantine, below). Version 1.3 added a believable-row test at
 collection. Version 1.2 ran from 2026-10-09 (a second person-to-person board and Luno for Nigeria, below). Version 1.1 ran from
 2026-09-10; v1.0 was superseded that day by the evidence rule below, after
@@ -596,6 +596,36 @@ country are the generic "no price collected this hour"; the stated reason is in 
 and in `index_latest.json`.
 
 `p2p_basis.csv`, `p2p_okx.csv`, `basis.csv` and every CSV header are unchanged. `index_held.csv` is new.
+
+### Crossed boards (v1.5, 2026-10-14)
+
+A person-to-person board is crossed when its buy median is below its sell median. Since v1.3 a crossed board is never priced
+(the collector's row guard keeps the row, with its medians, and `source_ok=false`). That is right for a broken board. It also withheld
+markets that are fine: Uganda, Mozambique, Zambia and Bangladesh dropped out many times a week because Binance's two sides differ by
+less than a tenth of a percent, and Ukraine and West African CFA were crossed every hour, only on the side of people bidding for
+dollars, while the sellers' side agreed across boards. The published price already comes from the sellers' side (the buy median);
+crossing only decided whether to withhold. Two rules change, in `tools/emit_countries.py`:
+
+1. **A near tie is not crossed.** A board crossed by less than 0.1% of its mid, (sell - buy) / ((buy + sell) / 2) below 0.001, counts as not
+   crossed and is priced as before.
+2. **Crossed, but both boards agree.** When Binance and OKX each have at least 10 buy ads in the same hour (`MIN_BUY_ADS`, the same bar as
+   before) and their buy medians are within `SECOND_BOARD_MAX_GAP` (3%) of each other, and OKX's price is not standing still
+   (the v1.2 test), the price is the median of the two buy medians even if one or both boards are crossed. Otherwise a
+   crossed board stays unpriced, as in v1.4. Angola stays withheld: OKX has no buy ads for it.
+
+The country page, when rule 2 priced it, carries one grey line saying the sellers agree and the buyers are offering more than sellers ask,
+and the country file carries `crossed_boards_agree`. The row guard still records crossed rows with their reason, and nothing in
+`p2p_basis.csv` or `p2p_okx.csv` is rewritten. The daily history (`daily_history()` and `emit_weekly.py`) takes rule 1 only: it never used OKX. The
+24-hour median takes both rules.
+
+Checked on the stored rows with `tools/v15_before_after.py`, which runs the emitter's own hourly rule twice, v1.4 then v1.5, over the last
+7 days (to 2026-10-14 02:00 UTC). With the v1.4 rule switched on in the same code, all 60 country files and `index_latest.json` come out
+exactly as committed, so nothing else changed. No hour that had a price loses it. Hours with a price rise for Bangladesh (110 to 126 of
+168), Egypt (103 to 162), Kenya (159 to 162), Mozambique (91 to 113), Pakistan (134 to 162), Uganda (122 to 156), Central African CFA (44 to
+158) and Zambia (106 to 116); Ukraine (0 to 162) and West African CFA (0 to 162) are priced for the first time. The median figure of each
+country that already had a published history moves by 0.00 to 0.17 points (largest: Zambia, +4.03% to +3.86%); the hours that are new sit within 0.87 points of that
+country's own published median (largest: Zambia -0.87, Uganda -0.81), so no country moves by more than a point against its history.
+Ukraine reads +3.50% and West African CFA +3.05% over the week.
 
 ### A second board kept apart is recorded (v1.4.1, 2026-10-14)
 

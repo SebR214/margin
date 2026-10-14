@@ -50,7 +50,7 @@ OUT_MANIFEST = os.path.join(DATA, "weekly_latest.json")
 OUT_RSS = os.path.join(HERE, "weekly.xml")
 PAGE_DIR = os.path.join(HERE, "w")
 
-INDEX_VERSION = "1.4.1"
+INDEX_VERSION = "1.5"
 MIN_BUY_ADS = 10
 # Same bands as emit_countries.py, "The index, version 1". A value outside them
 # is not wrong by definition, but it does not go in a ranked snapshot until a
@@ -103,6 +103,20 @@ def num(row, key):
     except ValueError:
         return None
     return v if v == v else None
+
+
+NEAR_TIE = 0.001   # v1.5, as in tools/emit_countries.py: a board crossed by less than 0.1% of its mid is not crossed
+CROSSED_TEXT = "not enough evidence this hour: the buy side is below the sell side"
+
+
+def crossed(buy, sell):
+    return buy is not None and sell is not None and buy < sell and (sell - buy) / ((buy + sell) / 2) >= NEAR_TIE
+
+
+def usable(r):
+    """source_ok, or refused by the collector's guard only for being crossed (the medians are kept; crossed() decides)."""
+    return (str(r.get("source_ok") or "").strip().lower() == "true" or
+            ((r.get("error") or "").startswith(CROSSED_TEXT) and num(r, "buy_median") is not None and num(r, "sell_median") is not None))
 
 
 def flag(row, key):
@@ -182,7 +196,7 @@ def weekly_values():
     sides = buy_side_counts()
     for r in rows(P2P):
         ccy, t = r.get("ccy"), parse_ts(r.get("ts_utc"))
-        if not ccy or t is None or not flag(r, "source_ok"):
+        if not ccy or t is None or not usable(r):
             continue
         if (ccy, t.date()) in book_days:
             continue
@@ -194,7 +208,7 @@ def weekly_values():
             n_buy = MIN_BUY_ADS if (total or 0) >= MIN_BUY_ADS * 2 else 0
         if n_buy < MIN_BUY_ADS:
             continue
-        if sell is not None and price is not None and price < sell:
+        if price is not None and crossed(price, sell):
             continue
         v = index_pct(price, num(r, "fx_mid_per_usd"))
         if v is not None:
