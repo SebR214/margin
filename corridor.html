@@ -1187,9 +1187,12 @@ function drawRangeChart(bars,bucketH,svg,tip){
     // on this chart is hover-only (site mobile rule, 2026-09-28).
     el.addEventListener("pointermove",ev=>showTip(i,ev.clientX,ev.clientY));
     el.addEventListener("pointerdown",ev=>showTip(i,ev.clientX,ev.clientY));
-    el.addEventListener("pointerleave",()=>{ tip.style.opacity=0; });
+    el.addEventListener("pointerleave",ev=>{ if(ev.pointerType!=="touch") tip.style.opacity=0; });   // lifting a finger is a pointerleave too
   });
 }
+
+// a tap anywhere but the chart closes the day it showed
+document.addEventListener("pointerdown",ev=>{ if(!(ev.target.closest&&ev.target.closest("#hist"))){ const t=document.getElementById("histTip"); if(t) t.style.opacity=0; } });
 
 boot().catch(e=>{document.getElementById("stamp").textContent=(COPY.loadFailed)||"failed to load data"; console.error(e);});
 
