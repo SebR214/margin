@@ -66,22 +66,24 @@
       <h1 id="hiwH1"></h1>
     </section>
 
-    <section class="hiw-section" id="read-1">
-      <div class="lead-b" id="readLead1"></div>
-      <div class="p" id="readBody1"></div>
+    <section class="hiw-section" id="measure">
+      <h2 id="measureH2"></h2>
+      <div class="p" id="measureBody"></div>
     </section>
 
-    <section class="hiw-section" id="read-2">
-      <div class="lead-b" id="readLead2"></div>
-      <div class="p" id="readBody2"></div>
+    <section class="hiw-section" id="meaning">
+      <h2 id="meaningH2"></h2>
+      <div class="p" id="meaningBody"></div>
+      <div class="p" id="meaningZero"></div>
     </section>
 
-    <section class="hiw-section" id="read-3">
-      <div class="lead-b" id="readLead3"></div>
-      <div class="p" id="readBody3"></div>
+    <section class="hiw-section" id="source">
+      <h2 id="sourceH2"></h2>
+      <div class="p" id="sourceBody"></div>
     </section>
 
     <section class="hiw-section" id="read-4">
+      <h2 id="costH2"></h2>
       <div class="lead-b" id="readLead4"></div>
       <div class="p" id="readBody4"></div>
     </section>
@@ -104,7 +106,7 @@
 // Every sentence here is a key of copy.json's "howItWorks" block. Each figure is read from a file the site publishes, never typed:
 //   sources         data/sources_daily.json   how many sources are read every hour
 //   minAds          data/index_latest.json    min_buy_ads (the evidence rule)
-//   country, rate   data/index_latest.json    the ranked country with the largest figure this hour
+//   country, rate   data/index_latest.json    the ranked country with the largest figure this hour (rate and street rounded to whole units, each with its currency)
 //   amounts, cost   data/providers_latest.json  the quoted sizes, and the cheapest app for S$5,000 to the Philippines
 // A sentence whose figure cannot be read is left out, not guessed.
 function getJson(u){ return fetch(u, {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; }); }
@@ -162,12 +164,14 @@ Promise.all([getJson('./copy.json'), getJson('./data/index_latest.json'), getJso
   if (five && row && row.cost_pct >= 0) { vals.amount = five.amount_words; vals.cost = row.costs; vals.app = row.provider; }
 
   setText('hiwH1', H.h1 || '');
-  setText('readLead1', fillCopy(H.readLead1, vals));
-  setText('readBody1', fillCopy(H.readBody1, vals));
-  setText('readLead2', fillCopy(H.readLead2, vals));
-  setText('readBody2', fillCopy(H.readBody2, vals));
-  setText('readLead3', fillCopy(H.readLead3, vals));
-  setText('readBody3', fillCopy(H.readBody3, vals));
+  setText('measureH2', H.measureTitle || '');
+  setText('measureBody', fillCopy(H.measureBody, vals));
+  setText('meaningH2', H.meaningTitle || '');
+  setText('meaningBody', fillCopy(H.meaningBody, vals));
+  setText('meaningZero', fillCopy(H.meaningZero, vals));
+  setText('sourceH2', H.sourceTitle || '');
+  setText('sourceBody', fillCopy(H.sourceBody, vals));
+  setText('costH2', H.costTitle || '');
   setText('readLead4', fillCopy(H.readLead4, vals));
   setText('readBody4', fillCopy(H.readBody4, vals));
   setText('notMeasuredH2', H.leaveOutTitle || '');
@@ -183,19 +187,6 @@ Promise.all([getJson('./copy.json'), getJson('./data/index_latest.json'), getJso
   setText('checkBody', H.checkBody || '');
   setLink('checkSources', H.checkSources, H.checkSourcesLink, './sources.html');
 });
-</script>
-
-<script>
-(function(){
-  var btn = document.getElementById('navToggle');
-  var nav = document.querySelector('header nav');
-  if (btn && nav) {
-    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
-    document.addEventListener('click', function(e){
-      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
-    });
-  }
-})();
 </script>
 
 <script src="./js/footer.js"></script>
