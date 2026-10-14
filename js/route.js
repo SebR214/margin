@@ -325,7 +325,13 @@
       return '<button class="sm-pill sm-num" type="button" data-a="' + a.amount + '" aria-pressed="' + (a.amount === S.amount) + '">' +
         esc(r.send_symbol) + whole(a.amount) + "</button>";
     }).join("");
-    return '<div class="sm-tools"><div class="sm-pills" role="group" id="smRoutes">' + routes + '</div>' +
+    // below 768px the route picker is a native dropdown (SEB-268): thirteen pills do not fit a phone without scrolling sideways
+    var options = ALL.map(function (id) {
+      var ro = routeObj(id);
+      return ro ? '<option value="' + esc(id) + '"' + (id === S.route ? " selected" : "") + ">" + esc(plainRoute(ro.route_words)) + "</option>" : "";
+    }).join("");
+    var select = '<div class="sm-routesel"><label for="smRouteSel">' + esc(txt("routePickerLabel")) + '</label><select id="smRouteSel">' + options + "</select></div>";
+    return '<div class="sm-tools">' + select + '<div class="sm-pills" role="group" id="smRoutes">' + routes + '</div>' +
       (amounts ? '<div class="sm-pills" role="group" id="smAmounts">' + amounts + "</div>" : "") + "</div>";
   }
 
@@ -456,6 +462,13 @@
     pushUrl();
   }
 
+  function onChange(e) {
+    if (e.target.id !== "smRouteSel" || e.target.value === S.route) return;
+    S.route = e.target.value;
+    if (!amountObj(routeObj(S.route), S.amount)) S.amount = 5000;
+    renderAll();
+  }
+
   function onClick(e) {
     var r = e.target.closest("[data-r]"), a = e.target.closest("[data-a]");
     if (r) {
@@ -489,6 +502,7 @@
     var amt = +q.get("amount");
     S.amount = amountObj(routeObj(S.route), amt) ? amt : 5000;
     app.addEventListener("click", onClick);
+    app.addEventListener("change", onChange);
     // a tap anywhere but the chart closes the day it showed
     document.addEventListener("pointerdown", function (e) {
       if (e.target.closest && e.target.closest("#smChart")) return;

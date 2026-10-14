@@ -211,6 +211,10 @@ jobs:
         if: steps.scope.outputs.touched == 'true'
         run: python3 tools/check_design.py --style
 
+      - name: Nothing wider than the screen at 390px
+        if: steps.scope.outputs.touched == 'true'
+        run: python3 tools/check_design.py --overflow
+
       - name: Post the rendered check's list to the PR
         if: steps.render.outcome == 'failure'
         env:
