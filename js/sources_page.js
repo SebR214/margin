@@ -197,12 +197,25 @@
     window.scrollTo({ top: w.getBoundingClientRect().top + window.scrollY - $('day').offsetHeight - 8, behavior: 'smooth' });
   }
 
+  // the shared tooltip (js/tooltip.js) for a tapped day in a source's strip: the date and the status, as on hover
+  function stripTip(st, i, x, y) {
+    var id = st.closest('.rowwrap').dataset.id;
+    var s = live.filter(function (z) { return z.id === id; })[0];
+    if (!s) { window.siteTip.hide(); return; }
+    window.siteTip.show(T('stripDay', { day: dd(days[i]), status: T(STAT[s.st[i]]) }), x, y);
+  }
+
   function wire() {
     document.addEventListener('click', function (e) {
       var p = e.target.closest('[data-k]');
       if (p) { kind = p.dataset.k; pills(live.concat(hist)); render(); return; }
       var st = e.target.closest('.strip');
-      if (st) { var i = dayAt(st, e.clientX); pick(i === sel ? null : i); return; }
+      if (st) {
+        var i = dayAt(st, e.clientX);
+        if (window.matchMedia('(hover: none)').matches && window.siteTip) { stripTip(st, i, e.clientX, e.clientY); }   // a phone has no hover: a tap shows the same tooltip
+        pick(i === sel ? null : i);
+        return;
+      }
       if (e.target.closest('.day .x')) { pick(null); return; }
       var go = e.target.closest('[data-go]');
       if (go) { e.preventDefault(); openRow(go.dataset.go); return; }

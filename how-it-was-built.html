@@ -108,14 +108,9 @@
 
   @media(max-width:900px){header{flex-wrap:nowrap} .mcp{display:none}}
 
-  /* Nav: a single swipeable row on phones, never a hamburger dropdown, so
-     it works the same with one thumb as it does with a mouse. Every link
-     keeps a real (>=40px) tap target via its own padding. */
   @media(max-width:760px){
     header{flex-wrap:nowrap!important}
     .brand{gap:14px;min-width:0;flex:1 1 auto}
-    nav{flex-wrap:nowrap;overflow-x:auto;gap:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-    nav::-webkit-scrollbar{display:none}
     nav a{white-space:nowrap;padding:12px 10px;font-size:15px;min-height:40px;display:flex;align-items:center}
     .status{gap:10px}
     .mcp{display:none}
@@ -143,7 +138,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
         <a href="./sources.html">Sources</a>
         <a href="./findings.html">Findings</a>
         <a href="./how-it-works.html">How it works</a>
-      </nav><button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button><span id="dot" style="display:none"></span><span id="connLabel" style="display:none"></span></header>
+      </nav><span id="dot" style="display:none"></span><span id="connLabel" style="display:none"></span></header>
 
   <div class="hero">
     <h1 id="pageTitle">&nbsp;</h1>
@@ -489,18 +484,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   }
 
   boot();
-})();
-</script>
-<script>
-(function(){
-  var btn = document.getElementById('navToggle');
-  var nav = document.querySelector('header nav');
-  if (btn && nav) {
-    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
-    document.addEventListener('click', function(e){
-      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
-    });
-  }
 })();
 </script>
 

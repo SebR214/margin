@@ -450,7 +450,9 @@
     var box = document.getElementById("smChart");
     if (box) {
       box.addEventListener("pointermove", hoverChart);
-      box.addEventListener("pointerleave", function () {
+      box.addEventListener("pointerdown", hoverChart);      // a tap on a phone
+      box.addEventListener("pointerleave", function (e) {
+        if (e.pointerType === "touch") return;               // lifting a finger is a pointerleave too: the day stays until the next tap
         var tip = document.getElementById("smTip"), cross = document.getElementById("smCross");
         if (tip) tip.hidden = true;
         if (cross) cross.setAttribute("visibility", "hidden");
@@ -501,6 +503,13 @@
     S.amount = amountObj(routeObj(S.route), amt) ? amt : 5000;
     app.addEventListener("click", onClick);
     app.addEventListener("change", onChange);
+    // a tap anywhere but the chart closes the day it showed
+    document.addEventListener("pointerdown", function (e) {
+      if (e.target.closest && e.target.closest("#smChart")) return;
+      var tip = document.getElementById("smTip"), cross = document.getElementById("smCross");
+      if (tip) tip.hidden = true;
+      if (cross) cross.setAttribute("visibility", "hidden");
+    });
     renderAll();
     (window.siteLive = window.siteLive || { handlers: [], onNewHour: function (fn) { this.handlers.push(fn); } }).onNewHour(refresh);
   }
