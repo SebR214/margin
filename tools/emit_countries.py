@@ -36,7 +36,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import source_gate  # SEB-302: only an approved source can feed a number
 
-INDEX_VERSION = "1.4"
+INDEX_VERSION = "1.4.1"
 
 # v1.2: a second source is used only when it looks alive and agrees with the first.
 SECOND_BOARD_MAX_GAP = 0.03     # OKX's buy median must be within 3% of Binance's to be combined with it
@@ -724,6 +724,10 @@ def latest_by_ccy():
                     elif gap > SECOND_BOARD_MAX_GAP:
                         entry["second_board"] = {"venue": okr.get("source"), "buy_price": okx_price, "combined": False,
                                                  "why": "more than 3% from the first board"}
+                        # v1.4.1: say it as a record, not only as a reason string: both boards' buy medians and how far
+                        # apart they are, in percent to two decimals. The price and n_sources are not touched.
+                        entry["p2p_sources_apart"] = {"binance_median": price, "okx_median": okx_price,
+                                                      "gap_pct": round(gap * 100, 2)}
                     else:
                         both = statistics.median([price, okx_price])
                         entry["venues"].append({"venue": okr.get("source"), "buy_price": okx_price,
