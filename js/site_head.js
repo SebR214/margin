@@ -17,6 +17,34 @@
   window.addEventListener('load', mark);
   var n = 0, t = setInterval(function () { mark(); if (++n > 20) { clearInterval(t); } }, 250);
 
+  // ---- the phone menu (SEB-268): below 768px the nav is a list behind a Menu button (css/site_head.css) ----
+  var NAVSEL = '.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav';
+  var menuLabel = null;
+  function menu() {
+    var nav = document.querySelector(NAVSEL);
+    if (!nav || document.querySelector('.sh-menu')) { return; }
+    if (menuLabel === null) {
+      menuLabel = '';
+      fetch('./copy.json').then(function (r) { return r.json(); }).then(function (c) {
+        menuLabel = (c && c.homeData && c.homeData.menuLabel) || '';
+        var b = document.querySelector('.sh-menu'); if (b) { b.textContent = menuLabel; }
+      }).catch(function () {});
+    }
+    if (!nav.id) { nav.id = 'sh-nav'; }
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'sh-menu'; btn.textContent = menuLabel;
+    btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', nav.id);
+    nav.insertAdjacentElement('afterend', btn);
+    function set(open) { nav.classList.toggle('sh-open', open); btn.setAttribute('aria-expanded', String(open)); }
+    btn.addEventListener('click', function (e) { e.stopPropagation(); set(!nav.classList.contains('sh-open')); });
+    nav.addEventListener('click', function (e) { if (e.target.closest('a')) { set(false); } });
+    document.addEventListener('click', function (e) { if (!nav.contains(e.target)) { set(false); } });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { set(false); } });
+    window.addEventListener('resize', function () { if (window.innerWidth >= 768) { set(false); } });
+  }
+  menu();
+  var mn = 0, mt = setInterval(function () { menu(); if (++mn > 40) { clearInterval(mt); } }, 250);
+
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   function fill(tpl, v) { return String(tpl || '').replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : ''; }); }
   // ---- keeping an open tab current (SEB-268 item 9) ----

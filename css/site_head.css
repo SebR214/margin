@@ -25,26 +25,12 @@
   min-height: 44px !important; padding: 0 !important; margin: 0 !important; display: inline-flex !important; align-items: center !important; line-height: 1.2 !important;
 }
 .hp-nav a:hover, .ci-nav a:hover, .c-nav a:hover, .sm-nav a:hover, .s-nav a:hover, .fp-nav a:hover, .mwh nav a:hover { color: var(--color-ink, #201e1d) !important; }
-.mwh .nav-toggle { display: none !important; }
 /* the status on the right is home's, on every page: a dot, 'Last reading', 'Next in' */
 .c-head > .c-small, .s-asof { display: none !important; }
 .hp-clock { display: flex !important; align-items: center !important; gap: 10px !important; font-size: 13px !important; margin-left: auto !important; }
 .hp-clock .hp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--data-700); display: inline-block; flex: 0 0 auto; }
 .hp-clock .hp-dot.still { background: var(--data-500); }
 /* the status text on the right of some headers (last reading) keeps its place and size */
-@media (max-width: 520px) {
-  /* one scrollable row for the nav, so the header is two rows at most, not a wrapped stack */
-  .hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav {
-    flex-wrap: nowrap !important; overflow-x: auto !important; max-width: 100% !important; scrollbar-width: none !important; white-space: nowrap !important;
-  }
-  .hp-nav::-webkit-scrollbar, .ci-nav::-webkit-scrollbar, .c-nav::-webkit-scrollbar, .sm-nav::-webkit-scrollbar, .s-nav::-webkit-scrollbar, .fp-nav::-webkit-scrollbar, .mwh nav::-webkit-scrollbar { display: none; }
-  .hp-headleft, .c-brand, .s-brand, .fp-brand { flex: 1 0 100% !important; min-width: 0 !important; row-gap: 0 !important; }
-  .ci-head, .sm-head, .mwh, .hp-head, .c-head, .s-head, .fp-head { row-gap: 0 !important; }
-  .ci-nav, .sm-nav, .mwh nav { flex: 1 0 100% !important; }
-  .hp-clock, .s-asof, .c-head > .c-small { flex: 1 0 100% !important; padding-bottom: 8px !important; }
-  .hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav { gap: 0 16px !important; }
-  .hp-nav a, .ci-nav a, .c-nav a, .sm-nav a, .s-nav a, .fp-nav a, .mwh nav a { font-size: 14px !important; }
-}
 /* every page's wrapper is the home page's: 1280px wide, 32px side padding (24px on a phone) */
 .hp-wrap, .c-wrap, .s-wrap, .ci-wrap, .sm-wrap, .hw-wrap, .wrap, .fp-wrap {
   box-sizing: border-box !important; width: 100% !important; max-width: 1280px !important;
@@ -56,17 +42,33 @@
 .ci-head, .sm-head { justify-content: flex-start !important; gap: 4px 28px !important; }
 .hp-head { justify-content: space-between !important; }
 .mwh { justify-content: flex-start !important; gap: 4px 28px !important; }
-@media (max-width: 520px) {
-  .hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh { padding: 6px 0 !important; row-gap: 0 !important; }
-  .hp-logo, .ci-logo, .c-logo, .sm-logo, .s-logo, .fp-logo, .mwh-logo { height: 40px !important; min-height: 40px !important; }
-  .hp-nav a, .ci-nav a, .c-nav a, .sm-nav a, .s-nav a, .fp-nav a, .mwh nav a { height: 40px !important; min-height: 40px !important; }
-  .hp-clock { flex: 1 0 100% !important; margin: 0 !important; padding: 0 0 4px !important; font-size: 12px !important; }
-}
-/* the scrolling nav on a phone fades at its right edge, so it reads as scrollable and never cuts a word mid-letter (SEB-268 item 7) */
-@media (max-width: 520px) {
-  .hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav {
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent) !important;
-    mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent) !important;
-    padding-right: 28px !important;
+/* Below 768px the header is the logo on the left and a Menu button on the right. The button opens the five links as a
+   list under the header; a tap on a link or outside the list closes it (js/site_head.js). Above 768px nothing changes. */
+.sh-menu { display: none; }
+@media (max-width: 767px) {
+  .hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh {
+    position: relative !important; padding: 6px 0 !important; row-gap: 0 !important; justify-content: space-between !important; flex-wrap: wrap !important;
   }
+  .hp-headleft, .c-brand, .s-brand, .fp-brand {
+    position: relative !important; flex: 1 0 100% !important; flex-wrap: nowrap !important; justify-content: space-between !important; min-width: 0 !important; row-gap: 0 !important;
+  }
+  .hp-logo, .ci-logo, .c-logo, .sm-logo, .s-logo, .fp-logo, .mwh-logo { height: 44px !important; min-height: 44px !important; order: 1; }
+  .sh-menu {
+    display: inline-flex; align-items: center; order: 2; min-height: 44px; margin: 0 -12px 0 auto; padding: 0 12px;
+    background: none; border: 0; border-radius: 0; font: inherit; font-size: 15px; font-weight: 400; color: var(--color-ink, #201e1d); cursor: pointer;
+  }
+  .sh-menu[aria-expanded="true"] { font-weight: 700; }
+  .hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav {
+    display: none !important; position: absolute !important; top: 100% !important; left: 0 !important; right: 0 !important; z-index: 40 !important;
+    flex-direction: column !important; flex-wrap: nowrap !important; align-items: stretch !important; gap: 0 !important;
+    overflow: visible !important; max-width: none !important; white-space: normal !important;
+    -webkit-mask-image: none !important; mask-image: none !important;
+    background: var(--color-paper, #fff) !important; border: 1px solid var(--color-neutral-300, #d7d3d3) !important; padding: 4px 0 !important;
+  }
+  .hp-nav.sh-open, .ci-nav.sh-open, .c-nav.sh-open, .sm-nav.sh-open, .s-nav.sh-open, .fp-nav.sh-open, .mwh nav.sh-open { display: flex !important; }
+  .hp-nav a, .ci-nav a, .c-nav a, .sm-nav a, .s-nav a, .fp-nav a, .mwh nav a {
+    height: 48px !important; min-height: 48px !important; padding: 0 16px !important; font-size: 16px !important; width: 100% !important; box-sizing: border-box !important;
+  }
+  .hp-nav a[aria-current], .ci-nav a[aria-current], .sm-nav a[aria-current], .s-nav a[aria-current], .fp-nav a[aria-current], .mwh nav a[aria-current] { color: var(--color-ink, #201e1d) !important; font-weight: 700 !important; }
+  .hp-clock { order: 3 !important; flex: 1 0 100% !important; margin: 0 !important; padding: 0 0 4px !important; font-size: 12px !important; }
 }
