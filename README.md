@@ -8,7 +8,7 @@ Every figure on this page was counted from the files on `main` on 12 Oct 2026, a
 
 **A dollar in 60 countries.** For each country we take the price people pay for a dollar stablecoin in local money, and compare it with the official rate. The gap is the number. A country shows no price for an hour when there is not enough evidence, and the page says why. At the 02:00 UTC hour on 12 Oct, 47 of the 60 had a price and 13 did not.
 
-Where the price comes from, in this order: exchange order books, then broker quotes, then offers between people on Binance and OKX. The rules are in [METHODOLOGY.md](METHODOLOGY.md). The index is at version 1.4 (`index_version` in `data/index_latest.json`).
+Where the price comes from, in this order: exchange order books, then broker quotes, then offers between people on Binance and OKX. The rules are in [METHODOLOGY.md](METHODOLOGY.md). The index is at version 1.4.1 (`index_version` in `data/index_latest.json`).
 
 **Sending money on 7 routes.** Australia to the Philippines, New Zealand to the Philippines, Singapore to the Philippines, Singapore to India, United States to India, United States to Mexico and United States to Nigeria, each at five amounts in the sending currency: 200, 1,000, 5,000, 25,000 and 50,000. For each we price the transfer apps and sending it by stablecoin, and show how much less the person receiving gets than at the official rate.
 

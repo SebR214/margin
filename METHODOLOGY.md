@@ -455,8 +455,9 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. **Version 1.4 is in force from
-2026-10-11** (a sudden flip is held back, and a new source waits in quarantine, below). Version 1.3 added a believable-row test at
+Every published file carries `index_version`. **Version 1.4.1 is in force from
+2026-10-14** (a second board kept apart is recorded, below). Version 1.4 ran from
+2026-10-11 (a sudden flip is held back, and a new source waits in quarantine, below). Version 1.3 added a believable-row test at
 collection. Version 1.2 ran from 2026-10-09 (a second person-to-person board and Luno for Nigeria, below). Version 1.1 ran from
 2026-09-10; v1.0 was superseded that day by the evidence rule below, after
 a verification sprint found that ten P2P boards were crossed. It is incremented when **any
@@ -595,6 +596,28 @@ country are the generic "no price collected this hour"; the stated reason is in 
 and in `index_latest.json`.
 
 `p2p_basis.csv`, `p2p_okx.csv`, `basis.csv` and every CSV header are unchanged. `index_held.csv` is new.
+
+### A second board kept apart is recorded (v1.4.1, 2026-10-14)
+
+Since v1.2, OKX's person-to-person board is combined with Binance's only when its buy median is within
+`SECOND_BOARD_MAX_GAP` (3%) of Binance's. Where it is further away, the two stay apart on purpose and Binance
+alone sets the price. That was recorded only as a reason string in `second_board`
+("more than 3% from the first board"). It looked the same, to anyone reading the file, as a market where no second venue was ever found.
+
+From v1.4.1 the country file of such a market also carries one block, `p2p_sources_apart`:
+`binance_median`, `okx_median` (both buy medians, as used) and `gap_pct` (how far OKX is from Binance, in
+percent, two decimals). It is written in exactly the hours the 3% rule keeps the boards apart, and in no other.
+**No published price, no `n_sources`, no `n_boards` and no other field changes**, and nothing is combined, averaged
+or blended: the bar stays at 3% and Binance stays the single source. The block is a record, with no words in it; any sentence that
+explains it goes through the writer.
+
+Checked against the files committed at the 2026-10-14 02:00 UTC hour: the emitter was run with and without the change on the same
+data. Seven countries gain the block (Kenya 18.92, Laos 3.06, Sri Lanka 9.28, Mozambique 3.5, Qatar 3.75, Tunisia 20.23, Zambia
+5.93, each as the gap in percent), and in all 60 country files nothing else differs, including every `index_pct` and `n_sources`.
+Armenia and Rwanda are the other two markets the Scout named: both are withheld at that hour (no price at all), so they carry no block then; they
+get it in an hour in which they are priced from one board and OKX sits more than 3% away.
+
+`p2p_basis.csv`, `p2p_okx.csv`, `basis.csv` and every CSV header are unchanged.
 
 **A new source waits in quarantine (also v1.4).** A source can feed a published price only if it is listed as
 `approved` in `data/source_registry.json`. `tools/emit_countries.py` ignores every other source (an unlisted
