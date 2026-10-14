@@ -165,7 +165,7 @@
   function wire() {
     document.addEventListener('pointermove', function (e) { if (e.pointerType !== 'touch' || e.buttons) { readSquare(e); } });
     document.addEventListener('pointerdown', readSquare);
-    document.addEventListener('pointerleave', function () { if (window.siteTip) { window.siteTip.hide(); } });
+    document.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch' && window.siteTip) { window.siteTip.hide(); } });   // a finger lifting is a pointerleave too: the tap's tooltip stays until the next tap
     document.addEventListener('click', function (e) {
       if (e.target.closest('#all')) { showAll = true; heat(); return; }
       if (e.target.closest('#early')) { early = true; heat(); return; }
