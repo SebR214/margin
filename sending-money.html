@@ -108,10 +108,15 @@
     .sm-row .sm-bar{ grid-column:1/-1; grid-row:2; }
     .sm-row .sm-nm{ padding:9px 0 0; }
     .sm-row .sm-v{ padding-top:9px; align-self:start; }
-    .sm-pills{ flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
-    .sm-pills::-webkit-scrollbar{ display:none; }
-    .sm-pill{flex:none;}
+    .sm-pills{ flex-wrap:wrap; }
     .sm-axisrow .sm-tk:nth-of-type(even){ display:none; }
+  }
+  .sm-routesel{ display:none; }
+  @media (max-width:767px){
+    .sm-routesel{ display:block; margin:0 0 12px; }
+    .sm-routesel label{ display:block; font-size:13px; color:var(--sm-sub); margin-bottom:6px; }
+    .sm-routesel select{ box-sizing:border-box; width:100%; min-height:44px; padding:0 12px; font:inherit; font-size:16px; color:var(--sm-ink); background:#fff; border:1px solid var(--sm-dust); border-radius:8px; }
+    #smRoutes{ display:none; }
   }
 </style>
 <link rel="stylesheet" href="./css/site_head.css?v=4">

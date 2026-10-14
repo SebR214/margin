@@ -20,7 +20,10 @@ headings, the filter pills, the running-text link underline and the gap between 
 It fails if any page differs from the home page (css/site_page.css is where those values live).
 --perturb adds a deliberate change first, to prove the check can fail.
 
-Usage: python3 tools/check_design.py [--update] [--style [--perturb]]
+A third mode, --overflow, loads fifteen pages at 390px and fails if anything is wider than the screen or scrolls
+sideways (--perturb adds a 600px element first, to prove it can fail).
+
+Usage: python3 tools/check_design.py [--update] [--style [--perturb]] [--overflow [--perturb]]
 """
 import glob
 import json
@@ -169,7 +172,55 @@ def style_check(perturb=False):
     return 0
 
 
+OVERFLOW_PAGES = ["index.html", "countries.html", "country.html?ccy=PHP", "country.html?ccy=TRY", "sending-money.html?route=SGD-PHP&amount=5000",
+                  "sending-money.html?route=USD-MXN&amount=50000", "sources.html", "findings.html", "finding.html?id=price_changes",
+                  "finding.html?id=weekend_penalty", "finding.html?id=volume_crossover", "finding.html?id=sgd_php_never_cheapest",
+                  "finding.html?id=exchange_vs_p2p", "how-it-works.html", "how-it-was-built.html"]
+# At 390px nothing may be wider than the screen and nothing may scroll sideways: the page itself, any element that
+# sticks out past the right edge (unless a clipping ancestor already holds it inside the screen), and any element that
+# has its own sideways scroll with content wider than its box.
+OVERFLOW_PROBE = r"""
+(function(){var W=window.innerWidth,out=[];function clipped(e){for(var p=e.parentElement;p&&p!==document.body;p=p.parentElement){var o=getComputedStyle(p);if(/(hidden|clip|auto|scroll)/.test(o.overflowX)&&p.clientWidth<=W+1)return true}return false}
+function d(e){return e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(e.className&&e.className.baseVal===undefined?'.'+String(e.className).trim().split(/\s+/).slice(0,2).join('.'):'')}
+if(document.documentElement.scrollWidth>W)out.push('PAGE scrollWidth '+document.documentElement.scrollWidth);
+[].forEach.call(document.querySelectorAll('body *'),function(e){var s=getComputedStyle(e);if(s.display==='none'||s.visibility==='hidden')return;var r=e.getBoundingClientRect();if(r.width===0)return;
+ if(/(auto|scroll)/.test(s.overflowX)&&e.scrollWidth>e.clientWidth+1)out.push('SCROLLS '+d(e)+' '+e.scrollWidth+'>'+e.clientWidth);
+ else if(r.right>W+1&&!clipped(e)&&s.position!=='fixed')out.push('WIDE '+d(e)+' right='+Math.round(r.right))});
+return out.slice(0,12).join(' | ')})()
+"""
+
+
+def overflow_check(perturb=False):
+    sys.path.insert(0, os.path.join(HERE, "tools"))
+    from gate_common import open_page, serve  # noqa: E402
+    base, stop = serve(HERE)
+    bad = []
+    try:
+        with open_page(settle=4.0) as page:
+            page.visit("about:blank")
+            page.set_viewport(390, 844, mobile=True)
+            for name in OVERFLOW_PAGES:
+                page.visit(base + "/" + name)
+                if perturb and name == "index.html":
+                    page.eval_js("var d=document.createElement('div');d.style.cssText='width:600px;height:10px';document.body.appendChild(d);'ok'")
+                found = page.eval_js(OVERFLOW_PROBE)
+                if found:
+                    bad.append("%s: %s" % (name, found))
+            page.clear_viewport()
+    finally:
+        stop()
+    if bad:
+        print("overflow check FAILED (something is wider than the screen at 390px):")
+        for line in bad:
+            print("  " + line)
+        return 1
+    print("overflow check ok (%d pages at 390px: nothing wider than the screen, nothing scrolls sideways)" % len(OVERFLOW_PAGES))
+    return 0
+
+
 def main():
+    if "--overflow" in sys.argv:
+        return overflow_check("--perturb" in sys.argv)
     if "--style" in sys.argv:
         return style_check("--perturb" in sys.argv)
     now = measure()
