@@ -1,12 +1,14 @@
 {
+  "buy_price": 284.59,
   "ccy": "PKR",
-  "computed_at": "2026-10-15T13:00:00+00:00",
+  "computed_at": "2026-10-15T14:00:00+00:00",
   "country": "Pakistan",
   "denominator": {
     "class": "market",
     "rate_per_usd": 276.883421,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 276.883421,
   "history": [
     {
       "date": "2026-09-02",
@@ -268,26 +270,40 @@
     },
     {
       "date": "2026-10-15",
-      "index_pct": 2.7996,
-      "n": 13,
-      "source": "hourly_buy_p2p"
+      "index_pct": 2.7833,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
   "history_days": 44,
   "history_start": "2026-09-02",
-  "hour_utc": "2026-10-15T13:00:00+00:00",
+  "hour_utc": "2026-10-15T14:00:00+00:00",
+  "index_pct": 2.7833,
   "index_version": "1.4.1",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": 2.8777,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market (buy 283.90999999999997, sell 284.055)",
-  "round_trip_pct": -0.051,
-  "source_class": null,
+  "median_24h_pct": 2.8722,
+  "n_boards": 2,
+  "n_sources": 10,
+  "round_trip_pct": 0.224,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 283.91
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 284.08,
+      "index_pct": 2.5991,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    },
+    {
+      "buy_price": 285.1,
+      "index_pct": 2.9675,
+      "last_price_used": false,
+      "venue": "okx_p2p"
+    }
+  ]
 }
