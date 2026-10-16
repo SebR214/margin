@@ -272,28 +272,44 @@ def official_rate(fx_by, ccy, hour, fallback):
 
 OKX_BY = {}          # {ccy: [rows of data/p2p_okx.csv]}, filled by main() for the countries drawn
 
+CROSSED_TEXT = "not enough evidence this hour: the buy side is below the sell side"
 
-def second_board_price(ccy, hour, binance_buy):
+
+def crossed(buy, sell):
+    """v1.5 (METHODOLOGY.md, 'Crossed boards'), restated here: the buy median is below the sell median by 0.1% of the mid or more.
+    A smaller gap is a tie, not a crossed board."""
+    return buy is not None and sell is not None and buy < sell and (sell - buy) / ((buy + sell) / 2) >= 0.001
+
+
+def usable_row(r):
+    """A board row we may price from: source_ok, or refused by the collector's guard only for being crossed (it keeps its medians)."""
+    return ok(r["source_ok"]) or ((r.get("error") or "").startswith(CROSSED_TEXT)
+                                  and num(r.get("buy_median")) is not None and num(r.get("sell_median")) is not None)
+
+
+def second_board_price(ccy, hour, binance_buy, must_agree=False):
     """The v1.2 rule (METHODOLOGY.md, 'A second person-to-person board'), restated here from the text and not
     imported from the emitter under test: OKX's first source_ok row of the hour with at least 10 ads is used if its
     buy median is within 3% of Binance's and its price has not stood still for 24 hours (at least 20 hourly
-    readings in the 24 hours up to this one, all the same). Then the price is the median of the two. Else Binance alone."""
+    readings in the 24 hours up to this one, all the same). Then the price is the median of the two. Else Binance alone.
+    v1.5: OKX's row may be one the guard refused only for being crossed, and when Binance's own board is crossed (`must_agree`)
+    the price is published only if OKX agrees; otherwise there is no price to re-derive and the audit fails it."""
     okx = OKX_BY.get(ccy) or []
-    cand = next((r for r in okx if hour_of(r["ts_utc"]) == hour and ok(r["source_ok"]) and (num(r.get("n_ads")) or 0) >= 10
+    cand = next((r for r in okx if hour_of(r["ts_utc"]) == hour and usable_row(r) and (num(r.get("n_ads")) or 0) >= 10
                  and num(r.get("buy_median")) is not None), None)
     if cand is None:
-        return binance_buy, None
+        return (None, "binance is crossed and okx has no evidence this hour") if must_agree else (binance_buy, None)
     op = num(cand["buy_median"])
     series = {}
     for r in okx:
-        if ok(r["source_ok"]) and num(r.get("buy_median")) is not None:
+        if usable_row(r) and num(r.get("buy_median")) is not None:
             series[hour_of(r["ts_utc"])] = num(r["buy_median"])
     h0 = dt.datetime.strptime(hour, "%Y-%m-%dT%H")
     window = [series[k] for k in ((h0 - dt.timedelta(hours=i)).strftime("%Y-%m-%dT%H") for i in range(24)) if k in series]
     if len(window) >= 20 and len(set(window)) == 1:
-        return binance_buy, "okx price stood still for 24 hours"
+        return (None, "binance is crossed and okx stood still") if must_agree else (binance_buy, "okx price stood still for 24 hours")
     if abs(op / binance_buy - 1) > 0.03:
-        return binance_buy, "okx more than 3% from binance"
+        return (None, "binance is crossed and okx is more than 3% away") if must_agree else (binance_buy, "okx more than 3% from binance")
     return statistics.median([binance_buy, op]), "median of binance %s and okx %s" % (binance_buy, op)
 
 
@@ -312,7 +328,7 @@ def check_country(item, p2p_by, basis_by, offers_by, fx_by):
             return fail(item, "no row in data/p2p_basis.csv for %s in hour %s" % (ccy, hour), files)
         r = hr[0]
         if cls == "p2p_buy_median":
-            if not ok(r["source_ok"]):
+            if not usable_row(r):
                 return fail(item, "first p2p_basis row for %s in hour %s is not source_ok" % (ccy, hour), files)
             buy = num(r["buy_median"])
             if buy is None:
@@ -325,7 +341,9 @@ def check_country(item, p2p_by, basis_by, offers_by, fx_by):
                                   "median of %d raw buy offers at %s disagrees with the row's buy_median" % (len(offs), r["ts_utc"]),
                                   files)
             price, src_row = buy, r
-            price, board_note = second_board_price(ccy, hour, buy)
+            price, board_note = second_board_price(ccy, hour, buy, must_agree=crossed(buy, num(r.get("sell_median"))))
+            if price is None:
+                return fail(item, "this price is published but %s: v1.5 withholds it" % board_note, files)
         else:
             fb = next((x for x in hr[1:] if ok(x["source_ok"]) and num(x["mid"]) is not None), None)
             if fb is None:

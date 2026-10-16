@@ -36,7 +36,16 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import source_gate  # SEB-302: only an approved source can feed a number
 
-INDEX_VERSION = "1.4.1"
+INDEX_VERSION = "1.5"
+
+# v1.5: crossed boards. A board whose buy median is below its sell median is crossed. Two cases are no longer withheld:
+#   1. a near tie: crossed by less than NEAR_TIE of the mid counts as not crossed;
+#   2. both boards have the evidence and their buy medians are within SECOND_BOARD_MAX_GAP: the price is the median of the two
+#      buy medians even if one or both boards are crossed (the published price already comes from the buy side).
+# V15 can be turned off by tools/v15_before_after.py to run the v1.4 rule over the same rows.
+NEAR_TIE = 0.001
+V15 = True
+CROSSED_TEXT = "not enough evidence this hour: the buy side is below the sell side"
 
 # v1.2: a second source is used only when it looks alive and agrees with the first.
 SECOND_BOARD_MAX_GAP = 0.03     # OKX's buy median must be within 3% of Binance's to be combined with it
@@ -296,6 +305,31 @@ def flag(row, key):
     return (row.get(key) or "").strip().lower() == "true"
 
 
+def crossed(buy, sell):
+    """The buy median is below the sell median. v1.5: by less than NEAR_TIE of the mid it is a tie, not crossed."""
+    if buy is None or sell is None or buy >= sell:
+        return False
+    return not V15 or (sell - buy) / ((buy + sell) / 2) >= NEAR_TIE
+
+
+def boards_agree(ccy, hour, binance_buy, okx_hours, okx_series):
+    """v1.5 rule 2: OKX has the evidence in this hour (at least MIN_BUY_ADS, already filtered into okx_hours), its price is
+    alive, and its buy median is within SECOND_BOARD_MAX_GAP of Binance's. Whether either board is crossed does not matter."""
+    okr = (okx_hours.get(ccy, {}).get(hour) or [None])[0]
+    return (okr is not None and not unchanged_24h((okx_series or {}).get(ccy, {}), hour)
+            and abs(num(okr, "buy_median") / binance_buy - 1) <= SECOND_BOARD_MAX_GAP)
+
+
+def board_row_usable(r):
+    """A person-to-person row we may price from. It passed the collector's guard, or (v1.5) the guard refused it only because
+    it is crossed: such a row keeps its medians as evidence, and whether it is a near tie or agrees with the other board
+    is decided here, from the medians."""
+    if flag(r, "source_ok"):
+        return True
+    return (V15 and (r.get("error") or "").startswith(CROSSED_TEXT)
+            and num(r, "buy_median") is not None and num(r, "sell_median") is not None)
+
+
 def parse_ts(s):
     try:
         t = dt.datetime.fromisoformat((s or "").strip())
@@ -498,7 +532,7 @@ def _venue_entry(r):
 MEDIAN_WINDOW_HOURS = 24
 
 
-def _hour_value(ccy, hour, bh, ph, sides, book):
+def _hour_value(ccy, hour, bh, ph, sides, book, okx_hours=None, okx_series=None):
     """One hour's index value, same source precedence and evidence rule as
     latest_by_ccy() below -- order books/brokers first, then a P2P buy-side
     median that clears the v1.1 evidence bar (>= MIN_BUY_ADS, buy >= sell).
@@ -522,7 +556,7 @@ def _hour_value(ccy, hour, bh, ph, sides, book):
         return index_pct(price, fx)
     pr = ph.get(hour) or []
     r = pr[0] if pr else None
-    if r is None or not flag(r, "source_ok"):
+    if r is None or not board_row_usable(r):
         return None
     price, sell = num(r, "buy_median"), num(r, "sell_median")
     if price is None:
@@ -533,13 +567,16 @@ def _hour_value(ccy, hour, bh, ph, sides, book):
         n_buy = MIN_BUY_ADS if (total or 0) >= MIN_BUY_ADS * 2 else 0
     if n_buy < MIN_BUY_ADS:
         return None
-    if sell is not None and price < sell:
-        return None
+    if crossed(price, sell):
+        # v1.5 rule 2: both boards agree, so the median of the two buy medians stands in for the crossed board
+        if not (V15 and okx_hours is not None and boards_agree(ccy, hour, price, okx_hours, okx_series)):
+            return None
+        price = statistics.median([price, num(okx_hours[ccy][hour][0], "buy_median")])
     fx, _fx_source, _par_rate, _par_source = fx_for(book, ccy, hour, num(r, "fx_mid_per_usd"))
     return index_pct(price, fx)
 
 
-def median_24h_by_ccy(book_hours, p2p_hours, sides, book, newest_hour_by_ccy):
+def median_24h_by_ccy(book_hours, p2p_hours, sides, book, newest_hour_by_ccy, okx_hours=None, okx_series=None):
     """{ccy: (median_pct, n_hours_used)} -- the median of each currency's
     last MEDIAN_WINDOW_HOURS real, evidence-passing hourly values, walking
     back hour by hour from that currency's own newest hour. Computed
@@ -558,7 +595,7 @@ def median_24h_by_ccy(book_hours, p2p_hours, sides, book, newest_hour_by_ccy):
         vals = []
         h = newest
         for _ in range(MEDIAN_WINDOW_HOURS * 3):
-            v = _hour_value(ccy, h, bh, ph, sides, book)
+            v = _hour_value(ccy, h, bh, ph, sides, book, okx_hours, okx_series)
             if v is not None:
                 vals.append(v)
             h = h - dt.timedelta(hours=1)
@@ -582,8 +619,9 @@ def usable(source):
     return source_gate.approved(source, _REGISTRY[0])
 
 
-def latest_by_ccy():
-    """Newest hour per currency across both layers -> the index value for it."""
+def load_hours():
+    """Every usable hourly row, by currency and hour: order books and brokers, Binance person-to-person rows, and OKX rows
+    (with the evidence bar), plus every OKX reading for the standing-still check."""
     book_hours = collections.defaultdict(dict)
     for r in rows(BASIS):
         ccy, venue, t = r.get("ccy"), r.get("venue") or "", parse_ts(r.get("ts_utc"))
@@ -605,12 +643,19 @@ def latest_by_ccy():
     okx_series = collections.defaultdict(dict)       # every reading, for the 24-hour standing-still check
     for r in (rows(P2P_OKX) if usable("okx_p2p") else []):
         ccy, t = r.get("ccy"), parse_ts(r.get("ts_utc"))
-        if not ccy or t is None or not flag(r, "source_ok") or num(r, "buy_median") is None:
+        if not ccy or t is None or not board_row_usable(r) or num(r, "buy_median") is None:
             continue
         okx_series[ccy][t.replace(minute=0, second=0, microsecond=0)] = num(r, "buy_median")
         if (num(r, "n_ads") or 0) < MIN_BUY_ADS:
             continue          # the same evidence bar the Binance board has to meet
         okx_hours[ccy].setdefault(t.replace(minute=0, second=0, microsecond=0), []).append(r)
+
+    return book_hours, p2p_hours, okx_hours, okx_series
+
+
+def latest_by_ccy():
+    """Newest hour per currency across both layers -> the index value for it."""
+    book_hours, p2p_hours, okx_hours, okx_series = load_hours()
 
     # SEB-254: Luno's own NGN book gets the same standing-still check.
     luno_series = collections.defaultdict(dict)
@@ -687,14 +732,21 @@ def latest_by_ccy():
             price = num(r, "buy_median") if r is not None else None
             sell = num(r, "sell_median") if r is not None else None
             fails = None
-            if r is None or not flag(r, "source_ok") or price is None:
+            if r is None or not board_row_usable(r) or price is None:
                 fails = (r or {}).get("error") or "no buy-side source"
+            elif crossed(price, sell) and not (V15 and n_buy >= MIN_BUY_ADS and boards_agree(ccy, hour, price, okx_hours, okx_series)):
+                # crossed, and v1.5 rule 2 does not apply: stated as v1.4 stated it
+                if not flag(r, "source_ok"):
+                    fails = r.get("error")
+                elif n_buy < MIN_BUY_ADS:
+                    fails = (f"not enough evidence this hour: {n_buy} buy-side "
+                             f"ad{'' if n_buy == 1 else 's'}, {MIN_BUY_ADS} required")
+                else:
+                    fails = ("not enough evidence this hour: the buy side is below the "
+                             "sell side, so the two are not the same market")
             elif n_buy < MIN_BUY_ADS:
                 fails = (f"not enough evidence this hour: {n_buy} buy-side "
                          f"ad{'' if n_buy == 1 else 's'}, {MIN_BUY_ADS} required")
-            elif sell is not None and price < sell:
-                fails = ("not enough evidence this hour: the buy side is below the "
-                         "sell side, so the two are not the same market")
             if fails is None:
                 fx = fx if fx else num(r, "fx_mid_per_usd")
                 entry.update(
@@ -708,7 +760,7 @@ def latest_by_ccy():
                              "index_pct": index_pct(price, fx),
                              "last_price_used": False}],
                 )
-                if sell:
+                if sell and not crossed(price, sell):
                     entry["round_trip_pct"] = round((price / sell - 1) * 100, 4)
                 # v1.2: where OKX's board also meets the evidence bar in this same hour, the published price is the
                 # median of the two boards' medians, and both boards are listed. n_sources keeps meaning the buy-side
@@ -733,6 +785,11 @@ def latest_by_ccy():
                         entry["venues"].append({"venue": okr.get("source"), "buy_price": okx_price,
                                                 "index_pct": index_pct(okx_price, fx), "last_price_used": False})
                         entry.update(buy_price=round(both, 8), index_pct=index_pct(both, fx), n_boards=2)
+                        # v1.5: priced although a board is crossed: the page says so (the sellers' sides agree)
+                        sides_crossed = [name for name, row in (("binance_p2p", r), ("okx_p2p", okr))
+                                         if crossed(num(row, "buy_median"), num(row, "sell_median"))]
+                        if sides_crossed:
+                            entry["crossed_boards_agree"] = {"crossed": sides_crossed}
             else:
                 # A second, independent row for this hour (SEB-8: today only
                 # NGN's collector ever writes one, on the hours its own board
@@ -808,6 +865,7 @@ def latest_by_ccy():
     medians = median_24h_by_ccy(
         book_hours, p2p_hours, sides, book,
         {e["ccy"]: parse_ts(e["hour_utc"]) for e in out.values()},
+        okx_hours, okx_series,
     )
     for ccy, (m, n) in medians.items():
         out[ccy]["median_24h_pct"] = m
@@ -847,7 +905,7 @@ def daily_history():
     sides = buy_side_counts()
     for r in (rows(P2P) if usable("binance_p2p") else []):
         ccy, t = r.get("ccy"), parse_ts(r.get("ts_utc"))
-        if not ccy or t is None or not flag(r, "source_ok"):
+        if not ccy or t is None or not board_row_usable(r):
             continue
         if (ccy, t.date()) in book_days:
             continue                       # an order book outranks the ad board
@@ -862,8 +920,8 @@ def daily_history():
             n_buy = MIN_BUY_ADS if (total or 0) >= MIN_BUY_ADS * 2 else 0
         if n_buy < MIN_BUY_ADS:
             continue                       # too few buy-side ads to be evidence
-        if sell is not None and price is not None and price < sell:
-            continue                       # crossed board: not the same market
+        if price is not None and crossed(price, sell):
+            continue                       # crossed board: not the same market (v1.5: a near tie is not crossed)
         v = index_pct(price, num(r, "fx_mid_per_usd"))
         if v is not None:
             per[ccy][t.date()].append(v)
