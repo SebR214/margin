@@ -1,7 +1,8 @@
 {
-  "buy_price": 389.1475,
+  "baseline_pct": -0.3208,
+  "buy_price": 396.445,
   "ccy": "AMD",
-  "computed_at": "2026-10-19T01:00:00+00:00",
+  "computed_at": "2026-10-19T02:00:00+00:00",
   "country": "Armenia",
   "denominator": {
     "class": "market",
@@ -9,6 +10,7 @@
     "source": "open.er-api"
   },
   "fx_mid_per_usd": 362.223825,
+  "held_value": 9.4475,
   "history": [
     {
       "date": "2026-09-05",
@@ -276,40 +278,47 @@
     },
     {
       "date": "2026-10-19",
-      "index_pct": 7.4329,
-      "n": 10,
-      "source": "current_hour"
+      "index_pct": 9.1024,
+      "n": 2,
+      "source": "hourly_buy_p2p"
     }
   ],
   "history_days": 45,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-19T01:00:00+00:00",
-  "index_pct": 7.4329,
+  "hour_utc": "2026-10-19T02:00:00+00:00",
+  "index_pct": null,
   "index_version": "1.4.1",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": -0.4485,
-  "n_boards": 2,
-  "n_sources": 10,
-  "round_trip_pct": 10.9689,
-  "source_class": "p2p_buy_median",
+  "median_24h_pct": -0.4382,
+  "n_boards": 1,
+  "n_sources": null,
+  "no_value_reason": "held back: +9.4% is 9.8 points from this country's usual -0.3% over the last 7 days, and no second source or earlier hour confirms it yet",
+  "p2p_sources_apart": {
+    "binance_median": 396.445,
+    "gap_pct": 6.93,
+    "okx_median": 368.985
+  },
+  "round_trip_pct": 11.6731,
+  "second_board": {
+    "buy_price": 368.985,
+    "combined": false,
+    "venue": "okx_p2p",
+    "why": "more than 3% from the first board"
+  },
+  "source_class": null,
   "source_file": "data/p2p_basis.csv",
-  "source_words": "from person-to-person ads",
+  "source_words": "no price this hour",
   "venues": [
     {
-      "buy_price": 393.945,
-      "index_pct": 8.7573,
+      "buy_price": 396.445,
+      "index_pct": 9.4475,
       "last_price_used": false,
       "venue": "binance_p2p"
-    },
-    {
-      "buy_price": 384.35,
-      "index_pct": 6.1084,
-      "last_price_used": false,
-      "venue": "okx_p2p"
     }
-  ]
+  ],
+  "withheld_buy_price": 396.445
 }
