@@ -1,0 +1,220 @@
+{
+  "corridor": "NZD->PHP",
+  "crypto_hour_utc": "2026-10-19T14:00:00+00:00",
+  "hour_utc": "2026-10-19T14",
+  "panel_hour_utc": "2026-10-19T14:00:00+00:00",
+  "rows": [
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 0.222
+      },
+      "cost_pct": 0.2253,
+      "costs": "NZ$11.27",
+      "evidence": {
+        "collected_at": "2026-10-19T14:06:19.951397+00:00",
+        "landed": 177857.51,
+        "meaning": "A public price comparison service quotes Wise: this amount lands 177857.51 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-10-19T14:09:33.481674+00:00",
+          "fee": 24.06,
+          "meaning": "Wise's own published quote: at a rate of 35.7423, with a stated fee of 24.06, sending this amount lands 177851.54.",
+          "provider_site": "wise.com",
+          "rate": 35.7423,
+          "received": 177851.54
+        },
+        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Wise",
+      "rank": 1,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers_nzdphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": null,
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": "This route has its own full step-by-step receipt -- see the link next to it on the page.",
+        "result_pct": 0.7047
+      },
+      "cost_pct": 0.7047,
+      "costs": "NZ$35.23",
+      "evidence": {
+        "collected_at": "2026-10-19T14:06:19.951397+00:00",
+        "meaning": "Priced on real exchanges this hour, every fee included.",
+        "status": "measured",
+        "venues_summary": "Cheapest of 5 exchange pairs this hour."
+      },
+      "provider": "Sending it with stablecoins",
+      "rank": 2,
+      "source": "measured",
+      "source_files": [
+        "data/samples.csv",
+        "data/stable_venues.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
+        "note": "This is WorldRemit's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
+        "result_pct": 0.8571
+      },
+      "cost_pct": 0.8571,
+      "costs": "NZ$42.85",
+      "evidence": {
+        "collected_at": "2026-10-19T14:09:33.481674+00:00",
+        "fee": 0.0,
+        "meaning": "WorldRemit's own published quote: at a rate of 35.3451, with a stated fee of 0.0, sending this amount lands 176725.5.",
+        "provider_site": "worldremit.com",
+        "rate": 35.3451,
+        "received": 176725.5,
+        "status": "own"
+      },
+      "provider": "WorldRemit",
+      "rank": 3,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 1.6366
+      },
+      "cost_pct": 1.6366,
+      "costs": "NZ$81.83",
+      "evidence": {
+        "collected_at": "2026-10-19T14:06:19.951397+00:00",
+        "landed": 175335.93,
+        "meaning": "A public price comparison service quotes BNZ: this amount lands 175335.93 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "BNZ",
+      "rank": 4,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_nzdphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 2.4934
+      },
+      "cost_pct": 2.4934,
+      "costs": "NZ$124.67",
+      "evidence": {
+        "collected_at": "2026-10-19T14:06:19.951397+00:00",
+        "landed": 173808.61,
+        "meaning": "A public price comparison service quotes Westpac NZ: this amount lands 173808.61 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Westpac NZ",
+      "rank": 5,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_nzdphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 2.5671
+      },
+      "cost_pct": 2.5671,
+      "costs": "NZ$128.35",
+      "evidence": {
+        "collected_at": "2026-10-19T14:06:19.951397+00:00",
+        "landed": 173677.36,
+        "meaning": "A public price comparison service quotes KiwiBank: this amount lands 173677.36 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "KiwiBank",
+      "rank": 6,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_nzdphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 3.7757
+      },
+      "cost_pct": 3.7757,
+      "costs": "NZ$188.78",
+      "evidence": {
+        "collected_at": "2026-10-19T14:06:19.951397+00:00",
+        "landed": 171522.99,
+        "meaning": "A public price comparison service quotes OFX: this amount lands 171522.99 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "OFX",
+      "rank": 7,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_nzdphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 5.2858
+      },
+      "cost_pct": 5.2858,
+      "costs": "NZ$264.29",
+      "evidence": {
+        "collected_at": "2026-10-19T14:06:19.951397+00:00",
+        "landed": 168831.16,
+        "meaning": "A public price comparison service quotes PayPal: this amount lands 168831.16 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "PayPal",
+      "rank": 8,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_nzdphp.csv"
+      ]
+    },
+    {
+      "computation": null,
+      "cost_pct": null,
+      "costs": null,
+      "evidence": {
+        "meaning": "Airwallex has quoted this corridor in the recent past but not this particular hour -- no price to show.",
+        "status": "missing"
+      },
+      "provider": "Airwallex",
+      "rank": 9,
+      "source": "missing",
+      "source_files": []
+    }
+  ],
+  "size": 5000,
+  "size_words": "NZ$5,000",
+  "source_files": [
+    "data/provider_quotes.csv",
+    "data/providers_latest.json",
+    "data/providers_nzdphp.csv",
+    "data/samples.csv",
+    "data/stable_venues.csv"
+  ]
+}
