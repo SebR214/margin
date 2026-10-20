@@ -29,6 +29,7 @@ import llm  # noqa: E402
 ISSUE = "SEB-301"
 COLLECTION_CODE = re.compile(r"^collector[^/]*\.py$|^\.github/workflows/collect\.yml$")
 SCOUT_LOG = os.path.join(ROOT, "data", "scout_log.csv")
+BUILDER_LOG = os.path.join(ROOT, "data", "builder_log.csv")   # ts_utc,status,job,pr,detail: one row per daily builder run (tools/one_call.py)
 
 
 def gh(path):
@@ -82,6 +83,22 @@ def scout_last():
     return "%s (%s) at %s. %s" % (r["status"], r["mode"], r["ts_utc"][:16].replace("T", " ") + " UTC", r["detail"][:160])
 
 
+def built_today(now, path=BUILDER_LOG):
+    """One line for the day: 'Built today: {job}, PR #{n}' or 'Built nothing today: {reason}'. Read from data/builder_log.csv, which
+    the daily builder writes. The newest row of the UTC day wins; no row means the builder has not run yet today."""
+    day = now.date().isoformat()
+    rows = []
+    if os.path.exists(path):
+        with open(path, newline="") as f:
+            rows = [r for r in csv.DictReader(f) if r["ts_utc"][:10] == day]
+    if not rows:
+        return "no builder run yet today"
+    r = rows[-1]
+    if r["status"] == "built":
+        return "%s, PR #%s" % (r["job"], r["pr"])
+    return "nothing: %s" % (r["detail"] or r["status"])
+
+
 def build(now=None):
     now = now or datetime.datetime.now(datetime.timezone.utc)
     since = now - datetime.timedelta(hours=24)
@@ -92,6 +109,7 @@ def build(now=None):
     lines.append("- **Runner (one_call.yml):** " + last_run(now, "one_call.yml"))
     lines.append("- **Scout (scout.yml):** " + last_run(now, "scout.yml"))
     lines.append("- **Scout, last result:** " + scout_last())
+    lines.append("- **Built today:** " + built_today(now))
     closed = gh("pulls?state=closed&sort=updated&direction=desc&per_page=50")
     merged = [p for p in closed if p.get("merged_at") and ts(p["merged_at"]) >= since]
     lines.append("- **Merged in the last 24 hours:** %d" % len(merged))
@@ -124,15 +142,42 @@ def build(now=None):
     return "\n".join(lines)
 
 
-def post(body):
+def already_posted_today(comments, now):
+    """True if a "Daily status" comment from the same UTC day is already there: one post a day, however often this runs."""
+    day = now.date().isoformat()
+    return any(c["body"].startswith("**Daily status**") and c["createdAt"][:10] == day for c in comments)
+
+
+def post(body, now=None):
     import linear
+    now = now or datetime.datetime.now(datetime.timezone.utc)
     i = linear.find(ISSUE)
+    since = now.date().isoformat() + "T00:00:00.000Z"
+    recent = linear.call("""query($id: String!) { issue(id: $id) { comments(first: 50, filter: { createdAt: { gte: "%s" } }) {
+        nodes { body createdAt } } } }""" % since, {"id": i["id"]})
+    if already_posted_today(recent["issue"]["comments"]["nodes"], now):
+        print("a daily status was already posted today: not posting another")
+        return False
     linear.call("""mutation($id: String!, $b: String!) {
       commentCreate(input: { issueId: $id, body: $b }) { success }
     }""", {"id": i["id"], "b": body})
+    return True
 
 
 def self_test():
+    n = datetime.datetime(2026, 10, 20, 9, tzinfo=datetime.timezone.utc)
+    mk = lambda body, at: {"body": body, "createdAt": at}
+    assert already_posted_today([mk("**Daily status** (x)", "2026-10-20T07:47:33Z")], n)
+    assert not already_posted_today([mk("**Daily status** (x)", "2026-10-19T08:00:00Z"), mk("Other", "2026-10-20T07:00:00Z")], n)
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, "b.csv")
+        assert built_today(n, p) == "no builder run yet today"
+        open(p, "w").write("ts_utc,status,job,pr,detail\n2026-10-20T03:00:00+00:00,failed,1a,,probe failed\n2026-10-20T05:00:00+00:00,built,1b,561,\n")
+        assert built_today(n, p) == "1b, PR #561"
+        open(p, "a").write("2026-10-20T06:00:00+00:00,nothing,,,no job with files in BACKLOG.md\n")
+        assert built_today(n, p) == "nothing: no job with files in BACKLOG.md"
+        assert built_today(n.replace(day=21), p) == "no builder run yet today"
     assert touches_collection_code(["collector.py"])
     assert touches_collection_code(["collector_p2p_okx.py", "x.md"])
     assert touches_collection_code([".github/workflows/collect.yml"])

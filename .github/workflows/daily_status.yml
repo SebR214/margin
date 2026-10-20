@@ -19,6 +19,11 @@ permissions:
   actions: read
   pull-requests: read
 
+# one run at a time: two overlapping runs could both pass the once-a-day check
+concurrency:
+  group: daily-status
+  cancel-in-progress: false
+
 jobs:
   status:
     runs-on: ubuntu-latest
