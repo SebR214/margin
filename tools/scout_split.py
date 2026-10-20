@@ -46,12 +46,13 @@ Write between 1 and 6 jobs, in this exact format and nothing else (no preface, n
     done when: one sentence a test could check
 The ids are the item id followed by a, b, c. Rules:
 - One route, one source or one file at a time. A job must be small enough that one model call can write it.
-- Use only files from the CATALOGUE, or new files named collector_<name>.py, tools/<name>.py, data/<name>.csv or data/<name>.json. A new collector goes in a new file and its own new CSV; never change an existing CSV header or an existing collector. To make a new file run, a job lists .github/workflows/collect.yml and only appends to it.
+- `files:` may name new files; `context:` may name ONLY files that already exist in the CATALOGUE (never a file this job or another job creates). Use only files from the CATALOGUE, or new files named collector_<name>.py, tools/<name>.py, data/<name>.csv or data/<name>.json. A new collector goes in a new file and its own new CSV; never change an existing CSV header or an existing collector. To make a new file run, a job lists .github/workflows/collect.yml and only appends to it.
 - A job that changes how a published number is computed lists METHODOLOGY.md and tools/emit_countries.py (or the emitter that writes the number) and says it bumps INDEX_VERSION.
 - Never list copy.json, a page (.html), a script under js/ or a stylesheet: words and pages go through the writer. If the item needs words, add one job whose title starts with WORDS and that lists no files, and the Scout will leave it for the writer.
 - Never list a data/*.csv that exists, or a file over 60,000 characters together with another large one. Check the sizes in the CATALOGUE.
 - Use no number that is not in the item. Write other quantities in words.
 - Real data only, never invented. A new venue is only named, with its URL: the Scout fetches it and finds the price field itself, so do not write a field.
+- collector.py (about 100,000 characters) and collector_providers.py (about 60,000) are too big to change in one call, and an existing collector must not be changed at all. If the item needs a new route or a new venue, put it in NEW files that import the helpers they need from the existing collectors and write to NEW CSVs. If that is not possible, answer CANNOT.
 - If the item cannot be split into jobs of this size, write exactly one line: CANNOT: and the reason (for example the one file that is too big)."""
 
 
@@ -183,17 +184,22 @@ def discover_field(payload, ccy, reference_value, tolerance=0.03):
 
 
 def check_venues(job_venues, markets, fetch=None, probe=None, reference=None):
-    """For each (ccy, url): fetch the url ONCE, read the real field, probe it. Returns ([(ccy, url, field)], [reasons])."""
+    """For each (ccy, url): fetch the url ONCE, read the real field, probe it. Returns ([(ccy, url, field)], [reasons]).
+    `markets` is the set of single-source currencies a venue may be for (a second source for a country price), or None when the
+    venue is a leg of a route and any currency with an official rate will do."""
     import probe_source as ps
     fetch = fetch or ps.fetch_json
     probe = probe or ps.probe
     ok, why = [], []
     for ccy, url in job_venues:
-        if ccy not in markets:
+        if markets is not None and ccy not in markets:
             why.append("%s is not a single-source market" % ccy)
             continue
         if not url.startswith("https://"):
             why.append("venue url for %s is not https: %s" % (ccy, url[:80]))
+            continue
+        if ccy == "USD":
+            ok.append((ccy, url, "(not probed: a dollar in dollars)"))      # there is no official rate to match a dollar price against
             continue
         cache = {}
 
@@ -286,7 +292,8 @@ def run_split(text, ask, markets, fetch=None, probe=None, root=ROOT, log=None, t
         if jobs is not None and not reasons:
             for j in jobs:
                 if j["venues"]:
-                    ok, bad = check_venues(j["venues"], markets, fetch, probe)
+                    only_single = re.search(r"one source|single.source|second (venue|source)", item_text, re.I) is not None
+                    ok, bad = check_venues(j["venues"], markets if only_single else None, fetch, probe)
                     if not ok:
                         reasons.append("%s: no venue passed: %s" % (j["id"], "; ".join(bad) or "none named"))
                     else:
@@ -356,6 +363,8 @@ def self_test():
     assert ok_ == [("THB", "https://v.example/t", "data.p")] and not why_, (ok_, why_)
     assert calls.count("https://v.example/t") == 1, "the endpoint is fetched once, for discovery and for the probe together: %s" % calls
     assert check_venues([("PHP", "https://v.example/t")], {"THB"}, fetch=fetch)[1]
+    assert check_venues([("THB", "https://v.example/t")], None, fetch=fetch)[0][0][2] == "data.p", "a route leg may be in any currency"
+    assert check_venues([("USD", "https://v.example/t")], None, fetch=fetch)[0][0][2].startswith("(not probed")
     assert check_venues([("THB", "http://v.example/t")], {"THB"}, fetch=fetch)[1]
     far = lambda u: {"rates": {"THB": 31.2}} if "er-api" in u else {"data": {"p": "28.0"}}
     assert "within 3%" in check_venues([("THB", "https://v.example/t")], {"THB"}, fetch=far)[1][0]
