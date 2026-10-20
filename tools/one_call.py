@@ -235,7 +235,8 @@ def apply(text, allowed):
 
 def run_checks(written):
     out = []
-    cmds = list(CHECKS) + [["node", "--check", p] for p in written if p.endswith(".js")]
+    cmds = (list(CHECKS) + [["node", "--check", p] for p in written if p.endswith(".js")]
+            + [[sys.executable, "-m", "py_compile", p] for p in written if p.endswith(".py")])      # a Python file must at least compile
     for c in cmds:
         r = subprocess.run(c, cwd=ROOT, capture_output=True, text=True)
         if r.returncode != 0:

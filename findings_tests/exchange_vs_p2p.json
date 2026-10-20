@@ -1,0 +1,15 @@
+{
+ "id": "exchange_vs_p2p",
+ "claim": "In some countries, buying a dollar from other people costs more than on an exchange, hour after hour.",
+ "calculation": "From data/findings.json (exchange_vs_p2p evidence): the countries where the gap persists, as the finding defines it (over the last 30 days, at least 7 days of checked hours and a gap of 2 points or more in at least three quarters of them). The figure is the share of the countries that persisted when this test first ran that still persist.",
+ "window": "the last 30 days of checked hours",
+ "min_observations": "at least 7 days of checked hours for a country to be judged",
+ "invalid_if": "the finding's last recheck in data/findings.json is more than 6 hours old, no country persisted when the test first ran, or the minimum observations are not met",
+ "direction": "higher_is_better",
+ "holds": 1.0,
+ "weaker": 0.5,
+ "thresholds_text": "holds: every country that persisted at the start still does. weaker: at least half. no longer true: fewer than half.",
+ "trigger": "new hourly price rows",
+ "evidence_file": "data/findings_hours_exchange_vs_p2p.csv",
+ "proposed_by": "Claude, 20 Oct 2026, from ROADMAP.md 'How a finding is tested'; the thresholds are proposals, merged by Seb's 20 Oct rule, and change only through a spec"
+}

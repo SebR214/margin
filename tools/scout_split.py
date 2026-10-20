@@ -51,6 +51,7 @@ The ids are the item id followed by a, b, c. Rules:
 - Never list copy.json, a page (.html), a script under js/ or a stylesheet: words and pages go through the writer. If the item needs words, add one job whose title starts with WORDS and that lists no files, and the Scout will leave it for the writer.
 - Never list a data/*.csv that exists, or a file over 60,000 characters together with another large one. Check the sizes in the CATALOGUE.
 - Use no number that is not in the item. Write other quantities in words.
+- Every job that reads an exchange or a price feed lists that exchange's public URL in a venue: line, so the Scout can fetch it and the builder is given the real address and field. A job that creates a collector_*.py without a venue: line is rejected.
 - Real data only, never invented. A new venue is only named, with its URL: the Scout fetches it and finds the price field itself, so do not write a field.
 - collector.py (about 100,000 characters) and collector_providers.py (about 60,000) are too big to change in one call, and an existing collector must not be changed at all. If the item needs a new route or a new venue, put it in NEW files that import the helpers they need from the existing collectors and write to NEW CSVs. If that is not possible, answer CANNOT.
 - If the item cannot be split into jobs of this size, write exactly one line: CANNOT: and the reason (for example the one file that is too big)."""
@@ -134,6 +135,8 @@ def validate_jobs(jobs, item_text, root=ROOT):
                 total += os.path.getsize(os.path.join(root, p))
         if total > MAX_FILES_CHARS:
             reasons.append("%s: its files total %d characters, over the %d one builder call can take" % (j["id"], total, MAX_FILES_CHARS))
+        if any(p.startswith("collector_") and p.endswith(".py") and not os.path.isfile(os.path.join(root, p)) for p in j["files"]) and not j["venues"]:
+            reasons.append("%s creates a collector but names no venue: line with the exchange's URL" % j["id"])
         text = re.sub(r"`[^`]*`", " ", j["title"] + " " + j["done_when"])
         for d in re.findall(r"\d+", text):
             if d not in allowed_digits:
@@ -336,7 +339,9 @@ def self_test():
 - [ ] 5. Fifth
 """
     good = ("  - [ ] 1a. Add the collector\n    files: `collector_newroute.py` `data/newroute.csv` `.github/workflows/collect.yml`\n"
+            "    venue: `THB` | `https://v.example/t`\n"
             "    done when: one row is written\n  - [ ] 1b. Add the check\n    files: `tools/newroute_probe.py`\n    context: `METHODOLOGY.md`\n")
+    fake = lambda u: {"rates": {"THB": 31.2}} if "er-api" in u else {"data": {"p": "31.0"}}
     jobs, why = parse_jobs(good, "1")
     assert [j["id"] for j in jobs] == ["1a", "1b"] and jobs[0]["files"][0] == "collector_newroute.py" and not why
     assert parse_jobs("CANNOT: collector.py alone is over the size", "1") == (None, "collector.py alone is over the size")
@@ -351,6 +356,8 @@ def self_test():
         open(os.path.join(d, "data.csv"), "w").write("a\n")
         subprocess.run(["git", "init", "-q"], cwd=d)
         ok = lambda t: validate_jobs(parse_jobs(t, "1")[0], "Add a route from A to B using venue X", d)
+        no_venue = good.replace("    venue: `THB` | `https://v.example/t`\n", "")
+        assert any("names no venue" in r for r in ok(no_venue)), "a new collector needs a venue line"
         assert ok(good) == [], ok(good)
         assert drop_new_context([{"context": ["small.py", "nope.py"]}], d)[0]["context"] == ["small.py"], "a file another job will create is not context"
         assert any("over the" in r for r in ok("  - [ ] 1a. t\n    files: `big.py` `big2.py`\n    done when: x\n"))
@@ -390,7 +397,7 @@ def self_test():
     with tempfile.TemporaryDirectory() as d:
         open(os.path.join(d, "METHODOLOGY.md"), "w").write("m\n")
         subprocess.run(["git", "init", "-q"], cwd=d)
-        new, notes, done = run_split(text, lambda s, u: next(answers), {"THB"}, root=d, today="2026-10-20")
+        new, notes, done = run_split(text, lambda s, u: next(answers), {"THB"}, fetch=fake, root=d, today="2026-10-20")
     assert done == 0 and "stopped after 3 failed tries" in notes[-1]
     assert new.count("blocked:") == 3 and "    blocked" not in new.split("- [ ] 4.")[0] or True
     assert [i["id"] for i in next_candidates(new)] == ["4", "5"], [i["id"] for i in next_candidates(new)]
@@ -398,7 +405,7 @@ def self_test():
     with tempfile.TemporaryDirectory() as d:
         open(os.path.join(d, "METHODOLOGY.md"), "w").write("m\n")
         subprocess.run(["git", "init", "-q"], cwd=d)
-        new2, notes2, done2 = run_split(text, lambda s, u: next(ans2), {"THB"}, root=d, today="2026-10-20")
+        new2, notes2, done2 = run_split(text, lambda s, u: next(ans2), {"THB"}, fetch=fake, root=d, today="2026-10-20")
     assert done2 == 1 and "  - [ ] 1a. Add the collector" in new2 and [i["id"] for i in backlog.parse(new2) if i["jobs"]] == ["1"]
     print("scout_split self-test: ok")
 

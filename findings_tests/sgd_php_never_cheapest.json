@@ -1,0 +1,15 @@
+{
+ "id": "sgd_php_never_cheapest",
+ "claim": "Singapore to the Philippines: a stablecoin was almost never the cheapest way to send.",
+ "calculation": "From data/findings_hours_sgd_php_never_cheapest.csv (one row per priced hour at S$5,000): the share of hours in the last 28 days in which the stablecoin cost was below the cheapest app (stable_cheaper = true).",
+ "window": "the last 28 days of priced hours",
+ "min_observations": "at least 500 priced hours in the window",
+ "invalid_if": "the finding's last recheck in data/findings.json is more than 6 hours old, or the minimum observations are not met",
+ "direction": "lower_is_better",
+ "holds": 0.01,
+ "weaker": 0.05,
+ "thresholds_text": "holds: the stablecoin was cheapest in at most 1% of hours. weaker: up to 5%. no longer true: more than 5%.",
+ "trigger": "new hourly price rows",
+ "evidence_file": "data/findings_hours_sgd_php_never_cheapest.csv",
+ "proposed_by": "Claude, 20 Oct 2026, from ROADMAP.md 'How a finding is tested'; the thresholds are proposals, merged by Seb's 20 Oct rule, and change only through a spec"
+}
