@@ -3,6 +3,7 @@
 
     python3 agents/linear_sync.py merged SEB-300 123
     python3 agents/linear_sync.py failed SEB-300 123 "method-change"
+    python3 agents/linear_sync.py note SEB-302 "one line of text"
 
 `merged`: the PR landed, so the issue goes to Done (the Scout waits on SEB-300
 being Done). `failed`: a check on the PR failed, so the issue gets the label
@@ -50,7 +51,14 @@ def failed(ident, pr, what):
     print("%s +%s" % (ident, STUCK))
 
 
+def note(ident, text):
+    comment(linear.find(ident), text)
+    print("commented on %s" % ident)
+
+
 def main(argv):
+    if len(argv) == 4 and argv[1] == "note":
+        return note(argv[2], argv[3])
     if len(argv) < 4 or argv[1] not in ("merged", "failed"):
         sys.exit(__doc__)
     if argv[1] == "merged":

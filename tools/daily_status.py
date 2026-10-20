@@ -25,6 +25,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 sys.path.insert(0, os.path.join(ROOT, "agents"))
 import llm  # noqa: E402
+import check_additive  # noqa: E402
 
 ISSUE = "SEB-301"
 COLLECTION_CODE = re.compile(r"^collector[^/]*\.py$|^\.github/workflows/collect\.yml$")
@@ -118,10 +119,11 @@ def build(now=None):
     opened = gh("pulls?state=open&per_page=50")
     lines.append("- **Open PRs:** %d" % len(opened))
     for p in opened[:20]:
-        files = [f["filename"] for f in gh("pulls/%d/files?per_page=100" % p["number"])]
+        files = gh("pulls/%d/files?per_page=100" % p["number"])
+        touches, additive, why = check_additive.classify(files)
         note = ""
-        if touches_collection_code(files):
-            note = " **(changes collection code: left open, needs a person)**"
+        if touches and not additive:
+            note = " **(changes existing collection code, so it is not merged by itself: %s)**" % "; ".join(why)
         elif p.get("draft"):
             note = " (draft)"
         lines.append("  - [#%d](%s) %s%s" % (p["number"], p["html_url"], p["title"], note))

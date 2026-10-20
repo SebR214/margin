@@ -136,6 +136,51 @@ jobs:
           python3 tools/check_method_change.py --self-test
           python3 tools/check_method_change.py --base "origin/${{ github.base_ref }}"
 
+  # Collection code (SEB-301, Seb's merge rule of 20 Oct). A PR that touches collector*.py or collect.yml is judged here:
+  # if it is additive (tools/check_additive.py: new collector files and new sidecar CSVs, collect.yml only grows), one full
+  # collection run on the branch must pass (tools/check_collection_run.py: no file's columns change, every source that answers
+  # on main answers here). A PR that is not additive is not run here: automerge.yml leaves it open and the daily status lists it.
+  # A PR that touches no collection code passes this job in seconds.
+  collector-gate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Does it touch collection code, and is it additive
+        id: scope
+        run: |
+          python3 tools/check_additive.py --self-test
+          python3 tools/check_collection_run.py --self-test
+          python3 tools/check_additive.py --base "origin/${{ github.base_ref }}" --json | tee verdict.json
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          v = json.load(open("verdict.json"))
+          print("run=%s" % ("true" if v["touches_collection_code"] and v["additive"] else "false"))
+          PY
+
+      - name: Install dependencies
+        if: steps.scope.outputs.run == 'true'
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright browser (WorldRemit render path)
+        if: steps.scope.outputs.run == 'true'
+        run: playwright install --with-deps chromium
+
+      - name: One full collection run on the branch
+        if: steps.scope.outputs.run == 'true'
+        run: python3 tools/check_collection_run.py
+
   # Words belong to the writer agent. Fails a PR that changes copy.json or adds
   # reader-facing text to html/js unless it is a writer PR the owner approved.
   # Runs the check from the BASE branch so the PR cannot edit its own judge.
