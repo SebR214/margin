@@ -53,6 +53,11 @@ jobs:
       - name: Inventory gate (no page may lose charts, tables or interactive elements)
         run: python3 tools/check_inventory.py
 
+      - name: No duplicate files (name N.ext)
+        run: |
+          python3 tools/check_junk_files.py --self-test
+          python3 tools/check_junk_files.py
+
       - name: Plain-language gate (no payments jargon in headings/nav/labels)
         run: python3 tools/check_copy.py
 
