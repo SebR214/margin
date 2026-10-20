@@ -101,7 +101,9 @@ jobs:
         run: python3 tools/backlog.py --self-test
 
       - name: The daily builder shapes a backlog job and finds its PR (SEB-301)
-        run: python3 tools/one_call.py --self-test
+        run: |
+          python3 tools/one_call.py --self-test
+          python3 tools/waiting_on_seb.py --self-test
 
       - name: Design ratchet (a page may not get louder - caps, heavy weights, off-palette colours)
         run: python3 tools/check_design.py
