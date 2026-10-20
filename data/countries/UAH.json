@@ -1,17 +1,31 @@
 {
+  "buy_price": 46.3375,
   "ccy": "UAH",
-  "computed_at": "2026-10-20T08:00:00+00:00",
+  "computed_at": "2026-10-20T09:00:00+00:00",
   "country": "Ukraine",
+  "crossed_boards_agree": {
+    "crossed": [
+      "binance_p2p",
+      "okx_p2p"
+    ]
+  },
   "denominator": {
     "class": "managed",
     "rate_per_usd": 44.986149,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 44.986149,
   "history": [
     {
       "date": "2026-09-07",
       "index_pct": 2.056,
       "n": 4,
+      "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-09-08",
+      "index_pct": 1.5706,
+      "n": 1,
       "source": "hourly_buy_p2p"
     },
     {
@@ -22,30 +36,51 @@
     },
     {
       "date": "2026-09-17",
-      "index_pct": 3.5054,
-      "n": 1,
+      "index_pct": 3.4101,
+      "n": 2,
       "source": "hourly_buy_p2p"
     },
     {
       "date": "2026-09-21",
-      "index_pct": 3.874,
-      "n": 1,
+      "index_pct": 3.8349,
+      "n": 2,
       "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-10-20",
+      "index_pct": 3.0039,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
-  "history_days": 4,
+  "history_days": 6,
   "history_start": "2026-09-07",
-  "hour_utc": "2026-10-20T08:00:00+00:00",
-  "index_version": "1.4.1",
+  "hour_utc": "2026-10-20T09:00:00+00:00",
+  "index_pct": 3.0039,
+  "index_version": "1.5",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market (buy 46.155, sell 48.269999999999996)",
-  "round_trip_pct": -4.3816,
-  "source_class": null,
+  "median_24h_n": 24,
+  "median_24h_pct": 3.3956,
+  "n_boards": 2,
+  "n_sources": 10,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 46.155
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 46.305,
+      "index_pct": 2.9317,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    },
+    {
+      "buy_price": 46.37,
+      "index_pct": 3.0762,
+      "last_price_used": false,
+      "venue": "okx_p2p"
+    }
+  ]
 }
