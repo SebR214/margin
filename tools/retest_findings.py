@@ -118,7 +118,7 @@ def m_volume(root, test, now, first):
     cur = f["headline"]["value"] if f else None
     if vc.get("status") != "ok" or (vc.get("reconstruction_max_error_bps") or 0) > 1 or vc.get("n_samples", 0) < 500 or not cur:
         return dict(out, invalid="status %r, rebuild error %s bps, %s checks, volume %s" % (vc.get("status"), vc.get("reconstruction_max_error_bps"), vc.get("n_samples"), cur))
-    base = float(first["value"]) if first else float(cur)
+    base = float(first["baseline"]) if first and first.get("baseline") else float(cur)      # the first volume this test recorded
     return dict(out, value=abs(cur - base) / base, baseline=base, detail=json.dumps({"volume_now": cur}))
 
 
@@ -179,7 +179,10 @@ def retest(root=ROOT, now=None, force=False):
         test = json.load(open(os.path.join(root, "findings_tests", fid + ".json")))
         mine = [r for r in old if r["finding_id"] == fid]
         first = next((r for r in mine if r["status"] != "invalid"), None)
-        res = fn(root, test, now, first)
+        try:
+            res = fn(root, test, now, first)
+        except Exception as e:      # noqa: BLE001 - a test that cannot run is an invalid row with its reason, never a crash
+            res = {"metric": "", "n_obs": "", "invalid": "the test could not run: %s: %s" % (type(e).__name__, str(e)[:120]), "detail": ""}
         if not force and not triggered(fid, res, mine[-1] if mine else None, now.date().isoformat()):
             continue
         if res.get("invalid"):
@@ -223,6 +226,11 @@ def self_test():
     assert set(by) == set(METRICS), by.keys()
     for r in rows:
         assert r[2] in ("holds", "weaker", "no_longer_true", "invalid") and len(r) == len(HEADER), r
+    # the second run of the volume test, with a first row on file: the baseline is the first volume, not the first deviation (which is 0)
+    vrow = {"ts_utc": "2026-10-20T10:35:00+00:00", "finding_id": "volume_crossover", "status": "holds", "value": "0", "baseline": "2.03708e+07",
+            "data_through": "2026-10-01T10:18:27Z", "detail": ""}
+    vres = m_volume(ROOT, json.load(open(os.path.join(ROOT, "findings_tests", "volume_crossover.json"))), now, vrow)
+    assert vres.get("baseline") == 2.03708e+07 and "invalid" not in vres and vres["value"] < 0.25, vres
     # synthetic evidence: a finding that stops being true is called so
     import tempfile
     with tempfile.TemporaryDirectory() as d:
