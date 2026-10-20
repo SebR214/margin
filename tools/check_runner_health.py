@@ -2,11 +2,11 @@
 """Is the one-call runner alive? No model call. Exit 1 if not.
 
 Down means either:
-- no completed run of one_call.yml in the last 2 hours, or
+- no completed run of one_call.yml in the last 26 hours (the runner builds once a day, with backup slots), or
 - the last 3 completed runs all failed.
 
-A new workflow gets a 2-hour grace period from its first run being possible:
-if it has never completed a run and was added less than 2 hours ago, it is
+A new workflow gets a 26-hour grace period from its first run being possible:
+if it has never completed a run and was added less than 26 hours ago, it is
 not down yet.
 
 Env: GH_TOKEN, GITHUB_REPOSITORY.
@@ -18,7 +18,7 @@ import sys
 import urllib.request
 
 WORKFLOW = "one_call.yml"
-SILENT_AFTER = datetime.timedelta(hours=2)
+SILENT_AFTER = datetime.timedelta(hours=26)
 
 
 def get(path):

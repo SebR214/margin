@@ -1,23 +1,25 @@
 name: one-call runner
 
-# SEB-274. Every 15 minutes a plain script asks Linear for a ready issue
-# (Todo, label one-call, not needs-claude). Nothing ready costs a few seconds
-# and no model call. A ready issue gets one cheap model call, at most two,
-# capped at $1 a job and DAILY_CAP_USD a day. See tools/one_call.py.
+# SEB-274, changed 20 Oct (SEB-301). Once a day the builder takes the top unchecked job of BACKLOG.md
+# (tools/backlog.py), builds it in one cheap model call (qwen, kimi as fallback, $1 a job, inside the
+# $20 a month cap), opens a PR that automerge merges on green, ticks the job, and posts one line on
+# SEB-301. If a Linear issue labelled one-call is ready it is built first, as before. See tools/one_call.py.
 #
-# Watched by watchdog.yml: silent for 2 hours, or 3 failures in a row, fails
-# that workflow and GitHub emails the repo owner.
-
-# The schedule is the restarter. The real clock is the `next` job at the
-# bottom, which starts the following run, because GitHub's cron fired this
-# only twice on the night of 7 Oct.
+# GitHub drops scheduled runs now and then, so there are three slots a day; tools/one_call.py does
+# nothing if data/builder_log.csv already has a row for today. Start it by hand with the Run workflow
+# button (it then runs even if it ran today); give an issue key to build that Linear issue.
+#
+# Watched by watchdog.yml: silent for 26 hours, or 3 failures in a row, fails that workflow and
+# GitHub emails the repo owner.
 on:
   schedule:
-    - cron: "7,22,37,52 * * * *"
+    - cron: "17 6 * * *"
+    - cron: "47 8 * * *"
+    - cron: "17 12 * * *"
   workflow_dispatch:
     inputs:
       issue:
-        description: "Run one issue by hand, e.g. SEB-273"
+        description: "Build one Linear issue by hand, e.g. SEB-273 (empty: the next backlog job)"
         required: false
         default: ""
 
@@ -73,19 +75,4 @@ jobs:
           git config user.name "margin-agents[bot]"
           git config user.email "329969015+margin-agents[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${GH_PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}"
-          python3 tools/one_call.py ${{ github.event.inputs.issue }}
-
-  # Starts the next run in 15 minutes. Not in the concurrency group, so its
-  # sleep never blocks a run started by hand.
-  next:
-    needs: run
-    if: always() && github.event.inputs.issue == ''
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: .github
-      - env:
-          GH_TOKEN: ${{ github.token }}
-        run: .github/actions-next.sh one_call.yml 15
+          python3 tools/one_call.py ${{ github.event.inputs.issue }} ${{ github.event_name == 'workflow_dispatch' && '--force' || '' }}

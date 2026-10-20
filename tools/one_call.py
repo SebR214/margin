@@ -4,7 +4,14 @@
     python3 tools/one_call.py            # take the next ready issue, if any
     python3 tools/one_call.py SEB-273    # run one issue by hand
 
-A ready issue is in Todo, carries the label `one-call`, and does not carry
+Once a day (Seb, 20 Oct) the runner builds the top unchecked job of BACKLOG.md (tools/backlog.py): it first copies any new
+"Queued by Claude" items from SEB-301 comments into the file, takes the next job that has files, builds it, opens a PR titled
+`SEB-301: {job}` (automerge merges it on green), ticks the job in the same PR with the PR number and date, writes a row to
+data/builder_log.csv and posts one line on SEB-301. A job that fails twice is marked `blocked:` in BACKLOG.md and the runner takes the next
+one (up to 3 tries a run); it stops after the first PR. A job that changes a published number lists METHODOLOGY.md in its files and
+bumps INDEX_VERSION in the same PR. Run `python3 tools/one_call.py --backlog` for that mode by hand.
+
+The older flow still works: a ready issue is in Todo, carries the label `one-call`, and does not carry
 `needs-claude`. Its description lists the files the model may change under a
 `## Files` heading, and optional read-only files under `## Context`, one
 backticked path per line. Linear documents attached to the issue (the
@@ -43,7 +50,12 @@ sys.path.insert(0, os.path.join(ROOT, "agents"))
 import linear  # noqa: E402
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import llm  # noqa: E402
+import backlog  # noqa: E402
 
+BUILDER_LOG = os.path.join(ROOT, "data", "builder_log.csv")
+BUILDER_LOG_HEADER = ["ts_utc", "status", "job", "pr", "detail"]
+BACKLOG_ISSUE = "SEB-301"
+MAX_JOBS_PER_RUN = 3
 LABEL = "one-call"
 STUCK_LABEL = "needs-claude"
 MODELS = ["qwen/qwen3-coder", "moonshotai/kimi-k2"]
@@ -137,12 +149,17 @@ def next_ready():
 
 
 def comment(i, text):
+    if i.get("backlog"):
+        print("[%s] %s" % (i["identifier"], text.replace("\n", " ")[:300]))
+        return
     linear.call("""mutation($id: String!, $b: String!) {
       commentCreate(input: { issueId: $id, body: $b }) { success }
     }""", {"id": i["id"], "b": "⚙️ **One-call runner**\n\n" + text})
 
 
 def set_state(i, name):
+    if i.get("backlog"):
+        return
     st = linear.states()
     if name in st:
         linear.call("""mutation($id: String!, $s: String!) {
@@ -151,6 +168,8 @@ def set_state(i, name):
 
 
 def add_label(i, name):
+    if i.get("backlog"):
+        return
     linear.call("""mutation($id: String!, $l: String!) {
       issueAddLabel(id: $id, labelId: $l) { success }
     }""", {"id": i["id"], "l": linear._label_id(name)})
@@ -223,11 +242,11 @@ def run_checks(written):
 
 
 def open_pr(i, written, rows):
-    branch = "one-call/%s" % i["identifier"].lower()
+    branch = i.get("branch") or "one-call/%s" % i["identifier"].lower()
     sh(["git", "checkout", "-q", "-B", branch])
     sh(["git", "add", "--"] + written)
-    sh(["git", "commit", "-q", "-m", "%s: %s\n\nOne-call runner, %s." % (
-        i["identifier"], i["title"], ", ".join(r["model"] for r in rows))])
+    sh(["git", "commit", "-q", "-m", "%s\n\nOne-call runner, %s." % (
+        i.get("pr_title") or "%s: %s" % (i["identifier"], i["title"]), ", ".join(r["model"] for r in rows))])
     sh(["git", "push", "-q", "-f", "origin", branch])
     repo = os.environ["GITHUB_REPOSITORY"]
     cost = sum(float(r["cost_usd"]) for r in rows)
@@ -236,7 +255,7 @@ def open_pr(i, written, rows):
                 i["url"], len(rows), cost, "\n".join("- `%s`" % p for p in written)))
     req = urllib.request.Request(
         "https://api.github.com/repos/%s/pulls" % repo,
-        data=json.dumps({"title": "%s: %s" % (i["identifier"], i["title"]),
+        data=json.dumps({"title": i.get("pr_title") or "%s: %s" % (i["identifier"], i["title"]),
                          "head": branch, "base": "main", "body": body}).encode(),
         headers={"Authorization": "Bearer " + os.environ["GH_PUSH_TOKEN"],
                  "Accept": "application/vnd.github+json"})
@@ -251,18 +270,24 @@ def open_pr(i, written, rows):
 
 def run(ident):
     i = issue_with_docs(ident)
+    return run_job(i)[0]
+
+
+def run_job(i):
+    """Build one job. Returns (rows, pr_url or None, why it stopped or ''). `i` is a Linear issue with `docs`, or a backlog job
+    (see backlog_issue), which has no Linear issue to comment on or label."""
     files = paths_under(i["description"], "Files")
     context = paths_under(i["description"], "Context")
     if not files:
         add_label(i, STUCK_LABEL)
         comment(i, "No `## Files` section with backticked paths, so there is nothing "
                    "I may change. Labelled `needs-claude`.")
-        return []
+        return [], None, "no files listed"
     missing = [p for p in context if not os.path.exists(os.path.join(ROOT, p))]
     if missing:
         add_label(i, STUCK_LABEL)
         comment(i, "Context files not in the repo: %s. Labelled `needs-claude`." % ", ".join(missing))
-        return []
+        return [], None, "context files missing: " + ", ".join(missing)
 
     set_state(i, "In Progress")
     comment(i, "Starting. Files: %s." % ", ".join(files))
@@ -294,23 +319,242 @@ def run(ident):
     cost = sum(float(r["cost_usd"]) for r in rows)
     if not failures:
         url = open_pr(i, written, rows)
+        if i.get("backlog"):
+            tick_on_branch(i, url)
         comment(i, "PR open: %s\n%d call(s), $%.4f." % (url, len(rows), cost))
+        return rows, url, ""
+    sh(["git", "checkout", "-q", "--", "."], check=False)
+    add_label(i, STUCK_LABEL)
+    comment(i, "Stopped after %d call(s), $%.4f. Labelled `needs-claude`.\n\n```\n%s\n```"
+            % (len(rows), cost, "\n\n".join(failures)[-2500:]))
+    return rows, None, "\n".join(failures)
+
+
+# ---------- the daily backlog run (SEB-301, 20 Oct) ----------
+
+def backlog_issue(item, job):
+    """A backlog job shaped like the Linear issue the rest of this file works on."""
+    desc = ["BACKLOG ITEM %s: %s" % (item["id"], item["title"]), "JOB %s: %s" % (job["id"], job["title"]), ""]
+    if job["done_when"]:
+        desc += ["DONE WHEN: " + job["done_when"], ""]
+    if job["venues"]:
+        desc += ["VENUES (the Scout fetched each one and read the real price field; use exactly these):"] + ["- " + v for v in job["venues"]] + [""]
+    if "METHODOLOGY.md" in job["files"]:
+        desc += ["This job changes how a published number is computed: describe the change in METHODOLOGY.md and bump INDEX_VERSION "
+                 "(tools/emit_countries.py, and the other files that carry it) in the same change.", ""]
+    desc += ["Real data only, never an invented number. A new file runs only if its step is added to .github/workflows/collect.yml, by appending.", "",
+             "## Files"] + ["`%s`" % p for p in job["files"]] + ["", "## Context"] + ["`%s`" % p for p in job["context"]]
+    return {"backlog": True, "id": None, "identifier": BACKLOG_ISSUE + "/" + job["id"], "job": job["id"], "item": item["id"],
+            "title": job["title"], "description": "\n".join(desc), "docs": [], "url": "BACKLOG.md job %s" % job["id"],
+            "branch": "one-call/backlog-%s" % job["id"].lower(), "pr_title": "%s: %s (backlog %s)" % (BACKLOG_ISSUE, job["title"], job["id"])}
+
+
+def pr_number(url):
+    m = re.search(r"/pull/(\d+)", url or "")
+    return m.group(1) if m else None
+
+
+def tick_on_branch(i, url):
+    """Tick the job in BACKLOG.md with the PR number and today's date, as a second commit on the PR's own branch, so it lands only
+    if the PR does."""
+    n = pr_number(url)
+    if not n:
+        return
+    text = open(backlog.PATH).read()
+    open(backlog.PATH, "w").write(backlog.tick(text, i["job"], n, now().date().isoformat()))
+    sh(["git", "add", "BACKLOG.md"])
+    sh(["git", "commit", "-q", "-m", "SEB-301: tick backlog job %s (PR #%s)" % (i["job"], n)])
+    sh(["git", "push", "-q", "-f", "origin", i["branch"]])
+
+
+def ran_today(path=BUILDER_LOG, today=None):
+    today = today or now().date().isoformat()
+    if not os.path.exists(path):
+        return False
+    with open(path, newline="") as f:
+        return any(r["ts_utc"][:10] == today for r in csv.DictReader(f))
+
+
+def commit_main(log_rows, ops, message):
+    """Put this run's bookkeeping on main: the spend rows, the builder log rows and any BACKLOG.md edits (re-applied to a fresh
+    copy of main, so a concurrent change cannot be lost). Retries like commit_spend."""
+    spend = list(llm.LOGGED)
+    if (not spend and not log_rows and not ops) or os.environ.get("ONE_CALL_DRY_RUN"):
+        return
+    for attempt in range(3):
+        sh(["git", "fetch", "-q", "origin", "main"])
+        sh(["git", "checkout", "-q", "-f", "-B", "main", "origin/main"])
+        paths = []
+        if spend:
+            llm.write_rows(spend)
+            paths.append("data/agent_spend.csv")
+        if log_rows:
+            new = not os.path.exists(BUILDER_LOG)
+            with open(BUILDER_LOG, "a", newline="") as f:
+                w = csv.writer(f)
+                if new:
+                    w.writerow(BUILDER_LOG_HEADER)
+                w.writerows(log_rows)
+            paths.append("data/builder_log.csv")
+        if ops:
+            text = open(backlog.PATH).read()
+            for op in ops:
+                if op[0] == "block":
+                    try:
+                        text = backlog.block(text, op[1], op[2], now().date().isoformat())
+                    except KeyError:
+                        pass
+                elif op[0] == "sync":
+                    text, _ = backlog.sync(text, op[1])
+            open(backlog.PATH, "w").write(text)
+            paths.append("BACKLOG.md")
+        sh(["git", "add"] + paths)
+        if sh(["git", "diff", "--cached", "--quiet"], check=False).returncode == 0:
+            return
+        sh(["git", "commit", "-q", "-m", message])
+        if sh(["git", "push", "-q", "origin", "main"], check=False).returncode == 0:
+            return
+    raise Broken("could not push the builder bookkeeping after 3 tries")
+
+
+def gh_get(path):
+    req = urllib.request.Request("https://api.github.com/repos/%s/%s" % (os.environ["GITHUB_REPOSITORY"], path),
+                                 headers={"Authorization": "Bearer " + os.environ["GH_PUSH_TOKEN"], "Accept": "application/vnd.github+json"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.loads(r.read())
+
+
+def open_pr_state(branch, get=gh_get):
+    """(number, 'pending' | 'failed') for an open PR from `branch`, or None. A job whose PR is already open is not built again."""
+    owner = os.environ.get("GITHUB_REPOSITORY", "/").split("/")[0]
+    prs = get("pulls?state=open&head=%s:%s" % (owner, branch))
+    if not prs:
+        return None
+    sha = prs[0]["head"]["sha"]
+    runs = get("commits/%s/check-runs?per_page=100" % sha)["check_runs"]
+    bad = [r for r in runs if r["conclusion"] not in (None, "success", "skipped", "neutral")]
+    return prs[0]["number"], ("failed" if bad else "pending")
+
+
+def post_line(text):
+    """One line on SEB-301 saying what the builder did."""
+    try:
+        i = linear.find(BACKLOG_ISSUE)
+        linear.call("""mutation($id: String!, $b: String!) {
+          commentCreate(input: { issueId: $id, body: $b }) { success }
+        }""", {"id": i["id"], "b": "⚙️ **Builder:** " + text})
+    except SystemExit:
+        print("could not post on SEB-301", file=sys.stderr)
+
+
+def backlog_run(force=False):
+    """The daily run. Returns an exit code."""
+    if not force and ran_today():
+        print("the builder already ran today (data/builder_log.csv), nothing to do")
+        return 0
+    ts = now().isoformat()
+    log_rows, ops, built = [], [], None
+    # 1. copy new "Queued by Claude" items from SEB-301 comments into BACKLOG.md, and put them on main before any branch is cut
+    try:
+        comments = backlog.linear_comments()
+        text, added = backlog.sync(open(backlog.PATH).read(), comments)
+        if added:
+            open(backlog.PATH, "w").write(text)
+            commit_main([], [("sync", comments)], "SEB-301: %d item(s) queued by Claude copied into BACKLOG.md" % len(added))
+            print("queued by Claude, copied into BACKLOG.md: " + "; ".join(added))
+    except SystemExit as e:
+        print("could not read SEB-301 comments: %s" % e, file=sys.stderr)
+    text = open(backlog.PATH).read()
+    tried = 0
+    # 2. the top unchecked job with files; a job that fails twice is blocked and the next one is taken, up to MAX_JOBS_PER_RUN
+    while tried < MAX_JOBS_PER_RUN:
+        if spent_today() >= DAILY_CAP_USD:
+            log_rows.append([ts, "nothing", "", "", "daily cap of $%.2f reached" % DAILY_CAP_USD])
+            break
+        nj = backlog.next_job(backlog.parse(text))
+        if not nj:
+            log_rows.append([ts, "nothing", "", "", "no job with files in BACKLOG.md (the Scout splits the next items on Mondays)"])
+            break
+        item, job = nj
+        branch = "one-call/backlog-%s" % job["id"].lower()
+        try:
+            st = open_pr_state(branch)
+        except Exception as e:       # noqa: BLE001 - not being able to look is not a reason to rebuild blindly
+            print("could not look for an open PR for %s: %s" % (branch, e), file=sys.stderr)
+            st = None
+        if st and st[1] == "pending":
+            print("job %s already has PR #%s open and its checks are still running: not built again" % (job["id"], st[0]))
+            text = backlog.tick(text, job["id"], st[0], now().date().isoformat())        # in memory only: so the next job is taken
+            continue
+        if st:
+            why1 = "its PR #%s failed its checks" % st[0]
+            ops.append(("block", job["id"], why1))
+            text = backlog.block(text, job["id"], why1, now().date().isoformat())
+            log_rows.append([ts, "failed", job["id"], str(st[0]), why1])
+            continue
+        tried += 1
+        print("backlog job %s: %s" % (job["id"], job["title"]))
+        i = backlog_issue(item, job)
+        sh(["git", "checkout", "-q", "main"], check=False)
+        try:
+            rows, url, why = run_job(i)
+        except Broken as e:
+            rows, url, why = [], None, str(e)
+        if url:
+            built = (job, url)
+            log_rows.append([ts, "built", job["id"], pr_number(url) or "", job["title"]])
+            break
+        why1 = (why.strip().split("\n")[0] if why.strip() else "failed")[:200]
+        ops.append(("block", job["id"], "failed: " + why1))
+        text = backlog.block(text, job["id"], "failed: " + why1, now().date().isoformat())
+        log_rows.append([ts, "failed", job["id"], "", why1])
+    if built:
+        post_line("built backlog job %s (%s), PR #%s." % (built[0]["id"], built[0]["title"], pr_number(built[1])))
     else:
-        sh(["git", "checkout", "-q", "--", "."], check=False)
-        add_label(i, STUCK_LABEL)
-        comment(i, "Stopped after %d call(s), $%.4f. Labelled `needs-claude`.\n\n```\n%s\n```"
-                % (len(rows), cost, "\n\n".join(failures)[-2500:]))
-    return rows
+        last = log_rows[-1][4] if log_rows else "nothing to do"
+        post_line("built nothing today: %s." % last)
+    commit_main(log_rows, ops, "one-call backlog run %s" % ts)
+    return 0
+
+
+def self_test():
+    import tempfile
+    items = backlog.parse("- [ ] 1. A route\n  - [ ] 1a. Add the collector\n    files: `collector_x.py` `.github/workflows/collect.yml`\n"
+                          "    context: `METHODOLOGY.md`\n    venue: `THB` | `https://v.example/t` | `data.p`\n    done when: a row is written\n")
+    item, job = backlog.next_job(items)
+    i = backlog_issue(item, job)
+    assert i["backlog"] and i["branch"] == "one-call/backlog-1a" and i["pr_title"] == "SEB-301: Add the collector (backlog 1a)"
+    assert paths_under(i["description"], "Files") == ["collector_x.py", ".github/workflows/collect.yml"]
+    assert paths_under(i["description"], "Context") == ["METHODOLOGY.md"]
+    assert "data.p" in i["description"] and "DONE WHEN: a row is written" in i["description"]
+    assert "bump INDEX_VERSION" not in i["description"]
+    method = backlog_issue(item, dict(job, files=["METHODOLOGY.md", "tools/emit_countries.py"]))
+    assert "bump INDEX_VERSION" in method["description"], "a method job is told to bump the version"
+    assert pr_number("https://github.com/o/r/pull/561") == "561" and pr_number("https://github.com/o/r/pulls?q=head:x") is None
+    comment(i, "no Linear issue to comment on")      # a backlog job has none: must not raise
+    set_state(i, "Todo"); add_label(i, STUCK_LABEL)
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, "builder_log.csv")
+        assert not ran_today(p, "2026-10-20")
+        open(p, "w").write("ts_utc,status,job,pr,detail\n2026-10-20T06:00:00+00:00,built,1a,561,x\n")
+        assert ran_today(p, "2026-10-20") and not ran_today(p, "2026-10-21")
+    print("one_call self-test: ok")
 
 
 def main():
+    if "--self-test" in sys.argv:
+        return self_test()
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    force = "--force" in sys.argv
+    if "--backlog" in sys.argv:
+        return backlog_run(force=True)
     if spent_today() >= DAILY_CAP_USD:
         print("daily cap of $%.2f reached, nothing run" % DAILY_CAP_USD)
         return 0
-    ident = sys.argv[1] if len(sys.argv) > 1 else next_ready()
+    ident = args[0] if args else next_ready()
     if not ident:
-        print("nothing to do")
-        return 0
+        print("no one-call issue ready; the backlog")
+        return backlog_run(force=force)
     print("running %s" % ident)
     try:
         run(ident)

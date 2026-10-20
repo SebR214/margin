@@ -41,7 +41,7 @@ def parse(text):
             continue
         m = JOB.match(line)
         if m and cur is not None:
-            job = {"id": m.group(2), "title": m.group(3), "done": m.group(1) == "x", "line": n, "files": [], "context": [], "done_when": "", "blocked": ""}
+            job = {"id": m.group(2), "title": m.group(3), "done": m.group(1) == "x", "line": n, "files": [], "context": [], "done_when": "", "blocked": "", "venues": []}
             cur["jobs"].append(job)
             continue
         if job is not None and line.startswith("    "):
@@ -54,6 +54,8 @@ def parse(text):
                 job["done_when"] = s[len("done when:"):].strip()
             elif s.startswith("blocked:"):
                 job["blocked"] = s[len("blocked:"):].strip()
+            elif s.startswith("venue:"):
+                job["venues"].append(s[len("venue:"):].strip())
         elif line.strip() and not line.startswith(" "):
             job = None
     return items
