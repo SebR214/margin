@@ -224,6 +224,13 @@ jobs:
         # source_ok=False row, which is a finding about that market.
         run: python3 collector_p2p.py
 
+      # SEB-302 step 2: how much money each exchange's order book can fill (data/depth.csv). It feeds nothing published and must
+      # never stop the collection chain, so a failure here is not a failure of the run.
+      - name: Collect order-book depth
+        if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        run: python3 collector_depth.py
+
       - name: Emit basis receipts
         if: always() && steps.needed.outputs.proceed == 'true'
         # SEB-219. Runs right after the step above so it reads what that step
@@ -628,7 +635,7 @@ jobs:
                    data/routes_whatif.json data/heatmap_daily.json \
                    data/record_daily.json data/cycle_log.json \
                    data/record_milestones.json data/movers_week.json data/stable_venues.csv data/commits_recent.json data/index_hourly.csv data/source_switches.csv data/findings_hours_exchange_vs_p2p.csv \
-                   data/sources_daily.json data/findings.json data/findings_first_published.json \
+                   data/sources_daily.json data/findings.json data/findings_first_published.json data/depth.csv \
                    data/findings_hours_price_changes.csv \
                    data/findings_hours_weekend_penalty.csv \
                    data/findings_hours_volume_crossover.csv \
