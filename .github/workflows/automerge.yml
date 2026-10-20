@@ -81,7 +81,8 @@ jobs:
           gh api -X PUT "repos/$GITHUB_REPOSITORY/pulls/$n/merge" -f merge_method=squash -f sha="$SHA" --jq '"merged #'$n': \(.merged)"'
           # a builder PR (branch one-call/<issue>) that merged: its Linear issue is Done (SEB-301)
           ref=$(echo "$pr" | jq -r .head.ref)
-          case "$ref" in one-call/*)
+          case "$ref" in one-call/backlog-*) ;;     # a backlog job: its PR carries its own tick, there is no Linear issue to close
+          one-call/*)
             key=$(echo "$title" | grep -oE '\bSEB-[0-9]+\b' | head -1)
             LINEAR_API_KEY="$LINEAR_API_KEY" python3 agents/linear_sync.py merged "$key" "$n" || echo "could not update $key in Linear" ;;
           esac
@@ -107,7 +108,7 @@ jobs:
                  --jq '[.[] | select(.state=="open" and .base.ref=="main")][0]')
           [ -z "$pr" ] || [ "$pr" = "null" ] && { echo "no open PR for $SHA"; exit 0; }
           ref=$(echo "$pr" | jq -r .head.ref)
-          case "$ref" in one-call/*) ;; *) echo "not a builder PR"; exit 0 ;; esac
+          case "$ref" in one-call/backlog-*) echo "a backlog job: a failed check shows on the PR, the next daily run blocks it if it stays red"; exit 0 ;; one-call/*) ;; *) echo "not a builder PR"; exit 0 ;; esac
           n=$(echo "$pr" | jq -r .number); title=$(echo "$pr" | jq -r .title)
           key=$(echo "$title" | grep -oE '\bSEB-[0-9]+\b' | head -1)
           [ -n "$key" ] || { echo "no issue named"; exit 0; }

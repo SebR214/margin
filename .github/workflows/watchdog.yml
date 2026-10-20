@@ -2,7 +2,7 @@ name: watchdog
 
 # The alarm that reaches Seb. No model call. Every 30 minutes it checks:
 #   - the one-call runner (tools/check_runner_health.py): a completed run in
-#     the last 2 hours, and not 3 failures in a row
+#     the last 26 hours (it builds once a day), and not 3 failures in a row
 #   - the collector (tools/check_collector_health.py)
 #   - the Scout (tools/check_scout_health.py): a successful run in the last 8 days
 #   - the audits (tools/check_audit_health.py): a number or claim wrong for 3 runs in a row
