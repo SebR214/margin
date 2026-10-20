@@ -97,6 +97,12 @@ jobs:
       - name: The watchdog posts once per outage (SEB-301)
         run: python3 tools/watchdog_post.py --self-test
 
+      - name: The depth record feeds nothing published, and its report works (SEB-302)
+        run: |
+          python3 collector_depth.py --selftest
+          python3 tools/report_depth.py --self-test
+          python3 tools/check_depth_feeds_nothing.py
+
       - name: The finding tests run, and a finding that stops being true is called so (ROADMAP step 2)
         run: python3 tools/retest_findings.py --self-test
 
