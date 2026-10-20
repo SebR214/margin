@@ -46,12 +46,13 @@ Write between 1 and 6 jobs, in this exact format and nothing else (no preface, n
     done when: one sentence a test could check
 The ids are the item id followed by a, b, c. Rules:
 - One route, one source or one file at a time. A job must be small enough that one model call can write it.
-- Use only files from the CATALOGUE, or new files named collector_<name>.py, tools/<name>.py, data/<name>.csv or data/<name>.json. A new collector goes in a new file and its own new CSV; never change an existing CSV header or an existing collector. To make a new file run, a job lists .github/workflows/collect.yml and only appends to it.
+- `files:` may name new files; `context:` may name ONLY files that already exist in the CATALOGUE (never a file this job or another job creates). Use only files from the CATALOGUE, or new files named collector_<name>.py, tools/<name>.py, data/<name>.csv or data/<name>.json. A new collector goes in a new file and its own new CSV; never change an existing CSV header or an existing collector. To make a new file run, a job lists .github/workflows/collect.yml and only appends to it.
 - A job that changes how a published number is computed lists METHODOLOGY.md and tools/emit_countries.py (or the emitter that writes the number) and says it bumps INDEX_VERSION.
 - Never list copy.json, a page (.html), a script under js/ or a stylesheet: words and pages go through the writer. If the item needs words, add one job whose title starts with WORDS and that lists no files, and the Scout will leave it for the writer.
 - Never list a data/*.csv that exists, or a file over 60,000 characters together with another large one. Check the sizes in the CATALOGUE.
 - Use no number that is not in the item. Write other quantities in words.
 - Real data only, never invented. A new venue is only named, with its URL: the Scout fetches it and finds the price field itself, so do not write a field.
+- collector.py (about 100,000 characters) and collector_providers.py (about 60,000) are too big to change in one call, and an existing collector must not be changed at all. If the item needs a new route or a new venue, put it in NEW files that import the helpers they need from the existing collectors and write to NEW CSVs. If that is not possible, answer CANNOT.
 - If the item cannot be split into jobs of this size, write exactly one line: CANNOT: and the reason (for example the one file that is too big)."""
 
 
