@@ -26,7 +26,7 @@ with the same template as the others. No new page.
     venue: `USD` | `https://api.exchange.coinbase.com/products/USDT-USD/ticker` | `(not probed: a dollar in dollars; fields ask, bid, price)`
     venue: `USD` | `https://api.kraken.com/0/public/Ticker?pair=USDTUSD` | `(not probed: a dollar in dollars; result.USDTZUSD.a[0] is the ask, b[0] the bid, c[0] the last)`
     done when: running the collector appends one row with a UTC timestamp, the venue used, bid and ask of the dollar stablecoin in US dollars, and the spread in basis points to data/us_ph_usleg.csv, and uses Kraken only when Coinbase fails.
-  - [ ] 1b. Philippine-side leg collector: Coins.ph
+  - [x] 1b. Philippine-side leg collector: Coins.ph (PR #575, 2026-10-20)
     files: `collector_us_ph_phleg.py` `data/us_ph_phleg.csv`
     context: `collector_fx.py`
     venue: `PHP` | `https://api.pro.coins.ph/openapi/quote/v1/ticker/bookTicker?symbol=USDTPHP` | `bidPrice and askPrice`
