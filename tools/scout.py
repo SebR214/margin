@@ -335,10 +335,44 @@ def ran_this_week(path=LOG, now=None):
         return any(r["mode"] == "run" and r["status"] != "failed" and r["ts_utc"][:10] >= monday for r in csv.DictReader(f))
 
 
+BACKLOG = os.path.join(ROOT, "BACKLOG.md")
+
+
+def split_backlog(dry, mode):
+    """The Scout's main job (Seb, 20 Oct): split the next unchecked BACKLOG.md items into jobs one builder call can do. Returns True
+    if there was anything to split (so the suggestion flow below is skipped this week)."""
+    import scout_split
+    text = open(BACKLOG).read() if os.path.exists(BACKLOG) else ""
+    if not scout_split.next_candidates(text):
+        return False
+    model = llm.resolve_sonnet()
+    before = len(llm.LOGGED)
+
+    def ask(system, user):
+        out, _row = llm.complete([{"role": "system", "content": system}, {"role": "user", "content": user}],
+                                 models_to_try=[model], issue=JOB + "/scout", max_tokens=1800)
+        return out
+
+    markets = {m["ccy"] for m in single_source_markets()}
+    new, notes, done = scout_split.run_split(text, ask, markets)
+    cost = sum(float(r["cost_usd"]) for r in llm.LOGGED[before:])
+    print("model: %s | cost: $%.4f" % (model, cost))
+    print("\n".join(notes) or "nothing to split")
+    changed = new != text
+    if changed and not dry:
+        open(BACKLOG, "w").write(new)
+    log_row(mode, "split" if done else "blocked", "; ".join(notes)[:480], "%d item(s) split" % done, cost)
+    if dry and changed:
+        print("\n----- BACKLOG.md after (dry run: not written) -----\n" + new)
+    return True
+
+
 def run(dry, force=False):
     mode = "dry-run" if dry else "run"
     if not dry and not force and ran_this_week():
         print("already ran this week, nothing to do")
+        return 0
+    if split_backlog(dry, mode):
         return 0
     name, free = job_state()
     if not free:
@@ -451,6 +485,8 @@ def self_test():
             with open(lg, "w", newline="") as f:
                 w = csv.writer(f); w.writerow(LOG_HEADER); w.writerow([ts, mode, status, "", "", "0"])
             assert ran_this_week(lg, now) is want, (mode, status, ts)
+    import scout_split
+    scout_split.self_test()
     print("scout self-test: ok")
 
 

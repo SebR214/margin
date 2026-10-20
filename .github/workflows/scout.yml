@@ -90,7 +90,7 @@ jobs:
           git config user.name "margin-agents[bot]"
           git config user.email "329969015+margin-agents[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${GH_PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}"
-          git add data/scout_log.csv data/agent_spend.csv 2>/dev/null || true
+          git add data/scout_log.csv data/agent_spend.csv BACKLOG.md 2>/dev/null || true
           git diff --cached --quiet && { echo "nothing to commit"; exit 0; }
           git commit -q -m "scout log $(date -u +%Y-%m-%dT%H:%MZ)"
           for i in 1 2 3; do
