@@ -33,6 +33,7 @@ with the same template as the others. No new page.
     done when: running the collector appends one row with a UTC timestamp, the bid and ask of the dollar stablecoin in Philippine pesos on Coins.ph, and the spread in basis points to data/us_ph_phleg.csv, and writes no row when the fetch fails.
   - [ ] 1c. Emitter joining both legs into a US-to-Philippines corridor cost
     files: `tools/emit_us_ph.py`
+    blocked: failed: the model returned no files in the agreed form (2026-10-20)
 - [ ] 2. United States to Brazil (Coinbase or Kraken, then Foxbit or Mercado Bitcoin)
   - [ ] 2a. US leg collector: Coinbase and Kraken dollar-stablecoin quotes
     files: `collector_route_us_br_us.py` `data/route_us_br_us.csv`
