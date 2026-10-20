@@ -31,9 +31,7 @@ with the same template as the others. No new page.
   - [ ] 1c. Emitter joining both legs into a US-to-Philippines corridor cost
     files: `tools/emit_us_ph.py`
 - [ ] 2. United States to Brazil (Coinbase or Kraken, then Foxbit or Mercado Bitcoin)
-  blocked: the Scout could not split it: 2a: no venue passed: USD is not a single-source market; USD is not a single-source market; 2b: no venue passed: BRL is not a single-source market; BRL is not a single-source market (2026-10-20)
 - [ ] 3. United States to Indonesia (Coinbase or Kraken, then Indodax or Pintu)
-  blocked: the Scout could not split it: 3a: no venue passed: USD is not a single-source market; USD is not a single-source market; 3b: no venue passed: IDR is not a single-source market; IDR is not a single-source market (2026-10-20)
 - [ ] 4. Singapore to Indonesia (Independent Reserve, then Indodax or Pintu)
   - [ ] 4a. Independent Reserve leg: Singapore dollar to USDT price
     files: `collector_sg_id_ir.py` `data/sg_id_ir.csv`
@@ -53,7 +51,6 @@ with the same template as the others. No new page.
   - [ ] 4e. WORDS Singapore to Indonesia route description
     done when: the writer has added the route's plain-language description, naming Independent Reserve and Indodax as the two legs and saying the cost is measured through USDT.
 - [ ] 5. Australia to India (Independent Reserve or BTC Markets, then WazirX or CoinDCX)
-  blocked: the Scout could not split it: 5a: no venue passed: AUD is not a single-source market; 5b: no venue passed: INR is not a single-source market (2026-10-20)
 - [ ] 6. United States to Turkey (Coinbase or Kraken, then BtcTurk or Paribu)
 
 ## More apps
