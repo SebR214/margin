@@ -20,10 +20,40 @@ list of apps the comparison feed returns for it. Skip a route with fewer than 3 
 with the same template as the others. No new page.
 
 - [ ] 1. United States to the Philippines (Coinbase or Kraken, then Coins.ph)
+  - [ ] 1a. US-side leg collector: Coinbase, with Kraken as fallback
+    files: `collector_us_ph_usleg.py` `data/us_ph_usleg.csv`
+    context: `collector_fx.py`
+    done when: running the collector appends one row with a UTC timestamp, the venue used, bid and ask of the dollar stablecoin in US dollars, and the spread in basis points to data/us_ph_usleg.csv, and uses Kraken only when Coinbase fails.
+  - [ ] 1b. Philippine-side leg collector: Coins.ph
+    files: `collector_us_ph_phleg.py` `data/us_ph_phleg.csv`
+    context: `collector_fx.py`
+    done when: running the collector appends one row with a UTC timestamp, the bid and ask of the dollar stablecoin in Philippine pesos on Coins.ph, and the spread in basis points to data/us_ph_phleg.csv, and writes no row when the fetch fails.
+  - [ ] 1c. Emitter joining both legs into a US-to-Philippines corridor cost
+    files: `tools/emit_us_ph.py`
 - [ ] 2. United States to Brazil (Coinbase or Kraken, then Foxbit or Mercado Bitcoin)
+  blocked: the Scout could not split it: 2a: no venue passed: USD is not a single-source market; USD is not a single-source market; 2b: no venue passed: BRL is not a single-source market; BRL is not a single-source market (2026-10-20)
 - [ ] 3. United States to Indonesia (Coinbase or Kraken, then Indodax or Pintu)
+  blocked: the Scout could not split it: 3a: no venue passed: USD is not a single-source market; USD is not a single-source market; 3b: no venue passed: IDR is not a single-source market; IDR is not a single-source market (2026-10-20)
 - [ ] 4. Singapore to Indonesia (Independent Reserve, then Indodax or Pintu)
+  - [ ] 4a. Independent Reserve leg: Singapore dollar to USDT price
+    files: `collector_sg_id_ir.py` `data/sg_id_ir.csv`
+    context: `collector_fx.py`
+    done when: running collector_sg_id_ir.py appends one row to data/sg_id_ir.csv with a UTC timestamp, the best bid, the best ask, and the mid-price of USDT in SGD from Independent Reserve, and writes nothing on a fetch error.
+  - [ ] 4b. Indodax leg: USDT to Indonesian rupiah price
+    files: `collector_sg_id_indodax.py` `data/sg_id_indodax.csv`
+    context: `collector_fx.py`
+    done when: running collector_sg_id_indodax.py appends one row to data/sg_id_indodax.csv with a UTC timestamp, the buy price, the sell price, and the last price of USDT in IDR from Indodax, and writes nothing on a fetch error.
+  - [ ] 4c. Run both Singapore to Indonesia collectors every hour
+    files: `.github/workflows/collect.yml`
+    done when: collect.yml still parses as YAML, its existing steps are unchanged, and it has appended steps that run collector_sg_id_ir.py and collector_sg_id_indodax.py and commit data/sg_id_ir.csv and data/sg_id_indodax.csv.
+  - [ ] 4d. Route cost for Singapore to Indonesia from the two legs
+    files: `tools/sg_id_route.py` `data/sg_id_route.json`
+    context: `tools/record_common.py`
+    done when: running tools/sg_id_route.py reads the newest paired rows of data/sg_id_ir.csv and data/sg_id_indodax.csv, converts one Singapore dollar through USDT to rupiah using ask on the Singapore side and bid on the Indonesian side, compares that with the official SGD to IDR rate from the existing FX record, and writes the cost in basis points, both leg timestamps and the source names to data/sg_id_route.json, writing a null cost with a reason if either leg is missing or stale.
+  - [ ] 4e. WORDS Singapore to Indonesia route description
+    done when: the writer has added the route's plain-language description, naming Independent Reserve and Indodax as the two legs and saying the cost is measured through USDT.
 - [ ] 5. Australia to India (Independent Reserve or BTC Markets, then WazirX or CoinDCX)
+  blocked: the Scout could not split it: 5a: no venue passed: AUD is not a single-source market; 5b: no venue passed: INR is not a single-source market (2026-10-20)
 - [ ] 6. United States to Turkey (Coinbase or Kraken, then BtcTurk or Paribu)
 
 ## More apps

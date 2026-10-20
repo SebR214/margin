@@ -35,7 +35,11 @@ KEYS = {
     "fx_rates.csv": ("ccy",),
 }
 STEP = re.compile(r"^\s*run:\s*python3\s+(collector[\w]*\.py)((?:\s+--corridor\s+\"[^\"]+\")?)\s*$", re.M)
+# A row that says the source ANSWERED but the market or the guard refused the reading (a crossed board, too few ads, an unsupported
+# currency) is an answer. Only a failed pull (timeout, HTTP error, bad JSON, no row at all) counts as a source that did not answer.
+ANSWERED_BUT_REFUSED = re.compile(r"^(not enough evidence|no ads at|guard:|unsupported currency|ValueError:no ads|ValueError:unsupported)", re.I)
 HOURS_BACK = 3
+RETRIES = 1                 # one more full pass when a source is missing, before the check fails: an exchange can blink
 STEP_TIMEOUT = 20 * 60
 
 
@@ -55,7 +59,7 @@ def ok_keys(rows, cols, since=None):
         if since and (r.get("ts_utc") or r.get("ts") or "") < since:
             continue
         flag = r.get("source_ok")
-        if flag is not None and flag.strip().lower() != "true":
+        if flag is not None and flag.strip().lower() != "true" and not ANSWERED_BUT_REFUSED.match((r.get("error") or "").strip()):
             continue
         got.add(tuple(r.get(c, "") for c in cols))
     return got
@@ -166,6 +170,10 @@ def self_test():
     assert steps(yml) == [("collector.py", []), ("collector.py", ["--corridor", "USD->MXN"]), ("collector_basis.py", [])]
     rows = [{"ts_utc": "t", "venue": "A", "ccy": "X", "source_ok": "True"}, {"ts_utc": "t", "venue": "B", "ccy": "X", "source_ok": "False"}]
     assert ok_keys(rows, ("venue", "ccy")) == {("A", "X")}
+    refused = [{"ts_utc": "t", "source": "okx", "ccy": "XOF", "source_ok": "False", "error": "not enough evidence this hour: the buy side is below the sell side"},
+               {"ts_utc": "t", "source": "okx", "ccy": "AOA", "source_ok": "False", "error": "ReadTimeout: read timed out"},
+               {"ts_utc": "t", "source": "okx", "ccy": "BND", "source_ok": "False", "error": "guard: buy price 5 is 40 times the official rate"}]
+    assert ok_keys(refused, ("source", "ccy")) == {("okx", "XOF"), ("okx", "BND")}, "a refused reading is an answer, a timeout is not"
     with tempfile.TemporaryDirectory() as d:
         p = os.path.join(d, "basis.csv")
         with open(p, "w") as f:
@@ -202,6 +210,13 @@ def main(argv):
         for script, args, code, tail in results:
             print("  %-26s %-22s exit %s" % (script, " ".join(args), code))
         bad, missing = judge(scratch, headers, ROOT)
+        for attempt in range(RETRIES):
+            if not missing:
+                break
+            print("\n%d source(s) did not answer; one more full pass (an exchange can blink): %s" % (len(missing), "; ".join(missing)[:300]))
+            more = run_steps(scratch, plan)
+            failed = [r for r in more if r[2] != 0]
+            bad, missing = judge(scratch, headers, ROOT)        # the rows of both passes are in the scratch files
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
     problems = bad + missing
