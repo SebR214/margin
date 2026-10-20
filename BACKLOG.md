@@ -31,7 +31,6 @@ with the same template as the others. No new page.
   - [ ] 1c. Emitter joining both legs into a US-to-Philippines corridor cost
     files: `tools/emit_us_ph.py`
 - [ ] 2. United States to Brazil (Coinbase or Kraken, then Foxbit or Mercado Bitcoin)
-  blocked: the Scout could not split it: 2c: context file does not exist: collector_us_br_onramp.py (2026-10-20)
 - [ ] 3. United States to Indonesia (Coinbase or Kraken, then Indodax or Pintu)
   - [ ] 3a. US leg collector: USDT/USD price on Coinbase and Kraken
     files: `collector_route_us_leg.py` `data/route_us_leg.csv` `.github/workflows/collect.yml`
@@ -69,9 +68,7 @@ with the same template as the others. No new page.
   - [ ] 4e. WORDS Singapore to Indonesia route description
     done when: the writer has added the route's plain-language description, naming Independent Reserve and Indodax as the two legs and saying the cost is measured through USDT.
 - [ ] 5. Australia to India (Independent Reserve or BTC Markets, then WazirX or CoinDCX)
-  blocked: the Scout could not split it: 5b: no venue passed: INR https://api.wazirx.com/sapi/v1/ticker/24hr?symbol=usdtinr: no field in the answer is within 3% of the official rate 95.052511; INR https://api.coindcx.com/exchange/ticker: no field in the answer is within 3% of the official rate 95.052511 (2026-10-20)
 - [ ] 6. United States to Turkey (Coinbase or Kraken, then BtcTurk or Paribu)
-  blocked: the Scout could not split it: 6c lists no files (2026-10-20)
 
 ## More apps
 - [ ] 7. For every route, list every provider the comparison feed returns that we don't store yet. Add all of them to the stored quotes.

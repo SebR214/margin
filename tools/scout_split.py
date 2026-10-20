@@ -183,6 +183,13 @@ def discover_field(payload, ccy, reference_value, tolerance=0.03):
     return sorted(hits, key=rank)[0][0]
 
 
+def drop_new_context(jobs, root=ROOT):
+    """A job may read as context only a file that exists now. A file another job will create is not context: it is dropped."""
+    for j in jobs:
+        j["context"] = [p for p in j["context"] if os.path.isfile(os.path.join(root, p))]
+    return jobs
+
+
 def check_venues(job_venues, markets, fetch=None, probe=None, reference=None):
     """For each (ccy, url): fetch the url ONCE, read the real field, probe it. Returns ([(ccy, url, field)], [reasons]).
     `markets` is the set of single-source currencies a venue may be for (a second source for a country price), or None when the
@@ -218,9 +225,13 @@ def check_venues(job_venues, markets, fetch=None, probe=None, reference=None):
         except Exception as e:      # noqa: BLE001
             why.append("%s %s: the endpoint could not be fetched (%s)" % (ccy, url, str(e)[:100]))
             continue
-        field = discover_field(payload, ccy, ref)
+        leg = markets is None          # a leg of a route: a dollar stablecoin may sit well above the official rate, so no 1% probe, only a field
+        field = discover_field(payload, ccy, ref, tolerance=0.25 if leg else 0.03)
         if not field:
-            why.append("%s %s: no field in the answer is within 3%% of the official rate %s" % (ccy, url, ref))
+            why.append("%s %s: no field in the answer is within %s%% of the official rate %s" % (ccy, url, 25 if leg else 3, ref))
+            continue
+        if leg:
+            ok.append((ccy, url, field))
             continue
         r = probe(ccy, url, field, fetch=one)
         if not r.get("accepted"):
@@ -287,6 +298,8 @@ def run_split(text, ask, markets, fetch=None, probe=None, root=ROOT, log=None, t
             notes.append("item %s: the model call failed (%s)" % (it["id"], str(e)[:120]))
             continue
         jobs, why = parse_jobs(answer, it["id"])
+        if jobs is not None:
+            jobs = drop_new_context(jobs, root)
         reasons = [why] if jobs is None else validate_jobs(jobs, item_text, root)
         venues_ok = {}
         if jobs is not None and not reasons:
@@ -339,6 +352,7 @@ def self_test():
         subprocess.run(["git", "init", "-q"], cwd=d)
         ok = lambda t: validate_jobs(parse_jobs(t, "1")[0], "Add a route from A to B using venue X", d)
         assert ok(good) == [], ok(good)
+        assert drop_new_context([{"context": ["small.py", "nope.py"]}], d)[0]["context"] == ["small.py"], "a file another job will create is not context"
         assert any("over the" in r for r in ok("  - [ ] 1a. t\n    files: `big.py` `big2.py`\n    done when: x\n"))
         assert any("may not change" in r for r in ok("  - [ ] 1a. t\n    files: `copy.json`\n    done when: x\n"))
         assert any("may not change" in r for r in ok("  - [ ] 1a. t\n    files: `js/route.js`\n    done when: x\n"))
@@ -365,6 +379,9 @@ def self_test():
     assert check_venues([("PHP", "https://v.example/t")], {"THB"}, fetch=fetch)[1]
     assert check_venues([("THB", "https://v.example/t")], None, fetch=fetch)[0][0][2] == "data.p", "a route leg may be in any currency"
     assert check_venues([("USD", "https://v.example/t")], None, fetch=fetch)[0][0][2].startswith("(not probed")
+    premium = lambda u: {"rates": {"THB": 31.2}} if "er-api" in u else {"data": {"p": "35.0"}}        # +12%: a stablecoin premium, fine for a route leg
+    assert check_venues([("THB", "https://v.example/t")], None, fetch=premium)[0] == [("THB", "https://v.example/t", "data.p")]
+    assert check_venues([("THB", "https://v.example/t")], {"THB"}, fetch=premium)[1], "but not for a second source of a country price"
     assert check_venues([("THB", "http://v.example/t")], {"THB"}, fetch=fetch)[1]
     far = lambda u: {"rates": {"THB": 31.2}} if "er-api" in u else {"data": {"p": "28.0"}}
     assert "within 3%" in check_venues([("THB", "https://v.example/t")], {"THB"}, fetch=far)[1][0]
