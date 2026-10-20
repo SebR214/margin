@@ -221,7 +221,7 @@ def self_test():
     assert not triggered("x", {"data_through": "A"}, dict(last, ts_utc="2026-10-19T03:00:00+00:00"), "2026-10-20"), "no new evidence"
     assert triggered("x", {"data_through": "B"}, dict(last, ts_utc="2026-10-19T03:00:00+00:00"), "2026-10-20")
     # the real files, with a known answer: the claim as published holds on the data it was made from
-    rows = retest(ROOT, now=dt.datetime.now(dt.timezone.utc))
+    rows = retest(ROOT, now=dt.datetime.now(dt.timezone.utc), force=True)      # force: the real log may already hold today's rows
     by = {r[1]: r for r in rows}
     assert set(by) == set(METRICS), by.keys()
     for r in rows:
