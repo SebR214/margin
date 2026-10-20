@@ -143,5 +143,6 @@ with the same template as the others. No new page.
 
 ## Already approved, finish these
 - [ ] 11. Depth record step 2 (SEB-302): OKX ads (no extra calls) and the order books (about 24 extra calls an hour). Not the extra Binance searches, not CriptoYa. After 24 hours post the one-day table on SEB-302.
-- [ ] 12. Finding test files (ROADMAP.md step 2), for the five live findings.
+  Status 20 Oct: the order books are merged (PR #558, data/depth.csv, once an hour). The OKX ads hook is PR #572: it edits collector_p2p_okx.py, so it is not additive and stays open for Seb. The one-day table posts itself once 24 clean hours are stored (PR #573).
+- [x] 12. Finding test files (ROADMAP.md step 2), for the five live findings. (PR #559, 2026-10-20)
 - [ ] 13. Finding statuses on the site, once each finding has 14 days of retest rows: "Still holds", "Weaker" or "No longer true", with the date first published. Words in copy.json, one short line each.
