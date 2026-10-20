@@ -20,8 +20,11 @@ list of apps the comparison feed returns for it. Skip a route with fewer than 3 
 with the same template as the others. No new page.
 
 - [ ] 1. United States to the Philippines (Coinbase or Kraken, then Coins.ph)
+  blocked: the Scout could not split it: 1c: context file does not exist: collector_us_ph_usd.py; 1c: context file does not exist: collector_us_ph_php.py; 1d: context file does not exist: data/us_ph_usd.csv; 1d: context file does not exist: data/us_ph_php.csv (2026-10-20)
 - [ ] 2. United States to Brazil (Coinbase or Kraken, then Foxbit or Mercado Bitcoin)
+  blocked: the Scout could not split it: 2c: context file does not exist: collector_us_br_us.py; 2c: context file does not exist: collector_us_br_br.py (2026-10-20)
 - [ ] 3. United States to Indonesia (Coinbase or Kraken, then Indodax or Pintu)
+  blocked: the Scout could not split it: 3c: context file does not exist: collector_route_us_send.py; 3c: context file does not exist: collector_route_id_recv.py; 3d: context file does not exist: collector_route_us_send.py; 3d: context file does not exist: collector_route_id_recv.py (2026-10-20)
 - [ ] 4. Singapore to Indonesia (Independent Reserve, then Indodax or Pintu)
 - [ ] 5. Australia to India (Independent Reserve or BTC Markets, then WazirX or CoinDCX)
 - [ ] 6. United States to Turkey (Coinbase or Kraken, then BtcTurk or Paribu)
