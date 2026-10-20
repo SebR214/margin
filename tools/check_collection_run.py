@@ -37,7 +37,7 @@ KEYS = {
 STEP = re.compile(r"^\s*run:\s*python3\s+(collector[\w]*\.py)((?:\s+--corridor\s+\"[^\"]+\")?)\s*$", re.M)
 # A row that says the source ANSWERED but the market or the guard refused the reading (a crossed board, too few ads, an unsupported
 # currency) is an answer. Only a failed pull (timeout, HTTP error, bad JSON, no row at all) counts as a source that did not answer.
-ANSWERED_BUT_REFUSED = re.compile(r"^(not enough evidence|no ads at|guard:|unsupported currency|ValueError:no ads|ValueError:unsupported)", re.I)
+ANSWERED_BUT_REFUSED = re.compile(r"^(not enough evidence|no ads at|guard:|unsupported currency|implausible|ValueError:no ads|ValueError:unsupported)", re.I)
 HOURS_BACK = 3
 RETRIES = 1                 # one more full pass when a source is missing, before the check fails: an exchange can blink
 STEP_TIMEOUT = 20 * 60
@@ -172,8 +172,9 @@ def self_test():
     assert ok_keys(rows, ("venue", "ccy")) == {("A", "X")}
     refused = [{"ts_utc": "t", "source": "okx", "ccy": "XOF", "source_ok": "False", "error": "not enough evidence this hour: the buy side is below the sell side"},
                {"ts_utc": "t", "source": "okx", "ccy": "AOA", "source_ok": "False", "error": "ReadTimeout: read timed out"},
-               {"ts_utc": "t", "source": "okx", "ccy": "BND", "source_ok": "False", "error": "guard: buy price 5 is 40 times the official rate"}]
-    assert ok_keys(refused, ("source", "ccy")) == {("okx", "XOF"), ("okx", "BND")}, "a refused reading is an answer, a timeout is not"
+               {"ts_utc": "t", "source": "okx", "ccy": "BND", "source_ok": "False", "error": "guard: buy price 5 is 40 times the official rate"},
+               {"ts_utc": "t", "source": "awx", "ccy": "MXN", "source_ok": "False", "error": "implausible:-5.31bps < 0.0bps floor (stale mid vs live quote)"}]
+    assert ok_keys(refused, ("source", "ccy")) == {("okx", "XOF"), ("okx", "BND"), ("awx", "MXN")}, "a refused reading is an answer, a timeout is not"
     with tempfile.TemporaryDirectory() as d:
         p = os.path.join(d, "basis.csv")
         with open(p, "w") as f:
