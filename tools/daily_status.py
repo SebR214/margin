@@ -197,5 +197,5 @@ if __name__ == "__main__":
     text = build()
     print(text)
     if "--print" not in sys.argv:
-        post(text)
-        print("\nposted on " + ISSUE)
+        if post(text):
+            print("\nposted on " + ISSUE)
