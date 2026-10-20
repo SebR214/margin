@@ -21,7 +21,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: agents
+          sparse-checkout: |
+            agents
+            tools
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Mint the app token
         id: app_token
@@ -53,12 +59,21 @@ jobs:
           head=$(echo "$pr" | jq -r .head.sha)
           [ "$head" = "$SHA" ] || { echo "#$n has a newer push, its own checks will decide"; exit 0; }
           echo "$title" | grep -qE '\bSEB-[0-9]+\b' || { echo "#$n names no SEB issue, left for Seb"; exit 0; }
-          # Collection history cannot be refilled, so a PR that changes collection code
-          # (collector*.py or collect.yml) is never merged by this workflow. It stays open
-          # and the daily status on SEB-301 lists it (SEB-301).
-          if gh api "repos/$GITHUB_REPOSITORY/pulls/$n/files" --paginate --jq '.[].filename' \
-               | grep -qE '^collector[^/]*\.py$|^\.github/workflows/collect\.yml$'; then
-            echo "#$n changes collection code, left open for a person"; exit 0
+          # Collection history cannot be refilled, so a PR that changes collection code is merged here only if it is
+          # additive (new collector files or new sidecar CSVs, collect.yml only grows, no existing CSV or collector touched;
+          # tools/check_additive.py). The one full collection run on the branch is the collector-gate check, which is among the
+          # checks counted below. Anything else stays open, says why once on the PR and on its Linear issue, and the daily
+          # status on SEB-301 lists it (SEB-301, Seb's rule of 20 Oct).
+          verdict=$(python3 tools/check_additive.py --pr "$n" --json)
+          if [ "$(echo "$verdict" | jq -r '.touches_collection_code and (.additive|not)')" = "true" ]; then
+            why=$(echo "$verdict" | jq -r '.reasons | join("; ")')
+            echo "#$n changes existing collection code ($why), left open"
+            if ! gh api "repos/$GITHUB_REPOSITORY/issues/$n/comments" --jq '.[].body' | grep -q 'collection-gate:not-additive'; then
+              gh pr comment "$n" --body "<!-- collection-gate:not-additive -->This PR changes existing collection code ($why), so it does not merge itself. It stays open and is listed in the daily status on SEB-301."
+              key=$(echo "$title" | grep -oE '\bSEB-[0-9]+\b' | head -1)
+              [ -n "$key" ] && LINEAR_API_KEY="$LINEAR_API_KEY" python3 agents/linear_sync.py note "$key" "PR #$n changes existing collection code ($why), so it stays open and is not merged by itself." || true
+            fi
+            exit 0
           fi
           bad=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/check-runs?per_page=100" \
                   --jq '[.check_runs[] | select(.conclusion != "success" and .conclusion != "skipped" and .conclusion != "neutral")] | length')
@@ -66,7 +81,8 @@ jobs:
           gh api -X PUT "repos/$GITHUB_REPOSITORY/pulls/$n/merge" -f merge_method=squash -f sha="$SHA" --jq '"merged #'$n': \(.merged)"'
           # a builder PR (branch one-call/<issue>) that merged: its Linear issue is Done (SEB-301)
           ref=$(echo "$pr" | jq -r .head.ref)
-          case "$ref" in one-call/*)
+          case "$ref" in one-call/backlog-*) ;;     # a backlog job: its PR carries its own tick, there is no Linear issue to close
+          one-call/*)
             key=$(echo "$title" | grep -oE '\bSEB-[0-9]+\b' | head -1)
             LINEAR_API_KEY="$LINEAR_API_KEY" python3 agents/linear_sync.py merged "$key" "$n" || echo "could not update $key in Linear" ;;
           esac
@@ -92,7 +108,7 @@ jobs:
                  --jq '[.[] | select(.state=="open" and .base.ref=="main")][0]')
           [ -z "$pr" ] || [ "$pr" = "null" ] && { echo "no open PR for $SHA"; exit 0; }
           ref=$(echo "$pr" | jq -r .head.ref)
-          case "$ref" in one-call/*) ;; *) echo "not a builder PR"; exit 0 ;; esac
+          case "$ref" in one-call/backlog-*) echo "a backlog job: a failed check shows on the PR, the next daily run blocks it if it stays red"; exit 0 ;; one-call/*) ;; *) echo "not a builder PR"; exit 0 ;; esac
           n=$(echo "$pr" | jq -r .number); title=$(echo "$pr" | jq -r .title)
           key=$(echo "$title" | grep -oE '\bSEB-[0-9]+\b' | head -1)
           [ -n "$key" ] || { echo "no issue named"; exit 0; }

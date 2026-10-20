@@ -139,7 +139,7 @@ def states():
 
 
 ISSUE_FIELDS = """
-  id identifier title url priority sortOrder
+  id identifier title url priority sortOrder updatedAt
   state { name type }
   labels { nodes { name } }
   description
