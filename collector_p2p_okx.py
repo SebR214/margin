@@ -262,9 +262,12 @@ def build_rows(ts, currencies, fx, get=None):
 
             # SEB-302 step 2: the ads a buyer can take, counted by ticket size from the page already fetched.
             if depth_common is not None:
-                DEPTH_ROWS.extend(depth_common.p2p_rows(
-                    ts, SOURCE, ccy, [a for a in ((sell_payload.get("data") or {}).get("sell") or []) if isinstance(a, dict)], fx_mid))
-                depth_done = True
+                try:              # a problem counting ads for the depth record must not turn a priced currency into a failed one
+                    DEPTH_ROWS.extend(depth_common.p2p_rows(
+                        ts, SOURCE, ccy, [a for a in ((sell_payload.get("data") or {}).get("sell") or []) if isinstance(a, dict)], fx_mid))
+                    depth_done = True
+                except Exception as e:    # noqa: BLE001
+                    print(f"  [warn] depth rows for {ccy} skipped: {type(e).__name__}: {e}", file=sys.stderr)
 
             # side=sell -> counterparty selling USDT -> the ASK -> buy_median
             # (what a buyer of USDT pays). side=buy -> counterparty buying
@@ -574,8 +577,11 @@ def main():
 
     if not a.verify:
         append(rows)
-        if depth_common is not None and DEPTH_ROWS and not depth_common.captured_this_hour(okx=True):
-            depth_common.append(DEPTH_ROWS)
+        try:                      # the depth record must never break the OKX collection
+            if depth_common is not None and DEPTH_ROWS and not depth_common.captured_this_hour(okx=True):
+                depth_common.append(DEPTH_ROWS)
+        except Exception as e:    # noqa: BLE001
+            print(f"  [warn] depth rows not written: {type(e).__name__}: {e}", file=sys.stderr)
 
     if a.json:
         print(json.dumps(rows, indent=2, default=str))
