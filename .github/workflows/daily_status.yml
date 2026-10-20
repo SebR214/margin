@@ -7,6 +7,7 @@ name: daily status
 on:
   schedule:
     - cron: "30 2 * * *"
+    - cron: "30 14 * * *"      # a second slot: the status itself posts once a day, but the one-day depth table should not wait a day more
   workflow_dispatch:
     inputs:
       print_only:
@@ -50,6 +51,15 @@ jobs:
         run: python3 tools/daily_status.py $PRINT_ONLY
 
       # One email if anything has waited on Seb for more than 24 hours, and only when the list changed (tools/waiting_on_seb.py).
+      # Seb's depth rule: once 24 clean hours of order-book rows are stored, the one-day table goes on SEB-302, once.
+      - name: One-day depth table
+        if: github.event.inputs.print_only != 'true'
+        continue-on-error: true
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          LINEAR_ACTIVITY_LOG_PATH: ${{ runner.temp }}/linear_activity.jsonl
+        run: python3 tools/report_depth.py --post-when-ready
+
       - name: Waiting on Seb
         if: github.event.inputs.print_only != 'true'
         env:
