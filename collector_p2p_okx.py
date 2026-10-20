@@ -78,6 +78,12 @@ import time
 import board_guard
 
 try:
+    import depth_common      # SEB-302 step 2: depth rows from the ads this very call returns (no extra request)
+except ImportError:          # pragma: no cover - the file is always beside this one in the repo
+    depth_common = None
+DEPTH_ROWS = []              # filled by build_rows, written once an hour by main()
+
+try:
     import requests
 except ImportError:
     requests = None
@@ -239,6 +245,7 @@ def build_rows(ts, currencies, fx, get=None):
     rows, n_ok = [], 0
     for ccy in currencies:
         row = _base_row(ts, ccy)
+        depth_done = False
         try:
             fx_mid = fx.get(ccy)
             if fx_mid is None:
@@ -252,6 +259,12 @@ def build_rows(ts, currencies, fx, get=None):
             buy_payload = get(books_url(ccy, "buy"))
             if buy_payload.get("code") == UNSUPPORTED_CODE:
                 raise ValueError(f"unsupported currency (OKX code {UNSUPPORTED_CODE})")
+
+            # SEB-302 step 2: the ads a buyer can take, counted by ticket size from the page already fetched.
+            if depth_common is not None:
+                DEPTH_ROWS.extend(depth_common.p2p_rows(
+                    ts, SOURCE, ccy, [a for a in ((sell_payload.get("data") or {}).get("sell") or []) if isinstance(a, dict)], fx_mid))
+                depth_done = True
 
             # side=sell -> counterparty selling USDT -> the ASK -> buy_median
             # (what a buyer of USDT pays). side=buy -> counterparty buying
@@ -275,6 +288,8 @@ def build_rows(ts, currencies, fx, get=None):
                 n_ok += 1
         except Exception as e:
             row["error"] = f"{type(e).__name__}:{e}"[:300]
+            if depth_common is not None and not depth_done:       # a gap stays a gap: the failed pull is its own depth row
+                DEPTH_ROWS.append(depth_common.failed_row(ts, SOURCE, ccy, row["error"]))
         rows.append(row)
     return rows, n_ok
 
@@ -438,6 +453,10 @@ def selftest():
     assert by["VND"]["buy_median"] > by["VND"]["sell_median"], by["VND"]
     public = {k for k in rows[0]}
     assert set(FIELDS) == public, public ^ set(FIELDS)
+    # SEB-302 step 2: the same call yields three depth rows per currency, in the agreed shape, and nothing else changes
+    assert depth_common is not None and len(DEPTH_ROWS) == 3 * len(CURRENCIES), len(DEPTH_ROWS)
+    assert all(len(r) == len(depth_common.HEADER) and r[1] == SOURCE and r[3] == "p2p_accepts" for r in DEPTH_ROWS)
+    assert {r[4] for r in DEPTH_ROWS} == {500, 2000, 10000}
     print(f"  [ok] {n_ok}/{len(CURRENCIES)} currencies priced; buy above sell; "
           f"schema matches FIELDS exactly")
 
@@ -555,6 +574,8 @@ def main():
 
     if not a.verify:
         append(rows)
+        if depth_common is not None and DEPTH_ROWS and not depth_common.captured_this_hour(okx=True):
+            depth_common.append(DEPTH_ROWS)
 
     if a.json:
         print(json.dumps(rows, indent=2, default=str))
