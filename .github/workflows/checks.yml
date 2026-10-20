@@ -97,6 +97,9 @@ jobs:
       - name: The watchdog posts once per outage (SEB-301)
         run: python3 tools/watchdog_post.py --self-test
 
+      - name: The finding tests run, and a finding that stops being true is called so (ROADMAP step 2)
+        run: python3 tools/retest_findings.py --self-test
+
       - name: The build backlog parses, ticks and syncs (SEB-301)
         run: python3 tools/backlog.py --self-test
 
