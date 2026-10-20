@@ -23,10 +23,13 @@ with the same template as the others. No new page.
   - [ ] 1a. US-side leg collector: Coinbase, with Kraken as fallback
     files: `collector_us_ph_usleg.py` `data/us_ph_usleg.csv`
     context: `collector_fx.py`
+    venue: `USD` | `https://api.exchange.coinbase.com/products/USDT-USD/ticker` | `(not probed: a dollar in dollars; fields ask, bid, price)`
+    venue: `USD` | `https://api.kraken.com/0/public/Ticker?pair=USDTUSD` | `(not probed: a dollar in dollars; result.USDTZUSD.a[0] is the ask, b[0] the bid, c[0] the last)`
     done when: running the collector appends one row with a UTC timestamp, the venue used, bid and ask of the dollar stablecoin in US dollars, and the spread in basis points to data/us_ph_usleg.csv, and uses Kraken only when Coinbase fails.
   - [ ] 1b. Philippine-side leg collector: Coins.ph
     files: `collector_us_ph_phleg.py` `data/us_ph_phleg.csv`
     context: `collector_fx.py`
+    venue: `PHP` | `https://api.pro.coins.ph/openapi/quote/v1/ticker/bookTicker?symbol=USDTPHP` | `bidPrice and askPrice`
     done when: running the collector appends one row with a UTC timestamp, the bid and ask of the dollar stablecoin in Philippine pesos on Coins.ph, and the spread in basis points to data/us_ph_phleg.csv, and writes no row when the fetch fails.
   - [ ] 1c. Emitter joining both legs into a US-to-Philippines corridor cost
     files: `tools/emit_us_ph.py`
