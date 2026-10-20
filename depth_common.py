@@ -119,19 +119,27 @@ def p2p_rows(ts, source, ccy, ads, fx):
     return rows
 
 
-def captured_this_hour(path=PATH, now=None):
+def captured_this_hour(path=PATH, now=None, okx=False):
+    """True if this clock hour already has rows: the order books' (okx=False) or the OKX ads' (okx=True), written by two different
+    collectors, each once an hour. Reads only the end of the file."""
     now = now or dt.datetime.now(dt.timezone.utc)
     start = now.replace(minute=0, second=0, microsecond=0)
     if not os.path.exists(path):
         return False
-    last = ""
-    with open(path, newline="") as f:
-        for r in csv.reader(f):
-            last = r[0]
-    try:
-        return dt.datetime.fromisoformat(last) >= start
-    except ValueError:
-        return False
+    size = os.path.getsize(path)
+    with open(path, "rb") as f:
+        f.seek(max(0, size - 400_000))
+        tail = f.read().decode("utf-8", "replace").split("\n")[1:]
+    for r in csv.reader(tail):
+        if len(r) < 2 or not r[0]:
+            continue
+        try:
+            when = dt.datetime.fromisoformat(r[0])
+        except ValueError:
+            continue
+        if when >= start and (r[1] == "okx_p2p") == okx:
+            return True
+    return False
 
 
 def append(rows, path=PATH):

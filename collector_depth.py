@@ -165,9 +165,12 @@ def selftest():
         assert not dc.captured_this_hour(p)
         dc.append(rows[:1], p)
         assert dc.captured_this_hour(p, dt.datetime.now(dt.timezone.utc)) is False or True
-        dc.append([["2026-10-20T09:06:00+00:00"] + [""] * 11], p)
-        assert dc.captured_this_hour(p, dt.datetime(2026, 10, 20, 9, 40, tzinfo=dt.timezone.utc))
-        assert not dc.captured_this_hour(p, dt.datetime(2026, 10, 20, 10, 5, tzinfo=dt.timezone.utc))
+        dc.append([["2026-10-20T09:06:00+00:00", "Luno"] + [""] * 10], p)
+        at = lambda h, m: dt.datetime(2026, 10, 20, h, m, tzinfo=dt.timezone.utc)
+        assert dc.captured_this_hour(p, at(9, 40)) and not dc.captured_this_hour(p, at(10, 5))
+        assert not dc.captured_this_hour(p, at(9, 40), okx=True), "the books' rows do not stand in for the OKX ads' rows"
+        dc.append([["2026-10-20T09:08:00+00:00", "okx_p2p"] + [""] * 10], p)
+        assert dc.captured_this_hour(p, at(9, 40), okx=True) and dc.captured_this_hour(p, at(9, 40))
         assert open(p).readline().strip().split(",") == dc.HEADER
     print("collector_depth selftest: ok (%d venues)" % len(VENUES))
 
