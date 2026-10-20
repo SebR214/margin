@@ -1,12 +1,14 @@
 {
+  "buy_price": 128.49,
   "ccy": "BDT",
-  "computed_at": "2026-10-20T10:00:00+00:00",
+  "computed_at": "2026-10-20T11:00:00+00:00",
   "country": "Bangladesh",
   "denominator": {
     "class": "market",
     "rate_per_usd": 123.584647,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 123.584647,
   "history": [
     {
       "date": "2026-09-02",
@@ -298,14 +300,15 @@
     },
     {
       "date": "2026-10-20",
-      "index_pct": 4.1574,
-      "n": 4,
-      "source": "hourly_buy_p2p"
+      "index_pct": 3.9692,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
   "history_days": 49,
   "history_start": "2026-09-02",
-  "hour_utc": "2026-10-20T10:00:00+00:00",
+  "hour_utc": "2026-10-20T11:00:00+00:00",
+  "index_pct": 3.9692,
   "index_version": "1.5",
   "instrument_check": {
     "checked": false,
@@ -313,11 +316,18 @@
   },
   "median_24h_n": 24,
   "median_24h_pct": 4.5703,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market (buy 128.51, sell 128.73000000000002)",
-  "round_trip_pct": -0.1709,
-  "source_class": null,
+  "n_boards": 1,
+  "n_sources": 10,
+  "round_trip_pct": -0.0156,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 128.51
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 128.49,
+      "index_pct": 3.9692,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    }
+  ]
 }
