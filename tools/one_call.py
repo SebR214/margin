@@ -225,6 +225,8 @@ def apply(text, allowed):
         if path not in allowed:
             continue
         body = clean(body)
+        if path.startswith("data/") and path.endswith(".csv"):
+            body = body.split("\n")[0]        # a data file the builder lists is created with its header line only: rows come from real collections, never from a model
         with open(os.path.join(ROOT, path), "w") as f:
             f.write(body if body.endswith("\n") else body + "\n")
         written.append(path)
@@ -342,7 +344,7 @@ def backlog_issue(item, job):
     if "METHODOLOGY.md" in job["files"]:
         desc += ["This job changes how a published number is computed: describe the change in METHODOLOGY.md and bump INDEX_VERSION "
                  "(tools/emit_countries.py, and the other files that carry it) in the same change.", ""]
-    desc += ["Real data only, never an invented number. A new file runs only if its step is added to .github/workflows/collect.yml, by appending.", "",
+    desc += ["Real data only, never an invented number. A new data CSV you list is written with its header line ONLY, never a row. A new file runs only if its step is added to .github/workflows/collect.yml, by appending.", "",
              "## Files"] + ["`%s`" % p for p in job["files"]] + ["", "## Context"] + ["`%s`" % p for p in job["context"]]
     return {"backlog": True, "id": None, "identifier": BACKLOG_ISSUE + "/" + job["id"], "job": job["id"], "item": item["id"],
             "title": job["title"], "description": "\n".join(desc), "docs": [], "url": "BACKLOG.md job %s" % job["id"],
@@ -530,6 +532,13 @@ def self_test():
     assert "bump INDEX_VERSION" not in i["description"]
     method = backlog_issue(item, dict(job, files=["METHODOLOGY.md", "tools/emit_countries.py"]))
     assert "bump INDEX_VERSION" in method["description"], "a method job is told to bump the version"
+    probe = "data/_selftest_header_only.csv"
+    try:
+        got = apply("<<<FILE %s>>>\nts,a,b\n2026-10-20,1,2\n<<<END>>>" % probe, {probe})
+        assert got == [probe] and open(os.path.join(ROOT, probe)).read() == "ts,a,b\n", "a model's rows never reach a data CSV"
+    finally:
+        if os.path.exists(os.path.join(ROOT, probe)):
+            os.remove(os.path.join(ROOT, probe))
     assert pr_number("https://github.com/o/r/pull/561") == "561" and pr_number("https://github.com/o/r/pulls?q=head:x") is None
     comment(i, "no Linear issue to comment on")      # a backlog job has none: must not raise
     set_state(i, "Todo"); add_label(i, STUCK_LABEL)
