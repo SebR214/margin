@@ -20,7 +20,7 @@ list of apps the comparison feed returns for it. Skip a route with fewer than 3 
 with the same template as the others. No new page.
 
 - [ ] 1. United States to the Philippines (Coinbase or Kraken, then Coins.ph)
-  - [ ] 1a. US-side leg collector: Coinbase, with Kraken as fallback
+  - [x] 1a. US-side leg collector: Coinbase, with Kraken as fallback (PR #571, 2026-10-20)
     files: `collector_us_ph_usleg.py` `data/us_ph_usleg.csv`
     context: `collector_fx.py`
     venue: `USD` | `https://api.exchange.coinbase.com/products/USDT-USD/ticker` | `(not probed: a dollar in dollars; fields ask, bid, price)`
