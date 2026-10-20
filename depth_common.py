@@ -100,7 +100,7 @@ def bound(v):
 
 def p2p_rows(ts, source, ccy, ads, fx):
     """Person-to-person ads, from the call that is already made. `ads` are dicts with price, quoteMinAmountPerOrder and
-    quoteMaxAmountPerOrder (the order limits in local money; a missing limit is no limit). For each ticket size the count of ads that
+    quoteMaxAmountPerOrder (the order limits in local money; an ad missing either limit is not counted, as in the OKX price). For each ticket size the count of ads that
     accept it and the median of their prices; under MIN_ADS accepting ads the price is left empty."""
     rows = []
     for usd in P2P_SIZES:
@@ -109,7 +109,7 @@ def p2p_rows(ts, source, ccy, ads, fx):
         for ad in ads:
             p = fnum(ad.get("price"))
             lo, hi = bound(ad.get("quoteMinAmountPerOrder")), bound(ad.get("quoteMaxAmountPerOrder"))
-            if p and (lo is None or lo <= local) and (hi is None or local <= hi):
+            if p and lo is not None and hi is not None and lo <= local <= hi:     # an ad without both limits is not counted, as in the OKX price
                 prices.append(p)
         n = len(prices)
         thin = n < MIN_ADS

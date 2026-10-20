@@ -141,9 +141,9 @@ def selftest():
     assert small[4][7] == 1000.0 and small[5][7] == 1000.0 and small[6][7] == 6000.0, small[4:]
     # OKX ads, from the call already made: the count that accepts each size and their median
     ads = [{"price": str(100 + i), "quoteMinAmountPerOrder": "1000", "quoteMaxAmountPerOrder": "300000"} for i in range(12)]
-    ads += [{"price": "90", "quoteMinAmountPerOrder": "900000", "quoteMaxAmountPerOrder": ""}]
+    ads += [{"price": "90", "quoteMinAmountPerOrder": "900000", "quoteMaxAmountPerOrder": ""}, {"price": "80", "quoteMinAmountPerOrder": "", "quoteMaxAmountPerOrder": "9000000"}]   # no upper or no lower limit: not counted
     pr = dc.p2p_rows("t", "okx_p2p", "XYZ", ads, 100.0)        # US$500 = 50,000 local; 2,000 = 200,000; 10,000 = 1,000,000
-    assert [(r[4], r[8], r[9]) for r in pr] == [(500, 12, "ok"), (2000, 12, "ok"), (10000, 1, "thin")], pr
+    assert [(r[4], r[8], r[9]) for r in pr] == [(500, 12, "ok"), (2000, 12, "ok"), (10000, 0, "thin")], pr
     assert pr[0][5] == 105.5 and pr[2][5] == "" and "fewer than 10" in pr[2][11]
     # a failing venue is a row, the run goes on; a total blackout is non-zero
     def fetch_fn(u):
