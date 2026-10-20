@@ -35,7 +35,7 @@ with the same template as the others. No new page.
     files: `tools/emit_us_ph.py`
     blocked: failed: the model returned no files in the agreed form (2026-10-20)
 - [ ] 2. United States to Brazil (Coinbase or Kraken, then Foxbit or Mercado Bitcoin)
-  - [ ] 2a. US leg collector: Coinbase and Kraken dollar-stablecoin quotes
+  - [x] 2a. US leg collector: Coinbase and Kraken dollar-stablecoin quotes (PR #576, 2026-10-20)
     files: `collector_route_us_br_us.py` `data/route_us_br_us.csv`
     context: `collector_stable_venues.py`
     venue: `USD` | `https://api.exchange.coinbase.com/products/USDC-USD/book?level=1` | `(not probed: a dollar in dollars)`
