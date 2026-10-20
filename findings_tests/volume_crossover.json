@@ -1,0 +1,15 @@
+{
+ "id": "volume_crossover",
+ "claim": "Sending five thousand Singapore dollars to the Philippines, a stablecoin beats the cheapest app only above a monthly volume rebuilt from the exchanges' fee tiers.",
+ "calculation": "The volume in data/findings.json (volume_crossover headline, rebuilt by tools/emit_volume_crossover.py from the stored prices and data/fee_tier_schedule.csv). The figure is how far today's volume is from the first volume this test recorded, as a share of that first volume.",
+ "window": "all stored checks of the route and amount, with the fee tiers in force",
+ "min_observations": "at least 500 stored checks (data/volume_crossover.json n_samples)",
+ "invalid_if": "data/volume_crossover.json status is not ok, the rebuild error is over 1 basis point, or the minimum observations are not met",
+ "direction": "band",
+ "holds": 0.25,
+ "weaker": 0.5,
+ "thresholds_text": "holds: within a quarter of the first recorded volume. weaker: within a half. no longer true: further away than that, or no crossover.",
+ "trigger": "a changed fee table (the tier schedule date in data/volume_crossover.json), or the first run",
+ "evidence_file": "data/volume_crossover.json",
+ "proposed_by": "Claude, 20 Oct 2026, from ROADMAP.md 'How a finding is tested'; the thresholds are proposals, merged by Seb's 20 Oct rule, and change only through a spec"
+}

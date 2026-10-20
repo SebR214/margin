@@ -1,0 +1,15 @@
+{
+ "id": "price_changes",
+ "claim": "Transfer apps raise and cut what they charge to send money, and keep doing so.",
+ "calculation": "From data/findings_hours_price_changes.csv (every confirmed price change, one row each): changes per week over the last 28 days, divided by changes per week over the whole file. The ratio is the figure.",
+ "window": "the last 28 days of the file, against the whole file",
+ "min_observations": "the file spans at least 28 days and holds at least 50 changes",
+ "invalid_if": "the finding's last recheck in data/findings.json is more than 3 days old, or the minimum observations are not met",
+ "direction": "higher_is_better",
+ "holds": 0.5,
+ "weaker": 0.1,
+ "thresholds_text": "holds: at least half the all-time weekly rate. weaker: between a tenth and a half. no longer true: under a tenth, or no change in the last 28 days.",
+ "trigger": "new hourly price rows (the price-change record grows)",
+ "evidence_file": "data/findings_hours_price_changes.csv",
+ "proposed_by": "Claude, 20 Oct 2026, from ROADMAP.md 'How a finding is tested'; the thresholds are proposals, merged by Seb's 20 Oct rule, and change only through a spec"
+}

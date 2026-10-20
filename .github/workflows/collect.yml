@@ -410,6 +410,13 @@ jobs:
             python3 tools/emit_$t.py || echo "emit_$t failed"
           done
 
+      # ROADMAP.md "How a finding is tested": each live finding is retested by code from its own test file (findings_tests/), at most once
+      # a day and only when its trigger fired; every retest appends a row to data/finding_tests.csv. Never stops the chain.
+      - name: Retest the findings
+        if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        run: python3 tools/retest_findings.py
+
       - name: Emit recent commits
         if: always() && steps.needed.outputs.proceed == 'true'
         # The agents list on how-it-was-built.html. The browser used to ask api.github.com itself, without
@@ -628,7 +635,7 @@ jobs:
                    data/routes_whatif.json data/heatmap_daily.json \
                    data/record_daily.json data/cycle_log.json \
                    data/record_milestones.json data/movers_week.json data/stable_venues.csv data/commits_recent.json data/index_hourly.csv data/source_switches.csv data/findings_hours_exchange_vs_p2p.csv \
-                   data/sources_daily.json data/findings.json data/findings_first_published.json \
+                   data/sources_daily.json data/findings.json data/findings_first_published.json data/finding_tests.csv \
                    data/findings_hours_price_changes.csv \
                    data/findings_hours_weekend_penalty.csv \
                    data/findings_hours_volume_crossover.csv \

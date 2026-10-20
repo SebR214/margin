@@ -1,0 +1,15 @@
+{
+ "id": "weekend_penalty",
+ "claim": "Some apps charge more on a Saturday, then cut back by Tuesday.",
+ "calculation": "From data/findings_hours_weekend_penalty.csv (each Saturday rise and the cut that undid it): rises per Saturday over the last 4 Saturdays in the file, divided by rises per Saturday over every Saturday in the file. A rise counts only if its cut-back is also in the file.",
+ "window": "the last 4 Saturdays, against every Saturday in the file",
+ "min_observations": "at least 8 Saturdays and at least 10 rises in the file",
+ "invalid_if": "the finding's last recheck in data/findings.json is more than 8 days old, or the minimum observations are not met",
+ "direction": "higher_is_better",
+ "holds": 0.5,
+ "weaker": 0.1,
+ "thresholds_text": "holds: at least half the all-time rises per Saturday. weaker: between a tenth and a half. no longer true: under a tenth, or no rise in the last 4 Saturdays.",
+ "trigger": "new hourly price rows (a new Saturday is judged once its Tuesday has passed)",
+ "evidence_file": "data/findings_hours_weekend_penalty.csv",
+ "proposed_by": "Claude, 20 Oct 2026, from ROADMAP.md 'How a finding is tested'; the thresholds are proposals, merged by Seb's 20 Oct rule, and change only through a spec"
+}
