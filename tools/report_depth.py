@@ -3,6 +3,7 @@
 
     python3 tools/report_depth.py                 # the last 24 hours of rows, as markdown
     python3 tools/report_depth.py --size          # bytes per row, rows per hour and a month's growth, from what is stored
+    python3 tools/report_depth.py --post-when-ready   # once 24 clean hours of order-book rows are stored: post the one-day table on SEB-302, once
     python3 tools/report_depth.py --self-test
 
 Per country and source: the figure against the official rate at each size (median over the hours in the window), how many hours the book
@@ -65,6 +66,40 @@ def size_report(path=PATH):
             "mb_per_month": round(per_hour * 24 * 30 / 1e6, 2)}
 
 
+ISSUE = "SEB-302"
+MARK = "One-day depth table"
+
+
+def hours_of(rows, books=True):
+    return {r["ts_utc"][:13] for r in rows if (r["source"] == "okx_p2p") != books and r["source_ok"] == "true"}
+
+
+def post_when_ready(path=PATH, now=None):
+    """Seb's rule: once 24 clean hours of rows are on main, post a one-day table on SEB-302. Once: a comment that starts with MARK is the record."""
+    now = now or dt.datetime.now(dt.timezone.utc)
+    rows = load(path)
+    if len(hours_of(rows)) < 24:
+        print("depth.csv holds %d clean hour(s) of order-book rows: not yet 24" % len(hours_of(rows)))
+        return False
+    sys.path.insert(0, os.path.join(ROOT, "agents"))
+    import linear
+    i = linear.find(ISSUE)
+    d = linear.call("""query($id: String!) { issue(id: $id) { comments(first: 100, filter: { body: { contains: "%s" } }) { nodes { body } } } }""" % MARK, {"id": i["id"]})
+    if any(c["body"].startswith("**" + MARK) for c in d["issue"]["comments"]["nodes"]):
+        print("the one-day table is already posted")
+        return False
+    since = (now - dt.timedelta(hours=24)).isoformat()
+    t, n = table(rows, since)
+    okx = len(hours_of(rows, books=False))
+    body = ("**%s** (written by a script from data/depth.csv, %s UTC). The last 24 hours: %d rows; %d clean hours of order-book rows, %d of OKX ad rows%s.\n\n%s\n\n"
+            "Nothing here is published: depth.csv feeds no page until its 7 days in quarantine are over (27 Oct). Size so far: %s."
+            % (MARK, now.strftime("%Y-%m-%d %H:%M"), n, len(hours_of(rows)), okx, "" if okx else " (the OKX hook, #572, is not merged yet)", t,
+               "%(rows)d rows over %(hours)d hours, %(bytes_per_row)s bytes a row, about %(mb_per_month)s MB a month" % size_report(path)))
+    linear.call("""mutation($id: String!, $b: String!) { commentCreate(input: { issueId: $id, body: $b }) { success } }""", {"id": i["id"], "b": body})
+    print("posted the one-day table on " + ISSUE)
+    return True
+
+
 def self_test():
     import tempfile
     head = "ts_utc,source,ccy,kind,param,avg_price,index_pct,usd_available,n_ads,status,source_ok,reason\n"
@@ -83,12 +118,16 @@ def self_test():
         assert n == 7 and "+1.00%" in t and "not filled" in t and "400 / 600 / 800" in t and "fewer than 10 ads" in t, t
         s = size_report(p)
         assert s["rows"] == 8 and s["hours"] == 2 and s["mb_per_month"] > 0
+        assert len(hours_of(load(p))) == 2 and len(hours_of(load(p), books=False)) == 1
     print("report_depth self-test: ok")
 
 
 def main(argv):
     if "--self-test" in argv:
         return self_test()
+    if "--post-when-ready" in argv:
+        post_when_ready()
+        return 0
     if "--size" in argv:
         s = size_report()
         print("data/depth.csv: %(rows)d rows over %(hours)d hours, %(bytes)d bytes (%(bytes_per_row)s per row); a month at this rate: %(mb_per_month)s MB" % s)
