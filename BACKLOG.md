@@ -31,7 +31,25 @@ with the same template as the others. No new page.
   - [ ] 1c. Emitter joining both legs into a US-to-Philippines corridor cost
     files: `tools/emit_us_ph.py`
 - [ ] 2. United States to Brazil (Coinbase or Kraken, then Foxbit or Mercado Bitcoin)
+  blocked: the Scout could not split it: 2c: context file does not exist: collector_us_br_onramp.py (2026-10-20)
 - [ ] 3. United States to Indonesia (Coinbase or Kraken, then Indodax or Pintu)
+  - [ ] 3a. US leg collector: USDT/USD price on Coinbase and Kraken
+    files: `collector_route_us_leg.py` `data/route_us_leg.csv` `.github/workflows/collect.yml`
+    context: `collector_stable_venues.py`
+    venue: `USD` | `https://api.exchange.coinbase.com/products/USDT-USD/ticker` | `(not probed: a dollar in dollars)`
+    venue: `USD` | `https://api.kraken.com/0/public/Ticker?pair=USDTUSD` | `(not probed: a dollar in dollars)`
+    done when: running collector_route_us_leg.py appends one timestamped row per venue (venue, bid, ask, last) to data/route_us_leg.csv, a failed venue is written as an empty row with an error note rather than a guessed price, and collect.yml has one appended step that runs it.
+  - [ ] 3b. Indonesia leg collector: USDT/IDR price on Indodax and Pintu
+    files: `collector_route_id_leg.py` `data/route_id_leg.csv` `.github/workflows/collect.yml`
+    context: `collector_stable_venues.py`
+    venue: `IDR` | `https://indodax.com/api/ticker/usdtidr` | `ticker.last`
+    done when: running collector_route_id_leg.py appends one timestamped row per venue (venue, bid, ask, last in rupiah) to data/route_id_leg.csv, a failed venue is written as an empty row with an error note, and collect.yml has one appended step that runs it.
+  - [ ] 3c. Route cost: United States to Indonesia, computed from the two leg files
+    files: `tools/route_us_id.py` `data/route_us_id.json`
+    context: `tools/record_common.py`
+    done when: running tools/route_us_id.py reads data/route_us_leg.csv and data/route_id_leg.csv, takes the cheapest US venue buy price and the best Indonesia venue sell price from the same hour, writes data/route_us_id.json with the cost of the route in basis points against the official dollar-rupiah rate plus the venue names and source rows used, and writes nothing for an hour where either leg is missing.
+  - [ ] 3d. WORDS United States to Indonesia route description
+    done when: the writer has added a plain-language description of the United States to Indonesia route, naming the US on-ramp venues and the Indonesian exchanges, that states the cost figure comes from data/route_us_id.json.
 - [ ] 4. Singapore to Indonesia (Independent Reserve, then Indodax or Pintu)
   - [ ] 4a. Independent Reserve leg: Singapore dollar to USDT price
     files: `collector_sg_id_ir.py` `data/sg_id_ir.csv`
@@ -51,7 +69,9 @@ with the same template as the others. No new page.
   - [ ] 4e. WORDS Singapore to Indonesia route description
     done when: the writer has added the route's plain-language description, naming Independent Reserve and Indodax as the two legs and saying the cost is measured through USDT.
 - [ ] 5. Australia to India (Independent Reserve or BTC Markets, then WazirX or CoinDCX)
+  blocked: the Scout could not split it: 5b: no venue passed: INR https://api.wazirx.com/sapi/v1/ticker/24hr?symbol=usdtinr: no field in the answer is within 3% of the official rate 95.052511; INR https://api.coindcx.com/exchange/ticker: no field in the answer is within 3% of the official rate 95.052511 (2026-10-20)
 - [ ] 6. United States to Turkey (Coinbase or Kraken, then BtcTurk or Paribu)
+  blocked: the Scout could not split it: 6c lists no files (2026-10-20)
 
 ## More apps
 - [ ] 7. For every route, list every provider the comparison feed returns that we don't store yet. Add all of them to the stored quotes.
