@@ -4,52 +4,24 @@
     "denominator": 454.02473,
     "denominator_meaning": "the official rate, local currency per dollar",
     "formula": "(numerator / denominator - 1) * 100",
-    "numerator": 10050.0,
+    "numerator": 10300.0,
     "numerator_meaning": "price to buy one dollar locally",
-    "result_pct": 2113.5358
+    "result_pct": 2168.5989
   },
-  "computed_at": "2026-10-20T15:00:00+00:00",
+  "computed_at": "2026-10-20T16:00:00+00:00",
   "country": "Sudan",
   "evidence": {
-    "buy_median": 10050.0,
-    "collected_at": "2026-10-20T15:06:55.403854+00:00",
+    "buy_median": 10300.0,
+    "collected_at": "2026-10-20T16:07:05.258649+00:00",
     "n_offers": 10,
     "offer_detail": "per_offer",
     "offers": [
       {
-        "price": 9199.98,
+        "price": 10135.0,
         "side": "buy"
       },
       {
-        "price": 10030.1,
-        "side": "buy"
-      },
-      {
-        "price": 10049.0,
-        "side": "buy"
-      },
-      {
-        "price": 10049.99,
-        "side": "buy"
-      },
-      {
-        "price": 10050.0,
-        "side": "buy"
-      },
-      {
-        "price": 10050.0,
-        "side": "buy"
-      },
-      {
-        "price": 10096.75,
-        "side": "buy"
-      },
-      {
-        "price": 10129.0,
-        "side": "buy"
-      },
-      {
-        "price": 10147.99,
+        "price": 10150.0,
         "side": "buy"
       },
       {
@@ -57,23 +29,47 @@
         "side": "buy"
       },
       {
-        "price": 9980.0,
+        "price": 10300.0,
+        "side": "buy"
+      },
+      {
+        "price": 10300.0,
+        "side": "buy"
+      },
+      {
+        "price": 10300.0,
+        "side": "buy"
+      },
+      {
+        "price": 10300.0,
+        "side": "buy"
+      },
+      {
+        "price": 10348.0,
+        "side": "buy"
+      },
+      {
+        "price": 10400.0,
+        "side": "buy"
+      },
+      {
+        "price": 10495.0,
+        "side": "buy"
+      },
+      {
+        "price": 9992.0,
         "side": "sell"
       },
       {
-        "price": 9979.8,
+        "price": 9989.0,
         "side": "sell"
       },
       {
-        "price": 9979.0,
+        "price": 9910.36,
         "side": "sell"
       },
       {
-        "price": 9975.61,
-        "side": "sell"
-      },
-      {
-        "price": 9940.68,
+        "price": 9900.0,
         "side": "sell"
       },
       {
@@ -93,13 +89,17 @@
         "side": "sell"
       },
       {
-        "price": 9711.0,
+        "price": 9655.75,
+        "side": "sell"
+      },
+      {
+        "price": 9655.01,
         "side": "sell"
       }
     ],
-    "sell_median": 9920.34,
-    "source_kind": "p2p_buy_median",
-    "source_words": "from person-to-person ads"
+    "sell_median": 9899.995,
+    "source_kind": null,
+    "source_words": "no price this hour"
   },
   "evidence_rule": {
     "applies": true,
@@ -107,25 +107,22 @@
     "buy_ads_estimated": false,
     "buy_at_or_above_sell": true,
     "min_buy_ads_required": 10,
-    "passed": true,
-    "reason": null,
+    "passed": false,
+    "reason": "held back: +2168.6% is 461.4 points from this country's usual +1707.2% over the last 7 days, and no second source or earlier hour confirms it yet",
     "reason_code": null
   },
-  "hour_utc": "2026-10-20T15:00:00+00:00",
+  "hour_utc": "2026-10-20T16:00:00+00:00",
   "index_version": "1.5",
-  "not_published_reason": null,
+  "not_published_reason": "held back: +2168.6% is 461.4 points from this country's usual +1707.2% over the last 7 days, and no second source or earlier hour confirms it yet",
   "official_rate": {
     "class": "unmaintained",
     "source": "open.er-api",
     "source_file": "data/fx_rates.csv",
-    "timestamp": "2026-10-20T15:11:21.828184+00:00",
+    "timestamp": "2026-10-20T16:11:37.697386+00:00",
     "value": 454.02473
   },
-  "outlier_checked": {
-    "date": "2026-09-12",
-    "explanation": "The street price stands: about 7,059 SDG to the dollar on the person-to-person board, a 1.5% round trip between buying and selling, steady for eight days. The denominator underneath it is the open question. Sudan's central bank still lists an official rate at cbos.gov.sd, but that page has not moved since 7 March 2022, when it read 445 SDG to the dollar, so there is no current government rate to divide by. The 511 we use comes from open.er-api and slid 544 -> 512 -> 511 in two days, which reads as an aggregate of the rates commercial banks now set for themselves rather than a rate the state holds in place. The figure is the distance from that bank-set reference; the denominator is not changed to make the number smaller."
-  },
-  "published": true,
+  "outlier_checked": null,
+  "published": false,
   "source_files": [
     "data/countries/SDG.json",
     "data/fx_rates.csv",
