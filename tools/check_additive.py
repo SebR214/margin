@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Is a collection-code change additive? (SEB-301, Seb's merge rule of 20 Oct.) No model.
 
-    python3 tools/check_additive.py --pr 123 [--repo owner/name]     # from GitHub's file list
+    python3 tools/check_additive.py --compare main --sha <sha> [--repo owner/name]   # from the diff of one exact commit (what automerge uses)
+    python3 tools/check_additive.py --pr 123 [--repo owner/name]     # from GitHub's file list (can lag right after a push)
     python3 tools/check_additive.py --base origin/main               # from git, against a base
     python3 tools/check_additive.py --self-test
 
@@ -91,6 +92,16 @@ def from_pr(number, repo):
     return files
 
 
+def from_compare(base, sha, repo):
+    """The files changed between `base` and the exact commit `sha`. Computed for that commit, so it cannot lag behind a push the way a PR's
+    own file list can (that lag let a collector edit through once, 20 Oct)."""
+    out = subprocess.run(["gh", "api", "repos/%s/compare/%s...%s" % (repo, base, sha)], capture_output=True, text=True, check=True).stdout
+    doc = json.loads(out)
+    if doc.get("total_commits", 0) and not doc.get("files"):
+        raise SystemExit("GitHub returned no file list for %s...%s" % (base, sha))
+    return doc.get("files") or []
+
+
 def from_git(base):
     names = subprocess.run(["git", "diff", "--name-status", base + "...HEAD"], capture_output=True, text=True, check=True).stdout.split("\n")
     files = []
@@ -132,7 +143,10 @@ def self_test():
 def main(argv):
     if "--self-test" in argv:
         return self_test()
-    if "--pr" in argv:
+    if "--compare" in argv:
+        repo = argv[argv.index("--repo") + 1] if "--repo" in argv else os.environ.get("GITHUB_REPOSITORY", "SebR214/margin")
+        files = from_compare(argv[argv.index("--compare") + 1], argv[argv.index("--sha") + 1], repo)
+    elif "--pr" in argv:
         repo = argv[argv.index("--repo") + 1] if "--repo" in argv else os.environ.get("GITHUB_REPOSITORY", "SebR214/margin")
         files = from_pr(argv[argv.index("--pr") + 1], repo)
     elif "--base" in argv:
@@ -148,6 +162,8 @@ def main(argv):
         print("additive: new collector files or sidecar CSVs only, collect.yml only grows")
     else:
         print("NOT ADDITIVE:\n- " + "\n- ".join(why))
+    if "--json" in argv:
+        return 0                    # the verdict is in the JSON; the caller decides (automerge reads it and fails closed)
     return 0 if (ok or not touches) else 1
 
 

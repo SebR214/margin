@@ -64,7 +64,12 @@ jobs:
           # tools/check_additive.py). The one full collection run on the branch is the collector-gate check, which is among the
           # checks counted below. Anything else stays open, says why once on the PR and on its Linear issue, and the daily
           # status on SEB-301 lists it (SEB-301, Seb's rule of 20 Oct).
-          verdict=$(python3 tools/check_additive.py --pr "$n" --json)
+          # The diff of this exact commit, not the PR's own file list (which lags right after a push: #572, 20 Oct). If the verdict cannot
+          # be read, nothing merges.
+          verdict=$(python3 tools/check_additive.py --compare main --sha "$SHA" --json) || verdict=""
+          if ! echo "$verdict" | jq -e 'has("touches_collection_code") and has("additive")' >/dev/null 2>&1; then
+            echo "#$n: could not tell whether it touches collection code, left open"; exit 0
+          fi
           if [ "$(echo "$verdict" | jq -r '.touches_collection_code and (.additive|not)')" = "true" ]; then
             why=$(echo "$verdict" | jq -r '.reasons | join("; ")')
             echo "#$n changes existing collection code ($why), left open"
