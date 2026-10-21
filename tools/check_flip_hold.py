@@ -59,10 +59,17 @@ def unit():
 
 def integration():
     idx = json.load(open(os.path.join(ROOT, "data", "index_latest.json")))
+    published = ec._hour_series(ec.INDEX_HOURLY, "index_pct")
     doc = None
     for c in idx["countries"]:
         d = json.load(open(os.path.join(ROOT, "data", "countries", c["ccy"] + ".json")))
         if d.get("source_class") == "p2p_buy_median" and d.get("n_boards") == 1 and d.get("index_pct") is not None:
+            # A country whose own number is far from its 7-day level for hours already (Sudan, 21 Oct) has a real move that the
+            # rule confirms by time, so a bad row there is rightly published. Test on a country whose latest hour is normal.
+            pub = published.get(d["ccy"], {})
+            last = max(pub) if pub else None
+            if last is None or ec.hold_decision(pub[last], last, {h: v for h, v in pub.items() if h != last}, {}, [])[0] != "ok":
+                continue
             doc = d
             break
     assert doc, "no single-board person-to-person country to test with"
