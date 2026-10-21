@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
+<link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./style.css"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <script src="./js/receipt_replay.js"></script>
@@ -272,7 +273,7 @@ const T=(s,vals)=>{
   return out;
 };
 // This page speaks in money and percent. Basis points are a desk unit and they
-// live in methodology.html. Precision follows the number so a cost of 0.004%
+// live in how-it-works.html. Precision follows the number so a cost of 0.004%
 // does not print as 0.00%, which would read as "not measured".
 const pct=(b,signed)=>{
   if(b===null||b===undefined||!isFinite(b)) return "—";

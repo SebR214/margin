@@ -6,7 +6,7 @@ This renders each page the way a reader gets it -- fetching its JSON over HTTP,
 running its JavaScript -- and then reads what actually appeared on screen.
 
 It fails on:
-  * a jargon word on a page that is not methodology.html
+  * a jargon word on a page that is not how-it-works.html
   * "placeholder", "NaN", "undefined", "[object Object]" in the rendered text
   * a console error or an uncaught exception
   * the page falling back to its own empty state, which means its data did not
@@ -55,16 +55,13 @@ BANNED = ["bps", "basis point", "basis", "on-ramp", "off-ramp", "notional",
 PAGE_BANNED = {"index.html": ["corridor"]}
 BARE_MID = re.compile(r"\bmid\b(?!-market)", re.I)
 BROKEN = ["placeholder", "[object object]", "lorem ipsum", "todo:", "fixme"]
-EXEMPT = {"methodology.html"}
+EXEMPT = set()
 
 EMPTY_STATES = ("could not be read", "no comparison available",
                 "no price history available", "no data available")
 
 # Every page a reader can reach. A new page must be listed here to be covered.
-PAGES = ["index.html", "providers.html", "pricing-history.html",
-         "corridor.html", "methodology.html", "status.html", "findings.html",
-         "requests.html", "calculator.html", "weekly.html", "data.html",
-         "watch.html", "stress.html", "how-it-was-built.html",
+PAGES = ["index.html", "corridor.html", "findings.html", "how-it-was-built.html",
          "countries.html", "sending-money.html", "how-it-works.html",
          "country.html", "fee-tiers.html", "agent-incidents.html", "tape.html",
          "finding.html"]
@@ -233,32 +230,12 @@ def normalize_markup(s):
 # corridor.html appends the corridor's own currencies to this base title
 # client-side (see its `document.title=...` line).
 #
-# The retired pages (providers.html, pricing-history.html,
-# methodology.html, status.html, requests.html, calculator.html,
-# weekly.html, data.html, watch.html, stress.html -- SESSIONS.md Session 2;
-# findings.html -- Phase 4, FINAL spec, folded into sending-money.html) are
-# `<meta http-equiv="refresh" content="0; ...">` stubs now: this check
-# visits the URL the same way a reader would, and a 0-second refresh has
-# already fired by the time it reads the title, so what it actually
-# observes is the DESTINATION page's title, never the stub's own. That
-# is the stronger test -- it proves the redirect really lands somewhere,
-# not just that the stub's markup looks right -- so each entry below names
-# its destination's title, not its own.
+# Retired pages were deleted (SEB-301, 21 Oct).
 PAGE_TITLE = {
     "index.html": "margin.wiki",
-    "providers.html": "margin.wiki — sending money",
-    "pricing-history.html": "margin.wiki — sending money",
     "corridor.html": "margin.wiki — one transfer, the receipt in full",
-    "methodology.html": "margin.wiki — how it works",
-    "status.html": "margin.wiki — how it was built",
     "findings.html": "margin.wiki",
     "finding.html": "margin.wiki",
-    "requests.html": "margin.wiki — countries",
-    "calculator.html": "margin.wiki — sending money",
-    "weekly.html": "margin.wiki — sending money",
-    "data.html": "margin.wiki — how it was built",
-    "watch.html": "margin.wiki — how it was built",
-    "stress.html": "margin.wiki — sending money",
     "how-it-was-built.html": "margin.wiki — how it was built",
     "countries.html": "margin.wiki — countries",
     "sending-money.html": "margin.wiki — sending money",

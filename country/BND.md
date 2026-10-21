@@ -1,12 +1,12 @@
 # No price for Brunei this hour
 
-Prices from the 10:00 UTC hour, 21 Oct.
+Prices from the 13:00 UTC hour, 21 Oct.
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
 The last price we published was +2.8%, on 16 Sep.
 
-Prices from the 10:00 UTC hour, 21 Oct
+Prices from the 13:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/countries/BND.json>
 
@@ -20,6 +20,9 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 21 Oct, 13:08 UTC | OKX, person to person | 1.65 BND | +29.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 21 Oct, 12:08 UTC | OKX, person to person | 1.65 BND | +29.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 21 Oct, 11:38 UTC | OKX, person to person | 1.65 BND | +29.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 10:08 UTC | OKX, person to person | 1.65 BND | +29.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 09:08 UTC | OKX, person to person | 1.65 BND | +29.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 08:08 UTC | OKX, person to person | 1.65 BND | +29.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -29,9 +32,6 @@ Open any file to check a price yourself.
 | 21 Oct, 00:06 UTC | Binance, person to person | 1.32 BND | +3.3% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 20 Oct, 23:06 UTC | Binance, person to person | 1.32 BND | +3.3% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 20 Oct, 22:06 UTC | Binance, person to person | 1.32 BND | +3.3% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 20 Oct, 21:06 UTC | Binance, person to person | 1.32 BND | +3.3% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 20 Oct, 20:06 UTC | Binance, person to person | 1.32 BND | +3.3% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 20 Oct, 19:36 UTC | Binance, person to person | 1.32 BND | +3.3% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

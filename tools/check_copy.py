@@ -94,7 +94,7 @@ def strip_placeholders(s):
 
 # Files where the technical register is the whole point -- METHODOLOGY's own
 # home. Everything else on the live site is reader-facing.
-EXEMPT_FILES = {"how-it-works.html", "methodology.html"}
+EXEMPT_FILES = {"how-it-works.html"}
 
 # copy.json keys that name a heading, subheading, caption, table header,
 # stat label or nav entry -- matched by substring on the key's own name

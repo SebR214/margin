@@ -1,76 +1,74 @@
 # People do not always pay the official rate for a dollar
 
-Prices from the 10:00 UTC hour, 21 Oct.
+Prices from the 13:00 UTC hour, 21 Oct.
 
-We track the price of a dollar in 53 countries and compare it with the official rate. This hour 49 of them had a price. We also price sending money on 7 routes, with every fee we can measure included.
+We track the price of a dollar in 53 countries and compare it with the official rate. This hour 50 of them had a price. We also price sending money on 7 routes, with every fee we can measure included.
 
 AI agents built this site and keep it running. Every number links to the stored file it came from. [How it was built →](https://margin.wiki/how-it-was-built.md)
 
-494,904 prices stored · 36 price sources · 53 countries tracked · 7 routes between countries · 1,493 hours on record
+496,546 prices stored · 36 price sources · 53 countries tracked · 7 routes between countries · 1,496 hours on record
 
 <https://margin.wiki/data/index_latest.json>
 <https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/sources_daily.json>
 
-## In 29 of 48 countries we priced this hour, a dollar costs within 2% of the official rate.
+## In 29 of 49 countries we priced this hour, a dollar costs within 2% of the official rate.
 
-Each row is a country, each square one day. The colour shows how much more than the official rate people paid.
-
-| Country | Change |
+| Country | Against the official rate |
 | --- | --- |
-| Algeria | +91.7% |
-| Venezuela | +18.2% |
-| Syria | +17.0% |
-| Iraq | +13.3% |
-| South Africa | +10.4% |
-| Argentina | +7.7% |
-| Morocco | +6.5% |
-| Qatar | +6.3% |
-| India | +6.2% |
-| Central African CFA | +5.8% |
-| Kazakhstan | +4.9% |
-| Uganda | +4.2% |
-| West African CFA | +3.3% |
-| Bolivia | +3.1% |
-| Ukraine | +2.6% |
-| Pakistan | +2.4% |
-| Rwanda | +2.3% |
-| Nigeria | +2.2% |
-| Saudi Arabia | +2.1% |
-| Cambodia | +1.9% |
-| Sri Lanka | +1.9% |
-| Azerbaijan | +1.8% |
-| Laos | +1.7% |
-| Zambia | +1.3% |
-| Egypt | +1.2% |
-| Kuwait | +1.2% |
-| Lebanon | +1.0% |
-| Jordan | +0.9% |
-| Vietnam | +0.9% |
-| Colombia | +0.7% |
-| Peru | +0.6% |
-| Chile | +0.5% |
-| Brazil | +0.4% |
-| New Zealand | +0.4% |
-| South Korea | +0.4% |
-| Philippines | +0.3% |
-| United Arab Emirates | +0.3% |
-| Mexico | +0.2% |
-| Tanzania | +0.2% |
-| Georgia | +0.1% |
-| Kenya | +0.1% |
-| Singapore | −0.1% |
-| Indonesia | −0.2% |
-| Thailand | −0.2% |
-| Australia | −0.3% |
-| Turkey | −0.3% |
-| Armenia | −0.4% |
-| Taiwan | −0.6% |
-| Mozambique | no price |
-| Tunisia | no price |
-| Bangladesh | no price |
-| Mongolia | no price |
-| Sudan | +2,193% |
+| [Algeria](https://margin.wiki/country/DZD.md) | +91.1% |
+| [Venezuela](https://margin.wiki/country/VES.md) | +18.3% |
+| [Syria](https://margin.wiki/country/SYP.md) | +17.4% |
+| [Tunisia](https://margin.wiki/country/TND.md) | +14.8% |
+| [Iraq](https://margin.wiki/country/IQD.md) | +13.4% |
+| [South Africa](https://margin.wiki/country/ZAR.md) | +10.0% |
+| [Argentina](https://margin.wiki/country/ARS.md) | +7.7% |
+| [Morocco](https://margin.wiki/country/MAD.md) | +6.6% |
+| [India](https://margin.wiki/country/INR.md) | +6.3% |
+| [Central African CFA](https://margin.wiki/country/XAF.md) | +5.7% |
+| [Kazakhstan](https://margin.wiki/country/KZT.md) | +4.6% |
+| [Qatar](https://margin.wiki/country/QAR.md) | +4.2% |
+| [Uganda](https://margin.wiki/country/UGX.md) | +4.2% |
+| [Mongolia](https://margin.wiki/country/MNT.md) | +3.3% |
+| [West African CFA](https://margin.wiki/country/XOF.md) | +3.2% |
+| [Bolivia](https://margin.wiki/country/BOB.md) | +3.0% |
+| [Ukraine](https://margin.wiki/country/UAH.md) | +2.7% |
+| [Pakistan](https://margin.wiki/country/PKR.md) | +2.6% |
+| [Sri Lanka](https://margin.wiki/country/LKR.md) | +2.2% |
+| [Nigeria](https://margin.wiki/country/NGN.md) | +2.1% |
+| [Saudi Arabia](https://margin.wiki/country/SAR.md) | +1.9% |
+| [Azerbaijan](https://margin.wiki/country/AZN.md) | +1.8% |
+| [Laos](https://margin.wiki/country/LAK.md) | +1.8% |
+| [Kuwait](https://margin.wiki/country/KWD.md) | +1.2% |
+| [Zambia](https://margin.wiki/country/ZMW.md) | +1.2% |
+| [Tanzania](https://margin.wiki/country/TZS.md) | +1.0% |
+| [Egypt](https://margin.wiki/country/EGP.md) | +0.9% |
+| [Jordan](https://margin.wiki/country/JOD.md) | +0.9% |
+| [Lebanon](https://margin.wiki/country/LBP.md) | +0.9% |
+| [Vietnam](https://margin.wiki/country/VND.md) | +0.9% |
+| [Colombia](https://margin.wiki/country/COP.md) | +0.7% |
+| [Rwanda](https://margin.wiki/country/RWF.md) | +0.7% |
+| [Mexico](https://margin.wiki/country/MXN.md) | +0.6% |
+| [Peru](https://margin.wiki/country/PEN.md) | +0.5% |
+| [Chile](https://margin.wiki/country/CLP.md) | +0.3% |
+| [New Zealand](https://margin.wiki/country/NZD.md) | +0.3% |
+| [South Korea](https://margin.wiki/country/KRW.md) | +0.3% |
+| [United Arab Emirates](https://margin.wiki/country/AED.md) | +0.3% |
+| [Kenya](https://margin.wiki/country/KES.md) | +0.2% |
+| [Philippines](https://margin.wiki/country/PHP.md) | +0.2% |
+| [Georgia](https://margin.wiki/country/GEL.md) | +0.1% |
+| [Brazil](https://margin.wiki/country/BRL.md) | 0.0% |
+| [Indonesia](https://margin.wiki/country/IDR.md) | −0.1% |
+| [Singapore](https://margin.wiki/country/SGD.md) | −0.1% |
+| [Thailand](https://margin.wiki/country/THB.md) | −0.2% |
+| [Turkey](https://margin.wiki/country/TRY.md) | −0.3% |
+| [Armenia](https://margin.wiki/country/AMD.md) | −0.4% |
+| [Australia](https://margin.wiki/country/AUD.md) | −0.5% |
+| [Taiwan](https://margin.wiki/country/TWD.md) | −0.6% |
+| [Mozambique](https://margin.wiki/country/MZN.md) | no price |
+| [Bangladesh](https://margin.wiki/country/BDT.md) | no price |
+| [Cambodia](https://margin.wiki/country/KHR.md) | no price |
+| [Sudan](https://margin.wiki/country/SDG.md) | +2,215% |
 
 Sudan (SDG) is shown but not ranked. Its government stopped updating the official rate, so any gap would measure that freeze, not what people pay.
 
@@ -81,30 +79,31 @@ We also check Afghanistan, Angola, Botswana, Brunei, Ethiopia, Ghana, Nepal ever
 
 ## Where the price moved most against the official rate this week
 
-|  |  |  |
+| Country | What happened | Change this week |
 | --- | --- | --- |
-| Chile | People in Chile paid 2.6% above the official rate on 14 Oct, and 0.5% above this hour. | −2.1 points this week |
-| Qatar | People in Qatar paid 4.4% above the official rate on 14 Oct, and 6.3% above this hour. | +1.9 points this week |
-| Peru | People in Peru paid 2.3% above the official rate on 14 Oct, and 0.6% above this hour. | −1.7 points this week |
-| Bolivia | People in Bolivia paid 1.5% above the official rate on 14 Oct, and 3.1% above this hour. | +1.6 points this week |
-| India | People in India paid 4.9% above the official rate on 14 Oct, and 6.2% above this hour. | +1.4 points this week |
+| [Uganda](https://margin.wiki/country/UGX.md) | People in Uganda paid 1.9% above the official rate on 14 Oct, and 4.2% above this hour. | +2.3 points this week |
+| [Chile](https://margin.wiki/country/CLP.md) | People in Chile paid 2.1% above the official rate on 14 Oct, and 0.3% above this hour. | −1.8 points this week |
+| [Tunisia](https://margin.wiki/country/TND.md) | People in Tunisia paid 13.2% above the official rate on 14 Oct, and 14.8% above this hour. | +1.7 points this week |
+| [Bolivia](https://margin.wiki/country/BOB.md) | People in Bolivia paid 1.4% above the official rate on 14 Oct, and 3.0% above this hour. | +1.6 points this week |
+| [Syria](https://margin.wiki/country/SYP.md) | People in Syria paid 15.8% above the official rate on 14 Oct, and 17.4% above this hour. | +1.6 points this week |
 
 <https://margin.wiki/data/movers_week.json>
 
 ## When sending money costs more
 
-|  |  |
+| Finding | What we found |
 | --- | --- |
-| 01 | Apps changed transfer prices 1,268 times since we began. The cheapest app when you compare can differ when you send. |
-| 02 | 42 times on a Saturday since our record began, an app raised its price, then cut it. Weekdays can be cheaper. |
-| 03 | Sending five thousand Singapore dollars to the Philippines, a stablecoin beats the cheapest app if you trade more than S$13.4M a month on the exchange. Worked out from its published fees. |
-| 04 | From Singapore to the Philippines, a stablecoin beat the cheapest app in 3 of the 1,464 hours we priced at S$5,000. |
+| 01 | [Transfer apps keep changing their prices](https://margin.wiki/finding/price_changes.md) |
+| 02 | [Some apps charge more on Saturday, then cut back](https://margin.wiki/finding/weekend_penalty.md) |
+| 03 | [Stablecoins beat the cheapest app only above about S$13.4M a month, a figure worked out from the exchanges' published fee tiers](https://margin.wiki/finding/volume_crossover.md) |
+| 04 | [Singapore to the Philippines: a stablecoin was almost never the cheapest way to send](https://margin.wiki/finding/sgd_php_never_cheapest.md) |
+| 05 | [In 2 countries, people pay more for a dollar from each other than on an exchange](https://margin.wiki/finding/exchange_vs_p2p.md) |
 
 <https://margin.wiki/data/findings.json>
 
 ## The record grew as new sources and routes came in
 
-494,904 prices stored
+496,546 prices stored
 
 Exchanges' own earlier prices reach back to 3 Jan 2011, so some charts predate our record.
 
