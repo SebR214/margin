@@ -1,12 +1,12 @@
 # No price for Bangladesh this hour
 
-Prices from the 11:00 UTC hour, 21 Oct.
+Prices from the 12:00 UTC hour, 21 Oct.
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
 The last price we published was +4.0%, on 21 Oct.
 
-Prices from the 11:00 UTC hour, 21 Oct
+Prices from the 12:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/countries/BDT.json>
 
@@ -20,6 +20,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 21 Oct, 12:08 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 11:38 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 10:08 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 01:06 UTC | Binance, person to person | 128.53 BDT | +3.9% | 10 of 42 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -31,7 +32,6 @@ Open any file to check a price yourself.
 | 20 Oct, 19:36 UTC | Binance, person to person | 128.55 BDT | +4.0% | 10 of 54 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 20 Oct, 14:07 UTC | Binance, person to person | 128.34 BDT | +3.8% | 10 of 81 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 20 Oct, 13:07 UTC | Binance, person to person | 128.33 BDT | +3.8% | 10 of 85 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 20 Oct, 12:06 UTC | Binance, person to person | 128.34 BDT | +3.8% | 10 of 77 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
