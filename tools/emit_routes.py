@@ -77,6 +77,7 @@ QUOTES = "provider_quotes.csv"
 WATERFALL = "corridor_waterfall.csv"
 RAMP_WATERFALL = "ramp_waterfall.csv"
 VARIANT_LEGS = "corridor_variant_legs.csv"       # SEB-268 item 3: the steps of every priced variant path, from the hour they are stored
+FX_META = "fx_rate_meta.csv"                     # SEB-301: when the official rate itself was stamped (collector_fx.py sidecar)
 RAMP_FEES = "ramp_fees.csv"
 WITHDRAWAL_FEES = "withdrawal_fees.csv"
 # The routes, each route's comparison panel file and its names all come from
@@ -308,8 +309,20 @@ HOUR_COLUMNS = [
     "feed_cost_pct", "feed_app",
 ]
 
+def official_rate_updated():
+    """The official rate's own stamp (open.er-api time_last_update_utc) from the
+    newest stored run that read one. None when no run has stored one yet; never
+    guessed, never backfilled."""
+    last = None
+    for r in read_csv(FX_META):
+        if (r.get("source_ok") or "").strip().lower() == "true" and (r.get("rate_updated_utc") or "").strip():
+            last = r["rate_updated_utc"].strip()
+    return last
+
+
 def build_hourly(D, S):
     routes = []
+    rate_stamp = official_rate_updated()
     for c in ROUTES:
         if c not in S:
             continue
@@ -330,6 +343,7 @@ def build_hourly(D, S):
         m = D["meta"].get(c, {})
         routes.append({"id": c, "send_ccy": m.get("send_ccy"),
                        "recv_ccy": m.get("recv_ccy"), "amounts": amounts,
+                       "official_rate_updated_utc": rate_stamp,
                        "route_words": ROUTE_WORDS.get(c, c),
                        "dest": ROUTE_DEST.get(c),
                        "send_symbol": SYMBOL.get(m.get("send_ccy"), m.get("send_ccy")),
@@ -425,6 +439,7 @@ def stats(rows, amt):
 
 def build_summary(D, S):
     routes = []
+    rate_stamp = official_rate_updated()
     total_pairs = total_route_hours = 0
     distinct = set()
     for c in ROUTES:
@@ -457,6 +472,7 @@ def build_summary(D, S):
         comparable = all(v >= 0 for v in med_cost.values())
         routes.append({
             "id": c,
+            "official_rate_updated_utc": rate_stamp,
             "comparable": comparable,
             "comparable_reason": None if comparable else "stable_cost_negative",
             "stable_cost_median_pct_min": r4(min(med_cost.values()) / 100),

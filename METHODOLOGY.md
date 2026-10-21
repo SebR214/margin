@@ -455,8 +455,9 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. **Version 1.5 is in force from
-2026-10-14** (crossed boards, below). Version 1.4.1, the same day, recorded a second board kept apart. Version 1.4 ran from
+Every published file carries `index_version`. **Version 1.6 is in force from
+2026-10-21** (the official rate's own time, below; no published number changes). Version 1.5 ran from
+2026-10-14 (crossed boards, below). Version 1.4.1, the same day, recorded a second board kept apart. Version 1.4 ran from
 2026-10-11 (a sudden flip is held back, and a new source waits in quarantine, below). Version 1.3 added a believable-row test at
 collection. Version 1.2 ran from 2026-10-09 (a second person-to-person board and Luno for Nigeria, below). Version 1.1 ran from
 2026-09-10; v1.0 was superseded that day by the evidence rule below, after
@@ -596,6 +597,15 @@ country are the generic "no price collected this hour"; the stated reason is in 
 and in `index_latest.json`.
 
 `p2p_basis.csv`, `p2p_okx.csv`, `basis.csv` and every CSV header are unchanged. `index_held.csv` is new.
+
+### The official rate's own time is recorded (v1.6, 2026-10-21)
+
+The official rate comes from open.er-api.com, which refreshes once a day, at about 00:02 UTC, so a route cost can use a rate up to 24 hours
+old. From v1.6 `collector_fx.py` stores the rate's own stamp (`time_last_update_utc` in the API reply) in the sidecar
+`data/fx_rate_meta.csv` (`ts_utc,source,rate_updated_utc,source_ok,error`; `fx_rates.csv` keeps its header). A reply with no stamp is a row with
+`source_ok=false`, never a guessed time. `tools/emit_routes.py` adds `official_rate_updated_utc` to each route in `routes_hourly.json` and
+`routes_summary.json`, null until a run has stored one. No price, cost or count is computed differently; the version bumps because published
+files gain a key. Nothing is backfilled.
 
 ### Crossed boards (v1.5, 2026-10-14)
 

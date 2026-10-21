@@ -36,7 +36,7 @@ EMITTERS = {
 VERSION_FILE = "tools/emit_countries.py"
 VERSION_RE = re.compile(r'^INDEX_VERSION\s*=\s*"([^"]+)"', re.M)
 # stamps and descriptive text are not published numbers: a reworded definition is not a method change
-VOLATILE = {"computed_at", "as_of_utc", "generated_at", "last_recheck_utc", "definition", "definitions", "notes"}
+VOLATILE = {"official_rate_updated_utc", "computed_at", "as_of_utc", "generated_at", "last_recheck_utc", "definition", "definitions", "notes"}
 
 
 def strip(x):

@@ -274,6 +274,12 @@ def parse_btcmarkets(d):
     return (_f(d.get("bestBid")), _f(d.get("bestAsk")), _f(d.get("lastPrice")))
 
 
+# Feeds inside the CriptoYa payload that no longer answer. Not collected, so no
+# more source_ok=false rows. Their rows in basis.csv stay as history.
+# buenbit: last answered 2026-10-11.
+CRIPTOYA_DEAD = {"buenbit"}
+
+
 def expand_criptoya(d):
     """CriptoYa's payload is many exchanges at once -> one row each.
 
@@ -671,6 +677,8 @@ def build_rows(ts, venues, fx, fetch=get_json):
                 row["error"] = (row["error"] or "") + f" expand:{type(e).__name__}"
                 entries = []
             for name, e_bid, e_ask, e_last in entries:
+                if name in CRIPTOYA_DEAD:
+                    continue
                 sub = _base_row(ts, v, name=f"CriptoYa:{name}")
                 try:
                     e_mid = (e_bid if v.get("mid_rule") == "bid"
@@ -1130,11 +1138,12 @@ def selftest():
     print(f"  [ok] FX snapshot covers all {len(ccys)} venue currencies "
           f"({', '.join(sorted(ccys))})")
 
-    # 5. full happy path: 24 registered venues + 5 CriptoYa expansion rows
+    # 5. full happy path: 24 registered venues + 4 CriptoYa expansion rows (buenbit dropped)
     #    (ARS lists 3 exchanges, VES lists 3 of which one is P2P), all source_ok
     rows, n_ok = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=_make_fetch())
-    assert len(rows) == 29 and n_ok == 29, (len(rows), n_ok)
+    assert len(rows) == 28 and n_ok == 28, (len(rows), n_ok)
     by = {r["venue"]: r for r in rows}
+    assert "CriptoYa:buenbit" not in by, "buenbit is dead and no longer collected"
     assert abs(by["IndependentReserve"]["basis_bps"] - 10.94) < 0.2
     assert abs(by["Bitso"]["basis_bps"] - (-4.96)) < 0.2          # MXN near zero
     # inversion guard: a flipped TRY parse would read +thousands; real is ~-20.
@@ -1163,7 +1172,7 @@ def selftest():
     assert per_ccy["NGN"] == 1, per_ccy          # Luno
     assert per_ccy["BRL"] == 2, per_ccy          # Foxbit, MercadoBitcoin
     assert per_ccy["TRY"] == 2 and per_ccy["IDR"] == 2, per_ccy
-    assert per_ccy["ARS"] == 3, per_ccy          # expansion rows only
+    assert per_ccy["ARS"] == 2, per_ccy          # expansion rows only, buenbit dropped
     assert per_ccy["VES"] == 2, per_ccy          # expansion, P2P dropped
     for single in ("SGD", "PHP", "THB", "MXN", "NZD"):
         assert per_ccy[single] == 1, (single, per_ccy)
@@ -1184,7 +1193,7 @@ def selftest():
     rows_m, n_ok_m = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=fetch)
     co = next(r for r in rows_m if r["venue"] == "Coins.ph")
     bk = next(r for r in rows_m if r["venue"] == "Bitkub")
-    assert n_ok_m == 27, n_ok_m  # 29 - coins(outage) - bitkub(malformed)
+    assert n_ok_m == 26, n_ok_m  # 28 - coins(outage) - bitkub(malformed)
     assert co["source_ok"] is False and "simulated 503" in co["error"]
     assert bk["source_ok"] is False and bk["basis_bps"] is None
     assert run_exit_code(n_ok_m) == 0  # 5 good venues -> the run SUCCEEDS
