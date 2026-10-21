@@ -1,4 +1,4 @@
-<!-- margin.wiki machine view, hour 2026-10-21T07:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
 
 # No price for Bangladesh this hour
 
@@ -6,7 +6,7 @@ Held back this hour: the buying and selling sides are not the same market here. 
 
 The last price we published was +4.0%, on 21 Oct.
 
-Prices from the 07:00 UTC hour, 21 Oct
+Prices from the 08:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/BDT.json>

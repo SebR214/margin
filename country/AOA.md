@@ -1,17 +1,17 @@
-<!-- margin.wiki machine view, hour 2026-10-21T07:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
 
 # No price for Angola this hour
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
-Prices from the 07:00 UTC hour, 21 Oct
+Prices from the 08:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/AOA.json>
 <https://margin.wiki/data/index_latest.json>
 <https://margin.wiki/data/country_readings/AOA/index.json>
-<https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/street_depth_latest.json>
+<https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/country_readings/AOA/2026-10.json>
 

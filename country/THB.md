@@ -1,14 +1,14 @@
-<!-- margin.wiki machine view, hour 2026-10-21T07:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
 
-# In Thailand a dollar costs what the official rate says
+# In Thailand a dollar costs 0.1% less than the official rate
 
-The official rate is 33.62 THB per dollar. On the exchanges where people in Thailand trade stablecoins, one costs 33.60 THB. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 33.62 THB per dollar. On the exchanges where people in Thailand trade stablecoins, one costs 33.57 THB. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 3,360 THB. The official rate says 3,362 THB.
+For US$100, people pay 3,357 THB. The official rate says 3,362 THB.
 
 One source
 
-Prices from the 07:00 UTC hour, 21 Oct
+Prices from the 08:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/THB.json>
@@ -42,7 +42,7 @@ This price is set from an order book. A country's price comes from exchange orde
 
 Bitkub
 
-33.60 THB 0.0%
+33.57 THB −0.1%
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/THB.json>
@@ -60,6 +60,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 21 Oct, 08:06 UTC | Bitkub | 33.57 THB | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 07:06 UTC | Bitkub | 33.60 THB | 0.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 06:06 UTC | Bitkub | 33.60 THB | 0.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 05:06 UTC | Bitkub | 33.58 THB | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -71,6 +72,5 @@ Open any file to check a price yourself.
 | 20 Oct, 23:06 UTC | Bitkub | 33.54 THB | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 20 Oct, 22:06 UTC | Bitkub | 33.52 THB | −0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 20 Oct, 21:06 UTC | Bitkub | 33.52 THB | −0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 20 Oct, 20:06 UTC | Bitkub | 33.52 THB | −0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>

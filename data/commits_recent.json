@@ -1,7 +1,21 @@
 {
- "as_of_utc": "2026-10-21T07:38:09Z",
+ "as_of_utc": "2026-10-21T08:13:18Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "64a99ecb17ca827468fbf3b6e4b38eefa7d01251",
+   "html_url": "https://github.com/SebR214/margin/commit/64a99ecb17ca827468fbf3b6e4b38eefa7d01251",
+   "date": "2026-10-21T07:52:45Z",
+   "email": "person",
+   "message": "SEB-301: machine view, a Human/Machine switch with a markdown twin of every page (#590)\n\nItem 15 from the 21 Oct comment on SEB-301. No model is involved anywhere.\n\n- tools/emit_markdown.py (new): renders each page headless the way a reader gets it and converts what it shows to markdown\n  (headings, paragraphs, lists, tables -- including grid layouts the CSS lays out as rows, columns matched by position) --\n  charts, pictures, the header and footer are left out. Writes index.md, countries.md, sending-money.md, sources.md,\n  findings.md, how-it-works.md, how-it-was-built.md, one country/{CCY}.md per country and one finding/{id}.md per published\n  finding, then llms.txt. Every number in a twin is checked against the page's own rendered text before anything is written;\n  a page that renders nothing, or a twin that names no data file, fails loud and writes nothing.\n- .github/workflows/collect.yml: one new step after the homepage bake, and the new files added to the commit (purely\n  additive: a separate loop for the country/finding directories, nothing existing touched).\n- js/machine_view.js + css/machine_view.css (new): a Human/Machine switch, bottom centre on every page with a twin.\n  Machine shows the twin in a monospace panel with its path, size, an approximate token count, and three links (copy\n  markdown, copy curl, open raw). Remembered per visitor in localStorage, inside try/catch. Every word in copy.json\n  (machineView, empty slots: the writer fills them, same as every other reader-facing page).\n- Each page's <head> gets <link rel=\"alternate\" type=\"text/markdown\">, static on the seven top-level pages, set by a small\n  inline script on country.html and finding.html since their twin depends on the query string.\n\nVerified: every number in all 72 of this hour's twins was checked against the page's own rendered text (the emitter's own\ncheck); re-checked by hand against 9 page types (home, countries, sending money, sources, findings, how it works, how it\nwas built, a country page, a finding page): 0 mismatches. Tested the switch in the browser on desktop and phone, Human and\nMachine, with words filled in locally (copy.json ships with empty slots, so nothing shows until the writer fills them --\ncopy-lock, --style, --overflow, --lines and the design baseline all pass with the slots empty). Found and fixed a bug where\nthe switch could blank a page on first render before its content had finished building.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "35eb35eb0748cd4f6e33864fbe306ff859cb259f",
+   "html_url": "https://github.com/SebR214/margin/commit/35eb35eb0748cd4f6e33864fbe306ff859cb259f",
+   "date": "2026-10-21T07:40:27Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-21T07:40Z"
+  },
   {
    "sha": "fdbeb09aaa06d39815a7ca859f4baf1d403b522c",
    "html_url": "https://github.com/SebR214/margin/commit/fdbeb09aaa06d39815a7ca859f4baf1d403b522c",
@@ -687,20 +701,6 @@
    "date": "2026-10-20T01:40:30Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-10-20T01:40Z"
-  },
-  {
-   "sha": "e68ae20dd69920c4e0e5bac5ff83a72603939344",
-   "html_url": "https://github.com/SebR214/margin/commit/e68ae20dd69920c4e0e5bac5ff83a72603939344",
-   "date": "2026-10-20T01:14:27Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-20T01:14Z"
-  },
-  {
-   "sha": "8b4d9a9b5d5f4a564accb673c120f981bf236a0a",
-   "html_url": "https://github.com/SebR214/margin/commit/8b4d9a9b5d5f4a564accb673c120f981bf236a0a",
-   "date": "2026-10-20T00:40:17Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-20T00:40Z"
   }
  ]
 }

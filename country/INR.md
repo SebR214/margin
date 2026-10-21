@@ -1,4 +1,4 @@
-<!-- margin.wiki machine view, hour 2026-10-21T07:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
 
 # In India a dollar costs 6.4% more than the official rate
 
@@ -6,16 +6,16 @@ The official rate is 95 INR per dollar. On the exchanges where people in India t
 
 For US$100, people pay 10,103 INR. The official rate says 9,500 INR.
 
-Prices from the 07:00 UTC hour, 21 Oct
+Prices from the 08:00 UTC hour, 21 Oct
 
-Taking the cheapest offers first, only US$4,000 can be bought before a dollar here costs 1% more.
+Taking the cheapest offers first, only US$1,000 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/INR.json>
-<https://margin.wiki/data/country_readings/INR/index.json>
-<https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/index_latest.json>
+<https://margin.wiki/data/country_readings/INR/index.json>
 <https://margin.wiki/data/street_depth_latest.json>
+<https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/country_history_segment/INR.json>
 <https://margin.wiki/data/country_readings/INR/2026-10.json>
@@ -28,10 +28,10 @@ Today's difference is typical of the record since 5 Sep 2026, counting only our 
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/INR.json>
-<https://margin.wiki/data/country_readings/INR/index.json>
-<https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/index_latest.json>
+<https://margin.wiki/data/country_readings/INR/index.json>
 <https://margin.wiki/data/street_depth_latest.json>
+<https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/country_history_segment/INR.json>
 <https://margin.wiki/data/country_readings/INR/2026-10.json>
@@ -40,20 +40,20 @@ Today's difference is typical of the record since 5 Sep 2026, counting only our 
 
 This price is set from order books. A country's price comes from exchange order books first, then broker quotes, then offers between people on Binance and OKX.
 
-CoinDCX
-
-101.02 INR +6.3%
-
 WazirX
 
-101.04 INR +6.4%
+100.98 INR +6.3%
+
+CoinDCX
+
+101.08 INR +6.4%
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/INR.json>
-<https://margin.wiki/data/country_readings/INR/index.json>
-<https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/index_latest.json>
+<https://margin.wiki/data/country_readings/INR/index.json>
 <https://margin.wiki/data/street_depth_latest.json>
+<https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/country_history_segment/INR.json>
 <https://margin.wiki/data/country_readings/INR/2026-10.json>
@@ -64,6 +64,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 21 Oct, 08:06 UTC | WazirX | 100.98 INR | +6.3% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 21 Oct, 08:06 UTC | CoinDCX | 101.08 INR | +6.4% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 07:06 UTC | WazirX | 101.04 INR | +6.4% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 07:06 UTC | CoinDCX | 101.02 INR | +6.3% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 06:06 UTC | WazirX | 100.46 INR | +5.8% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -74,8 +76,6 @@ Open any file to check a price yourself.
 | 21 Oct, 04:06 UTC | Binance, person to person | 103.96 INR | +9.4% | 10 of 133 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 04:06 UTC | WazirX | 100.47 INR | +5.8% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 04:06 UTC | CoinDCX | 101.38 INR | +6.7% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 21 Oct, 03:06 UTC | Binance, person to person | 104.99 INR | +10.5% | 10 of 113 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 21 Oct, 03:06 UTC | WazirX | 100.50 INR | +5.8% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

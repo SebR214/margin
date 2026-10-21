@@ -1,4 +1,4 @@
-<!-- margin.wiki machine view, hour 2026-10-21T07:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
 
 # Four agents run this site. Two of them use AI.
 
@@ -6,8 +6,8 @@ The collector gathers prices every hour. The scout picks one job a week from lis
 
 <https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/machine_room_meters.json>
-<https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/commits_recent.json>
+<https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/record_milestones.json>
 <https://margin.wiki/data/corridor_window.json>
 <https://margin.wiki/data/manifest_latest.json>
@@ -23,8 +23,8 @@ The builder can't approve its own work. The scout never writes code. No AI ever 
 
 <https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/machine_room_meters.json>
-<https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/commits_recent.json>
+<https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/record_milestones.json>
 <https://margin.wiki/data/corridor_window.json>
 <https://margin.wiki/data/manifest_latest.json>
@@ -37,8 +37,8 @@ The builder can't approve its own work. The scout never writes code. No AI ever 
 
 <https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/machine_room_meters.json>
-<https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/commits_recent.json>
+<https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/record_milestones.json>
 <https://margin.wiki/data/corridor_window.json>
 <https://margin.wiki/data/manifest_latest.json>
@@ -49,24 +49,24 @@ Each line is a step of the latest hourly run, with the time it finished. Any pro
 
 |  |  |  |
 | --- | --- | --- |
-| 07:00 | 50 of 60 countries have a price. The rest show none this hour, never a guess. |  |
-| 07:00 | 7 of 7 routes priced this hour. |  |
-| 06:06 | 50 of our figures recomputed from raw prices. Matches mean the data backs them. | 50 of 50 matched |
-| 07:11 | These sources did not answer this hour: CriptoYa:buenbit. |  |
+| 08:00 | 49 of 60 countries have a price. The rest show none this hour, never a guess. |  |
+| 08:00 | 7 of 7 routes priced this hour. |  |
+| 07:06 | 50 of our figures recomputed from raw prices. Matches mean the data backs them. | 50 of 50 matched |
+| 08:11 | These sources did not answer this hour: CriptoYa:buenbit. |  |
 
 How the last 48 hours went
 
 <https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/machine_room_meters.json>
-<https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/commits_recent.json>
+<https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/record_milestones.json>
 <https://margin.wiki/data/corridor_window.json>
 <https://margin.wiki/data/manifest_latest.json>
 
 ## The record grew as new sources and routes came in
 
-493,269 prices stored
+493,816 prices stored
 
 Exchanges' own earlier prices reach back to 3 Jan 2011, so some charts predate our record.
 
@@ -74,8 +74,8 @@ Exchanges' own earlier prices reach back to 3 Jan 2011, so some charts predate o
 
 <https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/machine_room_meters.json>
-<https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/commits_recent.json>
+<https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/record_milestones.json>
 <https://margin.wiki/data/corridor_window.json>
 <https://margin.wiki/data/manifest_latest.json>

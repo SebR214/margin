@@ -1,4 +1,4 @@
-<!-- margin.wiki machine view, hour 2026-10-21T07:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
 
 # In South Korea a dollar costs 0.3% more than the official rate
 
@@ -6,12 +6,12 @@ The official rate is 1,327.17 KRW per dollar. On the exchanges where people in S
 
 For US$100, people pay 133,100 KRW. The official rate says 132,717 KRW.
 
-Prices from the 07:00 UTC hour, 21 Oct
+Prices from the 08:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/KRW.json>
-<https://margin.wiki/data/country_readings/KRW/index.json>
 <https://margin.wiki/data/index_latest.json>
+<https://margin.wiki/data/country_readings/KRW/index.json>
 <https://margin.wiki/data/street_depth_latest.json>
 <https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/cycle_log.json>
@@ -26,8 +26,8 @@ Today's difference is typical of the record since 10 Aug 2026, counting only our
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/KRW.json>
-<https://margin.wiki/data/country_readings/KRW/index.json>
 <https://margin.wiki/data/index_latest.json>
+<https://margin.wiki/data/country_readings/KRW/index.json>
 <https://margin.wiki/data/street_depth_latest.json>
 <https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/cycle_log.json>
@@ -46,8 +46,8 @@ This price is set from order books. A country's price comes from exchange order 
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/KRW.json>
-<https://margin.wiki/data/country_readings/KRW/index.json>
 <https://margin.wiki/data/index_latest.json>
+<https://margin.wiki/data/country_readings/KRW/index.json>
 <https://margin.wiki/data/street_depth_latest.json>
 <https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/cycle_log.json>
@@ -60,6 +60,9 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 21 Oct, 08:06 UTC | Upbit | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 21 Oct, 08:06 UTC | Coinone | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 21 Oct, 08:06 UTC | Bithumb | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 07:06 UTC | Upbit | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 07:06 UTC | Coinone | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 07:06 UTC | Bithumb | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -69,8 +72,5 @@ Open any file to check a price yourself.
 | 21 Oct, 05:06 UTC | Upbit | 1,330 KRW | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 05:06 UTC | Coinone | 1,330 KRW | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 05:06 UTC | Bithumb | 1,330 KRW | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 21 Oct, 04:06 UTC | Upbit | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 21 Oct, 04:06 UTC | Coinone | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 21 Oct, 04:06 UTC | Bithumb | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
