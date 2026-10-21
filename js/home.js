@@ -31,9 +31,9 @@
   function ctry(ccy) { return './country.html?ccy=' + encodeURIComponent(ccy); }
   // Same words as whatLine, just split into two lines (SEB-301, 21 Oct): "We track... had a price." then "We also price...".
   function leadSpans(s) {
-    var at = s.indexOf('had a price. ');
+    var at = s.indexOf('every hour. ');
     if (at < 0) { return esc(s); }
-    at += 'had a price. '.length;
+    at += 'every hour. '.length;
     return '<span class="s">' + esc(s.slice(0, at).trim()) + '</span> <span class="s">' + esc(s.slice(at).trim()) + '</span>';
   }
   function lastValue(c) { for (var i = c.cells.length - 1; i >= 0; i--) { if (c.cells[i] != null) { return c.cells[i]; } } return null; }
@@ -63,7 +63,7 @@
     var h = '<h1>' + esc(T('headline')) + '</h1>' +
       '<p class="lead">' + leadSpans(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
       '<p class="body">' + esc(T('agentsLine')) + ' <a href="./how-it-was-built.html">' + esc(T('agentsLink')) + '</a></p>' +
-      '<p class="counts num">' + [['counterReadings', g(tt.readings)], ['counterSources', nSources], ['counterCurrencies', nTracked], ['counterRoutes', tt.routes], ['counterHours', g(tt.hours_collected)]].map(function (c) {
+      '<p class="counts num">' + [['counterReadings', g(tt.readings)], ['counterSources', nSources], ['counterHours', g(tt.hours_collected)]].map(function (c) {
         return T(c[0]) && c[1] != null ? '<span><b>' + c[1] + '</b> ' + esc(T(c[0]).toLowerCase()) + '</span>' : '';
       }).join('') + '</p>';
     $('hero').innerHTML = h;

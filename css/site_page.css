@@ -164,3 +164,16 @@ p, li, .lead, .body, .note { text-wrap: pretty; }
 }
 .site-footer p, .sm-wrap > footer p { margin: 0 0 6px !important; font-size: 14px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important; }
 .site-footer a, .sm-wrap > footer a { font-size: 14px !important; font-weight: 400 !important; color: var(--color-ink) !important; }
+
+/* Home top (21 Oct): the three sentences sit as three even lines with no gap between them, the counters 24px under
+   them, and the first chart section 64px under the counters instead of 96px. Words unchanged. */
+body:has(#hero) .hero .lead + .body { margin-top: 0 !important; }
+body:has(#hero) .hero .lead, body:has(#hero) .hero .body { line-height: 1.6 !important; }
+body:has(#hero) .wrap > .hero + section, body:has(#hero) .wrap > #hero + section { margin-top: 64px !important; }
+
+/* Home spacing (21 Oct): three gaps only. 8px under a heading, 24px between blocks, 64px between sections. */
+body:has(#hero) .hero h1 + .lead { margin-top: 8px !important; }
+body:has(#hero) .hero .counts { margin-top: 24px !important; }
+body:has(#hero) .wrap > section { margin-top: 64px !important; }
+body:has(#hero) .wrap > section > h2 { margin-bottom: 8px !important; }
+body:has(#hero) .wrap > section > h2 + p { margin-top: 0 !important; }
