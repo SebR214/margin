@@ -32,30 +32,103 @@ PAGES = [("index.html", "index.md"), ("countries.html", "countries.md"), ("sendi
 NUM = re.compile(r"[−+-]?(?:S\$|US\$|\$)?\d[\d,]*(?:\.\d+)?(?:%|M|K)?")
 MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-# The data file(s) that actually back each heading-section, in the order the headings appear (h1 is index 0). A page not
-# listed here (country/finding, one twin per id) is covered instead by the links and bare file names already on the page.
+# The data file(s) that actually back each heading-section, matched by a regex searched against the heading's own text
+# (SEB-301, 21 Oct: position alone is not safe -- a band on countries.html, or a movers/findings section on home, does
+# not render at all when it is empty that hour, shifting every position after it; sending-money.html's step-by-step and
+# day-by-day sections were swapped under a positional scheme like that, found by review). "hero" is the h1 section,
+# matched by position since it is always first. "patterns" are tried in a heading's own text, first match wins; a
+# pattern of None always matches, so it works as a page's one default (every finding or source section is the same).
+# A page not listed here (country/finding, one twin per id) is covered instead by the links and bare file names
+# already on the page.
 SECTION_FILES = {
-    "index.md": [["index_latest.json", "record_daily.json", "sources_daily.json"], ["heatmap_daily.json", "index_latest.json"],
-                 ["movers_week.json"], ["findings.json"], ["record_daily.json", "record_milestones.json"]],
-    "countries.md": [["index_latest.json"]] + [["index_latest.json"]] * 3 + [["index_latest.json", "source_pairs.json"]],
-    "sending-money.md": [["routes_hourly.json"], ["routes_hourly.json"], ["routes_hourly.json"],
-                         ["routes_breakdown.json"], ["routes_summary.json"]],
-    "sources.md": [["sources_daily.json"], ["sources_daily.json"], ["sources_daily.json"]],
-    "findings.md": [["findings.json"]] + [["findings.json", "findings_first_published.json", "claims_status.json"]] * 5,
-    "how-it-works.md": [[], [], ["index_latest.json"], [], ["routes_hourly.json"], [], ["sources_daily.json"]],
-    "how-it-was-built.md": [[], [], [], ["manifest_latest.json"], ["record_daily.json", "record_milestones.json"]],
+    "index.md": {
+        "hero": ["index_latest.json", "record_daily.json", "sources_daily.json"],
+        "patterns": [
+            (r"countries we priced this hour, a dollar costs within 2% of the official rate", ["heatmap_daily.json", "index_latest.json"]),
+            (r"^Where the price moved most against the official rate this week$", ["movers_week.json"]),
+            (r"^When sending money costs more$", ["findings.json"]),
+            (r"^The record grew as new sources and routes came in$", ["record_daily.json", "record_milestones.json"]),
+        ],
+    },
+    "countries.md": {
+        "hero": ["index_latest.json"],
+        "patterns": [
+            (r"^More than 8% above the official rate", ["index_latest.json"]),
+            (r"^2% to 8% above", ["index_latest.json"]),
+            (r"^Within 2% of the official rate", ["index_latest.json"]),
+            (r"^More than 2% below", ["index_latest.json"]),
+            (r"countries had no price at", ["index_latest.json", "source_pairs.json"]),
+        ],
+    },
+    "sending-money.md": {
+        "hero": ["routes_hourly.json"],
+        "patterns": [
+            (r"^What each way costs this hour", ["routes_hourly.json"]),
+            (r"^The stablecoin's cost, step by step$", ["routes_breakdown.json"]),
+            (r"^Steps for ", ["routes_breakdown.json"]),
+            (r"^How much more the stablecoin cost, day by day$", ["routes_hourly.json"]),
+            (r"^The same .+, sent from other places$", ["routes_summary.json"]),
+        ],
+    },
+    "sources.md": {"hero": ["sources_daily.json"], "patterns": [(None, ["sources_daily.json"])]},
+    "findings.md": {"hero": ["findings.json"],
+                    "patterns": [(None, ["findings.json", "findings_first_published.json", "claims_status.json"])]},
+    "how-it-works.md": {
+        "hero": [],
+        "patterns": [
+            (r"^What we measure$", []), (r"^What the percentage means$", ["index_latest.json"]),
+            (r"^Where the price comes from$", []), (r"^The cost of sending money$", ["routes_hourly.json"]),
+            (r"^What our numbers leave out$", []), (r"^How to check any number$", ["sources_daily.json"]),
+        ],
+    },
+    "how-it-was-built.md": {
+        "hero": [],
+        "patterns": [
+            (r"^Each agent has one job", []), (r"^What we.ve learned running", []),
+            (r"^Collected fresh every hour$", ["manifest_latest.json"]),
+            (r"^The record grew", ["record_daily.json", "record_milestones.json"]),
+        ],
+    },
 }
-# A real header for a table whose own page shows no visible column label, by the same (page, section index).
+# A real header for a table whose own page shows no visible column label, matched the same way as SECTION_FILES: by a
+# regex against the text of the heading that opens the table's section (not position).
 SECTION_HEADERS = {
-    ("index.md", 1): ["Country", "Change"],
-    ("countries.md", 1): ["Country", "People pay", "Official rate", "Change"],
-    ("countries.md", 2): ["Country", "People pay", "Official rate", "Change"],
-    ("countries.md", 3): ["Country", "Change"],
-    ("sending-money.md", 2): ["Step", "Amount"],
-    ("sending-money.md", 4): ["Route", "Compared with the cheapest app"],
-    ("sources.md", 1): ["Source", "Type", "Hours priced"],
-    ("how-it-was-built.md", 3): ["Time", "Check", "Detail"],
+    "index.md": [(r"countries we priced this hour", ["Country", "Change"])],
+    "countries.md": [
+        (r"^More than 8% above the official rate", ["Country", "People pay", "Official rate", "Change"]),
+        (r"^2% to 8% above", ["Country", "People pay", "Official rate", "Change"]),
+        (r"^Within 2% of the official rate", ["Country", "Change"]),
+        (r"^More than 2% below", ["Country", "Change"]),
+    ],
+    "sending-money.md": [
+        (r"^The stablecoin's cost, step by step$", ["Step", "Amount"]),
+        (r"^The same .+, sent from other places$", ["Route", "Compared with the cheapest app"]),
+    ],
+    "sources.md": [(None, ["Source", "Type", "Hours priced"])],
+    "how-it-was-built.md": [(r"^Collected fresh every hour$", ["Time", "Check", "Detail"])],
 }
+
+
+def section_files_for(path, heading_text, is_hero):
+    """The data file(s) for the section that `heading_text` opens, or None (then the caller falls back to explicit
+    links). `is_hero` is True only for the very first heading of the page, matched by position since it is always
+    first; every other heading is matched by searching SECTION_FILES[path]["patterns"] in order."""
+    spec = SECTION_FILES.get(path)
+    if not spec:
+        return None
+    if is_hero:
+        return spec["hero"]
+    for pattern, files in spec["patterns"]:
+        if pattern is None or re.search(pattern, heading_text):
+            return files
+    return None
+
+
+def header_for(path, heading_text):
+    for pattern, header in SECTION_HEADERS.get(path, []):
+        if pattern is None or re.search(pattern, heading_text):
+            return header
+    return None
 TAP_SENTENCE = re.compile(r"(?:^|(?<=[.!?]\s))Tap\b[^.!?]*[.!?]")
 # Buttons that only reveal more of the page (never ones that replay a chart or navigate away): clicked once before the
 # markdown is read, so a twin never stops at the first 20 rows a reader would have to click through to see.
@@ -214,12 +287,13 @@ def with_header(table_text, header):
 
 def to_md(blocks, path, hour_str):
     """Blocks from the page -> markdown. A section runs from one heading to the next; it ends with the data file(s) that
-    actually back it (SECTION_FILES, keyed by the order headings appear) or, failing that, the files it linked itself --
-    never every file the whole page loaded (SEB-301, 21 Oct: that was every section listing all 8). A country or finding
-    page is not in SECTION_FILES (one twin per id); its hero section falls back to its own single file, by id, if the
-    page itself happened to link none -- a country with a held-back price shows no raw-file table to link."""
-    out, srcs, body, section_idx = [], [], False, -1
-    section_files = SECTION_FILES.get(path)
+    actually back it (SECTION_FILES, matched by the heading's own text -- SEB-301, 21 Oct: position is not safe, since a
+    band or a movers/findings section does not render at all when it is empty that hour, shifting every later section)
+    or, failing that, the files it linked itself -- never every file the whole page loaded (that was every section
+    listing all 8). A country or finding page is not in SECTION_FILES (one twin per id); its hero section falls back to
+    its own single file, by id, if the page itself happened to link none -- a country with a held-back price shows no
+    raw-file table to link."""
+    out, srcs, body, section_idx, cur_heading = [], [], False, -1, ""
     m = re.match(r"^country/([A-Z]{3})\.md$", path) or re.match(r"^finding/([a-z0-9_]+)\.md$", path)
     hero_default = (["countries/%s.json" % m.group(1)] if path.startswith("country/")
                     else ["findings.json"] if m else None)
@@ -227,7 +301,7 @@ def to_md(blocks, path, hour_str):
     def close():
         if not body:
             return
-        mapped = section_files[section_idx] if section_files and section_idx < len(section_files) else None
+        mapped = section_files_for(path, cur_heading, section_idx == 0)
         urls = ["%s/data/%s" % (SITE, f) for f in mapped] if mapped is not None else list(dict.fromkeys(srcs))
         if not urls and section_idx == 0 and hero_default:
             urls = ["%s/data/%s" % (SITE, f) for f in hero_default]
@@ -237,7 +311,7 @@ def to_md(blocks, path, hour_str):
         k, t = b["kind"], b["text"]
         if k.startswith("h"):
             close()
-            srcs, body, section_idx = [], False, section_idx + 1
+            srcs, body, section_idx, cur_heading = [], False, section_idx + 1, t
             out.append("#" * int(k[1]) + " " + t)
             if section_idx == 0:
                 out.append(hour_str)
@@ -245,7 +319,8 @@ def to_md(blocks, path, hour_str):
             srcs.append(t)
         elif k == "table":
             body = True
-            out.append(with_header(t, SECTION_HEADERS[(path, section_idx)]) if (path, section_idx) in SECTION_HEADERS else t)
+            header = header_for(path, cur_heading)
+            out.append(with_header(t, header) if header else t)
         elif k in ("p", "list"):
             body = True
             out.append(drop_tap_sentences(t))
@@ -393,15 +468,37 @@ def self_test():
     assert "| 1 | 2 |\n\n<https://margin.wiki/data/x.json>\n\n## No links\n\nText\n" in md, md
     assert to_md([{"kind": "h1", "text": "T"}, {"kind": "h2", "text": "Empty"}], "nowhere.md", line) == "# T\n\n" + line + "\n\n## Empty\n", \
         "a heading with nothing under it gets no URL line, and nothing from 'all 8 loaded'"
-    # SECTION_FILES: each section gets only its own file(s), by heading order, never the other sections'
+    # SECTION_FILES: each section gets only its own file(s), matched by its heading's own text, never the other sections'
+    heat_h2 = "In 28 of 48 countries we priced this hour, a dollar costs within 2% of the official rate."
     md2 = to_md([{"kind": "h1", "text": "People do not always pay the official rate for a dollar"},
-                {"kind": "h2", "text": "In 28 of 48 countries"}, {"kind": "p", "text": "x"},
-                {"kind": "h2", "text": "Where the price moved"}, {"kind": "p", "text": "y"}], "index.md", line)
+                {"kind": "h2", "text": heat_h2}, {"kind": "p", "text": "x"},
+                {"kind": "h2", "text": "Where the price moved most against the official rate this week"}, {"kind": "p", "text": "y"}],
+               "index.md", line)
     assert "<https://margin.wiki/data/heatmap_daily.json>" in md2.split("Where the price moved")[0]
     assert "heatmap_daily" not in md2.split("Where the price moved")[1] and "movers_week.json" in md2.split("Where the price moved")[1]
-    # a table with no visible header gets the real one, matched by (page, section index); a mismatched column count is left alone
+    # text matching survives a section missing that hour: skip "2% to 8% above" entirely, "Within 2%" still gets its own
+    # file, not "2% to 8% above"'s -- the bug a positional scheme had, found by review (SEB-301, 21 Oct)
+    missing_band = to_md([{"kind": "h1", "text": "In 28 of the 48 countries we priced this hour, a dollar costs within 2% of the official rate"},
+                          {"kind": "h2", "text": "More than 8% above the official rate (2)"}, {"kind": "p", "text": "a"},
+                          {"kind": "h2", "text": "Within 2% of the official rate (30)"}, {"kind": "p", "text": "b"},
+                          {"kind": "h2", "text": "11 countries had no price at 08:00 UTC"}, {"kind": "p", "text": "c"}],
+                         "countries.md", line)
+    assert "index_latest.json" in missing_band.split("Within 2%")[1].split("11 countries")[0]
+    assert "source_pairs.json" in missing_band.split("11 countries")[1]
+    # the swap review found: step-by-step is the fee legs (routes_breakdown.json), day-by-day is the hour-by-hour chart
+    # (routes_hourly.json) -- not the other way round, regardless of the order or count of headings before them
+    swap = to_md([{"kind": "h1", "text": "Sending S$5,000 to the Philippines costs S$1.75 with Wise"},
+                 {"kind": "h2", "text": "What each way costs this hour, at S$5,000"}, {"kind": "p", "text": "a"},
+                 {"kind": "h3", "text": "The stablecoin's cost, step by step"}, {"kind": "p", "text": "b"},
+                 {"kind": "h2", "text": "How much more the stablecoin cost, day by day"}, {"kind": "p", "text": "c"},
+                 {"kind": "h2", "text": "The same 5,000, sent from other places"}, {"kind": "p", "text": "d"}],
+                "sending-money.md", line)
+    assert "routes_breakdown.json" in swap.split("step by step")[1].split("day by day")[0]
+    assert "routes_hourly.json" in swap.split("day by day")[1].split("other places")[0]
+    assert "routes_breakdown" not in swap.split("day by day")[1].split("other places")[0]
+    # a table with no visible header gets the real one, matched by its section's heading text; a mismatched column count is left alone
     th = to_md([{"kind": "h1", "text": "People do not always pay the official rate for a dollar"},
-               {"kind": "h2", "text": "In 28 of 48 countries"}, {"kind": "table", "text": "|  |  |\n| --- | --- |\n| Chile | +1% |"}],
+               {"kind": "h2", "text": heat_h2}, {"kind": "table", "text": "|  |  |\n| --- | --- |\n| Chile | +1% |"}],
               "index.md", line)
     assert "| Country | Change |\n| --- | --- |\n| Chile | +1% |" in th, th
     assert with_header("|  |  |  |\n| --- | --- | --- |\n| a | b | c |", ["X", "Y"]) == "|  |  |  |\n| --- | --- | --- |\n| a | b | c |", \
