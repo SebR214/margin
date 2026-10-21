@@ -1,14 +1,14 @@
 # In Singapore a dollar costs 0.1% less than the official rate
 
-Prices from the 17:00 UTC hour, 21 Oct.
+Prices from the 18:00 UTC hour, 21 Oct.
 
 The official rate is 1.28 SGD per dollar. On the exchanges where people in Singapore trade stablecoins, one costs 1.28 SGD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 127.75 SGD. The official rate says 127.82 SGD.
+For US$100, people pay 127.71 SGD. The official rate says 127.82 SGD.
 
 One source
 
-Prices from the 17:00 UTC hour, 21 Oct
+Prices from the 18:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/countries/SGD.json>
 
@@ -32,6 +32,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 21 Oct, 18:06 UTC | IndependentReserve | 1.28 SGD | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 17:06 UTC | IndependentReserve | 1.28 SGD | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 16:06 UTC | IndependentReserve | 1.28 SGD | 0.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 15:06 UTC | IndependentReserve | 1.28 SGD | 0.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -43,7 +44,6 @@ Open any file to check a price yourself.
 | 21 Oct, 09:06 UTC | IndependentReserve | 1.28 SGD | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 08:06 UTC | IndependentReserve | 1.28 SGD | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 07:06 UTC | IndependentReserve | 1.28 SGD | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 21 Oct, 06:06 UTC | IndependentReserve | 1.28 SGD | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://margin.wiki/data/basis.csv>

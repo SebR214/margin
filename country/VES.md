@@ -1,16 +1,16 @@
 # In Venezuela a dollar costs 18.6% more than the official rate
 
-Prices from the 17:00 UTC hour, 21 Oct.
+Prices from the 18:00 UTC hour, 21 Oct.
 
-The official rate is 883.4 VES per dollar. On the exchanges where people in Venezuela trade stablecoins, one costs 1,047 VES. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 883.4 VES per dollar. On the exchanges where people in Venezuela trade stablecoins, one costs 1,048 VES. A stablecoin is a coin that stays worth one US dollar.
 
-Between people on Binance and OKX, a dollar costs 1,009 VES, 14.2% over the official rate.
+Between people on Binance and OKX, a dollar costs 1,011 VES, 14.4% over the official rate.
 
-For US$100, people pay 104,741 VES. The official rate says 88,340 VES.
+For US$100, people pay 104,800 VES. The official rate says 88,340 VES.
 
 One source
 
-Prices from the 17:00 UTC hour, 21 Oct
+Prices from the 18:00 UTC hour, 21 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -30,7 +30,7 @@ This price is set from a broker quote. A country's price comes from exchange ord
 
 CriptoYa · Saldo
 
-1,047 VES +18.6%
+1,048 VES +18.6%
 
 ## Every Venezuela price links to its raw file
 
@@ -38,6 +38,9 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 21 Oct, 18:08 UTC | OKX, person to person | 1,012 VES | +14.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 21 Oct, 18:06 UTC | Binance, person to person | 1,010 VES | +14.3% | 10 of 328 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 21 Oct, 18:06 UTC | CriptoYa · Saldo | 1,048 VES | +18.6% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 17:08 UTC | OKX, person to person | 1,009 VES | +14.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 17:07 UTC | Binance, person to person | 1,009 VES | +14.2% | 10 of 351 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 17:06 UTC | CriptoYa · Saldo | 1,047 VES | +18.6% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -47,9 +50,6 @@ Open any file to check a price yourself.
 | 21 Oct, 15:08 UTC | OKX, person to person | 1,012 VES | +14.6% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 15:06 UTC | Binance, person to person | 1,009 VES | +14.2% | 10 of 370 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 15:06 UTC | CriptoYa · Saldo | 1,048 VES | +18.6% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 21 Oct, 14:09 UTC | OKX, person to person | 1,017 VES | +15.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 21 Oct, 14:07 UTC | Binance, person to person | 1,009 VES | +14.2% | 10 of 340 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 21 Oct, 14:06 UTC | CriptoYa · Saldo | 1,048 VES | +18.6% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
