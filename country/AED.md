@@ -1,6 +1,6 @@
 # In the United Arab Emirates a dollar costs 0.1% more than the official rate
 
-Prices from the 15:00 UTC hour, 21 Oct.
+Prices from the 16:00 UTC hour, 21 Oct.
 
 The official rate is 3.67 AED per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.68 AED. A stablecoin is a coin that stays worth one US dollar.
 
@@ -8,7 +8,7 @@ For US$100, people pay 367.80 AED. The official rate says 367.25 AED.
 
 One source
 
-Prices from the 15:00 UTC hour, 21 Oct
+Prices from the 16:00 UTC hour, 21 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -34,6 +34,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 21 Oct, 16:07 UTC | Binance, person to person | 3.68 AED | +0.1% | 10 of 86 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 15:06 UTC | Binance, person to person | 3.68 AED | +0.1% | 10 of 84 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 14:07 UTC | Binance, person to person | 3.68 AED | +0.3% | 10 of 85 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 13:06 UTC | Binance, person to person | 3.68 AED | +0.3% | 10 of 83 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -45,7 +46,6 @@ Open any file to check a price yourself.
 | 21 Oct, 07:07 UTC | Binance, person to person | 3.69 AED | +0.6% | 10 of 62 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 06:06 UTC | Binance, person to person | 3.70 AED | +0.7% | 10 of 59 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 05:06 UTC | Binance, person to person | 3.70 AED | +0.7% | 10 of 57 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 21 Oct, 04:06 UTC | Binance, person to person | 3.70 AED | +0.7% | 10 of 56 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://margin.wiki/data/adsp2p_basis.csv>
