@@ -29,8 +29,63 @@ SITE = "https://margin.wiki"
 PAGES = [("index.html", "index.md"), ("countries.html", "countries.md"), ("sending-money.html", "sending-money.md"),
          ("sources.html", "sources.md"), ("findings.html", "findings.md"), ("how-it-works.html", "how-it-works.md"),
          ("how-it-was-built.html", "how-it-was-built.md")]
-STAMP = "<!-- margin.wiki machine view, hour %s -->"
 NUM = re.compile(r"[−+-]?(?:S\$|US\$|\$)?\d[\d,]*(?:\.\d+)?(?:%|M|K)?")
+MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+# The data file(s) that actually back each heading-section, in the order the headings appear (h1 is index 0). A page not
+# listed here (country/finding, one twin per id) is covered instead by the links and bare file names already on the page.
+SECTION_FILES = {
+    "index.md": [["index_latest.json", "record_daily.json", "sources_daily.json"], ["heatmap_daily.json", "index_latest.json"],
+                 ["movers_week.json"], ["findings.json"], ["record_daily.json", "record_milestones.json"]],
+    "countries.md": [["index_latest.json"]] + [["index_latest.json"]] * 3 + [["index_latest.json", "source_pairs.json"]],
+    "sending-money.md": [["routes_hourly.json"], ["routes_hourly.json"], ["routes_hourly.json"],
+                         ["routes_breakdown.json"], ["routes_summary.json"]],
+    "sources.md": [["sources_daily.json"], ["sources_daily.json"], ["sources_daily.json"]],
+    "findings.md": [["findings.json"]] + [["findings.json", "findings_first_published.json", "claims_status.json"]] * 5,
+    "how-it-works.md": [[], [], ["index_latest.json"], [], ["routes_hourly.json"], [], ["sources_daily.json"]],
+    "how-it-was-built.md": [[], [], [], ["manifest_latest.json"], ["record_daily.json", "record_milestones.json"]],
+}
+# A real header for a table whose own page shows no visible column label, by the same (page, section index).
+SECTION_HEADERS = {
+    ("index.md", 1): ["Country", "Change"],
+    ("countries.md", 1): ["Country", "People pay", "Official rate", "Change"],
+    ("countries.md", 2): ["Country", "People pay", "Official rate", "Change"],
+    ("countries.md", 3): ["Country", "Change"],
+    ("sending-money.md", 2): ["Step", "Amount"],
+    ("sending-money.md", 4): ["Route", "Compared with the cheapest app"],
+    ("sources.md", 1): ["Source", "Type", "Hours priced"],
+    ("how-it-was-built.md", 3): ["Time", "Check", "Detail"],
+}
+TAP_SENTENCE = re.compile(r"(?:^|(?<=[.!?]\s))Tap\b[^.!?]*[.!?]")
+# Buttons that only reveal more of the page (never ones that replay a chart or navigate away): clicked once before the
+# markdown is read, so a twin never stops at the first 20 rows a reader would have to click through to see.
+EXPAND_JS = r"""
+(function(){[].forEach.call(document.querySelectorAll('button'),function(b){
+ if(/^(show|see) (all|more|earlier|why)\b/i.test((b.textContent||'').trim()))b.click()})})()
+"""
+
+
+def to_md_href(url):
+    """An internal page link rewritten to its markdown twin (SEB-301, 21 Oct): never .html."""
+    m = re.match(r"^" + re.escape(SITE) + r"/([a-z-]+)\.html(?:\?(.*))?$", url)
+    if not m:
+        return url
+    page, qs = m.group(1), m.group(2) or ""
+    if page == "country" and re.match(r"^ccy=([A-Z]{3})$", qs):
+        return "%s/country/%s.md" % (SITE, re.match(r"^ccy=([A-Z]{3})$", qs).group(1))
+    if page == "finding" and re.match(r"^id=([a-z0-9_]+)$", qs):
+        return "%s/finding/%s.md" % (SITE, re.match(r"^id=([a-z0-9_]+)$", qs).group(1))
+    if not qs and (page + ".html", page + ".md") in PAGES:
+        return "%s/%s.md" % (SITE, page)
+    return url
+
+
+def drop_tap_sentences(text):
+    """Dropped from the markdown only (SEB-301, 21 Oct): the page itself is untouched. Never strips a whole block to empty
+    just because every sentence happened to start with Tap -- that would be a different, louder bug."""
+    out = TAP_SENTENCE.sub("", text)
+    out = re.sub(r"[ \t]+", " ", out).strip()
+    return out or text
 
 
 def numbers_not_on_page(md, page_text):
@@ -108,7 +163,12 @@ TO_MARKDOWN = r"""
   return {rows:rows,same:same,headCells:head}}
  var blocks=[],seen=new Set();
  function push(kind,text){text=text.trim();if(text)blocks.push({kind:kind,text:text})}
- function dataLinks(e){return [].map.call(e.querySelectorAll('a[href*="data/"]'),function(a){return abs(a.getAttribute('href')).split('#')[0]})}
+ var BARE_FILE=/\b[\w-]+\.(?:csv|json)\b/g;
+ function dataLinks(e){ // explicit data/ links, plus bare filenames the page prints as its own citation (country and finding pages)
+  var out=[].map.call(e.querySelectorAll('a[href*="data/"]'),function(a){return abs(a.getAttribute('href')).split('#')[0]});
+  var bare=e.textContent.match(BARE_FILE)||[];
+  bare.forEach(function(f){out.push(abs('data/'+f))});
+  return out.filter(function(u,i,a){return a.indexOf(u)===i})}
  function walk(e){
   if(!vis(e)||seen.has(e))return;seen.add(e);var t=e.tagName.toLowerCase();
   if(/^h[1-4]$/.test(t)){push('h'+t[1],clean(inline(e)));return}
@@ -138,28 +198,63 @@ TO_MARKDOWN = r"""
 """
 
 
-def to_md(blocks, loaded):
-    """Blocks from the page -> markdown. A section runs from one heading to the next; it ends with the data files it linked to,
-    or with the files the page loaded when it linked none."""
-    out, srcs, body = [], [], False
+def with_header(table_text, header):
+    """Give a table a real header (SEB-301, 21 Oct): curated for a table whose page shows no column label, or only a
+    partial one (an axis label for one column, nothing for the rest). Only when the column count matches -- never
+    guesses a header onto a shape it was not written for."""
+    lines = table_text.split("\n")
+    if len(lines) < 2:
+        return table_text
+    cols = lines[0].count("|") - 1
+    if cols != len(header):
+        return table_text
+    lines[0] = "| " + " | ".join(header) + " |"
+    return "\n".join(lines)
+
+
+def to_md(blocks, path, hour_str):
+    """Blocks from the page -> markdown. A section runs from one heading to the next; it ends with the data file(s) that
+    actually back it (SECTION_FILES, keyed by the order headings appear) or, failing that, the files it linked itself --
+    never every file the whole page loaded (SEB-301, 21 Oct: that was every section listing all 8). A country or finding
+    page is not in SECTION_FILES (one twin per id); its hero section falls back to its own single file, by id, if the
+    page itself happened to link none -- a country with a held-back price shows no raw-file table to link."""
+    out, srcs, body, section_idx = [], [], False, -1
+    section_files = SECTION_FILES.get(path)
+    m = re.match(r"^country/([A-Z]{3})\.md$", path) or re.match(r"^finding/([a-z0-9_]+)\.md$", path)
+    hero_default = (["countries/%s.json" % m.group(1)] if path.startswith("country/")
+                    else ["findings.json"] if m else None)
 
     def close():
-        if body:
-            urls = list(dict.fromkeys(srcs or loaded))
+        if not body:
+            return
+        mapped = section_files[section_idx] if section_files and section_idx < len(section_files) else None
+        urls = ["%s/data/%s" % (SITE, f) for f in mapped] if mapped is not None else list(dict.fromkeys(srcs))
+        if not urls and section_idx == 0 and hero_default:
+            urls = ["%s/data/%s" % (SITE, f) for f in hero_default]
+        if urls:
             out.append("\n".join("<%s>" % u for u in urls))
     for b in blocks:
         k, t = b["kind"], b["text"]
         if k.startswith("h"):
             close()
-            srcs, body = [], False
+            srcs, body, section_idx = [], False, section_idx + 1
             out.append("#" * int(k[1]) + " " + t)
+            if section_idx == 0:
+                out.append(hour_str)
         elif k == "src":
             srcs.append(t)
+        elif k == "table":
+            body = True
+            out.append(with_header(t, SECTION_HEADERS[(path, section_idx)]) if (path, section_idx) in SECTION_HEADERS else t)
+        elif k in ("p", "list"):
+            body = True
+            out.append(drop_tap_sentences(t))
         else:
             body = True
             out.append(t)
     close()
     text = "\n\n".join(x for x in out if x.strip())
+    text = re.sub(r"\]\((https://margin\.wiki/[a-z-]+\.html(?:\?[^)]*)?)\)", lambda m: "](%s)" % to_md_href(m.group(1)), text)
     while "\n\n\n" in text:
         text = text.replace("\n\n\n", "\n\n")
     return text.strip() + "\n"
@@ -195,6 +290,12 @@ def hour():
     return json.load(open(os.path.join(HERE, "data", "index_latest.json")))["computed_at"]
 
 
+def hour_line(iso):
+    """"Prices from the HH:MM UTC hour, D Mon." (SEB-301, 21 Oct): plain text under the title, not an HTML comment."""
+    mo, d, hh, mm = int(iso[5:7]), int(iso[8:10]), int(iso[11:13]), int(iso[14:16])
+    return "Prices from the %02d:%02d UTC hour, %d %s." % (hh, mm, d, MON[mo - 1])
+
+
 def render(pages, settle=2.5):
     from gate_common import open_page, serve
     base, stop = serve(HERE)
@@ -211,6 +312,9 @@ def render(pages, settle=2.5):
                     if any(b["kind"] == "h1" for b in got.get("blocks", [])):
                         break
                     time.sleep(1.0)
+                page.eval_js(EXPAND_JS)                # a reader page shows the first 20 and a "show all" button; the twin shows everything
+                time.sleep(0.6)
+                got = json.loads(page.eval_js(TO_MARKDOWN + "(%s)" % json.dumps(SITE)) or "{}")
                 out[path] = got
             page.clear_viewport()
     finally:
@@ -222,7 +326,8 @@ def llms_txt(twins):
     """llms.txt: the site's own title and lead (from index.md), each .md page with its title, each public data file with what it holds."""
     idx = twins["index.md"].split("\n\n")
     title = next(b[2:] for b in idx if b.startswith("# "))
-    lead = next(b for b in idx[idx.index("# " + title) + 1:] if b and not b.startswith(("#", "<", "|", "-", "[")))
+    lead = next(b for b in idx[idx.index("# " + title) + 1:]
+                if b and not b.startswith(("#", "<", "|", "-", "[", "Prices from the ")))
     lines = ["# margin.wiki", "", "> " + title + ". " + lead, ""]
     for path, md in twins.items():
         h1 = next((l[2:] for l in md.split("\n") if l.startswith("# ")), path)
@@ -244,8 +349,8 @@ def llms_txt(twins):
 
 def build(force=False):
     h = hour()
-    stamp = STAMP % h
-    if not force and os.path.exists(os.path.join(HERE, "index.md")) and open(os.path.join(HERE, "index.md")).readline().strip() == stamp:
+    line = hour_line(h)
+    if not force and os.path.exists(os.path.join(HERE, "index.md")) and line in open(os.path.join(HERE, "index.md")).read(300):
         print("machine view: the twins already carry the %s hour, nothing to do" % h)
         return 0
     pages = all_pages()
@@ -257,15 +362,15 @@ def build(force=False):
         if not any(b["kind"] == "h1" for b in blocks):
             bad.append("%s rendered no title" % url)
             continue
-        md = dedupe_lines(to_md(blocks, g.get("data") or []))
+        md = dedupe_lines(to_md(blocks, path, line))
         if SITE + "/data/" not in md:
             bad.append("%s names no data file" % url)
             continue
-        miss = numbers_not_on_page(md, g.get("text"))
+        miss = numbers_not_on_page(md.replace(line, ""), g.get("text"))   # the hour line is ours, not a claim the page made
         if miss:
             bad.append("%s: numbers in the twin that the page did not show: %s" % (url, ", ".join(miss[:5])))
             continue
-        twins[path] = stamp + "\n\n" + md
+        twins[path] = md
     if bad:
         print("machine view FAILED, nothing written:\n  " + "\n  ".join(bad), file=sys.stderr)
         return 1
@@ -273,19 +378,48 @@ def build(force=False):
         full = os.path.join(HERE, path)
         os.makedirs(os.path.dirname(full) or HERE, exist_ok=True)
         open(full, "w").write(md)
-    open(os.path.join(HERE, "llms.txt"), "w").write(llms_txt({p: m.split("\n", 2)[2] for p, m in twins.items()}))
+    open(os.path.join(HERE, "llms.txt"), "w").write(llms_txt(twins))
     print("machine view: %d twins and llms.txt for the %s hour" % (len(twins), h))
     return 0
 
 
 def self_test():
+    line = "Prices from the 08:00 UTC hour, 21 Oct."
     blocks = [{"kind": "h1", "text": "Title"}, {"kind": "p", "text": "Lead 1.2%"}, {"kind": "h2", "text": "A section"},
               {"kind": "table", "text": "| a | b |\n| --- | --- |\n| 1 | 2 |"}, {"kind": "src", "text": SITE + "/data/x.json"},
               {"kind": "h2", "text": "No links"}, {"kind": "p", "text": "Text"}]
-    md = to_md(blocks, [SITE + "/data/page.json"])
-    assert md.startswith("# Title\n\nLead 1.2%\n\n<https://margin.wiki/data/page.json>\n\n## A section"), md
-    assert "| 1 | 2 |\n\n<https://margin.wiki/data/x.json>\n\n## No links\n\nText\n\n<https://margin.wiki/data/page.json>\n" in md, md
-    assert to_md([{"kind": "h1", "text": "T"}, {"kind": "h2", "text": "Empty"}], []) == "# T\n\n## Empty\n", "a heading with nothing under it gets no URL line"
+    md = to_md(blocks, "nowhere.md", line)   # not in SECTION_FILES: falls back to the explicit src links, never "all loaded"
+    assert md.startswith("# Title\n\n" + line + "\n\nLead 1.2%\n\n## A section"), md
+    assert "| 1 | 2 |\n\n<https://margin.wiki/data/x.json>\n\n## No links\n\nText\n" in md, md
+    assert to_md([{"kind": "h1", "text": "T"}, {"kind": "h2", "text": "Empty"}], "nowhere.md", line) == "# T\n\n" + line + "\n\n## Empty\n", \
+        "a heading with nothing under it gets no URL line, and nothing from 'all 8 loaded'"
+    # SECTION_FILES: each section gets only its own file(s), by heading order, never the other sections'
+    md2 = to_md([{"kind": "h1", "text": "People do not always pay the official rate for a dollar"},
+                {"kind": "h2", "text": "In 28 of 48 countries"}, {"kind": "p", "text": "x"},
+                {"kind": "h2", "text": "Where the price moved"}, {"kind": "p", "text": "y"}], "index.md", line)
+    assert "<https://margin.wiki/data/heatmap_daily.json>" in md2.split("Where the price moved")[0]
+    assert "heatmap_daily" not in md2.split("Where the price moved")[1] and "movers_week.json" in md2.split("Where the price moved")[1]
+    # a table with no visible header gets the real one, matched by (page, section index); a mismatched column count is left alone
+    th = to_md([{"kind": "h1", "text": "People do not always pay the official rate for a dollar"},
+               {"kind": "h2", "text": "In 28 of 48 countries"}, {"kind": "table", "text": "|  |  |\n| --- | --- |\n| Chile | +1% |"}],
+              "index.md", line)
+    assert "| Country | Change |\n| --- | --- |\n| Chile | +1% |" in th, th
+    assert with_header("|  |  |  |\n| --- | --- | --- |\n| a | b | c |", ["X", "Y"]) == "|  |  |  |\n| --- | --- | --- |\n| a | b | c |", \
+        "the column count does not match: left alone"
+    assert with_header("|  | today |\n| --- | --- |\n| a | b |", ["Country", "Change"]) == "| Country | Change |\n| --- | --- |\n| a | b |", \
+        "a header the page half-filled (one axis label, the rest blank) is still replaced"
+    # "Tap..." sentences are dropped from the markdown text only, the rest of the sentence stays
+    assert drop_tap_sentences("Each row is a country. Tap a square for its day, or a name to open that country.") == "Each row is a country."
+    assert drop_tap_sentences("Tap any day. The line is the typical cost.") == "The line is the typical cost."
+    assert drop_tap_sentences("Tap.") == "Tap.", "never empties a block just because it was all Tap"
+    # internal links go to the markdown twin, never the .html page
+    assert to_md_href(SITE + "/how-it-was-built.html") == SITE + "/how-it-was-built.md"
+    assert to_md_href(SITE + "/country.html?ccy=PHP") == SITE + "/country/PHP.md"
+    assert to_md_href(SITE + "/finding.html?id=price_changes") == SITE + "/finding/price_changes.md"
+    assert to_md_href(SITE + "/data/x.json") == SITE + "/data/x.json", "a non-page URL is left alone"
+    linked = to_md([{"kind": "h1", "text": "T"}, {"kind": "p", "text": "See [this](%s/how-it-was-built.html)." % SITE}], "nowhere.md", line)
+    assert "[this](%s/how-it-was-built.md)" % SITE in linked, linked
+    assert hour_line("2026-10-21T08:00:00+00:00") == line
     assert dedupe_lines("a\n\nb\n\nb\n\nc") == "a\n\nb\n\nc"
     assert numbers_not_on_page("Paid 8.8% on [file](https://x/2026.csv) <https://margin.wiki/data/a1.json>", "paid 8.8% today") == []
     assert numbers_not_on_page("Paid 9.9% and S$17.02", "paid 8.8% and S$17.02") == ["9.9%"], "a number the page did not show fails"
