@@ -7,7 +7,8 @@
  *                 docs/copy-slots/home.md "This hour"): cycleTitle, cycleLine,
  *                 stepCurrencies, stepRoutes, stepAuditor, stepAuditorResult,
  *                 stepAnalyst, resultClean, resultAuditFailed, resultSourceMissed, resultCheckFailed,
- *                 stripTitle, stripClean, stripMissed, stripFailed.
+ *                 stripTitle, stripClean, stripMissed, stripFailed, plus sourceNames (copy.json's top-level
+ *                 id -> display name map, SEB-301, 21 Oct: resultSourceMissed names its sources, not their ids).
  *   A key that is empty or missing is not rendered. No word is written here.
  *   Classes are the hp-* classes (hp-sec, hp-row, hp-step, hp-strip, ...) from the home
  *   page's stylesheet; the caller's page must carry that CSS.
@@ -48,6 +49,9 @@
 
   function renderCycleBlock(containerEl, CL, copyBlock) {
     var K = mk(copyBlock || {}), has = K.has, t = K.t, LAST_N = 48;
+    var sourceNames = (copyBlock && copyBlock.sourceNames) || {};
+    // same fallback as the Sources page's own name(): a CriptoYa feed id not in the map still reads as "CriptoYa · x"
+    function sourceName(id) { return sourceNames[id] || String(id).replace(/^CriptoYa:/, 'CriptoYa · '); }
     function wordT(parent, tag, cls, key, vars) {
       if (!has(key)) { return null; }
       var e = el(tag, cls, t(key, vars));
@@ -80,7 +84,7 @@
     if (last) {
       var failed = st.auditor ? Number(st.auditor.rebuilt) - Number(st.auditor.matched) : 0;
       var rk = last.status === 'clean' ? (failed > 0 ? 'resultAuditFailed' : 'resultClean') : last.status === 'source_missed' ? 'resultSourceMissed' : 'resultCheckFailed';
-      steps.push({ time: hhmm(last.last_reading_utc) || hour, key: rk, vars: { sources: (last.reasons || []).join(', '), n: (last.reasons || []).length, failed: num(failed), rebuilt: st.auditor ? num(st.auditor.rebuilt) : 0 }, final: true });
+      steps.push({ time: hhmm(last.last_reading_utc) || hour, key: rk, vars: { sources: (last.reasons || []).map(sourceName).join(', '), n: (last.reasons || []).length, failed: num(failed), rebuilt: st.auditor ? num(st.auditor.rebuilt) : 0 }, final: true });
     }
     steps.forEach(function (s) {
       if (!has(s.key)) { return; }

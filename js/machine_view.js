@@ -58,7 +58,15 @@
     links.appendChild(aCopy); links.appendChild(aCurl); links.appendChild(aRaw);
     bar.appendChild(where); bar.appendChild(size); bar.appendChild(links);
     var pre = document.createElement('pre'); pre.className = 'mv-md';
-    panel.appendChild(bar); panel.appendChild(pre);
+    panel.appendChild(bar);
+    // one line pointing an agent at the whole site, llms.txt (SEB-301, 21 Oct); shown only while both words are written
+    if (W.llmsLabel && W.llmsLink) {
+      var llms = document.createElement('p'); llms.className = 'mv-llms';
+      var aL = document.createElement('a'); aL.href = './llms.txt'; aL.textContent = W.llmsLink;
+      llms.appendChild(document.createTextNode(W.llmsLabel + ' ')); llms.appendChild(aL);
+      panel.appendChild(llms);
+    }
+    panel.appendChild(pre);
     aCopy.addEventListener('click', function (e) { e.preventDefault(); if (md) { copy(md); flash(aCopy, W.copied); } });
     aCurl.addEventListener('click', function (e) { e.preventDefault(); copy('curl -s ' + SITE + path); flash(aCurl, W.copied); });
 

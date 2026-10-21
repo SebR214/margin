@@ -339,6 +339,14 @@
       (amounts ? '<div class="sm-pills" role="group" id="smAmounts">' + amounts + "</div>" : "") + "</div>";
   }
 
+  // the official rate's own time, from the field the collector stores; hidden while the field is missing or not a time
+  function rateFromHtml() {
+    var r = routeObj(S.route), iso = r && r.official_rate_updated_utc, d = iso ? new Date(iso) : null;
+    if (!d || isNaN(d.getTime()) || !txt("officialRateFrom")) return "";
+    var hhmm = String(d.getUTCHours()).padStart(2, "0") + ":" + String(d.getUTCMinutes()).padStart(2, "0");
+    return '<p class="sm-meta sm-num">' + esc(txt("officialRateFrom", { time: hhmm })) + "</p>";
+  }
+
   function heroHtml(A) {
     var amt = esc(A.sym) + whole(S.amount);
     // a cost below zero is said in words, with no minus sign: the app paid out more than the official rate
@@ -349,11 +357,13 @@
       : txt("leadSome", { n: whole(A.n), wins: whole(A.wins), first: dayLong(A.first) });
     return '<div class="sm-hero">' + w(hkey, vals, "h1") +
       (lead ? '<p class="sm-lead">' + esc(lead) + "</p>" : "") +
-      '<p class="sm-meta sm-num">' + esc(txt("meta", { time: clock(A.t).replace(/\s*UTC$/, ""), date: dayShort(A.t) })) + "</p></div>";
+      '<p class="sm-meta sm-num">' + esc(txt("meta", { time: clock(A.t).replace(/\s*UTC$/, ""), date: dayShort(A.t) })) + "</p>" + rateFromHtml() + "</div>";
   }
 
   function nowSectionHtml(A) {
-    var legVals = [A.ac, A.sc].concat(["inn", "chain", "out", "tot"].map(function (k) { return A.leg[k]; }).filter(function (v) { return v != null; }));
+    // the steps are shown only for the path priced above, this hour; any other path's steps, or none stored, show no step by step at all
+    var showSteps = !!A.legPath && A.legPath === A.path && A.legT === A.t;
+    var legVals = [A.ac, A.sc].concat(showSteps ? ["inn", "chain", "out", "tot"].map(function (k) { return A.leg[k]; }).filter(function (v) { return v != null; }) : []);
     var SC = niceScale(legVals);
     TIP_WHEN = dayShort(A.t) + ", " + clock(A.t) + " UTC";
     var moneyAxis = axisRow(SC, function (t) { return (t < 0 ? MINUS : "") + A.sym + whole(Math.abs(t)); });
@@ -380,17 +390,16 @@
     function step(k, label) {
       return barRow(SC, { cls: k === "tot" ? "sm-tot" : "sm-step", name: label, v: A.leg[k], val: A.leg[k] == null ? txt("notStored") : stepMoney(shownLeg[k]), vsub: share(A.leg[k]) });
     }
-    var diff = A.legPath && A.legPath !== A.path;   // the steps are stored for a different route than the one priced above
-    var steps = step("inn", txt("rowDeposit")) + step("chain", txt("rowNetwork")) + step("out", txt("rowSell")) + step("tot", diff ? txt("rowAllInDiff", { legPath: pathName(A.legPath) }) : txt("rowAllIn"));
-    var stepsNote = A.legPath ? txt(A.legPath === A.path ? "stepsNoteSame" : "stepsNoteDiff", { legPath: pathName(A.legPath), path: pathName(A.path) }) : "";
+    var steps = step("inn", txt("rowDeposit")) + step("chain", txt("rowNetwork")) + step("out", txt("rowSell")) + step("tot", txt("rowAllIn"));
+    var stepsNote = showSteps && A.legPath === "USDT" ? txt("stepsNoteSame", { legPath: pathName(A.legPath), path: pathName(A.path) }) : "";   // a named path only: the "another stablecoin route" label never appears here
     var stepsGap = (A.depM === false || A.wdM === false) ? txt("stepsGap") : "";
     // when the path priced is one whose network gas is not in the cost, say so under it (the path list comes from the data)
     var gasNo = (routeObj(S.route).gas_not_modelled_paths || []).indexOf(A.path) >= 0;
     var gasLine = gasNo ? w("gasNote", null, "p", "sm-small") : "";
     return '<section class="sm-first">' + w("nowHeading", { amount: esc(A.sym) + whole(S.amount) }, "h2") +
       w("nowNote", null, "p", "sm-note") + '<div>' + moneyAxis + now + "</div>" + gasLine +
-      (diff ? w("stepsHeadingDiff", { legPath: pathName(A.legPath) }, "h3") : w("stepsHeading", null, "h3")) + (stepsNote ? '<p class="sm-note">' + esc(stepsNote) + "</p>" : "") +
-      '<div>' + moneyAxis + steps + "</div>" + (negative ? w("negNote", null, "p", "sm-small") : "") + (stepsGap ? '<p class="sm-small">' + esc(stepsGap) + "</p>" : "") + "</section>";
+      (showSteps ? w("stepsHeading", null, "h3") + (stepsNote ? '<p class="sm-note">' + esc(stepsNote) + "</p>" : "") + '<div>' + moneyAxis + steps + "</div>" : "") +
+      (negative ? w("negNote", null, "p", "sm-small") : "") + (showSteps && stepsGap ? '<p class="sm-small">' + esc(stepsGap) + "</p>" : "") + "</section>";
   }
 
   function weekSectionHtml() {
@@ -400,7 +409,7 @@
   }
 
   function cmpSectionHtml(A) {
-    var rows = ORDER.map(function (id) { return routeObj(id); }).filter(function (r) { return amountObj(r, S.amount); });
+    var rows = ALL.map(function (id) { return routeObj(id); }).filter(function (r) { return amountObj(r, S.amount); });
     var blocks = rows.map(function (r) { return [r, computeA(r.id, S.amount)]; });
     var SC = niceScale(blocks.reduce(function (acc, b) { return acc.concat(b[1].e30, [b[1].ep]); }, []));
     var fmt = function (v) { return v === 0 ? "0%" : (v > 0 ? "+" : MINUS) + Math.abs(v) + "%"; };
