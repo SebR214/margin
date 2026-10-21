@@ -1,4 +1,4 @@
-/* Machine view (SEB-301, 21 Oct): a Human/Machine switch at the bottom of every page. Machine shows the page's markdown twin
+/* Machine view (SEB-301, 21 Oct): a Human/Machine switch fixed at the bottom centre of every page. Machine shows the page's markdown twin
    (written each hour by tools/emit_markdown.py) with its path, size, an approximate token count and three links: copy the
    markdown, copy a curl command, open the raw file. A copy briefly shows "Copied" in place of the link's own word. The
    choice is remembered per visitor. No model is involved. Every word comes from copy.json (machineView). While those
@@ -42,13 +42,12 @@
     if (need.some(function (k) { return !W[k]; })) return;   // the words are not written yet
 
     var md = null;
-    // the switch is in each page's header markup (empty buttons, fixed width, so nothing moves when the words arrive)
-    var HEAD = '.hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh';
-    var sw = document.querySelector('.mv-switch');
-    if (!sw) {
-      sw = document.createElement('div'); sw.className = 'mv-switch'; sw.setAttribute('role', 'group');
-      sw.innerHTML = '<button type="button" data-mv="human"></button><button type="button" data-mv="machine"></button>';
-    }
+    // one switch for the whole site, fixed at the bottom centre of the screen, outside the page column, so it sits in the
+    // same place on every page and in both modes (21 Oct). Any other copy of it is removed.
+    [].forEach.call(document.querySelectorAll('.mv-switch'), function (k) { k.remove(); });
+    var sw = document.createElement('div'); sw.className = 'mv-switch'; sw.setAttribute('role', 'group');
+    sw.innerHTML = '<button type="button" data-mv="human"></button><button type="button" data-mv="machine"></button>';
+    document.body.appendChild(sw);
     var bH = sw.querySelector('[data-mv="human"]'), bM = sw.querySelector('[data-mv="machine"]');
     bH.textContent = W.human; bM.textContent = W.machine;
 
@@ -76,11 +75,10 @@
     aCurl.addEventListener('click', function (e) { e.preventDefault(); copy('curl -s ' + SITE + path); flash(aCurl, W.copied); });
 
     function column() { return document.querySelector(COLUMN) || document.body; }
-    // the switch sits in the header, right of the clock; the panel sits where the page content starts
+    // the panel sits where the page content starts
     function place() {
-      var col = column(), head = document.querySelector(HEAD);
-      if (head && sw.parentNode !== head) head.appendChild(sw);
-      else if (!head && !sw.parentNode) col.appendChild(sw);
+      var col = column();
+      if (sw.parentNode !== document.body) document.body.appendChild(sw);
       if (panel.parentNode !== col) {
         var h2 = col.querySelector(':scope > header, :scope > .site-head, :scope > .hp-head');
         col.insertBefore(panel, h2 ? h2.nextSibling : col.firstChild);

@@ -95,7 +95,6 @@
       nav.appendChild(a);
     });
     if (nav.firstChild) brand.appendChild(nav);
-    head.insertAdjacentHTML('beforeend', '<div class="mv-switch" role="group"><button type="button" data-mv="human"></button><button type="button" data-mv="machine"></button></div>');
     return head;
   }
 

@@ -317,7 +317,7 @@
       '<nav class="sm-nav" aria-label="Main">' + NAV.map(function (nv) {
         var s = txt(nv[0]);
         return s ? '<a href="' + nv[1] + '"' + (nv[2] ? ' aria-current="page"' : "") + ">" + esc(s) + "</a>" : "";
-      }).join("") + '</nav><div class="mv-switch" role="group"><button type="button" data-mv="human"></button><button type="button" data-mv="machine"></button></div></header>';
+      }).join("") + '</nav></header>';
   }
   function pillsHtml() {
     var r = routeObj(S.route);

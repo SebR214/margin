@@ -8,7 +8,6 @@ body {
   margin: 0;
   background: #fff;
   color: var(--ink);
-  -webkit-font-smoothing: antialiased;
 }
 
 header {
@@ -236,3 +235,12 @@ a.fp-ilink:hover { background: var(--color-surface); }
   color: var(--stamp);
   margin-top: 4px;
 }
+
+/* Findings list matches the home page's findings list (21 Oct): same number, title and grey text styles, same rule colour,
+   and no font smoothing of its own, so the text weight is the same as every other page. */
+.list { border-top-color: var(--color-neutral-200); }
+.f { border-bottom-color: var(--color-neutral-200); }
+.f .id { font-size: 14px; font-weight: 400; color: var(--color-neutral-600); line-height: 23.25px; }
+.list .f h2 { font-size: 15px !important; font-weight: 400 !important; line-height: 1.55 !important; }
+.f .when { color: var(--color-neutral-700); }
+.f .big small { color: var(--color-neutral-600); }
