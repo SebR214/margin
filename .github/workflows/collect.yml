@@ -210,6 +210,10 @@ jobs:
         # unchanged; only the offramp (WazirX) is new.
         run: python3 collector.py --corridor "SGD->INR"
 
+      - name: Collect corridor sample USD->PHP
+        if: always() && steps.needed.outputs.proceed == 'true'
+        run: python3 collector.py --corridor "USD->PHP"
+
       - name: Collect basis sample
         if: always() && steps.needed.outputs.proceed == 'true'
         # Wide layer: exits non-zero ONLY on a total blackout (all venues down).
@@ -637,7 +641,7 @@ jobs:
                    data/providers_usdmxn.csv data/providers_audphp.csv \
                    data/providers_nzdphp.csv \
                    data/providers_usdngn.csv data/providers_usdinr.csv \
-                   data/providers_sgdinr.csv data/latest.json \
+                   data/providers_sgdinr.csv data/providers_usdphp.csv data/latest.json \
                    data/crosses_latest.json data/stable_spread.csv \
                    data/p2p_basis.csv data/p2p_sides.csv data/p2p_depth.csv \
                    data/p2p_offers.csv data/street_depth_latest.json \
