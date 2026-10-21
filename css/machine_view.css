@@ -2,20 +2,18 @@
    style.css tokens. On a desktop the switch floats at the bottom centre and the page keeps room for it; on a phone it
    sits in the page above the footer, so it never covers content. */
 .mv-switch {
-  display: flex; gap: 2px; width: max-content; margin: 40px auto 24px; padding: 3px;
+  display: flex; gap: 2px; flex: none; width: 160px; box-sizing: border-box; padding: 3px; order: 2; margin-left: 16px;
   border: 1px solid var(--color-neutral-300, #d7d3d3); border-radius: 999px; background: var(--color-bg, #fff);
 }
 .mv-switch button {
-  font: inherit; font-size: 13px; font-weight: 600; line-height: 1; padding: 8px 14px; border: 0; border-radius: 999px;
-  background: transparent; color: var(--color-neutral-700, #605d5d); cursor: pointer;
+  flex: 1 1 0; min-width: 0; min-height: 28px; font: inherit; font-size: 13px; font-weight: 600; line-height: 1; padding: 8px 0; border: 0; border-radius: 999px;
+  background: transparent; color: var(--color-neutral-700, #605d5d); cursor: pointer; text-align: center;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 .mv-switch button[aria-pressed="true"] { background: var(--color-ink, #201e1d); color: var(--color-bg, #fff); }
-@media (min-width: 701px) {
-  .mv-switch { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); margin: 0; z-index: 20;
-               box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06); }
-  body { padding-bottom: 72px; }
-}
+.hp-clock { order: 1; }
+/* a phone: the clock takes its own row, the switch sits on the row under it */
+@media (max-width: 767px) { .mv-switch { order: 5; margin: 6px 0 8px; } }
 /* Machine mode: black background, white text, the markdown and nothing else. A soft fade in. */
 html { transition: background-color 0.25s ease; }
 html.mv-on { background: #0b0b0b; }
@@ -41,3 +39,9 @@ html.mv-on [data-mv-hide] { display: none !important; }
   white-space: pre-wrap; overflow-wrap: anywhere; color: #fff;
 }
 @media (max-width: 700px) { .mv-links { margin-left: 0; } }
+/* Machine mode keeps the header bar with the switch in it, so a visitor can go back; the rest of the header is hidden */
+html.mv-on :is(.hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh) > :not(.mv-switch) { display: none !important; }
+html.mv-on :is(.hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh) { border-bottom-color: rgba(255, 255, 255, 0.2) !important; justify-content: flex-end !important; }
+html.mv-on .mv-switch { margin-left: auto; border-color: rgba(255, 255, 255, 0.3); background: #0b0b0b; }
+html.mv-on .mv-switch button { color: rgba(255, 255, 255, 0.7); }
+html.mv-on .mv-switch button[aria-pressed="true"] { background: #fff; color: #0b0b0b; }

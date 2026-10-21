@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title></title>
 <meta name="description" content=""/>
+<link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./style.css">
 <link rel="stylesheet" href="./css/dkpanel.css">
 <link rel="stylesheet" href="./css/site_head.css?v=4">
@@ -19,7 +20,6 @@
      Colours are the --color-* tokens in style.css; the cycle-strip colours
      live in css/dkpanel.css (see the comment there). */
   {margin: 0;}
-  .hw-wrap { max-width: 760px; margin: 0 auto; padding: 0 24px 56px; }
   .hp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--color-neutral-300); }
   .hp-headleft { display: flex; flex-wrap: wrap; align-items: center; gap: 0 28px; }
   .hp-logo { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 18px; color: var(--color-ink); text-decoration: none; }
@@ -31,11 +31,11 @@
   .hw-main [hidden] { display: none; }
   h1, h2 {margin: 0;}
   .hw-main .lede {margin: 0;}
-  .hw-main .p { margin: 0; font-size: 15px; color: var(--color-neutral-700); max-width: 680px; }
-  .hw-main .lead-b { margin: 0; font-size: 17px; font-weight: 600; color: var(--color-ink); max-width: 680px; }
+  .hw-main .p { margin: 0; color: var(--color-neutral-700); }
+  .hw-main .lead-b { margin: 0; font-weight: 600; color: var(--color-ink); }
   .hw-main .lead-b:empty { display: none; }
   .hw-main .plain-list b { font-weight: 600; color: var(--color-ink); }
-  .hw-main .plain-list { margin: 8px 0 0; padding: 0; list-style: none; font-size: 15px; color: var(--color-neutral-700); max-width: 680px; }
+  .hw-main .plain-list { margin: 8px 0 0; padding: 0; list-style: none; color: var(--color-neutral-700); }
   .hw-main .plain-list:empty { display: none; }
   .hw-main .plain-list li { padding: 12px 0; border-top: 1px solid var(--color-neutral-300); }
   .hw-main .plain-list li:first-child { border-top: 0; }
@@ -48,9 +48,8 @@
   .hw-rows:empty { display: none; }
   .hw-rows a { color: var(--color-neutral-700); text-decoration: none; }
   .hw-rows a:hover { color: var(--color-ink); }
-  #hiwAnswer { max-width: 680px; margin-top: 8px; padding: 16px 20px; background: var(--color-surface); border: 1px solid var(--color-neutral-300); border-radius: 8px; font-size: 15px; line-height: 1.55; color: var(--color-ink); }
+  #hiwAnswer { margin-top: 8px; padding: 16px 20px; background: var(--color-surface); border: 1px solid var(--color-neutral-300); border-radius: 8px; color: var(--color-ink); }
   .foot { font-size: 14px; color: var(--color-neutral-600); border-top: 1px solid var(--color-neutral-300); margin-top: 48px; padding-top: 20px; }
-  @media (max-width: 620px) { .hw-wrap { padding: 0 16px 40px; } }
 </style>
 
 <body>
@@ -61,7 +60,7 @@
         <a class="hp-navlink" href="./sources.html">Sources</a>
         <a class="hp-navlink" href="./findings.html">Findings</a>
         <a class="hp-navlink on" href="./how-it-works.html">How it works</a>
-      </nav></div></div>
+      </nav></div><div class="mv-switch" role="group"><button type="button" data-mv="human"></button><button type="button" data-mv="machine"></button></div></div>
 
   <main class="hw-main">
     <section class="hw-hero" id="hiwIntro">

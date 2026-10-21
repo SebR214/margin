@@ -100,6 +100,7 @@
       }
     });
     if (nav.childNodes.length) { h.appendChild(nav); }
+    h.insertAdjacentHTML('beforeend', '<div class="mv-switch" role="group"><button type="button" data-mv="human"></button><button type="button" data-mv="machine"></button></div>');
     wrap.appendChild(h);
   }
 

@@ -1,7 +1,7 @@
 /* One page style on every page, with the home page as the standard (SEB-268, owner's spec 8 Oct).
    Loaded after each page's own CSS. This file is the only place these values live; pages no longer set their own.
      page title          24px, weight 500
-     text under it       18px at 70% ink
+     text under it       17px at 70% ink (the same 17px as all body text)
      section headings    20px, weight 500
      space above title   40px below the header
      filter buttons      white pill, 999px, 1px border, 40px tall, 14px weight 600; selected = ink with white text
@@ -12,7 +12,7 @@ h1 {
   color: var(--color-ink, #201e1d) !important; text-transform: none !important;
 }
 .hp-lede, .c-lead, .ci-lead, .sm-lead, .lead, .lede, .fp-lead {
-  font-size: 18px !important; font-weight: 400 !important; line-height: 1.5 !important;
+  font-size: 17px !important; font-weight: 400 !important; line-height: 1.5 !important;
   color: color-mix(in srgb, var(--color-ink, #201e1d) 70%, transparent) !important;
 }
 h2 { font-size: 20px !important; font-weight: 500 !important; line-height: 1.25 !important; letter-spacing: 0 !important; text-transform: none !important; }
@@ -92,7 +92,7 @@ body:has(#kinds) .wrap > section { margin-top: 48px !important; }
 .hw-main > .hiw-section > h2 + .plain-list { margin-top: 0 !important; }
 
 /* Spacing and text scale (SEB-301, 21 Oct, Seb's exact spec in chat). */
-p.lead, p.body { font-size: 18px; line-height: 1.6; color: color(srgb 0.12549 0.117647 0.113725 / 0.7); margin-top: 16px; max-width: none; }
+p.lead, p.body { font-size: 17px; line-height: 1.6; color: color(srgb 0.12549 0.117647 0.113725 / 0.7); margin-top: 16px; max-width: none; }
 p.body { margin-top: 8px; }
 p.lead .s { display: block; }
 p.counts { margin-top: 32px; white-space: nowrap; max-width: none; }
@@ -107,7 +107,6 @@ section:has(h2) { margin-top: 96px; }
 }
 
 /* UI fast lane, home page (SEB-301, 21 Oct). Words and fonts unchanged, weight/size/gap only. Scoped to home (body:has(#hero)). */
-body:has(#hero) .lead, body:has(#hero) .body, body:has(#hero) .note { font-size: 17px !important; }
 body:has(#hero) .counts b { font-weight: 500 !important; }
 body:has(#hero) .hero { gap: 0 !important; }
 body:has(#hero) .hero h1 + .lead { margin-top: 12px !important; }
@@ -116,3 +115,39 @@ body:has(#hero) .wrap > section > h2 { margin-bottom: 12px !important; }
 body:has(#hero) .wrap > section { margin-top: 96px !important; }
 /* phone: the five home counters wrap as two even columns, not a ragged run (SEB-301, 21 Oct) */
 @media (max-width: 700px) { #hero .counts { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px 16px; } }
+
+/* One template (SEB-301, 21 Oct). Every page: Archivo, the home column, 17px body text. A page's own stylesheet no longer sets a
+   font stack, a text size or a text width; whatever it still carries is overridden here. The woff2 is variable, so weight 500
+   is a real weight (style.css, 100-900). */
+html { scrollbar-gutter: stable; }
+body { font-family: var(--font-body, 'Archivo', system-ui, 'Helvetica Neue', Arial, sans-serif); }
+.wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap, .sm-wrap { max-width: 1280px !important; margin-left: auto !important; margin-right: auto !important; padding-left: 32px !important; padding-right: 32px !important; box-sizing: border-box; }
+@media (max-width: 700px) { .wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap, .sm-wrap { padding-left: 24px !important; padding-right: 24px !important; } }
+.lead, .body, .note:not(.sm), .p, .lead-b, .plain-list, #hiwAnswer, .ci-note, .sm-note, .fp-line, .fp-block, .fp-note, .answer, .more p {
+  font-size: 17px !important; line-height: 1.6 !important; max-width: none !important;
+}
+
+/* No sentence breaks half-way (SEB-301, 21 Oct). Titles balance their lines, text avoids a lone last word, and a short label
+   (a count under a number, "One source" in a country row) stays on one line. */
+h1, h2, h3 { text-wrap: balance; }
+p, li, .lead, .body, .note { text-wrap: pretty; }
+@media (min-width: 768px) { .ci-cc { white-space: nowrap; } }
+/* Findings list: the label under a number has room for one line, and the number is the home movers' size */
+.f { grid-template-columns: 36px minmax(0, 1fr) 280px !important; }
+.f .big, .fp-ibig, .fp-card .fp-card-val { font-size: 15px !important; font-weight: 600 !important; letter-spacing: 0 !important; line-height: 1.3 !important; }
+.f .big small { font-size: 14px; white-space: nowrap; }
+.fp-big { font-size: 15px !important; font-weight: 600 !important; line-height: 1.3 !important; white-space: normal; }
+@media (max-width: 620px) { .f { grid-template-columns: 28px minmax(0, 1fr) !important; } .f .big small { white-space: normal; } }
+
+/* How it was built: the sections sit the same distance apart as on every page, and the two panels line up with the rest */
+.wrap > .stack { gap: 0 !important; padding-top: 0 !important; }
+.stack > section { margin-top: 48px !important; padding-top: 24px !important; }
+.stack > section > h2 { padding-top: 0 !important; }
+.stack > .dkpanel { padding: 24px 0 0 !important; }
+.hero + .stack > section:first-of-type { margin-top: 48px !important; }
+/* Home on a phone: a country name wraps instead of being cut off */
+@media (max-width: 620px) {
+  body:has(#hero) .hrow .nm { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.2; }
+  body:has(#hero) .hrow { align-items: center; }
+}
+.stack > .dkpanel > section { margin-top: 0 !important; padding-top: 0 !important; border-top: 0 !important; }
