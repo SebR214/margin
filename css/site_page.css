@@ -122,7 +122,32 @@ body:has(#hero) .wrap > section { margin-top: 96px !important; }
 html { scrollbar-gutter: stable; }
 body { font-family: var(--font-body, 'Archivo', system-ui, 'Helvetica Neue', Arial, sans-serif); }
 .wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap, .sm-wrap { max-width: 1280px !important; margin-left: auto !important; margin-right: auto !important; padding-left: 32px !important; padding-right: 32px !important; box-sizing: border-box; }
-@media (max-width: 700px) { .wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap, .sm-wrap { padding-left: 16px !important; padding-right: 16px !important; } }
+@media (max-width: 700px) { .wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap, .sm-wrap { padding-left: 24px !important; padding-right: 24px !important; } }
 .lead, .body, .note:not(.sm), .p, .lead-b, .plain-list, #hiwAnswer, .ci-note, .sm-note, .fp-line, .fp-block, .fp-note, .answer, .more p {
   font-size: 17px !important; line-height: 1.6 !important; max-width: none !important;
 }
+
+/* No sentence breaks half-way (SEB-301, 21 Oct). Titles balance their lines, text avoids a lone last word, and a short label
+   (a count under a number, "One source" in a country row) stays on one line. */
+h1, h2, h3 { text-wrap: balance; }
+p, li, .lead, .body, .note { text-wrap: pretty; }
+@media (min-width: 768px) { .ci-cc { white-space: nowrap; } }
+/* Findings list: the label under a number has room for one line, and the number is the home movers' size */
+.f { grid-template-columns: 36px minmax(0, 1fr) 280px !important; }
+.f .big, .fp-ibig, .fp-card .fp-card-val { font-size: 15px !important; font-weight: 600 !important; letter-spacing: 0 !important; line-height: 1.3 !important; }
+.f .big small { font-size: 14px; white-space: nowrap; }
+.fp-big { font-size: 15px !important; font-weight: 600 !important; line-height: 1.3 !important; white-space: normal; }
+@media (max-width: 620px) { .f { grid-template-columns: 28px minmax(0, 1fr) !important; } .f .big small { white-space: normal; } }
+
+/* How it was built: the sections sit the same distance apart as on every page, and the two panels line up with the rest */
+.wrap > .stack { gap: 0 !important; padding-top: 0 !important; }
+.stack > section { margin-top: 48px !important; padding-top: 24px !important; }
+.stack > section > h2 { padding-top: 0 !important; }
+.stack > .dkpanel { padding: 24px 0 0 !important; }
+.hero + .stack > section:first-of-type { margin-top: 48px !important; }
+/* Home on a phone: a country name wraps instead of being cut off */
+@media (max-width: 620px) {
+  body:has(#hero) .hrow .nm { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.2; }
+  body:has(#hero) .hrow { align-items: center; }
+}
+.stack > .dkpanel > section { margin-top: 0 !important; padding-top: 0 !important; border-top: 0 !important; }

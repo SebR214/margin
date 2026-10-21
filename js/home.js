@@ -137,16 +137,16 @@
 
   /* ---------------------------------------------------------------- findings: each line links to its page */
   function findings() {
-    var F = {};
-    ((D.fin && D.fin.findings) || []).forEach(function (f) { F[f.id] = f; });
-    var val = function (id) { return F[id] && F[id].headline ? F[id].headline.value : null; };
-    var lines = [];
-    if (val('price_changes') != null) { lines.push(['price_changes', T('finding_price_changes', { value: g(val('price_changes')) })]); }
-    if (val('weekend_penalty') != null) { lines.push(['weekend_penalty', T('finding_weekend_penalty', { value: g(val('weekend_penalty')) })]); }
-    if (val('volume_crossover') != null) { lines.push(['volume_crossover', T('finding_volume_crossover', { value: approx(val('volume_crossover')) })]); }
-    var sg = F.sgd_php_never_cheapest;
-    if (sg && sg.headline && sg.hours_rows != null) { lines.push(['sgd_php_never_cheapest', T('finding_sgd_php', { n: g(sg.headline.value), hours: g(sg.hours_rows) })]); }
-    lines = lines.filter(function (l) { return l[1]; });
+    // the same published findings, in the same order and with the same titles as findings.html (copy.json findingData.title_<id>)
+    var FD = (D.copy && D.copy.findingData) || {};
+    var title = function (f) {
+      var t = FD['title_' + f.id], v = (f.headline || {}).value;
+      if (typeof t !== 'string' || !t) { return ''; }
+      return t.replace(/\{approx\}/g, typeof v === 'number' ? 'S$' + (v / 1e6).toFixed(1) + 'M' : '')
+              .replace(/\{n\}/g, typeof v === 'number' ? v.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '');
+    };
+    var lines = ((D.fin && D.fin.findings) || []).filter(function (f) { return f.published === true; })
+      .map(function (f) { return [f.id, title(f)]; }).filter(function (l) { return l[1]; });
     if (!lines.length || !T('findingsTitle')) { $('finds').innerHTML = ''; return; }
     $('finds').innerHTML = '<h2>' + esc(T('findingsTitle')) + '</h2><div class="rows">' + lines.map(function (f, i) {
       return '<a class="r f" href="./finding.html?id=' + encodeURIComponent(f[0]) + '"><span class="no num">0' + (i + 1) + '</span><span class="m">' + esc(f[1]) + '</span><span class="v">→</span></a>';
