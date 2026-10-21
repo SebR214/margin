@@ -1,10 +1,10 @@
-# Stablecoins beat the cheapest app only above about S$13.4M a month, a figure worked out from the exchanges' published fee tiers
+# Stablecoins beat the cheapest app only above about S$20.4M a month, a figure worked out from the exchanges' published fee tiers
 
-Prices from the 13:00 UTC hour, 21 Oct.
+Prices from the 14:00 UTC hour, 21 Oct.
 
 Sending five thousand Singapore dollars to the Philippines, a stablecoin would beat the cheapest app only above this monthly volume. Nobody in our data traded that much, and we never saw it happen: the figure is rebuilt from the exchanges' fee tiers. A stablecoin is a coin that stays worth one US dollar.
 
-S$13,420,200 · Singapore dollars sent per month in total. Above it, stablecoins cost less for a transfer of five thousand to the Philippines.
+S$20,369,300 · Singapore dollars sent per month in total. Above it, stablecoins cost less for a transfer of five thousand to the Philippines.
 
 First published 5 Oct 2026. The number updates every hour.
 
@@ -20,15 +20,15 @@ Both rows are the same transfer, priced for two ways of buying on the exchange. 
 
 Buying it now
 
-S$44.03 stablecoin cost, highest fee, S$18.62 stablecoin cost, lowest fee, 0.07 percent fee at that volume, S$22.63 cheapest app's usual cost, 1,504 real price checks behind it.
+S$44.03 stablecoin cost, highest fee, S$18.61 stablecoin cost, lowest fee, 0.07 percent fee at that volume, S$22.57 cheapest app's usual cost, 1,505 real price checks behind it.
 
-S$13,420,200 Singapore dollars a month
+S$20,369,300 Singapore dollars a month
 
 Waiting for your price
 
-S$42.05 stablecoin cost, highest fee, S$17.62 stablecoin cost, lowest fee, 0.1 percent fee at that volume, S$22.63 cheapest app's usual cost, 1,504 real price checks behind it.
+S$42.05 stablecoin cost, highest fee, S$17.62 stablecoin cost, lowest fee, 0.08 percent fee at that volume, S$22.57 cheapest app's usual cost, 1,505 real price checks behind it.
 
-S$4,473,400 Singapore dollars a month
+S$8,946,800 Singapore dollars a month
 
 ## This is how we built it
 
@@ -52,7 +52,7 @@ The file lists every row behind the number, one line per hour or per price chang
 
 findings_hours_volume_crossover.csv
 
-1,505 rows
+1,506 rows
 
 <https://margin.wiki/data/findings_hours_volume_crossover.csv>
 
@@ -62,5 +62,5 @@ findings_hours_volume_crossover.csv
 | --- | --- | --- |
 | 01 | Transfer apps keep changing their prices | 1,268 price changes since 12 Aug |
 | 02 | Some apps charge more on Saturday, then cut back | 42 Saturday rises that came back |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,468 hours a stablecoin was cheapest |
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,469 hours a stablecoin was cheapest |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |
