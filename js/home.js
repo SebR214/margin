@@ -61,11 +61,10 @@
     // one per row, as the Sources page lists them: the CriptoYa feeds count once
     var sr = (D.src && D.src.sources) || null, nSources = sr ? sr.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (sr.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null;
     var h = '<h1>' + esc(T('headline')) + '</h1>' +
-      '<p class="lead">' + leadSpans(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
-      '<p class="body">' + esc(T('agentsLine')) + ' <a href="./how-it-was-built.html">' + esc(T('agentsLink')) + '</a></p>' +
-      '<p class="counts num">' + [['counterReadings', g(tt.readings)], ['counterSources', nSources], ['counterHours', g(tt.hours_collected)]].map(function (c) {
-        return T(c[0]) && c[1] != null ? '<span><b>' + c[1] + '</b> ' + esc(T(c[0]).toLowerCase()) + '</span>' : '';
-      }).join('') + '</p>';
+      '<p class="lead">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
+      // who built it and what is stored so far, as one line (21 Oct, Seb's wording); the numbers come from the files
+      '<p class="body">' + esc(T('agentsLine')) + (T('agentsStored') && nSources != null && tt.readings != null && tt.hours_collected != null ? ' ' +
+        esc(T('agentsStored', { readings: '\u0001', sources: '\u0002', hours: '\u0003' })).replace('\u0001', '<b>' + g(tt.readings) + '</b>').replace('\u0002', '<b>' + nSources + '</b>').replace('\u0003', '<b>' + g(tt.hours_collected) + '</b>') : '') + '</p>';
     $('hero').innerHTML = h;
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
     if (T('headline')) { document.title = 'margin.wiki'; }
