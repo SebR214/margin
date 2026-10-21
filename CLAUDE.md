@@ -48,6 +48,7 @@ Never say something is running, built or watching unless you checked it just now
 - One Claude chat session at a time. Chat sessions never take `one-call` issues: the builder does.
 - No new running cost without the monthly number stated to Seb first.
 - Never add an agent, a loop or a machine to fix a problem with an existing one. Fix or remove the existing one.
+- Never read a data file or a file over 20 KB whole. Use grep, head or a line range. Read BACKLOG.md for the queue, not the whole of SEB-301. One session per task. Start a new one when the task is done.
 - Writing: short sentences, plain words, no em-dashes.
 
 Older docs are in `docs/archive/`. They record history, not current rules.
