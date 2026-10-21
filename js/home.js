@@ -37,6 +37,8 @@
     return '<span class="s">' + esc(s.slice(0, at).trim()) + '</span><span class="s">' + esc(s.slice(at).trim()) + '</span>';
   }
   function lastValue(c) { for (var i = c.cells.length - 1; i >= 0; i--) { if (c.cells[i] != null) { return c.cells[i]; } } return null; }
+  // Fast lane (SEB-301, 21 Oct): a country with no price on any of the last 30 days comes off the map and out of every count.
+  function pricedInLast30(cells) { return cells.slice(Math.max(0, cells.length - 30)).some(function (v) { return v != null; }); }
 
   /* ---------------------------------------------------------------- header nav, words
      (the header status is js/site_head.js's) */
@@ -51,15 +53,17 @@
   /* ---------------------------------------------------------------- hero: what the site is, with the totals from record_daily.json */
   function hero() {
     var tt = D.rec.totals || {};
-    // same counts as the Countries page, from index_latest.json: tracked = priced + held back + unverified
+    // same counts as the Countries page, from index_latest.json: priced = this hour's count. tracked = countries with a
+    // price on at least one of the last 30 days (SEB-301, 21 Oct), the same count the "Countries tracked" counter uses.
     var ix = D.idx || {}, nPriced = (ix.countries || []).length;
-    var idxCount = { priced: g(nPriced), tracked: g(nPriced + (ix.withheld || []).length + (ix.unverified || []).length) };
+    var nTracked = D.cur.length;
+    var idxCount = { priced: g(nPriced), tracked: g(nTracked) };
     // one per row, as the Sources page lists them: the CriptoYa feeds count once
     var sr = (D.src && D.src.sources) || null, nSources = sr ? sr.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (sr.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null;
     var h = '<h1>' + esc(T('headline')) + '</h1>' +
       '<p class="lead">' + leadSpans(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
       '<p class="body">' + esc(T('agentsLine')) + ' <a href="./how-it-was-built.html">' + esc(T('agentsLink')) + '</a></p>' +
-      '<p class="counts num">' + [['counterReadings', g(tt.readings)], ['counterSources', nSources], ['counterCurrencies', tt.currencies], ['counterRoutes', tt.routes], ['counterHours', g(tt.hours_collected)]].map(function (c) {
+      '<p class="counts num">' + [['counterReadings', g(tt.readings)], ['counterSources', nSources], ['counterCurrencies', nTracked], ['counterRoutes', tt.routes], ['counterHours', g(tt.hours_collected)]].map(function (c) {
         return T(c[0]) && c[1] != null ? '<span><b>' + c[1] + '</b> ' + esc(T(c[0]).toLowerCase()) + '</span>' : '';
       }).join('') + '</p>';
     $('hero').innerHTML = h;
@@ -73,12 +77,15 @@
     var byCcy = {};
     ((D.idx && D.idx.countries) || []).forEach(function (c) { byCcy[c.ccy] = c; });
     D.days = days;
-    D.cur = (D.heat.currencies || []).map(function (c) {
+    var all = (D.heat.currencies || []).map(function (c) {
       var i = byCcy[c.ccy];
       return { ccy: c.ccy, country: plain(c.country), ranked: c.ranked !== false, cells: c.cells || [],
         now: i && i.index_pct != null ? Math.round(i.index_pct * 10) / 10 : null,
         buy: i ? i.buy_price : null, rate: i ? i.fx_mid_per_usd : null };
     });
+    // a country with no price on any of the last 30 days comes off the map and out of every count (SEB-301, 21 Oct)
+    D.cur = all.filter(function (c) { return pricedInLast30(c.cells); });
+    D.never30 = all.filter(function (c) { return !pricedInLast30(c.cells); });
     // priced countries first, by this hour's figure; countries with no price this hour sit below them (SEB-268, 11 Oct),
     // ordered by their last stored day so the order does not jump
     D.ranked = D.cur.filter(function (c) { return c.ranked; }).sort(function (a, b) {
@@ -108,7 +115,9 @@
       (showAll ? D.unranked.map(function (c) { return row(c, ' frozen'); }).join('') : '') +
       '<div class="pills hb">' + (showAll ? '' : '<button class="pill" type="button" id="all">' + esc(T('heatShowAll', { n: D.cur.length })) + '</button>') +
       (early ? '' : '<button class="pill" type="button" id="early">' + esc(T('heatEarlier')) + '</button>') + '</div>' +
-      D.unranked.map(function (c) { return '<p class="note sm">' + esc(T('unrankedNote', { country: c.country, ccy: c.ccy })) + '</p>'; }).join('');
+      D.unranked.map(function (c) { return '<p class="note sm">' + esc(T('unrankedNote', { country: c.country, ccy: c.ccy })) + '</p>'; }).join('') +
+      // countries with no price on any of the last 30 days: one grey line naming them, under the map (SEB-301, 21 Oct)
+      (D.never30.length && T('neverPricedNote') ? '<p class="note sm">' + esc(T('neverPricedNote', { list: D.never30.map(function (c) { return c.country; }).join(', ') })) + '</p>' : '');
   }
 
   /* ---------------------------------------------------------------- this week's movers */
@@ -193,12 +202,12 @@
     D = got;
     nav();
     if (!got.heat || !got.rec) { var e = $('loaderr'); e.textContent = T('loadError', { n: failed.length }); e.hidden = !e.textContent; return; }
+    build();   // before hero(): the "tracked" count and the "Countries tracked" counter both read D.cur, built here
     hero();
     // counted like the Countries page title: ranked countries with a price this hour, and how many sit within 2% (SEB-268, 12 Oct)
     var rk = ((got.idx && got.idx.countries) || []).filter(function (c) { return c.index_pct != null && c.denominator_class !== 'unmaintained'; });
     $('heatT').textContent = rk.length ? T('heatTitle', { n: g(rk.filter(function (c) { var v = Math.round(c.index_pct * 10) / 10; return v >= -2 && v <= 2; }).length), N: g(rk.length) }) : '';
     $('heatL').textContent = T('heatLine') + (T('heatTapNote') ? ' ' + T('heatTapNote') : '');
-    build();
     heat();
     movers();
     findings();
