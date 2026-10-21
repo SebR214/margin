@@ -1,0 +1,32 @@
+/* Machine view (SEB-301, 21 Oct). The Human/Machine switch, bottom centre, and the markdown panel. Colours are the
+   style.css tokens. On a desktop the switch floats at the bottom centre and the page keeps room for it; on a phone it
+   sits in the page above the footer, so it never covers content. */
+.mv-switch {
+  display: flex; gap: 2px; width: max-content; margin: 40px auto 24px; padding: 3px;
+  border: 1px solid var(--color-neutral-300, #d7d3d3); border-radius: 999px; background: var(--color-bg, #fff);
+}
+.mv-switch button {
+  font: inherit; font-size: 13px; font-weight: 600; line-height: 1; padding: 8px 14px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--color-neutral-700, #605d5d); cursor: pointer;
+}
+.mv-switch button[aria-pressed="true"] { background: var(--color-ink, #201e1d); color: var(--color-bg, #fff); }
+@media (min-width: 701px) {
+  .mv-switch { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); margin: 0; z-index: 20;
+               box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06); }
+  body { padding-bottom: 72px; }
+}
+.mv-panel { display: none; margin-top: 40px; }
+html.mv-on .mv-panel { display: block; }
+html.mv-on [data-mv-hide] { display: none !important; }
+.mv-bar {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; padding: 0 0 10px; margin-bottom: 12px;
+  border-bottom: 1px solid var(--color-neutral-300, #d7d3d3); font-size: 13px; color: var(--color-neutral-700, #605d5d);
+}
+.mv-path { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--color-ink, #201e1d); }
+.mv-links { display: flex; gap: 14px; margin-left: auto; }
+.mv-links a { color: var(--color-ink, #201e1d); }
+.mv-md {
+  margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; line-height: 1.55;
+  white-space: pre-wrap; overflow-wrap: anywhere; color: var(--color-ink, #201e1d);
+}
+@media (max-width: 700px) { .mv-links { margin-left: 0; } }
