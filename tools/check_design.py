@@ -27,7 +27,7 @@ A fourth mode, --lines (SEB-301, 21 Oct), loads the nine pages that share css/si
 fails if the last line of any heading or paragraph holds a single word, or if the home counters row wraps at 1300px
 (--perturb narrows a heading and the counters first, to prove it can fail).
 
-Usage: python3 tools/check_design.py [--update] [--style [--perturb]] [--overflow [--perturb]] [--lines [--perturb]]
+A sixth mode, --counts (SEB-310), loads the home page and fails when two counts of the same thing (countries priced this hour,\ncountries tracked) read different numbers. --perturb changes one first, to prove it can fail.\n\nUsage: python3 tools/check_design.py [--update] [--counts [--perturb]] [--style [--perturb]] [--overflow [--perturb]] [--lines [--perturb]]
 """
 import glob
 import json
@@ -282,8 +282,50 @@ def lines_check(perturb=False):
     print("line check ok (%d pages at 1300px and 390px: no last line holds one word, the home counters fit on one line)" % len(LINES_PAGES))
     return 0
 
+# Sixth mode, --counts (SEB-310, 21 Oct): two counts of the same thing on the home page must be the same number.
+COUNT_GROUPS = {
+    "countries priced this hour": [r"(\d[\d,]*) of them had a price", r"of (\d[\d,]*) countries we priced this hour"],
+    "countries tracked": [r"(\d[\d,]*) countries tracked", r"what a dollar costs in (\d[\d,]*) countries", r"price of a dollar in (\d[\d,]*) countries", r"Show all (\d[\d,]*) countries"],
+}
+
+
+def counts_check(perturb=False):
+    sys.path.insert(0, os.path.join(HERE, "tools"))
+    from gate_common import open_page, serve  # noqa: E402
+    base, stop = serve(HERE)
+    bad = []
+    try:
+        with open_page(settle=5.0) as page:
+            page.visit("about:blank")
+            page.set_viewport(1300, 900)
+            page.visit(base + "/index.html")
+            if perturb:
+                page.eval_js("[].forEach.call(document.querySelectorAll('button'),function(b){b.textContent=b.textContent.replace(/Show all [0-9,]+ countries/,'Show all 7 countries')});'ok'")
+            text = page.eval_js("document.body.innerText") or ""
+            for thing, pats in COUNT_GROUPS.items():
+                seen = {}
+                for p in pats:
+                    for m in re.finditer(p, text):
+                        seen.setdefault(m.group(1), []).append(p)
+                if len(seen) > 1:
+                    bad.append("index.html: %s reads %s" % (thing, " and ".join(sorted(seen))))
+                if not seen:
+                    bad.append("index.html: no count found for %s (the check cannot see it)" % thing)
+            page.clear_viewport()
+    finally:
+        stop()
+    if bad:
+        print("count check FAILED (two counts of the same thing differ on one page):")
+        for line in bad:
+            print("  " + line)
+        return 1
+    print("count check ok (home page: each count reads one number)")
+    return 0
+
 
 def main():
+    if "--counts" in sys.argv:
+        return counts_check("--perturb" in sys.argv)
     if "--lines" in sys.argv:
         return lines_check("--perturb" in sys.argv)
     if "--overflow" in sys.argv:

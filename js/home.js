@@ -1,5 +1,5 @@
 /* Home (SEB-268), built to the approved reference.
- * Reads data/heatmap_daily.json, data/index_latest.json, data/movers_week.json, data/findings.json,
+ * Reads data/heatmap_daily.json, data/index_latest.json, data/findings.json,
  * data/record_daily.json, data/record_milestones.json and copy.json (homeData). The header clock is js/site_head.js's.
  * Every figure is read from those files at render time; every word is a homeData key. Dates, numbers and names are formatted here. */
 (function () {
@@ -61,6 +61,7 @@
     // one per row, as the Sources page lists them: the CriptoYa feeds count once
     var sr = (D.src && D.src.sources) || null, nSources = sr ? sr.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (sr.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null;
     var h = '<h1>' + esc(T('headline')) + '</h1>' +
+      (T('heroWhy') ? '<p class="lead">' + esc(T('heroWhy')) + '</p>' : '') +
       '<p class="lead">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
       // who built it and what is stored so far, as one line (21 Oct, Seb's wording); the numbers come from the files
       '<p class="body">' + esc(T('agentsLine')) + (T('agentsStored') && nSources != null && tt.readings != null && tt.hours_collected != null ? ' ' +
@@ -119,21 +120,6 @@
       (D.never30.length && T('neverPricedNote') ? '<p class="note sm">' + esc(T('neverPricedNote', { list: D.never30.map(function (c) { return c.country; }).join(', ') })) + '</p>' : '');
   }
 
-  /* ---------------------------------------------------------------- this week's movers */
-  function movers() {
-    var M = (D.mov && D.mov.days) ? null : null;   // movers_week.json lists them under "top" or "movers"
-    var list = (D.mov && (D.mov.top || D.mov.movers)) || [];
-    if (!list.length || !T('moversTitle')) { $('movers').innerHTML = ''; return; }
-    var days = D.days, L = days.length;
-    $('movers').innerHTML = '<h2>' + esc(T('moversTitle')) + '</h2><div class="rows">' + list.slice(0, 5).map(function (m) {
-      // SEB-268 (11 Oct): this hour's figure against the figure published for the same hour 7 days ago
-      var thenTxt = pct1(m.then_pct) + ' ' + (m.then_pct >= 0 ? T('dirAbove') : T('dirBelow')), nowTxt = pct1(m.now_pct) + ' ' + (m.now_pct >= 0 ? T('dirAbove') : T('dirBelow'));
-      return '<a class="r" href="' + ctry(m.ccy) + '"><b>' + esc(plain(m.country)) + '</b><span class="m">' +
-        esc(T('moverLine', { country: plain(m.country), then: thenTxt, date: dd(m.then_hour_utc.slice(0, 10)), now: nowTxt })) +
-        '</span><span class="v num">' + (m.change_pp > 0 ? '+' : MINUS) + Math.abs(m.change_pp).toFixed(1) + '<small>' + esc(T('moverUnit')) + '</small></span></a>';
-    }).join('') + '</div>';
-  }
-
   /* ---------------------------------------------------------------- findings: each line links to its page */
   function findings() {
     // the same published findings, in the same order and with the same titles as findings.html (copy.json findingData.title_<id>)
@@ -144,11 +130,15 @@
       return t.replace(/\{approx\}/g, typeof v === 'number' ? 'S$' + (v / 1e6).toFixed(1) + 'M' : '')
               .replace(/\{n\}/g, typeof v === 'number' ? v.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '');
     };
-    var lines = ((D.fin && D.fin.findings) || []).filter(function (f) { return f.published === true; })
-      .map(function (f) { return [f.id, title(f)]; }).filter(function (l) { return l[1]; });
+    var pub = ((D.fin && D.fin.findings) || []).filter(function (f) { return f.published === true; });
+    // a finding keeps its number and its page; 01 and 02 (apps change prices, Saturday pricing) sit at the bottom of the home list
+    var LAST = ['price_changes', 'weekend_penalty'];
+    var ord = pub.map(function (f, i) { return { f: f, no: i + 1 }; });
+    ord = ord.filter(function (o) { return LAST.indexOf(o.f.id) < 0; }).concat(ord.filter(function (o) { return LAST.indexOf(o.f.id) >= 0; }));
+    var lines = ord.map(function (o) { return [o.f.id, title(o.f), o.no]; }).filter(function (l) { return l[1]; });
     if (!lines.length || !T('findingsTitle')) { $('finds').innerHTML = ''; return; }
     $('finds').innerHTML = '<h2>' + esc(T('findingsTitle')) + '</h2><div class="rows">' + lines.map(function (f, i) {
-      return '<a class="r f" href="./finding.html?id=' + encodeURIComponent(f[0]) + '"><span class="no num">0' + (i + 1) + '</span><span class="m">' + esc(f[1]) + '</span><span class="v">→</span></a>';
+      return '<a class="r f" href="./finding.html?id=' + encodeURIComponent(f[0]) + '"><span class="no num">0' + f[2] + '</span><span class="m">' + esc(f[1]) + '</span><span class="v">→</span></a>';
     }).join('') + '</div>';
   }
 
@@ -189,7 +179,7 @@
     });
   }
 
-  var jobs = { copy: 'copy.json', heat: 'data/heatmap_daily.json', idx: 'data/index_latest.json', mov: 'data/movers_week.json', fin: 'data/findings.json', rec: 'data/record_daily.json', src: 'data/sources_daily.json', mil: 'data/record_milestones.json' };
+  var jobs = { copy: 'copy.json', heat: 'data/heatmap_daily.json', idx: 'data/index_latest.json', fin: 'data/findings.json', rec: 'data/record_daily.json', src: 'data/sources_daily.json', mil: 'data/record_milestones.json' };
   // loading is a function so a tab left open can load again when a newer hour is published (siteLive, js/site_head.js)
   var wired = false;
   function load() {
@@ -208,7 +198,6 @@
     $('heatT').textContent = rk.length ? T('heatTitle', { n: g(rk.filter(function (c) { var v = Math.round(c.index_pct * 10) / 10; return v >= -2 && v <= 2; }).length), N: g(rk.length) }) : '';
     $('heatL').textContent = T('heatLine') + (T('heatTapNote') ? ' ' + T('heatTapNote') : '');
     heat();
-    movers();
     findings();
     record();
     if (wired) { window.scrollTo(0, y0); }
