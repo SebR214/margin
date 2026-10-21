@@ -6,7 +6,6 @@
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var CODE = { answered_every_hour: 'a', missed_some: 's', missed_all: 'x', not_yet_a_source: 'n' };
   var STAT = { a: 'statusAnsweredEveryHour', s: 'statusMissedSome', x: 'statusMissedAll', n: 'statusNotYetASource' };
-  var RANK = { n: 0, a: 1, s: 2, x: 3 };
   var KIND = { p2p: 'kindP2p', order_book: 'kindOrderBook', broker: 'kindBroker', fx: 'kindFx', street: 'kindStreet', provider_quote: 'kindProviderQuote', other: 'kindOther' };
   var KORDER = ['order_book', 'broker', 'fx', 'street', 'provider_quote', 'p2p', 'other'];
   var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navHowItWorks', 'how-it-works.html']];
@@ -46,7 +45,13 @@
       ha: cy.reduce(function (a, s) { return a + s.ha; }, 0), he: cy.reduce(function (a, s) { return a + s.he; }, 0),
       cur: 0, rt: 0, first: cy.map(function (s) { return s.first; }).filter(Boolean).sort()[0] || '',
       last: cy.map(function (s) { return s.last; }).sort().pop(),
-      st: days.map(function (_, i) { return cy.map(function (s) { return s.st[i]; }).reduce(function (w, c) { return RANK[c] > RANK[w] ? c : w; }, 'n'); }).join(''),
+      // a group day is black only when every feed that was a source that day failed; any other miss is "missed some"; not yet a source only when none had started
+      st: days.map(function (_, i) {
+        var on = cy.map(function (s) { return s.st[i]; }).filter(function (c) { return c !== 'n'; });
+        if (!on.length) { return 'n'; }
+        if (on.every(function (c) { return c === 'x'; })) { return 'x'; }
+        return on.every(function (c) { return c === 'a'; }) ? 'a' : 's';
+      }).join(''),
       h: [], why: 'snapshot_only'
     } : null;
     live = all.filter(function (s) { return s.live && !(group && isCY(s)); }).concat(group ? [group] : []);
