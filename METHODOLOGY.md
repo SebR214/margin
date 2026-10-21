@@ -455,8 +455,9 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. **Version 1.6 is in force from
-2026-10-21** (the official rate's own time, below; no published number changes). Version 1.5 ran from
+Every published file carries `index_version`. **Version 1.7 is in force from
+2026-10-21, the 15:00 UTC hour** (India's tax and bank fee, Nigeria's gas, below; the route costs for the three India and Nigeria routes change). Version 1.6 ran on
+2026-10-21 (the official rate's own time, below; no published number changed). Version 1.5 ran from
 2026-10-14 (crossed boards, below). Version 1.4.1, the same day, recorded a second board kept apart. Version 1.4 ran from
 2026-10-11 (a sudden flip is held back, and a new source waits in quarantine, below). Version 1.3 added a believable-row test at
 collection. Version 1.2 ran from 2026-10-09 (a second person-to-person board and Luno for Nigeria, below). Version 1.1 ran from
@@ -1731,6 +1732,29 @@ winning provider is also winning at the larger sizes; a promo usually is not.
   comparing rails, add them back.
 - **KYC and limits.** "Achievable" assumes a funded, verified account at both
   venues. Onboarding time is a real cost and is not priced here.
+
+## India and Nigeria: the fees that were missing (SEB-310, from 2026-10-21 15:00 UTC, index_version 1.7)
+
+Until this hour the three routes ending in India and Nigeria left out four costs, so their stablecoin cost read lower than it was.
+Each is now in the route's config in `collector.py` with the venue's own page and the date it was read. Rows written before
+this hour keep the old costs; nothing is backfilled.
+
+| Route | Cost added | Value | Read from the venue's own page | Read on |
+|---|---|---|---|---|
+| United States to India, Singapore to India | Tax deducted at source on every crypto sale (TDS) | 1% of the sale (`tds_bps` 100), taken off the sale on top of the exchange fee | `wazirx.com/fees?tab=spot_fees`, "From 1 July 2022, TDS of 1% of the trade value will be deducted on each trade" | 2026-10-21 |
+| United States to India, Singapore to India | WazirX bank withdrawal | INR 10 per withdrawal, taxes included, at most INR 200,000 a withdrawal, so a larger amount pays INR 10 for each INR 200,000 started (`flat_per_chunk`) | `support.wazirx.com/hc/en-us/articles/360001690794` | 2026-10-21 |
+| United States to Nigeria, United States to India | Ethereum gas for the USDT transfer | Measured at every collection: gas units from `eth_estimateGas` of a real USDT transfer, gas price from `eth_gasPrice`, ether price from Coinbase's public ETH-USD ticker; stored in `data/gas_readings.csv` | `ethereum-rpc.publicnode.com`, `api.exchange.coinbase.com/products/ETH-USD/ticker` | each run |
+| United States to Nigeria | Luno bank withdrawal in naira | **Not measured: a gap.** Luno publishes it on `guide.luno.com`, which shows a bot check to every automated client, so the page could not be read | `guide.luno.com/hc/en-gb/articles/14962563616157` | 2026-10-21 |
+
+What each does to a cost:
+
+- The TDS is added to the off-ramp fee, `fee_off_taker_bps` and `fee_off_maker_bps` in `samples.csv` (both now 140 on the India routes, 40 plus 100). The tax can be claimed back when the sender files a tax return, so for a person who does that it is a delay, not a loss. We count it because it is taken from the sale.
+- GST on the WazirX trading fee has no published rate on the fee page and is not modelled.
+- The gas cost, in US dollars, is the USDT network fee of the run (`network_fee_stable`). About US$0.12 on 21 Oct. If any of the three readings fails, the row is written with `source_ok` false and the reason, never with a zero. A USDT transfer to an address that holds none is the dearer case and is the one measured.
+- The Luno gap follows the existing rule: it costs 0.0, is flagged `ramp_withdrawal_measured` false, and the page says the bank fee was not measured. Search snippets of the Luno page gave N300, N500 and "2% up to N2,000"; none is used. At US$200 any of the three is under 0.3% of the amount and under 0.1% at US$1,000 and above.
+- Ethereum gas stays what it was on the three Tron routes: Independent Reserve's published 4 USDT.
+
+Rows before 2026-10-21 15:00 UTC have a network fee with no gas, no TDS and no bank fee on these routes. Every comparison that crosses that hour compares two different measurements.
 
 ## Fee verification status
 
