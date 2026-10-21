@@ -1,12 +1,12 @@
 # No price for Mozambique this hour
 
-Prices from the 20:00 UTC hour, 21 Oct.
+Prices from the 21:00 UTC hour, 21 Oct.
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
 The last price we published was +17.5%, on 21 Oct.
 
-Prices from the 20:00 UTC hour, 21 Oct
+Prices from the 21:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/countries/MZN.json>
 
@@ -20,6 +20,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 21 Oct, 21:08 UTC | OKX, person to person | 78.00 MZN | +22.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 20:08 UTC | OKX, person to person | 78.00 MZN | +22.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 19:08 UTC | OKX, person to person | 77.50 MZN | +21.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 18:08 UTC | OKX, person to person | 77.50 MZN | +21.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -31,7 +32,6 @@ Open any file to check a price yourself.
 | 21 Oct, 13:08 UTC | OKX, person to person | 78.00 MZN | +22.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 12:08 UTC | OKX, person to person | 78.00 MZN | +22.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 11:38 UTC | OKX, person to person | 78.00 MZN | +22.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 21 Oct, 10:08 UTC | OKX, person to person | 78.00 MZN | +22.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
