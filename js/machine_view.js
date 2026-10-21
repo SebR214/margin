@@ -6,7 +6,7 @@
 (function () {
   var SITE = 'https://margin.wiki/';
   var COLUMN = '.wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap, .sm-wrap';
-  var KEEP = '.mv-switch, .mv-panel, script, template';   // Machine mode shows only the text: the site header, nav and footer are hidden too
+  var KEEP = '.mv-switch, .mv-panel, script, template, header, .hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh';   // Machine mode shows only the text: the site header, nav and footer are hidden too
 
   // the twin for this page, or null on a page that has none
   function twinPath() {
@@ -42,10 +42,15 @@
     if (need.some(function (k) { return !W[k]; })) return;   // the words are not written yet
 
     var md = null;
-    var sw = document.createElement('div'); sw.className = 'mv-switch'; sw.setAttribute('role', 'group');
-    var bH = document.createElement('button'); bH.type = 'button'; bH.textContent = W.human;
-    var bM = document.createElement('button'); bM.type = 'button'; bM.textContent = W.machine;
-    sw.appendChild(bH); sw.appendChild(bM);
+    // the switch is in each page's header markup (empty buttons, fixed width, so nothing moves when the words arrive)
+    var HEAD = '.hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh';
+    var sw = document.querySelector('.mv-switch');
+    if (!sw) {
+      sw = document.createElement('div'); sw.className = 'mv-switch'; sw.setAttribute('role', 'group');
+      sw.innerHTML = '<button type="button" data-mv="human"></button><button type="button" data-mv="machine"></button>';
+    }
+    var bH = sw.querySelector('[data-mv="human"]'), bM = sw.querySelector('[data-mv="machine"]');
+    bH.textContent = W.human; bM.textContent = W.machine;
 
     var panel = document.createElement('section'); panel.className = 'mv-panel';
     var bar = document.createElement('div'); bar.className = 'mv-bar';
@@ -71,14 +76,14 @@
     aCurl.addEventListener('click', function (e) { e.preventDefault(); copy('curl -s ' + SITE + path); flash(aCurl, W.copied); });
 
     function column() { return document.querySelector(COLUMN) || document.body; }
-    // the switch sits at the bottom of the column, above the footer; the panel sits where the page content starts
+    // the switch sits in the header, right of the clock; the panel sits where the page content starts
     function place() {
-      var col = column(), foot = col.querySelector('footer, .site-footer');
-      if (foot && foot.parentNode === col) { if (sw.nextElementSibling !== foot) col.insertBefore(sw, foot); }
-      else if (col.lastElementChild !== sw) col.appendChild(sw);
+      var col = column(), head = document.querySelector(HEAD);
+      if (head && sw.parentNode !== head) head.appendChild(sw);
+      else if (!head && !sw.parentNode) col.appendChild(sw);
       if (panel.parentNode !== col) {
-        var head = col.querySelector(':scope > header, :scope > .site-head, :scope > .hp-head');
-        col.insertBefore(panel, head ? head.nextSibling : col.firstChild);
+        var h2 = col.querySelector(':scope > header, :scope > .site-head, :scope > .hp-head');
+        col.insertBefore(panel, h2 ? h2.nextSibling : col.firstChild);
       }
     }
     var hidden = [];   // exactly what we hid last time, so a later call always clears it first (column() can return a

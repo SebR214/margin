@@ -1,6 +1,6 @@
 # When and how much you send changes the cost
 
-Prices from the 10:00 UTC hour, 21 Oct.
+Prices from the 11:00 UTC hour, 21 Oct.
 
 Each finding is worked out from prices we store every hour. Each page shows the evidence, how it was worked out, and a file you can download.
 
@@ -8,7 +8,7 @@ Each finding is worked out from prices we store every hour. Each page shows the 
 
 <https://margin.wiki/data/findings.json>
 
-## Transfer apps keep changing their prices
+## [Transfer apps keep changing their prices](https://margin.wiki/finding/price_changes.md)
 
 First published 5 Oct 2026. The number updates every hour.
 
@@ -20,7 +20,7 @@ First published 5 Oct 2026. The number updates every hour.
 <https://margin.wiki/data/findings_first_published.json>
 <https://margin.wiki/data/claims_status.json>
 
-## Some apps charge more on Saturday, then cut back
+## [Some apps charge more on Saturday, then cut back](https://margin.wiki/finding/weekend_penalty.md)
 
 First published 5 Oct 2026. The number updates every hour.
 
@@ -32,7 +32,7 @@ First published 5 Oct 2026. The number updates every hour.
 <https://margin.wiki/data/findings_first_published.json>
 <https://margin.wiki/data/claims_status.json>
 
-## Stablecoins beat the cheapest app only above about S$13.4M a month, a figure worked out from the exchanges' published fee tiers
+## [Stablecoins beat the cheapest app only above about S$13.4M a month, a figure worked out from the exchanges' published fee tiers](https://margin.wiki/finding/volume_crossover.md)
 
 First published 5 Oct 2026. The number updates every hour.
 
@@ -44,11 +44,11 @@ S$13.4M a month traded on the exchange
 <https://margin.wiki/data/findings_first_published.json>
 <https://margin.wiki/data/claims_status.json>
 
-## Singapore to the Philippines: a stablecoin was almost never the cheapest way to send
+## [Singapore to the Philippines: a stablecoin was almost never the cheapest way to send](https://margin.wiki/finding/sgd_php_never_cheapest.md)
 
 First published 5 Oct 2026. The number updates every hour.
 
-3 of 1,464 hours a stablecoin was cheapest
+3 of 1,466 hours a stablecoin was cheapest
 
 05
 
@@ -56,7 +56,7 @@ First published 5 Oct 2026. The number updates every hour.
 <https://margin.wiki/data/findings_first_published.json>
 <https://margin.wiki/data/claims_status.json>
 
-## In 2 countries, people pay more for a dollar from each other than on an exchange
+## [In 2 countries, people pay more for a dollar from each other than on an exchange](https://margin.wiki/finding/exchange_vs_p2p.md)
 
 First published 9 Oct 2026. The number updates every hour.
 

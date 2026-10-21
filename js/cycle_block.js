@@ -70,7 +70,7 @@
     var hour = hhmm(st.hour_utc);
     var last = CL.cycles && CL.cycles.length ? CL.cycles[CL.cycles.length - 1] : null;
     var steps = [];
-    if (st.currencies) { steps.push({ time: hour, key: 'stepCurrencies', vars: { collected: num(st.currencies.collected), of: num(st.currencies.of) } }); }
+    if (st.currencies) { steps.push({ time: hour, key: 'stepCurrencies', vars: { collected: num(st.currencies.collected), of: num(copyBlock && copyBlock.countriesTracked != null ? copyBlock.countriesTracked : st.currencies.of) } }); }
     if (st.routes) { steps.push({ time: hour, key: 'stepRoutes', vars: { priced: num(st.routes.priced), of: num(st.routes.of) } }); }
     if (st.auditor) {
       steps.push({ time: hhmm(st.auditor.sample_ts) || hour, key: 'stepAuditor', vars: { rebuilt: num(st.auditor.rebuilt) },
