@@ -1,7 +1,28 @@
 {
- "as_of_utc": "2026-10-21T05:13:18Z",
+ "as_of_utc": "2026-10-21T05:38:04Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "2e6ec3e8e02a654f58abadd693c2ebeaa2754f75",
+   "html_url": "https://github.com/SebR214/margin/commit/2e6ec3e8e02a654f58abadd693c2ebeaa2754f75",
+   "date": "2026-10-21T05:33:41Z",
+   "email": "person",
+   "message": "SEB-301: ignore iCloud duplicates of any extension and number (#587)\n\nThe old rule only covered \"name N.ext\" for one digit and five extensions, so 460 untracked copies such as \"automerge 12.yml\",\n\"actions-next 17.sh\", \"site_head 2.css\" and \"LOOPS_OFF 9\" sat in the working tree where `git add -A` would stage them. A duplicate\nworkflow on main runs next to the real one (#578, 20 Oct). The rule now matches the same shape tools/check_junk_files.py fails a\nPR for: one to three digits after a space, with or without an extension. No tracked file matches it.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "a0d65cca73aab4259ab0f7a6a904bcdab4db8f66",
+   "html_url": "https://github.com/SebR214/margin/commit/a0d65cca73aab4259ab0f7a6a904bcdab4db8f66",
+   "date": "2026-10-21T05:25:21Z",
+   "email": "person",
+   "message": "SEB-301: one route list, read from collector.CORRIDORS (#586)\n\nA route added to CORRIDORS in collector.py now reaches the Routes page with\nno other edit. tools/routes_common.py derives the route list and each\nroute's panel file from collector.CORRIDORS and the route names from a new\ncopy.json block \"routeNames\" keyed by route. Every emitter that kept its own\ncopy (emit_routes, emit_corridor_summary, emit_providers, emit_latest,\nemit_price_changes, emit_provider_receipts, audit_numbers, record_common,\nand emit_record_daily's file list) reads it from there. js/route.js takes its\nroutes, and which are comparable, from data/routes_summary.json;\ncorridor.html's depth line takes them from data/corridor_summary.json.\n\ntests/check_new_route.py adds a dummy route to a copy of CORRIDORS and finds\nit in routes_summary.json.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "a06dc75fea1f26558011be763daa53c68e0846de",
+   "html_url": "https://github.com/SebR214/margin/commit/a06dc75fea1f26558011be763daa53c68e0846de",
+   "date": "2026-10-21T05:15:38Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-21T05:15Z"
+  },
   {
    "sha": "42b1423a76794448fd7524317d9abd14ab3ed60d",
    "html_url": "https://github.com/SebR214/margin/commit/42b1423a76794448fd7524317d9abd14ab3ed60d",
@@ -680,27 +701,6 @@
    "date": "2026-10-19T21:40:16Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-10-19T21:40Z"
-  },
-  {
-   "sha": "64f46d2c3c008cc32e37c68f1a4e8f0dd60449f3",
-   "html_url": "https://github.com/SebR214/margin/commit/64f46d2c3c008cc32e37c68f1a4e8f0dd60449f3",
-   "date": "2026-10-19T21:15:06Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-19T21:15Z"
-  },
-  {
-   "sha": "eec1a40abf79c3d32f46e6b81018ed3ce17689db",
-   "html_url": "https://github.com/SebR214/margin/commit/eec1a40abf79c3d32f46e6b81018ed3ce17689db",
-   "date": "2026-10-19T20:40:26Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-19T20:40Z"
-  },
-  {
-   "sha": "bd54315e4d7cd324fdfd391ff2df2d777899d150",
-   "html_url": "https://github.com/SebR214/margin/commit/bd54315e4d7cd324fdfd391ff2df2d777899d150",
-   "date": "2026-10-19T20:15:20Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-19T20:15Z"
   }
  ]
 }
