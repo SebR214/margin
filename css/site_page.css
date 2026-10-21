@@ -88,3 +88,18 @@ body:has(#kinds) .wrap > section { margin-top: 48px !important; }
 /* how it works: its sections are a flex column with a 4px gap, and its list has its own 8px top margin */
 .hw-main > .hiw-section > h2 { margin-bottom: 10px !important; }
 .hw-main > .hiw-section > h2 + .plain-list { margin-top: 0 !important; }
+
+/* Spacing and text scale (SEB-301, 21 Oct, Seb's exact spec in chat). */
+p.lead, p.body { font-size: 18px; line-height: 1.6; color: color(srgb 0.12549 0.117647 0.113725 / 0.7); margin-top: 16px; max-width: none; }
+p.body { margin-top: 8px; }
+p.lead .s { display: block; }
+p.counts { margin-top: 32px; white-space: nowrap; max-width: none; }
+p.note { line-height: 1.6; max-width: none; }
+p.key { margin: 24px 0; }
+h2 { margin-bottom: 16px; }
+section:has(h2) { margin-top: 96px; }
+@media (max-width: 767px) {
+  p.lead .s { display: inline; }
+  p.counts { white-space: normal; }
+  p, h1, h2 { text-wrap: pretty; }
+}
