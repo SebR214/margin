@@ -103,3 +103,13 @@ section:has(h2) { margin-top: 96px; }
   p.counts { white-space: normal; }
   p, h1, h2 { text-wrap: pretty; }
 }
+
+/* UI fast lane, home page (SEB-301, 21 Oct). Words and fonts unchanged, weight/size/gap only. Scoped to home (body:has(#hero)). */
+body:has(#hero) h1, body:has(#hero) h2 { font-weight: 500 !important; }
+body:has(#hero) .lead, body:has(#hero) .body, body:has(#hero) .note { font-size: 17px !important; }
+body:has(#hero) .counts b { font-weight: 500 !important; }
+body:has(#hero) .hero { gap: 0 !important; }
+body:has(#hero) .hero h1 + .lead { margin-top: 12px !important; }
+body:has(#hero) .lead, body:has(#hero) .body, body:has(#hero) .counts { margin-top: 24px !important; }
+body:has(#hero) .wrap > section > h2 { margin-bottom: 12px !important; }
+body:has(#hero) .wrap > section { margin-top: 96px !important; }

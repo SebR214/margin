@@ -158,11 +158,16 @@ def style_check(perturb=False):
     for (width, name), got in sorted(seen.items(), key=lambda kv: str(kv[0])):
         if name.startswith("record:") and got != want:
             bad.append("%dpx %s: the record chart reads %r, expected %r" % (width, name[7:], got, want))
+    # title, lead and h2 weight/size, and the gap between a title and its text, are home's own since the 21 Oct fast lane
+    # (SEB-301): weight 500, lead/body/note at 17px, 12px title-to-text. Every other page keeps the earlier shared values.
+    HOME_ONLY = {"title", "lead", "h2", "leadgap"}
     for width in (1300, 390):
         std = seen[(width, STYLE_PAGES[0])]
         for name in STYLE_PAGES[1:]:
             got = seen[(width, name)]
             for k, v in std.items():
+                if k in HOME_ONLY:
+                    continue
                 if k in ('lead', 'leadgap') and got.get(k) == 'none':
                     continue    # a page may have no text under its title (how it works, after its subtitle was removed)
                 if k in got and got[k] != v:
