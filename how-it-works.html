@@ -130,14 +130,14 @@ function setLink(id, tpl, label, href){
 }
 function whole(n){ return Math.round(n).toLocaleString('en-US'); }
 
-Promise.all([getJson('./copy.json'), getJson('./data/index_latest.json'), getJson('./data/providers_latest.json'), getJson('./data/sources_daily.json')]).then(function(res){
-  var H = (res[0] && res[0].howItWorks) || {}, idx = res[1], prov = res[2], src = res[3];
+Promise.all([getJson('./copy.json'), getJson('./data/index_latest.json'), getJson('./data/providers_latest.json'), getJson('./data/sources_daily.json'), getJson('./data/heatmap_daily.json')]).then(function(res){
+  var H = (res[0] && res[0].howItWorks) || {}, idx = res[1], prov = res[2], src = res[3], heat = res[4];
   document.title = H.pageTitle || '';
   var md = document.querySelector('meta[name="description"]');
   if (md) md.setAttribute('content', H.pageDescription || '');
   var vals = {};
-  // how many countries the site tracks: every country with a figure and every one withheld this hour
-  if (idx) { vals.n = ((idx.countries || []).length + (idx.withheld || []).length + (idx.unverified || []).length) || null; }
+  // how many countries the site tracks: data/heatmap_daily.json countries_tracked, the count every page shares
+  if (heat) { vals.n = heat.countries_tracked || null; }
 
   // the ranked country with the largest figure this hour, worked through; every figure rounded to whole units
   var ranked = ((idx && idx.countries) || []).filter(function(c){ return c.denominator_class !== 'unmaintained' && c.index_pct != null; });

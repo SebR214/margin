@@ -11,7 +11,7 @@
  * Reads: data/index_latest.json, data/movers_week.json, copy.json.
  */
 (function () {
-  var C = {}, H = {}, D = {}, Mv = null, SP = null;
+  var C = {}, H = {}, D = {}, Mv = null, SP = null, TRACKED = 0;
   var S = { q: '', region: '__ALL__' };
   var app = document.getElementById('app');
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -319,7 +319,7 @@
     var countries = D.countries || [];
     var withheld = D.withheld || [];
     var unverified = D.unverified || [];
-    var total = countries.length + withheld.length + unverified.length;
+    var total = TRACKED;
     var moversByCcy = {};
     ((Mv && Mv.top) || []).forEach(function (m) { moversByCcy[m.ccy] = m.change_pp; });
 
@@ -382,15 +382,16 @@
   // loading is a function so a tab left open can load again when a newer hour is published (siteLive, js/site_head.js)
   function load() {
     return Promise.all([
-      getJSON('copy.json'), getJSON('data/index_latest.json'),
+      getJSON('copy.json'), getJSON('data/index_latest.json'), getJSON('data/heatmap_daily.json'),
       getJSON('data/movers_week.json').catch(function () { return null; }),
       getJSON('data/source_pairs.json').catch(function () { return null; })   // which markets rest on one source
     ]).then(function (r) {
       C = r[0].countries || {};
       H = r[0].homeData || {};
       D = r[1];
-      Mv = r[2];
-      SP = r[3];
+      Mv = r[3];
+      SP = r[4];
+      TRACKED = r[2].countries_tracked;
       var det = document.querySelector('.ci-np details'), wasOpen = !!(det && det.open), y = window.scrollY;   // keep the reader's place
       page();
       window.scrollTo(0, y);

@@ -56,7 +56,7 @@
     // same counts as the Countries page, from index_latest.json: priced = this hour's count. tracked = countries with a
     // price on at least one of the last 30 days (SEB-301, 21 Oct), the same count the "Countries tracked" counter uses.
     var ix = D.idx || {}, nPriced = (ix.countries || []).length;
-    var nTracked = D.cur.length;
+    var nTracked = D.heat.countries_tracked;
     var idxCount = { priced: g(nPriced), tracked: g(nTracked) };
     // one per row, as the Sources page lists them: the CriptoYa feeds count once
     var sr = (D.src && D.src.sources) || null, nSources = sr ? sr.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (sr.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null;
