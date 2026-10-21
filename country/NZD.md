@@ -1,14 +1,14 @@
 # In New Zealand a dollar costs 0.3% more than the official rate
 
-Prices from the 16:00 UTC hour, 21 Oct.
+Prices from the 17:00 UTC hour, 21 Oct.
 
 The official rate is 1.76 NZD per dollar. On the exchanges where people in New Zealand trade stablecoins, one costs 1.77 NZD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 176.55 NZD. The official rate says 176.04 NZD.
+For US$100, people pay 176.53 NZD. The official rate says 176.04 NZD.
 
 One source
 
-Prices from the 16:00 UTC hour, 21 Oct
+Prices from the 17:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/countries/NZD.json>
 
@@ -32,6 +32,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 21 Oct, 17:06 UTC | IndependentReserve (NZD) | 1.77 NZD | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 16:06 UTC | IndependentReserve (NZD) | 1.77 NZD | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 15:06 UTC | IndependentReserve (NZD) | 1.77 NZD | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 14:06 UTC | IndependentReserve (NZD) | 1.77 NZD | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -43,7 +44,6 @@ Open any file to check a price yourself.
 | 21 Oct, 08:06 UTC | IndependentReserve (NZD) | 1.77 NZD | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 07:06 UTC | IndependentReserve (NZD) | 1.77 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 06:06 UTC | IndependentReserve (NZD) | 1.77 NZD | +0.6% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 21 Oct, 05:06 UTC | IndependentReserve (NZD) | 1.77 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://margin.wiki/data/basis.csv>

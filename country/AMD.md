@@ -1,12 +1,12 @@
 # In Armenia a dollar costs 0.4% less than the official rate
 
-Prices from the 16:00 UTC hour, 21 Oct.
+Prices from the 17:00 UTC hour, 21 Oct.
 
-The official rate is 361.71 AMD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 360.11 AMD. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 361.71 AMD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 360.16 AMD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 36,011 AMD. The official rate says 36,171 AMD.
+For US$100, people pay 36,016 AMD. The official rate says 36,171 AMD.
 
-Prices from the 16:00 UTC hour, 21 Oct
+Prices from the 17:00 UTC hour, 21 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -24,7 +24,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-359.81 AMD −0.5%
+359.92 AMD −0.5%
 
 OKX, person to person
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 21 Oct, 17:08 UTC | OKX, person to person | 360.41 AMD | −0.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 21 Oct, 17:07 UTC | Binance, person to person | 359.92 AMD | −0.5% | 10 of 46 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 16:08 UTC | OKX, person to person | 360.41 AMD | −0.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 16:07 UTC | Binance, person to person | 359.81 AMD | −0.5% | 10 of 49 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 15:08 UTC | OKX, person to person | 360.42 AMD | −0.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 21 Oct, 13:06 UTC | Binance, person to person | 359.58 AMD | −0.6% | 10 of 50 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 12:08 UTC | OKX, person to person | 361.07 AMD | −0.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 12:07 UTC | Binance, person to person | 359.37 AMD | −0.6% | 10 of 51 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 21 Oct, 11:38 UTC | OKX, person to person | 361.04 AMD | −0.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 21 Oct, 11:37 UTC | Binance, person to person | 359.37 AMD | −0.6% | 10 of 51 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

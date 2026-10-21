@@ -1,10 +1,10 @@
-# Sending S$5,000 to the Philippines: Instarem paid out S$7.55 more than the official rate this hour, and a stablecoin costs S$8.10
+# Sending S$5,000 to the Philippines: Wise paid out S$6.58 more than the official rate this hour, and a stablecoin costs S$11.25
 
-Prices from the 16:00 UTC hour, 21 Oct.
+Prices from the 17:00 UTC hour, 21 Oct.
 
-At this amount, a stablecoin was the cheaper way in 3 of the 1,471 hours checked since 11 August.
+At this amount, a stablecoin was the cheaper way in 3 of the 1,472 hours checked since 11 August.
 
-Prices from the 16:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
+Prices from the 17:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
 
 Official rate from 00:02 UTC
 
@@ -14,13 +14,13 @@ Official rate from 00:02 UTC
 
 Cost is what the person receiving loses against the official rate. Every fee we can measure is included.
 
-Cheapest app Instarem this hour
+Cheapest app Wise this hour
 
-−S$7.55 −0.15%
+−S$6.58 −0.13%
 
 Stablecoin a cheaper stablecoin route this hour
 
-S$8.10 0.16%
+S$11.25 0.23%
 
 <https://margin.wiki/data/routes_hourly.json>
 
@@ -30,8 +30,8 @@ S$8.10 0.16%
 | --- | --- |
 | Deposit and buy | S$22.39 0.45% |
 | Network fee | S$1.28 0.03% |
-| Sell and withdraw | −S$15.57 −0.31% |
-| All in | S$8.10 0.16% |
+| Sell and withdraw | −S$12.42 −0.25% |
+| All in | S$11.25 0.22% |
 
 Negative means this step paid you a little back.
 
@@ -49,12 +49,12 @@ Shown as a share of the amount, so the places can sit side by side. Pick one to 
 
 | Route | Compared with the cheapest app |
 | --- | --- |
-| Singapore to the Philippines Cheaper in 3 of 1,471 hours | 0.31% more than Instarem |
-| Australia to the Philippines Never cheaper in 948 hours | 0.28% more than Wise |
-| New Zealand to the Philippines Cheaper in 10 of 948 hours | 0.20% more than Wise |
-| United States to Mexico Cheaper in 2 of 1,338 hours | 0.39% more than Xoom |
-| United States to Nigeria Cheaper in 501 of 524 hours | 0.74% less than Wise |
-| United States to India Cheaper in 524 of 524 hours | 6.29% less than Airwallex |
-| Singapore to India Cheaper in 524 of 524 hours | 5.61% less than Airwallex |
+| Singapore to the Philippines Cheaper in 3 of 1,472 hours | 0.36% more than Wise |
+| Australia to the Philippines Never cheaper in 949 hours | 0.28% more than Wise |
+| New Zealand to the Philippines Cheaper in 10 of 949 hours | 0.35% more than Wise |
+| United States to Mexico Cheaper in 2 of 1,339 hours | 0.41% more than Xoom |
+| United States to Nigeria Cheaper in 502 of 525 hours | 0.72% less than Wise |
+| United States to India Cheaper in 525 of 525 hours | 6.27% less than Airwallex |
+| Singapore to India Cheaper in 525 of 525 hours | 5.57% less than Airwallex |
 
 <https://margin.wiki/data/routes_summary.json>
