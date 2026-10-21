@@ -13,114 +13,69 @@ files. A blocked item gets one line saying why, and the builder moves to the nex
 How to read it: a top-level item is `- [ ] N. title`. A job under it is `  - [ ] Na. title`, with `    files:` (backticked paths the builder may
 change), optional `    context:` (read-only paths) and `    done when:` lines. The builder works on jobs. An item without jobs is not split yet.
 
-## More routes
-Only where both ends already have a live exchange, so no new on-ramp or off-ramp collector is needed. For each: the same five amounts,
-the same path costs, transfer app quotes from the comparison feed, and steps stored for every path. Before building a route, post the
-list of apps the comparison feed returns for it. Skip a route with fewer than 3 apps and say so. A new route shows on the Routes page
-with the same template as the others. No new page.
+## First: routes through the existing route machinery
+- [ ] 0. Routes go through the existing route machinery, not new collectors. <!-- from:6d768ec8-78bd-4720-9f05-7a8255532873 -->
+  Queued by Claude on SEB-301, 21 Oct 02:18 UTC. Replaces how items 1 to 6 are split. Done in a chat session, not by the builder.
+  Checked on main on 21 Oct, 02:15 UTC: the jobs ticked as 1a (#571), 1b (#575) and 2a (#576) added three standalone collectors that
+  collect.yml never runs. Their CSVs have no rows. They also skip the parts that make a route a route: fees, path costs, steps and
+  transfer app quotes. The existing seven routes all run as `collector.py --corridor "X->Y"`.
+  (a) Delete `collector_us_ph_usleg.py`, `collector_us_ph_phleg.py`, `collector_route_us_br_us.py` and their empty CSVs. Untick 1a, 1b, 2a.
+  (b) Re-split items 1 to 6, one job per route: the corridor in collector.py's corridor table, one `collector.py --corridor` step in
+      collect.yml, the route in the provider quotes config. Before each one, post the apps the comparison feed returns; skip under 3.
+  (c) Merge rule: a PR that only adds an entry to an existing config table, plus its collect.yml step, merges by itself when one full
+      collection run on the branch produces the same headers and still writes rows for every existing corridor.
+  (d) Done means data: a job that adds or changes collection is ticked only after its first hourly rows are on main. If none land
+      within 2 hours of the merge, untick it and post why.
+  Status 21 Oct: (a) and (b) done in this file. The CSVs of (a) were never committed, so there were none to delete.
 
-- [ ] 1. United States to the Philippines (Coinbase or Kraken, then Coins.ph)
-  - [x] 1a. US-side leg collector: Coinbase, with Kraken as fallback (PR #571, 2026-10-20)
-    files: `collector_us_ph_usleg.py` `data/us_ph_usleg.csv`
-    context: `collector_fx.py`
-    venue: `USD` | `https://api.exchange.coinbase.com/products/USDT-USD/ticker` | `(not probed: a dollar in dollars; fields ask, bid, price)`
-    venue: `USD` | `https://api.kraken.com/0/public/Ticker?pair=USDTUSD` | `(not probed: a dollar in dollars; result.USDTZUSD.a[0] is the ask, b[0] the bid, c[0] the last)`
-    done when: running the collector appends one row with a UTC timestamp, the venue used, bid and ask of the dollar stablecoin in US dollars, and the spread in basis points to data/us_ph_usleg.csv, and uses Kraken only when Coinbase fails.
-  - [x] 1b. Philippine-side leg collector: Coins.ph (PR #575, 2026-10-20)
-    files: `collector_us_ph_phleg.py` `data/us_ph_phleg.csv`
-    context: `collector_fx.py`
-    venue: `PHP` | `https://api.pro.coins.ph/openapi/quote/v1/ticker/bookTicker?symbol=USDTPHP` | `bidPrice and askPrice`
-    done when: running the collector appends one row with a UTC timestamp, the bid and ask of the dollar stablecoin in Philippine pesos on Coins.ph, and the spread in basis points to data/us_ph_phleg.csv, and writes no row when the fetch fails.
-  - [ ] 1c. Emitter joining both legs into a US-to-Philippines corridor cost
-    files: `tools/emit_us_ph.py`
-    blocked: failed: the model returned no files in the agreed form (2026-10-20)
-- [ ] 2. United States to Brazil (Coinbase or Kraken, then Foxbit or Mercado Bitcoin)
-  - [x] 2a. US leg collector: Coinbase and Kraken dollar-stablecoin quotes (PR #576, 2026-10-20)
-    files: `collector_route_us_br_us.py` `data/route_us_br_us.csv`
-    context: `collector_stable_venues.py`
-    venue: `USD` | `https://api.exchange.coinbase.com/products/USDC-USD/book?level=1` | `(not probed: a dollar in dollars)`
-    venue: `USD` | `https://api.kraken.com/0/public/Ticker?pair=USDCUSD` | `(not probed: a dollar in dollars)`
-    done when: running the collector once appends one row per venue to data/route_us_br_us.csv (UTC timestamp, venue, best bid, best ask, mid), importing its HTTP helper from collector_stable_venues.py and leaving every existing collector and CSV untouched.
-  - [ ] 2b. Brazil leg collector: Foxbit and Mercado Bitcoin stablecoin-to-real quotes
-    files: `collector_route_us_br_br.py` `data/route_us_br_br.csv`
-    context: `collector_stable_venues.py`
-    venue: `BRL` | `https://api.foxbit.com.br/rest/v3/markets/usdcbrl/orderbook?depth=1` | `asks[0][0]`
-    venue: `BRL` | `https://api.mercadobitcoin.net/api/v4/USDC-BRL/orderbook?limit=1` | `asks[0][0]`
-    done when: running the collector once appends one row per venue to data/route_us_br_br.csv (UTC timestamp, venue, best bid in reais, best ask in reais, mid), and a venue that fails writes no row and does not stop the other.
-  - [ ] 2c. Emit the United States to Brazil route cost from the two leg files
-    files: `tools/emit_route_us_br.py` `data/route_us_br.json`
-    context: `tools/record_common.py`
-    done when: running the emitter reads data/route_us_br_us.csv and data/route_us_br_br.csv, pairs the newest reading of the cheapest US venue with the newest reading of the best Brazil venue taken close in
-- [ ] 3. United States to Indonesia (Coinbase or Kraken, then Indodax or Pintu)
-  - [ ] 3a. US leg collector: USDT/USD price on Coinbase and Kraken
-    files: `collector_route_us_leg.py` `data/route_us_leg.csv` `.github/workflows/collect.yml`
-    context: `collector_stable_venues.py`
-    venue: `USD` | `https://api.exchange.coinbase.com/products/USDT-USD/ticker` | `(not probed: a dollar in dollars)`
-    venue: `USD` | `https://api.kraken.com/0/public/Ticker?pair=USDTUSD` | `(not probed: a dollar in dollars)`
-    done when: running collector_route_us_leg.py appends one timestamped row per venue (venue, bid, ask, last) to data/route_us_leg.csv, a failed venue is written as an empty row with an error note rather than a guessed price, and collect.yml has one appended step that runs it.
-  - [ ] 3b. Indonesia leg collector: USDT/IDR price on Indodax and Pintu
-    files: `collector_route_id_leg.py` `data/route_id_leg.csv` `.github/workflows/collect.yml`
-    context: `collector_stable_venues.py`
-    venue: `IDR` | `https://indodax.com/api/ticker/usdtidr` | `ticker.last`
-    done when: running collector_route_id_leg.py appends one timestamped row per venue (venue, bid, ask, last in rupiah) to data/route_id_leg.csv, a failed venue is written as an empty row with an error note, and collect.yml has one appended step that runs it.
-  - [ ] 3c. Route cost: United States to Indonesia, computed from the two leg files
-    files: `tools/route_us_id.py` `data/route_us_id.json`
-    context: `tools/record_common.py`
-    done when: running tools/route_us_id.py reads data/route_us_leg.csv and data/route_id_leg.csv, takes the cheapest US venue buy price and the best Indonesia venue sell price from the same hour, writes data/route_us_id.json with the cost of the route in basis points against the official dollar-rupiah rate plus the venue names and source rows used, and writes nothing for an hour where either leg is missing.
-  - [ ] 3d. WORDS United States to Indonesia route description
-    done when: the writer has added a plain-language description of the United States to Indonesia route, naming the US on-ramp venues and the Indonesian exchanges, that states the cost figure comes from data/route_us_id.json.
-- [ ] 4. Singapore to Indonesia (Independent Reserve, then Indodax or Pintu)
-  - [ ] 4a. Independent Reserve leg: Singapore dollar to USDT price
-    files: `collector_sg_id_ir.py` `data/sg_id_ir.csv`
-    context: `collector_fx.py`
-    done when: running collector_sg_id_ir.py appends one row to data/sg_id_ir.csv with a UTC timestamp, the best bid, the best ask, and the mid-price of USDT in SGD from Independent Reserve, and writes nothing on a fetch error.
-  - [ ] 4b. Indodax leg: USDT to Indonesian rupiah price
-    files: `collector_sg_id_indodax.py` `data/sg_id_indodax.csv`
-    context: `collector_fx.py`
-    done when: running collector_sg_id_indodax.py appends one row to data/sg_id_indodax.csv with a UTC timestamp, the buy price, the sell price, and the last price of USDT in IDR from Indodax, and writes nothing on a fetch error.
-  - [ ] 4c. Run both Singapore to Indonesia collectors every hour
-    files: `.github/workflows/collect.yml`
-    done when: collect.yml still parses as YAML, its existing steps are unchanged, and it has appended steps that run collector_sg_id_ir.py and collector_sg_id_indodax.py and commit data/sg_id_ir.csv and data/sg_id_indodax.csv.
-  - [ ] 4d. Route cost for Singapore to Indonesia from the two legs
-    files: `tools/sg_id_route.py` `data/sg_id_route.json`
-    context: `tools/record_common.py`
-    done when: running tools/sg_id_route.py reads the newest paired rows of data/sg_id_ir.csv and data/sg_id_indodax.csv, converts one Singapore dollar through USDT to rupiah using ask on the Singapore side and bid on the Indonesian side, compares that with the official SGD to IDR rate from the existing FX record, and writes the cost in basis points, both leg timestamps and the source names to data/sg_id_route.json, writing a null cost with a reason if either leg is missing or stale.
-  - [ ] 4e. WORDS Singapore to Indonesia route description
-    done when: the writer has added the route's plain-language description, naming Independent Reserve and Indodax as the two legs and saying the cost is measured through USDT.
-- [ ] 5. Australia to India (Independent Reserve or BTC Markets, then WazirX or CoinDCX)
-  - [ ] 5a. Independent Reserve USDT/AUD leg
-    files: `collector_route_ir.py`
-    context: `tools/probe_source.py`
-    venue: `AUD` | `https://api.independentreserve.com/Public/GetMarketSummary?primaryCurrencyCode=usdt&secondaryCurrencyCode=aud` | `LastPrice`
-    done when: a test that feeds the saved Independent Reserve market-summary JSON to `parse()` gets back the best bid and best offer in AUD per USDT as floats, and `fetch()` returns None on an HTTP error or a missing field instead of raising.
-  - [ ] 5b. BTC Markets USDT/AUD leg
-    files: `collector_route_btcm.py`
-    context: `tools/probe_source.py`
-    venue: `AUD` | `https://api.btcmarkets.net/v3/markets/USDT-AUD/ticker` | `lastPrice`
-    done when: a test that feeds the saved BTC Markets ticker JSON to `parse()` gets back the best bid and best ask in AUD per USDT as floats, and `fetch()` returns None on an HTTP error or a missing field instead of raising.
-  - [ ] 5c. WazirX USDT/INR leg
-    files: `collector_route_wazirx.py`
-    context: `tools/probe_source.py`
-- [ ] 6. United States to Turkey (Coinbase or Kraken, then BtcTurk or Paribu)
-  - [ ] 6a. US on-ramp collector: Coinbase and Kraken dollar-stablecoin quotes
-    files: `collector_us_tr_in.py` `data/us_tr_in.csv`
-    context: `collector_stable_venues.py`
-    venue: `USD` | `https://api.exchange.coinbase.com/products/USDT-USD/ticker` | `(not probed: a dollar in dollars)`
-    venue: `USD` | `https://api.kraken.com/0/public/Ticker?pair=USDTUSD` | `(not probed: a dollar in dollars)`
-    done when: running collector_us_tr_in.py appends one row per venue (timestamp, venue, bid, ask, last) to data/us_tr_in.csv, imports its helpers from existing collectors without editing them, and writes no row for a venue whose fetch failed.
-  - [ ] 6b. Turkish exit collector: BtcTurk and Paribu stablecoin-to-lira quotes
-    files: `collector_us_tr_out.py` `data/us_tr_out.csv`
-    context: `collector_stable_venues.py`
-    venue: `TRY` | `https://api.btcturk.com/api/v2/ticker?pairSymbol=USDT_TRY` | `data[0].last`
-    venue: `TRY` | `https://www.paribu.com/ticker` | `FIL_TL.last`
-    done when: running collector_us_tr_out.py appends one row per venue (timestamp, venue, bid, ask, last) to data/us_tr_out.csv, imports its helpers from existing collectors without editing them, and writes no row for a venue whose fetch failed.
-  - [ ] 6c. Run both new United States to Turkey collectors in the hourly workflow
-    files: `.github/workflows/collect.yml`
-    done when: collect.yml has appended steps that run collector_us_tr_in.py and collector_us_tr_out.py and commit their two CSVs, with every existing line unchanged.
-  - [ ] 6d. Emitter for the United States to Turkey route
-    files: `tools/emit_us_tr.py` `data/us_tr.json`
-    context: `collector_fx.py`
-    done when: running tools/emit_us_tr.py reads data/us_tr_in.csv and data/us_tr_out.csv, and writes data/us_tr.json
+## More routes
+Re-split 21 Oct under item 0: one job per route, through `collector.py --corridor`. Only where both ends already have a live exchange.
+A route job adds one entry to `CORRIDORS` in collector.py, one corridor step to collect.yml (and its providers file to the commit
+list there), and one entry to `CORRIDOR_CCY` in collector_providers.py. Every fee in the entry is copied from an entry already in the
+table, never typed. The `rows:` line says where its first hourly rows must land before the job is ticked (item 0, rule d).
+Apps in the comparison feed for each route were read on 20 Oct, 09:30 UTC, and posted on SEB-301; no route had fewer than 3.
+Found 21 Oct: a route that collects does not yet show on the Routes page. Eleven other files carry their own list of routes
+(tools/emit_routes.py, tools/emit_corridor_summary.py, tools/emit_providers.py, tools/emit_latest.py, tools/emit_price_changes.py,
+tools/emit_provider_receipts.py, tools/audit_numbers.py, tools/record_common.py, js/route.js, corridor.html, copy.json).
+Old split removed 21 Oct: 1a (#571), 1b (#575), 2a (#576) unticked, their collectors deleted; 1c, 2b, 2c, 3a to 3d, 4a to 4e, 5a to 5c
+and 6a to 6d dropped unbuilt.
+
+- [ ] 1. United States to the Philippines (Coinbase, then Coins.ph). Apps in the feed: 8.
+  - [ ] 1a. Add the USD->PHP route to collector.py's corridor table, its collect.yml step and the provider quotes config
+    files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
+    rows: `data/samples.csv` `USD->PHP`
+    done when: collector.py's CORRIDORS has one new "USD->PHP" entry with src USD, dst PHP, stable USDT, the onramp, network_fee_stable, gas_modelled, withdraw_pct, withdraw_pct_cap and deposit fields copied unchanged from "USD->MXN", the offramp and withdrawal copied unchanged from "SGD->PHP", the same ladder, and providers_file "providers_usdphp.csv"; collect.yml has one new step "Collect corridor sample USD->PHP" after the SGD->INR step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector.py --corridor "USD->PHP"`, and data/providers_usdphp.csv added to the commit list; collector_providers.py CORRIDOR_CCY has "USD->PHP": ("USD", "PHP"); no other line changes.
+    blocked: waits for item 0: the builder cannot yet send collector.py (103,000 characters) and rule d is not in the builder yet (2026-10-21)
+- [ ] 2. United States to Brazil (Coinbase, then Foxbit or Mercado Bitcoin). Apps in the feed: 7.
+  - [ ] 2a. Add the USD->BRL route to collector.py's corridor table, its collect.yml step and the provider quotes config
+    files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
+    rows: `data/samples.csv` `USD->BRL`
+    done when: as 1a, with the Coinbase side copied from "USD->MXN" and a Brazil off-ramp entry.
+    blocked: collector.py has no off-ramp for Foxbit or Mercado Bitcoin (it reads Coins.ph, Bitso, Luno and WazirX only), so this is new collector code, not a table entry, and the off-ramp fee must be read from the venue's own fee page, which the builder cannot do (2026-10-21)
+- [ ] 3. United States to Indonesia (Coinbase, then Indodax or Pintu). Apps in the feed: 6.
+  - [ ] 3a. Add the USD->IDR route to collector.py's corridor table, its collect.yml step and the provider quotes config
+    files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
+    rows: `data/samples.csv` `USD->IDR`
+    done when: as 1a, with the Coinbase side copied from "USD->MXN" and an Indonesia off-ramp entry.
+    blocked: collector.py has no off-ramp for Indodax or Pintu, and its own notes say Indodax publishes no fee schedule that can be read and checked, so there is no table entry to add (2026-10-21)
+- [ ] 4. Singapore to Indonesia (Independent Reserve, then Indodax or Pintu). Apps in the feed: 5.
+  - [ ] 4a. Add the SGD->IDR route to collector.py's corridor table, its collect.yml step and the provider quotes config
+    files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
+    rows: `data/samples.csv` `SGD->IDR`
+    done when: as 1a, with the Independent Reserve side copied from "SGD->PHP" and an Indonesia off-ramp entry.
+    blocked: same as 3a: no Indodax or Pintu off-ramp in collector.py and no readable Indodax fee schedule; collector.py names SGD->IDR as left out on purpose for that reason (2026-10-21)
+- [ ] 5. Australia to India (Independent Reserve, then WazirX). Apps in the feed: 11.
+  - [ ] 5a. Add the AUD->INR route to collector.py's corridor table, its collect.yml step and the provider quotes config
+    files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
+    rows: `data/samples.csv` `AUD->INR`
+    done when: collector.py's CORRIDORS has one new "AUD->INR" entry with src AUD, dst INR, stable USDT, the onramp, network_fee_stable and deposit copied unchanged from "AUD->PHP", the offramp copied unchanged from "SGD->INR", the same ladder, and providers_file "providers_audinr.csv"; collect.yml has one new step "Collect corridor sample AUD->INR" after the SGD->INR step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector.py --corridor "AUD->INR"`, and data/providers_audinr.csv added to the commit list; collector_providers.py CORRIDOR_CCY has "AUD->INR": ("AUD", "INR"); no other line changes.
+    blocked: waits for item 0: the builder cannot yet send collector.py (103,000 characters) and rule d is not in the builder yet (2026-10-21)
+- [ ] 6. United States to Turkey (Coinbase, then BtcTurk or Paribu). Apps in the feed: 5.
+  - [ ] 6a. Add the USD->TRY route to collector.py's corridor table, its collect.yml step and the provider quotes config
+    files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
+    rows: `data/samples.csv` `USD->TRY`
+    done when: as 1a, with the Coinbase side copied from "USD->MXN" and a Turkey off-ramp entry.
+    blocked: collector.py has no off-ramp for BtcTurk or Paribu, so this is new collector code, not a table entry, and the off-ramp fee must be read from the venue's own fee page, which the builder cannot do (2026-10-21)
 
 ## More apps
 - [ ] 7. For every route, list every provider the comparison feed returns that we don't store yet. Add all of them to the stored quotes.
@@ -129,6 +84,7 @@ with the same template as the others. No new page.
     context: `collector_providers.py`
     venue: `USD` | `https://api.wise.com/v4/comparisons/` | `(not probed: a dollar in dollars)`
     done when: running collector_comparison.py once appends to data/comparison_quotes.csv one row per route and provider that the feed returns (time, route, provider, fee, rate, amount received, source URL), and a provider already stored by collector_providers.py is skipped rather than duplicated.
+    blocked: held until item 0 is done: a collection job, so rule d (ticked only when its rows land) must be in the builder first (2026-10-21)
   - [ ] 7b. List the providers the feed returns that we do not store yet, per route
     files: `tools/list_unstored_providers.py` `data/unstored_providers.json`
     context: `collector_providers.py`
@@ -136,6 +92,7 @@ with the same template as the others. No new page.
   - [ ] 7c. Run the comparison collector in the hourly workflow
     files: `.github/workflows/collect.yml`
     done when: collect.yml has one new appended step that runs collector_comparison.py and commits data/comparison_quotes.csv, and no existing step is changed.
+    blocked: held until item 0 is done: a collection job, so rule d (ticked only when its rows land) must be in the builder first (2026-10-21)
 - [ ] 8. Check which big providers have a public quote of their own we can read the way we read Wise and Airwallex (try Remitly, Western Union, Revolut, Xe, MoneyGram). Add each that works as its own source next to the comparison feed. Post the ones that don't work and why.
 
 ## More sources for country prices
