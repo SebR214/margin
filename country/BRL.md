@@ -1,12 +1,12 @@
 # In Brazil a dollar costs 0.4% more than the official rate
 
-Prices from the 10:00 UTC hour, 21 Oct.
+Prices from the 11:00 UTC hour, 21 Oct.
 
 The official rate is 5.02 BRL per dollar. On the exchanges where people in Brazil trade stablecoins, one costs 5.04 BRL. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 504.30 BRL. The official rate says 502.31 BRL.
+For US$100, people pay 504.21 BRL. The official rate says 502.31 BRL.
 
-Prices from the 10:00 UTC hour, 21 Oct
+Prices from the 11:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/countries/BRL.json>
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 21 Oct, 11:36 UTC | MercadoBitcoin | 5.04 BRL | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 21 Oct, 11:36 UTC | Foxbit | 5.04 BRL | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 10:06 UTC | MercadoBitcoin | 5.04 BRL | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 10:06 UTC | Foxbit | 5.04 BRL | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 09:06 UTC | MercadoBitcoin | 5.04 BRL | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 21 Oct, 07:06 UTC | Foxbit | 5.04 BRL | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 06:06 UTC | MercadoBitcoin | 5.04 BRL | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 06:06 UTC | Foxbit | 5.04 BRL | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 21 Oct, 05:06 UTC | MercadoBitcoin | 5.05 BRL | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 21 Oct, 05:06 UTC | Foxbit | 5.04 BRL | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://margin.wiki/data/basis.csv>

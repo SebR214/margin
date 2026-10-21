@@ -1,12 +1,12 @@
 # In South Korea a dollar costs 0.4% more than the official rate
 
-Prices from the 10:00 UTC hour, 21 Oct.
+Prices from the 11:00 UTC hour, 21 Oct.
 
 The official rate is 1,327.17 KRW per dollar. On the exchanges where people in South Korea trade stablecoins, one costs 1,332 KRW. A stablecoin is a coin that stays worth one US dollar.
 
 For US$100, people pay 133,200 KRW. The official rate says 132,717 KRW.
 
-Prices from the 10:00 UTC hour, 21 Oct
+Prices from the 11:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/countries/KRW.json>
 
@@ -32,6 +32,9 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 21 Oct, 11:36 UTC | Upbit | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 21 Oct, 11:36 UTC | Coinone | 1,332 KRW | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 21 Oct, 11:36 UTC | Bithumb | 1,332 KRW | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 10:06 UTC | Upbit | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 10:06 UTC | Coinone | 1,332 KRW | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 10:06 UTC | Bithumb | 1,332 KRW | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -41,9 +44,6 @@ Open any file to check a price yourself.
 | 21 Oct, 08:06 UTC | Upbit | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 08:06 UTC | Coinone | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 21 Oct, 08:06 UTC | Bithumb | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 21 Oct, 07:06 UTC | Upbit | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 21 Oct, 07:06 UTC | Coinone | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 21 Oct, 07:06 UTC | Bithumb | 1,331 KRW | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://margin.wiki/data/basis.csv>
