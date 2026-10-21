@@ -6,7 +6,7 @@
 (function () {
   var SITE = 'https://margin.wiki/';
   var COLUMN = '.wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap, .sm-wrap';
-  var KEEP = 'header, footer, .site-head, .site-footer, .hp-head, .mv-switch, .mv-panel, script, template';
+  var KEEP = '.mv-switch, .mv-panel, script, template';   // Machine mode shows only the text: the site header, nav and footer are hidden too
 
   // the twin for this page, or null on a page that has none
   function twinPath() {
@@ -84,6 +84,8 @@
       }
       document.documentElement.classList.toggle('mv-on', on);
       bH.setAttribute('aria-pressed', on ? 'false' : 'true'); bM.setAttribute('aria-pressed', on ? 'true' : 'false');
+      panel.classList.remove('mv-in');
+      if (on) { requestAnimationFrame(function () { requestAnimationFrame(function () { panel.classList.add('mv-in'); }); }); }
       if (on && md === null) {
         md = '';
         fetch('./' + path, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); }).then(function (t) {
