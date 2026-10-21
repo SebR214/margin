@@ -1,7 +1,49 @@
 {
- "as_of_utc": "2026-10-21T02:38:16Z",
+ "as_of_utc": "2026-10-21T03:13:17Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "1de36157add1fc39f43844dd0ca28d4505adf880",
+   "html_url": "https://github.com/SebR214/margin/commit/1de36157add1fc39f43844dd0ca28d4505adf880",
+   "date": "2026-10-21T03:01:28Z",
+   "email": "person",
+   "message": "SEB-301: release the USD->PHP and AUD->INR route jobs, with the parts of each big file the builder sends (#585)\n\nItem 0 is done once #583 and #584 are in. 1a and 5a lose their hold and get excerpt: lines (the corridor table, the last corridor\nstep and the commit list of collect.yml, the provider currency table), about 23,000 characters in all. 7c is folded into 7a so a\ncollector and its collect.yml step land together and rule d can see its rows; 7a gets its rows: line.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "737355dd0332d2b10df084eadde7c5ebb52261ba",
+   "html_url": "https://github.com/SebR214/margin/commit/737355dd0332d2b10df084eadde7c5ebb52261ba",
+   "date": "2026-10-21T02:58:58Z",
+   "email": "person",
+   "message": "SEB-301: delete the three standalone route collectors that collect.yml never ran (#584)\n\nBACKLOG.md item 0 (a). collector_us_ph_usleg.py (#571), collector_us_ph_phleg.py (#575) and collector_route_us_br_us.py (#576)\nwere never run by collect.yml (no step names them) and their CSVs were never committed, so there is no data to keep. Routes go\nthrough collector.py --corridor instead. Removing an existing collector is not additive, so this PR does not merge itself; Seb\nasked for it in chat on 21 Oct.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "cf4928af1f682a77521f2da0d2faad00bf866026",
+   "html_url": "https://github.com/SebR214/margin/commit/cf4928af1f682a77521f2da0d2faad00bf866026",
+   "date": "2026-10-21T02:58:19Z",
+   "email": "person",
+   "message": "SEB-301: route table entries merge themselves, done means data, and the builder can change collector.py (#583)\n\nItem 0 of BACKLOG.md (21 Oct comment on SEB-301), rules (c) and (d), and what the route jobs need to be buildable:\n- tools/check_additive.py: an existing collector may now get whole new entries in a route-keyed table it already has (CORRIDORS,\n  CORRIDOR_CCY). No line removed or rewritten, the added lines are literal entries at the table's top level, keys are routes, and\n  no key twice. The full collection run on the branch (collector-gate) still has to pass: same headers, every corridor that\n  answered on main answers again. Tried on a real USD->PHP entry (passes) and a rewritten fee (refused).\n- tools/backlog.py: a `rows:` line; a collection job gets `built: PR #N` instead of a tick and is not built again; `verify-data`\n  ticks it when a row with that value and a later timestamp is on main, or blocks it with why after 2 hours.\n- watchdog.yml: a backlog-data job runs verify-data every 30 minutes when a job is waiting, pushes BACKLOG.md and posts the result.\n- tools/one_call.py: a file over 40,000 characters is sent in the parts the job names (`excerpt:` lines) and changed by\n  find-and-replace edits; a collection job without a `rows:` line is blocked; a changed collector's own --selftest runs.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "078651d475cadc29861ff11efb1758ca07653676",
+   "html_url": "https://github.com/SebR214/margin/commit/078651d475cadc29861ff11efb1758ca07653676",
+   "date": "2026-10-21T02:57:36Z",
+   "email": "person",
+   "message": "SEB-301: routes through the existing route machinery, top of BACKLOG.md, items 1 to 6 re-split (#581)\n\nThe 21 Oct \"Queued by Claude\" comment on SEB-301 goes in as item 0, with its comment id so the builder's sync never copies it twice.\nItems 1 to 6 are re-split to one job per route through collector.py --corridor. 1a, 1b and 2a are unticked and the old standalone-\ncollector jobs (1c, 2b, 2c, 3a to 3d, 4a to 4e, 5a to 5c, 6a to 6d) are dropped, so the builder cannot take them. The two route jobs\nthat are pure table entries (USD->PHP, AUD->INR) are held until item 0 is done; the other four are blocked with the reason. 7a and 7c\n(collection jobs) are held until rule d is in the builder.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "3173b01f55ca175dbf3f2f2272abea38a45814ce",
+   "html_url": "https://github.com/SebR214/margin/commit/3173b01f55ca175dbf3f2f2272abea38a45814ce",
+   "date": "2026-10-21T02:55:04Z",
+   "email": "person",
+   "message": "SEB-302: the flip-hold test picks a country whose latest hour is normal (#582)\n\nThe test took the first single-board person-to-person country, which since 23:40 UTC on 20 Oct is Sudan. Sudan's own number has\nbeen far above its 7-day level for more than 3 hours in a row (2,188% to 2,208% against a median near 1,700%), so the rule confirms\na further move by time and a bad row is published, as the rule says. The number is right; the test's pick was wrong. It now skips a\ncountry whose latest published hour is already outside its usual range. Today it tests Mozambique and passes. This check was red on\nevery main push and blocked every PR.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "1674308d46bf91d43df66a26a3831cda95a11d07",
+   "html_url": "https://github.com/SebR214/margin/commit/1674308d46bf91d43df66a26a3831cda95a11d07",
+   "date": "2026-10-21T02:40:32Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-21T02:40Z"
+  },
   {
    "sha": "11d8819d76daa2ab95fecf5f4766da9e590c0725",
    "html_url": "https://github.com/SebR214/margin/commit/11d8819d76daa2ab95fecf5f4766da9e590c0725",
@@ -659,48 +701,6 @@
    "date": "2026-10-19T18:13:43Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-10-19T18:13Z"
-  },
-  {
-   "sha": "41ebfee4e4129a2d6b3d94ce3f96efa5af8130ac",
-   "html_url": "https://github.com/SebR214/margin/commit/41ebfee4e4129a2d6b3d94ce3f96efa5af8130ac",
-   "date": "2026-10-19T17:40:13Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-19T17:40Z"
-  },
-  {
-   "sha": "36a58043352660d76185aaa007455460b40e5701",
-   "html_url": "https://github.com/SebR214/margin/commit/36a58043352660d76185aaa007455460b40e5701",
-   "date": "2026-10-19T17:15:10Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-19T17:15Z"
-  },
-  {
-   "sha": "5ec259c5ba54192f824a86be0251ff56e83f0b5b",
-   "html_url": "https://github.com/SebR214/margin/commit/5ec259c5ba54192f824a86be0251ff56e83f0b5b",
-   "date": "2026-10-19T16:39:28Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-19T16:39Z"
-  },
-  {
-   "sha": "291d1f133937720eebd83f61bab2a30a4c68b38f",
-   "html_url": "https://github.com/SebR214/margin/commit/291d1f133937720eebd83f61bab2a30a4c68b38f",
-   "date": "2026-10-19T16:14:30Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-19T16:14Z"
-  },
-  {
-   "sha": "62eab740951d60242b26fccb17b30522996625dc",
-   "html_url": "https://github.com/SebR214/margin/commit/62eab740951d60242b26fccb17b30522996625dc",
-   "date": "2026-10-19T15:38:26Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-19T15:38Z"
-  },
-  {
-   "sha": "098c478026d8d2ed15c0d00ef52b1fee7c9ac0be",
-   "html_url": "https://github.com/SebR214/margin/commit/098c478026d8d2ed15c0d00ef52b1fee7c9ac0be",
-   "date": "2026-10-19T15:15:32Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-19T15:15Z"
   }
  ]
 }
