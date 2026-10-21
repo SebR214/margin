@@ -275,6 +275,20 @@ jobs:
         # currencies they collected. Exits non-zero only on a total blackout.
         run: python3 collector_fx.py
 
+      - name: Collect a live official rate beside er-api (SEB-310)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        # data/fx_live.csv: an intraday rate per currency with the source's own timestamp, stored NEXT TO er-api's. Nothing reads
+        # it; the published rate does not change. See collector_official_live.py and METHODOLOGY.md.
+        run: python3 collector_official_live.py
+
+      - name: Check the official rates for a broken series (SEB-310)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        # Once a day (the 03:00 UTC hour): flags a rate that repeats a weekly loop, jumps and reverses, doesn't change for 30
+        # days, or lags the live rate. Writes data/official_rate_flags.csv. See tools/check_official_rates.py.
+        run: if [ "$(date -u +%H)" = "03" ]; then python3 tools/check_official_rates.py; else echo "once a day, not this hour"; fi
+
       - name: Emit machine-readable snapshot
         if: always() && steps.needed.outputs.proceed == 'true'
         # Derived from the CSVs the two steps above just wrote, so it runs after
@@ -652,7 +666,7 @@ jobs:
                    data/p2p_spread_signal.csv data/p2p_spread_signal_latest.json \
                    data/corridor_summary.json data/corridor_waterfall.csv \
                    data/corridor_window.json data/machine_room_meters.json \
-                   data/provider_delivery.csv data/audit_latest.json \
+                   data/provider_delivery.csv data/fx_live.csv data/official_rate_flags.csv data/audit_latest.json \
                    data/audit_history.csv data/claims_status.json data/claims_history.csv data/routes_hourly.json \
                    data/routes_summary.json data/routes_breakdown.json \
                    data/routes_whatif.json data/heatmap_daily.json \

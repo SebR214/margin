@@ -1732,6 +1732,34 @@ winning provider is also winning at the larger sizes; a promo usually is not.
 - **KYC and limits.** "Achievable" assumes a funded, verified account at both
   venues. Onboarding time is a real cost and is not priced here.
 
+## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
+
+**Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's
+(`data/fx_rates.csv`, updated once a day at about 00:02 UTC). Two new files sit beside it and feed nothing yet.
+
+**`data/fx_live.csv`** (`collector_official_live.py`, every collection run): an intraday rate per currency, never one of the apps
+we measure. Columns: `ts_utc` (our clock), `ccy`, `rate_per_usd`, `source`, `source_ts_utc` (the source's own timestamp, as given),
+`er_api_rate` (the er-api rate of the same run), `gap_pct` (live against er-api), `source_ok`, `error`. Sources, keyless, tried in
+order: Yahoo Finance's spark endpoint (one call for up to 20 currencies), then Google Finance's quote page for each currency
+Yahoo did not answer. Yahoo answers HTTP 429 to a client that asks more than a few times an hour, which it did to the probing
+Mac, so on a shared runner expect Google to carry most currencies. A currency that neither answers is a row with `source_ok`
+false and the reason; a rate more than five times or under a fifth of er-api's is a broken read and also `source_ok` false. A
+gap of tens of percent is kept, because it is the finding: on 21 Oct the live rate for Sudan was 601.5 against er-api's 449.2.
+A source's own timestamp can be old (Google's rate for the Mongolian tugrik was stamped 4 June): read `source_ts_utc` before
+trusting a row. It is quarantined by construction: nothing reads it until Seb decides to.
+
+**`data/official_rate_flags.csv`** (`tools/check_official_rates.py`, once a day, the 03:00 UTC run): flags a currency whose er-api
+series (the last value of each UTC day) does one of four things. `weekly_loop`: the last 21 days repeat the days seven before,
+within 2%, on at least 80% of days, while the rate swings more than 5% inside a week. `jump_reverse`: a move of more than 10% in a
+day that is undone to within 3% inside five days. `flat_30`: not one change, to six decimals, in 30 days (a managed peg does this
+legitimately; the flag asks a person to look, it does not remove the rate). `lags_live`: er-api and the live rate more than 3% apart
+on two days in a row (silent until `fx_live.csv` has two days). On 21 Oct it flags Sudan (loop, and a spike to 592 on 20 Sep that was
+514 the next day), Bolivia (a 10% drop and back), and five pegs (AED, JOD, LBP, QAR, SAR). Tests: `tests/check_official_rates.py`,
+with Sudan's real series and Iraq's step catch-up (9 to 14 Oct) as fixtures.
+
+**The decision is Seb's.** After seven days of `fx_live.csv`, the comparison goes on SEB-310: per currency the median gap to er-api, how
+many rejected app quotes would pass against the live rate, and which currencies the check flags.
+
 ## Fee verification status
 
 Fees are the largest single term in the taker decomposition, which makes them
