@@ -38,6 +38,7 @@ Usage:
 
 import argparse
 import csv
+import math
 import datetime as dt
 import json
 import os
@@ -362,10 +363,22 @@ CORRIDORS = {
         # corridor's cost is a real UNDERSTATEMENT at every size, more so
         # than USD->MXN's, and more so at S$200 than at S$50,000. Flagged
         # here rather than hidden; see METHODOLOGY.
-        "network_fee_stable": 0.0,           # unmodelled ERC20 gas, see above
-        "gas_modelled": False,               # METHODOLOGY, network table: gas is not published, so it is not in the cost
+        # SEB-310, 21 Oct: the gas is now READ at every collection (fetch_eth_gas, public keyless Ethereum RPC and Coinbase's
+        # public ETH-USD price) and replaces the 0.0 below for that run. If the reading fails the row is source_ok=false, not 0.
+        "network_fee_stable": 0.0,           # replaced by the gas reading at run time, see fetch_eth_gas()
+        "gas_chain": "ethereum",
+        "gas_modelled": True,
         "withdraw_pct": 0.0001,              # 0.01%, published (Coinbase)
         "withdraw_pct_cap": 20.0,             # USDT, published (Coinbase)
+        # NGN bank withdrawal (SEB-310): Luno publishes it on guide.luno.com, which answers a bot check to every automated
+        # client, so the page could not be read on 2026-10-21 and the fee stays a GAP (costs 0.0, flagged, never invented).
+        # Search snippets of that page disagree (N300, N500, or 2% capped at N2,000), which is why none is used.
+        "withdrawal": {
+            "venue": "Luno", "method": "bank transfer",
+            "fee_type": "gap", "fee_value": None, "fee_ccy": "NGN",
+            "source_url": "https://guide.luno.com/hc/en-gb/articles/14962563616157-Luno-fees-and-limits-in-Nigeria",
+            "verified": "2026-10-21",
+        },
         "ladder": [200, 1000, 5000, 25000, 50000],
         "providers_file": "providers_usdngn.csv",
     },
@@ -398,6 +411,20 @@ CORRIDORS = {
             "taker_bps": 40.0,
             "maker_bps": 40.0,
             "verified": "2026-09-29",
+            # TDS: "From 1 July 2022, TDS (Tax Deducted at Source) of 1% of the trade value will be deducted on each trade"
+            # (wazirx.com/fees?tab=spot_fees, Important box, read 2026-10-21). Added to the fee at the sale, see decompose().
+            # GST on the trading fee ("*GST and taxes as applicable") has no published rate there: not modelled.
+            "tds_bps": 100.0,
+            "tds_source_url": "https://wazirx.com/fees?tab=spot_fees",
+            "tds_verified": "2026-10-21",
+        },
+        # INR bank withdrawal: WazirX's own help article states "Withdrawal Fee: INR 10 per withdrawal, inclusive of taxes",
+        # at most INR 2,00,000 per transaction (INR 10,00,000 a day, which delays a large amount, not its cost). Read 2026-10-21.
+        "withdrawal": {
+            "venue": "WazirX", "method": "IMPS/NEFT",
+            "fee_type": "flat_per_chunk", "fee_value": 10.0, "fee_ccy": "INR", "chunk_max": 200000.0,
+            "source_url": "https://support.wazirx.com/hc/en-us/articles/360001690794-How-can-I-withdraw-INR-to-my-bank-account",
+            "verified": "2026-10-21",
         },
         # Same chain constraint as USD->NGN: Coinbase does not withdraw USDT
         # over Tron, and WazirX's own deposit/withdrawal table lists USDT
@@ -405,8 +432,9 @@ CORRIDORS = {
         # (wazirx.com/fees?tab=deposit_withdrawal_fees, read 2026-09-29), so
         # Ethereum is the common chain here too -- same unmodelled-gas
         # caveat as USD->NGN applies.
-        "network_fee_stable": 0.0,           # unmodelled ERC20 gas, see above
-        "gas_modelled": False,               # METHODOLOGY, network table: gas is not published, so it is not in the cost
+        "network_fee_stable": 0.0,           # replaced by the gas reading at run time, see fetch_eth_gas()
+        "gas_chain": "ethereum",
+        "gas_modelled": True,
         "withdraw_pct": 0.0001,
         "withdraw_pct_cap": 20.0,
         "ladder": [200, 1000, 5000, 25000, 50000],
@@ -435,6 +463,20 @@ CORRIDORS = {
             "taker_bps": 40.0,
             "maker_bps": 40.0,
             "verified": "2026-09-29",
+            # TDS: "From 1 July 2022, TDS (Tax Deducted at Source) of 1% of the trade value will be deducted on each trade"
+            # (wazirx.com/fees?tab=spot_fees, Important box, read 2026-10-21). Added to the fee at the sale, see decompose().
+            # GST on the trading fee ("*GST and taxes as applicable") has no published rate there: not modelled.
+            "tds_bps": 100.0,
+            "tds_source_url": "https://wazirx.com/fees?tab=spot_fees",
+            "tds_verified": "2026-10-21",
+        },
+        # INR bank withdrawal: WazirX's own help article states "Withdrawal Fee: INR 10 per withdrawal, inclusive of taxes",
+        # at most INR 2,00,000 per transaction (INR 10,00,000 a day, which delays a large amount, not its cost). Read 2026-10-21.
+        "withdrawal": {
+            "venue": "WazirX", "method": "IMPS/NEFT",
+            "fee_type": "flat_per_chunk", "fee_value": 10.0, "fee_ccy": "INR", "chunk_max": 200000.0,
+            "source_url": "https://support.wazirx.com/hc/en-us/articles/360001690794-How-can-I-withdraw-INR-to-my-bank-account",
+            "verified": "2026-10-21",
         },
         "network_fee_stable": 4.0,
         "ladder": [200, 1000, 5000, 25000, 50000],
@@ -744,6 +786,10 @@ def ramp_fee_units(leg_cfg, base_amount):
         return leg_cfg["fee_value"]
     if ft == "pct":
         return base_amount * leg_cfg["fee_value"]
+    if ft == "flat_per_chunk":
+        # a flat fee per withdrawal, and the venue caps one withdrawal (WazirX: INR 10 per withdrawal, at most INR 200,000
+        # each), so a larger amount is paid out in several withdrawals and pays the fee on each
+        return leg_cfg["fee_value"] * max(1, math.ceil(base_amount / leg_cfg["chunk_max"]))
     return 0.0  # "free" (verified zero) or "gap" (unmeasured, never invented)
 
 
@@ -756,9 +802,11 @@ def decompose(notional, on_book, off_book, mids, cfg):
     mid = dst_usd / src_usd if (src_usd and dst_usd) else None
 
     on_fee = cfg["onramp"]["taker_bps"] / 1e4
-    off_fee = cfg["offramp"]["taker_bps"] / 1e4
+    # India withholds 1% tax (TDS) on every crypto sale (SEB-310, 21 Oct): it is deducted from the sale on top of the exchange fee
+    tds = cfg["offramp"].get("tds_bps", 0.0)
+    off_fee = (cfg["offramp"]["taker_bps"] + tds) / 1e4
     on_fee_mk = cfg["onramp"]["maker_bps"] / 1e4
-    off_fee_mk = cfg["offramp"]["maker_bps"] / 1e4
+    off_fee_mk = (cfg["offramp"]["maker_bps"] + tds) / 1e4
     # The network leg has two shapes across venues: a flat per-send fee (IR
     # charges 4.0 USDT on Tron) and a proportional processing fee (Coinbase
     # charges 0.01% of the amount, capped at 20 USDT). Model both; a corridor
@@ -1089,11 +1137,66 @@ def fetch_baseline(src, dst, amount):
 
 
 # ------------------------------------------------------------- collection
+ETH_RPC = "https://ethereum-rpc.publicnode.com"
+ETH_PRICE_URL = "https://api.exchange.coinbase.com/products/ETH-USD/ticker"
+USDT_ETH = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+# a public, well-known wallet that holds USDT: eth_estimateGas needs a sender with a balance. Nothing is sent.
+GAS_PROBE_FROM = "0x28C6c06298d514Db089934071355E5743bf21d60"
+GAS_PROBE_TO = "0x1111111111111111111111111111111111111111"
+GAS_SIDECAR = "gas_readings.csv"
+GAS_HEADER = ["ts_utc", "chain", "gas_units", "gas_price_gwei", "eth_usd", "cost_usd", "rpc_url", "price_url", "source_ok", "error"]
+
+
+def _eth_rpc(method, params):
+    r = requests.post(ETH_RPC, json={"jsonrpc": "2.0", "id": 1, "method": method, "params": params},
+                      timeout=HTTP_TIMEOUT, headers=UA)
+    r.raise_for_status()
+    j = r.json()
+    if "error" in j:
+        raise ValueError(str(j["error"])[:120])
+    return int(j["result"], 16)
+
+
+def fetch_eth_gas():
+    """What one USDT transfer on Ethereum costs right now, in US dollars (SEB-310). All three terms are read, none typed:
+    the gas units from eth_estimateGas of a real USDT transfer (to a new address, the dearer case), the gas price from
+    eth_gasPrice, the price of ether from Coinbase's public ticker. -> dict; raises on any failure, so a bad reading is
+    a failed row and never a silent zero."""
+    data = "0xa9059cbb" + GAS_PROBE_TO[2:].rjust(64, "0") + hex(1_000_000)[2:].rjust(64, "0")
+    units = _eth_rpc("eth_estimateGas", [{"from": GAS_PROBE_FROM, "to": USDT_ETH, "data": data}])
+    wei = _eth_rpc("eth_gasPrice", [])
+    eth_usd = float(get_json(ETH_PRICE_URL)["price"])
+    if not (units > 0 and wei > 0 and eth_usd > 0):
+        raise ValueError("gas reading not positive")
+    return {"gas_units": units, "gas_price_gwei": wei / 1e9, "eth_usd": eth_usd, "cost_usd": units * wei / 1e18 * eth_usd}
+
+
+def append_gas_reading(ts, got, err):
+    path = os.path.join(HERE, "data", GAS_SIDECAR)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="") as fh:
+        w = csv.writer(fh)
+        if new:
+            w.writerow(GAS_HEADER)
+        w.writerow([ts, "ethereum", got and got["gas_units"], got and round(got["gas_price_gwei"], 4), got and got["eth_usd"],
+                    got and round(got["cost_usd"], 6), ETH_RPC, ETH_PRICE_URL, err == "", err])
+
+
 def collect(corridor_key, cfg):
     """One sample across the whole ladder. Never raises; records failures."""
     ts = dt.datetime.now(dt.timezone.utc).isoformat()
     src, dst = cfg["src"], cfg["dst"]
     errors, ok = [], True
+    if cfg.get("gas_chain") == "ethereum":
+        # the network fee of this run is the measured gas, stored beside the rows that use it
+        try:
+            got, gerr = fetch_eth_gas(), ""
+            cfg = {**cfg, "network_fee_stable": got["cost_usd"]}
+        except Exception as e:
+            got, gerr = None, f"gas:{type(e).__name__}:{e}"[:200]
+            errors.append(gerr)
+            ok = False
+        append_gas_reading(ts, got, gerr)
 
     try:
         mids = fetch_mids(src, dst)
@@ -1146,8 +1249,8 @@ def collect(corridor_key, cfg):
             "onramp_venue": cfg["onramp"]["venue"], "offramp_venue": cfg["offramp"]["venue"],
             "fee_on_taker_bps": cfg["onramp"]["taker_bps"],
             "fee_on_maker_bps": cfg["onramp"]["maker_bps"],
-            "fee_off_taker_bps": cfg["offramp"]["taker_bps"],
-            "fee_off_maker_bps": cfg["offramp"]["maker_bps"],
+            "fee_off_taker_bps": cfg["offramp"]["taker_bps"] + cfg["offramp"].get("tds_bps", 0.0),
+            "fee_off_maker_bps": cfg["offramp"]["maker_bps"] + cfg["offramp"].get("tds_bps", 0.0),
             "network_fee_stable": cfg["network_fee_stable"],
             "fees_verified": fees_verified,
             "baseline_provider": bname, "baseline_landed": blanded,
@@ -1799,6 +1902,19 @@ def selftest():
           f"taker {d_inr['cost_bps_taker']:.1f} bps, flat WazirX fee leaves "
           f"only Coinbase's {d_inr['cost_bps_taker']-d_inr['cost_bps_maker']:.2f}"
           f"bps taker/maker gap")
+    # SEB-310: India's 1% TDS is in the sale, and WazirX's INR 10 withdrawal fee is paid once per INR 200,000
+    cfg_notds = {**cfg_inr, "offramp": {k: v for k, v in cfg_inr["offramp"].items() if k != "tds_bps"}}
+    d_notds = decompose(1000, on_cb, off_wazirx, MIDS_FIXTURE_INR, cfg_notds)
+    # 100 bps of the sale, a little more here because the fixture INR price sits 4% above the mid
+    assert 99.0 < d_inr["cost_bps_taker"] - d_notds["cost_bps_taker"] < 110.0, (d_inr["cost_bps_taker"], d_notds["cost_bps_taker"])
+    assert cfg_inr["offramp"]["tds_bps"] == 100.0 and cfg_inr["offramp"]["tds_source_url"].startswith("https://wazirx.com/")
+    wd_inr = cfg_inr["withdrawal"]
+    assert ramp_fee_units(wd_inr, 150_000) == 10.0 and ramp_fee_units(wd_inr, 200_000) == 10.0
+    assert ramp_fee_units(wd_inr, 200_001) == 20.0 and ramp_fee_units(wd_inr, 4_700_000) == 240.0
+    assert wd_inr["verified"] == "2026-10-21" and "support.wazirx.com" in wd_inr["source_url"]
+    assert CORRIDORS["USD->NGN"]["withdrawal"]["fee_type"] == "gap", "Luno's NGN fee page could not be read: a gap, not a number"
+    assert CORRIDORS["SGD->INR"]["offramp"]["tds_bps"] == 100.0 and CORRIDORS["SGD->INR"]["withdrawal"]["fee_value"] == 10.0
+    print(f"  [ok] SEB-310: India TDS adds {d_inr['cost_bps_taker'] - d_notds['cost_bps_taker']:.1f} bps, INR 10 withdrawal fee per INR 200,000")
 
     cfg_sgdinr = CORRIDORS["SGD->INR"]
     on_ir = {"asks": sorted(norm_levels(IR_FIXTURE["SellOrders"]), key=lambda x: x[0])}
