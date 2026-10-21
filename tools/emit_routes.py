@@ -65,6 +65,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from collector import CORRIDORS as COLLECTOR_CORRIDORS  # noqa: E402  the corridor config is the one place that says what is modelled
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from routes_common import PANELS, ROUTES, ROUTE_DEST, ROUTE_WORDS  # noqa: E402
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
@@ -77,47 +79,13 @@ RAMP_WATERFALL = "ramp_waterfall.csv"
 VARIANT_LEGS = "corridor_variant_legs.csv"       # SEB-268 item 3: the steps of every priced variant path, from the hour they are stored
 RAMP_FEES = "ramp_fees.csv"
 WITHDRAWAL_FEES = "withdrawal_fees.csv"
-# Each route's comparison panel lives in its own file (providers.csv has no
-# corridor column): same map as tools/emit_providers.py PANELS.
-PANELS = {
-    "SGD->PHP": "providers.csv",
-    "USD->MXN": "providers_usdmxn.csv",
-    "AUD->PHP": "providers_audphp.csv",
-    "NZD->PHP": "providers_nzdphp.csv",
-    "USD->NGN": "providers_usdngn.csv",
-    "USD->INR": "providers_usdinr.csv",
-    "SGD->INR": "providers_sgdinr.csv",
-}
-# Order as tools/emit_corridor_summary.py CORRIDORS.
-ROUTES = ["SGD->PHP", "AUD->PHP", "NZD->PHP", "USD->MXN",
-          "USD->NGN", "USD->INR", "SGD->INR"]
+# The routes, each route's comparison panel file and its names all come from
+# collector.CORRIDORS and copy.json "routeNames" (tools/routes_common.py), so a
+# route added to the collector needs no edit here.
 START = "2026-08-10"          # the first stored hour of any route
 DEFAULT_AMOUNT = 5000         # tools/emit_corridor_summary.py RUNG
 WINDOW_DAYS = 7
 
-# Display words for a route, so the page (sending-money.html, SEB-272) never
-# builds a country name out of JS string fragments -- it reads this field
-# straight off the emitted JSON. Same values tools/emit_providers.py's own
-# ROUTE_WORDS/SYMBOL already use elsewhere on the site; duplicated here
-# rather than imported because tools/emit_providers.py is a script, not a
-# module meant to be imported. "dest" is the destination-only phrase the
-# headline needs ("Sending {amount} to {dest} costs..."); data/corridor_window.json
-# already stores the same "the Philippines"/"Mexico" wording under its own
-# "dest" field, so this matches that existing convention.
-ROUTE_WORDS = {
-    "SGD->PHP": "Singapore to the Philippines",
-    "AUD->PHP": "Australia to the Philippines",
-    "NZD->PHP": "New Zealand to the Philippines",
-    "USD->MXN": "the United States to Mexico",
-    "USD->NGN": "the United States to Nigeria",
-    "USD->INR": "the United States to India",
-    "SGD->INR": "Singapore to India",
-}
-ROUTE_DEST = {
-    "SGD->PHP": "the Philippines", "AUD->PHP": "the Philippines",
-    "NZD->PHP": "the Philippines", "USD->MXN": "Mexico",
-    "USD->NGN": "Nigeria", "USD->INR": "India", "SGD->INR": "India",
-}
 SYMBOL = {"SGD": "S$", "AUD": "A$", "NZD": "NZ$", "USD": "US$"}
 
 OUT = {

@@ -61,18 +61,11 @@ P2P = os.path.join(DATA, "p2p_basis.csv")
 SAMPLES = os.path.join(DATA, "samples.csv")
 
 # Panel files are per-corridor: providers.csv has no corridor column and a
-# frozen schema, so each corridor writes its own file. Listed explicitly rather
-# than imported from collector.py -- this tool is stdlib-only and must keep
-# working even if the collector cannot be imported (it needs `requests`).
-# A file that is not present is simply not reported.
-PANELS = [
-    ("SGD->PHP", "providers.csv"),
-    ("USD->MXN", "providers_usdmxn.csv"),
-    ("USD->NGN", "providers_usdngn.csv"),
-    ("USD->INR", "providers_usdinr.csv"),
-    ("SGD->INR", "providers_sgdinr.csv"),
-]
-
+# frozen schema, so each corridor writes its own file. One per route in
+# collector.CORRIDORS (tools/routes_common.py). A file that is not present is
+# simply not reported.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from routes_common import PANELS  # noqa: E402
 
 # ------------------------------------------------------------- parsing
 def rows(path):
@@ -434,7 +427,7 @@ def panel_section(path):
 def providers_section():
     """One entry per corridor panel file that exists and has usable rows."""
     out = {}
-    for corridor, name in PANELS:
+    for corridor, name in PANELS.items():
         section = panel_section(os.path.join(DATA, name))
         if section is not None:
             section["source"] = f"data/{name}"

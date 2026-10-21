@@ -19,9 +19,9 @@ success column: every row is a reading.
     fx_rates.csv         official rate per currency (open.er-api, bcra) and the
                          parallel-dollar rate where one is stored
     provider_quotes.csv  a provider's own quote, per route and size
-    providers.csv, providers_audphp.csv, providers_nzdphp.csv, providers_sgdinr.csv,
-    providers_usdinr.csv, providers_usdmxn.csv, providers_usdngn.csv
-                         the price-comparison feed, one row per provider, route
+    providers.csv, providers_audphp.csv, ... one file per route, named by its
+                         providers_file in collector.CORRIDORS: the
+                         price-comparison feed, one row per provider, route
                          and size (the route is the file's)
     samples.csv          one priced route through order books, per route and size
     corridor_variants.csv  stablecoin / network variants of a route
@@ -38,6 +38,10 @@ withdrawal_fees, ramp_fees, audit_history and the daily country layer.
 import csv
 import datetime as dt
 import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from routes_common import PANELS  # noqa: E402
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
@@ -110,13 +114,11 @@ SPECS = [
     dict(file="p2p_okx.csv", ts="ts_utc", sources=_p2p_sources, ccy=lambda r: r.get("ccy"), route=None),
     dict(file="fx_rates.csv", ts="ts_utc", sources=_fx_sources, ccy=lambda r: r.get("ccy"), route=None),
     dict(file="provider_quotes.csv", ts="ts_utc", sources=_quote_sources, ccy=None, route=lambda r: r["corridor"]),
-    dict(file="providers.csv", ts="ts_utc", sources=_comparison_sources, ccy=None, route=_const("SGD->PHP")),
-    dict(file="providers_audphp.csv", ts="ts_utc", sources=_comparison_sources, ccy=None, route=_const("AUD->PHP")),
-    dict(file="providers_nzdphp.csv", ts="ts_utc", sources=_comparison_sources, ccy=None, route=_const("NZD->PHP")),
-    dict(file="providers_sgdinr.csv", ts="ts_utc", sources=_comparison_sources, ccy=None, route=_const("SGD->INR")),
-    dict(file="providers_usdinr.csv", ts="ts_utc", sources=_comparison_sources, ccy=None, route=_const("USD->INR")),
-    dict(file="providers_usdmxn.csv", ts="ts_utc", sources=_comparison_sources, ccy=None, route=_const("USD->MXN")),
-    dict(file="providers_usdngn.csv", ts="ts_utc", sources=_comparison_sources, ccy=None, route=_const("USD->NGN")),
+] + [
+    # one comparison panel per route in collector.CORRIDORS, in file-name order
+    dict(file=f, ts="ts_utc", sources=_comparison_sources, ccy=None, route=_const(c))
+    for f, c in sorted((f, c) for c, f in PANELS.items())
+] + [
     dict(file="samples.csv", ts="ts", sources=_samples_sources, ccy=None, route=lambda r: r["corridor"]),
     dict(file="corridor_variants.csv", ts="ts", sources=lambda r: [], ccy=None, route=lambda r: r["corridor"]),
     dict(file="stable_spread.csv", ts="ts_utc", sources=_stable_sources, ccy=lambda r: r.get("ccy"), route=None),

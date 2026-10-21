@@ -39,10 +39,9 @@ import record_common as rc  # noqa: E402
 OUT = os.path.join(rc.DATA, "record_daily.json")
 
 DEFINITION = (
-    "A reading is one stored row in basis.csv, p2p_basis.csv, p2p_okx.csv, fx_rates.csv, "
-    "provider_quotes.csv, providers.csv, providers_audphp.csv, providers_nzdphp.csv, "
-    "providers_sgdinr.csv, providers_usdinr.csv, providers_usdmxn.csv, providers_usdngn.csv, "
-    "samples.csv, corridor_variants.csv or stable_spread.csv, dated 2026-08-10 or later, whose "
+    # the files are record_common's, so a route's panel file joins the list with the route
+    "A reading is one stored row in " + ", ".join(rc.READING_FILES[:-1]) + " or " + rc.READING_FILES[-1] + ", "
+    "dated 2026-08-10 or later, whose "
     "source_ok is not False (fx_rates.csv has no such column: every row counts). Failed attempts "
     "are not readings. Files derived from these (depth, waterfalls, signals, price changes) are "
     "not counted. A source is a venue, exchange, aggregator, exchange-rate feed or provider named "

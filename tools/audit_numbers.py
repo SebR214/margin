@@ -78,17 +78,11 @@ LEG_TOL = 0.011      # five 2-dp legs may drift by rounding only
 # the same policy constant restated here rather than imported.
 PRICECHANGE_MIN_READINGS = 6
 
-# Mirrors tools/emit_providers.py's own PANELS -- each corridor's comparison
-# panel lives in its own file, since providers.csv has no corridor column.
-PROVIDER_PANELS = {
-    "SGD->PHP": "providers.csv",
-    "USD->MXN": "providers_usdmxn.csv",
-    "AUD->PHP": "providers_audphp.csv",
-    "NZD->PHP": "providers_nzdphp.csv",
-    "USD->NGN": "providers_usdngn.csv",
-    "USD->INR": "providers_usdinr.csv",
-    "SGD->INR": "providers_sgdinr.csv",
-}
+# Each corridor's comparison panel lives in its own file, since providers.csv
+# has no corridor column: one per route in collector.CORRIDORS
+# (tools/routes_common.py).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from routes_common import PANELS as PROVIDER_PANELS  # noqa: E402
 
 FAMILIES = ("country", "corridor", "variant", "pricechange", "provider_ranking",
             "provider_delivery")

@@ -34,43 +34,17 @@ STABLE_VENUES = os.path.join(DATA, "stable_venues.csv")
 DELIVERY = os.path.join(DATA, "provider_delivery.csv")
 OUT = os.path.join(DATA, "providers_latest.json")
 
-# Each corridor's comparison panel lives in its own file, because providers.csv
-# has no corridor column and a frozen schema.
-PANELS = {
-    "SGD->PHP": "providers.csv",
-    "USD->MXN": "providers_usdmxn.csv",
-    "AUD->PHP": "providers_audphp.csv",
-    "NZD->PHP": "providers_nzdphp.csv",
-    "USD->NGN": "providers_usdngn.csv",
-    "USD->INR": "providers_usdinr.csv",
-    "SGD->INR": "providers_sgdinr.csv",
-}
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from routes_common import PANELS, ROUTE_WORDS, SENDING_WORDS  # noqa: E402
 
-ROUTE_WORDS = {
-    "SGD->PHP": "Singapore to the Philippines",
-    "AUD->PHP": "Australia to the Philippines",
-    "NZD->PHP": "New Zealand to the Philippines",
-    "USD->MXN": "the United States to Mexico",
-    "USD->NGN": "the United States to Nigeria",
-    "USD->INR": "the United States to India",
-    "SGD->INR": "Singapore to India",
-}
+# Each corridor's comparison panel file and its names come from
+# collector.CORRIDORS and copy.json "routeNames" (tools/routes_common.py).
+# SENDING_WORDS is Phase 4's (FINAL spec, crossover sentences) "Sending
+# {sending_words}, stablecoins beat the cheapest app about X% of the time...":
+# a currency + destination phrase, not the ROUTE_WORDS "country to country"
+# phrasing, because that is the exact template's own wording ("Sending dollars
+# to Mexico"), plain per DESIGN.md's "name real things" rule.
 SYMBOL = {"SGD": "S$", "AUD": "A$", "NZD": "NZ$", "USD": "US$"}
-
-# Phase 4 (FINAL spec, crossover sentences): "Sending {sending_words},
-# stablecoins beat the cheapest app about X% of the time..." -- a currency
-# + destination phrase, not the ROUTE_WORDS "country to country" phrasing,
-# because that is the exact template's own wording ("Sending dollars to
-# Mexico"), plain per DESIGN.md's "name real things" rule.
-SENDING_WORDS = {
-    "SGD->PHP": "Singapore dollars to the Philippines",
-    "AUD->PHP": "Australian dollars to the Philippines",
-    "NZD->PHP": "New Zealand dollars to the Philippines",
-    "USD->MXN": "dollars to Mexico",
-    "USD->NGN": "dollars to Nigeria",
-    "USD->INR": "dollars to India",
-    "SGD->INR": "Singapore dollars to India",
-}
 
 # The size every crossover stat is measured at -- $5,000-equivalent, the
 # same default amount the page itself opens on (AMOUNT_ORDER in

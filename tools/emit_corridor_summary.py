@@ -28,6 +28,10 @@ Stdlib only.
 import csv
 import json
 import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from routes_common import ROUTES  # noqa: E402
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
@@ -37,8 +41,8 @@ RAMP_WATERFALL = os.path.join(DATA, "ramp_waterfall.csv")
 OUT = os.path.join(DATA, "corridor_summary.json")
 
 RUNG = "5000"
-CORRIDORS = ["SGD->PHP", "AUD->PHP", "NZD->PHP", "USD->MXN",
-             "USD->NGN", "USD->INR", "SGD->INR"]
+# Every route in collector.CORRIDORS, in its order (tools/routes_common.py).
+CORRIDORS = ROUTES
 WATERFALL_CORRIDOR = "SGD->PHP"
 
 
