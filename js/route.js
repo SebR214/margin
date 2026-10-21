@@ -49,7 +49,7 @@
   var app = document.getElementById("app");
   var HOURLY = null, BRK = null;
   var COL = {}, BCOL = {};
-  var S = { route: null, amount: null };
+  var S = { route: null, amount: null, period: "all" };   // period: the chart range, "all", "1m" or "1w" (21 Oct)
   var TIP_WHEN = "";
   var chart = null;
 
@@ -184,7 +184,7 @@
       t: t, sc: sc, sp: sp, ac: ac, ap: ap, app: appName, path: path,
       n: n, wins: wins, first: first, e30: e30, ep: ep,
       leg: L, legPath: legPath, legT: legT, depM: depM, wdM: wdM,
-      day0: day0, daily: daily, sym: r.send_symbol, dest: r.dest, routeWords: r.route_words,
+      day0: day0, daily: daily, hrs: hrs, sym: r.send_symbol, dest: r.dest, routeWords: r.route_words,
     };
   }
 
@@ -249,10 +249,30 @@
   }
 
   // ---------------------------------------------------------------- the week-by-week chart
+  // The points the chart shows for the picked range (21 Oct). "all" and "1m": one point a day, the median of that
+  // day's hours (the last 30 days for "1m"). "1w": every priced hour of the last 7 days, anchored on the series' own
+  // latest hour. A missing day or hour stays a gap. Each point: [extra cost, extra %, hours behind it, time in ms].
+  function series(A) {
+    var d0 = Date.parse(A.day0 + "T00:00:00Z");
+    if (S.period === "1w") {
+      var hrs = A.hrs, tEnd = Date.parse(hrs[hrs.length - 1][COL.hour_utc]), t0 = tEnd - 7 * DAY * 1000, byT = {}, out = [];
+      hrs.forEach(function (h) { var t = Date.parse(h[COL.hour_utc]); if (t > t0) byT[Math.round(t / 36e5)] = h; });
+      for (var k = Math.round(t0 / 36e5) + 1; k <= Math.round(tEnd / 36e5); k++) {
+        var h = byT[k];
+        out.push(h ? [h[COL.stable_cost] - h[COL.app_cost], h[COL.stable_cost_pct] - h[COL.app_cost_pct], 1, k * 36e5] : null);
+      }
+      return out;
+    }
+    var all = A.daily.map(function (p, i) { return p ? [p[0], p[1], p[2], d0 + i * 864e5] : null; });
+    return S.period === "1m" ? all.slice(-30) : all;
+  }
+  // The chart looks like the record chart: the purple line over a light purple fill, light grid lines, small grey
+  // axis words. The zero line stays dark: below it the stablecoin was cheaper than the cheapest app.
   function drawChart() {
     var svg = document.getElementById("smSvg"), box = document.getElementById("smChart");
     if (!svg || !box || !chart) return;
-    var A = chart.A, sym = chart.sym, pts = A.daily, d0 = Date.parse(A.day0 + "T00:00:00Z");
+    var A = chart.A, sym = chart.sym, pts = series(A), hourly = S.period === "1w";
+    chart.pts = pts;
     var W = Math.max(300, box.clientWidth), Hh = W < 560 ? 220 : 280, L = 56, T = 10, B = 26, pw = W - L, ph = Hh - T - B;
     var vs = pts.filter(Boolean).map(function (p) { return p[0]; });
     var lo = Math.min.apply(null, [0].concat(vs)), hi = Math.max.apply(null, [0].concat(vs));
@@ -264,45 +284,60 @@
     function Y(v) { return T + (1 - (v - lo) / (hi - lo)) * ph; }
     var g = "";
     ticks.forEach(function (v) {
-      g += '<line x1="' + L + '" x2="' + W + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="' + (v === 0 ? "#0B0B0B" : "#ECECEC") + '" stroke-width="1"/>' +
-        '<text class="sm-ax' + (v === 0 ? " sm-z" : "") + '" x="' + (L - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' +
+      if (v !== 0) g += '<line x1="' + L + '" x2="' + W + '" y1="' + Y(v) + '" y2="' + Y(v) + '" class="sm-grid"/>';
+      g += '<text class="sm-ax' + (v === 0 ? " sm-z" : "") + '" x="' + (L - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' +
         (v === 0 ? "0" : (v > 0 ? "+" : MINUS) + sym + whole(Math.abs(v))) + "</text>";
     });
-    var step = W < 560 ? 14 : 7;
-    for (var i = 0; i < n; i++) {
-      var d = new Date(d0 + i * 864e5);
-      if (d.getUTCDay() !== 1) continue;
-      var wk = Math.round((d - d0) / 864e5 / 7);
-      g += '<line x1="' + X(i) + '" x2="' + X(i) + '" y1="' + (T + ph) + '" y2="' + (T + ph + 5) + '" stroke="#D3D0CB"/>';
-      if (step === 7 || wk % 2 === 0) {
-        g += '<text class="sm-ax" x="' + X(i) + '" y="' + (T + ph + 19) + '" text-anchor="middle">' + esc(dayShort(d.toISOString())) + "</text>";
-      }
-    }
-    var dAttr = "", on = false;
+    // x axis: each day at midnight UTC on the week view, Mondays (every other one on a phone) on the daily views
+    var narrow = W < 560, lastLabel = -1;
     pts.forEach(function (p, i) {
-      if (!p) { on = false; return; }
-      dAttr += (on ? "L" : "M") + X(i).toFixed(1) + " " + Y(p[0]).toFixed(1);
-      on = true;
+      var tm = p ? p[3] : null;
+      if (tm === null) {
+        tm = hourly ? (pts[0] ? pts[0][3] : 0) + i * 36e5 : Date.parse(A.day0 + "T00:00:00Z") + (S.period === "1m" ? A.daily.length - 30 + i : i) * 864e5;
+      }
+      var d = new Date(tm), show;
+      if (hourly) show = d.getUTCHours() === 0 && (!narrow || d.getUTCDate() % 2 === 0);
+      else show = d.getUTCDay() === 1 && (!narrow || S.period === "1m" || Math.round(tm / 864e5 / 7) % 2 === 0);
+      if (!show) return;
+      g += '<line x1="' + X(i) + '" x2="' + X(i) + '" y1="' + (T + ph) + '" y2="' + (T + ph + 5) + '" class="sm-tick"/>';
+      if (lastLabel < 0 || X(i) - lastLabel > 44) {
+        g += '<text class="sm-ax" x="' + X(i) + '" y="' + (T + ph + 19) + '" text-anchor="middle">' + esc(dayShort(d.toISOString())) + "</text>";
+        lastLabel = X(i);
+      }
     });
-    g += '<path d="' + dAttr + '" fill="none" stroke="#6B6B6B" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"/>';
+    // the fill between the line and zero, then the line, one run per stretch without gaps
+    var runs = [], cur = null;
+    pts.forEach(function (p, i) { if (!p) { cur = null; return; } if (!cur) { cur = []; runs.push(cur); } cur.push(i); });
+    var z = Y(0), dLine = "";
+    runs.forEach(function (r) {
+      var line = r.map(function (i, j) { return (j ? "L" : "M") + X(i).toFixed(1) + " " + Y(pts[i][0]).toFixed(1); }).join("");
+      dLine += line;
+      g += '<path class="sm-area" d="' + line + "L" + X(r[r.length - 1]).toFixed(1) + " " + z.toFixed(1) + "L" + X(r[0]).toFixed(1) + " " + z.toFixed(1) + 'Z"/>';
+    });
+    g += '<line x1="' + L + '" x2="' + W + '" y1="' + z + '" y2="' + z + '" class="sm-zline"/>';
+    g += '<path class="sm-line" d="' + dLine + '"/>';
     var li = pts.length - 1;
-    if (pts[li]) g += '<circle cx="' + X(li) + '" cy="' + Y(pts[li][0]) + '" r="3.5" fill="#6B6B6B"/>';
-    g += '<line id="smCross" y1="' + T + '" y2="' + (T + ph) + '" stroke="#0B0B0B" stroke-dasharray="3 3" visibility="hidden"/>';
+    if (pts[li]) g += '<circle cx="' + X(li) + '" cy="' + Y(pts[li][0]) + '" r="3.5" class="sm-dot"/>';
+    g += '<line id="smCross" y1="' + T + '" y2="' + (T + ph) + '" class="sm-cross" visibility="hidden"/>';
     svg.setAttribute("viewBox", "0 0 " + W + " " + Hh);
     svg.innerHTML = g;
     chart.geo = { L: L, pw: pw, n: n, X: X, W: W };
+    // the note under the heading says "each hour" on the week view, "each day" otherwise
+    var note = document.getElementById("smWeekNote"), nt = txt(hourly ? "weekNoteHourly" : "weekNote");
+    if (note && nt) note.textContent = nt;
+    [].forEach.call(document.querySelectorAll("[data-period]"), function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-period") === S.period ? "true" : "false"); });
   }
   function hoverChart(e) {
     if (!chart || !chart.geo) return;
     var geo = chart.geo, svg = document.getElementById("smSvg"), tip = document.getElementById("smTip"), cross = document.getElementById("smCross");
     var b = svg.getBoundingClientRect(), x = (e.clientX - b.left) / b.width * geo.W;
     var i = Math.round((x - geo.L) / geo.pw * (geo.n - 1));
-    var p = chart.A.daily[i];
+    var p = chart.pts && chart.pts[i];
     if (i < 0 || i >= geo.n || !p) { tip.hidden = true; if (cross) cross.setAttribute("visibility", "hidden"); return; }
     cross.setAttribute("x1", geo.X(i)); cross.setAttribute("x2", geo.X(i)); cross.setAttribute("visibility", "visible");
-    var dd = new Date(Date.parse(chart.A.day0 + "T00:00:00Z") + i * 864e5).toISOString();
+    var dd = new Date(p[3]).toISOString();
     tip.innerHTML = (p[0] > 0 ? "+" : "") + money(p[0], chart.sym) + " (" + pctPlain(p[1]) + ")" +
-      "<span>" + esc(txt("chartTip", { day: dayShort(dd), hours: whole(p[2]) })) + "</span>";
+      "<span>" + esc(S.period === "1w" ? txt("chartTipHour", { day: dayShort(dd), hour: dd.slice(11, 16) }) : txt("chartTip", { day: dayShort(dd), hours: whole(p[2]) })) + "</span>";
     tip.hidden = false;
     var left = geo.X(i) / geo.W * 100;
     tip.style.left = left > 65 ? "" : (left + 2) + "%";
@@ -403,9 +438,13 @@
   }
 
   function weekSectionHtml() {
-    return '<section>' + w("weekHeading", null, "h2") + w("weekNote", null, "p", "sm-note") +
+    var periods = [["1w", "period1w"], ["1m", "period1m"], ["all", "periodAll"]].filter(function (p) { return txt(p[1]); });
+    var bar = periods.length === 3 ? '<div class="sm-periods" role="group">' + periods.map(function (p) {
+      return '<button type="button" data-period="' + p[0] + '" aria-pressed="' + (S.period === p[0]) + '">' + esc(txt(p[1])) + "</button>";
+    }).join("") + "</div>" : "";
+    return '<section>' + w("weekHeading", null, "h2") + (txt("weekNote") ? '<p class="sm-note" id="smWeekNote">' + esc(txt("weekNote")) + "</p>" : "") +
       '<div class="sm-chart" id="smChart"><svg id="smSvg" role="img" aria-label="' + esc(txt("chartAria")) + '"></svg>' +
-      '<div class="sm-tip sm-num" id="smTip" hidden></div></div></section>';
+      '<div class="sm-tip sm-num" id="smTip" hidden></div></div>' + bar + "</section>";
   }
 
   function cmpSectionHtml(A) {
@@ -483,6 +522,13 @@
   }
 
   function onClick(e) {
+    var pb = e.target.closest("[data-period]");
+    if (pb) {
+      S.period = pb.getAttribute("data-period");
+      var tip = document.getElementById("smTip"); if (tip) tip.hidden = true;
+      drawChart();
+      return;
+    }
     var r = e.target.closest("[data-r]"), a = e.target.closest("[data-a]");
     if (r) {
       var id = r.getAttribute("data-r");

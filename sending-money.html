@@ -91,6 +91,20 @@
   .sm-chart svg{ display:block; width:100%; height:auto; overflow:visible; }
   .sm-chart .sm-ax{ fill:var(--sm-stamp); font:400 12px 'Archivo',system-ui,sans-serif; }
   .sm-chart .sm-ax.sm-z{ fill:var(--sm-ink); font-weight:600; }
+  /* the day-by-day chart looks like the record chart (21 Oct) */
+  .sm-chart .sm-ax{ fill:var(--color-neutral-600); font-size:11px; }
+  .sm-chart .sm-ax.sm-z{ fill:var(--color-ink); }
+  .sm-chart .sm-grid{ stroke:var(--color-neutral-200); stroke-width:1; }
+  .sm-chart .sm-tick{ stroke:var(--color-neutral-300); }
+  .sm-chart .sm-zline{ stroke:var(--color-ink); stroke-width:1; }
+  .sm-chart .sm-area{ fill:var(--data-700); fill-opacity:.14; stroke:none; }
+  .sm-chart .sm-line{ fill:none; stroke:var(--data-700); stroke-width:1.5; stroke-linejoin:round; stroke-linecap:round; }
+  .sm-chart .sm-dot{ fill:var(--data-700); }
+  .sm-chart .sm-cross{ stroke:var(--color-neutral-600); stroke-dasharray:3 3; }
+  /* the range bar under the chart: one grey rounded bar, the picked range a white pill */
+  .sm-periods{ display:flex; width:max-content; gap:2px; margin:12px auto 0; padding:3px; border-radius:999px; background:var(--color-neutral-100); }
+  .sm-periods button{ font:inherit; font-size:14px; font-weight:500; line-height:1; padding:7px 12px; border:0; border-radius:999px; background:transparent; color:var(--color-neutral-700); cursor:pointer; }
+  .sm-periods button[aria-pressed="true"]{ background:var(--color-bg,#fff); color:var(--color-ink); box-shadow:0 1px 2px rgba(0,0,0,.08); }
   .sm-tip{ position:absolute; top:0; background:#fff; border:1px solid var(--sm-dust); border-radius:6px; padding:6px 10px; font-size:13px; pointer-events:none; white-space:nowrap; }
   .sm-tip span{ display:block; color:var(--sm-stamp); font-size:12px; }
   .sm-small{ font-size:14px; color:var(--sm-sub); margin:12px 0 0; max-width:620px; }
