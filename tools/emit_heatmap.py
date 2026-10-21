@@ -103,7 +103,10 @@ def main():
                 n.append(None)
         out.append({"ccy": ccy, "country": c.get("country", ccy), "class": c.get("denominator_class"),
                     "ranked": c.get("denominator_class") != "unmaintained", "cells": cells, "n": n, "raw": rawmark})
+    # the one country count every page reads: countries with a price on any of the last 30 days (SEB-301)
+    tracked = sum(1 for r in out if any(v is not None for v in r["cells"][-30:]))
     doc = {"as_of_utc": idx.get("as_of_utc"), "first_day": days[0], "last_day": days[-1], "days": days,
+           "countries_tracked": tracked,
            "source_files": ["data/countries/<CCY>.json", "data/basis.csv"], "currencies": out}
     with open(OUT, "w") as f:
         json.dump(doc, f, separators=(",", ":"), ensure_ascii=False)
