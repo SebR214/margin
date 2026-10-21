@@ -560,6 +560,14 @@ jobs:
         # (the id= anchors moved) makes it fail loud.
         run: python3 tools/bake_homepage.py
 
+      # Machine view (SEB-301, 21 Oct). A markdown twin of every page and llms.txt, read straight off the pages this run
+      # just baked, so every number in a twin is one the page showed for this hour. tools/emit_markdown.py skips when the
+      # twins already carry this hour (idempotent like the rest of this file); always() so a render hiccup here never
+      # blocks the commit below, and a failed render leaves the last hour's twins in place rather than half-written ones.
+      - name: Markdown twins of every page, and llms.txt
+        if: always() && steps.needed.outputs.proceed == 'true'
+        run: python3 tools/emit_markdown.py
+
       # Mints a margin-agents GitHub App installation token so the commit
       # below is pushed -- and therefore reviewed, once branch protection is
       # back on -- as the App, not as whoever's GITHUB_TOKEN happened to run
@@ -657,6 +665,11 @@ jobs:
           # would never catch it if left off this list; named explicitly
           # instead of widening that fallback's pathspec for one file.
           if [ -f index.html ]; then git add index.html; fi
+          # Machine view (SEB-301, 21 Oct): the markdown twin of each top-level page, and llms.txt. Named explicitly, same
+          # reason as index.html above -- not under data/, so the MISSED fallback would never catch them.
+          for f in index.md countries.md sending-money.md sources.md findings.md how-it-works.md how-it-was-built.md llms.txt; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
           # Directories: one file per country, a page per country, one
           # receipt per country, one receipt per corridor+amount
           # (data/corridor_receipts, SEB-178), one receipt per
@@ -671,6 +684,11 @@ jobs:
           # which is the point of staging the directory rather than naming
           # the files.
           for d in data/countries data/receipts data/corridor_receipts data/provider_receipts data/pricechange_receipts data/meter_receipts data/delivery_receipts data/bundle; do
+            if [ -d "$d" ]; then git add "$d"; fi
+          done
+          # Machine view (SEB-301, 21 Oct): one markdown twin per country and per finding. A separate loop, not added to
+          # the one above, so this change stays purely additive (no existing line edited).
+          for d in country finding; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Anything TRACKED that an emitter rewrote but the list above forgot.

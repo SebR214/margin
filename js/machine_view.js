@@ -1,0 +1,100 @@
+/* Machine view (SEB-301, 21 Oct): a Human/Machine switch at the bottom of every page. Machine shows the page's markdown twin
+   (written each hour by tools/emit_markdown.py) with its path, size, an approximate token count and three links: copy the
+   markdown, copy a curl command, open the raw file. The choice is remembered per visitor. No model is involved.
+   Every word comes from copy.json (machineView). While those words are empty the switch is not shown. */
+(function () {
+  var SITE = 'https://margin.wiki/';
+  var COLUMN = '.wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap, .sm-wrap';
+  var KEEP = 'header, footer, .site-head, .site-footer, .hp-head, .mv-switch, .mv-panel, script, template';
+
+  // the twin for this page, or null on a page that has none
+  function twinPath() {
+    var page = location.pathname.split('/').pop() || 'index.html';
+    var q = new URLSearchParams(location.search);
+    if (page === 'country.html') { var c = q.get('ccy') || ''; return /^[A-Z]{3}$/.test(c) ? 'country/' + c + '.md' : null; }
+    if (page === 'finding.html') { var id = q.get('id') || ''; return /^[a-z0-9_]+$/.test(id) ? 'finding/' + id + '.md' : null; }
+    var plain = ['index.html', 'countries.html', 'sending-money.html', 'sources.html', 'findings.html', 'how-it-works.html', 'how-it-was-built.html'];
+    return plain.indexOf(page) >= 0 ? page.replace('.html', '.md') : null;
+  }
+
+  function remembered() { try { return localStorage.getItem('mv') === 'machine'; } catch (e) { return false; } }
+  function remember(on) { try { localStorage.setItem('mv', on ? 'machine' : 'human'); } catch (e) {} }
+  function fill(t, k, v) { return String(t).replace('{' + k + '}', v); }
+  function copy(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).catch(function () {}); return; }
+    var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {} document.body.removeChild(ta);
+  }
+
+  var path = twinPath();
+  if (!path) return;
+  fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (C) {
+    var W = (C && C.machineView) || {};
+    var need = ['human', 'machine', 'copyMarkdown', 'copyCurl', 'openRaw', 'size', 'tokens'];
+    if (need.some(function (k) { return !W[k]; })) return;   // the words are not written yet
+
+    var md = null;
+    var sw = document.createElement('div'); sw.className = 'mv-switch'; sw.setAttribute('role', 'group');
+    var bH = document.createElement('button'); bH.type = 'button'; bH.textContent = W.human;
+    var bM = document.createElement('button'); bM.type = 'button'; bM.textContent = W.machine;
+    sw.appendChild(bH); sw.appendChild(bM);
+
+    var panel = document.createElement('section'); panel.className = 'mv-panel';
+    var bar = document.createElement('div'); bar.className = 'mv-bar';
+    var where = document.createElement('span'); where.className = 'mv-path'; where.textContent = '/' + path;
+    var size = document.createElement('span'); size.className = 'mv-meta';
+    var links = document.createElement('span'); links.className = 'mv-links';
+    var aCopy = document.createElement('a'); aCopy.href = '#'; aCopy.textContent = W.copyMarkdown;
+    var aCurl = document.createElement('a'); aCurl.href = '#'; aCurl.textContent = W.copyCurl;
+    var aRaw = document.createElement('a'); aRaw.href = './' + path; aRaw.textContent = W.openRaw;
+    links.appendChild(aCopy); links.appendChild(aCurl); links.appendChild(aRaw);
+    bar.appendChild(where); bar.appendChild(size); bar.appendChild(links);
+    var pre = document.createElement('pre'); pre.className = 'mv-md';
+    panel.appendChild(bar); panel.appendChild(pre);
+    aCopy.addEventListener('click', function (e) { e.preventDefault(); if (md) copy(md); });
+    aCurl.addEventListener('click', function (e) { e.preventDefault(); copy('curl -s ' + SITE + path); });
+
+    function column() { return document.querySelector(COLUMN) || document.body; }
+    // the switch sits at the bottom of the column, above the footer; the panel sits where the page content starts
+    function place() {
+      var col = column(), foot = col.querySelector('footer, .site-footer');
+      if (foot && foot.parentNode === col) { if (sw.nextElementSibling !== foot) col.insertBefore(sw, foot); }
+      else if (col.lastElementChild !== sw) col.appendChild(sw);
+      if (panel.parentNode !== col) {
+        var head = col.querySelector(':scope > header, :scope > .site-head, :scope > .hp-head');
+        col.insertBefore(panel, head ? head.nextSibling : col.firstChild);
+      }
+    }
+    var hidden = [];   // exactly what we hid last time, so a later call always clears it first (column() can return a
+                        // different element once the page's own script finishes building its content)
+    function show(on) {
+      hidden.forEach(function (k) { k.removeAttribute('data-mv-hide'); });
+      hidden = [];
+      if (on) {
+        var col = column();
+        [].forEach.call(col.children, function (k) { if (!k.matches(KEEP)) { k.setAttribute('data-mv-hide', ''); hidden.push(k); } });
+      }
+      document.documentElement.classList.toggle('mv-on', on);
+      bH.setAttribute('aria-pressed', on ? 'false' : 'true'); bM.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (on && md === null) {
+        md = '';
+        fetch('./' + path, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); }).then(function (t) {
+          md = t; pre.textContent = t;
+          var kb = new Blob([t]).size / 1024;
+          size.textContent = fill(W.size, 'kb', kb.toLocaleString('en-US', { maximumFractionDigits: 1 })) + ' · ' +
+            fill(W.tokens, 'n', Math.round(t.length / 4).toLocaleString('en-US'));
+        }).catch(function () { md = null; });
+      }
+    }
+    place();
+    bH.addEventListener('click', function () { remember(false); show(false); });
+    bM.addEventListener('click', function () { remember(true); show(true); });
+    show(remembered());
+    // a page that builds its column from script may rebuild it: keep the switch and the panel in place for a few seconds
+    if (window.MutationObserver) {
+      var mo = new MutationObserver(function () { place(); if (remembered()) show(true); });
+      mo.observe(document.body, { childList: true, subtree: true });
+      setTimeout(function () { mo.disconnect(); }, 8000);
+    }
+  }).catch(function () {});
+})();
