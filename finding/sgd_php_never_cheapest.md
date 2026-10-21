@@ -1,8 +1,8 @@
 # Singapore to the Philippines: a stablecoin was almost never the cheapest way to send
 
-Prices from the 09:00 UTC hour, 21 Oct.
+Prices from the 10:00 UTC hour, 21 Oct.
 
-In 1,461 of the 1,464 hours we priced, a stablecoin did not beat the cheapest app at any of the five amounts.
+In 1,462 of the 1,465 hours we priced, a stablecoin did not beat the cheapest app at any of the five amounts.
 
 3 · hours in which a stablecoin was the cheapest way to send
 
@@ -58,5 +58,5 @@ findings_hours_sgd_php_never_cheapest.csv
 | --- | --- | --- |
 | 01 | Transfer apps keep changing their prices | 1,268 price changes since 12 Aug |
 | 02 | Some apps charge more on Saturday, then cut back | 42 Saturday rises that came back |
-| 03 | Stablecoins beat the cheapest app only above about S$20.4M a month, a figure worked out from the exchanges' published fee tiers | S$20.4M a month traded on the exchange |
+| 03 | Stablecoins beat the cheapest app only above about S$13.4M a month, a figure worked out from the exchanges' published fee tiers | S$13.4M a month traded on the exchange |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |

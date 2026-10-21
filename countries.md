@@ -1,44 +1,43 @@
-# In 29 of the 49 countries we priced this hour, a dollar costs within 2% of the official rate
+# In 29 of the 48 countries we priced this hour, a dollar costs within 2% of the official rate
 
-Prices from the 09:00 UTC hour, 21 Oct.
+Prices from the 10:00 UTC hour, 21 Oct.
 
-In 7 it costs more than 8% extra, most of all in Algeria, where people pay 91.7% more.
+In 5 it costs more than 8% extra, most of all in Algeria, where people pay 91.7% more.
 
-Prices from the 09:00 UTC hour. 50 of 60 countries had a price. Sudan is left out of the ranking because its government stopped updating the official rate. The other 10 are listed at the bottom.
+Prices from the 10:00 UTC hour. 49 of 60 countries had a price. Sudan is left out of the ranking because its government stopped updating the official rate. The other 11 are listed at the bottom.
 
 <https://margin.wiki/data/index_latest.json>
 
-## More than 8% above the official rate (7)
+## More than 8% above the official rate (5)
 
 | Country | People pay | Official rate | Change |
 | --- | --- | --- | --- |
-| Algeria DZD One source | 25,794 | 13,455 | +91.7% +1.8 |
-| Venezuela VES One source | 104,439 | 88,340 | +18.2% +1.2 |
-| Mozambique MZN One source | 7,499.00 | 6,369.52 | +17.7% |
-| Syria SYP One source | 14,250 | 12,170 | +17.1% |
-| Tunisia TND One source | 343.50 | 299.59 | +14.7% +1.2 |
-| Iraq IQD | 171,966 | 151,724 | +13.3% |
-| South Africa ZAR | 1,803.75 | 1,639.72 | +10.0% |
+| Algeria DZD One source | 25,799 | 13,455 | +91.7% |
+| Venezuela VES One source | 104,393 | 88,340 | +18.2% +1.2 |
+| Syria SYP One source | 14,245 | 12,170 | +17.0% |
+| Iraq IQD | 171,862 | 151,724 | +13.3% |
+| South Africa ZAR | 1,809.50 | 1,639.72 | +10.4% |
 
 <https://margin.wiki/data/index_latest.json>
 
-## 2% to 8% above (13)
+## 2% to 8% above (14)
 
 | Country | People pay | Official rate | Change |
 | --- | --- | --- | --- |
 | Argentina ARS | 164,219 | 152,500 | +7.7% |
-| Morocco MAD | 1,042.75 | 979.93 | +6.4% |
-| India INR | 10,102.50 | 9,499.52 | +6.3% +1.4 |
-| Central African CFA XAF | 61,970 | 58,427 | +6.1% |
-| Qatar QAR One source | 384.95 | 364.00 | +5.8% |
-| Kazakhstan KZT | 47,299 | 45,027 | +5.0% |
-| Uganda UGX | 421,117 | 404,074 | +4.2% |
-| Bolivia BOB | 1,211.50 | 1,168.52 | +3.7% +2.1 |
-| West African CFA XOF | 60,377 | 58,427 | +3.3% |
-| Mongolia MNT One source | 369,882 | 358,004 | +3.3% |
-| Ukraine UAH | 4,622.50 | 4,509.22 | +2.5% |
-| Pakistan PKR | 28,364 | 27,701 | +2.4% |
-| Nigeria NGN One source | 136,223 | 133,268 | +2.2% |
+| Morocco MAD | 1,043.25 | 979.93 | +6.5% |
+| Qatar QAR One source | 386.75 | 364.00 | +6.3% +1.9 |
+| India INR | 10,093.00 | 9,499.52 | +6.2% +1.4 |
+| Central African CFA XAF | 61,838 | 58,427 | +5.8% |
+| Kazakhstan KZT | 47,255 | 45,027 | +4.9% |
+| Uganda UGX | 421,110 | 404,074 | +4.2% +1.1 |
+| West African CFA XOF | 60,345 | 58,427 | +3.3% |
+| Bolivia BOB | 1,204.50 | 1,168.52 | +3.1% +1.6 |
+| Ukraine UAH | 4,626.75 | 4,509.22 | +2.6% |
+| Pakistan PKR | 28,378 | 27,701 | +2.4% |
+| Rwanda RWF | 151,116 | 147,784 | +2.3% |
+| Nigeria NGN One source | 136,150 | 133,268 | +2.2% |
+| Saudi Arabia SAR One source | 383.00 | 375.00 | +2.1% |
 
 <https://margin.wiki/data/index_latest.json>
 
@@ -46,52 +45,53 @@ Prices from the 09:00 UTC hour. 50 of 60 countries had a price. Sudan is left ou
 
 | Country | Change |
 | --- | --- |
-| Saudi Arabia One source | +2.0% |
-| Sri Lanka One source | +2.0% |
+| Sri Lanka One source | +1.9% |
+| Cambodia | +1.9% |
 | Azerbaijan | +1.8% |
-| Laos One source | +1.7% −1.0 |
-| Colombia | +1.4% |
-| Rwanda | +1.3% |
-| Kuwait | +1.2% |
-| Lebanon | +1.2% |
+| Laos One source | +1.7% −1.1 |
+| Zambia One source | +1.3% |
 | Egypt | +1.2% |
-| Jordan | +1.0% |
-| Vietnam | +0.8% |
+| Kuwait | +1.2% |
+| Lebanon | +1.0% |
+| Jordan | +0.9% |
+| Vietnam | +0.9% |
+| Colombia | +0.7% |
 | Peru | +0.6% −1.7 |
-| Tanzania | +0.4% |
-| Philippines One source | +0.4% |
+| Chile | +0.5% −2.1 |
 | Brazil | +0.4% |
-| Chile | +0.4% −1.9 |
-| United Arab Emirates One source | +0.4% |
-| New Zealand One source | +0.3% |
-| South Korea | +0.3% |
-| Mexico One source | +0.3% |
+| South Korea | +0.4% |
+| New Zealand One source | +0.4% |
+| United Arab Emirates One source | +0.3% |
+| Philippines One source | +0.3% |
+| Mexico One source | +0.2% |
+| Tanzania | +0.2% |
 | Georgia | +0.1% |
 | Kenya | +0.1% |
 | Singapore One source | −0.1% |
-| Thailand One source | −0.1% |
-| Indonesia | −0.3% |
+| Indonesia | −0.2% |
+| Thailand One source | −0.2% |
 | Turkey | −0.3% |
+| Australia | −0.3% |
 | Armenia | −0.4% |
-| Australia | −0.4% |
-| Taiwan | −0.5% |
+| Taiwan | −0.6% |
 
 <https://margin.wiki/data/index_latest.json>
 
-## 10 countries had no price at 09:00 UTC
+## 11 countries had no price at 10:00 UTC
 
-Afghanistan, Angola, Bangladesh, Brunei, Botswana, Ethiopia, Ghana, Cambodia, Nepal, Zambia.
+Afghanistan, Angola, Bangladesh, Brunei, Botswana, Ethiopia, Ghana, Mongolia, Mozambique, Nepal, Tunisia.
 
 - Afghanistan: too few people selling to call it a price
 - Angola: the buying and selling sides are not the same market here
 - Bangladesh: the buying and selling sides are not the same market here
 - Brunei: the buying and selling sides are not the same market here
-- Botswana: nobody is offering to sell dollars here right now
+- Botswana: too few people selling to call it a price
 - Ethiopia: nobody is offering to sell dollars here right now
 - Ghana: nobody is offering to sell dollars here right now
-- Cambodia: too few people selling to call it a price
+- Mongolia: too few people selling to call it a price
+- Mozambique: the buying and selling sides are not the same market here
 - Nepal: too few people selling to call it a price
-- Zambia: the buying and selling sides are not the same market here
+- Tunisia: too few people selling to call it a price
 
 Sudan has a price but is left off the scale. Its official rate is frozen, so the gap measures the freeze, not what people pay.
 
