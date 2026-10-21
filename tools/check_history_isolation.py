@@ -89,7 +89,6 @@ BASIS_HISTORY_READERS = {
     "tools/ask_backend.py",        # table description for the Q&A tool
     "tools/serve_common.py",       # table allow-list for the API
     "collector_basis.py",          # comment only (names the file)
-    "tools/emit_weekly.py",         # docstring only: says it does NOT fall back to it
 }
 
 # Modules that make the live layer: nothing here may recurse into data/.
