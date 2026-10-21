@@ -131,6 +131,11 @@ jobs:
       - name: A new route in collector.CORRIDORS reaches the Routes page with no other edit
         run: python3 tests/check_new_route.py
 
+      - name: The live official rate collector and the broken-rate check parse and flag (SEB-310)
+        run: |
+          python3 collector_official_live.py --selftest
+          python3 tests/check_official_rates.py
+
       - name: Index consistency (published figures match their own charts)
         run: python3 tools/check_index_consistency.py
 
