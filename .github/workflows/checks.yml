@@ -292,6 +292,10 @@ jobs:
         if: steps.scope.outputs.touched == 'true'
         run: python3 tools/check_design.py --overflow
 
+      - name: No line ends with one word, home counters on one line (SEB-301)
+        if: steps.scope.outputs.touched == 'true'
+        run: python3 tools/check_design.py --lines
+
       - name: Post the rendered check's list to the PR
         if: steps.render.outcome == 'failure'
         env:
