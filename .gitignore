@@ -11,8 +11,12 @@ Margin Updated UI/
 # Two of those reached main on 2026-09-10 via `git add -A` before this rule
 # existed. The collector stages named files and directories, so it never picks
 # them up -- this guards the human path.
-* [0-9].csv
-* [0-9].json
-* [0-9].html
-* [0-9].py
-* [0-9].md
+# Any extension and any number, the same shape tools/check_junk_files.py fails a PR
+# for: "automerge 12.yml", "actions-next 17.sh" and "LOOPS_OFF 9" got past the old
+# single-digit list (21 Oct).
+* [0-9]
+* [0-9][0-9]
+* [0-9][0-9][0-9]
+* [0-9].*
+* [0-9][0-9].*
+* [0-9][0-9][0-9].*
