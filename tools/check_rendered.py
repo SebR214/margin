@@ -11,7 +11,7 @@ CSS says:
   colour     text, background and border colours must be style.css tokens
              (the ink tints included); anything else, reds and purples
              above all, fails
-  weights    only 400 and 600
+  weights    only 400, 500 and 600 (500 is the heading weight, SEB-301 21 Oct)
   scroll     no horizontal scroll at 390px
 
 One line per violation: page, selector, property, value. Any violation fails.
@@ -47,7 +47,7 @@ from headless import Page  # noqa: E402
 
 BASELINE = os.path.join(HERE, "tools", "rendered_baseline.json")
 VIEWPORTS = ((390, 844, True), (1280, 900, False))
-ALLOWED_WEIGHTS = ("400", "600")
+ALLOWED_WEIGHTS = ("400", "500", "600")
 MAX_BIG_TEXT_PX = 24
 ACRONYMS = {"UTC", "USD", "USDT", "USDC", "API", "MCP", "SQL", "CSV", "JSON", "ECB", "ISO", "URL",
             "HTML", "AI", "FAQ", "SGD", "AUD", "NZD", "PHP", "MXN", "INR", "NGN", "THB", "KRW",

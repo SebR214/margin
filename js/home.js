@@ -34,7 +34,7 @@
     var at = s.indexOf('had a price. ');
     if (at < 0) { return esc(s); }
     at += 'had a price. '.length;
-    return '<span class="s">' + esc(s.slice(0, at).trim()) + '</span><span class="s">' + esc(s.slice(at).trim()) + '</span>';
+    return '<span class="s">' + esc(s.slice(0, at).trim()) + '</span> <span class="s">' + esc(s.slice(at).trim()) + '</span>';
   }
   function lastValue(c) { for (var i = c.cells.length - 1; i >= 0; i--) { if (c.cells[i] != null) { return c.cells[i]; } } return null; }
   // Fast lane (SEB-301, 21 Oct): a country with no price on any of the last 30 days comes off the map and out of every count.

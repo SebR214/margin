@@ -93,12 +93,16 @@ SECTION_FILES = {
 # A real header for a table whose own page shows no visible column label, matched the same way as SECTION_FILES: by a
 # regex against the text of the heading that opens the table's section (not position).
 SECTION_HEADERS = {
-    "index.md": [(r"countries we priced this hour", ["Country", "Change"])],
+    "index.md": [
+        (r"countries we priced this hour", ["Country", "Against the official rate"]),
+        (r"^Where the price moved most against the official rate this week$", ["Country", "What happened", "Change this week"]),
+        (r"^When sending money costs more$", ["Finding", "What we found"]),
+    ],
     "countries.md": [
-        (r"^More than 8% above the official rate", ["Country", "People pay", "Official rate", "Change"]),
-        (r"^2% to 8% above", ["Country", "People pay", "Official rate", "Change"]),
-        (r"^Within 2% of the official rate", ["Country", "Change"]),
-        (r"^More than 2% below", ["Country", "Change"]),
+        (r"^More than 8% above the official rate", ["Country", "People pay", "Official rate", "Against the official rate"]),
+        (r"^2% to 8% above", ["Country", "People pay", "Official rate", "Against the official rate"]),
+        (r"^Within 2% of the official rate", ["Country", "Against the official rate"]),
+        (r"^More than 2% below", ["Country", "Against the official rate"]),
     ],
     "sending-money.md": [
         (r"^The stablecoin's cost, step by step$", ["Step", "Amount"]),
@@ -130,6 +134,8 @@ def header_for(path, heading_text):
             return header
     return None
 TAP_SENTENCE = re.compile(r"(?:^|(?<=[.!?]\s))Tap\b[^.!?]*[.!?]")
+# A sentence that explains the heatmap's squares and colours means nothing without the chart (SEB-301, 21 Oct)
+CHART_SENTENCE = re.compile(r"(?:^|(?<=[.!?]\s))[^.!?]*\b(?:squares?|colou?rs?)\b[^.!?]*[.!?]", re.I)
 # Buttons that only reveal more of the page (never ones that replay a chart or navigate away): clicked once before the
 # markdown is read, so a twin never stops at the first 20 rows a reader would have to click through to see.
 EXPAND_JS = r"""
@@ -161,6 +167,12 @@ def drop_tap_sentences(text):
     return out or text
 
 
+def drop_chart_sentences(text):
+    """Dropped from the markdown only (SEB-301, 21 Oct), the page is untouched. A paragraph that only explained the chart
+    goes whole."""
+    return re.sub(r"[ \t]+", " ", CHART_SENTENCE.sub("", text)).strip()
+
+
 def numbers_not_on_page(md, page_text):
     """Every number in a twin must be one the page showed, in the same render (link targets and URLs aside)."""
     body = re.sub(r"<https?://[^>]+>|\]\([^)]+\)", "", md)
@@ -180,6 +192,7 @@ TO_MARKDOWN = r"""
   if(own){n++;return}[].forEach.call(x.children,function(k){if(!k.closest('[aria-hidden="true"],svg'))w(k)})})(e);return n}
  function clean(t){return (t||'').replace(/\s+/g,' ').replace(/(\s*·\s*)+/g,' · ').replace(/^\s*·\s*|\s*·\s*$/g,'').trim()}
  var ARROW=/^[→←↗↘›»·]+$/;
+ var PAGE_LINK=/(^|\/)(country\.html\?ccy=|finding\.html\?id=)/;
  function abs(h){try{return new URL(h,location.href).href.replace(location.origin,SITE)}catch(e){return h}}
  function inline(e){ // text with links kept as markdown links
   var out='';e.childNodes.forEach(function(n){
@@ -233,6 +246,10 @@ TO_MARKDOWN = r"""
    cellBoxes(row,false).forEach(function(x){var c=(x.l+x.r)/2,best=0,d=1e9;
     cols.forEach(function(col,i){var dd=c<col.l?col.l-c:c>col.r?c-col.r:0;if(dd<d){d=dd;best=i}});out[best].push(x.t)});
    return out.map(function(o){return o.join(' ')})});
+  // A row that is itself a link to a country or a finding links its first word cell to that page (SEB-301, 21 Oct)
+  rows=rows.map(function(r,i){var a=same[i].closest('a[href]');if(!a||!PAGE_LINK.test(a.getAttribute('href')))return r;
+   var j=r.findIndex(function(c){return /[A-Za-z]/.test(c||'')});if(j<0||r[j].indexOf('](')>=0)return r;
+   r=r.slice();r[j]='['+r[j]+']('+abs(a.getAttribute('href'))+')';return r});
   return {rows:rows,same:same,headCells:head}}
  var blocks=[],seen=new Set();
  function push(kind,text){text=text.trim();if(text)blocks.push({kind:kind,text:text})}
@@ -244,7 +261,9 @@ TO_MARKDOWN = r"""
   return out.filter(function(u,i,a){return a.indexOf(u)===i})}
  function walk(e){
   if(!vis(e)||seen.has(e))return;seen.add(e);var t=e.tagName.toLowerCase();
-  if(/^h[1-4]$/.test(t)){push('h'+t[1],clean(inline(e)));return}
+  if(/^h[1-4]$/.test(t)){var ht=clean(inline(e)),ha=e.closest('a[href]');   // a heading inside a country or finding link links to it
+   if(ha&&PAGE_LINK.test(ha.getAttribute('href'))&&ht&&ht.indexOf('](')<0)ht='['+ht+']('+abs(ha.getAttribute('href'))+')';
+   push('h'+t[1],ht);return}
   if(t==='p'||t==='summary'||t==='blockquote'){push('p',clean(inline(e)));dataLinks(e).forEach(function(u){push('src',u)});return}
   if(t==='ul'||t==='ol'){var items=[].filter.call(e.children,vis).map(function(li,i){return (t==='ol'?(i+1)+'. ':'- ')+clean(inline(li))}).filter(function(x){return x.length>2});push('list',items.join('\n'));dataLinks(e).forEach(function(u){push('src',u)});return}
   if(t==='table'){var trs=[].filter.call(e.querySelectorAll('tr'),vis).map(function(tr){   // an empty cell keeps its column
@@ -323,7 +342,7 @@ def to_md(blocks, path, hour_str):
             out.append(with_header(t, header) if header else t)
         elif k in ("p", "list"):
             body = True
-            out.append(drop_tap_sentences(t))
+            out.append(drop_chart_sentences(drop_tap_sentences(t)))
         else:
             body = True
             out.append(t)
@@ -500,7 +519,15 @@ def self_test():
     th = to_md([{"kind": "h1", "text": "People do not always pay the official rate for a dollar"},
                {"kind": "h2", "text": heat_h2}, {"kind": "table", "text": "|  |  |\n| --- | --- |\n| Chile | +1% |"}],
               "index.md", line)
-    assert "| Country | Change |\n| --- | --- |\n| Chile | +1% |" in th, th
+    assert "| Country | Against the official rate |\n| --- | --- |\n| Chile | +1% |" in th, th
+    # the movers and findings tables on home get real headers too
+    mv = to_md([{"kind": "h1", "text": "T"}, {"kind": "h2", "text": "Where the price moved most against the official rate this week"},
+               {"kind": "table", "text": "|  |  |  |\n| --- | --- | --- |\n| Chile | a | +1.0 points this week |"},
+               {"kind": "h2", "text": "When sending money costs more"},
+               {"kind": "table", "text": "|  |  |\n| --- | --- |\n| 01 | [Apps changed](https://margin.wiki/finding.html?id=price_changes) |"}],
+              "index.md", line)
+    assert "| Country | What happened | Change this week |" in mv and "| Finding | What we found |" in mv, mv
+    assert "[Apps changed](https://margin.wiki/finding/price_changes.md)" in mv, "a finding row links to its .md page"
     assert with_header("|  |  |  |\n| --- | --- | --- |\n| a | b | c |", ["X", "Y"]) == "|  |  |  |\n| --- | --- | --- |\n| a | b | c |", \
         "the column count does not match: left alone"
     assert with_header("|  | today |\n| --- | --- |\n| a | b |", ["Country", "Change"]) == "| Country | Change |\n| --- | --- |\n| a | b |", \
@@ -509,6 +536,13 @@ def self_test():
     assert drop_tap_sentences("Each row is a country. Tap a square for its day, or a name to open that country.") == "Each row is a country."
     assert drop_tap_sentences("Tap any day. The line is the typical cost.") == "The line is the typical cost."
     assert drop_tap_sentences("Tap.") == "Tap.", "never empties a block just because it was all Tap"
+    # the heatmap's squares-and-colour sentence goes from the markdown only, whole paragraph and all
+    assert drop_chart_sentences("Each row is a country, each square one day. The colour shows how much more than the official rate people paid.") == ""
+    assert drop_chart_sentences("Each row is a country. The colour shows the gap.") == "Each row is a country."
+    gone = to_md([{"kind": "h1", "text": "T"}, {"kind": "h2", "text": heat_h2},
+                 {"kind": "p", "text": "Each row is a country, each square one day. The colour shows how much more than the official rate people paid."},
+                 {"kind": "table", "text": "|  |  |\n| --- | --- |\n| Chile | +1% |"}], "index.md", line)
+    assert "square" not in gone and "colour" not in gone and "| Chile | +1% |" in gone, gone
     # internal links go to the markdown twin, never the .html page
     assert to_md_href(SITE + "/how-it-was-built.html") == SITE + "/how-it-was-built.md"
     assert to_md_href(SITE + "/country.html?ccy=PHP") == SITE + "/country/PHP.md"
