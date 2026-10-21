@@ -34,7 +34,7 @@ change), optional `    context:` (read-only paths) and `    done when:` lines. T
 Queued on SEB-301 on 21 Oct. Seb asked for both to be built in chat. The jobs list no files, so the builder never takes them.
 "Cleaner type and more space" was withdrawn by Seb the same day and was never copied here.
 
-- [ ] 14. More space and clean line breaks, on every page. Archivo stays; words, sizes, colours and charts do not change. <!-- from:14c13a1a-7160-450d-93e8-82cc6ac6578d -->
+- [x] 14. More space and clean line breaks, on every page. Archivo stays; words, sizes, colours and charts do not change. <!-- from:14c13a1a-7160-450d-93e8-82cc6ac6578d --> (PR #588, 2026-10-21)
 - [ ] 15. Machine view: every page readable by AI agents, with a Human/Machine switch. <!-- from:d1b506d1-47b4-4f4a-8031-402fa434eb86 -->
   - [ ] 15a. tools/emit_markdown.py writes a .md twin of every page each hour, one collect.yml step
   - [ ] 15b. llms.txt at the site root, from the same script
