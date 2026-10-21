@@ -88,6 +88,7 @@ import datetime as dt
 import json
 import os
 import sys
+from email.utils import parsedate_to_datetime
 
 try:
     import requests
@@ -98,6 +99,10 @@ HTTP_TIMEOUT = 25
 UA = {"User-Agent": "margin.wiki fx-collector/1.0 (+https://margin.wiki)"}
 HERE = os.path.dirname(os.path.abspath(__file__))
 FX = os.path.join(HERE, "data", "fx_rates.csv")
+
+META = os.path.join(HERE, "data", "fx_rate_meta.csv")
+META_FIELDS = ["ts_utc", "source", "rate_updated_utc", "source_ok", "error"]
+LAST_META = {}
 
 FIELDS = ["ts_utc", "ccy", "fx_mid_per_usd", "source", "managed_flag",
           "parallel_rate_per_usd", "parallel_source"]
@@ -140,6 +145,21 @@ def _f(x):
 
 def parse_erapi(d):
     return {k: v for k, v in (d.get("rates") or {}).items() if _f(v)}
+
+
+def parse_erapi_updated(d):
+    """The rate's own stamp, time_last_update_utc, as ISO UTC. Missing or
+    unparseable -> source_ok False, never a guessed time."""
+    raw = (d or {}).get("time_last_update_utc") if isinstance(d, dict) else None
+    try:
+        t = parsedate_to_datetime(raw)
+        if t.tzinfo is None:
+            t = t.replace(tzinfo=dt.timezone.utc)
+        return {"rate_updated_utc": t.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "source_ok": True, "error": ""}
+    except Exception:
+        return {"rate_updated_utc": "", "source_ok": False,
+                "error": "no time_last_update_utc"}
 
 
 def parse_frankfurter(d):
@@ -186,9 +206,14 @@ def build_rows(ts, currencies, fetch=get_json):
             payload = fetch(url)
             general[name] = (parse_erapi(payload) if name == "open.er-api"
                              else parse_frankfurter(payload))
+            if name == "open.er-api":
+                LAST_META.update(parse_erapi_updated(payload))
         except Exception as e:
             errors[name] = f"{type(e).__name__}:{e}"[:120]
             general[name] = {}
+            if name == "open.er-api":
+                LAST_META.update({"rate_updated_utc": "", "source_ok": False,
+                                  "error": errors[name]})
 
     banks = {}
     for ccy, (name, url) in CENTRAL_BANKS.items():
@@ -280,6 +305,20 @@ def append(rows):
     return FX
 
 
+def append_meta(ts):
+    """Sidecar: one row per run saying when the official rate itself was
+    stamped. fx_rates.csv keeps its frozen header."""
+    if not LAST_META:
+        return None
+    new = not os.path.exists(META)
+    with open(META, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=META_FIELDS)
+        if new:
+            w.writeheader()
+        w.writerow({"ts_utc": ts, "source": "open.er-api", **LAST_META})
+    return META
+
+
 def print_table(rows, errors):
     ok = [r for r in rows if r["fx_mid_per_usd"]]
     print(f"\n  Official rates   {rows[0]['ts_utc'][:16]}Z")
@@ -306,7 +345,7 @@ def print_table(rows, errors):
 
 
 # -------------------------------------------------------------- selftest
-ERAPI_FIXTURE = {"rates": {"ARS": 1515.1105, "KRW": 1339.0047, "SGD": 1.2728,
+ERAPI_FIXTURE = {"time_last_update_utc": "Wed, 21 Oct 2026 00:02:31 +0000", "rates": {"ARS": 1515.1105, "KRW": 1339.0047, "SGD": 1.2728,
                            "VES": 813.74, "BOB": 12.15, "SDG": 544.4405}}
 FRANK_FIXTURE = {"rates": {"KRW": 1340.0, "SGD": 1.2730}}
 BCRA_FIXTURE = {"results": {"fecha": "2026-09-09", "detalle": [
@@ -347,6 +386,11 @@ def selftest():
     assert parse_dolarapi(DOLARAPI_AR, "nope") is None
     assert parse_dolarapi({}, "blue") is None
     print("  [ok] parsers read every source shape; malformed -> None")
+    assert parse_erapi_updated(ERAPI_FIXTURE) == {
+        "rate_updated_utc": "2026-10-21T00:02:31Z", "source_ok": True, "error": ""}
+    assert parse_erapi_updated({})["source_ok"] is False
+    assert parse_erapi_updated({"time_last_update_utc": "nope"})["rate_updated_utc"] == ""
+    print("  [ok] the rate's own stamp is read, or the row says it is missing")
 
     ccys = ["ARS", "KRW", "SGD", "VES", "BOB", "SDG", "XXX"]
     rows, n_ok, errs = build_rows(TS_FIXTURE, ccys, fetch=_make_fetch())
@@ -425,6 +469,7 @@ def main():
     # PERSIST FIRST, DISPLAY SECOND.
     if not a.verify:
         append(rows)
+        append_meta(ts)
     if a.json:
         print(json.dumps(rows, indent=2, default=str))
     else:
