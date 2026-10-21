@@ -60,7 +60,7 @@ jobs:
           [ "$head" = "$SHA" ] || { echo "#$n has a newer push, its own checks will decide"; exit 0; }
           echo "$title" | grep -qE '\bSEB-[0-9]+\b' || { echo "#$n names no SEB issue, left for Seb"; exit 0; }
           # Collection history cannot be refilled, so a PR that changes collection code is merged here only if it is
-          # additive (new collector files or new sidecar CSVs, collect.yml only grows, no existing CSV or collector touched;
+          # additive (new collector files or new sidecar CSVs, or new entries in a route table a collector already has; collect.yml only grows;
           # tools/check_additive.py). The one full collection run on the branch is the collector-gate check, which is among the
           # checks counted below. Anything else stays open, says why once on the PR and on its Linear issue, and the daily
           # status on SEB-301 lists it (SEB-301, Seb's rule of 20 Oct).

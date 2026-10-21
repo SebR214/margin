@@ -63,6 +63,7 @@ MAX_CALLS = 2
 JOB_CAP_USD = 1.00
 DAILY_CAP_USD = float(os.environ.get("DAILY_CAP_USD", "3.00"))
 MAX_TOKENS = 32000
+BIG_FILE = 40_000          # a listed file over this many characters is sent in parts (the job's excerpt: lines) and changed by EDIT blocks
 CHECKS = [
     ["python3", "tools/check_inventory.py"],
     ["python3", "tools/check_copy.py"],
@@ -81,6 +82,14 @@ Rules:
 <<<FILE path/to/file>>>
 full file contents
 <<<END>>>
+- A file shown IN PARTS is too big to return. Change it only with edits:
+<<<EDIT path/to/file>>>
+<<<FIND>>>
+lines copied exactly from the part shown, enough that they occur once in the file
+<<<REPLACE>>>
+the lines that take their place
+<<<END>>>
+  To add lines, FIND the line they go after and REPLACE it with that same line followed by the new ones.
 No code fences, no other tags, nothing before or after the blocks.
 """
 
@@ -185,7 +194,21 @@ def paths_under(desc, heading):
     return re.findall(r"`([^`\s]+)`", m.group(1))
 
 
-def build_prompt(i, files, context):
+def excerpt(text, start, end):
+    """The lines from the first one matching `start` to the next one matching `end`, both included. None when `start` is not found."""
+    lines = text.split("\n")
+    for a, line in enumerate(lines):
+        if re.search(start, line):
+            for b in range(a + 1, len(lines)):
+                if re.search(end, lines[b]):
+                    return "\n".join(lines[a:b + 1])
+            return "\n".join(lines[a:])
+    return None
+
+
+def build_prompt(i, files, context, excerpts=None):
+    """`excerpts` is {path: [(start, end)]}: those files are sent in parts and must be changed with EDIT blocks."""
+    excerpts = excerpts or {}
     parts = ["TASK %s: %s\n\n%s" % (i["identifier"], i["title"], i["description"])]
     for d in i["docs"]:
         parts.append("REFERENCE (Linear document: %s)\n%s" % (d["title"], d["content"]))
@@ -195,8 +218,23 @@ def build_prompt(i, files, context):
     for p in files:
         full = os.path.join(ROOT, p)
         body = open(full).read() if os.path.exists(full) else "(new file)"
-        parts.append("FILE %s\n%s" % (p, body))
+        if p in excerpts:
+            shown = [excerpt(body, s, e) for s, e in excerpts[p]]
+            parts.append("FILE %s, SHOWN IN PARTS (%d characters in all; change it only with EDIT blocks)\n%s" % (
+                p, len(body), "\n\n[...]\n\n".join(x for x in shown if x)))
+        else:
+            parts.append("FILE %s\n%s" % (p, body))
     return "\n\n=====\n\n".join(parts)
+
+
+def too_big(files, excerpts):
+    """Listed files over BIG_FILE characters with no excerpt: line, so they cannot be sent."""
+    out = []
+    for p in files:
+        full = os.path.join(ROOT, p)
+        if os.path.exists(full) and os.path.getsize(full) > BIG_FILE and p not in excerpts:
+            out.append(p)
+    return out
 
 
 def call_model(messages, ident):
@@ -218,11 +256,31 @@ def clean(body):
     return "\n".join(lines)
 
 
-def apply(text, allowed):
+def apply_edits(text, allowed):
+    """Apply the EDIT blocks. Returns (paths written, [why an edit could not be applied])."""
+    written, errors = [], []
+    for path, find, repl in re.findall(r"<<<EDIT ([^>\s]+)>>>\n<<<FIND>>>\n(.*?)\n<<<REPLACE>>>\n(.*?)\n?<<<END>>>", text, re.S):
+        if path not in allowed:
+            continue
+        full = os.path.join(ROOT, path)
+        body = open(full).read() if os.path.exists(full) else ""
+        n = body.count(find)
+        if n != 1:
+            errors.append("EDIT %s: the FIND text occurs %d times in the file, it must occur exactly once" % (path, n))
+            continue
+        with open(full, "w") as f:
+            f.write(body.replace(find, repl, 1))
+        if path not in written:
+            written.append(path)
+    return written, errors
+
+
+def apply(text, allowed, in_parts=()):
+    """Write the FILE blocks, then apply the EDIT blocks. A file shown in parts is changed only by EDIT blocks."""
     blocks = re.findall(r"<<<FILE ([^>\s]+)>>>\n(.*?)\n<<<END>>>", text, re.S)
     written = []
     for path, body in blocks:
-        if path not in allowed:
+        if path not in allowed or path in in_parts:
             continue
         body = clean(body)
         if path.startswith("data/") and path.endswith(".csv"):
@@ -230,13 +288,16 @@ def apply(text, allowed):
         with open(os.path.join(ROOT, path), "w") as f:
             f.write(body if body.endswith("\n") else body + "\n")
         written.append(path)
-    return written
+    more, errors = apply_edits(text, allowed)
+    return written + [p for p in more if p not in written], errors
 
 
 def run_checks(written):
     out = []
     cmds = (list(CHECKS) + [["node", "--check", p] for p in written if p.endswith(".js")]
-            + [[sys.executable, "-m", "py_compile", p] for p in written if p.endswith(".py")])      # a Python file must at least compile
+            + [[sys.executable, "-m", "py_compile", p] for p in written if p.endswith(".py")]      # a Python file must at least compile
+            + [[sys.executable, p, "--selftest"] for p in written                                  # a collector's own offline self-test
+               if re.match(r"^collector[^/]*\.py$", p) and "--selftest" in open(os.path.join(ROOT, p)).read()])
     for c in cmds:
         r = subprocess.run(c, cwd=ROOT, capture_output=True, text=True)
         if r.returncode != 0:
@@ -281,6 +342,12 @@ def run_job(i):
     (see backlog_issue), which has no Linear issue to comment on or label."""
     files = paths_under(i["description"], "Files")
     context = paths_under(i["description"], "Context")
+    excerpts = i.get("excerpts") or {}
+    big = too_big(files, excerpts)
+    if big:
+        add_label(i, STUCK_LABEL)
+        comment(i, "Too big to send whole and no excerpt given: %s. Labelled `needs-claude`." % ", ".join(big))
+        return [], None, "too big to send whole, and the job gives no excerpt: line for " + ", ".join(big)
     if not files:
         add_label(i, STUCK_LABEL)
         comment(i, "No `## Files` section with backticked paths, so there is nothing "
@@ -295,7 +362,7 @@ def run_job(i):
     set_state(i, "In Progress")
     comment(i, "Starting. Files: %s." % ", ".join(files))
     messages = [{"role": "system", "content": SYSTEM},
-                {"role": "user", "content": build_prompt(i, files, context)}]
+                {"role": "user", "content": build_prompt(i, files, context, excerpts)}]
     rows, failures, written = [], [], []
     for attempt in range(MAX_CALLS):
         if spent_today() >= DAILY_CAP_USD:   # the file already holds this run's calls
@@ -311,8 +378,8 @@ def run_job(i):
         text, row = call_model(messages, i["identifier"])
         rows.append(row)
         sh(["git", "checkout", "-q", "--"] + [p for p in files if os.path.exists(os.path.join(ROOT, p))], check=False)
-        written = apply(text, set(files))
-        failures = run_checks(written) if written else ["the model returned no files in the agreed form"]
+        written, edit_errors = apply(text, set(files), set(excerpts))
+        failures = edit_errors + (run_checks(written) if written else ["the model returned no files or edits in the agreed form"])
         if not failures:
             break
         messages += [{"role": "assistant", "content": text},
@@ -342,6 +409,8 @@ def backlog_issue(item, job):
         desc += ["DONE WHEN: " + job["done_when"], ""]
     if job["venues"]:
         desc += ["VENUES (the Scout fetched each one and read the real price field; use exactly these):"] + ["- " + v for v in job["venues"]] + [""]
+    if job.get("excerpts"):
+        desc += ["Some files are shown in parts because they are too big to send whole. Change those only with EDIT blocks.", ""]
     if "METHODOLOGY.md" in job["files"]:
         desc += ["This job changes how a published number is computed: describe the change in METHODOLOGY.md and bump INDEX_VERSION "
                  "(tools/emit_countries.py, and the other files that carry it) in the same change.", ""]
@@ -349,7 +418,9 @@ def backlog_issue(item, job):
              "## Files"] + ["`%s`" % p for p in job["files"]] + ["", "## Context"] + ["`%s`" % p for p in job["context"]]
     return {"backlog": True, "id": None, "identifier": BACKLOG_ISSUE + "/" + job["id"], "job": job["id"], "item": item["id"],
             "title": job["title"], "description": "\n".join(desc), "docs": [], "url": "BACKLOG.md job %s" % job["id"],
-            "branch": "one-call/backlog-%s" % job["id"].lower(), "pr_title": "%s: %s (backlog %s)" % (BACKLOG_ISSUE, job["title"], job["id"])}
+            "branch": "one-call/backlog-%s" % job["id"].lower(), "pr_title": "%s: %s (backlog %s)" % (BACKLOG_ISSUE, job["title"], job["id"]),
+            "excerpts": {e[0]: [(x[1], x[2]) for x in job["excerpts"] if x[0] == e[0] and len(x) == 3] for e in job["excerpts"]},
+            "collection": backlog.is_collection(job)}
 
 
 def pr_number(url):
@@ -359,14 +430,20 @@ def pr_number(url):
 
 def tick_on_branch(i, url):
     """Tick the job in BACKLOG.md with the PR number and today's date, as a second commit on the PR's own branch, so it lands only
-    if the PR does."""
+    if the PR does. A collection job is not ticked: it gets `built: PR #N`, and is ticked only when its first rows are on main
+    (rule d, tools/backlog.py verify-data)."""
     n = pr_number(url)
     if not n:
         return
     text = open(backlog.PATH).read()
-    open(backlog.PATH, "w").write(backlog.tick(text, i["job"], n, now().date().isoformat()))
+    if i.get("collection"):
+        open(backlog.PATH, "w").write(backlog.mark_built(text, i["job"], n, now().date().isoformat()))
+        msg = "SEB-301: backlog job %s built, ticked when its first rows land (PR #%s)" % (i["job"], n)
+    else:
+        open(backlog.PATH, "w").write(backlog.tick(text, i["job"], n, now().date().isoformat()))
+        msg = "SEB-301: tick backlog job %s (PR #%s)" % (i["job"], n)
     sh(["git", "add", "BACKLOG.md"])
-    sh(["git", "commit", "-q", "-m", "SEB-301: tick backlog job %s (PR #%s)" % (i["job"], n)])
+    sh(["git", "commit", "-q", "-m", msg])
     sh(["git", "push", "-q", "-f", "origin", i["branch"]])
 
 
@@ -479,6 +556,12 @@ def backlog_run(force=False):
             log_rows.append([ts, "nothing", "", "", "no job with files in BACKLOG.md (the Scout splits the next items on Mondays)"])
             break
         item, job = nj
+        if backlog.is_collection(job) and not job["rows"]:
+            why1 = "a collection job needs a rows: line saying where its first rows land (item 0, rule d)"
+            ops.append(("block", job["id"], why1))
+            text = backlog.block(text, job["id"], why1, now().date().isoformat())
+            log_rows.append([ts, "failed", job["id"], "", why1])
+            continue
         branch = "one-call/backlog-%s" % job["id"].lower()
         try:
             st = open_pr_state(branch)
@@ -536,10 +619,34 @@ def self_test():
     probe = "data/_selftest_header_only.csv"
     try:
         got = apply("<<<FILE %s>>>\nts,a,b\n2026-10-20,1,2\n<<<END>>>" % probe, {probe})
-        assert got == [probe] and open(os.path.join(ROOT, probe)).read() == "ts,a,b\n", "a model's rows never reach a data CSV"
+        assert got == ([probe], []) and open(os.path.join(ROOT, probe)).read() == "ts,a,b\n", "a model's rows never reach a data CSV"
     finally:
         if os.path.exists(os.path.join(ROOT, probe)):
             os.remove(os.path.join(ROOT, probe))
+    # a big file is sent in parts and changed only by edits (route jobs: collector.py is 103,000 characters)
+    big = "\n".join(["# head"] * 3 + ["CORRIDORS = {", '    "A->B": {"x": 1},', "}", "def f():", "    return 1"])
+    assert excerpt(big, r"^CORRIDORS = \{", r"^\}") == 'CORRIDORS = {\n    "A->B": {"x": 1},\n}'
+    assert excerpt(big, r"^NOPE", r"^\}") is None
+    rj = backlog.parse("- [ ] 1. R\n  - [ ] 1a. add C->D\n    files: `collector.py`\n    excerpt: `collector.py` `^CORRIDORS = \\{` `^\\}`\n"
+                       "    rows: `data/samples.csv` `C->D`\n")
+    ri = backlog_issue(rj[0], rj[0]["jobs"][0])
+    assert ri["excerpts"] == {"collector.py": [(r"^CORRIDORS = \{", r"^\}")]} and ri["collection"] and "EDIT blocks" in ri["description"]
+    assert too_big(["collector.py"], {}) == ["collector.py"] and too_big(["collector.py"], ri["excerpts"]) == []
+    prompt = build_prompt(dict(ri, docs=[]), ["collector.py"], [], ri["excerpts"])
+    assert "SHOWN IN PARTS" in prompt and '"SGD->PHP": {' in prompt and "def main():" not in prompt and len(prompt) < 30000
+    probe2 = "data/_selftest_edit.txt"
+    try:
+        open(os.path.join(ROOT, probe2), "w").write(big)
+        edit = '<<<EDIT %s>>>\n<<<FIND>>>\n    "A->B": {"x": 1},\n<<<REPLACE>>>\n    "A->B": {"x": 1},\n    "C->D": {"x": 2},\n<<<END>>>' % probe2
+        whole = "<<<FILE %s>>>\nwiped\n<<<END>>>\n" % probe2
+        w, errs = apply(whole + edit, {probe2}, {probe2})
+        after = open(os.path.join(ROOT, probe2)).read()
+        assert w == [probe2] and not errs and '    "C->D": {"x": 2},\n}' in after and "wiped" not in after, "a part-shown file takes edits only"
+        w, errs = apply('<<<EDIT %s>>>\n<<<FIND>>>\n# head\n<<<REPLACE>>>\nx\n<<<END>>>' % probe2, {probe2}, {probe2})
+        assert w == [] and "occurs 3 times" in errs[0], "an edit whose text is not unique is refused"
+    finally:
+        if os.path.exists(os.path.join(ROOT, probe2)):
+            os.remove(os.path.join(ROOT, probe2))
     assert pr_number("https://github.com/o/r/pull/561") == "561" and pr_number("https://github.com/o/r/pulls?q=head:x") is None
     comment(i, "no Linear issue to comment on")      # a backlog job has none: must not raise
     set_state(i, "Todo"); add_label(i, STUCK_LABEL)

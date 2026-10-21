@@ -6,6 +6,7 @@ name: watchdog
 #   - the collector (tools/check_collector_health.py)
 #   - the Scout (tools/check_scout_health.py): a successful run in the last 8 days
 #   - the audits (tools/check_audit_health.py): a number or claim wrong for 3 runs in a row
+# and, in its own job, ticks a built collection job once its first rows are on main (backlog-data, below).
 # If any is down, this run FAILS. A failed scheduled run makes GitHub email
 # the person who last changed this file's schedule, which is Seb's account.
 # collector_watchdog.yml still files the collector alert to Linear; this one
@@ -75,6 +76,72 @@ jobs:
           WHAT: ${{ steps.check.outputs.what }}
         run: |
           if [ "$DOWN" = "1" ]; then python3 tools/watchdog_post.py down "$WHAT"; else python3 tools/watchdog_post.py up; fi
+
+  # Done means data (SEB-301, 21 Oct, BACKLOG.md item 0). A collection job the builder built carries `built: PR #N` instead of a
+  # tick. Every 30 minutes: once its PR is merged and its first rows are on main, tick it; if none land within 2 hours of the
+  # merge, block it with why and post the why on SEB-301 (tools/backlog.py verify-data). Does nothing when no job is waiting.
+  backlog-data:
+    if: github.event.inputs.test_alarm != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Is a built job waiting for its rows
+        id: waiting
+        run: |
+          if grep -q '^    built: PR #' BACKLOG.md; then echo "yes=true" >> "$GITHUB_OUTPUT"; else echo "nothing waiting"; fi
+
+      - name: Mint the app token (main takes pushes from the app only)
+        if: steps.waiting.outputs.yes == 'true'
+        id: app_token
+        env:
+          MARGIN_GH_APP_ID: ${{ secrets.MARGIN_GH_APP_ID }}
+          MARGIN_GH_INSTALL_ID: ${{ secrets.MARGIN_GH_INSTALL_ID }}
+          MARGIN_GH_APP_KEY_CONTENT: ${{ secrets.MARGIN_GH_APP_KEY }}
+        run: |
+          set +x
+          key_file="$RUNNER_TEMP/margin-app-key.pem"
+          umask 077
+          printf '%s\n' "$MARGIN_GH_APP_KEY_CONTENT" > "$key_file"
+          export MARGIN_GH_APP_KEY="$key_file"
+          token="$(agents/gh_token.sh)"
+          rm -f "$key_file"
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Tick or block, then tell SEB-301
+        if: steps.waiting.outputs.yes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GH_PUSH_TOKEN: ${{ steps.app_token.outputs.token }}
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+        run: |
+          git config user.name "margin-agents[bot]"
+          git config user.email "329969015+margin-agents[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GH_PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}"
+          for attempt in 1 2 3; do
+            git fetch -q origin main && git checkout -q -f -B main origin/main
+            python3 tools/backlog.py verify-data | tee "$RUNNER_TEMP/verify.txt"
+            if git diff --quiet -- BACKLOG.md; then exit 0; fi
+            git add BACKLOG.md
+            git commit -q -m "SEB-301: backlog jobs checked for their first rows (done means data)"
+            if git push -q origin main; then break; fi
+            [ "$attempt" = 3 ] && { echo "could not push BACKLOG.md after 3 tries"; exit 1; }
+          done
+          grep ' ticked$' "$RUNNER_TEMP/verify.txt" | while read -r id _; do
+            python3 tools/backlog.py post "backlog job $id ticked: its first rows are on main."
+          done
+          grep ' failed: ' "$RUNNER_TEMP/verify.txt" | while read -r id _ why; do
+            python3 tools/backlog.py post "backlog job $id unticked and blocked: $why"
+          done
 
   # Starts the next check in 30 minutes, since GitHub's cron ran this only
   # once on the night of 7 Oct. Runs even when the check fails.
