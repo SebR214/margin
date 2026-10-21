@@ -353,8 +353,9 @@
       ? String(asof.getUTCHours()).padStart(2, '0') + ':00'
       : '';
 
-    var topMover = Mv && Mv.top && Mv.top[0];
-    var weeklySample = topMover && topMover.change_pp != null ? fmtPts(topMover.change_pp) : '';
+    // the legend's weekly-change example is fixed, not a live country's number (SEB-301, 21 Oct): it illustrates the
+    // "+1.0" shape of the figure, not a claim about any country, so it does not need {n}-of-{N} style freshness.
+    var weeklySample = '+1.0';
 
     return {
       nearCount: grouped.near.length, farCount: grouped.far.length, rankedLen: ranked.length,

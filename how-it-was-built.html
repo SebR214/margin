@@ -128,9 +128,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
 <link rel="stylesheet" href="./css/dkpanel.css">
 <link rel="stylesheet" href="./css/record_block.css">
 <link rel="stylesheet" href="./css/site_head.css?v=4">
-<link rel="stylesheet" href="./css/site_page.css?v=2">
+<link rel="stylesheet" href="./css/site_page.css?v=3">
 <link rel="alternate" type="text/markdown" href="./how-it-was-built.md">
-<link rel="stylesheet" href="./css/machine_view.css?v=1">
+<link rel="stylesheet" href="./css/machine_view.css?v=2">
 </head>
 <body>
 <div class="wrap">
@@ -500,6 +500,8 @@ Promise.all([
   var hiw = (res[0] && res[0].howItWorks) || {};
   var keys = ['cycleTitle','cycleLine','stepCurrencies','stepRoutes','stepAuditor','stepAuditorResult','stepAnalyst','resultClean','resultAuditFailed','resultSourceMissed','resultCheckFailed','stripTitle','stripClean','stripMissed','stripFailed'];
   var copyBlock = {}; keys.forEach(function(k){ copyBlock[k] = hiw[k] || ''; });
+  // "did not answer" names its sources, same names as the Sources page (SEB-301, 21 Oct), not their raw ids
+  copyBlock.sourceNames = (res[0] && res[0].sourcesData && res[0].sourcesData.sourceNames) || {};
   var box = document.getElementById('cycleBlock');
   if (box && typeof renderCycleBlock === 'function') {
     renderCycleBlock(box, res[1], copyBlock);
@@ -508,6 +510,6 @@ Promise.all([
 }).catch(function(){});
 </script>
 <script src="./js/site_head.js?v=3"></script>
-<script src="./js/machine_view.js?v=1" defer></script>
+<script src="./js/machine_view.js?v=2" defer></script>
 </body>
 </html>
