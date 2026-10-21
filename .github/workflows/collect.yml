@@ -547,6 +547,14 @@ jobs:
         # cost. See tools/emit_routes.py; `--self-test` checks it offline.
         run: python3 tools/emit_routes.py
 
+      - name: Emit the findings again, from this hour's routes
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-301, 21 Oct. emit_findings.py runs above, before emit_routes.py,
+        # so finding 04 counted the previous hour's routes_hourly.json and
+        # showed one hour fewer than the routes page in the first run of each
+        # hour. Running it again here puts both on the same hour.
+        run: python3 tools/emit_findings.py || echo "emit_findings failed"
+
       - name: Bake the homepage
         if: always() && steps.needed.outputs.proceed == 'true'
         # D1. Writes the real headline and corridor table straight into

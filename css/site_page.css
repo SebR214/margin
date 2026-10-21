@@ -1,20 +1,22 @@
 /* One page style on every page, with the home page as the standard (SEB-268, owner's spec 8 Oct).
    Loaded after each page's own CSS. This file is the only place these values live; pages no longer set their own.
-     page title          24px, weight 600
+     page title          24px, weight 500
      text under it       18px at 70% ink
-     section headings    20px, weight 600
+     section headings    20px, weight 500
      space above title   40px below the header
      filter buttons      white pill, 999px, 1px border, 40px tall, 14px weight 600; selected = ink with white text
-     links               thin underline in running text; none on row titles, dates and numbers (they show on hover)  */
+     links               thin underline in running text; none on row titles, dates and numbers (they show on hover)
+   Headings weight 500 everywhere (SEB-301, 21 Oct fast lane; was 600, already 500 on home since the same day). */
 h1 {
-  font-size: 24px !important; font-weight: 600 !important; line-height: 1.15 !important; letter-spacing: 0 !important; margin: 0 !important;
+  font-size: 24px !important; font-weight: 500 !important; line-height: 1.15 !important; letter-spacing: 0 !important; margin: 0 !important;
   color: var(--color-ink, #201e1d) !important; text-transform: none !important;
 }
 .hp-lede, .c-lead, .ci-lead, .sm-lead, .lead, .lede, .fp-lead {
   font-size: 18px !important; font-weight: 400 !important; line-height: 1.5 !important;
   color: color-mix(in srgb, var(--color-ink, #201e1d) 70%, transparent) !important;
 }
-h2 { font-size: 20px !important; font-weight: 600 !important; line-height: 1.25 !important; letter-spacing: 0 !important; text-transform: none !important; }
+h2 { font-size: 20px !important; font-weight: 500 !important; line-height: 1.25 !important; letter-spacing: 0 !important; text-transform: none !important; }
+h3, h4 { font-weight: 500 !important; }
 
 /* the same space between the header and the title on every page */
 .hp-head { margin-bottom: 0 !important; }
@@ -105,7 +107,6 @@ section:has(h2) { margin-top: 96px; }
 }
 
 /* UI fast lane, home page (SEB-301, 21 Oct). Words and fonts unchanged, weight/size/gap only. Scoped to home (body:has(#hero)). */
-body:has(#hero) h1, body:has(#hero) h2 { font-weight: 500 !important; }
 body:has(#hero) .lead, body:has(#hero) .body, body:has(#hero) .note { font-size: 17px !important; }
 body:has(#hero) .counts b { font-weight: 500 !important; }
 body:has(#hero) .hero { gap: 0 !important; }
@@ -113,3 +114,5 @@ body:has(#hero) .hero h1 + .lead { margin-top: 12px !important; }
 body:has(#hero) .lead, body:has(#hero) .body, body:has(#hero) .counts { margin-top: 24px !important; }
 body:has(#hero) .wrap > section > h2 { margin-bottom: 12px !important; }
 body:has(#hero) .wrap > section { margin-top: 96px !important; }
+/* phone: the five home counters wrap as two even columns, not a ragged run (SEB-301, 21 Oct) */
+@media (max-width: 700px) { #hero .counts { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px 16px; } }
