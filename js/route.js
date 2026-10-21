@@ -7,6 +7,7 @@
  * Reads only stored files:
  *   data/routes_hourly.json     every priced hour per route and amount
  *   data/routes_breakdown.json  the stablecoin path split into its stored legs
+ *   data/routes_summary.json    which routes there are, in order, and which are comparable
  *
  * Which route: ?route=SGD-PHP (the id as stored, "->" written "-"); the
  * first comparable route when absent or unknown. ?amount=5000 picks the
@@ -22,12 +23,12 @@
  * fresh from data/routes_hourly.json on every render -- never carried from
  * a prior example, never hand-typed.
  *
- * Four routes are comparable and shown (same set tools/emit_routes.py's own
- * ROUTES uses, in the order the reference artifact used them): SGD->PHP,
- * AUD->PHP, NZD->PHP, USD->MXN. Three are measured against an official rate
- * below what people really pay and are left out of the comparison --
- * USD->NGN, USD->INR, SGD->INR -- explained in its own section, same text
- * as the reference.
+ * The routes are the ones tools/emit_routes.py wrote to routes_summary.json,
+ * in its order (collector.py CORRIDORS), so a new route needs no edit here.
+ * A route whose "comparable" is true is shown with its charts. One whose
+ * stablecoin cost is measured against an official rate below what people
+ * really pay is left out of the comparison and explained in its own
+ * section, same text as the reference.
  */
 (function () {
 
@@ -36,9 +37,12 @@
   var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var MONL = ["January", "February", "March", "April", "May", "June", "July",
     "August", "September", "October", "November", "December"];
-  var ORDER = ["SGD->PHP", "AUD->PHP", "NZD->PHP", "USD->MXN"];
-  // the three routes measured against the official rate stay out of the charts; their button shows the "left out" text
-  var ALL = ORDER.concat(["USD->NGN", "USD->INR", "SGD->INR"]);
+  // every route, and the comparable ones; routes measured against the official rate stay out of the charts and their button shows the "left out" text
+  var ALL = [], ORDER = [];
+  function setRoutes(sum) {
+    ALL = sum.routes.map(function (r) { return r.id; });
+    ORDER = sum.routes.filter(function (r) { return r.comparable; }).map(function (r) { return r.id; });
+  }
   function plainRoute(s) { return String(s || "").replace(/^the /i, "").replace(/^./, function (c) { return c.toUpperCase(); }); }
 
   var COPY = {};
@@ -494,7 +498,8 @@
   function start(res) {
     COPY = (res[0] && res[0].routeData) || {};
     HOURLY = res[1]; BRK = res[2];
-    if (!HOURLY) throw new Error("data");
+    if (!HOURLY || !res[3]) throw new Error("data");
+    setRoutes(res[3]);
     HOURLY.hour_columns.forEach(function (c, i) { COL[c] = i; });
     if (BRK) BRK.columns.forEach(function (c, i) { BCOL[c] = i; });
     var q = new URLSearchParams(location.search);
@@ -516,10 +521,12 @@
 
   // a tab left open loads the newer hour when it is published (siteLive, js/site_head.js); the picked route and amount stay
   function refresh() {
-    return Promise.all([maybeJSON("copy.json"), getJSON("data/routes_hourly.json"), maybeJSON("data/routes_breakdown.json")]).then(function (res) {
-      if (!res[1]) return;
+    return Promise.all([maybeJSON("copy.json"), getJSON("data/routes_hourly.json"), maybeJSON("data/routes_breakdown.json"), getJSON("data/routes_summary.json")]).then(function (res) {
+      if (!res[1] || !res[3]) return;
       COPY = (res[0] && res[0].routeData) || COPY;
       HOURLY = res[1]; BRK = res[2];
+      setRoutes(res[3]);
+      if (ALL.indexOf(S.route) < 0) { S.route = ORDER[0]; }
       HOURLY.hour_columns.forEach(function (c, i) { COL[c] = i; });
       if (BRK) BRK.columns.forEach(function (c, i) { BCOL[c] = i; });
       if (!amountObj(routeObj(S.route), S.amount)) { S.amount = 5000; }
@@ -529,7 +536,7 @@
     }).catch(function () { /* a failed refresh leaves what the reader already has */ });
   }
 
-  Promise.all([maybeJSON("copy.json"), getJSON("data/routes_hourly.json"), maybeJSON("data/routes_breakdown.json")])
+  Promise.all([maybeJSON("copy.json"), getJSON("data/routes_hourly.json"), maybeJSON("data/routes_breakdown.json"), getJSON("data/routes_summary.json")])
     .then(start).catch(function (err) {
       if (window.console) console.error(err);
       maybeJSON("copy.json").then(function (d) {

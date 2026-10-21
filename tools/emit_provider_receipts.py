@@ -82,18 +82,11 @@ QUOTES = os.path.join(DATA, "provider_quotes.csv")
 SAMPLES = os.path.join(DATA, "samples.csv")
 OUT_DIR = os.path.join(DATA, "provider_receipts")
 
-# Mirrors tools/emit_providers.py's own PANELS -- each corridor's comparison
-# panel lives in its own file, since providers.csv has no corridor column
-# and a frozen schema.
-PANELS = {
-    "SGD->PHP": "providers.csv",
-    "USD->MXN": "providers_usdmxn.csv",
-    "AUD->PHP": "providers_audphp.csv",
-    "NZD->PHP": "providers_nzdphp.csv",
-    "USD->NGN": "providers_usdngn.csv",
-    "USD->INR": "providers_usdinr.csv",
-    "SGD->INR": "providers_sgdinr.csv",
-}
+# Each corridor's comparison panel lives in its own file, since providers.csv
+# has no corridor column and a frozen schema: one per route in
+# collector.CORRIDORS (tools/routes_common.py).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from routes_common import PANELS  # noqa: E402
 
 FORMULA = ("(1 minus the amount received divided by (the amount sent times the "
            "mid-market exchange rate at the time)), times 100")

@@ -71,25 +71,10 @@ FIELDS = ["ts_utc", "corridor", "size", "provider", "old_cost_pct",
           "new_cost_pct", "move_pct", "n_agree", "n_panel", "old_day",
           "prev_day_cost_pct", "kind"]
 
-PANELS = {
-    "SGD->PHP": "providers.csv",
-    "USD->MXN": "providers_usdmxn.csv",
-    "AUD->PHP": "providers_audphp.csv",
-    "NZD->PHP": "providers_nzdphp.csv",
-    "USD->NGN": "providers_usdngn.csv",
-    "USD->INR": "providers_usdinr.csv",
-    "SGD->INR": "providers_sgdinr.csv",
-}
-
-ROUTE_WORDS = {
-    "SGD->PHP": "Singapore to the Philippines",
-    "AUD->PHP": "Australia to the Philippines",
-    "NZD->PHP": "New Zealand to the Philippines",
-    "USD->MXN": "the United States to Mexico",
-    "USD->NGN": "the United States to Nigeria",
-    "USD->INR": "the United States to India",
-    "SGD->INR": "Singapore to India",
-}
+# Each route's comparison panel file and its names: collector.CORRIDORS and
+# copy.json "routeNames" (tools/routes_common.py).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from routes_common import PANELS, ROUTE_WORDS  # noqa: E402
 SYMBOL = {"SGD": "S$", "AUD": "A$", "NZD": "NZ$", "USD": "US$"}
 
 # 0.02 percentage points, per the brief. Unanimity is what removes the noise;
@@ -337,7 +322,7 @@ def main():
         saturdays[corridor] = sum(
             1 for d in days if dt.date.fromisoformat(d).weekday() == 5)
 
-    routes = {c: ROUTE_WORDS[c] for c in PANELS
+    routes = {c: ROUTE_WORDS.get(c, c) for c in PANELS
               if any(r["corridor"] == c for r in allrows)}
     payload = {
         "index_version": "1.5",

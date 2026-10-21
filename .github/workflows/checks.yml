@@ -128,6 +128,9 @@ jobs:
       - name: Home, sources and findings emitters (invariants on the stored data, offline)
         run: python3 tests/check_home_emitters.py
 
+      - name: A new route in collector.CORRIDORS reaches the Routes page with no other edit
+        run: python3 tests/check_new_route.py
+
       - name: Index consistency (published figures match their own charts)
         run: python3 tools/check_index_consistency.py
 

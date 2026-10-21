@@ -755,12 +755,12 @@ function render(){
 // are collected every hour for every corridor this page prices -- read
 // straight off this row, no new fetch, no computation beyond formatting. A
 // row predating this column still hides the line rather than showing a
-// guessed figure.
-const DEPTH_CORRIDORS=new Set(["SGD->PHP","AUD->PHP","NZD->PHP","USD->MXN","USD->NGN","USD->INR","SGD->INR"]);
+// guessed figure. The corridors are the ones data/corridor_summary.json lists,
+// which tools/emit_corridor_summary.py writes from collector.py CORRIDORS.
 function renderDepth(r){
   const el=document.getElementById("depthNote");
   const top=+r.offramp_depth_top_level, within=+r.offramp_depth_1pct;
-  if(!DEPTH_CORRIDORS.has(r.corridor) || !isFinite(top) || !isFinite(within)){
+  if(!corridorSummary[r.corridor] || !isFinite(top) || !isFinite(within)){
     el.style.display="none"; el.textContent="";
     return;
   }
