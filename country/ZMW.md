@@ -1,4 +1,4 @@
-<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
 
 # No price for Zambia this hour
 
@@ -6,7 +6,7 @@ Held back this hour: the buying and selling sides are not the same market here. 
 
 The last price we published was +2.0%, on 21 Oct.
 
-Prices from the 08:00 UTC hour, 21 Oct
+Prices from the 09:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/ZMW.json>
@@ -36,6 +36,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 21 Oct, 09:08 UTC | OKX, person to person | 21.43 ZMW | +6.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 08:08 UTC | OKX, person to person | 21.21 ZMW | +5.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 07:08 UTC | OKX, person to person | 21.43 ZMW | +6.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 06:08 UTC | OKX, person to person | 21.43 ZMW | +6.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -47,7 +48,6 @@ Open any file to check a price yourself.
 | 21 Oct, 02:08 UTC | OKX, person to person | 21.43 ZMW | +6.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 02:07 UTC | Binance, person to person | 20.58 ZMW | +2.0% | 10 of 18 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 01:08 UTC | OKX, person to person | 21.43 ZMW | +6.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 21 Oct, 01:06 UTC | Binance, person to person | 20.58 ZMW | +2.0% | 10 of 18 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

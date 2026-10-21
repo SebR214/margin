@@ -1,4 +1,4 @@
-<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
 
 # Stablecoins beat the cheapest app only above about S$20.4M a month, a figure worked out from the exchanges' published fee tiers
 
@@ -30,13 +30,13 @@ Both rows are the same transfer, priced for two ways of buying on the exchange. 
 
 Buying it now
 
-S$44.13 stablecoin cost, highest fee, S$18.72 stablecoin cost, lowest fee, 0.07 percent fee at that volume, S$22.67 cheapest app's usual cost, 1,499 real price checks behind it.
+S$44.13 stablecoin cost, highest fee, S$18.72 stablecoin cost, lowest fee, 0.07 percent fee at that volume, S$22.67 cheapest app's usual cost, 1,500 real price checks behind it.
 
 S$20,361,600 Singapore dollars a month
 
 Waiting for your price
 
-S$42.15 stablecoin cost, highest fee, S$17.72 stablecoin cost, lowest fee, 0.08 percent fee at that volume, S$22.67 cheapest app's usual cost, 1,499 real price checks behind it.
+S$42.15 stablecoin cost, highest fee, S$17.72 stablecoin cost, lowest fee, 0.08 percent fee at that volume, S$22.67 cheapest app's usual cost, 1,500 real price checks behind it.
 
 S$8,946,800 Singapore dollars a month
 
@@ -80,7 +80,7 @@ The file lists every row behind the number, one line per hour or per price chang
 
 findings_hours_volume_crossover.csv
 
-1,500 rows
+1,501 rows
 
 <https://margin.wiki/data/findings.json>
 <https://margin.wiki/data/claims_status.json>
@@ -94,7 +94,7 @@ findings_hours_volume_crossover.csv
 | --- | --- | --- |
 | 01 | Transfer apps keep changing their prices | 1,268 price changes since 12 Aug |
 | 02 | Some apps charge more on Saturday, then cut back | 42 Saturday rises that came back |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,462 hours a stablecoin was cheapest |
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,463 hours a stablecoin was cheapest |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |
 
 <https://margin.wiki/data/findings.json>

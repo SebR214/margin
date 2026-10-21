@@ -1,4 +1,4 @@
-<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
 
 # Four agents run this site. Two of them use AI.
 
@@ -49,10 +49,10 @@ Each line is a step of the latest hourly run, with the time it finished. Any pro
 
 |  |  |  |
 | --- | --- | --- |
-| 08:00 | 49 of 60 countries have a price. The rest show none this hour, never a guess. |  |
-| 08:00 | 7 of 7 routes priced this hour. |  |
-| 07:06 | 50 of our figures recomputed from raw prices. Matches mean the data backs them. | 50 of 50 matched |
-| 08:11 | These sources did not answer this hour: CriptoYa:buenbit. |  |
+| 09:00 | 50 of 60 countries have a price. The rest show none this hour, never a guess. |  |
+| 09:00 | 7 of 7 routes priced this hour. |  |
+| 08:06 | 50 of our figures recomputed from raw prices. Matches mean the data backs them. | 50 of 50 matched |
+| 09:11 | These sources did not answer this hour: CriptoYa:buenbit, instarem.com. |  |
 
 How the last 48 hours went
 
@@ -66,7 +66,7 @@ How the last 48 hours went
 
 ## The record grew as new sources and routes came in
 
-493,816 prices stored
+494,356 prices stored
 
 Exchanges' own earlier prices reach back to 3 Jan 2011, so some charts predate our record.
 

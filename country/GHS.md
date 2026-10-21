@@ -1,10 +1,10 @@
-<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
 
 # No price for Ghana this hour
 
 Held back this hour: nobody is offering to sell dollars here right now. Earlier readings stay on the chart.
 
-Prices from the 08:00 UTC hour, 21 Oct
+Prices from the 09:00 UTC hour, 21 Oct
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/GHS.json>
@@ -21,6 +21,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Raw file |
 | --- | --- | --- | --- | --- |
+| 21 Oct, 09:08 UTC | OKX, person to person | 12.08 GHS | +3.6% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 08:08 UTC | OKX, person to person | 12.10 GHS | +3.8% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 07:08 UTC | OKX, person to person | 12.10 GHS | +3.8% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 06:08 UTC | OKX, person to person | 12.10 GHS | +3.8% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -32,6 +33,5 @@ Open any file to check a price yourself.
 | 21 Oct, 00:08 UTC | OKX, person to person | 12.10 GHS | +3.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 20 Oct, 23:08 UTC | OKX, person to person | 12.10 GHS | +3.5% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 20 Oct, 22:08 UTC | OKX, person to person | 12.11 GHS | +3.5% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 20 Oct, 21:08 UTC | OKX, person to person | 12.11 GHS | +3.5% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>

@@ -1,4 +1,4 @@
-<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
 
 # How to read this site
 
@@ -13,7 +13,7 @@ Every country has an official exchange rate. In some countries banks won’t sel
 
 ## What the percentage means
 
-In Algeria, the official rate says a dollar costs 135 DZD. People actually pay 257 DZD. That’s 91.0% more, so Algeria shows +91.0%.
+In Algeria, the official rate says a dollar costs 135 DZD. People actually pay 258 DZD. That’s 91.7% more, so Algeria shows +91.7%.
 
 0% means people pay the official rate, and most countries are close to it. A minus means they pay a little less.
 

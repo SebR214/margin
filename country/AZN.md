@@ -1,14 +1,12 @@
-<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
 
-# In Azerbaijan a dollar costs 0.6% more than the official rate
+# In Azerbaijan a dollar costs 1.8% more than the official rate
 
-The official rate is 1.7 AZN per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 1.71 AZN. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 1.7 AZN per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 1.73 AZN. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 171.00 AZN. The official rate says 169.99 AZN.
+For US$100, people pay 173.00 AZN. The official rate says 169.99 AZN.
 
-One source
-
-Prices from the 08:00 UTC hour, 21 Oct
+Prices from the 09:00 UTC hour, 21 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -25,7 +23,7 @@ Taking the cheapest offers first, at least US$5,000 can be bought before a dolla
 
 One point per day, the price we published that day. 0% is the official rate. Tap a day to read it.
 
-Today's difference is near the widest it has been since 5 Sep 2026, counting only our own readings. On most days it sits between −0.6% and 0.6%.
+Today's difference is the widest since 5 Sep 2026, counting only our own readings. On most days it sits between −0.6% and 0.6%.
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/AZN.json>
@@ -44,6 +42,10 @@ Binance, person to person
 
 1.71 AZN +0.6%
 
+OKX, person to person
+
+1.75 AZN +2.9%
+
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/AZN.json>
 <https://margin.wiki/data/index_latest.json>
@@ -59,6 +61,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 21 Oct, 09:08 UTC | OKX, person to person | 1.75 AZN | +2.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 21 Oct, 09:06 UTC | Binance, person to person | 1.71 AZN | +0.6% | 10 of 71 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 08:08 UTC | OKX, person to person | 1.78 AZN | +4.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 08:06 UTC | Binance, person to person | 1.71 AZN | +0.6% | 10 of 75 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 07:08 UTC | OKX, person to person | 1.78 AZN | +4.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -69,8 +73,6 @@ Open any file to check a price yourself.
 | 21 Oct, 05:06 UTC | Binance, person to person | 1.71 AZN | +0.6% | 10 of 65 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 04:08 UTC | OKX, person to person | 1.78 AZN | +4.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 04:06 UTC | Binance, person to person | 1.71 AZN | +0.6% | 10 of 67 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 21 Oct, 03:08 UTC | OKX, person to person | 1.78 AZN | +4.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 21 Oct, 03:06 UTC | Binance, person to person | 1.71 AZN | +0.6% | 10 of 66 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

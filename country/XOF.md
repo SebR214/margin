@@ -1,22 +1,22 @@
-<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
 
-# In West African CFA a dollar costs 3.5% more than the official rate
+# In West African CFA a dollar costs 3.3% more than the official rate
 
-The official rate is 584.27 XOF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 604.69 XOF. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 584.27 XOF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 603.77 XOF. A stablecoin is a coin that stays worth one US dollar.
 
 Sellers on Binance and OKX agree on this price. Buyers there are offering more than sellers ask this hour, which is unusual.
 
-For US$100, people pay 60,468 XOF. The official rate says 58,427 XOF.
+For US$100, people pay 60,377 XOF. The official rate says 58,427 XOF.
 
-Prices from the 08:00 UTC hour, 21 Oct
+Prices from the 09:00 UTC hour, 21 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/XOF.json>
 <https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/country_readings/XOF/index.json>
 <https://margin.wiki/data/street_depth_latest.json>
+<https://margin.wiki/data/country_readings/XOF/index.json>
 <https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/country_readings/XOF/2026-10.json>
@@ -28,8 +28,8 @@ One point per day, the price we published that day. 0% is the official rate. Tap
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/XOF.json>
 <https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/country_readings/XOF/index.json>
 <https://margin.wiki/data/street_depth_latest.json>
+<https://margin.wiki/data/country_readings/XOF/index.json>
 <https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/country_readings/XOF/2026-10.json>
@@ -40,17 +40,17 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-599.38 XOF +2.6%
+598.79 XOF +2.5%
 
 OKX, person to person
 
-610.00 XOF +4.4%
+608.75 XOF +4.2%
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/XOF.json>
 <https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/country_readings/XOF/index.json>
 <https://margin.wiki/data/street_depth_latest.json>
+<https://margin.wiki/data/country_readings/XOF/index.json>
 <https://margin.wiki/data/source_switches.csv>
 <https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/country_readings/XOF/2026-10.json>

@@ -1,12 +1,12 @@
-<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
 
 # In Pakistan a dollar costs 2.4% more than the official rate
 
-The official rate is 277.01 PKR per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 283.73 PKR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 277.01 PKR per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 283.64 PKR. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 28,373 PKR. The official rate says 27,701 PKR.
+For US$100, people pay 28,364 PKR. The official rate says 27,701 PKR.
 
-Prices from the 08:00 UTC hour, 21 Oct
+Prices from the 09:00 UTC hour, 21 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -44,7 +44,7 @@ Binance, person to person
 
 OKX, person to person
 
-284.17 PKR +2.6%
+283.99 PKR +2.5%
 
 <https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/PKR.json>
@@ -61,6 +61,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 21 Oct, 09:08 UTC | OKX, person to person | 283.99 PKR | +2.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 21 Oct, 09:06 UTC | Binance, person to person | 283.30 PKR | +2.3% | 10 of 344 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 08:08 UTC | OKX, person to person | 284.17 PKR | +2.6% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 08:06 UTC | Binance, person to person | 283.30 PKR | +2.3% | 10 of 340 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 07:08 UTC | OKX, person to person | 284.47 PKR | +2.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -71,8 +73,6 @@ Open any file to check a price yourself.
 | 21 Oct, 05:06 UTC | Binance, person to person | 283.01 PKR | +2.2% | 10 of 325 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 04:08 UTC | OKX, person to person | 284.42 PKR | +2.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 04:06 UTC | Binance, person to person | 283.30 PKR | +2.3% | 10 of 285 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 21 Oct, 03:08 UTC | OKX, person to person | 284.61 PKR | +2.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 21 Oct, 03:06 UTC | Binance, person to person | 283.70 PKR | +2.4% | 10 of 266 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

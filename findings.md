@@ -1,4 +1,4 @@
-<!-- margin.wiki machine view, hour 2026-10-21T08:00:00+00:00 -->
+<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
 
 # When and how much you send changes the cost
 
@@ -54,7 +54,7 @@ S$20.4M a month traded on the exchange
 
 First published 5 Oct 2026. The number updates every hour.
 
-3 of 1,462 hours a stablecoin was cheapest
+3 of 1,463 hours a stablecoin was cheapest
 
 05
 
