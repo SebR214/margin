@@ -36,8 +36,6 @@ import re
 import sys
 import time
 
-import requests
-
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "data", "fx_live.csv")
 FX = os.path.join(HERE, "data", "fx_rates.csv")
@@ -88,6 +86,7 @@ def parse_google(html, ccy):
 
 
 def fetch_yahoo(ccys):
+    import requests            # imported here so the offline self-test runs without it
     got, err = {}, {}
     for i in range(0, len(ccys), BATCH):
         batch = ccys[i:i + BATCH]
@@ -103,6 +102,7 @@ def fetch_yahoo(ccys):
 
 
 def fetch_google(ccy):
+    import requests
     r = requests.get(GOOGLE % ccy, timeout=TIMEOUT, headers=UA)
     r.raise_for_status()
     return parse_google(r.text, ccy)
