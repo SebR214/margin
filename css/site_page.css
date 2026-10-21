@@ -79,6 +79,8 @@ h1, h2, h3, .hp-lede, .c-lead, .ci-lead, .sm-lead, .lead, .lede, .fp-lead, .hero
 body:has(#kinds) .wrap > section { margin-top: 48px !important; }
 .ci-wrap > .ci-band { margin-top: 48px !important; }
 .ci-wrap > .ci-np { margin-top: 60px !important; padding-top: 42px !important; }
+/* Countries: room between the region buttons and the line under them (21 Oct) */
+.ci-wrap > .ci-key { margin-top: 24px !important; }
 .sm-wrap > section.sm-first { margin-top: 42px !important; padding-top: 42px !important; }
 .sm-wrap > section:not(.sm-first) { margin-top: 60px !important; padding-top: 42px !important; }
 .hw-main > .hiw-section { margin-top: 48px !important; padding-top: 36px !important; }
@@ -133,11 +135,12 @@ h1, h2, h3 { text-wrap: balance; }
 p, li, .lead, .body, .note { text-wrap: pretty; }
 @media (min-width: 768px) { .ci-cc { white-space: nowrap; } }
 /* Findings list: the label under a number has room for one line, and the number is the home movers' size */
-.f { grid-template-columns: 36px minmax(0, 1fr) 280px !important; }
+/* the Findings page list only; the home page's findings rows keep their own grid so a title fits on one line */
+.list > .f { grid-template-columns: 36px minmax(0, 1fr) 280px !important; }
 .f .big, .fp-ibig, .fp-card .fp-card-val { font-size: 15px !important; font-weight: 600 !important; letter-spacing: 0 !important; line-height: 1.3 !important; }
 .f .big small { font-size: 14px; white-space: nowrap; }
 .fp-big { font-size: 15px !important; font-weight: 600 !important; line-height: 1.3 !important; white-space: normal; }
-@media (max-width: 620px) { .f { grid-template-columns: 28px minmax(0, 1fr) !important; } .f .big small { white-space: normal; } }
+@media (max-width: 620px) { .list > .f { grid-template-columns: 28px minmax(0, 1fr) !important; } .f .big small { white-space: normal; } }
 
 /* How it was built: the sections sit the same distance apart as on every page, and the two panels line up with the rest */
 .wrap > .stack { gap: 0 !important; padding-top: 0 !important; }
@@ -151,3 +154,13 @@ p, li, .lead, .body, .note { text-wrap: pretty; }
   body:has(#hero) .hrow { align-items: center; }
 }
 .stack > .dkpanel > section { margin-top: 0 !important; padding-top: 0 !important; border-top: 0 !important; }
+
+/* One footer, the same on every page (21 Oct): same rule, same text styles, same space above it, and the page ends 96px
+   below it everywhere, which also keeps the last line clear of the Human/Machine switch. */
+.wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap, .sm-wrap { padding-bottom: 0 !important; }
+.site-footer, .sm-wrap > footer {
+  max-width: none !important; margin: 48px 0 0 !important; padding: 24px 0 96px !important;
+  border-top: 1px solid var(--color-neutral-300) !important; font-size: 14px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important;
+}
+.site-footer p, .sm-wrap > footer p { margin: 0 0 6px !important; font-size: 14px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important; }
+.site-footer a, .sm-wrap > footer a { font-size: 14px !important; font-weight: 400 !important; color: var(--color-ink) !important; }
