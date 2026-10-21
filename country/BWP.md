@@ -1,19 +1,12 @@
-<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
-
 # No price for Botswana this hour
+
+Prices from the 09:00 UTC hour, 21 Oct.
 
 Held back this hour: nobody is offering to sell dollars here right now. Earlier readings stay on the chart.
 
 Prices from the 09:00 UTC hour, 21 Oct
 
-<https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/BWP.json>
-<https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/country_readings/BWP/index.json>
-<https://margin.wiki/data/street_depth_latest.json>
-<https://margin.wiki/data/source_switches.csv>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/country_readings/BWP/2026-10.json>
 
 ## Every Botswana price links to its raw file
 
@@ -36,3 +29,4 @@ Open any file to check a price yourself.
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
+<https://margin.wiki/data/p2p_okx.csv>

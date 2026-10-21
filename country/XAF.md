@@ -1,6 +1,6 @@
-<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
-
 # In Central African CFA a dollar costs 6.1% more than the official rate
+
+Prices from the 09:00 UTC hour, 21 Oct.
 
 The official rate is 584.27 XAF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 619.70 XAF. A stablecoin is a coin that stays worth one US dollar.
 
@@ -12,29 +12,13 @@ Prices from the 09:00 UTC hour, 21 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
-<https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/XAF.json>
-<https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/country_readings/XAF/index.json>
-<https://margin.wiki/data/street_depth_latest.json>
-<https://margin.wiki/data/source_switches.csv>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/country_readings/XAF/2026-10.json>
 
 ## How the difference moved, day by day
 
-One point per day, the price we published that day. 0% is the official rate. Tap a day to read it.
+One point per day, the price we published that day. 0% is the official rate.
 
 Today's difference is typical of the record since 5 Sep 2026, counting only our own readings. On most days it sits between 5.4% and 6.4%.
-
-<https://margin.wiki/data/country_history_segment/manifest.json>
-<https://margin.wiki/data/countries/XAF.json>
-<https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/country_readings/XAF/index.json>
-<https://margin.wiki/data/street_depth_latest.json>
-<https://margin.wiki/data/source_switches.csv>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/country_readings/XAF/2026-10.json>
 
 ## Where this price comes from
 
@@ -47,15 +31,6 @@ Binance, person to person
 OKX, person to person
 
 622.50 XAF +6.5%
-
-<https://margin.wiki/data/country_history_segment/manifest.json>
-<https://margin.wiki/data/countries/XAF.json>
-<https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/country_readings/XAF/index.json>
-<https://margin.wiki/data/street_depth_latest.json>
-<https://margin.wiki/data/source_switches.csv>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/country_readings/XAF/2026-10.json>
 
 ## Every Central African CFA price links to its raw file
 
@@ -78,3 +53,4 @@ Open any file to check a price yourself.
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
+<https://margin.wiki/data/adsp2p_basis.csv>

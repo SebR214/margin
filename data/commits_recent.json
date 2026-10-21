@@ -1,7 +1,21 @@
 {
- "as_of_utc": "2026-10-21T09:12:36Z",
+ "as_of_utc": "2026-10-21T09:38:07Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "135172f832cac493923e0d1d43c6aee7d569cd94",
+   "html_url": "https://github.com/SebR214/margin/commit/135172f832cac493923e0d1d43c6aee7d569cd94",
+   "date": "2026-10-21T09:32:06Z",
+   "email": "person",
+   "message": "SEB-301: machine view twins, six fixes (#594)\n\n1. Each section links only its own data file (SECTION_FILES, by the order headings appear), never all 8 the page loaded.\n   A country or finding page falls back to its own one file only if it linked none itself (a held-back country with no\n   raw-file table).\n2. A table whose page shows no column label, or only a partial one (an axis label on one column), gets a real header\n   (SECTION_HEADERS), only when the column count matches.\n3. A \"Show all\" / \"Show more\" / \"Show earlier\" / \"Show why\" button is clicked before the markdown is read, so a twin\n   never stops at the first 20 rows a reader would have to click through -- every priced country, and every no-price\n   country with its reason.\n4. An internal link to a page that has a markdown twin now points at the twin, never the .html page. A page with no\n   twin (agent-incidents.html, tape.html) is left as it was, since there is nothing else to link.\n5. Sentences starting \"Tap\" are dropped from the markdown text only; the page itself is untouched.\n6. \"Prices from the HH:MM UTC hour, D Mon.\" is now plain text under the title, not an HTML comment. The idempotency\n   check (skip an hour already written) now looks for this line instead.\n\nScript only. The twins and llms.txt are generated files; they are never committed in a PR, the next hourly collect.yml\nrun rebuilds them with this fixed script. Ran a full local build to verify (not committed): 72 twins, 0 failures.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "0a61ed13222c8ff2361d4cc4cb4c1e81975aa0a0",
+   "html_url": "https://github.com/SebR214/margin/commit/0a61ed13222c8ff2361d4cc4cb4c1e81975aa0a0",
+   "date": "2026-10-21T09:18:40Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-21T09:18Z"
+  },
   {
    "sha": "3a2cd996e3e8affa14f3e6a664289cb12c778b98",
    "html_url": "https://github.com/SebR214/margin/commit/3a2cd996e3e8affa14f3e6a664289cb12c778b98",
@@ -687,20 +701,6 @@
    "date": "2026-10-20T05:13:31Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-10-20T05:13Z"
-  },
-  {
-   "sha": "845694a9e9aa20a7d24096a5b810af9fe6107f5e",
-   "html_url": "https://github.com/SebR214/margin/commit/845694a9e9aa20a7d24096a5b810af9fe6107f5e",
-   "date": "2026-10-20T04:40:28Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-20T04:40Z"
-  },
-  {
-   "sha": "cd636bbf5dcf7acdcf60112acf7984166f02e75f",
-   "html_url": "https://github.com/SebR214/margin/commit/cd636bbf5dcf7acdcf60112acf7984166f02e75f",
-   "date": "2026-10-20T04:15:00Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-20T04:15Z"
   }
  ]
 }

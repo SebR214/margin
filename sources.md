@@ -1,6 +1,6 @@
-<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
-
 # Every gap in our sources is shown, day by day
+
+Prices from the 09:00 UTC hour, 21 Oct.
 
 Each row shows whether a source answered on each day, and how far back its older prices go.
 
@@ -9,11 +9,10 @@ Each row shows whether a source answered on each day, and how far back its older
 On 5 Oct every source missed some hours. That was our collector stopping, not the sources.
 
 <https://margin.wiki/data/sources_daily.json>
-<https://margin.wiki/data/cycle_log.json>
 
 ## 36 sources read every hour
 
-|  |  |  |
+| Source | Type | Hours priced |
 | --- | --- | --- |
 | WorldRemit | Transfer app · Covers 3 sending routes | 452 of 556 hours priced |
 | CoinGecko | Price aggregator · Covers 1 currency | 883 of 903 hours priced |
@@ -53,7 +52,6 @@ On 5 Oct every source missed some hours. That was our collector stopping, not th
 | Coins.ph | Exchange · Covers 1 currency · Covers 3 sending routes | 1,491 of 1,492 hours priced |
 
 <https://margin.wiki/data/sources_daily.json>
-<https://margin.wiki/data/cycle_log.json>
 
 ## 2 more sources gave us older prices only, not hourly ones
 
@@ -74,4 +72,3 @@ A free service that publishes Argentina’s daily dollar rates, including the st
 Parallel dollar prices: 5,754 prices, one every day, 3 Jan 2011 to 4 Oct 2026
 
 <https://margin.wiki/data/sources_daily.json>
-<https://margin.wiki/data/cycle_log.json>

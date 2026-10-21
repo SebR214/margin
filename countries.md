@@ -1,19 +1,16 @@
-<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
-
 # In 29 of the 49 countries we priced this hour, a dollar costs within 2% of the official rate
+
+Prices from the 09:00 UTC hour, 21 Oct.
 
 In 7 it costs more than 8% extra, most of all in Algeria, where people pay 91.7% more.
 
 Prices from the 09:00 UTC hour. 50 of 60 countries had a price. Sudan is left out of the ranking because its government stopped updating the official rate. The other 10 are listed at the bottom.
 
 <https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/movers_week.json>
-<https://margin.wiki/data/source_pairs.json>
-<https://margin.wiki/data/cycle_log.json>
 
 ## More than 8% above the official rate (7)
 
-|  | For US$100, in local money People pay | For US$100, in local money Official rate |  |
+| Country | People pay | Official rate | Change |
 | --- | --- | --- | --- |
 | Algeria DZD One source | 25,794 | 13,455 | +91.7% +1.8 |
 | Venezuela VES One source | 104,439 | 88,340 | +18.2% +1.2 |
@@ -24,13 +21,10 @@ Prices from the 09:00 UTC hour. 50 of 60 countries had a price. Sudan is left ou
 | South Africa ZAR | 1,803.75 | 1,639.72 | +10.0% |
 
 <https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/movers_week.json>
-<https://margin.wiki/data/source_pairs.json>
-<https://margin.wiki/data/cycle_log.json>
 
 ## 2% to 8% above (13)
 
-|  | For US$100, in local money People pay | For US$100, in local money Official rate |  |
+| Country | People pay | Official rate | Change |
 | --- | --- | --- | --- |
 | Argentina ARS | 164,219 | 152,500 | +7.7% |
 | Morocco MAD | 1,042.75 | 979.93 | +6.4% |
@@ -47,13 +41,10 @@ Prices from the 09:00 UTC hour. 50 of 60 countries had a price. Sudan is left ou
 | Nigeria NGN One source | 136,223 | 133,268 | +2.2% |
 
 <https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/movers_week.json>
-<https://margin.wiki/data/source_pairs.json>
-<https://margin.wiki/data/cycle_log.json>
 
 ## Within 2% of the official rate (29)
 
-|  |  |
+| Country | Change |
 | --- | --- |
 | Saudi Arabia One source | +2.0% |
 | Sri Lanka One source | +2.0% |
@@ -86,9 +77,6 @@ Prices from the 09:00 UTC hour. 50 of 60 countries had a price. Sudan is left ou
 | Taiwan | −0.5% |
 
 <https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/movers_week.json>
-<https://margin.wiki/data/source_pairs.json>
-<https://margin.wiki/data/cycle_log.json>
 
 ## 10 countries had no price at 09:00 UTC
 
@@ -108,6 +96,4 @@ Afghanistan, Angola, Bangladesh, Brunei, Botswana, Ethiopia, Ghana, Cambodia, Ne
 Sudan has a price but is left off the scale. Its official rate is frozen, so the gap measures the freeze, not what people pay.
 
 <https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/movers_week.json>
 <https://margin.wiki/data/source_pairs.json>
-<https://margin.wiki/data/cycle_log.json>

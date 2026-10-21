@@ -1,6 +1,6 @@
-<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
-
 # Some apps charge more on Saturday, then cut back
+
+Prices from the 09:00 UTC hour, 21 Oct.
 
 A rise counts when an app charged more on a Saturday and came back down by Tuesday. If your transfer can wait, a weekday can cost less.
 
@@ -9,20 +9,10 @@ A rise counts when an app charged more on a Saturday and came back down by Tuesd
 First published 5 Oct 2026. The number updates every hour.
 
 <https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_weekend_penalty.csv>
 
 ## Rises that came back, Saturday by Saturday
 
-Each bar is one Saturday since our record began. Tap it to see which apps raised their price and by how much.
-
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_weekend_penalty.csv>
+Each bar is one Saturday since our record began.
 
 ## These rows back the number
 
@@ -38,12 +28,6 @@ Each row is one route: its Saturday rises that came back, the cuts that undid th
 | United States to India | 2 cuts that undid them, 3 Saturdays checked. | 2 Saturday rises that came back |
 | United States to Nigeria | 2 cuts that undid them, 3 Saturdays checked. | 2 Saturday rises that came back |
 
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_weekend_penalty.csv>
-
 ## This is how we built it
 
 We start from the confirmed price changes. A rise counts when an app raised its price on a Saturday. The same app must then cut its price on the same route by the Tuesday after. Both moves must be in our data. We never assume a return from the rise alone.
@@ -56,21 +40,9 @@ tools/emit_pricechange_receipts.py
 
 tools/emit_findings.py
 
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_weekend_penalty.csv>
-
 ## Read the number with these limits
 
 A rise counts once, however many amounts it showed up at. The number does not say how much more a Saturday cost. A route with few Saturdays checked has had little chance to show this.
-
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_weekend_penalty.csv>
 
 ## Check every row yourself
 
@@ -80,10 +52,6 @@ findings_hours_weekend_penalty.csv
 
 309 rows
 
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/findings_hours_weekend_penalty.csv>
 
 ## We also found these
@@ -92,11 +60,5 @@ findings_hours_weekend_penalty.csv
 | --- | --- | --- |
 | 01 | Transfer apps keep changing their prices | 1,268 price changes since 12 Aug |
 | 03 | Stablecoins beat the cheapest app only above about S$20.4M a month, a figure worked out from the exchanges' published fee tiers | S$20.4M a month traded on the exchange |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,463 hours a stablecoin was cheapest |
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,464 hours a stablecoin was cheapest |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |
-
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_weekend_penalty.csv>

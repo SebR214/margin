@@ -1,19 +1,12 @@
-<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
-
 # No price for Angola this hour
+
+Prices from the 09:00 UTC hour, 21 Oct.
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
 Prices from the 09:00 UTC hour, 21 Oct
 
-<https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/AOA.json>
-<https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/country_readings/AOA/index.json>
-<https://margin.wiki/data/street_depth_latest.json>
-<https://margin.wiki/data/source_switches.csv>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/country_readings/AOA/2026-10.json>
 
 ## Every Angola price links to its raw file
 
@@ -35,3 +28,4 @@ Open any file to check a price yourself.
 | 11 Oct, 02:06 UTC | Binance, person to person | 824.88 AOA | −10.9% | 3 of 3 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
+<https://margin.wiki/data/adsp2p_basis.csv>

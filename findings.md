@@ -1,15 +1,12 @@
-<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
-
 # When and how much you send changes the cost
+
+Prices from the 09:00 UTC hour, 21 Oct.
 
 Each finding is worked out from prices we store every hour. Each page shows the evidence, how it was worked out, and a file you can download.
 
 01
 
 <https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
 
 ## Transfer apps keep changing their prices
 
@@ -20,9 +17,8 @@ First published 5 Oct 2026. The number updates every hour.
 02
 
 <https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
 <https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
+<https://margin.wiki/data/claims_status.json>
 
 ## Some apps charge more on Saturday, then cut back
 
@@ -33,9 +29,8 @@ First published 5 Oct 2026. The number updates every hour.
 03
 
 <https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
 <https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
+<https://margin.wiki/data/claims_status.json>
 
 ## Stablecoins beat the cheapest app only above about S$20.4M a month, a figure worked out from the exchanges' published fee tiers
 
@@ -46,22 +41,20 @@ S$20.4M a month traded on the exchange
 04
 
 <https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
 <https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
+<https://margin.wiki/data/claims_status.json>
 
 ## Singapore to the Philippines: a stablecoin was almost never the cheapest way to send
 
 First published 5 Oct 2026. The number updates every hour.
 
-3 of 1,463 hours a stablecoin was cheapest
+3 of 1,464 hours a stablecoin was cheapest
 
 05
 
 <https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
 <https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
+<https://margin.wiki/data/claims_status.json>
 
 ## In 2 countries, people pay more for a dollar from each other than on an exchange
 
@@ -70,6 +63,5 @@ First published 9 Oct 2026. The number updates every hour.
 2 countries where they disagree
 
 <https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
 <https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
+<https://margin.wiki/data/claims_status.json>

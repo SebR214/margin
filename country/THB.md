@@ -1,6 +1,6 @@
-<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
-
 # In Thailand a dollar costs 0.1% less than the official rate
+
+Prices from the 09:00 UTC hour, 21 Oct.
 
 The official rate is 33.62 THB per dollar. On the exchanges where people in Thailand trade stablecoins, one costs 33.57 THB. A stablecoin is a coin that stays worth one US dollar.
 
@@ -10,31 +10,13 @@ One source
 
 Prices from the 09:00 UTC hour, 21 Oct
 
-<https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/THB.json>
-<https://margin.wiki/data/country_readings/THB/index.json>
-<https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/street_depth_latest.json>
-<https://margin.wiki/data/source_switches.csv>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/country_history_segment/THB.json>
-<https://margin.wiki/data/country_readings/THB/2026-10.json>
 
 ## How the difference moved, day by day
 
-One point per day, the price we published that day. 0% is the official rate. Tap a day to read it.
+One point per day, the price we published that day. 0% is the official rate.
 
 Today's difference is typical of the record since 10 Aug 2026, counting only our own readings. On most days it sits between −0.4% and 0.2%.
-
-<https://margin.wiki/data/country_history_segment/manifest.json>
-<https://margin.wiki/data/countries/THB.json>
-<https://margin.wiki/data/country_readings/THB/index.json>
-<https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/street_depth_latest.json>
-<https://margin.wiki/data/source_switches.csv>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/country_history_segment/THB.json>
-<https://margin.wiki/data/country_readings/THB/2026-10.json>
 
 ## Where this price comes from
 
@@ -43,16 +25,6 @@ This price is set from an order book. A country's price comes from exchange orde
 Bitkub
 
 33.57 THB −0.1%
-
-<https://margin.wiki/data/country_history_segment/manifest.json>
-<https://margin.wiki/data/countries/THB.json>
-<https://margin.wiki/data/country_readings/THB/index.json>
-<https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/street_depth_latest.json>
-<https://margin.wiki/data/source_switches.csv>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/country_history_segment/THB.json>
-<https://margin.wiki/data/country_readings/THB/2026-10.json>
 
 ## Every Thailand price links to its raw file
 
@@ -74,3 +46,4 @@ Open any file to check a price yourself.
 | 20 Oct, 22:06 UTC | Bitkub | 33.52 THB | −0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
+<https://margin.wiki/data/basis.csv>

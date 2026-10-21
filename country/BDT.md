@@ -1,6 +1,6 @@
-<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
-
 # No price for Bangladesh this hour
+
+Prices from the 09:00 UTC hour, 21 Oct.
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
@@ -8,27 +8,11 @@ The last price we published was +4.0%, on 21 Oct.
 
 Prices from the 09:00 UTC hour, 21 Oct
 
-<https://margin.wiki/data/country_history_segment/manifest.json>
 <https://margin.wiki/data/countries/BDT.json>
-<https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/country_readings/BDT/index.json>
-<https://margin.wiki/data/street_depth_latest.json>
-<https://margin.wiki/data/source_switches.csv>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/country_readings/BDT/2026-10.json>
 
 ## How the difference moved, day by day
 
-One point per day, the price we published that day. 0% is the official rate. Tap a day to read it.
-
-<https://margin.wiki/data/country_history_segment/manifest.json>
-<https://margin.wiki/data/countries/BDT.json>
-<https://margin.wiki/data/index_latest.json>
-<https://margin.wiki/data/country_readings/BDT/index.json>
-<https://margin.wiki/data/street_depth_latest.json>
-<https://margin.wiki/data/source_switches.csv>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/country_readings/BDT/2026-10.json>
+One point per day, the price we published that day. 0% is the official rate.
 
 ## Every Bangladesh price links to its raw file
 
@@ -51,3 +35,4 @@ Open any file to check a price yourself.
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
+<https://margin.wiki/data/adsp2p_basis.csv>

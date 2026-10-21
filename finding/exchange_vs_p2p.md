@@ -1,6 +1,6 @@
-<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
-
 # In 2 countries, people pay more for a dollar from each other than on an exchange
+
+Prices from the 09:00 UTC hour, 21 Oct.
 
 In Turkey, buying a dollar from other people cost 5.1 points more than on an exchange in 100% of the hours we checked.
 
@@ -9,20 +9,10 @@ In Turkey, buying a dollar from other people cost 5.1 points more than on an exc
 First published 9 Oct 2026. The number updates every hour.
 
 <https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_exchange_vs_p2p.csv>
 
 ## How far above the exchange people paid, day by day
 
-Each line is one country's median gap for the day, in points. The dashed line is 2 points. Tap a day to read the countries.
-
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_exchange_vs_p2p.csv>
+Each line is one country's median gap for the day, in points. The dashed line is 2 points.
 
 ## These rows back the number
 
@@ -39,12 +29,6 @@ Each row is one country: the median gap in points, the share of hours with a gap
 | Argentina | 0% of hours 2 points or more above, 941 hours checked, since 10 Sep, CriptoYa:astropay, CriptoYa:belo, CriptoYa:binance, CriptoYa:bitsoalpha, CriptoYa:bybit, CriptoYa:cocoscrypto, CriptoYa:cryptomktpro, CriptoYa:decrypto, CriptoYa:eluter, CriptoYa:fiwind, CriptoYa:lemoncash, CriptoYa:letsbit, CriptoYa:mexc, CriptoYa:nexo, CriptoYa:peanut, CriptoYa:ripio, CriptoYa:ripioexchange, CriptoYa:saldo, CriptoYa:satoshitango, CriptoYa:takenos, CriptoYa:tiendacrypto, CriptoYa:universalcoins, CriptoYa:vitawallet, CriptoYa:wallbit against Binance and OKX. The gap does not persist. | −0.8 points, median gap |
 | Venezuela | 2% of hours 2 points or more above, 941 hours checked, since 10 Sep, CriptoYa:saldo against Binance and OKX. The gap does not persist. | −1.9 points, median gap |
 
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_exchange_vs_p2p.csv>
-
 ## This is how we built it
 
 We take every hour in which a country's published price came from order books or brokers and at least one board of offers between people had ten or more buy ads. The gap is that board's price over the official rate, minus the price we published that hour. When two boards answered we use the middle of the two. A gap persists when, over the last 30 days, there are at least seven days of checked hours and the gap is 2 points or more in at least three quarters of them.
@@ -57,21 +41,9 @@ tools/emit_index_hourly.py
 
 tools/emit_countries.py
 
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_exchange_vs_p2p.csv>
-
 ## Read the number with these limits
 
 Offers between people are prices asked, not trades done. Buying on an exchange needs an account there. Binance's board was first checked on 2 Sep and OKX's on 3 Oct.
-
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_exchange_vs_p2p.csv>
 
 ## Check every row yourself
 
@@ -81,10 +53,6 @@ findings_hours_exchange_vs_p2p.csv
 
 6,772 rows
 
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/findings_hours_exchange_vs_p2p.csv>
 
 ## We also found these
@@ -94,10 +62,4 @@ findings_hours_exchange_vs_p2p.csv
 | 01 | Transfer apps keep changing their prices | 1,268 price changes since 12 Aug |
 | 02 | Some apps charge more on Saturday, then cut back | 42 Saturday rises that came back |
 | 03 | Stablecoins beat the cheapest app only above about S$20.4M a month, a figure worked out from the exchanges' published fee tiers | S$20.4M a month traded on the exchange |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,463 hours a stablecoin was cheapest |
-
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_exchange_vs_p2p.csv>
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,464 hours a stablecoin was cheapest |

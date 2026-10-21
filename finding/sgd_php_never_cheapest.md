@@ -1,6 +1,6 @@
-<!-- margin.wiki machine view, hour 2026-10-21T09:00:00+00:00 -->
-
 # Singapore to the Philippines: a stablecoin was almost never the cheapest way to send
+
+Prices from the 09:00 UTC hour, 21 Oct.
 
 In 1,461 of the 1,464 hours we priced, a stablecoin did not beat the cheapest app at any of the five amounts.
 
@@ -9,20 +9,10 @@ In 1,461 of the 1,464 hours we priced, a stablecoin did not beat the cheapest ap
 First published 5 Oct 2026. The number updates every hour.
 
 <https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_sgd_php_never_cheapest.csv>
 
 ## How much more the stablecoin cost, hour by hour
 
 Sending S$5,000 from Singapore to the Philippines. Below the dark line, the stablecoin was cheaper than every app. The dots are those hours.
-
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_sgd_php_never_cheapest.csv>
 
 ## These rows back the number
 
@@ -30,17 +20,11 @@ Each row is one amount sent from Singapore to the Philippines: the hours we pric
 
 |  |  |  |
 | --- | --- | --- |
-| S$200 | 1,463 hours priced. | 0 hours a stablecoin was cheapest |
-| S$1,000 | 1,463 hours priced. | 1 hours a stablecoin was cheapest |
-| S$5,000 | 1,463 hours priced. | 3 hours a stablecoin was cheapest |
-| S$25,000 | 1,463 hours priced. | 3 hours a stablecoin was cheapest |
-| S$50,000 | 1,463 hours priced. | 1 hours a stablecoin was cheapest |
-
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_sgd_php_never_cheapest.csv>
+| S$200 | 1,464 hours priced. | 0 hours a stablecoin was cheapest |
+| S$1,000 | 1,464 hours priced. | 1 hours a stablecoin was cheapest |
+| S$5,000 | 1,464 hours priced. | 3 hours a stablecoin was cheapest |
+| S$25,000 | 1,464 hours priced. | 3 hours a stablecoin was cheapest |
+| S$50,000 | 1,464 hours priced. | 1 hours a stablecoin was cheapest |
 
 ## This is how we built it
 
@@ -54,21 +38,9 @@ tools/audit_claims.py
 
 tools/emit_findings.py
 
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_sgd_php_never_cheapest.csv>
-
 ## Read the number with these limits
 
 It covers one route and only the hours we priced. It does not say a stablecoin can never win: on other routes it was the cheapest in some hours, and this route may change.
-
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_sgd_php_never_cheapest.csv>
 
 ## Check every row yourself
 
@@ -76,12 +48,8 @@ The file lists every row behind the number, one line per hour or per price chang
 
 findings_hours_sgd_php_never_cheapest.csv
 
-1,463 rows
+1,464 rows
 
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
 <https://margin.wiki/data/findings_hours_sgd_php_never_cheapest.csv>
 
 ## We also found these
@@ -92,9 +60,3 @@ findings_hours_sgd_php_never_cheapest.csv
 | 02 | Some apps charge more on Saturday, then cut back | 42 Saturday rises that came back |
 | 03 | Stablecoins beat the cheapest app only above about S$20.4M a month, a figure worked out from the exchanges' published fee tiers | S$20.4M a month traded on the exchange |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |
-
-<https://margin.wiki/data/findings.json>
-<https://margin.wiki/data/claims_status.json>
-<https://margin.wiki/data/findings_first_published.json>
-<https://margin.wiki/data/cycle_log.json>
-<https://margin.wiki/data/findings_hours_sgd_php_never_cheapest.csv>
