@@ -1,16 +1,16 @@
-# In Tanzania a dollar costs 0.7% more than the official rate
+# In Tanzania a dollar costs 1.3% more than the official rate
 
-Prices from the 22:00 UTC hour, 21 Oct.
+Prices from the 23:00 UTC hour, 21 Oct.
 
-The official rate is 2,641.3 TZS per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 2,659 TZS. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 2,641.3 TZS per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 2,677 TZS. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 265,900 TZS. The official rate says 264,130 TZS.
+For US$100, people pay 267,695 TZS. The official rate says 264,130 TZS.
 
 One source
 
-Prices from the 22:00 UTC hour, 21 Oct
+Prices from the 23:00 UTC hour, 21 Oct
 
-Taking the cheapest offers first, only US$3,500 can be bought before a dollar here costs 1% more.
+Taking the cheapest offers first, only US$2,500 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/countries/TZS.json>
 
@@ -26,7 +26,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-2,659 TZS +0.7%
+2,677 TZS +1.3%
 
 ## Every Tanzania price links to its raw file
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 21 Oct, 23:08 UTC | OKX, person to person | 2,900 TZS | +9.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 21 Oct, 23:06 UTC | Binance, person to person | 2,677 TZS | +1.3% | 10 of 11 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 22:08 UTC | OKX, person to person | 2,900 TZS | +9.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 22:06 UTC | Binance, person to person | 2,659 TZS | +0.7% | 10 of 13 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 21:08 UTC | OKX, person to person | 2,900 TZS | +9.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 21 Oct, 19:06 UTC | Binance, person to person | 2,652 TZS | +0.4% | 10 of 26 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 18:08 UTC | OKX, person to person | 2,800 TZS | +6.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 18:06 UTC | Binance, person to person | 2,651 TZS | +0.4% | 10 of 24 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 21 Oct, 17:08 UTC | OKX, person to person | 2,700 TZS | +2.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 21 Oct, 17:07 UTC | Binance, person to person | 2,653 TZS | +0.4% | 10 of 24 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
