@@ -23,7 +23,11 @@ It fails if any page differs from the home page (css/site_page.css is where thos
 A third mode, --overflow, loads fifteen pages at 390px and fails if anything is wider than the screen or scrolls
 sideways (--perturb adds a 600px element first, to prove it can fail).
 
-Usage: python3 tools/check_design.py [--update] [--style [--perturb]] [--overflow [--perturb]]
+A fourth mode, --lines (SEB-301, 21 Oct), loads the nine pages that share css/site_page.css at 1300px and 390px and
+fails if the last line of any heading or paragraph holds a single word, or if the home counters row wraps at 1300px
+(--perturb narrows a heading and the counters first, to prove it can fail).
+
+Usage: python3 tools/check_design.py [--update] [--style [--perturb]] [--overflow [--perturb]] [--lines [--perturb]]
 """
 import glob
 import json
@@ -218,7 +222,65 @@ def overflow_check(perturb=False):
     return 0
 
 
+LINES_PAGES = ["index.html", "countries.html", "country.html?ccy=PHP", "sending-money.html?route=SGD-PHP&amount=5000",
+               "sources.html", "findings.html", "finding.html?id=price_changes", "how-it-works.html", "how-it-was-built.html"]
+# The words of each heading and paragraph, grouped into lines by where the browser put them. A last line of one word is a
+# stray word; one that is only a symbol or a number in brackets ("(5)", "→") counts too, as the reader sees it the same way.
+LINES_PROBE = r"""
+(function(){
+ function lines(el){var w=[],tw=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null),n;
+  while(n=tw.nextNode()){var s=n.nodeValue,re=/\S+/g,m;while(m=re.exec(s)){var r=document.createRange();r.setStart(n,m.index);r.setEnd(n,m.index+m[0].length);
+   var b=r.getClientRects()[0];if(b&&b.width>0)w.push({t:m[0],y:Math.round(b.top)})}}
+  var L=[];w.forEach(function(x){var l=L[L.length-1];if(!l||Math.abs(l.y-x.y)>4)L.push({y:x.y,ws:[x.t]});else l.ws.push(x.t)});return L}
+ var bad=[];
+ document.querySelectorAll('h1,h2,h3,p').forEach(function(e){
+  if(e.closest('header,footer,.site-head,.site-footer,table,svg,button,nav'))return;
+  var s=getComputedStyle(e);if(s.display==='none'||s.visibility==='hidden'||e.getBoundingClientRect().height===0)return;
+  var L=lines(e);if(L.length>1&&L[L.length-1].ws.length===1)bad.push(e.tagName.toLowerCase()+' "'+e.textContent.trim().slice(0,50)+'" ends on "'+L[L.length-1].ws[0]+'"')});
+ var c=document.querySelector('#hero .counts'),wraps=false;
+ if(c){var tops={};[].forEach.call(c.children,function(k){var r=k.getBoundingClientRect();if(r.height)tops[Math.round(r.top)]=1});wraps=Object.keys(tops).length>1}
+ return JSON.stringify({bad:bad.slice(0,8),countsWrap:wraps});
+})()
+"""
+
+
+def lines_check(perturb=False):
+    sys.path.insert(0, os.path.join(HERE, "tools"))
+    from gate_common import open_page, serve  # noqa: E402
+    base, stop = serve(HERE)
+    bad = []
+    try:
+        with open_page(settle=4.0) as page:
+            page.visit("about:blank")
+            for width, height, mobile in ((1300, 900, False), (390, 844, True)):
+                for name in LINES_PAGES:
+                    page.set_viewport(width, height, mobile=mobile)
+                    page.visit(base + "/" + name)
+                    if perturb and name == "index.html" and width == 1300:
+                        page.eval_js("var h=document.querySelector('main h2, .wrap h2');h.style.setProperty('max-width','260px','important');"
+                                     "h.style.setProperty('text-wrap','wrap','important');h.textContent='Exchangesandapps Transfersandrates';"
+                                     "document.querySelector('#hero .counts').style.setProperty('flex-wrap','wrap','important');"
+                                     "document.querySelector('#hero .counts').style.setProperty('max-width','300px','important');'ok'")
+                    got = json.loads(page.eval_js(LINES_PROBE) or "{}")
+                    for line in got.get("bad", []):
+                        bad.append("%dpx %s: %s" % (width, name.split("?")[0], line))
+                    if width == 1300 and name == "index.html" and got.get("countsWrap"):
+                        bad.append("1300px index: the counters row wraps onto a second line")
+            page.clear_viewport()
+    finally:
+        stop()
+    if bad:
+        print("line check FAILED (a line ends with one word, or the home counters wrap at 1300px):")
+        for line in bad:
+            print("  " + line)
+        return 1
+    print("line check ok (%d pages at 1300px and 390px: no last line holds one word, the home counters fit on one line)" % len(LINES_PAGES))
+    return 0
+
+
 def main():
+    if "--lines" in sys.argv:
+        return lines_check("--perturb" in sys.argv)
     if "--overflow" in sys.argv:
         return overflow_check("--perturb" in sys.argv)
     if "--style" in sys.argv:

@@ -53,3 +53,38 @@ p a, li a, .hp-biglink, .hp-body a, .more a, .who a {
 .f:hover, .f:hover *, .fp-ilink:hover, .fp-ilink:hover *, .ci-row:hover .ci-nm, .cr-row:hover .cr-nm { text-decoration: underline !important; text-decoration-color: var(--color-neutral-300, #d7d3d3) !important; text-underline-offset: 3px !important; }
 @media (max-width: 700px) { h1 { font-size: 24px !important; } }
 @media (max-width: 700px) { .c-wrap > .c-head { margin-bottom: -40px !important; } }
+
+/* More space and clean line breaks (SEB-301, 21 Oct). Words, fonts, sizes, colours, charts and layout do not change.
+   1. A section's title, the grey line under it and its meta line share one width: the content column. They were held to
+      620 to 760px by each page's own CSS, so they broke early while the meta line ran the full width.
+   2. The home counters stay on one line above phone width.
+   3. Titles and short text are balanced, longer text is "pretty", so no line ends with one word.
+   4. Running text longer than three lines keeps its width (.body outside a hero, .p, .fp-block, lists are not touched).
+   5. About 1.5 times the old gap between sections, and 14px between a section title and the text under it. */
+.hero, .hp-hero, .ci-hero, .c-herotext, .sm-hero, .hw-hero, .fp-hero, h1,
+.hp-lede, .c-lead, .ci-lead, .sm-lead, .lead, .lede, .fp-lead,
+.hero .body, .note, .sm-note, .sm-small { max-width: none !important; }
+@media (min-width: 701px) { #hero .counts { flex-wrap: nowrap !important; } }
+
+p, li { text-wrap: pretty; }
+h1, h2, h3, .hp-lede, .c-lead, .ci-lead, .sm-lead, .lead, .lede, .fp-lead, .hero .body,
+.note, .sm-note, .sm-small, .ci-meta, .ci-note, .ci-aside, .when, .rb-note, .answer { text-wrap: balance; }
+
+/* sections: was 48px on home, country and finding, 32px on sources, 32px on countries, 28 to 40px plus a 28px rule gap on
+   sending money, 32px plus 24px on how it works, a 44px gap on how it was built */
+.wrap > section { margin-top: 72px !important; }
+#rec section { margin-top: 0 !important; }
+body:has(#kinds) .wrap > section { margin-top: 48px !important; }
+.ci-wrap > .ci-band { margin-top: 48px !important; }
+.ci-wrap > .ci-np { margin-top: 60px !important; padding-top: 42px !important; }
+.sm-wrap > section.sm-first { margin-top: 42px !important; padding-top: 42px !important; }
+.sm-wrap > section:not(.sm-first) { margin-top: 60px !important; padding-top: 42px !important; }
+.hw-main > .hiw-section { margin-top: 48px !important; padding-top: 36px !important; }
+.wrap > .stack { gap: 66px !important; }
+
+/* a section title and the text or rule under it: 14px */
+.wrap > section > h2, .ci-wrap > section > h2, .ci-np > h2, .sm-wrap > section > h2, .hw-main > .hiw-section > h2,
+.stack > section:not(.dkpanel) > h2 { margin-bottom: 14px !important; }
+/* how it works: its sections are a flex column with a 4px gap, and its list has its own 8px top margin */
+.hw-main > .hiw-section > h2 { margin-bottom: 10px !important; }
+.hw-main > .hiw-section > h2 + .plain-list { margin-top: 0 !important; }
