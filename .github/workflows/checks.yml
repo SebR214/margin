@@ -301,6 +301,10 @@ jobs:
         if: steps.scope.outputs.touched == 'true'
         run: python3 tools/check_design.py --lines
 
+      - name: Two counts of the same thing on the home page agree (SEB-310)
+        if: steps.scope.outputs.touched == 'true'
+        run: python3 tools/check_design.py --counts
+
       - name: Post the rendered check's list to the PR
         if: steps.render.outcome == 'failure'
         env:
