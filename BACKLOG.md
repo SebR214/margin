@@ -26,7 +26,9 @@ change), optional `    context:` (read-only paths) and `    done when:` lines. T
       collection run on the branch produces the same headers and still writes rows for every existing corridor.
   (d) Done means data: a job that adds or changes collection is ticked only after its first hourly rows are on main. If none land
       within 2 hours of the merge, untick it and post why.
-  Status 21 Oct: (a) and (b) done in this file. The CSVs of (a) were never committed, so there were none to delete.
+  Status 21 Oct: (a) PR #584 (their CSVs were never committed, so there were none to delete). (b) PR #581 and this file. (c) and (d)
+  PR #583: check_additive.py takes new route entries, the builder writes `built:` for a collection job and watchdog.yml ticks it
+  when its rows land. The builder now sends collector.py, collect.yml and collector_providers.py in parts (`excerpt:` lines).
 
 ## More routes
 Re-split 21 Oct under item 0: one job per route, through `collector.py --corridor`. Only where both ends already have a live exchange.
@@ -44,8 +46,11 @@ and 6a to 6d dropped unbuilt.
   - [ ] 1a. Add the USD->PHP route to collector.py's corridor table, its collect.yml step and the provider quotes config
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->PHP`
+    excerpt: `collector.py` `^CORRIDORS = \{` `^\}`
+    excerpt: `.github/workflows/collect.yml` `- name: Collect corridor sample SGD->INR` `--corridor "SGD->INR"`
+    excerpt: `.github/workflows/collect.yml` `for f in data/samples.csv` `; do$`
+    excerpt: `collector_providers.py` `^CORRIDOR_CCY = \{` `^\}`
     done when: collector.py's CORRIDORS has one new "USD->PHP" entry with src USD, dst PHP, stable USDT, the onramp, network_fee_stable, gas_modelled, withdraw_pct, withdraw_pct_cap and deposit fields copied unchanged from "USD->MXN", the offramp and withdrawal copied unchanged from "SGD->PHP", the same ladder, and providers_file "providers_usdphp.csv"; collect.yml has one new step "Collect corridor sample USD->PHP" after the SGD->INR step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector.py --corridor "USD->PHP"`, and data/providers_usdphp.csv added to the commit list; collector_providers.py CORRIDOR_CCY has "USD->PHP": ("USD", "PHP"); no other line changes.
-    blocked: waits for item 0: the builder cannot yet send collector.py (103,000 characters) and rule d is not in the builder yet (2026-10-21)
 - [ ] 2. United States to Brazil (Coinbase, then Foxbit or Mercado Bitcoin). Apps in the feed: 7.
   - [ ] 2a. Add the USD->BRL route to collector.py's corridor table, its collect.yml step and the provider quotes config
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
@@ -68,8 +73,11 @@ and 6a to 6d dropped unbuilt.
   - [ ] 5a. Add the AUD->INR route to collector.py's corridor table, its collect.yml step and the provider quotes config
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `AUD->INR`
+    excerpt: `collector.py` `^CORRIDORS = \{` `^\}`
+    excerpt: `.github/workflows/collect.yml` `- name: Collect corridor sample SGD->INR` `--corridor "SGD->INR"`
+    excerpt: `.github/workflows/collect.yml` `for f in data/samples.csv` `; do$`
+    excerpt: `collector_providers.py` `^CORRIDOR_CCY = \{` `^\}`
     done when: collector.py's CORRIDORS has one new "AUD->INR" entry with src AUD, dst INR, stable USDT, the onramp, network_fee_stable and deposit copied unchanged from "AUD->PHP", the offramp copied unchanged from "SGD->INR", the same ladder, and providers_file "providers_audinr.csv"; collect.yml has one new step "Collect corridor sample AUD->INR" after the SGD->INR step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector.py --corridor "AUD->INR"`, and data/providers_audinr.csv added to the commit list; collector_providers.py CORRIDOR_CCY has "AUD->INR": ("AUD", "INR"); no other line changes.
-    blocked: waits for item 0: the builder cannot yet send collector.py (103,000 characters) and rule d is not in the builder yet (2026-10-21)
 - [ ] 6. United States to Turkey (Coinbase, then BtcTurk or Paribu). Apps in the feed: 5.
   - [ ] 6a. Add the USD->TRY route to collector.py's corridor table, its collect.yml step and the provider quotes config
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
@@ -80,19 +88,17 @@ and 6a to 6d dropped unbuilt.
 ## More apps
 - [ ] 7. For every route, list every provider the comparison feed returns that we don't store yet. Add all of them to the stored quotes.
   - [ ] 7a. Collector for every provider the comparison feed returns on each route
-    files: `collector_comparison.py` `data/comparison_quotes.csv`
+    files: `collector_comparison.py` `data/comparison_quotes.csv` `.github/workflows/collect.yml`
     context: `collector_providers.py`
+    rows: `data/comparison_quotes.csv`
+    excerpt: `.github/workflows/collect.yml` `- name: Collect corridor sample SGD->INR` `--corridor "SGD->INR"`
+    excerpt: `.github/workflows/collect.yml` `for f in data/samples.csv` `; do$`
     venue: `USD` | `https://api.wise.com/v4/comparisons/` | `(not probed: a dollar in dollars)`
-    done when: running collector_comparison.py once appends to data/comparison_quotes.csv one row per route and provider that the feed returns (time, route, provider, fee, rate, amount received, source URL), and a provider already stored by collector_providers.py is skipped rather than duplicated.
-    blocked: held until item 0 is done: a collection job, so rule d (ticked only when its rows land) must be in the builder first (2026-10-21)
+    done when: running collector_comparison.py once appends to data/comparison_quotes.csv one row per route and provider that the feed returns (time, route, provider, fee, rate, amount received, source URL), and a provider already stored by collector_providers.py is skipped rather than duplicated. collect.yml has one new step after the SGD->INR corridor step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector_comparison.py`, and data/comparison_quotes.csv added to the commit list; no existing step changes.
   - [ ] 7b. List the providers the feed returns that we do not store yet, per route
     files: `tools/list_unstored_providers.py` `data/unstored_providers.json`
     context: `collector_providers.py`
     done when: running tools/list_unstored_providers.py writes data/unstored_providers.json with, for every route, the providers present in data/comparison_quotes.csv but absent from the existing provider quotes, and a test finds no provider on both the stored list and the unstored list for the same route.
-  - [ ] 7c. Run the comparison collector in the hourly workflow
-    files: `.github/workflows/collect.yml`
-    done when: collect.yml has one new appended step that runs collector_comparison.py and commits data/comparison_quotes.csv, and no existing step is changed.
-    blocked: held until item 0 is done: a collection job, so rule d (ticked only when its rows land) must be in the builder first (2026-10-21)
 - [ ] 8. Check which big providers have a public quote of their own we can read the way we read Wise and Airwallex (try Remitly, Western Union, Revolut, Xe, MoneyGram). Add each that works as its own source next to the comparison feed. Post the ones that don't work and why.
 
 ## More sources for country prices
