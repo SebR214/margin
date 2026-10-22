@@ -203,7 +203,7 @@ def aider_cmd(job, architect, msg_file, tmp, files=None, manifest=None):
          "--editor-edit-format", "editor-diff", "--yes-always", "--no-auto-commits", "--no-dirty-commits", "--no-gitignore",
          "--no-pretty", "--no-stream", "--no-check-update", "--no-analytics", "--no-show-model-warnings", "--no-suggest-shell-commands",
          "--no-detect-urls", "--map-tokens", "0", "--auto-test",
-         "--test-cmd", "python3 %s/tools/aider_builder.py --splice %s && python3 %s/tools/aider_checks.py" % (ROOT, manifest, ROOT),
+         "--test-cmd", "python3 %s/tools/aider_builder.py --splice %s && python3 %s/tools/aider_checks.py && python3 %s/tools/check_additive.py --worktree" % (ROOT, manifest, ROOT, ROOT),
          "--message-file", msg_file, "--llm-history-file", os.path.join(tmp, "llm.txt"),
          "--input-history-file", os.path.join(tmp, "input.txt"), "--chat-history-file", os.path.join(tmp, "chat.md")]
     for p in job["context"]:
@@ -335,9 +335,10 @@ def build(force, only):
     if not changed:
         problems.append("Aider changed none of the job's files")
     else:
-        bad = subprocess.run([sys.executable, "tools/aider_checks.py"], cwd=ROOT, capture_output=True, text=True)
-        if bad.returncode != 0:
-            problems.append("the offline checks fail: " + (bad.stdout.strip().split("\n")[1:2] or ["see log"])[0][:160])
+        for cmd in (["tools/aider_checks.py"], ["tools/check_additive.py", "--worktree"]):
+            bad = subprocess.run([sys.executable] + cmd, cwd=ROOT, capture_output=True, text=True)
+            if bad.returncode != 0:
+                problems.append("%s fails: %s" % (os.path.basename(cmd[0]), (bad.stdout.strip().split("\n")[1:2] or bad.stdout.strip().split("\n")[:1] or ["see log"])[0][:160]))
     spend_row = {"ts_utc": ts, "issue": "%s/%s/%s" % (one_call.BACKLOG_ISSUE, TRACK, job["id"]), "model": "openrouter/%s+%s" % (architect, EDITOR),
                  "tokens_in": "", "tokens_out": "", "cost_usd": "%.6f" % cost, "result": "ok" if not problems else "failed"}
     llm.LOGGED.append(spend_row)
@@ -386,8 +387,9 @@ def self_test():
     for m in (ARCHITECT_FALLBACK, EDITOR):
         assert not llm.BANNED.search(m), "no model of the two larger families"
     c = aider_cmd({"files": ["a.py"], "context": ["m.md"]}, "anthropic/claude-sonnet-5.5", "/t/task", "/t", None, "/t/parts.json")
-    assert "--architect" in c and c[c.index("--test-cmd") + 1].endswith("/tools/aider_checks.py") and "--splice /t/parts.json" in c[c.index("--test-cmd") + 1]
+    assert "--architect" in c and "--splice /t/parts.json" in c[c.index("--test-cmd") + 1]
     assert c[c.index("--model") + 1] == "openrouter/anthropic/claude-sonnet-5.5" and c[c.index("--editor-model") + 1] == "openrouter/qwen/qwen3-coder"
+    assert "check_additive.py --worktree" in c[c.index("--test-cmd") + 1]
     assert "--no-auto-commits" in c and c.count("--file") == 1 and c.count("--read") == 1
     assert "\u2014" not in TASK_RULES
     with tempfile.TemporaryDirectory() as d:
