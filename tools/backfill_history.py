@@ -1163,6 +1163,9 @@ def replay_history(dry, start="2000-01-01"):
     for r in rows:
         r["label"] = LABEL
         r["source"] = " | ".join(names.get(r["ccy"], [])) + " ; street " + " + ".join(snames.get(r["ccy"], ["none"]))
+        for k in REPLAY_FIELDS:
+            if r.get(k) in ("", None):
+                r[k] = "none"                                    # a history row has no empty field; "none" says the figure does not apply
     fixed = {}
     for eid, rec in recs.items():
         if "_afters" in rec:
