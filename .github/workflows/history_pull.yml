@@ -1,0 +1,56 @@
+name: history_pull
+
+# SEB-311 step 3b: a ONE-OFF pull of every free, keyless history feed (official rates, Binance bulk klines, Buda trades, Bitso, Kraken, the
+# Argentine street-dollar series as a known answer). Run by hand. Raw bulk files go up as assets on a release named history-raw-<date> with
+# this workflow's own token (no new key); the daily files are an artifact that a person commits into data/history/. Nothing reads them
+# but the isolation check and the detector's replay; none feeds the index or a price.
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "comma list of sources (fawaz,bis,binance,bitso,kraken,buda,argentina); empty = all"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install requests
+      - name: The pull
+        run: |
+          mkdir -p history-raw
+          ONLY="${{ github.event.inputs.only }}"
+          if [ -n "$ONLY" ]; then python3 tools/backfill_history.py --wide --only "$ONLY" --raw-dir history-raw | tee pull.json
+          else python3 tools/backfill_history.py --wide --raw-dir history-raw | tee pull.json; fi
+      - name: Pack the raw files and publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          D=$(date -u +%Y-%m-%d)
+          python3 tools/backfill_history.py --pack-raw "$D" --raw-dir history-raw | tee raw_files.txt
+          FILES=$(awk '{print $1}' raw_files.txt | grep -E '\.(tar\.gz|zip|gz)$' || true)
+          gh release delete "history-raw-$D" --yes --cleanup-tag 2>/dev/null || true
+          { echo "Raw bulk files for the history layer (SEB-311 step 3b). Reported, not observed. Each asset and its size:"; echo; awk '{print "- " $1 " " $2 " bytes"}' raw_files.txt; } > notes.md
+          gh release create "history-raw-$D" $FILES --title "history-raw-$D" --notes-file notes.md
+          gh release view "history-raw-$D" --json url,assets -q '.url, (.assets[]|.name+" "+(.size|tostring))' | tee release.txt
+      - name: The daily files, as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: history-daily
+          path: |
+            data/history/*.csv
+            data/history/manifest_wide.json
+            pull.json
+            raw_files.txt
+            release.txt
+          retention-days: 14
