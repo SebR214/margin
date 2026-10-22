@@ -61,6 +61,7 @@ MIN_READINGS = 12              # hourly readings that make a street day count
 REARM_DAYS = 14
 UPDATE_EVERY = 7
 CLOSE_AFTER = 56
+FLAG_WINDOW_DAYS = 90         # the official-rate rules look at the 90 days before the day judged
 LOOP_TOL_PCT = 2.0             # a value within 2% of one seen 7 or 14 days before
 
 
@@ -189,8 +190,9 @@ class LazyFlags:
             if not off:
                 self.memo[ccy] = []
             else:
-                series = {ccy: cut(off, self.D)}
-                lv = {ccy: cut(self.data["live"].get(ccy, {}), self.D)}
+                lo = day_add(self.D, -FLAG_WINDOW_DAYS)                # the rules were written for weeks of data: over years, one old glitch would flag a currency forever
+                series = {ccy: {d: v for d, v in cut(off, self.D).items() if d >= lo}}
+                lv = {ccy: {d: v for d, v in cut(self.data["live"].get(ccy, {}), self.D).items() if d >= lo}}
                 self.memo[ccy] = sorted({r for _, c, r, _ in cor.check(series, lv) if r != "flat_30"})
         return self.memo[ccy] or default
 

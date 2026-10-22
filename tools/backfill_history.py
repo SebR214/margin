@@ -929,7 +929,14 @@ def buda_market(m, raw_dir, deadline):
         g.write("timestamp_ms,amount,price,direction,id\n")
         while time.time() < deadline:
             u = "https://www.buda.com/api/v2/markets/%s/trades?limit=100" % m.lower() + ("&timestamp=%s" % ts if ts else "")
-            e = get_json(u)["trades"]["entries"]
+            try:
+                e = get_json(u)["trades"]["entries"]
+            except requests.RequestException:
+                time.sleep(5)                                       # a reset connection: one more go, then keep what was read
+                try:
+                    e = get_json(u)["trades"]["entries"]
+                except requests.RequestException:
+                    break
             pages += 1
             if not e:
                 break
