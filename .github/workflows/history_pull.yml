@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: "comma list of sources (fawaz,bis,binance,bitso,kraken,buda,argentina); empty = all"
+        description: "comma list of sources (fawaz,bis,binance,bitso,kraken,buda,coingecko,argentina); empty = all"
         required: false
         default: ""
 
@@ -39,9 +39,12 @@ jobs:
           D=$(date -u +%Y-%m-%d)
           python3 tools/backfill_history.py --pack-raw "$D" --raw-dir history-raw | tee raw_files.txt
           FILES=$(awk '{print $1}' raw_files.txt | grep -E '\.(tar\.gz|zip|gz)$' || true)
-          gh release delete "history-raw-$D" --yes --cleanup-tag 2>/dev/null || true
           { echo "Raw bulk files for the history layer (SEB-311 step 3b). Reported, not observed. Each asset and its size:"; echo; awk '{print "- " $1 " " $2 " bytes"}' raw_files.txt; } > notes.md
-          gh release create "history-raw-$D" $FILES --title "history-raw-$D" --notes-file notes.md
+          if gh release view "history-raw-$D" >/dev/null 2>&1; then
+            [ -n "$FILES" ] && gh release upload "history-raw-$D" $FILES --clobber
+          else
+            gh release create "history-raw-$D" $FILES --title "history-raw-$D" --notes-file notes.md
+          fi
           gh release view "history-raw-$D" --json url,assets -q '.url, (.assets[]|.name+" "+(.size|tostring))' | tee release.txt
       - name: The daily files, as an artifact
         uses: actions/upload-artifact@v4
