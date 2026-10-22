@@ -58,7 +58,9 @@ WINDOW_HOURS = 7 * 24
 MOVE_DAYS = 30
 MAX_MOVES = 5
 MIN_BLOCK_DAYS = 3
-TOLERANCE_BPS = 2.0
+# the largest gap between the sum of the steps and the stored total, over every stored hour at the amounts the table uses, is 2.21 bps
+# (Singapore to India, a flat 4 USDT network fee on a 6% premium); 3 leaves room without hiding a missing step (the smallest step is tens of bps)
+TOLERANCE_BPS = 3.0
 INDIA = {"USD->INR", "SGD->INR"}
 NIGERIA = {"USD->NGN"}
 INDIA_TDS_BPS = 140.0          # 40 (WazirX fee) + 100 (tax): the first hour the sale fee holds the tax

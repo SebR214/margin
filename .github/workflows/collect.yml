@@ -588,6 +588,9 @@ jobs:
 
       - name: Emit the routes table, chart and biggest moves (SEB-310)
         if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-372: a derived file for one page must never stop the collection chain. If the check inside fails, this step fails loudly in the
+        # log and the page keeps the last file; the chain goes on.
+        continue-on-error: true
         # SEB-310 item 2. Reads stored files only and writes data/routes_table.json for the routes page. Fails loud if the
         # path's steps do not add up to its stored total. See tools/emit_routes_table.py; `--self-test` checks it offline.
         run: python3 tools/emit_routes_table.py
