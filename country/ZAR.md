@@ -1,12 +1,12 @@
 # No price for South Africa this hour
 
-Prices from the 00:00 UTC hour, 22 Oct.
+Prices from the 01:00 UTC hour, 22 Oct.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
 The last price we published was +9.1%, on 21 Oct.
 
-Prices from the 00:00 UTC hour, 22 Oct
+Prices from the 01:00 UTC hour, 22 Oct
 
 <https://margin.wiki/data/countries/ZAR.json>
 
@@ -20,6 +20,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 22 Oct, 01:08 UTC | OKX, person to person | 19.00 ZAR | +16.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 01:07 UTC | Binance, person to person | 18.06 ZAR | +10.3% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 22 Oct, 00:08 UTC | OKX, person to person | 19.00 ZAR | +15.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 22 Oct, 00:06 UTC | Binance, person to person | 18.06 ZAR | +10.1% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 23:08 UTC | OKX, person to person | 19.00 ZAR | +15.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -30,8 +32,6 @@ Open any file to check a price yourself.
 | 21 Oct, 21:06 UTC | Binance, person to person | 18.06 ZAR | +10.1% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 20:08 UTC | OKX, person to person | 18.65 ZAR | +13.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 20:07 UTC | Binance, person to person | 18.06 ZAR | +10.1% | 8 of 8 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 21 Oct, 19:08 UTC | OKX, person to person | 19.00 ZAR | +15.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 21 Oct, 19:06 UTC | Binance, person to person | 18.06 ZAR | +10.1% | 10 of 10 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
