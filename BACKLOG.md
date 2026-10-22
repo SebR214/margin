@@ -70,7 +70,7 @@ and 6a to 6d dropped unbuilt.
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->BRL`
     done when: as 1a, with the Coinbase side copied from "USD->MXN" and a Brazil off-ramp entry.
-    blocked: collector.py has no off-ramp for Foxbit or Mercado Bitcoin (it reads Coins.ph, Bitso, Luno and WazirX only), so this is new collector code, not a table entry, and the off-ramp fee must be read from the venue's own fee page, which the builder cannot do (2026-10-21)
+    blocked: needs-claude: collector.py has no off-ramp for Foxbit or Mercado Bitcoin (it reads Coins.ph, Bitso, Luno and WazirX only), so this is new collector code, not a table entry, and the off-ramp fee must be read from the venue's own fee page, which the builder cannot do (2026-10-21)
 - [ ] 3. United States to Indonesia (Coinbase, then Indodax or Pintu). Apps in the feed: 6.
   - [ ] 3a. Add the USD->IDR route to collector.py's corridor table, its collect.yml step and the provider quotes config
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
@@ -98,7 +98,7 @@ and 6a to 6d dropped unbuilt.
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->TRY`
     done when: as 1a, with the Coinbase side copied from "USD->MXN" and a Turkey off-ramp entry.
-    blocked: collector.py has no off-ramp for BtcTurk or Paribu, so this is new collector code, not a table entry, and the off-ramp fee must be read from the venue's own fee page, which the builder cannot do (2026-10-21)
+    blocked: needs-claude: collector.py has no off-ramp for BtcTurk or Paribu, so this is new collector code, not a table entry, and the off-ramp fee must be read from the venue's own fee page, which the builder cannot do (2026-10-21)
 
 ## More apps
 - [ ] 7. For every route, list every provider the comparison feed returns that we don't store yet. Add all of them to the stored quotes.

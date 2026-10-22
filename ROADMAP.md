@@ -1,6 +1,6 @@
 # Roadmap
 
-Updated 11 Oct 2026. Seb owns this file. Agents change it only from a spec Seb approved.
+Updated 22 Oct 2026 (events plan, approved by Seb in chat, SEB-311). Seb owns this file. Agents change it only from a spec Seb approved.
 
 ## What margin.wiki is
 
@@ -8,19 +8,37 @@ Every hour it prices a dollar in 60 countries against the official rate, and pri
 
 ## In six months (April 2027)
 
-The same site, plus three things it doesn't have today.
+A dated record of every time a currency broke in the countries we track. Each event is found by code from our own hourly prices, checked against a second source, and retested as new data comes in.
+
+It rests on three things:
 
 1. **Findings that age honestly.** Each finding is retested by code. It shows whether it still holds, got weaker or is no longer true. The original claim and its evidence stay up with their date.
-2. **Sources checked against each other.** Every pair of sources measuring the same market is compared hour by hour. A gap that lasts is flagged as a possible finding.
-3. **A depth record.** What a dollar costs at several amounts, not just at the best price, collected from the day it starts.
+2. **Sources checked against each other.** Every pair of sources measuring the same market is compared hour by hour. An event is confirmed only when two sources agree.
+3. **A depth and liquidity record.** What a dollar costs at several amounts, and every ad we can read on the person-to-person boards, not the first 10. Collected from the day it starts.
+
+## What counts as an event
+
+- **Official break:** the official rate steps 3% or more within 3 days.
+- **Street slide:** the street price moves 10% or more in 7 days, in a market we publish (10 or more ads).
+- **Not an event:** thin markets, slow drifts that never cross the line, and anything caused by our own source breaking. A stale, looping or broken official rate is a data warning, never an event.
+- **Confirmed** when two official sources show the step, or two street sources move together. With one source, the record says "one source". No model confirms anything.
+- **Each event record holds:** what changed against a set baseline, the street before, how long the official source took to catch up, offer counts and depth where we have them, what happened after, and the quality checks on every source used.
+- **Reopened** weekly for 8 weeks as the "after" fills in, then closed. Nothing is ever rewritten.
 
 ## Order
 
-1. SEB-268, items 1 to 11. Data checks and fixes come first.
-2. Write down how a finding is tested (below) before building anything else, so new comparisons are stored in a form that can be retested.
-3. Source comparisons. Only compare sources that are comparable: same kind of market, same amount, same hour. A gap must last past a set threshold before it counts. Use each source's own history where both have one.
-4. Depth collection.
-5. Finding statuses on the site.
+Done since 11 Oct: SEB-268, finding test files, source comparisons, depth collection, the routes rebuild (SEB-310).
+
+1. **Coinbase fee correction (SEB-310).** USDT-USD lost stablecoin pricing in May 2025. Fix the fee with its source and date, keep the old fee regime identifiable, and add a check that fails if a venue loses a pair's special pricing.
+2. **Read every person-to-person ad,** not 10 per side. Liquidity history can't be added later.
+3. **Retest the stress finding against the street price.** 12 of its 13 triggers come from er-api's broken Sudan rate.
+4. **The event detector, in shadow mode (SEB-311).** Plain code. Writes event records to a file and publishes nothing. It must show four things before anything goes live:
+   - the same data always gives the same events and numbers
+   - a broken or stale official rate never shows up as an event
+   - it can be replayed over the history we have, including cases that should not trigger
+   - every number in a record traces to stored rows, and "not enough evidence" is a valid result
+5. **One event page,** built from the record, after the detector passes. Iraq, Sudan and Bolivia are the test cases, not promises. More pages only once the first one holds.
+6. **Finding statuses on the site.**
 
 ## How a finding is tested
 
@@ -57,7 +75,6 @@ Fixes that keep collection running or make existing numbers right always qualify
 ## Parked
 
 - "Under investigation" page.
-- Linking country prices to route costs. Only the Philippines and Mexico overlap.
 - Ask and the public API (SEB-213).
 - Agent payments.
 - Bringing back the Routes research controls.
