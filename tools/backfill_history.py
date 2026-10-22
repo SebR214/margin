@@ -970,6 +970,30 @@ def run_buda(dry, now, raw_dir):
     return {"file": os.path.basename(path), "rows": len(rows), "added": added, "conflicts": conflicts, "pairs": table}
 
 
+CG_SOURCE = "api.coingecko.com market_chart, aggregate price, free tier"
+CG_COINS = (("tether", "USDT"), ("usd-coin", "USDC"), ("bitcoin", "BTC"))
+
+
+def run_coingecko(dry, now, raw_dir):
+    """CoinGecko's free keyless tier: 365 days of daily prices of a coin in each currency it supports. An aggregate of venues, not one venue."""
+    sup = {c.upper() for c in get_json("https://api.coingecko.com/api/v3/simple/supported_vs_currencies")}
+    ccys = sorted(sup & tracked_ccys())
+    out, table = [], []
+    for coin, sym in CG_COINS:
+        for c in ccys:
+            d = get_json("https://api.coingecko.com/api/v3/coins/%s/market_chart?vs_currency=%s&days=365" % (coin, c.lower()))["prices"]
+            rows = candle_rows("CoinGecko", c, "%s-%s" % (sym, c), "1d", CG_SOURCE, [(int(t) // 1000, float(p)) for t, p in d if p], now)
+            out.extend(rows)
+            table.append({"pair": "%s-%s" % (sym, c), "first": rows[0]["ts_utc"][:10] if rows else None, "daily_rows": len(rows)})
+            time.sleep(7)
+    path = fname("coingecko", "1d")
+    have = read_rows(path, lambda r: (r["pair"], r["ts_utc"]))
+    rows, added, conflicts = merge(have, out, lambda r: (r["pair"], r["ts_utc"]))
+    if not dry:
+        write_rows(path, CANDLE_FIELDS, rows)
+    return {"file": os.path.basename(path), "rows": len(rows), "added": added, "conflicts": conflicts, "pairs": table}
+
+
 ARG_SOURCE = "api.argentinadatos.com/v1/cotizaciones/dolares (MIT), a known answer, not our price"
 
 
@@ -996,7 +1020,7 @@ def run_argentina_all(dry, now, raw_dir):
 
 
 WIDE = {"fawaz": run_fawaz, "bis": run_bis, "binance": run_binance, "bitso": run_bitso_wide, "kraken": run_kraken, "buda": run_buda,
-        "argentina": run_argentina_all}
+        "coingecko": run_coingecko, "argentina": run_argentina_all}
 
 
 def run_wide(only, dry, raw_dir, max_pairs=None):
@@ -1029,6 +1053,133 @@ def pack_raw(raw_dir, date):
     return out
 
 
+# ---- the replay: the event detector (tools/detect_events.py, shadow mode) run over everything above. Its rows and records stay here, apart
+# from data/events.csv and data/event_records/, and every one is marked "reported, not observed". Nothing here feeds the index or a price.
+EVENTS_REPORTED = os.path.join(OUT_DIR, "events_reported.csv")
+RECORDS_REPORTED = os.path.join(OUT_DIR, "event_records")
+REPLAY_FIELDS = ["as_of_date", "event_id", "ccy", "kind", "status", "confirmation", "detected_on", "baseline", "latest", "change_pct", "note",
+                 "label", "sources"]
+
+
+def _series(path, datecol, ccycol, valcol, ccys=None):
+    out = {}
+    if not os.path.exists(path):
+        return out
+    with open(path, newline="") as f:
+        for r in csv.DictReader(f):
+            try:
+                v = float(r[valcol])
+            except (TypeError, ValueError):
+                continue
+            if v > 0 and (not ccys or r[ccycol] in ccys):
+                out.setdefault(r[ccycol], {})[r[datecol][:10]] = v
+    return out
+
+
+def street_series():
+    """{ccy: {day: price of one USDT in local money}} per venue file, each as the venue reported it (a coin priced in the fiat), never crossed.
+    Binance's pairs written fiat-first (AUDUSDT) are inverted, which is a unit change, not a derived price."""
+    tracked = tracked_ccys()
+    venues = {}
+    for fn, venue in (("candles_binance_spot_1d.csv", "Binance spot"), ("candles_bitso_wide_1d.csv", "Bitso"), ("candles_kraken_1d.csv", "Kraken"),
+                      ("candles_buda_1d.csv", "Buda"), ("candles_coingecko_1d.csv", "CoinGecko")):
+        p = os.path.join(OUT_DIR, fn)
+        if not os.path.exists(p):
+            continue
+        best = {}
+        with open(p, newline="") as f:
+            for r in csv.DictReader(f):
+                pair, ccy = r["pair"].upper().replace("-", "").replace("_", ""), r["ccy"]
+                coin = next((c for c in ("USDT", "USDC") if pair.startswith(c) or pair.endswith(c)), None)
+                if not coin or ccy not in tracked:
+                    continue
+                inv = pair.endswith(coin) and not pair.startswith(coin)
+                prio = 0 if coin == "USDT" else 1
+                v = float(r["close"])
+                if v <= 0:
+                    continue
+                key = (prio, pair)
+                if ccy not in best or key < best[ccy][0]:
+                    best[ccy] = (key, {})
+                if best[ccy][0] == key:
+                    best[ccy][1][r["ts_utc"][:10]] = (1.0 / v) if inv else v
+        venues[venue] = {c: d for c, (_, d) in best.items()}
+    return venues
+
+
+def history_data():
+    """The detector's input built from the history files. Official: BIS daily where it has the currency, else fawazahmed0; the second official
+    source is the ECB reference rate where it has the currency, else fawazahmed0. Street: Binance spot first, then the others."""
+    bis = _series(os.path.join(OUT_DIR, FX_WIDE["bis"]), "date", "ccy", "per_usd")
+    fawaz = _series(os.path.join(OUT_DIR, FX_WIDE["fawaz"]), "date", "ccy", "per_usd")
+    ecb = _series(os.path.join(OUT_DIR, "official_fx_daily.csv"), "date", "ccy", "per_usd")
+    off, live, names = {}, {}, {}
+    for c in set(bis) | set(fawaz):
+        if c in bis:
+            off[c], names[c] = bis[c], ["BIS WS_XRU daily average"]
+            if c in ecb:
+                live[c] = ecb[c]
+                names[c].append("ECB reference rate via Frankfurter")
+            elif c in fawaz:
+                live[c] = fawaz[c]
+                names[c].append("fawazahmed0/currency-api")
+        else:
+            off[c], names[c] = fawaz[c], ["fawazahmed0/currency-api"]
+    venues = street_series()
+    order = ["Binance spot", "Bitso", "Buda", "Kraken", "CoinGecko"]
+    street, street2, snames = {}, {}, {}
+    for c in sorted({c for v in venues.values() for c in v}):
+        have = [v for v in order if c in venues.get(v, {})]
+        for (k, d) in ((c, venues[have[0]][c]),):
+            for day, p in d.items():
+                street[(c, day)] = p
+        snames[c] = [have[0]] + ([have[1]] if len(have) > 1 else [])
+        if len(have) > 1:
+            for day, p in venues[have[1]][c].items():
+                street2[(c, day)] = p
+    street_c = {"binance_p2p": {}, "okx_p2p": {}}
+    for (c, d), p in street.items():
+        street_c["binance_p2p"].setdefault(c, {})[d] = p
+    size = {k: (999.0, 999.0, "exchange spot market, depth not stored") for k in street}
+    n_off = {(c, d): 1 for c, v in off.items() for d in v}
+    data = {"off": off, "n_off": n_off, "live": live, "street": {"binance_p2p": street, "okx_p2p": street2},
+            "street_c": street_c, "size": size}
+    return data, names, snames
+
+
+def replay_history(dry, start="2000-01-01"):
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import detect_events as de
+    data, names, snames = history_data()
+    last = max(d for v in data["off"].values() for d in v)
+    rows, recs = de.run_days(data, [], max(start, de.first_day(data)), last)
+    for r in rows:
+        r["label"] = LABEL
+        r["sources"] = " | ".join(names.get(r["ccy"], [])) + " ; street " + " + ".join(snames.get(r["ccy"], ["none"]))
+    fixed = {}
+    for eid, rec in recs.items():
+        if "_afters" in rec:
+            continue
+        ccy = rec["ccy"]
+        rec["label"] = LABEL
+        rec["basis"] = "replayed over history files in data/history/, not observed by the live collectors"
+        rec["history_sources"] = {"official": names.get(ccy, []), "street": snames.get(ccy, []),
+                                  "market_size": "an exchange spot market; the number of ads is not stored for history, so it is not checked"}
+        rec["official"]["source"] = (names.get(ccy) or ["?"])[0] + ", data/history/, last reading of each day"
+        rec["street"]["source"] = (snames.get(ccy) or ["?"])[0] + " daily close, data/history/"
+        fixed[eid] = rec
+    if not dry:
+        os.makedirs(RECORDS_REPORTED, exist_ok=True)
+        for eid, rec in fixed.items():
+            for a in recs.get(eid, {}).get("after", []):
+                pass
+            with open(os.path.join(RECORDS_REPORTED, eid + ".json"), "w") as f:
+                json.dump(rec, f, indent=1, sort_keys=True)
+                f.write("\n")
+        write_rows(EVENTS_REPORTED, REPLAY_FIELDS, rows)
+    return rows, fixed
+
+
 def main():
     ap = argparse.ArgumentParser(description="history layer: reported, not observed")
     ap.add_argument("--dry-run", action="store_true")
@@ -1038,6 +1189,7 @@ def main():
     ap.add_argument("--wide", action="store_true", help="the SEB-311 step 3b pull: every free keyless history feed (see the WIDE section)")
     ap.add_argument("--raw-dir", default=RAW_DEFAULT)
     ap.add_argument("--max-pairs", type=int)
+    ap.add_argument("--replay", action="store_true", help="run the event detector over the history files, apart from the live events")
     ap.add_argument("--pack-raw", metavar="YYYY-MM-DD", help="tar each raw source folder for the release, print the files and sizes")
     a = ap.parse_args()
     if a.pack_raw:
@@ -1049,6 +1201,11 @@ def main():
         return
     if requests is None:
         sys.exit("pip install requests")
+    if a.replay:
+        rows, recs = replay_history(a.dry_run)
+        cand = [r for r in rows if r["status"] == "candidate"]
+        print("replay: %d rows, %d candidates, %d records" % (len(rows), len(cand), len(recs)))
+        return
     if a.wide:
         res = run_wide(a.only.split(",") if a.only else None, a.dry_run, a.raw_dir, a.max_pairs)
         print(json.dumps(res, indent=1, default=str))

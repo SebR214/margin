@@ -33,6 +33,7 @@ give the same rows. The daily run catches up from the last day in events.csv to 
     python3 tools/detect_events.py --replay        # every day since the data began, in memory; prints the list, writes nothing
     python3 tools/detect_events.py --self-test
 """
+import bisect
 import csv
 import datetime as dt
 import json
@@ -175,6 +176,39 @@ def thick(size, ccy, d):
     return (mb >= MIN_ADS and ms >= MIN_ADS), mb, ms, "+".join(sorted(src))
 
 
+class LazyFlags:
+    """The official-rate rules as of day D, worked out for a currency only when a candidate for it comes up (a replay over years would
+    otherwise run every rule on every currency every day). Behaves like the dict flags_as_of returns."""
+
+    def __init__(self, D, data):
+        self.D, self.data, self.memo = D, data, {}
+
+    def get(self, ccy, default=None):
+        if ccy not in self.memo:
+            off = self.data["off"].get(ccy)
+            if not off:
+                self.memo[ccy] = []
+            else:
+                series = {ccy: cut(off, self.D)}
+                lv = {ccy: cut(self.data["live"].get(ccy, {}), self.D)}
+                self.memo[ccy] = sorted({r for _, c, r, _ in cor.check(series, lv) if r != "flat_30"})
+        return self.memo[ccy] or default
+
+    def __contains__(self, ccy):
+        return bool(self.get(ccy))
+
+    def __getitem__(self, ccy):
+        return self.get(ccy, [])
+
+
+def official_days(data, ccy):
+    """The sorted days that currency has an official reading on (cached in the data dict)."""
+    cache = data.setdefault("_days", {})
+    if ccy not in cache:
+        cache[ccy] = sorted(data["off"].get(ccy, {}))
+    return cache[ccy]
+
+
 def flags_as_of(D, off, live):
     """The rules of tools/check_official_rates.py on the series up to D: {ccy: [rule names]}."""
     series = {c: cut(v, D) for c, v in off.items()}
@@ -296,7 +330,7 @@ def step(D, data, events, flags_cache=None):
     for e in events:
         if e["status"] in ("candidate",):
             opened[e["event_id"]] = e
-    flags = flags_as_of(D, data["off"], data["live"])
+    flags = LazyFlags(D, data)
     # two quiet periods, kept apart: a candidate or a data warning keeps the same episode from being raised again for 14 days, but a
     # not_enough_evidence row is only a note that the history was short, so it silences more notes of its own kind and nothing else: the
     # first real break or slide after it must still be raised
@@ -311,7 +345,7 @@ def step(D, data, events, flags_cache=None):
     for ccy in ccys:
         if ccy == "USD":
             continue
-        off = cut(data["off"].get(ccy, {}), D)
+        off = data["off"].get(ccy, {})                                                   # looked up by day, never past D
         for kind in ("official_break", "street_slide"):
             if kind == "official_break":
                 ch = official_step(off, D)
@@ -323,7 +357,7 @@ def step(D, data, events, flags_cache=None):
             if last and (dt.date.fromisoformat(D) - dt.date.fromisoformat(last)).days < REARM_DAYS:
                 continue                                                                    # the same episode, already on record
             eid = event_id(ccy, kind, D)
-            history = len(off)
+            history = bisect.bisect_right(official_days(data, ccy), D)
             t = thick(data["size"], ccy, D)
             warn = None
             if ccy in flags:
