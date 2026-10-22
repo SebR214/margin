@@ -157,8 +157,57 @@ def m_exchange(root, test, now, first):
     return dict(out, value=len(still) / len(base_set), baseline=len(base_set), detail=json.dumps({"countries": base_set, "now": now_set}))
 
 
+STREET_MIN_PCT = 3.0
+
+
+def stress_survivors(triggers, flagged, street):
+    """Split the stored stress triggers. triggers: rows of data/stress_signal.csv; flagged: set of currencies in
+    data/official_rate_flags.csv; street: {(ccy, day): the day's median buy price}. Returns (survived, skipped_flagged, no_price, moved_too_little)."""
+    survived, skipped, no_price, small = [], [], [], []
+    for t in triggers:
+        key = (t["ccy"], t["triggered_on"])
+        if t["ccy"] in flagged:
+            skipped.append(key)
+            continue
+        prev = (dt.date.fromisoformat(t["triggered_on"]) - dt.timedelta(days=1)).isoformat()
+        a, b = street.get((t["ccy"], prev)), street.get(key)
+        if not a or not b:
+            no_price.append(key)
+            continue
+        move = (b / a - 1) * 100
+        up = float(t["index_pct"]) > 0                  # a positive premium widens when the street price rises
+        if (move >= STREET_MIN_PCT) if up else (move <= -STREET_MIN_PCT):
+            survived.append(key)
+        else:
+            small.append(key)
+    return survived, skipped, no_price, small
+
+
+def m_stress(root, test, now, first):
+    out = {"metric": "share_of_stress_triggers_surviving_the_street_price_retest", "n_obs": 0, "detail": ""}
+    flags_path = os.path.join(root, "data", "official_rate_flags.csv")
+    basis_path = os.path.join(root, "data", "p2p_basis.csv")
+    if not os.path.exists(flags_path) or not os.path.exists(basis_path):
+        return dict(out, invalid="data/official_rate_flags.csv or data/p2p_basis.csv is missing")
+    triggers = rows_of(os.path.join(root, test["evidence_file"]))
+    flags = rows_of(flags_path)
+    days = {}
+    for r in rows_of(basis_path):
+        if r["source"] == "binance_p2p" and r["source_ok"] == "True" and r["buy_median"]:
+            days.setdefault((r["ccy"], r["ts_utc"][:10]), []).append(float(r["buy_median"]))
+    street = {k: statistics.median(v) for k, v in days.items()}
+    last = max([t["triggered_on"] for t in triggers] + [f["as_of_date"] for f in flags] + [""])
+    out.update(n_obs=len(triggers), window_start=min((t["triggered_on"] for t in triggers), default=""), window_end=last, data_through=last)
+    if len(triggers) < 10:
+        return dict(out, invalid="fewer than 10 triggers stored (%d)" % len(triggers))
+    surv, skipped, no_price, small = stress_survivors(triggers, {f["ccy"] for f in flags}, street)
+    detail = {"triggers": len(triggers), "survived": [list(k) for k in surv], "skipped_flagged_official_rate": len(skipped),
+              "skipped_currencies": sorted({k[0] for k in skipped}), "no_street_price": len(no_price), "street_moved_under_%g_pct" % STREET_MIN_PCT: len(small)}
+    return dict(out, value=len(surv) / len(triggers), baseline=len(triggers), detail=json.dumps(detail))
+
+
 METRICS = {"price_changes": m_price_changes, "weekend_penalty": m_weekend, "volume_crossover": m_volume,
-           "sgd_php_never_cheapest": m_sgd, "exchange_vs_p2p": m_exchange}
+           "sgd_php_never_cheapest": m_sgd, "exchange_vs_p2p": m_exchange, "stress_signal": m_stress}
 
 
 def triggered(fid, result, last_row, today):
@@ -253,6 +302,15 @@ def self_test():
         assert classify(res["value"], json.load(open(os.path.join(d, "findings_tests", "sgd_php_never_cheapest.json")))) == "no_longer_true"
         stale_res = m_sgd(d, json.load(open(os.path.join(d, "findings_tests", "sgd_php_never_cheapest.json"))), parse(end) + dt.timedelta(hours=7), None)
         assert stale_res["invalid"], "a stale finding is not tested"
+    # the stress retest, each rule with a known answer: a flagged currency is skipped, a street price that did not move does not
+    # survive, a missing street price is not a survivor, and the direction follows the sign of the premium
+    st = {("IQD", "2026-10-06"): 1300.0, ("IQD", "2026-10-07"): 1360.0, ("AAA", "2026-10-06"): 100.0, ("AAA", "2026-10-07"): 101.0,
+          ("BBB", "2026-10-07"): 5.0, ("CCC", "2026-10-06"): 100.0, ("CCC", "2026-10-07"): 95.0, ("SDG", "2026-10-06"): 1.0, ("SDG", "2026-10-07"): 2.0}
+    trig = [{"ccy": c, "triggered_on": "2026-10-07", "index_pct": i} for c, i in
+            (("IQD", "30"), ("AAA", "30"), ("BBB", "30"), ("CCC", "-30"), ("SDG", "1800"))]
+    surv, skipped, no_price, small = stress_survivors(trig, {"SDG"}, st)
+    assert surv == [("IQD", "2026-10-07"), ("CCC", "2026-10-07")] and skipped == [("SDG", "2026-10-07")], (surv, skipped)
+    assert no_price == [("BBB", "2026-10-07")] and small == [("AAA", "2026-10-07")], (no_price, small)
     print("retest_findings self-test: ok")
 
 

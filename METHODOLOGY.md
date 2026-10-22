@@ -455,8 +455,9 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. **Version 1.8 is in force from
-2026-10-22, the first hour collected after it merged** (Luno's naira withdrawal fee joins the United States to Nigeria cost, below). Version 1.7 ran from
+Every published file carries `index_version`. **Version 1.9 is in force from
+2026-10-22, the first hour collected after it merged** (Coinbase's buying fee for USDT-USD is the standard 0.60%, not the 0.01% stable-pair fee, below). Version 1.8 ran on
+2026-10-22 (Luno's naira withdrawal fee joins the United States to Nigeria cost, below). Version 1.7 ran from
 2026-10-21, the 15:00 UTC hour (India's tax and bank fee, Nigeria's gas, below; the route costs for the three India and Nigeria routes change). Version 1.6 ran on
 2026-10-21 (the official rate's own time, below; no published number changed). Version 1.5 ran from
 2026-10-14 (crossed boards, below). Version 1.4.1, the same day, recorded a second board kept apart. Version 1.4 ran from
@@ -1801,6 +1802,34 @@ The comparison feed returns three or more apps for this route only at 200 and 5,
 Why: `p2p_sides.csv` says 10 for every busy market, so sellers leaving a market cannot be seen. The ads are stored so that depth and thinning can be measured later. They cannot be backfilled.
 
 The cap is 2 pages of 20, so at most 40 ads a side. A first run with 60 a side wrote 369 KB in an hour, about 9 MB a day, which is too much for a repository to carry. A market with fewer than 40 ads comes back whole, which is where thinning shows. A deeper market is cut at 40 and its real depth is `buy_total` and `sell_total` in `data/p2p_depth.csv`. No amount filter is sent, so small ads are in. A board with no ads is one row, "no ads". A failed read is a row with `source_ok` false and the reason. If the run passes 7 minutes, the currencies not yet read are written as failed rows saying so.
+## Coinbase's USDT-USD fee was the wrong regime (SEB-310, from 2026-10-22, index_version 1.9)
+
+Four routes buy the stablecoin on Coinbase with US dollars: United States to Mexico, Nigeria, India and Argentina. Their buying fee was set at taker 1.0 and maker 0.5 basis points, the stable-pair schedule read from a live account on 2026-08-19. Coinbase's public fee page for its exchange says: "Effective May 1, 2025, USDT-USDC and USDT-USD will no longer receive stablepair fee pricing and will be assessed standard trading fees". Its public products endpoint, `api.exchange.coinbase.com/products/USDT-USD`, returns `"fx_stablecoin": false` (read 2026-10-22), which is how the page says to tell the two regimes apart.
+
+The config now holds the standard fees at the base tier ($0 to $10K of 30-day volume): **taker 60, maker 40 basis points**, read from `help.coinbase.com/en/exchange/trading-and-funding/exchange-fees` on 2026-10-22, in `collector.py` under each of the four routes with the pair, the date and the URL. That page is Coinbase Exchange's. No public Coinbase Advanced page says otherwise: Advanced's page needs a login, so it cannot be read. If Advanced charges differently, the number is wrong in the other direction, and the 90-day clock on this fee stays.
+
+What changes: the stablecoin cost on those four routes rises by about 59 basis points (taker), 59.5 basis points of the amount when the premium is small, and a little more on the routes where the sale price is above the mid, since the fee comes off before the sale. `collector_stable_venues.py` carries the same 60 for its Coinbase leg. Rows written before this hour keep the old fee: their `fee_on_taker_bps` is 1.0 and `fees_verified` reads `onramp:2026-08-19`; from this hour they read 60.0 and `onramp:2026-10-22`. Nothing is backfilled, and a comparison across the change compares two fee regimes.
+
+The check: `tools/check_fees.py` now reads `fx_stablecoin` for every Coinbase pair a route uses and writes the answer to `data/fee_pair_checks.csv`. The config says for each pair whether it is stable-priced. If the endpoint disagrees, in either direction, or does not answer, the run fails. `tests/check_stable_pair.py` proves each case with a fixed answer.
+
+## The event detector, in shadow mode (SEB-311 step 3, from 2026-10-22)
+
+`tools/detect_events.py` finds the days a currency broke, from our own stored prices, and writes `data/events.csv` (one row per candidate, update, closing or data warning, append only) and one record per event in `data/event_records/`. It runs once a day and publishes nothing. Plain code: no model detects, confirms or explains.
+
+| Kind | Fires when |
+|---|---|
+| Official break | the official rate (er-api, the last reading of each UTC day) is 3% or more away from its value 3 days earlier |
+| Street slide | the street price (the Binance board's buy price, the median of each UTC day, at least 12 hourly readings) is 10% or more away from its value 7 days earlier, in a market with 10 or more ads on each side (over the 7 days: `p2p_depth.csv`'s board total where stored, else `p2p_sides.csv`, which stops counting at 10) |
+
+Not an event: a thin market (no row at all); a slow drift that never crosses the line; anything caused by our own source breaking. A currency whose official rate is flagged by the rules of `tools/check_official_rates.py`, run on the data up to that day (weekly loop, jump that reverses, lag behind the live rate), or whose official step lands within 2% of its value 7 or 14 days earlier, gets a `data_warning` row saying what would have fired, never an event. The rule that a rate unchanged for 30 days is flagged does not stop an event: a peg is information for a person, and the day it breaks is what this is for. A currency with fewer than 14 days of official readings cannot be judged for an official break, and fewer than 7 for a street slide: that is a `not_enough_evidence` row. Those two minimums are choices of this detector, not measured: 14 so a weekly repeat can be seen, 7 so there is one week of the official rate to compare with.
+
+Confirmed only by two official sources showing the step (er-api and `fx_live.csv`, which starts 21 Oct) or two street sources moving 10% or more the same way over the window (Binance and OKX, `p2p_okx.csv`, which starts 3 Oct). Otherwise the row says "one source". An event is not raised again for the same currency and kind for 14 days.
+
+Each record holds: the rules in force, a daily timeline of the official and street price from 14 days before the event (gaining a week of days at each update), the official baseline and value at detection, the street price before and at detection, how many days the street led the official rate (for an official break: the first day in the 9 before it that the street was 3% from its price 3 days earlier, in the same direction; for a street slide, the official rate is shown as not yet caught up and the weekly updates fill it in), the number of ads each side, the checks on each source (readings in the window), the rate rules flagged that day, and a trace for every number: file, currency, day and the rule that turns the stored rows into it. The record is reopened every 7 days for 8 weeks (an `update` row and a new entry in `after`) and then closed. A record file only ever gains entries; nothing earlier in it, and no row of `events.csv`, is rewritten.
+
+The detector judges one UTC day at a time using only data up to that day, never the clock, so a replay over history and the daily run give the same rows. `tests/check_events.py` proves four things on the stored history: the same input gives the same rows (also when the days are judged in two sittings); Sudan's looping official rate gives a warning and no event; a replay flags Iraq's official step (9 Oct) and the Bolivia street slide (16 Sep) and none of Brunei, Angola or Nepal; and every number in a record is recomputed from the raw CSV rows and matches.
+
+A fix found while building it: the weekly-loop rule in `tools/check_official_rates.py` flagged a single step in an otherwise flat rate (Iraq, 9 Oct) as a loop for four days, because a flat rate equals itself a week earlier on most days. It now needs the rate to move more than 5% in the week before the repeating week as well. Sudan is still flagged.
 
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
@@ -1841,13 +1870,13 @@ it was written, so history stays interpretable if a venue changes its schedule.
 |---|---|---|---|
 | Independent Reserve | 0.50% | 0.50% (no maker discount) | 2026-08-10 |
 | Coins.ph Pro | 0.15% | 0.10% (VIP0, effective 2025-08-08) | 2026-08-10 |
-| Coinbase | 0.01% | 0.005% | 2026-08-19 |
+| Coinbase, USDT-USD | 0.60% (was 0.01% until 2026-10-22) | 0.40% (was 0.005%) | 2026-10-22, public fee page and products endpoint |
 | Bitso | 0.78% | 0.60% | 2026-08-19 |
 | Luno | 0.10% | −0.01% (rebate, USDT/NGN & USDC/NGN specifically) | 2026-09-29 |
 | WazirX | 0.40% | 0.40% (flat "Pay Per Trade", no maker/taker split) | 2026-09-29 |
 
 All six are default/base tier: Independent Reserve 30-day volume < AUD 50k;
-Coins.ph VIP0; Coinbase's USDT-USD stable pair is flat, not volume-tiered;
+Coins.ph VIP0; Coinbase's USDT-USD standard fees at $0 to $10K a month (the pair lost its stable-pair pricing on 2025-05-01);
 Bitso 30-day volume < MXN 20,000; Luno NGN 0–1,500,000 30-day volume; WazirX
 0–500 WRX held and ≤ INR 5 lacs 30-day volume. Each row records the full fee
 regime in force —

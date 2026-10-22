@@ -303,6 +303,14 @@ jobs:
         # days, or lags the live rate. Writes data/official_rate_flags.csv. See tools/check_official_rates.py.
         run: if [ "$(date -u +%H)" = "03" ]; then python3 tools/check_official_rates.py; else echo "once a day, not this hour"; fi
 
+      - name: Detect currency events, shadow mode (SEB-311)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        # SEB-311 step 3. Once a day (the 03:00 UTC hour, after the rate check above): judges every UTC day since the last one in
+        # data/events.csv, up to yesterday, and appends candidates, updates and data warnings to data/events.csv and
+        # data/event_records/. Reads stored files only. Publishes nothing. See tools/detect_events.py.
+        run: if [ "$(date -u +%H)" = "03" ]; then python3 tools/detect_events.py; else echo "once a day, not this hour"; fi
+
       - name: Emit machine-readable snapshot
         if: always() && steps.needed.outputs.proceed == 'true'
         # Derived from the CSVs the two steps above just wrote, so it runs after
@@ -698,7 +706,7 @@ jobs:
                    data/findings_hours_volume_crossover.csv \
                    data/findings_hours_sgd_php_never_cheapest.csv \
                    data/findings_hours_stress_signal.csv \
-                   data/corridor_variant_legs.csv data/index_held.csv data/source_pairs.json; do
+                   data/corridor_variant_legs.csv data/index_held.csv data/source_pairs.json data/events.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # index.html itself -- D1's bake_homepage.py rewrites it in place
@@ -731,6 +739,10 @@ jobs:
           # Machine view (SEB-301, 21 Oct): one markdown twin per country and per finding. A separate loop, not added to
           # the one above, so this change stays purely additive (no existing line edited).
           for d in country finding; do
+            if [ -d "$d" ]; then git add "$d"; fi
+          done
+          # Event records (SEB-311): one JSON file per event, a new one on its first day. A separate loop for the same reason.
+          for d in data/event_records; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Anything TRACKED that an emitter rewrote but the list above forgot.
