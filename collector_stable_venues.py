@@ -165,9 +165,9 @@ ONRAMP_TAKER_BPS = {
     # Same flat 0.50% brokerage fee already verified in collector.CORRIDORS
     # for every corridor that uses IndependentReserve as its on-ramp.
     "IndependentReserve": 50.0,
-    # Coinbase Advanced USDT-USD stable-pair taker fee, already verified in
-    # collector.CORRIDORS (USD->MXN onramp). Flat, not volume-tiered.
-    "Coinbase": 1.0,
+    # Coinbase USDT-USD taker fee at the base tier, the same number as collector.CORRIDORS (USD->MXN onramp): the standard 60 bps,
+    # because the pair lost stablecoin pricing on 1 May 2025 (SEB-310, 22 Oct 2026). This said 1.0 until then.
+    "Coinbase": 60.0,
     # P2P ad boards charge no separate trading fee -- the "fee" is baked into
     # the ad's quoted price, which walk_buy/walk_sell already reads as-is.
     # Assumption (stated here and in the PR body): 0 bps taker on OKX P2P.

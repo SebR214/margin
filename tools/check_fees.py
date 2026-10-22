@@ -41,6 +41,10 @@ CHECKS = os.path.join(HERE, "data", "fee_checks.csv")
 # Argentina (SEB-310): Bitso's usdt_ars schedule has the same venue and leg names as Mexico's, and fee_checks.csv has no corridor column
 # and a frozen header, so its rows go to a file of their own with the same header
 CHECKS_ARS = os.path.join(HERE, "data", "fee_checks_usdars.csv")
+# SEB-310 (22 Oct): whether a pair we model keeps its stablecoin pricing, read from Coinbase's public products endpoint. Rows go to a
+# file of their own: they are not a trading-fee diff, and fee_checks.csv's regime column holds taker and maker only.
+PAIR_CHECKS = os.path.join(HERE, "data", "fee_pair_checks.csv")
+PRODUCTS_URL = "https://api.exchange.coinbase.com/products/%s"
 FIELDS = [
     "ts_utc", "venue", "leg", "regime", "config_bps", "published_bps",
     "status", "source_url", "error",
@@ -68,7 +72,7 @@ COINS_URL = ("https://support.coins.ph/hc/en-us/articles/11620285112217-How-are-
              "my-trading-fees-calculated-based-on-the-Trader-Tier-setup")
 # Bitso publishes its own schedule as JSON -- no scraping, no parser to rot.
 BITSO_URL = "https://api.bitso.com/v3/available_books/"
-COINBASE_URL = "https://www.coinbase.com/advanced-fees"
+COINBASE_URL = "https://help.coinbase.com/en/exchange/trading-and-funding/exchange-fees"   # the fee page is public (SEB-310, 22 Oct) but a table of text, so the clock stays
 
 # --- withdrawal (network) fees -------------------------------------------
 # The network leg of a corridor is the SENDING venue's withdrawal fee, so these
@@ -375,6 +379,48 @@ def check(ts, venue, leg, regime, config_bps, published_bps, url, error):
                 f"config {config_bps} bps != published {published_bps} bps")}
 
 
+def parse_fx_stablecoin(payload):
+    """The products endpoint's own flag for whether a pair gets stablecoin fee pricing. Missing or not a boolean is a parse failure."""
+    flag = (payload or {}).get("fx_stablecoin") if isinstance(payload, dict) else None
+    if not isinstance(flag, bool):
+        raise ValueError("fx_stablecoin missing or not a boolean in the products answer")
+    return flag
+
+
+def check_stable_pricing(ts, pair, modelled, config_bps, fetch=None):
+    """One row: does Coinbase still price `pair` the way the config models it? `modelled` is True when the config charges the
+    stable-pair fee, False when it charges standard fees. A pair we model as stable-priced that stops being one fails loudly
+    (SEB-310): the on-ramp fee would be understated by tens of basis points on every route that uses it. The reverse, a pair
+    that regains stable pricing while we charge standard fees, fails too, because the fee would be overstated."""
+    url = PRODUCTS_URL % pair
+    row = {"ts_utc": ts, "venue": "Coinbase", "leg": "onramp", "regime": "stable_pair:" + pair, "config_bps": config_bps,
+           "published_bps": "", "source_url": url}
+    try:
+        flag = parse_fx_stablecoin((fetch or (lambda u: fetch_json(u)[0]))(url))
+    except Exception as e:
+        row.update(status="parse_fail", error=clean(f"{type(e).__name__}: {e}"))
+        return row
+    if flag == modelled:
+        row.update(status="ok", error=clean(f"fx_stablecoin {str(flag).lower()}, as modelled"))
+    else:
+        row.update(status="pricing_changed", error=clean(
+            f"fx_stablecoin is {str(flag).lower()} but the config models {pair} as "
+            f"{'stable-priced' if modelled else 'standard-fee'}: the fee in collector.CORRIDORS is wrong"))
+    return row
+
+
+def coinbase_pair_rows(ts, fetch=None):
+    """One row per distinct Coinbase pair that any corridor's on-ramp uses."""
+    seen, rows = set(), []
+    for cfg in CORRIDORS.values():
+        on = cfg.get("onramp") or {}
+        if on.get("venue") != "Coinbase" or on["pair"] in seen:
+            continue
+        seen.add(on["pair"])
+        rows.append(check_stable_pricing(ts, on["pair"], on["stable_priced"], float(on["taker_bps"]), fetch))
+    return rows
+
+
 def check_manual(ts, venue, leg, regime, config_bps, verified, url, now=None):
     """A schedule that cannot be read by a machine, checked against its clock.
 
@@ -667,6 +713,7 @@ def main():
     rows += build_rows_usdmxn(ts, CORRIDORS["USD->MXN"])
     # Argentina: only Bitso's two rows (the Coinbase rows are the same manual check as Mexico's), to the sidecar
     ars_rows = build_rows_usdmxn(ts, CORRIDORS["USD->ARS"])[2:]
+    pair_rows = coinbase_pair_rows(ts)
 
     wrows, breaches = check_withdrawals(ts)
     trows = build_tier_rows(ts)
@@ -677,7 +724,8 @@ def main():
     # units, tier schedules as (threshold, fee_pct) pairs.
     append(rows)
     append(ars_rows, CHECKS_ARS)
-    rows += ars_rows
+    append(pair_rows, PAIR_CHECKS)
+    rows += ars_rows + pair_rows
     if wrows:
         append_withdrawals(wrows)
     if trows:

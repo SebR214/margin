@@ -455,8 +455,9 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. **Version 1.8 is in force from
-2026-10-22, the first hour collected after it merged** (Luno's naira withdrawal fee joins the United States to Nigeria cost, below). Version 1.7 ran from
+Every published file carries `index_version`. **Version 1.9 is in force from
+2026-10-22, the first hour collected after it merged** (Coinbase's buying fee for USDT-USD is the standard 0.60%, not the 0.01% stable-pair fee, below). Version 1.8 ran on
+2026-10-22 (Luno's naira withdrawal fee joins the United States to Nigeria cost, below). Version 1.7 ran from
 2026-10-21, the 15:00 UTC hour (India's tax and bank fee, Nigeria's gas, below; the route costs for the three India and Nigeria routes change). Version 1.6 ran on
 2026-10-21 (the official rate's own time, below; no published number changed). Version 1.5 ran from
 2026-10-14 (crossed boards, below). Version 1.4.1, the same day, recorded a second board kept apart. Version 1.4 ran from
@@ -1794,6 +1795,16 @@ Read from Bitso's own pages and API on 2026-10-22, each stored in the route's co
 
 The comparison feed returns three or more apps for this route only at 200 and 5,000 (21 Oct), two at the other sizes. The usual rule of skipping a size with fewer than three apps is waived for this route: every size is stored. The routes table compares Argentina at the sizes where three or more apps are returned and says so.
 
+## Coinbase's USDT-USD fee was the wrong regime (SEB-310, from 2026-10-22, index_version 1.9)
+
+Four routes buy the stablecoin on Coinbase with US dollars: United States to Mexico, Nigeria, India and Argentina. Their buying fee was set at taker 1.0 and maker 0.5 basis points, the stable-pair schedule read from a live account on 2026-08-19. Coinbase's public fee page for its exchange says: "Effective May 1, 2025, USDT-USDC and USDT-USD will no longer receive stablepair fee pricing and will be assessed standard trading fees". Its public products endpoint, `api.exchange.coinbase.com/products/USDT-USD`, returns `"fx_stablecoin": false` (read 2026-10-22), which is how the page says to tell the two regimes apart.
+
+The config now holds the standard fees at the base tier ($0 to $10K of 30-day volume): **taker 60, maker 40 basis points**, read from `help.coinbase.com/en/exchange/trading-and-funding/exchange-fees` on 2026-10-22, in `collector.py` under each of the four routes with the pair, the date and the URL. That page is Coinbase Exchange's. No public Coinbase Advanced page says otherwise: Advanced's page needs a login, so it cannot be read. If Advanced charges differently, the number is wrong in the other direction, and the 90-day clock on this fee stays.
+
+What changes: the stablecoin cost on those four routes rises by about 59 basis points (taker), 59.5 basis points of the amount when the premium is small, and a little more on the routes where the sale price is above the mid, since the fee comes off before the sale. `collector_stable_venues.py` carries the same 60 for its Coinbase leg. Rows written before this hour keep the old fee: their `fee_on_taker_bps` is 1.0 and `fees_verified` reads `onramp:2026-08-19`; from this hour they read 60.0 and `onramp:2026-10-22`. Nothing is backfilled, and a comparison across the change compares two fee regimes.
+
+The check: `tools/check_fees.py` now reads `fx_stablecoin` for every Coinbase pair a route uses and writes the answer to `data/fee_pair_checks.csv`. The config says for each pair whether it is stable-priced. If the endpoint disagrees, in either direction, or does not answer, the run fails. `tests/check_stable_pair.py` proves each case with a fixed answer.
+
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
 **Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's
@@ -1833,13 +1844,13 @@ it was written, so history stays interpretable if a venue changes its schedule.
 |---|---|---|---|
 | Independent Reserve | 0.50% | 0.50% (no maker discount) | 2026-08-10 |
 | Coins.ph Pro | 0.15% | 0.10% (VIP0, effective 2025-08-08) | 2026-08-10 |
-| Coinbase | 0.01% | 0.005% | 2026-08-19 |
+| Coinbase, USDT-USD | 0.60% (was 0.01% until 2026-10-22) | 0.40% (was 0.005%) | 2026-10-22, public fee page and products endpoint |
 | Bitso | 0.78% | 0.60% | 2026-08-19 |
 | Luno | 0.10% | −0.01% (rebate, USDT/NGN & USDC/NGN specifically) | 2026-09-29 |
 | WazirX | 0.40% | 0.40% (flat "Pay Per Trade", no maker/taker split) | 2026-09-29 |
 
 All six are default/base tier: Independent Reserve 30-day volume < AUD 50k;
-Coins.ph VIP0; Coinbase's USDT-USD stable pair is flat, not volume-tiered;
+Coins.ph VIP0; Coinbase's USDT-USD standard fees at $0 to $10K a month (the pair lost its stable-pair pricing on 2025-05-01);
 Bitso 30-day volume < MXN 20,000; Luno NGN 0–1,500,000 30-day volume; WazirX
 0–500 WRX held and ≤ INR 5 lacs 30-day volume. Each row records the full fee
 regime in force —

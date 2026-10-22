@@ -70,6 +70,7 @@ PROVIDER_FIELDS = [
 # published numbers, not estimates -- but they must be verified against each
 # venue's fee page and dated. Until verified, `verified` stays false and the
 # methodology page must say so. See METHODOLOGY.md.
+COINBASE_FEES_URL = "https://help.coinbase.com/en/exchange/trading-and-funding/exchange-fees"
 CORRIDORS = {
     "SGD->PHP": {
         "src": "SGD", "dst": "PHP", "stable": "USDT",
@@ -226,15 +227,19 @@ CORRIDORS = {
         "src": "USD", "dst": "MXN", "stable": "USDT",
         "onramp": {
             "venue": "Coinbase",
-            # Coinbase Advanced, USDT-USD *stable pair* schedule: maker 0.5 bps,
-            # taker 1.0 bps. Read from a live account 2026-08-19. This is FLAT,
-            # not volume tiered -- the stable-pair table has no tier column and
-            # stable-pair volume is excluded from the tier calculation.
-            # The fee page sits behind login, so there is nothing to scrape:
-            # re-verification of these two numbers is MANUAL.
-            "taker_bps": 1.0,
-            "maker_bps": 0.5,
-            "verified": "2026-08-19",
+            # SEB-310, 22 Oct: USDT-USD is charged Coinbase's STANDARD trading fees, base tier ($0 to $10K a month): taker 0.60%,
+            # maker 0.40%. Until 22 Oct this said taker 1.0 bps, maker 0.5 bps, the stable-pair schedule read from a live account
+            # on 2026-08-19; Coinbase's own fee page says "Effective May 1, 2025, USDT-USDC and USDT-USD will no longer receive
+            # stablepair fee pricing and will be assessed standard trading fees", and the public products endpoint
+            # (api.exchange.coinbase.com/products/USDT-USD) returns "fx_stablecoin": false, read 2026-10-22. Rows written before
+            # this change carry fee_on_taker_bps 1.0 and fees_verified "onramp:2026-08-19", so the old regime stays identifiable.
+            # The page is Coinbase Exchange's; no public Coinbase Advanced page says otherwise (Advanced's page needs a login).
+            # tools/check_fees.py reads fx_stablecoin on every run and fails if a pair modelled as stable-priced stops being one,
+            # or the reverse.
+            "taker_bps": 60.0,
+            "maker_bps": 40.0,
+            "verified": "2026-10-22",
+            "pair": "USDT-USD", "stable_priced": False, "source_url": COINBASE_FEES_URL,
         },
         "offramp": {
             "venue": "Bitso",
@@ -317,9 +322,10 @@ CORRIDORS = {
         "onramp": {
             "venue": "Coinbase",
             # the same USDT-USD stable-pair schedule as USD->MXN, flat, verified by hand (login-gated): see there
-            "taker_bps": 1.0,
-            "maker_bps": 0.5,
-            "verified": "2026-08-19",
+            "taker_bps": 60.0,
+            "maker_bps": 40.0,
+            "verified": "2026-10-22",
+            "pair": "USDT-USD", "stable_priced": False, "source_url": COINBASE_FEES_URL,
         },
         "offramp": {
             "venue": "Bitso",
@@ -370,9 +376,10 @@ CORRIDORS = {
             # volume-tiered. Re-verify manually if that corridor's own
             # onramp fee is ever re-verified -- this is the same account,
             # same pair, same number, not a second source.
-            "taker_bps": 1.0,
-            "maker_bps": 0.5,
-            "verified": "2026-08-19",
+            "taker_bps": 60.0,
+            "maker_bps": 40.0,
+            "verified": "2026-10-22",
+            "pair": "USDT-USD", "stable_priced": False, "source_url": COINBASE_FEES_URL,
         },
         "offramp": {
             "venue": "Luno",
@@ -449,9 +456,10 @@ CORRIDORS = {
         "src": "USD", "dst": "INR", "stable": "USDT",
         "onramp": {
             "venue": "Coinbase",
-            "taker_bps": 1.0,
-            "maker_bps": 0.5,
-            "verified": "2026-08-19",
+            "taker_bps": 60.0,
+            "maker_bps": 40.0,
+            "verified": "2026-10-22",
+            "pair": "USDT-USD", "stable_priced": False, "source_url": COINBASE_FEES_URL,
         },
         "offramp": {
             "venue": "WazirX",
@@ -1852,18 +1860,20 @@ def selftest():
     # copied from corridor 1's Tron assumption -- a chain Coinbase does not
     # support for USDT. Coinbase's published 0.01% processing fee is 1 bp at
     # every size, so the network leg stops being size-dependent here.
-    assert abs(d2["cost_bps_taker"] - 78.4) < 1.0, d2["cost_bps_taker"]
-    assert abs(d2["cost_bps_maker"] - 59.9) < 1.0, d2["cost_bps_maker"]
+    # SEB-310, 22 Oct: Coinbase's USDT-USD fee is the standard 60 bps taker, 40 bps maker, not the 1.0 and 0.5 these were set with
+    # (78.4 and 59.9), so the sum is 59 and 39.5 higher
+    assert abs(d2["cost_bps_taker"] - 137.4) < 1.0, d2["cost_bps_taker"]
+    assert abs(d2["cost_bps_maker"] - 99.4) < 1.0, d2["cost_bps_maker"]
 
     # A proportional fee is the same bps at every size -- that is the whole
     # difference from a flat one, and the reason USD 200 fell 50 bps -> 1 bp.
     net_bps = [round(decompose(n, on2, off2, MIDS_FIXTURE_MXN, cfg2)["network_fee_stable"]
                      / (n / on2["asks"][0][0]) * 1e4, 2) for n in (200, 1000, 5000)]
-    assert net_bps == [1.0, 1.0, 1.0], net_bps
+    assert max(net_bps) - min(net_bps) < 0.01 and abs(net_bps[0] - 1.0) < 0.02, net_bps   # 1 bp less the 60 bp fee taken first
     print(f"  [ok] corridor 2 network leg: 0.01% processing fee = "
           f"{net_bps[0]} bps at every size (was 50 bps at USD 200 on a flat 1 USDT)")
     gap2 = d2["cost_bps_taker"] - d2["cost_bps_maker"]
-    assert 18.0 < gap2 < 19.0, gap2      # Bitso 78->60 (18) + Coinbase 1->0.5
+    assert 37.0 < gap2 < 38.5, gap2      # Bitso 78->60 (18) + Coinbase 60->40 (20)
     print(f"  [ok] corridor 2 fees: taker {d2['cost_bps_taker']:.1f} vs maker "
           f"{d2['cost_bps_maker']:.1f} bps -- {gap2:.1f} bps apart (Bitso 18 + "
           f"Coinbase 0.5)")
@@ -1943,8 +1953,9 @@ def selftest():
     # WazirX's INR-market fee is flat (0.40% both regimes, no maker/taker
     # split, same shape as Independent Reserve) -- taker and maker must
     # differ ONLY by Coinbase's own 0.5bps onramp spread, not by anything
-    # on the offramp leg.
-    assert 0.4 < (d_inr["cost_bps_taker"] - d_inr["cost_bps_maker"]) < 0.6, \
+    # on the offramp leg. (SEB-310, 22 Oct: that spread is now 20 bps, 60 against 40, and a little more where the INR price is
+    # above the mid.)
+    assert 20.0 < (d_inr["cost_bps_taker"] - d_inr["cost_bps_maker"]) < 21.5, \
         (d_inr["cost_bps_taker"], d_inr["cost_bps_maker"])
     print(f"  [ok] corridor 6 (USD->INR): mid {d_inr['mid_src_dst']:.2f}, "
           f"taker {d_inr['cost_bps_taker']:.1f} bps, flat WazirX fee leaves "
