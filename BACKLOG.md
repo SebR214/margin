@@ -66,14 +66,12 @@ and 6a to 6d dropped unbuilt.
     done when: collector.py's CORRIDORS has one new "USD->PHP" entry with src USD, dst PHP, stable USDT, the onramp, network_fee_stable, gas_modelled, withdraw_pct, withdraw_pct_cap and deposit fields copied unchanged from "USD->MXN", the offramp and withdrawal copied unchanged from "SGD->PHP", the same ladder, and providers_file "providers_usdphp.csv"; collect.yml has one new step "Collect corridor sample USD->PHP" after the SGD->INR step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector.py --corridor "USD->PHP"`, and data/providers_usdphp.csv added to the commit list; collector_providers.py CORRIDOR_CCY has "USD->PHP": ("USD", "PHP"); no other line changes.
 - [ ] 2. United States to Brazil (Coinbase, then Foxbit or Mercado Bitcoin). Apps in the feed: 7.
   - [ ] 2a. Add the USD->BRL route to collector.py's corridor table, its collect.yml step and the provider quotes config
-    track: aider
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->BRL`
     done when: as 1a, with the Coinbase side copied from "USD->MXN" and a Brazil off-ramp entry.
     blocked: collector.py has no off-ramp for Foxbit or Mercado Bitcoin (it reads Coins.ph, Bitso, Luno and WazirX only), so this is new collector code, not a table entry, and the off-ramp fee must be read from the venue's own fee page, which the builder cannot do (2026-10-21)
 - [ ] 3. United States to Indonesia (Coinbase, then Indodax or Pintu). Apps in the feed: 6.
   - [ ] 3a. Add the USD->IDR route to collector.py's corridor table, its collect.yml step and the provider quotes config
-    track: aider
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->IDR`
     done when: as 1a, with the Coinbase side copied from "USD->MXN" and an Indonesia off-ramp entry.
@@ -86,6 +84,7 @@ and 6a to 6d dropped unbuilt.
     blocked: same as 3a: no Indodax or Pintu off-ramp in collector.py and no readable Indodax fee schedule; collector.py names SGD->IDR as left out on purpose for that reason (2026-10-21)
 - [ ] 5. Australia to India (Independent Reserve, then WazirX). Apps in the feed: 11.
   - [ ] 5a. Add the AUD->INR route to collector.py's corridor table, its collect.yml step and the provider quotes config
+    track: aider
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `AUD->INR`
     excerpt: `collector.py` `^CORRIDORS = \{` `^\}`
@@ -129,6 +128,10 @@ and 6a to 6d dropped unbuilt.
 ## Queued by Claude
 Copied from SEB-301 comments by tools/backlog.py. The Scout splits them into jobs like the rest.
 
-- [ ] 16. **Routes: is the official rate behind route costs stale?** Singapore to the Philippines at S$5,000 says "Wise paid out S$7.26 more than the official rate this hour" (09:00 UTC, 21 Oct), and S$2.03 more at 07:00. "Sell and withdraw" on the stablecoin also reads −S$17.13. Wise pricing above the official rate at S$5,000 most likely means the official rate we compare against is hours old while Wise uses the live market rate. Finding 03 also moved from S$8.9M (11 Oct) to S$20.4M, which a stale baseline could explain. Post on SEB-301: for each route, the hours since 11 Aug where the cheapest app priced above the official rate, the age of the official rate in those hours, and how far the official rate was from the median of the apps' own rates that hour. Seb decides on any method change after. <!-- from:f5f329e2-2289-46e3-9351-3d69ad348555 -->
+- [x] 16. **Routes: is the official rate behind route costs stale?** Singapore to the Philippines at S$5,000 says "Wise paid out S$7.26 more than the official rate this hour" (09:00 UTC, 21 Oct), and S$2.03 more at 07:00. "Sell and withdraw" on the stablecoin also reads −S$17.13. Wise pricing above the official rate at S$5,000 most likely means the official rate we compare against is hours old while Wise uses the live market rate. Finding 03 also moved from S$8.9M (11 Oct) to S$20.4M, which a stale baseline could explain. Post on SEB-301: for each route, the hours since 11 Aug where the cheapest app priced above the official rate, the age of the official rate in those hours, and how far the official rate was from the median of the apps' own rates that hour. Seb decides on any method change after. <!-- from:f5f329e2-2289-46e3-9351-3d69ad348555 --> (replaced by the live official rate, PR #613, SEB-310 item 3, 2026-10-22)
 - [ ] 17. **Find a first source for every country that has never had a price.** On the live home map (21 Oct), these have no price on any day shown: Afghanistan, Angola, Botswana, Brunei, Ethiopia, Ghana, Nepal. From data/p2p_basis.csv, they fail because Binance has too few ads (2 to 5 against the 10 needed) or none at all. Count the full list from the files first, since there may be more. For each one, probe at least two other venues that sell USDT for that currency (a local exchange order book first, then a broker or another person-to-person board), add any that pass through quarantine, and post one line per country: the source found, or why none exists. <!-- from:6f423526-977f-4d72-b6a5-7ef3b6738159 -->
 - [ ] 18. **Watchdog flapping overnight.** Between 18:30 and 21:30 UTC on 20 Oct it went down and up four times: a cancelled collector run counted as down, then claims `routeData.bigCaption` and `homeData.updatedLine` were each false for 3 runs. For each claim, post the values that made it false. Then either fix the number or the claim's test, whichever is wrong. Don't reword the reader text. A cancelled run is not a failure and must not count toward the limit. <!-- from:69cd2ec1-979b-4185-a434-d0c3a73de8b4 -->
+  - [ ] 18a. Stop the watchdog flapping on cancelled runs and stale claims
+    track: aider
+    files: `.github/workflows/watchdog.yml` `tools/check_collector_health.py` `tools/audit_claims.py` `claims.json`
+    done when: a cancelled or still-running collect.yml run never counts toward the down limit in watchdog.yml or tools/check_collector_health.py, with a test in tests/ that feeds a cancelled run and expects no down; running `python3 tools/audit_claims.py` on main passes for `routeData.bigCaption` and `homeData.updatedLine`, and if a claim's test no longer matches the page since the routes rebuild (PR #616), the claim's test is fixed, not the reader text; no copy.json line changes.
