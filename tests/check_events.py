@@ -74,6 +74,14 @@ for rid, rec in recs.items():
         side, name = t["number"].split(".")
         got = rec[side].get({"baseline": "baseline", "at_detection": "at_detection", "before": "before"}[name])
         assert got == want, "%s %s: the record says %s, the stored rows say %s" % (rid, t["number"], got, want)
+# the timeline's points are stored numbers too
+for rid, rec in recs.items():
+    for pt in rec.get("timeline", []):
+        readings = sorted(fx.get((rec["ccy"], pt["day"]), []))
+        assert pt["official"] == (float(readings[-1][1]) if readings else None), (rid, pt)
+        vals = st.get((rec["ccy"], pt["day"]), [])
+        assert pt["street"] == (statistics.median(vals) if len(vals) >= 12 else None), (rid, pt)
+assert any(len(rec.get("timeline", [])) >= 10 for rec in recs.values()), "a record needs its timeline"
 assert any(r["status"] == "not_enough_evidence" for r in rows), "not enough evidence is a result and must appear"
 sdg = [r for r in rows if r["ccy"] == "SDG" and r["status"] == "not_enough_evidence" and r["detected_on"] == "2026-09-13"]
 assert sdg and "4 days of official history" in sdg[0]["note"], sdg

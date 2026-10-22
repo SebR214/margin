@@ -249,6 +249,7 @@ def build_record(data, ccy, kind, d, ch, conf, sources, ok_size, flagged):
     rec["offers"] = {"source": src, "buy_ads_median_7d": mb, "sell_ads_median_7d": ms,
                      "note": "p2p_sides.csv counts stop at 10 per side; p2p_depth.csv holds the board's own total where stored; "
                              "data/p2p_ads.csv holds every ad read from 22 Oct"}
+    rec["timeline"] = timeline(data, ccy, day_add(d, -14), d)
     rec["after"] = []
     rec["checks"] = {
         "er-api": {"file": "data/fx_rates.csv", "readings_on_detection_day": data["n_off"].get((ccy, d), 0),
@@ -265,6 +266,18 @@ def build_record(data, ccy, kind, d, ch, conf, sources, ok_size, flagged):
         {"number": "street.at_detection", "file": "data/p2p_basis.csv", "ccy": ccy, "day": d,
          "rule": "median of the day's binance_p2p buy_median, source_ok true, at least %d readings" % MIN_READINGS}]
     return rec
+
+
+def timeline(data, ccy, a, b):
+    """Daily points from a to b: the official rate (last reading of the day) and the street price (median of the day), None where
+    a day has none. Each is one of the stored numbers the trace rules describe."""
+    out, d = [], a
+    off, st = data["off"].get(ccy, {}), data["street"]["binance_p2p"]
+    while d <= b:
+        if off.get(d) is not None or st.get((ccy, d)) is not None:
+            out.append({"day": d, "official": off.get(d), "street": st.get((ccy, d))})
+        d = day_add(d, 1)
+    return out
 
 
 def row(D, rec_id, ccy, kind, status, conf, det, baseline, latest, ch, note):
@@ -342,6 +355,7 @@ def step(D, data, events, flags_cache=None):
         o0 = float(e["baseline"]) if kind == "official_break" else data["off"].get(ccy, {}).get(day_add(e["detected_on"], -STREET_DAYS))
         s0 = data["street"]["binance_p2p"].get((ccy, day_add(e["detected_on"], -STREET_DAYS)))
         after = {"day": D, "weeks_after": age // UPDATE_EVERY, "official": o, "street": s,
+                 "timeline": timeline(data, ccy, day_add(D, -UPDATE_EVERY + 1), D),
                  "official_change_pct_from_baseline": pct(o0, o) if o0 and o else None,
                  "street_change_pct_from_before": pct(s0, s) if s0 and s else None}
         status = "closed" if age == CLOSE_AFTER else "update"
