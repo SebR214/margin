@@ -1,14 +1,12 @@
-# In Uganda a dollar costs 3.7% more than the official rate
+# In Uganda a dollar costs 3.6% more than the official rate
 
-Prices from the 15:00 UTC hour, 22 Oct.
+Prices from the 16:00 UTC hour, 22 Oct.
 
-The official rate is 4,100.68 UGX per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 4,254 UGX. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 4,100.68 UGX per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 4,249 UGX. A stablecoin is a coin that stays worth one US dollar.
 
-Sellers on Binance and OKX agree on this price. Buyers there are offering more than sellers ask this hour, which is unusual.
+For US$100, people pay 424,870 UGX. The official rate says 410,068 UGX.
 
-For US$100, people pay 425,350 UGX. The official rate says 410,068 UGX.
-
-Prices from the 15:00 UTC hour, 22 Oct
+Prices from the 16:00 UTC hour, 22 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -26,31 +24,30 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-4,232 UGX +3.2%
+4,235 UGX +3.3%
 
 OKX, person to person
 
-4,275 UGX +4.3%
+4,263 UGX +3.9%
 
 ## Every Uganda price links to its raw file
 
 Open any file to check a price yourself.
 
-| Time | Source | Price | Difference | Buy ads priced | Raw file |
-| --- | --- | --- | --- | --- | --- |
-| 22 Oct, 15:09 UTC | OKX, person to person | 4,275 UGX | +4.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 14:09 UTC | OKX, person to person | 4,263 UGX | +3.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 13:09 UTC | OKX, person to person | 4,263 UGX | +3.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 12:09 UTC | OKX, person to person | 4,263 UGX | +3.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 11:09 UTC | OKX, person to person | 4,365 UGX | +6.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 10:09 UTC | OKX, person to person | 4,280 UGX | +4.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 09:10 UTC | OKX, person to person | 4,280 UGX | +4.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 08:10 UTC | OKX, person to person | 4,280 UGX | +4.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 07:09 UTC | OKX, person to person | 4,280 UGX | +4.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 06:38 UTC | OKX, person to person | 4,280 UGX | +4.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 05:08 UTC | OKX, person to person | 4,280 UGX | +4.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 05:06 UTC | Binance, person to person | 4,194 UGX | +2.3% | 10 of 48 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| Time | Source | Price | Difference | Raw file |
+| --- | --- | --- | --- | --- |
+| 22 Oct, 16:15 UTC | OKX, person to person | 4,263 UGX | +3.9% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 15:09 UTC | OKX, person to person | 4,275 UGX | +4.3% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 14:09 UTC | OKX, person to person | 4,263 UGX | +3.9% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 13:09 UTC | OKX, person to person | 4,263 UGX | +3.9% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 12:09 UTC | OKX, person to person | 4,263 UGX | +3.9% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 11:09 UTC | OKX, person to person | 4,365 UGX | +6.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 10:09 UTC | OKX, person to person | 4,280 UGX | +4.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 09:10 UTC | OKX, person to person | 4,280 UGX | +4.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 08:10 UTC | OKX, person to person | 4,280 UGX | +4.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 07:09 UTC | OKX, person to person | 4,280 UGX | +4.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 06:38 UTC | OKX, person to person | 4,280 UGX | +4.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 05:08 UTC | OKX, person to person | 4,280 UGX | +4.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
-<https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
-<https://margin.wiki/data/adsp2p_basis.csv>
+<https://margin.wiki/data/p2p_okx.csv>
