@@ -1,7 +1,63 @@
 {
- "as_of_utc": "2026-10-22T07:40:58Z",
+ "as_of_utc": "2026-10-22T08:16:59Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "d28d265bf60e2200619443c5dedde24eea456ea7",
+   "html_url": "https://github.com/SebR214/margin/commit/d28d265bf60e2200619443c5dedde24eea456ea7",
+   "date": "2026-10-22T08:13:25Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "aider builder run 2026-10-22T08:06:20+00:00"
+  },
+  {
+   "sha": "6df8a31e04b409ae71c99d38a851e8165617d754",
+   "html_url": "https://github.com/SebR214/margin/commit/6df8a31e04b409ae71c99d38a851e8165617d754",
+   "date": "2026-10-22T08:05:24Z",
+   "email": "person",
+   "message": "SEB-301: Aider removed-lines hint only for the collection files (#638)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "47e2df322a705a52dcfaeb042ce546e6865c1d1b",
+   "html_url": "https://github.com/SebR214/margin/commit/47e2df322a705a52dcfaeb042ce546e6865c1d1b",
+   "date": "2026-10-22T08:02:45Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "aider builder run 2026-10-22T07:57:39+00:00"
+  },
+  {
+   "sha": "285d8e26cc2be0a550188bd124622a3013ac876e",
+   "html_url": "https://github.com/SebR214/margin/commit/285d8e26cc2be0a550188bd124622a3013ac876e",
+   "date": "2026-10-22T07:56:43Z",
+   "email": "person",
+   "message": "SEB-301: say which lines the Aider builder removed; job 1a keeps existing entries untouched (#637)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "a6528db1777f21efd238b97faee98d54dca60f1f",
+   "html_url": "https://github.com/SebR214/margin/commit/a6528db1777f21efd238b97faee98d54dca60f1f",
+   "date": "2026-10-22T07:51:27Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "aider builder run 2026-10-22T07:46:39+00:00"
+  },
+  {
+   "sha": "e9070bbe54477783654db438f5ff5be1e900440b",
+   "html_url": "https://github.com/SebR214/margin/commit/e9070bbe54477783654db438f5ff5be1e900440b",
+   "date": "2026-10-22T07:45:41Z",
+   "email": "person",
+   "message": "SEB-301: backlog job 1a says to write the on-ramp source_url as a literal (#636)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "377f6e94e9e49dc71c3decec9185c6277b959ec8",
+   "html_url": "https://github.com/SebR214/margin/commit/377f6e94e9e49dc71c3decec9185c6277b959ec8",
+   "date": "2026-10-22T07:43:22Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-22T07:43Z"
+  },
+  {
+   "sha": "7d7f3bf1606e08b56e610010c276242950a68d0c",
+   "html_url": "https://github.com/SebR214/margin/commit/7d7f3bf1606e08b56e610010c276242950a68d0c",
+   "date": "2026-10-22T07:43:08Z",
+   "email": "person",
+   "message": "SEB-311: keep every weekly update on a catch-up, and let a short-history note stay quiet only about itself (#635)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
   {
    "sha": "87c7b751c1bc3ec5a5d5e418626ec53fe53ee767",
    "html_url": "https://github.com/SebR214/margin/commit/87c7b751c1bc3ec5a5d5e418626ec53fe53ee767",
@@ -645,62 +701,6 @@
    "date": "2026-10-21T09:08:05Z",
    "email": "person",
    "message": "SEB-301: machine view is black with white text, text only (#593)\n\n* SEB-301: spacing and text scale on home, switch words filled in\n\nSeb's exact CSS, appended to the shared stylesheet: 18px lead/body text at 1.6 line-height, 16px heading-to-text, 96px between\nsections (64px on a phone), counters on one line above 767px, text-wrap: pretty on a phone.\n\nHome's intro renders as two spans, same words as whatLine in copy.json: \"We track... had a price.\" then \"We also price\nsending money on {routes} routes, with every fee we can measure included.\"\n\ncopy.json's machineView words are filled in from Seb's approval on SEB-301 (21 Oct), surgical edit of just that block so the\nrest of the file keeps its existing formatting. js/machine_view.js updated to match: one sizeLine template with two\nplaceholders instead of two separate strings, and a \"Copied\" flash on the two copy links. No writer PR: Seb approved these\nwords in Linear and the PR title names SEB-301, which check_copy_lock.py's spec-approval rule accepts directly.\n\nCo-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>\n\n* SEB-301: machine view is black with white text, text only, a soft fade in\n\nSeb's feedback on the live switch. Machine mode now hides the site header, nav and clock too, not just the page content: it\nshows only the panel, on a black background with white text. The panel fades and slides in instead of appearing instantly.\n\nCo-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "692ea375258e94323f269a60029150bc173e6245",
-   "html_url": "https://github.com/SebR214/margin/commit/692ea375258e94323f269a60029150bc173e6245",
-   "date": "2026-10-21T08:50:09Z",
-   "email": "person",
-   "message": "SEB-301: spacing and text scale on home, switch words filled in (#592)\n\nSeb's exact CSS, appended to the shared stylesheet: 18px lead/body text at 1.6 line-height, 16px heading-to-text, 96px between\nsections (64px on a phone), counters on one line above 767px, text-wrap: pretty on a phone.\n\nHome's intro renders as two spans, same words as whatLine in copy.json: \"We track... had a price.\" then \"We also price\nsending money on {routes} routes, with every fee we can measure included.\"\n\ncopy.json's machineView words are filled in from Seb's approval on SEB-301 (21 Oct), surgical edit of just that block so the\nrest of the file keeps its existing formatting. js/machine_view.js updated to match: one sizeLine template with two\nplaceholders instead of two separate strings, and a \"Copied\" flash on the two copy links. No writer PR: Seb approved these\nwords in Linear and the PR title names SEB-301, which check_copy_lock.py's spec-approval rule accepts directly.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "d4b3ebc94a233bdc4fd307d09ec18493beb64e9f",
-   "html_url": "https://github.com/SebR214/margin/commit/d4b3ebc94a233bdc4fd307d09ec18493beb64e9f",
-   "date": "2026-10-21T08:40:33Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-21T08:40Z"
-  },
-  {
-   "sha": "6a111b85653962dc50b6e31780c1c950d464014c",
-   "html_url": "https://github.com/SebR214/margin/commit/6a111b85653962dc50b6e31780c1c950d464014c",
-   "date": "2026-10-21T08:26:23Z",
-   "email": "person",
-   "message": "SEB-301: tick machine view's twins, llms.txt and alternate link; park the switch words on Seb (#591)\n\n15a, 15b and 15d are done and confirmed live on margin.wiki (PR #590): index.md and the other six top-level twins, every\ncountry and finding twin, llms.txt, and the alternate link tag all served the same hour's data as the pages themselves\n(checked by hand, both a country and a finding page, 0 number mismatches).\n\n15c (the Human/Machine switch) stays unticked. Its code and CSS are merged and live, but copy-lock means only the writer\nagent may fill copy.json's machineView words, and a writer PR needs Seb's approval. Parked with one line, per CLAUDE.md:\nnothing else waits on it.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "4e02010d08d5505bb3f9a13933e0a9ba9e225a24",
-   "html_url": "https://github.com/SebR214/margin/commit/4e02010d08d5505bb3f9a13933e0a9ba9e225a24",
-   "date": "2026-10-21T08:19:32Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-21T08:19Z"
-  },
-  {
-   "sha": "64a99ecb17ca827468fbf3b6e4b38eefa7d01251",
-   "html_url": "https://github.com/SebR214/margin/commit/64a99ecb17ca827468fbf3b6e4b38eefa7d01251",
-   "date": "2026-10-21T07:52:45Z",
-   "email": "person",
-   "message": "SEB-301: machine view, a Human/Machine switch with a markdown twin of every page (#590)\n\nItem 15 from the 21 Oct comment on SEB-301. No model is involved anywhere.\n\n- tools/emit_markdown.py (new): renders each page headless the way a reader gets it and converts what it shows to markdown\n  (headings, paragraphs, lists, tables -- including grid layouts the CSS lays out as rows, columns matched by position) --\n  charts, pictures, the header and footer are left out. Writes index.md, countries.md, sending-money.md, sources.md,\n  findings.md, how-it-works.md, how-it-was-built.md, one country/{CCY}.md per country and one finding/{id}.md per published\n  finding, then llms.txt. Every number in a twin is checked against the page's own rendered text before anything is written;\n  a page that renders nothing, or a twin that names no data file, fails loud and writes nothing.\n- .github/workflows/collect.yml: one new step after the homepage bake, and the new files added to the commit (purely\n  additive: a separate loop for the country/finding directories, nothing existing touched).\n- js/machine_view.js + css/machine_view.css (new): a Human/Machine switch, bottom centre on every page with a twin.\n  Machine shows the twin in a monospace panel with its path, size, an approximate token count, and three links (copy\n  markdown, copy curl, open raw). Remembered per visitor in localStorage, inside try/catch. Every word in copy.json\n  (machineView, empty slots: the writer fills them, same as every other reader-facing page).\n- Each page's <head> gets <link rel=\"alternate\" type=\"text/markdown\">, static on the seven top-level pages, set by a small\n  inline script on country.html and finding.html since their twin depends on the query string.\n\nVerified: every number in all 72 of this hour's twins was checked against the page's own rendered text (the emitter's own\ncheck); re-checked by hand against 9 page types (home, countries, sending money, sources, findings, how it works, how it\nwas built, a country page, a finding page): 0 mismatches. Tested the switch in the browser on desktop and phone, Human and\nMachine, with words filled in locally (copy.json ships with empty slots, so nothing shows until the writer fills them --\ncopy-lock, --style, --overflow, --lines and the design baseline all pass with the slots empty). Found and fixed a bug where\nthe switch could blank a page on first render before its content had finished building.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "35eb35eb0748cd4f6e33864fbe306ff859cb259f",
-   "html_url": "https://github.com/SebR214/margin/commit/35eb35eb0748cd4f6e33864fbe306ff859cb259f",
-   "date": "2026-10-21T07:40:27Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-21T07:40Z"
-  },
-  {
-   "sha": "fdbeb09aaa06d39815a7ca859f4baf1d403b522c",
-   "html_url": "https://github.com/SebR214/margin/commit/fdbeb09aaa06d39815a7ca859f4baf1d403b522c",
-   "date": "2026-10-21T07:30:15Z",
-   "email": "person",
-   "message": "SEB-301: queue items 14 and 15, tick 14 as built and live (#589)\n\nThe 21 Oct \"More space and clean line breaks\" and \"Machine view\" items from SEB-301, queued under a new \"Built in a Claude chat\nsession, not by the builder\" heading with their comment ids, so tools/backlog.py sync never copies them again. Neither job lists\nfiles, so the builder never takes them; both are built in chat, per Seb's instruction on the issue.\n\nItem 14 is ticked: its PR (#588) merged and is confirmed live on margin.wiki (css/site_page.css?v=2 serving, screenshots posted\non SEB-301). Item 15 (machine view) is still in progress, in a separate PR.\n\n\"Cleaner type and more space\" was withdrawn by Seb the same day and was never copied into this file, so there was nothing to\ndelete, as the comment says to check.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "0f634a043c459c956bbd7b786b5fdc1c25c2daf9",
-   "html_url": "https://github.com/SebR214/margin/commit/0f634a043c459c956bbd7b786b5fdc1c25c2daf9",
-   "date": "2026-10-21T07:15:46Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-21T07:15Z"
   }
  ]
 }
