@@ -929,7 +929,14 @@ def buda_market(m, raw_dir, deadline):
         g.write("timestamp_ms,amount,price,direction,id\n")
         while time.time() < deadline:
             u = "https://www.buda.com/api/v2/markets/%s/trades?limit=100" % m.lower() + ("&timestamp=%s" % ts if ts else "")
-            e = get_json(u)["trades"]["entries"]
+            try:
+                e = get_json(u)["trades"]["entries"]
+            except requests.RequestException:
+                time.sleep(5)                                       # a reset connection: one more go, then keep what was read
+                try:
+                    e = get_json(u)["trades"]["entries"]
+                except requests.RequestException:
+                    break
             pages += 1
             if not e:
                 break
@@ -1058,7 +1065,7 @@ def pack_raw(raw_dir, date):
 EVENTS_REPORTED = os.path.join(OUT_DIR, "events_reported.csv")
 RECORDS_REPORTED = os.path.join(OUT_DIR, "event_records")
 REPLAY_FIELDS = ["as_of_date", "event_id", "ccy", "kind", "status", "confirmation", "detected_on", "baseline", "latest", "change_pct", "note",
-                 "label", "sources"]
+                 "label", "source"]
 
 
 def _series(path, datecol, ccycol, valcol, ccys=None):
@@ -1155,7 +1162,10 @@ def replay_history(dry, start="2000-01-01"):
     rows, recs = de.run_days(data, [], max(start, de.first_day(data)), last)
     for r in rows:
         r["label"] = LABEL
-        r["sources"] = " | ".join(names.get(r["ccy"], [])) + " ; street " + " + ".join(snames.get(r["ccy"], ["none"]))
+        r["source"] = " | ".join(names.get(r["ccy"], [])) + " ; street " + " + ".join(snames.get(r["ccy"], ["none"]))
+        for k in REPLAY_FIELDS:
+            if r.get(k) in ("", None):
+                r[k] = "none"                                    # a history row has no empty field; "none" says the figure does not apply
     fixed = {}
     for eid, rec in recs.items():
         if "_afters" in rec:

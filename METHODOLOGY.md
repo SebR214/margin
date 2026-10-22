@@ -1831,6 +1831,14 @@ The detector judges one UTC day at a time using only data up to that day, never 
 
 A fix found while building it: the weekly-loop rule in `tools/check_official_rates.py` flagged a single step in an otherwise flat rate (Iraq, 9 Oct) as a loop for four days, because a flat rate equals itself a week earlier on most days. It now needs the rate to move more than 5% in the week before the repeating week as well. Sudan is still flagged.
 
+## History pulled wide, and a replay of the event detector over it (SEB-311 step 3b, 22 Oct 2026)
+
+Everything in this section is the history layer: `data/history/`, every row labelled "reported, not observed" with its source, under `tools/check_history_isolation.py`. Nothing in it feeds the index, a published price or the unbroken-hours count, and no published number changes. One pull, not hourly, by `.github/workflows/history_pull.yml` through `tools/backfill_history.py --wide`.
+
+Daily files in the repo: official rates from fawazahmed0 (every tracked currency it has, from 2 Mar 2024) and from the Bank for International Settlements' central-bank daily series (28 tracked currencies, from 2000, the BIS file kept whole on the release); daily candles of USDT, USDC and BTC against tracked currencies from Binance's bulk files, Bitso, Kraken, CoinGecko's free year and (the last close of each UTC day, a trade the venue reported) Buda; and the Argentine street dollar and its sister rates as known answers to check against, never as our price. Raw bulk files (Binance hourly klines, Buda trades, the BIS zip) are assets on the GitHub release `history-raw-2026-10-22`, not in the repo, because Pages stops at 1 GB.
+
+The replay (`tools/backfill_history.py --replay`) runs the event detector over those files. Official breaks use the BIS series where it has the currency, else fawazahmed0; a second official source (the ECB reference rate, else fawazahmed0) can confirm. Street slides use the first of Binance, Bitso, Buda, Kraken and CoinGecko that has the currency; a second venue can confirm. Differences from the live detector: the market is an exchange spot market, so the "10 or more ads" test is replaced by the market existing, and the number of ads is not checked; the official-rate rules look at the 90 days before the day judged (over 26 years one old glitch would flag a currency for ever). Its rows are `data/history/events_reported.csv` and its records `data/history/event_records/`, kept apart from `data/events.csv` and `data/event_records/`, each marked "reported, not observed".
+
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
 **Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's
