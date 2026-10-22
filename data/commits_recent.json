@@ -1,7 +1,21 @@
 {
- "as_of_utc": "2026-10-22T15:16:50Z",
+ "as_of_utc": "2026-10-22T15:50:58Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "f08bdac5bd534fb18f6be5d3a22189a3645604d2",
+   "html_url": "https://github.com/SebR214/margin/commit/f08bdac5bd534fb18f6be5d3a22189a3645604d2",
+   "date": "2026-10-22T15:29:29Z",
+   "email": "person",
+   "message": "SEB-311: history files and the detector replay (step 3b) (#647)\n\n* SEB-311 step 3b: history files (official rates, Binance, Bitso, Kraken, Argentina), the replay and its records; 90-day flag window\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-311: events_reported.csv carries a source column, as the isolation check requires\n\n* SEB-311: no empty field in events_reported.csv\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "4a82c57a65ebe6a626c2c5ef54f51da9b5267b23",
+   "html_url": "https://github.com/SebR214/margin/commit/4a82c57a65ebe6a626c2c5ef54f51da9b5267b23",
+   "date": "2026-10-22T15:23:46Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-22T15:23Z"
+  },
   {
    "sha": "7d8dd238584c452b98de56e69c46673e93d44494",
    "html_url": "https://github.com/SebR214/margin/commit/7d8dd238584c452b98de56e69c46673e93d44494",
@@ -687,20 +701,6 @@
    "date": "2026-10-21T14:38:32Z",
    "email": "person",
    "message": "SEB-301: one Human/Machine switch fixed bottom centre on every page, same footer everywhere, Findings text weights match home, room under Countries region buttons (#608)\n\n- Switch: one copy made by machine_view.js, fixed bottom centre at every width and in both modes. Removed the copies in page headers (6 pages, 3 scripts). Fixes it vanishing in machine view and jumping between pages.\n- Findings: dropped -webkit-font-smoothing (thin text on Mac), list rows use the home page's sizes, weights and greys. Same for the related findings rows on a finding page.\n- Home findings rows no longer get the Findings page's 280px column, so titles fit on one line.\n- Footer: same rule, text and 96px below it on every page, How it was built included.\n- Countries: 24px between the region buttons and the line under them.\nNo words changed.\n\n\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "fde2bb5e23a81ba5b4457a54d768be5f032bdfeb",
-   "html_url": "https://github.com/SebR214/margin/commit/fde2bb5e23a81ba5b4457a54d768be5f032bdfeb",
-   "date": "2026-10-21T14:21:00Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-21T14:21Z"
-  },
-  {
-   "sha": "4528998383a4087c2023783e1efde5fd4640db62",
-   "html_url": "https://github.com/SebR214/margin/commit/4528998383a4087c2023783e1efde5fd4640db62",
-   "date": "2026-10-21T13:50:53Z",
-   "email": "person",
-   "message": "SEB-301: official rate's own timestamp per route, drop dead CriptoYa:buenbit (#604)\n\n* SEB-301: store the official rate's own timestamp, drop dead CriptoYa:buenbit\n\n- collector_fx.py writes data/fx_rate_meta.csv (sidecar, fx_rates.csv header frozen): ts_utc,source,rate_updated_utc,source_ok,error\n- emit_routes.py carries official_rate_updated_utc on every route in routes_hourly.json and routes_summary.json (null until a run has stored one)\n- collector_basis.py no longer collects CriptoYa:buenbit (last answered 2026-10-11); its rows stay in basis.csv\n- collect.yml commits the new sidecar\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-301: METHODOLOGY entry and index_version 1.6 for the new official_rate_updated_utc key\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
   }
  ]
 }
