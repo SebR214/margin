@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-22T12:12:38+00:00",
+  "as_of_utc": "2026-10-22T12:37:30+00:00",
   "tables": {
     "agent_spend": {
       "bytes": 2607,
@@ -86,7 +86,7 @@
       "rows": 6
     },
     "claims_history": {
-      "bytes": 33968,
+      "bytes": 33969,
       "columns": [
         "as_of_utc",
         "key",
@@ -94,7 +94,7 @@
         "value_json"
       ],
       "file": "claims_history.parquet",
-      "rows": 6508
+      "rows": 6516
     },
     "corridor_variant_legs": {
       "bytes": 108836,
@@ -346,7 +346,7 @@
       "rows": 1323
     },
     "findings_hours_sgd_php_never_cheapest": {
-      "bytes": 26334,
+      "bytes": 26350,
       "columns": [
         "hour_utc",
         "amount_sgd",
@@ -357,7 +357,7 @@
         "stable_cheaper"
       ],
       "file": "findings_hours_sgd_php_never_cheapest.parquet",
-      "rows": 1490
+      "rows": 1491
     },
     "findings_hours_stress_signal": {
       "bytes": 1461,
@@ -402,7 +402,7 @@
       "rows": 309
     },
     "fx_live": {
-      "bytes": 22804,
+      "bytes": 23296,
       "columns": [
         "ts_utc",
         "ccy",
@@ -415,7 +415,7 @@
         "error"
       ],
       "file": "fx_live.parquet",
-      "rows": 2040
+      "rows": 2100
     },
     "fx_rate_meta": {
       "bytes": 1081,
@@ -519,7 +519,7 @@
       "rows": 1840
     },
     "p2p_ads": {
-      "bytes": 422638,
+      "bytes": 469631,
       "columns": [
         "ts_utc",
         "ccy",
@@ -533,7 +533,7 @@
         "error"
       ],
       "file": "p2p_ads.parquet",
-      "rows": 41542
+      "rows": 45317
     },
     "p2p_basis": {
       "bytes": 1024694,
@@ -667,6 +667,19 @@
       ],
       "file": "p2p_spread_signal.parquet",
       "rows": 52699
+    },
+    "path_spread_hours": {
+      "bytes": 23272,
+      "columns": [
+        "route",
+        "hour_utc",
+        "base_cost_bps_usdt_tron",
+        "variant_cost_bps_usdc_arbitrum",
+        "cheaper",
+        "spread_bps"
+      ],
+      "file": "path_spread_hours.parquet",
+      "rows": 1357
     },
     "price_changes": {
       "bytes": 43612,
@@ -1046,5 +1059,5 @@
       "rows": 64
     }
   },
-  "total_bytes": 12907257
+  "total_bytes": 12978031
 }
