@@ -1,7 +1,21 @@
 {
- "as_of_utc": "2026-10-22T08:42:55Z",
+ "as_of_utc": "2026-10-22T09:17:13Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "d3e2d3436bcf4d32d97e8fdadb49d1ed92e4da64",
+   "html_url": "https://github.com/SebR214/margin/commit/d3e2d3436bcf4d32d97e8fdadb49d1ed92e4da64",
+   "date": "2026-10-22T08:54:53Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "SEB-301: Add the USD->PHP route to collector.py's corridor table, its collect.yml step and the provider quotes config (backlog 1a) (#640)\n\n* SEB-301: Add the USD->PHP route to collector.py's corridor table, its collect.yml step and the provider quotes config (backlog 1a)\n\nOne-call runner, anthropic/claude-sonnet-5.5 + qwen/qwen3-coder.\n\n* SEB-301: backlog job 1a built, ticked when its first rows land (PR #640)\n\n---------\n\nCo-authored-by: margin-agents[bot] <329969015+margin-agents[bot]@users.noreply.github.com>\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>"
+  },
+  {
+   "sha": "4cecf9474490add99dd38567b86fa4437856d900",
+   "html_url": "https://github.com/SebR214/margin/commit/4cecf9474490add99dd38567b86fa4437856d900",
+   "date": "2026-10-22T08:45:04Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-22T08:45Z"
+  },
   {
    "sha": "afd9bce7608b50dd302072acc09c2c3b95201c92",
    "html_url": "https://github.com/SebR214/margin/commit/afd9bce7608b50dd302072acc09c2c3b95201c92",
@@ -687,20 +701,6 @@
    "date": "2026-10-21T09:50:02Z",
    "email": "person",
    "message": "SEB-301: working rule, never read a whole data file or file over 20 KB (#597)\n\nSeb's correction in chat, 21 Oct: this session had been reading whole data files and paging through all of SEB-301's\ncomments to find context. Added to Working rules.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "eee1ee12a1f218668f06907b22d40c6b3d436487",
-   "html_url": "https://github.com/SebR214/margin/commit/eee1ee12a1f218668f06907b22d40c6b3d436487",
-   "date": "2026-10-21T09:48:45Z",
-   "email": "person",
-   "message": "SEB-301: a country with no price on any of the last 30 days comes off the map and out of every count (#596)\n\nFast lane, home page. pricedInLast30(cells) checks the same 30-day window heat() already draws. A country that fails it is\ndropped from D.cur before the map, the ranking and the counts are built from it: it does not appear as a row, and\n\"We track the price of a dollar in {n} countries\" and the \"Countries tracked\" counter both use the filtered count (53,\ndown from 60, checked live). build() now runs before hero() so hero() can read the filtered count.\n\nOne new grey line under the map, copy.json's neverPricedNote: \"We also check {list} every hour, but too few people sell\ndollars there to give a price.\" -- the excluded countries by name, comma separated, same style as the existing no-price\nlist on countries.html.\n\nChecked live: counts and the lead sentence agree (53), none of the listed countries render as a map row, \"Show all\"\nreads the new count. copy-lock and overflow pass.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "4bd3bf9c323a977a5b87fb4530caa8e2720efeba",
-   "html_url": "https://github.com/SebR214/margin/commit/4bd3bf9c323a977a5b87fb4530caa8e2720efeba",
-   "date": "2026-10-21T09:44:43Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-21T09:44Z"
   }
  ]
 }

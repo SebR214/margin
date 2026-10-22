@@ -1,6 +1,6 @@
 # How much of the dollar premium survives the trip
 
-Prices from the 08:00 UTC hour, 22 Oct.
+Prices from the 09:00 UTC hour, 22 Oct.
 
 In some countries a dollar sells for more than the official rate. This shows how much of that extra a stablecoin carries home, after every fee.
 
