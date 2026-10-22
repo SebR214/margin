@@ -55,7 +55,7 @@ def parse(text):
         m = JOB.match(line)
         if m and cur is not None:
             job = {"id": m.group(2), "title": m.group(3), "done": m.group(1) == "x", "line": n, "files": [], "context": [], "done_when": "", "blocked": "", "venues": [],
-                   "rows": [], "built": "", "excerpts": []}
+                   "rows": [], "built": "", "excerpts": [], "track": ""}
             cur["jobs"].append(job)
             continue
         if job is not None and line.startswith("    "):
@@ -76,6 +76,8 @@ def parse(text):
                 job["excerpts"].append(re.findall(r"`([^`]+)`", s)[:3])
             elif s.startswith("built:"):
                 job["built"] = s[len("built:"):].strip()
+            elif s.startswith("track:"):
+                job["track"] = s[len("track:"):].strip()
         elif line.strip() and not line.startswith(" "):
             job = None
     return items
@@ -89,14 +91,15 @@ def is_collection(job):
     return any(COLLECTION.match(p) for p in job["files"])
 
 
-def next_job(items):
+def next_job(items, track=""):
     """The first unchecked, unblocked job with files, in queue order, that is not built and waiting for its rows. None when nothing
-    is buildable."""
+    is buildable. `track` is the builder asking: a job with a `track: aider` line belongs to the Aider builder (SEB-301, track A,
+    tools/aider_builder.py) and the one-call builder (track "") never takes it."""
     for it in items:
         if it["done"]:
             continue
         for j in it["jobs"]:
-            if not j["done"] and not j["blocked"] and not j["built"] and j["files"]:
+            if not j["done"] and not j["blocked"] and not j["built"] and j["files"] and j["track"] == track:
                 return it, j
     return None
 

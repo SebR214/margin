@@ -116,6 +116,11 @@ jobs:
       - name: The build backlog parses, ticks and syncs (SEB-301)
         run: python3 tools/backlog.py --self-test
 
+      - name: The Aider builder, its test command and the weekly planner (SEB-301, track A)
+        run: |
+          python3 tools/aider_builder.py --self-test
+          python3 tools/weekly_planner.py --self-test
+
       - name: The daily builder shapes a backlog job and finds its PR (SEB-301)
         run: |
           python3 tools/one_call.py --self-test
