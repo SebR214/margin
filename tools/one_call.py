@@ -314,9 +314,9 @@ def open_pr(i, written, rows):
     sh(["git", "push", "-q", "-f", "origin", branch])
     repo = os.environ["GITHUB_REPOSITORY"]
     cost = sum(float(r["cost_usd"]) for r in rows)
-    body = ("%s\n\nOne-call runner. %d call(s), $%.4f. Offline checks passed. "
+    body = ("%s\n\n%s. %d call(s), $%.4f. Offline checks passed. "
             "The rendered check and screenshots run in CI.\n\n%s" % (
-                i["url"], len(rows), cost, "\n".join("- `%s`" % p for p in written)))
+                i["url"], i.get("runner", "One-call runner"), len(rows), cost, "\n".join("- `%s`" % p for p in written)))
     req = urllib.request.Request(
         "https://api.github.com/repos/%s/pulls" % repo,
         data=json.dumps({"title": i.get("pr_title") or "%s: %s" % (i["identifier"], i["title"]),
@@ -455,7 +455,7 @@ def ran_today(path=BUILDER_LOG, today=None):
         return any(r["ts_utc"][:10] == today for r in csv.DictReader(f))
 
 
-def commit_main(log_rows, ops, message):
+def commit_main(log_rows, ops, message, log_path=None, log_header=None):
     """Put this run's bookkeeping on main: the spend rows, the builder log rows and any BACKLOG.md edits (re-applied to a fresh
     copy of main, so a concurrent change cannot be lost). Retries like commit_spend."""
     spend = list(llm.LOGGED)
@@ -469,13 +469,14 @@ def commit_main(log_rows, ops, message):
             llm.write_rows(spend)
             paths.append("data/agent_spend.csv")
         if log_rows:
-            new = not os.path.exists(BUILDER_LOG)
-            with open(BUILDER_LOG, "a", newline="") as f:
+            log_path = log_path or BUILDER_LOG
+            new = not os.path.exists(log_path)
+            with open(log_path, "a", newline="") as f:
                 w = csv.writer(f)
                 if new:
-                    w.writerow(BUILDER_LOG_HEADER)
+                    w.writerow(log_header or BUILDER_LOG_HEADER)
                 w.writerows(log_rows)
-            paths.append("data/builder_log.csv")
+            paths.append(os.path.relpath(log_path, ROOT))
         if ops:
             text = open(backlog.PATH).read()
             for op in ops:

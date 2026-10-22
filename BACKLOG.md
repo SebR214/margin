@@ -56,6 +56,7 @@ and 6a to 6d dropped unbuilt.
 
 - [ ] 1. United States to the Philippines (Coinbase, then Coins.ph). Apps in the feed: 8.
   - [ ] 1a. Add the USD->PHP route to collector.py's corridor table, its collect.yml step and the provider quotes config
+    track: aider
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->PHP`
     excerpt: `collector.py` `^CORRIDORS = \{` `^\}`
@@ -65,12 +66,14 @@ and 6a to 6d dropped unbuilt.
     done when: collector.py's CORRIDORS has one new "USD->PHP" entry with src USD, dst PHP, stable USDT, the onramp, network_fee_stable, gas_modelled, withdraw_pct, withdraw_pct_cap and deposit fields copied unchanged from "USD->MXN", the offramp and withdrawal copied unchanged from "SGD->PHP", the same ladder, and providers_file "providers_usdphp.csv"; collect.yml has one new step "Collect corridor sample USD->PHP" after the SGD->INR step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector.py --corridor "USD->PHP"`, and data/providers_usdphp.csv added to the commit list; collector_providers.py CORRIDOR_CCY has "USD->PHP": ("USD", "PHP"); no other line changes.
 - [ ] 2. United States to Brazil (Coinbase, then Foxbit or Mercado Bitcoin). Apps in the feed: 7.
   - [ ] 2a. Add the USD->BRL route to collector.py's corridor table, its collect.yml step and the provider quotes config
+    track: aider
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->BRL`
     done when: as 1a, with the Coinbase side copied from "USD->MXN" and a Brazil off-ramp entry.
     blocked: collector.py has no off-ramp for Foxbit or Mercado Bitcoin (it reads Coins.ph, Bitso, Luno and WazirX only), so this is new collector code, not a table entry, and the off-ramp fee must be read from the venue's own fee page, which the builder cannot do (2026-10-21)
 - [ ] 3. United States to Indonesia (Coinbase, then Indodax or Pintu). Apps in the feed: 6.
   - [ ] 3a. Add the USD->IDR route to collector.py's corridor table, its collect.yml step and the provider quotes config
+    track: aider
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->IDR`
     done when: as 1a, with the Coinbase side copied from "USD->MXN" and an Indonesia off-ramp entry.
