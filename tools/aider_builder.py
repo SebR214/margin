@@ -169,6 +169,18 @@ def make_parts(job, tmp):
     return work, files, mf, note
 
 
+def keep_original(orig, new):
+    """Only insertions survive: a line of the table that the model deleted or rewrote is put back. Used for the .py parts of a
+    collection job, where tools/check_additive.py refuses any rewritten line and the editor model kept swapping a constant's name for
+    a literal in four existing entries (pilot runs 9 to 11)."""
+    import difflib
+    a, b = orig.split("\n"), new.split("\n")
+    out = []
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes():
+        out += b[j1:j2] if tag in ("equal", "insert") else a[i1:i2]
+    return "\n".join(out)
+
+
 def splice(manifest_path):
     """Put the scratch repo's work into the real repo: whole files are copied, part files are joined back into their file from its
     pristine text. Safe to run again and again (it is the first half of Aider's test command)."""
@@ -183,6 +195,8 @@ def splice(manifest_path):
         for r in regions:
             new = open(os.path.join(m["work"], r["part"])).read()
             new = new[:-1] if new.endswith("\n") and not r["orig"].endswith("\n") else new
+            if m.get("regen") and r["part"].endswith(".py"):
+                new = keep_original(r["orig"], new.rstrip("\n"))
             assert text.count(r["orig"]) == 1, "region lost in %s" % p
             o = r["orig"].split("\n")
             if new.split("\n")[0] != o[0] or o[-1] not in new.split("\n"):
