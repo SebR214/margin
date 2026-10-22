@@ -86,6 +86,7 @@ We also check Afghanistan, Angola, Botswana, Brunei, Ethiopia, Ghana, Nepal ever
 | 05 | [In 2 countries, people pay more for a dollar from each other than on an exchange](https://margin.wiki/finding/exchange_vs_p2p.md) |
 | 01 | [Transfer apps keep changing their prices](https://margin.wiki/finding/price_changes.md) |
 | 02 | [Some apps charge more on Saturday, then cut back](https://margin.wiki/finding/weekend_penalty.md) |
+|  | How much of the dollar premium survives the trip |
 
 <https://margin.wiki/data/findings.json>
 
