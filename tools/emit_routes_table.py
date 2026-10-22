@@ -51,6 +51,9 @@ import emit_routes as E  # noqa: E402
 DATA = os.path.join(HERE, "data")
 OUT = os.path.join(DATA, "routes_table.json")
 AMOUNT = 1000
+# Argentina (SEB-310): the comparison feed returns three or more apps for it only at 200 and 5,000 (21 Oct), so its rows are those two
+# sizes, one row each, and its chart and moves use the larger. Every other route is compared at 1,000.
+SIZES = {"USD->ARS": [200, 5000]}
 WINDOW_HOURS = 7 * 24
 MOVE_DAYS = 30
 MAX_MOVES = 5
@@ -59,6 +62,11 @@ TOLERANCE_BPS = 2.0
 INDIA = {"USD->INR", "SGD->INR"}
 NIGERIA = {"USD->NGN"}
 INDIA_TDS_BPS = 140.0          # 40 (WazirX fee) + 100 (tax): the first hour the sale fee holds the tax
+
+
+def main_amount(c):
+    """The size a route's daily chart and moves use: 1,000, or the larger of an Argentina-style short list."""
+    return SIZES.get(c, [AMOUNT])[-1]
 
 
 def hour_dt(h):
@@ -70,23 +78,23 @@ def med(xs):
 
 
 def sample_extras():
-    """{(route, hour): (offramp_slip_bps, fee_off_taker_bps)} at AMOUNT, the base path, later rows in an hour win."""
+    """{(route, amount, hour): (offramp_slip_bps, fee_off_taker_bps)}, the base path, later rows in an hour win."""
     out = {}
     for r in E.read_csv(E.SAMPLES):
-        if not E.ok(r) or E.num(r, "notional_src") != AMOUNT:
+        if not E.ok(r):
             continue
         slip, fee = E.num(r, "offramp_slip_bps"), E.num(r, "fee_off_taker_bps")
         if slip is None or fee is None:
             continue
-        out[((r.get("corridor") or "").strip(), E.hour_of(r["ts"]))] = (slip, fee)
+        out[((r.get("corridor") or "").strip(), E.amount_key(E.num(r, "notional_src")), E.hour_of(r["ts"]))] = (slip, fee)
     return out
 
 
-def own_path_bps(D, extras, c, h):
+def own_path_bps(D, extras, c, h, amount=AMOUNT):
     """The path's own cost in basis points for one hour, or None if a step is not stored. Raises if the steps do not
     reconcile with the stored total minus the sale's price gap."""
-    k = (c, AMOUNT, h)
-    b, lg, ex = D["base"].get(k), D["legs"].get(k) or {}, extras.get((c, h))
+    k = (c, amount, h)
+    b, lg, ex = D["base"].get(k), D["legs"].get(k) or {}, extras.get((c, amount, h))
     if not b or not ex or b["off_basis"] is None:
         return None
     if any(lg.get(x) is None for x in ("deposit", "buy", "move", "withdrawal")):
@@ -106,7 +114,7 @@ def own_path_bps(D, extras, c, h):
 def complete_from(D, extras, c):
     """First hour (YYYY-MM-DDTHH) from which this route's cost holds every fee, or '' for no limit."""
     if c in INDIA:
-        hs = sorted(h for (cc, h), (_, fee) in extras.items() if cc == c and fee >= INDIA_TDS_BPS)
+        hs = sorted(h for (cc, a, h), (_, fee) in extras.items() if cc == c and a == AMOUNT and fee >= INDIA_TDS_BPS)
         return hs[0] if hs else None
     if c in NIGERIA:
         hs = sorted(h for (cc, a, h), lg in D["legs"].items() if cc == c and a == AMOUNT and lg.get("withdrawal_measured"))
@@ -137,39 +145,43 @@ def build():
         sym = E.SYMBOL.get(meta.get("send_ccy"), meta.get("send_ccy"))
         cf = complete_from(D, extras, c)
         pr, ph = prem.get(recv, (None, None))
-        row = {"id": c, "words": E.ROUTE_WORDS.get(c, c), "dest": E.ROUTE_DEST.get(c), "send_symbol": sym, "amount": AMOUNT,
-               "premium_pct": pr, "premium_hour_utc": ph, "status": "ok", "reason": None, "counted_from_utc": None,
-               "gap_pp": None, "gap_money": None, "hours_cheaper": None, "hours_priced": None,
-               "path_cost_pct": None, "path_cost_money": None, "path_cost_hours": None}
-        hours = [p for p in S.get(c, {}).get(AMOUNT, []) if cf is not None and p["hour"] >= cf]
-        if cf is None or not hours:
-            row.update(status="waiting", reason="fees_not_in_yet" if c in INDIA | NIGERIA else "no_hours")
+        for amount in SIZES.get(c, [AMOUNT]):
+            row = {"id": c, "words": E.ROUTE_WORDS.get(c, c), "dest": E.ROUTE_DEST.get(c), "send_symbol": sym, "amount": amount,
+                   "premium_pct": pr, "premium_hour_utc": ph, "status": "ok", "reason": None, "counted_from_utc": None,
+                   "gap_pp": None, "gap_money": None, "hours_cheaper": None, "hours_priced": None,
+                   "path_cost_pct": None, "path_cost_money": None, "path_cost_hours": None}
+            hours = [p for p in S.get(c, {}).get(amount, []) if cf is not None and p["hour"] >= cf]
+            if cf is None or not hours:
+                row.update(status="waiting", reason="fees_not_in_yet" if c in INDIA | NIGERIA else "no_hours")
+                rows.append(row)
+                if amount == main_amount(c):
+                    daily.append({"id": c, "days": []})
+                continue
+            row["counted_from_utc"] = E.hour_utc(hours[0]["hour"])
+            win = [p for p in hours if p["hour"] > start_h]
+            gaps = [(p["app_bps"] - p["stable_bps"]) / 100 for p in win]
+            row["hours_priced"] = len(win)
+            row["hours_cheaper"] = sum(1 for p in win if p["stable_bps"] < p["app_bps"])
+            row["gap_pp"] = med(gaps)
+            row["gap_money"] = round(amount * row["gap_pp"] / 100, 2) if gaps else None
+            owns = [x for x in (own_path_bps(D, extras, c, p["hour"], amount) for p in win) if x is not None]
+            if owns:
+                row["path_cost_hours"] = len(owns)
+                row["path_cost_pct"] = med([x / 100 for x in owns])
+                row["path_cost_money"] = round(amount * row["path_cost_pct"] / 100, 2)
             rows.append(row)
-            daily.append({"id": c, "days": []})
-            continue
-        row["counted_from_utc"] = E.hour_utc(hours[0]["hour"])
-        win = [p for p in hours if p["hour"] > start_h]
-        gaps = [(p["app_bps"] - p["stable_bps"]) / 100 for p in win]
-        row["hours_priced"] = len(win)
-        row["hours_cheaper"] = sum(1 for p in win if p["stable_bps"] < p["app_bps"])
-        row["gap_pp"] = med(gaps)
-        row["gap_money"] = round(AMOUNT * row["gap_pp"] / 100, 2) if gaps else None
-        owns = [x for x in (own_path_bps(D, extras, c, p["hour"]) for p in win) if x is not None]
-        if owns:
-            row["path_cost_hours"] = len(owns)
-            row["path_cost_pct"] = med([x / 100 for x in owns])
-            row["path_cost_money"] = round(AMOUNT * row["path_cost_pct"] / 100, 2)
-        rows.append(row)
-        byday = {}
-        for p in hours:
-            byday.setdefault(p["hour"][:10], []).append((p["app_bps"] - p["stable_bps"]) / 100)
-        days = [[d, med(v), len(v)] for d, v in sorted(byday.items())]
-        daily.append({"id": c, "days": days})
-        gaps_by_day[c] = {d: m for d, m, _ in days}
+            if amount == main_amount(c):
+                byday = {}
+                for p in hours:
+                    byday.setdefault(p["hour"][:10], []).append((p["app_bps"] - p["stable_bps"]) / 100)
+                days = [[d, med(v), len(v)] for d, v in sorted(byday.items())]
+                daily.append({"id": c, "days": days})
+                gaps_by_day[c] = {d: m for d, m, _ in days}
     rows.sort(key=lambda r: (r["premium_pct"] is None, -(r["premium_pct"] or 0)))
     return {
         "as_of_utc": E.hour_utc(newest_h),
         "amount": AMOUNT,
+        "sizes": SIZES,
         "window_days": 7,
         "definition": {
             "gap_pp": "median over the window of the best app's all-in cost minus the stablecoin path's, in points of the amount; positive means the stablecoin was cheaper",
@@ -188,14 +200,14 @@ def moves(D, gaps_by_day, newest_h):
     cut = (hour_dt(newest_h) - dt.timedelta(days=MOVE_DAYS)).strftime("%Y-%m-%d")
     out = []
     for r in csv.DictReader(open(os.path.join(DATA, "price_changes.csv"), newline="")):
-        if r["kind"] != "change" or r["size"] != str(AMOUNT) or r["ts_utc"][:10] < cut or r["corridor"] not in E.ROUTES:
+        if r["kind"] != "change" or r["corridor"] not in E.ROUTES or r["size"] != str(main_amount(r["corridor"])) or r["ts_utc"][:10] < cut:
             continue
         old, new = float(r["old_cost_pct"]), float(r["new_cost_pct"])
         meta = D["meta"].get(r["corridor"], {})
         out.append({"kind": "repriced", "route": r["corridor"], "words": E.ROUTE_WORDS.get(r["corridor"], r["corridor"]),
                     "send_symbol": E.SYMBOL.get(meta.get("send_ccy"), meta.get("send_ccy")), "day": r["ts_utc"][:10],
                     "app": r["provider"], "from_pct": old, "to_pct": new, "change_pp": round(new - old, 4),
-                    "amount": AMOUNT, "source_file": "data/price_changes.csv"})
+                    "amount": main_amount(r["corridor"]), "source_file": "data/price_changes.csv"})
     for c, byday in gaps_by_day.items():
         days = sorted(d for d in byday if d >= cut)
         if len(days) < 2 * MIN_BLOCK_DAYS:
@@ -207,7 +219,7 @@ def moves(D, gaps_by_day, newest_h):
         meta = D["meta"].get(c, {})
         out.append({"kind": "gap", "route": c, "words": E.ROUTE_WORDS.get(c, c),
                     "send_symbol": E.SYMBOL.get(meta.get("send_ccy"), meta.get("send_ccy")), "day": last[-1],
-                    "from_day": first[0], "from_pp": a, "to_pp": b, "change_pp": round(b - a, 4), "amount": AMOUNT,
+                    "from_day": first[0], "from_pp": a, "to_pp": b, "change_pp": round(b - a, 4), "amount": main_amount(c),
                     "source_file": "data/samples.csv"})
     out.sort(key=lambda m: -abs(m["change_pp"]))
     # one move per (kind, route, app) so a repricing and its reversal do not fill the list
@@ -239,10 +251,10 @@ def self_test():
     assert hour_dt("2026-10-22T03").hour == 3
     D = {"base": {("X", AMOUNT, "h"): {"bps": 100.0, "off_basis": -50.0}},
          "legs": {("X", AMOUNT, "h"): {"deposit": 0.0, "buy": 20.0, "move": 1.0, "withdrawal": 5.0}}}
-    extras = {("X", "h"): (0.0, 124.0)}
+    extras = {("X", AMOUNT, "h"): (0.0, 124.0)}
     assert abs(own_path_bps(D, extras, "X", "h") - ((21.0 + 124.0) * 1.005 + 5.0)) < 1e-9
     assert own_path_bps(D, extras, "X", "nothere") is None
-    extras[("X", "h")] = (0.0, 100.0)
+    extras[("X", AMOUNT, "h")] = (0.0, 100.0)
     try:
         own_path_bps(D, extras, "X", "h")
         raise AssertionError("steps that miss the total must fail loud")

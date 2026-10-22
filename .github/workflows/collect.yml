@@ -210,6 +210,12 @@ jobs:
         # unchanged; only the offramp (WazirX) is new.
         run: python3 collector.py --corridor "SGD->INR"
 
+      - name: Collect corridor sample USD->ARS
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-310 item 5. The same Coinbase onramp as USD->MXN, Bitso's usdt_ars book on the offramp. The fees and the USDT
+        # deposit networks were read from Bitso's own pages on 2026-10-22, see collector.py.
+        run: python3 collector.py --corridor "USD->ARS"
+
       - name: Collect basis sample
         if: always() && steps.needed.outputs.proceed == 'true'
         # Wide layer: exits non-zero ONLY on a total blackout (all venues down).
@@ -657,7 +663,7 @@ jobs:
                    data/providers_usdmxn.csv data/providers_audphp.csv \
                    data/providers_nzdphp.csv \
                    data/providers_usdngn.csv data/providers_usdinr.csv \
-                   data/providers_sgdinr.csv data/latest.json \
+                   data/providers_sgdinr.csv data/providers_usdars.csv data/latest.json \
                    data/crosses_latest.json data/stable_spread.csv \
                    data/p2p_basis.csv data/p2p_sides.csv data/p2p_depth.csv \
                    data/p2p_offers.csv data/street_depth_latest.json \

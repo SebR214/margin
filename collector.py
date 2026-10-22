@@ -303,6 +303,53 @@ CORRIDORS = {
         # exactly the same header.
         "providers_file": "providers_usdmxn.csv",
     },
+    # --- 2026-10-22, SEB-310 item 5: Argentina. Coinbase on-ramp exactly as USD->MXN, Bitso's usdt_ars book on the off-ramp.
+    # Bitso Argentina publishes the same schedules as Bitso Mexico; everything below was read from Bitso's own pages on
+    # 2026-10-22 (bitso.com/fees/transactions and bitso.com/ar/fees/transactions carry identical data):
+    #   * USDT deposit networks, all free of charge: Polygon, Stellar, Tron, Solana, Ethereum. Coinbase sends USDT on Ethereum,
+    #     Solana, Base, Polygon, Arbitrum and Avalanche, so the common ones are Polygon, Solana and Ethereum. Polygon is modelled,
+    #     the cheapest of them and the one USD->MXN uses.
+    #   * ARS bank withdrawal: "coelsa" (and Bitso Transfer) fee 0, fixed.
+    #   * usdt_ars trading fee, from api.bitso.com/v3/available_books: taker 0.60%, maker 0.45% at the base tier (tiers start at
+    #     ARS 1,625,000 of 30-day volume).
+    "USD->ARS": {
+        "src": "USD", "dst": "ARS", "stable": "USDT",
+        "onramp": {
+            "venue": "Coinbase",
+            # the same USDT-USD stable-pair schedule as USD->MXN, flat, verified by hand (login-gated): see there
+            "taker_bps": 1.0,
+            "maker_bps": 0.5,
+            "verified": "2026-08-19",
+        },
+        "offramp": {
+            "venue": "Bitso",
+            "symbol": "usdt_ars",
+            "taker_bps": 60.0,
+            "maker_bps": 45.0,
+            "verified": "2026-10-22",
+        },
+        "network_fee_stable": 0.0,          # Polygon gas is not published, see USD->MXN: unmodelled
+        "gas_modelled": False,
+        "withdraw_pct": 0.0001,             # 0.01%, published (Coinbase), as USD->MXN
+        "withdraw_pct_cap": 20.0,
+        "deposit": {
+            "venue": "Coinbase", "method": "ACH",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "USD",
+            "source_url": "https://help.coinbase.com/en/exchange/funding/depositing-with-ach",
+            "verified": "2026-09-29",
+        },
+        "withdrawal": {
+            "venue": "Bitso", "method": "Coelsa bank transfer",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "ARS",
+            "source_url": "https://bitso.com/ar/fees/transactions",
+            "verified": "2026-10-22",
+        },
+        "usdt_deposit_networks": ["polygon", "stellar", "tron", "solana", "eth"],
+        "usdt_deposit_networks_source_url": "https://bitso.com/ar/fees/transactions",
+        "usdt_deposit_networks_verified": "2026-10-22",
+        "ladder": [200, 1000, 5000, 25000, 50000],
+        "providers_file": "providers_usdars.csv",
+    },
     # --- 2026-09-29, SOURCES-2 (4->7 corridors). Nigeria was picked over
     # Argentina for the premium-country slot after live probing both:
     # Argentina's on-shore venues (Buenbit, Ripio, Lemon) have no reachable
