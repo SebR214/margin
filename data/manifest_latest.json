@@ -1,6 +1,6 @@
 {
-  "as_of_utc": "2026-10-22T05:36:18+00:00",
-  "computed_at": "2026-10-22T05:36:18+00:00",
+  "as_of_utc": "2026-10-22T06:44:11+00:00",
+  "computed_at": "2026-10-22T06:44:11+00:00",
   "files": [
     {
       "columns": [
@@ -15,11 +15,30 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-10-07T13:09:38+00:00",
-        "to": "2026-10-21T11:46:36+00:00"
+        "to": "2026-10-22T06:22:00+00:00"
       },
       "kind": "csv",
       "path": "data/agent_spend.csv",
-      "rows": 40
+      "rows": 45
+    },
+    {
+      "columns": [
+        "ts_utc",
+        "status",
+        "job",
+        "pr",
+        "cost_usd",
+        "turns",
+        "detail"
+      ],
+      "date_column": "ts_utc",
+      "date_range": {
+        "from": "2026-10-22T05:34:43+00:00",
+        "to": "2026-10-22T06:22:00+00:00"
+      },
+      "kind": "csv",
+      "path": "data/aider_log.csv",
+      "rows": 5
     },
     {
       "columns": [
@@ -32,11 +51,11 @@
       "date_column": "sample_ts",
       "date_range": {
         "from": "2026-10-03T02:05:57.888491+00:00",
-        "to": "2026-10-22T05:06:19.558118+00:00"
+        "to": "2026-10-22T06:36:33.860649+00:00"
       },
       "kind": "csv",
       "path": "data/audit_history.csv",
-      "rows": 445
+      "rows": 446
     },
     {
       "columns": [
@@ -55,11 +74,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-08-10T13:29:38.685291+00:00",
-        "to": "2026-10-22T05:06:21.376794+00:00"
+        "to": "2026-10-22T06:36:35.736864+00:00"
       },
       "kind": "csv",
       "path": "data/basis.csv",
-      "rows": 57899
+      "rows": 57948
     },
     {
       "columns": [
@@ -107,11 +126,11 @@
       "date_column": "as_of_utc",
       "date_range": {
         "from": "2026-10-05T08:00:00Z",
-        "to": "2026-10-22T05"
+        "to": "2026-10-22T06"
       },
       "kind": "csv",
       "path": "data/claims_history.csv",
-      "rows": 6412
+      "rows": 6420
     },
     {
       "columns": [
@@ -133,11 +152,11 @@
       "date_column": "ts",
       "date_range": {
         "from": "2026-10-11T15:06:01.040175+00:00",
-        "to": "2026-10-22T05:06:17.815272+00:00"
+        "to": "2026-10-22T06:36:32.177015+00:00"
       },
       "kind": "csv",
       "path": "data/corridor_variant_legs.csv",
-      "rows": 7500
+      "rows": 7530
     },
     {
       "columns": [
@@ -157,11 +176,11 @@
       "date_column": "ts",
       "date_range": {
         "from": "2026-10-02T14:05:50.516976+00:00",
-        "to": "2026-10-22T05:06:17.815272+00:00"
+        "to": "2026-10-22T06:36:32.177015+00:00"
       },
       "kind": "csv",
       "path": "data/corridor_variants.csv",
-      "rows": 11670
+      "rows": 11700
     },
     {
       "columns": [
@@ -175,11 +194,11 @@
       "date_column": "ts",
       "date_range": {
         "from": "2026-09-23T17:05:15.275052+00:00",
-        "to": "2026-10-22T05:06:19.558118+00:00"
+        "to": "2026-10-22T06:36:33.860649+00:00"
       },
       "kind": "csv",
       "path": "data/corridor_waterfall.csv",
-      "rows": 21385
+      "rows": 21425
     },
     {
       "columns": [
@@ -199,11 +218,34 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-10-20T10:36:14+00:00",
-        "to": "2026-10-22T05:08:11.950378+00:00"
+        "to": "2026-10-22T06:38:26.035074+00:00"
       },
       "kind": "csv",
       "path": "data/depth.csv",
-      "rows": 12061
+      "rows": 12345
+    },
+    {
+      "columns": [
+        "as_of_date",
+        "event_id",
+        "ccy",
+        "kind",
+        "status",
+        "confirmation",
+        "detected_on",
+        "baseline",
+        "latest",
+        "change_pct",
+        "note"
+      ],
+      "date_column": "as_of_date",
+      "date_range": {
+        "from": "2026-09-13",
+        "to": "2026-10-21"
+      },
+      "kind": "csv",
+      "path": "data/events.csv",
+      "rows": 22
     },
     {
       "columns": [
@@ -220,11 +262,53 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-08-18T09:48:38Z",
-        "to": "2026-10-01T10:18:27Z"
+        "to": "2026-10-22T06:28:45Z"
       },
       "kind": "csv",
       "path": "data/fee_checks.csv",
-      "rows": 64
+      "rows": 72
+    },
+    {
+      "columns": [
+        "ts_utc",
+        "venue",
+        "leg",
+        "regime",
+        "config_bps",
+        "published_bps",
+        "status",
+        "source_url",
+        "error"
+      ],
+      "date_column": "ts_utc",
+      "date_range": {
+        "from": "2026-10-22T06:28:45Z",
+        "to": "2026-10-22T06:28:45Z"
+      },
+      "kind": "csv",
+      "path": "data/fee_checks_usdars.csv",
+      "rows": 2
+    },
+    {
+      "columns": [
+        "ts_utc",
+        "venue",
+        "leg",
+        "regime",
+        "config_bps",
+        "published_bps",
+        "status",
+        "source_url",
+        "error"
+      ],
+      "date_column": "ts_utc",
+      "date_range": {
+        "from": "2026-10-22T06:28:45Z",
+        "to": "2026-10-22T06:28:45Z"
+      },
+      "kind": "csv",
+      "path": "data/fee_pair_checks.csv",
+      "rows": 1
     },
     {
       "columns": [
@@ -242,11 +326,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-21T07:20:27Z",
-        "to": "2026-10-01T10:18:27Z"
+        "to": "2026-10-22T06:28:45Z"
       },
       "kind": "csv",
       "path": "data/fee_tier_schedule.csv",
-      "rows": 470
+      "rows": 564
     },
     {
       "columns": [
@@ -266,11 +350,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-10-20T10:38:29+00:00",
-        "to": "2026-10-22T00:14:27+00:00"
+        "to": "2026-10-22T06:44:11+00:00"
       },
       "kind": "csv",
       "path": "data/finding_tests.csv",
-      "rows": 11
+      "rows": 13
     },
     {
       "columns": [
@@ -284,11 +368,11 @@
       "date_column": "hour_utc",
       "date_range": {
         "from": "2026-09-10T07:00:00Z",
-        "to": "2026-10-22T05:00:00Z"
+        "to": "2026-10-22T06:00:00Z"
       },
       "kind": "csv",
       "path": "data/findings_hours_exchange_vs_p2p.csv",
-      "rows": 6928
+      "rows": 6936
     },
     {
       "columns": [
@@ -359,11 +443,11 @@
       "date_column": "ts",
       "date_range": {
         "from": "2026-08-10T09:03:20.939896+00:00",
-        "to": "2026-10-22T05:05:54.709122+00:00"
+        "to": "2026-10-22T06:36:08.975452+00:00"
       },
       "kind": "csv",
       "path": "data/findings_hours_volume_crossover.csv",
-      "rows": 1521
+      "rows": 1522
     },
     {
       "columns": [
@@ -401,11 +485,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-10-21T19:11:26Z",
-        "to": "2026-10-22T05:36:18Z"
+        "to": "2026-10-22T06:41:22Z"
       },
       "kind": "csv",
       "path": "data/fx_live.csv",
-      "rows": 1320
+      "rows": 1380
     },
     {
       "columns": [
@@ -418,11 +502,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-10-21T14:12:07.490074+00:00",
-        "to": "2026-10-22T05:11:06.766194+00:00"
+        "to": "2026-10-22T06:41:20.350503+00:00"
       },
       "kind": "csv",
       "path": "data/fx_rate_meta.csv",
-      "rows": 16
+      "rows": 17
     },
     {
       "columns": [
@@ -437,11 +521,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-10T09:05:34.013487+00:00",
-        "to": "2026-10-22T05:11:06.766194+00:00"
+        "to": "2026-10-22T06:41:20.350503+00:00"
       },
       "kind": "csv",
       "path": "data/fx_rates.csv",
-      "rows": 57897
+      "rows": 57957
     },
     {
       "columns": [
@@ -459,11 +543,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-10-21T19:06:28.751549+00:00",
-        "to": "2026-10-22T05:06:11.328045+00:00"
+        "to": "2026-10-22T06:36:25.665946+00:00"
       },
       "kind": "csv",
       "path": "data/gas_readings.csv",
-      "rows": 22
+      "rows": 24
     },
     {
       "columns": [
@@ -493,11 +577,11 @@
       "date_column": "hour_utc",
       "date_range": {
         "from": "2026-09-10T07:00:00+00:00",
-        "to": "2026-10-22T05:00:00+00:00"
+        "to": "2026-10-22T06:00:00+00:00"
       },
       "kind": "csv",
       "path": "data/index_hourly.csv",
-      "rows": 44842
+      "rows": 44893
     },
     {
       "columns": [
@@ -560,11 +644,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-02T15:35:13.981853+00:00",
-        "to": "2026-10-22T05:06:38.729961+00:00"
+        "to": "2026-10-22T06:36:53.678190+00:00"
       },
       "kind": "csv",
       "path": "data/p2p_basis.csv",
-      "rows": 59183
+      "rows": 59237
     },
     {
       "columns": [
@@ -637,11 +721,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-15T14:05:58.949278+00:00",
-        "to": "2026-10-22T05:06:38.729961+00:00"
+        "to": "2026-10-22T06:36:53.678190+00:00"
       },
       "kind": "csv",
       "path": "data/p2p_depth.csv",
-      "rows": 46602
+      "rows": 46656
     },
     {
       "columns": [
@@ -653,11 +737,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-16T06:05:40.769133+00:00",
-        "to": "2026-10-22T05:06:38.729961+00:00"
+        "to": "2026-10-22T06:36:53.678190+00:00"
       },
       "kind": "csv",
       "path": "data/p2p_offers.csv",
-      "rows": 811336
+      "rows": 812304
     },
     {
       "columns": [
@@ -676,11 +760,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-10-03T04:05:18.606036+00:00",
-        "to": "2026-10-22T05:08:11.950378+00:00"
+        "to": "2026-10-22T06:38:26.035074+00:00"
       },
       "kind": "csv",
       "path": "data/p2p_okx.csv",
-      "rows": 23479
+      "rows": 23532
     },
     {
       "columns": [
@@ -692,11 +776,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-10T09:05:36.796217+00:00",
-        "to": "2026-10-22T05:06:38.729961+00:00"
+        "to": "2026-10-22T06:36:53.678190+00:00"
       },
       "kind": "csv",
       "path": "data/p2p_sides.csv",
-      "rows": 52120
+      "rows": 52174
     },
     {
       "columns": [
@@ -710,11 +794,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-02T15:35:13.981853+00:00",
-        "to": "2026-10-22T05:06:38.729961+00:00"
+        "to": "2026-10-22T06:36:53.678190+00:00"
       },
       "kind": "csv",
       "path": "data/p2p_spread_signal.csv",
-      "rows": 52417
+      "rows": 52458
     },
     {
       "columns": [
@@ -752,11 +836,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-10-02T13:07:47.699103+00:00",
-        "to": "2026-10-22T05:09:33.797274+00:00"
+        "to": "2026-10-22T06:39:47.286948+00:00"
       },
       "kind": "csv",
       "path": "data/provider_delivery.csv",
-      "rows": 21063
+      "rows": 21112
     },
     {
       "columns": [
@@ -775,11 +859,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-10T10:09:58.470449+00:00",
-        "to": "2026-10-22T05:09:33.797274+00:00"
+        "to": "2026-10-22T06:39:47.286948+00:00"
       },
       "kind": "csv",
       "path": "data/provider_quotes.csv",
-      "rows": 69040
+      "rows": 69145
     },
     {
       "columns": [
@@ -792,11 +876,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-26T04:06:56.558549+00:00",
-        "to": "2026-10-22T05:09:33.797274+00:00"
+        "to": "2026-10-22T06:39:47.286948+00:00"
       },
       "kind": "csv",
       "path": "data/provider_quotes_payout_type.csv",
-      "rows": 55230
+      "rows": 55335
     },
     {
       "columns": [
@@ -812,11 +896,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-08-11T13:39:06.249288+00:00",
-        "to": "2026-10-22T05:05:54.709122+00:00"
+        "to": "2026-10-22T06:36:08.975452+00:00"
       },
       "kind": "csv",
       "path": "data/providers.csv",
-      "rows": 40374
+      "rows": 40402
     },
     {
       "columns": [
@@ -832,11 +916,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-10T10:05:16.752880+00:00",
-        "to": "2026-10-22T05:06:01.023135+00:00"
+        "to": "2026-10-22T06:36:15.056018+00:00"
       },
       "kind": "csv",
       "path": "data/providers_audphp.csv",
-      "rows": 46650
+      "rows": 46703
     },
     {
       "columns": [
@@ -852,11 +936,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-10T10:05:19.199007+00:00",
-        "to": "2026-10-22T05:06:04.923665+00:00"
+        "to": "2026-10-22T06:36:18.991754+00:00"
       },
       "kind": "csv",
       "path": "data/providers_nzdphp.csv",
-      "rows": 29141
+      "rows": 29169
     },
     {
       "columns": [
@@ -872,11 +956,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-29T02:44:34.843089+00:00",
-        "to": "2026-10-22T05:06:15.145806+00:00"
+        "to": "2026-10-22T06:36:29.468100+00:00"
       },
       "kind": "csv",
       "path": "data/providers_sgdinr.csv",
-      "rows": 10203
+      "rows": 10222
     },
     {
       "columns": [
@@ -892,11 +976,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-10-22T05:06:19.558118+00:00",
-        "to": "2026-10-22T05:06:19.558118+00:00"
+        "to": "2026-10-22T06:36:33.860649+00:00"
       },
       "kind": "csv",
       "path": "data/providers_usdars.csv",
-      "rows": 12
+      "rows": 24
     },
     {
       "columns": [
@@ -912,11 +996,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-29T02:44:32.729447+00:00",
-        "to": "2026-10-22T05:06:11.328045+00:00"
+        "to": "2026-10-22T06:36:25.665946+00:00"
       },
       "kind": "csv",
       "path": "data/providers_usdinr.csv",
-      "rows": 23766
+      "rows": 23813
     },
     {
       "columns": [
@@ -932,11 +1016,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-08-19T05:35:03.082587+00:00",
-        "to": "2026-10-22T05:05:58.921212+00:00"
+        "to": "2026-10-22T06:36:12.926328+00:00"
       },
       "kind": "csv",
       "path": "data/providers_usdmxn.csv",
-      "rows": 47462
+      "rows": 47503
     },
     {
       "columns": [
@@ -952,11 +1036,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-29T02:44:30.846084+00:00",
-        "to": "2026-10-22T05:06:08.535987+00:00"
+        "to": "2026-10-22T06:36:22.573264+00:00"
       },
       "kind": "csv",
       "path": "data/providers_usdngn.csv",
-      "rows": 8433
+      "rows": 8449
     },
     {
       "columns": [
@@ -994,11 +1078,11 @@
       "date_column": "ts",
       "date_range": {
         "from": "2026-09-29T05:05:14.928908+00:00",
-        "to": "2026-10-22T05:06:19.558118+00:00"
+        "to": "2026-10-22T06:36:33.860649+00:00"
       },
       "kind": "csv",
       "path": "data/ramp_waterfall.csv",
-      "rows": 18765
+      "rows": 18805
     },
     {
       "columns": [
@@ -1046,11 +1130,11 @@
       "date_column": "ts",
       "date_range": {
         "from": "2026-08-10T09:03:20.939896+00:00",
-        "to": "2026-10-22T05:06:19.558118+00:00"
+        "to": "2026-10-22T06:36:33.860649+00:00"
       },
       "kind": "csv",
       "path": "data/samples.csv",
-      "rows": 32105
+      "rows": 32145
     },
     {
       "columns": [
@@ -1063,11 +1147,11 @@
       "date_column": "ts",
       "date_range": {
         "from": "2026-10-05T02:05:40.728942+00:00",
-        "to": "2026-10-22T05:06:15.145806+00:00"
+        "to": "2026-10-22T06:36:29.468100+00:00"
       },
       "kind": "csv",
       "path": "data/samples_depth.csv",
-      "rows": 13895
+      "rows": 13930
     },
     {
       "columns": [
@@ -1120,11 +1204,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-02T10:00:17.713444+00:00",
-        "to": "2026-10-22T05:06:21.376794+00:00"
+        "to": "2026-10-22T06:36:35.736864+00:00"
       },
       "kind": "csv",
       "path": "data/stable_spread.csv",
-      "rows": 13860
+      "rows": 13872
     },
     {
       "columns": [
@@ -1144,11 +1228,11 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-09-27T11:51:41.203113+00:00",
-        "to": "2026-10-22T05:09:33.475285+00:00"
+        "to": "2026-10-22T06:39:46.964632+00:00"
       },
       "kind": "csv",
       "path": "data/stable_venues.csv",
-      "rows": 7432
+      "rows": 7457
     },
     {
       "columns": [
@@ -1182,14 +1266,14 @@
       "date_column": "ts_utc",
       "date_range": {
         "from": "2026-08-19T08:02:25Z",
-        "to": "2026-10-01T10:18:27Z"
+        "to": "2026-10-22T06:28:45Z"
       },
       "kind": "csv",
       "path": "data/withdrawal_fees.csv",
-      "rows": 58
+      "rows": 64
     },
     {
-      "bytes": 60604,
+      "bytes": 60840,
       "columns": [
         "as_of_utc",
         "basis",
@@ -1206,7 +1290,7 @@
       "path": "data/latest.json"
     },
     {
-      "bytes": 34059,
+      "bytes": 34055,
       "columns": [
         "as_of_utc",
         "computed_at",
@@ -1219,7 +1303,7 @@
       "path": "data/crosses_latest.json"
     },
     {
-      "bytes": 61408,
+      "bytes": 62825,
       "columns": [
         "as_of_utc",
         "computed_at",
@@ -1239,7 +1323,7 @@
       "path": "data/index_latest.json"
     },
     {
-      "bytes": 164673,
+      "bytes": 164161,
       "columns": [
         "as_of_utc",
         "computed_at",
@@ -1270,7 +1354,7 @@
       "path": "data/price_changes_latest.json"
     },
     {
-      "bytes": 144666,
+      "bytes": 145166,
       "columns": [
         "as_of_utc",
         "computed_at",
@@ -1322,6 +1406,6 @@
       "path": "data/countries/"
     }
   ],
-  "n_sources": 64,
+  "n_sources": 68,
   "source_file": "data/"
 }
