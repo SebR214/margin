@@ -1805,6 +1805,25 @@ What changes: the stablecoin cost on those four routes rises by about 59 basis p
 
 The check: `tools/check_fees.py` now reads `fx_stablecoin` for every Coinbase pair a route uses and writes the answer to `data/fee_pair_checks.csv`. The config says for each pair whether it is stable-priced. If the endpoint disagrees, in either direction, or does not answer, the run fails. `tests/check_stable_pair.py` proves each case with a fixed answer.
 
+## The event detector, in shadow mode (SEB-311 step 3, from 2026-10-22)
+
+`tools/detect_events.py` finds the days a currency broke, from our own stored prices, and writes `data/events.csv` (one row per candidate, update, closing or data warning, append only) and one record per event in `data/event_records/`. It runs once a day and publishes nothing. Plain code: no model detects, confirms or explains.
+
+| Kind | Fires when |
+|---|---|
+| Official break | the official rate (er-api, the last reading of each UTC day) is 3% or more away from its value 3 days earlier |
+| Street slide | the street price (the Binance board's buy price, the median of each UTC day, at least 12 hourly readings) is 10% or more away from its value 7 days earlier, in a market with 10 or more ads on each side (over the 7 days: `p2p_depth.csv`'s board total where stored, else `p2p_sides.csv`, which stops counting at 10) |
+
+Not an event: a thin market (no row at all); a slow drift that never crosses the line; anything caused by our own source breaking. A currency whose official rate is flagged by the rules of `tools/check_official_rates.py`, run on the data up to that day (weekly loop, jump that reverses, lag behind the live rate), or whose official step lands within 2% of its value 7 or 14 days earlier, gets a `data_warning` row saying what would have fired, never an event. The rule that a rate unchanged for 30 days is flagged does not stop an event: a peg is information for a person, and the day it breaks is what this is for. A currency with fewer than 14 days of official readings cannot be judged for an official break, and fewer than 7 for a street slide: that is a `not_enough_evidence` row. Those two minimums are choices of this detector, not measured: 14 so a weekly repeat can be seen, 7 so there is one week of the official rate to compare with.
+
+Confirmed only by two official sources showing the step (er-api and `fx_live.csv`, which starts 21 Oct) or two street sources moving 10% or more the same way over the window (Binance and OKX, `p2p_okx.csv`, which starts 3 Oct). Otherwise the row says "one source". An event is not raised again for the same currency and kind for 14 days.
+
+Each record holds: the rules in force, a daily timeline of the official and street price from 14 days before the event (gaining a week of days at each update), the official baseline and value at detection, the street price before and at detection, how many days the street led the official rate (for an official break: the first day in the 9 before it that the street was 3% from its price 3 days earlier, in the same direction; for a street slide, the official rate is shown as not yet caught up and the weekly updates fill it in), the number of ads each side, the checks on each source (readings in the window), the rate rules flagged that day, and a trace for every number: file, currency, day and the rule that turns the stored rows into it. The record is reopened every 7 days for 8 weeks (an `update` row and a new entry in `after`) and then closed. A record file only ever gains entries; nothing earlier in it, and no row of `events.csv`, is rewritten.
+
+The detector judges one UTC day at a time using only data up to that day, never the clock, so a replay over history and the daily run give the same rows. `tests/check_events.py` proves four things on the stored history: the same input gives the same rows (also when the days are judged in two sittings); Sudan's looping official rate gives a warning and no event; a replay flags Iraq's official step (9 Oct) and the Bolivia street slide (16 Sep) and none of Brunei, Angola or Nepal; and every number in a record is recomputed from the raw CSV rows and matches.
+
+A fix found while building it: the weekly-loop rule in `tools/check_official_rates.py` flagged a single step in an otherwise flat rate (Iraq, 9 Oct) as a loop for four days, because a flat rate equals itself a week earlier on most days. It now needs the rate to move more than 5% in the week before the repeating week as well. Sudan is still flagged.
+
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
 **Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's

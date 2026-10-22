@@ -1,0 +1,304 @@
+{
+ "after": [
+  {
+   "day": "2026-10-07",
+   "official": 3199.575723,
+   "official_change_pct_from_baseline": -1.7676,
+   "street": 3230.12,
+   "street_change_pct_from_before": 1.0083,
+   "timeline": [
+    {
+     "day": "2026-10-01",
+     "official": 3333.963413,
+     "street": 3298.8325
+    },
+    {
+     "day": "2026-10-02",
+     "official": 3308.229231,
+     "street": 3304.3175
+    },
+    {
+     "day": "2026-10-03",
+     "official": 3311.925714,
+     "street": 3258.2225
+    },
+    {
+     "day": "2026-10-04",
+     "official": 3311.644334,
+     "street": 3262.0875
+    },
+    {
+     "day": "2026-10-05",
+     "official": 3308.762446,
+     "street": 3254.99
+    },
+    {
+     "day": "2026-10-06",
+     "official": 3286.004945,
+     "street": 3215.935
+    },
+    {
+     "day": "2026-10-07",
+     "official": 3199.575723,
+     "street": 3230.12
+    }
+   ],
+   "weeks_after": 1
+  },
+  {
+   "day": "2026-10-14",
+   "official": 3185.263924,
+   "official_change_pct_from_baseline": -2.207,
+   "street": 3183.84,
+   "street_change_pct_from_before": -0.4389,
+   "timeline": [
+    {
+     "day": "2026-10-08",
+     "official": 3236.841046,
+     "street": 3233.52
+    },
+    {
+     "day": "2026-10-09",
+     "official": 3236.417658,
+     "street": 3217.99
+    },
+    {
+     "day": "2026-10-10",
+     "official": 3236.568377,
+     "street": 3186.395
+    },
+    {
+     "day": "2026-10-11",
+     "official": 3236.681829,
+     "street": 3194.1075
+    },
+    {
+     "day": "2026-10-12",
+     "official": 3206.933418,
+     "street": 3192.38
+    },
+    {
+     "day": "2026-10-13",
+     "official": 3198.099135,
+     "street": 3185.9849999999997
+    },
+    {
+     "day": "2026-10-14",
+     "official": 3185.263924,
+     "street": 3183.84
+    }
+   ],
+   "weeks_after": 2
+  },
+  {
+   "day": "2026-10-21",
+   "official": 3153.773599,
+   "official_change_pct_from_baseline": -3.1738,
+   "street": 3173.5975,
+   "street_change_pct_from_before": -0.7592,
+   "timeline": [
+    {
+     "day": "2026-10-15",
+     "official": 3182.996886,
+     "street": 3182.4125
+    },
+    {
+     "day": "2026-10-16",
+     "official": 3184.574607,
+     "street": 3174.1175
+    },
+    {
+     "day": "2026-10-17",
+     "official": 3182.776456,
+     "street": 3170.6549999999997
+    },
+    {
+     "day": "2026-10-18",
+     "official": 3182.803457,
+     "street": 3173.6375
+    },
+    {
+     "day": "2026-10-19",
+     "official": 3174.489272,
+     "street": 3167.425
+    },
+    {
+     "day": "2026-10-20",
+     "official": 3174.36839,
+     "street": 3160.0
+    },
+    {
+     "day": "2026-10-21",
+     "official": 3153.773599,
+     "street": 3173.5975
+    }
+   ],
+   "weeks_after": 3
+  }
+ ],
+ "ccy": "COP",
+ "checks": {
+  "binance_p2p": {
+   "days_with_a_price_in_window": 8,
+   "file": "data/p2p_basis.csv"
+  },
+  "er-api": {
+   "days_with_a_reading_in_window": 4,
+   "file": "data/fx_rates.csv",
+   "readings_on_detection_day": 22
+  },
+  "fx_live": {
+   "days_with_a_reading_in_window": 0,
+   "file": "data/fx_live.csv"
+  },
+  "official_rate_rules_flagged_that_day": [],
+  "okx_p2p": {
+   "days_with_a_price_in_window": 0,
+   "file": "data/p2p_okx.csv"
+  }
+ },
+ "confirmation": "one source",
+ "detected_on": "2026-09-30",
+ "id": "COP-official_break-2026-09-30",
+ "kind": "official_break",
+ "offers": {
+  "buy_ads_median_7d": 159.75,
+  "note": "p2p_sides.csv counts stop at 10 per side; p2p_depth.csv holds the board's own total where stored; data/p2p_ads.csv holds every ad read from 22 Oct",
+  "sell_ads_median_7d": 231.0,
+  "source": "p2p_depth.csv"
+ },
+ "official": {
+  "at_detection": 3366.901593,
+  "baseline": 3257.14796,
+  "baseline_day": "2026-09-27",
+  "change_pct": 3.3696,
+  "source": "er-api, data/fx_rates.csv, last reading of each UTC day"
+ },
+ "official_lag_days": 5,
+ "official_lag_note": "the street price was already 4.4862% from 3 days before on 2026-09-25; the official rate crossed 3.0% on 2026-09-30",
+ "rules": {
+  "min_ads_each_side": 10,
+  "official_days": 3,
+  "official_step_pct": 3.0,
+  "street_days": 7,
+  "street_slide_pct": 10.0
+ },
+ "sources_showing_it": [
+  "er-api"
+ ],
+ "street": {
+  "at_detection": 3315.1225,
+  "at_detection_day": "2026-09-30",
+  "before": 3197.875,
+  "before_day": "2026-09-23",
+  "change_pct": 3.6664,
+  "source": "binance_p2p buy price, data/p2p_basis.csv, median of the UTC day"
+ },
+ "timeline": [
+  {
+   "day": "2026-09-16",
+   "official": 3103.999022,
+   "street": 3108.45
+  },
+  {
+   "day": "2026-09-17",
+   "official": 3114.012529,
+   "street": 3128.2475
+  },
+  {
+   "day": "2026-09-18",
+   "official": 3128.800779,
+   "street": 3160.4075000000003
+  },
+  {
+   "day": "2026-09-19",
+   "official": 3127.64036,
+   "street": 3161.9125000000004
+  },
+  {
+   "day": "2026-09-20",
+   "official": 3140.322314,
+   "street": 3166.5125
+  },
+  {
+   "day": "2026-09-21",
+   "official": 3165.609107,
+   "street": 3175.8625
+  },
+  {
+   "day": "2026-09-22",
+   "official": 3173.060103,
+   "street": 3186.875
+  },
+  {
+   "day": "2026-09-23",
+   "official": 3200.183068,
+   "street": 3197.875
+  },
+  {
+   "day": "2026-09-24",
+   "official": 3202.804058,
+   "street": 3268.98
+  },
+  {
+   "day": "2026-09-25",
+   "official": 3264.540762,
+   "street": 3329.8450000000003
+  },
+  {
+   "day": "2026-09-26",
+   "official": 3256.240909,
+   "street": 3273.7174999999997
+  },
+  {
+   "day": "2026-09-27",
+   "official": 3257.14796,
+   "street": 3279.4525000000003
+  },
+  {
+   "day": "2026-09-28",
+   "official": 3334.28191,
+   "street": 3281.88
+  },
+  {
+   "day": "2026-09-29",
+   "official": 3300.866532,
+   "street": 3338.83
+  },
+  {
+   "day": "2026-09-30",
+   "official": 3366.901593,
+   "street": 3315.1225
+  }
+ ],
+ "trace": [
+  {
+   "ccy": "COP",
+   "day": "2026-09-27",
+   "file": "data/fx_rates.csv",
+   "number": "official.baseline",
+   "rule": "last reading of the UTC day"
+  },
+  {
+   "ccy": "COP",
+   "day": "2026-09-30",
+   "file": "data/fx_rates.csv",
+   "number": "official.at_detection",
+   "rule": "last reading of the UTC day"
+  },
+  {
+   "ccy": "COP",
+   "day": "2026-09-23",
+   "file": "data/p2p_basis.csv",
+   "number": "street.before",
+   "rule": "median of the day's binance_p2p buy_median, source_ok true, at least 12 readings"
+  },
+  {
+   "ccy": "COP",
+   "day": "2026-09-30",
+   "file": "data/p2p_basis.csv",
+   "number": "street.at_detection",
+   "rule": "median of the day's binance_p2p buy_median, source_ok true, at least 12 readings"
+  }
+ ]
+}
