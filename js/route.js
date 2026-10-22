@@ -86,7 +86,7 @@
       (r.amount !== DATA.amount ? "<small>" + esc(txt("atAmount", { amount: money(r.amount, sym) })) + "</small>" : "") + "</td>";
     var prem = r.premium_pct == null ? "" : '<span class="sm-num">' + esc(signedPct(r.premium_pct)) + "</span>";
     if (r.status !== "ok") {
-      return "<tr>" + name + cell(txt("colPremium"), prem) +
+      return '<tr data-r="' + esc(r.id) + '" data-amt="' + r.amount + '">' + name + cell(txt("colPremium"), prem) +
         '<td class="rt-wait" colspan="3">' + esc(txt("wait" + r.reason.charAt(0).toUpperCase() + r.reason.slice(1))) + "</td></tr>";
     }
     var gap = r.gap_pp == null ? "" : '<span class="sm-num">' + esc(gapMoney(r.gap_pp, r.amount, sym)) +
@@ -94,7 +94,7 @@
     var cost = r.path_cost_pct == null ? "" : '<span class="sm-num">' + esc(money(r.path_cost_money, sym)) + "</span><small class=\"sm-num\">" +
       esc(txt("costShare", { pct: pct(r.path_cost_pct) })) + "</small>";
     var hrs = r.hours_priced ? '<span class="sm-num">' + esc(txt("hoursOf", { n: num(r.hours_cheaper, 0), m: num(r.hours_priced, 0) })) + "</span>" : "";
-    return "<tr>" + name + cell(txt("colPremium"), prem) + cell(txt("colGap"), gap) + cell(txt("colCost"), cost) + cell(txt("colHours"), hrs) + "</tr>";
+    return '<tr data-r="' + esc(r.id) + '" data-amt="' + r.amount + '">' + name + cell(txt("colPremium"), prem) + cell(txt("colGap"), gap) + cell(txt("colCost"), cost) + cell(txt("colHours"), hrs) + "</tr>";
   }
 
   function tableHtml() {
@@ -231,15 +231,10 @@
 
   // ---------------------------------------------------------------- render
   function renderAll() {
-    app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml() + tableHtml() + chartSectionHtml() + movesSectionHtml() + footerHtml() + "</div>";
-    drawChart();
-    var box = document.getElementById("smChart");
-    if (box) {
-      box.addEventListener("pointermove", hoverChart);
-      box.addEventListener("pointerdown", hoverChart);
-      box.addEventListener("pointerleave", function (e) { if (e.pointerType !== "touch") hideTip(); });
-      if (window.ResizeObserver) new ResizeObserver(function () { drawChart(); }).observe(box);
-    }
+    // under the table: the picked route in detail (js/route_detail.js fills #smDetail), then the biggest moves.
+    // The all-routes line chart is gone (22 Oct): the table already compares the routes, the detail chart shows one.
+    app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml() + tableHtml() + '<div id="smDetail"></div>' + movesSectionHtml() + footerHtml() + "</div>";
+    try { window.dispatchEvent(new Event("routes:render")); } catch (e) { /* very old browser: no detail */ }
   }
 
   function start(res) {
