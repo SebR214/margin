@@ -65,6 +65,7 @@ and 6a to 6d dropped unbuilt.
     excerpt: `.github/workflows/collect.yml` `for f in data/samples.csv` `; do$`
     excerpt: `collector_providers.py` `^CORRIDOR_CCY = \{` `^\}`
     done when: collector.py's CORRIDORS has one new "USD->PHP" entry with src USD, dst PHP, stable USDT, the onramp, network_fee_stable, gas_modelled, withdraw_pct, withdraw_pct_cap and deposit fields copied unchanged from "USD->MXN", the offramp and withdrawal copied unchanged from "SGD->PHP", the same ladder, and providers_file "providers_usdphp.csv"; collect.yml has one new step "Collect corridor sample USD->PHP" after the SGD->INR step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector.py --corridor "USD->PHP"`, and data/providers_usdphp.csv added to the commit list; collector_providers.py CORRIDOR_CCY has "USD->PHP": ("USD", "PHP"); no other line changes; data/providers_usdphp.csv is a new file holding only the header line of data/providers_usdars.csv, copied exactly, and no rows (the route emitters fail without it).
+    built: PR #632 (2026-10-22)
 - [ ] 2. United States to Brazil (Coinbase, then Foxbit or Mercado Bitcoin). Apps in the feed: 7.
   - [ ] 2a. Add the USD->BRL route to collector.py's corridor table, its collect.yml step and the provider quotes config
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
