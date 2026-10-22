@@ -1,10 +1,10 @@
-# Sending S$5,000 to the Philippines costs S$3.53 with Airwallex and S$33.69 with a stablecoin
+# Sending S$5,000 to the Philippines costs S$6.02 with Airwallex and S$26.58 with a stablecoin
 
-Prices from the 03:00 UTC hour, 22 Oct.
+Prices from the 04:00 UTC hour, 22 Oct.
 
-At this amount, a stablecoin was the cheaper way in 3 of the 1,482 hours checked since 11 August.
+At this amount, a stablecoin was the cheaper way in 3 of the 1,483 hours checked since 11 August.
 
-Prices from the 03:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
+Prices from the 04:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
 
 Official rate from 00:02 UTC
 
@@ -16,11 +16,11 @@ Cost is what the person receiving loses against the official rate. Every fee we 
 
 Cheapest app Airwallex this hour
 
-S$3.53 0.07%
+S$6.02 0.12%
 
 Stablecoin a cheaper stablecoin route this hour
 
-S$33.69 0.67%
+S$26.58 0.53%
 
 <https://margin.wiki/data/routes_hourly.json>
 
@@ -28,10 +28,10 @@ S$33.69 0.67%
 
 | Step | Amount |
 | --- | --- |
-| Deposit and buy | S$25.32 0.51% |
+| Deposit and buy | S$21.34 0.43% |
 | Network fee | S$1.27 0.03% |
-| Sell and withdraw | S$7.10 0.14% |
-| All in | S$33.69 0.67% |
+| Sell and withdraw | S$3.97 0.08% |
+| All in | S$26.58 0.53% |
 
 <https://margin.wiki/data/routes_breakdown.json>
 
@@ -47,12 +47,12 @@ Shown as a share of the amount, so the places can sit side by side. Pick one to 
 
 | Route | Compared with the cheapest app |
 | --- | --- |
-| Singapore to the Philippines Cheaper in 3 of 1,482 hours | 0.60% more than Airwallex |
-| Australia to the Philippines Never cheaper in 959 hours | 0.58% more than Airwallex |
-| New Zealand to the Philippines Cheaper in 10 of 959 hours | 0.90% more than Airwallex |
-| United States to Mexico Cheaper in 2 of 1,349 hours | 0.36% more than Xoom |
-| United States to Nigeria Cheaper in 512 of 535 hours | 0.74% less than Wise |
-| United States to India Cheaper in 535 of 535 hours | 5.25% less than Airwallex |
-| Singapore to India Cheaper in 535 of 535 hours | 4.56% less than Airwallex |
+| Singapore to the Philippines Cheaper in 3 of 1,483 hours | 0.41% more than Airwallex |
+| Australia to the Philippines Never cheaper in 960 hours | 0.51% more than Airwallex |
+| New Zealand to the Philippines Cheaper in 10 of 960 hours | 0.66% more than Airwallex |
+| United States to Mexico Cheaper in 2 of 1,350 hours | 0.37% more than Xoom |
+| United States to Nigeria Cheaper in 513 of 536 hours | 0.74% less than Wise |
+| United States to India Cheaper in 536 of 536 hours | 5.37% less than Airwallex |
+| Singapore to India Cheaper in 536 of 536 hours | 4.67% less than Airwallex |
 
 <https://margin.wiki/data/routes_summary.json>
