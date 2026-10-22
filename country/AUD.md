@@ -1,12 +1,12 @@
-# In Australia a dollar costs 0.3% more than the official rate
+# In Australia a dollar costs 0.2% more than the official rate
 
-Prices from the 17:00 UTC hour, 22 Oct.
+Prices from the 18:00 UTC hour, 22 Oct.
 
 The official rate is 1.42 AUD per dollar. On the exchanges where people in Australia trade stablecoins, one costs 1.43 AUD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 142.75 AUD. The official rate says 142.32 AUD.
+For US$100, people pay 142.64 AUD. The official rate says 142.32 AUD.
 
-Prices from the 17:00 UTC hour, 22 Oct
+Prices from the 18:00 UTC hour, 22 Oct
 
 <https://margin.wiki/data/countries/AUD.json>
 
@@ -26,7 +26,7 @@ BTC Markets
 
 IndependentReserve (AUD)
 
-1.43 AUD +0.5%
+1.43 AUD +0.4%
 
 ## Every Australia price links to its raw file
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 22 Oct, 18:06 UTC | IndependentReserve (AUD) | 1.43 AUD | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 22 Oct, 18:06 UTC | BTC Markets | 1.42 AUD | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 22 Oct, 17:13 UTC | IndependentReserve (AUD) | 1.43 AUD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 22 Oct, 17:13 UTC | BTC Markets | 1.42 AUD | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 22 Oct, 16:12 UTC | IndependentReserve (AUD) | 1.43 AUD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 22 Oct, 14:06 UTC | BTC Markets | 1.43 AUD | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 22 Oct, 13:06 UTC | IndependentReserve (AUD) | 1.43 AUD | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 22 Oct, 13:06 UTC | BTC Markets | 1.43 AUD | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 22 Oct, 12:06 UTC | IndependentReserve (AUD) | 1.43 AUD | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 22 Oct, 12:06 UTC | BTC Markets | 1.43 AUD | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://margin.wiki/data/basis.csv>
