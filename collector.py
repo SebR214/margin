@@ -239,7 +239,7 @@ CORRIDORS = {
             "taker_bps": 60.0,
             "maker_bps": 40.0,
             "verified": "2026-10-22",
-            "pair": "USDT-USD", "stable_priced": False, "source_url": COINBASE_FEES_URL,
+            "pair": "USDT-USD", "stable_priced": False, "source_url": "https://www.coinbase.com/advanced-fees",
         },
         "offramp": {
             "venue": "Bitso",
@@ -325,7 +325,7 @@ CORRIDORS = {
             "taker_bps": 60.0,
             "maker_bps": 40.0,
             "verified": "2026-10-22",
-            "pair": "USDT-USD", "stable_priced": False, "source_url": COINBASE_FEES_URL,
+            "pair": "USDT-USD", "stable_priced": False, "source_url": "https://www.coinbase.com/advanced-fees",
         },
         "offramp": {
             "venue": "Bitso",
@@ -379,7 +379,7 @@ CORRIDORS = {
             "taker_bps": 60.0,
             "maker_bps": 40.0,
             "verified": "2026-10-22",
-            "pair": "USDT-USD", "stable_priced": False, "source_url": COINBASE_FEES_URL,
+            "pair": "USDT-USD", "stable_priced": False, "source_url": "https://www.coinbase.com/advanced-fees",
         },
         "offramp": {
             "venue": "Luno",
@@ -459,7 +459,7 @@ CORRIDORS = {
             "taker_bps": 60.0,
             "maker_bps": 40.0,
             "verified": "2026-10-22",
-            "pair": "USDT-USD", "stable_priced": False, "source_url": COINBASE_FEES_URL,
+            "pair": "USDT-USD", "stable_priced": False, "source_url": "https://www.coinbase.com/advanced-fees",
         },
         "offramp": {
             "venue": "WazirX",
@@ -537,6 +537,42 @@ CORRIDORS = {
         "network_fee_stable": 4.0,
         "ladder": [200, 1000, 5000, 25000, 50000],
         "providers_file": "providers_sgdinr.csv",
+    },
+    # USD->PHP: Coinbase on-ramp exactly as USD->MXN, Coins.ph off-ramp exactly as SGD->PHP.
+    "USD->PHP": {
+        "src": "USD", "dst": "PHP", "stable": "USDT",
+        "onramp": {
+            "venue": "Coinbase",
+            "taker_bps": 60.0,
+            "maker_bps": 40.0,
+            "verified": "2026-10-22",
+            "pair": "USDT-USD", "stable_priced": False, "source_url": "https://www.coinbase.com/advanced-fees",
+        },
+        "offramp": {
+            "venue": "Coins.ph",
+            "symbol": "USDTPHP",
+            "taker_bps": 15.0,
+            "maker_bps": 10.0,
+            "verified": "2026-08-10",
+        },
+        "network_fee_stable": 0.0,
+        "gas_modelled": False,
+        "withdraw_pct": 0.0001,
+        "withdraw_pct_cap": 20.0,
+        "deposit": {
+            "venue": "Coinbase", "method": "ACH",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "USD",
+            "source_url": "https://help.coinbase.com/en/exchange/funding/depositing-with-ach",
+            "verified": "2026-09-29",
+        },
+        "withdrawal": {
+            "venue": "Coins.ph", "method": "PESONet",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "PHP",
+            "source_url": "https://support.coins.ph/hc/en-us/articles/201919230-What-fees-are-charged-on-cash-outs",
+            "verified": "2026-09-29",
+        },
+        "ladder": [200, 1000, 5000, 25000, 50000],
+        "providers_file": "providers_usdphp.csv",
     },
 }
 
