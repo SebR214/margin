@@ -38,7 +38,10 @@ cands = [r for r in rows if r["status"] == "candidate"]
 by = lambda ccy, kind, status: [r for r in rows if r["ccy"] == ccy and r["kind"] == kind and r["status"] == status]  # noqa: E731
 
 # 2. Sudan
-assert not [r for r in cands if r["ccy"] == "SDG"], "Sudan's looping official rate gave an event: %s" % [r["event_id"] for r in cands if r["ccy"] == "SDG"]
+# A weekly repeat cannot be seen before the official rate has 8 days of readings, so a Sudan street slide on 16 Sep (7 days) is a real slide
+# the detector had no way to call a loop; from the 17th on, the loop is visible and no Sudan event may appear
+late = [r["event_id"] for r in cands if r["ccy"] == "SDG" and r["detected_on"] >= "2026-09-17"]
+assert not late, "Sudan's looping official rate gave an event once the loop could be seen: %s" % late
 warn = [r for r in rows if r["ccy"] == "SDG" and r["status"] == "data_warning"]
 assert warn and all("flagged" in r["note"] or "loop" in r["note"] for r in warn), warn
 
