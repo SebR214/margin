@@ -1500,7 +1500,6 @@ DEPTH_SIDECAR_FIELDS = [
 DEPTH_SIDECAR_CORRIDORS = {
     "SGD->PHP", "AUD->PHP", "NZD->PHP", "USD->MXN",
     "USD->NGN", "USD->INR", "SGD->INR",
-    "USD->ARS",
 }
 
 
