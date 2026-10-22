@@ -988,7 +988,18 @@ def run_coingecko(dry, now, raw_dir):
     out, table = [], []
     for coin, sym in CG_COINS:
         for c in ccys:
-            d = get_json("https://api.coingecko.com/api/v3/coins/%s/market_chart?vs_currency=%s&days=365" % (coin, c.lower()))["prices"]
+            d = None
+            for wait in (0, 30, 60, 120):                          # the free tier says 429 to shared runners: wait it out, then say so
+                time.sleep(wait)
+                try:
+                    d = get_json("https://api.coingecko.com/api/v3/coins/%s/market_chart?vs_currency=%s&days=365" % (coin, c.lower()))["prices"]
+                    break
+                except requests.HTTPError as e:
+                    if e.response is None or e.response.status_code != 429:
+                        raise
+            if d is None:
+                table.append({"pair": "%s-%s" % (sym, c), "first": None, "daily_rows": 0, "blocked": "429 after 4 tries"})
+                continue
             rows = candle_rows("CoinGecko", c, "%s-%s" % (sym, c), "1d", CG_SOURCE, [(int(t) // 1000, float(p)) for t, p in d if p], now)
             out.extend(rows)
             table.append({"pair": "%s-%s" % (sym, c), "first": rows[0]["ts_utc"][:10] if rows else None, "daily_rows": len(rows)})
