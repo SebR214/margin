@@ -1,0 +1,15 @@
+{
+ "id": "stress_signal",
+ "claim": "A currency whose street premium widens by more than 5 points in a day while its official rate barely moves is a street-price story, a currency pulling away from its official rate.",
+ "calculation": "Every trigger in data/stress_signal.csv. A currency flagged in data/official_rate_flags.csv (a looping, jumping, frozen or lagging official rate) is skipped: its trigger comes from the official rate breaking, not the street. For each other trigger, the street price's own move: the day's median of the buy price on the Binance board (data/p2p_basis.csv, buy_median, source_ok) against the day before. The trigger survives when the street price moved 3% or more in the direction of the widening. The figure is the share of all stored triggers that survive.",
+ "window": "every stored trigger, since the record started on 10 Sep",
+ "min_observations": "at least 10 stored triggers",
+ "invalid_if": "data/official_rate_flags.csv or data/p2p_basis.csv is missing, or fewer than 10 triggers are stored",
+ "direction": "higher_is_better",
+ "holds": 0.5,
+ "weaker": 0.25,
+ "thresholds_text": "holds: at least half of the stored triggers survive. weaker: at least a quarter. no longer true: fewer than a quarter, which means most triggers came from a broken official rate or a street price that barely moved.",
+ "trigger": "a new trigger, or a new day of the official-rate flags",
+ "evidence_file": "data/stress_signal.csv",
+ "proposed_by": "Claude, 22 Oct 2026, from SEB-311 step 2; the thresholds are proposals, merged by Seb's 20 Oct rule, and change only through a spec"
+}
