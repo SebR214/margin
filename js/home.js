@@ -139,7 +139,7 @@
     if (!lines.length || !T('findingsTitle')) { $('finds').innerHTML = ''; return; }
     $('finds').innerHTML = '<h2>' + esc(T('findingsTitle')) + '</h2><div class="rows">' + lines.map(function (f, i) {
       return '<a class="r f" href="./finding.html?id=' + encodeURIComponent(f[0]) + '"><span class="no num">0' + f[2] + '</span><span class="m">' + esc(f[1]) + '</span><span class="v">→</span></a>';
-    }).join('') + '</div>';
+    }).join('') + (T('findingsRoutesLink') ? '<a class="r f" href="./sending-money.html"><span class="no num"></span><span class="m">' + esc(T('findingsRoutesLink')) + '</span><span class="v">→</span></a>' : '') + '</div>';
   }
 
   /* ---------------------------------------------------------------- the record: the SEB-278 chart (hover any day) */

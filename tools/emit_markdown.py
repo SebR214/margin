@@ -61,13 +61,10 @@ SECTION_FILES = {
         ],
     },
     "sending-money.md": {
-        "hero": ["routes_hourly.json"],
+        "hero": ["routes_table.json"],
         "patterns": [
-            (r"^What each way costs this hour", ["routes_hourly.json"]),
-            (r"^The stablecoin's cost, step by step$", ["routes_breakdown.json"]),
-            (r"^Steps for ", ["routes_breakdown.json"]),
-            (r"^How much more the stablecoin cost, day by day$", ["routes_hourly.json"]),
-            (r"^The same .+, sent from other places$", ["routes_summary.json"]),
+            (r"^Stablecoin against the best app, day by day$", ["routes_table.json"]),
+            (r"^Biggest moves this month$", ["routes_table.json"]),
         ],
     },
     "sources.md": {"hero": ["sources_daily.json"], "patterns": [(None, ["sources_daily.json"])]},
@@ -103,10 +100,6 @@ SECTION_HEADERS = {
         (r"^2% to 8% above", ["Country", "People pay", "Official rate", "Against the official rate"]),
         (r"^Within 2% of the official rate", ["Country", "Against the official rate"]),
         (r"^More than 2% below", ["Country", "Against the official rate"]),
-    ],
-    "sending-money.md": [
-        (r"^The stablecoin's cost, step by step$", ["Step", "Amount"]),
-        (r"^The same .+, sent from other places$", ["Route", "Compared with the cheapest app"]),
     ],
     "sources.md": [(None, ["Source", "Type", "Hours priced"])],
     "how-it-was-built.md": [(r"^Collected fresh every hour$", ["Time", "Check", "Detail"])],

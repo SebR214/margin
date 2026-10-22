@@ -1,65 +1,31 @@
-/* The sending-money page (SEB-272): rebuilt to match the owner's reference
- * artifact (https://claude.ai/artifact/9XijuhKEnEw9irjehEfnXn), desktop and
- * 390px. Replaces the old drag-to-select chart, stats strip, currency/percent
- * toggle, period chips, day slider, metric chips and "what would have to
- * change" block entirely -- none of that is rebuilt here.
+/* The routes page (SEB-310 item 2): how much of a country's dollar premium survives the trip.
  *
- * Reads only stored files:
- *   data/routes_hourly.json     every priced hour per route and amount
- *   data/routes_breakdown.json  the stablecoin path split into its stored legs
- *   data/routes_summary.json    which routes there are, in order, and which are comparable
+ * One table, one chart, a short list of the biggest moves. Reads one stored file, data/routes_table.json, which
+ * tools/emit_routes_table.py writes every collection from the stored CSVs (the calculation is in METHODOLOGY.md).
+ * Nothing is computed here but formatting and drawing.
  *
- * Which route: ?route=SGD-PHP (the id as stored, "->" written "-"); the
- * first comparable route when absent or unknown. ?amount=5000 picks the
- * amount; 5000 when absent or not offered for that route.
- *
- * Words: none live here. Every word the page shows comes from copy.json,
- * block "routeData". A key that is empty renders no element. Numbers,
- * dates, percentages, currency symbols and app/path names are code,
- * formatted here from what tools/emit_routes.py stored -- including each
- * route's display words ("route_words", "dest"), so this file never builds
- * a country name out of string fragments. The "never cheaper in N hours" /
- * "cheaper in N of M hours" counts, and the week-by-week line, are computed
- * fresh from data/routes_hourly.json on every render -- never carried from
- * a prior example, never hand-typed.
- *
- * The routes are the ones tools/emit_routes.py wrote to routes_summary.json,
- * in its order (collector.py CORRIDORS), so a new route needs no edit here.
- * A route whose "comparable" is true is shown with its charts. One whose
- * stablecoin cost is measured against an official rate below what people
- * really pay is left out of the comparison and explained in its own
- * section, same text as the reference.
+ * Words: none live here. Every word the page shows comes from copy.json, block "routeData". Numbers, dates, currency
+ * symbols, app names and each route's display words ("words") are formatted from what the emitter stored.
  */
 (function () {
 
-  var DAY = 86400, HOUR = 3600;
   var MINUS = "−";
   var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  var MONL = ["January", "February", "March", "April", "May", "June", "July",
-    "August", "September", "October", "November", "December"];
-  // every route, and the comparable ones; routes measured against the official rate stay out of the charts and their button shows the "left out" text
-  var ALL = [], ORDER = [];
-  function setRoutes(sum) {
-    ALL = sum.routes.map(function (r) { return r.id; });
-    ORDER = sum.routes.filter(function (r) { return r.comparable; }).map(function (r) { return r.id; });
-  }
-  function plainRoute(s) { return String(s || "").replace(/^the /i, "").replace(/^./, function (c) { return c.toUpperCase(); }); }
-
   var COPY = {};
+  var DATA = null;
   var app = document.getElementById("app");
-  var HOURLY = null, BRK = null;
-  var COL = {}, BCOL = {};
-  var S = { route: null, amount: null, period: "all" };   // period: the chart range, "all", "1m" or "1w" (21 Oct)
-  var TIP_WHEN = "";
+  // the destination sets the colour, the sending country sets the dash (DESIGN.md chart palette)
+  var DEST_COLOUR = { INR: "var(--data-700)", NGN: "var(--color-neutral-900)", MXN: "var(--data-500)", PHP: "var(--color-neutral-500)" };
+  var SRC_DASH = { SGD: "", USD: "", AUD: "6 4", NZD: "2 3" };
+  var NAV = [["navCountries", "./countries.html"], ["navRoutes", "./sending-money.html", true],
+    ["navSources", "./sources.html"], ["navFindings", "./findings.html"], ["navHow", "./how-it-works.html"]];
   var chart = null;
 
-  // ---------------------------------------------------------------- helpers
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
-  // A copy slot filled with its placeholders; "" when the writer has not filled it.
   function txt(key, vals) {
     var s = COPY[key];
     if (!s) return "";
@@ -78,520 +44,226 @@
   function maybeJSON(url) { return getJSON(url).catch(function () { return null; }); }
 
   function num(v, d) { return v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }); }
-  function whole(v) { return v == null ? "" : num(Math.round(v), 0); }
-  // A signed money amount in the route's own sending currency: whole once it
-  // reaches 100, two decimals below that -- same rounding the reference used.
+  // money in the sending currency: whole from 10 up, two decimals under 10
   function money(v, sym) {
-    if (v == null) return "";
-    var a = Math.abs(v), s = a >= 100 ? whole(a) : num(a, 2);
-    return (v < 0 ? MINUS : "") + sym + s;
+    var a = Math.abs(v);
+    return (v < 0 ? MINUS : "") + sym + (a >= 10 ? num(Math.round(a), 0) : num(a, 2));
   }
-  function pctPlain(v) { return v == null ? "" : (v < 0 ? MINUS : "") + num(Math.abs(v), 2) + "%"; }
-  function median(a) {
-    var s = a.slice().sort(function (x, y) { return x - y; }), n = s.length;
-    return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
-  }
-  function dayKey(iso) { return iso.slice(0, 10); }
-  function dayShort(iso) {
-    var d = new Date(iso);
-    return d.getUTCDate() + " " + MON[d.getUTCMonth()];
-  }
-  function dayLong(iso) {
-    var d = new Date(iso);
-    return d.getUTCDate() + " " + MONL[d.getUTCMonth()];
-  }
-  function clock(iso) {
-    return String(new Date(iso).getUTCHours()).padStart(2, "0") + ":00";
-  }
-  // "USDC:ArbitrumOne" -> "USDC on Arbitrum One": a stored path id made
-  // readable, no words added.
-  function pathName(id) {
-    if (id === "USDT" && txt("pathBase")) return txt("pathBase"); // USDT is not a reader word; the words come from copy.json
-    return id ? txt("pathOther") : ""; // no coin or network names in reader text
-  }
-  function routeKey(id) { return id.replace("->", "-"); }
-  function routeObj(id) { return HOURLY.routes.filter(function (r) { return r.id === id; })[0]; }
-  function amountObj(r, amt) { return r && r.amounts.filter(function (a) { return a.amount === amt; })[0]; }
-
-  // ---------------------------------------------------------------- the computed block for one route+amount
-  // Everything here is read fresh from data/routes_hourly.json and
-  // data/routes_breakdown.json on every render -- the win counts, the 30-day
-  // range and the daily line are never carried forward from an earlier call.
-  function computeA(routeId, amount) {
-    var r = routeObj(routeId), a = amountObj(r, amount), hrs = a.hours;
-    var last = hrs[hrs.length - 1], first = hrs[0][COL.hour_utc];
-    var n = hrs.length, wins = 0, i;
-    for (i = 0; i < n; i++) if (hrs[i][COL.stable_cheaper] === true) wins++;
-    var t = last[COL.hour_utc];
-    var sc = last[COL.stable_cost], sp = last[COL.stable_cost_pct];
-    var ac = last[COL.app_cost], ap = last[COL.app_cost_pct];
-    var appName = last[COL.cheapest_app], path = last[COL.stable_path];
-
-    // the lowest-to-highest hourly extra cost over the last 30 days, anchored
-    // on this series' own latest hour (never the wall clock)
-    var win0 = Date.parse(t) - 30 * DAY * 1000;
-    var extras30 = [];
-    for (i = 0; i < n; i++) {
-      if (Date.parse(hrs[i][COL.hour_utc]) >= win0) extras30.push(hrs[i][COL.stable_cost_pct] - hrs[i][COL.app_cost_pct]);
-    }
-    var e30 = [Math.min.apply(null, extras30), Math.max.apply(null, extras30)];
-    var ep = sp - ap;
-
-    // the daily line: the median of each UTC day's hourly extra cost, in the
-    // sending currency and in percent of the amount. A day with no priced
-    // hour is a gap (null), never filled.
-    var groups = {};
-    for (i = 0; i < n; i++) {
-      var k = dayKey(hrs[i][COL.hour_utc]);
-      (groups[k] = groups[k] || []).push(hrs[i]);
-    }
-    var day0 = dayKey(first), dayLast = dayKey(t);
-    var daily = [], cur = Date.parse(day0 + "T00:00:00Z"), end = Date.parse(dayLast + "T00:00:00Z");
-    while (cur <= end) {
-      var key = new Date(cur).toISOString().slice(0, 10), g = groups[key];
-      if (g && g.length) {
-        var costs = g.map(function (h) { return h[COL.stable_cost] - h[COL.app_cost]; });
-        var pcts = g.map(function (h) { return h[COL.stable_cost_pct] - h[COL.app_cost_pct]; });
-        daily.push([median(costs), median(pcts), g.length]);
-      } else daily.push(null);
-      cur += DAY * 1000;
-    }
-
-    // the stablecoin's cost split into its stored legs, for the latest
-    // breakdown row (routes_breakdown.json's own path, the base route's
-    // stablecoin -- legs exist only for it)
-    var legPath = null, legT = null, depM = null, wdM = null;
-    var L = { inn: null, chain: null, out: null, tot: null };
-    var brkR = BRK && BRK.routes.filter(function (x) { return x.id === routeId; })[0];
-    var brkA = brkR && brkR.amounts.filter(function (x) { return x.amount === amount; })[0];
-    if (brkA && brkA.rows.length) {
-      var row = brkA.rows[brkA.rows.length - 1];
-      legT = row[BCOL.hour_utc];
-      legPath = row[BCOL.path];
-      depM = row[BCOL.deposit_measured];
-      wdM = row[BCOL.withdrawal_measured];
-      var dep = depM === false ? null : row[BCOL.getting_in_deposit];
-      var buy = row[BCOL.getting_in_buy];
-      var sell = row[BCOL.cashing_out_sell];
-      var wd = wdM === false ? null : row[BCOL.cashing_out_withdrawal];
-      L.inn = dep != null && buy != null ? dep + buy : null;
-      L.chain = row[BCOL.on_chain];
-      L.out = sell != null && wd != null ? sell + wd : null;
-      L.tot = row[BCOL.total];
-    }
-
-    return {
-      t: t, sc: sc, sp: sp, ac: ac, ap: ap, app: appName, path: path,
-      n: n, wins: wins, first: first, e30: e30, ep: ep,
-      leg: L, legPath: legPath, legT: legT, depM: depM, wdM: wdM,
-      day0: day0, daily: daily, hrs: hrs, sym: r.send_symbol, dest: r.dest, routeWords: r.route_words,
-    };
+  function pct(v, d) { return (v < 0 ? MINUS : "") + num(Math.abs(v), d == null ? 1 : d) + "%"; }
+  function signedPct(v) { return (v < 0 ? MINUS : "+") + num(Math.abs(v), 1) + "%"; }
+  function dayShort(iso) { var d = new Date(iso.slice(0, 10) + "T00:00:00Z"); return d.getUTCDate() + " " + MON[d.getUTCMonth()]; }
+  function clock(iso) { return String(new Date(iso).getUTCHours()).padStart(2, "0") + ":00"; }
+  function plainWords(s) { return String(s || "").replace(/^the /i, "").replace(/^./, function (c) { return c.toUpperCase(); }); }
+  function ccyOf(id) { return { src: id.split("->")[0], dst: id.split("->")[1] }; }
+  function colourOf(id) { return DEST_COLOUR[ccyOf(id).dst] || "var(--color-neutral-600)"; }
+  function dashOf(id) { return SRC_DASH[ccyOf(id).src] || ""; }
+  // "cheaper"/"dearer" said in money: the figure is how much less (or more) the stablecoin cost than the best app
+  function gapMoney(pp, amount, sym) {
+    var m = Math.abs(pp) * amount / 100;
+    return txt(pp >= 0 ? "gapCheaper" : "gapDearer", { amount: money(m, sym) });
   }
 
-  // ---------------------------------------------------------------- small drawing helpers (code, no words)
-  function niceTicks(lo, hi, n) {
-    var span = hi - lo || 1, step = Math.pow(10, Math.floor(Math.log10(span / n)));
-    var err = span / n / step;
-    step *= err >= 5 ? 5 : err >= 2 ? 2 : 1;
-    var out = [];
-    for (var v = Math.ceil(lo / step) * step; v <= hi + step * 1e-6; v += step) {
-      out.push(Math.abs(v) < step * 1e-6 ? 0 : +v.toFixed(6));
-    }
-    return out;
-  }
-  // A scale that always holds zero and every value handed to it, with nice
-  // tick steps -- used for the "Other places" range-bar rows.
-  function niceScale(vals) {
-    var lo = Math.min.apply(null, [0].concat(vals)), hi = Math.max.apply(null, [0].concat(vals));
-    var pad = (hi - lo) * 0.04;
-    if (lo < 0) lo -= pad;
-    hi += pad;
-    var ticks = niceTicks(lo, hi, 4);
-    lo = Math.min(lo, ticks[0]); hi = Math.max(hi, ticks[ticks.length - 1]);
-    return { lo: lo, hi: hi, ticks: ticks, X: function (v) { return (v - lo) / (hi - lo) * 100; } };
-  }
-  // A plain zero-anchored scale with no padding or ticks -- used for the
-  // "this hour" bars, which print their own value and need no key.
-  function plainScale(vals) {
-    var lo = Math.min.apply(null, [0].concat(vals)), hi = Math.max.apply(null, [0].concat(vals));
-    return { lo: lo, hi: hi, X: function (v) { return (v - lo) / (hi - lo || 1) * 100; } };
-  }
-  function gridLines(S) {
-    return S.ticks.map(function (t) {
-      return '<i class="sm-gridl' + (t === 0 ? " sm-zero" : "") + '" style="left:' + S.X(t) + '%"></i>';
-    }).join("");
-  }
-  function axisRow(S, fmt) {
-    return '<div class="sm-axisrow"><span></span><div class="sm-track">' + gridLines(S) +
-      S.ticks.map(function (t) {
-        return '<span class="sm-tk sm-num' + (t === 0 ? " sm-z" : "") + '" style="left:' + S.X(t) + '%">' + esc(fmt(t)) + "</span>";
-      }).join("") + "</div><span></span></div>";
-  }
-  function rangeRow(S, o) {
-    var tag = o.btn ? "button" : "div";
-    var rng = o.rg ? '<i class="sm-rng" style="left:' + S.X(o.rg[0]) + '%;width:' + Math.max(0.6, S.X(o.rg[1]) - S.X(o.rg[0])) + '%"></i>' : "";
-    var dot = o.v != null ? '<i class="sm-dot" style="left:' + S.X(o.v) + '%"></i>' : "";
-    return "<" + tag + ' class="sm-row' + (o.cls ? " " + o.cls : "") + '"' +
-      (o.tip ? ' data-tip="' + esc(o.tip) + '"' : "") +
-      (o.btn ? ' type="button" data-r="' + esc(o.btn) + '"' : "") + ">" +
-      '<span class="sm-nm">' + esc(o.name) + (o.sub ? "<small>" + esc(o.sub) + "</small>" : "") + "</span>" +
-      '<span class="sm-track">' + gridLines(S) + rng + dot + "</span>" +
-      '<span class="sm-v sm-num">' + (o.val || "") + (o.vsub ? "<small>" + esc(o.vsub) + "</small>" : "") + "</span></" + tag + ">";
-  }
-  function barRow(S, o) {
-    var x0 = S.X(0), x1 = S.X(o.v == null ? 0 : o.v);
-    var tipText = o.name + (o.sub ? " (" + o.sub + ")" : "") + ": " + (o.val || "") + (o.vsub ? ", " + o.vsub : "") + (TIP_WHEN ? ", " + TIP_WHEN : "");
-    return '<div class="sm-row' + (o.cls ? " " + o.cls : "") + '" data-tip="' + esc(tipText) + '"><span class="sm-nm">' + esc(o.name) +
-      (o.sub ? "<small>" + esc(o.sub) + "</small>" : "") + "</span>" +
-      '<span class="sm-bar">' + (S.ticks ? gridLines(S) : "") + (S.lo < 0 ? '<i class="sm-z" style="left:' + x0 + '%"></i>' : "") +
-      (o.v != null ? '<b style="left:' + Math.min(x0, x1) + '%;width:' + Math.max(0.4, Math.abs(x1 - x0)) + '%"></b>' : "") + "</span>" +
-      '<span class="sm-v sm-num">' + (o.val || "") + (o.vsub ? "<small>" + esc(o.vsub) + "</small>" : "") + "</span></div>";
-  }
-
-  // ---------------------------------------------------------------- the week-by-week chart
-  // The points the chart shows for the picked range (21 Oct). "all" and "1m": one point a day, the median of that
-  // day's hours (the last 30 days for "1m"). "1w": every priced hour of the last 7 days, anchored on the series' own
-  // latest hour. A missing day or hour stays a gap. Each point: [extra cost, extra %, hours behind it, time in ms].
-  function series(A) {
-    var d0 = Date.parse(A.day0 + "T00:00:00Z");
-    if (S.period === "1w") {
-      var hrs = A.hrs, tEnd = Date.parse(hrs[hrs.length - 1][COL.hour_utc]), t0 = tEnd - 7 * DAY * 1000, byT = {}, out = [];
-      hrs.forEach(function (h) { var t = Date.parse(h[COL.hour_utc]); if (t > t0) byT[Math.round(t / 36e5)] = h; });
-      for (var k = Math.round(t0 / 36e5) + 1; k <= Math.round(tEnd / 36e5); k++) {
-        var h = byT[k];
-        out.push(h ? [h[COL.stable_cost] - h[COL.app_cost], h[COL.stable_cost_pct] - h[COL.app_cost_pct], 1, k * 36e5] : null);
-      }
-      return out;
-    }
-    var all = A.daily.map(function (p, i) { return p ? [p[0], p[1], p[2], d0 + i * 864e5] : null; });
-    return S.period === "1m" ? all.slice(-30) : all;
-  }
-  // The chart looks like the record chart: the purple line over a light purple fill, light grid lines, small grey
-  // axis words. The zero line stays dark: below it the stablecoin was cheaper than the cheapest app.
-  function drawChart() {
-    var svg = document.getElementById("smSvg"), box = document.getElementById("smChart");
-    if (!svg || !box || !chart) return;
-    var A = chart.A, sym = chart.sym, pts = series(A), hourly = S.period === "1w";
-    chart.pts = pts;
-    var W = Math.max(300, box.clientWidth), Hh = W < 560 ? 220 : 280, L = 56, T = 10, B = 26, pw = W - L, ph = Hh - T - B;
-    var vs = pts.filter(Boolean).map(function (p) { return p[0]; });
-    var lo = Math.min.apply(null, [0].concat(vs)), hi = Math.max.apply(null, [0].concat(vs));
-    var pad = (hi - lo) * 0.06; hi += pad; if (lo < 0) lo -= pad;
-    var ticks = niceTicks(lo, hi, W < 560 ? 3 : 4);
-    lo = Math.min(lo, ticks[0]); hi = Math.max(hi, ticks[ticks.length - 1]);
-    var n = pts.length;
-    function X(i) { return L + (n > 1 ? i / (n - 1) : 0.5) * pw; }
-    function Y(v) { return T + (1 - (v - lo) / (hi - lo)) * ph; }
-    var g = "";
-    ticks.forEach(function (v) {
-      if (v !== 0) g += '<line x1="' + L + '" x2="' + W + '" y1="' + Y(v) + '" y2="' + Y(v) + '" class="sm-grid"/>';
-      g += '<text class="sm-ax' + (v === 0 ? " sm-z" : "") + '" x="' + (L - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' +
-        (v === 0 ? "0" : (v > 0 ? "+" : MINUS) + sym + whole(Math.abs(v))) + "</text>";
-    });
-    // x axis: each day at midnight UTC on the week view, Mondays (every other one on a phone) on the daily views
-    var narrow = W < 560, lastLabel = -1;
-    pts.forEach(function (p, i) {
-      var tm = p ? p[3] : null;
-      if (tm === null) {
-        tm = hourly ? (pts[0] ? pts[0][3] : 0) + i * 36e5 : Date.parse(A.day0 + "T00:00:00Z") + (S.period === "1m" ? A.daily.length - 30 + i : i) * 864e5;
-      }
-      var d = new Date(tm), show;
-      if (hourly) show = d.getUTCHours() === 0 && (!narrow || d.getUTCDate() % 2 === 0);
-      else show = d.getUTCDay() === 1 && (!narrow || S.period === "1m" || Math.round(tm / 864e5 / 7) % 2 === 0);
-      if (!show) return;
-      g += '<line x1="' + X(i) + '" x2="' + X(i) + '" y1="' + (T + ph) + '" y2="' + (T + ph + 5) + '" class="sm-tick"/>';
-      if (lastLabel < 0 || X(i) - lastLabel > 44) {
-        g += '<text class="sm-ax" x="' + X(i) + '" y="' + (T + ph + 19) + '" text-anchor="middle">' + esc(dayShort(d.toISOString())) + "</text>";
-        lastLabel = X(i);
-      }
-    });
-    // the fill between the line and zero, then the line, one run per stretch without gaps
-    var runs = [], cur = null;
-    pts.forEach(function (p, i) { if (!p) { cur = null; return; } if (!cur) { cur = []; runs.push(cur); } cur.push(i); });
-    var z = Y(0), dLine = "";
-    runs.forEach(function (r) {
-      var line = r.map(function (i, j) { return (j ? "L" : "M") + X(i).toFixed(1) + " " + Y(pts[i][0]).toFixed(1); }).join("");
-      dLine += line;
-      g += '<path class="sm-area" d="' + line + "L" + X(r[r.length - 1]).toFixed(1) + " " + z.toFixed(1) + "L" + X(r[0]).toFixed(1) + " " + z.toFixed(1) + 'Z"/>';
-    });
-    g += '<line x1="' + L + '" x2="' + W + '" y1="' + z + '" y2="' + z + '" class="sm-zline"/>';
-    g += '<path class="sm-line" d="' + dLine + '"/>';
-    var li = pts.length - 1;
-    if (pts[li]) g += '<circle cx="' + X(li) + '" cy="' + Y(pts[li][0]) + '" r="3.5" class="sm-dot"/>';
-    g += '<line id="smCross" y1="' + T + '" y2="' + (T + ph) + '" class="sm-cross" visibility="hidden"/>';
-    svg.setAttribute("viewBox", "0 0 " + W + " " + Hh);
-    svg.innerHTML = g;
-    chart.geo = { L: L, pw: pw, n: n, X: X, W: W };
-    // the note under the heading says "each hour" on the week view, "each day" otherwise
-    var note = document.getElementById("smWeekNote"), nt = txt(hourly ? "weekNoteHourly" : "weekNote");
-    if (note && nt) note.textContent = nt;
-    [].forEach.call(document.querySelectorAll("[data-period]"), function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-period") === S.period ? "true" : "false"); });
-  }
-  function hoverChart(e) {
-    if (!chart || !chart.geo) return;
-    var geo = chart.geo, svg = document.getElementById("smSvg"), tip = document.getElementById("smTip"), cross = document.getElementById("smCross");
-    var b = svg.getBoundingClientRect(), x = (e.clientX - b.left) / b.width * geo.W;
-    var i = Math.round((x - geo.L) / geo.pw * (geo.n - 1));
-    var p = chart.pts && chart.pts[i];
-    if (i < 0 || i >= geo.n || !p) { tip.hidden = true; if (cross) cross.setAttribute("visibility", "hidden"); return; }
-    cross.setAttribute("x1", geo.X(i)); cross.setAttribute("x2", geo.X(i)); cross.setAttribute("visibility", "visible");
-    var dd = new Date(p[3]).toISOString();
-    tip.innerHTML = (p[0] > 0 ? "+" : "") + money(p[0], chart.sym) + " (" + pctPlain(p[1]) + ")" +
-      "<span>" + esc(S.period === "1w" ? txt("chartTipHour", { day: dayShort(dd), hour: dd.slice(11, 16) }) : txt("chartTip", { day: dayShort(dd), hours: whole(p[2]) })) + "</span>";
-    tip.hidden = false;
-    var left = geo.X(i) / geo.W * 100;
-    tip.style.left = left > 65 ? "" : (left + 2) + "%";
-    tip.style.right = left > 65 ? (100 - left + 2) + "%" : "";
-  }
-
-  // ---------------------------------------------------------------- page shell
-  var NAV = [["navCountries", "./countries.html"], ["navRoutes", "./sending-money.html", true],
-    ["navSources", "./sources.html"], ["navFindings", "./findings.html"], ["navHow", "./how-it-works.html"]];
+  // ---------------------------------------------------------------- page parts
   function headHtml() {
     return '<header class="sm-head"><a class="sm-logo" href="./index.html">margin.wiki</a>' +
       '<nav class="sm-nav" aria-label="Main">' + NAV.map(function (nv) {
         var s = txt(nv[0]);
         return s ? '<a href="' + nv[1] + '"' + (nv[2] ? ' aria-current="page"' : "") + ">" + esc(s) + "</a>" : "";
-      }).join("") + '</nav></header>';
-  }
-  function pillsHtml() {
-    var r = routeObj(S.route);
-    var routes = ALL.map(function (id) {
-      var ro = routeObj(id);
-      return ro ? '<button class="sm-pill" type="button" data-r="' + esc(id) + '" aria-pressed="' + (id === S.route) + '">' + esc(plainRoute(ro.route_words)) + "</button>" : "";
-    }).join("");
-    var amounts = ORDER.indexOf(S.route) < 0 ? "" : r.amounts.map(function (a) {
-      return '<button class="sm-pill sm-num" type="button" data-a="' + a.amount + '" aria-pressed="' + (a.amount === S.amount) + '">' +
-        esc(r.send_symbol) + whole(a.amount) + "</button>";
-    }).join("");
-    // below 768px the route picker is a native dropdown (SEB-268): thirteen pills do not fit a phone without scrolling sideways
-    var options = ALL.map(function (id) {
-      var ro = routeObj(id);
-      return ro ? '<option value="' + esc(id) + '"' + (id === S.route ? " selected" : "") + ">" + esc(plainRoute(ro.route_words)) + "</option>" : "";
-    }).join("");
-    var select = '<div class="sm-routesel"><label for="smRouteSel">' + esc(txt("routePickerLabel")) + '</label><select id="smRouteSel">' + options + "</select></div>";
-    return '<div class="sm-tools">' + select + '<div class="sm-pills" role="group" id="smRoutes">' + routes + '</div>' +
-      (amounts ? '<div class="sm-pills" role="group" id="smAmounts">' + amounts + "</div>" : "") + "</div>";
+      }).join("") + "</nav></header>";
   }
 
-  // the official rate's own time, from the field the collector stores; hidden while the field is missing or not a time
-  function rateFromHtml() {
-    var r = routeObj(S.route), iso = r && r.official_rate_updated_utc, d = iso ? new Date(iso) : null;
-    if (!d || isNaN(d.getTime()) || !txt("officialRateFrom")) return "";
-    var hhmm = String(d.getUTCHours()).padStart(2, "0") + ":" + String(d.getUTCMinutes()).padStart(2, "0");
-    return '<p class="sm-meta sm-num">' + esc(txt("officialRateFrom", { time: hhmm })) + "</p>";
+  function heroHtml() {
+    return '<div class="sm-hero">' + w("heading", null, "h1") + w("lead", null, "p", "sm-lead") +
+      '<p class="sm-meta sm-num">' + esc(txt("meta", { time: clock(DATA.as_of_utc).replace(/\s*UTC$/, "") })) + "</p></div>";
   }
 
-  function heroHtml(A) {
-    var amt = esc(A.sym) + whole(S.amount);
-    // a cost below zero is said in words, with no minus sign: the app paid out more than the official rate
-    var vals = { amount: amt, dest: A.dest, appCost: money(Math.abs(A.ac), A.sym), app: A.app, stableCost: money(Math.abs(A.sc), A.sym) };
-    var hkey = A.ac < 0 ? (A.sc < 0 ? "headlineBothBack" : "headlineAppBack") : (A.sc < 0 ? "headlineStableBack" : "headline");
-    var lead = A.wins === 0
-      ? txt("leadNever", { n: whole(A.n), first: dayLong(A.first) })
-      : txt("leadSome", { n: whole(A.n), wins: whole(A.wins), first: dayLong(A.first) });
-    return '<div class="sm-hero">' + w(hkey, vals, "h1") +
-      (lead ? '<p class="sm-lead">' + esc(lead) + "</p>" : "") +
-      '<p class="sm-meta sm-num">' + esc(txt("meta", { time: clock(A.t).replace(/\s*UTC$/, ""), date: dayShort(A.t) })) + "</p>" + rateFromHtml() + "</div>";
+  function cell(label, html, cls) {
+    return '<td data-label="' + esc(label) + '"' + (cls ? ' class="' + cls + '"' : "") + '><div class="rt-v">' + html + "</div></td>";
   }
 
-  function nowSectionHtml(A) {
-    // the steps are shown only for the path priced above, this hour; any other path's steps, or none stored, show no step by step at all
-    var showSteps = !!A.legPath && A.legPath === A.path && A.legT === A.t;
-    var legVals = [A.ac, A.sc].concat(showSteps ? ["inn", "chain", "out", "tot"].map(function (k) { return A.leg[k]; }).filter(function (v) { return v != null; }) : []);
-    var SC = niceScale(legVals);
-    TIP_WHEN = dayShort(A.t) + ", " + clock(A.t) + " UTC";
-    var moneyAxis = axisRow(SC, function (t) { return (t < 0 ? MINUS : "") + A.sym + whole(Math.abs(t)); });
-    var negative = legVals.some(function (v) { return v < 0; });
-    var share = function (v) { return v == null ? "" : pctPlain(v / S.amount * 100); };
-    var now = barRow(SC, { cls: "sm-app", name: txt("rowApp"), sub: txt("rowAppSub", { app: A.app }), v: A.ac, val: money(A.ac, A.sym), vsub: pctPlain(A.ap) }) +
-      barRow(SC, { name: txt("rowStable"), sub: (A.path !== "USDT" && txt("rowStableSubOther")) ? txt("rowStableSubOther") : txt("rowStableSub", { path: pathName(A.path) }), v: A.sc, val: money(A.sc, A.sym), vsub: pctPlain(A.sp) });
-    // the three steps are shown rounded so they add up to the rounded total (largest remainder), never 1 cent off.
-    // Cents show on all four rows when any of them is under 100; if all are 100 or more they show whole, and the rounding is to whole units.
-    var wholeMode = ["inn", "chain", "out", "tot"].every(function (k) { return A.leg[k] != null && Math.abs(A.leg[k]) >= 100; });
-    var unit = wholeMode ? 1 : 0.01;
-    var shownLeg = (function () {
-      var ks = ["inn", "chain", "out"], vs = ks.map(function (k) { return A.leg[k]; }), out = { tot: A.leg.tot };
-      if (A.leg.tot == null || vs.some(function (v) { return v == null; })) { ks.forEach(function (k) { out[k] = A.leg[k]; }); return out; }
-      var u = vs.map(function (v) { return v / unit; }), fl = u.map(Math.floor), need = Math.round(A.leg.tot / unit) - fl.reduce(function (a, b) { return a + b; }, 0);
-      var order = u.map(function (c, i) { return [c - fl[i], i]; }).sort(function (a, b) { return b[0] - a[0]; });
-      for (var i = 0; i < order.length && need > 0; i++, need--) { fl[order[i][1]] += 1; }
-      for (var j = order.length - 1; need < 0 && j >= 0; j--, need++) { fl[order[j][1]] -= 1; }
-      ks.forEach(function (k, i) { out[k] = fl[i] * unit; });
-      out.tot = Math.round(A.leg.tot / unit) * unit;
-      return out;
-    })();
-    function stepMoney(v) { return v == null ? "" : (v < 0 ? MINUS : "") + A.sym + (wholeMode ? whole(Math.abs(v)) : num(Math.abs(v), 2)); }
-    function step(k, label) {
-      return barRow(SC, { cls: k === "tot" ? "sm-tot" : "sm-step", name: label, v: A.leg[k], val: A.leg[k] == null ? txt("notStored") : stepMoney(shownLeg[k]), vsub: share(A.leg[k]) });
+  function rowHtml(r) {
+    var sym = r.send_symbol, name = '<td class="rt-nm">' + esc(plainWords(r.words)) +
+      (r.amount !== DATA.amount ? "<small>" + esc(txt("atAmount", { amount: money(r.amount, sym) })) + "</small>" : "") + "</td>";
+    var prem = r.premium_pct == null ? "" : '<span class="sm-num">' + esc(signedPct(r.premium_pct)) + "</span>";
+    if (r.status !== "ok") {
+      return "<tr>" + name + cell(txt("colPremium"), prem) +
+        '<td class="rt-wait" colspan="3">' + esc(txt("wait" + r.reason.charAt(0).toUpperCase() + r.reason.slice(1))) + "</td></tr>";
     }
-    var steps = step("inn", txt("rowDeposit")) + step("chain", txt("rowNetwork")) + step("out", txt("rowSell")) + step("tot", txt("rowAllIn"));
-    var stepsNote = showSteps && A.legPath === "USDT" ? txt("stepsNoteSame", { legPath: pathName(A.legPath), path: pathName(A.path) }) : "";   // a named path only: the "another stablecoin route" label never appears here
-    var stepsGap = (A.depM === false || A.wdM === false) ? txt("stepsGap") : "";
-    // when the path priced is one whose network gas is not in the cost, say so under it (the path list comes from the data)
-    var gasNo = (routeObj(S.route).gas_not_modelled_paths || []).indexOf(A.path) >= 0;
-    var gasLine = gasNo ? w("gasNote", null, "p", "sm-small") : "";
-    return '<section class="sm-first">' + w("nowHeading", { amount: esc(A.sym) + whole(S.amount) }, "h2") +
-      w("nowNote", null, "p", "sm-note") + '<div>' + moneyAxis + now + "</div>" + gasLine +
-      (showSteps ? w("stepsHeading", null, "h3") + (stepsNote ? '<p class="sm-note">' + esc(stepsNote) + "</p>" : "") + '<div>' + moneyAxis + steps + "</div>" : "") +
-      (negative ? w("negNote", null, "p", "sm-small") : "") + (showSteps && stepsGap ? '<p class="sm-small">' + esc(stepsGap) + "</p>" : "") + "</section>";
+    var gap = r.gap_pp == null ? "" : '<span class="sm-num">' + esc(gapMoney(r.gap_pp, r.amount, sym)) +
+      "</span><small class=\"sm-num\">" + esc(txt("gapShare", { pct: pct(Math.abs(r.gap_pp)) })) + "</small>";
+    var cost = r.path_cost_pct == null ? "" : '<span class="sm-num">' + esc(money(r.path_cost_money, sym)) + "</span><small class=\"sm-num\">" +
+      esc(txt("costShare", { pct: pct(r.path_cost_pct) })) + "</small>";
+    var hrs = r.hours_priced ? '<span class="sm-num">' + esc(txt("hoursOf", { n: num(r.hours_cheaper, 0), m: num(r.hours_priced, 0) })) + "</span>" : "";
+    return "<tr>" + name + cell(txt("colPremium"), prem) + cell(txt("colGap"), gap) + cell(txt("colCost"), cost) + cell(txt("colHours"), hrs) + "</tr>";
   }
 
-  function weekSectionHtml() {
-    var periods = [["1w", "period1w"], ["1m", "period1m"], ["all", "periodAll"]].filter(function (p) { return txt(p[1]); });
-    var bar = periods.length === 3 ? '<div class="sm-periods" role="group">' + periods.map(function (p) {
-      return '<button type="button" data-period="' + p[0] + '" aria-pressed="' + (S.period === p[0]) + '">' + esc(txt(p[1])) + "</button>";
-    }).join("") + "</div>" : "";
-    return '<section>' + w("weekHeading", null, "h2") + (txt("weekNote") ? '<p class="sm-note" id="smWeekNote">' + esc(txt("weekNote")) + "</p>" : "") +
-      '<div class="sm-chart" id="smChart"><svg id="smSvg" role="img" aria-label="' + esc(txt("chartAria")) + '"></svg>' +
-      '<div class="sm-tip sm-num" id="smTip" hidden></div></div>' + bar + "</section>";
+  function tableHtml() {
+    var head = ["colRoute", "colPremium", "colGap", "colCost", "colHours"].map(function (k) { return '<th scope="col">' + esc(txt(k)) + "</th>"; }).join("");
+    return '<section id="smTable"><table class="rt"><caption>' + esc(txt("tableAria")) + "</caption><thead><tr>" + head + "</tr></thead><tbody>" +
+      DATA.rows.map(rowHtml).join("") + "</tbody></table>" + w("tableNote", null, "p", "sm-small") + sizesNoteHtml() + "</section>";
   }
 
-  function cmpSectionHtml(A) {
-    var rows = ALL.map(function (id) { return routeObj(id); }).filter(function (r) { return amountObj(r, S.amount); });
-    var blocks = rows.map(function (r) { return [r, computeA(r.id, S.amount)]; });
-    var SC = niceScale(blocks.reduce(function (acc, b) { return acc.concat(b[1].e30, [b[1].ep]); }, []));
-    var fmt = function (v) { return v === 0 ? "0%" : (v > 0 ? "+" : MINUS) + Math.abs(v) + "%"; };
-    // the tooltip's figures: one decimal, never a minus sign on a zero
-    var sgPct = function (v) { return Math.abs(v) < 0.05 ? pctPlain(0) : (v > 0 ? "+" : MINUS) + pctPlain(Math.abs(v)); };
-    var html = axisRow(SC, fmt) + blocks.map(function (b) {
-      var r = b[0], a = b[1];
-      var sub = a.wins === 0 ? txt("neverCheaper", { n: whole(a.n) }) : txt("cheaperInSome", { wins: whole(a.wins), n: whole(a.n) });
-      var vsub = txt(a.ep < 0 ? "lessThan" : "moreThan", { app: a.app });
-      var tip = txt("cmpTip", { route: plainRoute(r.route_words), now: sgPct(a.ep), lo: sgPct(a.e30[0]), hi: sgPct(a.e30[1]), app: a.app });
-      return rangeRow(SC, { btn: r.id, cls: r.id === S.route ? "sm-on" : "", name: plainRoute(r.route_words), sub: sub, v: a.ep, rg: a.e30, val: pctPlain(Math.abs(a.ep)), vsub: vsub, tip: tip });
+  // a route compared at other sizes than the rest (Argentina) says which, in one line
+  function sizesNoteHtml() {
+    var seen = {}, out = "";
+    DATA.rows.forEach(function (r) {
+      if (r.amount === DATA.amount || seen[r.id]) return;
+      seen[r.id] = 1;
+      var amts = DATA.rows.filter(function (q) { return q.id === r.id; }).map(function (q) { return money(q.amount, q.send_symbol); });
+      out += w("sizesNote", { route: plainWords(r.words), amounts: amts.join(" and ") }, "p", "sm-small");
+    });
+    return out;
+  }
+
+  function chartSectionHtml() {
+    var lines = DATA.daily.filter(function (d) { return d.days.length; });
+    if (!lines.length) return "";
+    var keys = lines.map(function (d) {
+      var row = DATA.rows.filter(function (r) { return r.id === d.id; })[0];
+      return '<li><i style="border-top-color:' + colourOf(d.id) + ";" + (dashOf(d.id) ? "border-top-style:dashed;" : "") + '"></i>' + esc(plainWords(row.words)) + "</li>";
     }).join("");
-    return '<section>' + w("cmpHeading", { amount: whole(S.amount) }, "h2") + w("cmpNote", null, "p", "sm-note") +
-      '<p class="sm-key">' +
-      (txt("keyThisHour") ? '<span><i class="sm-kd"></i>' + esc(txt("keyThisHour")) + "</span>" : "") +
-      (txt("keyRange") ? '<span><i class="sm-kr"></i>' + esc(txt("keyRange")) + "</span>" : "") +
-      (txt("keyCheapestApp") ? '<span><i class="sm-kl"></i>' + esc(txt("keyCheapestApp")) + "</span>" : "") +
-      "</p><div>" + html + "</div></section>";
+    return '<section id="smChartSec">' + w("chartHeading", null, "h2") + w("chartNote", null, "p", "sm-note") +
+      '<div class="sm-chart" id="smChart" role="img" aria-label="' + esc(txt("chartAria")) + '"><svg id="smSvg"></svg><div class="sm-tip" id="smTip" hidden></div></div>' +
+      '<ul class="sm-keys">' + keys + "</ul></section>";
   }
 
-  // a route measured against the official rate is not compared yet: its name, and one line why
-  function notComparedHtml() {
-    var ro = routeObj(S.route);
-    var name = ro ? plainRoute(ro.route_words) : "";
-    return '<div class="sm-hero"><h1>' + esc(name) + '</h1><p class="sm-lead">' + esc(txt("notCompared", { route: name })) + "</p></div>";
+  function moveHtml(m) {
+    var sym = m.send_symbol, amount = money(m.amount, sym), route = "from " + m.words;
+    if (m.kind === "repriced") {
+      return txt(m.change_pp >= 0 ? "movesRaised" : "movesCut", { day: dayShort(m.day), app: m.app, amount: amount, route: route,
+        change: money(Math.abs(m.change_pp) * m.amount / 100, sym) });
+    }
+    return txt("movesGap", { amount: amount, route: route, from: gapMoney(m.from_pp, m.amount, sym), to: gapMoney(m.to_pp, m.amount, sym) });
+  }
+
+  function movesSectionHtml() {
+    if (!DATA.moves.length) return "";
+    return "<section id=\"smMoves\">" + w("movesHeading", null, "h2") + '<ul class="sm-moves">' +
+      DATA.moves.map(function (m) { return '<li class="sm-num">' + esc(moveHtml(m)) + "</li>"; }).join("") + "</ul></section>";
   }
 
   function footerHtml() {
-    var text = w("footerText", null, "p");
     var link = txt("footerLinkText");
-    return "<footer>" + text + (link ? '<a href="https://github.com/SebR214/margin">' + esc(link) + "</a>" : "") + "</footer>";
+    return "<footer>" + w("footerText", null, "p") + (link ? '<a href="https://github.com/SebR214/margin">' + esc(link) + "</a>" : "") + "</footer>";
   }
 
-  function pushUrl() {
-    try {
-      history.replaceState(null, "", location.pathname + "?route=" + routeKey(S.route) + "&amount=" + S.amount);
-    } catch (e) { /* not available */ }
+  // ---------------------------------------------------------------- the chart
+  function niceTicks(lo, hi) {
+    var span = hi - lo, step = Math.pow(10, Math.floor(Math.log(span / 4) / Math.LN10)), err = span / 4 / step;
+    step *= err >= 5 ? 5 : err >= 2 ? 2 : 1;
+    var out = [];
+    for (var t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) out.push(Math.round(t * 1000) / 1000);
+    return out;
   }
 
-  function renderAll() {
-    if (ORDER.indexOf(S.route) < 0) {
-      app.innerHTML = '<div class="sm-wrap">' + headHtml() + notComparedHtml() + pillsHtml() + footerHtml() + "</div>";
-      pushUrl();
-      return;
+  function drawChart() {
+    var box = document.getElementById("smChart"), svg = document.getElementById("smSvg");
+    if (!box || !svg) return;
+    var lines = DATA.daily.filter(function (d) { return d.days.length; });
+    var W = Math.max(320, Math.round(box.clientWidth || 720)), H = W < 500 ? 260 : 320;
+    var L = 38, R = 8, T = 10, B = 24;
+    var days = {}, lo = 0, hi = 0;
+    lines.forEach(function (d) { d.days.forEach(function (p) { days[p[0]] = 1; lo = Math.min(lo, p[1]); hi = Math.max(hi, p[1]); }); });
+    var keys = Object.keys(days).sort();
+    var pad = (hi - lo) * 0.08 || 0.5;
+    lo -= pad; hi += pad;
+    var tk = niceTicks(lo, hi), stp = tk.length > 1 ? tk[1] - tk[0] : 1;
+    if (hi > tk[tk.length - 1]) hi = tk[tk.length - 1] + stp;     // the top line of the grid sits above the highest point
+    if (lo < tk[0]) lo = tk[0] - stp;
+    var t0 = Date.parse(keys[0] + "T00:00:00Z"), t1 = Date.parse(keys[keys.length - 1] + "T00:00:00Z");
+    function X(day) { return L + (t1 === t0 ? 0 : (Date.parse(day + "T00:00:00Z") - t0) / (t1 - t0)) * (W - L - R); }
+    function Y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
+    var out = "";
+    niceTicks(lo, hi).forEach(function (t) {
+      var y = Y(t).toFixed(1), zero = Math.abs(t) < 1e-9;
+      out += '<line class="' + (zero ? "sm-zline" : "sm-grid") + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '"/>' +
+        '<text class="sm-ax' + (zero ? " sm-z" : "") + '" x="' + (L - 6) + '" y="' + (+y + 4) + '" text-anchor="end">' + (zero ? esc(txt("chartZero")) : (t > 0 ? "+" : MINUS) + Math.abs(t) + "%") + "</text>";
+    });
+    var nT = W < 500 ? 4 : 7;
+    for (var i = 0; i < nT; i++) {
+      var tt = t0 + (t1 - t0) * i / (nT - 1), dd = new Date(tt);
+      out += '<text class="sm-ax" x="' + (L + (W - L - R) * i / (nT - 1)).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="' + (i === 0 ? "start" : i === nT - 1 ? "end" : "middle") + '">' +
+        dd.getUTCDate() + " " + MON[dd.getUTCMonth()] + "</text>";
     }
-    var A = computeA(S.route, S.amount);
-    app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml(A) + pillsHtml() +
-      nowSectionHtml(A) + weekSectionHtml() + cmpSectionHtml(A) + footerHtml() + "</div>";
-    chart = { A: A, sym: A.sym };
+    lines.forEach(function (d) {
+      var pts = d.days.map(function (p) { return X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1); });
+      var st = 'stroke="' + colourOf(d.id) + '"' + (dashOf(d.id) ? ' stroke-dasharray="' + dashOf(d.id) + '"' : "");
+      if (pts.length === 1) {
+        out += '<circle cx="' + pts[0].split(",")[0] + '" cy="' + pts[0].split(",")[1] + '" r="3" fill="' + colourOf(d.id) + '"/>';
+      } else {
+        out += '<polyline class="sm-ln" ' + st + ' points="' + pts.join(" ") + '"/>';
+      }
+    });
+    out += '<line class="sm-cross" id="smCross" visibility="hidden" y1="' + T + '" y2="' + (H - B) + '"/>';
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("width", W); svg.setAttribute("height", H);
+    svg.innerHTML = out;
+    chart = { W: W, H: H, L: L, R: R, keys: keys, X: X, lines: lines };
+  }
+
+  function hoverChart(e) {
+    if (!chart) return;
+    var box = document.getElementById("smChart"), r = box.getBoundingClientRect(), x = e.clientX - r.left;
+    var best = null, bd = 1e9;
+    chart.keys.forEach(function (k) { var dd = Math.abs(chart.X(k) - x); if (dd < bd) { bd = dd; best = k; } });
+    if (!best) return;
+    var rows = "";
+    chart.lines.forEach(function (d) {
+      var p = d.days.filter(function (q) { return q[0] === best; })[0];
+      if (!p) return;
+      var row = DATA.rows.filter(function (q) { return q.id === d.id; })[0];
+      rows += '<div class="sm-num"><i style="border-top-color:' + colourOf(d.id) + ';' + (dashOf(d.id) ? "border-top-style:dashed;" : "") + '"></i>' +
+        esc(plainWords(row.words)) + ": " + esc(pct(p[1]).replace(/^(\d)/, "+$1")) + "</div>";
+    });
+    var tip = document.getElementById("smTip"), cross = document.getElementById("smCross");
+    tip.innerHTML = "<b>" + esc(txt("chartTip", { day: dayShort(best) })) + "</b>" + rows;
+    tip.hidden = false;
+    var cx = chart.X(best);
+    tip.style.left = Math.min(Math.max(cx - tip.offsetWidth / 2, 0), box.clientWidth - tip.offsetWidth) + "px";
+    cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.setAttribute("visibility", "visible");
+  }
+
+  function hideTip() {
+    var tip = document.getElementById("smTip"), cross = document.getElementById("smCross");
+    if (tip) tip.hidden = true;
+    if (cross) cross.setAttribute("visibility", "hidden");
+  }
+
+  // ---------------------------------------------------------------- render
+  function renderAll() {
+    app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml() + tableHtml() + chartSectionHtml() + movesSectionHtml() + footerHtml() + "</div>";
     drawChart();
     var box = document.getElementById("smChart");
     if (box) {
       box.addEventListener("pointermove", hoverChart);
-      box.addEventListener("pointerdown", hoverChart);      // a tap on a phone
-      box.addEventListener("pointerleave", function (e) {
-        if (e.pointerType === "touch") return;               // lifting a finger is a pointerleave too: the day stays until the next tap
-        var tip = document.getElementById("smTip"), cross = document.getElementById("smCross");
-        if (tip) tip.hidden = true;
-        if (cross) cross.setAttribute("visibility", "hidden");
-      });
+      box.addEventListener("pointerdown", hoverChart);
+      box.addEventListener("pointerleave", function (e) { if (e.pointerType !== "touch") hideTip(); });
       if (window.ResizeObserver) new ResizeObserver(function () { drawChart(); }).observe(box);
     }
-    pushUrl();
-  }
-
-  function onChange(e) {
-    if (e.target.id !== "smRouteSel" || e.target.value === S.route) return;
-    S.route = e.target.value;
-    if (!amountObj(routeObj(S.route), S.amount)) S.amount = 5000;
-    renderAll();
-  }
-
-  function onClick(e) {
-    var pb = e.target.closest("[data-period]");
-    if (pb) {
-      S.period = pb.getAttribute("data-period");
-      var tip = document.getElementById("smTip"); if (tip) tip.hidden = true;
-      drawChart();
-      return;
-    }
-    var r = e.target.closest("[data-r]"), a = e.target.closest("[data-a]");
-    if (r) {
-      var id = r.getAttribute("data-r");
-      if (id !== S.route) {
-        S.route = id;
-        if (!amountObj(routeObj(S.route), S.amount)) S.amount = 5000;
-        renderAll();
-        if (r.tagName === "BUTTON" && r.classList.contains("sm-row")) window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-      return;
-    }
-    if (a) { S.amount = +a.getAttribute("data-a"); renderAll(); }
-  }
-
-  function parseRoute(s) {
-    if (!s) return null;
-    var k = s.replace(/^#?(route=)?/, "").toUpperCase().replace(/[^A-Z]+/g, "-");
-    var hit = ALL.filter(function (id) { return routeKey(id) === k; })[0];
-    return hit || null;
   }
 
   function start(res) {
     COPY = (res[0] && res[0].routeData) || {};
-    HOURLY = res[1]; BRK = res[2];
-    if (!HOURLY || !res[3]) throw new Error("data");
-    setRoutes(res[3]);
-    HOURLY.hour_columns.forEach(function (c, i) { COL[c] = i; });
-    if (BRK) BRK.columns.forEach(function (c, i) { BCOL[c] = i; });
-    var q = new URLSearchParams(location.search);
-    S.route = parseRoute(q.get("route")) || ORDER[0];
-    var amt = +q.get("amount");
-    S.amount = amountObj(routeObj(S.route), amt) ? amt : 5000;
-    app.addEventListener("click", onClick);
-    app.addEventListener("change", onChange);
-    // a tap anywhere but the chart closes the day it showed
-    document.addEventListener("pointerdown", function (e) {
-      if (e.target.closest && e.target.closest("#smChart")) return;
-      var tip = document.getElementById("smTip"), cross = document.getElementById("smCross");
-      if (tip) tip.hidden = true;
-      if (cross) cross.setAttribute("visibility", "hidden");
-    });
+    DATA = res[1];
+    if (!DATA || !DATA.rows) throw new Error("data");
+    document.addEventListener("pointerdown", function (e) { if (!(e.target.closest && e.target.closest("#smChart"))) hideTip(); });
     renderAll();
     (window.siteLive = window.siteLive || { handlers: [], onNewHour: function (fn) { this.handlers.push(fn); } }).onNewHour(refresh);
   }
 
-  // a tab left open loads the newer hour when it is published (siteLive, js/site_head.js); the picked route and amount stay
+  // a tab left open loads the newer hour when it is published (siteLive, js/site_head.js)
   function refresh() {
-    return Promise.all([maybeJSON("copy.json"), getJSON("data/routes_hourly.json"), maybeJSON("data/routes_breakdown.json"), getJSON("data/routes_summary.json")]).then(function (res) {
-      if (!res[1] || !res[3]) return;
+    return Promise.all([maybeJSON("copy.json"), getJSON("data/routes_table.json")]).then(function (res) {
+      if (!res[1]) return;
       COPY = (res[0] && res[0].routeData) || COPY;
-      HOURLY = res[1]; BRK = res[2];
-      setRoutes(res[3]);
-      if (ALL.indexOf(S.route) < 0) { S.route = ORDER[0]; }
-      HOURLY.hour_columns.forEach(function (c, i) { COL[c] = i; });
-      if (BRK) BRK.columns.forEach(function (c, i) { BCOL[c] = i; });
-      if (!amountObj(routeObj(S.route), S.amount)) { S.amount = 5000; }
+      DATA = res[1];
       var y = window.scrollY;
       renderAll();
       window.scrollTo(0, y);
     }).catch(function () { /* a failed refresh leaves what the reader already has */ });
   }
 
-  Promise.all([maybeJSON("copy.json"), getJSON("data/routes_hourly.json"), maybeJSON("data/routes_breakdown.json"), getJSON("data/routes_summary.json")])
+  Promise.all([maybeJSON("copy.json"), getJSON("data/routes_table.json")])
     .then(start).catch(function (err) {
       if (window.console) console.error(err);
       maybeJSON("copy.json").then(function (d) {
