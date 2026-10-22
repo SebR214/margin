@@ -77,6 +77,8 @@ jobs:
 
       - name: Route steps add up to the path that was priced (SEB-268)
         run: python3 tools/emit_routes.py --self-test
+      - name: Every Binance P2P ad is read, paged and capped (SEB-311)
+        run: python3 collector_p2p_ads.py --selftest
       - name: A pair that loses stablecoin pricing fails the fee check (SEB-310)
         run: python3 tests/check_stable_pair.py
       - name: The event detector, four tests on the stored history (SEB-311)
