@@ -1,12 +1,14 @@
-# In Egypt a dollar costs 2.8% more than the official rate
+# In Egypt a dollar costs 2.7% more than the official rate
 
-Prices from the 12:00 UTC hour, 22 Oct.
+Prices from the 13:00 UTC hour, 22 Oct.
 
-The official rate is 54.39 EGP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 55.91 EGP. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 54.39 EGP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 55.86 EGP. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 5,591 EGP. The official rate says 5,439 EGP.
+Sellers on Binance and OKX agree on this price. Buyers there are offering more than sellers ask this hour, which is unusual.
 
-Prices from the 12:00 UTC hour, 22 Oct
+For US$100, people pay 5,586 EGP. The official rate says 5,439 EGP.
+
+Prices from the 13:00 UTC hour, 22 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -24,11 +26,11 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-55.83 EGP +2.6%
+55.82 EGP +2.6%
 
 OKX, person to person
 
-55.99 EGP +2.9%
+55.91 EGP +2.8%
 
 ## Every Egypt price links to its raw file
 
