@@ -246,6 +246,14 @@ jobs:
         # pass. Exits non-zero only if it cannot write.
         run: python3 tools/emit_basis_receipts.py
 
+      - name: Collect every Binance P2P ad (SEB-311)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-311 step 1. The published board reads 10 ads a side; this reads up to 40 a side, page by page, and writes each ad
+        # (price, amount available, order limits) to data/p2p_ads.csv so sellers thinning out can be seen. Nothing reads it yet and
+        # the published median is untouched. Exits non-zero only if no ad at all was read; it must not stop the chain.
+        continue-on-error: true
+        run: python3 collector_p2p_ads.py
+
       - name: Collect P2P sample -- OKX (SEB-204)
         if: always() && steps.needed.outputs.proceed == 'true'
         # Second P2P board, confirmed live 2026-10-03 (tools/probe_p2p_boards.py):
@@ -665,7 +673,7 @@ jobs:
                    data/providers_usdngn.csv data/providers_usdinr.csv \
                    data/providers_sgdinr.csv data/providers_usdars.csv data/latest.json \
                    data/crosses_latest.json data/stable_spread.csv \
-                   data/p2p_basis.csv data/p2p_sides.csv data/p2p_depth.csv \
+                   data/p2p_basis.csv data/p2p_sides.csv data/p2p_depth.csv data/p2p_ads.csv \
                    data/p2p_offers.csv data/street_depth_latest.json \
                    data/index_latest.json \
                    data/fx_rates.csv data/fx_rate_meta.csv data/provider_quotes.csv \

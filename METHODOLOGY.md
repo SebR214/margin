@@ -1794,6 +1794,14 @@ Read from Bitso's own pages and API on 2026-10-22, each stored in the route's co
 
 The comparison feed returns three or more apps for this route only at 200 and 5,000 (21 Oct), two at the other sizes. The usual rule of skipping a size with fewer than three apps is waived for this route: every size is stored. The routes table compares Argentina at the sizes where three or more apps are returned and says so.
 
+## Every person-to-person ad, in a file of its own (SEB-311 step 1, from 2026-10-22)
+
+`collector_p2p_ads.py` reads the Binance person-to-person board for the same 53 currencies as the published price, both sides, page by page, and writes every ad to `data/p2p_ads.csv`: time, currency, side, rank in the board's order, price, the amount available in USDT, and the ad's smallest and largest order. The published price is unchanged: `collector_p2p.py` still reads 10 ads a side and `p2p_basis.csv` is still the median of those, computed exactly as before. No number on the site changes and `index_version` stays.
+
+Why: `p2p_sides.csv` says 10 for every busy market, so sellers leaving a market cannot be seen. The ads are stored so that depth and thinning can be measured later. They cannot be backfilled.
+
+The cap is 2 pages of 20, so at most 40 ads a side. A first run with 60 a side wrote 369 KB in an hour, about 9 MB a day, which is too much for a repository to carry. A market with fewer than 40 ads comes back whole, which is where thinning shows. A deeper market is cut at 40 and its real depth is `buy_total` and `sell_total` in `data/p2p_depth.csv`. No amount filter is sent, so small ads are in. A board with no ads is one row, "no ads". A failed read is a row with `source_ok` false and the reason. If the run passes 7 minutes, the currencies not yet read are written as failed rows saying so.
+
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
 **Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's
