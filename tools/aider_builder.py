@@ -117,51 +117,70 @@ def task_message(i):
     return i["description"] + "\n\n" + TASK_RULES
 
 
-PARTS = ".aider_parts"       # untracked, inside the repo (Aider works on repo paths); removed by tidy()
+PARTS = "parts"              # inside the scratch repo Aider works in (see make_parts)
 
 
 def make_parts(job, tmp):
-    """A file too big to send whole (the job's `excerpt:` lines) is sent as part files, one per region, as in tools/one_call.py.
-    Returns (files for Aider, manifest, note for the task). The first run of a 230,000 character job cost $2.57 in 5 turns."""
-    files, manifest, notes = [], {}, []
+    """Aider works in a scratch git repo that holds only what the job needs: the job's files (a file too big to send whole, named
+    by the job's `excerpt:` lines, as part files, as in tools/one_call.py) and its read-only context. Aider adds any file the
+    model names to the chat, and in the real repo that pulled in data/samples.csv (5.8 million tokens); in the scratch repo there is
+    nothing else to add. The first run, on whole files, cost $2.57 in 5 turns. Returns (scratch dir, files for Aider, manifest
+    path, note for the task)."""
+    work = os.path.join(tmp, "work")
+    os.makedirs(os.path.join(work, PARTS), exist_ok=True)
     by_file = {}
     for e in job["excerpts"]:
         if len(e) == 3:
             by_file.setdefault(e[0], []).append((e[1], e[2]))
-    os.makedirs(os.path.join(ROOT, PARTS), exist_ok=True)
+    files, regions, whole, notes = [], {}, [], []
     for p in job["files"]:
+        full = os.path.join(ROOT, p)
+        text = open(full).read() if os.path.exists(full) else ""
         if p not in by_file:
+            os.makedirs(os.path.dirname(os.path.join(work, p)) or work, exist_ok=True)
+            open(os.path.join(work, p), "w").write(text)
             files.append(p)
+            whole.append(p)
             continue
-        full = open(os.path.join(ROOT, p)).read()
-        regions = []
+        regions[p] = []
         for n, (a, b) in enumerate(by_file[p], 1):
-            text = one_call.excerpt(full, a, b)
-            if text is None or full.count(text) != 1:
+            part_text = one_call.excerpt(text, a, b)
+            if part_text is None or text.count(part_text) != 1:
                 raise RuntimeError("excerpt %d of %s does not match exactly once" % (n, p))
             part = "%s/%s.part%d%s" % (PARTS, os.path.splitext(os.path.basename(p))[0], n, os.path.splitext(p)[1])
-            open(os.path.join(ROOT, part), "w").write(text + "\n")
-            regions.append({"orig": text, "part": part})
+            open(os.path.join(work, part), "w").write(part_text + "\n")
+            regions[p].append({"orig": part_text, "part": part})
             files.append(part)
             notes.append("- %s is shown as %s, the lines from `%s` to `%s`" % (p, part, a, b))
-        manifest[p] = regions
+    for p in job["context"]:
+        os.makedirs(os.path.dirname(os.path.join(work, p)) or work, exist_ok=True)
+        shutil.copy(os.path.join(ROOT, p), os.path.join(work, p))
+    for c in (["init", "-q"], ["add", "-A"], ["-c", "user.name=aider", "-c", "user.email=aider@example.invalid", "commit", "-q", "-m", "start"]):
+        subprocess.run(["git"] + c, cwd=work, capture_output=True, check=True)
     mf = os.path.join(tmp, "parts.json")
-    json.dump({"pristine": {p: open(os.path.join(ROOT, p)).read() for p in manifest}, "regions": manifest}, open(mf, "w"))
+    json.dump({"work": work, "whole": whole, "regions": regions,
+               "pristine": {p: open(os.path.join(ROOT, p)).read() for p in regions}}, open(mf, "w"))
     note = ""
     if notes:
         note = ("\nSome files are too big to send whole, so you are given part files. Edit only the part files. They are put back into "
                 "the real file before the tests run. Keep each part's first and last lines in place unless the job says to change them:\n"
                 + "\n".join(notes) + "\n")
-    return files, mf, note
+    return work, files, mf, note
 
 
 def splice(manifest_path):
-    """Rebuild each real file from its pristine text and the current part files. Safe to run again and again."""
+    """Put the scratch repo's work into the real repo: whole files are copied, part files are joined back into their file from its
+    pristine text. Safe to run again and again (it is the first half of Aider's test command)."""
     m = json.load(open(manifest_path))
+    for p in m["whole"]:
+        src = os.path.join(m["work"], p)
+        if os.path.exists(src):
+            os.makedirs(os.path.dirname(os.path.join(ROOT, p)) or ROOT, exist_ok=True)
+            shutil.copy(src, os.path.join(ROOT, p))
     for p, regions in m["regions"].items():
         text = m["pristine"][p]
         for r in regions:
-            new = open(os.path.join(ROOT, r["part"])).read()
+            new = open(os.path.join(m["work"], r["part"])).read()
             new = new[:-1] if new.endswith("\n") and not r["orig"].endswith("\n") else new
             assert text.count(r["orig"]) == 1, "region lost in %s" % p
             text = text.replace(r["orig"], new, 1)
@@ -173,7 +192,7 @@ def aider_cmd(job, architect, msg_file, tmp, files=None, manifest=None):
          "--editor-edit-format", "editor-diff", "--yes-always", "--no-auto-commits", "--no-dirty-commits", "--no-gitignore",
          "--no-pretty", "--no-stream", "--no-check-update", "--no-analytics", "--no-show-model-warnings", "--no-suggest-shell-commands",
          "--no-detect-urls", "--map-tokens", "0", "--auto-test",
-         "--test-cmd", ("python3 tools/aider_builder.py --splice %s && " % manifest if manifest else "") + "python3 tools/aider_checks.py",
+         "--test-cmd", "python3 %s/tools/aider_builder.py --splice %s && python3 %s/tools/aider_checks.py" % (ROOT, manifest, ROOT),
          "--message-file", msg_file, "--llm-history-file", os.path.join(tmp, "llm.txt"),
          "--input-history-file", os.path.join(tmp, "input.txt"), "--chat-history-file", os.path.join(tmp, "chat.md")]
     for p in job["context"]:
@@ -183,9 +202,9 @@ def aider_cmd(job, architect, msg_file, tmp, files=None, manifest=None):
     return c
 
 
-def run_aider(cmd, hist, key, start_usage, clock=time.time, reader=key_usage):
+def run_aider(cmd, hist, key, start_usage, cwd=ROOT, clock=time.time, reader=key_usage):
     """Run Aider, watching its LLM log. Returns (exit code, turns, reason or '')."""
-    p = subprocess.Popen(cmd, cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    p = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     out = []
     import threading
     t = threading.Thread(target=lambda: out.extend(p.stdout), daemon=True)
@@ -290,10 +309,10 @@ def build(force, only):
     tmp = tempfile.mkdtemp(prefix="aider-")
     msg = os.path.join(tmp, "task.txt")
     sh(["git", "checkout", "-q", "main"], check=False)
-    files, manifest, note = make_parts(job, tmp)
+    work, files, manifest, note = make_parts(job, tmp)
     open(msg, "w").write(task_message(i) + note)
     before = key_usage(key)
-    code, turns, why = run_aider(aider_cmd(job, architect, msg, tmp, files, manifest), os.path.join(tmp, "llm.txt"), key, before)
+    code, turns, why = run_aider(aider_cmd(job, architect, msg, tmp, files, manifest), os.path.join(tmp, "llm.txt"), key, before, cwd=work)
     after = settled_usage(key, before)
     splice(manifest)
     cost = max(0.0, after - before)
@@ -355,28 +374,35 @@ def self_test():
     assert pick(backlog.parse(t2), "9a")[1]["id"] == "9a", "--job reaches outside the pilot"
     for m in (ARCHITECT_FALLBACK, EDITOR):
         assert not llm.BANNED.search(m), "no model of the two larger families"
-    c = aider_cmd({"files": ["a.py"], "context": ["m.md"]}, "anthropic/claude-sonnet-5.5", "/t/task", "/t")
-    assert "--architect" in c and "--test-cmd" in c and c[c.index("--test-cmd") + 1] == "python3 tools/aider_checks.py"
+    c = aider_cmd({"files": ["a.py"], "context": ["m.md"]}, "anthropic/claude-sonnet-5.5", "/t/task", "/t", None, "/t/parts.json")
+    assert "--architect" in c and c[c.index("--test-cmd") + 1].endswith("/tools/aider_checks.py") and "--splice /t/parts.json" in c[c.index("--test-cmd") + 1]
     assert c[c.index("--model") + 1] == "openrouter/anthropic/claude-sonnet-5.5" and c[c.index("--editor-model") + 1] == "openrouter/qwen/qwen3-coder"
     assert "--no-auto-commits" in c and c.count("--file") == 1 and c.count("--read") == 1
     assert "\u2014" not in TASK_RULES
     with tempfile.TemporaryDirectory() as d:
-        global ROOT, PARTS
-        old = ROOT, PARTS
-        ROOT, PARTS = d, ".aider_parts"
+        global ROOT
+        old = ROOT
+        ROOT = os.path.join(d, "repo")
+        os.makedirs(ROOT)
         try:
-            open(os.path.join(d, "big.py"), "w").write("a = 1\nTABLE = {\n  'x': 1,\n}\nb = 2\nLIST = [\n  1,\n]\nc = 3\n")
-            job = {"files": ["big.py", "small.py"], "excerpts": [["big.py", r"^TABLE = \{", r"^\}"], ["big.py", r"^LIST = \[", r"^\]"]]}
-            files, mf, note = make_parts(job, d)
-            assert files == [".aider_parts/big.part1.py", ".aider_parts/big.part2.py", "small.py"] and "Edit only the part files" in note, files
+            src = "a = 1\nTABLE = {\n  'x': 1,\n}\nb = 2\nLIST = [\n  1,\n]\nc = 3\n"
+            open(os.path.join(ROOT, "big.py"), "w").write(src)
+            open(os.path.join(ROOT, "small.py"), "w").write("s = 1\n")
+            open(os.path.join(ROOT, "big_data.csv"), "w").write("never copied\n")
+            job = {"files": ["big.py", "small.py"], "context": [], "excerpts": [["big.py", r"^TABLE = \{", r"^\}"], ["big.py", r"^LIST = \[", r"^\]"]]}
+            work, files, mf, note = make_parts(job, d)
+            assert files == ["parts/big.part1.py", "parts/big.part2.py", "small.py"] and "Edit only the part files" in note, files
+            assert sorted(os.listdir(work)) == [".git", "parts", "small.py"], "the scratch repo holds only the job's files"
             splice(mf)
-            assert open(os.path.join(d, "big.py")).read() == "a = 1\nTABLE = {\n  'x': 1,\n}\nb = 2\nLIST = [\n  1,\n]\nc = 3\n", "untouched parts splice back to the same file"
-            open(os.path.join(d, files[0]), "w").write("TABLE = {\n  'x': 1,\n  'y': 2,\n}\n")
+            assert open(os.path.join(ROOT, "big.py")).read() == src, "untouched parts splice back to the same file"
+            open(os.path.join(work, files[0]), "w").write("TABLE = {\n  'x': 1,\n  'y': 2,\n}\n")
+            open(os.path.join(work, "small.py"), "w").write("s = 2\n")
             splice(mf)
             splice(mf)
-            assert open(os.path.join(d, "big.py")).read() == "a = 1\nTABLE = {\n  'x': 1,\n  'y': 2,\n}\nb = 2\nLIST = [\n  1,\n]\nc = 3\n", "a part edit lands once, and splicing twice is the same"
+            assert open(os.path.join(ROOT, "big.py")).read() == src.replace("  'x': 1,\n", "  'x': 1,\n  'y': 2,\n"), "a part edit lands once, and splicing twice is the same"
+            assert open(os.path.join(ROOT, "small.py")).read() == "s = 2\n", "a whole file is copied back"
         finally:
-            ROOT, PARTS = old
+            ROOT = old
     print("aider_builder self-test: ok")
 
 
