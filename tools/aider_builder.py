@@ -117,16 +117,68 @@ def task_message(i):
     return i["description"] + "\n\n" + TASK_RULES
 
 
-def aider_cmd(job, architect, msg_file, tmp):
+PARTS = ".aider_parts"       # untracked, inside the repo (Aider works on repo paths); removed by tidy()
+
+
+def make_parts(job, tmp):
+    """A file too big to send whole (the job's `excerpt:` lines) is sent as part files, one per region, as in tools/one_call.py.
+    Returns (files for Aider, manifest, note for the task). The first run of a 230,000 character job cost $2.57 in 5 turns."""
+    files, manifest, notes = [], {}, []
+    by_file = {}
+    for e in job["excerpts"]:
+        if len(e) == 3:
+            by_file.setdefault(e[0], []).append((e[1], e[2]))
+    os.makedirs(os.path.join(ROOT, PARTS), exist_ok=True)
+    for p in job["files"]:
+        if p not in by_file:
+            files.append(p)
+            continue
+        full = open(os.path.join(ROOT, p)).read()
+        regions = []
+        for n, (a, b) in enumerate(by_file[p], 1):
+            text = one_call.excerpt(full, a, b)
+            if text is None or full.count(text) != 1:
+                raise RuntimeError("excerpt %d of %s does not match exactly once" % (n, p))
+            part = "%s/%s.part%d%s" % (PARTS, os.path.splitext(os.path.basename(p))[0], n, os.path.splitext(p)[1])
+            open(os.path.join(ROOT, part), "w").write(text + "\n")
+            regions.append({"orig": text, "part": part})
+            files.append(part)
+            notes.append("- %s is shown as %s, the lines from `%s` to `%s`" % (p, part, a, b))
+        manifest[p] = regions
+    mf = os.path.join(tmp, "parts.json")
+    json.dump({"pristine": {p: open(os.path.join(ROOT, p)).read() for p in manifest}, "regions": manifest}, open(mf, "w"))
+    note = ""
+    if notes:
+        note = ("\nSome files are too big to send whole, so you are given part files. Edit only the part files. They are put back into "
+                "the real file before the tests run. Keep each part's first and last lines in place unless the job says to change them:\n"
+                + "\n".join(notes) + "\n")
+    return files, mf, note
+
+
+def splice(manifest_path):
+    """Rebuild each real file from its pristine text and the current part files. Safe to run again and again."""
+    m = json.load(open(manifest_path))
+    for p, regions in m["regions"].items():
+        text = m["pristine"][p]
+        for r in regions:
+            new = open(os.path.join(ROOT, r["part"])).read()
+            new = new[:-1] if new.endswith("\n") and not r["orig"].endswith("\n") else new
+            assert text.count(r["orig"]) == 1, "region lost in %s" % p
+            text = text.replace(r["orig"], new, 1)
+        open(os.path.join(ROOT, p), "w").write(text)
+
+
+def aider_cmd(job, architect, msg_file, tmp, files=None, manifest=None):
     c = ["aider", "--model", "openrouter/" + architect, "--architect", "--editor-model", "openrouter/" + EDITOR,
          "--editor-edit-format", "editor-diff", "--yes-always", "--no-auto-commits", "--no-dirty-commits", "--no-gitignore",
          "--no-pretty", "--no-stream", "--no-check-update", "--no-analytics", "--no-show-model-warnings", "--no-suggest-shell-commands",
-         "--no-detect-urls", "--map-tokens", "0", "--auto-test", "--test-cmd", "python3 tools/aider_checks.py",
+         "--no-detect-urls", "--map-tokens", "0", "--auto-test",
+         "--test-cmd", ("python3 tools/aider_builder.py --splice %s && " % manifest if manifest else "") + "python3 tools/aider_checks.py",
          "--message-file", msg_file, "--llm-history-file", os.path.join(tmp, "llm.txt"),
          "--input-history-file", os.path.join(tmp, "input.txt"), "--chat-history-file", os.path.join(tmp, "chat.md")]
     for p in job["context"]:
         c += ["--read", p]
-    for p in job["files"]:
+    for p in (files if files is not None else job["files"]):
         c += ["--file", p]
     return c
 
@@ -146,7 +198,7 @@ def run_aider(cmd, hist, key, start_usage, clock=time.time, reader=key_usage):
             why = "turn cap: %d model turns, the limit is %d" % (turns, MAX_TURNS)
         elif clock() - t0 > MAX_MINUTES * 60:
             why = "time cap: %d minutes" % MAX_MINUTES
-        elif clock() - last_cost > 30:
+        elif clock() - last_cost > 10:
             last_cost = clock()
             try:
                 if reader(key) - start_usage > JOB_CAP_USD:
@@ -237,11 +289,13 @@ def build(force, only):
         assert not llm.BANNED.search(m), m
     tmp = tempfile.mkdtemp(prefix="aider-")
     msg = os.path.join(tmp, "task.txt")
-    open(msg, "w").write(task_message(i))
     sh(["git", "checkout", "-q", "main"], check=False)
+    files, manifest, note = make_parts(job, tmp)
+    open(msg, "w").write(task_message(i) + note)
     before = key_usage(key)
-    code, turns, why = run_aider(aider_cmd(job, architect, msg, tmp), os.path.join(tmp, "llm.txt"), key, before)
+    code, turns, why = run_aider(aider_cmd(job, architect, msg, tmp, files, manifest), os.path.join(tmp, "llm.txt"), key, before)
     after = settled_usage(key, before)
+    splice(manifest)
     cost = max(0.0, after - before)
     allowed = set(job["files"])
     changed = tidy(allowed)
@@ -306,12 +360,32 @@ def self_test():
     assert c[c.index("--model") + 1] == "openrouter/anthropic/claude-sonnet-5.5" and c[c.index("--editor-model") + 1] == "openrouter/qwen/qwen3-coder"
     assert "--no-auto-commits" in c and c.count("--file") == 1 and c.count("--read") == 1
     assert "\u2014" not in TASK_RULES
+    with tempfile.TemporaryDirectory() as d:
+        global ROOT, PARTS
+        old = ROOT, PARTS
+        ROOT, PARTS = d, ".aider_parts"
+        try:
+            open(os.path.join(d, "big.py"), "w").write("a = 1\nTABLE = {\n  'x': 1,\n}\nb = 2\nLIST = [\n  1,\n]\nc = 3\n")
+            job = {"files": ["big.py", "small.py"], "excerpts": [["big.py", r"^TABLE = \{", r"^\}"], ["big.py", r"^LIST = \[", r"^\]"]]}
+            files, mf, note = make_parts(job, d)
+            assert files == [".aider_parts/big.part1.py", ".aider_parts/big.part2.py", "small.py"] and "Edit only the part files" in note, files
+            splice(mf)
+            assert open(os.path.join(d, "big.py")).read() == "a = 1\nTABLE = {\n  'x': 1,\n}\nb = 2\nLIST = [\n  1,\n]\nc = 3\n", "untouched parts splice back to the same file"
+            open(os.path.join(d, files[0]), "w").write("TABLE = {\n  'x': 1,\n  'y': 2,\n}\n")
+            splice(mf)
+            splice(mf)
+            assert open(os.path.join(d, "big.py")).read() == "a = 1\nTABLE = {\n  'x': 1,\n  'y': 2,\n}\nb = 2\nLIST = [\n  1,\n]\nc = 3\n", "a part edit lands once, and splicing twice is the same"
+        finally:
+            ROOT, PARTS = old
     print("aider_builder self-test: ok")
 
 
 def main(argv):
     if "--self-test" in argv:
         self_test()
+        return 0
+    if "--splice" in argv:
+        splice(argv[argv.index("--splice") + 1])
         return 0
     only = argv[argv.index("--job") + 1] if "--job" in argv else None
     return build("--force" in argv or only is not None, only)
