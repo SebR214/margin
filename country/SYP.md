@@ -1,6 +1,6 @@
 # In Syria a dollar costs 17.7% more than the official rate
 
-Prices from the 02:00 UTC hour, 22 Oct.
+Prices from the 03:00 UTC hour, 22 Oct.
 
 The official rate is 121.88 SYP per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 143.50 SYP. A stablecoin is a coin that stays worth one US dollar.
 
@@ -8,7 +8,7 @@ For US$100, people pay 14,350 SYP. The official rate says 12,188 SYP.
 
 One source
 
-Prices from the 02:00 UTC hour, 22 Oct
+Prices from the 03:00 UTC hour, 22 Oct
 
 Taking the cheapest offers first, only US$2,500 can be bought before a dollar here costs 1% more.
 
@@ -34,6 +34,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 22 Oct, 03:06 UTC | Binance, person to person | 143.50 SYP | +17.7% | 10 of 11 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 22 Oct, 02:06 UTC | Binance, person to person | 143.50 SYP | +17.7% | 10 of 11 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 22 Oct, 01:07 UTC | Binance, person to person | 144.30 SYP | +18.4% | 10 of 10 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 22 Oct, 00:06 UTC | Binance, person to person | 144.30 SYP | +18.6% | 10 of 10 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -45,7 +46,6 @@ Open any file to check a price yourself.
 | 21 Oct, 18:06 UTC | Binance, person to person | 142.48 SYP | +17.1% | 10 of 16 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 17:07 UTC | Binance, person to person | 142.34 SYP | +17.0% | 10 of 18 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 16:07 UTC | Binance, person to person | 142.50 SYP | +17.1% | 10 of 16 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 21 Oct, 15:06 UTC | Binance, person to person | 142.90 SYP | +17.4% | 10 of 16 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://margin.wiki/data/adsp2p_basis.csv>

@@ -1,6 +1,6 @@
 # In Tunisia a dollar costs 15.1% more than the official rate
 
-Prices from the 02:00 UTC hour, 22 Oct.
+Prices from the 03:00 UTC hour, 22 Oct.
 
 The official rate is 3 TND per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.45 TND. A stablecoin is a coin that stays worth one US dollar.
 
@@ -8,7 +8,7 @@ For US$100, people pay 345.00 TND. The official rate says 299.71 TND.
 
 One source
 
-Prices from the 02:00 UTC hour, 22 Oct
+Prices from the 03:00 UTC hour, 22 Oct
 
 Taking the cheapest offers first, only US$2,500 can be bought before a dollar here costs 1% more.
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 22 Oct, 03:08 UTC | OKX, person to person | 4.10 TND | +36.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 03:06 UTC | Binance, person to person | 3.45 TND | +15.1% | 10 of 15 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 22 Oct, 02:08 UTC | OKX, person to person | 4.10 TND | +36.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 22 Oct, 02:06 UTC | Binance, person to person | 3.45 TND | +15.1% | 10 of 15 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 22 Oct, 01:08 UTC | OKX, person to person | 4.10 TND | +36.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 21 Oct, 23:06 UTC | Binance, person to person | 3.48 TND | +16.0% | 10 of 12 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 22:08 UTC | OKX, person to person | 4.10 TND | +36.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 21 Oct, 22:06 UTC | Binance, person to person | 3.47 TND | +15.8% | 10 of 12 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 21 Oct, 21:08 UTC | OKX, person to person | 4.10 TND | +36.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 21 Oct, 21:06 UTC | Binance, person to person | 3.48 TND | +16.2% | 10 of 10 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
