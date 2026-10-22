@@ -1,10 +1,10 @@
 /* One currency event (SEB-311 step 4): the street price and the official rate before, at and after the day the detector recorded it.
  *
  * Reads data/event_records/<id>.json (written by tools/detect_events.py, which holds the rules, the baseline, the checks on each source and
- * the trace of every number) and data/index_latest.json for the country's name. Nothing is computed here but formatting, drawing and
+ * the trace of every number, plus a hand-entered known_date with its source link where one is known) and data/index_latest.json for the country's name. Nothing is computed here but formatting, drawing and
  * three differences read straight off the record's own daily points. Which event: ?id=IQD-official_break-2026-10-09, that one when absent.
  *
- * Words: none live here. Every word comes from copy.json, block "eventPage" (drafts until Seb OKs them). Numbers, dates, currency codes,
+ * Words: none live here. Every word comes from copy.json, block "eventPage" (the words Seb gave on 22 Oct). Numbers, dates, currency codes,
  * source names and the country's name are data.
  */
 (function () {
@@ -59,30 +59,35 @@
       }).join("") + "</nav></header>";
   }
 
-  function leadAndHeading(pts) {
-    var ch = REC.official && REC.official.change_pct, sc = REC.street && REC.street.change_pct, lag = REC.official_lag_days;
-    if (REC.kind === "official_break") {
-      var x = lag != null ? addDays(REC.detected_on, -lag) : null;
-      var sp = x ? at(pts, x, "street") : null, sb = x ? at(pts, addDays(x, -3), "street") : null;
-      return {
-        h: txt("headingOfficial", { country: COUNTRY, pct: pct(Math.abs(ch)) }),
-        lead: lag != null && sp && sb
-          ? txt("leadOfficialLed", { streetPct: pct(Math.abs((sp / sb - 1) * 100)), streetDay: dayShort(x), day: dayShort(REC.detected_on), lag: lag })
-          : txt("leadOfficialNoLead", { pct: pct(Math.abs(ch)), day: dayShort(REC.detected_on) })
-      };
-    }
-    return { h: txt("headingStreet", { country: COUNTRY, pct: pct(Math.abs(sc)) }), lead: txt("leadStreet", { officialPct: pct(ch || 0) }) };
+  function currencyWord() { return (COPY.currencyNames && COPY.currencyNames[REC.ccy]) || REC.ccy; }
+  function dayGap(a, b) { return Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86400000); }
+  // a copy slot with one placeholder filled by markup that is already safe (the link on the date the government acted)
+  function txtWithHtml(key, vals, htmlKey, html) {
+    var v = {}; Object.keys(vals).forEach(function (k) { v[k] = vals[k]; });
+    v[htmlKey] = "\u0001";
+    return esc(txt(key, v)).replace("\u0001", html);
   }
+  function knownLink() {
+    var k = REC.known_date;
+    return '<a href="' + esc(k.url) + '" target="_blank" rel="noopener">' + esc(dayShort(k.date)) + "</a>";
+  }
+  // the first day the official rate shows its rise a week later, to within 0.1%
+  function fullRiseDay(pts) {
+    var end = REC.after[0].official, hit = pts.filter(function (p) { return p.official != null && p.day >= REC.detected_on && p.official >= end * 0.999; })[0];
+    return hit ? hit.day : null;
+  }
+  function ready() { return !!(REC.known_date && REC.known_date.url && REC.after && REC.after[0] && REC.after[0].official_change_pct_from_baseline != null); }
 
   function heroHtml(pts) {
-    var t = leadAndHeading(pts);
+    var full = fullRiseDay(pts);
     var conf = REC.confirmation === "two sources" ? txt("confirmedTwo", { sources: (REC.sources_showing_it || []).join(", ") }) : txt("confirmedOne");
-    return '<div class="sm-hero"><h1>' + esc(t.h) + "</h1>" + (t.lead ? '<p class="sm-lead">' + esc(t.lead) + "</p>" : "") +
+    return '<div class="sm-hero">' + w("heading", { country: COUNTRY, pct: pct(Math.abs(REC.after[0].official_change_pct_from_baseline)) }, "h1") +
+      '<p class="sm-lead">' + txtWithHtml("lead", { country: COUNTRY, fullDay: full ? dayShort(full) : "" }, "knownDate", knownLink()) + "</p>" +
       '<p class="sm-meta sm-num">' + esc(txt("meta", { day: dayShort(REC.detected_on), confirmation: conf })) + "</p></div>";
   }
 
   function chartSectionHtml() {
-    return '<section id="evChartSec">' + w("chartHeading", null, "h2") + w("chartNote", null, "p", "sm-note") +
+    return '<section id="evChartSec">' + w("chartHeading", { country: COUNTRY }, "h2") + w("chartNote", null, "p", "sm-note") +
       '<div class="sm-chart" id="evChart" role="img" aria-label="' + esc(txt("chartAria")) + '"><svg id="evSvg"></svg><div class="sm-tip" id="evTip" hidden></div></div>' +
       '<ul class="sm-keys"><li><i style="border-top-color:var(--data-700)"></i>' + esc(txt("keyStreet")) + '</li><li><i style="border-top-color:var(--color-neutral-900)"></i>' +
       esc(txt("keyOfficial")) + "</li></ul></section>";
@@ -90,31 +95,30 @@
 
   function cell(label, v, day, base) {
     if (v == null) return '<td data-label="' + esc(label) + '"><div class="ev-v">' + esc(txt("notYet")) + "</div></td>";
-    var ch = base ? '<small class="sm-num">' + esc(txt("cellChange", { pct: pct((v / base - 1) * 100) })) + "</small>" : "";
-    return '<td data-label="' + esc(label) + '"><div class="ev-v sm-num">' + esc(txt("cellPrice", { value: price(v), ccy: REC.ccy })) + "<small>" + esc(txt("cellDay", { day: dayShort(day) })) +
-      "</small>" + ch + "</div></td>";
+    var ch = "";
+    if (base) { var c = (v / base - 1) * 100; ch = txt(c < 0 ? "cellLess" : "cellMore", { pct: pct(Math.abs(c)) }); }
+    return '<td data-label="' + esc(label) + '"><div class="ev-v sm-num">' + esc(txt("cellFull", { value: price(v), day: dayShort(day), change: ch })) + "</div></td>";
   }
 
-  function tableHtml(pts) {
-    var after = (REC.after || [])[0];
-    var s = REC.street || {}, o = REC.official || {};
+  function tableHtml() {
+    var after = REC.after[0], s = REC.street || {}, o = REC.official || {};
     var rows = '<tr><td class="ev-nm">' + esc(txt("rowStreet")) + "</td>" + cell(txt("colBefore"), s.before, s.before_day, null) +
-      cell(txt("colNow"), s.at_detection, s.at_detection_day, s.before) + cell(txt("colAfter"), after && after.street, after && after.day, s.before) + "</tr>" +
+      cell(txt("colNow"), s.at_detection, s.at_detection_day, s.before) + cell(txt("colAfter"), after.street, after.day, s.before) + "</tr>" +
       '<tr><td class="ev-nm">' + esc(txt("rowOfficial")) + "</td>" + cell(txt("colBefore"), o.baseline, o.baseline_day, null) +
-      cell(txt("colNow"), o.at_detection, REC.detected_on, o.baseline) + cell(txt("colAfter"), after && after.official, after && after.day, o.baseline) + "</tr>";
+      cell(txt("colNow"), o.at_detection, REC.detected_on, o.baseline) + cell(txt("colAfter"), after.official, after.day, o.baseline) + "</tr>";
     return '<section id="evTable">' + w("tableHeading", null, "h2") + '<table class="ev"><caption>' + esc(txt("tableHeading")) + "</caption><thead><tr><th scope=\"col\">" +
-      esc(txt("colWhat")) + '</th><th scope="col">' + esc(txt("colBefore")) + '</th><th scope="col">' + esc(txt("colNow")) + '</th><th scope="col">' + esc(txt("colAfter")) +
-      "</th></tr></thead><tbody>" + rows + "</tbody></table></section>";
+      esc(txt("colWhat", { currency: currencyWord() })) + '</th><th scope="col">' + esc(txt("colBefore")) + '</th><th scope="col">' + esc(txt("colNow")) + '</th><th scope="col">' +
+      esc(txt("colAfter")) + "</th></tr></thead><tbody>" + rows + "</tbody></table></section>";
   }
 
-  function lagHtml(pts) {
-    var lag = REC.official_lag_days, body;
-    if (REC.kind !== "official_break") body = txt("lagStreet");
-    else if (lag != null) {
-      var x = addDays(REC.detected_on, -lag), a = at(pts, x, "street"), b = at(pts, addDays(x, -3), "street");
-      body = a && b ? txt("lagLed", { pct: pct(Math.abs((a / b - 1) * 100)), streetDay: dayShort(x), day: dayShort(REC.detected_on), lag: lag }) : txt("lagNone");
-    } else body = txt("lagNone");
-    return body ? '<section id="evLag">' + w("lagHeading", null, "h2") + '<p class="sm-note">' + esc(body) + "</p></section>" : "";
+  // who moved first: only said when the street price really jumped on the government's day (by the detector's own 3% bar) and
+  // the official source moved later; the five days before are read off the record's daily points
+  function firstHtml(pts) {
+    var kd = REC.known_date.date, bar = (REC.rules && REC.rules.official_step_pct) || 3;
+    var d0 = addDays(kd, -5), d1 = addDays(kd, -1), a = at(pts, d0, "street"), b = at(pts, d1, "street"), day = at(pts, kd, "street");
+    if (!a || !b || !day || (day / b - 1) * 100 < bar || dayGap(kd, REC.detected_on) <= 0) return "";
+    return '<section id="evFirst">' + w("firstHeading", null, "h2") + '<p class="sm-note">' +
+      txtWithHtml("firstLine", { pre: pct((b / a - 1) * 100), lag: dayGap(kd, REC.detected_on), day: dayShort(REC.detected_on) }, "knownDate", knownLink()) + "</p></section>";
   }
 
   function offersHtml() {
@@ -125,9 +129,9 @@
   }
 
   function keepHtml() {
-    var li = [];
-    if (REC.confirmation !== "two sources") li.push(txt("keepOne"));
-    li.push(txt("keepStreet"), txt("keepOfficial"), txt("keepWeekly"));
+    var li = [], live = REC.checks && REC.checks.fx_live && REC.checks.fx_live.first_reading_day;
+    if (REC.confirmation !== "two sources") li.push(txt("keepOne", { liveStart: live ? dayShort(live) : "" }));
+    li.push(txt("keepStreet"), txt("keepWeekly"));
     var flags = (REC.checks && REC.checks.official_rate_rules_flagged_that_day) || [];
     if (flags.length) li.push(txt("flagLine", { rules: flags.join(", ") }));
     return '<section id="evKeep">' + w("keepHeading", null, "h2") + '<ul class="sm-facts">' + li.filter(Boolean).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul></section>";
@@ -135,7 +139,9 @@
 
   function checksHtml() {
     var c = REC.checks || {}, out = [];
-    function add(key, label, n, of) { if (c[key] && n != null) out.push(txt("checkLine", { source: txt(label), n: n, of: of })); }
+    function add(key, label, n, of) {
+      if (c[key] && n != null) out.push(txt("checkLine", { source: txt(label), n: n, of: of }) + (n < of && key === "fx_live" ? txt("checkLater") : ""));
+    }
     add("er-api", "sourceOfficial", c["er-api"] && c["er-api"].days_with_a_reading_in_window, 4);
     add("fx_live", "sourceLive", c.fx_live && c.fx_live.days_with_a_reading_in_window, 4);
     add("binance_p2p", "sourceBinance", c.binance_p2p && c.binance_p2p.days_with_a_price_in_window, 8);
@@ -202,7 +208,7 @@
     if (!best) return;
     var tip = document.getElementById("evTip"), cross = document.getElementById("evCross");
     tip.innerHTML = "<b>" + esc(dayShort(best.day)) + "</b>" + [["street", "keyStreet", "var(--data-700)"], ["official", "keyOfficial", "var(--color-neutral-900)"]].map(function (k) {
-      return best[k[0]] == null ? "" : '<div class="sm-num"><i style="border-top-color:' + k[2] + '"></i>' + esc(txt(k[1])) + ": " + esc(txt("tipUnit", { value: price(best[k[0]]), ccy: REC.ccy })) + "</div>";
+      return best[k[0]] == null ? "" : '<div class="sm-num"><i style="border-top-color:' + k[2] + '"></i>' + esc(txt(k[1])) + ": " + esc(txt("tipUnit", { value: price(best[k[0]]) })) + "</div>";
     }).join("");
     tip.hidden = false;
     var cx = chart.X(best.day);
@@ -217,7 +223,8 @@
 
   function render() {
     var pts = points();
-    app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml(pts) + chartSectionHtml() + tableHtml(pts) + lagHtml(pts) + offersHtml() + keepHtml() + checksHtml() + footerHtml() + "</div>";
+    if (!ready()) { app.innerHTML = '<div class="sm-wrap">' + headHtml() + w("notReady", null, "p") + "</div>"; return; }
+    app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml(pts) + chartSectionHtml() + tableHtml() + firstHtml(pts) + offersHtml() + keepHtml() + checksHtml() + footerHtml() + "</div>";
     drawChart();
     var box = document.getElementById("evChart");
     if (box) {
