@@ -1,7 +1,28 @@
 {
- "as_of_utc": "2026-10-22T08:16:59Z",
+ "as_of_utc": "2026-10-22T08:42:55Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "afd9bce7608b50dd302072acc09c2c3b95201c92",
+   "html_url": "https://github.com/SebR214/margin/commit/afd9bce7608b50dd302072acc09c2c3b95201c92",
+   "date": "2026-10-22T08:23:55Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-22T08:23Z"
+  },
+  {
+   "sha": "390ce8cee1c7e7f925e7bc5108e4355b37f613d3",
+   "html_url": "https://github.com/SebR214/margin/commit/390ce8cee1c7e7f925e7bc5108e4355b37f613d3",
+   "date": "2026-10-22T08:23:04Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "aider builder run 2026-10-22T08:19:43+00:00"
+  },
+  {
+   "sha": "f52cbdc6ddf46bb302087797f7edb7ce5db9b31e",
+   "html_url": "https://github.com/SebR214/margin/commit/f52cbdc6ddf46bb302087797f7edb7ce5db9b31e",
+   "date": "2026-10-22T08:18:37Z",
+   "email": "person",
+   "message": "SEB-301: Aider builder puts back table lines the editor rewrote (#639)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
   {
    "sha": "d28d265bf60e2200619443c5dedde24eea456ea7",
    "html_url": "https://github.com/SebR214/margin/commit/d28d265bf60e2200619443c5dedde24eea456ea7",
@@ -680,27 +701,6 @@
    "date": "2026-10-21T09:44:43Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-10-21T09:44Z"
-  },
-  {
-   "sha": "135172f832cac493923e0d1d43c6aee7d569cd94",
-   "html_url": "https://github.com/SebR214/margin/commit/135172f832cac493923e0d1d43c6aee7d569cd94",
-   "date": "2026-10-21T09:32:06Z",
-   "email": "person",
-   "message": "SEB-301: machine view twins, six fixes (#594)\n\n1. Each section links only its own data file (SECTION_FILES, by the order headings appear), never all 8 the page loaded.\n   A country or finding page falls back to its own one file only if it linked none itself (a held-back country with no\n   raw-file table).\n2. A table whose page shows no column label, or only a partial one (an axis label on one column), gets a real header\n   (SECTION_HEADERS), only when the column count matches.\n3. A \"Show all\" / \"Show more\" / \"Show earlier\" / \"Show why\" button is clicked before the markdown is read, so a twin\n   never stops at the first 20 rows a reader would have to click through -- every priced country, and every no-price\n   country with its reason.\n4. An internal link to a page that has a markdown twin now points at the twin, never the .html page. A page with no\n   twin (agent-incidents.html, tape.html) is left as it was, since there is nothing else to link.\n5. Sentences starting \"Tap\" are dropped from the markdown text only; the page itself is untouched.\n6. \"Prices from the HH:MM UTC hour, D Mon.\" is now plain text under the title, not an HTML comment. The idempotency\n   check (skip an hour already written) now looks for this line instead.\n\nScript only. The twins and llms.txt are generated files; they are never committed in a PR, the next hourly collect.yml\nrun rebuilds them with this fixed script. Ran a full local build to verify (not committed): 72 twins, 0 failures.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "0a61ed13222c8ff2361d4cc4cb4c1e81975aa0a0",
-   "html_url": "https://github.com/SebR214/margin/commit/0a61ed13222c8ff2361d4cc4cb4c1e81975aa0a0",
-   "date": "2026-10-21T09:18:40Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-21T09:18Z"
-  },
-  {
-   "sha": "3a2cd996e3e8affa14f3e6a664289cb12c778b98",
-   "html_url": "https://github.com/SebR214/margin/commit/3a2cd996e3e8affa14f3e6a664289cb12c778b98",
-   "date": "2026-10-21T09:08:05Z",
-   "email": "person",
-   "message": "SEB-301: machine view is black with white text, text only (#593)\n\n* SEB-301: spacing and text scale on home, switch words filled in\n\nSeb's exact CSS, appended to the shared stylesheet: 18px lead/body text at 1.6 line-height, 16px heading-to-text, 96px between\nsections (64px on a phone), counters on one line above 767px, text-wrap: pretty on a phone.\n\nHome's intro renders as two spans, same words as whatLine in copy.json: \"We track... had a price.\" then \"We also price\nsending money on {routes} routes, with every fee we can measure included.\"\n\ncopy.json's machineView words are filled in from Seb's approval on SEB-301 (21 Oct), surgical edit of just that block so the\nrest of the file keeps its existing formatting. js/machine_view.js updated to match: one sizeLine template with two\nplaceholders instead of two separate strings, and a \"Copied\" flash on the two copy links. No writer PR: Seb approved these\nwords in Linear and the PR title names SEB-301, which check_copy_lock.py's spec-approval rule accepts directly.\n\nCo-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>\n\n* SEB-301: machine view is black with white text, text only, a soft fade in\n\nSeb's feedback on the live switch. Machine mode now hides the site header, nav and clock too, not just the page content: it\nshows only the panel, on a black background with white text. The panel fades and slides in instead of appearing instantly.\n\nCo-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
   }
  ]
 }
