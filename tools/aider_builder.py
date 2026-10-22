@@ -184,6 +184,11 @@ def splice(manifest_path):
             new = open(os.path.join(m["work"], r["part"])).read()
             new = new[:-1] if new.endswith("\n") and not r["orig"].endswith("\n") else new
             assert text.count(r["orig"]) == 1, "region lost in %s" % p
+            o = r["orig"].split("\n")
+            if new.split("\n")[0] != o[0] or o[-1] not in new.split("\n"):
+                print("%s: a part must start with its original first line (%r) and keep its original last line. "
+                      "Put new lines inside the part, never above it." % (r["part"], o[0][:60]))
+                raise SystemExit(1)
             text = text.replace(r["orig"], new, 1)
         open(os.path.join(ROOT, p), "w").write(text)
     if m.get("regen"):
@@ -401,6 +406,12 @@ def self_test():
             assert sorted(os.listdir(work)) == [".git", "parts", "small.py"], "the scratch repo holds only the job's files"
             splice(mf)
             assert open(os.path.join(ROOT, "big.py")).read() == src, "untouched parts splice back to the same file"
+            open(os.path.join(work, files[0]), "w").write("NEW = 1\nTABLE = {\n  'x': 1,\n}\n")
+            try:
+                splice(mf)
+                raise AssertionError("a line above a part must be refused")
+            except SystemExit:
+                pass
             open(os.path.join(work, files[0]), "w").write("TABLE = {\n  'x': 1,\n  'y': 2,\n}\n")
             open(os.path.join(work, "small.py"), "w").write("s = 2\n")
             splice(mf)
