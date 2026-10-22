@@ -1782,6 +1782,18 @@ An hour is counted for a route only if every step is stored for it. India and Ni
 
 The daily chart is the median per day of the same hourly difference, from each route's first counted hour. The biggest moves are at most five of: an app's confirmed price change at 1,000 in the last 30 days (`price_changes.csv`, kind `change`), and a route's median gap over the first 7 days of the last 30 against the last 7 (at least 3 days in each). They are ranked by the size of the change in points of the amount.
 
+## United States to Argentina (SEB-310, from the first hour collected after it merged)
+
+An eighth route, added to `collector.py` `CORRIDORS` as `USD->ARS`: dollars bought on Coinbase, sent as USDT over Polygon, sold for pesos on Bitso's `usdt_ars` book and paid out by bank transfer. It follows the United States to Mexico route step for step; only Bitso's book and fees differ.
+
+Read from Bitso's own pages and API on 2026-10-22, each stored in the route's config with its URL and the date:
+
+- **USDT deposit networks.** `bitso.com/ar/fees/transactions` (identical to `bitso.com/fees/transactions`) lists Polygon, Stellar, Tron, Solana and Ethereum, all free of charge. Coinbase sends USDT on Ethereum, Solana, Base, Polygon, Arbitrum and Avalanche. Polygon, Solana and Ethereum are common to both; Polygon is modelled, as for Mexico, and its gas is not published, so it is not in the cost (`gas_modelled` false).
+- **Peso bank withdrawal.** The same page lists "coelsa" and "Bitso Transfer" for pesos at a fixed fee of 0.
+- **Trading fee.** `api.bitso.com/v3/available_books/`, book `usdt_ars`: taker 0.60%, maker 0.45% at the base tier (tiers start at ARS 1,625,000 of 30-day volume). The fee check reads the same API as Mexico's and writes to `data/fee_checks_usdars.csv`, a file of its own because `fee_checks.csv` has no route column.
+
+The comparison feed returns three or more apps for this route only at 200 and 5,000 (21 Oct), two at the other sizes. The usual rule of skipping a size with fewer than three apps is waived for this route: every size is stored. The routes table compares Argentina at the sizes where three or more apps are returned and says so.
+
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
 **Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's

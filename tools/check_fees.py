@@ -38,6 +38,9 @@ sys.path.insert(0, HERE)
 from collector import CORRIDORS  # noqa: E402
 
 CHECKS = os.path.join(HERE, "data", "fee_checks.csv")
+# Argentina (SEB-310): Bitso's usdt_ars schedule has the same venue and leg names as Mexico's, and fee_checks.csv has no corridor column
+# and a frozen header, so its rows go to a file of their own with the same header
+CHECKS_ARS = os.path.join(HERE, "data", "fee_checks_usdars.csv")
 FIELDS = [
     "ts_utc", "venue", "leg", "regime", "config_bps", "published_bps",
     "status", "source_url", "error",
@@ -404,15 +407,16 @@ def check_manual(ts, venue, leg, regime, config_bps, verified, url, now=None):
     return row
 
 
-def append(rows):
-    os.makedirs(os.path.dirname(CHECKS), exist_ok=True)
-    new = not os.path.exists(CHECKS) or os.path.getsize(CHECKS) == 0
-    with open(CHECKS, "a", newline="") as f:
+def append(rows, path=None):
+    path = path or CHECKS
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new = not os.path.exists(path) or os.path.getsize(path) == 0
+    with open(path, "a", newline="") as f:
         w = csv.DictWriter(f, fieldnames=FIELDS, extrasaction="ignore")
         if new:
             w.writeheader()
         w.writerows(rows)
-    return CHECKS
+    return path
 
 
 def append_tiers(rows):
@@ -661,6 +665,8 @@ def main():
     ts = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     rows = build_rows(ts, CORRIDORS["SGD->PHP"])
     rows += build_rows_usdmxn(ts, CORRIDORS["USD->MXN"])
+    # Argentina: only Bitso's two rows (the Coinbase rows are the same manual check as Mexico's), to the sidecar
+    ars_rows = build_rows_usdmxn(ts, CORRIDORS["USD->ARS"])[2:]
 
     wrows, breaches = check_withdrawals(ts)
     trows = build_tier_rows(ts)
@@ -670,6 +676,8 @@ def main():
     # files, three schemas: trading fees in bps, withdrawal fees in asset
     # units, tier schedules as (threshold, fee_pct) pairs.
     append(rows)
+    append(ars_rows, CHECKS_ARS)
+    rows += ars_rows
     if wrows:
         append_withdrawals(wrows)
     if trows:
