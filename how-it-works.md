@@ -1,6 +1,6 @@
 # How to read this site
 
-Prices from the 23:00 UTC hour, 21 Oct.
+Prices from the 00:00 UTC hour, 22 Oct.
 
 ## What we measure
 
@@ -8,7 +8,7 @@ Every country has an official exchange rate. In some countries banks won’t sel
 
 ## What the percentage means
 
-In Algeria, the official rate says a dollar costs 135 DZD. People actually pay 263 DZD. That’s 95.1% more, so Algeria shows +95.1%.
+In Syria, the official rate says a dollar costs 122 SYP. People actually pay 144 SYP. That’s 18.6% more, so Syria shows +18.6%.
 
 0% means people pay the official rate, and most countries are close to it. A minus means they pay a little less.
 

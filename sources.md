@@ -1,6 +1,6 @@
 # Every gap in our sources is shown, day by day
 
-Prices from the 23:00 UTC hour, 21 Oct.
+Prices from the 00:00 UTC hour, 22 Oct.
 
 Each row shows whether a source answered on each day, and how far back its older prices go.
 
@@ -14,42 +14,42 @@ On 5 Oct every source missed some hours. That was our collector stopping, not th
 
 | Source | Type | Hours priced |
 | --- | --- | --- |
-| WorldRemit | Transfer app · Covers 3 sending routes | 466 of 570 hours priced |
-| CoinGecko | Price aggregator · Covers 1 currency | 897 of 917 hours priced |
-| CriptoYa | Broker · 28 feeds | 32,389 of 32,654 hours priced |
-| Luno | Exchange · Covers 1 currency · Covers 1 sending route | 531 of 534 hours priced |
-|  | Independent Reserve (AUD) Exchange · Covers 1 currency | 955 of 960 hours priced |
-|  | Independent Reserve (NZD) Exchange · Covers 1 currency | 955 of 960 hours priced |
-| Argentina's central bank | Official rate · Covers 1 currency | 956 of 961 hours priced |
-| Independent Reserve | Exchange · Covers 1 currency · Covers 4 sending routes | 1,499 of 1,506 hours priced |
-| Instarem | Transfer app · Covers 2 sending routes | 956 of 960 hours priced |
-| Bitkub | Exchange · Covers 1 currency | 1,497 of 1,503 hours priced |
-| Upbit | Exchange · Covers 1 currency | 1,497 of 1,503 hours priced |
-| Mercado Bitcoin | Exchange · Covers 1 currency | 1,146 of 1,150 hours priced |
-| WazirX | Exchange · Covers 1 currency · Covers 2 sending routes | 957 of 960 hours priced |
-| Public price comparison | Transfer app · Covers 7 sending routes | 1,482 of 1,486 hours priced |
-| Paribu | Exchange · Covers 1 currency | 1,147 of 1,150 hours priced |
-| OKX, person to person | Person to person · Covers 53 currencies | 437 of 438 hours priced |
-| BTC Markets | Exchange · Covers 1 currency | 438 of 439 hours priced |
-| Airwallex | Transfer app · Covers 7 sending routes | 958 of 960 hours priced |
-| CoinDCX | Exchange · Covers 1 currency | 958 of 960 hours priced |
-| MAX | Exchange · Covers 1 currency | 958 of 960 hours priced |
-| DolarApi Argentina | Official rate · Covers 1 currency | 959 of 961 hours priced |
-| DolarApi Bolivia | Official rate · Covers 1 currency | 959 of 961 hours priced |
-| DolarApi Venezuela | Official rate · Covers 1 currency | 959 of 961 hours priced |
-| ExchangeRate-API | Official rate · Covers 60 currencies | 959 of 961 hours priced |
-| BTCTurk | Exchange · Covers 1 currency | 1,500 of 1,503 hours priced |
-| Pintu | Exchange · Covers 1 currency | 1,148 of 1,150 hours priced |
-| Wise | Transfer app · Covers 7 sending routes | 603 of 604 hours priced |
-| BitoPro | Exchange · Covers 1 currency | 959 of 960 hours priced |
-|  | Binance, person to person Person to person · Covers 53 currencies | 1,146 of 1,147 hours priced |
-| Bithumb | Exchange · Covers 1 currency | 1,149 of 1,150 hours priced |
-| Coinone | Exchange · Covers 1 currency | 1,149 of 1,150 hours priced |
-| Foxbit | Exchange · Covers 1 currency | 1,149 of 1,150 hours priced |
-| Coinbase | Exchange · Covers 3 sending routes | 1,345 of 1,346 hours priced |
-| Bitso | Exchange · Covers 1 currency · Covers 1 sending route | 1,502 of 1,503 hours priced |
-| Indodax | Exchange · Covers 1 currency | 1,502 of 1,503 hours priced |
-| Coins.ph | Exchange · Covers 1 currency · Covers 3 sending routes | 1,505 of 1,506 hours priced |
+| WorldRemit | Transfer app · Covers 3 sending routes | 467 of 571 hours priced |
+| CoinGecko | Price aggregator · Covers 1 currency | 898 of 918 hours priced |
+| CriptoYa | Broker · 28 feeds | 32,416 of 32,682 hours priced |
+| Luno | Exchange · Covers 1 currency · Covers 1 sending route | 532 of 535 hours priced |
+|  | Independent Reserve (AUD) Exchange · Covers 1 currency | 956 of 961 hours priced |
+|  | Independent Reserve (NZD) Exchange · Covers 1 currency | 956 of 961 hours priced |
+| Argentina's central bank | Official rate · Covers 1 currency | 957 of 962 hours priced |
+| Independent Reserve | Exchange · Covers 1 currency · Covers 4 sending routes | 1,500 of 1,507 hours priced |
+| Instarem | Transfer app · Covers 2 sending routes | 957 of 961 hours priced |
+| Bitkub | Exchange · Covers 1 currency | 1,498 of 1,504 hours priced |
+| Upbit | Exchange · Covers 1 currency | 1,498 of 1,504 hours priced |
+| Mercado Bitcoin | Exchange · Covers 1 currency | 1,147 of 1,151 hours priced |
+| WazirX | Exchange · Covers 1 currency · Covers 2 sending routes | 958 of 961 hours priced |
+| Public price comparison | Transfer app · Covers 7 sending routes | 1,483 of 1,487 hours priced |
+| Paribu | Exchange · Covers 1 currency | 1,148 of 1,151 hours priced |
+| OKX, person to person | Person to person · Covers 53 currencies | 438 of 439 hours priced |
+| BTC Markets | Exchange · Covers 1 currency | 439 of 440 hours priced |
+| Airwallex | Transfer app · Covers 7 sending routes | 959 of 961 hours priced |
+| CoinDCX | Exchange · Covers 1 currency | 959 of 961 hours priced |
+| MAX | Exchange · Covers 1 currency | 959 of 961 hours priced |
+| DolarApi Argentina | Official rate · Covers 1 currency | 960 of 962 hours priced |
+| DolarApi Bolivia | Official rate · Covers 1 currency | 960 of 962 hours priced |
+| DolarApi Venezuela | Official rate · Covers 1 currency | 960 of 962 hours priced |
+| ExchangeRate-API | Official rate · Covers 60 currencies | 960 of 962 hours priced |
+| BTCTurk | Exchange · Covers 1 currency | 1,501 of 1,504 hours priced |
+| Pintu | Exchange · Covers 1 currency | 1,149 of 1,151 hours priced |
+| Wise | Transfer app · Covers 7 sending routes | 604 of 605 hours priced |
+| BitoPro | Exchange · Covers 1 currency | 960 of 961 hours priced |
+|  | Binance, person to person Person to person · Covers 53 currencies | 1,147 of 1,148 hours priced |
+| Bithumb | Exchange · Covers 1 currency | 1,150 of 1,151 hours priced |
+| Coinone | Exchange · Covers 1 currency | 1,150 of 1,151 hours priced |
+| Foxbit | Exchange · Covers 1 currency | 1,150 of 1,151 hours priced |
+| Coinbase | Exchange · Covers 3 sending routes | 1,346 of 1,347 hours priced |
+| Bitso | Exchange · Covers 1 currency · Covers 1 sending route | 1,503 of 1,504 hours priced |
+| Indodax | Exchange · Covers 1 currency | 1,503 of 1,504 hours priced |
+| Coins.ph | Exchange · Covers 1 currency · Covers 3 sending routes | 1,506 of 1,507 hours priced |
 
 <https://margin.wiki/data/sources_daily.json>
 
