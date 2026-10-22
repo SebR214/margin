@@ -12,7 +12,9 @@
     python3 tests/check_events.py
 """
 import csv
+import json
 import os
+import re
 import statistics
 import sys
 
@@ -89,5 +91,12 @@ assert any(r["status"] == "not_enough_evidence" for r in rows), "not enough evid
 sdg = [r for r in rows if r["ccy"] == "SDG" and r["status"] == "not_enough_evidence" and r["detected_on"] == "2026-09-13"]
 assert sdg and "4 days of official history" in sdg[0]["note"], sdg
 
+# a hand-entered known_date, where a record on file has one, says what, when and where from: the detector cannot know it, so it is checked here
+for name in sorted(os.listdir(os.path.join(ROOT, "data", "event_records"))):
+    with open(os.path.join(ROOT, "data", "event_records", name)) as f:
+        on_file = json.load(f)
+    kd = on_file.get("known_date")
+    if kd:
+        assert re.match(r"^\d{4}-\d\d-\d\d$", kd["date"]) and kd["url"].startswith("https://") and kd["source"] and kd["what"], (name, kd)
 print("check_events: ok (%d rows: %d candidates, %d warnings; Iraq %s, Bolivia %s; Sudan a warning; thin markets quiet)" % (
     len(rows), len(cands), len(warn), iq[0]["detected_on"], bo[0]["detected_on"]))

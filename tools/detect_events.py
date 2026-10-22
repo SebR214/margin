@@ -254,7 +254,8 @@ def build_record(data, ccy, kind, d, ch, conf, sources, ok_size, flagged):
     rec["checks"] = {
         "er-api": {"file": "data/fx_rates.csv", "readings_on_detection_day": data["n_off"].get((ccy, d), 0),
                    "days_with_a_reading_in_window": sum(1 for n in range(OFFICIAL_DAYS + 1) if off.get(day_add(d, -n)))},
-        "fx_live": {"file": "data/fx_live.csv", "days_with_a_reading_in_window": sum(1 for n in range(OFFICIAL_DAYS + 1) if data["live"].get(ccy, {}).get(day_add(d, -n)))},
+        "fx_live": {"file": "data/fx_live.csv", "first_reading_day": min((d for v in data["live"].values() for d in v), default=None),
+                    "days_with_a_reading_in_window": sum(1 for n in range(OFFICIAL_DAYS + 1) if data["live"].get(ccy, {}).get(day_add(d, -n)))},
         "binance_p2p": {"file": "data/p2p_basis.csv", "days_with_a_price_in_window": sum(1 for n in range(STREET_DAYS + 1) if sb.get((ccy, day_add(d, -n))))},
         "okx_p2p": {"file": "data/p2p_okx.csv", "days_with_a_price_in_window": sum(1 for n in range(STREET_DAYS + 1) if data["street"]["okx_p2p"].get((ccy, day_add(d, -n))))},
         "official_rate_rules_flagged_that_day": flagged}
@@ -519,12 +520,19 @@ def self_test():
             write_records(r1)
             eid = event_id("AAA", "official_break", ev_day)
             assert json.load(open(os.path.join(tmp, eid + ".json")))["after"] == [], "a new record starts with no after"
+            kd = {"date": days[38], "source": "Test", "url": "https://example.com/a"}                # a hand-entered fact, added to the file
+            with open(os.path.join(tmp, eid + ".json")) as f:
+                cur = json.load(f)
+            cur["known_date"] = kd
+            with open(os.path.join(tmp, eid + ".json"), "w") as f:
+                json.dump(cur, f, indent=1, sort_keys=True)
             part2, r2 = run_days(data, part1, day_add(ev_day, 1), day_add(ev_day, 21))       # three weekly update days in one catch-up
             assert set(r2[eid]["_afters"][i]["weeks_after"] for i in range(3)) == {1, 2, 3}, r2[eid]
             write_records(r2)
             rec_on_file = json.load(open(os.path.join(tmp, eid + ".json")))
             assert [a["weeks_after"] for a in rec_on_file["after"]] == [1, 2, 3], "every weekly update reaches the record: %s" % rec_on_file["after"]
             assert rec_on_file["timeline"] == recs[eid]["timeline"], "nothing earlier in the record changes"
+            assert rec_on_file["known_date"] == kd, "the detector's updates keep a hand-entered known_date"
             write_records(r2)                                                                  # the same run again adds nothing
             assert [a["weeks_after"] for a in json.load(open(os.path.join(tmp, eid + ".json")))["after"]] == [1, 2, 3]
             # a record opened and updated inside one run holds its updates too, and closes at 8 weeks
