@@ -117,6 +117,7 @@ def task_message(i):
     return i["description"] + "\n\n" + TASK_RULES
 
 
+DERIVED = ["data/routes_hourly.json", "data/routes_breakdown.json"]    # written by tools/emit_routes.py; a new route makes them stale (the pilot's third run)
 PARTS = "parts"              # inside the scratch repo Aider works in (see make_parts)
 
 
@@ -158,7 +159,7 @@ def make_parts(job, tmp):
     for c in (["init", "-q"], ["add", "-A"], ["-c", "user.name=aider", "-c", "user.email=aider@example.invalid", "commit", "-q", "-m", "start"]):
         subprocess.run(["git"] + c, cwd=work, capture_output=True, check=True)
     mf = os.path.join(tmp, "parts.json")
-    json.dump({"work": work, "whole": whole, "regions": regions,
+    json.dump({"work": work, "whole": whole, "regions": regions, "regen": backlog.is_collection(job),
                "pristine": {p: open(os.path.join(ROOT, p)).read() for p in regions}}, open(mf, "w"))
     note = ""
     if notes:
@@ -185,6 +186,11 @@ def splice(manifest_path):
             assert text.count(r["orig"]) == 1, "region lost in %s" % p
             text = text.replace(r["orig"], new, 1)
         open(os.path.join(ROOT, p), "w").write(text)
+    if m.get("regen"):
+        r = subprocess.run([sys.executable, "tools/emit_routes.py"], cwd=ROOT, capture_output=True, text=True)
+        if r.returncode != 0:
+            print("tools/emit_routes.py failed:\n" + (r.stdout + r.stderr)[-1500:])
+            raise SystemExit(1)
 
 
 def aider_cmd(job, architect, msg_file, tmp, files=None, manifest=None):
@@ -316,7 +322,7 @@ def build(force, only):
     after = settled_usage(key, before)
     splice(manifest)
     cost = max(0.0, after - before)
-    allowed = set(job["files"])
+    allowed = set(job["files"]) | (set(DERIVED) if backlog.is_collection(job) else set())
     changed = tidy(allowed)
     problems = []
     if why:
