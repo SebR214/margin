@@ -7,7 +7,8 @@ from about 1,310 to 1,517 in four steps over six days (9 to 14 Oct) while the re
 currency's daily series (the last er-api value of each UTC day) and flags a currency on any of four rules:
 
   weekly_loop   the last 21 days repeat the days seven before them, within 2%, on at least 80% of days, while the series
-                moves by more than 5% inside a week (a rate that sits still is not a loop: that is the flat rule)
+                moves by more than 5% inside each of the last two weeks (a rate that sits still is not a loop: that is the flat rule,
+                and one step in a flat rate is not a loop either)
   jump_reverse  a day-to-day move of more than 10% that is undone, to within 3% of the old value, inside five days
   flat_30       the rate has not changed at all, to six decimals, for 30 days (a managed peg does this legitimately; the flag
                 says so is for a person to judge, it does not hide the rate)
@@ -54,8 +55,10 @@ def rule_weekly_loop(vals):
         return None
     last = vals[-21:]
     hits = sum(1 for i in range(n - 21, n) if abs(vals[i] / vals[i - 7] - 1) < 0.02)
-    wk = vals[-7:]
-    if hits / 21 >= 0.8 and max(wk) / min(wk) - 1 > 0.05:
+    wk, before = vals[-7:], vals[-14:-7]
+    # a loop moves in the week it repeats AND in the week before it: a flat rate that steps once equals itself 7 days earlier on every
+    # day but the days after the step, and is not a loop (found 22 Oct on Iraq's step of 9 Oct, SEB-311)
+    if hits / 21 >= 0.8 and max(wk) / min(wk) - 1 > 0.05 and max(before) / min(before) - 1 > 0.05:
         return "%d of the last 21 days equal the day seven before, within 2%%, while the rate swings %.0f%% inside a week" % (
             hits, (max(wk) / min(wk) - 1) * 100)
     return None
@@ -142,6 +145,9 @@ def self_test():
     # a lag that is gone after one day is not flagged; a quiet rate is not a loop
     assert rule_weekly_loop([3.6725] * 42) is None and rule_flat_30([3.6725] * 42), "a peg is flat, not a loop"
     assert rule_flat_30([1.0 + 0.001 * (i % 2) for i in range(40)]) is None
+    # one step in an otherwise flat rate equals itself a week earlier on most days, and is not a loop (Iraq, 9 Oct)
+    step = [1310.0] * 30 + [1429.0] + [1430.0] * 3
+    assert rule_weekly_loop(step) is None, "a single step is not a loop"
     # a spike that comes straight back is flagged, a step that stays is not
     assert rule_jump_reverse([100] * 5 + [130] + [101] * 5), "spike and reverse"
     assert rule_jump_reverse([100] * 5 + [130] * 6) is None, "a step that stays is not a reversal"

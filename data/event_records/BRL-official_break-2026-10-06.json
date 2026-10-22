@@ -1,0 +1,107 @@
+{
+ "after": [
+  {
+   "day": "2026-10-13",
+   "official": 4.989911,
+   "official_change_pct_from_baseline": -4.4506,
+   "street": null,
+   "street_change_pct_from_before": null,
+   "weeks_after": 1
+  },
+  {
+   "day": "2026-10-20",
+   "official": 5.049766,
+   "official_change_pct_from_baseline": -3.3044,
+   "street": null,
+   "street_change_pct_from_before": null,
+   "weeks_after": 2
+  }
+ ],
+ "ccy": "BRL",
+ "checks": {
+  "binance_p2p": {
+   "days_with_a_price_in_window": 0,
+   "file": "data/p2p_basis.csv"
+  },
+  "er-api": {
+   "days_with_a_reading_in_window": 4,
+   "file": "data/fx_rates.csv",
+   "readings_on_detection_day": 22
+  },
+  "fx_live": {
+   "days_with_a_reading_in_window": 0,
+   "file": "data/fx_live.csv"
+  },
+  "official_rate_rules_flagged_that_day": [],
+  "okx_p2p": {
+   "days_with_a_price_in_window": 0,
+   "file": "data/p2p_okx.csv"
+  }
+ },
+ "confirmation": "one source",
+ "detected_on": "2026-10-06",
+ "id": "BRL-official_break-2026-10-06",
+ "kind": "official_break",
+ "offers": {
+  "buy_ads_median_7d": null,
+  "note": "p2p_sides.csv counts stop at 10 per side; p2p_depth.csv holds the board's own total where stored; data/p2p_ads.csv holds every ad read from 22 Oct",
+  "sell_ads_median_7d": null,
+  "source": "none stored"
+ },
+ "official": {
+  "at_detection": 5.017022,
+  "baseline": 5.222334,
+  "baseline_day": "2026-10-03",
+  "change_pct": -3.9314,
+  "source": "er-api, data/fx_rates.csv, last reading of each UTC day"
+ },
+ "official_lag_days": null,
+ "official_lag_note": "the street price had not moved 3% in the same direction in the 9 days before the official step",
+ "rules": {
+  "min_ads_each_side": 10,
+  "official_days": 3,
+  "official_step_pct": 3.0,
+  "street_days": 7,
+  "street_slide_pct": 10.0
+ },
+ "sources_showing_it": [
+  "er-api"
+ ],
+ "street": {
+  "at_detection": null,
+  "at_detection_day": "2026-10-06",
+  "before": null,
+  "before_day": "2026-09-29",
+  "source": "binance_p2p buy price, data/p2p_basis.csv, median of the UTC day"
+ },
+ "trace": [
+  {
+   "ccy": "BRL",
+   "day": "2026-10-03",
+   "file": "data/fx_rates.csv",
+   "number": "official.baseline",
+   "rule": "last reading of the UTC day"
+  },
+  {
+   "ccy": "BRL",
+   "day": "2026-10-06",
+   "file": "data/fx_rates.csv",
+   "number": "official.at_detection",
+   "rule": "last reading of the UTC day"
+  },
+  {
+   "ccy": "BRL",
+   "day": "2026-09-29",
+   "file": "data/p2p_basis.csv",
+   "number": "street.before",
+   "rule": "median of the day's binance_p2p buy_median, source_ok true, at least 12 readings"
+  },
+  {
+   "ccy": "BRL",
+   "day": "2026-10-06",
+   "file": "data/p2p_basis.csv",
+   "number": "street.at_detection",
+   "rule": "median of the day's binance_p2p buy_median, source_ok true, at least 12 readings"
+  }
+ ]
+}

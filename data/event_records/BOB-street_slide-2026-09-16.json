@@ -1,0 +1,132 @@
+{
+ "after": [
+  {
+   "day": "2026-09-23",
+   "official": 11.049445,
+   "official_change_pct_from_baseline": null,
+   "street": 12.3625,
+   "street_change_pct_from_before": -0.1414,
+   "weeks_after": 1
+  },
+  {
+   "day": "2026-09-30",
+   "official": 12.110635,
+   "official_change_pct_from_baseline": null,
+   "street": 12.02,
+   "street_change_pct_from_before": -2.9079,
+   "weeks_after": 2
+  },
+  {
+   "day": "2026-10-07",
+   "official": 11.989057,
+   "official_change_pct_from_baseline": null,
+   "street": 11.92,
+   "street_change_pct_from_before": -3.7157,
+   "weeks_after": 3
+  },
+  {
+   "day": "2026-10-14",
+   "official": 11.757007,
+   "official_change_pct_from_baseline": null,
+   "street": 11.88,
+   "street_change_pct_from_before": -4.0388,
+   "weeks_after": 4
+  },
+  {
+   "day": "2026-10-21",
+   "official": 11.685224,
+   "official_change_pct_from_baseline": null,
+   "street": 11.925,
+   "street_change_pct_from_before": -3.6753,
+   "weeks_after": 5
+  }
+ ],
+ "ccy": "BOB",
+ "checks": {
+  "binance_p2p": {
+   "days_with_a_price_in_window": 7,
+   "file": "data/p2p_basis.csv"
+  },
+  "er-api": {
+   "days_with_a_reading_in_window": 4,
+   "file": "data/fx_rates.csv",
+   "readings_on_detection_day": 24
+  },
+  "fx_live": {
+   "days_with_a_reading_in_window": 0,
+   "file": "data/fx_live.csv"
+  },
+  "official_rate_rules_flagged_that_day": [],
+  "okx_p2p": {
+   "days_with_a_price_in_window": 0,
+   "file": "data/p2p_okx.csv"
+  }
+ },
+ "confirmation": "one source",
+ "detected_on": "2026-09-16",
+ "id": "BOB-street_slide-2026-09-16",
+ "kind": "street_slide",
+ "offers": {
+  "buy_ads_median_7d": 10.0,
+  "note": "p2p_sides.csv counts stop at 10 per side; p2p_depth.csv holds the board's own total where stored; data/p2p_ads.csv holds every ad read from 22 Oct",
+  "sell_ads_median_7d": 10.0,
+  "source": "p2p_depth.csv+p2p_sides.csv"
+ },
+ "official": {
+  "at_detection": 11.871528,
+  "baseline": 12.585729,
+  "baseline_day": "2026-09-13",
+  "change_pct": -5.6747,
+  "source": "er-api, data/fx_rates.csv, last reading of each UTC day"
+ },
+ "official_lag_days": null,
+ "official_lag_note": "not caught up yet at detection: the official rate is unknown% from its value 7 days earlier",
+ "rules": {
+  "min_ads_each_side": 10,
+  "official_days": 3,
+  "official_step_pct": 3.0,
+  "street_days": 7,
+  "street_slide_pct": 10.0
+ },
+ "sources_showing_it": [
+  "binance_p2p"
+ ],
+ "street": {
+  "at_detection": 10.7575,
+  "at_detection_day": "2026-09-16",
+  "before": 12.38,
+  "before_day": "2026-09-09",
+  "change_pct": -13.1058,
+  "source": "binance_p2p buy price, data/p2p_basis.csv, median of the UTC day"
+ },
+ "trace": [
+  {
+   "ccy": "BOB",
+   "day": "2026-09-13",
+   "file": "data/fx_rates.csv",
+   "number": "official.baseline",
+   "rule": "last reading of the UTC day"
+  },
+  {
+   "ccy": "BOB",
+   "day": "2026-09-16",
+   "file": "data/fx_rates.csv",
+   "number": "official.at_detection",
+   "rule": "last reading of the UTC day"
+  },
+  {
+   "ccy": "BOB",
+   "day": "2026-09-09",
+   "file": "data/p2p_basis.csv",
+   "number": "street.before",
+   "rule": "median of the day's binance_p2p buy_median, source_ok true, at least 12 readings"
+  },
+  {
+   "ccy": "BOB",
+   "day": "2026-09-16",
+   "file": "data/p2p_basis.csv",
+   "number": "street.at_detection",
+   "rule": "median of the day's binance_p2p buy_median, source_ok true, at least 12 readings"
+  }
+ ]
+}

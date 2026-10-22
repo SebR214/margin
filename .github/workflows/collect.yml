@@ -295,6 +295,14 @@ jobs:
         # days, or lags the live rate. Writes data/official_rate_flags.csv. See tools/check_official_rates.py.
         run: if [ "$(date -u +%H)" = "03" ]; then python3 tools/check_official_rates.py; else echo "once a day, not this hour"; fi
 
+      - name: Detect currency events, shadow mode (SEB-311)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        # SEB-311 step 3. Once a day (the 03:00 UTC hour, after the rate check above): judges every UTC day since the last one in
+        # data/events.csv, up to yesterday, and appends candidates, updates and data warnings to data/events.csv and
+        # data/event_records/. Reads stored files only. Publishes nothing. See tools/detect_events.py.
+        run: if [ "$(date -u +%H)" = "03" ]; then python3 tools/detect_events.py; else echo "once a day, not this hour"; fi
+
       - name: Emit machine-readable snapshot
         if: always() && steps.needed.outputs.proceed == 'true'
         # Derived from the CSVs the two steps above just wrote, so it runs after
@@ -678,7 +686,7 @@ jobs:
                    data/p2p_spread_signal.csv data/p2p_spread_signal_latest.json \
                    data/corridor_summary.json data/corridor_waterfall.csv \
                    data/corridor_window.json data/machine_room_meters.json \
-                   data/provider_delivery.csv data/gas_readings.csv data/fx_live.csv data/official_rate_flags.csv data/audit_latest.json \
+                   data/provider_delivery.csv data/gas_readings.csv data/fx_live.csv data/official_rate_flags.csv data/events.csv data/audit_latest.json \
                    data/audit_history.csv data/claims_status.json data/claims_history.csv data/routes_hourly.json \
                    data/routes_summary.json data/routes_breakdown.json data/routes_table.json \
                    data/routes_whatif.json data/heatmap_daily.json \
@@ -717,7 +725,7 @@ jobs:
           # appears here on its first run with no edit to this list --
           # which is the point of staging the directory rather than naming
           # the files.
-          for d in data/countries data/receipts data/corridor_receipts data/provider_receipts data/pricechange_receipts data/meter_receipts data/delivery_receipts data/bundle; do
+          for d in data/countries data/receipts data/corridor_receipts data/provider_receipts data/pricechange_receipts data/meter_receipts data/delivery_receipts data/bundle data/event_records; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Machine view (SEB-301, 21 Oct): one markdown twin per country and per finding. A separate loop, not added to
