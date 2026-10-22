@@ -169,6 +169,18 @@ def make_parts(job, tmp):
     return work, files, mf, note
 
 
+def keep_original(orig, new):
+    """Only insertions survive: a line of the table that the model deleted or rewrote is put back. Used for the .py parts of a
+    collection job, where tools/check_additive.py refuses any rewritten line and the editor model kept swapping a constant's name for
+    a literal in four existing entries (pilot runs 9 to 11)."""
+    import difflib
+    a, b = orig.split("\n"), new.split("\n")
+    out = []
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes():
+        out += b[j1:j2] if tag in ("equal", "insert") else a[i1:i2]
+    return "\n".join(out)
+
+
 def splice(manifest_path):
     """Put the scratch repo's work into the real repo: whole files are copied, part files are joined back into their file from its
     pristine text. Safe to run again and again (it is the first half of Aider's test command)."""
@@ -183,7 +195,14 @@ def splice(manifest_path):
         for r in regions:
             new = open(os.path.join(m["work"], r["part"])).read()
             new = new[:-1] if new.endswith("\n") and not r["orig"].endswith("\n") else new
+            if m.get("regen") and r["part"].endswith(".py"):
+                new = keep_original(r["orig"], new.rstrip("\n"))
             assert text.count(r["orig"]) == 1, "region lost in %s" % p
+            o = r["orig"].split("\n")
+            if new.split("\n")[0] != o[0] or o[-1] not in new.split("\n"):
+                print("%s: a part must start with its original first line (%r) and keep its original last line. "
+                      "Put new lines inside the part, never above it." % (r["part"], o[0][:60]))
+                raise SystemExit(1)
             text = text.replace(r["orig"], new, 1)
         open(os.path.join(ROOT, p), "w").write(text)
     if m.get("regen"):
@@ -198,7 +217,7 @@ def aider_cmd(job, architect, msg_file, tmp, files=None, manifest=None):
          "--editor-edit-format", "editor-diff", "--yes-always", "--no-auto-commits", "--no-dirty-commits", "--no-gitignore",
          "--no-pretty", "--no-stream", "--no-check-update", "--no-analytics", "--no-show-model-warnings", "--no-suggest-shell-commands",
          "--no-detect-urls", "--map-tokens", "0", "--auto-test",
-         "--test-cmd", "python3 %s/tools/aider_builder.py --splice %s && python3 %s/tools/aider_checks.py" % (ROOT, manifest, ROOT),
+         "--test-cmd", "cd %s && python3 tools/aider_builder.py --splice %s && python3 tools/aider_checks.py && (python3 tools/check_additive.py --worktree || { echo 'Lines you removed or rewrote. Put every one back exactly as it was:'; git diff -U0 HEAD -- collector.py collector_providers.py .github/workflows/collect.yml | grep '^-[^-]' | cut -c1-200 | head -20; exit 1; })" % (ROOT, manifest),
          "--message-file", msg_file, "--llm-history-file", os.path.join(tmp, "llm.txt"),
          "--input-history-file", os.path.join(tmp, "input.txt"), "--chat-history-file", os.path.join(tmp, "chat.md")]
     for p in job["context"]:
@@ -330,9 +349,10 @@ def build(force, only):
     if not changed:
         problems.append("Aider changed none of the job's files")
     else:
-        bad = subprocess.run([sys.executable, "tools/aider_checks.py"], cwd=ROOT, capture_output=True, text=True)
-        if bad.returncode != 0:
-            problems.append("the offline checks fail: " + (bad.stdout.strip().split("\n")[1:2] or ["see log"])[0][:160])
+        for cmd in (["tools/aider_checks.py"], ["tools/check_additive.py", "--worktree"]):
+            bad = subprocess.run([sys.executable] + cmd, cwd=ROOT, capture_output=True, text=True)
+            if bad.returncode != 0:
+                problems.append("%s fails: %s" % (os.path.basename(cmd[0]), (bad.stdout.strip().split("\n")[1:2] or bad.stdout.strip().split("\n")[:1] or ["see log"])[0][:160]))
     spend_row = {"ts_utc": ts, "issue": "%s/%s/%s" % (one_call.BACKLOG_ISSUE, TRACK, job["id"]), "model": "openrouter/%s+%s" % (architect, EDITOR),
                  "tokens_in": "", "tokens_out": "", "cost_usd": "%.6f" % cost, "result": "ok" if not problems else "failed"}
     llm.LOGGED.append(spend_row)
@@ -381,8 +401,9 @@ def self_test():
     for m in (ARCHITECT_FALLBACK, EDITOR):
         assert not llm.BANNED.search(m), "no model of the two larger families"
     c = aider_cmd({"files": ["a.py"], "context": ["m.md"]}, "anthropic/claude-sonnet-5.5", "/t/task", "/t", None, "/t/parts.json")
-    assert "--architect" in c and c[c.index("--test-cmd") + 1].endswith("/tools/aider_checks.py") and "--splice /t/parts.json" in c[c.index("--test-cmd") + 1]
+    assert "--architect" in c and "--splice /t/parts.json" in c[c.index("--test-cmd") + 1]
     assert c[c.index("--model") + 1] == "openrouter/anthropic/claude-sonnet-5.5" and c[c.index("--editor-model") + 1] == "openrouter/qwen/qwen3-coder"
+    assert c[c.index("--test-cmd") + 1].startswith("cd ") and "check_additive.py --worktree" in c[c.index("--test-cmd") + 1]
     assert "--no-auto-commits" in c and c.count("--file") == 1 and c.count("--read") == 1
     assert "\u2014" not in TASK_RULES
     with tempfile.TemporaryDirectory() as d:
@@ -401,6 +422,12 @@ def self_test():
             assert sorted(os.listdir(work)) == [".git", "parts", "small.py"], "the scratch repo holds only the job's files"
             splice(mf)
             assert open(os.path.join(ROOT, "big.py")).read() == src, "untouched parts splice back to the same file"
+            open(os.path.join(work, files[0]), "w").write("NEW = 1\nTABLE = {\n  'x': 1,\n}\n")
+            try:
+                splice(mf)
+                raise AssertionError("a line above a part must be refused")
+            except SystemExit:
+                pass
             open(os.path.join(work, files[0]), "w").write("TABLE = {\n  'x': 1,\n  'y': 2,\n}\n")
             open(os.path.join(work, "small.py"), "w").write("s = 2\n")
             splice(mf)

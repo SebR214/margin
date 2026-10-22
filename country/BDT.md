@@ -1,12 +1,12 @@
 # No price for Bangladesh this hour
 
-Prices from the 05:00 UTC hour, 22 Oct.
+Prices from the 09:00 UTC hour, 22 Oct.
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
 The last price we published was +3.9%, on 22 Oct.
 
-Prices from the 05:00 UTC hour, 22 Oct
+Prices from the 09:00 UTC hour, 22 Oct
 
 <https://margin.wiki/data/countries/BDT.json>
 
@@ -20,6 +20,10 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 22 Oct, 09:10 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 08:10 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 07:09 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 22 Oct, 06:38 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 22 Oct, 05:08 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 22 Oct, 04:08 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 22 Oct, 03:08 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -28,10 +32,6 @@ Open any file to check a price yourself.
 | 22 Oct, 00:08 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 22 Oct, 00:06 UTC | Binance, person to person | 128.52 BDT | +3.9% | 10 of 42 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 23:08 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 21 Oct, 23:06 UTC | Binance, person to person | 128.52 BDT | +3.9% | 10 of 41 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 21 Oct, 22:08 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 21 Oct, 22:06 UTC | Binance, person to person | 128.50 BDT | +3.9% | 10 of 42 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 21 Oct, 21:08 UTC | OKX, person to person | 150.00 BDT | +21.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

@@ -4,6 +4,7 @@
     python3 tools/check_additive.py --compare main --sha <sha> [--repo owner/name]   # from the diff of one exact commit (what automerge uses)
     python3 tools/check_additive.py --pr 123 [--repo owner/name]     # from GitHub's file list (can lag right after a push)
     python3 tools/check_additive.py --base origin/main               # from git, against a base
+    python3 tools/check_additive.py --worktree                       # from the uncommitted work against HEAD
     python3 tools/check_additive.py --self-test
 
 A PR that touches collection code (collector*.py or .github/workflows/collect.yml) merges by itself only if it is additive:
@@ -191,6 +192,24 @@ def from_git(base):
     return files
 
 
+def from_worktree():
+    """The uncommitted work against HEAD, new files included (tools/aider_builder.py judges its own work before it opens a PR)."""
+    subprocess.run(["git", "add", "-A", "-N"], capture_output=True, check=True)
+    names = subprocess.run(["git", "diff", "--name-status", "HEAD"], capture_output=True, text=True, check=True).stdout.split("\n")
+    files = []
+    for line in names:
+        if not line.strip():
+            continue
+        parts = line.split("\t")
+        st = {"A": "added", "M": "modified", "D": "removed"}.get(parts[0][0], "renamed")
+        name = parts[-1]
+        f = {"filename": name, "status": st, "patch": subprocess.run(["git", "diff", "HEAD", "--", name], capture_output=True, text=True).stdout}
+        if COLLECTOR.match(name) and st == "modified":
+            f["content"] = open(name).read()
+        files.append(f)
+    return files
+
+
 def self_test():
     new = lambda n: {"filename": n, "status": "added", "patch": ""}
     mod = lambda n, p="": {"filename": n, "status": "modified", "patch": p}
@@ -245,6 +264,8 @@ def main(argv):
         files = from_pr(argv[argv.index("--pr") + 1], repo)
     elif "--base" in argv:
         files = from_git(argv[argv.index("--base") + 1])
+    elif "--worktree" in argv:
+        files = from_worktree()
     else:
         sys.exit(__doc__)
     touches, ok, why = classify(files)

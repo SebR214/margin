@@ -296,10 +296,16 @@ def step(D, data, events, flags_cache=None):
         if e["status"] in ("candidate",):
             opened[e["event_id"]] = e
     flags = flags_as_of(D, data["off"], data["live"])
-    quiet_since = {}
+    # two quiet periods, kept apart: a candidate or a data warning keeps the same episode from being raised again for 14 days, but a
+    # not_enough_evidence row is only a note that the history was short, so it silences more notes of its own kind and nothing else: the
+    # first real break or slide after it must still be raised
+    quiet_since, quiet_nee = {}, {}
     for e in events:
-        if e["status"] in ("candidate", "data_warning", "not_enough_evidence"):
-            quiet_since[(e["ccy"], e["kind"])] = max(quiet_since.get((e["ccy"], e["kind"]), ""), e["detected_on"])
+        k = (e["ccy"], e["kind"])
+        if e["status"] in ("candidate", "data_warning"):
+            quiet_since[k] = max(quiet_since.get(k, ""), e["detected_on"])
+        elif e["status"] == "not_enough_evidence":
+            quiet_nee[k] = max(quiet_nee.get(k, ""), e["detected_on"])
     ccys = sorted(set(data["off"]) | {c for (c, _) in data["street"]["binance_p2p"]})
     for ccy in ccys:
         if ccy == "USD":
@@ -327,6 +333,9 @@ def step(D, data, events, flags_cache=None):
             if history < need and not warn:
                 if kind == "street_slide" and (t is None or not t[0]):
                     continue                                                                # a thin market is not an event, and not a row
+                n = quiet_nee.get((ccy, kind))
+                if n and (dt.date.fromisoformat(D) - dt.date.fromisoformat(n)).days < REARM_DAYS:
+                    continue                                                                # the same note, already on record
                 rows.append(row(D, eid, ccy, kind, "not_enough_evidence", "not enough evidence", D, None, None, ch,
                                 "%d days of official history, %d are needed" % (history, need)))
                 continue
@@ -386,17 +395,25 @@ def write_rows(rows):
         w.writerows(rows)
 
 
+def add_after(rec, after):
+    """Append one weekly snapshot to a record held in memory or just read from its file. Nothing earlier in it changes."""
+    if any(x["day"] == after["day"] for x in rec["after"]):
+        return
+    rec["after"].append(after)
+    if after["weeks_after"] * UPDATE_EVERY == CLOSE_AFTER:
+        rec["closed_on"] = after["day"]
+
+
 def write_records(recs):
+    """recs: a full record (a new event, with every update that came in the same run already added), or {"_afters": [...]} for updates
+    to a record already on file, however many weeks a catch-up run had to cover."""
     os.makedirs(RECORDS, exist_ok=True)
     for eid, rec in recs.items():
         p = os.path.join(RECORDS, eid + ".json")
-        if "_after" in rec:
+        if "_afters" in rec:
             cur = json.load(open(p))
-            if any(a["day"] == rec["_after"]["day"] for a in cur["after"]):
-                continue
-            cur["after"].append(rec["_after"])
-            if rec["_after"]["weeks_after"] * UPDATE_EVERY == CLOSE_AFTER:
-                cur["closed_on"] = rec["_after"]["day"]
+            for a in rec["_afters"]:
+                add_after(cur, a)
             rec = cur
         elif os.path.exists(p):
             continue                                                                        # a record is written once
@@ -413,12 +430,12 @@ def run_days(data, events, start, end):
         rows, r = step(d, data, events + out)
         out.extend(rows)
         for k, v in r.items():
-            if "_after" in v and k in recs:
-                recs[k].setdefault("after", []).append(v["_after"])
-            elif "_after" in v:
+            if "_after" not in v:
                 recs[k] = v
+            elif k in recs and "after" in recs[k]:
+                add_after(recs[k], v["_after"])                                             # an event opened earlier in this same run
             else:
-                recs[k] = v
+                recs.setdefault(k, {"_afters": []})["_afters"].append(v["_after"])           # a record on file: every week, not only the first
         d = day_add(d, 1)
     return out, recs
 
@@ -440,8 +457,7 @@ def main(argv):
         print("detect_events: nothing new to judge (through %s)" % (start and day_add(start, -1)))
         return 0
     rows, recs = run_days(data, events, start, end)
-    write_records({k: v for k, v in recs.items() if "_after" not in v})                      # records before rows: persistence before display
-    write_records({k: v for k, v in recs.items() if "_after" in v})
+    write_records(recs)                                                                      # records before rows: persistence before display
     if rows:
         write_rows(rows)
     print("detect_events: judged %s to %s, %d rows" % (start, end, len(rows)))
@@ -491,6 +507,40 @@ def self_test():
     assert rec["official"]["baseline"] == 100.0 and rec["official"]["at_detection"] == 130.0 and rec["confirmation"] == "one source", rec
     assert rec["official_lag_days"] is not None and rec["official_lag_days"] > 0, "the street led the official step: %s" % rec["official_lag_note"]
     assert any(r["status"] == "update" and r["event_id"] == rec["id"] for r in rows) or days[40] > days[-8], "weekly updates"
+    # catching up across several weekly updates keeps every one of them in the record file (a run that was off for 8 or more days)
+    import tempfile
+    global RECORDS
+    old_records = RECORDS
+    with tempfile.TemporaryDirectory() as tmp:
+        RECORDS = tmp
+        try:
+            ev_day = days[40]
+            part1, r1 = run_days(data, [], days[0], ev_day)
+            write_records(r1)
+            eid = event_id("AAA", "official_break", ev_day)
+            assert json.load(open(os.path.join(tmp, eid + ".json")))["after"] == [], "a new record starts with no after"
+            part2, r2 = run_days(data, part1, day_add(ev_day, 1), day_add(ev_day, 21))       # three weekly update days in one catch-up
+            assert set(r2[eid]["_afters"][i]["weeks_after"] for i in range(3)) == {1, 2, 3}, r2[eid]
+            write_records(r2)
+            rec_on_file = json.load(open(os.path.join(tmp, eid + ".json")))
+            assert [a["weeks_after"] for a in rec_on_file["after"]] == [1, 2, 3], "every weekly update reaches the record: %s" % rec_on_file["after"]
+            assert rec_on_file["timeline"] == recs[eid]["timeline"], "nothing earlier in the record changes"
+            write_records(r2)                                                                  # the same run again adds nothing
+            assert [a["weeks_after"] for a in json.load(open(os.path.join(tmp, eid + ".json")))["after"]] == [1, 2, 3]
+            # a record opened and updated inside one run holds its updates too, and closes at 8 weeks
+            _, r3 = run_days(data, [], days[0], day_add(ev_day, 56) if day_add(ev_day, 56) <= days[-1] else days[-1])
+            assert [a["weeks_after"] for a in r3[eid]["after"]] == list(range(1, len(r3[eid]["after"]) + 1)) and r3[eid]["after"], r3[eid]["after"]
+        finally:
+            RECORDS = old_records
+    # a not_enough_evidence note does not silence a real event in the next 14 days, and does not repeat itself for 14 days
+    short = [day_add(base, i) for i in range(40)]
+    offs = {"NEW": {d: (100.0 if i < 4 else 110.0 if i < 16 else 130.0) for i, d in enumerate(short)}}
+    d2 = {"off": offs, "n_off": {}, "live": {}, "street": {"binance_p2p": {}, "okx_p2p": {}}, "street_c": {"binance_p2p": {}, "okx_p2p": {}}, "size": {}}
+    r4, _ = run_days(d2, [], short[0], short[-1])
+    nee = [r for r in r4 if r["status"] == "not_enough_evidence"]
+    cand = [r for r in r4 if r["status"] == "candidate" and r["ccy"] == "NEW"]
+    assert [r["detected_on"] for r in nee] == [short[4]], "one note, not one a day: %s" % [r["detected_on"] for r in nee]
+    assert [r["detected_on"] for r in cand] == [short[16]], "the real break 12 days after the note must be raised: %s" % [r["detected_on"] for r in cand]
     print("detect_events self-test: ok")
     return 0
 

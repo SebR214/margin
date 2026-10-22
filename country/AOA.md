@@ -1,10 +1,10 @@
 # No price for Angola this hour
 
-Prices from the 05:00 UTC hour, 22 Oct.
+Prices from the 09:00 UTC hour, 22 Oct.
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
-Prices from the 05:00 UTC hour, 22 Oct
+Prices from the 09:00 UTC hour, 22 Oct
 
 <https://margin.wiki/data/countries/AOA.json>
 
