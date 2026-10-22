@@ -82,7 +82,8 @@
   }
 
   function rowHtml(r) {
-    var sym = r.send_symbol, name = '<td class="rt-nm">' + esc(plainWords(r.words)) + "</td>";
+    var sym = r.send_symbol, name = '<td class="rt-nm">' + esc(plainWords(r.words)) +
+      (r.amount !== DATA.amount ? "<small>" + esc(txt("atAmount", { amount: money(r.amount, sym) })) + "</small>" : "") + "</td>";
     var prem = r.premium_pct == null ? "" : '<span class="sm-num">' + esc(signedPct(r.premium_pct)) + "</span>";
     if (r.status !== "ok") {
       return "<tr>" + name + cell(txt("colPremium"), prem) +
@@ -99,7 +100,19 @@
   function tableHtml() {
     var head = ["colRoute", "colPremium", "colGap", "colCost", "colHours"].map(function (k) { return '<th scope="col">' + esc(txt(k)) + "</th>"; }).join("");
     return '<section id="smTable"><table class="rt"><caption>' + esc(txt("tableAria")) + "</caption><thead><tr>" + head + "</tr></thead><tbody>" +
-      DATA.rows.map(rowHtml).join("") + "</tbody></table>" + w("tableNote", null, "p", "sm-small") + "</section>";
+      DATA.rows.map(rowHtml).join("") + "</tbody></table>" + w("tableNote", null, "p", "sm-small") + sizesNoteHtml() + "</section>";
+  }
+
+  // a route compared at other sizes than the rest (Argentina) says which, in one line
+  function sizesNoteHtml() {
+    var seen = {}, out = "";
+    DATA.rows.forEach(function (r) {
+      if (r.amount === DATA.amount || seen[r.id]) return;
+      seen[r.id] = 1;
+      var amts = DATA.rows.filter(function (q) { return q.id === r.id; }).map(function (q) { return money(q.amount, q.send_symbol); });
+      out += w("sizesNote", { route: plainWords(r.words), amounts: amts.join(" and ") }, "p", "sm-small");
+    });
+    return out;
   }
 
   function chartSectionHtml() {
@@ -154,6 +167,9 @@
     var keys = Object.keys(days).sort();
     var pad = (hi - lo) * 0.08 || 0.5;
     lo -= pad; hi += pad;
+    var tk = niceTicks(lo, hi), stp = tk.length > 1 ? tk[1] - tk[0] : 1;
+    if (hi > tk[tk.length - 1]) hi = tk[tk.length - 1] + stp;     // the top line of the grid sits above the highest point
+    if (lo < tk[0]) lo = tk[0] - stp;
     var t0 = Date.parse(keys[0] + "T00:00:00Z"), t1 = Date.parse(keys[keys.length - 1] + "T00:00:00Z");
     function X(day) { return L + (t1 === t0 ? 0 : (Date.parse(day + "T00:00:00Z") - t0) / (t1 - t0)) * (W - L - R); }
     function Y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
