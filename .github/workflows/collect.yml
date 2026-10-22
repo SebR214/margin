@@ -561,6 +561,12 @@ jobs:
         # cost. See tools/emit_routes.py; `--self-test` checks it offline.
         run: python3 tools/emit_routes.py
 
+      - name: Emit the routes table, chart and biggest moves (SEB-310)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-310 item 2. Reads stored files only and writes data/routes_table.json for the routes page. Fails loud if the
+        # path's steps do not add up to its stored total. See tools/emit_routes_table.py; `--self-test` checks it offline.
+        run: python3 tools/emit_routes_table.py
+
       - name: Emit the findings again, from this hour's routes
         if: always() && steps.needed.outputs.proceed == 'true'
         # SEB-301, 21 Oct. emit_findings.py runs above, before emit_routes.py,
@@ -668,7 +674,7 @@ jobs:
                    data/corridor_window.json data/machine_room_meters.json \
                    data/provider_delivery.csv data/gas_readings.csv data/fx_live.csv data/official_rate_flags.csv data/audit_latest.json \
                    data/audit_history.csv data/claims_status.json data/claims_history.csv data/routes_hourly.json \
-                   data/routes_summary.json data/routes_breakdown.json \
+                   data/routes_summary.json data/routes_breakdown.json data/routes_table.json \
                    data/routes_whatif.json data/heatmap_daily.json \
                    data/record_daily.json data/cycle_log.json \
                    data/record_milestones.json data/movers_week.json data/stable_venues.csv data/commits_recent.json data/index_hourly.csv data/source_switches.csv data/findings_hours_exchange_vs_p2p.csv \

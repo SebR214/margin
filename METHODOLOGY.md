@@ -1765,6 +1765,23 @@ Read on 2026-10-22, about 03:40 UTC, in a real browser, from `guide.luno.com/hc/
 
 The fee is in naira, so in basis points it falls as the amount rises: at US$1,000 it is a few hundredths of a percent, at US$200 more. `ramp_withdrawal_measured` is now true for this route. Rows before 2026-10-22 keep the gap (cost 0.0, flagged); nothing is backfilled, and a comparison that crosses the change compares two measurements.
 
+## The routes table: how much of the dollar premium survives the trip (SEB-310, from 2026-10-22)
+
+`tools/emit_routes_table.py` writes `data/routes_table.json` every collection, from stored files only. It answers one question per route: how much of the destination's dollar premium can you carry home after every fee? It changes no existing number and no `index_version`. All figures are for 1,000 in the sending currency, over the last 7 days.
+
+| Column | How it is computed |
+|---|---|
+| Dollar premium | The destination currency's `index_pct` in `data/index_latest.json`, the newest hour. |
+| Stablecoin against the best app | Per priced hour, the best app's all-in cost minus the stablecoin path's all-in cost, in points of the amount (`routes_hourly.json`'s source: `emit_routes.series`). The median over the hours. Positive: the stablecoin was cheaper. Both costs are measured from the same mid-market rate, so the official rate cancels out of the difference. |
+| What the stablecoin path costs | Per hour, the sum of the path's own steps: `wf_deposit_bps` + `wf_buy_bps` (the price of the stablecoin against a dollar, slippage and the buying fee) + `wf_move_bps` (the on-chain fee) + the selling slippage (`offramp_slip_bps`) + the selling fee including India's tax (`fee_off_taker_bps`), each from `samples.csv` and the waterfall sidecars, all multiplied by 1 minus `offramp_basis_bps` / 10,000, plus `wf_withdrawal_bps`. Median over the hours. |
+| Hours cheaper | Hours in which the stablecoin path's cost was below the best app's, of the hours priced. |
+
+The multiplier in the path cost: every step before the withdrawal is stored against the fair value of the amount, but what it takes away is stablecoin that is then sold at the destination's price, which is higher by the sale's price gap. A 140 point fee on a sale 6.5% above fair value is 149 points of the amount. The dollar premium itself, the price gap of the sale, is not in the path cost: it is the benefit, shown in its own column. The emitter stops with an error if, in any hour, these steps differ from the stored total cost minus `offramp_basis_bps` by more than 2 basis points. That is a check, not the method: the table is the sum of the steps, not that subtraction.
+
+An hour is counted for a route only if every step is stored for it. India and Nigeria are counted only from the first hour whose cost holds the fees SEB-310 item 1 added: India from the first hour the sale fee holds the 1% tax (`fee_off_taker_bps` 140), Nigeria from the first hour Luno's bank fee is measured (`withdrawal_measured` true). Hours before that left a fee out, so they are not used, not corrected. A route with no counted hour shows empty cells and why.
+
+The daily chart is the median per day of the same hourly difference, from each route's first counted hour. The biggest moves are at most five of: an app's confirmed price change at 1,000 in the last 30 days (`price_changes.csv`, kind `change`), and a route's median gap over the first 7 days of the last 30 against the last 7 (at least 3 days in each). They are ranked by the size of the change in points of the amount.
+
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
 **Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's
