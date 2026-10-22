@@ -370,14 +370,15 @@ CORRIDORS = {
         "gas_modelled": True,
         "withdraw_pct": 0.0001,              # 0.01%, published (Coinbase)
         "withdraw_pct_cap": 20.0,             # USDT, published (Coinbase)
-        # NGN bank withdrawal (SEB-310): Luno publishes it on guide.luno.com, which answers a bot check to every automated
-        # client, so the page could not be read on 2026-10-21 and the fee stays a GAP (costs 0.0, flagged, never invented).
-        # Search snippets of that page disagree (N300, N500, or 2% capped at N2,000), which is why none is used.
+        # NGN bank withdrawal (SEB-310), read 2026-10-22 about 03:40 UTC in a real browser from Luno's own page. The page
+        # contradicts itself: its table says "Bank transfer N300 (excl. VAT)" and the text under it says "You'll be charged a
+        # N500 provider fee (excl. VAT) per withdrawal". The higher one is used, with Nigeria's 7.5% VAT: 500 * 1.075 = 537.50.
         "withdrawal": {
             "venue": "Luno", "method": "bank transfer",
-            "fee_type": "gap", "fee_value": None, "fee_ccy": "NGN",
+            "fee_type": "flat", "fee_value": 537.5, "fee_ccy": "NGN",
+            "fee_excl_vat": 500.0, "vat_pct": 7.5, "fee_alt_excl_vat": 300.0,
             "source_url": "https://guide.luno.com/hc/en-gb/articles/14962563616157-Luno-fees-and-limits-in-Nigeria",
-            "verified": "2026-10-21",
+            "verified": "2026-10-22",
         },
         "ladder": [200, 1000, 5000, 25000, 50000],
         "providers_file": "providers_usdngn.csv",
@@ -1912,7 +1913,9 @@ def selftest():
     assert ramp_fee_units(wd_inr, 150_000) == 10.0 and ramp_fee_units(wd_inr, 200_000) == 10.0
     assert ramp_fee_units(wd_inr, 200_001) == 20.0 and ramp_fee_units(wd_inr, 4_700_000) == 240.0
     assert wd_inr["verified"] == "2026-10-21" and "support.wazirx.com" in wd_inr["source_url"]
-    assert CORRIDORS["USD->NGN"]["withdrawal"]["fee_type"] == "gap", "Luno's NGN fee page could not be read: a gap, not a number"
+    wd_ngn = CORRIDORS["USD->NGN"]["withdrawal"]
+    assert wd_ngn["fee_type"] == "flat" and wd_ngn["fee_value"] == wd_ngn["fee_excl_vat"] * (1 + wd_ngn["vat_pct"] / 100) == 537.5, wd_ngn
+    assert wd_ngn["verified"] == "2026-10-22" and "guide.luno.com" in wd_ngn["source_url"]
     assert CORRIDORS["SGD->INR"]["offramp"]["tds_bps"] == 100.0 and CORRIDORS["SGD->INR"]["withdrawal"]["fee_value"] == 10.0
     print(f"  [ok] SEB-310: India TDS adds {d_inr['cost_bps_taker'] - d_notds['cost_bps_taker']:.1f} bps, INR 10 withdrawal fee per INR 200,000")
 

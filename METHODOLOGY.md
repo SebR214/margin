@@ -455,8 +455,9 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. **Version 1.7 is in force from
-2026-10-21, the 15:00 UTC hour** (India's tax and bank fee, Nigeria's gas, below; the route costs for the three India and Nigeria routes change). Version 1.6 ran on
+Every published file carries `index_version`. **Version 1.8 is in force from
+2026-10-22, the first hour collected after it merged** (Luno's naira withdrawal fee joins the United States to Nigeria cost, below). Version 1.7 ran from
+2026-10-21, the 15:00 UTC hour (India's tax and bank fee, Nigeria's gas, below; the route costs for the three India and Nigeria routes change). Version 1.6 ran on
 2026-10-21 (the official rate's own time, below; no published number changed). Version 1.5 ran from
 2026-10-14 (crossed boards, below). Version 1.4.1, the same day, recorded a second board kept apart. Version 1.4 ran from
 2026-10-11 (a sudden flip is held back, and a new source waits in quarantine, below). Version 1.3 added a believable-row test at
@@ -1744,7 +1745,7 @@ this hour keep the old costs; nothing is backfilled.
 | United States to India, Singapore to India | Tax deducted at source on every crypto sale (TDS) | 1% of the sale (`tds_bps` 100), taken off the sale on top of the exchange fee | `wazirx.com/fees?tab=spot_fees`, "From 1 July 2022, TDS of 1% of the trade value will be deducted on each trade" | 2026-10-21 |
 | United States to India, Singapore to India | WazirX bank withdrawal | INR 10 per withdrawal, taxes included, at most INR 200,000 a withdrawal, so a larger amount pays INR 10 for each INR 200,000 started (`flat_per_chunk`) | `support.wazirx.com/hc/en-us/articles/360001690794` | 2026-10-21 |
 | United States to Nigeria, United States to India | Ethereum gas for the USDT transfer | Measured at every collection: gas units from `eth_estimateGas` of a real USDT transfer, gas price from `eth_gasPrice`, ether price from Coinbase's public ETH-USD ticker; stored in `data/gas_readings.csv` | `ethereum-rpc.publicnode.com`, `api.exchange.coinbase.com/products/ETH-USD/ticker` | each run |
-| United States to Nigeria | Luno bank withdrawal in naira | **Not measured: a gap.** Luno publishes it on `guide.luno.com`, which shows a bot check to every automated client, so the page could not be read | `guide.luno.com/hc/en-gb/articles/14962563616157` | 2026-10-21 |
+| United States to Nigeria | Luno bank withdrawal in naira | **Not measured in 1.7: a gap, measured from 1.8 (below).** Luno publishes it on `guide.luno.com`, which shows a bot check to every automated client, so the page could not be read | `guide.luno.com/hc/en-gb/articles/14962563616157` | 2026-10-21 |
 
 What each does to a cost:
 
@@ -1755,6 +1756,14 @@ What each does to a cost:
 - Ethereum gas stays what it was on the three Tron routes: Independent Reserve's published 4 USDT.
 
 Rows before 2026-10-21 15:00 UTC have a network fee with no gas, no TDS and no bank fee on these routes. Every comparison that crosses that hour compares two different measurements.
+
+## Luno's naira withdrawal fee (SEB-310, from 2026-10-22, index_version 1.8)
+
+The United States to Nigeria route had Luno's bank withdrawal as a gap (version 1.7, above). It is now a fee: N500 plus 7.5% VAT, N537.50 a withdrawal, in `collector.py` under `USD->NGN` `withdrawal`, with the page and the date it was read.
+
+Read on 2026-10-22, about 03:40 UTC, in a real browser, from `guide.luno.com/hc/en-gb/articles/14962563616157-Luno-fees-and-limits-in-Nigeria`. The page contradicts itself: its table says "Bank transfer N300 (excl. VAT)", the text under it says "You'll be charged a N500 provider fee (excl. VAT) per withdrawal". The higher one is used, so the cost is not understated. The N300 is kept in the config as `fee_alt_excl_vat`. VAT is Nigeria's 7.5%. The USDT/NGN trading fee (0.10% taker, -0.01% maker) is unchanged.
+
+The fee is in naira, so in basis points it falls as the amount rises: at US$1,000 it is a few hundredths of a percent, at US$200 more. `ramp_withdrawal_measured` is now true for this route. Rows before 2026-10-22 keep the gap (cost 0.0, flagged); nothing is backfilled, and a comparison that crosses the change compares two measurements.
 
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
