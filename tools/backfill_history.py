@@ -1065,7 +1065,7 @@ def pack_raw(raw_dir, date):
 EVENTS_REPORTED = os.path.join(OUT_DIR, "events_reported.csv")
 RECORDS_REPORTED = os.path.join(OUT_DIR, "event_records")
 REPLAY_FIELDS = ["as_of_date", "event_id", "ccy", "kind", "status", "confirmation", "detected_on", "baseline", "latest", "change_pct", "note",
-                 "label", "sources"]
+                 "label", "source"]
 
 
 def _series(path, datecol, ccycol, valcol, ccys=None):
@@ -1162,7 +1162,7 @@ def replay_history(dry, start="2000-01-01"):
     rows, recs = de.run_days(data, [], max(start, de.first_day(data)), last)
     for r in rows:
         r["label"] = LABEL
-        r["sources"] = " | ".join(names.get(r["ccy"], [])) + " ; street " + " + ".join(snames.get(r["ccy"], ["none"]))
+        r["source"] = " | ".join(names.get(r["ccy"], [])) + " ; street " + " + ".join(snames.get(r["ccy"], ["none"]))
     fixed = {}
     for eid, rec in recs.items():
         if "_afters" in rec:
