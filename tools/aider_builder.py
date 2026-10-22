@@ -203,7 +203,7 @@ def aider_cmd(job, architect, msg_file, tmp, files=None, manifest=None):
          "--editor-edit-format", "editor-diff", "--yes-always", "--no-auto-commits", "--no-dirty-commits", "--no-gitignore",
          "--no-pretty", "--no-stream", "--no-check-update", "--no-analytics", "--no-show-model-warnings", "--no-suggest-shell-commands",
          "--no-detect-urls", "--map-tokens", "0", "--auto-test",
-         "--test-cmd", "python3 %s/tools/aider_builder.py --splice %s && python3 %s/tools/aider_checks.py && python3 %s/tools/check_additive.py --worktree" % (ROOT, manifest, ROOT, ROOT),
+         "--test-cmd", "cd %s && python3 tools/aider_builder.py --splice %s && python3 tools/aider_checks.py && python3 tools/check_additive.py --worktree" % (ROOT, manifest),
          "--message-file", msg_file, "--llm-history-file", os.path.join(tmp, "llm.txt"),
          "--input-history-file", os.path.join(tmp, "input.txt"), "--chat-history-file", os.path.join(tmp, "chat.md")]
     for p in job["context"]:
@@ -389,7 +389,7 @@ def self_test():
     c = aider_cmd({"files": ["a.py"], "context": ["m.md"]}, "anthropic/claude-sonnet-5.5", "/t/task", "/t", None, "/t/parts.json")
     assert "--architect" in c and "--splice /t/parts.json" in c[c.index("--test-cmd") + 1]
     assert c[c.index("--model") + 1] == "openrouter/anthropic/claude-sonnet-5.5" and c[c.index("--editor-model") + 1] == "openrouter/qwen/qwen3-coder"
-    assert "check_additive.py --worktree" in c[c.index("--test-cmd") + 1]
+    assert c[c.index("--test-cmd") + 1].startswith("cd ") and "check_additive.py --worktree" in c[c.index("--test-cmd") + 1]
     assert "--no-auto-commits" in c and c.count("--file") == 1 and c.count("--read") == 1
     assert "\u2014" not in TASK_RULES
     with tempfile.TemporaryDirectory() as d:
