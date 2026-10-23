@@ -1866,6 +1866,16 @@ A consequence to know: Argentina's 14 Dec 2023 devaluation (+118.7%) is a furthe
 
 New files beside the version-2 ones, which are untouched: `data/history/events_reported_rules3.csv` (same columns as version 2, `rules_version` 3) and `data/history/event_records_rules3/`. Replay: 306 candidates, down from 579. `tests/check_known_breaks.py` now also proves the BOB and SYP warnings, that no currency has two events inside 30 days, and that no step of 10% or more stands without a second source or a central-bank series.
 
+## A second official rate from Frankfurter, beside er-api (BACKLOG 10, from 2026-10-23)
+
+**Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's (`data/fx_rates.csv`). A source cannot check itself, and for most currencies the official rate had no second source: Frankfurter's older feed is the ECB's 29 currencies, 10 of ours. Its v2 feed (`https://api.frankfurter.dev/v2/rates?base=USD`) blends central banks and carried all 60 currencies we price when probed on 23 Oct (165 currencies in all; the older `api.frankfurter.app` now answers with a redirect).
+
+**`data/fx_second.csv`** (`collector_fx_second.py`, every collection run, quarantined: only `tools/emit_source_pairs.py` reads it): `ts_utc` (our clock), `ccy`, `rate_per_usd`, `source` (`frankfurter-v2`), `source_date` (the day the source stamps on that rate, as given; some currencies are a day behind), `er_api_rate` (the newest open.er-api rate for the currency in `fx_rates.csv`; blank when that hour's denominator came from another source, such as Argentina's from the central bank), `gap_pct`, `source_ok`, `error`. One row per currency we price per run. A currency the feed does not carry, a failed pull, or a rate more than five times or less than a fifth of er-api's is a row with `source_ok` false and the reason, never a gap and never a copy.
+
+**`data/source_pairs.json`, key `official`:** per currency, er-api against Frankfurter, hour by hour over 30 days (newest row of an hour wins), with the same fields as the street-price pairs (hours compared, median gap, share of hours over 2%, `flag` when the gap has been over 2% for 24 hours in a row up to now). Only currencies with 24 or more shared hours appear. The `markets` key is unchanged, so the "One source" marks on the site do not move.
+
+First reading, one pass on 23 Oct 07:00 UTC (a laptop run, nothing stored): 60 of 60 read; the widest gaps to er-api were Sudan +17.3%, Botswana -3.9%, Uganda +2.4%, Angola -1.4%, Nigeria +0.7%. Sudan matches the finding in `fx_live.csv` (21 Oct: 601.5 live against er-api's 449.2).
+
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
 **Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's
