@@ -1,12 +1,12 @@
-# In Kuwait a dollar costs 1.7% more than the official rate
+# In Kuwait a dollar costs 1.6% more than the official rate
 
-Prices from the 10:00 UTC hour, 23 Oct.
+Prices from the 11:00 UTC hour, 23 Oct.
 
 The official rate is 0.31 KWD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 0.32 KWD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 31.53 KWD. The official rate says 31.01 KWD.
+For US$100, people pay 31.50 KWD. The official rate says 31.01 KWD.
 
-Prices from the 10:00 UTC hour, 23 Oct
+Prices from the 11:00 UTC hour, 23 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -28,7 +28,7 @@ Binance, person to person
 
 OKX, person to person
 
-0.32 KWD +2.1%
+0.32 KWD +1.9%
 
 ## Every Kuwait price links to its raw file
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 11:09 UTC | OKX, person to person | 0.32 KWD | +1.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 23 Oct, 11:06 UTC | Binance, person to person | 0.31 KWD | +1.3% | 10 of 44 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 10:09 UTC | OKX, person to person | 0.32 KWD | +2.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 10:06 UTC | Binance, person to person | 0.31 KWD | +1.3% | 10 of 46 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 09:09 UTC | OKX, person to person | 0.33 KWD | +6.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 23 Oct, 07:06 UTC | Binance, person to person | 0.31 KWD | +1.3% | 10 of 37 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 06:18 UTC | OKX, person to person | 0.32 KWD | +2.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 06:15 UTC | Binance, person to person | 0.32 KWD | +1.6% | 10 of 33 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 05:09 UTC | OKX, person to person | 0.32 KWD | +1.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 23 Oct, 05:06 UTC | Binance, person to person | 0.32 KWD | +1.6% | 10 of 33 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
