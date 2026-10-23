@@ -1839,6 +1839,21 @@ Daily files in the repo: official rates from fawazahmed0 (every tracked currency
 
 The replay (`tools/backfill_history.py --replay`) runs the event detector over those files. Official breaks use the BIS series where it has the currency, else fawazahmed0; a second official source (the ECB reference rate, else fawazahmed0) can confirm. Street slides use the first of Binance, Bitso, Buda, Kraken and CoinGecko that has the currency; a second venue can confirm. Differences from the live detector: the market is an exchange spot market, so the "10 or more ads" test is replaced by the market existing, and the number of ads is not checked; the official-rate rules look at the 90 days before the day judged (over 26 years one old glitch would flag a currency for ever). Its rows are `data/history/events_reported.csv` and its records `data/history/event_records/`, kept apart from `data/events.csv` and `data/event_records/`, each marked "reported, not observed".
 
+## The event detector, rules version 2 (SEB-311 step 3c, 23 Oct 2026)
+
+Shadow mode, nothing published, `index_version` does not move. Rules version 1 (22 Oct) fired on any official rate 3% or more away from its value 3 days earlier. A replay over 26 years found 711 candidates, mostly ordinary swings of free-floating currencies (ZAR, TRY, BRL, COP). Version 2 changes the official-break rule only; the street-slide rule is untouched.
+
+| Currency | An official break needs |
+|---|---|
+| Managed (`managed_flag` true in `data/fx_rates.csv`, its latest reading) | a 3-day move of 3% or more, as before |
+| Every other | a 3-day move of 3% or more **and** at least 4 times that currency's own median 3-day move over the 365 days before the day judged. At least 30 earlier 3-day moves must exist, else `not_enough_evidence` |
+
+The 3% floor stays for every currency, so version 2 can only remove candidates. The day judged is not in its own median. Both rules apply the same way to the daily run and to the replay.
+
+A 3-day official move is a **data warning, never an event** when it is a unit error: (1) a redenomination, the rate multiplied by a power of ten (within about 5%), for moves of 50% or more; (2) the second official source (`fx_live.csv` live; the ECB reference rate, else fawazahmed0, in the replay) has both days and moves the other way or by less than half as much, at any size; (3) a move of 50% or more in an aggregator feed (er-api, fawazahmed0) that no central-bank series (BIS) and no second source shows. A 50% move in a BIS series stands (Turkey 2001, Argentina 14 Dec 2023). The check comes after the history test, so a currency with too little history is still `not_enough_evidence` (Egypt, 7 Mar 2024).
+
+Records carry `rules.rules_version`, the rule used and, for a free-floating currency, its median and the number of moves counted. The replay writes new files beside the version-1 ones, which are untouched (an existing header is frozen): `data/history/events_reported_rules2.csv` (the old columns plus `rules_version`) and `data/history/event_records_rules2/`. `tests/check_known_breaks.py` proves the replay finds Turkey Aug 2018 and Nov to Dec 2021, Argentina 14 Dec 2023, Egypt 7 Mar 2024 (not enough evidence) and Iraq Oct 2026, and misses Nigeria Jun 2023 because no official naira rate before 2 Mar 2024 exists in any free file.
+
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
 **Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's
