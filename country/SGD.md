@@ -1,14 +1,14 @@
 # In Singapore a dollar costs what the official rate says
 
-Prices from the 22:00 UTC hour, 23 Oct.
+Prices from the 23:00 UTC hour, 23 Oct.
 
 The official rate is 1.28 SGD per dollar. On the exchanges where people in Singapore trade stablecoins, one costs 1.28 SGD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 127.78 SGD. The official rate says 127.73 SGD.
+For US$100, people pay 127.79 SGD. The official rate says 127.73 SGD.
 
 One source
 
-Prices from the 22:00 UTC hour, 23 Oct
+Prices from the 23:00 UTC hour, 23 Oct
 
 <https://margin.wiki/data/countries/SGD.json>
 
@@ -32,6 +32,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 23 Oct, 23:06 UTC | OKX spot (SGD) | 1.28 SGD | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 23:06 UTC | IndependentReserve | 1.28 SGD | 0.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 22:06 UTC | OKX spot (SGD) | 1.28 SGD | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 22:06 UTC | IndependentReserve | 1.28 SGD | 0.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 21:06 UTC | OKX spot (SGD) | 1.28 SGD | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -42,8 +44,6 @@ Open any file to check a price yourself.
 | 23 Oct, 19:06 UTC | IndependentReserve | 1.28 SGD | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 18:06 UTC | OKX spot (SGD) | 1.28 SGD | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 18:06 UTC | IndependentReserve | 1.28 SGD | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 17:06 UTC | OKX spot (SGD) | 1.28 SGD | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 17:06 UTC | IndependentReserve | 1.28 SGD | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://margin.wiki/data/basis.csv>
