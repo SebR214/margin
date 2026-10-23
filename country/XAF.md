@@ -1,12 +1,12 @@
-# In Central African CFA a dollar costs 6.3% more than the official rate
+# In Central African CFA a dollar costs 6.4% more than the official rate
 
-Prices from the 19:00 UTC hour, 23 Oct.
+Prices from the 20:00 UTC hour, 23 Oct.
 
-The official rate is 584.82 XAF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 621.47 XAF. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 584.82 XAF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 622.13 XAF. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 62,147 XAF. The official rate says 58,482 XAF.
+For US$100, people pay 62,213 XAF. The official rate says 58,482 XAF.
 
-Prices from the 19:00 UTC hour, 23 Oct
+Prices from the 20:00 UTC hour, 23 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -24,11 +24,11 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 OKX, person to person
 
-620.95 XAF +6.2%
+622.00 XAF +6.4%
 
 Binance, person to person
 
-622.00 XAF +6.4%
+622.25 XAF +6.4%
 
 ## Every Central African CFA price links to its raw file
 
@@ -36,6 +36,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 20:11 UTC | OKX, person to person | 622.00 XAF | +6.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 19:09 UTC | OKX, person to person | 620.95 XAF | +6.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 18:10 UTC | OKX, person to person | 621.25 XAF | +6.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 15:06 UTC | Binance, person to person | 622.35 XAF | +6.4% | 10 of 36 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -47,7 +48,6 @@ Open any file to check a price yourself.
 | 23 Oct, 09:09 UTC | OKX, person to person | 619.90 XAF | +6.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 08:09 UTC | OKX, person to person | 619.90 XAF | +6.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 07:09 UTC | OKX, person to person | 619.90 XAF | +6.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 23 Oct, 06:18 UTC | OKX, person to person | 620.00 XAF | +6.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

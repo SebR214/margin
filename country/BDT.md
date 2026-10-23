@@ -1,12 +1,12 @@
 # No price for Bangladesh this hour
 
-Prices from the 19:00 UTC hour, 23 Oct.
+Prices from the 20:00 UTC hour, 23 Oct.
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
 The last price we published was +4.0%, on 23 Oct.
 
-Prices from the 19:00 UTC hour, 23 Oct
+Prices from the 20:00 UTC hour, 23 Oct
 
 <https://margin.wiki/data/countries/BDT.json>
 
@@ -20,6 +20,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Raw file |
 | --- | --- | --- | --- | --- |
+| 23 Oct, 20:11 UTC | OKX, person to person | 150.00 BDT | +21.3% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 19:09 UTC | OKX, person to person | 150.00 BDT | +21.3% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 18:10 UTC | OKX, person to person | 150.00 BDT | +21.3% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 17:09 UTC | OKX, person to person | 150.00 BDT | +21.3% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -31,7 +32,6 @@ Open any file to check a price yourself.
 | 23 Oct, 11:09 UTC | OKX, person to person | 150.00 BDT | +21.3% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 10:09 UTC | OKX, person to person | 150.00 BDT | +21.3% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 09:09 UTC | OKX, person to person | 150.00 BDT | +21.3% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 23 Oct, 08:09 UTC | OKX, person to person | 150.00 BDT | +21.3% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://margin.wiki/data/p2p_okx.csv>
