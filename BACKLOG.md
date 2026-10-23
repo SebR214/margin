@@ -117,8 +117,8 @@ and 6a to 6d dropped unbuilt.
 - [ ] 8. Check which big providers have a public quote of their own we can read the way we read Wise and Airwallex (try Remitly, Western Union, Revolut, Xe, MoneyGram). Add each that works as its own source next to the comparison feed. Post the ones that don't work and why.
 
 ## More sources for country prices
-- [ ] 9. For each of the 20 markets marked "One source", find a second venue that sells USDT for that currency (exchange order book first, then a broker), probe it, and add it through quarantine. Post which markets still have one source and why.
-- [ ] 10. Add a second official-rate source next to ExchangeRate-API for every currency Frankfurter covers, and compare the two hourly in `source_pairs.json`. Don't change which one is published.
+- [x] 9. For each of the 20 markets marked "One source", find a second venue that sells USDT for that currency (exchange order book first, then a broker), probe it, and add it through quarantine. Post which markets still have one source and why. (PR #652, 2026-10-23: BitOasis and OKX spot for AED, OKX spot for SGD, Binance TH for THB, Binance spot for MXN, all in quarantine; first rows on main 23 Oct 08:06 UTC)
+- [x] 10. Add a second official-rate source next to ExchangeRate-API for every currency Frankfurter covers, and compare the two hourly in `source_pairs.json`. Don't change which one is published. (PR #651, 2026-10-23: Frankfurter v2, all 60 currencies, data/fx_second.csv, first rows on main 23 Oct 08:14 UTC)
 
 ## Already approved, finish these
 - [ ] 11. Depth record step 2 (SEB-302): OKX ads (no extra calls) and the order books (about 24 extra calls an hour). Not the extra Binance searches, not CriptoYa. After 24 hours post the one-day table on SEB-302.
