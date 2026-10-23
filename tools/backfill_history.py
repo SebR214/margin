@@ -665,7 +665,10 @@ BV_LIST = "https://s3-ap-northeast-1.amazonaws.com/data.binance.vision"
 BV_BASE = "https://data.binance.vision/"
 BV_SOURCE = "data.binance.vision klines"
 QUOTES = ("USDT", "USDC", "BTC")
-FX_WIDE = {"fawaz": "official_fx_fawaz_daily.csv", "bis": "official_fx_bis_daily.csv"}
+FX_WIDE = {"fawaz": "official_fx_fawaz_daily.csv", "bis": "official_fx_bis_daily.csv", "frankfurter": "official_fx_frankfurter_v2_daily.csv"}
+FRANK_V2_URL = "https://api.frankfurter.dev/v2/rates?base=USD&quotes=%s&from=%s&to=%s"
+FRANK_V2_START = "2018-01-01"
+FRANK_V2_SOURCE = "api.frankfurter.dev/v2 (rate Frankfurter publishes for the day from its central-bank providers, per 1 USD)"
 
 
 def tracked_ccys():
@@ -730,6 +733,47 @@ def run_fawaz(dry, now, raw_dir):
         write_rows(path, FX_FIELDS, rows)
     return {"file": os.path.basename(path), "rows": len(rows), "added": added, "conflicts": conflicts, "days_read": n, "days_missing": len(missing),
             "ccys": sorted({r["ccy"] for r in rows}), "first": min((r["date"] for r in rows), default=None)}
+
+
+# ---- official rates: Frankfurter v2 daily, for the currencies the BIS file and the ECB file do not have (SEB-311). Rows as published.
+def frank_v2_rows(payload, wanted):
+    """Frankfurter v2 [{date, base, quote, rate}] -> rows. A quote we did not ask for, another base or a rate that is not above zero is dropped."""
+    out = []
+    for c in payload:
+        v = c.get("rate")
+        if c.get("base") == "USD" and c.get("quote") in wanted and c.get("date") and isinstance(v, (int, float)) and v > 0:
+            out.append({"date": c["date"], "ccy": c["quote"], "per_usd": repr(float(v)), "label": LABEL, "source": FRANK_V2_SOURCE})
+    return out
+
+
+def frank_v2_wanted():
+    """The currencies with no BIS series that we hold or track: the ones whose only official history was fawazahmed0, from 2 Mar 2024."""
+    bis = set(_series(os.path.join(OUT_DIR, FX_WIDE["bis"]), "date", "ccy", "per_usd"))
+    fawaz = set(_series(os.path.join(OUT_DIR, FX_WIDE["fawaz"]), "date", "ccy", "per_usd"))
+    return sorted((tracked_ccys() | fawaz) - bis - {"USD"})
+
+
+def run_frankfurter(dry, now, raw_dir):
+    path = os.path.join(OUT_DIR, FX_WIDE["frankfurter"])
+    have = read_rows(path, lambda r: (r["date"], r["ccy"]))
+    wanted = frank_v2_wanted()
+    last = max((k[0] for k in have), default=None)
+    start = FRANK_V2_START if not last else (dt.date.fromisoformat(last) - dt.timedelta(days=5)).isoformat()
+    end = dt.datetime.fromtimestamp(now, tz=dt.timezone.utc).date().isoformat()
+    payload = get_json(FRANK_V2_URL % (",".join(wanted), start, end))
+    if not isinstance(payload, list):
+        raise RuntimeError("frankfurter v2 answered with %s, not a list" % type(payload).__name__)
+    new = frank_v2_rows(payload, set(wanted))
+    if not new:
+        raise RuntimeError("frankfurter v2 gave no rows for %s from %s" % (",".join(wanted), start))
+    rows, added, conflicts = merge(have, new, lambda r: (r["date"], r["ccy"]))
+    if not dry:
+        write_rows(path, FX_FIELDS, rows)
+    firsts = {}
+    for r in rows:
+        firsts[r["ccy"]] = min(firsts.get(r["ccy"], r["date"]), r["date"])
+    return {"file": os.path.basename(path), "rows": len(rows), "added": added, "conflicts": conflicts, "ccys": sorted(firsts), "first": firsts,
+            "asked_for": wanted}
 
 
 # ---- official rates: BIS daily central-bank series, the whole bulk file kept raw, daily rows from 2000 in the repo
@@ -1037,7 +1081,7 @@ def run_argentina_all(dry, now, raw_dir):
     return {"file": os.path.basename(path), "rows": len(merged), "added": added, "markets": {m: (min(v), len(v)) for m, v in sorted(by.items())}}
 
 
-WIDE = {"fawaz": run_fawaz, "bis": run_bis, "binance": run_binance, "bitso": run_bitso_wide, "kraken": run_kraken, "buda": run_buda,
+WIDE = {"fawaz": run_fawaz, "frankfurter": run_frankfurter, "bis": run_bis, "binance": run_binance, "bitso": run_bitso_wide, "kraken": run_kraken, "buda": run_buda,
         "coingecko": run_coingecko, "argentina": run_argentina_all}
 
 
@@ -1081,6 +1125,9 @@ EVENTS_REPORTED_V2 = os.path.join(OUT_DIR, "events_reported_rules2.csv")
 RECORDS_REPORTED_V2 = os.path.join(OUT_DIR, "event_records_rules2")
 EVENTS_REPORTED_V3 = os.path.join(OUT_DIR, "events_reported_rules3.csv")
 RECORDS_REPORTED_V3 = os.path.join(OUT_DIR, "event_records_rules3")
+EVENTS_REPORTED_V4 = os.path.join(OUT_DIR, "events_reported_rules4.csv")
+RECORDS_REPORTED_V4 = os.path.join(OUT_DIR, "event_records_rules4")
+HISTORY_RULES_VERSION = 4        # the detector's rules are still version 3 (no threshold moved); 4 is the replay with Frankfurter v2 as a history source
 REPLAY_FIELDS = ["as_of_date", "event_id", "ccy", "kind", "status", "confirmation", "detected_on", "baseline", "latest", "change_pct", "note",
                  "label", "source"]
 REPLAY_FIELDS_V2 = REPLAY_FIELDS + ["rules_version"]
@@ -1133,8 +1180,8 @@ def street_series():
 
 
 def history_data():
-    """The detector's input built from the history files. Official: BIS daily where it has the currency, else fawazahmed0; the second official
-    source is the ECB reference rate where it has the currency, else fawazahmed0. Street: Binance spot first, then the others."""
+    """The detector's input built from the history files. Official: BIS daily where it has the currency, else fawazahmed0 with Frankfurter v2 (from 2018) for the days before it; the second official
+    source is the ECB reference rate where it has the currency, else Frankfurter v2 (else fawazahmed0). Street: Binance spot first, then the others."""
     bis = _series(os.path.join(OUT_DIR, FX_WIDE["bis"]), "date", "ccy", "per_usd")
     fawaz = _series(os.path.join(OUT_DIR, FX_WIDE["fawaz"]), "date", "ccy", "per_usd")
     ecb = _series(os.path.join(OUT_DIR, "official_fx_daily.csv"), "date", "ccy", "per_usd")
@@ -1142,7 +1189,8 @@ def history_data():
     sys.path.insert(0, os.path.join(ROOT, "tools"))
     import check_official_rates as _cor
     erapi = _cor.daily(_cor.FX, "ts_utc", "fx_mid_per_usd")
-    for c in set(bis) | set(fawaz):
+    frank = _series(os.path.join(OUT_DIR, FX_WIDE["frankfurter"]), "date", "ccy", "per_usd")
+    for c in set(bis) | set(fawaz) | set(frank):
         if c in bis:
             off[c], names[c] = bis[c], ["BIS WS_XRU daily average"]
             if c in ecb:
@@ -1151,6 +1199,18 @@ def history_data():
             elif c in fawaz:
                 live[c] = fawaz[c]
                 names[c].append("fawazahmed0/currency-api")
+        elif c in frank:                                       # Frankfurter v2 is the second official source, and the only one before fawazahmed0 starts
+            if c in fawaz:                                     # official: fawazahmed0 from its first day, Frankfurter v2 for the days before it (joins within 1.7%)
+                first = min(fawaz[c])
+                off[c] = dict({d: v for d, v in frank[c].items() if d < first}, **fawaz[c])
+                names[c] = ["fawazahmed0/currency-api from %s, Frankfurter v2 daily rate before" % first]
+            else:
+                off[c], names[c] = frank[c], ["Frankfurter v2 daily rate"]
+            # second source: Frankfurter only on the days fawazahmed0 is the official series; before that it IS the official series, and a series
+            # does not confirm itself. The observed er-api reading wins on the days it has one: Frankfurter dates a step a day earlier than fawaz does.
+            start = min(fawaz[c]) if c in fawaz else "9999"
+            live[c] = dict({d: v for d, v in frank[c].items() if d >= start}, **erapi.get(c, {}))
+            names[c].append("Frankfurter v2 daily rate, from %s" % start + ("; er-api, data/fx_rates.csv, observed from 10 Sep 2026, on the days it has" if c in erapi else ""))
         else:
             off[c], names[c] = fawaz[c], ["fawazahmed0/currency-api"]
             if c in erapi:                                     # the observed er-api rate, from 10 Sep 2026: the only second source there is
@@ -1191,7 +1251,7 @@ def replay_history(dry, start="2000-01-01"):
     for r in rows:
         r["label"] = LABEL
         r["source"] = " | ".join(names.get(r["ccy"], [])) + " ; street " + " + ".join(snames.get(r["ccy"], ["none"]))
-        r["rules_version"] = de.RULES_VERSION
+        r["rules_version"] = HISTORY_RULES_VERSION
         for k in REPLAY_FIELDS_V2:
             if r.get(k) in ("", None):
                 r[k] = "none"                                    # a history row has no empty field; "none" says the figure does not apply
@@ -1208,12 +1268,12 @@ def replay_history(dry, start="2000-01-01"):
         rec["street"]["source"] = (snames.get(ccy) or ["?"])[0] + " daily close, data/history/"
         fixed[eid] = rec
     if not dry:
-        os.makedirs(RECORDS_REPORTED_V3, exist_ok=True)
+        os.makedirs(RECORDS_REPORTED_V4, exist_ok=True)
         for eid, rec in fixed.items():
-            with open(os.path.join(RECORDS_REPORTED_V3, eid + ".json"), "w") as f:
+            with open(os.path.join(RECORDS_REPORTED_V4, eid + ".json"), "w") as f:
                 json.dump(rec, f, indent=1, sort_keys=True)
                 f.write("\n")
-        write_rows(EVENTS_REPORTED_V3, REPLAY_FIELDS_V2, rows)
+        write_rows(EVENTS_REPORTED_V4, REPLAY_FIELDS_V2, rows)
     return rows, fixed
 
 
@@ -1247,8 +1307,14 @@ def main():
         res = run_wide(a.only.split(",") if a.only else None, a.dry_run, a.raw_dir, a.max_pairs)
         print(json.dumps(res, indent=1, default=str))
         if not a.dry_run:
-            with open(os.path.join(OUT_DIR, "manifest_wide.json"), "w") as f:
-                json.dump({"label": LABEL, "pulled_utc": iso(int(time.time())), "sources": res}, f, indent=1, default=str)
+            mpath = os.path.join(OUT_DIR, "manifest_wide.json")
+            try:
+                kept = json.load(open(mpath)).get("sources", {}) if a.only else {}     # a run of one source keeps the others as they were
+            except (OSError, ValueError):
+                kept = {}
+            kept.update(res)
+            with open(mpath, "w") as f:
+                json.dump({"label": LABEL, "pulled_utc": iso(int(time.time())), "sources": kept}, f, indent=1, default=str)
                 f.write("\n")
         return
     run(a.only.split(",") if a.only else None, a.hourly_since, a.dry_run)
