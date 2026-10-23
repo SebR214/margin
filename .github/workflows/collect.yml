@@ -299,6 +299,13 @@ jobs:
         # it; the published rate does not change. See collector_official_live.py and METHODOLOGY.md.
         run: python3 collector_official_live.py
 
+      - name: Collect a second official rate from Frankfurter (BACKLOG 10)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        # data/fx_second.csv: Frankfurter's v2 rate for every currency we price, stored NEXT TO er-api's rate of the same run. Nothing
+        # but tools/emit_source_pairs.py reads it; the published rate does not change. See collector_fx_second.py and METHODOLOGY.md.
+        run: python3 collector_fx_second.py
+
       - name: Check the official rates for a broken series (SEB-310)
         if: always() && steps.needed.outputs.proceed == 'true'
         continue-on-error: true
@@ -746,6 +753,10 @@ jobs:
           # the one above, so this change stays purely additive (no existing line edited).
           for d in country finding; do
             if [ -d "$d" ]; then git add "$d"; fi
+          done
+          # The second official rate (BACKLOG 10): a new sidecar CSV, its own loop so no existing line is edited.
+          for f in data/fx_second.csv; do
+            if [ -f "$f" ]; then git add "$f"; fi
           done
           # Event records (SEB-311): one JSON file per event, a new one on its first day. A separate loop for the same reason.
           for d in data/event_records; do

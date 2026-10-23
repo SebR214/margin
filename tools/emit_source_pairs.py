@@ -19,6 +19,10 @@ Only prices that are real are compared: a row with source_ok=false (including a
 row tools/../board_guard.py refused) is not a price. Prices are each source's
 buy side, local money per dollar. Stored rows only; nothing is filled in.
 
+Official rates are compared the same way (BACKLOG item 10): open.er-api (the rate every figure is divided by) against Frankfurter's v2
+feed (data/fx_second.csv, collector_fx_second.py), hour by hour, per currency, under "official" in the same file. The published rate is
+not changed by it; a flag there is a possible finding about er-api (Sudan on 23 Oct: 17% apart), not a switch.
+
 Writes data/source_pairs.json. No model, no network, stdlib only.
 
     python3 tools/emit_source_pairs.py
@@ -127,6 +131,27 @@ def build(series, feeding, as_of):
             "min_common_hours": MIN_COMMON_HOURS, "markets": markets}
 
 
+def official_series(rows, since_hour):
+    """{ccy: ({hour: er-api rate}, {hour: second rate})} from real rows only (source_ok true, both rates there), newest row of an hour wins."""
+    out = collections.defaultdict(lambda: ({}, {}))
+    for r in rows:
+        a, b, h = num(r.get("er_api_rate")), num(r.get("rate_per_usd")), hour_of(r["ts_utc"])
+        if r.get("source_ok") == "True" and a and b and h >= since_hour:
+            out[r["ccy"]][0][h] = a
+            out[r["ccy"]][1][h] = b
+    return out
+
+
+def build_official(series):
+    """{ccy: comparison of the two official rates}, only where they share MIN_COMMON_HOURS hours."""
+    out = {}
+    for ccy in sorted(series):
+        c = compare(*series[ccy])
+        if c:
+            out[ccy] = {"a": "open.er-api", "b": "frankfurter-v2", "kind": "official_rate", **c}
+    return out
+
+
 def feeding_from_countries():
     out = {}
     for f in glob.glob(os.path.join(DATA, "countries", "*.json")):
@@ -166,6 +191,15 @@ def self_test():
     a2 = {h: 100.0 for h in hours}; b2 = {h: 104.0 for h in hours}
     d2 = build({"XXX": {"BookA": a2, "BookB": b2}}, {"XXX": ["BookA", "BookB"]}, "t")["markets"]["XXX"]
     assert d2["pairs"][0]["flag"] and d2["pairs"][0]["kind"] == "order_book", "two books 4% apart for 60 hours is a possible finding"
+    # official rates: er-api beside the second source, hour by hour; a refused row is not a reading
+    erows = [{"ts_utc": h + ":10:00Z", "ccy": "SDG", "er_api_rate": "449.2", "rate_per_usd": "526.0", "source_ok": "True"} for h in hours]
+    erows += [{"ts_utc": h + ":10:00Z", "ccy": "AED", "er_api_rate": "3.6725", "rate_per_usd": "3.6725", "source_ok": "True"} for h in hours]
+    erows += [{"ts_utc": h + ":10:00Z", "ccy": "PHP", "er_api_rate": "58", "rate_per_usd": "", "source_ok": "False"} for h in hours]
+    erows += [{"ts_utc": h + ":10:00Z", "ccy": "KES", "er_api_rate": "", "rate_per_usd": "129", "source_ok": "True"} for h in hours]
+    off = build_official(official_series(erows, hours[0]))
+    assert set(off) == {"SDG", "AED"}, "a refused row or a missing er-api rate is not a comparison: %s" % sorted(off)
+    assert off["SDG"]["flag"] and off["SDG"]["hours"] == 60 and off["SDG"]["median_gap_pct"] == 17.1, off["SDG"]
+    assert not off["AED"]["flag"] and off["AED"]["median_gap_pct"] == 0.0, off["AED"]
     print("emit_source_pairs self-test: ok")
 
 
@@ -177,12 +211,20 @@ def main():
     newest = max(r["ts_utc"] for r in binance)
     since = (dt.datetime.fromisoformat(newest) - dt.timedelta(days=WINDOW_DAYS)).strftime("%Y-%m-%dT%H")
     doc = build(prices_by_source(basis, binance, okx, since), feeding_from_countries(), hour_of(newest) + ":00:00Z")
+    second = read("fx_second.csv")
+    if second:
+        osince = (dt.datetime.fromisoformat(max(r["ts_utc"] for r in second).replace("Z", "+00:00")) - dt.timedelta(days=WINDOW_DAYS)).strftime("%Y-%m-%dT%H")
+        doc["official"] = build_official(official_series(second, osince))
+    else:
+        doc["official"] = {}                                   # the second source has written nothing yet: a normal first state
     with open(OUT, "w") as f:
         json.dump(doc, f, indent=1, sort_keys=True)
         f.write("\n")
     one = sum(1 for m in doc["markets"].values() if m["one_source"])
     flagged = sum(1 for m in doc["markets"].values() for p in m["pairs"] if p["flag"])
-    print("wrote data/source_pairs.json: %d markets, %d on one source, %d pair(s) flagged" % (len(doc["markets"]), one, flagged))
+    oflag = sorted(c for c, v in doc["official"].items() if v["flag"])
+    print("wrote data/source_pairs.json: %d markets, %d on one source, %d pair(s) flagged; official rates compared for %d currencies, flagged: %s" % (
+        len(doc["markets"]), one, flagged, len(doc["official"]), ", ".join(oflag) or "none"))
     return 0
 
 
