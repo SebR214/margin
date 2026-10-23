@@ -68,8 +68,11 @@ UPDATE_EVERY = 7
 CLOSE_AFTER = 56
 FLAG_WINDOW_DAYS = 90         # the official-rate rules look at the 90 days before the day judged
 LOOP_TOL_PCT = 2.0             # a value within 2% of one seen 7 or 14 days before
-RULES_VERSION = 2              # 1: 3% in 3 days for every currency (22 Oct). 2: that rule for managed currencies only, 4x own median for the rest
-OWN_MULT = 4.0                 # a free-floating currency breaks when its 3-day move is 4 times its own median 3-day move or more
+RULES_VERSION = 3              # 1: 3% in 3 days for every currency (22 Oct). 2: that rule for managed currencies only, 4x own median for the rest.
+                               # 3 (23 Oct): 6x own median, one event per currency per 30 days, a 10% step needs a second stored source
+OWN_MULT = 6.0                 # a free-floating currency breaks when its 3-day move is 6 times its own median 3-day move or more
+EVENT_WINDOW_DAYS = 30         # a move inside 30 days of an open event for the same currency updates it and never opens another
+SECOND_SOURCE_PCT = 10.0       # a step this big in a series with no central bank behind it needs a second stored source that shows it
 BASELINE_DAYS = 365            # the median is over the 3-day moves ending in the 365 days before the day judged
 MIN_BASELINE_PAIRS = 30        # 3-day moves needed to know what is normal for a currency
 JUMP_HOLD_PCT = 50.0           # a 3-day move this big needs a central-bank series or a second source behind it
@@ -237,6 +240,8 @@ def unit_error(data, ccy, D, ch):
             return "one source jumped %s%% and the second official source did not (%s%%)" % (ch, c2)
     if big and not second and ccy not in data.get("central_bank", ()):
         return "a jump of %s%% in one aggregator feed with no second source: held as a unit error until another source shows it" % ch
+    if abs(ch) >= SECOND_SOURCE_PCT and second is None and ccy not in data.get("central_bank", ()):
+        return "a step of %s%% that no second stored source covers for these days: held until one shows it" % ch
     return None
 
 
@@ -404,14 +409,21 @@ def step(D, data, events, flags_cache=None):
         if e["status"] in ("candidate",):
             opened[e["event_id"]] = e
     flags = LazyFlags(D, data)
-    # two quiet periods, kept apart: a candidate or a data warning keeps the same episode from being raised again for 14 days, but a
+    # two quiet periods, kept apart: a data warning keeps the same episode from being raised again for 14 days (a candidate keeps its
+    # currency to one event for EVENT_WINDOW_DAYS, below), but a
     # not_enough_evidence row is only a note that the history was short, so it silences more notes of its own kind and nothing else: the
     # first real break or slide after it must still be raised
-    quiet_since, quiet_nee = {}, {}
+    quiet_since, quiet_nee, last_cand, further, last_further = {}, {}, {}, {}, {}
     for e in events:
+        if e["status"] == "update" and "a further " in e["note"]:
+            for kd in ("official_break", "street_slide"):
+                if "a further " + kd.replace("_", " ") in e["note"]:
+                    last_further[(e["event_id"], kd)] = max(last_further.get((e["event_id"], kd), ""), e["as_of_date"])
         k = (e["ccy"], e["kind"])
-        if e["status"] in ("candidate", "data_warning"):
+        if e["status"] == "data_warning":
             quiet_since[k] = max(quiet_since.get(k, ""), e["detected_on"])
+        elif e["status"] == "candidate":
+            last_cand[e["ccy"]] = max(last_cand.get(e["ccy"], ("", "")), (e["detected_on"], e["event_id"]))
         elif e["status"] == "not_enough_evidence":
             quiet_nee[k] = max(quiet_nee.get(k, ""), e["detected_on"])
     ccys = sorted(set(data["off"]) | {c for (c, _) in data["street"]["binance_p2p"]})
@@ -466,6 +478,16 @@ def step(D, data, events, flags_cache=None):
             if kind == "street_slide":
                 if t is None or not t[0]:
                     continue                                                                # a thin market is not an event, and not a row
+            lc = last_cand.get(ccy)
+            if lc and (dt.date.fromisoformat(D) - dt.date.fromisoformat(lc[0])).days < EVENT_WINDOW_DAYS:
+                lf = last_further.get((lc[1], kind))
+                since = (dt.date.fromisoformat(D) - dt.date.fromisoformat(lc[0])).days
+                # a further move starts after the event did: its window's first day is on or after the detection day. A step still
+                # running through the days after the event is the event itself.
+                if since >= (OFFICIAL_DAYS if kind == "official_break" else STREET_DAYS) and (
+                        not lf or (dt.date.fromisoformat(D) - dt.date.fromisoformat(lf)).days >= UPDATE_EVERY):
+                    further.setdefault(lc[1], []).append({"kind": kind, "change_pct": ch})        # the same stretch: it updates the open event
+                continue                                                                      # (once a week at most; a move that goes on is not news)
             conf, srcs = confirmation(kind, data, ccy, D, ch)
             rec = build_record(data, ccy, kind, D, ch, conf, srcs, t[1:] if t else (None, None, "none stored"), flags.get(ccy, []))
             base = rec["official"]["baseline"] if kind == "official_break" else rec["street"]["before"]
@@ -474,10 +496,15 @@ def step(D, data, events, flags_cache=None):
                             "%s moved %s%% in %d days" % ("the official rate" if kind == "official_break" else "the street price", ch,
                                                            OFFICIAL_DAYS if kind == "official_break" else STREET_DAYS)))
             recs[eid] = rec
-    # weekly updates for open events, then the close
+            last_cand[ccy] = (D, eid)
+    # weekly updates for open events, then the close; also a further move inside an open event's 30 days
+    for eid in sorted(further):
+        if eid not in opened:
+            opened[eid] = next(r for r in rows if r["event_id"] == eid)                     # opened earlier today, by the other kind
     for eid, e in sorted(opened.items()):
         age = (dt.date.fromisoformat(D) - dt.date.fromisoformat(e["detected_on"])).days
-        if age <= 0 or age % UPDATE_EVERY or age > CLOSE_AFTER:
+        moves = further.get(eid, [])
+        if age < 0 or (age == 0 and not moves) or (age and not moves and (age % UPDATE_EVERY or age > CLOSE_AFTER)):
             continue
         ccy, kind = e["ccy"], e["kind"]
         s = data["street"]["binance_p2p"].get((ccy, D))
@@ -489,10 +516,17 @@ def step(D, data, events, flags_cache=None):
                  "official_change_pct_from_baseline": pct(o0, o) if o0 and o else None,
                  "street_change_pct_from_before": pct(s0, s) if s0 and s else None}
         status = "closed" if age == CLOSE_AFTER else "update"
+        note = "week %d after, street %s, official %s" % (age // UPDATE_EVERY, s, o) if age and not age % UPDATE_EVERY else ""
+        if moves:
+            after["further_moves"] = moves
+            more = "; ".join("a further %s of %s%%" % (m["kind"].replace("_", " "), m["change_pct"]) for m in moves)
+            note = (note + "; " if note else "day %d after, street %s, official %s: " % (age, s, o)) + more + " inside the event's %d days" % EVENT_WINDOW_DAYS
         rows.append(row(D, eid, ccy, kind, status, e["confirmation"], e["detected_on"], e["baseline"], o if kind == "official_break" else s,
-                        after["official_change_pct_from_baseline"] if kind == "official_break" else after["street_change_pct_from_before"],
-                        "week %d after, street %s, official %s" % (age // UPDATE_EVERY, s, o)))
-        recs[eid] = {"_after": after}
+                        after["official_change_pct_from_baseline"] if kind == "official_break" else after["street_change_pct_from_before"], note))
+        if eid in recs and "after" in recs[eid]:
+            add_after(recs[eid], after)                                                       # an event opened today
+        else:
+            recs[eid] = {"_after": after}
     return rows, recs
 
 
@@ -599,33 +633,41 @@ def self_test():
     # a synthetic world, with a known answer
     base = "2026-09-01"
     days = [day_add(base, i) for i in range(60)]
-    off = {"AAA": {d: 100.0 for d in days}, "LUP": {}, "FLT": {d: 50.0 for d in days}}
+    off = {"AAA": {d: 100.0 for d in days}, "BBB": {d: 100.0 for d in days}, "LUP": {}, "FLT": {d: 50.0 for d in days}}
     for i, d in enumerate(days):
         off["LUP"][d] = [300.0, 280.0, 280.0, 270.0, 250.0, 240.0, 230.0][i % 7]      # a weekly loop (repeats from the second week)
     for i, d in enumerate(days):
         if i >= 40:
             off["AAA"][d] = 130.0                                                         # a 30% official step on day 40
+            off["BBB"][d] = 130.0
     street = {}
     for i, d in enumerate(days):
         street[("AAA", d)] = 100.0 if i < 36 else 100.0 + (i - 35) * 6                    # the street slides from day 36, ahead of the official step
+        street[("BBB", d)] = 100.0 if i < 36 else 100.0 + (i - 35) * 1.2                  # BBB's street moves 3.6% in 3 days, never 10% in 7: no slide
         street[("THN", d)] = 10.0 if i < 30 else 15.0                                     # a 50% move in a thin market
-    size = {(c, d): (40.0, 40.0, "p2p_depth.csv") for c in ("AAA",) for d in days}
+    size = {(c, d): (40.0, 40.0, "p2p_depth.csv") for c in ("AAA", "BBB") for d in days}
     size.update({("THN", d): (3.0, 4.0, "p2p_depth.csv") for d in days})
     sc = {}
     for (c, d), v in street.items():
         sc.setdefault(c, {})[d] = v
-    data = {"off": off, "n_off": {}, "live": {}, "street": {"binance_p2p": street, "okx_p2p": {}}, "street_c": {"binance_p2p": sc, "okx_p2p": {}}, "size": size}
+    live = {"AAA": dict(off["AAA"]), "BBB": dict(off["BBB"])}                              # a second source that shows the step
+    data = {"off": off, "n_off": {}, "live": live, "street": {"binance_p2p": street, "okx_p2p": {}}, "street_c": {"binance_p2p": sc, "okx_p2p": {}}, "size": size}
     rows, recs = run_days(data, [], days[0], days[-1])
     ev = [(r["ccy"], r["kind"], r["status"], r["detected_on"]) for r in rows if r["status"] in ("candidate", "data_warning", "not_enough_evidence")]
     again, _ = run_days(data, [], days[0], days[-1])
     assert rows == again, "the same input must give the same rows"
-    assert ("AAA", "official_break", "candidate", days[40]) in ev, [(r["ccy"], r["kind"], r["status"], r["detected_on"], r["note"]) for r in rows]
+    assert ("BBB", "official_break", "candidate", days[40]) in ev, [(r["ccy"], r["kind"], r["status"], r["detected_on"], r["note"]) for r in rows]
     assert any(e[0] == "AAA" and e[1] == "street_slide" and e[2] == "candidate" for e in ev), ev
+    # one event per currency per 30 days: AAA's official step 3 days after its street slide updates the slide, it does not open a second event
+    assert not [e for e in ev if e[0] == "AAA" and e[1] == "official_break"], ev
+    further = [r for r in rows if r["ccy"] == "AAA" and r["status"] == "update" and "a further official break" in r["note"]]
+    assert len(further) == 1 and further[0]["as_of_date"] == days[40], further
+    assert len([r for r in rows if r["ccy"] == "AAA" and "a further street slide" in r["note"]]) <= 4, "a move that goes on is not news every day"
     assert not [e for e in ev if e[0] == "THN"], "a thin market is not an event: %s" % ev
     assert not [e for e in ev if e[0] == "LUP" and e[2] == "candidate"], "a looping official rate is not an event: %s" % ev
     assert any(e[0] == "LUP" and e[2] in ("data_warning", "not_enough_evidence") for e in ev), ev
-    rec = recs[event_id("AAA", "official_break", days[40])]
-    assert rec["official"]["baseline"] == 100.0 and rec["official"]["at_detection"] == 130.0 and rec["confirmation"] == "one source", rec
+    rec = recs[event_id("BBB", "official_break", days[40])]
+    assert rec["official"]["baseline"] == 100.0 and rec["official"]["at_detection"] == 130.0 and rec["confirmation"] == "two sources", rec
     assert rec["official_lag_days"] is not None and rec["official_lag_days"] > 0, "the street led the official step: %s" % rec["official_lag_note"]
     assert any(r["status"] == "update" and r["event_id"] == rec["id"] for r in rows) or days[40] > days[-8], "weekly updates"
     # catching up across several weekly updates keeps every one of them in the record file (a run that was off for 8 or more days)
@@ -638,7 +680,7 @@ def self_test():
             ev_day = days[40]
             part1, r1 = run_days(data, [], days[0], ev_day)
             write_records(r1)
-            eid = event_id("AAA", "official_break", ev_day)
+            eid = event_id("BBB", "official_break", ev_day)
             assert json.load(open(os.path.join(tmp, eid + ".json")))["after"] == [], "a new record starts with no after"
             kd = {"date": days[38], "source": "Test", "url": "https://example.com/a"}                # a hand-entered fact, added to the file
             with open(os.path.join(tmp, eid + ".json")) as f:
@@ -663,7 +705,7 @@ def self_test():
     # a not_enough_evidence note does not silence a real event in the next 14 days, and does not repeat itself for 14 days
     short = [day_add(base, i) for i in range(40)]
     offs = {"NEW": {d: (100.0 if i < 4 else 110.0 if i < 16 else 130.0) for i, d in enumerate(short)}}
-    d2 = {"off": offs, "n_off": {}, "live": {}, "street": {"binance_p2p": {}, "okx_p2p": {}}, "street_c": {"binance_p2p": {}, "okx_p2p": {}}, "size": {},
+    d2 = {"off": offs, "n_off": {}, "live": {"NEW": dict(offs["NEW"])}, "street": {"binance_p2p": {}, "okx_p2p": {}}, "street_c": {"binance_p2p": {}, "okx_p2p": {}}, "size": {},
           "managed": {"NEW"}}
     r4, _ = run_days(d2, [], short[0], short[-1])
     nee = [r for r in r4 if r["status"] == "not_enough_evidence"]
