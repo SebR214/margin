@@ -1,16 +1,16 @@
 # In Turkey a dollar costs 0.2% less than the official rate
 
-Prices from the 05:00 UTC hour, 23 Oct.
+Prices from the 06:00 UTC hour, 23 Oct.
 
-The official rate is 49.68 TRY per dollar. On the exchanges where people in Turkey trade stablecoins, one costs 49.59 TRY. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 49.68 TRY per dollar. On the exchanges where people in Turkey trade stablecoins, one costs 49.60 TRY. A stablecoin is a coin that stays worth one US dollar.
 
-Between people on Binance and OKX, a dollar costs 52.73 TRY, 6.1% over the official rate.
+Between people on Binance and OKX, a dollar costs 52.30 TRY, 5.3% over the official rate.
 
-For US$100, people pay 4,959 TRY. The official rate says 4,968 TRY.
+For US$100, people pay 4,960 TRY. The official rate says 4,968 TRY.
 
-Prices from the 05:00 UTC hour, 23 Oct
+Prices from the 06:00 UTC hour, 23 Oct
 
-Taking the cheapest offers first, only US$3,500 can be bought before a dollar here costs 1% more.
+Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/countries/TRY.json>
 
@@ -26,11 +26,11 @@ On 6 Oct this number started coming from order books instead of person-to-person
 
 This price is set from order books. A country's price comes from exchange order books first, then broker quotes, then offers between people on Binance and OKX.
 
-Paribu
-
-49.57 TRY −0.2%
-
 BTCTurk
+
+49.60 TRY −0.2%
+
+Paribu
 
 49.60 TRY −0.2%
 
@@ -40,6 +40,10 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 06:18 UTC | OKX, person to person | 52.33 TRY | +5.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 23 Oct, 06:15 UTC | Binance, person to person | 52.27 TRY | +5.2% | 10 of 33 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 23 Oct, 06:15 UTC | Paribu | 49.60 TRY | −0.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 06:15 UTC | BTCTurk | 49.60 TRY | −0.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 05:09 UTC | OKX, person to person | 53.10 TRY | +6.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 05:06 UTC | Binance, person to person | 52.37 TRY | +5.4% | 10 of 27 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 05:06 UTC | Paribu | 49.57 TRY | −0.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -48,10 +52,6 @@ Open any file to check a price yourself.
 | 23 Oct, 04:11 UTC | Binance, person to person | 52.27 TRY | +5.2% | 10 of 26 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 04:11 UTC | Paribu | 49.58 TRY | −0.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 04:11 UTC | BTCTurk | 49.60 TRY | −0.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 03:09 UTC | OKX, person to person | 54.13 TRY | +8.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 23 Oct, 03:07 UTC | Binance, person to person | 52.40 TRY | +5.5% | 10 of 21 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 03:06 UTC | Paribu | 49.58 TRY | −0.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 03:06 UTC | BTCTurk | 49.60 TRY | −0.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
