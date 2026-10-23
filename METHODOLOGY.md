@@ -1866,6 +1866,10 @@ A consequence to know: Argentina's 14 Dec 2023 devaluation (+118.7%) is a furthe
 
 New files beside the version-2 ones, which are untouched: `data/history/events_reported_rules3.csv` (same columns as version 2, `rules_version` 3) and `data/history/event_records_rules3/`. Replay: 306 candidates, down from 579. `tests/check_known_breaks.py` now also proves the BOB and SYP warnings, that no currency has two events inside 30 days, and that no step of 10% or more stands without a second source or a central-bank series.
 
+### History replay, rules version 4 (SEB-311, 23 Oct 2026)
+
+No threshold moved and the live detector is still rules version 3. What changed is the history input: `data/history/official_fx_frankfurter_v2_daily.csv` (Frankfurter v2, daily from 29 Dec 2017, 22 currencies the BIS file does not have, labelled "reported, not observed") is the official rate for those currencies before fawazahmed0 starts on 2 Mar 2024, and their second source from that date (the observed er-api reading wins on the days it has one). Before 2 Mar 2024 there is no second source, so a step of 10% or more there is held as a data warning: Nigeria on 15 Jun 2023 (+25.3%) is seen and held. New files, rules 1 to 3 untouched: `events_reported_rules4.csv` and `event_records_rules4/`. Replay: 354 candidates, from 306.
+
 ## A second official rate from Frankfurter, beside er-api (BACKLOG 10, from 2026-10-23)
 
 **Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's (`data/fx_rates.csv`). A source cannot check itself, and for most currencies the official rate had no second source: Frankfurter's older feed is the ECB's 29 currencies, 10 of ours. Its v2 feed (`https://api.frankfurter.dev/v2/rates?base=USD`) blends central banks and carried all 60 currencies we price when probed on 23 Oct (165 currencies in all; the older `api.frankfurter.app` now answers with a redirect).

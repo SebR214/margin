@@ -9,15 +9,15 @@ we know happened, and must miss the one we know it cannot see, for the reason wr
   Egypt, Mar 2024         a row on 7 Mar 2024, a candidate or "not enough evidence" (the float of 6 Mar, +60%; only 6 days of
                           official history exist before it, so "not enough evidence" is the correct reading)
   Iraq, Oct 2026          a candidate in the week of 7 Oct 2026 (the government raised the official rate)
-  Nigeria, Jun 2023       EXPECTED MISS. The only official naira history we hold starts on 2 Mar 2024 (fawazahmed0; the BIS series has
-                          no naira), and Binance's naira price barely moved that month, so there is nothing to see. The test checks the
-                          miss and checks the reason: if the first naira day ever moves earlier than Jun 2023, this fails and the
-                          expectation must be rewritten, so a miss never stays "expected" by accident.
+  Nigeria, Jun 2023       FOUND AS A DATA WARNING, NOT AS A CANDIDATE. Frankfurter v2 (SEB-311, rules 4 replay) gives the official naira from
+                          29 Dec 2017, and its 15 Jun 2023 reading is +25.3% in a day (472.61 to 580.61), so the break is seen. It is held, not
+                          an event, because a step of 10% or more needs a second stored source and fawazahmed0 only starts on 2 Mar 2024. If a
+                          second source before that date is ever stored, this becomes a candidate and the expectation must be rewritten.
 
-Rules version 3 also holds: BOB 8 Jul 2026 (+42.8%) and SYP 22 Oct 2025 (-15.0%) are data warnings, because no second stored source
+Rules version 4 also holds: BOB 8 Jul 2026 and SYP 22 Oct 2025, data warnings under rules 3, are candidates now that a second stored source
 covers those days; and no currency has two candidates less than 30 days apart.
 
-Also: the committed data/history/events_reported_rules3.csv holds the same number of candidates as a fresh replay, so the file in the repo
+Also: the committed data/history/events_reported_rules4.csv holds the same number of candidates as a fresh replay, so the file in the repo
 is what these rules produce.
 
     python3 tests/check_known_breaks.py
@@ -58,10 +58,11 @@ need("Egypt Mar 2024", found("EGP", "2024-03-07", "2024-03-07", ("candidate", "n
 need("Iraq Oct 2026", found("IQD", "2026-10-07", "2026-10-14"))
 
 first_ngn = min(data["off"]["NGN"])
-assert first_ngn >= "2024-03-01", "the naira official history now starts %s, before Jun 2023 may be judged: rewrite the Nigeria expectation" % first_ngn
-miss = found("NGN", "2023-05-15", "2023-07-15", ("candidate", "not_enough_evidence", "data_warning"))
-assert not miss, "Nigeria Jun 2023 was expected to be missed (no official naira history before %s): %s" % (first_ngn, miss)
-print("  missed Nigeria Jun 2023 as expected: the first official naira day we hold is %s" % first_ngn)
+assert first_ngn <= "2023-05-01", "the naira official history starts %s, after Jun 2023: the Nigeria expectation no longer holds" % first_ngn
+ngn = found("NGN", "2023-06-14", "2023-06-16", ("data_warning",))
+need("Nigeria Jun 2023 (held)", ngn)
+assert not found("NGN", "2023-05-15", "2023-07-15"), "Nigeria Jun 2023 now stands as a candidate: a second source before Mar 2024 exists, rewrite the expectation"
+assert min(data["live"]["NGN"]) >= "2024-03-01", "a second naira source now reaches back to %s: Nigeria Jun 2023 may stand, rewrite the expectation" % min(data["live"]["NGN"])
 
 # the rules are the ones written down: a managed currency keeps the 3%, every other needs 4x its own median
 managed = data["managed"]
@@ -71,16 +72,18 @@ for r in rows:
         m, n = de.own_median_move(data, r["ccy"])(r["detected_on"])
         assert n >= de.MIN_BASELINE_PAIRS and abs(float(r["change_pct"])) >= de.OWN_MULT * m, r
 
-# a unit error is never an event: none of the held jumps may stand as a candidate
+# a unit error is never an event: no jump of 50% or more stands without a central-bank series or a second source that shows it
 for r in rows:
     if r["status"] == "candidate" and r["kind"] == "official_break" and abs(float(r["change_pct"])) >= de.JUMP_HOLD_PCT:
-        assert r["ccy"] in data["central_bank"], "a jump of 50%% or more in an aggregator feed stood as an event: %s" % r
+        assert r["ccy"] in data["central_bank"] or data["live"].get(r["ccy"], {}).get(r["detected_on"]), \
+            "a jump of 50%% or more in an aggregator feed with no second source stood as an event: %s" % r
 for ccy in ("VES", "SYP", "MNT"):
     assert not [r for r in rows if r["ccy"] == ccy and r["status"] == "candidate" and abs(float(r["change_pct"])) >= de.JUMP_HOLD_PCT], ccy
 
-# rules version 3
+# rules version 3 held BOB 8 Jul 2026 and SYP 22 Oct 2025 as data warnings (no second stored source). With Frankfurter v2 as the official series
+# and fawazahmed0 as the second source, both days now have one, so both stand as candidates
 for ccy, day in (("BOB", "2026-07-08"), ("SYP", "2025-10-22")):
-    assert found(ccy, day, day, ("data_warning",)) and not found(ccy, day, day), "%s %s must be a data warning, no second stored source shows it" % (ccy, day)
+    assert found(ccy, day, day) and data["live"][ccy].get(day), "%s %s must stand as a candidate: fawazahmed0 shows the step" % (ccy, day)
 by_ccy = {}
 for r in rows:
     if r["status"] == "candidate":
@@ -93,11 +96,11 @@ for r in rows:
         assert r["ccy"] in data["central_bank"] or (r["ccy"] in data["live"] and data["live"][r["ccy"]].get(r["detected_on"])), "a step of 10%% or more with no second source behind it stood: %s" % r
 
 # the file in the repo is what these rules produce
-path = os.path.join(ROOT, "data", "history", "events_reported_rules3.csv")
+path = os.path.join(ROOT, "data", "history", "events_reported_rules4.csv")
 with open(path, newline="") as f:
     filed = list(csv.DictReader(f))
-assert {r["rules_version"] for r in filed} == {str(de.RULES_VERSION)}, "the rules2 file holds another rules version"
+assert {r["rules_version"] for r in filed} == {str(bh.HISTORY_RULES_VERSION)}, "the rules4 file holds another rules version"
 n_file = sum(1 for r in filed if r["status"] == "candidate")
 n_now = sum(1 for r in rows if r["status"] == "candidate")
-assert n_file == n_now, "events_reported_rules3.csv has %d candidates, a fresh replay %d: rerun backfill_history.py --replay" % (n_file, n_now)
+assert n_file == n_now, "events_reported_rules4.csv has %d candidates, a fresh replay %d: rerun backfill_history.py --replay" % (n_file, n_now)
 print("check_known_breaks: ok (%d candidates)" % n_now)
