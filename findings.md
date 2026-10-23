@@ -1,6 +1,6 @@
 # When and how much you send changes the cost
 
-Prices from the 16:00 UTC hour, 23 Oct.
+Prices from the 17:00 UTC hour, 23 Oct.
 
 Each finding is worked out from prices we store every hour. Each page shows the evidence, how it was worked out, and a file you can download.
 
