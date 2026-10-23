@@ -1,14 +1,14 @@
 # In Argentina a dollar costs 8.0% more than the official rate
 
-Prices from the 11:00 UTC hour, 23 Oct.
+Prices from the 12:00 UTC hour, 23 Oct.
 
 The official rate is 1,528 ARS per dollar. On the exchanges where people in Argentina trade stablecoins, one costs 1,650 ARS. A stablecoin is a coin that stays worth one US dollar.
 
-Between people on Binance and OKX, a dollar costs 1,642 ARS, 7.5% over the official rate.
+Between people on Binance and OKX, a dollar costs 1,641 ARS, 7.4% over the official rate.
 
 For US$100, people pay 165,012 ARS. The official rate says 152,800 ARS.
 
-Prices from the 11:00 UTC hour, 23 Oct
+Prices from the 12:00 UTC hour, 23 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -28,23 +28,22 @@ This price is set from broker quotes. A country's price comes from exchange orde
 
 |  |  |
 | --- | --- |
-| CriptoYa · Wallbit | 1,636 ARS +7.1% |
+| CriptoYa · Wallbit | 1,630 ARS +6.7% |
 | CriptoYa · Bitsoalpha | 1,636 ARS +7.1% |
-| CriptoYa · Ripioexchange | 1,638 ARS +7.2% |
+| CriptoYa · Ripioexchange | 1,636 ARS +7.1% |
 | CriptoYa · Mexc | 1,638 ARS +7.2% |
-| CriptoYa · Satoshitango | 1,639 ARS +7.3% |
 | CriptoYa · Binance | 1,641 ARS +7.4% |
 | CriptoYa · Nexo | 1,641 ARS +7.4% |
 | CriptoYa · Fiwind | 1,645 ARS +7.7% |
 | CriptoYa · Cryptomktpro | 1,645 ARS +7.7% |
 | CriptoYa · Letsbit | 1,648 ARS +7.8% |
 | CriptoYa · Saldo | 1,649 ARS +7.9% |
+| CriptoYa · Vitawallet | 1,649 ARS +7.9% |
 | CriptoYa · Cocoscrypto | 1,650 ARS +8.0% |
 | CriptoYa · Decrypto | 1,650 ARS +8.0% |
 | CriptoYa · Belo | 1,653 ARS +8.2% |
 | CriptoYa · Lemoncash | 1,653 ARS +8.2% |
-| CriptoYa · Vitawallet | 1,656 ARS +8.4% |
-| CriptoYa · Ripio | 1,658 ARS +8.5% |
+| CriptoYa · Ripio | 1,654 ARS +8.3% |
 | CriptoYa · Eluter | 1,659 ARS +8.6% |
 | CriptoYa · Tiendacrypto | 1,660 ARS +8.6% |
 | CriptoYa · Bybit | 1,663 ARS +8.9% |
@@ -52,6 +51,7 @@ This price is set from broker quotes. A country's price comes from exchange orde
 | CriptoYa · Takenos | 1,670 ARS +9.3% |
 | CriptoYa · Universalcoins | 1,670 ARS +9.3% |
 | CriptoYa · Astropay | 1,676 ARS +9.7% |
+| CriptoYa · Satoshitango | 1,677 ARS +9.7% |
 
 ## Every Argentina price links to its raw file
 
@@ -59,18 +59,18 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
-| 23 Oct, 11:09 UTC | OKX, person to person | 1,643 ARS | +7.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 23 Oct, 11:06 UTC | Binance, person to person | 1,641 ARS | +7.4% | 10 of 110 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 11:06 UTC | CriptoYa · Wallbit | 1,636 ARS | +7.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 11:06 UTC | CriptoYa · Vitawallet | 1,656 ARS | +8.4% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 11:06 UTC | CriptoYa · Universalcoins | 1,670 ARS | +9.3% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 11:06 UTC | CriptoYa · Tiendacrypto | 1,660 ARS | +8.6% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 11:06 UTC | CriptoYa · Takenos | 1,670 ARS | +9.3% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 11:06 UTC | CriptoYa · Satoshitango | 1,639 ARS | +7.3% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 11:06 UTC | CriptoYa · Saldo | 1,649 ARS | +7.9% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 11:06 UTC | CriptoYa · Ripioexchange | 1,638 ARS | +7.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 11:06 UTC | CriptoYa · Ripio | 1,658 ARS | +8.5% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 11:06 UTC | CriptoYa · Peanut | 1,670 ARS | +9.3% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 12:09 UTC | OKX, person to person | 1,643 ARS | +7.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 23 Oct, 12:07 UTC | Binance, person to person | 1,639 ARS | +7.3% | 10 of 131 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 23 Oct, 12:06 UTC | CriptoYa · Wallbit | 1,630 ARS | +6.7% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 12:06 UTC | CriptoYa · Vitawallet | 1,649 ARS | +7.9% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 12:06 UTC | CriptoYa · Universalcoins | 1,670 ARS | +9.3% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 12:06 UTC | CriptoYa · Tiendacrypto | 1,660 ARS | +8.6% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 12:06 UTC | CriptoYa · Takenos | 1,670 ARS | +9.3% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 12:06 UTC | CriptoYa · Satoshitango | 1,677 ARS | +9.8% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 12:06 UTC | CriptoYa · Saldo | 1,649 ARS | +7.9% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 12:06 UTC | CriptoYa · Ripioexchange | 1,636 ARS | +7.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 12:06 UTC | CriptoYa · Ripio | 1,654 ARS | +8.3% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 12:06 UTC | CriptoYa · Peanut | 1,670 ARS | +9.3% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

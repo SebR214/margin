@@ -1,16 +1,16 @@
-# In Mexico a dollar costs 0.1% more than the official rate
+# In Mexico a dollar costs what the official rate says
 
-Prices from the 11:00 UTC hour, 23 Oct.
+Prices from the 12:00 UTC hour, 23 Oct.
 
-The official rate is 18.73 MXN per dollar. On the exchanges where people in Mexico trade stablecoins, one costs 18.75 MXN. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 18.73 MXN per dollar. On the exchanges where people in Mexico trade stablecoins, one costs 18.74 MXN. A stablecoin is a coin that stays worth one US dollar.
 
-Between people on Binance and OKX, a dollar costs 19.67 MXN, 5.0% over the official rate.
+Between people on Binance and OKX, a dollar costs 19.37 MXN, 3.4% over the official rate.
 
-For US$100, people pay 1,875 MXN. The official rate says 1,873 MXN.
+For US$100, people pay 1,874 MXN. The official rate says 1,873 MXN.
 
 One source
 
-Prices from the 11:00 UTC hour, 23 Oct
+Prices from the 12:00 UTC hour, 23 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -30,7 +30,7 @@ This price is set from an order book. A country's price comes from exchange orde
 
 Bitso
 
-18.75 MXN +0.1%
+18.74 MXN 0.0%
 
 ## Every Mexico price links to its raw file
 
@@ -38,6 +38,10 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 12:09 UTC | OKX, person to person | 19.87 MXN | +6.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 23 Oct, 12:07 UTC | Binance, person to person | 18.87 MXN | +0.7% | 10 of 67 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 23 Oct, 12:06 UTC | Bitso | 18.74 MXN | 0.0% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 12:06 UTC | Binance spot (MXN) | 18.74 MXN | 0.0% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 11:09 UTC | OKX, person to person | 20.50 MXN | +9.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 11:06 UTC | Binance, person to person | 18.84 MXN | +0.5% | 10 of 65 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 11:06 UTC | Bitso | 18.75 MXN | +0.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -46,10 +50,6 @@ Open any file to check a price yourself.
 | 23 Oct, 10:06 UTC | Binance, person to person | 18.83 MXN | +0.5% | 10 of 62 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 10:06 UTC | Bitso | 18.74 MXN | 0.0% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 10:06 UTC | Binance spot (MXN) | 18.76 MXN | +0.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 09:09 UTC | OKX, person to person | 20.49 MXN | +9.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 23 Oct, 09:07 UTC | Binance, person to person | 18.82 MXN | +0.5% | 10 of 68 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 09:06 UTC | Bitso | 18.75 MXN | +0.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 09:06 UTC | Binance spot (MXN) | 18.74 MXN | 0.0% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
