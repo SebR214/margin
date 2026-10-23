@@ -1,12 +1,12 @@
 # In India a dollar costs 6.2% more than the official rate
 
-Prices from the 12:00 UTC hour, 23 Oct.
+Prices from the 13:00 UTC hour, 23 Oct.
 
-The official rate is 94.9 INR per dollar. On the exchanges where people in India trade stablecoins, one costs 100.75 INR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 94.9 INR per dollar. On the exchanges where people in India trade stablecoins, one costs 100.81 INR. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 10,075 INR. The official rate says 9,490 INR.
+For US$100, people pay 10,081 INR. The official rate says 9,490 INR.
 
-Prices from the 12:00 UTC hour, 23 Oct
+Prices from the 13:00 UTC hour, 23 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -24,11 +24,11 @@ This price is set from order books. A country's price comes from exchange order 
 
 CoinDCX
 
-100.70 INR +6.1%
+100.65 INR +6.1%
 
 WazirX
 
-100.79 INR +6.2%
+100.96 INR +6.4%
 
 ## Every India price links to its raw file
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 13:06 UTC | WazirX | 100.96 INR | +6.4% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 13:06 UTC | CoinDCX | 100.65 INR | +6.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 12:06 UTC | WazirX | 100.79 INR | +6.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 12:06 UTC | CoinDCX | 100.70 INR | +6.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 11:06 UTC | WazirX | 100.96 INR | +6.4% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -46,9 +48,7 @@ Open any file to check a price yourself.
 | 23 Oct, 09:06 UTC | CoinDCX | 100.72 INR | +6.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 08:07 UTC | Binance, person to person | 103.88 INR | +9.5% | 10 of 142 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 08:06 UTC | WazirX | 101.10 INR | +6.5% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 08:06 UTC | CoinDCX | 100.60 INR | +6.0% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 07:06 UTC | Binance, person to person | 104.07 INR | +9.7% | 10 of 140 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
-<https://margin.wiki/data/adsp2p_basis.csv>
+<https://margin.wiki/data/basis.csv>

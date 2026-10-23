@@ -1,12 +1,12 @@
 # No price for Cambodia this hour
 
-Prices from the 12:00 UTC hour, 23 Oct.
+Prices from the 13:00 UTC hour, 23 Oct.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
 The last price we published was +2.1%, on 23 Oct.
 
-Prices from the 12:00 UTC hour, 23 Oct
+Prices from the 13:00 UTC hour, 23 Oct
 
 <https://margin.wiki/data/countries/KHR.json>
 
@@ -20,6 +20,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 13:10 UTC | OKX, person to person | 4,190 KHR | +3.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 23 Oct, 13:07 UTC | Binance, person to person | 4,147 KHR | +2.1% | 6 of 6 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 12:09 UTC | OKX, person to person | 4,160 KHR | +2.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 12:07 UTC | Binance, person to person | 4,148 KHR | +2.2% | 4 of 4 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 11:09 UTC | OKX, person to person | 4,160 KHR | +2.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -30,8 +32,6 @@ Open any file to check a price yourself.
 | 23 Oct, 09:07 UTC | Binance, person to person | 4,147 KHR | +2.1% | 10 of 10 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 08:09 UTC | OKX, person to person | 4,175 KHR | +2.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 08:07 UTC | Binance, person to person | 4,135 KHR | +1.8% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 07:09 UTC | OKX, person to person | 4,160 KHR | +2.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 23 Oct, 07:06 UTC | Binance, person to person | 4,147 KHR | +2.1% | 10 of 10 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

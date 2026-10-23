@@ -1,16 +1,16 @@
-# In Qatar a dollar costs 4.1% more than the official rate
+# In Qatar a dollar costs 4.7% more than the official rate
 
-Prices from the 12:00 UTC hour, 23 Oct.
+Prices from the 13:00 UTC hour, 23 Oct.
 
-The official rate is 3.64 QAR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.79 QAR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 3.64 QAR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.81 QAR. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 379.10 QAR. The official rate says 364.00 QAR.
+For US$100, people pay 381.00 QAR. The official rate says 364.00 QAR.
 
 One source
 
-Prices from the 12:00 UTC hour, 23 Oct
+Prices from the 13:00 UTC hour, 23 Oct
 
-Taking the cheapest offers first, only US$1,000 can be bought before a dollar here costs 1% more.
+Taking the cheapest offers first, only US$3,000 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/countries/QAR.json>
 
@@ -26,7 +26,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-3.79 QAR +4.1%
+3.81 QAR +4.7%
 
 ## Every Qatar price links to its raw file
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 13:10 UTC | OKX, person to person | 3.96 QAR | +8.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 23 Oct, 13:07 UTC | Binance, person to person | 3.81 QAR | +4.7% | 10 of 19 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 12:09 UTC | OKX, person to person | 3.98 QAR | +9.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 12:07 UTC | Binance, person to person | 3.79 QAR | +4.1% | 10 of 21 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 11:09 UTC | OKX, person to person | 3.98 QAR | +9.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 23 Oct, 09:07 UTC | Binance, person to person | 3.80 QAR | +4.4% | 10 of 19 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 08:09 UTC | OKX, person to person | 3.94 QAR | +8.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 08:07 UTC | Binance, person to person | 3.84 QAR | +5.4% | 10 of 16 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 07:09 UTC | OKX, person to person | 4.00 QAR | +9.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 23 Oct, 07:06 UTC | Binance, person to person | 3.80 QAR | +4.4% | 10 of 21 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
