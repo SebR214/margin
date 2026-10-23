@@ -274,6 +274,30 @@ def parse_btcmarkets(d):
     return (_f(d.get("bestBid")), _f(d.get("bestAsk")), _f(d.get("lastPrice")))
 
 
+def parse_bitoasis(d):
+    # api.bitoasis.net/v1/exchange/ticker/USDT-AED: {"ticker": {"bid","ask","last_price",...}}, string-priced. Public, no key.
+    t = d.get("ticker") if isinstance(d, dict) else None
+    if not isinstance(t, dict):
+        return (None, None, None)
+    return (_f(t.get("bid")), _f(t.get("ask")), _f(t.get("last_price")))
+
+
+def parse_okx_spot(d):
+    # www.okx.com/api/v5/market/ticker?instId=USDT-SGD: {"code":"0","data":[{"bidPx","askPx","last",...}]}. A refused call has code != "0".
+    if not isinstance(d, dict) or d.get("code") != "0" or not d.get("data"):
+        return (None, None, None)
+    t = d["data"][0]
+    return (_f(t.get("bidPx")), _f(t.get("askPx")), _f(t.get("last")))
+
+
+def parse_binance_book(d):
+    # /api/v3/ticker/bookTicker?symbol=USDTMXN (data-api.binance.vision, api.binance.th): {"symbol","bidPrice","askPrice",...}. An unknown
+    # symbol answers with {"code": -1121, "msg": ...} and no price fields.
+    if not isinstance(d, dict):
+        return (None, None, None)
+    return (_f(d.get("bidPrice")), _f(d.get("askPrice")), None)
+
+
 # Feeds inside the CriptoYa payload that no longer answer. Not collected, so no
 # more source_ok=false rows. Their rows in basis.csv stay as history.
 # buenbit: last answered 2026-10-11.
@@ -566,6 +590,35 @@ VENUES = [
         "parse_fn": parse_criptoya, "candles_fn": None, "enabled": True,
         "source": "criptoya", "mid_rule": "bid",
     },
+    # --- 2026-10-23, BACKLOG 9: a second venue for markets whose price rested on one source. Each is a public, keyless order book that
+    # answered with a two-sided USDT quote when called. They enter in quarantine (data/source_registry.json): collected here, ignored by
+    # tools/emit_countries.py until tools/source_gate.py passes them, compared with their neighbours in data/source_pairs.json meanwhile.
+    {
+        "name": "BitOasis", "fiat_ccy": "AED",
+        "ticker_url": "https://api.bitoasis.net/v1/exchange/ticker/USDT-AED",
+        "parse_fn": parse_bitoasis, "candles_fn": None, "enabled": True,
+    },
+    {
+        "name": "OKX spot (AED)", "fiat_ccy": "AED",
+        "ticker_url": "https://www.okx.com/api/v5/market/ticker?instId=USDT-AED",
+        "parse_fn": parse_okx_spot, "candles_fn": None, "enabled": True, "source": "okx spot",
+    },
+    {
+        "name": "OKX spot (SGD)", "fiat_ccy": "SGD",
+        "ticker_url": "https://www.okx.com/api/v5/market/ticker?instId=USDT-SGD",
+        "parse_fn": parse_okx_spot, "candles_fn": None, "enabled": True, "source": "okx spot",
+    },
+    {
+        "name": "Binance TH", "fiat_ccy": "THB",
+        "ticker_url": "https://api.binance.th/api/v1/ticker/bookTicker?symbol=USDTTHB",
+        "parse_fn": parse_binance_book, "candles_fn": None, "enabled": True, "source": "binance th",
+    },
+    {
+        "name": "Binance spot (MXN)", "fiat_ccy": "MXN",
+        # Market data only, on Binance's own market-data host (binance.com itself answers 451 from the runner).
+        "ticker_url": "https://data-api.binance.vision/api/v3/ticker/bookTicker?symbol=USDTMXN",
+        "parse_fn": parse_binance_book, "candles_fn": None, "enabled": True, "source": "binance spot",
+    },
 ]
 
 # Candidates called and REJECTED, 2026-09-02, all from a US GitHub runner. Kept
@@ -579,7 +632,8 @@ VENUES = [
 #   Orbix (THB)           no public ticker endpoint found to call at all.
 #   Binance TH (THB)      reachable (200), but -1121 "Invalid symbol" for
 #                         USDTTHB: it has no USDT/THB book to quote. Its own
-#                         product list is USDC-quoted.
+#                         product list is USDC-quoted. (23 Oct: it lists USDTTHB
+#                         now and answers with a two-sided book; added, BACKLOG 9.)
 #   Binance TR (TRY)      451. Binance MX / binance.com (MXN, TRY): 451,
 #                         "restricted location". Unchanged since 2026-08-10 and
 #                         the reason for the no-Binance invariant.
@@ -587,6 +641,7 @@ VENUES = [
 #                         no USDT_IDR pair -- IDR pairs there are BTC/ETH/etc.
 #   Reku (IDR)            404, no public tickers endpoint at the documented path.
 #
+# (As of 23 Oct, BACKLOG 9: SGD, THB and MXN each got a second venue in quarantine, AED two; see the entries above.)
 # So SGD, PHP, THB and MXN still have exactly one venue each. The site says so
 # rather than showing a one-venue median, and no number is invented to fill the
 # gap.
@@ -992,6 +1047,12 @@ CRIPTOYA_BRL_FIXTURE = {  # median bid 5.12, median ask 5.15
 }
 
 # One malformed payload per venue: right envelope, no usable price.
+BITOASIS_FIXTURE = {"ticker": {"pair": "USDT-AED", "bid": "3.67217", "ask": "3.67224", "last_price": "3.67217"}}
+OKX_AED_FIXTURE = {"code": "0", "data": [{"instId": "USDT-AED", "last": "3.666", "askPx": "3.667", "bidPx": "3.666"}]}
+OKX_SGD_FIXTURE = {"code": "0", "data": [{"instId": "USDT-SGD", "last": "1.2768", "askPx": "1.277", "bidPx": "1.2766"}]}
+BINANCE_TH_FIXTURE = {"symbol": "USDTTHB", "bidPrice": "33.69000000", "askPrice": "33.70000000"}
+BINANCE_MXN_FIXTURE = {"symbol": "USDTMXN", "bidPrice": "18.70900000", "askPrice": "18.71000000"}
+
 MALFORMED = {
     "BitoPro": {"bids": [], "asks": []},
     "MAX": {"at": 1, "open": "31.5"},
@@ -1020,7 +1081,7 @@ MALFORMED = {
 FX_FIXTURE = {"SGD": 1.2796, "PHP": 60.86, "TRY": 47.706, "KRW": 1409.64,
               "IDR": 17862.19, "THB": 33.024, "MXN": 17.141,
               "ARS": 1500.0, "VES": 760.0, "BRL": 5.09,
-              "TWD": 31.60, "AUD": 1.528, "NZD": 1.690, "INR": 99.2, "NGN": 1331.0}
+              "TWD": 31.60, "AUD": 1.528, "NZD": 1.690, "INR": 99.2, "NGN": 1331.0, "AED": 3.6725}
 TS_FIXTURE = "2026-08-10T00:00:00+00:00"
 
 # route a fake fetch by URL substring; override a venue with a payload or an
@@ -1047,6 +1108,8 @@ _ROUTES = {
     "mercadobitcoin": MERCADO_FIXTURE, "pintu": PINTU_FIXTURE,
     "usdt/ars": CRIPTOYA_ARS_FIXTURE, "usdt/ves": CRIPTOYA_VES_FIXTURE,
     "usdt/brl": CRIPTOYA_BRL_FIXTURE,
+    "bitoasis": BITOASIS_FIXTURE, "instid=usdt-aed": OKX_AED_FIXTURE, "instid=usdt-sgd": OKX_SGD_FIXTURE,
+    "binance.th": BINANCE_TH_FIXTURE, "symbol=usdtmxn": BINANCE_MXN_FIXTURE,
 }
 
 
@@ -1073,6 +1136,11 @@ def selftest():
     assert parse_upbit(UPBIT_FIXTURE) == (None, None, 1408.0)      # KRW quote = last
     assert parse_indodax(INDODAX_FIXTURE) == (17649.0, 17650.0, 17649.0)
     assert parse_bitkub(BITKUB_FIXTURE) == (33.02, 33.03, 33.02)
+    assert parse_bitoasis(BITOASIS_FIXTURE) == (3.67217, 3.67224, 3.67217)
+    assert parse_okx_spot(OKX_SGD_FIXTURE) == (1.2766, 1.277, 1.2768)
+    assert parse_okx_spot({"code": "51001", "msg": "Instrument ID does not exist", "data": []}) == (None, None, None)
+    assert parse_binance_book(BINANCE_TH_FIXTURE) == (33.69, 33.7, None)
+    assert parse_binance_book({"code": -1121, "msg": "Invalid symbol."}) == (None, None, None)
     assert parse_bitso(BITSO_FIXTURE) == (17.132, 17.133, 17.132)
     # CriptoYa: median bid/ask across the listed exchanges
     assert parse_criptoya(CRIPTOYA_ARS_FIXTURE) == (1565.0, 1585.0, None)
@@ -1132,16 +1200,16 @@ def selftest():
     # 4. FX snapshot must carry every registered venue's currency
     ccys = {v["fiat_ccy"] for v in VENUES}
     assert ccys <= set(FX_FIXTURE), ccys - set(FX_FIXTURE)
-    assert len(VENUES) == 24, len(VENUES)
+    assert len(VENUES) == 29, len(VENUES)
     assert {"TRY", "KRW", "IDR", "THB", "MXN"} <= ccys, "the 5 new currencies"
     assert {"ARS", "VES", "BRL"} <= ccys, "the CriptoYa currencies"
     print(f"  [ok] FX snapshot covers all {len(ccys)} venue currencies "
           f"({', '.join(sorted(ccys))})")
 
-    # 5. full happy path: 24 registered venues + 4 CriptoYa expansion rows (buenbit dropped)
+    # 5. full happy path: 29 registered venues + 4 CriptoYa expansion rows (buenbit dropped)
     #    (ARS lists 3 exchanges, VES lists 3 of which one is P2P), all source_ok
     rows, n_ok = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=_make_fetch())
-    assert len(rows) == 28 and n_ok == 28, (len(rows), n_ok)
+    assert len(rows) == 33 and n_ok == 33, (len(rows), n_ok)
     by = {r["venue"]: r for r in rows}
     assert "CriptoYa:buenbit" not in by, "buenbit is dead and no longer collected"
     assert abs(by["IndependentReserve"]["basis_bps"] - 10.94) < 0.2
@@ -1174,8 +1242,12 @@ def selftest():
     assert per_ccy["TRY"] == 2 and per_ccy["IDR"] == 2, per_ccy
     assert per_ccy["ARS"] == 2, per_ccy          # expansion rows only, buenbit dropped
     assert per_ccy["VES"] == 2, per_ccy          # expansion, P2P dropped
-    for single in ("SGD", "PHP", "THB", "MXN", "NZD"):
+    for single in ("PHP", "NZD"):
         assert per_ccy[single] == 1, (single, per_ccy)
+    # BACKLOG 9 (23 Oct): a second venue in quarantine for SGD, THB, MXN, and two for AED
+    for two in ("SGD", "THB", "MXN"):
+        assert per_ccy[two] == 2, (two, per_ccy)
+    assert per_ccy["AED"] == 2, per_ccy          # BitOasis, OKX spot
     # the aggregate row is still written, and still excluded from that count
     assert any(r["venue"] == "CriptoYa (ARS)" and r["source_ok"] for r in rows)
     assert "CriptoYa (ARS)" in AGGREGATE_VENUES
@@ -1193,7 +1265,7 @@ def selftest():
     rows_m, n_ok_m = build_rows(TS_FIXTURE, VENUES, FX_FIXTURE, fetch=fetch)
     co = next(r for r in rows_m if r["venue"] == "Coins.ph")
     bk = next(r for r in rows_m if r["venue"] == "Bitkub")
-    assert n_ok_m == 26, n_ok_m  # 28 - coins(outage) - bitkub(malformed)
+    assert n_ok_m == 31, n_ok_m  # 33 - coins(outage) - bitkub(malformed)
     assert co["source_ok"] is False and "simulated 503" in co["error"]
     assert bk["source_ok"] is False and bk["basis_bps"] is None
     assert run_exit_code(n_ok_m) == 0  # 5 good venues -> the run SUCCEEDS
