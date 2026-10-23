@@ -1,14 +1,14 @@
-# In Ukraine a dollar costs 3.6% more than the official rate
+# In Ukraine a dollar costs 3.7% more than the official rate
 
-Prices from the 01:00 UTC hour, 23 Oct.
+Prices from the 02:00 UTC hour, 23 Oct.
 
-The official rate is 45.07 UAH per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 46.68 UAH. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 45.07 UAH per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 46.73 UAH. A stablecoin is a coin that stays worth one US dollar.
 
 Sellers on Binance and OKX agree on this price. Buyers there are offering more than sellers ask this hour, which is unusual.
 
-For US$100, people pay 4,668 UAH. The official rate says 4,507 UAH.
+For US$100, people pay 4,673 UAH. The official rate says 4,507 UAH.
 
-Prices from the 01:00 UTC hour, 23 Oct
+Prices from the 02:00 UTC hour, 23 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -24,11 +24,11 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-46.59 UAH +3.4%
+46.54 UAH +3.3%
 
 OKX, person to person
 
-46.77 UAH +3.8%
+46.92 UAH +4.1%
 
 ## Every Ukraine price links to its raw file
 
@@ -36,6 +36,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Raw file |
 | --- | --- | --- | --- | --- |
+| 23 Oct, 02:12 UTC | OKX, person to person | 46.92 UAH | +4.1% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 01:09 UTC | OKX, person to person | 46.77 UAH | +3.8% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 00:15 UTC | OKX, person to person | 46.87 UAH | +4.1% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 22 Oct, 21:21 UTC | OKX, person to person | 46.70 UAH | +3.7% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -47,7 +48,6 @@ Open any file to check a price yourself.
 | 22 Oct, 05:08 UTC | OKX, person to person | 46.44 UAH | +3.1% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 22 Oct, 04:08 UTC | OKX, person to person | 46.63 UAH | +3.5% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 22 Oct, 03:08 UTC | OKX, person to person | 46.63 UAH | +3.5% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 02:08 UTC | OKX, person to person | 46.75 UAH | +3.8% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://margin.wiki/data/p2p_okx.csv>

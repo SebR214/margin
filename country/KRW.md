@@ -1,12 +1,12 @@
-# In South Korea a dollar costs 1.0% more than the official rate
+# In South Korea a dollar costs 0.8% more than the official rate
 
-Prices from the 01:00 UTC hour, 23 Oct.
+Prices from the 02:00 UTC hour, 23 Oct.
 
-The official rate is 1,324.95 KRW per dollar. On the exchanges where people in South Korea trade stablecoins, one costs 1,338 KRW. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 1,324.95 KRW per dollar. On the exchanges where people in South Korea trade stablecoins, one costs 1,335 KRW. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 133,800 KRW. The official rate says 132,495 KRW.
+For US$100, people pay 133,500 KRW. The official rate says 132,495 KRW.
 
-Prices from the 01:00 UTC hour, 23 Oct
+Prices from the 02:00 UTC hour, 23 Oct
 
 <https://margin.wiki/data/countries/KRW.json>
 
@@ -22,9 +22,9 @@ This price is set from order books. A country's price comes from exchange order 
 
 |  |  |
 | --- | --- |
-| Bithumb | 1,337 KRW +0.9% |
-| Upbit | 1,338 KRW +1.0% |
-| Coinone | 1,338 KRW +1.0% |
+| Upbit | 1,334 KRW +0.7% |
+| Bithumb | 1,335 KRW +0.8% |
+| Coinone | 1,335 KRW +0.8% |
 
 ## Every South Korea price links to its raw file
 
@@ -32,6 +32,9 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 23 Oct, 02:09 UTC | Upbit | 1,334 KRW | +0.7% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 02:09 UTC | Coinone | 1,335 KRW | +0.8% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 23 Oct, 02:09 UTC | Bithumb | 1,335 KRW | +0.8% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 01:06 UTC | Upbit | 1,338 KRW | +1.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 01:06 UTC | Coinone | 1,338 KRW | +1.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 01:06 UTC | Bithumb | 1,337 KRW | +0.9% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -41,9 +44,6 @@ Open any file to check a price yourself.
 | 22 Oct, 21:18 UTC | Upbit | 1,340 KRW | +1.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 22 Oct, 21:18 UTC | Coinone | 1,340 KRW | +1.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 22 Oct, 21:18 UTC | Bithumb | 1,341 KRW | +1.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 22 Oct, 20:15 UTC | Upbit | 1,341 KRW | +1.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 22 Oct, 20:15 UTC | Coinone | 1,340 KRW | +1.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 22 Oct, 20:15 UTC | Bithumb | 1,340 KRW | +1.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://margin.wiki/data/basis.csv>

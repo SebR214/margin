@@ -1,16 +1,16 @@
 # In the Philippines a dollar costs 0.3% less than the official rate
 
-Prices from the 01:00 UTC hour, 23 Oct.
+Prices from the 02:00 UTC hour, 23 Oct.
 
-The official rate is 63.53 PHP per dollar. On the exchanges where people in the Philippines trade stablecoins, one costs 63.36 PHP. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 63.53 PHP per dollar. On the exchanges where people in the Philippines trade stablecoins, one costs 63.35 PHP. A stablecoin is a coin that stays worth one US dollar.
 
-Between people on Binance and OKX, a dollar costs 63.67 PHP, 0.2% over the official rate.
+Between people on Binance and OKX, a dollar costs 63.64 PHP, 0.2% over the official rate.
 
-For US$100, people pay 6,336 PHP. The official rate says 6,353 PHP.
+For US$100, people pay 6,335 PHP. The official rate says 6,353 PHP.
 
 One source
 
-Prices from the 01:00 UTC hour, 23 Oct
+Prices from the 02:00 UTC hour, 23 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -30,7 +30,7 @@ This price is set from an order book. A country's price comes from exchange orde
 
 Coins.ph
 
-63.36 PHP −0.3%
+63.35 PHP −0.3%
 
 ## Every the Philippines price links to its raw file
 
@@ -38,6 +38,9 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 02:12 UTC | OKX, person to person | 63.60 PHP | +0.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 23 Oct, 02:09 UTC | Binance, person to person | 63.67 PHP | +0.2% | 10 of 111 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 23 Oct, 02:09 UTC | Coins.ph | 63.35 PHP | −0.3% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 01:09 UTC | OKX, person to person | 63.65 PHP | +0.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 01:07 UTC | Binance, person to person | 63.70 PHP | +0.3% | 10 of 98 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 01:06 UTC | Coins.ph | 63.36 PHP | −0.3% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -47,9 +50,6 @@ Open any file to check a price yourself.
 | 22 Oct, 21:21 UTC | OKX, person to person | 63.63 PHP | +0.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 22 Oct, 21:18 UTC | Binance, person to person | 63.69 PHP | +0.5% | 10 of 85 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 22 Oct, 21:18 UTC | Coins.ph | 63.42 PHP | +0.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 22 Oct, 20:17 UTC | OKX, person to person | 63.64 PHP | +0.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 20:15 UTC | Binance, person to person | 63.77 PHP | +0.6% | 10 of 71 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 22 Oct, 20:15 UTC | Coins.ph | 63.40 PHP | 0.0% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

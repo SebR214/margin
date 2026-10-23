@@ -1,12 +1,12 @@
 # No price for Algeria this hour
 
-Prices from the 01:00 UTC hour, 23 Oct.
+Prices from the 02:00 UTC hour, 23 Oct.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
 The last price we published was +91.6%, on 22 Oct.
 
-Prices from the 01:00 UTC hour, 23 Oct
+Prices from the 02:00 UTC hour, 23 Oct
 
 <https://margin.wiki/data/countries/DZD.json>
 
@@ -20,6 +20,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 02:09 UTC | Binance, person to person | 277.71 DZD | +106% | 6 of 6 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 01:07 UTC | Binance, person to person | 278.00 DZD | +106% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 00:12 UTC | Binance, person to person | 278.00 DZD | +106% | 9 of 9 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 22 Oct, 21:18 UTC | Binance, person to person | 257.92 DZD | +91.6% | 10 of 42 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -31,7 +32,6 @@ Open any file to check a price yourself.
 | 22 Oct, 15:07 UTC | Binance, person to person | 257.99 DZD | +91.6% | 10 of 46 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 22 Oct, 14:07 UTC | Binance, person to person | 257.35 DZD | +91.1% | 10 of 54 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 22 Oct, 13:07 UTC | Binance, person to person | 257.53 DZD | +91.3% | 10 of 48 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 22 Oct, 12:06 UTC | Binance, person to person | 257.75 DZD | +91.4% | 10 of 47 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://margin.wiki/data/adsp2p_basis.csv>
