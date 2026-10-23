@@ -1079,6 +1079,8 @@ EVENTS_REPORTED = os.path.join(OUT_DIR, "events_reported.csv")
 RECORDS_REPORTED = os.path.join(OUT_DIR, "event_records")
 EVENTS_REPORTED_V2 = os.path.join(OUT_DIR, "events_reported_rules2.csv")
 RECORDS_REPORTED_V2 = os.path.join(OUT_DIR, "event_records_rules2")
+EVENTS_REPORTED_V3 = os.path.join(OUT_DIR, "events_reported_rules3.csv")
+RECORDS_REPORTED_V3 = os.path.join(OUT_DIR, "event_records_rules3")
 REPLAY_FIELDS = ["as_of_date", "event_id", "ccy", "kind", "status", "confirmation", "detected_on", "baseline", "latest", "change_pct", "note",
                  "label", "source"]
 REPLAY_FIELDS_V2 = REPLAY_FIELDS + ["rules_version"]
@@ -1137,6 +1139,9 @@ def history_data():
     fawaz = _series(os.path.join(OUT_DIR, FX_WIDE["fawaz"]), "date", "ccy", "per_usd")
     ecb = _series(os.path.join(OUT_DIR, "official_fx_daily.csv"), "date", "ccy", "per_usd")
     off, live, names = {}, {}, {}
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import check_official_rates as _cor
+    erapi = _cor.daily(_cor.FX, "ts_utc", "fx_mid_per_usd")
     for c in set(bis) | set(fawaz):
         if c in bis:
             off[c], names[c] = bis[c], ["BIS WS_XRU daily average"]
@@ -1148,6 +1153,9 @@ def history_data():
                 names[c].append("fawazahmed0/currency-api")
         else:
             off[c], names[c] = fawaz[c], ["fawazahmed0/currency-api"]
+            if c in erapi:                                     # the observed er-api rate, from 10 Sep 2026: the only second source there is
+                live[c] = erapi[c]
+                names[c].append("er-api, data/fx_rates.csv, observed from 10 Sep 2026")
     venues = street_series()
     order = ["Binance spot", "Bitso", "Buda", "Kraken", "CoinGecko"]
     street, street2, snames = {}, {}, {}
@@ -1200,12 +1208,12 @@ def replay_history(dry, start="2000-01-01"):
         rec["street"]["source"] = (snames.get(ccy) or ["?"])[0] + " daily close, data/history/"
         fixed[eid] = rec
     if not dry:
-        os.makedirs(RECORDS_REPORTED_V2, exist_ok=True)
+        os.makedirs(RECORDS_REPORTED_V3, exist_ok=True)
         for eid, rec in fixed.items():
-            with open(os.path.join(RECORDS_REPORTED_V2, eid + ".json"), "w") as f:
+            with open(os.path.join(RECORDS_REPORTED_V3, eid + ".json"), "w") as f:
                 json.dump(rec, f, indent=1, sort_keys=True)
                 f.write("\n")
-        write_rows(EVENTS_REPORTED_V2, REPLAY_FIELDS_V2, rows)
+        write_rows(EVENTS_REPORTED_V3, REPLAY_FIELDS_V2, rows)
     return rows, fixed
 
 

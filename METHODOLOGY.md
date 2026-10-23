@@ -1854,6 +1854,18 @@ A 3-day official move is a **data warning, never an event** when it is a unit er
 
 Records carry `rules.rules_version`, the rule used and, for a free-floating currency, its median and the number of moves counted. The replay writes new files beside the version-1 ones, which are untouched (an existing header is frozen): `data/history/events_reported_rules2.csv` (the old columns plus `rules_version`) and `data/history/event_records_rules2/`. `tests/check_known_breaks.py` proves the replay finds Turkey Aug 2018 and Nov to Dec 2021, Argentina 14 Dec 2023, Egypt 7 Mar 2024 (not enough evidence) and Iraq Oct 2026, and misses Nigeria Jun 2023 because no official naira rate before 2 Mar 2024 exists in any free file.
 
+## The event detector, rules version 3 (SEB-311, 23 Oct 2026)
+
+Shadow mode, nothing published, `index_version` does not move. Version 2 left 579 candidates in the 26-year replay, most of them runs of ordinary swings in volatile free-floating currencies. Three changes, in the daily run and the replay alike:
+
+1. **Floating currencies need 6 times their own median** 3-day move (was 4), plus the 3% floor. Managed currencies are unchanged.
+2. **One event per currency per 30 days.** After a candidate, any later move of the same currency inside 30 days (an official break or a street slide) does not open a new event. If its window starts on or after the event's detection day, it is written as an `update` row on the open event ("a further official break of x%") and an entry in the record's `after` (`further_moves`), at most once a week per kind. A step still running through the days after the event began is the event itself and is not written again. A data warning or a not-enough-evidence row is not an event and does not open the window.
+3. **A step of 10% or more in a series with no central bank behind it needs a second stored source.** The second source must have both days and move the same way by at least half as much: the ECB reference rate or fawazahmed0 for BIS currencies, the observed er-api rate (`data/fx_rates.csv`, from 10 Sep 2026) for fawazahmed0-only currencies, `data/fx_live.csv` in the live run. Where none covers those days, it is a data warning. This is how BOB 8 Jul 2026 (+42.8%) and SYP 22 Oct 2025 (-15.0%) became warnings: no stored source other than fawazahmed0 has either day. Iraq 9 Oct 2026 (+15.5%) stands, because er-api shows +8.9% the same days.
+
+A consequence to know: Argentina's 14 Dec 2023 devaluation (+118.7%) is a further official break on the event the 19 Nov street slide opened, not an event of its own.
+
+New files beside the version-2 ones, which are untouched: `data/history/events_reported_rules3.csv` (same columns as version 2, `rules_version` 3) and `data/history/event_records_rules3/`. Replay: 306 candidates, down from 579. `tests/check_known_breaks.py` now also proves the BOB and SYP warnings, that no currency has two events inside 30 days, and that no step of 10% or more stands without a second source or a central-bank series.
+
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
 **Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's
