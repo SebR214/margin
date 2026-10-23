@@ -1,14 +1,14 @@
 # In Algeria a dollar costs 91.9% more than the official rate
 
-Prices from the 21:00 UTC hour, 23 Oct.
+Prices from the 22:00 UTC hour, 23 Oct.
 
-The official rate is 134.67 DZD per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 258.44 DZD. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 134.67 DZD per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 258.39 DZD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 25,844 DZD. The official rate says 13,467 DZD.
+For US$100, people pay 25,839 DZD. The official rate says 13,467 DZD.
 
 One source
 
-Prices from the 21:00 UTC hour, 23 Oct
+Prices from the 22:00 UTC hour, 23 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -26,7 +26,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-258.44 DZD +91.9%
+258.39 DZD +91.9%
 
 ## Every Algeria price links to its raw file
 
@@ -34,6 +34,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 22:07 UTC | Binance, person to person | 258.39 DZD | +91.9% | 10 of 31 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 21:07 UTC | Binance, person to person | 258.44 DZD | +91.9% | 10 of 36 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 20:09 UTC | Binance, person to person | 258.00 DZD | +91.6% | 10 of 47 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 19:07 UTC | Binance, person to person | 257.99 DZD | +91.6% | 10 of 44 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -45,7 +46,6 @@ Open any file to check a price yourself.
 | 23 Oct, 13:07 UTC | Binance, person to person | 258.00 DZD | +91.6% | 10 of 48 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 12:07 UTC | Binance, person to person | 258.93 DZD | +92.3% | 10 of 34 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 11:06 UTC | Binance, person to person | 257.90 DZD | +91.5% | 10 of 52 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 10:06 UTC | Binance, person to person | 257.86 DZD | +91.5% | 10 of 59 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://margin.wiki/data/adsp2p_basis.csv>
