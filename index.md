@@ -1,74 +1,74 @@
 # People do not always pay the official rate for a dollar
 
-Prices from the 03:00 UTC hour, 23 Oct.
+Prices from the 04:00 UTC hour, 23 Oct.
 
 Where banks ration dollars, people buy stablecoins from each other and pay more.
 
 We compare what a dollar costs in 53 countries with the official rate every hour, and also price sending money on 9 routes with every fee we can measure.
 
-AI agents built this site and keep it running. So far they have stored 518,228 prices from 36 sources over 1,532 hours.
+AI agents built this site and keep it running. So far they have stored 518,893 prices from 36 sources over 1,533 hours.
 
 <https://margin.wiki/data/index_latest.json>
 <https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/sources_daily.json>
 
-## In 24 of 47 countries we priced this hour, a dollar costs within 2% of the official rate.
+## In 27 of 48 countries we priced this hour, a dollar costs within 2% of the official rate.
 
 | Country | Against the official rate |
 | --- | --- |
-| [Algeria](https://margin.wiki/country/DZD.md) | +92.7% |
-| [Mozambique](https://margin.wiki/country/MZN.md) | +17.7% |
-| [Venezuela](https://margin.wiki/country/VES.md) | +17.3% |
-| [Iraq](https://margin.wiki/country/IQD.md) | +14.5% |
-| [South Africa](https://margin.wiki/country/ZAR.md) | +11.5% |
-| [Argentina](https://margin.wiki/country/ARS.md) | +8.0% |
-| [Morocco](https://margin.wiki/country/MAD.md) | +7.6% |
-| [Kazakhstan](https://margin.wiki/country/KZT.md) | +6.6% |
+| [Algeria](https://margin.wiki/country/DZD.md) | +92.0% |
+| [Venezuela](https://margin.wiki/country/VES.md) | +17.2% |
+| [Tunisia](https://margin.wiki/country/TND.md) | +15.0% |
+| [Iraq](https://margin.wiki/country/IQD.md) | +14.2% |
+| [South Africa](https://margin.wiki/country/ZAR.md) | +10.0% |
+| [Argentina](https://margin.wiki/country/ARS.md) | +8.1% |
+| [Morocco](https://margin.wiki/country/MAD.md) | +7.7% |
 | [India](https://margin.wiki/country/INR.md) | +6.5% |
 | [Central African CFA](https://margin.wiki/country/XAF.md) | +5.9% |
-| [Qatar](https://margin.wiki/country/QAR.md) | +5.6% |
+| [Kazakhstan](https://margin.wiki/country/KZT.md) | +5.8% |
+| [Qatar](https://margin.wiki/country/QAR.md) | +4.8% |
 | [Ukraine](https://margin.wiki/country/UAH.md) | +3.7% |
-| [Jordan](https://margin.wiki/country/JOD.md) | +3.6% |
-| [West African CFA](https://margin.wiki/country/XOF.md) | +3.4% |
+| [West African CFA](https://margin.wiki/country/XOF.md) | +3.5% |
 | [Uganda](https://margin.wiki/country/UGX.md) | +3.3% |
+| [Mongolia](https://margin.wiki/country/MNT.md) | +3.1% |
 | [Nigeria](https://margin.wiki/country/NGN.md) | +3.0% |
-| [Mongolia](https://margin.wiki/country/MNT.md) | +2.9% |
-| [Pakistan](https://margin.wiki/country/PKR.md) | +2.9% |
-| [Saudi Arabia](https://margin.wiki/country/SAR.md) | +2.5% |
+| [Pakistan](https://margin.wiki/country/PKR.md) | +2.8% |
+| [Saudi Arabia](https://margin.wiki/country/SAR.md) | +2.7% |
 | [Sri Lanka](https://margin.wiki/country/LKR.md) | +2.5% |
-| [Laos](https://margin.wiki/country/LAK.md) | +2.4% |
-| [Zambia](https://margin.wiki/country/ZMW.md) | +2.3% |
 | [Bolivia](https://margin.wiki/country/BOB.md) | +2.2% |
+| [Zambia](https://margin.wiki/country/ZMW.md) | +2.1% |
 | [Egypt](https://margin.wiki/country/EGP.md) | +1.8% |
+| [Laos](https://margin.wiki/country/LAK.md) | +1.8% |
 | [Kuwait](https://margin.wiki/country/KWD.md) | +1.7% |
-| [Rwanda](https://margin.wiki/country/RWF.md) | +1.5% |
+| [Azerbaijan](https://margin.wiki/country/AZN.md) | +1.4% |
+| [Lebanon](https://margin.wiki/country/LBP.md) | +1.4% |
 | [Chile](https://margin.wiki/country/CLP.md) | +1.3% |
 | [Peru](https://margin.wiki/country/PEN.md) | +1.2% |
-| [Vietnam](https://margin.wiki/country/VND.md) | +1.1% |
-| [Azerbaijan](https://margin.wiki/country/AZN.md) | +1.0% |
-| [Tanzania](https://margin.wiki/country/TZS.md) | +1.0% |
+| [Vietnam](https://margin.wiki/country/VND.md) | +1.2% |
+| [Jordan](https://margin.wiki/country/JOD.md) | +1.1% |
+| [Rwanda](https://margin.wiki/country/RWF.md) | +1.0% |
 | [South Korea](https://margin.wiki/country/KRW.md) | +0.8% |
-| [United Arab Emirates](https://margin.wiki/country/AED.md) | +0.7% |
-| [Armenia](https://margin.wiki/country/AMD.md) | +0.5% |
-| [New Zealand](https://margin.wiki/country/NZD.md) | +0.4% |
+| [Tanzania](https://margin.wiki/country/TZS.md) | +0.8% |
+| [United Arab Emirates](https://margin.wiki/country/AED.md) | +0.5% |
 | [Taiwan](https://margin.wiki/country/TWD.md) | +0.4% |
+| [Armenia](https://margin.wiki/country/AMD.md) | +0.3% |
 | [Brazil](https://margin.wiki/country/BRL.md) | +0.3% |
 | [Georgia](https://margin.wiki/country/GEL.md) | +0.3% |
-| [Australia](https://margin.wiki/country/AUD.md) | 0.0% |
-| [Colombia](https://margin.wiki/country/COP.md) | 0.0% |
+| [New Zealand](https://margin.wiki/country/NZD.md) | +0.3% |
+| [Colombia](https://margin.wiki/country/COP.md) | +0.1% |
 | [Kenya](https://margin.wiki/country/KES.md) | 0.0% |
 | [Singapore](https://margin.wiki/country/SGD.md) | 0.0% |
+| [Australia](https://margin.wiki/country/AUD.md) | −0.1% |
 | [Indonesia](https://margin.wiki/country/IDR.md) | −0.1% |
 | [Thailand](https://margin.wiki/country/THB.md) | −0.1% |
 | [Mexico](https://margin.wiki/country/MXN.md) | −0.2% |
 | [Turkey](https://margin.wiki/country/TRY.md) | −0.2% |
 | [Philippines](https://margin.wiki/country/PHP.md) | −0.3% |
+| [Mozambique](https://margin.wiki/country/MZN.md) | no price |
 | [Syria](https://margin.wiki/country/SYP.md) | no price |
-| [Tunisia](https://margin.wiki/country/TND.md) | no price |
 | [Bangladesh](https://margin.wiki/country/BDT.md) | no price |
 | [Cambodia](https://margin.wiki/country/KHR.md) | no price |
-| [Lebanon](https://margin.wiki/country/LBP.md) | no price |
-| [Sudan](https://margin.wiki/country/SDG.md) | +1,900% |
+| [Sudan](https://margin.wiki/country/SDG.md) | +1,901% |
 
 Sudan (SDG) is shown but not ranked. Its government stopped updating the official rate, so any gap would measure that freeze, not what people pay.
 
@@ -91,7 +91,7 @@ We also check Afghanistan, Angola, Botswana, Brunei, Ethiopia, Ghana, Nepal ever
 
 ## The record grew as new sources and routes came in
 
-518,228 prices stored
+518,893 prices stored
 
 Exchanges' own earlier prices reach back to 3 Jan 2011, so some charts predate our record.
 
