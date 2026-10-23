@@ -1,6 +1,6 @@
 # When and how much you send changes the cost
 
-Prices from the 21:00 UTC hour, 22 Oct.
+Prices from the 00:00 UTC hour, 23 Oct.
 
 Each finding is worked out from prices we store every hour. Each page shows the evidence, how it was worked out, and a file you can download.
 
@@ -12,7 +12,7 @@ Each finding is worked out from prices we store every hour. Each page shows the 
 
 First published 5 Oct 2026. The number updates every hour.
 
-1,323 price changes since 12 Aug
+1,366 price changes since 12 Aug
 
 02
 
