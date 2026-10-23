@@ -1876,6 +1876,12 @@ New files beside the version-2 ones, which are untouched: `data/history/events_r
 
 First reading, one pass on 23 Oct 07:00 UTC (a laptop run, nothing stored): 60 of 60 read; the widest gaps to er-api were Sudan +17.3%, Botswana -3.9%, Uganda +2.4%, Angola -1.4%, Nigeria +0.7%. Sudan matches the finding in `fx_live.csv` (21 Oct: 601.5 live against er-api's 449.2).
 
+## A second venue for markets that rested on one (BACKLOG 9, from 2026-10-23)
+
+**Nothing published changes.** `index_version` does not move. Five public, keyless exchange order books were added to `collector_basis.py` for markets whose price rested on one source, each probed with a live call that returned a two-sided USDT quote: BitOasis and OKX spot for the dirham (AED), OKX spot for Singapore (SGD), Binance TH for Thailand (THB), and Binance's market-data host for Mexico (MXN, `data-api.binance.vision`; binance.com itself answers 451 from the runner). They are listed `quarantine` in `data/source_registry.json`: their rows go to `data/basis.csv` like any venue's, `tools/emit_countries.py` ignores them, and `tools/source_gate.py` decides after 7 days and 100 shared hours against an approved neighbour whether one may feed a price (a person or an approved spec changes the status). Meanwhile `data/source_pairs.json` compares them hour by hour with the venue already there.
+
+Looked at and not added: PDAX (Philippines) and Coinhako (Singapore) refuse the call (403); Quidax (Nigeria) answered 503 on three tries; Swyftx quotes in Australian dollars; CriptoYa lists only one broker for the bolivar besides person-to-person boards. Dzd, LAK, LKR, MNT, QAR, SDG, SYP and TND have no exchange order book or broker we could find that sells USDT for them.
+
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
 **Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's
