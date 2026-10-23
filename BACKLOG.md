@@ -110,6 +110,7 @@ and 6a to 6d dropped unbuilt.
     excerpt: `.github/workflows/collect.yml` `for f in data/samples.csv` `; do$`
     venue: `USD` | `https://api.wise.com/v4/comparisons/` | `(not probed: a dollar in dollars)`
     done when: running collector_comparison.py once appends to data/comparison_quotes.csv one row per route and provider that the feed returns (time, route, provider, fee, rate, amount received, source URL), and a provider already stored by collector_providers.py is skipped rather than duplicated. collect.yml has one new step after the SGD->INR corridor step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector_comparison.py`, and data/comparison_quotes.csv added to the commit list; no existing step changes.
+    blocked: failed: the model returned no files or edits in the agreed form (2026-10-23)
   - [ ] 7b. List the providers the feed returns that we do not store yet, per route
     files: `tools/list_unstored_providers.py` `data/unstored_providers.json`
     context: `collector_providers.py`
