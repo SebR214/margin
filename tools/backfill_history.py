@@ -1073,10 +1073,15 @@ def pack_raw(raw_dir, date):
 
 # ---- the replay: the event detector (tools/detect_events.py, shadow mode) run over everything above. Its rows and records stay here, apart
 # from data/events.csv and data/event_records/, and every one is marked "reported, not observed". Nothing here feeds the index or a price.
+# Rules version 1 (22 Oct) wrote events_reported.csv and event_records/; they stay as they are. Rules version 2 (SEB-311 step 3c) writes new
+# files beside them, because an existing CSV's header is frozen and the new rows carry a rules_version column.
 EVENTS_REPORTED = os.path.join(OUT_DIR, "events_reported.csv")
 RECORDS_REPORTED = os.path.join(OUT_DIR, "event_records")
+EVENTS_REPORTED_V2 = os.path.join(OUT_DIR, "events_reported_rules2.csv")
+RECORDS_REPORTED_V2 = os.path.join(OUT_DIR, "event_records_rules2")
 REPLAY_FIELDS = ["as_of_date", "event_id", "ccy", "kind", "status", "confirmation", "detected_on", "baseline", "latest", "change_pct", "note",
                  "label", "source"]
+REPLAY_FIELDS_V2 = REPLAY_FIELDS + ["rules_version"]
 
 
 def _series(path, datecol, ccycol, valcol, ccys=None):
@@ -1160,8 +1165,12 @@ def history_data():
         street_c["binance_p2p"].setdefault(c, {})[d] = p
     size = {k: (999.0, 999.0, "exchange spot market, depth not stored") for k in street}
     n_off = {(c, d): 1 for c, v in off.items() for d in v}
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import detect_events as de
     data = {"off": off, "n_off": n_off, "live": live, "street": {"binance_p2p": street, "okx_p2p": street2},
-            "street_c": street_c, "size": size}
+            "street_c": street_c, "size": size,
+            "managed": de.managed_set(),                       # the flag as the live file last says it, for every currency it lists
+            "central_bank": set(bis)}                          # a central-bank series (BIS) is not an aggregator: a big jump in it stands
     return data, names, snames
 
 
@@ -1174,7 +1183,8 @@ def replay_history(dry, start="2000-01-01"):
     for r in rows:
         r["label"] = LABEL
         r["source"] = " | ".join(names.get(r["ccy"], [])) + " ; street " + " + ".join(snames.get(r["ccy"], ["none"]))
-        for k in REPLAY_FIELDS:
+        r["rules_version"] = de.RULES_VERSION
+        for k in REPLAY_FIELDS_V2:
             if r.get(k) in ("", None):
                 r[k] = "none"                                    # a history row has no empty field; "none" says the figure does not apply
     fixed = {}
@@ -1190,14 +1200,12 @@ def replay_history(dry, start="2000-01-01"):
         rec["street"]["source"] = (snames.get(ccy) or ["?"])[0] + " daily close, data/history/"
         fixed[eid] = rec
     if not dry:
-        os.makedirs(RECORDS_REPORTED, exist_ok=True)
+        os.makedirs(RECORDS_REPORTED_V2, exist_ok=True)
         for eid, rec in fixed.items():
-            for a in recs.get(eid, {}).get("after", []):
-                pass
-            with open(os.path.join(RECORDS_REPORTED, eid + ".json"), "w") as f:
+            with open(os.path.join(RECORDS_REPORTED_V2, eid + ".json"), "w") as f:
                 json.dump(rec, f, indent=1, sort_keys=True)
                 f.write("\n")
-        write_rows(EVENTS_REPORTED, REPLAY_FIELDS, rows)
+        write_rows(EVENTS_REPORTED_V2, REPLAY_FIELDS_V2, rows)
     return rows, fixed
 
 

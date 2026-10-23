@@ -9,7 +9,9 @@ Reads stored CSVs, writes two things, both append-only:
 
 What is an event (ROADMAP.md "What counts as an event"):
   official_break  the official rate (er-api, data/fx_rates.csv, the last reading of each UTC day) is 3% or more away from its value
-                  3 days earlier
+                  3 days earlier. Rules version 2 (SEB-311 step 3c): for a currency whose rate is managed (managed_flag true in
+                  data/fx_rates.csv) that is the whole rule; for every other currency the 3-day move must also be at least 4 times that
+                  currency's own median 3-day move over the 365 days before the day judged
   street_slide    the street price (the Binance board's buy price, data/p2p_basis.csv, the day's median) is 10% or more away from its
                   value 7 days earlier, in a market with 10 or more ads on each side (data/p2p_depth.csv, or p2p_sides.csv where depth
                   was not stored yet)
@@ -17,6 +19,8 @@ Not an event: a thin market; a slow drift that never crosses the line; anything 
 official rate is flagged (the rules of tools/check_official_rates.py, run on the data up to that day: a weekly loop, a jump that
 reverses, 30 days unchanged, a lag behind the live rate) or whose official rate steps to a value it had a week or two earlier
 (a loop seen before 28 days of history exist) is never an event: it writes a data_warning row saying what would have fired.
+A 3-day move that is really a redenomination (the rate multiplied by a power of ten), a jump of 50% or more seen in one aggregator
+feed with no second source, or a jump one source shows and the second source does not, is a unit error: a data_warning row, never an event.
 A currency with fewer than 14 days of official history cannot be judged for an official break (a weekly repeat could not be seen), or fewer
 than 7 for a street slide: not_enough_evidence.
 
@@ -37,6 +41,7 @@ import bisect
 import csv
 import datetime as dt
 import json
+import math
 import os
 import statistics
 import sys
@@ -63,6 +68,12 @@ UPDATE_EVERY = 7
 CLOSE_AFTER = 56
 FLAG_WINDOW_DAYS = 90         # the official-rate rules look at the 90 days before the day judged
 LOOP_TOL_PCT = 2.0             # a value within 2% of one seen 7 or 14 days before
+RULES_VERSION = 2              # 1: 3% in 3 days for every currency (22 Oct). 2: that rule for managed currencies only, 4x own median for the rest
+OWN_MULT = 4.0                 # a free-floating currency breaks when its 3-day move is 4 times its own median 3-day move or more
+BASELINE_DAYS = 365            # the median is over the 3-day moves ending in the 365 days before the day judged
+MIN_BASELINE_PAIRS = 30        # 3-day moves needed to know what is normal for a currency
+JUMP_HOLD_PCT = 50.0           # a 3-day move this big needs a central-bank series or a second source behind it
+REDENOM_TOL_LOG10 = 0.02       # a ratio within about 5% of a power of ten is a redenomination
 
 
 def day_add(d, n):
@@ -87,13 +98,22 @@ def read(name):
         return list(csv.DictReader(f))
 
 
+def managed_set(root_read=read):
+    """The currencies whose official rate is managed: the latest managed_flag in data/fx_rates.csv."""
+    out = set()
+    for r in root_read("fx_rates.csv"):
+        (out.add if r["managed_flag"] == "True" else out.discard)(r["ccy"])
+    return out
+
+
 def load(root_read=read):
     """Everything the detector uses, as day-keyed dictionaries. Nothing here knows today's date."""
     off = cor.daily(cor.FX, "ts_utc", "fx_mid_per_usd")                       # {ccy: {day: last reading}}
     live = cor.daily(cor.LIVE, "ts_utc", "rate_per_usd", ok_col="source_ok")
-    n_off = {}
+    n_off, managed = {}, set()
     for r in root_read("fx_rates.csv"):
         n_off[(r["ccy"], r["ts_utc"][:10])] = n_off.get((r["ccy"], r["ts_utc"][:10]), 0) + 1
+        (managed.add if r["managed_flag"] == "True" else managed.discard)(r["ccy"])         # the latest reading of the flag stands
     street = {"binance_p2p": {}, "okx_p2p": {}}
     for name in ("p2p_basis.csv", "p2p_okx.csv"):
         for r in root_read(name):
@@ -126,7 +146,8 @@ def load(root_read=read):
     for s, d in street.items():
         for (ccy, day), v in d.items():
             street_c[s].setdefault(ccy, {})[day] = v
-    return {"off": off, "n_off": n_off, "live": live, "street": street, "street_c": street_c, "size": size}
+    return {"off": off, "n_off": n_off, "live": live, "street": street, "street_c": street_c, "size": size, "managed": managed,
+            "central_bank": set()}
 
 
 def cut(series, as_of):
@@ -175,6 +196,48 @@ def thick(size, ccy, d):
         return None
     mb, ms = med(b), med(s)
     return (mb >= MIN_ADS and ms >= MIN_ADS), mb, ms, "+".join(sorted(src))
+
+
+def own_median_move(data, ccy):
+    """Returns f(D) -> (median absolute 3-day move in percent, pairs) over the 3-day moves ending in the BASELINE_DAYS days before D."""
+    off = data["off"].get(ccy, {})
+    days = official_days(data, ccy)
+
+    def f(D):
+        lo = bisect.bisect_left(days, day_add(D, -BASELINE_DAYS))
+        hi = bisect.bisect_left(days, D)
+        moves = []
+        for x in days[lo:hi]:
+            a = off.get(day_add(x, -OFFICIAL_DAYS))
+            if a:
+                moves.append(abs(pct(a, off[x])))
+        return (med(moves) if moves else None), len(moves)
+    return f
+
+
+def unit_error(data, ccy, D, ch):
+    """Why a 3-day official move is a data fault and not an event, or None. Three tests, in this order:
+    a redenomination (the rate times a power of ten); one source jumping while the second official source does not; a jump of 50% or more
+    in an aggregator feed (not a central-bank series) with no second source to show it."""
+    off = data["off"].get(ccy, {})
+    a, b = off.get(day_add(D, -OFFICIAL_DAYS)), off.get(D)
+    big = abs(ch) >= JUMP_HOLD_PCT
+    if big and a and b:
+        lg = math.log10(b / a)
+        k = round(lg)
+        if k != 0 and abs(lg - k) <= REDENOM_TOL_LOG10:
+            return "a redenomination or unit change: the rate was multiplied by 10^%d" % k
+    live = data["live"].get(ccy, {})
+    la, lb = live.get(day_add(D, -OFFICIAL_DAYS)), live.get(D)
+    second = None
+    if la and lb:
+        c2 = pct(la, lb)
+        second = (c2 > 0) == (ch > 0) and abs(c2) >= abs(ch) / 2
+        if not second:
+            return "one source jumped %s%% and the second official source did not (%s%%)" % (ch, c2)
+    if big and not second and ccy not in data.get("central_bank", ()):
+        return "a jump of %s%% in one aggregator feed with no second source: held as a unit error until another source shows it" % ch
+    return None
 
 
 class LazyFlags:
@@ -254,7 +317,15 @@ def build_record(data, ccy, kind, d, ch, conf, sources, ok_size, flagged):
     base_day = day_add(d, -(OFFICIAL_DAYS if kind == "official_break" else STREET_DAYS))
     rec = {"id": event_id(ccy, kind, d), "ccy": ccy, "kind": kind, "detected_on": d, "confirmation": conf, "sources_showing_it": sources,
            "rules": {"official_step_pct": OFFICIAL_STEP_PCT, "official_days": OFFICIAL_DAYS, "street_slide_pct": STREET_SLIDE_PCT,
-                     "street_days": STREET_DAYS, "min_ads_each_side": MIN_ADS}}
+                     "street_days": STREET_DAYS, "min_ads_each_side": MIN_ADS, "rules_version": RULES_VERSION}}
+    if kind == "official_break":
+        managed = ccy in data.get("managed", ())
+        rec["rules"]["official_rule"] = ("managed currency: %s%% in %d days" % (OFFICIAL_STEP_PCT, OFFICIAL_DAYS) if managed else
+                                         "free-floating currency: %s%% in %d days and %sx its own median %d-day move over the %d days before" % (
+                                             OFFICIAL_STEP_PCT, OFFICIAL_DAYS, OWN_MULT, OFFICIAL_DAYS, BASELINE_DAYS))
+        if not managed:
+            m, n = own_median_move(data, ccy)(d)
+            rec["rules"]["own_median_move_pct"], rec["rules"]["own_moves_counted"] = m, n
     rec["official"] = {"source": "er-api, data/fx_rates.csv, last reading of each UTC day", "baseline_day": day_add(d, -OFFICIAL_DAYS),
                        "baseline": off.get(day_add(d, -OFFICIAL_DAYS)), "at_detection": off.get(d)}
     if rec["official"]["baseline"] and rec["official"]["at_detection"]:
@@ -344,6 +415,7 @@ def step(D, data, events, flags_cache=None):
         elif e["status"] == "not_enough_evidence":
             quiet_nee[k] = max(quiet_nee.get(k, ""), e["detected_on"])
     ccys = sorted(set(data["off"]) | {c for (c, _) in data["street"]["binance_p2p"]})
+    medians = data.setdefault("_medians", {})
     for ccy in ccys:
         if ccy == "USD":
             continue
@@ -355,6 +427,12 @@ def step(D, data, events, flags_cache=None):
                 ch = street_slide(data["street_c"]["binance_p2p"].get(ccy, {}), D)
             if ch is None:
                 continue
+            thin_base = False
+            if kind == "official_break" and ccy not in data.get("managed", ()):
+                m, n = medians[ccy](D) if ccy in medians else medians.setdefault(ccy, own_median_move(data, ccy))(D)
+                if n >= MIN_BASELINE_PAIRS and abs(ch) < OWN_MULT * m:
+                    continue                                                                # an ordinary move for this currency
+                thin_base = n < MIN_BASELINE_PAIRS
             last = quiet_since.get((ccy, kind))
             if last and (dt.date.fromisoformat(D) - dt.date.fromisoformat(last)).days < REARM_DAYS:
                 continue                                                                    # the same episode, already on record
@@ -367,18 +445,24 @@ def step(D, data, events, flags_cache=None):
             elif kind == "official_break" and loop_repeat(off, D):
                 warn = "the official rate is back within 2%% of its value %d days earlier, a loop" % loop_repeat(off, D)
             need = MIN_OFFICIAL_HISTORY if kind == "official_break" else MIN_STREET_HISTORY
-            if history < need and not warn:
+            if (history < need or thin_base) and not warn:
                 if kind == "street_slide" and (t is None or not t[0]):
                     continue                                                                # a thin market is not an event, and not a row
-                n = quiet_nee.get((ccy, kind))
-                if n and (dt.date.fromisoformat(D) - dt.date.fromisoformat(n)).days < REARM_DAYS:
+                q = quiet_nee.get((ccy, kind))
+                if q and (dt.date.fromisoformat(D) - dt.date.fromisoformat(q)).days < REARM_DAYS:
                     continue                                                                # the same note, already on record
                 rows.append(row(D, eid, ccy, kind, "not_enough_evidence", "not enough evidence", D, None, None, ch,
-                                "%d days of official history, %d are needed" % (history, need)))
+                                "%d days of official history, %d are needed" % (history, need) if history < need else
+                                "%d earlier 3-day moves, %d are needed to know what is normal for this currency" % (n, MIN_BASELINE_PAIRS)))
                 continue
             if warn:
                 rows.append(row(D, eid, ccy, kind, "data_warning", "", D, None, None, ch, "would have been %s (%s%%); not an event: %s" % (kind, ch, warn)))
                 continue
+            if kind == "official_break":
+                bad = unit_error(data, ccy, D, ch)
+                if bad:
+                    rows.append(row(D, eid, ccy, kind, "data_warning", "", D, None, None, ch, "would have been %s (%s%%); not an event: %s" % (kind, ch, bad)))
+                    continue
             if kind == "street_slide":
                 if t is None or not t[0]:
                     continue                                                                # a thin market is not an event, and not a row
@@ -579,12 +663,53 @@ def self_test():
     # a not_enough_evidence note does not silence a real event in the next 14 days, and does not repeat itself for 14 days
     short = [day_add(base, i) for i in range(40)]
     offs = {"NEW": {d: (100.0 if i < 4 else 110.0 if i < 16 else 130.0) for i, d in enumerate(short)}}
-    d2 = {"off": offs, "n_off": {}, "live": {}, "street": {"binance_p2p": {}, "okx_p2p": {}}, "street_c": {"binance_p2p": {}, "okx_p2p": {}}, "size": {}}
+    d2 = {"off": offs, "n_off": {}, "live": {}, "street": {"binance_p2p": {}, "okx_p2p": {}}, "street_c": {"binance_p2p": {}, "okx_p2p": {}}, "size": {},
+          "managed": {"NEW"}}
     r4, _ = run_days(d2, [], short[0], short[-1])
     nee = [r for r in r4 if r["status"] == "not_enough_evidence"]
     cand = [r for r in r4 if r["status"] == "candidate" and r["ccy"] == "NEW"]
     assert [r["detected_on"] for r in nee] == [short[4]], "one note, not one a day: %s" % [r["detected_on"] for r in nee]
     assert [r["detected_on"] for r in cand] == [short[16]], "the real break 12 days after the note must be raised: %s" % [r["detected_on"] for r in cand]
+    # rules version 2: a free-floating currency needs 4x its own median 3-day move, a managed one only the 3%
+    long_ = [day_add("2026-01-01", i) for i in range(120)]
+    quiet = {d: 100.0 * (1 + 0.001 * (i % 2)) for i, d in enumerate(long_)}                    # moves 0.1% a day
+    noisy = {}
+    for i, d in enumerate(long_):
+        noisy[d] = 100.0 * (1.035 if (i // 3) % 2 else 1.0)                                      # a 3.5% 3-day move every 3 days: normal for it
+    for i, d in enumerate(long_):
+        if i >= 100:
+            quiet[d] *= 1.05
+            noisy[d] *= 1.06
+    d3 = {"off": {"QUI": quiet, "NOI": noisy, "MAN": dict(quiet)}, "n_off": {}, "live": {}, "street": {"binance_p2p": {}, "okx_p2p": {}},
+          "street_c": {"binance_p2p": {}, "okx_p2p": {}}, "size": {}, "managed": {"MAN"}, "central_bank": set()}
+    r5, rec5 = run_days(d3, [], long_[0], long_[-1])
+    got = {(r["ccy"], r["status"]) for r in r5 if r["detected_on"] >= long_[100]}
+    assert ("QUI", "candidate") in got, "a 5% step in a currency that moves 0.1% a day is an event: %s" % got
+    assert ("MAN", "candidate") in got, "a managed currency needs only the 3%%: %s" % got
+    assert not [1 for r in r5 if r["ccy"] == "NOI" and r["detected_on"] >= long_[40]], "6%% is ordinary for a currency that moves 3.5%% every 3 days"
+    q = next(r for r in rec5.values() if r.get("ccy") == "QUI" and "rules" in r)
+    assert q["rules"]["rules_version"] == RULES_VERSION and q["rules"]["own_moves_counted"] >= MIN_BASELINE_PAIRS, q["rules"]
+    # unit errors: a redenomination, and a jump in an aggregator feed with no second source, are warnings; the same jump with a
+    # central-bank series behind it is an event
+    jump = {d: 100.0 for d in long_}
+    for i, d in enumerate(long_):
+        if i >= 100:
+            jump[d] = 100.0 / 100000                                                              # five zeros off
+    glitch = {d: (100.0 if i < 100 else 300.0) for i, d in enumerate(long_)}                       # +200%, no power of ten
+    cb = dict(glitch)
+    d4 = {"off": {"RED": jump, "GLI": glitch, "CBK": cb}, "n_off": {}, "live": {}, "street": {"binance_p2p": {}, "okx_p2p": {}},
+          "street_c": {"binance_p2p": {}, "okx_p2p": {}}, "size": {}, "managed": {"RED", "GLI", "CBK"}, "central_bank": {"CBK"}}
+    r6, _ = run_days(d4, [], long_[0], long_[-1])
+    st = {(r["ccy"], r["status"]) for r in r6}
+    assert ("RED", "data_warning") in st and ("RED", "candidate") not in st, st
+    assert ("GLI", "data_warning") in st and ("GLI", "candidate") not in st, st
+    assert ("CBK", "candidate") in st, st
+    # one source jumping while the second does not
+    flat_live = {d: 100.0 for d in long_}
+    d5 = {"off": {"CBK": cb}, "n_off": {}, "live": {"CBK": flat_live}, "street": {"binance_p2p": {}, "okx_p2p": {}},
+          "street_c": {"binance_p2p": {}, "okx_p2p": {}}, "size": {}, "managed": {"CBK"}, "central_bank": {"CBK"}}
+    r7, _ = run_days(d5, [], long_[0], long_[-1])
+    assert ("CBK", "data_warning") in {(r["ccy"], r["status"]) for r in r7} and not [r for r in r7 if r["status"] == "candidate"], r7
     print("detect_events self-test: ok")
     return 0
 
