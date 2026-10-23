@@ -1,14 +1,14 @@
-# In Ukraine a dollar costs 4.5% more than the official rate
+# In Ukraine a dollar costs 4.7% more than the official rate
 
-Prices from the 17:00 UTC hour, 23 Oct.
+Prices from the 18:00 UTC hour, 23 Oct.
 
-The official rate is 45.07 UAH per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 47.07 UAH. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 45.07 UAH per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 47.17 UAH. A stablecoin is a coin that stays worth one US dollar.
 
 Sellers on Binance and OKX agree on this price. Buyers there are offering more than sellers ask this hour, which is unusual.
 
-For US$100, people pay 4,707 UAH. The official rate says 4,507 UAH.
+For US$100, people pay 4,717 UAH. The official rate says 4,507 UAH.
 
-Prices from the 17:00 UTC hour, 23 Oct
+Prices from the 18:00 UTC hour, 23 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -24,11 +24,11 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 OKX, person to person
 
-46.96 UAH +4.2%
+47.00 UAH +4.3%
 
 Binance, person to person
 
-47.19 UAH +4.7%
+47.35 UAH +5.1%
 
 ## Every Ukraine price links to its raw file
 
