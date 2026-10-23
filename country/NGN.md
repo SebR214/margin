@@ -1,6 +1,6 @@
 # In Nigeria a dollar costs 3.0% more than the official rate
 
-Prices from the 04:00 UTC hour, 23 Oct.
+Prices from the 05:00 UTC hour, 23 Oct.
 
 The official rate is 1,324.6 NGN per dollar. On the exchanges where people in Nigeria trade stablecoins, one costs 1,364 NGN. A stablecoin is a coin that stays worth one US dollar.
 
@@ -10,7 +10,7 @@ For US$100, people pay 136,399 NGN. The official rate says 132,460 NGN.
 
 One source
 
-Prices from the 04:00 UTC hour, 23 Oct
+Prices from the 05:00 UTC hour, 23 Oct
 
 <https://margin.wiki/data/countries/NGN.json>
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Raw file |
 | --- | --- | --- | --- | --- |
+| 23 Oct, 05:09 UTC | OKX, person to person | 1,380 NGN | +4.2% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 23 Oct, 05:06 UTC | Luno | 1,364 NGN | +3.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 04:14 UTC | OKX, person to person | 1,380 NGN | +4.2% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 04:11 UTC | Luno | 1,364 NGN | +3.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 03:09 UTC | OKX, person to person | 1,380 NGN | +4.2% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 23 Oct, 01:06 UTC | Luno | 1,364 NGN | +3.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 00:15 UTC | OKX, person to person | 1,380 NGN | +3.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 00:11 UTC | Luno | 1,364 NGN | +2.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 22 Oct, 21:21 UTC | OKX, person to person | 1,380 NGN | +3.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 21:18 UTC | Luno | 1,364 NGN | +2.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>

@@ -1,14 +1,12 @@
-# In Jordan a dollar costs 1.1% more than the official rate
+# In Jordan a dollar costs 2.5% more than the official rate
 
-Prices from the 04:00 UTC hour, 23 Oct.
+Prices from the 05:00 UTC hour, 23 Oct.
 
-The official rate is 0.71 JOD per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 0.72 JOD. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 0.71 JOD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 0.73 JOD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 71.70 JOD. The official rate says 70.90 JOD.
+For US$100, people pay 72.70 JOD. The official rate says 70.90 JOD.
 
-One source
-
-Prices from the 04:00 UTC hour, 23 Oct
+Prices from the 05:00 UTC hour, 23 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -18,7 +16,7 @@ Taking the cheapest offers first, at least US$5,000 can be bought before a dolla
 
 One point per day, the price we published that day. 0% is the official rate.
 
-Today's difference is near the widest it has been since 5 Sep 2026, counting only our own readings. On most days it sits between 0.4% and 0.8%.
+Today's difference is the widest since 5 Sep 2026, counting only our own readings. On most days it sits between 0.4% and 0.8%.
 
 ## Where this price comes from
 
@@ -28,12 +26,18 @@ Binance, person to person
 
 0.72 JOD +1.1%
 
+OKX, person to person
+
+0.74 JOD +3.9%
+
 ## Every Jordan price links to its raw file
 
 Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 05:09 UTC | OKX, person to person | 0.74 JOD | +3.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 23 Oct, 05:06 UTC | Binance, person to person | 0.72 JOD | +1.1% | 10 of 57 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 04:14 UTC | OKX, person to person | 0.75 JOD | +5.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 04:11 UTC | Binance, person to person | 0.72 JOD | +1.1% | 10 of 52 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 03:09 UTC | OKX, person to person | 0.74 JOD | +4.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -44,8 +48,6 @@ Open any file to check a price yourself.
 | 23 Oct, 01:07 UTC | Binance, person to person | 0.72 JOD | +1.6% | 10 of 42 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 00:15 UTC | OKX, person to person | 0.72 JOD | +1.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 00:12 UTC | Binance, person to person | 0.72 JOD | +1.5% | 10 of 53 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 22 Oct, 21:21 UTC | OKX, person to person | 0.72 JOD | +1.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 21:18 UTC | Binance, person to person | 0.72 JOD | +1.0% | 10 of 84 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
