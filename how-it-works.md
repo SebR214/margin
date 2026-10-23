@@ -1,14 +1,14 @@
 # How to read this site
 
-Prices from the 13:00 UTC hour, 23 Oct.
+Prices from the 14:00 UTC hour, 23 Oct.
 
 ## What we measure
 
-Every country has an official exchange rate. In some countries banks won’t sell dollars at that rate, or sell very few, so people buy them from each other and pay more. Every hour we check what people really pay for a dollar in 53 countries and compare it with the official rate.
+Every country has an official exchange rate. In some countries banks won’t sell dollars at that rate, or sell very few, so people buy them from each other and pay more. Every hour we check what people really pay for a dollar in 54 countries and compare it with the official rate.
 
 ## What the percentage means
 
-In Algeria, the official rate says a dollar costs 135 DZD. People actually pay 258 DZD. That’s 91.6% more, so Algeria shows +91.6%.
+In Algeria, the official rate says a dollar costs 135 DZD. People actually pay 258 DZD. That’s 91.4% more, so Algeria shows +91.4%.
 
 0% means people pay the official rate, and most countries are close to it. A minus means they pay a little less.
 
@@ -22,7 +22,7 @@ We get it from local exchanges first, then brokers, then people selling to each 
 
 On 9 routes we also check what it costs to send money abroad.
 
-We compare transfer apps with sending it by stablecoin. The cost is how much less the person receiving gets than at the official rate, with every fee we can see included. This hour, sending S$5,000 to the Philippines costs S$3.07 with Airwallex, the cheapest app. Where a fee can't be seen, the route says so.
+We compare transfer apps with sending it by stablecoin. The cost is how much less the person receiving gets than at the official rate, with every fee we can see included. This hour, sending S$5,000 to the Philippines costs S$5.54 with Airwallex, the cheapest app. Where a fee can't be seen, the route says so.
 
 <https://margin.wiki/data/routes_hourly.json>
 
