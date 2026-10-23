@@ -1,14 +1,14 @@
-# In Mozambique a dollar costs 17.8% more than the official rate
+# In Mozambique a dollar costs 17.7% more than the official rate
 
-Prices from the 02:00 UTC hour, 23 Oct.
+Prices from the 03:00 UTC hour, 23 Oct.
 
-The official rate is 63.72 MZN per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 75.08 MZN. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 63.72 MZN per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 74.99 MZN. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 7,508 MZN. The official rate says 6,372 MZN.
+For US$100, people pay 7,499 MZN. The official rate says 6,372 MZN.
 
 One source
 
-Prices from the 02:00 UTC hour, 23 Oct
+Prices from the 03:00 UTC hour, 23 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -18,7 +18,7 @@ Taking the cheapest offers first, at least US$5,000 can be bought before a dolla
 
 One point per day, the price we published that day. 0% is the official rate.
 
-Today's difference is near the widest it has been since 5 Sep 2026, counting only our own readings. On most days it sits between 16.6% and 17.7%.
+Today's difference is typical of the record since 5 Sep 2026, counting only our own readings. On most days it sits between 16.6% and 17.7%.
 
 ## Where this price comes from
 
@@ -26,7 +26,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-75.08 MZN +17.8%
+74.99 MZN +17.7%
 
 ## Every Mozambique price links to its raw file
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 03:09 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 23 Oct, 03:07 UTC | Binance, person to person | 74.99 MZN | +17.7% | 10 of 35 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 02:12 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 02:09 UTC | Binance, person to person | 75.08 MZN | +17.8% | 10 of 29 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 01:09 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 22 Oct, 20:17 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 22 Oct, 19:10 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 22 Oct, 18:09 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 17:16 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 22 Oct, 16:15 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

@@ -1,10 +1,10 @@
 # No price for Angola this hour
 
-Prices from the 02:00 UTC hour, 23 Oct.
+Prices from the 03:00 UTC hour, 23 Oct.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
-Prices from the 02:00 UTC hour, 23 Oct
+Prices from the 03:00 UTC hour, 23 Oct
 
 <https://margin.wiki/data/countries/AOA.json>
 
@@ -14,6 +14,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 23 Oct, 03:07 UTC | Binance, person to person | 1,197 AOA | +28.6% | 4 of 4 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 02:09 UTC | Binance, person to person | 1,197 AOA | +28.6% | 4 of 4 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 01:07 UTC | Binance, person to person | 1,195 AOA | +28.4% | 9 of 9 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 00:12 UTC | Binance, person to person | 1,195 AOA | +28.6% | 8 of 8 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -25,7 +26,6 @@ Open any file to check a price yourself.
 | 22 Oct, 16:13 UTC | Binance, person to person | 1,199 AOA | +29.1% | 3 of 3 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 22 Oct, 15:07 UTC | Binance, person to person | 1,282 AOA | +38.0% | 4 of 4 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 21 Oct, 16:08 UTC | OKX, person to person | 1,200 AOA | +29.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 21 Oct, 15:08 UTC | OKX, person to person | 1,200 AOA | +29.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
