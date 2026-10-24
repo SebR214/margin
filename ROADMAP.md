@@ -1,6 +1,6 @@
 # Roadmap
 
-Updated 22 Oct 2026 (events plan, approved by Seb in chat, SEB-311). Seb owns this file. Agents change it only from a spec Seb approved.
+Updated 24 Oct 2026 (devaluation watch, approved by Seb in chat, SEB-384; events plan of 22 Oct, SEB-311). Seb owns this file. Agents change it only from a spec Seb approved.
 
 ## What margin.wiki is
 
@@ -8,7 +8,9 @@ Every hour it prices a dollar in 60 countries against the official rate, and pri
 
 ## In six months (April 2027)
 
-A dated record of every time a currency broke in the countries we track. Each event is found by code from our own hourly prices, checked against a second source, and retested as new data comes in.
+A devaluation watch that makes dated claims per country and scores itself in public, on top of the events record and 25 years of history. Each event in the record is found by code from our own hourly prices, checked against a second source, and retested as new data comes in.
+
+Where it stands (24 Oct 2026, SEB-384): the 25 years of history are built as a time control on the home grid. The claims are not. The first backtest did not show that a big premium comes before an official step, for currencies with controls (a 10% step within 12 months followed 26% of month starts with a premium of 10% or more, and 36% of those under 2%). The watch is built only once a backtest on more data shows the premium does come first. What we do know is where the official rate landed after past breaks, and that is published from the backtest tables.
 
 It rests on three things:
 
