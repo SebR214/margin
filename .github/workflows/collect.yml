@@ -177,6 +177,9 @@ jobs:
         # hides corridor 2 -- and the per-corridor idempotency gate means the
         # two never contend for the hour.
         run: python3 collector.py --corridor "USD->MXN"
+      - name: Collect corridor sample USD->BRL
+        if: always() && steps.needed.outputs.proceed == 'true'
+        run: python3 collector.py --corridor "USD->BRL"
 
       - name: Collect corridor sample AUD->PHP
         if: always() && steps.needed.outputs.proceed == 'true'
@@ -689,7 +692,7 @@ jobs:
           # healthy no-op run red on 2026-09-02. A layer that has not written
           # its first row yet is a normal state, not a failure.
           for f in data/samples.csv data/samples_depth.csv data/basis.csv data/providers.csv \
-                   data/providers_usdmxn.csv data/providers_audphp.csv \
+                   data/providers_usdmxn.csv data/providers_usdbrl.csv data/providers_audphp.csv \
                    data/providers_nzdphp.csv \
                    data/providers_usdngn.csv data/providers_usdinr.csv \
                    data/providers_sgdinr.csv data/providers_usdars.csv data/providers_usdphp.csv data/latest.json \

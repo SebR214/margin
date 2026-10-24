@@ -346,6 +346,7 @@ INSTAREM_ACCOUNT = {
 CORRIDOR_CCY = {
     "SGD->PHP": ("SGD", "PHP"), "AUD->PHP": ("AUD", "PHP"),
     "NZD->PHP": ("NZD", "PHP"), "USD->MXN": ("USD", "MXN"),
+    "USD->BRL": ("USD", "BRL"),
     "USD->NGN": ("USD", "NGN"), "USD->INR": ("USD", "INR"),
     "SGD->INR": ("SGD", "INR"),
     "USD->ARS": ("USD", "ARS"),
