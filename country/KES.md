@@ -1,14 +1,14 @@
-# In Kenya a dollar costs what the official rate says
+# In Kenya a dollar costs 0.1% more than the official rate
 
-Prices from the 02:00 UTC hour, 24 Oct.
+Prices from the 03:00 UTC hour, 24 Oct.
 
-The official rate is 129.85 KES per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 129.84 KES. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 129.85 KES per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 129.93 KES. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 12,984 KES. The official rate says 12,985 KES.
+For US$100, people pay 12,993 KES. The official rate says 12,985 KES.
 
 One source
 
-Prices from the 02:00 UTC hour, 24 Oct
+Prices from the 03:00 UTC hour, 24 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -26,7 +26,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-129.84 KES 0.0%
+129.93 KES +0.1%
 
 ## Every Kenya price links to its raw file
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 24 Oct, 03:16 UTC | OKX, person to person | 134.07 KES | +3.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 24 Oct, 03:14 UTC | Binance, person to person | 129.93 KES | +0.1% | 10 of 33 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 02:09 UTC | OKX, person to person | 134.45 KES | +3.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 24 Oct, 02:06 UTC | Binance, person to person | 129.84 KES | 0.0% | 10 of 35 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 01:09 UTC | OKX, person to person | 133.12 KES | +2.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 23 Oct, 23:07 UTC | Binance, person to person | 129.87 KES | 0.0% | 10 of 42 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 22:09 UTC | OKX, person to person | 132.23 KES | +1.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 22:07 UTC | Binance, person to person | 129.85 KES | 0.0% | 10 of 58 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 21:09 UTC | OKX, person to person | 132.75 KES | +2.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 23 Oct, 21:07 UTC | Binance, person to person | 129.83 KES | 0.0% | 10 of 63 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
