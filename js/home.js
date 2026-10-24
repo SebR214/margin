@@ -1,6 +1,6 @@
 /* Home (SEB-268), built to the approved reference.
  * Reads data/heatmap_daily.json, data/index_latest.json, data/findings.json,
- * data/record_daily.json, data/record_milestones.json and copy.json (homeData). The header clock is js/site_head.js's.
+ * data/record_daily.json (the totals line), data/sources_daily.json and copy.json (homeData). The time control is js/home_timeline.js's (SEB-384). The header clock is js/site_head.js's.
  * Every figure is read from those files at render time; every word is a homeData key. Dates, numbers and names are formatted here. */
 (function () {
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -97,6 +97,8 @@
   }
 
   function heat() {
+    var vw = tlView();
+    if (vw) { heatTl(vw); return; }
     var rows = showAll ? D.ranked : D.ranked.slice(0, 20);
     var s0 = early ? 0 : Math.max(0, D.days.length - 30), days = D.days.slice(s0), n = days.length;
     var X = function (i) { return (i + 0.5) / n * 100; };
@@ -120,6 +122,64 @@
       (D.never30.length && T('neverPricedNote') ? '<p class="note sm">' + esc(T('neverPricedNote', { list: D.never30.map(function (c) { return c.country; }).join(', ') })) + '</p>' : '');
   }
 
+  /* ---------------------------------------------------------------- the time control (js/home_timeline.js): the same grid at a chosen day or hour.
+     Every value and class comes from data/map_timeline/; this only draws them. */
+  function tlView() { return window.homeTimeline ? window.homeTimeline.view() : null; }
+  function tlBucket(c) { if (c.v == null || c.k === '-') { return 'b-none'; } if (c.k === '2') { return c.v >= 100 ? 'b-offstep' : 'b-off'; } return bucket(c.v / 10); }
+  // axis labels stay short (the year and the full hour are in the line above the grid): the right-hand column is 58px wide on a phone
+  function tlShort(vw, j, end) { var l = vw.labels[j]; return vw.hourly ? (end ? '' : dd(l.slice(0, 10)) + ' ') + l.slice(11, 13) + ':00' : dd(l); }
+  function tlValue(c) {
+    if (c.v == null || c.k === '-') { return '<small>' + esc(T('tlNoData')) + '</small>'; }
+    return sgn(c.v / 10) + (c.k === '2' ? '<small class="tag">' + esc(T('tlOfficialTag')) + '</small>' : '');
+  }
+  function heatTl(vw) {
+    var rows = showAll ? vw.rows : vw.rows.slice(0, 20), n = vw.labels.length;
+    var anyOff = vw.rows.some(function (r) { return r.cells.some(function (c) { return c.k === '2'; }); });
+    var ax = '<span class="l" style="left:0">' + esc(tlShort(vw, 0)) + '</span>';
+    var line = function (r) {
+      return '<a class="hrow" href="' + ctry(r.ccy) + '" data-ccy="' + esc(r.ccy) + '"><span class="nm">' + esc(plain(r.country)) + '</span><span class="cells">' +
+        r.cells.map(function (c, j) { return '<i class="' + tlBucket(c) + '" data-i="' + j + '"></i>'; }).join('') +
+        '</span><span class="v num">' + tlValue(r.end) + '</span></a>';
+    };
+    $('heat').innerHTML =
+      (vw.reported && T('tlReported') ? '<p class="note tlnote">' + esc(T('tlReported', { since: window.homeTimeline.fmt(window.homeTimeline.meta().own_start, false) })) + '</p>' : '') +
+      '<p class="key">' + BUCKETS.map(function (b) { return '<span><i class="' + b[2] + '"></i>' + esc(T(b[3], b[4])) + '</span>'; }).join('') +
+      (anyOff ? '<span><i class="b-off"></i>' + esc(T('tlLegendOfficial')) + '</span><span><i class="b-offstep"></i>' + esc(T('tlLegendOfficialStep')) + '</span>' : '') +
+      '<span><i class="b-none"></i>' + esc(T('legendNone')) + '</span></p>' +
+      '<div class="hax"><span></span><div class="ax num">' + ax + '</div><span class="axh">' + esc(tlShort(vw, n - 1, true)) + '</span></div>' +
+      rows.map(line).join('') +
+      '<div class="pills hb">' + (showAll || vw.rows.length <= 20 ? '' : '<button class="pill" type="button" id="all">' + esc(T('heatShowAll', { n: vw.rows.length })) + '</button>') + '</div>';
+  }
+  function heatHead() {
+    var vw = tlView();
+    if (vw) {
+      $('heatT').textContent = vw.counts.N ? T('tlHeatTitle', { n: g(vw.counts.n), N: g(vw.counts.N), when: vw.when }) : T(vw.counts.off ? 'tlHeatTitleOfficial' : 'tlHeatTitleNone', { when: vw.when });
+      $('heatL').textContent = T('tlHeatLine');
+      return;
+    }
+    var rk = D.rk || [];
+    $('heatT').textContent = rk.length ? T('heatTitle', { n: g(rk.filter(function (c) { var v = Math.round(c.index_pct * 10) / 10; return v >= -2 && v <= 2; }).length), N: g(rk.length) }) : '';
+    $('heatL').textContent = T('heatLine') + (T('heatTapNote') ? ' ' + T('heatTapNote') : '');
+  }
+  function tlTip(vw, cells, j) {
+    var r = vw.rows.filter(function (x) { return x.ccy === cells.closest('.hrow').dataset.ccy; })[0], c = r.cells[j];
+    var v = { country: plain(r.country), when: window.homeTimeline.fmt(vw.labels[j], vw.hourly), value: c.v == null ? '' : sgn(c.v / 10) };
+    return T(c.k === '-' || c.v == null ? 'tlTipNone' : c.k === '0' ? 'tlTipOurs' : c.k === '1' ? 'tlTipReported' : 'tlTipOfficial', v);
+  }
+
+  /* ---------------------------------------------------------------- where the official rate landed after past breaks (SEB-384, from the backtest)
+     data/map_timeline/landing.json: each break of 10% or more that has a street price before it. Reported, not seen by us. */
+  function land(j) {
+    var box = $('land'), rows = (j && j.rows) || [];
+    if (!box || !rows.length || !T('landTitle') || !T('landUp')) { if (box) { box.innerHTML = ''; } return; }
+    var mon = function (d) { return dd(d) + ' ' + d.slice(0, 4); };
+    box.innerHTML = '<h2>' + esc(T('landTitle')) + '</h2><p class="note">' + esc(T('landLine')) + '</p><div class="rows">' + rows.map(function (r) {
+      var p = r.premium_before_pct;
+      return '<a class="r" href="' + ctry(r.ccy) + '"><b>' + esc(plain(r.country)) + '<small class="d">' + esc(mon(r.date)) + '</small></b><span class="m">' +
+        esc(T(p >= 0 ? 'landUp' : 'landDown', { move: pct1(r.move_pct), premium: pct1(p) })) + '</span><span class="v num">' + Math.round(r.landing_ratio * 100) + '%<small>' + esc(T('landValue')) + '</small></span></a>';
+    }).join('') + '</div><p class="note sm">' + esc(T('landNote')) + '</p>';
+  }
+
   /* ---------------------------------------------------------------- findings: each line links to its page */
   function findings() {
     // the same published findings, in the same order and with the same titles as findings.html (copy.json findingData.title_<id>)
@@ -131,10 +191,9 @@
               .replace(/\{n\}/g, typeof v === 'number' ? v.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '');
     };
     var pub = ((D.fin && D.fin.findings) || []).filter(function (f) { return f.published === true; });
-    // a finding keeps its number and its page; 01 and 02 (apps change prices, Saturday pricing) sit at the bottom of the home list
-    var LAST = ['price_changes', 'weekend_penalty'];
-    var ord = pub.map(function (f, i) { return { f: f, no: i + 1 }; });
-    ord = ord.filter(function (o) { return LAST.indexOf(o.f.id) < 0; }).concat(ord.filter(function (o) { return LAST.indexOf(o.f.id) >= 0; }));
+    // a finding keeps its number and its page; 01 and 02 (apps change prices, Saturday pricing) are off the home list, their pages stay (SEB-384)
+    var OFF = ['price_changes', 'weekend_penalty'];
+    var ord = pub.map(function (f, i) { return { f: f, no: i + 1 }; }).filter(function (o) { return OFF.indexOf(o.f.id) < 0; });
     var lines = ord.map(function (o) { return [o.f.id, title(o.f), o.no]; }).filter(function (l) { return l[1]; });
     if (!lines.length || !T('findingsTitle')) { $('finds').innerHTML = ''; return; }
     $('finds').innerHTML = '<h2>' + esc(T('findingsTitle')) + '</h2><div class="rows">' + lines.map(function (f, i) {
@@ -143,23 +202,19 @@
     }).join('') + (T('findingsRoutesLink') ? '<a class="r f" href="./sending-money.html"><span class="m">' + esc(T('findingsRoutesLink')) + '</span><span class="v">→</span></a>' : '') + '</div>';
   }
 
-  /* ---------------------------------------------------------------- the record: the SEB-278 chart (hover any day) */
-  function record() {
-    var box = $('rec');
-    box.innerHTML = '';
-    if (!D.rec || !D.mil) { return; }
-    var P = { SGD: 'Singapore', AUD: 'Australia', NZD: 'New Zealand', USD: 'United States' }, Q = { PHP: 'the Philippines', MXN: 'Mexico', INR: 'India', NGN: 'Nigeria' };
-    var names = {};
-    (D.mil.milestones || []).forEach(function (m) { if (m.kind === 'route') { var ab = m.id.split('->'); names[m.id] = (P[ab[0]] || ab[0]) + ' to ' + (Q[ab[1]] || ab[1]); } });
-    if (typeof window.renderRecordBlock === 'function') { window.renderRecordBlock(box, D.rec, D.mil, C, names); }
-  }
-
   /* ---------------------------------------------------------------- squares answer hover and tap: the day comes from where the pointer is along the row */
   function readSquare(e) {
     var cells = e.target.closest && e.target.closest('.cells');
     if (!cells) { if (!e.target.closest || !e.target.closest('.chart,[data-tip]')) { /* the shared tooltip hides itself elsewhere */ } return; }
     var r = cells.getBoundingClientRect(), k = cells.children.length;
     var j = Math.max(0, Math.min(k - 1, Math.floor((e.clientX - r.left) / r.width * k))), i = +cells.children[j].dataset.i, n = D.days.length;
+    var vw = tlView();
+    if (vw) {
+      [].forEach.call(document.querySelectorAll('.cells i.on'), function (x) { x.classList.remove('on'); });
+      cells.children[j].classList.add('on');
+      if (window.siteTip) { window.siteTip.show(tlTip(vw, cells, j), e.clientX, e.clientY); }
+      return;
+    }
     var c = D.cur.filter(function (x) { return x.ccy === cells.closest('.hrow').dataset.ccy; })[0], v = c.cells[i];
     [].forEach.call(document.querySelectorAll('.cells i.on'), function (x) { x.classList.remove('on'); });
     cells.children[j].classList.add('on');
@@ -180,9 +235,9 @@
     });
   }
 
-  var jobs = { copy: 'copy.json', heat: 'data/heatmap_daily.json', idx: 'data/index_latest.json', fin: 'data/findings.json', rec: 'data/record_daily.json', src: 'data/sources_daily.json', mil: 'data/record_milestones.json' };
+  var jobs = { copy: 'copy.json', heat: 'data/heatmap_daily.json', idx: 'data/index_latest.json', fin: 'data/findings.json', rec: 'data/record_daily.json', src: 'data/sources_daily.json' };
   // loading is a function so a tab left open can load again when a newer hour is published (siteLive, js/site_head.js)
-  var wired = false;
+  var wired = false, tlWired = false;
   function load() {
   var failed = [], y0 = window.scrollY;
   return Promise.all(Object.keys(jobs).map(function (k) { return getJSON(jobs[k]).catch(function () { failed.push(k); return null; }); })).then(function (r) {
@@ -195,12 +250,15 @@
     build();   // before hero(): the "tracked" count and the "Countries tracked" counter both read D.cur, built here
     hero();
     // counted like the Countries page title: ranked countries with a price this hour, and how many sit within 2% (SEB-268, 12 Oct)
-    var rk = ((got.idx && got.idx.countries) || []).filter(function (c) { return c.index_pct != null && c.denominator_class !== 'unmaintained'; });
-    $('heatT').textContent = rk.length ? T('heatTitle', { n: g(rk.filter(function (c) { var v = Math.round(c.index_pct * 10) / 10; return v >= -2 && v <= 2; }).length), N: g(rk.length) }) : '';
-    $('heatL').textContent = T('heatLine') + (T('heatTapNote') ? ' ' + T('heatTapNote') : '');
+    D.rk = ((got.idx && got.idx.countries) || []).filter(function (c) { return c.index_pct != null && c.denominator_class !== 'unmaintained'; });
+    heatHead();
     heat();
     findings();
-    record();
+    getJSON('data/map_timeline/landing.json').then(land).catch(function () { land(null); });
+    if (window.homeTimeline) {
+      window.homeTimeline.init({ T: T, esc: esc, mount: $('tl') });
+      if (!tlWired) { tlWired = true; window.homeTimeline.onChange(function () { heatHead(); heat(); }); }
+    }
     if (wired) { window.scrollTo(0, y0); }
     if (!wired) { wired = true; wire(); }
     if (failed.length) { var er = $('loaderr'); er.textContent = T('loadError', { n: failed.length }); er.hidden = !er.textContent; }

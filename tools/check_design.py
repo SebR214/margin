@@ -112,8 +112,9 @@ STYLE_PROBE = r"""
 """
 
 
-# The record chart (js/record_block.js, css/record_block.css) on the two pages that draw it: a missing style shows as a solid black area.
-RECORD_PAGES = ["index.html", "how-it-was-built.html"]
+# The record chart (js/record_block.js, css/record_block.css) on the page that draws it: a missing style shows as a solid black area.
+# Home stopped drawing it when the time control replaced it (SEB-384).
+RECORD_PAGES = ["how-it-was-built.html"]
 RECORD_PROBE = r"""
 (function () {
   var a = document.querySelector('.hp-area'), l = document.querySelector('.hp-line'), x = document.querySelector('.hp-axis');
@@ -141,7 +142,7 @@ def style_check(perturb=False):
                     seen[(width, name)] = json.loads(page.eval_js(STYLE_PROBE) or "{}")
                 for name in RECORD_PAGES:
                     page.visit(base + "/" + name)
-                    if perturb and name == "index.html":
+                    if perturb and name == "how-it-was-built.html":
                         page.eval_js("document.querySelector('.hp-area').style.setProperty('fill-opacity','1');'ok'")
                     got = json.loads(page.eval_js(RECORD_PROBE) or "{}")
                     for _ in range(10):           # the chart draws after its data loads; a slow runner needs a few more seconds
