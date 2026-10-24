@@ -93,6 +93,7 @@ and 6a to 6d dropped unbuilt.
     excerpt: `.github/workflows/collect.yml` `for f in data/samples.csv` `; do$`
     excerpt: `collector_providers.py` `^CORRIDOR_CCY = \{` `^\}`
     done when: collector.py's CORRIDORS has one new "AUD->INR" entry with src AUD, dst INR, stable USDT, the onramp, network_fee_stable and deposit copied unchanged from "AUD->PHP", the offramp copied unchanged from "SGD->INR", the same ladder, and providers_file "providers_audinr.csv"; collect.yml has one new step "Collect corridor sample AUD->INR" after the SGD->INR step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector.py --corridor "AUD->INR"`, and data/providers_audinr.csv added to the commit list; collector_providers.py CORRIDOR_CCY has "AUD->INR": ("AUD", "INR"); no other line changes.
+    blocked: needs-claude: the Aider builder failed 2 times, last: aider_checks.py fails: $ python3 tests/check_home_emitters.py (2026-10-24)
 - [ ] 6. United States to Turkey (Coinbase, then BtcTurk or Paribu). Apps in the feed: 5.
   - [ ] 6a. Add the USD->TRY route to collector.py's corridor table, its collect.yml step and the provider quotes config
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
