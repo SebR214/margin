@@ -1,14 +1,14 @@
-# In Kazakhstan a dollar costs 4.4% more than the official rate
+# In Kazakhstan a dollar costs 4.7% more than the official rate
 
-Prices from the 13:00 UTC hour, 24 Oct.
+Prices from the 14:00 UTC hour, 24 Oct.
 
-The official rate is 449.59 KZT per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 469.54 KZT. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 449.59 KZT per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 470.93 KZT. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 46,954 KZT. The official rate says 44,959 KZT.
+For US$100, people pay 47,093 KZT. The official rate says 44,959 KZT.
 
-Prices from the 13:00 UTC hour, 24 Oct
+Prices from the 14:00 UTC hour, 24 Oct
 
-Taking the cheapest offers first, only US$3,000 can be bought before a dollar here costs 1% more.
+Taking the cheapest offers first, only US$2,500 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/countries/KZT.json>
 
@@ -24,7 +24,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-468.09 KZT +4.1%
+470.85 KZT +4.7%
 
 OKX, person to person
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 24 Oct, 14:11 UTC | OKX, person to person | 471.00 KZT | +4.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 24 Oct, 14:07 UTC | Binance, person to person | 470.85 KZT | +4.7% | 10 of 58 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 13:11 UTC | OKX, person to person | 471.00 KZT | +4.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 24 Oct, 13:07 UTC | Binance, person to person | 468.09 KZT | +4.1% | 10 of 59 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 12:11 UTC | OKX, person to person | 471.00 KZT | +4.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 24 Oct, 10:07 UTC | Binance, person to person | 475.99 KZT | +5.9% | 10 of 54 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 09:11 UTC | OKX, person to person | 470.94 KZT | +4.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 24 Oct, 09:07 UTC | Binance, person to person | 468.00 KZT | +4.1% | 10 of 63 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 08:39 UTC | OKX, person to person | 471.00 KZT | +4.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 24 Oct, 08:36 UTC | Binance, person to person | 469.09 KZT | +4.3% | 10 of 58 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
