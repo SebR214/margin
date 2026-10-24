@@ -351,6 +351,7 @@ CORRIDOR_CCY = {
     "SGD->INR": ("SGD", "INR"),
     "USD->ARS": ("USD", "ARS"),
     "USD->PHP": ("USD", "PHP"),
+    "AUD->INR": ("AUD", "INR"),
 }
 
 # WorldRemit's own per-country calculator page, checked live 2026-09-27 --
