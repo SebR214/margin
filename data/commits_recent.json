@@ -1,7 +1,56 @@
 {
- "as_of_utc": "2026-10-24T07:41:30Z",
+ "as_of_utc": "2026-10-24T08:46:08Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "8f8643db2515e73394a49cc7470bb12188c82c61",
+   "html_url": "https://github.com/SebR214/margin/commit/8f8643db2515e73394a49cc7470bb12188c82c61",
+   "date": "2026-10-24T08:43:27Z",
+   "email": "person",
+   "message": "SEB-384: backtest own prices use every published figure, not one source class (#668)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "abafe38a04d8b881eaadb68761a09140c1dabaa1",
+   "html_url": "https://github.com/SebR214/margin/commit/abafe38a04d8b881eaadb68761a09140c1dabaa1",
+   "date": "2026-10-24T08:42:47Z",
+   "email": "person",
+   "message": "SEB-384: ROADMAP, the six month bet is the devaluation watch (step 5) (#667)\n\n* SEB-384 step 5: ROADMAP, the six month bet is the devaluation watch\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-384: ROADMAP names the landing file, not a publication\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "60e12a7710f9c42ff5715da50e852abda09fa03d",
+   "html_url": "https://github.com/SebR214/margin/commit/60e12a7710f9c42ff5715da50e852abda09fa03d",
+   "date": "2026-10-24T08:31:03Z",
+   "email": "person",
+   "message": "SEB-384 step 2: devaluation-watch backtest, kill rule fails for managed currencies (#665)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "1bc27da14290df53ea636486b4238060bd0eb231",
+   "html_url": "https://github.com/SebR214/margin/commit/1bc27da14290df53ea636486b4238060bd0eb231",
+   "date": "2026-10-24T08:11:52Z",
+   "email": "person",
+   "message": "SEB-301 backlog 5a: Australia to India route (#662)\n\n* SEB-301 backlog 5a: Australia to India route (Independent Reserve, then WazirX)\n\ncollector.py CORRIDORS gets one AUD->INR entry: on-ramp, network fee and AUD deposit copied unchanged from AUD->PHP,\noff-ramp, TDS and INR withdrawal copied unchanged from SGD->INR, the same ladder. collector_providers.py CORRIDOR_CCY,\none collect.yml step, the providers file (header only) in the commit list, and the route's name in copy.json.\nAdditive only. The Aider builder failed this job twice on tests/check_home_emitters.py, which passes here.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\n* SEB-301 backlog 5a: regenerate the route files for AUD->INR\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "b89914582d446d38b1a200ea88dd2d9bd4618bad",
+   "html_url": "https://github.com/SebR214/margin/commit/b89914582d446d38b1a200ea88dd2d9bd4618bad",
+   "date": "2026-10-24T07:58:44Z",
+   "email": "person",
+   "message": "SEB-301 backlog 2a: United States to Brazil route (Coinbase, then Foxbit) (#663)\n\ncollector.py: one USD->BRL entry in CORRIDORS (Coinbase side copied unchanged from USD->MXN) and an off-ramp reader for\nFoxbit's public order book (fetch_offramp_foxbit, dispatched like Bitso, Luno and WazirX). Foxbit fees from its own table,\nfoxbit.com.br/taxas, read 24 Oct: taker 0.50%, maker 0.25% at the lowest tier, BRL withdrawal to a bank free.\ncollector_providers.py CORRIDOR_CCY, one collect.yml step, the providers file (header only) in the commit list, the\nroute's name in copy.json, and the two route files regenerated so the route self-test sees no stale file.\nNot additive (a new reader function in collector.py), so it needs the collector-gate run and a merge by hand.\n\n\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "b44da39d0cdb94cddcabc4769cff1d1e1952cea2",
+   "html_url": "https://github.com/SebR214/margin/commit/b44da39d0cdb94cddcabc4769cff1d1e1952cea2",
+   "date": "2026-10-24T07:49:02Z",
+   "email": "person",
+   "message": "SEB-301: every route gets its detail on Routes, not 'not compared yet' (#661)\n\nArgentina, Nigeria and both India routes showed 'not compared yet' under the premium table that compares them. The\ndetail now shows them like every other route: the headline already says in words when the stablecoin paid out more\nthan the official rate, the bars and steps show it below zero, and the chart's dark line is the best app.\nNo words, data or method changed.\n\n\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "2590c1a6dfa6bf7aa5b6747c4ad52f471398ea6f",
+   "html_url": "https://github.com/SebR214/margin/commit/2590c1a6dfa6bf7aa5b6747c4ad52f471398ea6f",
+   "date": "2026-10-24T07:44:01Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-24T07:44Z"
+  },
   {
    "sha": "3633bb14e1b6c53307c42537772947bd10398de2",
    "html_url": "https://github.com/SebR214/margin/commit/3633bb14e1b6c53307c42537772947bd10398de2",
@@ -652,55 +701,6 @@
    "date": "2026-10-22T15:29:29Z",
    "email": "person",
    "message": "SEB-311: history files and the detector replay (step 3b) (#647)\n\n* SEB-311 step 3b: history files (official rates, Binance, Bitso, Kraken, Argentina), the replay and its records; 90-day flag window\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-311: events_reported.csv carries a source column, as the isolation check requires\n\n* SEB-311: no empty field in events_reported.csv\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "4a82c57a65ebe6a626c2c5ef54f51da9b5267b23",
-   "html_url": "https://github.com/SebR214/margin/commit/4a82c57a65ebe6a626c2c5ef54f51da9b5267b23",
-   "date": "2026-10-22T15:23:46Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-22T15:23Z"
-  },
-  {
-   "sha": "7d8dd238584c452b98de56e69c46673e93d44494",
-   "html_url": "https://github.com/SebR214/margin/commit/7d8dd238584c452b98de56e69c46673e93d44494",
-   "date": "2026-10-22T14:43:57Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-22T14:43Z"
-  },
-  {
-   "sha": "d3022c84599328f5a5f308c5c43d2ad010b7e7de",
-   "html_url": "https://github.com/SebR214/margin/commit/d3022c84599328f5a5f308c5c43d2ad010b7e7de",
-   "date": "2026-10-22T14:24:33Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-22T14:24Z"
-  },
-  {
-   "sha": "533aca371c9fd1d6c5ebe2ccc041699c7b5b6751",
-   "html_url": "https://github.com/SebR214/margin/commit/533aca371c9fd1d6c5ebe2ccc041699c7b5b6751",
-   "date": "2026-10-22T13:49:19Z",
-   "email": "person",
-   "message": "SEB-311 step 3b: history replay, CoinGecko feed, re-runnable release step, faster detector for long replays (#646)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "1bcf01d282a732ef766aa17e16323a144a13e955",
-   "html_url": "https://github.com/SebR214/margin/commit/1bcf01d282a732ef766aa17e16323a144a13e955",
-   "date": "2026-10-22T13:43:37Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-22T13:43Z"
-  },
-  {
-   "sha": "26510ecfab8c26b7307f116d97e730b3a913c3a1",
-   "html_url": "https://github.com/SebR214/margin/commit/26510ecfab8c26b7307f116d97e730b3a913c3a1",
-   "date": "2026-10-22T13:41:25Z",
-   "email": "person",
-   "message": "SEB-311 step 3b: the wide history pull (tool section and one-off workflow) (#645)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "1b4bc870b30e6e819e25002ee05b24e0e834aa1d",
-   "html_url": "https://github.com/SebR214/margin/commit/1b4bc870b30e6e819e25002ee05b24e0e834aa1d",
-   "date": "2026-10-22T13:23:38Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-22T13:23Z"
   }
  ]
 }
