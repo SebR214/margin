@@ -80,6 +80,9 @@ jobs:
       - name: Every Binance P2P ad is read, paged and capped (SEB-311)
         run: python3 collector_p2p_ads.py --selftest
 
+      - name: Seller ids are hashed, keyed to the ads file (SEB-384)
+        run: python3 collector_p2p_sellers.py --selftest
+
       - name: The devaluation-watch backtest rules and its kill rule (SEB-384)
         run: python3 tools/backtest_watch.py --selftest
       - name: A pair that loses stablecoin pricing fails the fee check (SEB-310)
