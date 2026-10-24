@@ -85,6 +85,9 @@ jobs:
 
       - name: The dollar map timeline rules (SEB-384)
         run: python3 tools/emit_map_timeline.py --selftest
+
+      - name: The map timeline files agree with the files they come from (SEB-384)
+        run: python3 tests/check_map_timeline.py
       - name: A pair that loses stablecoin pricing fails the fee check (SEB-310)
         run: python3 tests/check_stable_pair.py
       - name: The second official rate parses, flags a broken read and compares with er-api (BACKLOG 10)
