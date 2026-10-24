@@ -1,7 +1,56 @@
 {
- "as_of_utc": "2026-10-24T05:40:40Z",
+ "as_of_utc": "2026-10-24T06:15:46Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "32c63c2f379c2a3db1d221209c5f37be3e1f0eb4",
+   "html_url": "https://github.com/SebR214/margin/commit/32c63c2f379c2a3db1d221209c5f37be3e1f0eb4",
+   "date": "2026-10-24T06:05:49Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "aider builder run 2026-10-24T06:01:47+00:00"
+  },
+  {
+   "sha": "e50de728d144a32532b560fc6b14be1bbad719d9",
+   "html_url": "https://github.com/SebR214/margin/commit/e50de728d144a32532b560fc6b14be1bbad719d9",
+   "date": "2026-10-24T06:04:46Z",
+   "email": "person",
+   "message": "SEB-301: site pass 24 Oct, counts that add up, findings numbering, dead pages redirected, tab titles (#656)\n\n* SEB-301: site pass, 24 Oct: counts that add up, findings numbering, dead pages redirected, plain tab titles\n\n- Countries: the no-price list held 11 while the line above said 5. Countries with no price in 30 days are not\n  tracked (home's rule), so they move to the 'we also check' line and the list shows the 5 tracked ones.\n- Home findings list: no numbers. It is in Seb's order, so the Findings page numbers read 03, 04, 01, 02.\n- A finding page's chips and 'We also found these' skip the unpublished finding, so they number 01 to 04 like the\n  Findings page (they showed 05 chips and an unpublished finding).\n- tape.html, corridor.html and fee-tiers.html were stale (44 countries, old fee figures, 'corridor') and now redirect\n  to Countries, Routes and the fee tier finding. The 'Watch live prices' link on How it was built is gone.\n- Browser tab titles: 'margin.wiki: Page', no dashes, the same nav words on every page.\nNo words on the pages changed. No data or method changes.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\n* SEB-301: inventory baseline and hand-run page check follow the three redirects and the new tab titles\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\n* SEB-301: the rendered gates skip pages that only redirect (tape, corridor, fee-tiers), which rendered Countries under tape's name\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "d0dc6ae47e75aeeece09d8c50da08f6346d88de4",
+   "html_url": "https://github.com/SebR214/margin/commit/d0dc6ae47e75aeeece09d8c50da08f6346d88de4",
+   "date": "2026-10-24T06:00:47Z",
+   "email": "person",
+   "message": "SEB-301: one-call self-test measures the prompt against collector.py, not a fixed 30,000 (#660)\n\nThe prompt carries the real route table, which grows with every route. At\n28,834 characters on main, adding one more route (job 5a, Australia to\nIndia) took it over 30,000, so the builder's test failed on any new route.\n\n\nClaude-Session: https://claude.ai/code/session_01LK5gd53j6Yqo8BMPPjJxFg\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "3b0697e3d4c276079c899fd42b17949216210293",
+   "html_url": "https://github.com/SebR214/margin/commit/3b0697e3d4c276079c899fd42b17949216210293",
+   "date": "2026-10-24T05:55:58Z",
+   "email": "person",
+   "message": "SEB-301: country chart opens on our own record, a range bar adds the older prices; history for 27 countries (was 10) (#659)\n\nAgreed with Seb in chat, 24 Oct, from mocks of the Argentina page.\n- The chart opens on our own record ('Since Sep' and so on). 1y, 5y and All are offered only when they add older\n  prices the shorter range did not show; a country with none gets no bar.\n- Our record: the purple line over a light fill, as on Routes. Older prices: the grey dashed line on a shaded band\n  labelled 'Before we started, reported, not seen by us'. Hover still reads every day.\n- tools/emit_country_history.py also reads the SEB-311 wide pull: USDT priced in the local currency on Binance spot,\n  Bitso, Buda and CoinGecko, and the official rate from the central-bank file first, then ECB/CBC, fawazahmed0,\n  Frankfurter v2. The 50% guard became a spike guard (a day 25 points off the median of the 7 days around it is left\n  out; a venue with more than 2% such days is passed over), since Argentina's 2023 gap was a real 200%.\n  Still only a reader of data/history; isolation check passes. 27 segment files, 1.4 MB.\n- New words in copy.json: rangeSince, range_1y, range_5y, range_all, bandLabel; layerDaily is now 'Our daily record'.\nNo published number or method changes: the segment never feeds the index, a price or the unbroken-hours count.\n\n\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "89e87ce702b0b68069130fec088a5700b544333a",
+   "html_url": "https://github.com/SebR214/margin/commit/89e87ce702b0b68069130fec088a5700b544333a",
+   "date": "2026-10-24T05:54:12Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "aider builder run 2026-10-24T05:48:37+00:00"
+  },
+  {
+   "sha": "15e9e57f9efbc6d56bd1316c82e447cd531b4255",
+   "html_url": "https://github.com/SebR214/margin/commit/15e9e57f9efbc6d56bd1316c82e447cd531b4255",
+   "date": "2026-10-24T05:47:45Z",
+   "email": "person",
+   "message": "SEB-301: the Aider builder takes every ready backlog job; one-call runs by hand only (#658)\n\n* SEB-301: the Aider builder takes every ready backlog job; one-call runs by hand only\n\nSeb, 24 Oct: the agents sat idle from 23 Oct with ready jobs in the queue.\n- aider_builder.py: the pilot limit to items 1 to 3 is gone. It takes the top\n  ready job with files listed and no track or `track: aider`. Next up: 5a\n  (Australia to India), then 7b, then 18a.\n- one_call.yml: no schedule. It built nothing live since 20 Oct.\n- check_runner_health.py watches aider_builder.yml, so the watchdog does not\n  go red for the one-call runner being off.\n- CLAUDE.md describes the builder as it now runs, and where hard jobs go.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01LK5gd53j6Yqo8BMPPjJxFg\n\n* SEB-301: Aider self-test matches the new picking rule (no pilot limit, track: claude left alone)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01LK5gd53j6Yqo8BMPPjJxFg\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "80cf459c3bd870817b798f604d9b61a8a3580261",
+   "html_url": "https://github.com/SebR214/margin/commit/80cf459c3bd870817b798f604d9b61a8a3580261",
+   "date": "2026-10-24T05:42:19Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-24T05:42Z"
+  },
   {
    "sha": "7fe9d5ba5d9702db018df1bb8f23ec3d11bf2f53",
    "html_url": "https://github.com/SebR214/margin/commit/7fe9d5ba5d9702db018df1bb8f23ec3d11bf2f53",
@@ -652,55 +701,6 @@
    "date": "2026-10-22T12:24:37Z",
    "email": "person",
    "message": "SEB-263: path spread numbers per route at 5,000 (script and hourly source CSV) (#642)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "6b07e68a6f7adc5552570bd57980f83ab05de8fe",
-   "html_url": "https://github.com/SebR214/margin/commit/6b07e68a6f7adc5552570bd57980f83ab05de8fe",
-   "date": "2026-10-22T12:22:57Z",
-   "email": "person",
-   "message": "SEB-372: routes table check tolerance 3 bps, and the emitter step cannot stop the collection chain (#641)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "275e33c491b2b4f8e6cbab84ceedafb58f490238",
-   "html_url": "https://github.com/SebR214/margin/commit/275e33c491b2b4f8e6cbab84ceedafb58f490238",
-   "date": "2026-10-22T12:21:23Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-22T12:21Z"
-  },
-  {
-   "sha": "8c81d05d564aaad5c49dc924b40a37759587a1a8",
-   "html_url": "https://github.com/SebR214/margin/commit/8c81d05d564aaad5c49dc924b40a37759587a1a8",
-   "date": "2026-10-22T11:46:04Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-22T11:46Z"
-  },
-  {
-   "sha": "22e19fa86d53d9c1e951c44fd4cce90714b3cc05",
-   "html_url": "https://github.com/SebR214/margin/commit/22e19fa86d53d9c1e951c44fd4cce90714b3cc05",
-   "date": "2026-10-22T11:21:49Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-22T11:21Z"
-  },
-  {
-   "sha": "e222881d05f07669e90c27f431df3785c1e0b12c",
-   "html_url": "https://github.com/SebR214/margin/commit/e222881d05f07669e90c27f431df3785c1e0b12c",
-   "date": "2026-10-22T10:45:40Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-22T10:45Z"
-  },
-  {
-   "sha": "d6ac063a0e25c25d901cea9043156722947de812",
-   "html_url": "https://github.com/SebR214/margin/commit/d6ac063a0e25c25d901cea9043156722947de812",
-   "date": "2026-10-22T10:23:27Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-22T10:23Z"
-  },
-  {
-   "sha": "814fa9127f4eb528670a34add7442828b39c8720",
-   "html_url": "https://github.com/SebR214/margin/commit/814fa9127f4eb528670a34add7442828b39c8720",
-   "date": "2026-10-22T09:55:15Z",
-   "email": "person",
-   "message": "SEB-311: one event page, Iraq (step 4) (#631)\n\n* SEB-311 step 4: one event page from the Iraq record (draft words)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-311: Iraq page rewritten with the government's date, known_date on the record, dinars not codes\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-311: event page logo weight under the design ratchet\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
   }
  ]
 }
