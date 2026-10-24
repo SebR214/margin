@@ -1,6 +1,6 @@
 # Some apps charge more on Saturday, then cut back
 
-Prices from the 20:00 UTC hour, 24 Oct.
+Prices from the 21:00 UTC hour, 24 Oct.
 
 A rise counts when an app charged more on a Saturday and came back down by Tuesday. If your transfer can wait, a weekday can cost less.
 
@@ -61,6 +61,6 @@ findings_hours_weekend_penalty.csv
 |  |  |  |
 | --- | --- | --- |
 | 01 | Transfer apps keep changing their prices | 1,416 price changes since 12 Aug |
-| 03 | Stablecoins beat the cheapest app only above about S$13.5M a month, a figure worked out from the exchanges' published fee tiers | S$13.5M a month traded on the exchange |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,545 hours a stablecoin was cheapest |
+| 03 | Stablecoins beat the cheapest app only above about S$20.2M a month, a figure worked out from the exchanges' published fee tiers | S$20.2M a month traded on the exchange |
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,546 hours a stablecoin was cheapest |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |
