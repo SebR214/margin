@@ -308,6 +308,48 @@ CORRIDORS = {
         # exactly the same header.
         "providers_file": "providers_usdmxn.csv",
     },
+    # USD->BRL (backlog 2a, 24 Oct): Coinbase on-ramp, network fee and ACH deposit copied unchanged from USD->MXN.
+    # Off-ramp Foxbit, USDT/BRL. Fees from Foxbit's own table, foxbit.com.br/taxas, read 2026-10-24: the lowest tier
+    # ("Iniciante", R$0 to 25.000 a month) is "Maker 0,25%" and "Taker 0,50%", and "Saque em real para sua conta
+    # bancaria sem pagar nada" (BRL withdrawal to a bank account is free).
+    "USD->BRL": {
+        "src": "USD", "dst": "BRL", "stable": "USDT",
+        "onramp": {
+            "venue": "Coinbase",
+            "taker_bps": 60.0,
+            "maker_bps": 40.0,
+            "verified": "2026-10-22",
+            "pair": "USDT-USD",
+            "stable_priced": False,
+            "source_url": "https://help.coinbase.com/en/exchange/trading-and-funding/exchange-fees",
+        },
+        "offramp": {
+            "venue": "Foxbit",
+            "symbol": "usdtbrl",
+            "taker_bps": 50.0,
+            "maker_bps": 25.0,
+            "verified": "2026-10-24",
+            "source_url": "https://foxbit.com.br/taxas/",
+        },
+        "network_fee_stable": 0.0,
+        "gas_modelled": False,
+        "withdraw_pct": 0.0001,
+        "withdraw_pct_cap": 20.0,
+        "deposit": {
+            "venue": "Coinbase", "method": "ACH",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "USD",
+            "source_url": "https://help.coinbase.com/en/exchange/funding/depositing-with-ach",
+            "verified": "2026-09-29",
+        },
+        "withdrawal": {
+            "venue": "Foxbit", "method": "Pix",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "BRL",
+            "source_url": "https://foxbit.com.br/taxas/",
+            "verified": "2026-10-24",
+        },
+        "ladder": [200, 1000, 5000, 25000, 50000],
+        "providers_file": "providers_usdbrl.csv",
+    },
     # --- 2026-10-22, SEB-310 item 5: Argentina. Coinbase on-ramp exactly as USD->MXN, Bitso's usdt_ars book on the off-ramp.
     # Bitso Argentina publishes the same schedules as Bitso Mexico; everything below was read from Bitso's own pages on
     # 2026-10-22 (bitso.com/fees/transactions and bitso.com/ar/fees/transactions carry identical data):
@@ -1170,10 +1212,25 @@ def fetch_offramp(cfg):
         return fetch_offramp_luno(cfg)
     if venue == "WazirX":
         return fetch_offramp_wazirx(cfg)
+    if venue == "Foxbit":
+        return fetch_offramp_foxbit(cfg)
     # NOTE: api.pro.coins.ph -- `api.coins.ph` is NXDOMAIN and silently killed
     # 34 days of collection. Do not "simplify" this hostname.
     sym = cfg["offramp"]["symbol"]
     d = get_json(f"https://api.pro.coins.ph/openapi/quote/v1/depth?symbol={sym}&limit=200")
+    bids = sorted(norm_levels(d.get("bids")), key=lambda x: x[0], reverse=True)
+    return {"bids": bids}
+
+
+def fetch_offramp_foxbit(cfg):
+    """Foxbit public order book (USD->BRL, 24 Oct), no auth.
+
+    api.foxbit.com.br/rest/v3/markets/{symbol}/orderbook returns bids/asks as [price, quantity] string pairs, the
+    shape norm_levels already reads. depth=100 levels covers the largest ladder rung. Foxbit is already read every
+    hour for Brazil's price (collector_basis.py, the 24hr ticker on the same host).
+    """
+    sym = cfg["offramp"]["symbol"]
+    d = get_json(f"https://api.foxbit.com.br/rest/v3/markets/{sym}/orderbook?depth=100")
     bids = sorted(norm_levels(d.get("bids")), key=lambda x: x[0], reverse=True)
     return {"bids": bids}
 
