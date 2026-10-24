@@ -290,7 +290,7 @@
       wrap.appendChild(footer);
     }
     
-    if (T('indexTitle')) document.title = 'margin.wiki — ' + T('indexTitle');
+    if (T('indexTitle')) document.title = 'margin.wiki: Findings';
   }
 
   function renderNotFound(wrap, published) {
@@ -345,7 +345,7 @@
       keep(wrap, rel);
     }
     var t = titleOf(f);
-    if (t) document.title = 'margin.wiki — ' + t;
+    if (t) document.title = 'margin.wiki: ' + t;
   }
 
   function load(url) {

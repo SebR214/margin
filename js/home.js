@@ -138,8 +138,9 @@
     var lines = ord.map(function (o) { return [o.f.id, title(o.f), o.no]; }).filter(function (l) { return l[1]; });
     if (!lines.length || !T('findingsTitle')) { $('finds').innerHTML = ''; return; }
     $('finds').innerHTML = '<h2>' + esc(T('findingsTitle')) + '</h2><div class="rows">' + lines.map(function (f, i) {
-      return '<a class="r f" href="./finding.html?id=' + encodeURIComponent(f[0]) + '"><span class="no num">0' + f[2] + '</span><span class="m">' + esc(f[1]) + '</span><span class="v">→</span></a>';
-    }).join('') + (T('findingsRoutesLink') ? '<a class="r f" href="./sending-money.html"><span class="no num"></span><span class="m">' + esc(T('findingsRoutesLink')) + '</span><span class="v">→</span></a>' : '') + '</div>';
+      // no number here: this list is in Seb's order (21 Oct), so the Findings page numbers would read out of order (24 Oct)
+      return '<a class="r f" href="./finding.html?id=' + encodeURIComponent(f[0]) + '"><span class="m">' + esc(f[1]) + '</span><span class="v">→</span></a>';
+    }).join('') + (T('findingsRoutesLink') ? '<a class="r f" href="./sending-money.html"><span class="m">' + esc(T('findingsRoutesLink')) + '</span><span class="v">→</span></a>' : '') + '</div>';
   }
 
   /* ---------------------------------------------------------------- the record: the SEB-278 chart (hover any day) */

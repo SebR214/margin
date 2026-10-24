@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>margin.wiki — how it was built</title>
+<title>margin.wiki: How it was built</title>
 <meta name="description" content="What the site is checking this hour, and what the programs building this site are doing, unedited, as it happens."/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -174,7 +174,6 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
       <!-- Record block will be rendered here by JavaScript -->
     </section>
     <section>
-      <p class="small" style="margin-top:0"><a id="tapeLink" href="./tape.html">&nbsp;</a></p>
     </section>
 
     <section id="shippedSection" style="display:none">
@@ -266,7 +265,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     document.getElementById('col2Kicker').textContent = C2.kicker || '';
     document.getElementById('col2Empty').textContent = C2.empty || '';
     document.getElementById('col2HistoryLink').textContent = C2.historyLink || '';
-    document.getElementById('tapeLink').textContent = COPY.tapeLink || '';
+    // the link to the old street-price tape page is gone (24 Oct): tape.html now redirects to Countries
     document.getElementById('connLabel').textContent = COPY.connecting || '';
 
     var F = COPY.footer || {};

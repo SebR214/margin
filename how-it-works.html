@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title></title>
+<title>margin.wiki: How it works</title>
 <meta name="description" content=""/>
 <link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./style.css">
@@ -131,7 +131,7 @@ function whole(n){ return Math.round(n).toLocaleString('en-US'); }
 
 Promise.all([getJson('./copy.json'), getJson('./data/index_latest.json'), getJson('./data/providers_latest.json'), getJson('./data/sources_daily.json'), getJson('./data/heatmap_daily.json')]).then(function(res){
   var H = (res[0] && res[0].howItWorks) || {}, idx = res[1], prov = res[2], src = res[3], heat = res[4];
-  document.title = H.pageTitle || '';
+  document.title = 'margin.wiki: How it works';
   var md = document.querySelector('meta[name="description"]');
   if (md) md.setAttribute('content', H.pageDescription || '');
   var vals = {};
