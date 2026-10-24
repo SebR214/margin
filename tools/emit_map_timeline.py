@@ -7,6 +7,7 @@ day the files hold, so the page only reads a file and recolours (no computing in
     data/map_timeline/index.json        the countries, the years, the classes, where our own record starts
     data/map_timeline/<year>.json       2000 to this year: one value and one class per country per day
     data/map_timeline/last90.json       the last 90 days, one value per country per hour, from our own record
+    data/map_timeline/landing.json      where the official rate landed after each past break of 10% or more with a street price before it
 
 Every point has a class, a one-character code, and the page labels it on the grid:
   0 "ours"               our own published figure (data/heatmap_daily.json for a day, data/index_hourly.csv for an hour), from 10 Aug 2026.
@@ -41,6 +42,8 @@ EXCHANGE_FROM = "2014-01-01"
 OFFICIAL_LAG_DAYS = 3
 MOVE_DAYS = 30
 HOURLY_DAYS = 90
+LANDING = os.path.join(ROOT, "data", "history", "backtest_landing.csv")
+LANDING_MIN_MOVE = 10.0
 CLASSES = {"0": "ours", "1": "reported exchange", "2": "official only"}
 
 
@@ -143,6 +146,23 @@ def load_hourly_rows():
     return rows
 
 
+def landing(path, names):
+    """The breaks of LANDING_MIN_MOVE or more that have a landing ratio (tools/backtest_watch.py), newest first.
+    ratio = official rate 14 to 21 days after / street price 7 to 14 days before."""
+    out = []
+    with open(path, newline="") as f:
+        for r in csv.DictReader(f):
+            try:
+                move, ratio = float(r["official_move_pct"]), float(r["landing_ratio"])
+                prem = float(r["premium_before_pct"])
+            except ValueError:
+                continue                                   # "none": no street price around that break
+            if move >= LANDING_MIN_MOVE:
+                out.append({"ccy": r["ccy"], "country": names.get(r["ccy"], r["ccy"]), "date": r["event_date"], "move_pct": round(move, 1),
+                            "premium_before_pct": round(prem, 1), "landing_ratio": round(ratio, 4)})
+    return sorted(out, key=lambda x: (x["date"], x["ccy"]), reverse=True)
+
+
 def dump(path, obj):
     with open(path, "w") as f:
         json.dump(obj, f, separators=(",", ":"), sort_keys=True)
@@ -164,6 +184,8 @@ def main():
     rows = load_hourly_rows()
     last_hour = max(r[0] for r in rows) + ":00"
     dump(os.path.join(OUT_DIR, "last90.json"), hourly(set(ccys), rows, last_hour))
+    dump(os.path.join(OUT_DIR, "landing.json"), {"rows": landing(LANDING, {c["ccy"]: c["country"] for c in countries}),
+                                                  "note": "reported, not seen by us: street prices and official rates from data/history/"})
     dump(os.path.join(OUT_DIR, "index.json"), {
         "classes": CLASSES, "years": years, "first_day": "%d-01-01" % FIRST_YEAR, "last_day": last_day, "own_start": own_start,
         "exchange_from": EXCHANGE_FROM, "last_hour": last_hour, "hourly_days": HOURLY_DAYS, "countries": countries,
@@ -196,6 +218,18 @@ def selftest():
                 "2026-10-24T07:00")
     assert len(hr["hours"]) == 2160 and hr["hours"][-1] == "2026-10-24T07" and set(hr["ccy"]) == {"AAA"}
     assert hr["ccy"]["AAA"]["v"] == [12, -5] and hr["ccy"]["AAA"]["o"] == 2158, hr["ccy"]["AAA"]
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        p = os.path.join(tmp, "l.csv")
+        with open(p, "w", newline="") as f:
+            f.write("event_id,ccy,type,event_date,official_move_pct,confirmation,kind,street_before,official_after,landing_ratio,premium_before_pct,street_series,label,source\n")
+            f.write("a,ARS,managed,2015-12-18,38.6117,one source,event,15.0,13.6,0.9078,54.43,x,l,s\n")
+            f.write("b,TRY,floating,2018-08-10,14.2304,two sources,event,4.85,6.35,1.3107,-1.17,x,l,s\n")
+            f.write("c,MXN,floating,2020-02-28,3.63,two sources,event,none,23.3,none,none,x,l,s\n")
+            f.write("d,EGP,floating,2024-03-07,60.3576,two sources,event,none,46.8,none,none,x,l,s\n")
+            f.write("e,TRY,floating,2020-08-06,3.8367,two sources,event,6.9,7.35,1.0651,0.16,x,l,s\n")
+        got = landing(p, {"ARS": "Argentina", "TRY": "Turkey"})
+        assert [(x["ccy"], x["date"], x["landing_ratio"], x["premium_before_pct"]) for x in got] == [("TRY", "2018-08-10", 1.3107, -1.2), ("ARS", "2015-12-18", 0.9078, 54.4)], got
     print("emit_map_timeline self-test: ok")
     return 0
 
