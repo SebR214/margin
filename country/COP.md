@@ -1,12 +1,12 @@
-# In Colombia a dollar costs 1.1% less than the official rate
+# In Colombia a dollar costs 1.0% less than the official rate
 
-Prices from the 15:00 UTC hour, 24 Oct.
+Prices from the 16:00 UTC hour, 24 Oct.
 
-The official rate is 3,179.86 COP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 3,146 COP. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 3,179.86 COP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 3,147 COP. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 314,555 COP. The official rate says 317,986 COP.
+For US$100, people pay 314,749 COP. The official rate says 317,986 COP.
 
-Prices from the 15:00 UTC hour, 24 Oct
+Prices from the 16:00 UTC hour, 24 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -24,11 +24,11 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-3,137 COP −1.4%
+3,141 COP −1.2%
 
 OKX, person to person
 
-3,155 COP −0.8%
+3,154 COP −0.8%
 
 ## Every Colombia price links to its raw file
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 24 Oct, 16:11 UTC | OKX, person to person | 3,154 COP | −0.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 24 Oct, 16:06 UTC | Binance, person to person | 3,141 COP | −1.2% | 10 of 182 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 15:12 UTC | OKX, person to person | 3,155 COP | −0.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 24 Oct, 15:07 UTC | Binance, person to person | 3,137 COP | −1.4% | 10 of 182 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 14:11 UTC | OKX, person to person | 3,155 COP | −0.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 24 Oct, 12:07 UTC | Binance, person to person | 3,146 COP | −1.1% | 10 of 80 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 11:12 UTC | OKX, person to person | 3,165 COP | −0.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 24 Oct, 11:07 UTC | Binance, person to person | 3,148 COP | −1.0% | 10 of 52 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 10:11 UTC | OKX, person to person | 3,173 COP | −0.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 24 Oct, 10:07 UTC | Binance, person to person | 3,146 COP | −1.1% | 10 of 51 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
