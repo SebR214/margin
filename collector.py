@@ -617,6 +617,42 @@ CORRIDORS = {
         "ladder": [200, 1000, 5000, 25000, 50000],
         "providers_file": "providers_usdphp.csv",
     },
+    # AUD->INR (backlog 5a, 24 Oct): Independent Reserve on-ramp, network fee and AUD deposit as AUD->PHP; WazirX off-ramp,
+    # TDS and INR withdrawal as SGD->INR. All values copied unchanged.
+    "AUD->INR": {
+        "src": "AUD", "dst": "INR", "stable": "USDT",
+        "onramp": {
+            "venue": "IndependentReserve",
+            "taker_bps": 50.0,
+            "maker_bps": 50.0,
+            "verified": "2026-08-10",
+        },
+        "offramp": {
+            "venue": "WazirX",
+            "symbol": "usdtinr",
+            "taker_bps": 40.0,
+            "maker_bps": 40.0,
+            "verified": "2026-09-29",
+            "tds_bps": 100.0,
+            "tds_source_url": "https://wazirx.com/fees?tab=spot_fees",
+            "tds_verified": "2026-10-21",
+        },
+        "deposit": {
+            "venue": "IndependentReserve", "method": "Bank transfer",
+            "fee_type": "free", "fee_value": 0.0, "fee_ccy": "AUD",
+            "source_url": "https://www.independentreserve.com/au/fees",
+            "verified": "2026-09-29",
+        },
+        "withdrawal": {
+            "venue": "WazirX", "method": "IMPS/NEFT",
+            "fee_type": "flat_per_chunk", "fee_value": 10.0, "fee_ccy": "INR", "chunk_max": 200000.0,
+            "source_url": "https://support.wazirx.com/hc/en-us/articles/360001690794-How-can-I-withdraw-INR-to-my-bank-account",
+            "verified": "2026-10-21",
+        },
+        "network_fee_stable": 4.0,
+        "ladder": [200, 1000, 5000, 25000, 50000],
+        "providers_file": "providers_audinr.csv",
+    },
 }
 
 # Priced alternates to a corridor's one modelled stablecoin/network path --
