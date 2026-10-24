@@ -634,7 +634,8 @@ def self_test():
     assert ri["excerpts"] == {"collector.py": [(r"^CORRIDORS = \{", r"^\}")]} and ri["collection"] and "EDIT blocks" in ri["description"]
     assert too_big(["collector.py"], {}) == ["collector.py"] and too_big(["collector.py"], ri["excerpts"]) == []
     prompt = build_prompt(dict(ri, docs=[]), ["collector.py"], [], ri["excerpts"])
-    assert "SHOWN IN PARTS" in prompt and '"SGD->PHP": {' in prompt and "def main():" not in prompt and len(prompt) < 30000
+    assert "SHOWN IN PARTS" in prompt and '"SGD->PHP": {' in prompt and "def main():" not in prompt \
+        and len(prompt) < len(open(os.path.join(ROOT, "collector.py")).read()) // 2  # parts, not the whole file; a fixed 30,000 broke on every new route (24 Oct)
     probe2 = "data/_selftest_edit.txt"
     try:
         open(os.path.join(ROOT, probe2), "w").write(big)
