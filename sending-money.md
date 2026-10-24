@@ -1,25 +1,25 @@
 # How much of the dollar premium survives the trip
 
-Prices from the 14:00 UTC hour, 24 Oct.
+Prices from the 15:00 UTC hour, 24 Oct.
 
 In some countries a dollar sells for more than the official rate. This shows how much of that extra a stablecoin carries home, after every fee.
 
-Prices from the 14:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
+Prices from the 15:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
 
 | Sending | Dollar premium there | Stablecoin against the best app | What the stablecoin way costs | Hours the stablecoin was cheaper |
 | --- | --- | --- | --- | --- |
-| United States to Argentina At US$200 | +8.3% | US$13 cheaper 6.7% of the amount | US$2.33 1.2% of the amount | 56 of 56 |
-| United States to Argentina At US$5,000 | +8.3% | US$330 cheaper 6.6% of the amount | US$59 1.2% of the amount | 56 of 56 |
-| United States to India | +6.0% | US$44 cheaper 4.4% of the amount | US$20 2.0% of the amount | 66 of 66 |
-| Singapore to India | +6.0% | S$37 cheaper 3.7% of the amount | S$26 2.6% of the amount | 66 of 66 |
-| Australia to India | +6.0% | A$19 cheaper 1.9% of the amount | A$31 3.1% of the amount | 7 of 7 |
-| United States to Nigeria | +3.9% | US$13 cheaper 1.3% of the amount | US$6.47 0.6% of the amount | 56 of 56 |
-| Singapore to the Philippines | −0.2% | S$7.56 dearer 0.8% of the amount | S$12 1.2% of the amount | 0 of 165 |
+| United States to Argentina At US$200 | +8.3% | US$13 cheaper 6.7% of the amount | US$2.33 1.2% of the amount | 57 of 57 |
+| United States to Argentina At US$5,000 | +8.3% | US$331 cheaper 6.6% of the amount | US$60 1.2% of the amount | 57 of 57 |
+| United States to India | +6.1% | US$44 cheaper 4.4% of the amount | US$20 2.0% of the amount | 67 of 67 |
+| Singapore to India | +6.1% | S$37 cheaper 3.7% of the amount | S$26 2.6% of the amount | 67 of 67 |
+| Australia to India | +6.1% | A$19 cheaper 1.9% of the amount | A$31 3.1% of the amount | 8 of 8 |
+| United States to Nigeria | +4.0% | US$13 cheaper 1.3% of the amount | US$6.47 0.6% of the amount | 57 of 57 |
+| United States to Mexico | −0.2% | US$23 dearer 2.3% of the amount | US$6.92 0.7% of the amount | 0 of 165 |
+| Singapore to the Philippines | −0.2% | S$7.58 dearer 0.8% of the amount | S$12 1.2% of the amount | 0 of 165 |
 | Australia to the Philippines | −0.2% | A$18 dearer 1.8% of the amount | A$12 1.2% of the amount | 0 of 165 |
 | New Zealand to the Philippines | −0.2% | NZ$3.87 dearer 0.4% of the amount | NZ$18 1.8% of the amount | 2 of 165 |
-| United States to the Philippines | −0.2% | US$9.81 dearer 1.0% of the amount | US$6.33 0.6% of the amount | 0 of 52 |
-| United States to Mexico | −0.2% | US$23 dearer 2.3% of the amount | US$6.91 0.7% of the amount | 0 of 165 |
-| United States to Brazil | −0.6% | US$1.01 cheaper 0.1% of the amount | US$9.78 1.0% of the amount | 7 of 7 |
+| United States to the Philippines | −0.2% | US$9.82 dearer 1.0% of the amount | US$6.33 0.6% of the amount | 0 of 53 |
+| United States to Brazil | −0.6% | US$1.07 cheaper 0.1% of the amount | US$9.78 1.0% of the amount | 8 of 8 |
 
 Each row is 1,000 in the sending currency, over the last 7 days. The premium is from the latest hour. A stablecoin that costs less than the best app shows as cheaper.
 
@@ -29,7 +29,7 @@ United States to Argentina is compared at US$200 and US$5,000, the sizes where t
 
 ## Sending S$1,000 to the Philippines costs S$2.28 with Instarem and S$11.44 with a stablecoin
 
-At this amount, a stablecoin was the cheaper way in 1 of the 1,539 hours checked since 11 August.
+At this amount, a stablecoin was the cheaper way in 1 of the 1,540 hours checked since 11 August.
 
 Official rate from 00:02 UTC
 
