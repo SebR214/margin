@@ -1,14 +1,14 @@
-# In West African CFA a dollar costs 3.6% more than the official rate
+# In West African CFA a dollar costs 3.7% more than the official rate
 
-Prices from the 08:00 UTC hour, 24 Oct.
+Prices from the 09:00 UTC hour, 24 Oct.
 
-The official rate is 585.63 XOF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 606.92 XOF. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 585.63 XOF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 607.29 XOF. A stablecoin is a coin that stays worth one US dollar.
 
 Sellers on Binance and OKX agree on this price. Buyers there are offering more than sellers ask this hour, which is unusual.
 
-For US$100, people pay 60,692 XOF. The official rate says 58,563 XOF.
+For US$100, people pay 60,729 XOF. The official rate says 58,563 XOF.
 
-Prices from the 08:00 UTC hour, 24 Oct
+Prices from the 09:00 UTC hour, 24 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -24,11 +24,11 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-605.00 XOF +3.3%
+605.50 XOF +3.4%
 
 OKX, person to person
 
-608.83 XOF +4.0%
+609.07 XOF +4.0%
 
 ## Every West African CFA price links to its raw file
 
