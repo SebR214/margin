@@ -1,12 +1,12 @@
 # No price for Angola this hour
 
-Prices from the 18:00 UTC hour, 24 Oct.
+Prices from the 19:00 UTC hour, 24 Oct.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
 The last price we published was +28.4%, on 23 Oct.
 
-Prices from the 18:00 UTC hour, 24 Oct
+Prices from the 19:00 UTC hour, 24 Oct
 
 <https://margin.wiki/data/countries/AOA.json>
 
@@ -20,6 +20,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 24 Oct, 19:07 UTC | Binance, person to person | 1,198 AOA | +28.9% | 4 of 4 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 18:07 UTC | Binance, person to person | 1,207 AOA | +29.8% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 17:07 UTC | Binance, person to person | 1,207 AOA | +29.8% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 16:06 UTC | Binance, person to person | 1,213 AOA | +30.4% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -31,7 +32,6 @@ Open any file to check a price yourself.
 | 24 Oct, 10:07 UTC | Binance, person to person | 1,199 AOA | +28.9% | 3 of 3 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 09:07 UTC | Binance, person to person | 1,195 AOA | +28.4% | 4 of 4 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 08:36 UTC | Binance, person to person | 1,195 AOA | +28.4% | 4 of 4 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 07:06 UTC | Binance, person to person | 1,196 AOA | +28.5% | 4 of 4 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://margin.wiki/data/adsp2p_basis.csv>

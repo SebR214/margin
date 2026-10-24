@@ -1,25 +1,25 @@
 # How much of the dollar premium survives the trip
 
-Prices from the 18:00 UTC hour, 24 Oct.
+Prices from the 19:00 UTC hour, 24 Oct.
 
 In some countries a dollar sells for more than the official rate. This shows how much of that extra a stablecoin carries home, after every fee.
 
-Prices from the 18:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
+Prices from the 19:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
 
 | Sending | Dollar premium there | Stablecoin against the best app | What the stablecoin way costs | Hours the stablecoin was cheaper |
 | --- | --- | --- | --- | --- |
-| United States to Argentina At US$200 | +8.4% | US$13 cheaper 6.7% of the amount | US$2.33 1.2% of the amount | 60 of 60 |
-| United States to Argentina At US$5,000 | +8.4% | US$332 cheaper 6.6% of the amount | US$60 1.2% of the amount | 60 of 60 |
-| United States to India | +6.3% | US$44 cheaper 4.4% of the amount | US$20 2.0% of the amount | 70 of 70 |
-| Singapore to India | +6.3% | S$37 cheaper 3.7% of the amount | S$26 2.6% of the amount | 70 of 70 |
-| Australia to India | +6.3% | A$19 cheaper 1.9% of the amount | A$31 3.1% of the amount | 11 of 11 |
-| United States to Nigeria | +4.0% | US$16 cheaper 1.6% of the amount | US$6.46 0.6% of the amount | 60 of 60 |
+| United States to Argentina At US$200 | +8.4% | US$13 cheaper 6.7% of the amount | US$2.33 1.2% of the amount | 61 of 61 |
+| United States to Argentina At US$5,000 | +8.4% | US$332 cheaper 6.6% of the amount | US$60 1.2% of the amount | 61 of 61 |
+| United States to India | +5.9% | US$43 cheaper 4.3% of the amount | US$20 2.0% of the amount | 71 of 71 |
+| Singapore to India | +5.9% | S$37 cheaper 3.7% of the amount | S$26 2.6% of the amount | 71 of 71 |
+| Australia to India | +5.9% | A$19 cheaper 1.9% of the amount | A$31 3.1% of the amount | 12 of 12 |
+| United States to Nigeria | +4.0% | US$16 cheaper 1.6% of the amount | US$6.47 0.6% of the amount | 61 of 61 |
 | United States to Mexico | −0.2% | US$23 dearer 2.3% of the amount | US$6.94 0.7% of the amount | 0 of 165 |
 | Singapore to the Philippines | −0.2% | S$7.58 dearer 0.8% of the amount | S$12 1.2% of the amount | 0 of 165 |
 | Australia to the Philippines | −0.2% | A$18 dearer 1.8% of the amount | A$12 1.2% of the amount | 0 of 165 |
 | New Zealand to the Philippines | −0.2% | NZ$3.87 dearer 0.4% of the amount | NZ$18 1.8% of the amount | 2 of 165 |
-| United States to the Philippines | −0.2% | US$9.88 dearer 1.0% of the amount | US$6.32 0.6% of the amount | 0 of 56 |
-| United States to Brazil | −0.6% | US$1.01 cheaper 0.1% of the amount | US$9.77 1.0% of the amount | 11 of 11 |
+| United States to the Philippines | −0.2% | US$9.90 dearer 1.0% of the amount | US$6.32 0.6% of the amount | 0 of 57 |
+| United States to Brazil | −0.6% | US$0.97 cheaper 0.1% of the amount | US$9.76 1.0% of the amount | 12 of 12 |
 
 Each row is 1,000 in the sending currency, over the last 7 days. The premium is from the latest hour. A stablecoin that costs less than the best app shows as cheaper.
 
@@ -27,9 +27,9 @@ United States to Argentina is compared at US$200 and US$5,000, the sizes where t
 
 <https://margin.wiki/data/routes_table.json>
 
-## Sending S$1,000 to the Philippines costs S$2.28 with Instarem and S$9.86 with a stablecoin
+## Sending S$1,000 to the Philippines costs S$2.28 with Instarem and S$10.04 with a stablecoin
 
-At this amount, a stablecoin was the cheaper way in 1 of the 1,543 hours checked since 11 August.
+At this amount, a stablecoin was the cheaper way in 1 of the 1,544 hours checked since 11 August.
 
 Official rate from 00:02 UTC
 
@@ -43,16 +43,16 @@ S$2.28 0.23%
 
 Stablecoin a cheaper stablecoin route this hour
 
-S$9.86 0.99%
+S$10.04 1.00%
 
 ### The stablecoin's cost, step by step
 
 |  |  |
 | --- | --- |
-| Deposit and buy | S$5.88 0.59% |
+| Deposit and buy | S$6.06 0.61% |
 | Network fee | S$1.28 0.13% |
 | Sell and withdraw | S$2.70 0.27% |
-| All in | S$9.86 0.99% |
+| All in | S$10.04 1.00% |
 
 ## How much more the stablecoin cost, day by day
 

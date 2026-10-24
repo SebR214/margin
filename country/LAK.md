@@ -1,14 +1,14 @@
-# In Laos a dollar costs 4.1% more than the official rate
+# In Laos a dollar costs 4.2% more than the official rate
 
-Prices from the 18:00 UTC hour, 24 Oct.
+Prices from the 19:00 UTC hour, 24 Oct.
 
-The official rate is 22,295.92 LAK per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 23,200 LAK. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 22,295.92 LAK per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 23,221 LAK. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 2,320,000 LAK. The official rate says 2,229,592 LAK.
+For US$100, people pay 2,322,125 LAK. The official rate says 2,229,592 LAK.
 
-Prices from the 18:00 UTC hour, 24 Oct
+Prices from the 19:00 UTC hour, 24 Oct
 
-Taking the cheapest offers first, only US$4,000 can be bought before a dollar here costs 1% more.
+Taking the cheapest offers first, only US$3,000 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/countries/LAK.json>
 
@@ -24,7 +24,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-22,935 LAK +2.9%
+22,978 LAK +3.1%
 
 OKX, person to person
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 24 Oct, 19:11 UTC | OKX, person to person | 23,465 LAK | +5.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 24 Oct, 19:07 UTC | Binance, person to person | 22,978 LAK | +3.1% | 10 of 14 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 18:11 UTC | OKX, person to person | 23,465 LAK | +5.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 24 Oct, 18:07 UTC | Binance, person to person | 22,935 LAK | +2.9% | 10 of 17 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 17:11 UTC | OKX, person to person | 23,465 LAK | +5.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 24 Oct, 15:07 UTC | Binance, person to person | 22,825 LAK | +2.4% | 10 of 29 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 14:11 UTC | OKX, person to person | 23,090 LAK | +3.6% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 24 Oct, 14:07 UTC | Binance, person to person | 22,829 LAK | +2.4% | 10 of 27 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 13:11 UTC | OKX, person to person | 23,090 LAK | +3.6% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 24 Oct, 13:07 UTC | Binance, person to person | 22,819 LAK | +2.3% | 10 of 31 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
