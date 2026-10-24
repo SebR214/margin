@@ -72,7 +72,7 @@ HISTORY_WRITERS = {"tools/backfill_history.py", "tools/check_history_isolation.p
 # unbroken-hours count, and both label it reported, not observed.
 # tests/check_known_breaks.py (SEB-311 step 3c) replays the event detector in memory over the history files and compares the result with the
 # known breaks. It writes nothing and feeds no index, price or count.
-HISTORY_READERS = {"tools/analyst.py", "tools/backtest_watch.py",   # SEB-384: reads history, writes data/history/backtest_*.csv, never feeds a price
+HISTORY_READERS = {"tools/analyst.py", "tools/backtest_watch.py", "tools/emit_map_timeline.py",   # SEB-384: reads history, writes data/history/backtest_*.csv, never feeds a price
                     "tools/emit_country_history.py", "tests/check_known_breaks.py",
                    "tools/emit_machine_room_meters.py",
                    "tools/emit_record_milestones.py", "tools/emit_sources_daily.py"}

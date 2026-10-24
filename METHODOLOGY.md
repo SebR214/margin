@@ -1886,6 +1886,14 @@ First reading, one pass on 23 Oct 07:00 UTC (a laptop run, nothing stored): 60 o
 
 Looked at and not added: PDAX (Philippines) and Coinhako (Singapore) refuse the call (403); Quidax (Nigeria) answered 503 on three tries; Swyftx quotes in Australian dollars; CriptoYa lists only one broker for the bolivar besides person-to-person boards. DZD, LAK, LKR, MNT, QAR, SDG, SYP and TND have no exchange order book or broker we could find that sells USDT for them.
 
+## The dollar map at any day since 2000 (SEB-384 step 4, from 2026-10-24)
+
+`tools/emit_map_timeline.py` writes `data/map_timeline/` so the home grid can show any day: one JSON file per year from 2000, and the last 90 days by the hour. The page reads a file; nothing is computed in the browser. It reads stored files only and is idempotent.
+
+Each point is a value in tenths of a percent and a class. Class "ours" is our own published figure: the daily one in `data/heatmap_daily.json` and the hourly one in `data/index_hourly.csv`, from 10 Aug 2026. A day or hour we did not read stays empty, never filled or carried over. Class "reported exchange" is (the exchange price of one USDT / the official rate - 1) * 100 for days from 1 Jan 2014, where `data/history/` holds an exchange price; the exchange price is the median of that day's series, each series a venue's own close, a venue quoted the other way round turned over once by which way it sits nearer the official rate, and for Argentina the reported blue-dollar mid. Class "official only" is the official rate's move over the 30 days to that day, where no exchange price exists. It is not a premium, and the page labels it so. The official rate behind a history day is its last reading on or before the day, at most 3 days back, because the central bank series has weekdays only. Everything not "ours" is reported, not seen by us, and the grid says so on itself.
+
+Nothing published changes: the index, every price, the unbroken-hours count and `index_version` are untouched, and no history value feeds any of them. The only reader of the files is the home page's time control.
+
 ## A live official rate beside er-api, and a check for broken official rates (SEB-310, from 2026-10-21)
 
 **Nothing published changes.** `index_version` does not move. The rate every index figure is divided by is still er-api's
