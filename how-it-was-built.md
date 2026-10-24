@@ -1,6 +1,6 @@
 # Four agents run this site. Two of them use AI.
 
-Prices from the 22:00 UTC hour, 24 Oct.
+Prices from the 23:00 UTC hour, 24 Oct.
 
 The collector gathers prices every hour. The scout picks one job a week from lists the code makes, such as countries with only one source. The builder writes the code for that job. The reviewer checks every change before it goes live. The scout and the builder use AI. The collector and the reviewer are plain code, so no AI ever produces a number on this site. One person sets the direction and holds the money and passwords, and the agents can spend at most $20 a month.
 
@@ -25,10 +25,10 @@ Each line is a step of the latest hourly run, with the time it finished. Any pro
 
 | Time | Check | Detail |
 | --- | --- | --- |
-| 22:00 | 48 of 54 countries have a price. The rest show none this hour, never a guess. |  |
-| 22:00 | 8 of 11 routes priced this hour. |  |
-| 21:06 | 50 of our figures recomputed from raw prices. Matches mean the data backs them. | 48 of 50 matched |
-| 22:15 | These sources did not answer this hour: CriptoYa · Buenbit, WazirX. |  |
+| 23:00 | 49 of 54 countries have a price. The rest show none this hour, never a guess. |  |
+| 23:00 | 8 of 11 routes priced this hour. |  |
+| 22:06 | 50 of our figures recomputed from raw prices. Matches mean the data backs them. | 48 of 50 matched |
+| 23:14 | These sources did not answer this hour: CriptoYa · Buenbit, WazirX. |  |
 
 How the last 48 hours went
 
@@ -36,7 +36,7 @@ How the last 48 hours went
 
 ## The record grew as new sources and routes came in
 
-548,275 prices stored
+549,030 prices stored
 
 Exchanges' own earlier prices reach back to 3 Jan 2011, so some charts predate our record.
 
