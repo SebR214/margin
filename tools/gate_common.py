@@ -20,11 +20,24 @@ PAGE_QUERY = {"country.html": "?ccy=DZD", "finding.html": "?id=price_changes"}
 SKIP_PREFIXES = ("docs/", "tests/", ".claude/", ".debate/")
 
 
+def is_redirect(rel):
+    """A page that only forwards the reader elsewhere (tape.html, corridor.html, fee-tiers.html since 24 Oct).
+    Rendering it renders the page it forwards to, so it is never checked under its own name."""
+    try:
+        with open(os.path.join(HERE, rel), encoding="utf-8") as f:
+            head = f.read(2000)
+    except OSError:
+        return False
+    return 'http-equiv="refresh"' in head and "location.replace(" in head
+
+
 def all_pages():
     pages = []
     for f in sorted(glob.glob(os.path.join(HERE, "*.html"))):
         rel = os.path.basename(f)
         if re.search(r" \d\.", rel):  # duplicate scratch copies ("home 2.html")
+            continue
+        if is_redirect(rel):
             continue
         pages.append(rel)
     return pages
@@ -55,7 +68,7 @@ def pages_for_change(files):
             shared = True
     if shared:
         return all_pages()
-    return sorted(p for p in pages if os.path.exists(os.path.join(HERE, p)))
+    return sorted(p for p in pages if os.path.exists(os.path.join(HERE, p)) and not is_redirect(p))
 
 
 class _Quiet(http.server.SimpleHTTPRequestHandler):
