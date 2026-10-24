@@ -1,12 +1,12 @@
 # No price for Mongolia this hour
 
-Prices from the 17:00 UTC hour, 24 Oct.
+Prices from the 18:00 UTC hour, 24 Oct.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
 The last price we published was +4.1%, on 24 Oct.
 
-Prices from the 17:00 UTC hour, 24 Oct
+Prices from the 18:00 UTC hour, 24 Oct
 
 <https://margin.wiki/data/countries/MNT.json>
 
@@ -20,6 +20,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 24 Oct, 18:07 UTC | Binance, person to person | 3,714 MNT | +3.7% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 17:07 UTC | Binance, person to person | 3,725 MNT | +4.0% | 6 of 6 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 16:11 UTC | OKX, person to person | 4,500 MNT | +25.6% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 24 Oct, 16:06 UTC | Binance, person to person | 3,717 MNT | +3.8% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -31,7 +32,6 @@ Open any file to check a price yourself.
 | 24 Oct, 10:07 UTC | Binance, person to person | 3,727 MNT | +4.1% | 10 of 10 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 09:07 UTC | Binance, person to person | 3,727 MNT | +4.1% | 8 of 8 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 24 Oct, 08:36 UTC | Binance, person to person | 3,724 MNT | +4.0% | 6 of 6 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 07:06 UTC | Binance, person to person | 3,722 MNT | +3.9% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
