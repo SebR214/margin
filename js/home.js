@@ -167,6 +167,19 @@
     return T(c.k === '-' || c.v == null ? 'tlTipNone' : c.k === '0' ? 'tlTipOurs' : c.k === '1' ? 'tlTipReported' : 'tlTipOfficial', v);
   }
 
+  /* ---------------------------------------------------------------- where the official rate landed after past breaks (SEB-384, from the backtest)
+     data/map_timeline/landing.json: each break of 10% or more that has a street price before it. Reported, not seen by us. */
+  function land(j) {
+    var box = $('land'), rows = (j && j.rows) || [];
+    if (!box || !rows.length || !T('landTitle') || !T('landUp')) { if (box) { box.innerHTML = ''; } return; }
+    var mon = function (d) { return dd(d) + ' ' + d.slice(0, 4); };
+    box.innerHTML = '<h2>' + esc(T('landTitle')) + '</h2><p class="note">' + esc(T('landLine')) + '</p><div class="rows">' + rows.map(function (r) {
+      var p = r.premium_before_pct;
+      return '<a class="r" href="' + ctry(r.ccy) + '"><b>' + esc(plain(r.country)) + '<small class="d">' + esc(mon(r.date)) + '</small></b><span class="m">' +
+        esc(T(p >= 0 ? 'landUp' : 'landDown', { move: pct1(r.move_pct), premium: pct1(p) })) + '</span><span class="v num">' + Math.round(r.landing_ratio * 100) + '%<small>' + esc(T('landValue')) + '</small></span></a>';
+    }).join('') + '</div><p class="note sm">' + esc(T('landNote')) + '</p>';
+  }
+
   /* ---------------------------------------------------------------- findings: each line links to its page */
   function findings() {
     // the same published findings, in the same order and with the same titles as findings.html (copy.json findingData.title_<id>)
@@ -241,6 +254,7 @@
     heatHead();
     heat();
     findings();
+    getJSON('data/map_timeline/landing.json').then(land).catch(function () { land(null); });
     if (window.homeTimeline) {
       window.homeTimeline.init({ T: T, esc: esc, mount: $('tl') });
       if (!tlWired) { tlWired = true; window.homeTimeline.onChange(function () { heatHead(); heat(); }); }
