@@ -1,7 +1,28 @@
 {
- "as_of_utc": "2026-10-24T04:41:28Z",
+ "as_of_utc": "2026-10-24T05:16:53Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "a6e7de098a88824c3bf8ee3899da412a0428a234",
+   "html_url": "https://github.com/SebR214/margin/commit/a6e7de098a88824c3bf8ee3899da412a0428a234",
+   "date": "2026-10-24T05:16:04Z",
+   "email": "person",
+   "message": "SEB-301: CLAUDE.md, the How it was built agent line is closed and never raised again (#657)\n\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "06f79d5c1d2b76150f0a372eb3a817e6e6f1d970",
+   "html_url": "https://github.com/SebR214/margin/commit/06f79d5c1d2b76150f0a372eb3a817e6e6f1d970",
+   "date": "2026-10-24T05:03:51Z",
+   "email": "person",
+   "message": "SEB-301: Routes detail back under the premium table, USD to PHP named (#644)\n\n* SEB-301: Routes page gets its route detail back under PR 616's table, and USD to PHP gets a name\n\nPR 616 rebuilt the page around the dollar premium table and dropped the route and amount picker, the this-hour bars,\nthe stablecoin's steps and the day-by-day chart with its 1w / 1m / All bar. They come back under the table as\njs/route_detail.js, built from the 21 Oct route.js. A tap on a table row opens that route and amount in the detail.\nThe all-routes line chart goes: the table already compares the routes. The repeated 'Prices from' line is left out\nof the detail. Words are the 21 Oct ones, restored in copy.json (keys PR 616 reused are stored under new names).\ncopy.json routeNames gets USD->PHP, so the next hourly run names it 'the United States to the Philippines'.\nNo data or method changes.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\n* SEB-301: regenerate routes_hourly.json for the USD->PHP route name (the route self-test failed on a stale file)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "7d06d8cd13d4273de1798be66553021bee67669a",
+   "html_url": "https://github.com/SebR214/margin/commit/7d06d8cd13d4273de1798be66553021bee67669a",
+   "date": "2026-10-24T04:44:02Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-24T04:44Z"
+  },
   {
    "sha": "3777024bb662c69cefcfb9998a0addf72f07b097",
    "html_url": "https://github.com/SebR214/margin/commit/3777024bb662c69cefcfb9998a0addf72f07b097",
@@ -680,27 +701,6 @@
    "date": "2026-10-22T09:43:58Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-10-22T09:43Z"
-  },
-  {
-   "sha": "d5be2f323d35418b79030ec310fa463a29c06148",
-   "html_url": "https://github.com/SebR214/margin/commit/d5be2f323d35418b79030ec310fa463a29c06148",
-   "date": "2026-10-22T09:30:22Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "SEB-301: backlog jobs checked for their first rows (done means data)"
-  },
-  {
-   "sha": "70f1ce2152f3eca73bf32a06772f1c53894b7a01",
-   "html_url": "https://github.com/SebR214/margin/commit/70f1ce2152f3eca73bf32a06772f1c53894b7a01",
-   "date": "2026-10-22T09:24:08Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-22T09:24Z"
-  },
-  {
-   "sha": "d3e2d3436bcf4d32d97e8fdadb49d1ed92e4da64",
-   "html_url": "https://github.com/SebR214/margin/commit/d3e2d3436bcf4d32d97e8fdadb49d1ed92e4da64",
-   "date": "2026-10-22T08:54:53Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "SEB-301: Add the USD->PHP route to collector.py's corridor table, its collect.yml step and the provider quotes config (backlog 1a) (#640)\n\n* SEB-301: Add the USD->PHP route to collector.py's corridor table, its collect.yml step and the provider quotes config (backlog 1a)\n\nOne-call runner, anthropic/claude-sonnet-5.5 + qwen/qwen3-coder.\n\n* SEB-301: backlog job 1a built, ticked when its first rows land (PR #640)\n\n---------\n\nCo-authored-by: margin-agents[bot] <329969015+margin-agents[bot]@users.noreply.github.com>\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>"
   }
  ]
 }

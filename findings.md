@@ -1,6 +1,6 @@
 # When and how much you send changes the cost
 
-Prices from the 04:00 UTC hour, 24 Oct.
+Prices from the 05:00 UTC hour, 24 Oct.
 
 Each finding is worked out from prices we store every hour. Each page shows the evidence, how it was worked out, and a file you can download.
 
@@ -39,6 +39,18 @@ First published 5 Oct 2026. The number updates every hour.
 S$13.5M a month traded on the exchange
 
 04
+
+<https://margin.wiki/data/findings.json>
+<https://margin.wiki/data/findings_first_published.json>
+<https://margin.wiki/data/claims_status.json>
+
+## [Singapore to the Philippines: a stablecoin was almost never the cheapest way to send](https://margin.wiki/finding/sgd_php_never_cheapest.md)
+
+First published 5 Oct 2026. The number updates every hour.
+
+3 of 1,530 hours a stablecoin was cheapest
+
+05
 
 <https://margin.wiki/data/findings.json>
 <https://margin.wiki/data/findings_first_published.json>
