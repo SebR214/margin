@@ -27,8 +27,7 @@ Kill rule, fixed before the tables were read (SEB-384): for managed currencies, 
 bands together must be at least twice that of the under-2% band, at least 10 points higher, and rest on at least 30 resolved month
 starts over at least 3 currencies. If not, the watch (step 3) is not built.
 
-Own prices (data/backtest_watch_ours.csv, outside data/history/ because they are observed): from 10 Aug 2026 the premium is the observed one in data/index_hourly.csv (Binance P2P buy median against the official
-rate, median of the day). Those rows are labelled "ours". None of them has 6 months behind it yet.
+Own prices (data/backtest_watch_ours.csv, outside data/history/ because they are observed): from 10 Aug 2026 the premium is the one each country published in data/index_hourly.csv, median of the day. Those rows are labelled "ours". None of them has 6 months behind it yet.
 
 Usage:  python3 tools/backtest_watch.py              # writes both files, prints the tables
         python3 tools/backtest_watch.py --selftest   # rules on fixtures, no files
@@ -246,7 +245,7 @@ def own_rows(off):
     per = {}
     with open(INDEX_HOURLY, newline="") as f:
         for r in csv.DictReader(f):
-            if r["source_class"] != "p2p_buy_median" or r["hour_utc"][:10] < OWN_START:
+            if r["hour_utc"][:10] < OWN_START:                  # one row per country and hour, the number it published
                 continue
             try:
                 per.setdefault(r["ccy"], {}).setdefault(r["hour_utc"][:10], []).append(float(r["index_pct"]))
@@ -289,7 +288,7 @@ def build(data, bh, steps):
             run = (run + 1 if prev and month_next(prev) == ym else 1) if prem > 5 else 0
             prev = ym
             rows.append({"month_start": day, "ccy": c, "type": typ, "premium_pct": round(prem, 3), "band": band_of(prem), "months_above_5": run,
-                         "street_series": "Binance P2P buy median, data/index_hourly.csv", "official": "open.er-api, data/fx_rates.csv",
+                         "street_series": "published figure, data/index_hourly.csv", "official": "open.er-api, data/fx_rates.csv",
                          "hit_12m": "", "hit_6m": "", "first_step_date": "", "first_step_pct": "", "label": LABEL_OURS,
                          "source": "tools/backtest_watch.py over data/index_hourly.csv (observed)"})
     return rows, street, names
