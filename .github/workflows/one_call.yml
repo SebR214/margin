@@ -11,11 +11,8 @@ name: one-call runner
 #
 # Watched by watchdog.yml: silent for 26 hours, or 3 failures in a row, fails that workflow and
 # GitHub emails the repo owner.
+# 24 Oct (Seb): no schedule. The Aider builder builds every backlog job; this runs only by hand.
 on:
-  schedule:
-    - cron: "17 6 * * *"
-    - cron: "47 8 * * *"
-    - cron: "17 12 * * *"
   workflow_dispatch:
     inputs:
       issue:

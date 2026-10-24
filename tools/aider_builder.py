@@ -45,7 +45,6 @@ MAX_TURNS = 30
 JOB_CAP_USD = 2.00            # a runaway job is killed here; the month cap in llm.py is the real ceiling
 MAX_MINUTES = 25
 FAILS_BEFORE_CLAUDE = 2
-PILOT_MAX_ITEM = 3            # the pilot is BACKLOG.md items 1 to 3 (Seb, 22 Oct); `track: aider` lines say which
 KEY_URL = llm.API + "/key"
 TASK_RULES = """Rules for this change:
 - Change only the files you were given. Do not create other files.
@@ -284,14 +283,18 @@ def post(text):
 
 
 def pick(items, only=None):
-    """The job to build: the top `track: aider` job, inside the pilot items, or the one asked for."""
+    """The job to build: the top ready job in BACKLOG.md, or the one asked for.
+
+    Since 24 Oct (Seb) the Aider builder is the builder for every backlog job: any job that is not done, blocked or built, lists
+    its files, and carries no track or `track: aider`. A job marked `track: claude` is left for the weekly Claude slot. The pilot
+    limit to items 1 to 3 is gone: it left the builder idle from 23 Oct with ready jobs in the queue."""
     for it in items:
-        if it["done"] or (only is None and int(it["id"]) > PILOT_MAX_ITEM):
+        if it["done"]:
             continue
         for j in it["jobs"]:
             if only and j["id"] != only:
                 continue
-            if not j["done"] and not j["blocked"] and not j["built"] and j["files"] and j["track"] == TRACK:
+            if not j["done"] and not j["blocked"] and not j["built"] and j["files"] and j["track"] in ("", TRACK):
                 return it, j
     return None
 
@@ -396,8 +399,10 @@ def self_test():
     assert backlog.next_job(items)[1]["id"] == "2a", "the one-call builder skips a track: aider job"
     assert backlog.next_job(items, "aider")[1]["id"] == "1a"
     t2 = t.replace("    files: `a.py`\n    track: aider", "    files: `a.py`\n    track: aider\n    blocked: x (2026-10-22)")
-    assert pick(backlog.parse(t2)) is None, "9a is outside the pilot items and 1a is blocked"
-    assert pick(backlog.parse(t2), "9a")[1]["id"] == "9a", "--job reaches outside the pilot"
+    assert pick(backlog.parse(t2))[1]["id"] == "2a", "1a is blocked, so the next ready job, untagged, is the Aider builder's too"
+    t3 = t2.replace("    files: `b.py`\n", "    files: `b.py`\n    track: claude\n")
+    assert pick(backlog.parse(t3))[1]["id"] == "9a", "a track: claude job is left for the Monday Claude task, and no pilot limit"
+    assert pick(backlog.parse(t2), "9a")[1]["id"] == "9a", "--job picks the job asked for"
     for m in (ARCHITECT_FALLBACK, EDITOR):
         assert not llm.BANNED.search(m), "no model of the two larger families"
     c = aider_cmd({"files": ["a.py"], "context": ["m.md"]}, "anthropic/claude-sonnet-5.5", "/t/task", "/t", None, "/t/parts.json")

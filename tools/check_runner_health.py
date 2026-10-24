@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Is the one-call runner alive? No model call. Exit 1 if not.
+"""Is the builder (the Aider builder) alive? No model call. Exit 1 if not.
 
 Down means either:
 - no completed run of one_call.yml in the last 26 hours (the runner builds once a day, with backup slots), or
@@ -17,7 +17,7 @@ import os
 import sys
 import urllib.request
 
-WORKFLOW = "one_call.yml"
+WORKFLOW = "aider_builder.yml"  # the builder since 24 Oct; one_call.yml now runs only by hand
 SILENT_AFTER = datetime.timedelta(hours=26)
 
 
