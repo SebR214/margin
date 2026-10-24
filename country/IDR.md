@@ -1,14 +1,14 @@
 # In Indonesia a dollar costs what the official rate says
 
-Prices from the 23:00 UTC hour, 23 Oct.
+Prices from the 00:00 UTC hour, 24 Oct.
 
-The official rate is 18,082.48 IDR per dollar. On the exchanges where people in Indonesia trade stablecoins, one costs 18,077 IDR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 18,082.48 IDR per dollar. On the exchanges where people in Indonesia trade stablecoins, one costs 18,076 IDR. A stablecoin is a coin that stays worth one US dollar.
 
-Between people on Binance and OKX, a dollar costs 18,159 IDR, 0.4% over the official rate.
+Between people on Binance and OKX, a dollar costs 18,166 IDR, 0.5% over the official rate.
 
-For US$100, people pay 1,807,650 IDR. The official rate says 1,808,248 IDR.
+For US$100, people pay 1,807,600 IDR. The official rate says 1,808,248 IDR.
 
-Prices from the 23:00 UTC hour, 23 Oct
+Prices from the 00:00 UTC hour, 24 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -28,7 +28,7 @@ This price is set from order books. A country's price comes from exchange order 
 
 Pintu
 
-18,054 IDR −0.2%
+18,053 IDR −0.2%
 
 Indodax
 
@@ -40,6 +40,10 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 24 Oct, 00:09 UTC | OKX, person to person | 18,254 IDR | +0.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 24 Oct, 00:07 UTC | Binance, person to person | 18,077 IDR | 0.0% | 10 of 98 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 00:06 UTC | Pintu | 18,053 IDR | −0.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 24 Oct, 00:06 UTC | Indodax | 18,099 IDR | +0.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 23:09 UTC | OKX, person to person | 18,240 IDR | +0.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 23 Oct, 23:07 UTC | Binance, person to person | 18,079 IDR | 0.0% | 10 of 84 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 23:06 UTC | Pintu | 18,054 IDR | −0.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -48,10 +52,6 @@ Open any file to check a price yourself.
 | 23 Oct, 22:07 UTC | Binance, person to person | 18,080 IDR | 0.0% | 10 of 82 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 23 Oct, 22:06 UTC | Pintu | 18,055 IDR | −0.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 23 Oct, 22:06 UTC | Indodax | 18,095 IDR | +0.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 21:09 UTC | OKX, person to person | 18,245 IDR | +0.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 23 Oct, 21:07 UTC | Binance, person to person | 18,079 IDR | 0.0% | 10 of 66 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 21:06 UTC | Pintu | 18,055 IDR | −0.2% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 21:06 UTC | Indodax | 18,097 IDR | +0.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
