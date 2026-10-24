@@ -14,7 +14,10 @@
   var ALL = [], ORDER = [];
   function setRoutes(sum) {
     ALL = sum.routes.map(function (r) { return r.id; });
-    ORDER = sum.routes.filter(function (r) { return r.comparable; }).map(function (r) { return r.id; });
+    // every route gets its detail (24 Oct). The routes table above compares them all against the best app, so a route
+    // where the stablecoin costs less than nothing against the official rate (Argentina, Nigeria, India) shows its
+    // numbers too: the headline says it in words and the chart's dark line is where the best app sits.
+    ORDER = ALL.slice();
   }
   function plainRoute(s) { return String(s || "").replace(/^the /i, "").replace(/^./, function (c) { return c.toUpperCase(); }); }
 
