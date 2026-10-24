@@ -9,7 +9,7 @@
 (function () {
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var MINUS = '−';
-  var C = {}, ccy = new URLSearchParams(location.search).get('ccy') || '', period = 'all', shown = 12;
+  var C = {}, ccy = new URLSearchParams(location.search).get('ccy') || '', period = 'ours', shown = 12;   // the chart range: 'ours' (our own record, the default), '1y', '5y', 'all' (24 Oct)
   var S = {};
 
   function $(k) { return document.getElementById(k); }
@@ -83,16 +83,37 @@
   }
 
   function chart() {
-    var hist = S.c.history, all = period === 'all' ? hist : hist.slice(-30);
+    // Our own record is the default view. The older prices (the reported layer: data/country_history_segment and the
+    // daily backfill in the country file) only show when a longer range is picked, and a range is offered only when it
+    // adds older prices the shorter one did not show (24 Oct, Seb in chat).
+    var hist = S.c.history;
     // a country that has never had a price has nothing to draw
     if (!hist.length) { $('chart').innerHTML = ''; return; }
-    var back = all.filter(isBack), mine = all.filter(function (h) { return !isBack(h); });
-    var hasBack = hist.length !== S.own.length;
+    var mine0 = S.own.length ? S.own : hist;
+    var older = ((S.seg && S.seg.points) || []).map(function (p) { return { date: p.date, index_pct: p.index_pct, source: 'segment_backfill' }; })
+      .concat(hist.filter(isBack)).filter(function (h) { return h.date < mine0[0].date; })
+      .sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    var last = Date.parse(hist[hist.length - 1].date), ownStart = Date.parse(mine0[0].date);
+    var RANGES = [['ours', ownStart], ['1y', last - 365 * 864e5], ['5y', last - 1826 * 864e5], ['all', older.length ? Date.parse(older[0].date) : ownStart]];
+    var offered = [RANGES[0]];
+    var first = RANGES[3][1];
+    RANGES.slice(1).forEach(function (r) {
+      var prev = offered[offered.length - 1][1];
+      if (prev <= first) { return; }                              // everything is already shown
+      if (r[1] <= first) { r = ['all', first]; }                   // a range reaching past the oldest price is All
+      if (r[1] < prev && older.some(function (h) { var t = Date.parse(h.date); return t >= r[1] && t < prev; })) { offered.push(r); }
+    });
+    if (!offered.some(function (r) { return r[0] === period; })) { period = 'ours'; }
+    var from = offered.filter(function (r) { return r[0] === period; })[0][1];
+    var back = older.filter(function (h) { return Date.parse(h.date) >= from; }), mine = mine0;
+    var all = back.concat(mine);
     var venue = S.seg && S.seg.venue || T('venueOther');
-    var head = '<h2>' + esc(T('chartHeading')) + '</h2><p class="note">' + esc(T('chartNote')) + '</p><div class="pills">' +
-      [['30', 'period30'], ['all', 'periodAll']].map(function (p) { return '<button class="pill" type="button" data-p="' + p[0] + '" aria-pressed="' + (period === p[0]) + '">' + esc(T(p[1])) + '</button>'; }).join('') + '</div>' +
-      (hasBack && period === 'all' ? '<p class="key"><span><i class="ln"></i>' + esc(T('layerDaily')) + '</span><span><i class="ln dash"></i>' + esc(T('layerReported', { venue: venue })) + '</span></p>' : '');
-    $('chart').innerHTML = head + '<div class="chart" id="cv"><svg id="svg"></svg></div><p class="note" id="rec"></p><p class="note" id="swl"></p>';
+    var label = function (k) { return k === 'ours' ? T('rangeSince', { month: MON[+mine0[0].date.slice(5, 7) - 1] }) : T('range_' + k); };
+    var bar = offered.length > 1 ? '<div class="rbar" role="group">' + offered.map(function (r) {
+      return '<button type="button" data-p="' + r[0] + '" aria-pressed="' + (period === r[0]) + '">' + esc(label(r[0])) + '</button>'; }).join('') + '</div>' : '';
+    var head = '<h2>' + esc(T('chartHeading')) + '</h2><p class="note">' + esc(T('chartNote')) + '</p>' +
+      (back.length ? '<p class="key"><span><i class="ln"></i>' + esc(T('layerDaily')) + '</span><span><i class="ln dash"></i>' + esc(T('layerReported', { venue: venue })) + '</span></p>' : '');
+    $('chart').innerHTML = head + '<div class="chart" id="cv"><svg id="svg"></svg></div>' + bar + '<p class="note" id="rec"></p><p class="note" id="swl"></p>';
     switchLine();
     var box = $('cv'), W = Math.max(320, box.clientWidth), H = W < 560 ? 240 : 300, L = 56, Tp = 10, B = 26, R = 8, pw = W - L - R, ph = H - Tp - B;
     var t = all.map(function (h) { return Date.parse(h.date); }), t0 = t[0], t1 = t[t.length - 1];
@@ -102,12 +123,20 @@
     var pad = (hi - lo) * 0.08 || 1, ys = niceTicks(lo - (lo ? pad : 0), hi + pad, 4), y0 = ys[0], y1 = ys[ys.length - 1];
     function Y(v) { return Tp + ph - (v - y0) / (y1 - y0) * ph; }
     var s = '';
+    // the older prices sit on a shaded band, labelled, so they never read as our own
+    if (back.length) { s += '<rect class="band" x="' + L + '" y="' + Tp + '" width="' + Math.max(0, X(ownStart) - L) + '" height="' + ph + '"/>' + (T('bandLabel') ? '<text class="ax" x="' + (L + 8) + '" y="' + (Tp + 16) + '">' + esc(T('bandLabel')) + '</text>' : ''); }
     ys.forEach(function (v) { s += '<line class="gl' + (v === 0 ? ' z' : '') + '" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text class="ax' + (v === 0 ? ' z' : '') + '" x="' + (L - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + (v === 0 ? '0%' : sgn(v)) + '</text>'; });
     function path(arr) { var d = '', p = null; arr.forEach(function (h) { var x = Date.parse(h.date); d += (p && x - p <= 3 * 864e5 ? 'L' : 'M') + X(x).toFixed(1) + ' ' + Y(h.index_pct).toFixed(1); p = x; }); return d; }
     if (back.length) { s += '<path class="ln-back" d="' + path(back) + '"/>'; }
-    s += '<path class="ln-own" d="' + path(mine) + '"/>';
-    if (mine.length < 60) { mine.forEach(function (h) { s += '<circle class="pt" cx="' + X(Date.parse(h.date)) + '" cy="' + Y(h.index_pct) + '" r="2.5"/>'; }); }
-    var step = Math.max(1, Math.round(all.length / 5)), yearly = period === 'all' && t1 - t0 > 400 * 864e5;
+    // our record: the line over a light fill down to 0% (or the bottom of the scale), as on the Routes chart
+    var base = Y(Math.min(Math.max(0, y0), y1)), own = path(mine);
+    own.split('M').filter(Boolean).forEach(function (seg) {
+      var pts = seg.split('L'), x0 = pts[0].split(' ')[0], x1 = pts[pts.length - 1].split(' ')[0];
+      s += '<path class="ar-own" d="M' + seg + 'L' + x1 + ' ' + base + 'L' + x0 + ' ' + base + 'Z"/>';
+    });
+    s += '<path class="ln-own" d="' + own + '"/>';
+    var lp = mine[mine.length - 1]; s += '<circle class="pt" cx="' + X(Date.parse(lp.date)) + '" cy="' + Y(lp.index_pct) + '" r="3.5"/>';
+    var step = Math.max(1, Math.round(all.length / 5)), yearly = t1 - t0 > 400 * 864e5;
     all.forEach(function (h, i) { if (i % step === 0 && X(t1) - X(t[i]) > (W < 560 ? 56 : 70)) { s += '<text class="ax" x="' + X(t[i]) + '" y="' + (H - 6) + '" text-anchor="middle">' + (yearly ? MON[+h.date.slice(5, 7) - 1] + ' ' + h.date.slice(0, 4) : dd(h.date)) + '</text>'; } });
     s += '<text class="ax" x="' + (W - R) + '" y="' + (H - 6) + '" text-anchor="end">' + dd(all[all.length - 1].date) + '</text>';
     s += '<line class="cr" id="cr" y1="' + Tp + '" y2="' + (Tp + ph) + '" visibility="hidden"/><circle class="cd" id="cd" r="4.5" visibility="hidden"/>';
