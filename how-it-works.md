@@ -1,6 +1,6 @@
 # How to read this site
 
-Prices from the 21:00 UTC hour, 24 Oct.
+Prices from the 22:00 UTC hour, 24 Oct.
 
 ## What we measure
 
