@@ -43,6 +43,16 @@ sorting -- not chosen by a person or a model.
 Stdlib only, no wall clock. Idempotent: re-running with unchanged inputs
 writes byte-identical files.
 
+Widened 24 Oct 2026 (SEB-301, Seb in chat): the SEB-311 wide pull is read too.
+Candles: the stablecoin pairs (USDT priced in the local currency) in Binance spot,
+Bitso, Buda and CoinGecko's daily files, besides the SEB-207 venues. Official rate
+per day: the central-bank series (BIS) first, then the ECB/CBC file, then
+fawazahmed0, then Frankfurter v2. The 50% guard became a spike guard, because a
+real gap can be far above 50% (Argentina 2023): a day further than 25 points
+from the median of the 7 days around it is left out, and a venue where more than
+2% of days are spikes is passed over. One venue per currency, deepest first, as
+before.
+
 Usage: python3 tools/emit_country_history.py
 """
 
@@ -62,7 +72,18 @@ OUT_DIR = os.path.join(DATA, "country_history_segment")
 LABEL = "reported, not observed"
 MIN_POINTS = 2
 MAX_GAP_DAYS = 31
-MAX_ABS_PCT = 50.0
+SPIKE_PTS = 25.0          # a day this far from the median of the 7 days around it is a spike
+MAX_SPIKE_SHARE = 0.02    # a venue with more spikes than this is passed over
+# the SEB-311 wide pull: (file, pair test) -- only USDT priced in the local currency
+WIDE_CANDLES = [
+    ("data/history/candles_binance_spot_1d.csv", lambda ccy, pair: pair == "USDT" + ccy),
+    ("data/history/candles_bitso_wide_1d.csv", lambda ccy, pair: pair == "usdt_" + ccy.lower()),
+    ("data/history/candles_buda_1d.csv", lambda ccy, pair: pair == "USDT-" + ccy),
+    ("data/history/candles_coingecko_1d.csv", lambda ccy, pair: pair == "USDT-" + ccy),
+]
+# official rate per day, first file that has the day wins
+FX_FILES = ["official_fx_bis_daily.csv", "official_fx_daily.csv", "official_fx_fawaz_daily.csv",
+            "official_fx_frankfurter_v2_daily.csv"]
 N_LARGEST_MOVES = 3
 
 
@@ -73,10 +94,22 @@ def rows(path):
         return list(csv.DictReader(f))
 
 
-def candle_series(path):
-    """{date: close}, plus the venue and source every row in this file shares."""
+_ROWS = {}
+
+
+def cached_rows(path):
+    if path not in _ROWS:
+        _ROWS[path] = rows(path)
+    return _ROWS[path]
+
+
+def candle_series(path, ccy=None, pair_ok=None):
+    """{date: close}, plus the venue and source every row in this file shares.
+    For a multi-currency file, ccy and pair_ok pick one stablecoin pair."""
     out, venue, source = {}, None, None
-    for r in rows(path):
+    for r in cached_rows(path):
+        if pair_ok is not None and (r.get("ccy") != ccy or not pair_ok(ccy, r.get("pair") or "")):
+            continue
         date = (r.get("ts_utc") or "")[:10]
         try:
             close = float(r["close"])
@@ -90,21 +123,42 @@ def candle_series(path):
 
 
 def fx_series(ccy):
-    """{date: per_usd} for one currency, plus the source every row shares."""
-    out, source = {}, None
-    for r in rows(FX):
-        if r.get("ccy") != ccy:
-            continue
-        date = r.get("date")
-        try:
-            per_usd = float(r["per_usd"])
-        except (KeyError, TypeError, ValueError):
-            continue
-        if not date or not per_usd:
-            continue
-        out[date] = per_usd
-        source = r.get("source")
-    return out, source
+    """{date: per_usd} for one currency, the first file in FX_FILES that has the
+    day, plus the source of each file used, in that order."""
+    out, sources = {}, []
+    for name in FX_FILES:
+        used = None
+        for r in cached_rows(os.path.join(HIST, name)):
+            if r.get("ccy") != ccy:
+                continue
+            date = r.get("date")
+            try:
+                per_usd = float(r["per_usd"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if not date or not per_usd or date in out:
+                continue
+            out[date] = per_usd
+            used = r.get("source")
+        if used and used not in sources:
+            sources.append(used)
+    return out, "; ".join(sources) or None
+
+
+def drop_spikes(pts):
+    """Leave out days far from the median of the 7 days around them. Returns the
+    kept points and how many were left out."""
+    keep, dropped = [], 0
+    vals = [p["index_pct"] for p in pts]
+    for i, p in enumerate(pts):
+        win = sorted(vals[max(0, i - 3):i] + vals[i + 1:i + 4])
+        if len(win) >= 4:
+            med = win[len(win) // 2] if len(win) % 2 else (win[len(win) // 2 - 1] + win[len(win) // 2]) / 2
+            if abs(p["index_pct"] - med) > SPIKE_PTS:
+                dropped += 1
+                continue
+        keep.append(p)
+    return keep, dropped
 
 
 def history_start(ccy):
@@ -154,13 +208,20 @@ def build_one(manifest, ccy):
     # window (a stray order, an illiquid early market) and is passed over, not
     # trimmed. Among what is left the deepest stretch wins.
     best = None
-    for candle_entry in candle_entries(manifest, ccy):
-        candles, venue, venue_source = candle_series(os.path.join(HERE, candle_entry["file"]))
+    sources = [(os.path.join(HERE, e["file"]), None) for e in candle_entries(manifest, ccy)]
+    sources += [(os.path.join(HERE, path), test) for path, test in WIDE_CANDLES]
+    for path, test in sources:
+        candles, venue, venue_source = candle_series(path, ccy, test) if test else candle_series(path)
+        if not candles:
+            continue
         dates = latest_run(sorted(d for d in candles
                                   if d in fx and (cutoff is None or d < cutoff)))
         pts = [{"date": d, "index_pct": round((candles[d] / fx[d] - 1) * 100, 4)}
                for d in dates]
-        if len(pts) < MIN_POINTS or any(abs(p["index_pct"]) > MAX_ABS_PCT for p in pts):
+        if len(pts) < MIN_POINTS:
+            continue
+        pts, dropped = drop_spikes(pts)
+        if len(pts) < MIN_POINTS or dropped > MAX_SPIKE_SHARE * (len(pts) + dropped):
             continue
         if best is None or pts[0]["date"] < best[0][0]["date"]:
             best = (pts, venue, venue_source)
@@ -184,7 +245,9 @@ def build_one(manifest, ccy):
 def build():
     with open(MANIFEST) as f:
         manifest = json.load(f)
-    ccys = sorted({entry["ccy"] for entry in manifest["files"].values() if "ccy" in entry})
+    ccys = {entry["ccy"] for entry in manifest["files"].values() if "ccy" in entry}
+    ccys |= {name[:-5] for name in os.listdir(COUNTRIES_DIR) if name.endswith(".json") and len(name) == 8}
+    ccys = sorted(ccys)
     os.makedirs(OUT_DIR, exist_ok=True)
     written = set()
     for ccy in ccys:
