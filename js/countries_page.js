@@ -11,7 +11,7 @@
  * Reads: data/index_latest.json, data/movers_week.json, copy.json.
  */
 (function () {
-  var C = {}, H = {}, D = {}, Mv = null, SP = null, TRACKED = 0;
+  var C = {}, H = {}, D = {}, Mv = null, SP = null, TRACKED = 0, NEVER = {};
   var S = { q: '', region: '__ALL__' };
   var app = document.getElementById('app');
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -275,7 +275,7 @@
   function noPriceSection(wrap, ctx) {
     var showWithheld = ctx.withheld.length && has(C, 'noPriceTemplate');
     var showFrozen = !!(ctx.frozenRow && has(C, 'frozenTemplate'));
-    if (!showWithheld && !showFrozen) { return; }
+    if (!showWithheld && !showFrozen && !Object.keys(NEVER).length) { return; }
     var np = el('div', 'ci-np');
     if (showWithheld) {
       put(np, 'h2', null, t('noPriceTemplate', { n: num(ctx.withheld.length), time: ctx.time }));
@@ -295,6 +295,10 @@
         det.appendChild(ul);
         np.appendChild(det);
       }
+    }
+    var never = Object.keys(NEVER).map(function (k) { return plainName(NEVER[k]); });
+    if (never.length && H.neverPricedNote) {
+      put(np, 'p', 'ci-aside', H.neverPricedNote.replace('{list}', never.join(', ')));
     }
     if (showFrozen) {
       put(np, 'p', 'ci-aside', t('frozenTemplate', { country: plainName(ctx.frozenRow.country) }));
@@ -317,7 +321,7 @@
   /* ---------------------------------------------------------------- page */
   function buildCtx() {
     var countries = D.countries || [];
-    var withheld = D.withheld || [];
+    var withheld = (D.withheld || []).filter(function (w) { return !NEVER[w.ccy]; });
     var unverified = D.unverified || [];
     var total = TRACKED;
     var moversByCcy = {};
@@ -393,6 +397,13 @@
       Mv = r[3];
       SP = r[4];
       TRACKED = r[2].countries_tracked;
+      // countries with no price on any of the last 30 days are not tracked (home uses the same rule): they get the
+      // "we also check" line, not a place in "had no price this hour", so the two counts on this page add up (24 Oct)
+      NEVER = {};
+      (r[2].currencies || []).forEach(function (c) {
+        var cells = c.cells || [];
+        if (!cells.slice(Math.max(0, cells.length - 30)).some(function (v) { return v != null; })) { NEVER[c.ccy] = c.country || c.ccy; }
+      });
       var det = document.querySelector('.ci-np details'), wasOpen = !!(det && det.open), y = window.scrollY;   // keep the reader's place
       page();
       window.scrollTo(0, y);

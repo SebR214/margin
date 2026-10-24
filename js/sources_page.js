@@ -74,7 +74,7 @@
       if (n[1] === 'sources.html') { a.setAttribute('aria-current', 'page'); }
       nav.appendChild(a);
     });
-    if (T('pageTitle')) { document.title = T('pageTitle'); }
+    document.title = 'margin.wiki: Sources';
     var h1 = $('h1'), lead = $('lead');
     if (T('headline')) { h1.textContent = T('headline'); h1.hidden = false; }
     if (T('headlineSub')) { lead.textContent = T('headlineSub'); lead.hidden = false; }

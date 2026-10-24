@@ -352,6 +352,8 @@
     var nav = $('nav');
     NAV.forEach(function (x) { var t = C[x[0]]; if (!t) { return; } var a = document.createElement('a'); a.textContent = t; a.href = './' + x[1]; nav.appendChild(a); });
     ((r[1] && r[1].findings) || []).forEach(function (f) { f.first_published = r[3][f.id] || ''; FIN[f.id] = f; });
+    // the chips and "We also found these" list published findings only, numbered as the Findings page numbers them (24 Oct)
+    ORDER = ORDER.filter(function (k) { return FIN[k] && FIN[k].published === true; });
     AS_OF = (r[1] && r[1].as_of_utc) || '';
     var want = new URLSearchParams(location.search).get('id');
     if (!want || ORDER.indexOf(want) < 0 || !FIN[want]) {

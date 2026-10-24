@@ -61,9 +61,10 @@ EMPTY_STATES = ("could not be read", "no comparison available",
                 "no price history available", "no data available")
 
 # Every page a reader can reach. A new page must be listed here to be covered.
-PAGES = ["index.html", "corridor.html", "findings.html", "how-it-was-built.html",
+# corridor.html, fee-tiers.html and tape.html redirect to Routes, the fee tier finding and Countries (24 Oct).
+PAGES = ["index.html", "findings.html", "how-it-was-built.html",
          "countries.html", "sending-money.html", "how-it-works.html",
-         "country.html", "fee-tiers.html", "agent-incidents.html", "tape.html",
+         "country.html", "agent-incidents.html",
          "finding.html"]
 
 # ask.html and watch.html both call a live backend rather than reading a
@@ -233,17 +234,14 @@ def normalize_markup(s):
 # Retired pages were deleted (SEB-301, 21 Oct).
 PAGE_TITLE = {
     "index.html": "margin.wiki",
-    "corridor.html": "margin.wiki — one transfer, the receipt in full",
-    "findings.html": "margin.wiki",
+    "findings.html": "margin.wiki: Findings",
     "finding.html": "margin.wiki",
-    "how-it-was-built.html": "margin.wiki — how it was built",
-    "countries.html": "margin.wiki — countries",
-    "sending-money.html": "margin.wiki — sending money",
-    "how-it-works.html": "margin.wiki — how it works",
-    "country.html": "margin.wiki — a country's price in full",
-    "fee-tiers.html": "margin.wiki — Stablecoins are cheap, kind of",
-    "agent-incidents.html": "margin.wiki — Running a site on agents I don't fully trust",
-    "tape.html": "margin.wiki — street prices as they arrive",
+    "how-it-was-built.html": "margin.wiki: How it was built",
+    "countries.html": "margin.wiki: Countries",
+    "sending-money.html": "margin.wiki: Routes",
+    "how-it-works.html": "margin.wiki: How it works",
+    "country.html": "margin.wiki",
+    "agent-incidents.html": "margin.wiki: Running a site on agents I don't fully trust",
 }
 
 
