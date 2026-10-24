@@ -1,12 +1,19 @@
 {
+  "buy_price": 20.905,
   "ccy": "ZMW",
-  "computed_at": "2026-10-24T11:00:00+00:00",
+  "computed_at": "2026-10-24T12:00:00+00:00",
   "country": "Zambia",
+  "crossed_boards_agree": {
+    "crossed": [
+      "binance_p2p"
+    ]
+  },
   "denominator": {
     "class": "market",
     "rate_per_usd": 20.140488,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 20.140488,
   "history": [
     {
       "date": "2026-09-05",
@@ -304,14 +311,15 @@
     },
     {
       "date": "2026-10-24",
-      "index_pct": 2.4057,
-      "n": 9,
-      "source": "hourly_buy_p2p"
+      "index_pct": 3.7959,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
   "history_days": 50,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-24T11:00:00+00:00",
+  "hour_utc": "2026-10-24T12:00:00+00:00",
+  "index_pct": 3.7959,
   "index_version": "1.9",
   "instrument_check": {
     "checked": false,
@@ -319,11 +327,23 @@
   },
   "median_24h_n": 24,
   "median_24h_pct": 2.2219,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market (buy 20.564999999999998, sell 20.61)",
-  "round_trip_pct": -0.2183,
-  "source_class": null,
+  "n_boards": 2,
+  "n_sources": 10,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 20.565
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 20.6,
+      "index_pct": 2.2815,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    },
+    {
+      "buy_price": 21.21,
+      "index_pct": 5.3103,
+      "last_price_used": false,
+      "venue": "okx_p2p"
+    }
+  ]
 }
