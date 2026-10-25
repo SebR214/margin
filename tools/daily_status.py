@@ -6,7 +6,7 @@ the logs and GitHub's own records. No model call.
     python3 tools/daily_status.py --print    # build it, print it, post nothing
     python3 tools/daily_status.py --self-test
 
-Covers: collector health, the runner's and the Scout's last runs, PRs merged in
+Covers: collector health, the runner's and the researcher's last runs, PRs merged in
 the last 24 hours, open PRs (a PR that changes collection code is left open on
 purpose and is named), and this month's spend against the $20 ceiling.
 
@@ -29,7 +29,7 @@ import check_additive  # noqa: E402
 
 ISSUE = "SEB-301"
 COLLECTION_CODE = re.compile(r"^collector[^/]*\.py$|^\.github/workflows/collect\.yml$")
-SCOUT_LOG = os.path.join(ROOT, "data", "scout_log.csv")
+RESEARCHER_LOG = os.path.join(ROOT, "data", "researcher_log.csv")
 BUILDER_LOG = os.path.join(ROOT, "data", "builder_log.csv")   # ts_utc,status,job,pr,detail: one row per daily builder run (tools/one_call.py)
 
 
@@ -74,14 +74,14 @@ def collector_health():
     return ("healthy" if r.returncode == 0 else "NOT HEALTHY") + ": " + line
 
 
-def scout_last():
-    if not os.path.exists(SCOUT_LOG):
+def researcher_last():
+    if not os.path.exists(RESEARCHER_LOG):
         return "no log yet"
-    rows = list(csv.DictReader(open(SCOUT_LOG)))
+    rows = list(csv.DictReader(open(RESEARCHER_LOG)))
     if not rows:
         return "no log yet"
     r = rows[-1]
-    return "%s (%s) at %s. %s" % (r["status"], r["mode"], r["ts_utc"][:16].replace("T", " ") + " UTC", r["detail"][:160])
+    return "%s, %s jobs added at %s. %s" % (r["status"], r["added"], r["ts_utc"][:16].replace("T", " ") + " UTC", r["detail"][:160])
 
 
 def built_today(now, path=BUILDER_LOG):
@@ -108,8 +108,8 @@ def build(now=None):
     lines.append("- **Collector:** " + collector_health())
     lines.append("- **Collection run (collect.yml):** " + last_run(now, "collect.yml"))
     lines.append("- **Runner (one_call.yml):** " + last_run(now, "one_call.yml"))
-    lines.append("- **Scout (scout.yml):** " + last_run(now, "scout.yml"))
-    lines.append("- **Scout, last result:** " + scout_last())
+    lines.append("- **Researcher (researcher.yml):** " + last_run(now, "researcher.yml"))
+    lines.append("- **Researcher, last result:** " + researcher_last())
     lines.append("- **Built today:** " + built_today(now))
     closed = gh("pulls?state=closed&sort=updated&direction=desc&per_page=50")
     merged = [p for p in closed if p.get("merged_at") and ts(p["merged_at"]) >= since]
@@ -183,7 +183,7 @@ def self_test():
     assert touches_collection_code(["collector.py"])
     assert touches_collection_code(["collector_p2p_okx.py", "x.md"])
     assert touches_collection_code([".github/workflows/collect.yml"])
-    assert not touches_collection_code(["tools/emit_countries.py", "collector/readme.md", ".github/workflows/scout.yml"])
+    assert not touches_collection_code(["tools/emit_countries.py", "collector/readme.md", ".github/workflows/researcher.yml"])
     now = datetime.datetime(2026, 10, 12, 12, tzinfo=datetime.timezone.utc)
     assert ago(now, now - datetime.timedelta(minutes=20)) == "20 min ago"
     assert ago(now, now - datetime.timedelta(days=3)) == "3 days ago"

@@ -1,14 +1,18 @@
 # Build backlog
 
-The queue. Seb approved it on SEB-301 on 20 Oct 2026. The daily builder takes the top unchecked job, builds it, merges on green,
-ticks it with the PR number and date, and posts one line on SEB-301. The Scout splits the next 7 unchecked items into jobs that fit
-one builder call (one route, one source or one file at a time, with the exact files listed) every Monday. Claude's Monday review adds
-items at the end, and refills the list when fewer than 10 are left. New items queued on SEB-301 under "Queued by Claude" are copied in
-at the start of every builder run (tools/backlog.py).
+The queue. Since 25 Oct 2026 (Seb's plan) two kinds of writer add to it: the researcher (tools/researcher.py, one Sonnet call a week,
+3 jobs at the end under "Proposed by the researcher") and Seb or a chat, by hand, in the same form. Nothing else writes items. The Aider
+builder takes the top ready job, builds it, merges on green and ticks it with the PR number and date. The Sunday scorecard
+(tools/scorecard.py) is the only evidence of what track A shipped. Items queued on SEB-301 under "Queued by Claude" are still copied
+in at the start of every builder run (tools/backlog.py).
+
+Track A takes only jobs a cheap model can't get wrong (tools/job_shape.py): new files (a new collector file, a new sidecar CSV, a
+new finding test, a new history file, a new script), collect.yml growing by one step, a new row in the source registry. Each job
+names the test that proves it. A job that changes an existing collector, a page or a method is track B: the builder skips it and it is
+built in Seb's own sessions.
 
 Rules for every item: real CSVs only, never invented numbers. A new venue goes through `tools/probe_source.py` and 7 days of
-quarantine before it feeds anything. A change to a published number needs METHODOLOGY.md and an index_version bump, listed in the job's
-files. A blocked item gets one line saying why, and the builder moves to the next one. Nothing waits for Seb.
+quarantine before it feeds anything. A blocked item gets one line saying why, and the builder moves to the next one. Nothing waits for Seb.
 
 How to read it: a top-level item is `- [ ] N. title`. A job under it is `  - [ ] Na. title`, with `    files:` (backticked paths the builder may
 change), optional `    context:` (read-only paths) and `    done when:` lines. The builder works on jobs. An item without jobs is not split yet.

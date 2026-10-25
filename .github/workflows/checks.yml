@@ -119,11 +119,18 @@ jobs:
       - name: Status and watchdog helpers (SEB-301)
         run: |
           python3 tools/daily_status.py --self-test
-          python3 tools/check_scout_health.py --self-test
+          python3 tools/check_researcher_health.py --self-test
           python3 tools/check_audit_health.py --self-test
 
-      - name: The Scout's checks reject what they must (SEB-301)
-        run: python3 tools/scout.py --self-test
+      - name: The researcher, the gap report, the job rules and the scorecard (SEB-301, 25 Oct)
+        run: |
+          python3 tools/gap_report.py --self-test
+          python3 tools/job_shape.py --self-test
+          python3 tools/researcher.py --self-test
+          python3 tools/scorecard.py --self-test
+
+      - name: Every test an agent job added (tests/agent_*.py)
+        run: python3 tools/run_agent_tests.py
 
       - name: The watchdog posts once per outage (SEB-301)
         run: python3 tools/watchdog_post.py --self-test
@@ -140,10 +147,8 @@ jobs:
       - name: The build backlog parses, ticks and syncs (SEB-301)
         run: python3 tools/backlog.py --self-test
 
-      - name: The Aider builder, its test command and the weekly planner (SEB-301, track A)
-        run: |
-          python3 tools/aider_builder.py --self-test
-          python3 tools/weekly_planner.py --self-test
+      - name: The Aider builder and its test command (SEB-301, track A)
+        run: python3 tools/aider_builder.py --self-test
 
       - name: The daily builder shapes a backlog job and finds its PR (SEB-301)
         run: |
