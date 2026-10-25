@@ -1,12 +1,12 @@
-# In Brazil a dollar costs 1.3% less than the official rate
+# In Brazil a dollar costs 0.1% more than the official rate
 
-Prices from the 22:00 UTC hour, 25 Oct.
+Prices from the 23:00 UTC hour, 25 Oct.
 
-The official rate is 5.04 BRL per dollar. On the exchanges where people in Brazil trade stablecoins, one costs 4.98 BRL. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 5.04 BRL per dollar. On the exchanges where people in Brazil trade stablecoins, one costs 5.05 BRL. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 498.07 BRL. The official rate says 504.43 BRL.
+For US$100, people pay 505.13 BRL. The official rate says 504.43 BRL.
 
-Prices from the 22:00 UTC hour, 25 Oct
+Prices from the 23:00 UTC hour, 25 Oct
 
 <https://margin.wiki/data/countries/BRL.json>
 
@@ -20,13 +20,13 @@ Today's difference is typical of the record since 2 Sep 2026, counting only our 
 
 This price is set from order books. A country's price comes from exchange order books first, then broker quotes, then offers between people on Binance and OKX.
 
-MercadoBitcoin
-
-4.98 BRL −1.3%
-
 Foxbit
 
-4.98 BRL −1.2%
+5.05 BRL +0.1%
+
+MercadoBitcoin
+
+5.05 BRL +0.2%
 
 ## Every Brazil price links to its raw file
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 25 Oct, 23:06 UTC | MercadoBitcoin | 5.05 BRL | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 25 Oct, 23:06 UTC | Foxbit | 5.05 BRL | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 22:07 UTC | MercadoBitcoin | 4.98 BRL | −1.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 22:07 UTC | Foxbit | 4.98 BRL | −1.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 21:36 UTC | MercadoBitcoin | 4.98 BRL | −1.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 25 Oct, 19:16 UTC | Foxbit | 4.95 BRL | −1.8% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 18:07 UTC | MercadoBitcoin | 4.98 BRL | −1.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 18:07 UTC | Foxbit | 4.97 BRL | −1.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 25 Oct, 17:06 UTC | MercadoBitcoin | 4.99 BRL | −1.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 25 Oct, 17:06 UTC | Foxbit | 4.99 BRL | −1.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://margin.wiki/data/basis.csv>
