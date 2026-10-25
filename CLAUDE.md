@@ -48,10 +48,12 @@ Never say something is running, built or watching unless you checked it just now
 - Every reader-facing string lives in `copy.json`.
 - Seb approves a page once, in its Linear spec. A PR built from a spec he approved, whose title names its SEB issue, merges by itself when every check passes (`automerge.yml`), including method changes (METHODOLOGY.md and the `index_version` bump are checked by `method-change`) and additive collector changes. Post any before and after table on the issue. Never wait on Seb for a PR, and never ask him to label one.
 - `DESIGN.md` holds the page rules. Read it when your job touches a page.
+- A `writer/` PR whose title names its SEB issue passes `copy-lock` with no label. Never ask Seb to add `copy-approved` or any other label. If the words were agreed in chat or the spec, merge on green.
 - How it was built's description of the agents is closed. It says four agents and stays that way. Never raise it, never flag it in a review or audit, never list it as waiting on Seb, never change it.
 
 ## Working rules
 
+- Waiting is not stopping. When the next step waits on CI, a merge or a few hours of rows, wait for it inside the session: a background command that polls `gh api .../check-runs` (or the CSV) every minute, then do the next step. Never end a turn just to say you are waiting, and never hand Seb a step you can do. Stop only when the job is merged and checked live at 1440px and 375px, or when it truly needs Seb (a credential, or words he has not seen). A wait longer than the session (a day of rows) is one line on the Linear issue with the time it is due, and the next session or the Monday task picks it up.
 - One Linear issue per job. Comment on the issue when you start and when you finish.
 - Nothing waits for Seb. If a job needs him (root on the box, DNS, a decision), park it: one line on the issue, then take the next job. Parked never stops work. Never list parked items as blockers, and don't ask about them again. Parked items don't count toward any gate. If anything has waited on Seb for more than 24 hours, one email goes to the address on his GitHub account ("Waiting on you: {n}", one line each with a link), then nothing more until the list changes.
 - One Claude chat session at a time. Chat sessions never take `one-call` issues: the builder does.
