@@ -20,7 +20,8 @@
     return s.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : ''; });
   }
   function word(tag, cls, key) { var t = T(key); return t ? el(tag, cls, t) : null; }
-  function fmt(p) { var a = Math.abs(p); return (p < 0 ? '-' : '') + (a >= 10 ? Math.round(a) : a.toFixed(1)); }
+  function nm_(ccy) { return String(NAMES[ccy] || ccy).replace(/^./, function (c) { return c.toUpperCase(); }); }
+  function fmt(p) { var a = Math.abs(p), t = a >= 10 ? String(Math.round(a)) : a.toFixed(1); return (p < 0 && +t !== 0 ? '-' : '') + t; }   // no "-0.0"
   function band(p) {
     if (p < -2) return 'bl';
     for (var i = 0; i < BANDS.length; i++) { if (p < BANDS[i][1]) return BANDS[i][0]; }
@@ -51,16 +52,18 @@
     kid(text, word('h1', '', 'indexTitle'));
     kid(text, word('p', ['soft', 'fp-line'], 'indexLead'));
     if (!text.firstChild) wrap.removeChild(hero);
-    var cards = el('div', 'fp-cards');
-    var a = el('a', 'fp-card');
+    // one row per piece of research, like the Findings list: title, one line, the dates, an arrow. No grey card (25 Oct, Seb).
+    var list = el('div', 'rs-list');
+    var a = el('a', 'rs-item');
     a.href = './research-capital-controls.html';
-    var body = kid(a, el('div', 'fp-card-body'));
-    kid(body, word('span', '', 'cardTitle'));
-    kid(body, word('span', ['soft', 'fp-note'], 'cardLine'));
+    var body = kid(a, el('span', 'rs-item-body'));
+    kid(body, word('span', 'rs-item-title', 'cardTitle'));
+    kid(body, word('span', 'rs-item-line', 'cardLine'));
     if (doc && T('cardMeta')) {
-      kid(body, el('span', ['fp-card-meta', 'muted'], T('cardMeta', { n: doc.countries, from: doc.years[0], to: doc.years[doc.years.length - 1] })));
+      kid(body, el('span', 'rs-item-meta', T('cardMeta', { n: doc.countries, from: doc.years[0], to: doc.years[doc.years.length - 1] })));
     }
-    if (body.firstChild) { cards.appendChild(a); wrap.appendChild(cards); }
+    a.appendChild(el('span', 'rs-item-go', '\u2192'));
+    if (body.firstChild) { list.appendChild(a); wrap.appendChild(list); }
   }
 
   function byCountry(doc) {
@@ -101,7 +104,7 @@
     rows.forEach(function (c) {
       var r = el('div', 'rs-row');
       r.setAttribute('role', 'row');
-      var nm = el('span', 'rs-name', NAMES[c.ccy] || c.ccy);
+      var nm = el('span', 'rs-name', nm_(c.ccy));
       var tag = T(c.type === 'managed' ? 'tagManaged' : 'tagFloating');
       if (tag) nm.appendChild(el('small', 'rs-tag', tag));
       r.appendChild(nm);
@@ -109,11 +112,11 @@
         var d = c.years[y], cell;
         if (!d) {
           cell = el('span', ['rs-cell', 'rs-none']);
-          if (T('noCell')) cell.title = T('noCell', { country: NAMES[c.ccy] || c.ccy, year: y });
+          if (T('noCell')) cell.title = T('noCell', { country: nm_(c.ccy), year: y });
         } else {
           var p = d.median_premium_pct;
           cell = el('span', ['rs-cell', 'rs-' + band(p), 'mono'], fmt(p));
-          var tip = T(p < 0 ? 'cellTipBelow' : 'cellTip', { country: NAMES[c.ccy] || c.ccy, year: y, value: fmt(Math.abs(p)) + '%', days: d.days });
+          var tip = T(p < 0 ? 'cellTipBelow' : 'cellTip', { country: nm_(c.ccy), year: y, value: fmt(Math.abs(p)) + '%', days: d.days });
           if (tip) cell.title = tip;
         }
         cell.setAttribute('role', 'cell');

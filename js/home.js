@@ -61,11 +61,11 @@
     // one per row, as the Sources page lists them: the CriptoYa feeds count once
     var sr = (D.src && D.src.sources) || null, nSources = sr ? sr.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (sr.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null;
     var h = '<h1>' + esc(T('headline')) + '</h1>' +
-      (T('heroWhy') ? '<p class="lead">' + esc(T('heroWhy')) + '</p>' : '') +
-      '<p class="lead">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
+      (T('heroWhy') ? '<p class="lead sub">' + esc(T('heroWhy')) + '</p>' : '') +
+      '<p class="lead what">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
       // who built it and what is stored so far, as one line (21 Oct, Seb's wording); the numbers come from the files
-      '<p class="body">' + esc(T('agentsLine')) + (T('agentsStored') && nSources != null && tt.readings != null && tt.hours_collected != null ? ' ' +
-        esc(T('agentsStored', { readings: '\u0001', sources: '\u0002', hours: '\u0003' })).replace('\u0001', '<b>' + g(tt.readings) + '</b>').replace('\u0002', '<b>' + nSources + '</b>').replace('\u0003', '<b>' + g(tt.hours_collected) + '</b>') : '') + '</p>';
+      '<p class="body agents">' + esc(T('agentsLine')) + (T('agentsStored') && nSources != null && tt.readings != null && tt.hours_collected != null ? ' ' +
+        esc(T('agentsStored', { readings: '\u0001', sources: '\u0002', hours: '\u0003' })).replace('\u0001', g(tt.readings)).replace('\u0002', String(nSources)).replace('\u0003', g(tt.hours_collected)) : '') + '</p>';
     $('hero').innerHTML = h;
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
     if (T('headline')) { document.title = 'margin.wiki'; }
@@ -175,22 +175,32 @@
 
   /* ---------------------------------------------------------------- where the official rate landed after past breaks (SEB-384, from the backtest)
      data/map_timeline/landing.json: each break of 10% or more that has a street price before it. Reported, not seen by us. */
-  // One worked example under the intro (SEB-391): Argentina's break in December 2023, every figure from its row in landing.json.
+  // Rework (25 Oct, Seb: "repetitive and not clear"). Only moves where a real gap existed before (a dollar cost at least LAND_MIN_GAP%
+  // more on exchanges) are shown: without a gap there is nothing for the official rate to land on. Each row says how big the gap was
+  // and how much of it the move closed, both from the row's two figures in landing.json:
+  //   street before = official before x (1 + gap), new official = landing_ratio x street before,
+  //   share closed = (new official - official before) / (street before - official before) = (ratio x (1 + gap) - 1) / gap.
+  var LAND_MIN_GAP = 10;
   var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  function closed(r) { var p = r.premium_before_pct / 100; return Math.max(0, Math.min(1, (r.landing_ratio * (1 + p) - 1) / p)); }
+  function month(d, short) { var m = MONTHS[+d.slice(5, 7) - 1]; return (short ? m.slice(0, 3) : m) + ' ' + d.slice(0, 4); }
+  // the worked example is the latest move in the list
   function example(rows) {
-    var r = rows.filter(function (x) { return x.ccy === 'ARS' && x.date.slice(0, 7) === '2023-12'; })[0];
-    return r && T('landExample') && r.premium_before_pct >= 0 ? '<p class="note">' + esc(T('landExample', { country: plain(r.country), month: MONTHS[+r.date.slice(5, 7) - 1] + ' ' + r.date.slice(0, 4),
-      premium: pct1(r.premium_before_pct), ratio: Math.round(r.landing_ratio * 100) + '%' })) + '</p>' : '';
+    var r = rows[0];
+    return r && T('landExample') ? '<p class="note">' + esc(T('landExample', { country: plain(r.country), month: month(r.date),
+      premium: pct1(r.premium_before_pct), closed: Math.round(closed(r) * 100) + '%' })) + '</p>' : '';
   }
   function land(j) {
-    var box = $('land'), rows = (j && j.rows) || [];
-    if (!box || !rows.length || !T('landTitle') || !T('landUp')) { if (box) { box.innerHTML = ''; } return; }
-    var mon = function (d) { return dd(d) + ' ' + d.slice(0, 4); };
-    box.innerHTML = '<h2>' + esc(T('landTitle')) + '</h2><p class="note">' + esc(T('landLine')) + '</p>' + example(rows) + '<div class="rows">' + rows.map(function (r) {
-      var p = r.premium_before_pct;
-      return '<a class="r" href="' + ctry(r.ccy) + '"><b>' + esc(plain(r.country)) + '<small class="d">' + esc(mon(r.date)) + '</small></b><span class="m">' +
-        esc(T(p >= 0 ? 'landUp' : 'landDown', { move: pct1(r.move_pct), premium: pct1(p) })) + '</span><span class="v num">' + Math.round(r.landing_ratio * 100) + '%<small>' + esc(T('landValue')) + '</small></span></a>';
-    }).join('') + '</div><p class="note sm">' + esc(T('landNote')) + '</p>';
+    var box = $('land'), rows = ((j && j.rows) || []).filter(function (r) { return r.premium_before_pct >= LAND_MIN_GAP; });
+    if (!box || !rows.length || !T('landTitle') || !T('landGap') || !T('landClosed')) { if (box) { box.innerHTML = ''; } return; }
+    box.innerHTML = '<h2>' + esc(T('landTitle')) + '</h2><p class="note">' + esc(T('landLine', { n: rows.length, gap: LAND_MIN_GAP + '%' })) + '</p>' + example(rows) +
+      '<div class="rows lrows">' + rows.map(function (r) {
+        var c = Math.round(closed(r) * 100);
+        return '<a class="r lr" href="' + ctry(r.ccy) + '"><b>' + esc(plain(r.country)) + '<small class="d">' + esc(month(r.date, true)) + '</small></b>' +
+          '<span class="m">' + esc(T('landGap', { premium: pct1(r.premium_before_pct) })) + '</span>' +
+          '<span class="lbar" aria-hidden="true"><i style="width:' + c + '%"></i></span>' +
+          '<span class="v num">' + c + '%<small>' + esc(T('landClosed')) + '</small></span></a>';
+      }).join('') + '</div><p class="note sm">' + esc(T('landNote')) + '</p>';
   }
 
   /* ---------------------------------------------------------------- findings: each line links to its page */

@@ -51,7 +51,9 @@
   .tl { margin: 0 0 18px; }
   .tlbar { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
   .tlyear { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--color-neutral-700); }
-  .tlyear select { font: inherit; font-size: 14px; font-weight: 600; min-height: 40px; padding: 0 12px; border: 1px solid var(--color-neutral-300); border-radius: 999px; background: var(--color-bg); color: var(--color-ink); }
+  /* own arrow, fixed height and line height: Safari's native select clipped the year inside the pill (25 Oct) */
+  .tlyear select { -webkit-appearance: none; appearance: none; font: inherit; font-size: 14px; font-weight: 600; line-height: 20px; height: 40px; box-sizing: border-box; padding: 9px 34px 9px 14px; border: 1px solid var(--color-neutral-300); border-radius: 999px; color: var(--color-ink); cursor: pointer;
+    background: var(--color-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23555' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center; }
   .tlslide { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-top: 14px; }
   .tlslide input[type=range] { flex: 1 1 320px; min-width: 0; width: 100%; max-width: 640px; accent-color: var(--color-ink); }
   .tlwhen { font-size: 14px; font-weight: 600; }
@@ -71,6 +73,10 @@
   .r .no { color: var(--color-neutral-600); font-size: 14px; }
   .r.f .m { font-size: 15px; color: var(--color-ink); }
   a.r:hover b, a.r:hover .m { color: var(--data-700); }
+  /* when the official rate finally moved (25 Oct): country and month, the gap before, a bar for the share of it closed, the share */
+  .r.lr { grid-template-columns: 200px 170px minmax(0, 1fr) 150px; }
+  .lbar { display: block; height: 8px; border-radius: 999px; background: var(--color-neutral-100); overflow: hidden; }
+  .lbar i { display: block; height: 100%; border-radius: 999px; background: var(--data-700); }
   .sechead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; }
   #rec section { margin-top: 0; }
   .loaderr { margin-top: 24px; color: var(--color-neutral-700); }
@@ -87,11 +93,14 @@
     .r .m { grid-column: 1 / -1; grid-row: 2; margin-top: 4px; }
     .r.f { grid-template-columns: 1fr 24px; }
     .r.f .m { grid-column: 1; grid-row: 1; margin: 0; }
+    .r.lr { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; }
+    .r.lr .m { grid-column: 1 / -1; grid-row: 2; margin: 0; }
+    .r.lr .lbar { grid-column: 1 / -1; grid-row: 3; }
   }
 </style>
 <link rel="stylesheet" href="./css/dkpanel.css">
 <link rel="stylesheet" href="./css/site_head.css?v=4">
-<link rel="stylesheet" href="./css/site_page.css?v=4">
+<link rel="stylesheet" href="./css/site_page.css?v=5">
 <link rel="alternate" type="text/markdown" href="./index.md">
 <link rel="stylesheet" href="./css/machine_view.css?v=3">
 </head>
@@ -117,8 +126,8 @@
   <p class="loaderr" id="loaderr" hidden></p>
 </div>
 <script src="./js/tooltip.js"></script>
-<script src="./js/home_timeline.js?v=1"></script>
-<script src="./js/home.js?v=4"></script>
+<script src="./js/home_timeline.js?v=2"></script>
+<script src="./js/home.js?v=5"></script>
 <script src="./js/footer.js"></script>
 <script src="./js/site_head.js?v=3"></script>
 <script src="./js/machine_view.js?v=3" defer></script>

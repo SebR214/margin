@@ -24,3 +24,24 @@
   .rs-grid { --name: 104px; }
   .rs-row { grid-template-columns: var(--name) repeat(var(--cols, 9), 40px); }
 }
+
+/* Research list (25 Oct, Seb): rows like the Findings list instead of a grey card. Title, one line, the dates, an arrow. */
+.rs-list { border-top: 1px solid var(--color-neutral-200); margin-top: 24px; }
+.rs-item { display: grid; grid-template-columns: minmax(0, 1fr) 24px; gap: 0 24px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--color-neutral-200); color: inherit; text-decoration: none !important; }
+.rs-item-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.rs-item-title { font-size: 17px; font-weight: 500; color: var(--color-ink); }
+.rs-item-line { font-size: 15px; line-height: 1.5; color: var(--color-neutral-700); }
+.rs-item-meta { font-size: 13px; color: var(--color-neutral-600); }
+.rs-item-go { text-align: right; font-size: 17px; color: var(--color-neutral-600); }
+a.rs-item:hover .rs-item-title, a.rs-item:hover .rs-item-go { color: var(--data-700); }
+
+/* Research page (25 Oct): the year grid fills the column, links are ink like the rest of the site */
+.rs-grid { min-width: 0; }
+.rs-row { grid-template-columns: var(--name) repeat(var(--cols, 9), minmax(46px, 1fr)); }
+.rs-scroll .rs-grid { min-width: calc(var(--name) + var(--cols, 9) * 49px); }
+body[data-page] .fp-back { color: var(--color-ink); text-decoration: none; font-weight: 500; }
+body[data-page] .fp-back:hover { color: var(--data-700); }
+@media (max-width: 767px) {
+  .rs-row { grid-template-columns: var(--name) repeat(var(--cols, 9), 40px); }
+  .rs-scroll .rs-grid { min-width: max-content; }
+}
