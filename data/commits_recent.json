@@ -1,7 +1,14 @@
 {
- "as_of_utc": "2026-10-25T12:44:18Z",
+ "as_of_utc": "2026-10-25T13:20:32Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "2ee96520030ae2097cb56089fe04bd58cd37963c",
+   "html_url": "https://github.com/SebR214/margin/commit/2ee96520030ae2097cb56089fe04bd58cd37963c",
+   "date": "2026-10-25T12:46:56Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-25T12:46Z"
+  },
   {
    "sha": "a0a39f333c5a6d7151d9847a204e9f06ecedf769",
    "html_url": "https://github.com/SebR214/margin/commit/a0a39f333c5a6d7151d9847a204e9f06ecedf769",
@@ -694,13 +701,6 @@
    "date": "2026-10-24T05:55:58Z",
    "email": "person",
    "message": "SEB-301: country chart opens on our own record, a range bar adds the older prices; history for 27 countries (was 10) (#659)\n\nAgreed with Seb in chat, 24 Oct, from mocks of the Argentina page.\n- The chart opens on our own record ('Since Sep' and so on). 1y, 5y and All are offered only when they add older\n  prices the shorter range did not show; a country with none gets no bar.\n- Our record: the purple line over a light fill, as on Routes. Older prices: the grey dashed line on a shaded band\n  labelled 'Before we started, reported, not seen by us'. Hover still reads every day.\n- tools/emit_country_history.py also reads the SEB-311 wide pull: USDT priced in the local currency on Binance spot,\n  Bitso, Buda and CoinGecko, and the official rate from the central-bank file first, then ECB/CBC, fawazahmed0,\n  Frankfurter v2. The 50% guard became a spike guard (a day 25 points off the median of the 7 days around it is left\n  out; a venue with more than 2% such days is passed over), since Argentina's 2023 gap was a real 200%.\n  Still only a reader of data/history; isolation check passes. 27 segment files, 1.4 MB.\n- New words in copy.json: rangeSince, range_1y, range_5y, range_all, bandLabel; layerDaily is now 'Our daily record'.\nNo published number or method changes: the segment never feeds the index, a price or the unbroken-hours count.\n\n\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "89e87ce702b0b68069130fec088a5700b544333a",
-   "html_url": "https://github.com/SebR214/margin/commit/89e87ce702b0b68069130fec088a5700b544333a",
-   "date": "2026-10-24T05:54:12Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "aider builder run 2026-10-24T05:48:37+00:00"
   }
  ]
 }
