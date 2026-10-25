@@ -1,6 +1,6 @@
 # Some apps charge more on Saturday, then cut back
 
-Prices from the 23:00 UTC hour, 24 Oct.
+Prices from the 00:00 UTC hour, 25 Oct.
 
 A rise counts when an app charged more on a Saturday and came back down by Tuesday. If your transfer can wait, a weekday can cost less.
 
@@ -20,15 +20,15 @@ Each row is one route: its Saturday rises that came back, the cuts that undid th
 
 |  |  |  |
 | --- | --- | --- |
-| Singapore to the Philippines | 11 cuts that undid them, 10 Saturdays checked. | 11 Saturday rises that came back |
-| Australia to the Philippines | 11 cuts that undid them, 6 Saturdays checked. | 11 Saturday rises that came back |
-| United States to Mexico | 8 cuts that undid them, 9 Saturdays checked. | 8 Saturday rises that came back |
-| New Zealand to the Philippines | 6 cuts that undid them, 6 Saturdays checked. | 6 Saturday rises that came back |
-| Singapore to India | 2 cuts that undid them, 3 Saturdays checked. | 2 Saturday rises that came back |
-| United States to India | 2 cuts that undid them, 3 Saturdays checked. | 2 Saturday rises that came back |
-| United States to Nigeria | 2 cuts that undid them, 3 Saturdays checked. | 2 Saturday rises that came back |
-| United States to ARS | 0 cuts that undid them, 0 Saturdays checked. | 0 Saturday rises that came back |
-| United States to the Philippines | 0 cuts that undid them, 0 Saturdays checked. | 0 Saturday rises that came back |
+| Singapore to the Philippines | 11 cuts that undid them, 11 Saturdays checked. | 11 Saturday rises that came back |
+| Australia to the Philippines | 11 cuts that undid them, 7 Saturdays checked. | 11 Saturday rises that came back |
+| United States to Mexico | 8 cuts that undid them, 10 Saturdays checked. | 8 Saturday rises that came back |
+| New Zealand to the Philippines | 6 cuts that undid them, 7 Saturdays checked. | 6 Saturday rises that came back |
+| Singapore to India | 2 cuts that undid them, 4 Saturdays checked. | 2 Saturday rises that came back |
+| United States to India | 2 cuts that undid them, 4 Saturdays checked. | 2 Saturday rises that came back |
+| United States to Nigeria | 2 cuts that undid them, 4 Saturdays checked. | 2 Saturday rises that came back |
+| United States to ARS | 0 cuts that undid them, 1 Saturday checked. | 0 Saturday rises that came back |
+| United States to the Philippines | 0 cuts that undid them, 1 Saturday checked. | 0 Saturday rises that came back |
 
 ## This is how we built it
 
@@ -60,7 +60,7 @@ findings_hours_weekend_penalty.csv
 
 |  |  |  |
 | --- | --- | --- |
-| 01 | Transfer apps keep changing their prices | 1,416 price changes since 12 Aug |
+| 01 | Transfer apps keep changing their prices | 1,481 price changes since 12 Aug |
 | 03 | Stablecoins beat the cheapest app only above about S$13.5M a month, a figure worked out from the exchanges' published fee tiers | S$13.5M a month traded on the exchange |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,548 hours a stablecoin was cheapest |
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,549 hours a stablecoin was cheapest |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |
