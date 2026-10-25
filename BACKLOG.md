@@ -148,8 +148,8 @@ Copied from SEB-301 comments by tools/backlog.py. The Scout splits them into job
 ## Proposed by the researcher
 Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/job_shape.py.
 
-- [ ] 19. Retest the p2p_spread_signal finding for the first time
-  - [ ] 19a. Retest the p2p_spread_signal finding for the first time
+- [x] 19. Retest the p2p_spread_signal finding for the first time (done 2026-10-25)
+  - [x] 19a. Retest the p2p_spread_signal finding for the first time (PR #696, 2026-10-25)
     track: aider
     proposed: researcher 2026-10-25 (gap: stale_findings: p2p_spread_signal, last_retest null)
     files: `findings_tests/p2p_spread_signal.json` `tests/agent_spread_signal_test.py`
