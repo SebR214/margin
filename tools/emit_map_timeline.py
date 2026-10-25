@@ -38,6 +38,7 @@ OUT_DIR = os.path.join(ROOT, "data", "map_timeline")
 HEAT = os.path.join(ROOT, "data", "heatmap_daily.json")
 INDEX_HOURLY = os.path.join(ROOT, "data", "index_hourly.csv")
 FIRST_YEAR = 2000
+MENU_MIN = 10   # a year is in the menu when at least this many countries have a price in it
 EXCHANGE_FROM = "2014-01-01"
 OFFICIAL_LAG_DAYS = 3
 MOVE_DAYS = 30
@@ -179,15 +180,21 @@ def main():
     street = {c: {d: p for d, (p, _) in per.items()} for c, per in street_med.items()}
     os.makedirs(OUT_DIR, exist_ok=True)
     years = list(range(FIRST_YEAR, int(last_day[:4]) + 1))
+    menu = []
     for y in years:
-        dump(os.path.join(OUT_DIR, "%d.json" % y), build_year(y, ccys, data["off"], street, own, own_start, last_day))
+        yr = build_year(y, ccys, data["off"], street, own, own_start, last_day)
+        dump(os.path.join(OUT_DIR, "%d.json" % y), yr)
+        # the year menu lists only years where at least MENU_MIN countries have a price, ours or reported (25 Oct, Seb):
+        # earlier years were almost all empty squares. Their files stay, so a slider window can still reach back.
+        if sum(1 for x in yr["ccy"].values() if "0" in x["k"] or "1" in x["k"]) >= MENU_MIN:
+            menu.append(y)
     rows = load_hourly_rows()
     last_hour = max(r[0] for r in rows) + ":00"
     dump(os.path.join(OUT_DIR, "last90.json"), hourly(set(ccys), rows, last_hour))
     dump(os.path.join(OUT_DIR, "landing.json"), {"rows": landing(LANDING, {c["ccy"]: c["country"] for c in countries}),
                                                   "note": "reported, not seen by us: street prices and official rates from data/history/"})
     dump(os.path.join(OUT_DIR, "index.json"), {
-        "classes": CLASSES, "years": years, "first_day": "%d-01-01" % FIRST_YEAR, "last_day": last_day, "own_start": own_start,
+        "classes": CLASSES, "years": years, "menu_years": menu, "menu_min": MENU_MIN, "first_day": "%d-01-01" % FIRST_YEAR, "last_day": last_day, "own_start": own_start,
         "exchange_from": EXCHANGE_FROM, "last_hour": last_hour, "hourly_days": HOURLY_DAYS, "countries": countries,
         "units": "tenths of a percent", "note": "class 1 and 2 are reported, not seen by us; class 2 is the official rate's 30 day move, not a premium"})
     print("map_timeline: %d countries, %d to %s, hourly to %s, own record from %s" % (len(ccys), FIRST_YEAR, last_day, last_hour, own_start))

@@ -92,7 +92,7 @@
   function paint() {
     var box = ctx.mount, on = S.mode;
     if (!ready()) { box.innerHTML = ''; return; }
-    var yrs = IDX.years.slice().reverse().map(function (y) {
+    var yrs = (IDX.menu_years || IDX.years).slice().reverse().map(function (y) {
       return '<option value="' + y + '"' + (on === 'day' && S.year === y ? ' selected' : '') + '>' + y + '</option>';
     }).join('');
     var max = 0;
