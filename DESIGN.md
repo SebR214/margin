@@ -21,6 +21,7 @@ In a cost waterfall (`index.html`, `corridor.html`), the two "dollar-route" legs
 2. Sending money → `sending-money.html`
 3. Countries → `the-index.html`
 4. How it was built → `machine-room.html`
+5. Research → `research.html` (Seb asked for it in chat, 25 Oct 2026; it sits in each page's nav array after Findings, with the word set in `copy.json`)
 
 Logo links to `index.html`. Findings, how it works, fee tiers and agent
 incidents stay live but are reachable by deep links only (from
