@@ -180,12 +180,12 @@ body:has(#hero) .wrap > section > h2 + p { margin-top: 0 !important; }
 body:has(#hero) .hero .body b { font-weight: 500; color: var(--color-ink); }
 
 /* Home top (25 Oct, Seb): one clear order. The headline, then the why as its subhead, then what we do as body text, then who built it
-   as a quiet footnote. 8px under the headline, 24px between the blocks, no bold numbers. Words unchanged. */
-body:has(#hero) .hero h1 { font-size: 32px !important; line-height: 1.2 !important; font-weight: 500 !important; margin: 0 !important; }
-body:has(#hero) .hero .lead.sub { margin-top: 8px !important; font-size: 20px !important; line-height: 1.45 !important; color: var(--color-ink) !important; }
-body:has(#hero) .hero .lead.what { margin-top: 24px !important; max-width: 760px !important; color: var(--color-neutral-700) !important; }
-body:has(#hero) .hero .body.agents { margin-top: 24px !important; max-width: 760px !important; font-size: 14px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important; }
+   as a quiet footnote. Scoped to the home page (#land is only there: finding.html and country.html also have #hero). 8px under the headline, 24px between the blocks, no bold numbers. Words unchanged. */
+body:has(#hero):has(#land) .hero h1 { font-size: 32px !important; line-height: 1.2 !important; font-weight: 500 !important; margin: 0 !important; }
+body:has(#hero):has(#land) .hero .lead.sub { margin-top: 8px !important; font-size: 20px !important; line-height: 1.45 !important; color: var(--color-ink) !important; }
+body:has(#hero):has(#land) .hero .lead.what { margin-top: 24px !important; max-width: 760px !important; color: var(--color-neutral-700) !important; }
+body:has(#hero):has(#land) .hero .body.agents { margin-top: 24px !important; max-width: 760px !important; font-size: 14px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important; }
 @media (max-width: 700px) {
-  body:has(#hero) .hero h1 { font-size: 26px !important; }
-  body:has(#hero) .hero .lead.sub { font-size: 18px !important; }
+  body:has(#hero):has(#land) .hero h1 { font-size: 26px !important; }
+  body:has(#hero):has(#land) .hero .lead.sub { font-size: 18px !important; }
 }
