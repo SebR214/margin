@@ -95,6 +95,10 @@ jobs:
         run: python3 tests/check_stable_pair.py
       - name: A broken official rate never counts as a stress trigger (SEB-301)
         run: python3 tests/check_stress_retest.py
+      - name: The Binance and OKX disagreement diagnosis labels fixtures and runs on the real files (BACKLOG 20a)
+        run: python3 tests/agent_diagnose_disagree.py
+      - name: The capital-controls meter matches a recomputation from the history files (SEB-301)
+        run: python3 tests/check_research_capital_controls.py
       - name: A finding shows its retest status only after 14 days of rows (SEB-301)
         run: python3 tests/check_finding_status.py
       - name: The finding status tool builds (SEB-301)
