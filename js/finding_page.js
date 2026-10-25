@@ -94,7 +94,7 @@
     var logo = kid(brand, el('a', ['fp-logo', 'mono'], BRAND));
     logo.href = './index.html';
     var links = [['navCountries', './countries.html'], ['navRoutes', './sending-money.html'], ['navSources', './sources.html'],
-                 ['navFindings', './findings.html'], ['navHowItWorks', './how-it-works.html']];
+                 ['navFindings', './findings.html'], ['navResearch', './research.html'], ['navHowItWorks', './how-it-works.html']];
     var nav = el('nav', 'fp-nav');
     links.forEach(function (l) {
       var a = word('a', '', l[0]);
