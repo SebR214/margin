@@ -69,32 +69,45 @@ def last_sample_commit_age_minutes(now):
     return None  # no sample commit found at all in the lookback window
 
 
+def usable_conclusions(runs, limit=RUN_LOOKBACK):
+    """Filter runs to only include completed successes and failures.
+    Drops cancelled, skipped, queued, in-progress and empty-conclusion runs."""
+    conclusions = []
+    for r in runs:
+        conclusion = r.get("conclusion")
+        if conclusion in ("success", "failure"):
+            conclusions.append(conclusion)
+    return conclusions[:limit]
+
+
 def recent_run_conclusions():
     """Most recent RUN_LOOKBACK collect.yml runs, newest first, as a list of
-    conclusion strings ("success", "failure", or "" for still-running)."""
+    conclusion strings ("success", "failure"). Drops cancelled, skipped,
+    queued, in-progress and empty-conclusion runs."""
     out = run([
         "gh", "api",
         f"repos/{REPO}/actions/workflows/collect.yml/runs"
-        f"?per_page={RUN_LOOKBACK}&exclude_pull_requests=true",
+        f"?per_page=30&exclude_pull_requests=true",
     ])
     data = json.loads(out)
-    return [
-        (r.get("conclusion") or r.get("status") or "")
-        for r in data.get("workflow_runs", [])
-    ]
+    runs = data.get("workflow_runs", [])
+    return usable_conclusions(runs)
 
 
 def leading_consecutive_failures(conclusions):
     """How many of the newest runs failed with nothing but failures between
-    them and the last success (or the start of the window)."""
+    them and the last success (or the start of the window).
+    Only 'failure' increments the count. 'success' stops the count.
+    Every other value (cancelled, in_progress, queued, '', etc.) is ignored.
+    It neither counts nor breaks the streak."""
     n = 0
     for c in conclusions:
         if c == "failure":
             n += 1
         elif c == "success":
             break
-        # in_progress / queued / cancelled: skip, neither confirms nor breaks
-        # the streak -- an in-flight run tells us nothing yet either way.
+        # cancelled / in_progress / queued / '': ignore, neither confirms nor breaks
+        # the streak -- an ignored run tells us nothing yet either way.
     return n
 
 

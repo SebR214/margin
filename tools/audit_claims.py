@@ -226,7 +226,7 @@ def claim_updated_hourly(c):
     n = c.get("window_hours", 24)
     want = [(t - dt.timedelta(hours=i)).strftime("%Y-%m-%dT%H") for i in range(n)]
     missing = [h for h in want if h not in hrs]
-    return not missing, {"window_hours": n, "newest_hour": newest, "hours_missing": len(missing)}
+    return not missing, {"window_hours": n, "newest_hour": newest, "hours_missing": len(missing), "missing_hours": missing}
 
 
 def claim_coverage_matches_index(c):
@@ -275,10 +275,39 @@ def claim_routes_published_equal_fresh(c):
     """Every route's published hour counts equal the counts re-derived from the raw CSVs."""
     routes, _ = fresh_routes()
     pub = json.load(open(os.path.join(DATA, "routes_summary.json")))["routes"]
-    bad = [x["id"] for x in pub
-           if x["id"] not in routes or x["hours_priced_any_amount"] != routes[x["id"]]["any_hours"]
-           or x["total_hours_stable_cheapest"] != routes[x["id"]]["any_wins"]]
-    return not bad and bool(pub), {"routes": len(pub), "differ": bad}
+    pub_data = json.load(open(os.path.join(DATA, "routes_summary.json")))
+    
+    bad = []
+    detail = {}
+    
+    for x in pub:
+        route_id = x["id"]
+        fresh_route = routes.get(route_id)
+        
+        if fresh_route is None:
+            bad.append(route_id)
+            detail[route_id] = {
+                "published_hours": x["hours_priced_any_amount"],
+                "fresh_hours": None,
+                "published_wins": x["total_hours_stable_cheapest"],
+                "fresh_wins": None
+            }
+        else:
+            published_hours = x["hours_priced_any_amount"]
+            fresh_hours = fresh_route["any_hours"]
+            published_wins = x["total_hours_stable_cheapest"]
+            fresh_wins = fresh_route["any_wins"]
+            
+            if published_hours != fresh_hours or published_wins != fresh_wins:
+                bad.append(route_id)
+                detail[route_id] = {
+                    "published_hours": published_hours,
+                    "fresh_hours": fresh_hours,
+                    "published_wins": published_wins,
+                    "fresh_wins": fresh_wins
+                }
+    
+    return not bad and bool(pub), {"routes": len(pub), "differ": bad, "detail": detail}
 
 
 TYPES = {"stable_never_cheapest": claim_stable_never_cheapest,
@@ -366,6 +395,9 @@ def self_test():
     ok, v = claim_stable_rarely_cheapest({"route": "NO->WHERE", "max_share": 0.01})
     if ok:
         fails.append("unknown route passed rarely-cheapest")
+    ok, v = claim_routes_published_equal_fresh({"route": "NO->WHERE"})
+    if ok:
+        fails.append("unknown route passed routes_published_equal_fresh")
     if fails:
         print("SELF-TEST FAILED: " + "; ".join(fails))
         return 1
