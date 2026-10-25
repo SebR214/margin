@@ -1,14 +1,14 @@
 # In New Zealand a dollar costs 0.5% more than the official rate
 
-Prices from the 07:00 UTC hour, 24 Oct.
+Prices from the 00:00 UTC hour, 25 Oct.
 
 The official rate is 1.76 NZD per dollar. On the exchanges where people in New Zealand trade stablecoins, one costs 1.76 NZD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 176.32 NZD. The official rate says 175.51 NZD.
+For US$100, people pay 176.37 NZD. The official rate says 175.51 NZD.
 
 One source
 
-Prices from the 07:00 UTC hour, 24 Oct
+Prices from the 00:00 UTC hour, 25 Oct
 
 <https://margin.wiki/data/countries/NZD.json>
 
@@ -32,18 +32,18 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
-| 24 Oct, 07:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 24 Oct, 06:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 24 Oct, 05:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 24 Oct, 04:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 24 Oct, 03:13 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 24 Oct, 02:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 24 Oct, 01:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 24 Oct, 00:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 23:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 22:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 21:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 23 Oct, 20:08 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 25 Oct, 00:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 24 Oct, 23:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 24 Oct, 22:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 24 Oct, 21:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 24 Oct, 20:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 24 Oct, 19:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 24 Oct, 18:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 24 Oct, 17:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 24 Oct, 16:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 24 Oct, 15:07 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 24 Oct, 14:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 24 Oct, 13:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://margin.wiki/data/basis.csv>

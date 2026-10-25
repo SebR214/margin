@@ -1,16 +1,16 @@
-# In Sri Lanka a dollar costs 2.8% more than the official rate
+# In Sri Lanka a dollar costs 3.2% more than the official rate
 
-Prices from the 07:00 UTC hour, 24 Oct.
+Prices from the 00:00 UTC hour, 25 Oct.
 
-The official rate is 332.01 LKR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 341.20 LKR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 332.01 LKR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 342.64 LKR. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 34,120 LKR. The official rate says 33,201 LKR.
+For US$100, people pay 34,264 LKR. The official rate says 33,201 LKR.
 
 One source
 
-Prices from the 07:00 UTC hour, 24 Oct
+Prices from the 00:00 UTC hour, 25 Oct
 
-Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
+Taking the cheapest offers first, only US$3,500 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/countries/LKR.json>
 
@@ -18,7 +18,7 @@ Taking the cheapest offers first, at least US$5,000 can be bought before a dolla
 
 One point per day, the price we published that day. 0% is the official rate.
 
-Today's difference is near the widest it has been since 5 Sep 2026, counting only our own readings. On most days it sits between 1.6% and 2.7%.
+Today's difference is the widest since 5 Sep 2026, counting only our own readings. On most days it sits between 1.6% and 2.7%.
 
 ## Where this price comes from
 
@@ -26,7 +26,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-341.20 LKR +2.8%
+342.64 LKR +3.2%
 
 ## Every Sri Lanka price links to its raw file
 
@@ -34,18 +34,18 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
-| 24 Oct, 07:09 UTC | OKX, person to person | 368.00 LKR | +10.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 24 Oct, 07:06 UTC | Binance, person to person | 341.20 LKR | +2.8% | 10 of 48 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 06:09 UTC | OKX, person to person | 368.00 LKR | +10.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 24 Oct, 06:06 UTC | Binance, person to person | 341.45 LKR | +2.8% | 10 of 43 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 05:09 UTC | OKX, person to person | 368.00 LKR | +10.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 24 Oct, 05:06 UTC | Binance, person to person | 341.45 LKR | +2.8% | 10 of 41 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 04:10 UTC | OKX, person to person | 368.00 LKR | +10.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 24 Oct, 04:07 UTC | Binance, person to person | 341.47 LKR | +2.8% | 10 of 43 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 03:16 UTC | OKX, person to person | 368.00 LKR | +10.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 24 Oct, 03:14 UTC | Binance, person to person | 341.75 LKR | +2.9% | 10 of 38 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 02:09 UTC | OKX, person to person | 368.00 LKR | +10.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 24 Oct, 02:06 UTC | Binance, person to person | 342.34 LKR | +3.1% | 10 of 30 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 25 Oct, 00:11 UTC | OKX, person to person | 368.00 LKR | +10.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 25 Oct, 00:06 UTC | Binance, person to person | 342.64 LKR | +3.2% | 10 of 19 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 23:11 UTC | OKX, person to person | 368.00 LKR | +10.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 24 Oct, 23:07 UTC | Binance, person to person | 342.82 LKR | +3.3% | 10 of 19 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 22:11 UTC | OKX, person to person | 368.00 LKR | +10.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 24 Oct, 22:06 UTC | Binance, person to person | 344.98 LKR | +3.9% | 10 of 17 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 21:11 UTC | OKX, person to person | 398.00 LKR | +19.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 24 Oct, 21:07 UTC | Binance, person to person | 342.58 LKR | +3.2% | 10 of 21 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 20:11 UTC | OKX, person to person | 398.00 LKR | +19.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 24 Oct, 20:07 UTC | Binance, person to person | 342.63 LKR | +3.2% | 10 of 19 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 19:11 UTC | OKX, person to person | 398.00 LKR | +19.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 24 Oct, 19:07 UTC | Binance, person to person | 343.10 LKR | +3.3% | 10 of 21 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

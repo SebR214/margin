@@ -1,12 +1,12 @@
 # No price for Mongolia this hour
 
-Prices from the 07:00 UTC hour, 24 Oct.
+Prices from the 00:00 UTC hour, 25 Oct.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
-The last price we published was +3.0%, on 23 Oct.
+The last price we published was +4.1%, on 24 Oct.
 
-Prices from the 07:00 UTC hour, 24 Oct
+Prices from the 00:00 UTC hour, 25 Oct
 
 <https://margin.wiki/data/countries/MNT.json>
 
@@ -20,18 +20,19 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
-| 24 Oct, 07:06 UTC | Binance, person to person | 3,722 MNT | +3.9% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 06:06 UTC | Binance, person to person | 3,722 MNT | +3.9% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 05:06 UTC | Binance, person to person | 3,728 MNT | +4.1% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 04:07 UTC | Binance, person to person | 3,729 MNT | +4.1% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 03:14 UTC | Binance, person to person | 3,729 MNT | +4.1% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 02:06 UTC | Binance, person to person | 3,725 MNT | +4.0% | 6 of 6 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 01:07 UTC | Binance, person to person | 3,719 MNT | +3.8% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 00:07 UTC | Binance, person to person | 3,729 MNT | +4.0% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 23:07 UTC | Binance, person to person | 3,727 MNT | +3.9% | 4 of 4 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 22:07 UTC | Binance, person to person | 3,727 MNT | +3.9% | 4 of 4 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 21:07 UTC | Binance, person to person | 3,725 MNT | +3.9% | 3 of 3 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 23 Oct, 20:09 UTC | Binance, person to person | 3,725 MNT | +3.9% | 3 of 3 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 25 Oct, 00:06 UTC | Binance, person to person | 3,725 MNT | +4.0% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 23:07 UTC | Binance, person to person | 3,725 MNT | +4.0% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 22:06 UTC | Binance, person to person | 3,729 MNT | +4.1% | 8 of 8 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 21:07 UTC | Binance, person to person | 3,729 MNT | +4.1% | 8 of 8 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 20:07 UTC | Binance, person to person | 3,725 MNT | +4.0% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 19:07 UTC | Binance, person to person | 3,719 MNT | +3.8% | 6 of 6 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 18:07 UTC | Binance, person to person | 3,714 MNT | +3.7% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 17:07 UTC | Binance, person to person | 3,725 MNT | +4.0% | 6 of 6 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 16:11 UTC | OKX, person to person | 4,500 MNT | +25.6% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 24 Oct, 16:06 UTC | Binance, person to person | 3,717 MNT | +3.8% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 15:07 UTC | Binance, person to person | 3,720 MNT | +3.8% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 24 Oct, 14:07 UTC | Binance, person to person | 3,724 MNT | +4.0% | 8 of 8 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
+<https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://margin.wiki/data/adsp2p_basis.csv>

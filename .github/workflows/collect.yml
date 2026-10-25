@@ -263,6 +263,14 @@ jobs:
         continue-on-error: true
         run: python3 collector_p2p_ads.py
 
+      - name: Collect who sells each P2P ad (SEB-384)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-384 step 1. Right after the ads step, so ts_utc is that run's. Writes data/p2p_ads_sellers.csv: a hashed seller id,
+        # the board's own completion rate and order count and merchant flag for each Binance and OKX ad. A seller cannot be
+        # recovered later, so it is stored now. Nothing reads it. Must not stop the chain.
+        continue-on-error: true
+        run: python3 collector_p2p_sellers.py
+
       - name: Collect P2P sample -- OKX (SEB-204)
         if: always() && steps.needed.outputs.proceed == 'true'
         # Second P2P board, confirmed live 2026-10-03 (tools/probe_p2p_boards.py):
@@ -770,6 +778,10 @@ jobs:
           done
           # The second official rate (BACKLOG 10): a new sidecar CSV, its own loop so no existing line is edited.
           for f in data/fx_second.csv; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          # Who sells each P2P ad (SEB-384): a new sidecar CSV, its own loop so no existing line is edited.
+          for f in data/p2p_ads_sellers.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Event records (SEB-311): one JSON file per event, a new one on its first day. A separate loop for the same reason.

@@ -1,7 +1,7 @@
 {
-  "buy_price": 1.71,
+  "buy_price": 1.7,
   "ccy": "AZN",
-  "computed_at": "2026-10-24T07:00:00+00:00",
+  "computed_at": "2026-10-25T00:00:00+00:00",
   "country": "Azerbaijan",
   "denominator": {
     "class": "market",
@@ -306,25 +306,42 @@
     },
     {
       "date": "2026-10-24",
-      "index_pct": 0.5679,
+      "index_pct": -0.0202,
+      "n": 24,
+      "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-10-25",
+      "index_pct": -0.0202,
       "n": 10,
       "source": "current_hour"
     }
   ],
-  "history_days": 50,
+  "history_days": 51,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-24T07:00:00+00:00",
-  "index_pct": 0.5679,
+  "hour_utc": "2026-10-25T00:00:00+00:00",
+  "index_pct": -0.0202,
   "index_version": "1.9",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": -0.0309,
-  "n_boards": 2,
+  "median_24h_pct": -0.0202,
+  "n_boards": 1,
   "n_sources": 10,
+  "p2p_sources_apart": {
+    "binance_median": 1.7,
+    "gap_pct": 4.41,
+    "okx_median": 1.775
+  },
   "round_trip_pct": 1.7964,
+  "second_board": {
+    "buy_price": 1.775,
+    "combined": false,
+    "venue": "okx_p2p",
+    "why": "more than 3% from the first board"
+  },
   "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
   "source_words": "from person-to-person ads",
@@ -334,12 +351,6 @@
       "index_pct": -0.0202,
       "last_price_used": false,
       "venue": "binance_p2p"
-    },
-    {
-      "buy_price": 1.72,
-      "index_pct": 1.156,
-      "last_price_used": false,
-      "venue": "okx_p2p"
     }
   ]
 }
