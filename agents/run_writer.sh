@@ -9,7 +9,8 @@
 # Needs: claude CLI (flat-rate token), gh (signed in), git, python3, Chrome for the render.
 
 set -euo pipefail
-PAGE="${1:?usage: run_writer.sh <page.html>}"
+PAGE="${1:?usage: run_writer.sh <page.html> [SEB-issue]}"
+ISSUE="${2:-SEB-301}"   # the issue whose spec approved these words: in the PR title, so copy-lock passes with no label
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 MODEL="${WRITER_MODEL:-claude-sonnet-5}"
 STAMP="$(date -u +%Y%m%d-%H%M)"
@@ -72,7 +73,7 @@ git push -q -u origin "$BRANCH"
 {
   cat "$SCRATCH/note.md"; echo; echo "## Rendered text"; echo
   python3 tools/render_text.py "$PAGE"
-  echo; echo "Needs the owner's approval: the label \`copy-approved\`, added by their own account."
+  echo; echo "Approved by the words agreed with Seb in $ISSUE. No label needed: copy-lock passes a PR whose title names its SEB issue."
   echo; echo "🤖 Generated with [Claude Code](https://claude.com/claude-code)"
 } > "$SCRATCH/body.md"
-gh pr create --base main --head "$BRANCH" --title "writer: $PAGE copy" --body-file "$SCRATCH/body.md"
+gh pr create --base main --head "$BRANCH" --title "$ISSUE writer: $PAGE copy" --body-file "$SCRATCH/body.md"

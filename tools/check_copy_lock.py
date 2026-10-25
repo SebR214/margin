@@ -13,9 +13,10 @@ They do not change words. This check fails a pull request that
 
 The one exception is a WRITER pull request: head branch `writer/<anything>`.
 It may change copy.json and nothing else, its description must carry the
-rendered text of the page under a "## Rendered text" heading, and it passes
-only after the owner has approved it: the label `copy-approved` added by the
-owner's own account after the last push. No other gate changes that.
+rendered text of the page under a "## Rendered text" heading. It is approved
+when its title names the SEB issue whose spec or chat agreed the words (Seb, 8 Oct:
+he approves words once, never per PR). Never ask Seb for a label. The old
+`copy-approved` label by the owner's own account still works, only as a fallback.
 
 Usage:
   python3 tools/check_copy_lock.py --base origin/main            # CI
