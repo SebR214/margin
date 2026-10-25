@@ -33,6 +33,7 @@ import urllib.request
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import backlog  # noqa: E402
+import job_shape  # noqa: E402
 import llm  # noqa: E402
 import one_call  # noqa: E402
 
@@ -296,14 +297,16 @@ def pick(items, only=None):
 
     Since 24 Oct (Seb) the Aider builder is the builder for every backlog job: any job that is not done, blocked or built, lists
     its files, and carries no track or `track: aider`. A job marked `track: claude` is left for the weekly Claude slot. The pilot
-    limit to items 1 to 3 is gone: it left the builder idle from 23 Oct with ready jobs in the queue."""
+    limit to items 1 to 3 is gone: it left the builder idle from 23 Oct with ready jobs in the queue. Since 25 Oct a job that changes an
+    existing collector, a page or a method is track B and skipped (tools/job_shape.py), unless asked for by --job."""
     for it in items:
         if it["done"]:
             continue
         for j in it["jobs"]:
             if only and j["id"] != only:
                 continue
-            if not j["done"] and not j["blocked"] and not j["built"] and j["files"] and j["track"] in ("", TRACK):
+            if not j["done"] and not j["blocked"] and not j["built"] and j["files"] and j["track"] in ("", TRACK) \
+                    and (only or not job_shape.forbidden(j["files"])):
                 return it, j
     return None
 
@@ -413,6 +416,8 @@ def self_test():
     t3 = t2.replace("    files: `b.py`\n", "    files: `b.py`\n    track: claude\n")
     assert pick(backlog.parse(t3))[1]["id"] == "9a", "a track: claude job is left for the Monday Claude task, and no pilot limit"
     assert pick(backlog.parse(t2), "9a")[1]["id"] == "9a", "--job picks the job asked for"
+    t4 = t.replace("    files: `a.py`\n", "    files: `collector.py` `a.py`\n")
+    assert pick(backlog.parse(t4))[1]["id"] == "2a", "a job that changes collector.py is track B, the builder skips it"
     for m in (ARCHITECT_FALLBACK, EDITOR):
         assert not llm.BANNED.search(m), "no model of the two larger families"
     c = aider_cmd({"files": ["a.py"], "context": ["m.md"]}, "anthropic/claude-sonnet-5.5", "/t/task", "/t", None, "/t/parts.json")

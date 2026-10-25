@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Has the Scout run? No model call. Exit 1 if there is no successful run of
-scout.yml in the last 8 days (SEB-301). A new workflow gets 8 days of grace
+"""Has the researcher run? No model call. Exit 1 if there is no successful run of
+researcher.yml in the last 8 days (SEB-301). A new workflow gets 8 days of grace
 from its creation.
 
 Env: GH_TOKEN, GITHUB_REPOSITORY.
@@ -11,7 +11,7 @@ import os
 import sys
 import urllib.request
 
-WORKFLOW = "scout.yml"
+WORKFLOW = "researcher.yml"
 SILENT_AFTER = datetime.timedelta(days=8)
 
 
@@ -34,11 +34,11 @@ def verdict(now, created_at, runs):
     if good:
         age = now - ts(good[0]["updated_at"])
         if age > SILENT_AFTER:
-            return False, "DOWN: the Scout's last successful run was %d days ago: %s" % (age.days, good[0]["html_url"])
-        return True, "scout alive: last successful run %d hours ago" % (age.total_seconds() // 3600)
+            return False, "DOWN: the researcher's last successful run was %d days ago: %s" % (age.days, good[0]["html_url"])
+        return True, "researcher alive: last successful run %d hours ago" % (age.total_seconds() // 3600)
     if now - ts(created_at) < SILENT_AFTER:
-        return True, "scout is new (%d days old), no successful run yet" % (now - ts(created_at)).days
-    return False, "DOWN: the Scout has no successful run in 8 days"
+        return True, "researcher is new (%d days old), no successful run yet" % (now - ts(created_at)).days
+    return False, "DOWN: the researcher has no successful run in 8 days"
 
 
 def self_test():
@@ -51,7 +51,7 @@ def self_test():
     assert not verdict(now, "2026-09-01T00:00:00Z", [])[0]
     assert verdict(now, "2026-10-15T00:00:00Z", [])[0]
     assert verdict(now, "2026-09-01T00:00:00Z", [bad, ok])[0]
-    print("check_scout_health self-test: ok")
+    print("check_researcher_health self-test: ok")
 
 
 def main():

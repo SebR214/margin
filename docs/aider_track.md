@@ -11,9 +11,9 @@ Not read by any model. This is the record of how track A is set up and what the 
 - A job is taken only if it carries a `track: aider` line in BACKLOG.md. The one-call builder skips those jobs. Pilot: items 1 to 3.
   After the pilot, Seb decides whether the line goes on every job or the one-call builder goes.
 - A job that fails twice gets `blocked: needs-claude: ...` in BACKLOG.md. The builder then takes the next job.
-- `weekly_planner.yml` and `tools/weekly_planner.py`: Mondays 07:00 UTC, no model, one line on SEB-301 with items shipped, failures
-  and cost per track, and the jobs waiting for Claude.
-- Weekly Claude Code task (a scheduled task in the Claude desktop app, Sonnet): takes at most 2 `needs-claude` jobs. Prompt below.
+- Since 25 Oct: the Scout, `weekly_planner.yml` and the weekly Claude Code task are gone. `researcher.yml` writes 3 jobs a week,
+  `scorecard.yml` posts the weekly result, and `needs-claude` jobs go to Seb's own sessions (track B). See CLAUDE.md.
+  The prompt below is kept as history only.
 
 ## Weekly Claude task prompt
 
