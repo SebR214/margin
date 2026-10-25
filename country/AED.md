@@ -1,14 +1,14 @@
-# In the United Arab Emirates a dollar costs 1.0% more than the official rate
+# In the United Arab Emirates a dollar costs 0.7% more than the official rate
 
-Prices from the 02:00 UTC hour, 25 Oct.
+Prices from the 03:00 UTC hour, 25 Oct.
 
-The official rate is 3.67 AED per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.71 AED. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 3.67 AED per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.70 AED. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 370.80 AED. The official rate says 367.25 AED.
+For US$100, people pay 369.80 AED. The official rate says 367.25 AED.
 
 One source
 
-Prices from the 02:00 UTC hour, 25 Oct
+Prices from the 03:00 UTC hour, 25 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -26,7 +26,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-3.71 AED +1.0%
+3.70 AED +0.7%
 
 ## Every the United Arab Emirates price links to its raw file
 
@@ -34,6 +34,9 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 25 Oct, 03:07 UTC | Binance, person to person | 3.70 AED | +0.7% | 10 of 42 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
+| 25 Oct, 03:06 UTC | OKX spot (AED) | 3.67 AED | −0.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 25 Oct, 03:06 UTC | BitOasis | 3.67 AED | 0.0% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 02:07 UTC | Binance, person to person | 3.71 AED | +1.0% | 10 of 34 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 02:07 UTC | OKX spot (AED) | 3.67 AED | −0.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 02:07 UTC | BitOasis | 3.67 AED | 0.0% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -43,9 +46,6 @@ Open any file to check a price yourself.
 | 25 Oct, 00:06 UTC | Binance, person to person | 3.71 AED | +0.9% | 10 of 36 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 00:06 UTC | OKX spot (AED) | 3.67 AED | −0.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 00:06 UTC | BitOasis | 3.67 AED | 0.0% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 24 Oct, 23:07 UTC | Binance, person to person | 3.70 AED | +0.7% | 10 of 44 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 23:06 UTC | OKX spot (AED) | 3.67 AED | −0.1% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 24 Oct, 23:06 UTC | BitOasis | 3.67 AED | 0.0% |  | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>

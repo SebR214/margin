@@ -1,7 +1,35 @@
 {
- "as_of_utc": "2026-10-25T02:44:18Z",
+ "as_of_utc": "2026-10-25T03:19:29Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "e9c601fb66ae6e1cd23f827fca376d497243815c",
+   "html_url": "https://github.com/SebR214/margin/commit/e9c601fb66ae6e1cd23f827fca376d497243815c",
+   "date": "2026-10-25T02:46:57Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-25T02:46Z"
+  },
+  {
+   "sha": "75ccb06afa17a3276732bdbf56593406abfc66a4",
+   "html_url": "https://github.com/SebR214/margin/commit/75ccb06afa17a3276732bdbf56593406abfc66a4",
+   "date": "2026-10-25T02:46:45Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "scout log 2026-10-25T02:46Z"
+  },
+  {
+   "sha": "637f0ecde157f0805df514358241b019f4468970",
+   "html_url": "https://github.com/SebR214/margin/commit/637f0ecde157f0805df514358241b019f4468970",
+   "date": "2026-10-25T02:45:32Z",
+   "email": "person",
+   "message": "SEB-301: keep the builder fed, up to 3 jobs a day, Scout splits daily when the queue is low (#674)\n\nSeb, 25 Oct: work queued for the agents was moving too slowly. Three reasons:\n- The builder took one job a day, failures included.\n- The Scout split new items only on Mondays at 01:00 UTC, before the Monday\n  planner queued them at 01:50, so new work waited up to a week to be split.\n- On 25 Oct the builder had 2 ready jobs and 4 unsplit items.\n\nNow: the builder takes up to 3 jobs a day, one per slot ($0.06 to $0.10 a job,\ninside the $20 month cap). The Scout runs daily after the planner and makes a\nmodel call only when fewer than 3 jobs are ready. Its SEB-300 suggestions stay\nweekly. Backlog 2a and 5a are ticked: Seb's sessions built them (#663, #662)\nand their rows are on main.\n\n\nClaude-Session: https://claude.ai/code/session_01LK5gd53j6Yqo8BMPPjJxFg\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "aa2aae2ec752555762b97bee4f9536a0610527ff",
+   "html_url": "https://github.com/SebR214/margin/commit/aa2aae2ec752555762b97bee4f9536a0610527ff",
+   "date": "2026-10-25T02:45:20Z",
+   "email": "person",
+   "message": "SEB-301: raw ad tables out of the browser bundle, so collection runs go green again (#673)\n\nReading every person-to-person ad took data/bundle from under 15 MB to\n20.3 MB. emit_bundle.py stops at 15 MB on purpose, so 34 of the last 40\ncollect.yml runs were red from 24 Oct and the watchdog filed a new\n\"Collector chain down\" issue every few hours. Samples kept landing.\n\np2p_ads, p2p_ads_sellers and p2p_offers stay in data/*.csv with every\nrow. No page reads the bundle. Bundle now 11.2 MB.\n\n\nClaude-Session: https://claude.ai/code/session_01LK5gd53j6Yqo8BMPPjJxFg\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
   {
    "sha": "69c2aed2cdf337e25ff648b44fe46b0a83d70ea0",
    "html_url": "https://github.com/SebR214/margin/commit/69c2aed2cdf337e25ff648b44fe46b0a83d70ea0",
@@ -673,34 +701,6 @@
    "date": "2026-10-23T12:24:01Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-10-23T12:24Z"
-  },
-  {
-   "sha": "bc1183bf82b5d9a68a1d9847bb16111ebf8f8cee",
-   "html_url": "https://github.com/SebR214/margin/commit/bc1183bf82b5d9a68a1d9847bb16111ebf8f8cee",
-   "date": "2026-10-23T11:51:00Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-23T11:51Z"
-  },
-  {
-   "sha": "931e1c316d8fd4819753e9ad5d25f9ff83af19d4",
-   "html_url": "https://github.com/SebR214/margin/commit/931e1c316d8fd4819753e9ad5d25f9ff83af19d4",
-   "date": "2026-10-23T11:37:43Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "one-call backlog run 2026-10-23T11:36:25+00:00"
-  },
-  {
-   "sha": "61f810de95be4ed2e6e6db19987b10dc0c65a89d",
-   "html_url": "https://github.com/SebR214/margin/commit/61f810de95be4ed2e6e6db19987b10dc0c65a89d",
-   "date": "2026-10-23T11:21:47Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-23T11:21Z"
-  },
-  {
-   "sha": "be4e1c2d66ef3914000469f75e36e6d0f61da2f9",
-   "html_url": "https://github.com/SebR214/margin/commit/be4e1c2d66ef3914000469f75e36e6d0f61da2f9",
-   "date": "2026-10-23T10:42:47Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-23T10:42Z"
   }
  ]
 }
