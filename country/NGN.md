@@ -1,16 +1,16 @@
 # In Nigeria a dollar costs 4.4% more than the official rate
 
-Prices from the 16:00 UTC hour, 25 Oct.
+Prices from the 17:00 UTC hour, 25 Oct.
 
 The official rate is 1,325.72 NGN per dollar. On the exchanges where people in Nigeria trade stablecoins, one costs 1,384 NGN. A stablecoin is a coin that stays worth one US dollar.
 
-Between people on OKX, a dollar costs 1,389 NGN, 4.8% over the official rate.
+Between people on OKX, a dollar costs 1,390 NGN, 4.8% over the official rate.
 
 For US$100, people pay 138,400 NGN. The official rate says 132,572 NGN.
 
 One source
 
-Prices from the 16:00 UTC hour, 25 Oct
+Prices from the 17:00 UTC hour, 25 Oct
 
 <https://margin.wiki/data/countries/NGN.json>
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Raw file |
 | --- | --- | --- | --- | --- |
+| 25 Oct, 17:11 UTC | OKX, person to person | 1,390 NGN | +4.8% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 25 Oct, 17:06 UTC | Luno | 1,384 NGN | +4.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 16:12 UTC | OKX, person to person | 1,389 NGN | +4.8% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 16:06 UTC | Luno | 1,384 NGN | +4.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 15:12 UTC | OKX, person to person | 1,393 NGN | +5.0% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 25 Oct, 13:07 UTC | Luno | 1,378 NGN | +3.9% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 12:12 UTC | OKX, person to person | 1,408 NGN | +6.2% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 12:06 UTC | Luno | 1,378 NGN | +4.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 25 Oct, 11:11 UTC | OKX, person to person | 1,408 NGN | +6.2% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 11:06 UTC | Luno | 1,378 NGN | +3.9% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
