@@ -1,8 +1,8 @@
 # Singapore to the Philippines: a stablecoin was almost never the cheapest way to send
 
-Prices from the 14:00 UTC hour, 25 Oct.
+Prices from the 15:00 UTC hour, 25 Oct.
 
-In 1,560 of the 1,563 hours we priced, a stablecoin did not beat the cheapest app at any of the five amounts.
+In 1,561 of the 1,564 hours we priced, a stablecoin did not beat the cheapest app at any of the five amounts.
 
 3 · hours in which a stablecoin was the cheapest way to send
 
@@ -20,11 +20,11 @@ Each row is one amount sent from Singapore to the Philippines: the hours we pric
 
 |  |  |  |
 | --- | --- | --- |
-| S$200 | 1,563 hours priced. | 0 hours a stablecoin was cheapest |
-| S$1,000 | 1,563 hours priced. | 1 hours a stablecoin was cheapest |
-| S$5,000 | 1,563 hours priced. | 3 hours a stablecoin was cheapest |
-| S$25,000 | 1,563 hours priced. | 3 hours a stablecoin was cheapest |
-| S$50,000 | 1,563 hours priced. | 1 hours a stablecoin was cheapest |
+| S$200 | 1,564 hours priced. | 0 hours a stablecoin was cheapest |
+| S$1,000 | 1,564 hours priced. | 1 hours a stablecoin was cheapest |
+| S$5,000 | 1,564 hours priced. | 3 hours a stablecoin was cheapest |
+| S$25,000 | 1,564 hours priced. | 3 hours a stablecoin was cheapest |
+| S$50,000 | 1,564 hours priced. | 1 hours a stablecoin was cheapest |
 
 ## This is how we built it
 
@@ -48,7 +48,7 @@ The file lists every row behind the number, one line per hour or per price chang
 
 findings_hours_sgd_php_never_cheapest.csv
 
-1,563 rows
+1,564 rows
 
 <https://margin.wiki/data/findings_hours_sgd_php_never_cheapest.csv>
 
