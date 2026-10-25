@@ -1,6 +1,6 @@
 # Stablecoins beat the cheapest app only above about S$13.5M a month, a figure worked out from the exchanges' published fee tiers
 
-Prices from the 21:00 UTC hour, 25 Oct.
+Prices from the 22:00 UTC hour, 25 Oct.
 
 Sending five thousand Singapore dollars to the Philippines, a stablecoin would beat the cheapest app only above this monthly volume. Nobody in our data traded that much, and we never saw it happen: the figure is rebuilt from the exchanges' fee tiers. A stablecoin is a coin that stays worth one US dollar.
 
@@ -20,13 +20,13 @@ Both rows are the same transfer, priced for two ways of buying on the exchange. 
 
 Buying it now
 
-S$43.90 stablecoin cost, highest fee, S$18.48 stablecoin cost, lowest fee, 0.07 percent fee at that volume, S$22.57 cheapest app's usual cost, 1,606 real price checks behind it.
+S$43.88 stablecoin cost, highest fee, S$18.47 stablecoin cost, lowest fee, 0.07 percent fee at that volume, S$22.54 cheapest app's usual cost, 1,607 real price checks behind it.
 
 S$13,471,500 Singapore dollars a month
 
 Waiting for your price
 
-S$41.91 stablecoin cost, highest fee, S$17.48 stablecoin cost, lowest fee, 0.1 percent fee at that volume, S$22.57 cheapest app's usual cost, 1,606 real price checks behind it.
+S$41.90 stablecoin cost, highest fee, S$17.47 stablecoin cost, lowest fee, 0.1 percent fee at that volume, S$22.54 cheapest app's usual cost, 1,607 real price checks behind it.
 
 S$4,490,500 Singapore dollars a month
 
@@ -52,7 +52,7 @@ The file lists every row behind the number, one line per hour or per price chang
 
 findings_hours_volume_crossover.csv
 
-1,607 rows
+1,608 rows
 
 <https://margin.wiki/data/findings_hours_volume_crossover.csv>
 
@@ -62,5 +62,5 @@ findings_hours_volume_crossover.csv
 | --- | --- | --- |
 | 01 | Transfer apps keep changing their prices | 1,481 price changes since 12 Aug |
 | 02 | Some apps charge more on Saturday, then cut back | 42 Saturday rises that came back |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,570 hours a stablecoin was cheapest |
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,571 hours a stablecoin was cheapest |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |

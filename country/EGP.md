@@ -1,16 +1,14 @@
-# In Egypt a dollar costs 4.3% more than the official rate
+# In Egypt a dollar costs 4.8% more than the official rate
 
-Prices from the 21:00 UTC hour, 25 Oct.
+Prices from the 22:00 UTC hour, 25 Oct.
 
-The official rate is 55.28 EGP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 57.67 EGP. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 55.28 EGP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 57.94 EGP. A stablecoin is a coin that stays worth one US dollar.
 
-Sellers on Binance and OKX agree on this price. Buyers there are offering more than sellers ask this hour, which is unusual.
+For US$100, people pay 5,794 EGP. The official rate says 5,528 EGP.
 
-For US$100, people pay 5,767 EGP. The official rate says 5,528 EGP.
+Prices from the 22:00 UTC hour, 25 Oct
 
-Prices from the 21:00 UTC hour, 25 Oct
-
-Taking the cheapest offers first, only US$3,000 can be bought before a dollar here costs 1% more.
+Taking the cheapest offers first, only US$4,000 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/countries/EGP.json>
 
@@ -24,13 +22,13 @@ Today's difference is the widest since 2 Sep 2026, counting only our own reading
 
 This price is set from person-to-person ads. A country's price comes from exchange order books first, then broker quotes, then offers between people on Binance and OKX.
 
-Binance, person to person
-
-57.40 EGP +3.8%
-
 OKX, person to person
 
-57.95 EGP +4.8%
+57.87 EGP +4.7%
+
+Binance, person to person
+
+58.00 EGP +4.9%
 
 ## Every Egypt price links to its raw file
 
@@ -38,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 25 Oct, 22:12 UTC | OKX, person to person | 57.87 EGP | +4.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 25 Oct, 22:07 UTC | Binance, person to person | 58.00 EGP | +4.9% | 10 of 63 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 21:41 UTC | OKX, person to person | 57.95 EGP | +4.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 20:55 UTC | OKX, person to person | 57.89 EGP | +4.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 16:12 UTC | OKX, person to person | 56.88 EGP | +2.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -48,8 +48,6 @@ Open any file to check a price yourself.
 | 25 Oct, 11:11 UTC | OKX, person to person | 56.50 EGP | +2.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 11:07 UTC | Binance, person to person | 56.50 EGP | +2.2% | 10 of 75 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 10:11 UTC | OKX, person to person | 56.58 EGP | +2.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 10:07 UTC | Binance, person to person | 56.40 EGP | +2.0% | 10 of 78 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 09:11 UTC | OKX, person to person | 56.47 EGP | +2.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

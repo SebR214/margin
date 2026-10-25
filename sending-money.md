@@ -1,6 +1,6 @@
 # How much of the dollar premium survives the trip
 
-Prices from the 21:00 UTC hour, 25 Oct.
+Prices from the 22:00 UTC hour, 25 Oct.
 
 In some countries a dollar sells for more than the official rate. This shows how much of that extra a stablecoin carries home, after every fee.
 
@@ -27,9 +27,9 @@ United States to Argentina is compared at US$200 and US$5,000, the sizes where t
 
 <https://margin.wiki/data/routes_table.json>
 
-## Sending S$1,000 to the Philippines costs S$1.68 with Instarem and S$9.14 with a stablecoin
+## Sending S$1,000 to the Philippines costs S$1.61 with Instarem and S$9.14 with a stablecoin
 
-At this amount, a stablecoin was the cheaper way in 1 of the 1,570 hours checked since 11 August.
+At this amount, a stablecoin was the cheaper way in 1 of the 1,571 hours checked since 11 August.
 
 Official rate from 00:02 UTC
 
@@ -39,7 +39,7 @@ Cost is what the person receiving loses against the official rate. Every fee we 
 
 Cheapest app Instarem this hour
 
-S$1.68 0.17%
+S$1.61 0.16%
 
 Stablecoin a cheaper stablecoin route this hour
 
