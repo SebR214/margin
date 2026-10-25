@@ -13,11 +13,10 @@ on:
   # its history). So Monday has several slots and Tuesday has one, and tools/scout.py does nothing when the week's
   # real run has already happened.
   schedule:
-    - cron: "0 1 * * 1"
-    - cron: "17 1 * * 1"
-    - cron: "47 2 * * 1"
-    - cron: "17 5 * * 1"
-    - cron: "17 1 * * 2"
+    # Daily since 25 Oct, after the Monday planner (01:50 UTC). tools/scout.py makes no model call unless the builder has
+    # fewer than 3 ready jobs, so most days cost nothing. Two slots, because GitHub drops scheduled runs now and then.
+    - cron: "47 2 * * *"
+    - cron: "17 9 * * *"
   workflow_dispatch:
     inputs:
       dry_run:

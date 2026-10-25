@@ -51,6 +51,15 @@ import analyst  # noqa: E402
 import llm  # noqa: E402
 
 JOB = "SEB-300"
+READY_TARGET = 3
+
+
+def ready_jobs():
+    """Jobs the Aider builder can take now: not done, blocked or built, with files, no track or `track: aider`."""
+    import backlog
+    items = backlog.parse(open(backlog.PATH).read())
+    return sum(1 for it in items if not it["done"] for j in it["jobs"]
+               if not j["done"] and not j["blocked"] and not j["built"] and j["files"] and j["track"] in ("", "aider"))
 LABEL = "one-call"
 STUCK_LABEL = "needs-claude"
 LOG = os.path.join(ROOT, "data", "scout_log.csv")
@@ -369,10 +378,15 @@ def split_backlog(dry, mode):
 
 def run(dry, force=False):
     mode = "dry-run" if dry else "run"
-    if not dry and not force and ran_this_week():
-        print("already ran this week, nothing to do")
+    # 25 Oct (Seb): the builder must never sit idle with work in the queue. The Scout runs daily, and makes a model call only
+    # when the builder has fewer than READY_TARGET ready jobs. Its own suggestions into SEB-300 stay once a week.
+    if not dry and not force and ready_jobs() >= READY_TARGET:
+        print("the builder has %d ready jobs, nothing to split" % ready_jobs())
         return 0
     if split_backlog(dry, mode):
+        return 0
+    if not dry and not force and ran_this_week():
+        print("already made suggestions this week, nothing to do")
         return 0
     name, free = job_state()
     if not free:

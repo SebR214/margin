@@ -80,6 +80,15 @@ def ran_today(rows, day=None):
     return any(r["ts_utc"][:10] == day for r in rows)
 
 
+MAX_JOBS_PER_DAY = 3          # one per daily slot (25 Oct, Seb: the queue must move); the month cap in llm.py still holds
+
+
+def jobs_today(rows, day=None):
+    """Build attempts today. A 'nothing' row (empty queue, month cap) is not an attempt."""
+    day = day or now().date().isoformat()
+    return sum(1 for r in rows if r["ts_utc"][:10] == day and r["status"] not in ("nothing",))
+
+
 def failures(rows, job):
     return sum(1 for r in rows if r["job"] == job and r["status"] == "failed")
 
@@ -306,8 +315,8 @@ def build(force, only):
         return 1
     rows = log_rows()
     ts = now().isoformat()
-    if not force and ran_today(rows):
-        print("the Aider builder already ran today (data/aider_log.csv), nothing to do")
+    if not force and jobs_today(rows) >= MAX_JOBS_PER_DAY:
+        print("the Aider builder already made %d attempts today (data/aider_log.csv), nothing to do" % MAX_JOBS_PER_DAY)
         return 0
     month = llm.month_spend()
     if month + JOB_CAP_USD > llm.MONTHLY_CAP_USD:
@@ -389,6 +398,7 @@ def self_test():
     rs = [{"ts_utc": "2026-10-22T06:00:00+00:00", "status": "failed", "job": "1a"}, {"ts_utc": "2026-10-21T06:00:00+00:00", "status": "failed", "job": "1a"},
           {"ts_utc": "2026-10-21T06:00:00+00:00", "status": "built", "job": "2a"}]
     assert failures(rs, "1a") == 2 and failures(rs, "2a") == 0 and ran_today(rs, "2026-10-22") and not ran_today(rs, "2026-10-23")
+    assert jobs_today(rs, "2026-10-21") == 2 and jobs_today(rs + [{"ts_utc": "2026-10-21T09:00:00+00:00", "status": "nothing", "job": ""}], "2026-10-21") == 2
     reads = iter([1.0, 1.5, 1.5])
     assert settled_usage("k", 1.0, reader=lambda k: next(reads), wait=0) == 1.5, "usage is read until two reads agree"
     assert key_usage("k", opener=lambda req, timeout=0: type("R", (), {"read": lambda s: b'{"data": {"usage": 3.25}}', "__enter__": lambda s: s, "__exit__": lambda s, *a: False})()) == 3.25
