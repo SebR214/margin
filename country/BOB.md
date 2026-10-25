@@ -1,12 +1,12 @@
-# In Bolivia a dollar costs 3.3% more than the official rate
+# In Bolivia a dollar costs 2.8% more than the official rate
 
-Prices from the 10:00 UTC hour, 25 Oct.
+Prices from the 11:00 UTC hour, 25 Oct.
 
-The official rate is 11.74 BOB per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 12.13 BOB. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 11.74 BOB per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 12.07 BOB. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 1,213 BOB. The official rate says 1,174 BOB.
+For US$100, people pay 1,207 BOB. The official rate says 1,174 BOB.
 
-Prices from the 10:00 UTC hour, 25 Oct
+Prices from the 11:00 UTC hour, 25 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -28,7 +28,7 @@ Binance, person to person
 
 OKX, person to person
 
-12.25 BOB +4.3%
+12.13 BOB +3.3%
 
 ## Every Bolivia price links to its raw file
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 25 Oct, 11:11 UTC | OKX, person to person | 12.13 BOB | +3.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 25 Oct, 11:07 UTC | Binance, person to person | 12.00 BOB | +2.2% | 10 of 75 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 10:11 UTC | OKX, person to person | 12.25 BOB | +4.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 10:07 UTC | Binance, person to person | 12.00 BOB | +2.2% | 10 of 65 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 09:11 UTC | OKX, person to person | 12.45 BOB | +6.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 25 Oct, 07:06 UTC | Binance, person to person | 12.00 BOB | +2.2% | 10 of 59 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 06:11 UTC | OKX, person to person | 12.29 BOB | +4.6% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 06:07 UTC | Binance, person to person | 12.00 BOB | +2.2% | 10 of 68 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 05:11 UTC | OKX, person to person | 12.29 BOB | +4.6% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 05:07 UTC | Binance, person to person | 12.00 BOB | +2.2% | 10 of 61 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

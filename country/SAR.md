@@ -1,14 +1,14 @@
-# In Saudi Arabia a dollar costs 2.4% more than the official rate
+# In Saudi Arabia a dollar costs 2.1% more than the official rate
 
-Prices from the 10:00 UTC hour, 25 Oct.
+Prices from the 11:00 UTC hour, 25 Oct.
 
-The official rate is 3.75 SAR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.84 SAR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 3.75 SAR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.83 SAR. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 384.00 SAR. The official rate says 375.00 SAR.
+For US$100, people pay 383.00 SAR. The official rate says 375.00 SAR.
 
 One source
 
-Prices from the 10:00 UTC hour, 25 Oct
+Prices from the 11:00 UTC hour, 25 Oct
 
 Taking the cheapest offers first, only US$4,500 can be bought before a dollar here costs 1% more.
 
@@ -26,7 +26,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-3.84 SAR +2.4%
+3.83 SAR +2.1%
 
 ## Every Saudi Arabia price links to its raw file
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 25 Oct, 11:11 UTC | OKX, person to person | 3.99 SAR | +6.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 25 Oct, 11:07 UTC | Binance, person to person | 3.83 SAR | +2.1% | 10 of 150 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 10:11 UTC | OKX, person to person | 3.97 SAR | +5.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 10:07 UTC | Binance, person to person | 3.84 SAR | +2.4% | 10 of 152 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 09:11 UTC | OKX, person to person | 3.96 SAR | +5.6% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 25 Oct, 07:06 UTC | Binance, person to person | 3.85 SAR | +2.7% | 10 of 127 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 06:11 UTC | OKX, person to person | 3.97 SAR | +5.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 06:07 UTC | Binance, person to person | 3.86 SAR | +2.8% | 10 of 119 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 05:11 UTC | OKX, person to person | 4.00 SAR | +6.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 05:07 UTC | Binance, person to person | 3.86 SAR | +2.8% | 10 of 111 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

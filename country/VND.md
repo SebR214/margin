@@ -1,12 +1,12 @@
-# In Vietnam a dollar costs 2.0% more than the official rate
+# In Vietnam a dollar costs 1.9% more than the official rate
 
-Prices from the 10:00 UTC hour, 25 Oct.
+Prices from the 11:00 UTC hour, 25 Oct.
 
-The official rate is 25,817.34 VND per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 26,342 VND. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 25,817.34 VND per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 26,317 VND. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 2,634,150 VND. The official rate says 2,581,734 VND.
+For US$100, people pay 2,631,675 VND. The official rate says 2,581,734 VND.
 
-Prices from the 10:00 UTC hour, 25 Oct
+Prices from the 11:00 UTC hour, 25 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -24,11 +24,11 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-26,327 VND +2.0%
+26,301 VND +1.9%
 
 OKX, person to person
 
-26,357 VND +2.1%
+26,333 VND +2.0%
 
 ## Every Vietnam price links to its raw file
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 25 Oct, 11:11 UTC | OKX, person to person | 26,333 VND | +2.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 25 Oct, 11:07 UTC | Binance, person to person | 26,301 VND | +1.9% | 10 of 241 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 10:11 UTC | OKX, person to person | 26,357 VND | +2.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 10:07 UTC | Binance, person to person | 26,327 VND | +2.0% | 10 of 262 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 09:11 UTC | OKX, person to person | 26,409 VND | +2.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 25 Oct, 07:06 UTC | Binance, person to person | 26,426 VND | +2.4% | 10 of 247 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 06:11 UTC | OKX, person to person | 26,466 VND | +2.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 06:07 UTC | Binance, person to person | 26,445 VND | +2.4% | 10 of 232 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 05:11 UTC | OKX, person to person | 26,390 VND | +2.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 05:07 UTC | Binance, person to person | 26,400 VND | +2.3% | 10 of 249 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
