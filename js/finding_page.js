@@ -73,6 +73,15 @@
     return m ? (+m[3]) + ' ' + MONTHS[+m[2] - 1] + ', ' + m[4] : (s || '');
   }
   function dayY(s) { return s ? (+s.slice(8, 10)) + ' ' + MON[+s.slice(5, 7) - 1] + ' ' + s.slice(0, 4) : ''; }
+  // A finding's retest status ("Still holds", "Weaker", "No longer true") and when it was last rechecked. Only findings with 14 days
+  // of retest rows carry f.retest (tools/emit_findings.py); with no retest, or an empty word in copy.json, nothing is drawn.
+  var STATUS_KEY = { holds: 'statusHolds', weaker: 'statusWeaker', no_longer_true: 'statusNoLonger' };
+  function statusText(f) {
+    var r = f.retest, w = r && T(STATUS_KEY[r.status] || '');
+    if (!w) return '';
+    var c = T('statusRechecked');
+    return w + (c && r.last_rechecked ? '. ' + c.replace('{date}', dayY(r.last_rechecked)) : '');
+  }
   function fmtWhen(s) { var z = T('utc'); return fmtTime(s) + (z && s ? ' ' + z : ''); }
   // The currency a route's amount is sent in: "SGD->PHP" -> "SGD".
   function fromCcy(route) { var m = /^([A-Z]{3})\s*(?:->|\u2192)/.exec(route || ''); return m ? m[1] : ''; }
@@ -228,6 +237,7 @@
     if (f.first_published && T('firstPublished')) {
       kid(body, el('span', ['fp-card-meta', 'muted'], T('firstPublished').replace('{date}', dayY(f.first_published))));
     }
+    if (statusText(f)) { kid(body, el('span', ['fp-card-meta', 'fp-status'], statusText(f))); }
     return a;
   }
 
@@ -249,6 +259,7 @@
     if (f.first_published && T('firstPublished')) {
       txt.appendChild(el('p', 'when', T('firstPublished').replace('{date}', dayY(f.first_published))));
     }
+    if (statusText(f)) { txt.appendChild(el('p', ['when', 'fp-status'], statusText(f))); }
     
     a.appendChild(txt);
     
@@ -325,6 +336,7 @@
     var stats = el('div', 'fp-stats');
     // What backs the number first, then when it was checked; the download's size and row count come last.
     if (f.first_published && T('firstPublished')) { kid(stats, el('p', ['fp-first', 'muted'], T('firstPublished').replace('{date}', dayY(f.first_published)))); }
+    if (statusText(f)) { kid(stats, el('p', ['fp-first', 'fp-status'], statusText(f))); }
     kid(stats, stat('statEvidence', (f.evidence || []).length ? fmt(f.evidence.length) : ''));
     kid(stats, stat('statRows', typeof f.hours_rows === 'number' ? fmt(f.hours_rows) : ''));
     kid(stats, stat('statSize', size === null ? '' : fmtBytes(size)));

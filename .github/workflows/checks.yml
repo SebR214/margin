@@ -95,6 +95,8 @@ jobs:
         run: python3 tests/check_stable_pair.py
       - name: A broken official rate never counts as a stress trigger (SEB-301)
         run: python3 tests/check_stress_retest.py
+      - name: A finding shows its retest status only after 14 days of rows (SEB-301)
+        run: python3 tests/check_finding_status.py
       - name: The second official rate parses, flags a broken read and compares with er-api (BACKLOG 10)
         run: python3 collector_fx_second.py --selftest
       - name: The event detector, four tests on the stored history (SEB-311)

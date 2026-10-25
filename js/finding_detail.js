@@ -18,6 +18,13 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function g(n) { return Math.round(n).toLocaleString('en-US'); }
   function dd(s) { return (+s.slice(8, 10)) + ' ' + MON[+s.slice(5, 7) - 1]; }
+  // Retest status (tools/emit_findings.py sets f.retest only after 14 days of rows); no retest or an empty word draws nothing.
+  var STATUS_KEY = { holds: 'statusHolds', weaker: 'statusWeaker', no_longer_true: 'statusNoLonger' };
+  function status(f) {
+    var r = f.retest, w = r && T(STATUS_KEY[r.status] || '');
+    if (!w) return '';
+    return '<p class="stamp num fp-status">' + esc(w + (T('statusRechecked') && r.last_rechecked ? '. ' + T('statusRechecked', { date: dayY(r.last_rechecked) }) : '')) + '</p>';
+  }
   function dayY(s) { return dd(s) + ' ' + s.slice(0, 4); }
   function stampT(s) { return dd(s) + ', ' + s.slice(11, 16); }
   function sgd(v) { return (v < 0 ? MINUS : '') + 'S$' + Math.abs(v).toFixed(2); }
@@ -75,7 +82,7 @@
     var big = id === 'volume_crossover' ? 'S$' + g(f.headline.value) : g(f.headline.value);
     $('hero').innerHTML = '<h1>' + esc(title(id)) + '</h1><p class="lead">' + esc(claim(id)) + '</p>' +
       '<p class="numline"><b class="num">' + big + '</b><span>' + esc(T('unit_' + f.headline.unit)) + '</span></p>' +
-      '<p class="stamp num">' + esc(f.first_published ? T('firstPublished', { date: dayY(f.first_published) }) : '') + '</p>';
+      '<p class="stamp num">' + esc(f.first_published ? T('firstPublished', { date: dayY(f.first_published) }) : '') + '</p>' + status(f);
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
     $('chart').innerHTML = '';
     CHARTS[id]();

@@ -20,7 +20,9 @@ Schema
          "published":       published_in is not empty,
          "hours_file":      "data/findings_hours_<id>.csv", or null when over 1 MB,
          "hours_rows":      rows in it (null when no file),
-         "download_file":   the file to offer for download: hours_file, else the stored data file}
+         "download_file":   the file to offer for download: hours_file, else the stored data file,
+         "retest":          null until the finding has retest rows on 14 different days in data/finding_tests.csv, then
+                            {"status": holds | weaker | no_longer_true (the newest row), "days", "first_tested", "last_rechecked"}}
       ]
     }
 Findings and what backs them:
@@ -404,6 +406,26 @@ def exchange_vs_p2p_finding():
                     ev, last, _hours_csv("exchange_vs_p2p", hdr, lines), "data/index_hourly.csv", ["data/findings.json"])
 
 
+RETEST_MIN_DAYS = 14
+RETEST_STATUS = ("holds", "weaker", "no_longer_true")
+
+
+def retest_status(rows, fid):
+    """The retest status to show for one finding, or None. rows are data/finding_tests.csv as dicts. A status shows only once the
+    finding has retest rows on at least RETEST_MIN_DAYS different days; 'invalid' rows (a test that could not run fairly) never count.
+    Returns {"status": the newest row's status, "days": days with a row, "first_tested": date, "last_rechecked": date}."""
+    mine = sorted((r for r in rows if r.get("finding_id") == fid and r.get("status") in RETEST_STATUS), key=lambda r: r["ts_utc"])
+    days = sorted({r["ts_utc"][:10] for r in mine})
+    if len(days) < RETEST_MIN_DAYS:
+        return None
+    return {"status": mine[-1]["status"], "days": len(days), "first_tested": days[0], "last_rechecked": days[-1]}
+
+
+def _retest_rows():
+    path = os.path.join(DATA, "finding_tests.csv")
+    return list(csv.DictReader(open(path, newline="", encoding="utf-8"))) if os.path.exists(path) else []
+
+
 def build():
     fs = price_changes_findings() + [volume_crossover_finding(), sgd_php_finding(), exchange_vs_p2p_finding(), stress_finding(), spread_finding()]
     as_of = max(f["last_recheck_utc"] for f in fs)
@@ -417,6 +439,9 @@ def build():
             added = True
     if added:
         PENDING[path] = json.dumps(first, indent=1, sort_keys=True) + "\n"
+    tests = _retest_rows()
+    for f in fs:
+        f["retest"] = retest_status(tests, f["id"])
     return {"as_of_utc": as_of, "findings": fs}
 
 
