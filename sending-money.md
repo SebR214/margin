@@ -1,25 +1,25 @@
 # How much of the dollar premium survives the trip
 
-Prices from the 13:00 UTC hour, 25 Oct.
+Prices from the 14:00 UTC hour, 25 Oct.
 
 In some countries a dollar sells for more than the official rate. This shows how much of that extra a stablecoin carries home, after every fee.
 
-Prices from the 13:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
+Prices from the 14:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
 
 | Sending | Dollar premium there | Stablecoin against the best app | What the stablecoin way costs | Hours the stablecoin was cheaper |
 | --- | --- | --- | --- | --- |
-| United States to Argentina At US$200 | +8.2% | US$13 cheaper 6.7% of the amount | US$2.32 1.2% of the amount | 79 of 79 |
-| United States to Argentina At US$5,000 | +8.2% | US$330 cheaper 6.6% of the amount | US$59 1.2% of the amount | 79 of 79 |
-| United States to India | +6.4% | US$43 cheaper 4.3% of the amount | US$20 2.0% of the amount | 86 of 86 |
-| Singapore to India | +6.4% | S$37 cheaper 3.7% of the amount | S$26 2.6% of the amount | 86 of 86 |
-| Australia to India | +6.4% | A$19 cheaper 1.9% of the amount | A$31 3.1% of the amount | 27 of 27 |
-| United States to Nigeria | +3.9% | US$19 cheaper 1.9% of the amount | US$6.46 0.6% of the amount | 79 of 79 |
+| United States to Argentina At US$200 | +8.2% | US$13 cheaper 6.7% of the amount | US$2.32 1.2% of the amount | 80 of 80 |
+| United States to Argentina At US$5,000 | +8.2% | US$330 cheaper 6.6% of the amount | US$60 1.2% of the amount | 80 of 80 |
+| United States to India | +6.4% | US$43 cheaper 4.3% of the amount | US$20 2.0% of the amount | 87 of 87 |
+| Singapore to India | +6.4% | S$37 cheaper 3.7% of the amount | S$26 2.6% of the amount | 87 of 87 |
+| Australia to India | +6.4% | A$19 cheaper 1.9% of the amount | A$31 3.1% of the amount | 28 of 28 |
+| United States to Nigeria | +4.1% | US$19 cheaper 1.9% of the amount | US$6.46 0.6% of the amount | 80 of 80 |
 | Singapore to the Philippines | −0.2% | S$7.39 dearer 0.7% of the amount | S$11 1.1% of the amount | 0 of 165 |
 | Australia to the Philippines | −0.2% | A$18 dearer 1.8% of the amount | A$12 1.2% of the amount | 0 of 165 |
-| New Zealand to the Philippines | −0.2% | NZ$5.32 dearer 0.5% of the amount | NZ$18 1.8% of the amount | 2 of 165 |
-| United States to the Philippines | −0.2% | US$10 dearer 1.0% of the amount | US$6.32 0.6% of the amount | 0 of 75 |
+| New Zealand to the Philippines | −0.2% | NZ$5.35 dearer 0.5% of the amount | NZ$18 1.8% of the amount | 2 of 165 |
+| United States to the Philippines | −0.2% | US$10 dearer 1.0% of the amount | US$6.32 0.6% of the amount | 0 of 76 |
 | United States to Mexico | −0.2% | US$24 dearer 2.4% of the amount | US$7.33 0.7% of the amount | 0 of 165 |
-| United States to Brazil | −0.7% | US$0.89 cheaper 0.1% of the amount | US$9.76 1.0% of the amount | 30 of 30 |
+| United States to Brazil | −0.7% | US$0.88 cheaper 0.1% of the amount | US$9.76 1.0% of the amount | 31 of 31 |
 
 Each row is 1,000 in the sending currency, over the last 7 days. The premium is from the latest hour. A stablecoin that costs less than the best app shows as cheaper.
 
@@ -27,9 +27,9 @@ United States to Argentina is compared at US$200 and US$5,000, the sizes where t
 
 <https://margin.wiki/data/routes_table.json>
 
-## Sending S$1,000 to the Philippines costs S$2.15 with Instarem and S$10.02 with a stablecoin
+## Sending S$1,000 to the Philippines costs S$2.15 with Instarem and S$9.27 with a stablecoin
 
-At this amount, a stablecoin was the cheaper way in 1 of the 1,562 hours checked since 11 August.
+At this amount, a stablecoin was the cheaper way in 1 of the 1,563 hours checked since 11 August.
 
 Official rate from 00:02 UTC
 
@@ -43,16 +43,16 @@ S$2.15 0.22%
 
 Stablecoin a cheaper stablecoin route this hour
 
-S$10.02 1.00%
+S$9.27 0.93%
 
 ### The stablecoin's cost, step by step
 
 |  |  |
 | --- | --- |
-| Deposit and buy | S$6.09 0.61% |
+| Deposit and buy | S$5.34 0.53% |
 | Network fee | S$1.28 0.13% |
 | Sell and withdraw | S$2.65 0.27% |
-| All in | S$10.02 1.00% |
+| All in | S$9.27 0.93% |
 
 ## How much more the stablecoin cost, day by day
 

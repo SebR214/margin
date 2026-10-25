@@ -1,12 +1,14 @@
-# No price for Cambodia this hour
+# In Cambodia a dollar costs 3.9% more than the official rate
 
-Prices from the 13:00 UTC hour, 25 Oct.
+Prices from the 14:00 UTC hour, 25 Oct.
 
-Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
+The official rate is 4,059.85 KHR per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 4,219 KHR. A stablecoin is a coin that stays worth one US dollar.
 
-The last price we published was +2.5%, on 25 Oct.
+For US$100, people pay 421,900 KHR. The official rate says 405,985 KHR.
 
-Prices from the 13:00 UTC hour, 25 Oct
+Prices from the 14:00 UTC hour, 25 Oct
+
+Taking the cheapest offers first, only US$2,000 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/countries/KHR.json>
 
@@ -14,12 +16,28 @@ Prices from the 13:00 UTC hour, 25 Oct
 
 One point per day, the price we published that day. 0% is the official rate.
 
+Today's difference is the widest since 5 Sep 2026, counting only our own readings. On most days it sits between 0.4% and 1.9%.
+
+## Where this price comes from
+
+This price is set from person-to-person ads. A country's price comes from exchange order books first, then broker quotes, then offers between people on Binance and OKX.
+
+Binance, person to person
+
+4,188 KHR +3.2%
+
+OKX, person to person
+
+4,250 KHR +4.7%
+
 ## Every Cambodia price links to its raw file
 
 Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 25 Oct, 14:11 UTC | OKX, person to person | 4,250 KHR | +4.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 25 Oct, 14:07 UTC | Binance, person to person | 4,188 KHR | +3.2% | 10 of 10 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 13:12 UTC | OKX, person to person | 4,200 KHR | +3.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 13:07 UTC | Binance, person to person | 4,188 KHR | +3.2% | 8 of 8 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 12:12 UTC | OKX, person to person | 4,200 KHR | +3.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -30,8 +48,6 @@ Open any file to check a price yourself.
 | 25 Oct, 10:07 UTC | Binance, person to person | 4,170 KHR | +2.7% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 09:11 UTC | OKX, person to person | 4,150 KHR | +2.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 09:06 UTC | Binance, person to person | 4,165 KHR | +2.6% | 10 of 11 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 08:11 UTC | OKX, person to person | 4,150 KHR | +2.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 08:07 UTC | Binance, person to person | 4,180 KHR | +2.9% | 8 of 8 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

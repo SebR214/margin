@@ -1,12 +1,14 @@
-# In Zambia a dollar costs 4.2% more than the official rate
+# In Zambia a dollar costs 3.0% more than the official rate
 
-Prices from the 13:00 UTC hour, 25 Oct.
+Prices from the 14:00 UTC hour, 25 Oct.
 
-The official rate is 20.15 ZMW per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 20.99 ZMW. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 20.15 ZMW per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 20.76 ZMW. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 2,099 ZMW. The official rate says 2,015 ZMW.
+For US$100, people pay 2,076 ZMW. The official rate says 2,015 ZMW.
 
-Prices from the 13:00 UTC hour, 25 Oct
+One source
+
+Prices from the 14:00 UTC hour, 25 Oct
 
 Taking the cheapest offers first, only US$4,500 can be bought before a dollar here costs 1% more.
 
@@ -24,11 +26,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-20.77 ZMW +3.1%
-
-OKX, person to person
-
-21.21 ZMW +5.3%
+20.76 ZMW +3.0%
 
 ## Every Zambia price links to its raw file
 
@@ -36,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 25 Oct, 14:11 UTC | OKX, person to person | 21.43 ZMW | +6.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 25 Oct, 14:07 UTC | Binance, person to person | 20.76 ZMW | +3.0% | 10 of 16 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 13:12 UTC | OKX, person to person | 21.21 ZMW | +5.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 13:07 UTC | Binance, person to person | 20.77 ZMW | +3.1% | 10 of 16 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 12:12 UTC | OKX, person to person | 21.21 ZMW | +5.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,9 +46,7 @@ Open any file to check a price yourself.
 | 25 Oct, 10:07 UTC | Binance, person to person | 20.76 ZMW | +3.0% | 10 of 15 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 09:11 UTC | OKX, person to person | 21.21 ZMW | +5.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 09:06 UTC | Binance, person to person | 20.76 ZMW | +3.0% | 10 of 16 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 08:11 UTC | OKX, person to person | 21.21 ZMW | +5.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 07:11 UTC | OKX, person to person | 21.21 ZMW | +5.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
-<https://margin.wiki/data/p2p_okx.csv>
+<https://margin.wiki/data/adsp2p_basis.csv>
