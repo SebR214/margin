@@ -1,25 +1,25 @@
 # How much of the dollar premium survives the trip
 
-Prices from the 03:00 UTC hour, 25 Oct.
+Prices from the 04:00 UTC hour, 25 Oct.
 
 In some countries a dollar sells for more than the official rate. This shows how much of that extra a stablecoin carries home, after every fee.
 
-Prices from the 03:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
+Prices from the 04:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
 
 | Sending | Dollar premium there | Stablecoin against the best app | What the stablecoin way costs | Hours the stablecoin was cheaper |
 | --- | --- | --- | --- | --- |
-| United States to Argentina At US$200 | +8.2% | US$13 cheaper 6.7% of the amount | US$2.33 1.2% of the amount | 69 of 69 |
-| United States to Argentina At US$5,000 | +8.2% | US$332 cheaper 6.6% of the amount | US$60 1.2% of the amount | 69 of 69 |
-| United States to India | +6.1% | US$43 cheaper 4.3% of the amount | US$20 2.0% of the amount | 76 of 76 |
-| Singapore to India | +6.1% | S$37 cheaper 3.7% of the amount | S$26 2.6% of the amount | 76 of 76 |
-| Australia to India | +6.1% | A$19 cheaper 1.9% of the amount | A$31 3.1% of the amount | 17 of 17 |
-| United States to Nigeria | +4.1% | US$19 cheaper 1.9% of the amount | US$6.46 0.6% of the amount | 69 of 69 |
-| United States to Mexico | −0.2% | US$23 dearer 2.3% of the amount | US$7.00 0.7% of the amount | 0 of 165 |
-| Singapore to the Philippines | −0.2% | S$7.49 dearer 0.7% of the amount | S$12 1.2% of the amount | 0 of 165 |
+| United States to Argentina At US$200 | +8.2% | US$13 cheaper 6.7% of the amount | US$2.33 1.2% of the amount | 70 of 70 |
+| United States to Argentina At US$5,000 | +8.2% | US$332 cheaper 6.6% of the amount | US$60 1.2% of the amount | 70 of 70 |
+| United States to India | +6.2% | US$43 cheaper 4.3% of the amount | US$20 2.0% of the amount | 77 of 77 |
+| Singapore to India | +6.2% | S$37 cheaper 3.7% of the amount | S$26 2.6% of the amount | 77 of 77 |
+| Australia to India | +6.2% | A$18 cheaper 1.8% of the amount | A$31 3.1% of the amount | 18 of 18 |
+| United States to Nigeria | +4.1% | US$19 cheaper 1.9% of the amount | US$6.46 0.6% of the amount | 70 of 70 |
+| United States to Mexico | −0.2% | US$23 dearer 2.3% of the amount | US$7.11 0.7% of the amount | 0 of 165 |
+| Singapore to the Philippines | −0.2% | S$7.48 dearer 0.7% of the amount | S$12 1.2% of the amount | 0 of 165 |
 | Australia to the Philippines | −0.2% | A$18 dearer 1.8% of the amount | A$12 1.2% of the amount | 0 of 165 |
-| New Zealand to the Philippines | −0.2% | NZ$4.34 dearer 0.4% of the amount | NZ$18 1.8% of the amount | 2 of 165 |
-| United States to the Philippines | −0.2% | US$10 dearer 1.0% of the amount | US$6.32 0.6% of the amount | 0 of 65 |
-| United States to Brazil | −0.7% | US$1.07 cheaper 0.1% of the amount | US$9.73 1.0% of the amount | 20 of 20 |
+| New Zealand to the Philippines | −0.2% | NZ$4.38 dearer 0.4% of the amount | NZ$18 1.8% of the amount | 2 of 165 |
+| United States to the Philippines | −0.2% | US$10 dearer 1.0% of the amount | US$6.32 0.6% of the amount | 0 of 66 |
+| United States to Brazil | −0.7% | US$1.01 cheaper 0.1% of the amount | US$9.73 1.0% of the amount | 21 of 21 |
 
 Each row is 1,000 in the sending currency, over the last 7 days. The premium is from the latest hour. A stablecoin that costs less than the best app shows as cheaper.
 
@@ -27,9 +27,9 @@ United States to Argentina is compared at US$200 and US$5,000, the sizes where t
 
 <https://margin.wiki/data/routes_table.json>
 
-## Sending S$1,000 to the Philippines costs S$2.15 with Instarem and S$9.43 with a stablecoin
+## Sending S$1,000 to the Philippines costs S$2.15 with Instarem and S$9.27 with a stablecoin
 
-At this amount, a stablecoin was the cheaper way in 1 of the 1,552 hours checked since 11 August.
+At this amount, a stablecoin was the cheaper way in 1 of the 1,553 hours checked since 11 August.
 
 Official rate from 00:02 UTC
 
@@ -43,16 +43,16 @@ S$2.15 0.22%
 
 Stablecoin a cheaper stablecoin route this hour
 
-S$9.43 0.94%
+S$9.27 0.93%
 
 ### The stablecoin's cost, step by step
 
 |  |  |
 | --- | --- |
-| Deposit and buy | S$5.65 0.57% |
+| Deposit and buy | S$5.49 0.55% |
 | Network fee | S$1.28 0.13% |
 | Sell and withdraw | S$2.50 0.25% |
-| All in | S$9.43 0.94% |
+| All in | S$9.27 0.93% |
 
 ## How much more the stablecoin cost, day by day
 
