@@ -1,12 +1,12 @@
 # In Central African CFA a dollar costs 6.5% more than the official rate
 
-Prices from the 20:00 UTC hour, 25 Oct.
+Prices from the 21:00 UTC hour, 25 Oct.
 
 The official rate is 585.53 XAF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 623.41 XAF. A stablecoin is a coin that stays worth one US dollar.
 
 For US$100, people pay 62,341 XAF. The official rate says 58,553 XAF.
 
-Prices from the 20:00 UTC hour, 25 Oct
+Prices from the 21:00 UTC hour, 25 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -36,6 +36,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Raw file |
 | --- | --- | --- | --- | --- |
+| 25 Oct, 21:41 UTC | OKX, person to person | 624.44 XAF | +6.6% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 20:55 UTC | OKX, person to person | 624.44 XAF | +6.6% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 19:21 UTC | OKX, person to person | 624.49 XAF | +6.7% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 18:12 UTC | OKX, person to person | 628.90 XAF | +7.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -47,7 +48,6 @@ Open any file to check a price yourself.
 | 25 Oct, 12:12 UTC | OKX, person to person | 628.90 XAF | +7.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 11:11 UTC | OKX, person to person | 628.90 XAF | +7.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 10:11 UTC | OKX, person to person | 627.90 XAF | +7.2% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 09:11 UTC | OKX, person to person | 629.00 XAF | +7.4% | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://margin.wiki/data/p2p_okx.csv>
