@@ -1,14 +1,12 @@
-# In Lebanon a dollar costs 1.4% more than the official rate
+# In Lebanon a dollar costs 2.7% more than the official rate
 
-Prices from the 05:00 UTC hour, 25 Oct.
+Prices from the 06:00 UTC hour, 25 Oct.
 
-The official rate is 89,500 LBP per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 90,775 LBP. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 89,500 LBP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 91,888 LBP. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 9,077,500 LBP. The official rate says 8,950,000 LBP.
+For US$100, people pay 9,188,750 LBP. The official rate says 8,950,000 LBP.
 
-One source
-
-Prices from the 05:00 UTC hour, 25 Oct
+Prices from the 06:00 UTC hour, 25 Oct
 
 Taking the cheapest offers first, only US$2,500 can be bought before a dollar here costs 1% more.
 
@@ -28,12 +26,18 @@ Binance, person to person
 
 90,775 LBP +1.4%
 
+OKX, person to person
+
+93,000 LBP +3.9%
+
 ## Every Lebanon price links to its raw file
 
 Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 25 Oct, 06:11 UTC | OKX, person to person | 93,000 LBP | +3.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 25 Oct, 06:07 UTC | Binance, person to person | 90,775 LBP | +1.4% | 10 of 11 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 05:11 UTC | OKX, person to person | 94,225 LBP | +5.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 05:07 UTC | Binance, person to person | 90,775 LBP | +1.4% | 10 of 11 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 04:12 UTC | OKX, person to person | 94,450 LBP | +5.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -44,8 +48,6 @@ Open any file to check a price yourself.
 | 25 Oct, 02:07 UTC | Binance, person to person | 93,500 LBP | +4.5% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 01:12 UTC | OKX, person to person | 94,000 LBP | +5.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 01:07 UTC | Binance, person to person | 93,500 LBP | +4.5% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 00:11 UTC | OKX, person to person | 91,200 LBP | +1.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 00:06 UTC | Binance, person to person | 90,999 LBP | +1.7% | 10 of 11 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
