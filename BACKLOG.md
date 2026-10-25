@@ -15,6 +15,7 @@ change), optional `    context:` (read-only paths) and `    done when:` lines. T
 
 ## First: routes through the existing route machinery
 - [ ] 0. Routes go through the existing route machinery, not new collectors. <!-- from:6d768ec8-78bd-4720-9f05-7a8255532873 -->
+  blocked: the Scout could not split it: 0a: the builder may not change tools/check_route_machinery.py (2026-10-25)
   Queued by Claude on SEB-301, 21 Oct 02:18 UTC. Replaces how items 1 to 6 are split. Done in a chat session, not by the builder.
   Checked on main on 21 Oct, 02:15 UTC: the jobs ticked as 1a (#571), 1b (#575) and 2a (#576) added three standalone collectors that
   collect.yml never runs. Their CSVs have no rows. They also skip the parts that make a route a route: fees, path costs, steps and
@@ -117,6 +118,7 @@ and 6a to 6d dropped unbuilt.
     context: `collector_providers.py`
     done when: running tools/list_unstored_providers.py writes data/unstored_providers.json with, for every route, the providers present in data/comparison_quotes.csv but absent from the existing provider quotes, and a test finds no provider on both the stored list and the unstored list for the same route.
 - [ ] 8. Check which big providers have a public quote of their own we can read the way we read Wise and Airwallex (try Remitly, Western Union, Revolut, Xe, MoneyGram). Add each that works as its own source next to the comparison feed. Post the ones that don't work and why.
+  blocked: the Scout could not split it: the answer holds no job in the agreed form (2026-10-25)
 
 ## More sources for country prices
 - [x] 9. For each of the 20 markets marked "One source", find a second venue that sells USDT for that currency (exchange order book first, then a broker), probe it, and add it through quarantine. Post which markets still have one source and why. (PR #652, 2026-10-23: BitOasis and OKX spot for AED, OKX spot for SGD, Binance TH for THB, Binance spot for MXN, all in quarantine; first rows on main 23 Oct 08:06 UTC)
