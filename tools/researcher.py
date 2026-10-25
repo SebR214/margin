@@ -131,10 +131,19 @@ def parse_answer(text):
     return [j for j in jobs if isinstance(j, dict)]
 
 
-def check(job, titles, exists=None):
+MENTIONED = re.compile(r"\b((?:data|tools|tests|findings_tests)/[\w./-]+\.(?:py|json|csv)|collector_\w+\.py)\b")
+
+
+def check(job, titles, exists=None, taken_files=()):
     exists = exists or (lambda p: os.path.exists(os.path.join(ROOT, p)))
     j = {"files": [str(p) for p in job.get("files") or []], "done_when": str(job.get("done_when") or "")}
     why = job_shape.researcher_problems(j, exists)
+    for p in sorted(set(MENTIONED.findall(j["done_when"]))):
+        if not exists(p) and p not in j["files"]:
+            why.append("done when writes %s but files does not list it" % p)
+    for p in j["files"]:
+        if p in taken_files and p not in job_shape.APPEND_OK:
+            why.append("%s is already a file of another open job" % p)
     title = str(job.get("title") or "").strip()
     if len(title) < 10:
         why.append("title missing")
@@ -196,6 +205,7 @@ def run(dry, force):
     print(gap_report.summary(report))
     text = open(backlog.PATH).read()
     titles = queue_titles(text)
+    taken_files = {p for it in backlog.parse(text) for jb in it["jobs"] if not jb["done"] for p in jb["files"]}
     roadmap = open(os.path.join(ROOT, "ROADMAP.md")).read()
     files = file_list()
     model = llm.resolve_sonnet()
@@ -213,7 +223,7 @@ def run(dry, force):
         problems = []
         taken = titles + ["%s" % j["title"] for j in good]
         for j in parse_answer(out):
-            why = check(j, taken)
+            why = check(j, taken, taken_files=taken_files | {p for g in good for p in g["files"]})
             if why:
                 problems.append("%s: %s" % (str(j.get("title"))[:80], "; ".join(why)))
             elif len(good) < WANT:
@@ -251,6 +261,10 @@ def self_test():
     assert any("existing collector" in w for w in check(dict(ok, files=["collector.py", "tests/agent_x.py"]), [], ex))
     assert "no gap cited" in check(dict(ok, gap=""), [], ex)
     assert "context nope.py does not exist" in check(dict(ok, context=["nope.py"]), [], ex)
+    w = check(dict(ok, done_when=ok["done_when"] + " and writes data/bitkub_summary.json"), [], ex)
+    assert "done when writes data/bitkub_summary.json but files does not list it" in w, w
+    assert "collector_bitkub_thb.py is already a file of another open job" in check(ok, [], ex, {"collector_bitkub_thb.py"})
+    assert check(ok, [], ex, {".github/workflows/collect.yml"}) == [], "collect.yml may be shared, it only grows"
     a = parse_answer('Here: {"jobs": [{"title": "x"}]} done')
     assert a == [{"title": "x"}] and parse_answer("no json") == [] and parse_answer("{bad json}") == []
     text = "# Build backlog\n\n## Routes\n- [ ] 3. A\n  - [ ] 3a. A\n    files: `a.py`\n- [x] 19. B\n"

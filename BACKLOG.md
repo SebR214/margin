@@ -159,13 +159,6 @@ Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/j
   - [ ] 20a. Diagnose why Binance P2P and OKX P2P disagree in the flagged markets
     track: aider
     proposed: researcher 2026-10-25 (gap: disagree: TND binance_p2p vs okx_p2p median_gap_pct 19.88 over 488 hours, flag true (also INR 22.54, NPR 15.04, QAR 8.89, LKR 8.83))
-    files: `tools/diagnose_disagree.py` `tests/agent_diagnose_disagree.py`
+    files: `tools/diagnose_disagree.py` `data/disagree_diagnosis.json` `tests/agent_diagnose_disagree.py`
     context: `data/source_pairs.json` `data/p2p_okx.csv` `data/p2p_sides.csv` `data/p2p_ads.csv`
     done when: tools/diagnose_disagree.py reads the pairs with flag true in data/source_pairs.json and, for each pair, the latest 168 hours of Binance and OKX rows. It writes data/disagree_diagnosis.json with, per pair: which side (buy or sell) carries the gap, the median ad count per venue, the median minimum order size per venue where the column exists, and one label chosen by code: 'one side thin' (fewer than 10 ads on either venue), 'one side moves alone' (the gap sits on the same side in over 80% of hours), or 'unexplained'. tests/agent_diagnose_disagree.py builds inline rows for a fake pair XXX. Binance sell 100 and OKX sell 120 for 10 hours, with 20 ads each, must give 'one side moves alone' on the sell side and gap 20.0. The same pair with OKX at 4 ads must give 'one side thin'. A pair with 5 hours of rows must give 'not enough evidence'. The test also runs the script on the real CSVs and checks that every number in the JSON is a finite float.
-- [ ] 21. Write the first retest test file for the stale p2p_spread_signal finding
-  - [ ] 21a. Write the first retest test file for the stale p2p_spread_signal finding
-    track: aider
-    proposed: researcher 2026-10-25 (gap: stale_findings: p2p_spread_signal (last_retest: null))
-    files: `findings_tests/p2p_spread_signal.json` `tests/agent_p2p_spread_signal_test.py`
-    context: `findings_tests/stress_signal.json` `data/findings.json` `data/p2p_spread_signal_latest.json` `tools/retest_findings.py`
-    done when: tests/agent_p2p_spread_signal_test.py loads findings_tests/p2p_spread_signal.json and checks it has every key that findings_tests/stress_signal.json has: the exact calculation, data window, minimum observations, invalid-test conditions, and thresholds for holding / weaker / no longer true. It also checks that the finding id equals "p2p_spread_signal", that the source CSV named in the file is data/p2p_spread_signal.csv, and that every threshold is a number read from data/findings.json or data/p2p_spread_signal_latest.json rather than a new typed constant. It then fails on a copy of the file with the minimum-observations key removed, and passes on the real file.
