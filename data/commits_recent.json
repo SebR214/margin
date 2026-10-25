@@ -1,7 +1,14 @@
 {
- "as_of_utc": "2026-10-25T15:42:39Z",
+ "as_of_utc": "2026-10-25T16:19:27Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "034f37626995ab4b3dad42f82aebee72686cc8ab",
+   "html_url": "https://github.com/SebR214/margin/commit/034f37626995ab4b3dad42f82aebee72686cc8ab",
+   "date": "2026-10-25T15:44:16Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-25T15:44Z"
+  },
   {
    "sha": "952a04d9055a7fc8a9d222c2dff5957e5fbf860c",
    "html_url": "https://github.com/SebR214/margin/commit/952a04d9055a7fc8a9d222c2dff5957e5fbf860c",
@@ -694,13 +701,6 @@
    "date": "2026-10-24T07:58:44Z",
    "email": "person",
    "message": "SEB-301 backlog 2a: United States to Brazil route (Coinbase, then Foxbit) (#663)\n\ncollector.py: one USD->BRL entry in CORRIDORS (Coinbase side copied unchanged from USD->MXN) and an off-ramp reader for\nFoxbit's public order book (fetch_offramp_foxbit, dispatched like Bitso, Luno and WazirX). Foxbit fees from its own table,\nfoxbit.com.br/taxas, read 24 Oct: taker 0.50%, maker 0.25% at the lowest tier, BRL withdrawal to a bank free.\ncollector_providers.py CORRIDOR_CCY, one collect.yml step, the providers file (header only) in the commit list, the\nroute's name in copy.json, and the two route files regenerated so the route self-test sees no stale file.\nNot additive (a new reader function in collector.py), so it needs the collector-gate run and a merge by hand.\n\n\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "b44da39d0cdb94cddcabc4769cff1d1e1952cea2",
-   "html_url": "https://github.com/SebR214/margin/commit/b44da39d0cdb94cddcabc4769cff1d1e1952cea2",
-   "date": "2026-10-24T07:49:02Z",
-   "email": "person",
-   "message": "SEB-301: every route gets its detail on Routes, not 'not compared yet' (#661)\n\nArgentina, Nigeria and both India routes showed 'not compared yet' under the premium table that compares them. The\ndetail now shows them like every other route: the headline already says in words when the stablecoin paid out more\nthan the official rate, the bars and steps show it below zero, and the chart's dark line is the best app.\nNo words, data or method changed.\n\n\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\nCo-authored-by: Claude <noreply@anthropic.com>"
   }
  ]
 }
