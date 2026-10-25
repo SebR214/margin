@@ -158,7 +158,13 @@
       return;
     }
     var rk = D.rk || [];
-    $('heatT').textContent = rk.length ? T('heatTitle', { n: g(rk.filter(function (c) { var v = Math.round(c.index_pct * 10) / 10; return v >= -2 && v <= 2; }).length), N: g(rk.length) }) : '';
+    // the lead line (SEB-391): the biggest premium this hour, how many countries are at 8% or more (the legend's cut), and how many are within 2%.
+    // Until its words are set the older "In n of N countries" title stands.
+    var r1 = function (c) { return Math.round(c.index_pct * 10) / 10; };
+    var top = rk.reduce(function (a, c) { return !a || c.index_pct > a.index_pct ? c : a; }, null);
+    $('heatT').textContent = !rk.length ? '' : T('heatLead') ? T('heatLead', { top_pct: top.index_pct.toFixed(1), top_country: plain(top.country), n_over_8: g(rk.filter(function (c) { return r1(c) >= 8; }).length),
+      n_within_2: g(rk.filter(function (c) { var v = r1(c); return v >= -2 && v <= 2; }).length), n_priced: g(rk.length) }) :
+      T('heatTitle', { n: g(rk.filter(function (c) { var v = r1(c); return v >= -2 && v <= 2; }).length), N: g(rk.length) });
     $('heatL').textContent = T('heatLine') + (T('heatTapNote') ? ' ' + T('heatTapNote') : '');
   }
   function tlTip(vw, cells, j) {
@@ -169,11 +175,18 @@
 
   /* ---------------------------------------------------------------- where the official rate landed after past breaks (SEB-384, from the backtest)
      data/map_timeline/landing.json: each break of 10% or more that has a street price before it. Reported, not seen by us. */
+  // One worked example under the intro (SEB-391): Argentina's break in December 2023, every figure from its row in landing.json.
+  var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  function example(rows) {
+    var r = rows.filter(function (x) { return x.ccy === 'ARS' && x.date.slice(0, 7) === '2023-12'; })[0];
+    return r && T('landExample') && r.premium_before_pct >= 0 ? '<p class="note">' + esc(T('landExample', { country: plain(r.country), month: MONTHS[+r.date.slice(5, 7) - 1] + ' ' + r.date.slice(0, 4),
+      premium: pct1(r.premium_before_pct), ratio: Math.round(r.landing_ratio * 100) + '%' })) + '</p>' : '';
+  }
   function land(j) {
     var box = $('land'), rows = (j && j.rows) || [];
     if (!box || !rows.length || !T('landTitle') || !T('landUp')) { if (box) { box.innerHTML = ''; } return; }
     var mon = function (d) { return dd(d) + ' ' + d.slice(0, 4); };
-    box.innerHTML = '<h2>' + esc(T('landTitle')) + '</h2><p class="note">' + esc(T('landLine')) + '</p><div class="rows">' + rows.map(function (r) {
+    box.innerHTML = '<h2>' + esc(T('landTitle')) + '</h2><p class="note">' + esc(T('landLine')) + '</p>' + example(rows) + '<div class="rows">' + rows.map(function (r) {
       var p = r.premium_before_pct;
       return '<a class="r" href="' + ctry(r.ccy) + '"><b>' + esc(plain(r.country)) + '<small class="d">' + esc(mon(r.date)) + '</small></b><span class="m">' +
         esc(T(p >= 0 ? 'landUp' : 'landDown', { move: pct1(r.move_pct), premium: pct1(p) })) + '</span><span class="v num">' + Math.round(r.landing_ratio * 100) + '%<small>' + esc(T('landValue')) + '</small></span></a>';
@@ -192,14 +205,15 @@
     };
     var pub = ((D.fin && D.fin.findings) || []).filter(function (f) { return f.published === true; });
     // a finding keeps its number and its page; 01 and 02 (apps change prices, Saturday pricing) are off the home list, their pages stay (SEB-384)
-    var OFF = ['price_changes', 'weekend_penalty'];
+    var OFF = ['price_changes', 'weekend_penalty', 'volume_crossover'];   // volume_crossover (the S$13.5M line) is off the home list too (SEB-391); findings.html keeps it
     var ord = pub.map(function (f, i) { return { f: f, no: i + 1 }; }).filter(function (o) { return OFF.indexOf(o.f.id) < 0; });
     var lines = ord.map(function (o) { return [o.f.id, title(o.f), o.no]; }).filter(function (l) { return l[1]; });
     if (!lines.length || !T('findingsTitle')) { $('finds').innerHTML = ''; return; }
-    $('finds').innerHTML = '<h2>' + esc(T('findingsTitle')) + '</h2><div class="rows">' + lines.map(function (f, i) {
+    var routesLink = T('findingsRoutesLink') ? '<a class="r f" href="./sending-money.html"><span class="m">' + esc(T('findingsRoutesLink')) + '</span><span class="v">→</span></a>' : '';
+    $('finds').innerHTML = '<h2>' + esc(T('findingsTitle')) + '</h2><div class="rows">' + routesLink + lines.map(function (f, i) {
       // no number here: this list is in Seb's order (21 Oct), so the Findings page numbers would read out of order (24 Oct)
       return '<a class="r f" href="./finding.html?id=' + encodeURIComponent(f[0]) + '"><span class="m">' + esc(f[1]) + '</span><span class="v">→</span></a>';
-    }).join('') + (T('findingsRoutesLink') ? '<a class="r f" href="./sending-money.html"><span class="m">' + esc(T('findingsRoutesLink')) + '</span><span class="v">→</span></a>' : '') + '</div>';
+    }).join('') + '</div>';
   }
 
   /* ---------------------------------------------------------------- squares answer hover and tap: the day comes from where the pointer is along the row */
