@@ -18,6 +18,13 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function g(n) { return Math.round(n).toLocaleString('en-US'); }
   function dd(s) { return (+s.slice(8, 10)) + ' ' + MON[+s.slice(5, 7) - 1]; }
+  // Retest status (data/finding_status.json holds a finding only after 14 days of rows); no retest or an empty word draws nothing.
+  var STATUS_KEY = { holds: 'statusHolds', weaker: 'statusWeaker', no_longer_true: 'statusNoLonger' };
+  function status(f) {
+    var r = f.retest, w = r && T(STATUS_KEY[r.status] || '');
+    if (!w) return '';
+    return '<p class="stamp num fp-status">' + esc(w + (T('statusRechecked') && r.last_rechecked ? '. ' + T('statusRechecked', { date: dayY(r.last_rechecked) }) : '')) + '</p>';
+  }
   function dayY(s) { return dd(s) + ' ' + s.slice(0, 4); }
   function stampT(s) { return dd(s) + ', ' + s.slice(11, 16); }
   function sgd(v) { return (v < 0 ? MINUS : '') + 'S$' + Math.abs(v).toFixed(2); }
@@ -75,7 +82,7 @@
     var big = id === 'volume_crossover' ? 'S$' + g(f.headline.value) : g(f.headline.value);
     $('hero').innerHTML = '<h1>' + esc(title(id)) + '</h1><p class="lead">' + esc(claim(id)) + '</p>' +
       '<p class="numline"><b class="num">' + big + '</b><span>' + esc(T('unit_' + f.headline.unit)) + '</span></p>' +
-      '<p class="stamp num">' + esc(f.first_published ? T('firstPublished', { date: dayY(f.first_published) }) : '') + '</p>';
+      '<p class="stamp num">' + esc(f.first_published ? T('firstPublished', { date: dayY(f.first_published) }) : '') + '</p>' + status(f);
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
     $('chart').innerHTML = '';
     CHARTS[id]();
@@ -346,12 +353,12 @@
   });
   var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (CHARTS[id] && DATA[id]) { CHARTS[id](); } }, 150); });
 
-  Promise.all([getJSON('copy.json').catch(function () { return {}; }), getJSON('data/findings.json').catch(function () { return null; }), getJSON('data/claims_status.json').catch(function () { return null; }), getJSON('data/findings_first_published.json').catch(function () { return {}; })]).then(function (r) {
+  Promise.all([getJSON('copy.json').catch(function () { return {}; }), getJSON('data/findings.json').catch(function () { return null; }), getJSON('data/claims_status.json').catch(function () { return null; }), getJSON('data/findings_first_published.json').catch(function () { return {}; }), getJSON('data/finding_status.json').catch(function () { return null; })]).then(function (r) {
     C = (r[0] && r[0].findingData) || {};
     CLAIMS = r[2];
     var nav = $('nav');
     NAV.forEach(function (x) { var t = C[x[0]]; if (!t) { return; } var a = document.createElement('a'); a.textContent = t; a.href = './' + x[1]; nav.appendChild(a); });
-    ((r[1] && r[1].findings) || []).forEach(function (f) { f.first_published = r[3][f.id] || ''; FIN[f.id] = f; });
+    ((r[1] && r[1].findings) || []).forEach(function (f) { f.first_published = r[3][f.id] || ''; f.retest = (r[4] && r[4].findings && r[4].findings[f.id]) || null; FIN[f.id] = f; });
     // the chips and "We also found these" list published findings only, numbered as the Findings page numbers them (24 Oct)
     ORDER = ORDER.filter(function (k) { return FIN[k] && FIN[k].published === true; });
     AS_OF = (r[1] && r[1].as_of_utc) || '';
