@@ -18,7 +18,7 @@ How to read it: a top-level item is `- [ ] N. title`. A job under it is `  - [ ]
 change), optional `    context:` (read-only paths) and `    done when:` lines. The builder works on jobs. An item without jobs is not split yet.
 
 ## First: routes through the existing route machinery
-- [ ] 0. Routes go through the existing route machinery, not new collectors. <!-- from:6d768ec8-78bd-4720-9f05-7a8255532873 -->
+- [x] 0. Routes go through the existing route machinery, not new collectors. <!-- from:6d768ec8-78bd-4720-9f05-7a8255532873 --> (done: PRs #581, #583, #584, 21 Oct)
   blocked: the Scout could not split it: 0a: the builder may not change tools/check_route_machinery.py (2026-10-25)
   Queued by Claude on SEB-301, 21 Oct 02:18 UTC. Replaces how items 1 to 6 are split. Done in a chat session, not by the builder.
   Checked on main on 21 Oct, 02:15 UTC: the jobs ticked as 1a (#571), 1b (#575) and 2a (#576) added three standalone collectors that
@@ -76,13 +76,13 @@ and 6a to 6d dropped unbuilt.
     rows: `data/samples.csv` `USD->BRL`
     done when: as 1a, with the Coinbase side copied from "USD->MXN" and a Brazil off-ramp entry.
     blocked: needs-claude: collector.py has no off-ramp for Foxbit or Mercado Bitcoin (it reads Coins.ph, Bitso, Luno and WazirX only), so this is new collector code, not a table entry, and the off-ramp fee must be read from the venue's own fee page, which the builder cannot do (2026-10-21)
-- [ ] 3. United States to Indonesia (Coinbase, then Indodax or Pintu). Apps in the feed: 6.
+- [x] 3. United States to Indonesia (Coinbase, then Indodax or Pintu). Apps in the feed: 6. (cut 25 Oct: Turkey and Indonesia routes were cut on purpose, near-zero premium)
   - [ ] 3a. Add the USD->IDR route to collector.py's corridor table, its collect.yml step and the provider quotes config
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->IDR`
     done when: as 1a, with the Coinbase side copied from "USD->MXN" and an Indonesia off-ramp entry.
     blocked: collector.py has no off-ramp for Indodax or Pintu, and its own notes say Indodax publishes no fee schedule that can be read and checked, so there is no table entry to add (2026-10-21)
-- [ ] 4. Singapore to Indonesia (Independent Reserve, then Indodax or Pintu). Apps in the feed: 5.
+- [x] 4. Singapore to Indonesia (Independent Reserve, then Indodax or Pintu). Apps in the feed: 5. (cut 25 Oct: Turkey and Indonesia routes were cut on purpose, near-zero premium)
   - [ ] 4a. Add the SGD->IDR route to collector.py's corridor table, its collect.yml step and the provider quotes config
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `SGD->IDR`
@@ -99,7 +99,7 @@ and 6a to 6d dropped unbuilt.
     excerpt: `collector_providers.py` `^CORRIDOR_CCY = \{` `^\}`
     done when: collector.py's CORRIDORS has one new "AUD->INR" entry with src AUD, dst INR, stable USDT, the onramp, network_fee_stable and deposit copied unchanged from "AUD->PHP", the offramp copied unchanged from "SGD->INR", the same ladder, and providers_file "providers_audinr.csv"; collect.yml has one new step "Collect corridor sample AUD->INR" after the SGD->INR step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector.py --corridor "AUD->INR"`, and data/providers_audinr.csv added to the commit list; collector_providers.py CORRIDOR_CCY has "AUD->INR": ("AUD", "INR"); no other line changes.
     blocked: needs-claude: the Aider builder failed 2 times, last: aider_checks.py fails: $ python3 tests/check_home_emitters.py (2026-10-24)
-- [ ] 6. United States to Turkey (Coinbase, then BtcTurk or Paribu). Apps in the feed: 5.
+- [x] 6. United States to Turkey (Coinbase, then BtcTurk or Paribu). Apps in the feed: 5. (cut 25 Oct: Turkey and Indonesia routes were cut on purpose, near-zero premium)
   - [ ] 6a. Add the USD->TRY route to collector.py's corridor table, its collect.yml step and the provider quotes config
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->TRY`
@@ -121,7 +121,7 @@ and 6a to 6d dropped unbuilt.
     files: `tools/list_unstored_providers.py` `data/unstored_providers.json`
     context: `collector_providers.py`
     done when: running tools/list_unstored_providers.py writes data/unstored_providers.json with, for every route, the providers present in data/comparison_quotes.csv but absent from the existing provider quotes, and a test finds no provider on both the stored list and the unstored list for the same route.
-- [ ] 8. Check which big providers have a public quote of their own we can read the way we read Wise and Airwallex (try Remitly, Western Union, Revolut, Xe, MoneyGram). Add each that works as its own source next to the comparison feed. Post the ones that don't work and why.
+- [x] 8. Check which big providers have a public quote of their own we can read the way we read Wise and Airwallex (try Remitly, Western Union, Revolut, Xe, MoneyGram). Add each that works as its own source next to the comparison feed. Post the ones that don't work and why. (cut 25 Oct: more apps were cut on purpose, the apps are benchmarks)
   blocked: the Scout could not split it: the answer holds no job in the agreed form (2026-10-25)
 
 ## More sources for country prices
@@ -129,7 +129,7 @@ and 6a to 6d dropped unbuilt.
 - [x] 10. Add a second official-rate source next to ExchangeRate-API for every currency Frankfurter covers, and compare the two hourly in `source_pairs.json`. Don't change which one is published. (PR #651, 2026-10-23: Frankfurter v2, all 60 currencies, data/fx_second.csv, first rows on main 23 Oct 08:14 UTC)
 
 ## Already approved, finish these
-- [ ] 11. Depth record step 2 (SEB-302): OKX ads (no extra calls) and the order books (about 24 extra calls an hour). Not the extra Binance searches, not CriptoYa. After 24 hours post the one-day table on SEB-302.
+- [x] 11. Depth record step 2 (SEB-302): OKX ads (no extra calls) and the order books (about 24 extra calls an hour). Not the extra Binance searches, not CriptoYa. After 24 hours post the one-day table on SEB-302. (done: PRs #558, #572, #573, 20 Oct. OKX ads land in data/depth.csv)
   Status 20 Oct: the order books are merged (PR #558, data/depth.csv, once an hour). The OKX ads hook is PR #572: it edits collector_p2p_okx.py, so it is not additive and stays open for Seb. The one-day table posts itself once 24 clean hours are stored (PR #573).
 - [x] 12. Finding test files (ROADMAP.md step 2), for the five live findings. (PR #559, 2026-10-20)
 - [ ] 13. Finding statuses on the site, once each finding has 14 days of retest rows: "Still holds", "Weaker" or "No longer true", with the date first published. Words in copy.json, one short line each.
