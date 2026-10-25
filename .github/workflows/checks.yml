@@ -97,6 +97,11 @@ jobs:
         run: python3 tests/check_stress_retest.py
       - name: The second official rate parses, flags a broken read and compares with er-api (BACKLOG 10)
         run: python3 collector_fx_second.py --selftest
+      - name: The first-venue collectors parse, guard a crossed or thin book and count ads at USD 500 (SEB-301, BACKLOG 17)
+        run: |
+          python3 collector_zar_valr.py --selftest
+          python3 collector_zar_luno.py --selftest
+          python3 collector_p2p_kucoin.py --selftest
       - name: The event detector, four tests on the stored history (SEB-311)
         run: |
           python3 tools/detect_events.py --self-test

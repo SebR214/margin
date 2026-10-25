@@ -320,6 +320,23 @@ jobs:
         # but tools/emit_source_pairs.py reads it; the published rate does not change. See collector_fx_second.py and METHODOLOGY.md.
         run: python3 collector_fx_second.py
 
+      - name: Collect first venues for countries with no price (SEB-301, BACKLOG 17)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        # VALR and Luno order books for South Africa, KuCoin P2P ad board for the countries Binance has too few ads for.
+        # Each is its own file and CSV, in quarantine (data/source_registry.json): nothing reads them. See collector_venue_common.py.
+        run: python3 collector_zar_valr.py
+
+      - name: Collect Luno USDT/ZAR (SEB-301, BACKLOG 17)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        run: python3 collector_zar_luno.py
+
+      - name: Collect KuCoin P2P first venue (SEB-301, BACKLOG 17)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        run: python3 collector_p2p_kucoin.py
+
       - name: Check the official rates for a broken series (SEB-310)
         if: always() && steps.needed.outputs.proceed == 'true'
         continue-on-error: true
@@ -782,6 +799,10 @@ jobs:
           done
           # Who sells each P2P ad (SEB-384): a new sidecar CSV, its own loop so no existing line is edited.
           for f in data/p2p_ads_sellers.csv; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          # First venues for countries with no price (SEB-301, BACKLOG 17): four new CSVs, their own loop so no existing line is edited.
+          for f in data/zar_valr.csv data/zar_luno.csv data/p2p_kucoin.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Event records (SEB-311): one JSON file per event, a new one on its first day. A separate loop for the same reason.
