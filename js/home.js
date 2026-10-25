@@ -44,6 +44,8 @@
      (the header status is js/site_head.js's) */
   function nav() {
     var n = $('nav');
+    // built once: load() runs again every new hour in an open tab, and appending each time repeated the links (25 Oct)
+    if (n.querySelector('a')) { return; }
     NAV.forEach(function (x) {
       var t = T(x[0]); if (!t) { return; }
       var a = document.createElement('a'); a.textContent = t; a.href = './' + x[1]; n.appendChild(a);
