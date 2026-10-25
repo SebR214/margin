@@ -46,6 +46,13 @@ import json
 import os
 import sys
 
+# The raw one-row-per-ad tables stay out of the bundle (25 Oct, SEB-301). Reading every
+# person-to-person ad (22 and 24 Oct) took the bundle from under 15 MB to 20.3 MB, so this step
+# failed on every collection run from 24 Oct and the watchdog filed a "Collector chain down"
+# issue every few hours. No page reads the bundle, the CSVs themselves are untouched and keep
+# every row, and the summaries built from them (p2p_basis, p2p_box_depth) stay in the bundle.
+RAW_AD_TABLES = {"p2p_ads", "p2p_ads_sellers", "p2p_offers"}
+
 import duckdb
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -69,6 +76,8 @@ def csv_tables(con):
     names = []
     for path in sorted(glob.glob(os.path.join(DATA, "*.csv"))):
         name = os.path.splitext(os.path.basename(path))[0]
+        if name in RAW_AD_TABLES:
+            continue
         con.execute(
             f'CREATE TABLE "{name}" AS '
             f"SELECT * FROM read_csv_auto(?, header=true, strict_mode=false)",
