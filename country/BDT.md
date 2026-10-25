@@ -1,14 +1,14 @@
-# In Bangladesh a dollar costs 3.3% more than the official rate
+# In Bangladesh a dollar costs 3.4% more than the official rate
 
-Prices from the 08:00 UTC hour, 25 Oct.
+Prices from the 09:00 UTC hour, 25 Oct.
 
-The official rate is 123.72 BDT per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 127.80 BDT. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 123.72 BDT per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 127.98 BDT. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 12,780 BDT. The official rate says 12,372 BDT.
+For US$100, people pay 12,798 BDT. The official rate says 12,372 BDT.
 
 One source
 
-Prices from the 08:00 UTC hour, 25 Oct
+Prices from the 09:00 UTC hour, 25 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -26,7 +26,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-127.80 BDT +3.3%
+127.98 BDT +3.4%
 
 ## Every Bangladesh price links to its raw file
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 25 Oct, 09:11 UTC | OKX, person to person | 140.00 BDT | +13.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 25 Oct, 09:06 UTC | Binance, person to person | 127.98 BDT | +3.4% | 10 of 77 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 08:11 UTC | OKX, person to person | 140.00 BDT | +13.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 08:07 UTC | Binance, person to person | 127.80 BDT | +3.3% | 10 of 82 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 07:11 UTC | OKX, person to person | 140.00 BDT | +13.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 25 Oct, 02:12 UTC | OKX, person to person | 150.00 BDT | +21.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 01:12 UTC | OKX, person to person | 150.00 BDT | +21.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 01:07 UTC | Binance, person to person | 128.15 BDT | +3.6% | 10 of 53 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 00:11 UTC | OKX, person to person | 150.00 BDT | +21.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 00:06 UTC | Binance, person to person | 128.37 BDT | +3.8% | 10 of 47 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
