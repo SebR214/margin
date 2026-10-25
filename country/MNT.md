@@ -1,12 +1,16 @@
-# No price for Mongolia this hour
+# In Mongolia a dollar costs 3.5% more than the official rate
 
-Prices from the 09:00 UTC hour, 25 Oct.
+Prices from the 10:00 UTC hour, 25 Oct.
 
-Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
+The official rate is 3,583.19 MNT per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3,708 MNT. A stablecoin is a coin that stays worth one US dollar.
 
-The last price we published was +4.1%, on 24 Oct.
+For US$100, people pay 370,756 MNT. The official rate says 358,319 MNT.
 
-Prices from the 09:00 UTC hour, 25 Oct
+One source
+
+Prices from the 10:00 UTC hour, 25 Oct
+
+Taking the cheapest offers first, only US$4,500 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/countries/MNT.json>
 
@@ -14,12 +18,23 @@ Prices from the 09:00 UTC hour, 25 Oct
 
 One point per day, the price we published that day. 0% is the official rate.
 
+Today's difference is typical of the record since 5 Sep 2026, counting only our own readings. On most days it sits between 1.3% and 3.8%.
+
+## Where this price comes from
+
+This price is set from person-to-person ads. A country's price comes from exchange order books first, then broker quotes, then offers between people on Binance and OKX.
+
+Binance, person to person
+
+3,708 MNT +3.5%
+
 ## Every Mongolia price links to its raw file
 
 Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 25 Oct, 10:07 UTC | Binance, person to person | 3,708 MNT | +3.5% | 10 of 10 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 09:06 UTC | Binance, person to person | 3,717 MNT | +3.7% | 9 of 9 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 08:07 UTC | Binance, person to person | 3,708 MNT | +3.5% | 9 of 9 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 07:06 UTC | Binance, person to person | 3,708 MNT | +3.5% | 9 of 9 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -31,7 +46,6 @@ Open any file to check a price yourself.
 | 25 Oct, 02:07 UTC | Binance, person to person | 3,734 MNT | +4.2% | 9 of 9 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 01:07 UTC | Binance, person to person | 3,725 MNT | +4.0% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 00:06 UTC | Binance, person to person | 3,725 MNT | +4.0% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 24 Oct, 23:07 UTC | Binance, person to person | 3,725 MNT | +4.0% | 7 of 7 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>

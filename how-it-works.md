@@ -1,6 +1,6 @@
 # How to read this site
 
-Prices from the 09:00 UTC hour, 25 Oct.
+Prices from the 10:00 UTC hour, 25 Oct.
 
 ## What we measure
 
@@ -8,7 +8,7 @@ Every country has an official exchange rate. In some countries banks won’t sel
 
 ## What the percentage means
 
-In Algeria, the official rate says a dollar costs 135 DZD. People actually pay 258 DZD. That’s 91.7% more, so Algeria shows +91.7%.
+In Algeria, the official rate says a dollar costs 135 DZD. People actually pay 259 DZD. That’s 92.2% more, so Algeria shows +92.2%.
 
 0% means people pay the official rate, and most countries are close to it. A minus means they pay a little less.
 
@@ -29,9 +29,9 @@ We compare transfer apps with sending it by stablecoin. The cost is how much les
 ## What our numbers leave out
 
 - A day behind. The official rate updates only once a day. On days a currency moves fast, the gap we show can be a day behind.
-- Your bank's fee. Some exchanges do not publish what your bank charges to send money there, so we leave it out. Check your own bank's fee before you compare.
-- First-transfer offers. Some app prices are offers for a first transfer. If you have used that app before, you may pay more than we show.
-- Cash is different. We measure stablecoins only. If you are buying cash at a money changer, treat our numbers as a guide, not a quote.
+- Bank and wallet charges. Money moves into an exchange and out again through a bank, a wallet or the exchange's local partner. Each has its own charge. Some show it as a fee, some bake it into the rate, some set it in a deal with the exchange. We can't see these, so they are left out.
+- First-transfer offers. Some app prices are offers for a first transfer. Repeat customers pay more.
+- Cash is different. We measure stablecoins only. Cash at a money changer is priced separately and is not on this site.
 
 ## How to check any number
 
