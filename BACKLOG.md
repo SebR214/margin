@@ -65,8 +65,8 @@ and 6a to 6d dropped unbuilt.
     excerpt: `.github/workflows/collect.yml` `for f in data/samples.csv` `; do$`
     excerpt: `collector_providers.py` `^CORRIDOR_CCY = \{` `^\}`
     done when: collector.py's CORRIDORS has one new "USD->PHP" entry with src USD, dst PHP, stable USDT, the onramp, network_fee_stable, gas_modelled, withdraw_pct, withdraw_pct_cap and deposit fields copied unchanged from "USD->MXN", the offramp and withdrawal copied unchanged from "SGD->PHP", the same ladder, and providers_file "providers_usdphp.csv"; collect.yml has one new step "Collect corridor sample USD->PHP" after the SGD->INR step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector.py --corridor "USD->PHP"`, and data/providers_usdphp.csv added to the commit list; collector_providers.py CORRIDOR_CCY has "USD->PHP": ("USD", "PHP"); in the new entry the Coinbase on-ramp source_url is the literal string "https://help.coinbase.com/en/exchange/trading-and-funding/exchange-fees", never the name COINBASE_FEES_URL (the additive check accepts literals only); every existing entry keeps COINBASE_FEES_URL exactly as it is (do not replace the name anywhere else); no constant is added and no line outside the new entries changes; data/providers_usdphp.csv is a new file holding only the header line of data/providers_usdars.csv, copied exactly, and no rows (the route emitters fail without it).
-- [ ] 2. United States to Brazil (Coinbase, then Foxbit or Mercado Bitcoin). Apps in the feed: 7.
-  - [ ] 2a. Add the USD->BRL route to collector.py's corridor table, its collect.yml step and the provider quotes config
+- [x] 2. United States to Brazil (Coinbase, then Foxbit or Mercado Bitcoin). Apps in the feed: 7. (done 2026-10-24)
+  - [x] 2a. Add the USD->BRL route to collector.py's corridor table, its collect.yml step and the provider quotes config (PR #663, 2026-10-24)
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->BRL`
     done when: as 1a, with the Coinbase side copied from "USD->MXN" and a Brazil off-ramp entry.
@@ -83,8 +83,8 @@ and 6a to 6d dropped unbuilt.
     rows: `data/samples.csv` `SGD->IDR`
     done when: as 1a, with the Independent Reserve side copied from "SGD->PHP" and an Indonesia off-ramp entry.
     blocked: same as 3a: no Indodax or Pintu off-ramp in collector.py and no readable Indodax fee schedule; collector.py names SGD->IDR as left out on purpose for that reason (2026-10-21)
-- [ ] 5. Australia to India (Independent Reserve, then WazirX). Apps in the feed: 11.
-  - [ ] 5a. Add the AUD->INR route to collector.py's corridor table, its collect.yml step and the provider quotes config
+- [x] 5. Australia to India (Independent Reserve, then WazirX). Apps in the feed: 11. (done 2026-10-24)
+  - [x] 5a. Add the AUD->INR route to collector.py's corridor table, its collect.yml step and the provider quotes config (PR #662, 2026-10-24)
     track: aider
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `AUD->INR`
