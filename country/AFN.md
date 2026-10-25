@@ -1,10 +1,10 @@
 # No price for Afghanistan this hour
 
-Prices from the 19:00 UTC hour, 25 Oct.
+Prices from the 20:00 UTC hour, 25 Oct.
 
-Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
+Held back this hour: nobody is offering to sell dollars here right now. Earlier readings stay on the chart.
 
-Prices from the 19:00 UTC hour, 25 Oct
+Prices from the 20:00 UTC hour, 25 Oct
 
 <https://margin.wiki/data/countries/AFN.json>
 

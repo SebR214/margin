@@ -1,6 +1,6 @@
 # In Thailand a dollar costs what the official rate says
 
-Prices from the 19:00 UTC hour, 25 Oct.
+Prices from the 20:00 UTC hour, 25 Oct.
 
 The official rate is 33.76 THB per dollar. On the exchanges where people in Thailand trade stablecoins, one costs 33.77 THB. A stablecoin is a coin that stays worth one US dollar.
 
@@ -8,7 +8,7 @@ For US$100, people pay 3,377 THB. The official rate says 3,376 THB.
 
 One source
 
-Prices from the 19:00 UTC hour, 25 Oct
+Prices from the 20:00 UTC hour, 25 Oct
 
 <https://margin.wiki/data/countries/THB.json>
 
@@ -32,6 +32,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 25 Oct, 20:50 UTC | Bitkub | 33.77 THB | 0.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 25 Oct, 20:50 UTC | Binance TH | 33.73 THB | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 19:16 UTC | Bitkub | 33.77 THB | 0.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 19:16 UTC | Binance TH | 33.72 THB | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 18:07 UTC | Bitkub | 33.74 THB | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -42,8 +44,6 @@ Open any file to check a price yourself.
 | 25 Oct, 16:06 UTC | Binance TH | 33.72 THB | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 15:07 UTC | Bitkub | 33.80 THB | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 25 Oct, 15:07 UTC | Binance TH | 33.82 THB | +0.2% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 25 Oct, 14:06 UTC | Bitkub | 33.79 THB | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 25 Oct, 14:06 UTC | Binance TH | 33.80 THB | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://margin.wiki/data/basis.csv>
