@@ -1,7 +1,28 @@
 {
- "as_of_utc": "2026-10-25T13:20:32Z",
+ "as_of_utc": "2026-10-25T13:43:26Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "f33e7a0075e0db22a0aca57709e6af11642b1690",
+   "html_url": "https://github.com/SebR214/margin/commit/f33e7a0075e0db22a0aca57709e6af11642b1690",
+   "date": "2026-10-25T13:33:16Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "SEB-301: Stop the watchdog flapping on cancelled runs and stale claims (backlog 18a) (#693)\n\n* SEB-301: Stop the watchdog flapping on cancelled runs and stale claims (backlog 18a)\n\nOne-call runner, anthropic/claude-sonnet-5.5 + qwen/qwen3-coder.\n\n* SEB-301: tick backlog job 18a (PR #693)\n\n---------\n\nCo-authored-by: margin-agents[bot] <329969015+margin-agents[bot]@users.noreply.github.com>"
+  },
+  {
+   "sha": "4864cd9c48210861bd226380b01abc33eeab638e",
+   "html_url": "https://github.com/SebR214/margin/commit/4864cd9c48210861bd226380b01abc33eeab638e",
+   "date": "2026-10-25T13:29:33Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "aider builder run 2026-10-25T13:21:29+00:00"
+  },
+  {
+   "sha": "c1eb997c0688b53027fae7261137178fc5200f19",
+   "html_url": "https://github.com/SebR214/margin/commit/c1eb997c0688b53027fae7261137178fc5200f19",
+   "date": "2026-10-25T13:27:56Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-25T13:27Z"
+  },
   {
    "sha": "2ee96520030ae2097cb56089fe04bd58cd37963c",
    "html_url": "https://github.com/SebR214/margin/commit/2ee96520030ae2097cb56089fe04bd58cd37963c",
@@ -680,27 +701,6 @@
    "date": "2026-10-24T06:05:49Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "aider builder run 2026-10-24T06:01:47+00:00"
-  },
-  {
-   "sha": "e50de728d144a32532b560fc6b14be1bbad719d9",
-   "html_url": "https://github.com/SebR214/margin/commit/e50de728d144a32532b560fc6b14be1bbad719d9",
-   "date": "2026-10-24T06:04:46Z",
-   "email": "person",
-   "message": "SEB-301: site pass 24 Oct, counts that add up, findings numbering, dead pages redirected, tab titles (#656)\n\n* SEB-301: site pass, 24 Oct: counts that add up, findings numbering, dead pages redirected, plain tab titles\n\n- Countries: the no-price list held 11 while the line above said 5. Countries with no price in 30 days are not\n  tracked (home's rule), so they move to the 'we also check' line and the list shows the 5 tracked ones.\n- Home findings list: no numbers. It is in Seb's order, so the Findings page numbers read 03, 04, 01, 02.\n- A finding page's chips and 'We also found these' skip the unpublished finding, so they number 01 to 04 like the\n  Findings page (they showed 05 chips and an unpublished finding).\n- tape.html, corridor.html and fee-tiers.html were stale (44 countries, old fee figures, 'corridor') and now redirect\n  to Countries, Routes and the fee tier finding. The 'Watch live prices' link on How it was built is gone.\n- Browser tab titles: 'margin.wiki: Page', no dashes, the same nav words on every page.\nNo words on the pages changed. No data or method changes.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\n* SEB-301: inventory baseline and hand-run page check follow the three redirects and the new tab titles\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\n* SEB-301: the rendered gates skip pages that only redirect (tape, corridor, fee-tiers), which rendered Countries under tape's name\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "d0dc6ae47e75aeeece09d8c50da08f6346d88de4",
-   "html_url": "https://github.com/SebR214/margin/commit/d0dc6ae47e75aeeece09d8c50da08f6346d88de4",
-   "date": "2026-10-24T06:00:47Z",
-   "email": "person",
-   "message": "SEB-301: one-call self-test measures the prompt against collector.py, not a fixed 30,000 (#660)\n\nThe prompt carries the real route table, which grows with every route. At\n28,834 characters on main, adding one more route (job 5a, Australia to\nIndia) took it over 30,000, so the builder's test failed on any new route.\n\n\nClaude-Session: https://claude.ai/code/session_01LK5gd53j6Yqo8BMPPjJxFg\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "3b0697e3d4c276079c899fd42b17949216210293",
-   "html_url": "https://github.com/SebR214/margin/commit/3b0697e3d4c276079c899fd42b17949216210293",
-   "date": "2026-10-24T05:55:58Z",
-   "email": "person",
-   "message": "SEB-301: country chart opens on our own record, a range bar adds the older prices; history for 27 countries (was 10) (#659)\n\nAgreed with Seb in chat, 24 Oct, from mocks of the Argentina page.\n- The chart opens on our own record ('Since Sep' and so on). 1y, 5y and All are offered only when they add older\n  prices the shorter range did not show; a country with none gets no bar.\n- Our record: the purple line over a light fill, as on Routes. Older prices: the grey dashed line on a shaded band\n  labelled 'Before we started, reported, not seen by us'. Hover still reads every day.\n- tools/emit_country_history.py also reads the SEB-311 wide pull: USDT priced in the local currency on Binance spot,\n  Bitso, Buda and CoinGecko, and the official rate from the central-bank file first, then ECB/CBC, fawazahmed0,\n  Frankfurter v2. The 50% guard became a spike guard (a day 25 points off the median of the 7 days around it is left\n  out; a venue with more than 2% such days is passed over), since Argentina's 2023 gap was a real 200%.\n  Still only a reader of data/history; isolation check passes. 27 segment files, 1.4 MB.\n- New words in copy.json: rangeSince, range_1y, range_5y, range_all, bandLabel; layerDaily is now 'Our daily record'.\nNo published number or method changes: the segment never feeds the index, a price or the unbroken-hours count.\n\n\nClaude-Session: https://claude.ai/code/session_01QRa6Fsdt1zkuqGXAeFMk1D\n\nCo-authored-by: Claude <noreply@anthropic.com>"
   }
  ]
 }
