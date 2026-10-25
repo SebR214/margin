@@ -1,0 +1,26 @@
+/* Research pages (SEB-301): the capital-controls meter. Page chrome comes from finding_page.css (fp-*). Data colour is the
+   periwinkle of DESIGN.md, one hue stepping up with the size of the gap; a premium below the official rate is dust grey. */
+.rs-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--sub); }
+.rs-key { display: inline-flex; align-items: center; gap: 6px; }
+.rs-key .rs-cell { width: 16px; height: 16px; min-width: 16px; border-radius: 3px; }
+.rs-scroll { overflow-x: auto; max-width: 100%; padding-bottom: 4px; }
+.rs-grid { --name: 150px; display: grid; gap: 3px; min-width: max-content; }
+.rs-row { display: grid; grid-template-columns: var(--name) repeat(var(--cols, 9), 46px); gap: 3px; align-items: center; }
+.rs-name { position: sticky; left: 0; z-index: 1; background: #fff; font-size: 14px; line-height: 1.2; padding: 3px 6px 3px 0; display: flex; flex-direction: column; min-width: 0; }
+.rs-tag { font-size: 11px; color: var(--stamp); }
+.rs-y { font-size: 12px; text-align: center; color: var(--sub); }
+.rs-head .rs-name { background: #fff; }
+.rs-cell { height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 3px; font-size: 12px; color: var(--ink); }
+.rs-bl { background: var(--dust); }
+.rs-b0 { background: #EEEDF8; }
+.rs-b1 { background: #CFCDEC; }
+.rs-b2 { background: #A9A7DB; }
+.rs-b3 { background: #817FCC; color: #fff; }
+.rs-b4 { background: #3F3047; color: #fff; }
+.rs-none { background: repeating-linear-gradient(45deg, #F6F6F6, #F6F6F6 4px, #fff 4px, #fff 8px); }
+.rs-result { margin: 0; }
+.rs-dl { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+@media (max-width: 767px) {
+  .rs-grid { --name: 104px; }
+  .rs-row { grid-template-columns: var(--name) repeat(var(--cols, 9), 40px); }
+}
