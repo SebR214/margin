@@ -74,7 +74,7 @@
   }
   function dayY(s) { return s ? (+s.slice(8, 10)) + ' ' + MON[+s.slice(5, 7) - 1] + ' ' + s.slice(0, 4) : ''; }
   // A finding's retest status ("Still holds", "Weaker", "No longer true") and when it was last rechecked. Only findings with 14 days
-  // of retest rows carry f.retest (tools/emit_findings.py); with no retest, or an empty word in copy.json, nothing is drawn.
+  // of retest rows carry f.retest (data/finding_status.json, tools/emit_finding_status.py); with no retest, or an empty word in copy.json, nothing is drawn.
   var STATUS_KEY = { holds: 'statusHolds', weaker: 'statusWeaker', no_longer_true: 'statusNoLonger' };
   function statusText(f) {
     var r = f.retest, w = r && T(STATUS_KEY[r.status] || '');
@@ -368,9 +368,10 @@
     load('./copy.json').then(function (r) { return r.json(); }).catch(function () { return {}; }),
     load('./data/findings.json').then(function (r) { return r.json(); }).catch(function () { return { findings: [] }; }),
     load('./data/claims_status.json').then(function (r) { return r.json(); }).catch(function () { return null; }),
-    load('./data/findings_first_published.json').then(function (r) { return r.json(); }).catch(function () { return {}; })
+    load('./data/findings_first_published.json').then(function (r) { return r.json(); }).catch(function () { return {}; }),
+    load('./data/finding_status.json').then(function (r) { return r.json(); }).catch(function () { return null; })
   ]).then(function (res) {
-    (res[1].findings || []).forEach(function (f) { f.first_published = res[3][f.id] || ''; });
+    (res[1].findings || []).forEach(function (f) { f.first_published = res[3][f.id] || ''; f.retest = (res[4] && res[4].findings && res[4].findings[f.id]) || null; });
     C = res[0].findingData || {};
     CLAIMS = res[2];
     BRAND = typeof res[0].brand === 'string' ? res[0].brand : '';

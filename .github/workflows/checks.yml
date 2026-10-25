@@ -97,6 +97,8 @@ jobs:
         run: python3 tests/check_stress_retest.py
       - name: A finding shows its retest status only after 14 days of rows (SEB-301)
         run: python3 tests/check_finding_status.py
+      - name: The finding status tool builds (SEB-301)
+        run: python3 tools/emit_finding_status.py --self-test
       - name: The second official rate parses, flags a broken read and compares with er-api (BACKLOG 10)
         run: python3 collector_fx_second.py --selftest
       - name: The event detector, four tests on the stored history (SEB-311)

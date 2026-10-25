@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """A finding's retest status shows only after 14 days of retest rows (SEB-301, BACKLOG 13).
 
-Feeds tools/emit_findings.retest_status rows shaped like data/finding_tests.csv and checks:
+Feeds tools/emit_finding_status.retest_status rows shaped like data/finding_tests.csv and checks:
   13 days of rows            -> nothing (None)
   14 days of rows            -> the newest row's status, 14 days, first and last dates
   two rows on one day        -> one day, not two
@@ -18,7 +18,7 @@ import sys
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(HERE, "tools"))
-import emit_findings as ef  # noqa: E402
+import emit_finding_status as ef  # noqa: E402
 
 
 def rows(fid, n, status="holds", start="2026-10-01"):
@@ -42,11 +42,14 @@ def main():
     assert got["status"] == "holds" and got["last_rechecked"] == "2026-10-14", got
     mixed = rows("a", 14) + rows("b", 20, "no_longer_true")
     assert ef.retest_status(mixed, "a")["status"] == "holds" and ef.retest_status(mixed, "b")["status"] == "no_longer_true"
-    stored = ef._retest_rows()
+    stored = ef.read_rows()
     for fid in {r["finding_id"] for r in stored}:
-        days = {r["ts_utc"][:10] for r in stored if r["finding_id"] == fid and r["status"] in ef.RETEST_STATUS}
+        days = {r["ts_utc"][:10] for r in stored if r["finding_id"] == fid and r["status"] in ef.STATUSES}
         shown = ef.retest_status(stored, fid)
         assert (shown is None) == (len(days) < 14), (fid, len(days), shown)
+    doc = ef.build(stored)
+    assert all(v["days"] >= 14 for v in doc["findings"].values()) and doc["min_days"] == 14
+    assert doc["findings"] == {f: ef.retest_status(stored, f) for f in doc["findings"]}
     print("finding status test: ok")
 
 
