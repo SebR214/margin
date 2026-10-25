@@ -509,6 +509,13 @@ jobs:
         continue-on-error: true
         run: python3 tools/retest_findings.py
 
+      # SEB-301, BACKLOG 13: data/finding_status.json, each finding's newest retest status once it has 14 days of rows. Reads
+      # data/finding_tests.csv only; the pages put the words. Never stops the chain.
+      - name: Emit finding statuses (SEB-301)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        run: python3 tools/emit_finding_status.py
+
       - name: Emit recent commits
         if: always() && steps.needed.outputs.proceed == 'true'
         # The agents list on how-it-was-built.html. The browser used to ask api.github.com itself, without
@@ -795,6 +802,10 @@ jobs:
           done
           # The second official rate (BACKLOG 10): a new sidecar CSV, its own loop so no existing line is edited.
           for f in data/fx_second.csv; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          # Finding statuses (SEB-301, BACKLOG 13): a new file, its own loop so no existing line is edited.
+          for f in data/finding_status.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Who sells each P2P ad (SEB-384): a new sidecar CSV, its own loop so no existing line is edited.
