@@ -1,0 +1,107 @@
+{
+  "corridor": "USD->ARS",
+  "crypto_hour_utc": "2026-10-26T23:00:00+00:00",
+  "hour_utc": "2026-10-26T23",
+  "panel_hour_utc": "2026-10-26T23:00:00+00:00",
+  "rows": [
+    {
+      "computation": {
+        "formula": null,
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": "This route has its own full step-by-step receipt -- see the link next to it on the page.",
+        "result_pct": -7.8774
+      },
+      "cost_pct": -7.8774,
+      "costs": "US$-1,969.35",
+      "evidence": {
+        "collected_at": "2026-10-26T23:23:11.936712+00:00",
+        "meaning": "Priced on real exchanges this hour, every fee included.",
+        "status": "measured",
+        "venues_summary": null
+      },
+      "provider": "Sending it with stablecoins",
+      "rank": 1,
+      "source": "measured",
+      "source_files": [
+        "data/samples.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": -0.1959
+      },
+      "cost_pct": -0.1959,
+      "costs": "US$-48.98",
+      "evidence": {
+        "collected_at": "2026-10-26T23:23:11.936712+00:00",
+        "landed": 38281425.0,
+        "meaning": "A public price comparison service quotes Instarem: this amount lands 38281425.0 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Instarem",
+      "rank": 2,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdars.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 1.558
+      },
+      "cost_pct": 1.558,
+      "costs": "US$389.50",
+      "evidence": {
+        "collected_at": "2026-10-26T23:23:11.936712+00:00",
+        "landed": 37611326.54,
+        "meaning": "A public price comparison service quotes Xoom: this amount lands 37611326.54 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Xoom",
+      "rank": 3,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdars.csv"
+      ]
+    },
+    {
+      "computation": null,
+      "cost_pct": null,
+      "costs": null,
+      "evidence": {
+        "meaning": "Airwallex has quoted this corridor in the recent past but not this particular hour -- no price to show.",
+        "status": "missing"
+      },
+      "provider": "Airwallex",
+      "rank": 4,
+      "source": "missing",
+      "source_files": []
+    },
+    {
+      "computation": null,
+      "cost_pct": null,
+      "costs": null,
+      "evidence": {
+        "meaning": "Wise has quoted this corridor in the recent past but not this particular hour -- no price to show.",
+        "status": "missing"
+      },
+      "provider": "Wise",
+      "rank": 5,
+      "source": "missing",
+      "source_files": []
+    }
+  ],
+  "size": 25000,
+  "size_words": "US$25,000",
+  "source_files": [
+    "data/providers_latest.json",
+    "data/providers_usdars.csv",
+    "data/samples.csv"
+  ]
+}

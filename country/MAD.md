@@ -1,12 +1,12 @@
-# In Morocco a dollar costs 9.0% more than the official rate
+# In Morocco a dollar costs 8.8% more than the official rate
 
-Prices from the 20:00 UTC hour, 26 Oct.
+Prices from the 23:00 UTC hour, 26 Oct.
 
-The official rate is 9.82 MAD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 10.70 MAD. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 9.82 MAD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 10.68 MAD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 1,070 MAD. The official rate says 981.53 MAD.
+For US$100, people pay 1,068 MAD. The official rate says 981.53 MAD.
 
-Prices from the 20:00 UTC hour, 26 Oct
+Prices from the 23:00 UTC hour, 26 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -24,11 +24,11 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-10.67 MAD +8.7%
+10.64 MAD +8.4%
 
 OKX, person to person
 
-10.72 MAD +9.2%
+10.71 MAD +9.1%
 
 ## Every Morocco price links to its raw file
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 26 Oct, 23:28 UTC | OKX, person to person | 10.71 MAD | +9.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 26 Oct, 23:23 UTC | Binance, person to person | 10.64 MAD | +8.4% | 10 of 149 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 20:23 UTC | OKX, person to person | 10.72 MAD | +9.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 26 Oct, 20:18 UTC | Binance, person to person | 10.67 MAD | +8.7% | 10 of 158 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 19:24 UTC | OKX, person to person | 10.74 MAD | +9.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 26 Oct, 14:07 UTC | Binance, person to person | 10.74 MAD | +9.4% | 10 of 108 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 13:15 UTC | OKX, person to person | 10.77 MAD | +9.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 26 Oct, 13:10 UTC | Binance, person to person | 10.75 MAD | +9.5% | 10 of 98 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 26 Oct, 09:22 UTC | OKX, person to person | 10.80 MAD | +10.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 26 Oct, 09:17 UTC | Binance, person to person | 10.75 MAD | +9.5% | 10 of 54 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
