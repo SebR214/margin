@@ -1,16 +1,12 @@
-# In Uganda a dollar costs 7.4% more than the official rate
+# No price for Uganda this hour
 
-Prices from the 23:00 UTC hour, 25 Oct.
+Prices from the 00:00 UTC hour, 26 Oct.
 
-The official rate is 4,113.32 UGX per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 4,419 UGX. A stablecoin is a coin that stays worth one US dollar.
+Held back this hour: the price jumped from its usual level and we’re waiting for a second source to confirm it.
 
-For US$100, people pay 441,940 UGX. The official rate says 411,332 UGX.
+The last price we published was +7.6%, on 26 Oct.
 
-One source
-
-Prices from the 23:00 UTC hour, 25 Oct
-
-Taking the cheapest offers first, only US$4,500 can be bought before a dollar here costs 1% more.
+Prices from the 00:00 UTC hour, 26 Oct
 
 <https://margin.wiki/data/countries/UGX.json>
 
@@ -18,22 +14,14 @@ Taking the cheapest offers first, only US$4,500 can be bought before a dollar he
 
 One point per day, the price we published that day. 0% is the official rate.
 
-Today's difference is the widest since 5 Sep 2026, counting only our own readings. On most days it sits between 1.2% and 3.7%.
-
-## Where this price comes from
-
-This price is set from person-to-person ads. A country's price comes from exchange order books first, then broker quotes, then offers between people on Binance and OKX.
-
-Binance, person to person
-
-4,419 UGX +7.4%
-
 ## Every Uganda price links to its raw file
 
 Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 26 Oct, 00:12 UTC | OKX, person to person | 4,875 UGX | +18.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 26 Oct, 00:07 UTC | Binance, person to person | 4,427 UGX | +7.6% | 10 of 26 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 23:12 UTC | OKX, person to person | 4,875 UGX | +18.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 23:07 UTC | Binance, person to person | 4,419 UGX | +7.4% | 10 of 27 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 22:12 UTC | OKX, person to person | 4,635 UGX | +12.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -44,8 +32,6 @@ Open any file to check a price yourself.
 | 25 Oct, 20:51 UTC | Binance, person to person | 4,419 UGX | +7.4% | 10 of 34 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 19:21 UTC | OKX, person to person | 4,635 UGX | +12.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 19:16 UTC | Binance, person to person | 4,414 UGX | +7.3% | 10 of 47 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 18:12 UTC | OKX, person to person | 4,470 UGX | +8.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 18:07 UTC | Binance, person to person | 4,405 UGX | +7.1% | 10 of 54 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

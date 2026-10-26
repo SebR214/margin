@@ -1,12 +1,12 @@
 # No price for Lebanon this hour
 
-Prices from the 23:00 UTC hour, 25 Oct.
+Prices from the 00:00 UTC hour, 26 Oct.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
 The last price we published was +0.9%, on 25 Oct.
 
-Prices from the 23:00 UTC hour, 25 Oct
+Prices from the 00:00 UTC hour, 26 Oct
 
 <https://margin.wiki/data/countries/LBP.json>
 
@@ -20,6 +20,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 26 Oct, 00:12 UTC | OKX, person to person | 93,000 LBP | +3.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 26 Oct, 00:07 UTC | Binance, person to person | 92,999 LBP | +3.9% | 5 of 5 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 23:12 UTC | OKX, person to person | 91,450 LBP | +2.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 23:07 UTC | Binance, person to person | 91,000 LBP | +1.7% | 9 of 9 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 22:12 UTC | OKX, person to person | 91,300 LBP | +2.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -30,8 +32,6 @@ Open any file to check a price yourself.
 | 25 Oct, 20:51 UTC | Binance, person to person | 90,265 LBP | +0.9% | 10 of 26 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 19:21 UTC | OKX, person to person | 90,500 LBP | +1.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 19:16 UTC | Binance, person to person | 90,015 LBP | +0.6% | 10 of 27 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 18:12 UTC | OKX, person to person | 90,500 LBP | +1.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 18:07 UTC | Binance, person to person | 90,265 LBP | +0.9% | 10 of 23 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
