@@ -1,10 +1,10 @@
 # No price for Nepal this hour
 
-Prices from the 07:00 UTC hour, 26 Oct.
+Prices from the 08:00 UTC hour, 26 Oct.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
-Prices from the 07:00 UTC hour, 26 Oct
+Prices from the 08:00 UTC hour, 26 Oct
 
 <https://margin.wiki/data/countries/NPR.json>
 
@@ -14,6 +14,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 26 Oct, 08:07 UTC | Binance, person to person | 179.50 NPR | +17.9% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 07:07 UTC | Binance, person to person | 179.50 NPR | +17.9% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 06:07 UTC | Binance, person to person | 179.50 NPR | +17.9% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 05:07 UTC | Binance, person to person | 179.50 NPR | +17.9% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -25,7 +26,6 @@ Open any file to check a price yourself.
 | 25 Oct, 23:07 UTC | Binance, person to person | 179.50 NPR | +18.1% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 22:07 UTC | Binance, person to person | 179.50 NPR | +18.1% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 21:37 UTC | Binance, person to person | 179.50 NPR | +18.1% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 20:51 UTC | Binance, person to person | 179.50 NPR | +18.1% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://margin.wiki/data/adsp2p_basis.csv>
