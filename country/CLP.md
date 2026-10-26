@@ -1,12 +1,12 @@
-# In Chile a dollar costs 2.2% more than the official rate
+# In Chile a dollar costs 2.1% more than the official rate
 
-Prices from the 00:00 UTC hour, 26 Oct.
+Prices from the 01:00 UTC hour, 26 Oct.
 
-The official rate is 984.72 CLP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 1,006 CLP. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 989.53 CLP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 1,010 CLP. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 100,642 CLP. The official rate says 98,472 CLP.
+For US$100, people pay 101,039 CLP. The official rate says 98,953 CLP.
 
-Prices from the 00:00 UTC hour, 26 Oct
+Prices from the 01:00 UTC hour, 26 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -24,11 +24,11 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-995.45 CLP +1.1%
+995.78 CLP +0.6%
 
 OKX, person to person
 
-1,017 CLP +3.3%
+1,025 CLP +3.6%
 
 ## Every Chile price links to its raw file
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 26 Oct, 01:11 UTC | OKX, person to person | 1,025 CLP | +3.6% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 26 Oct, 01:07 UTC | Binance, person to person | 995.78 CLP | +0.6% | 10 of 88 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 00:12 UTC | OKX, person to person | 1,017 CLP | +3.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 26 Oct, 00:07 UTC | Binance, person to person | 995.45 CLP | +1.1% | 10 of 93 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 23:12 UTC | OKX, person to person | 1,011 CLP | +2.7% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 25 Oct, 21:37 UTC | Binance, person to person | 995.90 CLP | +1.1% | 10 of 98 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 20:55 UTC | OKX, person to person | 1,017 CLP | +3.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 20:51 UTC | Binance, person to person | 996.00 CLP | +1.1% | 10 of 97 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 19:21 UTC | OKX, person to person | 1,015 CLP | +3.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 19:16 UTC | Binance, person to person | 996.50 CLP | +1.2% | 10 of 100 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
