@@ -1,16 +1,16 @@
-# In Peru a dollar costs 2.7% more than the official rate
+# In Peru a dollar costs 1.9% more than the official rate
 
-Prices from the 09:00 UTC hour, 26 Oct.
+Prices from the 13:00 UTC hour, 26 Oct.
 
-The official rate is 3.44 PEN per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.53 PEN. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 3.44 PEN per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.51 PEN. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 353.35 PEN. The official rate says 344.16 PEN.
+For US$100, people pay 350.60 PEN. The official rate says 344.16 PEN.
 
 One source
 
-Prices from the 09:00 UTC hour, 26 Oct
+Prices from the 13:00 UTC hour, 26 Oct
 
-Taking the cheapest offers first, only US$4,000 can be bought before a dollar here costs 1% more.
+Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/countries/PEN.json>
 
@@ -26,7 +26,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-3.53 PEN +2.7%
+3.51 PEN +1.9%
 
 ## Every Peru price links to its raw file
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 26 Oct, 13:15 UTC | OKX, person to person | 3.62 PEN | +5.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 26 Oct, 13:10 UTC | Binance, person to person | 3.51 PEN | +1.9% | 10 of 60 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 09:22 UTC | OKX, person to person | 3.71 PEN | +7.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 26 Oct, 09:17 UTC | Binance, person to person | 3.53 PEN | +2.7% | 10 of 34 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 08:11 UTC | OKX, person to person | 3.71 PEN | +7.8% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 26 Oct, 06:07 UTC | Binance, person to person | 3.52 PEN | +2.4% | 10 of 47 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 05:11 UTC | OKX, person to person | 3.66 PEN | +6.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 26 Oct, 05:07 UTC | Binance, person to person | 3.52 PEN | +2.3% | 10 of 51 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 26 Oct, 04:20 UTC | OKX, person to person | 3.63 PEN | +5.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 26 Oct, 04:15 UTC | Binance, person to person | 3.52 PEN | +2.1% | 10 of 53 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
