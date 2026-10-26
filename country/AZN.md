@@ -1,12 +1,12 @@
 # In Azerbaijan a dollar costs 1.4% more than the official rate
 
-Prices from the 01:00 UTC hour, 26 Oct.
+Prices from the 02:00 UTC hour, 26 Oct.
 
 The official rate is 1.7 AZN per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 1.73 AZN. A stablecoin is a coin that stays worth one US dollar.
 
 For US$100, people pay 172.50 AZN. The official rate says 170.06 AZN.
 
-Prices from the 01:00 UTC hour, 26 Oct
+Prices from the 02:00 UTC hour, 26 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 26 Oct, 02:12 UTC | OKX, person to person | 1.75 AZN | +2.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 26 Oct, 02:07 UTC | Binance, person to person | 1.70 AZN | 0.0% | 10 of 43 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 01:11 UTC | OKX, person to person | 1.75 AZN | +2.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 26 Oct, 01:07 UTC | Binance, person to person | 1.70 AZN | 0.0% | 10 of 45 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 00:12 UTC | OKX, person to person | 1.75 AZN | +2.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 25 Oct, 22:07 UTC | Binance, person to person | 1.70 AZN | 0.0% | 10 of 47 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 25 Oct, 21:41 UTC | OKX, person to person | 1.75 AZN | +2.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 25 Oct, 21:37 UTC | Binance, person to person | 1.70 AZN | 0.0% | 10 of 49 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 20:55 UTC | OKX, person to person | 1.75 AZN | +2.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 25 Oct, 20:51 UTC | Binance, person to person | 1.70 AZN | 0.0% | 10 of 51 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
