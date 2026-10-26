@@ -1,0 +1,118 @@
+{
+  "corridor": "USD->ARS",
+  "crypto_hour_utc": "2026-10-26T19:00:00+00:00",
+  "hour_utc": "2026-10-26T19",
+  "panel_hour_utc": "2026-10-26T19:00:00+00:00",
+  "rows": [
+    {
+      "computation": {
+        "formula": null,
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": "This route has its own full step-by-step receipt -- see the link next to it on the page.",
+        "result_pct": -8.0201
+      },
+      "cost_pct": -8.0201,
+      "costs": "US$-80.20",
+      "evidence": {
+        "collected_at": "2026-10-26T19:19:40.436238+00:00",
+        "meaning": "Priced on real exchanges this hour, every fee included.",
+        "status": "measured",
+        "venues_summary": null
+      },
+      "provider": "Sending it with stablecoins",
+      "rank": 1,
+      "source": "measured",
+      "source_files": [
+        "data/samples.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": -0.1959
+      },
+      "cost_pct": -0.1959,
+      "costs": "US$-1.96",
+      "evidence": {
+        "collected_at": "2026-10-26T19:19:40.436238+00:00",
+        "landed": 1531257.0,
+        "meaning": "A public price comparison service quotes Instarem: this amount lands 1531257.0 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Instarem",
+      "rank": 2,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdars.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 1.4443
+      },
+      "cost_pct": 1.4443,
+      "costs": "US$14.44",
+      "evidence": {
+        "collected_at": "2026-10-26T19:19:40.436238+00:00",
+        "landed": 1506190.98,
+        "meaning": "A public price comparison service quotes Wise: this amount lands 1506190.98 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-10-26T19:26:20.036919+00:00",
+          "fee": 22.43,
+          "meaning": "Wise's own published quote: at a rate of 1540.75, with a stated fee of 22.43, sending this amount lands 1506190.98.",
+          "provider_site": "wise.com",
+          "rate": 1540.75,
+          "received": 1506190.98
+        },
+        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Wise",
+      "rank": 3,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers_usdars.csv"
+      ]
+    },
+    {
+      "computation": null,
+      "cost_pct": null,
+      "costs": null,
+      "evidence": {
+        "meaning": "Airwallex has quoted this corridor in the recent past but not this particular hour -- no price to show.",
+        "status": "missing"
+      },
+      "provider": "Airwallex",
+      "rank": 4,
+      "source": "missing",
+      "source_files": []
+    },
+    {
+      "computation": null,
+      "cost_pct": null,
+      "costs": null,
+      "evidence": {
+        "meaning": "Xoom has quoted this corridor in the recent past but not this particular hour -- no price to show.",
+        "status": "missing"
+      },
+      "provider": "Xoom",
+      "rank": 5,
+      "source": "missing",
+      "source_files": []
+    }
+  ],
+  "size": 1000,
+  "size_words": "US$1,000",
+  "source_files": [
+    "data/provider_quotes.csv",
+    "data/providers_latest.json",
+    "data/providers_usdars.csv",
+    "data/samples.csv"
+  ]
+}

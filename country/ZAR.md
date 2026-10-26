@@ -1,14 +1,16 @@
-# In South Africa a dollar costs 8.9% more than the official rate
+# In South Africa a dollar costs 9.3% more than the official rate
 
-Prices from the 15:00 UTC hour, 26 Oct.
+Prices from the 19:00 UTC hour, 26 Oct.
 
-The official rate is 16.6 ZAR per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 18.08 ZAR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 16.6 ZAR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 18.15 ZAR. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 1,808 ZAR. The official rate says 1,660 ZAR.
+For US$100, people pay 1,815 ZAR. The official rate says 1,660 ZAR.
 
-Prices from the 15:00 UTC hour, 26 Oct
+One source
 
-Taking the cheapest offers first, only US$500 can be bought before a dollar here costs 1% more.
+Prices from the 19:00 UTC hour, 26 Oct
+
+Taking the cheapest offers first, only US$1,500 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/countries/ZAR.json>
 
@@ -16,7 +18,7 @@ Taking the cheapest offers first, only US$500 can be bought before a dollar here
 
 One point per day, the price we published that day. 0% is the official rate.
 
-Today's difference is near the widest it has been since 5 Sep 2026, counting only our own readings. On most days it sits between 5.3% and 8.7%.
+Today's difference is the widest since 5 Sep 2026, counting only our own readings. On most days it sits between 5.3% and 8.7%.
 
 ## Where this price comes from
 
@@ -24,11 +26,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-17.86 ZAR +7.6%
-
-OKX, person to person
-
-18.31 ZAR +10.3%
+18.15 ZAR +9.3%
 
 ## Every South Africa price links to its raw file
 
@@ -36,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 26 Oct, 19:24 UTC | OKX, person to person | 19.10 ZAR | +15.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 26 Oct, 19:20 UTC | Binance, person to person | 18.15 ZAR | +9.3% | 10 of 11 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 15:22 UTC | OKX, person to person | 18.31 ZAR | +10.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 26 Oct, 15:17 UTC | Binance, person to person | 17.86 ZAR | +7.6% | 10 of 12 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 14:12 UTC | OKX, person to person | 18.31 ZAR | +10.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +46,6 @@ Open any file to check a price yourself.
 | 26 Oct, 09:17 UTC | Binance, person to person | 17.97 ZAR | +8.3% | 10 of 12 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 08:11 UTC | OKX, person to person | 18.30 ZAR | +10.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 26 Oct, 08:07 UTC | Binance, person to person | 17.96 ZAR | +8.2% | 10 of 14 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 26 Oct, 07:11 UTC | OKX, person to person | 18.30 ZAR | +10.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 26 Oct, 07:07 UTC | Binance, person to person | 17.94 ZAR | +8.1% | 10 of 17 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
