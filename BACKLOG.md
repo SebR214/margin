@@ -75,7 +75,6 @@ and 6a to 6d dropped unbuilt.
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->BRL`
     done when: as 1a, with the Coinbase side copied from "USD->MXN" and a Brazil off-ramp entry.
-    blocked: needs-claude: collector.py has no off-ramp for Foxbit or Mercado Bitcoin (it reads Coins.ph, Bitso, Luno and WazirX only), so this is new collector code, not a table entry, and the off-ramp fee must be read from the venue's own fee page, which the builder cannot do (2026-10-21)
 - [x] 3. United States to Indonesia (Coinbase, then Indodax or Pintu). Apps in the feed: 6. (cut 25 Oct: Turkey and Indonesia routes were cut on purpose, near-zero premium)
   - [ ] 3a. Add the USD->IDR route to collector.py's corridor table, its collect.yml step and the provider quotes config
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
@@ -98,7 +97,6 @@ and 6a to 6d dropped unbuilt.
     excerpt: `.github/workflows/collect.yml` `for f in data/samples.csv` `; do$`
     excerpt: `collector_providers.py` `^CORRIDOR_CCY = \{` `^\}`
     done when: collector.py's CORRIDORS has one new "AUD->INR" entry with src AUD, dst INR, stable USDT, the onramp, network_fee_stable and deposit copied unchanged from "AUD->PHP", the offramp copied unchanged from "SGD->INR", the same ladder, and providers_file "providers_audinr.csv"; collect.yml has one new step "Collect corridor sample AUD->INR" after the SGD->INR step, with `if: always() && steps.needed.outputs.proceed == 'true'` and `run: python3 collector.py --corridor "AUD->INR"`, and data/providers_audinr.csv added to the commit list; collector_providers.py CORRIDOR_CCY has "AUD->INR": ("AUD", "INR"); no other line changes.
-    blocked: needs-claude: the Aider builder failed 2 times, last: aider_checks.py fails: $ python3 tests/check_home_emitters.py (2026-10-24)
 - [x] 6. United States to Turkey (Coinbase, then BtcTurk or Paribu). Apps in the feed: 5. (cut 25 Oct: Turkey and Indonesia routes were cut on purpose, near-zero premium)
   - [ ] 6a. Add the USD->TRY route to collector.py's corridor table, its collect.yml step and the provider quotes config
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
