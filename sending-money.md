@@ -1,6 +1,6 @@
 # How much of the dollar premium survives the trip
 
-Prices from the 06:00 UTC hour, 26 Oct.
+Prices from the 07:00 UTC hour, 26 Oct.
 
 In some countries a dollar sells for more than the official rate. This shows how much of that extra a stablecoin carries home, after every fee.
 
@@ -27,9 +27,9 @@ United States to Argentina is compared at US$200 and US$5,000, the sizes where t
 
 <https://margin.wiki/data/routes_table.json>
 
-## Sending S$1,000 to the Philippines costs S$1.44 with Wise and S$5.14 with a stablecoin
+## Sending S$1,000 to the Philippines costs S$1.09 with Wise and S$4.97 with a stablecoin
 
-At this amount, a stablecoin was the cheaper way in 1 of the 1,579 hours checked since 11 August.
+At this amount, a stablecoin was the cheaper way in 1 of the 1,580 hours checked since 11 August.
 
 Official rate from 00:02 UTC
 
@@ -39,20 +39,20 @@ Cost is what the person receiving loses against the official rate. Every fee we 
 
 Cheapest app Wise this hour
 
-S$1.44 0.14%
+S$1.09 0.11%
 
 Stablecoin a cheaper stablecoin route this hour
 
-S$5.14 0.51%
+S$4.97 0.50%
 
 ### The stablecoin's cost, step by step
 
 |  |  |
 | --- | --- |
-| Deposit and buy | S$5.63 0.56% |
+| Deposit and buy | S$5.77 0.58% |
 | Network fee | S$1.28 0.13% |
-| Sell and withdraw | −S$1.77 −0.18% |
-| All in | S$5.14 0.51% |
+| Sell and withdraw | −S$2.08 −0.21% |
+| All in | S$4.97 0.50% |
 
 Negative means this step paid you a little back.
 

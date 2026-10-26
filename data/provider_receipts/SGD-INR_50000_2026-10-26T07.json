@@ -1,0 +1,161 @@
+{
+  "corridor": "SGD->INR",
+  "crypto_hour_utc": "2026-10-26T07:00:00+00:00",
+  "hour_utc": "2026-10-26T07",
+  "panel_hour_utc": "2026-10-26T07:00:00+00:00",
+  "rows": [
+    {
+      "computation": {
+        "formula": null,
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": "This route has its own full step-by-step receipt -- see the link next to it on the page.",
+        "result_pct": -1.5607
+      },
+      "cost_pct": -1.5607,
+      "costs": "S$-780.35",
+      "evidence": {
+        "collected_at": "2026-10-26T07:06:48.156701+00:00",
+        "meaning": "Priced on real exchanges this hour, every fee included.",
+        "status": "measured",
+        "venues_summary": null
+      },
+      "provider": "Sending it with stablecoins",
+      "rank": 1,
+      "source": "measured",
+      "source_files": [
+        "data/samples.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
+        "note": "This is Airwallex's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
+        "result_pct": 0.0376
+      },
+      "cost_pct": 0.0376,
+      "costs": "S$18.80",
+      "evidence": {
+        "collected_at": "2026-10-26T07:13:22.929154+00:00",
+        "fee": 0.0,
+        "meaning": "Airwallex's own published quote: at a rate of 74.399642, with a stated fee of 0.0, sending this amount lands 3719982.1.",
+        "provider_site": "airwallex.com",
+        "rate": 74.399642,
+        "received": 3719982.1,
+        "status": "own"
+      },
+      "provider": "Airwallex",
+      "rank": 2,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 0.2513
+      },
+      "cost_pct": 0.2513,
+      "costs": "S$125.65",
+      "evidence": {
+        "collected_at": "2026-10-26T07:06:48.156701+00:00",
+        "landed": 3712029.51,
+        "meaning": "A public price comparison service quotes Instarem: this amount lands 3712029.51 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Instarem",
+      "rank": 3,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_sgdinr.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 0.3136
+      },
+      "cost_pct": 0.2939,
+      "costs": "S$146.95",
+      "evidence": {
+        "collected_at": "2026-10-26T07:06:48.156701+00:00",
+        "landed": 3709709.43,
+        "meaning": "A public price comparison service quotes Wise: this amount lands 3709709.43 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-10-26T07:13:22.929154+00:00",
+          "fee": 147.36,
+          "meaning": "Wise's own published quote: at a rate of 74.4282, with a stated fee of 147.36, sending this amount lands 3710442.26.",
+          "provider_site": "wise.com",
+          "rate": 74.4282,
+          "received": 3710442.26
+        },
+        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Wise",
+      "rank": 4,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers_sgdinr.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 0.9373
+      },
+      "cost_pct": 0.9373,
+      "costs": "S$468.65",
+      "evidence": {
+        "collected_at": "2026-10-26T07:06:48.156701+00:00",
+        "landed": 3686499.13,
+        "meaning": "A public price comparison service quotes HSBC Singapore: this amount lands 3686499.13 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "HSBC Singapore",
+      "rank": 5,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_sgdinr.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 2.3419
+      },
+      "cost_pct": 2.3419,
+      "costs": "S$1,170.95",
+      "evidence": {
+        "collected_at": "2026-10-26T07:06:48.156701+00:00",
+        "landed": 3634229.8,
+        "meaning": "A public price comparison service quotes OFX: this amount lands 3634229.8 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "OFX",
+      "rank": 6,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_sgdinr.csv"
+      ]
+    }
+  ],
+  "size": 50000,
+  "size_words": "S$50,000",
+  "source_files": [
+    "data/provider_quotes.csv",
+    "data/providers_latest.json",
+    "data/providers_sgdinr.csv",
+    "data/samples.csv"
+  ]
+}
