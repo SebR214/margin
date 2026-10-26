@@ -1,6 +1,6 @@
 # How much of the dollar premium survives the trip
 
-Prices from the 14:00 UTC hour, 26 Oct.
+Prices from the 15:00 UTC hour, 26 Oct.
 
 In some countries a dollar sells for more than the official rate. This shows how much of that extra a stablecoin carries home, after every fee.
 
@@ -27,9 +27,9 @@ United States to Argentina is compared at US$200 and US$5,000, the sizes where t
 
 <https://margin.wiki/data/routes_table.json>
 
-## Sending S$1,000 to the Philippines costs S$0.81 with Airwallex and S$6.53 with a stablecoin
+## Sending S$1,000 to the Philippines costs S$0.99 with Airwallex and S$6.70 with a stablecoin
 
-At this amount, a stablecoin was the cheaper way in 1 of the 1,584 hours checked since 11 August.
+At this amount, a stablecoin was the cheaper way in 1 of the 1,585 hours checked since 11 August.
 
 Official rate from 00:02 UTC
 
@@ -39,20 +39,20 @@ Cost is what the person receiving loses against the official rate. Every fee we 
 
 Cheapest app Airwallex this hour
 
-S$0.81 0.08%
+S$0.99 0.10%
 
 Stablecoin a cheaper stablecoin route this hour
 
-S$6.53 0.65%
+S$6.70 0.67%
 
 ### The stablecoin's cost, step by step
 
 |  |  |
 | --- | --- |
-| Deposit and buy | S$7.32 0.73% |
+| Deposit and buy | S$7.18 0.72% |
 | Network fee | S$1.28 0.13% |
-| Sell and withdraw | −S$2.07 −0.21% |
-| All in | S$6.53 0.65% |
+| Sell and withdraw | −S$1.76 −0.18% |
+| All in | S$6.70 0.67% |
 
 Negative means this step paid you a little back.
 

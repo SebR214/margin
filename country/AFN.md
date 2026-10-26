@@ -1,10 +1,10 @@
 # No price for Afghanistan this hour
 
-Prices from the 14:00 UTC hour, 26 Oct.
+Prices from the 15:00 UTC hour, 26 Oct.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
-Prices from the 14:00 UTC hour, 26 Oct
+Prices from the 15:00 UTC hour, 26 Oct
 
 <https://margin.wiki/data/countries/AFN.json>
 
@@ -14,6 +14,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 26 Oct, 15:17 UTC | Binance, person to person | 68.70 AFN | +6.0% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 14:07 UTC | Binance, person to person | 66.65 AFN | +2.8% | 3 of 3 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 13:10 UTC | Binance, person to person | 66.59 AFN | +2.7% | 3 of 3 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 09:17 UTC | Binance, person to person | 66.83 AFN | +3.1% | 4 of 4 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -25,7 +26,6 @@ Open any file to check a price yourself.
 | 26 Oct, 03:08 UTC | Binance, person to person | 68.00 AFN | +4.9% | 1 of 1 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 02:07 UTC | Binance, person to person | 68.00 AFN | +4.9% | 1 of 1 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 01:07 UTC | Binance, person to person | 67.65 AFN | +4.4% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 25 Oct, 19:16 UTC | Binance, person to person | 66.87 AFN | +2.9% | 2 of 2 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://margin.wiki/data/adsp2p_basis.csv>
