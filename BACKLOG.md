@@ -176,6 +176,7 @@ Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/j
     context: `collector_stable_venues.py` `collector_venue_common.py` `.github/workflows/collect.yml`
     rows: `data/quidax_ngn.csv`
     done when: collector_quidax_ngn.py reads the public Quidax usdtngn ticker with no key and adds one hourly collect.yml step. First hourly rows land in data/quidax_ngn.csv with columns for time, bid, ask and last. tests/agent_quidax_ngn.py runs the selftest on an inline ticker sample with buy 1500 and sell 1510 and checks the row has bid 1500 and ask 1510. A sample with a missing sell field must write no row and must not raise.
+    built: PR #711 (2026-10-27)
 - [ ] 23. Satang Pro USDT/THB collector as a second Thailand exchange source
   - [ ] 23a. Satang Pro USDT/THB collector as a second Thailand exchange source
     track: aider
