@@ -285,16 +285,28 @@
         lastLabel = X(i);
       }
     });
-    // the fill between the line and zero, then the line, one run per stretch without gaps
-    var runs = [], cur = null;
-    pts.forEach(function (p, i) { if (!p) { cur = null; return; } if (!cur) { cur = []; runs.push(cur); } cur.push(i); });
-    var z = Y(0), dLine = "";
+    // the fill between the line and zero, then the line, one run per stretch without gaps. On the week view a miss of up
+    // to 3 hours (a collection run that did not happen, every route at once) does not cut the fill: the line crosses it
+    // dashed, so the missing hours still show and nothing is filled in as a reading (27 Oct, Seb: "random holes").
+    var BRIDGE = hourly ? 3 : 0;
+    var runs = [], cur = null, miss = 0;
+    pts.forEach(function (p, i) {
+      if (!p) { miss++; return; }
+      if (!cur || miss > BRIDGE) { cur = []; runs.push(cur); }
+      cur.push(i); miss = 0;
+    });
+    var z = Y(0), dLine = "", dGap = "";
     runs.forEach(function (r) {
       var line = r.map(function (i, j) { return (j ? "L" : "M") + X(i).toFixed(1) + " " + Y(pts[i][0]).toFixed(1); }).join("");
-      dLine += line;
+      r.forEach(function (i, j) {
+        var pt = X(i).toFixed(1) + " " + Y(pts[i][0]).toFixed(1);
+        if (j && i - r[j - 1] > 1) { dGap += "M" + X(r[j - 1]).toFixed(1) + " " + Y(pts[r[j - 1]][0]).toFixed(1) + "L" + pt; dLine += "M" + pt; }
+        else dLine += (j ? "L" : "M") + pt;
+      });
       g += '<path class="sm-area" d="' + line + "L" + X(r[r.length - 1]).toFixed(1) + " " + z.toFixed(1) + "L" + X(r[0]).toFixed(1) + " " + z.toFixed(1) + 'Z"/>';
     });
     g += '<line x1="' + L + '" x2="' + W + '" y1="' + z + '" y2="' + z + '" class="sm-zline"/>';
+    if (dGap) g += '<path class="sm-line sm-gapline" d="' + dGap + '"/>';
     g += '<path class="sm-line" d="' + dLine + '"/>';
     var li = pts.length - 1;
     if (pts[li]) g += '<circle cx="' + X(li) + '" cy="' + Y(pts[li][0]) + '" r="3.5" class="sm-dot"/>';

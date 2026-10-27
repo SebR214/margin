@@ -189,3 +189,8 @@ body:has(#hero):has(#land) .hero .body.agents { margin-top: 24px !important; max
   body:has(#hero):has(#land) .hero h1 { font-size: 26px !important; }
   body:has(#hero):has(#land) .hero .lead.sub { font-size: 18px !important; }
 }
+
+/* Phone (27 Oct): balanced headings wrapped early and looked narrower than the text under them. Pretty wrapping fills
+   the column and still keeps a lone last word off the last line. */
+@media (max-width: 700px) { h1, h2, h3 { text-wrap: pretty !important; } }
+@media (max-width: 700px) { .note, .sm-note, .sm-small, .ci-meta, .ci-note, .ci-aside, .when, .rb-note, .answer { text-wrap: pretty !important; } }

@@ -72,3 +72,29 @@
   .hp-nav a[aria-current], .ci-nav a[aria-current], .sm-nav a[aria-current], .s-nav a[aria-current], .fp-nav a[aria-current], .mwh nav a[aria-current] { color: var(--color-ink, #201e1d) !important; font-weight: 700 !important; }
   .hp-clock { order: 3 !important; flex: 1 0 100% !important; margin: 0 !important; padding: 0 0 4px !important; font-size: 12px !important; }
 }
+
+/* Phone menu as a full screen sheet (27 Oct, Seb): the old box under the header read as half a dropdown. The sheet covers
+   the page, the logo and the button stay on top, the links are big ink words like Superpower's menu. */
+@media (max-width: 767px) {
+  .hp-nav.sh-open, .ci-nav.sh-open, .c-nav.sh-open, .sm-nav.sh-open, .s-nav.sh-open, .fp-nav.sh-open, .mwh nav.sh-open {
+    position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; z-index: 60 !important;
+    border: 0 !important; padding: 92px 24px 48px !important; overflow-y: auto !important;
+    background: var(--color-paper, #fff) !important; animation: shSheet 0.18s ease-out;
+  }
+  .hp-nav a, .ci-nav a, .c-nav a, .sm-nav a, .s-nav a, .fp-nav a, .mwh nav a {
+    height: auto !important; min-height: 60px !important; padding: 0 !important; font-size: 30px !important; font-weight: 500 !important;
+    letter-spacing: -0.01em !important; color: var(--color-ink, #201e1d) !important;
+  }
+  .hp-nav a[aria-current], .ci-nav a[aria-current], .c-nav a[aria-current], .sm-nav a[aria-current], .s-nav a[aria-current], .fp-nav a[aria-current], .mwh nav a[aria-current] { font-weight: 500 !important; }
+  .hp-nav a[aria-current]::after, .ci-nav a[aria-current]::after, .c-nav a[aria-current]::after, .sm-nav a[aria-current]::after, .s-nav a[aria-current]::after, .fp-nav a[aria-current]::after, .mwh nav a[aria-current]::after {
+    content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--data-700, #817FCC); margin-left: 14px; flex: 0 0 auto;
+  }
+  html.sh-menu-on .sh-menu, html.sh-menu-on .hp-logo, html.sh-menu-on .ci-logo, html.sh-menu-on .c-logo, html.sh-menu-on .sm-logo,
+  html.sh-menu-on .s-logo, html.sh-menu-on .fp-logo, html.sh-menu-on .mwh-logo { position: relative !important; z-index: 61 !important; }
+  .sh-menu[aria-expanded="true"] { font-weight: 400; }
+  html.sh-menu-on, html.sh-menu-on body { overflow: hidden; }
+  html.sh-menu-on .mv-switch { display: none; }
+  /* the last and next reading are not what a phone reader came for (27 Oct, Seb): off the phone header, the desktop keeps them */
+  .hp-clock { display: none !important; }
+}
+@keyframes shSheet { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }

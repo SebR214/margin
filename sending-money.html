@@ -87,6 +87,22 @@
     .rt-v{ text-align:right; white-space:nowrap; }
     .rt td::before{ white-space:normal; }
   }
+  /* a phone, 27 Oct (Seb: "text coming at you from the left and the right"): each route reads top to bottom. The name,
+     then its four figures in two columns, each label above its number, everything left aligned. */
+  @media (max-width:620px){
+    #smTable{ margin-top:32px !important; padding-top:0 !important; }
+    .rt thead{ display:none !important; }
+    .rt tr{ display:grid !important; grid-template-columns:1fr 1fr; column-gap:20px; row-gap:4px; padding:20px 0 !important; }
+    .rt td{ display:grid !important; grid-row:span 2; grid-template-rows:subgrid; padding:0 !important; text-align:left !important; align-content:start; }
+    .rt td:nth-child(4), .rt td:nth-child(5){ padding-top:14px !important; }
+    .rt td::before{ display:block; max-width:none !important; font-size:14px; line-height:1.3; align-self:end; }
+    .rt td.rt-nm{ display:block !important; grid-column:1 / -1; grid-row:auto; padding:0 0 10px !important; font-size:18px; }
+    .rt td.rt-wait{ display:block !important; grid-column:2; grid-row:auto; }
+    .rt-v{ text-align:left !important; white-space:normal !important; font-size:17px; }
+    .rt td small{ font-size:14px; }
+    .rt tr.rt-on td{ background:none; }
+    .rt tr.rt-on{ box-shadow:inset 3px 0 0 var(--data-700); padding-left:14px !important; }
+  }
 
   /* the picked route, under the table (brought back 22 Oct from the 21 Oct page) */
   :root{ --sm-peri-deep:var(--data-700); --sm-peri-soft:var(--data-400); }
@@ -145,6 +161,7 @@
   .sm-chart .sm-area{ fill:var(--data-700); fill-opacity:.14; stroke:none; }
   .sm-chart .sm-line{ fill:none; stroke:var(--data-700); stroke-width:1.5; stroke-linejoin:round; stroke-linecap:round; }
   .sm-chart .sm-dot{ fill:var(--data-700); }
+  .sm-chart .sm-gapline{ stroke-dasharray:2 3; stroke-width:1; opacity:.7; }
   .sm-periods{ display:flex; width:max-content; gap:2px; margin:12px auto 0; padding:3px; border-radius:999px; background:var(--color-neutral-100); }
   .sm-periods button{ font:inherit; font-size:14px; font-weight:500; line-height:1; padding:7px 12px; border:0; border-radius:999px; background:transparent; color:var(--color-neutral-700); cursor:pointer; }
   .sm-periods button[aria-pressed="true"]{ background:var(--color-bg,#fff); color:var(--color-ink); box-shadow:0 1px 2px rgba(0,0,0,.08); }
@@ -171,17 +188,17 @@
     #smRoutes{ display:none; }
   }
 </style>
-<link rel="stylesheet" href="./css/site_head.css?v=4">
-<link rel="stylesheet" href="./css/site_page.css?v=6">
+<link rel="stylesheet" href="./css/site_head.css?v=5">
+<link rel="stylesheet" href="./css/site_page.css?v=7">
 <link rel="alternate" type="text/markdown" href="./sending-money.md">
 <link rel="stylesheet" href="./css/machine_view.css?v=3">
 </head>
 <body class="sm-body">
 <div id="app"></div>
 <script src="./js/route.js?v=4"></script>
-<script src="./js/route_detail.js?v=2"></script>
+<script src="./js/route_detail.js?v=3"></script>
 <script src="./js/tooltip.js"></script>
-<script src="./js/site_head.js?v=3"></script>
+<script src="./js/site_head.js?v=4"></script>
 <script src="./js/machine_view.js?v=3" defer></script>
 </body>
 </html>

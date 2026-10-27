@@ -117,11 +117,15 @@
     .ci-pills { flex-wrap: wrap; }
     .ci-pills::-webkit-scrollbar { display: none; }
     .ci-pill {flex: none;}
+    /* the end ticks sit inside the column instead of hanging past it (27 Oct) */
+    .ci-tk[style^="left:0%"] { transform: none; }
+    .ci-tk[style^="left:100%"] { transform: translateX(-100%); }
+    .ci-money .ci-axisrow .ci-sup { grid-column: 1/-1; }
   }
   .ci-np .ci-aside + .ci-aside { margin-top: 12px; }
 </style>
-<link rel="stylesheet" href="./css/site_head.css?v=4">
-<link rel="stylesheet" href="./css/site_page.css?v=6">
+<link rel="stylesheet" href="./css/site_head.css?v=5">
+<link rel="stylesheet" href="./css/site_page.css?v=7">
 <link rel="alternate" type="text/markdown" href="./countries.md">
 <link rel="stylesheet" href="./css/machine_view.css?v=3">
 </head>
@@ -131,7 +135,7 @@
 <script src="./js/tooltip.js"></script>
 <script src="./js/countries_page.js?v=3"></script>
 <script src="./js/footer.js"></script>
-<script src="./js/site_head.js?v=3"></script>
+<script src="./js/site_head.js?v=4"></script>
 <script src="./js/machine_view.js?v=3" defer></script>
 </body>
 </html>
