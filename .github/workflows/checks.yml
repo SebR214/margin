@@ -143,6 +143,7 @@ jobs:
           python3 tools/job_shape.py --self-test
           python3 tools/researcher.py --self-test
           python3 tools/scorecard.py --self-test
+          python3 tools/outage_email.py --self-test
 
       - name: Every test an agent job added (tests/agent_*.py)
         run: python3 tools/run_agent_tests.py

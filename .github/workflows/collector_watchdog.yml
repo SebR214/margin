@@ -56,6 +56,8 @@ permissions:
   contents: read
   # actions: write is what lets a run dispatch its successor.
   actions: write
+  # issues: write lets tools/outage_email.py comment on the "Collection down" issue, which emails Seb (27 Oct).
+  issues: write
 
 jobs:
   watchdog:
@@ -153,6 +155,16 @@ jobs:
               --body-file "$RUNNER_TEMP/alert_body.md" \
               --label collector-down --priority 1 --role product
           fi
+
+      # 27 Oct, Seb: the Linear issue above is read by nobody. One email per outage of 2 hours or more, keyed by the last sample
+      # commit, so the same outage is never sent twice (tools/outage_email.py).
+      - name: Email Seb if collection is down 2 hours or more
+        if: steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 tools/outage_email.py
 
       - name: Close the alert if recovered
         if: steps.health.outputs.healthy == 'true'

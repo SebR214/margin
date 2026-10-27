@@ -116,7 +116,26 @@ def ready(text):
     return out
 
 
-def build(now, prs, text, spend_rows, aider_rows, researcher_rows):
+def missed_hours(seen, since, now):
+    """(missed, slots, longest gap in hours) over the whole UTC hours between `since` and `now`. `seen` holds hour-truncated
+    datetimes with a collection row (data/basis.csv). The current hour is left out, since it may not have run yet."""
+    start = since.replace(minute=0, second=0, microsecond=0) + datetime.timedelta(hours=1)
+    end = now.replace(minute=0, second=0, microsecond=0)
+    slots, missed, run, longest = 0, 0, 0, 0
+    t = start
+    while t < end:
+        slots += 1
+        if t in seen:
+            run = 0
+        else:
+            missed += 1
+            run += 1
+            longest = max(longest, run)
+        t += datetime.timedelta(hours=1)
+    return missed, slots, longest
+
+
+def build(now, prs, text, spend_rows, aider_rows, researcher_rows, hours_seen=None):
     since = now - datetime.timedelta(days=7)
     month0 = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     who = proposers(text)
@@ -134,6 +153,11 @@ def build(now, prs, text, spend_rows, aider_rows, researcher_rows):
     lines.append("Week: %s to %s UTC." % (since.strftime("%d %b %H:%M"), now.strftime("%d %b %H:%M")))
     for p in week:
         lines.append("- [#%d](%s) job %s, proposed by %s: %s" % (p["number"], p["url"], p["job"] or "?", p["by"], p["title"][:90]))
+    if hours_seen is not None:
+        mh, slots, longest = missed_hours(hours_seen, since, now)
+        lines.append("")
+        lines.append(("**Collection missed %d of %d hours this week** (longest gap %d hours). Missed hours can't be filled later."
+                      % (mh, slots, longest)) if mh else "Collection ran every hour this week (%d of %d)." % (slots, slots))
     a = attempts(aider_rows, since)
     lines.append("")
     lines.append("Builder runs this week: " + (", ".join("%s %d" % (k, v) for k, v in sorted(a.items())) if a else "none") + ".")
@@ -173,8 +197,13 @@ def main(argv):
         return self_test()
     now = datetime.datetime.now(datetime.timezone.utc)
     prs = gh("pulls?state=closed&sort=updated&direction=desc&per_page=100")
+    import check_delivery
+    seen = set()
+    for day, hours in check_delivery.hours_by_day(os.path.join(ROOT, "data", "basis.csv")).items():
+        for h in hours:
+            seen.add(datetime.datetime(day.year, day.month, day.day, h, tzinfo=datetime.timezone.utc))
     body, _ = build(now, prs, open(backlog.PATH).read(), read_csv("data/agent_spend.csv"), read_csv("data/aider_log.csv"),
-                    read_csv("data/researcher_log.csv"))
+                    read_csv("data/researcher_log.csv"), seen)
     print(body)
     if "--print" in argv:
         return 0
@@ -218,6 +247,13 @@ def self_test():
     late, _ = build(datetime.datetime(2026, 11, 9, tzinfo=datetime.timezone.utc), prs, text, [], [], [])
     assert "Missed, switch track A off" in late, late
     assert week_key(now) == "2026-W44"
+    h = lambda d, hh: datetime.datetime(2026, 10, d, hh, tzinfo=datetime.timezone.utc)  # noqa: E731
+    full = {h(25, 13) + datetime.timedelta(hours=i) for i in range(168)}
+    assert missed_hours(full, now - datetime.timedelta(days=7), now) == (0, 167, 0)
+    holes = full - {h(30, 1), h(30, 2), h(30, 3), h(31, 9)}
+    assert missed_hours(holes, now - datetime.timedelta(days=7), now) == (4, 167, 3)
+    b2, _ = build(now, [], text, [], [], [], holes)
+    assert "**Collection missed 4 of 167 hours this week** (longest gap 3 hours)" in b2, b2
     print("scorecard self-test: ok")
     return 0
 
