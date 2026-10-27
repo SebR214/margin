@@ -160,3 +160,62 @@ Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/j
     files: `tools/diagnose_disagree.py` `data/disagree_diagnosis.json` `tests/agent_diagnose_disagree.py`
     context: `data/source_pairs.json` `data/p2p_okx.csv` `data/p2p_sides.csv` `data/p2p_ads.csv`
     done when: tools/diagnose_disagree.py reads the pairs with flag true in data/source_pairs.json and, for each pair, the latest 168 hours of Binance and OKX rows. It writes data/disagree_diagnosis.json with, per pair: which side (buy or sell) carries the gap, the median ad count per venue, the median minimum order size per venue where the column exists, and one label chosen by code: 'one side thin' (fewer than 10 ads on either venue), 'one side moves alone' (the gap sits on the same side in over 80% of hours), or 'unexplained'. tests/agent_diagnose_disagree.py builds inline rows for a fake pair XXX. Binance sell 100 and OKX sell 120 for 10 hours, with 20 ads each, must give 'one side moves alone' on the sell side and gap 20.0. The same pair with OKX at 4 ads must give 'one side thin'. A pair with 5 hours of rows must give 'not enough evidence'. The test also runs the script on the real CSVs and checks that every number in the JSON is a finite float.
+- [ ] 21. Bybit P2P collector for DZD and SDG, the two markets where only Binance P2P is seen
+  - [ ] 21a. Bybit P2P collector for DZD and SDG, the two markets where only Binance P2P is seen
+    track: aider
+    proposed: researcher 2026-10-27 (gap: one_source: DZD (sources_seen only binance_p2p); one_source: SDG (sources_seen only binance_p2p))
+    files: `collector_bybit_p2p.py` `data/p2p_bybit.csv` `tests/agent_bybit_p2p.py` `.github/workflows/collect.yml`
+    context: `collector_p2p_okx.py` `collector_venue_common.py` `.github/workflows/collect.yml`
+    rows: `data/p2p_bybit.csv`
+    done when: collector_bybit_p2p.py reads the currency list from the one_source entries in data/gap_report.json, reads the public Bybit P2P ad list with no key, and adds one hourly collect.yml step. First hourly rows land in data/p2p_bybit.csv. tests/agent_bybit_p2p.py runs the selftest on an inline sample of 3 sell ads for DZD priced 100, 102 and 104 and checks the best price is 100, the median is 102 and the ad count is 3. An empty ad list must write no row and must not raise.
+- [ ] 22. Quidax USDT/NGN spot collector as a second Nigeria source
+  - [ ] 22a. Quidax USDT/NGN spot collector as a second Nigeria source
+    track: aider
+    proposed: researcher 2026-10-27 (gap: one_source: NGN (sources_behind_price only Luno))
+    files: `collector_quidax_ngn.py` `data/quidax_ngn.csv` `tests/agent_quidax_ngn.py` `.github/workflows/collect.yml`
+    context: `collector_stable_venues.py` `collector_venue_common.py` `.github/workflows/collect.yml`
+    rows: `data/quidax_ngn.csv`
+    done when: collector_quidax_ngn.py reads the public Quidax usdtngn ticker with no key and adds one hourly collect.yml step. First hourly rows land in data/quidax_ngn.csv with columns for time, bid, ask and last. tests/agent_quidax_ngn.py runs the selftest on an inline ticker sample with buy 1500 and sell 1510 and checks the row has bid 1500 and ask 1510. A sample with a missing sell field must write no row and must not raise.
+- [ ] 23. Satang Pro USDT/THB collector as a second Thailand exchange source
+  - [ ] 23a. Satang Pro USDT/THB collector as a second Thailand exchange source
+    track: aider
+    proposed: researcher 2026-10-27 (gap: one_source: THB (sources_behind_price only Bitkub))
+    files: `collector_satang_thb.py` `data/satang_thb.csv` `tests/agent_satang_thb.py` `.github/workflows/collect.yml`
+    context: `collector_stable_venues.py` `collector_venue_common.py` `.github/workflows/collect.yml`
+    rows: `data/satang_thb.csv`
+    done when: collector_satang_thb.py reads the public Satang Pro usdt_thb order book or ticker with no key and adds one hourly collect.yml step. First hourly rows land in data/satang_thb.csv with columns for time, bid and ask. tests/agent_satang_thb.py runs the selftest on an inline sample with best bid 32.0 and best ask 32.5 and checks the row holds exactly those two values. A sample where bid is above ask must write no row and be logged as crossed.
+- [ ] 24. Explain why seen sources are not behind the price in one-source markets
+  - [ ] 24a. Explain why seen sources are not behind the price in one-source markets
+    track: aider
+    proposed: researcher 2026-10-27 (gap: one_source: AED (sources_seen BitOasis, OKX spot (AED), binance_p2p but only binance_p2p behind the price))
+    files: `tools/one_source_reasons.py` `data/one_source_reasons.json` `tests/agent_one_source_reasons.py`
+    context: `data/gap_report.json` `data/index_latest.json` `data/source_pairs.json` `data/source_registry.json`
+    done when: tools/one_source_reasons.py reads data/gap_report.json and, for each one_source currency, lists every source seen but not behind the price with a reason taken from a stored field in data/index_latest.json, data/source_pairs.json or data/source_registry.json, or the text no stored reason. It writes data/one_source_reasons.json. tests/agent_one_source_reasons.py uses an inline fixture for AED with seen BitOasis, OKX spot (AED) and binance_p2p and behind binance_p2p, and checks BitOasis and OKX spot (AED) are listed as not behind with a reason string and binance_p2p is not listed. It also checks that a fixture with no stored fields gives the text no stored reason, and that the output has one entry per one_source currency.
+- [ ] 25. Third-source arbiter for flagged source disagreements
+  - [ ] 25a. Third-source arbiter for flagged source disagreements
+    track: aider
+    proposed: researcher 2026-10-27 (gap: disagree: TND binance_p2p vs okx_p2p median_gap_pct 20.0 flag true)
+    files: `tools/disagree_arbiter.py` `data/disagree_arbiter.json` `tests/agent_disagree_arbiter.py`
+    context: `data/source_pairs.json` `data/disagree_diagnosis.json` `data/p2p_kucoin.csv` `data/stable_venues.csv`
+    done when: tools/disagree_arbiter.py takes each pair with flag true in the disagree list of data/gap_report.json, finds the latest price of any third source for the same currency in the stored CSVs, and writes data/disagree_arbiter.json saying which of the two it sits closer to, or the text no third source. tests/agent_disagree_arbiter.py uses an inline fixture with a at 100, b at 120 and a third source at 101 and checks the result says closer to a. It checks a third source at 119 says closer to b, and a fixture with no third source gives no third source and not a guess.
+- [ ] 26. Retest coverage check: every finding has a dated retest row
+  - [ ] 26a. Retest coverage check: every finding has a dated retest row
+    track: aider
+    proposed: researcher 2026-10-27 (gap: stale_findings: p2p_spread_signal last_retest null)
+    files: `tools/retest_coverage.py` `data/retest_coverage.json` `tests/agent_retest_coverage.py`
+    context: `data/findings.json` `data/finding_tests.csv` `data/finding_status.json`
+    done when: tools/retest_coverage.py reads every finding id in data/findings.json and counts its rows and last row date in data/finding_tests.csv. It writes data/retest_coverage.json with one entry per finding holding row count, last retest date and days since, plus a list of findings with zero rows. tests/agent_retest_coverage.py uses an inline fixture of 2 findings, one with rows on two dates and one with none, and checks the first shows count 2 with the later date as last retest and the second is in the zero-rows list. It also checks the output has one entry per finding in the fixture.
+- [ ] 27. Near-miss report for countries with no price
+  - [ ] 27a. Near-miss report for countries with no price
+    track: aider
+    proposed: researcher 2026-10-27 (gap: no_price: BWP (too few people selling to call it a price))
+    files: `tools/no_price_near_miss.py` `data/no_price_near_miss.json` `tests/agent_no_price_near_miss.py`
+    context: `data/no_price_sources.json` `data/index_latest.json` `data/p2p_sides.csv` `tools/gate_common.py`
+    done when: tools/no_price_near_miss.py reads each currency in the no_price list of data/gap_report.json, reads the stored ad-count threshold from tools/gate_common.py, and counts from data/p2p_sides.csv the sell ads each hour of the last 7 days. It writes data/no_price_near_miss.json with, per currency, the median ad count, the threshold and the number of hours at or above it. tests/agent_no_price_near_miss.py uses an inline fixture with a threshold of 10 and 4 hourly counts of 3, 8, 10 and 12 for one currency and checks the median is 9, hours at or above is 2 and the currency is marked near miss only when the median is at least half the threshold. A currency with no rows must be listed as no data.
+- [ ] 28. Daily gap history for flagged source pairs
+  - [ ] 28a. Daily gap history for flagged source pairs
+    track: aider
+    proposed: researcher 2026-10-27 (gap: disagree: LKR binance_p2p vs okx_p2p median_gap_pct 8.79 hours 553 flag true)
+    files: `tools/pair_gap_daily.py` `data/pair_gap_daily.csv` `tests/agent_pair_gap_daily.py`
+    context: `data/source_pairs.json` `tools/emit_source_pairs.py` `data/index_hourly.csv` `data/p2p_okx.csv`
+    done when: tools/pair_gap_daily.py reuses the pairing logic of tools/emit_source_pairs.py, takes the pairs with flag true in the disagree list of data/gap_report.json and writes data/pair_gap_daily.csv with one row per currency, pair and UTC day holding the median gap in percent and the hours counted. tests/agent_pair_gap_daily.py uses an inline fixture of two days with hourly prices where source a is 100 and source b is 110 on day one for 3 hours and b is 120 on day two for 2 hours, and checks day one has median gap 10.0 with 3 hours and day two has 20.0 with 2 hours. An hour where one source has no price must be skipped, not counted as zero.
