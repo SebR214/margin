@@ -1,6 +1,6 @@
 # How to read this site
 
-Prices from the 15:00 UTC hour, 27 Oct.
+Prices from the 16:00 UTC hour, 27 Oct.
 
 ## What we measure
 
@@ -22,7 +22,7 @@ We get it from local exchanges first, then brokers, then people selling to each 
 
 On 11 routes we also check what it costs to send money abroad.
 
-We compare transfer apps with sending it by stablecoin. The cost is how much less the person receiving gets than at the official rate, with every fee we can see included. This hour, sending S$5,000 to the Philippines costs S$10.05 with Airwallex, the cheapest app. Where a fee can't be seen, the route says so.
+We compare transfer apps with sending it by stablecoin. The cost is how much less the person receiving gets than at the official rate, with every fee we can see included. This hour, sending S$5,000 to the Philippines costs S$9.90 with Airwallex, the cheapest app. Where a fee can't be seen, the route says so.
 
 <https://margin.wiki/data/routes_hourly.json>
 
@@ -37,7 +37,7 @@ We compare transfer apps with sending it by stablecoin. The cost is how much les
 
 Each price on a country page links to the file it came from.
 
-A missed hour shows as a gap, never filled in.
+A missed hour shows as a blank, never filled in.
 
 Every source, and every day it answered: [Sources →](https://margin.wiki/sources.md)
 

@@ -1,75 +1,75 @@
 # People do not always pay the official rate for a dollar
 
-Prices from the 15:00 UTC hour, 27 Oct.
+Prices from the 16:00 UTC hour, 27 Oct.
 
 Where banks ration dollars, people buy stablecoins from each other and pay more.
 
 We compare what a dollar costs in 54 countries with the official rate every hour. On 11 routes we also check what it costs to send money there, by transfer app and by stablecoin, with every fee we can measure. Where a dollar costs more than the official rate, a stablecoin can be the cheaper way to send.
 
-AI agents built this site and keep it running. So far they have stored 588,928 prices from 41 sources over 1,628 hours.
+AI agents built this site and keep it running. So far they have stored 589,690 prices from 41 sources over 1,629 hours.
 
 <https://margin.wiki/data/index_latest.json>
 <https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/sources_daily.json>
 
-## This hour a dollar costs 91.9% more than the official rate in Algeria, and 8% or more in 10 countries. In 29 of 53 it is within 2%.
+## This hour a dollar costs 91.9% more than the official rate in Algeria, and 8% or more in 8 countries. In 29 of 50 it is within 2%.
 
 |  | today |
 | --- | --- |
 | [Algeria](https://margin.wiki/country/DZD.md) | +91.9% |
-| [Angola](https://margin.wiki/country/AOA.md) | +29.1% |
-| [Syria](https://margin.wiki/country/SYP.md) | +18.7% |
-| [Mozambique](https://margin.wiki/country/MZN.md) | +17.6% |
-| [Venezuela](https://margin.wiki/country/VES.md) | +16.3% |
-| [Tunisia](https://margin.wiki/country/TND.md) | +15.5% |
+| [Angola](https://margin.wiki/country/AOA.md) | +28.8% |
+| [Syria](https://margin.wiki/country/SYP.md) | +19.0% |
+| [Tunisia](https://margin.wiki/country/TND.md) | +17.0% |
+| [Venezuela](https://margin.wiki/country/VES.md) | +16.2% |
 | [Iraq](https://margin.wiki/country/IQD.md) | +12.2% |
-| [South Africa](https://margin.wiki/country/ZAR.md) | +9.2% |
+| [South Africa](https://margin.wiki/country/ZAR.md) | +9.1% |
 | [Argentina](https://margin.wiki/country/ARS.md) | +8.5% |
-| [Morocco](https://margin.wiki/country/MAD.md) | +8.1% |
+| [Morocco](https://margin.wiki/country/MAD.md) | +7.7% |
 | [Central African CFA](https://margin.wiki/country/XAF.md) | +6.5% |
-| [India](https://margin.wiki/country/INR.md) | +6.2% |
-| [West African CFA](https://margin.wiki/country/XOF.md) | +4.4% |
-| [Qatar](https://margin.wiki/country/QAR.md) | +4.2% |
-| [Kazakhstan](https://margin.wiki/country/KZT.md) | +4.1% |
-| [Bangladesh](https://margin.wiki/country/BDT.md) | +3.8% |
-| [Uganda](https://margin.wiki/country/UGX.md) | +3.8% |
+| [India](https://margin.wiki/country/INR.md) | +6.3% |
+| [Uganda](https://margin.wiki/country/UGX.md) | +4.6% |
+| [West African CFA](https://margin.wiki/country/XOF.md) | +4.5% |
+| [Qatar](https://margin.wiki/country/QAR.md) | +4.3% |
 | [Bolivia](https://margin.wiki/country/BOB.md) | +3.7% |
-| [Mongolia](https://margin.wiki/country/MNT.md) | +3.6% |
+| [Kazakhstan](https://margin.wiki/country/KZT.md) | +3.6% |
 | [Pakistan](https://margin.wiki/country/PKR.md) | +3.3% |
-| [Ukraine](https://margin.wiki/country/UAH.md) | +3.3% |
-| [Saudi Arabia](https://margin.wiki/country/SAR.md) | +2.4% |
+| [Ukraine](https://margin.wiki/country/UAH.md) | +3.2% |
+| [Saudi Arabia](https://margin.wiki/country/SAR.md) | +2.5% |
 | [Sri Lanka](https://margin.wiki/country/LKR.md) | +2.4% |
 | [Laos](https://margin.wiki/country/LAK.md) | +2.3% |
 | [Cambodia](https://margin.wiki/country/KHR.md) | +2.0% |
+| [Zambia](https://margin.wiki/country/ZMW.md) | +2.0% |
 | [Nigeria](https://margin.wiki/country/NGN.md) | +1.9% |
-| [Zambia](https://margin.wiki/country/ZMW.md) | +1.9% |
-| [Peru](https://margin.wiki/country/PEN.md) | +1.7% |
+| [Peru](https://margin.wiki/country/PEN.md) | +1.6% |
 | [Kuwait](https://margin.wiki/country/KWD.md) | +1.3% |
 | [Jordan](https://margin.wiki/country/JOD.md) | +1.2% |
 | [Vietnam](https://margin.wiki/country/VND.md) | +1.2% |
-| [Lebanon](https://margin.wiki/country/LBP.md) | +1.0% |
+| [Lebanon](https://margin.wiki/country/LBP.md) | +1.1% |
 | [Azerbaijan](https://margin.wiki/country/AZN.md) | +0.8% |
 | [Rwanda](https://margin.wiki/country/RWF.md) | +0.8% |
-| [South Korea](https://margin.wiki/country/KRW.md) | +0.7% |
 | [Tanzania](https://margin.wiki/country/TZS.md) | +0.7% |
+| [South Korea](https://margin.wiki/country/KRW.md) | +0.6% |
 | [United Arab Emirates](https://margin.wiki/country/AED.md) | +0.6% |
-| [Kenya](https://margin.wiki/country/KES.md) | +0.3% |
+| [Kenya](https://margin.wiki/country/KES.md) | +0.4% |
+| [New Zealand](https://margin.wiki/country/NZD.md) | +0.2% |
 | [Colombia](https://margin.wiki/country/COP.md) | +0.1% |
-| [New Zealand](https://margin.wiki/country/NZD.md) | +0.1% |
-| [Chile](https://margin.wiki/country/CLP.md) | 0.0% |
-| [Egypt](https://margin.wiki/country/EGP.md) | −0.1% |
+| [Mexico](https://margin.wiki/country/MXN.md) | +0.1% |
+| [Egypt](https://margin.wiki/country/EGP.md) | 0.0% |
+| [Australia](https://margin.wiki/country/AUD.md) | −0.1% |
+| [Chile](https://margin.wiki/country/CLP.md) | −0.1% |
 | [Georgia](https://margin.wiki/country/GEL.md) | −0.1% |
 | [Indonesia](https://margin.wiki/country/IDR.md) | −0.1% |
-| [Mexico](https://margin.wiki/country/MXN.md) | −0.1% |
-| [Australia](https://margin.wiki/country/AUD.md) | −0.2% |
 | [Singapore](https://margin.wiki/country/SGD.md) | −0.2% |
+| [Turkey](https://margin.wiki/country/TRY.md) | −0.2% |
+| [Philippines](https://margin.wiki/country/PHP.md) | −0.2% |
 | [Thailand](https://margin.wiki/country/THB.md) | −0.3% |
-| [Turkey](https://margin.wiki/country/TRY.md) | −0.3% |
-| [Philippines](https://margin.wiki/country/PHP.md) | −0.3% |
 | [Armenia](https://margin.wiki/country/AMD.md) | −0.4% |
 | [Taiwan](https://margin.wiki/country/TWD.md) | −0.4% |
-| [Brazil](https://margin.wiki/country/BRL.md) | −1.8% |
-| [Sudan](https://margin.wiki/country/SDG.md) | +2,163% |
+| [Brazil](https://margin.wiki/country/BRL.md) | −1.7% |
+| [Mozambique](https://margin.wiki/country/MZN.md) | no price |
+| [Mongolia](https://margin.wiki/country/MNT.md) | no price |
+| [Bangladesh](https://margin.wiki/country/BDT.md) | no price |
+| [Sudan](https://margin.wiki/country/SDG.md) | +2,168% |
 
 Sudan (SDG) is shown but not ranked. Its government stopped updating the official rate, so any gap would measure that freeze, not what people pay.
 
@@ -89,11 +89,11 @@ Argentina, December 2023: a dollar cost 151% more on exchanges than at the offic
 | [Argentina Dec 2015](https://margin.wiki/country/ARS.md) | Gap before: 54.4% | 74% of the gap closed |
 | [Argentina Jan 2014](https://margin.wiki/country/ARS.md) | Gap before: 64.2% | 26% of the gap closed |
 
-Reported, not seen by us. The gap before is the typical exchange price in the second week before the jump against the official rate. The new official rate is its typical value in the third week after it.
+From exchange history, not our own checks. The gap before is the typical exchange price in the second week before the jump against the official rate. The new official rate is its typical value in the third week after it.
 
 ## What we found
 
-How much of the dollar premium survives the trip
+A stablecoin only beats transfer apps where dollars are hard to get
 
 →
 

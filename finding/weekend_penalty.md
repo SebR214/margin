@@ -1,6 +1,6 @@
 # Some apps charge more on Saturday, then cut back
 
-Prices from the 15:00 UTC hour, 27 Oct.
+Prices from the 16:00 UTC hour, 27 Oct.
 
 A rise counts when an app charged more on a Saturday and came back down by Tuesday. If your transfer can wait, a weekday can cost less.
 
@@ -14,7 +14,7 @@ First published 5 Oct 2026. The number updates every hour.
 
 Each bar is one Saturday since our record began.
 
-## These rows back the number
+## The numbers behind it
 
 Each row is one route: its Saturday rises that came back, the cuts that undid them, and how many Saturdays we checked.
 
@@ -28,11 +28,11 @@ Each row is one route: its Saturday rises that came back, the cuts that undid th
 | United States to India | 3 cuts that undid them, 4 Saturdays checked. | 3 Saturday rises that came back |
 | United States to Nigeria | 2 cuts that undid them, 4 Saturdays checked. | 2 Saturday rises that came back |
 | United States to the Philippines | 1 cut that undid it, 1 Saturday checked. | 1 Saturday rises that came back |
-| United States to ARS | 0 cuts that undid them, 1 Saturday checked. | 0 Saturday rises that came back |
+| United States to Argentina | 0 cuts that undid them, 1 Saturday checked. | 0 Saturday rises that came back |
 | Australia to India | 0 cuts that undid them, 0 Saturdays checked. | 0 Saturday rises that came back |
-| United States to BRL | 0 cuts that undid them, 0 Saturdays checked. | 0 Saturday rises that came back |
+| United States to Brazil | 0 cuts that undid them, 0 Saturdays checked. | 0 Saturday rises that came back |
 
-## This is how we built it
+## How we worked it out
 
 We start from the confirmed price changes. A rise counts when an app raised its price on a Saturday. The same app must then cut its price on the same route by the Tuesday after. Both moves must be in our data. We never assume a return from the rise alone.
 
@@ -44,13 +44,13 @@ tools/emit_pricechange_receipts.py
 
 tools/emit_findings.py
 
-## Read the number with these limits
+## What this doesn't tell you
 
 A rise counts once, however many amounts it showed up at. The number does not say how much more a Saturday cost. A route with few Saturdays checked has had little chance to show this.
 
-## Check every row yourself
+## Download the data
 
-The file lists every row behind the number, one line per hour or per price change. The table above summarises them.
+One line per hour or per price change.
 
 findings_hours_weekend_penalty.csv
 
@@ -58,11 +58,11 @@ findings_hours_weekend_penalty.csv
 
 <https://margin.wiki/data/findings_hours_weekend_penalty.csv>
 
-## We also found these
+## More findings
 
 |  |  |  |
 | --- | --- | --- |
 | 01 | Transfer apps keep changing their prices | 1,503 price changes since 12 Aug |
-| 03 | Stablecoins beat the cheapest app only above about S$13.5M a month, a figure worked out from the exchanges' published fee tiers | S$13.5M a month traded on the exchange |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,600 hours a stablecoin was cheapest |
+| 03 | From Singapore to the Philippines, a stablecoin only beats the apps if you send over S$13.5M a month | S$13.5M a month traded on the exchange |
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,601 hours a stablecoin was cheapest |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |

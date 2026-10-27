@@ -1,6 +1,6 @@
 # Transfer apps keep changing their prices
 
-Prices from the 15:00 UTC hour, 27 Oct.
+Prices from the 16:00 UTC hour, 27 Oct.
 
 Transfer apps raise and cut what they charge to send money. The cheapest app when you compare may not be the cheapest when you send.
 
@@ -14,7 +14,7 @@ First published 5 Oct 2026. The number updates every hour.
 
 Bars above the line are price rises, bars below are cuts, counted by day.
 
-## These rows back the number
+## The numbers behind it
 
 Each row is one route: its confirmed changes, how many were rises or cuts, and how many apps moved.
 
@@ -28,13 +28,13 @@ Each row is one route: its confirmed changes, how many were rises or cuts, and h
 | United States to India | 54 rises, 50 cuts, 9 apps that changed price. First change 30 Sep, latest change 24 Oct. | 104 price changes |
 | Singapore to India | 34 rises, 65 cuts, 4 apps that changed price. First change 2 Oct, latest change 24 Oct. | 99 price changes |
 | Australia to India | 5 rises, 6 cuts, 2 apps that changed price. First change 25 Oct, latest change 26 Oct. | 11 price changes |
-| United States to BRL | 4 rises, 5 cuts, 3 apps that changed price. First change 25 Oct, latest change 26 Oct. | 9 price changes |
+| United States to Brazil | 4 rises, 5 cuts, 3 apps that changed price. First change 25 Oct, latest change 26 Oct. | 9 price changes |
 | United States to the Philippines | 3 rises, 4 cuts, 2 apps that changed price. First change 23 Oct, latest change 26 Oct. | 7 price changes |
-| United States to ARS | 2 rises, 4 cuts, 1 apps that changed price. First change 23 Oct, latest change 25 Oct. | 6 price changes |
+| United States to Argentina | 2 rises, 4 cuts, 1 app that changed price. First change 23 Oct, latest change 25 Oct. | 6 price changes |
 
-## This is how we built it
+## How we worked it out
 
-We record each app's cost every hour, for each amount sent, against the real exchange rate. A change counts only when one app's daily cost moved against every other app on the same route. It must move the same way, on the same day, by more than a small set amount. Moves that every app shares come from the exchange rate and never count. Each day needs several hourly readings, and a day is judged only once it has ended.
+We record each app's cost every hour, for each amount sent, against the official rate. A change counts only when one app's daily cost moved against every other app on the same route. It must move the same way, on the same day, by more than a small set amount. Moves that every app shares come from the exchange rate and never count. Each day needs several hourly readings, and a day is judged only once it has ended.
 
 The code that works it out, open for anyone to read:
 
@@ -44,13 +44,13 @@ tools/emit_pricechange_receipts.py
 
 tools/emit_findings.py
 
-## Read the number with these limits
+## What this doesn't tell you
 
 Each amount sent counts on its own. An app that changes its price at several amounts counts once for each. The number does not say how big any change was. It covers only the routes and apps we check, from the day each was added.
 
-## Check every row yourself
+## Download the data
 
-The file lists every row behind the number, one line per hour or per price change. The table above summarises them.
+One line per hour or per price change.
 
 findings_hours_price_changes.csv
 
@@ -58,11 +58,11 @@ findings_hours_price_changes.csv
 
 <https://margin.wiki/data/findings_hours_price_changes.csv>
 
-## We also found these
+## More findings
 
 |  |  |  |
 | --- | --- | --- |
 | 02 | Some apps charge more on Saturday, then cut back | 51 Saturday rises that came back |
-| 03 | Stablecoins beat the cheapest app only above about S$13.5M a month, a figure worked out from the exchanges' published fee tiers | S$13.5M a month traded on the exchange |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,600 hours a stablecoin was cheapest |
+| 03 | From Singapore to the Philippines, a stablecoin only beats the apps if you send over S$13.5M a month | S$13.5M a month traded on the exchange |
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,601 hours a stablecoin was cheapest |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |

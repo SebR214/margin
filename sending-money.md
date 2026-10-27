@@ -1,6 +1,6 @@
 # A stablecoin only beats transfer apps where dollars are hard to get
 
-Prices from the 15:00 UTC hour, 27 Oct.
+Prices from the 16:00 UTC hour, 27 Oct.
 
 In Argentina, India and Nigeria, dollars are hard to get, so people pay more than the official rate for one. Send money there as a stablecoin and the person you send to can sell it at that higher price. They end up with more than any transfer app gives them.
 
@@ -29,11 +29,11 @@ United States to Argentina is checked at US$200 and US$5,000 instead, the sizes 
 
 <https://margin.wiki/data/routes_table.json>
 
-## Sending S$1,000 to the Philippines costs S$2.01 with Airwallex and S$9.43 with a stablecoin
+## Sending S$1,000 to the Philippines costs S$1.98 with Airwallex and S$8.82 with a stablecoin
 
-At this amount, a stablecoin was the cheaper way in 1 of the 1,600 hours checked since 11 August.
+At this amount, a stablecoin was the cheaper way in 1 of the 1,601 hours checked since 11 August.
 
-Official rate from 00:02 UTC
+Official rate as of 00:02 UTC
 
 ## What each way costs this hour, at S$1,000
 
@@ -41,20 +41,20 @@ Cost is what the person receiving loses against the official rate. Every fee we 
 
 Cheapest app Airwallex this hour
 
-S$2.01 0.20%
+S$1.98 0.20%
 
-Stablecoin a cheaper stablecoin route this hour
+Stablecoin
 
-S$9.43 0.94%
+S$8.82 0.88%
 
 ### The stablecoin's cost, step by step
 
 |  |  |
 | --- | --- |
-| Deposit and buy | S$5.11 0.51% |
+| Deposit and buy | S$5.43 0.54% |
 | Network fee | S$1.28 0.13% |
-| Sell and withdraw | S$3.04 0.30% |
-| All in | S$9.43 0.94% |
+| Sell and withdraw | S$2.11 0.21% |
+| All in | S$8.82 0.88% |
 
 ## Which way was cheaper, day by day
 

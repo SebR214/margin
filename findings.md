@@ -1,6 +1,6 @@
 # What the prices we store every hour show
 
-Prices from the 15:00 UTC hour, 27 Oct.
+Prices from the 16:00 UTC hour, 27 Oct.
 
 Each page shows the evidence, how it was worked out, and a file you can download.
 
@@ -32,7 +32,7 @@ First published 5 Oct 2026. The number updates every hour.
 <https://margin.wiki/data/findings_first_published.json>
 <https://margin.wiki/data/claims_status.json>
 
-## [Stablecoins beat the cheapest app only above about S$13.5M a month, a figure worked out from the exchanges' published fee tiers](https://margin.wiki/finding/volume_crossover.md)
+## [From Singapore to the Philippines, a stablecoin only beats the apps if you send over S$13.5M a month](https://margin.wiki/finding/volume_crossover.md)
 
 First published 5 Oct 2026. The number updates every hour.
 
@@ -48,7 +48,7 @@ S$13.5M a month traded on the exchange
 
 First published 5 Oct 2026. The number updates every hour.
 
-3 of 1,600 hours a stablecoin was cheapest
+3 of 1,601 hours a stablecoin was cheapest
 
 05
 

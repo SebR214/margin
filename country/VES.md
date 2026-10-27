@@ -1,33 +1,33 @@
-# In Venezuela a dollar costs 16.3% more than the official rate
+# In Venezuela a dollar costs 16.2% more than the official rate
 
-Prices from the 15:00 UTC hour, 27 Oct.
+Prices from the 16:00 UTC hour, 27 Oct.
 
-The official rate is 887.3 VES per dollar. On the exchanges where people in Venezuela trade stablecoins, one costs 1,032 VES. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 887.3 VES per dollar. On the exchanges where people in Venezuela trade stablecoins, one costs 1,031 VES. A stablecoin is a coin that stays worth one US dollar.
 
-Between people on Binance and OKX, a dollar costs 1,006 VES, 13.4% over the official rate.
+From people selling to each other on Binance and OKX, a dollar costs 1,004 VES, 13.2% more than the official rate.
 
-For US$100, people pay 103,177 VES. The official rate says 88,730 VES.
+For US$100, people pay 103,139 VES. The official rate says 88,730 VES.
 
-One source
+Only 1 source
 
-Prices from the 15:00 UTC hour, 27 Oct
+Prices from the 16:00 UTC hour, 27 Oct
 
-Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
+You could buy at least US$5,000 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/VES.json>
 
-## How the difference moved, day by day
+## How the gap moved, day by day
 
 One point per day, the price we published that day. 0% is the official rate.
 
-Today's difference is typical of the record since 2 Sep 2026, counting only our own readings. On most days it sits between 14.4% and 18.9%.
+Today's gap is normal for here since 2 Sep 2026, in our own checks. On most days the gap is between 14.4% and 18.9%.
 
-On 6 Oct this number started coming from a broker quote instead of person-to-person ads.
+From 6 Oct this price comes from a broker instead of people selling to each other, so it can jump that day.
 
 ## Where this price comes from
 
-This price is set from a broker quote. A country's price comes from exchange order books first, then broker quotes, then offers between people on Binance and OKX.
+We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from a broker.
 
 CriptoYa · Saldo
 
-1,032 VES +16.3%
+1,031 VES +16.2%
