@@ -337,6 +337,12 @@ jobs:
         continue-on-error: true
         run: python3 collector_p2p_kucoin.py
 
+      - name: Collect Quidax USDT/NGN second Nigeria source (BACKLOG 22)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
+        # data/quidax_ngn.csv: the public Quidax usdtngn ticker (bid, ask, last), one row an hour. Nothing reads it. A failed pull writes no row.
+        run: python3 collector_quidax_ngn.py
+
       - name: Check the official rates for a broken series (SEB-310)
         if: always() && steps.needed.outputs.proceed == 'true'
         continue-on-error: true
@@ -814,6 +820,10 @@ jobs:
           done
           # First venues for countries with no price (SEB-301, BACKLOG 17): four new CSVs, their own loop so no existing line is edited.
           for f in data/zar_valr.csv data/zar_luno.csv data/p2p_kucoin.csv; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          # Quidax USDT/NGN (BACKLOG 22): a new CSV, its own loop so no existing line is edited.
+          for f in data/quidax_ngn.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Event records (SEB-311): one JSON file per event, a new one on its first day. A separate loop for the same reason.
