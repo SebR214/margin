@@ -1,0 +1,139 @@
+{
+  "corridor": "USD->ARS",
+  "crypto_hour_utc": "2026-10-27T14:00:00+00:00",
+  "hour_utc": "2026-10-27T14",
+  "panel_hour_utc": "2026-10-27T14:00:00+00:00",
+  "rows": [
+    {
+      "computation": {
+        "formula": null,
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": "This route has its own full step-by-step receipt -- see the link next to it on the page.",
+        "result_pct": -6.9639
+      },
+      "cost_pct": -6.9639,
+      "costs": "US$-348.19",
+      "evidence": {
+        "collected_at": "2026-10-27T14:00:59.948849+00:00",
+        "meaning": "Priced on real exchanges this hour, every fee included.",
+        "status": "measured",
+        "venues_summary": null
+      },
+      "provider": "Sending it with stablecoins",
+      "rank": 1,
+      "source": "measured",
+      "source_files": [
+        "data/samples.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 0.5984
+      },
+      "cost_pct": 0.5984,
+      "costs": "US$29.92",
+      "evidence": {
+        "collected_at": "2026-10-27T14:00:59.948849+00:00",
+        "landed": 7656285.0,
+        "meaning": "A public price comparison service quotes Instarem: this amount lands 7656285.0 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Instarem",
+      "rank": 2,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdars.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
+        "note": "This is Airwallex's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
+        "result_pct": 0.645
+      },
+      "cost_pct": 0.645,
+      "costs": "US$32.25",
+      "evidence": {
+        "collected_at": "2026-10-27T14:07:33.554177+00:00",
+        "fee": 0.0,
+        "meaning": "Airwallex's own published quote: at a rate of 1530.538492, with a stated fee of 0.0, sending this amount lands 7652692.46.",
+        "provider_site": "airwallex.com",
+        "rate": 1530.538492,
+        "received": 7652692.46,
+        "status": "own"
+      },
+      "provider": "Airwallex",
+      "rank": 3,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 1.7692
+      },
+      "cost_pct": 1.7692,
+      "costs": "US$88.46",
+      "evidence": {
+        "collected_at": "2026-10-27T14:00:59.948849+00:00",
+        "landed": 7566106.41,
+        "meaning": "A public price comparison service quotes Wise: this amount lands 7566106.41 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-10-27T14:07:33.554177+00:00",
+          "fee": 84.55,
+          "meaning": "Wise's own published quote: at a rate of 1539.25, with a stated fee of 84.55, sending this amount lands 7566106.41.",
+          "provider_site": "wise.com",
+          "rate": 1539.25,
+          "received": 7566106.41
+        },
+        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Wise",
+      "rank": 4,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers_usdars.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 3.0036
+      },
+      "cost_pct": 3.0036,
+      "costs": "US$150.18",
+      "evidence": {
+        "collected_at": "2026-10-27T14:00:59.948849+00:00",
+        "landed": 7471024.27,
+        "meaning": "A public price comparison service quotes Xoom: this amount lands 7471024.27 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Xoom",
+      "rank": 5,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdars.csv"
+      ]
+    }
+  ],
+  "size": 5000,
+  "size_words": "US$5,000",
+  "source_files": [
+    "data/provider_quotes.csv",
+    "data/providers_latest.json",
+    "data/providers_usdars.csv",
+    "data/samples.csv"
+  ]
+}

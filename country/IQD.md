@@ -1,12 +1,12 @@
-# In Iraq a dollar costs 12.4% more than the official rate
+# In Iraq a dollar costs 12.3% more than the official rate
 
-Prices from the 09:00 UTC hour, 27 Oct.
+Prices from the 14:00 UTC hour, 27 Oct.
 
-The official rate is 1,517.26 IQD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 1,706 IQD. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 1,517.26 IQD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 1,703 IQD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 170,572 IQD. The official rate says 151,726 IQD.
+For US$100, people pay 170,345 IQD. The official rate says 151,726 IQD.
 
-Prices from the 09:00 UTC hour, 27 Oct
+Prices from the 14:00 UTC hour, 27 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -24,11 +24,11 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 OKX, person to person
 
-1,704 IQD +12.3%
+1,700 IQD +12.0%
 
 Binance, person to person
 
-1,708 IQD +12.6%
+1,707 IQD +12.5%
 
 ## Every Iraq price links to its raw file
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 27 Oct, 14:06 UTC | OKX, person to person | 1,700 IQD | +12.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 27 Oct, 14:01 UTC | Binance, person to person | 1,707 IQD | +12.5% | 10 of 64 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 09:21 UTC | OKX, person to person | 1,704 IQD | +12.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 27 Oct, 09:17 UTC | Binance, person to person | 1,708 IQD | +12.6% | 10 of 69 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 08:12 UTC | OKX, person to person | 1,703 IQD | +12.3% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 27 Oct, 06:07 UTC | Binance, person to person | 1,712 IQD | +12.8% | 10 of 54 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 05:12 UTC | OKX, person to person | 1,707 IQD | +12.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 27 Oct, 05:07 UTC | Binance, person to person | 1,712 IQD | +12.8% | 10 of 43 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 27 Oct, 04:12 UTC | OKX, person to person | 1,708 IQD | +12.6% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 27 Oct, 04:07 UTC | Binance, person to person | 1,713 IQD | +12.9% | 10 of 35 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

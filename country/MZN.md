@@ -1,12 +1,12 @@
 # No price for Mozambique this hour
 
-Prices from the 09:00 UTC hour, 27 Oct.
+Prices from the 14:00 UTC hour, 27 Oct.
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
 The last price we published was +17.8%, on 27 Oct.
 
-Prices from the 09:00 UTC hour, 27 Oct
+Prices from the 14:00 UTC hour, 27 Oct
 
 <https://margin.wiki/data/countries/MZN.json>
 
@@ -20,6 +20,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 27 Oct, 14:06 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 27 Oct, 09:21 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 27 Oct, 08:12 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 27 Oct, 07:12 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -31,8 +32,7 @@ Open any file to check a price yourself.
 | 27 Oct, 03:07 UTC | Binance, person to person | 75.09 MZN | +17.8% | 10 of 25 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 02:12 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 27 Oct, 02:07 UTC | Binance, person to person | 75.09 MZN | +17.8% | 10 of 25 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 27 Oct, 01:20 UTC | OKX, person to person | 78.00 MZN | +22.4% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
-<https://margin.wiki/data/p2p_okx.csv>
+<https://margin.wiki/data/adsp2p_basis.csv>
