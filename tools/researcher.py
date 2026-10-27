@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """The researcher (SEB-301, Seb's plan of 25 Oct). The only scheduled model that proposes work. One Sonnet call a week.
 
-It reads the data-gap report (tools/gap_report.py, plain code), ROADMAP.md and the titles already in BACKLOG.md, and writes 3 jobs
+It reads the data-gap report (tools/gap_report.py, plain code), ROADMAP.md and the titles already in BACKLOG.md, and writes 8 jobs
 to the end of BACKLOG.md, under "## Proposed by the researcher". Every job is held to the track A rules in tools/job_shape.py: new
 files only (plus collect.yml and the source registry, which only grow), one new test tests/agent_<name>.py that `done when:` names,
 and nothing that touches an existing collector, a page or a method. A job that breaks a rule is refused by code, not queued. If fewer
 than 3 pass, one more call gets the reasons. Never more than two calls a run. Seb's ideas and the chats' go in the same queue by hand.
 
-    python3 tools/researcher.py               # run, unless it already ran in the last 6 days
+    python3 tools/researcher.py               # run, unless it already ran this half-week (Mon to Wed, Thu to Sun)
     python3 tools/researcher.py --force       # run anyway
     python3 tools/researcher.py --dry-run     # one call, print the jobs and the checks, write nothing
     python3 tools/researcher.py --self-test
@@ -31,15 +31,14 @@ import job_shape  # noqa: E402
 LOG = os.path.join(ROOT, "data", "researcher_log.csv")
 LOG_HEADER = ["ts_utc", "status", "added", "cost_usd", "detail"]
 SECTION = "## Proposed by the researcher"
-WANT = 3
-EVERY = datetime.timedelta(days=6)
+WANT = 8
 ISSUE = "SEB-301/researcher"
 
 RULES = """You are the researcher for margin.wiki. The site prices a dollar (USDT) against the official rate in about 60 countries
 every hour, from real exchange and person-to-person data, and prices sending money on a few routes. The subject is the dollar premium:
 where it exists, how sources disagree, how it opens and closes. Transfer apps are only benchmarks. It is not a comparison site.
 
-Your job: propose exactly 3 jobs that close the biggest gaps in the gap report, in the spirit of ROADMAP.md. A cheap model (qwen) will
+Your job: propose exactly 8 jobs that close the biggest gaps in the gap report, in the spirit of ROADMAP.md. A cheap model (qwen) will
 build each job alone, so every job must be small and mechanical.
 
 Hard rules. Code checks every one and refuses a job that breaks it:
@@ -81,9 +80,17 @@ def log(row):
         w.writerow(row)
 
 
+def half_week(t):
+    """(ISO year, ISO week, 0 for Monday to Wednesday or 1 for Thursday to Sunday). The researcher runs once in each half."""
+    y, w, d = t.isocalendar()
+    return (y, w, 0 if d <= 3 else 1)
+
+
 def ran_recently(rows, at):
+    """True when an ok run is already logged in the same half-week as `at`. A hand run on a Sunday no longer eats the next
+    Monday's run (it did on 26 Oct, when the 25 Oct test run blocked the week)."""
     for r in rows:
-        if r["status"] == "ok" and at - datetime.datetime.fromisoformat(r["ts_utc"]) < EVERY:
+        if r["status"] == "ok" and half_week(datetime.datetime.fromisoformat(r["ts_utc"])) == half_week(at):
             return True
     return False
 
@@ -116,7 +123,7 @@ def prompt(report, roadmap, titles, files, problems=None):
              "ALREADY IN THE BACKLOG:\n" + "\n".join(titles)[:12000],
              "FILES THAT EXIST (names only):\n" + "\n".join(files)[:20000]]
     if problems:
-        parts.append("YOUR LAST ANSWER BROKE THESE RULES. Answer again with 3 jobs that pass:\n" + "\n".join(problems))
+        parts.append("YOUR LAST ANSWER BROKE THESE RULES. Answer again with 8 jobs that pass:\n" + "\n".join(problems))
     return [{"role": "system", "content": RULES}, {"role": "user", "content": "\n\n".join(parts)}]
 
 
@@ -195,7 +202,7 @@ def run(dry, force):
     import llm
     at = now()
     if not force and ran_recently(log_rows(), at):
-        print("the researcher already ran in the last 6 days (data/researcher_log.csv), nothing to do")
+        print("the researcher already ran this half-week (data/researcher_log.csv), nothing to do")
         return 0
     report = gap_report.build(at)
     if not dry:
@@ -213,7 +220,7 @@ def run(dry, force):
     for attempt in (1, 2):
         try:
             out, row = llm.complete(prompt(report, roadmap, titles, files, problems), models_to_try=[model], issue=ISSUE,
-                                    max_tokens=3000)
+                                    max_tokens=7000)
         except llm.LLMError as e:
             if not dry:
                 log([at.isoformat(timespec="seconds"), "failed", 0, "%.6f" % cost, str(e)[:200]])
@@ -277,8 +284,11 @@ def self_test():
     again = render(out, [dict(ok, title="Another job that is long enough")], "2026-11-02")
     assert again.count(SECTION) == 1 and backlog.parse(again)[-1]["id"] == "21"
     t0 = datetime.datetime(2026, 10, 26, 2, tzinfo=datetime.timezone.utc)
-    assert ran_recently([{"status": "ok", "ts_utc": "2026-10-21T02:00:00+00:00"}], t0)
-    assert not ran_recently([{"status": "ok", "ts_utc": "2026-10-19T02:00:00+00:00"}], t0)
+    assert ran_recently([{"status": "ok", "ts_utc": "2026-10-26T00:20:00+00:00"}], t0), "already ran this Monday"
+    assert not ran_recently([{"status": "ok", "ts_utc": "2026-10-25T03:26:00+00:00"}], t0), "a Sunday run is last week"
+    thu = datetime.datetime(2026, 10, 29, 2, tzinfo=datetime.timezone.utc)
+    assert not ran_recently([{"status": "ok", "ts_utc": "2026-10-26T00:20:00+00:00"}], thu), "Monday's run does not block Thursday"
+    assert ran_recently([{"status": "ok", "ts_utc": "2026-10-29T00:20:00+00:00"}], thu)
     assert not ran_recently([{"status": "failed", "ts_utc": "2026-10-25T02:00:00+00:00"}], t0), "a failed run is retried"
     msgs = prompt(gap_report.build(t0), "roadmap", ["1. x"], ["tools/a.py"])
     assert sum(len(m["content"]) for m in msgs) < 100000, "the prompt stays small"

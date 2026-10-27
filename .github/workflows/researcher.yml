@@ -2,15 +2,15 @@ name: researcher
 
 # SEB-301, Seb's plan of 25 Oct. The only scheduled model that proposes work. Once a week tools/researcher.py reads the data-gap report
 # (tools/gap_report.py, plain code), ROADMAP.md and the backlog titles, makes one Sonnet call through OpenRouter (two if the first
-# answer breaks a rule) and writes 3 jobs to the end of BACKLOG.md that the Aider builder can build: new files only, each with its own
+# answer breaks a rule) and writes 8 jobs to the end of BACKLOG.md that the Aider builder can build: new files only, each with its own
 # test (tools/job_shape.py). About $0.30 a run, inside the $20 month for all agents. Replaces scout.yml and weekly_planner.yml.
 #
-# Monday 00:17 UTC (08:17 SGT), before the builder's first slot. A second slot because GitHub drops scheduled runs; the script does
-# nothing if it already ran in the last 6 days. Watched by watchdog.yml (tools/check_researcher_health.py).
+# Monday and Thursday 00:17 UTC (08:17 SGT), before the builder's first slot. 8 jobs a run keep the builder (3 a day) fed. A second slot because GitHub drops scheduled runs; the script does
+# nothing if it already ran in this half-week. Watched by watchdog.yml (tools/check_researcher_health.py).
 on:
   schedule:
-    - cron: "17 0 * * 1"
-    - cron: "47 3 * * 1"
+    - cron: "17 0 * * 1,4"
+    - cron: "47 3 * * 1,4"
   workflow_dispatch:
     inputs:
       dry_run:
