@@ -1,14 +1,14 @@
 # In New Zealand a dollar costs 0.6% more than the official rate
 
-Prices from the 23:00 UTC hour, 26 Oct.
+Prices from the 00:00 UTC hour, 27 Oct.
 
 The official rate is 1.75 NZD per dollar. On the exchanges where people in New Zealand trade stablecoins, one costs 1.77 NZD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 176.54 NZD. The official rate says 175.49 NZD.
+For US$100, people pay 176.62 NZD. The official rate says 175.49 NZD.
 
 One source
 
-Prices from the 23:00 UTC hour, 26 Oct
+Prices from the 00:00 UTC hour, 27 Oct
 
 <https://margin.wiki/data/countries/NZD.json>
 
@@ -16,7 +16,7 @@ Prices from the 23:00 UTC hour, 26 Oct
 
 One point per day, the price we published that day. 0% is the official rate.
 
-Today's difference is typical of the record since 10 Sep 2026, counting only our own readings. On most days it sits between 0.1% and 0.8%.
+Today's difference is typical of the record since 10 Sep 2026, counting only our own readings. On most days it sits between 0.1% and 0.7%.
 
 ## Where this price comes from
 
@@ -32,6 +32,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 27 Oct, 00:07 UTC | IndependentReserve (NZD) | 1.77 NZD | +0.6% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 26 Oct, 23:23 UTC | IndependentReserve (NZD) | 1.77 NZD | +0.6% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 26 Oct, 20:18 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 26 Oct, 19:19 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -43,7 +44,6 @@ Open any file to check a price yourself.
 | 26 Oct, 07:06 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 26 Oct, 06:07 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 26 Oct, 05:07 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 26 Oct, 04:15 UTC | IndependentReserve (NZD) | 1.76 NZD | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://margin.wiki/data/basis.csv>

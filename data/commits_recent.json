@@ -1,7 +1,14 @@
 {
- "as_of_utc": "2026-10-26T23:36:53Z",
+ "as_of_utc": "2026-10-27T00:20:13Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "a0dd6bc26d4b9d4c01987fa95337dcccb2cb545b",
+   "html_url": "https://github.com/SebR214/margin/commit/a0dd6bc26d4b9d4c01987fa95337dcccb2cb545b",
+   "date": "2026-10-26T23:44:16Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-26T23:44Z"
+  },
   {
    "sha": "e8c6b729d69c6f0d6dcafe7747fbb27d71ccab84",
    "html_url": "https://github.com/SebR214/margin/commit/e8c6b729d69c6f0d6dcafe7747fbb27d71ccab84",
@@ -694,13 +701,6 @@
    "date": "2026-10-25T02:45:32Z",
    "email": "person",
    "message": "SEB-301: keep the builder fed, up to 3 jobs a day, Scout splits daily when the queue is low (#674)\n\nSeb, 25 Oct: work queued for the agents was moving too slowly. Three reasons:\n- The builder took one job a day, failures included.\n- The Scout split new items only on Mondays at 01:00 UTC, before the Monday\n  planner queued them at 01:50, so new work waited up to a week to be split.\n- On 25 Oct the builder had 2 ready jobs and 4 unsplit items.\n\nNow: the builder takes up to 3 jobs a day, one per slot ($0.06 to $0.10 a job,\ninside the $20 month cap). The Scout runs daily after the planner and makes a\nmodel call only when fewer than 3 jobs are ready. Its SEB-300 suggestions stay\nweekly. Backlog 2a and 5a are ticked: Seb's sessions built them (#663, #662)\nand their rows are on main.\n\n\nClaude-Session: https://claude.ai/code/session_01LK5gd53j6Yqo8BMPPjJxFg\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "aa2aae2ec752555762b97bee4f9536a0610527ff",
-   "html_url": "https://github.com/SebR214/margin/commit/aa2aae2ec752555762b97bee4f9536a0610527ff",
-   "date": "2026-10-25T02:45:20Z",
-   "email": "person",
-   "message": "SEB-301: raw ad tables out of the browser bundle, so collection runs go green again (#673)\n\nReading every person-to-person ad took data/bundle from under 15 MB to\n20.3 MB. emit_bundle.py stops at 15 MB on purpose, so 34 of the last 40\ncollect.yml runs were red from 24 Oct and the watchdog filed a new\n\"Collector chain down\" issue every few hours. Samples kept landing.\n\np2p_ads, p2p_ads_sellers and p2p_offers stay in data/*.csv with every\nrow. No page reads the bundle. Bundle now 11.2 MB.\n\n\nClaude-Session: https://claude.ai/code/session_01LK5gd53j6Yqo8BMPPjJxFg\n\nCo-authored-by: Claude <noreply@anthropic.com>"
   }
  ]
 }
