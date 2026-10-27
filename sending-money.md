@@ -1,6 +1,6 @@
 # A stablecoin only beats transfer apps where dollars are hard to get
 
-Prices from the 20:00 UTC hour, 27 Oct.
+Prices from the 21:00 UTC hour, 27 Oct.
 
 In Argentina, India and Nigeria, dollars are hard to get, so people pay more than the official rate for one. Send money there as a stablecoin and the person you send to can sell it at that higher price. They end up with more than any transfer app gives them.
 
@@ -29,9 +29,9 @@ United States to Argentina is checked at US$200 and US$5,000 instead, the sizes 
 
 <https://margin.wiki/data/routes_table.json>
 
-## Sending S$1,000 to the Philippines costs S$2.19 with Airwallex and S$9.51 with a stablecoin
+## Sending S$1,000 to the Philippines costs S$1.84 with Instarem and S$9.23 with a stablecoin
 
-At this amount, a stablecoin was the cheaper way in 1 of the 1,602 hours checked since 11 August.
+At this amount, a stablecoin was the cheaper way in 1 of the 1,603 hours checked since 11 August.
 
 Official rate as of 00:02 UTC
 
@@ -39,22 +39,22 @@ Official rate as of 00:02 UTC
 
 Cost is what the person receiving loses against the official rate. Every fee we can measure is included.
 
-Cheapest app Airwallex this hour
+Cheapest app Instarem this hour
 
-S$2.19 0.22%
+S$1.84 0.18%
 
 Stablecoin
 
-S$9.51 0.95%
+S$9.23 0.92%
 
 ### The stablecoin's cost, step by step
 
 |  |  |
 | --- | --- |
-| Deposit and buy | S$5.97 0.60% |
+| Deposit and buy | S$5.68 0.57% |
 | Network fee | S$1.28 0.13% |
-| Sell and withdraw | S$2.26 0.23% |
-| All in | S$9.51 0.95% |
+| Sell and withdraw | S$2.27 0.23% |
+| All in | S$9.23 0.92% |
 
 ## Which way was cheaper, day by day
 
