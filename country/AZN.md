@@ -1,12 +1,12 @@
 # In Azerbaijan a dollar costs 0.8% more than the official rate
 
-Prices from the 22:00 UTC hour, 27 Oct.
+Prices from the 23:00 UTC hour, 27 Oct.
 
 The official rate is 1.7 AZN per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 1.72 AZN. A stablecoin is a coin that stays worth one US dollar.
 
 For US$100, people pay 171.50 AZN. The official rate says 170.11 AZN.
 
-Prices from the 22:00 UTC hour, 27 Oct
+Prices from the 23:00 UTC hour, 27 Oct
 
 You could buy at least US$5,000 here before the price goes up 1%.
 

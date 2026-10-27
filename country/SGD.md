@@ -1,14 +1,14 @@
-# In Singapore a dollar costs 0.2% less than the official rate
+# In Singapore a dollar costs 0.1% less than the official rate
 
-Prices from the 22:00 UTC hour, 27 Oct.
+Prices from the 23:00 UTC hour, 27 Oct.
 
 The official rate is 1.28 SGD per dollar. On the exchanges where people in Singapore trade stablecoins, one costs 1.28 SGD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 127.85 SGD. The official rate says 128.07 SGD.
+For US$100, people pay 128.00 SGD. The official rate says 128.07 SGD.
 
 Only 1 source
 
-Prices from the 22:00 UTC hour, 27 Oct
+Prices from the 23:00 UTC hour, 27 Oct
 
 <https://margin.wiki/data/countries/SGD.json>
 
@@ -24,4 +24,4 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 IndependentReserve
 
-1.28 SGD −0.2%
+1.28 SGD −0.1%
