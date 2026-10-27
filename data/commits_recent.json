@@ -1,7 +1,14 @@
 {
- "as_of_utc": "2026-10-27T00:20:13Z",
+ "as_of_utc": "2026-10-27T00:44:18Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "5721df81fd8fddb4e001bdf771924f12fa2ac5f9",
+   "html_url": "https://github.com/SebR214/margin/commit/5721df81fd8fddb4e001bdf771924f12fa2ac5f9",
+   "date": "2026-10-27T00:27:47Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-27T00:27Z"
+  },
   {
    "sha": "a0dd6bc26d4b9d4c01987fa95337dcccb2cb545b",
    "html_url": "https://github.com/SebR214/margin/commit/a0dd6bc26d4b9d4c01987fa95337dcccb2cb545b",
@@ -694,13 +701,6 @@
    "date": "2026-10-25T02:46:45Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "scout log 2026-10-25T02:46Z"
-  },
-  {
-   "sha": "637f0ecde157f0805df514358241b019f4468970",
-   "html_url": "https://github.com/SebR214/margin/commit/637f0ecde157f0805df514358241b019f4468970",
-   "date": "2026-10-25T02:45:32Z",
-   "email": "person",
-   "message": "SEB-301: keep the builder fed, up to 3 jobs a day, Scout splits daily when the queue is low (#674)\n\nSeb, 25 Oct: work queued for the agents was moving too slowly. Three reasons:\n- The builder took one job a day, failures included.\n- The Scout split new items only on Mondays at 01:00 UTC, before the Monday\n  planner queued them at 01:50, so new work waited up to a week to be split.\n- On 25 Oct the builder had 2 ready jobs and 4 unsplit items.\n\nNow: the builder takes up to 3 jobs a day, one per slot ($0.06 to $0.10 a job,\ninside the $20 month cap). The Scout runs daily after the planner and makes a\nmodel call only when fewer than 3 jobs are ready. Its SEB-300 suggestions stay\nweekly. Backlog 2a and 5a are ticked: Seb's sessions built them (#663, #662)\nand their rows are on main.\n\n\nClaude-Session: https://claude.ai/code/session_01LK5gd53j6Yqo8BMPPjJxFg\n\nCo-authored-by: Claude <noreply@anthropic.com>"
   }
  ]
 }
