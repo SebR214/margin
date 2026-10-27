@@ -1,14 +1,14 @@
-# In Central African CFA a dollar costs 6.5% more than the official rate
+# In Central African CFA a dollar costs 6.8% more than the official rate
 
-Prices from the 16:00 UTC hour, 27 Oct.
+Prices from the 20:00 UTC hour, 27 Oct.
 
-The official rate is 586.39 XAF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 624.79 XAF. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 586.39 XAF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 626.32 XAF. A stablecoin is a coin that stays worth one US dollar.
 
 Sellers on Binance and OKX agree on this price. Buyers there are offering more than sellers ask this hour, which is unusual.
 
-For US$100, people pay 62,479 XAF. The official rate says 58,639 XAF.
+For US$100, people pay 62,632 XAF. The official rate says 58,639 XAF.
 
-Prices from the 16:00 UTC hour, 27 Oct
+Prices from the 20:00 UTC hour, 27 Oct
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -24,10 +24,10 @@ Today's gap is normal for here since 5 Sep 2026, in our own checks. On most days
 
 We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from people selling to each other.
 
-OKX, people selling to each other
-
-624.72 XAF +6.5%
-
 Binance, people selling to each other
 
-624.86 XAF +6.6%
+626.20 XAF +6.8%
+
+OKX, people selling to each other
+
+626.45 XAF +6.8%
