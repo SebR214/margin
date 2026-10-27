@@ -241,6 +241,7 @@
         var h = byT[k];
         out.push(h ? [h[COL.stable_cost] - h[COL.app_cost], h[COL.stable_cost_pct] - h[COL.app_cost_pct], 1, k * 36e5] : null);
       }
+      while (out.length && !out[0]) out.shift();   // a route younger than a week starts at its first hour, not at an empty stretch (27 Oct)
       return out;
     }
     var all = A.daily.map(function (p, i) { return p ? [p[0], p[1], p[2], d0 + i * 864e5] : null; });
@@ -277,7 +278,7 @@
       }
       var d = new Date(tm), show;
       if (hourly) show = d.getUTCHours() === 0 && (!narrow || d.getUTCDate() % 2 === 0);
-      else show = d.getUTCDay() === 1 && (!narrow || S.period === "1m" || Math.round(tm / 864e5 / 7) % 2 === 0);
+      else show = pts.length <= 21 ? true : d.getUTCDay() === 1 && (!narrow || S.period === "1m" || Math.round(tm / 864e5 / 7) % 2 === 0);   // a short record labels days, spaced below
       if (!show) return;
       g += '<line x1="' + X(i) + '" x2="' + X(i) + '" y1="' + (T + ph) + '" y2="' + (T + ph + 5) + '" class="sm-tick"/>';
       if (lastLabel < 0 || X(i) - lastLabel > 44) {
@@ -429,9 +430,15 @@
       (negative ? w("negNote", null, "p", "sm-small") : "") + (showSteps && stepsGap ? '<p class="sm-small">' + esc(stepsGap) + "</p>" : "") + "</section>";
   }
 
-  function weekSectionHtml() {
-    var periods = [["1w", "period1w"], ["1m", "period1m"], ["all", "periodAll"]].filter(function (p) { return txt(p[1]); });
-    var bar = periods.length === 3 ? '<div class="sm-periods" role="group">' + periods.map(function (p) {
+  function weekSectionHtml(A) {
+    // a range is offered only when it shows more than the shorter one (27 Oct, Seb): Month needs more than 7 days of
+    // record, All more than 30. If the picked range is not offered, the longest one that is takes its place.
+    var days = A && A.daily ? A.daily.length : 0;
+    var periods = [["1w", "period1w"], ["1m", "period1m"], ["all", "periodAll"]].filter(function (p) {
+      return txt(p[1]) && (p[0] === "1w" || (p[0] === "1m" && days > 7) || (p[0] === "all" && days > 30));
+    });
+    if (!periods.some(function (p) { return p[0] === S.period; })) S.period = periods.length ? periods[periods.length - 1][0] : "all";
+    var bar = periods.length > 1 ? '<div class="sm-periods" role="group">' + periods.map(function (p) {
       return '<button type="button" data-period="' + p[0] + '" aria-pressed="' + (S.period === p[0]) + '">' + esc(txt(p[1])) + "</button>";
     }).join("") + "</div>" : "";
     return '<section>' + w("weekHeading", null, "h2") + (txt("weekNote") ? '<p class="sm-note" id="smWeekNote">' + esc(txt("weekNote")) + "</p>" : "") +
@@ -488,7 +495,7 @@
       return;
     }
     var A = computeA(S.route, S.amount);
-    el.innerHTML = '<section class="sm-detail">' + heroHtml(A) + pillsHtml() + "</section>" + nowSectionHtml(A) + weekSectionHtml();
+    el.innerHTML = '<section class="sm-detail">' + heroHtml(A) + pillsHtml() + "</section>" + nowSectionHtml(A) + weekSectionHtml(A);
     chart = { A: A, sym: A.sym };
     drawChart();
     var cb = document.getElementById("smChart");

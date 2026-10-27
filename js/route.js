@@ -73,7 +73,12 @@
   }
 
   function heroHtml() {
-    return '<div class="sm-hero">' + w("heading", null, "h1") + w("lead", null, "p", "sm-lead") +
+    // where the stablecoin wins on the dollar premium, and where the apps win, named from this hour's rows
+    var ok = DATA.rows.filter(function (r) { return r.status === "ok" && r.gap_pp != null; });
+    var winners = ok.filter(function (r) { return r.gap_pp > 0 && r.premium_pct >= 2; }).map(function (r) { return r.dest; });
+    var losers = ok.filter(function (r) { return !ok.some(function (q) { return q.dest === r.dest && q.gap_pp > 0; }); }).map(function (r) { return r.dest; });
+    var lead = winners.length && losers.length && txt("leadWin") ? w("leadWin", { places: listOf(winners) }, "p", "sm-lead") + w("leadLose", { places: listOf(losers) }, "p", "sm-lead") : w("lead", null, "p", "sm-lead");
+    return '<div class="sm-hero">' + w("heading", null, "h1") + lead +
       '<p class="sm-meta sm-num">' + esc(txt("meta", { time: clock(DATA.as_of_utc).replace(/\s*UTC$/, "") })) + "</p></div>";
   }
 
@@ -97,7 +102,37 @@
     return '<tr data-r="' + esc(r.id) + '" data-amt="' + r.amount + '">' + name + cell(txt("colPremium"), prem) + cell(txt("colGap"), gap) + cell(txt("colCost"), cost) + cell(txt("colHours"), hrs) + "</tr>";
   }
 
+  // One card per way of sending (27 Oct, Seb): the answer as a sentence, then why, then how often. Every word is a copy.json
+  // key. Before the writer PR lands those keys are empty and the old four-figure row is drawn instead.
+  function cardHtml(r) {
+    var sym = r.send_symbol, amount = money(r.amount, sym);
+    var title = '<h3 class="rc-t">' + esc(txt("cardTitle", { route: plainWords(r.words), amount: amount })) + "</h3>";
+    if (r.status !== "ok") {
+      return '<tr data-r="' + esc(r.id) + '" data-amt="' + r.amount + '"><td class="rc">' + title +
+        '<p class="rc-why">' + esc(txt("wait" + r.reason.charAt(0).toUpperCase() + r.reason.slice(1))) + "</p></td></tr>";
+    }
+    var win = r.gap_pp >= 0, gap = money(Math.abs(r.gap_pp) * r.amount / 100, sym), fees = money(r.path_cost_money, sym);
+    var p = r.premium_pct, prem = p == null ? "" : pct(Math.abs(p));
+    var whyKey = p == null ? "cardWhyNone" : p >= 2 ? "cardWhyAbove" : p <= -2 ? "cardWhyBelow" : win ? "cardWhyFlatWin" : "cardWhyFlatLose";
+    var hrsKey = !r.hours_priced ? "" : r.hours_cheaper === r.hours_priced ? "cardHoursAll" : r.hours_cheaper === 0 ? "cardHoursNone" : "cardHoursSome";
+    return '<tr data-r="' + esc(r.id) + '" data-amt="' + r.amount + '"><td class="rc">' + title +
+      '<p class="rc-v sm-num">' + esc(txt(win ? "cardStable" : "cardApp", { gap: gap })) + "</p>" +
+      '<p class="rc-why sm-num">' + esc(txt(whyKey, { premium: prem })) + " " + esc(txt("cardFees", { fees: fees })) + "</p>" +
+      (hrsKey ? '<p class="rc-hrs sm-num">' + esc(txt(hrsKey, { n: num(r.hours_cheaper, 0), m: num(r.hours_priced, 0) })) + "</p>" : "") +
+      "</td></tr>";
+  }
+
+  // "Argentina, India and Nigeria": the destinations in the order the data gives them, each once
+  function listOf(names) {
+    var u = names.filter(function (n, i) { return names.indexOf(n) === i; });
+    return u.length > 1 ? u.slice(0, -1).join(", ") + " and " + u[u.length - 1] : (u[0] || "");
+  }
+
   function tableHtml() {
+    if (txt("cardStable")) {
+      return '<section id="smTable"><table class="rt rc-list"><caption>' + esc(txt("tableAria")) + "</caption><tbody>" +
+        DATA.rows.map(cardHtml).join("") + "</tbody></table>" + w("tableNote", null, "p", "sm-small") + sizesNoteHtml() + "</section>";
+    }
     var head = ["colRoute", "colPremium", "colGap", "colCost", "colHours"].map(function (k) { return '<th scope="col">' + esc(txt(k)) + "</th>"; }).join("");
     return '<section id="smTable"><table class="rt"><caption>' + esc(txt("tableAria")) + "</caption><thead><tr>" + head + "</tr></thead><tbody>" +
       DATA.rows.map(rowHtml).join("") + "</tbody></table>" + w("tableNote", null, "p", "sm-small") + sizesNoteHtml() + "</section>";
@@ -136,7 +171,16 @@
     return txt("movesGap", { amount: amount, route: route, from: gapMoney(m.from_pp, m.amount, sym), to: gapMoney(m.to_pp, m.amount, sym) });
   }
 
+  // Only a change of which way is cheaper is worth a line (27 Oct, Seb: "what is the so what"). An app nudging its price,
+  // or a gap growing on a route the stablecoin never wins, is left out. No flip this month, no section.
   function movesSectionHtml() {
+    if (txt("movesFlipStable")) {
+      var flips = DATA.moves.filter(function (m) { return m.kind === "gap" && m.from_pp != null && m.to_pp != null && (m.from_pp >= 0) !== (m.to_pp >= 0); });
+      if (!flips.length) return "";
+      return "<section id=\"smMoves\">" + w("movesFlipHeading", null, "h2") + '<ul class="sm-moves">' + flips.map(function (m) {
+        return '<li class="sm-num">' + esc(txt(m.to_pp >= 0 ? "movesFlipStable" : "movesFlipApp", { day: dayShort(m.day), amount: money(m.amount, m.send_symbol), route: m.words })) + "</li>";
+      }).join("") + "</ul></section>";
+    }
     if (!DATA.moves.length) return "";
     return "<section id=\"smMoves\">" + w("movesHeading", null, "h2") + '<ul class="sm-moves">' +
       DATA.moves.map(function (m) { return '<li class="sm-num">' + esc(moveHtml(m)) + "</li>"; }).join("") + "</ul></section>";

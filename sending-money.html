@@ -100,8 +100,8 @@
     .rt td.rt-wait{ display:block !important; grid-column:2; grid-row:auto; }
     .rt-v{ text-align:left !important; white-space:normal !important; font-size:17px; }
     .rt td small{ font-size:14px; }
-    .rt tr.rt-on td{ background:none; }
-    .rt tr.rt-on{ box-shadow:inset 3px 0 0 var(--data-700); padding-left:14px !important; }
+    .rt tr.rt-on td, .rt tr.rt-on td.rt-nm{ background:none !important; font-weight:inherit; }   /* tapping a route scrolls to its detail, so no marked row on a phone (27 Oct) */
+    .rt td.rt-nm{ font-weight:500 !important; }
   }
 
   /* the picked route, under the table (brought back 22 Oct from the 21 Oct page) */
@@ -154,7 +154,7 @@
   .sm-detail .sm-lead{ margin:0; }
   .sm-detail .sm-meta{ margin:0; font-size:14px; color:var(--sm-sub); }
   .rt tr[data-r]{ cursor:pointer; }
-  .rt tbody tr[data-r]:hover td{ background:var(--color-neutral-100); }
+  @media (hover:hover){ .rt tbody tr[data-r]:hover td{ background:var(--color-neutral-100); } }   /* a tap on a phone left this grey on the row (27 Oct) */
   .rt tr.rt-on td{ background:var(--data-100); }
   .rt tr.rt-on td.rt-nm{ font-weight:600; }
   .sm-chart .sm-tick{ stroke:var(--color-neutral-300); }
@@ -187,6 +187,21 @@
     .sm-routesel select{ box-sizing:border-box; width:100%; min-height:44px; padding:0 12px; font:inherit; font-size:16px; color:var(--sm-ink); background:#fff; border:1px solid var(--sm-dust); border-radius:8px; }
     #smRoutes{ display:none; }
   }
+
+  /* the route cards (27 Oct, Seb): one card per way of sending, read top to bottom at every width.
+     The answer as a sentence, then why, then how often. Overrides the old table and its phone grid. */
+  .rt.rc-list, .rt.rc-list tbody, .rt.rc-list tr{ display:block !important; width:auto !important; }
+  .rt.rc-list{ border-top:1px solid var(--sm-rule); }
+  .rt.rc-list tr{ padding:20px 0 !important; border-bottom:1px solid var(--sm-rule); box-shadow:none !important; cursor:pointer; }
+  #smTable{ padding-top:0 !important; margin-top:40px !important; }
+  .sm-lead{ text-wrap:pretty !important; }
+  .rt.rc-list td.rc{ width:auto !important; display:block !important; padding:0 !important; border:0 !important; text-align:left !important; background:none !important; max-width:680px; }
+  .rt.rc-list td.rc::before{ content:none !important; }
+  .rc-t{ margin:0 0 6px !important; font-size:15px !important; font-weight:500 !important; line-height:1.35 !important; color:var(--sm-sub) !important; }
+  .rc-v{ margin:0; font-size:19px; line-height:1.4; font-weight:500; color:var(--sm-ink); }
+  .rc-why{ margin:8px 0 0; font-size:16px; line-height:1.55; color:var(--sm-sub); }
+  .rc-hrs{ margin:6px 0 0; font-size:16px; line-height:1.55; color:var(--sm-sub); }
+  @media (hover:hover){ .rt.rc-list tr:hover .rc-v{ color:var(--data-700); } }
 </style>
 <link rel="stylesheet" href="./css/site_head.css?v=5">
 <link rel="stylesheet" href="./css/site_page.css?v=7">
@@ -195,8 +210,8 @@
 </head>
 <body class="sm-body">
 <div id="app"></div>
-<script src="./js/route.js?v=4"></script>
-<script src="./js/route_detail.js?v=3"></script>
+<script src="./js/route.js?v=5"></script>
+<script src="./js/route_detail.js?v=4"></script>
 <script src="./js/tooltip.js"></script>
 <script src="./js/site_head.js?v=4"></script>
 <script src="./js/machine_view.js?v=3" defer></script>
