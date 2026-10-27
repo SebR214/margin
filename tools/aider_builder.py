@@ -292,6 +292,16 @@ def post(text):
         print("could not post on SEB-301", file=sys.stderr)
 
 
+def already_built(job, exists=None):
+    """The job's own test (tests/agent_*.py) when it is already on main, else None. A track A job's test is a new file, so if it
+    exists someone built the job without ticking it (20a on 26 Oct: two wasted runs, then needs-claude)."""
+    exists = exists or (lambda p: os.path.exists(os.path.join(ROOT, p)))
+    for p in job["files"]:
+        if job_shape.TEST.match(p) and exists(p):
+            return p
+    return None
+
+
 def pick(items, only=None):
     """The job to build: the top ready job in BACKLOG.md, or the one asked for.
 
@@ -327,7 +337,17 @@ def build(force, only):
         one_call.commit_main([[ts, "nothing", "", "", "0.000000", 0, "month cap"]], [], "aider builder: month cap", LOG, LOG_HEADER)
         return 0
     text = open(backlog.PATH).read()
-    nj = pick(backlog.parse(text), only)
+    items = backlog.parse(text)
+    nj = pick(items, only)
+    stale = []
+    while nj and not only and already_built(nj[1]):
+        stale.append((nj[1]["id"], already_built(nj[1])))
+        nj[1]["blocked"] = "already built"
+        nj = pick(items, only)
+    if stale:
+        ops = [("block", jid, "already built? %s is already on main, so a session built it. Check it and tick the job" % t) for jid, t in stale]
+        rows = [[ts, "skipped", jid, "", "0.000000", 0, "already built: %s exists" % t] for jid, t in stale]
+        one_call.commit_main(rows, ops, "aider builder: %s already built" % ", ".join(j for j, _ in stale), LOG, LOG_HEADER)
     if not nj:
         print("no job with `track: aider` is ready")
         one_call.commit_main([[ts, "nothing", "", "", "0.000000", 0, "no job with track: aider is ready"]], [], "aider builder: nothing to build", LOG, LOG_HEADER)
@@ -418,6 +438,10 @@ def self_test():
     assert pick(backlog.parse(t2), "9a")[1]["id"] == "9a", "--job picks the job asked for"
     t4 = t.replace("    files: `a.py`\n", "    files: `collector.py` `a.py`\n")
     assert pick(backlog.parse(t4))[1]["id"] == "2a", "a job that changes collector.py is track B, the builder skips it"
+    j = {"files": ["tools/x.py", "tests/agent_x.py"]}
+    assert already_built(j, {"tests/agent_x.py"}.__contains__) == "tests/agent_x.py"
+    assert already_built(j, set().__contains__) is None
+    assert already_built({"files": [".github/workflows/watchdog.yml"]}, lambda p: True) is None, "a chat job without an agent test is never skipped"
     for m in (ARCHITECT_FALLBACK, EDITOR):
         assert not llm.BANNED.search(m), "no model of the two larger families"
     c = aider_cmd({"files": ["a.py"], "context": ["m.md"]}, "anthropic/claude-sonnet-5.5", "/t/task", "/t", None, "/t/parts.json")
