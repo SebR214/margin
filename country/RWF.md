@@ -1,14 +1,14 @@
 # In Rwanda a dollar costs 1.2% more than the official rate
 
-Prices from the 06:00 UTC hour, 27 Oct.
+Prices from the 07:00 UTC hour, 27 Oct.
 
 The official rate is 1,478.24 RWF per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 1,496 RWF. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 149,598 RWF. The official rate says 147,824 RWF.
+For US$100, people pay 149,580 RWF. The official rate says 147,824 RWF.
 
 One source
 
-Prices from the 06:00 UTC hour, 27 Oct
+Prices from the 07:00 UTC hour, 27 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 27 Oct, 07:12 UTC | OKX, person to person | 1,552 RWF | +5.0% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 27 Oct, 07:07 UTC | Binance, person to person | 1,496 RWF | +1.2% | 10 of 20 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 06:12 UTC | OKX, person to person | 1,580 RWF | +6.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 27 Oct, 06:07 UTC | Binance, person to person | 1,496 RWF | +1.2% | 10 of 19 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 05:12 UTC | OKX, person to person | 1,580 RWF | +6.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 27 Oct, 03:07 UTC | Binance, person to person | 1,498 RWF | +1.4% | 10 of 13 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 02:12 UTC | OKX, person to person | 1,580 RWF | +6.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 27 Oct, 02:07 UTC | Binance, person to person | 1,506 RWF | +1.9% | 10 of 13 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 27 Oct, 01:20 UTC | OKX, person to person | 1,580 RWF | +6.9% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 27 Oct, 01:15 UTC | Binance, person to person | 1,506 RWF | +1.9% | 10 of 13 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

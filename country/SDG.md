@@ -1,18 +1,18 @@
-# In Sudan a dollar costs 2,177% more than the official rate
+# In Sudan a dollar costs 2,162% more than the official rate
 
-Prices from the 06:00 UTC hour, 27 Oct.
+Prices from the 07:00 UTC hour, 27 Oct.
 
-The official rate is 454.09 SDG per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 10,341 SDG. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 454.09 SDG per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 10,269 SDG. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 1,034,133 SDG. The official rate says 45,409 SDG.
+For US$100, people pay 1,026,950 SDG. The official rate says 45,409 SDG.
 
 One source
 
 Sudan is shown but not ranked. Its government stopped updating the official rate, so comparing against it says little.
 
-Prices from the 06:00 UTC hour, 27 Oct
+Prices from the 07:00 UTC hour, 27 Oct
 
-Taking the cheapest offers first, only US$500 can be bought before a dollar here costs 1% more.
+Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
 <https://margin.wiki/data/countries/SDG.json>
 
@@ -28,7 +28,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-10,341 SDG +2,177%
+10,269 SDG +2,162%
 
 ## Every Sudan price links to its raw file
 
@@ -36,6 +36,7 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 27 Oct, 07:07 UTC | Binance, person to person | 10,269 SDG | +2,162% | 10 of 42 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 06:07 UTC | Binance, person to person | 10,341 SDG | +2,177% | 10 of 30 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 05:07 UTC | Binance, person to person | 10,279 SDG | +2,164% | 10 of 31 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 04:07 UTC | Binance, person to person | 10,290 SDG | +2,166% | 10 of 31 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
@@ -47,7 +48,6 @@ Open any file to check a price yourself.
 | 26 Oct, 20:18 UTC | Binance, person to person | 10,344 SDG | +2,156% | 10 of 34 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 19:20 UTC | Binance, person to person | 10,295 SDG | +2,145% | 10 of 39 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 15:17 UTC | Binance, person to person | 10,201 SDG | +2,124% | 10 of 41 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 26 Oct, 14:07 UTC | Binance, person to person | 10,249 SDG | +2,135% | 10 of 37 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
 <https://margin.wiki/data/adsp2p_basis.csv>
