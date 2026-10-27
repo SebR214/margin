@@ -136,8 +136,9 @@
     });
     s += '<path class="ln-own" d="' + own + '"/>';
     var lp = mine[mine.length - 1]; s += '<circle class="pt" cx="' + X(Date.parse(lp.date)) + '" cy="' + Y(lp.index_pct) + '" r="3.5"/>';
-    var step = Math.max(1, Math.round(all.length / 5)), yearly = t1 - t0 > 400 * 864e5;
-    all.forEach(function (h, i) { if (i % step === 0 && X(t1) - X(t[i]) > (W < 560 ? 56 : 70)) { s += '<text class="ax" x="' + X(t[i]) + '" y="' + (H - 6) + '" text-anchor="middle">' + (yearly ? MON[+h.date.slice(5, 7) - 1] + ' ' + h.date.slice(0, 4) : dd(h.date)) + '</text>'; } });
+    var yearly = t1 - t0 > 400 * 864e5, gapPx = W < 560 ? 64 : 80, lastLX = -1e9;
+    // date labels spaced by position, not by point count, so days bunched together never print on top of each other (27 Oct)
+    all.forEach(function (h, i) { var lx = X(t[i]); if (lx - lastLX >= gapPx && X(t1) - lx > gapPx) { lastLX = lx; s += '<text class="ax" x="' + lx + '" y="' + (H - 6) + '" text-anchor="' + (i === 0 ? 'start' : 'middle') + '">' + (yearly ? MON[+h.date.slice(5, 7) - 1] + ' ' + h.date.slice(0, 4) : dd(h.date)) + '</text>'; } });
     s += '<text class="ax" x="' + (W - R) + '" y="' + (H - 6) + '" text-anchor="end">' + dd(all[all.length - 1].date) + '</text>';
     s += '<line class="cr" id="cr" y1="' + Tp + '" y2="' + (Tp + ph) + '" visibility="hidden"/><circle class="cd" id="cd" r="4.5" visibility="hidden"/>';
     var svg = box.querySelector('svg'); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.innerHTML = s;

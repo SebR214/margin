@@ -45,3 +45,16 @@ body[data-page] .fp-back:hover { color: var(--data-700); }
   .rs-row { grid-template-columns: var(--name) repeat(var(--cols, 9), 40px); }
   .rs-scroll .rs-grid { min-width: max-content; }
 }
+
+/* Phone (27 Oct, Seb): no sideways scroll. Each country's name sits on its own line and its years fill the full width
+   under it, so every year from 2018 to now shows at once. */
+@media (max-width: 767px) {
+  .rs-scroll { overflow-x: visible; }
+  .rs-scroll .rs-grid, .rs-grid { min-width: 0 !important; gap: 2px; }
+  .rs-row { grid-template-columns: repeat(var(--cols, 9), minmax(0, 1fr)) !important; gap: 3px; }
+  .rs-name { grid-column: 1 / -1; position: static; flex-direction: row; align-items: baseline; gap: 8px; padding: 12px 0 4px; background: none; }
+  .rs-head .rs-name { display: none; }
+  .rs-head { position: sticky; top: 0; z-index: 2; background: #fff; padding: 6px 0; }
+  .rs-cell { height: 30px; font-size: 12px; min-width: 0; }
+}
+.rs-tag { font-size: 13px; }
