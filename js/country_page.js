@@ -1,7 +1,6 @@
 /* One country (SEB-268), built to the approved reference. ?ccy= picks the country. Reads
  *   data/countries/<CCY>.json            this hour's price, the daily history, the venues
  *   data/index_latest.json               the list of countries with no price this hour
- *   data/country_readings/<CCY>/...      every stored reading, by month (the receipts)
  *   data/country_history_segment/<CCY>   who reported the older prices, where they exist
  *   data/street_depth_latest.json        how much can be bought before the price moves
  * Every figure is worked out here from those files; every word is a countryData key in copy.json.
@@ -9,7 +8,7 @@
 (function () {
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var MINUS = '−';
-  var C = {}, ccy = new URLSearchParams(location.search).get('ccy') || '', period = 'ours', shown = 12;   // the chart range: 'ours' (our own record, the default), '1y', '5y', 'all' (24 Oct)
+  var C = {}, ccy = new URLSearchParams(location.search).get('ccy') || '', period = 'ours';   // the chart range: 'ours' (our own record, the default), '1y', '5y', 'all' (24 Oct)
   var S = {};
 
   function $(k) { return document.getElementById(k); }
@@ -189,29 +188,6 @@
       vs.map(function (v) { return '<div class="r"><b>' + esc(vname(v.venue)) + '</b><span></span><span class="v num">' + esc(money(v.buy_price, S.c.ccy)) + '<small>' + sgn(v.index_pct) + '</small></span></div>'; }).join('') + '</div>';
   }
 
-  function receipts() {
-    var rows = S.rows, name = S.c.country;
-    var h = '<h2>' + esc(T('receiptsHeading', { country: name })) + '</h2><p class="note">' + esc(T('receiptsLead')) + '</p>';
-    if (!rows.length) { $('rcp').innerHTML = h + '<p class="note">' + esc(T('receiptsEmpty')) + '</p>'; return; }
-    h += '<div class="tbl num"><div class="th"><span>' + esc(T('rcolTime')) + '</span><span>' + esc(T('rcolSource')) + '</span><span>' + esc(T('rcolPrice')) + '</span><span>' + esc(T('rcolGap')) + '</span><span>' + esc(T('rcolDepth')) + '</span><span>' + esc(T('rcolRaw')) + '</span></div>' +
-      rows.slice(0, shown).map(function (r) {
-        var d = new Date(r[0] * 1000).toISOString(), src = S.idx.sources[r[1]];
-        return '<div class="tr"><span>' + dd(d) + ', ' + d.slice(11, 16) + ' UTC</span><span>' + esc(vname(src.id)) + '</span><span>' + esc(money(r[2], S.c.ccy)) + '</span><span>' + sgn(r[4]) + '</span><span>' +
-          (r[5] != null ? esc(T('depthAds', { n: r[5], total: r[6] != null ? Math.round(r[6]) : '' })) : '') + '</span><span><a href="https://github.com/SebR214/margin/blob/main/' + esc(src.raw_file) + '">' + esc(src.raw_file.replace('data/', '')) + '</a></span></div>';
-      }).join('') + '</div>' + (rows.length > shown ? '<button class="pill more" type="button" id="more">' + esc(T('showMore', { n: Math.min(12, rows.length - shown) })) + '</button>' : '');
-    $('rcp').innerHTML = h;
-  }
-
-  // the newest readings, walking back through the months until there are enough
-  function loadRows(need) {
-    var months = S.idx.months.slice().reverse(), got = [], i = 0;
-    function next() {
-      if (got.length >= need || i >= months.length) { return Promise.resolve(got); }
-      return getJSON('data/country_readings/' + ccy + '/' + months[i++] + '.json').then(function (d) { got = got.concat(d.readings.slice().reverse()); return next(); });
-    }
-    return next();
-  }
-
   function fail(key, v) {
     $('hero').innerHTML = '<p class="lead">' + esc(T(key, v)) + '</p>';
     $('nf').hidden = true;
@@ -232,15 +208,11 @@
     document.title = 'margin.wiki: ' + S.c.country;
     hero(); chart(); source();
     if (again) { window.scrollTo(0, y); }
-    if (S.idx && S.idx.months && S.idx.months.length) {
-      loadRows(shown).then(function (rows) { S.rows = rows; receipts(); }).catch(function () { $('rcp').innerHTML = '<p class="note">' + esc(T('receiptsFailed')) + '</p>'; });
-    } else { S.rows = []; receipts(); }
   }
 
   document.addEventListener('click', function (e) {
     var p = e.target.closest('[data-p]');
     if (p) { period = p.getAttribute('data-p'); chart(); return; }
-    if (e.target.closest('#more')) { shown += 12; loadRows(shown).then(function (rows) { S.rows = rows; receipts(); }); }
   });
   var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (S.c) { chart(); } }, 150); });
 
@@ -255,7 +227,7 @@
       maybe('copy.json'),
       ccy ? maybe('data/countries/' + ccy + '.json') : Promise.resolve(null),
       maybe('data/index_latest.json'),
-      ccy ? maybe('data/country_readings/' + ccy + '/index.json') : Promise.resolve(null),
+      Promise.resolve(null),   // the hour by hour price list was cut on 27 Oct (Seb): nothing reads data/country_readings here now
       seg, maybe('data/street_depth_latest.json'),
       fetch('data/source_switches.csv', { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
         var l = t.trim().split(/\r?\n/), h = (l[0] || '').split(',');
