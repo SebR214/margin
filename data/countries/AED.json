@@ -1,7 +1,8 @@
 {
-  "buy_price": 3.7395,
+  "baseline_pct": 0.5446,
+  "buy_price": 3.8155,
   "ccy": "AED",
-  "computed_at": "2026-10-27T01:00:00+00:00",
+  "computed_at": "2026-10-27T02:00:00+00:00",
   "country": "the United Arab Emirates",
   "denominator": {
     "class": "pegged",
@@ -9,6 +10,7 @@
     "source": "open.er-api"
   },
   "fx_mid_per_usd": 3.6725,
+  "held_value": 3.8938,
   "history": [
     {
       "date": "2026-09-05",
@@ -325,33 +327,35 @@
     {
       "date": "2026-10-27",
       "index_pct": 1.8244,
-      "n": 10,
-      "source": "current_hour"
+      "n": 3,
+      "source": "hourly_buy_p2p"
     }
   ],
   "history_days": 53,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-27T01:00:00+00:00",
-  "index_pct": 1.8244,
+  "hour_utc": "2026-10-27T02:00:00+00:00",
+  "index_pct": null,
   "index_version": "1.9",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": 0.9802,
+  "median_24h_pct": 1.0347,
   "n_boards": 1,
-  "n_sources": 10,
-  "round_trip_pct": 2.424,
-  "source_class": "p2p_buy_median",
+  "n_sources": null,
+  "no_value_reason": "held back: +3.9% is 3.3 points from this country's usual +0.5% over the last 7 days, and no second source or earlier hour confirms it yet",
+  "round_trip_pct": 4.5199,
+  "source_class": null,
   "source_file": "data/p2p_basis.csv",
-  "source_words": "from person-to-person ads",
+  "source_words": "no price this hour",
   "venues": [
     {
-      "buy_price": 3.7395,
-      "index_pct": 1.8244,
+      "buy_price": 3.8155,
+      "index_pct": 3.8938,
       "last_price_used": false,
       "venue": "binance_p2p"
     }
-  ]
+  ],
+  "withheld_buy_price": 3.8155
 }

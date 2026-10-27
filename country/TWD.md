@@ -1,12 +1,12 @@
 # In Taiwan a dollar costs 0.1% less than the official rate
 
-Prices from the 01:00 UTC hour, 27 Oct.
+Prices from the 02:00 UTC hour, 27 Oct.
 
 The official rate is 32.59 TWD per dollar. On the exchanges where people in Taiwan trade stablecoins, one costs 32.57 TWD. A stablecoin is a coin that stays worth one US dollar.
 
 For US$100, people pay 3,257 TWD. The official rate says 3,259 TWD.
 
-Prices from the 01:00 UTC hour, 27 Oct
+Prices from the 02:00 UTC hour, 27 Oct
 
 <https://margin.wiki/data/countries/TWD.json>
 
@@ -22,11 +22,11 @@ This price is set from order books. A country's price comes from exchange order 
 
 BitoPro
 
-32.56 TWD −0.1%
+32.57 TWD −0.1%
 
 MAX
 
-32.58 TWD 0.0%
+32.58 TWD −0.1%
 
 ## Every Taiwan price links to its raw file
 
@@ -34,6 +34,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference |  |
 | --- | --- | --- | --- | --- |
+| 27 Oct, 02:07 UTC | MAX | 32.58 TWD | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
+| 27 Oct, 02:07 UTC | BitoPro | 32.57 TWD | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 27 Oct, 01:15 UTC | MAX | 32.58 TWD | 0.0% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 27 Oct, 01:15 UTC | BitoPro | 32.56 TWD | −0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 27 Oct, 00:07 UTC | MAX | 32.61 TWD | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
@@ -44,8 +46,6 @@ Open any file to check a price yourself.
 | 26 Oct, 20:18 UTC | BitoPro | 32.69 TWD | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 26 Oct, 19:19 UTC | MAX | 32.69 TWD | +0.3% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 | 26 Oct, 19:19 UTC | BitoPro | 32.64 TWD | +0.1% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 26 Oct, 15:17 UTC | MAX | 32.74 TWD | +0.4% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
-| 26 Oct, 15:17 UTC | BitoPro | 32.75 TWD | +0.5% | [basis.csv](https://github.com/SebR214/margin/blob/main/data/basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/basis.csv>
 <https://margin.wiki/data/basis.csv>
