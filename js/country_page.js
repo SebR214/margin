@@ -184,7 +184,7 @@
   function source() {
     if (S.withheld) { $('src').innerHTML = ''; return; }
     var vs = S.c.venues.slice().sort(function (a, b) { return a.index_pct - b.index_pct; });
-    $('src').innerHTML = '<h2>' + esc(T('sourceHeading')) + '</h2><p class="note">' + esc(T('sourceLine', { sourceWords: S.c.source_words }) + ' ' + T('sourceRule')) + '</p><div class="rows">' +
+    $('src').innerHTML = '<h2>' + esc(T('sourceHeading')) + '</h2><p class="note">' + esc(T('sourceLinePlain') && T('classNoun_' + S.c.source_class) ? T('sourceRule') + ' ' + T('sourceLinePlain', { source: T('classNoun_' + S.c.source_class) }) : T('sourceLine', { sourceWords: S.c.source_words }) + ' ' + T('sourceRule')) + '</p><div class="rows">' +
       vs.map(function (v) { return '<div class="r"><b>' + esc(vname(v.venue)) + '</b><span></span><span class="v num">' + esc(money(v.buy_price, S.c.ccy)) + '<small>' + sgn(v.index_pct) + '</small></span></div>'; }).join('') + '</div>';
   }
 
