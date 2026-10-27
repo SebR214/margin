@@ -150,9 +150,9 @@
   function evidenceCountWords(kind, n) {
     n = n || 0;
     if (kind === "order_book_median" || kind === "order_book_single")
-      return n + " order book" + (n === 1 ? "" : "s");
+      return n + " exchange" + (n === 1 ? "" : "s");
     if (kind === "broker_median" || kind === "broker_single")
-      return n + " broker quote" + (n === 1 ? "" : "s");
+      return n + " broker" + (n === 1 ? "" : "s");
     if (kind === "p2p_buy_median")
       return n === 1 ? "1 person selling" : n + " people selling";
     if (kind === "p2p_fallback") return "an independent price check";

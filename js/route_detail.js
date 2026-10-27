@@ -329,7 +329,9 @@
     if (i < 0 || i >= geo.n || !p) { tip.hidden = true; if (cross) cross.setAttribute("visibility", "hidden"); return; }
     cross.setAttribute("x1", geo.X(i)); cross.setAttribute("x2", geo.X(i)); cross.setAttribute("visibility", "visible");
     var dd = new Date(p[3]).toISOString();
-    tip.innerHTML = (p[0] > 0 ? "+" : "") + money(p[0], chart.sym) + " (" + pctPlain(p[1]) + ")" +
+    // said in words when the words exist (27 Oct): "Stablecoin S$10.78 more expensive than the cheapest app"
+    var said = txt(p[0] > 0 ? "chartTipMore" : "chartTipLess", { amount: money(Math.abs(p[0]), chart.sym) });
+    tip.innerHTML = (said ? esc(said) : (p[0] > 0 ? "+" : "") + money(p[0], chart.sym) + " (" + pctPlain(p[1]) + ")") +
       "<span>" + esc(S.period === "1w" ? txt("chartTipHour", { day: dayShort(dd), hour: dd.slice(11, 16) }) : txt("chartTip", { day: dayShort(dd), hours: whole(p[2]) })) + "</span>";
     tip.hidden = false;
     var left = geo.X(i) / geo.W * 100;

@@ -6,7 +6,7 @@
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var MINUS = '−';
   var PLACE = { SGD: 'Singapore', AUD: 'Australia', NZD: 'New Zealand', USD: 'the United States' };
-  var TO = { PHP: 'the Philippines', MXN: 'Mexico', INR: 'India', NGN: 'Nigeria' };
+  var TO = { PHP: 'the Philippines', MXN: 'Mexico', INR: 'India', NGN: 'Nigeria', ARS: 'Argentina', BRL: 'Brazil' };
   var SYM = { SGD: 'S$', AUD: 'A$', NZD: 'NZ$', USD: 'US$' };
   var ORDER = ['price_changes', 'weekend_penalty', 'volume_crossover', 'sgd_php_never_cheapest', 'exchange_vs_p2p'];
   var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navHowItWorks', 'how-it-works.html']];
@@ -29,6 +29,13 @@
   function stampT(s) { return dd(s) + ', ' + s.slice(11, 16); }
   function sgd(v) { return (v < 0 ? MINUS : '') + 'S$' + Math.abs(v).toFixed(2); }
   function routeName(rid) { var p = rid.split('->'); return ((PLACE[p[0]] || p[0]) + ' to ' + (TO[p[1]] || p[1])).replace(/^the /, '').replace(/^./, function (c) { return c.toUpperCase(); }); }
+  // many brokers read through one aggregator ("CriptoYa:mexc", "CriptoYa:belo"...) are said once, as a count (27 Oct)
+  function sourcesSaid(list) {
+    var via = {}, out = [];
+    list.forEach(function (x) { var m = /^([^:]+):/.exec(x); if (m) { (via[m[1]] = via[m[1]] || []).push(x); } else { out.push(x); } });
+    Object.keys(via).forEach(function (k) { out.push(via[k].length > 1 && T('brokersVia') ? T('brokersVia', { n: via[k].length, name: k }) : via[k].join(', ')); });
+    return out.join(', ');
+  }
   function approx(v) { return v >= 1e6 ? 'S$' + (v / 1e6).toFixed(1) + 'M' : 'S$' + g(v); }
   var CLAIMS = null;
   function title(k) { var f = FIN[k]; return T('title_' + k, { approx: f ? approx(f.headline.value) : '', n: f ? g(f.headline.value) : '' }); }
@@ -110,7 +117,7 @@
     var rows = '';
     if (id === 'price_changes') {
       rows = f.evidence.slice().sort(function (a, b) { return b.changes - a.changes; }).map(function (e) {
-        return '<div class="r"><b>' + esc(routeName(e.route)) + '</b><span class="m num">' + e.up + ' ' + L('up') + ', ' + e.down + ' ' + L('down') + ', ' + e.providers + ' ' + L('providers') +
+        return '<div class="r"><b>' + esc(routeName(e.route)) + '</b><span class="m num">' + e.up + ' ' + L('up') + ', ' + e.down + ' ' + L('down') + ', ' + e.providers + ' ' + (e.providers === 1 && T('field_providers_one') ? L('providers_one') : L('providers')) +
           '. ' + L('first_day').replace(/^./, function (c) { return c.toUpperCase(); }) + ' ' + dd(e.first_day) + ', ' + L('last_day') + ' ' + dd(e.last_day) + '.</span>' +
           '<span class="v num">' + e.changes + '<small>' + L('changes') + '</small></span></div>';
       }).join('');
@@ -121,6 +128,11 @@
       }).join('');
     } else if (id === 'volume_crossover') {
       rows = f.evidence.map(function (e) {
+        var said = T('evidenceRow_volume', { floor: sgd(e.cost_bps_at_floor / 2), ceiling: sgd(e.cost_bps_at_ceiling / 2), app: sgd(e.baseline_cost_bps_median / 2), n: g(e.n_samples) });
+        if (said) {   // the row as plain sentences (27 Oct, Seb), not a run of figures and labels
+          return '<div class="r"><b>' + esc(T('side_' + e.side).replace(/^./, function (c) { return c.toUpperCase(); })) + '</b><span class="m num">' + esc(said) + '</span>' +
+            '<span class="v num">S$' + g(e.monthly_volume_sgd) + '<small>' + L('monthly_volume_sgd') + '</small></span></div>';
+        }
         return '<div class="r"><b>' + esc(T('side_' + e.side).replace(/^./, function (c) { return c.toUpperCase(); })) + '</b><span class="m num">' +
           sgd(e.cost_bps_at_floor / 2) + ' ' + L('cost_bps_at_floor') + ', ' + sgd(e.cost_bps_at_ceiling / 2) + ' ' + L('cost_bps_at_ceiling') + ', ' + e.fee_pct_at_crossover_ir + ' ' + L('fee_pct_at_crossover_ir') +
           ', ' + sgd(e.baseline_cost_bps_median / 2) + ' ' + L('baseline_cost_bps_median') + ', ' + g(e.n_samples) + ' ' + L('n_samples') + '.</span>' +
@@ -129,9 +141,9 @@
     } else if (id === 'exchange_vs_p2p') {
       rows = f.evidence.map(function (e) {
         return '<div class="r"><b>' + esc(e.country) + '</b><span class="m num">' + Math.round(e.share_gap_2pts * 100) + '% ' + L('share_gap_2pts') + ', ' + g(e.hours_checked) + ' ' + (e.hours_checked === 1 ? L('hour_checked') : L('hours_checked')) +
-          ', ' + L('since') + ' ' + dd(e.first_day) + ', ' + esc(e.exchanges.map(function (x) { return x.replace(/^(.*) \(.*\)$/, '$1'); }).filter(function (x, i, a) { return a.indexOf(x) === i; }).join(', ')) + ' ' + L('against') + ' ' + esc(e.boards.map(function (b) { return T('board_' + b); }).join(' ' + T('and') + ' ')) +
+          ', ' + L('since') + ' ' + dd(e.first_day) + ', ' + esc(sourcesSaid(e.exchanges.map(function (x) { return x.replace(/^(.*) \(.*\)$/, '$1'); }).filter(function (x, i, a) { return a.indexOf(x) === i; }))) + ' ' + L('against') + ' ' + esc(e.boards.map(function (b) { return T('board_' + b); }).join(' ' + T('and') + ' ')) +
           '. ' + (e.persists ? L('persists') : L('not_persist')) + '</span>' +
-          '<span class="v num">' + (e.median_gap_pts > 0 ? '+' : e.median_gap_pts < 0 ? MINUS : '') + Math.abs(e.median_gap_pts).toFixed(1) + '<small>' + L('median_gap_pts') + '</small></span></div>';
+          '<span class="v num">' + (e.median_gap_pts > 0 ? '+' : e.median_gap_pts < 0 ? MINUS : '') + Math.abs(e.median_gap_pts).toFixed(1) + '%<small>' + L('median_gap_pts') + '</small></span></div>';
       }).join('');
     } else if (id === 'sgd_php_never_cheapest') {
       rows = f.evidence.map(function (e) {
@@ -226,7 +238,7 @@
       var k = Math.max(0, Math.min(n - 1, Math.round((fx * W - F.L) / F.pw * (n - 1))));
       cr.setAttribute('x1', X(k)); cr.setAttribute('x2', X(k)); cr.setAttribute('visibility', 'visible');
       var list = Object.keys(series).filter(function (c) { return series[c][k] != null; }).sort(function (a, b) { return series[b][k] - series[a][k]; });
-      return dd(days[k]) + '\n' + list.slice(0, 6).map(function (c) { var v = series[c][k]; return names[c] + ': ' + (v > 0 ? '+' : v < 0 ? MINUS : '') + Math.abs(v).toFixed(1); }).join('\n') + (list.length > 7 ? '\n' + T('tipMoreCountries', { n: list.length - 6 }) : list.length === 7 ? '\n' + T('tipMoreCountriesOne') : '');
+      return dd(days[k]) + '\n' + list.slice(0, 6).map(function (c) { var v = series[c][k]; return names[c] + ': ' + (v > 0 ? '+' : v < 0 ? MINUS : '') + Math.abs(v).toFixed(1) + '%'; }).join('\n') + (list.length > 7 ? '\n' + T('tipMoreCountries', { n: list.length - 6 }) : list.length === 7 ? '\n' + T('tipMoreCountriesOne') : '');
     });
   };
 
