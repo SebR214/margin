@@ -1,10 +1,10 @@
 # No price for Botswana this hour
 
-Prices from the 02:00 UTC hour, 27 Oct.
+Prices from the 03:00 UTC hour, 27 Oct.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
-Prices from the 02:00 UTC hour, 27 Oct
+Prices from the 03:00 UTC hour, 27 Oct
 
 <https://margin.wiki/data/countries/BWP.json>
 
@@ -14,6 +14,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 27 Oct, 03:12 UTC | OKX, person to person | 16.00 BWP | +13.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 27 Oct, 03:07 UTC | Binance, person to person | 15.26 BWP | +8.2% | 3 of 3 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 02:12 UTC | OKX, person to person | 16.00 BWP | +13.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 27 Oct, 02:07 UTC | Binance, person to person | 15.26 BWP | +8.2% | 3 of 3 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 01:20 UTC | OKX, person to person | 16.00 BWP | +13.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -24,8 +26,6 @@ Open any file to check a price yourself.
 | 26 Oct, 23:23 UTC | Binance, person to person | 15.26 BWP | +10.9% | 3 of 3 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 20:23 UTC | OKX, person to person | 15.99 BWP | +16.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 26 Oct, 20:18 UTC | Binance, person to person | 15.26 BWP | +10.9% | 3 of 3 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 26 Oct, 19:24 UTC | OKX, person to person | 15.99 BWP | +16.2% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 26 Oct, 19:20 UTC | Binance, person to person | 15.26 BWP | +10.9% | 3 of 3 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>

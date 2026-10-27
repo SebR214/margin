@@ -1,12 +1,12 @@
 # In Georgia a dollar costs 0.3% more than the official rate
 
-Prices from the 02:00 UTC hour, 27 Oct.
+Prices from the 03:00 UTC hour, 27 Oct.
 
 The official rate is 2.6 GEL per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 2.60 GEL. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 260.43 GEL. The official rate says 259.60 GEL.
+For US$100, people pay 260.35 GEL. The official rate says 259.60 GEL.
 
-Prices from the 02:00 UTC hour, 27 Oct
+Prices from the 03:00 UTC hour, 27 Oct
 
 Taking the cheapest offers first, at least US$5,000 can be bought before a dollar here costs 1% more.
 
@@ -16,7 +16,7 @@ Taking the cheapest offers first, at least US$5,000 can be bought before a dolla
 
 One point per day, the price we published that day. 0% is the official rate.
 
-Today's difference is the widest since 5 Sep 2026, counting only our own readings. On most days it sits between −0.1% and 0.2%.
+Today's difference is near the widest it has been since 5 Sep 2026, counting only our own readings. On most days it sits between −0.1% and 0.2%.
 
 ## Where this price comes from
 
@@ -24,7 +24,7 @@ This price is set from person-to-person ads. A country's price comes from exchan
 
 Binance, person to person
 
-2.60 GEL +0.1%
+2.60 GEL 0.0%
 
 OKX, person to person
 
@@ -36,6 +36,8 @@ Open any file to check a price yourself.
 
 | Time | Source | Price | Difference | Buy ads priced | Raw file |
 | --- | --- | --- | --- | --- | --- |
+| 27 Oct, 03:12 UTC | OKX, person to person | 2.61 GEL | +0.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
+| 27 Oct, 03:07 UTC | Binance, person to person | 2.60 GEL | 0.0% | 10 of 31 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 02:12 UTC | OKX, person to person | 2.61 GEL | +0.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 27 Oct, 02:07 UTC | Binance, person to person | 2.60 GEL | +0.1% | 10 of 29 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 27 Oct, 01:20 UTC | OKX, person to person | 2.61 GEL | +0.5% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
@@ -46,8 +48,6 @@ Open any file to check a price yourself.
 | 26 Oct, 23:23 UTC | Binance, person to person | 2.59 GEL | −0.2% | 10 of 46 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 | 26 Oct, 20:23 UTC | OKX, person to person | 2.60 GEL | +0.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
 | 26 Oct, 20:18 UTC | Binance, person to person | 2.59 GEL | −0.2% | 10 of 88 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
-| 26 Oct, 19:24 UTC | OKX, person to person | 2.60 GEL | +0.1% |  | [p2p_okx.csv](https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv) |
-| 26 Oct, 19:20 UTC | Binance, person to person | 2.59 GEL | −0.2% | 10 of 96 buy ads | [p2p_basis.csv](https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv) |
 
 <https://github.com/SebR214/margin/blob/main/data/p2p_okx.csv>
 <https://github.com/SebR214/margin/blob/main/data/p2p_basis.csv>
