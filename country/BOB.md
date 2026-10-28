@@ -1,6 +1,6 @@
 # In Bolivia a dollar costs 2.9% more than the official rate
 
-Prices from the 09:00 UTC hour, 28 Oct.
+Prices from the 10:00 UTC hour, 28 Oct.
 
 The official rate is 11.86 BOB per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 12.20 BOB. A stablecoin is a coin that stays worth one US dollar.
 
@@ -8,7 +8,7 @@ For US$100, people pay 1,220 BOB. The official rate says 1,186 BOB.
 
 Only 1 source
 
-Prices from the 09:00 UTC hour, 28 Oct
+Prices from the 10:00 UTC hour, 28 Oct
 
 You could buy at least US$5,000 here before the price goes up 1%.
 

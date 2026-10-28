@@ -1,12 +1,12 @@
-# In Vietnam a dollar costs 1.2% more than the official rate
+# In Vietnam a dollar costs 1.4% more than the official rate
 
-Prices from the 09:00 UTC hour, 28 Oct.
+Prices from the 10:00 UTC hour, 28 Oct.
 
-The official rate is 25,805.82 VND per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 26,113 VND. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 25,805.82 VND per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 26,180 VND. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 2,611,300 VND. The official rate says 2,580,582 VND.
+For US$100, people pay 2,618,000 VND. The official rate says 2,580,582 VND.
 
-Prices from the 09:00 UTC hour, 28 Oct
+Prices from the 10:00 UTC hour, 28 Oct
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -24,8 +24,8 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-26,099 VND +1.1%
+26,176 VND +1.4%
 
 OKX, people selling to each other
 
-26,127 VND +1.2%
+26,184 VND +1.5%
