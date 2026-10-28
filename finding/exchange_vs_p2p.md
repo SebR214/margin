@@ -1,6 +1,6 @@
 # In 2 countries, people pay more for a dollar from each other than on an exchange
 
-Prices from the 14:00 UTC hour, 28 Oct.
+Prices from the 15:00 UTC hour, 28 Oct.
 
 In Turkey, buying a dollar from other people cost 5.2% more than on an exchange in 100% of the hours we checked.
 
@@ -20,14 +20,14 @@ Each row is one country: the typical gap, the share of hours with a gap of 2% or
 
 |  |  |  |
 | --- | --- | --- |
-| Turkey | 100% of hours 2% or more above, 1,097 hours checked, since 10 Sep, BTCTurk, Paribu against Binance and OKX. Still there. | +5.2% typical gap |
+| Turkey | 100% of hours 2% or more above, 1,098 hours checked, since 10 Sep, BTCTurk, Paribu against Binance and OKX. Still there. | +5.2% typical gap |
 | India | 100% of hours 2% or more above, 941 hours checked, since 10 Sep, WazirX, CoinDCX against Binance and OKX. Still there. | +4.0% typical gap |
-| Nigeria | 9% of hours 2% or more above, 443 hours checked, since 9 Oct, Luno against OKX. Gone. | +0.9% typical gap |
-| Mexico | 2% of hours 2% or more above, 1,097 hours checked, since 10 Sep, Bitso against Binance and OKX. Gone. | +0.6% typical gap |
-| Philippines | 0% of hours 2% or more above, 1,097 hours checked, since 10 Sep, Coins.ph against Binance and OKX. Gone. | +0.2% typical gap |
-| Indonesia | 0% of hours 2% or more above, 1,097 hours checked, since 10 Sep, Indodax, Pintu against Binance and OKX. Gone. | +0.1% typical gap |
-| Argentina | 0% of hours 2% or more above, 1,097 hours checked, since 10 Sep, 24 brokers through CriptoYa against Binance and OKX. Gone. | −0.8% typical gap |
-| Venezuela | 2% of hours 2% or more above, 1,097 hours checked, since 10 Sep, CriptoYa:saldo against Binance and OKX. Gone. | −2.0% typical gap |
+| Nigeria | 9% of hours 2% or more above, 444 hours checked, since 9 Oct, Luno against OKX. Gone. | +0.9% typical gap |
+| Mexico | 2% of hours 2% or more above, 1,098 hours checked, since 10 Sep, Bitso against Binance and OKX. Gone. | +0.6% typical gap |
+| Philippines | 0% of hours 2% or more above, 1,098 hours checked, since 10 Sep, Coins.ph against Binance and OKX. Gone. | +0.2% typical gap |
+| Indonesia | 0% of hours 2% or more above, 1,098 hours checked, since 10 Sep, Indodax, Pintu against Binance and OKX. Gone. | +0.1% typical gap |
+| Argentina | 0% of hours 2% or more above, 1,098 hours checked, since 10 Sep, 24 brokers through CriptoYa against Binance and OKX. Gone. | −0.8% typical gap |
+| Venezuela | 2% of hours 2% or more above, 1,098 hours checked, since 10 Sep, CriptoYa:saldo against Binance and OKX. Gone. | −2.0% typical gap |
 
 ## How we worked it out
 
@@ -51,7 +51,7 @@ One line per hour or per price change.
 
 findings_hours_exchange_vs_p2p.csv
 
-7,966 rows
+7,973 rows
 
 <https://margin.wiki/data/findings_hours_exchange_vs_p2p.csv>
 
@@ -62,4 +62,4 @@ findings_hours_exchange_vs_p2p.csv
 | 01 | Transfer apps keep changing their prices | 1,564 price changes since 12 Aug |
 | 02 | Some apps charge more on Saturday, then cut back | 51 Saturday rises that came back |
 | 03 | From Singapore to the Philippines, a stablecoin only beats the apps if you send over S$13.5M a month | S$13.5M a month traded on the exchange |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,620 hours a stablecoin was cheapest |
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,621 hours a stablecoin was cheapest |
