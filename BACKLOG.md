@@ -146,8 +146,8 @@ Copied from SEB-301 comments by tools/backlog.py. The Scout splits them into job
 ## Proposed by the researcher
 Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/job_shape.py.
 
-- [x] 19. Retest the p2p_spread_signal finding for the first time (done 2026-10-25)
-  - [x] 19a. Retest the p2p_spread_signal finding for the first time (PR #696, 2026-10-25)
+- [ ] 19. Retest the p2p_spread_signal finding for the first time
+  - [ ] 19a. Retest the p2p_spread_signal finding for the first time
     track: aider
     proposed: researcher 2026-10-25 (gap: stale_findings: p2p_spread_signal, last_retest null)
     files: `findings_tests/p2p_spread_signal.json` `tests/agent_spread_signal_test.py`
@@ -181,6 +181,7 @@ Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/j
 - [ ] 23. Satang Pro USDT/THB collector as a second Thailand exchange source
   - [ ] 23a. Satang Pro USDT/THB collector as a second Thailand exchange source
     track: aider
+    blocked: venue not reachable from GitHub runners, track B (2026-10-28)
     proposed: researcher 2026-10-27 (gap: one_source: THB (sources_behind_price only Bitkub))
     files: `collector_satang_thb.py` `data/satang_thb.csv` `tests/agent_satang_thb.py` `.github/workflows/collect.yml`
     context: `collector_stable_venues.py` `collector_venue_common.py` `.github/workflows/collect.yml`

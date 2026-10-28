@@ -323,6 +323,19 @@ def open_pr_branches(opener=None):
         page += 1
 
 
+def empty_files(files, root=None):
+    """Listed files that exist but hold nothing (or only blanks). #701 merged three 0-byte files, Bybit, on 28 Oct."""
+    root = root or ROOT
+    out = []
+    for p in files:
+        fp = os.path.join(root, p)
+        if os.path.isfile(fp):
+            with open(fp, "rb") as f:
+                if not f.read().strip():
+                    out.append(p)
+    return out
+
+
 def pick(items, only=None, open_branches=()):
     """The job to build: the top ready job in BACKLOG.md, or the one asked for.
 
@@ -410,6 +423,8 @@ def build(force, only):
         problems.append(why)
     if not changed:
         problems.append("Aider changed none of the job's files")
+    elif empty_files(job["files"]):
+        problems.append("empty after Aider: %s" % " ".join(empty_files(job["files"])))
     else:
         for cmd in (["tools/aider_checks.py"], ["tools/check_additive.py", "--worktree"]):
             bad = subprocess.run([sys.executable] + cmd, cwd=ROOT, capture_output=True, text=True)
@@ -471,6 +486,12 @@ def self_test():
     page = json.dumps([{"head": {"ref": "aider/backlog-22a"}}, {"head": {"ref": "main-fix"}}]).encode()
     fake = lambda req, timeout=0: type("R", (), {"read": lambda s: page, "__enter__": lambda s: s, "__exit__": lambda s, *a: False})()
     assert open_pr_branches(fake) == {"aider/backlog-22a", "main-fix"}
+    with tempfile.TemporaryDirectory() as d:
+        open(os.path.join(d, "full.py"), "w").write("x = 1\n")
+        open(os.path.join(d, "zero.py"), "w").write("")
+        open(os.path.join(d, "blank.csv"), "w").write("\n  \n")
+        assert empty_files(["full.py", "zero.py", "blank.csv", "missing.py"], d) == ["zero.py", "blank.csv"]
+        assert empty_files(["full.py"], d) == []
     j = {"files": ["tools/x.py", "tests/agent_x.py"]}
     assert already_built(j, {"tests/agent_x.py"}.__contains__) == "tests/agent_x.py"
     assert already_built(j, set().__contains__) is None
