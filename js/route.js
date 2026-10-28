@@ -277,7 +277,7 @@
   function renderAll() {
     // under the table: the picked route in detail (js/route_detail.js fills #smDetail), then the biggest moves.
     // The all-routes line chart is gone (22 Oct): the table already compares the routes, the detail chart shows one.
-    app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml() + tableHtml() + '<div id="smDetail"></div>' + movesSectionHtml() + footerHtml() + "</div>";
+    app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml() + (txt("cmpGap") ? "" : tableHtml()) + '<div id="smDetail"></div>' + movesSectionHtml() + footerHtml() + "</div>";
     try { window.dispatchEvent(new Event("routes:render")); } catch (e) { /* very old browser: no detail */ }
   }
 
