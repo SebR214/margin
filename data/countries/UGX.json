@@ -1,7 +1,8 @@
 {
-  "buy_price": 4398.49,
+  "baseline_pct": 4.7324,
+  "buy_price": 4381.95,
   "ccy": "UGX",
-  "computed_at": "2026-10-28T16:00:00+00:00",
+  "computed_at": "2026-10-28T17:00:00+00:00",
   "country": "Uganda",
   "denominator": {
     "class": "market",
@@ -9,6 +10,7 @@
     "source": "open.er-api"
   },
   "fx_mid_per_usd": 4315.769137,
+  "held_value": 1.5335,
   "history": [
     {
       "date": "2026-09-05",
@@ -330,45 +332,47 @@
     },
     {
       "date": "2026-10-28",
-      "index_pct": 1.9167,
-      "n": 10,
-      "source": "current_hour"
+      "index_pct": 2.213,
+      "n": 18,
+      "source": "hourly_buy_p2p"
     }
   ],
   "history_days": 54,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-28T16:00:00+00:00",
-  "index_pct": 1.9167,
+  "hour_utc": "2026-10-28T17:00:00+00:00",
+  "index_pct": null,
   "index_version": "1.9",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": 2.6048,
+  "median_24h_pct": 2.5194,
   "n_boards": 1,
-  "n_sources": 10,
+  "n_sources": null,
+  "no_value_reason": "held back: +1.5% is 3.2 points from this country's usual +4.7% over the last 7 days, and no second source or earlier hour confirms it yet",
   "p2p_sources_apart": {
-    "binance_median": 4398.49,
-    "gap_pct": 12.31,
-    "okx_median": 4940.0
+    "binance_median": 4381.95,
+    "gap_pct": 8.97,
+    "okx_median": 4775.0
   },
-  "round_trip_pct": 0.6404,
+  "round_trip_pct": 0.2636,
   "second_board": {
-    "buy_price": 4940.0,
+    "buy_price": 4775.0,
     "combined": false,
     "venue": "okx_p2p",
     "why": "more than 3% from the first board"
   },
-  "source_class": "p2p_buy_median",
+  "source_class": null,
   "source_file": "data/p2p_basis.csv",
-  "source_words": "from person-to-person ads",
+  "source_words": "no price this hour",
   "venues": [
     {
-      "buy_price": 4398.49,
-      "index_pct": 1.9167,
+      "buy_price": 4381.95,
+      "index_pct": 1.5335,
       "last_price_used": false,
       "venue": "binance_p2p"
     }
-  ]
+  ],
+  "withheld_buy_price": 4381.95
 }
