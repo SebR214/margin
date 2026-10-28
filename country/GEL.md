@@ -1,12 +1,12 @@
 # In Georgia a dollar costs what the official rate says
 
-Prices from the 07:00 UTC hour, 28 Oct.
+Prices from the 08:00 UTC hour, 28 Oct.
 
-The official rate is 2.6 GEL per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 2.60 GEL. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 2.6 GEL per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 2.59 GEL. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 259.50 GEL. The official rate says 259.58 GEL.
+For US$100, people pay 259.47 GEL. The official rate says 259.58 GEL.
 
-Prices from the 07:00 UTC hour, 28 Oct
+Prices from the 08:00 UTC hour, 28 Oct
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
