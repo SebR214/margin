@@ -1,15 +1,29 @@
-# No price for South Africa this hour
+# In South Africa a dollar costs 9.3% more than the official rate
 
-Prices from the 05:00 UTC hour, 28 Oct.
+Prices from the 06:00 UTC hour, 28 Oct.
 
-Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
+The official rate is 16.64 ZAR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 18.18 ZAR. A stablecoin is a coin that stays worth one US dollar.
 
-The last price we published was +7.8%, on 27 Oct.
+For US$100, people pay 1,818 ZAR. The official rate says 1,664 ZAR.
 
-Prices from the 05:00 UTC hour, 28 Oct
+Only 1 source
+
+Prices from the 06:00 UTC hour, 28 Oct
+
+You could buy only US$500 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/ZAR.json>
 
 ## How the gap moved, day by day
 
 One point per day, the price we published that day. 0% is the official rate.
+
+Today's gap is the biggest since 5 Sep 2026, in our own checks. On most days the gap is between 5.3% and 8.7%.
+
+## Where this price comes from
+
+We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from people selling to each other.
+
+Binance, people selling to each other
+
+18.18 ZAR +9.3%
