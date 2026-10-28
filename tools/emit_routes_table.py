@@ -107,7 +107,11 @@ def own_path_bps(D, extras, c, h, amount=AMOUNT):
     f = 1 - b["off_basis"] / 1e4
     own = (lg["deposit"] + lg["buy"] + lg["move"] + ex[0] + ex[1]) * f + lg["withdrawal"]
     check = b["bps"] - b["off_basis"]
-    if abs(own - check) > TOLERANCE_BPS:
+    # The known source of a gap between the two is the network fee: a flat amount of stablecoin, so scaling it by the sale's
+    # price gap is only close. Its share is that fee times the price gap (AUD->INR, 25 Oct 18:00: 56.92 bps of fee on a 6.4%
+    # gap is 3.6 bps, which froze the table for three days). The allowance grows by exactly that much and no more, so a
+    # missing step (tens of bps at the least) still stops the run.
+    if abs(own - check) > TOLERANCE_BPS + abs(lg["move"] * b["off_basis"]) / 1e4:
         raise SystemExit("emit_routes_table: %s %s: the path's steps sum to %.2f bps but total minus the sale's price gap is %.2f"
                          % (c, h, own, check))
     return own
