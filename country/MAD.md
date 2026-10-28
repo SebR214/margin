@@ -1,12 +1,12 @@
 # In Morocco a dollar costs 6.8% more than the official rate
 
-Prices from the 10:00 UTC hour, 28 Oct.
+Prices from the 11:00 UTC hour, 28 Oct.
 
 The official rate is 9.85 MAD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 10.52 MAD. A stablecoin is a coin that stays worth one US dollar.
 
 For US$100, people pay 1,052 MAD. The official rate says 984.98 MAD.
 
-Prices from the 10:00 UTC hour, 28 Oct
+Prices from the 11:00 UTC hour, 28 Oct
 
 You could buy at least US$5,000 here before the price goes up 1%.
 

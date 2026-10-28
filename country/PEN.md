@@ -1,12 +1,12 @@
-# In Peru a dollar costs 1.9% more than the official rate
+# In Peru a dollar costs 1.4% more than the official rate
 
-Prices from the 10:00 UTC hour, 28 Oct.
+Prices from the 11:00 UTC hour, 28 Oct.
 
-The official rate is 3.45 PEN per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 3.51 PEN. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 3.45 PEN per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 3.50 PEN. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 351.47 PEN. The official rate says 344.86 PEN.
+For US$100, people pay 349.55 PEN. The official rate says 344.86 PEN.
 
-Prices from the 10:00 UTC hour, 28 Oct
+Prices from the 11:00 UTC hour, 28 Oct
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -28,4 +28,4 @@ Binance, people selling to each other
 
 OKX, people selling to each other
 
-3.54 PEN +2.6%
+3.50 PEN +1.5%
