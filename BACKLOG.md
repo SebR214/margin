@@ -163,6 +163,7 @@ Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/j
 - [ ] 21. Bybit P2P collector for DZD and SDG, the two markets where only Binance P2P is seen
   - [ ] 21a. Bybit P2P collector for DZD and SDG, the two markets where only Binance P2P is seen
     track: aider
+    blocked: venue not reachable from GitHub runners, track B (2026-10-28)
     proposed: researcher 2026-10-27 (gap: one_source: DZD (sources_seen only binance_p2p); one_source: SDG (sources_seen only binance_p2p))
     files: `collector_bybit_p2p.py` `data/p2p_bybit.csv` `tests/agent_bybit_p2p.py` `.github/workflows/collect.yml`
     context: `collector_p2p_okx.py` `collector_venue_common.py` `.github/workflows/collect.yml`
@@ -171,6 +172,7 @@ Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/j
 - [ ] 22. Quidax USDT/NGN spot collector as a second Nigeria source
   - [ ] 22a. Quidax USDT/NGN spot collector as a second Nigeria source
     track: aider
+    blocked: venue not reachable from GitHub runners, track B (2026-10-28)
     proposed: researcher 2026-10-27 (gap: one_source: NGN (sources_behind_price only Luno))
     files: `collector_quidax_ngn.py` `data/quidax_ngn.csv` `tests/agent_quidax_ngn.py` `.github/workflows/collect.yml`
     context: `collector_stable_venues.py` `collector_venue_common.py` `.github/workflows/collect.yml`

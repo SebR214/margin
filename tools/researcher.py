@@ -3,8 +3,8 @@
 
 It reads the data-gap report (tools/gap_report.py, plain code), ROADMAP.md and the titles already in BACKLOG.md, and writes 8 jobs
 to the end of BACKLOG.md, under "## Proposed by the researcher". Every job is held to the track A rules in tools/job_shape.py: new
-files only (plus collect.yml and the source registry, which only grow), one new test tests/agent_<name>.py that `done when:` names,
-and nothing that touches an existing collector, a page or a method. A job that breaks a rule is refused by code, not queued. If fewer
+files only (plus the source registry, which only grows), one new test tests/agent_<name>.py that `done when:` names,
+and nothing that touches an existing collector, a page or a method. No new venue collector and no collect.yml change (27 Oct). A job that breaks a rule is refused by code, not queued. If fewer
 than 3 pass, one more call gets the reasons. Never more than two calls a run. Seb's ideas and the chats' go in the same queue by hand.
 
     python3 tools/researcher.py               # run, unless it already ran this half-week (Mon to Wed, Thu to Sun)
@@ -42,15 +42,14 @@ Your job: propose exactly 8 jobs that close the biggest gaps in the gap report, 
 build each job alone, so every job must be small and mechanical.
 
 Hard rules. Code checks every one and refuses a job that breaks it:
-- files: only NEW files, plus at most these existing ones that only grow: .github/workflows/collect.yml (add one step),
-  data/source_registry.json (add one source as "quarantine"). Never collector.py or any existing collector*.py, never a page (.html,
-  .js, .css, copy.json), never METHODOLOGY.md, DESIGN.md, ROADMAP.md, CLAUDE.md, BACKLOG.md, never an existing data CSV.
-- Good shapes: a new collector file for one venue (collector_<venue>.py with a --selftest on a stored sample) plus its collect.yml
-  step and its own new CSV; a new sidecar CSV written by a new tools/ script; a new analysis script that reads existing CSVs and writes
-  one new JSON or CSV; a new finding test file.
+- files: only NEW files, plus at most one existing one that only grows: data/source_registry.json (add one source as "quarantine").
+  Never any collector*.py (new or existing), never .github/workflows/collect.yml, never a page (.html, .js, .css, copy.json), never METHODOLOGY.md, DESIGN.md, ROADMAP.md, CLAUDE.md, BACKLOG.md, never an existing data CSV.
+- Do not propose a new venue or exchange collector. The GitHub runners cannot reach most venues (Bybit and Quidax both failed on 27 Oct),
+  so collection of a new venue is done by hand.
+- Good shapes: a new analysis script (tools/) that reads existing CSVs and writes one new JSON or CSV in data/research/; a new sidecar
+  CSV computed by a new tools/ script from existing CSVs; a new finding test file (findings_tests/); a new history file in data/history/.
 - One test: files must include exactly one new tests/agent_<short_name>.py (lowercase, underscores), and "done_when" must name that
   path and say what it checks, with concrete inputs and expected results.
-- A job that adds collection (a new collector or a collect.yml step) gives "rows": the new CSV its first hourly rows land in.
 - context: existing files the builder may read, at most 4, from the file list given.
 - No number is typed or guessed. Everything comes from files or live public endpoints read by code. No new API keys or accounts.
 - Do not repeat a job already in the backlog titles.
@@ -256,22 +255,25 @@ def run(dry, force):
 
 
 def self_test():
-    have = {"collector.py", ".github/workflows/collect.yml", "data/source_pairs.json", "data/source_registry.json"}
+    have = {"collector.py", ".github/workflows/collect.yml", "data/source_pairs.json", "data/source_registry.json", "data/p2p_okx.csv"}
     ex = have.__contains__
-    ok = {"title": "Bitkub THB order book as a second THB source", "gap": "one_source: THB",
-          "files": ["collector_bitkub_thb.py", ".github/workflows/collect.yml", "data/bitkub_thb.csv", "tests/agent_bitkub_thb.py"],
-          "context": ["data/source_pairs.json"], "rows": "data/bitkub_thb.csv",
-          "done_when": "python3 tests/agent_bitkub_thb.py runs collector_bitkub_thb.py --selftest on a stored book and gets one row with source_ok"}
+    ok = {"title": "Which side carries the gap for each disagreeing pair", "gap": "disagree: THB",
+          "files": ["tools/diagnose_gap_side.py", "data/research/gap_side.json", "tests/agent_gap_side.py"],
+          "context": ["data/source_pairs.json"], "rows": "",
+          "done_when": "python3 tests/agent_gap_side.py runs tools/diagnose_gap_side.py on inline rows and gets one side label per pair"}
     assert check(ok, [], ex) == [], check(ok, [], ex)
-    assert "a collection job needs rows: one of its new CSVs in files" in check(dict(ok, rows=""), [], ex)
-    assert "already in the backlog" in check(ok, ["40. Bitkub THB order book as a second THB source"], ex)
+    venue = dict(ok, title="Bitkub THB order book as a second THB source", gap="one_source: THB",
+                 files=["collector_bitkub_thb.py", ".github/workflows/collect.yml", "data/bitkub_thb.csv", "tests/agent_bitkub_thb.py"],
+                 rows="data/bitkub_thb.csv", done_when="python3 tests/agent_bitkub_thb.py runs collector_bitkub_thb.py --selftest on a stored book and gets one row")
+    w = check(venue, [], ex)
+    assert any("new collector" in x for x in w) and any("collect.yml" in x for x in w), w
+    assert "already in the backlog" in check(ok, ["40. Which side carries the gap for each disagreeing pair"], ex)
     assert any("existing collector" in w for w in check(dict(ok, files=["collector.py", "tests/agent_x.py"]), [], ex))
     assert "no gap cited" in check(dict(ok, gap=""), [], ex)
     assert "context nope.py does not exist" in check(dict(ok, context=["nope.py"]), [], ex)
-    w = check(dict(ok, done_when=ok["done_when"] + " and writes data/bitkub_summary.json"), [], ex)
-    assert "done when writes data/bitkub_summary.json but files does not list it" in w, w
-    assert "collector_bitkub_thb.py is already a file of another open job" in check(ok, [], ex, {"collector_bitkub_thb.py"})
-    assert check(ok, [], ex, {".github/workflows/collect.yml"}) == [], "collect.yml may be shared, it only grows"
+    w = check(dict(ok, done_when=ok["done_when"] + " and writes data/research/summary.json"), [], ex)
+    assert "done when writes data/research/summary.json but files does not list it" in w, w
+    assert "tools/diagnose_gap_side.py is already a file of another open job" in check(ok, [], ex, {"tools/diagnose_gap_side.py"})
     a = parse_answer('Here: {"jobs": [{"title": "x"}]} done')
     assert a == [{"title": "x"}] and parse_answer("no json") == [] and parse_answer("{bad json}") == []
     text = "# Build backlog\n\n## Routes\n- [ ] 3. A\n  - [ ] 3a. A\n    files: `a.py`\n- [x] 19. B\n"
@@ -279,8 +281,8 @@ def self_test():
     items = backlog.parse(out)
     assert items[-1]["id"] == "20" and items[-1]["jobs"][0]["id"] == "20a", items[-1]
     j = items[-1]["jobs"][0]
-    assert j["track"] == "aider" and j["files"] == ok["files"] and j["rows"] == ["data/bitkub_thb.csv"] and "agent_bitkub_thb" in j["done_when"]
-    assert "proposed: researcher 2026-10-26 (gap: one_source: THB)" in out and out.count(SECTION) == 1
+    assert j["track"] == "aider" and j["files"] == ok["files"] and "agent_gap_side" in j["done_when"]
+    assert "proposed: researcher 2026-10-26 (gap: disagree: THB)" in out and out.count(SECTION) == 1
     again = render(out, [dict(ok, title="Another job that is long enough")], "2026-11-02")
     assert again.count(SECTION) == 1 and backlog.parse(again)[-1]["id"] == "21"
     t0 = datetime.datetime(2026, 10, 26, 2, tzinfo=datetime.timezone.utc)

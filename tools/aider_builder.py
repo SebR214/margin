@@ -302,13 +302,35 @@ def already_built(job, exists=None):
     return None
 
 
-def pick(items, only=None):
+def branch_for(job):
+    return "aider/backlog-%s" % job["id"].lower()
+
+
+def open_pr_branches(opener=None):
+    """Head branches of the open PRs (GitHub REST API). A job whose branch is in this set is already built and waiting on its
+    checks (22a on 27 Oct: rebuilt again and again while #711 sat open). Raises on any API error: no quiet fallback."""
+    repo = os.environ.get("GITHUB_REPOSITORY", "SebR214/margin")
+    token = os.environ.get("GH_PUSH_TOKEN") or os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or ""
+    out, page = set(), 1
+    while True:
+        req = urllib.request.Request("https://api.github.com/repos/%s/pulls?state=open&per_page=100&page=%d" % (repo, page),
+                                     headers={"Authorization": "Bearer " + token, "Accept": "application/vnd.github+json"})
+        with (opener or urllib.request.urlopen)(req, timeout=30) as r:
+            prs = json.loads(r.read())
+        out |= {p["head"]["ref"] for p in prs}
+        if len(prs) < 100:
+            return out
+        page += 1
+
+
+def pick(items, only=None, open_branches=()):
     """The job to build: the top ready job in BACKLOG.md, or the one asked for.
 
     Since 24 Oct (Seb) the Aider builder is the builder for every backlog job: any job that is not done, blocked or built, lists
     its files, and carries no track or `track: aider`. A job marked `track: claude` is left for the weekly Claude slot. The pilot
     limit to items 1 to 3 is gone: it left the builder idle from 23 Oct with ready jobs in the queue. Since 25 Oct a job that changes an
-    existing collector, a page or a method is track B and skipped (tools/job_shape.py), unless asked for by --job."""
+    existing collector, a page or a method is track B and skipped (tools/job_shape.py), unless asked for by --job. Since 28 Oct a job
+    with an open PR on its branch aider/backlog-<id> is skipped, even by --job (`open_branches`, from open_pr_branches())."""
     for it in items:
         if it["done"]:
             continue
@@ -316,7 +338,7 @@ def pick(items, only=None):
             if only and j["id"] != only:
                 continue
             if not j["done"] and not j["blocked"] and not j["built"] and j["files"] and j["track"] in ("", TRACK) \
-                    and (only or not job_shape.forbidden(j["files"])):
+                    and (only or not job_shape.forbidden(j["files"])) and branch_for(j) not in open_branches:
                 return it, j
     return None
 
@@ -338,12 +360,17 @@ def build(force, only):
         return 0
     text = open(backlog.PATH).read()
     items = backlog.parse(text)
-    nj = pick(items, only)
+    try:
+        open_branches = open_pr_branches()
+    except Exception as e:
+        print("could not list open PRs: %s" % e, file=sys.stderr)
+        return 1
+    nj = pick(items, only, open_branches)
     stale = []
     while nj and not only and already_built(nj[1]):
         stale.append((nj[1]["id"], already_built(nj[1])))
         nj[1]["blocked"] = "already built"
-        nj = pick(items, only)
+        nj = pick(items, only, open_branches)
     if stale:
         ops = [("block", jid, "already built? %s is already on main, so a session built it. Check it and tick the job" % t) for jid, t in stale]
         rows = [[ts, "skipped", jid, "", "0.000000", 0, "already built: %s exists" % t] for jid, t in stale]
@@ -358,7 +385,7 @@ def build(force, only):
         one_call.commit_main([[ts, "failed", job["id"], "", "0.000000", 0, why]], [("block", job["id"], why)], "aider builder: %s blocked" % job["id"], LOG, LOG_HEADER)
         return 0
     i = one_call.backlog_issue(item, job)
-    i.update(branch="aider/backlog-%s" % job["id"].lower(), runner="Aider builder (Sonnet architect, qwen3-coder editor)")
+    i.update(branch=branch_for(job), runner="Aider builder (Sonnet architect, qwen3-coder editor)")
     architect = ARCHITECT_FALLBACK
     try:
         architect = llm.resolve_sonnet()
@@ -438,6 +465,12 @@ def self_test():
     assert pick(backlog.parse(t2), "9a")[1]["id"] == "9a", "--job picks the job asked for"
     t4 = t.replace("    files: `a.py`\n", "    files: `collector.py` `a.py`\n")
     assert pick(backlog.parse(t4))[1]["id"] == "2a", "a job that changes collector.py is track B, the builder skips it"
+    assert pick(items, None, {"aider/backlog-1a"})[1]["id"] == "2a", "1a has an open PR, so the next job"
+    assert pick(items, None, {"aider/backlog-9a"})[1]["id"] == "1a" and pick(items, None, {"aider/backlog-1a", "aider/backlog-2a"})[1]["id"] == "9a"
+    assert pick(items, "1a", {"aider/backlog-1a"}) is None, "--job does not rebuild a job with an open PR either"
+    page = json.dumps([{"head": {"ref": "aider/backlog-22a"}}, {"head": {"ref": "main-fix"}}]).encode()
+    fake = lambda req, timeout=0: type("R", (), {"read": lambda s: page, "__enter__": lambda s: s, "__exit__": lambda s, *a: False})()
+    assert open_pr_branches(fake) == {"aider/backlog-22a", "main-fix"}
     j = {"files": ["tools/x.py", "tests/agent_x.py"]}
     assert already_built(j, {"tests/agent_x.py"}.__contains__) == "tests/agent_x.py"
     assert already_built(j, set().__contains__) is None

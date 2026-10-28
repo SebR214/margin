@@ -5,9 +5,11 @@ A cheap builder is only useful on jobs it can't get wrong. So:
 
 - track B only: any job that changes collector.py or another existing collector file, a page (html, js, css, copy.json), or a method
   (METHODOLOGY.md, DESIGN.md). The Aider builder never takes one (`forbidden`). Those are built in Seb's own sessions.
-- researcher jobs are stricter (`researcher_problems`): new files only, plus collect.yml (it only grows, tools/check_additive.py) and
-  the source registry (a new row). Each job lists a new test, `tests/agent_<something>.py`, and its `done when:` names it. That test
-  runs in CI and as the builder's own test (tools/run_agent_tests.py).
+- researcher jobs are stricter (`researcher_problems`): new files only, plus the source registry (a new row). No collector*.py and no
+  collect.yml change: since 27 Oct a new venue collector is not a researcher job (Bybit 21a merged with an empty CSV, Quidax 22a failed
+  collector-gate, the runners cannot reach those venues). Seb and the chats may still write one by hand. Each job lists a new test,
+  `tests/agent_<something>.py`, and its `done when:` names it. That test runs in CI and as the builder's own test
+  (tools/run_agent_tests.py).
 
     python3 tools/job_shape.py              # list every open job the builder may not take, and why
     python3 tools/job_shape.py --self-test
@@ -18,8 +20,10 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Existing files a researcher job may change: both only grow, and the checks hold them to that.
-APPEND_OK = {".github/workflows/collect.yml", "data/source_registry.json"}
+# Existing files a researcher job may change: it only grows, and the checks hold it to that.
+APPEND_OK = {"data/source_registry.json"}
+COLLECT = ".github/workflows/collect.yml"
+COLLECTOR = re.compile(r"^collector[^/]*\.py$")
 TEST = re.compile(r"^tests/agent_[a-z0-9_]+\.py$")
 PAGE = re.compile(r"(\.html|\.css|^js/.*\.js|^copy\.json)$")
 METHOD = {"METHODOLOGY.md", "DESIGN.md", "ROADMAP.md", "CLAUDE.md", "BACKLOG.md"}
@@ -47,6 +51,10 @@ def researcher_problems(job, exists=None):
     if not files:
         out.append("no files listed")
     for p in files:
+        if COLLECTOR.match(p) and not exists(p):
+            out.append("%s is a new collector (researcher jobs read our own CSVs, they do not add a venue)" % p)
+        if p == COLLECT:
+            out.append("collect.yml may not change in a researcher job")
         if exists(p) and p not in APPEND_OK and not PAGE.search(p) and p not in METHOD:
             out.append("%s already exists (new files only)" % p)
         if p.startswith("data/") and p.endswith(".csv") and exists(p):
@@ -68,13 +76,18 @@ def self_test():
     assert forbidden(["collector.py"], ex) and forbidden(["index.html"], ex) and forbidden(["copy.json"], ex)
     assert forbidden(["METHODOLOGY.md"], ex) and forbidden(["js/route.js"], ex)
     assert not forbidden(["collector_new_venue.py", "tools/x.py", ".github/workflows/watchdog.yml"], ex), "a new collector is fine"
-    good = {"files": ["collector_bitkub.py", ".github/workflows/collect.yml", "tests/agent_bitkub.py"],
-            "done_when": "python3 tests/agent_bitkub.py passes: collector_bitkub.py --selftest parses a stored order book and writes one row"}
+    good = {"files": ["tools/diagnose_x.py", "data/research/x.json", "tests/agent_x.py"],
+            "done_when": "python3 tests/agent_x.py passes: tools/diagnose_x.py reads the stored rows and writes one JSON with the gap"}
     assert researcher_problems(good, ex) == [], researcher_problems(good, ex)
+    venue = {"files": ["collector_bitkub.py", ".github/workflows/collect.yml", "tests/agent_bitkub.py"],
+             "done_when": "python3 tests/agent_bitkub.py passes: collector_bitkub.py --selftest parses a stored order book and writes one row"}
+    w = researcher_problems(venue, ex)
+    assert any("new collector" in r for r in w) and any("collect.yml" in r for r in w), w
+    assert any("collect.yml" in r for r in researcher_problems(dict(good, files=good["files"] + [COLLECT]), ex))
     assert any("already exists" in r for r in researcher_problems(dict(good, files=good["files"] + ["tools/emit_routes.py"]), ex))
     assert any("existing CSV" in r for r in researcher_problems(dict(good, files=good["files"] + ["data/p2p_basis.csv"]), ex))
     assert any("existing collector" in r for r in researcher_problems(dict(good, files=["collector.py", "tests/agent_x.py"]), ex))
-    assert any("no new test" in r for r in researcher_problems(dict(good, files=["collector_bitkub.py"]), ex))
+    assert any("no new test" in r for r in researcher_problems(dict(good, files=["tools/x.py"]), ex))
     assert any("does not name" in r for r in researcher_problems(dict(good, done_when="it works and writes rows to a new file ok"), ex))
     print("job_shape self-test: ok")
 
