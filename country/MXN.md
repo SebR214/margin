@@ -1,16 +1,16 @@
-# In Mexico a dollar costs 0.5% less than the official rate
+# In Mexico a dollar costs 0.4% less than the official rate
 
-Prices from the 19:00 UTC hour, 28 Oct.
+Prices from the 20:00 UTC hour, 28 Oct.
 
-The official rate is 18.67 MXN per dollar. On the exchanges where people in Mexico trade stablecoins, one costs 18.57 MXN. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 18.67 MXN per dollar. On the exchanges where people in Mexico trade stablecoins, one costs 18.59 MXN. A stablecoin is a coin that stays worth one US dollar.
 
 From people selling to each other on Binance and OKX, a dollar costs 18.73 MXN, 0.3% more than the official rate.
 
-For US$100, people pay 1,857 MXN. The official rate says 1,867 MXN.
+For US$100, people pay 1,859 MXN. The official rate says 1,867 MXN.
 
 Only 1 source
 
-Prices from the 19:00 UTC hour, 28 Oct
+Prices from the 20:00 UTC hour, 28 Oct
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -30,4 +30,4 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Bitso
 
-18.57 MXN −0.5%
+18.59 MXN −0.4%

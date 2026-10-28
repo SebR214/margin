@@ -1,16 +1,16 @@
-# In Nigeria a dollar costs 2.2% more than the official rate
+# In Nigeria a dollar costs 2.1% more than the official rate
 
-Prices from the 19:00 UTC hour, 28 Oct.
+Prices from the 20:00 UTC hour, 28 Oct.
 
 The official rate is 1,353.43 NGN per dollar. On the exchanges where people in Nigeria trade stablecoins, one costs 1,383 NGN. A stablecoin is a coin that stays worth one US dollar.
 
-From people selling to each other on OKX, a dollar costs 1,388 NGN, 2.5% more than the official rate.
+From people selling to each other on OKX, a dollar costs 1,388 NGN, 2.6% more than the official rate.
 
-For US$100, people pay 138,262 NGN. The official rate says 135,343 NGN.
+For US$100, people pay 138,250 NGN. The official rate says 135,343 NGN.
 
 Only 1 source
 
-Prices from the 19:00 UTC hour, 28 Oct
+Prices from the 20:00 UTC hour, 28 Oct
 
 <https://margin.wiki/data/countries/NGN.json>
 
@@ -28,4 +28,4 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Luno
 
-1,383 NGN +2.2%
+1,383 NGN +2.1%

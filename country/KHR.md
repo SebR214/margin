@@ -1,12 +1,12 @@
 # No price for Cambodia this hour
 
-Prices from the 19:00 UTC hour, 28 Oct.
+Prices from the 20:00 UTC hour, 28 Oct.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
 The last price we published was +1.4%, on 28 Oct.
 
-Prices from the 19:00 UTC hour, 28 Oct
+Prices from the 20:00 UTC hour, 28 Oct
 
 <https://margin.wiki/data/countries/KHR.json>
 
