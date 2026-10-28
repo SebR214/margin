@@ -1,8 +1,8 @@
 # Singapore to the Philippines: a stablecoin was almost never the cheapest way to send
 
-Prices from the 23:00 UTC hour, 27 Oct.
+Prices from the 00:00 UTC hour, 28 Oct.
 
-In 1,602 of the 1,605 hours we priced, a stablecoin did not beat the cheapest app at any of the five amounts.
+In 1,603 of the 1,606 hours we priced, a stablecoin did not beat the cheapest app at any of the five amounts.
 
 3 · hours in which a stablecoin was the cheapest way to send
 
@@ -20,11 +20,11 @@ Each row is one amount sent from Singapore to the Philippines: the hours we pric
 
 |  |  |  |
 | --- | --- | --- |
-| S$200 | 1,605 hours priced. | 0 hours a stablecoin was cheapest |
-| S$1,000 | 1,605 hours priced. | 1 hours a stablecoin was cheapest |
-| S$5,000 | 1,605 hours priced. | 3 hours a stablecoin was cheapest |
-| S$25,000 | 1,605 hours priced. | 3 hours a stablecoin was cheapest |
-| S$50,000 | 1,605 hours priced. | 1 hours a stablecoin was cheapest |
+| S$200 | 1,606 hours priced. | 0 hours a stablecoin was cheapest |
+| S$1,000 | 1,606 hours priced. | 1 hours a stablecoin was cheapest |
+| S$5,000 | 1,606 hours priced. | 3 hours a stablecoin was cheapest |
+| S$25,000 | 1,606 hours priced. | 3 hours a stablecoin was cheapest |
+| S$50,000 | 1,606 hours priced. | 1 hours a stablecoin was cheapest |
 
 ## How we worked it out
 
@@ -48,7 +48,7 @@ One line per hour or per price change.
 
 findings_hours_sgd_php_never_cheapest.csv
 
-1,605 rows
+1,606 rows
 
 <https://margin.wiki/data/findings_hours_sgd_php_never_cheapest.csv>
 
@@ -56,7 +56,7 @@ findings_hours_sgd_php_never_cheapest.csv
 
 |  |  |  |
 | --- | --- | --- |
-| 01 | Transfer apps keep changing their prices | 1,503 price changes since 12 Aug |
+| 01 | Transfer apps keep changing their prices | 1,564 price changes since 12 Aug |
 | 02 | Some apps charge more on Saturday, then cut back | 51 Saturday rises that came back |
 | 03 | From Singapore to the Philippines, a stablecoin only beats the apps if you send over S$13.5M a month | S$13.5M a month traded on the exchange |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |
