@@ -1,12 +1,12 @@
 # No price for Zambia this hour
 
-Prices from the 12:00 UTC hour, 28 Oct.
+Prices from the 13:00 UTC hour, 28 Oct.
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
 The last price we published was +2.8%, on 28 Oct.
 
-Prices from the 12:00 UTC hour, 28 Oct
+Prices from the 13:00 UTC hour, 28 Oct
 
 <https://margin.wiki/data/countries/ZMW.json>
 

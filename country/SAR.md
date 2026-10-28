@@ -1,12 +1,12 @@
-# In Saudi Arabia a dollar costs 4.1% more than the official rate
+# In Saudi Arabia a dollar costs 3.9% more than the official rate
 
-Prices from the 12:00 UTC hour, 28 Oct.
+Prices from the 13:00 UTC hour, 28 Oct.
 
 The official rate is 3.75 SAR per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 3.90 SAR. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 390.25 SAR. The official rate says 375.00 SAR.
+For US$100, people pay 389.50 SAR. The official rate says 375.00 SAR.
 
-Prices from the 12:00 UTC hour, 28 Oct
+Prices from the 13:00 UTC hour, 28 Oct
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -24,8 +24,8 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-3.85 SAR +2.7%
+3.84 SAR +2.4%
 
 OKX, people selling to each other
 
-3.96 SAR +5.5%
+3.95 SAR +5.3%
