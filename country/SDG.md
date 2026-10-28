@@ -1,16 +1,16 @@
-# In Sudan a dollar costs 2,189% more than the official rate
+# In Sudan a dollar costs 2,200% more than the official rate
 
-Prices from the 18:00 UTC hour, 28 Oct.
+Prices from the 19:00 UTC hour, 28 Oct.
 
-The official rate is 449.45 SDG per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 10,287 SDG. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 449.45 SDG per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 10,339 SDG. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 1,028,650 SDG. The official rate says 44,945 SDG.
+For US$100, people pay 1,033,850 SDG. The official rate says 44,945 SDG.
 
 Only 1 source
 
 Sudan is shown but not ranked. Its government stopped updating the official rate, so comparing against it says little.
 
-Prices from the 18:00 UTC hour, 28 Oct
+Prices from the 19:00 UTC hour, 28 Oct
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -20,7 +20,7 @@ You could buy at least US$5,000 here before the price goes up 1%.
 
 One point per day, the price we published that day. 0% is the official rate.
 
-Today's gap is close to the biggest since 5 Sep 2026, in our own checks. On most days the gap is between 1295.2% and 1934.8%.
+Today's gap is the biggest since 5 Sep 2026, in our own checks. On most days the gap is between 1295.2% and 1934.8%.
 
 ## Where this price comes from
 
@@ -28,4 +28,4 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-10,287 SDG +2,189%
+10,339 SDG +2,200%
