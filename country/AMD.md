@@ -1,14 +1,16 @@
-# In Armenia a dollar costs 1.1% more than the official rate
+# In Armenia a dollar costs 1.3% more than the official rate
 
-Prices from the 00:00 UTC hour, 28 Oct.
+Prices from the 01:00 UTC hour, 28 Oct.
 
-The official rate is 361.16 AMD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 365.30 AMD. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 361.25 AMD per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 365.99 AMD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 36,530 AMD. The official rate says 36,116 AMD.
+For US$100, people pay 36,599 AMD. The official rate says 36,125 AMD.
 
-Prices from the 00:00 UTC hour, 28 Oct
+Only 1 source
 
-You could buy only US$2,000 here before the price goes up 1%.
+Prices from the 01:00 UTC hour, 28 Oct
+
+You could buy only US$1,000 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/AMD.json>
 
@@ -24,8 +26,4 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-363.85 AMD +0.7%
-
-OKX, people selling to each other
-
-366.75 AMD +1.5%
+365.99 AMD +1.3%
