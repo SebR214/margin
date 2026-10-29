@@ -63,6 +63,25 @@ def proposers(text):
     return out
 
 
+PROPOSED = re.compile(r"^proposed: researcher (\d{4}-\d{2}-\d{2})\b")
+
+
+def researcher_jobs(text, since, until):
+    """(job id, title) of every job with a `proposed: researcher <date>` line dated since..until, in BACKLOG.md order."""
+    out, cur = [], None
+    for line in text.split("\n"):
+        m = backlog.JOB.match(line)
+        if m:
+            cur = (m.group(2), m.group(3).strip())
+            continue
+        d = PROPOSED.match(line.strip()) if cur and line.startswith("    ") else None
+        if d and since <= datetime.date.fromisoformat(d.group(1)) <= until:
+            out.append(cur)
+        elif line.strip() and not line.startswith("    "):
+            cur = None
+    return out
+
+
 def bot_merged(prs, since, until=None):
     out = []
     for p in prs:
@@ -163,6 +182,8 @@ def build(now, prs, text, spend_rows, aider_rows, researcher_rows, hours_seen=No
     lines.append("Builder runs this week: " + (", ".join("%s %d" % (k, v) for k, v in sorted(a.items())) if a else "none") + ".")
     r = [x for x in researcher_rows if x.get("ts_utc") and ts(x["ts_utc"]) >= since]
     lines.append("Researcher this week: " + ("; ".join("%s, %s jobs added" % (x["status"], x["added"]) for x in r) if r else "did not run") + ".")
+    for jid, title in researcher_jobs(text, since.date(), now.date()):
+        lines.append("- %s: %s" % (jid, title))
     q = ready(text)
     lines.append("Ready jobs in BACKLOG.md now: %d%s." % (len(q), (" (" + ", ".join(q[:10]) + ")") if q else ""))
     w, m = spend(spend_rows, since), spend(spend_rows, month0)
@@ -242,6 +263,10 @@ def self_test():
     assert "Spend this week: $0.70" in body and "researcher $0.30" in body, body
     assert "Kill date 08 Nov: 1 of 4 researcher-job PRs merged so far." in body, body
     assert "Ready jobs in BACKLOG.md now: 2 (7b, 20a)" in body, body
+    assert researcher_jobs(text, datetime.date(2026, 10, 25), datetime.date(2026, 11, 1)) == [("20a", "Bitkub")]
+    assert researcher_jobs(text, datetime.date(2026, 10, 27), datetime.date(2026, 11, 3)) == [], "proposed before the window"
+    assert researcher_jobs(text, datetime.date(2026, 10, 20), datetime.date(2026, 10, 25)) == [], "proposed after the window"
+    assert "Researcher this week: ok, 3 jobs added.\n- 20a: Bitkub\nReady jobs" in body, body
     body0, _ = build(now, [], text, [], [], [])
     assert body0.startswith("**Agents merged nothing this week.**") and "Researcher this week: did not run" in body0
     late, _ = build(datetime.datetime(2026, 11, 9, tzinfo=datetime.timezone.utc), prs, text, [], [], [])
