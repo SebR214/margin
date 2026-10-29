@@ -1,12 +1,12 @@
-# In Brazil a dollar costs 0.2% more than the official rate
+# In Brazil a dollar costs what the official rate says
 
-Prices from the 06:00 UTC hour, 28 Oct.
+Prices from the 20:00 UTC hour, 28 Oct.
 
-The official rate is 5.35 BRL per dollar. On the exchanges where people in Brazil trade stablecoins, one costs 5.36 BRL. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 5.35 BRL per dollar. On the exchanges where people in Brazil trade stablecoins, one costs 5.35 BRL. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 535.72 BRL. The official rate says 534.84 BRL.
+For US$100, people pay 534.91 BRL. The official rate says 534.84 BRL.
 
-Prices from the 06:00 UTC hour, 28 Oct
+Prices from the 20:00 UTC hour, 28 Oct
 
 <https://margin.wiki/data/countries/BRL.json>
 
@@ -20,10 +20,10 @@ Today's gap is normal for here since 2 Sep 2026, in our own checks. On most days
 
 We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from exchanges.
 
-MercadoBitcoin
-
-5.36 BRL +0.2%
-
 Foxbit
 
-5.36 BRL +0.2%
+5.35 BRL 0.0%
+
+MercadoBitcoin
+
+5.35 BRL +0.1%

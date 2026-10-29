@@ -1,12 +1,14 @@
 {
+  "buy_price": 1201.0,
   "ccy": "AOA",
-  "computed_at": "2026-10-28T06:00:00+00:00",
+  "computed_at": "2026-10-28T20:00:00+00:00",
   "country": "Angola",
   "denominator": {
     "class": "managed",
     "rate_per_usd": 928.618595,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 928.618595,
   "history": [
     {
       "date": "2026-10-23",
@@ -25,23 +27,37 @@
       "index_pct": 29.4641,
       "n": 9,
       "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-10-28",
+      "index_pct": 29.3319,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
-  "history_days": 3,
+  "history_days": 4,
   "history_start": "2026-10-23",
-  "hour_utc": "2026-10-28T06:00:00+00:00",
+  "hour_utc": "2026-10-28T20:00:00+00:00",
+  "index_pct": 29.3319,
   "index_version": "1.9",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "median_24h_n": 14,
-  "median_24h_pct": 29.9993,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: 7 buy-side ads, 10 required",
-  "round_trip_pct": 3.1141,
-  "source_class": null,
+  "median_24h_n": 20,
+  "median_24h_pct": 29.6793,
+  "n_boards": 1,
+  "n_sources": 10,
+  "round_trip_pct": 1.2195,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 1220.0
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 1201.0,
+      "index_pct": 29.3319,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    }
+  ]
 }
