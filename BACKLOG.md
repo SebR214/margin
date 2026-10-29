@@ -153,6 +153,7 @@ Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/j
     files: `findings_tests/p2p_spread_signal.json` `tests/agent_spread_signal_test.py`
     context: `data/findings.json` `data/p2p_spread_signal.csv` `data/finding_tests.csv` `findings_tests/price_changes.json`
     done when: tests/agent_spread_signal_test.py loads findings_tests/p2p_spread_signal.json and checks it has the same keys as findings_tests/price_changes.json: calculation, data window, minimum observations, invalid-if, and thresholds for holding, weaker and no longer true. It then runs the test calculation on a small inline table of 40 made-up hourly rows, using only the columns of data/p2p_spread_signal.csv, where the signal clearly holds, and expects the result 'holds'. It runs the same calculation on 40 rows where the signal is reversed and expects 'no longer true'. With 5 rows it expects 'not enough evidence'. Every threshold in the JSON must be read from the file by the test, not typed into the test.
+    blocked: needs-claude: the Aider builder failed 2 times, last: empty after Aider: findings_tests/p2p_spread_signal.json tests/agent_spread_signal_test.py (2026-10-29)
 - [x] 20. Diagnose why Binance P2P and OKX P2P disagree in the flagged markets (PR #687, 2026-10-25)
   - [x] 20a. Diagnose why Binance P2P and OKX P2P disagree in the flagged markets (PR #687, 2026-10-25)
     track: aider
