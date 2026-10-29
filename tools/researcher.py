@@ -47,7 +47,7 @@ Hard rules. Code checks every one and refuses a job that breaks it:
 - Do not propose a new venue or exchange collector. The GitHub runners cannot reach most venues (Bybit and Quidax both failed on 27 Oct),
   so collection of a new venue is done by hand.
 - Good shapes: a new analysis script (tools/) that reads existing CSVs and writes one new JSON or CSV in data/research/; a new sidecar
-  CSV computed by a new tools/ script from existing CSVs; a new finding test file (findings_tests/); a new history file in data/history/.
+  CSV computed by a new tools/ script from existing CSVs; a new finding test file (findings_tests/).
 - One test: files must include exactly one new tests/agent_<short_name>.py (lowercase, underscores), and "done_when" must name that
   path and say what it checks, with concrete inputs and expected results.
 - context: existing files the builder may read, at most 4, from the file list given.
