@@ -188,8 +188,8 @@ Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/j
     context: `collector_stable_venues.py` `collector_venue_common.py` `.github/workflows/collect.yml`
     rows: `data/satang_thb.csv`
     done when: collector_satang_thb.py reads the public Satang Pro usdt_thb order book or ticker with no key and adds one hourly collect.yml step. First hourly rows land in data/satang_thb.csv with columns for time, bid and ask. tests/agent_satang_thb.py runs the selftest on an inline sample with best bid 32.0 and best ask 32.5 and checks the row holds exactly those two values. A sample where bid is above ask must write no row and be logged as crossed.
-- [ ] 24. Explain why seen sources are not behind the price in one-source markets
-  - [ ] 24a. Explain why seen sources are not behind the price in one-source markets
+- [x] 24. Explain why seen sources are not behind the price in one-source markets (done 2026-10-30)
+  - [x] 24a. Explain why seen sources are not behind the price in one-source markets (PR #718, 2026-10-30)
     track: aider
     proposed: researcher 2026-10-27 (gap: one_source: AED (sources_seen BitOasis, OKX spot (AED), binance_p2p but only binance_p2p behind the price))
     files: `tools/one_source_reasons.py` `data/one_source_reasons.json` `tests/agent_one_source_reasons.py`
