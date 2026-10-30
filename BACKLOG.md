@@ -202,6 +202,7 @@ Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/j
     files: `tools/disagree_arbiter.py` `data/disagree_arbiter.json` `tests/agent_disagree_arbiter.py`
     context: `data/source_pairs.json` `data/disagree_diagnosis.json` `data/p2p_kucoin.csv` `data/stable_venues.csv`
     done when: tools/disagree_arbiter.py takes each pair with flag true in the disagree list of data/gap_report.json, finds the latest price of any third source for the same currency in the stored CSVs, and writes data/disagree_arbiter.json saying which of the two it sits closer to, or the text no third source. tests/agent_disagree_arbiter.py uses an inline fixture with a at 100, b at 120 and a third source at 101 and checks the result says closer to a. It checks a third source at 119 says closer to b, and a fixture with no third source gives no third source and not a guess.
+    blocked: needs-claude: the Aider builder failed 2 times, last: empty after Aider: tools/disagree_arbiter.py data/disagree_arbiter.json tests/agent_disagree_arbiter.py (2026-10-30)
 - [ ] 26. Retest coverage check: every finding has a dated retest row
   - [ ] 26a. Retest coverage check: every finding has a dated retest row
     track: aider
