@@ -1,14 +1,14 @@
-# In India a dollar costs 6.9% more than the official rate
+# In India a dollar costs 6.7% more than the official rate
 
-Prices from the 11:00 UTC hour, 31 Oct.
+Prices from the 23:00 UTC hour, 31 Oct.
 
-The official rate is 95.07 INR per dollar. On the exchanges where people in India trade stablecoins, one costs 101.61 INR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 95.07 INR per dollar. On the exchanges where people in India trade stablecoins, one costs 101.40 INR. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 10,161 INR. The official rate says 9,507 INR.
+For US$100, people pay 10,140 INR. The official rate says 9,507 INR.
 
-Prices from the 11:00 UTC hour, 31 Oct
+Prices from the 23:00 UTC hour, 31 Oct
 
-You could buy only US$2,500 here before the price goes up 1%.
+You could buy only US$1,500 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/INR.json>
 
@@ -24,8 +24,8 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 CoinDCX
 
-101.48 INR +6.7%
+101.18 INR +6.4%
 
 WazirX
 
-101.73 INR +7.0%
+101.62 INR +6.9%

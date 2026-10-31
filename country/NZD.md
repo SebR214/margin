@@ -1,14 +1,14 @@
 # In New Zealand a dollar costs 0.2% more than the official rate
 
-Prices from the 11:00 UTC hour, 31 Oct.
+Prices from the 23:00 UTC hour, 31 Oct.
 
 The official rate is 1.78 NZD per dollar. On the exchanges where people in New Zealand trade stablecoins, one costs 1.78 NZD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 177.93 NZD. The official rate says 177.55 NZD.
+For US$100, people pay 177.91 NZD. The official rate says 177.55 NZD.
 
 Only 1 source
 
-Prices from the 11:00 UTC hour, 31 Oct
+Prices from the 23:00 UTC hour, 31 Oct
 
 <https://margin.wiki/data/countries/NZD.json>
 
