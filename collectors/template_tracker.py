@@ -64,7 +64,8 @@ def parse(cfg, body):
         m = re.search(cfg["regex"], text_of(body))
         if not m:
             raise ValueError("pattern not found on the page")
-        return num(m.group(1)), num(m.group(2)), ""
+        a, b = num(m.group(1)), num(m.group(2))
+        return (b, a, "") if cfg.get("swap") else (a, b, "")      # swap: the page names the sell number first
     doc = json.loads(body)
     if isinstance(doc, list):
         sel = cfg.get("select") or {}
