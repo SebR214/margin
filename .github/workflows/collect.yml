@@ -337,11 +337,10 @@ jobs:
         continue-on-error: true
         run: python3 collector_p2p_kucoin.py
 
-      # SEB-422: every board x currency in collectors/board_configs/ (collectors/template_board.py). Optional like the other newer collectors
-      # (continue-on-error): a bad hour on every board is rows with source_ok false in data/p2p_basis_boards.csv, not a red collection run.
+      # SEB-422: every board x currency in collectors/board_configs/ (collectors/template_board.py). Fails the run only on a total blackout (no config
+      # read) or an unregistered board; a bad hour on one board is a row with source_ok false in data/p2p_basis_boards.csv.
       - name: Collect the board x currency configs (SEB-422)
         if: always() && steps.needed.outputs.proceed == 'true'
-        continue-on-error: true
         run: python3 collector_boards.py
 
       - name: Check the official rates for a broken series (SEB-310)
