@@ -77,8 +77,8 @@ ALLOWLIST = {
     "STABLECOIN ROUTE",
     # 14 Oct, Seb's approved label for the route dropdown on Routes at phone width (SEB-268).
     "Route",
-    # 13 Oct, Seb's approved lede for how-it-was-built.html (SEB-301): "collector" is the first agent's name.
-    "The collector gathers prices every hour. The scout picks one job a week from lists the code makes, such as countries with only one source. The builder writes the code for that job. The reviewer checks every change before it goes live. The scout and the builder use AI. The collector and the reviewer are plain code, so no AI ever produces a number on this site. One person sets the direction and holds the money and passwords, and the agents can spend at most $20 a month.",
+    # 13 Oct, Seb's approved lede for how-it-was-built.html (SEB-301), rewritten 31 Oct (SEB-427, a draft for Seb): "collector" is the first part's name.
+    "The collector and the checks are plain code. The builder uses AI to write some of the code, and one person writes the rest.",
 }
 
 # A template placeholder like {corridor} or {rung} is never reader-visible on

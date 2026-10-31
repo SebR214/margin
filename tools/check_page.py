@@ -64,7 +64,7 @@ EMPTY_STATES = ("could not be read", "no comparison available",
 # corridor.html, fee-tiers.html and tape.html redirect to Routes, the fee tier finding and Countries (24 Oct).
 PAGES = ["index.html", "findings.html", "how-it-was-built.html",
          "countries.html", "sending-money.html", "how-it-works.html",
-         "country.html", "agent-incidents.html",
+         "country.html", "agent-incidents.html", "machine-room.html",
          "finding.html"]
 
 # ask.html and watch.html both call a live backend rather than reading a
@@ -242,6 +242,7 @@ PAGE_TITLE = {
     "how-it-works.html": "margin.wiki: How it works",
     "country.html": "margin.wiki",
     "agent-incidents.html": "margin.wiki: Running a site on agents I don't fully trust",
+    "machine-room.html": "The machine room: how margin.wiki is built and paid for",
 }
 
 

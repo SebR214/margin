@@ -11,7 +11,7 @@ same data files), and what it shows is written out as markdown: headings, paragr
 Every section ends with the full URL of each data file it came from: the files it links to, or else the files the page
 loaded. So every number in index.md is the number index.html showed for the same hour, with the label the page gave it.
 
-Written: index.md, countries.md, sending-money.md, sources.md, findings.md, how-it-works.md, how-it-was-built.md,
+Written: index.md, countries.md, sending-money.md, sources.md, findings.md, how-it-works.md, how-it-was-built.md, machine-room.md,
 country/{CCY}.md for every country page and finding/{id}.md for every finding, then llms.txt: the site's own title and
 lead, each .md page, and each public data file (data/manifest_latest.json) with what it holds.
 Loud failure: a page that renders nothing, or a twin with no data file URL, exits non-zero and writes nothing.
@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.join(HERE, "tools"))
 SITE = "https://margin.wiki"
 PAGES = [("index.html", "index.md"), ("countries.html", "countries.md"), ("sending-money.html", "sending-money.md"),
          ("sources.html", "sources.md"), ("findings.html", "findings.md"), ("how-it-works.html", "how-it-works.md"),
-         ("how-it-was-built.html", "how-it-was-built.md")]
+         ("how-it-was-built.html", "how-it-was-built.md"), ("machine-room.html", "machine-room.md")]
 NUM = re.compile(r"[−+-]?(?:S\$|US\$|\$)?\d[\d,]*(?:\.\d+)?(?:%|M|K)?")
 MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -76,6 +76,14 @@ SECTION_FILES = {
             (r"^What we measure$", []), (r"^What the percentage means$", ["index_latest.json"]),
             (r"^Where the price comes from$", []), (r"^The cost of sending money$", ["routes_hourly.json"]),
             (r"^What our numbers leave out$", []), (r"^How to check any number$", ["sources_daily.json"]),
+        ],
+    },
+    "machine-room.md": {
+        "hero": ["machine_room.json"],
+        "patterns": [
+            (r"^Week by week$", ["machine_room.json", "aider_log.csv", "machine_room_prs.csv"]),
+            (r"^What runs where$", ["machine_room.json", "machine_room_meters.json"]),
+            (r"^Incidents$", ["machine_room.json"]),
         ],
     },
     "how-it-was-built.md": {
@@ -447,6 +455,9 @@ def llms_txt(twins):
 
 
 def build(force=False):
+    # SEB-427: the machine room's numbers are worked out first, so the page it renders is this hour's
+    import emit_machine_room
+    emit_machine_room.build()
     h = hour()
     line = hour_line(h)
     if not force and os.path.exists(os.path.join(HERE, "index.md")) and line in open(os.path.join(HERE, "index.md")).read(300):

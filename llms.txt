@@ -8,7 +8,8 @@
 - [Every source we read, and every hour it missed](https://margin.wiki/sources.md)
 - [What the prices we store every hour show](https://margin.wiki/findings.md)
 - [How to read this site](https://margin.wiki/how-it-works.md)
-- [Four agents run this site. Two of them use AI.](https://margin.wiki/how-it-was-built.md)
+- [Plain code makes every number. AI only helps build the site.](https://margin.wiki/how-it-was-built.md)
+- [The machine room](https://margin.wiki/machine-room.md)
 - [In the United Arab Emirates a dollar costs 0.1% less than the official rate](https://margin.wiki/country/AED.md)
 - [No price for Afghanistan this hour](https://margin.wiki/country/AFN.md)
 - [In Armenia a dollar costs 1.9% less than the official rate](https://margin.wiki/country/AMD.md)
@@ -82,7 +83,7 @@
 - [data/basis.csv](https://margin.wiki/data/basis.csv): CSV; 65,717 rows; columns ts_utc, venue, ccy, usdt_bid, usdt_ask, usdt_mid, fx_mid_per_usd, basis_bps, source, source_ok, error; 2026-08-10 to 2026-10-31
 - [data/basis_history.csv](https://margin.wiki/data/basis_history.csv): CSV; 4,198 rows; columns date, venue, ccy, usdt_close, fx_mid, basis_bps, source; 2024-03-02 to 2026-08-10
 - [data/builder_log.csv](https://margin.wiki/data/builder_log.csv): CSV; 8 rows; columns ts_utc, status, job, pr, detail; 2026-10-20 to 2026-10-23
-- [data/claims_history.csv](https://margin.wiki/data/claims_history.csv): CSV; 8,650 rows; columns as_of_utc, key, ok, value_json; 2026-10-05 to 2026-10-31
+- [data/claims_history.csv](https://margin.wiki/data/claims_history.csv): CSV; 8,660 rows; columns as_of_utc, key, ok, value_json; 2026-10-05 to 2026-10-31
 - [data/corridor_variant_legs.csv](https://margin.wiki/data/corridor_variant_legs.csv): CSV; 11,875 rows; columns ts, corridor, stable, network, notional_src, network_fee_stable, cost_bps_taker, wf_deposit_bps, wf_buy_bps, wf_move_bps, wf_sell_bps, wf_withdrawal_bps, deposit_measured, withdrawal_measured; 2026-10-11 to 2026-10-31
 - [data/corridor_variants.csv](https://margin.wiki/data/corridor_variants.csv): CSV; 16,080 rows; columns ts, corridor, stable, network, notional_src, network_fee_stable, landed_taker, cost_bps_taker, landed_maker, cost_bps_maker, source_ok, errors; 2026-10-02 to 2026-10-31
 - [data/corridor_waterfall.csv](https://margin.wiki/data/corridor_waterfall.csv): CSV; 28,975 rows; columns ts, corridor, notional_src, wf_buy_bps, wf_move_bps, wf_sell_bps; 2026-09-23 to 2026-10-31
@@ -95,14 +96,14 @@
 - [data/finding_tests.csv](https://margin.wiki/data/finding_tests.csv): CSV; 41 rows; columns ts_utc, finding_id, status, metric, value, baseline, n_obs, window_start, window_end, data_through, reason, detail; 2026-10-20 to 2026-10-31
 - [data/findings_hours_exchange_vs_p2p.csv](https://margin.wiki/data/findings_hours_exchange_vs_p2p.csv): CSV; 8,048 rows; columns hour_utc, ccy, published_pct, board_pct, gap_pts, boards; 2026-09-10 to 2026-10-31
 - [data/findings_hours_price_changes.csv](https://margin.wiki/data/findings_hours_price_changes.csv): CSV; 1,633 rows; columns ts_utc, corridor, size, provider, old_cost_pct, new_cost_pct, move_pct, kind; 2026-08-12 to 2026-10-28
-- [data/findings_hours_sgd_php_never_cheapest.csv](https://margin.wiki/data/findings_hours_sgd_php_never_cheapest.csv): CSV; 1,630 rows; columns hour_utc, amount_sgd, stable_cost_pct, app_cost_pct, cheapest_app, stable_path, stable_cheaper; 2026-08-11 to 2026-10-31
+- [data/findings_hours_sgd_php_never_cheapest.csv](https://margin.wiki/data/findings_hours_sgd_php_never_cheapest.csv): CSV; 1,631 rows; columns hour_utc, amount_sgd, stable_cost_pct, app_cost_pct, cheapest_app, stable_path, stable_cheaper; 2026-08-11 to 2026-10-31
 - [data/findings_hours_stress_signal.csv](https://margin.wiki/data/findings_hours_stress_signal.csv): CSV; 17 rows; columns ts_utc, ccy, index_pct, gap_widened_pt, official_move_pct, triggered_on; 2026-09-12 to 2026-10-28
 - [data/findings_hours_volume_crossover.csv](https://margin.wiki/data/findings_hours_volume_crossover.csv): CSV; 1,668 rows; columns ts, corridor, notional_src, cost_bps_taker, cost_bps_maker, baseline_cost_bps; 2026-08-10 to 2026-10-31
 - [data/findings_hours_weekend_penalty.csv](https://margin.wiki/data/findings_hours_weekend_penalty.csv): CSV; 371 rows; columns ts_utc, corridor, size, provider, old_cost_pct, new_cost_pct, move_pct, kind, rise_id; 2026-08-15 to 2026-10-26
-- [data/fx_live.csv](https://margin.wiki/data/fx_live.csv): CSV; 18,060 rows; columns ts_utc, ccy, rate_per_usd, source, source_ts_utc, er_api_rate, gap_pct, source_ok, error; 2026-10-21 to 2026-10-31
+- [data/fx_live.csv](https://margin.wiki/data/fx_live.csv): CSV; 18,120 rows; columns ts_utc, ccy, rate_per_usd, source, source_ts_utc, er_api_rate, gap_pct, source_ok, error; 2026-10-21 to 2026-10-31
 - [data/fx_rate_meta.csv](https://margin.wiki/data/fx_rate_meta.csv): CSV; 163 rows; columns ts_utc, source, rate_updated_utc, source_ok, error; 2026-10-21 to 2026-10-31
 - [data/fx_rates.csv](https://margin.wiki/data/fx_rates.csv): CSV; 66,717 rows; columns ts_utc, ccy, fx_mid_per_usd, source, managed_flag, parallel_rate_per_usd, parallel_source; 2026-09-10 to 2026-10-31
-- [data/fx_second.csv](https://margin.wiki/data/fx_second.csv): CSV; 11,443 rows; columns ts_utc, ccy, rate_per_usd, source, source_date, er_api_rate, gap_pct, source_ok, error; 2026-10-23 to 2026-10-31
+- [data/fx_second.csv](https://margin.wiki/data/fx_second.csv): CSV; 11,503 rows; columns ts_utc, ccy, rate_per_usd, source, source_date, er_api_rate, gap_pct, source_ok, error; 2026-10-23 to 2026-10-31
 - [data/gas_readings.csv](https://margin.wiki/data/gas_readings.csv): CSV; 316 rows; columns ts_utc, chain, gas_units, gas_price_gwei, eth_usd, cost_usd, rpc_url, price_url, source_ok, error; 2026-10-21 to 2026-10-31
 - [data/index_held.csv](https://margin.wiki/data/index_held.csv): CSV; 55 rows; columns hour_utc, ccy, index_pct, baseline_pct, reason; 2026-10-12 to 2026-10-31
 - [data/index_hourly.csv](https://margin.wiki/data/index_hourly.csv): CSV; 52,069 rows; columns hour_utc, ccy, source_class, index_pct, n_sources; 2026-09-10 to 2026-10-31
@@ -114,7 +115,7 @@
 - [data/p2p_board_probes.csv](https://margin.wiki/data/p2p_board_probes.csv): CSV; 15 rows; columns ts_utc, board, candidate_url, method, live_result, verdict, reason, terms_note; 2026-10-03 to 2026-10-25
 - [data/p2p_box_depth.csv](https://margin.wiki/data/p2p_box_depth.csv): CSV; 36,960 rows; columns ts_utc, source, ccy, n_ads_buy, n_ads_sell, total_buy, total_sell, depth_200_buy_n, depth_200_buy_price, depth_200_sell_n, depth_200_sell_price, depth_1000_buy_n, depth_1000_buy_price, depth_1000_sell_n, depth_1000_sell_price, depth_5000_buy_n, depth_5000_buy_price, depth_5000_sell_n, depth_5000_sell_price, depth_25000_buy_n, depth_25000_buy_price, depth_25000_sell_n, depth_25000_sell_price, depth_50000_buy_n, depth_50000_buy_price, depth_50000_sell_n, depth_50000_sell_price, source_ok, error; 2026-10-03 to 2026-10-05
 - [data/p2p_depth.csv](https://margin.wiki/data/p2p_depth.csv): CSV; 54,540 rows; columns ts_utc, ccy, buy_total, sell_total; 2026-09-15 to 2026-10-31
-- [data/p2p_kucoin.csv](https://margin.wiki/data/p2p_kucoin.csv): CSV; 1,496 rows; columns ts_utc, venue, ccy, kind, n_board, n_ads, ask_best, ask_ref, bid_best, bid_ref, source_ok, error; 2026-10-25 to 2026-10-31
+- [data/p2p_kucoin.csv](https://margin.wiki/data/p2p_kucoin.csv): CSV; 1,507 rows; columns ts_utc, venue, ccy, kind, n_board, n_ads, ask_best, ask_ref, bid_best, bid_ref, source_ok, error; 2026-10-25 to 2026-10-31
 - [data/p2p_offers.csv](https://margin.wiki/data/p2p_offers.csv): CSV; 947,247 rows; columns ts_utc, ccy, side, price; 2026-09-16 to 2026-10-28
 - [data/p2p_okx.csv](https://margin.wiki/data/p2p_okx.csv): CSV; 31,270 rows; columns ts_utc, source, ccy, buy_median, sell_median, mid, fx_mid_per_usd, basis_bps, n_ads, source_ok, error; 2026-10-03 to 2026-10-31
 - [data/p2p_sides.csv](https://margin.wiki/data/p2p_sides.csv): CSV; 60,058 rows; columns ts_utc, ccy, n_buy, n_sell; 2026-09-10 to 2026-10-31
@@ -146,8 +147,8 @@
 - [data/stable_venues.csv](https://margin.wiki/data/stable_venues.csv): CSV; 12,169 rows; columns ts_utc, corridor, notional_src, buy_venue, sell_venue, cost_bps, landed_dst, is_default_pair, buy_filled, sell_filled, source_ok, error; 2026-09-27 to 2026-10-31
 - [data/stress_signal.csv](https://margin.wiki/data/stress_signal.csv): CSV; 17 rows; columns ts_utc, ccy, index_pct, gap_widened_pt, official_move_pct, triggered_on, note; 2026-09-12 to 2026-10-28
 - [data/withdrawal_fees.csv](https://margin.wiki/data/withdrawal_fees.csv): CSV; 64 rows; columns ts_utc, venue, asset, network, fee_asset_units, source_url, source_ok; 2026-08-19 to 2026-10-22
-- [data/zar_luno.csv](https://margin.wiki/data/zar_luno.csv): CSV; 136 rows; columns ts_utc, venue, ccy, kind, n_board, n_ads, ask_best, ask_ref, bid_best, bid_ref, source_ok, error; 2026-10-25 to 2026-10-31
-- [data/zar_valr.csv](https://margin.wiki/data/zar_valr.csv): CSV; 136 rows; columns ts_utc, venue, ccy, kind, n_board, n_ads, ask_best, ask_ref, bid_best, bid_ref, source_ok, error; 2026-10-25 to 2026-10-31
+- [data/zar_luno.csv](https://margin.wiki/data/zar_luno.csv): CSV; 137 rows; columns ts_utc, venue, ccy, kind, n_board, n_ads, ask_best, ask_ref, bid_best, bid_ref, source_ok, error; 2026-10-25 to 2026-10-31
+- [data/zar_valr.csv](https://margin.wiki/data/zar_valr.csv): CSV; 137 rows; columns ts_utc, venue, ccy, kind, n_board, n_ads, ask_best, ask_ref, bid_best, bid_ref, source_ok, error; 2026-10-25 to 2026-10-31
 - [data/latest.json](https://margin.wiki/data/latest.json): SNAPSHOT; columns as_of_utc, basis, computed_at, corridors, markets, n_sources, p2p, providers, source_file, sources
 - [data/crosses_latest.json](https://margin.wiki/data/crosses_latest.json): SNAPSHOT; columns as_of_utc, computed_at, n_sources, pairs, source, source_file
 - [data/index_latest.json](https://margin.wiki/data/index_latest.json): SNAPSHOT; columns as_of_utc, computed_at, countries, index_version, min_buy_ads, n_sources, region_order, sanity_band, source_file, sources, unverified, withheld, without_value
