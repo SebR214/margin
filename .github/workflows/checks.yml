@@ -117,6 +117,7 @@ jobs:
       - name: The big P2P tables are one file a day, and a file near 100 MB fails before the commit (SEB-301)
         run: |
           python3 tools/daily_csv.py --self-test
+          python3 tools/emit_cash_latest.py --self-test
           python3 tools/check_file_size.py --self-test
           python3 tools/raw_storage.py --self-test
           python3 tools/check_collector_health.py --self-test
