@@ -222,8 +222,6 @@
     if (!doc || !doc.rows || !doc.rows.length) return;
     [result(doc), chart(doc), monthsSection(months, doc), paras('methodHeading', ['method1', 'method2', 'method3', 'method4']), paras('limitsHeading', ['limit1', 'limit2']), downloads(doc)]
       .forEach(function (s) { if (s) wrap.appendChild(s); });
-    var t = T('pageTitle');
-    if (t) document.title = 'margin.wiki: ' + t;
   }
 
   function renderPairs(wrap, doc) {
@@ -260,7 +258,6 @@
     var ms = el('section', 'fp-sec'); var mh = el('div', 'fp-sec-head'); kid(mh, word('h2', '', 'pairsMethodHeading')); ms.appendChild(mh);
     ['pairsMethod1', 'pairsMethod2', 'pairsLimits'].forEach(function (k) { var t = T(k, { days: doc.window_days, hours: doc.min_common_hours }); if (t) ms.appendChild(el('p', ['soft', 'fp-line'], t)); });
     wrap.appendChild(ms);
-    var t = T('pairsTitle'); if (t) document.title = 'margin.wiki: ' + t;
   }
 
   function load(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); }

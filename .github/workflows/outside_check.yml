@@ -1,0 +1,36 @@
+name: outside-check
+
+# SEB-425. Runs after GitHub Pages publishes (the "pages-build-deployment" run that every push to main starts) and asks the live
+# site over plain HTTP what a crawler would ask: tools/check_outside.py. A red run means the live site is wrong. There is no
+# continue-on-error and no "|| true" here on purpose. If the Pages deployment itself failed, that run is already red, so this
+# one only runs after a deployment that succeeded.
+
+on:
+  workflow_run:
+    workflows: ["pages-build-deployment"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: outside-check
+  cancel-in-progress: true
+
+jobs:
+  outside:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools/check_outside.py
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Ask the live site what a crawler would ask
+        run: python3 tools/check_outside.py

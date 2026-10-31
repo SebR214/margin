@@ -114,7 +114,6 @@
         esc(T('agentsStored', { readings: '\u0001', sources: '\u0002', hours: '\u0003' })).replace('\u0001', g(tt.readings)).replace('\u0002', String(nSources)).replace('\u0003', g(tt.hours_collected)) : '') + '</p>';
     $('hero').innerHTML = h;
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
-    if (T('headline')) { document.title = 'margin.wiki'; }
   }
 
   /* ---------------------------------------------------------------- the map: one row per country, one square per day, sorted by this hour's figure */
