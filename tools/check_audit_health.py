@@ -7,7 +7,7 @@ Reads what tools/audit_numbers.py and tools/audit_claims.py already write:
   data/claims_status.json + data/claims_history.csv  claims the site makes, re-run
 A failed number or a false claim counts once it has been wrong in each of the
 last RUNS hourly runs (a single bad hour is not an alarm). The watchdog runs
-this; tools/daily_status.py prints the same list on SEB-301.
+this.
 
     python3 tools/check_audit_health.py
     python3 tools/check_audit_health.py --self-test
