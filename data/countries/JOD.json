@@ -1,7 +1,7 @@
 {
-  "buy_price": 0.71675,
+  "buy_price": 0.71,
   "ccy": "JOD",
-  "computed_at": "2026-10-28T20:00:00+00:00",
+  "computed_at": "2026-10-31T04:00:00+00:00",
   "country": "Jordan",
   "denominator": {
     "class": "pegged",
@@ -330,40 +330,51 @@
     },
     {
       "date": "2026-10-28",
-      "index_pct": 1.0931,
+      "index_pct": 1.2694,
+      "n": 21,
+      "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-10-31",
+      "index_pct": 0.141,
       "n": 10,
       "source": "current_hour"
     }
   ],
-  "history_days": 54,
+  "history_days": 55,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-28T20:00:00+00:00",
-  "index_pct": 1.0931,
+  "hour_utc": "2026-10-31T04:00:00+00:00",
+  "index_pct": 0.141,
   "index_version": "1.9",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "median_24h_n": 24,
+  "median_24h_n": 17,
   "median_24h_pct": 1.2694,
-  "n_boards": 2,
+  "n_boards": 1,
   "n_sources": 10,
-  "round_trip_pct": 0.9852,
+  "p2p_sources_apart": {
+    "binance_median": 0.71,
+    "gap_pct": 5.63,
+    "okx_median": 0.75
+  },
+  "round_trip_pct": 1.4286,
+  "second_board": {
+    "buy_price": 0.75,
+    "combined": false,
+    "venue": "okx_p2p",
+    "why": "more than 3% from the first board"
+  },
   "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
   "source_words": "from person-to-person ads",
   "venues": [
     {
-      "buy_price": 0.7175,
-      "index_pct": 1.1989,
+      "buy_price": 0.71,
+      "index_pct": 0.141,
       "last_price_used": false,
       "venue": "binance_p2p"
-    },
-    {
-      "buy_price": 0.716,
-      "index_pct": 0.9873,
-      "last_price_used": false,
-      "venue": "okx_p2p"
     }
   ]
 }

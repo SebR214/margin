@@ -1,14 +1,14 @@
 {
-  "buy_price": 3.44975,
+  "buy_price": 3.465,
   "ccy": "PEN",
-  "computed_at": "2026-10-28T20:00:00+00:00",
+  "computed_at": "2026-10-31T04:00:00+00:00",
   "country": "Peru",
   "denominator": {
     "class": "market",
-    "rate_per_usd": 3.448578,
+    "rate_per_usd": 3.460617,
     "source": "open.er-api"
   },
-  "fx_mid_per_usd": 3.448578,
+  "fx_mid_per_usd": 3.460617,
   "history": [
     {
       "date": "2026-09-05",
@@ -330,40 +330,51 @@
     },
     {
       "date": "2026-10-28",
-      "index_pct": 0.034,
+      "index_pct": 1.0851,
+      "n": 21,
+      "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-10-31",
+      "index_pct": 0.1267,
       "n": 10,
       "source": "current_hour"
     }
   ],
-  "history_days": 54,
+  "history_days": 55,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-28T20:00:00+00:00",
-  "index_pct": 0.034,
+  "hour_utc": "2026-10-31T04:00:00+00:00",
+  "index_pct": 0.1267,
   "index_version": "1.9",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "median_24h_n": 24,
-  "median_24h_pct": 1.1069,
-  "n_boards": 2,
+  "median_24h_n": 17,
+  "median_24h_pct": 1.0271,
+  "n_boards": 1,
   "n_sources": 10,
-  "round_trip_pct": 0.5992,
+  "p2p_sources_apart": {
+    "binance_median": 3.465,
+    "gap_pct": 3.68,
+    "okx_median": 3.5925
+  },
+  "round_trip_pct": 1.2418,
+  "second_board": {
+    "buy_price": 3.5925,
+    "combined": false,
+    "venue": "okx_p2p",
+    "why": "more than 3% from the first board"
+  },
   "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
   "source_words": "from person-to-person ads",
   "venues": [
     {
-      "buy_price": 3.4415,
-      "index_pct": -0.2052,
+      "buy_price": 3.465,
+      "index_pct": 0.1267,
       "last_price_used": false,
       "venue": "binance_p2p"
-    },
-    {
-      "buy_price": 3.458,
-      "index_pct": 0.2732,
-      "last_price_used": false,
-      "venue": "okx_p2p"
     }
   ]
 }

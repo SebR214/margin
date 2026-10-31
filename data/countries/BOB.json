@@ -1,17 +1,19 @@
 {
-  "buy_price": 12.2125,
+  "baseline_pct": 3.0186,
+  "buy_price": 12.005,
   "ccy": "BOB",
-  "computed_at": "2026-10-28T20:00:00+00:00",
+  "computed_at": "2026-10-31T04:00:00+00:00",
   "country": "Bolivia",
   "denominator": {
     "class": "market",
-    "parallel_gap_pct": 2.4868,
-    "parallel_rate_per_usd": 12.15,
+    "parallel_gap_pct": 0.0484,
+    "parallel_rate_per_usd": 12.015,
     "parallel_source": "dolarapi.bo",
-    "rate_per_usd": 11.855191,
+    "rate_per_usd": 12.009185,
     "source": "open.er-api"
   },
-  "fx_mid_per_usd": 11.855191,
+  "fx_mid_per_usd": 12.009185,
+  "held_value": -0.0348,
   "history": [
     {
       "date": "2026-09-02",
@@ -351,40 +353,53 @@
     },
     {
       "date": "2026-10-28",
-      "index_pct": 3.0139,
-      "n": 10,
-      "source": "current_hour"
+      "index_pct": 2.812,
+      "n": 21,
+      "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-10-31",
+      "index_pct": -0.0348,
+      "n": 1,
+      "source": "hourly_buy_p2p"
     }
   ],
-  "history_days": 57,
+  "history_days": 58,
   "history_start": "2026-09-02",
-  "hour_utc": "2026-10-28T20:00:00+00:00",
-  "index_pct": 3.0139,
+  "hour_utc": "2026-10-31T04:00:00+00:00",
+  "index_pct": null,
   "index_version": "1.9",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "median_24h_n": 24,
-  "median_24h_pct": 2.7609,
-  "n_boards": 2,
-  "n_sources": 10,
-  "round_trip_pct": 0.3298,
-  "source_class": "p2p_buy_median",
+  "median_24h_n": 17,
+  "median_24h_pct": 2.7398,
+  "n_boards": 1,
+  "n_sources": null,
+  "no_value_reason": "held back: -0.0% is 3.1 points from this country's usual +3.0% over the last 7 days, and no second source or earlier hour confirms it yet",
+  "p2p_sources_apart": {
+    "binance_median": 12.005,
+    "gap_pct": 3.96,
+    "okx_median": 12.48
+  },
+  "round_trip_pct": 0.5444,
+  "second_board": {
+    "buy_price": 12.48,
+    "combined": false,
+    "venue": "okx_p2p",
+    "why": "more than 3% from the first board"
+  },
+  "source_class": null,
   "source_file": "data/p2p_basis.csv",
-  "source_words": "from person-to-person ads",
+  "source_words": "no price this hour",
   "venues": [
     {
-      "buy_price": 12.17,
-      "index_pct": 2.6555,
+      "buy_price": 12.005,
+      "index_pct": -0.0348,
       "last_price_used": false,
       "venue": "binance_p2p"
-    },
-    {
-      "buy_price": 12.255,
-      "index_pct": 3.3724,
-      "last_price_used": false,
-      "venue": "okx_p2p"
     }
-  ]
+  ],
+  "withheld_buy_price": 12.005
 }

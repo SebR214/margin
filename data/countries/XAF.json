@@ -1,19 +1,16 @@
 {
-  "buy_price": 627.695,
+  "baseline_pct": 6.5988,
+  "buy_price": 599.485,
   "ccy": "XAF",
-  "computed_at": "2026-10-28T20:00:00+00:00",
+  "computed_at": "2026-10-31T04:00:00+00:00",
   "country": "Central African CFA",
-  "crossed_boards_agree": {
-    "crossed": [
-      "binance_p2p"
-    ]
-  },
   "denominator": {
     "class": "pegged",
-    "rate_per_usd": 588.684169,
+    "rate_per_usd": 587.466423,
     "source": "open.er-api"
   },
-  "fx_mid_per_usd": 588.684169,
+  "fx_mid_per_usd": 587.466423,
+  "held_value": 2.0458,
   "history": [
     {
       "date": "2026-09-05",
@@ -335,39 +332,53 @@
     },
     {
       "date": "2026-10-28",
-      "index_pct": 6.6268,
-      "n": 10,
-      "source": "current_hour"
+      "index_pct": 6.3818,
+      "n": 6,
+      "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-10-31",
+      "index_pct": 2.0458,
+      "n": 1,
+      "source": "hourly_buy_p2p"
     }
   ],
-  "history_days": 54,
+  "history_days": 55,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-28T20:00:00+00:00",
-  "index_pct": 6.6268,
+  "hour_utc": "2026-10-31T04:00:00+00:00",
+  "index_pct": null,
   "index_version": "1.9",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "median_24h_n": 24,
-  "median_24h_pct": 6.6601,
-  "n_boards": 2,
-  "n_sources": 10,
-  "source_class": "p2p_buy_median",
+  "median_24h_n": 17,
+  "median_24h_pct": 6.6501,
+  "n_boards": 1,
+  "n_sources": null,
+  "no_value_reason": "held back: +2.0% is 4.6 points from this country's usual +6.6% over the last 7 days, and no second source or earlier hour confirms it yet",
+  "p2p_sources_apart": {
+    "binance_median": 599.485,
+    "gap_pct": 4.09,
+    "okx_median": 623.995
+  },
+  "round_trip_pct": 2.9813,
+  "second_board": {
+    "buy_price": 623.995,
+    "combined": false,
+    "venue": "okx_p2p",
+    "why": "more than 3% from the first board"
+  },
+  "source_class": null,
   "source_file": "data/p2p_basis.csv",
-  "source_words": "from person-to-person ads",
+  "source_words": "no price this hour",
   "venues": [
     {
-      "buy_price": 625.39,
-      "index_pct": 6.2352,
+      "buy_price": 599.485,
+      "index_pct": 2.0458,
       "last_price_used": false,
       "venue": "binance_p2p"
-    },
-    {
-      "buy_price": 630.0,
-      "index_pct": 7.0183,
-      "last_price_used": false,
-      "venue": "okx_p2p"
     }
-  ]
+  ],
+  "withheld_buy_price": 599.485
 }
