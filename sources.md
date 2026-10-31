@@ -1,6 +1,6 @@
 # Every source we read, and every hour it missed
 
-Prices from the 08:00 UTC hour, 31 Oct.
+Prices from the 11:00 UTC hour, 31 Oct.
 
 Each row shows whether a source answered on each day, and how far back its older prices go.
 
@@ -14,47 +14,47 @@ On 5 Oct and 29 Oct and 30 Oct every source missed some hours. That was our coll
 
 | Source | Type | Hours priced |
 | --- | --- | --- |
-| WorldRemit | Transfer app · 3 ways of sending | 619 of 723 hours priced |
-| CoinGecko | Price aggregator · 1 country | 1,049 of 1,070 hours priced |
-| CriptoYa | Broker · 28 feeds | 36,519 of 36,938 hours priced |
-| WazirX | Exchange · 1 country · 3 ways of sending | 1,107 of 1,113 hours priced |
-|  | Independent Reserve (AUD) Exchange · 1 country | 1,108 of 1,113 hours priced |
-|  | Independent Reserve (NZD) Exchange · 1 country | 1,108 of 1,113 hours priced |
-| Argentina's central bank | Official rate · 1 country | 1,109 of 1,114 hours priced |
-| Luno | Exchange · 1 country · 1 way of sending | 684 of 687 hours priced |
-| Independent Reserve | Exchange · 1 country · 5 ways of sending | 1,652 of 1,659 hours priced |
-| Bitkub | Exchange · 1 country | 1,650 of 1,656 hours priced |
-| Upbit | Exchange · 1 country | 1,650 of 1,656 hours priced |
-| Instarem | Transfer app · 2 ways of sending | 1,109 of 1,113 hours priced |
-| Mercado Bitcoin | Exchange · 1 country | 1,299 of 1,303 hours priced |
-| Public price comparison | Transfer app · 11 ways of sending | 1,635 of 1,639 hours priced |
-| Foxbit | Exchange · 1 country · 1 way of sending | 1,300 of 1,303 hours priced |
-| Paribu | Exchange · 1 country | 1,300 of 1,303 hours priced |
-| BTCTurk | Exchange · 1 country | 1,653 of 1,656 hours priced |
-| Airwallex | Transfer app · 11 ways of sending | 1,111 of 1,113 hours priced |
-| CoinDCX | Exchange · 1 country | 1,111 of 1,113 hours priced |
-| MAX | Exchange · 1 country | 1,111 of 1,113 hours priced |
-| DolarApi Argentina | Official rate · 1 country | 1,112 of 1,114 hours priced |
-| DolarApi Bolivia | Official rate · 1 country | 1,112 of 1,114 hours priced |
-| DolarApi Venezuela | Official rate · 1 country | 1,112 of 1,114 hours priced |
-| ExchangeRate-API | Official rate · 60 countries | 1,112 of 1,114 hours priced |
-|  | OKX, people selling to each other People selling to each other · 53 countries | 590 of 591 hours priced |
-| BTC Markets | Exchange · 1 country | 591 of 592 hours priced |
-| Pintu | Exchange · 1 country | 1,301 of 1,303 hours priced |
-| Wise | Transfer app · 11 ways of sending | 756 of 757 hours priced |
-| BitoPro | Exchange · 1 country | 1,112 of 1,113 hours priced |
-|  | Binance, people selling to each other People selling to each other · 53 countries | 1,299 of 1,300 hours priced |
-| Bithumb | Exchange · 1 country | 1,302 of 1,303 hours priced |
-| Coinone | Exchange · 1 country | 1,302 of 1,303 hours priced |
-| Coinbase | Exchange · 6 ways of sending | 1,498 of 1,499 hours priced |
-| Bitso | Exchange · 1 country · 2 ways of sending | 1,655 of 1,656 hours priced |
-| Indodax | Exchange · 1 country | 1,655 of 1,656 hours priced |
-| Coins.ph | Exchange · 1 country · 4 ways of sending | 1,658 of 1,659 hours priced |
-| Binance spot (MXN) | Exchange · 1 country | 123 of 123 hours priced |
-| Binance TH | Exchange · 1 country | 123 of 123 hours priced |
-| BitOasis | Exchange · 1 country | 123 of 123 hours priced |
-| OKX spot (AED) | Exchange · 1 country | 123 of 123 hours priced |
-| OKX spot (SGD) | Exchange · 1 country | 123 of 123 hours priced |
+| WorldRemit | Transfer app · 3 ways of sending | 620 of 724 hours priced |
+| CoinGecko | Price aggregator · 1 country | 1,050 of 1,071 hours priced |
+| CriptoYa | Broker · 28 feeds | 36,546 of 36,966 hours priced |
+| WazirX | Exchange · 1 country · 3 ways of sending | 1,108 of 1,114 hours priced |
+|  | Independent Reserve (AUD) Exchange · 1 country | 1,109 of 1,114 hours priced |
+|  | Independent Reserve (NZD) Exchange · 1 country | 1,109 of 1,114 hours priced |
+| Argentina's central bank | Official rate · 1 country | 1,110 of 1,115 hours priced |
+| Luno | Exchange · 1 country · 1 way of sending | 685 of 688 hours priced |
+| Independent Reserve | Exchange · 1 country · 5 ways of sending | 1,653 of 1,660 hours priced |
+| Bitkub | Exchange · 1 country | 1,651 of 1,657 hours priced |
+| Upbit | Exchange · 1 country | 1,651 of 1,657 hours priced |
+| Instarem | Transfer app · 2 ways of sending | 1,110 of 1,114 hours priced |
+| Mercado Bitcoin | Exchange · 1 country | 1,300 of 1,304 hours priced |
+| Public price comparison | Transfer app · 11 ways of sending | 1,636 of 1,640 hours priced |
+| Foxbit | Exchange · 1 country · 1 way of sending | 1,301 of 1,304 hours priced |
+| Paribu | Exchange · 1 country | 1,301 of 1,304 hours priced |
+| BTCTurk | Exchange · 1 country | 1,654 of 1,657 hours priced |
+| Airwallex | Transfer app · 11 ways of sending | 1,112 of 1,114 hours priced |
+| CoinDCX | Exchange · 1 country | 1,112 of 1,114 hours priced |
+| MAX | Exchange · 1 country | 1,112 of 1,114 hours priced |
+| DolarApi Argentina | Official rate · 1 country | 1,113 of 1,115 hours priced |
+| DolarApi Bolivia | Official rate · 1 country | 1,113 of 1,115 hours priced |
+| DolarApi Venezuela | Official rate · 1 country | 1,113 of 1,115 hours priced |
+| ExchangeRate-API | Official rate · 60 countries | 1,113 of 1,115 hours priced |
+|  | OKX, people selling to each other People selling to each other · 53 countries | 591 of 592 hours priced |
+| BTC Markets | Exchange · 1 country | 592 of 593 hours priced |
+| Pintu | Exchange · 1 country | 1,302 of 1,304 hours priced |
+| Wise | Transfer app · 11 ways of sending | 757 of 758 hours priced |
+| BitoPro | Exchange · 1 country | 1,113 of 1,114 hours priced |
+|  | Binance, people selling to each other People selling to each other · 53 countries | 1,300 of 1,301 hours priced |
+| Bithumb | Exchange · 1 country | 1,303 of 1,304 hours priced |
+| Coinone | Exchange · 1 country | 1,303 of 1,304 hours priced |
+| Coinbase | Exchange · 6 ways of sending | 1,499 of 1,500 hours priced |
+| Bitso | Exchange · 1 country · 2 ways of sending | 1,656 of 1,657 hours priced |
+| Indodax | Exchange · 1 country | 1,656 of 1,657 hours priced |
+| Coins.ph | Exchange · 1 country · 4 ways of sending | 1,659 of 1,660 hours priced |
+| Binance spot (MXN) | Exchange · 1 country | 124 of 124 hours priced |
+| Binance TH | Exchange · 1 country | 124 of 124 hours priced |
+| BitOasis | Exchange · 1 country | 124 of 124 hours priced |
+| OKX spot (AED) | Exchange · 1 country | 124 of 124 hours priced |
+| OKX spot (SGD) | Exchange · 1 country | 124 of 124 hours priced |
 
 <https://margin.wiki/data/sources_daily.json>
 

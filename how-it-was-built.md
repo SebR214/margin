@@ -1,25 +1,23 @@
-# Plain code makes every number. AI only helps build the site.
+# Four agents run this site. Two of them use AI.
 
-Prices from the 08:00 UTC hour, 31 Oct.
+Prices from the 11:00 UTC hour, 31 Oct.
 
-The collector and the checks are plain code. The builder uses AI to write some of the code, and one person writes the rest.
+The collector gathers prices every hour. The scout picks one job a week from lists the code makes, such as countries with only one source. The builder writes the code for that job. The reviewer checks every change before it goes live. The scout and the builder use AI. The collector and the reviewer are plain code, so no AI ever produces a number on this site. One person sets the direction and holds the money and passwords, and the agents can spend at most $20 a month.
 
-[See what it costs and what has gone wrong →](https://margin.wiki/machine-room.md)
+## Each agent has one job and cannot do the others'
 
-## Each part has one job and cannot do the others'
-
-The builder can't approve its own work. No AI ever calculates a number.
+The builder can't approve its own work. The scout never writes code. No AI ever calculates a number.
 
 - Collector · Every hour · Pulls prices from exchanges, transfer apps and official rates and saves them to the data files. Plain code, no AI.
-- Builder · Up to 3 jobs a day · Takes the top ready job from a list a person writes and builds it as new files. Uses AI. It can't change existing price collection, pages or methods. It and every other model call together can spend at most $20 a month.
-- Checks · Every change · Run tests on every change, recalculate published numbers from the saved files and merge the change when every test is green. Plain code, no AI. A change to how prices are collected that adds nothing new waits for a person.
-- Person · Any day · Sets the direction, holds the money and passwords, and writes what the builder skips, using AI sessions of their own.
+- Scout · Once a week · Picks the next job from lists the code makes: countries with one source, sources that disagree, claims that stopped holding. Uses AI. Every number it writes is checked against the data files before it's posted.
+- Builder · One job at a time · Writes the code for the scout's job in one go, then stops. Uses AI. It can't change agent code, checks or how prices are collected.
+- Reviewer · Every change · Runs checks on every change before it goes live, and recalculates published numbers from the saved files. Plain code, no AI. Changes to how prices are collected wait for a person.
 
 ## What we've learned running them
 
 - A settings change spent $10 in 20 minutes It moved the agents onto an account billed for each use, instead of the account with a flat monthly fee. The two accounts are now kept in separate files so they cannot be mixed up.
 
-[Every incident, and the builder week by week →](https://margin.wiki/machine-room.md)
+[The full story: running agents that can't be trusted →](https://margin.wiki/agent-incidents.html)
 
 ## Collected fresh every hour
 
@@ -27,10 +25,10 @@ Each line is a step of the latest hourly run, with the time it finished. Any pro
 
 | Time | Check | Detail |
 | --- | --- | --- |
-| 08:00 | 48 of 54 countries have a price. The rest show none this hour, never a guess. |  |
-| 08:00 | 9 of 11 routes priced this hour. |  |
+| 11:00 | 47 of 54 countries have a price. The rest show none this hour, never a guess. |  |
+| 11:00 | 11 of 11 routes priced this hour. |  |
 | 08:07 | 50 of our figures recomputed from raw prices. Matches mean the data backs them. | 50 of 50 matched |
-| 08:15 | These sources did not answer this hour: CriptoYa · Buenbit. |  |
+| 11:45 | These sources did not answer this hour: CriptoYa · Buenbit. |  |
 
 How the last 48 hours went
 
@@ -38,7 +36,7 @@ How the last 48 hours went
 
 ## The record grew as new sources and routes came in
 
-612,683 prices stored
+613,454 prices stored
 
 Exchanges' own earlier prices reach back to 3 Jan 2011, so some charts predate our record.
 

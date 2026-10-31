@@ -970,6 +970,12 @@ jobs:
           for d in data/map_timeline; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
+          # sitemap.xml and robots.txt (SEB-425): tools/emit_markdown.py rewrites them every run (lastmod is the build's hour) and they are
+          # tracked, so left unstaged they make `git pull --rebase` refuse and Commit samples fail (31 Oct, from the 09:05 UTC run).
+          # Their own loop so no existing line is edited.
+          for f in sitemap.xml robots.txt; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
           # One file a day for the big P2P tables (SEB-301, 31 Oct): data/p2p_ads/, data/p2p_ads_sellers/, data/p2p_offers/. Staged as
           # directories so each day's first file needs no edit here. Their own loop so no existing line is edited.
           for d in data/p2p_ads data/p2p_ads_sellers data/p2p_offers; do

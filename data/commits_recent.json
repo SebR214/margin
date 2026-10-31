@@ -1,7 +1,63 @@
 {
- "as_of_utc": "2026-10-31T08:44:06Z",
+ "as_of_utc": "2026-10-31T11:50:09Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "081e29db42460de9cd4c07cbbd0c96389417b85f",
+   "html_url": "https://github.com/SebR214/margin/commit/081e29db42460de9cd4c07cbbd0c96389417b85f",
+   "date": "2026-10-31T11:29:04Z",
+   "email": "person",
+   "message": "SEB-301: stage sitemap.xml and robots.txt in Commit samples (#739)\n\nThe build rewrites sitemap.xml every run and nothing staged it, so git pull --rebase refused with unstaged changes and every Commit samples step has failed since the 09:05 UTC run on 31 Oct.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "b0e05617d6a285588b5eb0e047403566939e837d",
+   "html_url": "https://github.com/SebR214/margin/commit/b0e05617d6a285588b5eb0e047403566939e837d",
+   "date": "2026-10-31T11:03:38Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "SEB-301: Retest coverage check: every finding has a dated retest row (backlog 26a) (#738)\n\n* SEB-301: Retest coverage check: every finding has a dated retest row (backlog 26a)\n\nOne-call runner, anthropic/claude-sonnet-5.5 + qwen/qwen3-coder.\n\n* SEB-301: tick backlog job 26a (PR #738)\n\n---------\n\nCo-authored-by: margin-agents[bot] <329969015+margin-agents[bot]@users.noreply.github.com>"
+  },
+  {
+   "sha": "1e7695fbea0a65cd8e6c6dce834d06ccf9b280ce",
+   "html_url": "https://github.com/SebR214/margin/commit/1e7695fbea0a65cd8e6c6dce834d06ccf9b280ce",
+   "date": "2026-10-31T10:59:09Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "aider builder run 2026-10-31T10:53:12+00:00"
+  },
+  {
+   "sha": "4c4662059d7e6aed753a41361fd5a60fdcd0422b",
+   "html_url": "https://github.com/SebR214/margin/commit/4c4662059d7e6aed753a41361fd5a60fdcd0422b",
+   "date": "2026-10-31T10:23:50Z",
+   "email": "person",
+   "message": "SEB-301: the gas read asks funded wallets that do not revert, and RPCs that answer both calls (#737)\n\nBinance 14 (the probe sender) held 1.35M USDT on 31 Oct and every real node still answered execution reverted for it, so no hour since collection resumed had a gas reading. The read now tries four funded wallets in turn per node, on publicnode, drpc and tenderly. cloudflare-eth.com, my earlier second RPC, answers eth_estimateGas but refuses eth_gasPrice, so it is gone. Errors keep 150 characters per RPC instead of 80. CLAUDE.md: a test never asserts anything about live data that collection can change.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "ebcf4b8a936a7cd5c83008668db80b850a578be7",
+   "html_url": "https://github.com/SebR214/margin/commit/ebcf4b8a936a7cd5c83008668db80b850a578be7",
+   "date": "2026-10-31T10:21:43Z",
+   "email": "person",
+   "message": "SEB-422: board x currency collector template, board parsers and the board gap list (#729)\n\n* SEB-422: board x currency collector template, five board parsers, gap list for boards\n\ncollectors/template_board.py reads one config per board x currency (collectors/board_configs/*.json) and writes\np2p_board_ads (new daily table), hashed sellers and data/p2p_basis_boards.csv. collector_boards.py runs them hourly\n(one new collect.yml step). Bitget NGN and HTX VND are the first two configs. tools/gap_report.py --boards lists every\nboard x currency with ads that we do not collect. tools/new_board_job.py writes the BACKLOG job for one row.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: board step optional, no-rate guard, checks read margin-data\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: move the margin-data checks step to the storage PR (raw_storage.py lives there)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: board fetch uses the standard library (the checks job has no requests)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: no continue-on-error on the steps this PR adds to collect.yml\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "09b9fef691500e4992dc0d26f6d2c8552754b248",
+   "html_url": "https://github.com/SebR214/margin/commit/09b9fef691500e4992dc0d26f6d2c8552754b248",
+   "date": "2026-10-31T10:17:58Z",
+   "email": "person",
+   "message": "SEB-426: country pages in the HTML (#735)\n\nEach country gets its own page at country/<ccy>/ with its numbers in the HTML, written from the same render as its .md copy. ?ccy= redirects by script. Sitemap, links, check_outside updated.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "7b168dba72059dfad35cefefd39023b87717a7c6",
+   "html_url": "https://github.com/SebR214/margin/commit/7b168dba72059dfad35cefefd39023b87717a7c6",
+   "date": "2026-10-31T09:58:03Z",
+   "email": "person",
+   "message": "SEB-301: the gas-missing route test no longer depends on the real hours (#736)\n\nReal collection now writes gas-missing hours of its own, which made the test's exact-match assertion fail on main's checks. It uses its own synthetic hours (30 Oct, before collection resumed) and checks only those.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "f4b3d195ff950be62215da80329074f858489dbf",
+   "html_url": "https://github.com/SebR214/margin/commit/f4b3d195ff950be62215da80329074f858489dbf",
+   "date": "2026-10-31T08:46:36Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-31T08:46Z"
+  },
   {
    "sha": "9e669ea864e9aca4d399013ed2187a48d67361fa",
    "html_url": "https://github.com/SebR214/margin/commit/9e669ea864e9aca4d399013ed2187a48d67361fa",
@@ -645,62 +701,6 @@
    "date": "2026-10-27T15:17:22Z",
    "email": "person",
    "message": "SEB-268: site words in code (source line, findings rows, popups) (#710)\n\n* Site words in code: plain source line, route names, popups, broker lists\n\nCountry source line names the source in plain words after the rule. Finding rows: Argentina and\nBrazil by name, \"1 app\", the fee-level rows as sentences, 24 CriptoYa brokers said as one count,\ngaps shown with %. The routes chart popup says more expensive or cheaper in words. Every new word\nis a copy.json key from the writer PR, with the old text kept until it lands.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n* Country script version past the price list PR's\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "92f1934bb9864705739e3bd6613a0e16aa38a4df",
-   "html_url": "https://github.com/SebR214/margin/commit/92f1934bb9864705739e3bd6613a0e16aa38a4df",
-   "date": "2026-10-27T15:15:24Z",
-   "email": "person",
-   "message": "SEB-268: site words, one word per idea on every page (#709)\n\n* Site words: one word per idea everywhere, and the page fixes agreed in chat\n\ngap (never premium, difference, spread or points), cheaper and more expensive (never dearer),\nthe cheapest app (never best app), the stablecoin way (never path or route), people selling to\neach other (never person to person or between people), exchanges and brokers (never order books,\nvenues or broker quotes), \"from exchange history, not our own checks\" (never \"reported, not seen\nby us\"), and a missed hour shows as a blank. Plus the page by page rewrites Seb agreed on 27 Oct.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n* Keep the old source line until the page code reads the new one\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n* Routes chart popup in words\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "0125a3160769831677f3bb21d8f7c5c0d295d9e7",
-   "html_url": "https://github.com/SebR214/margin/commit/0125a3160769831677f3bb21d8f7c5c0d295d9e7",
-   "date": "2026-10-27T15:13:27Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "SEB-301: Bybit P2P collector for DZD and SDG, the two markets where only Binance P2P is seen (backlog 21a) (#701)\n\nOne-call runner, anthropic/claude-sonnet-5.5 + qwen/qwen3-coder.\n\nCo-authored-by: margin-agents[bot] <329969015+margin-agents[bot]@users.noreply.github.com>"
-  },
-  {
-   "sha": "97e0700c8a80d140fa1f9274ea5f9a4d44cf5809",
-   "html_url": "https://github.com/SebR214/margin/commit/97e0700c8a80d140fa1f9274ea5f9a4d44cf5809",
-   "date": "2026-10-27T14:59:49Z",
-   "email": "person",
-   "message": "SEB-268: country page, cut the hour by hour price list (#705)\n\n* Country page: cut the hour by hour price list, source prices sit beside their names on phones\n\nSeb, 27 Oct: nobody reads or clicks the list. \"Where this price comes from\" already names\neach source and its price, and the footer links the raw data.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n* Inventory baseline: country page loses the price list's Show more button on purpose\n\nSeb asked for the hour by hour price list to go (27 Oct). The button went with it.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "3edb3ff48e9a58b2804b9f4f7dd4c73cabdd81d4",
-   "html_url": "https://github.com/SebR214/margin/commit/3edb3ff48e9a58b2804b9f4f7dd4c73cabdd81d4",
-   "date": "2026-10-27T14:58:35Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "aider builder run 2026-10-27T14:54:21+00:00"
-  },
-  {
-   "sha": "f250c2483f90e98fd7dd0aa98df3c17064efd3a6",
-   "html_url": "https://github.com/SebR214/margin/commit/f250c2483f90e98fd7dd0aa98df3c17064efd3a6",
-   "date": "2026-10-27T14:50:59Z",
-   "email": "person",
-   "message": "Routes page in plain words: the answer per route as a sentence, why, and how often (#708)\n\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "73d5ca4efee39a98004b4781e9625120db23847a",
-   "html_url": "https://github.com/SebR214/margin/commit/73d5ca4efee39a98004b4781e9625120db23847a",
-   "date": "2026-10-27T14:50:37Z",
-   "email": "person",
-   "message": "Routes page: one plain card per route, no stuck highlights on phones, chart ranges only when they add days (#707)\n\nEach route reads as the answer in a sentence, then why, then how often (Seb, 27 Oct). The words are\ncopy.json keys from the writer PR; until it lands the old row is drawn. Biggest moves keeps only changes\nof which way is cheaper. The lead names the countries from the data.\n\n\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "90a4f702a081cf124cb72e4443c6f6716aa534c6",
-   "html_url": "https://github.com/SebR214/margin/commit/90a4f702a081cf124cb72e4443c6f6716aa534c6",
-   "date": "2026-10-27T14:47:28Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T14:47Z"
-  },
-  {
-   "sha": "6fd5a4a0b3734aeffbae9550fc797325a80c3255",
-   "html_url": "https://github.com/SebR214/margin/commit/6fd5a4a0b3734aeffbae9550fc797325a80c3255",
-   "date": "2026-10-27T14:21:01Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T14:21Z"
   }
  ]
 }
