@@ -113,6 +113,16 @@
 
   function setDay(y, i) { S.mode = 'day'; S.year = y; S.i = i == null ? daysIn(y) - 1 : i; }
 
+  // ?day=YYYY-MM-DD (the Events page links here): open the time control on that day, if the record holds it
+  function deepLink() {
+    var m = /[?&]day=(\d{4})-(\d{2})-(\d{2})(?:&|$)/.exec(location.search || '');
+    if (!m || !IDX) { return; }
+    var d = m[1] + '-' + m[2] + '-' + m[3], y = +m[1];
+    if (d < IDX.first_day || d > IDX.last_day || IDX.years.indexOf(y) < 0) { return; }
+    setDay(y, dayOfYear(d) - 1);
+    refresh();
+  }
+
   function wire() {
     var box = ctx.mount;
     box.addEventListener('click', function (e) {
@@ -141,7 +151,7 @@
     init: function (c) {
       var first = !ctx;
       ctx = c;
-      var go = function () { if (first) { wire(); } paint(); };
+      var go = function () { if (first) { wire(); deepLink(); } paint(); };
       if (IDX) { go(); return Promise.resolve(); }
       return getJSON(BASE + 'index.json').then(function (j) { IDX = j; go(); }).catch(function () { IDX = null; });
     },

@@ -11,10 +11,10 @@
   var DEFAULT_ID = "IQD-official_break-2026-10-09";
   var MINUS = "−";
   var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  var COPY = {}, REC = null, COUNTRY = "";
+  var COPY = {}, REC = null, COUNTRY = "", RECPATH = "", OWN_START = "";
   var app = document.getElementById("app");
   var NAV = [["navCountries", "./countries.html"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"],
-    ["navFindings", "./findings.html"], ["navResearch", "./research.html"], ["navHow", "./how-it-works.html"]];
+    ["navFindings", "./findings.html"], ["navResearch", "./research.html"], ["navEvents", "./events.html"], ["navHow", "./how-it-works.html"]];
   var chart = null;
 
   function esc(s) {
@@ -41,6 +41,7 @@
   function price(v) { return v == null ? "" : (Math.abs(v) >= 100 ? num(v, 0) : num(v, 2)); }
   function pct(v) { return (v < 0 ? MINUS : "") + num(Math.abs(v), Math.abs(v) < 10 ? 1 : 0) + "%"; }
   function dayShort(iso) { var d = new Date(iso.slice(0, 10) + "T00:00:00Z"); return d.getUTCDate() + " " + MON[d.getUTCMonth()]; }
+  function dayLong(iso) { return dayShort(iso) + " " + iso.slice(0, 4); }
   function addDays(iso, n) { return new Date(Date.parse(iso.slice(0, 10) + "T00:00:00Z") + n * 86400000).toISOString().slice(0, 10); }
 
   // every daily point the record holds: the timeline from before the event, then each weekly update's days; one point a day
@@ -76,7 +77,33 @@
     var end = REC.after[0].official, hit = pts.filter(function (p) { return p.official != null && p.day >= REC.detected_on && p.official >= end * 0.999; })[0];
     return hit ? hit.day : null;
   }
-  function ready() { return !!(REC.known_date && REC.known_date.url && REC.after && REC.after[0] && REC.after[0].official_change_pct_from_baseline != null); }
+  function known() { return !!(REC.known_date && REC.known_date.url); }
+  function reported() { return REC.label === "reported, not observed"; }
+  function hasStreet() { var s = REC.street || {}; return s.before != null || s.at_detection != null; }
+  // a page needs the record's own numbers: the official rate before and at the spotted day, and its daily points
+  function ready() { var o = REC.official || {}; return !!(o.baseline != null && o.at_detection != null && points().length > 1 && (known() ? REC.after && REC.after[0] && REC.after[0].official_change_pct_from_baseline != null : true)); }
+  // the move the detector saw, in percent and in words (up or down), for the plain heading of an event without a hand-entered date
+  function moveOf() {
+    var o = REC.official || {}, s = REC.street || {};
+    if (REC.kind === "street_slide" && s.before != null && s.at_detection != null) return { v: (s.at_detection / s.before - 1) * 100, kind: "Street" };
+    return { v: (o.at_detection / o.baseline - 1) * 100, kind: "Official" };
+  }
+  function genericHeroHtml() {
+    var m = moveOf(), up = m.v >= 0, conf = REC.confirmation === "two sources" ? (reported() ? txt("confirmedTwoReported") : txt("confirmedTwo", { sources: (REC.sources_showing_it || []).join(", ") })) : txt("confirmedOne");
+    var note = reported() ? w("reportedNote", { since: OWN_START }, "p", "sm-meta") : "";
+    return '<div class="sm-hero">' + w("heading" + m.kind + (up ? "Up" : "Down"), { country: COUNTRY, pct: pct(Math.abs(m.v)) }, "h1") +
+      '<p class="sm-meta sm-num">' + esc(txt(reported() ? "metaReported" : "meta", { day: dayLong(REC.detected_on), confirmation: conf })) + "</p>" + note + "</div>";
+  }
+  // official rate a week later over the street price before: how much of the street's head start the official rate had closed
+  function landingHtml() {
+    if (window.Claims && window.Claims.blocked("eventPage.landLine")) return "";
+    var s = REC.street || {}, o = REC.official || {}, a = REC.after && REC.after[0];
+    if (!a || a.official == null || s.before == null || o.baseline == null || !(s.before > o.baseline)) return "";
+    var gap = (s.before / o.baseline - 1) * 100, closed = (a.official - o.baseline) / (s.before - o.baseline) * 100;
+    if (!(closed > 0)) return "";
+    return '<section id="evLanding">' + w("landHeading", null, "h2") + '<p class="sm-note sm-num">' +
+      esc(txt("landLine", { gap: pct(gap), closed: closed >= 100 ? txt("landAll") : pct(closed), day: dayLong(a.day) })) + "</p></section>";
+  }
 
   function heroHtml(pts) {
     var full = fullRiseDay(pts);
@@ -87,9 +114,9 @@
   }
 
   function chartSectionHtml() {
-    return '<section id="evChartSec">' + w("chartHeading", { country: COUNTRY }, "h2") + w("chartNote", null, "p", "sm-note") +
+    return '<section id="evChartSec">' + w("chartHeading", { country: COUNTRY }, "h2") + w(hasStreet() ? "chartNote" : "chartNoteOfficial", null, "p", "sm-note") +
       '<div class="sm-chart" id="evChart" role="img" aria-label="' + esc(txt("chartAria")) + '"><svg id="evSvg"></svg><div class="sm-tip" id="evTip" hidden></div></div>' +
-      '<ul class="sm-keys"><li><i style="border-top-color:var(--data-700)"></i>' + esc(txt("keyStreet")) + '</li><li><i style="border-top-color:var(--color-neutral-900)"></i>' +
+      '<ul class="sm-keys">' + (hasStreet() ? '<li><i style="border-top-color:var(--data-700)"></i>' + esc(txt("keyStreet")) + "</li>" : "") + '<li><i style="border-top-color:var(--color-neutral-900)"></i>' +
       esc(txt("keyOfficial")) + "</li></ul></section>";
   }
 
@@ -101,9 +128,9 @@
   }
 
   function tableHtml() {
-    var after = REC.after[0], s = REC.street || {}, o = REC.official || {};
-    var rows = '<tr><td class="ev-nm">' + esc(txt("rowStreet")) + "</td>" + cell(txt("colBefore"), s.before, s.before_day, null) +
-      cell(txt("colNow"), s.at_detection, s.at_detection_day, s.before) + cell(txt("colAfter"), after.street, after.day, s.before) + "</tr>" +
+    var after = (REC.after && REC.after[0]) || { day: REC.detected_on, official: null, street: null }, s = REC.street || {}, o = REC.official || {};
+    var rows = (hasStreet() ? '<tr><td class="ev-nm">' + esc(txt("rowStreet")) + "</td>" + cell(txt("colBefore"), s.before, s.before_day, null) +
+      cell(txt("colNow"), s.at_detection, s.at_detection_day, s.before) + cell(txt("colAfter"), after.street, after.day, s.before) + "</tr>" : "") +
       '<tr><td class="ev-nm">' + esc(txt("rowOfficial")) + "</td>" + cell(txt("colBefore"), o.baseline, o.baseline_day, null) +
       cell(txt("colNow"), o.at_detection, REC.detected_on, o.baseline) + cell(txt("colAfter"), after.official, after.day, o.baseline) + "</tr>";
     return '<section id="evTable">' + w("tableHeading", null, "h2") + '<table class="ev"><caption>' + esc(txt("tableHeading")) + "</caption><thead><tr><th scope=\"col\">" +
@@ -131,7 +158,8 @@
   function keepHtml() {
     var li = [], live = REC.checks && REC.checks.fx_live && REC.checks.fx_live.first_reading_day;
     if (REC.confirmation !== "two sources") li.push(txt("keepOne", { liveStart: live ? dayShort(live) : "" }));
-    li.push(txt("keepStreet"), txt("keepWeekly"));
+    if (hasStreet()) li.push(txt("keepStreet"));
+    li.push(reported() ? txt("keepReported") : txt("keepWeekly"));
     var flags = (REC.checks && REC.checks.official_rate_rules_flagged_that_day) || [];
     if (flags.length) li.push(txt("flagLine", { rules: flags.join(", ") }));
     return '<section id="evKeep">' + w("keepHeading", null, "h2") + '<ul class="sm-facts">' + li.filter(Boolean).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul></section>";
@@ -149,9 +177,13 @@
     return '<section id="evChecks">' + w("checksHeading", null, "h2") + '<ul class="sm-facts sm-num">' + out.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul></section>";
   }
 
+  // each event links to the home map on its own day
+  function dayLinkHtml() {
+    return txt("dayLink") ? '<p class="sm-small"><a href="./index.html?day=' + esc(REC.detected_on) + '">' + esc(txt("dayLink", { day: dayLong(REC.detected_on) })) + "</a></p>" : "";
+  }
   function footerHtml() {
     var link = txt("footerLinkText");
-    return "<footer>" + '<p><a href="./data/event_records/' + esc(REC.id) + '.json">' + esc(txt("recordLink")) + "</a></p>" + w("footerText", null, "p") +
+    return "<footer>" + '<p><a href="./' + esc(RECPATH) + '">' + esc(txt("recordLink")) + "</a></p>" + w("footerText", null, "p") +
       (link ? '<a href="https://github.com/SebR214/margin">' + esc(link) + "</a>" : "") + "</footer>";
   }
 
@@ -223,8 +255,12 @@
 
   function render() {
     var pts = points();
-    if (!ready()) { app.innerHTML = '<div class="sm-wrap">' + headHtml() + w("notReady", null, "p") + "</div>"; return; }
-    app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml(pts) + chartSectionHtml() + tableHtml() + firstHtml(pts) + offersHtml() + keepHtml() + checksHtml() + footerHtml() + "</div>";
+    // the numbers on a page without a hand-entered date show only while the claims audit says its record matches the raw files
+    var held = window.Claims && window.Claims.blocked("eventPage.landLine");
+    if (!REC || !ready() || (held && !known())) { app.innerHTML = '<div class="sm-wrap">' + headHtml() + w("notReady", null, "p") + "</div>"; return; }
+    var kn = known();
+    app.innerHTML = '<div class="sm-wrap">' + headHtml() + (kn ? heroHtml(pts) : genericHeroHtml()) + chartSectionHtml() + tableHtml() + landingHtml() + (kn ? firstHtml(pts) : "") +
+      (reported() ? "" : offersHtml()) + keepHtml() + (reported() ? "" : checksHtml()) + footerHtml() + dayLinkHtml() + "</div>";
     drawChart();
     var box = document.getElementById("evChart");
     if (box) {
@@ -237,13 +273,21 @@
   }
 
   var id = (new URLSearchParams(location.search).get("id") || DEFAULT_ID).replace(/[^A-Za-z0-9_\-]/g, "");
-  Promise.all([getJSON("copy.json"), getJSON("data/event_records/" + id + ".json").catch(function () { return null; }), getJSON("data/index_latest.json").catch(function () { return null; })])
+  var PATHS = ["data/event_records/" + id + ".json", "data/history/event_records_rules4/" + id + ".json"];
+  function loadRecord() {
+    return getJSON(PATHS[0]).then(function (r) { RECPATH = PATHS[0]; return r; }).catch(function () {
+      return getJSON(PATHS[1]).then(function (r) { RECPATH = PATHS[1]; return r; }).catch(function () { return null; });
+    });
+  }
+  Promise.all([getJSON("copy.json"), loadRecord(), getJSON("data/heatmap_daily.json").catch(function () { return null; }), getJSON("data/map_timeline/index.json").catch(function () { return null; }), window.Claims ? window.Claims.load() : null])
     .then(function (res) {
       COPY = (res[0] && res[0].eventPage) || {};
       REC = res[1];
       if (!REC) { app.innerHTML = '<div class="sm-wrap">' + headHtml() + w("notFound", null, "p") + "</div>"; return; }
-      var c = res[2] && (res[2].countries || []).filter(function (x) { return x.ccy === REC.ccy; })[0];
-      COUNTRY = (c && c.country) || REC.ccy;
+      var c = res[2] && (res[2].currencies || []).filter(function (x) { return x.ccy === REC.ccy; })[0];
+      COUNTRY = ((c && c.country) || REC.ccy).replace(/^the /i, "").replace(/^./, function (x) { return x.toUpperCase(); });
+      var own = res[3] && res[3].own_start;
+      OWN_START = own ? dayShort(own) + " " + own.slice(0, 4) : "";
       render();
     }).catch(function (err) {
       if (window.console) console.error(err);

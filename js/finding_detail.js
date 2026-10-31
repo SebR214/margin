@@ -9,7 +9,7 @@
   var TO = { PHP: 'the Philippines', MXN: 'Mexico', INR: 'India', NGN: 'Nigeria', ARS: 'Argentina', BRL: 'Brazil' };
   var SYM = { SGD: 'S$', AUD: 'A$', NZD: 'NZ$', USD: 'US$' };
   var ORDER = ['price_changes', 'weekend_penalty', 'volume_crossover', 'sgd_php_never_cheapest', 'exchange_vs_p2p'];
-  var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navHowItWorks', 'how-it-works.html']];
+  var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHowItWorks', 'how-it-works.html']];
   var C = {}, FIN = {}, DATA = {}, AS_OF = '';
   var id = 'price_changes', route = 'ALL', side = 'taker';
 
