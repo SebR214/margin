@@ -124,6 +124,8 @@ jobs:
         run: python3 tests/check_known_breaks.py
       - name: The routes table sums its steps (SEB-310)
         run: python3 tools/emit_routes_table.py --self-test
+      - name: The Research pages rebuild from their scripts (SEB-423)
+        run: python3 tools/research/run.py --self-test
       - name: The Research claims pass on the files and fail on a wrong number (SEB-423)
         run: python3 tests/check_research_claims.py
       - name: A sudden flip is held back (SEB-302)
