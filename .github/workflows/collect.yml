@@ -644,6 +644,12 @@ jobs:
         # files written above. Numbers only; tools/audit_claims.py checks them next.
         run: python3 tools/emit_home_facts.py
 
+      - name: Emit the newest cash dollar
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-422 step 3. The newest good row per currency from the cash_rates table, so a
+        # country page can show the cash dollar beside the official and the stablecoin one.
+        run: python3 tools/emit_cash_latest.py
+
       - name: Audit the claims in the copy
         if: always() && steps.needed.outputs.proceed == 'true'
         # Every count or absolute claim (never, always, every, none, since a
@@ -957,6 +963,10 @@ jobs:
           # Event records (SEB-311): one JSON file per event, a new one on its first day. A separate loop for the same reason.
           for d in data/event_records; do
             if [ -d "$d" ]; then git add "$d"; fi
+          done
+          # The newest cash dollar per currency (SEB-422). Its own loop for the same reason.
+          for f in data/cash_latest.json; do
+            if [ -f "$f" ]; then git add "$f"; fi
           done
           # The cash dollar (SEB-422): one file a day in data/cash_rates/ while the raw tables are still in this repo. Its own loop so no existing line is edited.
           for d in data/cash_rates; do
