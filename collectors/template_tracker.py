@@ -102,10 +102,9 @@ def row(ts, cfg, body=None, error=None):
 
 
 def fetch(cfg):
-    import requests
-    r = requests.get(cfg["url"], headers=UA, timeout=25)
-    r.raise_for_status()
-    return r.text
+    import urllib.request          # standard library only: the checks job installs no packages
+    with urllib.request.urlopen(urllib.request.Request(cfg["url"], headers=UA), timeout=25) as r:
+        return r.read().decode("utf-8", "replace")
 
 
 def run_config_test(name, get=fetch):
