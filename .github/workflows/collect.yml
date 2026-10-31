@@ -337,6 +337,12 @@ jobs:
         continue-on-error: true
         run: python3 collector_p2p_kucoin.py
 
+      # SEB-422: every board x currency in collectors/board_configs/ (collectors/template_board.py). Fails the run only when no config was read or a
+      # board has no row in data/source_registry.json; one board down is a row with source_ok false in data/p2p_basis_boards.csv.
+      - name: Collect the board x currency configs (SEB-422)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        run: python3 collector_boards.py
+
       - name: Check the official rates for a broken series (SEB-310)
         if: always() && steps.needed.outputs.proceed == 'true'
         continue-on-error: true
@@ -822,6 +828,14 @@ jobs:
           # First venues for countries with no price (SEB-301, BACKLOG 17): four new CSVs, their own loop so no existing line is edited.
           for f in data/zar_valr.csv data/zar_luno.csv data/p2p_kucoin.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
+          done
+          # One row an hour per board x currency (SEB-422): a new sidecar CSV, its own loop so no existing line is edited. The ads themselves
+          # are the daily table p2p_board_ads, staged below with the other raw tables while they are still in this repo.
+          for f in data/p2p_basis_boards.csv; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          for d in data/p2p_board_ads; do
+            if [ -d "$d" ]; then git add "$d"; fi
           done
           # Event records (SEB-311): one JSON file per event, a new one on its first day. A separate loop for the same reason.
           for d in data/event_records; do

@@ -83,6 +83,11 @@ jobs:
       - name: Seller ids are hashed, keyed to the ads file (SEB-384)
         run: python3 collector_p2p_sellers.py --selftest
 
+      - name: Board x currency template, five board parsers, rows and guards (SEB-422)
+        run: |
+          python3 collector_boards.py --selftest
+          python3 tools/new_board_job.py --self-test
+
       - name: The big P2P tables are one file a day, and a file near 100 MB fails before the commit (SEB-301)
         run: |
           python3 tools/daily_csv.py --self-test
