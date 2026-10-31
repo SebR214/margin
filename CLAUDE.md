@@ -61,6 +61,7 @@ Never say something is running, built or watching unless you checked it just now
 - No new running cost without the monthly number stated to Seb first.
 - Never add an agent, a loop or a machine to fix a problem with an existing one. Fix or remove the existing one.
 - Never read a data file or a file over 20 KB whole. Use grep, head or a line range. Read BACKLOG.md for the queue, not the whole of SEB-301. One session per task. Start a new one when the task is done.
+- A test never asserts anything about live data that collection can change. Tests use their own fixed hours or fixture files. (31 Oct: two tests that matched the real files turned main's checks red as the hours moved on.)
 - Writing: short sentences, plain words, no em-dashes.
 
 Older docs are in `docs/archive/`. They record history, not current rules.

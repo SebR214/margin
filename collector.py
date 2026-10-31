@@ -1324,16 +1324,24 @@ def fetch_baseline(src, dst, amount):
 
 # ------------------------------------------------------------- collection
 ETH_RPC = "https://ethereum-rpc.publicnode.com"
-# SEB-301, 31 Oct: a second public keyless Ethereum RPC, tried when the first fails twice. On 31 Oct publicnode, drpc and 1rpc answered
-# the probe with "execution reverted" every time and this one answered it.
-ETH_RPC_2 = "https://cloudflare-eth.com"
-ETH_RPCS = (ETH_RPC, ETH_RPC_2)
+# SEB-301, 31 Oct: more public keyless Ethereum RPCs, each tried in turn when the one before fails twice. Every one of these answered BOTH
+# calls of the read (eth_estimateGas from a funded sender, eth_gasPrice) on 31 Oct. cloudflare-eth.com answered the estimate and then
+# refused eth_gasPrice ("Cannot fulfill request"), so it is not in the list.
+ETH_RPC_2 = "https://eth.drpc.org"
+ETH_RPC_3 = "https://gateway.tenderly.co/public/mainnet"
+ETH_RPCS = (ETH_RPC, ETH_RPC_2, ETH_RPC_3)
 GAS_RETRIES = 1                    # one more try on the same RPC before the next one
 GAS_MISSING = "gas:missing"        # the errors column of a sample whose gas could not be read this hour
 ETH_PRICE_URL = "https://api.exchange.coinbase.com/products/ETH-USD/ticker"
 USDT_ETH = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
-# a public, well-known wallet that holds USDT: eth_estimateGas needs a sender with a balance. Nothing is sent.
-GAS_PROBE_FROM = "0x28C6c06298d514Db089934071355E5743bf21d60"
+# Public, well-known wallets that hold USDT: eth_estimateGas needs a sender with a balance. Nothing is sent. The first one (Binance 14,
+# 0x28C6c0...1d60) held 1.35M USDT on 31 Oct and every real node still answered "execution reverted" for it, which cost 4 hours of gas
+# readings. So there are several, tried in order, and a revert moves to the next one. Balances checked on 31 Oct 09:00 UTC with eth_call.
+GAS_PROBE_FROMS = ("0xF977814e90dA44bFA03b6295A0616a897441aceC",     # Binance 8
+                   "0x5754284f345afc66a98fbB0a0Afe71e0F007B949",     # Tether Treasury
+                   "0x5a52E96BAcdaBb82fd05763E25335261B270Efcb",     # Binance cold wallet
+                   "0x267be1C1D684F78cb4F6a176C4911b741E4Ffdc0")     # Kraken 4
+GAS_PROBE_FROM = GAS_PROBE_FROMS[0]
 GAS_PROBE_TO = "0x1111111111111111111111111111111111111111"
 GAS_SIDECAR = "gas_readings.csv"
 GAS_HEADER = ["ts_utc", "chain", "gas_units", "gas_price_gwei", "eth_usd", "cost_usd", "rpc_url", "price_url", "source_ok", "error"]
@@ -1355,7 +1363,15 @@ def fetch_eth_gas_from(url):
     eth_gasPrice, the price of ether from Coinbase's public ticker. -> dict; raises on any failure, so a bad reading is
     a failed row and never a silent zero."""
     data = "0xa9059cbb" + GAS_PROBE_TO[2:].rjust(64, "0") + hex(1_000_000)[2:].rjust(64, "0")
-    units = _eth_rpc("eth_estimateGas", [{"from": GAS_PROBE_FROM, "to": USDT_ETH, "data": data}], url)
+    units, reverted = None, []
+    for sender in GAS_PROBE_FROMS:
+        try:
+            units = _eth_rpc("eth_estimateGas", [{"from": sender, "to": USDT_ETH, "data": data}], url)
+            break
+        except ValueError as e:                     # a node's answer ("execution reverted"): try the next funded sender
+            reverted.append(f"{sender[:8]}:{e}")
+    if units is None:
+        raise ValueError("estimateGas " + "; ".join(reverted))
     wei = _eth_rpc("eth_gasPrice", [], url)
     eth_usd = float(get_json(ETH_PRICE_URL)["price"])
     if not (units > 0 and wei > 0 and eth_usd > 0):
@@ -1377,7 +1393,7 @@ def fetch_eth_gas(rpcs=None, read=None, retries=None):
             try:
                 return read(url)
             except Exception as e:
-                failures.append(f"{url.split('//')[-1].split('/')[0]}:{type(e).__name__}:{e}"[:80])
+                failures.append(f"{url.split('//')[-1].split('/')[0]}:{type(e).__name__}:{e}"[:150])
     raise ValueError(" | ".join(failures))
 
 
@@ -1418,7 +1434,7 @@ def collect(corridor_key, cfg):
             got, gerr = fetch_eth_gas(), ""
             cfg = {**cfg, "network_fee_stable": got["cost_usd"]}
         except Exception as e:
-            got, gerr = None, f"{GAS_MISSING}:{e}".replace("; ", ", ")[:200]
+            got, gerr = None, f"{GAS_MISSING}:{e}".replace("; ", ", ")[:400]
             errors.append(gerr)
             ok = False
             gas_missing = True
@@ -2300,12 +2316,40 @@ def selftest():
             raise ValueError("{'code': 3, 'message': 'execution reverted'}")
         return {"gas_units": 46097, "gas_price_gwei": 1.0, "eth_usd": 3000.0, "cost_usd": 0.138, "rpc_url": url}
     got = fetch_eth_gas(read=flaky)
-    assert calls == [ETH_RPC, ETH_RPC, ETH_RPC_2] and got["rpc_url"] == ETH_RPC_2, calls   # one retry, then the second RPC
+    assert calls == [ETH_RPC, ETH_RPC, ETH_RPC_2] and got["rpc_url"] == ETH_RPC_2, calls   # one retry, then the next RPC
     try:
         fetch_eth_gas(read=lambda url: (_ for _ in ()).throw(OSError("down")))
         raise AssertionError("both RPCs failing must raise")
     except ValueError as e:
-        assert "publicnode.com" in str(e) and "cloudflare-eth.com" in str(e) and str(e).count("OSError") == 4, str(e)
+        assert "publicnode.com" in str(e) and "drpc.org" in str(e) and "tenderly.co" in str(e) and str(e).count("OSError") == 6, str(e)
+    # a node that reverts the estimate for one funded sender is asked again with the next sender (Binance 14 reverted everywhere on 31 Oct)
+    asked = []
+
+    def fake_rpc(method, params, url=ETH_RPC):
+        if method == "eth_estimateGas":
+            asked.append(params[0]["from"])
+            if len(asked) < 3:
+                raise ValueError("{'code': 3, 'message': 'execution reverted'}")
+            return 46479
+        return 3 * 10 ** 9
+    g0 = globals()
+    saved0 = {k: g0[k] for k in ("_eth_rpc", "get_json")}
+    try:
+        g0["_eth_rpc"] = fake_rpc
+        g0["get_json"] = lambda u_: {"price": "2000"}
+        read = fetch_eth_gas_from(ETH_RPC)
+    finally:
+        g0.update(saved0)
+    assert asked == list(GAS_PROBE_FROMS[:3]) and read["gas_units"] == 46479 and abs(read["cost_usd"] - 46479 * 3e9 / 1e18 * 2000) < 1e-12, (asked, read)
+    asked.clear()
+    try:
+        g0["_eth_rpc"] = lambda m_, p_, url=ETH_RPC: (_ for _ in ()).throw(ValueError("{'code': 3, 'message': 'execution reverted'}"))
+        fetch_eth_gas_from(ETH_RPC)
+        raise AssertionError("every sender reverting must raise")
+    except ValueError as e:
+        assert str(e).count("execution reverted") == len(GAS_PROBE_FROMS) and "estimateGas" in str(e), str(e)
+    finally:
+        g0.update(saved0)
     import tempfile
     g = globals()
     saved = {k: g[k] for k in ("fetch_eth_gas", "fetch_mids", "fetch_onramp", "fetch_offramp", "fetch_baseline", "append_gas_reading")}
