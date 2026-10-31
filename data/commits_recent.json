@@ -1,7 +1,21 @@
 {
- "as_of_utc": "2026-10-31T07:44:42Z",
+ "as_of_utc": "2026-10-31T08:20:01Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "8569ad8e3a21b3c7578ca1f78edccd48e82c2b1a",
+   "html_url": "https://github.com/SebR214/margin/commit/8569ad8e3a21b3c7578ca1f78edccd48e82c2b1a",
+   "date": "2026-10-31T07:48:08Z",
+   "email": "person",
+   "message": "SEB-301: a failed gas read no longer costs the hour its route rows (#732)\n\ncollector.py: the gas read tries the first RPC twice, then a second public keyless RPC (cloudflare-eth.com). If both fail, gas_readings.csv gets a source_ok=false row with the error, the corridor sample is still written with gas:missing in its errors column and every gas-dependent figure blank (nothing invented, nothing reused), and the step exits 0.\nemit_routes.py: such an hour is not priced and the route's gaps list says the on-chain leg was not read that hour.\ncheck_collection_run.py: a step that exits non-zero fails the gate only if it wrote no rows; a gas-only miss counts as a corridor that answered.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "5d95551f44202c96bcdc217db0ca9f3b126fce7a",
+   "html_url": "https://github.com/SebR214/margin/commit/5d95551f44202c96bcdc217db0ca9f3b126fce7a",
+   "date": "2026-10-31T07:47:30Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-31T07:47Z"
+  },
   {
    "sha": "98cda8dcf7d27bb7aeafd1b762525c333667e6e7",
    "html_url": "https://github.com/SebR214/margin/commit/98cda8dcf7d27bb7aeafd1b762525c333667e6e7",
@@ -687,20 +701,6 @@
    "date": "2026-10-27T08:27:24Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-10-27T08:27Z"
-  },
-  {
-   "sha": "cbbaeebc2964c65bb17cdf8cab111b891f365d7b",
-   "html_url": "https://github.com/SebR214/margin/commit/cbbaeebc2964c65bb17cdf8cab111b891f365d7b",
-   "date": "2026-10-27T07:47:05Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T07:47Z"
-  },
-  {
-   "sha": "4ad2871e748b7d0e0e1e4d7ddce0b1c2c77431ff",
-   "html_url": "https://github.com/SebR214/margin/commit/4ad2871e748b7d0e0e1e4d7ddce0b1c2c77431ff",
-   "date": "2026-10-27T07:25:22Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T07:25Z"
   }
  ]
 }

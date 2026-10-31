@@ -1,6 +1,6 @@
 # What the prices we store every hour show
 
-Prices from the 07:00 UTC hour, 31 Oct.
+Prices from the 08:00 UTC hour, 31 Oct.
 
 Each page shows the evidence, how it was worked out, and a file you can download.
 
@@ -48,7 +48,7 @@ S$13.5M a month traded on the exchange
 
 First published 5 Oct 2026. The number updates every hour.
 
-3 of 1,630 hours a stablecoin was cheapest
+3 of 1,631 hours a stablecoin was cheapest
 
 05
 
