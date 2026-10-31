@@ -18,6 +18,7 @@ import csv
 import datetime as dt
 import os
 import statistics
+import sys
 
 HEADER = ["ts_utc", "source", "ccy", "kind", "param", "avg_price", "index_pct", "usd_available", "n_ads", "status", "source_ok", "reason"]
 FILL_SIZES = (500, 5000, 25000, 100000)
@@ -25,7 +26,10 @@ BANDS = (0.5, 1, 2)
 P2P_SIZES = (500, 2000, 10000)
 MIN_ADS = 10
 HERE = os.path.dirname(os.path.abspath(__file__))
-PATH = os.path.join(HERE, "data", "depth.csv")
+sys.path.insert(0, os.path.join(HERE, "tools"))
+import daily_csv  # noqa: E402
+NAME = "depth"      # one file a day, data/depth/<day>.csv, or margin-data/depth/<day>.csv (SEB-422); the closed data/depth.csv is read first
+PATH = None         # the default: the table above. A test passes a plain file path.
 
 
 def fnum(v):
@@ -124,12 +128,15 @@ def captured_this_hour(path=PATH, now=None, okx=False):
     collectors, each once an hour. Reads only the end of the file."""
     now = now or dt.datetime.now(dt.timezone.utc)
     start = now.replace(minute=0, second=0, microsecond=0)
-    if not os.path.exists(path):
-        return False
-    size = os.path.getsize(path)
-    with open(path, "rb") as f:
-        f.seek(max(0, size - 400_000))
-        tail = f.read().decode("utf-8", "replace").split("\n")[1:]
+    if path is None:
+        tail = daily_csv.tail(NAME, 400_000)[1:]
+    else:
+        if not os.path.exists(path):
+            return False
+        size = os.path.getsize(path)
+        with open(path, "rb") as f:
+            f.seek(max(0, size - 400_000))
+            tail = f.read().decode("utf-8", "replace").split("\n")[1:]
     for r in csv.reader(tail):
         if len(r) < 2 or not r[0]:
             continue
@@ -143,6 +150,9 @@ def captured_this_hour(path=PATH, now=None, okx=False):
 
 
 def append(rows, path=PATH):
+    if path is None:
+        daily_csv.append(NAME, HEADER, rows)
+        return
     new = not os.path.exists(path) or os.path.getsize(path) == 0
     with open(path, "a", newline="") as f:
         w = csv.writer(f)

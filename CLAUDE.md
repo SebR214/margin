@@ -8,6 +8,7 @@ Read this file and the Linear issue you were given. Load nothing else unless the
 
 - Site: margin.wiki, GitHub Pages, served from `main`.
 - Collection: GitHub Actions, `collect.yml`, self-chaining about every 30 minutes. `collector_watchdog.yml` watches it.
+- Raw tables (SEB-422): the ad tables and order-book depth (`data/p2p_ads/`, `data/p2p_ads_sellers/`, `data/p2p_offers/`, `data/depth/`) move to the public repo `SebR214/margin-data`, one folder per table, one file a day. `collect.yml` checks it out, sets `MARGIN_RAW_DIR` (read by `tools/daily_csv.py`), and pushes it in its own commit step. It switches on by itself once the margin-agents App can push there (`tools/raw_storage.py probe`); until then the tables stay in `data/`. Nothing in either repo passes 80 MB.
 - Hetzner box: the public API at api.margin.wiki (`margin-serve`), the P2P collector (`margin-p2p-box`) and the nightly analyst. None of these call a model. The analyst reads the CSVs, checks numbers and stores findings (SEB-301).
 - Work queue: `BACKLOG.md` for track A, Linear project `margin.wiki`, team `SEB`, for the rest. Not GitHub issues.
 - Agents (SEB-301, Seb's plan of 25 Oct), all on GitHub Actions, no loops, nothing on the box or on Seb's Mac:

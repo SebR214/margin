@@ -87,6 +87,7 @@ jobs:
         run: |
           python3 tools/daily_csv.py --self-test
           python3 tools/check_file_size.py --self-test
+          python3 tools/raw_storage.py --self-test
           python3 tools/check_collector_health.py --self-test
 
       - name: The devaluation-watch backtest rules and its kill rule (SEB-384)
