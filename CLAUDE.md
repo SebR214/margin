@@ -1,6 +1,6 @@
 # margin.wiki
 
-Seb's passion project. It prices a dollar in about 60 currencies every hour, against the official rate, and prices sending money on 7 routes with all fees in. Built for fun. Never suggest sharing it.
+Seb's passion project. It prices a dollar in about 60 currencies every hour, against the official rate, and prices sending money on 11 routes with all fees in. Built for fun. Never suggest sharing it.
 
 Read this file and the Linear issue you were given. Load nothing else unless the issue lists it.
 
@@ -54,14 +54,14 @@ Never say something is running, built or watching unless you checked it just now
 
 ## Working rules
 
-- Nothing waits for a green run. A PR whose title names its SEB issue is merged by `automerge.yml` when every check passes, and the rendered gates in `checks.yml` (1280px and 390px) are the page check, so a session never ends a turn on "I'll merge on green" or "I'll check it live after". Open the PR with everything it needs, then take the next job. A failed check wakes the session through Auto-fix. Work that needs a clock (24 hours of rows) is one line on the Linear issue with the time it is due, and the next session picks it up. Never hand Seb a step a session or a check can do.
+- You watch your PR's checks, fix every failure, check the live site after it merges, and only then post done on the Linear issue. A session builds every part of its issue itself, page parts included; nothing waits on the Aider builder and nothing is parked as design chat work. Work that needs a clock (24 hours of rows) is one line on the issue with the time it is due. Never hand Seb a step a session or a check can do.
 - One Linear issue per job. Comment on the issue when you start and when you finish.
 - Nothing waits for Seb. If a job needs him (root on the box, DNS, a decision), park it: one line on the issue, then take the next job. Parked never stops work. Never list parked items as blockers, and don't ask about them again. Parked items don't count toward any gate. If anything has waited on Seb for more than 24 hours, one email goes to the address on his GitHub account ("Waiting on you: {n}", one line each with a link), then nothing more until the list changes.
 - One Claude chat session at a time. Chat sessions never take `one-call` issues: the builder does.
 - No new running cost without the monthly number stated to Seb first.
 - Never add an agent, a loop or a machine to fix a problem with an existing one. Fix or remove the existing one.
 - Never read a data file or a file over 20 KB whole. Use grep, head or a line range. Read BACKLOG.md for the queue, not the whole of SEB-301. One session per task. Start a new one when the task is done.
-- A test never asserts anything about live data that collection can change. Tests use their own fixed hours or fixture files. (31 Oct: two tests that matched the real files turned main's checks red as the hours moved on.)
+- Tests never assert on live data that collection changes. Tests use their own fixed hours or fixture files. (31 Oct: two tests that matched the real files turned main's checks red as the hours moved on.)
 - Writing: short sentences, plain words, no em-dashes.
 
 Older docs are in `docs/archive/`. They record history, not current rules.
