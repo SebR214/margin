@@ -573,6 +573,12 @@ jobs:
         # by a red run -- the failures are the point.
         run: python3 tools/audit_numbers.py
 
+      - name: Emit the home facts
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-423 step 1. The largest 24-hour move and the what-changed list, from
+        # files written above. Numbers only; tools/audit_claims.py checks them next.
+        run: python3 tools/emit_home_facts.py
+
       - name: Audit the claims in the copy
         if: always() && steps.needed.outputs.proceed == 'true'
         # Every count or absolute claim (never, always, every, none, since a
@@ -827,6 +833,10 @@ jobs:
           done
           # Finding statuses (SEB-301, BACKLOG 13): a new file, its own loop so no existing line is edited.
           for f in data/finding_status.json; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          # Home facts (SEB-423): a new file, its own loop so no existing line is edited.
+          for f in data/home_facts.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Who sells each P2P ad (SEB-384): a new sidecar CSV, its own loop so no existing line is edited.

@@ -61,6 +61,33 @@
       "max_share": 0.01
     },
     {
+      "key": "homeData.headlineMove",
+      "type": "home_largest_move",
+      "guards": [
+        "homeData.headlineMoveUp",
+        "homeData.headlineMoveDown",
+        "homeData.moveSinceAbove",
+        "homeData.moveSinceBelow",
+        "homeData.moveSinceWholeAbove","homeData.moveSinceWholeBelow"
+      ],
+      "note": "Headline: {country}'s dollar got {points} points dearer or cheaper since yesterday, the most of any country, and since when it has sat above or below its typical level. True when the country, points, direction and date re-derived from data/index_hourly.csv equal data/home_facts.json."
+    },
+    {
+      "key": "homeData.whatChangedTitle",
+      "type": "home_what_changed",
+      "guards": [
+        "homeData.wcCrossedUp",
+        "homeData.wcCrossedDown",
+        "homeData.wcEventOfficial","homeData.wcEventStreet",
+        "homeData.wcSourceAdded",
+        "homeData.wcSourceQuarantine",
+        "homeData.wcFindingHolds","homeData.wcFindingWeaker","homeData.wcFindingNoLonger",
+        "homeData.wcRouteCheaper",
+        "homeData.wcRouteDearer"
+      ],
+      "note": "What changed this week: every line is checked against the file it came from (heatmap, source registry, events, finding tests, routes hourly); at most 8, newest first."
+    },
+    {
       "key": "researchData.pairsTight",
       "type": "research_pairs",
       "guards": [
