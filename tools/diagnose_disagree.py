@@ -98,7 +98,7 @@ def read_venue(path, source, wanted):
 def binance_min_orders(wanted):
     """{ccy: median min_order over the newest 168 hours of ads}, from data/p2p_ads.csv and data/p2p_ads/ (Binance only)."""
     per = {}
-    for r in daily_csv.iter_dicts("p2p_ads", DATA, encoding="utf-8"):      # the closed p2p_ads.csv, then data/p2p_ads/<day>.csv
+    for r in daily_csv.iter_dicts("p2p_ads", daily_csv.DATA, encoding="utf-8"):      # the closed p2p_ads.csv, then data/p2p_ads/<day>.csv
         if r["ccy"] in wanted and r.get("source_ok") == "True":
             v = fnum(r.get("min_order"))
             if v is not None:

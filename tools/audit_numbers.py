@@ -595,7 +595,7 @@ def main():
         if r["ccy"] in need_book:
             basis_by.setdefault(r["ccy"], []).append(r)
     if need_p2p:
-        for r in daily_csv.iter_dicts(OFFERS, DATA):
+        for r in daily_csv.iter_dicts(OFFERS, daily_csv.DATA):
             if r["ccy"] in need_p2p and r["side"] == "buy":
                 p = num(r["price"])
                 if p is not None:

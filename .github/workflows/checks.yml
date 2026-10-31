@@ -50,6 +50,17 @@ jobs:
         with:
           python-version: "3.12"
 
+      # SEB-422. Once the raw tables have moved to margin-data, the copy in this repo stops growing. Checks that read the real ad, seller, offer
+      # or depth tables read the union: margin-data, topped up from this repo's copy (tools/raw_storage.py seed is safe to repeat).
+      - uses: actions/checkout@v4
+        with:
+          repository: SebR214/margin-data
+          path: margin-data
+      - name: Point the raw tables at margin-data
+        run: |
+          python3 tools/raw_storage.py seed margin-data
+          echo "MARGIN_RAW_DIR=$GITHUB_WORKSPACE/margin-data" >> "$GITHUB_ENV"
+
       - name: Inventory gate (no page may lose charts, tables or interactive elements)
         run: python3 tools/check_inventory.py
 
@@ -99,6 +110,7 @@ jobs:
         run: |
           python3 tools/daily_csv.py --self-test
           python3 tools/check_file_size.py --self-test
+          python3 tools/raw_storage.py --self-test
           python3 tools/check_collector_health.py --self-test
 
       - name: The devaluation-watch backtest rules and its kill rule (SEB-384)
