@@ -1,22 +1,34 @@
 # Roadmap
 
-Updated 24 Oct 2026 (devaluation watch, approved by Seb in chat, SEB-384; events plan of 22 Oct, SEB-311). Seb owns this file. Agents change it only from a spec Seb approved.
+Updated 31 Oct 2026 (three levers, agreed with Seb in chat).  Seb owns this file. Agents change it only from a spec Seb approved.
 
 ## What margin.wiki is
 
-Every hour it prices a dollar in 60 countries against the official rate, and prices sending money on 7 routes with every fee we can measure.
+Every hour it prices a dollar where people actually buy one, in 53 countries today, against the official rate. It also prices sending money on 9 routes with every fee we can measure, as a benchmark for the stablecoin. The transfer apps are benchmarks, not the subject.
 
 ## In six months (April 2027)
 
-A devaluation watch that makes dated claims per country and scores itself in public, on top of the events record and 25 years of history. Each event in the record is found by code from our own hourly prices, checked against a second source, and retested as new data comes in.
+Three things, decided with Seb on 31 Oct 2026. Each is a month or more of build. Everything else is maintenance.
 
-Where it stands (24 Oct 2026, SEB-384): the 25 years of history are built as a time control on the home grid. The claims are not. The first backtest did not show that a big premium comes before an official step, for currencies with controls (a 10% step within 12 months followed 26% of month starts with a premium of 10% or more, and 36% of those under 2%). The watch is built only once a backtest on more data shows the premium does come first. What we do know is where the official rate landed after past breaks, and the table of those landings is in data/history/backtest_landing.csv.
+**1. Every dollar for sale on earth, plus cash.** Today: 53 currencies, mostly one or two boards each. Then: every currency any person-to-person board quotes (Binance, OKX, Bybit, KuCoin, Bitget, HTX, Noones), every ad, every hour, about 100 currencies and five to seven prices per dollar. And the cash dollar: the public money-changer trackers in about 15 countries (Argentina, Lebanon, Egypt, Nigeria, Pakistan, Sri Lanka, Venezuela and more), hourly, with whatever history they publish. Every country page then shows three dollars: official, cash, stablecoin. The site's first question, "is the stablecoin the cheap dollar", finally gets asked against cash. This is the moat: the most complete record of informal dollar prices that exists, and it compounds every hour. It needs storage first: raw ad and offer files leave the site repo for a data repo, because the site repo is at 540 MB and GitHub Pages stops at 1 GB.
 
-It rests on three things:
+**2. Three things you can see in the data.** The cash dollar against the stablecoin against the official rate, per country, hourly. Contagion: which countries' gaps move together, from our own hourly record, drawn on the map. The flow: every ad with a seller id since 24 Oct, so seller counts, depth and concentration per country, and the one test that matters, whether the book thins before a break. A dataset ships only with the sentence it changes on an existing page. No new chart pages.
+
+**3. The machine does the reading.** Rule unchanged: no model touches a published number. One writer, a Sonnet call per confirmed currency break and one per day for home, gets a facts file from code plus search results, writes the prose with a link on every claim, and every number in its output is checked against the facts file by the claims audit before anything publishes. Event pages become the history of currency breaks, written by the site. The home page says what happened today and why.
+
+**Alive, mostly by code.** The site's sentences are fixed and its numbers are not, which is why it feels dead. The home headline names today's largest move, computed every hour. A "what changed this week" block: countries that crossed 5%, events detected, sources added, findings whose status moved. Confirmed events become pages on their own. Research pieces re-run on a schedule.
+
+**The devaluation watch (SEB-384)** is parked, not dead. The backtest on three managed currencies did not show the premium comes before the break. The cash trackers in lever 1 bring parallel-rate history for ten more countries. The watch is re-tested when that history is in, and built only if it passes.
+
+It rests on three things that stay:
 
 1. **Findings that age honestly.** Each finding is retested by code. It shows whether it still holds, got weaker or is no longer true. The original claim and its evidence stay up with their date.
 2. **Sources checked against each other.** Every pair of sources measuring the same market is compared hour by hour. An event is confirmed only when two sources agree.
-3. **A depth and liquidity record.** What a dollar costs at several amounts, and every ad we can read on the person-to-person boards, not the first 10. Collected from the day it starts.
+3. **A depth and liquidity record.** What a dollar costs at several amounts, and every ad on the boards, with who sells it.
+
+## Who builds what
+
+The research chat (Opus or Fable, the main chat of the Margin.Wiki project) decides what gets built and splits it. Mechanical work (a new collector from the template, one new file, one new test) goes into BACKLOG.md in the builder's job form and the Aider builder merges it on green. Judgment work (storage, templates, pages, methods, the writer) goes into a Linear issue for a Claude Code session Seb starts. The researcher agent is retired: the gap list (`tools/gap_report.py`) is a tool the research chat runs, not an agent that writes jobs.
 
 ## What counts as an event
 
@@ -29,18 +41,13 @@ It rests on three things:
 
 ## Order
 
-Done since 11 Oct: SEB-268, finding test files, source comparisons, depth collection, the routes rebuild (SEB-310).
+Done since 11 Oct: SEB-268, finding test files, source comparisons, depth collection, the routes rebuild (SEB-310), every ad and who sells it, the shadow detector (SEB-311, rules v4), the wide history pull, the time control on home, the Research section, finding statuses, daily files and the size guard (#719), one collection alarm (#720).
 
-1. **Coinbase fee correction (SEB-310).** USDT-USD lost stablecoin pricing in May 2025. Fix the fee with its source and date, keep the old fee regime identifiable, and add a check that fails if a venue loses a pair's special pricing.
-2. **Read every person-to-person ad,** not 10 per side. Liquidity history can't be added later.
-3. **Retest the stress finding against the street price.** 12 of its 13 triggers come from er-api's broken Sudan rate.
-4. **The event detector, in shadow mode (SEB-311).** Plain code. Writes event records to a file and publishes nothing. It must show four things before anything goes live:
-   - the same data always gives the same events and numbers
-   - a broken or stale official rate never shows up as an event
-   - it can be replayed over the history we have, including cases that should not trigger
-   - every number in a record traces to stored rows, and "not enough evidence" is a valid result
-5. **One event page,** built from the record, after the detector passes. Iraq, Sudan and Bolivia are the test cases, not promises. More pages only once the first one holds.
-6. **Finding statuses on the site.**
+1. **Storage and the collector template (SEB-422).** Raw tables move to a data repo. One template for a board × currency collector, with its probe, quarantine and test. The gap list tool. Retire the researcher. Then the research chat writes the first fifty jobs into BACKLOG.md and the builder runs.
+2. **Alive by code (SEB-423).** The computed home headline, the what-changed block, confirmed events as pages, research re-runs on a schedule.
+3. **The writer (in SEB-423).** After alive-by-code is live.
+4. **The cash dollar (SEB-422, step 3).** Tracker collectors from the template. Three dollars per country page.
+5. **Three things you can see (SEB-424).** Cash against stablecoin, contagion on the map, the flow. Each one as the sentence it changes.
 
 ## How a finding is tested
 
@@ -68,7 +75,7 @@ Fixes that keep collection running or make existing numbers right always qualify
 
 ## Never
 
-- Only the four agents in SEB-301, within their caps. No new agents or loops.
+- No new agents or loops. The collector, the builder, the checks and the writer, within their caps.
 - No model calculates a published number.
 - Nothing goes live without a passing test and words Seb approved.
 - Prices a source reports from before we started stay labelled "reported, not seen by us" and never mix into our hourly series.
