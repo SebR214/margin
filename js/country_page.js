@@ -71,6 +71,11 @@
       h += '<h1>' + esc(T(key, { country: c.country, gap: pct1(c.index_pct) })) + '</h1>' +
         '<p class="lead">' + esc(T(c.source_class === 'p2p_buy_median' ? (c.n_boards === 2 ? 'leadP2pTwo' : 'leadP2p') : 'leadBook', { rate: rate.toLocaleString('en-US', { maximumFractionDigits: 2 }), ccy: c.ccy, country: c.country, street: money(c.buy_price, c.ccy) })) + '</p>' + crossedLine + pbLine +
         '<p class="money num">' + T('usd100Line', { street: esc(money(c.buy_price * 100, c.ccy)), rate: esc(money(rate * 100, c.ccy)) }) + '</p>';
+      // the cash dollar (SEB-422): shown only when a money changer's reading is within 6 hours of this hour; older than that it is a gap, not a line
+      var cash = S.cash;
+      if (cash && T('threeDollarsLine') && Date.parse(c.hour_utc) - Date.parse(cash.ts_utc) <= 6 * 3600 * 1000) {
+        h += '<p class="money num">' + esc(T('threeDollarsLine', { official: money(rate, c.ccy), cash: money(cash.mid, c.ccy), stable: money(c.buy_price, c.ccy) })) + '</p>';
+      }
       // the price rests on one source only: say so (SEB-302)
       if ((c.venues || []).length === 1 && T('oneSource')) { h += '<p class="stamp num">' + esc(T('oneSource')) + '</p>'; }
       if (c.denominator && c.denominator.class === 'unmaintained') { h += '<p class="flag">' + esc(T('unrankedNote', { country: c.country })) + '</p>'; }
@@ -202,7 +207,8 @@
     if (!res[1] || !res[2]) { if (started) { return; } return fail(ccy && !res[1] ? 'notFound' : 'loadFailed', { code: ccy }); }
     S.c = res[1]; S.withheld = (res[2].withheld || []).filter(function (w) { return w.ccy === ccy; })[0] || null;
     S.idx = res[3]; S.seg = res[4]; S.depth = res[5] && res[5].countries && res[5].countries[ccy] || null;
-    S.switches = res[6] || [];
+    S.cash = res[6] && res[6].rows && res[6].rows[ccy] || null;
+    S.switches = res[7] || [];
     S.own = S.c.history.filter(function (h) { return !isBack(h); });
     var again = started, y = window.scrollY;
     started = true;
@@ -230,6 +236,7 @@
       maybe('data/index_latest.json'),
       Promise.resolve(null),   // the hour by hour price list was cut on 27 Oct (Seb): nothing reads data/country_readings here now
       seg, maybe('data/street_depth_latest.json'),
+      maybe('data/cash_latest.json'),
       fetch('data/source_switches.csv', { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
         var l = t.trim().split(/\r?\n/), h = (l[0] || '').split(',');
         return l.slice(1).map(function (x) { var p = x.split(','), o = {}; h.forEach(function (k, i) { o[k] = p[i]; }); return o; });
