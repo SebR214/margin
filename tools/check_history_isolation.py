@@ -77,6 +77,7 @@ HISTORY_READERS = {"tools/analyst.py", "tools/backtest_watch.py", "tools/emit_ma
                    "tools/research_capital_controls.py", "tests/check_research_capital_controls.py",   # SEB-301: Research page 1, labelled history, display only
                     "tools/emit_country_history.py", "tests/check_known_breaks.py",
                    "tools/emit_machine_room_meters.py",
+                   "tools/publish_events.py",   # SEB-423: lists which replayed events get a page, labelled reported, not observed; feeds no price
                    "tools/emit_record_milestones.py", "tools/emit_sources_daily.py"}
 HISTORY_TOKENS = [
     re.compile(r"data/history"),
