@@ -1,6 +1,6 @@
 # From Singapore to the Philippines, a stablecoin only beats the apps if you send over S$13.5M a month
 
-Prices from the 06:00 UTC hour, 31 Oct.
+Prices from the 07:00 UTC hour, 31 Oct.
 
 Sending S$5,000 to the Philippines, a stablecoin would only beat the cheapest app if you sent more than this every month, because exchanges cut their fees for big traders. Nobody in our data traded that much, so this is worked out from the fees the exchanges publish, not seen happening. A stablecoin is a coin that stays worth one US dollar.
 
@@ -20,13 +20,13 @@ Both rows are the same transfer, priced for two ways of buying on the exchange. 
 
 Buying at the asking price
 
-At the highest fee the stablecoin costs S$43.55. At the lowest, S$18.14. The cheapest app usually costs S$22.48. From 1,665 price checks.
+At the highest fee the stablecoin costs S$43.55. At the lowest, S$18.14. The cheapest app usually costs S$22.50. From 1,666 price checks.
 
 S$13,480,200 Singapore dollars a month
 
 Setting your price and waiting
 
-At the highest fee the stablecoin costs S$41.57. At the lowest, S$17.14. The cheapest app usually costs S$22.48. From 1,665 price checks.
+At the highest fee the stablecoin costs S$41.57. At the lowest, S$17.14. The cheapest app usually costs S$22.50. From 1,666 price checks.
 
 S$4,493,400 Singapore dollars a month
 
@@ -52,7 +52,7 @@ One line per hour or per price change.
 
 findings_hours_volume_crossover.csv
 
-1,666 rows
+1,667 rows
 
 <https://margin.wiki/data/findings_hours_volume_crossover.csv>
 
@@ -62,5 +62,5 @@ findings_hours_volume_crossover.csv
 | --- | --- | --- |
 | 01 | Transfer apps keep changing their prices | 1,633 price changes since 12 Aug |
 | 02 | Some apps charge more on Saturday, then cut back | 51 Saturday rises that came back |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,629 hours a stablecoin was cheapest |
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,630 hours a stablecoin was cheapest |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |
