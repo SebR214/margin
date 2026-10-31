@@ -41,6 +41,7 @@ Never say something is running, built or watching unless you checked it just now
 - Gaps stay gaps. Failed pulls are rows with `source_ok=false`. The live layer is never backfilled or interpolated.
 - History lives only in `data/history/`, labelled "reported, not observed", with its source on every row. It never feeds the index, a price or the unbroken-hours count.
 - Existing CSV headers are frozen. New columns go in a sidecar file.
+- No tracked file may pass 80 MB (GitHub refuses 100 MB; `tools/check_file_size.py` fails the run before the commit). The ad tables are one file a day: `data/p2p_ads/`, `data/p2p_ads_sellers/`, `data/p2p_offers/` (`tools/daily_csv.py`). `data/p2p_ads.csv`, `data/p2p_ads_sellers.csv` and `data/p2p_offers.csv` are closed, never written again. A reader takes the closed file plus the day files.
 - Any change to how a number is computed goes through `METHODOLOGY.md` and bumps `index_version`. Read METHODOLOGY.md only when your job changes a method.
 - Fees don't scale. Check fee tiers before claiming a cost at another amount.
 

@@ -5,7 +5,7 @@ collector_p2p.py asks for 10 ads a side and writes the median of them, so data/p
 the sellers are leaving looks the same as a busy one. This reads the same board, the same 53 currencies and both sides, page by
 page, and writes every ad it gets to a sidecar:
 
-    data/p2p_ads.csv
+    data/p2p_ads/YYYY-MM-DD.csv   (one file a day since 31 Oct; data/p2p_ads.csv, closed on 28 Oct, is never written again)
     ts_utc,ccy,side,rank,price,available,min_order,max_order,source_ok,error
 
 One row per ad. side is what the person using the board does: "buy" is someone buying USDT for the local currency, as in
@@ -24,7 +24,7 @@ market is cut at 40 and its real depth is in data/p2p_depth.csv. A cap in time t
 passes TIME_BUDGET_SECONDS the currencies not yet read are written as source_ok false rows saying so, and the run still exits 0
 unless nothing at all was read. Binance is the only board read here: OKX's collector keeps its own file.
 
-Usage:  python3 collector_p2p_ads.py             # one pass, appends to data/p2p_ads.csv
+Usage:  python3 collector_p2p_ads.py             # one pass, appends to today's data/p2p_ads/ file
         python3 collector_p2p_ads.py --selftest   # parser and paging on fixtures, no network, writes nothing
 """
 import csv
@@ -34,7 +34,9 @@ import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "data", "p2p_ads.csv")
+sys.path.insert(0, os.path.join(HERE, "tools"))
+import daily_csv
+NAME = "p2p_ads"                                   # data/p2p_ads/YYYY-MM-DD.csv, see tools/daily_csv.py
 HEADER = ["ts_utc", "ccy", "side", "rank", "price", "available", "min_order", "max_order", "source_ok", "error"]
 SEARCH_URL = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36"}
@@ -121,12 +123,7 @@ def collect():
     rows = []
     for ccy in collector_p2p.CURRENCIES:
         rows.extend(rows_for(ts, ccy, post, deadline=deadline))
-    new = not os.path.exists(OUT)
-    with open(OUT, "a", newline="") as fh:             # written before anything is printed
-        w = csv.writer(fh)
-        if new:
-            w.writerow(HEADER)
-        w.writerows(rows)
+    daily_csv.append(NAME, HEADER, rows)               # written before anything is printed
     ads = sum(1 for r in rows if r[3] != "")
     bad = sorted({r[1] for r in rows if r[8] is False})
     print("p2p_ads: %d ads from %d currencies, %d with a failed or skipped side%s" % (

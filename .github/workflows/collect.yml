@@ -712,6 +712,13 @@ jobs:
           echo "::add-mask::$token"
           echo "token=$token" >> "$GITHUB_OUTPUT"
 
+      # SEB-301, 31 Oct. GitHub refuses a push with a file over 100 MB; on 28 Oct data/p2p_ads_sellers.csv reached 99.6 MB and every
+      # "Commit samples" step failed after it. Lists every file over 40 MB and fails the run if one is over 80 MB, while a push
+      # would still go through (tools/check_file_size.py). The commit step below still runs, so a sample is never lost to it.
+      - name: Check file sizes before the commit
+        if: always() && steps.needed.outputs.proceed == 'true'
+        run: python3 tools/check_file_size.py
+
       - name: Commit samples
         if: always() && steps.needed.outputs.proceed == 'true'
         env:
@@ -822,6 +829,11 @@ jobs:
           done
           # The dollar map timeline (SEB-384): a new folder of JSON, a new year file each January. Its own loop for the same reason.
           for d in data/map_timeline; do
+            if [ -d "$d" ]; then git add "$d"; fi
+          done
+          # One file a day for the big P2P tables (SEB-301, 31 Oct): data/p2p_ads/, data/p2p_ads_sellers/, data/p2p_offers/. Staged as
+          # directories so each day's first file needs no edit here. Their own loop so no existing line is edited.
+          for d in data/p2p_ads data/p2p_ads_sellers data/p2p_offers; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Anything TRACKED that an emitter rewrote but the list above forgot.
