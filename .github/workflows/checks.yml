@@ -58,6 +58,13 @@ jobs:
           python3 tools/check_junk_files.py --self-test
           python3 tools/check_junk_files.py
 
+      - name: Every page head is current, and the outside check works (SEB-425)
+        run: |
+          python3 tools/emit_site_files.py --self-test
+          python3 tools/emit_site_files.py head
+          git diff --exit-code -- '*.html'
+          python3 tools/check_outside.py --self-test
+
       - name: Plain-language gate (no payments jargon in headings/nav/labels)
         run: python3 tools/check_copy.py
 

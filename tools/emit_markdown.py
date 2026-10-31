@@ -466,6 +466,9 @@ def build(force=False):
         os.makedirs(os.path.dirname(full) or HERE, exist_ok=True)
         open(full, "w").write(md)
     open(os.path.join(HERE, "llms.txt"), "w").write(llms_txt(twins))
+    # SEB-425: sitemap.xml and robots.txt from the same page list, lastmod = this build's hour (tools/emit_site_files.py)
+    import emit_site_files
+    emit_site_files.write_files(h)
     print("machine view: %d twins and llms.txt for the %s hour" % (len(twins), h))
     return 0
 

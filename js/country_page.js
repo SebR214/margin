@@ -205,7 +205,7 @@
     S.own = S.c.history.filter(function (h) { return !isBack(h); });
     var again = started, y = window.scrollY;
     started = true;
-    document.title = 'margin.wiki: ' + S.c.country;
+    if (window.PageHead) { window.PageHead.copy().then(function (H) { window.PageHead.set({ title: window.PageHead.fill(H.countryTitle, { country: S.c.country }), description: window.PageHead.fill(H.countryDescription, { country: S.c.country }), path: 'country.html?ccy=' + encodeURIComponent(ccy), twin: 'country/' + encodeURIComponent(ccy) + '.md' }); }); }
     hero(); chart(); source();
     if (again) { window.scrollTo(0, y); }
   }

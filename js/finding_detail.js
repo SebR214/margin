@@ -83,7 +83,7 @@
   /* ---------------------------------------------------------------- the shell */
   function page() {
     var f = FIN[id];
-    document.title = 'margin.wiki: ' + title(id);
+    if (window.PageHead) { window.PageHead.copy().then(function (S) { window.PageHead.set({ title: title(id) + ': margin.wiki', description: window.PageHead.fill(S.findingDescription, { title: title(id) }), path: 'finding.html?id=' + encodeURIComponent(id), twin: 'finding/' + encodeURIComponent(id) + '.md' }); }); }
     $('fnav').innerHTML = '<a class="back" href="./findings.html">' + esc(T('indexTitle')) + '</a><div class="pills">' +
       ORDER.map(function (k, i) { return '<a class="pill num" href="?id=' + k + '"' + (k === id ? ' aria-current="page"' : '') + ' data-id="' + k + '">0' + (i + 1) + '</a>'; }).join('') + '</div>';
     var big = id === 'volume_crossover' ? 'S$' + g(f.headline.value) : g(f.headline.value);
