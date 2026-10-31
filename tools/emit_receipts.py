@@ -59,13 +59,15 @@ import sys
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import daily_csv  # noqa: E402
 COPY_PATH = os.path.join(HERE, "copy.json")
 COUNTRIES_DIR = os.path.join(DATA, "countries")
 P2P = os.path.join(DATA, "p2p_basis.csv")
 BASIS = os.path.join(DATA, "basis.csv")
 FX = os.path.join(DATA, "fx_rates.csv")
 SIDES = os.path.join(DATA, "p2p_sides.csv")
-OFFERS = os.path.join(DATA, "p2p_offers.csv")
+OFFERS = "p2p_offers"      # the closed data/p2p_offers.csv plus data/p2p_offers/<day>.csv, read together (tools/daily_csv.py)
 OUT_DIR = os.path.join(DATA, "receipts")
 
 MIN_BUY_ADS = 10  # the v1.1 evidence rule -- see METHODOLOGY.md
@@ -141,7 +143,7 @@ def offers_for(ccy, hour):
     holds none -- either because the hour predates it, or because no offer
     happened to land in this run. Never invented either way."""
     out = []
-    for r in rows(OFFERS):
+    for r in daily_csv.iter_dicts(OFFERS, DATA):
         t = parse_ts(r.get("ts_utc"))
         if r.get("ccy") == ccy and t is not None and hour_of(t) == hour:
             price = num(r, "price")

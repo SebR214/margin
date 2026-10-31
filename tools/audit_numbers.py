@@ -62,7 +62,7 @@ DATA = os.path.join(HERE, "data")
 P2P = os.path.join(DATA, "p2p_basis.csv")
 P2P_OKX = os.path.join(DATA, "p2p_okx.csv")
 BASIS = os.path.join(DATA, "basis.csv")
-OFFERS = os.path.join(DATA, "p2p_offers.csv")
+OFFERS = "p2p_offers"      # the closed data/p2p_offers.csv plus data/p2p_offers/<day>.csv, read together (tools/daily_csv.py)
 SAMPLES = os.path.join(DATA, "samples.csv")
 VARIANTS = os.path.join(DATA, "corridor_variants.csv")
 FX = os.path.join(DATA, "fx_rates.csv")
@@ -83,6 +83,7 @@ PRICECHANGE_MIN_READINGS = 6
 # (tools/routes_common.py).
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from routes_common import PANELS as PROVIDER_PANELS  # noqa: E402
+import daily_csv  # noqa: E402
 
 FAMILIES = ("country", "corridor", "variant", "pricechange", "provider_ranking",
             "provider_delivery")
@@ -593,13 +594,12 @@ def main():
     for r in rows(BASIS):
         if r["ccy"] in need_book:
             basis_by.setdefault(r["ccy"], []).append(r)
-    if need_p2p and os.path.exists(OFFERS):
-        with open(OFFERS, newline="") as f:
-            for r in csv.DictReader(f):
-                if r["ccy"] in need_p2p and r["side"] == "buy":
-                    p = num(r["price"])
-                    if p is not None:
-                        offers_by.setdefault((r["ts_utc"], r["ccy"]), []).append(p)
+    if need_p2p:
+        for r in daily_csv.iter_dicts(OFFERS, DATA):
+            if r["ccy"] in need_p2p and r["side"] == "buy":
+                p = num(r["price"])
+                if p is not None:
+                    offers_by.setdefault((r["ts_utc"], r["ccy"]), []).append(p)
 
     results = []
     for it in drawn:

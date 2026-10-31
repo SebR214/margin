@@ -90,6 +90,8 @@ import urllib.request
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import daily_csv  # noqa: E402
 OUT = os.path.join(DATA, "machine_room_meters.json")
 ANALYST_FINDINGS = os.path.join(DATA, "analyst_findings.json")
 AUDIT_LATEST = os.path.join(DATA, "audit_latest.json")
@@ -313,8 +315,12 @@ OBSERVED_FILES = ("samples.csv", "basis.csv", "p2p_basis.csv", "p2p_offers.csv",
 
 
 def _data_rows(path):
+    """Data rows of one CSV, or of a table that moved to one file a day (p2p_offers, 31 Oct): the closed file plus the day files."""
     n = 0
     try:
+        stem = os.path.basename(path)[:-4]
+        if stem == "p2p_offers":
+            return daily_csv.data_rows(stem, os.path.dirname(path))
         with open(path, "rb") as f:
             for chunk in iter(lambda: f.read(1 << 20), b""):
                 n += chunk.count(b"\n")

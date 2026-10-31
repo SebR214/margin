@@ -77,6 +77,8 @@ RETRY_BACKOFF = 2.0
 UA = {"User-Agent": "margin.wiki p2p-collector/1.0 (+https://margin.wiki)",
       "content-type": "application/json"}
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "tools"))
+import daily_csv
 P2P = os.path.join(HERE, "data", "p2p_basis.csv")
 # Sidecar, because p2p_basis.csv's schema is frozen and its `n_ads` is the two
 # sides added together. The v1.1 evidence rule is about the BUY side alone, and
@@ -104,7 +106,9 @@ DEPTH_FIELDS = ["ts_utc", "ccy", "buy_total", "sell_total"]
 # page or the published price. History cannot be backfilled: rows exist only
 # from the hour this sidecar started forward, and a receipt for an earlier
 # hour says so rather than inventing offers that were never recorded.
-OFFERS = os.path.join(HERE, "data", "p2p_offers.csv")
+# One file a day since 31 Oct (SEB-301): data/p2p_offers/YYYY-MM-DD.csv. data/p2p_offers.csv, closed on 31 Oct, is never written
+# again, and readers take it plus the day files together (tools/daily_csv.py).
+OFFERS_NAME = "p2p_offers"
 OFFERS_FIELDS = ["ts_utc", "ccy", "side", "price"]
 FX_URL = "https://open.er-api.com/v6/latest/USD"
 
@@ -447,27 +451,20 @@ def append_depth(rows):
     return DEPTH
 
 
-def append_offers(rows):
+def append_offers(rows, data=daily_csv.DATA):
     """One row per individual ad price (SEB-56), from the same rows, same run.
 
     Only rows that actually parsed offers carry `_buys`/`_sells` -- a failed
     currency or the NGN aggregate fallback have neither key and contribute no
     offer rows, which is correct: there is no individual ad behind either.
     """
-    os.makedirs(os.path.dirname(OFFERS), exist_ok=True)
-    new = not os.path.exists(OFFERS)
     out = []
     for r in rows:
         for price in r.get("_buys") or []:
             out.append({"ts_utc": r["ts_utc"], "ccy": r["ccy"], "side": "buy", "price": price})
         for price in r.get("_sells") or []:
             out.append({"ts_utc": r["ts_utc"], "ccy": r["ccy"], "side": "sell", "price": price})
-    with open(OFFERS, "a", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=OFFERS_FIELDS, extrasaction="ignore")
-        if new:
-            w.writeheader()
-        w.writerows(out)
-    return OFFERS
+    return daily_csv.append_dicts(OFFERS_NAME, OFFERS_FIELDS, out, data=data)
 
 
 def append(rows):
@@ -637,6 +634,18 @@ def selftest():
         "one offer row per ad, both sides, across every priced currency"
     print(f"  [ok] SEB-56: {len(offer_rows)} individual offer prices kept behind "
           f"{n_ok} medians, matching the per-side ad counts exactly")
+
+    # 4a3. SEB-301, 31 Oct: the offers go to one file a day, and the closed data/p2p_offers.csv is never written.
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        closed = os.path.join(tmp, "p2p_offers.csv")
+        with open(closed, "w") as f:
+            f.write("ts_utc,ccy,side,price\nold,AED,buy,1\n")
+        wrote = append_offers(rows, data=tmp)
+        assert os.path.dirname(wrote) == os.path.join(tmp, "p2p_offers") and wrote.endswith(".csv"), wrote
+        assert open(closed).read() == "ts_utc,ccy,side,price\nold,AED,buy,1\n", "the closed file must not change"
+        assert daily_csv.data_rows("p2p_offers", tmp) == len(offer_rows) + 1
+    print("  [ok] SEB-301: offers append to data/p2p_offers/<day>.csv, the closed file is untouched")
 
     # 4b. SEB-50: a board deeper than its page reports that depth without the
     #     fetched price or count changing at all.
@@ -843,7 +852,7 @@ def main():
     print(f"  appended -> {P2P}")
     print(f"  appended -> {SIDES}")
     print(f"  appended -> {DEPTH}")
-    print(f"  appended -> {OFFERS}\n")
+    print(f"  appended -> data/{OFFERS_NAME}/\n")
     if run_exit_code(n_ok) != 0:
         print("  [error] TOTAL BLACKOUT -- no currency priced this run", file=sys.stderr)
         sys.exit(1)

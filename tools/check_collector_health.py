@@ -22,6 +22,9 @@ Unhealthy means either:
   - MAX_CONSECUTIVE_FAILURES or more of the most recent collect.yml runs
     (oldest-first among the recent page) completed with conclusion=failure
     back to back, with no success in between.
+A run also counts as down when its "Commit samples" step failed (31 Oct, after 28 Oct 21:05 UTC when a file over 100 MB made every
+push fail): the run's own conclusion is not trusted on its own. A run that never reached that step (a scheduled fire that finds
+the chain already alive and exits) says nothing either way and no longer counts as a success that ends a streak of failures.
 Either condition alone is what a genuinely dead chain looks like; either one
 alone can also be a single bad-luck run, which is why both use a small run of
 consecutive evidence rather than one data point.
@@ -40,6 +43,7 @@ REPO = os.environ.get("GH_REPO", "SebR214/margin")
 STALE_MINUTES = float(os.environ.get("COLLECTOR_STALE_MINUTES", "60"))
 MAX_CONSECUTIVE_FAILURES = int(os.environ.get("COLLECTOR_MAX_CONSECUTIVE_FAILURES", "2"))
 RUN_LOOKBACK = 8
+COMMIT_STEP = "Commit samples"
 
 SAMPLE_RE = re.compile(r"^sample (\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z?", re.MULTILINE)
 
@@ -69,15 +73,47 @@ def last_sample_commit_age_minutes(now):
     return None  # no sample commit found at all in the lookback window
 
 
-def usable_conclusions(runs, limit=RUN_LOOKBACK):
+def commit_step_conclusion(run_id):
+    """The conclusion of the "Commit samples" step of one run ("success", "failure", "skipped"), or None when it cannot be read
+    or the run has no such step."""
+    try:
+        out = run(["gh", "api", f"repos/{REPO}/actions/runs/{run_id}/jobs?per_page=100"])
+        for job in json.loads(out).get("jobs", []):
+            for step in job.get("steps", []):
+                if step.get("name") == COMMIT_STEP:
+                    return step.get("conclusion")
+    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
+        pass
+    return None
+
+
+def effective_conclusion(conclusion, commit):
+    """What one run counts as. "failure" when its Commit samples step failed, whatever the run says; None (counts as nothing) for
+    a successful run that skipped the step, because it never collected; otherwise the run's own conclusion."""
+    if commit == "failure":
+        return "failure"
+    if commit == "skipped" and conclusion == "success":
+        return None
+    return conclusion
+
+
+def usable_conclusions(runs, limit=RUN_LOOKBACK, commit_of=None):
     """Filter runs to only include completed successes and failures.
-    Drops cancelled, skipped, queued, in-progress and empty-conclusion runs."""
+    Drops cancelled, skipped, queued, in-progress and empty-conclusion runs. With commit_of (run id -> the Commit samples step's
+    conclusion) a run whose commit failed counts as a failure and a successful run that skipped the commit is dropped."""
     conclusions = []
     for r in runs:
         conclusion = r.get("conclusion")
-        if conclusion in ("success", "failure"):
-            conclusions.append(conclusion)
-    return conclusions[:limit]
+        if conclusion not in ("success", "failure"):
+            continue
+        if commit_of is not None:
+            conclusion = effective_conclusion(conclusion, commit_of(r.get("id")))
+            if conclusion is None:
+                continue
+        conclusions.append(conclusion)
+        if len(conclusions) >= limit:
+            break
+    return conclusions
 
 
 def recent_run_conclusions():
@@ -91,7 +127,7 @@ def recent_run_conclusions():
     ])
     data = json.loads(out)
     runs = data.get("workflow_runs", [])
-    return usable_conclusions(runs)
+    return usable_conclusions(runs, commit_of=commit_step_conclusion)
 
 
 def leading_consecutive_failures(conclusions):
@@ -109,6 +145,28 @@ def leading_consecutive_failures(conclusions):
         # cancelled / in_progress / queued / '': ignore, neither confirms nor breaks
         # the streak -- an ignored run tells us nothing yet either way.
     return n
+
+
+def self_test():
+    runs = [{"id": i, "conclusion": c} for i, c in enumerate(
+        ["failure", "success", "failure", "cancelled", "success", "failure"])]
+    plain = usable_conclusions(runs)
+    assert plain == ["failure", "success", "failure", "success", "failure"], plain
+    assert leading_consecutive_failures(plain) == 1, "old behaviour: a no-op success ends the streak"
+    steps = {0: "failure", 1: "skipped", 2: "failure", 4: "success", 5: "failure"}
+    got = usable_conclusions(runs, commit_of=steps.get)
+    assert got == ["failure", "failure", "success", "failure"], got
+    assert leading_consecutive_failures(got) == 2, "a no-op fire in between no longer hides two failed commits"
+    assert effective_conclusion("success", "failure") == "failure", "the run says success, its commit failed: down"
+    assert effective_conclusion("success", "success") == "success"
+    assert effective_conclusion("success", None) == "success", "step not readable: trust the run"
+    assert effective_conclusion("failure", "skipped") == "failure"
+    assert effective_conclusion("success", "skipped") is None
+    only = [{"id": 9, "conclusion": "success"}]
+    assert usable_conclusions(only, commit_of=lambda i: "failure") == ["failure"]
+    assert usable_conclusions([{"id": i, "conclusion": "failure"} for i in range(20)], limit=3, commit_of=lambda i: "failure") == ["failure"] * 3
+    print("check_collector_health self-test: ok")
+    return 0
 
 
 def main():
@@ -148,4 +206,6 @@ def main():
 
 
 if __name__ == "__main__":
+    if "--self-test" in sys.argv:
+        sys.exit(self_test())
     main()

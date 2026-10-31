@@ -89,7 +89,9 @@ import sys
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(HERE, "data")
-OFFERS = os.path.join(DATA, "p2p_offers.csv")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import daily_csv  # noqa: E402
+OFFERS = "p2p_offers"      # the closed data/p2p_offers.csv plus data/p2p_offers/<day>.csv, read together (tools/daily_csv.py)
 DEPTH_COUNTS = os.path.join(DATA, "p2p_depth.csv")
 OUT = os.path.join(DATA, "street_depth_latest.json")
 
@@ -105,6 +107,14 @@ THRESHOLD_PCT = 1.0
 
 
 # ------------------------------------------------------------- parsing
+def offers_rows():
+    """Every readable offer row, old file and day files. Unreadable or missing -> no rows."""
+    try:
+        return list(daily_csv.iter_dicts(OFFERS, DATA))
+    except (OSError, csv.Error, UnicodeDecodeError):
+        return []
+
+
 def rows(path):
     """Every readable row of a CSV. Unreadable or missing file -> no rows."""
     if not os.path.exists(path):
@@ -222,7 +232,7 @@ def depth_for(prices, threshold_pct=THRESHOLD_PCT, filter_usd=FILTER_USD):
 
 
 def build():
-    boards = latest_offer_board(rows(OFFERS))
+    boards = latest_offer_board(offers_rows())
     counts = latest_depth_counts(rows(DEPTH_COUNTS))
 
     countries = {}

@@ -4,7 +4,7 @@
 data/p2p_ads.csv holds the price, amount and limits of each Binance ad but not the seller. The seller cannot be recovered later,
 so this stores it now, in a sidecar:
 
-    data/p2p_ads_sellers.csv
+    data/p2p_ads_sellers/YYYY-MM-DD.csv   (one file a day since 31 Oct; data/p2p_ads_sellers.csv, closed on 28 Oct, is never written again)
     ts_utc,read_utc,board,ccy,side,rank,seller_id,price,completion_rate,order_count,merchant_flag,source_ok,error
 
 ts_utc, ccy, side and rank are the keys of data/p2p_ads.csv: ts_utc is that file's newest run (this runs right after
@@ -23,7 +23,7 @@ to join; they carry their own rank in the book's order. OKX's side is the books 
 A board with no ads is one row with a blank rank and "no ads", source_ok true. A failed pull is one row with source_ok false and the
 reason, never a gap. The run exits non-zero if no ad at all was read.
 
-Usage:  python3 collector_p2p_sellers.py             # one pass, appends to data/p2p_ads_sellers.csv
+Usage:  python3 collector_p2p_sellers.py             # one pass, appends to today's data/p2p_ads_sellers/ file
         python3 collector_p2p_sellers.py --selftest   # parsers on fixtures, no network, writes nothing
 """
 import csv
@@ -34,8 +34,10 @@ import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "data", "p2p_ads_sellers.csv")
-ADS = os.path.join(HERE, "data", "p2p_ads.csv")
+sys.path.insert(0, os.path.join(HERE, "tools"))
+import daily_csv
+NAME = "p2p_ads_sellers"                            # data/p2p_ads_sellers/YYYY-MM-DD.csv, see tools/daily_csv.py
+ADS = "p2p_ads"                                     # read with the old file and the day files together
 HEADER = ["ts_utc", "read_utc", "board", "ccy", "side", "rank", "seller_id", "price", "completion_rate", "order_count",
           "merchant_flag", "source_ok", "error"]
 BINANCE_URL = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
@@ -140,14 +142,10 @@ def rows_for(ts, read_utc, board, ccy, reader, now=time.time, deadline=None):
     return out
 
 
-def newest_ads_ts(path=ADS):
-    """The ts_utc of the newest run in p2p_ads.csv, from the tail of the file; None if there is none."""
-    if not os.path.exists(path):
-        return None
-    size = os.path.getsize(path)
-    with open(path, "rb") as f:
-        f.seek(max(0, size - TAIL_BYTES))
-        lines = f.read().decode("utf-8", "replace").splitlines()
+def newest_ads_ts(name=ADS, data=daily_csv.DATA):
+    """The ts_utc of the newest run in p2p_ads (today's file, else the newest before it, else the closed p2p_ads.csv), from the
+    tail of that file; None if there is none."""
+    lines = daily_csv.tail(name, TAIL_BYTES, data)
     stamps = [ln.split(",", 1)[0] for ln in lines if ln[:2] == "20" and ln.count(",") >= 9]
     return max(stamps) if stamps else None
 
@@ -177,12 +175,7 @@ def collect():
     t1 = time.time()
     for ccy in collector_p2p.CURRENCIES:
         rows.extend(rows_for(ts, read_utc, "okx", ccy, lambda s, t, c=ccy: read_okx(c, s, get), deadline=t1 + TIME_BUDGET_SECONDS))
-    new = not os.path.exists(OUT)
-    with open(OUT, "a", newline="") as fh:             # written before anything is printed
-        w = csv.writer(fh)
-        if new:
-            w.writerow(HEADER)
-        w.writerows(rows)
+    daily_csv.append(NAME, HEADER, rows)               # written before anything is printed
     for board in ("binance", "okx"):
         got = [r for r in rows if r[2] == board and r[5] != ""]
         bad = sorted({r[3] for r in rows if r[2] == board and r[11] is False})
@@ -248,12 +241,15 @@ def selftest():
     assert all(x[11] is False and "time budget" in x[12] for x in r), r
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
-        p = os.path.join(tmp, "ads.csv")
-        with open(p, "w") as f:
-            f.write("ts_utc,ccy,side,rank,price,available,min_order,max_order,source_ok,error\n")
-            f.write("2026-10-24T07:00:00Z,AED,buy,1,3.6,1,1,1,True,\n2026-10-24T08:00:00Z,AED,buy,1,3.6,1,1,1,True,\n")
-        assert newest_ads_ts(p) == "2026-10-24T08:00:00Z"
-        assert newest_ads_ts(os.path.join(tmp, "none.csv")) is None
+        head = "ts_utc,ccy,side,rank,price,available,min_order,max_order,source_ok,error\n"
+        assert newest_ads_ts("p2p_ads", tmp) is None
+        with open(os.path.join(tmp, "p2p_ads.csv"), "w") as f:            # the closed file, read when no day file exists
+            f.write(head + "2026-10-24T07:00:00Z,AED,buy,1,3.6,1,1,1,True,\n2026-10-24T08:00:00Z,AED,buy,1,3.6,1,1,1,True,\n")
+        assert newest_ads_ts("p2p_ads", tmp) == "2026-10-24T08:00:00Z"
+        os.makedirs(os.path.join(tmp, "p2p_ads"))
+        with open(os.path.join(tmp, "p2p_ads", "2026-10-31.csv"), "w") as f:  # a day file wins over the closed one
+            f.write(head + "2026-10-31T01:00:00Z,AED,buy,1,3.6,1,1,1,True,\n")
+        assert newest_ads_ts("p2p_ads", tmp) == "2026-10-31T01:00:00Z"
     print("collector_p2p_sellers self-test: ok")
     return 0
 
