@@ -144,10 +144,18 @@ def build(ts, cfg, pulled, official):
 
 
 def default_fetch(kw):
-    import requests
-    r = requests.request(timeout=TIMEOUT, **kw)
-    r.raise_for_status()
-    return r.json()
+    import urllib.parse       # standard library only: the checks job installs no packages
+    import urllib.request
+    url = kw["url"]
+    if kw.get("params"):
+        url += ("&" if "?" in url else "?") + urllib.parse.urlencode(kw["params"])
+    data = json.dumps(kw["json"]).encode() if kw.get("json") is not None else None
+    headers = dict(kw.get("headers") or {})
+    if data is not None:
+        headers.setdefault("Content-Type", "application/json")
+    req = urllib.request.Request(url, data=data, headers=headers, method=kw.get("method", "GET"))
+    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+        return json.loads(r.read().decode("utf-8", "replace"))
 
 
 def collect_config(cfg, ts, fetch=default_fetch, official=None, pace=PAUSE):
