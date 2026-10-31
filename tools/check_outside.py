@@ -7,10 +7,13 @@ site is wrong. Checks:
   2. Every URL in the sitemap returns 200.
   3. Every page in the sitemap has a title and a description in its HTML, with no JavaScript run.
   4. Nothing the home page asks for returns 404: its scripts, styles and the data files they name.
-  5. how-it-was-built, agent-incidents and the Iraq event page are one click from home: the footer links home draws are in
+  5. Country pages carry their numbers in the HTML (SEB-426): each country/<ccy>/ page, read with no JavaScript, shows a number in its
+     hero and its "Prices from the HH:MM UTC hour" line, and every line of that hero is in the page's .md copy: same numbers, same build.
+  6. how-it-was-built, agent-incidents and the Iraq event page are one click from home: the footer links home draws are in
      copy.json siteHead.footerLinks, the home page loads the script that draws them, and each target returns 200.
 A fetch that fails is retried a few times (Pages and its cache take a minute to catch up); the last answer counts.
 """
+import html as htmllib
 import json
 import re
 import sys
@@ -43,6 +46,29 @@ def fetch(url, tries=None, pause=None):
         if i < tries - 1:
             time.sleep(pause)
     return last
+
+
+def _text(fragment):
+    return re.sub(r"\s+", " ", htmllib.unescape(re.sub(r"<[^>]+>", "", fragment))).strip()
+
+
+def country_problems(page, body, md):
+    """What is wrong with a country page's HTML (no JavaScript run) against its .md copy. [] when it is right."""
+    out = []
+    m = re.search(r'id="hero"[^>]*>(.*?)</div>\s*<div id="depth"', body, re.S)
+    if not m:
+        return ["/%s has no hero in its HTML" % page]
+    blocks = [_text(b) for b in re.findall(r"<(?:h1|p)\b[^>]*>(.*?)</(?:h1|p)>", m.group(1), re.S)]
+    blocks = [b for b in blocks if b]
+    if not blocks or not any(re.search(r"\d", b) for b in blocks):
+        out.append("/%s shows no number in its hero with JavaScript off" % page)
+    if not any(re.match(r"Prices from the \d\d:\d\d UTC hour", b) for b in blocks):
+        out.append("/%s shows no last reading time with JavaScript off" % page)
+    twin = _text(re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", md.replace("*", "")))
+    for b in blocks:
+        if b.rstrip(".") not in twin:
+            out.append("/%s: the HTML says %r, the .md copy does not" % (page, b[:90]))
+    return out
 
 
 def check(base):
@@ -85,6 +111,18 @@ def check(base):
         if not d or not d.group(1).strip():
             bad("/%s has no description in its HTML" % page)
 
+    # 5. (runs before 4) country pages: the numbers are in the HTML and match the .md copy
+    for p, (st, body) in got:
+        m = re.match(r"^country/([a-z]{3})/$", p)
+        if not m or st != 200:
+            continue
+        ms, md = fetch(base + "/country/%s.md" % m.group(1).upper())
+        if ms != 200:
+            bad("/country/%s.md returned %s" % (m.group(1).upper(), ms))
+            continue
+        for f in country_problems(p, body, md):
+            bad(f)
+
     # 4. the home page's own requests
     s, home = fetch(base + "/")
     if s != 200:
@@ -104,7 +142,7 @@ def check(base):
         if st == 404:
             bad("home page asks for %s and gets 404" % r)
 
-    # 5. one click from home
+    # 6. one click from home
     s, cj = fetch(base + "/copy.json")
     links = []
     if s == 200:
@@ -168,6 +206,12 @@ def self_test():
         os.remove(os.path.join(d, "robots.txt"))
         assert any("robots.txt" in x for x in check(base))
     srv.shutdown()
+    hero = '<div id="hero"><h1>In X a dollar costs 8.6% more</h1><p class="money num">For US$100, people pay <b>1,666</b> ARS.</p><p class="stamp">Prices from the 08:00 UTC hour, 31 Oct.</p></div>\n<div id="depth"></div>'
+    md = "# In X a dollar costs 8.6% more\n\nFor US$100, people pay 1,666 ARS.\n\nPrices from the 08:00 UTC hour, 31 Oct\n"
+    assert country_problems("country/ars/", hero, md) == []
+    assert country_problems("country/ars/", hero.replace("1,666", "1,667"), md), "a different price must fail"
+    assert country_problems("country/ars/", hero.replace("Prices from", "Priced at"), md), "a missing reading time must fail"
+    assert country_problems("country/ars/", '<div id="hero"></div>\n<div id="depth"></div>', md), "an empty hero must fail"
     print("check_outside self-test ok")
 
 

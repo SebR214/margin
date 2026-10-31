@@ -28,7 +28,7 @@
   function bucket(v) { if (v == null) { return 'b-none'; } for (var i = 0; i < BUCKETS.length; i++) { if (v >= BUCKETS[i][0] && v < BUCKETS[i][1]) { return BUCKETS[i][2]; } } return 'b-none'; }
   function plain(name) { return String(name || '').replace(/^the /i, '').replace(/^./, function (c) { return c.toUpperCase(); }); }
   function getJSON(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) { throw new Error(u); } return r.json(); }); }
-  function ctry(ccy) { return './country.html?ccy=' + encodeURIComponent(ccy); }
+  function ctry(ccy) { return './country/' + encodeURIComponent(String(ccy).toLowerCase()) + '/'; }
   // Same words as whatLine, just split into two lines (SEB-301, 21 Oct): "We track... had a price." then "We also price...".
   function leadSpans(s) {
     var at = s.indexOf('every hour. ');

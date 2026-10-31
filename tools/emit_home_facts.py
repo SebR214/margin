@@ -129,7 +129,7 @@ def crossings(names, start):
                 continue
             if a < CROSS_PCT <= b or a >= CROSS_PCT > b:
                 out.append({"date": days[i], "kind": "crossed_up" if b >= CROSS_PCT else "crossed_down", "ccy": c["ccy"],
-                            "country": names[c["ccy"]], "pct": round(b, 1), "link": "country.html?ccy=" + c["ccy"]})
+                            "country": names[c["ccy"]], "pct": round(b, 1), "link": "country/%s/" % c["ccy"].lower()})
     return out
 
 

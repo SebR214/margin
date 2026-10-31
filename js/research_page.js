@@ -247,7 +247,7 @@
     var lh = el('div', 'fp-sec-head'); kid(lh, word('h2', '', 'pairsListHeading')); lst.appendChild(lh);
     var rows = el('div', 'rs-list');
     doc.countries.slice(0, 12).forEach(function (r) {
-      var a = el('a', 'rs-item'); a.href = './country.html?ccy=' + encodeURIComponent(r.ccy);
+      var a = el('a', 'rs-item'); a.href = './country/' + encodeURIComponent(String(r.ccy).toLowerCase()) + '/';
       var b = kid(a, el('span', 'rs-item-body'));
       kid(b, el('span', 'rs-item-title', cname(r)));
       kid(b, el('span', 'rs-item-line', T('pairsRow', { a: srcName(r.a), b: srcName(r.b), gap: fmt(r.gap_pct) + '%', hours: r.hours })));

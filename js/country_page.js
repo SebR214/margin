@@ -8,7 +8,7 @@
 (function () {
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var MINUS = '−';
-  var C = {}, ccy = new URLSearchParams(location.search).get('ccy') || '', period = 'ours';   // the chart range: 'ours' (our own record, the default), '1y', '5y', 'all' (24 Oct)
+  var C = {}, qs = new URLSearchParams(location.search), ccy = qs.get('ccy') || document.body.getAttribute('data-ccy') || '', period = 'ours';   // the chart range: 'ours' (our own record, the default), '1y', '5y', 'all' (24 Oct)
   var S = {};
 
   function $(k) { return document.getElementById(k); }
@@ -44,6 +44,7 @@
   }
 
   function nav() {
+    $('nav').innerHTML = '';   // the page can arrive with its nav already in the HTML (SEB-426)
     [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navHow', 'how-it-works.html']].forEach(function (x) {
       var t = C[x[0]]; if (!t) { return; }
       var a = document.createElement('a'); a.textContent = t; a.href = './' + x[1]; $('nav').appendChild(a);
@@ -205,7 +206,7 @@
     S.own = S.c.history.filter(function (h) { return !isBack(h); });
     var again = started, y = window.scrollY;
     started = true;
-    if (window.PageHead) { window.PageHead.copy().then(function (H) { window.PageHead.set({ title: window.PageHead.fill(H.countryTitle, { country: S.c.country }), description: window.PageHead.fill(H.countryDescription, { country: S.c.country }), path: 'country.html?ccy=' + encodeURIComponent(ccy), twin: 'country/' + encodeURIComponent(ccy) + '.md' }); }); }
+    if (window.PageHead) { window.PageHead.copy().then(function (H) { window.PageHead.set({ title: window.PageHead.fill(H.countryTitle, { country: S.c.country }), description: window.PageHead.fill(H.countryDescription, { country: S.c.country }), path: 'country/' + encodeURIComponent(ccy.toLowerCase()) + '/', twin: 'country/' + encodeURIComponent(ccy) + '.md' }); }); }
     hero(); chart(); source();
     if (again) { window.scrollTo(0, y); }
   }
@@ -234,6 +235,11 @@
         return l.slice(1).map(function (x) { var p = x.split(','), o = {}; h.forEach(function (k, i) { o[k] = p[i]; }); return o; });
       }).catch(function () { return []; })
     ]).then(start).catch(function () { if (!again) { fail('loadFailed'); } });
+  }
+  // country.html?ccy=ARS still works: it goes to the country's own page (SEB-426) when that page exists, and draws in place when not
+  var own = ccy && /^[A-Z]{3}$/.test(ccy) && !document.body.getAttribute('data-ccy') && !qs.get('noredirect') ? 'country/' + ccy.toLowerCase() + '/' : '';
+  if (own) {
+    fetch('/' + own, { method: 'HEAD' }).then(function (r) { if (r.ok) { location.replace('/' + own + location.hash); } }).catch(function () {});
   }
   load(false);
   (window.siteLive = window.siteLive || { handlers: [], onNewHour: function (fn) { this.handlers.push(fn); } }).onNewHour(function () { return load(true); });
