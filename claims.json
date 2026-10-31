@@ -86,6 +86,26 @@
         "homeData.wcRouteDearer"
       ],
       "note": "What changed this week: every line is checked against the file it came from (heatmap, source registry, events, finding tests, routes hourly); at most 8, newest first."
+    },
+    {
+      "key": "researchData.pairsTight",
+      "type": "research_pairs",
+      "guards": [
+        "researchData.pairsWide",
+        "researchData.pairsRow",
+        "researchData.cardMeta2",
+        "researchData.cardTitle2"
+      ],
+      "note": "Markets inside one country disagree: the countries compared, the three bands and each country's furthest-apart pair equal what data/source_pairs.json says."
+    },
+    {
+      "key": "researchData.monthsLine",
+      "type": "research_months",
+      "guards": [
+        "researchData.monthsHeading",
+        "researchData.monthsAsOf"
+      ],
+      "note": "Live months on the capital controls page equal the medians re-derived from data/index_hourly.csv."
     }
   ]
 }

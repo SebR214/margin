@@ -73,6 +73,10 @@
   .r .no { color: var(--color-neutral-600); font-size: 14px; }
   .r.f .m { font-size: 15px; color: var(--color-ink); }
   a.r:hover b, a.r:hover .m { color: var(--data-700); }
+  /* what changed this week (SEB-423): a sentence and its date; the date keeps its width on a phone */
+  #wc .r.f, #wc .r.f .m { font-weight: 400; }
+  #wc .r.f { grid-template-columns: minmax(0, 1fr) auto; gap: 0 16px; }
+  #wc .r.f .v { font-weight: 400; color: var(--color-neutral-600); font-size: 14px; }
   /* when the official rate finally moved (25 Oct): country and month, the gap before, a bar for the share of it closed, the share */
   .r.lr { grid-template-columns: 200px 170px minmax(0, 1fr) 150px; }
   .lbar { display: block; height: 8px; border-radius: 999px; background: var(--color-neutral-100); overflow: hidden; }
@@ -121,10 +125,12 @@
     <div id="tl"></div>
     <div id="heat"></div>
   </section>
+  <section id="wc"></section>
   <section id="land"></section>
   <section id="finds"></section>
   <p class="loaderr" id="loaderr" hidden></p>
 </div>
+<script src="./js/claims.js"></script>
 <script src="./js/tooltip.js"></script>
 <script src="./js/home_timeline.js?v=2"></script>
 <script src="./js/home.js?v=6"></script>

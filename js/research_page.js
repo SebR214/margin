@@ -5,6 +5,11 @@
   var app = document.getElementById('app');
   var mode = document.body.getAttribute('data-page');
   var C = {}, NAVC = {}, NAMES = {};
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function monthName(m) { return MON[+m.slice(5, 7) - 1] + ' ' + m.slice(0, 4); }
+  function dayName(d) { return (+d.slice(8, 10)) + ' ' + MON[+d.slice(5, 7) - 1] + ' ' + d.slice(0, 4); }
+  function cname(r) { return String(r.country || NAMES[r.ccy] || r.ccy).replace(/^the /i, '').replace(/^./, function (c) { return c.toUpperCase(); }); }
+  function srcName(id) { var n = C.srcNames && C.srcNames[id]; return n || String(id).replace(/_/g, ' '); }
   var BANDS = [['b0', 2], ['b1', 8], ['b2', 25], ['b3', 50], ['b4', 1e9]];     // upper edges of a premium, in percent
 
   function el(tag, cls, text) {
@@ -46,7 +51,7 @@
     return head;
   }
 
-  function renderIndex(wrap, doc) {
+  function renderIndex(wrap, doc, months, pairs) {
     var hero = kid(wrap, el('div', 'fp-hero'));
     var text = kid(hero, el('div', 'fp-hero-text'));
     kid(text, word('h1', '', 'indexTitle'));
@@ -60,10 +65,22 @@
     kid(body, word('span', 'rs-item-title', 'cardTitle'));
     kid(body, word('span', 'rs-item-line', 'cardLine'));
     if (doc && T('cardMeta')) {
-      kid(body, el('span', 'rs-item-meta', T('cardMeta', { n: doc.countries, from: doc.years[0], to: doc.years[doc.years.length - 1] })));
+      kid(body, el('span', 'rs-item-meta', T('cardMeta', { n: doc.countries, from: doc.years[0], to: doc.years[doc.years.length - 1] }) +
+        (months && T('cardAsOf') ? ' ' + T('cardAsOf', { date: dayName(months.as_of_day) }) : '')));
     }
     a.appendChild(el('span', 'rs-item-go', '\u2192'));
     if (body.firstChild) { list.appendChild(a); wrap.appendChild(list); }
+    if (pairs && T('cardTitle2')) {
+      var b = el('a', 'rs-item');
+      b.href = './research-source-pairs.html';
+      var bb = kid(b, el('span', 'rs-item-body'));
+      kid(bb, word('span', 'rs-item-title', 'cardTitle2'));
+      kid(bb, word('span', 'rs-item-line', 'cardLine2'));
+      kid(bb, el('span', 'rs-item-meta', T('cardMeta2', { N: pairs.compared, days: pairs.window_days }) + ' ' + T('cardAsOf', { date: dayName(pairs.as_of_utc.slice(0, 10)) })));
+      b.appendChild(el('span', 'rs-item-go', '\u2192'));
+      list.appendChild(b);
+      if (!list.parentNode) { wrap.appendChild(list); }
+    }
   }
 
   function byCountry(doc) {
@@ -72,11 +89,12 @@
     return Object.keys(m).map(function (k) { return m[k]; }).sort(function (a, b) { return b.peak - a.peak; });
   }
 
-  function chart(doc) {
+  function chart(doc, k) {
+    k = k || { h: 'chartHeading', l: 'chartLine' };
     var sec = el('section', ['fp-sec', 'rs-chart']);
     var h = el('div', 'fp-sec-head');
-    kid(h, word('h2', '', 'chartHeading'));
-    kid(h, word('p', ['muted', 'fp-note'], 'chartLine'));
+    kid(h, word('h2', '', k.h));
+    kid(h, word('p', ['muted', 'fp-note'], k.l));
     if (h.firstChild) sec.appendChild(h);
     var legend = el('div', 'rs-legend');
     [['bl', 'bandBelow'], ['b0', 'bandUnder2'], ['b1', 'band2to8'], ['b2', 'band8to25'], ['b3', 'band25to50'], ['b4', 'bandOver50']].forEach(function (b) {
@@ -129,6 +147,24 @@
     return sec;
   }
 
+  // the months we saw ourselves, drawn with the yearly chart's own code: each month is a column, labelled like a year
+  function monthsDoc(months, yearly) {
+    var type = {};
+    yearly.rows.forEach(function (r) { type[r.ccy] = r.type; });
+    var keys = []; months.months.forEach(function (r) { if (keys.indexOf(r.month) < 0) keys.push(r.month); });
+    keys.sort();
+    var label = {}; keys.forEach(function (m) { label[m] = monthName(m); });
+    return { years: keys.map(function (m) { return label[m]; }), rows: months.months.map(function (r) {
+      return { ccy: r.ccy, type: type[r.ccy] || 'floating', year: label[r.month], median_premium_pct: r.median_premium_pct, days: r.days, partial: r.partial ? 'yes' : 'no' };
+    }) };
+  }
+  function monthsSection(months, yearly) {
+    if (!months || !months.months || !months.months.length || !T('monthsHeading')) return null;
+    var sec = chart(monthsDoc(months, yearly), { h: 'monthsHeading', l: 'monthsLine' });
+    if (T('monthsAsOf')) sec.insertBefore(el('p', ['muted', 'fp-note'], T('monthsAsOf', { date: dayName(months.as_of_day) })), sec.children[1] || null);
+    return sec;
+  }
+
   function result(doc) {
     var sec = el('section', 'fp-sec');
     var h = el('div', 'fp-sec-head');
@@ -174,7 +210,7 @@
     return sec.querySelector('a') ? sec : null;
   }
 
-  function renderCapital(wrap, doc) {
+  function renderCapital(wrap, doc, months) {
     var back = word('a', 'fp-back', 'backLink');
     if (back) { back.href = './research.html'; wrap.appendChild(back); }
     var hero = el('div', 'fp-hero');
@@ -184,22 +220,65 @@
     kid(text, word('p', ['muted', 'fp-note'], 'labelNote'));
     if (text.firstChild) wrap.appendChild(hero);
     if (!doc || !doc.rows || !doc.rows.length) return;
-    [result(doc), chart(doc), paras('methodHeading', ['method1', 'method2', 'method3', 'method4']), paras('limitsHeading', ['limit1', 'limit2']), downloads(doc)]
+    [result(doc), chart(doc), monthsSection(months, doc), paras('methodHeading', ['method1', 'method2', 'method3', 'method4']), paras('limitsHeading', ['limit1', 'limit2']), downloads(doc)]
       .forEach(function (s) { if (s) wrap.appendChild(s); });
     var t = T('pageTitle');
     if (t) document.title = 'margin.wiki: ' + t;
   }
 
+  function renderPairs(wrap, doc) {
+    var back = word('a', 'fp-back', 'backLink');
+    if (back) { back.href = './research.html'; wrap.appendChild(back); }
+    var hero = el('div', 'fp-hero');
+    var text = kid(hero, el('div', 'fp-hero-text'));
+    kid(text, word('h1', '', 'pairsTitle'));
+    kid(text, word('p', ['soft', 'fp-line'], 'pairsLead'));
+    kid(text, el('p', ['muted', 'fp-note'], [T('pairsLabel'), doc ? T('monthsAsOf', { date: dayName(doc.as_of_utc.slice(0, 10)) }) : ''].join(' ').trim()));
+    if (text.firstChild) wrap.appendChild(hero);
+    if (!doc || !doc.countries || !doc.countries.length) return;
+    var wide = doc.countries.filter(function (r) { return r.gap_pct >= doc.wide_pct; });
+    var sec = el('section', 'fp-sec');
+    var h = el('div', 'fp-sec-head'); kid(h, word('h2', '', 'resultHeading')); sec.appendChild(h);
+    sec.appendChild(el('p', ['fp-line', 'rs-result'], T('pairsTight', { n: doc.bands.tight, N: doc.compared, pct: doc.tight_pct })));
+    if (wide.length) {
+      sec.appendChild(el('p', ['fp-line', 'rs-result'], T('pairsWide', { n: wide.length, pct: doc.wide_pct,
+        list: wide.slice(0, 8).map(cname).join(', ') })));
+    }
+    wrap.appendChild(sec);
+    var lst = el('section', 'fp-sec');
+    var lh = el('div', 'fp-sec-head'); kid(lh, word('h2', '', 'pairsListHeading')); lst.appendChild(lh);
+    var rows = el('div', 'rs-list');
+    doc.countries.slice(0, 12).forEach(function (r) {
+      var a = el('a', 'rs-item'); a.href = './country.html?ccy=' + encodeURIComponent(r.ccy);
+      var b = kid(a, el('span', 'rs-item-body'));
+      kid(b, el('span', 'rs-item-title', cname(r)));
+      kid(b, el('span', 'rs-item-line', T('pairsRow', { a: srcName(r.a), b: srcName(r.b), gap: fmt(r.gap_pct) + '%', hours: r.hours })));
+      a.appendChild(el('span', 'rs-item-go', '\u2192'));
+      rows.appendChild(a);
+    });
+    lst.appendChild(rows); wrap.appendChild(lst);
+    var ms = el('section', 'fp-sec'); var mh = el('div', 'fp-sec-head'); kid(mh, word('h2', '', 'pairsMethodHeading')); ms.appendChild(mh);
+    ['pairsMethod1', 'pairsMethod2', 'pairsLimits'].forEach(function (k) { var t = T(k, { days: doc.window_days, hours: doc.min_common_hours }); if (t) ms.appendChild(el('p', ['soft', 'fp-line'], t)); });
+    wrap.appendChild(ms);
+    var t = T('pairsTitle'); if (t) document.title = 'margin.wiki: ' + t;
+  }
+
   function load(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); }
   Promise.all([load('./copy.json').catch(function () { return {}; }), load('./data/research/capital_controls.json').catch(function () { return null; }),
-               load('./data/index_latest.json').catch(function () { return null; })]).then(function (res) {
+               load('./data/index_latest.json').catch(function () { return null; }),
+               load('./data/research/capital_controls_months.json').catch(function () { return null; }),
+               load('./data/research/source_pairs.json').catch(function () { return null; }),
+               window.Claims ? window.Claims.load() : null]).then(function (res) {
     C = res[0].researchData || {};
     C.brand = typeof res[0].brand === 'string' ? res[0].brand : '';
     NAVC = res[0].findingData || {};
     ((res[2] && res[2].countries) || []).forEach(function (c) { NAMES[c.ccy] = c.country; });
     var wrap = el('div', 'wrap');
     wrap.appendChild(header());
-    if (mode === 'index') { renderIndex(wrap, res[1]); } else { renderCapital(wrap, res[1]); }
+    // the live months and the pairs page print numbers that the claims audit re-derives; blocked ones are not drawn
+    var months = res[3] && !(window.Claims && window.Claims.blocked('researchData.monthsLine')) ? res[3] : null;
+    var pairs = res[4] && !(window.Claims && window.Claims.blocked('researchData.pairsTight')) ? res[4] : null;
+    if (mode === 'index') { renderIndex(wrap, res[1], months, pairs); } else if (mode === 'pairs') { renderPairs(wrap, pairs); } else { renderCapital(wrap, res[1], months); }
     app.appendChild(wrap);
   });
 })();
