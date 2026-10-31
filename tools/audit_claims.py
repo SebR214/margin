@@ -310,6 +310,56 @@ def claim_routes_published_equal_fresh(c):
     return not bad and bool(pub), {"routes": len(pub), "differ": bad, "detail": detail}
 
 
+# ------------------------------------------------------------------ Research pages (SEB-423 step 3)
+def claim_research_pairs(c):
+    """'Markets inside one country disagree': the page's counts and rows (data/research/source_pairs.json) re-derived from
+    data/source_pairs.json with a separate loop: the countries compared, the three bands, and each country's furthest-apart pair."""
+    pub_path = os.path.join(DATA, "research", "source_pairs.json")
+    if not os.path.exists(pub_path):
+        return False, {"reason": "data/research/source_pairs.json missing"}
+    pub = json.load(open(pub_path))
+    raw = json.load(open(os.path.join(DATA, "source_pairs.json")))
+    worst = {}
+    for ccy, m in raw["markets"].items():
+        for p in m.get("pairs", []):
+            if p["hours"] >= raw["min_common_hours"] and p.get("median_gap_pct") is not None:
+                if ccy not in worst or p["median_gap_pct"] > worst[ccy]["median_gap_pct"]:
+                    worst[ccy] = p
+    fresh_bands = {"tight": sum(1 for p in worst.values() if p["median_gap_pct"] <= 0.5),
+                   "middle": sum(1 for p in worst.values() if 0.5 < p["median_gap_pct"] < 3.0),
+                   "wide": sum(1 for p in worst.values() if p["median_gap_pct"] >= 3.0)}
+    shown = {r["ccy"]: r for r in pub["countries"]}
+    bad = [k for k, r in shown.items() if k not in worst or round(worst[k]["median_gap_pct"], 4) != round(r["gap_pct"], 4) or worst[k]["hours"] != r["hours"]]
+    ok = pub["compared"] == len(worst) == len(shown) and pub["bands"] == fresh_bands and not bad
+    return ok, {"compared": len(worst), "published": pub["compared"], "bands": fresh_bands, "published_bands": pub["bands"], "differ": bad}
+
+
+def claim_research_months(c):
+    """The live months on the capital controls page: each (country, month) re-derived from data/index_hourly.csv, a day's value the median
+    of its hourly values (12 or more hours), a month's value the median of its days (5 or more days)."""
+    pub_path = os.path.join(DATA, "research", "capital_controls_months.json")
+    if not os.path.exists(pub_path):
+        return False, {"reason": "data/research/capital_controls_months.json missing"}
+    pub = json.load(open(pub_path))
+    per = {}
+    for r in rows("index_hourly.csv"):
+        v = num(r["index_pct"])
+        if v is not None:
+            per.setdefault(r["ccy"], {}).setdefault(r["hour_utc"][:10], []).append(v)
+    fresh = {}
+    for ccy, days in per.items():
+        months = {}
+        for d, vs in days.items():
+            if len(vs) >= 12:
+                months.setdefault(d[:7], []).append(statistics.median(vs))
+        for m, vs in months.items():
+            if len(vs) >= 5:
+                fresh[(ccy, m)] = (round(statistics.median(vs), 2), len(vs))
+    shown = {(r["ccy"], r["month"]): (r["median_premium_pct"], r["days"]) for r in pub["months"]}
+    return shown == fresh and bool(shown), {"months": len(fresh), "published": len(shown),
+                                            "differ": sorted(str(k) for k in set(shown) ^ set(fresh) | {k for k in shown if k in fresh and shown[k] != fresh[k]})[:10]}
+
+
 TYPES = {"stable_never_cheapest": claim_stable_never_cheapest,
          "stable_rarely_cheapest": claim_stable_rarely_cheapest,
          "within_of_ranked": claim_within_of_ranked,
@@ -317,7 +367,9 @@ TYPES = {"stable_never_cheapest": claim_stable_never_cheapest,
          "updated_hourly": claim_updated_hourly,
          "coverage_matches_index": claim_coverage_matches_index,
          "sources_counts": claim_sources_counts,
-         "routes_published_equal_fresh": claim_routes_published_equal_fresh}
+         "routes_published_equal_fresh": claim_routes_published_equal_fresh,
+         "research_pairs": claim_research_pairs,
+         "research_months": claim_research_months}
 
 
 def run():
