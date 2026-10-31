@@ -1,29 +1,15 @@
-# In Morocco a dollar costs 3.8% more than the official rate
+# No price for Morocco this hour
 
-Prices from the 08:00 UTC hour, 31 Oct.
+Prices from the 11:00 UTC hour, 31 Oct.
 
-The official rate is 9.84 MAD per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 10.22 MAD. A stablecoin is a coin that stays worth one US dollar.
+Held back this hour: the price jumped from its usual level and we’re waiting for a second source to confirm it.
 
-For US$100, people pay 1,022 MAD. The official rate says 984.32 MAD.
+The last price we published was +3.8%, on 31 Oct.
 
-Only 1 source
-
-Prices from the 08:00 UTC hour, 31 Oct
-
-You could buy at least US$5,000 here before the price goes up 1%.
+Prices from the 11:00 UTC hour, 31 Oct
 
 <https://margin.wiki/data/countries/MAD.json>
 
 ## How the gap moved, day by day
 
 One point per day, the price we published that day. 0% is the official rate.
-
-Today's gap is normal for here since 5 Sep 2026, in our own checks. On most days the gap is between 3.2% and 7.4%.
-
-## Where this price comes from
-
-We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from people selling to each other.
-
-Binance, people selling to each other
-
-10.22 MAD +3.8%

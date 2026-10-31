@@ -1,5 +1,5 @@
 {
- "as_of_utc": "2026-10-31T08",
+ "as_of_utc": "2026-10-31T11",
  "claims": {
   "findingData.claim_sgd_php_never_cheapest": {
    "guards": [
@@ -9,44 +9,59 @@
    ],
    "ok": true,
    "value": {
-    "hours": 1631,
+    "hours": 1632,
     "hours_stablecoin_cheapest_any_amount": 3,
     "max_share": 0.01,
-    "n": 1628,
+    "n": 1629,
     "per_amount": {
      "1000": {
-      "hours": 1631,
+      "hours": 1632,
       "wins": 1
      },
      "200": {
-      "hours": 1631,
+      "hours": 1632,
       "wins": 0
      },
      "25000": {
-      "hours": 1631,
+      "hours": 1632,
       "wins": 3
      },
      "5000": {
-      "hours": 1631,
+      "hours": 1632,
       "wins": 3
      },
      "50000": {
-      "hours": 1631,
+      "hours": 1632,
       "wins": 1
      }
     },
     "route": "SGD->PHP"
    }
   },
+  "homeData.headlineMove": {
+   "guards": [
+    "homeData.headlineMoveUp",
+    "homeData.headlineMoveDown",
+    "homeData.moveSinceAbove",
+    "homeData.moveSinceBelow",
+    "homeData.moveSinceWholeAbove",
+    "homeData.moveSinceWholeBelow"
+   ],
+   "ok": true,
+   "value": {
+    "published": null,
+    "raw": null
+   }
+  },
   "homeData.heatTitle": {
    "guards": [],
    "ok": true,
    "value": {
-    "N": 47,
-    "n": 26,
+    "N": 46,
+    "n": 30,
     "pct": 2,
-    "published_N": 47,
-    "published_n": 26
+    "published_N": 46,
+    "published_n": 30
    }
   },
   "homeData.updatedCount": {
@@ -56,17 +71,19 @@
    "ok": true,
    "value": {
     "printed_of": 60,
-    "printed_priced": 48,
+    "printed_priced": 47,
     "recount_of": 60,
-    "recount_priced": 48
+    "recount_priced": 47
    }
   },
   "homeData.updatedLine": {
    "guards": [],
    "ok": false,
    "value": {
-    "hours_missing": 19,
+    "hours_missing": 18,
     "missing_hours": [
+     "2026-10-31T10",
+     "2026-10-31T09",
      "2026-10-31T03",
      "2026-10-31T02",
      "2026-10-31T01",
@@ -82,13 +99,30 @@
      "2026-10-30T15",
      "2026-10-30T14",
      "2026-10-30T13",
-     "2026-10-30T12",
-     "2026-10-30T11",
-     "2026-10-30T10",
-     "2026-10-30T09"
+     "2026-10-30T12"
     ],
-    "newest_hour": "2026-10-31T08",
+    "newest_hour": "2026-10-31T11",
     "window_hours": 24
+   }
+  },
+  "homeData.whatChangedTitle": {
+   "guards": [
+    "homeData.wcCrossedUp",
+    "homeData.wcCrossedDown",
+    "homeData.wcEventOfficial",
+    "homeData.wcEventStreet",
+    "homeData.wcSourceAdded",
+    "homeData.wcSourceQuarantine",
+    "homeData.wcFindingHolds",
+    "homeData.wcFindingWeaker",
+    "homeData.wcFindingNoLonger",
+    "homeData.wcRouteCheaper",
+    "homeData.wcRouteDearer"
+   ],
+   "ok": true,
+   "value": {
+    "bad": [],
+    "items": 8
    }
   },
   "howItWorks.stepCurrencies": {
@@ -96,9 +130,9 @@
    "ok": true,
    "value": {
     "printed_of": 60,
-    "printed_priced": 48,
+    "printed_priced": 47,
     "recount_of": 60,
-    "recount_priced": 48
+    "recount_priced": 47
    }
   },
   "howItWorks.thresholdCounts": {
@@ -106,9 +140,9 @@
    "ok": true,
    "value": {
     "printed_of": 60,
-    "printed_priced": 48,
+    "printed_priced": 47,
     "recount_of": 60,
-    "recount_priced": 48
+    "recount_priced": 47
    }
   },
   "researchData.monthsLine": {
@@ -149,6 +183,7 @@
      "MZN",
      "LAK",
      "RWF",
+     "ARS",
      "SAR",
      "UGX",
      "ZAR",
@@ -166,33 +201,115 @@
      "MXN",
      "IQD",
      "KWD",
+     "XAF",
      "COP",
      "PEN",
      "GEL",
      "PHP",
      "IDR",
+     "PKR",
      "AUD",
      "MAD",
-     "EGP",
      "JOD",
-     "VND",
+     "KRW",
+     "BRL",
      "SGD",
-     "THB"
+     "THB",
+     "TWD"
     ],
     "published": 50,
     "published_bands": {
-     "middle": 16,
-     "tight": 20,
+     "middle": 17,
+     "tight": 19,
      "wide": 14
     }
    }
   },
   "routeData.bigCaption": {
    "guards": [],
-   "ok": true,
+   "ok": false,
    "value": {
-    "detail": {},
-    "differ": [],
+    "detail": {
+     "AUD->INR": {
+      "fresh_hours": 97,
+      "fresh_wins": 97,
+      "published_hours": 96,
+      "published_wins": 96
+     },
+     "AUD->PHP": {
+      "fresh_hours": 1109,
+      "fresh_wins": 0,
+      "published_hours": 1108,
+      "published_wins": 0
+     },
+     "NZD->PHP": {
+      "fresh_hours": 1109,
+      "fresh_wins": 12,
+      "published_hours": 1108,
+      "published_wins": 12
+     },
+     "SGD->INR": {
+      "fresh_hours": 682,
+      "fresh_wins": 682,
+      "published_hours": 681,
+      "published_wins": 681
+     },
+     "SGD->PHP": {
+      "fresh_hours": 1632,
+      "fresh_wins": 3,
+      "published_hours": 1631,
+      "published_wins": 3
+     },
+     "USD->ARS": {
+      "fresh_hours": 149,
+      "fresh_wins": 149,
+      "published_hours": 148,
+      "published_wins": 148
+     },
+     "USD->BRL": {
+      "fresh_hours": 98,
+      "fresh_wins": 44,
+      "published_hours": 97,
+      "published_wins": 44
+     },
+     "USD->INR": {
+      "fresh_hours": 682,
+      "fresh_wins": 682,
+      "published_hours": 681,
+      "published_wins": 681
+     },
+     "USD->MXN": {
+      "fresh_hours": 1499,
+      "fresh_wins": 26,
+      "published_hours": 1498,
+      "published_wins": 26
+     },
+     "USD->NGN": {
+      "fresh_hours": 685,
+      "fresh_wins": 683,
+      "published_hours": 684,
+      "published_wins": 682
+     },
+     "USD->PHP": {
+      "fresh_hours": 145,
+      "fresh_wins": 0,
+      "published_hours": 144,
+      "published_wins": 0
+     }
+    },
+    "differ": [
+     "SGD->PHP",
+     "AUD->PHP",
+     "NZD->PHP",
+     "USD->MXN",
+     "USD->BRL",
+     "USD->ARS",
+     "USD->NGN",
+     "USD->INR",
+     "SGD->INR",
+     "USD->PHP",
+     "AUD->INR"
+    ],
     "routes": 11
    }
   },

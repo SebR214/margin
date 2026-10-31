@@ -1,79 +1,92 @@
 # People do not always pay the official rate for a dollar
 
-Prices from the 08:00 UTC hour, 31 Oct.
+Prices from the 11:00 UTC hour, 31 Oct.
 
 Where banks ration dollars, people buy stablecoins from each other and pay more.
 
 We compare what a dollar costs in 54 countries with the official rate every hour. On 11 routes we also check what it costs to send money there, by transfer app and by stablecoin, with every fee we can measure. Where a dollar costs more than the official rate, a stablecoin can be the cheaper way to send.
 
-AI agents built this site and keep it running. So far they have stored 612,683 prices from 41 sources over 1,659 hours.
+AI agents built this site and keep it running. So far they have stored 613,454 prices from 41 sources over 1,660 hours.
 
 <https://margin.wiki/data/index_latest.json>
 <https://margin.wiki/data/record_daily.json>
 <https://margin.wiki/data/sources_daily.json>
 
-## This hour a dollar costs 88.0% more than the official rate in Algeria, and 8% or more in 8 countries. In 28 of 47 it is within 2%.
+## This hour a dollar costs 88.4% more than the official rate in Algeria, and 8% or more in 8 countries. In 30 of 46 it is within 2%.
 
 |  | today |
 | --- | --- |
-| [Algeria](https://margin.wiki/country/DZD.md) | +88.0% |
-| [Angola](https://margin.wiki/country/AOA.md) | +29.5% |
-| [Syria](https://margin.wiki/country/SYP.md) | +18.6% |
-| [Mozambique](https://margin.wiki/country/MZN.md) | +16.0% |
-| [Venezuela](https://margin.wiki/country/VES.md) | +15.0% |
-| [Tunisia](https://margin.wiki/country/TND.md) | +13.8% |
-| [Iraq](https://margin.wiki/country/IQD.md) | +12.0% |
-| [Argentina](https://margin.wiki/country/ARS.md) | +8.6% |
-| [South Africa](https://margin.wiki/country/ZAR.md) | +7.7% |
-| [India](https://margin.wiki/country/INR.md) | +7.0% |
-| [Qatar](https://margin.wiki/country/QAR.md) | +4.5% |
-| [Kazakhstan](https://margin.wiki/country/KZT.md) | +4.2% |
-| [Morocco](https://margin.wiki/country/MAD.md) | +3.8% |
-| [Cambodia](https://margin.wiki/country/KHR.md) | +3.2% |
-| [Ukraine](https://margin.wiki/country/UAH.md) | +2.9% |
-| [Saudi Arabia](https://margin.wiki/country/SAR.md) | +2.7% |
-| [Mongolia](https://margin.wiki/country/MNT.md) | +2.4% |
-| [Bangladesh](https://margin.wiki/country/BDT.md) | +2.0% |
-| [Brazil](https://margin.wiki/country/BRL.md) | +2.0% |
-| [Nigeria](https://margin.wiki/country/NGN.md) | +2.0% |
-| [Sri Lanka](https://margin.wiki/country/LKR.md) | +1.5% |
-| [Chile](https://margin.wiki/country/CLP.md) | +1.2% |
-| [South Korea](https://margin.wiki/country/KRW.md) | +1.2% |
-| [Laos](https://margin.wiki/country/LAK.md) | +0.9% |
-| [Peru](https://margin.wiki/country/PEN.md) | +0.5% |
-| [Kuwait](https://margin.wiki/country/KWD.md) | +0.4% |
-| [Taiwan](https://margin.wiki/country/TWD.md) | +0.3% |
-| [Jordan](https://margin.wiki/country/JOD.md) | +0.2% |
-| [New Zealand](https://margin.wiki/country/NZD.md) | +0.2% |
-| [Australia](https://margin.wiki/country/AUD.md) | 0.0% |
-| [Indonesia](https://margin.wiki/country/IDR.md) | 0.0% |
-| [Lebanon](https://margin.wiki/country/LBP.md) | 0.0% |
-| [Vietnam](https://margin.wiki/country/VND.md) | 0.0% |
-| [Egypt](https://margin.wiki/country/EGP.md) | −0.1% |
-| [Mexico](https://margin.wiki/country/MXN.md) | −0.1% |
-| [Singapore](https://margin.wiki/country/SGD.md) | −0.1% |
-| [United Arab Emirates](https://margin.wiki/country/AED.md) | −0.1% |
-| [Georgia](https://margin.wiki/country/GEL.md) | −0.2% |
-| [Rwanda](https://margin.wiki/country/RWF.md) | −0.2% |
-| [Turkey](https://margin.wiki/country/TRY.md) | −0.2% |
-| [Thailand](https://margin.wiki/country/THB.md) | −0.3% |
-| [Philippines](https://margin.wiki/country/PHP.md) | −0.3% |
-| [Azerbaijan](https://margin.wiki/country/AZN.md) | −0.6% |
-| [Tanzania](https://margin.wiki/country/TZS.md) | −0.7% |
-| [Armenia](https://margin.wiki/country/AMD.md) | −1.9% |
-| [Uganda](https://margin.wiki/country/UGX.md) | −2.1% |
-| [Colombia](https://margin.wiki/country/COP.md) | −2.7% |
-| [Pakistan](https://margin.wiki/country/PKR.md) | no price |
-| [Central African CFA](https://margin.wiki/country/XAF.md) | no price |
-| [West African CFA](https://margin.wiki/country/XOF.md) | no price |
-| [Zambia](https://margin.wiki/country/ZMW.md) | no price |
-| [Kenya](https://margin.wiki/country/KES.md) | no price |
-| [Bolivia](https://margin.wiki/country/BOB.md) | no price |
-| [Sudan](https://margin.wiki/country/SDG.md) | +1,874% |
+| [Algeria](https://margin.wiki/country/dzd/) | +88.4% |
+| [Angola](https://margin.wiki/country/aoa/) | +29.5% |
+| [Syria](https://margin.wiki/country/syp/) | +19.0% |
+| [Mozambique](https://margin.wiki/country/mzn/) | +15.7% |
+| [Venezuela](https://margin.wiki/country/ves/) | +15.4% |
+| [Iraq](https://margin.wiki/country/iqd/) | +11.6% |
+| [Tunisia](https://margin.wiki/country/tnd/) | +11.4% |
+| [Argentina](https://margin.wiki/country/ars/) | +8.7% |
+| [India](https://margin.wiki/country/inr/) | +6.9% |
+| [Qatar](https://margin.wiki/country/qar/) | +4.8% |
+| [Kazakhstan](https://margin.wiki/country/kzt/) | +4.1% |
+| [Saudi Arabia](https://margin.wiki/country/sar/) | +2.5% |
+| [Mongolia](https://margin.wiki/country/mnt/) | +2.4% |
+| [Ukraine](https://margin.wiki/country/uah/) | +2.3% |
+| [Nigeria](https://margin.wiki/country/ngn/) | +2.1% |
+| [Bangladesh](https://margin.wiki/country/bdt/) | +1.9% |
+| [Pakistan](https://margin.wiki/country/pkr/) | +1.3% |
+| [Vietnam](https://margin.wiki/country/vnd/) | +1.3% |
+| [Brazil](https://margin.wiki/country/brl/) | +1.2% |
+| [Kuwait](https://margin.wiki/country/kwd/) | +1.2% |
+| [Chile](https://margin.wiki/country/clp/) | +1.1% |
+| [Sri Lanka](https://margin.wiki/country/lkr/) | +1.1% |
+| [South Korea](https://margin.wiki/country/krw/) | +1.0% |
+| [Laos](https://margin.wiki/country/lak/) | +0.8% |
+| [Zambia](https://margin.wiki/country/zmw/) | +0.6% |
+| [Cambodia](https://margin.wiki/country/khr/) | +0.5% |
+| [Taiwan](https://margin.wiki/country/twd/) | +0.4% |
+| [Lebanon](https://margin.wiki/country/lbp/) | +0.3% |
+| [Peru](https://margin.wiki/country/pen/) | +0.3% |
+| [New Zealand](https://margin.wiki/country/nzd/) | +0.2% |
+| [Australia](https://margin.wiki/country/aud/) | 0.0% |
+| [Rwanda](https://margin.wiki/country/rwf/) | 0.0% |
+| [Jordan](https://margin.wiki/country/jod/) | −0.1% |
+| [Mexico](https://margin.wiki/country/mxn/) | −0.1% |
+| [Singapore](https://margin.wiki/country/sgd/) | −0.1% |
+| [Turkey](https://margin.wiki/country/try/) | −0.1% |
+| [Philippines](https://margin.wiki/country/php/) | −0.3% |
+| [Egypt](https://margin.wiki/country/egp/) | −0.4% |
+| [Georgia](https://margin.wiki/country/gel/) | −0.4% |
+| [Indonesia](https://margin.wiki/country/idr/) | −0.4% |
+| [Thailand](https://margin.wiki/country/thb/) | −0.4% |
+| [Azerbaijan](https://margin.wiki/country/azn/) | −0.6% |
+| [United Arab Emirates](https://margin.wiki/country/aed/) | −0.6% |
+| [Armenia](https://margin.wiki/country/amd/) | −1.0% |
+| [Tanzania](https://margin.wiki/country/tzs/) | −1.4% |
+| [Colombia](https://margin.wiki/country/cop/) | −2.1% |
+| [South Africa](https://margin.wiki/country/zar/) | no price |
+| [Morocco](https://margin.wiki/country/mad/) | no price |
+| [Central African CFA](https://margin.wiki/country/xaf/) | no price |
+| [West African CFA](https://margin.wiki/country/xof/) | no price |
+| [Kenya](https://margin.wiki/country/kes/) | no price |
+| [Bolivia](https://margin.wiki/country/bob/) | no price |
+| [Uganda](https://margin.wiki/country/ugx/) | no price |
+| [Sudan](https://margin.wiki/country/sdg/) | +1,877% |
 
 Sudan (SDG) is shown but not ranked. Its government stopped updating the official rate, so any gap would measure that freeze, not what people pay.
 
 We also check Afghanistan, Botswana, Brunei, Ethiopia, Ghana, Nepal every hour, but too few people sell dollars there to give a price.
+
+## What changed this week
+
+|  |  |
+| --- | --- |
+| We began reading HTX P2P. It is on trial for a week and sets no price yet. | 31 Oct |
+| We began reading Cash: forex_pk_open_market. It is on trial for a week and sets no price yet. | 31 Oct |
+| We began reading Cash: dolarapi_ve_paralelo. It is on trial for a week and sets no price yet. | 31 Oct |
+| We began reading Cash: dolarapi_ar_blue. It is on trial for a week and sets no price yet. | 31 Oct |
+| We began reading Bitget P2P. It is on trial for a week and sets no price yet. | 31 Oct |
+| Sending money from Australia to India, the stablecoin became dearer than the cheapest app. | 28 Oct |
+| [Qatar went above 5% over the official rate.](https://margin.wiki/country/qar/) | 28 Oct |
+| Sending money from the United States to Brazil, the stablecoin became dearer than the cheapest app. | 27 Oct |
 
 ## When the official rate finally moved
 
@@ -83,11 +96,11 @@ Argentina, December 2023: a dollar cost 151% more on exchanges than at the offic
 
 |  |  |  |
 | --- | --- | --- |
-| [Argentina Dec 2023](https://margin.wiki/country/ARS.md) | Gap before: 151% | 82% of the gap closed |
-| [Argentina Aug 2023](https://margin.wiki/country/ARS.md) | Gap before: 106% | 25% of the gap closed |
-| [Ukraine Jul 2022](https://margin.wiki/country/UAH.md) | Gap before: 25.2% | 99% of the gap closed |
-| [Argentina Dec 2015](https://margin.wiki/country/ARS.md) | Gap before: 54.4% | 74% of the gap closed |
-| [Argentina Jan 2014](https://margin.wiki/country/ARS.md) | Gap before: 64.2% | 26% of the gap closed |
+| [Argentina Dec 2023](https://margin.wiki/country/ars/) | Gap before: 151% | 82% of the gap closed |
+| [Argentina Aug 2023](https://margin.wiki/country/ars/) | Gap before: 106% | 25% of the gap closed |
+| [Ukraine Jul 2022](https://margin.wiki/country/uah/) | Gap before: 25.2% | 99% of the gap closed |
+| [Argentina Dec 2015](https://margin.wiki/country/ars/) | Gap before: 54.4% | 74% of the gap closed |
+| [Argentina Jan 2014](https://margin.wiki/country/ars/) | Gap before: 64.2% | 26% of the gap closed |
 
 From exchange history, not our own checks. The gap before is the typical exchange price in the second week before the jump against the official rate. The new official rate is its typical value in the third week after it.
 
