@@ -24,23 +24,23 @@
   function chart() {
     var W = D.weeks.slice().reverse(), S = C.scorecard;
     $('chartTitle').textContent = S.chartTitle;
-    $('chartLegend').innerHTML = '<span><i style="background:#D3D0CB"></i>' + esc(S.chartTries) + '</span><span><i style="background:#817FCC"></i>' + esc(S.chartMerged) + '</span>';
+    $('chartLegend').innerHTML = '<span><svg viewBox="0 0 10 10"><rect width="10" height="10" fill="#D3D0CB"/></svg>' + esc(S.chartTries) + '</span><span><svg viewBox="0 0 10 10"><rect width="10" height="10" fill="#817FCC"/></svg>' + esc(S.chartMerged) + '</span>';
     if (!W.length) { $('chartBox').textContent = S.none; return; }
     var max = Math.max.apply(null, W.map(function (w) { return w.attempts; }).concat([1]));
     var width = 720, h = 130, top = 16, base = h - 4, slot = Math.min(96, 680 / W.length), bw = Math.min(30, slot / 3);
     var x0 = 24;
     var y = function (v) { return base - (base - top) * v / max; };
     var out = '<svg viewBox="0 0 ' + width + ' ' + (h + 26) + '" role="img" aria-label="' + esc(S.chartLabel) + '">' +
-      '<line x1="24" x2="704" y1="' + base + '" y2="' + base + '" stroke="#0B0B0B" stroke-width="1"/>' +
-      '<text x="0" y="' + (top + 4) + '" font-size="12" fill="#6B6B6B">' + max + '</text>';
+      '<line x1="24" x2="704" y1="' + base + '" y2="' + base + '" stroke="#201E1D" stroke-width="1"/>' +
+      '<text x="0" y="' + (top + 4) + '" font-size="12" fill="#7D7979">' + max + '</text>';
     W.forEach(function (w, i) {
       var cx = x0 + slot * i + slot / 2;
       [[w.attempts, '#D3D0CB', -bw - 1], [w.merged, '#817FCC', 1]].forEach(function (b) {
         var yy = y(b[0]);
         out += '<rect x="' + (cx + b[2]).toFixed(1) + '" y="' + yy.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(b[0] ? 1 : 0, base - yy).toFixed(1) + '" fill="' + b[1] + '"><title>' + esc(day(w.week_start) + ': ' + b[0]) + '</title></rect>';
-        if (b[0]) out += '<text x="' + (cx + b[2] + bw / 2).toFixed(1) + '" y="' + (yy - 4).toFixed(1) + '" font-size="12" text-anchor="middle" fill="#0B0B0B">' + b[0] + '</text>';
+        if (b[0]) out += '<text x="' + (cx + b[2] + bw / 2).toFixed(1) + '" y="' + (yy - 4).toFixed(1) + '" font-size="12" text-anchor="middle" fill="#201E1D">' + b[0] + '</text>';
       });
-      out += '<text x="' + cx.toFixed(1) + '" y="' + (h + 14) + '" font-size="12" text-anchor="middle" fill="#6B6B6B">' + esc(day(w.week_start)) + '</text>';
+      out += '<text x="' + cx.toFixed(1) + '" y="' + (h + 14) + '" font-size="12" text-anchor="middle" fill="#7D7979">' + esc(day(w.week_start)) + '</text>';
     });
     $('chartBox').innerHTML = out + '</svg>';
   }

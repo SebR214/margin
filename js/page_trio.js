@@ -9,8 +9,8 @@
     var here = base(location.pathname) || 'index.html';
     var st = document.createElement('style');
     st.textContent = '.trio{display:flex;flex-wrap:wrap;gap:6px 24px;font-size:15px;padding:4px 0 0;margin:0}' +
-      '.trio a{color:#6B6B6B;font-weight:500;padding:6px 0;display:inline-block}.trio a:hover{color:#817FCC}' +
-      '.trio b{color:#0B0B0B;font-weight:700;padding:6px 0;display:inline-block}';
+      '.trio a{color:var(--color-neutral-600);font-weight:500;padding:6px 0;display:inline-block}.trio a:hover{color:var(--color-ink)}' +
+      '.trio b{color:var(--color-ink);font-weight:600;padding:6px 0;display:inline-block}';
     document.head.appendChild(st);
     var n = document.createElement('p'); n.className = 'trio';
     T.forEach(function (x) {
