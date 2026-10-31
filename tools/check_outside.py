@@ -25,7 +25,7 @@ from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urljoin, urlparse
 
 SITE = "https://margin.wiki"
-MUST_BE_LINKED = ["how-it-was-built.html", "agent-incidents.html", "event.html"]
+MUST_BE_LINKED = ["how-it-was-built.html", "machine-room.html", "agent-incidents.html", "event.html"]
 TRIES, PAUSE = 4, 30
 
 
@@ -177,7 +177,7 @@ def self_test():
         open(os.path.join(d, name), "w").write(text)
 
     page = '<html><head><title>T</title><meta name="description" content="D"/></head><body><script src="./js/footer.js"></script></body></html>'
-    for n in ["index.html", "how-it-was-built.html", "agent-incidents.html", "event.html"]:
+    for n in ["index.html", "how-it-was-built.html", "machine-room.html", "agent-incidents.html", "event.html"]:
         w(n, page)
     w("js/footer.js", "fetch('./copy.json'); fetch('data/x.json');")
     w("data/x.json", "{}")
@@ -185,7 +185,7 @@ def self_test():
     w("llms.txt", "x")
     w("favicon.ico", "x")
     w("favicon.svg", "x")
-    w("copy.json", json.dumps({"siteHead": {"footerLinks": [{"href": "./how-it-was-built.html"}, {"href": "./agent-incidents.html"}, {"href": "./event.html"}]}}))
+    w("copy.json", json.dumps({"siteHead": {"footerLinks": [{"href": "./how-it-was-built.html"}, {"href": "./machine-room.html"}, {"href": "./agent-incidents.html"}, {"href": "./event.html"}]}}))
     ns = "http://www.sitemaps.org/schemas/sitemap/0.9"
     w("sitemap.xml", '<urlset xmlns="%s"><url><loc>https://margin.wiki/</loc></url><url><loc>https://margin.wiki/event.html</loc></url></urlset>' % ns)
     handler = lambda *a, **k: http.server.SimpleHTTPRequestHandler(*a, directory=d, **k)

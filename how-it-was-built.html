@@ -159,6 +159,7 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
   <div class="hero">
     <h1 id="pageTitle">&nbsp;</h1>
     <div class="lede" id="pageLede">&nbsp;</div>
+    <p class="small"><a href="./machine-room.html" id="machineRoomLink">&nbsp;</a></p>
   </div>
 
   <div class="stack">
@@ -273,6 +274,9 @@ h1 + p,h1 + .sub,h1 + .lede,#heroSub,#pageLede,#verdict1{font-size:17px!importan
     var C2 = COPY.columns.agents;
     document.getElementById('pageTitle').textContent = COPY.title || '';
     document.getElementById('pageLede').textContent = COPY.lede || '';
+    var MR = COPY.machineRoomLink || {};
+    document.getElementById('machineRoomLink').textContent = MR.text || '';
+    document.getElementById('machineRoomLink').href = MR.href || './machine-room.html';
     document.getElementById('feedCap').textContent = C2.capNote || '';
     document.getElementById('col2Title').textContent = C2.title || '';
     document.getElementById('col2Kicker').textContent = C2.kicker || '';
@@ -528,6 +532,7 @@ Promise.all([
 </script>
 <script src="./js/site_head.js?v=4"></script>
 <script src="./js/machine_view.js?v=3" defer></script>
+<script src="./js/page_trio.js"></script>
 <script src="./js/footer.js" data-links-only></script>
 </body>
 </html>

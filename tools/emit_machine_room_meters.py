@@ -376,12 +376,36 @@ def research_block():
     }
 
 
+def workflow_runs():
+    """SEB-427: the newest run of every workflow file, for the machine room page. `gh api` with the token this step already has;
+    a workflow it cannot read is left out (None), never guessed, and the page drops the column when none came back."""
+    out = {}
+    if not shutil.which("gh"):
+        return None
+    wf_dir = os.path.join(HERE, ".github", "workflows")
+    for name in sorted(os.listdir(wf_dir)):
+        if not name.endswith(".yml"):
+            continue
+        try:
+            raw = subprocess.run(
+                ["gh", "api", f"repos/{REPO}/actions/workflows/{name}/runs?per_page=1&exclude_pull_requests=true",
+                 "--jq", ".workflow_runs[0] | {status, conclusion, run_utc: .updated_at}"],
+                capture_output=True, text=True, timeout=30, check=True).stdout.strip()
+            run = json.loads(raw) if raw and raw != "null" else None
+        except (subprocess.CalledProcessError, OSError, ValueError) as e:
+            print(f"emit_machine_room_meters: workflow {name} failed: {e}", file=sys.stderr)
+            run = None
+        out[name] = run
+    return out
+
+
 def main():
     doc = {
         "computed_at": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat(),
         "collector_commits_today": collector_commits_today(),
         "open_pull_requests": open_pull_requests(),
         "unbroken_hours": unbroken_hours(),
+        "workflow_runs": workflow_runs(),
         "research": research_block(),
         "runs_by_itself": {
             "delivery": delivery_block(), "freshness": freshness_block(),
@@ -396,7 +420,7 @@ def main():
         f.write("\n")
 
     print("emit_machine_room_meters: " + ", ".join(
-        f"{k}={v}" for k, v in doc.items() if k not in ("computed_at", "runs_by_itself", "research")))
+        f"{k}={v}" for k, v in doc.items() if k not in ("computed_at", "runs_by_itself", "research", "workflow_runs")))
     return 0
 
 
