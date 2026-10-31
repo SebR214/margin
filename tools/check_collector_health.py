@@ -29,6 +29,8 @@ REPO = os.environ.get("GH_REPO", "SebR214/margin")
 ISSUE = "SEB-301"
 LIMIT = dt.timedelta(minutes=90)
 REPEAT = dt.timedelta(hours=12)
+COMMENT_PAGE = 100
+MAX_COMMENT_PAGES = 200                          # 20,000 comments; past that it fails loud rather than guess
 PAGES = 5                                        # 100 commits a page
 DOWN = "**Collection: down.** "
 UP = "**Collection: back up.** "
@@ -104,11 +106,32 @@ def up_body(comments, samples):
         when(since), when(first), hours(since, first), since.isoformat(), first.isoformat())
 
 
+def all_comments(page):
+    """Every comment of the issue as (created_at, body), by following the cursor to the last page. page(cursor) returns one
+    connection: {"nodes": [...], "pageInfo": {"hasNextPage": bool, "endCursor": str}}. SEB-301 gets a daily status and other
+    agents' comments, so one page can never be trusted to hold this script's own latest line."""
+    out, cursor = [], None
+    for _ in range(MAX_COMMENT_PAGES):
+        conn = page(cursor)
+        out.extend((parse(c["createdAt"]), c["body"]) for c in conn["nodes"])
+        info = conn["pageInfo"]
+        if not info["hasNextPage"]:
+            return out
+        cursor = info["endCursor"]
+    raise RuntimeError("more than %d comments on %s, not reading them all" % (MAX_COMMENT_PAGES * COMMENT_PAGE, ISSUE))
+
+
 def post(now, down, last, samples):
     import linear
     i = linear.find(ISSUE)
-    d = linear.call("""query($id: String!) { issue(id: $id) { comments(first: 250) { nodes { createdAt body } } } }""", {"id": i["id"]})
-    comments = [(parse(c["createdAt"]), c["body"]) for c in d["issue"]["comments"]["nodes"]]
+
+    def page(cursor):
+        d = linear.call("""query($id: String!, $n: Int!, $after: String) { issue(id: $id) {
+          comments(first: $n, after: $after) { nodes { createdAt body } pageInfo { hasNextPage endCursor } } } }""",
+                        {"id": i["id"], "n": COMMENT_PAGE, "after": cursor})
+        return d["issue"]["comments"]
+
+    comments = all_comments(page)
     do = decide(down, comments, now)
     if not do:
         print("nothing to post")
@@ -149,6 +172,32 @@ def self_test():
     up = up_body([first], [n(6, 0), n(5, 30), t(20, 48)])
     assert up.startswith(UP) and "Down from 28 Oct 20:48 UTC to 31 Oct 05:30 UTC: 56.7 hours lost" in up, up
     assert "newest" in up_body([(n(1), DOWN + "no marker")], [n(6)])
+    # a busy issue: 650 other comments around ours, in pages of 100, oldest first. Only the paging finds the latest down line.
+    iso = lambda k: (dt.datetime(2026, 10, 1, tzinfo=dt.timezone.utc) + dt.timedelta(hours=k)).isoformat()
+    thread = [{"createdAt": iso(k), "body": "Daily status %d" % k} for k in range(650)]
+    thread[100] = {"createdAt": iso(100), "body": down_body(n(5), t(20, 48))}
+    thread[640] = {"createdAt": iso(640), "body": DOWN + "repeat <!-- since:%s -->" % t(20, 48).isoformat()}
+    calls = []
+
+    def page(cursor):
+        start = int(cursor or 0)
+        calls.append(start)
+        chunk = thread[start:start + 100]
+        more = start + 100 < len(thread)
+        return {"nodes": chunk, "pageInfo": {"hasNextPage": more, "endCursor": str(start + 100) if more else None}}
+
+    got = all_comments(page)
+    assert len(got) == 650 and calls == [0, 100, 200, 300, 400, 500, 600], calls
+    assert decide(True, got, parse(iso(641))) is None, "the 640th comment is seen, so no repeat an hour later"
+    assert decide(True, got, parse(iso(652))) == "down", "and the repeat comes 12 hours after it"
+    assert decide(False, got, parse(iso(700))) == "up", "the recovery is posted, not lost"
+    first_250 = [(parse(c["createdAt"]), c["body"]) for c in thread[:250]]
+    assert decide(True, first_250, parse(iso(641))) == "down", "what reading only 250 comments would have done: a repeat every check"
+    try:
+        all_comments(lambda cur: {"nodes": [], "pageInfo": {"hasNextPage": True, "endCursor": "x"}})
+        raise AssertionError("an endless issue must fail loud")
+    except RuntimeError:
+        pass
     print("check_collector_health self-test: ok")
     return 0
 
