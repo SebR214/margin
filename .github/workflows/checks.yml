@@ -126,6 +126,13 @@ jobs:
         run: python3 tests/check_known_breaks.py
       - name: The routes table sums its steps (SEB-310)
         run: python3 tools/emit_routes_table.py --self-test
+      - name: The Research pages rebuild from their scripts (SEB-423)
+        run: python3 tools/research/run.py --self-test
+      - name: The Research claims pass on the files and fail on a wrong number (SEB-423)
+        # The pages are rebuilt first, as every collection run does, from the inputs this commit holds; those inputs are rewritten hourly.
+        run: |
+          python3 tools/research/run.py
+          python3 tests/check_research_claims.py
       - name: A sudden flip is held back (SEB-302)
         run: python3 tools/check_flip_hold.py
 
@@ -141,16 +148,12 @@ jobs:
 
       - name: Status and watchdog helpers (SEB-301)
         run: |
-          python3 tools/daily_status.py --self-test
-          python3 tools/check_researcher_health.py --self-test
           python3 tools/check_audit_health.py --self-test
 
-      - name: The researcher, the gap report, the job rules and the scorecard (SEB-301, 25 Oct)
+      - name: The gap report and the job rules (SEB-301, SEB-422)
         run: |
           python3 tools/gap_report.py --self-test
           python3 tools/job_shape.py --self-test
-          python3 tools/researcher.py --self-test
-          python3 tools/scorecard.py --self-test
 
       - name: Every test an agent job added (tests/agent_*.py)
         run: python3 tools/run_agent_tests.py

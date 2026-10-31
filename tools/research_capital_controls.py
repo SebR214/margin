@@ -64,9 +64,19 @@ def yearly(street, off, managed, first_year=FIRST_YEAR, min_days=MIN_DAYS):
     return rows, last
 
 
+def stable_tracked():
+    """Every country the site tracks (data/heatmap_daily.json), not just those priced this hour. backfill_history.tracked_ccys() reads
+    data/index_latest.json, so a country with no price in the newest hour fell out of this yearly table and the stored rows no longer matched a
+    recomputation (UAH, 31 Oct). The history in this table does not depend on this hour, so neither may the set of countries."""
+    heat = json.load(open(os.path.join(ROOT, "data", "heatmap_daily.json")))
+    return {c["ccy"] for c in heat["currencies"]}
+
+
 def compute():
     import backfill_history as bh
     import backtest_watch as bw
+    base = bh.tracked_ccys
+    bh.tracked_ccys = lambda: base() | stable_tracked()
     data, _, _ = bh.history_data()
     street, _ = bw.street_by_day(data, bh)
     rows, last = yearly(street, data["off"], data["managed"])
