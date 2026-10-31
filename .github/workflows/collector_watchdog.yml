@@ -56,8 +56,6 @@ permissions:
   contents: read
   # actions: write is what lets a run dispatch its successor.
   actions: write
-  # issues: write lets tools/outage_email.py comment on the "Collection down" issue, which emails Seb (27 Oct).
-  issues: write
 
 jobs:
   watchdog:
@@ -109,77 +107,16 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Check collector health
-        id: health
+      # SEB-301, 31 Oct: the one collection alarm. Down means no commit starting with "sample" on main in 90 minutes, nothing
+      # else (tools/check_collector_health.py). It comments on Linear SEB-301 when collection goes down, every 12 hours while it
+      # stays down, and once when it is back. No GitHub issue, no email, and the step does not fail when collection is down.
+      - name: Check collection and tell SEB-301
         if: steps.needed.outputs.proceed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: |
-          if python3 tools/check_collector_health.py > health_output.txt 2>&1; then
-            echo "healthy=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "healthy=false" >> "$GITHUB_OUTPUT"
-          fi
-          cat health_output.txt
-
-      # One issue, reused across outages rather than one per incident -- a
-      # pinned, reopened issue is what a human (or a scheduled agent)
-      # actually watches; a pile of one-off issues is not. `linear.py issues`
-      # lists every issue in the project with its state and labels; grep for
-      # one still open (not Done/Canceled/Duplicate) carrying the
-      # collector-down label -- the same role `gh issue list --label` played
-      # before SEB-166.
-      - name: File or update the alert
-        if: steps.health.outputs.healthy == 'false'
-        env:
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
-        run: |
-          {
-            echo "Collector chain looks down as of $(date -u +%Y-%m-%dT%H:%MZ)."
-            echo
-            echo '```'
-            cat health_output.txt
-            echo '```'
-            echo
-            echo "See [collect.yml runs](https://github.com/${{ github.repository }}/actions/workflows/collect.yml) and \`tools/check_collector_health.py\` for the check that raised this."
-          } > "$RUNNER_TEMP/alert_body.md"
-          existing=$(python3 agents/linear.py issues \
-            | grep -E '<([^>]*,)?collector-down(,[^>]*)?>$' \
-            | grep -Ev '^\S+\s+\[(Done|Canceled|Duplicate)' \
-            | awk '{print $1}' | head -1)
-          if [ -n "$existing" ]; then
-            python3 agents/linear.py say "$existing" product --body-file "$RUNNER_TEMP/alert_body.md"
-          else
-            python3 agents/linear.py new "Collector chain down" \
-              --body-file "$RUNNER_TEMP/alert_body.md" \
-              --label collector-down --priority 1 --role product
-          fi
-
-      # 27 Oct, Seb: the Linear issue above is read by nobody. One email per outage of 2 hours or more, keyed by the last sample
-      # commit, so the same outage is never sent twice (tools/outage_email.py).
-      - name: Email Seb if collection is down 2 hours or more
-        if: steps.needed.outputs.proceed == 'true'
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: python3 tools/outage_email.py
-
-      - name: Close the alert if recovered
-        if: steps.health.outputs.healthy == 'true'
-        env:
-          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
-        run: |
-          existing=$(python3 agents/linear.py issues \
-            | grep -E '<([^>]*,)?collector-down(,[^>]*)?>$' \
-            | grep -Ev '^\S+\s+\[(Done|Canceled|Duplicate)' \
-            | awk '{print $1}' | head -1)
-          if [ -n "$existing" ]; then
-            echo "Recovered as of $(date -u +%Y-%m-%dT%H:%MZ)." > "$RUNNER_TEMP/recovery_body.md"
-            python3 agents/linear.py say "$existing" product --body-file "$RUNNER_TEMP/recovery_body.md"
-            python3 agents/linear.py state "$existing" "Done"
-          fi
+        run: python3 tools/check_collector_health.py --post
 
       # Self-dispatching chain: forges the next run so a single successful
       # fire keeps the watchdog alive without depending purely on cron.
