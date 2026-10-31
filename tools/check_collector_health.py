@@ -1,35 +1,21 @@
 #!/usr/bin/env python3
-"""Is the collect.yml chain actually alive, from OUTSIDE the chain itself?
+"""Is collection alive? One rule, one alarm (SEB-301, 31 Oct). No model.
 
-check_freshness.py answers "is the newest row recent enough?" but it runs AS A
-STEP of collect.yml -- if the job dies before reaching that step (exactly what
-happened 2026-09-26, when a schema mismatch broke tools/emit_bundle.py and
-killed the job before any freshness check ran), the guard never fires and
-nothing outside the Actions tab ever finds out. Nobody was watching the
-Actions tab; the outage ran ~3.5 hours and was only caught because a human
-asked for a status update.
+    python3 tools/check_collector_health.py              # print the verdict; exit 0 = alive, 1 = down, 2 = could not tell
+    python3 tools/check_collector_health.py --post       # the same, and tell SEB-301 on Linear (collector_watchdog.yml)
+    python3 tools/check_collector_health.py --self-test
 
-This is the outside check. It has no dependency on collect.yml completing --
-it reads the workflow's own run history via `gh api` and the repo's commit
-log, both independent of whether the last run finished. Exit 0 = healthy.
-Exit 1 = unhealthy, with the reason on stderr, meant for something (a CI
-watchdog, a scheduled agent) that actually alerts a human -- this script only
-measures and reports, it never pages anyone itself.
+Collection is DOWN if no commit whose message starts with "sample" has landed on main in the last 90 minutes. Nothing else
+counts: not a green run, not a red one, not the freshness of a file. collect.yml writes that commit only when its rows have
+reached main, so it is the one fact that says the data is arriving.
 
-Unhealthy means either:
-  - the last STALE_MINUTES minutes produced no commit whose message matches
-    the "sample <ISO timestamp>" pattern the chain uses, or
-  - MAX_CONSECUTIVE_FAILURES or more of the most recent collect.yml runs
-    (oldest-first among the recent page) completed with conclusion=failure
-    back to back, with no success in between.
-A run also counts as down when its "Commit samples" step failed (31 Oct, after 28 Oct 21:05 UTC when a file over 100 MB made every
-push fail): the run's own conclusion is not trusted on its own. A run that never reached that step (a scheduled fire that finds
-the chain already alive and exits) says nothing either way and no longer counts as a success that ends a streak of failures.
-Either condition alone is what a genuinely dead chain looks like; either one
-alone can also be a single bad-luck run, which is why both use a small run of
-consecutive evidence rather than one data point.
+--post comments on Linear SEB-301:
+  - when collection goes down: "down since {time}, {n} hours lost so far";
+  - again every 12 hours while it stays down;
+  - once when it is back: the gap, from the last sample before it to the first sample after it, in hours.
+No GitHub issue, no email. The state is read from the latest "Collection:" comment on SEB-301, so nothing is kept elsewhere.
+Env: GH_TOKEN (read access to the repo), GH_REPO (default SebR214/margin), LINEAR_API_KEY for --post.
 """
-
 import datetime as dt
 import json
 import os
@@ -37,175 +23,152 @@ import re
 import subprocess
 import sys
 
-HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "agents"))
 REPO = os.environ.get("GH_REPO", "SebR214/margin")
-
-STALE_MINUTES = float(os.environ.get("COLLECTOR_STALE_MINUTES", "60"))
-MAX_CONSECUTIVE_FAILURES = int(os.environ.get("COLLECTOR_MAX_CONSECUTIVE_FAILURES", "2"))
-RUN_LOOKBACK = 8
-COMMIT_STEP = "Commit samples"
-
-SAMPLE_RE = re.compile(r"^sample (\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z?", re.MULTILINE)
-
-
-def run(cmd):
-    return subprocess.run(cmd, cwd=HERE, capture_output=True, text=True, check=True).stdout
+ISSUE = "SEB-301"
+LIMIT = dt.timedelta(minutes=90)
+REPEAT = dt.timedelta(hours=12)
+PAGES = 5                                        # 100 commits a page
+DOWN = "**Collection: down.** "
+UP = "**Collection: back up.** "
+SINCE = re.compile(r"<!-- since:(\S+) -->")
 
 
-def last_sample_commit_age_minutes(now):
-    """Minutes since the newest commit on main whose message is a chain
-    "sample <ts>" commit -- the chain's own heartbeat, independent of the
-    hotfix/feature commits that sit on top of it."""
-    try:
-        run(["git", "fetch", "origin", "main"])
-    except subprocess.CalledProcessError as e:
-        print(f"  [warn] could not fetch origin/main, using local ref: {e.stderr.strip()}",
-              file=sys.stderr)
-    log = run(["git", "log", "origin/main", "--format=%H %aI %s", "-n", "200"])
-    for line in log.splitlines():
-        parts = line.split(" ", 2)
-        if len(parts) < 3:
-            continue
-        _, iso, subject = parts
-        if subject.startswith("sample "):
-            ts = dt.datetime.fromisoformat(iso)
-            return (now - ts.astimezone(dt.timezone.utc)).total_seconds() / 60
-    return None  # no sample commit found at all in the lookback window
+def parse(s):
+    return dt.datetime.fromisoformat(s.replace("Z", "+00:00")).astimezone(dt.timezone.utc)
 
 
-def commit_step_conclusion(run_id):
-    """The conclusion of the "Commit samples" step of one run ("success", "failure", "skipped"), or None when it cannot be read
-    or the run has no such step."""
-    try:
-        out = run(["gh", "api", f"repos/{REPO}/actions/runs/{run_id}/jobs?per_page=100"])
-        for job in json.loads(out).get("jobs", []):
-            for step in job.get("steps", []):
-                if step.get("name") == COMMIT_STEP:
-                    return step.get("conclusion")
-    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
-        pass
-    return None
+def when(t):
+    return t.strftime("%-d %b %H:%M UTC")
 
 
-def effective_conclusion(conclusion, commit):
-    """What one run counts as. "failure" when its Commit samples step failed, whatever the run says; None (counts as nothing) for
-    a successful run that skipped the step, because it never collected; otherwise the run's own conclusion."""
-    if commit == "failure":
-        return "failure"
-    if commit == "skipped" and conclusion == "success":
-        return None
-    return conclusion
+def hours(a, b):
+    return round((b - a).total_seconds() / 3600, 1)
 
 
-def usable_conclusions(runs, limit=RUN_LOOKBACK, commit_of=None):
-    """Filter runs to only include completed successes and failures.
-    Drops cancelled, skipped, queued, in-progress and empty-conclusion runs. With commit_of (run id -> the Commit samples step's
-    conclusion) a run whose commit failed counts as a failure and a successful run that skipped the commit is dropped."""
-    conclusions = []
-    for r in runs:
-        conclusion = r.get("conclusion")
-        if conclusion not in ("success", "failure"):
-            continue
-        if commit_of is not None:
-            conclusion = effective_conclusion(conclusion, commit_of(r.get("id")))
-            if conclusion is None:
-                continue
-        conclusions.append(conclusion)
-        if len(conclusions) >= limit:
+def fetch_sample_times():
+    """Commit times of every 'sample ...' commit among the newest PAGES*100 commits on main, newest first. Raises on an API error."""
+    out = []
+    for page in range(1, PAGES + 1):
+        r = subprocess.run(["gh", "api", f"repos/{REPO}/commits?sha=main&per_page=100&page={page}"],
+                           capture_output=True, text=True, check=True, cwd=ROOT).stdout
+        commits = json.loads(r)
+        for c in commits:
+            if c["commit"]["message"].startswith("sample"):
+                out.append(parse(c["commit"]["committer"]["date"]))
+        if len(commits) < 100:
             break
-    return conclusions
+    return sorted(out, reverse=True)
 
 
-def recent_run_conclusions():
-    """Most recent RUN_LOOKBACK collect.yml runs, newest first, as a list of
-    conclusion strings ("success", "failure"). Drops cancelled, skipped,
-    queued, in-progress and empty-conclusion runs."""
-    out = run([
-        "gh", "api",
-        f"repos/{REPO}/actions/workflows/collect.yml/runs"
-        f"?per_page=30&exclude_pull_requests=true",
-    ])
-    data = json.loads(out)
-    runs = data.get("workflow_runs", [])
-    return usable_conclusions(runs, commit_of=commit_step_conclusion)
+def verdict(now, samples):
+    """(down?, newest sample time or None, one line)."""
+    last = samples[0] if samples else None
+    if last is None:
+        return True, None, "collection DOWN: no commit starting with 'sample' in the newest %d commits on main" % (PAGES * 100)
+    age = now - last
+    mins = int(age.total_seconds() // 60)
+    if age > LIMIT:
+        return True, last, "collection DOWN: last sample commit %s, %d min ago (limit %d)" % (when(last), mins, LIMIT.total_seconds() // 60)
+    return False, last, "collection healthy: last sample commit %s, %d min ago (limit %d)" % (when(last), mins, LIMIT.total_seconds() // 60)
 
 
-def leading_consecutive_failures(conclusions):
-    """How many of the newest runs failed with nothing but failures between
-    them and the last success (or the start of the window).
-    Only 'failure' increments the count. 'success' stops the count.
-    Every other value (cancelled, in_progress, queued, '', etc.) is ignored.
-    It neither counts nor breaks the streak."""
-    n = 0
-    for c in conclusions:
-        if c == "failure":
-            n += 1
-        elif c == "success":
-            break
-        # cancelled / in_progress / queued / '': ignore, neither confirms nor breaks
-        # the streak -- an ignored run tells us nothing yet either way.
-    return n
+def decide(down, comments, now):
+    """'down' (post the first or a 12-hour repeat), 'up' (post the recovery) or None. comments: (created_at, body) pairs."""
+    marked = sorted((c for c in comments if c[1].startswith((DOWN, UP))), key=lambda c: c[0])
+    last = marked[-1] if marked else None
+    was_down = last is not None and last[1].startswith(DOWN)
+    if down:
+        return "down" if (not was_down or now - last[0] >= REPEAT) else None
+    return "up" if was_down else None
+
+
+def down_body(now, last):
+    if last is None:
+        return DOWN + "No commit starting with 'sample' in the newest %d commits on main, so the start of the outage is not known." % (PAGES * 100)
+    return (DOWN + "Down since %s (the last sample commit). %s hours lost so far, at %s. Rows for those hours were not collected and cannot be "
+            "backfilled. <!-- since:%s -->" % (when(last), hours(last, now), when(now), last.isoformat()))
+
+
+def up_body(comments, samples):
+    """The recovery line: the gap runs from the last sample before the outage (read from the latest down comment) to the first after it."""
+    downs = sorted((c for c in comments if c[1].startswith(DOWN)), key=lambda c: c[0])
+    m = SINCE.search(downs[-1][1]) if downs else None
+    if not m:
+        return UP + "Sample commits are landing again (%s is the newest)." % when(samples[0])
+    since = parse(m.group(1))
+    after = sorted(s for s in samples if s > since)
+    first = after[0] if after else samples[0]
+    return UP + "Down from %s to %s: %s hours lost. Sample commits are landing again. <!-- gap:%s..%s -->" % (
+        when(since), when(first), hours(since, first), since.isoformat(), first.isoformat())
+
+
+def post(now, down, last, samples):
+    import linear
+    i = linear.find(ISSUE)
+    d = linear.call("""query($id: String!) { issue(id: $id) { comments(first: 250) { nodes { createdAt body } } } }""", {"id": i["id"]})
+    comments = [(parse(c["createdAt"]), c["body"]) for c in d["issue"]["comments"]["nodes"]]
+    do = decide(down, comments, now)
+    if not do:
+        print("nothing to post")
+        return
+    body = down_body(now, last) if do == "down" else up_body(comments, samples)
+    linear.call("""mutation($id: String!, $b: String!) { commentCreate(input: { issueId: $id, body: $b }) { success } }""", {"id": i["id"], "b": body})
+    print("posted on %s: %s" % (ISSUE, body))
 
 
 def self_test():
-    runs = [{"id": i, "conclusion": c} for i, c in enumerate(
-        ["failure", "success", "failure", "cancelled", "success", "failure"])]
-    plain = usable_conclusions(runs)
-    assert plain == ["failure", "success", "failure", "success", "failure"], plain
-    assert leading_consecutive_failures(plain) == 1, "old behaviour: a no-op success ends the streak"
-    steps = {0: "failure", 1: "skipped", 2: "failure", 4: "success", 5: "failure"}
-    got = usable_conclusions(runs, commit_of=steps.get)
-    assert got == ["failure", "failure", "success", "failure"], got
-    assert leading_consecutive_failures(got) == 2, "a no-op fire in between no longer hides two failed commits"
-    assert effective_conclusion("success", "failure") == "failure", "the run says success, its commit failed: down"
-    assert effective_conclusion("success", "success") == "success"
-    assert effective_conclusion("success", None) == "success", "step not readable: trust the run"
-    assert effective_conclusion("failure", "skipped") == "failure"
-    assert effective_conclusion("success", "skipped") is None
-    only = [{"id": 9, "conclusion": "success"}]
-    assert usable_conclusions(only, commit_of=lambda i: "failure") == ["failure"]
-    assert usable_conclusions([{"id": i, "conclusion": "failure"} for i in range(20)], limit=3, commit_of=lambda i: "failure") == ["failure"] * 3
+    t = lambda h, m=0: dt.datetime(2026, 10, 28, h, m, tzinfo=dt.timezone.utc)
+    n = lambda h, m=0: dt.datetime(2026, 10, 31, h, m, tzinfo=dt.timezone.utc)
+    # the rule: 90 minutes since the newest sample commit, nothing else
+    assert verdict(t(21, 30), [t(20, 8)])[0] is False, "81 minutes is alive"
+    assert verdict(t(21, 38), [t(20, 8)])[0] is False, "exactly 90 minutes is alive"
+    assert verdict(t(21, 39), [t(20, 8)])[0] is True, "91 minutes is down"
+    assert verdict(t(21, 39), [t(21, 30), t(20, 8)])[0] is False, "the newest sample counts"
+    d, last, line = verdict(n(4, 24), [t(20, 48)])
+    assert d and last == t(20, 48) and "DOWN" in line and "28 Oct 20:48 UTC" in line, line
+    assert verdict(n(4, 24), [])[0] is True and verdict(n(4, 24), [])[1] is None, "no sample commit at all is down"
+    # 'sample' is the only message that counts
+    assert "sample 2026-10-28T20:48Z".startswith("sample") and not "aider builder run".startswith("sample")
+    # what is posted, and when
+    c = lambda h, body: (n(h), body)
+    assert decide(True, [], n(5)) == "down"
+    first = c(5, down_body(n(5), t(20, 48)))
+    assert decide(True, [first], n(16, 59)) is None, "no repeat inside 12 hours"
+    assert decide(True, [first], n(17)) == "down", "a repeat at 12 hours"
+    assert decide(True, [first, c(17, DOWN + "again")], n(20)) is None, "the 12 hours run from the latest down comment"
+    assert decide(True, [first, c(6, "Daily status"), c(7, "**Watchdog: down.** x")], n(8)) is None, "other comments are ignored"
+    assert decide(False, [first], n(18)) == "up"
+    assert decide(False, [first, c(18, UP + "ok")], n(19)) is None, "recovery is posted once"
+    assert decide(False, [], n(19)) is None and decide(False, [c(1, "Daily status")], n(19)) is None
+    assert decide(True, [first, c(18, UP + "ok")], n(19)) == "down", "a new outage posts again"
+    # the bodies
+    body = down_body(n(4, 24), t(20, 48))
+    assert body.startswith(DOWN) and "Down since 28 Oct 20:48 UTC" in body and "55.6 hours lost so far" in body, body
+    up = up_body([first], [n(6, 0), n(5, 30), t(20, 48)])
+    assert up.startswith(UP) and "Down from 28 Oct 20:48 UTC to 31 Oct 05:30 UTC: 56.7 hours lost" in up, up
+    assert "newest" in up_body([(n(1), DOWN + "no marker")], [n(6)])
     print("check_collector_health self-test: ok")
     return 0
 
 
-def main():
+def main(argv):
+    if "--self-test" in argv:
+        return self_test()
     now = dt.datetime.now(dt.timezone.utc)
-    reasons = []
-
-    age = last_sample_commit_age_minutes(now)
-    if age is None:
-        reasons.append("no 'sample <ts>' commit found in the last 200 commits at all")
-    else:
-        mark = "ok" if age <= STALE_MINUTES else "STALE"
-        print(f"  [{mark}] last chain commit {age:.0f} min ago (limit {STALE_MINUTES:.0f})")
-        if age > STALE_MINUTES:
-            reasons.append(f"last chain commit {age:.0f} min ago, limit {STALE_MINUTES:.0f}")
-
     try:
-        conclusions = recent_run_conclusions()
-    except subprocess.CalledProcessError as e:
-        print(f"  [warn] could not read run history: {e.stderr.strip()}", file=sys.stderr)
-        conclusions = []
-    except FileNotFoundError:
-        print("  [warn] could not read run history: 'gh' CLI not found", file=sys.stderr)
-        conclusions = []
-
-    if conclusions:
-        streak = leading_consecutive_failures(conclusions)
-        mark = "ok" if streak < MAX_CONSECUTIVE_FAILURES else "STALE"
-        print(f"  [{mark}] {streak} consecutive failing run(s) (limit {MAX_CONSECUTIVE_FAILURES})"
-              f" -- recent: {conclusions}")
-        if streak >= MAX_CONSECUTIVE_FAILURES:
-            reasons.append(f"{streak} consecutive collect.yml failures: {conclusions}")
-
-    if reasons:
-        print(f"\n  [error] collector chain looks down -- {'; '.join(reasons)}", file=sys.stderr)
-        sys.exit(1)
-    print("\n  collector chain healthy")
+        samples = fetch_sample_times()
+    except (subprocess.CalledProcessError, FileNotFoundError, ValueError, KeyError) as e:
+        print("  [error] could not read the commits on main, so collection health is not known: %s" % e, file=sys.stderr)
+        return 2
+    down, last, line = verdict(now, samples)
+    print(line)
+    if "--post" in argv:
+        post(now, down, last, samples)
+        return 0
+    return 1 if down else 0
 
 
 if __name__ == "__main__":
-    if "--self-test" in sys.argv:
-        sys.exit(self_test())
-    main()
+    sys.exit(main(sys.argv))
