@@ -202,8 +202,8 @@ Written by the retired researcher (25 to 29 Oct). Track A rules in tools/job_sha
     context: `data/source_pairs.json` `data/disagree_diagnosis.json` `data/p2p_kucoin.csv` `data/stable_venues.csv`
     done when: tools/disagree_arbiter.py takes each pair with flag true in the disagree list of data/gap_report.json, finds the latest price of any third source for the same currency in the stored CSVs, and writes data/disagree_arbiter.json saying which of the two it sits closer to, or the text no third source. tests/agent_disagree_arbiter.py uses an inline fixture with a at 100, b at 120 and a third source at 101 and checks the result says closer to a. It checks a third source at 119 says closer to b, and a fixture with no third source gives no third source and not a guess.
     blocked: needs-claude: the Aider builder failed 2 times, last: empty after Aider: tools/disagree_arbiter.py data/disagree_arbiter.json tests/agent_disagree_arbiter.py (2026-10-30)
-- [ ] 26. Retest coverage check: every finding has a dated retest row
-  - [ ] 26a. Retest coverage check: every finding has a dated retest row
+- [x] 26. Retest coverage check: every finding has a dated retest row (done 2026-10-31)
+  - [x] 26a. Retest coverage check: every finding has a dated retest row (PR #738, 2026-10-31)
     track: aider
     proposed: researcher 2026-10-27 (gap: stale_findings: p2p_spread_signal last_retest null)
     files: `tools/retest_coverage.py` `data/retest_coverage.json` `tests/agent_retest_coverage.py`
