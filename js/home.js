@@ -7,7 +7,7 @@
   var MINUS = '−';
   var C = {}, D = {};
   var showAll = false, early = false;
-  var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navHow', 'how-it-works.html']];
+  var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHow', 'how-it-works.html']];
   var BUCKETS = [
     [-Infinity, 0, 'b-neg', 'legendBelowOfficial'],
     [0, 2, 'b0', 'legendUnder', { max: 2 }],

@@ -310,6 +310,80 @@ def claim_routes_published_equal_fresh(c):
     return not bad and bool(pub), {"routes": len(pub), "differ": bad, "detail": detail}
 
 
+def _official_day_values(ccy, day):
+    """Every independent reading of one currency's official rate for one UTC day: the last live reading and each history file's value."""
+    out = []
+    last = None
+    for r in rows("fx_rates.csv"):
+        if r["ccy"] == ccy and r["ts_utc"][:10] == day and num(r["fx_mid_per_usd"]) is not None:
+            last = num(r["fx_mid_per_usd"])
+    if last is not None:
+        out.append(last)
+    hist = os.path.join(DATA, "history")
+    for name in sorted(os.listdir(hist)) if os.path.isdir(hist) else []:
+        if name.startswith("official_fx_") and name.endswith(".csv"):
+            for r in rows(os.path.join("history", name)):
+                if r["date"] == day and r["ccy"] == ccy and num(r["per_usd"]) is not None:
+                    out.append(num(r["per_usd"]))
+    return out
+
+
+def _street_day_median(ccy, day):
+    vals = [num(r["buy_median"]) for r in rows("p2p_basis.csv")
+            if r["source"] == "binance_p2p" and r["ccy"] == ccy and r["ts_utc"][:10] == day and r["source_ok"] == "True" and num(r["buy_median"]) is not None]
+    return (statistics.median(vals) if len(vals) >= 12 else None)
+
+
+def _history_street_closes(ccy, day):
+    out = []
+    hist = os.path.join(DATA, "history")
+    for name in sorted(os.listdir(hist)) if os.path.isdir(hist) else []:
+        if name.startswith("candles_") and name.endswith("_1d.csv"):
+            for r in rows(os.path.join("history", name)):
+                if r["ccy"] == ccy and r["ts_utc"][:10] == day and num(r["close"]) is not None:
+                    out.append(num(r["close"]))
+    return out
+
+
+def claim_event_pages(c):
+    """Every event on data/events_published.json: its record's official rates equal a reading in the raw files for that day, the move
+    printed on the page equals the detector's row, and the street price before (used in the landing block) equals the day's median
+    of the raw Binance rows. Fails if the list is missing or an event has no record."""
+    pub_path = os.path.join(DATA, "events_published.json")
+    if not os.path.exists(pub_path):
+        return False, {"reason": "data/events_published.json missing"}
+    pub = json.load(open(pub_path)).get("events", [])
+    bad = []
+    for e in pub:
+        rp = os.path.join(HERE, e["record"])
+        if not os.path.exists(rp):
+            bad.append({"id": e["id"], "reason": "record missing"})
+            continue
+        rec = json.load(open(rp))
+        o = rec.get("official") or {}
+        close = lambda a, b: a is not None and b is not None and abs(a - b) <= 0.002 * abs(b)
+        for key, day in (("baseline", o.get("baseline_day")), ("at_detection", rec.get("detected_on"))):
+            if o.get(key) is None or not any(close(v, o[key]) for v in _official_day_values(rec["ccy"], day)):
+                bad.append({"id": e["id"], "official": key, "day": day})
+        if e["event_kind"] == "official_break" and o.get("baseline") and o.get("at_detection") and e["record"].find("event_records_rules4") < 0:
+            if abs((o["at_detection"] / o["baseline"] - 1) * 100 - e["change_pct"]) > 0.1:
+                bad.append({"id": e["id"], "reason": "move differs from the row"})
+        a = (rec.get("after") or [{}])[0]
+        if a.get("official") is not None and not any(close(v, a["official"]) for v in _official_day_values(rec["ccy"], a["day"])):
+            bad.append({"id": e["id"], "official": "after", "day": a.get("day")})
+        st = rec.get("street") or {}
+        if st.get("before") is not None:
+            if "data/history" in (st.get("source") or ""):
+                seen = _history_street_closes(rec["ccy"], st.get("before_day"))
+                if not any(abs(v - st["before"]) <= 0.002 * abs(v) for v in seen):
+                    bad.append({"id": e["id"], "street_before": st["before"], "history_closes": seen})
+                continue
+            m = _street_day_median(rec["ccy"], st.get("before_day"))
+            if m is None or abs(m - st["before"]) > 0.01 * abs(m):
+                bad.append({"id": e["id"], "street_before": st["before"], "raw": m})
+    return not bad and bool(pub), {"events": len(pub), "bad": bad}
+
+
 TYPES = {"stable_never_cheapest": claim_stable_never_cheapest,
          "stable_rarely_cheapest": claim_stable_rarely_cheapest,
          "within_of_ranked": claim_within_of_ranked,
@@ -317,7 +391,8 @@ TYPES = {"stable_never_cheapest": claim_stable_never_cheapest,
          "updated_hourly": claim_updated_hourly,
          "coverage_matches_index": claim_coverage_matches_index,
          "sources_counts": claim_sources_counts,
-         "routes_published_equal_fresh": claim_routes_published_equal_fresh}
+         "routes_published_equal_fresh": claim_routes_published_equal_fresh,
+         "event_pages": claim_event_pages}
 
 
 def run():

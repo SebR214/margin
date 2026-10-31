@@ -44,7 +44,7 @@
   }
 
   function nav() {
-    [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navHow', 'how-it-works.html']].forEach(function (x) {
+    [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHow', 'how-it-works.html']].forEach(function (x) {
       var t = C[x[0]]; if (!t) { return; }
       var a = document.createElement('a'); a.textContent = t; a.href = './' + x[1]; $('nav').appendChild(a);
     });
