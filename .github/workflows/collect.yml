@@ -282,9 +282,10 @@ jobs:
         run: python3 collector_p2p_okx.py
 
       # SEB-422 step 3: the cash dollar. collectors/cash_configs/*.json, one public money-changer tracker each (collectors/template_tracker.py).
-      # Fails the run only when no tracker was read; one tracker down is a row with source_ok false in the daily table cash_rates.
+      # Optional like the other newer collectors (continue-on-error); one tracker down is a row with source_ok false in the daily table cash_rates.
       - name: Collect the cash dollar from the money-changer trackers (SEB-422)
         if: always() && steps.needed.outputs.proceed == 'true'
+        continue-on-error: true
         run: python3 collector_cash.py
 
       - name: Collect multi-venue stablecoin prices (SEB-243)
