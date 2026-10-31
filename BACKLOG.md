@@ -223,3 +223,15 @@ Written by the retired researcher (25 to 29 Oct). Track A rules in tools/job_sha
     files: `tools/pair_gap_daily.py` `data/pair_gap_daily.csv` `tests/agent_pair_gap_daily.py`
     context: `data/source_pairs.json` `tools/emit_source_pairs.py` `data/index_hourly.csv` `data/p2p_okx.csv`
     done when: tools/pair_gap_daily.py reuses the pairing logic of tools/emit_source_pairs.py, takes the pairs with flag true in the disagree list of data/gap_report.json and writes data/pair_gap_daily.csv with one row per currency, pair and UTC day holding the median gap in percent and the hours counted. tests/agent_pair_gap_daily.py uses an inline fixture of two days with hourly prices where source a is 100 and source b is 110 on day one for 3 hours and b is 120 on day two for 2 hours, and checks day one has median gap 10.0 with 3 hours and day two has 20.0 with 2 hours. An hour where one source has no price must be skipped, not counted as zero.
+
+## Board x currency jobs, from the gap list (research chat, SEB-422)
+Written with `python3 tools/new_board_job.py` from `python3 tools/gap_report.py --boards` (data/board_gap_report.json). Seb or the research chat only.
+
+- [ ] 29. Collect bitget P2P for GHS every hour
+  - [ ] 29a. Add the bitget x GHS config and its test
+    track: aider
+    proposed: research chat 2026-10-31 (gap: board_gap_report: bitget GHS (7 ads seen on page 1))
+    files: `collectors/board_configs/bitget_GHS.json` `tests/agent_board_bitget_GHS.py`
+    context: `collectors/template_board.py` `collectors/boards/bitget.py` `data/source_registry.json`
+    done when: python3 tests/agent_board_bitget_GHS.py passes: the config file holds exactly this JSON, on one line: {"board": "bitget", "ccy": "GHS", "pair": "USDT", "endpoint": "https://www.bitget.com/v1/p2p/pub/adv/queryAdvList", "parser": "bitget", "min_ads": 3, "sides": {"buy": "1", "sell": "2"}, "extra": {}} . The test file holds exactly this text (copy it, change nothing): <<<"""SEB-422: one live pull of bitget_GHS parses, the prices are within 30% of the official rate, and the row lands."""\nimport os\nimport sys\n\nsys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\nfrom collectors import template_board as tb  # noqa: E402\n\nrow = tb.run_config_test('bitget_GHS')\nassert row["board"] and row["ccy"], row\nprint("bitget_GHS: ok", row)\n>>> . Nothing else in the repository changes; collector_boards.py reads the new config on its next hourly run.
+

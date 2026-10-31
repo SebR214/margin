@@ -12,6 +12,13 @@ Computed from files already on main, so the researcher never has to guess where 
     python3 tools/gap_report.py              # write data/gap_report.json and print a summary
     python3 tools/gap_report.py --print      # print only
     python3 tools/gap_report.py --self-test
+    python3 tools/gap_report.py --boards     # SEB-422: every board x currency the boards list and we do not collect (needs the network)
+
+--boards probes each board that has a parser (collectors/boards/) for each currency in the universe below with one request (the side
+where the reader buys dollars, page 1) and counts the ads seen. It prints a table and writes data/board_gap_report.json. A board x
+currency is "collected" when collector_p2p.py, collector_p2p_okx.py, collector_p2p_kucoin.py or a config in collectors/board_configs/
+already reads it. The table is the list the research chat turns into BACKLOG.md jobs (tools/new_board_job.py writes the job text).
+No model. The universe is the ISO codes of HTX's own currency list plus the currencies the Binance and OKX collectors read.
 """
 import csv
 import datetime
@@ -103,6 +110,89 @@ def build(now=None):
     }
 
 
+BOARD_PAUSE = 1.0
+HTX_CONFIG = "https://www.htx.com/-/x/otc/v1/data/config-list?type=currency"
+
+
+def collected_pairs():
+    """{(board, ccy)} already read by a collector or a config."""
+    sys.path.insert(0, ROOT)
+    import collector_p2p
+    import collector_p2p_okx
+    import collector_p2p_kucoin
+    from collectors import template_board
+    out = {("binance", c) for c in collector_p2p.CURRENCIES} | {("okx", c) for c in collector_p2p_okx.CURRENCIES}
+    out |= {("kucoin", c) for c in collector_p2p_kucoin.CURRENCIES}
+    out |= {(c["board"], c["ccy"]) for c in template_board.load_all()}
+    return out
+
+
+def htx_currencies(fetch):
+    """{ISO code: HTX's integer id} from HTX's own currency list."""
+    return {c["nameShort"]: c["currencyId"] for c in fetch(HTX_CONFIG)["data"]["currency"] if c.get("nameShort")}
+
+
+def probe_board(name, ccys, fetch, htx_ids, pause=BOARD_PAUSE):
+    """[(ccy, ads seen on page 1, error)] for one board. Never raises: a failed request is an error string and a count of None."""
+    import time
+    sys.path.insert(0, ROOT)
+    from collectors import boards, template_board
+    parser = boards.get(name)
+    side = {"binance": "BUY", "okx": "sell", "kucoin": "SELL", "bitget": "1", "htx": "sell"}[name]
+    out = []
+    for c in ccys:
+        cfg = {"ccy": c, "pair": "USDT", "extra": {}}
+        if name == "htx":
+            if c not in htx_ids:
+                continue
+            cfg["extra"] = {"coin_id": 2, "currency_id": htx_ids[c]}
+        for attempt in range(3):                      # a board that says "too many requests" is asked again after a wait, not counted as empty
+            try:
+                out.append((c, len(parser.parse(fetch(parser.request(cfg, side, 1)), side)), ""))
+                break
+            except Exception as e:
+                if "429" in str(e) and attempt < 2 and pause:
+                    time.sleep(8 * (attempt + 1))
+                    continue
+                out.append((c, None, "%s:%s" % (type(e).__name__, str(e)[:60])))
+                break
+        time.sleep(pause)
+    return out
+
+
+def boards_report(fetch=None, boards_to_probe=("binance", "okx", "kucoin", "bitget", "htx"), pause=BOARD_PAUSE):
+    """Every (board, ccy) with ads that no collector reads, most ads first."""
+    from concurrent.futures import ThreadPoolExecutor
+    sys.path.insert(0, ROOT)
+    from collectors import template_board
+    import collector_p2p
+    import collector_p2p_okx
+    fetch = fetch or template_board.default_fetch
+    htx_ids = htx_currencies(lambda u: fetch({"method": "GET", "url": u, "headers": {"User-Agent": "margin.wiki/1.0 (+https://margin.wiki)"}}))
+    universe = sorted(set(htx_ids) | set(collector_p2p.CURRENCIES) | set(collector_p2p_okx.CURRENCIES))
+    have = collected_pairs()
+    with ThreadPoolExecutor(max_workers=len(boards_to_probe)) as ex:
+        futs = {b: ex.submit(probe_board, b, universe, fetch, htx_ids, pause) for b in boards_to_probe}
+        probed = {b: f.result() for b, f in futs.items()}
+    rows, errors = [], []
+    for b, res in probed.items():
+        for c, n, err in res:
+            if err:
+                errors.append({"board": b, "ccy": c, "error": err})
+            elif n and (b, c) not in have:
+                rows.append({"board": b, "ccy": c, "ads_seen": n, "htx_currency_id": htx_ids.get(c) if b == "htx" else None})
+    rows.sort(key=lambda r: (-r["ads_seen"], r["board"], r["ccy"]))
+    return {"computed_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"), "universe": len(universe),
+            "boards_probed": list(boards_to_probe), "boards_blocked": __import__("collectors.boards", fromlist=["x"]).BLOCKED,
+            "collected": len(have), "gaps": rows, "probe_errors": errors}
+
+
+def boards_table(rep):
+    out = ["| Board | Currency | Ads seen (page 1) |", "|---|---|---|"]
+    out += ["| %s | %s | %d |" % (r["board"], r["ccy"], r["ads_seen"]) for r in rep["gaps"]]
+    return "\n".join(out)
+
+
 def summary(r):
     return "gap report: %d without a price, %d one source, %d disagreeing pairs, %d stale findings, %d past quarantine" % (
         len(r["no_price"]), len(r["one_source"]), len(r["disagree"]), len(r["stale_findings"]), len(r["quarantine_due"]))
@@ -127,12 +217,39 @@ def self_test():
     assert [q["source"] for q in quarantine_due(reg, now.date())] == ["old"]
     r = build(now)
     assert set(r) >= {"no_price", "one_source", "disagree", "stale_findings", "quarantine_due"}, "the real files did not read"
+    # --boards on canned answers: a pair already collected is left out, an empty board is left out, a failed request is an error
+    def fake(kw):
+        u = kw["url"]
+        if u == HTX_CONFIG:
+            return {"data": {"currency": [{"nameShort": "VND", "currencyId": 5}, {"nameShort": "KES", "currencyId": 34}]}}
+        if "bitget" in u:
+            if kw["json"]["fiatCode"] == "KES":
+                raise OSError("down")
+            return {"code": "00000", "data": {"dataList": [{"price": "10"}] * (3 if kw["json"]["fiatCode"] == "VND" else 0)}}
+        if "htx" in u:
+            return {"code": 200, "data": [{"price": "1"}] * (7 if kw["params"]["currency"] == 34 else 0)}
+        return {"code": "000000", "data": []}
+    rep = boards_report(fake, ("bitget", "htx"), 0)
+    got = {(g["board"], g["ccy"]): g["ads_seen"] for g in rep["gaps"]}
+    assert got.get(("htx", "KES")) == 7 and got.get(("bitget", "VND")) == 3 and ("htx", "VND") not in got, got
+    assert [e["ccy"] for e in rep["probe_errors"]] == ["KES"] and rep["gaps"][0]["ads_seen"] == 7, rep
+    assert ("bitget", "NGN") not in got, "a pair with a config is already collected, and one with no ads is no gap"
     print("gap_report self-test: ok (%s)" % summary(r))
 
 
 def main(argv):
     if "--self-test" in argv:
         self_test()
+        return 0
+    if "--boards" in argv:
+        rep = boards_report()
+        out = os.path.join(ROOT, "data", "board_gap_report.json")
+        with open(out, "w") as f:
+            json.dump(rep, f, indent=1)
+            f.write("\n")
+        print(boards_table(rep))
+        print("\n%d board x currency pairs with ads that no collector reads; %d probe errors; written to data/board_gap_report.json" % (
+            len(rep["gaps"]), len(rep["probe_errors"])))
         return 0
     r = build()
     print(summary(r))

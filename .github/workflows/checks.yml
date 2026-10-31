@@ -101,6 +101,11 @@ jobs:
       - name: Seller ids are hashed, keyed to the ads file (SEB-384)
         run: python3 collector_p2p_sellers.py --selftest
 
+      - name: Board x currency template, five board parsers, rows and guards (SEB-422)
+        run: |
+          python3 collector_boards.py --selftest
+          python3 tools/new_board_job.py --self-test
+
       - name: Money-changer trackers parse and guard (SEB-422)
         run: |
           python3 collector_cash.py --selftest
