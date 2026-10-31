@@ -281,6 +281,12 @@ jobs:
         # other collector: exits non-zero ONLY on a total blackout.
         run: python3 collector_p2p_okx.py
 
+      # SEB-422 step 3: the cash dollar. collectors/cash_configs/*.json, one public money-changer tracker each (collectors/template_tracker.py).
+      # Fails the run only when no tracker was read; one tracker down is a row with source_ok false in the daily table cash_rates.
+      - name: Collect the cash dollar from the money-changer trackers (SEB-422)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        run: python3 collector_cash.py
+
       - name: Collect multi-venue stablecoin prices (SEB-243)
         if: always() && steps.needed.outputs.proceed == 'true'
         # collector_stable_venues.py prices every venue the repo can read for each
@@ -825,6 +831,10 @@ jobs:
           done
           # Event records (SEB-311): one JSON file per event, a new one on its first day. A separate loop for the same reason.
           for d in data/event_records; do
+            if [ -d "$d" ]; then git add "$d"; fi
+          done
+          # The cash dollar (SEB-422): one file a day in data/cash_rates/ while the raw tables are still in this repo. Its own loop so no existing line is edited.
+          for d in data/cash_rates; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # The dollar map timeline (SEB-384): a new folder of JSON, a new year file each January. Its own loop for the same reason.
