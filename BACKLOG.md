@@ -216,6 +216,7 @@ Written by the retired researcher (25 to 29 Oct). Track A rules in tools/job_sha
     files: `tools/no_price_near_miss.py` `data/no_price_near_miss.json` `tests/agent_no_price_near_miss.py`
     context: `data/no_price_sources.json` `data/index_latest.json` `data/p2p_sides.csv` `tools/gate_common.py`
     done when: tools/no_price_near_miss.py reads each currency in the no_price list of data/gap_report.json, reads the stored ad-count threshold from tools/gate_common.py, and counts from data/p2p_sides.csv the sell ads each hour of the last 7 days. It writes data/no_price_near_miss.json with, per currency, the median ad count, the threshold and the number of hours at or above it. tests/agent_no_price_near_miss.py uses an inline fixture with a threshold of 10 and 4 hourly counts of 3, 8, 10 and 12 for one currency and checks the median is 9, hours at or above is 2 and the currency is marked near miss only when the median is at least half the threshold. A currency with no rows must be listed as no data.
+    blocked: needs-claude: the Aider builder failed 2 times, last: empty after Aider: tools/no_price_near_miss.py data/no_price_near_miss.json tests/agent_no_price_near_miss.py (2026-10-31)
 - [ ] 28. Daily gap history for flagged source pairs
   - [ ] 28a. Daily gap history for flagged source pairs
     track: aider
