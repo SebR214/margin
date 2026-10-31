@@ -1,12 +1,12 @@
-# In Iraq a dollar costs 12.4% more than the official rate
+# In Iraq a dollar costs 12.3% more than the official rate
 
-Prices from the 04:00 UTC hour, 31 Oct.
+Prices from the 05:00 UTC hour, 31 Oct.
 
-The official rate is 1,516.79 IQD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 1,705 IQD. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 1,516.79 IQD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 1,704 IQD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 170,510 IQD. The official rate says 151,679 IQD.
+For US$100, people pay 170,398 IQD. The official rate says 151,679 IQD.
 
-Prices from the 04:00 UTC hour, 31 Oct
+Prices from the 05:00 UTC hour, 31 Oct
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -24,7 +24,7 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-1,697 IQD +11.9%
+1,695 IQD +11.8%
 
 OKX, people selling to each other
 

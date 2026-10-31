@@ -1,14 +1,14 @@
-# In Zambia a dollar costs 1.2% more than the official rate
+# In Zambia a dollar costs 0.5% more than the official rate
 
-Prices from the 04:00 UTC hour, 31 Oct.
+Prices from the 05:00 UTC hour, 31 Oct.
 
-The official rate is 20.25 ZMW per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 20.49 ZMW. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 20.25 ZMW per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 20.36 ZMW. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 2,049 ZMW. The official rate says 2,025 ZMW.
+For US$100, people pay 2,036 ZMW. The official rate says 2,025 ZMW.
 
 Only 1 source
 
-Prices from the 04:00 UTC hour, 31 Oct
+Prices from the 05:00 UTC hour, 31 Oct
 
 You could buy only US$4,500 here before the price goes up 1%.
 
@@ -26,4 +26,4 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-20.49 ZMW +1.2%
+20.36 ZMW +0.5%
