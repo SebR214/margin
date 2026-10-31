@@ -43,7 +43,7 @@ HIST = os.path.join(DATA, "history")
 LABEL = "reported, not observed"
 
 # Only these may mention the history layer.
-HISTORY_WRITERS = {"tools/backfill_history.py", "tools/check_history_isolation.py"}
+HISTORY_WRITERS = {"tools/backfill_history.py", "tools/pull_cash_history.py", "tools/check_history_isolation.py"}
 # tools/emit_country_history.py (SEB-208) is the one reader: it only reads
 # data/history/ to build data/country_history_segment/, a new sidecar
 # country.html shows as a separate, labelled earlier segment on its chart. It

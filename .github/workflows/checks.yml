@@ -90,6 +90,11 @@ jobs:
       - name: Seller ids are hashed, keyed to the ads file (SEB-384)
         run: python3 collector_p2p_sellers.py --selftest
 
+      - name: Money-changer trackers parse and guard (SEB-422)
+        run: |
+          python3 collector_cash.py --selftest
+          python3 tools/pull_cash_history.py --self-test
+
       - name: The big P2P tables are one file a day, and a file near 100 MB fails before the commit (SEB-301)
         run: |
           python3 tools/daily_csv.py --self-test
