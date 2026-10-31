@@ -834,19 +834,21 @@ def _gas_missing_case():
     """SEB-301, 31 Oct: a sample written without its gas reading is not priced, and the route says which part could not be read."""
     global read_csv
     real = read_csv
-    row = {"ts": "2026-10-31T06:06:40+00:00", "corridor": "USD->INR", "source_ok": "False", "errors": "gas:missing:both RPCs",
+    row = {"ts": "2026-10-30T03:06:40+00:00", "corridor": "USD->INR", "source_ok": "False", "errors": "gas:missing:both RPCs",
            "notional_src": "1000", "cost_bps_taker": "", "network_fee_stable": "", "src": "USD", "dst": "INR", "stable": "USDT"}
-    other = dict(row, ts="2026-10-31T07:06:40+00:00", errors="gas:missing:x; mid:Timeout")      # a second failure: not a gas-only miss
+    other = dict(row, ts="2026-10-30T04:06:40+00:00", errors="gas:missing:x; mid:Timeout")      # a second failure: not a gas-only miss
     read_csv = lambda name: real(name) + ([row, other] if name == SAMPLES else [])
     try:
         D, S, docs = build_all()
     finally:
         read_csv = real
-    assert D["gas_missing"] == {"USD->INR": ["2026-10-31T06"]}, D["gas_missing"]
-    gap = [g for g in docs["breakdown"]["gaps"] if g.get("reason") == "not_read_this_hour"]
-    assert len(gap) == 1 and gap[0]["route"] == "USD->INR" and gap[0]["leg"] == "on_chain", gap
-    assert gap[0]["hours_utc"] == ["2026-10-31 06:00"] or len(gap[0]["hours_utc"]) == 1, gap[0]
-    assert ("USD->INR", "1000", "2026-10-31T06") not in D["base"], "the hour is not priced"
+    # The real files can hold gas-missing hours of their own now (collection writes them), so this checks only the synthetic row.
+    assert "2026-10-30T03" in D["gas_missing"].get("USD->INR", []), D["gas_missing"]
+    assert "2026-10-30T04" not in D["gas_missing"].get("USD->INR", []), "a second failure in the same row is not a gas-only miss"
+    gap = [g for g in docs["breakdown"]["gaps"] if g.get("reason") == "not_read_this_hour" and g["route"] == "USD->INR"]
+    assert len(gap) == 1 and gap[0]["leg"] == "on_chain", gap
+    assert hour_utc("2026-10-30T03") in gap[0]["hours_utc"], gap[0]
+    assert ("USD->INR", "1000", "2026-10-30T03") not in D["base"], "the hour is not priced"
 
 
 def self_test():
