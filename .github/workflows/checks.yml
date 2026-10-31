@@ -120,6 +120,8 @@ jobs:
         run: |
           python3 tools/detect_events.py --self-test
           python3 tests/check_events.py
+      - name: Which events get a page (SEB-423)
+        run: python3 tools/publish_events.py --self-test
       - name: The replay finds the known breaks and misses Nigeria for its stated reason (SEB-311 step 3c)
         run: python3 tests/check_known_breaks.py
       - name: The routes table sums its steps (SEB-310)
