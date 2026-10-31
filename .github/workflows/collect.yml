@@ -577,6 +577,14 @@ jobs:
         # above so its published-figure cross-check sees this hour's files.
         run: python3 tools/audit_claims.py
 
+      - name: Regenerate the Research pages (SEB-423)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-423 step 3. Every Research page is built by a script in tools/research/ from files already on main. The live months and
+        # "Markets inside one country disagree" are rebuilt every run, because their inputs (data/index_hourly.csv, data/source_pairs.json)
+        # change every run and a stored page must match them; the yearly premium page re-runs from the history files on the first run of
+        # each UTC month. A failed piece fails this step. See tools/research/run.py.
+        run: python3 tools/research/run.py
+
       - name: Emit the stress signal
         if: always() && steps.needed.outputs.proceed == 'true'
         # Append-only. Checks data/countries/*.json (just written above)
@@ -826,6 +834,10 @@ jobs:
           # Event records (SEB-311): one JSON file per event, a new one on its first day. A separate loop for the same reason.
           for d in data/event_records; do
             if [ -d "$d" ]; then git add "$d"; fi
+          done
+          # Research pages (SEB-423): new files under data/research/, their own loop so no existing line is edited.
+          for f in data/research/capital_controls.csv data/research/capital_controls.json data/research/capital_controls_months.json data/research/source_pairs.json; do
+            if [ -f "$f" ]; then git add "$f"; fi
           done
           # The dollar map timeline (SEB-384): a new folder of JSON, a new year file each January. Its own loop for the same reason.
           for d in data/map_timeline; do
