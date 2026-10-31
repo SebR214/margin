@@ -130,7 +130,10 @@ def build(ts, cfg, pulled, official):
             errs.append("%s: %d usable ads at ~USD 500, need %d (%d on the board)" % (side, len(use), cfg["min_ads"], len(got)))
             continue
         med = statistics.median(a["price"] for a in use)
-        if official and abs(med / official - 1) > BAND:
+        if not official:
+            errs.append("guard: no official rate for %s in data/fx_rates.csv, so the 30%% check cannot run" % ccy)
+            continue
+        if abs(med / official - 1) > BAND:
             errs.append("guard: %s median %.4g is more than 30%% from the official rate %.4g" % (side, med, official))
             continue
         meds[side] = round(med, 6)
@@ -236,6 +239,8 @@ def selftest():
     assert not row["source_ok"] and row["buy_median"] == "" and "need 3" in row["error"], row
     ads, sel, row = build(ts, cfg, {"buy": ValueError("not an ad list"), "sell": good["sell"]}, 1340.0)
     assert not row["source_ok"] and "ValueError" in row["error"] and ads[0][9] is False, row
+    ads, sel, row = build(ts, cfg, good, None)
+    assert not row["source_ok"] and "no official rate" in row["error"] and row["buy_median"] == "" and row["sell_median"] == "", row
     ads, sel, row = build(ts, cfg, {"buy": [ad(100), ad(101), ad(102)], "sell": good["sell"]}, 1340.0)
     assert not row["source_ok"] and "guard" in row["error"] and row["buy_median"] == "", row
     # the paging: a board of 25 ads on 20-row pages is two requests; a whole-book board is one
