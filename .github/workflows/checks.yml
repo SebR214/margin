@@ -127,7 +127,10 @@ jobs:
       - name: The Research pages rebuild from their scripts (SEB-423)
         run: python3 tools/research/run.py --self-test
       - name: The Research claims pass on the files and fail on a wrong number (SEB-423)
-        run: python3 tests/check_research_claims.py
+        # The pages are rebuilt first, as every collection run does, from the inputs this commit holds; those inputs are rewritten hourly.
+        run: |
+          python3 tools/research/run.py
+          python3 tests/check_research_claims.py
       - name: A sudden flip is held back (SEB-302)
         run: python3 tools/check_flip_hold.py
 

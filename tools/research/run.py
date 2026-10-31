@@ -2,9 +2,11 @@
 """Every Research page is generated here, none by hand (SEB-423 step 3). Plain code, no model.
 
 Each piece is a script in tools/research/ with a build() that returns the page's JSON document, written to data/research/<id>.json.
-A piece is rebuilt on the first run of each UTC month (its file's "built_month" is not this month's) or with --force, so the pages
-re-run themselves on the 1st from the files already on main and their "as of" line moves. A piece that fails stops the run with a
-non-zero exit; nothing is written for it.
+Two kinds of piece. The live ones read files that every collection run rewrites (data/index_hourly.csv, data/source_pairs.json), so they are
+rebuilt on every run: a stored page file must match its inputs at every commit, or the claims audit (tools/audit_claims.py) fails it. The
+yearly premium page (tools/research_capital_controls.py, from the history files) is rebuilt on the first run of each UTC month, noted in the
+months file as "yearly_built_month", so on the 1st it re-runs and its "as of" line moves. A piece that fails stops the run with a non-zero
+exit; nothing is written for it.
 
     python3 tools/research/run.py              # rebuild the pieces that are due
     python3 tools/research/run.py --force      # rebuild all
@@ -44,13 +46,21 @@ def run(force=False, month=None):
     month = month or today_month()
     built = []
     for pid in PIECES:
-        if not due(pid, force, month):
-            continue
         mod = importlib.import_module(pid)
-        if pid == "capital_controls_months":
-            mod.rebuild_yearly()        # the yearly page re-runs with its months
+        old = {}
+        try:
+            old = json.load(open(os.path.join(OUT_DIR, pid + ".json")))
+        except (OSError, ValueError):
+            pass
+        if pid == "capital_controls_months" and (force or old.get("yearly_built_month") != month):
+            mod.rebuild_yearly()        # the yearly page re-runs from the history files on the first run of the month
+            yearly = month
+        else:
+            yearly = old.get("yearly_built_month")
         doc = mod.build()
         doc["built_month"] = month
+        if pid == "capital_controls_months":
+            doc["yearly_built_month"] = yearly
         os.makedirs(OUT_DIR, exist_ok=True)
         tmp = os.path.join(OUT_DIR, pid + ".json.tmp")
         with open(tmp, "w") as f:

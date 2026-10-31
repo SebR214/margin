@@ -579,9 +579,10 @@ jobs:
 
       - name: Regenerate the Research pages (SEB-423)
         if: always() && steps.needed.outputs.proceed == 'true'
-        # SEB-423 step 3. Every Research page is built by a script in tools/research/ from files already on main: on the first run of each
-        # UTC month the yearly premium page re-runs from the history files and appends the live months, and "Markets inside one country
-        # disagree" is rebuilt from data/source_pairs.json. Other hours it does nothing. A failed piece fails this step. See tools/research/run.py.
+        # SEB-423 step 3. Every Research page is built by a script in tools/research/ from files already on main. The live months and
+        # "Markets inside one country disagree" are rebuilt every run, because their inputs (data/index_hourly.csv, data/source_pairs.json)
+        # change every run and a stored page must match them; the yearly premium page re-runs from the history files on the first run of
+        # each UTC month. A failed piece fails this step. See tools/research/run.py.
         run: python3 tools/research/run.py
 
       - name: Emit the stress signal
