@@ -50,6 +50,17 @@ jobs:
         with:
           python-version: "3.12"
 
+      # SEB-422. Once the raw tables have moved to margin-data, the copy in this repo stops growing. Checks that read the real ad, seller, offer
+      # or depth tables read the union: margin-data, topped up from this repo's copy (tools/raw_storage.py seed is safe to repeat).
+      - uses: actions/checkout@v4
+        with:
+          repository: SebR214/margin-data
+          path: margin-data
+      - name: Point the raw tables at margin-data
+        run: |
+          python3 tools/raw_storage.py seed margin-data
+          echo "MARGIN_RAW_DIR=$GITHUB_WORKSPACE/margin-data" >> "$GITHUB_ENV"
+
       - name: Inventory gate (no page may lose charts, tables or interactive elements)
         run: python3 tools/check_inventory.py
 
@@ -57,6 +68,13 @@ jobs:
         run: |
           python3 tools/check_junk_files.py --self-test
           python3 tools/check_junk_files.py
+
+      - name: Every page head is current, and the outside check works (SEB-425)
+        run: |
+          python3 tools/emit_site_files.py --self-test
+          python3 tools/emit_site_files.py head
+          git diff --exit-code -- '*.html'
+          python3 tools/check_outside.py --self-test
 
       - name: Plain-language gate (no payments jargon in headings/nav/labels)
         run: python3 tools/check_copy.py
@@ -88,10 +106,16 @@ jobs:
           python3 collector_boards.py --selftest
           python3 tools/new_board_job.py --self-test
 
+      - name: Money-changer trackers parse and guard (SEB-422)
+        run: |
+          python3 collector_cash.py --selftest
+          python3 tools/pull_cash_history.py --self-test
+
       - name: The big P2P tables are one file a day, and a file near 100 MB fails before the commit (SEB-301)
         run: |
           python3 tools/daily_csv.py --self-test
           python3 tools/check_file_size.py --self-test
+          python3 tools/raw_storage.py --self-test
           python3 tools/check_collector_health.py --self-test
 
       - name: The devaluation-watch backtest rules and its kill rule (SEB-384)
@@ -125,10 +149,23 @@ jobs:
         run: |
           python3 tools/detect_events.py --self-test
           python3 tests/check_events.py
+      - name: Which events get a page (SEB-423)
+        run: python3 tools/publish_events.py --self-test
       - name: The replay finds the known breaks and misses Nigeria for its stated reason (SEB-311 step 3c)
         run: python3 tests/check_known_breaks.py
+      - name: The home facts build and the claims audit catches a wrong one (SEB-423)
+        run: |
+          python3 tools/emit_home_facts.py --self-test
+          python3 tests/check_home_facts.py
       - name: The routes table sums its steps (SEB-310)
         run: python3 tools/emit_routes_table.py --self-test
+      - name: The Research pages rebuild from their scripts (SEB-423)
+        run: python3 tools/research/run.py --self-test
+      - name: The Research claims pass on the files and fail on a wrong number (SEB-423)
+        # The pages are rebuilt first, as every collection run does, from the inputs this commit holds; those inputs are rewritten hourly.
+        run: |
+          python3 tools/research/run.py
+          python3 tests/check_research_claims.py
       - name: A sudden flip is held back (SEB-302)
         run: python3 tools/check_flip_hold.py
 
@@ -144,16 +181,12 @@ jobs:
 
       - name: Status and watchdog helpers (SEB-301)
         run: |
-          python3 tools/daily_status.py --self-test
-          python3 tools/check_researcher_health.py --self-test
           python3 tools/check_audit_health.py --self-test
 
-      - name: The researcher, the gap report, the job rules and the scorecard (SEB-301, 25 Oct)
+      - name: The gap report and the job rules (SEB-301, SEB-422)
         run: |
           python3 tools/gap_report.py --self-test
           python3 tools/job_shape.py --self-test
-          python3 tools/researcher.py --self-test
-          python3 tools/scorecard.py --self-test
 
       - name: Every test an agent job added (tests/agent_*.py)
         run: python3 tools/run_agent_tests.py

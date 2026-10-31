@@ -43,7 +43,7 @@ HIST = os.path.join(DATA, "history")
 LABEL = "reported, not observed"
 
 # Only these may mention the history layer.
-HISTORY_WRITERS = {"tools/backfill_history.py", "tools/check_history_isolation.py"}
+HISTORY_WRITERS = {"tools/backfill_history.py", "tools/pull_cash_history.py", "tools/check_history_isolation.py"}
 # tools/emit_country_history.py (SEB-208) is the one reader: it only reads
 # data/history/ to build data/country_history_segment/, a new sidecar
 # country.html shows as a separate, labelled earlier segment on its chart. It
@@ -77,6 +77,7 @@ HISTORY_READERS = {"tools/analyst.py", "tools/backtest_watch.py", "tools/emit_ma
                    "tools/research_capital_controls.py", "tests/check_research_capital_controls.py",   # SEB-301: Research page 1, labelled history, display only
                     "tools/emit_country_history.py", "tests/check_known_breaks.py",
                    "tools/emit_machine_room_meters.py",
+                   "tools/publish_events.py",   # SEB-423: lists which replayed events get a page, labelled reported, not observed; feeds no price
                    "tools/emit_record_milestones.py", "tools/emit_sources_daily.py"}
 HISTORY_TOKENS = [
     re.compile(r"data/history"),

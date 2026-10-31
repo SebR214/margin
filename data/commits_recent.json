@@ -1,7 +1,112 @@
 {
- "as_of_utc": "2026-10-31T06:18:52Z",
+ "as_of_utc": "2026-10-31T08:44:06Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "9e669ea864e9aca4d399013ed2187a48d67361fa",
+   "html_url": "https://github.com/SebR214/margin/commit/9e669ea864e9aca4d399013ed2187a48d67361fa",
+   "date": "2026-10-31T08:40:40Z",
+   "email": "person",
+   "message": "SEB-422: raw tables go to margin-data once the App can push there (#725)\n\n* SEB-422: raw tables go to margin-data once the App can push there, legacy until then\n\ntools/raw_storage.py probes the installation, seeds margin-data from data/ and is safe to repeat.\ndaily_csv.DATA follows MARGIN_RAW_DIR. depth.csv becomes one file a day. collect.yml only grows:\nprobe, checkout, seed, and a commit step that fails the run if the push fails.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: checks read the raw tables from margin-data, topped up from this repo\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "e174fbfeb16068e03a99076e4ef9620c21f5dcfc",
+   "html_url": "https://github.com/SebR214/margin/commit/e174fbfeb16068e03a99076e4ef9620c21f5dcfc",
+   "date": "2026-10-31T08:38:33Z",
+   "email": "person",
+   "message": "SEB-423: published events list, rule and daily step (step 2, pipeline) (#724)\n\n* SEB-423 step 2a: which events get a page, a published list the daily run keeps current\n\ntools/publish_events.py writes data/events_published.json: two sources and a 10% official or 15% street move, or a hand-entered known date with a link. 6 events today. Pipeline only; the pages follow in a separate PR.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-423: publish_events may read the labelled history\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "db7f745cba300a130f2246f596912302beb68705",
+   "html_url": "https://github.com/SebR214/margin/commit/db7f745cba300a130f2246f596912302beb68705",
+   "date": "2026-10-31T08:37:49Z",
+   "email": "person",
+   "message": "SEB-423: home facts file and its claims audit (step 1, pipeline) (#722)\n\n* SEB-423 step 1a: home facts file (largest 24 hour move, what changed this week) and the claims audit for it\n\nPipeline only: tools/emit_home_facts.py writes data/home_facts.json each collection run, tools/audit_claims.py gets two claim types that re-derive it from the raw files, tests/check_home_facts.py. No page change; the words and the home page follow in a separate PR.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-423: claim guards use the final copy keys\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "29d1c3b648223279e28f0f29c4ca8b5660d05758",
+   "html_url": "https://github.com/SebR214/margin/commit/29d1c3b648223279e28f0f29c4ca8b5660d05758",
+   "date": "2026-10-31T08:35:32Z",
+   "email": "person",
+   "message": "SEB-422: cash dollar template and the first three money-changer trackers (#731)\n\n* SEB-422: cash dollar template and the first three money-changer trackers\n\ncollectors/template_tracker.py + collector_cash.py write the daily table cash_rates. Argentina blue, Venezuela\nparallel, Pakistan open market. Argentina's blue history (reported, not observed) in data/history/.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: cash step optional like the other newer collectors\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: cash fetch uses the standard library (the checks job has no requests)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: no continue-on-error on the steps this PR adds to collect.yml\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "39617adce3873bf018d0511dfae7a8251b4f9440",
+   "html_url": "https://github.com/SebR214/margin/commit/39617adce3873bf018d0511dfae7a8251b4f9440",
+   "date": "2026-10-31T08:34:22Z",
+   "email": "person",
+   "message": "SEB-425: findable (#733)\n\n* SEB-425: findable. Page heads, robots.txt, sitemap.xml, favicon, footer links to the orphan pages, outside check after every Pages deploy\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-425: sitemap lists the country .md copies until SEB-426\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "bdc236d986816e820cdce452645cebcdfcdc38fd",
+   "html_url": "https://github.com/SebR214/margin/commit/bdc236d986816e820cdce452645cebcdfcdc38fd",
+   "date": "2026-10-31T08:27:49Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-31T08:27Z"
+  },
+  {
+   "sha": "4db9ab4f84a8dc59c00037c7e57b7a317c628119",
+   "html_url": "https://github.com/SebR214/margin/commit/4db9ab4f84a8dc59c00037c7e57b7a317c628119",
+   "date": "2026-10-31T08:20:20Z",
+   "email": "person",
+   "message": "SEB-423: Research live pieces rebuilt every run, CI rebuilds before checking claims (fixes red main; supersedes 727) (#734)\n\n* SEB-423 step 3a: Research pages are generated, monthly, from scripts in tools/research\n\ntools/research/run.py rebuilds each piece on the first run of the month: the yearly premium page from the history files plus its live months, and a new piece, Markets inside one country disagree, from data/source_pairs.json. Collect step and staging loop only (additive). Pipeline only; page and words follow in a separate PR.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-423: the yearly premium table no longer depends on which countries are priced this hour\n\nbackfill_history.tracked_ccys() reads data/index_latest.json, so UAH dropped out of the table when it had no price in the newest hour and the stored rows differed from a recomputation (checks red on main since PR 728). The table now uses every country in data/heatmap_daily.json. Stored files unchanged (123 rows, 25 currencies); the assertion is not loosened.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-423: Research live pieces are rebuilt every collection run, and CI rebuilds them before checking their claims\n\nRoot cause of the red checks: data/research/source_pairs.json was built once and compared by the claims audit with data/source_pairs.json, which collection rewrites every hour, so the pair could not stay equal. Live pieces now rebuild every run (the yearly page stays monthly); this carries PR 727's tools/research and collect step, which this PR supersedes. checks.yml rebuilds the pages from the commit's inputs before the Research claims test. Assertions are not loosened.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "8569ad8e3a21b3c7578ca1f78edccd48e82c2b1a",
+   "html_url": "https://github.com/SebR214/margin/commit/8569ad8e3a21b3c7578ca1f78edccd48e82c2b1a",
+   "date": "2026-10-31T07:48:08Z",
+   "email": "person",
+   "message": "SEB-301: a failed gas read no longer costs the hour its route rows (#732)\n\ncollector.py: the gas read tries the first RPC twice, then a second public keyless RPC (cloudflare-eth.com). If both fail, gas_readings.csv gets a source_ok=false row with the error, the corridor sample is still written with gas:missing in its errors column and every gas-dependent figure blank (nothing invented, nothing reused), and the step exits 0.\nemit_routes.py: such an hour is not priced and the route's gaps list says the on-chain leg was not read that hour.\ncheck_collection_run.py: a step that exits non-zero fails the gate only if it wrote no rows; a gas-only miss counts as a corridor that answered.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "5d95551f44202c96bcdc217db0ca9f3b126fce7a",
+   "html_url": "https://github.com/SebR214/margin/commit/5d95551f44202c96bcdc217db0ca9f3b126fce7a",
+   "date": "2026-10-31T07:47:30Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-31T07:47Z"
+  },
+  {
+   "sha": "98cda8dcf7d27bb7aeafd1b762525c333667e6e7",
+   "html_url": "https://github.com/SebR214/margin/commit/98cda8dcf7d27bb7aeafd1b762525c333667e6e7",
+   "date": "2026-10-31T07:27:23Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-31T07:27Z"
+  },
+  {
+   "sha": "e61f4e53602cce26df172a3ded82ef4a76856c46",
+   "html_url": "https://github.com/SebR214/margin/commit/e61f4e53602cce26df172a3ded82ef4a76856c46",
+   "date": "2026-10-31T06:48:22Z",
+   "email": "person",
+   "message": "SEB-423 step 3b: Research shows the live months and a second piece, Markets inside one country disagree (#728)\n\nresearch.html lists both pieces with an as-of date; the capital controls page gets a months table of our own checks; research-source-pairs.html is new. Two claim types (research_pairs, research_months) re-derive every number from data/source_pairs.json and data/index_hourly.csv, and the pages do not draw them while a claim fails. Checked at 1280px and 390px.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "b37c912d9887ebab5822f12cd4f3de89b2766799",
+   "html_url": "https://github.com/SebR214/margin/commit/b37c912d9887ebab5822f12cd4f3de89b2766799",
+   "date": "2026-10-31T06:46:40Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-31T06:46Z"
+  },
+  {
+   "sha": "f1a9ac9d8f2cb4c4f75c6a6f2d221182fe0b7f16",
+   "html_url": "https://github.com/SebR214/margin/commit/f1a9ac9d8f2cb4c4f75c6a6f2d221182fe0b7f16",
+   "date": "2026-10-31T06:45:50Z",
+   "email": "person",
+   "message": "SEB-422: retire the researcher, the daily status and the scorecard (#730)\n\nBACKLOG.md is written by the research chat and Seb only.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "1c53a9db04dd7640836994c5bfa19cbdad7eef2d",
+   "html_url": "https://github.com/SebR214/margin/commit/1c53a9db04dd7640836994c5bfa19cbdad7eef2d",
+   "date": "2026-10-31T06:37:57Z",
+   "email": "person",
+   "message": "SEB-423 step 1b: home headline names the largest 24 hour move, and a what-changed block (#723)\n\nWords in copy.json homeData; js/home.js reads data/home_facts.json and shows each sentence only while data/claims_status.json says its claim holds. Falls back to the fixed headline. Checked at 1280px and 390px.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "808ca1636d00cecc1da164700814d5859c4e1426",
+   "html_url": "https://github.com/SebR214/margin/commit/808ca1636d00cecc1da164700814d5859c4e1426",
+   "date": "2026-10-31T06:24:52Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-10-31T06:24Z"
+  },
   {
    "sha": "dabf5817a85e882c7942077b6051baf4ec2bc4ad",
    "html_url": "https://github.com/SebR214/margin/commit/dabf5817a85e882c7942077b6051baf4ec2bc4ad",
@@ -596,111 +701,6 @@
    "date": "2026-10-27T14:21:01Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-10-27T14:21Z"
-  },
-  {
-   "sha": "e5fbac6e1d93a8e1e935a35eaf9a7e4eb3e2e9f2",
-   "html_url": "https://github.com/SebR214/margin/commit/e5fbac6e1d93a8e1e935a35eaf9a7e4eb3e2e9f2",
-   "date": "2026-10-27T14:09:58Z",
-   "email": "person",
-   "message": "SEB-301: email Seb when collection is down 2 hours or more, and show missed hours on the scorecard (#704)\n\nThe collector watchdog only filed Linear issues nobody reads. tools/outage_email.py posts one comment per outage on the GitHub\nissue \"Collection down\" with an @mention, so GitHub emails Seb. The scorecard's second line is now the hours collection missed.\n\n\nClaude-Session: https://claude.ai/code/session_017TKMhU7YLPdTWA8YnphhaN\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "b52dd53e2b3de57e3166663a7563def88e2fcd78",
-   "html_url": "https://github.com/SebR214/margin/commit/b52dd53e2b3de57e3166663a7563def88e2fcd78",
-   "date": "2026-10-27T13:45:34Z",
-   "email": "person",
-   "message": "Phone pass 27 Oct: full screen menu, no header status on phones, research grid fits the screen, route cards read top to bottom, week chart bridges short collection misses, country chart labels spaced, headings fill the column (#702)\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "3ebc8702994bc2b482a927f2f5e9d1cf69854dda",
-   "html_url": "https://github.com/SebR214/margin/commit/3ebc8702994bc2b482a927f2f5e9d1cf69854dda",
-   "date": "2026-10-27T13:44:35Z",
-   "email": "person",
-   "message": "Phone pass: spell out chart range labels (Week, Month, Year, 5 years) and add the menu's Close label (#703)\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "29e3961185206cd07b8ef474af7aa4c1c91f0f76",
-   "html_url": "https://github.com/SebR214/margin/commit/29e3961185206cd07b8ef474af7aa4c1c91f0f76",
-   "date": "2026-10-27T10:38:17Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "aider builder run 2026-10-27T10:26:25+00:00"
-  },
-  {
-   "sha": "0a18a0f1c7bca2a24e158bf6e4adcb7ed51bbd1b",
-   "html_url": "https://github.com/SebR214/margin/commit/0a18a0f1c7bca2a24e158bf6e4adcb7ed51bbd1b",
-   "date": "2026-10-27T09:34:50Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T09:34Z"
-  },
-  {
-   "sha": "f88b955a16ad3a7e67eebdc55a26e8de1595c16e",
-   "html_url": "https://github.com/SebR214/margin/commit/f88b955a16ad3a7e67eebdc55a26e8de1595c16e",
-   "date": "2026-10-27T08:56:27Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T08:56Z"
-  },
-  {
-   "sha": "e05722dde61324e6ac61cfe998a744ea5c78280d",
-   "html_url": "https://github.com/SebR214/margin/commit/e05722dde61324e6ac61cfe998a744ea5c78280d",
-   "date": "2026-10-27T08:27:24Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T08:27Z"
-  },
-  {
-   "sha": "cbbaeebc2964c65bb17cdf8cab111b891f365d7b",
-   "html_url": "https://github.com/SebR214/margin/commit/cbbaeebc2964c65bb17cdf8cab111b891f365d7b",
-   "date": "2026-10-27T07:47:05Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T07:47Z"
-  },
-  {
-   "sha": "4ad2871e748b7d0e0e1e4d7ddce0b1c2c77431ff",
-   "html_url": "https://github.com/SebR214/margin/commit/4ad2871e748b7d0e0e1e4d7ddce0b1c2c77431ff",
-   "date": "2026-10-27T07:25:22Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T07:25Z"
-  },
-  {
-   "sha": "079519ef58a29e90a0c28d3cfbe7754bbdc7f1fb",
-   "html_url": "https://github.com/SebR214/margin/commit/079519ef58a29e90a0c28d3cfbe7754bbdc7f1fb",
-   "date": "2026-10-27T06:47:31Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T06:47Z"
-  },
-  {
-   "sha": "d959f282353e8a73b80ba14a0ddc25f8107d7c5a",
-   "html_url": "https://github.com/SebR214/margin/commit/d959f282353e8a73b80ba14a0ddc25f8107d7c5a",
-   "date": "2026-10-27T06:27:46Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T06:27Z"
-  },
-  {
-   "sha": "ec48fdb3cfbb9908a43678c64747f6172433e030",
-   "html_url": "https://github.com/SebR214/margin/commit/ec48fdb3cfbb9908a43678c64747f6172433e030",
-   "date": "2026-10-27T05:47:49Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T05:47Z"
-  },
-  {
-   "sha": "c6f32e4c1dd996ff204cbc109d3e72dc92c66349",
-   "html_url": "https://github.com/SebR214/margin/commit/c6f32e4c1dd996ff204cbc109d3e72dc92c66349",
-   "date": "2026-10-27T05:41:44Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "researcher: jobs and log 2026-10-27T05:41Z"
-  },
-  {
-   "sha": "39dcd99895e325796daa960f7df1c093d4099c88",
-   "html_url": "https://github.com/SebR214/margin/commit/39dcd99895e325796daa960f7df1c093d4099c88",
-   "date": "2026-10-27T05:32:38Z",
-   "email": "person",
-   "message": "SEB-301: feed the builder: researcher writes 8 jobs Monday and Thursday, builder skips jobs already built, tick 20a (#700)\n\n- researcher runs once per half-week (a Sunday hand run no longer eats Monday's run)\n- builder blocks a job as already built when its tests/agent_*.py is on main, instead of failing it twice\n- 20a ticked: built in #687\n- CLAUDE.md: the weekly Opus build is dropped\n\n\nClaude-Session: https://claude.ai/code/session_017TKMhU7YLPdTWA8YnphhaN\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "8ef6973eac0717899be96ec0924efed86f502572",
-   "html_url": "https://github.com/SebR214/margin/commit/8ef6973eac0717899be96ec0924efed86f502572",
-   "date": "2026-10-27T05:28:19Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-27T05:28Z"
   }
  ]
 }

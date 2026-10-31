@@ -21,7 +21,22 @@ import sys
 import tempfile
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA = os.path.join(HERE, "data")
+SITE_DATA = os.path.join(HERE, "data")
+
+
+def raw_dir():
+    """Where the raw append-only tables live (SEB-422, 31 Oct): data/ in this repo, or the margin-data checkout when the run
+    set MARGIN_RAW_DIR (tools/raw_storage.py does that once the App can push there). A path that does not exist is an error,
+    never a quiet fall back to data/."""
+    d = os.environ.get("MARGIN_RAW_DIR")
+    if not d:
+        return SITE_DATA
+    if not os.path.isdir(d):
+        raise SystemExit("MARGIN_RAW_DIR=%s is not a directory" % d)
+    return d
+
+
+DATA = raw_dir()
 
 
 def today():

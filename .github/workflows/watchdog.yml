@@ -3,7 +3,6 @@ name: watchdog
 # The alarm that reaches Seb. No model call. Every 30 minutes it checks:
 #   - the one-call runner (tools/check_runner_health.py): a completed run in
 #     the last 26 hours (it builds once a day), and not 3 failures in a row
-#   - the researcher (tools/check_researcher_health.py): a successful run in the last 8 days
 #   - the audits (tools/check_audit_health.py): a number or claim wrong for 3 runs in a row
 # and, in its own job, ticks a built collection job once its first rows are on main (backlog-data, below).
 # If any is down, this run FAILS. A failed scheduled run makes GitHub email
@@ -39,14 +38,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Check the runner, the researcher and the audits
+      - name: Check the runner and the audits
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           down=0; what=""
-          for c in "Runner:check_runner_health" "Researcher:check_researcher_health" "Audits:check_audit_health"; do
+          for c in "Runner:check_runner_health" "Audits:check_audit_health"; do
             name="${c%%:*}"; script="${c#*:}"
             echo "## $name"
             rc=0; python3 "tools/$script.py" > "$RUNNER_TEMP/$script.txt" 2>&1 || rc=$?

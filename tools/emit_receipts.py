@@ -143,7 +143,7 @@ def offers_for(ccy, hour):
     holds none -- either because the hour predates it, or because no offer
     happened to land in this run. Never invented either way."""
     out = []
-    for r in daily_csv.iter_dicts(OFFERS, DATA):
+    for r in daily_csv.iter_dicts(OFFERS, daily_csv.DATA):
         t = parse_ts(r.get("ts_utc"))
         if r.get("ccy") == ccy and t is not None and hour_of(t) == hour:
             price = num(r, "price")

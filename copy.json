@@ -1287,6 +1287,25 @@
     "legendBelowOfficial": "Below the official rate",
     "topPriceLine": "{price} {ccy} for a dollar, official rate {rate} {ccy}",
     "heroWhy": "Where banks ration dollars, people buy stablecoins from each other and pay more.",
+    "headlineMoveUp": "{country}'s dollar got {points} points dearer since yesterday, the most of any country.",
+    "headlineMoveDown": "{country}'s dollar got {points} points cheaper since yesterday, the most of any country.",
+    "moveSinceAbove": "It has cost more than usual there since {date}.",
+    "moveSinceBelow": "It has cost less than usual there since {date}.",
+    "moveSinceWholeAbove": "It has cost more than usual there for the whole last 30 days.",
+    "moveSinceWholeBelow": "It has cost less than usual there for the whole last 30 days.",
+    "whatChangedTitle": "What changed this week",
+    "whatChangedEmpty": "Nothing crossed a line this week.",
+    "wcCrossedUp": "{country} went above 5% over the official rate.",
+    "wcCrossedDown": "{country} came back under 5% over the official rate.",
+    "wcEventOfficial": "The official rate for {country} moved {pct} in three days.",
+    "wcEventStreet": "The street price of a dollar in {country} moved {pct} in a week.",
+    "wcSourceAdded": "We added {source} as a source.",
+    "wcSourceQuarantine": "We began reading {source}. It is on trial for a week and sets no price yet.",
+    "wcFindingHolds": "Our retest of \"{title}\" now says it holds.",
+    "wcFindingWeaker": "Our retest of \"{title}\" now says it is weaker.",
+    "wcFindingNoLonger": "Our retest of \"{title}\" now says it is no longer true.",
+    "wcRouteCheaper": "Sending money from {route}, the stablecoin became cheaper than the cheapest app.",
+    "wcRouteDearer": "Sending money from {route}, the stablecoin became dearer than the cheapest app.",
     "whatLine": "We compare what a dollar costs in {tracked} countries with the official rate every hour. On {routes} routes we also check what it costs to send money there, by transfer app and by stablecoin, with every fee we can measure. Where a dollar costs more than the official rate, a stablecoin can be the cheaper way to send.",
     "headlineSub": "",
     "counterReadings": "Prices stored",
@@ -1808,6 +1827,104 @@
     "downloadHeading": "Get the numbers",
     "downloadCsv": "Download as a table ({n} rows)",
     "downloadJson": "Download as JSON",
+    "cardAsOf": "Our own checks run to {date}.",
+    "cardTitle2": "Markets inside one country disagree",
+    "cardLine2": "Where two exchanges price a dollar in the same country, how far apart are they?",
+    "cardMeta2": "{N} countries compared over {days} days. Our own checks.",
+    "monthsHeading": "Since we began watching",
+    "monthsLine": "Each square is one month of our own checks, in the same colours. The last column is the month so far.",
+    "monthsAsOf": "Our own checks run to {date}.",
+    "pairsTitle": "Markets inside one country disagree",
+    "pairsLead": "In some countries every exchange agrees on the price of a dollar. In others, two exchanges sit several percent apart, so the price depends on where you look.",
+    "pairsLabel": "From our own hourly checks, not exchange history.",
+    "pairsTight": "In {n} of {N} countries, the two exchanges furthest apart usually sit within {pct}% of each other.",
+    "pairsWide": "In {n} countries, two exchanges usually sit {pct}% or more apart. The furthest apart are {list}.",
+    "pairsListHeading": "The countries furthest apart",
+    "pairsRow": "{a} and {b} usually sat {gap} apart, over {hours} hours.",
+    "pairsMethodHeading": "How we worked it out",
+    "pairsMethod1": "Every hour we line up each exchange's price for a dollar in the country. For each pair of exchanges we take the usual gap over the last {days} days. A pair needs at least {hours} hours in common to count.",
+    "pairsMethod2": "For each country the list shows the pair that sat furthest apart.",
+    "pairsLimits": "Two exchanges can differ because one is harder to use, not because one is wrong. A big gap is a question, not a verdict.",
+    "srcNames": {"binance_p2p": "Binance", "okx_p2p": "OKX"},
     "backLink": "All research"
+  },
+  "siteHead": {
+    "site": "margin.wiki",
+    "pages": {
+      "index.html": [
+        "margin.wiki: what a dollar really costs, hourly",
+        "People do not always pay the official rate for a dollar. Every hour we price one in about 60 countries and compare it with the official rate."
+      ],
+      "countries.html": [
+        "Countries: what a dollar costs against the official rate",
+        "What people pay for a dollar in every country we track, against the official rate, updated every hour."
+      ],
+      "sending-money.html": [
+        "Sending money: stablecoin or transfer app, all fees in",
+        "Where dollars are hard to get, a stablecoin beats transfer apps. Where they are not, the apps are cheaper. Every fee included, checked every hour."
+      ],
+      "sources.html": [
+        "Sources: every price we read, and every hour it missed",
+        "Each row shows whether a source answered on each day, and how far back its older prices go."
+      ],
+      "findings.html": [
+        "Findings: what the prices we store every hour show",
+        "Each finding shows the evidence, how it was worked out, and a file you can download."
+      ],
+      "how-it-works.html": [
+        "How to read margin.wiki",
+        "What we measure, what the percentage means, and where every number comes from."
+      ],
+      "how-it-was-built.html": [
+        "How margin.wiki was built: agents, and no AI in the numbers",
+        "What the site is checking this hour, and what the programs building it are doing, unedited, as it happens."
+      ],
+      "agent-incidents.html": [
+        "When the agents got it wrong: margin.wiki incidents",
+        "What it has taken to let agents run a real site without them quietly getting things wrong, told through the things that broke."
+      ],
+      "research.html": [
+        "Research: longer questions the stored prices can answer",
+        "Longer questions we can answer with the data we hold. Each page shows its method and gives you the numbers."
+      ],
+      "research-capital-controls.html": [
+        "How far above the official rate a dollar costs, by year",
+        "When a country limits who can buy dollars, the price on exchanges often drifts above the official rate. How far, for each country and year since 2018."
+      ],
+      "research-source-pairs.html": [
+        "Markets inside one country disagree: margin.wiki research",
+        "Two exchanges in the same country can quote different prices for a dollar. This page shows which pairs sit furthest apart."
+      ],
+      "event.html": [
+        "A currency event: street price against the official rate",
+        "One recorded currency event: the street price and the official rate side by side, before and after, with the checks run on each source."
+      ],
+      "country.html": [
+        "A country: the real price of a dollar, hourly",
+        "What people in one country pay for a dollar against the official rate, updated every hour."
+      ],
+      "finding.html": [
+        "A finding: what the stored prices show",
+        "One finding from the prices we store every hour, with the evidence, the method and a file you can download."
+      ]
+    },
+    "countryTitle": "{country}: the real price of a dollar, hourly",
+    "countryDescription": "What people in {country} pay for a dollar against the official rate, updated every hour.",
+    "findingDescription": "{title}. The evidence, how it was worked out, and a file you can download.",
+    "eventTitle": "{country}: a currency event, street price against the official rate",
+    "footerLinks": [
+      {
+        "label": "How it was built",
+        "href": "./how-it-was-built.html"
+      },
+      {
+        "label": "When the agents got it wrong",
+        "href": "./agent-incidents.html"
+      },
+      {
+        "label": "A recorded currency event",
+        "href": "./event.html"
+      }
+    ]
   }
 }

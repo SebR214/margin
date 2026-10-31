@@ -162,6 +162,58 @@ jobs:
         if: steps.needed.outputs.proceed == 'true'
         run: playwright install --with-deps chromium
 
+      # SEB-422, 31 Oct. The raw tables (the ads, the sellers, the offers, the order-book depth) move to the public repo
+      # SebR214/margin-data. Until the margin-agents App can push there this probe says "legacy" and nothing changes: the tables
+      # stay in data/. The first run after Seb installs the App on that repository says "split": margin-data is checked out next to
+      # this repo, seeded from data/, MARGIN_RAW_DIR points at it (tools/daily_csv.py), and "Commit raw tables to margin-data"
+      # below pushes it. Any other answer from GitHub fails the step; it is never taken as "legacy" (tools/raw_storage.py).
+      - name: Mint GitHub App token for the raw-table probe
+        if: steps.needed.outputs.proceed == 'true'
+        id: raw_token
+        env:
+          MARGIN_GH_APP_ID: ${{ secrets.MARGIN_GH_APP_ID }}
+          MARGIN_GH_INSTALL_ID: ${{ secrets.MARGIN_GH_INSTALL_ID }}
+          MARGIN_GH_APP_KEY_CONTENT: ${{ secrets.MARGIN_GH_APP_KEY }}
+        run: |
+          set +x
+          key_file="$RUNNER_TEMP/margin-app-key-raw.pem"
+          umask 077
+          printf '%s\n' "$MARGIN_GH_APP_KEY_CONTENT" > "$key_file"
+          export MARGIN_GH_APP_KEY="$key_file"
+          token="$(agents/gh_token.sh)"
+          rm -f "$key_file"
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Where the raw tables go (SEB-422)
+        if: steps.needed.outputs.proceed == 'true'
+        id: raw_mode
+        env:
+          GH_TOKEN: ${{ steps.raw_token.outputs.token }}
+        run: |
+          mode=""
+          for attempt in 1 2 3; do
+            if mode="$(python3 tools/raw_storage.py probe)"; then break; fi
+            mode=""
+            sleep 10
+          done
+          if [ -z "$mode" ]; then echo "::error::could not tell whether the App can push to margin-data"; exit 1; fi
+          echo "raw tables: $mode"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        if: steps.needed.outputs.proceed == 'true' && steps.raw_mode.outputs.mode == 'split'
+        with:
+          repository: SebR214/margin-data
+          path: margin-data
+          persist-credentials: false
+
+      - name: Seed margin-data from this repo and point the raw tables at it (SEB-422)
+        if: steps.needed.outputs.proceed == 'true' && steps.raw_mode.outputs.mode == 'split'
+        run: |
+          python3 tools/raw_storage.py seed margin-data
+          echo "MARGIN_RAW_DIR=$GITHUB_WORKSPACE/margin-data" >> "$GITHUB_ENV"
+
       # Two collectors, two layers, INDEPENDENT pass/fail. The basis step runs
       # even if the corridor step failed (always()), so one layer breaking never
       # hides the other -- but either one going red fails the whole job.
@@ -281,6 +333,12 @@ jobs:
         # other collector: exits non-zero ONLY on a total blackout.
         run: python3 collector_p2p_okx.py
 
+      # SEB-422 step 3: the cash dollar. collectors/cash_configs/*.json, one public money-changer tracker each (collectors/template_tracker.py).
+      # Fails the run only when no tracker was read; one tracker down is a row with source_ok false in the daily table cash_rates.
+      - name: Collect the cash dollar from the money-changer trackers (SEB-422)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        run: python3 collector_cash.py
+
       - name: Collect multi-venue stablecoin prices (SEB-243)
         if: always() && steps.needed.outputs.proceed == 'true'
         # collector_stable_venues.py prices every venue the repo can read for each
@@ -357,6 +415,13 @@ jobs:
         # data/events.csv, up to yesterday, and appends candidates, updates and data warnings to data/events.csv and
         # data/event_records/. Reads stored files only. Publishes nothing. See tools/detect_events.py.
         run: if [ "$(date -u +%H)" = "03" ]; then python3 tools/detect_events.py; else echo "once a day, not this hour"; fi
+
+      - name: Publish confirmed events (SEB-423)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-423 step 2. Rewrites data/events_published.json from data/events.csv and the history replay: the events that get a page
+        # (two sources and a 10% official or 15% street move, or a hand-entered known date with a link). Every hour, so a candidate
+        # that becomes confirmed has its page the same hour. See tools/publish_events.py.
+        run: python3 tools/publish_events.py
 
       - name: Emit machine-readable snapshot
         if: always() && steps.needed.outputs.proceed == 'true'
@@ -573,6 +638,12 @@ jobs:
         # by a red run -- the failures are the point.
         run: python3 tools/audit_numbers.py
 
+      - name: Emit the home facts
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-423 step 1. The largest 24-hour move and the what-changed list, from
+        # files written above. Numbers only; tools/audit_claims.py checks them next.
+        run: python3 tools/emit_home_facts.py
+
       - name: Audit the claims in the copy
         if: always() && steps.needed.outputs.proceed == 'true'
         # Every count or absolute claim (never, always, every, none, since a
@@ -582,6 +653,14 @@ jobs:
         # tools/audit_claims.py. Runs after the routes and countries emitters
         # above so its published-figure cross-check sees this hour's files.
         run: python3 tools/audit_claims.py
+
+      - name: Regenerate the Research pages (SEB-423)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-423 step 3. Every Research page is built by a script in tools/research/ from files already on main. The live months and
+        # "Markets inside one country disagree" are rebuilt every run, because their inputs (data/index_hourly.csv, data/source_pairs.json)
+        # change every run and a stored page must match them; the yearly premium page re-runs from the history files on the first run of
+        # each UTC month. A failed piece fails this step. See tools/research/run.py.
+        run: python3 tools/research/run.py
 
       - name: Emit the stress signal
         if: always() && steps.needed.outputs.proceed == 'true'
@@ -725,6 +804,36 @@ jobs:
         if: always() && steps.needed.outputs.proceed == 'true'
         run: python3 tools/check_file_size.py
 
+      # SEB-422. The raw tables, in their own commit in their own repo. A failed push fails the run (no `|| true`): the rows are on
+      # the runner only until this step lands them. Runs before "Commit samples" so a failure here never skips that one (always()).
+      - name: Commit raw tables to margin-data
+        if: always() && steps.needed.outputs.proceed == 'true' && steps.raw_mode.outputs.mode == 'split'
+        env:
+          APP_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          set +x
+          python3 tools/check_file_size.py --root margin-data
+          cd margin-data
+          git config user.name "margin-agents[bot]"
+          git config user.email "329969015+margin-agents[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "nothing staged -- hour already captured"
+            exit 0
+          fi
+          git commit -q -m "raw $(date -u +%Y-%m-%dT%H:%MZ)"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$APP_TOKEN" | base64 -w0)"
+          pushed=""
+          for attempt in 1 2 3; do
+            if git -c http.https://github.com/.extraheader="$auth" pull --rebase origin main \
+               && git -c http.https://github.com/.extraheader="$auth" push origin HEAD:main; then
+              pushed=yes
+              break
+            fi
+            sleep 15
+          done
+          if [ -z "$pushed" ]; then echo "::error::the raw tables did not reach margin-data"; exit 1; fi
+
       - name: Commit samples
         if: always() && steps.needed.outputs.proceed == 'true'
         env:
@@ -821,6 +930,10 @@ jobs:
           for f in data/finding_status.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
+          # Home facts (SEB-423): a new file, its own loop so no existing line is edited.
+          for f in data/home_facts.json; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
           # Who sells each P2P ad (SEB-384): a new sidecar CSV, its own loop so no existing line is edited.
           for f in data/p2p_ads_sellers.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
@@ -837,9 +950,21 @@ jobs:
           for d in data/p2p_board_ads; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
+          # Published events (SEB-423): one new JSON file, its own loop so no existing line is edited.
+          for f in data/events_published.json; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
           # Event records (SEB-311): one JSON file per event, a new one on its first day. A separate loop for the same reason.
           for d in data/event_records; do
             if [ -d "$d" ]; then git add "$d"; fi
+          done
+          # The cash dollar (SEB-422): one file a day in data/cash_rates/ while the raw tables are still in this repo. Its own loop so no existing line is edited.
+          for d in data/cash_rates; do
+            if [ -d "$d" ]; then git add "$d"; fi
+          done
+          # Research pages (SEB-423): new files under data/research/, their own loop so no existing line is edited.
+          for f in data/research/capital_controls.csv data/research/capital_controls.json data/research/capital_controls_months.json data/research/source_pairs.json; do
+            if [ -f "$f" ]; then git add "$f"; fi
           done
           # The dollar map timeline (SEB-384): a new folder of JSON, a new year file each January. Its own loop for the same reason.
           for d in data/map_timeline; do
@@ -848,6 +973,11 @@ jobs:
           # One file a day for the big P2P tables (SEB-301, 31 Oct): data/p2p_ads/, data/p2p_ads_sellers/, data/p2p_offers/. Staged as
           # directories so each day's first file needs no edit here. Their own loop so no existing line is edited.
           for d in data/p2p_ads data/p2p_ads_sellers data/p2p_offers; do
+            if [ -d "$d" ]; then git add "$d"; fi
+          done
+          # The order-book depth is one file a day too since SEB-422 (data/depth/ while the raw tables are still in this repo). Its own loop
+          # so no existing line is edited.
+          for d in data/depth; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # Anything TRACKED that an emitter rewrote but the list above forgot.

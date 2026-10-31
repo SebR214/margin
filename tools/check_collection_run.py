@@ -10,7 +10,9 @@ every data CSV reduced to its header line (so nothing is appended to the real da
   1. no CSV gains a row whose column count differs from its header (an existing file's columns must not change);
   2. every source that answered in each of main's last 3 committed collections (data/*.csv in this checkout, where source_ok is
      true) answers again in this run. A source missing or not ok on the branch fails the check and is named.
-It exits non-zero on either, so the PR does not merge itself, and prints why. Nothing is written outside the scratch folder.
+It exits non-zero on either, so the PR does not merge itself, and prints why. A collector step that exits non-zero fails the check only
+if it wrote no rows at all (31 Oct): one that wrote its rows and then exited 1 because an optional input was missing, like the
+gas read of a USD->NGN or USD->INR sample, is printed as a warning. Such a sample row (errors starting "gas:missing") counts as answered. Nothing is written outside the scratch folder.
 Sources are keyed per file: basis.csv by venue and currency, p2p_basis.csv and p2p_okx.csv by source and currency,
 provider_quotes.csv by corridor and provider, stable_venues.csv and samples.csv by corridor, fx_rates.csv by currency (present = ok).
 """
@@ -52,6 +54,13 @@ def steps(yml_text):
     return out
 
 
+def gas_only_miss(r):
+    """A corridor sample whose only failure is the optional gas reading (SEB-301, 31 Oct): collector.py writes the hour with the
+    gas leg marked missing in `errors` and the corridor itself answered, so it still counts as a source that answered."""
+    e = (r.get("errors") or "").strip()
+    return e.startswith("gas:missing") and "; " not in e
+
+
 def ok_keys(rows, cols, since=None):
     """Keys whose row says source_ok (or exists, when the file has no such column) at/after `since`."""
     got = set()
@@ -59,7 +68,8 @@ def ok_keys(rows, cols, since=None):
         if since and (r.get("ts_utc") or r.get("ts") or "") < since:
             continue
         flag = r.get("source_ok")
-        if flag is not None and flag.strip().lower() != "true" and not ANSWERED_BUT_REFUSED.match((r.get("error") or "").strip()):
+        if flag is not None and flag.strip().lower() != "true" and not ANSWERED_BUT_REFUSED.match((r.get("error") or "").strip()) \
+                and not gas_only_miss(r):
             continue
         got.add(tuple(r.get(c, "") for c in cols))
     return got
@@ -113,18 +123,37 @@ def prepare(root):
     return scratch, headers
 
 
+def rows_in(scratch):
+    """Data rows over every CSV in the scratch data folder (a file's first line is its header, not a row)."""
+    n = 0
+    for dirpath, _dirs, files in os.walk(os.path.join(scratch, "data")):
+        for fn in files:
+            if fn.endswith(".csv"):
+                with open(os.path.join(dirpath, fn), "rb") as f:
+                    n += max(f.read().count(b"\n") - 1, 0)
+    return n
+
+
 def run_steps(scratch, plan):
+    """[(script, args, exit code, last 400 chars of output, rows the step wrote)]."""
     results = []
     for script, args in plan:
         if not os.path.exists(os.path.join(scratch, script)):
-            results.append((script, args, 99, "script not in the branch"))
+            results.append((script, args, 99, "script not in the branch", 0))
             continue
+        before = rows_in(scratch)
         try:
             p = subprocess.run([sys.executable, script] + args, cwd=scratch, capture_output=True, text=True, timeout=STEP_TIMEOUT)
-            results.append((script, args, p.returncode, (p.stderr or p.stdout)[-400:]))
+            results.append((script, args, p.returncode, (p.stderr or p.stdout)[-400:], rows_in(scratch) - before))
         except subprocess.TimeoutExpired:
-            results.append((script, args, 124, "timed out after %d s" % STEP_TIMEOUT))
+            results.append((script, args, 124, "timed out after %d s" % STEP_TIMEOUT, rows_in(scratch) - before))
     return results
+
+
+def step_failures(results):
+    """The steps that fail the gate: those that exited non-zero AND wrote no rows at all (SEB-301, 31 Oct). A step that wrote its
+    rows and then exited 1 because one optional input was missing (the gas read, a thin board) is a warning, not a failed gate."""
+    return [r for r in results if r[2] != 0 and r[4] <= 0]
 
 
 def judge(scratch, headers, root):
@@ -192,6 +221,21 @@ def self_test():
         assert miss, "an empty run must be reported as missing every source that answers on main"
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
+    gasrow = {"corridor": "USD->INR", "source_ok": "False", "errors": "gas:missing:both RPCs"}
+    assert ok_keys([gasrow], ("corridor",)) == {("USD->INR",)}, "a gas-only miss still answered"
+    assert ok_keys([dict(gasrow, errors="gas:missing:x; mid:Timeout")], ("corridor",)) == set(), "any other failure still counts"
+    assert ok_keys([dict(gasrow, errors="mid:Timeout")], ("corridor",)) == set()
+    ok_step, warned, dead = ("a.py", [], 0, "", 5), ("b.py", [], 1, "gas:missing", 5), ("c.py", [], 1, "boom", 0)
+    assert step_failures([ok_step, warned, dead]) == [dead], "exit 1 with rows written is a warning; exit 1 with no rows fails"
+    assert step_failures([("d.py", [], 99, "script not in the branch", 0)]) != [], "a script that is not there fails"
+    with tempfile.TemporaryDirectory() as t:
+        os.makedirs(os.path.join(t, "data", "sub"))
+        assert rows_in(t) == 0
+        with open(os.path.join(t, "data", "x.csv"), "w") as f:
+            f.write("h\n1\n2\n")
+        with open(os.path.join(t, "data", "sub", "y.csv"), "w") as f:
+            f.write("h\n")
+        assert rows_in(t) == 2, rows_in(t)
     print("check_collection_run self-test: ok")
 
 
@@ -207,22 +251,23 @@ def main(argv):
     scratch, headers = prepare(ROOT)
     try:
         results = run_steps(scratch, plan)
-        failed = [r for r in results if r[2] != 0]
-        for script, args, code, tail in results:
-            print("  %-26s %-22s exit %s" % (script, " ".join(args), code))
+        failed = step_failures(results)
+        for script, args, code, tail, wrote in results:
+            print("  %-26s %-22s exit %s, %d rows%s" % (script, " ".join(args), code, wrote,
+                                                        "  (exit non-zero but rows written: a warning, not a failure)" if code != 0 and wrote > 0 else ""))
         bad, missing = judge(scratch, headers, ROOT)
         for attempt in range(RETRIES):
             if not missing:
                 break
             print("\n%d source(s) did not answer; one more full pass (an exchange can blink): %s" % (len(missing), "; ".join(missing)[:300]))
             more = run_steps(scratch, plan)
-            failed = [r for r in more if r[2] != 0]
+            failed = step_failures(more)
             bad, missing = judge(scratch, headers, ROOT)        # the rows of both passes are in the scratch files
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
     problems = bad + missing
     if failed:
-        problems += ["%s %s exited %s: %s" % (s, " ".join(a), c, t.strip()[-200:]) for s, a, c, t in failed]
+        problems += ["%s %s exited %s and wrote no rows: %s" % (s, " ".join(a), c, t.strip()[-200:]) for s, a, c, t, _w in failed]
     if problems:
         print("\nCOLLECTION RUN FAILED:\n- " + "\n- ".join(problems[:40]))
         return 1

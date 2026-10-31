@@ -320,7 +320,7 @@ def _data_rows(path):
     try:
         stem = os.path.basename(path)[:-4]
         if stem == "p2p_offers":
-            return daily_csv.data_rows(stem, os.path.dirname(path))
+            return daily_csv.data_rows(stem, daily_csv.DATA)
         with open(path, "rb") as f:
             for chunk in iter(lambda: f.read(1 << 20), b""):
                 n += chunk.count(b"\n")

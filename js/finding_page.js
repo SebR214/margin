@@ -300,8 +300,6 @@
       footer.appendChild(footerLink);
       wrap.appendChild(footer);
     }
-    
-    if (T('indexTitle')) document.title = 'margin.wiki: Findings';
   }
 
   function renderNotFound(wrap, published) {
@@ -357,7 +355,7 @@
       keep(wrap, rel);
     }
     var t = titleOf(f);
-    if (t) document.title = 'margin.wiki: ' + t;
+    if (t && window.PageHead) { window.PageHead.copy().then(function (S) { window.PageHead.set({ title: t + ': margin.wiki', description: window.PageHead.fill(S.findingDescription, { title: t }), path: 'finding.html?id=' + encodeURIComponent(f.id), twin: 'finding/' + encodeURIComponent(f.id) + '.md' }); }); }
   }
 
   function load(url) {

@@ -5,6 +5,7 @@ GitHub refuses a push with a file over 100 MB. On 28 Oct data/p2p_ads_sellers.cs
 every "Commit samples" step, and nothing reached main for the hours after. This runs right before that step.
 
     python3 tools/check_file_size.py              # every tracked file and every new file git would add
+    python3 tools/check_file_size.py --root DIR   # the same for another git checkout (SEB-422: margin-data, the raw tables' repo)
     python3 tools/check_file_size.py --self-test
 
   - every file over WARN_BYTES (40 MB) is listed, with its size, so a table is split before it is a problem;
@@ -49,14 +50,15 @@ def judge(sizes, frozen=FROZEN):
 
 
 def main(root=HERE):
+    frozen = FROZEN if os.path.abspath(root) == HERE else {}      # the closed tables are this repo's; another repo has none
     sizes = {}
     for p in git_files(root):
         fp = os.path.join(root, p)
         if os.path.isfile(fp):
             sizes[p] = os.path.getsize(fp)
-    listed, failures = judge(sizes)
+    listed, failures = judge(sizes, frozen)
     for p, n in listed:
-        print("  %6.1f MB  %s%s" % (n / MB, p, "  (closed)" if p in FROZEN else ""))
+        print("  %6.1f MB  %s%s" % (n / MB, p, "  (closed)" if p in frozen else ""))
     if not listed:
         print("  no file over %d MB" % (WARN_BYTES // MB))
     for f in failures:
@@ -92,9 +94,16 @@ def self_test():
             f.write("a\n")
         assert git_files(d) == ["small.csv"], git_files(d)
         assert main(d) == 0
+        with open(os.path.join(d, "data_big.csv"), "wb") as f:       # another repo: 81 MB fails, and the site's closed names mean nothing
+            f.truncate(81 * MB)
+        assert main(d) == 1
     print("check_file_size self-test: ok")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(self_test() if "--self-test" in sys.argv else main())
+    if "--self-test" in sys.argv:
+        sys.exit(self_test())
+    if "--root" in sys.argv:
+        sys.exit(main(os.path.abspath(sys.argv[sys.argv.index("--root") + 1])))
+    sys.exit(main())

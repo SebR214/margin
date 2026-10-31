@@ -3,8 +3,22 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>margin.wiki</title>
-<meta name="description" content=""/>
+<!-- head:begin -->
+<title>margin.wiki: what a dollar really costs, hourly</title>
+<meta name="description" content="People do not always pay the official rate for a dollar. Every hour we price one in about 60 countries and compare it with the official rate."/>
+<link rel="canonical" href="https://margin.wiki/"/>
+<meta property="og:site_name" content="margin.wiki"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="margin.wiki: what a dollar really costs, hourly"/>
+<meta property="og:description" content="People do not always pay the official rate for a dollar. Every hour we price one in about 60 countries and compare it with the official rate."/>
+<meta property="og:url" content="https://margin.wiki/"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="margin.wiki: what a dollar really costs, hourly"/>
+<meta name="twitter:description" content="People do not always pay the official rate for a dollar. Every hour we price one in about 60 countries and compare it with the official rate."/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" href="/favicon.ico" sizes="48x48"/>
+<link rel="alternate" type="text/markdown" href="/index.md"/>
+<!-- head:end -->
 <link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./style.css">
 <style>
@@ -73,6 +87,10 @@
   .r .no { color: var(--color-neutral-600); font-size: 14px; }
   .r.f .m { font-size: 15px; color: var(--color-ink); }
   a.r:hover b, a.r:hover .m { color: var(--data-700); }
+  /* what changed this week (SEB-423): a sentence and its date; the date keeps its width on a phone */
+  #wc .r.f, #wc .r.f .m { font-weight: 400; }
+  #wc .r.f { grid-template-columns: minmax(0, 1fr) auto; gap: 0 16px; }
+  #wc .r.f .v { font-weight: 400; color: var(--color-neutral-600); font-size: 14px; }
   /* when the official rate finally moved (25 Oct): country and month, the gap before, a bar for the share of it closed, the share */
   .r.lr { grid-template-columns: 200px 170px minmax(0, 1fr) 150px; }
   .lbar { display: block; height: 8px; border-radius: 999px; background: var(--color-neutral-100); overflow: hidden; }
@@ -101,7 +119,6 @@
 <link rel="stylesheet" href="./css/dkpanel.css">
 <link rel="stylesheet" href="./css/site_head.css?v=5">
 <link rel="stylesheet" href="./css/site_page.css?v=7">
-<link rel="alternate" type="text/markdown" href="./index.md">
 <link rel="stylesheet" href="./css/machine_view.css?v=3">
 </head>
 <body>
@@ -121,10 +138,12 @@
     <div id="tl"></div>
     <div id="heat"></div>
   </section>
+  <section id="wc"></section>
   <section id="land"></section>
   <section id="finds"></section>
   <p class="loaderr" id="loaderr" hidden></p>
 </div>
+<script src="./js/claims.js"></script>
 <script src="./js/tooltip.js"></script>
 <script src="./js/home_timeline.js?v=2"></script>
 <script src="./js/home.js?v=6"></script>

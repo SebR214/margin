@@ -1,7 +1,8 @@
 {
-  "buy_price": 20.285,
+  "baseline_pct": 3.1589,
+  "buy_price": 20.215,
   "ccy": "ZMW",
-  "computed_at": "2026-10-31T06:00:00+00:00",
+  "computed_at": "2026-10-31T08:00:00+00:00",
   "country": "Zambia",
   "denominator": {
     "class": "market",
@@ -9,6 +10,7 @@
     "source": "open.er-api"
   },
   "fx_mid_per_usd": 20.247795,
+  "held_value": -0.162,
   "history": [
     {
       "date": "2026-09-05",
@@ -337,44 +339,46 @@
     {
       "date": "2026-10-31",
       "index_pct": 0.1837,
-      "n": 10,
-      "source": "current_hour"
+      "n": 5,
+      "source": "hourly_buy_p2p"
     }
   ],
   "history_days": 55,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-10-31T06:00:00+00:00",
-  "index_pct": 0.1837,
+  "hour_utc": "2026-10-31T08:00:00+00:00",
+  "index_pct": null,
   "index_version": "1.9",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "median_24h_n": 11,
-  "median_24h_pct": 2.6431,
+  "median_24h_n": 13,
+  "median_24h_pct": 2.3456,
   "n_boards": 1,
-  "n_sources": 10,
+  "n_sources": null,
+  "no_value_reason": "held back: -0.2% is 3.3 points from this country's usual +3.2% over the last 7 days, and no second source or earlier hour confirms it yet",
   "p2p_sources_apart": {
-    "binance_median": 20.285,
-    "gap_pct": 7.81,
+    "binance_median": 20.215,
+    "gap_pct": 8.19,
     "okx_median": 21.87
   },
-  "round_trip_pct": 1.6283,
+  "round_trip_pct": 0.3475,
   "second_board": {
     "buy_price": 21.87,
     "combined": false,
     "venue": "okx_p2p",
     "why": "more than 3% from the first board"
   },
-  "source_class": "p2p_buy_median",
+  "source_class": null,
   "source_file": "data/p2p_basis.csv",
-  "source_words": "from person-to-person ads",
+  "source_words": "no price this hour",
   "venues": [
     {
-      "buy_price": 20.285,
-      "index_pct": 0.1837,
+      "buy_price": 20.215,
+      "index_pct": -0.162,
       "last_price_used": false,
       "venue": "binance_p2p"
     }
-  ]
+  ],
+  "withheld_buy_price": 20.215
 }
