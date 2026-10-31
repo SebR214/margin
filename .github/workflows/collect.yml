@@ -986,6 +986,11 @@ jobs:
           for f in sitemap.xml robots.txt; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
+          # The machine room's markdown twin (SEB-427, merged 31 Oct 12:08 UTC): written every run by the markdown step, so it is tracked
+          # and left unstaged it made Commit samples fail from the 12:35 UTC run. Its own loop so no existing line is edited.
+          for f in machine-room.md; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
           # One file a day for the big P2P tables (SEB-301, 31 Oct): data/p2p_ads/, data/p2p_ads_sellers/, data/p2p_offers/. Staged as
           # directories so each day's first file needs no edit here. Their own loop so no existing line is edited.
           for d in data/p2p_ads data/p2p_ads_sellers data/p2p_offers; do
@@ -1012,6 +1017,15 @@ jobs:
             echo "::warning::staged by fallback, add these to the list above:"
             echo "$MISSED" | sed 's/^/::warning::  /'
             git add -u data
+          fi
+          # The same net for every other tracked file (SEB-301, 31 Oct): the check above covers data/ only, and a tracked page or
+          # twin outside it (sitemap.xml on 31 Oct 09:05 UTC, machine-room.md from 12:35 UTC) made `git pull --rebase` refuse and
+          # Commit samples fail for hours. A file staged here is named in a warning so the list above gets it. It stages, it hides no failure.
+          MISSED_ALL=$(git diff --name-only)
+          if [ -n "$MISSED_ALL" ]; then
+            echo "::warning::staged by the tracked-file fallback, add these to the list above:"
+            echo "$MISSED_ALL" | sed 's/^/::warning::  /'
+            git add -u
           fi
           if git diff --cached --quiet; then
             # Expected on the second fire of an hour the first fire already
