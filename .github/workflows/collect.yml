@@ -358,6 +358,13 @@ jobs:
         # data/event_records/. Reads stored files only. Publishes nothing. See tools/detect_events.py.
         run: if [ "$(date -u +%H)" = "03" ]; then python3 tools/detect_events.py; else echo "once a day, not this hour"; fi
 
+      - name: Publish confirmed events (SEB-423)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # SEB-423 step 2. Rewrites data/events_published.json from data/events.csv and the history replay: the events that get a page
+        # (two sources and a 10% official or 15% street move, or a hand-entered known date with a link). Every hour, so a candidate
+        # that becomes confirmed has its page the same hour. See tools/publish_events.py.
+        run: python3 tools/publish_events.py
+
       - name: Emit machine-readable snapshot
         if: always() && steps.needed.outputs.proceed == 'true'
         # Derived from the CSVs the two steps above just wrote, so it runs after
@@ -845,6 +852,10 @@ jobs:
           done
           # First venues for countries with no price (SEB-301, BACKLOG 17): four new CSVs, their own loop so no existing line is edited.
           for f in data/zar_valr.csv data/zar_luno.csv data/p2p_kucoin.csv; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          # Published events (SEB-423): one new JSON file, its own loop so no existing line is edited.
+          for f in data/events_published.json; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Event records (SEB-311): one JSON file per event, a new one on its first day. A separate loop for the same reason.
