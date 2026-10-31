@@ -120,7 +120,8 @@ def write_files(lastmod=None):
     import emit_markdown
     from datetime import datetime, timezone
     lastmod = lastmod or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:00:00Z")
-    pages = [p for p, _ in emit_markdown.all_pages()]
+    # country pages are one template (country.html?ccy=), so until each has its own URL (SEB-426) the sitemap lists their .md copies
+    pages = [md if url.startswith("country.html?ccy=") else url for url, md in emit_markdown.all_pages()]
     extra = [f for f in static_pages() if f not in TEMPLATES and f not in pages]
     n = write_sitemap(pages + extra, lastmod)
     write_robots()
