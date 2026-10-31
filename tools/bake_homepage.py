@@ -470,7 +470,7 @@ def build_all_countries_strip(idx_doc, home_copy):
         w = max(0.005, min(1.0, c.get("gap_pct", 0.0) / mx)) * 85
         ccy = c.get("ccy", "")
         value = pct_words(c.get("gap_pct", 0.0))
-        rows += ('<a class="crow" href="./country.html?ccy=' + esc(ccy) + '">'
+        rows += ('<a class="crow" href="./country/' + esc(ccy.lower()) + '/">'
                  '<span class="cname">' + esc(name(c)) + '</span>'
                  '<span class="cbar"><i style="width:' + f"{w:.1f}" + '%"></i>'
                  '<b style="left:' + f"{w:.1f}" + '%"' + receipt_attrs(ccy, value) + '>' + value + '</b></span></a>'
@@ -479,7 +479,7 @@ def build_all_countries_strip(idx_doc, home_copy):
     for c in pins:
         ccy = c.get("ccy", "")
         value = pct_words(c.get("gap_pct", 0.0))
-        pin_rows += ('<a class="crow low" href="./country.html?ccy=' + esc(ccy) + '">'
+        pin_rows += ('<a class="crow low" href="./country/' + esc(ccy.lower()) + '/">'
                      '<span class="cname">' + esc(name(c)) + '</span>'
                      '<span class="cbar"><i style="width:0"></i><b style="left:0"' + receipt_attrs(ccy, value) + '>'
                      + value + '</b></span></a>'

@@ -65,6 +65,24 @@ def head_block(page, entry):
     return "\n".join(lines)
 
 
+def country_head(ccy, country, copy):
+    """The head of one country's own page (SEB-426): its title, description, canonical URL and markdown copy."""
+    page = "country/%s/" % ccy.lower()
+    title = copy["countryTitle"].replace("{country}", country)
+    desc = copy["countryDescription"].replace("{country}", country)
+    if len(title) > TITLE_MAX or len(desc) > DESC_MAX:
+        sys.exit("%s: title is %d characters (limit %d), description %d (limit %d)" % (page, len(title), TITLE_MAX, len(desc), DESC_MAX))
+    t, d, url = html.escape(title, quote=True), html.escape(desc, quote=True), SITE + "/" + page
+    return "\n".join([BEGIN, "<title>%s</title>" % t, '<meta name="description" content="%s"/>' % d,
+                      '<link rel="canonical" href="%s"/>' % url, '<meta property="og:site_name" content="margin.wiki"/>',
+                      '<meta property="og:type" content="website"/>', '<meta property="og:title" content="%s"/>' % t,
+                      '<meta property="og:description" content="%s"/>' % d, '<meta property="og:url" content="%s"/>' % url,
+                      '<meta name="twitter:card" content="summary"/>', '<meta name="twitter:title" content="%s"/>' % t,
+                      '<meta name="twitter:description" content="%s"/>' % d,
+                      '<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>', '<link rel="icon" href="/favicon.ico" sizes="48x48"/>',
+                      '<link rel="alternate" type="text/markdown" href="/country/%s.md"/>' % ccy.upper(), END])
+
+
 OLD = [re.compile(r"[ \t]*<title>.*?</title>[ \t]*\n", re.S),
        re.compile(r'[ \t]*<meta name="description"[^>]*>[ \t]*\n'),
        re.compile(r'[ \t]*<link rel="alternate" type="text/markdown"[^>]*>[ \t]*\n')]
@@ -120,8 +138,8 @@ def write_files(lastmod=None):
     import emit_markdown
     from datetime import datetime, timezone
     lastmod = lastmod or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:00:00Z")
-    # country pages are one template (country.html?ccy=), so until each has its own URL (SEB-426) the sitemap lists their .md copies
-    pages = [md if url.startswith("country.html?ccy=") else url for url, md in emit_markdown.all_pages()]
+    # each country has its own page, country/<ccy>/ (SEB-426); country.html is the template and stays out
+    pages = [("country/%s/" % url.split("=")[1].lower()) if url.startswith("country.html?ccy=") else url for url, md in emit_markdown.all_pages()]
     extra = [f for f in static_pages() if f not in TEMPLATES and f not in pages]
     n = write_sitemap(pages + extra, lastmod)
     write_robots()
@@ -135,6 +153,8 @@ def self_test():
     assert 'rel="canonical" href="https://margin.wiki/countries.html"' in b and "/countries.md" in b
     assert "canonical" not in head_block("country.html", ["T", "d"])
     assert url_for("index.html") == SITE + "/"
+    ch = country_head("ARS", "Argentina", {"countryTitle": "{country}: a dollar", "countryDescription": "In {country}."})
+    assert '<link rel="canonical" href="https://margin.wiki/country/ars/"/>' in ch and "/country/ARS.md" in ch
     try:
         head_block("x.html", ["t" * 61, "d"])
     except SystemExit:

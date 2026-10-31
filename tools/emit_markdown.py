@@ -139,6 +139,9 @@ EXPAND_JS = r"""
 
 def to_md_href(url):
     """An internal page link rewritten to its markdown twin (SEB-301, 21 Oct): never .html."""
+    c = re.match(r"^" + re.escape(SITE) + r"/country/([a-z]{3})/?$", url)        # a country's own page (SEB-426)
+    if c:
+        return "%s/country/%s.md" % (SITE, c.group(1).upper())
     m = re.match(r"^" + re.escape(SITE) + r"/([a-z-]+)\.html(?:\?(.*))?$", url)
     if not m:
         return url
@@ -185,7 +188,7 @@ TO_MARKDOWN = r"""
   if(own){n++;return}[].forEach.call(x.children,function(k){if(!k.closest('[aria-hidden="true"],svg'))w(k)})})(e);return n}
  function clean(t){return (t||'').replace(/\s+/g,' ').replace(/(\s*·\s*)+/g,' · ').replace(/^\s*·\s*|\s*·\s*$/g,'').trim()}
  var ARROW=/^[→←↗↘›»·]+$/;
- var PAGE_LINK=/(^|\/)(country\.html\?ccy=|finding\.html\?id=)/;
+ var PAGE_LINK=/(^|\/)(country\.html\?ccy=|finding\.html\?id=|country\/[a-z]{3}\/)/;
  function abs(h){try{return new URL(h,location.href).href.replace(location.origin,SITE)}catch(e){return h}}
  function inline(e){ // text with links kept as markdown links
   var out='';e.childNodes.forEach(function(n){
@@ -383,22 +386,30 @@ def hour_line(iso):
     return "Prices from the %02d:%02d UTC hour, %d %s." % (hh, mm, d, MON[mo - 1])
 
 
+# the parts of a country page its own HTML carries before any script runs (SEB-426): what the page showed this hour
+FRAGMENTS_JS = """(function(){var g=function(i){var e=document.getElementById(i);return e?e.innerHTML:''};
+ return JSON.stringify({nav:g('nav'),cnav:g('cnav'),hero:g('hero'),depth:g('depth'),chart:g('chart'),src:g('src')})})()"""
+
+
 def render(pages, settle=2.5):
     from gate_common import open_page, serve
     base, stop = serve(HERE)
     out = {}
+    frags = {}
     try:
         with open_page(settle=settle) as page:
             page.visit("about:blank")
             page.set_viewport(1300, 900)
             for url, path in pages:
-                page.visit(base + "/" + url)
+                page.visit(base + "/" + url + ("&" if "?" in url else "?") + "noredirect=1" if path.startswith("country/") else base + "/" + url)
                 got = None
                 for _ in range(8):                   # a page fills in after its data loads; wait for its first heading
                     got = json.loads(page.eval_js(TO_MARKDOWN + "(%s)" % json.dumps(SITE)) or "{}")
                     if any(b["kind"] == "h1" for b in got.get("blocks", [])):
                         break
                     time.sleep(1.0)
+                if path.startswith("country/"):          # the same render also gives the country page its static HTML (SEB-426)
+                    frags[path] = json.loads(page.eval_js(FRAGMENTS_JS) or "{}")
                 page.eval_js(EXPAND_JS)                # a reader page shows the first 20 and a "show all" button; the twin shows everything
                 time.sleep(0.6)
                 got = json.loads(page.eval_js(TO_MARKDOWN + "(%s)" % json.dumps(SITE)) or "{}")
@@ -406,6 +417,7 @@ def render(pages, settle=2.5):
             page.clear_viewport()
     finally:
         stop()
+    render.fragments = frags
     return out
 
 
@@ -466,6 +478,9 @@ def build(force=False):
         os.makedirs(os.path.dirname(full) or HERE, exist_ok=True)
         open(full, "w").write(md)
     open(os.path.join(HERE, "llms.txt"), "w").write(llms_txt(twins))
+    # SEB-426: each country's own page, written from the same render as its .md copy
+    import emit_country_pages
+    emit_country_pages.write_all({p: f for p, f in render.fragments.items() if p in twins}, h)
     # SEB-425: sitemap.xml and robots.txt from the same page list, lastmod = this build's hour (tools/emit_site_files.py)
     import emit_site_files
     emit_site_files.write_files(h)
