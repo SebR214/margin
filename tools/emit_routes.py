@@ -177,8 +177,12 @@ def load():
     base, variants, own, panel = {}, {}, {}, {}
     meta = {}
     newest = ""
+    gas_missing = {}          # route -> hours whose sample was written without the gas reading (SEB-301, 31 Oct)
     for r in read_csv(SAMPLES):
         if not ok(r):
+            e = (r.get("errors") or "").strip()
+            if e.startswith("gas:missing") and "; " not in e and (r.get("corridor") or "").strip() and r.get("ts"):
+                gas_missing.setdefault(r["corridor"].strip(), set()).add(hour_of(r["ts"]))
             continue
         ts = r.get("ts") or ""
         c = (r.get("corridor") or "").strip()
@@ -247,7 +251,8 @@ def load():
             "deposit_measured": (r.get("deposit_measured") or "").strip() == "True",
             "withdrawal_measured": (r.get("withdrawal_measured") or "").strip() == "True"}
     return {"base": base, "variants": variants, "own": own, "panel": panel,
-            "legs": legs, "vlegs": vlegs, "meta": meta, "newest": newest}
+            "legs": legs, "vlegs": vlegs, "meta": meta, "newest": newest,
+            "gas_missing": {c: sorted(h) for c, h in sorted(gas_missing.items())}}
 
 
 def price_hour(D, c, amt, h):
@@ -611,6 +616,11 @@ def build_breakdown(D, S):
             gaps.append({"leg": leg, "route": c, "reason": "stored_from",
                          "first_hour_utc": hour_utc(first_leg["ramp"]) if first_leg["ramp"] else None,
                          "cadence": "hourly", "file": "data/" + RAMP_WATERFALL})
+    # An hour whose gas price could not be read is not priced (no gas figure is invented), and the route says which part is missing,
+    # the same way an unmeasured fee does: leg, route, reason and the hours. The newest 48 hours only, so the file stays small.
+    for c, hrs in D.get("gas_missing", {}).items():
+        gaps.append({"leg": "on_chain", "route": c, "reason": "not_read_this_hour", "first_hour_utc": None, "cadence": "hourly",
+                     "hours_utc": [hour_utc(h) for h in hrs[-48:]], "file": "data/" + SAMPLES})
     fs = fee_schedules()
     for r in fs["ramp_fees"]:
         if r["status"] != "measured":
@@ -820,12 +830,35 @@ def _variant_legs_case():
     assert old["path"] == "USDT" and old["getting_in_buy"] is not None, "an hour before the variant's steps were stored keeps the base row"
 
 
+def _gas_missing_case():
+    """SEB-301, 31 Oct: a sample written without its gas reading is not priced, and the route says which part could not be read."""
+    global read_csv
+    real = read_csv
+    row = {"ts": "2026-10-31T06:06:40+00:00", "corridor": "USD->INR", "source_ok": "False", "errors": "gas:missing:both RPCs",
+           "notional_src": "1000", "cost_bps_taker": "", "network_fee_stable": "", "src": "USD", "dst": "INR", "stable": "USDT"}
+    other = dict(row, ts="2026-10-31T07:06:40+00:00", errors="gas:missing:x; mid:Timeout")      # a second failure: not a gas-only miss
+    read_csv = lambda name: real(name) + ([row, other] if name == SAMPLES else [])
+    try:
+        D, S, docs = build_all()
+    finally:
+        read_csv = real
+    assert D["gas_missing"] == {"USD->INR": ["2026-10-31T06"]}, D["gas_missing"]
+    gap = [g for g in docs["breakdown"]["gaps"] if g.get("reason") == "not_read_this_hour"]
+    assert len(gap) == 1 and gap[0]["route"] == "USD->INR" and gap[0]["leg"] == "on_chain", gap
+    assert gap[0]["hours_utc"] == ["2026-10-31 06:00"] or len(gap[0]["hours_utc"]) == 1, gap[0]
+    assert ("USD->INR", "1000", "2026-10-31T06") not in D["base"], "the hour is not priced"
+
+
 def self_test():
     fails, notes = [], []
     try:
         _variant_legs_case()
     except AssertionError as e:
         fails.append("variant legs: %s" % (e,))
+    try:
+        _gas_missing_case()
+    except AssertionError as e:
+        fails.append("gas missing: %s" % (e,))
 
     def check(cond, msg):
         if not cond:

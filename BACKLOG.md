@@ -1,10 +1,9 @@
 # Build backlog
 
-The queue. Since 25 Oct 2026 (Seb's plan) two kinds of writer add to it: the researcher (tools/researcher.py, one Sonnet call a week,
-3 jobs at the end under "Proposed by the researcher") and Seb or a chat, by hand, in the same form. Nothing else writes items. The Aider
-builder takes the top ready job, builds it, merges on green and ticks it with the PR number and date. The Sunday scorecard
-(tools/scorecard.py) is the only evidence of what track A shipped. Items queued on SEB-301 under "Queued by Claude" are still copied
-in at the start of every builder run (tools/backlog.py).
+The queue. Since 31 Oct 2026 (SEB-422) two writers add to it: the research chat and Seb, by hand, in the job form (`tools/new_board_job.py`
+writes a board x currency job from the gap list). The researcher is retired. Nothing else writes items. The Aider builder takes the top
+ready job, builds it, merges on green and ticks it with the PR number and date. Items queued on SEB-301 under "Queued by Claude" are
+still copied in at the start of every builder run (tools/backlog.py).
 
 Track A takes only jobs a cheap model can't get wrong (tools/job_shape.py): new files (a new collector file, a new sidecar CSV, a
 new finding test, a new history file, a new script), collect.yml growing by one step, a new row in the source registry. Each job
@@ -144,7 +143,7 @@ Copied from SEB-301 comments by tools/backlog.py. The Scout splits them into job
     done when: a cancelled or still-running collect.yml run never counts toward the down limit in watchdog.yml or tools/check_collector_health.py, with a test in tests/ that feeds a cancelled run and expects no down; running `python3 tools/audit_claims.py` on main passes for `routeData.bigCaption` and `homeData.updatedLine`, and if a claim's test no longer matches the page since the routes rebuild (PR #616), the claim's test is fixed, not the reader text; no copy.json line changes.
 
 ## Proposed by the researcher
-Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/job_shape.py.
+Written by the retired researcher (25 to 29 Oct). Track A rules in tools/job_shape.py.
 
 - [ ] 19. Retest the p2p_spread_signal finding for the first time
   - [ ] 19a. Retest the p2p_spread_signal finding for the first time
