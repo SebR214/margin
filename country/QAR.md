@@ -1,12 +1,12 @@
 # No price for Qatar this hour
 
-Prices from the 19:00 UTC hour, 1 Nov.
+Prices from the 20:00 UTC hour, 1 Nov.
 
 Held back this hour: the price jumped from its usual level and we’re waiting for a second source to confirm it.
 
 The last price we published was +4.3%, on 1 Nov.
 
-Prices from the 19:00 UTC hour, 1 Nov
+Prices from the 20:00 UTC hour, 1 Nov
 
 <https://margin.wiki/data/countries/QAR.json>
 
