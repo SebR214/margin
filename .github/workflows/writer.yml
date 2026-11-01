@@ -67,7 +67,9 @@ jobs:
           git config user.name "margin-agents[bot]"
           git config user.email "329969015+margin-agents[bot]@users.noreply.github.com"
           mkdir -p data/event_prose
-          git add data/event_prose data/home_prose.json data/agent_spend.csv
+          for f in data/event_prose data/home_prose.json data/agent_spend.csv; do
+            if [ -e "$f" ]; then git add "$f"; fi
+          done
           if git diff --cached --quiet; then
             echo "nothing staged, the writer wrote no new text"
             exit 0
