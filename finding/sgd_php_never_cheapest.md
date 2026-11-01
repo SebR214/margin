@@ -1,8 +1,8 @@
 # Singapore to the Philippines: a stablecoin was almost never the cheapest way to send
 
-Prices from the 11:00 UTC hour, 1 Nov.
+Prices from the 12:00 UTC hour, 1 Nov.
 
-In 1,642 of the 1,645 hours we priced, a stablecoin did not beat the cheapest app at any of the five amounts.
+In 1,643 of the 1,646 hours we priced, a stablecoin did not beat the cheapest app at any of the five amounts.
 
 3 · hours in which a stablecoin was the cheapest way to send
 
@@ -20,11 +20,11 @@ Each row is one amount sent from Singapore to the Philippines: the hours we pric
 
 |  |  |  |
 | --- | --- | --- |
-| S$200 | 1,645 hours priced. | 0 hours a stablecoin was cheapest |
-| S$1,000 | 1,645 hours priced. | 1 hours a stablecoin was cheapest |
-| S$5,000 | 1,645 hours priced. | 3 hours a stablecoin was cheapest |
-| S$25,000 | 1,645 hours priced. | 3 hours a stablecoin was cheapest |
-| S$50,000 | 1,645 hours priced. | 1 hours a stablecoin was cheapest |
+| S$200 | 1,646 hours priced. | 0 hours a stablecoin was cheapest |
+| S$1,000 | 1,646 hours priced. | 1 hours a stablecoin was cheapest |
+| S$5,000 | 1,646 hours priced. | 3 hours a stablecoin was cheapest |
+| S$25,000 | 1,646 hours priced. | 3 hours a stablecoin was cheapest |
+| S$50,000 | 1,646 hours priced. | 1 hours a stablecoin was cheapest |
 
 ## How we worked it out
 
@@ -48,7 +48,7 @@ One line per hour or per price change.
 
 findings_hours_sgd_php_never_cheapest.csv
 
-1,645 rows
+1,646 rows
 
 <https://margin.wiki/data/findings_hours_sgd_php_never_cheapest.csv>
 
@@ -58,5 +58,5 @@ findings_hours_sgd_php_never_cheapest.csv
 | --- | --- | --- |
 | 01 | Transfer apps keep changing their prices | 1,722 price changes since 12 Aug |
 | 02 | Some apps charge more on Saturday, then cut back | 51 Saturday rises that came back |
-| 03 | From Singapore to the Philippines, a stablecoin only beats the apps if you send over S$13.5M a month | S$13.5M a month traded on the exchange |
+| 03 | From Singapore to the Philippines, a stablecoin only beats the apps if you send over S$20.2M a month | S$20.2M a month traded on the exchange |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |

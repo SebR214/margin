@@ -1,6 +1,6 @@
 # In Lebanon a dollar costs 1.5% more than the official rate
 
-Prices from the 11:00 UTC hour, 1 Nov.
+Prices from the 12:00 UTC hour, 1 Nov.
 
 The official rate is 89,500 LBP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 90,850 LBP. A stablecoin is a coin that stays worth one US dollar.
 
@@ -10,7 +10,7 @@ One dollar costs 89,500 LBP at the official rate, 89,500 LBP in cash from a mone
 
 Today cash is the cheaper dollar here. A stablecoin costs 1.5% more.
 
-Prices from the 11:00 UTC hour, 1 Nov
+Prices from the 12:00 UTC hour, 1 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 

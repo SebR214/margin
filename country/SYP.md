@@ -1,16 +1,16 @@
-# In Syria a dollar costs 19.2% more than the official rate
+# In Syria a dollar costs 19.0% more than the official rate
 
-Prices from the 11:00 UTC hour, 1 Nov.
+Prices from the 12:00 UTC hour, 1 Nov.
 
-The official rate is 121.82 SYP per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 145.22 SYP. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 121.82 SYP per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 144.94 SYP. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 14,522 SYP. The official rate says 12,182 SYP.
+For US$100, people pay 14,494 SYP. The official rate says 12,182 SYP.
 
 Only 1 source
 
-Prices from the 11:00 UTC hour, 1 Nov
+Prices from the 12:00 UTC hour, 1 Nov
 
-You could buy only US$2,500 here before the price goes up 1%.
+You could buy only US$3,000 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/SYP.json>
 
@@ -26,4 +26,4 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-145.22 SYP +19.2%
+144.94 SYP +19.0%
