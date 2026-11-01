@@ -12,6 +12,14 @@
   background: transparent; color: var(--color-neutral-700, #605d5d); cursor: pointer; text-align: center;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
+.mv-switch.mv-in-head { position: static; transform: none; box-shadow: none; width: auto; margin-left: 16px; flex: none; order: 99; }
+.mv-switch.mv-in-head button { padding: 5px 10px; min-height: 0; font-size: 13px; }
+@media (max-width: 767px) {
+  .mv-switch.mv-in-head { order: 2; margin: 0 8px 0 auto !important; padding: 2px; }
+  .mv-switch.mv-in-head button { padding: 6px 10px; font-size: 13px; }
+  .mv-switch.mv-in-head + .sh-menu { margin: 0 -12px 0 0 !important; }
+  :has(> .mv-switch.mv-in-head) { column-gap: 0 !important; }
+}
 .mv-switch button[aria-pressed="true"] { background: var(--color-ink, #201e1d); color: var(--color-bg, #fff); }
 /* Machine mode: black background, white text, the markdown and nothing else. A soft fade in. */
 html { transition: background-color 0.25s ease; }

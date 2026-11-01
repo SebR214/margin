@@ -16,14 +16,6 @@
   var app = document.getElementById('app');
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  // Each group's own fixed scale, per the reference -- "far" is the one
-  // exception, computed from the real data below, because the far group
-  // can run from 0% to wherever the dearest real country lands.
-  var SCALES = {
-    above: { lo: 0, hi: 10, ticks: [0, 2, 4, 6, 8, 10] },
-    near: { lo: -4, hi: 4, ticks: [-4, -2, 0, 2, 4] },
-    below: { lo: -6, hi: 2, ticks: [-6, -4, -2, 0, 2] }
-  };
   var BANDS = [
     { k: 'far', capKey: 'groupFar' },
     { k: 'above', capKey: 'groupAbove' },
@@ -73,11 +65,6 @@
   }
   function countryHref(ccy) { return 'country/' + encodeURIComponent(String(ccy).toLowerCase()) + '/'; }
   function mkX(Sc) { return function (v) { return (Math.max(Sc.lo, Math.min(Sc.hi, v)) - Sc.lo) / (Sc.hi - Sc.lo) * 100; }; }
-  function farScale(rows) {
-    var mx = 0;
-    rows.forEach(function (r) { mx = Math.max(mx, r.hi, r.p); });
-    return { lo: 0, hi: Math.ceil((mx || 25) / 25) * 25, ticks: [0, 25, 50, 75, 100] };
-  }
   function visibleTicks(Sc) { return Sc.ticks.filter(function (tk) { return tk >= Sc.lo && tk <= Sc.hi; }); }
   function gridlinesHTML(Sc, X) {
     return visibleTicks(Sc).map(function (tk) {
@@ -249,10 +236,22 @@
     return a;
   }
 
-  function bandSection(def, rows) {
+  // One scale for every group (1 Nov, Claude Design review): with a scale per group, Morocco at +7% sat further right than
+  // Angola at +28%. Now a bar's position means the same thing in every group, so the groups near zero are short, which is true.
+  function sharedScale(all) {
+    var lo = 0, hi = 0;
+    all.forEach(function (r) { lo = Math.min(lo, r.lo, r.p); hi = Math.max(hi, r.hi, r.p); });
+    var span = hi - lo, step = span > 60 ? 25 : span > 20 ? 10 : 2;
+    lo = Math.floor(lo / 5) * 5; hi = Math.ceil(hi / step) * step;   // the left end stops just past the lowest country
+    var ticks = [];
+    for (var v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) { ticks.push(Math.round(v)); }
+    return { lo: lo, hi: hi, ticks: ticks };
+  }
+
+  function bandSection(def, rows, shared) {
     if (!rows.length || !has(C, def.capKey)) { return null; }
-    var money = def.k !== 'near';
-    var Sc = def.k === 'far' ? farScale(rows) : SCALES[def.k];
+    var money = true;   // every group has the same columns, so 0% sits in the same place in every group
+    var Sc = shared;
     var X = mkX(Sc);
     var sec = el('section', money ? ['ci-band', 'ci-money'] : 'ci-band');
     var h2 = el('h2');
@@ -265,8 +264,11 @@
   }
 
   function bandsSection(wrap, ctx) {
+    var all = [];
+    BANDS.forEach(function (b) { all = all.concat(ctx.grouped[b.k] || []); });
+    var shared = sharedScale(all);
     BANDS.forEach(function (b) {
-      var sec = bandSection(b, ctx.grouped[b.k] || []);
+      var sec = bandSection(b, ctx.grouped[b.k] || [], shared);
       if (sec) { wrap.appendChild(sec); }
     });
   }

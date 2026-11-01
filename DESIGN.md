@@ -10,6 +10,11 @@ page. When Seb decides something about a page in chat, it is written here in the
 * `#3F3047` vintage grape — total / emphasis
 * `#F0EBD8` eggshell — area fills
 
+The gap scale (home grid, research year chart), 1 Nov: under 2% `#ECEAF4`, 2 to 8% `#C7C3E8`, 8 to 25% `#938FD3`,
+25 to 50% `#62579A`, over 50% `#3F3047` (grape). Each step clearly darker than the last, so calm countries fade back and the
+problem countries stand out. Below the official rate is a striped square. No price is an empty square with a thin grey outline,
+never a filled grey that could pass for a colour.
+
 One mapping, every chart, no exceptions. Page chrome (text, background, borders) keeps the existing neutral greys; the palette above is for data. Indigo `#5A55E0` from UI-SPEC-2026-09-16 is retired.
 
 The accent colors above are reserved for charts that compare two or more *named* things (a cost waterfall's legs, the multi-series history chart). A single-series trend chart (`js/chart.js`, used sitewide for "this one number over time") is not a comparison, so it renders in plain grey (`#6B6B6B` line, light grey fill, `#EDEDED` current-value badge) instead of periwinkle-on-eggshell — that combo read as an arbitrary mix of two accent colors with nothing to distinguish (SEB, 2026-09-25).
@@ -18,10 +23,12 @@ In a cost waterfall (`index.html`, `corridor.html`), the two "dollar-route" legs
 
 ## Nav (canonical, the only nav)
 
-Countries, Routes, Sources, Research, Events, How it works, in that order. Seven items at most. Findings live in
-Research (1 Nov). The logo links to the home page. The
+Two groups (1 Nov). The site itself, in the order a reader goes: Countries, Events, Research, Routes. Then, set apart
+by a thin line, smaller and grey, "About the data": Sources, How it works. On a phone the Menu sheet shows the same two
+groups with that label. Seven items at most. Findings live in Research, How it was built lives under How it works.
+`js/site_head.js` groups whatever nav a page draws, so the order is set in one place. The logo links to the home page. The
 nav is generated from `copy.json`'s `nav` array into every page by the bake step (`tools/bake_nav.py`); no page carries a
-hand-written header. How it was built is not in the nav: the footer of every page links to it. Fee tiers, agent incidents, the machine
+hand-written header. How it was built sits under How it works: its last section links to it, and the page has a back link to How it works. The footer is only the GitHub link. Nothing lives only at the bottom of a page. Fee tiers, agent incidents, the machine
 room, tape and corridor are redirects.
 
 ## Pages (layout, phones, charts)
