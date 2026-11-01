@@ -112,9 +112,9 @@ def write_event(ev, record_text, country, complete=None):
     system = EVENT_INSTRUCTIONS.replace("{country}", country) + "\n\nEvent record:\n" + record_text
     query = "%s %s official exchange rate announcement %s" % (country, ev["ccy"], ev["date"])
     text, _row = complete([{"role": "system", "content": system}, {"role": "user", "content": query}],
-                          models_to_try=[model], issue=ISSUE, max_tokens=1500,
+                          models_to_try=[model], issue=ISSUE, max_tokens=8000,
                           extra={"plugins": [{"id": "web", "max_results": SEARCH_RESULTS}]})
-    print("%s: %d search results, reply %d characters" % (ev["id"], len(llm.CITATIONS), len(text or "")))
+    print("%s: %d search results, reply %d characters, finish %s" % (ev["id"], len(llm.CITATIONS), len(text or ""), llm.LAST_FINISH[0]))
     obj = parse_json(text)
     fails = check_event_output(obj)
     if not fails:
@@ -132,7 +132,7 @@ def write_daily(facts_text, facts_as_of, about_ccy, complete=None):
     model = _model()
     system = DAILY_INSTRUCTIONS + "\n\nFacts file:\n" + facts_text
     text, _row = complete([{"role": "system", "content": system}, {"role": "user", "content": "Write today's sentences."}],
-                          models_to_try=[model], issue=ISSUE, max_tokens=500)
+                          models_to_try=[model], issue=ISSUE, max_tokens=4000)
     obj = parse_json(text)
     fails = check_daily_output(obj)
     if not fails:

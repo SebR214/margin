@@ -40,6 +40,7 @@ API = "https://openrouter.ai/api/v1"
 SONNET_PREFIX = "anthropic/claude-sonnet"
 BANNED = re.compile(r"opus|fable", re.I)
 LOGGED = []                  # every row this process logged, in order
+LAST_FINISH = [""]           # finish_reason of the last call ("length" means the reply was cut off)
 CITATIONS = []               # url_citation notes of the last call that used the web plugin: {"url", "title"}
 
 
@@ -203,6 +204,7 @@ def complete(messages, *, models_to_try, issue, max_tokens=4000, temperature=0.2
         u = out.get("usage") or {}
         msg = (out.get("choices") or [{}])[0].get("message", {})
         text = msg.get("content") or ""
+        LAST_FINISH[0] = str((out.get("choices") or [{}])[0].get("finish_reason") or "")
         CITATIONS[:] = [dict(url=(a.get("url_citation") or {}).get("url", ""), title=(a.get("url_citation") or {}).get("title", ""))
                         for a in (msg.get("annotations") or []) if a.get("type") == "url_citation"]
         row.update(tokens_in=u.get("prompt_tokens", ""), tokens_out=u.get("completion_tokens", ""),
