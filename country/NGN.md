@@ -1,6 +1,6 @@
 # In Nigeria a dollar costs 2.3% more than the official rate
 
-Prices from the 22:00 UTC hour, 1 Nov.
+Prices from the 23:00 UTC hour, 1 Nov.
 
 The official rate is 1,345.49 NGN per dollar. On the exchanges where people in Nigeria trade stablecoins, one costs 1,377 NGN. A stablecoin is a coin that stays worth one US dollar.
 
@@ -8,7 +8,7 @@ The official rate is 1,345.49 NGN per dollar. On the exchanges where people in N
 | --- | --- |
 | Official rate | 1,345 NGN |
 | A stablecoin on an exchange | 1,377 NGN +2.3% |
-| A stablecoin from people selling to each other | 1,381 NGN +2.6% |
+| A stablecoin from people selling to each other | 1,392 NGN +3.4% |
 | Cash at a money changer | 1,385 NGN +2.9% |
 
 For US$100, people pay 137,700 NGN. The official rate says 134,549 NGN.
@@ -17,7 +17,7 @@ Today a stablecoin is the cheaper dollar here. Cash costs 0.6% more.
 
 Only 1 source
 
-Prices from the 22:00 UTC hour, 1 Nov
+Prices from the 23:00 UTC hour, 1 Nov
 
 <https://margin.wiki/data/countries/NGN.json>
 

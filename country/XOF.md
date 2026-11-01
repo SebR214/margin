@@ -1,6 +1,6 @@
 # In West Africa a dollar costs 4.6% more than the official rate
 
-Prices from the 22:00 UTC hour, 1 Nov.
+Prices from the 23:00 UTC hour, 1 Nov.
 
 The official rate is 587.45 XOF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 614.20 XOF. A stablecoin is a coin that stays worth one US dollar.
 
@@ -10,7 +10,7 @@ For US$100, people pay 61,420 XOF. The official rate says 58,745 XOF.
 
 Eight West African countries share this currency, the CFA franc. They are Benin, Burkina Faso, Ivory Coast, Guinea-Bissau, Mali, Niger, Senegal and Togo.
 
-Prices from the 22:00 UTC hour, 1 Nov
+Prices from the 23:00 UTC hour, 1 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 

@@ -1,16 +1,16 @@
-# In Tunisia a dollar costs 12.9% more than the official rate
+# In Tunisia a dollar costs 13.1% more than the official rate
 
-Prices from the 22:00 UTC hour, 1 Nov.
+Prices from the 23:00 UTC hour, 1 Nov.
 
-The official rate is 3.01 TND per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.40 TND. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 3.01 TND per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.41 TND. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 340.00 TND. The official rate says 301.10 TND.
+For US$100, people pay 340.50 TND. The official rate says 301.10 TND.
 
 Only 1 source
 
-Prices from the 22:00 UTC hour, 1 Nov
+Prices from the 23:00 UTC hour, 1 Nov
 
-You could buy only US$4,000 here before the price goes up 1%.
+You could buy only US$3,500 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/TND.json>
 
@@ -26,4 +26,4 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-3.40 TND +12.9%
+3.41 TND +13.1%
