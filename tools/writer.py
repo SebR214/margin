@@ -77,7 +77,7 @@ def audit_sources(sources, citations):
 def parse_json(text):
     m = _JSON.search(text or "")
     if not m:
-        raise ValueError("no JSON in the reply")
+        raise ValueError("no JSON in the reply, which began: %r" % (text or "")[:200])
     return json.loads(m.group(0))
 
 
@@ -114,6 +114,7 @@ def write_event(ev, record_text, country, complete=None):
     text, _row = complete([{"role": "system", "content": system}, {"role": "user", "content": query}],
                           models_to_try=[model], issue=ISSUE, max_tokens=1500,
                           extra={"plugins": [{"id": "web", "max_results": SEARCH_RESULTS}]})
+    print("%s: %d search results, reply %d characters" % (ev["id"], len(llm.CITATIONS), len(text or "")))
     obj = parse_json(text)
     fails = check_event_output(obj)
     if not fails:
