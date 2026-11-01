@@ -40,6 +40,7 @@ API = "https://openrouter.ai/api/v1"
 SONNET_PREFIX = "anthropic/claude-sonnet"
 BANNED = re.compile(r"opus|fable", re.I)
 LOGGED = []                  # every row this process logged, in order
+CITATIONS = []               # url_citation notes of the last call that used the web plugin: {"url", "title"}
 
 
 class LLMError(Exception):
@@ -153,9 +154,11 @@ def worst_case_cost(model, prompt_chars, max_tokens, listing=None):
 # ---------- the call ----------
 
 def complete(messages, *, models_to_try, issue, max_tokens=4000, temperature=0.2,
-             timeout=600, listing=None, opener=None, spend_path=None, key=None):
+             timeout=600, listing=None, opener=None, spend_path=None, key=None, extra=None):
     """One chat completion. Returns (text, row). Tries `models_to_try` in order
-    on an error other than out-of-credit. Raises LLMError on any refusal."""
+    on an error other than out-of-credit. Raises LLMError on any refusal.
+    `extra` is merged into the request body (SEB-423: {"plugins": [{"id": "web", "max_results": 5}]} for web search); the
+    pages the search returned are left in CITATIONS."""
     chars = sum(len(m.get("content") or "") for m in messages)
     if chars > MAX_PROMPT_CHARS:
         raise LLMError("prompt is %d characters, over the %d limit" % (chars, MAX_PROMPT_CHARS))
@@ -173,8 +176,8 @@ def complete(messages, *, models_to_try, issue, max_tokens=4000, temperature=0.2
         if month + worst > MONTHLY_CAP_USD:
             raise LLMError("refused: this month so far $%.2f plus up to $%.2f for this call is over the $%.2f cap"
                            % (month, worst, MONTHLY_CAP_USD))
-        body = json.dumps({"model": model, "messages": messages, "max_tokens": max_tokens,
-                           "temperature": temperature, "usage": {"include": True}}).encode()
+        body = json.dumps(dict({"model": model, "messages": messages, "max_tokens": max_tokens,
+                                "temperature": temperature, "usage": {"include": True}}, **(extra or {}))).encode()
         req = urllib.request.Request(API + "/chat/completions", data=body,
                                      headers={"Authorization": "Bearer " + key,
                                               "Content-Type": "application/json"})
@@ -198,7 +201,10 @@ def complete(messages, *, models_to_try, issue, max_tokens=4000, temperature=0.2
             last = "%s: %s" % (model, e)
             continue
         u = out.get("usage") or {}
-        text = (out.get("choices") or [{}])[0].get("message", {}).get("content") or ""
+        msg = (out.get("choices") or [{}])[0].get("message", {})
+        text = msg.get("content") or ""
+        CITATIONS[:] = [dict(url=(a.get("url_citation") or {}).get("url", ""), title=(a.get("url_citation") or {}).get("title", ""))
+                        for a in (msg.get("annotations") or []) if a.get("type") == "url_citation"]
         row.update(tokens_in=u.get("prompt_tokens", ""), tokens_out=u.get("completion_tokens", ""),
                    cost_usd="%.6f" % float(u.get("cost") or 0), result="ok")
         write_rows([row], spend_path)
