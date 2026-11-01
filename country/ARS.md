@@ -1,21 +1,21 @@
 # In Argentina a dollar costs 8.6% more than the official rate
 
-Prices from the 16:00 UTC hour, 1 Nov.
+Prices from the 17:00 UTC hour, 1 Nov.
 
-The official rate is 1,534 ARS per dollar. On the exchanges where people in Argentina trade stablecoins, one costs 1,666 ARS. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 1,534 ARS per dollar. On the exchanges where people in Argentina trade stablecoins, one costs 1,667 ARS. A stablecoin is a coin that stays worth one US dollar.
 
 |  |  |
 | --- | --- |
 | Official rate | 1,534 ARS |
-| A stablecoin on an exchange | 1,666 ARS +8.6% |
-| A stablecoin from people selling to each other | 1,648 ARS +7.4% |
+| A stablecoin on an exchange | 1,667 ARS +8.6% |
+| A stablecoin from people selling to each other | 1,647 ARS +7.4% |
 | Cash at a money changer | 1,549 ARS +0.9% |
 
-For US$100, people pay 166,569 ARS. The official rate says 153,400 ARS.
+For US$100, people pay 166,663 ARS. The official rate says 153,400 ARS.
 
 Today cash is the cheaper dollar here. A stablecoin costs 7.6% more.
 
-Prices from the 16:00 UTC hour, 1 Nov
+Prices from the 17:00 UTC hour, 1 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -35,19 +35,19 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 |  |  |
 | --- | --- |
-| CriptoYa · Mexc | 1,634 ARS +6.5% |
-| CriptoYa · Wallbit | 1,642 ARS +7.0% |
+| CriptoYa · Mexc | 1,633 ARS +6.5% |
+| CriptoYa · Wallbit | 1,641 ARS +7.0% |
 | CriptoYa · Ripioexchange | 1,643 ARS +7.1% |
 | CriptoYa · Bitsoalpha | 1,644 ARS +7.1% |
-| CriptoYa · Binance | 1,658 ARS +8.1% |
+| CriptoYa · Binance | 1,657 ARS +8.0% |
 | CriptoYa · Nexo | 1,660 ARS +8.2% |
 | CriptoYa · Belo | 1,662 ARS +8.3% |
-| CriptoYa · Vitawallet | 1,662 ARS +8.4% |
-| CriptoYa · Cryptomktpro | 1,663 ARS +8.4% |
 | CriptoYa · Ripio | 1,664 ARS +8.5% |
+| CriptoYa · Vitawallet | 1,664 ARS +8.5% |
+| CriptoYa · Cryptomktpro | 1,665 ARS +8.5% |
 | CriptoYa · Fiwind | 1,665 ARS +8.5% |
-| CriptoYa · Letsbit | 1,665 ARS +8.6% |
 | CriptoYa · Cocoscrypto | 1,666 ARS +8.6% |
+| CriptoYa · Letsbit | 1,667 ARS +8.7% |
 | CriptoYa · Universalcoins | 1,670 ARS +8.9% |
 | CriptoYa · Saldo | 1,672 ARS +9.0% |
 | CriptoYa · Tiendacrypto | 1,673 ARS +9.0% |
