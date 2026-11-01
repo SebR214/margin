@@ -39,6 +39,8 @@ wall clock; stdlib only.
 Usage: python3 tools/emit_sources_daily.py [--self-test]
 """
 
+import csv
+import glob
 import json
 import os
 import re
@@ -114,9 +116,43 @@ def _norm(s):
     return re.sub(r"[^a-z0-9]", "", re.sub(r"\(.*?\)", "", s.lower()))
 
 
+CASH_DIR = os.path.join(rc.DATA, "cash_rates")
+BOARDS = os.path.join(rc.DATA, "p2p_basis_boards.csv")
+
+
+def extra_readings():
+    """Sources that record_common does not count toward the record's readings: the cash trackers
+    (one file a day in data/cash_rates/) and the people-selling boards other than Binance and OKX
+    (data/p2p_basis_boards.csv). Listed here so the Sources page names every source we read,
+    with its missed hours, without changing the record's own counts."""
+    out = []
+    for path in sorted(glob.glob(os.path.join(CASH_DIR, "*.csv"))):
+        with open(path, newline="", encoding="utf-8") as f:
+            for r in csv.DictReader(f):
+                ts = r.get("ts_utc") or ""
+                if len(ts) < 13 or ts[:10] < rc.START_DAY:
+                    continue
+                out.append({"ts": ts, "file": "cash_rates/", "ok": rc._ok(r),
+                            "sources": [(r["tracker"], "street")], "ccy": r.get("ccy") or None, "route": None})
+    if os.path.exists(BOARDS):
+        with open(BOARDS, newline="", encoding="utf-8") as f:
+            for r in csv.DictReader(f):
+                ts = r.get("ts_utc") or ""
+                if len(ts) < 13 or ts[:10] < rc.START_DAY:
+                    continue
+                out.append({"ts": ts, "file": "p2p_basis_boards.csv", "ok": rc._ok(r),
+                            "sources": [(r["board"] + "_p2p", "p2p")], "ccy": r.get("ccy") or None, "route": None})
+    out.sort(key=lambda x: x["ts"])
+    return out
+
+
 def build():
     rows = rc.readings()
     reg = rc.Registry(rows)
+    extra = rc.Registry(extra_readings())
+    for sid, s in extra.sources.items():
+        assert sid not in reg.sources, "extra source id clashes: " + sid
+        reg.sources[sid] = s
     ok_rows = [r for r in rows if r["ok"]]
     as_of = ok_rows[-1]["ts"]
     days = rc.day_range(rc.START_DAY, rc.day_of(as_of))

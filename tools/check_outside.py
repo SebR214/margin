@@ -9,7 +9,7 @@ site is wrong. Checks:
   4. Nothing the home page asks for returns 404: its scripts, styles and the data files they name.
   5. Country pages carry their numbers in the HTML (SEB-426): each country/<ccy>/ page, read with no JavaScript, shows a number in its
      hero and its "Prices from the HH:MM UTC hour" line, and every line of that hero is in the page's .md copy: same numbers, same build.
-  6. how-it-was-built, agent-incidents and the Iraq event page are one click from home: the footer links home draws are in
+  6. how-it-was-built, the machine room and the Iraq event page are one click from home: the footer links home draws are in
      copy.json siteHead.footerLinks, the home page loads the script that draws them, and each target returns 200.
 A fetch that fails is retried a few times (Pages and its cache take a minute to catch up); the last answer counts.
 """
@@ -25,7 +25,7 @@ from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urljoin, urlparse
 
 SITE = "https://margin.wiki"
-MUST_BE_LINKED = ["how-it-was-built.html", "machine-room.html", "agent-incidents.html", "event.html"]
+MUST_BE_LINKED = ["how-it-was-built.html", "machine-room.html", "event.html"]
 TRIES, PAUSE = 4, 30
 
 
@@ -177,7 +177,7 @@ def self_test():
         open(os.path.join(d, name), "w").write(text)
 
     page = '<html><head><title>T</title><meta name="description" content="D"/></head><body><script src="./js/footer.js"></script></body></html>'
-    for n in ["index.html", "how-it-was-built.html", "machine-room.html", "agent-incidents.html", "event.html"]:
+    for n in ["index.html", "how-it-was-built.html", "machine-room.html", "event.html"]:
         w(n, page)
     w("js/footer.js", "fetch('./copy.json'); fetch('data/x.json');")
     w("data/x.json", "{}")
@@ -185,7 +185,7 @@ def self_test():
     w("llms.txt", "x")
     w("favicon.ico", "x")
     w("favicon.svg", "x")
-    w("copy.json", json.dumps({"siteHead": {"footerLinks": [{"href": "./how-it-was-built.html"}, {"href": "./machine-room.html"}, {"href": "./agent-incidents.html"}, {"href": "./event.html"}]}}))
+    w("copy.json", json.dumps({"siteHead": {"footerLinks": [{"href": "./how-it-was-built.html"}, {"href": "./machine-room.html"}, {"href": "./event.html"}]}}))
     ns = "http://www.sitemaps.org/schemas/sitemap/0.9"
     w("sitemap.xml", '<urlset xmlns="%s"><url><loc>https://margin.wiki/</loc></url><url><loc>https://margin.wiki/event.html</loc></url></urlset>' % ns)
     handler = lambda *a, **k: http.server.SimpleHTTPRequestHandler(*a, directory=d, **k)

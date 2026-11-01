@@ -33,7 +33,7 @@ COPY = os.path.join(HERE, "copy.json")
 # same generated nav in its header -- DESIGN.md just keeps it out of the
 # nav's own link list.
 NAV_PAGES = [
-    "agent-incidents.html", "machine-room.html", "corridor.html",
+    "machine-room.html", "corridor.html",
     "country.html", "fee-tiers.html", "how-it-works.html",
     "how-it-was-built.html", "countries.html",
     "tape.html",

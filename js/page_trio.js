@@ -1,5 +1,4 @@
-/* The three pages about how the site is built (SEB-427) link to each other at the top: how-it-was-built, machine-room and
-   agent-incidents. Words and links come from copy.json machineRoomPage.trio. The current page is bold and not a link. */
+/* The pages about how the site is built (SEB-427) link to each other at the top: how-it-was-built and machine-room. Words and links come from copy.json machineRoomPage.trio. The current page is bold and not a link. */
 (function () {
   function base(h) { return String(h).split('/').pop().split('?')[0].split('#')[0]; }
   fetch('./copy.json').then(function (r) { return r.json(); }).then(function (C) {

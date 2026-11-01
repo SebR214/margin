@@ -287,7 +287,7 @@
     var held = window.Claims && window.Claims.blocked("eventPage.landLine");
     if (!REC || !ready() || (held && !known())) { app.innerHTML = '<div class="sm-wrap">' + headHtml() + w("notReady", null, "p") + "</div>"; return; }
     var kn = known();
-    app.innerHTML = '<div class="sm-wrap">' + headHtml() + (kn ? heroHtml(pts) : genericHeroHtml()) + proseHtml() + chartSectionHtml() + tableHtml() + landingHtml() + (kn ? firstHtml(pts) : "") +
+    app.innerHTML = '<div class="sm-wrap">' + headHtml() + '<div class="cnav"><a class="back" href="./events.html">' + esc(COPY.navEvents || "") + '</a></div>' + (kn ? heroHtml(pts) : genericHeroHtml()) + proseHtml() + chartSectionHtml() + tableHtml() + landingHtml() + (kn ? firstHtml(pts) : "") +
       (reported() ? "" : offersHtml()) + keepHtml() + (reported() ? "" : checksHtml()) + footerHtml() + dayLinkHtml() + "</div>";
     drawChart();
     var box = document.getElementById("evChart");

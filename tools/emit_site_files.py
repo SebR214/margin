@@ -18,7 +18,7 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = "https://margin.wiki"
 TITLE_MAX, DESC_MAX = 60, 160
 # moved pages: noindex redirects, never in the sitemap
-REDIRECTS = {"corridor.html", "tape.html", "fee-tiers.html"}
+REDIRECTS = {"corridor.html", "tape.html", "fee-tiers.html", "agent-incidents.html"}
 # pages with a markdown twin
 TWINS = {"index.html": "index.md", "countries.html": "countries.md", "sending-money.html": "sending-money.md",
          "sources.html": "sources.md", "findings.html": "findings.md", "how-it-works.html": "how-it-works.md",

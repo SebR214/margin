@@ -20,8 +20,8 @@ In a cost waterfall (`index.html`, `corridor.html`), the two "dollar-route" legs
 
 Countries, Routes, Sources, Findings, Research, Events, How it works, in that order. The logo links to the home page. The
 nav is generated from `copy.json`'s `nav` array into every page by the bake step (`tools/bake_nav.py`); no page carries a
-hand-written header. Pages not in the nav (fee tiers, agent incidents, how it was built, the machine room) are reached by
-links from other pages only.
+hand-written header. Pages not in the nav (how it was built, the machine room) are reached by links from other pages only. Fee tiers,
+agent incidents, tape and corridor are redirects.
 
 ## Pages (layout, phones, charts)
 
@@ -31,6 +31,7 @@ errors can still make no sense.
 
 ### Every page
 
+* One thing lives in one place. Every other page links to it and does not repeat it. Every link leads to something current: a moved page redirects, a retired page redirects to where its content went.
 * One point per page, said in its headline. Every section serves that point. If a section has no reader who would care, cut it (the hourly price list on country pages went for this reason).
 * A comparison is one chart or one table to read down, never the same sentence repeated per row. The reader should see the answer by scanning one column.
 * Never show two versions of the same number on one page (this hour and the typical week) unless each says which it is.
@@ -46,7 +47,8 @@ errors can still make no sense.
 * No width cap on text. Text runs the width of the page, so a short sentence stays on one line on a computer.
 * One size for all body text on a page. A line that matters is never small or faint: if it is important, it is black, not 14px grey.
 * Each page's spacing lives in one block in `css/site_page.css`. To change it, edit that block. Never add an override under an older rule.
-* Home: the first screen is the headline and the lines under it. The grid starts when you scroll.
+* Every page: the headline 40px under the header, the line under it 20px grey (17px on a phone), notes 14px grey. Home too.
+* A page that is one item of a list (a country, a finding, a research piece, an event) has one back link to its list, 40px under the header, with the headline 24px under it. List pages have none.
 
 ### Phones
 
