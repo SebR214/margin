@@ -1,7 +1,14 @@
 {
- "as_of_utc": "2026-11-01T16:19:40Z",
+ "as_of_utc": "2026-11-01T16:44:57Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "f49e690dcf29d70905e322a955190911d8054cdb",
+   "html_url": "https://github.com/SebR214/margin/commit/f49e690dcf29d70905e322a955190911d8054cdb",
+   "date": "2026-11-01T16:27:26Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-01T16:27Z"
+  },
   {
    "sha": "90784f8d901ef09dd45a845053990d0e15ed727e",
    "html_url": "https://github.com/SebR214/margin/commit/90784f8d901ef09dd45a845053990d0e15ed727e",
@@ -694,13 +701,6 @@
    "date": "2026-10-31T04:35:12Z",
    "email": "person",
    "message": "SEB-301: one collection alarm, a sample commit on main in 90 minutes (#720)\n\nDown means no commit starting with 'sample' on main in the last 90 minutes. Nothing else counts. check_collector_health.py --post comments on Linear SEB-301 when collection goes down, every 12 hours while down, and once when it is back with the hours lost. collector_watchdog.yml loses the Linear issue, the email step and issues: write; watchdog.yml no longer checks collection; tools/outage_email.py is deleted. BACKLOG 13, 17 and 18 ticked with PRs 685, 681 and 693.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "2ea601ade1041ac70e372ffb389de225e6f5cbee",
-   "html_url": "https://github.com/SebR214/margin/commit/2ea601ade1041ac70e372ffb389de225e6f5cbee",
-   "date": "2026-10-31T04:28:02Z",
-   "email": "person",
-   "message": "SEB-301: daily files for the big P2P tables, size guard, watchdogs count a failed push as down (#719)\n\nCollection has failed at Commit samples since 28 Oct 21:05 UTC: data/p2p_ads_sellers.csv reached 99.6 MB and GitHub refuses a file over 100 MB.\n\n- p2p_ads, p2p_ads_sellers and p2p_offers append to data/<table>/YYYY-MM-DD.csv (tools/daily_csv.py), same headers. The three old files are closed and never rewritten. Readers (diagnose_disagree, emit_depth, emit_receipts, audit_numbers, machine room row count) take the old file plus the day files.\n- tools/check_file_size.py runs before Commit samples: lists every file over 40 MB, fails over 80 MB, and fails if a closed table changes size.\n- check_collector_health counts a run as down when its Commit samples step failed, and a no-op scheduled run no longer ends a failure streak. Both watchdogs use it.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
   }
  ]
 }
