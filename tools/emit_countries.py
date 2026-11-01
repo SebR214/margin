@@ -36,7 +36,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import source_gate  # SEB-302: only an approved source can feed a number
 
-INDEX_VERSION = "1.9"
+INDEX_VERSION = "1.9.1"
 
 # v1.5: crossed boards. A board whose buy median is below its sell median is crossed. Two cases are no longer withheld:
 #   1. a near tie: crossed by less than NEAR_TIE of the mid counts as not crossed;
@@ -837,7 +837,9 @@ def latest_by_ccy():
                 if nb >= MIN_BUY_ADS:
                     beside.append(("binance_p2p", num(pr_, "buy_median")))
             ox_ = (okx_hours.get(ccy, {}).get(hour) or [None])[0]
-            if ox_ is not None:
+            # 1 Nov: n_ads counts both sides, so 11 ads can be one buy ad. India showed 30.8% over the official rate on 11 ads
+            # (buy 124.33, sell 98.0) beside a 6.4% gap. Binance needs MIN_BUY_ADS a side; OKX gets the same bar here.
+            if ox_ is not None and (num(ox_, "n_ads") or 0) >= MIN_BUY_ADS * 2:
                 beside.append(("okx_p2p", num(ox_, "buy_median")))
             if beside:
                 mid = statistics.median([p for _, p in beside])

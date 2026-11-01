@@ -455,8 +455,9 @@ would be inventing its own past.
 
 ### What a version bump means
 
-Every published file carries `index_version`. **Version 1.9 is in force from
-2026-10-22, the first hour collected after it merged** (Coinbase's buying fee for USDT-USD is the standard 0.60%, not the 0.01% stable-pair fee, below). Version 1.8 ran on
+Every published file carries `index_version`. **Version 1.9.1 is in force from
+2026-11-01, the first hour collected after it merged** (the person-to-person price shown beside the gap counts OKX only with at least 20 ads, as it does Binance; India showed 30.8% from one buy ad; no index value changed). Version 1.9 ran from
+2026-10-22 (Coinbase's buying fee for USDT-USD is the standard 0.60%, not the 0.01% stable-pair fee, below). Version 1.8 ran on
 2026-10-22 (Luno's naira withdrawal fee joins the United States to Nigeria cost, below). Version 1.7 ran from
 2026-10-21, the 15:00 UTC hour (India's tax and bank fee, Nigeria's gas, below; the route costs for the three India and Nigeria routes change). Version 1.6 ran on
 2026-10-21 (the official rate's own time, below; no published number changed). Version 1.5 ran from
