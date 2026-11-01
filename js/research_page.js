@@ -58,6 +58,32 @@
     var t = NAVC['title_' + f.id] || '', v = (f.headline || {}).value;
     return t.replace(/\{approx\}/g, typeof v === 'number' ? 'S$' + (v / 1e6).toFixed(1) + 'M' : '').replace(/\{n\}/g, typeof v === 'number' ? v.toLocaleString('en-US') : '');
   }
+  // each row leads with its number, big, on the left (1 Nov, Claude Design review), and a short label under it
+  function numCell(a, value, unit) {
+    if (value == null || value === '') return;
+    var n = el('span', 'rs-item-num');
+    n.appendChild(el('b', '', String(value)));
+    if (unit) n.appendChild(el('small', '', unit));
+    a.insertBefore(n, a.firstChild);
+  }
+  function findingNumber(f) {
+    var v = (f.headline || {}).value;
+    if (typeof v !== 'number') return null;
+    var shown = (f.headline || {}).unit === 'sgd_per_month' ? 'S$' + (v / 1e6).toFixed(1) + 'M' : v.toLocaleString('en-US');
+    if (f.id === 'sgd_php_never_cheapest' && NAVC.short_value_sgd_php_never_cheapest) {
+      var row = (f.evidence || []).filter(function (e) { return e.amount === 5000; })[0];
+      if (row && typeof row.hours_priced === 'number') { shown = NAVC.short_value_sgd_php_never_cheapest.replace('{value}', shown).replace('{hours}', row.hours_priced.toLocaleString('en-US')); }
+    }
+    return shown;
+  }
+  function findingUnit(f) {
+    var label = NAVC['short_unit_' + f.id] || '';
+    if (label.indexOf('{first}') >= 0) {
+      var days = (f.evidence || []).map(function (e) { return e.first_day; }).filter(Boolean).sort();
+      label = days.length ? label.replace('{first}', (+days[0].slice(8, 10)) + ' ' + MONS[+days[0].slice(5, 7) - 1]) : '';
+    }
+    return label;
+  }
   function findingRows(list, findings, first) {
     (findings || []).filter(function (f) { return f.published === true; }).forEach(function (f) {
       var title = findingTitle(f);
@@ -67,8 +93,9 @@
       var body = kid(a, el('span', 'rs-item-body'));
       body.appendChild(el('span', 'rs-item-title', title));
       if (NAVC['caption_' + f.id]) body.appendChild(el('span', 'rs-item-line', NAVC['caption_' + f.id]));
-      if (first[f.id] && NAVC.firstPublished) body.appendChild(el('span', 'rs-item-meta', NAVC.firstPublished.replace('{date}', dayY(first[f.id]))));
+      if (first[f.id] && T('findingFirst')) body.appendChild(el('span', 'rs-item-meta', T('findingFirst', { date: dayY(first[f.id]) })));
       a.appendChild(el('span', 'rs-item-go', '\u2192'));
+      numCell(a, findingNumber(f), findingUnit(f));
       list.appendChild(a);
     });
   }
@@ -80,6 +107,9 @@
     kid(text, word('p', ['soft', 'fp-line'], 'indexLead'));
     if (!text.firstChild) wrap.removeChild(hero);
     // one row per piece of research, like the Findings list: title, one line, the dates, an arrow. No grey card (25 Oct, Seb).
+    // how often things update is said once, above the list (1 Nov), not on every row
+    var note = word('p', ['muted', 'rs-list-note'], 'listNote');
+    if (note) { wrap.appendChild(note); }
     var list = el('div', 'rs-list');
     var a = el('a', 'rs-item');
     a.href = './research-capital-controls.html';
@@ -88,9 +118,10 @@
     kid(body, word('span', 'rs-item-line', 'cardLine'));
     if (doc && T('cardMeta')) {
       kid(body, el('span', 'rs-item-meta', T('cardMeta', { n: doc.countries, from: doc.years[0], to: doc.years[doc.years.length - 1] }) +
-        (months && T('cardAsOf') ? ' ' + T('cardAsOf', { date: dayName(months.as_of_day) }) : '') + (T('cardUpdates') ? ' ' + T('cardUpdates') : '')));
+        (months && T('cardAsOf') ? ' ' + T('cardAsOf', { date: dayName(months.as_of_day) }) : '')));
     }
     a.appendChild(el('span', 'rs-item-go', '\u2192'));
+    if (doc) { numCell(a, doc.countries, T('cardNumUnit')); }
     if (body.firstChild) { list.appendChild(a); wrap.appendChild(list); }
     if (pairs && T('cardTitle2')) {
       var b = el('a', 'rs-item');
@@ -98,8 +129,9 @@
       var bb = kid(b, el('span', 'rs-item-body'));
       kid(bb, word('span', 'rs-item-title', 'cardTitle2'));
       kid(bb, word('span', 'rs-item-line', 'cardLine2'));
-      kid(bb, el('span', 'rs-item-meta', T('cardMeta2', { N: pairs.compared, days: pairs.window_days }) + ' ' + T('cardAsOf', { date: dayName(pairs.as_of_utc.slice(0, 10)) }) + (T('cardUpdates2') ? ' ' + T('cardUpdates2') : '')));
+      kid(bb, el('span', 'rs-item-meta', T('cardMeta2', { N: pairs.compared, days: pairs.window_days }) + ' ' + T('cardAsOf', { date: dayName(pairs.as_of_utc.slice(0, 10)) })));
       b.appendChild(el('span', 'rs-item-go', '\u2192'));
+      numCell(b, pairs.compared, T('cardNumUnit2'));
       list.appendChild(b);
       if (!list.parentNode) { wrap.appendChild(list); }
     }

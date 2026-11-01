@@ -20,11 +20,11 @@
 <link rel="alternate" type="text/markdown" href="/how-it-works.md"/>
 <!-- head:end -->
 <link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./style.css?v=2">
 <link rel="stylesheet" href="./css/dkpanel.css">
-<link rel="stylesheet" href="./css/site_head.css?v=5">
-<link rel="stylesheet" href="./css/site_page.css?v=10">
-<link rel="stylesheet" href="./css/machine_view.css?v=3">
+<link rel="stylesheet" href="./css/site_head.css?v=7">
+<link rel="stylesheet" href="./css/site_page.css?v=11">
+<link rel="stylesheet" href="./css/machine_view.css?v=7">
 <style>
   /* How it works (SEB-271 layout rebuild to match the reference, wording
      unchanged -- replaces the SEB-240/SEB-226 card layout). No black band,
@@ -106,6 +106,12 @@
       <div class="lead-b" id="checkLead"></div>
       <div class="p" id="checkBody"></div>
       <div class="p" id="checkSources"></div>
+    </section>
+
+    <section class="hiw-section" id="built">
+      <h2 id="builtH2"></h2>
+      <div class="lead-b" id="builtLead"></div>
+      <div class="p" id="builtLink"></div>
     </section>
   </main>
 </div>
@@ -198,16 +204,20 @@ Promise.all([getJson('./copy.json'), getJson('./data/index_latest.json'), getJso
   setText('checkLead', H.checkLead || '');
   setText('checkBody', H.checkBody || '');
   setLink('checkSources', H.checkSources, H.checkSourcesLink, './sources.html');
+  // How it was built lives under How it works (1 Nov): the one place for how the numbers are made and how the site runs
+  setText('builtH2', H.builtTitle || '');
+  setText('builtLead', H.builtLead || '');
+  setLink('builtLink', H.builtBody, H.builtLinkText, './how-it-was-built.html');
 });
 </script>
 
 <script src="./js/footer.js?v=4"></script>
-<script src="./js/site_head.js?v=6"></script>
-<script src="./js/machine_view.js?v=4" defer></script>
+<script src="./js/site_head.js?v=8"></script>
+<script src="./js/machine_view.js?v=6" defer></script>
 <!-- bake:begin -->
 <noscript><style>body > *:not(noscript){display:none !important}</style><div>
 <div class="hw-wrap">
-  <div class="hp-head"><div class="hp-headleft"><a class="hp-logo mono" href="./index.html">margin.wiki</a><nav class="hp-nav" aria-label="Main" id="nav"><a class="hp-navlink" href="./countries.html">Countries</a><a class="hp-navlink" href="./sending-money.html">Routes</a><a class="hp-navlink" href="./sources.html">Sources</a><a class="hp-navlink" href="./research.html">Research</a><a class="hp-navlink" href="./events.html">Events</a><a class="hp-navlink on" href="./how-it-works.html" aria-current="page">How it works</a></nav><button type="button" class="sh-menu" aria-expanded="false" aria-controls="nav">Menu</button></div><div class="mono muted hp-clock"><span class="hp-dot still"></span><span>Last reading 1 Nov, 13:15 UTC</span><span>Next reading is 45 minutes late</span></div></div>
+  <div class="hp-head"><div class="hp-headleft"><a class="hp-logo mono" href="./index.html">margin.wiki</a><nav class="hp-nav" aria-label="Main" id="nav"><a class="hp-navlink" href="./countries.html">Countries</a><a class="hp-navlink" href="./events.html">Events</a><a class="hp-navlink" href="./research.html">Research</a><a class="hp-navlink" href="./sending-money.html">Routes</a><span class="sh-about"><span class="sh-about-label">About the data</span><a class="hp-navlink" href="./sources.html">Sources</a><a class="hp-navlink on" href="./how-it-works.html" aria-current="page">How it works</a></span></nav><button type="button" class="sh-menu" aria-expanded="false" aria-controls="nav">Menu</button></div><div class="mono muted hp-clock"><span class="hp-dot"></span><span>Last reading 1 Nov, 14:45 UTC</span><span>Next in 42:45</span></div></div>
 
   <main class="hw-main">
     <section class="hw-hero" id="hiwIntro">
@@ -247,17 +257,20 @@ Promise.all([getJson('./copy.json'), getJson('./data/index_latest.json'), getJso
       <div class="p" id="checkBody">A missed hour shows as a blank, never filled in.</div>
       <div class="p" id="checkSources">Every source, and every day it answered: <a href="./sources.html">Sources →</a></div>
     </section>
+
+    <section class="hiw-section" id="built">
+      <h2 id="builtH2">How the site is built and run</h2>
+      <div class="lead-b" id="builtLead">Plain code collects every price and checks every number. AI only helps write some of the code.</div>
+      <div class="p" id="builtLink">What it costs, what runs when, and everything that has broken: <a href="./how-it-was-built.html">How it was built →</a></div>
+    </section>
   </main>
-<footer class="site-footer"><p>Every number on this site comes from a public data file.</p><p class="site-links"><a href="https://github.com/SebR214/margin">Code and raw data on GitHub</a> · <a href="./how-it-was-built.html">How it was built</a></p></footer></div>
+<footer class="site-footer"><p>Every number on this site comes from a public data file.</p><p class="site-links"><a href="https://github.com/SebR214/margin">Code and raw data on GitHub</a></p></footer></div>
 
 
 
 
 
 
-<!-- bake:begin -->
-
-<!-- bake:end -->
 
 
 </div></noscript>

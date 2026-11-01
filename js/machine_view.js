@@ -77,10 +77,19 @@
     aCurl.addEventListener('click', function (e) { e.preventDefault(); copy('curl -s ' + SITE + path); flash(aCurl, W.copied); });
 
     function column() { return document.querySelector(COLUMN) || document.body; }
+    // the switch sits at the right end of the site header (1 Nov, Claude Design review: fixed over the page it covered rows and
+    // buttons on every page); a page with no header yet keeps it at the bottom until the header is drawn
+    var HEADS = '.hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh, header';
+    function head() { return document.querySelector(HEADS); }
     // the panel sits where the page content starts
     function place() {
       var col = column();
-      if (sw.parentNode !== document.body) document.body.appendChild(sw);
+      var hd = head();
+      // on a phone the header is one line: the logo, the switch, then Menu
+      var menu = hd && window.matchMedia('(max-width: 767px)').matches ? hd.querySelector('.sh-menu') : null;
+      if (menu) { if (sw.nextElementSibling !== menu) { menu.parentNode.insertBefore(sw, menu); } sw.classList.add('mv-in-head'); }
+      else if (hd) { if (sw.parentNode !== hd || hd.lastElementChild !== sw) { hd.appendChild(sw); } sw.classList.add('mv-in-head'); }
+      else if (sw.parentNode !== document.body) { document.body.appendChild(sw); }
       if (panel.parentNode !== col) {
         var h2 = col.querySelector(':scope > header, :scope > .site-head, :scope > .hp-head');
         col.insertBefore(panel, h2 ? h2.nextSibling : col.firstChild);
@@ -110,6 +119,7 @@
       }
     }
     place();
+    if (window.matchMedia) { var mq = window.matchMedia('(max-width: 767px)'); if (mq.addEventListener) { mq.addEventListener('change', place); } }
     bH.addEventListener('click', function () { remember(false); show(false); });
     bM.addEventListener('click', function () { remember(true); show(true); });
     show(remembered());
@@ -117,7 +127,7 @@
     if (window.MutationObserver) {
       var mo = new MutationObserver(function () { place(); if (remembered()) show(true); });
       mo.observe(document.body, { childList: true, subtree: true });
-      setTimeout(function () { mo.disconnect(); }, 8000);
+      setTimeout(function () { mo.disconnect(); }, 15000);
     }
   }).catch(function () {});
 })();
