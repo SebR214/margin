@@ -76,6 +76,9 @@ jobs:
           git diff --exit-code -- '*.html'
           python3 tools/check_outside.py --self-test
 
+      - name: Pages that show their content without JavaScript (SEB-431)
+        run: python3 tools/bake_pages.py --self-test
+
       - name: The machine room numbers (SEB-427)
         run: python3 tools/emit_machine_room.py --self-test
 
