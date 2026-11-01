@@ -1,12 +1,14 @@
-# In South Africa a dollar costs 10.9% more than the official rate
+# In South Africa a dollar costs 9.9% more than the official rate
 
-Prices from the 20:00 UTC hour, 1 Nov.
+Prices from the 21:00 UTC hour, 1 Nov.
 
-The official rate is 16.67 ZAR per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 18.49 ZAR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 16.67 ZAR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 18.32 ZAR. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 1,849 ZAR. The official rate says 1,667 ZAR.
+For US$100, people pay 1,832 ZAR. The official rate says 1,667 ZAR.
 
-Prices from the 20:00 UTC hour, 1 Nov
+Only 1 source
+
+Prices from the 21:00 UTC hour, 1 Nov
 
 You could buy only US$500 here before the price goes up 1%.
 
@@ -24,8 +26,4 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-18.33 ZAR +9.9%
-
-OKX, people selling to each other
-
-18.65 ZAR +11.8%
+18.32 ZAR +9.9%
