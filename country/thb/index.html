@@ -32,6 +32,22 @@
   .stamp { margin: 0; font-size: 14px; color: var(--color-neutral-600); }
   .money { margin: 0; font-size: 17px; }
   .money b { font-weight: 600; }
+  /* every price for a dollar on one shared scale (1 Nov) */
+  .pl { display: flex; flex-direction: column; border-top: 1px solid var(--color-neutral-200); }
+  .pl-row { display: grid; grid-template-columns: 400px minmax(0, 1fr) 160px; gap: 0 24px; align-items: center; min-height: 44px; border-bottom: 1px solid var(--color-neutral-200); }
+  .pl-nm { font-size: 17px; }
+  .pl-track { position: relative; height: 20px; }
+  .pl-track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 1px solid var(--color-neutral-200); }
+  .pl-zero { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--color-ink); }
+  .pl-dot { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #817FCC; }
+  .pl-off .pl-dot { background: var(--color-ink); }
+  .pl-cash .pl-dot { background: #6B6B6B; }
+  .pl-v { text-align: right; font-size: 17px; font-weight: 600; }
+  .pl-v small { display: block; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); }
+  @media (max-width: 700px) {
+    .pl-row { grid-template-columns: minmax(0, 1fr) auto; padding: 8px 0; }
+    .pl-track { grid-column: 1 / -1; grid-row: 2; margin-top: 6px; }
+  }
   .flag { margin: 0; font-size: 15px; color: var(--color-neutral-700); padding-left: 12px; border-left: 2px solid var(--color-neutral-300); }
   .body { margin: 0; max-width: 680px; font-size: 16px; }
   section { margin-top: 48px; }
@@ -48,6 +64,8 @@
   .ax { fill: var(--color-neutral-600); font-size: 12px; }
   .ax.z { fill: var(--color-ink); font-weight: 600; }
   .gl { stroke: var(--color-neutral-200); }
+  .swm { stroke: var(--color-neutral-600); stroke-width: 1; stroke-dasharray: 3 3; }
+  .swt { font-size: 13px; }
   .gl.z { stroke: var(--color-ink); }
   .ln-own { fill: none; stroke: var(--data-700); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
   .ar-own { fill: var(--data-700); fill-opacity: .14; stroke: none; }
@@ -91,7 +109,7 @@
   }
 </style>
 <link rel="stylesheet" href="./css/site_head.css?v=7">
-<link rel="stylesheet" href="./css/site_page.css?v=11">
+<link rel="stylesheet" href="./css/site_page.css?v=12">
 <link rel="stylesheet" href="./css/machine_view.css?v=7">
 </head>
 <body data-ccy="THB">
@@ -99,7 +117,7 @@
   <div class="hp-head">
     <div class="hp-headleft">
       <a class="hp-logo" href="./index.html">margin.wiki</a>
-      <nav class="hp-nav" aria-label="Main" id="nav"><a href="./countries.html">Countries</a><a href="./sending-money.html">Routes</a><a href="./sources.html">Sources</a><a href="./research.html">Research</a><a href="./events.html">Events</a><a href="./how-it-works.html">How it works</a></nav>
+      <nav class="hp-nav" aria-label="Main" id="nav"><a href="./countries.html">Countries</a><a href="./events.html">Events</a><a href="./research.html">Research</a><a href="./sending-money.html">Routes</a><span class="sh-about"><span class="sh-about-label">About the data</span><a href="./sources.html">Sources</a><a href="./how-it-works.html">How it works</a></span></nav>
     </div>
   </div>
 
@@ -112,7 +130,7 @@
 </div>
 <script src="./js/tooltip.js"></script>
 <script src="./js/page_head.js?v=2"></script>
-<script src="./js/country_page.js?v=9"></script>
+<script src="./js/country_page.js?v=11"></script>
 <script src="./js/footer.js?v=4"></script>
 <script src="./js/site_head.js?v=8"></script>
 <script src="./js/machine_view.js?v=6" defer></script>

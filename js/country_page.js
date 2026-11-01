@@ -51,6 +51,28 @@
     });
   }
 
+  // Every price for a dollar on one shared line (1 Nov, Claude Design review): the official rate at 0%, then each way to buy a
+  // dollar placed by how much more it costs. One row per way so close prices never overlap; every row uses the same scale.
+  function priceLine(c, pb, cash) {
+    var rate = c.fx_mid_per_usd, rows = [{ k: 'plOfficial', p: rate, cls: 'pl-off' }];
+    rows.push({ k: 'plExchange', p: c.buy_price, cls: 'pl-coin' });
+    if (pb && c.source_class !== 'p2p_buy_median') { rows.push({ k: 'plPeople', p: pb.buy_price, cls: 'pl-coin' }); }
+    if (cash) { rows.push({ k: 'plCash', p: cash.mid, cls: 'pl-cash' }); }
+    if (c.source_class === 'p2p_buy_median') { rows[1].k = 'plPeople'; }
+    rows = rows.filter(function (r) { return r.p && T(r.k); });
+    if (rows.length < 3) { return ''; }
+    rows.forEach(function (r) { r.g = (r.p / rate - 1) * 100; });
+    var lo = Math.min(0, Math.min.apply(null, rows.map(function (r) { return r.g; }))), hi = Math.max(0, Math.max.apply(null, rows.map(function (r) { return r.g; })));
+    var pad = (hi - lo || 1) * 0.08; lo -= lo < 0 ? pad : 0; hi += pad;
+    var X = function (g) { return ((g - lo) / (hi - lo) * 100).toFixed(2); };
+    return '<div class="pl" role="list">' + rows.map(function (r) {
+      var gp = r.cls === 'pl-off' ? '' : (r.g >= 0 ? '+' : '\u2212') + Math.abs(r.g).toFixed(1) + '%';
+      return '<div class="pl-row ' + r.cls + '" role="listitem"><span class="pl-nm">' + esc(T(r.k)) + '</span>' +
+        '<span class="pl-track"><i class="pl-zero" style="left:' + X(0) + '%"></i><i class="pl-dot" style="left:' + X(r.g) + '%"></i></span>' +
+        '<span class="pl-v num">' + esc(money(r.p, c.ccy)) + (gp ? '<small>' + esc(gp) + '</small>' : '') + '</span></div>';
+    }).join('') + '</div>';
+  }
+
   function hero() {
     var c = S.c, held = !!S.withheld, own = S.own, h = '';
     if (held) {
@@ -68,13 +90,15 @@
       }
       // v1.5: priced although a board is crossed, because both boards' sellers agree: one grey line says so
       var crossedLine = c.crossed_boards_agree && T('crossedBoardsAgree') ? '<p class="stamp">' + esc(T('crossedBoardsAgree')) + '</p>' : '';
-      h += '<h1>' + esc(T(key, { country: c.country, gap: pct1(c.index_pct) })) + '</h1>' +
-        '<p class="lead">' + esc(T(c.source_class === 'p2p_buy_median' ? (c.n_boards === 2 ? 'leadP2pTwo' : 'leadP2p') : 'leadBook', { rate: rate.toLocaleString('en-US', { maximumFractionDigits: 2 }), ccy: c.ccy, country: c.country, street: money(c.buy_price, c.ccy) })) + '</p>' + crossedLine + pbLine +
-        '<p class="money num">' + T('usd100Line', { street: esc(money(c.buy_price * 100, c.ccy)), rate: esc(money(rate * 100, c.ccy)) }) + '</p>';
       // the cash dollar (SEB-422): shown only when a money changer's reading is within 6 hours of this hour; older than that it is a gap, not a line
-      var cash = S.cash;
-      if (cash && T('threeDollarsLine') && Date.parse(c.hour_utc) - Date.parse(cash.ts_utc) <= 6 * 3600 * 1000) {
-        h += '<p class="money num">' + esc(T('threeDollarsLine', { official: money(rate, c.ccy), cash: money(cash.mid, c.ccy), stable: money(c.buy_price, c.ccy) })) + '</p>';
+      var cash = S.cash && Date.parse(c.hour_utc) - Date.parse(S.cash.ts_utc) <= 6 * 3600 * 1000 ? S.cash : null;
+      var line = priceLine(c, pb, cash);
+      h += '<h1>' + esc(T(key, { country: c.country, gap: pct1(c.index_pct) })) + '</h1>' +
+        '<p class="lead">' + esc(T(c.source_class === 'p2p_buy_median' ? (c.n_boards === 2 ? 'leadP2pTwo' : 'leadP2p') : 'leadBook', { rate: rate.toLocaleString('en-US', { maximumFractionDigits: 2 }), ccy: c.ccy, country: c.country, street: money(c.buy_price, c.ccy) })) + '</p>' + crossedLine +
+        (line || pbLine) +
+        '<p class="money num">' + T('usd100Line', { street: esc(money(c.buy_price * 100, c.ccy)), rate: esc(money(rate * 100, c.ccy)) }) + '</p>';
+      if (cash) {
+        if (!line && T('threeDollarsLine')) { h += '<p class="money num">' + esc(T('threeDollarsLine', { official: money(rate, c.ccy), cash: money(cash.mid, c.ccy), stable: money(c.buy_price, c.ccy) })) + '</p>'; }
         // which of the two dollars a person can buy is cheaper today, and by how much (SEB-424 item 1), from the same two numbers
         var cs = (c.buy_price / cash.mid - 1) * 100;
         var ck = Math.abs(cs) < 0.5 ? 'cashSame' : cs > 0 ? 'cashCheaperCash' : 'cashCheaperStable';
@@ -152,6 +176,14 @@
     // date labels spaced by position, not by point count, so days bunched together never print on top of each other (27 Oct)
     all.forEach(function (h, i) { var lx = X(t[i]); if (lx - lastLX >= gapPx && X(t1) - lx > gapPx) { lastLX = lx; s += '<text class="ax" x="' + lx + '" y="' + (H - 6) + '" text-anchor="' + (i === 0 ? 'start' : 'middle') + '">' + (yearly ? MON[+h.date.slice(5, 7) - 1] + ' ' + h.date.slice(0, 4) : dd(h.date)) + '</text>'; } });
     s += '<text class="ax" x="' + (W - R) + '" y="' + (H - 6) + '" text-anchor="end">' + dd(all[all.length - 1].date) + '</text>';
+    // the day the number started coming from a different kind of source, marked on the chart itself (1 Nov, Claude Design review)
+    (S.switches || []).forEach(function (r) {
+      var ts = Date.parse(r.hour_utc);
+      if (r.ccy !== S.c.ccy || family(r.old_class) === family(r.new_class) || !(ts > t0 && ts < t1) || !T('chartSwitchMark')) { return; }
+      var sx = X(ts), anchor = sx > W - 140 ? 'end' : 'start', tx = anchor === 'end' ? sx - 6 : sx + 6;
+      s += '<line class="swm" x1="' + sx + '" x2="' + sx + '" y1="' + Tp + '" y2="' + (Tp + ph) + '"/>' +
+        '<text class="ax swt" x="' + tx + '" y="' + (Tp + 12) + '" text-anchor="' + anchor + '">' + esc(T('chartSwitchMark')) + '</text>';
+    });
     s += '<line class="cr" id="cr" y1="' + Tp + '" y2="' + (Tp + ph) + '" visibility="hidden"/><circle class="cd" id="cd" r="4.5" visibility="hidden"/>';
     var svg = box.querySelector('svg'); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.innerHTML = s;
     function mark(on, i) {

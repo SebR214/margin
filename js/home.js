@@ -287,8 +287,9 @@
       '<div class="rows lrows">' + rows.map(function (r) {
         var c = Math.round(closed(r) * 100);
         return '<a class="r lr" href="' + ctry(r.ccy) + '"><b>' + esc(plain(r.country)) + '<small class="d">' + esc(month(r.date, true)) + '</small></b>' +
-          '<span class="m">' + esc(T('landGap', { premium: pct1(r.premium_before_pct) })) + '</span>' +
-          '<span class="lbar" aria-hidden="true"><i style="width:' + c + '%"></i></span>' +
+          // the gap before and after on one line (1 Nov, Claude Design review): the jump closing the gap, not a progress bar.
+          // After = the part of the gap still open, on the same base as "of the gap closed", so the two numbers agree.
+          '<span class="m lba num">' + esc(T('landBeforeAfter', { before: pct1(r.premium_before_pct), after: pct1(r.premium_before_pct * (1 - closed(r))) })) + '</span>' +
           '<span class="v num">' + c + '%<small>' + esc(T('landClosed')) + '</small></span></a>';
       }).join('') + '</div><p class="note sm">' + esc(T('landNote')) + '</p>';
   }

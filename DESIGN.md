@@ -50,12 +50,12 @@ errors can still make no sense.
 ### Spacing, width, size (1 Nov 2026)
 
 * Four gaps only. 8px between a heading and its own text, and between lines of one list (the money lines on a country page). 24px between separate points. 40px under the page headline (24px on a phone). 96px between sections (72px on a phone), with no rule line above them.
-* Sizes: page headline 32px (26px on a phone), the lines under it 20px grey (17px on a phone), body text 17px, notes (time stamps, counts) 14px grey.
+* Sizes (1 Nov, after the Claude Design review): page headline 40px weight 600 (30px on a phone), the lines under it 18px grey (17px on a phone), body text 17px, notes (time stamps, counts, footer, back links) 15px grey. Chart axis labels stay 12 to 13px.
 * A different gap must mean something you can name. If you cannot say why two gaps differ, make them the same.
 * No width cap on text. Text runs the width of the page, so a short sentence stays on one line on a computer.
 * One size for all body text on a page. A line that matters is never small or faint: if it is important, it is black, not 14px grey.
 * Each page's spacing lives in one block in `css/site_page.css`. To change it, edit that block. Never add an override under an older rule.
-* Every page: the headline 40px under the header, the line under it 20px grey (17px on a phone), notes 14px grey. Home too.
+* Every page: the headline 40px under the header, the line under it 18px grey (17px on a phone), notes 15px grey. Home too.
 * A page that is one item of a list (a country, a finding, a research piece, an event) has one back link to its list, 40px under the header, with the headline 24px under it. List pages have none.
 
 ### Phones
