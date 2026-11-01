@@ -330,8 +330,8 @@
     if (hourly) pts.forEach(function (p, i) { if (!p && GM[t0h + i]) gasIdx.push(i); });
     var runs = [], cur = null, miss = 0;
     pts.forEach(function (p, i) {
-      if (!p) { miss += GM[t0h + i] && hourly ? BRIDGE + 1 : 1; return; }
-      if (!cur || miss > BRIDGE) { cur = []; runs.push(cur); }
+      if (!p) { miss++; return; }
+      if (!cur) { cur = []; runs.push(cur); }   // every missing stretch, short or long, is joined by the grey dotted line
       cur.push(i); miss = 0;
     });
     var z = Y(0), dLine = "", dGap = "";
@@ -365,9 +365,7 @@
       var len = b[1] - b[0] + 1, kinds = {};
       for (var i = b[0]; i <= b[1]; i++) kinds[kindAt(i)] = 1;
       var kind = kinds.Gas ? "Gas" : kinds.Outage && !kinds.NoPrice ? "Outage" : kinds.Outage ? "Outage" : "NoPrice";
-      if (hourly && len <= BRIDGE && kind !== "Gas") return;     // bridged by the dashed line
       var x0 = X(b[0]) - slot / 2, x1 = X(b[1]) + slot / 2, wd = Math.max(2, x1 - x0);
-      g += '<rect class="sm-band" x="' + x0.toFixed(1) + '" y="' + T + '" width="' + wd.toFixed(1) + '" height="' + ph + '"/>';
       // no words on the band (1 Nov, Seb): the note under the heading says what grey means, the tip says which kind
       var tip = kind === "Gas" ? txt("gasMissTip") : txt("chartBandTip" + kind);
       for (var j = b[0]; j <= b[1]; j++) chart.band[j] = tip;
