@@ -1,14 +1,14 @@
 # In Indonesia a dollar costs 0.1% less than the official rate
 
-Prices from the 04:00 UTC hour, 1 Nov.
+Prices from the 05:00 UTC hour, 1 Nov.
 
-The official rate is 18,131.95 IDR per dollar. On the exchanges where people in Indonesia trade stablecoins, one costs 18,114 IDR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 18,131.95 IDR per dollar. On the exchanges where people in Indonesia trade stablecoins, one costs 18,110 IDR. A stablecoin is a coin that stays worth one US dollar.
 
-From people selling to each other on Binance and OKX, a dollar costs 18,054 IDR, 0.4% less than the official rate.
+From people selling to each other on Binance and OKX, a dollar costs 18,073 IDR, 0.3% less than the official rate.
 
-For US$100, people pay 1,811,350 IDR. The official rate says 1,813,195 IDR.
+For US$100, people pay 1,810,950 IDR. The official rate says 1,813,195 IDR.
 
-Prices from the 04:00 UTC hour, 1 Nov
+Prices from the 05:00 UTC hour, 1 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -26,10 +26,10 @@ From 6 Oct this price comes from exchanges instead of people selling to each oth
 
 We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from exchanges.
 
-Pintu
-
-18,102 IDR −0.2%
-
 Indodax
 
-18,125 IDR 0.0%
+18,100 IDR −0.2%
+
+Pintu
+
+18,119 IDR −0.1%
