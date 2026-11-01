@@ -1,12 +1,12 @@
 # No price for Brunei this hour
 
-Prices from the 03:00 UTC hour, 1 Nov.
+Prices from the 04:00 UTC hour, 1 Nov.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
 The last price we published was +2.8%, on 16 Sep.
 
-Prices from the 03:00 UTC hour, 1 Nov
+Prices from the 04:00 UTC hour, 1 Nov
 
 <https://margin.wiki/data/countries/BND.json>
 

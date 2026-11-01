@@ -1,16 +1,16 @@
 # In Turkey a dollar costs 0.1% less than the official rate
 
-Prices from the 03:00 UTC hour, 1 Nov.
+Prices from the 04:00 UTC hour, 1 Nov.
 
 The official rate is 49.95 TRY per dollar. On the exchanges where people in Turkey trade stablecoins, one costs 49.89 TRY. A stablecoin is a coin that stays worth one US dollar.
 
-From people selling to each other on Binance and OKX, a dollar costs 54.51 TRY, 9.1% more than the official rate.
+From people selling to each other on Binance and OKX, a dollar costs 54.34 TRY, 8.8% more than the official rate.
 
 For US$100, people pay 4,989 TRY. The official rate says 4,995 TRY.
 
-Prices from the 03:00 UTC hour, 1 Nov
+Prices from the 04:00 UTC hour, 1 Nov
 
-You could buy only US$1,000 here before the price goes up 1%.
+You could buy only US$2,500 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/TRY.json>
 
@@ -32,4 +32,4 @@ Paribu
 
 BTCTurk
 
-49.91 TRY −0.1%
+49.93 TRY −0.1%

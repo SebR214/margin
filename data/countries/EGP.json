@@ -1,12 +1,14 @@
 {
+  "buy_price": 56.7625,
   "ccy": "EGP",
-  "computed_at": "2026-11-01T03:00:00+00:00",
+  "computed_at": "2026-11-01T04:00:00+00:00",
   "country": "Egypt",
   "denominator": {
     "class": "market",
     "rate_per_usd": 56.030715,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 56.030715,
   "history": [
     {
       "date": "2026-09-02",
@@ -334,26 +336,40 @@
     },
     {
       "date": "2026-11-01",
-      "index_pct": 0.2619,
-      "n": 1,
-      "source": "hourly_buy_p2p"
+      "index_pct": 1.306,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
   "history_days": 55,
   "history_start": "2026-09-02",
-  "hour_utc": "2026-11-01T03:00:00+00:00",
+  "hour_utc": "2026-11-01T04:00:00+00:00",
+  "index_pct": 1.306,
   "index_version": "1.9",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "median_24h_n": 9,
-  "median_24h_pct": -0.5412,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market (buy 56.129999999999995, sell 56.28)",
-  "round_trip_pct": -0.2665,
-  "source_class": null,
+  "median_24h_n": 10,
+  "median_24h_pct": -0.4743,
+  "n_boards": 2,
+  "n_sources": 10,
+  "round_trip_pct": 0.1518,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 56.13
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 56.095,
+      "index_pct": 0.1147,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    },
+    {
+      "buy_price": 57.43,
+      "index_pct": 2.4974,
+      "last_price_used": false,
+      "venue": "okx_p2p"
+    }
+  ]
 }
