@@ -173,7 +173,7 @@
     <section>
       <h2 id="incidentsHeading" style="padding-top:32px">&nbsp;</h2>
       <ul class="list fail" id="incidentsList"></ul>
-      <p class="small"><a href="./agent-incidents.html" id="incidentsLink">&nbsp;</a></p>
+      <p class="small"><a href="./machine-room.html" id="incidentsLink">&nbsp;</a></p>
     </section>
 
     <section id="cycleBlock" class="dkpanel" style="display:none"></section>
@@ -197,7 +197,6 @@
       <div style="display:flex;flex-wrap:wrap;gap:8px 28px;font-size:14px">
         <a href="./sending-money.html" style="font-weight:600;display:inline-block;padding:8px 0">Where the stablecoin cost comes from →</a>
         <a href="./how-it-works.html" style="font-weight:600;display:inline-block;padding:8px 0">How prices are checked →</a>
-        <a href="./agent-incidents.html" style="font-weight:600;display:inline-block;padding:8px 0">When the agents got it wrong →</a>
       </div>
     </div>
   </div>
@@ -297,7 +296,7 @@
     var I = COPY.incidents || {};
     document.getElementById('incidentsHeading').textContent = I.heading || '';
     document.getElementById('incidentsLink').textContent = I.linkText || '';
-    document.getElementById('incidentsLink').href = I.linkHref || './agent-incidents.html';
+    document.getElementById('incidentsLink').href = I.linkHref || './machine-room.html';
     // Each incident's figures (days, dollars, minutes, hours) are named
     // fields on its own item, so the sentence is a template, never typed.
     document.getElementById('incidentsList').innerHTML = (I.items||[]).map(function(it){

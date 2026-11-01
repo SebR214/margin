@@ -628,7 +628,7 @@
       "fromFirst": "With two or more, we use the middle of their prices. With none, we use brokers. With no broker either, we use people selling to each other on Binance and OKX, and take the middle of the {minAds} cheapest. If none of those has enough, the country gets no price that hour. You see a blank, never a guess.",
       "costLead": "Each cost on the Routes page is what the person receiving loses compared with the official rate, with every fee we can measure included. Where one is missing, the route says so.",
       "costBody": "Sending {amount} to the Philippines costs {cost} with {app} this hour.",
-      "notMeasuredLabels": ["A day behind.", "Bank and wallet charges.", "First-transfer offers.", "Cash is different."],
+      "notMeasuredLabels": ["A day behind.", "Bank and wallet charges.", "First-transfer offers.", "Cash comes from trackers."],
       "checkLead": "Each price on a country page links to the file it came from.",
       "checkBody": "A missed hour shows as a blank, never filled in.",
       "checkSources": "Every source, and every day it answered: {link}",
@@ -678,7 +678,7 @@
         "The official rate updates only once a day. On days a currency moves fast, the gap we show can be a day behind.",
         "Money moves into an exchange and out again through a bank, a wallet or the exchange's local partner. Each has its own charge. Some show it as a fee, some bake it into the rate, some set it in a deal with the exchange. We can't see these, so they are left out.",
         "Some app prices are offers for a first transfer. Repeat customers pay more.",
-        "We measure stablecoins only. Cash at a money changer is priced separately and is not on this site."
+        "Cash dollar prices come from public websites that track money changers, not from offers we read ourselves. Where we have one, the country page shows it beside the stablecoin price."
       ],
       "notMeasuredNote": "{fullMethodLink}",
       "fullMethodLink": "See the full method →",
@@ -1450,7 +1450,7 @@
     "kindOrderBook": "Exchange",
     "kindBroker": "Broker",
     "kindFx": "Official rate",
-    "kindStreet": "Street rate",
+    "kindStreet": "Cash at a money changer",
     "kindProviderQuote": "Transfer app",
     "kindOther": "Price aggregator",
     "shown": "{n} of all {total} sources shown",
@@ -1479,6 +1479,14 @@
     "sourceNames": {
       "binance_p2p": "Binance, people selling to each other",
       "okx_p2p": "OKX, people selling to each other",
+      "bitget_p2p": "Bitget, people selling to each other",
+      "htx_p2p": "HTX, people selling to each other",
+      "bluelytics_ar_blue": "Bluelytics, Argentina's cash dollar",
+      "dolarapi_ar_blue": "DolarApi, Argentina's cash dollar",
+      "dolarapi_ve_paralelo": "DolarApi, Venezuela's cash dollar",
+      "forex_pk_open_market": "Forex.pk, Pakistan's cash dollar",
+      "lbprate_lebanon": "LBP Rate, Lebanon's cash dollar",
+      "nairatoday_ngn": "Naira Today, Nigeria's cash dollar",
       "dolarapi.ar": "DolarApi Argentina",
       "dolarapi.bo": "DolarApi Bolivia",
       "dolarapi.ve": "DolarApi Venezuela",
@@ -1924,10 +1932,6 @@
       {
         "label": "The machine room",
         "href": "./machine-room.html"
-      },
-      {
-        "label": "When the agents got it wrong",
-        "href": "./agent-incidents.html"
       }
     ],
     "totals": {
@@ -2047,8 +2051,6 @@
         "prs": "Changes"
       },
       "notRecorded": "Not recorded.",
-      "longForm": "The long form, with the reasons →",
-      "longFormHref": "./agent-incidents.html",
       "dateFmt": "{day} {month} {time}",
       "months": [
         "Jan",
@@ -2167,10 +2169,6 @@
         "The machine room: how margin.wiki is built and paid for",
         "What the builder tries each week, what it merges and spends, what runs where, and every incident so far."
       ],
-      "agent-incidents.html": [
-        "When the agents got it wrong: margin.wiki incidents",
-        "What it has taken to let agents run a real site without them quietly getting things wrong, told through the things that broke."
-      ],
       "research.html": [
         "Research: longer questions the stored prices can answer",
         "Longer questions we can answer with the data we hold. Each page shows its method and gives you the numbers."
@@ -2212,10 +2210,6 @@
       {
         "label": "The machine room",
         "href": "./machine-room.html"
-      },
-      {
-        "label": "When the agents got it wrong",
-        "href": "./agent-incidents.html"
       },
       {
         "label": "A recorded currency event",

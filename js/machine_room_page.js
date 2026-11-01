@@ -80,7 +80,6 @@
   function incidents() {
     var I = C.incidents, L = I.labels;
     $('incHeading').textContent = I.heading; $('incIntro').textContent = I.intro;
-    $('incLong').textContent = I.longForm; $('incLong').href = I.longFormHref;
     $('incList').innerHTML = I.items.map(function (it) {
       var g = (D.gaps || {})[it.id], v = g ? { hours: g.hours, from: stamp(g.last_before_utc), until: stamp(g.next_after_utc) } : {};
       var lasted = it.lasted == null ? I.notRecorded : (it.gapFromUtc && !g ? I.notRecorded : fill(it.lasted, v));
