@@ -20,7 +20,7 @@
 <link rel="alternate" type="text/markdown" href="/index.md"/>
 <!-- head:end -->
 <link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./style.css?v=2">
 <style>
   /* Home (SEB-268), rebuilt to the approved reference. Header, column, title and pill styles are the shared ones
      (css/site_head.css, css/site_page.css). Colours are the style.css tokens. Every word is in copy.json, homeData. */
@@ -41,13 +41,13 @@
 
   .key { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin: 0 0 14px; font-size: 13px; color: var(--color-neutral-700); }
   .key i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 7px; }
-  .cmark { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #817FCC; margin: 0 0 1px 8px; vertical-align: middle; cursor: help; }
+  .cmark { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--peri); margin: 0 0 1px 8px; vertical-align: middle; cursor: help; }
   .cmark { position: relative; }
   .cmark::after { content: ''; position: absolute; inset: -14px; }
   .key .cmark { margin: 0 8px 1px 0; cursor: default; }
   .key .cmark::after { display: none; }
   /* the gap scale (1 Nov): calm is near white, each step clearly darker, the top step is grape. No price is an empty outlined square. */
-  .b0 { background: #ECEAF4; } .b1 { background: #C7C3E8; } .b2 { background: #938FD3; } .b3 { background: #62579A; } .b4 { background: #3F3047; }
+  .b0 { background: var(--gap-0); } .b1 { background: var(--gap-1); } .b2 { background: var(--gap-2); } .b3 { background: var(--gap-3); } .b4 { background: var(--gap-4); }
   .b-none { background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-neutral-300); } .b-frozen { background: var(--color-neutral-300); }
   .b-neg { background: repeating-linear-gradient(135deg, var(--data-500) 0 2px, var(--color-bg) 2px 4px); }
   .hax, .hrow { display: grid; grid-template-columns: 180px 1fr 110px; gap: 0 16px; align-items: center; }
