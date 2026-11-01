@@ -19,7 +19,7 @@
   function canonNav() {
     var nav = document.querySelector('.mwh nav, [data-canon-nav]');
     if (!nav) { return; }
-    fetch('./copy.json').then(function (r) { return r.json(); }).then(function (c) {
+    fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (c) {
       var h = (c && c.homeData) || {};
       if (!CANON.every(function (l) { return h[l[0]]; })) { return; }
       nav.textContent = '';
@@ -41,7 +41,7 @@
     if (!nav || document.querySelector('.sh-menu')) { return; }
     if (menuLabel === null) {
       menuLabel = '';
-      fetch('./copy.json').then(function (r) { return r.json(); }).then(function (c) {
+      fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (c) {
         menuLabel = (c && c.homeData && c.homeData.menuLabel) || '';
         closeLabel = (c && c.homeData && c.homeData.menuClose) || '';
         var b = document.querySelector('.sh-menu'); if (b) { b.textContent = b.getAttribute('aria-expanded') === 'true' ? (closeLabel || menuLabel) : menuLabel; }

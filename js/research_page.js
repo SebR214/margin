@@ -284,7 +284,7 @@
     wrap.appendChild(ms);
   }
 
-  function load(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); }
+  function load(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); }
   Promise.all([load('./copy.json').catch(function () { return {}; }), load('./data/research/capital_controls.json').catch(function () { return null; }),
                load('./data/index_latest.json').catch(function () { return null; }),
                load('./data/research/capital_controls_months.json').catch(function () { return null; }),

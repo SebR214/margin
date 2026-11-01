@@ -111,12 +111,12 @@
       }).catch(function () { /* the section stays hidden */ });
   }
 
-  Promise.all([fetch('./copy.json').then(function (r) { return r.json(); }), fetch('./data/machine_room.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('machine_room.json'); return r.json(); })])
+  Promise.all([fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); }), fetch('./data/machine_room.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('machine_room.json'); return r.json(); })])
     .then(function (a) {
       C = a[0].machineRoomPage; D = a[1];
       var B = a[0].machineRoom || {};
       $('pageTitle').textContent = B.title; $('pageLede').textContent = B.lede;
-      totals(); roles(B); record(B); score(); where(); incidents();
+      [totals, function () { roles(B); }, function () { record(B); }, score, where, incidents].forEach(function (f) { try { f(); } catch (e) { /* a section that cannot draw is left out, the rest still draw */ } });
       $('sources').innerHTML = D.files.map(function (f) { return '<a href="./' + esc(f) + '">' + esc(f) + '</a>'; }).join(' &middot; ');
     })
     .catch(function (e) { $('pageLede').textContent = String(e && e.message || e); });

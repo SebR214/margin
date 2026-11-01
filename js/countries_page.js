@@ -69,7 +69,7 @@
   // Stored names keep a leading "the" for use in sentences; a list shows the bare name.
   function plainName(n) { return String(n).replace(/^the /i, ''); }
   function getJSON(url) {
-    return fetch(url).then(function (r) { if (!r.ok) { throw new Error(url); } return r.json(); });
+    return fetch(url, { cache: 'no-store' }).then(function (r) { if (!r.ok) { throw new Error(url); } return r.json(); });
   }
   function countryHref(ccy) { return 'country/' + encodeURIComponent(String(ccy).toLowerCase()) + '/'; }
   function mkX(Sc) { return function (v) { return (Math.max(Sc.lo, Math.min(Sc.hi, v)) - Sc.lo) / (Sc.hi - Sc.lo) * 100; }; }
@@ -412,7 +412,7 @@
       if (D && D.countries) { return; }      // a refresh that fails leaves what the reader already has
       var wrap = el('div', 'ci-wrap');
       app.innerHTML = '';
-      fetch('copy.json').then(function (x) { return x.json(); }).then(function (c) {
+      fetch('copy.json', { cache: 'no-store' }).then(function (x) { return x.json(); }).then(function (c) {
         put(wrap, 'p', null, c.countries && c.countries.loadFailed);
         app.appendChild(wrap);
       }).catch(function () { /* nothing to say without copy */ });

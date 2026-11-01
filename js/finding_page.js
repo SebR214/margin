@@ -359,7 +359,7 @@
   }
 
   function load(url) {
-    return fetch(url).then(function (r) { if (!r.ok) throw new Error(url); return r; });
+    return fetch(url, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(url); return r; });
   }
 
   Promise.all([
