@@ -617,10 +617,10 @@ def build_breakdown(D, S):
                          "first_hour_utc": hour_utc(first_leg["ramp"]) if first_leg["ramp"] else None,
                          "cadence": "hourly", "file": "data/" + RAMP_WATERFALL})
     # An hour whose gas price could not be read is not priced (no gas figure is invented), and the route says which part is missing,
-    # the same way an unmeasured fee does: leg, route, reason and the hours. The newest 48 hours only, so the file stays small.
+    # the same way an unmeasured fee does: leg, route, reason and the hours. The newest week (168 hours), the routes page's week view.
     for c, hrs in D.get("gas_missing", {}).items():
         gaps.append({"leg": "on_chain", "route": c, "reason": "not_read_this_hour", "first_hour_utc": None, "cadence": "hourly",
-                     "hours_utc": [hour_utc(h) for h in hrs[-48:]], "file": "data/" + SAMPLES})
+                     "hours_utc": [hour_utc(h) for h in hrs[-168:]], "file": "data/" + SAMPLES})
     fs = fee_schedules()
     for r in fs["ramp_fees"]:
         if r["status"] != "measured":
