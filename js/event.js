@@ -302,9 +302,19 @@
 
   var id = (new URLSearchParams(location.search).get("id") || DEFAULT_ID).replace(/[^A-Za-z0-9_\-]/g, "");
   var PATHS = ["data/event_records/" + id + ".json", "data/history/event_records_rules4/" + id + ".json"];
+  // the published list names each event's record, so a reported event does not first ask for a file that is not there
+  function recordPaths() {
+    return getJSON("data/events_published.json").then(function (d) {
+      var e = ((d && d.events) || []).filter(function (x) { return x.id === id; })[0];
+      return e && e.record ? [e.record] : PATHS;
+    }).catch(function () { return PATHS; });
+  }
   function loadRecord() {
-    return getJSON(PATHS[0]).then(function (r) { RECPATH = PATHS[0]; return r; }).catch(function () {
-      return getJSON(PATHS[1]).then(function (r) { RECPATH = PATHS[1]; return r; }).catch(function () { return null; });
+    return recordPaths().then(function (paths) {
+      return getJSON(paths[0]).then(function (r) { RECPATH = paths[0]; return r; }).catch(function () {
+        if (!paths[1]) return null;
+        return getJSON(paths[1]).then(function (r) { RECPATH = paths[1]; return r; }).catch(function () { return null; });
+      });
     });
   }
   Promise.all([getJSON("copy.json"), loadRecord(), getJSON("data/heatmap_daily.json").catch(function () { return null; }), getJSON("data/map_timeline/index.json").catch(function () { return null; }), window.Claims ? window.Claims.load() : null,
@@ -318,6 +328,12 @@
       COUNTRY = ((c && c.country) || REC.ccy).replace(/^the /i, "").replace(/^./, function (x) { return x.toUpperCase(); });
       var own = res[3] && res[3].own_start;
       OWN_START = own ? dayShort(own) + " " + own.slice(0, 4) : "";
+      if (window.PageHead) {
+        window.PageHead.copy().then(function (H) {
+          var v = { country: COUNTRY, date: dayLong(id.slice(-10)) };
+          window.PageHead.set({ title: window.PageHead.fill(H.eventTitle, v), description: window.PageHead.fill(H.eventDescription, v), path: "event.html?id=" + encodeURIComponent(id) });
+        });
+      }
       render();
     }).catch(function (err) {
       if (window.console) console.error(err);
