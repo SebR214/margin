@@ -292,7 +292,7 @@ def lines_check(perturb=False):
 
 # Sixth mode, --counts (SEB-310, 21 Oct): two counts of the same thing on the home page must be the same number.
 COUNT_GROUPS = {
-    "countries priced this hour": [r"(\d[\d,]*) of them had a price", r"of (\d[\d,]*) countries we priced this hour", r"In \d[\d,]* of (\d[\d,]*) it is within 2%"],
+    "countries priced this hour": [r"(\d[\d,]*) of them had a price", r"of (\d[\d,]*) countries we priced this hour", r"In \d[\d,]* of (\d[\d,]*) it is within 2%", r"official rate in \d[\d,]* of (\d[\d,]*) countries"],
     "countries tracked": [r"(\d[\d,]*) countries tracked", r"what a dollar costs in (\d[\d,]*) countries", r"price of a dollar in (\d[\d,]*) countries", r"Show all (\d[\d,]*) countries"],
 }
 
