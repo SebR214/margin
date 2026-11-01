@@ -224,6 +224,7 @@ Written by the retired researcher (25 to 29 Oct). Track A rules in tools/job_sha
     files: `tools/pair_gap_daily.py` `data/pair_gap_daily.csv` `tests/agent_pair_gap_daily.py`
     context: `data/source_pairs.json` `tools/emit_source_pairs.py` `data/index_hourly.csv` `data/p2p_okx.csv`
     done when: tools/pair_gap_daily.py reuses the pairing logic of tools/emit_source_pairs.py, takes the pairs with flag true in the disagree list of data/gap_report.json and writes data/pair_gap_daily.csv with one row per currency, pair and UTC day holding the median gap in percent and the hours counted. tests/agent_pair_gap_daily.py uses an inline fixture of two days with hourly prices where source a is 100 and source b is 110 on day one for 3 hours and b is 120 on day two for 2 hours, and checks day one has median gap 10.0 with 3 hours and day two has 20.0 with 2 hours. An hour where one source has no price must be skipped, not counted as zero.
+    blocked: needs-claude: the Aider builder failed 2 times, last: empty after Aider: tools/pair_gap_daily.py data/pair_gap_daily.csv tests/agent_pair_gap_daily.py (2026-11-01)
 
 ## Board x currency jobs, from the gap list (research chat, SEB-422)
 Written with `python3 tools/new_board_job.py` from `python3 tools/gap_report.py --boards` (data/board_gap_report.json). Seb or the research chat only.
