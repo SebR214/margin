@@ -23,7 +23,7 @@
 <link rel="stylesheet" href="./style.css">
 <link rel="stylesheet" href="./css/dkpanel.css">
 <link rel="stylesheet" href="./css/site_head.css?v=5">
-<link rel="stylesheet" href="./css/site_page.css?v=9">
+<link rel="stylesheet" href="./css/site_page.css?v=10">
 <link rel="stylesheet" href="./css/machine_view.css?v=3">
 <style>
   /* How it works (SEB-271 layout rebuild to match the reference, wording
@@ -67,13 +67,7 @@
 
 <body>
 <div class="hw-wrap">
-  <div class="hp-head"><div class="hp-headleft"><a class="hp-logo mono" href="./index.html">margin.wiki</a><nav class="hp-nav">
-        <a class="hp-navlink" href="./countries.html">Countries</a>
-        <a class="hp-navlink" href="./sending-money.html">Routes</a>
-        <a class="hp-navlink" href="./sources.html">Sources</a>
-        <a class="hp-navlink" href="./findings.html">Findings</a>
-        <a class="hp-navlink on" href="./how-it-works.html">How it works</a>
-      </nav></div></div>
+  <div class="hp-head"><div class="hp-headleft"><a class="hp-logo mono" href="./index.html">margin.wiki</a><nav class="hp-nav" aria-label="Main" id="nav"></nav></div></div>
 
   <main class="hw-main">
     <section class="hw-hero" id="hiwIntro">
@@ -144,6 +138,10 @@ function whole(n){ return Math.round(n).toLocaleString('en-US'); }
 
 Promise.all([getJson('./copy.json'), getJson('./data/index_latest.json'), getJson('./data/providers_latest.json'), getJson('./data/sources_daily.json'), getJson('./data/heatmap_daily.json')]).then(function(res){
   var H = (res[0] && res[0].howItWorks) || {}, idx = res[1], prov = res[2], src = res[3], heat = res[4];
+  var navEl = document.getElementById('nav');
+  ((res[0] && res[0].nav) || []).forEach(function(n){
+    var a = document.createElement('a'); a.className = 'hp-navlink' + (n.href === './how-it-works.html' ? ' on' : ''); a.href = n.href; a.textContent = n.label; navEl.appendChild(a);
+  });
   document.title = 'margin.wiki: How it works';
   var md = document.querySelector('meta[name="description"]');
   if (md) md.setAttribute('content', H.pageDescription || '');

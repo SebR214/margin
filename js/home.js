@@ -136,7 +136,8 @@
     var nTracked = D.heat.countries_tracked;
     var idxCount = { priced: g(nPriced), tracked: g(nTracked) };
     // one per row, as the Sources page lists them: the CriptoYa feeds count once
-    var sr = (D.src && D.src.sources) || null, nSources = sr ? sr.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (sr.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null;
+    // only sources whose readings are in the stored-prices count (the cash trackers and extra boards are listed on Sources but not counted there)
+    var sr = (D.src && D.src.sources) ? D.src.sources.filter(function (s) { return (s.files || []).every(function (f) { return f !== 'cash_rates/' && f !== 'p2p_basis_boards.csv'; }); }) : null, nSources = sr ? sr.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (sr.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null;
     var h = '<h1>' + esc(moveHeadline() || T('headline')) + '</h1>' + (dailyProse() || moveSince()) +
       (T('heroWhy') ? '<p class="lead sub">' + esc(T('heroWhy')) + '</p>' : '') +
       '<p class="lead what">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +

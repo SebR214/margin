@@ -116,7 +116,7 @@ p, li, .lead, .body, .note { text-wrap: pretty; }
      notes           14px grey (time stamps, counts under the lead)
      sections        96px apart (72px on a phone), no rule line above them
      section heading 8px to its own text
-   The home headline block fills the first screen, so the grid starts only when you scroll. */
+   The home headline sits 40px under the header like every other page. */
 :is(.hero, .ci-hero, .sm-hero, .hw-hero, .fp-hero-text) { display: block !important; max-width: none !important; padding: 40px 0 0 !important; margin: 0 !important; }
 .fp-hero { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 :is(.hero, .ci-hero, .sm-hero, .hw-hero, .fp-hero-text) > * { margin: 0 !important; max-width: none !important; }
@@ -130,7 +130,7 @@ p, li, .lead, .body, .note { text-wrap: pretty; }
   margin-top: 96px !important; padding-top: 0 !important; border-top: 0 !important; }
 .wrap > .stack { gap: 0 !important; padding-top: 0 !important; margin: 0 !important; }
 .stack > .dkpanel > section { margin-top: 0 !important; padding-top: 0 !important; border-top: 0 !important; }
-.hw-hero + .hiw-section, .hw-hero ~ .hiw-section:first-of-type { margin-top: 40px !important; }
+:is(#smDetail, .hw-main) > .hw-hero + .hiw-section { margin-top: 40px !important; }
 /* tools, keys and lists that sit right under the page top: 40px, the same as under a headline */
 :is(.wrap, .ci-wrap, .sm-wrap) > :is(.ci-tools, .tools, .cnav, .fnav, .list, .evl, .rs-list) { margin-top: 40px !important; }
 :is(.wrap, .ci-wrap) > :is(.ci-key, .key) { margin-top: 24px !important; padding-top: 0 !important; border-top: 0 !important; }
@@ -138,20 +138,32 @@ section > h2, .fp-sec-head > h2, .hiw-section > h2 { margin: 0 0 8px !important;
 section > h2 + p, .fp-sec-head + p, .hiw-section > h2 + * { margin-top: 0 !important; }
 section p, .hiw-section p, .fp-sec p { max-width: none !important; }
 
-/* home: the headline block is the first screen */
-body:has(#land) .hero { box-sizing: border-box !important; min-height: calc(100svh - 86px) !important; padding: max(96px, 16vh) 0 96px !important; }
-body:has(#land) .wrap > .hero + section { margin-top: 0 !important; }
+/* the line under a headline is 20px grey on every page, whatever the page calls it */
+:is(.hero, .ci-hero, .sm-hero, .hw-hero, .fp-hero-text) > :is(.fp-line, .lead, .lede, .dek, .sm-lead, .c-lead, .ci-lead) {
+  font-size: 20px !important; line-height: 1.6 !important; color: var(--color-neutral-700) !important; }
+
+/* a page that is one item of a list (a country, a finding, a research piece, an event) has one back link to the list:
+   40px under the header, the headline 24px under it */
+:is(.cnav, .fnav) { margin-top: 40px !important; }
+.wrap > .fp-back, .sm-wrap > .cnav { display: inline-flex !important; margin-top: 40px !important; min-height: 0 !important; }
+:is(.cnav, .fnav) + .hero, .fp-back + .fp-hero > .fp-hero-text, .sm-wrap > .cnav + .sm-hero { padding-top: 24px !important; }
+:is(.cnav, .fnav) .back, .fp-back { font-size: 15px !important; font-weight: 400 !important; color: var(--color-neutral-600) !important; text-decoration: none !important; }
+:is(.cnav, .fnav) .back::before, .fp-back::before { content: "\2190\00a0\00a0"; }
+@media (hover: hover) { :is(.cnav, .fnav) .back:hover, .fp-back:hover { color: var(--color-ink) !important; } }
+
+/* home: the headline sits where every page's headline sits, and the agents line is a note */
 body:has(#land) .hero p { font-size: 20px !important; line-height: 1.6 !important; color: var(--color-neutral-700) !important; text-wrap: pretty !important; }
-body:has(#land) .hero .body.agents { color: var(--color-ink) !important; }
+body:has(#land) .hero p.agents { font-size: 14px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important; }
 body:has(#land) .hero .body b { font-weight: 400; }
 
 @media (max-width: 700px) {
   h1 { font-size: 26px !important; }
   :is(.hero, .ci-hero, .sm-hero, .hw-hero, .fp-hero-text) > h1 + *, main > h1 + .dek { margin-top: 24px !important; }
-  .hp-lede, .c-lead, .ci-lead, .sm-lead, .lead, .lede, .fp-lead, .fp-line, .dek, body:has(#land) .hero p { font-size: 17px !important; }
+  .hp-lede, .c-lead, .ci-lead, .sm-lead, .lead, .lede, .fp-lead, .fp-line, .dek, body:has(#land) .hero p,
+  :is(.hero, .ci-hero, .sm-hero, .hw-hero, .fp-hero-text) > :is(.fp-line, .lead, .lede, .dek, .sm-lead, .c-lead, .ci-lead) { font-size: 17px !important; }
   :is(.wrap, .ci-wrap, .sm-wrap, .hw-main, .stack, #smDetail) > :is(section, .ci-band, .ci-np, .hiw-section, .fp-sec, .dkpanel):not(.hw-hero) { margin-top: 72px !important; }
-  body:has(#land) .hero { min-height: calc(100svh - 57px) !important; padding: 40px 0 72px !important; }
-  body:has(#land) .hero h1 { text-wrap: balance !important; }
+  body:has(#land) .hero p.agents { font-size: 14px !important; }
+  :is(#smDetail, .hw-main) > .hw-hero + .hiw-section { margin-top: 24px !important; }
 }
 
 /* Phone (27 Oct): balanced headings wrapped early and looked narrower than the text under them. Pretty wrapping fills
