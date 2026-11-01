@@ -74,6 +74,7 @@ HISTORY_WRITERS = {"tools/backfill_history.py", "tools/pull_cash_history.py", "t
 # known breaks. It writes nothing and feeds no index, price or count.
 HISTORY_READERS = {"tools/analyst.py", "tools/backtest_watch.py", "tools/emit_map_timeline.py",
                    "tests/check_map_timeline.py",   # SEB-384: reads history, writes data/history/backtest_*.csv, never feeds a price
+                   "tools/audit_claims.py",   # SEB-423: re-checks the numbers on each event page against the history files; writes only claims_status.json
                    "tools/research_capital_controls.py", "tests/check_research_capital_controls.py",   # SEB-301: Research page 1, labelled history, display only
                     "tools/emit_country_history.py", "tests/check_known_breaks.py",
                    "tools/emit_machine_room_meters.py",

@@ -61,6 +61,18 @@
       "max_share": 0.01
     },
     {
+      "key": "eventPage.landLine",
+      "type": "event_pages",
+      "guards": [
+        "eventPage.headingOfficialUp",
+        "eventPage.headingOfficialDown",
+        "eventPage.landHeading",
+        "eventsPage.rowOfficialUp",
+        "eventsPage.rowOfficialDown"
+      ],
+      "note": "Event pages: the official rates, the move and the street price before that each event page prints equal the raw files for those days (live fx_rates.csv, data/history/official_fx_*.csv, p2p_basis.csv), and the move equals the detector's row."
+    },
+    {
       "key": "homeData.headlineMove",
       "type": "home_largest_move",
       "guards": [

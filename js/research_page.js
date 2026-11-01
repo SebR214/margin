@@ -40,7 +40,7 @@
     logo.href = './index.html';
     var nav = el('nav', 'fp-nav');
     [[NAVC.navCountries, './countries.html'], [NAVC.navRoutes, './sending-money.html'], [NAVC.navSources, './sources.html'],
-     [NAVC.navFindings, './findings.html'], [C.navResearch, './research.html'], [NAVC.navHowItWorks, './how-it-works.html']].forEach(function (l) {
+     [NAVC.navFindings, './findings.html'], [C.navResearch, './research.html'], [NAVC.navEvents, './events.html'], [NAVC.navHowItWorks, './how-it-works.html']].forEach(function (l) {
       if (!l[0]) return;
       var a = el('a', '', l[0]);
       a.href = l[1];
