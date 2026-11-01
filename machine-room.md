@@ -1,6 +1,6 @@
 # The machine room
 
-Prices from the 23:00 UTC hour, 31 Oct.
+Prices from the 00:00 UTC hour, 1 Nov.
 
 Some of this site is built by a program on GitHub. This page shows what it tries, what it merges, what it costs and what has gone wrong.
 
@@ -9,7 +9,7 @@ Some of this site is built by a program on GitHub. This page shows what it tries
 | $5.23 Spent on builds |
 | 5 Builds merged |
 | $1.05 Cost per merged build |
-| Today Since the last merge |
+| 1 day Since the last merge |
 
 Spent counts the builder's runs. Every model call together, since 7 Oct, comes to $6.87. All of it is held to $20 a month.
 
@@ -31,17 +31,17 @@ Every job runs on GitHub Actions. Times are Singapore time.
 | Job | When | What it does | Last run |
 | --- | --- | --- | --- |
 | Builder | Every day at 13:07, 16:37, 21:07 | Builds the top ready job with AI and opens a change. | Succeeded (31 Oct 17:39 UTC) |
-| Merge when green | After the checks finish on a change | Merges a change when every check is green. | Skipped (31 Oct 23:04 UTC) |
-| Checks | On every change | Runs the tests and page checks a change must clear. | Succeeded (31 Oct 23:04 UTC) |
+| Merge when green | After the checks finish on a change | Merges a change when every check is green. | Skipped (31 Oct 23:57 UTC) |
+| Checks | On every change | Runs the tests and page checks a change must clear. | Succeeded (31 Oct 23:57 UTC) |
 | Reader test | By hand | Compares two models reading the pages. Changes nothing. | Succeeded (5 Oct 09:28 UTC) |
-| Collection | About every 30 minutes, each run starts the next | Collects prices, rebuilds the pages and saves the data. | Running (31 Oct 23:05 UTC) |
-| Collection alarm | Every 30 minutes | Watches collection from outside and sends an alarm when it goes quiet. | Running (31 Oct 23:15 UTC) |
+| Collection | About every 30 minutes, each run starts the next | Collects prices, rebuilds the pages and saves the data. | Running (1 Nov 00:05 UTC) |
+| Collection alarm | Every 30 minutes | Watches collection from outside and sends an alarm when it goes quiet. | Running (1 Nov 00:15 UTC) |
 | Fee check | Day 1 of each month at 11:23 | Checks the fee tiers each month. | Failed (22 Oct 06:28 UTC) |
 | History pull | By hand | Pulls older price history from public sources. Never feeds a price. | Succeeded (22 Oct 17:30 UTC) |
 | Older builder | By hand | The older builder, run only by hand. | Succeeded (23 Oct 17:03 UTC) |
-| Outside check | After each deploy of the site | Asks the live site what a search engine would ask. | Succeeded (31 Oct 23:01 UTC) |
+| Outside check | After each deploy of the site | Asks the live site what a search engine would ask. | Succeeded (31 Oct 23:55 UTC) |
 | Board probe | Sundays at 11:11 | Re-checks which person-to-person boards are usable. | Succeeded (25 Oct 08:19 UTC) |
-| Audit alarm | Every hour, at minutes 11, 41 | Sends an alarm when the audits or the builder's runner stop working. | Running (31 Oct 23:01 UTC) |
+| Audit alarm | Every hour, at minutes 11, 41 | Sends an alarm when the audits or the builder's runner stop working. | Running (1 Nov 00:01 UTC) |
 
 Incidents
 
