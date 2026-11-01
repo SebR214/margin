@@ -29,10 +29,10 @@
     }
   }
   if (linksOnly) {
-    fetch('./copy.json').then(function (r) { return r.json(); }).then(watch).catch(function () {});
+    fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(watch).catch(function () {});
     return;
   }
-  if (document.querySelector('footer')) { fetch('./copy.json').then(function (r) { return r.json(); }).then(watch).catch(function () {}); return; }
+  if (document.querySelector('footer')) { fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(watch).catch(function () {}); return; }
   fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (C) {
     var R = (C && C.routeData) || {};
     if (!R.footerText && !R.footerLinkText) return;

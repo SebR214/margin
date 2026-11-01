@@ -4,7 +4,7 @@
 (function () {
   var SITE = 'https://margin.wiki/', pending = null;
   function copy() {
-    if (!pending) { pending = fetch('./copy.json').then(function (r) { return r.json(); }).then(function (c) { return (c && c.siteHead) || {}; }).catch(function () { return {}; }); }
+    if (!pending) { pending = fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (c) { return (c && c.siteHead) || {}; }).catch(function () { return {}; }); }
     return pending;
   }
   function meta(attr, name, value) {
