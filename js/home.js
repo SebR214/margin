@@ -65,12 +65,30 @@
     var m = D.facts && D.facts.largest_move;
     return m && !blocked('headlineMove') ? m : null;
   }
+  // The move leads the page only when it takes the gap away from its usual level, by a point or more (1 Nov, Seb: a move back
+  // to normal is not news). Said as the level now and yesterday, so the reader sees what a dollar costs, not a change in points.
+  function awayMove() {
+    var m = moveFacts(); if (!m || m.now_pct == null || m.typical_pct == null) { return null; }
+    var from = m.direction === 'dearer' ? m.now_pct - m.points : m.now_pct + m.points;
+    var away = m.direction === 'dearer' ? m.now_pct > m.typical_pct : m.now_pct < m.typical_pct;
+    if (!away || Math.abs(m.now_pct - m.typical_pct) < 1 || m.now_pct < 0 || from < 0 || m.typical_pct < 0) { return null; }
+    return { m: m, from: from };
+  }
   function moveHeadline() {
+    if (T('headlineAwayUp')) {
+      var a = awayMove(); if (!a) { return ''; }
+      var hk = a.m.direction === 'dearer' ? 'headlineAwayUp' : 'headlineAwayDown';
+      return blocked('headlineMove') ? '' : T(hk, { country: plain(a.m.country), now: a.m.now_pct.toFixed(1) + '%', from: a.from.toFixed(1) + '%' });
+    }
     var m = moveFacts(); if (!m) { return ''; }
     var k = m.direction === 'dearer' ? 'headlineMoveUp' : 'headlineMoveDown';
     return blocked(k) ? '' : T(k, { country: plain(m.country), points: m.points.toFixed(1) });
   }
   function moveSince() {
+    if (T('moveUsual')) {
+      var a = awayMove(); if (!a || !moveHeadline()) { return ''; }
+      return '<p class="lead sub">' + esc(T('moveUsual', { typical: Math.round(a.m.typical_pct) + '%' })) + '</p>';
+    }
     var m = moveFacts(); if (!m || !moveHeadline() || m.side === 'at') { return ''; }
     var k = m.since_whole_window ? (m.side === 'above' ? 'moveSinceWholeAbove' : 'moveSinceWholeBelow') : (m.side === 'above' ? 'moveSinceAbove' : 'moveSinceBelow');
     var t = blocked(k) ? '' : T(k, { date: m.since ? longDate(m.since) : '' });
@@ -82,9 +100,11 @@
   function dailyProse() {
     var p = D.prose;
     if (!p || !p.audit || p.audit.passed !== true || (p.voice && p.voice.passed !== true) || !Array.isArray(p.sentences)) { return ''; }
+    var a = awayMove();
+    if (!a || !p.about_ccy || p.about_ccy !== a.m.ccy) { return ''; }   // written for the headline on the page now, or not shown
     var t = Date.parse(p.written_utc || '');
     if (!(t > 0) || Date.now() - t > 30 * 3600e3) { return ''; }
-    var lines = p.sentences.filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 3);
+    var lines = p.sentences.filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 2);
     return lines.length ? '<p class="lead sub today">' + esc(lines.join(' ')) + '</p>' : '';
   }
   function changeLine(it) {

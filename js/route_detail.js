@@ -29,6 +29,16 @@
     ORDER.sort(function (a, b) { var x = gapOf(a), y = gapOf(b); return (y == null ? -1e9 : y) - (x == null ? -1e9 : x); });
   }
   // hours whose blockchain fee could not be read: not priced, and shown as gaps (1 Nov, Seb), from routes_breakdown.json
+  // the hours the collection ran at all: any route priced in that hour (an hour nobody priced is an outage, 1 Nov)
+  var RAN = null, RAN_SRC = null;
+  function ranHours() {
+    if (RAN && RAN_SRC === HOURLY) return RAN;
+    RAN = {}; RAN_SRC = HOURLY;
+    ((HOURLY && HOURLY.routes) || []).forEach(function (r) {
+      (r.amounts || []).forEach(function (a) { (a.hours || []).forEach(function (h) { RAN[Math.round(Date.parse(h[0]) / 36e5)] = true; }); });
+    });
+    return RAN;
+  }
   function gasMissing(id) {
     var out = {};
     ((BRK && BRK.gaps) || []).forEach(function (g) {
@@ -284,8 +294,16 @@
     ticks.forEach(function (v) {
       if (v !== 0) g += '<line x1="' + L + '" x2="' + W + '" y1="' + Y(v) + '" y2="' + Y(v) + '" class="sm-grid"/>';
       g += '<text class="sm-ax' + (v === 0 ? " sm-z" : "") + '" x="' + (L - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' +
-        (v === 0 ? "0" : (v > 0 ? "+" : MINUS) + sym + whole(Math.abs(v))) + "</text>";
+        (v === 0 ? "0" : (txt("chartZoneStable") ? "" : (v > 0 ? "+" : MINUS)) + sym + whole(Math.abs(v))) + "</text>";
     });
+    // which side is which, in words at the left edge of each side that is on the chart (1 Nov): no minus signs to decode
+    var zoneSvg = "";
+    if (txt("chartZoneStable")) {
+      // each word sits against the dark line, on its own side, and only where there is room for it
+      var zy = Y(0);
+      if (lo < 0 && T + ph - zy >= 22) zoneSvg += '<text class="sm-zone" x="' + (L + 8) + '" y="' + (zy + 16).toFixed(1) + '">' + esc(txt("chartZoneStable")) + "</text>";
+      if (hi > 0 && zy - T >= 22) zoneSvg += '<text class="sm-zone" x="' + (L + 8) + '" y="' + (zy - 7).toFixed(1) + '">' + esc(txt("chartZoneApp")) + "</text>";
+    }
     // x axis: each day at midnight UTC on the week view, Mondays (every other one on a phone) on the daily views
     var narrow = W < 560, lastLabel = -1;
     pts.forEach(function (p, i) {
@@ -324,15 +342,42 @@
         if (j && i - r[j - 1] > 1) { dGap += "M" + X(r[j - 1]).toFixed(1) + " " + Y(pts[r[j - 1]][0]).toFixed(1) + "L" + pt; dLine += "M" + pt; }
         else dLine += (j ? "L" : "M") + pt;
       });
-      g += '<path class="sm-area" d="' + line + "L" + X(r[r.length - 1]).toFixed(1) + " " + z.toFixed(1) + "L" + X(r[0]).toFixed(1) + " " + z.toFixed(1) + 'Z"/>';
+      if (!txt("chartZoneStable")) g += '<path class="sm-area" d="' + line + "L" + X(r[r.length - 1]).toFixed(1) + " " + z.toFixed(1) + "L" + X(r[0]).toFixed(1) + " " + z.toFixed(1) + 'Z"/>';
     });
     var slot = n > 1 ? pw / (n - 1) : pw;
-    gasIdx.forEach(function (i) { g += '<rect class="sm-gasmiss" x="' + (X(i) - slot / 2).toFixed(1) + '" y="' + T + '" width="' + Math.max(2, slot).toFixed(1) + '" height="' + ph + '"/>'; });
+    // every stretch with no price is one plain grey band. Hovering it says which kind: our collection was down (no route
+    // priced those hours), no gas reading, or no price for this route. A miss short enough to bridge stays a dashed line (1 Nov, Seb).
+    var ran = ranHours(), bands = [], start = -1;
+    function kindAt(i) {
+      if (hourly && GM[t0h + i]) return "Gas";
+      var t = pts[0] ? pts[0][3] : 0;
+      if (hourly) return ran[t0h + i] ? "NoPrice" : "Outage";
+      var d0 = Math.round((Date.parse(A.day0 + "T00:00:00Z") + (S.period === "1m" ? A.daily.length - 30 + i : i) * 864e5) / 36e5);
+      for (var hh = 0; hh < 24; hh++) { if (ran[d0 + hh]) return "NoPrice"; }
+      return "Outage";
+    }
+    pts.forEach(function (p, i) {
+      if (!p && start < 0) start = i;
+      if ((p || i === n - 1) && start >= 0) { var end = p ? i - 1 : i; bands.push([start, end]); start = -1; }
+    });
+    chart.band = {};
+    bands.forEach(function (b) {
+      var len = b[1] - b[0] + 1, kinds = {};
+      for (var i = b[0]; i <= b[1]; i++) kinds[kindAt(i)] = 1;
+      var kind = kinds.Gas ? "Gas" : kinds.Outage && !kinds.NoPrice ? "Outage" : kinds.Outage ? "Outage" : "NoPrice";
+      if (hourly && len <= BRIDGE && kind !== "Gas") return;     // bridged by the dashed line
+      var x0 = X(b[0]) - slot / 2, x1 = X(b[1]) + slot / 2, wd = Math.max(2, x1 - x0);
+      g += '<rect class="sm-band" x="' + x0.toFixed(1) + '" y="' + T + '" width="' + wd.toFixed(1) + '" height="' + ph + '"/>';
+      // no words on the band (1 Nov, Seb): the note under the heading says what grey means, the tip says which kind
+      var tip = kind === "Gas" ? txt("gasMissTip") : txt("chartBandTip" + kind);
+      for (var j = b[0]; j <= b[1]; j++) chart.band[j] = tip;
+    });
     g += '<line x1="' + L + '" x2="' + W + '" y1="' + z + '" y2="' + z + '" class="sm-zline"/>';
     if (dGap) g += '<path class="sm-line sm-gapline" d="' + dGap + '"/>';
     g += '<path class="sm-line" d="' + dLine + '"/>';
     var li = pts.length - 1;
     if (pts[li]) g += '<circle cx="' + X(li) + '" cy="' + Y(pts[li][0]) + '" r="3.5" class="sm-dot"/>';
+    g += zoneSvg;   // on top of the bands and the line
     g += '<line id="smCross" y1="' + T + '" y2="' + (T + ph) + '" class="sm-cross" visibility="hidden"/>';
     svg.setAttribute("viewBox", "0 0 " + W + " " + Hh);
     svg.innerHTML = g;
@@ -345,16 +390,22 @@
     if (note && nt) note.textContent = nt;
     [].forEach.call(document.querySelectorAll("[data-period]"), function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-period") === S.period ? "true" : "false"); });
   }
+  // the time of point i on the chart in view, also for a point with no price
+  function pts0time(i) {
+    var A = chart.A, pts = chart.pts;
+    if (S.period === "1w") return (pts[0] ? pts[0][3] : 0) + i * 36e5;
+    return Date.parse(A.day0 + "T00:00:00Z") + (S.period === "1m" ? A.daily.length - 30 + i : i) * 864e5;
+  }
   function hoverChart(e) {
     if (!chart || !chart.geo) return;
     var geo = chart.geo, svg = document.getElementById("smSvg"), tip = document.getElementById("smTip"), cross = document.getElementById("smCross");
     var b = svg.getBoundingClientRect(), x = (e.clientX - b.left) / b.width * geo.W;
     var i = Math.round((x - geo.L) / geo.pw * (geo.n - 1));
     var p = chart.pts && chart.pts[i];
-    if (!p && chart.gas && chart.gas[i] && txt("gasMissTip")) {
-      var gd = new Date(chart.gas[i]).toISOString();
+    if (!p && chart.band && chart.band[i]) {
+      var gt = pts0time(i), gd = new Date(gt).toISOString();
       cross.setAttribute("x1", geo.X(i)); cross.setAttribute("x2", geo.X(i)); cross.setAttribute("visibility", "visible");
-      tip.innerHTML = esc(txt("gasMissTip")) + "<span>" + esc(txt("chartTipHour", { day: dayShort(gd), hour: gd.slice(11, 16) })) + "</span>";
+      tip.innerHTML = esc(chart.band[i]) + "<span>" + esc(S.period === "1w" ? txt("chartTipHour", { day: dayShort(gd), hour: gd.slice(11, 16) }) : dayShort(gd)) + "</span>";
       tip.hidden = false;
       var gl = geo.X(i) / geo.W * 100;
       tip.style.left = gl > 65 ? "" : (gl + 2) + "%"; tip.style.right = gl > 65 ? (100 - gl + 2) + "%" : "";

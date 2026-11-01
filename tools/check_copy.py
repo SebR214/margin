@@ -209,16 +209,74 @@ def check_all_html():
     return out
 
 
+# ---------------------------------------------------------------------------------------------------------------------
+# The Words table (DESIGN.md "Register", 1 Nov): one word per idea. Every reader-facing string in copy.json, headings and
+# body alike, may not carry a "Never say" phrase. The table is read from DESIGN.md itself, so the guide and the check
+# cannot drift apart. Blocks no page reads any more, and names of sources and exchanges, are not reader prose.
+DESIGN = os.path.join(HERE, "DESIGN.md")
+WORDS_EXEMPT_BLOCKS = {"machineRoom", "tape", "index", "receiptBasis", "routeNames"}
+WORDS_EXEMPT_KEY_RE = re.compile(r"(sourceNames|srcNames|venueNames|boardNames|currencyNames|^nav$)", re.I)
+
+
+def words_table(path=DESIGN):
+    """[(say, [never, ...])] from the "### Words" table of DESIGN.md."""
+    rows, on = [], False
+    for line in open(path, encoding="utf-8"):
+        if line.startswith("### Words"):
+            on = True
+            continue
+        if on and line.startswith("#"):
+            break
+        if on and line.startswith("|") and not set(line.strip()) <= set("|- "):
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) == 2 and cells[0].lower() != "say":
+                rows.append((cells[0], [w.strip() for w in cells[1].split(",") if w.strip()]))
+    return rows
+
+
+def never_words(path=DESIGN):
+    return sorted({w for _, ws in words_table(path) for w in ws}, key=len, reverse=True)
+
+
+def check_words(copy=None, path=DESIGN):
+    """(locator, word, snippet) for every reader string that uses a Never-say word."""
+    words = never_words(path)
+    if not words:
+        return [("DESIGN.md", "Words table", "missing or empty")]
+    rx = re.compile(r"(?<![A-Za-z])(" + "|".join(re.escape(w) for w in words) + r")(?![A-Za-z])", re.I)
+    data = copy if copy is not None else json.load(open(COPY, encoding="utf-8"))
+    out = []
+
+    def walk(node, path_, block):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if WORDS_EXEMPT_KEY_RE.search(k):
+                    continue
+                walk(v, path_ + "." + k, block or k)
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                walk(v, path_ + "[%d]" % i, block)
+        elif isinstance(node, str) and block not in WORDS_EXEMPT_BLOCKS:
+            text = re.sub(r"<[^>]+>", " ", re.sub(r"\{\w+\}", " ", node))
+            m = rx.search(text)
+            if m:
+                out.append(("copy.json:" + path_.lstrip("."), m.group(1), node[:120]))
+
+    walk(data, "", None)
+    return out
+
+
 def main():
     violations = []
     violations += [("copy.json:" + p, w, s) for p, w, s in check_copy_json()]
     violations += check_all_html()
+    violations += check_words()
 
     violations = [v for v in violations if v[2] not in ALLOWLIST]
 
     if not violations:
         print("  check_copy.py: clean -- no banned word in any heading, "
-              "caption, label, nav or table header")
+              "caption, label, nav or table header, and no Never-say word from DESIGN.md anywhere")
         return
 
     print(f"  [error] {len(violations)} banned-word violation(s):", file=sys.stderr)

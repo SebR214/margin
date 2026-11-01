@@ -137,8 +137,8 @@ COUNTRY = {
     "QAR": "Qatar", "RWF": "Rwanda", "SAR": "Saudi Arabia", "SDG": "Sudan",
     "SGD": "Singapore", "SYP": "Syria", "THB": "Thailand", "TND": "Tunisia",
     "TRY": "Turkey", "TZS": "Tanzania", "UAH": "Ukraine", "UGX": "Uganda",
-    "VES": "Venezuela", "VND": "Vietnam", "XAF": "Central African CFA",
-    "XOF": "West African CFA", "ZAR": "South Africa", "ZMW": "Zambia",
+    "VES": "Venezuela", "VND": "Vietnam", "XAF": "Central Africa",
+    "XOF": "West Africa", "ZAR": "South Africa", "ZMW": "Zambia",
 }
 
 # Denominator class, per METHODOLOGY "The denominator, and where it is a policy

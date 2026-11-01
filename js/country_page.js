@@ -81,6 +81,8 @@
         var cp = cs > 0 ? cs : (cash.mid / c.buy_price - 1) * 100;
         if (T(ck)) { h += '<p class="money num">' + esc(T(ck, { pct: cp.toFixed(1) + '%' })) + '</p>'; }
       }
+      // a currency several countries share: say which countries (1 Nov, Seb: "CFA means what?")
+      if (T('zoneNote_' + c.ccy)) { h += '<p class="stamp">' + esc(T('zoneNote_' + c.ccy)) + '</p>'; }
       // the price rests on one source only: say so (SEB-302)
       if ((c.venues || []).length === 1 && T('oneSource')) { h += '<p class="stamp num">' + esc(T('oneSource')) + '</p>'; }
       if (c.denominator && c.denominator.class === 'unmaintained') { h += '<p class="flag">' + esc(T('unrankedNote', { country: c.country })) + '</p>'; }

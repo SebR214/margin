@@ -20,30 +20,28 @@ What the pages read (js/event.js, js/home.js). A file shows only when audit.pass
          "voice": {"passed": true, "problems": []}}
 
     data/home_prose.json
-        {"written_utc": "...", "facts_as_of": "...", "model": "...",
-         "sentences": ["...", "..."],                       three at most, no links
+        {"written_utc": "...", "facts_as_of": "...", "about_ccy": "MAD", "model": "...",   about_ccy: the headline's country
+         "sentences": ["...", "..."],                       two at most, no links
          "audit": {"passed": true, ...}, "voice": {"passed": true, "problems": []}}
 
     python3 tools/writer_voice.py --self-test
 """
+import os
 import re
 import sys
 
 # --------------------------------------------------------------------------------------------- the words every page uses
 # One word per idea, the list agreed on 27 Oct. The model gets the left side as the word to use and the right side as words
 # it must never write. check_voice() enforces the right side.
-WORDS = [
-    ("the official rate", ["mid-market", "mid rate", "interbank rate", "peg rate"]),
-    ("the gap (how much more than the official rate a dollar costs, always in %)", ["premium", "spread", "basis", "points", "bps", "basis points"]),
-    ("the street price (what people paid each other for a dollar)", ["black market", "parallel rate", "parallel market"]),
-    ("people selling to each other", ["peer-to-peer", "P2P", "person to person", "person-to-person"]),
-    ("a stablecoin, a coin that stays worth one US dollar", ["crypto", "cryptocurrency", "token", "USDT", "Tether"]),
-    ("cheaper, more expensive", ["dearer", "pricier"]),
-    ("exchanges, brokers", ["venue", "order book", "liquidity"]),
-]
+# The Words table in DESIGN.md is the one list (1 Nov). check_copy.py enforces it on the pages, and the model gets the same rows.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from check_copy import words_table  # noqa: E402
+
+WORDS = words_table()
 
 # Words that make the site sound like a news wire or a sales page. The pages never use them.
-BANNED = sorted({w for _, ws in WORDS for w in ws} | {
+BANNED = sorted({w for _, ws in WORDS for w in ws if w.lower() not in ("reported",)} | {
+    "USDT", "Tether", "black market", "parallel rate", "parallel market",
     "plunge", "plunged", "plummet", "plummeted", "soar", "soared", "skyrocket", "skyrocketed", "crash", "crashed", "tumble",
     "tumbled", "slump", "slumped", "spike", "spiked", "surge", "surged", "collapse", "collapsed", "freefall", "meltdown",
     "regime", "authorities", "officials", "amid", "amidst", "notably", "significantly", "dramatic", "dramatically",
@@ -54,19 +52,21 @@ BANNED = sorted({w for _, ws in WORDS for w in ws} | {
 
 MAX_WORDS = 24          # DESIGN.md asks for under 20; a few words of room for a country or bank name
 
+_WORDS_LINES = "\n".join("  %s. Never: %s." % (say, ", ".join(nv)) for say, nv in WORDS)
+
 # --------------------------------------------------------------------------------------------- shared rules
 _RULES = """How the site writes. Follow every line.
 
 - Short sentences, one idea each, under 20 words. Plain words a person outside finance knows.
 - No dashes of any kind, no semicolons, no exclamation marks, no questions. No headings, no lists, no bold.
 - Past tense for what happened. Dates as "7 Oct 2026", or "7 Oct" when the year is clear.
-- Say "the official rate", "the street price" (what people paid each other for a dollar), "the gap" (how much more than
-  the official rate a dollar cost, in %), "a stablecoin" (a coin that stays worth one US dollar), "people selling to each
-  other", "exchanges".
+- Every number says what it means for someone buying a dollar there, in the same sentence. A number alone is not enough.
+- The same word for the same thing, always. Say, and never say:
+{words}
 - Money and dates first, percent second. Write a number exactly as it appears in the input, with the same rounding.
 - No metaphors, no drama, no judgment, no guesses about the future. Do not end on a punchy line.
 - "We" is the site: "our daily source", "our code spotted the change".
-- Never use these words: {banned}.
+- Never use these words either: {banned}.
 """
 
 EVENT_INSTRUCTIONS = (_RULES + """
@@ -75,8 +75,10 @@ every number, so you explain, you do not repeat the table.
 
 Input: the event record (JSON, the only source of numbers) and up to 5 search results about the announcement.
 
-Paragraph 1, what happened, from the record only: which rate moved, by how much, between which dates. If the record has a
-street price, one sentence on what the street price did before the official rate moved. 2 to 4 sentences.
+Paragraph 1, what it meant for someone buying a dollar, from the record only. Do not repeat the table. Say which rate moved,
+by how much and when, then what that meant: if the record has a street price, how much more people already paid on the
+street before the official rate moved, and how much of that gap the official rate closed. If the record has no street
+price, say what a dollar cost at the official rate before and after. 2 to 4 sentences.
 
 Paragraph 2, what the government or central bank did, from the search results only: what was announced, by whom, on what
 date. 2 to 4 sentences. Every sentence that comes from a search result ends with its marker, like [1] or [2], numbered in
@@ -102,28 +104,30 @@ Style example, from the Iraq page (do not reuse its numbers or dates):
 
 Return JSON only, no other text:
 {{"paragraphs": ["...", "..."], "sources": [{{"title": "...", "url": "https://...", "site": "..."}}]}}
-""").format(banned=", ".join(BANNED))
+""").format(banned=", ".join(BANNED), words=_WORDS_LINES)
 
 DAILY_INSTRUCTIONS = (_RULES + """
-Your job: write what changed today for the top of the margin.wiki home page, under its headline. The headline already names
-the country whose gap moved most since yesterday, so do not repeat it. Add what it leaves out.
+Your job: write the lines under the margin.wiki home page headline. The headline already says, for the country whose gap
+moved most since yesterday, what a dollar costs there now against the official rate and what it cost yesterday. Your first
+sentence says what that means: how it compares with the usual level there, from the facts file. Do not repeat the headline's
+numbers. Add a second sentence only if another item in the facts file is as big for a reader, and link it to the first by
+place or by kind (another country crossing the same line, an event in the same country). Never list unrelated items.
 
 Input: the facts file (JSON), the only source. It holds the largest move of the last 24 hours and what changed in the last
 7 days: countries that crossed 5% over the official rate, events, sources added, findings whose retest changed, routes
 where the stablecoin became cheaper or more expensive than the cheapest app.
 
-Write at most 3 sentences. Pick the items a returning reader would most want to know, newest first. No links, no markers.
-If the facts file has nothing beyond the largest move, write one sentence on how long the gap has sat above or below its
-usual level there, or return an empty list.
+Write at most 2 sentences. No links, no markers. If the facts file has no largest move, return an empty list: the page then
+keeps its fixed headline and needs nothing under it.
 
 Never write a number that is not in the facts file. Never say why something moved.
 
-Style example (do not reuse its numbers or names):
-  "Morocco went above 5% over the official rate on 30 Oct. We began reading two new exchanges in Kenya this week."
+Style example, under a headline about Morocco (do not reuse its numbers or names):
+  "That is about twice the usual level there over the last 30 days. Morocco crossed 5% over the official rate on 30 Oct."
 
 Return JSON only, no other text:
 {{"sentences": ["...", "..."]}}
-""").format(banned=", ".join(BANNED))
+""").format(banned=", ".join(BANNED), words=_WORDS_LINES)
 
 
 # --------------------------------------------------------------------------------------------- the check
@@ -187,8 +191,8 @@ def check_event_output(obj):
 def check_daily_output(obj):
     """Problems with the model's daily JSON. Empty means it can go to the number audit."""
     ss = obj.get("sentences")
-    if not isinstance(ss, list) or len(ss) > 3 or not all(isinstance(s, str) and s.strip() for s in ss):
-        return ["needs a list of at most 3 sentences"]
+    if not isinstance(ss, list) or len(ss) > 2 or not all(isinstance(s, str) and s.strip() for s in ss):
+        return ["needs a list of at most 2 sentences"]
     out = []
     for i, s in enumerate(ss):
         out += ["sentence %d: %s" % (i + 1, x) for x in check_voice(s)]
@@ -220,11 +224,12 @@ def self_test():
     none = {"paragraphs": [good, "We found no announcement for 7 Mar 2024."], "sources": []}
     assert check_event_output(none) == [], check_event_output(none)
     assert check_daily_output({"sentences": ["Morocco went above 5% over the official rate on 30 Oct."]}) == []
-    assert check_daily_output({"sentences": ["a.", "b.", "c.", "d."]}) == ["needs a list of at most 3 sentences"]
+    assert check_daily_output({"sentences": ["a.", "b.", "c."]}) == ["needs a list of at most 2 sentences"]
+    assert WORDS and any("dearer" in nv for _, nv in WORDS), "the Words table in DESIGN.md is the list"
     assert any("no links" in p for p in check_daily_output({"sentences": ["See https://x.org for more."]}))
     # the instructions themselves follow the site's word list (outside the "never use" list they quote)
     for name, txt in (("event", EVENT_INSTRUCTIONS), ("daily", DAILY_INSTRUCTIONS)):
-        body = txt.split("- Never use these words:")[0]
+        body = txt.split("- Never use these words")[0]
         assert "{" not in body.replace("{{", "").replace("{country}", ""), name
     print("writer_voice self-test: ok (%d banned words)" % len(BANNED))
 
