@@ -36,7 +36,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import source_gate  # SEB-302: only an approved source can feed a number
 
-INDEX_VERSION = "1.9.1"
+INDEX_VERSION = "1.9.2"
 
 # v1.5: crossed boards. A board whose buy median is below its sell median is crossed. Two cases are no longer withheld:
 #   1. a near tie: crossed by less than NEAR_TIE of the mid counts as not crossed;
