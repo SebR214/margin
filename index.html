@@ -98,9 +98,8 @@
   #wc .r.f { grid-template-columns: minmax(0, 1fr) auto; gap: 0 16px; }
   #wc .r.f .v { font-weight: 400; color: var(--color-neutral-600); font-size: 14px; }
   /* when the official rate finally moved (25 Oct): country and month, the gap before, a bar for the share of it closed, the share */
-  .r.lr { grid-template-columns: 200px 170px minmax(0, 1fr) 150px; }
-  .lbar { display: block; height: 8px; border-radius: 999px; background: var(--color-neutral-100); overflow: hidden; }
-  .lbar i { display: block; height: 100%; border-radius: 999px; background: var(--data-700); }
+  .r.lr { grid-template-columns: 200px minmax(0, 1fr) 150px; }
+  .r.lr .lba { font-size: 17px; color: var(--color-ink); }
   .sechead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; }
   #rec section { margin-top: 0; }
   .loaderr { margin-top: 24px; color: var(--color-neutral-700); }
@@ -119,12 +118,11 @@
     .r.f .m { grid-column: 1; grid-row: 1; margin: 0; }
     .r.lr { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; }
     .r.lr .m { grid-column: 1 / -1; grid-row: 2; margin: 0; }
-    .r.lr .lbar { grid-column: 1 / -1; grid-row: 3; }
   }
 </style>
 <link rel="stylesheet" href="./css/dkpanel.css">
 <link rel="stylesheet" href="./css/site_head.css?v=7">
-<link rel="stylesheet" href="./css/site_page.css?v=11">
+<link rel="stylesheet" href="./css/site_page.css?v=12">
 <link rel="stylesheet" href="./css/machine_view.css?v=7">
 </head>
 <body>
@@ -152,7 +150,7 @@
 <script src="./js/claims.js"></script>
 <script src="./js/tooltip.js"></script>
 <script src="./js/home_timeline.js?v=3"></script>
-<script src="./js/home.js?v=12"></script>
+<script src="./js/home.js?v=14"></script>
 <script src="./js/footer.js?v=4"></script>
 <script src="./js/site_head.js?v=8"></script>
 <script src="./js/machine_view.js?v=6" defer></script>
