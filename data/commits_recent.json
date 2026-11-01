@@ -1,7 +1,21 @@
 {
- "as_of_utc": "2026-11-01T12:20:21Z",
+ "as_of_utc": "2026-11-01T12:44:37Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "46b93bb6bf460610b6616c620a68ad7c2feb102c",
+   "html_url": "https://github.com/SebR214/margin/commit/46b93bb6bf460610b6616c620a68ad7c2feb102c",
+   "date": "2026-11-01T12:36:40Z",
+   "email": "person",
+   "message": "SEB-423: one language guide, enforced; routes chart; home first screen with one spacing rule; spacing and page work rules (#754)\n\n* One language guide, enforced; routes chart reads right; home headline only for unusual moves; reader names for the CFA zones\n\n- DESIGN.md \"Register\" is the one language guide, with a Words table (say / never say). tools/check_copy.py reads that table\n  and fails any reader string in copy.json with a never-say word; tools/writer_voice.py gives the model the same table.\n- Routes day-by-day chart: every stretch with no price is one plain grey band (no words on it, the note under the heading\n  says what grey means, the tip says which kind), no fill, \"Stablecoin cheaper\" and \"App cheaper\" against the zero line,\n  money ticks without minus signs.\n- Home: the largest move leads only when it takes the gap away from its usual level, said as the level now and yesterday.\n  The writer's daily lines show only when written about that same country.\n- emit_countries.py names XAF and XOF \"Central Africa\" and \"West Africa\"; the country page says which countries share the\n  CFA franc.\n- Writer instructions: the daily lines explain the headline, event paragraph 1 says what the jump meant for a buyer.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n* Routes chart: missing stretches are one light grey dotted line, no blocks\n\nSeb, 1 Nov: the grey blocks looked ugly. Every stretch with no price, short or long, is now joined by a thin grey dotted\nline; hovering it still says which kind (collection down, no gas reading, no price). The note under the heading says what\nthe dotted line means (words in #755).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n* DESIGN.md: a Pages section with the layout, phone and chart rules from Seb's reviews\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n* Split the guide: DESIGN.md is how pages look, WORDS.md is how the site writes\n\nDESIGN.md keeps the palette, the nav (now the real one: Countries, Routes, Sources, Findings, Research, Events, How it\nworks) and the Pages rules. WORDS.md holds the voice, naming, missing data, model-written text and the Words table.\ncheck_copy.py and writer_voice.py read the table from WORDS.md. CLAUDE.md points at both.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n* Index version 1.9.2: CFA region names, no number changed\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n* Home first screen: one spacing rule, full width text; spacing rules in DESIGN.md, page work rules in CLAUDE.md\n\nHome: the old five stacked spacing blocks are replaced by one. 40px under the headline, 24px between every line\nunder it, text runs the page width, all lines one size, the agents line in black. The headline block fills the\nfirst screen so the grid starts on scroll.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n* Every page follows the home spacing: one block in site_page.css\n\nThe dated spacing blocks (21 Oct, 25 Oct and the per-page section gaps of 42 to 72px with rule lines) are removed.\nOne block sets it for every page: headline 32px then 40px, lead 20px, 24px between points, 8px inside a list,\n96px between sections with no rule line, 8px from a section heading to its text, no width cap on text.\nHow it was built drops its own type block that held the lead at 17px with no gap. The style check measures\nthe header-to-title gap against 40px, since home's headline block fills the first screen.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n* One header and menu on every page; the finding number below the headline's size\n\nMachine room loads the shared styles and header, and with How it was built gets the seven-link menu from copy.json\n(js/site_head.js fills any old hand-written menu). The small How it was built row finds the new header.\nThe finding page's big number is 24px so the headline is the one large text (check_rendered).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVHG79PHMWt6bz1zpff\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "ea974a57c8504a0e2f070bb2f393df95566d02ea",
+   "html_url": "https://github.com/SebR214/margin/commit/ea974a57c8504a0e2f070bb2f393df95566d02ea",
+   "date": "2026-11-01T12:28:05Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-01T12:28Z"
+  },
   {
    "sha": "6cf9aa8d3fa4e4ced8f58782b1e0a3b3ba3fd22c",
    "html_url": "https://github.com/SebR214/margin/commit/6cf9aa8d3fa4e4ced8f58782b1e0a3b3ba3fd22c",
@@ -687,20 +701,6 @@
    "date": "2026-10-28T19:30:46Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-10-28T19:30Z"
-  },
-  {
-   "sha": "98bf346e0801aa33238140af44e3b615c730d0d1",
-   "html_url": "https://github.com/SebR214/margin/commit/98bf346e0801aa33238140af44e3b615c730d0d1",
-   "date": "2026-10-28T18:59:53Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "aider builder run 2026-10-28T18:47:12+00:00"
-  },
-  {
-   "sha": "93fe645be5489d5181604bcd2e0b83a0e7343112",
-   "html_url": "https://github.com/SebR214/margin/commit/93fe645be5489d5181604bcd2e0b83a0e7343112",
-   "date": "2026-10-28T18:47:50Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-28T18:47Z"
   }
  ]
 }
