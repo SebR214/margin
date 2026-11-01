@@ -52,6 +52,15 @@ Never say something is running, built or watching unless you checked it just now
 - A `writer/` PR whose title names its SEB issue passes `copy-lock` with no label. Never ask Seb to add `copy-approved` or any other label. If the words were agreed in chat or the spec, merge on green.
 - How it was built and the machine room (`machine-room.html`, SEB-427) say what the builder, the checks and the collector are now. The machine room's numbers come from `tools/emit_machine_room.py`; its words live in `copy.json` under `machineRoomPage`. A merge counts only if the files it added are not empty on main.
 
+## Page work (1 Nov 2026, after a rough design session)
+
+- Before you show Seb a mock, look at it as a reader, list what is wrong, and fix it. If he can find a fault in a minute, you should have found it first.
+- A mock is the real page, with real data and the real CSS. No stand-in text, no separate mock CSS.
+- "Quick mock" means that page only and one screenshot. No other pages and no checks until he says ship.
+- A layout job changes layout. Do not hide, move or reword text unless he asked.
+- If an instruction can be read two ways, say how you read it in one line, then act.
+- Follow the spacing rules in DESIGN.md. Every gap has a reason you can name.
+
 ## Working rules
 
 - You watch your PR's checks, fix every failure, check the live site after it merges, and only then post done on the Linear issue. A session builds every part of its issue itself, page parts included; nothing waits on the Aider builder and nothing is parked as design chat work. Work that needs a clock (24 hours of rows) is one line on the issue with the time it is due. Never hand Seb a step a session or a check can do.

@@ -38,6 +38,15 @@ errors can still make no sense.
 * A section built from a data step that stopped updating must not show old numbers as current. Check the data's own date when a page looks frozen.
 * A line a reader would take as the whole market must be the whole market. Counts from a sample (the top 40 ads) say so or are not shown.
 
+### Spacing, width, size (1 Nov 2026)
+
+* Four gaps only. 8px between a heading and its own text. 24px between separate points. 40px under the page headline. 96px between sections (72px on a phone).
+* A different gap must mean something you can name. If you cannot say why two gaps differ, make them the same.
+* No width cap on text. Text runs the width of the page, so a short sentence stays on one line on a computer.
+* One size for all body text on a page. A line that matters is never small or faint: if it is important, it is black, not 14px grey.
+* Each page's spacing lives in one block in `css/site_page.css`. To change it, edit that block. Never add an override under an older rule.
+* Home: the first screen is the headline and the lines under it. The grid starts when you scroll.
+
 ### Phones
 
 * Nothing scrolls sideways. A wide table becomes stacked rows or a grid that fits the screen.

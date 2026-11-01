@@ -108,14 +108,6 @@ section:has(h2) { margin-top: 96px; }
   p, h1, h2 { text-wrap: pretty; }
 }
 
-/* UI fast lane, home page (SEB-301, 21 Oct). Words and fonts unchanged, weight/size/gap only. Scoped to home (body:has(#hero)). */
-body:has(#hero) .counts b { font-weight: 500 !important; }
-body:has(#hero) .hero { gap: 0 !important; }
-body:has(#hero) .hero h1 + .lead { margin-top: 12px !important; }
-body:has(#hero) .lead, body:has(#hero) .body, body:has(#hero) .counts { margin-top: 24px !important; }
-body:has(#hero) .wrap > section > h2 { margin-bottom: 12px !important; }
-body:has(#hero) .wrap > section { margin-top: 96px !important; }
-/* phone: the five home counters wrap as two even columns, not a ragged run (SEB-301, 21 Oct) */
 @media (max-width: 700px) { #hero .counts { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px 16px; } }
 
 /* One template (SEB-301, 21 Oct). Every page: Archivo, the home column, 17px body text. A page's own stylesheet no longer sets a
@@ -165,29 +157,25 @@ p, li, .lead, .body, .note { text-wrap: pretty; }
 .site-footer p, .sm-wrap > footer p { margin: 0 0 6px !important; font-size: 14px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important; }
 .site-footer a, .sm-wrap > footer a { font-size: 14px !important; font-weight: 400 !important; color: var(--color-ink) !important; }
 
-/* Home top (21 Oct): the three sentences sit as three even lines with no gap between them, the counters 24px under
-   them, and the first chart section 64px under the counters instead of 96px. Words unchanged. */
-body:has(#hero) .hero .lead + .body { margin-top: 0 !important; }
-body:has(#hero) .hero .lead, body:has(#hero) .hero .body { line-height: 1.6 !important; }
-body:has(#hero) .wrap > .hero + section, body:has(#hero) .wrap > #hero + section { margin-top: 64px !important; }
-
-/* Home spacing (21 Oct): three gaps only. 8px under a heading, 24px between blocks, 64px between sections. */
-body:has(#hero) .hero h1 + .lead { margin-top: 8px !important; }
-body:has(#hero) .hero .counts { margin-top: 24px !important; }
-body:has(#hero) .wrap > section { margin-top: 64px !important; }
-body:has(#hero) .wrap > section > h2 { margin-bottom: 8px !important; }
-body:has(#hero) .wrap > section > h2 + p { margin-top: 0 !important; }
-body:has(#hero) .hero .body b { font-weight: 500; color: var(--color-ink); }
-
-/* Home top (25 Oct, Seb): one clear order. The headline, then the why as its subhead, then what we do as body text, then who built it
-   as a quiet footnote. Scoped to the home page (#land is only there: finding.html and country.html also have #hero). 8px under the headline, 24px between the blocks, no bold numbers. Words unchanged. */
-body:has(#hero):has(#land) .hero h1 { font-size: 32px !important; line-height: 1.2 !important; font-weight: 500 !important; margin: 0 !important; }
-body:has(#hero):has(#land) .hero .lead.sub { margin-top: 8px !important; font-size: 20px !important; line-height: 1.45 !important; color: var(--color-ink) !important; }
-body:has(#hero):has(#land) .hero .lead.what { margin-top: 24px !important; max-width: 760px !important; color: var(--color-neutral-700) !important; }
-body:has(#hero):has(#land) .hero .body.agents { margin-top: 24px !important; max-width: 760px !important; font-size: 14px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important; }
+/* Home spacing (1 Nov, Seb): one gap: 24px under the headline and 24px between every line under it, since each line is its own point. The headline block fills the first screen, so the grid starts only when you scroll.
+   The two lines under the headline read as one paragraph. All text under the headline has one size and line height. */
+body:has(#land) .hero { display: block !important; box-sizing: border-box !important; max-width: none !important;
+  min-height: calc(100svh - 86px) !important; padding: max(96px, 16vh) 0 96px !important; }
+body:has(#land) .wrap > .hero + section, body:has(#land) .wrap > #hero + section { margin-top: 0 !important; }
+body:has(#land) .hero > * { margin: 0 !important; }
+body:has(#land) .hero h1 { font-size: 32px !important; line-height: 1.2 !important; font-weight: 500 !important; margin-bottom: 40px !important; }
+body:has(#land) .hero p { font-size: 20px !important; line-height: 1.6 !important; color: var(--color-neutral-700) !important; text-wrap: pretty !important; }
+body:has(#land) .hero p + p { margin-top: 24px !important; }
+body:has(#land) .hero .body.agents { color: var(--color-ink) !important; }
+body:has(#land) .hero .body b { font-weight: 400; }
+body:has(#land) .wrap > section { margin-top: 96px !important; }
+body:has(#land) .wrap > section > h2 { margin: 0 0 8px !important; }
+body:has(#land) .wrap > section > h2 + p { margin-top: 0 !important; }
 @media (max-width: 700px) {
-  body:has(#hero):has(#land) .hero h1 { font-size: 26px !important; }
-  body:has(#hero):has(#land) .hero .lead.sub { font-size: 18px !important; }
+  body:has(#land) .hero { min-height: calc(100svh - 57px) !important; padding: 40px 0 72px !important; }
+  body:has(#land) .hero h1 { font-size: 26px !important; margin-bottom: 16px !important; }
+  body:has(#land) .hero p { font-size: 17px !important; }
+  body:has(#land) .wrap > section { margin-top: 72px !important; }
 }
 
 /* Phone (27 Oct): balanced headings wrapped early and looked narrower than the text under them. Pretty wrapping fills
