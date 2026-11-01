@@ -1,31 +1,15 @@
-# In Bolivia a dollar costs 0.8% more than the official rate
+# No price for Bolivia this hour
 
-Prices from the 00:00 UTC hour, 1 Nov.
+Prices from the 01:00 UTC hour, 1 Nov.
 
-The official rate is 12.01 BOB per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 12.11 BOB. A stablecoin is a coin that stays worth one US dollar.
+Held back this hour: the price jumped from its usual level and we’re waiting for a second source to confirm it.
 
-For US$100, people pay 1,211 BOB. The official rate says 1,201 BOB.
+The last price we published was −0.2%, on 1 Nov.
 
-Prices from the 00:00 UTC hour, 1 Nov
-
-You could buy at least US$5,000 here before the price goes up 1%.
+Prices from the 01:00 UTC hour, 1 Nov
 
 <https://margin.wiki/data/countries/BOB.json>
 
 ## How the gap moved, day by day
 
 One point per day, the price we published that day. 0% is the official rate.
-
-Today's gap is normal for here since 2 Sep 2026, in our own checks. On most days the gap is between −4.1% and 3.6%.
-
-## Where this price comes from
-
-We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from people selling to each other.
-
-Binance, people selling to each other
-
-11.98 BOB −0.2%
-
-OKX, people selling to each other
-
-12.24 BOB +1.9%

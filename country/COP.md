@@ -1,14 +1,14 @@
-# In Colombia a dollar costs 2.4% less than the official rate
+# In Colombia a dollar costs 2.5% less than the official rate
 
-Prices from the 00:00 UTC hour, 1 Nov.
+Prices from the 01:00 UTC hour, 1 Nov.
 
-The official rate is 3,164.07 COP per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3,088 COP. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 3,164.3 COP per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3,084 COP. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 308,750 COP. The official rate says 316,407 COP.
+For US$100, people pay 308,400 COP. The official rate says 316,430 COP.
 
 Only 1 source
 
-Prices from the 00:00 UTC hour, 1 Nov
+Prices from the 01:00 UTC hour, 1 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -26,4 +26,4 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-3,088 COP −2.4%
+3,084 COP −2.5%

@@ -1,14 +1,14 @@
-# In Jordan a dollar costs 0.1% more than the official rate
+# In Jordan a dollar costs 0.2% more than the official rate
 
-Prices from the 00:00 UTC hour, 1 Nov.
+Prices from the 01:00 UTC hour, 1 Nov.
 
 The official rate is 0.71 JOD per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 0.71 JOD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 71.00 JOD. The official rate says 70.90 JOD.
+For US$100, people pay 71.05 JOD. The official rate says 70.90 JOD.
 
 Only 1 source
 
-Prices from the 00:00 UTC hour, 1 Nov
+Prices from the 01:00 UTC hour, 1 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -26,4 +26,4 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-0.71 JOD +0.1%
+0.71 JOD +0.2%
