@@ -40,7 +40,7 @@
     logo.href = './index.html';
     var nav = el('nav', 'fp-nav');
     [[NAVC.navCountries, './countries.html'], [NAVC.navRoutes, './sending-money.html'], [NAVC.navSources, './sources.html'],
-     [NAVC.navFindings, './findings.html'], [C.navResearch, './research.html'], [NAVC.navEvents, './events.html'], [NAVC.navHowItWorks, './how-it-works.html']].forEach(function (l) {
+     [C.navResearch, './research.html'], [NAVC.navEvents, './events.html'], [NAVC.navHowItWorks, './how-it-works.html']].forEach(function (l) {
       if (!l[0]) return;
       var a = el('a', '', l[0]);
       a.href = l[1];
@@ -51,7 +51,29 @@
     return head;
   }
 
-  function renderIndex(wrap, doc, months, pairs) {
+  // the published findings join the Research list (1 Nov): one list, each row says how often it updates
+  var MONS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function dayY(s) { return s ? (+s.slice(8, 10)) + ' ' + MONS[+s.slice(5, 7) - 1] + ' ' + s.slice(0, 4) : ''; }
+  function findingTitle(f) {
+    var t = NAVC['title_' + f.id] || '', v = (f.headline || {}).value;
+    return t.replace(/\{approx\}/g, typeof v === 'number' ? 'S$' + (v / 1e6).toFixed(1) + 'M' : '').replace(/\{n\}/g, typeof v === 'number' ? v.toLocaleString('en-US') : '');
+  }
+  function findingRows(list, findings, first) {
+    (findings || []).filter(function (f) { return f.published === true; }).forEach(function (f) {
+      var title = findingTitle(f);
+      if (!title) return;
+      var a = el('a', 'rs-item');
+      a.href = './finding.html?id=' + encodeURIComponent(f.id);
+      var body = kid(a, el('span', 'rs-item-body'));
+      body.appendChild(el('span', 'rs-item-title', title));
+      if (NAVC['caption_' + f.id]) body.appendChild(el('span', 'rs-item-line', NAVC['caption_' + f.id]));
+      if (first[f.id] && NAVC.firstPublished) body.appendChild(el('span', 'rs-item-meta', NAVC.firstPublished.replace('{date}', dayY(first[f.id]))));
+      a.appendChild(el('span', 'rs-item-go', '\u2192'));
+      list.appendChild(a);
+    });
+  }
+
+  function renderIndex(wrap, doc, months, pairs, findings, first) {
     var hero = kid(wrap, el('div', 'fp-hero'));
     var text = kid(hero, el('div', 'fp-hero-text'));
     kid(text, word('h1', '', 'indexTitle'));
@@ -66,7 +88,7 @@
     kid(body, word('span', 'rs-item-line', 'cardLine'));
     if (doc && T('cardMeta')) {
       kid(body, el('span', 'rs-item-meta', T('cardMeta', { n: doc.countries, from: doc.years[0], to: doc.years[doc.years.length - 1] }) +
-        (months && T('cardAsOf') ? ' ' + T('cardAsOf', { date: dayName(months.as_of_day) }) : '')));
+        (months && T('cardAsOf') ? ' ' + T('cardAsOf', { date: dayName(months.as_of_day) }) : '') + (T('cardUpdates') ? ' ' + T('cardUpdates') : '')));
     }
     a.appendChild(el('span', 'rs-item-go', '\u2192'));
     if (body.firstChild) { list.appendChild(a); wrap.appendChild(list); }
@@ -76,11 +98,13 @@
       var bb = kid(b, el('span', 'rs-item-body'));
       kid(bb, word('span', 'rs-item-title', 'cardTitle2'));
       kid(bb, word('span', 'rs-item-line', 'cardLine2'));
-      kid(bb, el('span', 'rs-item-meta', T('cardMeta2', { N: pairs.compared, days: pairs.window_days }) + ' ' + T('cardAsOf', { date: dayName(pairs.as_of_utc.slice(0, 10)) })));
+      kid(bb, el('span', 'rs-item-meta', T('cardMeta2', { N: pairs.compared, days: pairs.window_days }) + ' ' + T('cardAsOf', { date: dayName(pairs.as_of_utc.slice(0, 10)) }) + (T('cardUpdates2') ? ' ' + T('cardUpdates2') : '')));
       b.appendChild(el('span', 'rs-item-go', '\u2192'));
       list.appendChild(b);
       if (!list.parentNode) { wrap.appendChild(list); }
     }
+    findingRows(list, findings, first || {});
+    if (list.firstChild && !list.parentNode) { wrap.appendChild(list); }
   }
 
   function byCountry(doc) {
@@ -265,7 +289,9 @@
                load('./data/index_latest.json').catch(function () { return null; }),
                load('./data/research/capital_controls_months.json').catch(function () { return null; }),
                load('./data/research/source_pairs.json').catch(function () { return null; }),
-               window.Claims ? window.Claims.load() : null]).then(function (res) {
+               window.Claims ? window.Claims.load() : null,
+               mode === 'index' ? load('./data/findings.json').catch(function () { return null; }) : null,
+               mode === 'index' ? load('./data/findings_first_published.json').catch(function () { return {}; }) : null]).then(function (res) {
     C = res[0].researchData || {};
     C.brand = typeof res[0].brand === 'string' ? res[0].brand : '';
     NAVC = res[0].findingData || {};
@@ -275,7 +301,7 @@
     // the live months and the pairs page print numbers that the claims audit re-derives; blocked ones are not drawn
     var months = res[3] && !(window.Claims && window.Claims.blocked('researchData.monthsLine')) ? res[3] : null;
     var pairs = res[4] && !(window.Claims && window.Claims.blocked('researchData.pairsTight')) ? res[4] : null;
-    if (mode === 'index') { renderIndex(wrap, res[1], months, pairs); } else if (mode === 'pairs') { renderPairs(wrap, pairs); } else { renderCapital(wrap, res[1], months); }
+    if (mode === 'index') { renderIndex(wrap, res[1], months, pairs, res[6] && res[6].findings, res[7]); } else if (mode === 'pairs') { renderPairs(wrap, pairs); } else { renderCapital(wrap, res[1], months); }
     app.appendChild(wrap);
   });
 })();

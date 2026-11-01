@@ -1,4 +1,5 @@
-/* The machine room (SEB-427). Draws data/machine_room.json with the words of copy.json machineRoomPage. No numbers are typed here:
+/* How it was built (SEB-427, merged with the machine room 1 Nov). Draws data/machine_room.json with the words of copy.json
+   machineRoomPage, the parts table from machineRoom.roles, and the record chart (js/record_block.js) from data/record_daily.json. No numbers are typed here:
    every figure is read from the file, and a missing one shows as "none yet", never a guess. */
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -91,11 +92,31 @@
     }).join('');
   }
 
+  function roles(B) {
+    var R = B.roles || {}, K = C.rolesCols;
+    $('rolesHeading').textContent = R.heading || ''; $('rolesAnswer').textContent = R.answer || '';
+    table($('rolesTable'), [{ label: K.part }, { label: K.when }, { label: K.what }],
+      (R.items || []).map(function (it) { return [esc(it.role), esc(it.when), esc(it.text)]; }));
+  }
+
+  function record(B) {
+    var get = function (u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); };
+    Promise.all([get('./data/record_daily.json'), get('./data/record_milestones.json'), get('./data/corridor_window.json').catch(function () { return {}; })])
+      .then(function (a) {
+        var names = {};
+        Object.keys(a[2] || {}).forEach(function (k) { if (a[2][k] && a[2][k].route_words) names[k] = a[2][k].route_words; });
+        var s = document.createElement('script'); s.src = './js/record_block.js';
+        s.onload = function () { var el = $('recordBlock'); el.hidden = false; window.renderRecordBlock(el, a[0], a[1], B, names); };
+        document.head.appendChild(s);
+      }).catch(function () { /* the section stays hidden */ });
+  }
+
   Promise.all([fetch('./copy.json').then(function (r) { return r.json(); }), fetch('./data/machine_room.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('machine_room.json'); return r.json(); })])
     .then(function (a) {
       C = a[0].machineRoomPage; D = a[1];
-      $('pageTitle').textContent = C.title; $('pageLede').textContent = C.lede;
-      totals(); score(); where(); incidents();
+      var B = a[0].machineRoom || {};
+      $('pageTitle').textContent = B.title; $('pageLede').textContent = B.lede;
+      totals(); roles(B); record(B); score(); where(); incidents();
       $('sources').innerHTML = D.files.map(function (f) { return '<a href="./' + esc(f) + '">' + esc(f) + '</a>'; }).join(' &middot; ');
     })
     .catch(function (e) { $('pageLede').textContent = String(e && e.message || e); });

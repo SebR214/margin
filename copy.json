@@ -96,11 +96,6 @@
       "href": "./sources.html"
     },
     {
-      "key": "findings",
-      "label": "Findings",
-      "href": "./findings.html"
-    },
-    {
       "key": "research",
       "label": "Research",
       "href": "./research.html"
@@ -682,12 +677,6 @@
       ],
       "notMeasuredNote": "{fullMethodLink}",
       "fullMethodLink": "See the full method →",
-      "sourcesTitle": "Every price comes from a public source you can check",
-      "sourcesPoints": [
-        "Dollar prices: Binance, where people sell dollars to each other, {top}.",
-        "Official rates: open.er-api.com, frankfurter.app, Argentina's central bank.",
-        "App prices: {ownWord} apps quote us directly. The rest come from a public price comparison."
-      ],
       "methodMadeBody": "",
       "pageTitle": "How margin.wiki works",
       "pageDescription": "Where every number on margin.wiki comes from, and how to check it yourself.",
@@ -744,10 +733,6 @@
   "machineRoom": {
     "title": "Plain code makes every number. AI only helps build the site.",
     "lede": "The collector and the checks are plain code. The builder uses AI to write some of the code, and one person writes the rest.",
-    "machineRoomLink": {
-      "text": "See what it costs and what has gone wrong →",
-      "href": "./machine-room.html"
-    },
     "connecting": "",
     "connected": "connected · live",
     "offline": "live feed offline",
@@ -810,19 +795,6 @@
       "text": "Every number on this site comes from a public data file.",
       "linkText": "Code and raw data on GitHub →",
       "linkHref": "https://github.com/SebR214/margin"
-    },
-    "incidents": {
-      "heading": "What we've learned running them",
-      "items": [
-        {
-          "dollars": 10,
-          "minutes": 20,
-          "what": "A settings change spent ${dollars} in {minutes} minutes",
-          "text": "It moved the agents onto an account billed for each use, instead of the account with a flat monthly fee. The two accounts are now kept in separate files so they cannot be mixed up."
-        }
-      ],
-      "linkText": "Every incident, and the builder week by week →",
-      "linkHref": "./machine-room.html"
     },
     "tapeLink": "Watch live prices arrive as they are checked →",
     "collected": {
@@ -1417,6 +1389,8 @@
     "markSources": "{date}: {n} new sources",
     "findingsTitle": "What we found",
     "findingsRoutesLink": "A stablecoin only beats transfer apps where dollars are hard to get",
+    "cashMarkKey": "A dot means a stablecoin is cheaper than cash dollars here. Point at it or tap it to see by how much.",
+    "cashMarkTip": "Today a stablecoin is the cheaper dollar here. Cash costs {pct} more.",
     "heatLead": "This hour a dollar costs within 2% of the official rate in {n_within_2} of {n_priced} countries. In {n_over_8} it costs 8% or more, most of all in {top_country} at {top_pct}% more.",
     "landExample": "{country}, {month}: a dollar cost {premium} more on exchanges than at the official rate. Three weeks after the jump, the official rate had closed {closed} of that gap.",
     "finding_price_changes": "Apps changed transfer prices {value} times since we began. The cheapest app when you compare can differ when you send.",
@@ -1723,7 +1697,7 @@
     "statSize": "file size",
     "statEvidence": "rows behind the number",
     "notFound": "We have no published finding at this address.",
-    "notFoundLink": "See all findings",
+    "notFoundLink": "See all research",
     "side_taker": "buying at the asking price",
     "side_maker": "setting your price and waiting",
     "field_changes": "price changes",
@@ -1901,9 +1875,11 @@
     "downloadCsv": "Download as a table ({n} rows)",
     "downloadJson": "Download as JSON",
     "cardAsOf": "Our own checks run to {date}.",
+    "cardUpdates": "The yearly table updates once a month.",
+    "cardUpdates2": "Updates every hour.",
     "cardTitle2": "Markets inside one country disagree",
     "cardLine2": "Where two exchanges price a dollar in the same country, how far apart are they?",
-    "cardMeta2": "{N} countries compared over {days} days. Our own checks.",
+    "cardMeta2": "{N} countries compared over {days} days.",
     "monthsHeading": "Since we began watching",
     "monthsLine": "Each square is one month of our own checks, in the same colours. The last column is the month so far.",
     "monthsAsOf": "Our own checks run to {date}.",
@@ -1922,18 +1898,9 @@
     "backLink": "Research"
   },
   "machineRoomPage": {
+    "rolesCols": {"part": "Part", "when": "How often", "what": "What it does"},
     "title": "The machine room",
     "lede": "Some of this site is built by a program on GitHub. This page shows what it tries, what it merges, what it costs and what has gone wrong.",
-    "trio": [
-      {
-        "label": "How it was built",
-        "href": "./how-it-was-built.html"
-      },
-      {
-        "label": "The machine room",
-        "href": "./machine-room.html"
-      }
-    ],
     "totals": {
       "spent": "Spent on builds",
       "merged": "Builds merged",
@@ -2153,21 +2120,13 @@
         "Sources: every price we read, and every hour it missed",
         "Each row shows whether a source answered on each day, and how far back its older prices go."
       ],
-      "findings.html": [
-        "Findings: what the prices we store every hour show",
-        "Each finding shows the evidence, how it was worked out, and a file you can download."
-      ],
       "how-it-works.html": [
         "How to read margin.wiki",
         "What we measure, what the percentage means, and where every number comes from."
       ],
       "how-it-was-built.html": [
         "How margin.wiki was built: agents, and no AI in the numbers",
-        "What the site is checking this hour, and what the programs building it are doing, unedited, as it happens."
-      ],
-      "machine-room.html": [
-        "The machine room: how margin.wiki is built and paid for",
-        "What the builder tries each week, what it merges and spends, what runs where, and every incident so far."
+        "What each part does, how many prices it has stored, what the builder tries and costs, what runs where, and every incident so far."
       ],
       "research.html": [
         "Research: longer questions the stored prices can answer",
@@ -2204,16 +2163,12 @@
     "eventTitle": "{country}: a currency event, street price against the official rate",
     "footerLinks": [
       {
+        "label": "Code and raw data on GitHub",
+        "href": "https://github.com/SebR214/margin"
+      },
+      {
         "label": "How it was built",
         "href": "./how-it-was-built.html"
-      },
-      {
-        "label": "The machine room",
-        "href": "./machine-room.html"
-      },
-      {
-        "label": "A recorded currency event",
-        "href": "./event.html"
       }
     ]
   }

@@ -41,6 +41,11 @@
 
   .key { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin: 0 0 14px; font-size: 13px; color: var(--color-neutral-700); }
   .key i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 7px; }
+  .cmark { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #817FCC; margin: 0 0 1px 8px; vertical-align: middle; cursor: help; }
+  .cmark { position: relative; }
+  .cmark::after { content: ''; position: absolute; inset: -14px; }
+  .key .cmark { margin: 0 8px 1px 0; cursor: default; }
+  .key .cmark::after { display: none; }
   .b0 { background: var(--data-300); } .b1 { background: var(--data-500); } .b2 { background: var(--data-600); } .b3 { background: var(--data-700); } .b4 { background: var(--color-neutral-900); }
   .b-none { background: var(--color-neutral-200); } .b-frozen { background: var(--color-neutral-300); }
   .b-neg { background: repeating-linear-gradient(135deg, var(--data-500) 0 2px, var(--color-bg) 2px 4px); }
@@ -146,8 +151,8 @@
 <script src="./js/claims.js"></script>
 <script src="./js/tooltip.js"></script>
 <script src="./js/home_timeline.js?v=3"></script>
-<script src="./js/home.js?v=9"></script>
-<script src="./js/footer.js"></script>
+<script src="./js/home.js?v=11"></script>
+<script src="./js/footer.js?v=3"></script>
 <script src="./js/site_head.js?v=5"></script>
 <script src="./js/machine_view.js?v=3" defer></script>
 </body>

@@ -7,7 +7,7 @@
   var MINUS = '−';
   var C = {}, D = {};
   var showAll = false, early = false;
-  var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHow', 'how-it-works.html']];
+  var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHow', 'how-it-works.html']];
   var BUCKETS = [
     [-Infinity, 0, 'b-neg', 'legendBelowOfficial'],
     [0, 2, 'b0', 'legendUnder', { max: 2 }],
@@ -142,8 +142,9 @@
       (T('heroWhy') ? '<p class="lead sub">' + esc(T('heroWhy')) + '</p>' : '') +
       '<p class="lead what">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
       // who built it and what is stored so far, as one line (21 Oct, Seb's wording); the numbers come from the files
-      '<p class="body agents">' + esc(T('agentsLine')) + (T('agentsStored') && nSources != null && tt.readings != null && tt.hours_collected != null ? ' ' +
-        esc(T('agentsStored', { readings: '\u0001', sources: '\u0002', hours: '\u0003' })).replace('\u0001', g(tt.readings)).replace('\u0002', String(nSources)).replace('\u0003', g(tt.hours_collected)) : '') + '</p>';
+      // the line links to How it was built (1 Nov)
+      '<p class="body agents"><a href="./how-it-was-built.html">' + esc(T('agentsLine')) + (T('agentsStored') && nSources != null && tt.readings != null && tt.hours_collected != null ? ' ' +
+        esc(T('agentsStored', { readings: '\u0001', sources: '\u0002', hours: '\u0003' })).replace('\u0001', g(tt.readings)).replace('\u0002', String(nSources)).replace('\u0003', g(tt.hours_collected)) : '') + '</a></p>';
     $('hero').innerHTML = h;
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
   }
@@ -173,6 +174,17 @@
     D.unranked = D.cur.filter(function (c) { return !c.ranked; });
   }
 
+  // a mark on rows where a stablecoin is the cheaper dollar than cash at a money changer (SEB-424 item 1, 1 Nov). Same two numbers
+  // and the same rules as the country page: a cash reading within 6 hours of the hour, and a difference of at least 0.5%.
+  function cashMark(ccy) {
+    var cash = D.cash && D.cash.rows && D.cash.rows[ccy], c = ((D.idx && D.idx.countries) || []).filter(function (x) { return x.ccy === ccy; })[0];
+    if (!cash || !c || !c.buy_price || !cash.mid || !T('cashMarkTip')) { return ''; }
+    if (Date.parse(c.hour_utc) - Date.parse(cash.ts_utc) > 6 * 3600 * 1000) { return ''; }
+    var cs = (c.buy_price / cash.mid - 1) * 100;
+    if (cs > -0.5) { return ''; }
+    return '<b class="cmark" data-tip="' + esc(T('cashMarkTip', { pct: ((cash.mid / c.buy_price - 1) * 100).toFixed(1) + '%' })) + '" aria-label="' + esc(T('cashMarkTip', { pct: ((cash.mid / c.buy_price - 1) * 100).toFixed(1) + '%' })) + '"></b>';
+  }
+
   function heat() {
     var vw = tlView();
     if (vw) { heatTl(vw); return; }
@@ -182,12 +194,13 @@
     var ax = '<span class="l" style="left:0">' + dd(days[0]) + '</span>';
     days.forEach(function (d, i) { if ((d.slice(8) === '01' || d.slice(8) === '15') && i > 3 && i < n - 4) { ax += '<span style="left:' + X(i) + '%">' + dd(d) + '</span>'; } });
     var row = function (c, extra) {
-      return '<a class="hrow' + (extra || '') + '" href="' + ctry(c.ccy) + '" data-ccy="' + esc(c.ccy) + '"><span class="nm">' + esc(c.country) + '</span><span class="cells">' +
+      return '<a class="hrow' + (extra || '') + '" href="' + ctry(c.ccy) + '" data-ccy="' + esc(c.ccy) + '"><span class="nm">' + esc(c.country) + cashMark(c.ccy) + '</span><span class="cells">' +
         c.cells.slice(s0).map(function (v, i) { return '<i class="' + (c.ranked ? bucket(v) : (v == null ? 'b-none' : 'b-frozen')) + '" data-i="' + (i + s0) + '"></i>'; }).join('') +
         '</span><span class="v num">' + (c.now != null ? sgn(c.now) : '<small>' + esc(T('noPrice')) + '</small>') + '</span></a>';
     };
     $('heat').innerHTML =
-      '<p class="key">' + BUCKETS.map(function (b) { return '<span><i class="' + b[2] + '"></i>' + esc(T(b[3], b[4])) + '</span>'; }).join('') + '<span><i class="b-none"></i>' + esc(T('legendNone')) + '</span></p>' +
+      '<p class="key">' + BUCKETS.map(function (b) { return '<span><i class="' + b[2] + '"></i>' + esc(T(b[3], b[4])) + '</span>'; }).join('') + '<span><i class="b-none"></i>' + esc(T('legendNone')) + '</span>' +
+        (rows.some(function (c) { return cashMark(c.ccy); }) && T('cashMarkKey') ? '<span><b class="cmark"></b>' + esc(T('cashMarkKey')) + '</span>' : '') + '</p>' +
       '<div class="hax"><span></span><div class="ax num">' + ax + '</div><span class="axh">' + esc(T('dayToday')) + '</span></div>' +
       rows.map(function (c) { return row(c); }).join('') +
       // the unranked country closes the full list as a grey row, so "Show all" counts every country tracked
@@ -282,7 +295,7 @@
 
   /* ---------------------------------------------------------------- findings: each line links to its page */
   function findings() {
-    // the same published findings, in the same order and with the same titles as findings.html (copy.json findingData.title_<id>)
+    // the same published findings, in the same order and with the same titles as the Research list (copy.json findingData.title_<id>)
     var FD = (D.copy && D.copy.findingData) || {};
     var title = function (f) {
       var t = FD['title_' + f.id], v = (f.headline || {}).value;
@@ -292,7 +305,7 @@
     };
     var pub = ((D.fin && D.fin.findings) || []).filter(function (f) { return f.published === true; });
     // a finding keeps its number and its page; 01 and 02 (apps change prices, Saturday pricing) are off the home list, their pages stay (SEB-384)
-    var OFF = ['price_changes', 'weekend_penalty', 'volume_crossover'];   // volume_crossover (the S$13.5M line) is off the home list too (SEB-391); findings.html keeps it
+    var OFF = ['price_changes', 'weekend_penalty', 'volume_crossover'];   // volume_crossover (the S$13.5M line) is off the home list too (SEB-391); the Research list keeps it
     var ord = pub.map(function (f, i) { return { f: f, no: i + 1 }; }).filter(function (o) { return OFF.indexOf(o.f.id) < 0; });
     var lines = ord.map(function (o) { return [o.f.id, title(o.f), o.no]; }).filter(function (l) { return l[1]; });
     if (!lines.length || !T('findingsTitle')) { $('finds').innerHTML = ''; return; }
@@ -331,6 +344,7 @@
     document.addEventListener('click', function (e) {
       if (e.target.closest('#all')) { showAll = true; heat(); return; }
       if (e.target.closest('#early')) { early = true; heat(); return; }
+      if (e.target.closest('.cmark')) { e.preventDefault(); return; }   // the mark shows its tooltip; it does not open the country
       var sq = e.target.closest('.cells');
       if (sq && window.matchMedia('(hover: none)').matches) { e.preventDefault(); }   // on a phone the first tap reads the square; the name opens the country
     });
@@ -343,12 +357,13 @@
   var failed = [], y0 = window.scrollY;
   // the computed sentences (SEB-423): not counted as a failed file when absent, the page then keeps its fixed headline and shows no block
   var extra = [getJSON('data/home_facts.json').catch(function () { return null; }), window.Claims ? window.Claims.load() : Promise.resolve(null),
-    getJSON('data/home_prose.json').catch(function () { return null; })];
+    getJSON('data/home_prose.json').catch(function () { return null; }), getJSON('data/cash_latest.json').catch(function () { return null; })];
   return Promise.all(Object.keys(jobs).map(function (k) { return getJSON(jobs[k]).catch(function () { failed.push(k); return null; }); }).concat(extra)).then(function (r) {
     var keys = Object.keys(jobs), got = {};
     keys.forEach(function (k, i) { got[k] = r[i]; });
     got.facts = r[keys.length];
     got.prose = r[keys.length + 2];
+    got.cash = r[keys.length + 3];
     C = (got.copy && got.copy.homeData) || {};
     D = got;
     nav();

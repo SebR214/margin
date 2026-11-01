@@ -3,7 +3,7 @@
    on every other page this builds the same thing from data/cycle_log.json and the homeData words in copy.json. */
 (function () {
   var here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-  var alias = { 'finding.html': 'findings.html', '': 'index.html' };
+  var alias = { 'finding.html': 'research.html', '': 'index.html' };
   here = alias[here] || here;
   function mark() {
     var links = document.querySelectorAll('.hp-nav a, .ci-nav a, .c-nav a, .sm-nav a, .s-nav a, .fp-nav a, .mwh nav a');
@@ -15,7 +15,7 @@
   // The one nav (DESIGN.md "Nav"): a page whose header still carries an old hand-written list, or an empty one, gets the
   // canonical seven links from homeData in copy.json, so every page shows the same menu.
   var CANON = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'],
-    ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHow', 'how-it-works.html']];
+    ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHow', 'how-it-works.html']];
   function canonNav() {
     var nav = document.querySelector('.mwh nav, [data-canon-nav]');
     if (!nav) { return; }

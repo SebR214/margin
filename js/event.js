@@ -14,7 +14,7 @@
   var COPY = {}, REC = null, COUNTRY = "", RECPATH = "", OWN_START = "";
   var app = document.getElementById("app");
   var NAV = [["navCountries", "./countries.html"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"],
-    ["navFindings", "./findings.html"], ["navResearch", "./research.html"], ["navEvents", "./events.html"], ["navHow", "./how-it-works.html"]];
+    ["navResearch", "./research.html"], ["navEvents", "./events.html"], ["navHow", "./how-it-works.html"]];
   var chart = null;
 
   function esc(s) {

@@ -7,7 +7,7 @@
 Reads data/aider_log.csv (every attempt of the Aider builder, with OpenRouter's own cost), data/agent_spend.csv (every model call),
 the merged PRs on main (git log, kept in data/machine_room_prs.csv so a shallow checkout loses nothing), .github/workflows/*.yml
 (name and schedule) and data/machine_room_meters.json (the newest run of each workflow, written by a step that has a token).
-Writes data/machine_room.json, which machine-room.html draws. The incident texts and the workflow descriptions are words, so they
+Writes data/machine_room.json, which how-it-was-built.html draws. The incident texts and the workflow descriptions are words, so they
 live in copy.json; only the numbers an incident quotes (the length of the outage) are worked out here.
 
 A merge counts only if every file it added or changed (BACKLOG.md aside) is not empty on main. Builds PR 696 and 701 merged with

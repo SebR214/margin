@@ -11,7 +11,7 @@ same data files), and what it shows is written out as markdown: headings, paragr
 Every section ends with the full URL of each data file it came from: the files it links to, or else the files the page
 loaded. So every number in index.md is the number index.html showed for the same hour, with the label the page gave it.
 
-Written: index.md, countries.md, sending-money.md, sources.md, findings.md, how-it-works.md, how-it-was-built.md, machine-room.md,
+Written: index.md, countries.md, sending-money.md, sources.md, how-it-works.md, how-it-was-built.md,
 country/{CCY}.md for every country page and finding/{id}.md for every finding, then llms.txt: the site's own title and
 lead, each .md page, and each public data file (data/manifest_latest.json) with what it holds.
 Loud failure: a page that renders nothing, or a twin with no data file URL, exits non-zero and writes nothing.
@@ -27,8 +27,8 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(HERE, "tools"))
 SITE = "https://margin.wiki"
 PAGES = [("index.html", "index.md"), ("countries.html", "countries.md"), ("sending-money.html", "sending-money.md"),
-         ("sources.html", "sources.md"), ("findings.html", "findings.md"), ("how-it-works.html", "how-it-works.md"),
-         ("how-it-was-built.html", "how-it-was-built.md"), ("machine-room.html", "machine-room.md")]
+         ("sources.html", "sources.md"), ("how-it-works.html", "how-it-works.md"),
+         ("how-it-was-built.html", "how-it-was-built.md")]
 NUM = re.compile(r"[−+-]?(?:S\$|US\$|\$)?\d[\d,]*(?:\.\d+)?(?:%|M|K)?")
 MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -68,8 +68,6 @@ SECTION_FILES = {
         ],
     },
     "sources.md": {"hero": ["sources_daily.json"], "patterns": [(None, ["sources_daily.json"])]},
-    "findings.md": {"hero": ["findings.json"],
-                    "patterns": [(None, ["findings.json", "findings_first_published.json", "claims_status.json"])]},
     "how-it-works.md": {
         "hero": [],
         "patterns": [
@@ -78,20 +76,14 @@ SECTION_FILES = {
             (r"^What our numbers leave out$", []), (r"^How to check any number$", ["sources_daily.json"]),
         ],
     },
-    "machine-room.md": {
+    "how-it-was-built.md": {
         "hero": ["machine_room.json"],
         "patterns": [
+            (r"^Each part has one job", []),
+            (r"^The record grew", ["record_daily.json", "record_milestones.json"]),
             (r"^Week by week$", ["machine_room.json", "aider_log.csv", "machine_room_prs.csv"]),
             (r"^What runs where$", ["machine_room.json", "machine_room_meters.json"]),
             (r"^Incidents$", ["machine_room.json"]),
-        ],
-    },
-    "how-it-was-built.md": {
-        "hero": [],
-        "patterns": [
-            (r"^Each agent has one job", []), (r"^What we.ve learned running", []),
-            (r"^Collected fresh every hour$", ["manifest_latest.json"]),
-            (r"^The record grew", ["record_daily.json", "record_milestones.json"]),
         ],
     },
 }
@@ -110,7 +102,6 @@ SECTION_HEADERS = {
         (r"^More than 2% below", ["Country", "Against the official rate"]),
     ],
     "sources.md": [(None, ["Source", "Type", "Hours priced"])],
-    "how-it-was-built.md": [(r"^Collected fresh every hour$", ["Time", "Check", "Detail"])],
 }
 
 
