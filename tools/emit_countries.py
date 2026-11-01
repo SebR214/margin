@@ -36,7 +36,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import source_gate  # SEB-302: only an approved source can feed a number
 
-INDEX_VERSION = "1.9.1"
+INDEX_VERSION = "1.9.2"
 
 # v1.5: crossed boards. A board whose buy median is below its sell median is crossed. Two cases are no longer withheld:
 #   1. a near tie: crossed by less than NEAR_TIE of the mid counts as not crossed;
@@ -137,8 +137,8 @@ COUNTRY = {
     "QAR": "Qatar", "RWF": "Rwanda", "SAR": "Saudi Arabia", "SDG": "Sudan",
     "SGD": "Singapore", "SYP": "Syria", "THB": "Thailand", "TND": "Tunisia",
     "TRY": "Turkey", "TZS": "Tanzania", "UAH": "Ukraine", "UGX": "Uganda",
-    "VES": "Venezuela", "VND": "Vietnam", "XAF": "Central African CFA",
-    "XOF": "West African CFA", "ZAR": "South Africa", "ZMW": "Zambia",
+    "VES": "Venezuela", "VND": "Vietnam", "XAF": "Central Africa",
+    "XOF": "West Africa", "ZAR": "South Africa", "ZMW": "Zambia",
 }
 
 # Denominator class, per METHODOLOGY "The denominator, and where it is a policy

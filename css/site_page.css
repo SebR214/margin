@@ -1,37 +1,22 @@
 /* One page style on every page, with the home page as the standard (SEB-268, owner's spec 8 Oct).
    Loaded after each page's own CSS. This file is the only place these values live; pages no longer set their own.
-     page title          24px, weight 500
-     text under it       17px at 70% ink (the same 17px as all body text)
+     page title          32px, weight 500 (see the spacing block below)
+     text under it       20px grey
      section headings    20px, weight 500
      space above title   40px below the header
      filter buttons      white pill, 999px, 1px border, 40px tall, 14px weight 600; selected = ink with white text
      links               thin underline in running text; none on row titles, dates and numbers (they show on hover)
    Headings weight 500 everywhere (SEB-301, 21 Oct fast lane; was 600, already 500 on home since the same day). */
 h1 {
-  font-size: 24px !important; font-weight: 500 !important; line-height: 1.15 !important; letter-spacing: 0 !important; margin: 0 !important;
+  font-size: 32px !important; font-weight: 500 !important; line-height: 1.2 !important; letter-spacing: 0 !important; margin: 0 !important;
   color: var(--color-ink, #201e1d) !important; text-transform: none !important;
 }
-.hp-lede, .c-lead, .ci-lead, .sm-lead, .lead, .lede, .fp-lead {
-  font-size: 17px !important; font-weight: 400 !important; line-height: 1.5 !important;
-  color: color-mix(in srgb, var(--color-ink, #201e1d) 70%, transparent) !important;
+.hp-lede, .c-lead, .ci-lead, .sm-lead, .lead, .lede, .fp-lead, .fp-line, .dek {
+  font-size: 20px !important; font-weight: 400 !important; line-height: 1.6 !important;
+  color: var(--color-neutral-700) !important; max-width: none !important;
 }
 h2 { font-size: 20px !important; font-weight: 500 !important; line-height: 1.25 !important; letter-spacing: 0 !important; text-transform: none !important; }
 h3, h4 { font-weight: 500 !important; }
-
-/* the same space between the header and the title on every page */
-.hp-head { margin-bottom: 0 !important; }
-/* home and country space their sections with a 56px flex gap: take it back at the header so the title sits 40px below it */
-.hp-wrap > .hp-head, .c-wrap > .c-head { margin-bottom: -56px !important; }
-.hp-wrap > .hp-hero { margin-top: -8px !important; }
-.c-herotext { padding-top: 0 !important; margin-top: 0 !important; }
-.hp-hero, .ci-hero, .c-hero, .sm-hero, .hero, .hw-hero, .fp-hero {
-  margin-top: 0 !important; padding-top: 40px !important;
-}
-.hero { padding-left: 0 !important; padding-right: 0 !important; }   /* style.css gives .hero 24px sides for the old black band */
-
-/* the title and the text under it sit 12px apart on every page */
-.hp-hero, .ci-hero, .c-herotext, .sm-hero, .hero, .hw-hero { display: flex !important; flex-direction: column !important; gap: 12px !important; }
-.hp-hero h1 + p, .ci-hero h1 + p, .c-herotext h1 + p, .sm-hero h1 + p, .hero h1 + p, .hw-hero h1 + p { margin-top: 0 !important; }
 
 /* filter buttons: the white rounded pill, everywhere */
 .hp-btn, .c-chip, .ci-pill, .sm-pill, .pill, .fp-chip, .s-chip {
@@ -53,8 +38,6 @@ p a, li a, .hp-biglink, .hp-body a, .more a, .who a {
 }
 .f, .f *, .fp-ilink, .fp-ilink *, .ci-row, .ci-row *, .cr-row, .cr-row *, .hp-nav a, .hp-logo, .site-footer a { text-decoration: none !important; }
 .f:hover, .f:hover *, .fp-ilink:hover, .fp-ilink:hover *, .ci-row:hover .ci-nm, .cr-row:hover .cr-nm { text-decoration: underline !important; text-decoration-color: var(--color-neutral-300, #d7d3d3) !important; text-underline-offset: 3px !important; }
-@media (max-width: 700px) { h1 { font-size: 24px !important; } }
-@media (max-width: 700px) { .c-wrap > .c-head { margin-bottom: -40px !important; } }
 
 /* More space and clean line breaks (SEB-301, 21 Oct). Words, fonts, sizes, colours, charts and layout do not change.
    1. A section's title, the grey line under it and its meta line share one width: the content column. They were held to
@@ -72,50 +55,17 @@ p, li { text-wrap: pretty; }
 h1, h2, h3, .hp-lede, .c-lead, .ci-lead, .sm-lead, .lead, .lede, .fp-lead, .hero .body,
 .note, .sm-note, .sm-small, .ci-meta, .ci-note, .ci-aside, .when, .rb-note, .answer { text-wrap: balance; }
 
-/* sections: was 48px on home, country and finding, 32px on sources, 32px on countries, 28 to 40px plus a 28px rule gap on
-   sending money, 32px plus 24px on how it works, a 44px gap on how it was built */
-.wrap > section { margin-top: 72px !important; }
-#rec section { margin-top: 0 !important; }
-body:has(#kinds) .wrap > section { margin-top: 48px !important; }
-.ci-wrap > .ci-band { margin-top: 48px !important; }
-.ci-wrap > .ci-np { margin-top: 60px !important; padding-top: 42px !important; }
-/* Countries: room between the region buttons and the line under them (21 Oct) */
-.ci-wrap > .ci-key { margin-top: 24px !important; }
-.sm-wrap > section.sm-first { margin-top: 42px !important; padding-top: 42px !important; }
-.sm-wrap > section:not(.sm-first) { margin-top: 60px !important; padding-top: 42px !important; }
-.hw-main > .hiw-section { margin-top: 48px !important; padding-top: 36px !important; }
-.wrap > .stack { gap: 66px !important; }
-
-/* a section title and the text or rule under it: 14px */
-.wrap > section > h2, .ci-wrap > section > h2, .ci-np > h2, .sm-wrap > section > h2, .hw-main > .hiw-section > h2,
-.stack > section:not(.dkpanel) > h2 { margin-bottom: 14px !important; }
-/* how it works: its sections are a flex column with a 4px gap, and its list has its own 8px top margin */
-.hw-main > .hiw-section > h2 { margin-bottom: 10px !important; }
-.hw-main > .hiw-section > h2 + .plain-list { margin-top: 0 !important; }
-
 /* Spacing and text scale (SEB-301, 21 Oct, Seb's exact spec in chat). */
-p.lead, p.body { font-size: 17px; line-height: 1.6; color: color(srgb 0.12549 0.117647 0.113725 / 0.7); margin-top: 16px; max-width: none; }
-p.body { margin-top: 8px; }
 p.lead .s { display: block; }
 p.counts { margin-top: 32px; white-space: nowrap; max-width: none; }
 p.note { line-height: 1.6; max-width: none; }
 p.key { margin: 24px 0; }
-h2 { margin-bottom: 16px; }
-section:has(h2) { margin-top: 96px; }
 @media (max-width: 767px) {
   p.lead .s { display: inline; }
   p.counts { white-space: normal; }
   p, h1, h2 { text-wrap: pretty; }
 }
 
-/* UI fast lane, home page (SEB-301, 21 Oct). Words and fonts unchanged, weight/size/gap only. Scoped to home (body:has(#hero)). */
-body:has(#hero) .counts b { font-weight: 500 !important; }
-body:has(#hero) .hero { gap: 0 !important; }
-body:has(#hero) .hero h1 + .lead { margin-top: 12px !important; }
-body:has(#hero) .lead, body:has(#hero) .body, body:has(#hero) .counts { margin-top: 24px !important; }
-body:has(#hero) .wrap > section > h2 { margin-bottom: 12px !important; }
-body:has(#hero) .wrap > section { margin-top: 96px !important; }
-/* phone: the five home counters wrap as two even columns, not a ragged run (SEB-301, 21 Oct) */
 @media (max-width: 700px) { #hero .counts { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px 16px; } }
 
 /* One template (SEB-301, 21 Oct). Every page: Archivo, the home column, 17px body text. A page's own stylesheet no longer sets a
@@ -125,7 +75,7 @@ html { scrollbar-gutter: stable; }
 body { font-family: var(--font-body, 'Archivo', system-ui, 'Helvetica Neue', Arial, sans-serif); }
 .wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap, .sm-wrap { max-width: 1280px !important; margin-left: auto !important; margin-right: auto !important; padding-left: 32px !important; padding-right: 32px !important; box-sizing: border-box; }
 @media (max-width: 700px) { .wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap, .sm-wrap { padding-left: 24px !important; padding-right: 24px !important; } }
-.lead, .body, .note:not(.sm), .p, .lead-b, .plain-list, #hiwAnswer, .ci-note, .sm-note, .fp-line, .fp-block, .fp-note, .answer, .more p {
+.body, .note:not(.sm), .p, .lead-b, .plain-list, #hiwAnswer, .ci-note, .sm-note, .fp-line, .fp-block, .fp-note, .answer, .more p {
   font-size: 17px !important; line-height: 1.6 !important; max-width: none !important;
 }
 
@@ -142,18 +92,11 @@ p, li, .lead, .body, .note { text-wrap: pretty; }
 .fp-big { font-size: 15px !important; font-weight: 600 !important; line-height: 1.3 !important; white-space: normal; }
 @media (max-width: 620px) { .list > .f { grid-template-columns: 28px minmax(0, 1fr) !important; } .f .big small { white-space: normal; } }
 
-/* How it was built: the sections sit the same distance apart as on every page, and the two panels line up with the rest */
-.wrap > .stack { gap: 0 !important; padding-top: 0 !important; }
-.stack > section { margin-top: 48px !important; padding-top: 24px !important; }
-.stack > section > h2 { padding-top: 0 !important; }
-.stack > .dkpanel { padding: 24px 0 0 !important; }
-.hero + .stack > section:first-of-type { margin-top: 48px !important; }
 /* Home on a phone: a country name wraps instead of being cut off */
 @media (max-width: 620px) {
   body:has(#hero) .hrow .nm { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.2; }
   body:has(#hero) .hrow { align-items: center; }
 }
-.stack > .dkpanel > section { margin-top: 0 !important; padding-top: 0 !important; border-top: 0 !important; }
 
 /* One footer, the same on every page (21 Oct): same rule, same text styles, same space above it, and the page ends 96px
    below it everywhere, which also keeps the last line clear of the Human/Machine switch. */
@@ -165,29 +108,50 @@ p, li, .lead, .body, .note { text-wrap: pretty; }
 .site-footer p, .sm-wrap > footer p { margin: 0 0 6px !important; font-size: 14px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important; }
 .site-footer a, .sm-wrap > footer a { font-size: 14px !important; font-weight: 400 !important; color: var(--color-ink) !important; }
 
-/* Home top (21 Oct): the three sentences sit as three even lines with no gap between them, the counters 24px under
-   them, and the first chart section 64px under the counters instead of 96px. Words unchanged. */
-body:has(#hero) .hero .lead + .body { margin-top: 0 !important; }
-body:has(#hero) .hero .lead, body:has(#hero) .hero .body { line-height: 1.6 !important; }
-body:has(#hero) .wrap > .hero + section, body:has(#hero) .wrap > #hero + section { margin-top: 64px !important; }
+/* Spacing and type, every page (1 Nov 2026, Seb). DESIGN.md "Spacing, width, size" is the rule. This block is the only
+   place page spacing lives: change a gap here, never add an override below it.
+     page headline   32px (26px on a phone), then 40px to what follows it
+     lead text       20px (17px on a phone), the lines under the headline
+     separate points 24px apart; lines of one list (the money lines, the time stamps) 8px apart
+     notes           14px grey (time stamps, counts under the lead)
+     sections        96px apart (72px on a phone), no rule line above them
+     section heading 8px to its own text
+   The home headline block fills the first screen, so the grid starts only when you scroll. */
+:is(.hero, .ci-hero, .sm-hero, .hw-hero, .fp-hero-text) { display: block !important; max-width: none !important; padding: 40px 0 0 !important; margin: 0 !important; }
+.fp-hero { padding: 0 !important; margin: 0 !important; max-width: none !important; }
+:is(.hero, .ci-hero, .sm-hero, .hw-hero, .fp-hero-text) > * { margin: 0 !important; max-width: none !important; }
+:is(.hero, .ci-hero, .sm-hero, .hw-hero, .fp-hero-text) > h1 + *, main > h1 + .dek { margin-top: 40px !important; }
+:is(.hero, .ci-hero, .sm-hero, .hw-hero, .fp-hero-text) > * + * { margin-top: 24px !important; }
+:is(.hero, .ci-hero, .sm-hero, .hw-hero, .fp-hero-text) > :is(.money + .money, .stamp + .stamp, .sm-meta + .sm-meta) { margin-top: 8px !important; }
+:is(.hero, .ci-hero, .sm-hero, .fp-hero-text) > :is(.ci-meta, .sm-meta, .stamp, .counts, .small, .fp-note) { font-size: 14px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important; }
 
-/* Home spacing (21 Oct): three gaps only. 8px under a heading, 24px between blocks, 64px between sections. */
-body:has(#hero) .hero h1 + .lead { margin-top: 8px !important; }
-body:has(#hero) .hero .counts { margin-top: 24px !important; }
-body:has(#hero) .wrap > section { margin-top: 64px !important; }
-body:has(#hero) .wrap > section > h2 { margin-bottom: 8px !important; }
-body:has(#hero) .wrap > section > h2 + p { margin-top: 0 !important; }
-body:has(#hero) .hero .body b { font-weight: 500; color: var(--color-ink); }
+/* sections: 96px apart, no rule line. A page whose headline stands alone starts its first section 40px under it. */
+:is(.wrap, .ci-wrap, .sm-wrap, .hw-main, .stack, #smDetail) > :is(section, .ci-band, .ci-np, .hiw-section, .fp-sec, .dkpanel):not(.hw-hero) {
+  margin-top: 96px !important; padding-top: 0 !important; border-top: 0 !important; }
+.wrap > .stack { gap: 0 !important; padding-top: 0 !important; margin: 0 !important; }
+.stack > .dkpanel > section { margin-top: 0 !important; padding-top: 0 !important; border-top: 0 !important; }
+.hw-hero + .hiw-section, .hw-hero ~ .hiw-section:first-of-type { margin-top: 40px !important; }
+/* tools, keys and lists that sit right under the page top: 40px, the same as under a headline */
+:is(.wrap, .ci-wrap, .sm-wrap) > :is(.ci-tools, .tools, .cnav, .fnav, .list, .evl, .rs-list) { margin-top: 40px !important; }
+:is(.wrap, .ci-wrap) > :is(.ci-key, .key) { margin-top: 24px !important; padding-top: 0 !important; border-top: 0 !important; }
+section > h2, .fp-sec-head > h2, .hiw-section > h2 { margin: 0 0 8px !important; padding-top: 0 !important; }
+section > h2 + p, .fp-sec-head + p, .hiw-section > h2 + * { margin-top: 0 !important; }
+section p, .hiw-section p, .fp-sec p { max-width: none !important; }
 
-/* Home top (25 Oct, Seb): one clear order. The headline, then the why as its subhead, then what we do as body text, then who built it
-   as a quiet footnote. Scoped to the home page (#land is only there: finding.html and country.html also have #hero). 8px under the headline, 24px between the blocks, no bold numbers. Words unchanged. */
-body:has(#hero):has(#land) .hero h1 { font-size: 32px !important; line-height: 1.2 !important; font-weight: 500 !important; margin: 0 !important; }
-body:has(#hero):has(#land) .hero .lead.sub { margin-top: 8px !important; font-size: 20px !important; line-height: 1.45 !important; color: var(--color-ink) !important; }
-body:has(#hero):has(#land) .hero .lead.what { margin-top: 24px !important; max-width: 760px !important; color: var(--color-neutral-700) !important; }
-body:has(#hero):has(#land) .hero .body.agents { margin-top: 24px !important; max-width: 760px !important; font-size: 14px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important; }
+/* home: the headline block is the first screen */
+body:has(#land) .hero { box-sizing: border-box !important; min-height: calc(100svh - 86px) !important; padding: max(96px, 16vh) 0 96px !important; }
+body:has(#land) .wrap > .hero + section { margin-top: 0 !important; }
+body:has(#land) .hero p { font-size: 20px !important; line-height: 1.6 !important; color: var(--color-neutral-700) !important; text-wrap: pretty !important; }
+body:has(#land) .hero .body.agents { color: var(--color-ink) !important; }
+body:has(#land) .hero .body b { font-weight: 400; }
+
 @media (max-width: 700px) {
-  body:has(#hero):has(#land) .hero h1 { font-size: 26px !important; }
-  body:has(#hero):has(#land) .hero .lead.sub { font-size: 18px !important; }
+  h1 { font-size: 26px !important; }
+  :is(.hero, .ci-hero, .sm-hero, .hw-hero, .fp-hero-text) > h1 + *, main > h1 + .dek { margin-top: 24px !important; }
+  .hp-lede, .c-lead, .ci-lead, .sm-lead, .lead, .lede, .fp-lead, .fp-line, .dek, body:has(#land) .hero p { font-size: 17px !important; }
+  :is(.wrap, .ci-wrap, .sm-wrap, .hw-main, .stack, #smDetail) > :is(section, .ci-band, .ci-np, .hiw-section, .fp-sec, .dkpanel):not(.hw-hero) { margin-top: 72px !important; }
+  body:has(#land) .hero { min-height: calc(100svh - 57px) !important; padding: 40px 0 72px !important; }
+  body:has(#land) .hero h1 { text-wrap: balance !important; }
 }
 
 /* Phone (27 Oct): balanced headings wrapped early and looked narrower than the text under them. Pretty wrapping fills

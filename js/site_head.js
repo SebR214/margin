@@ -12,6 +12,22 @@
       if (target && target === here) { a.setAttribute('aria-current', 'page'); }
     });
   }
+  // The one nav (DESIGN.md "Nav"): a page whose header still carries an old hand-written list, or an empty one, gets the
+  // canonical seven links from homeData in copy.json, so every page shows the same menu.
+  var CANON = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'],
+    ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHow', 'how-it-works.html']];
+  function canonNav() {
+    var nav = document.querySelector('.mwh nav, [data-canon-nav]');
+    if (!nav) { return; }
+    fetch('./copy.json').then(function (r) { return r.json(); }).then(function (c) {
+      var h = (c && c.homeData) || {};
+      if (!CANON.every(function (l) { return h[l[0]]; })) { return; }
+      nav.textContent = '';
+      CANON.forEach(function (l) { var a = document.createElement('a'); a.href = './' + l[1]; a.textContent = h[l[0]]; nav.appendChild(a); });
+      mark();
+    }).catch(function () {});
+  }
+  canonNav();
   mark();
   document.addEventListener('DOMContentLoaded', mark);
   window.addEventListener('load', mark);

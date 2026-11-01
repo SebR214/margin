@@ -161,7 +161,14 @@ def style_check(perturb=False):
             bad.append("%dpx %s: the record chart reads %r, expected %r" % (width, name[7:], got, want))
     # title, lead and h2 weight/size, and the gap between a title and its text, are home's own since the 21 Oct fast lane
     # (SEB-301): weight 500, lead/body/note at 17px, 12px title-to-text. Every other page keeps the earlier shared values.
-    HOME_ONLY = {"title", "lead", "h2", "leadgap"}
+    # The header-to-title gap is 40px on every page. Home's headline block fills the first screen (DESIGN.md, 1 Nov), so home
+    # is not the standard for that gap: every other page is checked against 40px instead.
+    HOME_ONLY = {"title", "lead", "h2", "leadgap", "gap"}
+    for width in (1300, 390):
+        for name in STYLE_PAGES[1:]:
+            g = seen[(width, name)].get("gap")
+            if g not in (None, "none", "40px"):
+                bad.append("%dpx %s: the gap under the header is %r, the rule is '40px'" % (width, name.split("?")[0], g))
     for width in (1300, 390):
         std = seen[(width, STYLE_PAGES[0])]
         for name in STYLE_PAGES[1:]:

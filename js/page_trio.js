@@ -4,7 +4,7 @@
   function base(h) { return String(h).split('/').pop().split('?')[0].split('#')[0]; }
   fetch('./copy.json').then(function (r) { return r.json(); }).then(function (C) {
     var T = ((C || {}).machineRoomPage || {}).trio || [];
-    var header = document.querySelector('header');
+    var header = document.querySelector('header, .hp-head');
     if (!T.length || !header || document.querySelector('.trio')) return;
     var here = base(location.pathname) || 'index.html';
     var st = document.createElement('style');

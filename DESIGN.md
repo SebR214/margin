@@ -1,6 +1,7 @@
-DESIGN.md — single source of truth
+# DESIGN.md: how pages look
 
-Every reader-facing decision lives here. If a rule is not in this file, it is not a rule. Sessions read this before touching any page. When Seb decides something in chat, it gets written here in the same session or it does not exist.
+Layout, phones, charts, colours and the nav. How the site writes is in `WORDS.md`. Sessions read both before touching a
+page. When Seb decides something about a page in chat, it is written here in the same session or it does not exist.
 
 ## Palette (graphs and charts)
 
@@ -17,45 +18,49 @@ In a cost waterfall (`index.html`, `corridor.html`), the two "dollar-route" legs
 
 ## Nav (canonical, the only nav)
 
-1. Home → `index.html`
-2. Sending money → `sending-money.html`
-3. Countries → `the-index.html`
-4. How it was built → `machine-room.html`
-5. Research → `research.html` (Seb asked for it in chat, 25 Oct 2026; it sits in each page's nav array after Findings, with the word set in `copy.json`)
-6. Events → `events.html` (SEB-423, agreed in chat 31 Oct 2026; it sits after Research, word set in `copy.json`). Lists the currency events that have a page, newest first, each linking to its page and to the home map on that day.
+Countries, Routes, Sources, Findings, Research, Events, How it works, in that order. The logo links to the home page. The
+nav is generated from `copy.json`'s `nav` array into every page by the bake step (`tools/bake_nav.py`); no page carries a
+hand-written header. Pages not in the nav (fee tiers, agent incidents, how it was built, the machine room) are reached by
+links from other pages only.
 
-Logo links to `index.html`. Findings, how it works, fee tiers and agent
-incidents stay live but are reachable by deep links only (from
-`machine-room.html`'s "Read more" block and from each other), never in
-the nav. Ask is hidden until its rebuild — nothing links to it. The nav
-is generated from `copy.json`'s `nav` array into every page by the bake
-step (`tools/bake_nav.py`); no page carries a hand-written header.
+## Pages (layout, phones, charts)
 
-## Register
+Learned from Seb's reviews in the design chat, 27 Oct to 1 Nov. Every page change follows these, and is checked by reading
+the page top to bottom at 375px and 1280px as a reader would, not only by the scripted checks. A page that renders without
+errors can still make no sense.
 
-Write for someone who has never worked in payments. Read a sentence aloud
-to a friend outside finance — if they'd ask "what does that mean?",
-rewrite it. One idea per sentence. Headings under 12 words, sentences
-under 20 words. No metaphors, no wordplay, no dramatic short closing
-lines. No dashes and no semicolons in visible copy. Name real things
-("Sending money from Singapore to the Philippines," "Apps like Wise")
-instead of jargon. Money beats percentages: "About S$56 on S$5,000" beats
-"+1.12%." Round numbers ("99%," not "99.3%") in headings; exact figures
-can live in tables. One number per sentence at most.
+### Every page
 
-* "apps like Wise" (or "transfer apps like Wise"), never "fiat provider" or "best ordinary way to send money"
-* "stablecoins (digital dollars)" on first use per page, then "stablecoins" or "the stablecoin route" — never "buying crypto" or "the crypto way"
-* "buying it now" (not "taker"), "waiting for your price" (not "maker") in reader-facing text; the technical term is fine in methodology / how-it-works deep sections only
-* "corridor" for a sending pair (Singapore→Philippines, US→Mexico) — plain "sending X to Y" is still fine and often clearer, but "corridor" itself is no longer avoided (SEB, 2026-09-29, reversing the 2026-09-27 decision below). "Route" is reserved for the other sense this site already uses it in — the stablecoin *method* of sending money, contrasted with "the cheapest app" ("the stablecoin route costs...") — never for a sending pair.
-* "the typical value" or "usually" instead of "median"; "not enough data" instead of "withheld"
-* Numbers are computed from `data/`, never typed. Gaps stay gaps.
-* Every reader-facing string lives in `copy.json`.
+* One point per page, said in its headline. Every section serves that point. If a section has no reader who would care, cut it (the hourly price list on country pages went for this reason).
+* A comparison is one chart or one table to read down, never the same sentence repeated per row. The reader should see the answer by scanning one column.
+* Never show two versions of the same number on one page (this hour and the typical week) unless each says which it is.
+* Reuse a chart the site already has before building a new one.
+* A section built from a data step that stopped updating must not show old numbers as current. Check the data's own date when a page looks frozen.
+* A line a reader would take as the whole market must be the whole market. Counts from a sample (the top 40 ads) say so or are not shown.
 
-**Banned in headings, subheadings, captions, labels and nav** (fine only in
-methodology / how-it-works deep sections): fiat, rail, route,
-basis, bps, venue, on-ramp, off-ramp, P2P, parallel rate, median,
-decomposition, spread, liquidity, maker, taker, VIP tier, measured hours,
-pass, collector, withheld. `tools/check_copy.py` enforces this list
-against copy.json and the baked pages — run it before any reader-facing
-change ships. "Corridor" came off this list 2026-09-29 (SEB) — it is the
-plain accepted term for a sending pair now, not jargon.
+### Spacing, width, size (1 Nov 2026)
+
+* Four gaps only. 8px between a heading and its own text, and between lines of one list (the money lines on a country page). 24px between separate points. 40px under the page headline (24px on a phone). 96px between sections (72px on a phone), with no rule line above them.
+* Sizes: page headline 32px (26px on a phone), the lines under it 20px grey (17px on a phone), body text 17px, notes (time stamps, counts) 14px grey.
+* A different gap must mean something you can name. If you cannot say why two gaps differ, make them the same.
+* No width cap on text. Text runs the width of the page, so a short sentence stays on one line on a computer.
+* One size for all body text on a page. A line that matters is never small or faint: if it is important, it is black, not 14px grey.
+* Each page's spacing lives in one block in `css/site_page.css`. To change it, edit that block. Never add an override under an older rule.
+* Home: the first screen is the headline and the lines under it. The grid starts when you scroll.
+
+### Phones
+
+* Nothing scrolls sideways. A wide table becomes stacked rows or a grid that fits the screen.
+* The menu is a full screen sheet with big links and a Close button. The phone header is the logo and Menu only.
+* No hover colour that sticks after a tap: hover styles sit inside `@media (hover:hover)`. No tinted "selected" row on a phone when the tap already scrolls to the detail.
+* Text fills its column. Headings and notes wrap with `text-wrap: pretty`, never into a box narrower than the text around them. One width per section.
+* No text under 13px.
+
+### Charts
+
+* A line, not an area fill, where the line can sit below zero. A fill that floats above the line reads upside down.
+* Say which side is which in words against the zero line ("Stablecoin cheaper", "App cheaper"). No minus signs for the reader to decode.
+* Missing data is a thin light grey dotted line joining the two ends, with one sentence under the heading saying what it means. No grey blocks, no words written on the chart.
+* Axis labels are spaced by position so they never overlap. A chart starts at its first point, not on an empty stretch.
+* Range buttons in words (Week, Month, Year, All), offered only when they show more than the shorter one.
+* A popup says the number in words ("Stablecoin S$10.78 more expensive than the cheapest app"), not "+S$10.78 (1.08%)".
