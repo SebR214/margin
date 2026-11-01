@@ -99,25 +99,17 @@
     .inc dd{padding-bottom:8px}
   }
 </style>
+<link rel="stylesheet" href="./css/site_head.css?v=5">
+<link rel="stylesheet" href="./css/site_page.css?v=9">
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div class="brand">
-      <div class="logo"><a href="./index.html">margin.wiki</a></div>
-      <nav>
-        <a href="./countries.html">Countries</a>
-        <a href="./sending-money.html">Routes</a>
-        <a href="./sources.html">Sources</a>
-        <a href="./findings.html">Findings</a>
-        <a href="./research.html">Research</a>
-        <a href="./how-it-works.html">How it works</a>
-      </nav>
+  <div class="hp-head">
+    <div class="hp-headleft">
+      <a class="hp-logo" href="./index.html">margin.wiki</a>
+      <nav class="hp-nav" aria-label="Main" data-canon-nav></nav>
     </div>
-    <div class="header-right">
-      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
-    </div>
-  </header>
+  </div>
 
   <main>
     <h1 id="pageTitle">&nbsp;</h1>
@@ -146,19 +138,8 @@
 </div>
 
 <script src="./js/machine_room_page.js"></script>
-<script>
-(function(){
-  var btn = document.getElementById('navToggle');
-  var nav = document.querySelector('header nav');
-  if (btn && nav) {
-    btn.addEventListener('click', function(){ nav.classList.toggle('open'); });
-    document.addEventListener('click', function(e){
-      if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== btn) nav.classList.remove('open');
-    });
-  }
-})();
-</script>
-<script src="./js/page_trio.js"></script>
+<script src="./js/page_trio.js?v=2"></script>
 <script src="./js/footer.js"></script>
+<script src="./js/site_head.js?v=5"></script>
 </body>
 </html>
