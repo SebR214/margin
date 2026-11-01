@@ -1,12 +1,12 @@
 # No price for South Africa this hour
 
-Prices from the 12:00 UTC hour, 1 Nov.
+Prices from the 13:00 UTC hour, 1 Nov.
 
 Held back this hour: the price jumped from its usual level and we’re waiting for a second source to confirm it.
 
-The last price we published was +6.1%, on 1 Nov.
+The last price we published was +5.7%, on 1 Nov.
 
-Prices from the 12:00 UTC hour, 1 Nov
+Prices from the 13:00 UTC hour, 1 Nov
 
 <https://margin.wiki/data/countries/ZAR.json>
 

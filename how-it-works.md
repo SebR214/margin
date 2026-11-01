@@ -1,10 +1,10 @@
 # How to read this site
 
-Prices from the 12:00 UTC hour, 1 Nov.
+Prices from the 13:00 UTC hour, 1 Nov.
 
 ## What we measure
 
-Every country has an official exchange rate. In some countries banks won’t sell dollars at that rate, or sell very few, so people buy them from each other and pay more. Every hour we check what people really pay for a dollar in 54 countries and compare it with the official rate.
+Every country has an official exchange rate. In some countries banks won’t sell dollars at that rate, or sell very few, so people buy them from each other and pay more. Every hour we check what people really pay for a dollar in 55 countries and compare it with the official rate.
 
 ## What the percentage means
 
