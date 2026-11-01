@@ -18,14 +18,15 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = "https://margin.wiki"
 TITLE_MAX, DESC_MAX = 60, 160
 # moved pages: noindex redirects, never in the sitemap
-REDIRECTS = {"corridor.html", "tape.html", "fee-tiers.html", "agent-incidents.html", "machine-room.html", "findings.html"}
+REDIRECTS = {"404.html", "corridor.html", "tape.html", "fee-tiers.html", "agent-incidents.html", "machine-room.html", "findings.html"}
 # pages with a markdown twin
 TWINS = {"index.html": "index.md", "countries.html": "countries.md", "sending-money.html": "sending-money.md",
          "sources.html": "sources.md", "how-it-works.html": "how-it-works.md",
          "how-it-was-built.html": "how-it-was-built.md"}
 # country.html and finding.html are templates: the page sets its own canonical, so the static head has none
-TEMPLATES = {"country.html", "finding.html"}
+TEMPLATES = {"country.html", "finding.html", "event.html"}   # event.html too: each event sets its own title and canonical
 BEGIN, END = "<!-- head:begin -->", "<!-- head:end -->"
+SHARE_IMAGE = SITE + "/share.png"          # 1200 x 630, drawn once, kept in the repo root
 
 
 def load_copy():
@@ -39,6 +40,14 @@ def static_pages():
 
 def url_for(page):
     return SITE + "/" if page == "index.html" else SITE + "/" + page
+
+
+def image_tags(alt):
+    """The share image every page names, so a link pasted anywhere shows a card and not a bare address."""
+    a = html.escape(alt, quote=True)
+    return ['<meta property="og:image" content="%s"/>' % SHARE_IMAGE, '<meta property="og:image:width" content="1200"/>',
+            '<meta property="og:image:height" content="630"/>', '<meta property="og:image:alt" content="%s"/>' % a,
+            '<meta name="twitter:card" content="summary_large_image"/>', '<meta name="twitter:image" content="%s"/>' % SHARE_IMAGE]
 
 
 def head_block(page, entry):
@@ -56,7 +65,8 @@ def head_block(page, entry):
               '<meta property="og:title" content="%s"/>' % t, '<meta property="og:description" content="%s"/>' % d]
     if page not in TEMPLATES:
         lines.append('<meta property="og:url" content="%s"/>' % url)
-    lines += ['<meta name="twitter:card" content="summary"/>', '<meta name="twitter:title" content="%s"/>' % t,
+    lines += image_tags(load_copy()["shareImageAlt"])
+    lines += ['<meta name="twitter:title" content="%s"/>' % t,
               '<meta name="twitter:description" content="%s"/>' % d,
               '<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>', '<link rel="icon" href="/favicon.ico" sizes="48x48"/>']
     if page in TWINS:
@@ -77,7 +87,7 @@ def country_head(ccy, country, copy):
                       '<link rel="canonical" href="%s"/>' % url, '<meta property="og:site_name" content="margin.wiki"/>',
                       '<meta property="og:type" content="website"/>', '<meta property="og:title" content="%s"/>' % t,
                       '<meta property="og:description" content="%s"/>' % d, '<meta property="og:url" content="%s"/>' % url,
-                      '<meta name="twitter:card" content="summary"/>', '<meta name="twitter:title" content="%s"/>' % t,
+                      *image_tags(copy["shareImageAlt"]), '<meta name="twitter:title" content="%s"/>' % t,
                       '<meta name="twitter:description" content="%s"/>' % d,
                       '<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>', '<link rel="icon" href="/favicon.ico" sizes="48x48"/>',
                       '<link rel="alternate" type="text/markdown" href="/country/%s.md"/>' % ccy.upper(), END])
@@ -117,6 +127,49 @@ def write_robots():
     open(os.path.join(HERE, "robots.txt"), "w").write("User-agent: *\nAllow: /\n\nSitemap: %s/sitemap.xml\n" % SITE)
 
 
+def write_404():
+    """404.html: the page GitHub Pages serves for an address that is not there. Words from copy.json notFoundPage, no script needed
+    for them. <base href="/"> so its CSS, nav and links resolve from the site root at any depth. Never indexed, never in the sitemap."""
+    w = json.load(open(os.path.join(HERE, "copy.json")))["notFoundPage"]
+    e = lambda k: html.escape(w[k], quote=True)
+    text = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<base href="/">
+<title>%s</title>
+<meta name="description" content="%s"/>
+<meta name="robots" content="noindex"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" href="/favicon.ico" sizes="48x48"/>
+<link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./css/site_head.css?v=5">
+<link rel="stylesheet" href="./css/site_page.css?v=10">
+</head>
+<body class="data">
+<header class="mwh"><a class="mwh-logo" href="/">margin.wiki</a><nav aria-label="Main" data-canon-nav></nav></header>
+<main style="max-width: 720px; margin: 40px auto; padding: 0 16px;">
+<h1>%s</h1>
+<p class="lede">%s</p>
+<p><a href="/">%s</a> &middot; <a href="/countries.html">%s</a></p>
+</main>
+<script src="./js/site_head.js?v=6"></script>
+</body>
+</html>
+""" % (e("title"), e("description"), e("heading"), e("line"), e("linkHome"), e("linkCountries"))
+    path = os.path.join(HERE, "404.html")
+    if not os.path.exists(path) or open(path).read() != text:
+        open(path, "w").write(text)
+
+
+def event_urls():
+    """One sitemap entry per published event, from the list the events page reads."""
+    path = os.path.join(HERE, "data", "events_published.json")
+    return ["event.html?id=" + e["id"] for e in json.load(open(path))["events"]]
+
+
 def write_sitemap(urls, lastmod):
     """urls: absolute paths like 'countries.html' or 'country.html?ccy=ARS'. One entry each, in the order given."""
     seen, out = set(), ['<?xml version="1.0" encoding="UTF-8"?>',
@@ -141,8 +194,9 @@ def write_files(lastmod=None):
     # each country has its own page, country/<ccy>/ (SEB-426); country.html is the template and stays out
     pages = [("country/%s/" % url.split("=")[1].lower()) if url.startswith("country.html?ccy=") else url for url, md in emit_markdown.all_pages()]
     extra = [f for f in static_pages() if f not in TEMPLATES and f not in pages]
-    n = write_sitemap(pages + extra, lastmod)
+    n = write_sitemap(pages + extra + event_urls(), lastmod)
     write_robots()
+    write_404()
     print("site files: robots.txt and sitemap.xml with %d urls, lastmod %s" % (n, lastmod))
     return n
 
@@ -153,7 +207,8 @@ def self_test():
     assert 'rel="canonical" href="https://margin.wiki/countries.html"' in b and "/countries.md" in b
     assert "canonical" not in head_block("country.html", ["T", "d"])
     assert url_for("index.html") == SITE + "/"
-    ch = country_head("ARS", "Argentina", {"countryTitle": "{country}: a dollar", "countryDescription": "In {country}."})
+    ch = country_head("ARS", "Argentina", {"countryTitle": "{country}: a dollar", "countryDescription": "In {country}.", "shareImageAlt": "A"})
+    assert 'og:image" content="https://margin.wiki/share.png"' in ch and "summary_large_image" in ch
     assert '<link rel="canonical" href="https://margin.wiki/country/ars/"/>' in ch and "/country/ARS.md" in ch
     try:
         head_block("x.html", ["t" * 61, "d"])
@@ -161,6 +216,8 @@ def self_test():
         pass
     else:
         raise AssertionError("long title accepted")
+    assert "event.html" not in static_pages() or "event.html" in TEMPLATES
+    assert "404.html" not in static_pages() and all(u.startswith("event.html?id=") for u in event_urls())
     print("emit_site_files self-test ok")
 
 
