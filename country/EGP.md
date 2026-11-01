@@ -1,12 +1,12 @@
 # No price for Egypt this hour
 
-Prices from the 02:00 UTC hour, 1 Nov.
+Prices from the 03:00 UTC hour, 1 Nov.
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
 The last price we published was +0.3%, on 1 Nov.
 
-Prices from the 02:00 UTC hour, 1 Nov
+Prices from the 03:00 UTC hour, 1 Nov
 
 <https://margin.wiki/data/countries/EGP.json>
 
