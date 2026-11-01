@@ -75,6 +75,11 @@
       var cash = S.cash;
       if (cash && T('threeDollarsLine') && Date.parse(c.hour_utc) - Date.parse(cash.ts_utc) <= 6 * 3600 * 1000) {
         h += '<p class="money num">' + esc(T('threeDollarsLine', { official: money(rate, c.ccy), cash: money(cash.mid, c.ccy), stable: money(c.buy_price, c.ccy) })) + '</p>';
+        // which of the two dollars a person can buy is cheaper today, and by how much (SEB-424 item 1), from the same two numbers
+        var cs = (c.buy_price / cash.mid - 1) * 100;
+        var ck = Math.abs(cs) < 0.5 ? 'cashSame' : cs > 0 ? 'cashCheaperCash' : 'cashCheaperStable';
+        var cp = cs > 0 ? cs : (cash.mid / c.buy_price - 1) * 100;
+        if (T(ck)) { h += '<p class="money num">' + esc(T(ck, { pct: cp.toFixed(1) + '%' })) + '</p>'; }
       }
       // the price rests on one source only: say so (SEB-302)
       if ((c.venues || []).length === 1 && T('oneSource')) { h += '<p class="stamp num">' + esc(T('oneSource')) + '</p>'; }
