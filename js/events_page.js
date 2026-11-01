@@ -6,7 +6,7 @@
   var C = {}, NAMES = {};
   var app = document.getElementById("app");
   var NAV = [["navCountries", "./countries.html"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"],
-    ["navFindings", "./findings.html"], ["navResearch", "./research.html"], ["navEvents", "./events.html"], ["navHow", "./how-it-works.html"]];
+    ["navResearch", "./research.html"], ["navEvents", "./events.html"], ["navHow", "./how-it-works.html"]];
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function txt(k, v) { var s = C[k]; return s ? String(s).replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : ""; }) : ""; }
   function getJSON(u) { return fetch(u, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); }

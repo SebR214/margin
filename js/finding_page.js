@@ -94,13 +94,13 @@
     var logo = kid(brand, el('a', ['fp-logo', 'mono'], BRAND));
     logo.href = './index.html';
     var links = [['navCountries', './countries.html'], ['navRoutes', './sending-money.html'], ['navSources', './sources.html'],
-                 ['navFindings', './findings.html'], ['navResearch', './research.html'], ['navEvents', './events.html'], ['navHowItWorks', './how-it-works.html']];
+                 ['navResearch', './research.html'], ['navEvents', './events.html'], ['navHowItWorks', './how-it-works.html']];
     var nav = el('nav', 'fp-nav');
     links.forEach(function (l) {
       var a = word('a', '', l[0]);
       if (!a) return;
       a.href = l[1];
-      if (l[1] === './findings.html') a.setAttribute('aria-current', 'page');
+      if (l[1] === './research.html') a.setAttribute('aria-current', 'page');
       nav.appendChild(a);
     });
     if (nav.firstChild) brand.appendChild(nav);
@@ -308,7 +308,7 @@
     var s = el('section', 'fp-sec');
     kid(s, word('p', ['soft', 'fp-line'], 'notFound'));
     var back = kid(s, word('a', 'fp-back', 'notFoundLink'));
-    if (back) back.href = './findings.html';
+    if (back) back.href = './research.html';
     if (s.firstChild) wrap.appendChild(s);
   }
 

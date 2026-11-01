@@ -16,7 +16,7 @@
     if (own) { return 'country/' + own[1].toUpperCase() + '.md'; }
     if (page === 'country.html') { var c = q.get('ccy') || ''; return /^[A-Z]{3}$/.test(c) ? 'country/' + c + '.md' : null; }
     if (page === 'finding.html') { var id = q.get('id') || ''; return /^[a-z0-9_]+$/.test(id) ? 'finding/' + id + '.md' : null; }
-    var plain = ['index.html', 'countries.html', 'sending-money.html', 'sources.html', 'findings.html', 'how-it-works.html', 'how-it-was-built.html'];
+    var plain = ['index.html', 'countries.html', 'sending-money.html', 'sources.html', 'how-it-works.html', 'how-it-was-built.html'];
     return plain.indexOf(page) >= 0 ? page.replace('.html', '.md') : null;
   }
 

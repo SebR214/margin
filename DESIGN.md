@@ -18,10 +18,11 @@ In a cost waterfall (`index.html`, `corridor.html`), the two "dollar-route" legs
 
 ## Nav (canonical, the only nav)
 
-Countries, Routes, Sources, Findings, Research, Events, How it works, in that order. The logo links to the home page. The
+Countries, Routes, Sources, Research, Events, How it works, in that order. Seven items at most. Findings live in
+Research (1 Nov). The logo links to the home page. The
 nav is generated from `copy.json`'s `nav` array into every page by the bake step (`tools/bake_nav.py`); no page carries a
-hand-written header. Pages not in the nav (how it was built, the machine room) are reached by links from other pages only. Fee tiers,
-agent incidents, tape and corridor are redirects.
+hand-written header. How it was built is not in the nav: the footer of every page links to it. Fee tiers, agent incidents, the machine
+room, tape and corridor are redirects.
 
 ## Pages (layout, phones, charts)
 

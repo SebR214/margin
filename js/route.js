@@ -18,7 +18,7 @@
   var DEST_COLOUR = { INR: "var(--data-700)", NGN: "var(--color-neutral-900)", MXN: "var(--data-500)", PHP: "var(--color-neutral-500)" };
   var SRC_DASH = { SGD: "", USD: "", AUD: "6 4", NZD: "2 3" };
   var NAV = [["navCountries", "./countries.html"], ["navRoutes", "./sending-money.html", true],
-    ["navSources", "./sources.html"], ["navFindings", "./findings.html"], ["navResearch", "./research.html"], ["navEvents", "./events.html"], ["navHow", "./how-it-works.html"]];
+    ["navSources", "./sources.html"], ["navResearch", "./research.html"], ["navEvents", "./events.html"], ["navHow", "./how-it-works.html"]];
   var chart = null;
 
   function esc(s) {

@@ -50,7 +50,7 @@ Never say something is running, built or watching unless you checked it just now
 - Seb approves a page once, in its Linear spec. A PR built from a spec he approved, whose title names its SEB issue, merges by itself when every check passes (`automerge.yml`), including method changes (METHODOLOGY.md and the `index_version` bump are checked by `method-change`) and additive collector changes. Post any before and after table on the issue. Never wait on Seb for a PR, and never ask him to label one.
 - `DESIGN.md` holds the page rules (layout, phones, charts) and `WORDS.md` holds how the site writes (voice, naming, the Words table that `tools/check_copy.py` enforces). Read both when your job touches a page or any reader-facing words.
 - A `writer/` PR whose title names its SEB issue passes `copy-lock` with no label. Never ask Seb to add `copy-approved` or any other label. If the words were agreed in chat or the spec, merge on green.
-- How it was built and the machine room (`machine-room.html`, SEB-427) say what the builder, the checks and the collector are now. The machine room's numbers come from `tools/emit_machine_room.py`; its words live in `copy.json` under `machineRoomPage`. A merge counts only if the files it added are not empty on main.
+- How it was built (`how-it-was-built.html`, SEB-427, the machine room merged into it 1 Nov) says what the builder, the checks and the collector are now. Its numbers come from `tools/emit_machine_room.py`; its words live in `copy.json` under `machineRoom` and `machineRoomPage`. A merge counts only if the files it added are not empty on main.
 
 ## Page work (1 Nov 2026, after a rough design session)
 

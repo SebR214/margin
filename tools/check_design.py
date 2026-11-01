@@ -14,7 +14,7 @@ tools/design_baseline.json:
 
 Counts going down is fine (and `--update` lowers the baseline). Stdlib only.
 
-A second mode, --style, renders the seven reader pages (home, countries, sending money, sources, findings,
+A second mode, --style, renders the seven reader pages (home, countries, sending money, sources, research,
 how it works, country) at 1300px and 390px and measures the page title, the text under it, the section
 headings, the filter pills, the running-text link underline and the gap between the header and the title.
 It fails if any page differs from the home page (css/site_page.css is where those values live).
@@ -88,7 +88,7 @@ def measure():
 
 
 STYLE_PAGES = ["index.html", "countries.html", "country.html?ccy=PHP", "sending-money.html?route=SGD-PHP&amount=5000",
-               "sources.html", "findings.html", "how-it-works.html"]
+               "sources.html", "research.html", "how-it-works.html"]
 STYLE_PROBE = r"""
 (function () {
   var cs = function (e) { return getComputedStyle(e); };
@@ -190,7 +190,7 @@ def style_check(perturb=False):
 
 
 OVERFLOW_PAGES = ["index.html", "countries.html", "country.html?ccy=PHP", "country.html?ccy=TRY", "sending-money.html?route=SGD-PHP&amount=5000",
-                  "sending-money.html?route=USD-MXN&amount=50000", "sources.html", "findings.html", "finding.html?id=price_changes",
+                  "sending-money.html?route=USD-MXN&amount=50000", "sources.html", "research.html", "finding.html?id=price_changes",
                   "finding.html?id=weekend_penalty", "finding.html?id=volume_crossover", "finding.html?id=sgd_php_never_cheapest",
                   "finding.html?id=exchange_vs_p2p", "how-it-works.html", "how-it-was-built.html"]
 # At 390px nothing may be wider than the screen and nothing may scroll sideways: the page itself, any element that
@@ -236,7 +236,7 @@ def overflow_check(perturb=False):
 
 
 LINES_PAGES = ["index.html", "countries.html", "country.html?ccy=PHP", "sending-money.html?route=SGD-PHP&amount=5000",
-               "sources.html", "findings.html", "finding.html?id=price_changes", "how-it-works.html", "how-it-was-built.html"]
+               "sources.html", "research.html", "finding.html?id=price_changes", "how-it-works.html", "how-it-was-built.html"]
 # The words of each heading and paragraph, grouped into lines by where the browser put them. A last line of one word is a
 # stray word; one that is only a symbol or a number in brackets ("(5)", "→") counts too, as the reader sees it the same way.
 LINES_PROBE = r"""

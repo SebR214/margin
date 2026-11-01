@@ -8,7 +8,7 @@
   var STAT = { a: 'statusAnsweredEveryHour', s: 'statusMissedSome', x: 'statusMissedAll', n: 'statusNotYetASource' };
   var KIND = { p2p: 'kindP2p', order_book: 'kindOrderBook', broker: 'kindBroker', fx: 'kindFx', street: 'kindStreet', provider_quote: 'kindProviderQuote', other: 'kindOther' };
   var KORDER = ['order_book', 'broker', 'fx', 'street', 'provider_quote', 'p2p', 'other'];
-  var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHowItWorks', 'how-it-works.html']];
+  var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHowItWorks', 'how-it-works.html']];
 
   var live = [], hist = [], days = [], kind = 'all', sel = null, collectorDays = [], gapText = '';
 

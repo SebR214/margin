@@ -8,6 +8,11 @@
     var L = (C && C.siteHead && C.siteHead.footerLinks) || [];
     var f = document.querySelector('footer');
     if (!L.length || !f || f.querySelector('.site-links')) return;
+    // one line of links: a page's own GitHub link is replaced by the same link in this line (1 Nov)
+    [].forEach.call(f.querySelectorAll('a[href^="https://github.com/SebR214/margin"]'), function (a) {
+      var par = a.parentNode; par.removeChild(a);
+      if (par !== f && !par.textContent.trim()) par.parentNode.removeChild(par);
+    });
     var p = document.createElement('p'); p.className = 'site-links';
     L.forEach(function (x, i) {
       if (i) p.appendChild(document.createTextNode(' \u00b7 '));
@@ -35,7 +40,6 @@
     var f = document.createElement('footer');
     f.className = 'site-footer';
     if (R.footerText) { var p = document.createElement('p'); p.textContent = R.footerText; f.appendChild(p); }
-    if (R.footerLinkText) { var a = document.createElement('a'); a.href = 'https://github.com/SebR214/margin'; a.textContent = R.footerLinkText; f.appendChild(a); }
     // inside the page column, so it lines up with the content. A page that builds its column from script may not have it yet,
     // or may rebuild it: keep the footer in the current column for a few seconds.
     var COLUMN = '.wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap';

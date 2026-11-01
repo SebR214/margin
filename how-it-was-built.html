@@ -2,530 +2,157 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <!-- head:begin -->
 <title>How margin.wiki was built: agents, and no AI in the numbers</title>
-<meta name="description" content="What the site is checking this hour, and what the programs building it are doing, unedited, as it happens."/>
+<meta name="description" content="What each part does, how many prices it has stored, what the builder tries and costs, what runs where, and every incident so far."/>
 <link rel="canonical" href="https://margin.wiki/how-it-was-built.html"/>
 <meta property="og:site_name" content="margin.wiki"/>
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="How margin.wiki was built: agents, and no AI in the numbers"/>
-<meta property="og:description" content="What the site is checking this hour, and what the programs building it are doing, unedited, as it happens."/>
+<meta property="og:description" content="What each part does, how many prices it has stored, what the builder tries and costs, what runs where, and every incident so far."/>
 <meta property="og:url" content="https://margin.wiki/how-it-was-built.html"/>
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="How margin.wiki was built: agents, and no AI in the numbers"/>
-<meta name="twitter:description" content="What the site is checking this hour, and what the programs building it are doing, unedited, as it happens."/>
+<meta name="twitter:description" content="What each part does, how many prices it has stored, what the builder tries and costs, what runs where, and every incident so far."/>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
 <link rel="icon" href="/favicon.ico" sizes="48x48"/>
 <link rel="alternate" type="text/markdown" href="/how-it-was-built.md"/>
 <!-- head:end -->
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./style.css">
-<script src="./js/receipt_replay.js"></script>
-<style>
-  :root{ --ink:#0B0B0B; --sub:#6B6B6B; --stamp:#9A9A9A; --indigo:#817FCC; --rule:#F0F0F0;
-    box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px) }
-  *{box-sizing:border-box}
-  body{margin:0;color:var(--ink);background:#fff}
-  a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
-  .num{font-variant-numeric:tabular-nums}
-  .lbl{font-size:14px;letter-spacing:.1em;color:#6B6B6B;font-weight:600}
-  .stamp{font-size:14px;color:var(--stamp);letter-spacing:.06em}
-  .log{font-size:15px;padding:7px 0;border-bottom:1px solid #F6F6F6;display:flex;gap:12px;align-items:baseline}
-  .log>div{min-width:0;overflow-wrap:anywhere}
-  .log>div:last-child{flex-grow:1}
-  .wrap{max-width:760px;margin:0 auto}
-  header{display:flex;align-items:center;justify-content:space-between;padding:22px 0;flex-wrap:wrap;gap:12px}
-  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap;min-width:0}
-  .logo{font-size:19px;font-weight:800;letter-spacing:-0.02em;flex:none}
-  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:#333;flex-wrap:wrap;min-width:0}
-  nav a.active{color:var(--ink);font-weight:700}
-  .live{display:flex;align-items:center;gap:8px;font-size:14px;letter-spacing:.08em;color:#6B6B6B}
-
-  /* Record growth section styles */
-  .dkpanel { background: var(--color-bg); color: var(--color-ink); border-radius: 8px; padding: 20px 24px; font-family: var(--font-body); }
-  .dkpanel h2 { font-size: 24px; font-weight: 600; margin: 0 0 16px; }
-
-  /* hp-* styles from home-v2, wrapped for the record block */
-  .dkpanel .hp-sec { display: flex; flex-direction: column; gap: 16px; }
-  .dkpanel .hp-sechead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; }
-  .dkpanel .hp-small { font-size: 14px; }
-  .dkpanel .mono { font-family: 'Archivo', system-ui, sans-serif; font-variant-numeric: tabular-nums; }
-  .dkpanel .muted { color: var(--color-neutral-600); }
-  .dkpanel .soft { color: var(--color-neutral-700); }
-  .header-right{display:flex;align-items:center;gap:16px}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
-  .dot.off{background:#9A9A9A}
-  /* Also drops style.css's shared black .hero band/white text -- this page
-     never used it, so neutralize what leaks in now that it links style.css. */
-  .hero{padding:44px 0 0;display:flex;flex-direction:column;gap:10px;background:none;color:var(--ink)}
-  .hero h1{color:var(--ink)}
-  h1{font-size:28px;font-weight:800;letter-spacing:-0.02em;margin:0}
-  .lede{color:#6B6B6B}
-  .meta{font-size:14px;color:#9A9A9A;letter-spacing:.02em;display:flex;align-items:center;gap:8px;margin:2px 0 0}
-  .stack{display:flex;flex-direction:column;gap:44px;padding:36px 0 64px}
-  .col-hdr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;border-bottom:1px solid #0B0B0B;padding-bottom:8px}
-  .col-title{font-size:16px;font-weight:700}
-  .feed{}
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:0}
-  .stats>div{padding:14px 14px 14px 0}
-  .stats>div+div{padding-left:14px;border-left:1px solid var(--rule)}
-  .stats .lbl{font-size:14px;letter-spacing:0;font-weight:400;color:#6B6B6B}
-  .stats .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);margin-top:2px}
-  /* runs-by-itself: a quiet list, not tiles. Plain weight, ink and one grey. */
-  .runs{display:block;border-top:1px solid var(--rule)}
-  .runs .rr{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr) minmax(0,2.4fr);gap:4px 20px;padding:12px 0;border-bottom:1px solid var(--rule);align-items:baseline}
-  .runs .rl{font-size:15px;font-weight:500;color:var(--ink)}
-  .runs .rv{font-size:15px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink)}
-  .runs .rn{font-size:14px;color:#6B6B6B;line-height:1.45}
-  .runs .rf{font-size:13px;color:#6B6B6B;padding:10px 0 0}
-  .runs .rs{color:var(--ink);font-weight:500}
-  .empty{padding:20px 0;color:#9A9A9A;font-size:14px}
-  .feed-note{font-size:14px;color:#9A9A9A;padding:14px 0 0}
-  section{border-top:1px solid var(--rule);padding-top:0}
-  h2{font-size:21px;line-height:1.3;margin:0 0 6px;font-weight:700}
-  .answer{color:#6B6B6B;margin:0 0 22px}
-  .kv{list-style:none;margin:0;padding:0}
-  .kv li{display:grid;grid-template-columns:220px 1fr;gap:16px;padding:14px 0;border-top:1px solid var(--rule);font-size:15px}
-  .kv li:first-child{border-top:0}
-  .kv li b{font-weight:700}
-  .kv li span{color:#6B6B6B}
-  .arow{list-style:none;margin:0;padding:0}
-  .arow li{display:grid;grid-template-columns:110px 150px 1fr;gap:14px;padding:14px 0;border-top:1px solid var(--rule);font-size:15px;align-items:baseline}
-  .arow li:first-child{border-top:0}
-  .arow b{font-weight:700}
-  .arow .when{white-space:nowrap;font-size:14px;color:var(--indigo);font-weight:700;letter-spacing:.02em}
-  .arow .txt{color:#6B6B6B}
-  .list{margin:0;padding:0;list-style:none}
-  .list li{padding:12px 0;border-top:1px solid var(--rule);font-size:15px;display:grid;grid-template-columns:70px 1fr auto;gap:12px}
-  .list li:first-child{border-top:0}
-  .list .d{color:#9A9A9A;font-size:14px}
-  .list .tag{font-size:14px;color:#9A9A9A;text-align:right;white-space:nowrap}
-  .fail li{display:block}
-  .fail li b{display:block;font-weight:700;margin-bottom:2px}
-  .fail li span{color:#6B6B6B;font-size:14px;display:block}
-  .small{font-size:15px;color:#9A9A9A;margin:14px 0 0}
-  .small a,.meta a,.answer a{display:inline-block;padding:6px 0}
-  footer.foot{border-top:1px solid var(--rule);margin-top:56px;padding-top:24px;font-size:15px;color:#6B6B6B}
-  footer.foot a{color:var(--ink);font-weight:500}
-  @media(max-width:1000px){.stack{padding:24px 0 48px;gap:36px}header{padding:22px 0}.hero{padding:32px 0 0}}
-  @media(max-width:620px){
-    .stats{grid-template-columns:1fr 1fr}
-    .stats>div:nth-child(odd){padding-left:0;border-left:0}
-    .stats>div:nth-child(n+3){border-top:1px solid var(--rule);padding-top:14px}
-    .runs .rr{grid-template-columns:1fr auto}
-    .runs .rn{grid-column:1 / -1}
-    .kv li,.arow li{grid-template-columns:1fr;gap:2px}
-    .list li{grid-template-columns:56px 1fr;row-gap:2px}
-    .list li .tag{grid-column:2;text-align:left}
-  }
-
-  @media(max-width:900px){header{flex-wrap:nowrap} .mcp{display:none}}
-
-  @media(max-width:760px){
-    header{flex-wrap:nowrap!important}
-    .brand{gap:14px;min-width:0;flex:1 1 auto}
-    nav a{white-space:nowrap;padding:12px 10px;font-size:15px;min-height:40px;display:flex;align-items:center}
-    .status{gap:10px}
-    .mcp{display:none}
-    .live{max-width:38vw;overflow:hidden}
-    .live .num{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;max-width:100%;vertical-align:middle}
-  }
-</style>
-<style id="mwh-offset">header.mwh{margin-bottom:32px!important}@media (max-width:620px){header.mwh{margin-bottom:20px!important}}</style>
 <link rel="stylesheet" href="./css/dkpanel.css">
 <link rel="stylesheet" href="./css/record_block.css">
+<style>
+  :root{ --ink:var(--color-ink); --sub:var(--color-neutral-600); --stamp:var(--color-neutral-500); --indigo:var(--color-neutral-600); --rule:var(--color-neutral-200); }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Archivo',system-ui,'Helvetica Neue',sans-serif;color:var(--ink);background:var(--color-bg)}
+  a{color:var(--ink);text-decoration:none} a:hover{color:var(--indigo)}
+  .num{font-variant-numeric:tabular-nums}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 32px}
+  header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+  .logo{font-size:19px;font-weight:600;letter-spacing:-0.02em}
+  nav{display:flex;gap:28px;font-size:15px;font-weight:500;color:var(--color-neutral-800);flex-wrap:wrap}
+  nav a.active{color:var(--ink);font-weight:600}
+  .live{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;color:var(--color-neutral-600)}
+  .header-right{display:flex;align-items:center;gap:16px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--indigo)}
+  .p{font-size:17px;line-height:1.6;color:var(--color-ink);margin:0}
+  .p b{font-weight:600}
+  .callout{background:var(--color-neutral-100);border-radius:14px;padding:20px 24px;margin-top:22px;font-size:17px;line-height:1.6;color:var(--color-neutral-800)}
+  .callout b{color:var(--color-ink)}
+  .cite{font-size:13px;color:var(--color-neutral-500);padding-top:8px}
+  .cite a{font-weight:600;color:var(--color-neutral-600)}
+  .cite a:hover{color:var(--indigo)}
+  .sources{margin-top:96px;font-size:14px;color:var(--color-neutral-500);line-height:1.7}
+  .sources a{font-weight:600;color:var(--color-neutral-600)}
+  
+
+  .nav-toggle{display:none;background:none;border:0;font-size:20px;cursor:pointer;padding:6px 8px;color:var(--color-ink);line-height:1}
+  @media(max-width:760px){
+    header{position:relative;flex-wrap:nowrap!important}
+    .brand{gap:14px}
+    nav{display:none;position:absolute;top:100%;left:0;right:0;background:var(--color-bg);flex-direction:column!important;gap:0!important;padding:6px 24px 16px;border-bottom:1px solid var(--color-neutral-200);box-shadow:0 8px 16px rgba(11,11,11,0.06);z-index:30}
+    nav.open{display:flex}
+    nav a{padding:12px 0;border-bottom:1px solid var(--color-neutral-100);font-size:16px}
+    .nav-toggle{display:block}
+  }
+
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--color-ink)}
+  .tile{padding:16px 16px 4px 0}
+  .tile+.tile{padding-left:16px;border-left:1px solid var(--rule)}
+  .tile .v{font-size:24px;font-weight:500;letter-spacing:0;line-height:1.1;font-variant-numeric:tabular-nums}
+  .tile .l{font-size:14px;color:var(--sub);padding-top:6px}
+  .note{font-size:14px;line-height:1.6;color:var(--sub)}
+  .chartbox{margin-top:20px}
+  .chartbox svg{width:100%;height:auto;display:block;max-width:720px}
+  .legend{display:flex;gap:20px;font-size:14px;color:var(--sub);padding-top:8px}
+  .legend svg{width:10px;height:10px;margin-right:6px}
+  .ctitle{font-size:15px;font-weight:600;padding-top:24px}
+  table.t{width:100%;border-collapse:collapse;margin-top:24px;font-size:15px}
+  table.t th{font-size:13px;font-weight:600;color:var(--sub);text-align:left;padding:8px 12px 8px 0;border-bottom:1px solid var(--color-ink)}
+  table.t td{padding:10px 12px 10px 0;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.5}
+  table.t td.n,table.t th.n{text-align:right;font-variant-numeric:tabular-nums}
+  #rolesTable td:nth-child(-n+2){white-space:nowrap}
+  .inc{border-top:1px solid var(--rule);padding:22px 0 6px}
+  .inc:first-of-type{border-top:1px solid var(--color-ink);margin-top:24px}
+  .inc .d{font-size:13px;color:var(--stamp);font-weight:600}
+  .inc h3{font-size:18px;font-weight:500;margin:6px 0 10px;letter-spacing:0}
+  .inc dl{margin:0;display:grid;grid-template-columns:150px 1fr;gap:8px 20px;font-size:15px;line-height:1.55}
+  .inc dt{color:var(--sub)}
+  .inc dd{margin:0}
+  .inc dd a{font-weight:600;color:var(--color-neutral-600)}
+  @media(max-width:700px){
+    .tiles{grid-template-columns:1fr 1fr}
+    .tile:nth-child(odd){padding-left:0;border-left:0}
+    .tile:nth-child(n+3){border-top:1px solid var(--rule);margin-top:12px;padding-top:16px}
+    .tile .v{font-size:20px}
+    table.t thead{display:none}
+    table.t,table.t tbody,table.t tr,table.t td{display:block;width:100%}
+    table.t tr{padding:10px 0;border-bottom:1px solid var(--rule)}
+    table.t td{border:0;padding:3px 0;text-align:left!important}
+    table.t td::before{content:attr(data-label);display:block;font-size:13px;color:var(--sub)}
+    .inc dl{grid-template-columns:1fr;gap:2px}
+    .inc dd{padding-bottom:8px}
+  }
+</style>
 <link rel="stylesheet" href="./css/site_head.css?v=5">
 <link rel="stylesheet" href="./css/site_page.css?v=10">
 <link rel="stylesheet" href="./css/machine_view.css?v=3">
 </head>
 <body>
 <div class="wrap">
-  <header class="mwh"><a class="mwh-logo" href="./index.html">margin.wiki</a><nav>
-        <a href="./countries.html">Countries</a>
-        <a href="./sending-money.html">Routes</a>
-        <a href="./sources.html">Sources</a>
-        <a href="./findings.html">Findings</a>
-        <a href="./how-it-works.html">How it works</a>
-      </nav><span id="dot" style="display:none"></span><span id="connLabel" style="display:none"></span></header>
+  <div class="hp-head">
+    <div class="hp-headleft">
+      <a class="hp-logo" href="./index.html">margin.wiki</a>
+      <nav class="hp-nav" aria-label="Main" data-canon-nav></nav>
+    </div>
+  </div>
 
   <div class="hero">
     <h1 id="pageTitle">&nbsp;</h1>
-    <div class="lede" id="pageLede">&nbsp;</div>
-    <p class="small"><a href="./machine-room.html" id="machineRoomLink">&nbsp;</a></p>
+    <p class="lead" id="pageLede">&nbsp;</p>
+    <div class="tiles" id="tiles"></div>
+    <p class="note" id="totalsNote"></p>
   </div>
 
-  <div class="stack">
-    <div style="display:none">
-      <div class="col-hdr"><div class="col-title" id="col2Title">&nbsp;</div><div class="lbl" id="col2Kicker">&nbsp;</div></div>
-      <div class="feed" id="agentFeed"><div class="empty" id="col2Empty">&nbsp;</div></div>
-      <div class="feed-note" id="feedCap">&nbsp;</div>
-      <div style="padding-top:10px;font-size:15px;color:#6B6B6B"><a href="https://github.com/SebR214/margin/commits/main" id="col2HistoryLink">&nbsp;</a></div>
-    </div>
+  <section>
+    <h2 id="rolesHeading">&nbsp;</h2>
+    <p class="p" id="rolesAnswer"></p>
+    <table class="t" id="rolesTable"></table>
+  </section>
 
-    <section>
-      <h2 id="rolesHeading" style="padding-top:32px">&nbsp;</h2>
-      <p class="answer" id="rolesAnswer">&nbsp;</p>
-      <ul class="arow" id="rolesList"></ul>
-    </section>
+  <section id="recordBlock" class="dkpanel" hidden></section>
 
-    <section>
-      <h2 id="incidentsHeading" style="padding-top:32px">&nbsp;</h2>
-      <ul class="list fail" id="incidentsList"></ul>
-      <p class="small"><a href="./machine-room.html" id="incidentsLink">&nbsp;</a></p>
-    </section>
+  <section>
+    <h2 id="scoreHeading">&nbsp;</h2>
+    <p class="p" id="scoreIntro"></p>
+    <div class="ctitle" id="chartTitle"></div>
+    <div class="chartbox" id="chartBox"></div>
+    <div class="legend" id="chartLegend"></div>
+    <table class="t" id="scoreTable"></table>
+  </section>
 
-    <section id="cycleBlock" class="dkpanel" style="display:none"></section>
+  <section>
+    <h2 id="whereHeading">&nbsp;</h2>
+    <p class="p" id="whereIntro"></p>
+    <table class="t" id="whereTable"></table>
+  </section>
 
-    <section id="recordBlock" class="dkpanel" style="display:none">
-      <!-- Record block will be rendered here by JavaScript -->
-    </section>
-    <section>
-    </section>
+  <section id="incidents">
+    <h2 id="incHeading">&nbsp;</h2>
+    <p class="p" id="incIntro"></p>
+    <div id="incList"></div>
+  </section>
 
-    <section id="shippedSection" style="display:none">
-      <div class="col-hdr" style="padding-top:32px;margin-top:-32px;border-bottom:0;padding-bottom:0">
-        <h2 id="shippedHeading" style="border-bottom:1px solid #0B0B0B;padding-bottom:8px;width:100%">&nbsp;</h2>
-      </div>
-      <ul class="list feed" id="shippedFeed"><li class="empty" id="shippedEmpty" style="display:block;grid-template-columns:1fr">&nbsp;</li></ul>
-      <p class="small"><a href="https://github.com/SebR214/margin/commits/main" id="shippedHistoryLink">&nbsp;</a></p>
-    </section>
-
-    <div style="display:none">
-      <div class="col-title" style="margin-bottom:10px">Read more</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px 28px;font-size:14px">
-        <a href="./sending-money.html" style="font-weight:600;display:inline-block;padding:8px 0">Where the stablecoin cost comes from →</a>
-        <a href="./how-it-works.html" style="font-weight:600;display:inline-block;padding:8px 0">How prices are checked →</a>
-      </div>
-    </div>
-  </div>
-  <footer class="site-footer" id="pageFooter"></footer>
+  <p class="sources" id="sources"></p>
 </div>
 
-<script>
-(function () {
-  var API_BASE = location.hostname.endsWith("margin.wiki")
-    ? "https://api.margin.wiki" : "http://127.0.0.1:8903";
-
-  var COPY = {}; // filled from copy.json's "machineRoom" key before anything renders
-
-  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function T(s, vals){
-    var out = String(s||'');
-    for (var k in (vals||{})) out = out.split('{'+k+'}').join(vals[k]==null?'':vals[k]);
-    return out;
-  }
-  function timeOf(iso){ if(!iso) return ''; var d=new Date(iso); if(isNaN(d)) return ''; return d.toISOString().slice(11,19); }
-  function dateOf(iso){
-    if(!iso) return '';
-    var d = new Date(iso); if (isNaN(d)) return '';
-    var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return String(d.getUTCDate()).padStart(2,'0') + ' ' + MONTHS[d.getUTCMonth()];
-  }
-  // One stream, finite. The page scrolls; this does not. When it reaches the
-  // cap the oldest row goes -- the commit log below is the full history, so
-  // nothing is lost by saying so plainly rather than scrolling forever.
-  var FEED_CAP = 40;
-  function prepend(el, html, emptyText, cap){
-    var empty = el.querySelector('.empty'); if (empty) empty.remove();
-    var row = document.createElement('div'); row.className='log'; row.innerHTML = html;
-    el.insertBefore(row, el.firstChild);
-    while (el.children.length > (cap||FEED_CAP)) el.removeChild(el.lastChild);
-  }
-
-  // A role label for the feed's left column. Never falls through to a raw
-  // "unknown" or "" printed as UNKNOWN -- an unmapped role always reads as
-  // the copy's own byline.unknown ("--"), never the literal word.
-  function roleLabel(role){
-    var B = (COPY.columns.agents||{}).byline || {};
-    var r = String(role||'').toLowerCase();
-    return B[r] || B.unknown || '—';
-  }
-
-  // Who actually made a commit, read from the git author rather than assumed.
-  // Assuming builder is how a commit made from Sebastian's own laptop gets
-  // credited to an agent -- the exact mistake this page exists to avoid.
-  function bylineFor(email){
-    var B = (COPY.columns.agents||{}).byline || {}, e = String(email||'');
-    if (/^(builder|reviewer|product)@margin\.wiki$/.test(e)) return B[e.split('@')[0]] || B.unknown || '';
-    if (e.indexOf('margin-agents') !== -1) return B.agents || B.unknown || '';
-    if (e && e.indexOf('@users.noreply.github.com') === -1 && e !== 'actions@github.com') return B.person || B.unknown || '';
-    return B.unknown || '';
-  }
-
-  // A commit authored by the hourly collector pass (actions@github.com) is
-  // not a "change the agents shipped" -- it belongs to the hour's price
-  // check, already surfaced in the stats row and hourCheck line above. Both
-  // the "what the agents did today" feed and the "what shipped" feed below
-  // share this one filter so neither ever double-counts or mislabels it.
-  function isShippedCommit(c){
-    return ((c.commit.author||{}).email || '') !== 'actions@github.com';
-  }
-
-  function renderStatic(){
-    var C2 = COPY.columns.agents;
-    document.getElementById('pageTitle').textContent = COPY.title || '';
-    document.getElementById('pageLede').textContent = COPY.lede || '';
-    var MR = COPY.machineRoomLink || {};
-    document.getElementById('machineRoomLink').textContent = MR.text || '';
-    document.getElementById('machineRoomLink').href = MR.href || './machine-room.html';
-    document.getElementById('feedCap').textContent = C2.capNote || '';
-    document.getElementById('col2Title').textContent = C2.title || '';
-    document.getElementById('col2Kicker').textContent = C2.kicker || '';
-    document.getElementById('col2Empty').textContent = C2.empty || '';
-    document.getElementById('col2HistoryLink').textContent = C2.historyLink || '';
-    // the link to the old street-price tape page is gone (24 Oct): tape.html now redirects to Countries
-    document.getElementById('connLabel').textContent = COPY.connecting || '';
-
-    var F = COPY.footer || {};
-    // the same footer as every other page: the sentence on one line, the link on the next (21 Oct)
-    document.getElementById('pageFooter').innerHTML = (F.text ? '<p>' + esc(F.text) + '</p>' : '') +
-      (F.linkText ? '<a href="' + esc(F.linkHref || 'https://github.com/SebR214/margin') + '">' + esc(F.linkText) + '</a>' : '');
-
-    var R = COPY.roles || {};
-    document.getElementById('rolesHeading').textContent = R.heading || '';
-    document.getElementById('rolesAnswer').textContent = R.answer || '';
-    document.getElementById('rolesList').innerHTML = (R.items||[]).map(function(it){
-      return '<li><b>'+esc(it.role)+'</b><span class="when">'+esc(it.when)+'</span><span class="txt">'+esc(it.text)+'</span></li>';
-    }).join('');
-
-    document.getElementById('shippedHeading').textContent = C2.shippedTitle || '';
-    document.getElementById('shippedHistoryLink').textContent = C2.shippedHistoryLink || '';
-
-    var I = COPY.incidents || {};
-    document.getElementById('incidentsHeading').textContent = I.heading || '';
-    document.getElementById('incidentsLink').textContent = I.linkText || '';
-    document.getElementById('incidentsLink').href = I.linkHref || './machine-room.html';
-    // Each incident's figures (days, dollars, minutes, hours) are named
-    // fields on its own item, so the sentence is a template, never typed.
-    document.getElementById('incidentsList').innerHTML = (I.items||[]).map(function(it){
-      return '<li><b>'+esc(T(it.what, it))+'</b><span>'+esc(T(it.text, it))+'</span></li>';
-    }).join('');
-  }
-
-
-  // Seed "what the agents are doing" with real recent commits from GitHub's
-  // public API (no auth needed, public repo) -- live SSE events (issues,
-  // reviews, further commits) prepend above these as they arrive. The same
-  // fetch also drives the curated "what shipped in the last two days" feed
-  // below, so a reader sees one real commit history rendered two ways, not
-  // two independently-fetched (and possibly disagreeing) ones.
-  function seedAgents(commits){
-    var C = COPY.columns.agents;
-    var shipped = commits.filter(isShippedCommit);
-
-    var html = shipped.slice(0, 8).map(function(c){
-      var by = bylineFor((c.commit.author||{}).email);
-      var msg = (c.commit.message.split('\n')[0] || '').replace(/\s*\(#\d+\)\s*$/, '');
-      var prMatch = c.commit.message.match(/\(#(\d+)\)/);
-      return '<div class="log"><div class="stamp num" style="min-width:46px">' + esc(timeOf(c.commit.author.date)) + '</div>' +
-        '<div class="stamp" style="min-width:78px;letter-spacing:.08em">' + esc(by) + '</div>' +
-        '<div style="flex-grow:1">' + esc(T(C.commitTemplate, { message: msg })) + '</div>' + (prMatch ? ' (#' + prMatch[1] + ')' : '') + '</div>';
-    }).join('');
-    var feed = document.getElementById('agentFeed');
-    if (html) feed.innerHTML = html;
-
-    var PR_SUFFIX_RE = /\(#(\d+)\)\s*$/;
-    var S = COPY.shipped || {};
-    var cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    var recent = shipped.filter(function(c){
-      var t = new Date(c.commit.author.date).getTime();
-      return !isNaN(t) && t >= cutoff && PR_SUFFIX_RE.test(c.commit.message.split('\n')[0] || '');
-    }).filter(function(c){
-      return plainLine((c.commit.message.split('\n')[0] || '').replace(PR_SUFFIX_RE, ''));
-    }).slice(0, S.maxLines || 5);
-    var shippedFeed = document.getElementById('shippedFeed');
-    if (recent.length) {
-      document.getElementById('shippedSection').style.display = '';
-      shippedFeed.innerHTML = recent.map(function(c){
-        var title = (c.commit.message.split('\n')[0] || '').replace(PR_SUFFIX_RE, '');
-        return '<li><span class="d">' + esc(dateOf(c.commit.author.date)) + '</span>' +
-          '<span><a href="' + esc(c.html_url || '') + '">' + esc(plainLine(title)) + '</a></span></li>';
-      }).join('');
-    }
-  }
-
-  // Turns a commit title into a plain line for the "shipped" list. Strips the
-  // ticket id and the trailing full stop. If what is left still carries jargon,
-  // a file name, a symbol, a dash, a number or is long, or does not start with a plain verb from the list, it cannot be made plain by rule,
-  // so it is left out of the list (copy.json's generic keys are the plain verbs).
-  function plainLine(title){
-    var S = COPY.shipped || {};
-    var t = String(title || '').replace(/^\s*SEB-\d+\s*[:\-]?\s*/i, '').replace(/\.\s*$/, '').trim();
-    var jargon = new RegExp('\\b(' + (S.jargon || []).join('|') + ')\\b', 'i');
-    var G = S.generic || {};
-    var verb = (t.split(/\s+/)[0] || '').toLowerCase().replace(/[^a-z]/g, '');
-    var plain = t && G[verb] && verb !== 'other' && t.split(/\s+/).length <= 14 &&
-      /^[A-Za-z' ,]+$/.test(t) && !jargon.test(t);
-    if (plain) return t.charAt(0).toUpperCase() + t.slice(1) + '.';
-    return '';
-  }
-
-  // One sentence of what has been collected. Every figure is a field the
-  // page already reads: data/machine_room_meters.json's research block for the
-  // counts, and data/manifest_latest.json's date range for the earliest row in
-  // the price files that research block names.
-  function drawCollected(x, manifest){
-    var Z = COPY.collected || {};
-    var first = '';
-    ((manifest || {}).files || []).forEach(function(f){
-      if ((x.observation_files || []).indexOf((f.path || '').replace(/^data\//, '')) === -1) return;
-      var d = ((f.date_range || {}).from || '').slice(0, 10);
-      if (d && (!first || d < first)) first = d;
-    });
-    var m = Z.months || [], d0 = new Date(first + 'T00:00:00Z');
-    var date = isNaN(d0) ? '' : d0.getUTCDate() + ' ' + (m[d0.getUTCMonth()] || '');
-    var nf = function(n){ return Number(n || 0).toLocaleString('en-US'); };
-    if (!date || x.observations == null) return;
-  }
-
-  // Render the record growth section
-  async function renderRecordBlockSection() {
-    try {
-      // Fetch the required data files
-      const [recordDaily, recordMilestones, copyJson, corridorWindow] = await Promise.all([
-        fetch('./data/record_daily.json', {cache: 'no-store'}).then(r => r.json()),
-        fetch('./data/record_milestones.json', {cache: 'no-store'}).then(r => r.json()),
-        fetch('./copy.json', {cache: 'no-store'}).then(r => r.json()),
-        fetch('./data/corridor_window.json', {cache: 'no-store'}).then(r => r.json()).catch(() => ({}))
-      ]);
-      const routeNames = {};
-      Object.keys(corridorWindow || {}).forEach(k => { if (corridorWindow[k] && corridorWindow[k].route_words) routeNames[k] = corridorWindow[k].route_words; });
-
-      // Get the copy block for the record section
-      const machineRoomCopy = copyJson.machineRoom || {};
-
-      // Import the renderRecordBlock function
-      const script = document.createElement('script');
-      script.src = './js/record_block.js';
-      script.onload = function() {
-        // Render the record block
-        const recordBlockContainer = document.getElementById('recordBlock');
-        if (recordBlockContainer) {
-          recordBlockContainer.style.display = '';
-          window.renderRecordBlock(recordBlockContainer, recordDaily, recordMilestones, machineRoomCopy, routeNames);
-        }
-      };
-      document.head.appendChild(script);
-    } catch (error) {
-      /* the section stays hidden */
-    }
-  }
-
-  async function boot(){
-    var copyDoc = await fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return {}; });
-    COPY = copyDoc.machineRoom || { columns: { collection:{}, agents:{}, meters:{} } };
-    renderStatic();
-
-    fetch('./data/machine_room_meters.json', {cache:'no-store'}).then(function(r){ return r.json(); })
-      .then(function(m){
-        if (!m || !m.research) return;
-        fetch('./data/manifest_latest.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
-          .then(function(mf){ drawCollected(m.research, mf); });
-      })
-      .catch(function(){});
-    // the commit list is built each hour into data/commits_recent.json (tools/emit_commits.py); the browser no longer asks GitHub itself
-    fetch('./data/commits_recent.json', {cache:'no-store'})
-      .then(function(r){ return r.ok ? r.json() : {commits: []}; })
-      .then(function(d){
-        return (d.commits || []).map(function(c){ return {html_url: c.html_url, commit: {message: c.message, author: {email: c.email, date: c.date}}}; });
-      }).then(seedAgents).catch(function(){});
-
-    // Render the record block section
-    renderRecordBlockSection();
-
-    var es = new EventSource(API_BASE + '/v1/events');
-    // Retrying, quietly, is normal for a live feed and should not read as
-    // broken -- so an error shows nothing at first. Only a failure that
-    // persists past OFFLINE_AFTER_MS (never reconnecting in that window)
-    // is "genuinely failed," and that's the only case that gets a visible
-    // label. A later successful open clears it back to "connected".
-    var OFFLINE_AFTER_MS = 15000;
-    var offlineTimer = null;
-    es.onopen = function(){
-      if (offlineTimer) { clearTimeout(offlineTimer); offlineTimer = null; }
-      document.getElementById('dot').classList.remove('off');
-      document.getElementById('connLabel').textContent = COPY.connected || '';
-    };
-    es.onerror = function(){
-      document.getElementById('dot').classList.add('off');
-      if (!offlineTimer) {
-        offlineTimer = setTimeout(function(){
-          document.getElementById('connLabel').textContent = COPY.offline || '';
-          offlineTimer = null;
-        }, OFFLINE_AFTER_MS);
-      }
-    };
-
-    es.onmessage = function(ev){
-      var e; try { e = JSON.parse(ev.data); } catch(err){ return; }
-      var C2 = COPY.columns.agents;
-
-      if (e.kind === 'collector_pass') {
-        return; // no separate active/idle state is shown any more
-      }
-      if (e.kind === 'linear') {
-        var what = e.event === 'transition'
-          ? T(C2.transitionTemplate, { ident: esc(e.ident), from: esc(e.from_state), to: esc(e.to_state) })
-          : T(C2.commentTemplate, { ident: esc(e.ident), text: esc((e.text||'').slice(0,120)) });
-        // A Linear issue move is never one of the four agent identities --
-        // it's the tracker itself, so it is always labelled LINEAR, not
-        // whatever (or nothing) the event's own role field carries.
-        prepend(document.getElementById('agentFeed'),
-          '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">'+esc((C2.byline||{}).linear || 'LINEAR')+'</div><div style="flex-grow:1">'+what+'</div>');
-        return;
-      }
-      if (e.kind === 'commit') {
-        var pr = e.pr_number ? ' (#'+e.pr_number+')' : '';
-        var message = T(C2.commitTemplate, { message: '<span style="font-weight:600">'+esc((e.message||'').replace(/\s*\(#\d+\)\s*$/,''))+'</span>' });
-        prepend(document.getElementById('agentFeed'),
-          '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">BUILDER</div><div style="flex-grow:1">'+message+esc(pr)+'</div>');
-        return;
-      }
-      if (e.kind === 'loop_health') {
-        var label = e.event === 'stopped'
-          ? T(C2.loopStoppedTemplate, { when: esc(timeOf(e.last_finished_utc)) })
-          : e.event === 'pass'
-            ? T(C2.loopPassTemplate, { result: e.ok ? C2.loopOk : C2.loopFailed, seconds: e.seconds!=null ? ', '+Math.round(e.seconds)+'s' : '' })
-            : C2.loopRecovered;
-        prepend(document.getElementById('agentFeed'),
-          '<div class="stamp num" style="min-width:46px">'+esc(timeOf(e.ts))+'</div><div class="stamp" style="min-width:64px;letter-spacing:.08em">'+esc(roleLabel(e.role))+'</div><div style="flex-grow:1">'+esc(label)+'</div>');
-        return;
-      }
-    };
-  }
-
-  boot();
-})();
-</script>
-
-<script src="./js/tooltip.js"></script>
-<script src="./js/cycle_block.js"></script>
-<script>
-// "Collected fresh every hour": the last collection cycle's steps and the last 48 clock hours (moved here from how-it-works.html).
-Promise.all([
-  fetch('./copy.json', {cache:'no-store'}).then(function(r){ return r.json(); }),
-  fetch('./data/cycle_log.json', {cache:'no-store'}).then(function(r){ return r.json(); }),
-  fetch('./data/heatmap_daily.json', {cache:'no-store'}).then(function(r){ return r.json(); }).catch(function(){ return null; })
-]).then(function(res){
-  var hiw = (res[0] && res[0].howItWorks) || {};
-  var keys = ['cycleTitle','cycleLine','stepCurrencies','stepRoutes','stepAuditor','stepAuditorResult','stepAnalyst','resultClean','resultAuditFailed','resultSourceMissed','resultCheckFailed','stripTitle','stripClean','stripMissed','stripFailed'];
-  var copyBlock = {}; keys.forEach(function(k){ copyBlock[k] = hiw[k] || ''; });
-  // "did not answer" names its sources, same names as the Sources page (SEB-301, 21 Oct), not their raw ids
-  copyBlock.sourceNames = (res[0] && res[0].sourcesData && res[0].sourcesData.sourceNames) || {};
-  // the "of" in "49 of N countries have a price" is the same countries-tracked number as home, Countries and How it works (SEB-301, 21 Oct)
-  copyBlock.countriesTracked = res[2] && res[2].countries_tracked;
-  var box = document.getElementById('cycleBlock');
-  if (box && typeof renderCycleBlock === 'function') {
-    renderCycleBlock(box, res[1], copyBlock);
-    if (copyBlock.cycleTitle) { box.style.display = 'block'; }
-  }
-}).catch(function(){});
-</script>
+<script src="./js/machine_room_page.js?v=2"></script>
+<script src="./js/footer.js?v=2"></script>
 <script src="./js/site_head.js?v=5"></script>
+<script src="./js/tooltip.js"></script>
 <script src="./js/machine_view.js?v=3" defer></script>
-<script src="./js/page_trio.js?v=2"></script>
-<script src="./js/footer.js" data-links-only></script>
 </body>
 </html>

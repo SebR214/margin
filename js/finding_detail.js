@@ -9,7 +9,7 @@
   var TO = { PHP: 'the Philippines', MXN: 'Mexico', INR: 'India', NGN: 'Nigeria', ARS: 'Argentina', BRL: 'Brazil' };
   var SYM = { SGD: 'S$', AUD: 'A$', NZD: 'NZ$', USD: 'US$' };
   var ORDER = ['price_changes', 'weekend_penalty', 'volume_crossover', 'sgd_php_never_cheapest', 'exchange_vs_p2p'];
-  var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navFindings', 'findings.html'], ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHowItWorks', 'how-it-works.html']];
+  var NAV = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHowItWorks', 'how-it-works.html']];
   var C = {}, FIN = {}, DATA = {}, AS_OF = '';
   var id = 'price_changes', route = 'ALL', side = 'taker';
 
@@ -84,7 +84,7 @@
   function page() {
     var f = FIN[id];
     if (window.PageHead) { window.PageHead.copy().then(function (S) { window.PageHead.set({ title: title(id) + ': margin.wiki', description: window.PageHead.fill(S.findingDescription, { title: title(id) }), path: 'finding.html?id=' + encodeURIComponent(id), twin: 'finding/' + encodeURIComponent(id) + '.md' }); }); }
-    $('fnav').innerHTML = '<a class="back" href="./findings.html">' + esc(T('indexTitle')) + '</a><div class="pills">' +
+    $('fnav').innerHTML = '<a class="back" href="./research.html">' + esc(T('navResearch')) + '</a><div class="pills">' +
       ORDER.map(function (k, i) { return '<a class="pill num" href="?id=' + k + '"' + (k === id ? ' aria-current="page"' : '') + ' data-id="' + k + '">0' + (i + 1) + '</a>'; }).join('') + '</div>';
     var big = id === 'volume_crossover' ? 'S$' + g(f.headline.value) : g(f.headline.value);
     $('hero').innerHTML = '<h1>' + esc(title(id)) + '</h1><p class="lead">' + esc(claim(id)) + '</p>' +
@@ -377,7 +377,7 @@
     var want = new URLSearchParams(location.search).get('id');
     if (!want || ORDER.indexOf(want) < 0 || !FIN[want]) {
       $('nf').hidden = false;
-      $('nf').innerHTML = esc(T('notFound')) + ' <a href="./findings.html">' + esc(T('notFoundLink')) + '</a>';
+      $('nf').innerHTML = esc(T('notFound')) + ' <a href="./research.html">' + esc(T('notFoundLink')) + '</a>';
       return;
     }
     show(want);
