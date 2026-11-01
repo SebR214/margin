@@ -1,6 +1,6 @@
 # Plain code makes every number. AI only helps build the site.
 
-Prices from the 05:00 UTC hour, 1 Nov.
+Prices from the 06:00 UTC hour, 1 Nov.
 
 The collector and the checks are plain code. The builder uses AI to write some of the code, and one person writes the rest.
 
@@ -27,10 +27,10 @@ Each line is a step of the latest hourly run, with the time it finished. Any pro
 
 | Time | Check | Detail |
 | --- | --- | --- |
-| 05:00 | 47 of 54 countries have a price. The rest show none this hour, never a guess. |  |
-| 05:00 | 11 of 11 routes priced this hour. |  |
-| 04:07 | 50 of our figures recomputed from raw prices. Matches mean the data backs them. | 50 of 50 matched |
-| 05:15 | These sources did not answer this hour: CriptoYa · Buenbit. |  |
+| 06:00 | 46 of 54 countries have a price. The rest show none this hour, never a guess. |  |
+| 06:00 | 11 of 11 routes priced this hour. |  |
+| 05:07 | 50 of our figures recomputed from raw prices. Matches mean the data backs them. | 50 of 50 matched |
+| 06:15 | These sources did not answer this hour: CriptoYa · Buenbit. |  |
 
 How the last 48 hours went
 
@@ -38,7 +38,7 @@ How the last 48 hours went
 
 ## The record grew as new sources and routes came in
 
-618,866 prices stored
+619,638 prices stored
 
 Exchanges' own earlier prices reach back to 3 Jan 2011, so some charts predate our record.
 

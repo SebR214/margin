@@ -1,12 +1,12 @@
 # No price for Uganda this hour
 
-Prices from the 05:00 UTC hour, 1 Nov.
+Prices from the 06:00 UTC hour, 1 Nov.
 
 Held back this hour: the price jumped from its usual level and we’re waiting for a second source to confirm it.
 
 The last price we published was −3.1%, on 1 Nov.
 
-Prices from the 05:00 UTC hour, 1 Nov
+Prices from the 06:00 UTC hour, 1 Nov
 
 <https://margin.wiki/data/countries/UGX.json>
 
