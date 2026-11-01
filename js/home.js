@@ -136,15 +136,19 @@
     var nTracked = D.heat.countries_tracked;
     var idxCount = { priced: g(nPriced), tracked: g(nTracked) };
     // one per row, as the Sources page lists them: the CriptoYa feeds count once
-    // only sources whose readings are in the stored-prices count (the cash trackers and extra boards are listed on Sources but not counted there)
-    var sr = (D.src && D.src.sources) ? D.src.sources.filter(function (s) { return (s.files || []).every(function (f) { return f !== 'cash_rates/' && f !== 'p2p_basis_boards.csv'; }); }) : null, nSources = sr ? sr.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (sr.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null;
+    // the sources behind the stored-prices count, and every source read each hour (the Sources page's own count, CriptoYa's
+    // feeds as one), so the line says plainly that the count covers some of them (1 Nov: home said 41, Sources said 49)
+    var grp = function (list) { return list ? list.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (list.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null; };
+    var all = (D.src && D.src.sources) || null;
+    var sr = all ? all.filter(function (s) { return (s.files || []).every(function (f) { return f !== 'cash_rates/' && f !== 'p2p_basis_boards.csv'; }); }) : null;
+    var nSources = grp(sr), nAll = grp(all);
     var h = '<h1>' + esc(moveHeadline() || T('headline')) + '</h1>' + (dailyProse() || moveSince()) +
       (T('heroWhy') ? '<p class="lead sub">' + esc(T('heroWhy')) + '</p>' : '') +
       '<p class="lead what">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
       // who built it and what is stored so far, as one line (21 Oct, Seb's wording); the numbers come from the files
       // the line links to How it was built (1 Nov)
       '<p class="body agents"><a href="./how-it-was-built.html">' + esc(T('agentsLine')) + (T('agentsStored') && nSources != null && tt.readings != null && tt.hours_collected != null ? ' ' +
-        esc(T('agentsStored', { readings: '\u0001', sources: '\u0002', hours: '\u0003' })).replace('\u0001', g(tt.readings)).replace('\u0002', String(nSources)).replace('\u0003', g(tt.hours_collected)) : '') + '</a></p>';
+        esc(T('agentsStored', { readings: '\u0001', sources: '\u0002', hours: '\u0003', all: '\u0004' })).replace('\u0001', g(tt.readings)).replace('\u0002', String(nSources)).replace('\u0004', String(nAll)).replace('\u0003', g(tt.hours_collected)) : '') + '</a></p>';
     $('hero').innerHTML = h;
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
   }
@@ -287,8 +291,9 @@
       '<div class="rows lrows">' + rows.map(function (r) {
         var c = Math.round(closed(r) * 100);
         return '<a class="r lr" href="' + ctry(r.ccy) + '"><b>' + esc(plain(r.country)) + '<small class="d">' + esc(month(r.date, true)) + '</small></b>' +
-          '<span class="m">' + esc(T('landGap', { premium: pct1(r.premium_before_pct) })) + '</span>' +
-          '<span class="lbar" aria-hidden="true"><i style="width:' + c + '%"></i></span>' +
+          // the gap before and after on one line (1 Nov, Claude Design review): the jump closing the gap, not a progress bar.
+          // After = the part of the gap still open, on the same base as "of the gap closed", so the two numbers agree.
+          '<span class="m lba num">' + esc(T('landBeforeAfter', { before: pct1(r.premium_before_pct), after: pct1(r.premium_before_pct * (1 - closed(r))) })) + '</span>' +
           '<span class="v num">' + c + '%<small>' + esc(T('landClosed')) + '</small></span></a>';
       }).join('') + '</div><p class="note sm">' + esc(T('landNote')) + '</p>';
   }

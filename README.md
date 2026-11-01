@@ -1,16 +1,16 @@
 # margin.wiki
 
-Every hour, margin.wiki prices a dollar in 60 countries against the official exchange rate, and prices sending money on 7 routes with every fee we can measure. The site is at [margin.wiki](https://margin.wiki), served from this repository's `main` branch by GitHub Pages.
+Every hour, margin.wiki prices a dollar in over 50 countries against the official exchange rate, and prices sending money on 11 routes with every fee we can measure. The site is at [margin.wiki](https://margin.wiki), served from this repository's `main` branch by GitHub Pages.
 
 Every figure on this page was counted from the files on `main` on 12 Oct 2026, around 03:07 UTC. The counts change every hour.
 
 ## What it measures
 
-**A dollar in 60 countries.** For each country we take the price people pay for a dollar stablecoin in local money, and compare it with the official rate. The gap is the number. A country shows no price for an hour when there is not enough evidence, and the page says why. At the 02:00 UTC hour on 12 Oct, 47 of the 60 had a price and 13 did not.
+**A dollar in over 50 countries.** For each country we take the price people pay for a dollar stablecoin in local money, and compare it with the official rate. The gap is the number. A country shows no price for an hour when there is not enough evidence, and the page says why. At the 02:00 UTC hour on 12 Oct, 47 of the 60 had a price and 13 did not.
 
 Where the price comes from, in this order: exchange order books, then broker quotes, then offers between people on Binance and OKX. The rules are in [METHODOLOGY.md](METHODOLOGY.md). The index is at version 1.5 (`index_version` in `data/index_latest.json`).
 
-**Sending money on 7 routes.** Australia to the Philippines, New Zealand to the Philippines, Singapore to the Philippines, Singapore to India, United States to India, United States to Mexico and United States to Nigeria, each at five amounts in the sending currency: 200, 1,000, 5,000, 25,000 and 50,000. For each we price the transfer apps and sending it by stablecoin, and show how much less the person receiving gets than at the official rate.
+**Sending money on 11 routes.** United States to Argentina, India, Nigeria, Brazil, Mexico and the Philippines, Singapore to India and the Philippines, Australia to India and the Philippines, and New Zealand to the Philippines, each at five amounts in the sending currency: 200, 1,000, 5,000, 25,000 and 50,000. For each we price the transfer apps and sending it by stablecoin, and show how much less the person receiving gets than at the official rate.
 
 ## Where the data is
 

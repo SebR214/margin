@@ -99,7 +99,8 @@
     var html = '<div class="tl"><div class="tlbar">' +
       '<button class="pill" type="button" data-tl="now" aria-pressed="' + (on === 'now') + '">' + ctx.esc(T('tlNow')) + '</button>' +
       '<label class="tlyear"><span>' + ctx.esc(T('tlYear')) + '</span><select id="tlY" >' +
-      (on === 'day' ? '' : '<option value="" selected></option>') + yrs + '</select></label>' +
+      // no blank box when no year is picked (Grok review, 1 Nov): the empty choice says what to do
+      (on === 'day' ? '' : '<option value="" selected disabled>' + ctx.esc(T('tlYearPick') || '') + '</option>') + yrs + '</select></label>' +
       '<button class="pill" type="button" data-tl="hour" aria-pressed="' + (on === 'hour') + '">' + ctx.esc(T('tlHourly')) + '</button></div>';
     if (on !== 'now') {
       var n = on === 'hour' ? (HOURS ? HOURS.hours.length : 0) : daysIn(S.year);

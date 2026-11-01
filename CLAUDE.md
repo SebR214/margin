@@ -1,6 +1,6 @@
 # margin.wiki
 
-Seb's passion project. It prices a dollar in about 60 currencies every hour, against the official rate, and prices sending money on 11 routes with all fees in. Built for fun. Never suggest sharing it.
+Seb's passion project. It prices a dollar in over 50 countries every hour, against the official rate, and prices sending money on 11 routes with all fees in. Built for fun. Never suggest sharing it.
 
 Read this file and the Linear issue you were given. Load nothing else unless the issue lists it.
 

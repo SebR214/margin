@@ -4,7 +4,7 @@ Updated 24 Oct 2026 (devaluation watch, approved by Seb in chat, SEB-384; events
 
 ## What margin.wiki is
 
-Every hour it prices a dollar in 60 countries against the official rate, and prices sending money on 7 routes with every fee we can measure.
+Every hour it prices a dollar in over 50 countries against the official rate, and prices sending money on 11 routes with every fee we can measure.
 
 ## In six months (April 2027)
 
