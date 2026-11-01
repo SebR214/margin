@@ -768,6 +768,13 @@ jobs:
         if: always() && steps.needed.outputs.proceed == 'true'
         run: python3 tools/emit_markdown.py
 
+      # Pages that show what they draw with scripts off (SEB-431). Renders the ten shell pages in headless Chrome and writes each one's
+      # drawn body into a <noscript> block in its own HTML (tools/bake_pages.py). Idempotent. A page that draws too little is left as it
+      # was and the step goes red, never green; always() so a render hiccup does not block the commit below.
+      - name: Bake what each page draws into its HTML
+        if: always() && steps.needed.outputs.proceed == 'true'
+        run: python3 tools/bake_pages.py
+
       # Mints a margin-agents GitHub App installation token so the commit
       # below is pushed -- and therefore reviewed, once branch protection is
       # back on -- as the App, not as whoever's GITHUB_TOKEN happened to run
@@ -984,6 +991,12 @@ jobs:
           # tracked, so left unstaged they make `git pull --rebase` refuse and Commit samples fail (31 Oct, from the 09:05 UTC run).
           # Their own loop so no existing line is edited.
           for f in sitemap.xml robots.txt; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          # The pages the bake step writes into (SEB-431) and the 404 page the markdown step writes. Tracked, so left unstaged they make
+          # `git pull --rebase` refuse, as sitemap.xml did on 31 Oct. Their own loop so no existing line is edited.
+          for f in countries.html sending-money.html sources.html research.html events.html how-it-works.html how-it-was-built.html \
+                   research-capital-controls.html research-source-pairs.html 404.html; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # The machine room's markdown twin (SEB-427, merged 31 Oct 12:08 UTC): written every run by the markdown step, so it is tracked
