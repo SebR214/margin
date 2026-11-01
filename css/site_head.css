@@ -98,3 +98,24 @@
   .hp-clock { display: none !important; }
 }
 @keyframes shSheet { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+
+/* Nav groups (1 Nov): the site itself, then "about the data" set apart, smaller and grey. On a phone the sheet shows
+   the second group under its small label. */
+.sh-about { display: inline-flex; align-items: center; gap: 0 16px; margin-left: 2px; padding-left: 18px; position: relative; }
+.sh-about::before { content: ''; position: absolute; left: 0; top: 50%; height: 16px; margin-top: -8px; border-left: 1px solid var(--color-neutral-300, #d7d3d3); }
+.sh-about a { font-size: 14px !important; color: var(--color-neutral-600, #7d7979) !important; }
+.sh-about a[aria-current] { color: var(--color-ink, #201e1d) !important; }
+.sh-about-label { display: none; }
+@media (max-width: 767px) {
+  .sh-about { display: flex; flex-direction: column; align-items: stretch; margin: 12px 0 0; padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--color-neutral-300, #d7d3d3); gap: 0; }
+  .sh-about-label { display: block; padding: 0 16px 4px; font-size: 13px; color: var(--color-neutral-600, #7d7979); }
+  .sh-about a { font-size: 16px !important; }
+}
+@media (min-width: 768px) {
+  /* one line at every desktop width: the status line gives way (cut with ...) before anything wraps */
+  .hp-head { flex-wrap: nowrap !important; }
+  .hp-head .hp-clock { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 0 1 auto; }
+  .hp-headleft { flex: none; column-gap: 24px !important; }
+  .hp-nav { column-gap: 18px !important; }
+}
+@media (min-width: 768px) { .hp-head { column-gap: 28px !important; } }

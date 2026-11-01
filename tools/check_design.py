@@ -44,6 +44,8 @@ ALLOWED = {
     "#0B0B0B", "#000", "#000000", "#FFF", "#FFFFFF", "#333", "#333333", "#6B6B6B", "#7D7979", "#9A9A9A",
     "#D3D0CB", "#EDEDED", "#F0F0F0", "#F6F6F6", "#F5F5F5", "#FAFAFA", "#EEE", "#EEEEEE", "#DDD", "#DDDDDD",
     "#817FCC", "#3F3047", "#F0EBD8", "#201E1D",
+    # the gap scale, DESIGN.md "Palette" (1 Nov): near white to grape
+    "#ECEAF4", "#C7C3E8", "#938FD3", "#62579A",
 }
 HEX = re.compile(r"#[0-9A-Fa-f]{3}(?:[0-9A-Fa-f]{3})?\b")
 

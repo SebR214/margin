@@ -25,7 +25,7 @@ from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urljoin, urlparse
 
 SITE = "https://margin.wiki"
-MUST_BE_LINKED = ["how-it-was-built.html"]
+MUST_BE_LINKED = []   # How it was built is linked from How it works (1 Nov), not the footer
 TRIES, PAUSE = 4, 30
 
 
@@ -187,7 +187,7 @@ def self_test():
     w("llms.txt", "x")
     w("favicon.ico", "x")
     w("favicon.svg", "x")
-    w("copy.json", json.dumps({"siteHead": {"footerLinks": [{"href": "https://github.com/SebR214/margin"}, {"href": "./how-it-was-built.html"}]}}))
+    w("copy.json", json.dumps({"siteHead": {"footerLinks": [{"href": "https://github.com/SebR214/margin"}]}}))
     ns = "http://www.sitemaps.org/schemas/sitemap/0.9"
     w("sitemap.xml", '<urlset xmlns="%s"><url><loc>https://margin.wiki/</loc></url><url><loc>https://margin.wiki/event.html</loc></url></urlset>' % ns)
     handler = lambda *a, **k: http.server.SimpleHTTPRequestHandler(*a, directory=d, **k)

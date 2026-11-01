@@ -23,10 +23,12 @@ In a cost waterfall (`index.html`, `corridor.html`), the two "dollar-route" legs
 
 ## Nav (canonical, the only nav)
 
-Countries, Routes, Sources, Research, Events, How it works, in that order. Seven items at most. Findings live in
-Research (1 Nov). The logo links to the home page. The
+Two groups (1 Nov). The site itself, in the order a reader goes: Countries, Events, Research, Routes. Then, set apart
+by a thin line, smaller and grey, "About the data": Sources, How it works. On a phone the Menu sheet shows the same two
+groups with that label. Seven items at most. Findings live in Research, How it was built lives under How it works.
+`js/site_head.js` groups whatever nav a page draws, so the order is set in one place. The logo links to the home page. The
 nav is generated from `copy.json`'s `nav` array into every page by the bake step (`tools/bake_nav.py`); no page carries a
-hand-written header. How it was built is not in the nav: the footer of every page links to it. Fee tiers, agent incidents, the machine
+hand-written header. How it was built sits under How it works: its last section links to it, and the page has a back link to How it works. The footer is only the GitHub link. Nothing lives only at the bottom of a page. Fee tiers, agent incidents, the machine
 room, tape and corridor are redirects.
 
 ## Pages (layout, phones, charts)

@@ -242,16 +242,15 @@
     var lo = 0, hi = 0;
     all.forEach(function (r) { lo = Math.min(lo, r.lo, r.p); hi = Math.max(hi, r.hi, r.p); });
     var span = hi - lo, step = span > 60 ? 25 : span > 20 ? 10 : 2;
-    lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
-    if (lo < 0 && -lo < step) { lo = -step; }
+    lo = Math.floor(lo / 5) * 5; hi = Math.ceil(hi / step) * step;   // the left end stops just past the lowest country
     var ticks = [];
-    for (var v = lo; v <= hi + 1e-9; v += step) { ticks.push(Math.round(v)); }
+    for (var v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) { ticks.push(Math.round(v)); }
     return { lo: lo, hi: hi, ticks: ticks };
   }
 
   function bandSection(def, rows, shared) {
     if (!rows.length || !has(C, def.capKey)) { return null; }
-    var money = def.k !== 'near';
+    var money = true;   // every group has the same columns, so 0% sits in the same place in every group
     var Sc = shared;
     var X = mkX(Sc);
     var sec = el('section', money ? ['ci-band', 'ci-money'] : 'ci-band');
