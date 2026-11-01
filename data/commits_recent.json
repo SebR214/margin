@@ -1,7 +1,14 @@
 {
- "as_of_utc": "2026-11-01T21:44:49Z",
+ "as_of_utc": "2026-11-01T22:20:10Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "31651d7ec86f60252247584b0bf2a376d1c7c4a8",
+   "html_url": "https://github.com/SebR214/margin/commit/31651d7ec86f60252247584b0bf2a376d1c7c4a8",
+   "date": "2026-11-01T21:48:54Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-01T21:48Z"
+  },
   {
    "sha": "56b06c56690fbf9ed19fd5da1b9d9c1a1635d458",
    "html_url": "https://github.com/SebR214/margin/commit/56b06c56690fbf9ed19fd5da1b9d9c1a1635d458",
@@ -694,13 +701,6 @@
    "date": "2026-10-31T08:20:20Z",
    "email": "person",
    "message": "SEB-423: Research live pieces rebuilt every run, CI rebuilds before checking claims (fixes red main; supersedes 727) (#734)\n\n* SEB-423 step 3a: Research pages are generated, monthly, from scripts in tools/research\n\ntools/research/run.py rebuilds each piece on the first run of the month: the yearly premium page from the history files plus its live months, and a new piece, Markets inside one country disagree, from data/source_pairs.json. Collect step and staging loop only (additive). Pipeline only; page and words follow in a separate PR.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-423: the yearly premium table no longer depends on which countries are priced this hour\n\nbackfill_history.tracked_ccys() reads data/index_latest.json, so UAH dropped out of the table when it had no price in the newest hour and the stored rows differed from a recomputation (checks red on main since PR 728). The table now uses every country in data/heatmap_daily.json. Stored files unchanged (123 rows, 25 currencies); the assertion is not loosened.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-423: Research live pieces are rebuilt every collection run, and CI rebuilds them before checking their claims\n\nRoot cause of the red checks: data/research/source_pairs.json was built once and compared by the claims audit with data/source_pairs.json, which collection rewrites every hour, so the pair could not stay equal. Live pieces now rebuild every run (the yearly page stays monthly); this carries PR 727's tools/research and collect step, which this PR supersedes. checks.yml rebuilds the pages from the commit's inputs before the Research claims test. Assertions are not loosened.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "8569ad8e3a21b3c7578ca1f78edccd48e82c2b1a",
-   "html_url": "https://github.com/SebR214/margin/commit/8569ad8e3a21b3c7578ca1f78edccd48e82c2b1a",
-   "date": "2026-10-31T07:48:08Z",
-   "email": "person",
-   "message": "SEB-301: a failed gas read no longer costs the hour its route rows (#732)\n\ncollector.py: the gas read tries the first RPC twice, then a second public keyless RPC (cloudflare-eth.com). If both fail, gas_readings.csv gets a source_ok=false row with the error, the corridor sample is still written with gas:missing in its errors column and every gas-dependent figure blank (nothing invented, nothing reused), and the step exits 0.\nemit_routes.py: such an hour is not priced and the route's gaps list says the on-chain leg was not read that hour.\ncheck_collection_run.py: a step that exits non-zero fails the gate only if it wrote no rows; a gas-only miss counts as a corridor that answered.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
   }
  ]
 }
