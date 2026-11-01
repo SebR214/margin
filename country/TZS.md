@@ -1,12 +1,12 @@
-# In Tanzania a dollar costs 1.5% more than the official rate
+# In Tanzania a dollar costs 1.4% more than the official rate
 
-Prices from the 18:00 UTC hour, 1 Nov.
+Prices from the 19:00 UTC hour, 1 Nov.
 
-The official rate is 2,636.37 TZS per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 2,675 TZS. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 2,636.37 TZS per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 2,674 TZS. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 267,523 TZS. The official rate says 263,637 TZS.
+For US$100, people pay 267,450 TZS. The official rate says 263,637 TZS.
 
-Prices from the 18:00 UTC hour, 1 Nov
+Prices from the 19:00 UTC hour, 1 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -24,8 +24,8 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-2,656 TZS +0.7%
+2,649 TZS +0.5%
 
 OKX, people selling to each other
 
-2,694 TZS +2.2%
+2,700 TZS +2.4%
