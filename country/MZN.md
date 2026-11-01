@@ -1,12 +1,12 @@
-# In Mozambique a dollar costs 19.0% more than the official rate
+# In Mozambique a dollar costs 18.9% more than the official rate
 
-Prices from the 10:00 UTC hour, 1 Nov.
+Prices from the 11:00 UTC hour, 1 Nov.
 
-The official rate is 63.74 MZN per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 75.86 MZN. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 63.74 MZN per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 75.80 MZN. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 7,586 MZN. The official rate says 6,374 MZN.
+For US$100, people pay 7,580 MZN. The official rate says 6,374 MZN.
 
-Prices from the 10:00 UTC hour, 1 Nov
+Prices from the 11:00 UTC hour, 1 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -24,7 +24,7 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-74.82 MZN +17.4%
+74.70 MZN +17.2%
 
 OKX, people selling to each other
 
