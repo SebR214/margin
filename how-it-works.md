@@ -1,6 +1,6 @@
 # How to read this site
 
-Prices from the 07:00 UTC hour, 1 Nov.
+Prices from the 08:00 UTC hour, 1 Nov.
 
 ## What we measure
 
