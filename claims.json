@@ -71,6 +71,53 @@
         "eventsPage.rowOfficialDown"
       ],
       "note": "Event pages: the official rates, the move and the street price before that each event page prints equal the raw files for those days (live fx_rates.csv, data/history/official_fx_*.csv, p2p_basis.csv), and the move equals the detector's row."
+    },
+    {
+      "key": "homeData.headlineMove",
+      "type": "home_largest_move",
+      "guards": [
+        "homeData.headlineMoveUp",
+        "homeData.headlineMoveDown",
+        "homeData.moveSinceAbove",
+        "homeData.moveSinceBelow",
+        "homeData.moveSinceWholeAbove","homeData.moveSinceWholeBelow"
+      ],
+      "note": "Headline: {country}'s dollar got {points} points dearer or cheaper since yesterday, the most of any country, and since when it has sat above or below its typical level. True when the country, points, direction and date re-derived from data/index_hourly.csv equal data/home_facts.json."
+    },
+    {
+      "key": "homeData.whatChangedTitle",
+      "type": "home_what_changed",
+      "guards": [
+        "homeData.wcCrossedUp",
+        "homeData.wcCrossedDown",
+        "homeData.wcEventOfficial","homeData.wcEventStreet",
+        "homeData.wcSourceAdded",
+        "homeData.wcSourceQuarantine",
+        "homeData.wcFindingHolds","homeData.wcFindingWeaker","homeData.wcFindingNoLonger",
+        "homeData.wcRouteCheaper",
+        "homeData.wcRouteDearer"
+      ],
+      "note": "What changed this week: every line is checked against the file it came from (heatmap, source registry, events, finding tests, routes hourly); at most 8, newest first."
+    },
+    {
+      "key": "researchData.pairsTight",
+      "type": "research_pairs",
+      "guards": [
+        "researchData.pairsWide",
+        "researchData.pairsRow",
+        "researchData.cardMeta2",
+        "researchData.cardTitle2"
+      ],
+      "note": "Markets inside one country disagree: the countries compared, the three bands and each country's furthest-apart pair equal what data/source_pairs.json says."
+    },
+    {
+      "key": "researchData.monthsLine",
+      "type": "research_months",
+      "guards": [
+        "researchData.monthsHeading",
+        "researchData.monthsAsOf"
+      ],
+      "note": "Live months on the capital controls page equal the medians re-derived from data/index_hourly.csv."
     }
   ]
 }

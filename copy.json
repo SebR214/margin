@@ -742,8 +742,12 @@
     "stripFailed": "A check failed"
   },
   "machineRoom": {
-    "title": "Four agents run this site. Two of them use AI.",
-    "lede": "The collector gathers prices every hour. The scout picks one job a week from lists the code makes, such as countries with only one source. The builder writes the code for that job. The reviewer checks every change before it goes live. The scout and the builder use AI. The collector and the reviewer are plain code, so no AI ever produces a number on this site. One person sets the direction and holds the money and passwords, and the agents can spend at most $20 a month.",
+    "title": "Plain code makes every number. AI only helps build the site.",
+    "lede": "The collector and the checks are plain code. The builder uses AI to write some of the code, and one person writes the rest.",
+    "machineRoomLink": {
+      "text": "See what it costs and what has gone wrong →",
+      "href": "./machine-room.html"
+    },
     "connecting": "",
     "connected": "connected · live",
     "offline": "live feed offline",
@@ -777,8 +781,8 @@
     },
     "metaTemplate": "Last price check {time} UTC · next on the hour",
     "roles": {
-      "heading": "Each agent has one job and cannot do the others'",
-      "answer": "The builder can't approve its own work. The scout never writes code. No AI ever calculates a number.",
+      "heading": "Each part has one job and cannot do the others'",
+      "answer": "The builder can't approve its own work. No AI ever calculates a number.",
       "items": [
         {
           "role": "Collector",
@@ -786,19 +790,19 @@
           "text": "Pulls prices from exchanges, transfer apps and official rates and saves them to the data files. Plain code, no AI."
         },
         {
-          "role": "Scout",
-          "when": "Once a week",
-          "text": "Picks the next job from lists the code makes: countries with one source, sources that disagree, claims that stopped holding. Uses AI. Every number it writes is checked against the data files before it's posted."
-        },
-        {
           "role": "Builder",
-          "when": "One job at a time",
-          "text": "Writes the code for the scout's job in one go, then stops. Uses AI. It can't change agent code, checks or how prices are collected."
+          "when": "Up to 3 jobs a day",
+          "text": "Takes the top ready job from a list a person writes and builds it as new files. Uses AI. It can't change existing price collection, pages or methods. It and every other model call together can spend at most $20 a month."
         },
         {
-          "role": "Reviewer",
+          "role": "Checks",
           "when": "Every change",
-          "text": "Runs checks on every change before it goes live, and recalculates published numbers from the saved files. Plain code, no AI. Changes to how prices are collected wait for a person."
+          "text": "Run tests on every change, recalculate published numbers from the saved files and merge the change when every test is green. Plain code, no AI. A change to how prices are collected that adds nothing new waits for a person."
+        },
+        {
+          "role": "Person",
+          "when": "As needed",
+          "text": "Sets the direction, holds the money and passwords, and writes what the builder skips, using AI sessions of their own."
         }
       ]
     },
@@ -817,8 +821,8 @@
           "text": "It moved the agents onto an account billed for each use, instead of the account with a flat monthly fee. The two accounts are now kept in separate files so they cannot be mixed up."
         }
       ],
-      "linkText": "The full story: running agents that can't be trusted →",
-      "linkHref": "./agent-incidents.html"
+      "linkText": "Every incident, and the builder week by week →",
+      "linkHref": "./machine-room.html"
     },
     "tapeLink": "Watch live prices arrive as they are checked →",
     "collected": {
@@ -1322,6 +1326,25 @@
     "legendBelowOfficial": "Below the official rate",
     "topPriceLine": "{price} {ccy} for a dollar, official rate {rate} {ccy}",
     "heroWhy": "Where banks ration dollars, people buy stablecoins from each other and pay more.",
+    "headlineMoveUp": "{country}'s dollar got {points} points dearer since yesterday, the most of any country.",
+    "headlineMoveDown": "{country}'s dollar got {points} points cheaper since yesterday, the most of any country.",
+    "moveSinceAbove": "It has cost more than usual there since {date}.",
+    "moveSinceBelow": "It has cost less than usual there since {date}.",
+    "moveSinceWholeAbove": "It has cost more than usual there for the whole last 30 days.",
+    "moveSinceWholeBelow": "It has cost less than usual there for the whole last 30 days.",
+    "whatChangedTitle": "What changed this week",
+    "whatChangedEmpty": "Nothing crossed a line this week.",
+    "wcCrossedUp": "{country} went above 5% over the official rate.",
+    "wcCrossedDown": "{country} came back under 5% over the official rate.",
+    "wcEventOfficial": "The official rate for {country} moved {pct} in three days.",
+    "wcEventStreet": "The street price of a dollar in {country} moved {pct} in a week.",
+    "wcSourceAdded": "We added {source} as a source.",
+    "wcSourceQuarantine": "We began reading {source}. It is on trial for a week and sets no price yet.",
+    "wcFindingHolds": "Our retest of \"{title}\" now says it holds.",
+    "wcFindingWeaker": "Our retest of \"{title}\" now says it is weaker.",
+    "wcFindingNoLonger": "Our retest of \"{title}\" now says it is no longer true.",
+    "wcRouteCheaper": "Sending money from {route}, the stablecoin became cheaper than the cheapest app.",
+    "wcRouteDearer": "Sending money from {route}, the stablecoin became dearer than the cheapest app.",
     "whatLine": "We compare what a dollar costs in {tracked} countries with the official rate every hour. On {routes} routes we also check what it costs to send money there, by transfer app and by stablecoin, with every fee we can measure. Where a dollar costs more than the official rate, a stablecoin can be the cheaper way to send.",
     "headlineSub": "",
     "counterReadings": "Prices stored",
@@ -1516,6 +1539,7 @@
   },
   "countryData": {
     "usd100Line": "For US$100, people pay <b>{street}</b>. The official rate says {rate}.",
+    "threeDollarsLine": "One dollar costs {official} at the official rate, {cash} in cash from a money changer and {stable} as a stablecoin.",
     "p2pBeside": "From people selling to each other on {boards}, a dollar costs {price} {ccy}, {pct} more than the official rate.",
     "p2pBesideUnder": "From people selling to each other on {boards}, a dollar costs {price} {ccy}, {pct} less than the official rate.",
     "boardsAnd": "{a} and {b}",
@@ -1847,6 +1871,331 @@
     "downloadHeading": "Get the numbers",
     "downloadCsv": "Download as a table ({n} rows)",
     "downloadJson": "Download as JSON",
+    "cardAsOf": "Our own checks run to {date}.",
+    "cardTitle2": "Markets inside one country disagree",
+    "cardLine2": "Where two exchanges price a dollar in the same country, how far apart are they?",
+    "cardMeta2": "{N} countries compared over {days} days. Our own checks.",
+    "monthsHeading": "Since we began watching",
+    "monthsLine": "Each square is one month of our own checks, in the same colours. The last column is the month so far.",
+    "monthsAsOf": "Our own checks run to {date}.",
+    "pairsTitle": "Markets inside one country disagree",
+    "pairsLead": "In some countries every exchange agrees on the price of a dollar. In others, two exchanges sit several percent apart, so the price depends on where you look.",
+    "pairsLabel": "From our own hourly checks, not exchange history.",
+    "pairsTight": "In {n} of {N} countries, the two exchanges furthest apart usually sit within {pct}% of each other.",
+    "pairsWide": "In {n} countries, two exchanges usually sit {pct}% or more apart. The furthest apart are {list}.",
+    "pairsListHeading": "The countries furthest apart",
+    "pairsRow": "{a} and {b} usually sat {gap} apart, over {hours} hours.",
+    "pairsMethodHeading": "How we worked it out",
+    "pairsMethod1": "Every hour we line up each exchange's price for a dollar in the country. For each pair of exchanges we take the usual gap over the last {days} days. A pair needs at least {hours} hours in common to count.",
+    "pairsMethod2": "For each country the list shows the pair that sat furthest apart.",
+    "pairsLimits": "Two exchanges can differ because one is harder to use, not because one is wrong. A big gap is a question, not a verdict.",
+    "srcNames": {"binance_p2p": "Binance", "okx_p2p": "OKX"},
     "backLink": "All research"
+  },
+  "machineRoomPage": {
+    "title": "The machine room",
+    "lede": "Some of this site is built by a program on GitHub. This page shows what it tries, what it merges, what it costs and what has gone wrong.",
+    "trio": [
+      {
+        "label": "How it was built",
+        "href": "./how-it-was-built.html"
+      },
+      {
+        "label": "The machine room",
+        "href": "./machine-room.html"
+      },
+      {
+        "label": "When the agents got it wrong",
+        "href": "./agent-incidents.html"
+      }
+    ],
+    "totals": {
+      "spent": "Spent on builds",
+      "merged": "Builds merged",
+      "perMerged": "Cost per merged build",
+      "sinceMerge": "Since the last merge",
+      "sinceMergeValue": "{n} days",
+    "sinceMergeOne": "1 day",
+      "sinceMergeToday": "Today",
+      "sinceMergeNone": "No merge yet",
+      "noneYet": "None yet",
+      "note": "Spent counts the builder's runs. Every model call together, since {date}, comes to {money}. All of it is held to $20 a month."
+    },
+    "scorecard": {
+      "heading": "Week by week",
+      "intro": "The builder tries a job, may open a change, and the change merges when the checks are green. A merge counts only if the files it added are not empty. Weeks run Monday to Sunday, UTC.",
+      "chartTitle": "Tries and merges each week",
+      "chartTries": "Tries",
+      "chartMerged": "Merged",
+      "chartLabel": "Bars by week: tries in grey, merged builds in purple.",
+      "cols": {
+        "week": "Week starting",
+        "tries": "Tries",
+        "opened": "Changes opened",
+        "merged": "Merged",
+        "share": "Share merged",
+        "cost": "Cost"
+      },
+      "none": "Not enough tries yet."
+    },
+    "where": {
+      "heading": "What runs where",
+      "intro": "Every job runs on GitHub Actions. Times are Singapore time.",
+      "cols": {
+        "job": "Job",
+        "when": "When",
+        "what": "What it does",
+        "last": "Last run"
+      },
+      "schedule": {
+        "every": "Every {minutes} minutes",
+        "hourly": "Every hour, at minutes {minutes}",
+        "daily": "Every day at {times}",
+        "weekly": "{day} at {times}",
+        "monthly": "Day {day} of each month at {times}",
+        "none": "By hand"
+      },
+      "days": [
+        "Sundays",
+        "Mondays",
+        "Tuesdays",
+        "Wednesdays",
+        "Thursdays",
+        "Fridays",
+        "Saturdays"
+      ],
+      "status": {
+        "success": "Succeeded",
+        "failure": "Failed",
+        "cancelled": "Cancelled",
+        "skipped": "Skipped",
+        "running": "Running",
+        "none": "No run on record"
+      },
+      "jobs": {
+        "aider_builder.yml": { "name": "Builder",
+          "what": "Builds the top ready job with AI and opens a change."
+        },
+        "automerge.yml": { "name": "Merge when green",
+          "when": "After the checks finish on a change",
+          "what": "Merges a change when every check is green."
+        },
+        "checks.yml": { "name": "Checks",
+          "when": "On every change",
+          "what": "Runs the tests and page checks a change must clear."
+        },
+        "cold-reader-calibrate.yml": { "name": "Reader test",
+          "what": "Compares two models reading the pages. Changes nothing."
+        },
+        "collect.yml": { "name": "Collection",
+          "when": "About every 30 minutes, each run starts the next",
+          "what": "Collects prices, rebuilds the pages and saves the data."
+        },
+        "collector_watchdog.yml": { "name": "Collection alarm",
+          "what": "Watches collection from outside and sends an alarm when it goes quiet."
+        },
+        "fees.yml": { "name": "Fee check",
+          "what": "Checks the fee tiers each month."
+        },
+        "history_pull.yml": { "name": "History pull",
+          "what": "Pulls older price history from public sources. Never feeds a price."
+        },
+        "one_call.yml": { "name": "Older builder",
+          "what": "The older builder, run only by hand."
+        },
+        "outside_check.yml": { "name": "Outside check",
+          "when": "After each deploy of the site",
+          "what": "Asks the live site what a search engine would ask."
+        },
+        "p2p_board_probe.yml": { "name": "Board probe",
+          "what": "Re-checks which person-to-person boards are usable."
+        },
+        "watchdog.yml": { "name": "Audit alarm",
+          "what": "Sends an alarm when the audits or the builder's runner stop working."
+        }
+      }
+    },
+    "incidents": {
+      "heading": "Incidents",
+      "intro": "Newest first. A gap in the data stays a gap.",
+      "labels": {
+        "broke": "What broke",
+        "lasted": "How long",
+        "lost": "What was lost",
+        "fixed": "What fixed it",
+        "prs": "Changes"
+      },
+      "notRecorded": "Not recorded.",
+      "longForm": "The long form, with the reasons →",
+      "longFormHref": "./agent-incidents.html",
+      "dateFmt": "{day} {month} {time}",
+      "months": [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
+      ],
+      "items": [
+        {
+          "id": "outage",
+          "date": "28 to 31 Oct 2026",
+          "gapFromUtc": "2026-10-28T20:00:00+00:00",
+          "title": "Collection stopped for two days",
+          "broke": "A table of seller ads grew to 99.6 MB. GitHub refuses a file over 100 MB, so every save of new prices failed.",
+          "lasted": "The last stored hour was {from} UTC and the next was {until} UTC, {hours} hours apart.",
+          "lost": "Every hour in that gap. Missed hours stay missing and are never filled in.",
+          "fixed": "The big tables now write one file a day. A size check fails the run before the save. One alarm now covers collection.",
+          "prs": [
+            719,
+            720
+          ]
+        },
+        {
+          "id": "red-main",
+          "date": "31 Oct 2026",
+          "title": "Two tests turned the main branch red",
+          "broke": "Tests that read the real data files failed as the hours moved on, so checks on the main branch went red.",
+          "lasted": null,
+          "lost": null,
+          "fixed": "The gas test now uses fixed hours of its own. The research pieces are rebuilt before the claims check.",
+          "prs": [
+            734,
+            736
+          ]
+        },
+        {
+          "id": "empty-builds",
+          "date": "25 to 27 Oct 2026",
+          "title": "Two builds merged with empty files",
+          "broke": "The builder opened changes whose new files were empty. The checks were green and the changes merged.",
+          "lasted": "The builder first stopped an empty result on 29 Oct.",
+          "lost": "A finding retest and a new price source that were marked built and did nothing.",
+          "fixed": "A merge now counts only if its files are not empty. This page counts that way.",
+          "prs": [
+            696,
+            701
+          ]
+        },
+        {
+          "id": "fees-url",
+          "date": "22 Oct 2026",
+          "title": "The builder rewrote lines it should not touch",
+          "broke": "In its first two changes the builder edited existing price code. One change would have altered the source link on every route. The other rewrote four existing entries.",
+          "lasted": "Both changes were closed by hand the same morning.",
+          "lost": "Nothing. Neither change merged.",
+          "fixed": "A check now refuses any change to an existing price collector. The builder tries again until its change only adds.",
+          "prs": [
+            629,
+            632,
+            640
+          ]
+        },
+        {
+          "id": "key",
+          "date": "Before 23 Sep 2026",
+          "title": "A key spent $10 in 20 minutes",
+          "broke": "A settings change put the key billed for each use where the flat-rate login belonged. Every agent run billed for each use.",
+          "lasted": "About 20 minutes.",
+          "lost": "About $10 of credit.",
+          "fixed": "The two keys now live in separate files, with a note where each is used saying why they must never be mixed.",
+          "prs": []
+        }
+      ]
+    }
+  },
+  "siteHead": {
+    "site": "margin.wiki",
+    "pages": {
+      "index.html": [
+        "margin.wiki: what a dollar really costs, hourly",
+        "People do not always pay the official rate for a dollar. Every hour we price one in about 60 countries and compare it with the official rate."
+      ],
+      "countries.html": [
+        "Countries: what a dollar costs against the official rate",
+        "What people pay for a dollar in every country we track, against the official rate, updated every hour."
+      ],
+      "sending-money.html": [
+        "Sending money: stablecoin or transfer app, all fees in",
+        "Where dollars are hard to get, a stablecoin beats transfer apps. Where they are not, the apps are cheaper. Every fee included, checked every hour."
+      ],
+      "sources.html": [
+        "Sources: every price we read, and every hour it missed",
+        "Each row shows whether a source answered on each day, and how far back its older prices go."
+      ],
+      "findings.html": [
+        "Findings: what the prices we store every hour show",
+        "Each finding shows the evidence, how it was worked out, and a file you can download."
+      ],
+      "how-it-works.html": [
+        "How to read margin.wiki",
+        "What we measure, what the percentage means, and where every number comes from."
+      ],
+      "how-it-was-built.html": [
+        "How margin.wiki was built: agents, and no AI in the numbers",
+        "What the site is checking this hour, and what the programs building it are doing, unedited, as it happens."
+      ],
+      "machine-room.html": [
+        "The machine room: how margin.wiki is built and paid for",
+        "What the builder tries each week, what it merges and spends, what runs where, and every incident so far."
+      ],
+      "agent-incidents.html": [
+        "When the agents got it wrong: margin.wiki incidents",
+        "What it has taken to let agents run a real site without them quietly getting things wrong, told through the things that broke."
+      ],
+      "research.html": [
+        "Research: longer questions the stored prices can answer",
+        "Longer questions we can answer with the data we hold. Each page shows its method and gives you the numbers."
+      ],
+      "research-capital-controls.html": [
+        "How far above the official rate a dollar costs, by year",
+        "When a country limits who can buy dollars, the price on exchanges often drifts above the official rate. How far, for each country and year since 2018."
+      ],
+      "research-source-pairs.html": [
+        "Markets inside one country disagree: margin.wiki research",
+        "Two exchanges in the same country can quote different prices for a dollar. This page shows which pairs sit furthest apart."
+      ],
+      "event.html": [
+        "A currency event: street price against the official rate",
+        "One recorded currency event: the street price and the official rate side by side, before and after, with the checks run on each source."
+      ],
+      "country.html": [
+        "A country: the real price of a dollar, hourly",
+        "What people in one country pay for a dollar against the official rate, updated every hour."
+      ],
+      "finding.html": [
+        "A finding: what the stored prices show",
+        "One finding from the prices we store every hour, with the evidence, the method and a file you can download."
+      ]
+    },
+    "countryTitle": "{country}: the real price of a dollar, hourly",
+    "countryDescription": "What people in {country} pay for a dollar against the official rate, updated every hour.",
+    "findingDescription": "{title}. The evidence, how it was worked out, and a file you can download.",
+    "eventTitle": "{country}: a currency event, street price against the official rate",
+    "footerLinks": [
+      {
+        "label": "How it was built",
+        "href": "./how-it-was-built.html"
+      },
+      {
+        "label": "The machine room",
+        "href": "./machine-room.html"
+      },
+      {
+        "label": "When the agents got it wrong",
+        "href": "./agent-incidents.html"
+      },
+      {
+        "label": "A recorded currency event",
+        "href": "./event.html"
+      }
+    ]
   }
 }

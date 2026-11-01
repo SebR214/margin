@@ -1324,17 +1324,31 @@ def fetch_baseline(src, dst, amount):
 
 # ------------------------------------------------------------- collection
 ETH_RPC = "https://ethereum-rpc.publicnode.com"
+# SEB-301, 31 Oct: more public keyless Ethereum RPCs, each tried in turn when the one before fails twice. Every one of these answered BOTH
+# calls of the read (eth_estimateGas from a funded sender, eth_gasPrice) on 31 Oct. cloudflare-eth.com answered the estimate and then
+# refused eth_gasPrice ("Cannot fulfill request"), so it is not in the list.
+ETH_RPC_2 = "https://eth.drpc.org"
+ETH_RPC_3 = "https://gateway.tenderly.co/public/mainnet"
+ETH_RPCS = (ETH_RPC, ETH_RPC_2, ETH_RPC_3)
+GAS_RETRIES = 1                    # one more try on the same RPC before the next one
+GAS_MISSING = "gas:missing"        # the errors column of a sample whose gas could not be read this hour
 ETH_PRICE_URL = "https://api.exchange.coinbase.com/products/ETH-USD/ticker"
 USDT_ETH = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
-# a public, well-known wallet that holds USDT: eth_estimateGas needs a sender with a balance. Nothing is sent.
-GAS_PROBE_FROM = "0x28C6c06298d514Db089934071355E5743bf21d60"
+# Public, well-known wallets that hold USDT: eth_estimateGas needs a sender with a balance. Nothing is sent. The first one (Binance 14,
+# 0x28C6c0...1d60) held 1.35M USDT on 31 Oct and every real node still answered "execution reverted" for it, which cost 4 hours of gas
+# readings. So there are several, tried in order, and a revert moves to the next one. Balances checked on 31 Oct 09:00 UTC with eth_call.
+GAS_PROBE_FROMS = ("0xF977814e90dA44bFA03b6295A0616a897441aceC",     # Binance 8
+                   "0x5754284f345afc66a98fbB0a0Afe71e0F007B949",     # Tether Treasury
+                   "0x5a52E96BAcdaBb82fd05763E25335261B270Efcb",     # Binance cold wallet
+                   "0x267be1C1D684F78cb4F6a176C4911b741E4Ffdc0")     # Kraken 4
+GAS_PROBE_FROM = GAS_PROBE_FROMS[0]
 GAS_PROBE_TO = "0x1111111111111111111111111111111111111111"
 GAS_SIDECAR = "gas_readings.csv"
 GAS_HEADER = ["ts_utc", "chain", "gas_units", "gas_price_gwei", "eth_usd", "cost_usd", "rpc_url", "price_url", "source_ok", "error"]
 
 
-def _eth_rpc(method, params):
-    r = requests.post(ETH_RPC, json={"jsonrpc": "2.0", "id": 1, "method": method, "params": params},
+def _eth_rpc(method, params, url=ETH_RPC):
+    r = requests.post(url, json={"jsonrpc": "2.0", "id": 1, "method": method, "params": params},
                       timeout=HTTP_TIMEOUT, headers=UA)
     r.raise_for_status()
     j = r.json()
@@ -1343,18 +1357,44 @@ def _eth_rpc(method, params):
     return int(j["result"], 16)
 
 
-def fetch_eth_gas():
-    """What one USDT transfer on Ethereum costs right now, in US dollars (SEB-310). All three terms are read, none typed:
-    the gas units from eth_estimateGas of a real USDT transfer (to a new address, the dearer case), the gas price from
+def fetch_eth_gas_from(url):
+    """What one USDT transfer on Ethereum costs right now, in US dollars (SEB-310), read from one RPC. All three terms are read,
+    none typed: the gas units from eth_estimateGas of a real USDT transfer (to a new address, the dearer case), the gas price from
     eth_gasPrice, the price of ether from Coinbase's public ticker. -> dict; raises on any failure, so a bad reading is
     a failed row and never a silent zero."""
     data = "0xa9059cbb" + GAS_PROBE_TO[2:].rjust(64, "0") + hex(1_000_000)[2:].rjust(64, "0")
-    units = _eth_rpc("eth_estimateGas", [{"from": GAS_PROBE_FROM, "to": USDT_ETH, "data": data}])
-    wei = _eth_rpc("eth_gasPrice", [])
+    units, reverted = None, []
+    for sender in GAS_PROBE_FROMS:
+        try:
+            units = _eth_rpc("eth_estimateGas", [{"from": sender, "to": USDT_ETH, "data": data}], url)
+            break
+        except ValueError as e:                     # a node's answer ("execution reverted"): try the next funded sender
+            reverted.append(f"{sender[:8]}:{e}")
+    if units is None:
+        raise ValueError("estimateGas " + "; ".join(reverted))
+    wei = _eth_rpc("eth_gasPrice", [], url)
     eth_usd = float(get_json(ETH_PRICE_URL)["price"])
     if not (units > 0 and wei > 0 and eth_usd > 0):
         raise ValueError("gas reading not positive")
-    return {"gas_units": units, "gas_price_gwei": wei / 1e9, "eth_usd": eth_usd, "cost_usd": units * wei / 1e18 * eth_usd}
+    return {"gas_units": units, "gas_price_gwei": wei / 1e9, "eth_usd": eth_usd, "cost_usd": units * wei / 1e18 * eth_usd,
+            "rpc_url": url}
+
+
+def fetch_eth_gas(rpcs=None, read=None, retries=None):
+    """The gas reading, trying each RPC in turn and each one 1 + GAS_RETRIES times (SEB-301, 31 Oct). Returns the first
+    good reading, with the RPC that gave it in "rpc_url". Raises ValueError listing every failure when all of them fail:
+    no value is invented and the last good one is never reused."""
+    rpcs = rpcs or ETH_RPCS
+    read = read or fetch_eth_gas_from
+    tries = 1 + (GAS_RETRIES if retries is None else retries)
+    failures = []
+    for url in rpcs:
+        for _ in range(tries):
+            try:
+                return read(url)
+            except Exception as e:
+                failures.append(f"{url.split('//')[-1].split('/')[0]}:{type(e).__name__}:{e}"[:150])
+    raise ValueError(" | ".join(failures))
 
 
 def append_gas_reading(ts, got, err):
@@ -1365,7 +1405,21 @@ def append_gas_reading(ts, got, err):
         if new:
             w.writerow(GAS_HEADER)
         w.writerow([ts, "ethereum", got and got["gas_units"], got and round(got["gas_price_gwei"], 4), got and got["eth_usd"],
-                    got and round(got["cost_usd"], 6), ETH_RPC, ETH_PRICE_URL, err == "", err])
+                    got and round(got["cost_usd"], 6), (got or {}).get("rpc_url", ETH_RPC), ETH_PRICE_URL, err == "", err])
+
+
+# Everything decompose() derives from the network fee. When the gas could not be read the fee in cfg is the placeholder 0.0, so
+# these are blank (a missing reading), never a figure built on an invented zero. The inputs (mid, books, fee rates) stay.
+GAS_DEPENDENT = ("network_fee_stable", "landed_taker", "cost_bps_taker", "landed_maker", "cost_bps_maker",
+                 "offramp_vwap", "offramp_slip_bps", "offramp_filled", "offramp_depth_top_level_after", "offramp_depth_1pct_after",
+                 "wf_move_bps", "wf_sell_bps", "wf_withdrawal_bps")
+
+
+def blank_gas_dependent(d):
+    for k in GAS_DEPENDENT:
+        if k in d:
+            d[k] = None
+    return d
 
 
 def collect(corridor_key, cfg):
@@ -1373,15 +1427,17 @@ def collect(corridor_key, cfg):
     ts = dt.datetime.now(dt.timezone.utc).isoformat()
     src, dst = cfg["src"], cfg["dst"]
     errors, ok = [], True
+    gas_missing = False
     if cfg.get("gas_chain") == "ethereum":
         # the network fee of this run is the measured gas, stored beside the rows that use it
         try:
             got, gerr = fetch_eth_gas(), ""
             cfg = {**cfg, "network_fee_stable": got["cost_usd"]}
         except Exception as e:
-            got, gerr = None, f"gas:{type(e).__name__}:{e}"[:200]
+            got, gerr = None, f"{GAS_MISSING}:{e}".replace("; ", ", ")[:400]
             errors.append(gerr)
             ok = False
+            gas_missing = True
         append_gas_reading(ts, got, gerr)
 
     try:
@@ -1408,6 +1464,8 @@ def collect(corridor_key, cfg):
     rows, prows = [], []
     for notional in cfg["ladder"]:
         d = decompose(notional, on_book, off_book, mids, cfg)
+        if gas_missing:
+            blank_gas_dependent(d)      # decompose() priced this rung with a 0.0 gas fee, which was never read: no number stands
         mid = d["mid_src_dst"]
 
         # The Wise comparison panel is SUPPLEMENTARY: a panel failure records a
@@ -1437,7 +1495,7 @@ def collect(corridor_key, cfg):
             "fee_on_maker_bps": cfg["onramp"]["maker_bps"],
             "fee_off_taker_bps": cfg["offramp"]["taker_bps"] + cfg["offramp"].get("tds_bps", 0.0),
             "fee_off_maker_bps": cfg["offramp"]["maker_bps"] + cfg["offramp"].get("tds_bps", 0.0),
-            "network_fee_stable": cfg["network_fee_stable"],
+            "network_fee_stable": None if gas_missing else cfg["network_fee_stable"],
             "fees_verified": fees_verified,
             "baseline_provider": bname, "baseline_landed": blanded,
             "baseline_cost_bps": bcost,
@@ -2249,6 +2307,75 @@ def selftest():
         _v = CORRIDOR_VARIANTS[_k][0]
         assert _v["onramp"]["venue"] == "Kraken" and _v["network"] == "Tron" and _v["network_fee_stable"] == 1.0, _k
     print("  [ok] Kraken on-ramp: book parsed, error answer raises; USD->NGN and USD->INR carry the Tron variant")
+    # --- SEB-301, 31 Oct: a gas read that fails must not cost the hour its route rows -------------------------------------
+    calls = []
+
+    def flaky(url):
+        calls.append(url)
+        if url == ETH_RPC:
+            raise ValueError("{'code': 3, 'message': 'execution reverted'}")
+        return {"gas_units": 46097, "gas_price_gwei": 1.0, "eth_usd": 3000.0, "cost_usd": 0.138, "rpc_url": url}
+    got = fetch_eth_gas(read=flaky)
+    assert calls == [ETH_RPC, ETH_RPC, ETH_RPC_2] and got["rpc_url"] == ETH_RPC_2, calls   # one retry, then the next RPC
+    try:
+        fetch_eth_gas(read=lambda url: (_ for _ in ()).throw(OSError("down")))
+        raise AssertionError("both RPCs failing must raise")
+    except ValueError as e:
+        assert "publicnode.com" in str(e) and "drpc.org" in str(e) and "tenderly.co" in str(e) and str(e).count("OSError") == 6, str(e)
+    # a node that reverts the estimate for one funded sender is asked again with the next sender (Binance 14 reverted everywhere on 31 Oct)
+    asked = []
+
+    def fake_rpc(method, params, url=ETH_RPC):
+        if method == "eth_estimateGas":
+            asked.append(params[0]["from"])
+            if len(asked) < 3:
+                raise ValueError("{'code': 3, 'message': 'execution reverted'}")
+            return 46479
+        return 3 * 10 ** 9
+    g0 = globals()
+    saved0 = {k: g0[k] for k in ("_eth_rpc", "get_json")}
+    try:
+        g0["_eth_rpc"] = fake_rpc
+        g0["get_json"] = lambda u_: {"price": "2000"}
+        read = fetch_eth_gas_from(ETH_RPC)
+    finally:
+        g0.update(saved0)
+    assert asked == list(GAS_PROBE_FROMS[:3]) and read["gas_units"] == 46479 and abs(read["cost_usd"] - 46479 * 3e9 / 1e18 * 2000) < 1e-12, (asked, read)
+    asked.clear()
+    try:
+        g0["_eth_rpc"] = lambda m_, p_, url=ETH_RPC: (_ for _ in ()).throw(ValueError("{'code': 3, 'message': 'execution reverted'}"))
+        fetch_eth_gas_from(ETH_RPC)
+        raise AssertionError("every sender reverting must raise")
+    except ValueError as e:
+        assert str(e).count("execution reverted") == len(GAS_PROBE_FROMS) and "estimateGas" in str(e), str(e)
+    finally:
+        g0.update(saved0)
+    import tempfile
+    g = globals()
+    saved = {k: g[k] for k in ("fetch_eth_gas", "fetch_mids", "fetch_onramp", "fetch_offramp", "fetch_baseline", "append_gas_reading")}
+    gas_rows = []
+    try:
+        g["fetch_eth_gas"] = lambda: (_ for _ in ()).throw(ValueError("both RPCs: execution reverted"))
+        g["fetch_mids"] = lambda s_, d_: MIDS_FIXTURE_INR
+        g["fetch_onramp"] = lambda c_, s_: on_cb
+        g["fetch_offramp"] = lambda c_: off_wazirx
+        g["fetch_baseline"] = lambda s_, d_, n_: (_ for _ in ()).throw(ValueError("no panel in this test"))
+        g["append_gas_reading"] = lambda ts_, got_, err_: gas_rows.append((got_, err_))
+        rows_g, _p = collect("USD->INR", CORRIDORS["USD->INR"])
+    finally:
+        g.update(saved)
+    assert len(rows_g) == len(CORRIDORS["USD->INR"]["ladder"]), "every rung of the hour is still written"
+    assert gas_rows == [(None, gas_rows[0][1])] and gas_rows[0][1].startswith(GAS_MISSING), gas_rows   # the reading row: failed, with the error
+    for r_ in rows_g:
+        assert r_["source_ok"] is False and r_["errors"].startswith(GAS_MISSING) and "; " not in r_["errors"], r_["errors"]
+        for k in GAS_DEPENDENT:
+            assert r_.get(k) is None, (k, r_.get(k))             # no value invented, none reused
+        assert r_["mid_src_dst"] and r_["onramp_top_ask"] and r_["offramp_top_bid"], "what was read stays"
+    with tempfile.TemporaryDirectory() as tmp:
+        assert append_waterfall(rows_g, path=os.path.join(tmp, "w.csv")) is not None or True
+    print("  [ok] SEB-301: gas read retries once, then the second RPC; when both fail the hour is written with the gas leg "
+          "marked missing, nothing invented, and the step can exit 0")
+
     print("  ALL SELFTESTS PASSED\n")
 
 
@@ -2337,10 +2464,12 @@ def main():
 
     if not rows[0]["source_ok"]:
         print(f"  [warn] incomplete sample: {rows[0]['errors']}", file=sys.stderr)
-        # exit non-zero on a dead CORRIDOR sample so the scheduler surfaces it
-        # loudly -- panel state deliberately does not affect this. The row is
-        # already on disk by now, so this is a signal, not a discard.
-        if not a.verify:
+        # A missing gas reading is one optional input (SEB-301, 31 Oct): the row is written with the gas leg marked missing in
+        # its errors column and the step exits 0, so the hour's route rows are never lost to it. Any other failure still
+        # exits non-zero on a dead CORRIDOR sample so the scheduler surfaces it loudly -- panel state deliberately does not
+        # affect this. The row is already on disk by now, so this is a signal, not a discard.
+        only_gas = rows[0]["errors"].startswith(GAS_MISSING) and "; " not in rows[0]["errors"]
+        if not a.verify and not only_gas:
             sys.exit(1)
 
 

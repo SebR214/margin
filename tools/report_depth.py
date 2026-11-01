@@ -18,10 +18,14 @@ import statistics
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PATH = os.path.join(ROOT, "data", "depth.csv")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import daily_csv  # noqa: E402
+PATH = None       # the table "depth": the closed data/depth.csv, then one file a day (data/ or margin-data/, SEB-422)
 
 
 def load(path=PATH):
+    if path is None:
+        return list(daily_csv.iter_dicts("depth"))
     with open(path, newline="") as f:
         return list(csv.DictReader(f))
 
@@ -60,7 +64,7 @@ def table(rows, since):
 def size_report(path=PATH):
     rows = load(path)
     hours = len({r["ts_utc"][:13] for r in rows})
-    size = os.path.getsize(path)
+    size = sum(os.path.getsize(p) for p in daily_csv.paths("depth")) if path is None else os.path.getsize(path)
     per_hour = size / max(hours, 1)
     return {"bytes": size, "rows": len(rows), "hours": hours, "bytes_per_row": round(size / max(len(rows), 1), 1),
             "mb_per_month": round(per_hour * 24 * 30 / 1e6, 2)}

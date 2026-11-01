@@ -1,10 +1,9 @@
 # Build backlog
 
-The queue. Since 25 Oct 2026 (Seb's plan) two kinds of writer add to it: the researcher (tools/researcher.py, one Sonnet call a week,
-3 jobs at the end under "Proposed by the researcher") and Seb or a chat, by hand, in the same form. Nothing else writes items. The Aider
-builder takes the top ready job, builds it, merges on green and ticks it with the PR number and date. The Sunday scorecard
-(tools/scorecard.py) is the only evidence of what track A shipped. Items queued on SEB-301 under "Queued by Claude" are still copied
-in at the start of every builder run (tools/backlog.py).
+The queue. Since 31 Oct 2026 (SEB-422) two writers add to it: the research chat and Seb, by hand, in the job form (`tools/new_board_job.py`
+writes a board x currency job from the gap list). The researcher is retired. Nothing else writes items. The Aider builder takes the top
+ready job, builds it, merges on green and ticks it with the PR number and date. Items queued on SEB-301 under "Queued by Claude" are
+still copied in at the start of every builder run (tools/backlog.py).
 
 Track A takes only jobs a cheap model can't get wrong (tools/job_shape.py): new files (a new collector file, a new sidecar CSV, a
 new finding test, a new history file, a new script), collect.yml growing by one step, a new row in the source registry. Each job
@@ -144,7 +143,7 @@ Copied from SEB-301 comments by tools/backlog.py. The Scout splits them into job
     done when: a cancelled or still-running collect.yml run never counts toward the down limit in watchdog.yml or tools/check_collector_health.py, with a test in tests/ that feeds a cancelled run and expects no down; running `python3 tools/audit_claims.py` on main passes for `routeData.bigCaption` and `homeData.updatedLine`, and if a claim's test no longer matches the page since the routes rebuild (PR #616), the claim's test is fixed, not the reader text; no copy.json line changes.
 
 ## Proposed by the researcher
-Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/job_shape.py.
+Written by the retired researcher (25 to 29 Oct). Track A rules in tools/job_shape.py.
 
 - [ ] 19. Retest the p2p_spread_signal finding for the first time
   - [ ] 19a. Retest the p2p_spread_signal finding for the first time
@@ -203,8 +202,8 @@ Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/j
     context: `data/source_pairs.json` `data/disagree_diagnosis.json` `data/p2p_kucoin.csv` `data/stable_venues.csv`
     done when: tools/disagree_arbiter.py takes each pair with flag true in the disagree list of data/gap_report.json, finds the latest price of any third source for the same currency in the stored CSVs, and writes data/disagree_arbiter.json saying which of the two it sits closer to, or the text no third source. tests/agent_disagree_arbiter.py uses an inline fixture with a at 100, b at 120 and a third source at 101 and checks the result says closer to a. It checks a third source at 119 says closer to b, and a fixture with no third source gives no third source and not a guess.
     blocked: needs-claude: the Aider builder failed 2 times, last: empty after Aider: tools/disagree_arbiter.py data/disagree_arbiter.json tests/agent_disagree_arbiter.py (2026-10-30)
-- [ ] 26. Retest coverage check: every finding has a dated retest row
-  - [ ] 26a. Retest coverage check: every finding has a dated retest row
+- [x] 26. Retest coverage check: every finding has a dated retest row (done 2026-10-31)
+  - [x] 26a. Retest coverage check: every finding has a dated retest row (PR #738, 2026-10-31)
     track: aider
     proposed: researcher 2026-10-27 (gap: stale_findings: p2p_spread_signal last_retest null)
     files: `tools/retest_coverage.py` `data/retest_coverage.json` `tests/agent_retest_coverage.py`
@@ -217,6 +216,7 @@ Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/j
     files: `tools/no_price_near_miss.py` `data/no_price_near_miss.json` `tests/agent_no_price_near_miss.py`
     context: `data/no_price_sources.json` `data/index_latest.json` `data/p2p_sides.csv` `tools/gate_common.py`
     done when: tools/no_price_near_miss.py reads each currency in the no_price list of data/gap_report.json, reads the stored ad-count threshold from tools/gate_common.py, and counts from data/p2p_sides.csv the sell ads each hour of the last 7 days. It writes data/no_price_near_miss.json with, per currency, the median ad count, the threshold and the number of hours at or above it. tests/agent_no_price_near_miss.py uses an inline fixture with a threshold of 10 and 4 hourly counts of 3, 8, 10 and 12 for one currency and checks the median is 9, hours at or above is 2 and the currency is marked near miss only when the median is at least half the threshold. A currency with no rows must be listed as no data.
+    blocked: needs-claude: the Aider builder failed 2 times, last: empty after Aider: tools/no_price_near_miss.py data/no_price_near_miss.json tests/agent_no_price_near_miss.py (2026-10-31)
 - [ ] 28. Daily gap history for flagged source pairs
   - [ ] 28a. Daily gap history for flagged source pairs
     track: aider
@@ -224,3 +224,15 @@ Written by tools/researcher.py, one Sonnet call a week. Track A rules in tools/j
     files: `tools/pair_gap_daily.py` `data/pair_gap_daily.csv` `tests/agent_pair_gap_daily.py`
     context: `data/source_pairs.json` `tools/emit_source_pairs.py` `data/index_hourly.csv` `data/p2p_okx.csv`
     done when: tools/pair_gap_daily.py reuses the pairing logic of tools/emit_source_pairs.py, takes the pairs with flag true in the disagree list of data/gap_report.json and writes data/pair_gap_daily.csv with one row per currency, pair and UTC day holding the median gap in percent and the hours counted. tests/agent_pair_gap_daily.py uses an inline fixture of two days with hourly prices where source a is 100 and source b is 110 on day one for 3 hours and b is 120 on day two for 2 hours, and checks day one has median gap 10.0 with 3 hours and day two has 20.0 with 2 hours. An hour where one source has no price must be skipped, not counted as zero.
+
+## Board x currency jobs, from the gap list (research chat, SEB-422)
+Written with `python3 tools/new_board_job.py` from `python3 tools/gap_report.py --boards` (data/board_gap_report.json). Seb or the research chat only.
+
+- [ ] 29. Collect bitget P2P for GHS every hour
+  - [ ] 29a. Add the bitget x GHS config and its test
+    track: aider
+    proposed: research chat 2026-10-31 (gap: board_gap_report: bitget GHS (7 ads seen on page 1))
+    files: `collectors/board_configs/bitget_GHS.json` `tests/agent_board_bitget_GHS.py`
+    context: `collectors/template_board.py` `collectors/boards/bitget.py` `data/source_registry.json`
+    done when: python3 tests/agent_board_bitget_GHS.py passes: the config file holds exactly this JSON, on one line: {"board": "bitget", "ccy": "GHS", "pair": "USDT", "endpoint": "https://www.bitget.com/v1/p2p/pub/adv/queryAdvList", "parser": "bitget", "min_ads": 3, "sides": {"buy": "1", "sell": "2"}, "extra": {}} . The test file holds exactly this text (copy it, change nothing): <<<"""SEB-422: one live pull of bitget_GHS parses, the prices are within 30% of the official rate, and the row lands."""\nimport os\nimport sys\n\nsys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\nfrom collectors import template_board as tb  # noqa: E402\n\nrow = tb.run_config_test('bitget_GHS')\nassert row["board"] and row["ccy"], row\nprint("bitget_GHS: ok", row)\n>>> . Nothing else in the repository changes; collector_boards.py reads the new config on its next hourly run.
+

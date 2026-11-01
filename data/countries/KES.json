@@ -1,12 +1,14 @@
 {
+  "buy_price": 128.59,
   "ccy": "KES",
-  "computed_at": "2026-10-31T06:00:00+00:00",
+  "computed_at": "2026-11-01T04:00:00+00:00",
   "country": "Kenya",
   "denominator": {
     "class": "market",
-    "rate_per_usd": 129.900612,
+    "rate_per_usd": 129.901648,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 129.901648,
   "history": [
     {
       "date": "2026-09-02",
@@ -349,23 +351,54 @@
       "index_pct": 0.1074,
       "n": 21,
       "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-10-31",
+      "index_pct": -0.7395,
+      "n": 1,
+      "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-11-01",
+      "index_pct": -1.0097,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
-  "history_days": 57,
+  "history_days": 59,
   "history_start": "2026-09-02",
-  "hour_utc": "2026-10-31T06:00:00+00:00",
+  "hour_utc": "2026-11-01T04:00:00+00:00",
+  "index_pct": -1.0097,
   "index_version": "1.9",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "median_24h_n": 14,
-  "median_24h_pct": 0.1016,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: the buy side is below the sell side, so the two are not the same market (buy 127.11500000000001, sell 128.035)",
-  "round_trip_pct": -0.7186,
-  "source_class": null,
+  "median_24h_n": 6,
+  "median_24h_pct": -1.0097,
+  "n_boards": 1,
+  "n_sources": 10,
+  "p2p_sources_apart": {
+    "binance_median": 128.59,
+    "gap_pct": 22.48,
+    "okx_median": 157.495
+  },
+  "round_trip_pct": 0.4609,
+  "second_board": {
+    "buy_price": 157.495,
+    "combined": false,
+    "venue": "okx_p2p",
+    "why": "more than 3% from the first board"
+  },
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 127.115
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 128.59,
+      "index_pct": -1.0097,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    }
+  ]
 }

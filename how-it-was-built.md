@@ -1,23 +1,25 @@
-# Four agents run this site. Two of them use AI.
+# Plain code makes every number. AI only helps build the site.
 
-Prices from the 06:00 UTC hour, 31 Oct.
+Prices from the 04:00 UTC hour, 1 Nov.
 
-The collector gathers prices every hour. The scout picks one job a week from lists the code makes, such as countries with only one source. The builder writes the code for that job. The reviewer checks every change before it goes live. The scout and the builder use AI. The collector and the reviewer are plain code, so no AI ever produces a number on this site. One person sets the direction and holds the money and passwords, and the agents can spend at most $20 a month.
+The collector and the checks are plain code. The builder uses AI to write some of the code, and one person writes the rest.
 
-## Each agent has one job and cannot do the others'
+[See what it costs and what has gone wrong →](https://margin.wiki/machine-room.md)
 
-The builder can't approve its own work. The scout never writes code. No AI ever calculates a number.
+## Each part has one job and cannot do the others'
+
+The builder can't approve its own work. No AI ever calculates a number.
 
 - Collector · Every hour · Pulls prices from exchanges, transfer apps and official rates and saves them to the data files. Plain code, no AI.
-- Scout · Once a week · Picks the next job from lists the code makes: countries with one source, sources that disagree, claims that stopped holding. Uses AI. Every number it writes is checked against the data files before it's posted.
-- Builder · One job at a time · Writes the code for the scout's job in one go, then stops. Uses AI. It can't change agent code, checks or how prices are collected.
-- Reviewer · Every change · Runs checks on every change before it goes live, and recalculates published numbers from the saved files. Plain code, no AI. Changes to how prices are collected wait for a person.
+- Builder · Up to 3 jobs a day · Takes the top ready job from a list a person writes and builds it as new files. Uses AI. It can't change existing price collection, pages or methods. It and every other model call together can spend at most $20 a month.
+- Checks · Every change · Run tests on every change, recalculate published numbers from the saved files and merge the change when every test is green. Plain code, no AI. A change to how prices are collected that adds nothing new waits for a person.
+- Person · As needed · Sets the direction, holds the money and passwords, and writes what the builder skips, using AI sessions of their own.
 
 ## What we've learned running them
 
 - A settings change spent $10 in 20 minutes It moved the agents onto an account billed for each use, instead of the account with a flat monthly fee. The two accounts are now kept in separate files so they cannot be mixed up.
 
-[The full story: running agents that can't be trusted →](https://margin.wiki/agent-incidents.html)
+[Every incident, and the builder week by week →](https://margin.wiki/machine-room.md)
 
 ## Collected fresh every hour
 
@@ -25,10 +27,10 @@ Each line is a step of the latest hourly run, with the time it finished. Any pro
 
 | Time | Check | Detail |
 | --- | --- | --- |
-| 06:00 | 48 of 54 countries have a price. The rest show none this hour, never a guess. |  |
-| 06:00 | 9 of 11 routes priced this hour. |  |
-| 05:07 | 50 of our figures recomputed from raw prices. Matches mean the data backs them. | 50 of 50 matched |
-| 06:15 | These sources did not answer this hour: CriptoYa · Buenbit. |  |
+| 04:00 | 49 of 54 countries have a price. The rest show none this hour, never a guess. |  |
+| 04:00 | 11 of 11 routes priced this hour. |  |
+| 03:07 | 50 of our figures recomputed from raw prices. Matches mean the data backs them. | 50 of 50 matched |
+| 04:15 | These sources did not answer this hour: CriptoYa · Buenbit. |  |
 
 How the last 48 hours went
 
@@ -36,7 +38,7 @@ How the last 48 hours went
 
 ## The record grew as new sources and routes came in
 
-611,153 prices stored
+618,093 prices stored
 
 Exchanges' own earlier prices reach back to 3 Jan 2011, so some charts predate our record.
 

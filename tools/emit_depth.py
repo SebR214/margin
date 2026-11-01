@@ -110,7 +110,7 @@ THRESHOLD_PCT = 1.0
 def offers_rows():
     """Every readable offer row, old file and day files. Unreadable or missing -> no rows."""
     try:
-        return list(daily_csv.iter_dicts(OFFERS, DATA))
+        return list(daily_csv.iter_dicts(OFFERS, daily_csv.DATA))
     except (OSError, csv.Error, UnicodeDecodeError):
         return []
 

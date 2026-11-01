@@ -3,7 +3,19 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>margin.wiki</title>
+<!-- head:begin -->
+<title>A country: the real price of a dollar, hourly</title>
+<meta name="description" content="What people in one country pay for a dollar against the official rate, updated every hour."/>
+<meta property="og:site_name" content="margin.wiki"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="A country: the real price of a dollar, hourly"/>
+<meta property="og:description" content="What people in one country pay for a dollar against the official rate, updated every hour."/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="A country: the real price of a dollar, hourly"/>
+<meta name="twitter:description" content="What people in one country pay for a dollar against the official rate, updated every hour."/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" href="/favicon.ico" sizes="48x48"/>
+<!-- head:end -->
 <link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./style.css">
 <style>
@@ -61,6 +73,9 @@
   .tr a { color: var(--color-neutral-700); text-decoration: underline; text-decoration-color: var(--color-neutral-300); text-underline-offset: 3px; }
   .more { margin-top: 16px; }
   .nf { margin-top: 48px; }
+  .nsx { border-collapse: collapse; font-size: 14px; margin-top: 12px; }   /* the last 30 days, shown only with scripts off (SEB-426) */
+  .nsx th, .nsx td { text-align: left; padding: 6px 28px 6px 0; border-bottom: 1px solid var(--color-neutral-200); font-weight: 400; }
+  .nsx th { color: var(--color-neutral-600); font-size: 13px; }
   @media (max-width: 700px) { .wrap { padding: 0 24px 64px; } }
   @media (max-width: 760px) {
     .th { display: none; }
@@ -97,7 +112,8 @@
   <p class="nf note" id="nf" hidden></p>
 </div>
 <script src="./js/tooltip.js"></script>
-<script src="./js/country_page.js?v=5"></script>
+<script src="./js/page_head.js"></script>
+<script src="./js/country_page.js?v=6"></script>
 <script src="./js/footer.js"></script>
 <script src="./js/site_head.js?v=4"></script>
 <script src="./js/machine_view.js?v=3" defer></script>

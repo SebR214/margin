@@ -71,7 +71,7 @@
   function getJSON(url) {
     return fetch(url).then(function (r) { if (!r.ok) { throw new Error(url); } return r.json(); });
   }
-  function countryHref(ccy) { return 'country.html?ccy=' + encodeURIComponent(ccy); }
+  function countryHref(ccy) { return 'country/' + encodeURIComponent(String(ccy).toLowerCase()) + '/'; }
   function mkX(Sc) { return function (v) { return (Math.max(Sc.lo, Math.min(Sc.hi, v)) - Sc.lo) / (Sc.hi - Sc.lo) * 100; }; }
   function farScale(rows) {
     var mx = 0;

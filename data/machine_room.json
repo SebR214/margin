@@ -1,0 +1,213 @@
+{
+ "computed_at": "2026-11-01T04:21:47+00:00",
+ "totals": {
+  "spent_usd": 5.23,
+  "attempts": 34,
+  "merged": 5,
+  "cost_per_merged_usd": 1.05,
+  "days_since_last_merge": 1,
+  "last_merge_utc": "2026-10-31T11:03:38+00:00",
+  "all_models_usd": 6.87,
+  "all_models_since": "2026-10-07"
+ },
+ "weeks": [
+  {
+   "week_start": "2026-10-26",
+   "attempts": 17,
+   "opened": 5,
+   "merged": 2,
+   "merged_share_pct": 12,
+   "cost_usd": 1.61
+  },
+  {
+   "week_start": "2026-10-19",
+   "attempts": 17,
+   "opened": 6,
+   "merged": 3,
+   "merged_share_pct": 18,
+   "cost_usd": 3.62
+  }
+ ],
+ "workflows": [
+  {
+   "file": "aider_builder.yml",
+   "name": "aider builder",
+   "schedule": {
+    "kind": "daily",
+    "times": [
+     "13:07",
+     "16:37",
+     "21:07"
+    ]
+   },
+   "last_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "run_utc": "2026-10-31T17:39:57Z"
+   }
+  },
+  {
+   "file": "automerge.yml",
+   "name": "automerge",
+   "schedule": {
+    "kind": "none"
+   },
+   "last_run": {
+    "status": "completed",
+    "conclusion": "skipped",
+    "run_utc": "2026-11-01T03:50:27Z"
+   }
+  },
+  {
+   "file": "checks.yml",
+   "name": "checks",
+   "schedule": {
+    "kind": "none"
+   },
+   "last_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "run_utc": "2026-11-01T03:50:24Z"
+   }
+  },
+  {
+   "file": "cold-reader-calibrate.yml",
+   "name": "cold-reader-calibrate",
+   "schedule": {
+    "kind": "none"
+   },
+   "last_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "run_utc": "2026-10-05T09:28:10Z"
+   }
+  },
+  {
+   "file": "collect.yml",
+   "name": "collect",
+   "schedule": {
+    "kind": "hourly",
+    "minutes": [
+     17,
+     47
+    ]
+   },
+   "last_run": {
+    "status": "in_progress",
+    "conclusion": null,
+    "run_utc": "2026-11-01T04:05:06Z"
+   }
+  },
+  {
+   "file": "collector_watchdog.yml",
+   "name": "collector-watchdog",
+   "schedule": {
+    "kind": "every",
+    "minutes": 30
+   },
+   "last_run": {
+    "status": "in_progress",
+    "conclusion": null,
+    "run_utc": "2026-11-01T04:15:07Z"
+   }
+  },
+  {
+   "file": "fees.yml",
+   "name": "fees",
+   "schedule": {
+    "kind": "monthly",
+    "day": 1,
+    "times": [
+     "11:23"
+    ]
+   },
+   "last_run": {
+    "status": "completed",
+    "conclusion": "failure",
+    "run_utc": "2026-10-22T06:28:54Z"
+   }
+  },
+  {
+   "file": "history_pull.yml",
+   "name": "history_pull",
+   "schedule": {
+    "kind": "none"
+   },
+   "last_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "run_utc": "2026-10-22T17:30:06Z"
+   }
+  },
+  {
+   "file": "one_call.yml",
+   "name": "one-call runner",
+   "schedule": {
+    "kind": "none"
+   },
+   "last_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "run_utc": "2026-10-23T17:03:36Z"
+   }
+  },
+  {
+   "file": "outside_check.yml",
+   "name": "outside-check",
+   "schedule": {
+    "kind": "none"
+   },
+   "last_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "run_utc": "2026-11-01T03:47:54Z"
+   }
+  },
+  {
+   "file": "p2p_board_probe.yml",
+   "name": "p2p-board-probe",
+   "schedule": {
+    "kind": "weekly",
+    "day": 0,
+    "times": [
+     "11:11"
+    ]
+   },
+   "last_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "run_utc": "2026-10-25T08:19:54Z"
+   }
+  },
+  {
+   "file": "watchdog.yml",
+   "name": "watchdog",
+   "schedule": {
+    "kind": "hourly",
+    "minutes": [
+     11,
+     41
+    ]
+   },
+   "last_run": {
+    "status": "in_progress",
+    "conclusion": null,
+    "run_utc": "2026-11-01T04:01:04Z"
+   }
+  }
+ ],
+ "gaps": {
+  "outage": {
+   "last_before_utc": "2026-10-28T20:00:00+00:00",
+   "next_after_utc": "2026-10-31T04:00:00+00:00",
+   "hours": 56
+  }
+ },
+ "files": [
+  "data/aider_log.csv",
+  "data/agent_spend.csv",
+  "data/machine_room_prs.csv",
+  "data/index_hourly.csv",
+  "data/machine_room_meters.json"
+ ]
+}

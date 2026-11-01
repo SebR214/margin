@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<base href="/">
+<!-- head:begin -->
+<title>Pakistan: the real price of a dollar, hourly</title>
+<meta name="description" content="What people in Pakistan pay for a dollar against the official rate, updated every hour."/>
+<link rel="canonical" href="https://margin.wiki/country/pkr/"/>
+<meta property="og:site_name" content="margin.wiki"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Pakistan: the real price of a dollar, hourly"/>
+<meta property="og:description" content="What people in Pakistan pay for a dollar against the official rate, updated every hour."/>
+<meta property="og:url" content="https://margin.wiki/country/pkr/"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Pakistan: the real price of a dollar, hourly"/>
+<meta name="twitter:description" content="What people in Pakistan pay for a dollar against the official rate, updated every hour."/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" href="/favicon.ico" sizes="48x48"/>
+<link rel="alternate" type="text/markdown" href="/country/PKR.md"/>
+<!-- head:end -->
+<link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./style.css">
+<style>
+  /* One country (SEB-268), rebuilt to the approved reference. Header, column, title and pill styles are the shared ones
+     (css/site_head.css, css/site_page.css); colours are the style.css tokens; every word is in copy.json, countryData. */
+  .num { font-variant-numeric: tabular-nums; }
+  .wrap { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; box-sizing: border-box; }
+  .cnav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 40px; }
+  .cnav .back { font-size: 15px; color: var(--color-neutral-600); text-decoration: none; }
+  .cnav .back::before { content: "\2190  "; }
+  .cnav .back:hover { color: var(--color-ink); }
+  #hero.hero { padding-top: 24px !important; }
+  .hero { padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 0 !important; max-width: 760px; }
+  .stamp { margin: 0; font-size: 14px; color: var(--color-neutral-600); }
+  .money { margin: 0; font-size: 16px; }
+  .money b { font-weight: 600; }
+  .flag { margin: 0; font-size: 15px; color: var(--color-neutral-700); padding-left: 12px; border-left: 2px solid var(--color-neutral-300); }
+  .body { margin: 0; max-width: 680px; font-size: 16px; }
+  section { margin-top: 48px; }
+  #depth { margin-top: 20px; }
+  h2 { margin: 0 0 8px; }
+  .note { margin: 0 0 16px; font-size: 15px; color: var(--color-neutral-700); max-width: 680px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  #chart .pills { margin: 0 0 12px; }
+  .key { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 14px; color: var(--color-neutral-700); margin: 0 0 8px; }
+  .key i.ln { display: inline-block; width: 22px; height: 0; border-top: 2px solid var(--data-700); vertical-align: 4px; margin-right: 8px; }
+  .key i.ln.dash { border-top: 2px dashed var(--color-neutral-500); }
+  .chart { position: relative; touch-action: pan-y; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .ax { fill: var(--color-neutral-600); font-size: 12px; }
+  .ax.z { fill: var(--color-ink); font-weight: 600; }
+  .gl { stroke: var(--color-neutral-200); }
+  .gl.z { stroke: var(--color-ink); }
+  .ln-own { fill: none; stroke: var(--data-700); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .ar-own { fill: var(--data-700); fill-opacity: .14; stroke: none; }
+  .band { fill: var(--color-neutral-100); }
+  /* the range bar under the chart: a grey rounded bar, the picked range a white pill (24 Oct) */
+  .rbar { display: flex; width: max-content; gap: 2px; margin: 12px auto 20px; padding: 3px; border-radius: 999px; background: var(--color-neutral-100); }
+  .rbar button { font: inherit; font-size: 14px; font-weight: 500; line-height: 1; padding: 7px 12px; border: 0; border-radius: 999px; background: transparent; color: var(--color-neutral-700); cursor: pointer; }
+  .rbar button[aria-pressed="true"] { background: var(--color-bg, #fff); color: var(--color-ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .ln-back { fill: none; stroke: var(--color-neutral-500); stroke-width: 1.3; stroke-dasharray: 4 3; }
+  .pt { fill: var(--data-700); }
+  .cr { stroke: var(--color-ink); stroke-dasharray: 3 3; }
+  .cd { fill: var(--color-ink); }
+  #rec { margin-top: 12px; }
+  .rows { border-top: 1px solid var(--color-neutral-200); }
+  .r { display: grid; grid-template-columns: 260px 1fr 140px; gap: 0 24px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--color-neutral-200); }
+  .r b { font-weight: 600; font-size: 15px; }
+  .r .v { text-align: right; font-weight: 600; font-size: 15px; white-space: nowrap; }
+  .r .v small { display: block; font-size: 13px; color: var(--color-neutral-600); font-weight: 400; }
+  .tbl { font-size: 14px; border-top: 1px solid var(--color-neutral-200); }
+  .th, .tr { display: grid; grid-template-columns: 150px 1fr 140px 90px 150px 150px; gap: 0 16px; padding: 10px 0; border-bottom: 1px solid var(--color-neutral-200); align-items: center; }
+  .th { color: var(--color-neutral-600); font-size: 13px; }
+  .tr span:nth-child(3), .tr span:nth-child(4), .th span:nth-child(3), .th span:nth-child(4) { text-align: right; }
+  .tr a { color: var(--color-neutral-700); text-decoration: underline; text-decoration-color: var(--color-neutral-300); text-underline-offset: 3px; }
+  .more { margin-top: 16px; }
+  .nf { margin-top: 48px; }
+  .nsx { border-collapse: collapse; font-size: 14px; margin-top: 12px; }   /* the last 30 days, shown only with scripts off (SEB-426) */
+  .nsx th, .nsx td { text-align: left; padding: 6px 28px 6px 0; border-bottom: 1px solid var(--color-neutral-200); font-weight: 400; }
+  .nsx th { color: var(--color-neutral-600); font-size: 13px; }
+  @media (max-width: 700px) { .wrap { padding: 0 24px 64px; } }
+  @media (max-width: 760px) {
+    .th { display: none; }
+    .tr { grid-template-columns: 1fr auto; }
+    .tr span:nth-child(2) { grid-column: 1; grid-row: 2; color: var(--color-neutral-600); }
+    .tr span:nth-child(3) { grid-column: 2; grid-row: 1; }
+    .tr span:nth-child(4) { grid-column: 2; grid-row: 2; }
+    .tr span:nth-child(5), .tr span:nth-child(6) { grid-column: 1 / -1; color: var(--color-neutral-600); font-size: 13px; }
+  }
+  @media (max-width: 620px) {
+    .r { grid-template-columns: 1fr auto; }
+    .r > span:not(.v) { display: none; }   /* the empty middle column: without it the price sits beside the name, at the right edge (27 Oct) */
+  }
+</style>
+<link rel="stylesheet" href="./css/site_head.css?v=5">
+<link rel="stylesheet" href="./css/site_page.css?v=7">
+<link rel="stylesheet" href="./css/machine_view.css?v=3">
+</head>
+<body data-ccy="PKR">
+<div class="wrap">
+  <div class="hp-head">
+    <div class="hp-headleft">
+      <a class="hp-logo" href="./index.html">margin.wiki</a>
+      <nav class="hp-nav" aria-label="Main" id="nav"><a href="./countries.html">Countries</a><a href="./sending-money.html">Routes</a><a href="./sources.html">Sources</a><a href="./findings.html">Findings</a><a href="./research.html">Research</a><a href="./how-it-works.html">How it works</a></nav>
+    </div>
+  </div>
+
+  <div class="cnav" id="cnav"><a class="back" href="./countries.html">Countries</a></div>
+  <div class="hero" id="hero" style="display: flex; flex-direction: column;"><h1>In Pakistan a dollar costs 1.5% more than the official rate</h1><p class="lead">The official rate is 276.75 PKR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 280.96 PKR. A stablecoin is a coin that stays worth one US dollar.</p><p class="money num">For US$100, people pay <b>28,096 PKR</b>. The official rate says 27,675 PKR.</p><p class="money num">One dollar costs 276.75 PKR at the official rate, 278.78 PKR in cash from a money changer and 280.96 PKR as a stablecoin.</p><p class="stamp num">Only 1 source</p><p class="stamp num">Prices from the 04:00 UTC hour, 1 Nov</p></div>
+  <div id="depth"><p class="body">You could buy at least US$5,000 here before the price goes up 1%.</p></div>
+  <section id="chart"><h2>How the gap moved, day by day</h2><p class="note">One point per day, the price we published that day. 0% is the official rate. Tap a day to read it.</p><div class="chart" id="cv"><svg id="svg" viewBox="0 0 1216 300"><line class="gl z" x1="56" x2="1208" y1="274" y2="274"></line><text class="ax z" x="48" y="278" text-anchor="end">0%</text><line class="gl" x1="56" x2="1208" y1="241" y2="241"></line><text class="ax" x="48" y="245" text-anchor="end">+0.5%</text><line class="gl" x1="56" x2="1208" y1="208" y2="208"></line><text class="ax" x="48" y="212" text-anchor="end">+1.0%</text><line class="gl" x1="56" x2="1208" y1="175" y2="175"></line><text class="ax" x="48" y="179" text-anchor="end">+1.5%</text><line class="gl" x1="56" x2="1208" y1="142" y2="142"></line><text class="ax" x="48" y="146" text-anchor="end">+2.0%</text><line class="gl" x1="56" x2="1208" y1="109" y2="109"></line><text class="ax" x="48" y="113" text-anchor="end">+2.5%</text><line class="gl" x1="56" x2="1208" y1="76" y2="76"></line><text class="ax" x="48" y="80" text-anchor="end">+3.0%</text><line class="gl" x1="56" x2="1208" y1="43" y2="43"></line><text class="ax" x="48" y="47" text-anchor="end">+3.5%</text><line class="gl" x1="56" x2="1208" y1="10" y2="10"></line><text class="ax" x="48" y="14" text-anchor="end">+4.0%</text><path class="ar-own" d="M56.0 83.4L75.2 82.4L94.4 88.4L113.6 125.5L132.8 112.0L152.0 96.7L171.2 112.3L190.4 108.5L209.6 100.1L228.8 110.1L248.0 129.0L267.2 113.1L286.4 98.0L305.6 108.7L324.8 103.8L344.0 96.8L363.2 89.2L382.4 103.8L401.6 127.5L420.8 88.2L440.0 81.1L459.2 72.8L478.4 66.8L497.6 85.4L516.8 91.4L536.0 65.6L555.2 34.0L574.4 62.3L593.6 73.8L612.8 82.9L632.0 88.4L651.2 103.3L670.4 93.9L689.6 100.8L708.8 95.6L728.0 67.3L747.2 68.1L766.4 84.8L785.6 106.7L804.8 103.0L824.0 115.0L843.2 99.6L862.4 84.8L881.6 100.1L900.8 115.1L920.0 123.6L939.2 107.6L958.4 94.6L977.6 103.5L996.8 109.9L1016.0 102.7L1035.2 88.8L1054.4 78.7L1073.6 72.1L1092.8 67.7L1112.0 63.9L1131.2 63.5L1188.8 169.2L1208.0 173.5L1208.0 274L56.0 274Z"></path><path class="ln-own" d="M56.0 83.4L75.2 82.4L94.4 88.4L113.6 125.5L132.8 112.0L152.0 96.7L171.2 112.3L190.4 108.5L209.6 100.1L228.8 110.1L248.0 129.0L267.2 113.1L286.4 98.0L305.6 108.7L324.8 103.8L344.0 96.8L363.2 89.2L382.4 103.8L401.6 127.5L420.8 88.2L440.0 81.1L459.2 72.8L478.4 66.8L497.6 85.4L516.8 91.4L536.0 65.6L555.2 34.0L574.4 62.3L593.6 73.8L612.8 82.9L632.0 88.4L651.2 103.3L670.4 93.9L689.6 100.8L708.8 95.6L728.0 67.3L747.2 68.1L766.4 84.8L785.6 106.7L804.8 103.0L824.0 115.0L843.2 99.6L862.4 84.8L881.6 100.1L900.8 115.1L920.0 123.6L939.2 107.6L958.4 94.6L977.6 103.5L996.8 109.9L1016.0 102.7L1035.2 88.8L1054.4 78.7L1073.6 72.1L1092.8 67.7L1112.0 63.9L1131.2 63.5L1188.8 169.2L1208.0 173.5"></path><circle class="pt" cx="1208" cy="173.482" r="3.5"></circle><text class="ax" x="56" y="294" text-anchor="start">2 Sep</text><text class="ax" x="152" y="294" text-anchor="middle">7 Sep</text><text class="ax" x="248" y="294" text-anchor="middle">12 Sep</text><text class="ax" x="344" y="294" text-anchor="middle">17 Sep</text><text class="ax" x="440" y="294" text-anchor="middle">22 Sep</text><text class="ax" x="536" y="294" text-anchor="middle">27 Sep</text><text class="ax" x="632" y="294" text-anchor="middle">2 Oct</text><text class="ax" x="728" y="294" text-anchor="middle">7 Oct</text><text class="ax" x="824" y="294" text-anchor="middle">12 Oct</text><text class="ax" x="920" y="294" text-anchor="middle">17 Oct</text><text class="ax" x="1016" y="294" text-anchor="middle">22 Oct</text><text class="ax" x="1112" y="294" text-anchor="middle">27 Oct</text><text class="ax" x="1208" y="294" text-anchor="end">1 Nov</text><line class="cr" id="cr" y1="10" y2="274" visibility="hidden"></line><circle class="cd" id="cd" r="4.5" visibility="hidden"></circle></svg></div><div class="rbar" role="group"><button type="button" data-p="ours" aria-pressed="true">Since Sep</button><button type="button" data-p="1y" aria-pressed="false">Year</button><button type="button" data-p="all" aria-pressed="false">All</button></div><p class="note" id="rec">Today's gap is the smallest since 2 Sep 2026, in our own checks. On most days the gap is between 2.4% and 3.1%.</p><p class="note" id="swl"></p><noscript><table class="nsx" aria-label="Dollar price against the official rate over time"><thead><tr><th scope="col">Time</th><th scope="col">Gap</th></tr></thead><tbody><tr><td>1 Oct</td><td>+2.9%</td></tr><tr><td>2 Oct</td><td>+2.8%</td></tr><tr><td>3 Oct</td><td>+2.6%</td></tr><tr><td>4 Oct</td><td>+2.7%</td></tr><tr><td>5 Oct</td><td>+2.6%</td></tr><tr><td>6 Oct</td><td>+2.7%</td></tr><tr><td>7 Oct</td><td>+3.1%</td></tr><tr><td>8 Oct</td><td>+3.1%</td></tr><tr><td>9 Oct</td><td>+2.9%</td></tr><tr><td>10 Oct</td><td>+2.5%</td></tr><tr><td>11 Oct</td><td>+2.6%</td></tr><tr><td>12 Oct</td><td>+2.4%</td></tr><tr><td>13 Oct</td><td>+2.6%</td></tr><tr><td>14 Oct</td><td>+2.9%</td></tr><tr><td>15 Oct</td><td>+2.6%</td></tr><tr><td>16 Oct</td><td>+2.4%</td></tr><tr><td>17 Oct</td><td>+2.3%</td></tr><tr><td>18 Oct</td><td>+2.5%</td></tr><tr><td>19 Oct</td><td>+2.7%</td></tr><tr><td>20 Oct</td><td>+2.6%</td></tr><tr><td>21 Oct</td><td>+2.5%</td></tr><tr><td>22 Oct</td><td>+2.6%</td></tr><tr><td>23 Oct</td><td>+2.8%</td></tr><tr><td>24 Oct</td><td>+3.0%</td></tr><tr><td>25 Oct</td><td>+3.1%</td></tr><tr><td>26 Oct</td><td>+3.1%</td></tr><tr><td>27 Oct</td><td>+3.2%</td></tr><tr><td>28 Oct</td><td>+3.2%</td></tr><tr><td>31 Oct</td><td>+1.6%</td></tr><tr><td>1 Nov</td><td>+1.5%</td></tr></tbody></table></noscript></section>
+  <section id="src"><h2>Where this price comes from</h2><p class="note">We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from people selling to each other.</p><div class="rows"><div class="r"><b>Binance, people selling to each other</b><span></span><span class="v num">280.96 PKR<small>+1.5%</small></span></div></div></section>
+  <p class="nf note" id="nf" hidden></p>
+</div>
+<script src="./js/tooltip.js"></script>
+<script src="./js/page_head.js"></script>
+<script src="./js/country_page.js?v=6"></script>
+<script src="./js/footer.js"></script>
+<script src="./js/site_head.js?v=4"></script>
+<script src="./js/machine_view.js?v=3" defer></script>
+</body>
+</html>

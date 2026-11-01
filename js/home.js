@@ -28,7 +28,7 @@
   function bucket(v) { if (v == null) { return 'b-none'; } for (var i = 0; i < BUCKETS.length; i++) { if (v >= BUCKETS[i][0] && v < BUCKETS[i][1]) { return BUCKETS[i][2]; } } return 'b-none'; }
   function plain(name) { return String(name || '').replace(/^the /i, '').replace(/^./, function (c) { return c.toUpperCase(); }); }
   function getJSON(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) { throw new Error(u); } return r.json(); }); }
-  function ctry(ccy) { return './country.html?ccy=' + encodeURIComponent(ccy); }
+  function ctry(ccy) { return './country/' + encodeURIComponent(String(ccy).toLowerCase()) + '/'; }
   // Same words as whatLine, just split into two lines (SEB-301, 21 Oct): "We track... had a price." then "We also price...".
   function leadSpans(s) {
     var at = s.indexOf('every hour. ');
@@ -52,6 +52,50 @@
     });
   }
 
+  /* ---------------------------------------------------------------- the computed headline and the week's changes (SEB-423)
+     data/home_facts.json is built by tools/emit_home_facts.py; each sentence shows only while data/claims_status.json says the facts
+     match their source files (Claims). With no facts, a failed claim or a move of 1 point or less, the fixed headline stays. */
+  function blocked(k) { return !window.Claims || window.Claims.blocked('homeData.' + k); }
+  function longDate(s) { return (+s.slice(8, 10)) + ' ' + MON[+s.slice(5, 7) - 1]; }
+  function nameOf(ccy) {
+    var c = ((D.heat && D.heat.currencies) || []).filter(function (x) { return x.ccy === ccy; })[0];
+    return c ? plain(c.country) : ccy;
+  }
+  function moveFacts() {
+    var m = D.facts && D.facts.largest_move;
+    return m && !blocked('headlineMove') ? m : null;
+  }
+  function moveHeadline() {
+    var m = moveFacts(); if (!m) { return ''; }
+    var k = m.direction === 'dearer' ? 'headlineMoveUp' : 'headlineMoveDown';
+    return blocked(k) ? '' : T(k, { country: plain(m.country), points: m.points.toFixed(1) });
+  }
+  function moveSince() {
+    var m = moveFacts(); if (!m || !moveHeadline() || m.side === 'at') { return ''; }
+    var k = m.since_whole_window ? (m.side === 'above' ? 'moveSinceWholeAbove' : 'moveSinceWholeBelow') : (m.side === 'above' ? 'moveSinceAbove' : 'moveSinceBelow');
+    var t = blocked(k) ? '' : T(k, { date: m.since ? longDate(m.since) : '' });
+    return t ? '<p class="lead sub">' + esc(t) + '</p>' : '';
+  }
+  function changeLine(it) {
+    var v = { date: longDate(it.date) }, k = '', FD = (D.copy && D.copy.findingData) || {}, RN = (D.copy && D.copy.routeNames) || {};
+    if (it.kind === 'crossed_up') { k = 'wcCrossedUp'; v.country = it.country; }
+    else if (it.kind === 'crossed_down') { k = 'wcCrossedDown'; v.country = it.country; }
+    else if (it.kind === 'event') { k = it.event_kind === 'street_slide' ? 'wcEventStreet' : 'wcEventOfficial'; v.country = nameOf(it.ccy); v.pct = Math.round(it.pct) + '%'; }
+    else if (it.kind === 'source_added') { k = it.status === 'quarantine' ? 'wcSourceQuarantine' : 'wcSourceAdded'; v.source = it.source; }
+    else if (it.kind === 'finding_changed') { k = { holds: 'wcFindingHolds', weaker: 'wcFindingWeaker', no_longer_true: 'wcFindingNoLonger' }[it.to]; v.title = String(FD['title_' + it.id] || '').replace(/\{\w+\}/g, '').trim(); if (!v.title) { return null; } }
+    else if (it.kind === 'route_flip') { k = it.now === 'cheaper' ? 'wcRouteCheaper' : 'wcRouteDearer'; v.route = (RN[it.route] || {}).fromTo; if (!v.route) { return null; } }
+    if (!k || blocked(k) || !T(k)) { return null; }
+    return '<a class="r f" href="./' + esc(it.link) + '"><span class="m">' + esc(T(k, v)) + '</span><span class="v">' + esc(v.date) + '</span></a>';
+  }
+  function whatChanged() {
+    var el = $('wc'); if (!el) { return; }
+    var f = D.facts;
+    if (!f || !T('whatChangedTitle') || blocked('whatChangedTitle')) { el.innerHTML = ''; return; }
+    var lines = (f.what_changed || []).map(changeLine).filter(Boolean);
+    el.innerHTML = '<h2>' + esc(T('whatChangedTitle')) + '</h2>' +
+      (lines.length ? '<div class="rows">' + lines.join('') + '</div>' : '<p class="note">' + esc(T('whatChangedEmpty')) + '</p>');
+  }
+
   /* ---------------------------------------------------------------- hero: what the site is, with the totals from record_daily.json */
   function hero() {
     var tt = D.rec.totals || {};
@@ -62,7 +106,7 @@
     var idxCount = { priced: g(nPriced), tracked: g(nTracked) };
     // one per row, as the Sources page lists them: the CriptoYa feeds count once
     var sr = (D.src && D.src.sources) || null, nSources = sr ? sr.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (sr.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null;
-    var h = '<h1>' + esc(T('headline')) + '</h1>' +
+    var h = '<h1>' + esc(moveHeadline() || T('headline')) + '</h1>' + moveSince() +
       (T('heroWhy') ? '<p class="lead sub">' + esc(T('heroWhy')) + '</p>' : '') +
       '<p class="lead what">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
       // who built it and what is stored so far, as one line (21 Oct, Seb's wording); the numbers come from the files
@@ -70,7 +114,6 @@
         esc(T('agentsStored', { readings: '\u0001', sources: '\u0002', hours: '\u0003' })).replace('\u0001', g(tt.readings)).replace('\u0002', String(nSources)).replace('\u0003', g(tt.hours_collected)) : '') + '</p>';
     $('hero').innerHTML = h;
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
-    if (T('headline')) { document.title = 'margin.wiki'; }
   }
 
   /* ---------------------------------------------------------------- the map: one row per country, one square per day, sorted by this hour's figure */
@@ -266,9 +309,12 @@
   var wired = false, tlWired = false;
   function load() {
   var failed = [], y0 = window.scrollY;
-  return Promise.all(Object.keys(jobs).map(function (k) { return getJSON(jobs[k]).catch(function () { failed.push(k); return null; }); })).then(function (r) {
+  // the computed sentences (SEB-423): not counted as a failed file when absent, the page then keeps its fixed headline and shows no block
+  var extra = [getJSON('data/home_facts.json').catch(function () { return null; }), window.Claims ? window.Claims.load() : Promise.resolve(null)];
+  return Promise.all(Object.keys(jobs).map(function (k) { return getJSON(jobs[k]).catch(function () { failed.push(k); return null; }); }).concat(extra)).then(function (r) {
     var keys = Object.keys(jobs), got = {};
     keys.forEach(function (k, i) { got[k] = r[i]; });
+    got.facts = r[keys.length];
     C = (got.copy && got.copy.homeData) || {};
     D = got;
     nav();
@@ -279,6 +325,7 @@
     D.rk = ((got.idx && got.idx.countries) || []).filter(function (c) { return c.index_pct != null && c.denominator_class !== 'unmaintained'; });
     heatHead();
     heat();
+    whatChanged();
     findings();
     getJSON('data/map_timeline/landing.json').then(land).catch(function () { land(null); });
     if (window.homeTimeline) {

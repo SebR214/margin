@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<base href="/">
+<!-- head:begin -->
+<title>Singapore: the real price of a dollar, hourly</title>
+<meta name="description" content="What people in Singapore pay for a dollar against the official rate, updated every hour."/>
+<link rel="canonical" href="https://margin.wiki/country/sgd/"/>
+<meta property="og:site_name" content="margin.wiki"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Singapore: the real price of a dollar, hourly"/>
+<meta property="og:description" content="What people in Singapore pay for a dollar against the official rate, updated every hour."/>
+<meta property="og:url" content="https://margin.wiki/country/sgd/"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Singapore: the real price of a dollar, hourly"/>
+<meta name="twitter:description" content="What people in Singapore pay for a dollar against the official rate, updated every hour."/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" href="/favicon.ico" sizes="48x48"/>
+<link rel="alternate" type="text/markdown" href="/country/SGD.md"/>
+<!-- head:end -->
+<link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./style.css">
+<style>
+  /* One country (SEB-268), rebuilt to the approved reference. Header, column, title and pill styles are the shared ones
+     (css/site_head.css, css/site_page.css); colours are the style.css tokens; every word is in copy.json, countryData. */
+  .num { font-variant-numeric: tabular-nums; }
+  .wrap { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; box-sizing: border-box; }
+  .cnav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 40px; }
+  .cnav .back { font-size: 15px; color: var(--color-neutral-600); text-decoration: none; }
+  .cnav .back::before { content: "\2190  "; }
+  .cnav .back:hover { color: var(--color-ink); }
+  #hero.hero { padding-top: 24px !important; }
+  .hero { padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 0 !important; max-width: 760px; }
+  .stamp { margin: 0; font-size: 14px; color: var(--color-neutral-600); }
+  .money { margin: 0; font-size: 16px; }
+  .money b { font-weight: 600; }
+  .flag { margin: 0; font-size: 15px; color: var(--color-neutral-700); padding-left: 12px; border-left: 2px solid var(--color-neutral-300); }
+  .body { margin: 0; max-width: 680px; font-size: 16px; }
+  section { margin-top: 48px; }
+  #depth { margin-top: 20px; }
+  h2 { margin: 0 0 8px; }
+  .note { margin: 0 0 16px; font-size: 15px; color: var(--color-neutral-700); max-width: 680px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  #chart .pills { margin: 0 0 12px; }
+  .key { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 14px; color: var(--color-neutral-700); margin: 0 0 8px; }
+  .key i.ln { display: inline-block; width: 22px; height: 0; border-top: 2px solid var(--data-700); vertical-align: 4px; margin-right: 8px; }
+  .key i.ln.dash { border-top: 2px dashed var(--color-neutral-500); }
+  .chart { position: relative; touch-action: pan-y; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .ax { fill: var(--color-neutral-600); font-size: 12px; }
+  .ax.z { fill: var(--color-ink); font-weight: 600; }
+  .gl { stroke: var(--color-neutral-200); }
+  .gl.z { stroke: var(--color-ink); }
+  .ln-own { fill: none; stroke: var(--data-700); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .ar-own { fill: var(--data-700); fill-opacity: .14; stroke: none; }
+  .band { fill: var(--color-neutral-100); }
+  /* the range bar under the chart: a grey rounded bar, the picked range a white pill (24 Oct) */
+  .rbar { display: flex; width: max-content; gap: 2px; margin: 12px auto 20px; padding: 3px; border-radius: 999px; background: var(--color-neutral-100); }
+  .rbar button { font: inherit; font-size: 14px; font-weight: 500; line-height: 1; padding: 7px 12px; border: 0; border-radius: 999px; background: transparent; color: var(--color-neutral-700); cursor: pointer; }
+  .rbar button[aria-pressed="true"] { background: var(--color-bg, #fff); color: var(--color-ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .ln-back { fill: none; stroke: var(--color-neutral-500); stroke-width: 1.3; stroke-dasharray: 4 3; }
+  .pt { fill: var(--data-700); }
+  .cr { stroke: var(--color-ink); stroke-dasharray: 3 3; }
+  .cd { fill: var(--color-ink); }
+  #rec { margin-top: 12px; }
+  .rows { border-top: 1px solid var(--color-neutral-200); }
+  .r { display: grid; grid-template-columns: 260px 1fr 140px; gap: 0 24px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--color-neutral-200); }
+  .r b { font-weight: 600; font-size: 15px; }
+  .r .v { text-align: right; font-weight: 600; font-size: 15px; white-space: nowrap; }
+  .r .v small { display: block; font-size: 13px; color: var(--color-neutral-600); font-weight: 400; }
+  .tbl { font-size: 14px; border-top: 1px solid var(--color-neutral-200); }
+  .th, .tr { display: grid; grid-template-columns: 150px 1fr 140px 90px 150px 150px; gap: 0 16px; padding: 10px 0; border-bottom: 1px solid var(--color-neutral-200); align-items: center; }
+  .th { color: var(--color-neutral-600); font-size: 13px; }
+  .tr span:nth-child(3), .tr span:nth-child(4), .th span:nth-child(3), .th span:nth-child(4) { text-align: right; }
+  .tr a { color: var(--color-neutral-700); text-decoration: underline; text-decoration-color: var(--color-neutral-300); text-underline-offset: 3px; }
+  .more { margin-top: 16px; }
+  .nf { margin-top: 48px; }
+  .nsx { border-collapse: collapse; font-size: 14px; margin-top: 12px; }   /* the last 30 days, shown only with scripts off (SEB-426) */
+  .nsx th, .nsx td { text-align: left; padding: 6px 28px 6px 0; border-bottom: 1px solid var(--color-neutral-200); font-weight: 400; }
+  .nsx th { color: var(--color-neutral-600); font-size: 13px; }
+  @media (max-width: 700px) { .wrap { padding: 0 24px 64px; } }
+  @media (max-width: 760px) {
+    .th { display: none; }
+    .tr { grid-template-columns: 1fr auto; }
+    .tr span:nth-child(2) { grid-column: 1; grid-row: 2; color: var(--color-neutral-600); }
+    .tr span:nth-child(3) { grid-column: 2; grid-row: 1; }
+    .tr span:nth-child(4) { grid-column: 2; grid-row: 2; }
+    .tr span:nth-child(5), .tr span:nth-child(6) { grid-column: 1 / -1; color: var(--color-neutral-600); font-size: 13px; }
+  }
+  @media (max-width: 620px) {
+    .r { grid-template-columns: 1fr auto; }
+    .r > span:not(.v) { display: none; }   /* the empty middle column: without it the price sits beside the name, at the right edge (27 Oct) */
+  }
+</style>
+<link rel="stylesheet" href="./css/site_head.css?v=5">
+<link rel="stylesheet" href="./css/site_page.css?v=7">
+<link rel="stylesheet" href="./css/machine_view.css?v=3">
+</head>
+<body data-ccy="SGD">
+<div class="wrap">
+  <div class="hp-head">
+    <div class="hp-headleft">
+      <a class="hp-logo" href="./index.html">margin.wiki</a>
+      <nav class="hp-nav" aria-label="Main" id="nav"><a href="./countries.html">Countries</a><a href="./sending-money.html">Routes</a><a href="./sources.html">Sources</a><a href="./findings.html">Findings</a><a href="./research.html">Research</a><a href="./how-it-works.html">How it works</a></nav>
+    </div>
+  </div>
+
+  <div class="cnav" id="cnav"><a class="back" href="./countries.html">Countries</a></div>
+  <div class="hero" id="hero" style="display: flex; flex-direction: column;"><h1>In Singapore a dollar costs 0.1% less than the official rate</h1><p class="lead">The official rate is 1.28 SGD per dollar. On the exchanges where people in Singapore trade stablecoins, one costs 1.28 SGD. A stablecoin is a coin that stays worth one US dollar.</p><p class="money num">For US$100, people pay <b>127.76 SGD</b>. The official rate says 127.83 SGD.</p><p class="stamp num">Only 1 source</p><p class="stamp num">Prices from the 04:00 UTC hour, 1 Nov</p></div>
+  <div id="depth"></div>
+  <section id="chart"><h2>How the gap moved, day by day</h2><p class="note">One point per day, the price we published that day. 0% is the official rate. Tap a day to read it.</p><div class="chart" id="cv"><svg id="svg" viewBox="0 0 1216 300"><line class="gl" x1="56" x2="1208" y1="274" y2="274"></line><text class="ax" x="48" y="278" text-anchor="end">−0.6%</text><line class="gl" x1="56" x2="1208" y1="241" y2="241"></line><text class="ax" x="48" y="245" text-anchor="end">−0.4%</text><line class="gl" x1="56" x2="1208" y1="208" y2="208"></line><text class="ax" x="48" y="212" text-anchor="end">−0.2%</text><line class="gl z" x1="56" x2="1208" y1="175" y2="175"></line><text class="ax z" x="48" y="179" text-anchor="end">0%</text><line class="gl" x1="56" x2="1208" y1="142" y2="142"></line><text class="ax" x="48" y="146" text-anchor="end">+0.2%</text><line class="gl" x1="56" x2="1208" y1="109" y2="109"></line><text class="ax" x="48" y="113" text-anchor="end">+0.4%</text><line class="gl" x1="56" x2="1208" y1="76.00000000000003" y2="76.00000000000003"></line><text class="ax" x="48" y="80.00000000000003" text-anchor="end">+0.6%</text><line class="gl" x1="56" x2="1208" y1="43.00000000000003" y2="43.00000000000003"></line><text class="ax" x="48" y="47.00000000000003" text-anchor="end">+0.8%</text><line class="gl" x1="56" x2="1208" y1="10" y2="10"></line><text class="ax" x="48" y="14" text-anchor="end">+1.0%</text><path class="ar-own" d="M56.0 178.1L69.9 193.2L83.8 185.4L97.6 184.9L111.5 194.1L125.4 158.2L139.3 163.8L153.2 208.0L167.0 179.5L180.9 249.7L194.8 201.1L208.7 201.6L222.6 158.8L236.4 169.1L250.3 158.6L264.2 176.7L278.1 166.1L292.0 177.4L305.8 162.7L319.7 145.6L333.6 141.8L347.5 202.6L361.3 169.0L375.2 196.1L389.1 221.4L403.0 171.7L416.9 136.1L430.7 139.5L444.6 176.3L458.5 176.5L472.4 175.1L486.3 131.1L500.1 170.9L514.0 143.2L527.9 140.6L541.8 134.1L555.7 149.8L569.5 160.4L583.4 176.0L597.3 165.2L611.2 165.9L625.1 176.9L638.9 186.8L652.8 189.6L666.7 152.8L680.6 164.3L694.5 159.8L708.3 136.8L722.2 107.8L736.1 87.5L750.0 81.0L763.9 100.6L777.7 58.3L791.6 103.8L805.5 99.5L819.4 127.8L833.3 112.7L847.1 141.4L861.0 96.0L874.9 141.8L888.8 112.4L902.7 115.2L916.5 131.8L930.4 99.8L944.3 110.3L958.2 108.8L972.0 168.9L985.9 152.8L999.8 128.9L1013.7 135.1L1027.6 168.0L1041.4 185.0L1055.3 184.2L1069.2 182.1L1083.1 167.9L1097.0 176.1L1110.8 179.3L1124.7 189.2L1138.6 185.0L1152.5 190.6L1194.1 186.7L1208.0 184.4L1208.0 175L56.0 175Z"></path><path class="ln-own" d="M56.0 178.1L69.9 193.2L83.8 185.4L97.6 184.9L111.5 194.1L125.4 158.2L139.3 163.8L153.2 208.0L167.0 179.5L180.9 249.7L194.8 201.1L208.7 201.6L222.6 158.8L236.4 169.1L250.3 158.6L264.2 176.7L278.1 166.1L292.0 177.4L305.8 162.7L319.7 145.6L333.6 141.8L347.5 202.6L361.3 169.0L375.2 196.1L389.1 221.4L403.0 171.7L416.9 136.1L430.7 139.5L444.6 176.3L458.5 176.5L472.4 175.1L486.3 131.1L500.1 170.9L514.0 143.2L527.9 140.6L541.8 134.1L555.7 149.8L569.5 160.4L583.4 176.0L597.3 165.2L611.2 165.9L625.1 176.9L638.9 186.8L652.8 189.6L666.7 152.8L680.6 164.3L694.5 159.8L708.3 136.8L722.2 107.8L736.1 87.5L750.0 81.0L763.9 100.6L777.7 58.3L791.6 103.8L805.5 99.5L819.4 127.8L833.3 112.7L847.1 141.4L861.0 96.0L874.9 141.8L888.8 112.4L902.7 115.2L916.5 131.8L930.4 99.8L944.3 110.3L958.2 108.8L972.0 168.9L985.9 152.8L999.8 128.9L1013.7 135.1L1027.6 168.0L1041.4 185.0L1055.3 184.2L1069.2 182.1L1083.1 167.9L1097.0 176.1L1110.8 179.3L1124.7 189.2L1138.6 185.0L1152.5 190.6L1194.1 186.7L1208.0 184.4"></path><circle class="pt" cx="1208" cy="184.3885" r="3.5"></circle><text class="ax" x="56" y="294" text-anchor="start">10 Aug</text><text class="ax" x="139.27710843373495" y="294" text-anchor="middle">16 Aug</text><text class="ax" x="222.55421686746988" y="294" text-anchor="middle">22 Aug</text><text class="ax" x="305.83132530120486" y="294" text-anchor="middle">28 Aug</text><text class="ax" x="389.10843373493975" y="294" text-anchor="middle">3 Sep</text><text class="ax" x="472.3855421686747" y="294" text-anchor="middle">9 Sep</text><text class="ax" x="555.6626506024097" y="294" text-anchor="middle">15 Sep</text><text class="ax" x="638.9397590361446" y="294" text-anchor="middle">21 Sep</text><text class="ax" x="722.2168674698795" y="294" text-anchor="middle">27 Sep</text><text class="ax" x="805.4939759036145" y="294" text-anchor="middle">3 Oct</text><text class="ax" x="888.7710843373494" y="294" text-anchor="middle">9 Oct</text><text class="ax" x="972.0481927710844" y="294" text-anchor="middle">15 Oct</text><text class="ax" x="1055.3253012048194" y="294" text-anchor="middle">21 Oct</text><text class="ax" x="1208" y="294" text-anchor="end">1 Nov</text><line class="cr" id="cr" y1="10" y2="274" visibility="hidden"></line><circle class="cd" id="cd" r="4.5" visibility="hidden"></circle></svg></div><div class="rbar" role="group"><button type="button" data-p="ours" aria-pressed="true">Since Aug</button><button type="button" data-p="1y" aria-pressed="false">Year</button><button type="button" data-p="all" aria-pressed="false">All</button></div><p class="note" id="rec">Today's gap is normal for here since 10 Aug 2026, in our own checks. On most days the gap is between −0.1% and 0.4%.</p><p class="note" id="swl"></p><noscript><table class="nsx" aria-label="Dollar price against the official rate over time"><thead><tr><th scope="col">Time</th><th scope="col">Gap</th></tr></thead><tbody><tr><td>1 Oct</td><td>+0.7%</td></tr><tr><td>2 Oct</td><td>+0.4%</td></tr><tr><td>3 Oct</td><td>+0.5%</td></tr><tr><td>4 Oct</td><td>+0.3%</td></tr><tr><td>5 Oct</td><td>+0.4%</td></tr><tr><td>6 Oct</td><td>+0.2%</td></tr><tr><td>7 Oct</td><td>+0.5%</td></tr><tr><td>8 Oct</td><td>+0.2%</td></tr><tr><td>9 Oct</td><td>+0.4%</td></tr><tr><td>10 Oct</td><td>+0.4%</td></tr><tr><td>11 Oct</td><td>+0.3%</td></tr><tr><td>12 Oct</td><td>+0.5%</td></tr><tr><td>13 Oct</td><td>+0.4%</td></tr><tr><td>14 Oct</td><td>+0.4%</td></tr><tr><td>15 Oct</td><td>0.0%</td></tr><tr><td>16 Oct</td><td>+0.1%</td></tr><tr><td>17 Oct</td><td>+0.3%</td></tr><tr><td>18 Oct</td><td>+0.2%</td></tr><tr><td>19 Oct</td><td>0.0%</td></tr><tr><td>20 Oct</td><td>−0.1%</td></tr><tr><td>21 Oct</td><td>−0.1%</td></tr><tr><td>22 Oct</td><td>0.0%</td></tr><tr><td>23 Oct</td><td>0.0%</td></tr><tr><td>24 Oct</td><td>0.0%</td></tr><tr><td>25 Oct</td><td>0.0%</td></tr><tr><td>26 Oct</td><td>−0.1%</td></tr><tr><td>27 Oct</td><td>−0.1%</td></tr><tr><td>28 Oct</td><td>−0.1%</td></tr><tr><td>31 Oct</td><td>−0.1%</td></tr><tr><td>1 Nov</td><td>−0.1%</td></tr></tbody></table></noscript></section>
+  <section id="src"><h2>Where this price comes from</h2><p class="note">We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from an exchange.</p><div class="rows"><div class="r"><b>IndependentReserve</b><span></span><span class="v num">1.28 SGD<small>−0.1%</small></span></div></div></section>
+  <p class="nf note" id="nf" hidden></p>
+</div>
+<script src="./js/tooltip.js"></script>
+<script src="./js/page_head.js"></script>
+<script src="./js/country_page.js?v=6"></script>
+<script src="./js/footer.js"></script>
+<script src="./js/site_head.js?v=4"></script>
+<script src="./js/machine_view.js?v=3" defer></script>
+</body>
+</html>

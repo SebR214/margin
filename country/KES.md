@@ -1,15 +1,29 @@
-# No price for Kenya this hour
+# In Kenya a dollar costs 1.0% less than the official rate
 
-Prices from the 06:00 UTC hour, 31 Oct.
+Prices from the 04:00 UTC hour, 1 Nov.
 
-Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
+The official rate is 129.9 KES per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 128.59 KES. A stablecoin is a coin that stays worth one US dollar.
 
-The last price we published was +0.1%, on 28 Oct.
+For US$100, people pay 12,859 KES. The official rate says 12,990 KES.
 
-Prices from the 06:00 UTC hour, 31 Oct
+Only 1 source
+
+Prices from the 04:00 UTC hour, 1 Nov
+
+You could buy at least US$5,000 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/KES.json>
 
 ## How the gap moved, day by day
 
 One point per day, the price we published that day. 0% is the official rate.
+
+Today's gap is the smallest since 2 Sep 2026, in our own checks. On most days the gap is between −0.1% and 0.4%.
+
+## Where this price comes from
+
+We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from people selling to each other.
+
+Binance, people selling to each other
+
+128.59 KES −1.0%

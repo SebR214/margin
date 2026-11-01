@@ -1,10 +1,10 @@
 # Transfer apps keep changing their prices
 
-Prices from the 06:00 UTC hour, 31 Oct.
+Prices from the 04:00 UTC hour, 1 Nov.
 
 Transfer apps raise and cut what they charge to send money. The cheapest app when you compare may not be the cheapest when you send.
 
-1,633 · confirmed price changes by transfer apps since our record began
+1,722 · confirmed price changes by transfer apps since our record began
 
 First published 5 Oct 2026. The number updates every hour.
 
@@ -20,17 +20,17 @@ Each row is one route: its confirmed changes, how many were rises or cuts, and h
 
 |  |  |  |
 | --- | --- | --- |
-| Singapore to the Philippines | 175 rises, 195 cuts, 5 apps that changed price. First change 12 Aug, latest change 28 Oct. | 370 price changes |
-| New Zealand to the Philippines | 128 rises, 158 cuts, 7 apps that changed price. First change 11 Sep, latest change 28 Oct. | 286 price changes |
-| Australia to the Philippines | 124 rises, 125 cuts, 9 apps that changed price. First change 11 Sep, latest change 28 Oct. | 249 price changes |
-| United States to Nigeria | 105 rises, 114 cuts, 3 apps that changed price. First change 30 Sep, latest change 28 Oct. | 219 price changes |
-| United States to Mexico | 103 rises, 114 cuts, 7 apps that changed price. First change 20 Aug, latest change 28 Oct. | 217 price changes |
-| United States to India | 55 rises, 60 cuts, 9 apps that changed price. First change 30 Sep, latest change 28 Oct. | 115 price changes |
-| Singapore to India | 39 rises, 65 cuts, 4 apps that changed price. First change 2 Oct, latest change 27 Oct. | 104 price changes |
-| United States to Brazil | 13 rises, 14 cuts, 4 apps that changed price. First change 25 Oct, latest change 28 Oct. | 27 price changes |
-| Australia to India | 6 rises, 16 cuts, 5 apps that changed price. First change 25 Oct, latest change 28 Oct. | 22 price changes |
-| United States to Argentina | 6 rises, 6 cuts, 2 apps that changed price. First change 23 Oct, latest change 28 Oct. | 12 price changes |
-| United States to the Philippines | 3 rises, 9 cuts, 3 apps that changed price. First change 23 Oct, latest change 28 Oct. | 12 price changes |
+| Singapore to the Philippines | 180 rises, 195 cuts, 5 apps that changed price. First change 12 Aug, latest change 31 Oct. | 375 price changes |
+| New Zealand to the Philippines | 133 rises, 163 cuts, 7 apps that changed price. First change 11 Sep, latest change 31 Oct. | 296 price changes |
+| Australia to the Philippines | 129 rises, 130 cuts, 9 apps that changed price. First change 11 Sep, latest change 31 Oct. | 259 price changes |
+| United States to Nigeria | 110 rises, 119 cuts, 3 apps that changed price. First change 30 Sep, latest change 31 Oct. | 229 price changes |
+| United States to Mexico | 108 rises, 117 cuts, 7 apps that changed price. First change 20 Aug, latest change 31 Oct. | 225 price changes |
+| United States to India | 60 rises, 65 cuts, 9 apps that changed price. First change 30 Sep, latest change 31 Oct. | 125 price changes |
+| Singapore to India | 44 rises, 70 cuts, 4 apps that changed price. First change 2 Oct, latest change 31 Oct. | 114 price changes |
+| United States to Brazil | 18 rises, 18 cuts, 4 apps that changed price. First change 25 Oct, latest change 31 Oct. | 36 price changes |
+| Australia to India | 11 rises, 16 cuts, 5 apps that changed price. First change 25 Oct, latest change 31 Oct. | 27 price changes |
+| United States to the Philippines | 8 rises, 12 cuts, 4 apps that changed price. First change 23 Oct, latest change 31 Oct. | 20 price changes |
+| United States to Argentina | 8 rises, 8 cuts, 3 apps that changed price. First change 23 Oct, latest change 31 Oct. | 16 price changes |
 
 ## How we worked it out
 
@@ -54,7 +54,7 @@ One line per hour or per price change.
 
 findings_hours_price_changes.csv
 
-1,633 rows
+1,722 rows
 
 <https://margin.wiki/data/findings_hours_price_changes.csv>
 
@@ -64,5 +64,5 @@ findings_hours_price_changes.csv
 | --- | --- | --- |
 | 02 | Some apps charge more on Saturday, then cut back | 51 Saturday rises that came back |
 | 03 | From Singapore to the Philippines, a stablecoin only beats the apps if you send over S$13.5M a month | S$13.5M a month traded on the exchange |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,629 hours a stablecoin was cheapest |
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,638 hours a stablecoin was cheapest |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |

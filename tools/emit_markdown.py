@@ -11,7 +11,7 @@ same data files), and what it shows is written out as markdown: headings, paragr
 Every section ends with the full URL of each data file it came from: the files it links to, or else the files the page
 loaded. So every number in index.md is the number index.html showed for the same hour, with the label the page gave it.
 
-Written: index.md, countries.md, sending-money.md, sources.md, findings.md, how-it-works.md, how-it-was-built.md,
+Written: index.md, countries.md, sending-money.md, sources.md, findings.md, how-it-works.md, how-it-was-built.md, machine-room.md,
 country/{CCY}.md for every country page and finding/{id}.md for every finding, then llms.txt: the site's own title and
 lead, each .md page, and each public data file (data/manifest_latest.json) with what it holds.
 Loud failure: a page that renders nothing, or a twin with no data file URL, exits non-zero and writes nothing.
@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.join(HERE, "tools"))
 SITE = "https://margin.wiki"
 PAGES = [("index.html", "index.md"), ("countries.html", "countries.md"), ("sending-money.html", "sending-money.md"),
          ("sources.html", "sources.md"), ("findings.html", "findings.md"), ("how-it-works.html", "how-it-works.md"),
-         ("how-it-was-built.html", "how-it-was-built.md")]
+         ("how-it-was-built.html", "how-it-was-built.md"), ("machine-room.html", "machine-room.md")]
 NUM = re.compile(r"[−+-]?(?:S\$|US\$|\$)?\d[\d,]*(?:\.\d+)?(?:%|M|K)?")
 MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -76,6 +76,14 @@ SECTION_FILES = {
             (r"^What we measure$", []), (r"^What the percentage means$", ["index_latest.json"]),
             (r"^Where the price comes from$", []), (r"^The cost of sending money$", ["routes_hourly.json"]),
             (r"^What our numbers leave out$", []), (r"^How to check any number$", ["sources_daily.json"]),
+        ],
+    },
+    "machine-room.md": {
+        "hero": ["machine_room.json"],
+        "patterns": [
+            (r"^Week by week$", ["machine_room.json", "aider_log.csv", "machine_room_prs.csv"]),
+            (r"^What runs where$", ["machine_room.json", "machine_room_meters.json"]),
+            (r"^Incidents$", ["machine_room.json"]),
         ],
     },
     "how-it-was-built.md": {
@@ -139,6 +147,9 @@ EXPAND_JS = r"""
 
 def to_md_href(url):
     """An internal page link rewritten to its markdown twin (SEB-301, 21 Oct): never .html."""
+    c = re.match(r"^" + re.escape(SITE) + r"/country/([a-z]{3})/?$", url)        # a country's own page (SEB-426)
+    if c:
+        return "%s/country/%s.md" % (SITE, c.group(1).upper())
     m = re.match(r"^" + re.escape(SITE) + r"/([a-z-]+)\.html(?:\?(.*))?$", url)
     if not m:
         return url
@@ -185,7 +196,7 @@ TO_MARKDOWN = r"""
   if(own){n++;return}[].forEach.call(x.children,function(k){if(!k.closest('[aria-hidden="true"],svg'))w(k)})})(e);return n}
  function clean(t){return (t||'').replace(/\s+/g,' ').replace(/(\s*·\s*)+/g,' · ').replace(/^\s*·\s*|\s*·\s*$/g,'').trim()}
  var ARROW=/^[→←↗↘›»·]+$/;
- var PAGE_LINK=/(^|\/)(country\.html\?ccy=|finding\.html\?id=)/;
+ var PAGE_LINK=/(^|\/)(country\.html\?ccy=|finding\.html\?id=|country\/[a-z]{3}\/)/;
  function abs(h){try{return new URL(h,location.href).href.replace(location.origin,SITE)}catch(e){return h}}
  function inline(e){ // text with links kept as markdown links
   var out='';e.childNodes.forEach(function(n){
@@ -383,22 +394,30 @@ def hour_line(iso):
     return "Prices from the %02d:%02d UTC hour, %d %s." % (hh, mm, d, MON[mo - 1])
 
 
+# the parts of a country page its own HTML carries before any script runs (SEB-426): what the page showed this hour
+FRAGMENTS_JS = """(function(){var g=function(i){var e=document.getElementById(i);return e?e.innerHTML:''};
+ return JSON.stringify({nav:g('nav'),cnav:g('cnav'),hero:g('hero'),depth:g('depth'),chart:g('chart'),src:g('src')})})()"""
+
+
 def render(pages, settle=2.5):
     from gate_common import open_page, serve
     base, stop = serve(HERE)
     out = {}
+    frags = {}
     try:
         with open_page(settle=settle) as page:
             page.visit("about:blank")
             page.set_viewport(1300, 900)
             for url, path in pages:
-                page.visit(base + "/" + url)
+                page.visit(base + "/" + url + ("&" if "?" in url else "?") + "noredirect=1" if path.startswith("country/") else base + "/" + url)
                 got = None
                 for _ in range(8):                   # a page fills in after its data loads; wait for its first heading
                     got = json.loads(page.eval_js(TO_MARKDOWN + "(%s)" % json.dumps(SITE)) or "{}")
                     if any(b["kind"] == "h1" for b in got.get("blocks", [])):
                         break
                     time.sleep(1.0)
+                if path.startswith("country/"):          # the same render also gives the country page its static HTML (SEB-426)
+                    frags[path] = json.loads(page.eval_js(FRAGMENTS_JS) or "{}")
                 page.eval_js(EXPAND_JS)                # a reader page shows the first 20 and a "show all" button; the twin shows everything
                 time.sleep(0.6)
                 got = json.loads(page.eval_js(TO_MARKDOWN + "(%s)" % json.dumps(SITE)) or "{}")
@@ -406,6 +425,7 @@ def render(pages, settle=2.5):
             page.clear_viewport()
     finally:
         stop()
+    render.fragments = frags
     return out
 
 
@@ -435,6 +455,9 @@ def llms_txt(twins):
 
 
 def build(force=False):
+    # SEB-427: the machine room's numbers are worked out first, so the page it renders is this hour's
+    import emit_machine_room
+    emit_machine_room.build()
     h = hour()
     line = hour_line(h)
     if not force and os.path.exists(os.path.join(HERE, "index.md")) and line in open(os.path.join(HERE, "index.md")).read(300):
@@ -466,6 +489,12 @@ def build(force=False):
         os.makedirs(os.path.dirname(full) or HERE, exist_ok=True)
         open(full, "w").write(md)
     open(os.path.join(HERE, "llms.txt"), "w").write(llms_txt(twins))
+    # SEB-426: each country's own page, written from the same render as its .md copy
+    import emit_country_pages
+    emit_country_pages.write_all({p: f for p, f in render.fragments.items() if p in twins}, h)
+    # SEB-425: sitemap.xml and robots.txt from the same page list, lastmod = this build's hour (tools/emit_site_files.py)
+    import emit_site_files
+    emit_site_files.write_files(h)
     print("machine view: %d twins and llms.txt for the %s hour" % (len(twins), h))
     return 0
 

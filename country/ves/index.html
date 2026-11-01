@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<base href="/">
+<!-- head:begin -->
+<title>Venezuela: the real price of a dollar, hourly</title>
+<meta name="description" content="What people in Venezuela pay for a dollar against the official rate, updated every hour."/>
+<link rel="canonical" href="https://margin.wiki/country/ves/"/>
+<meta property="og:site_name" content="margin.wiki"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Venezuela: the real price of a dollar, hourly"/>
+<meta property="og:description" content="What people in Venezuela pay for a dollar against the official rate, updated every hour."/>
+<meta property="og:url" content="https://margin.wiki/country/ves/"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Venezuela: the real price of a dollar, hourly"/>
+<meta name="twitter:description" content="What people in Venezuela pay for a dollar against the official rate, updated every hour."/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" href="/favicon.ico" sizes="48x48"/>
+<link rel="alternate" type="text/markdown" href="/country/VES.md"/>
+<!-- head:end -->
+<link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./style.css">
+<style>
+  /* One country (SEB-268), rebuilt to the approved reference. Header, column, title and pill styles are the shared ones
+     (css/site_head.css, css/site_page.css); colours are the style.css tokens; every word is in copy.json, countryData. */
+  .num { font-variant-numeric: tabular-nums; }
+  .wrap { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 32px 96px; box-sizing: border-box; }
+  .cnav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 40px; }
+  .cnav .back { font-size: 15px; color: var(--color-neutral-600); text-decoration: none; }
+  .cnav .back::before { content: "\2190  "; }
+  .cnav .back:hover { color: var(--color-ink); }
+  #hero.hero { padding-top: 24px !important; }
+  .hero { padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 0 !important; max-width: 760px; }
+  .stamp { margin: 0; font-size: 14px; color: var(--color-neutral-600); }
+  .money { margin: 0; font-size: 16px; }
+  .money b { font-weight: 600; }
+  .flag { margin: 0; font-size: 15px; color: var(--color-neutral-700); padding-left: 12px; border-left: 2px solid var(--color-neutral-300); }
+  .body { margin: 0; max-width: 680px; font-size: 16px; }
+  section { margin-top: 48px; }
+  #depth { margin-top: 20px; }
+  h2 { margin: 0 0 8px; }
+  .note { margin: 0 0 16px; font-size: 15px; color: var(--color-neutral-700); max-width: 680px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  #chart .pills { margin: 0 0 12px; }
+  .key { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 14px; color: var(--color-neutral-700); margin: 0 0 8px; }
+  .key i.ln { display: inline-block; width: 22px; height: 0; border-top: 2px solid var(--data-700); vertical-align: 4px; margin-right: 8px; }
+  .key i.ln.dash { border-top: 2px dashed var(--color-neutral-500); }
+  .chart { position: relative; touch-action: pan-y; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .ax { fill: var(--color-neutral-600); font-size: 12px; }
+  .ax.z { fill: var(--color-ink); font-weight: 600; }
+  .gl { stroke: var(--color-neutral-200); }
+  .gl.z { stroke: var(--color-ink); }
+  .ln-own { fill: none; stroke: var(--data-700); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .ar-own { fill: var(--data-700); fill-opacity: .14; stroke: none; }
+  .band { fill: var(--color-neutral-100); }
+  /* the range bar under the chart: a grey rounded bar, the picked range a white pill (24 Oct) */
+  .rbar { display: flex; width: max-content; gap: 2px; margin: 12px auto 20px; padding: 3px; border-radius: 999px; background: var(--color-neutral-100); }
+  .rbar button { font: inherit; font-size: 14px; font-weight: 500; line-height: 1; padding: 7px 12px; border: 0; border-radius: 999px; background: transparent; color: var(--color-neutral-700); cursor: pointer; }
+  .rbar button[aria-pressed="true"] { background: var(--color-bg, #fff); color: var(--color-ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .ln-back { fill: none; stroke: var(--color-neutral-500); stroke-width: 1.3; stroke-dasharray: 4 3; }
+  .pt { fill: var(--data-700); }
+  .cr { stroke: var(--color-ink); stroke-dasharray: 3 3; }
+  .cd { fill: var(--color-ink); }
+  #rec { margin-top: 12px; }
+  .rows { border-top: 1px solid var(--color-neutral-200); }
+  .r { display: grid; grid-template-columns: 260px 1fr 140px; gap: 0 24px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--color-neutral-200); }
+  .r b { font-weight: 600; font-size: 15px; }
+  .r .v { text-align: right; font-weight: 600; font-size: 15px; white-space: nowrap; }
+  .r .v small { display: block; font-size: 13px; color: var(--color-neutral-600); font-weight: 400; }
+  .tbl { font-size: 14px; border-top: 1px solid var(--color-neutral-200); }
+  .th, .tr { display: grid; grid-template-columns: 150px 1fr 140px 90px 150px 150px; gap: 0 16px; padding: 10px 0; border-bottom: 1px solid var(--color-neutral-200); align-items: center; }
+  .th { color: var(--color-neutral-600); font-size: 13px; }
+  .tr span:nth-child(3), .tr span:nth-child(4), .th span:nth-child(3), .th span:nth-child(4) { text-align: right; }
+  .tr a { color: var(--color-neutral-700); text-decoration: underline; text-decoration-color: var(--color-neutral-300); text-underline-offset: 3px; }
+  .more { margin-top: 16px; }
+  .nf { margin-top: 48px; }
+  .nsx { border-collapse: collapse; font-size: 14px; margin-top: 12px; }   /* the last 30 days, shown only with scripts off (SEB-426) */
+  .nsx th, .nsx td { text-align: left; padding: 6px 28px 6px 0; border-bottom: 1px solid var(--color-neutral-200); font-weight: 400; }
+  .nsx th { color: var(--color-neutral-600); font-size: 13px; }
+  @media (max-width: 700px) { .wrap { padding: 0 24px 64px; } }
+  @media (max-width: 760px) {
+    .th { display: none; }
+    .tr { grid-template-columns: 1fr auto; }
+    .tr span:nth-child(2) { grid-column: 1; grid-row: 2; color: var(--color-neutral-600); }
+    .tr span:nth-child(3) { grid-column: 2; grid-row: 1; }
+    .tr span:nth-child(4) { grid-column: 2; grid-row: 2; }
+    .tr span:nth-child(5), .tr span:nth-child(6) { grid-column: 1 / -1; color: var(--color-neutral-600); font-size: 13px; }
+  }
+  @media (max-width: 620px) {
+    .r { grid-template-columns: 1fr auto; }
+    .r > span:not(.v) { display: none; }   /* the empty middle column: without it the price sits beside the name, at the right edge (27 Oct) */
+  }
+</style>
+<link rel="stylesheet" href="./css/site_head.css?v=5">
+<link rel="stylesheet" href="./css/site_page.css?v=7">
+<link rel="stylesheet" href="./css/machine_view.css?v=3">
+</head>
+<body data-ccy="VES">
+<div class="wrap">
+  <div class="hp-head">
+    <div class="hp-headleft">
+      <a class="hp-logo" href="./index.html">margin.wiki</a>
+      <nav class="hp-nav" aria-label="Main" id="nav"><a href="./countries.html">Countries</a><a href="./sending-money.html">Routes</a><a href="./sources.html">Sources</a><a href="./findings.html">Findings</a><a href="./research.html">Research</a><a href="./how-it-works.html">How it works</a></nav>
+    </div>
+  </div>
+
+  <div class="cnav" id="cnav"><a class="back" href="./countries.html">Countries</a></div>
+  <div class="hero" id="hero" style="display: flex; flex-direction: column;"><h1>In Venezuela a dollar costs 14.7% more than the official rate</h1><p class="lead">The official rate is 889.58 VES per dollar. On the exchanges where people in Venezuela trade stablecoins, one costs 1,020 VES. A stablecoin is a coin that stays worth one US dollar.</p><p class="money num">From people selling to each other on Binance and OKX, a dollar costs 1,018 VES, 14.5% more than the official rate.</p><p class="money num">For US$100, people pay <b>102,002 VES</b>. The official rate says 88,958 VES.</p><p class="money num">One dollar costs 889.58 VES at the official rate, 988.62 VES in cash from a money changer and 1,020 VES as a stablecoin.</p><p class="stamp num">Only 1 source</p><p class="stamp num">Prices from the 04:00 UTC hour, 1 Nov</p></div>
+  <div id="depth"><p class="body">You could buy at least US$5,000 here before the price goes up 1%.</p></div>
+  <section id="chart"><h2>How the gap moved, day by day</h2><p class="note">One point per day, the price we published that day. 0% is the official rate. Tap a day to read it.</p><div class="chart" id="cv"><svg id="svg" viewBox="0 0 1216 300"><line class="gl" x1="56" x2="1208" y1="274" y2="274"></line><text class="ax" x="48" y="278" text-anchor="end">+12.0%</text><line class="gl" x1="56" x2="1208" y1="230" y2="230"></line><text class="ax" x="48" y="234" text-anchor="end">+14.0%</text><line class="gl" x1="56" x2="1208" y1="186" y2="186"></line><text class="ax" x="48" y="190" text-anchor="end">+16.0%</text><line class="gl" x1="56" x2="1208" y1="142" y2="142"></line><text class="ax" x="48" y="146" text-anchor="end">+18.0%</text><line class="gl" x1="56" x2="1208" y1="98" y2="98"></line><text class="ax" x="48" y="102" text-anchor="end">+20.0%</text><line class="gl" x1="56" x2="1208" y1="54" y2="54"></line><text class="ax" x="48" y="58" text-anchor="end">+22.0%</text><line class="gl" x1="56" x2="1208" y1="10" y2="10"></line><text class="ax" x="48" y="14" text-anchor="end">+24.0%</text><path class="ar-own" d="M56.0 55.8L75.2 52.7L94.4 82.2L113.6 117.7L132.8 128.0L152.0 121.5L171.2 117.4L190.4 140.1L209.6 169.5L228.8 187.4L248.0 214.0L267.2 211.4L286.4 193.4L305.6 210.5L324.8 208.1L344.0 209.7L363.2 217.7L382.4 226.5L401.6 221.9L420.8 229.5L440.0 203.7L459.2 194.2L478.4 196.8L497.6 201.3L516.8 206.4L536.0 219.9L555.2 211.0L574.4 214.0L593.6 219.9L612.8 231.6L632.0 230.8L651.2 214.0L670.4 215.8L689.6 220.6L708.8 195.5L728.0 173.3L747.2 131.4L766.4 146.3L785.6 154.0L804.8 153.8L824.0 149.1L843.2 156.9L862.4 156.2L881.6 154.1L900.8 174.1L920.0 153.3L939.2 154.6L958.4 142.9L977.6 132.4L996.8 130.5L1016.0 148.2L1035.2 166.6L1054.4 163.1L1073.6 167.7L1092.8 167.7L1112.0 177.3L1131.2 176.1L1188.8 205.6L1208.0 215.4L1208.0 274L56.0 274Z"></path><path class="ln-own" d="M56.0 55.8L75.2 52.7L94.4 82.2L113.6 117.7L132.8 128.0L152.0 121.5L171.2 117.4L190.4 140.1L209.6 169.5L228.8 187.4L248.0 214.0L267.2 211.4L286.4 193.4L305.6 210.5L324.8 208.1L344.0 209.7L363.2 217.7L382.4 226.5L401.6 221.9L420.8 229.5L440.0 203.7L459.2 194.2L478.4 196.8L497.6 201.3L516.8 206.4L536.0 219.9L555.2 211.0L574.4 214.0L593.6 219.9L612.8 231.6L632.0 230.8L651.2 214.0L670.4 215.8L689.6 220.6L708.8 195.5L728.0 173.3L747.2 131.4L766.4 146.3L785.6 154.0L804.8 153.8L824.0 149.1L843.2 156.9L862.4 156.2L881.6 154.1L900.8 174.1L920.0 153.3L939.2 154.6L958.4 142.9L977.6 132.4L996.8 130.5L1016.0 148.2L1035.2 166.6L1054.4 163.1L1073.6 167.7L1092.8 167.7L1112.0 177.3L1131.2 176.1L1188.8 205.6L1208.0 215.4"></path><circle class="pt" cx="1208" cy="215.4074" r="3.5"></circle><text class="ax" x="56" y="294" text-anchor="start">2 Sep</text><text class="ax" x="152" y="294" text-anchor="middle">7 Sep</text><text class="ax" x="248" y="294" text-anchor="middle">12 Sep</text><text class="ax" x="344" y="294" text-anchor="middle">17 Sep</text><text class="ax" x="440" y="294" text-anchor="middle">22 Sep</text><text class="ax" x="536" y="294" text-anchor="middle">27 Sep</text><text class="ax" x="632" y="294" text-anchor="middle">2 Oct</text><text class="ax" x="728" y="294" text-anchor="middle">7 Oct</text><text class="ax" x="824" y="294" text-anchor="middle">12 Oct</text><text class="ax" x="920" y="294" text-anchor="middle">17 Oct</text><text class="ax" x="1016" y="294" text-anchor="middle">22 Oct</text><text class="ax" x="1112" y="294" text-anchor="middle">27 Oct</text><text class="ax" x="1208" y="294" text-anchor="end">1 Nov</text><line class="cr" id="cr" y1="10" y2="274" visibility="hidden"></line><circle class="cd" id="cd" r="4.5" visibility="hidden"></circle></svg></div><p class="note" id="rec">Today's gap is close to the smallest since 2 Sep 2026, in our own checks. On most days the gap is between 14.5% and 18.6%.</p><p class="note" id="swl">From 6 Oct this price comes from a broker instead of people selling to each other, so it can jump that day.</p><noscript><table class="nsx" aria-label="Dollar price against the official rate over time"><thead><tr><th scope="col">Time</th><th scope="col">Gap</th></tr></thead><tbody><tr><td>1 Oct</td><td>+13.9%</td></tr><tr><td>2 Oct</td><td>+14.0%</td></tr><tr><td>3 Oct</td><td>+14.7%</td></tr><tr><td>4 Oct</td><td>+14.6%</td></tr><tr><td>5 Oct</td><td>+14.4%</td></tr><tr><td>6 Oct</td><td>+15.6%</td></tr><tr><td>7 Oct</td><td>+16.6%</td></tr><tr><td>8 Oct</td><td>+18.5%</td></tr><tr><td>9 Oct</td><td>+17.8%</td></tr><tr><td>10 Oct</td><td>+17.5%</td></tr><tr><td>11 Oct</td><td>+17.5%</td></tr><tr><td>12 Oct</td><td>+17.7%</td></tr><tr><td>13 Oct</td><td>+17.3%</td></tr><tr><td>14 Oct</td><td>+17.4%</td></tr><tr><td>15 Oct</td><td>+17.4%</td></tr><tr><td>16 Oct</td><td>+16.5%</td></tr><tr><td>17 Oct</td><td>+17.5%</td></tr><tr><td>18 Oct</td><td>+17.4%</td></tr><tr><td>19 Oct</td><td>+18.0%</td></tr><tr><td>20 Oct</td><td>+18.4%</td></tr><tr><td>21 Oct</td><td>+18.5%</td></tr><tr><td>22 Oct</td><td>+17.7%</td></tr><tr><td>23 Oct</td><td>+16.9%</td></tr><tr><td>24 Oct</td><td>+17.0%</td></tr><tr><td>25 Oct</td><td>+16.8%</td></tr><tr><td>26 Oct</td><td>+16.8%</td></tr><tr><td>27 Oct</td><td>+16.4%</td></tr><tr><td>28 Oct</td><td>+16.5%</td></tr><tr><td>31 Oct</td><td>+15.1%</td></tr><tr><td>1 Nov</td><td>+14.7%</td></tr></tbody></table></noscript></section>
+  <section id="src"><h2>Where this price comes from</h2><p class="note">We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from a broker.</p><div class="rows"><div class="r"><b>CriptoYa · Saldo</b><span></span><span class="v num">1,020 VES<small>+14.7%</small></span></div></div></section>
+  <p class="nf note" id="nf" hidden></p>
+</div>
+<script src="./js/tooltip.js"></script>
+<script src="./js/page_head.js"></script>
+<script src="./js/country_page.js?v=6"></script>
+<script src="./js/footer.js"></script>
+<script src="./js/site_head.js?v=4"></script>
+<script src="./js/machine_view.js?v=3" defer></script>
+</body>
+</html>

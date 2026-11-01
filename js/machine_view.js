@@ -12,6 +12,8 @@
   function twinPath() {
     var page = location.pathname.split('/').pop() || 'index.html';
     var q = new URLSearchParams(location.search);
+    var own = location.pathname.match(/^\/country\/([a-z]{3})\/?$/);                       // a country's own page (SEB-426)
+    if (own) { return 'country/' + own[1].toUpperCase() + '.md'; }
     if (page === 'country.html') { var c = q.get('ccy') || ''; return /^[A-Z]{3}$/.test(c) ? 'country/' + c + '.md' : null; }
     if (page === 'finding.html') { var id = q.get('id') || ''; return /^[a-z0-9_]+$/.test(id) ? 'finding/' + id + '.md' : null; }
     var plain = ['index.html', 'countries.html', 'sending-money.html', 'sources.html', 'findings.html', 'how-it-works.html', 'how-it-was-built.html'];
