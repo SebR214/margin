@@ -40,7 +40,8 @@ errors can still make no sense.
 
 ### Spacing, width, size (1 Nov 2026)
 
-* Four gaps only. 8px between a heading and its own text. 24px between separate points. 40px under the page headline. 96px between sections (72px on a phone).
+* Four gaps only. 8px between a heading and its own text, and between lines of one list (the money lines on a country page). 24px between separate points. 40px under the page headline (24px on a phone). 96px between sections (72px on a phone), with no rule line above them.
+* Sizes: page headline 32px (26px on a phone), the lines under it 20px grey (17px on a phone), body text 17px, notes (time stamps, counts) 14px grey.
 * A different gap must mean something you can name. If you cannot say why two gaps differ, make them the same.
 * No width cap on text. Text runs the width of the page, so a short sentence stays on one line on a computer.
 * One size for all body text on a page. A line that matters is never small or faint: if it is important, it is black, not 14px grey.
