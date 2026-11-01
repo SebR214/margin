@@ -1,7 +1,14 @@
 {
- "as_of_utc": "2026-11-01T15:44:27Z",
+ "as_of_utc": "2026-11-01T16:19:40Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "90784f8d901ef09dd45a845053990d0e15ed727e",
+   "html_url": "https://github.com/SebR214/margin/commit/90784f8d901ef09dd45a845053990d0e15ed727e",
+   "date": "2026-11-01T15:48:11Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-01T15:48Z"
+  },
   {
    "sha": "a1ee3f5a71ab26a9153a5c3c8e5b6c9bf5f91b55",
    "html_url": "https://github.com/SebR214/margin/commit/a1ee3f5a71ab26a9153a5c3c8e5b6c9bf5f91b55",
@@ -694,13 +701,6 @@
    "date": "2026-10-31T04:28:02Z",
    "email": "person",
    "message": "SEB-301: daily files for the big P2P tables, size guard, watchdogs count a failed push as down (#719)\n\nCollection has failed at Commit samples since 28 Oct 21:05 UTC: data/p2p_ads_sellers.csv reached 99.6 MB and GitHub refuses a file over 100 MB.\n\n- p2p_ads, p2p_ads_sellers and p2p_offers append to data/<table>/YYYY-MM-DD.csv (tools/daily_csv.py), same headers. The three old files are closed and never rewritten. Readers (diagnose_disagree, emit_depth, emit_receipts, audit_numbers, machine room row count) take the old file plus the day files.\n- tools/check_file_size.py runs before Commit samples: lists every file over 40 MB, fails over 80 MB, and fails if a closed table changes size.\n- check_collector_health counts a run as down when its Commit samples step failed, and a no-op scheduled run no longer ends a failure streak. Both watchdogs use it.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "2b92f1ee1bbe72ba043bffbffde397448a106181",
-   "html_url": "https://github.com/SebR214/margin/commit/2b92f1ee1bbe72ba043bffbffde397448a106181",
-   "date": "2026-10-30T18:34:46Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "aider builder run 2026-10-30T18:33:15+00:00"
   }
  ]
 }

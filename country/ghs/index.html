@@ -13,7 +13,12 @@
 <meta property="og:title" content="Ghana: the real price of a dollar, hourly"/>
 <meta property="og:description" content="What people in Ghana pay for a dollar against the official rate, updated every hour."/>
 <meta property="og:url" content="https://margin.wiki/country/ghs/"/>
-<meta name="twitter:card" content="summary"/>
+<meta property="og:image" content="https://margin.wiki/share.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="margin.wiki: what a dollar really costs, hourly"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://margin.wiki/share.png"/>
 <meta name="twitter:title" content="Ghana: the real price of a dollar, hourly"/>
 <meta name="twitter:description" content="What people in Ghana pay for a dollar against the official rate, updated every hour."/>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
@@ -32,6 +37,22 @@
   .stamp { margin: 0; font-size: 14px; color: var(--color-neutral-600); }
   .money { margin: 0; font-size: 17px; }
   .money b { font-weight: 600; }
+  /* every price for a dollar on one shared scale (1 Nov) */
+  .pl { display: flex; flex-direction: column; border-top: 1px solid var(--color-neutral-200); }
+  .pl-row { display: grid; grid-template-columns: 400px minmax(0, 1fr) 160px; gap: 0 24px; align-items: center; min-height: 44px; border-bottom: 1px solid var(--color-neutral-200); }
+  .pl-nm { font-size: 17px; }
+  .pl-track { position: relative; height: 20px; }
+  .pl-track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 1px solid var(--color-neutral-200); }
+  .pl-zero { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--color-ink); }
+  .pl-dot { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--peri); }
+  .pl-off .pl-dot { background: var(--color-ink); }
+  .pl-cash .pl-dot { background: var(--color-neutral-600); }
+  .pl-v { text-align: right; font-size: 17px; font-weight: 600; }
+  .pl-v small { display: block; font-size: 15px; font-weight: 400; color: var(--color-neutral-600); }
+  @media (max-width: 700px) {
+    .pl-row { grid-template-columns: minmax(0, 1fr) auto; padding: 8px 0; }
+    .pl-track { grid-column: 1 / -1; grid-row: 2; margin-top: 6px; }
+  }
   .flag { margin: 0; font-size: 15px; color: var(--color-neutral-700); padding-left: 12px; border-left: 2px solid var(--color-neutral-300); }
   .body { margin: 0; max-width: 680px; font-size: 16px; }
   section { margin-top: 48px; }
@@ -48,6 +69,8 @@
   .ax { fill: var(--color-neutral-600); font-size: 12px; }
   .ax.z { fill: var(--color-ink); font-weight: 600; }
   .gl { stroke: var(--color-neutral-200); }
+  .swm { stroke: var(--color-neutral-600); stroke-width: 1; stroke-dasharray: 3 3; }
+  .swt { font-size: 13px; }
   .gl.z { stroke: var(--color-ink); }
   .ln-own { fill: none; stroke: var(--data-700); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
   .ar-own { fill: var(--data-700); fill-opacity: .14; stroke: none; }
@@ -91,7 +114,7 @@
   }
 </style>
 <link rel="stylesheet" href="./css/site_head.css?v=7">
-<link rel="stylesheet" href="./css/site_page.css?v=11">
+<link rel="stylesheet" href="./css/site_page.css?v=12">
 <link rel="stylesheet" href="./css/machine_view.css?v=7">
 </head>
 <body data-ccy="GHS">
@@ -104,7 +127,7 @@
   </div>
 
   <div class="cnav" id="cnav"><a class="back" href="./countries.html">Countries</a></div>
-  <div class="hero" id="hero" style="display: flex; flex-direction: column;"><h1>No price for Ghana this hour</h1><p class="lead">Held back this hour: nobody is offering to sell dollars here right now. Earlier readings stay on the chart.</p><p class="stamp num">Prices from the 15:00 UTC hour, 1 Nov</p></div>
+  <div class="hero" id="hero" style="display: flex; flex-direction: column;"><h1>No price for Ghana this hour</h1><p class="lead">Held back this hour: nobody is offering to sell dollars here right now. Earlier readings stay on the chart.</p><p class="stamp num">Prices from the 16:00 UTC hour, 1 Nov</p></div>
   <div id="depth"></div>
   <section id="chart"></section>
   <section id="src"></section>
@@ -112,7 +135,7 @@
 </div>
 <script src="./js/tooltip.js"></script>
 <script src="./js/page_head.js?v=2"></script>
-<script src="./js/country_page.js?v=9"></script>
+<script src="./js/country_page.js?v=11"></script>
 <script src="./js/footer.js?v=4"></script>
 <script src="./js/site_head.js?v=8"></script>
 <script src="./js/machine_view.js?v=6" defer></script>
