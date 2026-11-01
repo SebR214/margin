@@ -1,92 +1,92 @@
-# In 30 of the 50 countries we priced this hour, a dollar costs within 2% of the official rate
+# In 28 of the 51 countries we priced this hour, a dollar costs within 2% of the official rate
 
-Prices from the 14:00 UTC hour, 1 Nov.
+Prices from the 15:00 UTC hour, 1 Nov.
 
-In 6 it costs more than 8% extra, most of all in Algeria, where people pay 91.5% more.
+In 8 it costs more than 8% extra, most of all in Algeria, where people pay 91.2% more.
 
-Prices from the 14:00 UTC hour. 51 of 55 countries had a price. Sudan is left out of the ranking because its government stopped updating the official rate. The other 4 are listed at the bottom.
+Prices from the 15:00 UTC hour. 52 of 55 countries had a price. Sudan is left out of the ranking because its government stopped updating the official rate. The other 3 are listed at the bottom.
 
 <https://margin.wiki/data/index_latest.json>
 
-## More than 8% above the official rate (6)
+## More than 8% above the official rate (8)
 
 | Country | People pay | Official rate | Against the official rate |
 | --- | --- | --- | --- |
-| [Algeria DZD Only 1 source](https://margin.wiki/country/dzd/) | 25,900 | 13,524 | +91.5% |
+| [Algeria DZD Only 1 source](https://margin.wiki/country/dzd/) | 25,861 | 13,524 | +91.2% |
+| [Angola AOA](https://margin.wiki/country/aoa/) | 121,575 | 92,827 | +31.0% |
+| [Syria SYP Only 1 source](https://margin.wiki/country/syp/) | 14,543 | 12,182 | +19.4% |
 | [Mozambique MZN Only 1 source](https://margin.wiki/country/mzn/) | 7,436.50 | 6,373.88 | +16.7% |
-| [Venezuela VES Only 1 source](https://margin.wiki/country/ves/) | 102,813 | 88,958 | +15.6% |
-| [Tunisia TND Only 1 source](https://margin.wiki/country/tnd/) | 341.50 | 301.10 | +13.4% |
+| [Venezuela VES Only 1 source](https://margin.wiki/country/ves/) | 102,946 | 88,958 | +15.7% |
+| [Tunisia TND Only 1 source](https://margin.wiki/country/tnd/) | 341.00 | 301.10 | +13.3% −1.5 |
 | [Iraq IQD](https://margin.wiki/country/iqd/) | 170,498 | 151,682 | +12.4% |
-| [Argentina ARS](https://margin.wiki/country/ars/) | 166,812 | 153,400 | +8.7% |
+| [Argentina ARS](https://margin.wiki/country/ars/) | 166,710 | 153,400 | +8.7% |
 
 <https://margin.wiki/data/index_latest.json>
 
-## 2% to 8% above (14)
+## 2% to 8% above (15)
 
 | Country | People pay | Official rate | Against the official rate |
 | --- | --- | --- | --- |
-| [Morocco MAD](https://margin.wiki/country/mad/) | 1,057.00 | 984.37 | +7.4% |
-| [South Africa ZAR Only 1 source](https://margin.wiki/country/zar/) | 1,777.50 | 1,667.21 | +6.6% |
-| [Central Africa XAF](https://margin.wiki/country/xaf/) | 62,478 | 58,745 | +6.4% |
-| [Qatar QAR Only 1 source](https://margin.wiki/country/qar/) | 386.50 | 364.00 | +6.2% +2.0 |
-| [India INR](https://margin.wiki/country/inr/) | 10,087.50 | 9,505.01 | +6.1% |
-| [West Africa XOF](https://margin.wiki/country/xof/) | 61,258 | 58,745 | +4.3% |
-| [Kazakhstan KZT](https://margin.wiki/country/kzt/) | 46,974 | 45,339 | +3.6% |
-| [Ukraine UAH](https://margin.wiki/country/uah/) | 4,695.25 | 4,540.32 | +3.4% |
-| [Pakistan PKR](https://margin.wiki/country/pkr/) | 28,539 | 27,675 | +3.1% |
+| [Morocco MAD](https://margin.wiki/country/mad/) | 1,058.75 | 984.37 | +7.6% |
+| [Central Africa XAF](https://margin.wiki/country/xaf/) | 62,579 | 58,745 | +6.5% |
+| [India INR](https://margin.wiki/country/inr/) | 10,070.50 | 9,505.01 | +5.9% |
+| [West Africa XOF](https://margin.wiki/country/xof/) | 61,273 | 58,745 | +4.3% |
+| [Qatar QAR Only 1 source](https://margin.wiki/country/qar/) | 379.15 | 364.00 | +4.2% |
+| [Kazakhstan KZT](https://margin.wiki/country/kzt/) | 46,987 | 45,339 | +3.6% |
+| [Ukraine UAH](https://margin.wiki/country/uah/) | 4,699.50 | 4,540.32 | +3.5% |
 | [Bangladesh BDT Only 1 source](https://margin.wiki/country/bdt/) | 12,790 | 12,413 | +3.0% |
-| [Laos LAK](https://margin.wiki/country/lak/) | 2,293,625 | 2,230,838 | +2.8% |
+| [Pakistan PKR](https://margin.wiki/country/pkr/) | 28,514 | 27,675 | +3.0% |
+| [Laos LAK](https://margin.wiki/country/lak/) | 2,294,400 | 2,230,838 | +2.8% |
+| [Chile CLP](https://margin.wiki/country/clp/) | 101,306 | 98,620 | +2.7% |
 | [Saudi Arabia SAR Only 1 source](https://margin.wiki/country/sar/) | 385.00 | 375.00 | +2.7% |
-| [Cambodia KHR](https://margin.wiki/country/khr/) | 415,950 | 406,621 | +2.3% |
-| [Peru PEN](https://margin.wiki/country/pen/) | 353.33 | 345.83 | +2.2% |
+| [Peru PEN](https://margin.wiki/country/pen/) | 353.35 | 345.83 | +2.2% |
+| [Cambodia KHR](https://margin.wiki/country/khr/) | 415,200 | 406,621 | +2.1% |
+| [Nigeria NGN Only 1 source](https://margin.wiki/country/ngn/) | 137,310 | 134,549 | +2.1% −1.9 |
 
 <https://margin.wiki/data/index_latest.json>
 
-## Within 2% of the official rate (30)
+## Within 2% of the official rate (28)
 
-| Country | Against the official rate |
-| --- | --- |
-| [Nigeria Only 1 source](https://margin.wiki/country/ngn/) | +2.0% −2.1 |
-| [Sri Lanka Only 1 source](https://margin.wiki/country/lkr/) | +1.8% |
-| [Rwanda](https://margin.wiki/country/rwf/) | +1.7% |
-| [Lebanon](https://margin.wiki/country/lbp/) | +1.5% |
-| [Vietnam](https://margin.wiki/country/vnd/) | +1.4% |
-| [Chile Only 1 source](https://margin.wiki/country/clp/) | +1.4% |
-| [Colombia](https://margin.wiki/country/cop/) | +1.3% +2.2 |
-| [Zambia Only 1 source](https://margin.wiki/country/zmw/) | +1.1% −1.9 |
-| [Brazil](https://margin.wiki/country/brl/) | +1.1% |
-| [Jordan](https://margin.wiki/country/jod/) | +0.9% |
-| [United Arab Emirates Only 1 source](https://margin.wiki/country/aed/) | +0.7% |
-| [Bolivia](https://margin.wiki/country/bob/) | +0.5% −1.8 |
-| [South Korea](https://margin.wiki/country/krw/) | +0.5% |
-| [Taiwan](https://margin.wiki/country/twd/) | +0.4% |
-| [Tanzania Only 1 source](https://margin.wiki/country/tzs/) | +0.3% |
-| [Kuwait](https://margin.wiki/country/kwd/) | +0.3% |
-| [New Zealand Only 1 source](https://margin.wiki/country/nzd/) | +0.3% |
-| [Egypt](https://margin.wiki/country/egp/) | +0.2% −2.1 |
-| [Kenya](https://margin.wiki/country/kes/) | +0.2% |
-| [Australia](https://margin.wiki/country/aud/) | +0.2% |
-| [Singapore Only 1 source](https://margin.wiki/country/sgd/) | 0.0% |
-| [Turkey](https://margin.wiki/country/try/) | −0.2% |
-| [Indonesia](https://margin.wiki/country/idr/) | −0.2% |
-| [Mexico Only 1 source](https://margin.wiki/country/mxn/) | −0.2% |
-| [Georgia](https://margin.wiki/country/gel/) | −0.2% |
-| [Philippines Only 1 source](https://margin.wiki/country/php/) | −0.4% |
-| [Thailand Only 1 source](https://margin.wiki/country/thb/) | −0.5% |
-| [Armenia](https://margin.wiki/country/amd/) | −0.7% |
-| [Azerbaijan Only 1 source](https://margin.wiki/country/azn/) | −1.1% −2.6 |
-| [Uganda Only 1 source](https://margin.wiki/country/ugx/) | −1.2% −8.2 |
+|  | For US$100, in local money People pay | For US$100, in local money Official rate |  |
+| --- | --- | --- | --- |
+| [Zambia ZMW Only 1 source](https://margin.wiki/country/zmw/) | 2,067.00 | 2,025.51 | +2.0% |
+| [Sri Lanka LKR Only 1 source](https://margin.wiki/country/lkr/) | 33,870 | 33,230 | +1.9% |
+| [Tanzania TZS](https://margin.wiki/country/tzs/) | 268,025 | 263,637 | +1.7% |
+| [Rwanda RWF](https://margin.wiki/country/rwf/) | 150,315 | 147,871 | +1.7% |
+| [Lebanon LBP](https://margin.wiki/country/lbp/) | 9,079,999 | 8,950,000 | +1.5% |
+| [Vietnam VND](https://margin.wiki/country/vnd/) | 2,615,825 | 2,579,563 | +1.4% |
+| [Colombia COP](https://margin.wiki/country/cop/) | 320,775 | 316,430 | +1.4% +2.3 |
+| [Brazil BRL](https://margin.wiki/country/brl/) | 545.88 | 539.59 | +1.2% +1.9 |
+| [Jordan JOD](https://margin.wiki/country/jod/) | 71.58 | 70.90 | +1.0% |
+| [United Arab Emirates AED Only 1 source](https://margin.wiki/country/aed/) | 369.15 | 367.25 | +0.5% |
+| [Bolivia BOB](https://margin.wiki/country/bob/) | 1,206.75 | 1,200.90 | +0.5% −1.9 |
+| [South Korea KRW](https://margin.wiki/country/krw/) | 134,100 | 133,480 | +0.5% |
+| [Taiwan TWD](https://margin.wiki/country/twd/) | 3,273.45 | 3,261.03 | +0.4% |
+| [Kuwait KWD](https://margin.wiki/country/kwd/) | 31.18 | 31.07 | +0.3% |
+| [New Zealand NZD Only 1 source](https://margin.wiki/country/nzd/) | 178.05 | 177.53 | +0.3% |
+| [Australia AUD](https://margin.wiki/country/aud/) | 142.57 | 142.24 | +0.2% |
+| [Egypt EGP](https://margin.wiki/country/egp/) | 5,614.75 | 5,603.07 | +0.2% −2.1 |
+| [Kenya KES](https://margin.wiki/country/kes/) | 13,017 | 12,990 | +0.2% |
+| [Singapore SGD Only 1 source](https://margin.wiki/country/sgd/) | 127.80 | 127.83 | 0.0% |
+| [Turkey TRY](https://margin.wiki/country/try/) | 4,985.25 | 4,995.30 | −0.2% |
+| [Indonesia IDR](https://margin.wiki/country/idr/) | 1,809,500 | 1,813,195 | −0.2% |
+| [Mexico MXN Only 1 source](https://margin.wiki/country/mxn/) | 1,878.30 | 1,882.16 | −0.2% |
+| [Georgia GEL](https://margin.wiki/country/gel/) | 259.00 | 259.61 | −0.2% |
+| [Philippines PHP Only 1 source](https://margin.wiki/country/php/) | 6,346.00 | 6,370.51 | −0.4% |
+| [Thailand THB Only 1 source](https://margin.wiki/country/thb/) | 3,355.00 | 3,374.09 | −0.6% |
+| [Armenia AMD](https://margin.wiki/country/amd/) | 35,750 | 35,993 | −0.7% |
+| [Uganda UGX Only 1 source](https://margin.wiki/country/ugx/) | 425,044 | 428,391 | −0.8% −7.8 |
+| [Azerbaijan AZN Only 1 source](https://margin.wiki/country/azn/) | 168.00 | 169.95 | −1.1% −2.6 |
 
 <https://margin.wiki/data/index_latest.json>
 
-## 4 countries had no price at 14:00 UTC
+## 3 countries had no price at 15:00 UTC
 
-Afghanistan, Angola, Mongolia, Syria.
+Afghanistan, Mongolia, South Africa.
 
 - Afghanistan: too few people selling to call it a price
-- Angola: too few people selling to call it a price
 - Mongolia: too few people selling to call it a price
-- Syria: too few people selling to call it a price
+- South Africa: Held back this hour: the price jumped from its usual level and we’re waiting for a second source to confirm it.
 
 We also check Botswana, Brunei, Ethiopia, Ghana, Nepal every hour, but too few people sell dollars there to give a price.
 

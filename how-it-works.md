@@ -1,6 +1,6 @@
 # How to read this site
 
-Prices from the 14:00 UTC hour, 1 Nov.
+Prices from the 15:00 UTC hour, 1 Nov.
 
 ## What we measure
 
@@ -8,7 +8,7 @@ Every country has an official exchange rate. In some countries banks won’t sel
 
 ## What the percentage means
 
-In Algeria, the official rate says a dollar costs 135 DZD. People actually pay 259 DZD. That’s 91.5% more, so Algeria shows +91.5%.
+In Algeria, the official rate says a dollar costs 135 DZD. People actually pay 259 DZD. That’s 91.2% more, so Algeria shows +91.2%.
 
 0% means people pay the official rate, and most countries are close to it. A minus means they pay a little less.
 
@@ -42,3 +42,9 @@ A missed hour shows as a blank, never filled in.
 Every source, and every day it answered: [Sources →](https://margin.wiki/sources.md)
 
 <https://margin.wiki/data/sources_daily.json>
+
+## How the site is built and run
+
+Plain code collects every price and checks every number. AI only helps write some of the code.
+
+What it costs, what runs when, and everything that has broken: [How it was built →](https://margin.wiki/how-it-was-built.md)
