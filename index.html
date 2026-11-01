@@ -46,8 +46,9 @@
   .cmark::after { content: ''; position: absolute; inset: -14px; }
   .key .cmark { margin: 0 8px 1px 0; cursor: default; }
   .key .cmark::after { display: none; }
-  .b0 { background: var(--data-300); } .b1 { background: var(--data-500); } .b2 { background: var(--data-600); } .b3 { background: var(--data-700); } .b4 { background: var(--color-neutral-900); }
-  .b-none { background: var(--color-neutral-200); } .b-frozen { background: var(--color-neutral-300); }
+  /* the gap scale (1 Nov): calm is near white, each step clearly darker, the top step is grape. No price is an empty outlined square. */
+  .b0 { background: #ECEAF4; } .b1 { background: #C7C3E8; } .b2 { background: #938FD3; } .b3 { background: #62579A; } .b4 { background: #3F3047; }
+  .b-none { background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-neutral-300); } .b-frozen { background: var(--color-neutral-300); }
   .b-neg { background: repeating-linear-gradient(135deg, var(--data-500) 0 2px, var(--color-bg) 2px 4px); }
   .hax, .hrow { display: grid; grid-template-columns: 180px 1fr 110px; gap: 0 16px; align-items: center; }
   .hax { height: 22px; font-size: 12px; color: var(--color-neutral-600); }
@@ -124,7 +125,7 @@
 <link rel="stylesheet" href="./css/dkpanel.css">
 <link rel="stylesheet" href="./css/site_head.css?v=5">
 <link rel="stylesheet" href="./css/site_page.css?v=10">
-<link rel="stylesheet" href="./css/machine_view.css?v=3">
+<link rel="stylesheet" href="./css/machine_view.css?v=5">
 </head>
 <body>
 <div class="wrap">
@@ -154,6 +155,6 @@
 <script src="./js/home.js?v=12"></script>
 <script src="./js/footer.js?v=4"></script>
 <script src="./js/site_head.js?v=6"></script>
-<script src="./js/machine_view.js?v=4" defer></script>
+<script src="./js/machine_view.js?v=6" defer></script>
 </body>
 </html>
