@@ -210,19 +210,19 @@ def check_all_html():
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# The Words table (DESIGN.md "Register", 1 Nov): one word per idea. Every reader-facing string in copy.json, headings and
-# body alike, may not carry a "Never say" phrase. The table is read from DESIGN.md itself, so the guide and the check
+# The Words table (WORDS.md, 1 Nov): one word per idea. Every reader-facing string in copy.json, headings and
+# body alike, may not carry a "Never say" phrase. The table is read from WORDS.md itself, so the guide and the check
 # cannot drift apart. Blocks no page reads any more, and names of sources and exchanges, are not reader prose.
-DESIGN = os.path.join(HERE, "DESIGN.md")
+DESIGN = os.path.join(HERE, "WORDS.md")
 WORDS_EXEMPT_BLOCKS = {"machineRoom", "tape", "index", "receiptBasis", "routeNames"}
 WORDS_EXEMPT_KEY_RE = re.compile(r"(sourceNames|srcNames|venueNames|boardNames|currencyNames|^nav$)", re.I)
 
 
 def words_table(path=DESIGN):
-    """[(say, [never, ...])] from the "### Words" table of DESIGN.md."""
+    """[(say, [never, ...])] from the "## Words" table of WORDS.md."""
     rows, on = [], False
     for line in open(path, encoding="utf-8"):
-        if line.startswith("### Words"):
+        if re.match(r"^#{2,3} Words\b", line):
             on = True
             continue
         if on and line.startswith("#"):
@@ -242,7 +242,7 @@ def check_words(copy=None, path=DESIGN):
     """(locator, word, snippet) for every reader string that uses a Never-say word."""
     words = never_words(path)
     if not words:
-        return [("DESIGN.md", "Words table", "missing or empty")]
+        return [("WORDS.md", "Words table", "missing or empty")]
     rx = re.compile(r"(?<![A-Za-z])(" + "|".join(re.escape(w) for w in words) + r")(?![A-Za-z])", re.I)
     data = copy if copy is not None else json.load(open(COPY, encoding="utf-8"))
     out = []
@@ -276,7 +276,7 @@ def main():
 
     if not violations:
         print("  check_copy.py: clean -- no banned word in any heading, "
-              "caption, label, nav or table header, and no Never-say word from DESIGN.md anywhere")
+              "caption, label, nav or table header, and no Never-say word from WORDS.md anywhere")
         return
 
     print(f"  [error] {len(violations)} banned-word violation(s):", file=sys.stderr)

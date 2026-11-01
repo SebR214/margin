@@ -7,7 +7,7 @@ Keep the pipeline in writer.py and import from here:
 
     from writer_voice import EVENT_INSTRUCTIONS, DAILY_INSTRUCTIONS, check_voice, check_event_output
 
-The voice is the site's own, as it reads on margin.wiki today (DESIGN.md "Register", the 27 Oct words pass): short plain
+The voice is the site's own, as it reads on margin.wiki today (WORDS.md, the 27 Oct words pass): short plain
 sentences, one idea each, the same word for the same thing on every page.
 
 What the pages read (js/event.js, js/home.js). A file shows only when audit.passed is true and, if present, voice.passed is true.
@@ -33,7 +33,7 @@ import sys
 # --------------------------------------------------------------------------------------------- the words every page uses
 # One word per idea, the list agreed on 27 Oct. The model gets the left side as the word to use and the right side as words
 # it must never write. check_voice() enforces the right side.
-# The Words table in DESIGN.md is the one list (1 Nov). check_copy.py enforces it on the pages, and the model gets the same rows.
+# The Words table in WORDS.md is the one list (1 Nov). check_copy.py enforces it on the pages, and the model gets the same rows.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from check_copy import words_table  # noqa: E402
 
@@ -50,7 +50,7 @@ BANNED = sorted({w for _, ws in WORDS for w in ws if w.lower() not in ("reported
     "expected to", "analysts",
 })
 
-MAX_WORDS = 24          # DESIGN.md asks for under 20; a few words of room for a country or bank name
+MAX_WORDS = 24          # WORDS.md asks for under 20; a few words of room for a country or bank name
 
 _WORDS_LINES = "\n".join("  %s. Never: %s." % (say, ", ".join(nv)) for say, nv in WORDS)
 
@@ -225,7 +225,7 @@ def self_test():
     assert check_event_output(none) == [], check_event_output(none)
     assert check_daily_output({"sentences": ["Morocco went above 5% over the official rate on 30 Oct."]}) == []
     assert check_daily_output({"sentences": ["a.", "b.", "c."]}) == ["needs a list of at most 2 sentences"]
-    assert WORDS and any("dearer" in nv for _, nv in WORDS), "the Words table in DESIGN.md is the list"
+    assert WORDS and any("dearer" in nv for _, nv in WORDS), "the Words table in WORDS.md is the list"
     assert any("no links" in p for p in check_daily_output({"sentences": ["See https://x.org for more."]}))
     # the instructions themselves follow the site's word list (outside the "never use" list they quote)
     for name, txt in (("event", EVENT_INSTRUCTIONS), ("daily", DAILY_INSTRUCTIONS)):

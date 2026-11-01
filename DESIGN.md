@@ -1,6 +1,7 @@
-DESIGN.md — single source of truth
+# DESIGN.md: how pages look
 
-Every reader-facing decision lives here. If a rule is not in this file, it is not a rule. Sessions read this before touching any page. When Seb decides something in chat, it gets written here in the same session or it does not exist.
+Layout, phones, charts, colours and the nav. How the site writes is in `WORDS.md`. Sessions read both before touching a
+page. When Seb decides something about a page in chat, it is written here in the same session or it does not exist.
 
 ## Palette (graphs and charts)
 
@@ -17,19 +18,10 @@ In a cost waterfall (`index.html`, `corridor.html`), the two "dollar-route" legs
 
 ## Nav (canonical, the only nav)
 
-1. Home → `index.html`
-2. Sending money → `sending-money.html`
-3. Countries → `the-index.html`
-4. How it was built → `machine-room.html`
-5. Research → `research.html` (Seb asked for it in chat, 25 Oct 2026; it sits in each page's nav array after Findings, with the word set in `copy.json`)
-6. Events → `events.html` (SEB-423, agreed in chat 31 Oct 2026; it sits after Research, word set in `copy.json`). Lists the currency events that have a page, newest first, each linking to its page and to the home map on that day.
-
-Logo links to `index.html`. Findings, how it works, fee tiers and agent
-incidents stay live but are reachable by deep links only (from
-`machine-room.html`'s "Read more" block and from each other), never in
-the nav. Ask is hidden until its rebuild — nothing links to it. The nav
-is generated from `copy.json`'s `nav` array into every page by the bake
-step (`tools/bake_nav.py`); no page carries a hand-written header.
+Countries, Routes, Sources, Findings, Research, Events, How it works, in that order. The logo links to the home page. The
+nav is generated from `copy.json`'s `nav` array into every page by the bake step (`tools/bake_nav.py`); no page carries a
+hand-written header. Pages not in the nav (fee tiers, agent incidents, how it was built, the machine room) are reached by
+links from other pages only.
 
 ## Pages (layout, phones, charts)
 
@@ -62,65 +54,3 @@ errors can still make no sense.
 * Axis labels are spaced by position so they never overlap. A chart starts at its first point, not on an empty stretch.
 * Range buttons in words (Week, Month, Year, All), offered only when they show more than the shorter one.
 * A popup says the number in words ("Stablecoin S$10.78 more expensive than the cheapest app"), not "+S$10.78 (1.08%)".
-
-## Register (the language guide)
-
-This section is the site's one language guide. Pages, agents and the writer model all follow it. `tools/check_copy.py`
-reads the Words table below and fails any change that puts a "Never say" word in reader-facing text, and
-`tools/writer_voice.py` gives the same table to the model. Change a word here and both follow.
-
-### How the site writes
-
-* Write for someone who has never worked in payments. Read a sentence aloud to a friend outside finance. If they would ask "what does that mean?", rewrite it.
-* One idea per sentence. Sentences under 20 words, headings under 12.
-* Every heading says what a reader would want to know: what a dollar costs them, or what changed for them. A number without its meaning is not a heading.
-* Say why it matters in the same breath as the number. "A dollar costs 4.7% more than the official rate, up from 1.4% yesterday" beats "the gap grew 3.3%".
-* Lead with a change only when it is unusual. A move back to a country's normal level is not news, so it does not lead the page.
-* Money beats percent where there is an amount: "About S$56 on S$5,000" beats "1.12%". Round numbers in headings, exact figures in tables. One number per sentence at most where possible.
-* Lead with the thing, not the source: "In Argentina a dollar costs..." not "According to our data...".
-* No metaphors, no wordplay, no drama, no judgment, no guesses about the future, no punchy closing lines.
-* No dashes and no semicolons in visible copy. No exclamation marks.
-* "We" is the site: "our daily source", "our code spotted the change".
-* The same word for the same thing on every page. The table below is the list.
-
-### Naming
-
-* Countries as a reader knows them. A currency shared by several countries is named by its region: "Central Africa" (Cameroon, the Central African Republic, Chad, the Republic of the Congo, Equatorial Guinea and Gabon share the CFA franc) and "West Africa" (Benin, Burkina Faso, Ivory Coast, Guinea-Bissau, Mali, Niger, Senegal and Togo). The country page says which countries share it.
-* A central bank by its own English name the first time on a page ("the Central Bank of Egypt"), then "the central bank". A government as "{country}'s government". Never "the authorities", "officials", a capital city standing in for a government, or a person's name.
-* A reason for a decision only as something the bank or government said, with a link. Never a reason of our own.
-* Transfer apps by name are fine in body text and tables. "Apps like Remitly or Western Union" on first use. Never name Wise in a headline.
-
-### Missing data
-
-* A missed hour is a blank, never filled in. Say why when we know: "our collection was down", "we could not read the blockchain's fee".
-* "Gap" means only the dollar gap. Missing data is "a blank" or "no price that hour".
-
-### Written by a model
-
-* Text an AI model wrote says so in one line under it, and that our code checked every number against our files before it went up.
-
-### Words
-
-| Say | Never say |
-|---|---|
-| the official rate | mid-market, mid rate, interbank rate, real exchange rate |
-| the gap (how much more than the official rate a dollar costs, in %) | premium, spread, basis points, bps |
-| a move in the gap, in % ("up 3.3%") | points, percentage points |
-| cheaper, more expensive | dearer, pricier |
-| the cheapest app (first use: transfer apps like Remitly or Western Union) | best app, fiat provider |
-| the stablecoin way | stablecoin path, stablecoin route, dollar route |
-| a stablecoin, a coin that stays worth one US dollar | crypto, cryptocurrency |
-| people selling to each other | person to person, person-to-person, peer-to-peer, P2P, between people |
-| exchanges, brokers | order book, order books, venue, venues, broker quote, broker quotes |
-| a route (a sending pair: Singapore to the Philippines) | corridor |
-| from exchange history, not our own checks | not seen by us, reported, not observed |
-| usually, the typical value | median |
-| buying at the asking price, setting your price and waiting | taker, maker |
-| Central Africa, West Africa | Central African CFA, West African CFA |
-
-* Numbers are computed from `data/`, never typed. Gaps stay gaps.
-* Every reader-facing string lives in `copy.json`.
-
-**Also banned in headings, subheadings, captions, labels and nav** (fine only in methodology and how-it-works deep sections):
-fiat, rail, basis, bps, venue, on-ramp, off-ramp, P2P, parallel rate, median, decomposition, spread, liquidity, maker,
-taker, VIP tier, measured hours, pass, collector, withheld, Wise. `tools/check_copy.py` enforces both lists.
