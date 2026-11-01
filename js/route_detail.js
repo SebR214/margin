@@ -556,7 +556,8 @@
       if (g != null && txt("cmpGap")) sub = txt("cmpGap", { gap: (g > 0 ? "+" : g < 0 ? MINUS : "") + num(Math.abs(g), 1) + "%" }) + " · " + sub;
       var vsub = txt(a.ep < 0 ? "lessThan" : "moreThan", { app: a.app });
       var tip = txt("cmpTip", { route: plainRoute(r.route_words), now: sgPct(a.ep), lo: sgPct(a.e30[0]), hi: sgPct(a.e30[1]), app: a.app });
-      return rangeRow(SC, { btn: r.id, cls: r.id === S.route ? "sm-on" : "", name: plainRoute(r.route_words), sub: sub, v: a.ep, rg: a.e30, val: pctPlain(Math.abs(a.ep)), vsub: vsub, tip: tip });
+      // colour only where it means something (1 Nov): a route where an app is cheaper this hour is grey, not the stablecoin colour
+      return rangeRow(SC, { btn: r.id, cls: (r.id === S.route ? "sm-on" : "") + (a.ep != null && a.ep > 0 ? " sm-app" : ""), name: plainRoute(r.route_words), sub: sub, v: a.ep, rg: a.e30, val: pctPlain(Math.abs(a.ep)), vsub: vsub, tip: tip });
     }).join("");
     return '<section class="sm-cmp" id="smCmp">' + w("cmpHeading", { amount: whole(CMP_AMOUNT) }, "h2") + w("cmpNote", null, "p", "sm-note") +
       '<p class="sm-key">' +

@@ -1,6 +1,6 @@
 # How to read this site
 
-Prices from the 13:00 UTC hour, 1 Nov.
+Prices from the 14:00 UTC hour, 1 Nov.
 
 ## What we measure
 
@@ -31,7 +31,7 @@ We compare transfer apps with sending it by stablecoin. The cost is how much les
 - A day behind. The official rate updates only once a day. On days a currency moves fast, the gap we show can be a day behind.
 - Bank and wallet charges. Money moves into an exchange and out again through a bank, a wallet or the exchange's local partner. Each has its own charge. Some show it as a fee, some bake it into the rate, some set it in a deal with the exchange. We can't see these, so they are left out.
 - First-transfer offers. Some app prices are offers for a first transfer. Repeat customers pay more.
-- Cash is different. We measure stablecoins only. Cash at a money changer is priced separately and is not on this site.
+- Cash comes from trackers. Cash dollar prices come from public websites that track money changers, not from offers we read ourselves. Where we have one, the country page shows it beside the stablecoin price.
 
 ## How to check any number
 
