@@ -1,6 +1,6 @@
 # The machine room
 
-Prices from the 01:00 UTC hour, 1 Nov.
+Prices from the 02:00 UTC hour, 1 Nov.
 
 Some of this site is built by a program on GitHub. This page shows what it tries, what it merges, what it costs and what has gone wrong.
 
@@ -31,17 +31,17 @@ Every job runs on GitHub Actions. Times are Singapore time.
 | Job | When | What it does | Last run |
 | --- | --- | --- | --- |
 | Builder | Every day at 13:07, 16:37, 21:07 | Builds the top ready job with AI and opens a change. | Succeeded (31 Oct 17:39 UTC) |
-| Merge when green | After the checks finish on a change | Merges a change when every check is green. | Skipped (1 Nov 00:51 UTC) |
-| Checks | On every change | Runs the tests and page checks a change must clear. | Succeeded (1 Nov 00:50 UTC) |
+| Merge when green | After the checks finish on a change | Merges a change when every check is green. | Skipped (1 Nov 01:52 UTC) |
+| Checks | On every change | Runs the tests and page checks a change must clear. | Succeeded (1 Nov 01:52 UTC) |
 | Reader test | By hand | Compares two models reading the pages. Changes nothing. | Succeeded (5 Oct 09:28 UTC) |
-| Collection | About every 30 minutes, each run starts the next | Collects prices, rebuilds the pages and saves the data. | Running (1 Nov 01:05 UTC) |
-| Collection alarm | Every 30 minutes | Watches collection from outside and sends an alarm when it goes quiet. | Running (1 Nov 01:15 UTC) |
+| Collection | About every 30 minutes, each run starts the next | Collects prices, rebuilds the pages and saves the data. | Running (1 Nov 02:05 UTC) |
+| Collection alarm | Every 30 minutes | Watches collection from outside and sends an alarm when it goes quiet. | Running (1 Nov 02:15 UTC) |
 | Fee check | Day 1 of each month at 11:23 | Checks the fee tiers each month. | Failed (22 Oct 06:28 UTC) |
 | History pull | By hand | Pulls older price history from public sources. Never feeds a price. | Succeeded (22 Oct 17:30 UTC) |
 | Older builder | By hand | The older builder, run only by hand. | Succeeded (23 Oct 17:03 UTC) |
-| Outside check | After each deploy of the site | Asks the live site what a search engine would ask. | Succeeded (1 Nov 00:49 UTC) |
+| Outside check | After each deploy of the site | Asks the live site what a search engine would ask. | Succeeded (1 Nov 01:50 UTC) |
 | Board probe | Sundays at 11:11 | Re-checks which person-to-person boards are usable. | Succeeded (25 Oct 08:19 UTC) |
-| Audit alarm | Every hour, at minutes 11, 41 | Sends an alarm when the audits or the builder's runner stop working. | Running (1 Nov 01:01 UTC) |
+| Audit alarm | Every hour, at minutes 11, 41 | Sends an alarm when the audits or the builder's runner stop working. | Running (1 Nov 02:01 UTC) |
 
 Incidents
 

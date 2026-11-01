@@ -1,14 +1,14 @@
 # In Mongolia a dollar costs 2.4% more than the official rate
 
-Prices from the 01:00 UTC hour, 1 Nov.
+Prices from the 02:00 UTC hour, 1 Nov.
 
 The official rate is 3,608.13 MNT per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3,695 MNT. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 369,550 MNT. The official rate says 360,813 MNT.
+For US$100, people pay 369,544 MNT. The official rate says 360,813 MNT.
 
 Only 1 source
 
-Prices from the 01:00 UTC hour, 1 Nov
+Prices from the 02:00 UTC hour, 1 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
