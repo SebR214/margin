@@ -1,15 +1,29 @@
-# No price for Mozambique this hour
+# In Mozambique a dollar costs 15.6% more than the official rate
 
-Prices from the 06:00 UTC hour, 1 Nov.
+Prices from the 07:00 UTC hour, 1 Nov.
 
-Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
+The official rate is 63.74 MZN per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 73.69 MZN. A stablecoin is a coin that stays worth one US dollar.
 
-The last price we published was +15.8%, on 1 Nov.
+For US$100, people pay 7,369 MZN. The official rate says 6,374 MZN.
 
-Prices from the 06:00 UTC hour, 1 Nov
+Only 1 source
+
+Prices from the 07:00 UTC hour, 1 Nov
+
+You could buy at least US$5,000 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/MZN.json>
 
 ## How the gap moved, day by day
 
 One point per day, the price we published that day. 0% is the official rate.
+
+Today's gap is the smallest since 5 Sep 2026, in our own checks. On most days the gap is between 16.5% and 17.7%.
+
+## Where this price comes from
+
+We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from people selling to each other.
+
+Binance, people selling to each other
+
+73.69 MZN +15.6%

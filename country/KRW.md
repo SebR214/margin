@@ -1,12 +1,12 @@
 # In South Korea a dollar costs 0.8% more than the official rate
 
-Prices from the 06:00 UTC hour, 1 Nov.
+Prices from the 07:00 UTC hour, 1 Nov.
 
 The official rate is 1,334.8 KRW per dollar. On the exchanges where people in South Korea trade stablecoins, one costs 1,346 KRW. A stablecoin is a coin that stays worth one US dollar.
 
 For US$100, people pay 134,600 KRW. The official rate says 133,480 KRW.
 
-Prices from the 06:00 UTC hour, 1 Nov
+Prices from the 07:00 UTC hour, 1 Nov
 
 <https://margin.wiki/data/countries/KRW.json>
 
@@ -22,6 +22,6 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 |  |  |
 | --- | --- |
-| Upbit | 1,345 KRW +0.8% |
+| Upbit | 1,344 KRW +0.7% |
 | Bithumb | 1,346 KRW +0.8% |
 | Coinone | 1,346 KRW +0.8% |

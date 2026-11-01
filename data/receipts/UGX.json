@@ -4,20 +4,24 @@
     "denominator": 4283.90517,
     "denominator_meaning": "the official rate, local currency per dollar",
     "formula": "(numerator / denominator - 1) * 100",
-    "numerator": 4150.795,
+    "numerator": 4135.5,
     "numerator_meaning": "price to buy one dollar locally",
-    "result_pct": -3.1072
+    "result_pct": -3.4642
   },
-  "computed_at": "2026-11-01T06:00:00+00:00",
+  "computed_at": "2026-11-01T07:00:00+00:00",
   "country": "Uganda",
   "evidence": {
-    "buy_median": 4150.795,
-    "collected_at": "2026-11-01T06:07:28.872099+00:00",
+    "buy_median": 4135.5,
+    "collected_at": "2026-11-01T07:07:44.433303+00:00",
     "n_offers": 10,
     "offer_detail": "per_offer",
     "offers": [
       {
-        "price": 4107.0,
+        "price": 4098.0,
+        "side": "buy"
+      },
+      {
+        "price": 4100.0,
         "side": "buy"
       },
       {
@@ -33,7 +37,15 @@
         "side": "buy"
       },
       {
+        "price": 4143.0,
+        "side": "buy"
+      },
+      {
         "price": 4143.99,
+        "side": "buy"
+      },
+      {
+        "price": 4150.99,
         "side": "buy"
       },
       {
@@ -41,31 +53,23 @@
         "side": "buy"
       },
       {
-        "price": 4170.0,
+        "price": 4157.97,
         "side": "buy"
       },
       {
-        "price": 4178.0,
-        "side": "buy"
-      },
-      {
-        "price": 4178.95,
-        "side": "buy"
-      },
-      {
-        "price": 4179.98,
-        "side": "buy"
-      },
-      {
-        "price": 4122.0,
+        "price": 4116.0,
         "side": "sell"
       },
       {
-        "price": 4120.0,
+        "price": 4115.0,
         "side": "sell"
       },
       {
-        "price": 4111.11,
+        "price": 4110.0,
+        "side": "sell"
+      },
+      {
+        "price": 4107.5,
         "side": "sell"
       },
       {
@@ -73,7 +77,11 @@
         "side": "sell"
       },
       {
-        "price": 4106.35,
+        "price": 4107.35,
+        "side": "sell"
+      },
+      {
+        "price": 4107.13,
         "side": "sell"
       },
       {
@@ -85,21 +93,13 @@
         "side": "sell"
       },
       {
-        "price": 4100.5,
-        "side": "sell"
-      },
-      {
-        "price": 4100.3,
-        "side": "sell"
-      },
-      {
-        "price": 4100.29,
+        "price": 4101.5,
         "side": "sell"
       }
     ],
-    "sell_median": 4106.19,
-    "source_kind": null,
-    "source_words": "no price this hour"
+    "sell_median": 4107.35,
+    "source_kind": "p2p_buy_median",
+    "source_words": "from person-to-person ads"
   },
   "evidence_rule": {
     "applies": true,
@@ -107,22 +107,22 @@
     "buy_ads_estimated": false,
     "buy_at_or_above_sell": true,
     "min_buy_ads_required": 10,
-    "passed": false,
-    "reason": "held back: -3.1% is 6.8 points from this country's usual +3.7% over the last 7 days, and no second source or earlier hour confirms it yet",
+    "passed": true,
+    "reason": null,
     "reason_code": null
   },
-  "hour_utc": "2026-11-01T06:00:00+00:00",
+  "hour_utc": "2026-11-01T07:00:00+00:00",
   "index_version": "1.9",
-  "not_published_reason": "held back: -3.1% is 6.8 points from this country's usual +3.7% over the last 7 days, and no second source or earlier hour confirms it yet",
+  "not_published_reason": null,
   "official_rate": {
     "class": "market",
     "source": "open.er-api",
     "source_file": "data/fx_rates.csv",
-    "timestamp": "2026-11-01T06:15:26.274823+00:00",
+    "timestamp": "2026-11-01T07:15:25.105775+00:00",
     "value": 4283.90517
   },
   "outlier_checked": null,
-  "published": false,
+  "published": true,
   "source_files": [
     "data/countries/UGX.json",
     "data/fx_rates.csv",
@@ -130,6 +130,6 @@
     "data/p2p_offers.csv",
     "data/p2p_sides.csv"
   ],
-  "unverified": false,
-  "unverified_reason": null
+  "unverified": true,
+  "unverified_reason": "-3.46% is outside the sanity band of -3% to +200% and has not yet been checked against an outside reference. The number is published here and left out of the ranked index until it has been."
 }
