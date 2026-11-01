@@ -3,9 +3,9 @@ name: writer
 # SEB-423 step 4. Once a day: two paragraphs for each event that has none, and the home sentences. One Sonnet call each
 # through OpenRouter (tools/llm.py, inside the $20 monthly cap). No loop: it runs once and stops. Not part of collect.yml,
 # so a refused text can never stop collection. A refusal fails the run, and the texts that passed are committed anyway.
+# Schedule off since 1 Nov: the OpenRouter key was empty after two test runs, and Seb asked for the event texts to be written
+# in his own Claude Code sessions. Run by hand only. Put the cron "17 6 * * *" back when the key has credit.
 on:
-  schedule:
-    - cron: "17 6 * * *"
   workflow_dispatch:
 
 permissions:
