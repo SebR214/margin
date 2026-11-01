@@ -43,17 +43,21 @@
     // inside the page column, so it lines up with the content. A page that builds its column from script may not have it yet,
     // or may rebuild it: keep the footer in the current column for a few seconds.
     var COLUMN = '.wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap';
+    // the footer goes in only once the page has drawn its headline, so it never flashes alone at the top of an empty page
+    // while the page's own script is still building it (1 Nov, Seb's screen recording)
+    var drawn = function (col) { var h = col.querySelector('h1'); return !!(h && h.textContent.replace(/\u00a0/g, '').trim()); };
     var place = function () {
-      var col = document.querySelector(COLUMN) || document.body;
+      var col = document.querySelector(COLUMN);
+      if (!col || !drawn(col)) { return; }
       if (f.parentNode !== col) { col.appendChild(f); }
-      else if (col !== document.body && col.lastElementChild !== f) { col.appendChild(f); }
+      else if (col.lastElementChild !== f) { col.appendChild(f); }
     };
     place();
     watch(C);
     if (window.MutationObserver) {
       var mo = new MutationObserver(place);
-      mo.observe(document.body, { childList: true, subtree: true });
-      setTimeout(function () { mo.disconnect(); }, 8000);
+      mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+      setTimeout(function () { mo.disconnect(); place(); }, 15000);
     }
   }).catch(function () {});
 })();
