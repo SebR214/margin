@@ -28,6 +28,14 @@
     // biggest dollar gap first (28 Oct, Seb): the page reads from "the stablecoin wins" down to "the app wins"
     ORDER.sort(function (a, b) { var x = gapOf(a), y = gapOf(b); return (y == null ? -1e9 : y) - (x == null ? -1e9 : x); });
   }
+  // hours whose blockchain fee could not be read: not priced, and shown as gaps (1 Nov, Seb), from routes_breakdown.json
+  function gasMissing(id) {
+    var out = {};
+    ((BRK && BRK.gaps) || []).forEach(function (g) {
+      if (g.reason === "not_read_this_hour" && g.route === id) (g.hours_utc || []).forEach(function (h) { out[Math.round(Date.parse(h) / 36e5)] = true; });
+    });
+    return out;
+  }
   function plainRoute(s) { return String(s || "").replace(/^the /i, "").replace(/^./, function (c) { return c.toUpperCase(); }); }
 
   var COPY = {};
@@ -299,9 +307,12 @@
     // to 3 hours (a collection run that did not happen, every route at once) does not cut the fill: the line crosses it
     // dashed, so the missing hours still show and nothing is filled in as a reading (27 Oct, Seb: "random holes").
     var BRIDGE = hourly ? 3 : 0;
+    // an hour with no blockchain fee reading is never bridged: it is a gap, shaded, with its own note and tip (1 Nov, Seb)
+    var GM = hourly ? gasMissing(S.route) : {}, t0h = hourly && pts[0] ? Math.round(pts[0][3] / 36e5) : 0, gasIdx = [];
+    if (hourly) pts.forEach(function (p, i) { if (!p && GM[t0h + i]) gasIdx.push(i); });
     var runs = [], cur = null, miss = 0;
     pts.forEach(function (p, i) {
-      if (!p) { miss++; return; }
+      if (!p) { miss += GM[t0h + i] && hourly ? BRIDGE + 1 : 1; return; }
       if (!cur || miss > BRIDGE) { cur = []; runs.push(cur); }
       cur.push(i); miss = 0;
     });
@@ -315,6 +326,8 @@
       });
       g += '<path class="sm-area" d="' + line + "L" + X(r[r.length - 1]).toFixed(1) + " " + z.toFixed(1) + "L" + X(r[0]).toFixed(1) + " " + z.toFixed(1) + 'Z"/>';
     });
+    var slot = n > 1 ? pw / (n - 1) : pw;
+    gasIdx.forEach(function (i) { g += '<rect class="sm-gasmiss" x="' + (X(i) - slot / 2).toFixed(1) + '" y="' + T + '" width="' + Math.max(2, slot).toFixed(1) + '" height="' + ph + '"/>'; });
     g += '<line x1="' + L + '" x2="' + W + '" y1="' + z + '" y2="' + z + '" class="sm-zline"/>';
     if (dGap) g += '<path class="sm-line sm-gapline" d="' + dGap + '"/>';
     g += '<path class="sm-line" d="' + dLine + '"/>';
@@ -324,6 +337,9 @@
     svg.setAttribute("viewBox", "0 0 " + W + " " + Hh);
     svg.innerHTML = g;
     chart.geo = { L: L, pw: pw, n: n, X: X, W: W };
+    chart.gas = {}; gasIdx.forEach(function (i) { chart.gas[i] = (t0h + i) * 36e5; });
+    var gn = document.getElementById("smGasNote");
+    if (gn) { gn.textContent = gasIdx.length ? txt("gasMissNote") : ""; gn.hidden = !gasIdx.length || !txt("gasMissNote"); }
     // the note under the heading says "each hour" on the week view, "each day" otherwise
     var note = document.getElementById("smWeekNote"), nt = txt(hourly ? "weekNoteHourly" : "weekNote");
     if (note && nt) note.textContent = nt;
@@ -335,6 +351,15 @@
     var b = svg.getBoundingClientRect(), x = (e.clientX - b.left) / b.width * geo.W;
     var i = Math.round((x - geo.L) / geo.pw * (geo.n - 1));
     var p = chart.pts && chart.pts[i];
+    if (!p && chart.gas && chart.gas[i] && txt("gasMissTip")) {
+      var gd = new Date(chart.gas[i]).toISOString();
+      cross.setAttribute("x1", geo.X(i)); cross.setAttribute("x2", geo.X(i)); cross.setAttribute("visibility", "visible");
+      tip.innerHTML = esc(txt("gasMissTip")) + "<span>" + esc(txt("chartTipHour", { day: dayShort(gd), hour: gd.slice(11, 16) })) + "</span>";
+      tip.hidden = false;
+      var gl = geo.X(i) / geo.W * 100;
+      tip.style.left = gl > 65 ? "" : (gl + 2) + "%"; tip.style.right = gl > 65 ? (100 - gl + 2) + "%" : "";
+      return;
+    }
     if (i < 0 || i >= geo.n || !p) { tip.hidden = true; if (cross) cross.setAttribute("visibility", "hidden"); return; }
     cross.setAttribute("x1", geo.X(i)); cross.setAttribute("x2", geo.X(i)); cross.setAttribute("visibility", "visible");
     var dd = new Date(p[3]).toISOString();
@@ -437,6 +462,9 @@
     // when the path priced is one whose network gas is not in the cost, say so under it (the path list comes from the data)
     var gasNo = (routeObj(S.route).gas_not_modelled_paths || []).indexOf(A.path) >= 0;
     var gasLine = gasNo ? w("gasNote", null, "p", "sm-small") : "";
+    // the newest hour could not be priced because its blockchain fee was not read: the figures are from the hour before, and say so
+    var newest = HOURLY && HOURLY.as_of_utc, nowGas = newest && gasMissing(S.route)[Math.round(Date.parse(newest) / 36e5)] && Date.parse(A.t) < Date.parse(newest);
+    if (nowGas && txt("gasMissNow")) gasLine += w("gasMissNow", { time: clock(A.t) }, "p", "sm-small");
     return '<section class="sm-first">' + w("nowHeading", { amount: esc(A.sym) + whole(S.amount) }, "h2") +
       w("nowNote", null, "p", "sm-note") + '<div>' + moneyAxis + now + "</div>" + gasLine +
       (showSteps ? w("stepsHeading", null, "h3") + (stepsNote ? '<p class="sm-note">' + esc(stepsNote) + "</p>" : "") + '<div>' + moneyAxis + steps + "</div>" : "") +
@@ -456,7 +484,7 @@
     }).join("") + "</div>" : "";
     return '<section>' + w("weekHeading", null, "h2") + (txt("weekNote") ? '<p class="sm-note" id="smWeekNote">' + esc(txt("weekNote")) + "</p>" : "") +
       '<div class="sm-chart" id="smChart"><svg id="smSvg" role="img" aria-label="' + esc(txt("chartAria")) + '"></svg>' +
-      '<div class="sm-tip sm-num" id="smTip" hidden></div></div>' + bar + "</section>";
+      '<div class="sm-tip sm-num" id="smTip" hidden></div></div>' + '<p class="sm-small" id="smGasNote" hidden></p>' + bar + "</section>";
   }
 
   var CMP_AMOUNT = 1000;   // the overview always compares the same 1,000 in each sending currency, whatever amount is picked below

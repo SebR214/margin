@@ -253,13 +253,41 @@
     if (cross) cross.setAttribute("visibility", "hidden");
   }
 
+  // The writer's two paragraphs (SEB-423 step 4), from data/event_prose/{id}.json, shown only when its number audit passed
+  // (audit.passed true) and, when the file carries one, its voice check passed too. A "[2]" in the text links to the
+  // second source. With no file or a failed check the page shows exactly what it showed before.
+  var PROSE = null;
+  function proseOk(p) {
+    return !!(p && p.audit && p.audit.passed === true && (!p.voice || p.voice.passed === true) &&
+      Array.isArray(p.paragraphs) && p.paragraphs.length && p.paragraphs.every(function (x) { return typeof x === "string" && x.trim(); }));
+  }
+  function safeUrl(u) { return /^https?:\/\//i.test(String(u || "")) ? String(u) : ""; }
+  function proseHtml() {
+    if (!proseOk(PROSE) || !txt("proseHeading")) return "";
+    var src = Array.isArray(PROSE.sources) ? PROSE.sources : [];
+    var paras = PROSE.paragraphs.map(function (t) {
+      return '<p class="sm-note ev-prose">' + esc(t).replace(/\s*\[(\d{1,2})\]/g, function (m, n) {
+        var s = src[+n - 1], u = s && safeUrl(s.url);
+        return u ? '<sup><a href="' + esc(u) + '" rel="noopener" target="_blank">' + n + "</a></sup>" : "";
+      }) + "</p>";
+    }).join("");
+    var list = src.map(function (s, i) {
+      var u = safeUrl(s && s.url); if (!u) return "";
+      return '<li><span class="ev-srcn">' + (i + 1) + '</span> <a href="' + esc(u) + '" rel="noopener" target="_blank">' + esc((s.title || u).slice(0, 160)) + "</a>" +
+        (s.site ? ' <span class="ev-srcs">' + esc(s.site) + "</span>" : "") + "</li>";
+    }).join("");
+    return '<section id="evProse">' + w("proseHeading", null, "h2") + paras +
+      (list ? w("proseSources", null, "p", "sm-small ev-srch") + '<ol class="ev-src">' + list + "</ol>" : "") +
+      (txt("proseNote") ? w("proseNote", null, "p", "sm-small") : "") + "</section>";
+  }
+
   function render() {
     var pts = points();
     // the numbers on a page without a hand-entered date show only while the claims audit says its record matches the raw files
     var held = window.Claims && window.Claims.blocked("eventPage.landLine");
     if (!REC || !ready() || (held && !known())) { app.innerHTML = '<div class="sm-wrap">' + headHtml() + w("notReady", null, "p") + "</div>"; return; }
     var kn = known();
-    app.innerHTML = '<div class="sm-wrap">' + headHtml() + (kn ? heroHtml(pts) : genericHeroHtml()) + chartSectionHtml() + tableHtml() + landingHtml() + (kn ? firstHtml(pts) : "") +
+    app.innerHTML = '<div class="sm-wrap">' + headHtml() + (kn ? heroHtml(pts) : genericHeroHtml()) + proseHtml() + chartSectionHtml() + tableHtml() + landingHtml() + (kn ? firstHtml(pts) : "") +
       (reported() ? "" : offersHtml()) + keepHtml() + (reported() ? "" : checksHtml()) + footerHtml() + dayLinkHtml() + "</div>";
     drawChart();
     var box = document.getElementById("evChart");
@@ -279,8 +307,10 @@
       return getJSON(PATHS[1]).then(function (r) { RECPATH = PATHS[1]; return r; }).catch(function () { return null; });
     });
   }
-  Promise.all([getJSON("copy.json"), loadRecord(), getJSON("data/heatmap_daily.json").catch(function () { return null; }), getJSON("data/map_timeline/index.json").catch(function () { return null; }), window.Claims ? window.Claims.load() : null])
+  Promise.all([getJSON("copy.json"), loadRecord(), getJSON("data/heatmap_daily.json").catch(function () { return null; }), getJSON("data/map_timeline/index.json").catch(function () { return null; }), window.Claims ? window.Claims.load() : null,
+    getJSON("data/event_prose/" + id + ".json").catch(function () { return null; })])
     .then(function (res) {
+      PROSE = res[5] || null;
       COPY = (res[0] && res[0].eventPage) || {};
       REC = res[1];
       if (!REC) { app.innerHTML = '<div class="sm-wrap">' + headHtml() + w("notFound", null, "p") + "</div>"; return; }

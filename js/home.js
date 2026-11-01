@@ -76,6 +76,17 @@
     var t = blocked(k) ? '' : T(k, { date: m.since ? longDate(m.since) : '' });
     return t ? '<p class="lead sub">' + esc(t) + '</p>' : '';
   }
+  // The writer's daily sentences (SEB-423 step 4), from data/home_prose.json: shown under the headline, in place of the
+  // "since" line, only when the number audit passed, any voice check passed, and the file is under 30 hours old.
+  // Otherwise the page shows what it showed before.
+  function dailyProse() {
+    var p = D.prose;
+    if (!p || !p.audit || p.audit.passed !== true || (p.voice && p.voice.passed !== true) || !Array.isArray(p.sentences)) { return ''; }
+    var t = Date.parse(p.written_utc || '');
+    if (!(t > 0) || Date.now() - t > 30 * 3600e3) { return ''; }
+    var lines = p.sentences.filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 3);
+    return lines.length ? '<p class="lead sub today">' + esc(lines.join(' ')) + '</p>' : '';
+  }
   function changeLine(it) {
     var v = { date: longDate(it.date) }, k = '', FD = (D.copy && D.copy.findingData) || {}, RN = (D.copy && D.copy.routeNames) || {};
     if (it.kind === 'crossed_up') { k = 'wcCrossedUp'; v.country = it.country; }
@@ -106,7 +117,7 @@
     var idxCount = { priced: g(nPriced), tracked: g(nTracked) };
     // one per row, as the Sources page lists them: the CriptoYa feeds count once
     var sr = (D.src && D.src.sources) || null, nSources = sr ? sr.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (sr.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null;
-    var h = '<h1>' + esc(moveHeadline() || T('headline')) + '</h1>' + moveSince() +
+    var h = '<h1>' + esc(moveHeadline() || T('headline')) + '</h1>' + (dailyProse() || moveSince()) +
       (T('heroWhy') ? '<p class="lead sub">' + esc(T('heroWhy')) + '</p>' : '') +
       '<p class="lead what">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
       // who built it and what is stored so far, as one line (21 Oct, Seb's wording); the numbers come from the files
@@ -310,11 +321,13 @@
   function load() {
   var failed = [], y0 = window.scrollY;
   // the computed sentences (SEB-423): not counted as a failed file when absent, the page then keeps its fixed headline and shows no block
-  var extra = [getJSON('data/home_facts.json').catch(function () { return null; }), window.Claims ? window.Claims.load() : Promise.resolve(null)];
+  var extra = [getJSON('data/home_facts.json').catch(function () { return null; }), window.Claims ? window.Claims.load() : Promise.resolve(null),
+    getJSON('data/home_prose.json').catch(function () { return null; })];
   return Promise.all(Object.keys(jobs).map(function (k) { return getJSON(jobs[k]).catch(function () { failed.push(k); return null; }); }).concat(extra)).then(function (r) {
     var keys = Object.keys(jobs), got = {};
     keys.forEach(function (k, i) { got[k] = r[i]; });
     got.facts = r[keys.length];
+    got.prose = r[keys.length + 2];
     C = (got.copy && got.copy.homeData) || {};
     D = got;
     nav();
