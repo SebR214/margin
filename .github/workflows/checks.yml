@@ -182,6 +182,10 @@ jobs:
 
       - name: The model caller refuses what it must (SEB-301)
         run: python3 tools/llm.py --self-test
+      - name: Writer self-tests
+        run: |
+          python3 tools/writer_voice.py --self-test
+          python3 tools/writer.py --self-test
 
       - name: Status and watchdog helpers (SEB-301)
         run: |
