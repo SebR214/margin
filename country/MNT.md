@@ -1,12 +1,12 @@
 # No price for Mongolia this hour
 
-Prices from the 03:00 UTC hour, 2 Nov.
+Prices from the 04:00 UTC hour, 2 Nov.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
 The last price we published was +2.4%, on 1 Nov.
 
-Prices from the 03:00 UTC hour, 2 Nov
+Prices from the 04:00 UTC hour, 2 Nov
 
 <https://margin.wiki/data/countries/MNT.json>
 

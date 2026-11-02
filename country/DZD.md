@@ -1,16 +1,16 @@
-# In Algeria a stablecoin dollar costs 90.6% more than the official rate
+# In Algeria a stablecoin dollar costs 90.1% more than the official rate
 
-Prices from the 03:00 UTC hour, 2 Nov.
+Prices from the 04:00 UTC hour, 2 Nov.
 
-The official rate is 135.9 DZD per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 259.00 DZD. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 135.9 DZD per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 258.40 DZD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 25,900 DZD. The official rate says 13,590 DZD.
+For US$100, people pay 25,840 DZD. The official rate says 13,590 DZD.
 
 Only 1 source
 
-Prices from the 03:00 UTC hour, 2 Nov
+Prices from the 04:00 UTC hour, 2 Nov
 
-You could buy only US$3,500 here before the price goes up 1%.
+You could buy at least US$5,000 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/DZD.json>
 
@@ -26,7 +26,7 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-259.00 DZD +90.6%
+258.40 DZD +90.1%
 
 ## Where to go next
 
