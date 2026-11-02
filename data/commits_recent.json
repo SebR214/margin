@@ -1,7 +1,28 @@
 {
- "as_of_utc": "2026-11-02T05:44:23Z",
+ "as_of_utc": "2026-11-02T13:36:49Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "de045deb98ee187a25de894d0cc8b2d4357ceaee",
+   "html_url": "https://github.com/SebR214/margin/commit/de045deb98ee187a25de894d0cc8b2d4357ceaee",
+   "date": "2026-11-02T13:25:25Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "aider builder run 2026-11-02T13:25:05+00:00"
+  },
+  {
+   "sha": "dc1ac81cfc3a969a1867ee998260687c9593f7f3",
+   "html_url": "https://github.com/SebR214/margin/commit/dc1ac81cfc3a969a1867ee998260687c9593f7f3",
+   "date": "2026-11-02T13:20:44Z",
+   "email": "person",
+   "message": "SEB-431: the page bake no longer stacks a copy of itself every hour (#777)\n\nThe drawn page held the last run's bake markers, so the block matched only up to the\ninner end marker and every run left another copy behind. index.html went from 40 KB to\n28 MB, events.html and sending-money.html to 74 MB, and the file size check failed every\ncollect run from 06:05 UTC on 2 Nov, so no sample was committed after 05:49 UTC.\nThe markers are no longer written back, the block matches to the last end marker (a\npolluted page is cleaned back to one block), and the self-test covers both. The ten\npolluted pages have their stacked blocks removed; the next bake writes one fresh block.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "27b980be38a299ec30d05204917b970e77306221",
+   "html_url": "https://github.com/SebR214/margin/commit/27b980be38a299ec30d05204917b970e77306221",
+   "date": "2026-11-02T05:49:13Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-02T05:49Z"
+  },
   {
    "sha": "4f86f88856bda34aa2fcb26ebda1fb9b6f5bfb6b",
    "html_url": "https://github.com/SebR214/margin/commit/4f86f88856bda34aa2fcb26ebda1fb9b6f5bfb6b",
@@ -680,27 +701,6 @@
    "date": "2026-10-31T23:00:00Z",
    "email": "person",
    "message": "SEB-301: stage machine-room.md, and stage any other tracked file the list forgot (#747)\n\nCommit samples failed from the 12:35 UTC run on 31 Oct: machine-room.md (new with SEB-427) is rewritten every run and was not staged.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "9ab5baed63e81ac730c87e4b8a9f8c27a680d07d",
-   "html_url": "https://github.com/SebR214/margin/commit/9ab5baed63e81ac730c87e4b8a9f8c27a680d07d",
-   "date": "2026-10-31T18:59:38Z",
-   "email": "person",
-   "message": "SEB-422: country page line with the official, cash and stablecoin dollar (#746)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "6c3b21e56ffecf3ccf932a821abcb221da54b547",
-   "html_url": "https://github.com/SebR214/margin/commit/6c3b21e56ffecf3ccf932a821abcb221da54b547",
-   "date": "2026-10-31T18:26:57Z",
-   "email": "person",
-   "message": "SEB-422: data/cash_latest.json, the newest cash dollar per currency (#745)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "694a2b4241577e7f80bed93addd34423dbe45c7f",
-   "html_url": "https://github.com/SebR214/margin/commit/694a2b4241577e7f80bed93addd34423dbe45c7f",
-   "date": "2026-10-31T17:39:52Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "aider builder run 2026-10-31T17:38:20+00:00"
   }
  ]
 }

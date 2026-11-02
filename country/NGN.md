@@ -1,23 +1,23 @@
-# In Nigeria a stablecoin dollar costs 2.2% more than the official rate
+# In Nigeria a stablecoin dollar costs 1.9% more than the official rate
 
-Prices from the 05:00 UTC hour, 2 Nov.
+Prices from the 13:00 UTC hour, 2 Nov.
 
-The official rate is 1,348.45 NGN per dollar. On the exchanges where people in Nigeria trade stablecoins, one costs 1,378 NGN. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 1,348.45 NGN per dollar. On the exchanges where people in Nigeria trade stablecoins, one costs 1,375 NGN. A stablecoin is a coin that stays worth one US dollar.
 
 |  |  |
 | --- | --- |
 | Official rate | 1,348 NGN |
-| A stablecoin on an exchange | 1,378 NGN +2.2% |
-| A stablecoin from people selling to each other | 1,384 NGN +2.6% |
+| A stablecoin on an exchange | 1,375 NGN +1.9% |
+| A stablecoin from people selling to each other | 1,387 NGN +2.9% |
 | Cash at a money changer | 1,385 NGN +2.7% |
 
-For US$100, people pay 137,813 NGN. The official rate says 134,845 NGN.
+For US$100, people pay 137,451 NGN. The official rate says 134,845 NGN.
 
-Today cash and a stablecoin cost about the same here.
+Today a stablecoin is cheaper than cash from a money changer here. Cash costs 0.8% more.
 
 Only 1 source
 
-Prices from the 05:00 UTC hour, 2 Nov
+Prices from the 13:00 UTC hour, 2 Nov
 
 <https://margin.wiki/data/countries/NGN.json>
 
@@ -25,7 +25,7 @@ Prices from the 05:00 UTC hour, 2 Nov
 
 One point per day, the price we published that day. 0% is the official rate.
 
-Today's gap is normal for here since 9 Oct 2026, in our own checks. On most days the gap is between 2.1% and 3.5%.
+Today's gap is the smallest since 9 Oct 2026, in our own checks. On most days the gap is between 2.1% and 3.5%.
 
 From 9 Oct this price comes from an exchange instead of an independent price source, so it can jump that day.
 
@@ -35,7 +35,7 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Luno
 
-1,378 NGN +2.2%
+1,375 NGN +1.9%
 
 ## Where to go next
 

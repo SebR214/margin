@@ -1,12 +1,12 @@
 # A stablecoin only beats transfer apps where dollars are hard to get
 
-Prices from the 05:00 UTC hour, 2 Nov.
+Prices from the 13:00 UTC hour, 2 Nov.
 
-In Argentina, India and Nigeria, dollars are hard to get, so people pay more than the official rate for one. Send money there as a stablecoin and the person you send to can sell it at that higher price. They end up with more than any transfer app gives them.
+In Argentina and India, dollars are hard to get, so people pay more than the official rate for one. Send money there as a stablecoin and the person you send to can sell it at that higher price. They end up with more than any transfer app gives them.
 
 In Brazil, Mexico and the Philippines, anyone can get dollars at the official rate. There is nothing extra to collect, so the transfer apps are cheaper.
 
-Prices from the 05:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
+Prices from the 13:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
 
 <https://margin.wiki/data/routes_table.json>
 
@@ -16,21 +16,21 @@ Each route sends 1,000 in your own money, like S$1,000 or US$1,000. Left of the 
 
 |  |  |
 | --- | --- |
-| United States to Argentina Gap there +8.6% · Cheaper in 180 of 180 hours | 6.29% cheaper than Airwallex |
-| United States to India Gap there +6.0% · Cheaper in 713 of 713 hours | 4.46% cheaper than Airwallex |
-| Singapore to India Gap there +6.0% · Cheaper in 713 of 713 hours | 3.74% cheaper than Airwallex |
-| Australia to India Gap there +6.0% · Cheaper in 128 of 128 hours | 2.82% cheaper than Xoom |
-| United States to Nigeria Gap there +2.2% · Cheaper in 693 of 716 hours | 1.43% cheaper than Wise |
-| United States to Brazil Gap there +0.4% · Cheaper in 43 of 129 hours | 0.47% more expensive than Remitly |
-| United States to Mexico Gap there −0.2% · Cheaper in 23 of 1,530 hours | 2.63% more expensive than Xoom |
-| New Zealand to the Philippines Gap there −0.5% · Cheaper in 2 of 1,140 hours | 0.99% more expensive than Airwallex |
-| Singapore to the Philippines Gap there −0.5% · Cheaper in 1 of 1,663 hours | 1.13% more expensive than Instarem |
-| United States to the Philippines Gap there −0.5% · Never cheaper in 176 hours | 1.40% more expensive than Xoom |
-| Australia to the Philippines Gap there −0.5% · Never cheaper in 1,140 hours | 2.40% more expensive than Xoom |
+| United States to Argentina Gap there +8.5% · Cheaper in 181 of 181 hours | 6.43% cheaper than Airwallex |
+| United States to India Gap there +6.0% · Cheaper in 714 of 714 hours | 4.35% cheaper than Airwallex |
+| Singapore to India Gap there +6.0% · Cheaper in 714 of 714 hours | 3.56% cheaper than Airwallex |
+| Australia to India Gap there +6.0% · Cheaper in 129 of 129 hours | 2.71% cheaper than Xoom |
+| United States to Nigeria Gap there +1.9% · Cheaper in 694 of 717 hours | 1.15% cheaper than Wise |
+| United States to Brazil Gap there +0.7% · Cheaper in 43 of 130 hours | 0.15% more expensive than Remitly |
+| United States to Mexico Gap there −0.4% · Cheaper in 23 of 1,531 hours | 2.77% more expensive than Xoom |
+| Singapore to the Philippines Gap there −0.8% · Cheaper in 1 of 1,664 hours | 1.19% more expensive than Instarem |
+| New Zealand to the Philippines Gap there −0.8% · Cheaper in 2 of 1,141 hours | 1.52% more expensive than Airwallex |
+| United States to the Philippines Gap there −0.8% · Never cheaper in 177 hours | 1.53% more expensive than Xoom |
+| Australia to the Philippines Gap there −0.8% · Never cheaper in 1,141 hours | 2.64% more expensive than Xoom |
 
-## Sending US$1,000 to Argentina: Airwallex costs US$7.34, a stablecoin gets them US$55.52 more than the official rate
+## Sending US$1,000 to Argentina: Airwallex costs US$3.85, a stablecoin gets them US$60.46 more than the official rate
 
-At this amount, a stablecoin was the cheaper way in 180 of the 180 hours checked since 22 October.
+At this amount, a stablecoin was the cheaper way in 181 of the 181 hours checked since 22 October.
 
 Official rate as of 00:02 UTC
 
@@ -40,11 +40,11 @@ Cost is what the person receiving loses against the official rate. Every fee we 
 
 Cheapest app Airwallex this hour
 
-US$7.34 0.73%
+US$3.85 0.39%
 
 Stablecoin
 
-−US$55.52 −5.55%
+−US$60.46 −6.05%
 
 The blockchain's own fee is not in this total, because the exchange does not publish it.
 
@@ -54,10 +54,10 @@ These are the steps of the main stablecoin way this hour.
 
 |  |  |
 | --- | --- |
-| Deposit and buy | US$4.69 0.47% |
+| Deposit and buy | US$4.61 0.46% |
 | Network fee | US$0.10 0.01% |
-| Sell and withdraw | −US$60.31 −6.03% |
-| All in | −US$55.52 −5.55% |
+| Sell and withdraw | −US$65.16 −6.52% |
+| All in | −US$60.45 −6.05% |
 
 Below zero means they got more than the official rate at that step.
 
