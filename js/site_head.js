@@ -3,7 +3,7 @@
    on every other page this builds the same thing from data/cycle_log.json and the homeData words in copy.json. */
 (function () {
   var here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-  var alias = { 'finding.html': 'research.html', 'how-it-was-built.html': 'how-it-works.html', '': 'index.html' };
+  var alias = { 'finding.html': 'research.html', '': 'index.html' };
   here = alias[here] || here;
   function mark() {
     var links = document.querySelectorAll('.hp-nav a, .ci-nav a, .c-nav a, .sm-nav a, .s-nav a, .fp-nav a, .mwh nav a');
@@ -12,42 +12,16 @@
       if (target && target === here) { a.setAttribute('aria-current', 'page'); }
     });
   }
-  // The one nav (DESIGN.md "Nav"): a page whose header still carries an old hand-written list, or an empty one, gets the
-  // canonical seven links from homeData in copy.json, so every page shows the same menu.
-  var CANON = [['navCountries', 'countries.html'], ['navEvents', 'events.html'], ['navResearch', 'research.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navHow', 'how-it-works.html']];
+  // The one menu (js/site_nav.js, 2 Nov): a page whose header has an empty or old nav gets it. Nothing here moves a link.
   function canonNav() {
     var nav = document.querySelector('.mwh nav, [data-canon-nav]');
-    if (!nav) { return; }
-    fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (c) {
-      var h = (c && c.homeData) || {};
-      if (!CANON.every(function (l) { return h[l[0]]; })) { return; }
-      nav.textContent = '';
-      CANON.forEach(function (l) { var a = document.createElement('a'); a.href = './' + l[1]; a.textContent = h[l[0]]; nav.appendChild(a); });
-      group(); mark();
-    }).catch(function () {});
-  }
-  // Two groups (1 Nov). The order and the grouping are CSS (css/site_head.css, by each link's address), so nothing here
-  // moves a link. This only adds the small "About the data" label the phone menu shows above Sources and How it works.
-  var aboutLabel = null;
-  function group() {
-    var nav = document.querySelector('.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav');
-    if (!nav || nav.querySelector('.sh-about-label') || nav.querySelectorAll('a').length < 4) { return; }
-    var lab = document.createElement('span'); lab.className = 'sh-about-label'; lab.textContent = aboutLabel || '';
-    nav.appendChild(lab);
-    if (aboutLabel === null) {
-      aboutLabel = '';
-      fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (c) {
-        aboutLabel = (c && c.homeData && c.homeData.navAboutLabel) || '';
-        [].forEach.call(document.querySelectorAll('.sh-about-label'), function (l) { l.textContent = aboutLabel; });
-      }).catch(function () {});
-    }
+    if (nav && window.siteNav) { window.siteNav.fill(nav); }
   }
   canonNav();
-  group();
   mark();
   document.addEventListener('DOMContentLoaded', mark);
   window.addEventListener('load', mark);
-  var n = 0, t = setInterval(function () { group(); mark(); if (++n > 40) { clearInterval(t); } }, 250);
+  var n = 0, t = setInterval(function () { canonNav(); mark(); if (++n > 40) { clearInterval(t); } }, 250);
 
   // ---- the phone menu (SEB-268): below 768px the nav is a list behind a Menu button (css/site_head.css) ----
   var NAVSEL = '.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav';
@@ -142,7 +116,7 @@
       paint = function (C2) {
         var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(C2.last_reading_utc || '');
         if (!m || !C2.next_reading_utc) { return; }
-        a.textContent = fill(H.headerLast, { time: (+m[3]) + ' ' + MON[+m[2] - 1] + ', ' + m[4] });
+        a.textContent = fill(H.headerLast, { time: m[4] });
         next = Date.parse(C2.next_reading_utc);
         if (seen === null || C2.last_reading_utc >= seen) { seen = C2.last_reading_utc; }
         tick();
@@ -159,7 +133,7 @@
           // "late" is only said when the published file itself is late: look again before saying it, and say nothing meanwhile
           b.textContent = ''; dot.classList.remove('still'); poll(); return;
         }
-        b.textContent = over ? fill(late === 1 ? H.headerOverdueOne : H.headerOverdue, { minutes: late }) : fill(H.headerNext, { countdown: (hh > 0 ? hh + ':' : '') + pad(mm) + ':' + pad(ss) });
+        b.textContent = '';   // the bar says only when the prices are from (2 Nov, Seb): no countdown, no late note
         dot.classList.toggle('still', over);
       };
       paint(CL);

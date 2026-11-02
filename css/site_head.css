@@ -85,10 +85,7 @@
     height: auto !important; min-height: 60px !important; padding: 0 !important; font-size: 30px !important; font-weight: 500 !important;
     letter-spacing: -0.01em !important; color: var(--color-ink, #201e1d) !important;
   }
-  .hp-nav a[aria-current], .ci-nav a[aria-current], .c-nav a[aria-current], .sm-nav a[aria-current], .s-nav a[aria-current], .fp-nav a[aria-current], .mwh nav a[aria-current] { font-weight: 500 !important; }
-  .hp-nav a[aria-current]::after, .ci-nav a[aria-current]::after, .c-nav a[aria-current]::after, .sm-nav a[aria-current]::after, .s-nav a[aria-current]::after, .fp-nav a[aria-current]::after, .mwh nav a[aria-current]::after {
-    content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--data-700, #817FCC); margin-left: 14px; flex: 0 0 auto;
-  }
+  .hp-nav a[aria-current], .ci-nav a[aria-current], .c-nav a[aria-current], .sm-nav a[aria-current], .s-nav a[aria-current], .fp-nav a[aria-current], .mwh nav a[aria-current] { font-weight: 600 !important; }
   html.sh-menu-on .sh-menu, html.sh-menu-on .hp-logo, html.sh-menu-on .ci-logo, html.sh-menu-on .c-logo, html.sh-menu-on .sm-logo,
   html.sh-menu-on .s-logo, html.sh-menu-on .fp-logo, html.sh-menu-on .mwh-logo { position: relative !important; z-index: 61 !important; }
   .sh-menu[aria-expanded="true"] { font-weight: 400; }
@@ -99,29 +96,36 @@
 }
 @keyframes shSheet { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 
-/* Nav groups (1 Nov, made steady 2 Nov). Order and grouping come from each link's address, in CSS, so the menu is right on
-   the first frame whatever script drew it and in whatever order (it used to be redrawn, then regrouped, and jumped). */
-:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) .sh-about { display: contents; }
-:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="countries.html"] { order: 1; }
-:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="events.html"] { order: 2; }
-:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="research.html"] { order: 3; }
-:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="sending-money.html"] { order: 4; }
-:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) .sh-about-label { order: 5; display: none; }
-:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="sources.html"] { order: 6; }
-:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="how-it-works.html"] { order: 7; }
-:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) :is(a[href$="sources.html"], a[href$="how-it-works.html"]) {
-  font-size: 15px !important; color: var(--color-neutral-600, #7d7979) !important; }
-:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) :is(a[href$="sources.html"], a[href$="how-it-works.html"])[aria-current] { color: var(--color-ink, #201e1d) !important; }
+/* The menu (2 Nov, DESIGN.md "Nav"): Countries, Events, Routes, Research, then About. About opens a small menu with How it
+   works, Sources and How it was built: on click, and on hover where there is a mouse. js/site_nav.js draws it on every page.
+   The current page is bold; when it is one of the About pages, About is bold too. */
+:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[aria-current] { color: var(--color-ink, #201e1d) !important; font-weight: 600 !important; }
+/* bold never moves anything: each label also lays out an invisible bold copy of itself, so its width is the same bold or not */
 @media (min-width: 768px) {
-  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) { display: flex !important; align-items: center; }
-  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="sources.html"] { position: relative; margin-left: 4px; padding-left: 20px; }
-  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="sources.html"]::before {
-    content: ''; position: absolute; left: 0; top: 50%; height: 16px; margin-top: -8px; border-left: 1px solid var(--color-neutral-300, #d7d3d3); }
+  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) > a[data-text], .sh-about-t { display: inline-flex !important; flex-direction: column; justify-content: center; }
+  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) > a[data-text]::after, .sh-about-t::after {
+    content: attr(data-text); font-weight: 600; height: 0; visibility: hidden; overflow: hidden; pointer-events: none; }
+}
+.sh-about { position: relative; display: inline-flex; align-items: center; }
+.sh-about-btn { font: inherit; font-size: 15px; color: var(--color-neutral-600, #7d7979); background: none; border: 0; padding: 0; min-height: 44px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.sh-about-btn::after { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); }
+.sh-about.sh-here .sh-about-btn { color: var(--color-ink, #201e1d); font-weight: 600; }
+.sh-about-menu { display: none; position: absolute; top: 100%; left: -16px; z-index: 45; min-width: 200px; flex-direction: column; padding: 8px 0;
+  background: var(--color-bg, #fff); border: 1px solid var(--color-neutral-300, #d7d3d3); border-radius: 8px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); }
+.sh-about-menu a { display: block !important; padding: 10px 16px !important; min-height: 0 !important; height: auto !important; white-space: nowrap; color: var(--color-ink, #201e1d) !important; }
+.sh-about.sh-open-about .sh-about-menu { display: flex; }
+@media (hover: hover) and (min-width: 768px) {
+  .sh-about:hover .sh-about-menu, .sh-about:focus-within .sh-about-menu { display: flex; }
+  .sh-about-btn:hover { color: var(--color-ink, #201e1d); }
+  .sh-about-menu a:hover { background: var(--color-neutral-100, #f5f5f5); }
 }
 @media (max-width: 767px) {
-  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) .sh-about-label {
-    display: block; margin-top: 12px; padding: 12px 16px 4px; border-top: 1px solid var(--color-neutral-300, #d7d3d3); font-size: 13px; color: var(--color-neutral-600, #7d7979); }
-  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) :is(a[href$="sources.html"], a[href$="how-it-works.html"]) { font-size: 16px !important; }
+  /* the phone sheet: the four links, then About as a small label with its three links under it, every link the same size */
+  .sh-about { display: flex; flex-direction: column; align-items: stretch; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-neutral-300, #d7d3d3); }
+  .sh-about-btn { min-height: 0; padding: 8px 0 0; font-size: 14px; color: var(--color-neutral-600, #7d7979); cursor: default; pointer-events: none; }
+  .sh-about-btn::after { display: none; }
+  .sh-about-menu { display: flex !important; position: static; border: 0; box-shadow: none; padding: 0; min-width: 0; background: none; border-radius: 0; }
+  .sh-about-menu a { display: flex !important; align-items: center; padding: 0 !important; min-height: 60px !important; }
 }
 @media (min-width: 768px) {
   /* one line at every desktop width: the status line gives way (cut with ...) before anything wraps */

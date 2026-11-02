@@ -1,25 +1,12 @@
 #!/usr/bin/env python3
-"""Write copy.json's nav array into every live page's header.
+"""The one site menu (2 Nov 2026, DESIGN.md "Nav"). Writes copy.json "siteNav" into js/site_nav.js, between the
+// DATA:begin and // DATA:end lines, so the menu's words live in copy.json and every page draws the same menu.
 
-DESIGN.md is explicit: "The nav is generated from copy.json's nav array
-into every page by the bake step; no page carries a hand-written header."
-Before this existed, each page below hand-typed its own <nav> block, and
-they drifted -- some had five links (a stale "The machine room" entry),
-some had four, `class="active"` landed on the wrong link, and copy.json's
-own nav array still pointed at retired pages (calculator.html,
-methodology.html). One source of truth, written everywhere, is the fix.
+    python3 tools/bake_nav.py            # write it
+    python3 tools/bake_nav.py --check    # exit 1 if js/site_nav.js does not match copy.json
 
-Only the <nav>...</nav> element is touched. The rest of each page's
-<header> (logo, MCP/live status, the mobile nav-toggle button) is
-page-specific chrome, not copy, so it stays hand-written.
-
-Idempotent: replaces whatever <nav>...</nav> currently holds, so running
-this twice in a row (or after copy.json changes) always converges on the
-same markup.
-
-Stdlib only.
+Loud failure: a missing block, or more than seven items in the bar.
 """
-
 import json
 import os
 import re
@@ -27,65 +14,28 @@ import sys
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COPY = os.path.join(HERE, "copy.json")
-
-# Every page that carries the shared site nav. A page reachable only by
-# deep link (how-it-was-built.html, corridor.html) still gets the
-# same generated nav in its header -- DESIGN.md just keeps it out of the
-# nav's own link list.
-NAV_PAGES = [
-    "corridor.html",
-    "country.html", "fee-tiers.html", "how-it-works.html",
-    "how-it-was-built.html", "countries.html",
-    "tape.html",
-]
-# findings.html is a redirect stub as of Phase 4 (FINAL spec) -- its content
-# moved into sending-money.html and it no longer carries its own header, the
-# same reason calculator.html/providers.html/etc. were never in this list.
-
-NAV_RE = re.compile(r"<nav>.*?</nav>", re.S)
-
-
-def nav_html(items, current):
-    lines = ["<nav>"]
-    for item in items:
-        href = item["href"]
-        # Compare basenames: pages live at the repo root, hrefs are
-        # "./name.html", so a plain string match already works, but this
-        # stays correct if a href ever gains a query string or a deeper
-        # relative path.
-        active = os.path.basename(href) == current
-        cls = ' class="active"' if active else ""
-        lines.append(f'        <a href="{href}"{cls}>{item["label"]}</a>')
-    lines.append("      </nav>")
-    return "\n".join(lines)
+JS = os.path.join(HERE, "js", "site_nav.js")
+BLOCK = re.compile(r"(  // DATA:begin\n  var N = ).*?(;\n  // DATA:end)", re.S)
 
 
 def main():
-    with open(COPY) as f:
-        nav_items = json.load(f)["nav"]
-
-    changed = []
-    for page in NAV_PAGES:
-        path = os.path.join(HERE, page)
-        if not os.path.exists(path):
-            print(f"  WARNING: {page} is in NAV_PAGES but does not exist", file=sys.stderr)
-            continue
-        with open(path) as f:
-            html = f.read()
-        if not NAV_RE.search(html):
-            print(f"  WARNING: {page} has no <nav>...</nav> to replace -- "
-                  f"header structure moved, this script needs updating", file=sys.stderr)
-            sys.exit(1)
-        new_html, n = NAV_RE.subn(lambda m: nav_html(nav_items, page), html, count=1)
-        if new_html != html:
-            with open(path, "w") as f:
-                f.write(new_html)
-            changed.append(page)
-
-    if changed:
-        print("  baked nav from copy.json into: " + ", ".join(changed))
+    nav = json.load(open(COPY, encoding="utf-8"))["siteNav"]
+    if len(nav["main"]) + 1 > 7:
+        sys.exit("bake_nav: more than seven items in the bar (DESIGN.md Nav)")
+    src = open(JS, encoding="utf-8").read()
+    if not BLOCK.search(src):
+        sys.exit("bake_nav: js/site_nav.js has no DATA block")
+    new = BLOCK.sub(lambda m: m.group(1) + json.dumps(nav, ensure_ascii=False) + m.group(2), src, count=1)
+    if "--check" in sys.argv:
+        if new != src:
+            sys.exit("bake_nav: js/site_nav.js does not match copy.json siteNav; run python3 tools/bake_nav.py")
+        print("bake_nav: js/site_nav.js matches copy.json")
+        return
+    if new != src:
+        open(JS, "w", encoding="utf-8").write(new)
+        print("bake_nav: wrote js/site_nav.js from copy.json")
     else:
-        print("  nav already matches copy.json on every page")
+        print("bake_nav: js/site_nav.js already matches copy.json")
 
 
 if __name__ == "__main__":

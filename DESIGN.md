@@ -23,13 +23,23 @@ In a cost waterfall (`index.html`, `corridor.html`), the two "dollar-route" legs
 
 ## Nav (canonical, the only nav)
 
-Two groups (1 Nov). The site itself, in the order a reader goes: Countries, Events, Research, Routes. Then, set apart
-by a thin line, smaller and grey, "About the data": Sources, How it works. On a phone the Menu sheet shows the same two
-groups with that label. Seven items at most. Findings live in Research, How it was built lives under How it works.
-`js/site_head.js` groups whatever nav a page draws, so the order is set in one place. The logo links to the home page. The
-nav is generated from `copy.json`'s `nav` array into every page by the bake step (`tools/bake_nav.py`); no page carries a
-hand-written header. How it was built sits under How it works: its last section links to it, and the page has a back link to How it works. The footer is only the GitHub link. Nothing lives only at the bottom of a page. Fee tiers, agent incidents, the machine
-room, tape and corridor are redirects.
+**Nothing is hidden (Seb, 2 Nov).** A page is in the top bar, or it is a row on a page in the top bar, or it doesn't exist.
+Never reachable only by a link in body text, at the bottom of another page, or in the footer. Before a new page is built,
+say which bar item it sits under.
+
+The bar has five items, never more than seven: **Countries, Events, Routes, Research, About.** About opens a small menu
+with **How it works, Sources, How it was built**, all three named, on click and on hover where there is a mouse. On a phone
+the Menu sheet lists the four, then the word About with its three links under it, all the same size. The current page is
+bold (and About when the page is one of its three). Bold never moves anything: each label reserves its bold width.
+
+`js/site_nav.js` draws the menu on every page, from copy.json `siteNav` (run `python3 tools/bake_nav.py` after editing the
+words). It loads in each page's head, so the menu is right on the first frame. No page script builds its own menu.
+
+Rows under each bar item: Countries lists every country page. Events lists every event page. Research lists every research
+piece and finding. Routes holds every route. The 404 page and redirects are not pages.
+
+The bar's right side says only when the prices are from ("Prices from 13:15 UTC"). The Human/Machine switch floats at the
+bottom centre of the screen on every page and in both modes, so there is always a way back.
 
 ## Pages (layout, phones, charts)
 

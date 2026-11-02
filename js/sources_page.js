@@ -68,6 +68,7 @@
 
   function header() {
     var nav = $('nav');
+    if (window.siteNav) { window.siteNav.fill(nav); NAV = []; }   // the one menu (js/site_nav.js, 2 Nov)
     NAV.forEach(function (n) {
       var t = T(n[0]); if (!t) { return; }
       var a = document.createElement('a'); a.textContent = t; a.href = './' + n[1];

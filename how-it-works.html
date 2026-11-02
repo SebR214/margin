@@ -24,10 +24,11 @@
 <link rel="icon" href="/favicon.ico" sizes="48x48"/>
 <link rel="alternate" type="text/markdown" href="/how-it-works.md"/>
 <!-- head:end -->
+<script src="./js/site_nav.js?v=2"></script>
 <link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./style.css?v=2">
 <link rel="stylesheet" href="./css/dkpanel.css">
-<link rel="stylesheet" href="./css/site_head.css?v=9">
+<link rel="stylesheet" href="./css/site_head.css?v=12">
 <link rel="stylesheet" href="./css/site_page.css?v=12">
 <link rel="stylesheet" href="./css/machine_view.css?v=8">
 <style>
@@ -72,7 +73,7 @@
 
 <body>
 <div class="hw-wrap">
-  <div class="hp-head"><div class="hp-headleft"><a class="hp-logo mono" href="./index.html">margin.wiki</a><nav class="hp-nav" aria-label="Main" id="nav"><a href="./countries.html">Countries</a><a href="./events.html">Events</a><a href="./research.html">Research</a><a href="./sending-money.html">Routes</a><a href="./sources.html">Sources</a><a href="./how-it-works.html" aria-current="page">How it works</a></nav></div></div>
+  <div class="hp-head"><div class="hp-headleft"><a class="hp-logo mono" href="./index.html">margin.wiki</a><nav class="hp-nav" aria-label="Main" id="nav"></nav><script>window.siteNav && window.siteNav.fill(document.currentScript.previousElementSibling)</script></div></div>
 
   <main class="hw-main">
     <section class="hw-hero" id="hiwIntro">
@@ -111,12 +112,6 @@
       <div class="lead-b" id="checkLead"></div>
       <div class="p" id="checkBody"></div>
       <div class="p" id="checkSources"></div>
-    </section>
-
-    <section class="hiw-section" id="built">
-      <h2 id="builtH2"></h2>
-      <div class="lead-b" id="builtLead"></div>
-      <div class="p" id="builtLink"></div>
     </section>
   </main>
 </div>
@@ -210,16 +205,12 @@ Promise.all([getJson('./copy.json'), getJson('./data/index_latest.json'), getJso
   setText('checkLead', H.checkLead || '');
   setText('checkBody', H.checkBody || '');
   setLink('checkSources', H.checkSources, H.checkSourcesLink, './sources.html');
-  // How it was built lives under How it works (1 Nov): the one place for how the numbers are made and how the site runs
-  setText('builtH2', H.builtTitle || '');
-  setText('builtLead', H.builtLead || '');
-  setLink('builtLink', H.builtBody, H.builtLinkText, './how-it-was-built.html');
 });
 </script>
 
 <script src="./js/footer.js?v=4"></script>
-<script src="./js/site_head.js?v=9"></script>
-<script src="./js/machine_view.js?v=7" defer></script>
+<script src="./js/site_head.js?v=10"></script>
+<script src="./js/machine_view.js?v=8" defer></script>
 <!-- bake:begin -->
 <noscript><style>body > *:not(noscript){display:none !important}</style><div>
 <div class="hw-wrap">

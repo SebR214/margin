@@ -44,6 +44,7 @@
   }
 
   function nav() {
+    if (window.siteNav) { $('nav').innerHTML = window.siteNav.html(); return; }   // the one menu (js/site_nav.js, 2 Nov)
     $('nav').innerHTML = '';   // the page can arrive with its nav already in the HTML (SEB-426)
     [['navCountries', 'countries.html'], ['navEvents', 'events.html'], ['navResearch', 'research.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navHow', 'how-it-works.html']].forEach(function (x) {
       var t = C[x[0]]; if (!t) { return; }
