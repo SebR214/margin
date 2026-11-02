@@ -109,7 +109,7 @@ jobs:
 
       # SEB-301, 31 Oct: the one collection alarm. Down means no commit starting with "sample" on main in 90 minutes, nothing
       # else (tools/check_collector_health.py). It comments on Linear SEB-301 when collection goes down, every 12 hours while it
-      # stays down, and once when it is back. No GitHub issue, no email, and the step does not fail when collection is down.
+      # stays down, and once when it is back. No GitHub issue, and the step does not fail when collection is down. The email is the next step.
       - name: Check collection and tell SEB-301
         if: steps.needed.outputs.proceed == 'true'
         env:
@@ -117,6 +117,22 @@ jobs:
           GH_REPO: ${{ github.repository }}
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
         run: python3 tools/check_collector_health.py --post
+
+      # The email (SEB-301, 2 Nov): healthchecks.io emails Seb when collection goes down, when it is back, and when these
+      # pings stop coming at all, which is how a dead watchdog chain gets caught (tools/alert_ping.py). Down here means the
+      # same as above; a health check that cannot read main counts as down, never as fine.
+      - name: Email Seb through healthchecks.io
+        if: always() && steps.needed.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          HC_PING_COLLECTOR: ${{ secrets.HC_PING_COLLECTOR }}
+        run: |
+          rc=0; what=$(python3 tools/check_collector_health.py 2>&1) || rc=$?
+          echo "$what"
+          if [ "$rc" = "0" ]; then state=up; else state=down; fi
+          [ "$rc" -gt 1 ] && what="collection health could not be read: $what"
+          python3 tools/alert_ping.py HC_PING_COLLECTOR "$state" "$what"
 
       # Self-dispatching chain: forges the next run so a single successful
       # fire keeps the watchdog alive without depending purely on cron.

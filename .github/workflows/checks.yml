@@ -203,7 +203,9 @@ jobs:
         run: python3 tools/run_agent_tests.py
 
       - name: The watchdog posts once per outage (SEB-301)
-        run: python3 tools/watchdog_post.py --self-test
+        run: |
+          python3 tools/watchdog_post.py --self-test
+          python3 tools/alert_ping.py --self-test
 
       - name: The depth record feeds nothing published, and its report works (SEB-302)
         run: |

@@ -5,11 +5,12 @@ name: watchdog
 #     the last 26 hours (it builds once a day), and not 3 failures in a row
 #   - the audits (tools/check_audit_health.py): a number or claim wrong for 3 runs in a row
 # and, in its own job, ticks a built collection job once its first rows are on main (backlog-data, below).
-# If any is down, this run FAILS. A failed scheduled run makes GitHub email
-# the person who last changed this file's schedule, which is Seb's account.
+# If any is down, this run FAILS, and tools/alert_ping.py tells healthchecks.io, which emails Seb (2 Nov). GitHub's own
+# failure email never reached him: it goes to whoever triggered the run, and these runs are dispatched by a bot.
+# healthchecks.io also emails when the pings stop, so a watchdog that stops running is caught too.
 # Collection is not checked here: collector_watchdog.yml has the one collection alarm (a comment on SEB-301, 31 Oct).
 #
-# Run it by hand with test_alarm=true to check the email arrives.
+# Run it by hand with test_alarm=true to check the email arrives (the next normal run sends the all-clear).
 
 on:
   schedule:
@@ -73,6 +74,16 @@ jobs:
           WHAT: ${{ steps.check.outputs.what }}
         run: |
           if [ "$DOWN" = "1" ]; then python3 tools/watchdog_post.py down "$WHAT"; else python3 tools/watchdog_post.py up; fi
+
+      # The email (tools/alert_ping.py). Runs on the test alarm too: that is what the test alarm is for.
+      - name: Email Seb through healthchecks.io
+        if: always() && steps.check.outputs.down != ''
+        env:
+          HC_PING_WATCHDOG: ${{ secrets.HC_PING_WATCHDOG }}
+          DOWN: ${{ steps.check.outputs.down }}
+          WHAT: ${{ steps.check.outputs.what }}
+        run: |
+          if [ "$DOWN" = "1" ]; then python3 tools/alert_ping.py HC_PING_WATCHDOG down "${WHAT:-test alarm}"; else python3 tools/alert_ping.py HC_PING_WATCHDOG up; fi
 
   # Done means data (SEB-301, 21 Oct, BACKLOG.md item 0). A collection job the builder built carries `built: PR #N` instead of a
   # tick. Every 30 minutes: once its PR is merged and its first rows are on main, tick it; if none land within 2 hours of the
