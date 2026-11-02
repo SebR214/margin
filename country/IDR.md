@@ -1,18 +1,18 @@
-# In Indonesia a stablecoin dollar costs 0.1% more than the official rate
+# In Indonesia a stablecoin dollar costs 0.2% more than the official rate
 
-Prices from the 17:00 UTC hour, 2 Nov.
+Prices from the 18:00 UTC hour, 2 Nov.
 
-The official rate is 18,144.41 IDR per dollar. On the exchanges where people in Indonesia trade stablecoins, one costs 18,156 IDR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 18,144.41 IDR per dollar. On the exchanges where people in Indonesia trade stablecoins, one costs 18,187 IDR. A stablecoin is a coin that stays worth one US dollar.
 
 |  |  |
 | --- | --- |
 | Official rate | 18,144 IDR |
-| A stablecoin on an exchange | 18,156 IDR +0.1% |
-| A stablecoin from people selling to each other | 18,255 IDR +0.6% |
+| A stablecoin on an exchange | 18,187 IDR +0.2% |
+| A stablecoin from people selling to each other | 18,256 IDR +0.6% |
 
-For US$100, people pay 1,815,550 IDR. The official rate says 1,814,441 IDR.
+For US$100, people pay 1,818,700 IDR. The official rate says 1,814,441 IDR.
 
-Prices from the 17:00 UTC hour, 2 Nov
+Prices from the 18:00 UTC hour, 2 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -22,7 +22,7 @@ You could buy at least US$5,000 here before the price goes up 1%.
 
 One point per day, the price we published that day. 0% is the official rate.
 
-Today's gap is normal for here since 10 Aug 2026, in our own checks. On most days the gap is between −0.6% and 0.0%.
+Today's gap is close to the biggest since 10 Aug 2026, in our own checks. On most days the gap is between −0.6% and 0.0%.
 
 From 6 Oct this price comes from exchanges instead of people selling to each other, so it can jump that day.
 
@@ -30,13 +30,13 @@ From 6 Oct this price comes from exchanges instead of people selling to each oth
 
 We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from exchanges.
 
-Pintu
-
-18,152 IDR 0.0%
-
 Indodax
 
 18,159 IDR +0.1%
+
+Pintu
+
+18,215 IDR +0.4%
 
 ## Where to go next
 
