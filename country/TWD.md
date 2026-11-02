@@ -1,12 +1,12 @@
-# In Taiwan a stablecoin dollar costs 0.2% more than the official rate
+# In Taiwan a stablecoin dollar costs 0.3% more than the official rate
 
-Prices from the 02:00 UTC hour, 2 Nov.
+Prices from the 03:00 UTC hour, 2 Nov.
 
-The official rate is 32.64 TWD per dollar. On the exchanges where people in Taiwan trade stablecoins, one costs 32.70 TWD. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 32.64 TWD per dollar. On the exchanges where people in Taiwan trade stablecoins, one costs 32.72 TWD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 3,270 TWD. The official rate says 3,264 TWD.
+For US$100, people pay 3,272 TWD. The official rate says 3,264 TWD.
 
-Prices from the 02:00 UTC hour, 2 Nov
+Prices from the 03:00 UTC hour, 2 Nov
 
 <https://margin.wiki/data/countries/TWD.json>
 
@@ -22,11 +22,11 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 MAX
 
-32.70 TWD +0.2%
+32.72 TWD +0.2%
 
 BitoPro
 
-32.70 TWD +0.2%
+32.73 TWD +0.3%
 
 ## Where to go next
 

@@ -1,6 +1,6 @@
 # How to read this site
 
-Prices from the 02:00 UTC hour, 2 Nov.
+Prices from the 03:00 UTC hour, 2 Nov.
 
 ## What we measure
 
@@ -8,7 +8,7 @@ Every country has an official exchange rate. In some countries banks won’t sel
 
 ## What the percentage means
 
-In Algeria, the official rate says a dollar costs 136 DZD. People actually pay 260 DZD. That’s 91.6% more, so Algeria shows +91.6%.
+In Algeria, the official rate says a dollar costs 136 DZD. People actually pay 259 DZD. That’s 90.6% more, so Algeria shows +90.6%.
 
 0% means people pay the official rate, and most countries are close to it. A minus means they pay a little less.
 
@@ -22,7 +22,7 @@ We get it from local exchanges first, then brokers, then people selling to each 
 
 On 11 routes we also check what it costs to send money abroad.
 
-We compare transfer apps with sending it by stablecoin. The cost is how much less the person receiving gets than at the official rate, with every fee we can see included. This hour, sending S$5,000 to the Philippines costs S$13.54 with Airwallex, the cheapest app. Where a fee can't be seen, the route says so.
+We compare transfer apps with sending it by stablecoin. The cost is how much less the person receiving gets than at the official rate, with every fee we can see included. This hour, sending S$5,000 to the Philippines costs S$18.77 with Airwallex, the cheapest app. Where a fee can't be seen, the route says so.
 
 <https://margin.wiki/data/routes_hourly.json>
 
@@ -42,9 +42,3 @@ A missed hour shows as a blank, never filled in.
 Every source, and every day it answered: [Sources →](https://margin.wiki/sources.md)
 
 <https://margin.wiki/data/sources_daily.json>
-
-## How the site is built and run
-
-Plain code collects every price and checks every number. AI only helps write some of the code.
-
-What it costs, what runs when, and everything that has broken: [How it was built →](https://margin.wiki/how-it-was-built.md)
