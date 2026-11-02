@@ -1,6 +1,6 @@
 # In Kenya a stablecoin dollar costs 0.1% less than the official rate
 
-Prices from the 15:00 UTC hour, 2 Nov.
+Prices from the 16:00 UTC hour, 2 Nov.
 
 The official rate is 129.94 KES per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 129.78 KES. A stablecoin is a coin that stays worth one US dollar.
 
@@ -8,7 +8,7 @@ For US$100, people pay 12,978 KES. The official rate says 12,994 KES.
 
 Only 1 source
 
-Prices from the 15:00 UTC hour, 2 Nov
+Prices from the 16:00 UTC hour, 2 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
