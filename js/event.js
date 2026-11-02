@@ -11,7 +11,7 @@
   var DEFAULT_ID = "IQD-official_break-2026-10-09";
   var MINUS = "−";
   var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  var COPY = {}, REC = null, COUNTRY = "", RECPATH = "", OWN_START = "";
+  var COPY = {}, REC = null, COUNTRY = "", RECPATH = "", OWN_START = "", HAS_COUNTRY = false, COUNTRY_FULL = "";
   var app = document.getElementById("app");
   var NAV = [["navCountries", "./countries.html"], ["navEvents", "./events.html"], ["navResearch", "./research.html"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"], ["navHow", "./how-it-works.html"]];
   var chart = null;
@@ -280,6 +280,15 @@
       (txt("proseNote") ? w("proseNote", null, "p", "sm-small") : "") + "</section>";
   }
 
+  // "Where to go next" (SEB-433): after the last section, before the footer; the country row only when that country has a page
+  function nextBlock(hasCountry) {
+    var wrap = app.querySelector(".sm-wrap");
+    if (!window.NextLinks || !wrap) return;
+    var rows = [];
+    if (hasCountry) rows.push({ title: txt("nextCountry", { country: COUNTRY_FULL }), line: txt("nextCountryLine"), href: "./country/" + encodeURIComponent(REC.ccy.toLowerCase()) + "/" });
+    rows.push({ title: txt("nextEvents"), line: txt("nextEventsLine"), href: "./events.html" });
+    window.NextLinks.show(wrap, txt("nextHeading"), rows, wrap.querySelector("footer"));
+  }
   function render() {
     var pts = points();
     // the numbers on a page without a hand-entered date show only while the claims audit says its record matches the raw files
@@ -289,6 +298,7 @@
     app.innerHTML = '<div class="sm-wrap">' + headHtml() + '<div class="cnav"><a class="back" href="./events.html">' + esc(COPY.navEvents || "") + '</a></div>' + (kn ? heroHtml(pts) : genericHeroHtml()) + proseHtml() + chartSectionHtml() + tableHtml() + landingHtml() + (kn ? firstHtml(pts) : "") +
       (reported() ? "" : offersHtml()) + keepHtml() + (reported() ? "" : checksHtml()) + footerHtml() + dayLinkHtml() + "</div>";
     drawChart();
+    nextBlock(HAS_COUNTRY);
     var box = document.getElementById("evChart");
     if (box) {
       box.addEventListener("pointermove", hover);
@@ -329,6 +339,8 @@
       REC = res[1];
       if (!REC) { app.innerHTML = '<div class="sm-wrap">' + headHtml() + w("notFound", null, "p") + "</div>"; return; }
       var c = res[2] && (res[2].currencies || []).filter(function (x) { return x.ccy === REC.ccy; })[0];
+      HAS_COUNTRY = !!c;
+      COUNTRY_FULL = String((c && c.country) || REC.ccy).replace(/^./, function (x) { return x.toUpperCase(); });   // "The Philippines", for the start of a line
       COUNTRY = ((c && c.country) || REC.ccy).replace(/^the /i, "").replace(/^./, function (x) { return x.toUpperCase(); });
       var own = res[3] && res[3].own_start;
       OWN_START = own ? dayShort(own) + " " + own.slice(0, 4) : "";

@@ -47,6 +47,7 @@ reads the Words table below and fails any change that puts a "Never say" word in
 | the stablecoin way | stablecoin path, stablecoin route, dollar route |
 | a stablecoin, a coin that stays worth one US dollar | crypto, cryptocurrency |
 | people selling to each other | person to person, person-to-person, peer-to-peer, P2P, between people |
+| a marketplace where people sell to each other | board |
 | exchanges, brokers | order book, order books, venue, venues, broker quote, broker quotes |
 | a route (a sending pair: Singapore to the Philippines) | corridor |
 | from exchange history, not our own checks | not seen by us, reported, not observed |
