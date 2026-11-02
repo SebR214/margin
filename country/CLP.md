@@ -1,12 +1,12 @@
-# In Chile a stablecoin dollar costs 0.3% less than the official rate
+# In Chile a stablecoin dollar costs 0.2% more than the official rate
 
-Prices from the 20:00 UTC hour, 2 Nov.
+Prices from the 21:00 UTC hour, 2 Nov.
 
-The official rate is 990.84 CLP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 987.40 CLP. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 990.84 CLP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 993.26 CLP. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 98,740 CLP. The official rate says 99,084 CLP.
+For US$100, people pay 99,326 CLP. The official rate says 99,084 CLP.
 
-Prices from the 20:00 UTC hour, 2 Nov
+Prices from the 21:00 UTC hour, 2 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -24,11 +24,11 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-982.98 CLP −0.8%
+983.00 CLP −0.8%
 
 OKX, people selling to each other
 
-991.83 CLP +0.1%
+1,004 CLP +1.3%
 
 ## Where to go next
 

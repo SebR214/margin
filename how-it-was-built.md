@@ -1,6 +1,6 @@
 # Plain code makes every number. AI only helps build the site.
 
-Prices from the 20:00 UTC hour, 2 Nov.
+Prices from the 21:00 UTC hour, 2 Nov.
 
 The collector and the checks are plain code. The builder uses AI to write some of the code, and one person writes the rest.
 
@@ -28,7 +28,7 @@ The builder can't approve its own work. No AI ever calculates a number.
 
 ## The record grew as new sources and routes came in
 
-643,531 prices stored
+644,298 prices stored
 
 Exchanges' own earlier prices reach back to 3 Jan 2011, so some charts predate our record.
 
@@ -58,17 +58,17 @@ Every job runs on GitHub Actions. Times are Singapore time.
 | Job | When | What it does | Last run |
 | --- | --- | --- | --- |
 | Builder | Every day at 13:07, 16:37, 21:07 | Builds the top ready job with AI and opens a change. | Succeeded (2 Nov 18:49 UTC) |
-| Merge when green | After the checks finish on a change | Merges a change when every check is green. | Skipped (2 Nov 19:51 UTC) |
-| Checks | On every change | Runs the tests and page checks a change must clear. | Succeeded (2 Nov 19:51 UTC) |
+| Merge when green | After the checks finish on a change | Merges a change when every check is green. | Skipped (2 Nov 20:54 UTC) |
+| Checks | On every change | Runs the tests and page checks a change must clear. | Succeeded (2 Nov 20:54 UTC) |
 | Reader test | By hand | Compares two models reading the pages. Changes nothing. | Succeeded (5 Oct 09:28 UTC) |
-| Collection | About every 30 minutes, each run starts the next | Collects prices, rebuilds the pages and saves the data. | Running (2 Nov 20:05 UTC) |
-| Collection alarm | Every 30 minutes | Watches collection from outside and sends an alarm when it goes quiet. | Running (2 Nov 20:15 UTC) |
+| Collection | About every 30 minutes, each run starts the next | Collects prices, rebuilds the pages and saves the data. | Running (2 Nov 21:05 UTC) |
+| Collection alarm | Every 30 minutes | Watches collection from outside and sends an alarm when it goes quiet. | Running (2 Nov 21:15 UTC) |
 | Fee check | Day 1 of each month at 11:23 | Checks the fee tiers each month. | Succeeded (1 Nov 10:39 UTC) |
 | History pull | By hand | Pulls older price history from public sources. Never feeds a price. | Succeeded (22 Oct 17:30 UTC) |
 | Older builder | By hand | The older builder, run only by hand. | Succeeded (23 Oct 17:03 UTC) |
-| Outside check | After each deploy of the site | Asks the live site what a search engine would ask. | Succeeded (2 Nov 19:49 UTC) |
+| Outside check | After each deploy of the site | Asks the live site what a search engine would ask. | Succeeded (2 Nov 20:51 UTC) |
 | Marketplace probe | Sundays at 11:11 | Re-checks which boards where people sell to each other are usable. | Succeeded (1 Nov 10:21 UTC) |
-| Audit alarm | Every hour, at minutes 11, 41 | Sends an alarm when the audits or the builder's runner stop working. | Running (2 Nov 20:19 UTC) |
+| Audit alarm | Every hour, at minutes 11, 41 | Sends an alarm when the audits or the builder's runner stop working. | Running (2 Nov 21:01 UTC) |
 | writer | By hand |  | Failed (1 Nov 09:45 UTC) |
 
 <https://margin.wiki/data/machine_room.json>

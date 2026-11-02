@@ -1,6 +1,6 @@
 # In Thailand a stablecoin dollar costs 0.5% less than the official rate
 
-Prices from the 20:00 UTC hour, 2 Nov.
+Prices from the 21:00 UTC hour, 2 Nov.
 
 The official rate is 33.76 THB per dollar. On the exchanges where people in Thailand trade stablecoins, one costs 33.58 THB. A stablecoin is a coin that stays worth one US dollar.
 
@@ -8,7 +8,7 @@ For US$100, people pay 3,358 THB. The official rate says 3,376 THB.
 
 Only 1 source
 
-Prices from the 20:00 UTC hour, 2 Nov
+Prices from the 21:00 UTC hour, 2 Nov
 
 <https://margin.wiki/data/countries/THB.json>
 
