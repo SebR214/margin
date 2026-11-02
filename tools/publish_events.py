@@ -9,7 +9,8 @@ data/history/events_reported_rules4.csv (replayed over history files, "reported,
 data/history/event_records_rules4/). An id in both is taken from the observed file.
 
 The file lists newest first: {"as_of": date of the newest source row, "rules": {...},
- "events": [{id, ccy, event_kind, date, change_pct, confirmation, label, record}]}. `record` is the path of the record JSON.
+ "events": [{id, ccy, event_kind, date, change_pct, confirmation, label, record, prose}]}. `record` is the path of the record JSON.
+`prose` is true when data/event_prose/{id}.json exists and its number audit passed; the event page asks for that file only then.
 The daily detector run (03 UTC) adds candidates; this tool runs right after it and a page appears the day a candidate has two sources.
 
     python3 tools/publish_events.py [--self-test]
@@ -69,6 +70,15 @@ def select(sources, known=has_known):
     return out
 
 
+def has_prose(eid, folder=None):
+    """True when the event's prose file exists and its audit passed (the page shows it on exactly that condition)."""
+    try:
+        with open(os.path.join(folder or os.path.join(DATA, "event_prose"), eid + ".json")) as f:
+            return json.load(f)["audit"]["passed"] is True
+    except (OSError, KeyError, TypeError, ValueError):
+        return False
+
+
 def self_test():
     row = lambda i, k, st, c, p: {"event_id": i, "kind": k, "status": st, "confirmation": c, "change_pct": str(p), "ccy": i[:3], "as_of_date": "2026-01-01"}
     none = lambda d, i: False
@@ -84,6 +94,12 @@ def self_test():
     assert "CCC-official_break-1" in got and "BBB-official_break-1" not in got, got
     dup = select([(rows[:1], "a", "observed"), (rows[:1], "b", "reported, not observed")], none)
     assert len(dup) == 1 and dup[0]["label"] == "observed"
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        for name, body in (("A", '{"audit": {"passed": true}}'), ("B", '{"audit": {"passed": false}}'), ("C", "not json")):
+            open(os.path.join(d, name + ".json"), "w").write(body)
+        got = [has_prose(i, d) for i in ("A", "B", "C", "D")]
+        assert got == [True, False, False, False], got
     print("self-test ok")
     return 0
 
@@ -91,6 +107,8 @@ def self_test():
 def main():
     srcs = [(read(f), d, label) for f, d, label in SOURCES]
     events = select(srcs)
+    for e in events:
+        e["prose"] = has_prose(e["id"])
     dates = [r["as_of_date"] for rows, _, _ in srcs for r in rows]
     doc = {"as_of": max(dates) if dates else None, "rules": {"official_break_min_pct": OFFICIAL_MIN, "street_slide_min_pct": STREET_MIN,
            "needs": "two sources, or a hand-entered known_date with a url"}, "events": events}
