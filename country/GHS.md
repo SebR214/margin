@@ -1,10 +1,10 @@
 # No price for Ghana this hour
 
-Prices from the 18:00 UTC hour, 2 Nov.
+Prices from the 19:00 UTC hour, 2 Nov.
 
 Held back this hour: nobody is offering to sell dollars here right now. Earlier readings stay on the chart.
 
-Prices from the 18:00 UTC hour, 2 Nov
+Prices from the 19:00 UTC hour, 2 Nov
 
 <https://margin.wiki/data/countries/GHS.json>
 
