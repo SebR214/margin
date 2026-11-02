@@ -14,8 +14,7 @@
   }
   // The one nav (DESIGN.md "Nav"): a page whose header still carries an old hand-written list, or an empty one, gets the
   // canonical seven links from homeData in copy.json, so every page shows the same menu.
-  var CANON = [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'],
-    ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHow', 'how-it-works.html']];
+  var CANON = [['navCountries', 'countries.html'], ['navEvents', 'events.html'], ['navResearch', 'research.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navHow', 'how-it-works.html']];
   function canonNav() {
     var nav = document.querySelector('.mwh nav, [data-canon-nav]');
     if (!nav) { return; }
@@ -27,31 +26,21 @@
       group(); mark();
     }).catch(function () {});
   }
-  // Two groups (1 Nov): the site itself on the left, in the order a reader goes (the price, the jumps, what it means, sending
-  // money), then "about the data" (Sources, How it works) set apart, smaller and grey. Done here once for every page's nav,
-  // whichever script drew it.
-  var MAIN = ['countries.html', 'events.html', 'research.html', 'sending-money.html'], ABOUT = ['sources.html', 'how-it-works.html'];
+  // Two groups (1 Nov). The order and the grouping are CSS (css/site_head.css, by each link's address), so nothing here
+  // moves a link. This only adds the small "About the data" label the phone menu shows above Sources and How it works.
   var aboutLabel = null;
-  function file(a) { return (a.getAttribute('href') || '').split('?')[0].split('#')[0].split('/').pop().toLowerCase(); }
   function group() {
     var nav = document.querySelector('.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav');
-    if (!nav || nav.querySelector('.sh-about')) { return; }
-    var links = [].slice.call(nav.querySelectorAll('a'));
-    if (links.length < 4) { return; }
+    if (!nav || nav.querySelector('.sh-about-label') || nav.querySelectorAll('a').length < 4) { return; }
+    var lab = document.createElement('span'); lab.className = 'sh-about-label'; lab.textContent = aboutLabel || '';
+    nav.appendChild(lab);
     if (aboutLabel === null) {
       aboutLabel = '';
       fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (c) {
         aboutLabel = (c && c.homeData && c.homeData.navAboutLabel) || '';
-        var l = document.querySelector('.sh-about-label'); if (l) { l.textContent = aboutLabel; }
+        [].forEach.call(document.querySelectorAll('.sh-about-label'), function (l) { l.textContent = aboutLabel; });
       }).catch(function () {});
     }
-    var byFile = {}; links.forEach(function (a) { byFile[file(a)] = a; });
-    MAIN.forEach(function (f) { if (byFile[f]) { nav.appendChild(byFile[f]); } });
-    var about = document.createElement('span'); about.className = 'sh-about';
-    var lab = document.createElement('span'); lab.className = 'sh-about-label'; lab.textContent = aboutLabel || '';
-    about.appendChild(lab);
-    ABOUT.forEach(function (f) { if (byFile[f]) { about.appendChild(byFile[f]); } });
-    nav.appendChild(about);
   }
   canonNav();
   group();

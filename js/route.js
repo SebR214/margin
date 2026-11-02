@@ -17,8 +17,7 @@
   // the destination sets the colour, the sending country sets the dash (DESIGN.md chart palette)
   var DEST_COLOUR = { INR: "var(--data-700)", NGN: "var(--color-neutral-900)", MXN: "var(--data-500)", PHP: "var(--color-neutral-500)" };
   var SRC_DASH = { SGD: "", USD: "", AUD: "6 4", NZD: "2 3" };
-  var NAV = [["navCountries", "./countries.html"], ["navRoutes", "./sending-money.html", true],
-    ["navSources", "./sources.html"], ["navResearch", "./research.html"], ["navEvents", "./events.html"], ["navHow", "./how-it-works.html"]];
+  var NAV = [["navCountries", "./countries.html"], ["navEvents", "./events.html"], ["navResearch", "./research.html"], ["navRoutes", "./sending-money.html", true], ["navSources", "./sources.html"], ["navHow", "./how-it-works.html"]];
   var chart = null;
 
   function esc(s) {
