@@ -112,7 +112,7 @@
     if (it.kind === 'crossed_up') { k = 'wcCrossedUp'; v.country = it.country; }
     else if (it.kind === 'crossed_down') { k = 'wcCrossedDown'; v.country = it.country; }
     else if (it.kind === 'event') { k = it.event_kind === 'street_slide' ? 'wcEventStreet' : 'wcEventOfficial'; v.country = nameOf(it.ccy); v.pct = Math.round(it.pct) + '%'; }
-    else if (it.kind === 'source_added') { k = it.status === 'quarantine' ? 'wcSourceQuarantine' : 'wcSourceAdded'; v.source = it.source; }
+    else if (it.kind === 'source_added') { k = it.status === 'quarantine' ? 'wcSourceQuarantine' : 'wcSourceAdded'; v.source = (((D.copy && D.copy.sourcesData) || {}).sourceNames || {})[it.source]; if (!v.source) { return null; } }
     else if (it.kind === 'finding_changed') { k = { holds: 'wcFindingHolds', weaker: 'wcFindingWeaker', no_longer_true: 'wcFindingNoLonger' }[it.to]; v.title = String(FD['title_' + it.id] || '').replace(/\{\w+\}/g, '').trim(); if (!v.title) { return null; } }
     else if (it.kind === 'route_flip') { k = it.now === 'cheaper' ? 'wcRouteCheaper' : 'wcRouteDearer'; v.route = (RN[it.route] || {}).fromTo; if (!v.route) { return null; } }
     if (!k || blocked(k) || !T(k)) { return null; }
@@ -144,6 +144,7 @@
     var nSources = grp(sr), nAll = grp(all);
     var h = '<h1>' + esc(moveHeadline() || T('headline')) + '</h1>' + (dailyProse() || moveSince()) +
       (T('heroWhy') ? '<p class="lead sub">' + esc(T('heroWhy')) + '</p>' : '') +
+      (T('termsLine') ? '<p class="lead sub">' + esc(T('termsLine')) + '</p>' : '') +
       '<p class="lead what">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
       // who built it and what is stored so far, as one line (21 Oct, Seb's wording); the numbers come from the files
       // the line links to How it was built (1 Nov)
@@ -295,7 +296,7 @@
           // After = the part of the gap still open, on the same base as "of the gap closed", so the two numbers agree.
           '<span class="m lba num">' + esc(T('landBeforeAfter', { before: pct1(r.premium_before_pct), after: pct1(r.premium_before_pct * (1 - closed(r))) })) + '</span>' +
           '<span class="v num">' + c + '%<small>' + esc(T('landClosed')) + '</small></span></a>';
-      }).join('') + '</div><p class="note sm">' + esc(T('landNote')) + '</p>';
+      }).join('') + '</div>' + (T('landEventsLink') ? '<p class="body"><a href="./events.html">' + esc(T('landEventsLink')) + '</a></p>' : '') + '<p class="note sm">' + esc(T('landNote')) + '</p>';
   }
 
   /* ---------------------------------------------------------------- findings: each line links to its page */

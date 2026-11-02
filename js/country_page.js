@@ -238,6 +238,18 @@
     $('nf').hidden = true;
   }
 
+  // "Where to go next" (SEB-433): a row only when its target exists
+  function next() {
+    if (!window.NextLinks) { return; }
+    var name = S.c.country, rows = [];
+    var hit = S.routes.filter(function (r) { return String(r.id).split('->')[1] === ccy; });
+    var to = hit.filter(function (r) { return String(r.id).split('->')[0] === 'USD'; })[0] || hit[0];
+    if (to) { rows.push({ title: T('nextRoute', { country: name }), line: T('nextRouteLine'), href: './sending-money.html?route=' + String(to.id).replace('->', '-') }); }
+    if (S.events.some(function (e) { return e.ccy === ccy; })) { rows.push({ title: T('nextEvents', { country: name }), line: T('nextEventsLine'), href: './events.html' }); }
+    rows.push({ title: T('nextAll'), line: S.tracked ? T('nextAllLine', { n: S.tracked }) : '', href: './countries.html' });
+    window.NextLinks.show(document.querySelector('.wrap'), T('nextHeading'), rows, $('nf'));
+  }
+
   var started = false;
   function start(res) {
     C = (res[0] && res[0].countryData) || {};
@@ -252,7 +264,8 @@
     var again = started, y = window.scrollY;
     started = true;
     if (window.PageHead) { window.PageHead.copy().then(function (H) { window.PageHead.set({ title: window.PageHead.fill(H.countryTitle, { country: S.c.country }), description: window.PageHead.fill(H.countryDescription, { country: S.c.country }), path: 'country/' + encodeURIComponent(ccy.toLowerCase()) + '/', twin: 'country/' + encodeURIComponent(ccy) + '.md' }); }); }
-    hero(); chart(); source();
+    S.routes = res[8] && res[8].routes || []; S.events = res[9] && res[9].events || []; S.tracked = res[10] && res[10].countries_tracked;
+    hero(); chart(); source(); next();
     if (again) { window.scrollTo(0, y); }
   }
 
@@ -279,7 +292,8 @@
       fetch('data/source_switches.csv', { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
         var l = t.trim().split(/\r?\n/), h = (l[0] || '').split(',');
         return l.slice(1).map(function (x) { var p = x.split(','), o = {}; h.forEach(function (k, i) { o[k] = p[i]; }); return o; });
-      }).catch(function () { return []; })
+      }).catch(function () { return []; }),
+      maybe('data/routes_summary.json'), maybe('data/events_published.json'), maybe('data/heatmap_daily.json')
     ]).then(start).catch(function () { if (!again) { fail('loadFailed'); } });
   }
   // country.html?ccy=ARS still works: it goes to the country's own page (SEB-426) when that page exists, and draws in place when not

@@ -109,6 +109,11 @@
       var unit = T('short_unit_' + k, { first: days.length ? dd(days[0]) : '' });
       return '<a class="r rel" href="?id=' + k + '" data-id="' + k + '"><span class="no num">0' + (ORDER.indexOf(k) + 1) + '</span><b>' + esc(title(k)) + '</b><span class="v num">' + esc(n) + (unit ? '<small>' + esc(unit) + '</small>' : '') + '</span></a>';
     }).join('') + '</div>';
+    // "Where to go next" (SEB-433): the route this finding is about, then all research
+    var rows = [];
+    if (id === 'sgd_php_never_cheapest' || id === 'volume_crossover') { rows.push({ title: T('nextRoute'), line: T('nextRouteLine'), href: './sending-money.html?route=SGD-PHP' }); }
+    rows.push({ title: T('nextResearch'), line: T('nextResearchLine'), href: './research.html' });
+    if (window.NextLinks) { window.NextLinks.show(document.querySelector('.wrap'), T('nextHeading'), rows, $('nf')); }
     try { history.replaceState(null, '', location.pathname + '?id=' + id); } catch (e) { /* not available */ }
   }
 

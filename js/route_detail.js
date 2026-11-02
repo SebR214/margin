@@ -13,10 +13,14 @@
   // every route, and the comparable ones; routes measured against the official rate stay out of the charts and their button shows the "left out" text
   var ALL = [], ORDER = [];
   // the dollar gap in each route's destination this hour (data/index_latest.json), for the overview's order and its small line
-  var GAP = {};
+  var GAP = {}, NAME = {};
   function setGaps(idx) {
     GAP = {};
-    ((idx && idx.countries) || []).forEach(function (c) { if (c.index_pct != null) GAP[c.ccy] = c.index_pct; });
+    NAME = {};
+    ((idx && idx.countries) || []).forEach(function (c) {
+      if (c.index_pct != null) GAP[c.ccy] = c.index_pct;
+      if (c.country) NAME[c.ccy] = String(c.country);
+    });
   }
   function gapOf(id) { var v = GAP[String(id).split("->")[1]]; return v == null ? null : v; }
   function setRoutes(sum) {
@@ -585,6 +589,13 @@
     } catch (e) { /* not available */ }
   }
 
+  // "Where to go next" (SEB-433): the destination's country page, only when the country has a price this hour
+  function nextBlock() {
+    var el = box(), dest = String(S.route).split("->")[1];
+    if (!el || !window.NextLinks || !NAME[dest]) return;
+    window.NextLinks.show(el, txt("nextHeading"), [{ title: txt("nextCountry", { country: NAME[dest] }), line: txt("nextCountryLine"), href: "./country/" + dest.toLowerCase() + "/" }]);
+  }
+
   function renderAll() {
     var el = box();
     if (!el || !READY) return;
@@ -596,6 +607,7 @@
     el.innerHTML = (txt("cmpGap") ? cmpSectionHtml() : "") +
       '<section class="sm-detail" id="smPicked">' + heroHtml(A) + pillsHtml() + "</section>" + nowSectionHtml(A) + weekSectionHtml(A);
     chart = { A: A, sym: A.sym };
+    nextBlock();
     drawChart();
     var cb = document.getElementById("smChart");
     if (cb) {
