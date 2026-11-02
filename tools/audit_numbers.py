@@ -84,6 +84,7 @@ PRICECHANGE_MIN_READINGS = 6
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from routes_common import PANELS as PROVIDER_PANELS  # noqa: E402
 import daily_csv  # noqa: E402
+import source_gate  # noqa: E402
 
 FAMILIES = ("country", "corridor", "variant", "pricechange", "provider_ranking",
             "provider_delivery")
@@ -355,7 +356,12 @@ def check_country(item, p2p_by, basis_by, offers_by, fx_by):
     if cls in ("order_book_median", "order_book_single", "broker_median", "broker_single"):
         files += ["data/basis.csv"]
         latest = {}
+        registry = source_gate.load_registry()
+        if not registry.get("sources"):
+            raise SystemExit("data/source_registry.json is missing or empty: run tools/source_gate.py --init and review it")
         for r in basis_by.get(ccy, []):
+            if not source_gate.approved(r["venue"], registry):
+                continue  # a venue in quarantine is collected, never priced (tools/emit_countries.py), so it is not re-derived either
             is_aggregate = r["venue"].startswith("CriptoYa (") and r["venue"].endswith(")")
             if hour_of(r["ts_utc"]) == hour and ok(r["source_ok"]) and not is_aggregate:
                 latest[r["venue"]] = r  # METHODOLOGY: aggregates are listed, never counted
