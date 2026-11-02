@@ -26,7 +26,8 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(HERE, "tools"))
 
 BEGIN, END = "<!-- bake:begin -->", "<!-- bake:end -->"
-BLOCK = re.compile(r"[ \t]*" + re.escape(BEGIN) + r".*?" + re.escape(END) + r"[ \t]*\n?", re.S)
+# From the first begin marker to the LAST end marker, so a page that already holds stacked blocks is cleaned back to one
+BLOCK = re.compile(r"[ \t]*" + re.escape(BEGIN) + r".*" + re.escape(END) + r"[ \t]*\n?", re.S)
 TEMPLATES = {"country.html", "finding.html", "event.html", "404.html"}
 MIN_TEXT = 400          # characters of text a drawn page must have, or the render did not finish
 HIDE_SHELL = "<style>body > *:not(noscript){display:none !important}</style>"
@@ -46,6 +47,7 @@ def inject(text, captured):
     """The page's HTML with its bake block replaced (or added before </body>)."""
     if "</noscript" in captured.lower():
         raise ValueError("the drawn page holds a </noscript>, it cannot be wrapped")
+    captured = captured.replace(BEGIN, "").replace(END, "")     # the drawn page holds the last run's markers: never write them back in
     block = "%s\n<noscript>%s<div>%s</div></noscript>\n%s\n" % (BEGIN, HIDE_SHELL, captured, END)
     if BEGIN in text:
         return BLOCK.sub(lambda m: block, text, count=1)
@@ -115,6 +117,14 @@ def self_test():
         pass
     else:
         raise AssertionError("a </noscript> in the capture was accepted")
+    # 2 Nov: the capture held the last run's markers, the block then matched only up to the inner end marker, and every hourly run
+    # stacked another copy (index.html went from 40 KB to 28 MB). A capture with markers in it must not grow the page.
+    c = inject(page, "<h1>One</h1>" + BEGIN + END)
+    d = inject(inject(inject(c, "<h1>One</h1>" + BEGIN + END), "<h1>One</h1>" + BEGIN + END), "<h1>One</h1>" + BEGIN + END)
+    assert d == c and d.count(BEGIN) == 1 and d.count(END) == 1, "the page grew on a rerun"
+    stacked = page.replace("</body>", BEGIN + "<noscript>a</noscript>" + END + "\n" + BEGIN + "<noscript>b</noscript>" + END + "\n</body>")
+    e = inject(stacked, "<h1>One</h1>")
+    assert e.count(BEGIN) == 1 and "<noscript>a" not in e and "<noscript>b" not in e, "stacked blocks were not cleaned back to one"
     assert "country.html" not in [p for p in ["country.html", "index.html"] if p not in TEMPLATES]
     print("bake_pages self-test ok")
 
