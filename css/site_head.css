@@ -99,23 +99,37 @@
 }
 @keyframes shSheet { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 
-/* Nav groups (1 Nov): the site itself, then "about the data" set apart, smaller and grey. On a phone the sheet shows
-   the second group under its small label. */
-.sh-about { display: inline-flex; align-items: center; gap: 0 16px; margin-left: 2px; padding-left: 18px; position: relative; }
-.sh-about::before { content: ''; position: absolute; left: 0; top: 50%; height: 16px; margin-top: -8px; border-left: 1px solid var(--color-neutral-300, #d7d3d3); }
-.sh-about a { font-size: 14px !important; color: var(--color-neutral-600, #7d7979) !important; }
-.sh-about a[aria-current] { color: var(--color-ink, #201e1d) !important; }
-.sh-about-label { display: none; }
+/* Nav groups (1 Nov, made steady 2 Nov). Order and grouping come from each link's address, in CSS, so the menu is right on
+   the first frame whatever script drew it and in whatever order (it used to be redrawn, then regrouped, and jumped). */
+:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) .sh-about { display: contents; }
+:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="countries.html"] { order: 1; }
+:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="events.html"] { order: 2; }
+:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="research.html"] { order: 3; }
+:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="sending-money.html"] { order: 4; }
+:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) .sh-about-label { order: 5; display: none; }
+:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="sources.html"] { order: 6; }
+:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="how-it-works.html"] { order: 7; }
+:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) :is(a[href$="sources.html"], a[href$="how-it-works.html"]) {
+  font-size: 15px !important; color: var(--color-neutral-600, #7d7979) !important; }
+:is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) :is(a[href$="sources.html"], a[href$="how-it-works.html"])[aria-current] { color: var(--color-ink, #201e1d) !important; }
+@media (min-width: 768px) {
+  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) { display: flex !important; align-items: center; }
+  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="sources.html"] { position: relative; margin-left: 4px; padding-left: 20px; }
+  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) a[href$="sources.html"]::before {
+    content: ''; position: absolute; left: 0; top: 50%; height: 16px; margin-top: -8px; border-left: 1px solid var(--color-neutral-300, #d7d3d3); }
+}
 @media (max-width: 767px) {
-  .sh-about { display: flex; flex-direction: column; align-items: stretch; margin: 12px 0 0; padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--color-neutral-300, #d7d3d3); gap: 0; }
-  .sh-about-label { display: block; padding: 0 16px 4px; font-size: 13px; color: var(--color-neutral-600, #7d7979); }
-  .sh-about a { font-size: 16px !important; }
+  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) .sh-about-label {
+    display: block; margin-top: 12px; padding: 12px 16px 4px; border-top: 1px solid var(--color-neutral-300, #d7d3d3); font-size: 13px; color: var(--color-neutral-600, #7d7979); }
+  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) :is(a[href$="sources.html"], a[href$="how-it-works.html"]) { font-size: 16px !important; }
 }
 @media (min-width: 768px) {
   /* one line at every desktop width: the status line gives way (cut with ...) before anything wraps */
   .hp-head { flex-wrap: nowrap !important; }
   .hp-head .hp-clock { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 0 1 auto; }
   .hp-headleft { flex: none; column-gap: 24px !important; }
-  .hp-nav { column-gap: 18px !important; }
+  /* the same gaps in every page's header, so the menu does not shift sideways between pages (2 Nov) */
+  .ci-head, .c-head, .sm-head, .s-head, .fp-head, .fp-brand, .c-brand, .s-brand, .mwh { column-gap: 24px !important; }
+  :is(.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav) { column-gap: 18px !important; }
 }
 @media (min-width: 768px) { .hp-head { column-gap: 28px !important; } }

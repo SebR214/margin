@@ -423,8 +423,7 @@
   }
 
   // ---------------------------------------------------------------- page shell
-  var NAV = [["navCountries", "./countries.html"], ["navRoutes", "./sending-money.html", true],
-    ["navSources", "./sources.html"], ["navResearch", "./research.html"], ["navEvents", "./events.html"], ["navHow", "./how-it-works.html"]];
+  var NAV = [["navCountries", "./countries.html"], ["navEvents", "./events.html"], ["navResearch", "./research.html"], ["navRoutes", "./sending-money.html", true], ["navSources", "./sources.html"], ["navHow", "./how-it-works.html"]];
   function headHtml() {
     return '<header class="sm-head"><a class="sm-logo" href="./index.html">margin.wiki</a>' +
       '<nav class="sm-nav" aria-label="Main">' + NAV.map(function (nv) {

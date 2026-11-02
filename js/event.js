@@ -13,8 +13,7 @@
   var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var COPY = {}, REC = null, COUNTRY = "", RECPATH = "", OWN_START = "";
   var app = document.getElementById("app");
-  var NAV = [["navCountries", "./countries.html"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"],
-    ["navResearch", "./research.html"], ["navEvents", "./events.html"], ["navHow", "./how-it-works.html"]];
+  var NAV = [["navCountries", "./countries.html"], ["navEvents", "./events.html"], ["navResearch", "./research.html"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"], ["navHow", "./how-it-works.html"]];
   var chart = null;
 
   function esc(s) {

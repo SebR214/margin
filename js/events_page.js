@@ -5,8 +5,7 @@
   var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var C = {}, NAMES = {};
   var app = document.getElementById("app");
-  var NAV = [["navCountries", "./countries.html"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"],
-    ["navResearch", "./research.html"], ["navEvents", "./events.html"], ["navHow", "./how-it-works.html"]];
+  var NAV = [["navCountries", "./countries.html"], ["navEvents", "./events.html"], ["navResearch", "./research.html"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"], ["navHow", "./how-it-works.html"]];
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function txt(k, v) { var s = C[k]; return s ? String(s).replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : ""; }) : ""; }
   function getJSON(u) { return fetch(u, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); }

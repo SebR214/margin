@@ -78,8 +78,7 @@
     var logo = put(h, 'a', 'ci-logo', th('brand'));
     if (logo) { logo.href = './index.html'; }
     var nav = el('nav', 'ci-nav');
-    [['navCountries', 'countries.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'],
-     ['navResearch', 'research.html'], ['navEvents', 'events.html'], ['navHow', 'how-it-works.html']].forEach(function (n) {
+    [['navCountries', 'countries.html'], ['navEvents', 'events.html'], ['navResearch', 'research.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navHow', 'how-it-works.html']].forEach(function (n) {
       var a = put(nav, 'a', null, th(n[0]));
       if (a) {
         a.href = './' + n[1];
