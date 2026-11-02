@@ -1,20 +1,20 @@
-# In Pakistan a stablecoin dollar costs 3.0% more than the official rate
+# In Pakistan a stablecoin dollar costs 3.3% more than the official rate
 
-Prices from the 22:00 UTC hour, 2 Nov.
+Prices from the 23:00 UTC hour, 2 Nov.
 
-The official rate is 276.73 PKR per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 285.16 PKR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 276.73 PKR per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 285.79 PKR. A stablecoin is a coin that stays worth one US dollar.
 
 |  |  |
 | --- | --- |
 | Official rate | 276.73 PKR |
-| A stablecoin from people selling to each other | 285.16 PKR +3.0% |
+| A stablecoin from people selling to each other | 285.79 PKR +3.3% |
 | Cash at a money changer | 278.78 PKR +0.7% |
 
-For US$100, people pay 28,516 PKR. The official rate says 27,673 PKR.
+For US$100, people pay 28,579 PKR. The official rate says 27,673 PKR.
 
-Today cash from a money changer is cheaper than a stablecoin here. The stablecoin costs 2.3% more.
+Today cash from a money changer is cheaper than a stablecoin here. The stablecoin costs 2.5% more.
 
-Prices from the 22:00 UTC hour, 2 Nov
+Prices from the 23:00 UTC hour, 2 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -32,11 +32,11 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-284.18 PKR +2.7%
+284.71 PKR +2.9%
 
 OKX, people selling to each other
 
-286.15 PKR +3.4%
+286.87 PKR +3.7%
 
 ## Where to go next
 
