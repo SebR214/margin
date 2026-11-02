@@ -1,15 +1,29 @@
 # No price for Syria this hour
 
-Prices from the 01:00 UTC hour, 2 Nov.
+Prices from the 02:00 UTC hour, 2 Nov.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
 The last price we published was +19.2%, on 1 Nov.
 
-Prices from the 01:00 UTC hour, 2 Nov
+Prices from the 02:00 UTC hour, 2 Nov
 
 <https://margin.wiki/data/countries/SYP.json>
 
 ## How the gap moved, day by day
 
 One point per day, the price we published that day. 0% is the official rate.
+
+## Where to go next
+
+When the price jumped in Syria
+
+Every time the official rate or the street price moved far and fast.
+
+→
+
+Every country
+
+All 55 countries, sorted by how far a dollar sits above the official rate.
+
+→

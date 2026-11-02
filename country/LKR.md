@@ -1,16 +1,16 @@
-# In Sri Lanka a dollar costs 2.5% more than the official rate
+# In Sri Lanka a stablecoin dollar costs 2.3% more than the official rate
 
-Prices from the 01:00 UTC hour, 2 Nov.
+Prices from the 02:00 UTC hour, 2 Nov.
 
-The official rate is 332.39 LKR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 340.70 LKR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 332.39 LKR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 340.00 LKR. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 34,070 LKR. The official rate says 33,239 LKR.
+For US$100, people pay 34,000 LKR. The official rate says 33,239 LKR.
 
 Only 1 source
 
-Prices from the 01:00 UTC hour, 2 Nov
+Prices from the 02:00 UTC hour, 2 Nov
 
-You could buy only US$4,500 here before the price goes up 1%.
+You could buy at least US$5,000 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/LKR.json>
 
@@ -26,4 +26,12 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-340.70 LKR +2.5%
+340.00 LKR +2.3%
+
+## Where to go next
+
+Every country
+
+All 55 countries, sorted by how far a dollar sits above the official rate.
+
+→

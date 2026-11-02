@@ -1,12 +1,12 @@
-# In Laos a dollar costs 2.7% more than the official rate
+# In Laos a stablecoin dollar costs 2.7% more than the official rate
 
-Prices from the 01:00 UTC hour, 2 Nov.
+Prices from the 02:00 UTC hour, 2 Nov.
 
-The official rate is 22,380.44 LAK per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 22,984 LAK. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 22,380.44 LAK per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 22,976 LAK. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 2,298,375 LAK. The official rate says 2,238,044 LAK.
+For US$100, people pay 2,297,550 LAK. The official rate says 2,238,044 LAK.
 
-Prices from the 01:00 UTC hour, 2 Nov
+Prices from the 02:00 UTC hour, 2 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -24,8 +24,16 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-22,900 LAK +2.3%
+22,851 LAK +2.1%
 
 OKX, people selling to each other
 
-23,068 LAK +3.1%
+23,100 LAK +3.2%
+
+## Where to go next
+
+Every country
+
+All 55 countries, sorted by how far a dollar sits above the official rate.
+
+→
