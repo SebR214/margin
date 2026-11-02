@@ -302,12 +302,17 @@
 
   var id = (new URLSearchParams(location.search).get("id") || DEFAULT_ID).replace(/[^A-Za-z0-9_\-]/g, "");
   var PATHS = ["data/event_records/" + id + ".json", "data/history/event_records_rules4/" + id + ".json"];
-  // the published list names each event's record, so a reported event does not first ask for a file that is not there
+  // the published list names each event's record and says whether it has prose, so the page never asks for a file that is not there
+  var PUBLISHED = getJSON("data/events_published.json").then(function (d) {
+    return ((d && d.events) || []).filter(function (x) { return x.id === id; })[0] || null;
+  }).catch(function () { return null; });
   function recordPaths() {
-    return getJSON("data/events_published.json").then(function (d) {
-      var e = ((d && d.events) || []).filter(function (x) { return x.id === id; })[0];
-      return e && e.record ? [e.record] : PATHS;
-    }).catch(function () { return PATHS; });
+    return PUBLISHED.then(function (e) { return e && e.record ? [e.record] : PATHS; });
+  }
+  function loadProse() {
+    return PUBLISHED.then(function (e) {
+      return e && e.prose === true ? getJSON("data/event_prose/" + id + ".json").catch(function () { return null; }) : null;
+    });
   }
   function loadRecord() {
     return recordPaths().then(function (paths) {
@@ -318,7 +323,7 @@
     });
   }
   Promise.all([getJSON("copy.json"), loadRecord(), getJSON("data/heatmap_daily.json").catch(function () { return null; }), getJSON("data/map_timeline/index.json").catch(function () { return null; }), window.Claims ? window.Claims.load() : null,
-    getJSON("data/event_prose/" + id + ".json").catch(function () { return null; })])
+    loadProse()])
     .then(function (res) {
       PROSE = res[5] || null;
       COPY = (res[0] && res[0].eventPage) || {};
