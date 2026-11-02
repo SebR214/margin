@@ -1,7 +1,28 @@
 {
- "as_of_utc": "2026-11-02T00:45:10Z",
+ "as_of_utc": "2026-11-02T01:20:25Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "e0d322fdca390e9d4f7d2a170db7c40860b582f1",
+   "html_url": "https://github.com/SebR214/margin/commit/e0d322fdca390e9d4f7d2a170db7c40860b582f1",
+   "date": "2026-11-02T01:02:38Z",
+   "email": "person",
+   "message": "SEB-425: steady menu, no jump on page change (#771)\n\n* Steady menu: order and grouping in CSS by address, one order in every script, links in the HTML on Home and How it works, same header gaps on every page\n\nThe menu was drawn in the old order by each page's script and regrouped a moment later, so it jumped on every page change.\nTwo header styles also put it 4 to 8px apart.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n* Leave the baked country pages to the hourly run\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "5603c344606b3207a5e6251a090794129779856b",
+   "html_url": "https://github.com/SebR214/margin/commit/5603c344606b3207a5e6251a090794129779856b",
+   "date": "2026-11-02T01:00:12Z",
+   "email": "person",
+   "message": "SEB-431: event page asks for prose only when the published list says it exists (#770)\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "801d66e9d4f4d7c393d7bfc871e8bfdcdf50f77d",
+   "html_url": "https://github.com/SebR214/margin/commit/801d66e9d4f4d7c393d7bfc871e8bfdcdf50f77d",
+   "date": "2026-11-02T00:49:15Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-02T00:49Z"
+  },
   {
    "sha": "e3ebd60c009ff5bb31bba0593a2819b319117e64",
    "html_url": "https://github.com/SebR214/margin/commit/e3ebd60c009ff5bb31bba0593a2819b319117e64",
@@ -680,27 +701,6 @@
    "date": "2026-10-31T09:58:03Z",
    "email": "person",
    "message": "SEB-301: the gas-missing route test no longer depends on the real hours (#736)\n\nReal collection now writes gas-missing hours of its own, which made the test's exact-match assertion fail on main's checks. It uses its own synthetic hours (30 Oct, before collection resumed) and checks only those.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "f4b3d195ff950be62215da80329074f858489dbf",
-   "html_url": "https://github.com/SebR214/margin/commit/f4b3d195ff950be62215da80329074f858489dbf",
-   "date": "2026-10-31T08:46:36Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-10-31T08:46Z"
-  },
-  {
-   "sha": "9e669ea864e9aca4d399013ed2187a48d67361fa",
-   "html_url": "https://github.com/SebR214/margin/commit/9e669ea864e9aca4d399013ed2187a48d67361fa",
-   "date": "2026-10-31T08:40:40Z",
-   "email": "person",
-   "message": "SEB-422: raw tables go to margin-data once the App can push there (#725)\n\n* SEB-422: raw tables go to margin-data once the App can push there, legacy until then\n\ntools/raw_storage.py probes the installation, seeds margin-data from data/ and is safe to repeat.\ndaily_csv.DATA follows MARGIN_RAW_DIR. depth.csv becomes one file a day. collect.yml only grows:\nprobe, checkout, seed, and a commit step that fails the run if the push fails.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: checks read the raw tables from margin-data, topped up from this repo\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "e174fbfeb16068e03a99076e4ef9620c21f5dcfc",
-   "html_url": "https://github.com/SebR214/margin/commit/e174fbfeb16068e03a99076e4ef9620c21f5dcfc",
-   "date": "2026-10-31T08:38:33Z",
-   "email": "person",
-   "message": "SEB-423: published events list, rule and daily step (step 2, pipeline) (#724)\n\n* SEB-423 step 2a: which events get a page, a published list the daily run keeps current\n\ntools/publish_events.py writes data/events_published.json: two sources and a 10% official or 15% street move, or a hand-entered known date with a link. 6 events today. Pipeline only; the pages follow in a separate PR.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-423: publish_events may read the labelled history\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
   }
  ]
 }
