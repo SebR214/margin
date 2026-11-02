@@ -1,14 +1,14 @@
-# In Cambodia a stablecoin dollar costs 1.6% more than the official rate
+# In Cambodia a stablecoin dollar costs 1.2% more than the official rate
 
-Prices from the 14:00 UTC hour, 2 Nov.
+Prices from the 15:00 UTC hour, 2 Nov.
 
-The official rate is 4,106.56 KHR per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 4,172 KHR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 4,106.56 KHR per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 4,156 KHR. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 417,150 KHR. The official rate says 410,656 KHR.
+For US$100, people pay 415,575 KHR. The official rate says 410,656 KHR.
 
-Prices from the 14:00 UTC hour, 2 Nov
+Prices from the 15:00 UTC hour, 2 Nov
 
-You could buy only US$3,000 here before the price goes up 1%.
+You could buy only US$3,500 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/KHR.json>
 
@@ -24,11 +24,11 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-4,160 KHR +1.3%
+4,145 KHR +0.9%
 
 OKX, people selling to each other
 
-4,183 KHR +1.9%
+4,167 KHR +1.5%
 
 ## Where to go next
 
