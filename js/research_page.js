@@ -39,7 +39,7 @@
     var logo = kid(brand, el('a', ['fp-logo', 'mono'], typeof C.brand === 'string' ? C.brand : ''));
     logo.href = './index.html';
     var nav = el('nav', 'fp-nav');
-    [[NAVC.navCountries, './countries.html'], [NAVC.navEvents, './events.html'], [C.navResearch, './research.html'], [NAVC.navRoutes, './sending-money.html'], [NAVC.navSources, './sources.html'], [NAVC.navHowItWorks, './how-it-works.html']].forEach(function (l) {
+    if (window.siteNav) { nav.innerHTML = window.siteNav.html(); } else [[NAVC.navCountries, './countries.html'], [NAVC.navEvents, './events.html'], [C.navResearch, './research.html'], [NAVC.navRoutes, './sending-money.html'], [NAVC.navSources, './sources.html'], [NAVC.navHowItWorks, './how-it-works.html']].forEach(function (l) {
       if (!l[0]) return;
       var a = el('a', '', l[0]);
       a.href = l[1];

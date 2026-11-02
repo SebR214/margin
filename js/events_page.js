@@ -26,9 +26,9 @@
     return ep("heading" + (street ? "Street" : "Official") + (v >= 0 ? "Up" : "Down"), { country: name, pct: pct(v) });
   }
   function nav() {
-    return '<header class="sm-head"><a class="sm-logo" href="./index.html">margin.wiki</a><nav class="sm-nav" aria-label="Main">' + NAV.map(function (n) {
+    return '<header class="sm-head"><a class="sm-logo" href="./index.html">margin.wiki</a><nav class="sm-nav" aria-label="Main">' + (window.siteNav ? window.siteNav.html() : NAV.map(function (n) {
       var t = C[n[0]]; return t ? '<a href="' + n[1] + '"' + (n[1] === "./events.html" ? ' aria-current="page"' : "") + ">" + esc(t) + "</a>" : "";
-    }).join("") + "</nav></header>";
+    }).join("")) + "</nav></header>";
   }
   function row(e, rec) {
     var name = NAMES[e.ccy] || e.ccy;

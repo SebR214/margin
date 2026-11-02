@@ -53,10 +53,10 @@
 
   function headHtml() {
     return '<header class="sm-head"><a class="sm-logo" href="./index.html">margin.wiki</a>' +
-      '<nav class="sm-nav" aria-label="Main">' + NAV.map(function (nv) {
+      '<nav class="sm-nav" aria-label="Main">' + (window.siteNav ? window.siteNav.html() : NAV.map(function (nv) {
         var s = txt(nv[0]);
         return s ? '<a href="' + nv[1] + '">' + esc(s) + "</a>" : "";
-      }).join("") + "</nav></header>";
+      }).join("")) + "</nav></header>";
   }
 
   function currencyWord() { return (COPY.currencyNames && COPY.currencyNames[REC.ccy]) || REC.ccy; }

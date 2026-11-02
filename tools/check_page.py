@@ -35,7 +35,7 @@ import threading
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from headless import Page                                    # noqa: E402
-from bake_nav import NAV_PAGES, nav_html                     # noqa: E402
+
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -233,6 +233,8 @@ def normalize_markup(s):
 # client-side (see its `document.title=...` line).
 #
 # Retired pages were deleted (SEB-301, 21 Oct).
+SITE_NAV = json.load(open(os.path.join(HERE, "copy.json"), encoding="utf-8"))["siteNav"]
+
 PAGE_TITLE = {
     "index.html": "margin.wiki",
     "finding.html": "margin.wiki",
@@ -253,14 +255,14 @@ def check(page, port, browser, base):
     if not text.strip():
         return [f"{page}: rendered no text at all"]
 
-    if page in NAV_PAGES:
-        m = RENDERED_NAV.search(r.html)
-        expected = nav_html(nav_items(), page)
-        if not m:
-            fails.append(f"{page}: no <nav>...</nav> found in the rendered page")
-        elif normalize_markup(m.group(0)) != normalize_markup(expected):
-            fails.append(f"{page}: rendered nav does not match copy.json's nav "
-                         f"array -- run tools/bake_nav.py")
+    # the one menu (js/site_nav.js, DESIGN.md "Nav"): every page shows the bar items and About's three pages
+    want = [i["label"] for i in SITE_NAV["main"]] + [SITE_NAV["about"]] + [i["label"] for i in SITE_NAV["aboutItems"]]
+    if "sh-about" not in r.html:
+        fails.append(f"{page}: the site menu (js/site_nav.js) was not drawn")
+    else:
+        missing = [w for w in want if f">{html.escape(w)}<" not in r.html]
+        if missing:
+            fails.append(f"{page}: the site menu is missing {missing}")
 
     expected_title = PAGE_TITLE.get(page)
     if expected_title:

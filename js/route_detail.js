@@ -430,10 +430,10 @@
   var NAV = [["navCountries", "./countries.html"], ["navEvents", "./events.html"], ["navResearch", "./research.html"], ["navRoutes", "./sending-money.html", true], ["navSources", "./sources.html"], ["navHow", "./how-it-works.html"]];
   function headHtml() {
     return '<header class="sm-head"><a class="sm-logo" href="./index.html">margin.wiki</a>' +
-      '<nav class="sm-nav" aria-label="Main">' + NAV.map(function (nv) {
+      '<nav class="sm-nav" aria-label="Main">' + (window.siteNav ? window.siteNav.html() : NAV.map(function (nv) {
         var s = txt(nv[0]);
         return s ? '<a href="' + nv[1] + '"' + (nv[2] ? ' aria-current="page"' : "") + ">" + esc(s) + "</a>" : "";
-      }).join("") + '</nav></header>';
+      }).join("")) + '</nav></header>';
   }
   function pillsHtml() {
     var r = routeObj(S.route);
