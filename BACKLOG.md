@@ -101,7 +101,7 @@ and 6a to 6d dropped unbuilt.
     files: `collector.py` `.github/workflows/collect.yml` `collector_providers.py`
     rows: `data/samples.csv` `USD->TRY`
     done when: as 1a, with the Coinbase side copied from "USD->MXN" and a Turkey off-ramp entry.
-    blocked: needs-claude: collector.py has no off-ramp for BtcTurk or Paribu, so this is new collector code, not a table entry, and the off-ramp fee must be read from the venue's own fee page, which the builder cannot do (2026-10-21)
+    blocked: item 6 was cut on purpose on 25 Oct (Turkey route, near-zero premium), so this route is not built unless item 6 is reopened (2026-11-02)
 
 ## More apps
 - [ ] 7. For every route, list every provider the comparison feed returns that we don't store yet. Add all of them to the stored quotes.
@@ -152,7 +152,6 @@ Written by the retired researcher (25 to 29 Oct). Track A rules in tools/job_sha
     files: `findings_tests/p2p_spread_signal.json` `tests/agent_spread_signal_test.py`
     context: `data/findings.json` `data/p2p_spread_signal.csv` `data/finding_tests.csv` `findings_tests/price_changes.json`
     done when: tests/agent_spread_signal_test.py loads findings_tests/p2p_spread_signal.json and checks it has the same keys as findings_tests/price_changes.json: calculation, data window, minimum observations, invalid-if, and thresholds for holding, weaker and no longer true. It then runs the test calculation on a small inline table of 40 made-up hourly rows, using only the columns of data/p2p_spread_signal.csv, where the signal clearly holds, and expects the result 'holds'. It runs the same calculation on 40 rows where the signal is reversed and expects 'no longer true'. With 5 rows it expects 'not enough evidence'. Every threshold in the JSON must be read from the file by the test, not typed into the test.
-    blocked: needs-claude: the Aider builder failed 2 times, last: empty after Aider: findings_tests/p2p_spread_signal.json tests/agent_spread_signal_test.py (2026-10-29)
 - [x] 20. Diagnose why Binance P2P and OKX P2P disagree in the flagged markets (PR #687, 2026-10-25)
   - [x] 20a. Diagnose why Binance P2P and OKX P2P disagree in the flagged markets (PR #687, 2026-10-25)
     track: aider

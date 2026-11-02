@@ -1,0 +1,15 @@
+{
+ "id": "p2p_spread_signal",
+ "claim": "When the gap between the buy and sell price on a currency's person-to-person board jumps to twice its own usual size, it is a short thin-market spike that closes again within hours.",
+ "calculation": "From data/p2p_spread_signal.csv, one currency at a time, rows with a spread_ratio only. A spike starts at a row whose spread_ratio is at least 2 times the currency's own average when the currency's previous row with a ratio was under that, or it has none. The spike closed if a row of the same currency within 3 hours after the start has a spread_ratio under 2. A spike is judged only once it closed or the currency has a row at least 3 hours after the start. The figure is the share of judged spikes that closed.",
+ "window": "spikes that started in the last 28 days of the file",
+ "min_observations": "at least 10 judged spikes in the window",
+ "invalid_if": "the finding's last recheck in data/findings.json is more than 3 days old, or the minimum observations are not met",
+ "direction": "higher_is_better",
+ "holds": 0.5,
+ "weaker": 0.25,
+ "thresholds_text": "holds: at least half of the spikes closed within 3 hours. weaker: at least a quarter. no longer true: fewer than a quarter, which means a wide gap is a lasting state, not a spike.",
+ "trigger": "new hourly spread rows (a spike is judged 3 hours after it starts)",
+ "evidence_file": "data/p2p_spread_signal.csv",
+ "proposed_by": "Claude, 2 Nov 2026, from backlog 19a and SEB-49 (an Algeria spike that closed within three hours); the thresholds are proposals, merged by Seb's 20 Oct rule, and change only through a spec"
+}
