@@ -1,7 +1,21 @@
 {
- "as_of_utc": "2026-11-02T01:20:25Z",
+ "as_of_utc": "2026-11-02T01:44:45Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "98ce6908d4c1f36a50cc7e294dc8d2fdd1b13d38",
+   "html_url": "https://github.com/SebR214/margin/commit/98ce6908d4c1f36a50cc7e294dc8d2fdd1b13d38",
+   "date": "2026-11-02T01:40:54Z",
+   "email": "person",
+   "message": "SEB-433: one thread, links between pages, one story, labelled numbers (#772)\n\n* SEB-433: pages lead into each other, one AI story, labelled numbers, plain words\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-433: spell out the dirham in a source name\n\n* SEB-433: the all-countries row counts the countries the page lists\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "2a12de217680a74d2626ab40479d9dcfa9cee7ac",
+   "html_url": "https://github.com/SebR214/margin/commit/2a12de217680a74d2626ab40479d9dcfa9cee7ac",
+   "date": "2026-11-02T01:29:14Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-02T01:29Z"
+  },
   {
    "sha": "e0d322fdca390e9d4f7d2a170db7c40860b582f1",
    "html_url": "https://github.com/SebR214/margin/commit/e0d322fdca390e9d4f7d2a170db7c40860b582f1",
@@ -687,20 +701,6 @@
    "date": "2026-10-31T10:21:43Z",
    "email": "person",
    "message": "SEB-422: board x currency collector template, board parsers and the board gap list (#729)\n\n* SEB-422: board x currency collector template, five board parsers, gap list for boards\n\ncollectors/template_board.py reads one config per board x currency (collectors/board_configs/*.json) and writes\np2p_board_ads (new daily table), hashed sellers and data/p2p_basis_boards.csv. collector_boards.py runs them hourly\n(one new collect.yml step). Bitget NGN and HTX VND are the first two configs. tools/gap_report.py --boards lists every\nboard x currency with ads that we do not collect. tools/new_board_job.py writes the BACKLOG job for one row.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: board step optional, no-rate guard, checks read margin-data\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: move the margin-data checks step to the storage PR (raw_storage.py lives there)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: board fetch uses the standard library (the checks job has no requests)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-422: no continue-on-error on the steps this PR adds to collect.yml\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "09b9fef691500e4992dc0d26f6d2c8552754b248",
-   "html_url": "https://github.com/SebR214/margin/commit/09b9fef691500e4992dc0d26f6d2c8552754b248",
-   "date": "2026-10-31T10:17:58Z",
-   "email": "person",
-   "message": "SEB-426: country pages in the HTML (#735)\n\nEach country gets its own page at country/<ccy>/ with its numbers in the HTML, written from the same render as its .md copy. ?ccy= redirects by script. Sitemap, links, check_outside updated.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "7b168dba72059dfad35cefefd39023b87717a7c6",
-   "html_url": "https://github.com/SebR214/margin/commit/7b168dba72059dfad35cefefd39023b87717a7c6",
-   "date": "2026-10-31T09:58:03Z",
-   "email": "person",
-   "message": "SEB-301: the gas-missing route test no longer depends on the real hours (#736)\n\nReal collection now writes gas-missing hours of its own, which made the test's exact-match assertion fail on main's checks. It uses its own synthetic hours (30 Oct, before collection resumed) and checks only those.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
   }
  ]
 }
