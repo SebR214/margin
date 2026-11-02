@@ -1,22 +1,22 @@
-# In Lebanon a stablecoin dollar costs 1.2% more than the official rate
+# In Lebanon a stablecoin dollar costs 1.5% more than the official rate
 
-Prices from the 21:00 UTC hour, 2 Nov.
+Prices from the 22:00 UTC hour, 2 Nov.
 
-The official rate is 89,500 LBP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 90,537 LBP. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 89,500 LBP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 90,812 LBP. A stablecoin is a coin that stays worth one US dollar.
 
 |  |  |
 | --- | --- |
 | Official rate | 89,500 LBP |
-| A stablecoin from people selling to each other | 90,537 LBP +1.2% |
+| A stablecoin from people selling to each other | 90,812 LBP +1.5% |
 | Cash at a money changer | 89,600 LBP +0.1% |
 
-For US$100, people pay 9,053,724 LBP. The official rate says 8,950,000 LBP.
+For US$100, people pay 9,081,249 LBP. The official rate says 8,950,000 LBP.
 
-Today cash from a money changer is cheaper than a stablecoin here. The stablecoin costs 1.0% more.
+Today cash from a money changer is cheaper than a stablecoin here. The stablecoin costs 1.4% more.
 
-Prices from the 21:00 UTC hour, 2 Nov
+Prices from the 22:00 UTC hour, 2 Nov
 
-You could buy only US$4,000 here before the price goes up 1%.
+You could buy only US$4,500 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/LBP.json>
 
@@ -32,11 +32,11 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-90,324 LBP +0.9%
+90,125 LBP +0.7%
 
 OKX, people selling to each other
 
-90,750 LBP +1.4%
+91,500 LBP +2.2%
 
 ## Where to go next
 

@@ -1,14 +1,14 @@
-# In Uganda a stablecoin dollar costs 0.2% more than the official rate
+# In Uganda a stablecoin dollar costs 0.3% more than the official rate
 
-Prices from the 21:00 UTC hour, 2 Nov.
+Prices from the 22:00 UTC hour, 2 Nov.
 
-The official rate is 4,267.27 UGX per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 4,277 UGX. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 4,267.27 UGX per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 4,282 UGX. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 427,710 UGX. The official rate says 426,727 UGX.
+For US$100, people pay 428,155 UGX. The official rate says 426,727 UGX.
 
 Only 1 source
 
-Prices from the 21:00 UTC hour, 2 Nov
+Prices from the 22:00 UTC hour, 2 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -26,7 +26,7 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-4,277 UGX +0.2%
+4,282 UGX +0.3%
 
 ## Where to go next
 

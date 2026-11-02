@@ -1,14 +1,14 @@
-# In New Zealand a stablecoin dollar costs 0.6% more than the official rate
+# In New Zealand a stablecoin dollar costs 0.5% more than the official rate
 
-Prices from the 21:00 UTC hour, 2 Nov.
+Prices from the 22:00 UTC hour, 2 Nov.
 
 The official rate is 1.78 NZD per dollar. On the exchanges where people in New Zealand trade stablecoins, one costs 1.79 NZD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 178.74 NZD. The official rate says 177.77 NZD.
+For US$100, people pay 178.71 NZD. The official rate says 177.77 NZD.
 
 Only 1 source
 
-Prices from the 21:00 UTC hour, 2 Nov
+Prices from the 22:00 UTC hour, 2 Nov
 
 <https://margin.wiki/data/countries/NZD.json>
 
@@ -24,7 +24,7 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 IndependentReserve (NZD)
 
-1.79 NZD +0.6%
+1.79 NZD +0.5%
 
 ## Where to go next
 
