@@ -1,12 +1,12 @@
 # In Rwanda a stablecoin dollar costs 2.0% more than the official rate
 
-Prices from the 16:00 UTC hour, 2 Nov.
+Prices from the 17:00 UTC hour, 2 Nov.
 
 The official rate is 1,475.65 RWF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 1,505 RWF. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 150,500 RWF. The official rate says 147,565 RWF.
+For US$100, people pay 150,471 RWF. The official rate says 147,565 RWF.
 
-Prices from the 16:00 UTC hour, 2 Nov
+Prices from the 17:00 UTC hour, 2 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -28,7 +28,7 @@ Binance, people selling to each other
 
 OKX, people selling to each other
 
-1,523 RWF +3.2%
+1,522 RWF +3.1%
 
 ## Where to go next
 
