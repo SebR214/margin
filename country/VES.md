@@ -1,6 +1,6 @@
 # In Venezuela a stablecoin dollar costs 15.6% more than the official rate
 
-Prices from the 08:00 UTC hour, 3 Nov.
+Prices from the 09:00 UTC hour, 3 Nov.
 
 The official rate is 891.11 VES per dollar. On the exchanges where people in Venezuela trade stablecoins, one costs 1,030 VES. A stablecoin is a coin that stays worth one US dollar.
 
@@ -8,16 +8,16 @@ The official rate is 891.11 VES per dollar. On the exchanges where people in Ven
 | --- | --- |
 | Official rate | 891.11 VES |
 | A stablecoin on an exchange | 1,030 VES +15.6% |
-| A stablecoin from people selling to each other | 1,009 VES +13.3% |
+| A stablecoin from people selling to each other | 1,009 VES +13.2% |
 | Cash at a money changer | 997.56 VES +11.9% |
 
-For US$100, people pay 103,035 VES. The official rate says 89,111 VES.
+For US$100, people pay 103,014 VES. The official rate says 89,111 VES.
 
 Today cash from a money changer is cheaper than a stablecoin here. The stablecoin costs 3.3% more.
 
 Only 1 source
 
-Prices from the 08:00 UTC hour, 3 Nov
+Prices from the 09:00 UTC hour, 3 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 

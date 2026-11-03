@@ -1,12 +1,12 @@
 # No price for Mozambique this hour
 
-Prices from the 08:00 UTC hour, 3 Nov.
+Prices from the 09:00 UTC hour, 3 Nov.
 
 Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
 The last price we published was +17.6%, on 3 Nov.
 
-Prices from the 08:00 UTC hour, 3 Nov
+Prices from the 09:00 UTC hour, 3 Nov
 
 <https://margin.wiki/data/countries/MZN.json>
 

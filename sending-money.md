@@ -1,12 +1,12 @@
 # A stablecoin only beats transfer apps where dollars are hard to get
 
-Prices from the 08:00 UTC hour, 3 Nov.
+Prices from the 09:00 UTC hour, 3 Nov.
 
 In Argentina, India and Nigeria, dollars are hard to get, so people pay more than the official rate for one. Send money there as a stablecoin and the person you send to can sell it at that higher price. They end up with more than any transfer app gives them.
 
 In Brazil, the Philippines and Mexico, anyone can get dollars at the official rate. There is nothing extra to collect, so the transfer apps are cheaper.
 
-Prices from the 08:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
+Prices from the 09:00 UTC hour. A stablecoin is a digital coin that stays worth one US dollar.
 
 <https://margin.wiki/data/routes_table.json>
 
@@ -16,21 +16,21 @@ Each route sends 1,000 in your own money, like S$1,000 or US$1,000. Left of the 
 
 |  |  |
 | --- | --- |
-| United States to Argentina Gap there +7.8% · Cheaper in 200 of 200 hours | 6.33% cheaper than Airwallex |
-| United States to India Gap there +6.5% · Cheaper in 733 of 733 hours | 4.47% cheaper than Airwallex |
-| Singapore to India Gap there +6.5% · Cheaper in 733 of 733 hours | 3.66% cheaper than Airwallex |
-| Australia to India Gap there +6.5% · Cheaper in 148 of 148 hours | 2.59% cheaper than Xoom |
-| United States to Nigeria Gap there +2.5% · Cheaper in 713 of 736 hours | 1.17% cheaper than Wise |
-| United States to Brazil Gap there +0.8% · Cheaper in 44 of 149 hours | 0.01% more expensive than Remitly |
-| Singapore to the Philippines Gap there −0.1% · Cheaper in 1 of 1,683 hours | 0.68% more expensive than Instarem |
-| New Zealand to the Philippines Gap there −0.1% · Cheaper in 2 of 1,160 hours | 0.90% more expensive than Airwallex |
-| United States to the Philippines Gap there −0.1% · Never cheaper in 196 hours | 1.05% more expensive than Xoom |
-| Australia to the Philippines Gap there −0.1% · Never cheaper in 1,160 hours | 1.39% more expensive than Xoom |
-| United States to Mexico Gap there −0.3% · Cheaper in 23 of 1,550 hours | 2.77% more expensive than Xoom |
+| United States to Argentina Gap there +7.8% · Cheaper in 201 of 201 hours | 6.22% cheaper than Airwallex |
+| United States to India Gap there +6.4% · Cheaper in 734 of 734 hours | 4.52% cheaper than Airwallex |
+| Singapore to India Gap there +6.4% · Cheaper in 734 of 734 hours | 3.76% cheaper than Airwallex |
+| Australia to India Gap there +6.4% · Cheaper in 149 of 149 hours | 2.70% cheaper than Xoom |
+| United States to Nigeria Gap there +2.5% · Cheaper in 714 of 737 hours | 1.04% cheaper than Wise |
+| United States to Brazil Gap there +0.8% · Cheaper in 44 of 150 hours | 0.01% more expensive than Remitly |
+| Singapore to the Philippines Gap there −0.1% · Cheaper in 1 of 1,684 hours | 0.61% more expensive than Instarem |
+| New Zealand to the Philippines Gap there −0.1% · Cheaper in 2 of 1,161 hours | 0.67% more expensive than Airwallex |
+| United States to the Philippines Gap there −0.1% · Never cheaper in 197 hours | 1.05% more expensive than Xoom |
+| Australia to the Philippines Gap there −0.1% · Never cheaper in 1,161 hours | 1.36% more expensive than Xoom |
+| United States to Mexico Gap there −0.3% · Cheaper in 23 of 1,551 hours | 2.86% more expensive than Xoom |
 
-## Sending US$1,000 to Argentina: Airwallex costs US$4.54, a stablecoin gets them US$58.75 more than the official rate
+## Sending US$1,000 to Argentina: Airwallex costs US$4.54, a stablecoin gets them US$57.67 more than the official rate
 
-At this amount, a stablecoin was the cheaper way in 200 of the 200 hours checked since 22 October.
+At this amount, a stablecoin was the cheaper way in 201 of the 201 hours checked since 22 October.
 
 Official rate as of 00:02 UTC
 
@@ -44,7 +44,7 @@ US$4.54 0.45%
 
 Stablecoin
 
-−US$58.75 −5.88%
+−US$57.67 −5.77%
 
 The blockchain's own fee is not in this total, because the exchange does not publish it.
 
@@ -54,10 +54,10 @@ These are the steps of the main stablecoin way this hour.
 
 |  |  |
 | --- | --- |
-| Deposit and buy | US$4.32 0.43% |
+| Deposit and buy | US$4.38 0.44% |
 | Network fee | US$0.10 0.01% |
-| Sell and withdraw | −US$63.17 −6.32% |
-| All in | −US$58.75 −5.88% |
+| Sell and withdraw | −US$62.15 −6.21% |
+| All in | −US$57.67 −5.77% |
 
 Below zero means they got more than the official rate at that step.
 
