@@ -1,12 +1,12 @@
 # No price for Syria this hour
 
-Prices from the 04:00 UTC hour, 3 Nov.
+Prices from the 05:00 UTC hour, 3 Nov.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
 The last price we published was +20.7%, on 2 Nov.
 
-Prices from the 04:00 UTC hour, 3 Nov
+Prices from the 05:00 UTC hour, 3 Nov
 
 <https://margin.wiki/data/countries/SYP.json>
 

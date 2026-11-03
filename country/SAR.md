@@ -1,14 +1,14 @@
-# In Saudi Arabia a stablecoin dollar costs 4.2% more than the official rate
+# In Saudi Arabia a stablecoin dollar costs 3.8% more than the official rate
 
-Prices from the 04:00 UTC hour, 3 Nov.
+Prices from the 05:00 UTC hour, 3 Nov.
 
-The official rate is 3.75 SAR per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 3.91 SAR. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 3.75 SAR per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 3.89 SAR. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 390.75 SAR. The official rate says 375.00 SAR.
+For US$100, people pay 389.25 SAR. The official rate says 375.00 SAR.
 
-Prices from the 04:00 UTC hour, 3 Nov
+Prices from the 05:00 UTC hour, 3 Nov
 
-You could buy only US$1,000 here before the price goes up 1%.
+You could buy only US$1,500 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/SAR.json>
 
@@ -24,11 +24,11 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-3.86 SAR +2.9%
+3.85 SAR +2.5%
 
 OKX, people selling to each other
 
-3.96 SAR +5.5%
+3.94 SAR +5.1%
 
 ## Where to go next
 

@@ -1,14 +1,14 @@
-# In Kazakhstan a stablecoin dollar costs 3.9% more than the official rate
+# In Kazakhstan a stablecoin dollar costs 3.8% more than the official rate
 
-Prices from the 04:00 UTC hour, 3 Nov.
+Prices from the 05:00 UTC hour, 3 Nov.
 
-The official rate is 453.34 KZT per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 470.86 KZT. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 453.34 KZT per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 470.66 KZT. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 47,086 KZT. The official rate says 45,334 KZT.
+For US$100, people pay 47,066 KZT. The official rate says 45,334 KZT.
 
-Prices from the 04:00 UTC hour, 3 Nov
+Prices from the 05:00 UTC hour, 3 Nov
 
-You could buy only US$4,500 here before the price goes up 1%.
+You could buy only US$4,000 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/KZT.json>
 
@@ -28,7 +28,7 @@ Binance, people selling to each other
 
 OKX, people selling to each other
 
-476.25 KZT +5.1%
+475.85 KZT +5.0%
 
 ## Where to go next
 
