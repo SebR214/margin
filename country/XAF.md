@@ -1,14 +1,16 @@
-# In Central Africa a stablecoin dollar costs 6.8% more than the official rate
+# In Central Africa a stablecoin dollar costs 6.7% more than the official rate
 
-Prices from the 03:00 UTC hour, 3 Nov.
+Prices from the 04:00 UTC hour, 3 Nov.
 
-The official rate is 585.95 XAF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 625.97 XAF. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 585.95 XAF per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 625.23 XAF. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 62,597 XAF. The official rate says 58,595 XAF.
+Sellers on Binance and OKX agree on this price. Buyers there are offering more than sellers ask this hour, which is unusual.
+
+For US$100, people pay 62,523 XAF. The official rate says 58,595 XAF.
 
 Six Central African countries share this currency, the CFA franc. They are Cameroon, the Central African Republic, Chad, the Republic of the Congo, Equatorial Guinea and Gabon.
 
-Prices from the 03:00 UTC hour, 3 Nov
+Prices from the 04:00 UTC hour, 3 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -26,7 +28,7 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-624.94 XAF +6.7%
+623.45 XAF +6.4%
 
 OKX, people selling to each other
 

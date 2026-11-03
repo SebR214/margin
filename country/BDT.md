@@ -1,32 +1,18 @@
-# In Bangladesh a stablecoin dollar costs 2.7% more than the official rate
+# No price for Bangladesh this hour
 
-Prices from the 03:00 UTC hour, 3 Nov.
+Prices from the 04:00 UTC hour, 3 Nov.
 
-The official rate is 124.39 BDT per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 127.79 BDT. A stablecoin is a coin that stays worth one US dollar.
+Held back this hour: the buying and selling sides are not the same market here. Earlier readings stay on the chart.
 
-For US$100, people pay 12,779 BDT. The official rate says 12,439 BDT.
+The last price we published was +2.8%, on 3 Nov.
 
-Only 1 source
-
-Prices from the 03:00 UTC hour, 3 Nov
-
-You could buy at least US$5,000 here before the price goes up 1%.
+Prices from the 04:00 UTC hour, 3 Nov
 
 <https://margin.wiki/data/countries/BDT.json>
 
 ## How the gap moved, day by day
 
 One point per day, the price we published that day. 0% is the official rate.
-
-Today's gap is normal for here since 2 Sep 2026, in our own checks. On most days the gap is between 3.2% and 4.2%.
-
-## Where this price comes from
-
-We take a country's price from exchanges first, then brokers, then people selling to each other on Binance and OKX. Here it comes from people selling to each other.
-
-Binance, people selling to each other
-
-127.79 BDT +2.7%
 
 ## Where to go next
 

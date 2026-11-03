@@ -1,14 +1,14 @@
 # In the United Arab Emirates a stablecoin dollar costs 0.9% more than the official rate
 
-Prices from the 03:00 UTC hour, 3 Nov.
+Prices from the 04:00 UTC hour, 3 Nov.
 
-The official rate is 3.67 AED per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.70 AED. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 3.67 AED per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.71 AED. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 370.40 AED. The official rate says 367.25 AED.
+For US$100, people pay 370.70 AED. The official rate says 367.25 AED.
 
 Only 1 source
 
-Prices from the 03:00 UTC hour, 3 Nov
+Prices from the 04:00 UTC hour, 3 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -26,7 +26,7 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-3.70 AED +0.9%
+3.71 AED +0.9%
 
 ## Where to go next
 
