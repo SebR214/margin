@@ -259,7 +259,9 @@ def self_test():
             gh = fake_gh
             os.environ.update({"GH_REPO": "o/r", "RUN_ID": "5", "SLOT": slot, "GITHUB_OUTPUT": out.name,
                                "EVENT_NAME": "workflow_dispatch", "CHAIN": "false" if case == "oneshot" else "true"})
-            assert wake() == 0
+            import contextlib, io
+            with contextlib.redirect_stdout(io.StringIO()):       # the "::error::" line of the dead case must not become a CI annotation
+                assert wake() == 0
             got = open(out.name).read()
             os.unlink(out.name)
             if case == "normal":
