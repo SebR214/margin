@@ -1,6 +1,6 @@
 # In Qatar a stablecoin dollar costs 5.0% more than the official rate
 
-Prices from the 02:00 UTC hour, 3 Nov.
+Prices from the 03:00 UTC hour, 3 Nov.
 
 The official rate is 3.64 QAR per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 3.82 QAR. A stablecoin is a coin that stays worth one US dollar.
 
@@ -8,7 +8,7 @@ For US$100, people pay 382.20 QAR. The official rate says 364.00 QAR.
 
 Only 1 source
 
-Prices from the 02:00 UTC hour, 3 Nov
+Prices from the 03:00 UTC hour, 3 Nov
 
 You could buy only US$1,000 here before the price goes up 1%.
 

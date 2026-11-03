@@ -1,6 +1,6 @@
 # Transfer apps keep changing their prices
 
-Prices from the 02:00 UTC hour, 3 Nov.
+Prices from the 03:00 UTC hour, 3 Nov.
 
 Transfer apps raise and cut what they charge to send money. The cheapest app when you compare may not be the cheapest when you send.
 
@@ -64,7 +64,7 @@ findings_hours_price_changes.csv
 | --- | --- | --- |
 | 02 | Some apps charge more on Saturday, then cut back | 61 Saturday rises that came back |
 | 03 | From Singapore to the Philippines, a stablecoin only beats the apps if you send over S$20.4M a month | S$20.4M a month traded on the exchange |
-| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,677 hours a stablecoin was cheapest, sending S$5,000 |
+| 04 | Singapore to the Philippines: a stablecoin was almost never the cheapest way to send | 3 of 1,678 hours a stablecoin was cheapest, sending S$5,000 |
 | 05 | In 2 countries, people pay more for a dollar from each other than on an exchange | 2 countries where they disagree |
 
 ## Where to go next

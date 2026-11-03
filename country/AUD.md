@@ -1,12 +1,12 @@
-# In Australia a stablecoin dollar costs 0.1% more than the official rate
+# In Australia a stablecoin dollar costs about the same as the official rate
 
-Prices from the 02:00 UTC hour, 3 Nov.
+Prices from the 03:00 UTC hour, 3 Nov.
 
 The official rate is 1.43 AUD per dollar. On the exchanges where people in Australia trade stablecoins, one costs 1.43 AUD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 142.86 AUD. The official rate says 142.79 AUD.
+For US$100, people pay 142.79 AUD. The official rate says 142.79 AUD.
 
-Prices from the 02:00 UTC hour, 3 Nov
+Prices from the 03:00 UTC hour, 3 Nov
 
 <https://margin.wiki/data/countries/AUD.json>
 
@@ -26,7 +26,7 @@ BTC Markets
 
 IndependentReserve (AUD)
 
-1.43 AUD +0.1%
+1.43 AUD 0.0%
 
 ## Where to go next
 
