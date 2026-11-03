@@ -1,6 +1,6 @@
 # In Argentina a stablecoin dollar costs 7.8% more than the official rate
 
-Prices from the 00:00 UTC hour, 3 Nov.
+Prices from the 01:00 UTC hour, 3 Nov.
 
 The official rate is 1,545.5 ARS per dollar. On the exchanges where people in Argentina trade stablecoins, one costs 1,666 ARS. A stablecoin is a coin that stays worth one US dollar.
 
@@ -11,11 +11,11 @@ The official rate is 1,545.5 ARS per dollar. On the exchanges where people in Ar
 | A stablecoin from people selling to each other | 1,651 ARS +6.8% |
 | Cash at a money changer | 1,549 ARS +0.2% |
 
-For US$100, people pay 166,633 ARS. The official rate says 154,550 ARS.
+For US$100, people pay 166,613 ARS. The official rate says 154,550 ARS.
 
 Today cash from a money changer is cheaper than a stablecoin here. The stablecoin costs 7.6% more.
 
-Prices from the 00:00 UTC hour, 3 Nov
+Prices from the 01:00 UTC hour, 3 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -36,24 +36,24 @@ We take a country's price from exchanges first, then brokers, then people sellin
 |  |  |
 | --- | --- |
 | CriptoYa · Wallbit | 1,650 ARS +6.8% |
-| CriptoYa · Bitsoalpha | 1,652 ARS +6.9% |
+| CriptoYa · Bitsoalpha | 1,651 ARS +6.8% |
 | CriptoYa · Ripioexchange | 1,652 ARS +6.9% |
 | CriptoYa · Mexc | 1,654 ARS +7.0% |
-| CriptoYa · Binance | 1,654 ARS +7.0% |
-| CriptoYa · Satoshitango | 1,656 ARS +7.1% |
+| CriptoYa · Binance | 1,655 ARS +7.1% |
+| CriptoYa · Satoshitango | 1,657 ARS +7.2% |
 | CriptoYa · Cryptomktpro | 1,659 ARS +7.3% |
 | CriptoYa · Nexo | 1,661 ARS +7.5% |
 | CriptoYa · Belo | 1,663 ARS +7.6% |
 | CriptoYa · Fiwind | 1,663 ARS +7.6% |
 | CriptoYa · Saldo | 1,664 ARS +7.7% |
 | CriptoYa · Cocoscrypto | 1,666 ARS +7.8% |
-| CriptoYa · Letsbit | 1,667 ARS +7.8% |
+| CriptoYa · Letsbit | 1,666 ARS +7.8% |
+| CriptoYa · Vitawallet | 1,669 ARS +8.0% |
 | CriptoYa · Universalcoins | 1,670 ARS +8.1% |
-| CriptoYa · Vitawallet | 1,670 ARS +8.1% |
 | CriptoYa · Decrypto | 1,671 ARS +8.1% |
 | CriptoYa · Ripio | 1,672 ARS +8.2% |
-| CriptoYa · Eluter | 1,672 ARS +8.2% |
 | CriptoYa · Lemoncash | 1,673 ARS +8.2% |
+| CriptoYa · Eluter | 1,673 ARS +8.2% |
 | CriptoYa · Tiendacrypto | 1,678 ARS +8.6% |
 | CriptoYa · Bybit | 1,681 ARS +8.8% |
 | CriptoYa · Takenos | 1,688 ARS +9.2% |

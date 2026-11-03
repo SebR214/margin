@@ -1,12 +1,12 @@
-# In Kuwait a stablecoin dollar costs 0.3% more than the official rate
+# In Kuwait a stablecoin dollar costs 0.2% more than the official rate
 
-Prices from the 00:00 UTC hour, 3 Nov.
+Prices from the 01:00 UTC hour, 3 Nov.
 
 The official rate is 0.31 KWD per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 0.31 KWD. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 31.15 KWD. The official rate says 31.06 KWD.
+For US$100, people pay 31.15 KWD. The official rate says 31.10 KWD.
 
-Prices from the 00:00 UTC hour, 3 Nov
+Prices from the 01:00 UTC hour, 3 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -24,11 +24,11 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-0.31 KWD −0.2%
+0.31 KWD −0.3%
 
 OKX, people selling to each other
 
-0.31 KWD +0.8%
+0.31 KWD +0.7%
 
 ## Where to go next
 
