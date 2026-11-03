@@ -1,20 +1,20 @@
 # In the Philippines a stablecoin dollar costs 0.1% less than the official rate
 
-Prices from the 06:00 UTC hour, 3 Nov.
+Prices from the 07:00 UTC hour, 3 Nov.
 
-The official rate is 63.43 PHP per dollar. On the exchanges where people in the Philippines trade stablecoins, one costs 63.37 PHP. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 63.43 PHP per dollar. On the exchanges where people in the Philippines trade stablecoins, one costs 63.40 PHP. A stablecoin is a coin that stays worth one US dollar.
 
 |  |  |
 | --- | --- |
 | Official rate | 63.43 PHP |
-| A stablecoin on an exchange | 63.37 PHP −0.1% |
-| A stablecoin from people selling to each other | 63.45 PHP +0.0% |
+| A stablecoin on an exchange | 63.40 PHP −0.1% |
+| A stablecoin from people selling to each other | 63.51 PHP +0.1% |
 
-For US$100, people pay 6,337 PHP. The official rate says 6,343 PHP.
+For US$100, people pay 6,340 PHP. The official rate says 6,343 PHP.
 
 Only 1 source
 
-Prices from the 06:00 UTC hour, 3 Nov
+Prices from the 07:00 UTC hour, 3 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -34,7 +34,7 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Coins.ph
 
-63.37 PHP −0.1%
+63.40 PHP −0.1%
 
 ## Where to go next
 
