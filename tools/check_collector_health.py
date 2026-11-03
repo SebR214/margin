@@ -9,6 +9,10 @@ Collection is DOWN if no commit whose message starts with "sample" has landed on
 counts: not a green run, not a red one, not the freshness of a file. collect.yml writes that commit only when its rows have
 reached main, so it is the one fact that says the data is arriving.
 
+Since SEB-436 the site is built and deployed after that commit, so the site is also DOWN if GitHub Pages has had no successful
+deployment in 90 minutes. Both facts go in the one answer and so in the one email. The Linear comment (--post) stays about the
+rows: it is the only part with hours lost to count.
+
 --post comments on Linear SEB-301:
   - when collection goes down: "down since {time}, {n} hours lost so far";
   - again every 12 hours while it stays down;
@@ -28,6 +32,7 @@ sys.path.insert(0, os.path.join(ROOT, "agents"))
 REPO = os.environ.get("GH_REPO", "SebR214/margin")
 ISSUE = "SEB-301"
 LIMIT = dt.timedelta(minutes=90)
+DEPLOY_LIMIT = dt.timedelta(minutes=90)
 REPEAT = dt.timedelta(hours=12)
 PAGES = 5                                        # 100 commits a page
 DOWN = "**Collection: down.** "
@@ -60,6 +65,31 @@ def fetch_sample_times():
         if len(commits) < 100:
             break
     return sorted(out, reverse=True)
+
+
+def fetch_deploy_time():
+    """When GitHub Pages last deployed successfully (the newest 'success' status among the newest deployments to github-pages),
+    or None if there is none. Raises on an API error."""
+    r = subprocess.run(["gh", "api", f"repos/{REPO}/deployments?environment=github-pages&per_page=10"],
+                       capture_output=True, text=True, check=True, cwd=ROOT).stdout
+    for d in json.loads(r):
+        s = subprocess.run(["gh", "api", f"repos/{REPO}/deployments/{d['id']}/statuses?per_page=10"],
+                           capture_output=True, text=True, check=True, cwd=ROOT).stdout
+        ok = [parse(x["created_at"]) for x in json.loads(s) if x.get("state") == "success"]
+        if ok:
+            return max(ok)
+    return None
+
+
+def deploy_verdict(now, deployed):
+    """(down?, one line) for the site's last successful deploy."""
+    if deployed is None:
+        return True, "site DOWN: no successful GitHub Pages deployment among the newest 10"
+    mins = int((now - deployed).total_seconds() // 60)
+    if now - deployed > DEPLOY_LIMIT:
+        return True, "site DOWN: last deploy %s, %d min ago (limit %d). The pages are not being published, so the site shows old numbers" % (
+            when(deployed), mins, DEPLOY_LIMIT.total_seconds() // 60)
+    return False, "site healthy: last deploy %s, %d min ago (limit %d)" % (when(deployed), mins, DEPLOY_LIMIT.total_seconds() // 60)
 
 
 def verdict(now, samples):
@@ -149,6 +179,12 @@ def self_test():
     up = up_body([first], [n(6, 0), n(5, 30), t(20, 48)])
     assert up.startswith(UP) and "Down from 28 Oct 20:48 UTC to 31 Oct 05:30 UTC: 56.7 hours lost" in up, up
     assert "newest" in up_body([(n(1), DOWN + "no marker")], [n(6)])
+    # the site: a deploy older than 90 minutes is down, a fresh one is not, none at all is down
+    d = lambda h, m=0: dt.datetime(2026, 11, 3, h, m, tzinfo=dt.timezone.utc)
+    assert deploy_verdict(d(10, 30), d(9, 0)) == (False, "site healthy: last deploy 3 Nov 09:00 UTC, 90 min ago (limit 90)")
+    bad, line = deploy_verdict(d(10, 31), d(9, 0))
+    assert bad and "last deploy 3 Nov 09:00 UTC, 91 min ago" in line and "old numbers" in line, line
+    assert deploy_verdict(d(10, 31), None)[0] is True
     print("check_collector_health self-test: ok")
     return 0
 
@@ -167,7 +203,13 @@ def main(argv):
     if "--post" in argv:
         post(now, down, last, samples)
         return 0
-    return 1 if down else 0
+    try:
+        site_down, site_line = deploy_verdict(now, fetch_deploy_time())
+    except (subprocess.CalledProcessError, FileNotFoundError, ValueError, KeyError) as e:
+        print("  [error] could not read the Pages deployments, so the site's health is not known: %s" % e, file=sys.stderr)
+        return 2
+    print(site_line)
+    return 1 if (down or site_down) else 0
 
 
 if __name__ == "__main__":

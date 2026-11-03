@@ -5,15 +5,15 @@ name: collect
 # 2026-10-06: a manual run at 10:32 was read as "another link already alive", the
 # real link stood down at 10:35, and the manual run ended without a successor:
 # collection stopped for 2h20m until a restarter fire landed at 12:54.
-run-name: ${{ (github.event_name == 'schedule' || github.event.inputs.chain == 'true') && 'collect' || 'collect one-shot' }}
+# A chain link carries its slot in its title ("collect slot=2026-11-03T10:35Z"): tools/collect_chain.py orders the live runs by it.
+run-name: ${{ (github.event_name == 'schedule' || github.event.inputs.chain == 'true') && (github.event.inputs.slot && format('collect slot={0}', github.event.inputs.slot) || 'collect') || 'collect one-shot' }}
 
 on:
-  # THIS WORKFLOW STARTS ITSELF. Every run ends by sleeping to the next :05 or
-  # :35 and dispatching the next one with the built-in GITHUB_TOKEN, so the
-  # chain needs no cron, no personal access token and nothing outside GitHub.
-  # The schedule below is the RESTARTER, not the clock: it exists only to
-  # revive the chain if a link dies, and a scheduled fire that finds the chain
-  # already alive exits immediately without collecting. See "Am I needed".
+  # THIS WORKFLOW STARTS ITSELF. A run sleeps until its slot (:05 or :35 UTC), starts the next run with the built-in
+  # GITHUB_TOKEN, and only then collects, so the chain needs no cron, no personal access token and nothing outside
+  # GitHub, and a slow or cancelled run cannot end it (SEB-436, tools/collect_chain.py). The schedule below is a
+  # RESTARTER, not the clock: it revives the chain if every link is gone, and a fire that finds the chain alive stands
+  # down. The Hetzner box restarts it too, every 10 minutes (agents/collect_restarter.sh). See "Wake, start the next link".
   repository_dispatch:
     types: [collect]
   schedule:
@@ -31,6 +31,10 @@ on:
         description: "true only when this run is the next link of a running chain"
         required: false
         default: "false"
+      slot:
+        description: "the slot (YYYY-MM-DDTHH:MMZ) a chain link sleeps to before it collects; empty means start now"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -43,7 +47,7 @@ permissions:
   pull-requests: read
 
 # No concurrency group on purpose. The chain plus the restarter can overlap by
-# design, and the "Am I needed" gate below is what resolves that -- a group
+# design, and the "Wake" step below is what resolves that -- a group
 # would instead queue the restarter behind a running link for up to half an
 # hour, which is the opposite of what a restarter is for. The collectors are
 # idempotent per UTC hour, so an overlap costs nothing anyway.
@@ -51,75 +55,44 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    # Up to ~30 minutes of that is the successor step sleeping to the next
-    # slot. 45 leaves room for a full collection either side of a 29-minute
-    # sleep without ever cutting the dispatch off.
-    timeout-minutes: 45
+    # Up to 30 minutes of that is the sleep to the run's slot at the start; then a collection, the commit and the build. The next
+    # link is started before any of it, so a run that hits this limit cannot end the chain.
+    timeout-minutes: 75
+    outputs:
+      built: ${{ steps.upload.outcome == 'success' }}
     steps:
-      # 3. THE GATE. A scheduled fire is a restarter, not a sample: if any link
-      # of the chain is already running or queued, this run has nothing to do
-      # and says so. Only a schedule can be redundant this way -- a dispatch was
-      # asked for explicitly, by the chain itself or by a person, and always
-      # proceeds.
+      # 3. THE WAKE. A chain link (a run sent by the previous link, or started by a restarter) does three things before it
+      # collects anything, in tools/collect_chain.py: it sleeps until its own slot, checks that no other run is ahead of it in
+      # the chain (so two chains never run side by side), and starts the NEXT link, which sleeps to the slot after. Whatever
+      # happens later in this run (a slow push, a cancel, a crash) the next link already exists. Until 2 Nov the sleep and
+      # the dispatch were at the END of the job, so one slow run ended the chain and it stayed dead until a GitHub cron fire
+      # (SEB-436). A run started by hand without chain=true, or by repository_dispatch, is a one-shot: it collects its hour
+      # and stops.
       #
-      # Runs BEFORE checkout: deciding whether to work needs no working tree,
-      # and a redundant restarter should cost seconds, not a checkout and a pip
-      # install.
-      - name: Am I needed
+      # Runs BEFORE checkout, on purpose: a redundant restarter should cost seconds, and the chain must not depend on a
+      # checkout having worked. The script is read from main through the API, as the dispatch it makes is. A dispatch that
+      # fails three times does not stop this run collecting: the last step of the job fails the run for it.
+      - name: Wake, start the next link
         id: needed
         env:
           GH_TOKEN: ${{ github.token }}
-          # REQUIRED, and the reason this step failed every scheduled fire
-          # between 2026-09-02 14:39 and 15:5x: `gh` infers the repository from
-          # the git remote, and this step runs BEFORE checkout on purpose, so
-          # there is no remote to infer from -- "failed to determine base repo".
-          # Dispatched runs never hit it (they exit above), so the chain kept
-          # running and only the restarter was broken, which is the one failure
-          # you would not notice until you needed it.
           GH_REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          CHAIN: ${{ github.event.inputs.chain }}
+          SLOT: ${{ github.event.inputs.slot }}
+          RUN_ID: ${{ github.run_id }}
         run: |
-          if [ "${{ github.event_name }}" != "schedule" ]; then
-            echo "dispatched (${{ github.event_name }}) -- always proceeds"
+          if [ "$EVENT_NAME" != "schedule" ] && [ "$CHAIN" != "true" ]; then
+            echo "one-shot ($EVENT_NAME): collects its hour and stops, no chain"
             echo "proceed=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # Any other run of THIS workflow still going, excluding this one, ON
-          # MAIN. Scoped to branch=main because a real chain link only ever
-          # runs there -- the restarter fires on the default branch and
-          # "Dispatch successor" below hardcodes --ref main -- so a one-shot
-          # workflow_dispatch test run on a feature branch (someone verifying
-          # a collect.yml change before merging it, say) is not the chain and
-          # must not be read as one. Before this filter it was: SEB-125, live
-          # test dispatches against phase5-app-push-identity sat in_progress
-          # across a chain link's post-sleep recheck (below), that link read
-          # them as "another link already alive" and stood down, and because
-          # only a real link ever forges the next one, nothing continued the
-          # chain from there -- the restarter's own scheduled fires are the
-          # one documented ~26%-unreliable (2026-08-18 measurement) recovery
-          # path, and collection sat dead for over an hour before the gap
-          # crossed the watchdog's threshold.
-          #
-          # Asked by STATUS, not by scanning the newest N runs. The previous
-          # version listed the 50 most recent and filtered them, which fails
-          # exactly when it matters: a chain link sleeps for up to 30 minutes,
-          # so under any burst it falls out of the newest-50 window and the gate
-          # concludes "chain dead" while the chain is very much alive -- and
-          # then starts another one. On 2026-09-05 a scheduled fire did exactly
-          # that with ~20 chains running, which is part of how the pile-up grew.
-          # Status-filtered queries have no window and cannot drift.
-          alive=""
-          for st in in_progress queued; do
-            [ -n "$alive" ] && break
-            alive=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/collect.yml/runs?status=$st&branch=main&per_page=100" \
-                      --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }} and .display_title != \"collect one-shot\") | .id] | first // \"\"")
+          for i in 1 2 3; do
+            gh api -H "Accept: application/vnd.github.raw" "repos/$GH_REPO/contents/tools/collect_chain.py?ref=main" > "$RUNNER_TEMP/collect_chain.py" && break
+            [ "$i" = 3 ] && { echo "::error::could not read tools/collect_chain.py from main, so this link cannot wake"; exit 1; }
+            sleep 5
           done
-          if [ -n "$alive" ]; then
-            echo "chain alive, run $alive"
-            echo "proceed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "chain dead, restarting"
-            echo "proceed=true" >> "$GITHUB_OUTPUT"
-          fi
+          python3 "$RUNNER_TEMP/collect_chain.py" wake
 
       - uses: actions/checkout@v4
         if: steps.needed.outputs.proceed == 'true'
@@ -760,20 +733,11 @@ jobs:
         # (the id= anchors moved) makes it fail loud.
         run: python3 tools/bake_homepage.py
 
-      # Machine view (SEB-301, 21 Oct). A markdown twin of every page and llms.txt, read straight off the pages this run
-      # just baked, so every number in a twin is one the page showed for this hour. tools/emit_markdown.py skips when the
-      # twins already carry this hour (idempotent like the rest of this file); always() so a render hiccup here never
-      # blocks the commit below, and a failed render leaves the last hour's twins in place rather than half-written ones.
-      - name: Markdown twins of every page, and llms.txt
+      # The machine room's numbers (SEB-427) are data (data/machine_room.json, data/machine_room_prs.csv): worked out here and
+      # committed below. The pages are not built here any more. tools/build_site.py builds them after the commit (SEB-436).
+      - name: Machine room numbers
         if: always() && steps.needed.outputs.proceed == 'true'
-        run: python3 tools/emit_markdown.py
-
-      # Pages that show what they draw with scripts off (SEB-431). Renders the ten shell pages in headless Chrome and writes each one's
-      # drawn body into a <noscript> block in its own HTML (tools/bake_pages.py). Idempotent. A page that draws too little is left as it
-      # was and the step goes red, never green; always() so a render hiccup does not block the commit below.
-      - name: Bake what each page draws into its HTML
-        if: always() && steps.needed.outputs.proceed == 'true'
-        run: python3 tools/bake_pages.py
+        run: python3 tools/emit_machine_room.py
 
       # Mints a margin-agents GitHub App installation token so the commit
       # below is pushed -- and therefore reviewed, once branch protection is
@@ -903,15 +867,11 @@ jobs:
                    data/corridor_variant_legs.csv data/index_held.csv data/source_pairs.json data/events.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
-          # index.html itself -- D1's bake_homepage.py rewrites it in place
-          # every pass. Not under data/ or c/, so the MISSED fallback below
-          # (scoped to those two paths on purpose, per the comment there)
-          # would never catch it if left off this list; named explicitly
-          # instead of widening that fallback's pathspec for one file.
-          if [ -f index.html ]; then git add index.html; fi
-          # Machine view (SEB-301, 21 Oct): the markdown twin of each top-level page, and llms.txt. Named explicitly, same
-          # reason as index.html above -- not under data/, so the MISSED fallback would never catch them.
-          for f in index.md countries.md sending-money.md sources.md findings.md how-it-works.md how-it-was-built.md llms.txt; do
+          # Generated pages are not staged (SEB-436): the .md twins, llms.txt, sitemap.xml, robots.txt, 404.html, the country and
+          # finding pages and the baked blocks in the page templates are built after this commit by tools/build_site.py and
+          # deployed with actions/deploy-pages. They are in .gitignore, and checks.yml fails a PR that puts one in git.
+          # The machine room's numbers (SEB-427): data, tracked, rewritten every run by tools/emit_machine_room.py.
+          for f in data/machine_room.json data/machine_room_prs.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # Directories: one file per country, a page per country, one
@@ -928,11 +888,6 @@ jobs:
           # which is the point of staging the directory rather than naming
           # the files.
           for d in data/countries data/receipts data/corridor_receipts data/provider_receipts data/pricechange_receipts data/meter_receipts data/delivery_receipts data/bundle; do
-            if [ -d "$d" ]; then git add "$d"; fi
-          done
-          # Machine view (SEB-301, 21 Oct): one markdown twin per country and per finding. A separate loop, not added to
-          # the one above, so this change stays purely additive (no existing line edited).
-          for d in country finding; do
             if [ -d "$d" ]; then git add "$d"; fi
           done
           # The second official rate (BACKLOG 10): a new sidecar CSV, its own loop so no existing line is edited.
@@ -986,23 +941,6 @@ jobs:
           # The dollar map timeline (SEB-384): a new folder of JSON, a new year file each January. Its own loop for the same reason.
           for d in data/map_timeline; do
             if [ -d "$d" ]; then git add "$d"; fi
-          done
-          # sitemap.xml and robots.txt (SEB-425): tools/emit_markdown.py rewrites them every run (lastmod is the build's hour) and they are
-          # tracked, so left unstaged they make `git pull --rebase` refuse and Commit samples fail (31 Oct, from the 09:05 UTC run).
-          # Their own loop so no existing line is edited.
-          for f in sitemap.xml robots.txt; do
-            if [ -f "$f" ]; then git add "$f"; fi
-          done
-          # The pages the bake step writes into (SEB-431) and the 404 page the markdown step writes. Tracked, so left unstaged they make
-          # `git pull --rebase` refuse, as sitemap.xml did on 31 Oct. Their own loop so no existing line is edited.
-          for f in countries.html sending-money.html sources.html research.html events.html how-it-works.html how-it-was-built.html \
-                   research-capital-controls.html research-source-pairs.html 404.html; do
-            if [ -f "$f" ]; then git add "$f"; fi
-          done
-          # The machine room's markdown twin (SEB-427, merged 31 Oct 12:08 UTC): written every run by the markdown step, so it is tracked
-          # and left unstaged it made Commit samples fail from the 12:35 UTC run. Its own loop so no existing line is edited.
-          for f in machine-room.md; do
-            if [ -f "$f" ]; then git add "$f"; fi
           done
           # One file a day for the big P2P tables (SEB-301, 31 Oct): data/p2p_ads/, data/p2p_ads_sellers/, data/p2p_offers/. Staged as
           # directories so each day's first file needs no edit here. Their own loop so no existing line is edited.
@@ -1074,129 +1012,47 @@ jobs:
           # daily_history() and latest_by_ccy() drifted before this fix.
           python3 tools/check_index_consistency.py
 
-      # 5. THE LINK. What makes the chain a chain: sleep to the next slot, then
-      # start the next run with the workflow's own GITHUB_TOKEN.
-      #
-      # This works because of one documented exception. GitHub, "Triggering a
-      # workflow from a workflow":
-      #
-      #   "When you use the repository's GITHUB_TOKEN to perform tasks, events
-      #    triggered by the GITHUB_TOKEN will not create a new workflow run,
-      #    with the following exceptions: workflow_dispatch and
-      #    repository_dispatch events always create workflow runs."
-      #
-      # always(), so a link is forged even when the collection above went red --
-      # one bad hour must not end the chain. It runs AFTER the freshness guard
-      # so a stale-data failure is still loud, and after the commit so a crash
-      # here cannot cost a sample that was already pushed.
-      # ONLY A CHAIN LINK FORGES THE NEXT ONE. This is what stops a stray
-      # dispatch from becoming a second, permanent, self-perpetuating chain.
-      #
-      # On 2026-09-05 that is exactly what happened: a laptop reboot re-loaded
-      # a launchd agent that POSTs repository_dispatch twice an hour, every one
-      # of those runs dispatched a successor, and none of the resulting chains
-      # ever died. They all sleep to the same :05/:35 slots, so they converged
-      # and fired in clumps -- 41 concurrent runs before it was caught.
-      #
-      # So: a run continues the chain only if it IS the chain (dispatched with
-      # chain=true) or is a scheduled fire starting a new one. Anything else --
-      # a repository_dispatch, a bare `gh workflow run` -- collects its hour and
-      # stops. Useful, harmless, one-shot. Checked here rather than by counting
-      # live runs, because counting races: parent and successor overlap by
-      # seconds at handover, and a "who is oldest" rule can kill the very chain
-      # it is meant to protect.
-      #
-      # THE 2026-09-13/14 GAP: the "Am I needed" gate above is what tells two
-      # would-be chains apart, and it only runs for a scheduled fire -- once a
-      # run carries chain=true it forges the next link unconditionally, with no
-      # re-check. That is fine in steady state, but it means the only place two
-      # independent chains can ever be told apart is a check that itself races:
-      # if two schedule fires both read "chain dead" before either run's own
-      # existence is visible to the other's `runs?status=` query -- plausible
-      # right after an outage, when several restarter fires land close together
-      # -- each starts its own permanent chain, and nothing ever merges them
-      # back down. That is what happened: two chains, still forming a moment
-      # later on 2026-09-13, converged on the same :05/:35 slots and raced to
-      # push the same commit -- 6 of 24 hours delivered instead of 24.
-      #
-      # So this step re-runs the same status-based check immediately before it
-      # forges the next link, for every run, chain or schedule. It does not
-      # carry the restarter's race: by the time a link reaches this line it has
-      # been alive for the run's full duration (collection plus up to the
-      # 30-minute sleep above), long past any propagation delay, so a sibling
-      # chain is always visible by now. Two live chains each see the other here
-      # and both stand down, rather than both re-forging -- worst case a gap
-      # until the next restarter fire (<=30 min), never a permanent second
-      # chain. A healthy single chain is unaffected: by the time a link reaches
-      # this check, its own parent finished minutes ago, so it only ever sees
-      # itself.
-      - name: Dispatch successor
-        if: >-
-          always() && steps.needed.outputs.proceed == 'true'
-          && (github.event_name == 'schedule' || github.event.inputs.chain == 'true')
-        env:
-          GH_TOKEN: ${{ github.token }}
-          # Not strictly needed here -- this step runs after checkout, so `gh`
-          # can infer the repo -- but the chain must not depend on a checkout
-          # having succeeded to forge its next link.
-          GH_REPO: ${{ github.repository }}
+      # SEB-436. The site is built AFTER the data is committed and pushed, so a build or deploy problem can never stop the data
+      # (until 2 Nov the generated pages went up in the same push, and a page that grew made GitHub refuse the push of prices).
+      # tools/build_site.py builds the pages (the .md twins, llms.txt, sitemap.xml, 404.html, the country pages, the baked
+      # <noscript> blocks) and collects the site into _site/. A build that fails twice collects nothing and goes red; the deploy
+      # job below does not run and the site stays on its last good build. The same build runs for a PR that touches pages
+      # (pages.yml), so a change that breaks it is caught before it merges.
+      - name: Build the site
+        id: site
+        if: always() && steps.needed.outputs.proceed == 'true'
+        run: python3 tools/build_site.py
+
+      - name: Upload the site
+        id: upload
+        if: always() && github.ref == 'refs/heads/main' && steps.site.outcome == 'success'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      # Last, so it cannot hold anything back: the run goes red when the next link could not be started.
+      - name: Fail the run if the next link was not started
+        if: always() && steps.needed.outputs.dispatch_failed == 'true'
         run: |
-          # Seconds until the next :05 or :35 UTC. Computed from the clock at
-          # this instant, so a slow collection shortens the sleep instead of
-          # pushing the whole chain later and later.
-          now_m=$(date -u +%M); now_s=$(date -u +%S)
-          now_m=$((10#$now_m)); now_s=$((10#$now_s))
-          if   [ "$now_m" -lt 5  ]; then target=5
-          elif [ "$now_m" -lt 35 ]; then target=35
-          else target=65; fi          # 65 == :05 of the next hour
-          wait=$(( (target - now_m) * 60 - now_s ))
-          [ "$wait" -lt 5 ] && wait=5   # never dispatch into the slot just left
-          echo "now $(date -u +%H:%M:%SZ), next slot :$(printf '%02d' $((target % 60))), sleeping ${wait}s"
-          sleep "$wait"
+          echo "::error::the next link was not started (see 'Wake, start the next link'). The box and the cron restart the chain."
+          exit 1
 
-          # Re-check right before forging -- see "THE 2026-09-13/14 GAP" above.
-          # Same status-by-API check as "Am I needed", excluding this run, and
-          # same branch=main scope -- see SEB-125 above the "Am I needed" one.
-          alive=""
-          for st in in_progress queued; do
-            [ -n "$alive" ] && break
-            alive=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/collect.yml/runs?status=$st&branch=main&per_page=100" \
-                      --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }} and .display_title != \"collect one-shot\") | .id] | first // \"\"")
-          done
-          if [ -n "$alive" ]; then
-            echo "another link already alive (run $alive) -- standing down instead of forking a second chain"
-            exit 0
-          fi
-
-          # A failed dispatch breaks the chain, so it must be LOUD if every
-          # attempt below fails: the run goes red, and the schedule's next
-          # fire finds no link alive and restarts. That recovery path is
-          # real but slow and documented as unreliable (the schedule comment
-          # above measured ~26-74% delivery), so it is worth a few retries
-          # first rather than handing off on the first try. SEB-168: this
-          # exact call failed with "HTTP 504: We couldn't respond to your
-          # request in time" at 2026-09-30 03:05:12Z, killed the chain
-          # outright, and the restarter did not fire for 5+ hours after --
-          # the same transient-504 shape PR #271's body already flagged from
-          # 2026-09-29. A GitHub-side timeout, not a real block, so retrying
-          # before giving up costs nothing and fixes most of these in place.
-          attempt=1
-          until gh workflow run collect.yml --ref main -f chain=true; do
-            if [ "$attempt" -ge 3 ]; then
-              echo "::error::dispatch failed $attempt times in a row -- giving up, chain ends here"
-              exit 1
-            fi
-            echo "dispatch attempt $attempt failed, retrying in 10s"
-            attempt=$((attempt + 1))
-            sleep 10
-          done
-          # `gh workflow run` prints no id, so read it back. Best effort only --
-          # the dispatch is what matters and a slow-to-appear run must not fail
-          # a step that already succeeded.
-          sleep 5
-          new_id=$(gh run list --workflow=collect.yml --limit 10 \
-                     --json databaseId,event,status \
-                     --jq '[.[] | select(.event == "workflow_dispatch")
-                                | select(.status == "in_progress" or .status == "queued")
-                                | .databaseId] | first // ""' || true)
-          echo "successor dispatched: run ${new_id:-<id not yet visible>}"
+  # Publishes what the collect job built. A separate job so a deploy problem is its own red step and the data is already safe.
+  deploy:
+    needs: collect
+    if: always() && needs.collect.outputs.built == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

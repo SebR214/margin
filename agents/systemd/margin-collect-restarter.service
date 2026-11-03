@@ -1,0 +1,8 @@
+[Unit]
+Description=margin.wiki: start the collection chain if it has died
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/margin/env
+ExecStart=/srv/margin/agents/collect_restarter.sh

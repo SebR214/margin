@@ -1,6 +1,6 @@
 # margin.wiki
 
-Every hour, margin.wiki prices a dollar in over 50 countries against the official exchange rate, and prices sending money on 11 routes with every fee we can measure. The site is at [margin.wiki](https://margin.wiki), served from this repository's `main` branch by GitHub Pages.
+Every hour, margin.wiki prices a dollar in over 50 countries against the official exchange rate, and prices sending money on 11 routes with every fee we can measure. The site is at [margin.wiki](https://margin.wiki), served by GitHub Pages from a build of this repository's `main` branch (see How things get built).
 
 Every figure on this page was counted from the files on `main` on 12 Oct 2026, around 03:07 UTC. The counts change every hour.
 
@@ -32,9 +32,17 @@ CSV files are only ever appended to. A failed pull is a row with `source_ok=fals
 
 ## How collection runs
 
-On GitHub Actions. [`collect.yml`](.github/workflows/collect.yml) runs about every 30 minutes: each run waits for the next slot and starts the next one itself, and a schedule at 17 and 47 minutes past the hour restarts the chain if it has died. Each hour it pulls prices, writes the rows, then builds the published files and commits them to `main`. [`collector_watchdog.yml`](.github/workflows/collector_watchdog.yml) and [`watchdog.yml`](.github/workflows/watchdog.yml) check it from outside. A missed hour cannot be refilled, so nothing in `collector*.py` or `collect.yml` merges without a person.
+On GitHub Actions. [`collect.yml`](.github/workflows/collect.yml) runs about every 30 minutes: each run waits for the next slot and starts the next one itself, and a schedule at 17 and 47 minutes past the hour restarts the chain if it has died. Each hour it pulls prices, writes the rows, builds the published data files and commits them to `main`. Then it builds the site and deploys it (see How things get built). [`collector_watchdog.yml`](.github/workflows/collector_watchdog.yml) and [`watchdog.yml`](.github/workflows/watchdog.yml) check it from outside. A missed hour cannot be refilled, so nothing in `collector*.py` or `collect.yml` merges without a person.
 
 Checks run on every pull request ([`checks.yml`](.github/workflows/checks.yml)). Work is tracked in Linear, not in GitHub issues.
+
+## How things get built
+
+`main` holds the data and the page templates. It holds no finished page. After the data is committed, [`tools/build_site.py`](tools/build_site.py) builds the generated pages on the runner (the text each page draws, written into the page for readers without scripts, the `.md` copy of each page, `llms.txt`, `sitemap.xml`, `robots.txt`, the 404 page and one page per country), puts the whole site in `_site/`, and `actions/deploy-pages` publishes it. [`collect.yml`](.github/workflows/collect.yml) does this after every collection run. [`pages.yml`](.github/workflows/pages.yml) does it when a change to a page, script, style or word merges, and builds without publishing on a pull request that touches the pages.
+
+Because the pages are not in git, a page that grows can no longer block a push of prices. If a build fails, nothing is published and the site stays on its last good version, and the data is already saved. `checks.yml` fails a pull request that puts a generated page in git.
+
+What restarts collection: each run sleeps until its slot, starts the next run, and only then collects ([`tools/collect_chain.py`](tools/collect_chain.py)), so a slow or cancelled run cannot end the chain. If every run is gone, a timer on the Hetzner box starts one within 10 minutes ([`agents/collect_restarter.sh`](agents/collect_restarter.sh), installed with `agents/install_restarter.sh`). The GitHub schedule does the same as a second line. [`collector_watchdog.yml`](.github/workflows/collector_watchdog.yml) emails when no sample has landed in 90 minutes or the site has not been deployed in 90 minutes.
 
 ## Check a number
 

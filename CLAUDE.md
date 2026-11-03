@@ -6,10 +6,10 @@ Read this file and the Linear issue you were given. Load nothing else unless the
 
 ## Where things run
 
-- Site: margin.wiki, GitHub Pages, served from `main`.
-- Collection: GitHub Actions, `collect.yml`, self-chaining about every 30 minutes. `collector_watchdog.yml` watches it.
+- Site: margin.wiki, GitHub Pages. `main` holds the data and the page templates, not the finished pages. The generated pages (the baked `<noscript>` blocks, the `.md` twins, `llms.txt`, `sitemap.xml`, `robots.txt`, `404.html`, the country pages) are built on the runner after each collection run by `tools/build_site.py` and published with `actions/deploy-pages` (`collect.yml`; `pages.yml` for a merged page, script, style or word change). Never commit a generated page: they are in `.gitignore` and `checks.yml` fails a PR that adds one.
+- Collection: GitHub Actions, `collect.yml`, self-chaining about every 30 minutes: each run sleeps to its slot, starts the next run, then collects (`tools/collect_chain.py`), so a slow run cannot end the chain. The Hetzner box restarts a dead chain within 10 minutes (`agents/collect_restarter.sh`, timer `margin-collect-restarter`, installed once with `agents/install_restarter.sh`); the GitHub cron is the second line. `collector_watchdog.yml` watches it and emails through healthchecks.io when no sample has landed, or the site has not been deployed, in 90 minutes.
 - Raw tables (SEB-422): the ad tables and order-book depth (`data/p2p_ads/`, `data/p2p_ads_sellers/`, `data/p2p_offers/`, `data/depth/`) move to the public repo `SebR214/margin-data`, one folder per table, one file a day. `collect.yml` checks it out, sets `MARGIN_RAW_DIR` (read by `tools/daily_csv.py`), and pushes it in its own commit step. It switches on by itself once the margin-agents App can push there (`tools/raw_storage.py probe`); until then the tables stay in `data/`. Nothing in either repo passes 80 MB.
-- Hetzner box: the public API at api.margin.wiki (`margin-serve`), the P2P collector (`margin-p2p-box`) and the nightly analyst. None of these call a model. The analyst reads the CSVs, checks numbers and stores findings (SEB-301).
+- Hetzner box: the public API at api.margin.wiki (`margin-serve`), the P2P collector (`margin-p2p-box`), the nightly analyst and the collection restarter (`margin-collect-restarter`). None of these call a model. The analyst reads the CSVs, checks numbers and stores findings (SEB-301).
 - Work queue: `BACKLOG.md` for track A, Linear project `margin.wiki`, team `SEB`, for the rest. Not GitHub issues.
 - Agents (SEB-301, Seb's plan of 25 Oct), all on GitHub Actions, no loops, nothing on the box or on Seb's Mac:
   - Collector: `collect.yml`, no model.
