@@ -1,0 +1,25 @@
+name: zz-app-permissions-check
+# Throwaway (SEB-436): prints what the margin-agents App is granted. Never prints the token. Deleted with its branch.
+on:
+  pull_request:
+    paths: [".github/workflows/zz_app_check.yml"]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mint a token and show its permissions
+        env:
+          MARGIN_GH_APP_ID: ${{ secrets.MARGIN_GH_APP_ID }}
+          MARGIN_GH_INSTALL_ID: ${{ secrets.MARGIN_GH_INSTALL_ID }}
+          MARGIN_GH_APP_KEY_CONTENT: ${{ secrets.MARGIN_GH_APP_KEY }}
+        run: |
+          set +x
+          key_file="$RUNNER_TEMP/k.pem"
+          umask 077
+          printf '%s\n' "$MARGIN_GH_APP_KEY_CONTENT" > "$key_file"
+          export MARGIN_GH_APP_KEY="$key_file"
+          GH_TOKEN_SHOW_PERMISSIONS=1 agents/gh_token.sh > /dev/null
+          rm -f "$key_file"
