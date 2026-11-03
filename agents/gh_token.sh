@@ -54,4 +54,10 @@ if [ -z "$token" ]; then
   exit 1
 fi
 
+# Opt in with GH_TOKEN_SHOW_PERMISSIONS=1 to see what the App was granted on stderr (never the token), so a missing permission is
+# named instead of guessed at. agents/collect_restarter.sh sets it.
+if [ -n "${GH_TOKEN_SHOW_PERMISSIONS:-}" ]; then
+  printf '%s' "$resp" | python3 -c 'import json,sys; print("App token permissions:", json.dumps(json.load(sys.stdin).get("permissions", {}), sort_keys=True))' >&2 || true
+fi
+
 printf '%s' "$token"

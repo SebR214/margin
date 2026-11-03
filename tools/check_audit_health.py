@@ -21,6 +21,28 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 RUNS = 3
 ACK = os.path.join(DATA, "claims_acknowledged.json")
+CLAIMS = os.path.join(ROOT, "claims.json")
+
+
+def collector_owned(path=CLAIMS):
+    """Claims that are false only because hours are missing from collection ("owner": "collector" in claims.json). The collector
+    watchdog (tools/check_collector_health.py) owns those: one outage is one email, not that one and a second from every claim the
+    outage makes false, which stayed red for a day after collection was fixed (SEB-436)."""
+    with open(path) as f:
+        return {c["key"] for c in json.load(f)["claims"] if c.get("owner") == "collector"}
+
+
+def alarming(claims, owned, ack):
+    """(claims that fail the watchdog, one line each for the ones that do not). `claims` are the persistent false ones."""
+    out, notes = {}, []
+    for k, v in claims.items():
+        if k in owned:
+            notes.append("OWNED BY THE COLLECTOR WATCHDOG: claim %s is false because collection has gaps. Not counted here." % k)
+        elif k in ack:
+            notes.append("ACKNOWLEDGED until %s: claim %s is false. %s" % (ack[k]["until"], k, ack[k].get("reason", "")))
+        else:
+            out[k] = v
+    return out, notes
 
 
 def acknowledged(today=None, path=ACK):
@@ -101,6 +123,13 @@ def self_test():
     assert persistent_audit_failure(latest, bad_hist) == (True, ["country:MAD"])
     assert persistent_audit_failure(latest, ok_hist)[0] is False
     assert persistent_audit_failure({"failed": 0, "failures": []}, bad_hist)[0] is False
+    # a claim the collector owns (false only because hours are missing) never fails this watchdog, whatever else does
+    gaps = {"home.gap": {"ok": False}, "c.new": {"ok": False}}
+    out, notes = alarming(gaps, {"home.gap"}, {})
+    assert list(out) == ["c.new"] and len(notes) == 1 and "COLLECTOR WATCHDOG" in notes[0], (out, notes)
+    assert alarming({"home.gap": {"ok": False}}, {"home.gap"}, {}) == ({}, notes), "a gap alone is not an alarm"
+    assert alarming({"home.gap": {"ok": False}}, set(), {})[0], "without the owner mark it would ring"
+    assert collector_owned() >= {"homeData.updatedLine"}, "claims.json marks the hourly claim as the collector's"
     # an acknowledged claim is listed but does not fail; once its date passes it fails again
     import tempfile
     with tempfile.TemporaryDirectory() as d:
@@ -117,11 +146,9 @@ def main():
         return 0
     latest, ah, status, ch = load()
     audit_bad, ids = persistent_audit_failure(latest, ah)
-    claims = persistent_false_claims(status, ch)
-    ack = acknowledged()
-    for k in [k for k in claims if k in ack]:
-        print("ACKNOWLEDGED until %s: claim %s is false. %s" % (ack[k]["until"], k, ack[k].get("reason", "")))
-        del claims[k]
+    claims, notes = alarming(persistent_false_claims(status, ch), collector_owned(), acknowledged())
+    for line in notes:
+        print(line)
     for i in ids:
         print("DOWN: number %s has not matched its raw rows for %d runs" % (i, RUNS))
     for k in claims:

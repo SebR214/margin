@@ -1,0 +1,91 @@
+name: pages
+
+# Builds the site and publishes it with GitHub Pages (SEB-436). The generated pages (the .md twins, llms.txt, sitemap.xml, 404.html, the
+# country pages and the baked <noscript> blocks) are not in git: tools/build_site.py builds them on the runner.
+#
+# collect.yml does this after every collection run (its "deploy" job), so the data is never more than one run old. This workflow covers
+# everything else that changes the site:
+#   - a merge to main that changes a page, a script, a style or a word (push; a push that only touches data/ is left to collect.yml),
+#   - a person or a check starting it by hand (workflow_dispatch),
+#   - a pull request that touches the build or the pages: it builds and does not deploy, so a change that breaks the build is
+#     caught before it merges.
+# Both workflows deploy through the "pages" concurrency group, one at a time, never cancelling a deploy that has started.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "data/**"
+      - "BACKLOG.md"
+      - "docs/**"
+      - "tests/**"
+      - "agents/**"
+  pull_request:
+    paths:
+      - "*.html"
+      - "js/**"
+      - "css/**"
+      - "copy.json"
+      - ".gitignore"
+      - "tools/build_site.py"
+      - "tools/emit_markdown.py"
+      - "tools/emit_country_pages.py"
+      - "tools/emit_site_files.py"
+      - "tools/emit_machine_room.py"
+      - "tools/bake_pages.py"
+      - "tools/gate_common.py"
+      - ".github/workflows/pages.yml"
+      - ".github/workflows/collect.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      built: ${{ steps.upload.outcome == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # tools/emit_machine_room.py reads the repository's recent history, as collect.yml's checkout does
+          fetch-depth: 300
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build the site
+        id: site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/build_site.py
+
+      - name: Upload the site
+        id: upload
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && steps.site.outcome == 'success'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.built == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

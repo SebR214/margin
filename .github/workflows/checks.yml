@@ -79,6 +79,22 @@ jobs:
       - name: Pages that show their content without JavaScript (SEB-431)
         run: python3 tools/bake_pages.py --self-test
 
+      # SEB-436. Generated pages are built on the runner and deployed, never committed. git must hold none of them, and no page
+      # template may carry its baked block (pages.yml builds the whole site on any PR that touches the pages or the build).
+      - name: No generated page in git, and the site build works (SEB-436)
+        run: |
+          python3 tools/build_site.py --self-test
+          python3 tools/build_site.py --check-tracked
+
+      # SEB-436. The chain starts its next link before it collects, one run stands down for another only by slot, and the box restarts
+      # a dead chain. The audit watchdog leaves claims that are false only because of collection gaps to the collector watchdog.
+      - name: The collection chain, the box restarter and the one-outage-one-email rule (SEB-436)
+        run: |
+          python3 tools/collect_chain.py --self-test
+          python3 tests/collect_restarter.py
+          python3 tools/check_audit_health.py --self-test
+          python3 tools/check_collector_health.py --self-test
+
       - name: The machine room numbers (SEB-427)
         run: python3 tools/emit_machine_room.py --self-test
 
