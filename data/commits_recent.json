@@ -1,7 +1,28 @@
 {
- "as_of_utc": "2026-11-03T12:19:10Z",
+ "as_of_utc": "2026-11-03T13:20:34Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "2fee0dfeefcd1c6b0a1734d4acd440b6c1073acf",
+   "html_url": "https://github.com/SebR214/margin/commit/2fee0dfeefcd1c6b0a1734d4acd440b6c1073acf",
+   "date": "2026-11-03T13:09:58Z",
+   "email": "person",
+   "message": "SEB-436: collect checks out the tip of main, and the claims audit runs after the routes files (#783)\n\n* SEB-436: collect checks out the tip of main, and the claims audit runs after the routes files\n\nSince #779 a chain link is dispatched ~30 min before it collects. actions/checkout defaults to github.sha, frozen at\ndispatch, so every other link collected on a main from before the previous link's commit and its Commit samples rebase\nconflicted on every data file (3 Nov 10:05, 11:05 UTC failed; build skipped). checkout now takes ref: main.\n\nThe claims audit ran before emit_routes.py, so routeData.bigCaption compared this hour's raw rows with last hour's\nroutes_summary.json: false on every first run of an hour. With every other run failing, only false rows landed and the\nwatchdog emailed at 12:30 UTC. Moved after the routes emitters, before the bake that reads claims_status.json.\nChecked locally: bigCaption ok, differ [].\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVGgsNosa4c5zdXbTMr\n\n* SEB-436: movers self-test takes as many movers as qualify, so a gap a week ago does not fail the run\n\n27 Oct 10-13 UTC has no figures, so on 3 Nov at those hours no country has a weekly change. The self-test demanded 8,\nfailed the hourly step and the checks job, and so blocked every merge to main.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVGgsNosa4c5zdXbTMr\n\n* SEB-436: movers ranks run 1..n for however many qualify\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVGgsNosa4c5zdXbTMr\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "639e778c8a525ab478b1a68d2e916bd6e9619fe9",
+   "html_url": "https://github.com/SebR214/margin/commit/639e778c8a525ab478b1a68d2e916bd6e9619fe9",
+   "date": "2026-11-03T12:45:01Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "aider builder: nothing to build"
+  },
+  {
+   "sha": "bbbc697cd03cfca7e23d76d7c9a9b25d7c76acd5",
+   "html_url": "https://github.com/SebR214/margin/commit/bbbc697cd03cfca7e23d76d7c9a9b25d7c76acd5",
+   "date": "2026-11-03T12:21:03Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-03T12:21Z"
+  },
   {
    "sha": "03a94b347489a04a41b35ff3a5d13e6e04b4658e",
    "html_url": "https://github.com/SebR214/margin/commit/03a94b347489a04a41b35ff3a5d13e6e04b4658e",
@@ -680,27 +701,6 @@
    "date": "2026-11-01T14:07:09Z",
    "email": "person",
    "message": "SEB-425: one thing in one place, How it was built holds the machine room, Research holds the findings, cash mark on home (#763)\n\n* One thing in one place: How it was built holds the machine room, Research holds the findings, one-line footer, cash mark on the home grid\n\n- machine-room.html and findings.html redirect; agent-incidents goes to the incidents on How it was built\n- Research lists the two research pieces and the five published findings, each saying how often it updates\n- the nav drops Findings; finding pages go back to Research\n- footer on every page: Code and raw data on GitHub \u00b7 How it was built; the home agents line links there\n- home grid: a dot where a stablecoin is cheaper than cash dollars, the gap on hover or tap\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n* How it works: drop the unused second list of sources (Sources is the list)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n* Restack on main: twins and generated files\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n* Rebuild sources list and country pages on latest main\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n* Footer waits for the page headline (no flash on an empty page), Events gets the footer links\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "751d853c540adddaf8158cd587eb1dba16448e15",
-   "html_url": "https://github.com/SebR214/margin/commit/751d853c540adddaf8158cd587eb1dba16448e15",
-   "date": "2026-11-01T13:48:06Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-11-01T13:48Z"
-  },
-  {
-   "sha": "a4aa137d7cae0e21c55ef3fca19089ee7d58b483",
-   "html_url": "https://github.com/SebR214/margin/commit/a4aa137d7cae0e21c55ef3fca19089ee7d58b483",
-   "date": "2026-11-01T13:47:57Z",
-   "email": "person",
-   "message": "SEB-425: true pages, every source on Sources, page tops match home (#762)\n\n* Design chat A and D: How it works cash line, every source on Sources, retire agent-incidents, one-place rule\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n* Every page top matches home: headline 40px under the header, 20px grey line, back links in one place\n\nHome headline no longer pushed down, agents line is a note, grid heading leads with the 27 of 51.\nResearch leads 20px, How it works gets the full nav, country money lines 17px, event page gets a back link.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n* Count check reads the home grid heading's new word order\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n* Rebuild sources list and country pages after rebasing on main\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "5c1af668d9892b365813665cedd84e739558b323",
-   "html_url": "https://github.com/SebR214/margin/commit/5c1af668d9892b365813665cedd84e739558b323",
-   "date": "2026-11-01T13:28:13Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-11-01T13:28Z"
   }
  ]
 }
