@@ -1,14 +1,14 @@
-# In Rwanda a stablecoin dollar costs 0.9% more than the official rate
+# In Rwanda a stablecoin dollar costs 1.1% more than the official rate
 
-Prices from the 23:00 UTC hour, 2 Nov.
+Prices from the 00:00 UTC hour, 3 Nov.
 
-The official rate is 1,475.65 RWF per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 1,490 RWF. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 1,475.65 RWF per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 1,492 RWF. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 148,958 RWF. The official rate says 147,565 RWF.
+For US$100, people pay 149,200 RWF. The official rate says 147,565 RWF.
 
 Only 1 source
 
-Prices from the 23:00 UTC hour, 2 Nov
+Prices from the 00:00 UTC hour, 3 Nov
 
 You could buy at least US$5,000 here before the price goes up 1%.
 
@@ -26,7 +26,7 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-1,490 RWF +0.9%
+1,492 RWF +1.1%
 
 ## Where to go next
 

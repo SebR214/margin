@@ -1,12 +1,12 @@
 # No price for Lebanon this hour
 
-Prices from the 23:00 UTC hour, 2 Nov.
+Prices from the 00:00 UTC hour, 3 Nov.
 
 Held back this hour: too few people selling to call it a price. Earlier readings stay on the chart.
 
 The last price we published was +0.6%, on 2 Nov.
 
-Prices from the 23:00 UTC hour, 2 Nov
+Prices from the 00:00 UTC hour, 3 Nov
 
 <https://margin.wiki/data/countries/LBP.json>
 
