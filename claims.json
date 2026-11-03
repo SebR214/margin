@@ -117,6 +117,16 @@
         "researchData.monthsAsOf"
       ],
       "note": "Live months on the capital controls page equal the medians re-derived from data/index_hourly.csv."
+    },
+    {
+      "key": "homeData.hoursMissing",
+      "type": "hours_missing",
+      "window_hours": 24,
+      "owner": "collector",
+      "guards": [
+        "homeData.hoursMissingOne"
+      ],
+      "note": "Sentence: N of the last 24 hours have no prices because our collection was down. N is recounted from the stored readings (basis.csv and p2p_basis.csv) every hour and the page shows the sentence only when N is above zero. False only when there are no readings at all, which is the collector's to report."
     }
   ]
 }
