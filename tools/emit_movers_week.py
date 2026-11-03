@@ -110,7 +110,7 @@ def self_test(doc):
     # As many as qualify, up to 8. A collection gap 7 days ago leaves fewer (none, on 3 Nov 12 UTC: 27 Oct 10-13 UTC has no
     # figures) and a gap stays a gap. Demanding 8 failed the hourly run and the checks job for those hours every week.
     assert len(t) == min(TOP, doc["eligible"]), "top is the first %d of the eligible" % TOP
-    assert [x["rank"] for x in t] == list(range(1, TOP + 1))
+    assert [x["rank"] for x in t] == list(range(1, len(t) + 1))
     assert all(abs(a["change_pp"]) >= abs(b["change_pp"]) for a, b in zip(t, t[1:])), "sorted by size"
     for x in t:
         assert abs(x["change_pp"] - (x["now_pct"] - x["then_pct"])) < 0.001
