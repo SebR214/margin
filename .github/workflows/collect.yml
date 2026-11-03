@@ -6,14 +6,16 @@ name: collect
 # real link stood down at 10:35, and the manual run ended without a successor:
 # collection stopped for 2h20m until a restarter fire landed at 12:54.
 # A chain link carries its slot in its title ("collect slot=2026-11-03T10:35Z"): tools/collect_chain.py orders the live runs by it.
-run-name: ${{ (github.event_name == 'schedule' || github.event.inputs.chain == 'true') && (github.event.inputs.slot && format('collect slot={0}', github.event.inputs.slot) || 'collect') || 'collect one-shot' }}
+run-name: ${{ (github.event_name == 'schedule' || github.event.inputs.chain == 'true' || github.event.client_payload.chain == 'true') && (github.event.inputs.slot && format('collect slot={0}', github.event.inputs.slot) || 'collect') || 'collect one-shot' }}
 
 on:
   # THIS WORKFLOW STARTS ITSELF. A run sleeps until its slot (:05 or :35 UTC), starts the next run with the built-in
   # GITHUB_TOKEN, and only then collects, so the chain needs no cron, no personal access token and nothing outside
   # GitHub, and a slow or cancelled run cannot end it (SEB-436, tools/collect_chain.py). The schedule below is a
   # RESTARTER, not the clock: it revives the chain if every link is gone, and a fire that finds the chain alive stands
-  # down. The Hetzner box restarts it too, every 10 minutes (agents/collect_restarter.sh). See "Wake, start the next link".
+  # down. The Hetzner box restarts it too, every 10 minutes (agents/collect_restarter.sh), with a repository_dispatch whose payload
+  # says chain=true: the margin-agents App has no Actions permission, and a dispatch event needs only Contents: write. A
+  # repository_dispatch without that payload is a one-shot. See "Wake, start the next link".
   repository_dispatch:
     types: [collect]
   schedule:
@@ -78,7 +80,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           EVENT_NAME: ${{ github.event_name }}
-          CHAIN: ${{ github.event.inputs.chain }}
+          # a person or a dispatch sets chain in the inputs; the box restarter sends a repository_dispatch with chain in its payload
+          CHAIN: ${{ github.event.inputs.chain || github.event.client_payload.chain }}
           SLOT: ${{ github.event.inputs.slot }}
           RUN_ID: ${{ github.run_id }}
         run: |
