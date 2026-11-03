@@ -38,6 +38,7 @@ Numbers, dates (day and month), currency codes and stored ids on the page are da
 | `bigLink` | Link text under the caption to country.html?ccy=DZD. | {country}, {ccy}, {date}, {gap} as bigCaption. | 6 |
 | `headlineSub` | The subhead, now under the big number block (key unchanged, writer rewrites). | Same as headline. | 30 |
 | `updatedLine` | NEW. One line under the subhead: how current the data is. The only remains of the old "This hour" section on home. | {collected} = currencies with a reading this hour, {of} = currencies expected (cycle_log.json steps.currencies). | 20 |
+| `hoursMissing`, `hoursMissingOne` | SEB-436. One line under `whatLine`, shown only when hours of the last 24 have no stored readings: how many, and why. {n} and {of} come from the claim `homeData.hoursMissing`, recounted from `data/basis.csv` and `data/p2p_basis.csv` every hour. With no hours missing nothing shows. | {n}, {of} |
 ## Counters (REMOVED)
 
 The five counters, their replay-date logic and `countersNote` are gone from home. Keys `counterReadings`, `counterSources`, `counterCurrencies`, `counterRoutes`, `counterHours`, `countersNote` are unused.

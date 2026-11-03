@@ -57,6 +57,15 @@
      data/home_facts.json is built by tools/emit_home_facts.py; each sentence shows only while data/claims_status.json says the facts
      match their source files (Claims). With no facts, a failed claim or a move of 1 point or less, the fixed headline stays. */
   function blocked(k) { return !window.Claims || window.Claims.blocked('homeData.' + k); }
+  // Hours of the last 24 with no prices, said plainly and only when there are some (SEB-436). The count is the claims audit's own
+  // recount of the stored readings (claim homeData.hoursMissing); with no hours missing, or the audit unreadable, nothing shows.
+  function hoursMissingLine() {
+    if (blocked('hoursMissing') || !window.Claims.value) { return ''; }
+    var v = window.Claims.value('homeData.hoursMissing'), n = v && v.hours_missing;
+    if (!(n > 0)) { return ''; }
+    var k = n === 1 ? 'hoursMissingOne' : 'hoursMissing';
+    return T(k) ? '<p class="body">' + esc(T(k, { n: n, of: v.window_hours })) + '</p>' : '';
+  }
   function longDate(s) { return (+s.slice(8, 10)) + ' ' + MON[+s.slice(5, 7) - 1]; }
   function nameOf(ccy) {
     var c = ((D.heat && D.heat.currencies) || []).filter(function (x) { return x.ccy === ccy; })[0];
@@ -147,6 +156,7 @@
       (T('heroWhy') ? '<p class="lead sub">' + esc(T('heroWhy')) + '</p>' : '') +
       (T('termsLine') ? '<p class="lead sub">' + esc(T('termsLine')) + '</p>' : '') +
       '<p class="lead what">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
+      hoursMissingLine() +
       // who built it and what is stored so far, as one line (21 Oct, Seb's wording); the numbers come from the files
       // the line links to How it was built (1 Nov)
       '<p class="body agents"><a href="./how-it-was-built.html">' + esc(T('agentsLine')) + (T('agentsStored') && nSources != null && tt.readings != null && tt.hours_collected != null ? ' ' +

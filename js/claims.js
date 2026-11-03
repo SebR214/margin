@@ -14,6 +14,10 @@
         .catch(function () { return null; })
         .then(function (d) { status = d; loaded = true; return d; });
     },
+    /* what the audit stored for a claim (its recount), or null. Only meaningful while blocked(key) is false. */
+    value: function (key) {
+      return status && status.claims && status.claims[key] ? status.claims[key].value || null : null;
+    },
     /* true when this copy key must not be shown. Keys with no claim are never blocked
        as long as the file loaded; a key asked about while the file is unreadable is blocked. */
     blocked: function (key) {
