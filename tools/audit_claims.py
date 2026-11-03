@@ -212,21 +212,44 @@ def claim_currency_majority_within(c):
                                      "share": round(share, 3), "pct": c["pct"], "min_share": c["min_share"]}
 
 
-def claim_updated_hourly(c):
-    """'Updated every hour': in the newest `window_hours` clock hours the collectors stored a reading in every hour."""
+def missing_in_window(hrs, n):
+    """(newest hour, the hours of the newest `n` clock hours that have no reading). `hrs` is a set of 'YYYY-MM-DDTHH'."""
+    newest = max(hrs)
+    t = dt.datetime.fromisoformat(newest + ":00")
+    want = [(t - dt.timedelta(hours=i)).strftime("%Y-%m-%dT%H") for i in range(n)]
+    return newest, [h for h in want if h not in hrs]
+
+
+def stored_hours():
+    """The clock hours (UTC) that have a stored reading from the exchanges or the sellers."""
     hrs = set()
     for name in ("basis.csv", "p2p_basis.csv"):
         for r in rows(name):
             if (r.get("source_ok") or "").strip().lower() == "true":
                 hrs.add(r["ts_utc"][:13])
+    return hrs
+
+
+def claim_updated_hourly(c):
+    """'Updated every hour': in the newest `window_hours` clock hours the collectors stored a reading in every hour."""
+    hrs = stored_hours()
     if not hrs:
         return False, {"reason": "no readings"}
-    newest = max(hrs)
-    t = dt.datetime.fromisoformat(newest + ":00")
     n = c.get("window_hours", 24)
-    want = [(t - dt.timedelta(hours=i)).strftime("%Y-%m-%dT%H") for i in range(n)]
-    missing = [h for h in want if h not in hrs]
+    newest, missing = missing_in_window(hrs, n)
     return not missing, {"window_hours": n, "newest_hour": newest, "hours_missing": len(missing), "missing_hours": missing}
+
+
+def claim_hours_missing(c):
+    """'{n} of the last 24 hours have no prices because our collection was down' (SEB-436): n is recounted from the stored readings
+    every hour. True whenever the recount can be made, because the page prints exactly this count, and shows the sentence only
+    when n is above zero. It is false only when there are no readings at all."""
+    hrs = stored_hours()
+    if not hrs:
+        return False, {"reason": "no readings"}
+    n = c.get("window_hours", 24)
+    newest, missing = missing_in_window(hrs, n)
+    return True, {"window_hours": n, "newest_hour": newest, "hours_missing": len(missing)}
 
 
 def claim_coverage_matches_index(c):
@@ -572,6 +595,7 @@ TYPES = {"stable_never_cheapest": claim_stable_never_cheapest,
          "within_of_ranked": claim_within_of_ranked,
          "currency_majority_within": claim_currency_majority_within,
          "updated_hourly": claim_updated_hourly,
+         "hours_missing": claim_hours_missing,
          "coverage_matches_index": claim_coverage_matches_index,
          "sources_counts": claim_sources_counts,
          "routes_published_equal_fresh": claim_routes_published_equal_fresh,
@@ -660,6 +684,16 @@ def self_test():
     ok, v = claim_routes_published_equal_fresh({"route": "NO->WHERE"})
     if ok:
         fails.append("unknown route passed routes_published_equal_fresh")
+    # SEB-436: the missing-hours count, on fixed hours (never on the live files)
+    hrs = {"2026-11-02T%02d" % h for h in range(0, 24)} | {"2026-11-03T00"}
+    newest, miss = missing_in_window(hrs, 24)
+    if (newest, miss) != ("2026-11-03T00", []):
+        fails.append("24 stored hours in a row reported missing hours: %s" % (miss,))
+    newest, miss = missing_in_window(hrs - {"2026-11-02T06", "2026-11-02T07", "2026-11-02T08"}, 24)
+    if miss != ["2026-11-02T08", "2026-11-02T07", "2026-11-02T06"]:
+        fails.append("three missing hours were not found: %s" % (miss,))
+    if missing_in_window({"2026-11-03T00"}, 24)[1].__len__() != 23:
+        fails.append("one stored hour should leave 23 of 24 missing")
     if fails:
         print("SELF-TEST FAILED: " + "; ".join(fails))
         return 1
