@@ -21,5 +21,14 @@ jobs:
           umask 077
           printf '%s\n' "$MARGIN_GH_APP_KEY_CONTENT" > "$key_file"
           export MARGIN_GH_APP_KEY="$key_file"
-          GH_TOKEN_SHOW_PERMISSIONS=1 agents/gh_token.sh > /dev/null
+          token="$(GH_TOKEN_SHOW_PERMISSIONS=1 agents/gh_token.sh)"
           rm -f "$key_file"
+          echo "::add-mask::$token"
+          # an event name no workflow listens to: proves the App may send a repository_dispatch, starts nothing
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $token" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/dispatches" -d '{"event_type":"collect_restarter_check"}')"
+          echo "repository_dispatch with the App token: HTTP $code"
+          # and what the Actions endpoints say to the same token, for the record
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $token" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/workflows/collect.yml/runs?per_page=1")"
+          echo "list runs with the App token: HTTP $code"
