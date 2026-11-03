@@ -107,7 +107,9 @@ def build():
 def self_test(doc):
     rc.assert_no_nan(doc)
     t = doc["top"]
-    assert len(t) == TOP, "need 8 movers"
+    # As many as qualify, up to 8. A collection gap 7 days ago leaves fewer (none, on 3 Nov 12 UTC: 27 Oct 10-13 UTC has no
+    # figures) and a gap stays a gap. Demanding 8 failed the hourly run and the checks job for those hours every week.
+    assert len(t) == min(TOP, doc["eligible"]), "top is the first %d of the eligible" % TOP
     assert [x["rank"] for x in t] == list(range(1, TOP + 1))
     assert all(abs(a["change_pp"]) >= abs(b["change_pp"]) for a, b in zip(t, t[1:])), "sorted by size"
     for x in t:
@@ -120,7 +122,7 @@ def self_test(doc):
     # a gap stays a gap: nothing published 7 days earlier, no mover; an unranked country, no mover
     assert movers_from([{"ccy": "IQD", "country": "Iraq", "index_pct": 16.0, "hour_utc": "2026-10-11T08:00:00+00:00"}], {}, {"IQD"}, {}) == []
     assert movers_from([{"ccy": "IQD", "country": "Iraq", "index_pct": 16.0, "hour_utc": "2026-10-11T08:00:00+00:00"}], pub, set(), {}) == []
-    print("movers_week self-test ok: %d eligible, top %s %+.1f" % (doc["eligible"], t[0]["ccy"], t[0]["change_pp"]))
+    print("movers_week self-test ok: %d eligible" % doc["eligible"] + (", top %s %+.1f" % (t[0]["ccy"], t[0]["change_pp"]) if t else ""))
 
 
 def main():
