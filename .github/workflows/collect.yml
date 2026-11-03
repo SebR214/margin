@@ -100,6 +100,10 @@ jobs:
       - uses: actions/checkout@v4
         if: steps.needed.outputs.proceed == 'true'
         with:
+          # The tip of main NOW, not github.sha. A chain link is dispatched ~30 min before it collects (SEB-436), and github.sha
+          # is frozen at dispatch, before the previous link committed. Checking that out meant every other link collected on a
+          # stale main and its "Commit samples" rebase conflicted on every data file (3 Nov, 10:05 to 12:35 UTC, half the runs lost).
+          ref: main
           # Phase 5: checkout's own persisted credential and the App token
           # this job sets later both write to http.https://github.com/.extraheader,
           # and git allows a config key to hold more than one value -- so
@@ -626,16 +630,6 @@ jobs:
         # country page can show the cash dollar beside the official and the stablecoin one.
         run: python3 tools/emit_cash_latest.py
 
-      - name: Audit the claims in the copy
-        if: always() && steps.needed.outputs.proceed == 'true'
-        # Every count or absolute claim (never, always, every, none, since a
-        # date) in reader-facing copy has a query in claims.json. Re-derived
-        # from the raw CSVs, written to data/claims_status.json; a claim that is
-        # not true makes the page drop that line. Never edits copy.json. See
-        # tools/audit_claims.py. Runs after the routes and countries emitters
-        # above so its published-figure cross-check sees this hour's files.
-        run: python3 tools/audit_claims.py
-
       - name: Regenerate the Research pages (SEB-423)
         if: always() && steps.needed.outputs.proceed == 'true'
         # SEB-423 step 3. Every Research page is built by a script in tools/research/ from files already on main. The live months and
@@ -722,6 +716,17 @@ jobs:
         # showed one hour fewer than the routes page in the first run of each
         # hour. Running it again here puts both on the same hour.
         run: python3 tools/emit_findings.py || echo "emit_findings failed"
+
+      - name: Audit the claims in the copy
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # Every count or absolute claim (never, always, every, none, since a
+        # date) in reader-facing copy has a query in claims.json. Re-derived
+        # from the raw CSVs, written to data/claims_status.json; a claim that is
+        # not true makes the page drop that line. Never edits copy.json. See
+        # tools/audit_claims.py. Runs after the routes and countries emitters
+        # above (moved here 3 Nov: it ran before emit_routes.py and so compared this hour's raw rows with last hour's
+        # routes_summary.json, false on every first run of an hour) so its published-figure cross-check sees this hour's files.
+        run: python3 tools/audit_claims.py
 
       - name: Bake the homepage
         if: always() && steps.needed.outputs.proceed == 'true'
