@@ -1,14 +1,14 @@
-# In Angola a stablecoin dollar costs 28.8% more than the official rate
+# In Angola a stablecoin dollar costs 28.9% more than the official rate
 
-Prices from the 07:00 UTC hour, 3 Nov.
+Prices from the 08:00 UTC hour, 3 Nov.
 
-The official rate is 941.52 AOA per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 1,212 AOA. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 941.52 AOA per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 1,214 AOA. A stablecoin is a coin that stays worth one US dollar.
 
-For US$100, people pay 121,223 AOA. The official rate says 94,152 AOA.
+For US$100, people pay 121,353 AOA. The official rate says 94,152 AOA.
 
-Prices from the 07:00 UTC hour, 3 Nov
+Prices from the 08:00 UTC hour, 3 Nov
 
-You could buy only US$4,500 here before the price goes up 1%.
+You could buy only US$4,000 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/AOA.json>
 
@@ -24,7 +24,7 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-1,194 AOA +26.9%
+1,197 AOA +27.1%
 
 OKX, people selling to each other
 

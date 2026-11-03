@@ -1,22 +1,22 @@
-# In Lebanon a stablecoin dollar costs 1.2% more than the official rate
+# In Lebanon a stablecoin dollar costs 0.9% more than the official rate
 
-Prices from the 07:00 UTC hour, 3 Nov.
+Prices from the 08:00 UTC hour, 3 Nov.
 
-The official rate is 89,500 LBP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 90,612 LBP. A stablecoin is a coin that stays worth one US dollar.
+The official rate is 89,500 LBP per dollar. On Binance and OKX, marketplaces where people sell stablecoins to each other, one costs 90,337 LBP. A stablecoin is a coin that stays worth one US dollar.
 
 |  |  |
 | --- | --- |
 | Official rate | 89,500 LBP |
-| A stablecoin from people selling to each other | 90,612 LBP +1.2% |
+| A stablecoin from people selling to each other | 90,337 LBP +0.9% |
 | Cash at a money changer | 89,550 LBP +0.1% |
 
-For US$100, people pay 9,061,250 LBP. The official rate says 8,950,000 LBP.
+For US$100, people pay 9,033,725 LBP. The official rate says 8,950,000 LBP.
 
-Today cash from a money changer is cheaper than a stablecoin here. The stablecoin costs 1.2% more.
+Today cash from a money changer is cheaper than a stablecoin here. The stablecoin costs 0.9% more.
 
-Prices from the 07:00 UTC hour, 3 Nov
+Prices from the 08:00 UTC hour, 3 Nov
 
-You could buy only US$3,500 here before the price goes up 1%.
+You could buy at least US$5,000 here before the price goes up 1%.
 
 <https://margin.wiki/data/countries/LBP.json>
 
@@ -24,7 +24,7 @@ You could buy only US$3,500 here before the price goes up 1%.
 
 One point per day, the price we published that day. 0% is the official rate.
 
-Today's gap is the biggest since 2 Sep 2026, in our own checks. On most days the gap is between 0.2% and 1.0%.
+Today's gap is normal for here since 2 Sep 2026, in our own checks. On most days the gap is between 0.2% and 1.0%.
 
 ## Where this price comes from
 
@@ -32,11 +32,11 @@ We take a country's price from exchanges first, then brokers, then people sellin
 
 Binance, people selling to each other
 
-90,475 LBP +1.1%
+90,000 LBP +0.6%
 
 OKX, people selling to each other
 
-90,750 LBP +1.4%
+90,675 LBP +1.3%
 
 ## Where to go next
 

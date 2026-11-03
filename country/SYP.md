@@ -1,6 +1,6 @@
 # In Syria a stablecoin dollar costs 20.5% more than the official rate
 
-Prices from the 07:00 UTC hour, 3 Nov.
+Prices from the 08:00 UTC hour, 3 Nov.
 
 The official rate is 121.74 SYP per dollar. On Binance, in a marketplace where people sell stablecoins to each other, one costs 146.75 SYP. A stablecoin is a coin that stays worth one US dollar.
 
@@ -8,7 +8,7 @@ For US$100, people pay 14,675 SYP. The official rate says 12,174 SYP.
 
 Only 1 source
 
-Prices from the 07:00 UTC hour, 3 Nov
+Prices from the 08:00 UTC hour, 3 Nov
 
 You could buy only US$2,000 here before the price goes up 1%.
 
