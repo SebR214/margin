@@ -73,21 +73,6 @@
   }
 
   /* ---------------------------------------------------------------- header */
-  function header(wrap) {
-    var h = el('div', 'ci-head');
-    var logo = put(h, 'a', 'ci-logo', th('brand'));
-    if (logo) { logo.href = './index.html'; }
-    var nav = el('nav', 'ci-nav');
-    if (window.siteNav) { nav.innerHTML = window.siteNav.html(); } else [['navCountries', 'countries.html'], ['navEvents', 'events.html'], ['navResearch', 'research.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navHow', 'how-it-works.html']].forEach(function (n) {
-      var a = put(nav, 'a', null, th(n[0]));
-      if (a) {
-        a.href = './' + n[1];
-        if (n[1] === 'countries.html') { a.setAttribute('aria-current', 'page'); }
-      }
-    });
-    if (nav.childNodes.length) { h.appendChild(nav); }
-    wrap.appendChild(h);
-  }
 
   /* ---------------------------------------------------------------- hero */
   function hero(wrap, ctx) {
@@ -374,7 +359,6 @@
   function page() {
     var ctx = buildCtx();
     var wrap = el('div', 'ci-wrap');
-    header(wrap);
     hero(wrap, ctx);
     tools(wrap, ctx);
     keyRow(wrap, ctx);

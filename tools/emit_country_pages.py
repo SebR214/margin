@@ -32,8 +32,8 @@ BLOCK = re.compile(re.escape(BEGIN) + r".*?" + re.escape(END), re.S)
 # the redirect script in the template that adds the markdown link for ?ccy=: the static head carries its own
 ALT_SCRIPT = re.compile(r'<script>\(function\(\)\{var v=new URLSearchParams\(location\.search\)\.get\("ccy"\).*?</script>\n', re.S)
 # the empty holders in the template, each filled from the render
-HOLDERS = [("nav", '<nav class="hp-nav" aria-label="Main" id="nav"></nav>', '<nav class="hp-nav" aria-label="Main" id="nav">%s</nav>'),
-           ("cnav", '<div class="cnav" id="cnav"></div>', '<div class="cnav" id="cnav">%s</div>'),
+# (the header is in the template already, the same on every page: tools/bake_nav.py)
+HOLDERS = [("cnav", '<div class="cnav" id="cnav"></div>', '<div class="cnav" id="cnav">%s</div>'),
            ("hero", '<div class="hero" id="hero"></div>', '<div class="hero" id="hero" style="display: flex; flex-direction: column;">%s</div>'),
            ("depth", '<div id="depth"></div>', '<div id="depth">%s</div>'),
            ("chart", '<section id="chart"></section>', '<section id="chart">%s</section>'),

@@ -8,7 +8,6 @@
   var STAT = { a: 'statusAnsweredEveryHour', s: 'statusMissedSome', x: 'statusMissedAll', n: 'statusNotYetASource' };
   var KIND = { p2p: 'kindP2p', order_book: 'kindOrderBook', broker: 'kindBroker', fx: 'kindFx', street: 'kindStreet', provider_quote: 'kindProviderQuote', other: 'kindOther' };
   var KORDER = ['order_book', 'broker', 'fx', 'street', 'provider_quote', 'p2p', 'other'];
-  var NAV = [['navCountries', 'countries.html'], ['navEvents', 'events.html'], ['navResearch', 'research.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navHowItWorks', 'how-it-works.html']];
 
   var live = [], hist = [], days = [], kind = 'all', sel = null, collectorDays = [], gapText = '';
 
@@ -66,15 +65,7 @@
     return all;
   }
 
-  function header() {
-    var nav = $('nav');
-    if (window.siteNav) { window.siteNav.fill(nav); NAV = []; }   // the one menu (js/site_nav.js, 2 Nov)
-    NAV.forEach(function (n) {
-      var t = T(n[0]); if (!t) { return; }
-      var a = document.createElement('a'); a.textContent = t; a.href = './' + n[1];
-      if (n[1] === 'sources.html') { a.setAttribute('aria-current', 'page'); }
-      nav.appendChild(a);
-    });
+  function headline() {
     var h1 = $('h1'), lead = $('lead');
     if (T('headline')) { h1.textContent = T('headline'); h1.hidden = false; }
     if (T('headlineSub')) { lead.textContent = T('headlineSub'); lead.hidden = false; }
@@ -254,7 +245,7 @@
     C = (r[0] && r[0].sourcesData) || {};
     D = r[1];
     if (!D || !D.sources) { var f = $('fail'); f.textContent = T('loadFailed'); f.hidden = !f.textContent; return; }
-    header();
+    headline();
     var all = model(D);
     counts(all);
     pills(all);

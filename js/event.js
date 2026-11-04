@@ -13,7 +13,6 @@
   var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var COPY = {}, REC = null, COUNTRY = "", RECPATH = "", OWN_START = "", HAS_COUNTRY = false, COUNTRY_FULL = "";
   var app = document.getElementById("app");
-  var NAV = [["navCountries", "./countries.html"], ["navEvents", "./events.html"], ["navResearch", "./research.html"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"], ["navHow", "./how-it-works.html"]];
   var chart = null;
 
   function esc(s) {
@@ -51,13 +50,6 @@
   }
   function at(pts, day, key) { var p = pts.filter(function (q) { return q.day === day; })[0]; return p ? p[key] : null; }
 
-  function headHtml() {
-    return '<header class="sm-head"><a class="sm-logo" href="./index.html">margin.wiki</a>' +
-      '<nav class="sm-nav" aria-label="Main">' + (window.siteNav ? window.siteNav.html() : NAV.map(function (nv) {
-        var s = txt(nv[0]);
-        return s ? '<a href="' + nv[1] + '">' + esc(s) + "</a>" : "";
-      }).join("")) + "</nav></header>";
-  }
 
   function currencyWord() { return (COPY.currencyNames && COPY.currencyNames[REC.ccy]) || REC.ccy; }
   function dayGap(a, b) { return Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86400000); }
@@ -293,9 +285,9 @@
     var pts = points();
     // the numbers on a page without a hand-entered date show only while the claims audit says its record matches the raw files
     var held = window.Claims && window.Claims.blocked("eventPage.landLine");
-    if (!REC || !ready() || (held && !known())) { app.innerHTML = '<div class="sm-wrap">' + headHtml() + w("notReady", null, "p") + "</div>"; return; }
+    if (!REC || !ready() || (held && !known())) { app.innerHTML = '<div class="sm-wrap">' + w("notReady", null, "p") + "</div>"; return; }
     var kn = known();
-    app.innerHTML = '<div class="sm-wrap">' + headHtml() + '<div class="cnav"><a class="back" href="./events.html">' + esc(COPY.navEvents || "") + '</a></div>' + (kn ? heroHtml(pts) : genericHeroHtml()) + proseHtml() + chartSectionHtml() + tableHtml() + landingHtml() + (kn ? firstHtml(pts) : "") +
+    app.innerHTML = '<div class="sm-wrap">' + '<div class="cnav"><a class="back" href="./events.html">' + esc(COPY.navEvents || "") + '</a></div>' + (kn ? heroHtml(pts) : genericHeroHtml()) + proseHtml() + chartSectionHtml() + tableHtml() + landingHtml() + (kn ? firstHtml(pts) : "") +
       (reported() ? "" : offersHtml()) + keepHtml() + (reported() ? "" : checksHtml()) + footerHtml() + dayLinkHtml() + "</div>";
     drawChart();
     nextBlock(HAS_COUNTRY);
@@ -337,7 +329,7 @@
       PROSE = res[5] || null;
       COPY = (res[0] && res[0].eventPage) || {};
       REC = res[1];
-      if (!REC) { app.innerHTML = '<div class="sm-wrap">' + headHtml() + w("notFound", null, "p") + "</div>"; return; }
+      if (!REC) { app.innerHTML = '<div class="sm-wrap">' + w("notFound", null, "p") + "</div>"; return; }
       var c = res[2] && (res[2].currencies || []).filter(function (x) { return x.ccy === REC.ccy; })[0];
       HAS_COUNTRY = !!c;
       COUNTRY_FULL = String((c && c.country) || REC.ccy).replace(/^./, function (x) { return x.toUpperCase(); });   // "The Philippines", for the start of a line
@@ -353,6 +345,6 @@
       render();
     }).catch(function (err) {
       if (window.console) console.error(err);
-      getJSON("copy.json").then(function (d) { COPY = (d && d.eventPage) || {}; app.innerHTML = '<div class="sm-wrap">' + headHtml() + w("loadFailed", null, "p") + "</div>"; }).catch(function () {});
+      getJSON("copy.json").then(function (d) { COPY = (d && d.eventPage) || {}; app.innerHTML = '<div class="sm-wrap">' + w("loadFailed", null, "p") + "</div>"; }).catch(function () {});
     });
 })();

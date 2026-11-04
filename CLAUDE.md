@@ -60,6 +60,7 @@ Never say something is running, built or watching unless you checked it just now
 - A layout job changes layout. Do not hide, move or reword text unless he asked.
 - If an instruction can be read two ways, say how you read it in one line, then act.
 - Follow the spacing rules in DESIGN.md. Every gap has a reason you can name.
+- The header is one block on every page, written by `tools/bake_nav.py`, styled only in `css/site_head.css`. Never fix the header on one page. Change the one source, and `bake_nav.py --check` and `check_header.py` must pass.
 - A job is done only when the page the reader lands on has been read top to bottom, every link on it clicked, and nothing on it contradicts what the job built.
 
 ## Working rules

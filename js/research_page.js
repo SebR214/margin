@@ -33,22 +33,6 @@
     return 'b4';
   }
 
-  function header() {
-    var head = el('header', 'fp-head');
-    var brand = kid(head, el('div', 'fp-brand'));
-    var logo = kid(brand, el('a', ['fp-logo', 'mono'], typeof C.brand === 'string' ? C.brand : ''));
-    logo.href = './index.html';
-    var nav = el('nav', 'fp-nav');
-    if (window.siteNav) { nav.innerHTML = window.siteNav.html(); } else [[NAVC.navCountries, './countries.html'], [NAVC.navEvents, './events.html'], [C.navResearch, './research.html'], [NAVC.navRoutes, './sending-money.html'], [NAVC.navSources, './sources.html'], [NAVC.navHowItWorks, './how-it-works.html']].forEach(function (l) {
-      if (!l[0]) return;
-      var a = el('a', '', l[0]);
-      a.href = l[1];
-      if (l[1] === './research.html') a.setAttribute('aria-current', 'page');
-      nav.appendChild(a);
-    });
-    if (nav.firstChild) brand.appendChild(nav);
-    return head;
-  }
 
   // the published findings join the Research list (1 Nov): one list, each row says how often it updates
   var MONS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -328,7 +312,6 @@
     NAVC = res[0].findingData || {};
     ((res[2] && res[2].countries) || []).forEach(function (c) { NAMES[c.ccy] = c.country; });
     var wrap = el('div', 'wrap');
-    wrap.appendChild(header());
     // the live months and the pairs page print numbers that the claims audit re-derives; blocked ones are not drawn
     var months = res[3] && !(window.Claims && window.Claims.blocked('researchData.monthsLine')) ? res[3] : null;
     var pairs = res[4] && !(window.Claims && window.Claims.blocked('researchData.pairsTight')) ? res[4] : null;

@@ -1,67 +1,45 @@
 /* Marks the current page in the nav (aria-current) and gives every page the home page's status on the right of
    the header: a dot, 'Last reading 8 Oct, 08:10 UTC', 'Next in 47:05'. The home page builds its own (js/home.js);
    on every other page this builds the same thing from data/cycle_log.json and the homeData words in copy.json. */
+/* The one site header's behaviour (2 Nov 2026, DESIGN.md "Nav"). The header itself is plain HTML, the same on every page,
+   written by tools/bake_nav.py; this script never draws or moves a link. It does three things:
+   About opens and closes; below 768px the Menu button opens the links as a full screen sheet; and the time of the prices
+   ("Prices from 13:15 UTC") goes on the right, from data/cycle_log.json and homeData "headerLast" in copy.json.
+   It also keeps an open tab current (siteLive, below). */
 (function () {
-  var here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-  var alias = { 'finding.html': 'research.html', '': 'index.html' };
-  here = alias[here] || here;
-  function mark() {
-    var links = document.querySelectorAll('.hp-nav a, .ci-nav a, .c-nav a, .sm-nav a, .s-nav a, .fp-nav a, .mwh nav a');
-    [].forEach.call(links, function (a) {
-      var target = (a.getAttribute('href') || '').split('?')[0].split('#')[0].split('/').pop().toLowerCase();
-      if (target && target === here) { a.setAttribute('aria-current', 'page'); }
-    });
-  }
-  // The one menu (js/site_nav.js, 2 Nov): a page whose header has an empty or old nav gets it. Nothing here moves a link.
-  function canonNav() {
-    var nav = document.querySelector('.mwh nav, [data-canon-nav]');
-    if (nav && window.siteNav) { window.siteNav.fill(nav); }
-  }
-  canonNav();
-  mark();
-  document.addEventListener('DOMContentLoaded', mark);
-  window.addEventListener('load', mark);
-  var n = 0, t = setInterval(function () { canonNav(); mark(); if (++n > 40) { clearInterval(t); } }, 250);
+  var bar = function () { return document.querySelector('.site-head-bar'); };
 
-  // ---- the phone menu (SEB-268): below 768px the nav is a list behind a Menu button (css/site_head.css) ----
-  var NAVSEL = '.hp-nav, .ci-nav, .c-nav, .sm-nav, .s-nav, .fp-nav, .mwh nav';
-  var menuLabel = null, closeLabel = '';
-  function menu() {
-    var nav = document.querySelector(NAVSEL);
-    if (!nav || document.querySelector('.sh-menu')) { return; }
-    if (menuLabel === null) {
-      menuLabel = '';
-      fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (c) {
-        menuLabel = (c && c.homeData && c.homeData.menuLabel) || '';
-        closeLabel = (c && c.homeData && c.homeData.menuClose) || '';
-        var b = document.querySelector('.sh-menu'); if (b) { b.textContent = b.getAttribute('aria-expanded') === 'true' ? (closeLabel || menuLabel) : menuLabel; }
-      }).catch(function () {});
-    }
-    if (!nav.id) { nav.id = 'sh-nav'; }
-    var btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'sh-menu'; btn.textContent = menuLabel;
-    btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', nav.id);
-    nav.insertAdjacentElement('afterend', btn);
-    // open: a full screen sheet over the page, big ink links, the button reads Close (27 Oct, Seb: "like Superpower").
-    // The page goes back to where it was when the sheet closes.
-    var keepY = 0;
-    function set(open) {
-      var was = nav.classList.contains('sh-open');
-      if (open === was) { return; }
-      if (open) { keepY = window.scrollY; window.scrollTo(0, 0); }
-      nav.classList.toggle('sh-open', open); btn.setAttribute('aria-expanded', String(open));
-      document.documentElement.classList.toggle('sh-menu-on', open);
-      btn.textContent = open ? (closeLabel || menuLabel) : menuLabel;
-      if (!open && keepY) { window.scrollTo(0, keepY); }
-    }
-    btn.addEventListener('click', function (e) { e.stopPropagation(); set(!nav.classList.contains('sh-open')); });
-    nav.addEventListener('click', function (e) { if (e.target.closest('a')) { keepY = 0; set(false); } });
-    document.addEventListener('click', function (e) { if (!nav.contains(e.target)) { set(false); } });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { set(false); } });
-    window.addEventListener('resize', function () { if (window.innerWidth >= 768) { set(false); } });
+  // ---- About: opens on click (and on hover where there is a mouse, css/site_head.css); a click elsewhere or Escape closes it
+  function setAbout(box, open) {
+    box.classList.toggle('sh-open-about', open);
+    var b = box.querySelector('.sh-about-btn'); if (b) { b.setAttribute('aria-expanded', String(open)); }
   }
-  menu();
-  var mn = 0, mt = setInterval(function () { menu(); if (++mn > 40) { clearInterval(mt); } }, 250);
+  function closeAbout(except) {
+    [].forEach.call(document.querySelectorAll('.sh-about.sh-open-about'), function (x) { if (x !== except) { setAbout(x, false); } });
+  }
+
+  // ---- the phone menu: a full screen sheet over the page; the page goes back to where it was when the sheet closes
+  var keepY = 0;
+  function setMenu(open) {
+    var nav = document.querySelector('.site-nav'), btn = document.querySelector('.sh-menu');
+    if (!nav || !btn || nav.classList.contains('sh-open') === open) { return; }
+    if (open) { keepY = window.scrollY; window.scrollTo(0, 0); }
+    nav.classList.toggle('sh-open', open); btn.setAttribute('aria-expanded', String(open));
+    document.documentElement.classList.toggle('sh-menu-on', open);
+    btn.textContent = btn.getAttribute(open ? 'data-close' : 'data-open') || btn.textContent;
+    if (!open && keepY) { window.scrollTo(0, keepY); }
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target, about = t.closest && t.closest('.sh-about-btn'), menu = t.closest && t.closest('.sh-menu');
+    closeAbout(about ? about.parentNode : null);
+    if (about) { e.preventDefault(); setAbout(about.parentNode, !about.parentNode.classList.contains('sh-open-about')); return; }
+    if (menu) { setMenu(!document.querySelector('.site-nav.sh-open')); return; }
+    if (t.closest && t.closest('.site-nav a')) { keepY = 0; setMenu(false); return; }
+    if (!(t.closest && t.closest('.site-nav'))) { setMenu(false); }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeAbout(null); setMenu(false); } });
+  window.addEventListener('resize', function () { if (window.innerWidth >= 768) { setMenu(false); } });
 
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   function fill(tpl, v) { return String(tpl || '').replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : ''; }); }
@@ -96,18 +74,18 @@
 
   var clockStarted = false;
   function clock() {
-    if (clockStarted || document.querySelector('.hp-clock')) { return; }
-    var head = document.querySelector('.hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh');
-    if (!head) { return; }     // pages that build their header from script: try again on the next tick
+    if (clockStarted || document.querySelector('.sh-clock')) { return; }
+    var head = bar();
+    if (!head) { return; }     // the page has not been parsed this far yet: try again on the next tick
     clockStarted = true;
     Promise.all([
       fetch(cycleUrl(), { cache: 'no-store' }).then(function (r) { return r.json(); }),
       fetch('./copy.json', { cache: 'no-store' }).then(function (r) { return r.json(); })
     ]).then(function (r) {
       var CL = r[0], H = (r[1] && r[1].homeData) || {};
-      if (document.querySelector('.hp-clock') || !CL || !CL.last_reading_utc || !CL.next_reading_utc || !H.headerLast) { return; }
-      var box = document.createElement('div'); box.className = 'mono muted hp-clock';
-      var dot = document.createElement('span'); dot.className = 'hp-dot'; box.appendChild(dot);
+      if (document.querySelector('.sh-clock') || !CL || !CL.last_reading_utc || !CL.next_reading_utc || !H.headerLast) { return; }
+      var box = document.createElement('div'); box.className = 'mono muted sh-clock';
+      var dot = document.createElement('span'); dot.className = 'sh-dot'; box.appendChild(dot);
       var a = document.createElement('span'); box.appendChild(a);
       var b = document.createElement('span'); box.appendChild(b);
       var next = 0;
@@ -122,11 +100,7 @@
         tick();
       };
       var tick = function () {
-        if (!box.isConnected) {      // a page that redraws its whole header on a refresh: put the clock back in the new one
-          var h2 = document.querySelector('.hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh');
-          if (h2) { h2.appendChild(box); }
-        }
-        var diff = Math.round((next - Date.now()) / 1000), over = diff < 0, s = Math.abs(diff);
+                var diff = Math.round((next - Date.now()) / 1000), over = diff < 0, s = Math.abs(diff);
         var hh = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60), ss = s % 60;
         var late = Math.max(1, Math.round(s / 60));
         if (over && Date.now() - checkedAt > CHECK_FRESH) {
