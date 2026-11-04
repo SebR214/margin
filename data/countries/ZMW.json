@@ -1,12 +1,14 @@
 {
+  "buy_price": 21.18,
   "ccy": "ZMW",
-  "computed_at": "2026-11-04T03:00:00+00:00",
+  "computed_at": "2026-11-04T04:00:00+00:00",
   "country": "Zambia",
   "denominator": {
     "class": "market",
     "rate_per_usd": 20.263163,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 20.263163,
   "history": [
     {
       "date": "2026-09-05",
@@ -355,23 +357,48 @@
       "index_pct": 3.6747,
       "n": 17,
       "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-11-04",
+      "index_pct": 4.5246,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
-  "history_days": 58,
+  "history_days": 59,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-11-04T03:00:00+00:00",
+  "hour_utc": "2026-11-04T04:00:00+00:00",
+  "index_pct": 4.5246,
   "index_version": "1.9.2",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": 3.9021,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: 8 buy-side ads, 10 required",
-  "round_trip_pct": 3.8986,
-  "source_class": null,
+  "median_24h_pct": 4.2653,
+  "n_boards": 1,
+  "n_sources": 10,
+  "p2p_sources_apart": {
+    "binance_median": 21.18,
+    "gap_pct": 10.06,
+    "okx_median": 23.31
+  },
+  "round_trip_pct": 1.9986,
+  "second_board": {
+    "buy_price": 23.31,
+    "combined": false,
+    "venue": "okx_p2p",
+    "why": "more than 3% from the first board"
+  },
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 21.32
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 21.18,
+      "index_pct": 4.5246,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    }
+  ]
 }
