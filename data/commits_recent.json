@@ -1,7 +1,14 @@
 {
- "as_of_utc": "2026-11-04T07:44:39Z",
+ "as_of_utc": "2026-11-04T08:20:23Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "cfa03e1f5dbf649fb4e90f6e42fcef6066440462",
+   "html_url": "https://github.com/SebR214/margin/commit/cfa03e1f5dbf649fb4e90f6e42fcef6066440462",
+   "date": "2026-11-04T07:47:59Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-04T07:47Z"
+  },
   {
    "sha": "2bd6980b919a0be306c044b6c2c4d9e31dc69b63",
    "html_url": "https://github.com/SebR214/margin/commit/2bd6980b919a0be306c044b6c2c4d9e31dc69b63",
@@ -694,13 +701,6 @@
    "date": "2026-11-02T05:22:37Z",
    "email": "person",
    "message": "SEB-301: the watchdogs email Seb through healthchecks.io (#776)\n\nGitHub's failure email goes to whoever triggered a run. The watchdog runs are\ndispatched by github-actions[bot], so every red run since 02:30 UTC on 2 Nov\nemailed nobody. Both watchdogs now ping a healthchecks.io check each run (up,\nor /fail with the reason). It emails on down, on recovery, and when pings stop\narriving, which also catches a dead chain. A missing ping URL fails the run.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "036f485ef9598ef89e369fbfd6f0134e21c8b10d",
-   "html_url": "https://github.com/SebR214/margin/commit/036f485ef9598ef89e369fbfd6f0134e21c8b10d",
-   "date": "2026-11-02T05:18:40Z",
-   "email": "person",
-   "message": "SEB-301: the number audit skips venues in quarantine, as the index does (#775)\n\ncountry:SGD (and MXN) failed the watchdog since 02:30 UTC on 2 Nov: the audit\ncounted OKX spot (SGD), a quarantined second venue, as a second order book,\nwhile the published number is correctly one venue. Same rule as\nemit_countries: only an approved source is re-derived.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
   }
  ]
 }
