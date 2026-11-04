@@ -1,5 +1,5 @@
 /* Home (SEB-268), built to the approved reference.
- * Reads data/heatmap_daily.json, data/index_latest.json, data/findings.json,
+ * Reads data/heatmap_daily.json, data/index_latest.json,
  * data/record_daily.json (the totals line), data/sources_daily.json and copy.json (homeData). The time control is js/home_timeline.js's (SEB-384). The header clock is js/site_head.js's.
  * Every figure is read from those files at render time; every word is a homeData key. Dates, numbers and names are formatted here. */
 (function () {
@@ -112,7 +112,7 @@
     else if (it.kind === 'crossed_down') { k = 'wcCrossedDown'; v.country = it.country; }
     else if (it.kind === 'event') { k = it.event_kind === 'street_slide' ? 'wcEventStreet' : 'wcEventOfficial'; v.country = nameOf(it.ccy); v.pct = Math.round(it.pct) + '%'; }
     else if (it.kind === 'source_added') { k = it.status === 'quarantine' ? 'wcSourceQuarantine' : 'wcSourceAdded'; v.source = (((D.copy && D.copy.sourcesData) || {}).sourceNames || {})[it.source]; if (!v.source) { return null; } }
-    else if (it.kind === 'finding_changed') { k = { holds: 'wcFindingHolds', weaker: 'wcFindingWeaker', no_longer_true: 'wcFindingNoLonger' }[it.to]; v.title = String(FD['title_' + it.id] || '').replace(/\{\w+\}/g, '').trim(); if (!v.title) { return null; } }
+    else if (it.kind === 'finding_changed') { return null; }   // no finding pages since 4 Nov (Seb): the change has nowhere to link
     else if (it.kind === 'route_flip') { k = it.now === 'cheaper' ? 'wcRouteCheaper' : 'wcRouteDearer'; v.route = (RN[it.route] || {}).fromTo; if (!v.route) { return null; } }
     if (!k || blocked(k) || !T(k)) { return null; }
     return '<a class="r f" href="./' + esc(it.link) + '"><span class="m">' + esc(T(k, v)) + '</span><span class="v">' + esc(v.date) + '</span></a>';
@@ -313,28 +313,7 @@
       }).join('') + '</div>' + (T('landEventsLink') ? '<p class="body"><a href="./events.html">' + esc(T('landEventsLink')) + '</a></p>' : '') + '<p class="note sm">' + esc(T('landNote')) + '</p>';
   }
 
-  /* ---------------------------------------------------------------- findings: each line links to its page */
-  function findings() {
-    // the same published findings, in the same order and with the same titles as the Research list (copy.json findingData.title_<id>)
-    var FD = (D.copy && D.copy.findingData) || {};
-    var title = function (f) {
-      var t = FD['title_' + f.id], v = (f.headline || {}).value;
-      if (typeof t !== 'string' || !t) { return ''; }
-      return t.replace(/\{approx\}/g, typeof v === 'number' ? 'S$' + (v / 1e6).toFixed(1) + 'M' : '')
-              .replace(/\{n\}/g, typeof v === 'number' ? v.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '');
-    };
-    var pub = ((D.fin && D.fin.findings) || []).filter(function (f) { return f.published === true; });
-    // a finding keeps its number and its page; 01 and 02 (apps change prices, Saturday pricing) are off the home list, their pages stay (SEB-384)
-    var OFF = ['price_changes', 'weekend_penalty', 'volume_crossover'];   // volume_crossover (the S$13.5M line) is off the home list too (SEB-391); the Research list keeps it
-    var ord = pub.map(function (f, i) { return { f: f, no: i + 1 }; }).filter(function (o) { return OFF.indexOf(o.f.id) < 0; });
-    var lines = ord.map(function (o) { return [o.f.id, title(o.f), o.no]; }).filter(function (l) { return l[1]; });
-    if (!lines.length || !T('findingsTitle')) { $('finds').innerHTML = ''; return; }
-    var routesLink = T('findingsRoutesLink') ? '<a class="r f" href="./sending-money.html"><span class="m">' + esc(T('findingsRoutesLink')) + '</span><span class="v">→</span></a>' : '';
-    $('finds').innerHTML = '<h2>' + esc(T('findingsTitle')) + '</h2><div class="rows">' + routesLink + lines.map(function (f, i) {
-      // no number here: this list is in Seb's order (21 Oct), so the Findings page numbers would read out of order (24 Oct)
-      return '<a class="r f" href="./finding.html?id=' + encodeURIComponent(f[0]) + '"><span class="m">' + esc(f[1]) + '</span><span class="v">→</span></a>';
-    }).join('') + '</div>';
-  }
+
 
   /* ---------------------------------------------------------------- squares answer hover and tap: the day comes from where the pointer is along the row */
   function readSquare(e) {
@@ -370,7 +349,7 @@
     });
   }
 
-  var jobs = { copy: 'copy.json', heat: 'data/heatmap_daily.json', idx: 'data/index_latest.json', fin: 'data/findings.json', rec: 'data/record_daily.json', src: 'data/sources_daily.json' };
+  var jobs = { copy: 'copy.json', heat: 'data/heatmap_daily.json', idx: 'data/index_latest.json', rec: 'data/record_daily.json', src: 'data/sources_daily.json' };
   // loading is a function so a tab left open can load again when a newer hour is published (siteLive, js/site_head.js)
   var wired = false, tlWired = false;
   function load() {
@@ -394,7 +373,6 @@
     heatHead();
     heat();
     whatChanged();
-    findings();
     getJSON('data/map_timeline/landing.json').then(land).catch(function () { land(null); });
     if (window.homeTimeline) {
       window.homeTimeline.init({ T: T, esc: esc, mount: $('tl') });

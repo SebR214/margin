@@ -18,13 +18,13 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = "https://margin.wiki"
 TITLE_MAX, DESC_MAX = 60, 160
 # moved pages: noindex redirects, never in the sitemap
-REDIRECTS = {"404.html", "corridor.html", "tape.html", "fee-tiers.html", "agent-incidents.html", "machine-room.html", "findings.html"}
+REDIRECTS = {"404.html", "corridor.html", "tape.html", "fee-tiers.html", "agent-incidents.html", "machine-room.html", "findings.html", "finding.html"}
 # pages with a markdown twin
 TWINS = {"index.html": "index.md", "countries.html": "countries.md", "sending-money.html": "sending-money.md",
          "sources.html": "sources.md", "how-it-works.html": "how-it-works.md",
          "how-it-was-built.html": "how-it-was-built.md"}
 # country.html and finding.html are templates: the page sets its own canonical, so the static head has none
-TEMPLATES = {"country.html", "finding.html", "event.html"}   # event.html too: each event sets its own title and canonical
+TEMPLATES = {"country.html", "event.html"}   # event.html too: each event sets its own title and canonical
 BEGIN, END = "<!-- head:begin -->", "<!-- head:end -->"
 SHARE_IMAGE = SITE + "/share.png"          # 1200 x 630, drawn once, kept in the repo root
 

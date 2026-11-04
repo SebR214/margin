@@ -369,9 +369,7 @@ def all_pages():
         ccy = os.path.basename(p)[:-5]
         if p.endswith(".json") and ccy.isalpha() and ccy.isupper():
             pages.append(("country.html?ccy=" + ccy, "country/%s.md" % ccy))
-    for f in json.load(open(os.path.join(HERE, "data", "findings.json"))).get("findings", []):
-        if f.get("id") and f.get("published") is True:      # the findings the site shows (js/finding_page.js filters the same way)
-            pages.append(("finding.html?id=" + f["id"], "finding/%s.md" % f["id"]))
+    # no finding pages since 4 Nov (Seb): four were deleted, exchange_vs_p2p is a section of research-source-pairs.html
     return pages
 
 

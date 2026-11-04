@@ -34,13 +34,8 @@
   }
 
 
-  // the published findings join the Research list (1 Nov): one list, each row says how often it updates
   var MONS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   function dayY(s) { return s ? (+s.slice(8, 10)) + ' ' + MONS[+s.slice(5, 7) - 1] + ' ' + s.slice(0, 4) : ''; }
-  function findingTitle(f) {
-    var t = NAVC['title_' + f.id] || '', v = (f.headline || {}).value;
-    return t.replace(/\{approx\}/g, typeof v === 'number' ? 'S$' + (v / 1e6).toFixed(1) + 'M' : '').replace(/\{n\}/g, typeof v === 'number' ? v.toLocaleString('en-US') : '');
-  }
   // each row leads with its number, big, on the left (1 Nov, Claude Design review), and a short label under it
   function numCell(a, value, unit) {
     if (value == null || value === '') return;
@@ -49,41 +44,8 @@
     if (unit) n.appendChild(el('small', '', unit));
     a.insertBefore(n, a.firstChild);
   }
-  function findingNumber(f) {
-    var v = (f.headline || {}).value;
-    if (typeof v !== 'number') return null;
-    var shown = (f.headline || {}).unit === 'sgd_per_month' ? 'S$' + (v / 1e6).toFixed(1) + 'M' : v.toLocaleString('en-US');
-    if (f.id === 'sgd_php_never_cheapest' && NAVC.short_value_sgd_php_never_cheapest) {
-      var row = (f.evidence || []).filter(function (e) { return e.amount === 5000; })[0];
-      if (row && typeof row.hours_priced === 'number') { shown = NAVC.short_value_sgd_php_never_cheapest.replace('{value}', shown).replace('{hours}', row.hours_priced.toLocaleString('en-US')); }
-    }
-    return shown;
-  }
-  function findingUnit(f) {
-    var label = NAVC['short_unit_' + f.id] || '';
-    if (label.indexOf('{first}') >= 0) {
-      var days = (f.evidence || []).map(function (e) { return e.first_day; }).filter(Boolean).sort();
-      label = days.length ? label.replace('{first}', (+days[0].slice(8, 10)) + ' ' + MONS[+days[0].slice(5, 7) - 1]) : '';
-    }
-    return label;
-  }
-  function findingRows(list, findings, first) {
-    (findings || []).filter(function (f) { return f.published === true; }).forEach(function (f) {
-      var title = findingTitle(f);
-      if (!title) return;
-      var a = el('a', 'rs-item');
-      a.href = './finding.html?id=' + encodeURIComponent(f.id);
-      var body = kid(a, el('span', 'rs-item-body'));
-      body.appendChild(el('span', 'rs-item-title', title));
-      if (NAVC['caption_' + f.id]) body.appendChild(el('span', 'rs-item-line', NAVC['caption_' + f.id]));
-      if (first[f.id] && T('findingFirst')) body.appendChild(el('span', 'rs-item-meta', T('findingFirst', { date: dayY(first[f.id]) })));
-      a.appendChild(el('span', 'rs-item-go', '\u2192'));
-      numCell(a, findingNumber(f), findingUnit(f));
-      list.appendChild(a);
-    });
-  }
 
-  function renderIndex(wrap, doc, months, pairs, findings, first) {
+  function renderIndex(wrap, doc, months, pairs) {
     var hero = kid(wrap, el('div', 'fp-hero'));
     var text = kid(hero, el('div', 'fp-hero-text'));
     kid(text, word('h1', '', 'indexTitle'));
@@ -118,7 +80,6 @@
       list.appendChild(b);
       if (!list.parentNode) { wrap.appendChild(list); }
     }
-    findingRows(list, findings, first || {});
     if (list.firstChild && !list.parentNode) { wrap.appendChild(list); }
   }
 
@@ -294,9 +255,49 @@
       rows.appendChild(a);
     });
     lst.appendChild(rows); wrap.appendChild(lst);
+    exchangeSection(wrap);
     var ms = el('section', 'fp-sec'); var mh = el('div', 'fp-sec-head'); kid(mh, word('h2', '', 'pairsMethodHeading')); ms.appendChild(mh);
     ['pairsMethod1', 'pairsMethod2', 'pairsLimits'].forEach(function (k) { var t = T(k, { days: doc.window_days, hours: doc.min_common_hours }); if (t) ms.appendChild(el('p', ['soft', 'fp-line'], t)); });
     wrap.appendChild(ms);
+  }
+
+  // People against an exchange (4 Nov, Seb): the finding "In 2 countries people pay more from each other than on an exchange"
+  // lives here now, as its own section of the pairs page, with its number and its rows. data/findings.json, exchange_vs_p2p.
+  var EXCH = null;
+  function exchangeSection(wrap) {
+    var f = EXCH; if (!f || !(f.evidence || []).length || !NAVC.title_exchange_vs_p2p) return;
+    var N = function (k) { return NAVC[k] || ''; };
+    var g = function (n) { return Number(n).toLocaleString('en-US'); };
+    var sec = el('section', 'fp-sec'); sec.id = 'exchange';
+    var h = el('div', 'fp-sec-head');
+    kid(h, el('h2', '', N('title_exchange_vs_p2p').replace('{n}', g(f.headline.value))));
+    sec.appendChild(h);
+    var top = f.evidence.filter(function (e) { return e.persists; })[0];
+    var claim = top ? N('claim_exchange_vs_p2p').replace('{country}', top.country).replace('{gap}', top.median_gap_pts.toFixed(1)).replace('{share}', Math.round(top.share_gap_2pts * 100) + '%') : N('claimNone_exchange_vs_p2p');
+    if (claim) sec.appendChild(el('p', ['soft', 'fp-line'], claim));
+    if (N('evidenceBasis_exchange_vs_p2p')) sec.appendChild(el('p', ['soft', 'fp-line'], N('evidenceBasis_exchange_vs_p2p')));
+    var rows = el('div', 'rs-list');
+    f.evidence.forEach(function (e) {
+      var a = el('a', 'rs-item'); a.href = './country/' + encodeURIComponent(String(e.ccy).toLowerCase()) + '/';
+      var b = kid(a, el('span', 'rs-item-body'));
+      kid(b, el('span', 'rs-item-title', e.country));
+      var ex = (e.exchanges || []).map(function (x) { return x.replace(/^(.*) \(.*\)$/, '$1'); }).filter(function (x, i, l) { return l.indexOf(x) === i; });
+      // feeds read through one service (CriptoYa:saldo) are said once with the count, as the old finding page said them
+      var via = {}, plainEx = [];
+      ex.forEach(function (x) { var m = /^([^:]+):(.*)$/.exec(x); if (m) { (via[m[1]] = via[m[1]] || []).push(m[2]); } else { plainEx.push(x); } });
+      Object.keys(via).forEach(function (k) { plainEx.push(via[k].length > 1 && N('brokersVia') ? N('brokersVia').replace('{n}', via[k].length).replace('{name}', k) : k + ' ' + via[k][0].replace(/^./, function (c) { return c.toUpperCase(); })); });
+      ex = plainEx;
+      kid(b, el('span', 'rs-item-line', Math.round(e.share_gap_2pts * 100) + '% ' + N('field_share_gap_2pts') + ', ' + g(e.hours_checked) + ' ' +
+        (e.hours_checked === 1 ? N('field_hour_checked') : N('field_hours_checked')) + ', ' + N('field_since') + ' ' + dayY(e.first_day) + ', ' +
+        ex.join(' ' + N('and') + ' ') + ' ' + N('field_against') + ' ' + (e.boards || []).map(function (x) { return N('board_' + x); }).join(' ' + N('and') + ' ') +
+        '. ' + (e.persists ? N('field_persists') : N('field_not_persist'))));
+      a.appendChild(el('span', 'rs-item-go', '→'));
+      numCell(a, (e.median_gap_pts > 0 ? '+' : e.median_gap_pts < 0 ? '−' : '') + Math.abs(e.median_gap_pts).toFixed(1) + '%', N('field_median_gap_pts'));
+      rows.appendChild(a);
+    });
+    sec.appendChild(rows);
+    ['method_exchange_vs_p2p', 'limits_exchange_vs_p2p'].forEach(function (k) { if (N(k)) sec.appendChild(el('p', ['soft', 'fp-line'], N(k))); });
+    wrap.appendChild(sec);
   }
 
   function load(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); }
@@ -305,8 +306,7 @@
                load('./data/research/capital_controls_months.json').catch(function () { return null; }),
                load('./data/research/source_pairs.json').catch(function () { return null; }),
                window.Claims ? window.Claims.load() : null,
-               mode === 'index' ? load('./data/findings.json').catch(function () { return null; }) : null,
-               mode === 'index' ? load('./data/findings_first_published.json').catch(function () { return {}; }) : null]).then(function (res) {
+               mode === 'pairs' ? load('./data/findings.json').catch(function () { return null; }) : null]).then(function (res) {
     C = res[0].researchData || {};
     C.brand = typeof res[0].brand === 'string' ? res[0].brand : '';
     NAVC = res[0].findingData || {};
@@ -315,7 +315,8 @@
     // the live months and the pairs page print numbers that the claims audit re-derives; blocked ones are not drawn
     var months = res[3] && !(window.Claims && window.Claims.blocked('researchData.monthsLine')) ? res[3] : null;
     var pairs = res[4] && !(window.Claims && window.Claims.blocked('researchData.pairsTight')) ? res[4] : null;
-    if (mode === 'index') { renderIndex(wrap, res[1], months, pairs, res[6] && res[6].findings, res[7]); } else if (mode === 'pairs') { renderPairs(wrap, pairs); } else { renderCapital(wrap, res[1], months); }
+    EXCH = ((res[6] && res[6].findings) || []).filter(function (f) { return f.id === 'exchange_vs_p2p' && f.published === true; })[0] || null;
+    if (mode === 'index') { renderIndex(wrap, res[1], months, pairs); } else if (mode === 'pairs') { renderPairs(wrap, pairs); } else { renderCapital(wrap, res[1], months); }
     app.appendChild(wrap);
   });
 })();
