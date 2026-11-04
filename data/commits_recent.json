@@ -1,7 +1,28 @@
 {
- "as_of_utc": "2026-11-04T04:44:46Z",
+ "as_of_utc": "2026-11-04T05:19:34Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "8f57733b24bfd4fc94600c989babe76ea8c8062a",
+   "html_url": "https://github.com/SebR214/margin/commit/8f57733b24bfd4fc94600c989babe76ea8c8062a",
+   "date": "2026-11-04T04:59:50Z",
+   "email": "person",
+   "message": "SEB-425: Research is two rows; the four app findings go, exchange vs people folds into Markets inside one country disagree (#787)\n\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "1f2cba155d8668c82bcecb305a24322e618cc331",
+   "html_url": "https://github.com/SebR214/margin/commit/1f2cba155d8668c82bcecb305a24322e618cc331",
+   "date": "2026-11-04T04:55:08Z",
+   "email": "person",
+   "message": "SEB-301: the number audit allows for the rounding of the stored inputs it re-works a cost from (#786)\n\nsamples.csv keeps the landed amount to the cent and the mid to its own last decimal, and the published cost was worked\nfrom the unrounded values. At USD 200 into BRL half a cent is 0.055 bps, so the flat 0.02 tolerance failed true numbers:\nUSD->BRL 200 at 02, 03 and 04 UTC on 4 Nov, gaps of 0.02 to 0.04, all inside the rounding bound. The watchdog emailed at\n04:30 UTC. Tolerance is now 0.02 plus that bound. A real 0.2 bps error still fails. Dry runs: 4 Nov 50/50 (was 49),\n1 to 3 Nov 50/50.\n\n\nClaude-Session: https://claude.ai/code/session_01KxKUVGgsNosa4c5zdXbTMr\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "08255bdef3bff79b9c6ca9724080bd5b808be8b4",
+   "html_url": "https://github.com/SebR214/margin/commit/08255bdef3bff79b9c6ca9724080bd5b808be8b4",
+   "date": "2026-11-04T04:48:07Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-04T04:48Z"
+  },
   {
    "sha": "f5e724cbafdcd2bf92344dce35a4940e2470df3e",
    "html_url": "https://github.com/SebR214/margin/commit/f5e724cbafdcd2bf92344dce35a4940e2470df3e",
@@ -680,27 +701,6 @@
    "date": "2026-11-02T02:48:08Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-11-02T02:48Z"
-  },
-  {
-   "sha": "3e45ccd28fd1125fb406a470c40378990f819a50",
-   "html_url": "https://github.com/SebR214/margin/commit/3e45ccd28fd1125fb406a470c40378990f819a50",
-   "date": "2026-11-02T02:29:24Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-11-02T02:29Z"
-  },
-  {
-   "sha": "7da679f61d1bd1dfb13b7a3e74da37991d736af7",
-   "html_url": "https://github.com/SebR214/margin/commit/7da679f61d1bd1dfb13b7a3e74da37991d736af7",
-   "date": "2026-11-02T02:11:56Z",
-   "email": "person",
-   "message": "SEB-301: Retest the p2p_spread_signal finding for the first time (backlog 19a) (#774)\n\n* SEB-301: retest the p2p_spread_signal finding for the first time (backlog 19a)\n\nAdds findings_tests/p2p_spread_signal.json (same keys as price_changes.json)\nand tests/agent_spread_signal_test.py, which runs the calculation on 40\nmade-up rows. 6a gets its real block reason: item 6 was cut on 25 Oct.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* SEB-301: tick backlog 19a (PR #774)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "476fa92dc49ff22601270ba1681b1faf9711c09d",
-   "html_url": "https://github.com/SebR214/margin/commit/476fa92dc49ff22601270ba1681b1faf9711c09d",
-   "date": "2026-11-02T02:07:25Z",
-   "email": "person",
-   "message": "SEB-425: five-item bar with About, one menu everywhere, switch back at the bottom (#773)\n\n* Work in progress: Human/Machine switch back at the bottom centre (not shipped)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n* Five-item bar with About, one menu on every page, switch back at the bottom, short status line\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n* Versions past main's after rebasing on SEB-433\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVJ7NJdnzA3156o2Bpz\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
   }
  ]
 }
