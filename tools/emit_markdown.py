@@ -387,7 +387,7 @@ def hour_line(iso):
 
 # the parts of a country page its own HTML carries before any script runs (SEB-426): what the page showed this hour
 FRAGMENTS_JS = """(function(){var g=function(i){var e=document.getElementById(i);return e?e.innerHTML:''};
- return JSON.stringify({nav:g('nav'),cnav:g('cnav'),hero:g('hero'),depth:g('depth'),chart:g('chart'),src:g('src')})})()"""
+ return JSON.stringify({cnav:g('cnav'),hero:g('hero'),depth:g('depth'),chart:g('chart'),src:g('src')})})()"""
 
 
 def render(pages, settle=2.5):

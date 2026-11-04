@@ -43,14 +43,6 @@
     return String(v).replace(/^CriptoYa:(.)/, function (m, c) { return 'CriptoYa · ' + c.toUpperCase(); });
   }
 
-  function nav() {
-    if (window.siteNav) { $('nav').innerHTML = window.siteNav.html(); return; }   // the one menu (js/site_nav.js, 2 Nov)
-    $('nav').innerHTML = '';   // the page can arrive with its nav already in the HTML (SEB-426)
-    [['navCountries', 'countries.html'], ['navEvents', 'events.html'], ['navResearch', 'research.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navHow', 'how-it-works.html']].forEach(function (x) {
-      var t = C[x[0]]; if (!t) { return; }
-      var a = document.createElement('a'); a.textContent = t; a.href = './' + x[1]; $('nav').appendChild(a);
-    });
-  }
 
   // Every price for a dollar on one shared line (1 Nov, Claude Design review): the official rate at 0%, then each way to buy a
   // dollar placed by how much more it costs. One row per way so close prices never overlap; every row uses the same scale.
@@ -254,7 +246,7 @@
   var started = false;
   function start(res) {
     C = (res[0] && res[0].countryData) || {};
-    if (!started) { nav(); }
+    
     $('cnav').innerHTML = '<a class="back" href="./countries.html">' + esc(T('navCountries')) + '</a>';
     if (!res[1] || !res[2]) { if (started) { return; } return fail(ccy && !res[1] ? 'notFound' : 'loadFailed', { code: ccy }); }
     S.c = res[1]; S.withheld = (res[2].withheld || []).filter(function (w) { return w.ccy === ccy; })[0] || null;

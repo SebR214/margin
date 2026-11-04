@@ -9,7 +9,6 @@
   var TO = { PHP: 'the Philippines', MXN: 'Mexico', INR: 'India', NGN: 'Nigeria', ARS: 'Argentina', BRL: 'Brazil' };
   var SYM = { SGD: 'S$', AUD: 'A$', NZD: 'NZ$', USD: 'US$' };
   var ORDER = ['price_changes', 'weekend_penalty', 'volume_crossover', 'sgd_php_never_cheapest', 'exchange_vs_p2p'];
-  var NAV = [['navCountries', 'countries.html'], ['navEvents', 'events.html'], ['navResearch', 'research.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navHowItWorks', 'how-it-works.html']];
   var C = {}, FIN = {}, DATA = {}, AS_OF = '';
   var id = 'price_changes', route = 'ALL', side = 'taker';
 
@@ -373,8 +372,6 @@
   Promise.all([getJSON('copy.json').catch(function () { return {}; }), getJSON('data/findings.json').catch(function () { return null; }), getJSON('data/claims_status.json').catch(function () { return null; }), getJSON('data/findings_first_published.json').catch(function () { return {}; }), getJSON('data/finding_status.json').catch(function () { return null; })]).then(function (r) {
     C = (r[0] && r[0].findingData) || {};
     CLAIMS = r[2];
-    var nav = $('nav');
-    if (window.siteNav) { window.siteNav.fill(nav); } else NAV.forEach(function (x) { var t = C[x[0]]; if (!t) { return; } var a = document.createElement('a'); a.textContent = t; a.href = './' + x[1]; nav.appendChild(a); });
     ((r[1] && r[1].findings) || []).forEach(function (f) { f.first_published = r[3][f.id] || ''; f.retest = (r[4] && r[4].findings && r[4].findings[f.id]) || null; FIN[f.id] = f; });
     // the chips and "We also found these" list published findings only, numbered as the Findings page numbers them (24 Oct)
     ORDER = ORDER.filter(function (k) { return FIN[k] && FIN[k].published === true; });

@@ -76,6 +76,11 @@ jobs:
           git diff --exit-code -- '*.html'
           python3 tools/check_outside.py --self-test
 
+      - name: One header on every page, nothing else draws or styles one (2 Nov, DESIGN.md Nav)
+        run: |
+          python3 tools/bake_nav.py --self-test
+          python3 tools/bake_nav.py --check
+
       - name: Pages that show their content without JavaScript (SEB-431)
         run: python3 tools/bake_pages.py --self-test
 
@@ -412,6 +417,10 @@ jobs:
           set +e
           python3 tools/check_rendered.py --base "origin/${{ github.base_ref }}" | tee rendered.txt
           exit ${PIPESTATUS[0]}
+
+      - name: The header works the same on every page (About, the phone menu, the same pixels)
+        if: steps.scope.outputs.touched == 'true'
+        run: python3 tools/check_header.py
 
       - name: Page style, every page matches home
         if: steps.scope.outputs.touched == 'true'

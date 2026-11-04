@@ -7,7 +7,6 @@
   var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var C = {}, EP = {}, NAMES = {};
   var app = document.getElementById("app");
-  var NAV = [["navCountries", "./countries.html"], ["navEvents", "./events.html"], ["navResearch", "./research.html"], ["navRoutes", "./sending-money.html"], ["navSources", "./sources.html"], ["navHow", "./how-it-works.html"]];
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function txt(k, v) { var s = C[k]; return s ? String(s).replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : ""; }) : ""; }
   function getJSON(u) { return fetch(u, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); }
@@ -24,11 +23,6 @@
     else if (o.baseline && o.at_detection != null) v = (o.at_detection / o.baseline - 1) * 100;
     else street = e.event_kind === "street_slide";
     return ep("heading" + (street ? "Street" : "Official") + (v >= 0 ? "Up" : "Down"), { country: name, pct: pct(v) });
-  }
-  function nav() {
-    return '<header class="sm-head"><a class="sm-logo" href="./index.html">margin.wiki</a><nav class="sm-nav" aria-label="Main">' + (window.siteNav ? window.siteNav.html() : NAV.map(function (n) {
-      var t = C[n[0]]; return t ? '<a href="' + n[1] + '"' + (n[1] === "./events.html" ? ' aria-current="page"' : "") + ">" + esc(t) + "</a>" : "";
-    }).join("")) + "</nav></header>";
   }
   function row(e, rec) {
     var name = NAMES[e.ccy] || e.ccy;
@@ -49,7 +43,7 @@
     return Promise.all(recs).then(function (rr) { draw(ev, rr); });
   }).catch(function () { app.innerHTML = '<div class="sm-wrap"><p class="sm-note">' + esc(txt("loadFailed") || "") + "</p></div>"; });
   function draw(ev, rr) {
-    app.innerHTML = '<div class="sm-wrap">' + nav() + '<div class="sm-hero"><h1>' + esc(txt("heading")) + '</h1><p class="sm-lead">' + esc(txt("lead")) + "</p></div>" +
+    app.innerHTML = '<div class="sm-wrap">' + '<div class="sm-hero"><h1>' + esc(txt("heading")) + '</h1><p class="sm-lead">' + esc(txt("lead")) + "</p></div>" +
       (ev.length ? '<ul class="evl">' + ev.map(function (e, i) { return row(e, rr[i]); }).join("") + "</ul>" : '<p class="sm-note">' + esc(txt("empty")) + "</p>") +
       "<footer><p>" + esc(txt("footer")) + "</p></footer></div>";
   }

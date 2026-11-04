@@ -17,7 +17,6 @@
   // the destination sets the colour, the sending country sets the dash (DESIGN.md chart palette)
   var DEST_COLOUR = { INR: "var(--data-700)", NGN: "var(--color-neutral-900)", MXN: "var(--data-500)", PHP: "var(--color-neutral-500)" };
   var SRC_DASH = { SGD: "", USD: "", AUD: "6 4", NZD: "2 3" };
-  var NAV = [["navCountries", "./countries.html"], ["navEvents", "./events.html"], ["navResearch", "./research.html"], ["navRoutes", "./sending-money.html", true], ["navSources", "./sources.html"], ["navHow", "./how-it-works.html"]];
   var chart = null;
 
   function esc(s) {
@@ -63,13 +62,6 @@
   }
 
   // ---------------------------------------------------------------- page parts
-  function headHtml() {
-    return '<header class="sm-head"><a class="sm-logo" href="./index.html">margin.wiki</a>' +
-      '<nav class="sm-nav" aria-label="Main">' + (window.siteNav ? window.siteNav.html() : NAV.map(function (nv) {
-        var s = txt(nv[0]);
-        return s ? '<a href="' + nv[1] + '"' + (nv[2] ? ' aria-current="page"' : "") + ">" + esc(s) + "</a>" : "";
-      }).join("")) + "</nav></header>";
-  }
 
   function heroHtml() {
     // where the stablecoin wins on the dollar premium, and where the apps win, named from this hour's rows
@@ -276,7 +268,7 @@
   function renderAll() {
     // under the table: the picked route in detail (js/route_detail.js fills #smDetail), then the biggest moves.
     // The all-routes line chart is gone (22 Oct): the table already compares the routes, the detail chart shows one.
-    app.innerHTML = '<div class="sm-wrap">' + headHtml() + heroHtml() + (txt("cmpGap") ? "" : tableHtml()) + '<div id="smDetail"></div>' + movesSectionHtml() + footerHtml() + "</div>";
+    app.innerHTML = '<div class="sm-wrap">' + heroHtml() + (txt("cmpGap") ? "" : tableHtml()) + '<div id="smDetail"></div>' + movesSectionHtml() + footerHtml() + "</div>";
     try { window.dispatchEvent(new Event("routes:render")); } catch (e) { /* very old browser: no detail */ }
   }
 
@@ -306,7 +298,7 @@
       if (window.console) console.error(err);
       maybeJSON("copy.json").then(function (d) {
         COPY = (d && d.routeData) || {};
-        app.innerHTML = '<div class="sm-wrap">' + headHtml() + w("loadFailed", null, "p") + "</div>";
+        app.innerHTML = '<div class="sm-wrap">' + w("loadFailed", null, "p") + "</div>";
       });
     });
 })();

@@ -32,8 +32,13 @@ with **How it works, Sources, How it was built**, all three named, on click and 
 the Menu sheet lists the four, then the word About with its three links under it, all the same size. The current page is
 bold (and About when the page is one of its three). Bold never moves anything: each label reserves its bold width.
 
-`js/site_nav.js` draws the menu on every page, from copy.json `siteNav` (run `python3 tools/bake_nav.py` after editing the
-words). It loads in each page's head, so the menu is right on the first frame. No page script builds its own menu.
+**One header, written once (2 Nov, after seven header bugs in a day).** Every page carries the same header markup between
+`<!-- site-head:begin -->` and `<!-- site-head:end -->`, right after `<body>`. `tools/bake_nav.py` writes it from copy.json
+(`brand`, `siteNav`, homeData `menuLabel`/`menuClose`); run it after editing those words. `css/site_head.css` is the only
+place it is styled and `js/site_head.js` the only script that touches it (About, the phone menu, the clock). No page script
+draws, redraws or moves a header or nav, no other stylesheet or page `<style>` styles it, not even with a bare `header` or
+`nav` selector. CI fails otherwise: `tools/bake_nav.py --check` (the markup and those rules) and `tools/check_header.py`
+(clicks About and the phone menu on every page, and checks every item sits at the home page's pixels).
 
 Rows under each bar item: Countries lists every country page. Events lists every event page. Research lists every research
 piece and finding. Routes holds every route. The 404 page and redirects are not pages.

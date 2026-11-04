@@ -7,7 +7,6 @@
   var MINUS = '−';
   var C = {}, D = {};
   var showAll = false, early = false;
-  var NAV = [['navCountries', 'countries.html'], ['navEvents', 'events.html'], ['navResearch', 'research.html'], ['navRoutes', 'sending-money.html'], ['navSources', 'sources.html'], ['navHow', 'how-it-works.html']];
   var BUCKETS = [
     [-Infinity, 0, 'b-neg', 'legendBelowOfficial'],
     [0, 2, 'b0', 'legendUnder', { max: 2 }],
@@ -42,16 +41,6 @@
 
   /* ---------------------------------------------------------------- header nav, words
      (the header status is js/site_head.js's) */
-  function nav() {
-    var n = $('nav');
-    // built once: load() runs again every new hour in an open tab, and appending each time repeated the links (25 Oct)
-    if (window.siteNav) { window.siteNav.fill(n); return; }   // the one menu (js/site_nav.js, 2 Nov)
-    if (n.querySelector('a')) { return; }
-    NAV.forEach(function (x) {
-      var t = T(x[0]); if (!t) { return; }
-      var a = document.createElement('a'); a.textContent = t; a.href = './' + x[1]; n.appendChild(a);
-    });
-  }
 
   /* ---------------------------------------------------------------- the computed headline and the week's changes (SEB-423)
      data/home_facts.json is built by tools/emit_home_facts.py; each sentence shows only while data/claims_status.json says the facts
@@ -383,7 +372,6 @@
     got.cash = r[keys.length + 3];
     C = (got.copy && got.copy.homeData) || {};
     D = got;
-    nav();
     if (!got.heat || !got.rec) { var e = $('loaderr'); e.textContent = T('loadError', { n: failed.length }); e.hidden = !e.textContent; return; }
     build();   // before hero(): the "tracked" count and the "Countries tracked" counter both read D.cur, built here
     hero();

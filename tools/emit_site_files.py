@@ -131,6 +131,8 @@ def write_404():
     """404.html: the page GitHub Pages serves for an address that is not there. Words from copy.json notFoundPage, no script needed
     for them. <base href="/"> so its CSS, nav and links resolve from the site root at any depth. Never indexed, never in the sitemap."""
     w = json.load(open(os.path.join(HERE, "copy.json")))["notFoundPage"]
+    import bake_nav   # the one site header, the same on every page
+    header = bake_nav.header_html("404.html")
     e = lambda k: html.escape(w[k], quote=True)
     text = """<!doctype html>
 <html lang="en">
@@ -145,20 +147,20 @@ def write_404():
 <link rel="icon" href="/favicon.ico" sizes="48x48"/>
 <link rel="preload" href="./vendor/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./style.css">
-<link rel="stylesheet" href="./css/site_head.css?v=5">
-<link rel="stylesheet" href="./css/site_page.css?v=10">
+<link rel="stylesheet" href="./css/site_head.css?v=15">
+<link rel="stylesheet" href="./css/site_page.css?v=14">
 </head>
 <body class="data">
-<header class="mwh"><a class="mwh-logo" href="/">margin.wiki</a><nav aria-label="Main" data-canon-nav></nav></header>
+%s
 <main style="max-width: 720px; margin: 40px auto; padding: 0 16px;">
 <h1>%s</h1>
 <p class="lede">%s</p>
 <p><a href="/">%s</a> &middot; <a href="/countries.html">%s</a></p>
 </main>
-<script src="./js/site_head.js?v=6"></script>
+<script src="./js/site_head.js?v=13"></script>
 </body>
 </html>
-""" % (e("title"), e("description"), e("heading"), e("line"), e("linkHome"), e("linkCountries"))
+""" % (e("title"), e("description"), header, e("heading"), e("line"), e("linkHome"), e("linkCountries"))
     path = os.path.join(HERE, "404.html")
     if not os.path.exists(path) or open(path).read() != text:
         open(path, "w").write(text)

@@ -6,7 +6,7 @@
 (function () {
   var SITE = 'https://margin.wiki/';
   var COLUMN = '.wrap, .hp-wrap, .hw-wrap, .ci-wrap, .fp-wrap, .sm-wrap';
-  var KEEP = '.mv-switch, .mv-panel, script, template, header, .hp-head, .ci-head, .c-head, .sm-head, .s-head, .fp-head, .mwh';   // Machine mode shows only the text: the site header, nav and footer are hidden too
+  var KEEP = '.mv-switch, .mv-panel, script, template, header, .site-head';   // Machine mode shows only the text: the site header, nav and footer are hidden too
 
   // the twin for this page, or null on a page that has none
   function twinPath() {
@@ -84,7 +84,7 @@
       // (2 Nov, Seb: the header spot from 1 Nov hid it in Machine mode and was never agreed)
       if (sw.parentNode !== document.body) { document.body.appendChild(sw); }
       if (panel.parentNode !== col) {
-        var h2 = col.querySelector(':scope > header, :scope > .site-head, :scope > .hp-head');
+        var h2 = col.querySelector(':scope > header, :scope > .site-head');
         col.insertBefore(panel, h2 ? h2.nextSibling : col.firstChild);
       }
     }
