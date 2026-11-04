@@ -157,12 +157,8 @@ section p, .hiw-section p, .fp-sec p { max-width: none !important; }
 body:has(#land) .hero p { font-size: 18px !important; line-height: 1.6 !important; color: var(--color-neutral-700) !important; text-wrap: pretty !important; }
 body:has(#land) .hero p.agents { font-size: 15px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important; }
 body:has(#land) .hero .body b { font-weight: 400; }
-/* home, first screen (2 Nov, Seb, option A): the top section is one screen tall under the header, so the map starts when you
-   scroll, on any screen. No gap changes: the lines keep the spacing above; the room left over sits under the last line.
-   "Right now" is ink, the one line of news on the first screen. */
-body:has(#land) .hero { box-sizing: border-box !important; min-height: calc(100svh - 85px) !important; }
+/* home, first screen (4 Nov, Seb): "Right now" is ink, the one line of news before the map */
 body:has(#land) .hero p.now { color: var(--color-ink) !important; }
-@media (max-width: 767px) { body:has(#land) .hero { min-height: calc(100svh - 57px) !important; } }
 
 @media (max-width: 700px) {
   h1 { font-size: 30px !important; }

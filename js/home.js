@@ -220,6 +220,7 @@
       (showAll ? D.unranked.map(function (c) { return row(c, ' frozen'); }).join('') : '') +
       '<div class="pills hb">' + (showAll ? '' : '<button class="pill" type="button" id="all">' + esc(T('heatShowAll', { n: D.cur.length })) + '</button>') +
       (early ? '' : '<button class="pill" type="button" id="early">' + esc(T('heatEarlier')) + '</button>') + '</div>' +
+      (T('heatShortTitle') && leadLine() ? '<p class="note sm">' + esc(leadLine()) + '</p>' : '') +
       D.unranked.map(function (c) { return '<p class="note sm">' + esc(T('unrankedNote', { country: c.country, ccy: c.ccy })) + '</p>'; }).join('') +
       // countries with no price on any of the last 30 days: one grey line naming them, under the map (SEB-301, 21 Oct)
       (D.never30.length && T('neverPricedNote') ? '<p class="note sm">' + esc(T('neverPricedNote', { list: D.never30.map(function (c) { return c.country; }).join(', ') })) + '</p>' : '');
@@ -260,15 +261,20 @@
       $('heatL').textContent = T('tlHeatLine');
       return;
     }
+    // the map starts on the first screen (4 Nov, Seb): a short title and one line above it, and the counts line under it
+    if (T('heatShortTitle')) { $('heatT').textContent = T('heatShortTitle'); $('heatL').textContent = T('heatShortLine'); return; }
+    $('heatT').textContent = leadLine();
+    $('heatL').textContent = T('heatLine') + (T('heatTapNote') ? ' ' + T('heatTapNote') : '');
+  }
+  // the counts line (SEB-391): how many countries are within 2%, how many at 8% or more (the legend's cut), and the biggest.
+  // Until its words are set the older "In n of N countries" title stands.
+  function leadLine() {
     var rk = D.rk || [];
-    // the lead line (SEB-391): the biggest premium this hour, how many countries are at 8% or more (the legend's cut), and how many are within 2%.
-    // Until its words are set the older "In n of N countries" title stands.
     var r1 = function (c) { return Math.round(c.index_pct * 10) / 10; };
     var top = rk.reduce(function (a, c) { return !a || c.index_pct > a.index_pct ? c : a; }, null);
-    $('heatT').textContent = !rk.length ? '' : T('heatLead') ? T('heatLead', { top_pct: top.index_pct.toFixed(1), top_country: plain(top.country), n_over_8: g(rk.filter(function (c) { return r1(c) >= 8; }).length),
+    return !rk.length ? '' : T('heatLead') ? T('heatLead', { top_pct: top.index_pct.toFixed(1), top_country: plain(top.country), n_over_8: g(rk.filter(function (c) { return r1(c) >= 8; }).length),
       n_within_2: g(rk.filter(function (c) { var v = r1(c); return v >= -2 && v <= 2; }).length), n_priced: g(rk.length) }) :
       T('heatTitle', { n: g(rk.filter(function (c) { var v = r1(c); return v >= -2 && v <= 2; }).length), N: g(rk.length) });
-    $('heatL').textContent = T('heatLine') + (T('heatTapNote') ? ' ' + T('heatTapNote') : '');
   }
   function tlTip(vw, cells, j) {
     var r = vw.rows.filter(function (x) { return x.ccy === cells.closest('.hrow').dataset.ccy; })[0], c = r.cells[j];
