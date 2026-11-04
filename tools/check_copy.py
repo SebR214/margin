@@ -77,8 +77,6 @@ ALLOWLIST = {
     "STABLECOIN ROUTE",
     # 14 Oct, Seb's approved label for the route dropdown on Routes at phone width (SEB-268).
     "Route",
-    # 13 Oct, Seb's approved lede for how-it-was-built.html (SEB-301), rewritten 31 Oct (SEB-427, a draft for Seb): "collector" is the first part's name.
-    "The collector and the checks are plain code. The builder uses AI to write some of the code, and one person writes the rest.",
 }
 
 # A template placeholder like {corridor} or {rung} is never reader-visible on
@@ -266,8 +264,28 @@ def check_words(copy=None, path=DESIGN):
     return out
 
 
+# Lines Seb locked (2 Nov 2026, after the AI line was rewritten every week). The check fails if one changes. Only Seb changes
+# them, in chat, and then this table changes in the same PR. WORDS.md "Locked lines" says the same.
+LOCKED = {
+    "homeData.agentsLine": "AI agents build and run this site.",
+    "machineRoom.title": "AI agents build and run this site.",
+}
+
+
+def check_locked(copy=None):
+    copy = copy or json.load(open(os.path.join(HERE, "copy.json"), encoding="utf-8"))
+    out = []
+    for path, want in LOCKED.items():
+        node = copy
+        for part in path.split("."):
+            node = node.get(part) if isinstance(node, dict) else None
+        if node != want:
+            out.append((path, "locked line", "%r, it must stay %r" % (node, want)))
+    return out
+
+
 def main():
-    violations = []
+    violations = check_locked()
     violations += [("copy.json:" + p, w, s) for p, w, s in check_copy_json()]
     violations += check_all_html()
     violations += check_words()

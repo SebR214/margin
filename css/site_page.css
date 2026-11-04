@@ -24,6 +24,7 @@ h3, h4 { font-weight: 500 !important; }
   min-height: 40px !important; padding: 0 14px !important; border: 1px solid var(--color-neutral-300, #d7d3d3) !important;
   border-radius: 999px !important; background: var(--color-bg, #fff) !important; color: var(--color-neutral-700, #605d5d) !important;
   cursor: pointer; display: inline-flex !important; align-items: center !important; text-transform: none !important; letter-spacing: 0 !important;
+  text-decoration: none !important;   /* a pill can be a link (the home page's two ways in) */
 }
 .hp-btn:hover, .c-chip:hover, .ci-pill:hover, .sm-pill:hover, .pill:hover, .fp-chip:hover, .s-chip:hover { color: var(--color-ink, #201e1d) !important; }
 .hp-btn[aria-pressed="true"], .hp-btn.on, .c-chip.on, .c-chip[aria-pressed="true"], .ci-pill[aria-pressed="true"], .ci-pill.on, .sm-pill[aria-pressed="true"], .sm-pill.on,
@@ -156,6 +157,8 @@ section p, .hiw-section p, .fp-sec p { max-width: none !important; }
 body:has(#land) .hero p { font-size: 18px !important; line-height: 1.6 !important; color: var(--color-neutral-700) !important; text-wrap: pretty !important; }
 body:has(#land) .hero p.agents { font-size: 15px !important; line-height: 1.55 !important; color: var(--color-neutral-600) !important; }
 body:has(#land) .hero .body b { font-weight: 400; }
+/* home, first screen (4 Nov, Seb): "Right now" is ink, the one line of news before the map */
+body:has(#land) .hero p.now { color: var(--color-ink) !important; }
 
 @media (max-width: 700px) {
   h1 { font-size: 30px !important; }

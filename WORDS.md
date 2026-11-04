@@ -35,6 +35,13 @@ reads the Words table below and fails any change that puts a "Never say" word in
 
 * Text an AI model wrote says so in one line under it, and that our code checked every number against our files before it went up.
 
+## Locked lines
+
+Seb locked these on 2 Nov 2026, after the AI line was rewritten every week. Only Seb changes them, in chat.
+`tools/check_copy.py` (LOCKED) fails if one changes.
+
+* Home, under the first screen's text, and the How it was built headline: **AI agents build and run this site.**
+
 ## Words
 
 | Say | Never say |
