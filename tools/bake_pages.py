@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.join(HERE, "tools"))
 BEGIN, END = "<!-- bake:begin -->", "<!-- bake:end -->"
 # From the first begin marker to the LAST end marker, so a page that already holds stacked blocks is cleaned back to one
 BLOCK = re.compile(r"[ \t]*" + re.escape(BEGIN) + r".*" + re.escape(END) + r"[ \t]*\n?", re.S)
-TEMPLATES = {"country.html", "finding.html", "event.html", "404.html"}
+TEMPLATES = {"country.html", "event.html", "404.html"}
 MIN_TEXT = 400          # characters of text a drawn page must have, or the render did not finish
 HIDE_SHELL = "<style>body > *:not(noscript){display:none !important}</style>"
 

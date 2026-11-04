@@ -52,7 +52,7 @@ PROBE_PHONE = r"""(async function () {
 def targets():
     from gate_common import all_pages
     pages = list(all_pages())
-    extra = {"country.html": "country.html?ccy=PHP&noredirect=1", "finding.html": "finding.html?id=exchange_vs_p2p"}
+    extra = {"country.html": "country.html?ccy=PHP&noredirect=1"}
     try:
         ev = json.load(open(os.path.join(HERE, "data", "events_published.json")))["events"]
         if ev:

@@ -192,9 +192,8 @@ def style_check(perturb=False):
 
 
 OVERFLOW_PAGES = ["index.html", "countries.html", "country.html?ccy=PHP", "country.html?ccy=TRY", "sending-money.html?route=SGD-PHP&amount=5000",
-                  "sending-money.html?route=USD-MXN&amount=50000", "sources.html", "research.html", "finding.html?id=price_changes",
-                  "finding.html?id=weekend_penalty", "finding.html?id=volume_crossover", "finding.html?id=sgd_php_never_cheapest",
-                  "finding.html?id=exchange_vs_p2p", "how-it-works.html", "how-it-was-built.html"]
+                  "sending-money.html?route=USD-MXN&amount=50000", "sources.html", "research.html",
+                  "research-source-pairs.html", "how-it-works.html", "how-it-was-built.html"]
 # At 390px nothing may be wider than the screen and nothing may scroll sideways: the page itself, any element that
 # sticks out past the right edge (unless a clipping ancestor already holds it inside the screen), and any element that
 # has its own sideways scroll with content wider than its box.
@@ -238,7 +237,7 @@ def overflow_check(perturb=False):
 
 
 LINES_PAGES = ["index.html", "countries.html", "country.html?ccy=PHP", "sending-money.html?route=SGD-PHP&amount=5000",
-               "sources.html", "research.html", "finding.html?id=price_changes", "how-it-works.html", "how-it-was-built.html"]
+               "sources.html", "research.html", "research-source-pairs.html", "how-it-works.html", "how-it-was-built.html"]
 # The words of each heading and paragraph, grouped into lines by where the browser put them. A last line of one word is a
 # stray word; one that is only a symbol or a number in brackets ("(5)", "→") counts too, as the reader sees it the same way.
 LINES_PROBE = r"""
