@@ -1,7 +1,14 @@
 {
- "as_of_utc": "2026-11-04T09:19:22Z",
+ "as_of_utc": "2026-11-04T10:19:42Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "11a45280c99a3222165fbc36884da5844490fbbe",
+   "html_url": "https://github.com/SebR214/margin/commit/11a45280c99a3222165fbc36884da5844490fbbe",
+   "date": "2026-11-04T09:22:05Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-04T09:22Z"
+  },
   {
    "sha": "0eab7fe009cc99f662ce56ff20f10db81b307be0",
    "html_url": "https://github.com/SebR214/margin/commit/0eab7fe009cc99f662ce56ff20f10db81b307be0",
@@ -694,13 +701,6 @@
    "date": "2026-11-02T13:20:44Z",
    "email": "person",
    "message": "SEB-431: the page bake no longer stacks a copy of itself every hour (#777)\n\nThe drawn page held the last run's bake markers, so the block matched only up to the\ninner end marker and every run left another copy behind. index.html went from 40 KB to\n28 MB, events.html and sending-money.html to 74 MB, and the file size check failed every\ncollect run from 06:05 UTC on 2 Nov, so no sample was committed after 05:49 UTC.\nThe markers are no longer written back, the block matches to the last end marker (a\npolluted page is cleaned back to one block), and the self-test covers both. The ten\npolluted pages have their stacked blocks removed; the next bake writes one fresh block.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
-  },
-  {
-   "sha": "27b980be38a299ec30d05204917b970e77306221",
-   "html_url": "https://github.com/SebR214/margin/commit/27b980be38a299ec30d05204917b970e77306221",
-   "date": "2026-11-02T05:49:13Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-11-02T05:49Z"
   }
  ]
 }
