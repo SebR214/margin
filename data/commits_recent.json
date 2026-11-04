@@ -1,7 +1,14 @@
 {
- "as_of_utc": "2026-11-04T10:19:42Z",
+ "as_of_utc": "2026-11-04T10:44:57Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "22133487082b02d67376395859cc99724ed5ad59",
+   "html_url": "https://github.com/SebR214/margin/commit/22133487082b02d67376395859cc99724ed5ad59",
+   "date": "2026-11-04T10:22:27Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-04T10:22Z"
+  },
   {
    "sha": "11a45280c99a3222165fbc36884da5844490fbbe",
    "html_url": "https://github.com/SebR214/margin/commit/11a45280c99a3222165fbc36884da5844490fbbe",
@@ -694,13 +701,6 @@
    "date": "2026-11-02T13:25:25Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "aider builder run 2026-11-02T13:25:05+00:00"
-  },
-  {
-   "sha": "dc1ac81cfc3a969a1867ee998260687c9593f7f3",
-   "html_url": "https://github.com/SebR214/margin/commit/dc1ac81cfc3a969a1867ee998260687c9593f7f3",
-   "date": "2026-11-02T13:20:44Z",
-   "email": "person",
-   "message": "SEB-431: the page bake no longer stacks a copy of itself every hour (#777)\n\nThe drawn page held the last run's bake markers, so the block matched only up to the\ninner end marker and every run left another copy behind. index.html went from 40 KB to\n28 MB, events.html and sending-money.html to 74 MB, and the file size check failed every\ncollect run from 06:05 UTC on 2 Nov, so no sample was committed after 05:49 UTC.\nThe markers are no longer written back, the block matches to the last end marker (a\npolluted page is cleaned back to one block), and the self-test covers both. The ten\npolluted pages have their stacked blocks removed; the next bake writes one fresh block.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
   }
  ]
 }
