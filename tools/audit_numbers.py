@@ -74,6 +74,19 @@ PCT_TOL = 0.001      # index_pct is published to 4 dp
 BPS_TOL = 0.02       # cost_bps is published to 2 dp
 LEG_TOL = 0.011      # five 2-dp legs may drift by rounding only
 
+
+def rounding_bps(landed_s, mid_s):
+    """How far a cost re-worked from the STORED inputs can sit from the published one by rounding alone, in bps.
+    samples.csv keeps landed to the cent and mid to its own last decimal; the published cost was worked from the
+    unrounded values. Half a cent of landed plus half the last digit of mid, as a share. At USD 200 into BRL that is
+    0.055 bps, so the flat 0.02 failed true numbers (4 Nov 02:07 to 04:07 UTC, USD->BRL 200, gaps of 0.02 to 0.04)."""
+    try:
+        landed, mid = float(landed_s), float(mid_s)
+        dm = len(str(mid_s).split(".")[1]) if "." in str(mid_s) else 0
+        return 1e4 * (0.005 / abs(landed) + 0.5 * 10 ** -dm / abs(mid))
+    except (TypeError, ValueError, ZeroDivisionError):
+        return 0.0
+
 # Mirrors tools/emit_pricechange_receipts.py's own MIN_READINGS -- read-only,
 # the same policy constant restated here rather than imported.
 PRICECHANGE_MIN_READINGS = 6
@@ -414,7 +427,7 @@ def check_corridor(item, samples_by):
     if not amount or not mid or landed is None:
         return fail(item, "raw sample row is missing notional / mid / landed", files)
     bps = (1 - landed / (amount * mid)) * 1e4
-    passed = abs(bps - pub_bps) <= BPS_TOL
+    passed = abs(bps - pub_bps) <= BPS_TOL + rounding_bps(r["landed_" + regime], r["mid_src_dst"])
     note = ""
     if passed and regime == "taker" and comp.get("legs_available"):
         legs = comp["legs"]
@@ -442,7 +455,7 @@ def check_variant(item, samples_by):
             return fail(item, "raw variant row missing landed / cost", files)
         bps = (1 - landed / (amount * mid)) * 1e4
         out.append((regime, pub, round(bps, 2)))
-        ok_all = ok_all and abs(bps - pub) <= BPS_TOL
+        ok_all = ok_all and abs(bps - pub) <= BPS_TOL + rounding_bps(r["landed_" + regime], cand[0]["mid_src_dst"])
     return result(item, ok_all, out[0][1], out[0][2],
                   "; ".join("%s %s vs %s" % o for o in out), files)
 
