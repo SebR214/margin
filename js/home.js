@@ -126,6 +126,19 @@
       (lines.length ? '<div class="rows">' + lines.join('') + '</div>' : '<p class="note">' + esc(T('whatChangedEmpty')) + '</p>');
   }
 
+  // "Right now: Algeria pays 90.1% more. Morocco jumped to 8.4% since yesterday." The first part is this hour's biggest gap
+  // (D.rk, the ranked countries the map's lead line uses); the second is the day's biggest move away from the
+  // country's usual level (home_facts.json, guarded by the largest-move claim), left out when it is the same country.
+  function rightNow() {
+    var top = (D.rk || []).reduce(function (a, c) { return !a || c.index_pct > a.index_pct ? c : a; }, null);
+    if (!top || !T('rightNowTop')) { return ''; }
+    var p1 = function (v) { return (Math.abs(v) >= 100 ? String(Math.round(v)) : v.toFixed(1)) + '%'; };   // 100% and up in whole numbers, like the country pages
+    var t = T('rightNowTop', { country: plain(top.country), pct: p1(top.index_pct) });
+    var a = awayMove(), k = a && (a.m.direction === 'dearer' ? 'rightNowUp' : 'rightNowDown');
+    if (a && a.m.ccy !== top.ccy && T(k) && !blocked(k)) { t += ' ' + T(k, { country: plain(a.m.country), now: p1(a.m.now_pct) }); }
+    return '<p class="lead now">' + esc(t) + '</p>';
+  }
+
   /* ---------------------------------------------------------------- hero: what the site is, with the totals from record_daily.json */
   function hero() {
     var tt = D.rec.totals || {};
@@ -134,22 +147,17 @@
     var ix = D.idx || {}, nPriced = (ix.countries || []).length;
     var nTracked = D.heat.countries_tracked;
     var idxCount = { priced: g(nPriced), tracked: g(nTracked) };
-    // one per row, as the Sources page lists them: the CriptoYa feeds count once
-    // the sources behind the stored-prices count, and every source read each hour (the Sources page's own count, CriptoYa's
-    // feeds as one), so the line says plainly that the count covers some of them (1 Nov: home said 41, Sources said 49)
-    var grp = function (list) { return list ? list.filter(function (s) { return s.live && !/^CriptoYa/.test(s.id); }).length + (list.some(function (s) { return s.live && /^CriptoYa/.test(s.id); }) ? 1 : 0) : null; };
-    var all = (D.src && D.src.sources) || null;
-    var sr = all ? all.filter(function (s) { return (s.files || []).every(function (f) { return f !== 'cash_rates/' && f !== 'p2p_basis_boards.csv'; }); }) : null;
-    var nSources = grp(sr), nAll = grp(all);
-    var h = '<h1>' + esc(moveHeadline() || T('headline')) + '</h1>' + (dailyProse() || moveSince()) +
-      (T('heroWhy') ? '<p class="lead sub">' + esc(T('heroWhy')) + '</p>' : '') +
-      (T('termsLine') ? '<p class="lead sub">' + esc(T('termsLine')) + '</p>' : '') +
-      '<p class="lead what">' + esc(T('whatLine', { tracked: idxCount.tracked, priced: idxCount.priced, routes: tt.routes })) + '</p>' +
+    // The first screen (2 Nov, Seb's words): what the site is, the biggest gap and the biggest move this hour, two ways in,
+    // and who runs it. The page explains itself before it shows any news; the terms live on How it works.
+    var h = '<h1>' + esc(T('headline')) + '</h1>' +
+      (T('heroLead') && nTracked ? '<p class="lead">' + esc(T('heroLead', { tracked: idxCount.tracked })) + '</p>' : '') +
+      rightNow() +
+      (T('ctaCountries') ? '<div class="pills cta"><a class="pill" href="./countries.html">' + esc(T('ctaCountries')) + '</a>' +
+        (T('ctaHow') ? '<a class="pill" href="./how-it-works.html">' + esc(T('ctaHow')) + '</a>' : '') + '</div>' : '') +
       hoursMissingLine() +
-      // who built it and what is stored so far, as one line (21 Oct, Seb's wording); the numbers come from the files
-      // the line links to How it was built (1 Nov)
-      '<p class="body agents"><a href="./how-it-was-built.html">' + esc(T('agentsLine')) + (T('agentsStored') && nSources != null && tt.readings != null && tt.hours_collected != null ? ' ' +
-        esc(T('agentsStored', { readings: '\u0001', sources: '\u0002', hours: '\u0003', all: '\u0004' })).replace('\u0001', g(tt.readings)).replace('\u0002', String(nSources)).replace('\u0004', String(nAll)).replace('\u0003', g(tt.hours_collected)) : '') + '</a></p>';
+      // who runs it and what is stored so far, one line (locked 2 Nov: tools/check_copy.py LOCKED); it links to How it was built
+      '<p class="body agents"><a href="./how-it-was-built.html">' + esc(T('agentsLine')) +
+        (T('agentsStored') && tt.readings != null ? ' ' + esc(T('agentsStored', { readings: g(tt.readings) })) : '') + '</a></p>';
     $('hero').innerHTML = h;
     $('hero').style.display = 'flex'; $('hero').style.flexDirection = 'column';
   }
@@ -374,9 +382,9 @@
     D = got;
     if (!got.heat || !got.rec) { var e = $('loaderr'); e.textContent = T('loadError', { n: failed.length }); e.hidden = !e.textContent; return; }
     build();   // before hero(): the "tracked" count and the "Countries tracked" counter both read D.cur, built here
-    hero();
     // counted like the Countries page title: ranked countries with a price this hour, and how many sit within 2% (SEB-268, 12 Oct)
     D.rk = ((got.idx && got.idx.countries) || []).filter(function (c) { return c.index_pct != null && c.denominator_class !== 'unmaintained'; });
+    hero();   // after D.rk: "Right now" names the same top country as the map's lead line
     heatHead();
     heat();
     whatChanged();
