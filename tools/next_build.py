@@ -24,7 +24,8 @@ LABEL = "build"
 SKIP = {"blocked", "needs-claude", "needs-sebastian"}
 DAILY_LIMIT = 3
 BUILDER = "🔨 **Builder**"
-STAMPS = ("🔨 **Builder**", "🔍 **Reviewer**", "📋 **Product**", "🕵️ **Critic**")
+AUTO = "🤖 **Automation**"  # agents/linear_sync.py notes
+STAMPS = ("🔨 **Builder**", "🔍 **Reviewer**", "📋 **Product**", "🕵️ **Critic**", AUTO)
 STARTED = BUILDER + "\n\nStarted"
 
 
@@ -45,10 +46,11 @@ def started_today(issues, today):
 
 def pick(issues, today):
     """The issue to build, or None."""
-    issues = [i for i in issues
-              if not SKIP & {l["name"].lower() for l in i["labels"]["nodes"]}]
+    # the quota counts every build that started, also on issues that failed and got a skip label
     if started_today(issues, today) >= DAILY_LIMIT:
         return None, "limit"
+    issues = [i for i in issues
+              if not SKIP & {l["name"].lower() for l in i["labels"]["nodes"]}]
     review = []
     for i in issues:
         if i["state"]["name"] != "In Review":
@@ -120,6 +122,10 @@ def self_test():
     chk("limit", pick(st + [iss("T", "Todo")], today)[1], "limit")
     chk("yesterday", pick(st[:2] + [iss("Y", "Done", [(S, "2026-11-04T09:00:00")]), iss("T", "Todo")], today)[0]["identifier"], "T")
     chk("skip", pick([iss("T", "Todo", labels=["blocked"])], today)[1], "none")
+    f = [iss("F%d" % n, "Todo", [(S, "2026-11-05T0%d:00:00" % n)], labels=["needs-claude"]) for n in range(3)]
+    chk("failed runs count", pick(f + [iss("T", "Todo")], today)[1], "limit")
+    note = AUTO + "\n\nPR #5 changes existing collection code"
+    chk("automation note", pick([iss("R", "In Review", [(P, "2026-11-04T11:00"), (note, "2026-11-04T12:00")])], today)[1], "none")
     if fails:
         print("\n".join(fails))
         return 1

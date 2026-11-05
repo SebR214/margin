@@ -141,13 +141,20 @@ jobs:
           ID: ${{ steps.job.outputs.id }}
           OUTCOME: ${{ steps.build.outcome }}
         run: |
-          pr=$(gh pr list --head "claude/$ID" --state all --json number,url,state --jq '.[0] | select(.) | "\(.number) \(.url) \(.state)"' || true)
-          if [ -n "$pr" ]; then
-            set -- $pr
-            python3 agents/linear.py say "$ID" builder "PR #$1: $2 (checks run on it; automerge merges it on green and moves this issue to Done)."
-            [ "$3" = "OPEN" ] && python3 agents/linear.py state "$ID" "In Review"
-          else
-            python3 agents/linear.py say "$ID" builder "The run ended ($OUTCOME) with no PR. Labelled needs-claude. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-            python3 agents/linear.py label "$ID" needs-claude
-            python3 agents/linear.py state "$ID" "Todo"
-          fi
+          # the open PR if there is one, else the newest PR on the branch, whatever its state
+          pr=$(gh pr list --head "claude/$ID" --state all --json number,url,state --jq 'sort_by(.number) | reverse | ((map(select(.state=="OPEN"))[0]) // .[0]) | select(.) | "\(.number) \(.url) \(.state)"' || true)
+          run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          set -- $pr
+          case "${3:-}" in
+            OPEN)
+              python3 agents/linear.py say "$ID" builder "PR #$1: $2 (checks run on it; automerge merges it on green and moves this issue to Done)."
+              python3 agents/linear.py state "$ID" "In Review" ;;
+            MERGED)
+              python3 agents/linear.py say "$ID" builder "PR #$1 is already merged: $2. Moving to Done."
+              python3 agents/linear.py state "$ID" "Done" ;;
+            *)
+              if [ -n "$pr" ]; then why="PR #$1 is $3, not open"; else why="the run ended ($OUTCOME) with no PR"; fi
+              python3 agents/linear.py say "$ID" builder "$why. Labelled needs-claude, back to Todo. Run: $run"
+              python3 agents/linear.py label "$ID" needs-claude
+              python3 agents/linear.py state "$ID" "Todo" ;;
+          esac

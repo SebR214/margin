@@ -23,7 +23,7 @@ STUCK = "needs-claude"
 def comment(i, text):
     linear.call("""mutation($id: String!, $b: String!) {
       commentCreate(input: { issueId: $id, body: $b }) { success }
-    }""", {"id": i["id"], "b": text})
+    }""", {"id": i["id"], "b": "🤖 **Automation**\n\n" + text})
 
 
 def merged(ident, pr, live=""):
