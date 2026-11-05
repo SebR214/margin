@@ -1,7 +1,14 @@
 {
- "as_of_utc": "2026-11-05T08:20:34Z",
+ "as_of_utc": "2026-11-05T08:44:47Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "7d0c08d27619d9c32e96237b37824d8f1f878e20",
+   "html_url": "https://github.com/SebR214/margin/commit/7d0c08d27619d9c32e96237b37824d8f1f878e20",
+   "date": "2026-11-05T08:23:27Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-05T08:23Z"
+  },
   {
    "sha": "d811c38584ff2ef0170ad688e06536f68ba12878",
    "html_url": "https://github.com/SebR214/margin/commit/d811c38584ff2ef0170ad688e06536f68ba12878",
@@ -694,13 +701,6 @@
    "date": "2026-11-03T13:09:58Z",
    "email": "person",
    "message": "SEB-436: collect checks out the tip of main, and the claims audit runs after the routes files (#783)\n\n* SEB-436: collect checks out the tip of main, and the claims audit runs after the routes files\n\nSince #779 a chain link is dispatched ~30 min before it collects. actions/checkout defaults to github.sha, frozen at\ndispatch, so every other link collected on a main from before the previous link's commit and its Commit samples rebase\nconflicted on every data file (3 Nov 10:05, 11:05 UTC failed; build skipped). checkout now takes ref: main.\n\nThe claims audit ran before emit_routes.py, so routeData.bigCaption compared this hour's raw rows with last hour's\nroutes_summary.json: false on every first run of an hour. With every other run failing, only false rows landed and the\nwatchdog emailed at 12:30 UTC. Moved after the routes emitters, before the bake that reads claims_status.json.\nChecked locally: bigCaption ok, differ [].\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVGgsNosa4c5zdXbTMr\n\n* SEB-436: movers self-test takes as many movers as qualify, so a gap a week ago does not fail the run\n\n27 Oct 10-13 UTC has no figures, so on 3 Nov at those hours no country has a weekly change. The self-test demanded 8,\nfailed the hourly step and the checks job, and so blocked every merge to main.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVGgsNosa4c5zdXbTMr\n\n* SEB-436: movers ranks run 1..n for however many qualify\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVGgsNosa4c5zdXbTMr\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
-  },
-  {
-   "sha": "639e778c8a525ab478b1a68d2e916bd6e9619fe9",
-   "html_url": "https://github.com/SebR214/margin/commit/639e778c8a525ab478b1a68d2e916bd6e9619fe9",
-   "date": "2026-11-03T12:45:01Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "aider builder: nothing to build"
   }
  ]
 }
