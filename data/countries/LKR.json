@@ -1,7 +1,8 @@
 {
-  "buy_price": 345.775,
+  "baseline_pct": 2.1673,
+  "buy_price": 349.4,
   "ccy": "LKR",
-  "computed_at": "2026-11-05T22:00:00+00:00",
+  "computed_at": "2026-11-05T23:00:00+00:00",
   "country": "Sri Lanka",
   "denominator": {
     "class": "market",
@@ -9,6 +10,7 @@
     "source": "open.er-api"
   },
   "fx_mid_per_usd": 332.16056,
+  "held_value": 5.1901,
   "history": [
     {
       "date": "2026-09-05",
@@ -366,15 +368,15 @@
     },
     {
       "date": "2026-11-05",
-      "index_pct": 4.0988,
-      "n": 10,
-      "source": "current_hour"
+      "index_pct": 2.4354,
+      "n": 24,
+      "source": "hourly_buy_p2p"
     }
   ],
   "history_days": 60,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-11-05T22:00:00+00:00",
-  "index_pct": 4.0988,
+  "hour_utc": "2026-11-05T23:00:00+00:00",
+  "index_pct": null,
   "index_version": "1.9.2",
   "instrument_check": {
     "checked": false,
@@ -383,28 +385,30 @@
   "median_24h_n": 24,
   "median_24h_pct": 2.4354,
   "n_boards": 1,
-  "n_sources": 10,
+  "n_sources": null,
+  "no_value_reason": "held back: +5.2% is 3.0 points from this country's usual +2.2% over the last 7 days, and no second source or earlier hour confirms it yet",
   "p2p_sources_apart": {
-    "binance_median": 345.775,
-    "gap_pct": 15.29,
+    "binance_median": 349.4,
+    "gap_pct": 14.09,
     "okx_median": 398.645
   },
-  "round_trip_pct": 2.3518,
+  "round_trip_pct": 3.1805,
   "second_board": {
     "buy_price": 398.645,
     "combined": false,
     "venue": "okx_p2p",
     "why": "more than 3% from the first board"
   },
-  "source_class": "p2p_buy_median",
+  "source_class": null,
   "source_file": "data/p2p_basis.csv",
-  "source_words": "from person-to-person ads",
+  "source_words": "no price this hour",
   "venues": [
     {
-      "buy_price": 345.775,
-      "index_pct": 4.0988,
+      "buy_price": 349.4,
+      "index_pct": 5.1901,
       "last_price_used": false,
       "venue": "binance_p2p"
     }
-  ]
+  ],
+  "withheld_buy_price": 349.4
 }
