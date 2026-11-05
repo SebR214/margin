@@ -9,11 +9,8 @@ name: aider builder
 # Same concurrency group as one_call.yml, so the two never run together and the key's usage figure belongs to one run.
 # Three slots a day; tools/aider_builder.py does nothing if data/aider_log.csv already has a row for today. The Run workflow button
 # runs it even if it ran today.
+# No schedule since 5 Nov 2026: it had nothing to build since 4 Nov. The Claude builder (claude_builder.yml) replaces it. Runs by hand only.
 on:
-  schedule:
-    - cron: "7 5 * * *"
-    - cron: "37 8 * * *"
-    - cron: "7 13 * * *"
   workflow_dispatch:
     inputs:
       job:

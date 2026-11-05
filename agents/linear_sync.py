@@ -2,6 +2,7 @@
 """Keep a builder issue's Linear state true to its PR (SEB-301). No model.
 
     python3 agents/linear_sync.py merged SEB-300 123
+    python3 agents/linear_sync.py merged SEB-300 123 "https://margin.wiki/events.html"   # optional live link
     python3 agents/linear_sync.py failed SEB-300 123 "method-change"
     python3 agents/linear_sync.py note SEB-302 "one line of text"
 
@@ -25,7 +26,7 @@ def comment(i, text):
     }""", {"id": i["id"], "b": text})
 
 
-def merged(ident, pr):
+def merged(ident, pr, live=""):
     i = linear.find(ident)
     if i["state"]["type"] == "completed":
         print("%s is already Done" % ident)
@@ -34,7 +35,7 @@ def merged(ident, pr):
     linear.call("""mutation($id: String!, $s: String!) {
       issueUpdate(id: $id, input: { stateId: $s }) { success }
     }""", {"id": i["id"], "s": st["Done"]["id"]})
-    comment(i, "PR #%s merged. Set to Done." % pr)
+    comment(i, "PR #%s merged. Set to Done.%s" % (pr, (" Live: %s" % live.strip()) if live else ""))
     print("%s -> Done" % ident)
 
 
@@ -62,7 +63,7 @@ def main(argv):
     if len(argv) < 4 or argv[1] not in ("merged", "failed"):
         sys.exit(__doc__)
     if argv[1] == "merged":
-        merged(argv[2], argv[3])
+        merged(argv[2], argv[3], argv[4] if len(argv) > 4 else "")
     else:
         failed(argv[2], argv[3], argv[4] if len(argv) > 4 else "")
 

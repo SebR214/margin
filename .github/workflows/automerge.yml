@@ -90,6 +90,11 @@ jobs:
           one-call/*)
             key=$(echo "$title" | grep -oE '\bSEB-[0-9]+\b' | head -1)
             LINEAR_API_KEY="$LINEAR_API_KEY" python3 agents/linear_sync.py merged "$key" "$n" || echo "could not update $key in Linear" ;;
+          # a Claude builder PR (branch claude/<issue>, claude_builder.yml): Done, with the live link of every page it changed
+          claude/*)
+            key=$(echo "$title" | grep -oE '\bSEB-[0-9]+\b' | head -1)
+            pages=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$n/files?per_page=100" --jq '.[].filename' | grep -E '^[a-z0-9_-]+\.html$' | sed 's#^#https://margin.wiki/#' | tr '\n' ' ')
+            LINEAR_API_KEY="$LINEAR_API_KEY" python3 agents/linear_sync.py merged "$key" "$n" "${pages:-https://margin.wiki/}" || echo "could not update $key in Linear" ;;
           esac
 
   # A builder PR whose checks failed: its Linear issue gets `needs-claude`, so the
@@ -113,7 +118,7 @@ jobs:
                  --jq '[.[] | select(.state=="open" and .base.ref=="main")][0]')
           [ -z "$pr" ] || [ "$pr" = "null" ] && { echo "no open PR for $SHA"; exit 0; }
           ref=$(echo "$pr" | jq -r .head.ref)
-          case "$ref" in one-call/backlog-*) echo "a backlog job: a failed check shows on the PR, the next daily run blocks it if it stays red"; exit 0 ;; one-call/*) ;; *) echo "not a builder PR"; exit 0 ;; esac
+          case "$ref" in one-call/backlog-*) echo "a backlog job: a failed check shows on the PR, the next daily run blocks it if it stays red"; exit 0 ;; one-call/*|claude/*) ;; *) echo "not a builder PR"; exit 0 ;; esac
           n=$(echo "$pr" | jq -r .number); title=$(echo "$pr" | jq -r .title)
           key=$(echo "$title" | grep -oE '\bSEB-[0-9]+\b' | head -1)
           [ -n "$key" ] || { echo "no issue named"; exit 0; }
