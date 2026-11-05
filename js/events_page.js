@@ -27,17 +27,18 @@
   function row(e, rec) {
     var name = NAMES[e.ccy] || e.ccy;
     var title = heading(e, rec, name);
-    var tag = e.label === "reported, not observed" ? txt("tagReported") : txt("tagObserved");
     return "<li><a class=\"evl-t\" href=\"./event.html?id=" + encodeURIComponent(e.id) + "\">" + esc(title) + "</a><span class=\"evl-d sm-num\">" + esc(day(e.date)) + "</span>" +
-      "<span class=\"evl-s\"><span>" + esc(tag) + "</span><a href=\"./index.html?day=" + esc(e.date) + "\">" + esc(txt("mapLink")) + "</a></span></li>";
+      "<span class=\"evl-s\"><a href=\"./index.html?day=" + esc(e.date) + "\">" + esc(txt("mapLink")) + "</a></span></li>";
   }
-  Promise.all([getJSON("copy.json"), getJSON("data/events_published.json").catch(function () { return null; }), getJSON("data/heatmap_daily.json").catch(function () { return null; }), window.Claims ? window.Claims.load() : null]).then(function (r) {
+  Promise.all([getJSON("copy.json"), getJSON("data/events_published.json").catch(function () { return null; }), getJSON("data/heatmap_daily.json").catch(function () { return null; }), getJSON("data/map_timeline/index.json").catch(function () { return null; }), window.Claims ? window.Claims.load() : null]).then(function (r) {
     var cp = r[0] || {};
     EP = cp.eventPage || {};
     C = Object.assign({}, cp.eventsPage || {}, { navCountries: cp.eventPage.navCountries, navRoutes: cp.eventPage.navRoutes, navSources: cp.eventPage.navSources,
       navFindings: cp.eventPage.navFindings, navResearch: cp.eventPage.navResearch, navEvents: cp.eventPage.navEvents, navHow: cp.eventPage.navHow });
     ((r[2] && r[2].currencies) || []).forEach(function (c) { NAMES[c.ccy] = String(c.country || c.ccy).replace(/^the /i, "").replace(/^./, function (x) { return x.toUpperCase(); }); });
-    var ev = (r[1] && r[1].events) || [];
+    // only events from our own hourly record have a page (SEB-437); the older breaks are rows of the history table
+    var ownStart = (r[3] && r[3].own_start) || (r[1] && r[1].own_start) || "";
+    var ev = ((r[1] && r[1].events) || []).filter(function (e) { return !ownStart || e.date >= ownStart; });
     if (window.Claims && window.Claims.blocked("eventPage.landLine")) { ev = []; }
     var recs = ev.map(function (e) { return e.record ? getJSON(e.record).catch(function () { return null; }) : Promise.resolve(null); });
     return Promise.all(recs).then(function (rr) { draw(ev, rr); });

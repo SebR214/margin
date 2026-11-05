@@ -304,6 +304,13 @@
   var id = (new URLSearchParams(location.search).get("id") || DEFAULT_ID).replace(/[^A-Za-z0-9_\-]/g, "");
   var PATHS = ["data/event_records/" + id + ".json", "data/history/event_records_rules4/" + id + ".json"];
   // the published list names each event's record and says whether it has prose, so the page never asks for a file that is not there
+  // an event before our hourly record has no page (SEB-437): it is a row of the history table. The id ends in its date.
+  (function () {
+    var m = /(\d{4}-\d{2}-\d{2})$/.exec(id);
+    getJSON("data/map_timeline/index.json").then(function (ix) {
+      if (m && ix && ix.own_start && m[1] < ix.own_start) { location.replace("./research-breaks.html"); }
+    }).catch(function () {});
+  })();
   var PUBLISHED = getJSON("data/events_published.json").then(function (d) {
     return ((d && d.events) || []).filter(function (x) { return x.id === id; })[0] || null;
   }).catch(function () { return null; });

@@ -138,8 +138,7 @@
     var all = back.concat(mine);
     var venue = S.seg && S.seg.venue || T('venueOther');
     var label = function (k) { return k === 'ours' ? T('rangeSince', { month: MON[+mine0[0].date.slice(5, 7) - 1] }) : T('range_' + k); };
-    var bar = offered.length > 1 ? '<div class="rbar" role="group">' + offered.map(function (r) {
-      return '<button type="button" data-p="' + r[0] + '" aria-pressed="' + (period === r[0]) + '">' + esc(label(r[0])) + '</button>'; }).join('') + '</div>' : '';
+    var bar = window.RangeToggle.html(offered.map(function (r) { return { id: r[0], label: label(r[0]) }; }), period);
     var head = '<h2>' + esc(T('chartHeading')) + '</h2><p class="note">' + esc(T('chartNote')) + '</p>' +
       (back.length ? '<p class="key"><span><i class="ln"></i>' + esc(T('layerDaily')) + '</span><span><i class="ln dash"></i>' + esc(T('layerReported', { venue: venue })) + '</span></p>' : '');
     $('chart').innerHTML = head + '<div class="chart" id="cv"><svg id="svg"></svg></div>' + bar + '<p class="note" id="rec"></p><p class="note" id="swl"></p>';
@@ -263,8 +262,8 @@
   }
 
   document.addEventListener('click', function (e) {
-    var p = e.target.closest('[data-p]');
-    if (p) { period = p.getAttribute('data-p'); chart(); return; }
+    var p = window.RangeToggle.pick(e);
+    if (p) { period = p; chart(); return; }
   });
   var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (S.c) { chart(); } }, 150); });
 

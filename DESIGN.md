@@ -59,6 +59,7 @@ errors can still make no sense.
 * A comparison is one chart or one table to read down, never the same sentence repeated per row. The reader should see the answer by scanning one column.
 * Never show two versions of the same number on one page (this hour and the typical week) unless each says which it is.
 * Reuse a chart the site already has before building a new one.
+* **No page or link shows a date before our hourly record (5 Nov, SEB-437).** Our hourly record starts on the first day of `data/heatmap_daily.json` (`own_start` in `data/map_timeline/index.json`). The one exception is the history table in Research (`research-breaks.html`): breaks found later in a backtest of history are rows in it, one table, no page per break and no map link. An event before the record redirects to that table (`event.html?id=`), and a `?day=` before the record opens home's default view. `tools/check_event_pages.py` fails CI if an event dated before the record would get a page. Open exception, to remove next: the country chart's 1y, 5y and All ranges still draw older reported prices.
 * A section built from a data step that stopped updating must not show old numbers as current. Check the data's own date when a page looks frozen.
 * A line a reader would take as the whole market must be the whole market. Counts from a sample (the top 40 ads) say so or are not shown.
 
@@ -87,5 +88,5 @@ errors can still make no sense.
 * Say which side is which in words against the zero line ("Stablecoin cheaper", "App cheaper"). No minus signs for the reader to decode.
 * Missing data is a thin light grey dotted line joining the two ends, with one sentence under the heading saying what it means. No grey blocks, no words written on the chart.
 * Axis labels are spaced by position so they never overlap. A chart starts at its first point, not on an empty stretch.
-* Range buttons in words (Week, Month, Year, All), offered only when they show more than the shorter one.
+* Range buttons in words (Week, Month, Year, All), offered only when they show more than the shorter one. **One component for every range control (5 Nov, SEB-437): `js/range_toggle.js` and `css/range_toggle.css`**, the pill the routes chart had. Home's grid, the routes chart and the country chart all draw it from there. Never a dropdown, never a "Show earlier" button. A range is offered only if our hourly record covers it.
 * A popup says the number in words ("Stablecoin S$10.78 more expensive than the cheapest app"), not "+S$10.78 (1.08%)".
