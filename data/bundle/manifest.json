@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-11-05T10:41:26+00:00",
+  "as_of_utc": "2026-11-05T11:17:24+00:00",
   "tables": {
     "agent_spend": {
       "bytes": 3517,
@@ -30,7 +30,7 @@
       "rows": 48
     },
     "audit_history": {
-      "bytes": 7152,
+      "bytes": 7160,
       "columns": [
         "sample_ts",
         "date",
@@ -39,7 +39,7 @@
         "score_pct"
       ],
       "file": "audit_history.parquet",
-      "rows": 694
+      "rows": 695
     },
     "backtest_watch_ours": {
       "bytes": 4768,
@@ -63,7 +63,7 @@
       "rows": 111
     },
     "basis": {
-      "bytes": 1189134,
+      "bytes": 1190058,
       "columns": [
         "ts_utc",
         "venue",
@@ -78,7 +78,7 @@
         "error"
       ],
       "file": "basis.parquet",
-      "rows": 71225
+      "rows": 71279
     },
     "basis_history": {
       "bytes": 80111,
@@ -118,7 +118,7 @@
       "rows": 10725
     },
     "corridor_variant_legs": {
-      "bytes": 209494,
+      "bytes": 209941,
       "columns": [
         "ts",
         "corridor",
@@ -136,10 +136,10 @@
         "withdrawal_measured"
       ],
       "file": "corridor_variant_legs.parquet",
-      "rows": 14935
+      "rows": 14965
     },
     "corridor_variants": {
-      "bytes": 452017,
+      "bytes": 452783,
       "columns": [
         "ts",
         "corridor",
@@ -155,10 +155,10 @@
         "errors"
       ],
       "file": "corridor_variants.parquet",
-      "rows": 19140
+      "rows": 19170
     },
     "corridor_waterfall": {
-      "bytes": 312377,
+      "bytes": 312854,
       "columns": [
         "ts",
         "corridor",
@@ -168,10 +168,10 @@
         "wf_sell_bps"
       ],
       "file": "corridor_waterfall.parquet",
-      "rows": 34585
+      "rows": 34640
     },
     "country_history": {
-      "bytes": 54822,
+      "bytes": 54886,
       "columns": [
         "ccy",
         "date",
@@ -180,10 +180,10 @@
         "source"
       ],
       "file": "country_history.parquet",
-      "rows": 7426
+      "rows": 7427
     },
     "country_latest": {
-      "bytes": 20639,
+      "bytes": 21207,
       "columns": [
         "buy_price",
         "ccy",
@@ -212,7 +212,9 @@
         "p2p_sources_apart",
         "second_board",
         "outlier_checked",
-        "crossed_boards_agree"
+        "crossed_boards_agree",
+        "baseline_pct",
+        "held_value"
       ],
       "file": "country_latest.parquet",
       "rows": 60
@@ -339,7 +341,7 @@
       "rows": 63
     },
     "findings_hours_exchange_vs_p2p": {
-      "bytes": 158702,
+      "bytes": 158888,
       "columns": [
         "hour_utc",
         "ccy",
@@ -349,7 +351,7 @@
         "boards"
       ],
       "file": "findings_hours_exchange_vs_p2p.parquet",
-      "rows": 8843
+      "rows": 8851
     },
     "findings_hours_price_changes": {
       "bytes": 36726,
@@ -394,7 +396,7 @@
       "rows": 20
     },
     "findings_hours_volume_crossover": {
-      "bytes": 37297,
+      "bytes": 37320,
       "columns": [
         "ts",
         "corridor",
@@ -404,7 +406,7 @@
         "baseline_cost_bps"
       ],
       "file": "findings_hours_volume_crossover.parquet",
-      "rows": 1770
+      "rows": 1771
     },
     "findings_hours_weekend_penalty": {
       "bytes": 12335,
@@ -423,7 +425,7 @@
       "rows": 460
     },
     "fx_live": {
-      "bytes": 214049,
+      "bytes": 214549,
       "columns": [
         "ts_utc",
         "ccy",
@@ -436,10 +438,10 @@
         "error"
       ],
       "file": "fx_live.parquet",
-      "rows": 29940
+      "rows": 30000
     },
     "fx_rate_meta": {
-      "bytes": 3112,
+      "bytes": 3120,
       "columns": [
         "ts_utc",
         "source",
@@ -448,10 +450,10 @@
         "error"
       ],
       "file": "fx_rate_meta.parquet",
-      "rows": 265
+      "rows": 266
     },
     "fx_rates": {
-      "bytes": 70559,
+      "bytes": 70581,
       "columns": [
         "ts_utc",
         "ccy",
@@ -462,10 +464,10 @@
         "parallel_source"
       ],
       "file": "fx_rates.parquet",
-      "rows": 72837
+      "rows": 72897
     },
     "fx_second": {
-      "bytes": 84516,
+      "bytes": 84535,
       "columns": [
         "ts_utc",
         "ccy",
@@ -478,10 +480,10 @@
         "error"
       ],
       "file": "fx_second.parquet",
-      "rows": 21317
+      "rows": 21318
     },
     "gas_readings": {
-      "bytes": 15183,
+      "bytes": 15219,
       "columns": [
         "ts_utc",
         "chain",
@@ -495,10 +497,10 @@
         "error"
       ],
       "file": "gas_readings.parquet",
-      "rows": 520
+      "rows": 522
     },
     "index_held": {
-      "bytes": 5075,
+      "bytes": 5094,
       "columns": [
         "hour_utc",
         "ccy",
@@ -507,10 +509,10 @@
         "reason"
       ],
       "file": "index_held.parquet",
-      "rows": 98
+      "rows": 99
     },
     "index_hourly": {
-      "bytes": 341010,
+      "bytes": 341305,
       "columns": [
         "hour_utc",
         "ccy",
@@ -519,7 +521,7 @@
         "n_sources"
       ],
       "file": "index_hourly.parquet",
-      "rows": 57094
+      "rows": 57144
     },
     "machine_room_prs": {
       "bytes": 38638,
@@ -568,7 +570,7 @@
       "rows": 1840
     },
     "p2p_basis": {
-      "bytes": 1274618,
+      "bytes": 1275533,
       "columns": [
         "ts_utc",
         "source",
@@ -583,10 +585,10 @@
         "error"
       ],
       "file": "p2p_basis.parquet",
-      "rows": 72629
+      "rows": 72683
     },
     "p2p_basis_boards": {
-      "bytes": 7548,
+      "bytes": 7569,
       "columns": [
         "ts_utc",
         "board",
@@ -598,7 +600,7 @@
         "error"
       ],
       "file": "p2p_basis_boards.parquet",
-      "rows": 590
+      "rows": 593
     },
     "p2p_board_probes": {
       "bytes": 4348,
@@ -652,7 +654,7 @@
       "rows": 36960
     },
     "p2p_depth": {
-      "bytes": 177184,
+      "bytes": 177197,
       "columns": [
         "ts_utc",
         "ccy",
@@ -660,10 +662,10 @@
         "sell_total"
       ],
       "file": "p2p_depth.parquet",
-      "rows": 60048
+      "rows": 60102
     },
     "p2p_kucoin": {
-      "bytes": 11127,
+      "bytes": 11162,
       "columns": [
         "ts_utc",
         "venue",
@@ -679,10 +681,10 @@
         "error"
       ],
       "file": "p2p_kucoin.parquet",
-      "rows": 3674
+      "rows": 3685
     },
     "p2p_okx": {
-      "bytes": 530953,
+      "bytes": 531766,
       "columns": [
         "ts_utc",
         "source",
@@ -697,10 +699,10 @@
         "error"
       ],
       "file": "p2p_okx.parquet",
-      "rows": 36676
+      "rows": 36729
     },
     "p2p_sides": {
-      "bytes": 38084,
+      "bytes": 38100,
       "columns": [
         "ts_utc",
         "ccy",
@@ -708,10 +710,10 @@
         "n_sell"
       ],
       "file": "p2p_sides.parquet",
-      "rows": 65566
+      "rows": 65620
     },
     "p2p_spread_signal": {
-      "bytes": 997788,
+      "bytes": 998409,
       "columns": [
         "ts_utc",
         "ccy",
@@ -721,7 +723,7 @@
         "n_prior_readings"
       ],
       "file": "p2p_spread_signal.parquet",
-      "rows": 63510
+      "rows": 63555
     },
     "path_spread_hours": {
       "bytes": 23272,
@@ -756,7 +758,7 @@
       "rows": 2324
     },
     "provider_delivery": {
-      "bytes": 30425,
+      "bytes": 30444,
       "columns": [
         "ts_utc",
         "corridor",
@@ -766,10 +768,10 @@
         "source"
       ],
       "file": "provider_delivery.parquet",
-      "rows": 36357
+      "rows": 36420
     },
     "provider_quotes": {
-      "bytes": 1011621,
+      "bytes": 1013599,
       "columns": [
         "ts_utc",
         "corridor",
@@ -784,10 +786,10 @@
         "error"
       ],
       "file": "provider_quotes.parquet",
-      "rows": 98535
+      "rows": 98670
     },
     "provider_quotes_payout_type": {
-      "bytes": 19909,
+      "bytes": 19937,
       "columns": [
         "ts_utc",
         "corridor",
@@ -796,10 +798,10 @@
         "payout_type"
       ],
       "file": "provider_quotes_payout_type.parquet",
-      "rows": 87855
+      "rows": 87990
     },
     "providers": {
-      "bytes": 394902,
+      "bytes": 395195,
       "columns": [
         "ts_utc",
         "notional_src",
@@ -811,10 +813,10 @@
         "error"
       ],
       "file": "providers.parquet",
-      "rows": 47346
+      "rows": 47374
     },
     "providers_audinr": {
-      "bytes": 72124,
+      "bytes": 72555,
       "columns": [
         "ts_utc",
         "notional_src",
@@ -826,10 +828,10 @@
         "error"
       ],
       "file": "providers_audinr.parquet",
-      "rows": 9540
+      "rows": 9586
     },
     "providers_audphp": {
-      "bytes": 460499,
+      "bytes": 460979,
       "columns": [
         "ts_utc",
         "notional_src",
@@ -841,10 +843,10 @@
         "error"
       ],
       "file": "providers_audphp.parquet",
-      "rows": 59538
+      "rows": 59588
     },
     "providers_nzdphp": {
-      "bytes": 292879,
+      "bytes": 293166,
       "columns": [
         "ts_utc",
         "notional_src",
@@ -856,10 +858,10 @@
         "error"
       ],
       "file": "providers_nzdphp.parquet",
-      "rows": 36113
+      "rows": 36141
     },
     "providers_sgdinr": {
-      "bytes": 123962,
+      "bytes": 124134,
       "columns": [
         "ts_utc",
         "notional_src",
@@ -871,10 +873,10 @@
         "error"
       ],
       "file": "providers_sgdinr.parquet",
-      "rows": 14934
+      "rows": 14953
     },
     "providers_usdars": {
-      "bytes": 15202,
+      "bytes": 15227,
       "columns": [
         "ts_utc",
         "notional_src",
@@ -886,10 +888,10 @@
         "error"
       ],
       "file": "providers_usdars.parquet",
-      "rows": 3000
+      "rows": 3012
     },
     "providers_usdbrl": {
-      "bytes": 25586,
+      "bytes": 25749,
       "columns": [
         "ts_utc",
         "notional_src",
@@ -901,10 +903,10 @@
         "error"
       ],
       "file": "providers_usdbrl.parquet",
-      "rows": 5682
+      "rows": 5710
     },
     "providers_usdinr": {
-      "bytes": 288932,
+      "bytes": 289400,
       "columns": [
         "ts_utc",
         "notional_src",
@@ -916,10 +918,10 @@
         "error"
       ],
       "file": "providers_usdinr.parquet",
-      "rows": 35469
+      "rows": 35516
     },
     "providers_usdmxn": {
-      "bytes": 468133,
+      "bytes": 468554,
       "columns": [
         "ts_utc",
         "notional_src",
@@ -931,10 +933,10 @@
         "error"
       ],
       "file": "providers_usdmxn.parquet",
-      "rows": 57671
+      "rows": 57712
     },
     "providers_usdngn": {
-      "bytes": 91392,
+      "bytes": 91579,
       "columns": [
         "ts_utc",
         "notional_src",
@@ -946,10 +948,10 @@
         "error"
       ],
       "file": "providers_usdngn.parquet",
-      "rows": 12417
+      "rows": 12433
     },
     "providers_usdphp": {
-      "bytes": 74403,
+      "bytes": 74791,
       "columns": [
         "ts_utc",
         "notional_src",
@@ -961,7 +963,7 @@
         "error"
       ],
       "file": "providers_usdphp.parquet",
-      "rows": 9102
+      "rows": 9139
     },
     "ramp_fees": {
       "bytes": 3065,
@@ -982,7 +984,7 @@
       "rows": 8
     },
     "ramp_waterfall": {
-      "bytes": 91844,
+      "bytes": 91976,
       "columns": [
         "ts",
         "corridor",
@@ -993,7 +995,7 @@
         "withdrawal_measured"
       ],
       "file": "ramp_waterfall.parquet",
-      "rows": 31965
+      "rows": 32020
     },
     "researcher_log": {
       "bytes": 2582,
@@ -1008,7 +1010,7 @@
       "rows": 4
     },
     "samples": {
-      "bytes": 2230505,
+      "bytes": 2233382,
       "columns": [
         "ts",
         "corridor",
@@ -1052,10 +1054,10 @@
         "errors"
       ],
       "file": "samples.parquet",
-      "rows": 45305
+      "rows": 45360
     },
     "samples_depth": {
-      "bytes": 368613,
+      "bytes": 369167,
       "columns": [
         "ts",
         "corridor",
@@ -1064,7 +1066,7 @@
         "offramp_depth_1pct_after"
       ],
       "file": "samples_depth.parquet",
-      "rows": 22570
+      "rows": 22605
     },
     "scout_log": {
       "bytes": 3698,
@@ -1094,7 +1096,7 @@
       "rows": 42
     },
     "stable_spread": {
-      "bytes": 203893,
+      "bytes": 204056,
       "columns": [
         "ts_utc",
         "venue",
@@ -1106,10 +1108,10 @@
         "error"
       ],
       "file": "stable_spread.parquet",
-      "rows": 16848
+      "rows": 16860
     },
     "stable_venues": {
-      "bytes": 181863,
+      "bytes": 182239,
       "columns": [
         "ts_utc",
         "corridor",
@@ -1125,7 +1127,7 @@
         "error"
       ],
       "file": "stable_venues.parquet",
-      "rows": 15535
+      "rows": 15568
     },
     "stress_signal": {
       "bytes": 2753,
@@ -1156,7 +1158,7 @@
       "rows": 70
     },
     "zar_luno": {
-      "bytes": 12915,
+      "bytes": 12908,
       "columns": [
         "ts_utc",
         "venue",
@@ -1172,10 +1174,10 @@
         "error"
       ],
       "file": "zar_luno.parquet",
-      "rows": 334
+      "rows": 335
     },
     "zar_valr": {
-      "bytes": 13734,
+      "bytes": 13744,
       "columns": [
         "ts_utc",
         "venue",
@@ -1191,8 +1193,8 @@
         "error"
       ],
       "file": "zar_valr.parquet",
-      "rows": 334
+      "rows": 335
     }
   },
-  "total_bytes": 14310912
+  "total_bytes": 14327153
 }
