@@ -1,0 +1,160 @@
+name: claude builder
+
+# The Claude builder (Seb, 5 Nov 2026). An Opus planner (a claude.ai scheduled task) writes up to 3 Linear issues a
+# day in project margin.wiki with the label `build`. Every 30 minutes this workflow asks tools/next_build.py (no model)
+# for the next one: a `build` issue In Review with a newer comment from Seb, else the top `build` issue in Todo; nothing
+# once 3 builds have started today. A job goes to anthropics/claude-code-action (Sonnet, 60 turns, 45 minutes) on
+# branch claude/<issue id>. The PR is titled `SEB-n: ...` and is merged by automerge.yml on green, which moves the issue
+# to Done with the live page link.
+#
+# Running cost: no per-token bill. The builder uses Seb's Claude subscription through the OAuth token
+# CLAUDE_CODE_OAUTH_TOKEN (made with `claude setup-token`, valid one year, renew it before then). GitHub Actions minutes
+# are free for a public repo. Money for the OpenRouter agents is unchanged.
+on:
+  schedule:
+    - cron: "11,41 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: claude-builder
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Next job
+        id: job
+        run: |
+          python3 tools/next_build.py > "$RUNNER_TEMP/job.json"
+          if [ -s "$RUNNER_TEMP/job.json" ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "id=$(jq -r .id "$RUNNER_TEMP/job.json")" >> "$GITHUB_OUTPUT"
+            echo "mode=$(jq -r .mode "$RUNNER_TEMP/job.json")" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Mint the app token
+        if: steps.job.outputs.found == 'true'
+        id: app_token
+        env:
+          MARGIN_GH_APP_ID: ${{ secrets.MARGIN_GH_APP_ID }}
+          MARGIN_GH_INSTALL_ID: ${{ secrets.MARGIN_GH_INSTALL_ID }}
+          MARGIN_GH_APP_KEY_CONTENT: ${{ secrets.MARGIN_GH_APP_KEY }}
+        run: |
+          set +x
+          key_file="$RUNNER_TEMP/margin-app-key.pem"
+          umask 077
+          printf '%s\n' "$MARGIN_GH_APP_KEY_CONTENT" > "$key_file"
+          export MARGIN_GH_APP_KEY="$key_file"
+          token="$(agents/gh_token.sh)"
+          rm -f "$key_file"
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Say Started and move to In Progress
+        if: steps.job.outputs.found == 'true'
+        env:
+          ID: ${{ steps.job.outputs.id }}
+          MODE: ${{ steps.job.outputs.mode }}
+        run: |
+          if [ "$MODE" = "resume" ]; then what="Started again: Seb commented, reading it and updating the PR."; else what="Started."; fi
+          python3 agents/linear.py say "$ID" builder "$what Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          python3 agents/linear.py state "$ID" "In Progress"
+
+      - name: Write the prompt
+        if: steps.job.outputs.found == 'true'
+        run: |
+          python3 - <<'PY'
+          import json, os
+          j = json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "job.json")))
+          cs = "\n\n".join("[%s, %s]\n%s" % (c["from"], c["at"], c["body"]) for c in j["comments"]) or "(none)"
+          resume = ""
+          if j["mode"] == "resume":
+              resume = ("\nThis issue already has a PR on branch claude/%s. Seb has commented since your last update. "
+                        "Check out that branch (git fetch, git checkout), do what his newest comment asks, push to the "
+                        "same PR, and do not open a second one.\n" % j["id"])
+          p = f"""You are the margin.wiki builder. Build this Linear issue.
+
+          Issue {j['id']}: {j['title']}
+          {j['url']}
+
+          Description:
+          {j['description']}
+
+          Comments (oldest first; "Seb" is the owner, "agent" is a previous run):
+          {cs}
+          {resume}
+          Rules:
+          - Follow CLAUDE.md in the repo. Read it first. Read nothing else unless the issue lists it.
+          - Work on branch claude/{j['id']} (create it from main unless it exists).
+          - Open exactly one PR titled "{j['id']}: <what changed, plain words>" against main. Put the before and after of any number or sentence in the PR description.
+          - Run the checks locally before you push (see .github/workflows/checks.yml for the commands that apply to the files you changed) and fix every failure.
+          - Never put a collect.yml or collector change in the same PR as a visual change.
+          - No em-dashes anywhere. Short sentences, plain words.
+          - Do not merge the PR. Do not touch Linear: the workflow comments and moves the issue.
+          - If the issue cannot be built as written, stop and say why in the last line of your reply.
+          """
+          import textwrap
+          open(os.path.join(os.environ["RUNNER_TEMP"], "prompt.txt"), "w").write(textwrap.dedent(p))
+          PY
+          echo "PROMPT<<EOF_PROMPT" >> "$GITHUB_ENV"
+          cat "$RUNNER_TEMP/prompt.txt" >> "$GITHUB_ENV"
+          echo "EOF_PROMPT" >> "$GITHUB_ENV"
+
+      - name: Build
+        if: steps.job.outputs.found == 'true'
+        id: build
+        timeout-minutes: 45
+        uses: anthropics/claude-code-action@v1.0.267
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ steps.app_token.outputs.token }}
+          prompt: ${{ env.PROMPT }}
+          claude_args: |
+            --model claude-sonnet-5-5
+            --max-turns 60
+            --allowedTools "Bash,Read,Write,Edit,Glob,Grep"
+
+      - name: Say the result and move to In Review
+        if: always() && steps.job.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token || github.token }}
+          ID: ${{ steps.job.outputs.id }}
+          OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          # the open PR if there is one, else the newest PR on the branch, whatever its state
+          pr=$(gh pr list --head "claude/$ID" --state all --json number,url,state --jq 'sort_by(.number) | reverse | ((map(select(.state=="OPEN"))[0]) // .[0]) | select(.) | "\(.number) \(.url) \(.state)"' || true)
+          run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          set -- $pr
+          case "${3:-}" in
+            OPEN)
+              python3 agents/linear.py say "$ID" builder "PR #$1: $2 (checks run on it; automerge merges it on green and moves this issue to Done)."
+              python3 agents/linear.py state "$ID" "In Review" ;;
+            MERGED)
+              python3 agents/linear.py say "$ID" builder "PR #$1 is already merged: $2. Moving to Done."
+              python3 agents/linear.py state "$ID" "Done" ;;
+            *)
+              if [ -n "$pr" ]; then why="PR #$1 is $3, not open"; else why="the run ended ($OUTCOME) with no PR"; fi
+              python3 agents/linear.py say "$ID" builder "$why. Labelled needs-claude, back to Todo. Run: $run"
+              python3 agents/linear.py label "$ID" needs-claude
+              python3 agents/linear.py state "$ID" "Todo" ;;
+          esac
