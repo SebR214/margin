@@ -263,6 +263,9 @@
   // The points the chart shows for the picked range (21 Oct). "all" and "1m": one point a day, the median of that
   // day's hours (the last 30 days for "1m"). "1w": every priced hour of the last 7 days, anchored on the series' own
   // latest hour. A missing day or hour stays a gap. Each point: [extra cost, extra %, hours behind it, time in ms].
+  // The day index (into A.daily) of the first point the chart shows: 0 for All, the last 30 days for Month. A record younger than 30
+  // days shows all of it, so the offset is never below 0 (SEB-437: a negative offset dated the gaps 5 days early and the axis jumped back).
+  function firstDay(A) { return S.period === "1m" ? Math.max(0, A.daily.length - 30) : 0; }
   function series(A) {
     var d0 = Date.parse(A.day0 + "T00:00:00Z");
     if (S.period === "1w") {
@@ -276,7 +279,7 @@
       return out;
     }
     var all = A.daily.map(function (p, i) { return p ? [p[0], p[1], p[2], d0 + i * 864e5] : null; });
-    return S.period === "1m" ? all.slice(-30) : all;
+    return S.period === "1m" ? all.slice(firstDay(A)) : all;
   }
   // The chart looks like the record chart: the purple line over a light purple fill, light grid lines, small grey
   // axis words. The zero line stays dark: below it the stablecoin was cheaper than the cheapest app.
@@ -313,7 +316,7 @@
     pts.forEach(function (p, i) {
       var tm = p ? p[3] : null;
       if (tm === null) {
-        tm = hourly ? (pts[0] ? pts[0][3] : 0) + i * 36e5 : Date.parse(A.day0 + "T00:00:00Z") + (S.period === "1m" ? A.daily.length - 30 + i : i) * 864e5;
+        tm = hourly ? (pts[0] ? pts[0][3] : 0) + i * 36e5 : Date.parse(A.day0 + "T00:00:00Z") + (firstDay(A) + i) * 864e5;
       }
       var d = new Date(tm), show;
       if (hourly) show = d.getUTCHours() === 0 && (!narrow || d.getUTCDate() % 2 === 0);
@@ -356,7 +359,7 @@
       if (hourly && GM[t0h + i]) return "Gas";
       var t = pts[0] ? pts[0][3] : 0;
       if (hourly) return ran[t0h + i] ? "NoPrice" : "Outage";
-      var d0 = Math.round((Date.parse(A.day0 + "T00:00:00Z") + (S.period === "1m" ? A.daily.length - 30 + i : i) * 864e5) / 36e5);
+      var d0 = Math.round((Date.parse(A.day0 + "T00:00:00Z") + (firstDay(A) + i) * 864e5) / 36e5);
       for (var hh = 0; hh < 24; hh++) { if (ran[d0 + hh]) return "NoPrice"; }
       return "Outage";
     }
@@ -390,13 +393,13 @@
     // the note under the heading says "each hour" on the week view, "each day" otherwise
     var note = document.getElementById("smWeekNote"), nt = txt(hourly ? "weekNoteHourly" : "weekNote");
     if (note && nt) note.textContent = nt;
-    [].forEach.call(document.querySelectorAll("[data-period]"), function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-period") === S.period ? "true" : "false"); });
+    window.RangeToggle.mark(document, S.period);
   }
   // the time of point i on the chart in view, also for a point with no price
   function pts0time(i) {
     var A = chart.A, pts = chart.pts;
     if (S.period === "1w") return (pts[0] ? pts[0][3] : 0) + i * 36e5;
-    return Date.parse(A.day0 + "T00:00:00Z") + (S.period === "1m" ? A.daily.length - 30 + i : i) * 864e5;
+    return Date.parse(A.day0 + "T00:00:00Z") + (firstDay(A) + i) * 864e5;
   }
   function hoverChart(e) {
     if (!chart || !chart.geo) return;
@@ -523,9 +526,7 @@
       return txt(p[1]) && (p[0] === "1w" || (p[0] === "1m" && days > 7) || (p[0] === "all" && days > 30));
     });
     if (!periods.some(function (p) { return p[0] === S.period; })) S.period = periods.length ? periods[periods.length - 1][0] : "all";
-    var bar = periods.length > 1 ? '<div class="sm-periods" role="group">' + periods.map(function (p) {
-      return '<button type="button" data-period="' + p[0] + '" aria-pressed="' + (S.period === p[0]) + '">' + esc(txt(p[1])) + "</button>";
-    }).join("") + "</div>" : "";
+    var bar = window.RangeToggle.html(periods.map(function (p) { return { id: p[0], label: txt(p[1]) }; }), S.period);
     return '<section>' + w("weekHeading", null, "h2") + (txt("weekNote") ? '<p class="sm-note" id="smWeekNote">' + esc(txt("weekNote")) + "</p>" : "") +
       '<div class="sm-chart" id="smChart"><svg id="smSvg" role="img" aria-label="' + esc(txt("chartAria")) + '"></svg>' +
       '<div class="sm-tip sm-num" id="smTip" hidden></div></div>' + '<p class="sm-small" id="smGasNote" hidden></p>' + bar + "</section>";
@@ -626,9 +627,9 @@
   }
 
   function onClick(e) {
-    var pb = e.target.closest("[data-period]");
+    var pb = window.RangeToggle.pick(e);
     if (pb) {
-      S.period = pb.getAttribute("data-period");
+      S.period = pb;
       var tip = document.getElementById("smTip"); if (tip) tip.hidden = true;
       drawChart();
       return;

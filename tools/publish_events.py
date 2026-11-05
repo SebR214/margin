@@ -8,8 +8,11 @@ Candidates come from data/events.csv (observed by our collectors, record in data
 data/history/events_reported_rules4.csv (replayed over history files, "reported, not observed", record in
 data/history/event_records_rules4/). An id in both is taken from the observed file.
 
-The file lists newest first: {"as_of": date of the newest source row, "rules": {...},
- "events": [{id, ccy, event_kind, date, change_pct, confirmation, label, record, prose}]}. `record` is the path of the record JSON.
+The file lists newest first: {"as_of": date of the newest source row, "rules": {...}, "own_start": first day of our hourly record,
+ "events": [{id, ccy, event_kind, date, change_pct, confirmation, label, record, prose}],
+ "history": [{id, ccy, event_kind, date, change_pct, confirmation, label, record}]}. `record` is the path of the record JSON.
+Only events on or after `own_start` (the first day of our own hourly record, from data/heatmap_daily.json) go in "events" and get a page.
+A break found later in a backtest of history goes in "history": one plain table (research-breaks.html), no page of its own (SEB-437).
 `prose` is true when data/event_prose/{id}.json exists and its number audit passed; the event page asks for that file only then.
 The daily detector run (03 UTC) adds candidates; this tool runs right after it and a page appears the day a candidate has two sources.
 
@@ -70,6 +73,17 @@ def select(sources, known=has_known):
     return out
 
 
+def own_start():
+    """First day of our own hourly record: the first day of data/heatmap_daily.json (the day map_timeline calls own_start)."""
+    with open(os.path.join(DATA, "heatmap_daily.json")) as f:
+        return json.load(f)["first_day"]
+
+
+def split_record(events, start):
+    """(inside, before): events on or after the first day of our hourly record, and the ones before it."""
+    return [e for e in events if e["date"] >= start], [e for e in events if e["date"] < start]
+
+
 def has_prose(eid, folder=None):
     """True when the event's prose file exists and its audit passed (the page shows it on exactly that condition)."""
     try:
@@ -100,24 +114,27 @@ def self_test():
             open(os.path.join(d, name + ".json"), "w").write(body)
         got = [has_prose(i, d) for i in ("A", "B", "C", "D")]
         assert got == [True, False, False, False], got
+    ins, bef = split_record([{"date": "2026-08-10"}, {"date": "2026-08-09"}, {"date": "2026-10-09"}], "2026-08-10")
+    assert [e["date"] for e in ins] == ["2026-08-10", "2026-10-09"] and [e["date"] for e in bef] == ["2026-08-09"]
     print("self-test ok")
     return 0
 
 
 def main():
     srcs = [(read(f), d, label) for f, d, label in SOURCES]
-    events = select(srcs)
+    start = own_start()
+    events, history = split_record(select(srcs), start)
     for e in events:
         e["prose"] = has_prose(e["id"])
     dates = [r["as_of_date"] for rows, _, _ in srcs for r in rows]
     doc = {"as_of": max(dates) if dates else None, "rules": {"official_break_min_pct": OFFICIAL_MIN, "street_slide_min_pct": STREET_MIN,
-           "needs": "two sources, or a hand-entered known_date with a url"}, "events": events}
+           "needs": "two sources, or a hand-entered known_date with a url"}, "own_start": start, "events": events, "history": history}
     new = json.dumps(doc, indent=1) + "\n"
     old = open(OUT).read() if os.path.exists(OUT) else ""
     if new != old:
         with open(OUT, "w") as f:
             f.write(new)
-    print("%d events published" % len(events))
+    print("%d events published, %d before our hourly record (table only)" % (len(events), len(history)))
     return 0
 
 

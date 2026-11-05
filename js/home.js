@@ -1,12 +1,12 @@
 /* Home (SEB-268), built to the approved reference.
  * Reads data/heatmap_daily.json, data/index_latest.json,
- * data/record_daily.json (the totals line), data/sources_daily.json and copy.json (homeData). The time control is js/home_timeline.js's (SEB-384). The header clock is js/site_head.js's.
+ * data/record_daily.json (the totals line), data/sources_daily.json and copy.json (homeData). The range toggle is js/range_toggle.js's (SEB-437). The header clock is js/site_head.js's.
  * Every figure is read from those files at render time; every word is a homeData key. Dates, numbers and names are formatted here. */
 (function () {
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var MINUS = '−';
   var C = {}, D = {};
-  var showAll = false, early = false;
+  var showAll = false, range = 'month', markDay = null, markSized = false;   // range: week, month or all (js/range_toggle.js); markDay: the day an event's map link names
   var BUCKETS = [
     [-Infinity, 0, 'b-neg', 'legendBelowOfficial'],
     [0, 2, 'b0', 'legendUnder', { max: 2 }],
@@ -198,20 +198,46 @@
     return '<b class="cmark" data-tip="' + esc(T('cashMarkTip', { pct: ((cash.mid / c.buy_price - 1) * 100).toFixed(1) + '%' })) + '" aria-label="' + esc(T('cashMarkTip', { pct: ((cash.mid / c.buy_price - 1) * 100).toFixed(1) + '%' })) + '"></b>';
   }
 
+  // The ranges the grid offers (SEB-437): only ones our hourly record covers, and one only if it shows more than the shorter one.
+  var RANGES = [['week', 7, 'rangeWeek'], ['month', 30, 'rangeMonth'], ['all', 1e9, 'rangeAll']];
+  function offeredRanges() {
+    var n = (D.days || []).length;
+    return RANGES.filter(function (r, i) { return T(r[2]) && (i === 0 || n > RANGES[i - 1][1]); });
+  }
+  function rangeDays() {
+    var off = offeredRanges(), pick = off.filter(function (r) { return r[0] === range; })[0] || off[off.length ? Math.min(1, off.length - 1) : 0];
+    if (pick) { range = pick[0]; }
+    return pick ? pick[1] : 30;
+  }
+  // ?day=YYYY-MM-DD (an event's map link): outline that day on the normal grid. A day before our hourly record has no square:
+  // the address is cleaned and the default view stays (SEB-437). A day is marked once, on the first load.
+  var dayDone = false;
+  function dayLink() {
+    if (dayDone) { return; }
+    dayDone = true;
+    var m = /[?&]day=(\d{4}-\d{2}-\d{2})(?:&|$)/.exec(location.search || '');
+    if (!m) { return; }
+    if (D.days.indexOf(m[1]) >= 0) { markDay = m[1]; return; }
+    try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) { /* the address stays; the view is the default anyway */ }
+  }
   function heat() {
-    var vw = tlView();
-    if (vw) { heatTl(vw); return; }
     var rows = showAll ? D.ranked : D.ranked.slice(0, 20);
-    var s0 = early ? 0 : Math.max(0, D.days.length - 30), days = D.days.slice(s0), n = days.length;
+    // an event's map link (?day=) opens the smallest range that holds that day, with the day outlined
+    if (markDay && !markSized && D.days.indexOf(markDay) >= 0) {
+      markSized = true;
+      var back = D.days.length - D.days.indexOf(markDay), want = offeredRanges().filter(function (r) { return r[1] >= back; })[0];
+      if (want) { range = want[0]; }
+    }
+    var s0 = Math.max(0, D.days.length - rangeDays()), days = D.days.slice(s0), n = days.length;
     var X = function (i) { return (i + 0.5) / n * 100; };
     var ax = '<span class="l" style="left:0">' + dd(days[0]) + '</span>';
     days.forEach(function (d, i) { if ((d.slice(8) === '01' || d.slice(8) === '15') && i > 3 && i < n - 4) { ax += '<span style="left:' + X(i) + '%">' + dd(d) + '</span>'; } });
     var row = function (c, extra) {
       return '<a class="hrow' + (extra || '') + '" href="' + ctry(c.ccy) + '" data-ccy="' + esc(c.ccy) + '"><span class="nm">' + esc(c.country) + cashMark(c.ccy) + '</span><span class="cells">' +
-        c.cells.slice(s0).map(function (v, i) { return '<i class="' + (c.ranked ? bucket(v) : (v == null ? 'b-none' : 'b-frozen')) + '" data-i="' + (i + s0) + '"></i>'; }).join('') +
+        c.cells.slice(s0).map(function (v, i) { return '<i class="' + (c.ranked ? bucket(v) : (v == null ? 'b-none' : 'b-frozen')) + '"' + (D.days[i + s0] === markDay ? ' data-mark="1"' : '') + ' data-i="' + (i + s0) + '"></i>'; }).join('') +
         '</span><span class="v num">' + (c.now != null ? sgn(c.now) : '<small>' + esc(T('noPrice')) + '</small>') + '</span></a>';
     };
-    $('heat').innerHTML =
+    $('heat').innerHTML = window.RangeToggle.html(offeredRanges().map(function (r) { return { id: r[0], label: T(r[2]) }; }), range) +
       '<p class="key">' + BUCKETS.map(function (b) { return '<span><i class="' + b[2] + '"></i>' + esc(T(b[3], b[4])) + '</span>'; }).join('') + '<span><i class="b-none"></i>' + esc(T('legendNone')) + '</span>' +
         (rows.some(function (c) { return cashMark(c.ccy); }) && T('cashMarkKey') ? '<span><b class="cmark"></b>' + esc(T('cashMarkKey')) + '</span>' : '') + '</p>' +
       '<div class="hax"><span></span><div class="ax num">' + ax + '</div><span class="axh">' + esc(T('dayToday')) + '</span></div>' +
@@ -219,48 +245,14 @@
       // the unranked country closes the full list as a grey row, so "Show all" counts every country tracked
       (showAll ? D.unranked.map(function (c) { return row(c, ' frozen'); }).join('') : '') +
       '<div class="pills hb">' + (showAll ? '' : '<button class="pill" type="button" id="all">' + esc(T('heatShowAll', { n: D.cur.length })) + '</button>') +
-      (early ? '' : '<button class="pill" type="button" id="early">' + esc(T('heatEarlier')) + '</button>') + '</div>' +
+      '</div>' +
       (T('heatShortTitle') && leadLine() ? '<p class="note sm">' + esc(leadLine()) + '</p>' : '') +
       D.unranked.map(function (c) { return '<p class="note sm">' + esc(T('unrankedNote', { country: c.country, ccy: c.ccy })) + '</p>'; }).join('') +
       // countries with no price on any of the last 30 days: one grey line naming them, under the map (SEB-301, 21 Oct)
       (D.never30.length && T('neverPricedNote') ? '<p class="note sm">' + esc(T('neverPricedNote', { list: D.never30.map(function (c) { return c.country; }).join(', ') })) + '</p>' : '');
   }
 
-  /* ---------------------------------------------------------------- the time control (js/home_timeline.js): the same grid at a chosen day or hour.
-     Every value and class comes from data/map_timeline/; this only draws them. */
-  function tlView() { return window.homeTimeline ? window.homeTimeline.view() : null; }
-  function tlBucket(c) { if (c.v == null || c.k === '-') { return 'b-none'; } if (c.k === '2') { return c.v >= 100 ? 'b-offstep' : 'b-off'; } return bucket(c.v / 10); }
-  // axis labels stay short (the year and the full hour are in the line above the grid): the right-hand column is 58px wide on a phone
-  function tlShort(vw, j, end) { var l = vw.labels[j]; return vw.hourly ? (end ? '' : dd(l.slice(0, 10)) + ' ') + l.slice(11, 13) + ':00' : dd(l); }
-  function tlValue(c) {
-    if (c.v == null || c.k === '-') { return '<small>' + esc(T('tlNoData')) + '</small>'; }
-    return sgn(c.v / 10) + (c.k === '2' ? '<small class="tag">' + esc(T('tlOfficialTag')) + '</small>' : '');
-  }
-  function heatTl(vw) {
-    var rows = showAll ? vw.rows : vw.rows.slice(0, 20), n = vw.labels.length;
-    var anyOff = vw.rows.some(function (r) { return r.cells.some(function (c) { return c.k === '2'; }); });
-    var ax = '<span class="l" style="left:0">' + esc(tlShort(vw, 0)) + '</span>';
-    var line = function (r) {
-      return '<a class="hrow" href="' + ctry(r.ccy) + '" data-ccy="' + esc(r.ccy) + '"><span class="nm">' + esc(plain(r.country)) + '</span><span class="cells">' +
-        r.cells.map(function (c, j) { return '<i class="' + tlBucket(c) + '" data-i="' + j + '"></i>'; }).join('') +
-        '</span><span class="v num">' + tlValue(r.end) + '</span></a>';
-    };
-    $('heat').innerHTML =
-      (vw.reported && T('tlReported') ? '<p class="note tlnote">' + esc(T('tlReported', { since: window.homeTimeline.fmt(window.homeTimeline.meta().own_start, false) })) + '</p>' : '') +
-      '<p class="key">' + BUCKETS.map(function (b) { return '<span><i class="' + b[2] + '"></i>' + esc(T(b[3], b[4])) + '</span>'; }).join('') +
-      (anyOff ? '<span><i class="b-off"></i>' + esc(T('tlLegendOfficial')) + '</span><span><i class="b-offstep"></i>' + esc(T('tlLegendOfficialStep')) + '</span>' : '') +
-      '<span><i class="b-none"></i>' + esc(T('legendNone')) + '</span></p>' +
-      '<div class="hax"><span></span><div class="ax num">' + ax + '</div><span class="axh">' + esc(tlShort(vw, n - 1, true)) + '</span></div>' +
-      rows.map(line).join('') +
-      '<div class="pills hb">' + (showAll || vw.rows.length <= 20 ? '' : '<button class="pill" type="button" id="all">' + esc(T('heatShowAll', { n: vw.rows.length })) + '</button>') + '</div>';
-  }
   function heatHead() {
-    var vw = tlView();
-    if (vw) {
-      $('heatT').textContent = vw.counts.N ? T('tlHeatTitle', { n: g(vw.counts.n), N: g(vw.counts.N), when: vw.when }) : T(vw.counts.off ? 'tlHeatTitleOfficial' : 'tlHeatTitleNone', { when: vw.when });
-      $('heatL').textContent = T('tlHeatLine');
-      return;
-    }
     // the map starts on the first screen (4 Nov, Seb): a short title and one line above it, and the counts line under it
     if (T('heatShortTitle')) { $('heatT').textContent = T('heatShortTitle'); $('heatL').textContent = T('heatShortLine'); return; }
     $('heatT').textContent = leadLine();
@@ -275,11 +267,6 @@
     return !rk.length ? '' : T('heatLead') ? T('heatLead', { top_pct: top.index_pct.toFixed(1), top_country: plain(top.country), n_over_8: g(rk.filter(function (c) { return r1(c) >= 8; }).length),
       n_within_2: g(rk.filter(function (c) { var v = r1(c); return v >= -2 && v <= 2; }).length), n_priced: g(rk.length) }) :
       T('heatTitle', { n: g(rk.filter(function (c) { var v = r1(c); return v >= -2 && v <= 2; }).length), N: g(rk.length) });
-  }
-  function tlTip(vw, cells, j) {
-    var r = vw.rows.filter(function (x) { return x.ccy === cells.closest('.hrow').dataset.ccy; })[0], c = r.cells[j];
-    var v = { country: plain(r.country), when: window.homeTimeline.fmt(vw.labels[j], vw.hourly), value: c.v == null ? '' : sgn(c.v / 10) };
-    return T(c.k === '-' || c.v == null ? 'tlTipNone' : c.k === '0' ? 'tlTipOurs' : c.k === '1' ? 'tlTipReported' : 'tlTipOfficial', v);
   }
 
   /* ---------------------------------------------------------------- where the official rate landed after past breaks (SEB-384, from the backtest)
@@ -302,6 +289,13 @@
   function land(j) {
     var box = $('land'), rows = ((j && j.rows) || []).filter(function (r) { return r.premium_before_pct >= LAND_MIN_GAP; });
     if (!box || !rows.length || !T('landTitle') || !T('landGap') || !T('landClosed')) { if (box) { box.innerHTML = ''; } return; }
+    // one table in one place (SEB-437): once its link has words, this block is the headline number from the same file as the table
+    // (data/map_timeline/landing.json) and a link to research-breaks.html, not a second copy of the rows
+    if (T('landTableLink')) {
+      box.innerHTML = '<h2>' + esc(T('landTitle')) + '</h2><p class="note">' + esc(T('landLine', { n: rows.length, gap: LAND_MIN_GAP + '%' })) + '</p>' +
+        '<p class="body"><a href="./research-breaks.html">' + esc(T('landTableLink')) + '</a></p>';
+      return;
+    }
     box.innerHTML = '<h2>' + esc(T('landTitle')) + '</h2><p class="note">' + esc(T('landLine', { n: rows.length, gap: LAND_MIN_GAP + '%' })) + '</p>' + example(rows) +
       '<div class="rows lrows">' + rows.map(function (r) {
         var c = Math.round(closed(r) * 100);
@@ -321,13 +315,6 @@
     if (!cells) { if (!e.target.closest || !e.target.closest('.chart,[data-tip]')) { /* the shared tooltip hides itself elsewhere */ } return; }
     var r = cells.getBoundingClientRect(), k = cells.children.length;
     var j = Math.max(0, Math.min(k - 1, Math.floor((e.clientX - r.left) / r.width * k))), i = +cells.children[j].dataset.i, n = D.days.length;
-    var vw = tlView();
-    if (vw) {
-      [].forEach.call(document.querySelectorAll('.cells i.on'), function (x) { x.classList.remove('on'); });
-      cells.children[j].classList.add('on');
-      if (window.siteTip) { window.siteTip.show(tlTip(vw, cells, j), e.clientX, e.clientY); }
-      return;
-    }
     var c = D.cur.filter(function (x) { return x.ccy === cells.closest('.hrow').dataset.ccy; })[0], v = c.cells[i];
     [].forEach.call(document.querySelectorAll('.cells i.on'), function (x) { x.classList.remove('on'); });
     cells.children[j].classList.add('on');
@@ -342,7 +329,8 @@
     document.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch' && window.siteTip) { window.siteTip.hide(); } });   // a finger lifting is a pointerleave too: the tap's tooltip stays until the next tap
     document.addEventListener('click', function (e) {
       if (e.target.closest('#all')) { showAll = true; heat(); return; }
-      if (e.target.closest('#early')) { early = true; heat(); return; }
+      var rg = window.RangeToggle.pick(e);
+      if (rg) { range = rg; heat(); return; }
       if (e.target.closest('.cmark')) { e.preventDefault(); return; }   // the mark shows its tooltip; it does not open the country
       var sq = e.target.closest('.cells');
       if (sq && window.matchMedia('(hover: none)').matches) { e.preventDefault(); }   // on a phone the first tap reads the square; the name opens the country
@@ -351,7 +339,7 @@
 
   var jobs = { copy: 'copy.json', heat: 'data/heatmap_daily.json', idx: 'data/index_latest.json', rec: 'data/record_daily.json', src: 'data/sources_daily.json' };
   // loading is a function so a tab left open can load again when a newer hour is published (siteLive, js/site_head.js)
-  var wired = false, tlWired = false;
+  var wired = false;
   function load() {
   var failed = [], y0 = window.scrollY;
   // the computed sentences (SEB-423): not counted as a failed file when absent, the page then keeps its fixed headline and shows no block
@@ -370,14 +358,11 @@
     // counted like the Countries page title: ranked countries with a price this hour, and how many sit within 2% (SEB-268, 12 Oct)
     D.rk = ((got.idx && got.idx.countries) || []).filter(function (c) { return c.index_pct != null && c.denominator_class !== 'unmaintained'; });
     hero();   // after D.rk: "Right now" names the same top country as the map's lead line
+    dayLink();
     heatHead();
     heat();
     whatChanged();
     getJSON('data/map_timeline/landing.json').then(land).catch(function () { land(null); });
-    if (window.homeTimeline) {
-      window.homeTimeline.init({ T: T, esc: esc, mount: $('tl') });
-      if (!tlWired) { tlWired = true; window.homeTimeline.onChange(function () { heatHead(); heat(); }); }
-    }
     if (wired) { window.scrollTo(0, y0); }
     if (!wired) { wired = true; wire(); }
     if (failed.length) { var er = $('loaderr'); er.textContent = T('loadError', { n: failed.length }); er.hidden = !er.textContent; }

@@ -30,7 +30,7 @@ BLOCK = re.compile(re.escape(BEGIN) + r".*?" + re.escape(END), re.S)
 BAKE = re.compile(r"<!-- bake:begin -->.*?<!-- bake:end -->", re.S)      # the no-script copy of a page (tools/bake_pages.py)
 # pages that are one item of a list: the bar marks the list
 HOME_OF = {"country.html": "countries.html", "event.html": "events.html",
-           "research-capital-controls.html": "research.html", "research-source-pairs.html": "research.html"}
+           "research-capital-controls.html": "research.html", "research-source-pairs.html": "research.html", "research-breaks.html": "research.html"}
 OLD = re.compile(r"""class=["'][^"']*\b(hp-head|hp-headleft|hp-nav|hp-logo|ci-head|ci-nav|ci-logo|sm-head|sm-nav|sm-logo|"""
                  r"""fp-head|fp-brand|fp-nav|fp-logo|c-head|c-nav|c-logo|s-head|s-nav|s-logo|mwh|mwh-logo)\b""")
 OLD_CSS = re.compile(r"\.(hp-head|hp-headleft|hp-nav|hp-logo|ci-head|ci-nav|ci-logo|sm-head|sm-nav|sm-logo|fp-head|fp-brand|"

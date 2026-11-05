@@ -80,7 +80,76 @@
       list.appendChild(b);
       if (!list.parentNode) { wrap.appendChild(list); }
     }
+    // the third row (SEB-437): the history table, reached from here so that no page is hidden
+    if (T('cardTitle3') && brk && brk.length) {
+      var c3 = el('a', 'rs-item');
+      c3.href = './research-breaks.html';
+      var cb = kid(c3, el('span', 'rs-item-body'));
+      kid(cb, word('span', 'rs-item-title', 'cardTitle3'));
+      kid(cb, word('span', 'rs-item-line', 'cardLine3'));
+      kid(cb, word('span', 'rs-item-meta', 'cardMeta3'));
+      c3.appendChild(el('span', 'rs-item-go', '\u2192'));
+      numCell(c3, brk.length, T('cardNumUnit3'));
+      list.appendChild(c3);
+      if (!list.parentNode) { wrap.appendChild(list); }
+    }
     if (list.firstChild && !list.parentNode) { wrap.appendChild(list); }
+  }
+
+  /* The history table (SEB-437): breaks in the official rate found later in a backtest of history, before our hourly record began.
+     One table, no page per break. Rows: events_published.json "history" (the replay) and data/map_timeline/landing.json (the gap
+     before and after, where a street price existed). A gap we have no price for is a blank, never filled in. */
+  var brk = null;
+  function pct1(v) { return v.toFixed(1) + '%'; }
+  function buildBreaks(pub, land, ownStart) {
+    var rows = {}, start = ownStart || (pub && pub.own_start) || '';   // the first day of our hourly record
+    var add = function (ccy, date, move, country) {
+      var k = ccy + '|' + date;
+      rows[k] = rows[k] || { ccy: ccy, date: date, country: country };
+      if (move != null) { rows[k].move = move; }
+      return rows[k];
+    };
+    ((pub && (pub.history || pub.events)) || []).forEach(function (e) { if (!start || e.date < start) { add(e.ccy, e.date, e.change_pct); } });
+    ((land && land.rows) || []).forEach(function (r) {
+      if (start && r.date >= start) { return; }
+      var x = add(r.ccy, r.date, null, r.country);
+      if (x.move == null) { x.move = r.move_pct; }
+      var p = r.premium_before_pct / 100, closed = p > 0 ? Math.max(0, Math.min(1, (r.landing_ratio * (1 + p) - 1) / p)) : 1;
+      x.before = r.premium_before_pct;
+      x.after = r.premium_before_pct * (1 - closed);   // the part of the gap still open after the jump, as the home page worked it out
+    });
+    return Object.keys(rows).map(function (k) { return rows[k]; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  }
+  function renderBreaks(wrap) {
+    var back = word('a', 'fp-back', 'backLink');
+    if (back) { back.href = './research.html'; wrap.appendChild(back); }
+    var hero = el('div', 'fp-hero');
+    var text = kid(hero, el('div', 'fp-hero-text'));
+    kid(text, word('h1', '', 'breaksTitle'));
+    kid(text, word('p', ['soft', 'fp-line'], 'breaksLead'));
+    kid(text, word('p', ['muted', 'fp-note'], 'breaksLabel'));
+    if (text.firstChild) wrap.appendChild(hero);
+    if (!brk || !brk.length) return;
+    var cols = [['colCountry', 'c'], ['colDate', 'd'], ['colMove', 'm'], ['colBefore', 'b'], ['colAfter', 'a']];
+    if (cols.some(function (c) { return !T(c[0]); })) return;
+    var tb = el('table', 'rs-brk');
+    var hd = el('tr');
+    cols.forEach(function (c) { var th = el('th', 'rs-brk-' + c[1], T(c[0])); th.setAttribute('scope', 'col'); hd.appendChild(th); });
+    tb.appendChild(el('thead')).appendChild(hd);
+    var body = el('tbody');
+    brk.forEach(function (r) {
+      var tr = el('tr');
+      var cell = function (k, text) { var td = el('td', 'rs-brk-' + k, text); td.setAttribute('data-label', T(cols.filter(function (c) { return c[1] === k; })[0][0])); tr.appendChild(td); };
+      cell('c', cname(r));
+      cell('d', dayName(r.date));
+      cell('m', r.move == null ? '' : (r.move > 0 ? '+' : '\u2212') + fmt(Math.abs(r.move)) + '%');
+      cell('b', r.before == null ? T('noPrice') : pct1(r.before));
+      cell('a', r.after == null ? T('noPrice') : pct1(r.after));
+      body.appendChild(tr);
+    });
+    tb.appendChild(body);
+    wrap.appendChild(tb);
+    kid(wrap, word('p', ['muted', 'fp-note'], 'breaksNote'));
   }
 
   function byCountry(doc) {
@@ -306,7 +375,11 @@
                load('./data/research/capital_controls_months.json').catch(function () { return null; }),
                load('./data/research/source_pairs.json').catch(function () { return null; }),
                window.Claims ? window.Claims.load() : null,
-               mode === 'pairs' ? load('./data/findings.json').catch(function () { return null; }) : null]).then(function (res) {
+               mode === 'pairs' ? load('./data/findings.json').catch(function () { return null; }) : null,
+               mode === 'breaks' || mode === 'index' ? load('./data/events_published.json').catch(function () { return null; }) : null,
+               mode === 'breaks' || mode === 'index' ? load('./data/map_timeline/landing.json').catch(function () { return null; }) : null,
+               mode === 'breaks' || mode === 'index' ? load('./data/map_timeline/index.json').catch(function () { return null; }) : null,
+               mode === 'breaks' ? load('./data/heatmap_daily.json').catch(function () { return null; }) : null]).then(function (res) {
     C = res[0].researchData || {};
     C.brand = typeof res[0].brand === 'string' ? res[0].brand : '';
     NAVC = res[0].findingData || {};
@@ -315,8 +388,14 @@
     // the live months and the pairs page print numbers that the claims audit re-derives; blocked ones are not drawn
     var months = res[3] && !(window.Claims && window.Claims.blocked('researchData.monthsLine')) ? res[3] : null;
     var pairs = res[4] && !(window.Claims && window.Claims.blocked('researchData.pairsTight')) ? res[4] : null;
+    ((res[10] && res[10].currencies) || []).forEach(function (c) { if (!NAMES[c.ccy]) { NAMES[c.ccy] = c.country; } });
+    brk = mode === 'breaks' || mode === 'index' ? buildBreaks(res[7], res[8], res[9] && res[9].own_start) : null;
     EXCH = ((res[6] && res[6].findings) || []).filter(function (f) { return f.id === 'exchange_vs_p2p' && f.published === true; })[0] || null;
-    if (mode === 'index') { renderIndex(wrap, res[1], months, pairs); } else if (mode === 'pairs') { renderPairs(wrap, pairs); } else { renderCapital(wrap, res[1], months); }
+    // the page's own title once its words exist (siteHead.breaksTitle); until then the head holds the Research list's
+    if (mode === 'breaks' && window.PageHead) {
+      window.PageHead.copy().then(function (H) { if (H.breaksTitle) { window.PageHead.set({ title: H.breaksTitle, description: H.breaksDescription }); } });
+    }
+    if (mode === 'index') { renderIndex(wrap, res[1], months, pairs); } else if (mode === 'pairs') { renderPairs(wrap, pairs); } else if (mode === 'breaks') { renderBreaks(wrap); } else { renderCapital(wrap, res[1], months); }
     app.appendChild(wrap);
   });
 })();
