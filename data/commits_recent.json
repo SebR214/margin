@@ -1,7 +1,14 @@
 {
- "as_of_utc": "2026-11-05T00:45:11Z",
+ "as_of_utc": "2026-11-05T01:24:50Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "e2bb0b037e2f8c2d4affc458c8594e540307ccc1",
+   "html_url": "https://github.com/SebR214/margin/commit/e2bb0b037e2f8c2d4affc458c8594e540307ccc1",
+   "date": "2026-11-05T00:48:34Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-05T00:48Z"
+  },
   {
    "sha": "55710131c87b0201b47cedb7bb56645e57d5a981",
    "html_url": "https://github.com/SebR214/margin/commit/55710131c87b0201b47cedb7bb56645e57d5a981",
@@ -694,13 +701,6 @@
    "date": "2026-11-03T04:29:26Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-11-03T04:29Z"
-  },
-  {
-   "sha": "0bd93f9b372208900129553ae15bdf56bcdb832b",
-   "html_url": "https://github.com/SebR214/margin/commit/0bd93f9b372208900129553ae15bdf56bcdb832b",
-   "date": "2026-11-03T04:22:29Z",
-   "email": "person",
-   "message": "SEB-436: the home page can say how many of the last 24 hours have no prices (code, empty slots) (#781)\n\n* SEB-436: the home page says how many of the last 24 hours have no prices\n\nWhen hours are missing the home page now says so in one plain line under the lead, \"7 of the last 24 hours have no prices because\nour collection was down.\" The count is the claims audit's own recount of the stored readings (new claim homeData.hoursMissing,\ntype hours_missing). With no hours missing, or the audit unreadable, nothing shows. The claim is the collector's to report\n(owner: collector), so it never raises the audit watchdog's alarm.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-436: copy slots table, four columns\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* SEB-436: home line slots are empty until the writer fills them\n\nThe copy lock allows a writer PR to change copy.json only, and new words ship as an empty slot first. The page does not render a\nslot with no words.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
   }
  ]
 }
