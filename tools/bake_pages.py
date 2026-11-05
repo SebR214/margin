@@ -38,9 +38,22 @@ CAPTURE_JS = """(function(){var b=document.body.cloneNode(true);
  return JSON.stringify({html:b.innerHTML,text:(document.body.innerText||'').length,h1:!!document.querySelector('h1')})})()"""
 
 
+# a page whose headline slot in copy.json is still empty draws nothing yet: it is left out of the bake until its words are in (SEB-437)
+UNTIL_WORDS = {"research-breaks.html": ("researchData", "breaksTitle")}
+
+
+def has_words(page):
+    if page not in UNTIL_WORDS:
+        return True
+    import json
+    block, key = UNTIL_WORDS[page]
+    with open(os.path.join(HERE, "copy.json"), encoding="utf-8") as f:
+        return bool((json.load(f).get(block) or {}).get(key))
+
+
 def pages():
     from gate_common import all_pages
-    return [p for p in all_pages() if p not in TEMPLATES]
+    return [p for p in all_pages() if p not in TEMPLATES and has_words(p)]
 
 
 def inject(text, captured):
