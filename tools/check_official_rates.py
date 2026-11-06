@@ -22,6 +22,7 @@ Usage:  python3 tools/check_official_rates.py             # data/ -> data/offici
         python3 tools/check_official_rates.py --self-test
 """
 import csv
+import datetime
 import os
 import sys
 
@@ -49,18 +50,35 @@ def daily(path, ts_col, rate_col, ok_col=None):
     return out
 
 
+def calendar(series_ccy):
+    """One value per calendar day from the first to the last, None on a day with no figure. Seven positions back is then seven
+    days back: the 29 and 30 Oct 2026 collection gap shifted a plain list by two and Sudan's loop went unseen from 6 Nov."""
+    days = sorted(series_ccy)
+    try:
+        d0 = datetime.date.fromisoformat(days[0])
+    except ValueError:  # the self-test's fixtures key days d00, d01, ...: already one per day
+        return [series_ccy[d] for d in days]
+    n = (datetime.date.fromisoformat(days[-1]) - d0).days + 1
+    return [series_ccy.get((d0 + datetime.timedelta(i)).isoformat()) for i in range(n)]
+
+
 def rule_weekly_loop(vals):
     n = len(vals)
     if n < 28:
         return None
-    last = vals[-21:]
-    hits = sum(1 for i in range(n - 21, n) if abs(vals[i] / vals[i - 7] - 1) < 0.02)
-    wk, before = vals[-7:], vals[-14:-7]
+    pairs = [(vals[i], vals[i - 7]) for i in range(n - 21, n) if vals[i] is not None and vals[i - 7] is not None]
+    if len(pairs) < 15:
+        return None
+    hits = sum(1 for a, b in pairs if abs(a / b - 1) < 0.02)
+    wk = [v for v in vals[-7:] if v is not None]
+    before = [v for v in vals[-14:-7] if v is not None]
+    if not wk or not before:
+        return None
     # a loop moves in the week it repeats AND in the week before it: a flat rate that steps once equals itself 7 days earlier on every
     # day but the days after the step, and is not a loop (found 22 Oct on Iraq's step of 9 Oct, SEB-311)
-    if hits / 21 >= 0.8 and max(wk) / min(wk) - 1 > 0.05 and max(before) / min(before) - 1 > 0.05:
-        return "%d of the last 21 days equal the day seven before, within 2%%, while the rate swings %.0f%% inside a week" % (
-            hits, (max(wk) / min(wk) - 1) * 100)
+    if hits / len(pairs) >= 0.8 and max(wk) / min(wk) - 1 > 0.05 and max(before) / min(before) - 1 > 0.05:
+        return "%d of %d days in the last 21 equal the day seven before, within 2%%, while the rate swings %.0f%% inside a week" % (
+            hits, len(pairs), (max(wk) / min(wk) - 1) * 100)
     return None
 
 
@@ -101,7 +119,7 @@ def check(series, live):
         days = sorted(series[ccy])
         vals = [series[ccy][d] for d in days]
         for name, fn in (("weekly_loop", rule_weekly_loop), ("jump_reverse", rule_jump_reverse), ("flat_30", rule_flat_30)):
-            why = fn(vals)
+            why = fn(calendar(series[ccy]) if name == "weekly_loop" else vals)
             if why:
                 flags.append((days[-1], ccy, name, why))
         if live.get(ccy):
