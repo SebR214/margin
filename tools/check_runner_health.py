@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Is the builder (the Aider builder) alive? No model call. Exit 1 if not.
+"""Is the builder alive? No model call. Exit 1 if not.
+
+The builder is the first workflow in BUILDERS that is switched on in GitHub and has a
+schedule on main. If none is (all are off or run by hand only, as since 5 Nov 2026), there
+is nothing to watch and the check passes. It used to watch aider_builder.yml by name, so
+taking that builder off its schedule set off a DOWN email every 30 minutes from 6 Nov.
 
 Down means either:
 - no completed run of one_call.yml in the last 26 hours (the runner builds once a day, with backup slots), or
@@ -11,13 +16,16 @@ not down yet.
 
 Env: GH_TOKEN, GITHUB_REPOSITORY.
 """
+import base64
 import datetime
 import json
 import os
+import re
 import sys
+import urllib.error
 import urllib.request
 
-WORKFLOW = "aider_builder.yml"  # the builder since 24 Oct; one_call.yml now runs only by hand
+BUILDERS = ["claude_builder.yml", "aider_builder.yml", "one_call.yml"]
 SILENT_AFTER = datetime.timedelta(hours=26)
 
 
@@ -34,9 +42,32 @@ def ts(s):
     return datetime.datetime.fromisoformat(s.replace("Z", "+00:00"))
 
 
+def has_schedule(text):
+    return re.search(r"^\s+schedule:", text, re.M) is not None
+
+
+def scheduled_builder():
+    for name in BUILDERS:
+        try:
+            wf = get("actions/workflows/%s" % name)
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                continue
+            raise
+        if wf.get("state") != "active":
+            continue
+        f = get("contents/.github/workflows/%s?ref=main" % name)
+        if has_schedule(base64.b64decode(f["content"]).decode()):
+            return name, wf
+    return None, None
+
+
 def main():
     now = datetime.datetime.now(datetime.timezone.utc)
-    wf = get("actions/workflows/%s" % WORKFLOW)
+    WORKFLOW, wf = scheduled_builder()
+    if WORKFLOW is None:
+        print("no builder is switched on with a schedule, nothing to watch")
+        return 0
     runs = get("actions/workflows/%s/runs?status=completed&branch=main&per_page=5"
                % WORKFLOW)["workflow_runs"]
     if not runs:
@@ -55,7 +86,7 @@ def main():
     if len(runs) >= 3 and all(r["conclusion"] == "failure" for r in runs[:3]):
         print("DOWN: the runner's last 3 runs all failed: %s" % runs[0]["html_url"])
         return 1
-    print("runner alive: last run %d minutes ago, %s" % (mins, runs[0]["conclusion"]))
+    print("runner alive (%s): last run %d minutes ago, %s" % (WORKFLOW, mins, runs[0]["conclusion"]))
     return 0
 
 
