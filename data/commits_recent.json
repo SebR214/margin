@@ -1,7 +1,21 @@
 {
- "as_of_utc": "2026-11-06T08:20:41Z",
+ "as_of_utc": "2026-11-06T08:45:14Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "a877c5f11bda296e5f5504086465c72abe8f1c3e",
+   "html_url": "https://github.com/SebR214/margin/commit/a877c5f11bda296e5f5504086465c72abe8f1c3e",
+   "date": "2026-11-06T08:40:04Z",
+   "email": "person",
+   "message": "Watchdog builder check passes when no builder is scheduled, and the Sudan loop rule counts calendar days (#794)\n\n* Watchdog: the builder check watches whichever builder is on a schedule, and passes when none is\n\nThe aider builder lost its schedule on 5 Nov and the Claude builder is switched off, so\ncheck_runner_health.py, which watched aider_builder.yml by name, sent DOWN every 30 minutes from 6 Nov.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVGgsNosa4c5zdXbTMr\n\n* Official-rate check: the Sudan loop rule compares calendar days, not list positions\n\nThe 29 and 30 Oct collection gap shifted the daily list by two, so 'seven back' was nine days back and Sudan's\nloop went unseen from 6 Nov. tests/check_official_rates.py asserts that loop on the real data, so checks went red\non main and every PR was blocked.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01KxKUVGgsNosa4c5zdXbTMr\n\n---------\n\nCo-authored-by: Claude <noreply@anthropic.com>"
+  },
+  {
+   "sha": "eaf7511f14a1d7654d8ac7a6c2d13775c3a7d324",
+   "html_url": "https://github.com/SebR214/margin/commit/eaf7511f14a1d7654d8ac7a6c2d13775c3a7d324",
+   "date": "2026-11-06T08:24:01Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-06T08:24Z"
+  },
   {
    "sha": "8132a033d71921690350791d14630aaf94f63840",
    "html_url": "https://github.com/SebR214/margin/commit/8132a033d71921690350791d14630aaf94f63840",
@@ -687,20 +701,6 @@
    "date": "2026-11-04T10:22:27Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-11-04T10:22Z"
-  },
-  {
-   "sha": "11a45280c99a3222165fbc36884da5844490fbbe",
-   "html_url": "https://github.com/SebR214/margin/commit/11a45280c99a3222165fbc36884da5844490fbbe",
-   "date": "2026-11-04T09:22:05Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-11-04T09:22Z"
-  },
-  {
-   "sha": "0eab7fe009cc99f662ce56ff20f10db81b307be0",
-   "html_url": "https://github.com/SebR214/margin/commit/0eab7fe009cc99f662ce56ff20f10db81b307be0",
-   "date": "2026-11-04T08:45:15Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-11-04T08:45Z"
   }
  ]
 }
