@@ -18,8 +18,8 @@ once more. If it fails again nothing is collected and the script exits 1: a half
 pages exist only in the build), so the site stays on the last good deploy and the step goes red.
 
 _site/ holds every tracked file plus the generated ones, linked rather than copied. The daily raw ad folders (data/p2p_ads/,
-data/p2p_ads_sellers/, data/p2p_offers/, data/depth/, data/p2p_board_ads/) are left out: nothing links them, they grow about
-28 MB a day, and Pages sites are limited to 1 GB. The closed files (data/p2p_ads.csv and the rest) are listed in llms.txt, so they stay.
+data/p2p_ads_sellers/, data/p2p_offers/, data/depth/, data/p2p_board_ads/) and the hourly receipt folders (data/corridor_receipts/,
+data/provider_receipts/) are left out: nothing links them, they grow about 50 MB a day together, and Pages sites are limited to 1 GB. The closed files (data/p2p_ads.csv and the rest) are listed in llms.txt, so they stay.
 """
 import os
 import shutil
@@ -33,7 +33,10 @@ SITE = "_site"
 GENERATED_FILES = {"index.md", "countries.md", "sending-money.md", "sources.md", "how-it-works.md", "how-it-was-built.md",
                    "machine-room.md", "llms.txt", "sitemap.xml", "robots.txt", "404.html"}
 GENERATED_DIRS = ("country/", "finding/")
-LEFT_OUT = ("data/p2p_ads/", "data/p2p_ads_sellers/", "data/p2p_offers/", "data/depth/", "data/p2p_board_ads/")
+LEFT_OUT = ("data/p2p_ads/", "data/p2p_ads_sellers/", "data/p2p_offers/", "data/depth/", "data/p2p_board_ads/",
+            # One file per route per hour, about 25 MB a day between them. No page opens them (the overlay that would is not
+            # wired to any page), the number audit reads them from the repo, and they took the site past 1 GB on 8 Nov.
+            "data/corridor_receipts/", "data/provider_receipts/")
 BAKED_PAGES = ("index.html", "countries.html", "sending-money.html", "sources.html", "events.html", "how-it-works.html",
                "how-it-was-built.html", "research.html", "research-capital-controls.html", "research-source-pairs.html")
 BEGIN = "<!-- bake:begin -->"
