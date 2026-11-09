@@ -194,7 +194,7 @@ Written by the retired researcher (25 to 29 Oct). Track A rules in tools/job_sha
     context: `data/gap_report.json` `data/index_latest.json` `data/source_pairs.json` `data/source_registry.json`
     done when: tools/one_source_reasons.py reads data/gap_report.json and, for each one_source currency, lists every source seen but not behind the price with a reason taken from a stored field in data/index_latest.json, data/source_pairs.json or data/source_registry.json, or the text no stored reason. It writes data/one_source_reasons.json. tests/agent_one_source_reasons.py uses an inline fixture for AED with seen BitOasis, OKX spot (AED) and binance_p2p and behind binance_p2p, and checks BitOasis and OKX spot (AED) are listed as not behind with a reason string and binance_p2p is not listed. It also checks that a fixture with no stored fields gives the text no stored reason, and that the output has one entry per one_source currency.
 - [x] 25. Third-source arbiter for flagged source disagreements (done 2026-11-09)
-  - [x] 25a. Third-source arbiter for flagged source disagreements
+  - [x] 25a. Third-source arbiter for flagged source disagreements (PR #796, 2026-11-09)
     track: aider
     proposed: researcher 2026-10-27 (gap: disagree: TND binance_p2p vs okx_p2p median_gap_pct 20.0 flag true)
     files: `tools/disagree_arbiter.py` `data/disagree_arbiter.json` `tests/agent_disagree_arbiter.py`
@@ -208,7 +208,7 @@ Written by the retired researcher (25 to 29 Oct). Track A rules in tools/job_sha
     context: `data/findings.json` `data/finding_tests.csv` `data/finding_status.json`
     done when: tools/retest_coverage.py reads every finding id in data/findings.json and counts its rows and last row date in data/finding_tests.csv. It writes data/retest_coverage.json with one entry per finding holding row count, last retest date and days since, plus a list of findings with zero rows. tests/agent_retest_coverage.py uses an inline fixture of 2 findings, one with rows on two dates and one with none, and checks the first shows count 2 with the later date as last retest and the second is in the zero-rows list. It also checks the output has one entry per finding in the fixture.
 - [x] 27. Near-miss report for countries with no price (done 2026-11-09)
-  - [x] 27a. Near-miss report for countries with no price
+  - [x] 27a. Near-miss report for countries with no price (PR #796, 2026-11-09)
     track: aider
     proposed: researcher 2026-10-27 (gap: no_price: BWP (too few people selling to call it a price))
     files: `tools/no_price_near_miss.py` `data/no_price_near_miss.json` `tests/agent_no_price_near_miss.py`
