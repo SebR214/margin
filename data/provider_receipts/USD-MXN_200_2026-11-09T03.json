@@ -1,0 +1,303 @@
+{
+  "corridor": "USD->MXN",
+  "crypto_hour_utc": "2026-11-09T03:00:00+00:00",
+  "hour_utc": "2026-11-09T03",
+  "panel_hour_utc": "2026-11-09T03:00:00+00:00",
+  "rows": [
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": -1.2032
+      },
+      "cost_pct": -1.2032,
+      "costs": "US$-2.41",
+      "evidence": {
+        "collected_at": "2026-11-09T03:06:42.317338+00:00",
+        "landed": 3771.01,
+        "meaning": "A public price comparison service quotes Xoom: this amount lands 3771.01 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Xoom",
+      "rank": 1,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdmxn.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
+        "note": "This is Airwallex's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
+        "result_pct": 0.3338
+      },
+      "cost_pct": 0.3338,
+      "costs": "US$0.67",
+      "evidence": {
+        "collected_at": "2026-11-09T03:13:10.641104+00:00",
+        "fee": 0.0,
+        "meaning": "Airwallex's own published quote: at a rate of 18.56871, with a stated fee of 0.0, sending this amount lands 3713.74.",
+        "provider_site": "airwallex.com",
+        "rate": 18.56871,
+        "received": 3713.74,
+        "status": "own"
+      },
+      "provider": "Airwallex",
+      "rank": 2,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 1.0468
+      },
+      "cost_pct": 1.0468,
+      "costs": "US$2.09",
+      "evidence": {
+        "collected_at": "2026-11-09T03:06:42.317338+00:00",
+        "landed": 3687.17,
+        "meaning": "A public price comparison service quotes Instarem: this amount lands 3687.17 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Instarem",
+      "rank": 3,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdmxn.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": null,
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": "This route has its own full step-by-step receipt -- see the link next to it on the page.",
+        "result_pct": 1.5907
+      },
+      "cost_pct": 1.5907,
+      "costs": "US$3.18",
+      "evidence": {
+        "collected_at": "2026-11-09T03:06:42.317338+00:00",
+        "meaning": "Priced on real exchanges this hour, every fee included.",
+        "status": "measured",
+        "venues_summary": null
+      },
+      "provider": "Sending it with stablecoins",
+      "rank": 4,
+      "source": "measured",
+      "source_files": [
+        "data/samples.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 3.5727
+      },
+      "cost_pct": 2.5693,
+      "costs": "US$5.14",
+      "evidence": {
+        "collected_at": "2026-11-09T03:06:42.317338+00:00",
+        "landed": 3593.05,
+        "meaning": "A public price comparison service quotes WorldRemit: this amount lands 3593.05 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-11-09T03:13:10.641104+00:00",
+          "fee": 1.99,
+          "meaning": "WorldRemit's own published quote: at a rate of 18.1522, with a stated fee of 1.99, sending this amount lands 3630.44.",
+          "provider_site": "worldremit.com",
+          "rate": 18.1522,
+          "received": 3630.44
+        },
+        "own_quote_note": "WorldRemit also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "WorldRemit",
+      "rank": 5,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers_usdmxn.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 3.029
+      },
+      "cost_pct": 3.029,
+      "costs": "US$6.06",
+      "evidence": {
+        "collected_at": "2026-11-09T03:06:42.317338+00:00",
+        "landed": 3613.31,
+        "meaning": "A public price comparison service quotes Western Union: this amount lands 3613.31 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Western Union",
+      "rank": 6,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdmxn.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 3.4139
+      },
+      "cost_pct": 3.4139,
+      "costs": "US$6.83",
+      "evidence": {
+        "collected_at": "2026-11-09T03:06:42.317338+00:00",
+        "landed": 3598.97,
+        "meaning": "A public price comparison service quotes Wells Fargo: this amount lands 3598.97 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Wells Fargo",
+      "rank": 7,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdmxn.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 4.3293
+      },
+      "cost_pct": 4.3242,
+      "costs": "US$8.65",
+      "evidence": {
+        "collected_at": "2026-11-09T03:06:42.317338+00:00",
+        "landed": 3564.86,
+        "meaning": "A public price comparison service quotes Wise: this amount lands 3564.86 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-11-09T03:13:10.641104+00:00",
+          "fee": 8.09,
+          "meaning": "Wise's own published quote: at a rate of 18.5767, with a stated fee of 8.09, sending this amount lands 3565.05.",
+          "provider_site": "wise.com",
+          "rate": 18.5767,
+          "received": 3565.05
+        },
+        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Wise",
+      "rank": 8,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers_usdmxn.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 4.6567
+      },
+      "cost_pct": 4.6567,
+      "costs": "US$9.31",
+      "evidence": {
+        "collected_at": "2026-11-09T03:06:42.317338+00:00",
+        "landed": 3552.66,
+        "meaning": "A public price comparison service quotes Remitly: this amount lands 3552.66 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Remitly",
+      "rank": 9,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdmxn.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 5.0372
+      },
+      "cost_pct": 5.0372,
+      "costs": "US$10.07",
+      "evidence": {
+        "collected_at": "2026-11-09T03:06:42.317338+00:00",
+        "landed": 3538.48,
+        "meaning": "A public price comparison service quotes OFX: this amount lands 3538.48 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "OFX",
+      "rank": 10,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdmxn.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 5.7202
+      },
+      "cost_pct": 5.7202,
+      "costs": "US$11.44",
+      "evidence": {
+        "collected_at": "2026-11-09T03:06:42.317338+00:00",
+        "landed": 3513.03,
+        "meaning": "A public price comparison service quotes Chase (US): this amount lands 3513.03 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Chase (US)",
+      "rank": 11,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdmxn.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 6.8155
+      },
+      "cost_pct": 6.8155,
+      "costs": "US$13.63",
+      "evidence": {
+        "collected_at": "2026-11-09T03:06:42.317338+00:00",
+        "landed": 3472.22,
+        "meaning": "A public price comparison service quotes PayPal: this amount lands 3472.22 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "PayPal",
+      "rank": 12,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_usdmxn.csv"
+      ]
+    }
+  ],
+  "size": 200,
+  "size_words": "US$200",
+  "source_files": [
+    "data/provider_quotes.csv",
+    "data/providers_latest.json",
+    "data/providers_usdmxn.csv",
+    "data/samples.csv"
+  ]
+}
