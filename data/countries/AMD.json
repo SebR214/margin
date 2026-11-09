@@ -1,12 +1,14 @@
 {
+  "buy_price": 363.6225,
   "ccy": "AMD",
-  "computed_at": "2026-11-09T03:00:00+00:00",
+  "computed_at": "2026-11-09T04:00:00+00:00",
   "country": "Armenia",
   "denominator": {
     "class": "market",
     "rate_per_usd": 360.598583,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 360.598583,
   "history": [
     {
       "date": "2026-09-05",
@@ -388,14 +390,15 @@
     },
     {
       "date": "2026-11-09",
-      "index_pct": 0.1964,
-      "n": 2,
-      "source": "hourly_buy_p2p"
+      "index_pct": 0.8386,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
   "history_days": 64,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-11-09T03:00:00+00:00",
+  "hour_utc": "2026-11-09T04:00:00+00:00",
+  "index_pct": 0.8386,
   "index_version": "1.9.2",
   "instrument_check": {
     "checked": false,
@@ -403,11 +406,24 @@
   },
   "median_24h_n": 24,
   "median_24h_pct": -0.2023,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: 9 buy-side ads, 10 required",
-  "round_trip_pct": 4.7254,
-  "source_class": null,
+  "n_boards": 2,
+  "n_sources": 10,
+  "round_trip_pct": 2.3467,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 369.0
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 363.295,
+      "index_pct": 0.7478,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    },
+    {
+      "buy_price": 363.95,
+      "index_pct": 0.9294,
+      "last_price_used": false,
+      "venue": "okx_p2p"
+    }
+  ]
 }
