@@ -1,0 +1,324 @@
+{
+  "corridor": "AUD->PHP",
+  "crypto_hour_utc": "2026-11-10T11:00:00+00:00",
+  "hour_utc": "2026-11-10T11",
+  "panel_hour_utc": "2026-11-10T11:00:00+00:00",
+  "rows": [
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 0.3234
+      },
+      "cost_pct": 0.3234,
+      "costs": "A$161.70",
+      "evidence": {
+        "collected_at": "2026-11-10T11:07:50.714327+00:00",
+        "landed": 2174010.37,
+        "meaning": "A public price comparison service quotes Xoom: this amount lands 2174010.37 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Xoom",
+      "rank": 1,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_audphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
+        "note": "This is Airwallex's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
+        "result_pct": 0.5129
+      },
+      "cost_pct": 0.5129,
+      "costs": "A$256.45",
+      "evidence": {
+        "collected_at": "2026-11-10T11:14:46.665887+00:00",
+        "fee": 0.0,
+        "meaning": "Airwallex's own published quote: at a rate of 43.397526, with a stated fee of 0.0, sending this amount lands 2169876.3.",
+        "provider_site": "airwallex.com",
+        "rate": 43.397526,
+        "received": 2169876.3,
+        "status": "own"
+      },
+      "provider": "Airwallex",
+      "rank": 2,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 0.8301
+      },
+      "cost_pct": 0.8201,
+      "costs": "A$410.05",
+      "evidence": {
+        "collected_at": "2026-11-10T11:07:50.714327+00:00",
+        "landed": 2162958.17,
+        "meaning": "A public price comparison service quotes Wise: this amount lands 2162958.17 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-11-10T11:14:46.665887+00:00",
+          "fee": 241.02,
+          "meaning": "Wise's own published quote: at a rate of 43.4731, with a stated fee of 241.02, sending this amount lands 2163177.11.",
+          "provider_site": "wise.com",
+          "rate": 43.4731,
+          "received": 2163177.11
+        },
+        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Wise",
+      "rank": 3,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers_audphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 0.8429
+      },
+      "cost_pct": 0.8429,
+      "costs": "A$421.45",
+      "evidence": {
+        "collected_at": "2026-11-10T11:07:50.714327+00:00",
+        "landed": 2162679.27,
+        "meaning": "A public price comparison service quotes Western Union: this amount lands 2162679.27 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Western Union",
+      "rank": 4,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_audphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": null,
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": "This route has its own full step-by-step receipt -- see the link next to it on the page.",
+        "result_pct": 1.0371
+      },
+      "cost_pct": 1.0371,
+      "costs": "A$518.55",
+      "evidence": {
+        "collected_at": "2026-11-10T11:07:50.714327+00:00",
+        "meaning": "Priced on real exchanges this hour, every fee included.",
+        "status": "measured",
+        "venues_summary": null
+      },
+      "provider": "Sending it with stablecoins",
+      "rank": 5,
+      "source": "measured",
+      "source_files": [
+        "data/samples.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 0.9875
+      },
+      "cost_pct": 1.0449,
+      "costs": "A$522.45",
+      "evidence": {
+        "collected_at": "2026-11-10T11:07:50.714327+00:00",
+        "landed": 2159524.31,
+        "meaning": "A public price comparison service quotes Instarem: this amount lands 2159524.31 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-11-10T11:14:46.665887+00:00",
+          "fee": 300.0,
+          "meaning": "Instarem's own published quote: at a rate of 43.426, with a stated fee of 300.0, sending this amount lands 2158272.2.",
+          "provider_site": "instarem.com",
+          "rate": 43.426,
+          "received": 2158272.2
+        },
+        "own_quote_note": "Instarem also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Instarem",
+      "rank": 6,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers_audphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 2.2431
+      },
+      "cost_pct": 2.2431,
+      "costs": "A$1,121.55",
+      "evidence": {
+        "collected_at": "2026-11-10T11:07:50.714327+00:00",
+        "landed": 2132140.48,
+        "meaning": "A public price comparison service quotes HSBC Australia: this amount lands 2132140.48 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "HSBC Australia",
+      "rank": 7,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_audphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 3.3138
+      },
+      "cost_pct": 3.3138,
+      "costs": "A$1,656.90",
+      "evidence": {
+        "collected_at": "2026-11-10T11:07:50.714327+00:00",
+        "landed": 2108786.82,
+        "meaning": "A public price comparison service quotes OFX: this amount lands 2108786.82 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "OFX",
+      "rank": 8,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_audphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 4.3476
+      },
+      "cost_pct": 4.3476,
+      "costs": "A$2,173.80",
+      "evidence": {
+        "collected_at": "2026-11-10T11:07:50.714327+00:00",
+        "landed": 2086238.89,
+        "meaning": "A public price comparison service quotes ANZ: this amount lands 2086238.89 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "ANZ",
+      "rank": 9,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_audphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 4.4939
+      },
+      "cost_pct": 4.4939,
+      "costs": "A$2,246.95",
+      "evidence": {
+        "collected_at": "2026-11-10T11:07:50.714327+00:00",
+        "landed": 2083048.85,
+        "meaning": "A public price comparison service quotes Commonwealth Bank of Australia: this amount lands 2083048.85 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Commonwealth Bank of Australia",
+      "rank": 10,
+      "source": "comparison",
+      "source_files": [
+        "data/providers_audphp.csv"
+      ]
+    },
+    {
+      "computation": null,
+      "cost_pct": null,
+      "costs": null,
+      "evidence": {
+        "meaning": "National Australia Bank has quoted this corridor in the recent past but not this particular hour -- no price to show.",
+        "status": "missing"
+      },
+      "provider": "National Australia Bank",
+      "rank": 11,
+      "source": "missing",
+      "source_files": []
+    },
+    {
+      "computation": null,
+      "cost_pct": null,
+      "costs": null,
+      "evidence": {
+        "meaning": "PayPal has quoted this corridor in the recent past but not this particular hour -- no price to show.",
+        "status": "missing"
+      },
+      "provider": "PayPal",
+      "rank": 12,
+      "source": "missing",
+      "source_files": []
+    },
+    {
+      "computation": null,
+      "cost_pct": null,
+      "costs": null,
+      "evidence": {
+        "meaning": "Remitly has quoted this corridor in the recent past but not this particular hour -- no price to show.",
+        "status": "missing"
+      },
+      "provider": "Remitly",
+      "rank": 13,
+      "source": "missing",
+      "source_files": []
+    },
+    {
+      "computation": null,
+      "cost_pct": null,
+      "costs": null,
+      "evidence": {
+        "meaning": "Westpac has quoted this corridor in the recent past but not this particular hour -- no price to show.",
+        "status": "missing"
+      },
+      "provider": "Westpac",
+      "rank": 14,
+      "source": "missing",
+      "source_files": []
+    },
+    {
+      "computation": null,
+      "cost_pct": null,
+      "costs": null,
+      "evidence": {
+        "meaning": "WorldRemit has quoted this corridor in the recent past but not this particular hour -- no price to show.",
+        "status": "missing"
+      },
+      "provider": "WorldRemit",
+      "rank": 15,
+      "source": "missing",
+      "source_files": []
+    }
+  ],
+  "size": 50000,
+  "size_words": "A$50,000",
+  "source_files": [
+    "data/provider_quotes.csv",
+    "data/providers_audphp.csv",
+    "data/providers_latest.json",
+    "data/samples.csv"
+  ]
+}
