@@ -9,17 +9,17 @@
         "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
         "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
         "note": "This is Airwallex's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
-        "result_pct": 0.0881
+        "result_pct": 0.0359
       },
-      "cost_pct": 0.0881,
-      "costs": "S$22.02",
+      "cost_pct": 0.0359,
+      "costs": "S$8.97",
       "evidence": {
-        "collected_at": "2026-11-11T14:23:21.650032+00:00",
+        "collected_at": "2026-11-11T15:23:12.452282+00:00",
         "fee": 0.0,
-        "meaning": "Airwallex's own published quote: at a rate of 49.16393, with a stated fee of 0.0, sending this amount lands 1229098.25.",
+        "meaning": "Airwallex's own published quote: at a rate of 49.189656, with a stated fee of 0.0, sending this amount lands 1229741.4.",
         "provider_site": "airwallex.com",
-        "rate": 49.16393,
-        "received": 1229098.25,
+        "rate": 49.189656,
+        "received": 1229741.4,
         "status": "own"
       },
       "provider": "Airwallex",
@@ -36,25 +36,57 @@
         "note": null,
         "result_pct": 0.1721
       },
-      "cost_pct": 0.303,
-      "costs": "S$75.75",
+      "cost_pct": 0.2093,
+      "costs": "S$52.33",
       "evidence": {
         "collected_at": "2026-11-11T13:06:58.316907+00:00",
         "landed": 1228065.63,
         "meaning": "A public price comparison service quotes Wise: this amount lands 1228065.63 after every fee.",
         "own_quote": {
-          "collected_at": "2026-11-11T14:23:21.650032+00:00",
+          "collected_at": "2026-11-11T15:23:12.452282+00:00",
           "fee": 100.25,
-          "meaning": "Wise's own published quote: at a rate of 49.2557, with a stated fee of 100.25, sending this amount lands 1226454.62.",
+          "meaning": "Wise's own published quote: at a rate of 49.302, with a stated fee of 100.25, sending this amount lands 1227607.47.",
           "provider_site": "wise.com",
-          "rate": 49.2557,
-          "received": 1226454.62
+          "rate": 49.302,
+          "received": 1227607.47
         },
         "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
         "status": "comparison"
       },
       "provider": "Wise",
       "rank": 2,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 0.273
+      },
+      "cost_pct": 0.3521,
+      "costs": "S$88.03",
+      "evidence": {
+        "collected_at": "2026-11-11T13:06:58.316907+00:00",
+        "landed": 1226824.24,
+        "meaning": "A public price comparison service quotes Instarem: this amount lands 1226824.24 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-11-11T15:23:12.452282+00:00",
+          "fee": 112.5,
+          "meaning": "Instarem's own published quote: at a rate of 49.2557, with a stated fee of 112.5, sending this amount lands 1225851.23.",
+          "provider_site": "instarem.com",
+          "rate": 49.2557,
+          "received": 1225851.23
+        },
+        "own_quote_note": "Instarem also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Instarem",
+      "rank": 3,
       "source": "own",
       "source_files": [
         "data/provider_quotes.csv",
@@ -77,41 +109,9 @@
         "status": "comparison"
       },
       "provider": "Western Union",
-      "rank": 3,
+      "rank": 4,
       "source": "comparison",
       "source_files": [
-        "data/providers.csv"
-      ]
-    },
-    {
-      "computation": {
-        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
-        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
-        "note": null,
-        "result_pct": 0.273
-      },
-      "cost_pct": 0.4263,
-      "costs": "S$106.58",
-      "evidence": {
-        "collected_at": "2026-11-11T13:06:58.316907+00:00",
-        "landed": 1226824.24,
-        "meaning": "A public price comparison service quotes Instarem: this amount lands 1226824.24 after every fee.",
-        "own_quote": {
-          "collected_at": "2026-11-11T14:23:21.650032+00:00",
-          "fee": 112.5,
-          "meaning": "Instarem's own published quote: at a rate of 49.219, with a stated fee of 112.5, sending this amount lands 1224937.86.",
-          "provider_site": "instarem.com",
-          "rate": 49.219,
-          "received": 1224937.86
-        },
-        "own_quote_note": "Instarem also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
-        "status": "comparison"
-      },
-      "provider": "Instarem",
-      "rank": 4,
-      "source": "own",
-      "source_files": [
-        "data/provider_quotes.csv",
         "data/providers.csv"
       ]
     },
