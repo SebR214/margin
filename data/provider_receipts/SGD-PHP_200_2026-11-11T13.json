@@ -7,6 +7,31 @@
     {
       "computation": {
         "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
+        "note": "This is Airwallex's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
+        "result_pct": 0.0881
+      },
+      "cost_pct": 0.0881,
+      "costs": "S$0.18",
+      "evidence": {
+        "collected_at": "2026-11-11T14:23:21.650032+00:00",
+        "fee": 0.0,
+        "meaning": "Airwallex's own published quote: at a rate of 49.16393, with a stated fee of 0.0, sending this amount lands 9832.79.",
+        "provider_site": "airwallex.com",
+        "rate": 49.16393,
+        "received": 9832.79,
+        "status": "own"
+      },
+      "provider": "Airwallex",
+      "rank": 1,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
         "meaning": "Matches providers_latest.json's own stored figure for this row.",
         "note": null,
         "result_pct": 0.4733
@@ -20,7 +45,7 @@
         "status": "comparison"
       },
       "provider": "Instarem",
-      "rank": 1,
+      "rank": 2,
       "source": "comparison",
       "source_files": [
         "data/providers.csv"
@@ -33,25 +58,25 @@
         "note": null,
         "result_pct": 0.4968
       },
-      "cost_pct": 0.5045,
-      "costs": "S$1.01",
+      "cost_pct": 0.6273,
+      "costs": "S$1.25",
       "evidence": {
         "collected_at": "2026-11-11T13:06:58.316907+00:00",
         "landed": 9792.57,
         "meaning": "A public price comparison service quotes Wise: this amount lands 9792.57 after every fee.",
         "own_quote": {
-          "collected_at": "2026-11-11T13:13:57.812911+00:00",
+          "collected_at": "2026-11-11T14:23:21.650032+00:00",
           "fee": 1.45,
-          "meaning": "Wise's own published quote: at a rate of 49.3166, with a stated fee of 1.45, sending this amount lands 9791.81.",
+          "meaning": "Wise's own published quote: at a rate of 49.2557, with a stated fee of 1.45, sending this amount lands 9779.72.",
           "provider_site": "wise.com",
-          "rate": 49.3166,
-          "received": 9791.81
+          "rate": 49.2557,
+          "received": 9779.72
         },
         "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
         "status": "comparison"
       },
       "provider": "Wise",
-      "rank": 2,
+      "rank": 3,
       "source": "own",
       "source_files": [
         "data/provider_quotes.csv",
@@ -74,7 +99,7 @@
         "status": "comparison"
       },
       "provider": "HSBC Singapore",
-      "rank": 3,
+      "rank": 4,
       "source": "comparison",
       "source_files": [
         "data/providers.csv"
@@ -96,7 +121,7 @@
         "status": "comparison"
       },
       "provider": "Western Union",
-      "rank": 4,
+      "rank": 5,
       "source": "comparison",
       "source_files": [
         "data/providers.csv"
@@ -118,7 +143,7 @@
         "venues_summary": null
       },
       "provider": "Sending it with stablecoins",
-      "rank": 5,
+      "rank": 6,
       "source": "measured",
       "source_files": [
         "data/samples.csv"
@@ -140,24 +165,11 @@
         "status": "comparison"
       },
       "provider": "PayPal",
-      "rank": 6,
+      "rank": 7,
       "source": "comparison",
       "source_files": [
         "data/providers.csv"
       ]
-    },
-    {
-      "computation": null,
-      "cost_pct": null,
-      "costs": null,
-      "evidence": {
-        "meaning": "Airwallex has quoted this corridor in the recent past but not this particular hour -- no price to show.",
-        "status": "missing"
-      },
-      "provider": "Airwallex",
-      "rank": 7,
-      "source": "missing",
-      "source_files": []
     },
     {
       "computation": null,
