@@ -1,12 +1,14 @@
 {
+  "buy_price": 258.625,
   "ccy": "DZD",
-  "computed_at": "2026-11-11T03:00:00+00:00",
+  "computed_at": "2026-11-11T04:00:00+00:00",
   "country": "Algeria",
   "denominator": {
     "class": "managed",
     "rate_per_usd": 136.249297,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 136.249297,
   "history": [
     {
       "date": "2026-09-05",
@@ -397,11 +399,18 @@
       "index_pct": 89.7293,
       "n": 20,
       "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-11-11",
+      "index_pct": 89.8175,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
-  "history_days": 65,
+  "history_days": 66,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-11-11T03:00:00+00:00",
+  "hour_utc": "2026-11-11T04:00:00+00:00",
+  "index_pct": 89.8175,
   "index_version": "1.9.2",
   "instrument_check": {
     "checked": false,
@@ -409,11 +418,18 @@
   },
   "median_24h_n": 24,
   "median_24h_pct": 90.0982,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: 9 buy-side ads, 10 required",
-  "round_trip_pct": 4.7707,
-  "source_class": null,
+  "n_boards": 1,
+  "n_sources": 10,
+  "round_trip_pct": 2.4846,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 262.0
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 258.625,
+      "index_pct": 89.8175,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    }
+  ]
 }
