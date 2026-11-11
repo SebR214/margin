@@ -50,53 +50,30 @@
     },
     {
       "computation": {
-        "formula": null,
-        "meaning": "Matches providers_latest.json's own stored figure for this row.",
-        "note": "This route has its own full step-by-step receipt -- see the link next to it on the page.",
-        "result_pct": 0.0748
-      },
-      "cost_pct": 0.0748,
-      "costs": "US$3.74",
-      "evidence": {
-        "collected_at": "2026-11-11T15:16:33.887700+00:00",
-        "meaning": "Priced on real exchanges this hour, every fee included.",
-        "status": "measured",
-        "venues_summary": "Cheapest of 4 exchange pairs this hour."
-      },
-      "provider": "Sending it with stablecoins",
-      "rank": 3,
-      "source": "measured",
-      "source_files": [
-        "data/samples.csv",
-        "data/stable_venues.csv"
-      ]
-    },
-    {
-      "computation": {
         "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
         "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
         "note": null,
         "result_pct": 0.154
       },
-      "cost_pct": 0.1327,
-      "costs": "US$6.63",
+      "cost_pct": 0.1071,
+      "costs": "US$5.36",
       "evidence": {
         "collected_at": "2026-11-11T15:16:33.887700+00:00",
         "landed": 314607.69,
         "meaning": "A public price comparison service quotes Wise: this amount lands 314607.69 after every fee.",
         "own_quote": {
-          "collected_at": "2026-11-11T15:23:12.452282+00:00",
+          "collected_at": "2026-11-11T16:01:48.888272+00:00",
           "fee": 31.37,
-          "meaning": "Wise's own published quote: at a rate of 63.3323, with a stated fee of 31.37, sending this amount lands 314674.77.",
+          "meaning": "Wise's own published quote: at a rate of 63.3485, with a stated fee of 31.37, sending this amount lands 314755.26.",
           "provider_site": "wise.com",
-          "rate": 63.3323,
-          "received": 314674.77
+          "rate": 63.3485,
+          "received": 314755.26
         },
         "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
         "status": "comparison"
       },
       "provider": "Wise",
-      "rank": 4,
+      "rank": 3,
       "source": "own",
       "source_files": [
         "data/provider_quotes.csv",
@@ -119,10 +96,32 @@
         "status": "comparison"
       },
       "provider": "Instarem",
-      "rank": 5,
+      "rank": 4,
       "source": "comparison",
       "source_files": [
         "data/providers_usdphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": null,
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": "This route has its own full step-by-step receipt -- see the link next to it on the page.",
+        "result_pct": 0.4228
+      },
+      "cost_pct": 0.4228,
+      "costs": "US$21.14",
+      "evidence": {
+        "collected_at": "2026-11-11T15:16:33.887700+00:00",
+        "meaning": "Priced on real exchanges this hour, every fee included.",
+        "status": "measured",
+        "venues_summary": null
+      },
+      "provider": "Sending it with stablecoins",
+      "rank": 5,
+      "source": "measured",
+      "source_files": [
+        "data/samples.csv"
       ]
     },
     {
@@ -233,7 +232,6 @@
     "data/provider_quotes.csv",
     "data/providers_latest.json",
     "data/providers_usdphp.csv",
-    "data/samples.csv",
-    "data/stable_venues.csv"
+    "data/samples.csv"
   ]
 }

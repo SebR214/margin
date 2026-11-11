@@ -31,17 +31,17 @@
         "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
         "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
         "note": "This is Airwallex's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
-        "result_pct": 0.0678
+        "result_pct": 0.0389
       },
-      "cost_pct": 0.0678,
-      "costs": "A$0.14",
+      "cost_pct": 0.0389,
+      "costs": "A$0.08",
       "evidence": {
-        "collected_at": "2026-11-11T15:23:12.452282+00:00",
+        "collected_at": "2026-11-11T16:01:48.888272+00:00",
         "fee": 0.0,
-        "meaning": "Airwallex's own published quote: at a rate of 43.285476, with a stated fee of 0.0, sending this amount lands 8657.1.",
+        "meaning": "Airwallex's own published quote: at a rate of 43.298036, with a stated fee of 0.0, sending this amount lands 8659.61.",
         "provider_site": "airwallex.com",
-        "rate": 43.285476,
-        "received": 8657.1,
+        "rate": 43.298036,
+        "received": 8659.61,
         "status": "own"
       },
       "provider": "Airwallex",
@@ -76,6 +76,38 @@
     {
       "computation": {
         "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 0.7406
+      },
+      "cost_pct": 0.7289,
+      "costs": "A$1.46",
+      "evidence": {
+        "collected_at": "2026-11-11T15:16:13.483455+00:00",
+        "landed": 8598.82,
+        "meaning": "A public price comparison service quotes Wise: this amount lands 8598.82 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-11-11T16:01:48.888272+00:00",
+          "fee": 1.85,
+          "meaning": "Wise's own published quote: at a rate of 43.4006, with a stated fee of 1.85, sending this amount lands 8599.83.",
+          "provider_site": "wise.com",
+          "rate": 43.4006,
+          "received": 8599.83
+        },
+        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Wise",
+      "rank": 4,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers_audphp.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
         "meaning": "Matches providers_latest.json's own stored figure for this row.",
         "note": null,
         "result_pct": 0.757
@@ -89,41 +121,9 @@
         "status": "comparison"
       },
       "provider": "HSBC Australia",
-      "rank": 4,
+      "rank": 5,
       "source": "comparison",
       "source_files": [
-        "data/providers_audphp.csv"
-      ]
-    },
-    {
-      "computation": {
-        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
-        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
-        "note": null,
-        "result_pct": 0.7406
-      },
-      "cost_pct": 0.7727,
-      "costs": "A$1.55",
-      "evidence": {
-        "collected_at": "2026-11-11T15:16:13.483455+00:00",
-        "landed": 8598.82,
-        "meaning": "A public price comparison service quotes Wise: this amount lands 8598.82 after every fee.",
-        "own_quote": {
-          "collected_at": "2026-11-11T15:23:12.452282+00:00",
-          "fee": 1.85,
-          "meaning": "Wise's own published quote: at a rate of 43.3815, with a stated fee of 1.85, sending this amount lands 8596.04.",
-          "provider_site": "wise.com",
-          "rate": 43.3815,
-          "received": 8596.04
-        },
-        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
-        "status": "comparison"
-      },
-      "provider": "Wise",
-      "rank": 5,
-      "source": "own",
-      "source_files": [
-        "data/provider_quotes.csv",
         "data/providers_audphp.csv"
       ]
     },

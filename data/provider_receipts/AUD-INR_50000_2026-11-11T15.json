@@ -29,6 +29,31 @@
     {
       "computation": {
         "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
+        "note": "This is Airwallex's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
+        "result_pct": 0.6228
+      },
+      "cost_pct": 0.6228,
+      "costs": "A$311.40",
+      "evidence": {
+        "collected_at": "2026-11-11T16:01:48.888272+00:00",
+        "fee": 0.0,
+        "meaning": "Airwallex's own published quote: at a rate of 64.176959, with a stated fee of 0.0, sending this amount lands 3208847.95.",
+        "provider_site": "airwallex.com",
+        "rate": 64.176959,
+        "received": 3208847.95,
+        "status": "own"
+      },
+      "provider": "Airwallex",
+      "rank": 2,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
         "meaning": "Matches providers_latest.json's own stored figure for this row.",
         "note": null,
         "result_pct": 0.629
@@ -42,35 +67,10 @@
         "status": "comparison"
       },
       "provider": "Xoom",
-      "rank": 2,
+      "rank": 3,
       "source": "comparison",
       "source_files": [
         "data/providers_audinr.csv"
-      ]
-    },
-    {
-      "computation": {
-        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
-        "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
-        "note": "This is Airwallex's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
-        "result_pct": 0.6419
-      },
-      "cost_pct": 0.6419,
-      "costs": "A$320.95",
-      "evidence": {
-        "collected_at": "2026-11-11T15:23:12.452282+00:00",
-        "fee": 0.0,
-        "meaning": "Airwallex's own published quote: at a rate of 64.164594, with a stated fee of 0.0, sending this amount lands 3208229.7.",
-        "provider_site": "airwallex.com",
-        "rate": 64.164594,
-        "received": 3208229.7,
-        "status": "own"
-      },
-      "provider": "Airwallex",
-      "rank": 3,
-      "source": "own",
-      "source_files": [
-        "data/provider_quotes.csv"
       ]
     },
     {
@@ -80,19 +80,19 @@
         "note": null,
         "result_pct": 0.8954
       },
-      "cost_pct": 0.9262,
-      "costs": "A$463.10",
+      "cost_pct": 0.8478,
+      "costs": "A$423.90",
       "evidence": {
         "collected_at": "2026-11-11T15:16:35.845111+00:00",
         "landed": 3200044.17,
         "meaning": "A public price comparison service quotes Wise: this amount lands 3200044.17 after every fee.",
         "own_quote": {
-          "collected_at": "2026-11-11T15:23:12.452282+00:00",
-          "fee": 206.75,
-          "meaning": "Wise's own published quote: at a rate of 64.2467, with a stated fee of 206.75, sending this amount lands 3199051.99.",
+          "collected_at": "2026-11-11T16:01:48.888272+00:00",
+          "fee": 206.74,
+          "meaning": "Wise's own published quote: at a rate of 64.2975, with a stated fee of 206.74, sending this amount lands 3201582.13.",
           "provider_site": "wise.com",
-          "rate": 64.2467,
-          "received": 3199051.99
+          "rate": 64.2975,
+          "received": 3201582.13
         },
         "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
         "status": "comparison"

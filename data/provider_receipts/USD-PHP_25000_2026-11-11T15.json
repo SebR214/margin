@@ -51,32 +51,22 @@
     {
       "computation": {
         "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
-        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
         "note": null,
         "result_pct": 0.0415
       },
-      "cost_pct": 0.0202,
-      "costs": "US$5.05",
+      "cost_pct": 0.0415,
+      "costs": "US$10.38",
       "evidence": {
         "collected_at": "2026-11-11T15:16:33.887700+00:00",
         "landed": 1574809.47,
         "meaning": "A public price comparison service quotes Wise: this amount lands 1574809.47 after every fee.",
-        "own_quote": {
-          "collected_at": "2026-11-11T15:23:12.452282+00:00",
-          "fee": 128.88,
-          "meaning": "Wise's own published quote: at a rate of 63.3323, with a stated fee of 128.88, sending this amount lands 1575145.23.",
-          "provider_site": "wise.com",
-          "rate": 63.3323,
-          "received": 1575145.23
-        },
-        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
         "status": "comparison"
       },
       "provider": "Wise",
       "rank": 3,
-      "source": "own",
+      "source": "comparison",
       "source_files": [
-        "data/provider_quotes.csv",
         "data/providers_usdphp.csv"
       ]
     },
@@ -220,7 +210,6 @@
   "size": 25000,
   "size_words": "US$25,000",
   "source_files": [
-    "data/provider_quotes.csv",
     "data/providers_latest.json",
     "data/providers_usdphp.csv",
     "data/samples.csv"

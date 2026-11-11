@@ -9,17 +9,17 @@
         "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
         "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
         "note": "This is Airwallex's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
-        "result_pct": 0.4482
+        "result_pct": 0.5129
       },
-      "cost_pct": 0.4482,
-      "costs": "NZ$22.41",
+      "cost_pct": 0.5129,
+      "costs": "NZ$25.64",
       "evidence": {
-        "collected_at": "2026-11-11T15:23:12.452282+00:00",
+        "collected_at": "2026-11-11T16:01:48.888272+00:00",
         "fee": 0.0,
-        "meaning": "Airwallex's own published quote: at a rate of 35.179651, with a stated fee of 0.0, sending this amount lands 175898.26.",
+        "meaning": "Airwallex's own published quote: at a rate of 35.156787, with a stated fee of 0.0, sending this amount lands 175783.94.",
         "provider_site": "airwallex.com",
-        "rate": 35.179651,
-        "received": 175898.26,
+        "rate": 35.156787,
+        "received": 175783.94,
         "status": "own"
       },
       "provider": "Airwallex",
@@ -36,19 +36,19 @@
         "note": null,
         "result_pct": 0.7216
       },
-      "cost_pct": 0.71,
-      "costs": "NZ$35.50",
+      "cost_pct": 0.7373,
+      "costs": "NZ$36.87",
       "evidence": {
         "collected_at": "2026-11-11T15:16:17.794846+00:00",
         "landed": 175415.32,
         "meaning": "A public price comparison service quotes Wise: this amount lands 175415.32 after every fee.",
         "own_quote": {
-          "collected_at": "2026-11-11T15:23:12.452282+00:00",
+          "collected_at": "2026-11-11T16:01:48.888272+00:00",
           "fee": 24.06,
-          "meaning": "Wise's own published quote: at a rate of 35.2568, with a stated fee of 24.06, sending this amount lands 175435.72.",
+          "meaning": "Wise's own published quote: at a rate of 35.2471, with a stated fee of 24.06, sending this amount lands 175387.45.",
           "provider_site": "wise.com",
-          "rate": 35.2568,
-          "received": 175435.72
+          "rate": 35.2471,
+          "received": 175387.45
         },
         "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
         "status": "comparison"
@@ -66,22 +66,21 @@
         "formula": null,
         "meaning": "Matches providers_latest.json's own stored figure for this row.",
         "note": "This route has its own full step-by-step receipt -- see the link next to it on the page.",
-        "result_pct": 1.2061
+        "result_pct": 1.6709
       },
-      "cost_pct": 1.2061,
-      "costs": "NZ$60.30",
+      "cost_pct": 1.6709,
+      "costs": "NZ$83.55",
       "evidence": {
         "collected_at": "2026-11-11T15:16:17.794846+00:00",
         "meaning": "Priced on real exchanges this hour, every fee included.",
         "status": "measured",
-        "venues_summary": "Cheapest of 6 exchange pairs this hour."
+        "venues_summary": null
       },
       "provider": "Sending it with stablecoins",
       "rank": 3,
       "source": "measured",
       "source_files": [
-        "data/samples.csv",
-        "data/stable_venues.csv"
+        "data/samples.csv"
       ]
     },
     {
@@ -214,7 +213,6 @@
     "data/provider_quotes.csv",
     "data/providers_latest.json",
     "data/providers_nzdphp.csv",
-    "data/samples.csv",
-    "data/stable_venues.csv"
+    "data/samples.csv"
   ]
 }

@@ -102,7 +102,7 @@
       "cost_pct": 0.2969,
       "costs": "US$14.85",
       "evidence": {
-        "collected_at": "2026-11-11T15:23:12.452282+00:00",
+        "collected_at": "2026-11-11T16:01:48.888272+00:00",
         "fee": 0.0,
         "meaning": "Airwallex's own published quote: at a rate of 93.67682, with a stated fee of 0.0, sending this amount lands 468384.1.",
         "provider_site": "airwallex.com",
@@ -164,6 +164,38 @@
     {
       "computation": {
         "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 0.7543
+      },
+      "cost_pct": 0.687,
+      "costs": "US$34.35",
+      "evidence": {
+        "collected_at": "2026-11-11T15:16:25.319895+00:00",
+        "landed": 466235.32,
+        "meaning": "A public price comparison service quotes Wise: this amount lands 466235.32 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-11-11T16:01:48.888272+00:00",
+          "fee": 27.99,
+          "meaning": "Wise's own published quote: at a rate of 93.8356, with a stated fee of 27.99, sending this amount lands 466551.54.",
+          "provider_site": "wise.com",
+          "rate": 93.8356,
+          "received": 466551.54
+        },
+        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Wise",
+      "rank": 8,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers_usdinr.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
         "meaning": "Matches providers_latest.json's own stored figure for this row.",
         "note": null,
         "result_pct": 0.6956
@@ -177,41 +209,9 @@
         "status": "comparison"
       },
       "provider": "Instarem",
-      "rank": 8,
+      "rank": 9,
       "source": "comparison",
       "source_files": [
-        "data/providers_usdinr.csv"
-      ]
-    },
-    {
-      "computation": {
-        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
-        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
-        "note": null,
-        "result_pct": 0.7543
-      },
-      "cost_pct": 0.7417,
-      "costs": "US$37.09",
-      "evidence": {
-        "collected_at": "2026-11-11T15:16:25.319895+00:00",
-        "landed": 466235.32,
-        "meaning": "A public price comparison service quotes Wise: this amount lands 466235.32 after every fee.",
-        "own_quote": {
-          "collected_at": "2026-11-11T15:23:12.452282+00:00",
-          "fee": 27.99,
-          "meaning": "Wise's own published quote: at a rate of 93.7839, with a stated fee of 27.99, sending this amount lands 466294.49.",
-          "provider_site": "wise.com",
-          "rate": 93.7839,
-          "received": 466294.49
-        },
-        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
-        "status": "comparison"
-      },
-      "provider": "Wise",
-      "rank": 9,
-      "source": "own",
-      "source_files": [
-        "data/provider_quotes.csv",
         "data/providers_usdinr.csv"
       ]
     },
