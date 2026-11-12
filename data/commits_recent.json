@@ -1,7 +1,28 @@
 {
- "as_of_utc": "2026-11-12T14:46:03Z",
+ "as_of_utc": "2026-11-12T15:21:03Z",
  "source": "https://api.github.com/repos/SebR214/margin/commits?per_page=100",
  "commits": [
+  {
+   "sha": "a521d79786f45485227c9ee3d590dbc6bd6fb4d6",
+   "html_url": "https://github.com/SebR214/margin/commit/a521d79786f45485227c9ee3d590dbc6bd6fb4d6",
+   "date": "2026-11-12T14:54:43Z",
+   "email": "person",
+   "message": "SEB-301: backlog 29a was already built, tick it (PR #743) (#798)\n\nNeeds-claude: the Aider builder re-attempted this job and failed\ntwice, but tests/agent_board_bitget_GHS.py and its config were\nalready merged to main on 2026-10-31 (PR #743). The builder had\nnot ticked BACKLOG.md, so it kept retrying an already-built job.\n520 rows of data/p2p_basis_boards.csv confirm the collector has\nbeen running since. This is a bookkeeping fix only, no code change.\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "7a74b7a2f163e5588c3704dcf625809eaf918df4",
+   "html_url": "https://github.com/SebR214/margin/commit/7a74b7a2f163e5588c3704dcf625809eaf918df4",
+   "date": "2026-11-12T14:53:53Z",
+   "email": "person",
+   "message": "SEB-301: daily gap history for flagged source pairs (backlog 28a) (#797)\n\n* SEB-301: daily gap history for flagged source pairs (backlog 28a)\n\nNeeds-claude: the Aider builder failed twice (empty after Aider, then\nno files changed). tools/pair_gap_daily.py reuses emit_source_pairs's\nper-source hourly prices, groups the hours a flagged pair shares into\nUTC days, and writes data/pair_gap_daily.csv with the median gap in\npercent and the hours compared per currency, pair and day.\n\nCo-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>\n\n* SEB-301: tick backlog 28a with its PR number\n\nCo-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Sebastian Roervig <sebastian.roervig@gmail.com>\nCo-authored-by: Claude Sonnet 5 <noreply@anthropic.com>"
+  },
+  {
+   "sha": "38163fb0d96773f5fddbabdf5dff33c30c988d01",
+   "html_url": "https://github.com/SebR214/margin/commit/38163fb0d96773f5fddbabdf5dff33c30c988d01",
+   "date": "2026-11-12T14:49:43Z",
+   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
+   "message": "sample 2026-11-12T14:49Z"
+  },
   {
    "sha": "e1df3221a0e385157f6ace1422005cbafa26b199",
    "html_url": "https://github.com/SebR214/margin/commit/e1df3221a0e385157f6ace1422005cbafa26b199",
@@ -680,27 +701,6 @@
    "date": "2026-11-10T09:47:52Z",
    "email": "329969015+margin-agents[bot]@users.noreply.github.com",
    "message": "sample 2026-11-10T09:47Z"
-  },
-  {
-   "sha": "50a68231e0fd45d284de3391c541c5bf5cabe138",
-   "html_url": "https://github.com/SebR214/margin/commit/50a68231e0fd45d284de3391c541c5bf5cabe138",
-   "date": "2026-11-10T09:27:25Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-11-10T09:27Z"
-  },
-  {
-   "sha": "f6b28b636c411a741241935c77ea1dc893d80f93",
-   "html_url": "https://github.com/SebR214/margin/commit/f6b28b636c411a741241935c77ea1dc893d80f93",
-   "date": "2026-11-10T08:46:48Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-11-10T08:46Z"
-  },
-  {
-   "sha": "a8cc081c7af55b5b6d5d659a93cf09d11edb6a4b",
-   "html_url": "https://github.com/SebR214/margin/commit/a8cc081c7af55b5b6d5d659a93cf09d11edb6a4b",
-   "date": "2026-11-10T08:25:09Z",
-   "email": "329969015+margin-agents[bot]@users.noreply.github.com",
-   "message": "sample 2026-11-10T08:25Z"
   }
  ]
 }
