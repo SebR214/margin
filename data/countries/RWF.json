@@ -1,14 +1,14 @@
 {
-  "buy_price": 1496.5425,
+  "buy_price": 1499.475,
   "ccy": "RWF",
-  "computed_at": "2026-11-11T20:00:00+00:00",
+  "computed_at": "2026-11-12T01:00:00+00:00",
   "country": "Rwanda",
   "denominator": {
     "class": "market",
-    "rate_per_usd": 1480.378712,
+    "rate_per_usd": 1479.05114,
     "source": "open.er-api"
   },
-  "fx_mid_per_usd": 1480.378712,
+  "fx_mid_per_usd": 1479.05114,
   "history": [
     {
       "date": "2026-09-05",
@@ -402,40 +402,51 @@
     },
     {
       "date": "2026-11-11",
-      "index_pct": 1.0919,
+      "index_pct": 0.9103,
+      "n": 21,
+      "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-11-12",
+      "index_pct": 1.3809,
       "n": 10,
       "source": "current_hour"
     }
   ],
-  "history_days": 66,
+  "history_days": 67,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-11-11T20:00:00+00:00",
-  "index_pct": 1.0919,
+  "hour_utc": "2026-11-12T01:00:00+00:00",
+  "index_pct": 1.3809,
   "index_version": "1.9.2",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": 0.9384,
-  "n_boards": 2,
+  "median_24h_pct": 0.9469,
+  "n_boards": 1,
   "n_sources": 10,
-  "round_trip_pct": 0.623,
+  "p2p_sources_apart": {
+    "binance_median": 1499.475,
+    "gap_pct": 6.34,
+    "okx_median": 1594.5
+  },
+  "round_trip_pct": 1.3073,
+  "second_board": {
+    "buy_price": 1594.5,
+    "combined": false,
+    "venue": "okx_p2p",
+    "why": "more than 3% from the first board"
+  },
   "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
   "source_words": "from person-to-person ads",
   "venues": [
     {
-      "buy_price": 1496.495,
-      "index_pct": 1.0887,
+      "buy_price": 1499.475,
+      "index_pct": 1.3809,
       "last_price_used": false,
       "venue": "binance_p2p"
-    },
-    {
-      "buy_price": 1496.59,
-      "index_pct": 1.0951,
-      "last_price_used": false,
-      "venue": "okx_p2p"
     }
   ]
 }
