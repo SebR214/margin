@@ -214,14 +214,13 @@ Written by the retired researcher (25 to 29 Oct). Track A rules in tools/job_sha
     files: `tools/no_price_near_miss.py` `data/no_price_near_miss.json` `tests/agent_no_price_near_miss.py`
     context: `data/no_price_sources.json` `data/index_latest.json` `data/p2p_sides.csv` `tools/gate_common.py`
     done when: tools/no_price_near_miss.py reads each currency in the no_price list of data/gap_report.json, reads the stored ad-count threshold from tools/gate_common.py, and counts from data/p2p_sides.csv the sell ads each hour of the last 7 days. It writes data/no_price_near_miss.json with, per currency, the median ad count, the threshold and the number of hours at or above it. tests/agent_no_price_near_miss.py uses an inline fixture with a threshold of 10 and 4 hourly counts of 3, 8, 10 and 12 for one currency and checks the median is 9, hours at or above is 2 and the currency is marked near miss only when the median is at least half the threshold. A currency with no rows must be listed as no data.
-- [ ] 28. Daily gap history for flagged source pairs
-  - [ ] 28a. Daily gap history for flagged source pairs
+- [x] 28. Daily gap history for flagged source pairs (done 2026-11-12)
+  - [x] 28a. Daily gap history for flagged source pairs (PR #797, 2026-11-12)
     track: aider
     proposed: researcher 2026-10-27 (gap: disagree: LKR binance_p2p vs okx_p2p median_gap_pct 8.79 hours 553 flag true)
     files: `tools/pair_gap_daily.py` `data/pair_gap_daily.csv` `tests/agent_pair_gap_daily.py`
     context: `data/source_pairs.json` `tools/emit_source_pairs.py` `data/index_hourly.csv` `data/p2p_okx.csv`
     done when: tools/pair_gap_daily.py reuses the pairing logic of tools/emit_source_pairs.py, takes the pairs with flag true in the disagree list of data/gap_report.json and writes data/pair_gap_daily.csv with one row per currency, pair and UTC day holding the median gap in percent and the hours counted. tests/agent_pair_gap_daily.py uses an inline fixture of two days with hourly prices where source a is 100 and source b is 110 on day one for 3 hours and b is 120 on day two for 2 hours, and checks day one has median gap 10.0 with 3 hours and day two has 20.0 with 2 hours. An hour where one source has no price must be skipped, not counted as zero.
-    blocked: needs-claude: the Aider builder failed 2 times, last: empty after Aider: tools/pair_gap_daily.py data/pair_gap_daily.csv tests/agent_pair_gap_daily.py (2026-11-01)
 
 ## Board x currency jobs, from the gap list (research chat, SEB-422)
 Written with `python3 tools/new_board_job.py` from `python3 tools/gap_report.py --boards` (data/board_gap_report.json). Seb or the research chat only.
