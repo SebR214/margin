@@ -1,12 +1,16 @@
 {
+  "baseline_pct": 0.3242,
+  "buy_price": 396.475,
   "ccy": "AMD",
-  "computed_at": "2026-11-14T03:00:00+00:00",
+  "computed_at": "2026-11-14T04:00:00+00:00",
   "country": "Armenia",
   "denominator": {
     "class": "market",
     "rate_per_usd": 360.536135,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 360.536135,
+  "held_value": 9.9682,
   "history": [
     {
       "date": "2026-09-05",
@@ -418,14 +422,15 @@
     },
     {
       "date": "2026-11-14",
-      "index_pct": 2.0702,
-      "n": 1,
+      "index_pct": 6.0192,
+      "n": 2,
       "source": "hourly_buy_p2p"
     }
   ],
   "history_days": 69,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-11-14T03:00:00+00:00",
+  "hour_utc": "2026-11-14T04:00:00+00:00",
+  "index_pct": null,
   "index_version": "1.9.2",
   "instrument_check": {
     "checked": false,
@@ -433,11 +438,31 @@
   },
   "median_24h_n": 24,
   "median_24h_pct": 0.2805,
+  "n_boards": 1,
   "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: 8 buy-side ads, 10 required",
-  "round_trip_pct": 11.4538,
+  "no_value_reason": "held back: +10.0% is 9.6 points from this country's usual +0.3% over the last 7 days, and no second source or earlier hour confirms it yet",
+  "p2p_sources_apart": {
+    "binance_median": 396.475,
+    "gap_pct": 4.28,
+    "okx_median": 413.455
+  },
+  "round_trip_pct": 11.1804,
+  "second_board": {
+    "buy_price": 413.455,
+    "combined": false,
+    "venue": "okx_p2p",
+    "why": "more than 3% from the first board"
+  },
   "source_class": null,
   "source_file": "data/p2p_basis.csv",
   "source_words": "no price this hour",
-  "withheld_buy_price": 397.45
+  "venues": [
+    {
+      "buy_price": 396.475,
+      "index_pct": 9.9682,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    }
+  ],
+  "withheld_buy_price": 396.475
 }
