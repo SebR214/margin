@@ -1,14 +1,14 @@
 {
-  "buy_price": 133.7675,
+  "buy_price": 131.995,
   "ccy": "KES",
-  "computed_at": "2026-11-14T23:00:00+00:00",
+  "computed_at": "2026-11-15T00:00:00+00:00",
   "country": "Kenya",
   "denominator": {
     "class": "market",
-    "rate_per_usd": 129.992415,
+    "rate_per_usd": 129.985537,
     "source": "open.er-api"
   },
-  "fx_mid_per_usd": 129.992415,
+  "fx_mid_per_usd": 129.985537,
   "history": [
     {
       "date": "2026-09-02",
@@ -438,40 +438,51 @@
     },
     {
       "date": "2026-11-14",
-      "index_pct": 2.9041,
+      "index_pct": 0.3501,
+      "n": 24,
+      "source": "hourly_buy_p2p"
+    },
+    {
+      "date": "2026-11-15",
+      "index_pct": 1.5459,
       "n": 10,
       "source": "current_hour"
     }
   ],
-  "history_days": 72,
+  "history_days": 73,
   "history_start": "2026-09-02",
-  "hour_utc": "2026-11-14T23:00:00+00:00",
-  "index_pct": 2.9041,
+  "hour_utc": "2026-11-15T00:00:00+00:00",
+  "index_pct": 1.5459,
   "index_version": "1.9.2",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": 0.3501,
-  "n_boards": 2,
+  "median_24h_pct": 0.3578,
+  "n_boards": 1,
   "n_sources": 10,
-  "round_trip_pct": 1.8401,
+  "p2p_sources_apart": {
+    "binance_median": 131.995,
+    "gap_pct": 8.05,
+    "okx_median": 142.615
+  },
+  "round_trip_pct": 1.3903,
+  "second_board": {
+    "buy_price": 142.615,
+    "combined": false,
+    "venue": "okx_p2p",
+    "why": "more than 3% from the first board"
+  },
   "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
   "source_words": "from person-to-person ads",
   "venues": [
     {
-      "buy_price": 132.55,
-      "index_pct": 1.9675,
+      "buy_price": 131.995,
+      "index_pct": 1.5459,
       "last_price_used": false,
       "venue": "binance_p2p"
-    },
-    {
-      "buy_price": 134.985,
-      "index_pct": 3.8407,
-      "last_price_used": false,
-      "venue": "okx_p2p"
     }
   ]
 }
