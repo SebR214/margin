@@ -313,6 +313,13 @@ jobs:
         # other collector: exits non-zero ONLY on a total blackout.
         run: python3 collector_p2p_okx.py
 
+      - name: Collect OKX ads per side for five countries (SEB-464)
+        if: always() && steps.needed.outputs.proceed == 'true'
+        # collector_p2p_okx_sides.py counts buy and sell ads apart for AOA, BWP, GHS, LBP and ZAR.
+        # Own file data/p2p_okx_sides.csv, nothing reads it yet. Must not stop the chain.
+        continue-on-error: true
+        run: python3 collector_p2p_okx_sides.py
+
       # SEB-422 step 3: the cash dollar. collectors/cash_configs/*.json, one public money-changer tracker each (collectors/template_tracker.py).
       # Fails the run only when no tracker was read; one tracker down is a row with source_ok false in the daily table cash_rates.
       - name: Collect the cash dollar from the money-changer trackers (SEB-422)
@@ -912,6 +919,10 @@ jobs:
           done
           # Who sells each P2P ad (SEB-384): a new sidecar CSV, its own loop so no existing line is edited.
           for f in data/p2p_ads_sellers.csv; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          # OKX ads per side for five countries (SEB-464): a new sidecar CSV, its own loop so no existing line is edited.
+          for f in data/p2p_okx_sides.csv; do
             if [ -f "$f" ]; then git add "$f"; fi
           done
           # First venues for countries with no price (SEB-301, BACKLOG 17): four new CSVs, their own loop so no existing line is edited.
