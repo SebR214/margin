@@ -25,7 +25,7 @@ import sys
 import urllib.error
 import urllib.request
 
-BUILDERS = ["claude_builder.yml", "aider_builder.yml", "one_call.yml"]
+BUILDERS = ["aider_builder.yml", "one_call.yml"]
 SILENT_AFTER = datetime.timedelta(hours=26)
 
 

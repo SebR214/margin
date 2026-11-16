@@ -90,7 +90,7 @@ jobs:
           one-call/*)
             key=$(echo "$title" | grep -oE '\bSEB-[0-9]+\b' | head -1)
             LINEAR_API_KEY="$LINEAR_API_KEY" python3 agents/linear_sync.py merged "$key" "$n" || echo "could not update $key in Linear" ;;
-          # a Claude builder PR (branch claude/<issue>, claude_builder.yml): Done, with the live link of every page it changed
+          # a Claude builder PR (branch claude/<issue>, the "margin.wiki builder" scheduled task): Done, with the live link of every page it changed
           claude/*)
             key=$(echo "$title" | grep -oE '\bSEB-[0-9]+\b' | head -1)
             pages=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$n/files?per_page=100" --jq '.[].filename' | grep -E '^[a-z0-9_-]+\.html$' | sed 's#^#https://margin.wiki/#' | tr '\n' ' ')
