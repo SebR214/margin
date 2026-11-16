@@ -26,6 +26,7 @@ Sources already in use on 2026-10-11 are listed as approved with the reason
 """
 import collections
 import csv
+import glob
 import datetime as dt
 import json
 import os
@@ -35,6 +36,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 REGISTRY = os.path.join(DATA, "source_registry.json")
+RAW = os.environ.get("MARGIN_RAW_DIR") or None
 QUARANTINE_DAYS = 7
 MIN_SHARED_HOURS = 100
 MAX_MEDIAN_GAP_PCT = 3.0
@@ -83,27 +85,73 @@ def evaluate(own, neighbours):
     return not reasons, reasons, {"days": len(days), "shared_hours": shared, "median_gap_pct": med}
 
 
-def venue_prices():
+def _read_files(paths):
+    for p in paths:
+        with open(p, newline="") as f:
+            yield from csv.DictReader(f)
+
+
+def _day_files(table, dirs):
+    """Day files data/<table>/YYYY-MM-DD.csv from each directory (this repo, and the margin-data checkout when set)."""
+    seen, out = set(), []
+    for d in dirs:
+        for p in sorted(glob.glob(os.path.join(d, table, "????-??-??.csv"))):
+            if os.path.basename(p) not in seen:
+                seen.add(os.path.basename(p))
+                out.append(p)
+    return sorted(out, key=os.path.basename)
+
+
+# Files in the shared venue format (ts_utc,venue,ccy,kind,n_board,n_ads,ask_best,...,source_ok,error). The venue column is
+# the registry name. The price is the best ask, what a person pays for a dollar, like the other sources' buy price.
+VENUE_FILES = ("zar_luno.csv", "zar_valr.csv", "p2p_kucoin.csv")
+# Bitget and HTX boards: data/p2p_basis_boards.csv, the board column maps to the registry name.
+BOARD_NAMES = {"bitget": "Bitget P2P", "htx": "HTX P2P"}
+# Cash trackers: data/cash_rates/YYYY-MM-DD.csv, registry name "Cash: <tracker>". The price is what a person pays for a
+# dollar in cash (the tracker's sell side), or its mid when there is no sell.
+CASH_PREFIX = "Cash: "
+
+
+def _price(v):
+    try:
+        p = float(v or 0)
+    except ValueError:
+        return 0.0
+    return p if p > 0 else 0.0
+
+
+def venue_prices(data=None, raw=None):
     """{venue or board: {ccy: {hour: buy price}}} from real rows only."""
+    data = data or DATA
+    dirs = [data] + ([raw] if raw and raw != data else [])
+    one = lambda name: [os.path.join(d, name) for d in dirs if os.path.exists(os.path.join(d, name))][:1]
     out = collections.defaultdict(lambda: collections.defaultdict(dict))
-    for r in _read("basis.csv"):
+    for r in _read_files(one("basis.csv")):
         v = r.get("venue") or ""
         if r.get("source_ok") != "True" or (v.startswith("CriptoYa (") and v.endswith(")")):
             continue
-        try:
-            p = float(r.get("usdt_ask") or r.get("usdt_mid") or 0)
-        except ValueError:
-            continue
+        p = _price(r.get("usdt_ask") or r.get("usdt_mid"))
         if p > 0:
             out[v][r["ccy"]][r["ts_utc"][:13]] = p
     for name, fn in (("binance_p2p", "p2p_basis.csv"), ("okx_p2p", "p2p_okx.csv")):
-        for r in _read(fn):
-            try:
-                p = float(r.get("buy_median") or 0)
-            except ValueError:
-                continue
+        for r in _read_files(one(fn)):
+            p = _price(r.get("buy_median"))
             if r.get("source_ok") == "True" and p > 0:
                 out[name][r["ccy"]][r["ts_utc"][:13]] = p
+    for fn in VENUE_FILES:
+        for r in _read_files(one(fn)):
+            p = _price(r.get("ask_best"))
+            if r.get("source_ok") == "True" and p > 0 and r.get("venue"):
+                out[r["venue"]][r["ccy"]][r["ts_utc"][:13]] = p
+    for r in _read_files(one("p2p_basis_boards.csv")):
+        name = BOARD_NAMES.get(r.get("board") or "")
+        p = _price(r.get("buy_median"))
+        if name and r.get("source_ok") == "True" and p > 0:
+            out[name][r["ccy"]][r["ts_utc"][:13]] = p
+    for r in _read_files(_day_files("cash_rates", dirs)):
+        p = _price(r.get("sell")) or _price(r.get("mid"))
+        if r.get("source_ok") == "True" and p > 0 and r.get("tracker"):
+            out[CASH_PREFIX + r["tracker"]][r["ccy"]][r["ts_utc"][:13]] = p
     return out
 
 
@@ -120,7 +168,7 @@ def neighbours_for(name, prices, registry):
 
 
 def init():
-    prices = venue_prices()
+    prices = venue_prices(raw=RAW)
     first = {}
     for name, by_ccy in prices.items():
         first[name] = min(h for series in by_ccy.values() for h in series)[:10]
@@ -134,7 +182,7 @@ def init():
 
 
 def status():
-    reg, prices = load_registry(), venue_prices()
+    reg, prices = load_registry(), venue_prices(raw=RAW)
     unlisted = sorted(n for n in prices if n not in reg["sources"])
     quarantined = sorted(n for n, s in reg["sources"].items() if s.get("status") != "approved")
     return {"approved": sorted(n for n in reg["sources"] if approved(n, reg)), "quarantine": quarantined, "unlisted_with_rows": unlisted}
@@ -176,7 +224,7 @@ def main():
         return 1 if s["unlisted_with_rows"] else 0
     if "--evaluate" in a:
         name = a[a.index("--evaluate") + 1]
-        prices, reg = venue_prices(), load_registry()
+        prices, reg = venue_prices(raw=RAW), load_registry()
         ok, why, facts = evaluate(prices.get(name, {}), neighbours_for(name, prices, reg))
         print(json.dumps({"source": name, "may_leave_quarantine": ok, "reasons": why, **facts}, indent=1))
         return 0 if ok else 1
