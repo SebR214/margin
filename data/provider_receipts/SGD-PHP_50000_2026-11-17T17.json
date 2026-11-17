@@ -1,0 +1,206 @@
+{
+  "corridor": "SGD->PHP",
+  "crypto_hour_utc": "2026-11-17T17:00:00+00:00",
+  "hour_utc": "2026-11-17T17",
+  "panel_hour_utc": "2026-11-17T17:00:00+00:00",
+  "rows": [
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent this quote's rate and fee, together, cost -- matches providers_latest.json's own stored figure for this row.",
+        "note": "This is Airwallex's own published number. It is not checked against an independent comparison service, so sending-money.html does not show it as a ranked figure yet.",
+        "result_pct": 0.6209
+      },
+      "cost_pct": 0.6209,
+      "costs": "S$310.45",
+      "evidence": {
+        "collected_at": "2026-11-17T17:13:46.481886+00:00",
+        "fee": 0.0,
+        "meaning": "Airwallex's own published quote: at a rate of 49.296917, with a stated fee of 0.0, sending this amount lands 2464845.85.",
+        "provider_site": "airwallex.com",
+        "rate": 49.296917,
+        "received": 2464845.85,
+        "status": "own"
+      },
+      "provider": "Airwallex",
+      "rank": 1,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 0.8107
+      },
+      "cost_pct": 0.7983,
+      "costs": "S$399.15",
+      "evidence": {
+        "collected_at": "2026-11-17T17:06:41.294582+00:00",
+        "landed": 2460137.52,
+        "meaning": "A public price comparison service quotes Wise: this amount lands 2460137.52 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-11-17T17:13:46.481886+00:00",
+          "fee": 182.3,
+          "meaning": "Wise's own published quote: at a rate of 49.389, with a stated fee of 182.3, sending this amount lands 2460446.39.",
+          "provider_site": "wise.com",
+          "rate": 49.389,
+          "received": 2460446.39
+        },
+        "own_quote_note": "Wise also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Wise",
+      "rank": 2,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "The share of the amount sent the comparison service's quote costs -- matches providers_latest.json's own stored also_quoted_pct for this row, which is the figure sending-money.html actually shows for this provider.",
+        "note": null,
+        "result_pct": 1.1854
+      },
+      "cost_pct": 0.9925,
+      "costs": "S$496.25",
+      "evidence": {
+        "collected_at": "2026-11-17T17:06:41.294582+00:00",
+        "landed": 2450845.58,
+        "meaning": "A public price comparison service quotes Instarem: this amount lands 2450845.58 after every fee.",
+        "own_quote": {
+          "collected_at": "2026-11-17T17:13:46.481886+00:00",
+          "fee": 225.0,
+          "meaning": "Instarem's own published quote: at a rate of 49.3346, with a stated fee of 225.0, sending this amount lands 2455629.72.",
+          "provider_site": "instarem.com",
+          "rate": 49.3346,
+          "received": 2455629.72
+        },
+        "own_quote_note": "Instarem also publishes its own quote directly, shown above, at a different rate and fee. This page shows the public comparison figure here instead, so every provider is checked the same independent way.",
+        "status": "comparison"
+      },
+      "provider": "Instarem",
+      "rank": 3,
+      "source": "own",
+      "source_files": [
+        "data/provider_quotes.csv",
+        "data/providers.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 1.0965
+      },
+      "cost_pct": 1.0965,
+      "costs": "S$548.25",
+      "evidence": {
+        "collected_at": "2026-11-17T17:06:41.294582+00:00",
+        "landed": 2453048.91,
+        "meaning": "A public price comparison service quotes Western Union: this amount lands 2453048.91 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "Western Union",
+      "rank": 4,
+      "source": "comparison",
+      "source_files": [
+        "data/providers.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": null,
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": "This route has its own full step-by-step receipt -- see the link next to it on the page.",
+        "result_pct": 1.2321
+      },
+      "cost_pct": 1.2321,
+      "costs": "S$616.05",
+      "evidence": {
+        "collected_at": "2026-11-17T17:06:41.294582+00:00",
+        "meaning": "Priced on real exchanges this hour, every fee included.",
+        "status": "measured",
+        "venues_summary": null
+      },
+      "provider": "Sending it with stablecoins",
+      "rank": 5,
+      "source": "measured",
+      "source_files": [
+        "data/samples.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 2.0307
+      },
+      "cost_pct": 2.0307,
+      "costs": "S$1,015.35",
+      "evidence": {
+        "collected_at": "2026-11-17T17:06:41.294582+00:00",
+        "landed": 2429878.34,
+        "meaning": "A public price comparison service quotes HSBC Singapore: this amount lands 2429878.34 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "HSBC Singapore",
+      "rank": 6,
+      "source": "comparison",
+      "source_files": [
+        "data/providers.csv"
+      ]
+    },
+    {
+      "computation": {
+        "formula": "(1 minus the amount received divided by (the amount sent times the mid-market exchange rate at the time)), times 100",
+        "meaning": "Matches providers_latest.json's own stored figure for this row.",
+        "note": null,
+        "result_pct": 3.5899
+      },
+      "cost_pct": 3.5899,
+      "costs": "S$1,794.95",
+      "evidence": {
+        "collected_at": "2026-11-17T17:06:41.294582+00:00",
+        "landed": 2391207.59,
+        "meaning": "A public price comparison service quotes OFX: this amount lands 2391207.59 after every fee.",
+        "status": "comparison"
+      },
+      "provider": "OFX",
+      "rank": 7,
+      "source": "comparison",
+      "source_files": [
+        "data/providers.csv"
+      ]
+    },
+    {
+      "computation": null,
+      "cost_pct": null,
+      "costs": null,
+      "evidence": {
+        "meaning": "PayPal has quoted this corridor in the recent past but not this particular hour -- no price to show.",
+        "status": "missing"
+      },
+      "provider": "PayPal",
+      "rank": 8,
+      "source": "missing",
+      "source_files": []
+    }
+  ],
+  "size": 50000,
+  "size_words": "S$50,000",
+  "source_files": [
+    "data/provider_quotes.csv",
+    "data/providers.csv",
+    "data/providers_latest.json",
+    "data/samples.csv"
+  ]
+}
