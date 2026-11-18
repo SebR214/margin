@@ -24,7 +24,7 @@ feed with no second source, or a jump one source shows and the second source doe
 A currency with fewer than 14 days of official history cannot be judged for an official break (a weekly repeat could not be seen), or fewer
 than 7 for a street slide: not_enough_evidence.
 
-Confirmed only when two official sources show the step (er-api and data/fx_live.csv, which starts 21 Oct) or two street sources move
+Confirmed only when two official sources show the step (er-api and data/fx_live.csv, which starts 21 Oct, or data/fx_second.csv, Frankfurter, which starts 23 Oct) or two street sources move
 10% or more the same way over the window (Binance and OKX, data/p2p_okx.csv, which starts 3 Oct). Otherwise the row says "one source".
 
 Reopened every 7 days for 8 weeks (an update row and a new entry in the record's "after"), then closed. Nothing earlier is rewritten:
@@ -55,6 +55,7 @@ EVENTS = os.path.join(DATA, "events.csv")
 RECORDS = os.path.join(DATA, "event_records")
 FIELDS = ["as_of_date", "event_id", "ccy", "kind", "status", "confirmation", "detected_on", "baseline", "latest", "change_pct", "note"]
 
+SECOND = os.path.join(DATA, "fx_second.csv")
 OFFICIAL_STEP_PCT = 3.0
 OFFICIAL_DAYS = 3
 STREET_SLIDE_PCT = 10.0
@@ -113,6 +114,7 @@ def load(root_read=read):
     """Everything the detector uses, as day-keyed dictionaries. Nothing here knows today's date."""
     off = cor.daily(cor.FX, "ts_utc", "fx_mid_per_usd")                       # {ccy: {day: last reading}}
     live = cor.daily(cor.LIVE, "ts_utc", "rate_per_usd", ok_col="source_ok")
+    second = cor.daily(SECOND, "ts_utc", "rate_per_usd", ok_col="source_ok")      # Frankfurter, from 23 Oct (SEB-466)
     n_off, managed = {}, set()
     for r in root_read("fx_rates.csv"):
         n_off[(r["ccy"], r["ts_utc"][:10])] = n_off.get((r["ccy"], r["ts_utc"][:10]), 0) + 1
@@ -149,7 +151,7 @@ def load(root_read=read):
     for s, d in street.items():
         for (ccy, day), v in d.items():
             street_c[s].setdefault(ccy, {})[day] = v
-    return {"off": off, "n_off": n_off, "live": live, "street": street, "street_c": street_c, "size": size, "managed": managed,
+    return {"off": off, "n_off": n_off, "live": live, "second": second, "street": street, "street_c": street_c, "size": size, "managed": managed,
             "central_bank": set()}
 
 
@@ -218,6 +220,11 @@ def own_median_move(data, ccy):
     return f
 
 
+def other_official(data, ccy):
+    """The official sources besides er-api, as (name, {day: rate}): the live rate (from 21 Oct) and Frankfurter (from 23 Oct)."""
+    return [("fx_live", data["live"].get(ccy, {})), ("frankfurter-v2", data.get("second", {}).get(ccy, {}))]
+
+
 def unit_error(data, ccy, D, ch):
     """Why a 3-day official move is a data fault and not an event, or None. Three tests, in this order:
     a redenomination (the rate times a power of ten); one source jumping while the second official source does not; a jump of 50% or more
@@ -230,14 +237,19 @@ def unit_error(data, ccy, D, ch):
         k = round(lg)
         if k != 0 and abs(lg - k) <= REDENOM_TOL_LOG10:
             return "a redenomination or unit change: the rate was multiplied by 10^%d" % k
-    live = data["live"].get(ccy, {})
-    la, lb = live.get(day_add(D, -OFFICIAL_DAYS)), live.get(D)
-    second = None
-    if la and lb:
-        c2 = pct(la, lb)
-        second = (c2 > 0) == (ch > 0) and abs(c2) >= abs(ch) / 2
-        if not second:
-            return "one source jumped %s%% and the second official source did not (%s%%)" % (ch, c2)
+    second, seen = None, []
+    for name, series in other_official(data, ccy):
+        la, lb = series.get(day_add(D, -OFFICIAL_DAYS)), series.get(D)
+        if la and lb:
+            c2 = pct(la, lb)
+            seen.append((name, c2))
+            if (c2 > 0) == (ch > 0) and abs(c2) >= abs(ch) / 2:
+                second = True
+    if seen and not second:
+        if [n for n, _ in seen] == ["fx_live"]:
+            return "one source jumped %s%% and the second official source did not (%s%%)" % (ch, seen[0][1])
+        return "one source jumped %s%% and the second official source did not (%s)" % (
+            ch, ", ".join("%s %s%%" % (n.replace("fx_live", "live rate"), c) for n, c in seen))
     if big and not second and ccy not in data.get("central_bank", ()):
         return "a jump of %s%% in one aggregator feed with no second source: held as a unit error until another source shows it" % ch
     if abs(ch) >= SECOND_SOURCE_PCT and second is None and ccy not in data.get("central_bank", ()):
@@ -300,10 +312,11 @@ def event_id(ccy, kind, d):
 def confirmation(kind, data, ccy, d, ch):
     """(text, sources shown). Two sources or 'one source'."""
     if kind == "official_break":
-        live = cut(data["live"].get(ccy, {}), d)
-        a, b = live.get(day_add(d, -OFFICIAL_DAYS)), live.get(d)
-        if a and b and abs(pct(a, b)) >= OFFICIAL_STEP_PCT and (pct(a, b) > 0) == (ch > 0):
-            return "two sources", ["er-api", "fx_live"]
+        for name, series in other_official(data, ccy):
+            series = cut(series, d)
+            a, b = series.get(day_add(d, -OFFICIAL_DAYS)), series.get(d)
+            if a and b and abs(pct(a, b)) >= OFFICIAL_STEP_PCT and (pct(a, b) > 0) == (ch > 0):
+                return "two sources", ["er-api", name]
         return "one source", ["er-api"]
     okx = data["street"]["okx_p2p"].get
     a, b = okx((ccy, day_add(d, -STREET_DAYS))), okx((ccy, d))
@@ -368,6 +381,8 @@ def build_record(data, ccy, kind, d, ch, conf, sources, ok_size, flagged):
                    "days_with_a_reading_in_window": sum(1 for n in range(OFFICIAL_DAYS + 1) if off.get(day_add(d, -n)))},
         "fx_live": {"file": "data/fx_live.csv", "first_reading_day": min((d for v in data["live"].values() for d in v), default=None),
                     "days_with_a_reading_in_window": sum(1 for n in range(OFFICIAL_DAYS + 1) if data["live"].get(ccy, {}).get(day_add(d, -n)))},
+        "frankfurter-v2": {"file": "data/fx_second.csv", "first_reading_day": min((x for v in data.get("second", {}).values() for x in v), default=None),
+                           "days_with_a_reading_in_window": sum(1 for n in range(OFFICIAL_DAYS + 1) if data.get("second", {}).get(ccy, {}).get(day_add(d, -n)))},
         "binance_p2p": {"file": "data/p2p_basis.csv", "days_with_a_price_in_window": sum(1 for n in range(STREET_DAYS + 1) if sb.get((ccy, day_add(d, -n))))},
         "okx_p2p": {"file": "data/p2p_okx.csv", "days_with_a_price_in_window": sum(1 for n in range(STREET_DAYS + 1) if data["street"]["okx_p2p"].get((ccy, day_add(d, -n))))},
         "official_rate_rules_flagged_that_day": flagged}

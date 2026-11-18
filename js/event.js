@@ -163,6 +163,7 @@
     }
     add("er-api", "sourceOfficial", c["er-api"] && c["er-api"].days_with_a_reading_in_window, 4);
     add("fx_live", "sourceLive", c.fx_live && c.fx_live.days_with_a_reading_in_window, 4);
+    add("frankfurter-v2", "sourceSecond", c["frankfurter-v2"] && c["frankfurter-v2"].days_with_a_reading_in_window, 4);
     add("binance_p2p", "sourceBinance", c.binance_p2p && c.binance_p2p.days_with_a_price_in_window, 8);
     add("okx_p2p", "sourceOkx", c.okx_p2p && c.okx_p2p.days_with_a_price_in_window, 8);
     return '<section id="evChecks">' + w("checksHeading", null, "h2") + '<ul class="sm-facts sm-num">' + out.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul></section>";
