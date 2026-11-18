@@ -1,12 +1,14 @@
 {
+  "buy_price": 3754.35,
   "ccy": "MNT",
-  "computed_at": "2026-11-18T13:00:00+00:00",
+  "computed_at": "2026-11-18T14:00:00+00:00",
   "country": "Mongolia",
   "denominator": {
     "class": "market",
     "rate_per_usd": 3602.456854,
     "source": "open.er-api"
   },
+  "fx_mid_per_usd": 3602.456854,
   "history": [
     {
       "date": "2026-09-05",
@@ -418,26 +420,34 @@
     },
     {
       "date": "2026-11-18",
-      "index_pct": 4.2146,
-      "n": 9,
-      "source": "hourly_buy_p2p"
+      "index_pct": 4.2164,
+      "n": 10,
+      "source": "current_hour"
     }
   ],
   "history_days": 69,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-11-18T13:00:00+00:00",
+  "hour_utc": "2026-11-18T14:00:00+00:00",
+  "index_pct": 4.2164,
   "index_version": "1.9.2",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
-  "median_24h_n": 12,
-  "median_24h_pct": 4.2747,
-  "n_sources": null,
-  "no_value_reason": "not enough evidence this hour: 9 buy-side ads, 10 required",
-  "round_trip_pct": 0.8449,
-  "source_class": null,
+  "median_24h_n": 13,
+  "median_24h_pct": 4.2613,
+  "n_boards": 1,
+  "n_sources": 10,
+  "round_trip_pct": 0.8605,
+  "source_class": "p2p_buy_median",
   "source_file": "data/p2p_basis.csv",
-  "source_words": "no price this hour",
-  "withheld_buy_price": 3755.0
+  "source_words": "from person-to-person ads",
+  "venues": [
+    {
+      "buy_price": 3754.35,
+      "index_pct": 4.2164,
+      "last_price_used": false,
+      "venue": "binance_p2p"
+    }
+  ]
 }
