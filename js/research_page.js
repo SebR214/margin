@@ -117,6 +117,8 @@
       var p = r.premium_before_pct / 100, closed = p > 0 ? Math.max(0, Math.min(1, (r.landing_ratio * (1 + p) - 1) / p)) : 1;
       x.before = r.premium_before_pct;
       x.after = r.premium_before_pct * (1 - closed);   // the part of the gap still open after the jump, as the home page worked it out
+      x.g30 = r.gap_30d_pct == null ? null : r.gap_30d_pct;   // the gap 30 and 90 days after (SEB-468); null is a blank, never a guess
+      x.g90 = r.gap_90d_pct == null ? null : r.gap_90d_pct;
     });
     return Object.keys(rows).map(function (k) { return rows[k]; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
   }
@@ -127,10 +129,16 @@
     var text = kid(hero, el('div', 'fp-hero-text'));
     kid(text, word('h1', '', 'breaksTitle'));
     kid(text, word('p', ['soft', 'fp-line'], 'breaksLead'));
+    // one line: of the jumps with a gap before and 90 days after, how many ended with a smaller gap and how many with the same or a bigger one
+    var judged = (brk || []).filter(function (r) { return r.before != null && r.g90 != null; });
+    var smaller = judged.filter(function (r) { return Math.abs(+r.g90.toFixed(1)) < Math.abs(+r.before.toFixed(1)); }).length;
+    if (judged.length && T('breaksAfterLine')) {
+      kid(text, el('p', ['soft', 'fp-line'], T('breaksAfterLine', { n: judged.length, smaller: smaller, larger: judged.length - smaller })));
+    }
     kid(text, word('p', ['muted', 'fp-note'], 'breaksLabel'));
     if (text.firstChild) wrap.appendChild(hero);
     if (!brk || !brk.length) return;
-    var cols = [['colCountry', 'c'], ['colDate', 'd'], ['colMove', 'm'], ['colBefore', 'b'], ['colAfter', 'a']];
+    var cols = [['colCountry', 'c'], ['colDate', 'd'], ['colMove', 'm'], ['colBefore', 'b'], ['colAfter', 'a'], ['colGap30', 'g30'], ['colGap90', 'g90']];
     if (cols.some(function (c) { return !T(c[0]); })) return;
     var tb = el('table', 'rs-brk');
     var hd = el('tr');
@@ -145,6 +153,8 @@
       cell('m', r.move == null ? '' : (r.move > 0 ? '+' : '\u2212') + fmt(Math.abs(r.move)) + '%');
       cell('b', r.before == null ? T('noPrice') : pct1(r.before));
       cell('a', r.after == null ? T('noPrice') : pct1(r.after));
+      cell('g30', r.g30 == null ? T('noPrice') : pct1(r.g30));
+      cell('g90', r.g90 == null ? T('noPrice') : pct1(r.g90));
       body.appendChild(tr);
     });
     tb.appendChild(body);

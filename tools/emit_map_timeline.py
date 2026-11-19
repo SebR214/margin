@@ -44,6 +44,7 @@ OFFICIAL_LAG_DAYS = 3
 MOVE_DAYS = 30
 HOURLY_DAYS = 90
 LANDING = os.path.join(ROOT, "data", "history", "backtest_landing.csv")
+AFTER = os.path.join(ROOT, "data", "history", "break_after.csv")   # SEB-468: the gap 30 and 90 days after a break (tools/break_after.py)
 LANDING_MIN_MOVE = 10.0
 CLASSES = {"0": "ours", "1": "reported exchange", "2": "official only"}
 
@@ -147,9 +148,28 @@ def load_hourly_rows():
     return rows
 
 
-def landing(path, names):
+def after_gaps(path):
+    """{(ccy, date): (gap 30 days after, gap 90 days after)} from data/history/break_after.csv, None for a "none" or a missing file.
+    A missing file gives {}: the page then shows the two columns as blanks."""
+    out = {}
+    if not path or not os.path.exists(path):
+        return out
+    def num(v):
+        try:
+            return round(float(v), 1)
+        except ValueError:
+            return None
+    with open(path, newline="") as f:
+        for r in csv.DictReader(f):
+            out[(r["ccy"], r["event_date"])] = (num(r["gap_30d_pct"]), num(r["gap_90d_pct"]))
+    return out
+
+
+def landing(path, names, after=None):
     """The breaks of LANDING_MIN_MOVE or more that have a landing ratio (tools/backtest_watch.py), newest first.
-    ratio = official rate 14 to 21 days after / street price 7 to 14 days before."""
+    ratio = official rate 14 to 21 days after / street price 7 to 14 days before.
+    gap_30d_pct and gap_90d_pct: the gap 30 and 90 days after the break (data/history/break_after.csv), null where we hold none."""
+    after = after or {}
     out = []
     with open(path, newline="") as f:
         for r in csv.DictReader(f):
@@ -160,7 +180,9 @@ def landing(path, names):
                 continue                                   # "none": no street price around that break
             if move >= LANDING_MIN_MOVE:
                 out.append({"ccy": r["ccy"], "country": names.get(r["ccy"], r["ccy"]), "date": r["event_date"], "move_pct": round(move, 1),
-                            "premium_before_pct": round(prem, 1), "landing_ratio": round(ratio, 4)})
+                            "premium_before_pct": round(prem, 1), "landing_ratio": round(ratio, 4),
+                            "gap_30d_pct": after.get((r["ccy"], r["event_date"]), (None, None))[0],
+                            "gap_90d_pct": after.get((r["ccy"], r["event_date"]), (None, None))[1]})
     return sorted(out, key=lambda x: (x["date"], x["ccy"]), reverse=True)
 
 
@@ -191,7 +213,8 @@ def main():
     rows = load_hourly_rows()
     last_hour = max(r[0] for r in rows) + ":00"
     dump(os.path.join(OUT_DIR, "last90.json"), hourly(set(ccys), rows, last_hour))
-    dump(os.path.join(OUT_DIR, "landing.json"), {"rows": landing(LANDING, {c["ccy"]: c["country"] for c in countries}),
+    land_rows = landing(LANDING, {c["ccy"]: c["country"] for c in countries}, after_gaps(AFTER))
+    dump(os.path.join(OUT_DIR, "landing.json"), {"rows": land_rows,
                                                   "note": "reported, not seen by us: street prices and official rates from data/history/"})
     dump(os.path.join(OUT_DIR, "index.json"), {
         "classes": CLASSES, "years": years, "menu_years": menu, "menu_min": MENU_MIN, "first_day": "%d-01-01" % FIRST_YEAR, "last_day": last_day, "own_start": own_start,
@@ -237,6 +260,16 @@ def selftest():
             f.write("e,TRY,floating,2020-08-06,3.8367,two sources,event,6.9,7.35,1.0651,0.16,x,l,s\n")
         got = landing(p, {"ARS": "Argentina", "TRY": "Turkey"})
         assert [(x["ccy"], x["date"], x["landing_ratio"], x["premium_before_pct"]) for x in got] == [("TRY", "2018-08-10", 1.3107, -1.2), ("ARS", "2015-12-18", 0.9078, 54.4)], got
+        ap = os.path.join(tmp, "a.csv")
+        with open(ap, "w", newline="") as f:
+            f.write("event_id,ccy,event_date,gap_before_pct,gap_30d_pct,gap_90d_pct,label,source\n")
+            f.write("a,ARS,2015-12-18,54.43,4.14,none,l,s\n")
+            f.write("b,TRY,2018-08-10,-1.17,1.8,-0.0,l,s\n")
+        ag = after_gaps(ap)
+        assert ag == {("ARS", "2015-12-18"): (4.1, None), ("TRY", "2018-08-10"): (1.8, -0.0)}, ag
+        got = landing(p, {"ARS": "Argentina", "TRY": "Turkey"}, ag)
+        assert [(x["gap_30d_pct"], x["gap_90d_pct"]) for x in got] == [(1.8, -0.0), (4.1, None)], "a gap we do not hold stays null"
+        assert after_gaps(os.path.join(tmp, "missing.csv")) == {}
     print("emit_map_timeline self-test: ok")
     return 0
 
