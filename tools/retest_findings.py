@@ -9,7 +9,7 @@ Each finding has a test file in findings_tests/<id>.json: the exact calculation,
 test invalid, and the thresholds for holds, weaker and no longer true. This script reads those files and the finding's own stored evidence
 (data/findings_hours_<id>.csv, data/findings.json, data/volume_crossover.json) and appends a row to data/finding_tests.csv. Each retest adds
 a row; no earlier row is ever changed. A finding is tested at most once a clock day, and only when its trigger fired: new evidence rows for
-the price findings, a changed fee table (the tier schedule date) for the volume finding. The first row of a finding is its baseline.
+the price findings, a changed fee table or a new day of the finding's own volume for the volume finding, new spread rows for the spread finding. The first row of a finding is its baseline.
 
     ts_utc,finding_id,status,metric,value,baseline,n_obs,window_start,window_end,data_through,reason,detail
 status: holds | weaker | no_longer_true | invalid (the test could not be run fairly; the reason says why).
@@ -116,6 +116,11 @@ def m_volume(root, test, now, first):
     out = {"metric": "volume_change_vs_first", "n_obs": vc.get("n_samples", 0), "window_start": "", "window_end": "",
            "data_through": vc.get("tier_schedule_as_of", ""), "detail": ""}
     cur = f["headline"]["value"] if f else None
+    # SEB-467: the volume moves with the finding's own headline, so a new headline day is new evidence too. Before this the test
+    # fired only when the fee table changed (last on 1 Nov) and so went stale for 17 days while the volume was still being published.
+    day = (f or {}).get("headline", {}).get("as_of_utc", "")[:10]
+    if day:
+        out["data_through"] = "%s|%s" % (out["data_through"], day)
     if vc.get("status") != "ok" or (vc.get("reconstruction_max_error_bps") or 0) > 1 or vc.get("n_samples", 0) < 500 or not cur:
         return dict(out, invalid="status %r, rebuild error %s bps, %s checks, volume %s" % (vc.get("status"), vc.get("reconstruction_max_error_bps"), vc.get("n_samples"), cur))
     base = float(first["baseline"]) if first and first.get("baseline") else float(cur)      # the first volume this test recorded
@@ -206,7 +211,60 @@ def m_stress(root, test, now, first):
     return dict(out, value=len(surv) / len(triggers), baseline=len(triggers), detail=json.dumps(detail))
 
 
-METRICS = {"price_changes": m_price_changes, "weekend_penalty": m_weekend, "volume_crossover": m_volume,
+SPIKE_RATIO = 2.0
+SPIKE_HOURS = 3
+
+
+def spike_outcomes(rows):
+    """rows: dicts of data/p2p_spread_signal.csv with ts (datetime), ccy, ratio (float or None). Returns [(ccy, start, closed)] for each
+    judged spike. A spike starts at a ratio row >= 2 when the currency's previous ratio row was under 2 or there was none. It closed if a
+    ratio row of the same currency within 3 hours after the start is under 2. It is judged once closed, or once the currency has a row at
+    least 3 hours after the start."""
+    by = {}
+    for r in rows:
+        if r["ratio"] is not None:
+            by.setdefault(r["ccy"], []).append(r)
+    out = []
+    for ccy, rs in by.items():
+        rs.sort(key=lambda r: r["ts"])
+        prev = None
+        for i, r in enumerate(rs):
+            if r["ratio"] >= SPIKE_RATIO and (prev is None or prev < SPIKE_RATIO):
+                limit = r["ts"] + dt.timedelta(hours=SPIKE_HOURS)
+                closed = any(x["ratio"] < SPIKE_RATIO for x in rs[i + 1:] if x["ts"] <= limit)
+                if closed or any(x["ts"] >= limit for x in rs[i + 1:]):
+                    out.append((ccy, r["ts"], closed))
+            prev = r["ratio"]
+    return out
+
+
+def m_spread(root, test, now, first):
+    out = {"metric": "share_of_spikes_closed_within_3_hours", "n_obs": 0, "window_start": "", "window_end": "", "data_through": "", "detail": ""}
+    path = os.path.join(root, test["evidence_file"])
+    if not os.path.exists(path):
+        return dict(out, invalid="the evidence file is missing")
+    rows = []
+    for r in rows_of(path):
+        v = r.get("spread_ratio", "")
+        rows.append({"ts": parse(r["ts_utc"]), "ccy": r["ccy"], "ratio": float(v) if v not in ("", None) else None})
+    if not rows:
+        return dict(out, invalid="the evidence file is empty")
+    end = max(r["ts"] for r in rows)
+    start = end - dt.timedelta(days=28)
+    out.update(window_start=start.strftime("%Y-%m-%dT%H:%M:%SZ"), window_end=end.strftime("%Y-%m-%dT%H:%M:%SZ"), data_through=end.strftime("%Y-%m-%dT%H:%M:%SZ"))
+    f, _ = finding_meta(root, "p2p_spread_signal")
+    if stale(f, 72, now):
+        return dict(out, invalid="the finding's last recheck is more than 3 days old")
+    # the spike must start inside the window; rows before it only tell whether the spike was already open
+    spikes = [s for s in spike_outcomes(rows) if s[1] >= start]
+    closed = sum(1 for s in spikes if s[2])
+    out.update(n_obs=len(spikes), detail=json.dumps({"judged_spikes": len(spikes), "closed": closed}))
+    if len(spikes) < 10:
+        return dict(out, invalid="fewer than 10 judged spikes in the window (%d)" % len(spikes))
+    return dict(out, value=closed / len(spikes), baseline=len(spikes))
+
+
+METRICS = {"price_changes": m_price_changes, "weekend_penalty": m_weekend, "volume_crossover": m_volume, "p2p_spread_signal": m_spread,
            "sgd_php_never_cheapest": m_sgd, "exchange_vs_p2p": m_exchange, "stress_signal": m_stress}
 
 
