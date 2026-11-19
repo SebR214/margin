@@ -66,6 +66,11 @@ MANIFEST_OUT = os.path.join(BUNDLE_DIR, "manifest.json")
 # either way.
 BUNDLE_MAX_BYTES = 15_000_000
 
+# Seb chose this cutoff on 19 Nov 2026 (SEB-470): the browser bundle keeps only the last 365 days.
+# The bundle hit 19.4 MB against the 15 MB limit and about 9 in 10 collection runs failed here.
+# Only the bundle is trimmed. The CSVs in data/ and data/history/ keep every row.
+BUNDLE_HISTORY_DAYS = 365
+
 
 def csv_tables(con):
     """One table per top-level CSV, name == file stem, types as duckdb infers
@@ -85,6 +90,45 @@ def csv_tables(con):
         )
         names.append(name)
     return names
+
+
+def timestamp_column(con, name):
+    """The table's first column if it holds timestamps (the same column as_of_utc reads), else None.
+    A date or timestamp type counts. A text column counts only if every non-empty value casts."""
+    first_col, col_type = con.execute(f'DESCRIBE "{name}"').fetchone()[:2]
+    if col_type.startswith(("TIMESTAMP", "DATE")):
+        return first_col
+    if col_type == "VARCHAR":
+        bad = con.execute(
+            f'SELECT count(*) FROM "{name}" '
+            f'WHERE "{first_col}" IS NOT NULL AND try_cast("{first_col}" AS TIMESTAMP) IS NULL'
+        ).fetchone()[0]
+        total = con.execute(
+            f'SELECT count("{first_col}") FROM "{name}"'
+        ).fetchone()[0]
+        if total and not bad:
+            return first_col
+    return None
+
+
+def trim_history(con, table_names, now=None, days=BUNDLE_HISTORY_DAYS):
+    """Drop rows older than `days` from every table that has a timestamp column. Tables with none
+    stay whole. Rows with an empty timestamp stay. Returns {table: rows dropped}."""
+    now = now or dt.datetime.now(dt.timezone.utc)
+    cutoff = (now - dt.timedelta(days=days)).replace(tzinfo=None)
+    dropped = {}
+    for name in table_names:
+        col = timestamp_column(con, name)
+        if col is None:
+            continue
+        before = con.execute(f'SELECT count(*) FROM "{name}"').fetchone()[0]
+        con.execute(
+            f'DELETE FROM "{name}" WHERE try_cast("{col}" AS TIMESTAMP) < ?', [cutoff]
+        )
+        after = con.execute(f'SELECT count(*) FROM "{name}"').fetchone()[0]
+        if before != after:
+            dropped[name] = before - after
+    return dropped
 
 
 def country_tables(con):
@@ -155,10 +199,14 @@ def main():
     con = duckdb.connect()
     csv_names = csv_tables(con)
     country_names = country_tables(con)
+    as_of = as_of_utc(con, csv_names)  # read before the trim, so the clock is the data's, not the cutoff's
+    dropped = trim_history(con, csv_names)
+    for name, n in sorted(dropped.items()):
+        print(f"  trimmed {name}: {n:,} rows older than {BUNDLE_HISTORY_DAYS} days left out of the bundle")
     tables = export(con, csv_names + country_names)
 
     manifest = {
-        "as_of_utc": as_of_utc(con, csv_names),
+        "as_of_utc": as_of,
         "total_bytes": sum(t["bytes"] for t in tables.values()),
         "tables": tables,
     }
@@ -179,8 +227,8 @@ def main():
         print(
             f"  [error] bundle is {manifest['total_bytes']:,} bytes, "
             f"over the {BUNDLE_MAX_BYTES:,}-byte target -- "
-            f"trim needs a human call (oldest history first, at a stated "
-            f"cutoff), not a silent drop",
+            f"still over after the {BUNDLE_HISTORY_DAYS}-day cutoff Seb chose "
+            f"on 19 Nov 2026 -- a shorter cutoff is a human call, not a silent drop",
             file=sys.stderr,
         )
         sys.exit(1)
