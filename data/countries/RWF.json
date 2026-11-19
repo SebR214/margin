@@ -1,7 +1,8 @@
 {
-  "buy_price": 1525.79,
+  "baseline_pct": 2.5696,
+  "buy_price": 1573.985,
   "ccy": "RWF",
-  "computed_at": "2026-11-19T21:00:00+00:00",
+  "computed_at": "2026-11-19T22:00:00+00:00",
   "country": "Rwanda",
   "denominator": {
     "class": "market",
@@ -9,6 +10,7 @@
     "source": "open.er-api"
   },
   "fx_mid_per_usd": 1479.217595,
+  "held_value": 6.4066,
   "history": [
     {
       "date": "2026-09-05",
@@ -450,15 +452,15 @@
     },
     {
       "date": "2026-11-19",
-      "index_pct": 3.1484,
-      "n": 10,
-      "source": "current_hour"
+      "index_pct": 3.7028,
+      "n": 21,
+      "source": "hourly_buy_p2p"
     }
   ],
   "history_days": 74,
   "history_start": "2026-09-05",
-  "hour_utc": "2026-11-19T21:00:00+00:00",
-  "index_pct": 3.1484,
+  "hour_utc": "2026-11-19T22:00:00+00:00",
+  "index_pct": null,
   "index_version": "1.9.2",
   "instrument_check": {
     "checked": false,
@@ -467,28 +469,30 @@
   "median_24h_n": 24,
   "median_24h_pct": 3.7027,
   "n_boards": 1,
-  "n_sources": 10,
+  "n_sources": null,
+  "no_value_reason": "held back: +6.4% is 3.8 points from this country's usual +2.6% over the last 7 days, and no second source or earlier hour confirms it yet",
   "p2p_sources_apart": {
-    "binance_median": 1525.79,
-    "gap_pct": 9.45,
-    "okx_median": 1670.0
+    "binance_median": 1573.985,
+    "gap_pct": 4.64,
+    "okx_median": 1647.0
   },
-  "round_trip_pct": 1.2532,
+  "round_trip_pct": 4.4813,
   "second_board": {
-    "buy_price": 1670.0,
+    "buy_price": 1647.0,
     "combined": false,
     "venue": "okx_p2p",
     "why": "more than 3% from the first board"
   },
-  "source_class": "p2p_buy_median",
+  "source_class": null,
   "source_file": "data/p2p_basis.csv",
-  "source_words": "from person-to-person ads",
+  "source_words": "no price this hour",
   "venues": [
     {
-      "buy_price": 1525.79,
-      "index_pct": 3.1484,
+      "buy_price": 1573.985,
+      "index_pct": 6.4066,
       "last_price_used": false,
       "venue": "binance_p2p"
     }
-  ]
+  ],
+  "withheld_buy_price": 1573.985
 }
