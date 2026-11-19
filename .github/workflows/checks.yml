@@ -354,7 +354,9 @@ jobs:
   copy-lock:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # 20, not 5: the full-history checkout alone takes 3 to 5 minutes now, so at 5 the job was
+    # cancelled on PRs #802 and #804 and automerge never merged them (19 Nov 2026).
+    timeout-minutes: 20
     permissions:
       contents: read
       pull-requests: read
