@@ -1,7 +1,8 @@
 {
-  "buy_price": 1455.72,
+  "baseline_pct": 4.6326,
+  "buy_price": 1460.0,
   "ccy": "NGN",
-  "computed_at": "2026-11-19T06:00:00+00:00",
+  "computed_at": "2026-11-19T07:00:00+00:00",
   "country": "Nigeria",
   "denominator": {
     "class": "managed",
@@ -9,6 +10,7 @@
     "source": "open.er-api"
   },
   "fx_mid_per_usd": 1354.040817,
+  "held_value": 7.8254,
   "history": [
     {
       "date": "2026-10-09",
@@ -246,33 +248,35 @@
     },
     {
       "date": "2026-11-19",
-      "index_pct": 7.5093,
-      "n": 1,
-      "source": "current_hour"
+      "index_pct": 7.4525,
+      "n": 8,
+      "source": "hourly_buy"
     }
   ],
   "history_days": 40,
   "history_start": "2026-10-09",
-  "hour_utc": "2026-11-19T06:00:00+00:00",
-  "index_pct": 7.5093,
+  "hour_utc": "2026-11-19T07:00:00+00:00",
+  "index_pct": null,
   "index_version": "1.9.2",
   "instrument_check": {
     "checked": false,
     "reason": "no venue here lists both"
   },
   "median_24h_n": 24,
-  "median_24h_pct": 7.8183,
-  "n_sources": 1,
-  "round_trip_pct": 0.0323,
-  "source_class": "order_book_single",
-  "source_file": "data/basis.csv",
-  "source_words": "from an order book",
+  "median_24h_pct": 7.8773,
+  "n_sources": null,
+  "no_value_reason": "held back: +7.8% is 3.2 points from this country's usual +4.6% over the last 7 days, and no second source or earlier hour confirms it yet",
+  "round_trip_pct": 0.1592,
+  "source_class": null,
+  "source_file": "data/p2p_basis.csv",
+  "source_words": "no price this hour",
   "venues": [
     {
-      "buy_price": 1455.72,
-      "index_pct": 7.5093,
+      "buy_price": 1460.0,
+      "index_pct": 7.8254,
       "last_price_used": false,
       "venue": "Luno"
     }
-  ]
+  ],
+  "withheld_buy_price": 1460.0
 }
